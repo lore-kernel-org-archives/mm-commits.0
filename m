@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72F2E7CF18;
-	Tue,  9 Jul 2024 22:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D707CF18;
+	Tue,  9 Jul 2024 22:41:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720564912; cv=none; b=rCxvlh7Q5JCTWXk3wq+MbNT/J2N9o1/YEkfQfsW68inh485flaZi0oJd3CkkL65G7BOORq9yudfemuwyIBTXcpR5jqxKxdaV/XEdxVYTKvyJEbGpWjiJNb4B+5vSMUuvF0rZBFZ+gXE1gscfq6W2jrTzl8PtuWGbOU1Hq86toGI=
+	t=1720564913; cv=none; b=LnJhd6nFUEojzEfmpSaHMkgZxctljGiAD4+24RS6kga0i6rIsB426WnnGxo4LaM9pEdH7AhQ6H/q2KN+RunwBTmuYuNNOvv1JDqLd9URwXdePv2ebOMnzws3u4vg6MsJzeZoDyNI6uIjGPCi6Wzlbf1sFilTnJTayauqyWs/XLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720564912; c=relaxed/simple;
-	bh=3zwIKNh1J+nKd78hgy2qirJffO/DMUAFjCcriRHzMRQ=;
-	h=Date:To:From:Subject:Message-Id; b=AMnV/mgVjYu7oB5gg5jT31iFnoMre7KRVPydX5zRhituUllTKfGJo9zs+SKGWCzKdtRflXVKL2mEDSEkS1ay3OgNbKVcuOixrvE8C9M2pG4kYiEoQD2phOvQLZ9SU3oMgRc8lPAJi4n5Ebx3F2KibwHQPQ0OnjcfPscY60upy34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M8YvXs8W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720564913; c=relaxed/simple;
+	bh=cCJX5jp/wnF4JfyNE/u6ypC5s10f5KN75fWZULAVZTw=;
+	h=Date:To:From:Subject:Message-Id; b=VVVtRK3dERRJZ3Vkp27z0iGW8+Cmu9U8CCsgsWmJtkuDTIQeR5SAuiznPjAU90TZ6R9pjwT/+UrUoXGGaqMwrzzs9PFrJj5HqoycR+t5ChLbjaOsvQB9OB5TnoajwoG07ULBik0Hz1lnqmQTH/c4N0I6K7MPfwDaWydUnj5tgcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sqf6RlL7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M8YvXs8W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC28EC32786;
-	Tue,  9 Jul 2024 22:41:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sqf6RlL7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E8B9C32786;
+	Tue,  9 Jul 2024 22:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720564912;
-	bh=3zwIKNh1J+nKd78hgy2qirJffO/DMUAFjCcriRHzMRQ=;
+	s=korg; t=1720564913;
+	bh=cCJX5jp/wnF4JfyNE/u6ypC5s10f5KN75fWZULAVZTw=;
 	h=Date:To:From:Subject:From;
-	b=M8YvXs8W508siFscTW9sT7TNoiSXJkQc5lvSh/PKtOfFy+Fj/D/o0a5NpiPbxYMmH
-	 P+d3dw1tltrk3rDY43/5Uz04hW6eXcCY9SN8M/9A6Bddhp1O64COBsoXL2jUClkgQB
-	 5ccQTYwO3W4RIM7YRQbV+Y+Yc52K29MGr5r/x/68=
-Date: Tue, 09 Jul 2024 15:41:51 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,shy828301@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,aneesh.kumar@linux.ibm.com,zhangpeng362@huawei.com,akpm@linux-foundation.org
+	b=Sqf6RlL7wi0dOz9YZDDlv2mSVYTgCc1qjHSpisl0XLP7UQVZ6ji2S3/bQXJjoTY0y
+	 hy7XCix37nVMQDv92nviSO4QwHlL/aa5menBahacB/qz4h/GKCXcL2DKS8w+L68QdK
+	 bA/78VHNW4AgSEL3nXOtO7aIH+azcuj1tLEJdeu8=
+Date: Tue, 09 Jul 2024 15:41:52 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] filemap-replace-pte_offset_map-with-pte_offset_map_nolock.patch removed from -mm tree
-Message-Id: <20240709224151.EC28EC32786@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch removed from -mm tree
+Message-Id: <20240709224153.1E8B9C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: filemap: replace pte_offset_map() with pte_offset_map_nolock()
+     Subject: mm/hugetlb: fix potential race in __update_and_free_hugetlb_folio()
 has been removed from the -mm tree.  Its filename was
-     filemap-replace-pte_offset_map-with-pte_offset_map_nolock.patch
+     mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: filemap: replace pte_offset_map() with pte_offset_map_nolock()
-Date: Wed, 13 Mar 2024 09:29:13 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix potential race in __update_and_free_hugetlb_folio()
+Date: Mon, 8 Jul 2024 10:51:27 +0800
 
-The vmf->ptl in filemap_fault_recheck_pte_none() is still set from
-handle_pte_fault().  But at the same time, we did a pte_unmap(vmf->pte). 
-After a pte_unmap(vmf->pte) unmap and rcu_read_unlock(), the page table
-may be racily changed and vmf->ptl maybe fails to protect the actual page
-table.  Fix this by replacing pte_offset_map() with
-pte_offset_map_nolock().
+There is a potential race between __update_and_free_hugetlb_folio() and
+try_memory_failure_hugetlb():
 
-As David said, the PTL pointer might be stale so if we continue to use
-it infilemap_fault_recheck_pte_none(), it might trigger UAF.  Also, if
-the PTL fails, the issue fixed by commit 58f327f2ce80 ("filemap: avoid
-unnecessary major faults in filemap_fault()") might reappear.
+ CPU1					CPU2
+ __update_and_free_hugetlb_folio	try_memory_failure_hugetlb
+					 folio_test_hugetlb
+					  -- It's still hugetlb folio.
+  folio_clear_hugetlb_hwpoison
+  					  spin_lock_irq(&hugetlb_lock);
+					   __get_huge_page_for_hwpoison
+					    folio_set_hugetlb_hwpoison
+					  spin_unlock_irq(&hugetlb_lock);
+  spin_lock_irq(&hugetlb_lock);
+  __folio_clear_hugetlb(folio);
+   -- Hugetlb flag is cleared but too late.
+  spin_unlock_irq(&hugetlb_lock);
 
-Link: https://lkml.kernel.org/r/20240313012913.2395414-1-zhangpeng362@huawei.com
-Fixes: 58f327f2ce80 ("filemap: avoid unnecessary major faults in filemap_fault()")
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+When the above race occurs, raw error page info will be leaked.  Even
+worse, raw error pages won't have hwpoisoned flag set and hit
+pcplists/buddy.  Fix this issue by deferring
+folio_clear_hugetlb_hwpoison() until __folio_clear_hugetlb() is done.  So
+all raw error pages will have hwpoisoned flag set.
+
+Link: https://lkml.kernel.org/r/20240708025127.107713-1-linmiaohe@huawei.com
+Fixes: 32c877191e02 ("hugetlb: do not clear hugetlb dtor until allocating vmemmap")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/filemap.c~filemap-replace-pte_offset_map-with-pte_offset_map_nolock
-+++ a/mm/filemap.c
-@@ -3231,7 +3231,8 @@ static vm_fault_t filemap_fault_recheck_
- 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
- 		return 0;
+--- a/mm/hugetlb.c~mm-hugetlb-fix-potential-race-in-__update_and_free_hugetlb_folio
++++ a/mm/hugetlb.c
+@@ -1726,13 +1726,6 @@ static void __update_and_free_hugetlb_fo
+ 	}
  
--	ptep = pte_offset_map(vmf->pmd, vmf->address);
-+	ptep = pte_offset_map_nolock(vma->vm_mm, vmf->pmd, vmf->address,
-+				     &vmf->ptl);
- 	if (unlikely(!ptep))
- 		return VM_FAULT_NOPAGE;
+ 	/*
+-	 * Move PageHWPoison flag from head page to the raw error pages,
+-	 * which makes any healthy subpages reusable.
+-	 */
+-	if (unlikely(folio_test_hwpoison(folio)))
+-		folio_clear_hugetlb_hwpoison(folio);
+-
+-	/*
+ 	 * If vmemmap pages were allocated above, then we need to clear the
+ 	 * hugetlb flag under the hugetlb lock.
+ 	 */
+@@ -1742,6 +1735,13 @@ static void __update_and_free_hugetlb_fo
+ 		spin_unlock_irq(&hugetlb_lock);
+ 	}
  
++	/*
++	 * Move PageHWPoison flag from head page to the raw error pages,
++	 * which makes any healthy subpages reusable.
++	 */
++	if (unlikely(folio_test_hwpoison(folio)))
++		folio_clear_hugetlb_hwpoison(folio);
++
+ 	folio_ref_unfreeze(folio, 1);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory-failure-remove-obsolete-mf_msg_different_compound.patch
 
