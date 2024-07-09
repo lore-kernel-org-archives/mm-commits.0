@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1859D1B86D4
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:37:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D671B86D4
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:43:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720561042; cv=none; b=DaSxAZwPjZAdy/+FBiH9bDd9OMSWpVqyeEgm6VZMiWolvDt13rHL0bWqMIrfN/vXhwHwvEtXixiswmbfcbPkudVoZcHKrlE5gY0ivl28SxTaxhUBoDmZ2HkEZc8+qWObmA+TTXDmFC8M/yRnal+CTtsaPvQmFiZyHx3wZWkWPd4=
+	t=1720561392; cv=none; b=LdrYzA1FKnA1ad2663Trl7MHO9eeZQJxAPR7W+LbQE2AJoOW3odrBYopHFXvTLI/YNtnX3XilLlpZlQJ9y05wHgyiMIWMUNWCcT2egY5X4SWAbNo6McMpSmLG80chRHOrGCEn/nruINGPrhvT+Dz29aMKVvMUydykKZy9fpMwFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720561042; c=relaxed/simple;
-	bh=nthK0lhLyRCIOLW7NtmrQ2JMbUm7pRWZNmuoGRxsIW0=;
-	h=Date:To:From:Subject:Message-Id; b=pBSBx6G0twJx87XtYvcnpjaRNlexgSdTQPdnnUCNN/7678OHllsgyqZn3VwSFZfp66iWeKZ2Y2BuTpf5YrlSfptcwJRLKjy6MOd2HNunEa214QD7HMkKoh1b9I8Iar2cdu1LGj1J0vzTdHfBeQr5KfJNoN0kgaoWUsBLI5IsKXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pzLw6an9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720561392; c=relaxed/simple;
+	bh=uy8P0wSnrvFhS4Z+9pNi9kSJN+bhufymPAbGrrIw0VI=;
+	h=Date:To:From:Subject:Message-Id; b=GGbU0lmzXSCxq3aH0gCQ4v8cBM9KA0+BiQVSYO+i84xYzMsxlg0StaZ8EhitfHfA7Fs1B3M5kGxcqL2c0sMrLQ/TK2fqFqXYneKzaHC2DI1l5OPG6BzjhixTJ4WUWiSmlV6neSQCAi8mI8rVdKZTACqAEnHpfmPVkT2Kp22odvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmLL4lMc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pzLw6an9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A207C3277B;
-	Tue,  9 Jul 2024 21:37:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmLL4lMc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA45C3277B;
+	Tue,  9 Jul 2024 21:43:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720561041;
-	bh=nthK0lhLyRCIOLW7NtmrQ2JMbUm7pRWZNmuoGRxsIW0=;
+	s=korg; t=1720561392;
+	bh=uy8P0wSnrvFhS4Z+9pNi9kSJN+bhufymPAbGrrIw0VI=;
 	h=Date:To:From:Subject:From;
-	b=pzLw6an9OpCtT6DTNWO6K+OqMZWNmYuWmTK0e88chFJILR+3hdRUPgnuLCcSz6jgh
-	 epGISOf8fI4gvym9a7jWthpbGng819sFLdHWpSO5AcSmEMPufZW5mASAuHTRwHzn4v
-	 S+m6MNII+KvCguaReEZNC5va9/xm1xFbgupZPfcs=
-Date: Tue, 09 Jul 2024 14:37:20 -0700
-To: mm-commits@vger.kernel.org,suzuki.poulose@arm.com,robh@kernel.org,quic_jinlmao@quicinc.com,quic_hazha@quicinc.com,quic_bjorande@quicinc.com,o.rempel@pengutronix.de,mike.leach@linaro.org,matttbe@kernel.org,matt@ranostay.sg,kuba@kernel.org,krzk+dt@kernel.org,kees@kernel.org,jikos@kernel.org,geliang@kernel.org,davem@davemloft.net,conor+dt@kernel.org,james.clark@linaro.org,akpm@linux-foundation.org
+	b=FmLL4lMc4tuoBaHkdjhsWMeaCfbSaEq5+nQop26jsNWlqsUG8KwuedcD626LC1mt5
+	 8tTD5oFL0ojhTWWxBIwDm6qCfn9ccX1BY/mOSopOcb77R+QEf1dXHzTnYn/kGsrr/I
+	 FS8IYWTVKMfLxQ07+rQz23YMeIa4DLIGg/v0SN/U=
+Date: Tue, 09 Jul 2024 14:43:11 -0700
+To: mm-commits@vger.kernel.org,syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com,muchun.song@linux.dev,kraxel@redhat.com,airlied@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dt-bindings-arm-update-james-clarks-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240709213721.8A207C3277B@smtp.kernel.org>
+Subject: + mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch added to mm-unstable branch
+Message-Id: <20240709214312.5CA45C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dt-bindings: arm: opdate James Clark's email address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     dt-bindings-arm-update-james-clarks-email-address.patch
+     Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dt-bindings-arm-update-james-clarks-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: James Clark <james.clark@linaro.org>
-Subject: dt-bindings: arm: opdate James Clark's email address
-Date: Tue, 9 Jul 2024 11:25:11 +0100
+From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
+Date:   Mon Jul 8 23:04:48 2024 -0700
 
-My new address is james.clark@linaro.org
 
-Link: https://lkml.kernel.org/r/20240709102512.31212-3-james.clark@linaro.org
-Signed-off-by: James Clark <james.clark@linaro.org>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Conor Dooley <conor+dt@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geliang Tang <geliang@kernel.org>
-Cc: Hao Zhang <quic_hazha@quicinc.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
-Cc: Mao Jinlong <quic_jinlmao@quicinc.com>
-Cc: Matthieu Baerts <matttbe@kernel.org>
-Cc: Matt Ranostay <matt@ranostay.sg>
-Cc: Mike Leach <mike.leach@linaro.org>
-Cc: Oleksij Rempel <o.rempel@pengutronix.de>
-Cc: Rob Herring (Arm) <robh@kernel.org>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
+return -EINVAL if the end offset is greater than the size of memfd
+
+Link: https://lkml.kernel.org/r/IA0PR11MB71850525CBC7D541CAB45DF1F8DB2@IA0PR11MB7185.namprd11.prod.outlook.com
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Reported-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
+Testted-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/arm/arm,coresight-dummy-sink.yaml   |    2 +-
- Documentation/devicetree/bindings/arm/arm,coresight-dummy-source.yaml |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/gup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/devicetree/bindings/arm/arm,coresight-dummy-sink.yaml~dt-bindings-arm-update-james-clarks-email-address
-+++ a/Documentation/devicetree/bindings/arm/arm,coresight-dummy-sink.yaml
-@@ -30,7 +30,7 @@ description: |
- maintainers:
-   - Mike Leach <mike.leach@linaro.org>
-   - Suzuki K Poulose <suzuki.poulose@arm.com>
--  - James Clark <james.clark@arm.com>
-+  - James Clark <james.clark@linaro.org>
-   - Mao Jinlong <quic_jinlmao@quicinc.com>
-   - Hao Zhang <quic_hazha@quicinc.com>
+--- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2
++++ a/mm/gup.c
+@@ -3814,6 +3814,9 @@ long memfd_pin_folios(struct file *memfd
+ 	if (!shmem_file(memfd) && !is_file_hugepages(memfd))
+ 		return -EINVAL;
  
---- a/Documentation/devicetree/bindings/arm/arm,coresight-dummy-source.yaml~dt-bindings-arm-update-james-clarks-email-address
-+++ a/Documentation/devicetree/bindings/arm/arm,coresight-dummy-source.yaml
-@@ -29,7 +29,7 @@ description: |
- maintainers:
-   - Mike Leach <mike.leach@linaro.org>
-   - Suzuki K Poulose <suzuki.poulose@arm.com>
--  - James Clark <james.clark@arm.com>
-+  - James Clark <james.clark@linaro.org>
-   - Mao Jinlong <quic_jinlmao@quicinc.com>
-   - Hao Zhang <quic_hazha@quicinc.com>
- 
++	if (end >= i_size_read(file_inode(memfd)))
++		return -EINVAL;
++
+ 	if (is_file_hugepages(memfd)) {
+ 		h = hstate_file(memfd);
+ 		pgshift = huge_page_shift(h);
 _
 
-Patches currently in -mm which might be from james.clark@linaro.org are
+Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
-maintainers-mailmap-update-james-clarks-email-address.patch
-dt-bindings-arm-update-james-clarks-email-address.patch
+mm-gup-introduce-unpin_folio-unpin_folios-helpers.patch
+mm-gup-introduce-check_and_migrate_movable_folios.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
+udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap.patch
+udmabuf-add-back-support-for-mapping-hugetlb-pages.patch
+udmabuf-convert-udmabuf-driver-to-use-folios.patch
+udmabuf-pin-the-pages-using-memfd_pin_folios-api.patch
+selftests-udmabuf-add-tests-to-verify-data-after-page-migration.patch
 
