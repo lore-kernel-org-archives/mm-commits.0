@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0343714374C
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:50:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67125187842
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720561822; cv=none; b=kkatNk8vqEZNl9M/TEfWRkRyYNdNn0v8nZodvN4BOLIAfexb5ivdcnM9i3h4TSuydtFeorGMnlkS+RrJCx0er5OyJnWSrMw8zDS5kGpYhbHJ+ZF/g3ncQ8OvVJ/Z+DPo3wfKVhUdDHnjzReOFggfhfO/yHzFcQdW6tr5IChGDCA=
+	t=1720562061; cv=none; b=lHn1SmTwvRjLFTKcxh0B1QrvwNb8Dt/ZFoKQk0HR+M6zJNWeXzDjP1Nu1F5n1TZShQXBjVHkUf/Uu8rQ6mOiVyBdVt6RNqjbDyhHnn9RII4rBN0I3beeYQjcemo/2GarfAku5mXqRL6sRZt+MgR38p2O0Z1Tl64tn+VDbcIfYfg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720561822; c=relaxed/simple;
-	bh=QkTspA8DPBkfNhb0ymau7j3nrWDjuFhtqKvLbbCnnW8=;
-	h=Date:To:From:Subject:Message-Id; b=Xvy0HI6mSNLuJpYRnppCHncZeHHqZPBai3Vi1gFuRx8uUOHaOm9vm3ndMbdWlsQ6rG5hTgj+Tbf/tBc7/LwvEPjJAqNj0XJhYM/7PeYh5Kc30vpZ5Tdryv5hdaDbeKWMGEv0TQCSYUB30hCXVJSDZjbGFzoKcPrtvWgLj6kjA/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x1Sva5Fe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720562061; c=relaxed/simple;
+	bh=3BGTFJor1iecsQkunaBGcW3MBE4Ab4Ja+PEIIjzvE+c=;
+	h=Date:To:From:Subject:Message-Id; b=CQGLFti68LJW+z2q6cf/EFUGNfVkWU8P+5Wkp2ycAjGPCmdjKKJYQE+Xn2OAUTz7pjUNSooeoIXv2i6DxdYr5I+FxCTuYS3hw4Uug9kmpmj1XLoXhSJYlJAWBxEKlFjbJbn6czyuhn7s9gryrjTI/hzFqLaXCVLgNknz+i416AQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NGoS2Hty; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x1Sva5Fe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71401C3277B;
-	Tue,  9 Jul 2024 21:50:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NGoS2Hty"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5745C3277B;
+	Tue,  9 Jul 2024 21:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720561821;
-	bh=QkTspA8DPBkfNhb0ymau7j3nrWDjuFhtqKvLbbCnnW8=;
+	s=korg; t=1720562060;
+	bh=3BGTFJor1iecsQkunaBGcW3MBE4Ab4Ja+PEIIjzvE+c=;
 	h=Date:To:From:Subject:From;
-	b=x1Sva5Fe+0oYUVM/I+mpWIdR82tTLohSA75OkPpO8iufuSpkR2ISlICxl4A+Ua+nm
-	 gCGMS8Qk4K52IbZ/8GztK4hWR0+xKoVlQ8Sy/APl9UYi2mLHvm3erR1gApx1XkymZL
-	 TmDvklp8VQnrfWi5xLq9mLYK1MzqiUvjS3rl/Lco=
-Date: Tue, 09 Jul 2024 14:50:20 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=NGoS2Hty4tLE2dmplnx4MTpvQLcE3QwsiHdN1sWkJvaAkKPuwBue9yYSJaY9/VfxC
+	 nAajMT0Q7mNM456aNhahOOfvGw3wA3h1PTeP9v/d91L+M1WsPFUNjWQyhibFUZCnfv
+	 GVorXk30T4b42caCc7469LjCik/6FvlFqJtBMNUg=
+Date: Tue, 09 Jul 2024 14:54:20 -0700
+To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-use-zonelist_zone-to-get-zone.patch removed from -mm tree
-Message-Id: <20240709215021.71401C3277B@smtp.kernel.org>
+Subject: + lib-bchc-use-swap-to-improve-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20240709215420.D5745C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,56 +34,99 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: use zonelist_zone() to get zone
-has been removed from the -mm tree.  Its filename was
-     mm-use-zonelist_zone-to-get-zone.patch
+The patch titled
+     Subject: lib/bch.c: use swap() to improve code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-bchc-use-swap-to-improve-code.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bchc-use-swap-to-improve-code.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm: use zonelist_zone() to get zone
-Date: Sat, 6 Jul 2024 01:50:44 +0000
+From: Thorsten Blum <thorsten.blum@toblux.com>
+Subject: lib/bch.c: use swap() to improve code
+Date: Tue, 9 Jul 2024 00:40:24 +0200
 
-Instead of accessing zoneref->zone directly, use zonelist_zone() like
-other places for consistency.
+Use the swap() macro to simplify the functions solve_linear_system() and
+gf_poly_gcd() and improve their readability.  Remove the local variable
+tmp.
 
-No functional change.
+Fixes the following three Coccinelle/coccicheck warnings reported by
+swap.cocci:
 
-Link: https://lkml.kernel.org/r/20240706015044.27789-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+  WARNING opportunity for swap()
+  WARNING opportunity for swap()
+  WARNING opportunity for swap()
+
+Compile-tested only.
+
+Link: https://lkml.kernel.org/r/20240708224023.9312-2-thorsten.blum@toblux.com
+Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/bch.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
---- a/include/linux/mmzone.h~mm-use-zonelist_zone-to-get-zone
-+++ a/include/linux/mmzone.h
-@@ -1690,7 +1690,7 @@ static inline struct zoneref *first_zone
- 			zone = zonelist_zone(z))
+--- a/lib/bch.c~lib-bchc-use-swap-to-improve-code
++++ a/lib/bch.c
+@@ -479,11 +479,8 @@ static int solve_linear_system(struct bc
+ 		/* find suitable row for elimination */
+ 		for (r = p; r < m; r++) {
+ 			if (rows[r] & mask) {
+-				if (r != p) {
+-					tmp = rows[r];
+-					rows[r] = rows[p];
+-					rows[p] = tmp;
+-				}
++				if (r != p)
++					swap(rows[r], rows[p]);
+ 				rem = r+1;
+ 				break;
+ 			}
+@@ -799,21 +796,14 @@ static void gf_poly_div(struct bch_contr
+ static struct gf_poly *gf_poly_gcd(struct bch_control *bch, struct gf_poly *a,
+ 				   struct gf_poly *b)
+ {
+-	struct gf_poly *tmp;
+-
+ 	dbg("gcd(%s,%s)=", gf_poly_str(a), gf_poly_str(b));
  
- #define for_next_zone_zonelist_nodemask(zone, z, highidx, nodemask) \
--	for (zone = z->zone;	\
-+	for (zone = zonelist_zone(z);	\
- 		zone;							\
- 		z = next_zones_zonelist(++z, highidx, nodemask),	\
- 			zone = zonelist_zone(z))
-@@ -1726,7 +1726,7 @@ static inline bool movable_only_nodes(no
- 	nid = first_node(*nodes);
- 	zonelist = &NODE_DATA(nid)->node_zonelists[ZONELIST_FALLBACK];
- 	z = first_zones_zonelist(zonelist, ZONE_NORMAL,	nodes);
--	return (!z->zone) ? true : false;
-+	return (!zonelist_zone(z)) ? true : false;
- }
+-	if (a->deg < b->deg) {
+-		tmp = b;
+-		b = a;
+-		a = tmp;
+-	}
++	if (a->deg < b->deg)
++		swap(a, b);
  
+ 	while (b->deg > 0) {
+ 		gf_poly_mod(bch, a, b, NULL);
+-		tmp = b;
+-		b = a;
+-		a = tmp;
++		swap(a, b);
+ 	}
  
+ 	dbg("%s\n", gf_poly_str(a));
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from thorsten.blum@toblux.com are
 
-mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
+lib-bchc-use-swap-to-improve-code.patch
 
