@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D671B86D4
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:43:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E61414374C
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jul 2024 21:48:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720561392; cv=none; b=LdrYzA1FKnA1ad2663Trl7MHO9eeZQJxAPR7W+LbQE2AJoOW3odrBYopHFXvTLI/YNtnX3XilLlpZlQJ9y05wHgyiMIWMUNWCcT2egY5X4SWAbNo6McMpSmLG80chRHOrGCEn/nruINGPrhvT+Dz29aMKVvMUydykKZy9fpMwFw=
+	t=1720561689; cv=none; b=IShMWvYYpJL1VORB4MNbT2OUeaYe77XarIYpFJ6Uj0oIXGBkApQhStd+5QxQ73sU4+6FGy98Y84UArtzZeeltptCdx/7t5ygmNPiguaxOOhatmrRN1szOZmed3UdZ0EgwDwgBaFBEB2FnKnleadv6Ip4RfuCtj54pVEdQnE90/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720561392; c=relaxed/simple;
-	bh=uy8P0wSnrvFhS4Z+9pNi9kSJN+bhufymPAbGrrIw0VI=;
-	h=Date:To:From:Subject:Message-Id; b=GGbU0lmzXSCxq3aH0gCQ4v8cBM9KA0+BiQVSYO+i84xYzMsxlg0StaZ8EhitfHfA7Fs1B3M5kGxcqL2c0sMrLQ/TK2fqFqXYneKzaHC2DI1l5OPG6BzjhixTJ4WUWiSmlV6neSQCAi8mI8rVdKZTACqAEnHpfmPVkT2Kp22odvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmLL4lMc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720561689; c=relaxed/simple;
+	bh=ziJl/j45bZlups9tDtuDecVfHx3YvjqZcjMbfQHEenY=;
+	h=Date:To:From:Subject:Message-Id; b=cf4sCGiupgTxjDEmqayCrTe2jpb1vvVcs0JYZjR2ddWhJQY1tD9ztRuvmJCuduf5MJUOD9TkPOFFWrD+9m4AH0JqfNvPnp03MwjsrBaO0wQe1ccO9NehWUfhy1ATy4ZAKInC0bzRPweeFefjRSjMkur8ZCNd3l+1zSpDN/mmPOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=po8JxV9f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmLL4lMc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA45C3277B;
-	Tue,  9 Jul 2024 21:43:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="po8JxV9f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCBE9C3277B;
+	Tue,  9 Jul 2024 21:48:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720561392;
-	bh=uy8P0wSnrvFhS4Z+9pNi9kSJN+bhufymPAbGrrIw0VI=;
+	s=korg; t=1720561688;
+	bh=ziJl/j45bZlups9tDtuDecVfHx3YvjqZcjMbfQHEenY=;
 	h=Date:To:From:Subject:From;
-	b=FmLL4lMc4tuoBaHkdjhsWMeaCfbSaEq5+nQop26jsNWlqsUG8KwuedcD626LC1mt5
-	 8tTD5oFL0ojhTWWxBIwDm6qCfn9ccX1BY/mOSopOcb77R+QEf1dXHzTnYn/kGsrr/I
-	 FS8IYWTVKMfLxQ07+rQz23YMeIa4DLIGg/v0SN/U=
-Date: Tue, 09 Jul 2024 14:43:11 -0700
-To: mm-commits@vger.kernel.org,syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com,muchun.song@linux.dev,kraxel@redhat.com,airlied@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
+	b=po8JxV9f9NbjUtkd3bnGBcqyU3yy++StvN3KaCoGtd6SdCjrJB9Vjc7FZo9osJIvL
+	 hF2582kwoLLobPaBHPhhIjYpy44Wdjud9riJprUpn/eRO9K9HtjL2+JznbC7XA0pPN
+	 TBSuB9te5fwX614yfZKiPGyarN5C3l0qcfTyaQ+U=
+Date: Tue, 09 Jul 2024 14:48:08 -0700
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,nichen@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch added to mm-unstable branch
-Message-Id: <20240709214312.5CA45C3277B@smtp.kernel.org>
+Subject: + test_bpf-convert-comma-to-semicolon.patch added to mm-nonmm-unstable branch
+Message-Id: <20240709214808.BCBE9C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
+     Subject: test_bpf: convert comma to semicolon
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     test_bpf-convert-comma-to-semicolon.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_bpf-convert-comma-to-semicolon.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
-Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
-Date:   Mon Jul 8 23:04:48 2024 -0700
+From: Chen Ni <nichen@iscas.ac.cn>
+Subject: test_bpf: convert comma to semicolon
+Date: Tue, 9 Jul 2024 11:43:23 +0800
 
+Replace commas between expression statements with semicolons.
 
-return -EINVAL if the end offset is greater than the size of memfd
-
-Link: https://lkml.kernel.org/r/IA0PR11MB71850525CBC7D541CAB45DF1F8DB2@IA0PR11MB7185.namprd11.prod.outlook.com
-Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Reported-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
-Testted-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240709034323.586185-1-nichen@iscas.ac.cn
+Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/test_bpf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2
-+++ a/mm/gup.c
-@@ -3814,6 +3814,9 @@ long memfd_pin_folios(struct file *memfd
- 	if (!shmem_file(memfd) && !is_file_hugepages(memfd))
- 		return -EINVAL;
+--- a/lib/test_bpf.c~test_bpf-convert-comma-to-semicolon
++++ a/lib/test_bpf.c
+@@ -1740,7 +1740,7 @@ static int __bpf_emit_cmpxchg32(struct b
+ 	/* Result unsuccessful */
+ 	insns[i++] = BPF_STX_MEM(BPF_W, R10, R1, -4);
+ 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
+-	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
++	insns[i++] = BPF_ZEXT_REG(R0); /* Zext always inserted by verifier */
+ 	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
  
-+	if (end >= i_size_read(file_inode(memfd)))
-+		return -EINVAL;
-+
- 	if (is_file_hugepages(memfd)) {
- 		h = hstate_file(memfd);
- 		pgshift = huge_page_shift(h);
+ 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R1, R3, 2);
+@@ -1754,7 +1754,7 @@ static int __bpf_emit_cmpxchg32(struct b
+ 	/* Result successful */
+ 	i += __bpf_ld_imm64(&insns[i], R0, dst);
+ 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
+-	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
++	insns[i++] = BPF_ZEXT_REG(R0); /* Zext always inserted by verifier */
+ 	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
+ 
+ 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R2, R3, 2);
 _
 
-Patches currently in -mm which might be from vivek.kasireddy@intel.com are
+Patches currently in -mm which might be from nichen@iscas.ac.cn are
 
-mm-gup-introduce-unpin_folio-unpin_folios-helpers.patch
-mm-gup-introduce-check_and_migrate_movable_folios.patch
-mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
-mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
-udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap.patch
-udmabuf-add-back-support-for-mapping-hugetlb-pages.patch
-udmabuf-convert-udmabuf-driver-to-use-folios.patch
-udmabuf-pin-the-pages-using-memfd_pin_folios-api.patch
-selftests-udmabuf-add-tests-to-verify-data-after-page-migration.patch
+test_bpf-convert-comma-to-semicolon.patch
 
