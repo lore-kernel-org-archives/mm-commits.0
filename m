@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEB7134545;
-	Wed, 10 Jul 2024 17:44:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEB44848E
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:48:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720633484; cv=none; b=S3+e9i9V5AvoS5Rwz3AaRYzJIh5v/TAfxKmEUx0qxrVR18fITFiiTjPXffSphA4D9oouJGZz5qvzhKy2OIRKxuhqs7Lcu3qr8jYRw8cBNl0zpjpicob23zeTGWHpC39MiGRzMeJaNE9OfEaGstqDuyYL483RGq8pebc4Ni1JzVw=
+	t=1720633725; cv=none; b=dbAZCgnaSIMTA99VBZXo4XuGEsmWDyPItqZlFGWUEseTlgYqfqMZMcEcc4QHXgMfYKDvcHf/tLf3dt0MKx5b3LKJ8vAdTFNXNZSonKP5xGMlvhjOOn1dgPQ+2pjGvUBNyQForiNe55XaTOikDuJQacQq48dxjrS0TJShIM23JFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720633484; c=relaxed/simple;
-	bh=RnkaHQsJ0ervPT8vPQhoWskpBYWUQzQjoBOLZewZY6I=;
-	h=Date:To:From:Subject:Message-Id; b=caAu22G3wzWwLJ3MBhtRSDjGiT1jnBsziIjD6x7lINnuhzpt9rZqLh4oEZbfi70r54JU35omTg3w2+tVun6ETFn/cjBP43Z/V1yZ1WsL948m181MD+7F+wgVNwtAaDwtUVBL4Hd2KIwtcekS52zXoslTp0W4jZf2aVBCR4D+u5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AMTqO5mR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720633725; c=relaxed/simple;
+	bh=hDMTeWZ9FkovqwYFKF7/M/F1+C4NDYlbPgs6xa2+ILo=;
+	h=Date:To:From:Subject:Message-Id; b=KFtMhzEDB8LX6iuzqXu1s/Q7CtYpFGLGyDnSXuxA0KXOzuylyg/JNVEVCMwqrLMgsH28OI085qCj/qhr3/YPkGbJ0EgisHAoPWqZ5Itrhv/3tEhMC2JKjnaQ9S1HOPBSDTmj68m9JcUPv6K2UWh/4/2yDOBlBqgxi4cqGzKU4gM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bkLTl98c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AMTqO5mR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E6BC32781;
-	Wed, 10 Jul 2024 17:44:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bkLTl98c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891B4C32781;
+	Wed, 10 Jul 2024 17:48:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720633484;
-	bh=RnkaHQsJ0ervPT8vPQhoWskpBYWUQzQjoBOLZewZY6I=;
+	s=korg; t=1720633724;
+	bh=hDMTeWZ9FkovqwYFKF7/M/F1+C4NDYlbPgs6xa2+ILo=;
 	h=Date:To:From:Subject:From;
-	b=AMTqO5mRucpyjNqpmKxT9irq2aSm6mDkxQIUmFpawxnQqP6Ky10zaifjCyru1pTV9
-	 55fDEu7/Jxm7OSMV3W+vc/2WTT4rZZWWCkLUjGEZouCVjEd3ptm3+9dF9swx9Ksu8U
-	 yTe7ozN1KpqhMgpoa3Ky/ds3Mt6LyYkEqwVQBTiw=
-Date: Wed, 10 Jul 2024 10:44:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=bkLTl98cxYVjxn4ehlCKYRYI/BxcS6nxb6JPDrezxzJ8wZkkUt8v4VXWOo4MpXOcU
+	 ygbrVd8tYDN3ZC9COZVRQ5GVNmvoURjGfdbP5Rxmf/b8BlKRVkHy5IdFzM+j8kUuGk
+	 tC2NslDNTcx4YTZptE1GKzXYag/YdAQDflwXRDQk=
+Date: Wed, 10 Jul 2024 10:48:44 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterx@redhat.com,mingo@redhat.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,arnd@arndb.de,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch added to mm-unstable branch
-Message-Id: <20240710174444.36E6BC32781@smtp.kernel.org>
+Subject: + arch-x86-drop-own-definition-of-pgdp4d_leaf.patch added to mm-unstable branch
+Message-Id: <20240710174844.891B4C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix potential race with try_memory_failure_hugetlb()
+     Subject: arch/x86: drop own definition of pgd,p4d_leaf
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch
+     arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix potential race with try_memory_failure_hugetlb()
-Date: Wed, 10 Jul 2024 16:14:45 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: arch/x86: drop own definition of pgd,p4d_leaf
+Date: Wed, 10 Jul 2024 09:51:20 +0200
 
-There is a potential race between __update_and_free_hugetlb_folio() and
-try_memory_failure_hugetlb():
+We provide generic definitions of pXd_leaf in pgtable.h when the arch do
+not define their own, where the generic pXd_leaf always return false.
 
- CPU1					CPU2
- __update_and_free_hugetlb_folio	try_memory_failure_hugetlb
-  					 spin_lock_irq(&hugetlb_lock);
-					 __get_huge_page_for_hwpoison
-					  folio_test_hugetlb
-					  -- It's still hugetlb folio.
-  folio_test_hugetlb_raw_hwp_unreliable
-  -- raw_hwp_unreliable flag is not set yet.
-					  folio_set_hugetlb_hwpoison
-					  -- raw_hwp_unreliable flag might
-					     be set.
-					 spin_unlock_irq(&hugetlb_lock);
-  spin_lock_irq(&hugetlb_lock);
-  __folio_clear_hugetlb(folio);
-   -- Hugetlb flag is cleared but too late!
-  spin_unlock_irq(&hugetlb_lock);
+Although x86 defines {pgd,p4d}_leaf, they end up being a no-op, so drop
+them and make them fallback to the generic one.
 
-When this race occurs, raw error pages will hit pcplists/buddy.  Fix this
-issue by deferring folio_test_hugetlb_raw_hwp_unreliable() until
-__folio_clear_hugetlb() is done.  The raw_hwp_unreliable flag cannot be
-set after hugetlb folio flag is cleared.
-
-Link: https://lkml.kernel.org/r/20240710081445.3307355-1-linmiaohe@huawei.com
-Fixes: 32c877191e02 ("hugetlb: do not clear hugetlb dtor until allocating vmemmap")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/bcd6ab8246348f18fdc77694e321ee6458f05781.1720597744.git.christophe.leroy@csgroup.eu
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/pgtable.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb
-+++ a/mm/hugetlb.c
-@@ -1706,13 +1706,6 @@ static void __update_and_free_hugetlb_fo
- 		return;
+--- a/arch/x86/include/asm/pgtable.h~arch-x86-drop-own-definition-of-pgdp4d_leaf
++++ a/arch/x86/include/asm/pgtable.h
+@@ -252,13 +252,6 @@ static inline unsigned long pgd_pfn(pgd_
+ 	return (pgd_val(pgd) & PTE_PFN_MASK) >> PAGE_SHIFT;
+ }
  
- 	/*
--	 * If we don't know which subpages are hwpoisoned, we can't free
--	 * the hugepage, so it's leaked intentionally.
--	 */
--	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
--		return;
+-#define p4d_leaf p4d_leaf
+-static inline bool p4d_leaf(p4d_t p4d)
+-{
+-	/* No 512 GiB pages yet */
+-	return 0;
+-}
 -
--	/*
- 	 * If folio is not vmemmap optimized (!clear_flag), then the folio
- 	 * is no longer identified as a hugetlb page.  hugetlb_vmemmap_restore_folio
- 	 * can only be passed hugetlb pages and will BUG otherwise.
-@@ -1730,6 +1723,13 @@ static void __update_and_free_hugetlb_fo
- 	}
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
  
- 	/*
-+	 * If we don't know which subpages are hwpoisoned, we can't free
-+	 * the hugepage, so it's leaked intentionally.
-+	 */
-+	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
-+		return;
-+
-+	/*
- 	 * Move PageHWPoison flag from head page to the raw error pages,
- 	 * which makes any healthy subpages reusable.
- 	 */
+ #define pmd_leaf pmd_leaf
+@@ -1396,9 +1389,6 @@ static inline bool pgdp_maps_userspace(v
+ 	return (((ptr & ~PAGE_MASK) / sizeof(pgd_t)) < PGD_KERNEL_START);
+ }
+ 
+-#define pgd_leaf	pgd_leaf
+-static inline bool pgd_leaf(pgd_t pgd) { return false; }
+-
+ #ifdef CONFIG_MITIGATION_PAGE_TABLE_ISOLATION
+ /*
+  * All top-level MITIGATION_PAGE_TABLE_ISOLATION page tables are order-1 pages
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-memory-failure-remove-obsolete-mf_msg_different_compound.patch
-mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch
+arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
 
