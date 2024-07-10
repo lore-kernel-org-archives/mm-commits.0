@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEB44848E
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:48:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9CB3194C79
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:48:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720633725; cv=none; b=dbAZCgnaSIMTA99VBZXo4XuGEsmWDyPItqZlFGWUEseTlgYqfqMZMcEcc4QHXgMfYKDvcHf/tLf3dt0MKx5b3LKJ8vAdTFNXNZSonKP5xGMlvhjOOn1dgPQ+2pjGvUBNyQForiNe55XaTOikDuJQacQq48dxjrS0TJShIM23JFE=
+	t=1720633726; cv=none; b=uQkxIVjff+R4KLkQrgK1RbuNFhSAD9lFlMkJ9DIOY9ATgPeo4OUzrIoalld18bsM7o+sGj1eL31vxaXfkznNqGZ80BT+E5Dw1xrQR4NIfL/R6FCr3Xvlynn6zMtTeKnwC1U1PqaH4UhiYCETrmWbGLF8M5WJLVBP3OZgmKoE13s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720633725; c=relaxed/simple;
-	bh=hDMTeWZ9FkovqwYFKF7/M/F1+C4NDYlbPgs6xa2+ILo=;
-	h=Date:To:From:Subject:Message-Id; b=KFtMhzEDB8LX6iuzqXu1s/Q7CtYpFGLGyDnSXuxA0KXOzuylyg/JNVEVCMwqrLMgsH28OI085qCj/qhr3/YPkGbJ0EgisHAoPWqZ5Itrhv/3tEhMC2JKjnaQ9S1HOPBSDTmj68m9JcUPv6K2UWh/4/2yDOBlBqgxi4cqGzKU4gM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bkLTl98c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720633726; c=relaxed/simple;
+	bh=4wKum+d0HPUZcPQDTGuR4aBV3tLnaQp/nRZweznSQX8=;
+	h=Date:To:From:Subject:Message-Id; b=hD2AZrIzBU0vH7+0wbdYWxNO28ouj+1pZZ56LLV0rSETf+Esqz6Y1W92Ei4f8ZaNtf4cnUHm9tf0LJTgKsmcWjVvknEGJzBdDw5Xnk/3pEi4wTBeXxOoOFYZn6qrN8eTaOJpyOSChYeDzgNqwmP0jdqG5YNN3zyKW22mk+sEjms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EyTjTt0W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bkLTl98c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891B4C32781;
-	Wed, 10 Jul 2024 17:48:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EyTjTt0W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BD45C32786;
+	Wed, 10 Jul 2024 17:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720633724;
-	bh=hDMTeWZ9FkovqwYFKF7/M/F1+C4NDYlbPgs6xa2+ILo=;
+	s=korg; t=1720633726;
+	bh=4wKum+d0HPUZcPQDTGuR4aBV3tLnaQp/nRZweznSQX8=;
 	h=Date:To:From:Subject:From;
-	b=bkLTl98cxYVjxn4ehlCKYRYI/BxcS6nxb6JPDrezxzJ8wZkkUt8v4VXWOo4MpXOcU
-	 ygbrVd8tYDN3ZC9COZVRQ5GVNmvoURjGfdbP5Rxmf/b8BlKRVkHy5IdFzM+j8kUuGk
-	 tC2NslDNTcx4YTZptE1GKzXYag/YdAQDflwXRDQk=
-Date: Wed, 10 Jul 2024 10:48:44 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterx@redhat.com,mingo@redhat.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,arnd@arndb.de,osalvador@suse.de,akpm@linux-foundation.org
+	b=EyTjTt0Wqdfc4viktyvqi4kuaLBn3aJo6yDHoWU2Vs1tiGDqdb/r4JoUO+KtIDfd5
+	 G6E7LQIUh+IXYs3Yr6ByRGHhmoh7EPZ6oAYsutBXDRDyrFmk5Vu2R7d1Wz1COVYfyW
+	 58iDeseEoz0xljWTGRS3lNgCGjQjX/gyLRfDePWQ=
+Date: Wed, 10 Jul 2024 10:48:45 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterx@redhat.com,osalvador@suse.de,mingo@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,arnd@arndb.de,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-x86-drop-own-definition-of-pgdp4d_leaf.patch added to mm-unstable branch
-Message-Id: <20240710174844.891B4C32781@smtp.kernel.org>
+Subject: + mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch added to mm-unstable branch
+Message-Id: <20240710174846.5BD45C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/x86: drop own definition of pgd,p4d_leaf
+     Subject: mm: remove pud_user() from asm-generic/pgtable-nopmd.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
+     mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: arch/x86: drop own definition of pgd,p4d_leaf
-Date: Wed, 10 Jul 2024 09:51:20 +0200
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm: remove pud_user() from asm-generic/pgtable-nopmd.h
+Date: Wed, 10 Jul 2024 09:51:21 +0200
 
-We provide generic definitions of pXd_leaf in pgtable.h when the arch do
-not define their own, where the generic pXd_leaf always return false.
+Commit 2c8a81dc0cc5 ("riscv/mm: fix two page table check related issues")
+added pud_user() in include/asm-generic/pgtable-nopmd.h
 
-Although x86 defines {pgd,p4d}_leaf, they end up being a no-op, so drop
-them and make them fallback to the generic one.
+But pud_user() only exists on ARM64 and RISCV and is not expected by any
+part of MM.
 
-Link: https://lkml.kernel.org/r/bcd6ab8246348f18fdc77694e321ee6458f05781.1720597744.git.christophe.leroy@csgroup.eu
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Add the missing definition in arch/riscv/include/asm/pgtable-32.h and
+remove it from asm-generic/pgtable-nopmd.h
+
+Link: https://lkml.kernel.org/r/c31a39463929daba6c91917598ec05cf47103af5.1720597744.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ arch/riscv/include/asm/pgtable-32.h |    5 +++++
+ include/asm-generic/pgtable-nopmd.h |    1 -
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/pgtable.h~arch-x86-drop-own-definition-of-pgdp4d_leaf
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -252,13 +252,6 @@ static inline unsigned long pgd_pfn(pgd_
- 	return (pgd_val(pgd) & PTE_PFN_MASK) >> PAGE_SHIFT;
- }
+--- a/arch/riscv/include/asm/pgtable-32.h~mm-remove-pud_user-from-asm-generic-pgtable-nopmdh
++++ a/arch/riscv/include/asm/pgtable-32.h
+@@ -36,4 +36,9 @@
+ static const __maybe_unused int pgtable_l4_enabled;
+ static const __maybe_unused int pgtable_l5_enabled;
  
--#define p4d_leaf p4d_leaf
--static inline bool p4d_leaf(p4d_t p4d)
--{
--	/* No 512 GiB pages yet */
--	return 0;
--}
--
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- 
- #define pmd_leaf pmd_leaf
-@@ -1396,9 +1389,6 @@ static inline bool pgdp_maps_userspace(v
- 	return (((ptr & ~PAGE_MASK) / sizeof(pgd_t)) < PGD_KERNEL_START);
- }
- 
--#define pgd_leaf	pgd_leaf
--static inline bool pgd_leaf(pgd_t pgd) { return false; }
--
- #ifdef CONFIG_MITIGATION_PAGE_TABLE_ISOLATION
- /*
-  * All top-level MITIGATION_PAGE_TABLE_ISOLATION page tables are order-1 pages
++static inline int pud_user(pud_t pud)
++{
++	return 0;
++}
++
+ #endif /* _ASM_RISCV_PGTABLE_32_H */
+--- a/include/asm-generic/pgtable-nopmd.h~mm-remove-pud_user-from-asm-generic-pgtable-nopmdh
++++ a/include/asm-generic/pgtable-nopmd.h
+@@ -30,7 +30,6 @@ typedef struct { pud_t pud; } pmd_t;
+ static inline int pud_none(pud_t pud)		{ return 0; }
+ static inline int pud_bad(pud_t pud)		{ return 0; }
+ static inline int pud_present(pud_t pud)	{ return 1; }
+-static inline int pud_user(pud_t pud)		{ return 0; }
+ static inline int pud_leaf(pud_t pud)		{ return 0; }
+ static inline void pud_clear(pud_t *pud)	{ }
+ #define pmd_ERROR(pmd)				(pud_ERROR((pmd).pud))
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-arch-x86-drop-own-definition-of-pgdp4d_leaf.patch
+mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
+mm-provide-mm_struct-and-address-to-huge_ptep_get.patch
+powerpc-mm-remove-_page_psize.patch
+powerpc-mm-fix-__find_linux_pte-on-32-bits-with-pmd-leaf-entries.patch
+powerpc-mm-allow-hugepages-without-hugepd.patch
+powerpc-8xx-fix-size-given-to-set_huge_pte_at.patch
+powerpc-8xx-rework-support-for-8m-pages-using-contiguous-pte-entries.patch
+powerpc-8xx-simplify-struct-mmu_psize_def.patch
+powerpc-e500-remove-enc-and-ind-fields-from-struct-mmu_psize_def.patch
+powerpc-e500-switch-to-64-bits-pgd-on-85xx-32-bits.patch
+powerpc-e500-encode-hugepage-size-in-pte-bits.patch
+powerpc-e500-dont-pre-check-write-access-on-data-tlb-error.patch
+powerpc-e500-free-r10-for-find_pte.patch
+powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
+powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd.patch
+powerpc-mm-remove-hugepd-leftovers.patch
+mm-remove-config_arch_has_hugepd.patch
+mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch
+mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh.patch
 
