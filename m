@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995D7190472;
-	Wed, 10 Jul 2024 16:48:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 621BB34545
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:37:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720630102; cv=none; b=dEONWQP5nhcQFUW3K9C3cD0fkykYGc3IkpxyC1PZ5pHlL9P1zDMetnTUIWrlUd2I6w34BgK3O3DsvQzznQx691uTIqz0oz5Ew1PAElZVPcgZzJrPaQySRa1v7mPo5gJov/p7APbQQoYbVC4MW+/KdtBRTxCwkzaHITSCa3BztMg=
+	t=1720633060; cv=none; b=P9xe4AOLDE3T0vi6sdWz8F0AOAoz1vuoezYqGzlMWE4RMmH8/+iCkhD+k8U5xJBQqGGTZsr2uw2COVwXxrySt3dDIpRKhIze2tEWwGbI2fTZkGkxJ7LKDIIboL5IDSM23mhsNRGbI7jHt7x7uMju5edRyC6WBHKeUs05Ee3WA74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720630102; c=relaxed/simple;
-	bh=VCCzzH/NSQUKQm99wAA3ow4vbwKbj/C8OQUJaCCRmVo=;
-	h=Date:To:From:Subject:Message-Id; b=tIdZVCVAAUAkF45p+UmQ7uJi2iT2/fq6PIqMheTOJTCJTo5UbOGnTt3oUOHOIScaIsiWw10hio9chYzq1gGrjv5KMK/95RNVDFM5ahhdT7p/F9+sYW7eZ7nO34Z0hoqRyfQ0vKsCUgPW+f4EvTNrRscBQW2nHz1psmL6liYxXis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aoChw0ft; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720633060; c=relaxed/simple;
+	bh=Se254LfjtdjY+H0FLeJRCavVzBQbrY2SwnSW1JjHPzU=;
+	h=Date:To:From:Subject:Message-Id; b=s0ASuviKEcKb24Q0cpHx0LyFUDOAGNnS6DvgO8ma3Rmuv84pULAqeFKYpY+3tMtA+fq2/VCHsM8RcPrrQ/H+RuoJgBPlM3TH7lP2d3iv2VXIDR+UzHvw5ggq3xqA3vVZjb+jdXiUx1c6pfsF1p9i0MLNqORMYdrMBrvXUEVPbso=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R5nXYDPh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aoChw0ft"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13DEAC32781;
-	Wed, 10 Jul 2024 16:48:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R5nXYDPh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE4E9C32781;
+	Wed, 10 Jul 2024 17:37:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720630102;
-	bh=VCCzzH/NSQUKQm99wAA3ow4vbwKbj/C8OQUJaCCRmVo=;
+	s=korg; t=1720633059;
+	bh=Se254LfjtdjY+H0FLeJRCavVzBQbrY2SwnSW1JjHPzU=;
 	h=Date:To:From:Subject:From;
-	b=aoChw0ftDuLweQfMJ0G1Bs92qjxNIo47yUjjc/pcon6yfWcvHmMNDrFBuEO4Cz9a1
-	 xS8cc1zAu6sIHWqKlyFn3jaPSutYfqXEwa8hTHLgqXftuNGzVbtmGTp0x+YJLAi7Mq
-	 ZZcuJeVt07YM5Ai17Y7J+jfM9ZSa2eeg+ALXYuQQ=
-Date: Wed, 10 Jul 2024 09:48:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,fengwei.yin@intel.com,apopple@nvidia.com,rtummala@nvidia.com,akpm@linux-foundation.org
+	b=R5nXYDPhH52fS/rxO2Nqx774q++l+twrbetW11vapv/FaxZxOfYx1/xtPFpIEE6Yj
+	 DnWsOfZHQOXUG1WRqI3k3UzVPX/uSbkXb40JbwkAm9RQo9huE7Ts8/LqsJh05DfwGS
+	 LNUrEozNh1Yp2Xxtzt7IC1qLQE72A1UCGkOmJKN4=
+Date: Wed, 10 Jul 2024 10:37:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-old-young-bit-handling-in-the-faulting-path.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240710164822.13DEAC32781@smtp.kernel.org>
+Subject: + mm-shmem-rename-mthp-shmem-counters.patch added to mm-unstable branch
+Message-Id: <20240710173739.BE4E9C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix old/young bit handling in the faulting path
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-old-young-bit-handling-in-the-faulting-path.patch
+     Subject: mm: shmem: rename mTHP shmem counters
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-rename-mthp-shmem-counters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-old-young-bit-handling-in-the-faulting-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-rename-mthp-shmem-counters.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,183 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ram Tummala <rtummala@nvidia.com>
-Subject: mm: fix old/young bit handling in the faulting path
-Date: Tue, 9 Jul 2024 18:45:39 -0700
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: shmem: rename mTHP shmem counters
+Date: Wed, 10 Jul 2024 10:55:01 +0100
 
-Commit 3bd786f76de2 ("mm: convert do_set_pte() to set_pte_range()")
-replaced do_set_pte() with set_pte_range() and that introduced a
-regression in the following faulting path of non-anonymous vmas which
-caused the PTE for the faulting address to be marked as old instead of
-young.
+The legacy PMD-sized THP counters at /proc/vmstat include thp_file_alloc,
+thp_file_fallback and thp_file_fallback_charge, which rather confusingly
+refer to shmem THP and do not include any other types of file pages.  This
+is inconsistent since in most other places in the kernel, THP counters are
+explicitly separated for anon, shmem and file flavours.  However, we are
+stuck with it since it constitutes a user ABI.
 
-handle_pte_fault()
-  do_pte_missing()
-    do_fault()
-      do_read_fault() || do_cow_fault() || do_shared_fault()
-        finish_fault()
-          set_pte_range()
+Recently, commit 66f44583f9b6 ("mm: shmem: add mTHP counters for anonymous
+shmem") added equivalent mTHP stats for shmem, keeping the same "file_"
+prefix in the names.  But in future, we may want to add extra stats to
+cover actual file pages, at which point, it would all become very
+confusing.
 
-The polarity of prefault calculation is incorrect.  This leads to prefault
-being incorrectly set for the faulting address.  The following check will
-incorrectly mark the PTE old rather than young.  On some architectures
-this will cause a double fault to mark it young when the access is
-retried.
+So let's take the opportunity to rename these new counters "shmem_" before
+the change makes it upstream and the ABI becomes immutable.  While we are
+at it, let's improve the documentation for the legacy counters to make it
+clear that they count shmem pages only.
 
-    if (prefault && arch_wants_old_prefaulted_pte())
-        entry = pte_mkold(entry);
-
-On a subsequent fault on the same address, the faulting path will see a
-non NULL vmf->pte and instead of reaching the do_pte_missing() path, PTE
-will then be correctly marked young in handle_pte_fault() itself.
-
-Due to this bug, performance degradation in the fault handling path will
-be observed due to unnecessary double faulting.
-
-Link: https://lkml.kernel.org/r/20240710014539.746200-1-rtummala@nvidia.com
-Fixes: 3bd786f76de2 ("mm: convert do_set_pte() to set_pte_range()")
-Signed-off-by: Ram Tummala <rtummala@nvidia.com>
-Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20240710095503.3193901-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/transhuge.rst |   29 ++++++++++---------
+ include/linux/huge_mm.h                    |    6 +--
+ mm/huge_memory.c                           |   12 +++----
+ mm/shmem.c                                 |    8 ++---
+ 4 files changed, 29 insertions(+), 26 deletions(-)
 
---- a/mm/memory.c~mm-fix-old-young-bit-handling-in-the-faulting-path
-+++ a/mm/memory.c
-@@ -4681,7 +4681,7 @@ void set_pte_range(struct vm_fault *vmf,
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
--	bool prefault = in_range(vmf->address, addr, nr * PAGE_SIZE);
-+	bool prefault = !in_range(vmf->address, addr, nr * PAGE_SIZE);
- 	pte_t entry;
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-rename-mthp-shmem-counters
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -412,20 +412,23 @@ thp_collapse_alloc_failed
+ 	the allocation.
  
- 	flush_icache_pages(vma, page, nr);
+ thp_file_alloc
+-	is incremented every time a file huge page is successfully
+-	allocated.
++	is incremented every time a shmem huge page is successfully
++	allocated (Note that despite being named after "file", the counter
++	measures only shmem).
+ 
+ thp_file_fallback
+-	is incremented if a file huge page is attempted to be allocated
+-	but fails and instead falls back to using small pages.
++	is incremented if a shmem huge page is attempted to be allocated
++	but fails and instead falls back to using small pages. (Note that
++	despite being named after "file", the counter measures only shmem).
+ 
+ thp_file_fallback_charge
+-	is incremented if a file huge page cannot be charged and instead
++	is incremented if a shmem huge page cannot be charged and instead
+ 	falls back to using small pages even though the allocation was
+-	successful.
++	successful. (Note that despite being named after "file", the
++	counter measures only shmem).
+ 
+ thp_file_mapped
+-	is incremented every time a file huge page is mapped into
++	is incremented every time a file or shmem huge page is mapped into
+ 	user address space.
+ 
+ thp_split_page
+@@ -496,16 +499,16 @@ swpout_fallback
+ 	Usually because failed to allocate some continuous swap space
+ 	for the huge page.
+ 
+-file_alloc
+-	is incremented every time a file huge page is successfully
++shmem_alloc
++	is incremented every time a shmem huge page is successfully
+ 	allocated.
+ 
+-file_fallback
+-	is incremented if a file huge page is attempted to be allocated
++shmem_fallback
++	is incremented if a shmem huge page is attempted to be allocated
+ 	but fails and instead falls back to using small pages.
+ 
+-file_fallback_charge
+-	is incremented if a file huge page cannot be charged and instead
++shmem_fallback_charge
++	is incremented if a shmem huge page cannot be charged and instead
+ 	falls back to using small pages even though the allocation was
+ 	successful.
+ 
+--- a/include/linux/huge_mm.h~mm-shmem-rename-mthp-shmem-counters
++++ a/include/linux/huge_mm.h
+@@ -269,9 +269,9 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
+ 	MTHP_STAT_SWPOUT,
+ 	MTHP_STAT_SWPOUT_FALLBACK,
+-	MTHP_STAT_FILE_ALLOC,
+-	MTHP_STAT_FILE_FALLBACK,
+-	MTHP_STAT_FILE_FALLBACK_CHARGE,
++	MTHP_STAT_SHMEM_ALLOC,
++	MTHP_STAT_SHMEM_FALLBACK,
++	MTHP_STAT_SHMEM_FALLBACK_CHARGE,
+ 	MTHP_STAT_SPLIT,
+ 	MTHP_STAT_SPLIT_FAILED,
+ 	MTHP_STAT_SPLIT_DEFERRED,
+--- a/mm/huge_memory.c~mm-shmem-rename-mthp-shmem-counters
++++ a/mm/huge_memory.c
+@@ -568,9 +568,9 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
+ DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
+-DEFINE_MTHP_STAT_ATTR(file_alloc, MTHP_STAT_FILE_ALLOC);
+-DEFINE_MTHP_STAT_ATTR(file_fallback, MTHP_STAT_FILE_FALLBACK);
+-DEFINE_MTHP_STAT_ATTR(file_fallback_charge, MTHP_STAT_FILE_FALLBACK_CHARGE);
++DEFINE_MTHP_STAT_ATTR(shmem_alloc, MTHP_STAT_SHMEM_ALLOC);
++DEFINE_MTHP_STAT_ATTR(shmem_fallback, MTHP_STAT_SHMEM_FALLBACK);
++DEFINE_MTHP_STAT_ATTR(shmem_fallback_charge, MTHP_STAT_SHMEM_FALLBACK_CHARGE);
+ DEFINE_MTHP_STAT_ATTR(split, MTHP_STAT_SPLIT);
+ DEFINE_MTHP_STAT_ATTR(split_failed, MTHP_STAT_SPLIT_FAILED);
+ DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
+@@ -581,9 +581,9 @@ static struct attribute *stats_attrs[] =
+ 	&anon_fault_fallback_charge_attr.attr,
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
+-	&file_alloc_attr.attr,
+-	&file_fallback_attr.attr,
+-	&file_fallback_charge_attr.attr,
++	&shmem_alloc_attr.attr,
++	&shmem_fallback_attr.attr,
++	&shmem_fallback_charge_attr.attr,
+ 	&split_attr.attr,
+ 	&split_failed_attr.attr,
+ 	&split_deferred_attr.attr,
+--- a/mm/shmem.c~mm-shmem-rename-mthp-shmem-counters
++++ a/mm/shmem.c
+@@ -1777,7 +1777,7 @@ static struct folio *shmem_alloc_and_add
+ 			if (pages == HPAGE_PMD_NR)
+ 				count_vm_event(THP_FILE_FALLBACK);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			count_mthp_stat(order, MTHP_STAT_FILE_FALLBACK);
++			count_mthp_stat(order, MTHP_STAT_SHMEM_FALLBACK);
+ #endif
+ 			order = next_order(&suitable_orders, order);
+ 		}
+@@ -1804,8 +1804,8 @@ allocated:
+ 				count_vm_event(THP_FILE_FALLBACK_CHARGE);
+ 			}
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK);
+-			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_FALLBACK_CHARGE);
++			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK);
++			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK_CHARGE);
+ #endif
+ 		}
+ 		goto unlock;
+@@ -2181,7 +2181,7 @@ repeat:
+ 			if (folio_test_pmd_mappable(folio))
+ 				count_vm_event(THP_FILE_ALLOC);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			count_mthp_stat(folio_order(folio), MTHP_STAT_FILE_ALLOC);
++			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_ALLOC);
+ #endif
+ 			goto alloced;
+ 		}
 _
 
-Patches currently in -mm which might be from rtummala@nvidia.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-fix-old-young-bit-handling-in-the-faulting-path.patch
+mm-fix-khugepaged-activation-policy.patch
+mm-fix-khugepaged-activation-policy-v3.patch
+mm-shmem-rename-mthp-shmem-counters.patch
 
