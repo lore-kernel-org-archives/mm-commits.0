@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE3AE195985
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:51:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00AEA848E
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:56:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720633874; cv=none; b=pKHqn1uJY2qTHoU5U41J12ZcOrRzL0HhWE/vDFHPYiVBTWJzlMDk44FvEk+nWp1NkavwWpRxOXaOetsKFdXWXrJMJNSm3E9E9T0WqwJXfE0IlkyAJNfHJO7trLK3d0IhY+eRMa8czaUZEEAsjnllTBKwSMEVmvr1Zmx0FJ8qx+g=
+	t=1720634206; cv=none; b=hIDiWSr7/TRlWoZDpALqRgYzUdvJau9lml+lUCiRhmisArG6M5WXJ2/JC2JfNKYh8gmeKPj76QvfgWSGa34HABbbUIh2I/bQZpIaIHsSpJILfP/CCrz0Rb4Me1dJle2Uiij82/QAg1kzTChL0YF364HPLnEVakGiVwHnTe+WcRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720633874; c=relaxed/simple;
-	bh=iAeAlTRhTiOSjZAOD4tFk5PIGZSeFN+R7tVbFhLo34I=;
-	h=Date:To:From:Subject:Message-Id; b=uJQabQEDezwL/KquJ+vSM2YVyj3+ifdekV+o1hmOJEFDEppejNdItscn1IHnVkZvF+28m8+SUHu3StXyBwayakyIEEWjGxziucr5kPl/UpEJ3FIQ6wvqtZoNI1W77jIcwiiK1F3YK6+7nFAYHhQKXLW+Q/1JW1vjhykJ1ajeUT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F5rd5q7y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720634206; c=relaxed/simple;
+	bh=b8Z7i5oOFQh9e0Sm+6GPrKTpIlR2ByezzHMlGGdJsno=;
+	h=Date:To:From:Subject:Message-Id; b=UoaJ2SqFuK5yxc54HV1Cu4qj4wZHpkkmjcboaM/rJNCEhmrUWXI/mZDUfURUzH52HCJdqfB5mT4ggTYSYRxTatctbvUXaM97SSal4daoi886tUx5bFJkRCBbidJcMFj5arco2JK7e2KI8NAsGiLmxb150Xr/Kwaw9JX0KKFOlA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SAP2Ym3z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F5rd5q7y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 393E5C32786;
-	Wed, 10 Jul 2024 17:51:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SAP2Ym3z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AACFC32781;
+	Wed, 10 Jul 2024 17:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720633874;
-	bh=iAeAlTRhTiOSjZAOD4tFk5PIGZSeFN+R7tVbFhLo34I=;
+	s=korg; t=1720634205;
+	bh=b8Z7i5oOFQh9e0Sm+6GPrKTpIlR2ByezzHMlGGdJsno=;
 	h=Date:To:From:Subject:From;
-	b=F5rd5q7ySmLCiGM+LUfKXF/QIDJ1o1F9xopJ/geu/F5VyGwMZ1WoIIAxnD0PSSTg3
-	 +qXEL718hfP1bi4/0o2FbVae3qrpnVA05gEciGbpOP3Am5PHH14xE/lwvdxeUUHCyW
-	 OD4ukJ71T036vo3ywD4lXflZyh7gGD6hD8ELbkGo=
-Date: Wed, 10 Jul 2024 10:51:13 -0700
-To: mm-commits@vger.kernel.org,mgorman@techsingularity.net,hannes@cmpxchg.org,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=SAP2Ym3zOTR2cdSDN1kMRpmwgfN/JqkZEKiogvSbWps2wSYgztat7OygwWm0VQd/f
+	 xqsP+Old2Y+IcPSfXheEchEOrh05BVki95fGRhxGPG23t7CUTySg/mVz4g3wk5D8tH
+	 yg8ayiPDT6tBzUfXZWCX+ohNVr0fK60AS9g5cKNo=
+Date: Wed, 10 Jul 2024 10:56:39 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tonyb@cybernetics.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,muchun.song@linux.dev,luto@kernel.org,kirill.shutemov@linux.intel.com,david@redhat.com,ast@kernel.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-batch-clear-shadow-entries-v2.patch added to mm-unstable branch
-Message-Id: <20240710175114.393E5C32786@smtp.kernel.org>
+Subject: + hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch added to mm-unstable branch
+Message-Id: <20240710175645.5AACFC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-truncate-batch-clear-shadow-entries-v2
+     Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-truncate-batch-clear-shadow-entries-v2.patch
+     hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-batch-clear-shadow-entries-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm-truncate-batch-clear-shadow-entries-v2
-Date: Wed, 10 Jul 2024 00:09:33 -0600
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
+Date: Wed, 10 Jul 2024 00:19:12 -0500
 
-restore comment, rename clear_shadow_entry() to clear_shadow_entries()
+generic_hugetlb_get_unmapped_area() was returning an address less than
+mmap_min_addr if the mmap argument addr, after alignment, was less than
+mmap_min_addr, causing mmap to fail.
 
-Link: https://lkml.kernel.org/r/20240710060933.3979380-1-yuzhao@google.com
-Reported-by: Bharata B Rao <bharata@amd.com>
-Closes: https://lore.kernel.org/d2841226-e27b-4d3d-a578-63587a3aa4f3@amd.com/
-Tested-by: Bharata B Rao <bharata@amd.com>
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+This is because current generic_hugetlb_get_unmapped_area() code does not
+take into account mmap_min_addr.
+
+This patch ensures that generic_hugetlb_get_unmapped_area() always returns
+an address that is greater than mmap_min_addr.  Additionally, similar to
+generic_get_unmapped_area(), vm_end_gap() checks are included to maintain
+stack gap.
+
+How to reproduce
+================
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <sys/mman.h>
+ #include <unistd.h>
+
+ #define HUGEPAGE_SIZE (16 * 1024 * 1024)
+
+ int main() {
+
+    void *addr = mmap((void *)-1, HUGEPAGE_SIZE,
+                 PROT_READ | PROT_WRITE,
+                 MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+    if (addr == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf((char *)addr, HUGEPAGE_SIZE, "Hello, Huge Pages!");
+
+    printf("%s\n", (char *)addr);
+
+    if (munmap(addr, HUGEPAGE_SIZE) == -1) {
+        perror("munmap");
+        exit(EXIT_FAILURE);
+    }
+
+    return 0;
+ }
+
+Result without fix
+==================
+ # cat /proc/meminfo |grep -i HugePages_Free
+ HugePages_Free:       20
+ # ./test
+ mmap: Permission denied
+ #
+
+Result with fix
+===============
+ # cat /proc/meminfo |grep -i HugePages_Free
+ HugePages_Free:       20
+ # ./test
+ Hello, Huge Pages!
+ #
+
+Link: https://lkml.kernel.org/r/20240710051912.4681-1-donettom@linux.ibm.com
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reported-by Pavithra Prakash <pavrampu@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/hugetlbfs/inode.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-batch-clear-shadow-entries-v2
-+++ a/mm/truncate.c
-@@ -39,11 +39,12 @@ static inline void __clear_shadow_entry(
- 	xas_store(&xas, NULL);
- }
- 
--static void clear_shadow_entry(struct address_space *mapping,
--			       struct folio_batch *fbatch, pgoff_t *indices)
-+static void clear_shadow_entries(struct address_space *mapping,
-+				 struct folio_batch *fbatch, pgoff_t *indices)
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr
++++ a/fs/hugetlbfs/inode.c
+@@ -222,13 +222,13 @@ generic_hugetlb_get_unmapped_area(struct
+ 				  unsigned long flags)
  {
- 	int i;
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
++	struct vm_area_struct *vma, *prev;
+ 	struct hstate *h = hstate_file(file);
+ 	const unsigned long mmap_end = arch_get_mmap_end(addr, len, flags);
  
-+	/* Handled by shmem itself, or for DAX we do nothing. */
- 	if (shmem_mapping(mapping) || dax_mapping(mapping))
- 		return;
+ 	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+-	if (len > TASK_SIZE)
++	if (len > mmap_end - mmap_min_addr)
+ 		return -ENOMEM;
  
-@@ -507,7 +508,7 @@ unsigned long mapping_try_invalidate(str
- 		}
+ 	if (flags & MAP_FIXED) {
+@@ -239,9 +239,10 @@ generic_hugetlb_get_unmapped_area(struct
  
- 		if (xa_has_values)
--			clear_shadow_entry(mapping, &fbatch, indices);
-+			clear_shadow_entries(mapping, &fbatch, indices);
+ 	if (addr) {
+ 		addr = ALIGN(addr, huge_page_size(h));
+-		vma = find_vma(mm, addr);
+-		if (mmap_end - len >= addr &&
+-		    (!vma || addr + len <= vm_start_gap(vma)))
++		vma = find_vma_prev(mm, addr, &prev);
++		if (mmap_end - len >= addr && addr >= mmap_min_addr &&
++		    (!vma || addr + len <= vm_start_gap(vma)) &&
++		    (!prev || addr >= vm_end_gap(prev)))
+ 			return addr;
+ 	}
  
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
-@@ -657,7 +658,7 @@ int invalidate_inode_pages2_range(struct
- 		}
- 
- 		if (xa_has_values)
--			clear_shadow_entry(mapping, &fbatch, indices);
-+			clear_shadow_entries(mapping, &fbatch, indices);
- 
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-truncate-batch-clear-shadow-entries.patch
-mm-truncate-batch-clear-shadow-entries-v2.patch
+hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
