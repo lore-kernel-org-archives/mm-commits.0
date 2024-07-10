@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9CB3194C79
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:48:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53376848E
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:48:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720633726; cv=none; b=uQkxIVjff+R4KLkQrgK1RbuNFhSAD9lFlMkJ9DIOY9ATgPeo4OUzrIoalld18bsM7o+sGj1eL31vxaXfkznNqGZ80BT+E5Dw1xrQR4NIfL/R6FCr3Xvlynn6zMtTeKnwC1U1PqaH4UhiYCETrmWbGLF8M5WJLVBP3OZgmKoE13s=
+	t=1720633729; cv=none; b=hUnnRuAUkQDNAWsdBQXDsmY8rVD2BNjH+XB/MUS4sDOtTEcBiK4UzzzUXvfi4TDu/U2ZwUOpkh/GjPyKPxZk6Lo7TcOVlCgyLGgLCTc3wX/dsL1jOpQMFYzHNqQMbZ45QmKnohWg7BveLv1bal8TfK1mAuIR1ZhqRj0UnnRcRIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720633726; c=relaxed/simple;
-	bh=4wKum+d0HPUZcPQDTGuR4aBV3tLnaQp/nRZweznSQX8=;
-	h=Date:To:From:Subject:Message-Id; b=hD2AZrIzBU0vH7+0wbdYWxNO28ouj+1pZZ56LLV0rSETf+Esqz6Y1W92Ei4f8ZaNtf4cnUHm9tf0LJTgKsmcWjVvknEGJzBdDw5Xnk/3pEi4wTBeXxOoOFYZn6qrN8eTaOJpyOSChYeDzgNqwmP0jdqG5YNN3zyKW22mk+sEjms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EyTjTt0W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720633729; c=relaxed/simple;
+	bh=aoA2qZUGQlo0IuAMIqaoLfC/6NzwnqRa8PuMYwBZxMc=;
+	h=Date:To:From:Subject:Message-Id; b=Gjf3UEnnmxrkj5ggz+idh8B+up0REj0KWt7cgGmRv+Aby4tEQ/yhyHO5x/N9ebmtUrTvW3tAWiyfqb3FZPk0I3IlIcqmrZwQqbcV2EducnwS3x5w/zP2Bv1wZS57dW2Gv8S2qIcPcC9+huKTVBDfrdRkRCayURhUQ8TEF4okhXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L8hKk7gX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EyTjTt0W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BD45C32786;
-	Wed, 10 Jul 2024 17:48:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L8hKk7gX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0639C32781;
+	Wed, 10 Jul 2024 17:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720633726;
-	bh=4wKum+d0HPUZcPQDTGuR4aBV3tLnaQp/nRZweznSQX8=;
+	s=korg; t=1720633728;
+	bh=aoA2qZUGQlo0IuAMIqaoLfC/6NzwnqRa8PuMYwBZxMc=;
 	h=Date:To:From:Subject:From;
-	b=EyTjTt0Wqdfc4viktyvqi4kuaLBn3aJo6yDHoWU2Vs1tiGDqdb/r4JoUO+KtIDfd5
-	 G6E7LQIUh+IXYs3Yr6ByRGHhmoh7EPZ6oAYsutBXDRDyrFmk5Vu2R7d1Wz1COVYfyW
-	 58iDeseEoz0xljWTGRS3lNgCGjQjX/gyLRfDePWQ=
-Date: Wed, 10 Jul 2024 10:48:45 -0700
+	b=L8hKk7gX+b16kUXDe/Dlnf4QAVRU55xS6JBUuPmmkzIJVc7d163/+E3zdGb26Z36H
+	 v9UYypayGQT3llzPxC0yrfeVm2hz4ZLYcLfc/2a2iu7HkqW3vG4RtCuDTXSmSn8da1
+	 noD8EF2P8GOUPvSIIFUhlC1ANC3UXVwqoVLLo1uo=
+Date: Wed, 10 Jul 2024 10:48:48 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterx@redhat.com,osalvador@suse.de,mingo@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,arnd@arndb.de,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch added to mm-unstable branch
-Message-Id: <20240710174846.5BD45C32786@smtp.kernel.org>
+Subject: + mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh.patch added to mm-unstable branch
+Message-Id: <20240710174848.A0639C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove pud_user() from asm-generic/pgtable-nopmd.h
+     Subject: mm: add p{g/4}d_leaf() in asm-generic/pgtable-nop{4/u}d.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch
+     mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pud_user-from-asm-generic-pgtable-nopmdh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm: remove pud_user() from asm-generic/pgtable-nopmd.h
-Date: Wed, 10 Jul 2024 09:51:21 +0200
+Subject: mm: add p{g/4}d_leaf() in asm-generic/pgtable-nop{4/u}d.h
+Date: Wed, 10 Jul 2024 09:51:22 +0200
 
 Commit 2c8a81dc0cc5 ("riscv/mm: fix two page table check related issues")
-added pud_user() in include/asm-generic/pgtable-nopmd.h
+added pud_leaf() in include/asm-generic/pgtable-nopmd.h
 
-But pud_user() only exists on ARM64 and RISCV and is not expected by any
-part of MM.
+Do the same for p4d_leaf() and pgd_leaf() to avoid getting them
+erroneously defined by architectures that do not implement the related
+page level.
 
-Add the missing definition in arch/riscv/include/asm/pgtable-32.h and
-remove it from asm-generic/pgtable-nopmd.h
-
-Link: https://lkml.kernel.org/r/c31a39463929daba6c91917598ec05cf47103af5.1720597744.git.christophe.leroy@csgroup.eu
+Link: https://lkml.kernel.org/r/f69941b076bf8fec89b6bec5573fdb79483c2a75.1720597744.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -83,32 +81,43 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable-32.h |    5 +++++
- include/asm-generic/pgtable-nopmd.h |    1 -
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/asm-generic/pgtable-nop4d.h |    2 ++
+ include/asm-generic/pgtable-nopmd.h |    1 +
+ include/asm-generic/pgtable-nopud.h |    2 ++
+ 3 files changed, 5 insertions(+)
 
---- a/arch/riscv/include/asm/pgtable-32.h~mm-remove-pud_user-from-asm-generic-pgtable-nopmdh
-+++ a/arch/riscv/include/asm/pgtable-32.h
-@@ -36,4 +36,9 @@
- static const __maybe_unused int pgtable_l4_enabled;
- static const __maybe_unused int pgtable_l5_enabled;
+--- a/include/asm-generic/pgtable-nop4d.h~mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh
++++ a/include/asm-generic/pgtable-nop4d.h
+@@ -21,6 +21,8 @@ typedef struct { pgd_t pgd; } p4d_t;
+ static inline int pgd_none(pgd_t pgd)		{ return 0; }
+ static inline int pgd_bad(pgd_t pgd)		{ return 0; }
+ static inline int pgd_present(pgd_t pgd)	{ return 1; }
++static inline int pgd_leaf(pgd_t pgd)		{ return 0; }
++#define pgd_leaf pgd_leaf
+ static inline void pgd_clear(pgd_t *pgd)	{ }
+ #define p4d_ERROR(p4d)				(pgd_ERROR((p4d).pgd))
  
-+static inline int pud_user(pud_t pud)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_RISCV_PGTABLE_32_H */
---- a/include/asm-generic/pgtable-nopmd.h~mm-remove-pud_user-from-asm-generic-pgtable-nopmdh
+--- a/include/asm-generic/pgtable-nopmd.h~mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh
 +++ a/include/asm-generic/pgtable-nopmd.h
-@@ -30,7 +30,6 @@ typedef struct { pud_t pud; } pmd_t;
- static inline int pud_none(pud_t pud)		{ return 0; }
+@@ -31,6 +31,7 @@ static inline int pud_none(pud_t pud)		{
  static inline int pud_bad(pud_t pud)		{ return 0; }
  static inline int pud_present(pud_t pud)	{ return 1; }
--static inline int pud_user(pud_t pud)		{ return 0; }
  static inline int pud_leaf(pud_t pud)		{ return 0; }
++#define pud_leaf pud_leaf
  static inline void pud_clear(pud_t *pud)	{ }
  #define pmd_ERROR(pmd)				(pud_ERROR((pmd).pud))
+ 
+--- a/include/asm-generic/pgtable-nopud.h~mm-add-pg-4d_leaf-in-asm-generic-pgtable-nop4-udh
++++ a/include/asm-generic/pgtable-nopud.h
+@@ -28,6 +28,8 @@ typedef struct { p4d_t p4d; } pud_t;
+ static inline int p4d_none(p4d_t p4d)		{ return 0; }
+ static inline int p4d_bad(p4d_t p4d)		{ return 0; }
+ static inline int p4d_present(p4d_t p4d)	{ return 1; }
++static inline int p4d_leaf(p4d_t p4d)		{ return 0; }
++#define p4d_leaf p4d_leaf
+ static inline void p4d_clear(p4d_t *p4d)	{ }
+ #define pud_ERROR(pud)				(p4d_ERROR((pud).p4d))
+ 
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
