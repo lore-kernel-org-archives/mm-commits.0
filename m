@@ -1,63 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2225C12C52E;
-	Wed, 10 Jul 2024 22:16:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8041263A5
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 23:53:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720649778; cv=none; b=QTuqOMUvuFfXUyCEPUsELzC1X1U6zuixtkpt83d2GCJ6TktKQRTXHwYH5iS5YMbsyrXazHMvF2lI0GQrANfsYx+CeIm6e/JVYMMAztnvFs+SvloRl7ppK4cU7uS5dGDOrXZah0WtFtTPNWZcuUvqGElGrr+DGg5Gzy1fYagFm9g=
+	t=1720655634; cv=none; b=PHihzrhmGY58J+pgxqIclhcHcvs6eB2n3OnU07cxWbzUZnddz3EO6i/D3Oc35yhapJgVZC42jJ/WOlxJyqSPxAliOsyXZ4pRVyMJ120/Pg8GsGRG8EMcMDpUnp5jHfwaRaxUODois2GE0DW8+dEVcV87IL/jYTcyi0hQAkuWJk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720649778; c=relaxed/simple;
-	bh=D9sg10VzcQINEKKWOwv6L1Yd61n9yqq4lXu62g4KdC4=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=i9UkkpSkPlZkbZPRDdFWHV7dJd4DJz7Dd/Q3Zt0o1+3HO/iwoWKnsD8lHbXTZr5ulWqSfmAZ2CpF/ws8wIG/ZO4W9iyol+wuXFDDW3slNsVXcIKtIxJ0up3J+jqUX1Y0LGZKD+tnup6xaqUhcMTIM5x4ycY5aZAQslkOxujiYj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j6SeWXMO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720655634; c=relaxed/simple;
+	bh=vJtjwO4U6t3tO8Cp8tvLaddrscD8QjQmAS5r5wvcpdE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qgLFPo9xOwWm1mrs0EPWrqRAC6yN5peu7wItvfVWAq4ENpa8z4uBWKKtqpoSRQ4b5SDXbGumwfAhMVEadJZDmFcRfTAdZXVY+vgPPjHSHZD6FQBMG0Co91aBfa35IesHKl3JSh+7Z9Y+7rZSUF5rQhAG3QGNgPO5ckT7SxLLXLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OFzGkoE+; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j6SeWXMO"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0455CC32781;
-	Wed, 10 Jul 2024 22:16:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720649778;
-	bh=D9sg10VzcQINEKKWOwv6L1Yd61n9yqq4lXu62g4KdC4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=j6SeWXMO6ZNzwh5yqNcdOyEPBZTW+6lkv5hnXi/bwar/uOt42l/Bs4oragY+75Xy2
-	 ZoxspjxEY73ZA86oCSm5XIJ18vWOBzQFCQzcTQEBadWI8u1vrjDfQfHpw98DXOMFEu
-	 AmDDxUMRyA3WbBp4x3m1VMMd20c6PY8m7a7uPDKTo5S0bgK85Krez9df/2aJfJk5mV
-	 B1DRxmxLcDRmLAxrFW9JqxwCbcz6rYhirKanEuY7xf0tzF9AQnEwLpE/pzX4Z5icyF
-	 +bo77s74DGBw+Y3uuv4g1o+EbN+uSz8M29puw48mFPvCeojGL48eYxVeNYN2YWZscB
-	 w4YTyl6H5J//A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EED81C433E9;
-	Wed, 10 Jul 2024 22:16:17 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes against 6.10-rc7
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240710132333.0ef20b0442ffd813429ec240@linux-foundation.org>
-References: <20240710132333.0ef20b0442ffd813429ec240@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240710132333.0ef20b0442ffd813429ec240@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-07-10-13-19
-X-PR-Tracked-Commit-Id: f708f6970cc9d6bac71da45c129482092e710537
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 9d9a2f29aefdadc86e450308ff056017a209c755
-Message-Id: <172064977797.29271.17850898090549768605.pr-tracker-bot@kernel.org>
-Date: Wed, 10 Jul 2024 22:16:17 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OFzGkoE+"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-58b966b41fbso306123a12.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 16:53:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1720655631; x=1721260431; darn=vger.kernel.org;
+        h=user-agent:in-reply-to:content-disposition:mime-version:references
+         :reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oeGdHKF3Xsu0KDyVZFu1ujHgXPmkf5xsld3icu48WuE=;
+        b=OFzGkoE+g/tlXSDh9dpyVE3EVCnmYXByEk/Jfmok/BCMm3OgxfbchKX7RctWsWMUeD
+         HrmLOKgRW2RbmDCP7OTu1M07baDybgv8XC/gftS9/Eq0I0CUBFP/fO1QPX9SEGYeB3Nv
+         8BTGgiWfwXIQh41Al8TsVFDKpGXU1wgVbgz7z1fSgkTqMgukkvk40QfWVLP0y0a5cPvf
+         /NiBAjbsPU6eGK8YptknTbvaJKFZu3QnbyW7ux4ynAL2MergBE6dsbalJT+nmXdJ6p26
+         z5djCnNQdC0/uzEo/y5wdI447X+ea8960HfQjz+AfPZpglgee6YmJe2WASNMRuIrJ2+h
+         XUoQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720655631; x=1721260431;
+        h=user-agent:in-reply-to:content-disposition:mime-version:references
+         :reply-to:message-id:subject:cc:to:from:date:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=oeGdHKF3Xsu0KDyVZFu1ujHgXPmkf5xsld3icu48WuE=;
+        b=Yzoso0Zn08VuSG878MNpfZYROHl73NC2XVWLrcZ5bvcEKypvc+8WONcSNG7eTM9ZP7
+         xB7kMpL9feaYZAwSzMuisVpmGN/7SvBTd2cy5cjRcP05C+X0JII9wC1pHM40rQIWApun
+         ZDhg66IGTLLCGuk4jelajAvSDMt6jz6UuCJECiaCgPpPr8vn6TNP/KKE5QBZnqx9UIVa
+         Jbuqy80uHfrVafcWH3Z9gViN2dOE8MFx7cMb4JCQH9gpPVfTY4o2LERHpbJnd3AH6fqO
+         +NamoK+TSDX9yddIwjYCrgwTEwyO2E/tpQY+IEoGBrL8vX9kiuZbriZlwZCExMnpyMTR
+         EUiw==
+X-Gm-Message-State: AOJu0YxGl5V4BxwOzpEtE8pZ8uUfZTmzlFJqmgXPXtTYIGYOxt6twhml
+	tFZAn5vD1Dx9UF8qwinagKSBWQJtrWND+J5n2oSZi8oxeJsXE38KcO+TCZha
+X-Google-Smtp-Source: AGHT+IEIjdZz+9kiB9KuSlExeBvcsf+1f/oNrHrIg4HoGbX1aeFzGlde19qPX1E5rLIhZ4i0BhCKrw==
+X-Received: by 2002:a17:906:ae17:b0:a72:6631:fe60 with SMTP id a640c23a62f3a-a780b87ee15mr437544066b.51.1720655630503;
+        Wed, 10 Jul 2024 16:53:50 -0700 (PDT)
+Received: from localhost ([185.92.221.13])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a780a871f24sm201095966b.205.2024.07.10.16.53.49
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 10 Jul 2024 16:53:49 -0700 (PDT)
+Date: Wed, 10 Jul 2024 23:53:49 +0000
+From: Wei Yang <richard.weiyang@gmail.com>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org
+Cc: mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+	masahiroy@kernel.org, sfr@canb.auug.org.au
+Subject: Re: +
+ init-modpost-conditionally-check-section-mismatch-to-__meminit-fix.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <20240710235349.f4g35ewdgfhpo77f@master>
+Reply-To: Wei Yang <richard.weiyang@gmail.com>
+References: <20240710185931.88F9DC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240710185931.88F9DC32781@smtp.kernel.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 
-The pull request you sent on Wed, 10 Jul 2024 13:23:33 -0700:
+On Wed, Jul 10, 2024 at 11:59:30AM -0700, Andrew Morton wrote:
+>
+>The patch titled
+>     Subject: init-modpost-conditionally-check-section-mismatch-to-__meminit-fix
+>has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>     init-modpost-conditionally-check-section-mismatch-to-__meminit-fix.patch
+>
+>This patch will shortly appear at
+>     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-modpost-conditionally-check-section-mismatch-to-__meminit-fix.patch
+>
+>This patch will later appear in the mm-nonmm-unstable branch at
+>    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+>Before you just go and hit "reply", please:
+>   a) Consider who else should be cc'ed
+>   b) Prefer to cc a suitable mailing list as well
+>   c) Ideally: find the original patch on the mailing list and do a
+>      reply-to-all to that, adding suitable additional cc's
+>
+>*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+>The -mm tree is included into linux-next via the mm-everything
+>branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>and is updated there every 2-3 working days
+>
+>------------------------------------------------------
+>From: Stephen Rothwell <sfr@canb.auug.org.au>
+>Subject: init-modpost-conditionally-check-section-mismatch-to-__meminit-fix
+>Date: Wed, 10 Jul 2024 09:28:02 +1000
+>
+>remove MEM_KEEP from arch/powerpc/kernel/vmlinux.lds.S
+>
+>Link: https://lkml.kernel.org/r/20240710093213.2aefb25f@canb.auug.org.au
+>Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+>Cc: Masahiro Yamada <masahiroy@kernel.org>
+>Cc: Wei Yang <richard.weiyang@gmail.com>
+>Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-07-10-13-19
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/9d9a2f29aefdadc86e450308ff056017a209c755
-
-Thank you!
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Wei Yang
+Help you, Help me
