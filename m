@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00AEA848E
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 17:56:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ABF9195B14
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jul 2024 18:42:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720634206; cv=none; b=hIDiWSr7/TRlWoZDpALqRgYzUdvJau9lml+lUCiRhmisArG6M5WXJ2/JC2JfNKYh8gmeKPj76QvfgWSGa34HABbbUIh2I/bQZpIaIHsSpJILfP/CCrz0Rb4Me1dJle2Uiij82/QAg1kzTChL0YF364HPLnEVakGiVwHnTe+WcRQ=
+	t=1720636932; cv=none; b=ZfUX5rOJMTWIdtDDzU3ZEz7oZIcrDVwvtBz4Vt+gxggH482VAftzkw7Pdr2l7gOVXbJ6W1wXeH62r3PnGVUFuTlodhBbOEpIIITpKIp9YwwApqOoZJqmha+7F1cZKaHjGl0P5tJIrLf/3PKJrpqwzH9+OvprgC81INEthdUUi+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720634206; c=relaxed/simple;
-	bh=b8Z7i5oOFQh9e0Sm+6GPrKTpIlR2ByezzHMlGGdJsno=;
-	h=Date:To:From:Subject:Message-Id; b=UoaJ2SqFuK5yxc54HV1Cu4qj4wZHpkkmjcboaM/rJNCEhmrUWXI/mZDUfURUzH52HCJdqfB5mT4ggTYSYRxTatctbvUXaM97SSal4daoi886tUx5bFJkRCBbidJcMFj5arco2JK7e2KI8NAsGiLmxb150Xr/Kwaw9JX0KKFOlA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SAP2Ym3z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720636932; c=relaxed/simple;
+	bh=zxHMDe15pREJc6Njfqe3vDauTl6CsmFDlp2DRkRQ+Oc=;
+	h=Date:To:From:Subject:Message-Id; b=XbLgn72JZ/xlO8wIimGzJbpB5tpy1NAzRwrIljiLwl1DYvn0BmEnQgSMtbvoq7Va8ZgXbH+9XgtMn3HRdajayCow7qljSk2hG838GhXGoFK60d+HyLbop1hiZTqHbRnb3qFcfDeHPKzv4vGpoCpdu2Iet2hmOhI1rZDc1OD3qiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Le2NT/72; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SAP2Ym3z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AACFC32781;
-	Wed, 10 Jul 2024 17:56:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Le2NT/72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83584C32786;
+	Wed, 10 Jul 2024 18:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720634205;
-	bh=b8Z7i5oOFQh9e0Sm+6GPrKTpIlR2ByezzHMlGGdJsno=;
+	s=korg; t=1720636931;
+	bh=zxHMDe15pREJc6Njfqe3vDauTl6CsmFDlp2DRkRQ+Oc=;
 	h=Date:To:From:Subject:From;
-	b=SAP2Ym3zOTR2cdSDN1kMRpmwgfN/JqkZEKiogvSbWps2wSYgztat7OygwWm0VQd/f
-	 xqsP+Old2Y+IcPSfXheEchEOrh05BVki95fGRhxGPG23t7CUTySg/mVz4g3wk5D8tH
-	 yg8ayiPDT6tBzUfXZWCX+ohNVr0fK60AS9g5cKNo=
-Date: Wed, 10 Jul 2024 10:56:39 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tonyb@cybernetics.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,muchun.song@linux.dev,luto@kernel.org,kirill.shutemov@linux.intel.com,david@redhat.com,ast@kernel.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=Le2NT/72H71uRVZQO/SiOAKgJeoEmaTMMJYSpoxGFHmRj18V65yrC43X39xHHGq73
+	 K4KNfMJALOsBs89demYUKXe9CCgHqjrR+Yy2Z0ijJi4SFFCzcQQPhRTRvjhhM2wCl6
+	 9OnYrD9aE9EQmtMk1iYhFdgQzn9xYWby/6gQHp8c=
+Date: Wed, 10 Jul 2024 11:42:11 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,shakeel.butt@linux.dev,oliver.sang@intel.com,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chengming.zhou@linux.dev,ak@linux.intel.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch added to mm-unstable branch
-Message-Id: <20240710175645.5AACFC32781@smtp.kernel.org>
+Subject: + mm-initialize-zeromap-to-null-at-swapon-and-set-it-to-null-at-swapoff.patch added to mm-unstable branch
+Message-Id: <20240710184211.83584C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
+     Subject: mm: initialize zeromap to NULL at swapon and set it to NULL at swapoff
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
+     mm-initialize-zeromap-to-null-at-swapon-and-set-it-to-null-at-swapoff.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-initialize-zeromap-to-null-at-swapon-and-set-it-to-null-at-swapoff.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,125 +58,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
-Date: Wed, 10 Jul 2024 00:19:12 -0500
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm: initialize zeromap to NULL at swapon and set it to NULL at swapoff
+Date:   Wed Jul 10 11:21:56 2024 +0100
 
-generic_hugetlb_get_unmapped_area() was returning an address less than
-mmap_min_addr if the mmap argument addr, after alignment, was less than
-mmap_min_addr, causing mmap to fail.
+If swapon fails before zeromap is initialized, kvfree should operate on a
+NULL pointer.
 
-This is because current generic_hugetlb_get_unmapped_area() code does not
-take into account mmap_min_addr.
-
-This patch ensures that generic_hugetlb_get_unmapped_area() always returns
-an address that is greater than mmap_min_addr.  Additionally, similar to
-generic_get_unmapped_area(), vm_end_gap() checks are included to maintain
-stack gap.
-
-How to reproduce
-================
-
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/mman.h>
- #include <unistd.h>
-
- #define HUGEPAGE_SIZE (16 * 1024 * 1024)
-
- int main() {
-
-    void *addr = mmap((void *)-1, HUGEPAGE_SIZE,
-                 PROT_READ | PROT_WRITE,
-                 MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-    if (addr == MAP_FAILED) {
-        perror("mmap");
-        exit(EXIT_FAILURE);
-    }
-
-    snprintf((char *)addr, HUGEPAGE_SIZE, "Hello, Huge Pages!");
-
-    printf("%s\n", (char *)addr);
-
-    if (munmap(addr, HUGEPAGE_SIZE) == -1) {
-        perror("munmap");
-        exit(EXIT_FAILURE);
-    }
-
-    return 0;
- }
-
-Result without fix
-==================
- # cat /proc/meminfo |grep -i HugePages_Free
- HugePages_Free:       20
- # ./test
- mmap: Permission denied
- #
-
-Result with fix
-===============
- # cat /proc/meminfo |grep -i HugePages_Free
- HugePages_Free:       20
- # ./test
- Hello, Huge Pages!
- #
-
-Link: https://lkml.kernel.org/r/20240710051912.4681-1-donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Reported-by Pavithra Prakash <pavrampu@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Link: https://lkml.kernel.org/r/053bd429-ae19-4beb-a733-a7a838b1e010@gmail.com
+Fixes: 127f851ba92f ("mm: store zero pages to be swapped out in a bitmap")
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202407101031.c6c3c651-lkp@intel.com
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Tony Battersby <tonyb@cybernetics.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/swapfile.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr
-+++ a/fs/hugetlbfs/inode.c
-@@ -222,13 +222,13 @@ generic_hugetlb_get_unmapped_area(struct
- 				  unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
-+	struct vm_area_struct *vma, *prev;
- 	struct hstate *h = hstate_file(file);
- 	const unsigned long mmap_end = arch_get_mmap_end(addr, len, flags);
+--- a/mm/swapfile.c~mm-initialize-zeromap-to-null-at-swapon-and-set-it-to-null-at-swapoff
++++ a/mm/swapfile.c
+@@ -2524,6 +2524,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	struct address_space *mapping;
+ 	struct inode *inode;
+ 	struct filename *pathname;
++	unsigned long *zeromap;
+ 	int err, found = 0;
  
- 	if (len & ~huge_page_mask(h))
+ 	if (!capable(CAP_SYS_ADMIN))
+@@ -2641,6 +2642,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	p->max = 0;
+ 	swap_map = p->swap_map;
+ 	p->swap_map = NULL;
++	zeromap = p->zeromap;
++	p->zeromap = NULL;
+ 	cluster_info = p->cluster_info;
+ 	p->cluster_info = NULL;
+ 	spin_unlock(&p->lock);
+@@ -2653,7 +2656,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	free_percpu(p->cluster_next_cpu);
+ 	p->cluster_next_cpu = NULL;
+ 	vfree(swap_map);
+-	kvfree(p->zeromap);
++	kvfree(zeromap);
+ 	kvfree(cluster_info);
+ 	/* Destroy swap account information */
+ 	swap_cgroup_swapoff(p->type);
+@@ -3105,6 +3108,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	struct page *page = NULL;
+ 	struct inode *inode = NULL;
+ 	bool inced_nr_rotate_swap = false;
++	unsigned long *zeromap = NULL;
+ 
+ 	if (swap_flags & ~SWAP_FLAGS_VALID)
  		return -EINVAL;
--	if (len > TASK_SIZE)
-+	if (len > mmap_end - mmap_min_addr)
- 		return -ENOMEM;
- 
- 	if (flags & MAP_FIXED) {
-@@ -239,9 +239,10 @@ generic_hugetlb_get_unmapped_area(struct
- 
- 	if (addr) {
- 		addr = ALIGN(addr, huge_page_size(h));
--		vma = find_vma(mm, addr);
--		if (mmap_end - len >= addr &&
--		    (!vma || addr + len <= vm_start_gap(vma)))
-+		vma = find_vma_prev(mm, addr, &prev);
-+		if (mmap_end - len >= addr && addr >= mmap_min_addr &&
-+		    (!vma || addr + len <= vm_start_gap(vma)) &&
-+		    (!prev || addr >= vm_end_gap(prev)))
- 			return addr;
+@@ -3181,15 +3185,16 @@ SYSCALL_DEFINE2(swapon, const char __use
  	}
  
+ 	/*
+-	 * Use kvmalloc_array instead of bitmap_zalloc as the allocation order might
+-	 * be above MAX_PAGE_ORDER incase of a large swap file.
++	 * Use kvmalloc_array instead of bitmap_zalloc as the allocation order
++	 * might be above MAX_PAGE_ORDER incase of a large swap file.
+ 	 */
+-	p->zeromap = kvmalloc_array(BITS_TO_LONGS(maxpages), sizeof(long),
+-				    GFP_KERNEL | __GFP_ZERO);
+-	if (!p->zeromap) {
++	zeromap = kvmalloc_array(BITS_TO_LONGS(maxpages), sizeof(long),
++				 GFP_KERNEL | __GFP_ZERO);
++	if (!zeromap) {
+ 		error = -ENOMEM;
+ 		goto bad_swap_unlock_inode;
+ 	}
++	p->zeromap = zeromap;
+ 
+ 	if (p->bdev && bdev_stable_writes(p->bdev))
+ 		p->flags |= SWP_STABLE_WRITES;
+@@ -3345,7 +3350,7 @@ bad_swap:
+ 	p->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+-	kvfree(p->zeromap);
++	kvfree(zeromap);
+ 	kvfree(cluster_info);
+ 	if (inced_nr_rotate_swap)
+ 		atomic_dec(&nr_rotate_swap);
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
+mm-initialize-zeromap-to-null-at-swapon-and-set-it-to-null-at-swapoff.patch
 
