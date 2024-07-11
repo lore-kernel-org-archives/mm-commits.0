@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6375F2836A
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 21:08:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB5F19E804
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 21:22:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720732124; cv=none; b=IF6jLnmgabp3g3Fd1E8lIrocluitiTT8J714gw2/NPD0/FrtvcyqEioZoPMROGnPPGY9vOJaiYWtm2xqTdugXmaUu2k+ds7BKioyKt4B7fVRYQAy5Zz3FQH8Xi25cCR29xUZLz1RZP27aBiTLqgira0cdVgzj39+tJP2jGgfXek=
+	t=1720732962; cv=none; b=F25o3Lp3U19rtj3ACdkBYJlmAdCFYU2KcLK4TNeo0Umk7n5+IOVqalsbaGe81CQo7mAXTCEeHdIIrVTFb3bG7T/dHuCoFEqYVeMsPVb0GhFosGTkn1ZDpoA2jWS6t+WSLbD2gcOUJt0YTVicGsrV83O4OkRJitLV3KEh8C7zWzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720732124; c=relaxed/simple;
-	bh=Lpa+Y/j2OkYNirUv13PfkGtnVDcICA6UR9fWvVSaaCw=;
-	h=Date:To:From:Subject:Message-Id; b=AIneBaQzzkgCztv/aD5jAAT7kISJQX3Q7BOXPNbSVjbQe7venKO/2sY0B7M9vZVaQ+Y5odlhTmZQbCtObXwl45RD5NgJ4lxdSWjWssA/Bi7AZHugyEVQqb7Fr1qDJSsAXJCjtfAK0dI7P0IDqprV6DeiCdq0fl9gzsvULJtr3to=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q3h+Jxrd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720732962; c=relaxed/simple;
+	bh=mY1LJYfO2LLYDftR19scRua/pQzCcgTytElPfE5lFC0=;
+	h=Date:To:From:Subject:Message-Id; b=OsZFsfnd5ATPY598J5RVw9gQooh0jYtNeJVUtpf9bR+dGDxb7WxMc7+gHk5vu7d2oY+DJRp81oyBebwTWaUxcJR5fpZaJdbPy+6oxWDLrvnRrrkUfBir0lfe9GOeOH71M16D686NGShnzVmU+YhQidwWVaIwjKhm3s+hR/SvZiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BtN05vFx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3h+Jxrd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27BFAC116B1;
-	Thu, 11 Jul 2024 21:08:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BtN05vFx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97FA8C116B1;
+	Thu, 11 Jul 2024 21:22:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720732124;
-	bh=Lpa+Y/j2OkYNirUv13PfkGtnVDcICA6UR9fWvVSaaCw=;
+	s=korg; t=1720732961;
+	bh=mY1LJYfO2LLYDftR19scRua/pQzCcgTytElPfE5lFC0=;
 	h=Date:To:From:Subject:From;
-	b=Q3h+JxrdGTuEzCBDI2h+KnL5dYDwzmiKOAs07XUTUuvTOuRFeRwIiMe0aUSr4wx18
-	 ysWd3tykssID21vbssGvZzoEH8UHjsPu6wX9oautCQCFaaGT8xsfSjPjyPgH6AQ5+K
-	 4EGupAlCPWO6CWjGLnH4F/S/IzupTeOYANz2dvlE=
-Date: Thu, 11 Jul 2024 14:08:43 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,souravpanda@google.com,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=BtN05vFxQ7fu/isypxP+EsxBZ0TqRxOv89EUf6eKS9hQyoe/vJ6WsJIW6NYUA/rHM
+	 G0FHBpN7DNUE/1J1q+20RC9kGoWGhWjbqaa3LUnI4K/crH/xHtPcDcUkb/repuvEgR
+	 iWiz8ucToHXBvQ4xm1Qc2VkOGB6X7JRHXm4l5KYM=
+Date: Thu, 11 Jul 2024 14:22:41 -0700
+To: mm-commits@vger.kernel.org,syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com,skhan@linuxfoundation.org,david@redhat.com,peili.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240711210844.27BFAC116B1@smtp.kernel.org>
+Subject: + mm-fix-mmap_assert_locked-in-follow_pte.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240711212241.97FA8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: export memory allocation profiling symbols used by modules
+     Subject: mm: fix mmap_assert_locked() in follow_pte()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
+     mm-fix-mmap_assert_locked-in-follow_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-mmap_assert_locked-in-follow_pte.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: export memory allocation profiling symbols used by modules
-Date: Thu, 11 Jul 2024 13:46:26 -0700
+From: Pei Li <peili.dev@gmail.com>
+Subject: mm: fix mmap_assert_locked() in follow_pte()
+Date: Wed, 10 Jul 2024 22:13:17 -0700
 
-Export mem_alloc_profiling_key, page_ext_get() and page_ext_set() symbols
-as they can be used by modules (mem_alloc_profiling_key is used indirectly
-via mem_alloc_profiling_enabled()).
+Syzbot reported the following warning in follow_pte():
 
-Link: https://lkml.kernel.org/r/20240711204626.1669138-1-surenb@google.com
-Fixes: 22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202407080044.DWMC9N9I-lkp@intel.com/
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 rwsem_assert_held include/linux/rwsem.h:195 [inline]
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 mmap_assert_locked include/linux/mmap_lock.h:65 [inline]
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 follow_pte+0x414/0x4c0 mm/memory.c:5980
+
+This is because we are assuming that mm->mmap_lock should be held when
+entering follow_pte().  This is added in commit c5541ba378e3 (mm:
+follow_pte() improvements).
+
+However, in the following call stack, we are not acquring the lock:
+ follow_phys arch/x86/mm/pat/memtype.c:957 [inline]
+ get_pat_info+0xf2/0x510 arch/x86/mm/pat/memtype.c:991
+ untrack_pfn+0xf7/0x4d0 arch/x86/mm/pat/memtype.c:1104
+ unmap_single_vma+0x1bd/0x2b0 mm/memory.c:1819
+ zap_page_range_single+0x326/0x560 mm/memory.c:1920
+
+In zap_page_range_single(), we passed mm_wr_locked as false, as we do not
+expect write lock to be held.  In the special case where vma->vm_flags is
+set as VM_PFNMAP, we are hitting untrack_pfn() which eventually calls into
+follow_phys.
+
+This patch fixes this warning by acquiring read lock before entering
+untrack_pfn() while write lock is not held.
+
+syzbot has tested the proposed patch and the reproducer did not
+trigger any issue.
+
+Link: https://lkml.kernel.org/r/20240710-bug12-v1-1-0e5440f9b8d3@gmail.com
+Fixes: c5541ba378e3 ("mm: follow_pte() improvements")
+Signed-off-by: Pei Li <peili.dev@gmail.com>
+Reported-by: <syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=35a4414f6e247f515443
+Tested-by: <syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com>
+Cc: Pei Li <peili.dev@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    1 +
- mm/page_ext.c   |    2 ++
- 2 files changed, 3 insertions(+)
+ mm/memory.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/lib/alloc_tag.c~alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules
-+++ a/lib/alloc_tag.c
-@@ -15,6 +15,7 @@ EXPORT_SYMBOL(_shared_alloc_tag);
+--- a/mm/memory.c~mm-fix-mmap_assert_locked-in-follow_pte
++++ a/mm/memory.c
+@@ -1815,9 +1815,16 @@ static void unmap_single_vma(struct mmu_
+ 	if (vma->vm_file)
+ 		uprobe_munmap(vma, start, end);
  
- DEFINE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
- 			mem_alloc_profiling_key);
-+EXPORT_SYMBOL(mem_alloc_profiling_key);
+-	if (unlikely(vma->vm_flags & VM_PFNMAP))
++	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
++		if (!mm_wr_locked)
++			mmap_read_lock(vma->vm_mm);
++
+ 		untrack_pfn(vma, 0, 0, mm_wr_locked);
  
- struct allocinfo_private {
- 	struct codetag_iterator iter;
---- a/mm/page_ext.c~alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules
-+++ a/mm/page_ext.c
-@@ -527,6 +527,7 @@ struct page_ext *page_ext_get(const stru
- 
- 	return page_ext;
- }
-+EXPORT_SYMBOL(page_ext_get);
- 
- /**
-  * page_ext_put() - Working with page extended information is done.
-@@ -545,3 +546,4 @@ void page_ext_put(struct page_ext *page_
- 
- 	rcu_read_unlock();
- }
-+EXPORT_SYMBOL(page_ext_put);
++		if (!mm_wr_locked)
++			mmap_read_unlock(vma->vm_mm);
++	}
++
+ 	if (start != end) {
+ 		if (unlikely(is_vm_hugetlb_page(vma))) {
+ 			/*
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from peili.dev@gmail.com are
 
-alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
-mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+mm-fix-mmap_assert_locked-in-follow_pte.patch
+mm-ignore-data-race-in-__swap_writepage.patch
 
