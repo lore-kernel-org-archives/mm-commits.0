@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E9CB157469
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 19:42:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E14217C205;
+	Thu, 11 Jul 2024 19:50:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720726972; cv=none; b=XtDJm4NkBh2yX7nZdPxljs/T/0lJeR6fem15j/pjYxNhmOOJ8dsvQrkR9hrwCDu+fAb3VLasztNoIDsVLPT3FoS11rSym7StO9lvsAeugbvcMfK46X7fkAbofKr6RLIP/QrY4jn2TCpAWyT6S+ux7oXz/1jBnDld1xFCvBU/6EQ=
+	t=1720727404; cv=none; b=CIEY2XHwfjE6hNpEt/cJR0jig+BMkrPjE1N43bFQU0XuEMwNHO3RPd8I91lXNtBV3wZM/Nmmux7olK2dkEjA3Doz8j2CnTKhk0FCQLyXDrfc8T+CNoZGdpzxdlhiP13QscaRw4Fl+y1ZbQJYkOpEbHE/28UVYH1qG6LYPUNOpTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720726972; c=relaxed/simple;
-	bh=dXxeJEf6QSleyfSQ5Qu7jxWqAh+oppRi2nYWqKsM0VE=;
-	h=Date:To:From:Subject:Message-Id; b=e5EvfrXr4HjHuGogmR0vvDWKd0fCS6El3RBJ9+s7R1Q1IJRSnGSMi1KFXb2e5PmnMgQUpHJ1WoCLHd3yRbwkeP7TvOkG9EQfTWEsn6Gi1NgC5NhKgqC7hWtz8cdnSDoNPhkypyG9ZRS2ozHOqLLmLdjX60M7fKtW4J12c5xpnSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kjTQ+H1K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720727404; c=relaxed/simple;
+	bh=uGmt9MhWr+IhldWKO4BjArzwltW7yBIWuStFuU0aH74=;
+	h=Date:To:From:Subject:Message-Id; b=mva2MbbGc4NGjky+PtLTgqQQs/97gTkzgd0j9ph48fkn9kLpI7D5MwWhD5/DNocpZlW3cYcEw6tyuERqnQ/7yu71oIZkCEsbRyRLA0EKBz0GeeuzqswpupQpLh1Cq8qmoE7nvx958XLNOXgvl/Qgh8xMynizzEQeAy3OfmYA0Go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lsOvTLGh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kjTQ+H1K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB479C116B1;
-	Thu, 11 Jul 2024 19:42:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lsOvTLGh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C777EC116B1;
+	Thu, 11 Jul 2024 19:50:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720726972;
-	bh=dXxeJEf6QSleyfSQ5Qu7jxWqAh+oppRi2nYWqKsM0VE=;
+	s=korg; t=1720727403;
+	bh=uGmt9MhWr+IhldWKO4BjArzwltW7yBIWuStFuU0aH74=;
 	h=Date:To:From:Subject:From;
-	b=kjTQ+H1KcYrYjE2VLVd92TXaAQ5O6w+Xo2Cp0zwTVM4wDvYr77xRoQ+y/KkAgmIiK
-	 SCwzUxR0MTeEADsdXIWbXstv/Q3F65w6lC0P6CLZQCjV0lnS7w3VuhRDJFcrAOP/NA
-	 Ifu3JMGqBaX6Jx61HQimoP0+/go22m8uVAPNsCG4=
-Date: Thu, 11 Jul 2024 12:42:51 -0700
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,kees@kernel.org,akpm@linux-foundation.org
+	b=lsOvTLGhONXRNQ0UCcwLpGLteXuxmphl3ibn1cUWdyDaAopVQXvgZRSI9+RVtIXqQ
+	 E+ah24LUTMlTN/f7ns1zyJGfFoArlANQEq1PHyVLB5yxxoTMGhTxaI31GGr9KZ7/eI
+	 huiTPA8U9zsF8FW3rJDkcdavpyvlc3m3kTn6p7lI=
+Date: Thu, 11 Jul 2024 12:50:03 -0700
+To: mm-commits@vger.kernel.org,weixugc@google.com,stable@vger.kernel.org,mav@ixsystems.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-replace-strncpy-with-strscpy.patch added to mm-unstable branch
-Message-Id: <20240711194251.DB479C116B1@smtp.kernel.org>
+Subject: + mm-mglru-fix-div-by-zero-in-vmpressure_calc_level.patch added to mm-unstable branch
+Message-Id: <20240711195003.C777EC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmemleak: replace strncpy() with strscpy()
+     Subject: mm/mglru: fix div-by-zero in vmpressure_calc_level()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-replace-strncpy-with-strscpy.patch
+     mm-mglru-fix-div-by-zero-in-vmpressure_calc_level.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-replace-strncpy-with-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-div-by-zero-in-vmpressure_calc_level.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kees Cook <kees@kernel.org>
-Subject: mm/kmemleak: replace strncpy() with strscpy()
-Date: Tue, 9 Jul 2024 17:13:08 -0700
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/mglru: fix div-by-zero in vmpressure_calc_level()
+Date: Thu, 11 Jul 2024 13:19:56 -0600
 
-Replace the depreciated[1] strncpy() calls with strscpy().  Uses of
-object->comm do not depend on the padding side-effect.
+evict_folios() uses a second pass to reclaim folios that have gone through
+page writeback and become clean before it finishes the first pass, since
+folio_rotate_reclaimable() cannot handle those folios due to the
+isolation.
 
-Link: https://github.com/KSPP/linux/issues/90 [1]
-Link: https://lkml.kernel.org/r/20240710001300.work.004-kees@kernel.org
-Signed-off-by: Kees Cook <kees@kernel.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+The second pass tries to avoid potential double counting by deducting
+scan_control->nr_scanned.  However, this can result in underflow of
+nr_scanned, under a condition where shrink_folio_list() does not increment
+nr_scanned, i.e., when folio_trylock() fails.
+
+The underflow can cause the divisor, i.e., scale=scanned+reclaimed in
+vmpressure_calc_level(), to become zero, resulting in the following crash:
+
+  [exception RIP: vmpressure_work_fn+101]
+  process_one_work at ffffffffa3313f2b
+
+Since scan_control->nr_scanned has no established semantics, the potential
+double counting has minimal risks.  Therefore, fix the problem by not
+deducting scan_control->nr_scanned in evict_folios().
+
+Link: https://lkml.kernel.org/r/20240711191957.939105-1-yuzhao@google.com
+Fixes: 359a5e1416ca ("mm: multi-gen LRU: retry folios written back while isolated")
+Reported-by: Wei Xu <weixugc@google.com>
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Alexander Motin <mav@ixsystems.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-replace-strncpy-with-strscpy
-+++ a/mm/kmemleak.c
-@@ -657,10 +657,10 @@ static struct kmemleak_object *__alloc_o
- 	/* task information */
- 	if (in_hardirq()) {
- 		object->pid = 0;
--		strncpy(object->comm, "hardirq", sizeof(object->comm));
-+		strscpy(object->comm, "hardirq");
- 	} else if (in_serving_softirq()) {
- 		object->pid = 0;
--		strncpy(object->comm, "softirq", sizeof(object->comm));
-+		strscpy(object->comm, "softirq");
- 	} else {
- 		object->pid = current->pid;
- 		/*
-@@ -669,7 +669,7 @@ static struct kmemleak_object *__alloc_o
- 		 * dependency issues with current->alloc_lock. In the worst
- 		 * case, the command line is not correct.
- 		 */
--		strncpy(object->comm, current->comm, sizeof(object->comm));
-+		strscpy(object->comm, current->comm);
+--- a/mm/vmscan.c~mm-mglru-fix-div-by-zero-in-vmpressure_calc_level
++++ a/mm/vmscan.c
+@@ -4597,7 +4597,6 @@ retry:
+ 
+ 		/* retry folios that may have missed folio_rotate_reclaimable() */
+ 		list_move(&folio->lru, &clean);
+-		sc->nr_scanned -= folio_nr_pages(folio);
  	}
  
- 	/* kernel backtrace */
+ 	spin_lock_irq(&lruvec->lru_lock);
 _
 
-Patches currently in -mm which might be from kees@kernel.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-kmemleak-replace-strncpy-with-strscpy.patch
-tsacct-replace-strncpy-with-strscpy.patch
+mm-truncate-batch-clear-shadow-entries.patch
+mm-truncate-batch-clear-shadow-entries-v2.patch
+mm-mglru-fix-div-by-zero-in-vmpressure_calc_level.patch
+mm-mglru-fix-overshooting-shrinker-memory.patch
 
