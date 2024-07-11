@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CA81EA85;
-	Thu, 11 Jul 2024 19:17:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A01A91C14
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 19:31:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720725446; cv=none; b=Qv48x2iy6yg8Z8sMABAbDIz/kVSu9v5vOLKuYLgRzboId8265mRLAP71kVr21D6d1e6o5VFm1lAY96V3rehWDcmMhBIbbGtwyGqT/2HcRBp5/9pRcmxhGpUN+yMO02phqcOaQtZUHVID6pepAznnaeosuRYge8RtV3+fmE3FTfE=
+	t=1720726299; cv=none; b=sNGo58GhtliMLshS49JSG4nqhTdChyQN47o5Ft6KyGIIK8gEgF9Sh2j5spE1uwDf9iPPzCpFCe0Wf6pONE0214cJye8/1E34s9phK0PmWVcgfUIaWzIafY1n9FlYvdpVUIIbWinWTinn9i6QnV0Dc6SysPnxYVi/HnaNJm3PnrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720725446; c=relaxed/simple;
-	bh=JEDlTA/gWwVLu+myms/njMtNeizH7dAGGVfr85H4qME=;
-	h=Date:To:From:Subject:Message-Id; b=DXBSU5TAVjeYMzDei0zbrPYsjcP0hgMEZ4FdJ381XdCtCAi+hMFQ3k70XODdLT5fHDkZGaKUxj9eXboNjLPIolw2YSQ7TMnHlGN03qO2IvCNmvR0qoFiU637UzW5dk9xmHUpc0xx3KeNZIhc8Sk+HnWiCDd/QIJrGtHxqXbxdl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VmldE/74; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720726299; c=relaxed/simple;
+	bh=PRmdlWVzJeymaopi/jWJu/plSfkSl1z5UYq60Jf1qIM=;
+	h=Date:To:From:Subject:Message-Id; b=pT8K6AjFkLAPtJS2QR3de6RaHctLlne7ZKlbEzXPZklDPA4D/m5x9hDVMhsleycVa3LZjMnZ88BJ7GYJIU4fgb42rAckQyU5scFSAjqPKAhILWsGXojEHKzF+pB0I5S/efztWs4xsrb3bFuoMX1+ktWvqJvT92JR6ZfaywLSt1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L8SqRTg7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VmldE/74"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40B3C116B1;
-	Thu, 11 Jul 2024 19:17:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L8SqRTg7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E72CEC116B1;
+	Thu, 11 Jul 2024 19:31:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720725445;
-	bh=JEDlTA/gWwVLu+myms/njMtNeizH7dAGGVfr85H4qME=;
+	s=korg; t=1720726299;
+	bh=PRmdlWVzJeymaopi/jWJu/plSfkSl1z5UYq60Jf1qIM=;
 	h=Date:To:From:Subject:From;
-	b=VmldE/74mScEygyfFv30LdCsmd5KXD58Shgg7B7eZTGmNyGk0peoRDQRJ0yoi9FVu
-	 7WFj/FiSOFH2TPAPeJn+vNfqCsj1fDtkq3CvnyNU+HutRWj/j2zOdGD1FjYztZWzCX
-	 /E4wp7yyD5l6pDVIUSvDD7TtFH2qLko+cmc9ZERA=
-Date: Thu, 11 Jul 2024 12:17:25 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,dyoung@redhat.com,bhe@redhat.com,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=L8SqRTg77jf7BBdwR/4EBVqmhhNvC9dRCy/twBypCxbDWS4VivES/oh+k3IF29KLL
+	 8wogg7gtoXjAsIfqmGnaQ8pNXvo1G9L1DiQAD8dWsQ+gZBzP1DngL2sA7gMoh11i/U
+	 xowVv6jndj7Av3T/NyRCCASMq5asO2XhkMmV/mvE=
+Date: Thu, 11 Jul 2024 12:31:38 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,dan.j.williams@intel.com,peili.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-fix-x86_32-memory-reserve-dead-loop-retry-bug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240711191725.A40B3C116B1@smtp.kernel.org>
+Subject: + mm-ignore-data-race-in-__swap_writepage.patch added to mm-unstable branch
+Message-Id: <20240711193138.E72CEC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: fix x86_32 memory reserve dead loop retry bug
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     crash-fix-x86_32-memory-reserve-dead-loop-retry-bug.patch
+     Subject: mm: ignore data-race in __swap_writepage
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-ignore-data-race-in-__swap_writepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-x86_32-memory-reserve-dead-loop-retry-bug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ignore-data-race-in-__swap_writepage.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,66 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: crash: fix x86_32 memory reserve dead loop retry bug
-Date: Thu, 11 Jul 2024 15:31:18 +0800
+From: Pei Li <peili.dev@gmail.com>
+Subject: mm: ignore data-race in __swap_writepage
+Date: Thu, 11 Jul 2024 09:32:30 -0700
 
-On x86_32 Qemu machine with 1GB memory, the cmdline "crashkernel=1G,high"
-will cause system stall as below:
+Syzbot reported a possible data race:
 
-	ACPI: Reserving FACP table memory at [mem 0x3ffe18b8-0x3ffe192b]
-	ACPI: Reserving DSDT table memory at [mem 0x3ffe0040-0x3ffe18b7]
-	ACPI: Reserving FACS table memory at [mem 0x3ffe0000-0x3ffe003f]
-	ACPI: Reserving APIC table memory at [mem 0x3ffe192c-0x3ffe19bb]
-	ACPI: Reserving HPET table memory at [mem 0x3ffe19bc-0x3ffe19f3]
-	ACPI: Reserving WAET table memory at [mem 0x3ffe19f4-0x3ffe1a1b]
-	143MB HIGHMEM available.
-	879MB LOWMEM available.
-	  mapped low ram: 0 - 36ffe000
-	  low ram: 0 - 36ffe000
-	 (stall here)
+BUG: KCSAN: data-race in __swap_writepage / scan_swap_map_slots
 
-The reason is that the CRASH_ADDR_LOW_MAX is equal to CRASH_ADDR_HIGH_MAX
-on x86_32, the first high crash kernel memory reservation will fail, then
-go into the "retry" loop and never came out as below.
+read-write to 0xffff888102fca610 of 8 bytes by task 7106 on cpu 1.
+read to 0xffff888102fca610 of 8 bytes by task 7080 on cpu 0.
 
--> reserve_crashkernel_generic() and high is true
- -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
-    -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
-       (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
+While we are in __swap_writepage to read sis->flags, scan_swap_map_slots
+is trying to update it with SWP_SCANNING.
 
-Fix it by changing the out check condition.
+value changed: 0x0000000000008083 -> 0x0000000000004083.
 
-After this patch, it prints:
-	cannot allocate crashkernel (size:0x40000000)
+While this can be updated non-atomicially, this won't affect
+SWP_SYNCHRONOUS_IO, so we consider this data-race safe.
 
-Link: https://lkml.kernel.org/r/20240711073118.1289866-1-ruanjinjie@huawei.com
-Fixes: 9c08a2a139fe ("x86: kdump: use generic interface to simplify crashkernel reservation code")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: <stable@vger.kernel.org>
+This is possibly introduced by commit 3222d8c2a7f8 ("block: remove
+->rw_page"), where this if branch is introduced.
+
+Link: https://lkml.kernel.org/r/20240711-bug13-v1-1-cea2b8ae8d76@gmail.com
+Fixes: 3222d8c2a7f8 ("block: remove ->rw_page")
+Signed-off-by: Pei Li <peili.dev@gmail.com>
+Reported-by: syzbot+da25887cc13da6bf3b8c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=da25887cc13da6bf3b8c
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_reserve.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_io.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/kernel/crash_reserve.c~crash-fix-x86_32-memory-reserve-dead-loop-retry-bug
-+++ a/kernel/crash_reserve.c
-@@ -421,7 +421,7 @@ retry:
- 		 * For crashkernel=size[KMG],high, if the first attempt was
- 		 * for high memory, fall back to low memory.
- 		 */
--		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
-+		if (high && search_base == CRASH_ADDR_LOW_MAX) {
- 			search_end = CRASH_ADDR_LOW_MAX;
- 			search_base = 0;
- 			goto retry;
+--- a/mm/page_io.c~mm-ignore-data-race-in-__swap_writepage
++++ a/mm/page_io.c
+@@ -382,7 +382,12 @@ void __swap_writepage(struct folio *foli
+ 	 */
+ 	if (data_race(sis->flags & SWP_FS_OPS))
+ 		swap_writepage_fs(folio, wbc);
+-	else if (sis->flags & SWP_SYNCHRONOUS_IO)
++	/*
++	 * ->flags can be updated non-atomicially (scan_swap_map_slots),
++	 * but that will never affect SWP_SYNCHRONOUS_IO, so the data_race
++	 * is safe.
++	 */
++	else if (data_race(sis->flags & SWP_SYNCHRONOUS_IO))
+ 		swap_writepage_bdev_sync(folio, wbc, sis);
+ 	else
+ 		swap_writepage_bdev_async(folio, wbc, sis);
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from peili.dev@gmail.com are
 
-crash-fix-x86_32-memory-reserve-dead-loop-retry-bug.patch
+mm-ignore-data-race-in-__swap_writepage.patch
 
