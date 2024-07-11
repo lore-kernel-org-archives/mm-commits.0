@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BBE18732F
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 19:39:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E9CB157469
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 19:42:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720726792; cv=none; b=CA8qWRmo1v8EsrQdWaN877MMmiycBbvWXfVaGD22smAngKiETaxiwbNpsBLlXgMCGXUBIL8uUyAiNP3VeGIB9EEDdpVq8139eyI8lGLzSyJ2pUc2gO1oGfj0DffVYZmImbd8dX8eYbHkZCB+3qkHn77N7TIU9VEYpAiPFd0uKv8=
+	t=1720726972; cv=none; b=XtDJm4NkBh2yX7nZdPxljs/T/0lJeR6fem15j/pjYxNhmOOJ8dsvQrkR9hrwCDu+fAb3VLasztNoIDsVLPT3FoS11rSym7StO9lvsAeugbvcMfK46X7fkAbofKr6RLIP/QrY4jn2TCpAWyT6S+ux7oXz/1jBnDld1xFCvBU/6EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720726792; c=relaxed/simple;
-	bh=lnHZZGbt7LXpvy3GIpmkvNlZnGKk7kBGHxKKpw5LIaM=;
-	h=Date:To:From:Subject:Message-Id; b=Wyrie2Bkt1vg95VunD7TBKy4D6SXGe5jYBZcW7AXHr9028LcvNfzy7xc1CawxQp8Sbcya6wcbECGK99AFVa6jlouzXUfOf43Ba54oHGAZBQC45u2RyfyI2W+Qxc5lMTL6FxJ+6qo3e31huN0UPkFYRTTs7fHxyRixqgxqDyvbuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b+DqiKWy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720726972; c=relaxed/simple;
+	bh=dXxeJEf6QSleyfSQ5Qu7jxWqAh+oppRi2nYWqKsM0VE=;
+	h=Date:To:From:Subject:Message-Id; b=e5EvfrXr4HjHuGogmR0vvDWKd0fCS6El3RBJ9+s7R1Q1IJRSnGSMi1KFXb2e5PmnMgQUpHJ1WoCLHd3yRbwkeP7TvOkG9EQfTWEsn6Gi1NgC5NhKgqC7hWtz8cdnSDoNPhkypyG9ZRS2ozHOqLLmLdjX60M7fKtW4J12c5xpnSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kjTQ+H1K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b+DqiKWy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9F86C116B1;
-	Thu, 11 Jul 2024 19:39:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kjTQ+H1K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB479C116B1;
+	Thu, 11 Jul 2024 19:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720726792;
-	bh=lnHZZGbt7LXpvy3GIpmkvNlZnGKk7kBGHxKKpw5LIaM=;
+	s=korg; t=1720726972;
+	bh=dXxeJEf6QSleyfSQ5Qu7jxWqAh+oppRi2nYWqKsM0VE=;
 	h=Date:To:From:Subject:From;
-	b=b+DqiKWyLRPS1c7X5bidHozpFWbZVkZnDKhx2f30k/eW5LsUrLlADacbeYoHHlNJy
-	 X7WQdnPy5HQwYA0vIlgJ6Oyf7PPkzUmP16Rcf25X6CVlEKeO21AkHll3h5NU6RycEk
-	 EmlqMbuCs2mCh6UHgk4cOMHiIeParKLY/MLfVP64=
-Date: Thu, 11 Jul 2024 12:39:51 -0700
-To: mm-commits@vger.kernel.org,thomas.orgis@uni-hamburg.de,liupeng256@huawei.com,ismael@iodev.co.uk,ebiederm@xmission.com,kees@kernel.org,akpm@linux-foundation.org
+	b=kjTQ+H1KcYrYjE2VLVd92TXaAQ5O6w+Xo2Cp0zwTVM4wDvYr77xRoQ+y/KkAgmIiK
+	 SCwzUxR0MTeEADsdXIWbXstv/Q3F65w6lC0P6CLZQCjV0lnS7w3VuhRDJFcrAOP/NA
+	 Ifu3JMGqBaX6Jx61HQimoP0+/go22m8uVAPNsCG4=
+Date: Thu, 11 Jul 2024 12:42:51 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,kees@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tsacct-replace-strncpy-with-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20240711193951.E9F86C116B1@smtp.kernel.org>
+Subject: + mm-kmemleak-replace-strncpy-with-strscpy.patch added to mm-unstable branch
+Message-Id: <20240711194251.DB479C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tsacct: replace strncpy() with strscpy()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tsacct-replace-strncpy-with-strscpy.patch
+     Subject: mm/kmemleak: replace strncpy() with strscpy()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kmemleak-replace-strncpy-with-strscpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tsacct-replace-strncpy-with-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-replace-strncpy-with-strscpy.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,39 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kees Cook <kees@kernel.org>
-Subject: tsacct: replace strncpy() with strscpy()
-Date: Thu, 11 Jul 2024 10:13:09 -0700
+Subject: mm/kmemleak: replace strncpy() with strscpy()
+Date: Tue, 9 Jul 2024 17:13:08 -0700
 
-Replace the deprecated[1] use of strncpy() in bacct_add_tsk().  Since this
-is UAPI, include trailing padding in the copy.
+Replace the depreciated[1] strncpy() calls with strscpy().  Uses of
+object->comm do not depend on the padding side-effect.
 
 Link: https://github.com/KSPP/linux/issues/90 [1]
-Link: https://lkml.kernel.org/r/20240711171308.work.995-kees@kernel.org
+Link: https://lkml.kernel.org/r/20240710001300.work.004-kees@kernel.org
 Signed-off-by: Kees Cook <kees@kernel.org>
-Cc: "Dr. Thomas Orgis" <thomas.orgis@uni-hamburg.de>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ismael Luceno <ismael@iodev.co.uk>
-Cc: Peng Liu <liupeng256@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/tsacct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/tsacct.c~tsacct-replace-strncpy-with-strscpy
-+++ a/kernel/tsacct.c
-@@ -76,7 +76,7 @@ void bacct_add_tsk(struct user_namespace
- 	stats->ac_minflt = tsk->min_flt;
- 	stats->ac_majflt = tsk->maj_flt;
+--- a/mm/kmemleak.c~mm-kmemleak-replace-strncpy-with-strscpy
++++ a/mm/kmemleak.c
+@@ -657,10 +657,10 @@ static struct kmemleak_object *__alloc_o
+ 	/* task information */
+ 	if (in_hardirq()) {
+ 		object->pid = 0;
+-		strncpy(object->comm, "hardirq", sizeof(object->comm));
++		strscpy(object->comm, "hardirq");
+ 	} else if (in_serving_softirq()) {
+ 		object->pid = 0;
+-		strncpy(object->comm, "softirq", sizeof(object->comm));
++		strscpy(object->comm, "softirq");
+ 	} else {
+ 		object->pid = current->pid;
+ 		/*
+@@ -669,7 +669,7 @@ static struct kmemleak_object *__alloc_o
+ 		 * dependency issues with current->alloc_lock. In the worst
+ 		 * case, the command line is not correct.
+ 		 */
+-		strncpy(object->comm, current->comm, sizeof(object->comm));
++		strscpy(object->comm, current->comm);
+ 	}
  
--	strncpy(stats->ac_comm, tsk->comm, sizeof(stats->ac_comm));
-+	strscpy_pad(stats->ac_comm, tsk->comm);
- }
- 
- 
+ 	/* kernel backtrace */
 _
 
 Patches currently in -mm which might be from kees@kernel.org are
 
+mm-kmemleak-replace-strncpy-with-strscpy.patch
 tsacct-replace-strncpy-with-strscpy.patch
 
