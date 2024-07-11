@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23D0F1509BC;
-	Thu, 11 Jul 2024 21:01:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6375F2836A
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jul 2024 21:08:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720731716; cv=none; b=OYcLOilXqRV21cU7T6AqIGqCfB6r1gC/4yjxRGr/xBjb86b2OhHW1VIsJVXiF9MOMGc5h6410T4bmGYsvU3v36YI/bwV//wMsyiYY5dNHrN/5Gs4Ue2gCIc8a5TYkTu64tXLPYf8GC6/mT2Kq5uS8We/221y01KSEzkWwcYcN4Q=
+	t=1720732124; cv=none; b=IF6jLnmgabp3g3Fd1E8lIrocluitiTT8J714gw2/NPD0/FrtvcyqEioZoPMROGnPPGY9vOJaiYWtm2xqTdugXmaUu2k+ds7BKioyKt4B7fVRYQAy5Zz3FQH8Xi25cCR29xUZLz1RZP27aBiTLqgira0cdVgzj39+tJP2jGgfXek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720731716; c=relaxed/simple;
-	bh=CH9kwbqKZOaytKVKB101X7KuoptUaxaYENlsZcICc7I=;
-	h=Date:To:From:Subject:Message-Id; b=G04To83emuX4FdgUkSIeO73cUbWCUAtXfBaPm2tOWSgNu1kNsuIDjgRaCK71qMKu2JEdLe/uNfEiLoxqDHvKQypTwS8djbiSBGjrjWb77J0XoahyRGYLlKTddsu8uMGEBe3olxygXm61iquONbT+/2zvpmBNFLpf8cfUHfxmiCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KNmmhxVA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720732124; c=relaxed/simple;
+	bh=Lpa+Y/j2OkYNirUv13PfkGtnVDcICA6UR9fWvVSaaCw=;
+	h=Date:To:From:Subject:Message-Id; b=AIneBaQzzkgCztv/aD5jAAT7kISJQX3Q7BOXPNbSVjbQe7venKO/2sY0B7M9vZVaQ+Y5odlhTmZQbCtObXwl45RD5NgJ4lxdSWjWssA/Bi7AZHugyEVQqb7Fr1qDJSsAXJCjtfAK0dI7P0IDqprV6DeiCdq0fl9gzsvULJtr3to=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q3h+Jxrd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KNmmhxVA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C291C116B1;
-	Thu, 11 Jul 2024 21:01:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3h+Jxrd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27BFAC116B1;
+	Thu, 11 Jul 2024 21:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720731715;
-	bh=CH9kwbqKZOaytKVKB101X7KuoptUaxaYENlsZcICc7I=;
+	s=korg; t=1720732124;
+	bh=Lpa+Y/j2OkYNirUv13PfkGtnVDcICA6UR9fWvVSaaCw=;
 	h=Date:To:From:Subject:From;
-	b=KNmmhxVAVFMJGZoPPZQO2dUTADVS+StSpDKmYBKs8EtxLIPDcZTg36FCgyw9OkvE/
-	 9rzaoKuKCCb4Xvcl7ESc8HzTqWg9TuxZnEHz3gMdmUqXiNaQ06QMbzyteV2dM+owV2
-	 eOq8nID1bgARY1tbGW4W7TQn/y4+kiTc7+yS+Cag=
-Date: Thu, 11 Jul 2024 14:01:54 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterz@infradead.org,arjan@linux.intel.com,tglx@linutronix.de,akpm@linux-foundation.org
+	b=Q3h+JxrdGTuEzCBDI2h+KnL5dYDwzmiKOAs07XUTUuvTOuRFeRwIiMe0aUSr4wx18
+	 ysWd3tykssID21vbssGvZzoEH8UHjsPu6wX9oautCQCFaaGT8xsfSjPjyPgH6AQ5+K
+	 4EGupAlCPWO6CWjGLnH4F/S/IzupTeOYANz2dvlE=
+Date: Thu, 11 Jul 2024 14:08:43 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,souravpanda@google.com,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-perf-properly-initialize-the-turbo-mode-timestamp-and-rearm-counter.patch added to mm-nonmm-unstable branch
-Message-Id: <20240711210155.6C291C116B1@smtp.kernel.org>
+Subject: + alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240711210844.27BFAC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog/perf: Properly initialize the turbo mode timestamp and rearm counter
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-perf-properly-initialize-the-turbo-mode-timestamp-and-rearm-counter.patch
+     Subject: alloc_tag: export memory allocation profiling symbols used by modules
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-properly-initialize-the-turbo-mode-timestamp-and-rearm-counter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: watchdog/perf: Properly initialize the turbo mode timestamp and rearm counter
-Date: Thu, 11 Jul 2024 22:25:21 +0200
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: export memory allocation profiling symbols used by modules
+Date: Thu, 11 Jul 2024 13:46:26 -0700
 
-For systems on which the performance counter can expire early due to turbo
-modes the watchdog handler has a safety net in place which validates that
-since the last watchdog event there has at least 4/5th of the watchdog
-period elapsed.
+Export mem_alloc_profiling_key, page_ext_get() and page_ext_set() symbols
+as they can be used by modules (mem_alloc_profiling_key is used indirectly
+via mem_alloc_profiling_enabled()).
 
-This works reliably only after the first watchdog event because the per
-CPU variable which holds the timestamp of the last event is never
-initialized.
-
-So a first spurious event will validate against a timestamp of 0 which
-results in a delta which is likely to be way over the 4/5 threshold of the
-period.  As this might happen before the first watchdog hrtimer event
-increments the watchdog counter, this can lead to false positives.
-
-Fix this by initializing the timestamp before enabling the hardware event.
-Reset the rearm counter as well, as that might be non zero after the
-watchdog was disabled and reenabled.
-
-Link: https://lkml.kernel.org/r/87frsfu15a.ffs@tglx
-Fixes: 7edaeb6841df ("kernel/watchdog: Prevent false positives with turbo modes")
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240711204626.1669138-1-surenb@google.com
+Fixes: 22d407b164ff ("lib: add allocation tagging support for memory allocation profiling")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202407080044.DWMC9N9I-lkp@intel.com/
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_perf.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ lib/alloc_tag.c |    1 +
+ mm/page_ext.c   |    2 ++
+ 2 files changed, 3 insertions(+)
 
---- a/kernel/watchdog_perf.c~watchdog-perf-properly-initialize-the-turbo-mode-timestamp-and-rearm-counter
-+++ a/kernel/watchdog_perf.c
-@@ -75,11 +75,15 @@ static bool watchdog_check_timestamp(voi
- 	__this_cpu_write(last_timestamp, now);
- 	return true;
- }
--#else
--static inline bool watchdog_check_timestamp(void)
-+
-+static void watchdog_init_timestamp(void)
- {
--	return true;
-+	__this_cpu_write(nmi_rearmed, 0);
-+	__this_cpu_write(last_timestamp, ktime_get_mono_fast_ns());
- }
-+#else
-+static inline bool watchdog_check_timestamp(void) { return true; }
-+static inline void watchdog_init_timestamp(void) { }
- #endif
+--- a/lib/alloc_tag.c~alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules
++++ a/lib/alloc_tag.c
+@@ -15,6 +15,7 @@ EXPORT_SYMBOL(_shared_alloc_tag);
  
- static struct perf_event_attr wd_hw_attr = {
-@@ -161,6 +165,7 @@ void watchdog_hardlockup_enable(unsigned
- 	if (!atomic_fetch_inc(&watchdog_cpus))
- 		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
+ DEFINE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
+ 			mem_alloc_profiling_key);
++EXPORT_SYMBOL(mem_alloc_profiling_key);
  
-+	watchdog_init_timestamp();
- 	perf_event_enable(this_cpu_read(watchdog_ev));
+ struct allocinfo_private {
+ 	struct codetag_iterator iter;
+--- a/mm/page_ext.c~alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules
++++ a/mm/page_ext.c
+@@ -527,6 +527,7 @@ struct page_ext *page_ext_get(const stru
+ 
+ 	return page_ext;
  }
++EXPORT_SYMBOL(page_ext_get);
  
+ /**
+  * page_ext_put() - Working with page extended information is done.
+@@ -545,3 +546,4 @@ void page_ext_put(struct page_ext *page_
+ 
+ 	rcu_read_unlock();
+ }
++EXPORT_SYMBOL(page_ext_put);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from surenb@google.com are
 
-watchdog-perf-properly-initialize-the-turbo-mode-timestamp-and-rearm-counter.patch
+alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
+mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
 
