@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB51E12DDAF
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABEB012DDAF
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824884; cv=none; b=FvoyW3FUYpqxX58mqyVDi3QuxKyQ5oaUr0vTnmrLaJ5IRyZ6hRH7/b6JrQKQNM1YlrPRD+kNbg12Zo6XA0FLjEKCQ5E7fkUe9IKZiUIqrC1YepFrLkLYsCjFyEbmHpaCIUcath7ZynaXxUsJF7MlP6p51ZtTkD0im9anGpKfweU=
+	t=1720824885; cv=none; b=Weu99faEipGJn32q5xVcG5ZyG6QCGa2HHKygkOxM+8gEymm7sY9G3e/1q1FE17t165/PaNc4agzgrWQSEQurqgjX/SzEcEBkr4ByGcTvIX9pt62e2/1p7AtnMrCXDmwJM1bgN35f/ooDZlUlHOk2OsLclWyvn3fIDz71E+6jIDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824884; c=relaxed/simple;
-	bh=oIxHj7WjEoZSlDAll1kM62fM3FbLNIW5H0L2mhWbQRk=;
-	h=Date:To:From:Subject:Message-Id; b=k8mKGk+fWo+C3Ay+a5TcNdNToHtza4PGtDK0tNHK7y7O5CNJW9WXf2XKNnXJRer4zsrXIgo19NIkCOF4iRztEaDDl1Lc+h+MkdUErHVGIchRvH46wY020uFRwUmgm9nVhdnJ9WapsxfW1HrmAeMOolhSIeP2rzVVdsFTaVrA3lg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EVBI0Ddf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824885; c=relaxed/simple;
+	bh=u8psiFkNtHHJKAYmbqr66AZSwKZHcQehONyM5TfQpTQ=;
+	h=Date:To:From:Subject:Message-Id; b=T4Xm/71HodZzynaMmbxCJpNFReArdXnzoMBUSF1Tsailqt/LGqHtCBQ/QUdo8lva2upAj3XqBj1rruO/QSLreFDiU9KS/1fK+5vZlf7/iMfikF++PmKfLZIwDZpnWyyw7sXysNLtHrToaBWgnaGRfP2jh/MkMJikzXIWlsjPBqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CdStweId; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EVBI0Ddf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 808D3C4AF07;
-	Fri, 12 Jul 2024 22:54:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CdStweId"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 828D6C4AF0A;
+	Fri, 12 Jul 2024 22:54:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824884;
-	bh=oIxHj7WjEoZSlDAll1kM62fM3FbLNIW5H0L2mhWbQRk=;
+	s=korg; t=1720824885;
+	bh=u8psiFkNtHHJKAYmbqr66AZSwKZHcQehONyM5TfQpTQ=;
 	h=Date:To:From:Subject:From;
-	b=EVBI0DdfoTMO1sx1SfZOTUXc/viv3bunfZ+wfKcej2zp/VsAi4/Fcpv4YKRL9EjFo
-	 Iyn7F9x34FQw1MDkZq5wX3SwWdBEadSUY0fEE8rPfihEqwQhXIiPmARGLw/zLbM//K
-	 DTRys6QSu0VauoUtJWthn3Ugs4FnLEg33ylZnev8=
-Date: Fri, 12 Jul 2024 15:54:44 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
+	b=CdStweIdJ+GYgDQAHwqjSeqFbVn0LlamsK9jSAqIu57dgy0I936r20istJvIGx0zd
+	 9UTmewBSXHTogp+ZZalhPW5ur/pB3pJJV0rFEOQEYmI5xueccfzhjSkbhyhHrzQB7r
+	 uKCMoipSgs49/TctVvnLn33NrmDXJhDkoADcGlDg=
+Date: Fri, 12 Jul 2024 15:54:45 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,apopple@nvidia.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-config_arch_has_hugepd.patch removed from -mm tree
-Message-Id: <20240712225444.808D3C4AF07@smtp.kernel.org>
+Subject: [merged mm-stable] mm-unexport-vmf_insert_mixed_mkwrite.patch removed from -mm tree
+Message-Id: <20240712225445.828D6C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,433 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove CONFIG_ARCH_HAS_HUGEPD
+     Subject: mm: unexport vmf_insert_mixed_mkwrite
 has been removed from the -mm tree.  Its filename was
-     mm-remove-config_arch_has_hugepd.patch
+     mm-unexport-vmf_insert_mixed_mkwrite.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm: remove CONFIG_ARCH_HAS_HUGEPD
-Date: Tue, 2 Jul 2024 15:51:35 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: unexport vmf_insert_mixed_mkwrite
+Date: Tue, 2 Jul 2024 09:23:27 +0200
 
-powerpc was the only user of CONFIG_ARCH_HAS_HUGEPD and doesn't use it
-anymore, so remove all related code.
+vmf_insert_mixed_mkwrite is only used by the built-in DAX code.
 
-Link: https://lkml.kernel.org/r/4b10c54c794780b955f3ad6c657d0199dd792146.1719928057.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20240702072327.1640911-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 -
- mm/Kconfig              |   10 -
- mm/gup.c                |  194 --------------------------------------
- mm/pagewalk.c           |   57 -----------
- 4 files changed, 9 insertions(+), 258 deletions(-)
+ mm/memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/hugetlb.h~mm-remove-config_arch_has_hugepd
-+++ a/include/linux/hugetlb.h
-@@ -20,12 +20,6 @@ struct user_struct;
- struct mmu_gather;
- struct node;
- 
--#ifndef CONFIG_ARCH_HAS_HUGEPD
--typedef struct { unsigned long pd; } hugepd_t;
--#define is_hugepd(hugepd) (0)
--#define __hugepd(x) ((hugepd_t) { (x) })
--#endif
--
- void free_huge_folio(struct folio *folio);
- 
- #ifdef CONFIG_HUGETLB_PAGE
---- a/mm/gup.c~mm-remove-config_arch_has_hugepd
-+++ a/mm/gup.c
-@@ -462,7 +462,7 @@ static inline void mm_set_has_pinned_fla
- 
- #ifdef CONFIG_MMU
- 
--#if defined(CONFIG_ARCH_HAS_HUGEPD) || defined(CONFIG_HAVE_GUP_FAST)
-+#ifdef CONFIG_HAVE_GUP_FAST
- static int record_subpages(struct page *page, unsigned long sz,
- 			   unsigned long addr, unsigned long end,
- 			   struct page **pages)
-@@ -572,154 +572,7 @@ static struct folio *try_grab_folio_fast
- 
- 	return folio;
- }
--#endif	/* CONFIG_ARCH_HAS_HUGEPD || CONFIG_HAVE_GUP_FAST */
--
--#ifdef CONFIG_ARCH_HAS_HUGEPD
--static unsigned long hugepte_addr_end(unsigned long addr, unsigned long end,
--				      unsigned long sz)
--{
--	unsigned long __boundary = (addr + sz) & ~(sz-1);
--	return (__boundary - 1 < end - 1) ? __boundary : end;
--}
--
--/*
-- * Returns 1 if succeeded, 0 if failed, -EMLINK if unshare needed.
-- *
-- * NOTE: for the same entry, gup-fast and gup-slow can return different
-- * results (0 v.s. -EMLINK) depending on whether vma is available.  This is
-- * the expected behavior, where we simply want gup-fast to fallback to
-- * gup-slow to take the vma reference first.
-- */
--static int gup_hugepte(struct vm_area_struct *vma, pte_t *ptep, unsigned long sz,
--		       unsigned long addr, unsigned long end, unsigned int flags,
--		       struct page **pages, int *nr, bool fast)
--{
--	unsigned long pte_end;
--	struct page *page;
--	struct folio *folio;
--	pte_t pte;
--	int refs;
--
--	pte_end = (addr + sz) & ~(sz-1);
--	if (pte_end < end)
--		end = pte_end;
--
--	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
--
--	if (!pte_access_permitted(pte, flags & FOLL_WRITE))
--		return 0;
--
--	/* hugepages are never "special" */
--	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
--
--	page = pte_page(pte);
--	refs = record_subpages(page, sz, addr, end, pages + *nr);
--
--	if (fast) {
--		folio = try_grab_folio_fast(page, refs, flags);
--		if (!folio)
--			return 0;
--	} else {
--		folio = page_folio(page);
--		if (try_grab_folio(folio, refs, flags))
--			return 0;
--	}
--
--	if (unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
--		gup_put_folio(folio, refs, flags);
--		return 0;
--	}
--
--	if (!pte_write(pte) && gup_must_unshare(vma, flags, &folio->page)) {
--		gup_put_folio(folio, refs, flags);
--		return -EMLINK;
--	}
--
--	*nr += refs;
--	folio_set_referenced(folio);
--	return 1;
--}
--
--/*
-- * NOTE: currently GUP for a hugepd is only possible on hugetlbfs file
-- * systems on Power, which does not have issue with folio writeback against
-- * GUP updates.  When hugepd will be extended to support non-hugetlbfs or
-- * even anonymous memory, we need to do extra check as what we do with most
-- * of the other folios. See writable_file_mapping_allowed() and
-- * gup_fast_folio_allowed() for more information.
-- */
--static int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--		      unsigned long addr, unsigned int pdshift,
--		      unsigned long end, unsigned int flags,
--		      struct page **pages, int *nr, bool fast)
--{
--	pte_t *ptep;
--	unsigned long sz = 1UL << hugepd_shift(hugepd);
--	unsigned long next;
--	int ret;
--
--	ptep = hugepte_offset(hugepd, addr, pdshift);
--	do {
--		next = hugepte_addr_end(addr, end, sz);
--		ret = gup_hugepte(vma, ptep, sz, addr, end, flags, pages, nr,
--				  fast);
--		if (ret != 1)
--			return ret;
--	} while (ptep++, addr = next, addr != end);
--
--	return 1;
--}
--
--static struct page *follow_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--				  unsigned long addr, unsigned int pdshift,
--				  unsigned int flags,
--				  struct follow_page_context *ctx)
--{
--	struct page *page;
--	struct hstate *h;
--	spinlock_t *ptl;
--	int nr = 0, ret;
--	pte_t *ptep;
--
--	/* Only hugetlb supports hugepd */
--	if (WARN_ON_ONCE(!is_vm_hugetlb_page(vma)))
--		return ERR_PTR(-EFAULT);
--
--	h = hstate_vma(vma);
--	ptep = hugepte_offset(hugepd, addr, pdshift);
--	ptl = huge_pte_lock(h, vma->vm_mm, ptep);
--	ret = gup_hugepd(vma, hugepd, addr, pdshift, addr + PAGE_SIZE,
--			 flags, &page, &nr, false);
--	spin_unlock(ptl);
--
--	if (ret == 1) {
--		/* GUP succeeded */
--		WARN_ON_ONCE(nr != 1);
--		ctx->page_mask = (1U << huge_page_order(h)) - 1;
--		return page;
--	}
--
--	/* ret can be either 0 (translates to NULL) or negative */
--	return ERR_PTR(ret);
--}
--#else /* CONFIG_ARCH_HAS_HUGEPD */
--static inline int gup_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--			     unsigned long addr, unsigned int pdshift,
--			     unsigned long end, unsigned int flags,
--			     struct page **pages, int *nr, bool fast)
--{
--	return 0;
--}
--
--static struct page *follow_hugepd(struct vm_area_struct *vma, hugepd_t hugepd,
--				  unsigned long addr, unsigned int pdshift,
--				  unsigned int flags,
--				  struct follow_page_context *ctx)
--{
--	return NULL;
--}
--#endif /* CONFIG_ARCH_HAS_HUGEPD */
--
-+#endif	/* CONFIG_HAVE_GUP_FAST */
- 
- static struct page *no_page_table(struct vm_area_struct *vma,
- 				  unsigned int flags, unsigned long address)
-@@ -1089,9 +942,6 @@ static struct page *follow_pmd_mask(stru
- 		return no_page_table(vma, flags, address);
- 	if (!pmd_present(pmdval))
- 		return no_page_table(vma, flags, address);
--	if (unlikely(is_hugepd(__hugepd(pmd_val(pmdval)))))
--		return follow_hugepd(vma, __hugepd(pmd_val(pmdval)),
--				     address, PMD_SHIFT, flags, ctx);
- 	if (pmd_devmap(pmdval)) {
- 		ptl = pmd_lock(mm, pmd);
- 		page = follow_devmap_pmd(vma, address, pmd, flags, &ctx->pgmap);
-@@ -1142,9 +992,6 @@ static struct page *follow_pud_mask(stru
- 	pud = READ_ONCE(*pudp);
- 	if (!pud_present(pud))
- 		return no_page_table(vma, flags, address);
--	if (unlikely(is_hugepd(__hugepd(pud_val(pud)))))
--		return follow_hugepd(vma, __hugepd(pud_val(pud)),
--				     address, PUD_SHIFT, flags, ctx);
- 	if (pud_leaf(pud)) {
- 		ptl = pud_lock(mm, pudp);
- 		page = follow_huge_pud(vma, address, pudp, flags, ctx);
-@@ -1170,10 +1017,6 @@ static struct page *follow_p4d_mask(stru
- 	p4d = READ_ONCE(*p4dp);
- 	BUILD_BUG_ON(p4d_leaf(p4d));
- 
--	if (unlikely(is_hugepd(__hugepd(p4d_val(p4d)))))
--		return follow_hugepd(vma, __hugepd(p4d_val(p4d)),
--				     address, P4D_SHIFT, flags, ctx);
--
- 	if (!p4d_present(p4d) || p4d_bad(p4d))
- 		return no_page_table(vma, flags, address);
- 
-@@ -1217,10 +1060,7 @@ static struct page *follow_page_mask(str
- 	ctx->page_mask = 0;
- 	pgd = pgd_offset(mm, address);
- 
--	if (unlikely(is_hugepd(__hugepd(pgd_val(*pgd)))))
--		page = follow_hugepd(vma, __hugepd(pgd_val(*pgd)),
--				     address, PGDIR_SHIFT, flags, ctx);
--	else if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-+	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
- 		page = no_page_table(vma, flags, address);
- 	else
- 		page = follow_p4d_mask(vma, address, pgd, flags, ctx);
-@@ -3362,15 +3202,6 @@ static int gup_fast_pmd_range(pud_t *pud
- 				pages, nr))
- 				return 0;
- 
--		} else if (unlikely(is_hugepd(__hugepd(pmd_val(pmd))))) {
--			/*
--			 * architecture have different format for hugetlbfs
--			 * pmd format and THP pmd format
--			 */
--			if (gup_hugepd(NULL, __hugepd(pmd_val(pmd)), addr,
--				       PMD_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
- 		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
- 					       pages, nr))
- 			return 0;
-@@ -3397,11 +3228,6 @@ static int gup_fast_pud_range(p4d_t *p4d
- 			if (!gup_fast_pud_leaf(pud, pudp, addr, next, flags,
- 					       pages, nr))
- 				return 0;
--		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
--			if (gup_hugepd(NULL, __hugepd(pud_val(pud)), addr,
--				       PUD_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
- 		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
- 					       pages, nr))
- 			return 0;
-@@ -3425,13 +3251,8 @@ static int gup_fast_p4d_range(pgd_t *pgd
- 		if (!p4d_present(p4d))
- 			return 0;
- 		BUILD_BUG_ON(p4d_leaf(p4d));
--		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
--			if (gup_hugepd(NULL, __hugepd(p4d_val(p4d)), addr,
--				       P4D_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return 0;
--		} else if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
--					       pages, nr))
-+		if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
-+					pages, nr))
- 			return 0;
- 	} while (p4dp++, addr = next, addr != end);
- 
-@@ -3455,11 +3276,6 @@ static void gup_fast_pgd_range(unsigned
- 			if (!gup_fast_pgd_leaf(pgd, pgdp, addr, next, flags,
- 					       pages, nr))
- 				return;
--		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
--			if (gup_hugepd(NULL, __hugepd(pgd_val(pgd)), addr,
--				       PGDIR_SHIFT, next, flags, pages, nr,
--				       true) != 1)
--				return;
- 		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
- 					       pages, nr))
- 			return;
---- a/mm/Kconfig~mm-remove-config_arch_has_hugepd
-+++ a/mm/Kconfig
-@@ -1126,16 +1126,6 @@ config DMAPOOL_TEST
- config ARCH_HAS_PTE_SPECIAL
- 	bool
- 
--#
--# Some architectures require a special hugepage directory format that is
--# required to support multiple hugepage sizes. For example a4fe3ce76
--# "powerpc/mm: Allow more flexible layouts for hugepage pagetables"
--# introduced it on powerpc.  This allows for a more flexible hugepage
--# pagetable layouts.
--#
--config ARCH_HAS_HUGEPD
--	bool
--
- config MAPPING_DIRTY_HELPERS
-         bool
- 
---- a/mm/pagewalk.c~mm-remove-config_arch_has_hugepd
-+++ a/mm/pagewalk.c
-@@ -73,45 +73,6 @@ static int walk_pte_range(pmd_t *pmd, un
- 	return err;
- }
- 
--#ifdef CONFIG_ARCH_HAS_HUGEPD
--static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
--			     unsigned long end, struct mm_walk *walk, int pdshift)
--{
--	int err = 0;
--	const struct mm_walk_ops *ops = walk->ops;
--	int shift = hugepd_shift(*phpd);
--	int page_size = 1 << shift;
--
--	if (!ops->pte_entry)
--		return 0;
--
--	if (addr & (page_size - 1))
--		return 0;
--
--	for (;;) {
--		pte_t *pte;
--
--		spin_lock(&walk->mm->page_table_lock);
--		pte = hugepte_offset(*phpd, addr, pdshift);
--		err = ops->pte_entry(pte, addr, addr + page_size, walk);
--		spin_unlock(&walk->mm->page_table_lock);
--
--		if (err)
--			break;
--		if (addr >= end - page_size)
--			break;
--		addr += page_size;
--	}
--	return err;
--}
--#else
--static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
--			     unsigned long end, struct mm_walk *walk, int pdshift)
--{
--	return 0;
--}
--#endif
--
- static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk)
+--- a/mm/memory.c~mm-unexport-vmf_insert_mixed_mkwrite
++++ a/mm/memory.c
+@@ -2533,7 +2533,6 @@ vm_fault_t vmf_insert_mixed_mkwrite(stru
  {
-@@ -159,10 +120,7 @@ again:
- 		if (walk->vma)
- 			split_huge_pmd(walk->vma, pmd, addr);
+ 	return __vm_insert_mixed(vma, addr, pfn, true);
+ }
+-EXPORT_SYMBOL(vmf_insert_mixed_mkwrite);
  
--		if (is_hugepd(__hugepd(pmd_val(*pmd))))
--			err = walk_hugepd_range((hugepd_t *)pmd, addr, next, walk, PMD_SHIFT);
--		else
--			err = walk_pte_range(pmd, addr, next, walk);
-+		err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
- 			break;
- 
-@@ -215,10 +173,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 		if (pud_none(*pud))
- 			goto again;
- 
--		if (is_hugepd(__hugepd(pud_val(*pud))))
--			err = walk_hugepd_range((hugepd_t *)pud, addr, next, walk, PUD_SHIFT);
--		else
--			err = walk_pmd_range(pud, addr, next, walk);
-+		err = walk_pmd_range(pud, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pud++, addr = next, addr != end);
-@@ -250,9 +205,7 @@ static int walk_p4d_range(pgd_t *pgd, un
- 			if (err)
- 				break;
- 		}
--		if (is_hugepd(__hugepd(p4d_val(*p4d))))
--			err = walk_hugepd_range((hugepd_t *)p4d, addr, next, walk, P4D_SHIFT);
--		else if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_pud_range(p4d, addr, next, walk);
- 		if (err)
- 			break;
-@@ -287,9 +240,7 @@ static int walk_pgd_range(unsigned long
- 			if (err)
- 				break;
- 		}
--		if (is_hugepd(__hugepd(pgd_val(*pgd))))
--			err = walk_hugepd_range((hugepd_t *)pgd, addr, next, walk, PGDIR_SHIFT);
--		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_p4d_range(pgd, addr, next, walk);
- 		if (err)
- 			break;
+ /*
+  * maps a range of physical memory into the requested pages. the old
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from hch@lst.de are
 
 
