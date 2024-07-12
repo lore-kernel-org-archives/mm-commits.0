@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A2582886
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79A3682886
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824850; cv=none; b=WWno8HUavvN+MHpoYYW7AZb5xFOM8DJ/gViW3byjNQ7DfE8TICQkS1XAMb3P+qeiLsLbok488IKJJXQQm1IOb9tgk4il8iMEgZOF6VUui/Y6VZhFiwZrLn8+lQmCJ3nXX1JxdneFPW89TDKKvVVgKYF2GkZKaw0uo5ppznQCQHQ=
+	t=1720824851; cv=none; b=eXkThBKTmIXDXxL9QPkEg99utU7S6/IP/mUZ2ZIvLr5b7myB6KFYsK/COfPsOjYROpHDjdkH0U3zzYBjMH+JisGlBM22bv+/4zZyRcCqClQ/yDfCaTzrWzY6P//WzwOeizP3wqI3zVbJPzS0YIP0IFB/uAje041QS7R6OQyKHSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824850; c=relaxed/simple;
-	bh=TLhGnpxoCiVAFzStvtkMtIyXRvqzylGRO0dL0XwUz7g=;
-	h=Date:To:From:Subject:Message-Id; b=heRluiBBfJZW1nS/Pc1KzWO5kuMkx+e+uR4VCdSqF3/hhelr0wxul95n6jSpq5RHnEtHFnzyhYPJQvUcWv+6wy85leYkpGjmiL+V9ylNDxMyXeRd4ILQMmSvDIfA6WjVeCjLrfapTaH/5ZOT3kx5nOY0DUGtIRU64t8NWayV7uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B6eUdOx8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824851; c=relaxed/simple;
+	bh=AzDEL8bB6VK12xH2gSyx6WElk5twQ2cEsP2k16in/kA=;
+	h=Date:To:From:Subject:Message-Id; b=Z9rBIHcl/iEkTJRiUychzgNxFXicLWn+MWjvJYaadkbhI/ACuHfud0n3HOqvLOkXqTaplg1WKT9qYE+xBJTXypQmfyxX3eBK35kdroUV9xdjY0+vYVrpONJXfmraMXCCjIiVtsWsRd+FXF2yevES7PET9uCaOuXW7LalGolDm/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u7giqISt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B6eUdOx8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23009C32782;
-	Fri, 12 Jul 2024 22:54:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u7giqISt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 504FBC32782;
+	Fri, 12 Jul 2024 22:54:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824850;
-	bh=TLhGnpxoCiVAFzStvtkMtIyXRvqzylGRO0dL0XwUz7g=;
+	s=korg; t=1720824851;
+	bh=AzDEL8bB6VK12xH2gSyx6WElk5twQ2cEsP2k16in/kA=;
 	h=Date:To:From:Subject:From;
-	b=B6eUdOx84hNuqYa8T2IzX1cZXXTD1JpFUz83hfu+QC4r1GD0LX95NmMPsZB/mVBgP
-	 DiG8xRrwpnNZaE8UZKoNDhc1EnSTy+lChP/PJmke9citrPPVkfQITBmB7Ejx+WW20Z
-	 TfVdcTqyYR8NHkW7JNQYbuKHjIAwUjkE270jMiGk=
-Date: Fri, 12 Jul 2024 15:54:09 -0700
+	b=u7giqIStk/hgslhJCfIR824i3cSUxGNEFWpG6WPUdKv0BTGx3gO2gQCc/+ykbP2Qt
+	 Tcxkh8bV07jmVB1dlBlhk+Tm7FiQJsavsvwPnud7Kut94+IW8dECt8T4P5vokeY0X5
+	 nl8eqJlghl2MWDniIlQw8Uyvn64A1tgsK0WYTAEg=
+Date: Fri, 12 Jul 2024 15:54:10 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,sfr@canb.auug.org.au,rppt@kernel.org,Liam.Howlett@Oracle.com,gregkh@linuxfoundation.org,brauner@kernel.org,arnd@arndb.de,ak@linux.intel.com,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-procfs-add-build-id-fetching-to-procmap_query-api.patch removed from -mm tree
-Message-Id: <20240712225410.23009C32782@smtp.kernel.org>
+Subject: [merged mm-stable] docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch removed from -mm tree
+Message-Id: <20240712225411.504FBC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/procfs: add build ID fetching to PROCMAP_QUERY API
+     Subject: docs/procfs: call out ioctl()-based PROCMAP_QUERY command existence
 has been removed from the -mm tree.  Its filename was
-     fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
+     docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrii Nakryiko <andrii@kernel.org>
-Subject: fs/procfs: add build ID fetching to PROCMAP_QUERY API
-Date: Thu, 27 Jun 2024 10:08:55 -0700
+Subject: docs/procfs: call out ioctl()-based PROCMAP_QUERY command existence
+Date: Thu, 27 Jun 2024 10:08:56 -0700
 
-The need to get ELF build ID reliably is an important aspect when dealing
-with profiling and stack trace symbolization, and /proc/<pid>/maps textual
-representation doesn't help with this.
+Call out PROCMAP_QUERY ioctl() existence in the section describing
+/proc/PID/maps file in documentation.  We refer user to UAPI header for
+low-level details of this programmatic interface.
 
-To get backing file's ELF build ID, application has to first resolve VMA,
-then use it's start/end address range to follow a special
-/proc/<pid>/map_files/<start>-<end> symlink to open the ELF file (this is
-necessary because backing file might have been removed from the disk or
-was already replaced with another binary in the same file path.
-
-Such approach, beyond just adding complexity of having to do a bunch of
-extra work, has extra security implications.  Because application opens
-underlying ELF file and needs read access to its entire contents (as far
-as kernel is concerned), kernel puts additional capable() checks on
-following /proc/<pid>/map_files/<start>-<end> symlink.  And that makes
-sense in general.
-
-But in the case of build ID, profiler/symbolizer doesn't need the contents
-of ELF file, per se.  It's only build ID that is of interest, and ELF
-build ID itself doesn't provide any sensitive information.
-
-So this patch adds a way to request backing file's ELF build ID along the
-rest of VMA information in the same API.  User has control over whether
-this piece of information is requested or not by either setting
-build_id_size field to zero or non-zero maximum buffer size they provided
-through build_id_addr field (which encodes user pointer as __u64 field). 
-This is a completely optional piece of information, and so has no
-performance implications for user cases that don't care about build ID,
-while improving performance and simplifying the setup for those
-application that do need it.
-
-Kernel already implements build ID fetching, which is used from BPF
-subsystem.  We are reusing this code here, but plan a follow up changes to
-make it work better under more relaxed assumption (compared to what
-existing code assumes) of being called from user process context, in which
-page faults are allowed.  BPF-specific implementation currently bails out
-if necessary part of ELF file is not paged in, all due to extra
-BPF-specific restrictions (like the need to fetch build ID in restrictive
-contexts such as NMI handler).
-
-[andrii@kernel.org: fix integer to pointer cast warning in do_procmap_query()]
-  Link: https://lkml.kernel.org/r/20240701174805.1897344-1-andrii@kernel.org
-Link: https://lkml.kernel.org/r/20240627170900.1672542-4-andrii@kernel.org
+Link: https://lkml.kernel.org/r/20240627170900.1672542-5-andrii@kernel.org
 Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
 Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -104,131 +66,27 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |   27 +++++++++++++++++++++++++--
- include/uapi/linux/fs.h |   28 ++++++++++++++++++++++++++++
- 2 files changed, 53 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.rst |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/proc/task_mmu.c~fs-procfs-add-build-id-fetching-to-procmap_query-api
-+++ a/fs/proc/task_mmu.c
-@@ -22,6 +22,7 @@
- #include <linux/pkeys.h>
- #include <linux/minmax.h>
- #include <linux/overflow.h>
-+#include <linux/buildid.h>
+--- a/Documentation/filesystems/proc.rst~docs-procfs-call-out-ioctl-based-procmap_query-command-existence
++++ a/Documentation/filesystems/proc.rst
+@@ -443,6 +443,15 @@ is not associated with a file:
  
- #include <asm/elf.h>
- #include <asm/tlb.h>
-@@ -445,6 +446,7 @@ skip_vma:
- 	addr = vma->vm_end;
- 	if (flags & PROCMAP_QUERY_COVERING_OR_NEXT_VMA)
- 		goto next_vma;
+  or if empty, the mapping is anonymous.
+ 
++Starting with 6.11 kernel, /proc/PID/maps provides an alternative
++ioctl()-based API that gives ability to flexibly and efficiently query and
++filter individual VMAs. This interface is binary and is meant for more
++efficient and easy programmatic use. `struct procmap_query`, defined in
++linux/fs.h UAPI header, serves as an input/output argument to the
++`PROCMAP_QUERY` ioctl() command. See comments in linus/fs.h UAPI header for
++details on query semantics, supported flags, data returned, and general API
++usage information.
 +
- no_vma:
- 	return ERR_PTR(-ENOENT);
- }
-@@ -455,7 +457,7 @@ static int do_procmap_query(struct proc_
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm;
- 	const char *name = NULL;
--	char *name_buf = NULL;
-+	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
- 	__u64 usize;
- 	int err;
- 
-@@ -477,6 +479,8 @@ static int do_procmap_query(struct proc_
- 	/* either both buffer address and size are set, or both should be zero */
- 	if (!!karg.vma_name_size != !!karg.vma_name_addr)
- 		return -EINVAL;
-+	if (!!karg.build_id_size != !!karg.build_id_addr)
-+		return -EINVAL;
- 
- 	mm = priv->mm;
- 	if (!mm || !mmget_not_zero(mm))
-@@ -539,6 +543,21 @@ static int do_procmap_query(struct proc_
- 		}
- 	}
- 
-+	if (karg.build_id_size) {
-+		__u32 build_id_sz;
-+
-+		err = build_id_parse(vma, build_id_buf, &build_id_sz);
-+		if (err) {
-+			karg.build_id_size = 0;
-+		} else {
-+			if (karg.build_id_size < build_id_sz) {
-+				err = -ENAMETOOLONG;
-+				goto out;
-+			}
-+			karg.build_id_size = build_id_sz;
-+		}
-+	}
-+
- 	if (karg.vma_name_size) {
- 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
- 		const struct path *path;
-@@ -576,13 +595,17 @@ static int do_procmap_query(struct proc_
- 	query_vma_teardown(mm, vma);
- 	mmput(mm);
- 
--	if (karg.vma_name_size && copy_to_user((void __user *)karg.vma_name_addr,
-+	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
- 					       name, karg.vma_name_size)) {
- 		kfree(name_buf);
- 		return -EFAULT;
- 	}
- 	kfree(name_buf);
- 
-+	if (karg.build_id_size && copy_to_user(u64_to_user_ptr(karg.build_id_addr),
-+					       build_id_buf, karg.build_id_size))
-+		return -EFAULT;
-+
- 	if (copy_to_user(uarg, &karg, min_t(size_t, sizeof(karg), usize)))
- 		return -EFAULT;
- 
---- a/include/uapi/linux/fs.h~fs-procfs-add-build-id-fetching-to-procmap_query-api
-+++ a/include/uapi/linux/fs.h
-@@ -512,6 +512,26 @@ struct procmap_query {
- 	 */
- 	__u32 vma_name_size;		/* in/out */
- 	/*
-+	 * If set to non-zero value, signals the request to extract and return
-+	 * VMA's backing file's build ID, if the backing file is an ELF file
-+	 * and it contains embedded build ID.
-+	 *
-+	 * Kernel will set this field to zero, if VMA has no backing file,
-+	 * backing file is not an ELF file, or ELF file has no build ID
-+	 * embedded.
-+	 *
-+	 * Build ID is a binary value (not a string). Kernel will set
-+	 * build_id_size field to exact number of bytes used for build ID.
-+	 * If build ID is requested and present, but needs more bytes than
-+	 * user-supplied maximum buffer size (see build_id_addr field below),
-+	 * -E2BIG error will be returned.
-+	 *
-+	 * If this field is set to non-zero value, build_id_addr should point
-+	 * to valid user space memory buffer of at least build_id_size bytes.
-+	 * If set to zero, build_id_addr should be set to zero as well
-+	 */
-+	__u32 build_id_size;		/* in/out */
-+	/*
- 	 * User-supplied address of a buffer of at least vma_name_size bytes
- 	 * for kernel to fill with matched VMA's name (see vma_name_size field
- 	 * description above for details).
-@@ -519,6 +539,14 @@ struct procmap_query {
- 	 * Should be set to zero if VMA name should not be returned.
- 	 */
- 	__u64 vma_name_addr;		/* in */
-+	/*
-+	 * User-supplied address of a buffer of at least build_id_size bytes
-+	 * for kernel to fill with matched VMA's ELF build ID, if available
-+	 * (see build_id_size field description above for details).
-+	 *
-+	 * Should be set to zero if build ID should not be returned.
-+	 */
-+	__u64 build_id_addr;		/* in */
- };
- 
- #endif /* _UAPI_LINUX_FS_H */
+ The /proc/PID/smaps is an extension based on maps, showing the memory
+ consumption for each of the process's mappings. For each mapping (aka Virtual
+ Memory Area, or VMA) there is a series of lines such as the following::
 _
 
 Patches currently in -mm which might be from andrii@kernel.org are
