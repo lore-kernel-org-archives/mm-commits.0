@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40EB544C68;
-	Fri, 12 Jul 2024 20:24:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B4839AC3
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 20:29:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720815869; cv=none; b=gMJYtq2lueSyCKGsZllmG2V0WuNDDnhstAa7Pj2A0C8XvWfeir9FDg+7jCBbCgbnWawmm+5g0v38lAs1WCqlmhfnLK0jgekOWVj/n4Ng23TMadqmmOMuB0fgZF8HrQ7uZj/5NTwZOf5j5E26U31SAvc1YrKxxmjyCl0Uay9+tB0=
+	t=1720816179; cv=none; b=fmgMP5woZY8UAPhkCfDq3t6ShbPRbU1CCap67aS7gBuFc13h12E/90uOmsXnSEtLP9w6cf483SRXOU98Y3WOTk5PHL8dA2KIZs5yhmej8p8KJAW3+RMWVXRAWxwOu0wIsaCvpo5Z/HD36k7ffaRsSLkxyiZzR1Erz4jOOcLUSI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720815869; c=relaxed/simple;
-	bh=Lywo0Rs2LR+sXjxxzG5c4AObsksCws41AlWygkxuasU=;
-	h=Date:To:From:Subject:Message-Id; b=iIjgGkdWI+o64NZT3ovW3SreGcTKWyipC+l2gSoa4hKg806xmNWjidjYZd2KDLuoIgkIA04GtRh4QoqzBY8rgijOUPloxpEyEgGHNvda5VQtosMZN4UzDaRQwI7m6sTTnedliUA3M5VtyKSbKUKSzzwUK/R0s8x+LTWn9pGKxEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0wmrH4Va; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720816179; c=relaxed/simple;
+	bh=ZakExdmulJ3LnJCf98GOABFIzjQ6PV33jlWOnXFVF90=;
+	h=Date:To:From:Subject:Message-Id; b=cGffKc8X6u0AbWFNAWJQS1/svpI7tP8+V1f/OX/jp22Tag5opDnsDDnaYRer6zylZy8W4c/YOn/BMaokxb38fQmfodR20N17NJlooCthU7uuPEVtIkR1c7QfCKvsOCiUx/ZCtcaaiChgiRpgK4IPfJjnbP2odVRWQbk+Z2u8Cak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sxm0QMZx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0wmrH4Va"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A34C32782;
-	Fri, 12 Jul 2024 20:24:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sxm0QMZx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB83C32782;
+	Fri, 12 Jul 2024 20:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720815868;
-	bh=Lywo0Rs2LR+sXjxxzG5c4AObsksCws41AlWygkxuasU=;
+	s=korg; t=1720816178;
+	bh=ZakExdmulJ3LnJCf98GOABFIzjQ6PV33jlWOnXFVF90=;
 	h=Date:To:From:Subject:From;
-	b=0wmrH4VayX/NvEwH/04Qh9lg8jdIlD6yDuw1t1lRriHnA9v669t1voqkXrOsaqneV
-	 SSl+2QaOAxi7iOlQ4nSVF+mYC3jBJtz6179hn/cTcsFf2w/mSnU2KXOqtQA+HztH3N
-	 QMAt5DCIfp7PMiYLR1duhS9woo+o9VRqPaIjdlSA=
-Date: Fri, 12 Jul 2024 13:24:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,riel@surriel.com,jirislaby@kernel.org,corsac@debian.org,cl@linux.com,carnil@debian.org,ben@decadent.org.uk,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=sxm0QMZxAuXg6yr6w9JPbw25hN+8gyI2L0xA6CMIHW+wTLpGIx1y35pZaqGIy8/tp
+	 ftZSiR3fU85tXyqR4a8mTg+mZOLcOxU5GxcQUyh/e61mXPjJ6A0EzufD2F59uT2nx/
+	 AXHgzQpRmf608BLitBnG3bToqwmNdk9/8waA5aQc=
+Date: Fri, 12 Jul 2024 13:29:37 -0700
+To: mm-commits@vger.kernel.org,syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com,skhan@linuxfoundation.org,david@redhat.com,peili.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240712202428.91A34C32782@smtp.kernel.org>
+Subject: [failures] mm-fix-mmap_assert_locked-in-follow_pte.patch removed from -mm tree
+Message-Id: <20240712202938.8BB83C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,84 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: huge_memory: use !CONFIG_64BIT to relax huge page alignment on 32 bit machines
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
+The quilt patch titled
+     Subject: mm: fix mmap_assert_locked() in follow_pte()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-mmap_assert_locked-in-follow_pte.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: mm: huge_memory: use !CONFIG_64BIT to relax huge page alignment on 32 bit machines
-Date: Fri, 12 Jul 2024 08:58:55 -0700
+From: Pei Li <peili.dev@gmail.com>
+Subject: mm: fix mmap_assert_locked() in follow_pte()
+Date: Wed, 10 Jul 2024 22:13:17 -0700
 
-Yves-Alexis Perez reported commit 4ef9ad19e176 ("mm: huge_memory: don't
-force huge page alignment on 32 bit") didn't work for x86_32 [1].  It is
-because x86_32 uses CONFIG_X86_32 instead of CONFIG_32BIT.
+Syzbot reported the following warning in follow_pte():
 
-!CONFIG_64BIT should cover all 32 bit machines.
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 rwsem_assert_held include/linux/rwsem.h:195 [inline]
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 mmap_assert_locked include/linux/mmap_lock.h:65 [inline]
+WARNING: CPU: 3 PID: 5192 at include/linux/rwsem.h:195 follow_pte+0x414/0x4c0 mm/memory.c:5980
 
-[1] https://lore.kernel.org/linux-mm/CAHbLzkr1LwH3pcTgM+aGQ31ip2bKqiqEQ8=FQB+t2c3dhNKNHA@mail.gmail.com/
+This is because we are assuming that mm->mmap_lock should be held when
+entering follow_pte().  This is added in commit c5541ba378e3 (mm:
+follow_pte() improvements).
 
-Link: https://lkml.kernel.org/r/20240712155855.1130330-1-yang@os.amperecomputing.com
-Fixes: 4ef9ad19e176 ("mm: huge_memory: don't force huge page alignment on 32 bit")
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Reported-by: Yves-Alexis Perez <corsac@debian.org>
-Tested-by: Yves-Alexis Perez <corsac@debian.org>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Salvatore Bonaccorso <carnil@debian.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>	[6.8+]
+However, in the following call stack, we are not acquring the lock:
+ follow_phys arch/x86/mm/pat/memtype.c:957 [inline]
+ get_pat_info+0xf2/0x510 arch/x86/mm/pat/memtype.c:991
+ untrack_pfn+0xf7/0x4d0 arch/x86/mm/pat/memtype.c:1104
+ unmap_single_vma+0x1bd/0x2b0 mm/memory.c:1819
+ zap_page_range_single+0x326/0x560 mm/memory.c:1920
+
+In zap_page_range_single(), we passed mm_wr_locked as false, as we do not
+expect write lock to be held.  In the special case where vma->vm_flags is
+set as VM_PFNMAP, we are hitting untrack_pfn() which eventually calls into
+follow_phys.
+
+This patch fixes this warning by acquiring read lock before entering
+untrack_pfn() while write lock is not held.
+
+syzbot has tested the proposed patch and the reproducer did not
+trigger any issue.
+
+Link: https://lkml.kernel.org/r/20240710-bug12-v1-1-0e5440f9b8d3@gmail.com
+Fixes: c5541ba378e3 ("mm: follow_pte() improvements")
+Signed-off-by: Pei Li <peili.dev@gmail.com>
+Reported-by: <syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=35a4414f6e247f515443
+Tested-by: <syzbot+35a4414f6e247f515443@syzkaller.appspotmail.com>
+Cc: Pei Li <peili.dev@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines
-+++ a/mm/huge_memory.c
-@@ -858,7 +858,7 @@ static unsigned long __thp_get_unmapped_
- 	loff_t off_align = round_up(off, size);
- 	unsigned long len_pad, ret, off_sub;
+--- a/mm/memory.c~mm-fix-mmap_assert_locked-in-follow_pte
++++ a/mm/memory.c
+@@ -1815,9 +1815,16 @@ static void unmap_single_vma(struct mmu_
+ 	if (vma->vm_file)
+ 		uprobe_munmap(vma, start, end);
  
--	if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
-+	if (!IS_ENABLED(CONFIG_64BIT) || in_compat_syscall())
- 		return 0;
+-	if (unlikely(vma->vm_flags & VM_PFNMAP))
++	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
++		if (!mm_wr_locked)
++			mmap_read_lock(vma->vm_mm);
++
+ 		untrack_pfn(vma, 0, 0, mm_wr_locked);
  
- 	if (off_end <= off_align || (off_end - off_align) < size)
++		if (!mm_wr_locked)
++			mmap_read_unlock(vma->vm_mm);
++	}
++
+ 	if (start != end) {
+ 		if (unlikely(is_vm_hugetlb_page(vma))) {
+ 			/*
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from peili.dev@gmail.com are
 
-mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
+mm-ignore-data-race-in-__swap_writepage.patch
 
