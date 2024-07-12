@@ -1,59 +1,80 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABC412BAF9
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 06:45:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D349324B2F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 06:45:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720766742; cv=none; b=kh14yT/Ssb2pG2u9yIX1IRPQAwNlS/0vipIJwv4x4pMFRfN3NhgTxMIsbwSyOVjhThbwDdaqLwBSFPJp2/h2Abs2j7EqEj1GBcUelvUkaFOYCXXE1p3TQthBJfqfz4UiuBAlH0XyD6/blQx6PFzgLe8BgY1aEiLdkVeg2+0mkV8=
+	t=1720766754; cv=none; b=iV2iE5Jsm3kpitMyDMlf2XYCAECjarIHYnW1nl3cD6URRHGqd/YomwWdQiR+ITZRe3EqIB+Yaidffae63GZjSePP0UhF+mabvvW5vgLueU5L7ZIXH9zdqRlbRxS8e7qpRMcNJjQiNyGBPGx4LexxSQ3rsjTe9Dfg2Lkb1UIC+pU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720766742; c=relaxed/simple;
-	bh=V8XdVf6BVVEBxD3c7D8YukRTQiXpEYD+NHpNkB41u1g=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=aWxf+koyVhodtfEFOuR+yx+HacGA5A37DUAItlNhmatLNr3s5/xe+5z/DLiBxiZ/R0RGn90kPLfT21q3yLCElcPTenSd24YVYTEC8WhKTXaTsflpR878Y3Yu+IgRPx5i4ikZXNWBEwgXl+eCkzwy++HCd1f3IMl4eULV6hx7UEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYGYfDjh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720766754; c=relaxed/simple;
+	bh=1rjHZvf9h7nRkzbIy3X9BSxHvwaxdbwg6th8JG6h7VU=;
+	h=Date:To:From:Subject:Message-Id; b=s6tGHxCpeHmuTWqwZ5Ngh/gXIcElpwmp8OUo5UG+z8ToMc7O3nQUGaLq2f0OOUE35RMavARdaFItg62YQu1vxGjsfYVv3yqwMC4t56/pVcQdYXMvNyumhjClZbxEaa3DDW2wLPo71Q441xJ6wZkrl1f0FRHBZHgOUnCX0iuqpE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvMpD1HB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYGYfDjh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFD1C3277B;
-	Fri, 12 Jul 2024 06:45:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvMpD1HB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89A75C3277B;
+	Fri, 12 Jul 2024 06:45:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720766742;
-	bh=V8XdVf6BVVEBxD3c7D8YukRTQiXpEYD+NHpNkB41u1g=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=dYGYfDjhwc3aW2mXDlHwPfoceQcH3VSl8UQHP92ntscc6676X16lMzlbU4x4WVKIu
-	 d26mCOZN8otd/qD8RId1eVBcctvKJVvmor5Xatm4nZwfIdmtHhd6a21gI/Hvp1rtQ3
-	 5HANwDKMFRBcC3QEYKNX8li5ZxD3DloOVsfMoJDA=
-Date: Thu, 11 Jul 2024 23:45:41 -0700
+	s=korg; t=1720766753;
+	bh=1rjHZvf9h7nRkzbIy3X9BSxHvwaxdbwg6th8JG6h7VU=;
+	h=Date:To:From:Subject:From;
+	b=vvMpD1HBNxCu2ydF/4jtGDakGJ9FmMdvnkqPuibE7MfuVGJv3KD8NH/jQaG6anVMc
+	 VpLdmNaQAbPHeF1p7+WA5cDBVJYcCtrEyJkEGLdAOhB/Aerf3IMrDkLosQvsfKQkJ/
+	 JlXdhYkiWHcDvoXAhHK0TJ2QWM/C7+ycmJVPj+ZA=
+Date: Thu, 11 Jul 2024 23:45:52 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,chengming.zhou@linux.dev,aris@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Hugh Dickins <hughd@google.com>
-Cc: Aristeu Rozanski <aris@redhat.com>, Chengming Zhou
- <chengming.zhou@linux.dev>, mm-commits@vger.kernel.org
-Subject: Re: mm.git: a small error in mm-stable
-Message-Id: <20240711234541.f17a36ca85734e8106c18da4@linux-foundation.org>
-In-Reply-To: <85b0d694-d1ac-8e7a-2e50-1edc03eee21a@google.com>
-References: <85b0d694-d1ac-8e7a-2e50-1edc03eee21a@google.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-hugetlbc-undo-errant-change.patch added to mm-unstable branch
+Message-Id: <20240712064553.89A75C3277B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Thu, 11 Jul 2024 20:30:07 -0700 (PDT) Hugh Dickins <hughd@google.com> wrote:
 
-> In looking through a "git log -p --reverse v6.10-rc6..HEAD"
-> of mm-everything, I just noticed a small anomaly in mm-stable:
-> ac90c56bbd73 "mm/ksm: refactor out try_to_merge_with_zero_page()"
-> modifies mm/hugetlb.c! undoing a oneliner which had been folded-merged into
-> 003af997c8a9 "hugetlb: force allocating surplus hugepages on mempolicy allowed nodes"
-> which comes just before it.
-> 
+The patch titled
+     Subject: mm/hugetlb.c: undo errant change
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlbc-undo-errant-change.patch
 
-Huh thanks.  This cycle has been pretty bad with new hotfixes coming in
-and messing up mm-stable.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlbc-undo-errant-change.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/hugetlb.c: undo errant change
+Date: Thu Jul 11 11:36:42 PM PDT 2024
+
+During conflict resolution a line was unintentionally removed by a ksm.c
+patch.
+
+Link: https://lkml.kernel.org/r/85b0d694-d1ac-8e7a-2e50-1edc03eee21a@google.com
+Fixes: ac90c56bbd73 ("mm/ksm: refactor out try_to_merge_with_zero_page()")
+Reported-by: Hugh Dickins <hughd@google.com>
+Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 --- a/mm/hugetlb.c~mm-hugetlbc-undo-errant-change
 +++ a/mm/hugetlb.c
@@ -66,4 +87,11 @@ and messing up mm-stable.
  			if (!mbind_nodemask || node_isset(node, *mbind_nodemask)) {
  				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-hugetlbc-undo-errant-change.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix.patch
+mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-fix.patch
+mm-migrate-putback-split-folios-when-numa-hint-migration-fails-fix.patch
 
