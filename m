@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2993127E0F
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDCD612EBF5
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824896; cv=none; b=NrF9oUXQbX1cL5g1ta2JSoZN5z+62eQ4UdOoGuW/k0pZoSapEnvUnhQ3mGRqAm72uN2z/6F1D1RZ/clJrWP9F0R2aoUyvr07vDm2pJsrAhDve8M7Jrj0k39mRwpA0zGIV4dOaQvfD/n01nHmNc6lipHAPOyGveTNV6xunbfKAe8=
+	t=1720824899; cv=none; b=T4qT7GdgVw3VzAY19WYqtSysqOQrnitqkq+qSzt6ksPivD+vx/TiJ18ydDX9b6Y/Wu5q/ey8I9lkJgOtfuoYrGWB/HmXwqDZ4eKRlTNJIXxil0BrY4zqq9Ov/7H4xwqT8fmL7U+xuRI0CxtAkI48Xix6CEKWey246wim1bNCN84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824896; c=relaxed/simple;
-	bh=lzpZBX0BOXIFtMaXddqMj6lf7Yi0OBo1X1DPHmUc1+M=;
-	h=Date:To:From:Subject:Message-Id; b=hGe7H0IUF6yAhpy3184RMIISk0ARlNUSnm1cEOHcRgVW7YcNLPo1SD31MZswgp/IVjq9pu6YxjWww0XMww5wOMwVUeYyfy2PLW8cXluubo9z+ZBLVKSN+lMUqcdcLu9WWAzy34+MQ3Ocgl7D3XlX8+1uIbh/fmW3EMNlvKsHOzk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EhX3q1kT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824899; c=relaxed/simple;
+	bh=rdlQsBAT01KgdfiYDA/XVVZT7aQLScPpX0sMXmqAKrw=;
+	h=Date:To:From:Subject:Message-Id; b=mYHj9lOrCoRj9+nGLT5N2kAY/0hiICXYcMJLZueC5OXpqFc9mzbtOoIo9ge8jCRjbP5UCSMbwuIf5XbzlP1JTD2wp1l0DdZ3esFcJOOiBRfypNjP2Yo8j/JhWwCkpJUXhIaRb/FH4giYnMupvBx03dqUO4iRT5CkAVgiInQ9SuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ryTwcvIh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EhX3q1kT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA9BC32782;
-	Fri, 12 Jul 2024 22:54:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ryTwcvIh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C25E3C32782;
+	Fri, 12 Jul 2024 22:54:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824896;
-	bh=lzpZBX0BOXIFtMaXddqMj6lf7Yi0OBo1X1DPHmUc1+M=;
+	s=korg; t=1720824898;
+	bh=rdlQsBAT01KgdfiYDA/XVVZT7aQLScPpX0sMXmqAKrw=;
 	h=Date:To:From:Subject:From;
-	b=EhX3q1kTCyDlFHHjcuu1cdvYudhO41fL1MmVEoGYgmMtMqeRnDCuKSCJ4XL4uFhda
-	 L9tHUPkSoMnacPmlJPAlLqu3il9hrtwx7yK/MzV2KTOMMUDmpy+Nfcfa3lJjPYFjmA
-	 ezoS91K2HMTKcNWL3TGY8101vcpMVZ2OQsvjhyBI=
-Date: Fri, 12 Jul 2024 15:54:56 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=ryTwcvIhHwaamOsixMBHBaesI/yP9etsqMavbPymQMUNuLQVqwGh90bL4EO/D7OnR
+	 JB85J54VTk4OF1/2egAyfBVQJ57NknkknOXh3WYF5hQm03FWCQProXV20VxWchPFeg
+	 AlmowDaCqbwk4RGPurTOUQ/X8wEfFOm6+dpXyqcE=
+Date: Fri, 12 Jul 2024 15:54:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,nphamcs@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch removed from -mm tree
-Message-Id: <20240712225456.7BA9BC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-simplify-folio_migrate_mapping.patch removed from -mm tree
+Message-Id: <20240712225458.C25E3C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: put __free_pages_core() in __meminit section
+     Subject: mm: simplify folio_migrate_mapping()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-put-__free_pages_core-in-__meminit-section.patch
+     mm-simplify-folio_migrate_mapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: put __free_pages_core() in __meminit section
-Date: Sat, 6 Jul 2024 06:16:15 +0000
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: simplify folio_migrate_mapping()
+Date: Sat, 6 Jul 2024 14:29:00 -0700 (PDT)
 
-__free_pages_core() is only used in bootmem init and hot-add memory init
-path.  Let's put it in __meminit section.
+Now that folio_undo_large_rmappable() is an inline function checking
+order and large_rmappable for itself (and __folio_undo_large_rmappable()
+is now declared even when CONFIG_TRANASPARENT_HUGEPAGE is off) there is
+no need for folio_migrate_mapping() to check large and large_rmappable
+first (in the mapping case when it has had to freeze anyway).
 
-Link: https://lkml.kernel.org/r/20240706061615.30322-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/68feee73-050e-8e98-7a3a-abf78738d92c@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- mm/page_alloc.c     |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/migrate.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-page_alloc-put-__free_pages_core-in-__meminit-section
-+++ a/mm/memory_hotplug.c
-@@ -628,7 +628,8 @@ int restore_online_page_callback(online_
- }
- EXPORT_SYMBOL_GPL(restore_online_page_callback);
+--- a/mm/migrate.c~mm-simplify-folio_migrate_mapping
++++ a/mm/migrate.c
+@@ -438,8 +438,7 @@ static int __folio_migrate_mapping(struc
+ 	}
  
--void generic_online_page(struct page *page, unsigned int order)
-+/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
-+void __ref generic_online_page(struct page *page, unsigned int order)
- {
- 	__free_pages_core(page, order, MEMINIT_HOTPLUG);
- }
---- a/mm/page_alloc.c~mm-page_alloc-put-__free_pages_core-in-__meminit-section
-+++ a/mm/page_alloc.c
-@@ -1219,7 +1219,7 @@ static void __free_pages_ok(struct page
- 	__count_vm_events(PGFREE, 1 << order);
- }
+ 	/* Take off deferred split queue while frozen and memcg set */
+-	if (folio_test_large(folio) && folio_test_large_rmappable(folio))
+-		folio_undo_large_rmappable(folio);
++	folio_undo_large_rmappable(folio);
  
--void __free_pages_core(struct page *page, unsigned int order,
-+void __meminit __free_pages_core(struct page *page, unsigned int order,
- 		enum meminit_context context)
- {
- 	unsigned int nr_pages = 1 << order;
+ 	/*
+ 	 * Now we know that no one else is looking at the folio:
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
