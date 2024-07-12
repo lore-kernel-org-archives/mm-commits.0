@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41EFF127E0F
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9346F61FE0
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 23:38:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824920; cv=none; b=m7LFBweJIJ6WAe8a+4CDzf/ecNKHmQWEHg7CoDhJtP56cxAV/Ner/0kOlRdX5iKM8nMNgoIdaix9nrx9+uSOPXLCrVXwhFggOlvoslsow6Yghv8+yhg48w9M0F5i43xzEIsVYc4pTUlqYm0ctD3019EZq0NKQ/B6AGbXZyr5TrU=
+	t=1720827530; cv=none; b=HpJ1CQqI6GRRMbm67ORHU7H3cnjCa9t58uaDfIfzn2f0X/optiUjEBWUDcM51j6Mp+jj4vgP63o/a5Idv/KpR5EVdlVIpAdDqTJSu5P/BJAF1H0PihqGVgJOqok6eyOZMek+ThTw9h+/jCjK90amN2c6CZNT0MJ9RwbOyBgBoBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824920; c=relaxed/simple;
-	bh=yGS8PGbz4To07LdibWqv/t6QevwRNjHsY4PG76mjprQ=;
-	h=Date:To:From:Subject:Message-Id; b=MsCtFEVL85PqWg+noC2z6tqmmDiNMZZ/HOxuqSNJg1Aa0tHeuqgcaf9gp0UldkVqYBFF6pmtD0eFf3vh7ZxjKz+QRxWpxedxRGAYwXLS7vrzebyDwTeyDBhWqSznjHTgUT236nK/nwTWBeaE/KAId7xduLY73qhUOw20hQelejw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBz34v6v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720827530; c=relaxed/simple;
+	bh=Dy158/6F32GEgWBzHMN81JyoXu1MBqMPKVTWiakuQCg=;
+	h=Date:To:From:Subject:Message-Id; b=Ed0EaMAv4kucl80nkNWaEOCgPbiQhgS4pciGH4NuySRp72SCKDQPJDGREWuXWaFsOuo4QxUM4qz7iYpRSEuJmvvodKC4MqX196cAfUfHKr6hgOBh+dVJtGk16G0q1qT/mjQOpMqlFNBrGazW4Qs8FPa0xcF8ROXQ+SPYYsYEYKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2UJYexEF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBz34v6v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17166C32782;
-	Fri, 12 Jul 2024 22:55:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2UJYexEF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA777C32782;
+	Fri, 12 Jul 2024 23:38:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824920;
-	bh=yGS8PGbz4To07LdibWqv/t6QevwRNjHsY4PG76mjprQ=;
+	s=korg; t=1720827530;
+	bh=Dy158/6F32GEgWBzHMN81JyoXu1MBqMPKVTWiakuQCg=;
 	h=Date:To:From:Subject:From;
-	b=sBz34v6vot8j/doSWPK0zm8RnRjgaYw5fXp4ABUSCFIdywh5uZie2t+FqD1bgw2tc
-	 r+fmMm3NJxuOO5IHq41L9dDVTQnT99+419KAvYpLQTuMYWdNc0dpatx/yKGi5IMGvd
-	 h8dKH/L1rS9rwSocWX9stXsbCYa+PS9RNpWCkKLk=
-Date: Fri, 12 Jul 2024 15:55:19 -0700
-To: mm-commits@vger.kernel.org,dan.carpenter@linaro.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=2UJYexEFl7SG9IkGlU7AAJ1jmWq/w+KOQA6q4F7uAKJVVGCawQlSbSjrgiP7oNS2Q
+	 KzCvY1c+r/MAszorYFfFu52SI5G3v7rwNojyjsXhpzO3xAdrEob4lQAJC0TRbrs/nB
+	 U/m8jLXdHE621UAaKsQjv4XsH702Kw1Yvn7ABYV4=
+Date: Fri, 12 Jul 2024 16:38:49 -0700
+To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,masahiroy@kernel.org,sfr@canb.auug.org.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix.patch removed from -mm tree
-Message-Id: <20240712225520.17166C32782@smtp.kernel.org>
+Subject: [folded-merged] init-modpost-conditionally-check-section-mismatch-to-__meminit-fix.patch removed from -mm tree
+Message-Id: <20240712233849.EA777C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg1: convert charge move flags to unsigned long long
+     Subject: init-modpost-conditionally-check-section-mismatch-to-__meminit-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix.patch
+     init-modpost-conditionally-check-section-mismatch-to-__meminit-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into init-modpost-conditionally-check-section-mismatch-to-__meminit.patch
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg1: convert charge move flags to unsigned long long
-Date: Fri, 12 Jul 2024 18:35:14 +0000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: init-modpost-conditionally-check-section-mismatch-to-__meminit-fix
+Date: Wed, 10 Jul 2024 09:28:02 +1000
 
-Currently MOVE_ANON and MOVE_FILE flags are defined as integers
-and it leads to the following Smatch static checker warning:
-    mm/memcontrol-v1.c:609 mem_cgroup_move_charge_write()
-    warn: was expecting a 64 bit value instead of '~(1 | 2)'
+remove MEM_KEEP from arch/powerpc/kernel/vmlinux.lds.S
 
-Fix this be redefining them as unsigned long long.
-
-Even though the issue allows to set high 32 bits of mc.flags
-to an arbitrary number, these bits are never used, so it doesn't
-have any significant consequences.
-
-Link: https://lkml.kernel.org/r/ZpF8Q9zBsIY7d2P9@google.com
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Link: https://lkml.kernel.org/r/20240710093213.2aefb25f@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/vmlinux.lds.S |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/memcontrol-v1.c~mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix
-+++ a/mm/memcontrol-v1.c
-@@ -44,8 +44,8 @@ static struct mem_cgroup_tree soft_limit
- /*
-  * Types of charges to be moved.
-  */
--#define MOVE_ANON	0x1U
--#define MOVE_FILE	0x2U
-+#define MOVE_ANON	0x1ULL
-+#define MOVE_FILE	0x2ULL
- #define MOVE_MASK	(MOVE_ANON | MOVE_FILE)
+--- a/arch/powerpc/kernel/vmlinux.lds.S~init-modpost-conditionally-check-section-mismatch-to-__meminit-fix
++++ a/arch/powerpc/kernel/vmlinux.lds.S
+@@ -123,8 +123,6 @@ SECTIONS
+ 		 */
+ 		*(.sfpr);
+ 		*(.text.asan.* .text.tsan.*)
+-		MEM_KEEP(init.text)
+-		MEM_KEEP(exit.text)
+ 	} :text
  
- /* "mc" and its members are protected by cgroup_mutex */
+ 	. = ALIGN(PAGE_SIZE);
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
+init-modpost-conditionally-check-section-mismatch-to-__meminit.patch
 
