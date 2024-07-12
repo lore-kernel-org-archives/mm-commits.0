@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 454C81BC40
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:45:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D90EE6CDB3
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:46:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824325; cv=none; b=S/m6ATA5tLqeBUoyehjYgv5j1uG/kTzKc7igIy0O0yhQ537wmY7UsgkdKaWXmTgUZ2Q4UN2DsJuBY/SbrRMCCkcQ4WhmQ5Hib+xBp55+j5GSJVoa34zf1jgSX7txlY2spLV21gBtszR3zDyS7Ri7YOTYVmElIDwLEEZ45tV7mWw=
+	t=1720824371; cv=none; b=OuS2ya3wvNnz86F8W8U2qFNqRu6mRSdpTcZCOWmuoIHFSCLJK3pTxE0XOwJgnRmhdBYNW5b9YQM/sVfgAecns7BGi3PvJOKPrXm9viiMVhqrc6oeLtqCfQiGqArnEvsUI2OmOtbPQesSMcuVcPhpuMQx0g0yOz7t+xOP+99YVqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824325; c=relaxed/simple;
-	bh=p+cNBjrt8fkQj6enlhfaKpIbU9AKvRk661DhhyTOtiM=;
-	h=Date:To:From:Subject:Message-Id; b=Z9wdW5RYa1xaXIgNEXWD2lj7+c9td1i2EKEkbzvmuPTPlnAPNZ8/ljhhvyDLK7V2fa2XhrQOrOE42zTkQSutOXvZDWGdLs04SgCgJwYymFzgZEMGbtIM74bcNBjNCnRxTAVNhSoHJqnwmhkMzBB58X/UHnf4iP9v3cZe1XLz7pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P3w7g3vj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824371; c=relaxed/simple;
+	bh=dt2VByi4IyWrmzQao94G7dJSyeHB1FBpD78xXIS2eBc=;
+	h=Date:To:From:Subject:Message-Id; b=FW+37r/ex/SklOF4ZIqnLAOo1uo4a7kpwR9Asc9wJW1sBIxY5oebHkwnc0cGYy0WKbkj/bUsRXKyVY95g4H6w0XmFse31BGxrgnRB1csOYL8McyojDQScOduemRzwgYKyd72sW/g8WI9OAYCCjBZN8v4GFg3C+0Lp63deLblOI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dFTBVSJo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P3w7g3vj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB78AC32782;
-	Fri, 12 Jul 2024 22:45:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dFTBVSJo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85FF4C32782;
+	Fri, 12 Jul 2024 22:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824323;
-	bh=p+cNBjrt8fkQj6enlhfaKpIbU9AKvRk661DhhyTOtiM=;
+	s=korg; t=1720824371;
+	bh=dt2VByi4IyWrmzQao94G7dJSyeHB1FBpD78xXIS2eBc=;
 	h=Date:To:From:Subject:From;
-	b=P3w7g3vjMBmRWGh5T9jvzvdmlOuf1Gx76bIY/6wVcGj4s+bDg/xu4Tux5xM2v7w3q
-	 4nQyEc2YDZP7Ju3j66SdSPK/+Z29poGjLDLgzLffKX99UxMIRMfDPN/mSlSX0TnXfy
-	 rbXJze3W3t1Ig9xuv6FvNkX1ddmr8EpJ1dnVIeq4=
-Date: Fri, 12 Jul 2024 15:45:23 -0700
+	b=dFTBVSJo3MHFZvxV/E7rLpz35Gg0FdyZFvxg66kGJc8Ym346ojf6KTlJ8z3rAPTUR
+	 uDba4xFpbOUH4ClA4QJN1QjjfP0Dhinwzh+SPsRJR6ip7Fit7AAzsbQbbzS51zTbq6
+	 atUHU4MNh1satUyELwAv7b0tb98P5G1gkdV1Nqts=
+Date: Fri, 12 Jul 2024 15:46:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shy828301@gmail.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,libang.li@antgroup.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-per-order-mthp-split-counters-v3.patch removed from -mm tree
-Message-Id: <20240712224523.BB78AC32782@smtp.kernel.org>
+Subject: [folded-merged] mm-add-docs-for-per-order-mthp-split-counters-v3.patch removed from -mm tree
+Message-Id: <20240712224611.85FF4C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-per-order-mthp-split-counters-v3
+     Subject: mm-add-docs-for-per-order-mthp-split-counters-v3
 has been removed from the -mm tree.  Its filename was
-     mm-add-per-order-mthp-split-counters-v3.patch
+     mm-add-docs-for-per-order-mthp-split-counters-v3.patch
 
-This patch was dropped because it was folded into mm-add-per-order-mthp-split-counters.patch
+This patch was dropped because it was folded into mm-add-docs-for-per-order-mthp-split-counters.patch
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
-Subject: mm-add-per-order-mthp-split-counters-v3
-Date: Thu, 4 Jul 2024 09:29:04 +0800
+Subject: mm-add-docs-for-per-order-mthp-split-counters-v3
+Date: Thu, 4 Jul 2024 09:29:05 +0800
 
-make things more readable, per Barry and Baolin
+improve the doc as suggested by Ryan
 
-Link: https://lkml.kernel.org/r/20240704012905.42971-2-ioworker0@gmail.com
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Barry Song <baohua@kernel.org>
+Link: https://lkml.kernel.org/r/20240704012905.42971-3-ioworker0@gmail.com
 Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
 Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Bang Li <libang.li@antgroup.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-add-per-order-mthp-split-counters-v3
-+++ a/mm/huge_memory.c
-@@ -3083,7 +3083,7 @@ int split_huge_page_to_list_to_order(str
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-docs-for-per-order-mthp-split-counters-v3
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -369,10 +369,6 @@ also applies to the regions registered i
+ Monitoring usage
+ ================
  
--	if (new_order >= order)
-+	if (new_order >= folio_order(folio))
- 		return -EINVAL;
+-.. note::
+-   Currently the below counters only record events relating to
+-   PMD-sized THP. Events relating to other THP sizes are not included.
+-
+ The number of PMD-sized anonymous transparent huge pages currently used by the
+ system is available by reading the AnonHugePages field in ``/proc/meminfo``.
+ To identify what applications are using PMD-sized anonymous transparent huge
+@@ -516,8 +512,8 @@ file_fallback_charge
  
- 	if (folio_test_anon(folio)) {
-@@ -3286,14 +3286,13 @@ void deferred_split_folio(struct folio *
- #ifdef CONFIG_MEMCG
- 	struct mem_cgroup *memcg = folio_memcg(folio);
- #endif
--	int order = folio_order(folio);
- 	unsigned long flags;
+ split
+ 	is incremented every time a huge page is successfully split into
+-	base pages. This can happen for a variety of reasons but a common
+-	reason is that a huge page is old and is being reclaimed.
++	smaller orders. This can happen for a variety of reasons but a
++	common reason is that a huge page is old and is being reclaimed.
+ 	This action implies splitting any block mappings into PTEs.
  
- 	/*
- 	 * Order 1 folios have no space for a deferred list, but we also
- 	 * won't waste much memory by not adding them to the deferred list.
- 	 */
--	if (order <= 1)
-+	if (folio_order(folio) <= 1)
- 		return;
- 
- 	/*
-@@ -3314,9 +3313,9 @@ void deferred_split_folio(struct folio *
- 
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (list_empty(&folio->_deferred_list)) {
--		if (order >= HPAGE_PMD_ORDER)
-+		if (folio_test_pmd_mappable(folio))
- 			count_vm_event(THP_DEFERRED_SPLIT_PAGE);
--		count_mthp_stat(order, MTHP_STAT_SPLIT_DEFERRED);
-+		count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
- 		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
- 		ds_queue->split_queue_len++;
- #ifdef CONFIG_MEMCG
+ split_failed
 _
 
 Patches currently in -mm which might be from ioworker0@gmail.com are
 
 mm-add-per-order-mthp-split-counters.patch
-mm-add-per-order-mthp-split-counters-fix.patch
 mm-add-docs-for-per-order-mthp-split-counters.patch
-mm-add-docs-for-per-order-mthp-split-counters-v3.patch
 mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch
 
