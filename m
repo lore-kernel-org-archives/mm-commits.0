@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7834612DDAF
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F79712DDAF
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824881; cv=none; b=WU3cFrmDEQ05ZoCJFEyW4tA3nQqAwVgXXzJY0Iy0k/h8R69UuVeq//RrVY02JsnGZARkejuNaVbTKpJi6YSU9ZtOzB/e24WBS4A/Jpu5k+OJ9OcGfh6WXjd8d/OCOZp+WgFQl0DKvD61sSUgn20cAjFLMdHMOwi1hdjy+vBUoZ8=
+	t=1720824882; cv=none; b=thhNFFVrL3dWPyHJTSBTjfTieqCvOVFubkVVkdQNSZZKGIzEocJnN4rpof92A9q1O7W2AnwlQhXqgF7NXdIpAr9GRplUl0VLGY599DhcURTyEuVFwZv1JWWY+vnAIoWQZgZ5OjJ3zv4TLxD86gInHgrdK2j/nnbiSgFVyLcCirI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824881; c=relaxed/simple;
-	bh=5MDF6HbNYNjv87vOq0B9yiATcNiSRuyh+EAas6zzCfU=;
-	h=Date:To:From:Subject:Message-Id; b=t+vrxBQ17+qDcQCG5pdZMd2aPunM8k4yNquEVnSqunLteL3X3/nAwQrIk97I1pSt5EG3toq2NLicbeOf1+cN/A5bq9QHsGxotbWjTP7NAIz3QKFKU1seVD9x3omvAk8Ca2nZL0Dj7r22J/FrI9eKux4zp3e/wEZpXZrASiI4EbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/1Bzs1J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824882; c=relaxed/simple;
+	bh=lhibdCP9RhNgwWLDtsgH0h8JDbOvxSk4wVY6eeqZpKU=;
+	h=Date:To:From:Subject:Message-Id; b=IPDyF7ZFMX9Q+t6bUAsBfHZKDoAfHOpwX/O6ZMbIkAhs3NRzGEqLSriidzdjGsosN/Vz6Nsiq6wu2JhdLSxsj8BUrhHr3OMPXtKocrCW2uxDUkFZBfKanh+h38eh1ehX7ra8B0CGjmGC6si0y4FHuJjCZ4t1LloAK+arJ4jfVsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AsFG2BFs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/1Bzs1J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F4CEC32782;
-	Fri, 12 Jul 2024 22:54:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AsFG2BFs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62899C4AF0B;
+	Fri, 12 Jul 2024 22:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824881;
-	bh=5MDF6HbNYNjv87vOq0B9yiATcNiSRuyh+EAas6zzCfU=;
+	s=korg; t=1720824882;
+	bh=lhibdCP9RhNgwWLDtsgH0h8JDbOvxSk4wVY6eeqZpKU=;
 	h=Date:To:From:Subject:From;
-	b=j/1Bzs1JmLbQwRibcFC0JCJ+i6qlvZp8XRnU1sLRyIHt3Il74CF+LYqR0ofjpjwo4
-	 nEBCbwEKdXf/GjJXTXqZaVi0XHRHpppRzCCzfNGksajtfPfQ4wuFHL+/mGwHn3D9Cb
-	 viRU0nMiiAkYwrVR4rXMt4GRDgW7H+/uPyPQ4mso=
-Date: Fri, 12 Jul 2024 15:54:40 -0700
+	b=AsFG2BFsGgRKorT7ChQhiOk2D6L+0C3NKl0/qQyy7xvvkF0FKiSMD8T38N9ckygmZ
+	 epzIQA38vKkVb3eciokbqeTwS9A4Ec4efy6BZLrQ9WFM96FJTs3m4B1c6aM9Hw9Jaj
+	 3c/mD5umrN6Pu4ZMKSYW0wk3FCCe1el/m39/+kB4=
+Date: Fri, 12 Jul 2024 15:54:41 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch removed from -mm tree
-Message-Id: <20240712225441.4F4CEC32782@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd.patch removed from -mm tree
+Message-Id: <20240712225442.62899C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,378 +35,508 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: powerpc/e500: use contiguous PMD instead of hugepd
+     Subject: powerpc/64s: use contiguous PMD/PUD instead of HUGEPD
 has been removed from the -mm tree.  Its filename was
-     powerpc-e500-use-contiguous-pmd-instead-of-hugepd.patch
+     powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: powerpc/e500: use contiguous PMD instead of hugepd
-Date: Tue, 2 Jul 2024 15:51:32 +0200
+Subject: powerpc/64s: use contiguous PMD/PUD instead of HUGEPD
+Date: Tue, 2 Jul 2024 15:51:33 +0200
 
-e500 supports many page sizes among which the following size are
-implemented in the kernel at the time being: 4M, 16M, 64M, 256M, 1G.
+On book3s/64, the only user of hugepd is hash in 4k mode.
 
-On e500, TLB miss for hugepages is exclusively handled by SW even on e6500
-which has HW assistance for 4k pages, so there are no constraints like on
-the 8xx.
+All other setups (hash-64, radix-4, radix-64) use leaf PMD/PUD.
 
-On e500/32, all are at PGD/PMD level and can be handled as cont-PMD.
+Rework hash-4k to use contiguous PMD and PUD instead.
 
-On e500/64, smaller ones are on PMD while bigger ones are on PUD.  Again,
-they can easily be handled as cont-PMD and cont-PUD instead of hugepd.
+In that setup there are only two huge page sizes: 16M and 16G.
 
-On e500/32, use the pagesize bits in PTE to know if it is a PMD or a leaf
-entry.  This works because the pagesize bits are in the last 12 bits and
-page tables are 4k aligned.
+16M sits at PMD level and 16G at PUD level.
 
-On e500/64, use highest bit which is always 1 on PxD (Because PxD contains
-virtual address of a kernel memory) and always 0 on PTEs because not all
-bits of RPN are used/possible.
+pte_update doesn't know page size, lets use the same trick as
+hpte_need_flush() to get page size from segment properties.  That's not
+the most efficient way but let's do that until callers of pte_update()
+provide page size instead of just a huge flag.
 
-Link: https://lkml.kernel.org/r/dd085987816ed2a0c70adb7e34966cb833fc03e1.1719928057.git.christophe.leroy@csgroup.eu
+Link: https://lkml.kernel.org/r/7448f60a9b3efd396595f4f735d1e0babc5ae379.1719928057.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/nohash/hugetlb-e500.h |   32 +----------
- arch/powerpc/include/asm/nohash/pgalloc.h      |    2 
- arch/powerpc/include/asm/nohash/pgtable.h      |   42 +++++++++++----
- arch/powerpc/include/asm/nohash/pte-e500.h     |   33 +++++++++++
- arch/powerpc/include/asm/page.h                |   15 -----
- arch/powerpc/kernel/head_85xx.S                |   21 ++-----
- arch/powerpc/mm/hugetlbpage.c                  |    2 
- arch/powerpc/mm/nohash/tlb_low_64e.S           |    7 --
- arch/powerpc/mm/pgtable.c                      |   31 +++++++++++
- arch/powerpc/platforms/Kconfig.cputype         |    1 
- 10 files changed, 107 insertions(+), 79 deletions(-)
+ arch/powerpc/include/asm/book3s/64/hash-4k.h     |   15 ----
+ arch/powerpc/include/asm/book3s/64/hash.h        |   40 +++++++++--
+ arch/powerpc/include/asm/book3s/64/hugetlb.h     |   38 ----------
+ arch/powerpc/include/asm/book3s/64/pgtable-4k.h  |   47 -------------
+ arch/powerpc/include/asm/book3s/64/pgtable-64k.h |   20 -----
+ arch/powerpc/include/asm/book3s/64/pgtable.h     |   22 +++++-
+ arch/powerpc/include/asm/hugetlb.h               |    4 +
+ arch/powerpc/include/asm/nohash/hugetlb-e500.h   |    4 -
+ arch/powerpc/include/asm/page.h                  |    8 --
+ arch/powerpc/mm/book3s64/hash_utils.c            |   11 +--
+ arch/powerpc/mm/book3s64/hugetlbpage.c           |   10 ++
+ arch/powerpc/mm/book3s64/pgtable.c               |   12 ---
+ arch/powerpc/mm/hugetlbpage.c                    |   26 -------
+ arch/powerpc/mm/pgtable.c                        |    2 
+ arch/powerpc/platforms/Kconfig.cputype           |    1 
+ 15 files changed, 74 insertions(+), 186 deletions(-)
 
---- a/arch/powerpc/include/asm/nohash/hugetlb-e500.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/include/asm/nohash/hugetlb-e500.h
-@@ -2,38 +2,12 @@
- #ifndef _ASM_POWERPC_NOHASH_HUGETLB_E500_H
- #define _ASM_POWERPC_NOHASH_HUGETLB_E500_H
+--- a/arch/powerpc/include/asm/book3s/64/hash-4k.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/book3s/64/hash-4k.h
+@@ -74,21 +74,6 @@
+ #define remap_4k_pfn(vma, addr, pfn, prot)	\
+ 	remap_pfn_range((vma), (addr), (pfn), PAGE_SIZE, (prot))
  
+-#ifdef CONFIG_HUGETLB_PAGE
+-static inline int hash__hugepd_ok(hugepd_t hpd)
+-{
+-	unsigned long hpdval = hpd_val(hpd);
+-	/*
+-	 * if it is not a pte and have hugepd shift mask
+-	 * set, then it is a hugepd directory pointer
+-	 */
+-	if (!(hpdval & _PAGE_PTE) && (hpdval & _PAGE_PRESENT) &&
+-	    ((hpdval & HUGEPD_SHIFT_MASK) != 0))
+-		return true;
+-	return false;
+-}
+-#endif
+-
+ /*
+  * 4K PTE format is different from 64K PTE format. Saving the hash_slot is just
+  * a matter of returning the PTE bits that need to be modified. On 64K PTE,
+--- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/book3s/64/hash.h
+@@ -4,6 +4,7 @@
+ #ifdef __KERNEL__
+ 
+ #include <asm/asm-const.h>
++#include <asm/book3s/64/slice.h>
+ 
+ /*
+  * Common bits between 4K and 64K pages in a linux-style PTE.
+@@ -161,14 +162,10 @@ extern void hpte_need_flush(struct mm_st
+ 			    pte_t *ptep, unsigned long pte, int huge);
+ unsigned long htab_convert_pte_flags(unsigned long pteflags, unsigned long flags);
+ /* Atomic PTE updates */
+-static inline unsigned long hash__pte_update(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 pte_t *ptep, unsigned long clr,
+-					 unsigned long set,
+-					 int huge)
++static inline unsigned long hash__pte_update_one(pte_t *ptep, unsigned long clr,
++						 unsigned long set)
+ {
+ 	__be64 old_be, tmp_be;
+-	unsigned long old;
+ 
+ 	__asm__ __volatile__(
+ 	"1:	ldarx	%0,0,%3		# pte_update\n\
+@@ -182,11 +179,40 @@ static inline unsigned long hash__pte_up
+ 	: "r" (ptep), "r" (cpu_to_be64(clr)), "m" (*ptep),
+ 	  "r" (cpu_to_be64(H_PAGE_BUSY)), "r" (cpu_to_be64(set))
+ 	: "cc" );
++
++	return be64_to_cpu(old_be);
++}
++
++static inline unsigned long hash__pte_update(struct mm_struct *mm,
++					 unsigned long addr,
++					 pte_t *ptep, unsigned long clr,
++					 unsigned long set,
++					 int huge)
++{
++	unsigned long old;
++
++	old = hash__pte_update_one(ptep, clr, set);
++
++	if (IS_ENABLED(CONFIG_PPC_4K_PAGES) && huge) {
++		unsigned int psize = get_slice_psize(mm, addr);
++		int nb, i;
++
++		if (psize == MMU_PAGE_16M)
++			nb = SZ_16M / PMD_SIZE;
++		else if (psize == MMU_PAGE_16G)
++			nb = SZ_16G / PUD_SIZE;
++		else
++			nb = 1;
++
++		WARN_ON_ONCE(nb == 1);	/* Should never happen */
++
++		for (i = 1; i < nb; i++)
++			hash__pte_update_one(ptep + i, clr, set);
++	}
+ 	/* huge pages use the old page table lock */
+ 	if (!huge)
+ 		assert_pte_locked(mm, addr);
+ 
+-	old = be64_to_cpu(old_be);
+ 	if (old & H_PAGE_HASHPTE)
+ 		hpte_need_flush(mm, addr, ptep, old, huge);
+ 
+--- a/arch/powerpc/include/asm/book3s/64/hugetlb.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/book3s/64/hugetlb.h
+@@ -49,9 +49,6 @@ static inline bool gigantic_page_runtime
+ 	return true;
+ }
+ 
+-/* hugepd entry valid bit */
+-#define HUGEPD_VAL_BITS		(0x8000000000000000UL)
+-
+ #define huge_ptep_modify_prot_start huge_ptep_modify_prot_start
+ extern pte_t huge_ptep_modify_prot_start(struct vm_area_struct *vma,
+ 					 unsigned long addr, pte_t *ptep);
+@@ -60,29 +57,7 @@ extern pte_t huge_ptep_modify_prot_start
+ extern void huge_ptep_modify_prot_commit(struct vm_area_struct *vma,
+ 					 unsigned long addr, pte_t *ptep,
+ 					 pte_t old_pte, pte_t new_pte);
+-/*
+- * This should work for other subarchs too. But right now we use the
+- * new format only for 64bit book3s
+- */
 -static inline pte_t *hugepd_page(hugepd_t hpd)
 -{
--	if (WARN_ON(!hugepd_ok(hpd)))
--		return NULL;
--
--	return (pte_t *)((hpd_val(hpd) & ~HUGEPD_SHIFT_MASK) | PD_HUGE);
+-	BUG_ON(!hugepd_ok(hpd));
+-	/*
+-	 * We have only four bits to encode, MMU page size
+-	 */
+-	BUILD_BUG_ON((MMU_PAGE_COUNT - 1) > 0xf);
+-	return __va(hpd_val(hpd) & HUGEPD_ADDR_MASK);
 -}
 -
+-static inline unsigned int hugepd_mmu_psize(hugepd_t hpd)
+-{
+-	return (hpd_val(hpd) & HUGEPD_SHIFT_MASK) >> 2;
+-}
+ 
 -static inline unsigned int hugepd_shift(hugepd_t hpd)
 -{
--	return hpd_val(hpd) & HUGEPD_SHIFT_MASK;
+-	return mmu_psize_to_shift(hugepd_mmu_psize(hpd));
 -}
--
+ static inline void flush_hugetlb_page(struct vm_area_struct *vma,
+ 				      unsigned long vmaddr)
+ {
+@@ -90,19 +65,6 @@ static inline void flush_hugetlb_page(st
+ 		return radix__flush_hugetlb_page(vma, vmaddr);
+ }
+ 
 -static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
 -				    unsigned int pdshift)
 -{
--	/*
--	 * On FSL BookE, we have multiple higher-level table entries that
--	 * point to the same hugepte.  Just use the first one since they're all
--	 * identical.  So for that case, idx=0.
--	 */
--	return hugepd_page(hpd);
+-	unsigned long idx = (addr & ((1UL << pdshift) - 1)) >> hugepd_shift(hpd);
+-
+-	return hugepd_page(hpd) + idx;
 -}
+-
+-static inline void hugepd_populate(hugepd_t *hpdp, pte_t *new, unsigned int pshift)
+-{
+-	*hpdp = __hugepd(__pa(new) | HUGEPD_VAL_BITS | (shift_to_mmu_psize(pshift) << 2));
+-}
+-
+ void flush_hugetlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
+ 
+ static inline int check_and_get_huge_psize(int shift)
+--- a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _ASM_POWERPC_BOOK3S_64_PGTABLE_4K_H
+-#define _ASM_POWERPC_BOOK3S_64_PGTABLE_4K_H
+-/*
+- * hash 4k can't share hugetlb and also doesn't support THP
+- */
+-#ifndef __ASSEMBLY__
+-#ifdef CONFIG_HUGETLB_PAGE
+-/*
+- * With radix , we have hugepage ptes in the pud and pmd entries. We don't
+- * need to setup hugepage directory for them. Our pte and page directory format
+- * enable us to have this enabled.
+- */
+-static inline int hugepd_ok(hugepd_t hpd)
+-{
+-	if (radix_enabled())
+-		return 0;
+-	return hash__hugepd_ok(hpd);
+-}
+-#define is_hugepd(hpd)		(hugepd_ok(hpd))
+-
+-/*
+- * 16M and 16G huge page directory tables are allocated from slab cache
+- *
+- */
+-#define H_16M_CACHE_INDEX (PAGE_SHIFT + H_PTE_INDEX_SIZE + H_PMD_INDEX_SIZE - 24)
+-#define H_16G_CACHE_INDEX                                                      \
+-	(PAGE_SHIFT + H_PTE_INDEX_SIZE + H_PMD_INDEX_SIZE + H_PUD_INDEX_SIZE - 34)
+-
+-static inline int get_hugepd_cache_index(int index)
+-{
+-	switch (index) {
+-	case H_16M_CACHE_INDEX:
+-		return HTLB_16M_INDEX;
+-	case H_16G_CACHE_INDEX:
+-		return HTLB_16G_INDEX;
+-	default:
+-		BUG();
+-	}
+-	/* should not reach */
+-}
+-
+-#endif /* CONFIG_HUGETLB_PAGE */
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /*_ASM_POWERPC_BOOK3S_64_PGTABLE_4K_H */
+--- a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h
+@@ -5,26 +5,6 @@
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_HUGETLB_PAGE
+ 
+-/*
+- * With 64k page size, we have hugepage ptes in the pgd and pmd entries. We don't
+- * need to setup hugepage directory for them. Our pte and page directory format
+- * enable us to have this enabled.
+- */
+-static inline int hugepd_ok(hugepd_t hpd)
+-{
+-	return 0;
+-}
+-
+-#define is_hugepd(pdep)			0
+-
+-/*
+- * This should never get called
+- */
+-static __always_inline int get_hugepd_cache_index(int index)
+-{
+-	BUILD_BUG();
+-}
+-
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+ static inline int remap_4k_pfn(struct vm_area_struct *vma, unsigned long addr,
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -274,6 +274,24 @@ static inline bool pud_leaf(pud_t pud)
+ {
+ 	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
+ }
++
++#define pmd_leaf_size pmd_leaf_size
++static inline unsigned long pmd_leaf_size(pmd_t pmd)
++{
++	if (IS_ENABLED(CONFIG_PPC_4K_PAGES) && !radix_enabled())
++		return SZ_16M;
++	else
++		return PMD_SIZE;
++}
++
++#define pud_leaf_size pud_leaf_size
++static inline unsigned long pud_leaf_size(pud_t pud)
++{
++	if (IS_ENABLED(CONFIG_PPC_4K_PAGES) && !radix_enabled())
++		return SZ_16G;
++	else
++		return PUD_SIZE;
++}
+ #endif /* __ASSEMBLY__ */
+ 
+ #include <asm/book3s/64/hash.h>
+@@ -285,11 +303,9 @@ static inline bool pud_leaf(pud_t pud)
+ #define  MAX_PHYSMEM_BITS	R_MAX_PHYSMEM_BITS
+ #endif
+ 
+-
++/* hash 4k can't share hugetlb and also doesn't support THP */
+ #ifdef CONFIG_PPC_64K_PAGES
+ #include <asm/book3s/64/pgtable-64k.h>
+-#else
+-#include <asm/book3s/64/pgtable-4k.h>
+ #endif
+ 
+ #include <asm/barrier.h>
+--- a/arch/powerpc/include/asm/hugetlb.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/hugetlb.h
+@@ -37,6 +37,10 @@ void hugetlb_free_pgd_range(struct mmu_g
+ 			    unsigned long ceiling);
+ #endif
+ 
 +#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
 +void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
 +		     pte_t pte, unsigned long sz);
++
+ #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+--- a/arch/powerpc/include/asm/nohash/hugetlb-e500.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/include/asm/nohash/hugetlb-e500.h
+@@ -2,10 +2,6 @@
+ #ifndef _ASM_POWERPC_NOHASH_HUGETLB_E500_H
+ #define _ASM_POWERPC_NOHASH_HUGETLB_E500_H
  
+-#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+-void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
+-		     pte_t pte, unsigned long sz);
+-
  void flush_hugetlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
  
--static inline void hugepd_populate(hugepd_t *hpdp, pte_t *new, unsigned int pshift)
--{
--	/* We use the old format for PPC_E500 */
--	*hpdp = __hugepd(((unsigned long)new & ~PD_HUGE) | pshift);
--}
--
  static inline int check_and_get_huge_psize(int shift)
- {
- 	if (shift & 1)	/* Not a power of 4 */
---- a/arch/powerpc/include/asm/nohash/pgalloc.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/include/asm/nohash/pgalloc.h
-@@ -44,8 +44,6 @@ static inline void pgtable_free(void *ta
- 	}
- }
- 
--#define get_hugepd_cache_index(x)	(x)
--
- static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
- {
- 	unsigned long pgf = (unsigned long)table;
---- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -31,6 +31,13 @@ static inline pte_basic_t pte_update(str
- 
- extern int icache_44x_need_flush;
- 
-+#ifndef pte_huge_size
-+static inline unsigned long pte_huge_size(pte_t pte)
-+{
-+	return PAGE_SIZE;
-+}
-+#endif
-+
- /*
-  * PTE updates. This function is called whenever an existing
-  * valid PTE is updated. This does -not- include set_pte_at()
-@@ -52,11 +59,34 @@ static inline pte_basic_t pte_update(str
- {
- 	pte_basic_t old = pte_val(*p);
- 	pte_basic_t new = (old & ~(pte_basic_t)clr) | set;
-+	unsigned long sz;
-+	unsigned long pdsize;
-+	int i;
- 
- 	if (new == old)
- 		return old;
- 
--	*p = __pte(new);
-+	if (huge)
-+		sz = pte_huge_size(__pte(old));
-+	else
-+		sz = PAGE_SIZE;
-+
-+	if (sz < PMD_SIZE)
-+		pdsize = PAGE_SIZE;
-+	else if (sz < PUD_SIZE)
-+		pdsize = PMD_SIZE;
-+	else if (sz < P4D_SIZE)
-+		pdsize = PUD_SIZE;
-+	else if (sz < PGDIR_SIZE)
-+		pdsize = P4D_SIZE;
-+	else
-+		pdsize = PGDIR_SIZE;
-+
-+	for (i = 0; i < sz / pdsize; i++, p++) {
-+		*p = __pte(new);
-+		if (new)
-+			new += (unsigned long long)(pdsize / PAGE_SIZE) << PTE_RPN_SHIFT;
-+	}
- 
- 	if (IS_ENABLED(CONFIG_44x) && !is_kernel_addr(addr) && (old & _PAGE_EXEC))
- 		icache_44x_need_flush = 1;
-@@ -340,16 +370,6 @@ static inline void __set_pte_at(struct m
- 
- #define pgprot_writecombine pgprot_noncached_wc
- 
--#ifdef CONFIG_ARCH_HAS_HUGEPD
--static inline int hugepd_ok(hugepd_t hpd)
--{
--	/* We clear the top bit to indicate hugepd */
--	return (hpd_val(hpd) && (hpd_val(hpd) & PD_HUGE) == 0);
--}
--
--#define is_hugepd(hpd)		(hugepd_ok(hpd))
--#endif
--
- int map_kernel_page(unsigned long va, phys_addr_t pa, pgprot_t prot);
- void unmap_kernel_page(unsigned long va);
- 
---- a/arch/powerpc/include/asm/nohash/pte-e500.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/include/asm/nohash/pte-e500.h
-@@ -101,6 +101,39 @@ static inline unsigned long pte_huge_siz
- }
- #define pte_huge_size pte_huge_size
- 
-+static inline int pmd_leaf(pmd_t pmd)
-+{
-+	if (IS_ENABLED(CONFIG_PPC64))
-+		return (long)pmd_val(pmd) > 0;
-+	else
-+		return pmd_val(pmd) & _PAGE_PSIZE_MSK;
-+}
-+#define pmd_leaf pmd_leaf
-+
-+static inline unsigned long pmd_leaf_size(pmd_t pmd)
-+{
-+	return pte_huge_size(__pte(pmd_val(pmd)));
-+}
-+#define pmd_leaf_size pmd_leaf_size
-+
-+#ifdef CONFIG_PPC64
-+static inline int pud_leaf(pud_t pud)
-+{
-+	if (IS_ENABLED(CONFIG_PPC64))
-+		return (long)pud_val(pud) > 0;
-+	else
-+		return pud_val(pud) & _PAGE_PSIZE_MSK;
-+}
-+#define pud_leaf pud_leaf
-+
-+static inline unsigned long pud_leaf_size(pud_t pud)
-+{
-+	return pte_huge_size(__pte(pud_val(pud)));
-+}
-+#define pud_leaf_size pud_leaf_size
-+
-+#endif
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* __KERNEL__ */
---- a/arch/powerpc/include/asm/page.h~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
+--- a/arch/powerpc/include/asm/page.h~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
 +++ a/arch/powerpc/include/asm/page.h
-@@ -269,20 +269,7 @@ static inline const void *pfn_to_kaddr(u
+@@ -269,14 +269,6 @@ static inline const void *pfn_to_kaddr(u
  #define is_kernel_addr(x)	((x) >= TASK_SIZE)
  #endif
  
--#ifndef CONFIG_PPC_BOOK3S_64
+-#ifdef CONFIG_PPC_BOOK3S_64
 -/*
-- * Use the top bit of the higher-level page table entries to indicate whether
-- * the entries we point to contain hugepages.  This works because we know that
-- * the page tables live in kernel space.  If we ever decide to support having
-- * page tables at arbitrary addresses, this breaks and will have to change.
+- * Book3S 64 stores real addresses in the hugepd entries to
+- * avoid overlaps with _PAGE_PRESENT and _PAGE_PTE.
 - */
--#ifdef CONFIG_PPC64
--#define PD_HUGE 0x8000000000000000UL
+-#define HUGEPD_ADDR_MASK	(0x0ffffffffffffffful & ~HUGEPD_SHIFT_MASK)
+-#endif /* CONFIG_PPC_BOOK3S_64 */
+-
+ /*
+  * Some number of bits at the level of the page table that points to
+  * a hugepte are used to encode the size.  This masks those bits.
+--- a/arch/powerpc/mm/book3s64/hash_utils.c~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/mm/book3s64/hash_utils.c
+@@ -1233,10 +1233,6 @@ void __init hash__early_init_mmu(void)
+ 	__pmd_table_size = H_PMD_TABLE_SIZE;
+ 	__pud_table_size = H_PUD_TABLE_SIZE;
+ 	__pgd_table_size = H_PGD_TABLE_SIZE;
+-	/*
+-	 * 4k use hugepd format, so for hash set then to
+-	 * zero
+-	 */
+ 	__pmd_val_bits = HASH_PMD_VAL_BITS;
+ 	__pud_val_bits = HASH_PUD_VAL_BITS;
+ 	__pgd_val_bits = HASH_PGD_VAL_BITS;
+@@ -1546,6 +1542,13 @@ int hash_page_mm(struct mm_struct *mm, u
+ 		goto bail;
+ 	}
+ 
++	if (IS_ENABLED(CONFIG_PPC_4K_PAGES) && !radix_enabled()) {
++		if (hugeshift == PMD_SHIFT && psize == MMU_PAGE_16M)
++			hugeshift = mmu_psize_defs[MMU_PAGE_16M].shift;
++		if (hugeshift == PUD_SHIFT && psize == MMU_PAGE_16G)
++			hugeshift = mmu_psize_defs[MMU_PAGE_16G].shift;
++	}
++
+ 	/*
+ 	 * Add _PAGE_PRESENT to the required access perm. If there are parallel
+ 	 * updates to the pte that can possibly clear _PAGE_PTE, catch that too.
+--- a/arch/powerpc/mm/book3s64/hugetlbpage.c~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/mm/book3s64/hugetlbpage.c
+@@ -53,6 +53,16 @@ int __hash_page_huge(unsigned long ea, u
+ 		/* If PTE permissions don't match, take page fault */
+ 		if (unlikely(!check_pte_access(access, old_pte)))
+ 			return 1;
++		/*
++		 * If hash-4k, hugepages use seeral contiguous PxD entries
++		 * so bail out and let mm make the page young or dirty
++		 */
++		if (IS_ENABLED(CONFIG_PPC_4K_PAGES)) {
++			if (!(old_pte & _PAGE_ACCESSED))
++				return 1;
++			if ((access & _PAGE_WRITE) && !(old_pte & _PAGE_DIRTY))
++				return 1;
++		}
+ 
+ 		/*
+ 		 * Try to lock the PTE, add ACCESSED and DIRTY if it was
+--- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -461,18 +461,6 @@ static inline void pgtable_free(void *ta
+ 	case PUD_INDEX:
+ 		__pud_free(table);
+ 		break;
+-#if defined(CONFIG_PPC_4K_PAGES) && defined(CONFIG_HUGETLB_PAGE)
+-		/* 16M hugepd directory at pud level */
+-	case HTLB_16M_INDEX:
+-		BUILD_BUG_ON(H_16M_CACHE_INDEX <= 0);
+-		kmem_cache_free(PGT_CACHE(H_16M_CACHE_INDEX), table);
+-		break;
+-		/* 16G hugepd directory at the pgd level */
+-	case HTLB_16G_INDEX:
+-		BUILD_BUG_ON(H_16G_CACHE_INDEX <= 0);
+-		kmem_cache_free(PGT_CACHE(H_16G_CACHE_INDEX), table);
+-		break;
+-#endif
+ 		/* We don't free pgd table via RCU callback */
+ 	default:
+ 		BUG();
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -592,40 +592,14 @@ static int __init hugetlbpage_init(void)
+ 
+ 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+ 		unsigned shift;
+-		unsigned pdshift;
+ 
+ 		if (!mmu_psize_defs[psize].shift)
+ 			continue;
+ 
+ 		shift = mmu_psize_to_shift(psize);
+ 
+-#ifdef CONFIG_PPC_BOOK3S_64
+-		if (shift > PGDIR_SHIFT)
+-			continue;
+-		else if (shift > PUD_SHIFT)
+-			pdshift = PGDIR_SHIFT;
+-		else if (shift > PMD_SHIFT)
+-			pdshift = PUD_SHIFT;
+-		else
+-			pdshift = PMD_SHIFT;
 -#else
--#define PD_HUGE 0x80000000
+-		if (shift < PUD_SHIFT)
+-			pdshift = PMD_SHIFT;
+-		else if (shift < PGDIR_SHIFT)
+-			pdshift = PUD_SHIFT;
+-		else
+-			pdshift = PGDIR_SHIFT;
 -#endif
 -
--#else	/* CONFIG_PPC_BOOK3S_64 */
-+#ifdef CONFIG_PPC_BOOK3S_64
- /*
-  * Book3S 64 stores real addresses in the hugepd entries to
-  * avoid overlaps with _PAGE_PRESENT and _PAGE_PTE.
---- a/arch/powerpc/kernel/head_85xx.S~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/kernel/head_85xx.S
-@@ -311,16 +311,14 @@ set_ivor:
- 	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
- 	add	r12, r11, r12;						\
- 	lwz	r11, 4(r12);		/* Get pgd/pmd entry */		\
-+	rlwinm.	r10, r11, 32 - _PAGE_PSIZE_SHIFT, 0x1e; /* get tsize*/	\
-+	bne	1000f;			/* Huge page (leaf entry) */	\
- 	rlwinm.	r12, r11, 0, 0, 20;	/* Extract pt base address */	\
--	blt	1000f;			/* Normal non-huge page */	\
- 	beq	2f;			/* Bail if no table */		\
--	oris	r11, r11, PD_HUGE@h;	/* Put back address bit */	\
--	andi.	r10, r11, HUGEPD_SHIFT_MASK@l; /* extract size field */	\
--	xor	r12, r10, r11;		/* drop size bits from pointer */ \
--	b	1001f;							\
--1000:	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
-+	rlwimi	r12, r13, 23, 20, 28;	/* Compute pte address */	\
- 	li	r10, 0;			/* clear r10 */			\
--1001:	lwz	r11, 4(r12);		/* Get pte entry */
-+	lwz	r11, 4(r12);		/* Get pte entry */		\
-+1000:
- #else
- #define FIND_PTE	\
- 	rlwinm	r12, r13, 14, 18, 28;	/* Compute pgdir/pmd offset */	\
-@@ -735,17 +733,12 @@ finish_tlb_load:
- 	lwz	r15, 0(r14)
- 100:	stw	r15, 0(r17)
- 
--	/*
--	 * Calc MAS1_TSIZE from r10 (which has pshift encoded)
--	 * tlb_enc = (pshift - 10).
--	 */
--	subi	r15, r10, 10
- 	mfspr	r16, SPRN_MAS1
--	rlwimi	r16, r15, 7, 20, 24
-+	rlwimi	r16, r10, MAS1_TSIZE_SHIFT, MAS1_TSIZE_MASK
- 	mtspr	SPRN_MAS1, r16
- 
- 	/* copy the pshift for use later */
--	mr	r14, r10
-+	addi	r14, r10, _PAGE_PSIZE_SHIFT_OFFSET
- 
- 	/* fall through */
- 
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -625,8 +625,6 @@ static int __init hugetlbpage_init(void)
- 		 */
- 		if (pdshift > shift) {
- 			pgtable_cache_add(pdshift - shift);
--		} else if (IS_ENABLED(CONFIG_PPC_E500)) {
--			pgtable_cache_add(PTE_T_ORDER);
- 		}
+ 		if (add_huge_page_size(1ULL << shift) < 0)
+ 			continue;
+-		/*
+-		 * if we have pdshift and shift value same, we don't
+-		 * use pgt cache for hugepd.
+-		 */
+-		if (pdshift > shift) {
+-			pgtable_cache_add(pdshift - shift);
+-		}
  
  		configured = true;
---- a/arch/powerpc/mm/nohash/tlb_low_64e.S~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
-+++ a/arch/powerpc/mm/nohash/tlb_low_64e.S
-@@ -450,11 +450,7 @@ END_FTR_SECTION_IFSET(CPU_FTR_SMT)
- 
- tlb_miss_huge_e6500:
- 	beq	tlb_miss_fault_e6500
--	li	r10,1
--	andi.	r15,r14,HUGEPD_SHIFT_MASK@l /* r15 = psize */
--	rldimi	r14,r10,63,0		/* Set PD_HUGE */
--	xor	r14,r14,r15		/* Clear size bits */
--	ldx	r14,0,r14
-+	rlwinm	r15,r14,32-_PAGE_PSIZE_SHIFT,0x1e
- 
- 	/*
- 	 * Now we build the MAS for a huge page.
-@@ -465,7 +461,6 @@ tlb_miss_huge_e6500:
- 	 * MAS 2,3+7:	Needs to be redone similar to non-tablewalk handler
- 	 */
- 
--	subi	r15,r15,10		/* Convert psize to tsize */
- 	mfspr	r10,SPRN_MAS1
- 	rlwinm	r10,r10,0,~MAS1_IND
- 	rlwimi	r10,r15,MAS1_TSIZE_SHIFT,MAS1_TSIZE_MASK
---- a/arch/powerpc/mm/pgtable.c~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
+ 	}
+--- a/arch/powerpc/mm/pgtable.c~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
 +++ a/arch/powerpc/mm/pgtable.c
-@@ -331,6 +331,37 @@ void set_huge_pte_at(struct mm_struct *m
+@@ -331,7 +331,7 @@ void set_huge_pte_at(struct mm_struct *m
  		__set_huge_pte_at(pmdp, ptep, pte_val(pte));
  	}
  }
-+#elif defined(CONFIG_PPC_E500)
-+void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
-+		     pte_t pte, unsigned long sz)
-+{
-+	unsigned long pdsize;
-+	int i;
-+
-+	pte = set_pte_filter(pte, addr);
-+
-+	/*
-+	 * Make sure hardware valid bit is not set. We don't do
-+	 * tlb flush for this update.
-+	 */
-+	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
-+
-+	if (sz < PMD_SIZE)
-+		pdsize = PAGE_SIZE;
-+	else if (sz < PUD_SIZE)
-+		pdsize = PMD_SIZE;
-+	else if (sz < P4D_SIZE)
-+		pdsize = PUD_SIZE;
-+	else if (sz < PGDIR_SIZE)
-+		pdsize = P4D_SIZE;
-+	else
-+		pdsize = PGDIR_SIZE;
-+
-+	for (i = 0; i < sz / pdsize; i++, ptep++, addr += pdsize) {
-+		__set_pte_at(mm, addr, ptep, pte, 0);
-+		pte = __pte(pte_val(pte) + ((unsigned long long)pdsize / PAGE_SIZE << PFN_PTE_SHIFT));
-+	}
-+}
- #endif
- #endif /* CONFIG_HUGETLB_PAGE */
- 
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-e500-use-contiguous-pmd-instead-of-hugepd
+-#elif defined(CONFIG_PPC_E500)
++#else
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
+ 		     pte_t pte, unsigned long sz)
+ {
+--- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-64s-use-contiguous-pmd-pud-instead-of-hugepd
 +++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -291,7 +291,6 @@ config PPC_BOOK3S
- config PPC_E500
- 	select FSL_EMB_PERFMON
- 	bool
+@@ -98,7 +98,6 @@ config PPC_BOOK3S_64
+ 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
 -	select ARCH_HAS_HUGEPD if HUGETLB_PAGE
- 	select ARCH_SUPPORTS_HUGETLBFS if PHYS_64BIT || PPC64
- 	select PPC_SMP_MUXED_IPI
- 	select PPC_DOORBELL
+ 	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select HAVE_MOVE_PMD
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
