@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F78127E0F
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0391E127E0F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824867; cv=none; b=HKNjPD+WW1zT/Mt6ag8PGD6azVgdDn3gOVZCxgPW7JsruSyXWEfPpgUne/arvKNLNjIRfXAUtevu7C+3DnrLXaOXkqK83St5AkPLyHmTMR/5qR7AwW7+ZE8vyi1UM9CKU/LZsZ4PXyrSUN/gFp2VmagqPOHCEWotdZNA3f6gWvA=
+	t=1720824868; cv=none; b=ayRLDMmOdWIxsgEZq/dKkknRsyblZ9sWo0lSTxt1QjW0w5FMg3b1Vg67jn5lSymNPrU8LZzgRtOZwTB2EgIzBhjV3MCsUPgqi5KUrtiVKnyLo6MQnJz7kr+Rj2wJabZ18NmzoCWHC08D8fj1FAxynxjuL+rX10KwH+scPuCSwrY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824867; c=relaxed/simple;
-	bh=9pV1wiXE7bxA2ThzQe2haLSUHgHjZyO6ENOgMZUAfP8=;
-	h=Date:To:From:Subject:Message-Id; b=bPR8SpkmVrsmXgFPnFY+uaq6GG9A3FZuFBg8sPc8MGEgy51+JPoNCS2I153ZTsWc7D2dnq6IB6+FxjV5YGyoddmM4uvXCp6jXA7ktJLBaEJDvgUTNdsTjD8NZYDpl9Af2Q3xGrptpBQYW3CWewTtoTid0Sk3YH/PRKJnKXeGWyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nybQ6Unm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824868; c=relaxed/simple;
+	bh=coSmBL0pXYi1irZwGXEDdyWBItXz8c42BbQhsxPLYV4=;
+	h=Date:To:From:Subject:Message-Id; b=gdWq9ovaJNssp4aOy7K+102xrs/KcOahlhQmZupEbDDS152QHFMtRaSCyWikRhnUg+5RauekLXbz3Y5fCeUb++YEsaJQAjeWxaBJScP7lb/3LuCChquA6raMZyn/o0+2JlwqB+83xAipOZpwkEjZrvY5hn2UoDTJPQ/NGoZvITA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P6mMX+zQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nybQ6Unm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC31AC32782;
-	Fri, 12 Jul 2024 22:54:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P6mMX+zQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC4E6C32782;
+	Fri, 12 Jul 2024 22:54:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824866;
-	bh=9pV1wiXE7bxA2ThzQe2haLSUHgHjZyO6ENOgMZUAfP8=;
+	s=korg; t=1720824867;
+	bh=coSmBL0pXYi1irZwGXEDdyWBItXz8c42BbQhsxPLYV4=;
 	h=Date:To:From:Subject:From;
-	b=nybQ6Unmr75MDPZCgTi0/DY6NhVKrfPQUzghtjNN1g1bma9jpqmboUZuVYLxo/GjD
-	 5FZykyipQW1P1kN/LQ04kXyTtE/l8JEV8EQbpEZGlSOT4Lu2sIrnt/6QeT64w7Luov
-	 ir+FSKHWo+elCEMWy/3ahkWx/MpvVsgsrMuZX/7o=
-Date: Fri, 12 Jul 2024 15:54:26 -0700
+	b=P6mMX+zQ4nFZAw4/csKWRpGjbdNUiDSfYU+8SfL0QMJbTIvjcl/ZpzqtYo/UN5eKh
+	 PeRGBFN9gXL0JZjaWgocMLryC14sMzBfX/Z6UVzKnNs+MXBE76K5gAGkNtP38Q8rOO
+	 hVO7a4m+w6/oUeVH8Nan2QuJHGYArNG2f6u56gnY=
+Date: Fri, 12 Jul 2024 15:54:27 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,jgg@nvidia.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch removed from -mm tree
-Message-Id: <20240712225426.BC31AC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-provide-mm_struct-and-address-to-huge_ptep_get.patch removed from -mm tree
+Message-Id: <20240712225427.CC4E6C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: define __pte_leaf_size() to also take a PMD entry
+     Subject: mm: provide mm_struct and address to huge_ptep_get()
 has been removed from the -mm tree.  Its filename was
-     mm-define-__pte_leaf_size-to-also-take-a-pmd-entry.patch
+     mm-provide-mm_struct-and-address-to-huge_ptep_get.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm: define __pte_leaf_size() to also take a PMD entry
-Date: Tue, 2 Jul 2024 15:51:19 +0200
+Subject: mm: provide mm_struct and address to huge_ptep_get()
+Date: Tue, 2 Jul 2024 15:51:20 +0200
 
-On powerpc 8xx, when a page is 8M size, the information is in the PMD
-entry.  So allow architectures to provide __pte_leaf_size() instead of
-pte_leaf_size() and provide the PMD entry to that function.
+On powerpc 8xx huge_ptep_get() will need to know whether the given ptep is
+a PTE entry or a PMD entry.  This cannot be known with the PMD entry
+itself because there is no easy way to know it from the content of the
+entry.
 
-When __pte_leaf_size() is not defined, define it as a pte_leaf_size() so
-that architectures not interested in the PMD arguments are not impacted.
+So huge_ptep_get() will need to know either the size of the page or get
+the pmd.
 
-Only define a default pte_leaf_size() when __pte_leaf_size() is not
-defined to make sure nobody adds new calls to pte_leaf_size() in the core.
+In order to be consistent with huge_ptep_get_and_clear(), give mm and
+address to huge_ptep_get().
 
-Link: https://lkml.kernel.org/r/c7c008f0a314bf8029ad7288fdc908db1ec7e449.1719928057.git.christophe.leroy@csgroup.eu
+Link: https://lkml.kernel.org/r/cc00c70dd384298796a4e1b25d6c4eb306d3af85.1719928057.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
@@ -67,36 +68,539 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    3 +++
- kernel/events/core.c    |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/include/asm/hugetlb-3level.h |    4 +-
+ arch/arm64/include/asm/hugetlb.h      |    2 -
+ arch/arm64/mm/hugetlbpage.c           |    2 -
+ arch/riscv/include/asm/hugetlb.h      |    2 -
+ arch/riscv/mm/hugetlbpage.c           |    2 -
+ arch/s390/include/asm/hugetlb.h       |    4 +-
+ arch/s390/mm/hugetlbpage.c            |    4 +-
+ fs/hugetlbfs/inode.c                  |    2 -
+ fs/proc/task_mmu.c                    |   10 ++---
+ fs/userfaultfd.c                      |    2 -
+ include/asm-generic/hugetlb.h         |    2 -
+ include/linux/swapops.h               |    4 +-
+ mm/damon/vaddr.c                      |    6 +--
+ mm/gup.c                              |    2 -
+ mm/hmm.c                              |    2 -
+ mm/hugetlb.c                          |   44 ++++++++++++------------
+ mm/memory-failure.c                   |    2 -
+ mm/mempolicy.c                        |    2 -
+ mm/migrate.c                          |    4 +-
+ mm/mincore.c                          |    2 -
+ mm/userfaultfd.c                      |    2 -
+ 21 files changed, 53 insertions(+), 53 deletions(-)
 
---- a/include/linux/pgtable.h~mm-define-__pte_leaf_size-to-also-take-a-pmd-entry
-+++ a/include/linux/pgtable.h
-@@ -1907,9 +1907,12 @@ typedef unsigned int pgtbl_mod_mask;
- #ifndef pmd_leaf_size
- #define pmd_leaf_size(x) PMD_SIZE
- #endif
-+#ifndef __pte_leaf_size
- #ifndef pte_leaf_size
- #define pte_leaf_size(x) PAGE_SIZE
- #endif
-+#define __pte_leaf_size(x,y) pte_leaf_size(y)
-+#endif
+--- a/arch/arm64/include/asm/hugetlb.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -46,7 +46,7 @@ extern pte_t huge_ptep_clear_flush(struc
+ extern void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep, unsigned long sz);
+ #define __HAVE_ARCH_HUGE_PTEP_GET
+-extern pte_t huge_ptep_get(pte_t *ptep);
++extern pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
+ 
+ void __init arm64_hugetlb_cma_reserve(void);
+ 
+--- a/arch/arm64/mm/hugetlbpage.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -127,7 +127,7 @@ static inline int num_contig_ptes(unsign
+ 	return contig_ptes;
+ }
+ 
+-pte_t huge_ptep_get(pte_t *ptep)
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	int ncontig, i;
+ 	size_t pgsize;
+--- a/arch/arm/include/asm/hugetlb-3level.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/arm/include/asm/hugetlb-3level.h
+@@ -13,12 +13,12 @@
  
  /*
-  * We always define pmd_pfn for all archs as it's used in lots of generic
---- a/kernel/events/core.c~mm-define-__pte_leaf_size-to-also-take-a-pmd-entry
-+++ a/kernel/events/core.c
-@@ -7609,7 +7609,7 @@ again:
+  * If our huge pte is non-zero then mark the valid bit.
+- * This allows pte_present(huge_ptep_get(ptep)) to return true for non-zero
++ * This allows pte_present(huge_ptep_get(mm,addr,ptep)) to return true for non-zero
+  * ptes.
+  * (The valid bit is automatically cleared by set_pte_at for PROT_NONE ptes).
+  */
+ #define __HAVE_ARCH_HUGE_PTEP_GET
+-static inline pte_t huge_ptep_get(pte_t *ptep)
++static inline pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	pte_t retval = *ptep;
+ 	if (pte_val(retval))
+--- a/arch/riscv/include/asm/hugetlb.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/riscv/include/asm/hugetlb.h
+@@ -44,7 +44,7 @@ int huge_ptep_set_access_flags(struct vm
+ 			       pte_t pte, int dirty);
  
- 	pte = ptep_get_lockless(ptep);
- 	if (pte_present(pte))
--		size = pte_leaf_size(pte);
-+		size = __pte_leaf_size(pmd, pte);
- 	pte_unmap(ptep);
- #endif /* CONFIG_HAVE_GUP_FAST */
+ #define __HAVE_ARCH_HUGE_PTEP_GET
+-pte_t huge_ptep_get(pte_t *ptep);
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
  
+ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags);
+ #define arch_make_huge_pte arch_make_huge_pte
+--- a/arch/riscv/mm/hugetlbpage.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/riscv/mm/hugetlbpage.c
+@@ -3,7 +3,7 @@
+ #include <linux/err.h>
+ 
+ #ifdef CONFIG_RISCV_ISA_SVNAPOT
+-pte_t huge_ptep_get(pte_t *ptep)
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	unsigned long pte_num;
+ 	int i;
+--- a/arch/s390/include/asm/hugetlb.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -19,7 +19,7 @@ void set_huge_pte_at(struct mm_struct *m
+ 		     pte_t *ptep, pte_t pte, unsigned long sz);
+ void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte);
+-pte_t huge_ptep_get(pte_t *ptep);
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 			      unsigned long addr, pte_t *ptep);
+ 
+@@ -64,7 +64,7 @@ static inline int huge_ptep_set_access_f
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty)
+ {
+-	int changed = !pte_same(huge_ptep_get(ptep), pte);
++	int changed = !pte_same(huge_ptep_get(vma->vm_mm, addr, ptep), pte);
+ 	if (changed) {
+ 		huge_ptep_get_and_clear(vma->vm_mm, addr, ptep);
+ 		__set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
+--- a/arch/s390/mm/hugetlbpage.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -169,7 +169,7 @@ void set_huge_pte_at(struct mm_struct *m
+ 	__set_huge_pte_at(mm, addr, ptep, pte);
+ }
+ 
+-pte_t huge_ptep_get(pte_t *ptep)
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	return __rste_to_pte(pte_val(*ptep));
+ }
+@@ -177,7 +177,7 @@ pte_t huge_ptep_get(pte_t *ptep)
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 			      unsigned long addr, pte_t *ptep)
+ {
+-	pte_t pte = huge_ptep_get(ptep);
++	pte_t pte = huge_ptep_get(mm, addr, ptep);
+ 	pmd_t *pmdp = (pmd_t *) ptep;
+ 	pud_t *pudp = (pud_t *) ptep;
+ 
+--- a/fs/hugetlbfs/inode.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/fs/hugetlbfs/inode.c
+@@ -422,7 +422,7 @@ static bool hugetlb_vma_maps_page(struct
+ 	if (!ptep)
+ 		return false;
+ 
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
+ 	if (huge_pte_none(pte) || !pte_present(pte))
+ 		return false;
+ 
+--- a/fs/proc/task_mmu.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/fs/proc/task_mmu.c
+@@ -1013,7 +1013,7 @@ static int smaps_hugetlb_range(pte_t *pt
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t ptent = huge_ptep_get(pte);
++	pte_t ptent = huge_ptep_get(walk->mm, addr, pte);
+ 	struct folio *folio = NULL;
+ 	bool present = false;
+ 
+@@ -1878,7 +1878,7 @@ static int pagemap_hugetlb_range(pte_t *
+ 	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags |= PM_SOFT_DIRTY;
+ 
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(walk->mm, addr, ptep);
+ 	if (pte_present(pte)) {
+ 		struct folio *folio = page_folio(pte_page(pte));
+ 
+@@ -2567,7 +2567,7 @@ static int pagemap_scan_hugetlb_entry(pt
+ 	if (~p->arg.flags & PM_SCAN_WP_MATCHING) {
+ 		/* Go the short route when not write-protecting pages. */
+ 
+-		pte = huge_ptep_get(ptep);
++		pte = huge_ptep_get(walk->mm, start, ptep);
+ 		categories = p->cur_vma_category | pagemap_hugetlb_category(pte);
+ 
+ 		if (!pagemap_scan_is_interesting_page(categories, p))
+@@ -2579,7 +2579,7 @@ static int pagemap_scan_hugetlb_entry(pt
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 	ptl = huge_pte_lock(hstate_vma(vma), vma->vm_mm, ptep);
+ 
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(walk->mm, start, ptep);
+ 	categories = p->cur_vma_category | pagemap_hugetlb_category(pte);
+ 
+ 	if (!pagemap_scan_is_interesting_page(categories, p))
+@@ -2975,7 +2975,7 @@ static int gather_pte_stats(pmd_t *pmd,
+ static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+-	pte_t huge_pte = huge_ptep_get(pte);
++	pte_t huge_pte = huge_ptep_get(walk->mm, addr, pte);
+ 	struct numa_maps *md;
+ 	struct page *page;
+ 
+--- a/fs/userfaultfd.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/fs/userfaultfd.c
+@@ -257,7 +257,7 @@ static inline bool userfaultfd_huge_must
+ 		goto out;
+ 
+ 	ret = false;
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(vma->vm_mm, vmf->address, ptep);
+ 
+ 	/*
+ 	 * Lockless access: we're in a wait_event so it's ok if it
+--- a/include/asm-generic/hugetlb.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/include/asm-generic/hugetlb.h
+@@ -144,7 +144,7 @@ static inline int huge_ptep_set_access_f
+ #endif
+ 
+ #ifndef __HAVE_ARCH_HUGE_PTEP_GET
+-static inline pte_t huge_ptep_get(pte_t *ptep)
++static inline pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	return ptep_get(ptep);
+ }
+--- a/include/linux/swapops.h~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/include/linux/swapops.h
+@@ -334,7 +334,7 @@ static inline bool is_migration_entry_di
+ 
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address);
+-extern void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *pte);
++extern void migration_entry_wait_huge(struct vm_area_struct *vma, unsigned long addr, pte_t *pte);
+ #else  /* CONFIG_MIGRATION */
+ static inline swp_entry_t make_readable_migration_entry(pgoff_t offset)
+ {
+@@ -359,7 +359,7 @@ static inline int is_migration_entry(swp
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address) { }
+ static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
+-					pte_t *pte) { }
++					     unsigned long addr, pte_t *pte) { }
+ static inline int is_writable_migration_entry(swp_entry_t entry)
+ {
+ 	return 0;
+--- a/mm/damon/vaddr.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/damon/vaddr.c
+@@ -339,7 +339,7 @@ static void damon_hugetlb_mkold(pte_t *p
+ 				struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	bool referenced = false;
+-	pte_t entry = huge_ptep_get(pte);
++	pte_t entry = huge_ptep_get(mm, addr, pte);
+ 	struct folio *folio = pfn_folio(pte_pfn(entry));
+ 	unsigned long psize = huge_page_size(hstate_vma(vma));
+ 
+@@ -373,7 +373,7 @@ static int damon_mkold_hugetlb_entry(pte
+ 	pte_t entry;
+ 
+ 	ptl = huge_pte_lock(h, walk->mm, pte);
+-	entry = huge_ptep_get(pte);
++	entry = huge_ptep_get(walk->mm, addr, pte);
+ 	if (!pte_present(entry))
+ 		goto out;
+ 
+@@ -509,7 +509,7 @@ static int damon_young_hugetlb_entry(pte
+ 	pte_t entry;
+ 
+ 	ptl = huge_pte_lock(h, walk->mm, pte);
+-	entry = huge_ptep_get(pte);
++	entry = huge_ptep_get(walk->mm, addr, pte);
+ 	if (!pte_present(entry))
+ 		goto out;
+ 
+--- a/mm/gup.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/gup.c
+@@ -604,7 +604,7 @@ static int gup_hugepte(struct vm_area_st
+ 	if (pte_end < end)
+ 		end = pte_end;
+ 
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
+ 
+ 	if (!pte_access_permitted(pte, flags & FOLL_WRITE))
+ 		return 0;
+--- a/mm/hmm.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/hmm.c
+@@ -480,7 +480,7 @@ static int hmm_vma_walk_hugetlb_entry(pt
+ 	pte_t entry;
+ 
+ 	ptl = huge_pte_lock(hstate_vma(vma), walk->mm, pte);
+-	entry = huge_ptep_get(pte);
++	entry = huge_ptep_get(walk->mm, addr, pte);
+ 
+ 	i = (start - range->start) >> PAGE_SHIFT;
+ 	pfn_req_flags = range->hmm_pfns[i];
+--- a/mm/hugetlb.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/hugetlb.c
+@@ -5287,7 +5287,7 @@ static void set_huge_ptep_writable(struc
+ {
+ 	pte_t entry;
+ 
+-	entry = huge_pte_mkwrite(huge_pte_mkdirty(huge_ptep_get(ptep)));
++	entry = huge_pte_mkwrite(huge_pte_mkdirty(huge_ptep_get(vma->vm_mm, address, ptep)));
+ 	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1))
+ 		update_mmu_cache(vma, address, ptep);
+ }
+@@ -5395,7 +5395,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
+ 		src_ptl = huge_pte_lockptr(h, src, src_pte);
+ 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+-		entry = huge_ptep_get(src_pte);
++		entry = huge_ptep_get(src_vma->vm_mm, addr, src_pte);
+ again:
+ 		if (huge_pte_none(entry)) {
+ 			/*
+@@ -5433,7 +5433,7 @@ again:
+ 				set_huge_pte_at(dst, addr, dst_pte,
+ 						make_pte_marker(marker), sz);
+ 		} else {
+-			entry = huge_ptep_get(src_pte);
++			entry = huge_ptep_get(src_vma->vm_mm, addr, src_pte);
+ 			pte_folio = page_folio(pte_page(entry));
+ 			folio_get(pte_folio);
+ 
+@@ -5474,7 +5474,7 @@ again:
+ 				dst_ptl = huge_pte_lock(h, dst, dst_pte);
+ 				src_ptl = huge_pte_lockptr(h, src, src_pte);
+ 				spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+-				entry = huge_ptep_get(src_pte);
++				entry = huge_ptep_get(src_vma->vm_mm, addr, src_pte);
+ 				if (!pte_same(src_pte_old, entry)) {
+ 					restore_reserve_on_error(h, dst_vma, addr,
+ 								new_folio);
+@@ -5584,7 +5584,7 @@ int move_hugetlb_page_tables(struct vm_a
+ 			new_addr |= last_addr_mask;
+ 			continue;
+ 		}
+-		if (huge_pte_none(huge_ptep_get(src_pte)))
++		if (huge_pte_none(huge_ptep_get(mm, old_addr, src_pte)))
+ 			continue;
+ 
+ 		if (huge_pmd_unshare(mm, vma, old_addr, src_pte)) {
+@@ -5657,7 +5657,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 			continue;
+ 		}
+ 
+-		pte = huge_ptep_get(ptep);
++		pte = huge_ptep_get(mm, address, ptep);
+ 		if (huge_pte_none(pte)) {
+ 			spin_unlock(ptl);
+ 			continue;
+@@ -5906,7 +5906,7 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+-	pte_t pte = huge_ptep_get(vmf->pte);
++	pte_t pte = huge_ptep_get(mm, vmf->address, vmf->pte);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct folio *old_folio;
+ 	struct folio *new_folio;
+@@ -6027,7 +6027,7 @@ retry_avoidcopy:
+ 			vmf->pte = hugetlb_walk(vma, vmf->address,
+ 					huge_page_size(h));
+ 			if (likely(vmf->pte &&
+-				   pte_same(huge_ptep_get(vmf->pte), pte)))
++				   pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte)))
+ 				goto retry_avoidcopy;
+ 			/*
+ 			 * race occurs while re-acquiring page table
+@@ -6065,7 +6065,7 @@ retry_avoidcopy:
+ 	 */
+ 	spin_lock(vmf->ptl);
+ 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
+-	if (likely(vmf->pte && pte_same(huge_ptep_get(vmf->pte), pte))) {
++	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
+ 		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
+ 
+ 		/* Break COW or unshare */
+@@ -6166,14 +6166,14 @@ static inline vm_fault_t hugetlb_handle_
+  * Recheck pte with pgtable lock.  Returns true if pte didn't change, or
+  * false if pte changed or is changing.
+  */
+-static bool hugetlb_pte_stable(struct hstate *h, struct mm_struct *mm,
++static bool hugetlb_pte_stable(struct hstate *h, struct mm_struct *mm, unsigned long addr,
+ 			       pte_t *ptep, pte_t old_pte)
+ {
+ 	spinlock_t *ptl;
+ 	bool same;
+ 
+ 	ptl = huge_pte_lock(h, mm, ptep);
+-	same = pte_same(huge_ptep_get(ptep), old_pte);
++	same = pte_same(huge_ptep_get(mm, addr, ptep), old_pte);
+ 	spin_unlock(ptl);
+ 
+ 	return same;
+@@ -6234,7 +6234,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 			 * never happen on the page after UFFDIO_COPY has
+ 			 * correctly installed the page and returned.
+ 			 */
+-			if (!hugetlb_pte_stable(h, mm, vmf->pte, vmf->orig_pte)) {
++			if (!hugetlb_pte_stable(h, mm, vmf->address, vmf->pte, vmf->orig_pte)) {
+ 				ret = 0;
+ 				goto out;
+ 			}
+@@ -6263,7 +6263,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 			 * here.  Before returning error, get ptl and make
+ 			 * sure there really is no pte entry.
+ 			 */
+-			if (hugetlb_pte_stable(h, mm, vmf->pte, vmf->orig_pte))
++			if (hugetlb_pte_stable(h, mm, vmf->address, vmf->pte, vmf->orig_pte))
+ 				ret = vmf_error(PTR_ERR(folio));
+ 			else
+ 				ret = 0;
+@@ -6312,7 +6312,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+ 			/* See comment in userfaultfd_missing() block above */
+-			if (!hugetlb_pte_stable(h, mm, vmf->pte, vmf->orig_pte)) {
++			if (!hugetlb_pte_stable(h, mm, vmf->address, vmf->pte, vmf->orig_pte)) {
+ 				ret = 0;
+ 				goto out;
+ 			}
+@@ -6339,7 +6339,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 	vmf->ptl = huge_pte_lock(h, mm, vmf->pte);
+ 	ret = 0;
+ 	/* If pte changed from under us, retry */
+-	if (!pte_same(huge_ptep_get(vmf->pte), vmf->orig_pte))
++	if (!pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), vmf->orig_pte))
+ 		goto backout;
+ 
+ 	if (anon_rmap)
+@@ -6460,7 +6460,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		return VM_FAULT_OOM;
+ 	}
+ 
+-	vmf.orig_pte = huge_ptep_get(vmf.pte);
++	vmf.orig_pte = huge_ptep_get(mm, vmf.address, vmf.pte);
+ 	if (huge_pte_none_mostly(vmf.orig_pte)) {
+ 		if (is_pte_marker(vmf.orig_pte)) {
+ 			pte_marker marker =
+@@ -6501,7 +6501,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 			 * be released there.
+ 			 */
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+-			migration_entry_wait_huge(vma, vmf.pte);
++			migration_entry_wait_huge(vma, vmf.address, vmf.pte);
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(vmf.orig_pte)))
+ 			ret = VM_FAULT_HWPOISON_LARGE |
+@@ -6534,11 +6534,11 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	vmf.ptl = huge_pte_lock(h, mm, vmf.pte);
+ 
+ 	/* Check for a racing update before calling hugetlb_wp() */
+-	if (unlikely(!pte_same(vmf.orig_pte, huge_ptep_get(vmf.pte))))
++	if (unlikely(!pte_same(vmf.orig_pte, huge_ptep_get(mm, vmf.address, vmf.pte))))
+ 		goto out_ptl;
+ 
+ 	/* Handle userfault-wp first, before trying to lock more pages */
+-	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(huge_ptep_get(vmf.pte)) &&
++	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(huge_ptep_get(mm, vmf.address, vmf.pte)) &&
+ 	    (flags & FAULT_FLAG_WRITE) && !huge_pte_write(vmf.orig_pte)) {
+ 		if (!userfaultfd_wp_async(vma)) {
+ 			spin_unlock(vmf.ptl);
+@@ -6666,7 +6666,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 		ptl = huge_pte_lock(h, dst_mm, dst_pte);
+ 
+ 		/* Don't overwrite any existing PTEs (even markers) */
+-		if (!huge_pte_none(huge_ptep_get(dst_pte))) {
++		if (!huge_pte_none(huge_ptep_get(dst_mm, dst_addr, dst_pte))) {
+ 			spin_unlock(ptl);
+ 			return -EEXIST;
+ 		}
+@@ -6802,7 +6802,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	 * page backing it, then access the page.
+ 	 */
+ 	ret = -EEXIST;
+-	if (!huge_pte_none_mostly(huge_ptep_get(dst_pte)))
++	if (!huge_pte_none_mostly(huge_ptep_get(dst_mm, dst_addr, dst_pte)))
+ 		goto out_release_unlock;
+ 
+ 	if (folio_in_pagecache)
+@@ -6923,7 +6923,7 @@ long hugetlb_change_protection(struct vm
+ 			address |= last_addr_mask;
+ 			continue;
+ 		}
+-		pte = huge_ptep_get(ptep);
++		pte = huge_ptep_get(mm, address, ptep);
+ 		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
+ 			/* Nothing to do. */
+ 		} else if (unlikely(is_hugetlb_entry_migration(pte))) {
+--- a/mm/memory-failure.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/memory-failure.c
+@@ -835,7 +835,7 @@ static int hwpoison_hugetlb_range(pte_t
+ 			    struct mm_walk *walk)
+ {
+ 	struct hwpoison_walk *hwp = walk->private;
+-	pte_t pte = huge_ptep_get(ptep);
++	pte_t pte = huge_ptep_get(walk->mm, addr, ptep);
+ 	struct hstate *h = hstate_vma(walk->vma);
+ 
+ 	return check_hwpoisoned_entry(pte, addr, huge_page_shift(h),
+--- a/mm/mempolicy.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/mempolicy.c
+@@ -624,7 +624,7 @@ static int queue_folios_hugetlb(pte_t *p
+ 	pte_t entry;
+ 
+ 	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
+-	entry = huge_ptep_get(pte);
++	entry = huge_ptep_get(walk->mm, addr, pte);
+ 	if (!pte_present(entry)) {
+ 		if (unlikely(is_hugetlb_entry_migration(entry)))
+ 			qp->nr_failed++;
+--- a/mm/migrate.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/migrate.c
+@@ -338,14 +338,14 @@ out:
+  *
+  * This function will release the vma lock before returning.
+  */
+-void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *ptep)
++void migration_entry_wait_huge(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+ {
+ 	spinlock_t *ptl = huge_pte_lockptr(hstate_vma(vma), vma->vm_mm, ptep);
+ 	pte_t pte;
+ 
+ 	hugetlb_vma_assert_locked(vma);
+ 	spin_lock(ptl);
+-	pte = huge_ptep_get(ptep);
++	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
+ 
+ 	if (unlikely(!is_hugetlb_entry_migration(pte))) {
+ 		spin_unlock(ptl);
+--- a/mm/mincore.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/mincore.c
+@@ -33,7 +33,7 @@ static int mincore_hugetlb(pte_t *pte, u
+ 	 * Hugepages under user process are always in RAM and never
+ 	 * swapped out, but theoretically it needs to be checked.
+ 	 */
+-	present = pte && !huge_pte_none_mostly(huge_ptep_get(pte));
++	present = pte && !huge_pte_none_mostly(huge_ptep_get(walk->mm, addr, pte));
+ 	for (; addr != end; vec++, addr += PAGE_SIZE)
+ 		*vec = present;
+ 	walk->private = vec;
+--- a/mm/userfaultfd.c~mm-provide-mm_struct-and-address-to-huge_ptep_get
++++ a/mm/userfaultfd.c
+@@ -587,7 +587,7 @@ retry:
+ 		}
+ 
+ 		if (!uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE) &&
+-		    !huge_pte_none_mostly(huge_ptep_get(dst_pte))) {
++		    !huge_pte_none_mostly(huge_ptep_get(dst_mm, dst_addr, dst_pte))) {
+ 			err = -EEXIST;
+ 			hugetlb_vma_unlock_read(dst_vma);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
