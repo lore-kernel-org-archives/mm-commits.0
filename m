@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24F8A78C80
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:44:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 455063FB9F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:45:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824281; cv=none; b=gWGtaBiYKKrJgjavTcq7nCe896vZbzpKlM/hPoik1MgUZCiD+mIl58tGf5B2HkB1EgqCtfEl0lAgSCh1nua74Ip9tnIGBLjBx1fzTwOPkinoA+oRc6PVYXxGToSJq1BglQnkTv9bc9aQJ+SbgGK7EkQiizIfLMWOqoWxS87QOqk=
+	t=1720824325; cv=none; b=pJyUOoUrXTYCZwX+TheJdikxWpHbBJi18qFy14B6dnwNX0F2xZYEOilWGaOKrrHWg/pJ9Zez5Vt5s8GMpIlnop2Yn8CMQHAfOQszmX3ASq9cPOtU8hX0kL40rmvHF31msQv7O3FMhxZF7e95NpC+k4eShHlFVFZMvngPp8ioJzM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824281; c=relaxed/simple;
-	bh=PjZc9f0c9hywc6WPssKUTSNP610JaNCQsGvU05TBUI8=;
-	h=Date:To:From:Subject:Message-Id; b=DBHDBE+7VKbP2hDVvZe5sF/EhRXsUpbvd8vDdqqtDKpGYMVjY/Wds9gjczS5WJ0alPQJBlUPgIuXHz+Cg4AKSatsnWH5jKGtiZidN93XbNBOKJOxgyo1FHlQGTM9RmZV3ClVVPusqcCJGx4hIGDp3yk7b6Ua1SUoLBrr7CYsb+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g63Gc4tJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824325; c=relaxed/simple;
+	bh=vGknsx0VoFLMCgjQzECMqPqu65cZ17TrM8DWp2EZ1Gc=;
+	h=Date:To:From:Subject:Message-Id; b=iBkrCXVzUouPslUTF800Hq8rbDollx3WK2XCoVdcDxojfws7CDqVxLZyWXMy11+hg9s4bj5AJi2veKPKeabv/aMLzNwamL5g7M3m81P9LyHndVzjbycZ2Mb869acpGoxdLAdcdvfgu+i5BpRmVvA9mqIfIHoMY5yq3PttA8RRko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pkF82TKX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g63Gc4tJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C373C32782;
-	Fri, 12 Jul 2024 22:44:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pkF82TKX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3EB8C4AF07;
+	Fri, 12 Jul 2024 22:45:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824280;
-	bh=PjZc9f0c9hywc6WPssKUTSNP610JaNCQsGvU05TBUI8=;
+	s=korg; t=1720824325;
+	bh=vGknsx0VoFLMCgjQzECMqPqu65cZ17TrM8DWp2EZ1Gc=;
 	h=Date:To:From:Subject:From;
-	b=g63Gc4tJWjrFMn1MV08YG+0m1aot6c+HSYHC3dADsfvSCQMfEPaKZ30j4Apsajibo
-	 2RJ7hbOLFcyNgeytipWBzuHcEOdmQj+1PFm46/R1s5qn40QaQptxprgJrUNEZStnHa
-	 +89HR5u5xlPGeJST4x16iaj7vXX0eem9m3MUnmXY=
-Date: Fri, 12 Jul 2024 15:44:40 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,sfr@canb.auug.org.au,rppt@kernel.org,Liam.Howlett@oracle.com,gregkh@linuxfoundation.org,brauner@kernel.org,arnd@arndb.de,ak@linux.intel.com,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
+	b=pkF82TKXLCw5AAgq0X0DXUtlTbbOdEFRRuxp+6xQEFI1QshU7/Ree3dXaXQjmAKua
+	 ghlsHg5gAfuVrXKlZ3SNCMZ3diRdHi3tzSpjZ8RnY0wBIJj4rj1DGZ0a48nzDGvJeQ
+	 +Vi8ic9IP/h7L79MY6q9byzBt4n+7LiDe+/ATBug=
+Date: Fri, 12 Jul 2024 15:45:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shy828301@gmail.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,libang.li@antgroup.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] fs-procfs-add-build-id-fetching-to-procmap_query-api-fix.patch removed from -mm tree
-Message-Id: <20240712224440.9C373C32782@smtp.kernel.org>
+Subject: [folded-merged] mm-add-per-order-mthp-split-counters-fix.patch removed from -mm tree
+Message-Id: <20240712224524.E3EB8C4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/procfs: fix integer to pointer cast warning in do_procmap_query()
+     Subject: mm-add-per-order-mthp-split-counters-fix
 has been removed from the -mm tree.  Its filename was
-     fs-procfs-add-build-id-fetching-to-procmap_query-api-fix.patch
+     mm-add-per-order-mthp-split-counters-fix.patch
 
-This patch was dropped because it was folded into fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
+This patch was dropped because it was folded into mm-add-per-order-mthp-split-counters.patch
 
 ------------------------------------------------------
-From: Andrii Nakryiko <andrii@kernel.org>
-Subject: fs/procfs: fix integer to pointer cast warning in do_procmap_query()
-Date: Mon, 1 Jul 2024 10:48:04 -0700
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm-add-per-order-mthp-split-counters-fix
+Date: Fri, 5 Jul 2024 19:31:19 +0800
 
-On 32-bit architectures compiler will complain about casting __u64 to
-void * pointer:
+use == for `order' test, per David
 
-fs/proc/task_mmu.c: In function 'do_procmap_query':
-fs/proc/task_mmu.c:598:48: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  598 |         if (karg.vma_name_size && copy_to_user((void __user *)karg.vma_name_addr,
-      |                                                ^
-fs/proc/task_mmu.c:605:48: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  605 |         if (karg.build_id_size && copy_to_user((void __user *)karg.build_id_addr,
-      |                                                ^
-
-Fix this by using u64_to_user_ptr() helper that's meant to handle this
-properly.
-
-Link: https://lkml.kernel.org/r/20240701174805.1897344-1-andrii@kernel.org
-Fixes: df789ce1eb90 ("fs/procfs: add build ID fetching to PROCMAP_QUERY API")
-Fixes: 3757be498749 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
-Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240705113119.82210-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: Bang Li <libang.li@antgroup.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mingzhe Yang <mingzhe.yang@ly.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Barry Song <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-procfs-add-build-id-fetching-to-procmap_query-api-fix
-+++ a/fs/proc/task_mmu.c
-@@ -595,14 +595,14 @@ static int do_procmap_query(struct proc_
- 	query_vma_teardown(mm, vma);
- 	mmput(mm);
- 
--	if (karg.vma_name_size && copy_to_user((void __user *)karg.vma_name_addr,
-+	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
- 					       name, karg.vma_name_size)) {
- 		kfree(name_buf);
- 		return -EFAULT;
- 	}
- 	kfree(name_buf);
- 
--	if (karg.build_id_size && copy_to_user((void __user *)karg.build_id_addr,
-+	if (karg.build_id_size && copy_to_user(u64_to_user_ptr(karg.build_id_addr),
- 					       build_id_buf, karg.build_id_size))
- 		return -EFAULT;
- 
+--- a/mm/huge_memory.c~mm-add-per-order-mthp-split-counters-fix
++++ a/mm/huge_memory.c
+@@ -3260,7 +3260,7 @@ out_unlock:
+ 		i_mmap_unlock_read(mapping);
+ out:
+ 	xas_destroy(&xas);
+-	if (order >= HPAGE_PMD_ORDER)
++	if (order == HPAGE_PMD_ORDER)
+ 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
+ 	count_mthp_stat(order, !ret ? MTHP_STAT_SPLIT : MTHP_STAT_SPLIT_FAILED);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from andrii@kernel.org are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
-fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps.patch
-fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
-docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch
-tools-sync-uapi-linux-fsh-header-into-tools-subdir.patch
-selftests-proc-add-procmap_query-ioctl-tests.patch
+mm-add-per-order-mthp-split-counters.patch
+mm-add-docs-for-per-order-mthp-split-counters.patch
+mm-add-docs-for-per-order-mthp-split-counters-v3.patch
+mm-add-docs-for-per-order-mthp-split-counters-v3-fix.patch
 
