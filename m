@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D703512DDAF
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1564127E0F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824887; cv=none; b=dJXFjUklAtlEFnRlJOgQVOenFIH7o9Z9OAesJ4K7BmlcaPliNDnLKlhfp4PqdY30C3ojesGFaNmTYx4oMnF5IQccBU/KvtRBN9KyFSkGcfp8Nr9kHstzAATTzXjN2pJ8BKDasPFiu9QxRw15WOUEfb8F8VvX2uqI4ZIdlpTuHZU=
+	t=1720824890; cv=none; b=q/1Sgyn9kI11UBxiM/26ab/DxQ5/gKEW0nmO3Zef1hzd+bOVJRVSp75rrcoap1weddh4O42dwFXQ6DWhbUZqcZ3Tj6EH0l0MoP8l6ssh/bjVpDneWL7vbbtuqpDNwGpieio76zRubMz36jKvL3W4Iyji+63ypZ/9ACjmt/plMYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824887; c=relaxed/simple;
-	bh=+o/2jIGfj2Qz2cyakEJtdA2DDMlZqFRd4IqaAUmlW6I=;
-	h=Date:To:From:Subject:Message-Id; b=Ilnp7NiXB1/QfV2aznEGgGEcYw7c54swDdVm/07I3e2LWhFtM3Ld1alhrdsbK5XjI2wCioojOhERqj4P0+3YQ1s80hx60Y22HY+GYds87kqLve//3dK5EIu3M7As80MhwyPEsO+lLcJcI5SIRrP9n8a/oIBGU61eoPtTNvapiow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CdN4vjvY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824890; c=relaxed/simple;
+	bh=LD6TWwIgzdWXI6kPGEXU/WpGvAr3KtHJ077c8AOFbxg=;
+	h=Date:To:From:Subject:Message-Id; b=IC+2FtvnR0VgSneJKm9u4qY6Et0IXvY2c9XH8dZOHSWH3yeOoPBZ2G14n+l7H20Atc+/n+kKt//V1A84zN0LP5gx+7uTxJpNRHAn3zAlL+s69ysB6iXSqhNTijMaFzHMboyL515cXeqE9M0M34YP2yhcBZFliS6ztoLIuRDWs3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vNF1/d4M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CdN4vjvY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA301C32782;
-	Fri, 12 Jul 2024 22:54:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vNF1/d4M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C63A3C4AF07;
+	Fri, 12 Jul 2024 22:54:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824887;
-	bh=+o/2jIGfj2Qz2cyakEJtdA2DDMlZqFRd4IqaAUmlW6I=;
+	s=korg; t=1720824889;
+	bh=LD6TWwIgzdWXI6kPGEXU/WpGvAr3KtHJ077c8AOFbxg=;
 	h=Date:To:From:Subject:From;
-	b=CdN4vjvYCxN248YH9y/zBjdx+Q+YzWTWVWiNZRjoQ0f6HeCh4EVNb5SIWUztJzWj5
-	 CiXj/4xM/3/hv66vZr5UO/B612UBEoKWXc9TCWWPQt264rTziscU90zNOKlWJfThzm
-	 Bb25lI3mkxRIyuY0usGHRU1s+Z0PPFt33As33ogs=
-Date: Fri, 12 Jul 2024 15:54:47 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,quic_jjohnson@quicinc.com,mhocko@suse.com,hannes@cmpxchg.org,maarten.lankhorst@linux.intel.com,akpm@linux-foundation.org
+	b=vNF1/d4M1q3RnB9DOdUM6Owib4Q+lLMBl3Eqx/hMhNJGP2Z/+CKJ66K2jISTEomEC
+	 qe6Bu/6bKaRYOcTKHX6kof8R84RtWS6dXzAekyHFor6dJ8nXHMj/4j052It1YV1OqU
+	 rj3EId3XdRKoyQRrLd4XulcCfbrqApUkQEgB8uCQ=
+Date: Fri, 12 Jul 2024 15:54:49 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,sj@kernel.org,ravis.opensrc@micron.com,rafael@kernel.org,mhocko@suse.com,lenb@kernel.org,Jonathan.Cameron@huawei.com,horenchuang@bytedance.com,gourry.memverge@gmail.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,aneesh.kumar@linux.ibm.com,horen.chuang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_counter-move-calculating-protection-values-to-page_counter.patch removed from -mm tree
-Message-Id: <20240712225447.AA301C32782@smtp.kernel.org>
+Subject: [merged mm-stable] memory-tier-consolidate-the-initialization-of-memory-tiers.patch removed from -mm tree
+Message-Id: <20240712225449.C63A3C4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,407 +35,211 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_counter: move calculating protection values to page_counter
+     Subject: memory tier: consolidate the initialization of memory tiers
 has been removed from the -mm tree.  Its filename was
-     mm-page_counter-move-calculating-protection-values-to-page_counter.patch
+     memory-tier-consolidate-the-initialization-of-memory-tiers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Subject: mm/page_counter: move calculating protection values to page_counter
-Date: Wed, 3 Jul 2024 13:25:10 +0200
+From: "Ho-Ren (Jack) Chuang" <horen.chuang@linux.dev>
+Subject: memory tier: consolidate the initialization of memory tiers
+Date: Thu, 4 Jul 2024 07:26:44 +0000
 
-It's a lot of math, and there is nothing memcontrol specific about it. 
-This makes it easier to use inside of the drm cgroup controller.
+The current memory tier initialization process is distributed across two
+different functions, memory_tier_init() and memory_tier_late_init().  This
+design is hard to maintain.  Thus, this patch is proposed to reduce the
+possible code paths by consolidating different initialization patches into
+one.
 
-[akpm@linux-foundation.org: fix kerneldoc, per Jeff Johnson]
-Link: https://lkml.kernel.org/r/20240703112510.36424-1-maarten.lankhorst@linux.intel.com
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+The earlier discussion with Jonathan and Ying is listed here:
+https://lore.kernel.org/lkml/20240405150244.00004b49@Huawei.com/
+
+If we want to put these two initializations together, they must be placed
+together in the later function.  Because only at that time, the HMAT
+information will be ready, adist between nodes can be calculated, and
+memory tiering can be established based on the adist.  So we position the
+initialization at memory_tier_init() to the memory_tier_late_init() call. 
+Moreover, it's natural to keep memory_tier initialization in drivers at
+device_initcall() level.
+
+If we simply move the set_node_memory_tier() from memory_tier_init() to
+late_initcall(), it will result in HMAT not registering the
+mt_adistance_algorithm callback function, because set_node_memory_tier()
+is not performed during the memory tiering initialization phase, leading
+to a lack of correct default_dram information.
+
+Therefore, we introduced a nodemask to pass the information of the default
+DRAM nodes.  The reason for not choosing to reuse default_dram_type->nodes
+is that it is not clean enough.  So in the end, we use a __initdata
+variable, which is a variable that is released once initialization is
+complete, including both CPU and memory nodes for HMAT to iterate through.
+
+Link: https://lkml.kernel.org/r/20240704072646.437579-1-horen.chuang@linux.dev
+Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Gregory Price <gourry.memverge@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_counter.h |    4 
- mm/memcontrol.c              |  154 -----------------------------
- mm/page_counter.c            |  173 +++++++++++++++++++++++++++++++++
- 3 files changed, 180 insertions(+), 151 deletions(-)
+ drivers/acpi/numa/hmat.c     |    5 ---
+ include/linux/memory-tiers.h |    2 +
+ mm/memory-tiers.c            |   54 ++++++++++++---------------------
+ 3 files changed, 24 insertions(+), 37 deletions(-)
 
---- a/include/linux/page_counter.h~mm-page_counter-move-calculating-protection-values-to-page_counter
-+++ a/include/linux/page_counter.h
-@@ -81,4 +81,8 @@ static inline void page_counter_reset_wa
- 	counter->watermark = page_counter_read(counter);
- }
+--- a/drivers/acpi/numa/hmat.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/drivers/acpi/numa/hmat.c
+@@ -940,10 +940,7 @@ static int hmat_set_default_dram_perf(vo
+ 	struct memory_target *target;
+ 	struct access_coordinate *attrs;
  
-+void page_counter_calculate_protection(struct page_counter *root,
-+				       struct page_counter *counter,
-+				       bool recursive_protection);
-+
- #endif /* _LINUX_PAGE_COUNTER_H */
---- a/mm/memcontrol.c~mm-page_counter-move-calculating-protection-values-to-page_counter
-+++ a/mm/memcontrol.c
-@@ -4390,122 +4390,6 @@ struct cgroup_subsys memory_cgrp_subsys
- 	.early_init = 0,
- };
+-	if (!default_dram_type)
+-		return -EIO;
+-
+-	for_each_node_mask(nid, default_dram_type->nodes) {
++	for_each_node_mask(nid, default_dram_nodes) {
+ 		pxm = node_to_pxm(nid);
+ 		target = find_mem_target(pxm);
+ 		if (!target)
+--- a/include/linux/memory-tiers.h~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/include/linux/memory-tiers.h
+@@ -38,6 +38,7 @@ struct access_coordinate;
+ #ifdef CONFIG_NUMA
+ extern bool numa_demotion_enabled;
+ extern struct memory_dev_type *default_dram_type;
++extern nodemask_t default_dram_nodes;
+ struct memory_dev_type *alloc_memory_type(int adistance);
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+@@ -76,6 +77,7 @@ static inline bool node_is_toptier(int n
  
--/*
-- * This function calculates an individual cgroup's effective
-- * protection which is derived from its own memory.min/low, its
-- * parent's and siblings' settings, as well as the actual memory
-- * distribution in the tree.
-- *
-- * The following rules apply to the effective protection values:
-- *
-- * 1. At the first level of reclaim, effective protection is equal to
-- *    the declared protection in memory.min and memory.low.
-- *
-- * 2. To enable safe delegation of the protection configuration, at
-- *    subsequent levels the effective protection is capped to the
-- *    parent's effective protection.
-- *
-- * 3. To make complex and dynamic subtrees easier to configure, the
-- *    user is allowed to overcommit the declared protection at a given
-- *    level. If that is the case, the parent's effective protection is
-- *    distributed to the children in proportion to how much protection
-- *    they have declared and how much of it they are utilizing.
-- *
-- *    This makes distribution proportional, but also work-conserving:
-- *    if one cgroup claims much more protection than it uses memory,
-- *    the unused remainder is available to its siblings.
-- *
-- * 4. Conversely, when the declared protection is undercommitted at a
-- *    given level, the distribution of the larger parental protection
-- *    budget is NOT proportional. A cgroup's protection from a sibling
-- *    is capped to its own memory.min/low setting.
-- *
-- * 5. However, to allow protecting recursive subtrees from each other
-- *    without having to declare each individual cgroup's fixed share
-- *    of the ancestor's claim to protection, any unutilized -
-- *    "floating" - protection from up the tree is distributed in
-- *    proportion to each cgroup's *usage*. This makes the protection
-- *    neutral wrt sibling cgroups and lets them compete freely over
-- *    the shared parental protection budget, but it protects the
-- *    subtree as a whole from neighboring subtrees.
-- *
-- * Note that 4. and 5. are not in conflict: 4. is about protecting
-- * against immediate siblings whereas 5. is about protecting against
-- * neighboring subtrees.
-- */
--static unsigned long effective_protection(unsigned long usage,
--					  unsigned long parent_usage,
--					  unsigned long setting,
--					  unsigned long parent_effective,
--					  unsigned long siblings_protected)
--{
--	unsigned long protected;
--	unsigned long ep;
--
--	protected = min(usage, setting);
--	/*
--	 * If all cgroups at this level combined claim and use more
--	 * protection than what the parent affords them, distribute
--	 * shares in proportion to utilization.
--	 *
--	 * We are using actual utilization rather than the statically
--	 * claimed protection in order to be work-conserving: claimed
--	 * but unused protection is available to siblings that would
--	 * otherwise get a smaller chunk than what they claimed.
--	 */
--	if (siblings_protected > parent_effective)
--		return protected * parent_effective / siblings_protected;
--
--	/*
--	 * Ok, utilized protection of all children is within what the
--	 * parent affords them, so we know whatever this child claims
--	 * and utilizes is effectively protected.
--	 *
--	 * If there is unprotected usage beyond this value, reclaim
--	 * will apply pressure in proportion to that amount.
--	 *
--	 * If there is unutilized protection, the cgroup will be fully
--	 * shielded from reclaim, but we do return a smaller value for
--	 * protection than what the group could enjoy in theory. This
--	 * is okay. With the overcommit distribution above, effective
--	 * protection is always dependent on how memory is actually
--	 * consumed among the siblings anyway.
--	 */
--	ep = protected;
--
--	/*
--	 * If the children aren't claiming (all of) the protection
--	 * afforded to them by the parent, distribute the remainder in
--	 * proportion to the (unprotected) memory of each cgroup. That
--	 * way, cgroups that aren't explicitly prioritized wrt each
--	 * other compete freely over the allowance, but they are
--	 * collectively protected from neighboring trees.
--	 *
--	 * We're using unprotected memory for the weight so that if
--	 * some cgroups DO claim explicit protection, we don't protect
--	 * the same bytes twice.
--	 *
--	 * Check both usage and parent_usage against the respective
--	 * protected values. One should imply the other, but they
--	 * aren't read atomically - make sure the division is sane.
--	 */
--	if (!(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT))
--		return ep;
--	if (parent_effective > siblings_protected &&
--	    parent_usage > siblings_protected &&
--	    usage > protected) {
--		unsigned long unclaimed;
--
--		unclaimed = parent_effective - siblings_protected;
--		unclaimed *= usage - protected;
--		unclaimed /= parent_usage - siblings_protected;
--
--		ep += unclaimed;
--	}
--
--	return ep;
--}
--
- /**
-  * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
-  * @root: the top ancestor of the sub-tree being checked
-@@ -4517,8 +4401,8 @@ static unsigned long effective_protectio
- void mem_cgroup_calculate_protection(struct mem_cgroup *root,
- 				     struct mem_cgroup *memcg)
+ #define numa_demotion_enabled	false
+ #define default_dram_type	NULL
++#define default_dram_nodes	NODE_MASK_NONE
+ /*
+  * CONFIG_NUMA implementation returns non NULL error.
+  */
+--- a/mm/memory-tiers.c~memory-tier-consolidate-the-initialization-of-memory-tiers
++++ a/mm/memory-tiers.c
+@@ -43,6 +43,7 @@ static LIST_HEAD(memory_tiers);
+ static LIST_HEAD(default_memory_types);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+ struct memory_dev_type *default_dram_type;
++nodemask_t default_dram_nodes __initdata = NODE_MASK_NONE;
+ 
+ static const struct bus_type memory_tier_subsys = {
+ 	.name = "memory_tiering",
+@@ -671,28 +672,35 @@ EXPORT_SYMBOL_GPL(mt_put_memory_types);
+ 
+ /*
+  * This is invoked via `late_initcall()` to initialize memory tiers for
+- * CPU-less memory nodes after driver initialization, which is
+- * expected to provide `adistance` algorithms.
++ * memory nodes, both with and without CPUs. After the initialization of
++ * firmware and devices, adistance algorithms are expected to be provided.
+  */
+ static int __init memory_tier_late_init(void)
  {
--	unsigned long usage, parent_usage;
--	struct mem_cgroup *parent;
-+	bool recursive_protection =
-+		cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT;
+ 	int nid;
++	struct memory_tier *memtier;
  
- 	if (mem_cgroup_disabled())
- 		return;
-@@ -4526,39 +4410,7 @@ void mem_cgroup_calculate_protection(str
- 	if (!root)
- 		root = root_mem_cgroup;
++	get_online_mems();
+ 	guard(mutex)(&memory_tier_lock);
++
++	/* Assign each uninitialized N_MEMORY node to a memory tier. */
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		/*
+-		 * Some device drivers may have initialized memory tiers
+-		 * between `memory_tier_init()` and `memory_tier_late_init()`,
+-		 * potentially bringing online memory nodes and
+-		 * configuring memory tiers. Exclude them here.
++		 * Some device drivers may have initialized
++		 * memory tiers, potentially bringing memory nodes
++		 * online and configuring memory tiers.
++		 * Exclude them here.
+ 		 */
+ 		if (node_memory_types[nid].memtype)
+ 			continue;
  
--	/*
--	 * Effective values of the reclaim targets are ignored so they
--	 * can be stale. Have a look at mem_cgroup_protection for more
--	 * details.
--	 * TODO: calculation should be more robust so that we do not need
--	 * that special casing.
--	 */
--	if (memcg == root)
--		return;
--
--	usage = page_counter_read(&memcg->memory);
--	if (!usage)
--		return;
--
--	parent = parent_mem_cgroup(memcg);
--
--	if (parent == root) {
--		memcg->memory.emin = READ_ONCE(memcg->memory.min);
--		memcg->memory.elow = READ_ONCE(memcg->memory.low);
--		return;
--	}
--
--	parent_usage = page_counter_read(&parent->memory);
--
--	WRITE_ONCE(memcg->memory.emin, effective_protection(usage, parent_usage,
--			READ_ONCE(memcg->memory.min),
--			READ_ONCE(parent->memory.emin),
--			atomic_long_read(&parent->memory.children_min_usage)));
--
--	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
--			READ_ONCE(memcg->memory.low),
--			READ_ONCE(parent->memory.elow),
--			atomic_long_read(&parent->memory.children_low_usage)));
-+	page_counter_calculate_protection(&root->memory, &memcg->memory, recursive_protection);
- }
+-		set_node_memory_tier(nid);
++		memtier = set_node_memory_tier(nid);
++		if (IS_ERR(memtier))
++			continue;
+ 	}
  
- static int charge_memcg(struct folio *folio, struct mem_cgroup *memcg,
---- a/mm/page_counter.c~mm-page_counter-move-calculating-protection-values-to-page_counter
-+++ a/mm/page_counter.c
-@@ -262,3 +262,176 @@ int page_counter_memparse(const char *bu
+ 	establish_demotion_targets();
++	put_online_mems();
  
  	return 0;
  }
+@@ -875,8 +883,7 @@ static int __meminit memtier_hotplug_cal
+ 
+ static int __init memory_tier_init(void)
+ {
+-	int ret, node;
+-	struct memory_tier *memtier;
++	int ret;
+ 
+ 	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
+ 	if (ret)
+@@ -887,7 +894,8 @@ static int __init memory_tier_init(void)
+ 				GFP_KERNEL);
+ 	WARN_ON(!node_demotion);
+ #endif
+-	mutex_lock(&memory_tier_lock);
 +
-+
-+/*
-+ * This function calculates an individual page counter's effective
-+ * protection which is derived from its own memory.min/low, its
-+ * parent's and siblings' settings, as well as the actual memory
-+ * distribution in the tree.
-+ *
-+ * The following rules apply to the effective protection values:
-+ *
-+ * 1. At the first level of reclaim, effective protection is equal to
-+ *    the declared protection in memory.min and memory.low.
-+ *
-+ * 2. To enable safe delegation of the protection configuration, at
-+ *    subsequent levels the effective protection is capped to the
-+ *    parent's effective protection.
-+ *
-+ * 3. To make complex and dynamic subtrees easier to configure, the
-+ *    user is allowed to overcommit the declared protection at a given
-+ *    level. If that is the case, the parent's effective protection is
-+ *    distributed to the children in proportion to how much protection
-+ *    they have declared and how much of it they are utilizing.
-+ *
-+ *    This makes distribution proportional, but also work-conserving:
-+ *    if one counter claims much more protection than it uses memory,
-+ *    the unused remainder is available to its siblings.
-+ *
-+ * 4. Conversely, when the declared protection is undercommitted at a
-+ *    given level, the distribution of the larger parental protection
-+ *    budget is NOT proportional. A counter's protection from a sibling
-+ *    is capped to its own memory.min/low setting.
-+ *
-+ * 5. However, to allow protecting recursive subtrees from each other
-+ *    without having to declare each individual counter's fixed share
-+ *    of the ancestor's claim to protection, any unutilized -
-+ *    "floating" - protection from up the tree is distributed in
-+ *    proportion to each counter's *usage*. This makes the protection
-+ *    neutral wrt sibling cgroups and lets them compete freely over
-+ *    the shared parental protection budget, but it protects the
-+ *    subtree as a whole from neighboring subtrees.
-+ *
-+ * Note that 4. and 5. are not in conflict: 4. is about protecting
-+ * against immediate siblings whereas 5. is about protecting against
-+ * neighboring subtrees.
-+ */
-+static unsigned long effective_protection(unsigned long usage,
-+					  unsigned long parent_usage,
-+					  unsigned long setting,
-+					  unsigned long parent_effective,
-+					  unsigned long siblings_protected,
-+					  bool recursive_protection)
-+{
-+	unsigned long protected;
-+	unsigned long ep;
-+
-+	protected = min(usage, setting);
-+	/*
-+	 * If all cgroups at this level combined claim and use more
-+	 * protection than what the parent affords them, distribute
-+	 * shares in proportion to utilization.
-+	 *
-+	 * We are using actual utilization rather than the statically
-+	 * claimed protection in order to be work-conserving: claimed
-+	 * but unused protection is available to siblings that would
-+	 * otherwise get a smaller chunk than what they claimed.
-+	 */
-+	if (siblings_protected > parent_effective)
-+		return protected * parent_effective / siblings_protected;
-+
-+	/*
-+	 * Ok, utilized protection of all children is within what the
-+	 * parent affords them, so we know whatever this child claims
-+	 * and utilizes is effectively protected.
-+	 *
-+	 * If there is unprotected usage beyond this value, reclaim
-+	 * will apply pressure in proportion to that amount.
-+	 *
-+	 * If there is unutilized protection, the cgroup will be fully
-+	 * shielded from reclaim, but we do return a smaller value for
-+	 * protection than what the group could enjoy in theory. This
-+	 * is okay. With the overcommit distribution above, effective
-+	 * protection is always dependent on how memory is actually
-+	 * consumed among the siblings anyway.
-+	 */
-+	ep = protected;
-+
-+	/*
-+	 * If the children aren't claiming (all of) the protection
-+	 * afforded to them by the parent, distribute the remainder in
-+	 * proportion to the (unprotected) memory of each cgroup. That
-+	 * way, cgroups that aren't explicitly prioritized wrt each
-+	 * other compete freely over the allowance, but they are
-+	 * collectively protected from neighboring trees.
-+	 *
-+	 * We're using unprotected memory for the weight so that if
-+	 * some cgroups DO claim explicit protection, we don't protect
-+	 * the same bytes twice.
-+	 *
-+	 * Check both usage and parent_usage against the respective
-+	 * protected values. One should imply the other, but they
-+	 * aren't read atomically - make sure the division is sane.
-+	 */
-+	if (!recursive_protection)
-+		return ep;
-+
-+	if (parent_effective > siblings_protected &&
-+	    parent_usage > siblings_protected &&
-+	    usage > protected) {
-+		unsigned long unclaimed;
-+
-+		unclaimed = parent_effective - siblings_protected;
-+		unclaimed *= usage - protected;
-+		unclaimed /= parent_usage - siblings_protected;
-+
-+		ep += unclaimed;
-+	}
-+
-+	return ep;
-+}
-+
-+
-+/**
-+ * page_counter_calculate_protection - check if memory consumption is in the normal range
-+ * @root: the top ancestor of the sub-tree being checked
-+ * @counter: the page_counter the counter to update
-+ * @recursive_protection: Whether to use memory_recursiveprot behavior.
-+ *
-+ * Calculates elow/emin thresholds for given page_counter.
-+ *
-+ * WARNING: This function is not stateless! It can only be used as part
-+ *          of a top-down tree iteration, not for isolated queries.
-+ */
-+void page_counter_calculate_protection(struct page_counter *root,
-+				       struct page_counter *counter,
-+				       bool recursive_protection)
-+{
-+	unsigned long usage, parent_usage;
-+	struct page_counter *parent = counter->parent;
-+
-+	/*
-+	 * Effective values of the reclaim targets are ignored so they
-+	 * can be stale. Have a look at mem_cgroup_protection for more
-+	 * details.
-+	 * TODO: calculation should be more robust so that we do not need
-+	 * that special casing.
-+	 */
-+	if (root == counter)
-+		return;
-+
-+	usage = page_counter_read(counter);
-+	if (!usage)
-+		return;
-+
-+	if (parent == root) {
-+		counter->emin = READ_ONCE(counter->min);
-+		counter->elow = READ_ONCE(counter->low);
-+		return;
-+	}
-+
-+	parent_usage = page_counter_read(parent);
-+
-+	WRITE_ONCE(counter->emin, effective_protection(usage, parent_usage,
-+			READ_ONCE(counter->min),
-+			READ_ONCE(parent->emin),
-+			atomic_long_read(&parent->children_min_usage),
-+			recursive_protection));
-+
-+	WRITE_ONCE(counter->elow, effective_protection(usage, parent_usage,
-+			READ_ONCE(counter->low),
-+			READ_ONCE(parent->elow),
-+			atomic_long_read(&parent->children_low_usage),
-+			recursive_protection));
-+}
++	guard(mutex)(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
+@@ -897,29 +905,9 @@ static int __init memory_tier_init(void)
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
+ 
+-	/*
+-	 * Look at all the existing N_MEMORY nodes and add them to
+-	 * default memory tier or to a tier if we already have memory
+-	 * types assigned.
+-	 */
+-	for_each_node_state(node, N_MEMORY) {
+-		if (!node_state(node, N_CPU))
+-			/*
+-			 * Defer memory tier initialization on
+-			 * CPUless numa nodes. These will be initialized
+-			 * after firmware and devices are initialized.
+-			 */
+-			continue;
+-
+-		memtier = set_node_memory_tier(node);
+-		if (IS_ERR(memtier))
+-			/*
+-			 * Continue with memtiers we are able to setup
+-			 */
+-			break;
+-	}
+-	establish_demotion_targets();
+-	mutex_unlock(&memory_tier_lock);
++	/* Record nodes with memory and CPU to set default DRAM performance. */
++	nodes_and(default_dram_nodes, node_states[N_MEMORY],
++		  node_states[N_CPU]);
+ 
+ 	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from maarten.lankhorst@linux.intel.com are
+Patches currently in -mm which might be from horen.chuang@linux.dev are
 
 
