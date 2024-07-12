@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46E9C12DD8E
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9081A12DD8E
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824910; cv=none; b=AzrB1V6sKIvqdKcUI5YNKmRf3MxhzzD60idXj+wCMPtJKRat9nIn9hieoW/eD8jnDSJ1rqMxfQ6AIsz9US7mFv60vciwjEekp7/I3aEOH5ngS8Yq9+qpCLU+TNoc3BrFzJZKxTWpeVDx4hrL40OEzaDGlD90k/Z8sWbIfO2Fo7U=
+	t=1720824911; cv=none; b=C5jBNj3FhAlX+vjyspS4naD/iIyn0GH8QWZGEFf7G4y/Ib3krS0kSEzJtnCTEVMgKXjSicwxJsxhNWq0+OCZY5OdTRMT861VXwgf9XzvACDerGIIMKyU4YdBppgokr58RlEfPxaKPzs6D6eEgGxbADgLnaC+KagcOeYVQj/1jVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824910; c=relaxed/simple;
-	bh=HSs1ttwdVtaVh+kNBZCxeeo4VVxTxEVJVOHLGMtp1Mk=;
-	h=Date:To:From:Subject:Message-Id; b=XkX5etxAI2jNlOjnCx/bliRVm2yIGfIabE5xYAEchmVjp9y714GxtCYDLmBVWvRrApRbpyx7wZ+fQ7z4OO2VnoJKjJaZjWT/9WnafriaXD/3enUDqMtJQLoM+9DiNWrcRvVEEZaK/sgEHf+kbIdH6vOCzq2w7aquYh4UL+CQaVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3dAg0qN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824911; c=relaxed/simple;
+	bh=C7YA1n7hY738CzhO82MgDWHCH1KBS4rptYKTdk+1HCU=;
+	h=Date:To:From:Subject:Message-Id; b=dTsndWgjF0qs34sAyet2Q9dBUt6+nyGkdUKXO14VVoC3LyRnvwwfA8KzhpFfZSXgSxSVIDnyya7KDc1QeA8PkDCVrl9Usn01ZzBmw5gJjdtav4EvKqERECsRF88yG53khfgX3WWe0CYwaz23TAx/n0U9vHAyLQ8Tp5JnwBTpcLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJxO4jKu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3dAg0qN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E1B7C32782;
-	Fri, 12 Jul 2024 22:55:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJxO4jKu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65349C32782;
+	Fri, 12 Jul 2024 22:55:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824910;
-	bh=HSs1ttwdVtaVh+kNBZCxeeo4VVxTxEVJVOHLGMtp1Mk=;
+	s=korg; t=1720824911;
+	bh=C7YA1n7hY738CzhO82MgDWHCH1KBS4rptYKTdk+1HCU=;
 	h=Date:To:From:Subject:From;
-	b=G3dAg0qN5busRo4hiAU8bRMYI8tPUTF4tzME+7sFjJDe9yasrhzII01SmlUVigEB7
-	 nGDnfZrEulxdY+fHvuEgsu7za2mXLhHtnyGAZ8m09jOP+CXe/MCKNioCMbldaLcqvP
-	 LcMiv2vnHMQc2zvJVeLA5mHsuAWTkXLFseVLaXyw=
-Date: Fri, 12 Jul 2024 15:55:09 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,dan.j.williams@intel.com,peili.dev@gmail.com,akpm@linux-foundation.org
+	b=lJxO4jKunRhGNvYpuPnUuNP6HAsA0NJp15bp17sWHrLG3jvOh1TltPxIyWIbP88L3
+	 RlRow06uMTPHJo21l/Irk3LiZT42m94zxwqqanr4txsVONp+hCQ3KMoWfRzZfkDhuC
+	 u+0CM/DSPqmILteAdQzkhjaFJ+YTnisiibcPc/Oc=
+Date: Fri, 12 Jul 2024 15:55:10 -0700
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,roman.gushchin@linux.dev,rientjes@google.com,mjguzik@gmail.com,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,cl@linux.com,ast@kernel.org,andrii@kernel.org,akinobu.mita@gmail.com,42.hyeyoo@gmail.com,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ignore-data-race-in-__swap_writepage.patch removed from -mm tree
-Message-Id: <20240712225510.1E1B7C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-slab-put-should_failslab-back-behind-config_should_failslab.patch removed from -mm tree
+Message-Id: <20240712225511.65349C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,194 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: ignore data-race in __swap_writepage
+     Subject: mm, slab: put should_failslab() back behind CONFIG_SHOULD_FAILSLAB
 has been removed from the -mm tree.  Its filename was
-     mm-ignore-data-race-in-__swap_writepage.patch
+     mm-slab-put-should_failslab-back-behind-config_should_failslab.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pei Li <peili.dev@gmail.com>
-Subject: mm: ignore data-race in __swap_writepage
-Date: Thu, 11 Jul 2024 09:32:30 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab: put should_failslab() back behind CONFIG_SHOULD_FAILSLAB
+Date: Thu, 11 Jul 2024 18:35:30 +0200
 
-Syzbot reported a possible data race:
+Patch series "revert unconditional slab and page allocator fault injection
+calls".
 
-BUG: KCSAN: data-race in __swap_writepage / scan_swap_map_slots
+These two patches largely revert commits that added function call overhead
+into slab and page allocation hotpaths and that cannot be currently
+disabled even though related CONFIG_ options do exist.
 
-read-write to 0xffff888102fca610 of 8 bytes by task 7106 on cpu 1.
-read to 0xffff888102fca610 of 8 bytes by task 7080 on cpu 0.
+A much more involved solution that can keep the callsites always existing
+but hidden behind a static key if unused, is possible [1] and can be
+pursued by anyone who believes it's necessary.  Meanwhile the fact the
+should_failslab() error injection is already not functional on kernels
+built with current gcc without anyone noticing [2], and lukewarm response
+to [1] suggests the need is not there.  I believe it will be more fair to
+have the state after this series as a baseline for possible further
+optimisation, instead of the unconditional overhead.
 
-While we are in __swap_writepage to read sis->flags, scan_swap_map_slots
-is trying to update it with SWP_SCANNING.
+For example a possible compromise for anyone who's fine with an empty
+function call overhead but not the full CONFIG_FAILSLAB /
+CONFIG_FAIL_PAGE_ALLOC overhead is to reuse patch 1 from [1] but insert a
+static key check only inside should_failslab() and
+should_fail_alloc_page() before performing the more expensive checks.
 
-value changed: 0x0000000000008083 -> 0x0000000000004083.
+[1] https://lore.kernel.org/all/20240620-fault-injection-statickeys-v2-0-e23947d3d84b@suse.cz/#t
+[2] https://github.com/bpftrace/bpftrace/issues/3258
 
-While this can be updated non-atomicially, this won't affect
-SWP_SYNCHRONOUS_IO, so we consider this data-race safe.
 
-This is possibly introduced by commit 3222d8c2a7f8 ("block: remove
-->rw_page"), where this if branch is introduced.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20240711-bug13-v1-1-cea2b8ae8d76@gmail.com
-Fixes: 3222d8c2a7f8 ("block: remove ->rw_page")
-Signed-off-by: Pei Li <peili.dev@gmail.com>
-Reported-by: syzbot+da25887cc13da6bf3b8c@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=da25887cc13da6bf3b8c
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+This mostly reverts commit 4f6923fbb352 ("mm: make should_failslab always
+available for fault injection").  The commit made should_failslab() a
+noinline function that's always called from the slab allocation hotpath,
+even if it's empty because CONFIG_SHOULD_FAILSLAB is not enabled, and
+there is no option to disable that call.  This is visible in profiles and
+the function call overhead can be noticeable especially with cpu
+mitigations.
+
+Meanwhile the bpftrace program example in the commit silently does not
+work without CONFIG_SHOULD_FAILSLAB anyway with a recent gcc, because the
+empty function gets a .constprop clone that is actually being called
+(uselessly) from the slab hotpath, while the error injection is hooked to
+the original function that's not being called at all [1].
+
+Thus put the whole should_failslab() function back behind
+CONFIG_SHOULD_FAILSLAB.  It's not a complete revert of 4f6923fbb352 - the
+int return type that returns -ENOMEM on failure is preserved, as well
+ALLOW_ERROR_INJECTION annotation.  The BTF_ID() record that was meanwhile
+added is also guarded by CONFIG_SHOULD_FAILSLAB.
+
+[1] https://github.com/bpftrace/bpftrace/issues/3258
+
+Link: https://lkml.kernel.org/r/20240711-b4-fault-injection-reverts-v1-0-9e2651945d68@suse.cz
+Link: https://lkml.kernel.org/r/20240711-b4-fault-injection-reverts-v1-1-9e2651945d68@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/fault-inject.h |    5 ++---
+ kernel/bpf/verifier.c        |    2 ++
+ mm/failslab.c                |   14 ++++++++------
+ mm/slub.c                    |    8 --------
+ 4 files changed, 12 insertions(+), 17 deletions(-)
 
---- a/mm/page_io.c~mm-ignore-data-race-in-__swap_writepage
-+++ a/mm/page_io.c
-@@ -382,7 +382,12 @@ void __swap_writepage(struct folio *foli
- 	 */
- 	if (data_race(sis->flags & SWP_FS_OPS))
- 		swap_writepage_fs(folio, wbc);
--	else if (sis->flags & SWP_SYNCHRONOUS_IO)
-+	/*
-+	 * ->flags can be updated non-atomicially (scan_swap_map_slots),
-+	 * but that will never affect SWP_SYNCHRONOUS_IO, so the data_race
-+	 * is safe.
-+	 */
-+	else if (data_race(sis->flags & SWP_SYNCHRONOUS_IO))
- 		swap_writepage_bdev_sync(folio, wbc, sis);
- 	else
- 		swap_writepage_bdev_async(folio, wbc, sis);
+--- a/include/linux/fault-inject.h~mm-slab-put-should_failslab-back-behind-config_should_failslab
++++ a/include/linux/fault-inject.h
+@@ -102,11 +102,10 @@ static inline bool __should_fail_alloc_p
+ }
+ #endif /* CONFIG_FAIL_PAGE_ALLOC */
+ 
+-int should_failslab(struct kmem_cache *s, gfp_t gfpflags);
+ #ifdef CONFIG_FAILSLAB
+-extern bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags);
++int should_failslab(struct kmem_cache *s, gfp_t gfpflags);
+ #else
+-static inline bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags)
++static inline int should_failslab(struct kmem_cache *s, gfp_t gfpflags)
+ {
+ 	return false;
+ }
+--- a/kernel/bpf/verifier.c~mm-slab-put-should_failslab-back-behind-config_should_failslab
++++ a/kernel/bpf/verifier.c
+@@ -21123,7 +21123,9 @@ BTF_SET_START(btf_non_sleepable_error_in
+  */
+ BTF_ID(func, __filemap_add_folio)
+ BTF_ID(func, should_fail_alloc_page)
++#ifdef CONFIG_FAILSLAB
+ BTF_ID(func, should_failslab)
++#endif
+ BTF_SET_END(btf_non_sleepable_error_inject)
+ 
+ static int check_non_sleepable_error_inject(u32 btf_id)
+--- a/mm/failslab.c~mm-slab-put-should_failslab-back-behind-config_should_failslab
++++ a/mm/failslab.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/fault-inject.h>
++#include <linux/error-injection.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include "slab.h"
+@@ -14,23 +15,23 @@ static struct {
+ 	.cache_filter = false,
+ };
+ 
+-bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags)
++int should_failslab(struct kmem_cache *s, gfp_t gfpflags)
+ {
+ 	int flags = 0;
+ 
+ 	/* No fault-injection for bootstrap cache */
+ 	if (unlikely(s == kmem_cache))
+-		return false;
++		return 0;
+ 
+ 	if (gfpflags & __GFP_NOFAIL)
+-		return false;
++		return 0;
+ 
+ 	if (failslab.ignore_gfp_reclaim &&
+ 			(gfpflags & __GFP_DIRECT_RECLAIM))
+-		return false;
++		return 0;
+ 
+ 	if (failslab.cache_filter && !(s->flags & SLAB_FAILSLAB))
+-		return false;
++		return 0;
+ 
+ 	/*
+ 	 * In some cases, it expects to specify __GFP_NOWARN
+@@ -41,8 +42,9 @@ bool __should_failslab(struct kmem_cache
+ 	if (gfpflags & __GFP_NOWARN)
+ 		flags |= FAULT_NOWARN;
+ 
+-	return should_fail_ex(&failslab.attr, s->object_size, flags);
++	return should_fail_ex(&failslab.attr, s->object_size, flags) ? -ENOMEM : 0;
+ }
++ALLOW_ERROR_INJECTION(should_failslab, ERRNO);
+ 
+ static int __init setup_failslab(char *str)
+ {
+--- a/mm/slub.c~mm-slab-put-should_failslab-back-behind-config_should_failslab
++++ a/mm/slub.c
+@@ -3892,14 +3892,6 @@ static __always_inline void maybe_wipe_o
+ 			0, sizeof(void *));
+ }
+ 
+-noinline int should_failslab(struct kmem_cache *s, gfp_t gfpflags)
+-{
+-	if (__should_failslab(s, gfpflags))
+-		return -ENOMEM;
+-	return 0;
+-}
+-ALLOW_ERROR_INJECTION(should_failslab, ERRNO);
+-
+ static __fastpath_inline
+ struct kmem_cache *slab_pre_alloc_hook(struct kmem_cache *s, gfp_t flags)
+ {
 _
 
-Patches currently in -mm which might be from peili.dev@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
