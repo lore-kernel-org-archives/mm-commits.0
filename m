@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB7CB6CDB3
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1C9F6CDB3
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824846; cv=none; b=cEnbM3VHBXB0/wy4Od+9A2iDEIkMFYSdODR4WO0d1kZTQ/PUcxlQu7xAJsnE/tpf2GXy9rHx1BqF8Jq+Jg0T28t7BZgQSzV0oSb8Ra9P7Xb2p4t1GaZruqGyYC7saB0UUfZhhEBFj/YQonYEf357+B+CHbtegQRs5+YPnU7456k=
+	t=1720824847; cv=none; b=WL6uLc9R9TtMO90qiy0WgTu0+5dpPw0VdJbatcyVPoXEqXOhs03LeR0GEfyy4y9cuYsxCtaiBkYsNFQxc2slC0q3+//ZW3iaqOb0Dlf3qeK89X/t2xxhoR0W7FYjfr8fBBbvb3BReHtNXsIW8vZPMAE2sX97nxEt+Ibi5ihXONM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824846; c=relaxed/simple;
-	bh=mEKntaDW72eb+dw9qKotyJOJhV5DIajyUkUvD9hSEmQ=;
-	h=Date:To:From:Subject:Message-Id; b=gnU7eCQRIvFqd4PMbaxO8KebAqL2HLDoFfJBrEiOIbJuug5XH3cyJOWusSzWP1SQ9phPwrq002vp1f2twFwT/UgXmnHjTKX5agYs5f9WseNps9hs3QEdO4QB7gRV4DrPe7P0PT7WxY+pF0x0rsNhmSBQPXpnSs5i2/1LY1htGu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D1+RG6ZA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824847; c=relaxed/simple;
+	bh=r28GkkxBNUuxOGCV6nWEMbIiO44mTSieyHKDVR5HWlE=;
+	h=Date:To:From:Subject:Message-Id; b=eiOz1HG7dGfX+k4VynXWm+9YplqGvyVdxeW1yjlFi1yXDxJODzU+AajC4PaMhFl8aS6lQ9hPq/QdXawSreLjwGVrZLIlClke5cdViA/wOEdt6A5lqeeAxf5hwor1puAaqDCUc1BcsH3YxXtsjvnXJrygPVq/JoWZIBaOxJb5TMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bev9l8Ej; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D1+RG6ZA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F89C32782;
-	Fri, 12 Jul 2024 22:54:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bev9l8Ej"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FD35C32782;
+	Fri, 12 Jul 2024 22:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824846;
-	bh=mEKntaDW72eb+dw9qKotyJOJhV5DIajyUkUvD9hSEmQ=;
+	s=korg; t=1720824847;
+	bh=r28GkkxBNUuxOGCV6nWEMbIiO44mTSieyHKDVR5HWlE=;
 	h=Date:To:From:Subject:From;
-	b=D1+RG6ZATuoY8Tf+peuXhUogullnKjGRCMUjJisQW2gnok9D1Bd+F/nEFmsjoM4Xc
-	 k+jfVukDKylb/z3E+6Itpj8joWRW+FXObqdkKg8vzXqWQFNXngtdpmxo4hDhdinQ4x
-	 HMsbPamKciUrUO5vfXlIgl4nmdJ+EaJXA28x1Sls=
-Date: Fri, 12 Jul 2024 15:54:05 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,peterx@redhat.com,osalvador@suse.de,mike.kravetz@oracle.com,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@lst.de,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,airlied@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
+	b=bev9l8EjIo3QuE8VjFK3zc4Oy6C4y2Rd4LdDOAuhos6WuB++NLJAyop9dEFja9FXo
+	 qM2gfn+aHxk1hdV0GTrxtPUaD4XbkzLDENS1N2y6E6CXnA+IGpQN8U/07GActzxLEU
+	 UlYufB+nW7l6kssg+GL22FNhpEeb9Bjl6ANZeZf8=
+Date: Fri, 12 Jul 2024 15:54:07 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,sfr@canb.auug.org.au,rppt@kernel.org,Liam.Howlett@Oracle.com,gregkh@linuxfoundation.org,brauner@kernel.org,arnd@arndb.de,ak@linux.intel.com,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-udmabuf-add-tests-to-verify-data-after-page-migration.patch removed from -mm tree
-Message-Id: <20240712225406.30F89C32782@smtp.kernel.org>
+Subject: [merged mm-stable] fs-procfs-extract-logic-for-getting-vma-name-constituents.patch removed from -mm tree
+Message-Id: <20240712225407.8FD35C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,345 +35,311 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/udmabuf: add tests to verify data after page migration
+     Subject: fs/procfs: extract logic for getting VMA name constituents
 has been removed from the -mm tree.  Its filename was
-     selftests-udmabuf-add-tests-to-verify-data-after-page-migration.patch
+     fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Subject: selftests/udmabuf: add tests to verify data after page migration
-Date: Sun, 23 Jun 2024 23:36:17 -0700
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: fs/procfs: extract logic for getting VMA name constituents
+Date: Thu, 27 Jun 2024 10:08:53 -0700
 
-Since the memfd pages associated with a udmabuf may be migrated as part of
-udmabuf create, we need to verify the data coherency after successful
-migration.  The new tests added in this patch try to do just that using 4k
-sized pages and also 2 MB sized huge pages for the memfd.
+Patch series "ioctl()-based API to query VMAs from /proc/<pid>/maps", v6.
 
-Successful completion of the tests would mean that there is no disconnect
-between the memfd pages and the ones associated with a udmabuf.  And,
-these tests can also be augmented in the future to test newer udmabuf
-features (such as handling memfd hole punch).
+Implement binary ioctl()-based interface to /proc/<pid>/maps file to allow
+applications to query VMA information more efficiently than reading *all*
+VMAs nonselectively through text-based interface of /proc/<pid>/maps file.
 
-The idea for these tests comes from a patch by Mike Kravetz here:
-https://lists.freedesktop.org/archives/dri-devel/2023-June/410623.html
+Patch #2 goes into a lot of details and background on some common patterns
+of using /proc/<pid>/maps in the area of performance profiling and
+subsequent symbolization of captured stack traces.  As mentioned in that
+patch, patterns of VMA querying can differ depending on specific use case,
+but can generally be grouped into two main categories: the need to query a
+small subset of VMAs covering a given batch of addresses, or
+reading/storing/caching all (typically, executable) VMAs upfront for later
+processing.
 
-v1->v2: (suggestions from Shuah)
-- Use ksft_* functions to print and capture results of tests
-- Use appropriate KSFT_* status codes for exit()
-- Add Mike Kravetz's suggested-by tag
+The new PROCMAP_QUERY ioctl() API added in this patch set was motivated by
+the former pattern of usage.  Earlier revisions had a patch adding a tool
+that faithfully reproduces an efficient VMA matching pass of a symbolizer,
+collecting a subset of covering VMAs for a given set of addresses as
+efficiently as possible.  This tool served both as a testing ground, as
+well as a benchmarking tool.  It implements everything both for currently
+existing text-based /proc/<pid>/maps interface, as well as for newly-added
+PROCMAP_QUERY ioctl().  This revision dropped the tool from the patch set
+and, once the API lands upstream, this tool might be added separately on
+Github as an example.
 
-Link: https://lkml.kernel.org/r/20240624063952.1572359-10-vivek.kasireddy@intel.com
-Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Dave Airlie <airlied@redhat.com>
-Acked-by: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Dongwon Kim <dongwon.kim@intel.com>
-Cc: Junxiao Chang <junxiao.chang@intel.com>
+Based on discussion on earlier revisions of this patch set, it turned out
+that this ioctl() API is competitive with highly-optimized text-based
+pre-processing pattern that perf tool is using.  Based on perf discussion,
+this revision adds more flexibility in specifying a subset of VMAs that
+are of interest.  Now it's possible to specify desired permissions of VMAs
+(e.g., request only executable ones) and/or restrict to only a subset of
+VMAs that have file backing.  This further improves the efficiency when
+using this new API thanks to more selective (executable VMAs only)
+querying.
+
+In addition to a custom benchmarking tool, and experimental perf
+integration (available at [0]), Daniel Mueller has since also implemented
+an experimental integration into blazesym (see [1]), a library used for
+stack trace symbolization by our server fleet-wide profiler and another
+on-device profiler agent that runs on weaker ARM devices.  The latter
+ARM-based device profiler is especially sensitive to performance, and so
+we benchmarked and compared text-based /proc/<pid>/maps solution to the
+equivalent one using PROCMAP_QUERY ioctl().
+
+Results are very encouraging, giving us 5x improvement for end-to-end
+so-called "address normalization" pass, which is the part of the
+symbolization process that happens locally on ARM device, before being
+sent out for further heavier-weight processing on more powerful remote
+server.  Note that this is not an artificial microbenchmark.  It's a full
+end-to-end API call being measured with real-world data on real-world
+device.
+
+  TEXT-BASED
+  ==========
+  Benchmarking main/normalize_process_no_build_ids_uncached_maps
+  main/normalize_process_no_build_ids_uncached_maps
+	  time:   [49.777 µs 49.982 µs 50.250 µs]
+
+  IOCTL-BASED
+  ===========
+  Benchmarking main/normalize_process_no_build_ids_uncached_maps
+  main/normalize_process_no_build_ids_uncached_maps
+	  time:   [10.328 µs 10.391 µs 10.457 µs]
+	  change: [−79.453% −79.304% −79.166%] (p = 0.00 < 0.02)
+	  Performance has improved.
+
+You can see above that we see the drop from 50µs down to 10µs for
+exactly the same amount of work, with the same data and target process.
+
+With the aforementioned custom tool, we see about ~40x improvement (it
+might vary a bit, depending on a specific captured set of addresses).  And
+even for perf-based benchmark it's on par or slightly ahead when using
+permission-based filtering (fetching only executable VMAs).
+
+Earlier revisions attempted to use per-VMA locking, if kernel was compiled
+with CONFIG_PER_VMA_LOCK=y, but it turned out that anon_vma_name() is not
+yet compatible with per-VMA locking and assumes mmap_lock to be taken,
+which makes the use of per-VMA locking for this API premature.  It was
+agreed ([2]) to continue for now with just mmap_lock, but the code
+structure is such that it should be easy to add per-VMA locking support
+once all the pieces are ready.
+
+One thing that did not change was basing this new API as an ioctl()
+command on /proc/<pid>/maps file.  An ioctl-based API on top of pidfd was
+considered, but has its own downsides.  Implementing ioctl() directly on
+pidfd will cause access permission checks on every single ioctl(), which
+leads to performance concerns and potential spam of capable() audit
+messages.  It also prevents a nice pattern, possible with
+/proc/<pid>/maps, in which application opens /proc/self/maps FD (requiring
+no additional capabilities) and passed this FD to profiling agent for
+querying.  To achieve similar pattern, a new file would have to be created
+from pidf just for VMA querying, which is considered to be inferior to
+just querying /proc/<pid>/maps FD as proposed in current approach.  These
+aspects were discussed in the hallway track at recent LSF/MM/BPF 2024 and
+sticking to procfs ioctl() was the final agreement we arrived at.
+
+  [0] https://github.com/anakryiko/linux/commits/procfs-proc-maps-ioctl-v2/
+  [1] https://github.com/libbpf/blazesym/pull/675
+  [2] https://lore.kernel.org/bpf/7rm3izyq2vjp5evdjc7c6z4crdd3oerpiknumdnmmemwyiwx7t@hleldw7iozi3/
+
+
+This patch (of 6):
+
+Extract generic logic to fetch relevant pieces of data to describe VMA
+name.  This could be just some string (either special constant or
+user-provided), or a string with some formatted wrapping text (e.g.,
+"[anon_shmem:<something>]"), or, commonly, file path.  seq_file-based
+logic has different methods to handle all three cases, but they are
+currently mixed in with extracting underlying sources of data.
+
+This patch splits this into data fetching and data formatting, so that
+data fetching can be reused later on.
+
+There should be no functional changes.
+
+Link: https://lkml.kernel.org/r/20240627170900.1672542-1-andrii@kernel.org
+Link: https://lkml.kernel.org/r/20240627170900.1672542-2-andrii@kernel.org
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/drivers/dma-buf/udmabuf.c |  214 ++++++++++--
- 1 file changed, 183 insertions(+), 31 deletions(-)
+ fs/proc/task_mmu.c |  125 ++++++++++++++++++++++++-------------------
+ 1 file changed, 71 insertions(+), 54 deletions(-)
 
---- a/tools/testing/selftests/drivers/dma-buf/udmabuf.c~selftests-udmabuf-add-tests-to-verify-data-after-page-migration
-+++ a/tools/testing/selftests/drivers/dma-buf/udmabuf.c
-@@ -9,52 +9,162 @@
- #include <errno.h>
- #include <fcntl.h>
- #include <malloc.h>
-+#include <stdbool.h>
+--- a/fs/proc/task_mmu.c~fs-procfs-extract-logic-for-getting-vma-name-constituents
++++ a/fs/proc/task_mmu.c
+@@ -239,6 +239,67 @@ static int do_maps_open(struct inode *in
+ 				sizeof(struct proc_maps_private));
+ }
  
- #include <sys/ioctl.h>
- #include <sys/syscall.h>
-+#include <sys/mman.h>
- #include <linux/memfd.h>
- #include <linux/udmabuf.h>
-+#include "../../kselftest.h"
- 
- #define TEST_PREFIX	"drivers/dma-buf/udmabuf"
- #define NUM_PAGES       4
-+#define NUM_ENTRIES     4
-+#define MEMFD_SIZE      1024 /* in pages */
- 
--static int memfd_create(const char *name, unsigned int flags)
-+static unsigned int page_size;
-+
-+static int create_memfd_with_seals(off64_t size, bool hpage)
++static void get_vma_name(struct vm_area_struct *vma,
++			 const struct path **path,
++			 const char **name,
++			 const char **name_fmt)
 +{
-+	int memfd, ret;
-+	unsigned int flags = MFD_ALLOW_SEALING;
++	struct anon_vma_name *anon_name = vma->vm_mm ? anon_vma_name(vma) : NULL;
 +
-+	if (hpage)
-+		flags |= MFD_HUGETLB;
++	*name = NULL;
++	*path = NULL;
++	*name_fmt = NULL;
 +
-+	memfd = memfd_create("udmabuf-test", flags);
-+	if (memfd < 0) {
-+		ksft_print_msg("%s: [skip,no-memfd]\n", TEST_PREFIX);
-+		exit(KSFT_SKIP);
-+	}
-+
-+	ret = fcntl(memfd, F_ADD_SEALS, F_SEAL_SHRINK);
-+	if (ret < 0) {
-+		ksft_print_msg("%s: [skip,fcntl-add-seals]\n", TEST_PREFIX);
-+		exit(KSFT_SKIP);
-+	}
-+
-+	ret = ftruncate(memfd, size);
-+	if (ret == -1) {
-+		ksft_print_msg("%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	return memfd;
-+}
-+
-+static int create_udmabuf_list(int devfd, int memfd, off64_t memfd_size)
-+{
-+	struct udmabuf_create_list *list;
-+	int ubuf_fd, i;
-+
-+	list = malloc(sizeof(struct udmabuf_create_list) +
-+		      sizeof(struct udmabuf_create_item) * NUM_ENTRIES);
-+	if (!list) {
-+		ksft_print_msg("%s: [FAIL, udmabuf-malloc]\n", TEST_PREFIX);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	for (i = 0; i < NUM_ENTRIES; i++) {
-+		list->list[i].memfd  = memfd;
-+		list->list[i].offset = i * (memfd_size / NUM_ENTRIES);
-+		list->list[i].size   = getpagesize() * NUM_PAGES;
-+	}
-+
-+	list->count = NUM_ENTRIES;
-+	list->flags = UDMABUF_FLAGS_CLOEXEC;
-+	ubuf_fd = ioctl(devfd, UDMABUF_CREATE_LIST, list);
-+	free(list);
-+	if (ubuf_fd < 0) {
-+		ksft_print_msg("%s: [FAIL, udmabuf-create]\n", TEST_PREFIX);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	return ubuf_fd;
-+}
-+
-+static void write_to_memfd(void *addr, off64_t size, char chr)
- {
--	return syscall(__NR_memfd_create, name, flags);
-+	int i;
-+
-+	for (i = 0; i < size / page_size; i++) {
-+		*((char *)addr + (i * page_size)) = chr;
-+	}
-+}
-+
-+static void *mmap_fd(int fd, off64_t size)
-+{
-+	void *addr;
-+
-+	addr = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (addr == MAP_FAILED) {
-+		ksft_print_msg("%s: ubuf_fd mmap fail\n", TEST_PREFIX);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	return addr;
-+}
-+
-+static int compare_chunks(void *addr1, void *addr2, off64_t memfd_size)
-+{
-+	off64_t off;
-+	int i = 0, j, k = 0, ret = 0;
-+	char char1, char2;
-+
-+	while (i < NUM_ENTRIES) {
-+		off = i * (memfd_size / NUM_ENTRIES);
-+		for (j = 0; j < NUM_PAGES; j++, k++) {
-+			char1 = *((char *)addr1 + off + (j * getpagesize()));
-+			char2 = *((char *)addr2 + (k * getpagesize()));
-+			if (char1 != char2) {
-+				ret = -1;
-+				goto err;
-+			}
++	/*
++	 * Print the dentry name for named mappings, and a
++	 * special [heap] marker for the heap:
++	 */
++	if (vma->vm_file) {
++		/*
++		 * If user named this anon shared memory via
++		 * prctl(PR_SET_VMA ..., use the provided name.
++		 */
++		if (anon_name) {
++			*name_fmt = "[anon_shmem:%s]";
++			*name = anon_name->name;
++		} else {
++			*path = file_user_path(vma->vm_file);
 +		}
-+		i++;
++		return;
 +	}
-+err:
-+	munmap(addr1, memfd_size);
-+	munmap(addr2, NUM_ENTRIES * NUM_PAGES * getpagesize());
-+	return ret;
- }
- 
- int main(int argc, char *argv[])
++
++	if (vma->vm_ops && vma->vm_ops->name) {
++		*name = vma->vm_ops->name(vma);
++		if (*name)
++			return;
++	}
++
++	*name = arch_vma_name(vma);
++	if (*name)
++		return;
++
++	if (!vma->vm_mm) {
++		*name = "[vdso]";
++		return;
++	}
++
++	if (vma_is_initial_heap(vma)) {
++		*name = "[heap]";
++		return;
++	}
++
++	if (vma_is_initial_stack(vma)) {
++		*name = "[stack]";
++		return;
++	}
++
++	if (anon_name) {
++		*name_fmt = "[anon:%s]";
++		*name = anon_name->name;
++		return;
++	}
++}
++
+ static void show_vma_header_prefix(struct seq_file *m,
+ 				   unsigned long start, unsigned long end,
+ 				   vm_flags_t flags, unsigned long long pgoff,
+@@ -262,17 +323,15 @@ static void show_vma_header_prefix(struc
+ static void
+ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
  {
- 	struct udmabuf_create create;
- 	int devfd, memfd, buf, ret;
--	off_t size;
--	void *mem;
-+	off64_t size;
-+	void *addr1, *addr2;
-+
-+	ksft_print_header();
-+	ksft_set_plan(6);
+-	struct anon_vma_name *anon_name = NULL;
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct file *file = vma->vm_file;
++	const struct path *path;
++	const char *name_fmt, *name;
+ 	vm_flags_t flags = vma->vm_flags;
+ 	unsigned long ino = 0;
+ 	unsigned long long pgoff = 0;
+ 	unsigned long start, end;
+ 	dev_t dev = 0;
+-	const char *name = NULL;
  
- 	devfd = open("/dev/udmabuf", O_RDWR);
- 	if (devfd < 0) {
--		printf("%s: [skip,no-udmabuf: Unable to access DMA buffer device file]\n",
--		       TEST_PREFIX);
--		exit(77);
-+		ksft_print_msg(
-+			"%s: [skip,no-udmabuf: Unable to access DMA buffer device file]\n",
-+			TEST_PREFIX);
-+		exit(KSFT_SKIP);
- 	}
+-	if (file) {
++	if (vma->vm_file) {
+ 		const struct inode *inode = file_user_inode(vma->vm_file);
  
- 	memfd = memfd_create("udmabuf-test", MFD_ALLOW_SEALING);
- 	if (memfd < 0) {
--		printf("%s: [skip,no-memfd]\n", TEST_PREFIX);
--		exit(77);
-+		ksft_print_msg("%s: [skip,no-memfd]\n", TEST_PREFIX);
-+		exit(KSFT_SKIP);
- 	}
+ 		dev = inode->i_sb->s_dev;
+@@ -283,57 +342,15 @@ show_map_vma(struct seq_file *m, struct
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
+-	if (mm)
+-		anon_name = anon_vma_name(vma);
  
- 	ret = fcntl(memfd, F_ADD_SEALS, F_SEAL_SHRINK);
- 	if (ret < 0) {
--		printf("%s: [skip,fcntl-add-seals]\n", TEST_PREFIX);
--		exit(77);
-+		ksft_print_msg("%s: [skip,fcntl-add-seals]\n", TEST_PREFIX);
-+		exit(KSFT_SKIP);
- 	}
- 
+-	/*
+-	 * Print the dentry name for named mappings, and a
+-	 * special [heap] marker for the heap:
+-	 */
+-	if (file) {
++	get_vma_name(vma, &path, &name, &name_fmt);
++	if (path) {
+ 		seq_pad(m, ' ');
+-		/*
+-		 * If user named this anon shared memory via
+-		 * prctl(PR_SET_VMA ..., use the provided name.
+-		 */
+-		if (anon_name)
+-			seq_printf(m, "[anon_shmem:%s]", anon_name->name);
+-		else
+-			seq_path(m, file_user_path(file), "\n");
+-		goto done;
+-	}
 -
- 	size = getpagesize() * NUM_PAGES;
- 	ret = ftruncate(memfd, size);
- 	if (ret == -1) {
--		printf("%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
--		exit(1);
-+		ksft_print_msg("%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
-+		exit(KSFT_FAIL);
+-	if (vma->vm_ops && vma->vm_ops->name) {
+-		name = vma->vm_ops->name(vma);
+-		if (name)
+-			goto done;
+-	}
+-
+-	name = arch_vma_name(vma);
+-	if (!name) {
+-		if (!mm) {
+-			name = "[vdso]";
+-			goto done;
+-		}
+-
+-		if (vma_is_initial_heap(vma)) {
+-			name = "[heap]";
+-			goto done;
+-		}
+-
+-		if (vma_is_initial_stack(vma)) {
+-			name = "[stack]";
+-			goto done;
+-		}
+-
+-		if (anon_name) {
+-			seq_pad(m, ' ');
+-			seq_printf(m, "[anon:%s]", anon_name->name);
+-		}
+-	}
+-
+-done:
+-	if (name) {
++		seq_path(m, path, "\n");
++	} else if (name_fmt) {
++		seq_pad(m, ' ');
++		seq_printf(m, name_fmt, name);
++	} else if (name) {
+ 		seq_pad(m, ' ');
+ 		seq_puts(m, name);
  	}
- 
- 	memset(&create, 0, sizeof(create));
-@@ -64,44 +174,86 @@ int main(int argc, char *argv[])
- 	create.offset = getpagesize()/2;
- 	create.size   = getpagesize();
- 	buf = ioctl(devfd, UDMABUF_CREATE, &create);
--	if (buf >= 0) {
--		printf("%s: [FAIL,test-1]\n", TEST_PREFIX);
--		exit(1);
--	}
-+	if (buf >= 0)
-+		ksft_test_result_fail("%s: [FAIL,test-1]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-1]\n", TEST_PREFIX);
- 
- 	/* should fail (size not multiple of page) */
- 	create.memfd  = memfd;
- 	create.offset = 0;
- 	create.size   = getpagesize()/2;
- 	buf = ioctl(devfd, UDMABUF_CREATE, &create);
--	if (buf >= 0) {
--		printf("%s: [FAIL,test-2]\n", TEST_PREFIX);
--		exit(1);
--	}
-+	if (buf >= 0)
-+		ksft_test_result_fail("%s: [FAIL,test-2]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-2]\n", TEST_PREFIX);
- 
- 	/* should fail (not memfd) */
- 	create.memfd  = 0; /* stdin */
- 	create.offset = 0;
- 	create.size   = size;
- 	buf = ioctl(devfd, UDMABUF_CREATE, &create);
--	if (buf >= 0) {
--		printf("%s: [FAIL,test-3]\n", TEST_PREFIX);
--		exit(1);
--	}
-+	if (buf >= 0)
-+		ksft_test_result_fail("%s: [FAIL,test-3]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-3]\n", TEST_PREFIX);
- 
- 	/* should work */
-+	page_size = getpagesize();
-+	addr1 = mmap_fd(memfd, size);
-+	write_to_memfd(addr1, size, 'a');
- 	create.memfd  = memfd;
- 	create.offset = 0;
- 	create.size   = size;
- 	buf = ioctl(devfd, UDMABUF_CREATE, &create);
--	if (buf < 0) {
--		printf("%s: [FAIL,test-4]\n", TEST_PREFIX);
--		exit(1);
--	}
-+	if (buf < 0)
-+		ksft_test_result_fail("%s: [FAIL,test-4]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-4]\n", TEST_PREFIX);
-+
-+	munmap(addr1, size);
-+	close(buf);
-+	close(memfd);
-+
-+	/* should work (migration of 4k size pages)*/
-+	size = MEMFD_SIZE * page_size;
-+	memfd = create_memfd_with_seals(size, false);
-+	addr1 = mmap_fd(memfd, size);
-+	write_to_memfd(addr1, size, 'a');
-+	buf = create_udmabuf_list(devfd, memfd, size);
-+	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * getpagesize());
-+	write_to_memfd(addr1, size, 'b');
-+	ret = compare_chunks(addr1, addr2, size);
-+	if (ret < 0)
-+		ksft_test_result_fail("%s: [FAIL,test-5]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-5]\n", TEST_PREFIX);
-+
-+	close(buf);
-+	close(memfd);
-+
-+	/* should work (migration of 2MB size huge pages)*/
-+	page_size = getpagesize() * 512; /* 2 MB */
-+	size = MEMFD_SIZE * page_size;
-+	memfd = create_memfd_with_seals(size, true);
-+	addr1 = mmap_fd(memfd, size);
-+	write_to_memfd(addr1, size, 'a');
-+	buf = create_udmabuf_list(devfd, memfd, size);
-+	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * getpagesize());
-+	write_to_memfd(addr1, size, 'b');
-+	ret = compare_chunks(addr1, addr2, size);
-+	if (ret < 0)
-+		ksft_test_result_fail("%s: [FAIL,test-6]\n", TEST_PREFIX);
-+	else
-+		ksft_test_result_pass("%s: [PASS,test-6]\n", TEST_PREFIX);
- 
--	fprintf(stderr, "%s: ok\n", TEST_PREFIX);
- 	close(buf);
- 	close(memfd);
- 	close(devfd);
-+
-+	ksft_print_msg("%s: ok\n", TEST_PREFIX);
-+	ksft_print_cnts();
-+
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from vivek.kasireddy@intel.com are
+Patches currently in -mm which might be from andrii@kernel.org are
 
 
