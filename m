@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0753C062
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 20:20:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40EB544C68;
+	Fri, 12 Jul 2024 20:24:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720815638; cv=none; b=hE/EFwpxnaacvW2za1IvlbXNkVnQO0cQ5cMtqcGGivKVqotJp0ihJ6d62agAfY/aajBAGY3MkUF/mh2sN9acDVBY4UtboogvwapBXL19tETExXp4fA2fd9/cQ0sspieqvm4qedwinKtnJ76Xv64S1uog6Bl6FwnrdDQbc3W3KCw=
+	t=1720815869; cv=none; b=gMJYtq2lueSyCKGsZllmG2V0WuNDDnhstAa7Pj2A0C8XvWfeir9FDg+7jCBbCgbnWawmm+5g0v38lAs1WCqlmhfnLK0jgekOWVj/n4Ng23TMadqmmOMuB0fgZF8HrQ7uZj/5NTwZOf5j5E26U31SAvc1YrKxxmjyCl0Uay9+tB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720815638; c=relaxed/simple;
-	bh=JlcD5/SibUBFeg70ZVytQ8VC95OfNbsEX4XsIc8WZWk=;
-	h=Date:To:From:Subject:Message-Id; b=NvVIa3YLodPIusIEZjNElEka5o+EC0Lv+/F6wFiWWu13KsPJ2e8dmnoNGuz8Lb6mRAtyrjv0IeWsKgtO4PniNPWYcO7DdVlm3XyYfwsk/tQhUmgoGfQfFvTvyekaUi6FZz1XnplNQoVbcRGvpRIXOX+2l0pxa+2BHsITzXpjGk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wWLgEVu8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720815869; c=relaxed/simple;
+	bh=Lywo0Rs2LR+sXjxxzG5c4AObsksCws41AlWygkxuasU=;
+	h=Date:To:From:Subject:Message-Id; b=iIjgGkdWI+o64NZT3ovW3SreGcTKWyipC+l2gSoa4hKg806xmNWjidjYZd2KDLuoIgkIA04GtRh4QoqzBY8rgijOUPloxpEyEgGHNvda5VQtosMZN4UzDaRQwI7m6sTTnedliUA3M5VtyKSbKUKSzzwUK/R0s8x+LTWn9pGKxEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0wmrH4Va; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wWLgEVu8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9896AC32782;
-	Fri, 12 Jul 2024 20:20:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0wmrH4Va"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A34C32782;
+	Fri, 12 Jul 2024 20:24:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720815637;
-	bh=JlcD5/SibUBFeg70ZVytQ8VC95OfNbsEX4XsIc8WZWk=;
+	s=korg; t=1720815868;
+	bh=Lywo0Rs2LR+sXjxxzG5c4AObsksCws41AlWygkxuasU=;
 	h=Date:To:From:Subject:From;
-	b=wWLgEVu8BWuXhIEwxrldPFUbcM8RsPnPu5/+rT7wYFvqaxxtoUPwNr9Ov5+lP/KxJ
-	 F5eFWVuXxA+xdr7gv1zdhvHaNE/HlJUEUe6PmDTyxxWa0e5cHcdxaMzr2DOdfbfLx4
-	 GYFHJKmXRT7vnCpSPvmqGBjQsG0VVzAf6OP7N+bw=
-Date: Fri, 12 Jul 2024 13:20:37 -0700
-To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,oliver.sang@intel.com,biju.das.jz@bp.renesas.com,npitre@baylibre.com,akpm@linux-foundation.org
+	b=0wmrH4VayX/NvEwH/04Qh9lg8jdIlD6yDuw1t1lRriHnA9v669t1voqkXrOsaqneV
+	 SSl+2QaOAxi7iOlQ4nSVF+mYC3jBJtz6179hn/cTcsFf2w/mSnU2KXOqtQA+HztH3N
+	 QMAt5DCIfp7PMiYLR1duhS9woo+o9VRqPaIjdlSA=
+Date: Fri, 12 Jul 2024 13:24:28 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,riel@surriel.com,jirislaby@kernel.org,corsac@debian.org,cl@linux.com,carnil@debian.org,ben@decadent.org.uk,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mul_u64_u64_div_u64-basic-sanity-test-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240712202037.9896AC32782@smtp.kernel.org>
+Subject: + mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240712202428.91A34C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mul_u64_u64_div_u64: avoid undefined shift value
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mul_u64_u64_div_u64-basic-sanity-test-fix.patch
+     Subject: mm: huge_memory: use !CONFIG_64BIT to relax huge page alignment on 32 bit machines
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mul_u64_u64_div_u64-basic-sanity-test-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nicolas Pitre <npitre@baylibre.com>
-Subject: mul_u64_u64_div_u64: avoid undefined shift value
-Date: Fri, 12 Jul 2024 13:41:46 -0400 (EDT)
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: huge_memory: use !CONFIG_64BIT to relax huge page alignment on 32 bit machines
+Date: Fri, 12 Jul 2024 08:58:55 -0700
 
-Shifting a value to its type's size or beyond is undefined.  This may
-happen if the product of a * b is not more than 64 bits despite ilog2(a) +
-ilog2(b) being 63 and c having no trailing 0 bits.  We end up with shift=0
-and n_lo >> shift | (n_hi << (64 - shift).  Take care of that case and add
-such case to the test module.
+Yves-Alexis Perez reported commit 4ef9ad19e176 ("mm: huge_memory: don't
+force huge page alignment on 32 bit") didn't work for x86_32 [1].  It is
+because x86_32 uses CONFIG_X86_32 instead of CONFIG_32BIT.
 
-Using __builtin_ctzll() with 0 is also undefined so take care of that
-case too.
+!CONFIG_64BIT should cover all 32 bit machines.
 
-Link: https://lkml.kernel.org/r/7rrs9pn1-n266-3013-9q6n-1osp8r8s0rrn@syhkavp.arg
-Signed-off-by: Nicolas Pitre <npitre@baylibre.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202407121652.69e657c5-oliver.sang@intel.com
-Cc: Biju Das <biju.das.jz@bp.renesas.com>
-Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+[1] https://lore.kernel.org/linux-mm/CAHbLzkr1LwH3pcTgM+aGQ31ip2bKqiqEQ8=FQB+t2c3dhNKNHA@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20240712155855.1130330-1-yang@os.amperecomputing.com
+Fixes: 4ef9ad19e176 ("mm: huge_memory: don't force huge page alignment on 32 bit")
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Reported-by: Yves-Alexis Perez <corsac@debian.org>
+Tested-by: Yves-Alexis Perez <corsac@debian.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Salvatore Bonaccorso <carnil@debian.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>	[6.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/div64.c                    |    9 ++++++++-
- lib/math/test_mul_u64_u64_div_u64.c |    1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/math/div64.c~mul_u64_u64_div_u64-basic-sanity-test-fix
-+++ a/lib/math/div64.c
-@@ -212,11 +212,18 @@ u64 mul_u64_u64_div_u64(u64 a, u64 b, u6
+--- a/mm/huge_memory.c~mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines
++++ a/mm/huge_memory.c
+@@ -858,7 +858,7 @@ static unsigned long __thp_get_unmapped_
+ 	loff_t off_align = round_up(off, size);
+ 	unsigned long len_pad, ret, off_sub;
  
- #endif
+-	if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
++	if (!IS_ENABLED(CONFIG_64BIT) || in_compat_syscall())
+ 		return 0;
  
-+	/* make sure c is not zero, trigger exception otherwise */
-+#pragma GCC diagnostic push
-+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
-+	if (unlikely(c == 0))
-+		return 1/0;
-+#pragma GCC diagnostic pop
-+
- 	int shift = __builtin_ctzll(c);
- 
- 	/* try reducing the fraction in case the dividend becomes <= 64 bits */
- 	if ((n_hi >> shift) == 0) {
--		u64 n = (n_lo >> shift) | (n_hi << (64 - shift));
-+		u64 n = shift ? (n_lo >> shift) | (n_hi << (64 - shift)) : n_lo;
- 
- 		return div64_u64(n, c >> shift);
- 		/*
---- a/lib/math/test_mul_u64_u64_div_u64.c~mul_u64_u64_div_u64-basic-sanity-test-fix
-+++ a/lib/math/test_mul_u64_u64_div_u64.c
-@@ -23,6 +23,7 @@ static test_params test_values[] = {
- {        0x1ffffffff,        0x1ffffffff,                0x4, 0xffffffff00000000 },
- { 0xffff000000000000, 0xffff000000000000, 0xffff000000000001, 0xfffeffffffffffff },
- { 0x3333333333333333, 0x3333333333333333, 0x5555555555555555, 0x1eb851eb851eb851 },
-+{ 0x7fffffffffffffff,                0x2,                0x3, 0x5555555555555554 },
- { 0xffffffffffffffff,                0x2, 0x8000000000000000,                0x3 },
- { 0xffffffffffffffff,                0x2, 0xc000000000000000,                0x2 },
- { 0xffffffffffffffff, 0x4000000000000004, 0x8000000000000000, 0x8000000000000007 },
+ 	if (off_end <= off_align || (off_end - off_align) < size)
 _
 
-Patches currently in -mm which might be from npitre@baylibre.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
-mul_u64_u64_div_u64-make-it-precise-always.patch
-mul_u64_u64_div_u64-basic-sanity-test.patch
-mul_u64_u64_div_u64-basic-sanity-test-fix.patch
+mm-huge_memory-use-config_64bit-to-relax-huge-page-alignment-on-32-bit-machines.patch
 
