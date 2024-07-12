@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB3441BDC3
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:42:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BC31BDC3
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:43:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824176; cv=none; b=PL1E5UQ23hwycbdS0c/imP72cdisWwUlDFiND9rFU9USzAu3obzKcHMTWJnLwb27scrURojLSxSPbMC/Oci9Nc1L1pMKDVII2I7DYKeYvA9/f8bJ5IosLMwlDaIjv079CoWEeY1efleYkvP6j22Kk76glfefaQMcAJNB3u6xaNg=
+	t=1720824227; cv=none; b=iui9fdgBlUHkGAt6BM7YiLfcaWf/1NtWLFUFoVM47IkhlXzLu6MPogPqx0ak5ZMNB2UOviGBC2dOas0zq85HwdhvRHlrqkwuNORcHLflUpcu0dA6eodIb0rHi2BP9jfZr3oF5TxUL9gZvnxU2+JNWYKS5vAKokm3ILpjMfQiMiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824176; c=relaxed/simple;
-	bh=Uup1ZFTfQPREbtIbtWznX4BdaU57/XLB6uUmYd8KWzA=;
-	h=Date:To:From:Subject:Message-Id; b=pYPeJQdenazuEv6eQ3RMVLLI59tjQ4mF/Uvgx+oE4xrw7yKeKnoTmziktft0VBqqj+MJhtVBHWYASZICGDAX1C6qZZL57fNOIkUpTzSQrxnllJhIdvAz0gqBYziO/55WBst9fspZH9XYdgnEdBT331rlCzGTf6XdOWesihiAXiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OO6YESsL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824227; c=relaxed/simple;
+	bh=MM4YfWJzHU3/heBUx6rnxFCSTgMThkslAFmh+bLfqiw=;
+	h=Date:To:From:Subject:Message-Id; b=bc1+Ae6LV1Pru2dm3BxYGlw+caKVK3SqiFsb1n9gN1BBt5z2Jf8lghJdHd9EvLzjdix0bFTColqxo79F7Z2nvK38OzM8wF9FMyk/Zc7Nx/AAl8TMojQmJPR7+PgBfFnIunrbsXpsBhjO6E266I8Dah4vD5imFqnyDp16JvLqVY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jkHymNeK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OO6YESsL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EF60C32782;
-	Fri, 12 Jul 2024 22:42:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jkHymNeK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30E7DC32782;
+	Fri, 12 Jul 2024 22:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824176;
-	bh=Uup1ZFTfQPREbtIbtWznX4BdaU57/XLB6uUmYd8KWzA=;
+	s=korg; t=1720824227;
+	bh=MM4YfWJzHU3/heBUx6rnxFCSTgMThkslAFmh+bLfqiw=;
 	h=Date:To:From:Subject:From;
-	b=OO6YESsLILPooVxzNuDZZNMBiJSxHI+cD+ifbPwCDOU+k35Znlx+fU1DC6FAVx4C6
-	 GmK90llcReNJhbUwBA2KTUAR6Lp7EZkUQY9sXzTAmLv2V8v+admp/rVAbrqoquv30s
-	 Sc8l1+Qbs2hePpGNbwXc/WbAv2IywMF+LPgncMz4=
-Date: Fri, 12 Jul 2024 15:42:55 -0700
-To: mm-commits@vger.kernel.org,syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com,muchun.song@linux.dev,kraxel@redhat.com,airlied@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
+	b=jkHymNeKNB1fKVX2tJ+Wu5iMxKwMEA0QOR2M9uCUf97r2YlHuJdcr33w50gvA4QBf
+	 05PyfVFwW36D2eafG5Xua4JBB7KDqlLNPCIQ7/ieccJ2c8LibNwTcK1u3RLc0Z42Y4
+	 mixAF/A42wdURVoz4n2gx508lUNFWSvR4b7IGpQU=
+Date: Fri, 12 Jul 2024 15:43:46 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,sfr@canb.auug.org.au,rppt@kernel.org,Liam.Howlett@Oracle.com,gregkh@linuxfoundation.org,brauner@kernel.org,arnd@arndb.de,ak@linux.intel.com,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch removed from -mm tree
-Message-Id: <20240712224256.7EF60C32782@smtp.kernel.org>
+Subject: [folded-merged] fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch removed from -mm tree
+Message-Id: <20240712224347.30E7DC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
+     Subject: fs/procfs: improve PROCMAP_QUERY's compat mode handling
 has been removed from the -mm tree.  Its filename was
-     mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2.patch
+     fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix.patch
 
-This patch was dropped because it was folded into mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
+This patch was dropped because it was folded into fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps.patch
 
 ------------------------------------------------------
-From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
-Subject: RE: [fs?] [mm?] INFO: task hung in remove_inode_hugepages
-Date:   Mon Jul 8 23:04:48 2024 -0700
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: fs/procfs: improve PROCMAP_QUERY's compat mode handling
+Date: Mon, 1 Jul 2024 10:48:05 -0700
 
+Kernel provides compat_ptr_ioctl() wrapper to sanitize pointers for 32-bit
+processes on 64-bit host architectures.  Given procfs_procmap_ioctl()
+always expects pointer argument, this is exactly what we need.
 
-return -EINVAL if the end offset is greater than the size of memfd
+This has any effect only on 32-bit processes on s390 architecture.
 
-Link: https://lkml.kernel.org/r/IA0PR11MB71850525CBC7D541CAB45DF1F8DB2@IA0PR11MB7185.namprd11.prod.outlook.com
-Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Reported-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
-Testted-by: <syzbot+f1d7fb4f94764243d23e@syzkaller.appspotmail.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240701174805.1897344-2-andrii@kernel.org
+Fixes: 3757be498749 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios-fix-2
-+++ a/mm/gup.c
-@@ -3814,6 +3814,9 @@ long memfd_pin_folios(struct file *memfd
- 	if (!shmem_file(memfd) && !is_file_hugepages(memfd))
- 		return -EINVAL;
+--- a/fs/proc/task_mmu.c~fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps-fix
++++ a/fs/proc/task_mmu.c
+@@ -614,7 +614,7 @@ const struct file_operations proc_pid_ma
+ 	.llseek		= seq_lseek,
+ 	.release	= proc_map_release,
+ 	.unlocked_ioctl = procfs_procmap_ioctl,
+-	.compat_ioctl	= procfs_procmap_ioctl,
++	.compat_ioctl	= compat_ptr_ioctl,
+ };
  
-+	if (end >= i_size_read(file_inode(memfd)))
-+		return -EINVAL;
-+
- 	if (is_file_hugepages(memfd)) {
- 		h = hstate_file(memfd);
- 		pgshift = huge_page_shift(h);
+ /*
 _
 
-Patches currently in -mm which might be from vivek.kasireddy@intel.com are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-mm-gup-introduce-unpin_folio-unpin_folios-helpers.patch
-mm-gup-introduce-check_and_migrate_movable_folios.patch
-mm-gup-introduce-memfd_pin_folios-for-pinning-memfd-folios.patch
-udmabuf-use-vmf_insert_pfn-and-vm_pfnmap-for-handling-mmap.patch
-udmabuf-add-back-support-for-mapping-hugetlb-pages.patch
-udmabuf-convert-udmabuf-driver-to-use-folios.patch
-udmabuf-pin-the-pages-using-memfd_pin_folios-api.patch
-selftests-udmabuf-add-tests-to-verify-data-after-page-migration.patch
+fs-procfs-extract-logic-for-getting-vma-name-constituents.patch
+fs-procfs-implement-efficient-vma-querying-api-for-proc-pid-maps.patch
+fs-procfs-add-build-id-fetching-to-procmap_query-api.patch
+fs-procfs-add-build-id-fetching-to-procmap_query-api-fix.patch
+docs-procfs-call-out-ioctl-based-procmap_query-command-existence.patch
+tools-sync-uapi-linux-fsh-header-into-tools-subdir.patch
+selftests-proc-add-procmap_query-ioctl-tests.patch
 
