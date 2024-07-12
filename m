@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54E81CF96
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:53:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B9E81CF96
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824835; cv=none; b=JzXI0DfoLd5fsKRylNnO2tMep6TaxPDXHsGCtw2S2WvE96M8ctEdx4qza/Ld/gc1jxuc/VGGsT57KVwJIvu8heRpEZ/ds5oNnIQesxWyLUOyzzT2bPYOL0B29jSE9AmIzxcXsmYEddq4pxZYq+1bX9GVsmO53P9utUNZdYKm9U4=
+	t=1720824836; cv=none; b=EGjDAr7j32xBqoRQ+d44tzB5fr++GkO3lnqN6lLE5YAcohbw5K6KjVS7l1cXJbujFfw7TPJSfeR7lapQB6fcZk2I4V8q6yToQ/2PxeCsZ83zIicblS/MRjv/GmrGT78CcGWfYu1U6pcD6VHQJs02aj2HWfSpFnkiere7ks6mrH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824835; c=relaxed/simple;
-	bh=4/Tufn2DNf2QYPU+ZfyDQPgxItaPSHrpnY/Im+pSkjg=;
-	h=Date:To:From:Subject:Message-Id; b=RLD1gDoa0fJXur6n8QL6pY8/ek7VxlApccg3EKH5L+wkyOE5Lgf3uyNJwE4Vcr5fLGmZdf4vqViCtVaMrqScKiTL6/5Y8F1CbD/TZXdwe+Sjj0qNDMnHyfWXysRHzb6r+g6gUDNJcDoHnvgPgTDUlI1uiYej7aKwcTCTZombFBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XaJvwTXU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824836; c=relaxed/simple;
+	bh=SsOP7pAPEv3jhH7lNXpJ3yoXt5cUnqVXjdc1GTrDuws=;
+	h=Date:To:From:Subject:Message-Id; b=NE+s7K3h+hMp9rOsgMkGntz1wMW3VPGJfMsnfYOf5rgB4s/GjJtSj6GfbZr+9IgriMLzBpz7clHutSIn46e9VG7lvDNQI4gQG4e/dxjoHdRSqQTJGLbCj/IREgLwy7y935LX7Z3ze/wt1dFRvRF/ClIED7Dmk0Dnq380hA1UR9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2g9hU2Od; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XaJvwTXU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00AB1C32782;
-	Fri, 12 Jul 2024 22:53:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2g9hU2Od"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EE1EC32782;
+	Fri, 12 Jul 2024 22:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824835;
-	bh=4/Tufn2DNf2QYPU+ZfyDQPgxItaPSHrpnY/Im+pSkjg=;
+	s=korg; t=1720824836;
+	bh=SsOP7pAPEv3jhH7lNXpJ3yoXt5cUnqVXjdc1GTrDuws=;
 	h=Date:To:From:Subject:From;
-	b=XaJvwTXUjAMe8P3pDUqV5D0DVMVtNI4psC7hkNaYlTQAC08FZ7XxFHueAKLtzMoZ7
-	 QZB/5dT+TNW7Npm/5ah3+qVIp4GxNscmiAKiln6NORtuk82VnffHL9B3DLUU8e9/H6
-	 nv+g+SdlAWpmtte4BhrFEn52Gptv1OoTr7e2XyNg=
-Date: Fri, 12 Jul 2024 15:53:54 -0700
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,akpm@linux-foundation.org
+	b=2g9hU2OdJPyy3+/DuozW0e4nhUDPIhBl9O1UPZBIuStE6xVAVBHiKcLPyC8Ab85g+
+	 fwaI2CcM3Fx/ekCMObb3aGrtwxxMVBpkcN3Bw4ToeiXX3ZSlsKNybTjn+94XQWTMyB
+	 0ItBLSuUf/mL0HxYrPSPzBB1ktvgFIHGoEYzsew0=
+Date: Fri, 12 Jul 2024 15:53:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,peterx@redhat.com,osalvador@suse.de,mike.kravetz@oracle.com,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@lst.de,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,airlied@redhat.com,vivek.kasireddy@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-use-only-one-pool-in-zswap.patch removed from -mm tree
-Message-Id: <20240712225355.00AB1C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-introduce-unpin_folio-unpin_folios-helpers.patch removed from -mm tree
+Message-Id: <20240712225356.3EE1EC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,237 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: use only one pool in zswap
+     Subject: mm/gup: introduce unpin_folio/unpin_folios helpers
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-use-only-one-pool-in-zswap.patch
+     mm-gup-introduce-unpin_folio-unpin_folios-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <chengming.zhou@linux.dev>
-Subject: mm/zswap: use only one pool in zswap
-Date: Mon, 17 Jun 2024 20:57:41 +0800
+From: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Subject: mm/gup: introduce unpin_folio/unpin_folios helpers
+Date: Sun, 23 Jun 2024 23:36:09 -0700
 
-Zswap uses 32 pools to workaround the locking scalability problem in zswap
-backends (mainly zsmalloc nowadays), which brings its own problems like
-memory waste and more memory fragmentation.
+Patch series "mm/gup: Introduce memfd_pin_folios() for pinning memfd
+folios", v16.
 
-Testing results show that we can have near performance with only one pool
-in zswap after changing zsmalloc to use per-size_class lock instead of
-pool spinlock.
+Currently, some drivers (e.g, Udmabuf) that want to longterm-pin the
+pages/folios associated with a memfd, do so by simply taking a reference
+on them.  This is not desirable because the pages/folios may reside in
+Movable zone or CMA block.
 
-Testing kernel build (make bzImage -j32) on tmpfs with memory.max=1GB, and
-zswap shrinker enabled with 10GB swapfile on ext4.
+Therefore, having drivers use memfd_pin_folios() API ensures that the
+folios are appropriately pinned via FOLL_PIN for longterm DMA.
 
-                                real    user    sys
-6.10.0-rc3                      138.18  1241.38 1452.73
-6.10.0-rc3-onepool              149.45  1240.45 1844.69
-6.10.0-rc3-onepool-perclass     138.23  1242.37 1469.71
+This patchset also introduces a few helpers and converts the Udmabuf
+driver to use folios and memfd_pin_folios() API to longterm-pin the folios
+for DMA.  Two new Udmabuf selftests are also included to test the driver
+and the new API.
 
-And do the same testing using zbud, which shows a little worse performance
-as expected since we don't do any locking optimization for zbud.  I think
-it's acceptable since zsmalloc became a lot more popular than other
-backends, and we may want to support only zsmalloc in the future.
 
-                                real    user    sys
-6.10.0-rc3-zbud			138.23  1239.58 1430.09
-6.10.0-rc3-onepool-zbud		139.64  1241.37 1516.59
+This patch (of 9):
 
-[chengming.zhou@linux.dev: fix error handling in zswap_pool_create(), per Dan Carpenter]
-  Link: https://lkml.kernel.org/r/20240621-zsmalloc-lock-mm-everything-v2-2-d30e9cd2b793@linux.dev
-[chengming.zhou@linux.dev: fix error handling again in zswap_pool_create(), per Yosry]
-  Link: https://lkml.kernel.org/r/20240625-zsmalloc-lock-mm-everything-v3-2-ad941699cb61@linux.dev
-Link: https://lkml.kernel.org/r/20240617-zsmalloc-lock-mm-everything-v1-2-5e5081ea11b3@linux.dev
-Signed-off-by: Chengming Zhou <chengming.zhou@linux.dev>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+These helpers are the folio versions of unpin_user_page/unpin_user_pages. 
+They are currently only useful for unpinning folios pinned by
+memfd_pin_folios() or other associated routines.  However, they could find
+new uses in the future, when more and more folio-only helpers are added to
+GUP.
+
+We should probably sanity check the folio as part of unpin similar to how
+it is done in unpin_user_page/unpin_user_pages but we cannot cleanly do
+that at the moment without also checking the subpage.  Therefore, sanity
+checking needs to be added to these routines once we have a way to
+determine if any given folio is anon-exclusive (via a per folio
+AnonExclusive flag).
+
+Link: https://lkml.kernel.org/r/20240624063952.1572359-1-vivek.kasireddy@intel.com
+Link: https://lkml.kernel.org/r/20240624063952.1572359-2-vivek.kasireddy@intel.com
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Dave Airlie <airlied@redhat.com>
+Acked-by: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dongwon Kim <dongwon.kim@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Junxiao Chang <junxiao.chang@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   61 ++++++++++++++++-----------------------------------
- 1 file changed, 20 insertions(+), 41 deletions(-)
+ include/linux/mm.h |    2 +
+ mm/gup.c           |   47 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-use-only-one-pool-in-zswap
-+++ a/mm/zswap.c
-@@ -124,9 +124,6 @@ static unsigned int zswap_accept_thr_per
- module_param_named(accept_threshold_percent, zswap_accept_thr_percent,
- 		   uint, 0644);
+--- a/include/linux/mm.h~mm-gup-introduce-unpin_folio-unpin_folios-helpers
++++ a/include/linux/mm.h
+@@ -1584,11 +1584,13 @@ static inline void put_page(struct page
+ #define GUP_PIN_COUNTING_BIAS (1U << 10)
  
--/* Number of zpools in zswap_pool (empirically determined for scalability) */
--#define ZSWAP_NR_ZPOOLS 32
--
- /* Enable/disable memory pressure-based shrinker. */
- static bool zswap_shrinker_enabled = IS_ENABLED(
- 		CONFIG_ZSWAP_SHRINKER_DEFAULT_ON);
-@@ -162,7 +159,7 @@ struct crypto_acomp_ctx {
-  * needs to be verified that it's still valid in the tree.
-  */
- struct zswap_pool {
--	struct zpool *zpools[ZSWAP_NR_ZPOOLS];
-+	struct zpool *zpool;
- 	struct crypto_acomp_ctx __percpu *acomp_ctx;
- 	struct percpu_ref ref;
- 	struct list_head list;
-@@ -244,7 +241,7 @@ static inline struct xarray *swap_zswap_
+ void unpin_user_page(struct page *page);
++void unpin_folio(struct folio *folio);
+ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
+ 				 bool make_dirty);
+ void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
+ 				      bool make_dirty);
+ void unpin_user_pages(struct page **pages, unsigned long npages);
++void unpin_folios(struct folio **folios, unsigned long nfolios);
  
- #define zswap_pool_debug(msg, p)				\
- 	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
--		 zpool_get_type((p)->zpools[0]))
-+		 zpool_get_type((p)->zpool))
- 
- /*********************************
- * pool functions
-@@ -253,7 +250,6 @@ static void __zswap_pool_empty(struct pe
- 
- static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
+ static inline bool is_cow_mapping(vm_flags_t flags)
  {
--	int i;
- 	struct zswap_pool *pool;
- 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
- 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
-@@ -274,18 +270,14 @@ static struct zswap_pool *zswap_pool_cre
- 	if (!pool)
- 		return NULL;
+--- a/mm/gup.c~mm-gup-introduce-unpin_folio-unpin_folios-helpers
++++ a/mm/gup.c
+@@ -189,6 +189,19 @@ void unpin_user_page(struct page *page)
+ EXPORT_SYMBOL(unpin_user_page);
  
--	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++) {
--		/* unique name for each pool specifically required by zsmalloc */
--		snprintf(name, 38, "zswap%x",
--			 atomic_inc_return(&zswap_pools_count));
--
--		pool->zpools[i] = zpool_create_pool(type, name, gfp);
--		if (!pool->zpools[i]) {
--			pr_err("%s zpool not available\n", type);
--			goto error;
--		}
-+	/* unique name for each pool specifically required by zsmalloc */
-+	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
-+	pool->zpool = zpool_create_pool(type, name, gfp);
-+	if (!pool->zpool) {
-+		pr_err("%s zpool not available\n", type);
-+		goto error;
- 	}
--	pr_debug("using %s zpool\n", zpool_get_type(pool->zpools[0]));
-+	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
- 
- 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
- 
-@@ -318,8 +310,8 @@ ref_fail:
- error:
- 	if (pool->acomp_ctx)
- 		free_percpu(pool->acomp_ctx);
--	while (i--)
--		zpool_destroy_pool(pool->zpools[i]);
-+	if (pool->zpool)
-+		zpool_destroy_pool(pool->zpool);
- 	kfree(pool);
- 	return NULL;
+ /**
++ * unpin_folio() - release a dma-pinned folio
++ * @folio:         pointer to folio to be released
++ *
++ * Folios that were pinned via memfd_pin_folios() or other similar routines
++ * must be released either using unpin_folio() or unpin_folios().
++ */
++void unpin_folio(struct folio *folio)
++{
++	gup_put_folio(folio, 1, FOLL_PIN);
++}
++EXPORT_SYMBOL_GPL(unpin_folio);
++
++/**
+  * folio_add_pin - Try to get an additional pin on a pinned folio
+  * @folio: The folio to be pinned
+  *
+@@ -400,6 +413,40 @@ void unpin_user_pages(struct page **page
  }
-@@ -368,15 +360,12 @@ static struct zswap_pool *__zswap_pool_c
+ EXPORT_SYMBOL(unpin_user_pages);
  
- static void zswap_pool_destroy(struct zswap_pool *pool)
- {
--	int i;
--
- 	zswap_pool_debug("destroying", pool);
- 
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
- 	free_percpu(pool->acomp_ctx);
- 
--	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
--		zpool_destroy_pool(pool->zpools[i]);
-+	zpool_destroy_pool(pool->zpool);
- 	kfree(pool);
- }
- 
-@@ -471,8 +460,7 @@ static struct zswap_pool *zswap_pool_fin
- 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
- 		if (strcmp(pool->tfm_name, compressor))
- 			continue;
--		/* all zpools share the same type */
--		if (strcmp(zpool_get_type(pool->zpools[0]), type))
-+		if (strcmp(zpool_get_type(pool->zpool), type))
- 			continue;
- 		/* if we can't get it, it's about to be destroyed */
- 		if (!zswap_pool_get(pool))
-@@ -499,12 +487,8 @@ unsigned long zswap_total_pages(void)
- 	unsigned long total = 0;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(pool, &zswap_pools, list) {
--		int i;
--
--		for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
--			total += zpool_get_total_pages(pool->zpools[i]);
--	}
-+	list_for_each_entry_rcu(pool, &zswap_pools, list)
-+		total += zpool_get_total_pages(pool->zpool);
- 	rcu_read_unlock();
- 
- 	return total;
-@@ -809,11 +793,6 @@ static void zswap_entry_cache_free(struc
- 	kmem_cache_free(zswap_entry_cache, entry);
- }
- 
--static struct zpool *zswap_find_zpool(struct zswap_entry *entry)
--{
--	return entry->pool->zpools[hash_ptr(entry, ilog2(ZSWAP_NR_ZPOOLS))];
--}
--
++/**
++ * unpin_folios() - release an array of gup-pinned folios.
++ * @folios:  array of folios to be marked dirty and released.
++ * @nfolios: number of folios in the @folios array.
++ *
++ * For each folio in the @folios array, release the folio using gup_put_folio.
++ *
++ * Please see the unpin_folio() documentation for details.
++ */
++void unpin_folios(struct folio **folios, unsigned long nfolios)
++{
++	unsigned long i = 0, j;
++
++	/*
++	 * If this WARN_ON() fires, then the system *might* be leaking folios
++	 * (by leaving them pinned), but probably not. More likely, gup/pup
++	 * returned a hard -ERRNO error to the caller, who erroneously passed
++	 * it here.
++	 */
++	if (WARN_ON(IS_ERR_VALUE(nfolios)))
++		return;
++
++	while (i < nfolios) {
++		for (j = i + 1; j < nfolios; j++)
++			if (folios[i] != folios[j])
++				break;
++
++		if (folios[i])
++			gup_put_folio(folios[i], j - i, FOLL_PIN);
++		i = j;
++	}
++}
++EXPORT_SYMBOL_GPL(unpin_folios);
++
  /*
-  * Carries out the common pattern of freeing and entry's zpool allocation,
-  * freeing the entry itself, and decrementing the number of stored pages.
-@@ -824,7 +803,7 @@ static void zswap_entry_free(struct zswa
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
- 		zswap_lru_del(&zswap_list_lru, entry);
--		zpool_free(zswap_find_zpool(entry), entry->handle);
-+	zpool_free(entry->pool->zpool, entry->handle);
- 		zswap_pool_put(entry->pool);
- 	}
- 	if (entry->objcg) {
-@@ -950,7 +929,7 @@ static bool zswap_compress(struct folio
- 	if (comp_ret)
- 		goto unlock;
- 
--	zpool = zswap_find_zpool(entry);
-+	zpool = entry->pool->zpool;
- 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	if (zpool_malloc_support_movable(zpool))
- 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -979,7 +958,7 @@ unlock:
- 
- static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
- {
--	struct zpool *zpool = zswap_find_zpool(entry);
-+	struct zpool *zpool = entry->pool->zpool;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	u8 *src;
-@@ -1531,7 +1510,7 @@ store_failed:
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
--		zpool_free(zswap_find_zpool(entry), entry->handle);
-+		zpool_free(entry->pool->zpool, entry->handle);
- put_pool:
- 		zswap_pool_put(entry->pool);
- 	}
-@@ -1753,7 +1732,7 @@ static int zswap_setup(void)
- 	pool = __zswap_pool_create_fallback();
- 	if (pool) {
- 		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
--			zpool_get_type(pool->zpools[0]));
-+			zpool_get_type(pool->zpool));
- 		list_add(&pool->list, &zswap_pools);
- 		zswap_has_pool = true;
- 		static_branch_enable(&zswap_ever_enabled);
+  * Set the MMF_HAS_PINNED if not set yet; after set it'll be there for the mm's
+  * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
 _
 
-Patches currently in -mm which might be from chengming.zhou@linux.dev are
+Patches currently in -mm which might be from vivek.kasireddy@intel.com are
 
 
