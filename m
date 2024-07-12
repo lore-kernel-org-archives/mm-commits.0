@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1564127E0F
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BFAD127E0F;
+	Fri, 12 Jul 2024 22:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824890; cv=none; b=q/1Sgyn9kI11UBxiM/26ab/DxQ5/gKEW0nmO3Zef1hzd+bOVJRVSp75rrcoap1weddh4O42dwFXQ6DWhbUZqcZ3Tj6EH0l0MoP8l6ssh/bjVpDneWL7vbbtuqpDNwGpieio76zRubMz36jKvL3W4Iyji+63ypZ/9ACjmt/plMYE=
+	t=1720824891; cv=none; b=YHy7vP3cKCEZ0XTe/cpikBaEb+BQ+asvotGw9qW1mui1hXXtEli/zfDlyDyrLlrs2QJk2kicxrp5kQSaMepVaXQYGWdPCu3YNOo96xOZrHFsgqA4O+7w2lzG3QY/aRwKP8P35MY5cgDlfTWvR9XZ1NLxG6M/cMfX2mse1zBM7LA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824890; c=relaxed/simple;
-	bh=LD6TWwIgzdWXI6kPGEXU/WpGvAr3KtHJ077c8AOFbxg=;
-	h=Date:To:From:Subject:Message-Id; b=IC+2FtvnR0VgSneJKm9u4qY6Et0IXvY2c9XH8dZOHSWH3yeOoPBZ2G14n+l7H20Atc+/n+kKt//V1A84zN0LP5gx+7uTxJpNRHAn3zAlL+s69ysB6iXSqhNTijMaFzHMboyL515cXeqE9M0M34YP2yhcBZFliS6ztoLIuRDWs3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vNF1/d4M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824891; c=relaxed/simple;
+	bh=5ocFppO2ke6Eau1+Lz3iN7f80NvUKRn5NiwblW5uOBY=;
+	h=Date:To:From:Subject:Message-Id; b=eENf+MOosoOMoMOMmJpTuzvYYg6oAUCcMmhVAtkm9mWpfCK10t72D8sKDQrOA377lvVSMrD5Hkmtl8HERNdlIz6Aa1uyzvGVYfe69x7iu03w1JJewFgXFnfkxSdGbiV4AFhHyDhikFB5oNv8toiRiwmIolMflFoc8lmelPITVHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2umoIpnn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vNF1/d4M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C63A3C4AF07;
-	Fri, 12 Jul 2024 22:54:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2umoIpnn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22915C32782;
+	Fri, 12 Jul 2024 22:54:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824889;
-	bh=LD6TWwIgzdWXI6kPGEXU/WpGvAr3KtHJ077c8AOFbxg=;
+	s=korg; t=1720824891;
+	bh=5ocFppO2ke6Eau1+Lz3iN7f80NvUKRn5NiwblW5uOBY=;
 	h=Date:To:From:Subject:From;
-	b=vNF1/d4M1q3RnB9DOdUM6Owib4Q+lLMBl3Eqx/hMhNJGP2Z/+CKJ66K2jISTEomEC
-	 qe6Bu/6bKaRYOcTKHX6kof8R84RtWS6dXzAekyHFor6dJ8nXHMj/4j052It1YV1OqU
-	 rj3EId3XdRKoyQRrLd4XulcCfbrqApUkQEgB8uCQ=
-Date: Fri, 12 Jul 2024 15:54:49 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,tj@kernel.org,sj@kernel.org,ravis.opensrc@micron.com,rafael@kernel.org,mhocko@suse.com,lenb@kernel.org,Jonathan.Cameron@huawei.com,horenchuang@bytedance.com,gourry.memverge@gmail.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,aneesh.kumar@linux.ibm.com,horen.chuang@linux.dev,akpm@linux-foundation.org
+	b=2umoIpnnyPJt2vqBMD1N8MeVKclg9SRe77LjwT3NET6p+f68gcceHP1WsApJC9Gcu
+	 Q75O80FEF80kHgqn5eeMS9AgPNiOjTdnQDivvXF5xyzXuGguHXp33JKZA15dzmMw13
+	 lwG23/55IOoAvaeFD7QKtf9yv2Ww6neH1N91QPI4=
+Date: Fri, 12 Jul 2024 15:54:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shy828301@gmail.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tier-consolidate-the-initialization-of-memory-tiers.patch removed from -mm tree
-Message-Id: <20240712225449.C63A3C4AF07@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-khugepaged-activation-policy.patch removed from -mm tree
+Message-Id: <20240712225451.22915C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,211 +35,205 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory tier: consolidate the initialization of memory tiers
+     Subject: mm: fix khugepaged activation policy
 has been removed from the -mm tree.  Its filename was
-     memory-tier-consolidate-the-initialization-of-memory-tiers.patch
+     mm-fix-khugepaged-activation-policy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Ho-Ren (Jack) Chuang" <horen.chuang@linux.dev>
-Subject: memory tier: consolidate the initialization of memory tiers
-Date: Thu, 4 Jul 2024 07:26:44 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: fix khugepaged activation policy
+Date: Thu, 4 Jul 2024 10:10:50 +0100
 
-The current memory tier initialization process is distributed across two
-different functions, memory_tier_init() and memory_tier_late_init().  This
-design is hard to maintain.  Thus, this patch is proposed to reduce the
-possible code paths by consolidating different initialization patches into
-one.
+Since the introduction of mTHP, the docuementation has stated that
+khugepaged would be enabled when any mTHP size is enabled, and disabled
+when all mTHP sizes are disabled.  There are 2 problems with this; 1. 
+this is not what was implemented by the code and 2.  this is not the
+desirable behavior.
 
-The earlier discussion with Jonathan and Ying is listed here:
-https://lore.kernel.org/lkml/20240405150244.00004b49@Huawei.com/
+Desirable behavior is for khugepaged to be enabled when any PMD-sized THP
+is enabled, anon or file.  (Note that file THP is still controlled by the
+top-level control so we must always consider that, as well as the PMD-size
+mTHP control for anon).  khugepaged only supports collapsing to PMD-sized
+THP so there is no value in enabling it when PMD-sized THP is disabled. 
+So let's change the code and documentation to reflect this policy.
 
-If we want to put these two initializations together, they must be placed
-together in the later function.  Because only at that time, the HMAT
-information will be ready, adist between nodes can be calculated, and
-memory tiering can be established based on the adist.  So we position the
-initialization at memory_tier_init() to the memory_tier_late_init() call. 
-Moreover, it's natural to keep memory_tier initialization in drivers at
-device_initcall() level.
+Further, per-size enabled control modification events were not previously
+forwarded to khugepaged to give it an opportunity to start or stop. 
+Consequently the following was resulting in khugepaged eroneously not
+being activated:
 
-If we simply move the set_node_memory_tier() from memory_tier_init() to
-late_initcall(), it will result in HMAT not registering the
-mt_adistance_algorithm callback function, because set_node_memory_tier()
-is not performed during the memory tiering initialization phase, leading
-to a lack of correct default_dram information.
+  echo never > /sys/kernel/mm/transparent_hugepage/enabled
+  echo always > /sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
 
-Therefore, we introduced a nodemask to pass the information of the default
-DRAM nodes.  The reason for not choosing to reuse default_dram_type->nodes
-is that it is not clean enough.  So in the end, we use a __initdata
-variable, which is a variable that is released once initialization is
-complete, including both CPU and memory nodes for HMAT to iterate through.
-
-Link: https://lkml.kernel.org/r/20240704072646.437579-1-horen.chuang@linux.dev
-Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Gregory Price <gourry.memverge@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+[ryan.roberts@arm.com: v3]
+  Link: https://lkml.kernel.org/r/20240705102849.2479686-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240705102849.2479686-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240704091051.2411934-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Fixes: 3485b88390b0 ("mm: thp: introduce multi-size THP sysfs interface")
+Closes: https://lore.kernel.org/linux-mm/7a0bbe69-1e3d-4263-b206-da007791a5c4@redhat.com/
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa/hmat.c     |    5 ---
- include/linux/memory-tiers.h |    2 +
- mm/memory-tiers.c            |   54 ++++++++++++---------------------
- 3 files changed, 24 insertions(+), 37 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   11 ++----
+ include/linux/huge_mm.h                    |   12 ------
+ mm/huge_memory.c                           |    7 ++++
+ mm/khugepaged.c                            |   33 ++++++++++++++-----
+ 4 files changed, 38 insertions(+), 25 deletions(-)
 
---- a/drivers/acpi/numa/hmat.c~memory-tier-consolidate-the-initialization-of-memory-tiers
-+++ a/drivers/acpi/numa/hmat.c
-@@ -940,10 +940,7 @@ static int hmat_set_default_dram_perf(vo
- 	struct memory_target *target;
- 	struct access_coordinate *attrs;
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-fix-khugepaged-activation-policy
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -202,12 +202,11 @@ PMD-mappable transparent hugepage::
  
--	if (!default_dram_type)
--		return -EIO;
+ 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+ 
+-khugepaged will be automatically started when one or more hugepage
+-sizes are enabled (either by directly setting "always" or "madvise",
+-or by setting "inherit" while the top-level enabled is set to "always"
+-or "madvise"), and it'll be automatically shutdown when the last
+-hugepage size is disabled (either by directly setting "never", or by
+-setting "inherit" while the top-level enabled is set to "never").
++khugepaged will be automatically started when PMD-sized THP is enabled
++(either of the per-size anon control or the top-level control are set
++to "always" or "madvise"), and it'll be automatically shutdown when
++PMD-sized THP is disabled (when both the per-size anon control and the
++top-level control are "never")
+ 
+ Khugepaged controls
+ -------------------
+--- a/include/linux/huge_mm.h~mm-fix-khugepaged-activation-policy
++++ a/include/linux/huge_mm.h
+@@ -128,18 +128,6 @@ static inline bool hugepage_global_alway
+ 			(1<<TRANSPARENT_HUGEPAGE_FLAG);
+ }
+ 
+-static inline bool hugepage_flags_enabled(void)
+-{
+-	/*
+-	 * We cover both the anon and the file-backed case here; we must return
+-	 * true if globally enabled, even when all anon sizes are set to never.
+-	 * So we don't need to look at huge_anon_orders_inherit.
+-	 */
+-	return hugepage_global_enabled() ||
+-	       READ_ONCE(huge_anon_orders_always) ||
+-	       READ_ONCE(huge_anon_orders_madvise);
+-}
 -
--	for_each_node_mask(nid, default_dram_type->nodes) {
-+	for_each_node_mask(nid, default_dram_nodes) {
- 		pxm = node_to_pxm(nid);
- 		target = find_mem_target(pxm);
- 		if (!target)
---- a/include/linux/memory-tiers.h~memory-tier-consolidate-the-initialization-of-memory-tiers
-+++ a/include/linux/memory-tiers.h
-@@ -38,6 +38,7 @@ struct access_coordinate;
- #ifdef CONFIG_NUMA
- extern bool numa_demotion_enabled;
- extern struct memory_dev_type *default_dram_type;
-+extern nodemask_t default_dram_nodes;
- struct memory_dev_type *alloc_memory_type(int adistance);
- void put_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
-@@ -76,6 +77,7 @@ static inline bool node_is_toptier(int n
- 
- #define numa_demotion_enabled	false
- #define default_dram_type	NULL
-+#define default_dram_nodes	NODE_MASK_NONE
- /*
-  * CONFIG_NUMA implementation returns non NULL error.
-  */
---- a/mm/memory-tiers.c~memory-tier-consolidate-the-initialization-of-memory-tiers
-+++ a/mm/memory-tiers.c
-@@ -43,6 +43,7 @@ static LIST_HEAD(memory_tiers);
- static LIST_HEAD(default_memory_types);
- static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
- struct memory_dev_type *default_dram_type;
-+nodemask_t default_dram_nodes __initdata = NODE_MASK_NONE;
- 
- static const struct bus_type memory_tier_subsys = {
- 	.name = "memory_tiering",
-@@ -671,28 +672,35 @@ EXPORT_SYMBOL_GPL(mt_put_memory_types);
- 
- /*
-  * This is invoked via `late_initcall()` to initialize memory tiers for
-- * CPU-less memory nodes after driver initialization, which is
-- * expected to provide `adistance` algorithms.
-+ * memory nodes, both with and without CPUs. After the initialization of
-+ * firmware and devices, adistance algorithms are expected to be provided.
-  */
- static int __init memory_tier_late_init(void)
+ static inline int highest_order(unsigned long orders)
  {
- 	int nid;
-+	struct memory_tier *memtier;
+ 	return fls_long(orders) - 1;
+--- a/mm/huge_memory.c~mm-fix-khugepaged-activation-policy
++++ a/mm/huge_memory.c
+@@ -502,6 +502,13 @@ static ssize_t thpsize_enabled_store(str
+ 	} else
+ 		ret = -EINVAL;
  
-+	get_online_mems();
- 	guard(mutex)(&memory_tier_lock);
++	if (ret > 0) {
++		int err;
 +
-+	/* Assign each uninitialized N_MEMORY node to a memory tier. */
- 	for_each_node_state(nid, N_MEMORY) {
- 		/*
--		 * Some device drivers may have initialized memory tiers
--		 * between `memory_tier_init()` and `memory_tier_late_init()`,
--		 * potentially bringing online memory nodes and
--		 * configuring memory tiers. Exclude them here.
-+		 * Some device drivers may have initialized
-+		 * memory tiers, potentially bringing memory nodes
-+		 * online and configuring memory tiers.
-+		 * Exclude them here.
- 		 */
- 		if (node_memory_types[nid].memtype)
- 			continue;
++		err = start_stop_khugepaged();
++		if (err)
++			ret = err;
++	}
+ 	return ret;
+ }
  
--		set_node_memory_tier(nid);
-+		memtier = set_node_memory_tier(nid);
-+		if (IS_ERR(memtier))
-+			continue;
+--- a/mm/khugepaged.c~mm-fix-khugepaged-activation-policy
++++ a/mm/khugepaged.c
+@@ -413,6 +413,26 @@ static inline int hpage_collapse_test_ex
+ 	       test_bit(MMF_DISABLE_THP, &mm->flags);
+ }
+ 
++static bool hugepage_pmd_enabled(void)
++{
++	/*
++	 * We cover both the anon and the file-backed case here; file-backed
++	 * hugepages, when configured in, are determined by the global control.
++	 * Anon pmd-sized hugepages are determined by the pmd-size control.
++	 */
++	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
++	    hugepage_global_enabled())
++		return true;
++	if (test_bit(PMD_ORDER, &huge_anon_orders_always))
++		return true;
++	if (test_bit(PMD_ORDER, &huge_anon_orders_madvise))
++		return true;
++	if (test_bit(PMD_ORDER, &huge_anon_orders_inherit) &&
++	    hugepage_global_enabled())
++		return true;
++	return false;
++}
++
+ void __khugepaged_enter(struct mm_struct *mm)
+ {
+ 	struct khugepaged_mm_slot *mm_slot;
+@@ -449,7 +469,7 @@ void khugepaged_enter_vma(struct vm_area
+ 			  unsigned long vm_flags)
+ {
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
+-	    hugepage_flags_enabled()) {
++	    hugepage_pmd_enabled()) {
+ 		if (thp_vma_allowable_order(vma, vm_flags, TVA_ENFORCE_SYSFS,
+ 					    PMD_ORDER))
+ 			__khugepaged_enter(vma->vm_mm);
+@@ -2462,8 +2482,7 @@ breakouterloop_mmap_lock:
+ 
+ static int khugepaged_has_work(void)
+ {
+-	return !list_empty(&khugepaged_scan.mm_head) &&
+-		hugepage_flags_enabled();
++	return !list_empty(&khugepaged_scan.mm_head) && hugepage_pmd_enabled();
+ }
+ 
+ static int khugepaged_wait_event(void)
+@@ -2536,7 +2555,7 @@ static void khugepaged_wait_work(void)
+ 		return;
  	}
  
- 	establish_demotion_targets();
-+	put_online_mems();
- 
- 	return 0;
+-	if (hugepage_flags_enabled())
++	if (hugepage_pmd_enabled())
+ 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
  }
-@@ -875,8 +883,7 @@ static int __meminit memtier_hotplug_cal
  
- static int __init memory_tier_init(void)
+@@ -2567,7 +2586,7 @@ static void set_recommended_min_free_kby
+ 	int nr_zones = 0;
+ 	unsigned long recommended_min;
+ 
+-	if (!hugepage_flags_enabled()) {
++	if (!hugepage_pmd_enabled()) {
+ 		calculate_min_free_kbytes();
+ 		goto update_wmarks;
+ 	}
+@@ -2617,7 +2636,7 @@ int start_stop_khugepaged(void)
+ 	int err = 0;
+ 
+ 	mutex_lock(&khugepaged_mutex);
+-	if (hugepage_flags_enabled()) {
++	if (hugepage_pmd_enabled()) {
+ 		if (!khugepaged_thread)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+@@ -2643,7 +2662,7 @@ fail:
+ void khugepaged_min_free_kbytes_update(void)
  {
--	int ret, node;
--	struct memory_tier *memtier;
-+	int ret;
- 
- 	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
- 	if (ret)
-@@ -887,7 +894,8 @@ static int __init memory_tier_init(void)
- 				GFP_KERNEL);
- 	WARN_ON(!node_demotion);
- #endif
--	mutex_lock(&memory_tier_lock);
-+
-+	guard(mutex)(&memory_tier_lock);
- 	/*
- 	 * For now we can have 4 faster memory tiers with smaller adistance
- 	 * than default DRAM tier.
-@@ -897,29 +905,9 @@ static int __init memory_tier_init(void)
- 	if (IS_ERR(default_dram_type))
- 		panic("%s() failed to allocate default DRAM tier\n", __func__);
- 
--	/*
--	 * Look at all the existing N_MEMORY nodes and add them to
--	 * default memory tier or to a tier if we already have memory
--	 * types assigned.
--	 */
--	for_each_node_state(node, N_MEMORY) {
--		if (!node_state(node, N_CPU))
--			/*
--			 * Defer memory tier initialization on
--			 * CPUless numa nodes. These will be initialized
--			 * after firmware and devices are initialized.
--			 */
--			continue;
--
--		memtier = set_node_memory_tier(node);
--		if (IS_ERR(memtier))
--			/*
--			 * Continue with memtiers we are able to setup
--			 */
--			break;
--	}
--	establish_demotion_targets();
--	mutex_unlock(&memory_tier_lock);
-+	/* Record nodes with memory and CPU to set default DRAM performance. */
-+	nodes_and(default_dram_nodes, node_states[N_MEMORY],
-+		  node_states[N_CPU]);
- 
- 	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRI);
- 	return 0;
+ 	mutex_lock(&khugepaged_mutex);
+-	if (hugepage_flags_enabled() && khugepaged_thread)
++	if (hugepage_pmd_enabled() && khugepaged_thread)
+ 		set_recommended_min_free_kbytes();
+ 	mutex_unlock(&khugepaged_mutex);
+ }
 _
 
-Patches currently in -mm which might be from horen.chuang@linux.dev are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
 
