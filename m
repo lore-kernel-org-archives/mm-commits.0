@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C930212DDAF
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D703512DDAF
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824886; cv=none; b=tdJrS89677YMrwmEuXX227J8tUwibISRa3892zT7f6jR2uOr7Jkoel3AVrkPs2tgXQob0UB+4KQ4Gw8Ug33P77HCKghQCltVOd1DDUdyTishP2J5ZO7XO0UNJzsjOhvFsf2H39lyh714e1oQs8fAHmK2aLOV+L20m5Ae6bRBOR4=
+	t=1720824887; cv=none; b=dJXFjUklAtlEFnRlJOgQVOenFIH7o9Z9OAesJ4K7BmlcaPliNDnLKlhfp4PqdY30C3ojesGFaNmTYx4oMnF5IQccBU/KvtRBN9KyFSkGcfp8Nr9kHstzAATTzXjN2pJ8BKDasPFiu9QxRw15WOUEfb8F8VvX2uqI4ZIdlpTuHZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824886; c=relaxed/simple;
-	bh=M5EadN5Hl8Metwwh5zK9V7Tw+5ZmdV+ibLKMgZ6+83Q=;
-	h=Date:To:From:Subject:Message-Id; b=UFiPEeVYbTQ7mv73VNNWlSD67n6TjqWqLk8QaQs05IPQDhgV1+w1KXPfsW6QVhn0u3Eoy2nx9RSwL+ofwrRE9XRoPEaGdDjLlyJzXzGoJZHyI35h0r6N+U2aF1xefV0mZkTKVOZP4euLptg85Q5y4sdTK0xSGsnX+NCrW7TY2Og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yf5aT2NX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824887; c=relaxed/simple;
+	bh=+o/2jIGfj2Qz2cyakEJtdA2DDMlZqFRd4IqaAUmlW6I=;
+	h=Date:To:From:Subject:Message-Id; b=Ilnp7NiXB1/QfV2aznEGgGEcYw7c54swDdVm/07I3e2LWhFtM3Ld1alhrdsbK5XjI2wCioojOhERqj4P0+3YQ1s80hx60Y22HY+GYds87kqLve//3dK5EIu3M7As80MhwyPEsO+lLcJcI5SIRrP9n8a/oIBGU61eoPtTNvapiow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CdN4vjvY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yf5aT2NX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1A03C32782;
-	Fri, 12 Jul 2024 22:54:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CdN4vjvY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA301C32782;
+	Fri, 12 Jul 2024 22:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824886;
-	bh=M5EadN5Hl8Metwwh5zK9V7Tw+5ZmdV+ibLKMgZ6+83Q=;
+	s=korg; t=1720824887;
+	bh=+o/2jIGfj2Qz2cyakEJtdA2DDMlZqFRd4IqaAUmlW6I=;
 	h=Date:To:From:Subject:From;
-	b=Yf5aT2NXKQd77GDA+L6JL0NPuxYn94cZ3hfJhP+1vcFRyW7T2QIqtYL5zePO/PRX0
-	 +kYs53MN1wRe+rwZ0oMxgUreCi5BioEDwGglvCX0j0tC66wurcPC70H6o5TGz4XHf6
-	 /r6MkHelNpq0bCiW4YDESspzb7LSesSaBDU0sosI=
-Date: Fri, 12 Jul 2024 15:54:46 -0700
-To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,kent.overstreet@linux.dev,jack@suse.cz,hch@lst.de,christian.koenig@amd.com,akpm@linux-foundation.org,surenb@google.com,akpm@linux-foundation.org
+	b=CdN4vjvYCxN248YH9y/zBjdx+Q+YzWTWVWiNZRjoQ0f6HeCh4EVNb5SIWUztJzWj5
+	 CiXj/4xM/3/hv66vZr5UO/B612UBEoKWXc9TCWWPQt264rTziscU90zNOKlWJfThzm
+	 Bb25lI3mkxRIyuY0usGHRU1s+Z0PPFt33As33ogs=
+Date: Fri, 12 Jul 2024 15:54:47 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,quic_jjohnson@quicinc.com,mhocko@suse.com,hannes@cmpxchg.org,maarten.lankhorst@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch removed from -mm tree
-Message-Id: <20240712225446.A1A03C32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_counter-move-calculating-protection-values-to-page_counter.patch removed from -mm tree
+Message-Id: <20240712225447.AA301C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,197 +35,407 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add comments for allocation helpers explaining why they are macros
+     Subject: mm/page_counter: move calculating protection values to page_counter
 has been removed from the -mm tree.  Its filename was
-     mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros.patch
+     mm-page_counter-move-calculating-protection-values-to-page_counter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: add comments for allocation helpers explaining why they are macros
-Date: Wed, 3 Jul 2024 10:42:25 -0700
+From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Subject: mm/page_counter: move calculating protection values to page_counter
+Date: Wed, 3 Jul 2024 13:25:10 +0200
 
-A number of allocation helper functions were converted into macros to
-account them at the call sites.  Add a comment for each converted
-allocation helper explaining why it has to be a macro and why we typecast
-the return value wherever required.  The patch also moves
-acpi_os_acquire_object() closer to other allocation helpers to group them
-together under the same comment.  The patch has no functional changes.
+It's a lot of math, and there is nothing memcontrol specific about it. 
+This makes it easier to use inside of the drm cgroup controller.
 
-Link: https://lkml.kernel.org/r/20240703174225.3891393-1-surenb@google.com
-Fixes: 2c321f3f70bc ("mm: change inlined allocation helpers to account at the call site")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Thorsten Blum <thorsten.blum@toblux.com>
+[akpm@linux-foundation.org: fix kerneldoc, per Jeff Johnson]
+Link: https://lkml.kernel.org/r/20240703112510.36424-1-maarten.lankhorst@linux.intel.com
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/iostat.h                   |    4 ++++
- include/acpi/platform/aclinuxex.h |    9 ++++++---
- include/linux/bpf.h               |    4 ++++
- include/linux/dma-fence-chain.h   |    4 ++++
- include/linux/hid_bpf.h           |    5 +++++
- include/linux/jbd2.h              |   10 ++++++++++
- include/linux/skbuff.h            |    8 ++++++++
- include/linux/skmsg.h             |    5 +++++
- 8 files changed, 46 insertions(+), 3 deletions(-)
+ include/linux/page_counter.h |    4 
+ mm/memcontrol.c              |  154 -----------------------------
+ mm/page_counter.c            |  173 +++++++++++++++++++++++++++++++++
+ 3 files changed, 180 insertions(+), 151 deletions(-)
 
---- a/fs/nfs/iostat.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/fs/nfs/iostat.h
-@@ -46,6 +46,10 @@ static inline void nfs_add_stats(const s
- 	nfs_add_server_stats(NFS_SERVER(inode), stat, addend);
+--- a/include/linux/page_counter.h~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/include/linux/page_counter.h
+@@ -81,4 +81,8 @@ static inline void page_counter_reset_wa
+ 	counter->watermark = page_counter_read(counter);
  }
  
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define nfs_alloc_iostats()	alloc_percpu(struct nfs_iostats)
- 
- static inline void nfs_free_iostats(struct nfs_iostats __percpu *stats)
---- a/include/acpi/platform/aclinuxex.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/acpi/platform/aclinuxex.h
-@@ -46,6 +46,9 @@ acpi_status acpi_os_terminate(void);
-  * Interrupts are off during resume, just like they are for boot.
-  * However, boot has  (system_state != SYSTEM_RUNNING)
-  * to quiet __might_sleep() in kmalloc() and resume does not.
-+ *
-+ * These specialized allocators have to be macros for their allocations to be
-+ * accounted separately (to have separate alloc_tag).
-  */
- #define acpi_os_allocate(_size)	\
- 		kmalloc(_size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
-@@ -53,14 +56,14 @@ acpi_status acpi_os_terminate(void);
- #define acpi_os_allocate_zeroed(_size)	\
- 		kzalloc(_size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
- 
-+#define acpi_os_acquire_object(_cache)	\
-+		kmem_cache_zalloc(_cache, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
++void page_counter_calculate_protection(struct page_counter *root,
++				       struct page_counter *counter,
++				       bool recursive_protection);
 +
- static inline void acpi_os_free(void *memory)
- {
- 	kfree(memory);
- }
+ #endif /* _LINUX_PAGE_COUNTER_H */
+--- a/mm/memcontrol.c~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/mm/memcontrol.c
+@@ -4390,122 +4390,6 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.early_init = 0,
+ };
  
--#define acpi_os_acquire_object(_cache)	\
--		kmem_cache_zalloc(_cache, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL)
+-/*
+- * This function calculates an individual cgroup's effective
+- * protection which is derived from its own memory.min/low, its
+- * parent's and siblings' settings, as well as the actual memory
+- * distribution in the tree.
+- *
+- * The following rules apply to the effective protection values:
+- *
+- * 1. At the first level of reclaim, effective protection is equal to
+- *    the declared protection in memory.min and memory.low.
+- *
+- * 2. To enable safe delegation of the protection configuration, at
+- *    subsequent levels the effective protection is capped to the
+- *    parent's effective protection.
+- *
+- * 3. To make complex and dynamic subtrees easier to configure, the
+- *    user is allowed to overcommit the declared protection at a given
+- *    level. If that is the case, the parent's effective protection is
+- *    distributed to the children in proportion to how much protection
+- *    they have declared and how much of it they are utilizing.
+- *
+- *    This makes distribution proportional, but also work-conserving:
+- *    if one cgroup claims much more protection than it uses memory,
+- *    the unused remainder is available to its siblings.
+- *
+- * 4. Conversely, when the declared protection is undercommitted at a
+- *    given level, the distribution of the larger parental protection
+- *    budget is NOT proportional. A cgroup's protection from a sibling
+- *    is capped to its own memory.min/low setting.
+- *
+- * 5. However, to allow protecting recursive subtrees from each other
+- *    without having to declare each individual cgroup's fixed share
+- *    of the ancestor's claim to protection, any unutilized -
+- *    "floating" - protection from up the tree is distributed in
+- *    proportion to each cgroup's *usage*. This makes the protection
+- *    neutral wrt sibling cgroups and lets them compete freely over
+- *    the shared parental protection budget, but it protects the
+- *    subtree as a whole from neighboring subtrees.
+- *
+- * Note that 4. and 5. are not in conflict: 4. is about protecting
+- * against immediate siblings whereas 5. is about protecting against
+- * neighboring subtrees.
+- */
+-static unsigned long effective_protection(unsigned long usage,
+-					  unsigned long parent_usage,
+-					  unsigned long setting,
+-					  unsigned long parent_effective,
+-					  unsigned long siblings_protected)
+-{
+-	unsigned long protected;
+-	unsigned long ep;
 -
- static inline acpi_thread_id acpi_os_get_thread_id(void)
+-	protected = min(usage, setting);
+-	/*
+-	 * If all cgroups at this level combined claim and use more
+-	 * protection than what the parent affords them, distribute
+-	 * shares in proportion to utilization.
+-	 *
+-	 * We are using actual utilization rather than the statically
+-	 * claimed protection in order to be work-conserving: claimed
+-	 * but unused protection is available to siblings that would
+-	 * otherwise get a smaller chunk than what they claimed.
+-	 */
+-	if (siblings_protected > parent_effective)
+-		return protected * parent_effective / siblings_protected;
+-
+-	/*
+-	 * Ok, utilized protection of all children is within what the
+-	 * parent affords them, so we know whatever this child claims
+-	 * and utilizes is effectively protected.
+-	 *
+-	 * If there is unprotected usage beyond this value, reclaim
+-	 * will apply pressure in proportion to that amount.
+-	 *
+-	 * If there is unutilized protection, the cgroup will be fully
+-	 * shielded from reclaim, but we do return a smaller value for
+-	 * protection than what the group could enjoy in theory. This
+-	 * is okay. With the overcommit distribution above, effective
+-	 * protection is always dependent on how memory is actually
+-	 * consumed among the siblings anyway.
+-	 */
+-	ep = protected;
+-
+-	/*
+-	 * If the children aren't claiming (all of) the protection
+-	 * afforded to them by the parent, distribute the remainder in
+-	 * proportion to the (unprotected) memory of each cgroup. That
+-	 * way, cgroups that aren't explicitly prioritized wrt each
+-	 * other compete freely over the allowance, but they are
+-	 * collectively protected from neighboring trees.
+-	 *
+-	 * We're using unprotected memory for the weight so that if
+-	 * some cgroups DO claim explicit protection, we don't protect
+-	 * the same bytes twice.
+-	 *
+-	 * Check both usage and parent_usage against the respective
+-	 * protected values. One should imply the other, but they
+-	 * aren't read atomically - make sure the division is sane.
+-	 */
+-	if (!(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT))
+-		return ep;
+-	if (parent_effective > siblings_protected &&
+-	    parent_usage > siblings_protected &&
+-	    usage > protected) {
+-		unsigned long unclaimed;
+-
+-		unclaimed = parent_effective - siblings_protected;
+-		unclaimed *= usage - protected;
+-		unclaimed /= parent_usage - siblings_protected;
+-
+-		ep += unclaimed;
+-	}
+-
+-	return ep;
+-}
+-
+ /**
+  * mem_cgroup_calculate_protection - check if memory consumption is in the normal range
+  * @root: the top ancestor of the sub-tree being checked
+@@ -4517,8 +4401,8 @@ static unsigned long effective_protectio
+ void mem_cgroup_calculate_protection(struct mem_cgroup *root,
+ 				     struct mem_cgroup *memcg)
  {
- 	return (acpi_thread_id) (unsigned long)current;
---- a/include/linux/bpf.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/bpf.h
-@@ -2261,6 +2261,10 @@ void *bpf_map_kvcalloc(struct bpf_map *m
- void __percpu *bpf_map_alloc_percpu(const struct bpf_map *map, size_t size,
- 				    size_t align, gfp_t flags);
- #else
+-	unsigned long usage, parent_usage;
+-	struct mem_cgroup *parent;
++	bool recursive_protection =
++		cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+@@ -4526,39 +4410,7 @@ void mem_cgroup_calculate_protection(str
+ 	if (!root)
+ 		root = root_mem_cgroup;
+ 
+-	/*
+-	 * Effective values of the reclaim targets are ignored so they
+-	 * can be stale. Have a look at mem_cgroup_protection for more
+-	 * details.
+-	 * TODO: calculation should be more robust so that we do not need
+-	 * that special casing.
+-	 */
+-	if (memcg == root)
+-		return;
+-
+-	usage = page_counter_read(&memcg->memory);
+-	if (!usage)
+-		return;
+-
+-	parent = parent_mem_cgroup(memcg);
+-
+-	if (parent == root) {
+-		memcg->memory.emin = READ_ONCE(memcg->memory.min);
+-		memcg->memory.elow = READ_ONCE(memcg->memory.low);
+-		return;
+-	}
+-
+-	parent_usage = page_counter_read(&parent->memory);
+-
+-	WRITE_ONCE(memcg->memory.emin, effective_protection(usage, parent_usage,
+-			READ_ONCE(memcg->memory.min),
+-			READ_ONCE(parent->memory.emin),
+-			atomic_long_read(&parent->memory.children_min_usage)));
+-
+-	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
+-			READ_ONCE(memcg->memory.low),
+-			READ_ONCE(parent->memory.elow),
+-			atomic_long_read(&parent->memory.children_low_usage)));
++	page_counter_calculate_protection(&root->memory, &memcg->memory, recursive_protection);
+ }
+ 
+ static int charge_memcg(struct folio *folio, struct mem_cgroup *memcg,
+--- a/mm/page_counter.c~mm-page_counter-move-calculating-protection-values-to-page_counter
++++ a/mm/page_counter.c
+@@ -262,3 +262,176 @@ int page_counter_memparse(const char *bu
+ 
+ 	return 0;
+ }
++
++
 +/*
-+ * These specialized allocators have to be macros for their allocations to be
-+ * accounted separately (to have separate alloc_tag).
-+ */
- #define bpf_map_kmalloc_node(_map, _size, _flags, _node)	\
- 		kmalloc_node(_size, _flags, _node)
- #define bpf_map_kzalloc(_map, _size, _flags)			\
---- a/include/linux/dma-fence-chain.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/dma-fence-chain.h
-@@ -85,6 +85,10 @@ dma_fence_chain_contained(struct dma_fen
-  * dma_fence_chain_alloc
-  *
-  * Returns a new struct dma_fence_chain object or NULL on failure.
++ * This function calculates an individual page counter's effective
++ * protection which is derived from its own memory.min/low, its
++ * parent's and siblings' settings, as well as the actual memory
++ * distribution in the tree.
 + *
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-  */
- #define dma_fence_chain_alloc()	\
- 		((struct dma_fence_chain *)kmalloc(sizeof(struct dma_fence_chain), GFP_KERNEL))
---- a/include/linux/hid_bpf.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/hid_bpf.h
-@@ -152,6 +152,11 @@ static inline int hid_bpf_connect_device
- static inline void hid_bpf_disconnect_device(struct hid_device *hdev) {}
- static inline void hid_bpf_destroy_device(struct hid_device *hid) {}
- static inline void hid_bpf_device_init(struct hid_device *hid) {}
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
++ * The following rules apply to the effective protection values:
++ *
++ * 1. At the first level of reclaim, effective protection is equal to
++ *    the declared protection in memory.min and memory.low.
++ *
++ * 2. To enable safe delegation of the protection configuration, at
++ *    subsequent levels the effective protection is capped to the
++ *    parent's effective protection.
++ *
++ * 3. To make complex and dynamic subtrees easier to configure, the
++ *    user is allowed to overcommit the declared protection at a given
++ *    level. If that is the case, the parent's effective protection is
++ *    distributed to the children in proportion to how much protection
++ *    they have declared and how much of it they are utilizing.
++ *
++ *    This makes distribution proportional, but also work-conserving:
++ *    if one counter claims much more protection than it uses memory,
++ *    the unused remainder is available to its siblings.
++ *
++ * 4. Conversely, when the declared protection is undercommitted at a
++ *    given level, the distribution of the larger parental protection
++ *    budget is NOT proportional. A counter's protection from a sibling
++ *    is capped to its own memory.min/low setting.
++ *
++ * 5. However, to allow protecting recursive subtrees from each other
++ *    without having to declare each individual counter's fixed share
++ *    of the ancestor's claim to protection, any unutilized -
++ *    "floating" - protection from up the tree is distributed in
++ *    proportion to each counter's *usage*. This makes the protection
++ *    neutral wrt sibling cgroups and lets them compete freely over
++ *    the shared parental protection budget, but it protects the
++ *    subtree as a whole from neighboring subtrees.
++ *
++ * Note that 4. and 5. are not in conflict: 4. is about protecting
++ * against immediate siblings whereas 5. is about protecting against
++ * neighboring subtrees.
 + */
- #define call_hid_bpf_rdesc_fixup(_hdev, _rdesc, _size)	\
- 		((u8 *)kmemdup(_rdesc, *(_size), GFP_KERNEL))
- 
---- a/include/linux/jbd2.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/jbd2.h
-@@ -1588,6 +1588,11 @@ void jbd2_journal_put_journal_head(struc
-  */
- extern struct kmem_cache *jbd2_handle_cache;
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
++static unsigned long effective_protection(unsigned long usage,
++					  unsigned long parent_usage,
++					  unsigned long setting,
++					  unsigned long parent_effective,
++					  unsigned long siblings_protected,
++					  bool recursive_protection)
++{
++	unsigned long protected;
++	unsigned long ep;
++
++	protected = min(usage, setting);
++	/*
++	 * If all cgroups at this level combined claim and use more
++	 * protection than what the parent affords them, distribute
++	 * shares in proportion to utilization.
++	 *
++	 * We are using actual utilization rather than the statically
++	 * claimed protection in order to be work-conserving: claimed
++	 * but unused protection is available to siblings that would
++	 * otherwise get a smaller chunk than what they claimed.
++	 */
++	if (siblings_protected > parent_effective)
++		return protected * parent_effective / siblings_protected;
++
++	/*
++	 * Ok, utilized protection of all children is within what the
++	 * parent affords them, so we know whatever this child claims
++	 * and utilizes is effectively protected.
++	 *
++	 * If there is unprotected usage beyond this value, reclaim
++	 * will apply pressure in proportion to that amount.
++	 *
++	 * If there is unutilized protection, the cgroup will be fully
++	 * shielded from reclaim, but we do return a smaller value for
++	 * protection than what the group could enjoy in theory. This
++	 * is okay. With the overcommit distribution above, effective
++	 * protection is always dependent on how memory is actually
++	 * consumed among the siblings anyway.
++	 */
++	ep = protected;
++
++	/*
++	 * If the children aren't claiming (all of) the protection
++	 * afforded to them by the parent, distribute the remainder in
++	 * proportion to the (unprotected) memory of each cgroup. That
++	 * way, cgroups that aren't explicitly prioritized wrt each
++	 * other compete freely over the allowance, but they are
++	 * collectively protected from neighboring trees.
++	 *
++	 * We're using unprotected memory for the weight so that if
++	 * some cgroups DO claim explicit protection, we don't protect
++	 * the same bytes twice.
++	 *
++	 * Check both usage and parent_usage against the respective
++	 * protected values. One should imply the other, but they
++	 * aren't read atomically - make sure the division is sane.
++	 */
++	if (!recursive_protection)
++		return ep;
++
++	if (parent_effective > siblings_protected &&
++	    parent_usage > siblings_protected &&
++	    usage > protected) {
++		unsigned long unclaimed;
++
++		unclaimed = parent_effective - siblings_protected;
++		unclaimed *= usage - protected;
++		unclaimed /= parent_usage - siblings_protected;
++
++		ep += unclaimed;
++	}
++
++	return ep;
++}
++
++
++/**
++ * page_counter_calculate_protection - check if memory consumption is in the normal range
++ * @root: the top ancestor of the sub-tree being checked
++ * @counter: the page_counter the counter to update
++ * @recursive_protection: Whether to use memory_recursiveprot behavior.
++ *
++ * Calculates elow/emin thresholds for given page_counter.
++ *
++ * WARNING: This function is not stateless! It can only be used as part
++ *          of a top-down tree iteration, not for isolated queries.
 + */
- #define jbd2_alloc_handle(_gfp_flags)	\
- 		((handle_t *)kmem_cache_zalloc(jbd2_handle_cache, _gfp_flags))
- 
-@@ -1602,6 +1607,11 @@ static inline void jbd2_free_handle(hand
-  */
- extern struct kmem_cache *jbd2_inode_cache;
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define jbd2_alloc_inode(_gfp_flags)	\
- 		((struct jbd2_inode *)kmem_cache_alloc(jbd2_inode_cache, _gfp_flags))
- 
---- a/include/linux/skbuff.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/skbuff.h
-@@ -3400,6 +3400,10 @@ static inline struct page *__dev_alloc_p
- }
- #define __dev_alloc_pages(...)	alloc_hooks(__dev_alloc_pages_noprof(__VA_ARGS__))
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define dev_alloc_pages(_order) __dev_alloc_pages(GFP_ATOMIC | __GFP_NOWARN, _order)
- 
- /**
-@@ -3416,6 +3420,10 @@ static inline struct page *__dev_alloc_p
- }
- #define __dev_alloc_page(...)	alloc_hooks(__dev_alloc_page_noprof(__VA_ARGS__))
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag).
-+ */
- #define dev_alloc_page()	dev_alloc_pages(0)
- 
- /**
---- a/include/linux/skmsg.h~mm-add-comments-for-allocation-helpers-explaining-why-they-are-macros
-+++ a/include/linux/skmsg.h
-@@ -414,6 +414,11 @@ void sk_psock_stop_verdict(struct sock *
- int sk_psock_msg_verdict(struct sock *sk, struct sk_psock *psock,
- 			 struct sk_msg *msg);
- 
-+/*
-+ * This specialized allocator has to be a macro for its allocations to be
-+ * accounted separately (to have a separate alloc_tag). The typecast is
-+ * intentional to enforce typesafety.
-+ */
- #define sk_psock_init_link()	\
- 		((struct sk_psock_link *)kzalloc(sizeof(struct sk_psock_link),	\
- 						 GFP_ATOMIC | __GFP_NOWARN))
++void page_counter_calculate_protection(struct page_counter *root,
++				       struct page_counter *counter,
++				       bool recursive_protection)
++{
++	unsigned long usage, parent_usage;
++	struct page_counter *parent = counter->parent;
++
++	/*
++	 * Effective values of the reclaim targets are ignored so they
++	 * can be stale. Have a look at mem_cgroup_protection for more
++	 * details.
++	 * TODO: calculation should be more robust so that we do not need
++	 * that special casing.
++	 */
++	if (root == counter)
++		return;
++
++	usage = page_counter_read(counter);
++	if (!usage)
++		return;
++
++	if (parent == root) {
++		counter->emin = READ_ONCE(counter->min);
++		counter->elow = READ_ONCE(counter->low);
++		return;
++	}
++
++	parent_usage = page_counter_read(parent);
++
++	WRITE_ONCE(counter->emin, effective_protection(usage, parent_usage,
++			READ_ONCE(counter->min),
++			READ_ONCE(parent->emin),
++			atomic_long_read(&parent->children_min_usage),
++			recursive_protection));
++
++	WRITE_ONCE(counter->elow, effective_protection(usage, parent_usage,
++			READ_ONCE(counter->low),
++			READ_ONCE(parent->elow),
++			atomic_long_read(&parent->children_low_usage),
++			recursive_protection));
++}
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from maarten.lankhorst@linux.intel.com are
 
-alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
 
