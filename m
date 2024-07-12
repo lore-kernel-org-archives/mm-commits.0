@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BFFB73501;
-	Fri, 12 Jul 2024 22:47:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D426CDB3
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:48:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824464; cv=none; b=d6VfzEb0ptszyu963Mg+EB1pS7RTEh1pHl+Y+Vo0wDaBNTU12qXTcLZGgQ5QDEWhOcITxLDWS6uzN8JuwabNjRIhNan1qEfJzFc5/LHD0SgLrZV81ao9b3zCBk4UCdaAF2/cEUo+RT++n4xfap5oQYf4xNR8xcP6xgM5HmyFk6c=
+	t=1720824493; cv=none; b=k99hvFxdFslrx4loibrOdhV1U4ookPeBC+A3/umpgEfIeCKTuZywJG+gV94HE8NiYJyuWvztNvhnWIu2rui/YXzISYHiM9zcP0fW/+Se+Uzz2HcMRLxoY2mrG3Kd2BbvK13psuwhSkFFM26Uoef+EiHXgAolKocgTqSaLEvWD8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824464; c=relaxed/simple;
-	bh=gRiU7/EA212cMOIQDo8UkzabmqYFQWqDAGTwQzizaK8=;
-	h=Date:To:From:Subject:Message-Id; b=mq+pGmlyAs6fZq94qv6yUsxabkyFg/Wi97UeFU9EToj6Z7t+HMt0YNJjw8Zz8rfvVOy6IoYPRxaiD9fokBKw5C1RmE+b9hXC3NHEjwww/gNAB3hqh6hl8FFQB7IspRc13FQumBB6iHObqEXEK7nRcIxFobZJ0TLinHWbg5B3baQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MrdPFDm6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824493; c=relaxed/simple;
+	bh=9J16cLsd0uz32o9cN60jpyG8DIy8qG9mkVGvXGirxEY=;
+	h=Date:To:From:Subject:Message-Id; b=OzAvbEgfU7BoRrYyenA0FSeIwcrftme9vKvDat57wEx9ay4Yh3Tr5kpUZL6CxWp937mKRkZO4XezKwlviCxeLLPMVRfBmYMv+l6xGYPmJ25TPA5fPxo32zO/EXibPcan4LBkGO426h4yqps855l3bmaFWa+td7fZzIIcJQhi9oY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V7sm6cSw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MrdPFDm6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01FF7C32782;
-	Fri, 12 Jul 2024 22:47:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V7sm6cSw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8773CC32782;
+	Fri, 12 Jul 2024 22:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824464;
-	bh=gRiU7/EA212cMOIQDo8UkzabmqYFQWqDAGTwQzizaK8=;
+	s=korg; t=1720824492;
+	bh=9J16cLsd0uz32o9cN60jpyG8DIy8qG9mkVGvXGirxEY=;
 	h=Date:To:From:Subject:From;
-	b=MrdPFDm6KMDv1vtDtqMdZVGF4mo62x/vftOQ7FpHuwPRhGowOEGLGCCUpu2H3vkV6
-	 VokYNjgqMcyao1nMCpuR8eiGwGL6TF1o1OnkYiHEU0Jn067V7RZfHF1VrftmNFmAI4
-	 JMzSJtiyQGKlY5UuMIwgYVnNKXCgKtStYjEJiHu4=
-Date: Fri, 12 Jul 2024 15:47:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shy828301@gmail.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=V7sm6cSwn2sy1NfACYu9CmejIwr8x0YI2Voc3hVqxyS5pC0cZkCP0odBjuiI4kEsK
+	 97Unn6Zmjj0qDn4QMXJduDgPMU9UI8jQtX6ALbr4jDdQ09l4n3WYtuJXJjz2bGp378
+	 Llr5oeK73bLiwKFStN/XMBwOhKGh7/HoNd5D95KE=
+Date: Fri, 12 Jul 2024 15:48:12 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,usama.anjum@collabora.com,svetly.todorov@memverge.com,ryan.roberts@arm.com,david@redhat.com,corbet@lwn.net,avagin@google.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-khugepaged-activation-policy-v3.patch removed from -mm tree
-Message-Id: <20240712224744.01FF7C32782@smtp.kernel.org>
+Subject: [folded-merged] kpageflags-detect-isolated-kpf_thp-folios-v2.patch removed from -mm tree
+Message-Id: <20240712224812.8773CC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-fix-khugepaged-activation-policy-v3
+     Subject: kpageflags: detect isolated KPF_THP folios
 has been removed from the -mm tree.  Its filename was
-     mm-fix-khugepaged-activation-policy-v3.patch
+     kpageflags-detect-isolated-kpf_thp-folios-v2.patch
 
-This patch was dropped because it was folded into mm-fix-khugepaged-activation-policy.patch
+This patch was dropped because it was folded into kpageflags-detect-isolated-kpf_thp-folios.patch
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm-fix-khugepaged-activation-policy-v3
-Date: Fri, 5 Jul 2024 11:28:48 +0100
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: kpageflags: detect isolated KPF_THP folios
+Date: Mon, 8 Jul 2024 06:26:01 +0000
 
-- Make hugepage_pmd_enabled() out-of-line static in khugepaged.c (per Andrew)
-- Refactor hugepage_pmd_enabled() for better readability (per Andrew)
+directly use is_zero_folio(), per David
 
-Link: https://lkml.kernel.org/r/20240705102849.2479686-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Fixes: 3485b88390b0 ("mm: thp: introduce multi-size THP sysfs interface")
-Closes: https://lore.kernel.org/linux-mm/7a0bbe69-1e3d-4263-b206-da007791a5c4@redhat.com/
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20240708062601.165215-1-ranxiaokai627@163.com
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Andrei Vagin <avagin@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   13 -------------
- mm/khugepaged.c         |   20 ++++++++++++++++++++
- 2 files changed, 20 insertions(+), 13 deletions(-)
+ fs/proc/page.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-fix-khugepaged-activation-policy-v3
-+++ a/include/linux/huge_mm.h
-@@ -128,19 +128,6 @@ static inline bool hugepage_global_alway
- 			(1<<TRANSPARENT_HUGEPAGE_FLAG);
- }
+--- a/fs/proc/page.c~kpageflags-detect-isolated-kpf_thp-folios-v2
++++ a/fs/proc/page.c
+@@ -154,7 +154,7 @@ u64 stable_page_flags(const struct page
+ 	} else if (is_huge_zero_folio(folio)) {
+ 		u |= 1 << KPF_ZERO_PAGE;
+ 		u |= 1 << KPF_THP;
+-	} else if (is_zero_pfn(page_to_pfn(page))) {
++	} else if (is_zero_folio(folio)) {
+ 		u |= 1 << KPF_ZERO_PAGE;
+ 	}
  
--static inline bool hugepage_pmd_enabled(void)
--{
--	/*
--	 * We cover both the anon and the file-backed case here; file-backed
--	 * hugepages, when configured in, are determined by the global control.
--	 * Anon pmd-sized hugepages are determined by the pmd-size control.
--	 */
--	return (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && hugepage_global_enabled()) ||
--	       test_bit(PMD_ORDER, &huge_anon_orders_always) ||
--	       test_bit(PMD_ORDER, &huge_anon_orders_madvise) ||
--	       (test_bit(PMD_ORDER, &huge_anon_orders_inherit) && hugepage_global_enabled());
--}
--
- static inline int highest_order(unsigned long orders)
- {
- 	return fls_long(orders) - 1;
---- a/mm/khugepaged.c~mm-fix-khugepaged-activation-policy-v3
-+++ a/mm/khugepaged.c
-@@ -413,6 +413,26 @@ static inline int hpage_collapse_test_ex
- 	       test_bit(MMF_DISABLE_THP, &mm->flags);
- }
- 
-+static bool hugepage_pmd_enabled(void)
-+{
-+	/*
-+	 * We cover both the anon and the file-backed case here; file-backed
-+	 * hugepages, when configured in, are determined by the global control.
-+	 * Anon pmd-sized hugepages are determined by the pmd-size control.
-+	 */
-+	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
-+	    hugepage_global_enabled())
-+		return true;
-+	if (test_bit(PMD_ORDER, &huge_anon_orders_always))
-+		return true;
-+	if (test_bit(PMD_ORDER, &huge_anon_orders_madvise))
-+		return true;
-+	if (test_bit(PMD_ORDER, &huge_anon_orders_inherit) &&
-+	    hugepage_global_enabled())
-+		return true;
-+	return false;
-+}
-+
- void __khugepaged_enter(struct mm_struct *mm)
- {
- 	struct khugepaged_mm_slot *mm_slot;
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-mm-fix-khugepaged-activation-policy.patch
-mm-shmem-rename-mthp-shmem-counters.patch
+kpageflags-detect-isolated-kpf_thp-folios.patch
 
