@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39A2F127E0F
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41EFF127E0F
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824919; cv=none; b=IKcBIsdxsZDjOtXo6k8w/rU2BYeG50n96+cAMl6N5FN5GjJUY/yqd6HGiuTgjjvRnnISwlubHT04I7Puuj1fSCWAzXQ8ehZyh63MZbM30UFC5+DZZ892MJe62xfIVDLmgzn+1rr+BJps+PLFA0uhryAEOpYMr6XFOuG7wqqMOpE=
+	t=1720824920; cv=none; b=m7LFBweJIJ6WAe8a+4CDzf/ecNKHmQWEHg7CoDhJtP56cxAV/Ner/0kOlRdX5iKM8nMNgoIdaix9nrx9+uSOPXLCrVXwhFggOlvoslsow6Yghv8+yhg48w9M0F5i43xzEIsVYc4pTUlqYm0ctD3019EZq0NKQ/B6AGbXZyr5TrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824919; c=relaxed/simple;
-	bh=VQ34EeR/NzeLIK9cjNIv2IC7epKeuhzaYq8qEEGsznI=;
-	h=Date:To:From:Subject:Message-Id; b=Fxm5U+m2TUSsFj0gxzhhEXcnEaz7kfytcVnTvNcf4RKSWKVL3WT9F3XJGeiY7ldL1PHpX79JYPKCUgclmACbHCX+LD2+9ILyAk/ZIZIYDa/ssy8TgRP14hmO9keEpAmmCsQPVvHiHYgj5OR3A2Ci6mEb9OPyWlITWcFQ5a5Q5qY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JMzkyfRn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824920; c=relaxed/simple;
+	bh=yGS8PGbz4To07LdibWqv/t6QevwRNjHsY4PG76mjprQ=;
+	h=Date:To:From:Subject:Message-Id; b=MsCtFEVL85PqWg+noC2z6tqmmDiNMZZ/HOxuqSNJg1Aa0tHeuqgcaf9gp0UldkVqYBFF6pmtD0eFf3vh7ZxjKz+QRxWpxedxRGAYwXLS7vrzebyDwTeyDBhWqSznjHTgUT236nK/nwTWBeaE/KAId7xduLY73qhUOw20hQelejw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBz34v6v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JMzkyfRn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1181AC32782;
-	Fri, 12 Jul 2024 22:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBz34v6v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17166C32782;
+	Fri, 12 Jul 2024 22:55:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824919;
-	bh=VQ34EeR/NzeLIK9cjNIv2IC7epKeuhzaYq8qEEGsznI=;
+	s=korg; t=1720824920;
+	bh=yGS8PGbz4To07LdibWqv/t6QevwRNjHsY4PG76mjprQ=;
 	h=Date:To:From:Subject:From;
-	b=JMzkyfRneVCPE3hiqNpzLawgV/ALx67ZrTuPd8SDH4tcFHPORfDlAwupKmoSNrC/I
-	 +OQda9/jbgHW7TwIl/sACExugRRH0GV/GEzx1KfuKVIZoIR1SFqAah3EOAzW01aG8M
-	 iMhPhvuhTBIuvOy/FZCwDUs35MXDoHr5Xmamx7zc=
-Date: Fri, 12 Jul 2024 15:55:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,souravpanda@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,keescook@chromium.org,surenb@google.com,akpm@linux-foundation.org
+	b=sBz34v6vot8j/doSWPK0zm8RnRjgaYw5fXp4ABUSCFIdywh5uZie2t+FqD1bgw2tc
+	 r+fmMm3NJxuOO5IHq41L9dDVTQnT99+419KAvYpLQTuMYWdNc0dpatx/yKGi5IMGvd
+	 h8dKH/L1rS9rwSocWX9stXsbCYa+PS9RNpWCkKLk=
+Date: Fri, 12 Jul 2024 15:55:19 -0700
+To: mm-commits@vger.kernel.org,dan.carpenter@linaro.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alloc_tag-fix-page_ext_get-page_ext_put-sequence-during-page-splitting.patch removed from -mm tree
-Message-Id: <20240712225519.1181AC32782@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix.patch removed from -mm tree
+Message-Id: <20240712225520.17166C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: alloc_tag: fix page_ext_get/page_ext_put sequence during page splitting
+     Subject: mm: memcg1: convert charge move flags to unsigned long long
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-fix-page_ext_get-page_ext_put-sequence-during-page-splitting.patch
+     mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: fix page_ext_get/page_ext_put sequence during page splitting
-Date: Thu, 11 Jul 2024 15:04:57 -0700
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: memcg1: convert charge move flags to unsigned long long
+Date: Fri, 12 Jul 2024 18:35:14 +0000
 
-pgalloc_tag_sub() might call page_ext_put() using a page different from
-the one used in page_ext_get() call.  This does not pose an issue since
-page_ext_put() ignores this parameter as long as it's non-NULL but
-technically this is wrong.  Fix it by storing the original page used in
-page_ext_get() and passing it to page_ext_put().
+Currently MOVE_ANON and MOVE_FILE flags are defined as integers
+and it leads to the following Smatch static checker warning:
+    mm/memcontrol-v1.c:609 mem_cgroup_move_charge_write()
+    warn: was expecting a 64 bit value instead of '~(1 | 2)'
 
-Link: https://lkml.kernel.org/r/20240711220457.1751071-3-surenb@google.com
-Fixes: be25d1d4e822 ("mm: create new codetag references during page splitting")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Fix this be redefining them as unsigned long long.
+
+Even though the issue allows to set high 32 bits of mc.flags
+to an arbitrary number, these bits are never used, so it doesn't
+have any significant consequences.
+
+Link: https://lkml.kernel.org/r/ZpF8Q9zBsIY7d2P9@google.com
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgalloc_tag.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memcontrol-v1.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pgalloc_tag.h~alloc_tag-fix-page_ext_get-page_ext_put-sequence-during-page-splitting
-+++ a/include/linux/pgalloc_tag.h
-@@ -71,6 +71,7 @@ static inline void pgalloc_tag_sub(struc
- static inline void pgalloc_tag_split(struct page *page, unsigned int nr)
- {
- 	int i;
-+	struct page_ext *first_page_ext;
- 	struct page_ext *page_ext;
- 	union codetag_ref *ref;
- 	struct alloc_tag *tag;
-@@ -78,7 +79,7 @@ static inline void pgalloc_tag_split(str
- 	if (!mem_alloc_profiling_enabled())
- 		return;
+--- a/mm/memcontrol-v1.c~mm-memcg-move-charge-migration-code-to-memcontrol-v1c-fix
++++ a/mm/memcontrol-v1.c
+@@ -44,8 +44,8 @@ static struct mem_cgroup_tree soft_limit
+ /*
+  * Types of charges to be moved.
+  */
+-#define MOVE_ANON	0x1U
+-#define MOVE_FILE	0x2U
++#define MOVE_ANON	0x1ULL
++#define MOVE_FILE	0x2ULL
+ #define MOVE_MASK	(MOVE_ANON | MOVE_FILE)
  
--	page_ext = page_ext_get(page);
-+	first_page_ext = page_ext = page_ext_get(page);
- 	if (unlikely(!page_ext))
- 		return;
- 
-@@ -94,7 +95,7 @@ static inline void pgalloc_tag_split(str
- 		page_ext = page_ext_next(page_ext);
- 	}
- out:
--	page_ext_put(page_ext);
-+	page_ext_put(first_page_ext);
- }
- 
- static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
+ /* "mc" and its members are protected by cgroup_mutex */
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-alloc_tag-export-memory-allocation-profiling-symbols-used-by-modules.patch
 
