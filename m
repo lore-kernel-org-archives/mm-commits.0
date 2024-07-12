@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DDC512EBF5;
-	Fri, 12 Jul 2024 22:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40C2512DD8E
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jul 2024 22:55:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720824907; cv=none; b=XnWzEWOjFh0aAM83yIeH3ZyZH7FYuiE8B8PPlG3a5ppUzhFCWa1Z3yEkCUu/H2z/Lp23XEp9Rrq46IAu5dkAK3Xgrd0Wvxc9egbIr9NOLxe6KHvkjrutCCTBwSZvt9ocEbsX64wOgInw1vMP28Um2rOQ6DUwLtEYc3dcPRCRpMs=
+	t=1720824909; cv=none; b=jVWua6TB6BQYLlUSWzeSspIp0ZBFCWJnH/UTPlcB5x5wBy7cHrYr3S3I2AqCpONCn/SO1RMZ9Bqgyb6WJajxudgGkUqWtCy8dPfDnnoQgb8C+OLoDjOR960blH1BeCdzzKySJyMIBTbWey0mF9ktVTKblsYtdFa5BWsa1NNONlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720824907; c=relaxed/simple;
-	bh=rZ7eTq6piSjZSl3TMYsnSoqxST7wMx/oma0crEcOp4w=;
-	h=Date:To:From:Subject:Message-Id; b=KrRJqbBTu/aCarnSf1L8Vb0q011w9CWxhidIOLlZ1WXE1pxXMTnJKAudlmNNzSFjMcAAkuiEg8T+gykkPFnYTr1G2bLU/C6YPKG48VsDqbpd4R3V5W3AJgGQrh5E/C3qTbxNA/WR1lTSxYggmHU7dMfNH1RM0Cm/+p/ENCUJXdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PjMsScNM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720824909; c=relaxed/simple;
+	bh=dLCZjCBSSLcjtFTSo3qQcy5SPw59Mp0JB233xZFFneQ=;
+	h=Date:To:From:Subject:Message-Id; b=hdivCvXvLEWA6es1GAyxHcFOwVgFtUK6cKFbszKZO5XTrrom3nNKPnus9gkhKNatx+ShwVcPkijyTTAIVgIAK/M18zMFxZBxFvtQK7gUhhd3RKstj3UHEuh5PpMRuFJuv4fKCnoBH1JaU26Ha0wi1ePL9ntBhKnd4YyGPNqluDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zfkPg3jz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PjMsScNM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63FFEC32782;
-	Fri, 12 Jul 2024 22:55:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zfkPg3jz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 160ACC32782;
+	Fri, 12 Jul 2024 22:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1720824907;
-	bh=rZ7eTq6piSjZSl3TMYsnSoqxST7wMx/oma0crEcOp4w=;
+	s=korg; t=1720824909;
+	bh=dLCZjCBSSLcjtFTSo3qQcy5SPw59Mp0JB233xZFFneQ=;
 	h=Date:To:From:Subject:From;
-	b=PjMsScNMW6jYREazUPMTmjTxV/PmdCHScWeoovjhQsDADpjzThI38N7SJJjVx93S8
-	 4ks2Wn9K1SpMUughhz8fX2j6euGrT+SoEcQ1RaFoyqyGYUqhsOdJIvUG3zdkarM9gU
-	 zRtpI87BZV0TLkDt3hV95lfszch8fDozX5zQac9o=
-Date: Fri, 12 Jul 2024 15:55:06 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=zfkPg3jzX5JLRn3/zmkO/t3Mai6SkNxIlFwkg1f/8r5Sde6qDHH67moxHuXJl488S
+	 kKalSPAFNzrceXeCEEXCM55oiVJJjqCM9RqBZpQRcTYxbKKA75MNmGWGvji0jEOhQY
+	 fQVPzOgNZQaugO9B3yUFxKBMhoGl6nhStlcJ1Yws=
+Date: Fri, 12 Jul 2024 15:55:08 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tonyb@cybernetics.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,muchun.song@linux.dev,luto@kernel.org,kirill.shutemov@linux.intel.com,david@redhat.com,ast@kernel.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch removed from -mm tree
-Message-Id: <20240712225507.63FFEC32782@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch removed from -mm tree
+Message-Id: <20240712225509.160ACC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,132 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix potential race with try_memory_failure_hugetlb()
+     Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb.patch
+     hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix potential race with try_memory_failure_hugetlb()
-Date: Wed, 10 Jul 2024 16:14:45 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: hugetlbfs: ensure generic_hugetlb_get_unmapped_area() returns higher address than mmap_min_addr
+Date: Wed, 10 Jul 2024 00:19:12 -0500
 
-There is a potential race between __update_and_free_hugetlb_folio() and
-try_memory_failure_hugetlb():
+generic_hugetlb_get_unmapped_area() was returning an address less than
+mmap_min_addr if the mmap argument addr, after alignment, was less than
+mmap_min_addr, causing mmap to fail.
 
- CPU1					CPU2
- __update_and_free_hugetlb_folio	try_memory_failure_hugetlb
-  					 spin_lock_irq(&hugetlb_lock);
-					 __get_huge_page_for_hwpoison
-					  folio_test_hugetlb
-					  -- It's still hugetlb folio.
-  folio_test_hugetlb_raw_hwp_unreliable
-  -- raw_hwp_unreliable flag is not set yet.
-					  folio_set_hugetlb_hwpoison
-					  -- raw_hwp_unreliable flag might
-					     be set.
-					 spin_unlock_irq(&hugetlb_lock);
-  spin_lock_irq(&hugetlb_lock);
-  __folio_clear_hugetlb(folio);
-   -- Hugetlb flag is cleared but too late!
-  spin_unlock_irq(&hugetlb_lock);
+This is because current generic_hugetlb_get_unmapped_area() code does not
+take into account mmap_min_addr.
 
-When this race occurs, raw error pages will hit pcplists/buddy.  Fix this
-issue by deferring folio_test_hugetlb_raw_hwp_unreliable() until
-__folio_clear_hugetlb() is done.  The raw_hwp_unreliable flag cannot be
-set after hugetlb folio flag is cleared.
+This patch ensures that generic_hugetlb_get_unmapped_area() always returns
+an address that is greater than mmap_min_addr.  Additionally, similar to
+generic_get_unmapped_area(), vm_end_gap() checks are included to maintain
+stack gap.
 
-Link: https://lkml.kernel.org/r/20240710081445.3307355-1-linmiaohe@huawei.com
-Fixes: 32c877191e02 ("hugetlb: do not clear hugetlb dtor until allocating vmemmap")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+How to reproduce
+================
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <sys/mman.h>
+ #include <unistd.h>
+
+ #define HUGEPAGE_SIZE (16 * 1024 * 1024)
+
+ int main() {
+
+    void *addr = mmap((void *)-1, HUGEPAGE_SIZE,
+                 PROT_READ | PROT_WRITE,
+                 MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+    if (addr == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf((char *)addr, HUGEPAGE_SIZE, "Hello, Huge Pages!");
+
+    printf("%s\n", (char *)addr);
+
+    if (munmap(addr, HUGEPAGE_SIZE) == -1) {
+        perror("munmap");
+        exit(EXIT_FAILURE);
+    }
+
+    return 0;
+ }
+
+Result without fix
+==================
+ # cat /proc/meminfo |grep -i HugePages_Free
+ HugePages_Free:       20
+ # ./test
+ mmap: Permission denied
+ #
+
+Result with fix
+===============
+ # cat /proc/meminfo |grep -i HugePages_Free
+ HugePages_Free:       20
+ # ./test
+ Hello, Huge Pages!
+ #
+
+Link: https://lkml.kernel.org/r/20240710051912.4681-1-donettom@linux.ibm.com
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reported-by Pavithra Prakash <pavrampu@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/hugetlbfs/inode.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-potential-race-with-try_memory_failure_hugetlb
-+++ a/mm/hugetlb.c
-@@ -1706,13 +1706,6 @@ static void __update_and_free_hugetlb_fo
- 		return;
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-ensure-generic_hugetlb_get_unmapped_area-returns-higher-address-than-mmap_min_addr
++++ a/fs/hugetlbfs/inode.c
+@@ -222,13 +222,13 @@ generic_hugetlb_get_unmapped_area(struct
+ 				  unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
++	struct vm_area_struct *vma, *prev;
+ 	struct hstate *h = hstate_file(file);
+ 	const unsigned long mmap_end = arch_get_mmap_end(addr, len, flags);
  
- 	/*
--	 * If we don't know which subpages are hwpoisoned, we can't free
--	 * the hugepage, so it's leaked intentionally.
--	 */
--	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
--		return;
--
--	/*
- 	 * If folio is not vmemmap optimized (!clear_flag), then the folio
- 	 * is no longer identified as a hugetlb page.  hugetlb_vmemmap_restore_folio
- 	 * can only be passed hugetlb pages and will BUG otherwise.
-@@ -1730,6 +1723,13 @@ static void __update_and_free_hugetlb_fo
+ 	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+-	if (len > TASK_SIZE)
++	if (len > mmap_end - mmap_min_addr)
+ 		return -ENOMEM;
+ 
+ 	if (flags & MAP_FIXED) {
+@@ -239,9 +239,10 @@ generic_hugetlb_get_unmapped_area(struct
+ 
+ 	if (addr) {
+ 		addr = ALIGN(addr, huge_page_size(h));
+-		vma = find_vma(mm, addr);
+-		if (mmap_end - len >= addr &&
+-		    (!vma || addr + len <= vm_start_gap(vma)))
++		vma = find_vma_prev(mm, addr, &prev);
++		if (mmap_end - len >= addr && addr >= mmap_min_addr &&
++		    (!vma || addr + len <= vm_start_gap(vma)) &&
++		    (!prev || addr >= vm_end_gap(prev)))
+ 			return addr;
  	}
  
- 	/*
-+	 * If we don't know which subpages are hwpoisoned, we can't free
-+	 * the hugepage, so it's leaked intentionally.
-+	 */
-+	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
-+		return;
-+
-+	/*
- 	 * Move PageHWPoison flag from head page to the raw error pages,
- 	 * which makes any healthy subpages reusable.
- 	 */
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-memory-failure-fix-vm_bug_on_pagepagepoisonedpage-when-unpoison-memory.patch
-mm-hugetlb-fix-possible-recursive-locking-detected-warning.patch
 
