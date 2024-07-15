@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DC7213D88E
-	for <mm-commits@vger.kernel.org>; Mon, 15 Jul 2024 20:30:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D89FB22626
+	for <mm-commits@vger.kernel.org>; Mon, 15 Jul 2024 23:26:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721075457; cv=none; b=sok7neSHZYj9tKrEfjQmd5m2btqO5ljhCRKgeDextyWC18byn/s4wktGjKxG4basRjROAGesa6OfRLRrHX91NT4cULLg1pC5ICbP+V7ALivI66rB6/4jH9t9HpFanSGKgFGiq+RyT1PuUGMmYsIJ3tSDQ3rDf0IRGx2xpPMqB64=
+	t=1721086001; cv=none; b=X+bPUA+yRzcCVArS6dxEYlsbURro7n1V/J55T/m6qoZgtJzB5YPE283hr+flvXJepCwmz2OMXlqELj4mBG/Psgs77byGl80sPIWcMUQ5knSooys4DN02OPiF1BuMsWgvox8g9JZgRujHP9yjJUK9i+rjqEUvvsyXmHftjt2n3fA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721075457; c=relaxed/simple;
-	bh=fCQR1H5fLEhhOTmgHDR0wBJnSQsYpVEQjkroW8Fsa80=;
-	h=Date:To:From:Subject:Message-Id; b=lpczEmhq9VnpCj7Q4k9tZneRXsL6NJuigFwgxfiaFrbF3o3Dwi3HmgGVcTMcSEh2kSa83ObZX8oBLP6mUkYw5/jVlOTRyRKOKJn22aMJLRpwacCXMtyHSQ200Av+pSpdGPeTKiavD3lHB6rGmaFgCy5hS6Dg5wfWGiUZz+Y8Z7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mrYSkwux; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721086001; c=relaxed/simple;
+	bh=0V2MzcK2utOLeLnmuAeY1lcSQgDKjjnJq3lE1zlYFAY=;
+	h=Date:To:From:Subject:Message-Id; b=Bb5rr/5vsnwGHabX0WICZDJAft8EUuBu6tGe92MjFQ9wwnNc7IKDvtzBq2F/ML6FayqIBgS04LVpoCiE8oLhAuCzgVir2gD3yc9B8t0TDRZ23z3xWlGjaGcxMeP820zAu+hVjqR/I0BVH2sIY1wmx+wzYTUVRPiObJUlZWAJTUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LGtsFASA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mrYSkwux"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E649C32782;
-	Mon, 15 Jul 2024 20:30:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LGtsFASA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87925C32782;
+	Mon, 15 Jul 2024 23:26:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721075456;
-	bh=fCQR1H5fLEhhOTmgHDR0wBJnSQsYpVEQjkroW8Fsa80=;
+	s=korg; t=1721086000;
+	bh=0V2MzcK2utOLeLnmuAeY1lcSQgDKjjnJq3lE1zlYFAY=;
 	h=Date:To:From:Subject:From;
-	b=mrYSkwux+4P0ukuxtxrv92LUwuxTEZ5ghpimo9lX9TrPUwTh9gPGKdBweJegpUcvi
-	 DwfPrLrKaWMR/K5RhoK3kqvm6uUt8Zbxcvtr8wHRM7e6+XZlrJAwzmFjouQknv/u78
-	 741tOuUwkWQMUSBkROVXs7Q5qRgp1Fyw2SVuzfFg=
-Date: Mon, 15 Jul 2024 13:30:55 -0700
-To: mm-commits@vger.kernel.org,wuqiang.matt@bytedance.com,mhiramat@kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
+	b=LGtsFASATQMjoDhRh5uOOYiWfd5ETxzxTs5bBeQMSNj4Xm+1RJsfMvEe3e3S3Ix8E
+	 2V8ADWkCezXxZD+098HgZmPUH+wCXb8I7nVbxkbTP0oGrlK97UCZNhQyASUiNnBz+D
+	 3MoZAXoZ342+7UdYIiFvvl+dUvokiGuVQjTB81QQ=
+Date: Mon, 15 Jul 2024 16:26:39 -0700
+To: mm-commits@vger.kernel.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_objpool-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240715203056.7E649C32782@smtp.kernel.org>
+Subject: + ia64-scrub-ia64-from-poisonh.patch added to mm-nonmm-unstable branch
+Message-Id: <20240715232640.87925C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: test_objpool: add missing MODULE_DESCRIPTION() macro
+     Subject: ia64: scrub ia64 from poison.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_objpool-add-missing-module_description-macro.patch
+     ia64-scrub-ia64-from-poisonh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_objpool-add-missing-module_description-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-scrub-ia64-from-poisonh.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,38 +58,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Subject: lib: test_objpool: add missing MODULE_DESCRIPTION() macro
-Date: Mon, 15 Jul 2024 07:18:56 -0700
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ia64: scrub ia64 from poison.h
+Date: Mon, 15 Jul 2024 08:25:33 +0300
 
-make allmodconfig && make W=1 C=1 reports:
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/test_objpool.o
-
-Add the missing invocation of the MODULE_DESCRIPTION() macro.
-
-Link: https://lkml.kernel.org/r/20240715-md-lib-test_objpool-v2-1-5a2b9369c37e@quicinc.com
-Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
-Reviewed-by: Matt Wu <wuqiang.matt@bytedance.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: https://lkml.kernel.org/r/c72e5467-06a8-4739-ae6a-7c84c96cad77@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_objpool.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/poison.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/lib/test_objpool.c~lib-test_objpool-add-missing-module_description-macro
-+++ a/lib/test_objpool.c
-@@ -687,4 +687,5 @@ static void __exit ot_mod_exit(void)
- module_init(ot_mod_init);
- module_exit(ot_mod_exit);
+--- a/include/linux/poison.h~ia64-scrub-ia64-from-poisonh
++++ a/include/linux/poison.h
+@@ -52,12 +52,6 @@
+ /********** arch/$ARCH/mm/init.c **********/
+ #define POISON_FREE_INITMEM	0xcc
  
--MODULE_LICENSE("GPL");
-\ No newline at end of file
-+MODULE_DESCRIPTION("Test module for lockless object pool");
-+MODULE_LICENSE("GPL");
+-/********** arch/ia64/hp/common/sba_iommu.c **********/
+-/*
+- * arch/ia64/hp/common/sba_iommu.c uses a 16-byte poison string with a
+- * value of "SBAIOMMU POISON\0" for spill-over poisoning.
+- */
+-
+ /********** fs/jbd/journal.c **********/
+ #define JBD_POISON_FREE		0x5b
+ #define JBD2_POISON_FREE	0x5c
 _
 
-Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-lib-test_objpool-add-missing-module_description-macro.patch
+ia64-scrub-ia64-from-poisonh.patch
 
