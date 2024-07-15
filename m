@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CCFC208A9;
-	Mon, 15 Jul 2024 23:35:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895E31E890;
+	Mon, 15 Jul 2024 23:48:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721086540; cv=none; b=fVXHT0OZ5PMDOPEvgA7l9MiDz3oUUBVjuFXXI0z/uwcnH7C6USvEjE3WLHLs9kV/NA0hEqHmGIEvroB/Lk/zPv5Igur+/CrNzPEC+bK56vq5SU2E6u7dyzUE2RgA5Vov3R7o4FbGuopYsL4MMifu1HTFdffcVda50qPZ6TY/Bpk=
+	t=1721087296; cv=none; b=fQk7fcLzqOoieiWl7lfilDYW+cBa3jsuOMm34tsuQLHlj7PPfoc51fGEPI4N/hvd01419/ZFJNQI8F/tzwEfFEVhyw+boYOxlpcyCaLfUaIoOz+gkYuFBjsvtL+daGoYuPCPV+Mn1XtFE4AvrY6axIL9T3cO03+8ITPUGnJS1Kc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721086540; c=relaxed/simple;
-	bh=rfcDkYHnmVPeWCmDCIvvc173cwPGZmKlWrcWXLgMdRU=;
-	h=Date:To:From:Subject:Message-Id; b=sFUDey8ztSSf4B69jPNtYA0Xh7zg+Fh/hj310hUqm11tW9GDAWwh6bFHWP2oD5WcpUOZzboLrZV4EsE2f4Pq8dmvM5xVRHl2ndAfK4w27WIF8gmWHXrWwBzNXiJ4JJEbExNDLVjF2hbFYpnNq3TsSHb9oB+PvK0hr/Tgjpz6eAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gi8pENbh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721087296; c=relaxed/simple;
+	bh=YrTcrRWzMaNm2QxGF+2IO46GlIP/f9g2nMPw5HtpaUA=;
+	h=Date:To:From:Subject:Message-Id; b=RUas6pzWswexU1bV99E2vTAdc6hHIek+38i3VGzgaOhn6PwYKiAj5N76fonSN8PSOj+6YRCanMqXazYVqmpv8jFqqQQm9Q6mZR7cH1j4Y+Pi1gYm4ep5tqTboT2qot8cBTU6q8SXCxWQKjMcGVflwHUxOAJWqH/csFB+lzkwEpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=It45uAtV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gi8pENbh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76161C32782;
-	Mon, 15 Jul 2024 23:35:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="It45uAtV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7ED8C32782;
+	Mon, 15 Jul 2024 23:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721086539;
-	bh=rfcDkYHnmVPeWCmDCIvvc173cwPGZmKlWrcWXLgMdRU=;
+	s=korg; t=1721087296;
+	bh=YrTcrRWzMaNm2QxGF+2IO46GlIP/f9g2nMPw5HtpaUA=;
 	h=Date:To:From:Subject:From;
-	b=Gi8pENbhrZyyCpwR4bL+6K/YrsFSvHsM/VEjc2dCEavUSijyG1h2AkoZr9hlQ8bjo
-	 t1NCwdY/6NxBysVAfINpteDRh34ABe1ZJJ/BUJa9xfRzpMDG1ALcVjjsaMSTo3Wrx/
-	 r1VY+cVQN6qdlVPr/Z26tbr0BRPpI2R6Cd/p7Rno=
-Date: Mon, 15 Jul 2024 16:35:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,william.kucharski@oracle.com,stable@vger.kernel.org,ryan.roberts@arm.com,peterx@redhat.com,ddutile@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,gshan@redhat.com,akpm@linux-foundation.org
+	b=It45uAtVkjeI+OuzBQ8FlysJ1JbXJLiZuctGHhMbA8qeJEoGh0X00JpROo0vYqW78
+	 1IhUNHnLfavtRgyOfsqEDcqJgZs91ejoIDZuxF/AXkffQ7zNsoEEYrjUAGGcEkzo/G
+	 MjzNMBOAjahJOmk66T6nmfQXGL+c2zyhkriJXfWU=
+Date: Mon, 15 Jul 2024 16:48:15 -0700
+To: mm-commits@vger.kernel.org,tjmercier@google.com,stable@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-avoid-pmd-size-page-cache-if-needed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240715233539.76161C32782@smtp.kernel.org>
+Subject: + mm-mglru-fix-ineffective-protection-calculation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240715234815.E7ED8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: avoid PMD-size page cache if needed
+     Subject: mm/mglru: fix ineffective protection calculation
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-avoid-pmd-size-page-cache-if-needed.patch
+     mm-mglru-fix-ineffective-protection-calculation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-avoid-pmd-size-page-cache-if-needed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-ineffective-protection-calculation.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,201 +58,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm/huge_memory: avoid PMD-size page cache if needed
-Date: Mon, 15 Jul 2024 10:04:23 +1000
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/mglru: fix ineffective protection calculation
+Date: Fri, 12 Jul 2024 17:29:56 -0600
 
-xarray can't support arbitrary page cache size.  the largest and supported
-page cache size is defined as MAX_PAGECACHE_ORDER by commit 099d90642a71
-("mm/filemap: make MAX_PAGECACHE_ORDER acceptable to xarray").  However,
-it's possible to have 512MB page cache in the huge memory's collapsing
-path on ARM64 system whose base page size is 64KB.  512MB page cache is
-breaking the limitation and a warning is raised when the xarray entry is
-split as shown in the following example.
+mem_cgroup_calculate_protection() is not stateless and should only be used
+as part of a top-down tree traversal.  shrink_one() traverses the per-node
+memcg LRU instead of the root_mem_cgroup tree, and therefore it should not
+call mem_cgroup_calculate_protection().
 
-[root@dhcp-10-26-1-207 ~]# cat /proc/1/smaps | grep KernelPageSize
-KernelPageSize:       64 kB
-[root@dhcp-10-26-1-207 ~]# cat /tmp/test.c
-   :
-int main(int argc, char **argv)
-{
-	const char *filename = TEST_XFS_FILENAME;
-	int fd = 0;
-	void *buf = (void *)-1, *p;
-	int pgsize = getpagesize();
-	int ret = 0;
+The existing misuse in shrink_one() can cause ineffective protection of
+sub-trees that are grandchildren of root_mem_cgroup.  Fix it by reusing
+lru_gen_age_node(), which already traverses the root_mem_cgroup tree, to
+calculate the protection.
 
-	if (pgsize != 0x10000) {
-		fprintf(stdout, "System with 64KB base page size is required!\n");
-		return -EPERM;
-	}
+Previously lru_gen_age_node() opportunistically skips the first pass,
+i.e., when scan_control->priority is DEF_PRIORITY.  On the second pass,
+lruvec_is_sizable() uses appropriate scan_control->priority, set by
+set_initial_priority() from lru_gen_shrink_node(), to decide whether a
+memcg is too small to reclaim from.
 
-	system("echo 0 > /sys/devices/virtual/bdi/253:0/read_ahead_kb");
-	system("echo 1 > /proc/sys/vm/drop_caches");
+Now lru_gen_age_node() unconditionally traverses the root_mem_cgroup tree.
+So it should call set_initial_priority() upfront, to make sure
+lruvec_is_sizable() uses appropriate scan_control->priority on the first
+pass.  Otherwise, lruvec_is_reclaimable() can return false negatives and
+result in premature OOM kills when min_ttl_ms is used.
 
-	/* Open the xfs file */
-	fd = open(filename, O_RDONLY);
-	assert(fd > 0);
-
-	/* Create VMA */
-	buf = mmap(NULL, TEST_MEM_SIZE, PROT_READ, MAP_SHARED, fd, 0);
-	assert(buf != (void *)-1);
-	fprintf(stdout, "mapped buffer at 0x%p\n", buf);
-
-	/* Populate VMA */
-	ret = madvise(buf, TEST_MEM_SIZE, MADV_NOHUGEPAGE);
-	assert(ret == 0);
-	ret = madvise(buf, TEST_MEM_SIZE, MADV_POPULATE_READ);
-	assert(ret == 0);
-
-	/* Collapse VMA */
-	ret = madvise(buf, TEST_MEM_SIZE, MADV_HUGEPAGE);
-	assert(ret == 0);
-	ret = madvise(buf, TEST_MEM_SIZE, MADV_COLLAPSE);
-	if (ret) {
-		fprintf(stdout, "Error %d to madvise(MADV_COLLAPSE)\n", errno);
-		goto out;
-	}
-
-	/* Split xarray entry. Write permission is needed */
-	munmap(buf, TEST_MEM_SIZE);
-	buf = (void *)-1;
-	close(fd);
-	fd = open(filename, O_RDWR);
-	assert(fd > 0);
-	fallocate(fd, FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE,
- 		  TEST_MEM_SIZE - pgsize, pgsize);
-out:
-	if (buf != (void *)-1)
-		munmap(buf, TEST_MEM_SIZE);
-	if (fd > 0)
-		close(fd);
-
-	return ret;
-}
-
-[root@dhcp-10-26-1-207 ~]# gcc /tmp/test.c -o /tmp/test
-[root@dhcp-10-26-1-207 ~]# /tmp/test
- ------------[ cut here ]------------
- WARNING: CPU: 25 PID: 7560 at lib/xarray.c:1025 xas_split_alloc+0xf8/0x128
- Modules linked in: nft_fib_inet nft_fib_ipv4 nft_fib_ipv6 nft_fib    \
- nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct      \
- nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4      \
- ip_set rfkill nf_tables nfnetlink vfat fat virtio_balloon drm fuse   \
- xfs libcrc32c crct10dif_ce ghash_ce sha2_ce sha256_arm64 virtio_net  \
- sha1_ce net_failover virtio_blk virtio_console failover dimlib virtio_mmio
- CPU: 25 PID: 7560 Comm: test Kdump: loaded Not tainted 6.10.0-rc7-gavin+ #9
- Hardware name: QEMU KVM Virtual Machine, BIOS edk2-20240524-1.el9 05/24/2024
- pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
- pc : xas_split_alloc+0xf8/0x128
- lr : split_huge_page_to_list_to_order+0x1c4/0x780
- sp : ffff8000ac32f660
- x29: ffff8000ac32f660 x28: ffff0000e0969eb0 x27: ffff8000ac32f6c0
- x26: 0000000000000c40 x25: ffff0000e0969eb0 x24: 000000000000000d
- x23: ffff8000ac32f6c0 x22: ffffffdfc0700000 x21: 0000000000000000
- x20: 0000000000000000 x19: ffffffdfc0700000 x18: 0000000000000000
- x17: 0000000000000000 x16: ffffd5f3708ffc70 x15: 0000000000000000
- x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
- x11: ffffffffffffffc0 x10: 0000000000000040 x9 : ffffd5f3708e692c
- x8 : 0000000000000003 x7 : 0000000000000000 x6 : ffff0000e0969eb8
- x5 : ffffd5f37289e378 x4 : 0000000000000000 x3 : 0000000000000c40
- x2 : 000000000000000d x1 : 000000000000000c x0 : 0000000000000000
- Call trace:
-  xas_split_alloc+0xf8/0x128
-  split_huge_page_to_list_to_order+0x1c4/0x780
-  truncate_inode_partial_folio+0xdc/0x160
-  truncate_inode_pages_range+0x1b4/0x4a8
-  truncate_pagecache_range+0x84/0xa0
-  xfs_flush_unmap_range+0x70/0x90 [xfs]
-  xfs_file_fallocate+0xfc/0x4d8 [xfs]
-  vfs_fallocate+0x124/0x2f0
-  ksys_fallocate+0x4c/0xa0
-  __arm64_sys_fallocate+0x24/0x38
-  invoke_syscall.constprop.0+0x7c/0xd8
-  do_el0_svc+0xb4/0xd0
-  el0_svc+0x44/0x1d8
-  el0t_64_sync_handler+0x134/0x150
-  el0t_64_sync+0x17c/0x180
-
-Fix it by correcting the supported page cache orders, different sets for
-DAX and other files.  With it corrected, 512MB page cache becomes
-disallowed on all non-DAX files on ARM64 system where the base page size
-is 64KB.  After this patch is applied, the test program fails with error
--EINVAL returned from __thp_vma_allowable_orders() and the madvise()
-system call to collapse the page caches.
-
-Link: https://lkml.kernel.org/r/20240715000423.316491-1-gshan@redhat.com
-Fixes: 6b24ca4a1a8d ("mm: Use multi-index entries in the page cache")
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: <stable@vger.kernel.org>	[5.17+]
+Link: https://lkml.kernel.org/r/20240712232956.1427127-1-yuzhao@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: T.J. Mercier <tjmercier@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   12 +++++++++---
- mm/huge_memory.c        |   12 ++++++++++--
- 2 files changed, 19 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-avoid-pmd-size-page-cache-if-needed
-+++ a/include/linux/huge_mm.h
-@@ -72,14 +72,20 @@ extern struct kobj_attribute shmem_enabl
- #define THP_ORDERS_ALL_ANON	((BIT(PMD_ORDER + 1) - 1) & ~(BIT(0) | BIT(1)))
+--- a/mm/vmscan.c~mm-mglru-fix-ineffective-protection-calculation
++++ a/mm/vmscan.c
+@@ -3933,19 +3933,17 @@ static bool lruvec_is_reclaimable(struct
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
  
- /*
-- * Mask of all large folio orders supported for file THP.
-+ * Mask of all large folio orders supported for file THP. Folios in a DAX
-+ * file is never split and the MAX_PAGECACHE_ORDER limit does not apply to
-+ * it.
-  */
--#define THP_ORDERS_ALL_FILE	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
-+#define THP_ORDERS_ALL_FILE_DAX		\
-+	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
-+#define THP_ORDERS_ALL_FILE_DEFAULT	\
-+	((BIT(MAX_PAGECACHE_ORDER + 1) - 1) & ~BIT(0))
+-	/* see the comment on lru_gen_folio */
+-	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
+-	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
+-
+-	if (time_is_after_jiffies(birth + min_ttl))
++	if (mem_cgroup_below_min(NULL, memcg))
+ 		return false;
  
- /*
-  * Mask of all large folio orders supported for THP.
-  */
--#define THP_ORDERS_ALL		(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE)
-+#define THP_ORDERS_ALL	\
-+	(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE_DAX | THP_ORDERS_ALL_FILE_DEFAULT)
+ 	if (!lruvec_is_sizable(lruvec, sc))
+ 		return false;
  
- #define TVA_SMAPS		(1 << 0)	/* Will be used for procfs */
- #define TVA_IN_PF		(1 << 1)	/* Page fault handler */
---- a/mm/huge_memory.c~mm-huge_memory-avoid-pmd-size-page-cache-if-needed
-+++ a/mm/huge_memory.c
-@@ -88,9 +88,17 @@ unsigned long __thp_vma_allowable_orders
- 	bool smaps = tva_flags & TVA_SMAPS;
- 	bool in_pf = tva_flags & TVA_IN_PF;
- 	bool enforce_sysfs = tva_flags & TVA_ENFORCE_SYSFS;
-+	unsigned long supported_orders;
-+
- 	/* Check the intersection of requested and supported orders. */
--	orders &= vma_is_anonymous(vma) ?
--			THP_ORDERS_ALL_ANON : THP_ORDERS_ALL_FILE;
-+	if (vma_is_anonymous(vma))
-+		supported_orders = THP_ORDERS_ALL_ANON;
-+	else if (vma_is_dax(vma))
-+		supported_orders = THP_ORDERS_ALL_FILE_DAX;
-+	else
-+		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
-+
-+	orders &= supported_orders;
- 	if (!orders)
- 		return 0;
+-	mem_cgroup_calculate_protection(NULL, memcg);
++	/* see the comment on lru_gen_folio */
++	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
++	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
+ 
+-	return !mem_cgroup_below_min(NULL, memcg);
++	return time_is_before_jiffies(birth + min_ttl);
+ }
+ 
+ /* to protect the working set of the last N jiffies */
+@@ -3955,23 +3953,20 @@ static void lru_gen_age_node(struct pgli
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned long min_ttl = READ_ONCE(lru_gen_min_ttl);
++	bool reclaimable = !min_ttl;
+ 
+ 	VM_WARN_ON_ONCE(!current_is_kswapd());
+ 
+-	/* check the order to exclude compaction-induced reclaim */
+-	if (!min_ttl || sc->order || sc->priority == DEF_PRIORITY)
+-		return;
++	set_initial_priority(pgdat, sc);
+ 
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+ 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+-		if (lruvec_is_reclaimable(lruvec, sc, min_ttl)) {
+-			mem_cgroup_iter_break(NULL, memcg);
+-			return;
+-		}
++		mem_cgroup_calculate_protection(NULL, memcg);
+ 
+-		cond_resched();
++		if (!reclaimable)
++			reclaimable = lruvec_is_reclaimable(lruvec, sc, min_ttl);
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
+ 
+ 	/*
+@@ -3979,7 +3974,7 @@ static void lru_gen_age_node(struct pgli
+ 	 * younger than min_ttl. However, another possibility is all memcgs are
+ 	 * either too small or below min.
+ 	 */
+-	if (mutex_trylock(&oom_lock)) {
++	if (!reclaimable && mutex_trylock(&oom_lock)) {
+ 		struct oom_control oc = {
+ 			.gfp_mask = sc->gfp_mask,
+ 		};
+@@ -4772,8 +4767,7 @@ static int shrink_one(struct lruvec *lru
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
+-	mem_cgroup_calculate_protection(NULL, memcg);
+-
++	/* lru_gen_age_node() called mem_cgroup_calculate_protection() */
+ 	if (mem_cgroup_below_min(NULL, memcg))
+ 		return MEMCG_LRU_YOUNG;
  
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-huge_memory-avoid-pmd-size-page-cache-if-needed.patch
+mm-mglru-fix-ineffective-protection-calculation.patch
 
