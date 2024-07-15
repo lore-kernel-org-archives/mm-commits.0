@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BCA15491
-	for <mm-commits@vger.kernel.org>; Mon, 15 Jul 2024 20:28:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DC7213D88E
+	for <mm-commits@vger.kernel.org>; Mon, 15 Jul 2024 20:30:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721075294; cv=none; b=bM9H/wzjFTiweLOZntEXPRx2RwLcSd/GhwGg2Ppncn7Sjm1xkhoB5X9kX9pShDeJC/I1uTteuge5f8o9AEMD3GjJXEQwp9GW6uCgO3872tjY+QPgxZ0/UDBXWCGFcwJE0cA0Bmfo+xS0DY44Uz+JHVe1RadfpEOvd+QpsD4mjrs=
+	t=1721075457; cv=none; b=sok7neSHZYj9tKrEfjQmd5m2btqO5ljhCRKgeDextyWC18byn/s4wktGjKxG4basRjROAGesa6OfRLRrHX91NT4cULLg1pC5ICbP+V7ALivI66rB6/4jH9t9HpFanSGKgFGiq+RyT1PuUGMmYsIJ3tSDQ3rDf0IRGx2xpPMqB64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721075294; c=relaxed/simple;
-	bh=P1agBzfscYEM2Fl9yvl4JQ4wjVtlhuiWG/D2Lt9HNWs=;
-	h=Date:To:From:Subject:Message-Id; b=jZaJkMn9jNq5dqlqhgeDpblaaBVIZj5XdiU/OMZ+AUpAeRk+C/0Rvgm5w9X6pshz0kQM2XlI2/hvNEGTRXULq5uZAeSRhgDRF71VfpQDBECwLHTfmzCUtmZlWbNdUec4kF/2/fe8Z/9/skx4zAb+RF1YzeHN7B2hXZ4rrMzDX1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dPkVA+2s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721075457; c=relaxed/simple;
+	bh=fCQR1H5fLEhhOTmgHDR0wBJnSQsYpVEQjkroW8Fsa80=;
+	h=Date:To:From:Subject:Message-Id; b=lpczEmhq9VnpCj7Q4k9tZneRXsL6NJuigFwgxfiaFrbF3o3Dwi3HmgGVcTMcSEh2kSa83ObZX8oBLP6mUkYw5/jVlOTRyRKOKJn22aMJLRpwacCXMtyHSQ200Av+pSpdGPeTKiavD3lHB6rGmaFgCy5hS6Dg5wfWGiUZz+Y8Z7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mrYSkwux; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dPkVA+2s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 477D0C32782;
-	Mon, 15 Jul 2024 20:28:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mrYSkwux"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E649C32782;
+	Mon, 15 Jul 2024 20:30:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721075294;
-	bh=P1agBzfscYEM2Fl9yvl4JQ4wjVtlhuiWG/D2Lt9HNWs=;
+	s=korg; t=1721075456;
+	bh=fCQR1H5fLEhhOTmgHDR0wBJnSQsYpVEQjkroW8Fsa80=;
 	h=Date:To:From:Subject:From;
-	b=dPkVA+2sVm75PUi/ID8Qfl8b592JvcGza10fspSdIr+IZs98VsIiDeaGDa6wX5yg/
-	 fWP4EwTTAQ0kMtGiP7VuhwJgI7biOaQmcAlRi3LRbHptWeCB99V68TJgDyuAXNOI1J
-	 T84c2hIiFP3tOAjpp+QxOJ+k2A1ud2l1hNC88PSU=
-Date: Mon, 15 Jul 2024 13:28:13 -0700
-To: mm-commits@vger.kernel.org,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=mrYSkwux+4P0ukuxtxrv92LUwuxTEZ5ghpimo9lX9TrPUwTh9gPGKdBweJegpUcvi
+	 DwfPrLrKaWMR/K5RhoK3kqvm6uUt8Zbxcvtr8wHRM7e6+XZlrJAwzmFjouQknv/u78
+	 741tOuUwkWQMUSBkROVXs7Q5qRgp1Fyw2SVuzfFg=
+Date: Mon, 15 Jul 2024 13:30:55 -0700
+To: mm-commits@vger.kernel.org,wuqiang.matt@bytedance.com,mhiramat@kernel.org,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-a-white-space-issue.patch added to mm-unstable branch
-Message-Id: <20240715202814.477D0C32782@smtp.kernel.org>
+Subject: + lib-test_objpool-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20240715203056.7E649C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: fix a white space issue
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-fix-a-white-space-issue.patch
+     Subject: lib: test_objpool: add missing MODULE_DESCRIPTION() macro
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-test_objpool-add-missing-module_description-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-a-white-space-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_objpool-add-missing-module_description-macro.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,35 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: mm/zswap: fix a white space issue
-Date: Mon, 15 Jul 2024 15:23:05 -0500
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Subject: lib: test_objpool: add missing MODULE_DESCRIPTION() macro
+Date: Mon, 15 Jul 2024 07:18:56 -0700
 
-We accidentally deleted a tab in commit f84152e9efc5 ("mm/zswap: use only
-one pool in zswap").  Add it back.
+make allmodconfig && make W=1 C=1 reports:
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/test_objpool.o
 
-Link: https://lkml.kernel.org/r/c15066a0-f061-42c9-b0f5-d60281d3d5d8@stanley.mountain
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Add the missing invocation of the MODULE_DESCRIPTION() macro.
+
+Link: https://lkml.kernel.org/r/20240715-md-lib-test_objpool-v2-1-5a2b9369c37e@quicinc.com
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Reviewed-by: Matt Wu <wuqiang.matt@bytedance.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_objpool.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-fix-a-white-space-issue
-+++ a/mm/zswap.c
-@@ -803,7 +803,7 @@ static void zswap_entry_free(struct zswa
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
- 		zswap_lru_del(&zswap_list_lru, entry);
--	zpool_free(entry->pool->zpool, entry->handle);
-+		zpool_free(entry->pool->zpool, entry->handle);
- 		zswap_pool_put(entry->pool);
- 	}
- 	if (entry->objcg) {
+--- a/lib/test_objpool.c~lib-test_objpool-add-missing-module_description-macro
++++ a/lib/test_objpool.c
+@@ -687,4 +687,5 @@ static void __exit ot_mod_exit(void)
+ module_init(ot_mod_init);
+ module_exit(ot_mod_exit);
+ 
+-MODULE_LICENSE("GPL");
+\ No newline at end of file
++MODULE_DESCRIPTION("Test module for lockless object pool");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
 
-mm-zswap-fix-a-white-space-issue.patch
+lib-test_objpool-add-missing-module_description-macro.patch
 
