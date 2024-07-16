@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B2771E890;
-	Mon, 15 Jul 2024 23:53:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA3561A08C2
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jul 2024 18:41:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721087638; cv=none; b=lbjMlujWHPHvNVZpZpGLi8nHXdoP2rMuNu/B2xA6aYQc6tq+YI7ln+DlPHkU6RxNaW7QmPpKRVWNeA5EwWqOGcqFZFYJXORLSicy5P5Vo7CYEC5FWOCG8wDJtdQH+03C4yfkjkFJAR9fNN9J32ZR2tJ4YTWjFM3uRIw7X6XJS9k=
+	t=1721155273; cv=none; b=oR39SiochAHUWLaemeojAZup7LbGn7u09dFfYEol8TdV5N7H3BSF2hMn+nkaDdE+tEZiEOK/KJ94sJRtG6QmHlPGLDvfAAolrHq0w6s05cLQw+Rc8LiZtQnrLFcinDFX99dWpGV9n0xSaVWRe/+vha37RCQ6E++VdDA36PkMM0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721087638; c=relaxed/simple;
-	bh=prQR4brytc/+vSQ3ahSYAOvTm611kr6wxZ7Ip+ppN2w=;
-	h=Date:To:From:Subject:Message-Id; b=I4z+GyvoUKXgbJqSFYM4HmPOWEgTwAtiw7Cgsif3sFuPWBnZYNv5ggJb2Q0j0zNKw8At9FDa/E3J/GfJEtcBDCmwpuauG6kDozTUduCebPwPGqSJA8gL+2WtczUvBBX4BbtNJH30hkSUoAmEZSksYzaTwPb8qR3c3NToE6OluYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A4HXDqiM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721155273; c=relaxed/simple;
+	bh=yL5vdn5JXBwqau21LXSjZW69HEpJOYaDMajezQNIB/8=;
+	h=Date:To:From:Subject:Message-Id; b=LwSot2Y+cgiWJvLxtgoRjFD/pn/dvYE3IldYWCGaBdwaU36x1j84lt0J1fNbzcaD9WTKeUgiY5iLv269elsbLCXF1rvqwjvRdrkVsKwquPXEXcUgciS1dxKC/uAUApBYE+G6qMrhPp30BRBxBAxtCjIjZ3IkvLlx+mtc0PTcKoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohS1Oqmf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A4HXDqiM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95B52C32782;
-	Mon, 15 Jul 2024 23:53:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohS1Oqmf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CBADC4AF0B;
+	Tue, 16 Jul 2024 18:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721087637;
-	bh=prQR4brytc/+vSQ3ahSYAOvTm611kr6wxZ7Ip+ppN2w=;
+	s=korg; t=1721155272;
+	bh=yL5vdn5JXBwqau21LXSjZW69HEpJOYaDMajezQNIB/8=;
 	h=Date:To:From:Subject:From;
-	b=A4HXDqiMBkt5bI6aBucTLFTNJkuHwz5MRIeO8k/mWZr7RUU2PEa4jKFishuv8wdqT
-	 FRugM7U4/PQNVSPj6tspZY+nFloOeVVbvDNVSqkFNzABGKuqLf8bB6+xgxmHcmfTUf
-	 8OH7c22GxmQw+EPmB7/XjGaooWtMZz1gEvzx3Vgc=
-Date: Mon, 15 Jul 2024 16:53:57 -0700
-To: mm-commits@vger.kernel.org,tjmercier@google.com,stable@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
+	b=ohS1Oqmfyj+KW3Nfh0Fd3VGkXDMj3+esR0xlccXjy5l4KsEegEemSlBrf/ILILhia
+	 /umI1qedwA8ux7br0IbRMvaHw56oj4oVyXkT874AwNAcdBnywbjRvKT/MGuRht1LJJ
+	 QoYqShd/CLDGp4zmIBonahkV7CEY+L9ps/cMvpZU=
+Date: Tue, 16 Jul 2024 11:41:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,jxgao@google.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-ineffective-protection-calculation.patch added to mm-unstable branch
-Message-Id: <20240715235357.95B52C32782@smtp.kernel.org>
+Subject: + mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240716184112.4CBADC4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: fix ineffective protection calculation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-fix-ineffective-protection-calculation.patch
+     Subject: mm: fix endless reclaim on machines with unaccepted memory.
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-ineffective-protection-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,187 +58,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: fix ineffective protection calculation
-Date: Fri, 12 Jul 2024 17:29:56 -0600
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix endless reclaim on machines with unaccepted memory.
+Date: Tue, 16 Jul 2024 16:00:13 +0300
 
-mem_cgroup_calculate_protection() is not stateless and should only be used
-as part of a top-down tree traversal.  shrink_one() traverses the per-node
-memcg LRU instead of the root_mem_cgroup tree, and therefore it should not
-call mem_cgroup_calculate_protection().
+Unaccepted memory is considered unusable free memory, which is not counted
+as free on the zone watermark check.  This causes get_page_from_freelist()
+to accept more memory to hit the high watermark, but it creates problems
+in the reclaim path.
 
-The existing misuse in shrink_one() can cause ineffective protection of
-sub-trees that are grandchildren of root_mem_cgroup.  Fix it by reusing
-lru_gen_age_node(), which already traverses the root_mem_cgroup tree, to
-calculate the protection.
+The reclaim path encounters a failed zone watermark check and attempts to
+reclaim memory.  This is usually successful, but if there is little or no
+reclaimable memory, it can result in endless reclaim with little to no
+progress.  This can occur early in the boot process, just after start of
+the init process when the only reclaimable memory is the page cache of the
+init executable and its libraries.
 
-Previously lru_gen_age_node() opportunistically skips the first pass,
-i.e., when scan_control->priority is DEF_PRIORITY.  On the second pass,
-lruvec_is_sizable() uses appropriate scan_control->priority, set by
-set_initial_priority() from lru_gen_shrink_node(), to decide whether a
-memcg is too small to reclaim from.
+To address this issue, teach shrink_node() and shrink_zones() to accept
+memory before attempting to reclaim.
 
-Now lru_gen_age_node() unconditionally traverses the root_mem_cgroup tree.
-So it should call set_initial_priority() upfront, to make sure
-lruvec_is_sizable() uses appropriate scan_control->priority on the first
-pass.  Otherwise, lruvec_is_reclaimable() can return false negatives and
-result in premature OOM kills when min_ttl_ms is used.
-
-Link: https://lkml.kernel.org/r/20240712232956.1427127-1-yuzhao@google.com
-Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: T.J. Mercier <tjmercier@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240716130013.1997325-1-kirill.shutemov@linux.intel.com
+Fixes: dcdfdd40fa82 ("mm: Add support for unaccepted memory")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Jianxiong Gao <jxgao@google.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: stable@vger.kernel.org	[6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   82 +++++++++++++++++++++++---------------------------
- 1 file changed, 38 insertions(+), 44 deletions(-)
+ mm/internal.h   |    9 +++++++++
+ mm/page_alloc.c |    8 +-------
+ mm/vmscan.c     |   36 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 46 insertions(+), 7 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-fix-ineffective-protection-calculation
-+++ a/mm/vmscan.c
-@@ -3915,6 +3915,32 @@ done:
-  *                          working set protection
-  ******************************************************************************/
+--- a/mm/internal.h~mm-fix-endless-reclaim-on-machines-with-unaccepted-memory
++++ a/mm/internal.h
+@@ -1515,4 +1515,13 @@ static inline void shrinker_debugfs_remo
+ void workingset_update_node(struct xa_node *node);
+ extern struct list_lru shadow_nodes;
  
-+static void set_initial_priority(struct pglist_data *pgdat, struct scan_control *sc)
++#ifdef CONFIG_UNACCEPTED_MEMORY
++bool try_to_accept_memory(struct zone *zone, unsigned int order);
++#else
++static inline bool try_to_accept_memory(struct zone *zone, unsigned int order)
 +{
-+	int priority;
-+	unsigned long reclaimable;
-+
-+	if (sc->priority != DEF_PRIORITY || sc->nr_to_reclaim < MIN_LRU_BATCH)
-+		return;
-+	/*
-+	 * Determine the initial priority based on
-+	 * (total >> priority) * reclaimed_to_scanned_ratio = nr_to_reclaim,
-+	 * where reclaimed_to_scanned_ratio = inactive / total.
-+	 */
-+	reclaimable = node_page_state(pgdat, NR_INACTIVE_FILE);
-+	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
-+		reclaimable += node_page_state(pgdat, NR_INACTIVE_ANON);
-+
-+	/* round down reclaimable and round up sc->nr_to_reclaim */
-+	priority = fls_long(reclaimable) - 1 - fls_long(sc->nr_to_reclaim - 1);
-+
-+	/*
-+	 * The estimation is based on LRU pages only, so cap it to prevent
-+	 * overshoots of shrinker objects by large margins.
-+	 */
-+	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
++	return false;
 +}
++#endif /* CONFIG_UNACCEPTED_MEMORY */
 +
- static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
- {
- 	int gen, type, zone;
-@@ -3948,19 +3974,17 @@ static bool lruvec_is_reclaimable(struct
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	DEFINE_MIN_SEQ(lruvec);
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/page_alloc.c~mm-fix-endless-reclaim-on-machines-with-unaccepted-memory
++++ a/mm/page_alloc.c
+@@ -287,7 +287,6 @@ EXPORT_SYMBOL(nr_online_nodes);
  
--	/* see the comment on lru_gen_folio */
--	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
--	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
--
--	if (time_is_after_jiffies(birth + min_ttl))
-+	if (mem_cgroup_below_min(NULL, memcg))
- 		return false;
+ static bool page_contains_unaccepted(struct page *page, unsigned int order);
+ static void accept_page(struct page *page, unsigned int order);
+-static bool try_to_accept_memory(struct zone *zone, unsigned int order);
+ static inline bool has_unaccepted_memory(void);
+ static bool __free_unaccepted(struct page *page);
  
- 	if (!lruvec_is_sizable(lruvec, sc))
- 		return false;
- 
--	mem_cgroup_calculate_protection(NULL, memcg);
-+	/* see the comment on lru_gen_folio */
-+	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
-+	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
- 
--	return !mem_cgroup_below_min(NULL, memcg);
-+	return time_is_before_jiffies(birth + min_ttl);
+@@ -6940,7 +6939,7 @@ static bool try_to_accept_memory_one(str
+ 	return true;
  }
  
- /* to protect the working set of the last N jiffies */
-@@ -3970,23 +3994,20 @@ static void lru_gen_age_node(struct pgli
+-static bool try_to_accept_memory(struct zone *zone, unsigned int order)
++bool try_to_accept_memory(struct zone *zone, unsigned int order)
  {
- 	struct mem_cgroup *memcg;
- 	unsigned long min_ttl = READ_ONCE(lru_gen_min_ttl);
-+	bool reclaimable = !min_ttl;
- 
- 	VM_WARN_ON_ONCE(!current_is_kswapd());
- 
--	/* check the order to exclude compaction-induced reclaim */
--	if (!min_ttl || sc->order || sc->priority == DEF_PRIORITY)
--		return;
-+	set_initial_priority(pgdat, sc);
- 
- 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 
--		if (lruvec_is_reclaimable(lruvec, sc, min_ttl)) {
--			mem_cgroup_iter_break(NULL, memcg);
--			return;
--		}
-+		mem_cgroup_calculate_protection(NULL, memcg);
- 
--		cond_resched();
-+		if (!reclaimable)
-+			reclaimable = lruvec_is_reclaimable(lruvec, sc, min_ttl);
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
- 
- 	/*
-@@ -3994,7 +4015,7 @@ static void lru_gen_age_node(struct pgli
- 	 * younger than min_ttl. However, another possibility is all memcgs are
- 	 * either too small or below min.
- 	 */
--	if (mutex_trylock(&oom_lock)) {
-+	if (!reclaimable && mutex_trylock(&oom_lock)) {
- 		struct oom_control oc = {
- 			.gfp_mask = sc->gfp_mask,
- 		};
-@@ -4786,8 +4807,7 @@ static int shrink_one(struct lruvec *lru
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
--	mem_cgroup_calculate_protection(NULL, memcg);
--
-+	/* lru_gen_age_node() called mem_cgroup_calculate_protection() */
- 	if (mem_cgroup_below_min(NULL, memcg))
- 		return MEMCG_LRU_YOUNG;
- 
-@@ -4911,32 +4931,6 @@ static void lru_gen_shrink_lruvec(struct
- 	blk_finish_plug(&plug);
+ 	long to_accept;
+ 	int ret = false;
+@@ -6999,11 +6998,6 @@ static void accept_page(struct page *pag
+ {
  }
  
--static void set_initial_priority(struct pglist_data *pgdat, struct scan_control *sc)
+-static bool try_to_accept_memory(struct zone *zone, unsigned int order)
 -{
--	int priority;
--	unsigned long reclaimable;
--
--	if (sc->priority != DEF_PRIORITY || sc->nr_to_reclaim < MIN_LRU_BATCH)
--		return;
--	/*
--	 * Determine the initial priority based on
--	 * (total >> priority) * reclaimed_to_scanned_ratio = nr_to_reclaim,
--	 * where reclaimed_to_scanned_ratio = inactive / total.
--	 */
--	reclaimable = node_page_state(pgdat, NR_INACTIVE_FILE);
--	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
--		reclaimable += node_page_state(pgdat, NR_INACTIVE_ANON);
--
--	/* round down reclaimable and round up sc->nr_to_reclaim */
--	priority = fls_long(reclaimable) - 1 - fls_long(sc->nr_to_reclaim - 1);
--
--	/*
--	 * The estimation is based on LRU pages only, so cap it to prevent
--	 * overshoots of shrinker objects by large margins.
--	 */
--	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
+-	return false;
 -}
 -
- static void lru_gen_shrink_node(struct pglist_data *pgdat, struct scan_control *sc)
+ static inline bool has_unaccepted_memory(void)
  {
- 	struct blk_plug plug;
+ 	return false;
+--- a/mm/vmscan.c~mm-fix-endless-reclaim-on-machines-with-unaccepted-memory
++++ a/mm/vmscan.c
+@@ -5900,12 +5900,44 @@ static void shrink_node_memcgs(pg_data_t
+ 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
+ }
+ 
++#ifdef CONFIG_UNACCEPTED_MEMORY
++static bool node_try_to_accept_memory(pg_data_t *pgdat, struct scan_control *sc)
++{
++	bool progress = false;
++	struct zone *zone;
++	int z;
++
++	for (z = 0; z <= sc->reclaim_idx; z++) {
++		zone = pgdat->node_zones + z;
++		if (!managed_zone(zone))
++			continue;
++
++		if (try_to_accept_memory(zone, sc->order))
++			progress = true;
++	}
++
++	return progress;
++}
++#else
++static inline bool node_try_to_accept_memory(pg_data_t *pgdat,
++					     struct scan_control *sc)
++{
++	return false;
++}
++#endif /* CONFIG_UNACCEPTED_MEMORY */
++
+ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+ {
+ 	unsigned long nr_reclaimed, nr_scanned, nr_node_reclaimed;
+ 	struct lruvec *target_lruvec;
+ 	bool reclaimable = false;
+ 
++	/* Try to accept memory before going for reclaim */
++	if (node_try_to_accept_memory(pgdat, sc)) {
++		if (!should_continue_reclaim(pgdat, 0, sc))
++			return;
++	}
++
+ 	if (lru_gen_enabled() && root_reclaim(sc)) {
+ 		lru_gen_shrink_node(pgdat, sc);
+ 		return;
+@@ -6118,6 +6150,10 @@ static void shrink_zones(struct zonelist
+ 						 GFP_KERNEL | __GFP_HARDWALL))
+ 				continue;
+ 
++			/* Try to accept memory before going for reclaim */
++			if (try_to_accept_memory(zone, sc->order))
++				continue;
++
+ 			/*
+ 			 * If we already have plenty of memory free for
+ 			 * compaction in this zone, don't free any more.
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-mglru-fix-ineffective-protection-calculation.patch
+mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
 
