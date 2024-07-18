@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33F083A1DB;
-	Thu, 18 Jul 2024 04:09:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41CE23A1DB;
+	Thu, 18 Jul 2024 04:09:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721275767; cv=none; b=t03vmGP1u4JPuXJXpSWUh2f5imtIEuT2yqAnJlx9KpVHUY3EdbWB9JUs85kUSLjFaMJpqdiSldISOFojZCjj3QsBx2mwY2xwFgCY9UshCW9OhMQ37xY57e92eZf7mV14IB0JK9LiY/iaW52ta1WeUxD9sKqW09OVE3Ztka5xWzs=
+	t=1721275768; cv=none; b=Mwrf78dPLV7Q+CrXJrd0ltkAazranlGIRojiKqNOzYduzGlo8IDiipDJIFESeM3xJOc/Vrcj6yrl6PbtWnkUKGLUsniZ3J/I6fd2MkURSWmF4yF6tz1eJj2dCuR66A7HDcaCF4OJQxGvrposh1lpyvUV78uuxb7Jp3dcMpzud14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721275767; c=relaxed/simple;
-	bh=A6DlK2AfrtOC9MMHdk9LEpEt8Z+5C6r+EWsVNe9qo3U=;
-	h=Date:To:From:Subject:Message-Id; b=Q+qBVwff3I/xMbIcbcJnu8X6yq6h3+b2d4lwhLsJpSYwSVQOTbLFRZn3+nC34NHwSFhw79z3Y1w9hgmHLqofvnEJ6xWOnb5MfPD6xz53Lj0uOBqGf75tu63O3uwNE184ZIz3h6dCULrPylLXaeeSB/cXGK8cYboaGIY1uGuHZWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=saRbaHpe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721275768; c=relaxed/simple;
+	bh=85o0Nif4mJh9esr3oWfAdKx5Cv329wRyJkBBsMHdj5k=;
+	h=Date:To:From:Subject:Message-Id; b=KZSywG+mRGmKIgtubdAkCrS/YOl2kyLRT/5gr+ySOaMwBzL55CWLHZ9H94YIgnrx7xT1BnkdL1wSXjmEphR3YZ1OkH4qCkKQ2/9BwVsq/aTflsxxVQTWqcMi8k7ZPmNJaxe/RNT/CsVWr4uiNOyVotLdTOInPhnhxvYerJ0SPk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=REPw59fL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="saRbaHpe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EF2AC4AF0A;
-	Thu, 18 Jul 2024 04:09:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="REPw59fL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5378C4AF0A;
+	Thu, 18 Jul 2024 04:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721275766;
-	bh=A6DlK2AfrtOC9MMHdk9LEpEt8Z+5C6r+EWsVNe9qo3U=;
+	s=korg; t=1721275768;
+	bh=85o0Nif4mJh9esr3oWfAdKx5Cv329wRyJkBBsMHdj5k=;
 	h=Date:To:From:Subject:From;
-	b=saRbaHpeJdeX2NCLqw0ZXmwDRXK4RKy/xRemVDZGlcsflaRNgbe5PPclYW7L5QAk5
-	 KLeqdPCZz4rEeNWKsbu+YJLTRnSyp2C1Pfd7kjqr+CRBMrvhwvemzBOuQyKF3goYST
-	 xiUbIYawioqZPDLivmwyMatNDQnaLpAKedwGVlyQ=
-Date: Wed, 17 Jul 2024 21:09:26 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=REPw59fL9W0xgmkk2k3RigveVDHVRNSSRJpJI97dV3QFGFbv5Zp2v332CHA8i8J9i
+	 AX4/6H1FIab6DuC4COlQslAqL8C7YaP/Gt9BVm2tN0xB1Fd6awH6OpzZKbIMbYi+m4
+	 PD1pm2YyjhVGs56ERMYi2o4c0VeqesXFvQUsU8lA=
+Date: Wed, 17 Jul 2024 21:09:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,muchun.song@linux.dev,hughd@google.com,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-possible-recursive-locking-detected-warning.patch removed from -mm tree
-Message-Id: <20240718040926.9EF2AC4AF0A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-kernel-null-pointer-dereference-when-migrating-hugetlb-folio.patch removed from -mm tree
+Message-Id: <20240718040927.E5378C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix possible recursive locking detected warning
+     Subject: mm/hugetlb: fix kernel NULL pointer dereference when migrating hugetlb folio
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-possible-recursive-locking-detected-warning.patch
+     mm-hugetlb-fix-kernel-null-pointer-dereference-when-migrating-hugetlb-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix possible recursive locking detected warning
-Date: Fri, 12 Jul 2024 11:13:14 +0800
+Subject: mm/hugetlb: fix kernel NULL pointer dereference when migrating hugetlb folio
+Date: Tue, 9 Jul 2024 20:04:33 +0800
 
-When tries to demote 1G hugetlb folios, a lockdep warning is observed:
+A kernel crash was observed when migrating hugetlb folio:
 
-============================================
-WARNING: possible recursive locking detected
-6.10.0-rc6-00452-ga4d0275fa660-dirty #79 Not tainted
---------------------------------------------
-bash/710 is trying to acquire lock:
-ffffffff8f0a7850 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0x244/0x460
-
-but task is already holding lock:
-ffffffff8f0a6f48 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0xae/0x460
-
-other info that might help us debug this:
- Possible unsafe locking scenario:
-
-       CPU0
-       ----
-  lock(&h->resize_lock);
-  lock(&h->resize_lock);
-
- *** DEADLOCK ***
-
- May be due to missing lock nesting notation
-
-4 locks held by bash/710:
- #0: ffff8f118439c3f0 (sb_writers#5){.+.+}-{0:0}, at: ksys_write+0x64/0xe0
- #1: ffff8f11893b9e88 (&of->mutex#2){+.+.}-{3:3}, at: kernfs_fop_write_iter+0xf8/0x1d0
- #2: ffff8f1183dc4428 (kn->active#98){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x100/0x1d0
- #3: ffffffff8f0a6f48 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0xae/0x460
-
-stack backtrace:
-CPU: 3 PID: 710 Comm: bash Not tainted 6.10.0-rc6-00452-ga4d0275fa660-dirty #79
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+BUG: kernel NULL pointer dereference, address: 0000000000000008
+PGD 0 P4D 0
+Oops: Oops: 0002 [#1] PREEMPT SMP NOPTI
+CPU: 0 PID: 3435 Comm: bash Not tainted 6.10.0-rc6-00450-g8578ca01f21f #66
+RIP: 0010:__folio_undo_large_rmappable+0x70/0xb0
+RSP: 0018:ffffb165c98a7b38 EFLAGS: 00000097
+RAX: fffffbbc44528090 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffffa30e000a2800 RSI: 0000000000000246 RDI: ffffa3153ffffcc0
+RBP: fffffbbc44528000 R08: 0000000000002371 R09: ffffffffbe4e5868
+R10: 0000000000000001 R11: 0000000000000001 R12: ffffa3153ffffcc0
+R13: fffffbbc44468000 R14: 0000000000000001 R15: 0000000000000001
+FS:  00007f5b3a716740(0000) GS:ffffa3151fc00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000008 CR3: 000000010959a000 CR4: 00000000000006f0
 Call Trace:
  <TASK>
- dump_stack_lvl+0x68/0xa0
- __lock_acquire+0x10f2/0x1ca0
- lock_acquire+0xbe/0x2d0
- __mutex_lock+0x6d/0x400
- demote_store+0x244/0x460
+ __folio_migrate_mapping+0x59e/0x950
+ __migrate_folio.constprop.0+0x5f/0x120
+ move_to_new_folio+0xfd/0x250
+ migrate_pages+0x383/0xd70
+ soft_offline_page+0x2ab/0x7f0
+ soft_offline_page_store+0x52/0x90
  kernfs_fop_write_iter+0x12c/0x1d0
  vfs_write+0x380/0x540
  ksys_write+0x64/0xe0
  do_syscall_64+0xb9/0x1d0
  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fa61db14887
-RSP: 002b:00007ffc56c48358 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000000000002 RCX: 00007fa61db14887
-RDX: 0000000000000002 RSI: 000055a030050220 RDI: 0000000000000001
-RBP: 000055a030050220 R08: 00007fa61dbd1460 R09: 000000007fffffff
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
-R13: 00007fa61dc1b780 R14: 00007fa61dc17600 R15: 00007fa61dc16a00
- </TASK>
+RIP: 0033:0x7f5b3a514887
+RSP: 002b:00007ffe138fce68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000000000c RCX: 00007f5b3a514887
+RDX: 000000000000000c RSI: 0000556ab809ee10 RDI: 0000000000000001
+RBP: 0000556ab809ee10 R08: 00007f5b3a5d1460 R09: 000000007fffffff
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000c
+R13: 00007f5b3a61b780 R14: 00007f5b3a617600 R15: 00007f5b3a616a00
 
-Lockdep considers this an AA deadlock because the different resize_lock
-mutexes reside in the same lockdep class, but this is a false positive.
-Place them in distinct classes to avoid these warnings.
+It's because hugetlb folio is passed to __folio_undo_large_rmappable()
+unexpectedly.  large_rmappable flag is imperceptibly set to hugetlb folio
+since commit f6a8dd98a2ce ("hugetlb: convert alloc_buddy_hugetlb_folio to
+use a folio").  Then commit be9581ea8c05 ("mm: fix crashes from deferred
+split racing folio migration") makes folio_migrate_mapping() call
+folio_undo_large_rmappable() triggering the bug.  Fix this issue by
+clearing large_rmappable flag for hugetlb folios.  They don't need that
+flag set anyway.
 
-Link: https://lkml.kernel.org/r/20240712031314.2570452-1-linmiaohe@huawei.com
-Fixes: 8531fc6f52f5 ("hugetlb: add hugetlb demote page support")
+Link: https://lkml.kernel.org/r/20240709120433.4136700-1-linmiaohe@huawei.com
+Fixes: f6a8dd98a2ce ("hugetlb: convert alloc_buddy_hugetlb_folio to use a folio")
+Fixes: be9581ea8c05 ("mm: fix crashes from deferred split racing folio migration")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- mm/hugetlb.c            |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-possible-recursive-locking-detected-warning
-+++ a/include/linux/hugetlb.h
-@@ -663,6 +663,7 @@ HPAGEFLAG(RawHwpUnreliable, raw_hwp_unre
- /* Defines one hugetlb page size */
- struct hstate {
- 	struct mutex resize_lock;
-+	struct lock_class_key resize_key;
- 	int next_nid_to_alloc;
- 	int next_nid_to_free;
- 	unsigned int order;
---- a/mm/hugetlb.c~mm-hugetlb-fix-possible-recursive-locking-detected-warning
+--- a/mm/hugetlb.c~mm-hugetlb-fix-kernel-null-pointer-dereference-when-migrating-hugetlb-folio
 +++ a/mm/hugetlb.c
-@@ -4642,7 +4642,7 @@ void __init hugetlb_add_hstate(unsigned
- 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
- 	BUG_ON(order < order_base_2(__NR_USED_SUBPAGE));
- 	h = &hstates[hugetlb_max_hstate++];
--	mutex_init(&h->resize_lock);
-+	__mutex_init(&h->resize_lock, "resize mutex", &h->resize_key);
- 	h->order = order;
- 	h->mask = ~(huge_page_size(h) - 1);
- 	for (i = 0; i < MAX_NUMNODES; ++i)
+@@ -2166,6 +2166,9 @@ static struct folio *alloc_buddy_hugetlb
+ 		nid = numa_mem_id();
+ retry:
+ 	folio = __folio_alloc(gfp_mask, order, nid, nmask);
++	/* Ensure hugetlb folio won't have large_rmappable flag set. */
++	if (folio)
++		folio_clear_large_rmappable(folio);
+ 
+ 	if (folio && !folio_ref_freeze(folio, 1)) {
+ 		folio_put(folio);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
