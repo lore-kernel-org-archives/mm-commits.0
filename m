@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEFA0EEAA
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jul 2024 04:09:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33F083A1DB;
+	Thu, 18 Jul 2024 04:09:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721275766; cv=none; b=lgjx3h+ZlKoP6QDQAUey9y1H7dzw2Wjax7pejW6/RjSfU3Ob63+Fex+ZG5QGLNuh7gzBfd+wsMfUWaY3BrJQSaNvIwPc38ztSUxXwlIxTOAPr8iRH5XN3rYF6w/pDaQFgCc6NCrQe7a0WrpTJPdFhfVaXUVREgc5MYwpClFhNc0=
+	t=1721275767; cv=none; b=t03vmGP1u4JPuXJXpSWUh2f5imtIEuT2yqAnJlx9KpVHUY3EdbWB9JUs85kUSLjFaMJpqdiSldISOFojZCjj3QsBx2mwY2xwFgCY9UshCW9OhMQ37xY57e92eZf7mV14IB0JK9LiY/iaW52ta1WeUxD9sKqW09OVE3Ztka5xWzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721275766; c=relaxed/simple;
-	bh=nf7w07Ds4gS2fDQBqoSEILvoqlMiRTr7ZH9OEZuLBIE=;
-	h=Date:To:From:Subject:Message-Id; b=g9veleoQBzsO6Uk9V9SO75JdRZDJVGGrSSAgFKS0pj3PyClhDhXpd2uXPTJAhQcmfWi8idksMP+FF1nl308udqQ1Ar1O03AEvNig6ajoteni5oA141yNa7A9peSutiWhRSievWcD8gyfXxje5GPjD4flsGtu47KUB9IWFos2XMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k3VjNcOP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721275767; c=relaxed/simple;
+	bh=A6DlK2AfrtOC9MMHdk9LEpEt8Z+5C6r+EWsVNe9qo3U=;
+	h=Date:To:From:Subject:Message-Id; b=Q+qBVwff3I/xMbIcbcJnu8X6yq6h3+b2d4lwhLsJpSYwSVQOTbLFRZn3+nC34NHwSFhw79z3Y1w9hgmHLqofvnEJ6xWOnb5MfPD6xz53Lj0uOBqGf75tu63O3uwNE184ZIz3h6dCULrPylLXaeeSB/cXGK8cYboaGIY1uGuHZWU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=saRbaHpe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k3VjNcOP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F399C116B1;
-	Thu, 18 Jul 2024 04:09:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="saRbaHpe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EF2AC4AF0A;
+	Thu, 18 Jul 2024 04:09:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721275765;
-	bh=nf7w07Ds4gS2fDQBqoSEILvoqlMiRTr7ZH9OEZuLBIE=;
+	s=korg; t=1721275766;
+	bh=A6DlK2AfrtOC9MMHdk9LEpEt8Z+5C6r+EWsVNe9qo3U=;
 	h=Date:To:From:Subject:From;
-	b=k3VjNcOP3twuX8K08epVQaG8O1SuQICXRuFGZvpfp/sAh0Y+E9lTMrmypSGD6xK5V
-	 fv+BQyBK+qeznT2445C2h3YZEm42vSKQVeFnPKsTKtgWihxXtV2eswpD6QY5/0hKUH
-	 BnnrR1IaWMJHECB5cd/ymaocIyJCgsX4ckeblQzc=
-Date: Wed, 17 Jul 2024 21:09:24 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,aneesh.kumar@linux.ibm.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=saRbaHpeJdeX2NCLqw0ZXmwDRXK4RKy/xRemVDZGlcsflaRNgbe5PPclYW7L5QAk5
+	 KLeqdPCZz4rEeNWKsbu+YJLTRnSyp2C1Pfd7kjqr+CRBMrvhwvemzBOuQyKF3goYST
+	 xiUbIYawioqZPDLivmwyMatNDQnaLpAKedwGVlyQ=
+Date: Wed, 17 Jul 2024 21:09:26 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch removed from -mm tree
-Message-Id: <20240718040925.5F399C116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-possible-recursive-locking-detected-warning.patch removed from -mm tree
+Message-Id: <20240718040926.9EF2AC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,168 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+     Subject: mm/hugetlb: fix possible recursive locking detected warning
 has been removed from the -mm tree.  Its filename was
-     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
+     mm-hugetlb-fix-possible-recursive-locking-detected-warning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
-Date: Wed, 3 Jul 2024 20:02:33 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix possible recursive locking detected warning
+Date: Fri, 12 Jul 2024 11:13:14 +0800
 
-If a large number of CMA memory are configured in system (for example,
-the CMA memory accounts for 50% of the system memory), starting a
-virtual virtual machine with device passthrough, it will call
-pin_user_pages_remote(..., FOLL_LONGTERM, ...) to pin memory.  Normally
-if a page is present and in CMA area, pin_user_pages_remote() will
-migrate the page from CMA area to non-CMA area because of FOLL_LONGTERM
-flag.  But the current code will cause the migration failure due to
-unexpected page refcounts, and eventually cause the virtual machine
-fail to start.
+When tries to demote 1G hugetlb folios, a lockdep warning is observed:
 
-If a page is added in LRU batch, its refcount increases one, remove the
-page from LRU batch decreases one.  Page migration requires the page is
-not referenced by others except page mapping.  Before migrating a page,
-we should try to drain the page from LRU batch in case the page is in
-it, however, folio_test_lru() is not sufficient to tell whether the
-page is in LRU batch or not, if the page is in LRU batch, the migration
-will fail.
+============================================
+WARNING: possible recursive locking detected
+6.10.0-rc6-00452-ga4d0275fa660-dirty #79 Not tainted
+--------------------------------------------
+bash/710 is trying to acquire lock:
+ffffffff8f0a7850 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0x244/0x460
 
-To solve the problem above, we modify the logic of adding to LRU batch.
-Before adding a page to LRU batch, we clear the LRU flag of the page
-so that we can check whether the page is in LRU batch by
-folio_test_lru(page).  It's quite valuable, because likely we don't
-want to blindly drain the LRU batch simply because there is some
-unexpected reference on a page, as described above.
+but task is already holding lock:
+ffffffff8f0a6f48 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0xae/0x460
 
-This change makes the LRU flag of a page invisible for longer, which
-may impact some programs.  For example, as long as a page is on a LRU
-batch, we cannot isolate it, and we cannot check if it's an LRU page. 
-Further, a page can now only be on exactly one LRU batch.  This doesn't
-seem to matter much, because a new page is allocated from buddy and
-added to the lru batch, or be isolated, it's LRU flag may also be
-invisible for a long time.
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-Link: https://lkml.kernel.org/r/1720075944-27201-1-git-send-email-yangge1116@126.com
-Link: https://lkml.kernel.org/r/1720008153-16035-1-git-send-email-yangge1116@126.com
-Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
-Signed-off-by: yangge <yangge1116@126.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+       CPU0
+       ----
+  lock(&h->resize_lock);
+  lock(&h->resize_lock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+4 locks held by bash/710:
+ #0: ffff8f118439c3f0 (sb_writers#5){.+.+}-{0:0}, at: ksys_write+0x64/0xe0
+ #1: ffff8f11893b9e88 (&of->mutex#2){+.+.}-{3:3}, at: kernfs_fop_write_iter+0xf8/0x1d0
+ #2: ffff8f1183dc4428 (kn->active#98){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x100/0x1d0
+ #3: ffffffff8f0a6f48 (&h->resize_lock){+.+.}-{3:3}, at: demote_store+0xae/0x460
+
+stack backtrace:
+CPU: 3 PID: 710 Comm: bash Not tainted 6.10.0-rc6-00452-ga4d0275fa660-dirty #79
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x68/0xa0
+ __lock_acquire+0x10f2/0x1ca0
+ lock_acquire+0xbe/0x2d0
+ __mutex_lock+0x6d/0x400
+ demote_store+0x244/0x460
+ kernfs_fop_write_iter+0x12c/0x1d0
+ vfs_write+0x380/0x540
+ ksys_write+0x64/0xe0
+ do_syscall_64+0xb9/0x1d0
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fa61db14887
+RSP: 002b:00007ffc56c48358 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000002 RCX: 00007fa61db14887
+RDX: 0000000000000002 RSI: 000055a030050220 RDI: 0000000000000001
+RBP: 000055a030050220 R08: 00007fa61dbd1460 R09: 000000007fffffff
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
+R13: 00007fa61dc1b780 R14: 00007fa61dc17600 R15: 00007fa61dc16a00
+ </TASK>
+
+Lockdep considers this an AA deadlock because the different resize_lock
+mutexes reside in the same lockdep class, but this is a false positive.
+Place them in distinct classes to avoid these warnings.
+
+Link: https://lkml.kernel.org/r/20240712031314.2570452-1-linmiaohe@huawei.com
+Fixes: 8531fc6f52f5 ("hugetlb: add hugetlb demote page support")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
- 1 file changed, 31 insertions(+), 12 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ mm/hugetlb.c            |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
-+++ a/mm/swap.c
-@@ -211,10 +211,6 @@ static void folio_batch_move_lru(struct
- 	for (i = 0; i < folio_batch_count(fbatch); i++) {
- 		struct folio *folio = fbatch->folios[i];
- 
--		/* block memcg migration while the folio moves between lru */
--		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
--			continue;
--
- 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
- 		move_fn(lruvec, folio);
- 
-@@ -255,11 +251,16 @@ static void lru_move_tail_fn(struct lruv
- void folio_rotate_reclaimable(struct folio *folio)
- {
- 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
--	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
-+	    !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 		unsigned long flags;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock_irqsave(&lru_rotate.lock, flags);
- 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
- 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
-@@ -352,11 +353,15 @@ static void folio_activate_drain(int cpu
- 
- void folio_activate(struct folio *folio)
- {
--	if (folio_test_lru(folio) && !folio_test_active(folio) &&
--	    !folio_test_unevictable(folio)) {
-+	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
- 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
-@@ -700,6 +705,11 @@ void deactivate_file_folio(struct folio
- 		return;
- 
- 	folio_get(folio);
-+	if (!folio_test_clear_lru(folio)) {
-+		folio_put(folio);
-+		return;
-+	}
-+
- 	local_lock(&cpu_fbatches.lock);
- 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
- 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
-@@ -716,11 +726,16 @@ void deactivate_file_folio(struct folio
-  */
- void folio_deactivate(struct folio *folio)
- {
--	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
--	    (folio_test_active(folio) || lru_gen_enabled())) {
-+	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
-+	    lru_gen_enabled())) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
- 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
-@@ -737,12 +752,16 @@ void folio_deactivate(struct folio *foli
-  */
- void folio_mark_lazyfree(struct folio *folio)
- {
--	if (folio_test_lru(folio) && folio_test_anon(folio) &&
--	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
--	    !folio_test_unevictable(folio)) {
-+	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
-+	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
- 		struct folio_batch *fbatch;
- 
- 		folio_get(folio);
-+		if (!folio_test_clear_lru(folio)) {
-+			folio_put(folio);
-+			return;
-+		}
-+
- 		local_lock(&cpu_fbatches.lock);
- 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
- 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
+--- a/include/linux/hugetlb.h~mm-hugetlb-fix-possible-recursive-locking-detected-warning
++++ a/include/linux/hugetlb.h
+@@ -663,6 +663,7 @@ HPAGEFLAG(RawHwpUnreliable, raw_hwp_unre
+ /* Defines one hugetlb page size */
+ struct hstate {
+ 	struct mutex resize_lock;
++	struct lock_class_key resize_key;
+ 	int next_nid_to_alloc;
+ 	int next_nid_to_free;
+ 	unsigned int order;
+--- a/mm/hugetlb.c~mm-hugetlb-fix-possible-recursive-locking-detected-warning
++++ a/mm/hugetlb.c
+@@ -4642,7 +4642,7 @@ void __init hugetlb_add_hstate(unsigned
+ 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
+ 	BUG_ON(order < order_base_2(__NR_USED_SUBPAGE));
+ 	h = &hstates[hugetlb_max_hstate++];
+-	mutex_init(&h->resize_lock);
++	__mutex_init(&h->resize_lock, "resize mutex", &h->resize_key);
+ 	h->order = order;
+ 	h->mask = ~(huge_page_size(h) - 1);
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory-failure-fix-vm_bug_on_pagepagepoisonedpage-when-unpoison-memory.patch
 
