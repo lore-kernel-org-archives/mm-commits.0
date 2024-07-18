@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6B5AEEAA;
-	Thu, 18 Jul 2024 04:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEFA0EEAA
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jul 2024 04:09:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721275765; cv=none; b=oWef3AS42095KsNKASXeuYfLpgx2yv+LFTIuoST4+v338pDQbR205jDpvEFk2UpDCK9iDenFRYdgfwBhBQPBlGD1vUz2gllHc49AKoOGvzpxDDj4J2L10ExMxJpKf2iTmJysYCwOU3S8JkOcZMMeqQguCS/RgxKOhKHSmJQWF7o=
+	t=1721275766; cv=none; b=lgjx3h+ZlKoP6QDQAUey9y1H7dzw2Wjax7pejW6/RjSfU3Ob63+Fex+ZG5QGLNuh7gzBfd+wsMfUWaY3BrJQSaNvIwPc38ztSUxXwlIxTOAPr8iRH5XN3rYF6w/pDaQFgCc6NCrQe7a0WrpTJPdFhfVaXUVREgc5MYwpClFhNc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721275765; c=relaxed/simple;
-	bh=Z3mSEPzA6oPOyt/clEoJzunfTGq0erof77HuJzqiCXs=;
-	h=Date:To:From:Subject:Message-Id; b=nHY+zjUyOHeKQ/lyJcdL6lfMNwJ70CVgN0jdkejot7xfdWg7UqTOQYBrbP3Bb6/NEXtapygU+zDNGLHwARmTaMsGilBRLiVlHB+E00UIopJ2lgv/taz6bLK7VOIGbT9LNmrWUasfceZ9hsKZrb/LVMhBDrgqDXDy83Xuszr7Q9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=retV6P1E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721275766; c=relaxed/simple;
+	bh=nf7w07Ds4gS2fDQBqoSEILvoqlMiRTr7ZH9OEZuLBIE=;
+	h=Date:To:From:Subject:Message-Id; b=g9veleoQBzsO6Uk9V9SO75JdRZDJVGGrSSAgFKS0pj3PyClhDhXpd2uXPTJAhQcmfWi8idksMP+FF1nl308udqQ1Ar1O03AEvNig6ajoteni5oA141yNa7A9peSutiWhRSievWcD8gyfXxje5GPjD4flsGtu47KUB9IWFos2XMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k3VjNcOP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="retV6P1E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3850DC116B1;
-	Thu, 18 Jul 2024 04:09:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k3VjNcOP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F399C116B1;
+	Thu, 18 Jul 2024 04:09:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721275764;
-	bh=Z3mSEPzA6oPOyt/clEoJzunfTGq0erof77HuJzqiCXs=;
+	s=korg; t=1721275765;
+	bh=nf7w07Ds4gS2fDQBqoSEILvoqlMiRTr7ZH9OEZuLBIE=;
 	h=Date:To:From:Subject:From;
-	b=retV6P1Erf+cmxbeRgwLPkoVpwdvfLAzBzuuWs9il/Frvv09LKY2VJ7oN1a5jJK2U
-	 aeMqLb+3+fx0U+QPsOcmPs2UVvpG0ECsA9+MaOku4hu2L3svHyeTc8EYJad5NQ/CEr
-	 AszFefFPgkMme2Rma6UQUECcILsCkj998C200NJM=
-Date: Wed, 17 Jul 2024 21:09:23 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,stable@vger.kernel.org,rientjes@google.com,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,hannes@cmpxchg.org,dave.hansen@intel.com,ak@linux.intel.com,tvrtko.ursulin@igalia.com,akpm@linux-foundation.org
+	b=k3VjNcOP3twuX8K08epVQaG8O1SuQICXRuFGZvpfp/sAh0Y+E9lTMrmypSGD6xK5V
+	 fv+BQyBK+qeznT2445C2h3YZEm42vSKQVeFnPKsTKtgWihxXtV2eswpD6QY5/0hKUH
+	 BnnrR1IaWMJHECB5cd/ymaocIyJCgsX4ckeblQzc=
+Date: Wed, 17 Jul 2024 21:09:24 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,aneesh.kumar@linux.ibm.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch removed from -mm tree
-Message-Id: <20240718040924.3850DC116B1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch removed from -mm tree
+Message-Id: <20240718040925.5F399C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,122 +35,168 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
+     Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
 has been removed from the -mm tree.  Its filename was
-     mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode.patch
+     mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
-Subject: mm/numa_balancing: teach mpol_to_str about the balancing mode
-Date: Mon, 8 Jul 2024 08:56:32 +0100
+From: yangge <yangge1116@126.com>
+Subject: mm/gup: clear the LRU flag of a page before adding to LRU batch
+Date: Wed, 3 Jul 2024 20:02:33 +0800
 
-Since balancing mode was added in bda420b98505 ("numa balancing: migrate
-on fault among multiple bound nodes"), it was possible to set this mode
-but it wouldn't be shown in /proc/<pid>/numa_maps since there was no
-support for it in the mpol_to_str() helper.
+If a large number of CMA memory are configured in system (for example,
+the CMA memory accounts for 50% of the system memory), starting a
+virtual virtual machine with device passthrough, it will call
+pin_user_pages_remote(..., FOLL_LONGTERM, ...) to pin memory.  Normally
+if a page is present and in CMA area, pin_user_pages_remote() will
+migrate the page from CMA area to non-CMA area because of FOLL_LONGTERM
+flag.  But the current code will cause the migration failure due to
+unexpected page refcounts, and eventually cause the virtual machine
+fail to start.
 
-Furthermore, because the balancing mode sets the MPOL_F_MORON flag, it
-would be displayed as 'default' due a workaround introduced a few years
-earlier in 8790c71a18e5 ("mm/mempolicy.c: fix mempolicy printing in
-numa_maps").
+If a page is added in LRU batch, its refcount increases one, remove the
+page from LRU batch decreases one.  Page migration requires the page is
+not referenced by others except page mapping.  Before migrating a page,
+we should try to drain the page from LRU batch in case the page is in
+it, however, folio_test_lru() is not sufficient to tell whether the
+page is in LRU batch or not, if the page is in LRU batch, the migration
+will fail.
 
-To tidy this up we implement two changes:
+To solve the problem above, we modify the logic of adding to LRU batch.
+Before adding a page to LRU batch, we clear the LRU flag of the page
+so that we can check whether the page is in LRU batch by
+folio_test_lru(page).  It's quite valuable, because likely we don't
+want to blindly drain the LRU batch simply because there is some
+unexpected reference on a page, as described above.
 
-Replace the MPOL_F_MORON check by pointer comparison against the
-preferred_node_policy array.  By doing this we generalise the current
-special casing and replace the incorrect 'default' with the correct 'bind'
-for the mode.
+This change makes the LRU flag of a page invisible for longer, which
+may impact some programs.  For example, as long as a page is on a LRU
+batch, we cannot isolate it, and we cannot check if it's an LRU page. 
+Further, a page can now only be on exactly one LRU batch.  This doesn't
+seem to matter much, because a new page is allocated from buddy and
+added to the lru batch, or be isolated, it's LRU flag may also be
+invisible for a long time.
 
-Secondly, we add a string representation and corresponding handling for
-the MPOL_F_NUMA_BALANCING flag.
-
-With the two changes together we start showing the balancing flag when it
-is set and therefore complete the fix.
-
-Representation format chosen is to separate multiple flags with vertical
-bars, following what existed long time ago in kernel 2.6.25.  But as
-between then and now there wasn't a way to display multiple flags, this
-patch does not change the format in practice.
-
-Some /proc/<pid>/numa_maps output examples:
-
- 555559580000 bind=balancing:0-1,3 file=...
- 555585800000 bind=balancing|static:0,2 file=...
- 555635240000 prefer=relative:0 file=
-
-Link: https://lkml.kernel.org/r/20240708075632.95857-1-tursulin@igalia.com
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@igalia.com>
-Fixes: bda420b98505 ("numa balancing: migrate on fault among multiple bound nodes")
-References: 8790c71a18e5 ("mm/mempolicy.c: fix mempolicy printing in numa_maps")
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[5.12+]
+Link: https://lkml.kernel.org/r/1720075944-27201-1-git-send-email-yangge1116@126.com
+Link: https://lkml.kernel.org/r/1720008153-16035-1-git-send-email-yangge1116@126.com
+Fixes: 9a4e9f3b2d73 ("mm: update get_user_pages_longterm to migrate pages allocated from CMA region")
+Signed-off-by: yangge <yangge1116@126.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/swap.c |   43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
---- a/mm/mempolicy.c~mm-numa_balancing-teach-mpol_to_str-about-the-balancing-mode
-+++ a/mm/mempolicy.c
-@@ -3297,8 +3297,9 @@ out:
-  * @pol:  pointer to mempolicy to be formatted
-  *
-  * Convert @pol into a string.  If @buffer is too short, truncate the string.
-- * Recommend a @maxlen of at least 32 for the longest mode, "interleave", the
-- * longest flag, "relative", and to display at least a few node ids.
-+ * Recommend a @maxlen of at least 51 for the longest mode, "weighted
-+ * interleave", plus the longest flag flags, "relative|balancing", and to
-+ * display at least a few node ids.
-  */
- void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
+--- a/mm/swap.c~mm-gup-clear-the-lru-flag-of-a-page-before-adding-to-lru-batch
++++ a/mm/swap.c
+@@ -211,10 +211,6 @@ static void folio_batch_move_lru(struct
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
+ 
+-		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
+-			continue;
+-
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
+ 
+@@ -255,11 +251,16 @@ static void lru_move_tail_fn(struct lruv
+ void folio_rotate_reclaimable(struct folio *folio)
  {
-@@ -3307,7 +3308,10 @@ void mpol_to_str(char *buffer, int maxle
- 	unsigned short mode = MPOL_DEFAULT;
- 	unsigned short flags = 0;
+ 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
+-	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
++	    !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 		unsigned long flags;
  
--	if (pol && pol != &default_policy && !(pol->flags & MPOL_F_MORON)) {
-+	if (pol &&
-+	    pol != &default_policy &&
-+	    !(pol >= &preferred_node_policy[0] &&
-+	      pol <= &preferred_node_policy[ARRAY_SIZE(preferred_node_policy) - 1])) {
- 		mode = pol->mode;
- 		flags = pol->flags;
- 	}
-@@ -3335,12 +3339,18 @@ void mpol_to_str(char *buffer, int maxle
- 		p += snprintf(p, buffer + maxlen - p, "=");
- 
- 		/*
--		 * Currently, the only defined flags are mutually exclusive
-+		 * Static and relative are mutually exclusive.
- 		 */
- 		if (flags & MPOL_F_STATIC_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "static");
- 		else if (flags & MPOL_F_RELATIVE_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "relative");
-+
-+		if (flags & MPOL_F_NUMA_BALANCING) {
-+			if (!is_power_of_2(flags & MPOL_MODE_FLAGS))
-+				p += snprintf(p, buffer + maxlen - p, "|");
-+			p += snprintf(p, buffer + maxlen - p, "balancing");
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
 +		}
- 	}
++
+ 		local_lock_irqsave(&lru_rotate.lock, flags);
+ 		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
+ 		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+@@ -352,11 +353,15 @@ static void folio_activate_drain(int cpu
  
- 	if (!nodes_empty(nodes))
+ void folio_activate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_active(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+ 		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+@@ -700,6 +705,11 @@ void deactivate_file_folio(struct folio
+ 		return;
+ 
+ 	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
++	}
++
+ 	local_lock(&cpu_fbatches.lock);
+ 	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate_file);
+ 	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
+@@ -716,11 +726,16 @@ void deactivate_file_folio(struct folio
+  */
+ void folio_deactivate(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
+-	    (folio_test_active(folio) || lru_gen_enabled())) {
++	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
++	    lru_gen_enabled())) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
+ 		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+@@ -737,12 +752,16 @@ void folio_deactivate(struct folio *foli
+  */
+ void folio_mark_lazyfree(struct folio *folio)
+ {
+-	if (folio_test_lru(folio) && folio_test_anon(folio) &&
+-	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
+-	    !folio_test_unevictable(folio)) {
++	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+ 		struct folio_batch *fbatch;
+ 
+ 		folio_get(folio);
++		if (!folio_test_clear_lru(folio)) {
++			folio_put(folio);
++			return;
++		}
++
+ 		local_lock(&cpu_fbatches.lock);
+ 		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
+ 		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
 _
 
-Patches currently in -mm which might be from tvrtko.ursulin@igalia.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
 
