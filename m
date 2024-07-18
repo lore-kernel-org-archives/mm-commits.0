@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5E811E520
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jul 2024 04:12:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E525775808
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jul 2024 21:33:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721275924; cv=none; b=bI0tVr8EXkhPdd9WkWseqVjJo3qeuHIplXtnvwP51/0UqnClHXyLDEVjqLpNhQ3UnWjh8yXcVq26EVQG6wp9Yi7X3B6qMplslJSmyeMVhcbfpxFcOaFPTDm17DbWnEnKxL1BwNRSCkqjheZoIJqborM5fZgqp+1P9hL1/oFYM/w=
+	t=1721338438; cv=none; b=SSbEPQl7XYjbDZFpumTJ4UywOPjQIokudzcnyTUpRkFUhMc5LZCw/qwQHotVVnING6haWZPJ5jyZazXv9vo+nlTrGo7wFRdkBucsljhx9spUggS0eOT4OB0JJyKq0e4DYBZo2rKm3xsqJmhv7jcmNqG+1SV8wNXy3cLSJXyrDrQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721275924; c=relaxed/simple;
-	bh=7hkHI8x0jTL/yqB0Pinioih4pMb0tZ98FPS6IGmqYUA=;
-	h=Date:To:From:Subject:Message-Id; b=Anl5Lb3k0HRFpG3R7Glt9f9MiHpbQUTWrrGROY5VUDShE51GRjx+VDAvgp+y4Mq6u+Tfk9ABsd9KVe/NjyHu46nPLVeUiJsPEArX/vnXqqZ5m2vLtUt53pns6CpqfAVFXKLVUBUYkep29S0enKAHuY5qsxMspV/qDDJzqiw6B0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=at+mPvQB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721338438; c=relaxed/simple;
+	bh=pRn2vKtpI/E52+BOPTwr02CI/y5v668f7NUtT2iZHDE=;
+	h=Date:To:From:Subject:Message-Id; b=RULYSJiOXd8/DKlQ97RMSSLcDfWyb5vqYY29FwJBPU/cOA3fMu6sPRCCaGTUwoAXHzHR1969anaLEwssFOg1ZxdOtOPJJPmOhpHrZNesWUO7bbZOlYJPxTQXBgWDpkspE7YRgQmbmi4S4+OZVcnUfrzZY0pPuct2eB6h7YfAQ58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MSA5/Ul0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="at+mPvQB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DEEAC116B1;
-	Thu, 18 Jul 2024 04:12:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MSA5/Ul0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6586DC116B1;
+	Thu, 18 Jul 2024 21:33:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721275924;
-	bh=7hkHI8x0jTL/yqB0Pinioih4pMb0tZ98FPS6IGmqYUA=;
+	s=korg; t=1721338437;
+	bh=pRn2vKtpI/E52+BOPTwr02CI/y5v668f7NUtT2iZHDE=;
 	h=Date:To:From:Subject:From;
-	b=at+mPvQB38OR6+drxut/N+dNRlKUvNzbR3FuIl/WH4e1yF7hZRiTughOEaVSLUo6r
-	 MdW46CK7zaHNu3J5zz+bu5mBaJYK6Z0J0H6svdL6I1NG86w3IgAKvUucX+ZrofcCO6
-	 rQlBi6R91Hr04NHn2YiJsQXqBNBdpxThcQXYhr2o=
-Date: Wed, 17 Jul 2024 21:12:03 -0700
-To: mm-commits@vger.kernel.org,adobriyan@gmail.com,akpm@linux-foundation.org
+	b=MSA5/Ul0Oi4cXSNswWdp3r6FDmi4oW2ZECje2dI5v6gTxpecXK7LN7f/OzCbDTL38
+	 zvwzxckyHgUzqGcg2W14K5vZYd4nLrCfYIiet7PnOmLnjdCXWra0bxNLSfMc7IGqe3
+	 K7HnXJUbK7PMEZIOYXCl6LQSrFJUTWdrtgSHWAMo=
+Date: Thu, 18 Jul 2024 14:33:56 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,hannes@cmpxchg.org,valdis.kletnieks@vt.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ia64-scrub-ia64-from-poisonh.patch removed from -mm tree
-Message-Id: <20240718041204.2DEEAC116B1@smtp.kernel.org>
+Subject: + mm-fix-typo-in-kconfig.patch added to mm-unstable branch
+Message-Id: <20240718213357.6586DC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,44 +34,63 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ia64: scrub ia64 from poison.h
-has been removed from the -mm tree.  Its filename was
-     ia64-scrub-ia64-from-poisonh.patch
+The patch titled
+     Subject: mm: fix typo in Kconfig
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-typo-in-kconfig.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-typo-in-kconfig.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: ia64: scrub ia64 from poison.h
-Date: Mon, 15 Jul 2024 08:25:33 +0300
+From: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Subject: mm: fix typo in Kconfig
+Date: Sat, 13 Jul 2024 02:59:50 -0400
 
-Link: https://lkml.kernel.org/r/c72e5467-06a8-4739-ae6a-7c84c96cad77@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Fix typo in Kconfig help
+
+Link: https://lkml.kernel.org/r/78656.1720853990@turing-police
+Fixes: e93d4166b40a8 ("mm: memcg: put cgroup v1-specific code under a config option")
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    6 ------
- 1 file changed, 6 deletions(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/poison.h~ia64-scrub-ia64-from-poisonh
-+++ a/include/linux/poison.h
-@@ -52,12 +52,6 @@
- /********** arch/$ARCH/mm/init.c **********/
- #define POISON_FREE_INITMEM	0xcc
+--- a/init/Kconfig~mm-fix-typo-in-kconfig
++++ a/init/Kconfig
+@@ -984,7 +984,7 @@ config MEMCG_V1
+ 	  going to shrink due to deprecation process. New deployments with v1
+ 	  controller are highly discouraged.
  
--/********** arch/ia64/hp/common/sba_iommu.c **********/
--/*
-- * arch/ia64/hp/common/sba_iommu.c uses a 16-byte poison string with a
-- * value of "SBAIOMMU POISON\0" for spill-over poisoning.
-- */
--
- /********** fs/jbd/journal.c **********/
- #define JBD_POISON_FREE		0x5b
- #define JBD2_POISON_FREE	0x5c
+-	  San N is unsure.
++	  Say N if unsure.
+ 
+ config BLK_CGROUP
+ 	bool "IO controller"
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from valdis.kletnieks@vt.edu are
 
+mm-fix-typo-in-kconfig.patch
 
