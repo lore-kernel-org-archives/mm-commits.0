@@ -1,63 +1,81 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-183.mta0.migadu.com (out-183.mta0.migadu.com [91.218.175.183])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 321DCC2ED;
-	Mon, 22 Jul 2024 01:15:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B57B214A8B
+	for <mm-commits@vger.kernel.org>; Mon, 22 Jul 2024 03:35:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.183
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721610924; cv=none; b=dqrzCDhLeUQ6r/mU42aDidv+pNNdtIM/TkU7pC57VOI6qb7DuB0128gKNTrB5r3lzmYevfF2m9ODPJbSb2usmmkoHdijKbSiGs4Iwb1XLx5ePLUqaHx2q8Cf9uVJcMqDnjQb54N9DcDDJKWFmvHRS2T6GhTTzrCbyOvXsIfVjhw=
+	t=1721619346; cv=none; b=uAqehmTFr8ocQFZcGtnxzTNv70g5Y9yjFL5Qzbw7I0Z0jamSlJICMyoci3OgXbMS0XtOTcnnLGczp5HVW9YsFziI4nXGwXeTjZy6n0gih3denvDOkVHjT2L5VeSDTyHemwDA3JPpv/bO9lcHS6/huYv6ay779VHmgo5teN+Yjps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721610924; c=relaxed/simple;
-	bh=Ww1NU0Eh9y4l/qtALACWFICY66s4bvmwMdMQ8EQ8T/8=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=uu964bxbEmk4bcQOtMJ756giMX4F/lNQkAhTpFpkGh6XqLUl3v4wdv5sF4bCq1BYKNX1jsppsKmzEZYsQJJN4PO926GH1/nyDig6IM0wGqdNjra3joY+GltK+wMxN7oEKhxdsbqKAz6Te3F8B/H3BH64baHPt1Uj0a4k2PMMLZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M18EJqqM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721619346; c=relaxed/simple;
+	bh=uZXhBG7vPw3qKRLvnXKEMHdIZvmBexPeEcLyIN0VsCs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VPPQnDezfliPP53wlcFOD7bfiBn4LNWxPE+7J91/ozeznhWgbcfy3RX3+j77JdjycL9A33Mxq6zYKGFPJC0i/p3sznrmPg9C/uhdXIgOIOQOjGFwNeqfX2py2IIb1r9Q+cNc9OuiERAXqeYHr1NIWacvp3AE7EcPs/fXIjgiEWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Sczzfqz6; arc=none smtp.client-ip=91.218.175.183
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M18EJqqM"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id BE0EEC4AF0B;
-	Mon, 22 Jul 2024 01:15:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1721610923;
-	bh=Ww1NU0Eh9y4l/qtALACWFICY66s4bvmwMdMQ8EQ8T/8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=M18EJqqMtB3tevsplU52gjwj9aPQk2pyRIh6z1k0YoHT5+4sbDSnUe2qXmXLuqK+k
-	 C9aQPYqQ1URu++Zq1izeGBEKGbh/yzS/ncYiCTmDYofzKGKHlon443YHtt/nkFFKHB
-	 t5+CSyqWAWFBWrVg5OalIZIFHq2yNJfUzhw13rRgh8ZJSC3Dz/GZOT6N0lhWb3wwTm
-	 9mOXNbMueSalOPQtAkBT46N5/wsGb5FezYe79QFa3L4wrxCa69bgcxudhEjbMcNVgj
-	 yF4UZrtXIGey4ei8H1s9/nScj4HNX9YDvQMBstML1s+Q0XfAJnmWo+NdgUAFCpS8xz
-	 j495bxbA5lfPw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B5BD6C4332C;
-	Mon, 22 Jul 2024 01:15:23 +0000 (UTC)
-Subject: Re: [GIT PULL] MM updates for 6.11-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240721145415.fbeb01a853962ef91334f3d1@linux-foundation.org>
-References: <20240721145415.fbeb01a853962ef91334f3d1@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240721145415.fbeb01a853962ef91334f3d1@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2024-07-21-14-50
-X-PR-Tracked-Commit-Id: 30d77b7eef019fa4422980806e8b7cdc8674493e
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: fbc90c042cd1dc7258ebfebe6d226017e5b5ac8c
-Message-Id: <172161092373.21017.16428992388199740936.pr-tracker-bot@kernel.org>
-Date: Mon, 22 Jul 2024 01:15:23 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Sczzfqz6"
+X-Envelope-To: torvalds@linux-foundation.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1721619341;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2Sy+av2USCA7bHCocFVHgZnrLjuRaJ5Cq849zVPzaEQ=;
+	b=Sczzfqz6h3UcJNZOdo2zSXXgDbEykWH4OtbHuskGupNpdb/EgvoIMr2D9JwhZYfJVz5TSV
+	TZnzVW1txfyoD8+01Ta0uvhlwcBJRQrmiaD1pV8OApwxAv75iJuBLzbrDlJD4GMErjNRqo
+	DLFMiiJ/jMGqRLT8eIKDs6IEdo68xCg=
+X-Envelope-To: akpm@linux-foundation.org
+X-Envelope-To: linux-mm@kvack.org
+X-Envelope-To: linux-kernel@vger.kernel.org
+X-Envelope-To: mm-commits@vger.kernel.org
+Date: Sun, 21 Jul 2024 23:35:38 -0400
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Kent Overstreet <kent.overstreet@linux.dev>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+Subject: Re: [GIT PULL] non-MM updates for 6.11-rc1
+Message-ID: <yebpkzq53mcpzf3366jxksf7w6npa5bpsiqinom74ivzutofke@m7os33wmq3fx>
+References: <20240721151013.b9b331ce79f5f60c54c69636@linux-foundation.org>
+ <CAHk-=whqXizOqcpcrqvRJ88Twi4+o=G1Y=5qsLBs5R-8uHjs+Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=whqXizOqcpcrqvRJ88Twi4+o=G1Y=5qsLBs5R-8uHjs+Q@mail.gmail.com>
+X-Migadu-Flow: FLOW_OUT
 
-The pull request you sent on Sun, 21 Jul 2024 14:54:15 -0700:
+On Sun, Jul 21, 2024 at 06:12:37PM GMT, Linus Torvalds wrote:
+> On Sun, 21 Jul 2024 at 15:10, Andrew Morton <akpm@linux-foundation.org> wrote:
+> >
+> > - In the series "treewide: Refactor heap related implementation",
+> >   Kuan-Wei Chiu has significantly reworked the min_heap library code and
+> >   has taught bcachefs to use the new more generic implementation.
+> 
+> Bah. I think the users should probably have been converted in their
+> own trees, instead of having this thing that caused a somewhat nasty
+> conflict.
+> 
+> I think I sorted it out correctly, but I'm not seeing why the bcachefs
+> conversion was done outside the bcachefs tree.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2024-07-21-14-50
+Ergh, this turned out awkward. I originally planning on sending you that
+series, but Andrew picked it up - and splitting the bcachefs patches out
+from the rest of the series would made it awkward to keep track of, but
+perhaps that was justified here.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/fbc90c042cd1dc7258ebfebe6d226017e5b5ac8c
+I think this must have been missed in -next as well because the clock.c
+changes came late (there was a bug that was uncovered by some out of
+tree code, and I'm still sitting on that patch but the bug was worth
+fixing).
 
-Thank you!
+> Kent, mind checking that I didn't do something horribly horribly bad?
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Looks good, and nothing's immediately exploding when I test it, kasan
+included, so I think we're good.
