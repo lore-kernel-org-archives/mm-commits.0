@@ -1,103 +1,107 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E6823BB
-	for <mm-commits@vger.kernel.org>; Mon, 22 Jul 2024 00:15:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CAE4431
+	for <mm-commits@vger.kernel.org>; Mon, 22 Jul 2024 01:12:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721607321; cv=none; b=JJV/t8ZkoZf7++dY4rP4B48FZ3e9vK79R6tyPHztqtvaz0IAfqw7vbD4HSRYBBeROUf9rY7JpUQubvfEiWeiFLMe9AaeBBSTHVTIB0GGycWcizQDZZtVIr6wJCeowYtig3Yqh8ZeUr4Bmu9/LSHxXmNTRnrePuMO3t+JmbTSCTk=
+	t=1721610780; cv=none; b=li8TzftE02wT764CoICQkamH3OuiUNOfw+I5fmKiFouDLmEwzYW8+DBVqgmVzgCtViEpIbjjK+wuIWjQnmwW5535HcXHzu5kz1UCs3c8htqqFBn200QoiJvkeU5v3o5xdlhyHJbYMZFKpNtEPL/2xnnHWKDV9pd19huWg4SRyqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721607321; c=relaxed/simple;
-	bh=4Lbvqiw93G2zHnDDYZ8Omb+j3DFInAVl4LQ2gZSThOg=;
+	s=arc-20240116; t=1721610780; c=relaxed/simple;
+	bh=tCut4qU1NxMAK76eXQVTCNfTH1sNoI1sNersotmkaRw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Nkqdk1op4zqZqeYPgu/IA6wJDrroGGrIyiwxEtwSArzn2BsIp8waA+HfiQZLJHx/RD9Tc3lubtUz9+OcTOw9bYhmCxOxhJ4gLzgjn2Vwq2u27UDMLHEBoXCkKE+DDNFK06NmAN7+ZSxQMpUJ0gMa9u1i1dYeQl8oFNFF99cGjdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JJ/sTkSn; arc=none smtp.client-ip=209.85.208.52
+	 To:Cc:Content-Type; b=KobE/13GocPBbyiOfoSYj7I2IodBgDcroESLb46UdFAm2jw5zAFL9VUpolsA7eNPQcCVp6nIlz5E3zn87pCit5LOLbSgspr0ORWvHA+v52JEOKFsqj6p+sxobX5X4TMevPF8bTikTMp1D7aOs55Wm9jkQnPf0cDRquJu6LG3wno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FJPyLwj4; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JJ/sTkSn"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-5a2ffc346ceso2353631a12.1
-        for <mm-commits@vger.kernel.org>; Sun, 21 Jul 2024 17:15:18 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FJPyLwj4"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a797c62565aso339171566b.2
+        for <mm-commits@vger.kernel.org>; Sun, 21 Jul 2024 18:12:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1721607317; x=1722212117; darn=vger.kernel.org;
+        d=linux-foundation.org; s=google; t=1721610776; x=1722215576; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Fk+ZewaFQX4J1b598U+n7tTY7Ck12eH0e7NaScJUzQE=;
-        b=JJ/sTkSnj4dWqLFQWOqk+S24G6i3Z6RGXAQc6AFTUwgfBjsZ74NkM9O0Ze7xG4TlI7
-         B45ifVecEO+TnTb8QmTUX1vCRZRnODYTxCs2ghXT+mVVOr0hhy+3PeBNUamr19YV8EPe
-         eYG9mtMgJoCXUGCd4xR5LkT2IGs90U4jaA/gs=
+        bh=4Ks9M3kzBCPwupF4DA1Vj4pSXzb7G5/N05vKszYZASg=;
+        b=FJPyLwj4eMDqwmkaHhAuakN4wy2eXVRtHyWEQBokWl+jQN1PcLIswz3oiMfymnOXeI
+         PhfDe615UVnO6FNQEtnwLpnVcP9JxozOKlcviup1RFqrhN3wDA5+UkDzz+GRZE6Va6Bq
+         xO8b8W3vf7SEOp7uYczOFVXe1E+UOthwyEnWM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721607317; x=1722212117;
+        d=1e100.net; s=20230601; t=1721610776; x=1722215576;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Fk+ZewaFQX4J1b598U+n7tTY7Ck12eH0e7NaScJUzQE=;
-        b=E3f7GzEOtp12XSvHF5dqo/xxXf+M0cyDsD/Q6M/NaGSJ3SB/2EONKYkbxe3vcWw3L3
-         aaTAGZJsbdltX8qpUFAEsmOELuP/MO176HYN6MfY9dh9eRGML3BXP4uq3yUPTcIPHVLg
-         N0l3o5yDHHqdHcMtGFTRVSBmjLS3W1HzatKfhZfaZ9s/tyAbweqnzGx5/5hOznoR8d6T
-         Z/65dEi9z9yvQvS4KVuCAmofVa8jDKIjA5GpPlemQ/hkrH/iGPJZZELCtSpcOGn66pxC
-         lY9mJTQkUlYxNNJ9G0yQXJ8gfXq6hxelYUCylGIbV6SGcZCE8VBUuf63UE4pbrP+FLxg
-         xBeg==
-X-Forwarded-Encrypted: i=1; AJvYcCWE8tSLSGczCcRiJ+CPT/mys2xEYy67tBc1rNtNMbh8oRF4/Vg8aUg38MQ/yGdi8ivXQ9pGOPJSZyFWBVenvKSUO7T6oY1MEG6/aw==
-X-Gm-Message-State: AOJu0Yzz4j8RkbAR3KQInFTx9UbIlf04KSgA1EU360aH4yqvWUVgDo23
-	ij2W1EM2dk4gw/0G10/y+GU5appVvIeFoEWEmrSCFrvtOI0NgPx7iC8+IDkZfFI627BhEH6Qjcr
-	dYuk=
-X-Google-Smtp-Source: AGHT+IEX9+e3kxTQxjvoI5hYvAPL4bcfP+xQsvXKiNyRl0GhyAbNUppSy4rdYCu7FTV2FSlVPrz+cA==
-X-Received: by 2002:a50:9fc5:0:b0:59e:f6e7:5521 with SMTP id 4fb4d7f45d1cf-5a47ab0dcd4mr2970947a12.19.1721607317147;
-        Sun, 21 Jul 2024 17:15:17 -0700 (PDT)
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com. [209.85.208.44])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5a7b9592144sm898480a12.75.2024.07.21.17.15.16
+        bh=4Ks9M3kzBCPwupF4DA1Vj4pSXzb7G5/N05vKszYZASg=;
+        b=fq75WjC7WAIHseB4DKova+7NF7fR6EWt7oZd1SJLu3yKEC9NzSP4O1MJghiBxwzE5N
+         1CJmV2hA7+QFfxQer3o/UfHh7Ux37PFtuk6Hmb92KgQCsqRl/1mOK5RcqmuOq18AtEPV
+         mj0gSW+GZVJn2PdluI8YwbcqcIYbB58/UXqHYbJyYtDEU99Lc43EY0GmAJ9zv3Q90QQG
+         jQUNPy4Uq96efyylB4Y2airTP+iNgOvLN5XhAQOxB1R8rDk9zlZ0b9NckXsQgSOG09LE
+         8knFh091txvk5PP4OC66JuPfH49I3C0LHf5blKcCDTizPRiRZE0FkuuQGZ5Bt8G7/4/V
+         +64Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXogEC6QSdCaB/PHqsiw16UqbhI4DSXvdLdI6sz0my9k1+ubRhmUZxpZvgPPQ1CwcGngV7r9HC0sk7J9/qbN5Uw6UB/1KYV8cJ76w==
+X-Gm-Message-State: AOJu0Yx4z8DIMuyXcdd6w6aBrrpPP1V0LhInRARz/vtSDX+L8OSUN+7V
+	dvQA8x7JRaCpefY4RjrkR4wGah1qKpeAj6nWip7Dn81UJrwakEyxiLcTvlI1V1MYoaUrAHymOBM
+	OizQ=
+X-Google-Smtp-Source: AGHT+IF8l3hbSKpK4p6DjrkzAvAPso9ODAenfUCJiveR+/2uWYShTgMlthc5kp0tPMjLY1T+wojclQ==
+X-Received: by 2002:a17:906:7145:b0:a72:744e:6703 with SMTP id a640c23a62f3a-a7a0114675amr903242966b.22.1721610776005;
+        Sun, 21 Jul 2024 18:12:56 -0700 (PDT)
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a7a3c922d15sm355608966b.168.2024.07.21.18.12.54
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 21 Jul 2024 17:15:16 -0700 (PDT)
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-5a2ffc346ceso2353620a12.1
-        for <mm-commits@vger.kernel.org>; Sun, 21 Jul 2024 17:15:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXTIfVeyW5+wLaK3R946eMjY+g2jQQarXYuEyswhNi7Qj7E8I9ODZ/MoQzGDIXBRJ2VbU+9JCpUaZc5opBWWtzwiWOJmiPgR7O8Kg==
-X-Received: by 2002:a05:6402:5204:b0:58d:81ac:ea90 with SMTP id
- 4fb4d7f45d1cf-5a47c2763damr2803143a12.38.1721607316164; Sun, 21 Jul 2024
- 17:15:16 -0700 (PDT)
+        Sun, 21 Jul 2024 18:12:55 -0700 (PDT)
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-5a20de39cfbso2796764a12.1
+        for <mm-commits@vger.kernel.org>; Sun, 21 Jul 2024 18:12:54 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWgpXSPu6OMCPV9dVXIm1TR3RWjtbv58dbnRNLIrm7HFYtK2XCN4f89Nd+PFPXzkM5d8B8UmlLtozvHhRsFSFSSEmq0NveDhl+XkA==
+X-Received: by 2002:a05:6402:2114:b0:5a1:ef24:e9dc with SMTP id
+ 4fb4d7f45d1cf-5a3ebea7d26mr4934512a12.0.1721610774619; Sun, 21 Jul 2024
+ 18:12:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240721145415.fbeb01a853962ef91334f3d1@linux-foundation.org>
-In-Reply-To: <20240721145415.fbeb01a853962ef91334f3d1@linux-foundation.org>
+References: <20240721151013.b9b331ce79f5f60c54c69636@linux-foundation.org>
+In-Reply-To: <20240721151013.b9b331ce79f5f60c54c69636@linux-foundation.org>
 From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 21 Jul 2024 17:14:59 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjPuiT+qqWXYb04AssPqo8FYMpjE43OQR4y91wtqxoHdg@mail.gmail.com>
-Message-ID: <CAHk-=wjPuiT+qqWXYb04AssPqo8FYMpjE43OQR4y91wtqxoHdg@mail.gmail.com>
-Subject: Re: [GIT PULL] MM updates for 6.11-rc1
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Sun, 21 Jul 2024 18:12:37 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whqXizOqcpcrqvRJ88Twi4+o=G1Y=5qsLBs5R-8uHjs+Q@mail.gmail.com>
+Message-ID: <CAHk-=whqXizOqcpcrqvRJ88Twi4+o=G1Y=5qsLBs5R-8uHjs+Q@mail.gmail.com>
+Subject: Re: [GIT PULL] non-MM updates for 6.11-rc1
+To: Andrew Morton <akpm@linux-foundation.org>, Kent Overstreet <kent.overstreet@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+	mm-commits@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Sun, 21 Jul 2024 at 14:54, Andrew Morton <akpm@linux-foundation.org> wrote:
+On Sun, 21 Jul 2024 at 15:10, Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> - Is anyone reading this stuff?  If so, email me!
+> - In the series "treewide: Refactor heap related implementation",
+>   Kuan-Wei Chiu has significantly reworked the min_heap library code and
+>   has taught bcachefs to use the new more generic implementation.
 
-I do actually try to read the explanations..
+Bah. I think the users should probably have been converted in their
+own trees, instead of having this thing that caused a somewhat nasty
+conflict.
 
-However, I also do build testing, which seems to have been missing. Notably:
+I think I sorted it out correctly, but I'm not seeing why the bcachefs
+conversion was done outside the bcachefs tree.
 
-> Ho-Ren (Jack) Chuang (1):
->      memory tier: consolidate the initialization of memory tiers
+(Ok, it's not like the conflict was all that nasty, really. It's more
+that conflicts in this _kind_ of code is a bit nasty).
 
-causes
+As it is, I do see the Ack from Kent, but I'm going to ask him to also
+double-check my merge.
 
-  WARNING: modpost: vmlinux: section mismatch in reference:
-hmat_set_default_dram_perf+0xc (section: .text) -> default_dram_nodes
-(section: .init.data)
-  WARNING: modpost: vmlinux: section mismatch in reference:
-hmat_set_default_dram_perf+0x6c (section: .text) -> default_dram_nodes
-(section: .init.data)
+I see what happened in linux-next, but that state also seems different
+from my tree (at a minimum, Kent also moved the tiemr_lock around a
+bit too).
 
-and sure enough, default_dram_nodes() is an init section, and is
-accessed from hmat_set_default_dram_perf().
+Anyway.. The conflict resolution looks sane to me and doesn't seem
+fundamentally complex, but (a) mistakes happen and (b) it does seem
+like this whole heap conversion could have happened in the bcachefs
+tree.
 
-I think the fix is to just mark hmat_set_default_dram_perf() as an
-init function too. Testing that now.
+Kent, mind checking that I didn't do something horribly horribly bad?
 
-                Linus
+              Linus
