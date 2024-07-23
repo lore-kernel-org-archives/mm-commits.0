@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C81513D503
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:33:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5523D13D503
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:35:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721770399; cv=none; b=EG4WlIHdRBtCMY2vx72mHusinnQyTbQmnqwbay0AL4Erv5QQpI4mdfRl/n81B0zv5Z06FeDo0FbjOQRcwSKApKOoMqo5M4VelTim4g/QX9fHR9QOC4NYuUYesgvfqgpIdZO7WmJxUGAyTHj7P9q/LeiPv408eC+V5eEyET3s9oM=
+	t=1721770519; cv=none; b=g1jCCyiF3DJQXNykoV2xkFN677INHGdiABgkPV19WkPaFKzDqGKSGlNK27bDU4nsjtV4UQiL2WF5nszIh2o3AJdyZ5Myo4fKpqn83Jn9L4LZOz4X9bYvCsC1Uyd9NeFeDFKAJdJtyMB8Csmc9LP18d0r71BzAvjMGMrxpmC34yQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721770399; c=relaxed/simple;
-	bh=X+gacsvTVQeqkibzTa1PsO4ofjdFzUU/e1UBAaqc6eU=;
-	h=Date:To:From:Subject:Message-Id; b=cskbs0OU6n3FRSqP0HdjzeyKtTOxiY3NnNFEOCt23oYftcSbSs/G/Oz4GFOiJYagiK3Fv+dQXrWoUhfQL9W7t6xLeJFuHXAbbSLtaIrCH8B/j0Ndii1qQ/5ylGrgtU/FQTEdJ83xIivgh9bq3k+XJIBYDXX2UWyNA2VerzDBL5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D/phfkRz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721770519; c=relaxed/simple;
+	bh=VHSgd3PDlR/nyHdoSfOg14OEPy7vkA4IWEy0mQh/RRg=;
+	h=Date:To:From:Subject:Message-Id; b=bDpP2ZTUA33UqsvI8inZTz+nvSMHD6nQOIUo+OdhCNH3wy4T5PKcaGQE01+CJrLwS/pS0ROuXYlcgZY1gQLaEM1MG9/oI4M7tPwrMQmFyQaQNPT8gyQ/yeDft44i6QQL6NnuFdzfKvfDF3Y/YT2RyQK4BFWjUPZJNdiVCSNwE0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/JZeRq3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D/phfkRz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E53F6C4AF09;
-	Tue, 23 Jul 2024 21:33:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/JZeRq3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3CCC4AF0A;
+	Tue, 23 Jul 2024 21:35:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721770399;
-	bh=X+gacsvTVQeqkibzTa1PsO4ofjdFzUU/e1UBAaqc6eU=;
+	s=korg; t=1721770518;
+	bh=VHSgd3PDlR/nyHdoSfOg14OEPy7vkA4IWEy0mQh/RRg=;
 	h=Date:To:From:Subject:From;
-	b=D/phfkRzPf50WtRuumkYLZsD7JVRiEo2TFSmNe9AOGBrR89k5+xKVqrrMpOannB92
-	 DAXIDhNnfn1KX96QgPT0wm5paWfmfiamrpfbe18PyaD04zmW+Xv3XFiyeEi867hqQ6
-	 KloSnbcufLsTEYM8y9qJe/HuwmDgP42TIHzyiBxs=
-Date: Tue, 23 Jul 2024 14:33:18 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=k/JZeRq3ESFAnqKBQhjfKnuK87BP5KNABS2bSxRksP9lXvcxo+VKu2EXsEGgJ0R/h
+	 TVdCscGK9jV5dXHO34FWu521HAwRFy7lp5C/oH4TZjPQzHj/pu/M4xSZpXcLjjt1Km
+	 dtduOSKaNtshVXbHc5gkw+JIXlxdwV7O1jP4a+ZI=
+Date: Tue, 23 Jul 2024 14:35:18 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-internal-core-vma-manipulation-functions-to-own-file-fix.patch added to mm-unstable branch
-Message-Id: <20240723213318.E53F6C4AF09@smtp.kernel.org>
+Subject: + mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240723213518.DA3CCC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop inappropriate includes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-internal-core-vma-manipulation-functions-to-own-file-fix.patch
+     Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-internal-core-vma-manipulation-functions-to-own-file-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: drop inappropriate includes
-Date: Tue, 23 Jul 2024 18:11:48 +0100
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
+Date: Tue, 23 Jul 2024 17:12:44 +0000
 
-As pointed out by SeongJae Park, these includes are not always available to
-all architectures and in actual fact are not required to be included here.
+Oliver Sand reported a performance regression caused by commit
+98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct
+mem_cgroup_per_node"), which puts some fields of the mem_cgroup_per_node
+structure under the CONFIG_MEMCG_V1 config option.  Apparently it causes a
+false cache sharing between lruvec and lru_zone_size members of the
+structure.  Fix it by adding an explicit padding after the lruvec member.
 
-Link: https://lkml.kernel.org/r/c1c009dd-1ee3-4615-a8d1-b1971f22a814@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: SeongJae Park <sj@kernel.org>
+Even though the padding is not required with CONFIG_MEMCG_V1 set, it seems
+like the introduced memory overhead is not significant enough to warrant
+another divergence in the mem_cgroup_per_node layout, so the padding is
+added unconditionally.
+
+Link: https://lkml.kernel.org/r/20240723171244.747521-1-roman.gushchin@linux.dev
+Fixes: 98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node")
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202407121335.31a10cb6-oliver.sang@intel.com
+Tested-by: Oliver Sang <oliver.sang@intel.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma_internal.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/memcontrol.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vma_internal.h~mm-move-internal-core-vma-manipulation-functions-to-own-file-fix
-+++ a/mm/vma_internal.h
-@@ -43,8 +43,6 @@
- #include <linux/userfaultfd_k.h>
+--- a/include/linux/memcontrol.h~mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node
++++ a/include/linux/memcontrol.h
+@@ -109,6 +109,7 @@ struct mem_cgroup_per_node {
  
- #include <asm/current.h>
--#include <asm/page_types.h>
--#include <asm/pgtable_types.h>
- #include <asm/tlb.h>
- 
- #include "internal.h"
+ 	/* Fields which get updated often at the end. */
+ 	struct lruvec		lruvec;
++	CACHELINE_PADDING(_pad2_);
+ 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+ 	struct mem_cgroup_reclaim_iter	iter;
+ };
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
-mm-move-vma_modify-and-helpers-to-internal-header.patch
-mm-move-vma_shrink-vma_expand-to-internal-header.patch
-mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
-mm-move-internal-core-vma-manipulation-functions-to-own-file-fix.patch
-maintainers-add-entry-for-new-vma-files.patch
-tools-separate-out-shared-radix-tree-components.patch
-tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
+mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
 
