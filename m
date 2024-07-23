@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E504B130AC8
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:28:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A554C130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:28:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701736; cv=none; b=qFQZaXvfRwTBSvoFA/fy1HlMWrcZwwBHe/mPjEaqr9Gz+nYGBBv0hF2XsG1oUBjnLJJah/V/H0LypfamJlLIJZKQWjT9ON8S2WkYjwkLlHhSOcsk1Ug/ynspRTvLnYD1Q4UcnkHvkZIYoMU0w8Dk2/67+1kMOUJzh3NDmoKcP5U=
+	t=1721701737; cv=none; b=G34mPtk5ZT6m+Ss50d+U/XILPXKREfDMcAejgXL3GyZtQxDZRGkxSO6BCq495xIvxRHGfBx/XJgwl8RoafosldQ9nkWSyKeEMrkuP/9wNmqcj3TmNg8QaDjM1vBDg4I9I6qc3yJcUvSe3jAMV/EN6n9bJ3ju+gQYZVWRXV7kcKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701736; c=relaxed/simple;
-	bh=p26KiBpgLYOWS9EbVbBoj395ylgwkTmJZycmb7Gdbhw=;
-	h=Date:To:From:Subject:Message-Id; b=JO/IYY/TVtBvvfcuTn035XkB3bplNf20Jqfi0Tgv84gU/vdMlO8eok02gdpIsxTkR7r5GiDPQREFRYPweHNHMosejxDB04QauxhHPhq2YRU0JSAKfIWCs7MUstecuN1481L4oh/kVexcf8vdH8E7exqPhJ1/PqXOpwRP1StKXnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iax+cDle; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701737; c=relaxed/simple;
+	bh=PkuBNOG/E2IGwVm5bSNWuSWQZzVbgBiiobl8rkzXf/M=;
+	h=Date:To:From:Subject:Message-Id; b=CQbUiV5T66JQaAT17MfIGgdPNzTayob6mY5nIDrcum4qQzkhEJjjPP2FW9twlFJVi4SGcoj3HrdJAeeOK9YRddfZf9EmrG9YzK2+q3mcU5L4HfbzjDq1IZLNSZUGDmqVRxBQyvKjHuasR3//4EZtX9N4ruBxD8mYKS5BaVMOR5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FJsZpWq/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iax+cDle"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31591C116B1;
-	Tue, 23 Jul 2024 02:28:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FJsZpWq/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24AF4C116B1;
+	Tue, 23 Jul 2024 02:28:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701735;
-	bh=p26KiBpgLYOWS9EbVbBoj395ylgwkTmJZycmb7Gdbhw=;
+	s=korg; t=1721701737;
+	bh=PkuBNOG/E2IGwVm5bSNWuSWQZzVbgBiiobl8rkzXf/M=;
 	h=Date:To:From:Subject:From;
-	b=iax+cDle5aWhJO0chseo/5b2Nk/fKjIU2EiSETAeAVqvdDuDYNkWMFPpV9cdQevKO
-	 Z9FXZ4agPUOsMz7Dw5LS5YJZ7Wi2+KwEfCqGLh23E8a2biDug+uj603I9kPgsXFyNO
-	 6n5NJcgFoJuT/MMmUrYmnxmWFLQv6fri3YHd37zk=
-Date: Mon, 22 Jul 2024 19:28:49 -0700
+	b=FJsZpWq/BPN2YweZxRW7dk3uc+RvCTPBGneKENglk5GTn/ceu0GaUlbs5Sl/pkme2
+	 4BTX3Aq3b4Bp5h89R3dRhjwq01QUTkfJXdXBRzkoopRWxEQIhlJ0bA7pmrNo1/yjFD
+	 VxVL3VjmHvXnG2A3iIiB/s3goj+85hiFqwj1tS+o=
+Date: Mon, 22 Jul 2024 19:28:56 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-xz-embedded-maintainer.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022855.31591C116B1@smtp.kernel.org>
+Subject: + licenses-add-0bsd-license-text.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022857.24AF4C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add XZ Embedded maintainer
+     Subject: LICENSES: add 0BSD license text
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-add-xz-embedded-maintainer.patch
+     licenses-add-0bsd-license-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-xz-embedded-maintainer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/licenses-add-0bsd-license-text.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: MAINTAINERS: add XZ Embedded maintainer
-Date: Sun, 21 Jul 2024 16:36:16 +0300
+Subject: LICENSES: add 0BSD license text
+Date: Sun, 21 Jul 2024 16:36:17 +0300
 
-Patch series "xz: Updates to license, filters, and compression options",
-v2.
+The license text was copied from:
 
-XZ Embedded, the upstream project, switched from public domain to the BSD
-Zero Clause License (0BSD).  Now matching SPDX license identifiers can be
-added.
+    https://spdx.org/licenses/0BSD.html
 
-Documentation was revised.  Fix syntax errors in kernel-doc comments in
-<linux/xz.h>.  The xz_dec API docs from <linux/xz.h> are now included in
-Documentation/staging/xz.rst.
-
-The new ARM64 and RISC-V filters can be used for kernel decompression if
-CONFIG_EFI_ZBOOT=y.  The filters can be used by Squashfs too.  (Userspace
-Squashfs-tools already had the ARM64 filter support committed but it was
-reverted due to backdoor fears.  I try to get ARM64 and RISC-V filter
-support added to Squashfs-tools somewhat soon.)
-
-Account for the default threading change made in the xz command line tool
-version 5.6.0.  Tweak kernel compression options for archs that support XZ
-compressed kernel.
-
-
-This patch (of 16):
-
-I have been the maintainer of the upstream project since I submitted the
-code to Linux in 2010 but I forgot to add myself to MAINTAINERS.
-
-Link: https://lkml.kernel.org/r/20240721133633.47721-1-lasse.collin@tukaani.org
-Link: https://lkml.kernel.org/r/20240721133633.47721-2-lasse.collin@tukaani.org
+Link: https://lkml.kernel.org/r/20240721133633.47721-3-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Joel Stanley <joel@jms.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -109,36 +86,39 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rui Li <me@lirui.org>
 Cc: Simon Glass <sjg@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ LICENSES/deprecated/0BSD |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-xz-embedded-maintainer
-+++ a/MAINTAINERS
-@@ -25170,6 +25170,19 @@ S:	Maintained
- F:	drivers/spi/spi-xtensa-xtfpga.c
- F:	sound/soc/xtensa/xtfpga-i2s.c
- 
-+XZ EMBEDDED
-+M:	Lasse Collin <lasse.collin@tukaani.org>
-+S:	Maintained
-+W:	https://tukaani.org/xz/embedded.html
-+B:	https://github.com/tukaani-project/xz-embedded/issues
-+C:	irc://irc.libera.chat/tukaani
-+F:	Documentation/staging/xz.rst
-+F:	include/linux/decompress/unxz.h
-+F:	include/linux/xz.h
-+F:	lib/decompress_unxz.c
-+F:	lib/xz/
-+F:	scripts/xz_wrap.sh
+--- /dev/null
++++ a/LICENSES/deprecated/0BSD
+@@ -0,0 +1,23 @@
++Valid-License-Identifier: 0BSD
++SPDX-URL: https://spdx.org/licenses/0BSD.html
++Usage-Guide:
++  To use the BSD Zero Clause License put the following SPDX tag/value
++  pair into a comment according to the placement guidelines in the
++  licensing rules documentation:
++    SPDX-License-Identifier: 0BSD
++License-Text:
 +
- YAM DRIVER FOR AX.25
- M:	Jean-Paul Roubelat <jpr@f6fbb.org>
- L:	linux-hams@vger.kernel.org
++BSD Zero Clause License
++
++Copyright (c) <year> <copyright holders>
++
++Permission to use, copy, modify, and/or distribute this software for any
++purpose with or without fee is hereby granted.
++
++THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
++OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
