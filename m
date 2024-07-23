@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7271494D6
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 23:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A8E81494D6
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 23:40:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721778044; cv=none; b=BDpRCb3Dsc/RchviUsKOLuGxtFcsePYxi5nGF+bvygOIer7NwukfzLZzY8UzIpHRlCTboWFpleKk2tGx+rvZCbITG4KZfePxwJyHJYWdFQtjRjT4123FHGva2e3are6afWqyIH4PCH85Js+bgNl2S2j1DBVjnD7PrfNkOcZXpmk=
+	t=1721778046; cv=none; b=SfN6GJK2bfINzTm4pzY6NFte2EYx7MrWyJrVEaS5w0Lv+ojN68VAJsoBoEPuBZVrD2lu6RdnaYEnFWh4shjp6P1YEQAamOXM0t1Ccw5q7BD7Siqnf1xirsGI9iQ14aF5Cg99AU+JynHJEln8IG+whaJ6+Elb5tuoyZoiX0jECGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721778044; c=relaxed/simple;
-	bh=MS+eyO9Gh5kUTyYa7uOsJbxCQF1twuJcoOAiDVrv68g=;
-	h=Date:To:From:Subject:Message-Id; b=i+bVL7seAI/H5RlYv0l5GAyF5XvjKoiRLVudBRTGXoWvCoeg2SgiokIssRj7CrcJH3OgBddvA9vtsDY4G09IXoZjff+U9n/s6BI4N8UBC3dmGz3wMNoDjGiS4DiOgvXklYzu8mFbLSwe+4id4yd7IMMRLfDjRc530jixvFPcX0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3wsR5HB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721778046; c=relaxed/simple;
+	bh=t4HScLXbtQByScY/Fw9S+7Go0sfSCgT1mGHXF+WWmFo=;
+	h=Date:To:From:Subject:Message-Id; b=kz/UpDeTVDrw0OQGgqyc36oSwyzBmGO/7YxME8T+7F0cBvDVSl1ox31QN1V4UDNwwswEcven2Py6Hnkypu/y8UL5T+v6f1u0vCmQhRxJIkPbUp1VyJa+1UZAWgho9ZWrWiwd9yQFeFzxLZn64/5PRTqID1vYXj8Tz7So8C31xvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVxvdUAa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3wsR5HB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D8CAC4AF0A;
-	Tue, 23 Jul 2024 23:40:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVxvdUAa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DA5AC4AF0A;
+	Tue, 23 Jul 2024 23:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721778044;
-	bh=MS+eyO9Gh5kUTyYa7uOsJbxCQF1twuJcoOAiDVrv68g=;
+	s=korg; t=1721778046;
+	bh=t4HScLXbtQByScY/Fw9S+7Go0sfSCgT1mGHXF+WWmFo=;
 	h=Date:To:From:Subject:From;
-	b=t3wsR5HBN5IzEQootnDuE80LX27wO7ZLepAaTkKEtaefhYC1+zT5J/nBm5xcqtvJJ
-	 xCKKa9hVsxyYAD0I486LQ1ROBi2faa4MS91baDy8UALYgPFWGtCp4ynh2EhaFWjeUu
-	 rRZxBTwh7m/Vr3ev9MyQ81ScgmPpNOMAJMJJG4U8=
-Date: Tue, 23 Jul 2024 16:40:43 -0700
+	b=qVxvdUAaUw3jtIqQBbcuC8f53ZYejDwSpewbfHAdInKXI8E4lR6464Hz1ecWof1C5
+	 cdZiVd8LOr7/wGOhXgQ+PqT1CqtU9w+aWvdvMTwlhzwx+NPuyreLnWETMbHX6FPn2C
+	 rGb5Sbrl8l5V8sFMpDR1K3QocmuLvKOvq22/U/MY=
+Date: Tue, 23 Jul 2024 16:40:45 -0700
 To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-add-lx-stack_depot_lookup-command.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723234044.6D8CAC4AF0A@smtp.kernel.org>
+Subject: + scripts-gdb-add-lx-kasan_mem_to_shadow-command.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723234046.2DA5AC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: add 'lx-stack_depot_lookup' command.
+     Subject: scripts/gdb: add 'lx-kasan_mem_to_shadow' command
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-add-lx-stack_depot_lookup-command.patch
+     scripts-gdb-add-lx-kasan_mem_to_shadow-command.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx-stack_depot_lookup-command.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx-kasan_mem_to_shadow-command.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,75 +59,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Subject: scripts/gdb: add 'lx-stack_depot_lookup' command.
-Date: Tue, 23 Jul 2024 14:49:00 +0800
+Subject: scripts/gdb: add 'lx-kasan_mem_to_shadow' command
+Date: Tue, 23 Jul 2024 14:49:01 +0800
 
-This command allows users to quickly retrieve a stacktrace using a handle
-obtained from a memory coredump.
+This command allows users to quickly translate memory address to the kasan
+shadow memory address.
 
 Example output:
-(gdb) lx-stack_depot_lookup 0x00c80300
-   0xffff8000807965b4 <kmem_cache_alloc_noprof+660>:    mov     x20, x0
-   0xffff800081a077d8 <kmem_cache_oob_alloc+76>:        mov     x1, x0
-   0xffff800081a079a0 <test_version_show+100>:  cbnz    w0, 0xffff800081a07968 <test_version_show+44>
-   0xffff800082f4a3fc <kobj_attr_show+60>:      ldr     x19, [sp, #16]
-   0xffff800080a0fb34 <sysfs_kf_seq_show+460>:  ldp     x3, x4, [sp, #96]
-   0xffff800080a0a550 <kernfs_seq_show+296>:    ldp     x19, x20, [sp, #16]
-   0xffff8000808e7b40 <seq_read_iter+836>:      mov     w5, w0
-   0xffff800080a0b8ac <kernfs_fop_read_iter+804>:       mov     x23, x0
-   0xffff800080914a48 <copy_splice_read+972>:   mov     x6, x0
-   0xffff8000809151c4 <do_splice_read+348>:     ldr     x21, [sp, #32]
+(gdb) lx-kasan_mem_to_shadow 0xffff000019acc008
+shadow addr: 0xffff600003359801
 
-Link: https://lkml.kernel.org/r/20240723064902.124154-5-kuan-ying.lee@canonical.com
+Link: https://lkml.kernel.org/r/20240723064902.124154-6-kuan-ying.lee@canonical.com
 Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/stackdepot.py |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ scripts/gdb/linux/kasan.py |   44 +++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |    1 
+ 2 files changed, 45 insertions(+)
 
---- a/scripts/gdb/linux/stackdepot.py~scripts-gdb-add-lx-stack_depot_lookup-command
-+++ a/scripts/gdb/linux/stackdepot.py
-@@ -13,6 +13,13 @@ if constants.LX_CONFIG_STACKDEPOT:
-     stack_record_type = utils.CachedType('struct stack_record')
-     DEPOT_STACK_ALIGN = 4
- 
+--- /dev/null
++++ a/scripts/gdb/linux/kasan.py
+@@ -0,0 +1,44 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Copyright 2024 Canonical Ltd.
++#
++# Authors:
++#  Kuan-Ying Lee <kuan-ying.lee@canonical.com>
++#
++
++import gdb
++from linux import constants, mm
++
 +def help():
-+    t = """Usage: lx-stack_depot_lookup [Hex handle value]
++    t = """Usage: lx-kasan_mem_to_shadow [Hex memory addr]
 +    Example:
-+        lx-stack_depot_lookup 0x00c80300\n"""
++        lx-kasan_mem_to_shadow 0xffff000008eca008\n"""
 +    gdb.write("Unrecognized command\n")
 +    raise gdb.GdbError(t)
 +
- def stack_depot_fetch(handle):
-     global DEPOT_STACK_ALIGN
-     global stack_record_type
-@@ -57,3 +64,23 @@ def stack_depot_print(handle):
-                 gdb.execute("x /i 0x%x" % (int(entries[i])))
-             except Exception as e:
-                 gdb.write("%s\n" % e)
++class KasanMemToShadow(gdb.Command):
++    """Translate memory address to kasan shadow address"""
 +
-+class StackDepotLookup(gdb.Command):
-+    """Search backtrace by handle"""
++    p_ops = None
 +
 +    def __init__(self):
-+        if constants.LX_CONFIG_STACKDEPOT:
-+            super(StackDepotLookup, self).__init__("lx-stack_depot_lookup", gdb.COMMAND_SUPPORT)
++        if constants.LX_CONFIG_KASAN_GENERIC or constants.LX_CONFIG_KASAN_SW_TAGS:
++            super(KasanMemToShadow, self).__init__("lx-kasan_mem_to_shadow", gdb.COMMAND_SUPPORT)
 +
 +    def invoke(self, args, from_tty):
-+        if not constants.LX_CONFIG_STACKDEPOT:
-+            raise gdb.GdbError('CONFIG_STACKDEPOT is not set')
++        if not constants.LX_CONFIG_KASAN_GENERIC or constants.LX_CONFIG_KASAN_SW_TAGS:
++            raise gdb.GdbError('CONFIG_KASAN_GENERIC or CONFIG_KASAN_SW_TAGS is not set')
 +
 +        argv = gdb.string_to_argv(args)
 +        if len(argv) == 1:
-+            handle = int(argv[0], 16)
-+            stack_depot_print(gdb.Value(handle).cast(utils.get_uint_type()))
++            if self.p_ops is None:
++                self.p_ops = mm.page_ops().ops
++            addr = int(argv[0], 16)
++            shadow_addr = self.kasan_mem_to_shadow(addr)
++            gdb.write('shadow addr: 0x%x\n' % shadow_addr)
 +        else:
 +            help()
++    def kasan_mem_to_shadow(self, addr):
++        return (addr >> self.p_ops.KASAN_SHADOW_SCALE_SHIFT) + self.p_ops.KASAN_SHADOW_OFFSET
 +
-+StackDepotLookup()
++KasanMemToShadow()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-lx-kasan_mem_to_shadow-command
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -49,3 +49,4 @@ else:
+     import linux.page_owner
+     import linux.slab
+     import linux.vmalloc
++    import linux.kasan
 _
 
 Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
