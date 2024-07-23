@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EAB9130AC8
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D644130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701765; cv=none; b=O0gI5xTWpUztqfiz4XbHPCS8CBNcrbffmyGOCQWczynK5MNd/c+89pItTrQfu34PnIkGqSY64AyIsFgQnkFpAA2zxqXS4PzlYzGu0ApJXWUPYtg/7tVa0ZhxZRCbXwh7aeDrb5PqP7vz0dzwa36nMWJwfvvRQe07YGhwLjwR2zs=
+	t=1721701767; cv=none; b=rupH8fyEgx92ygIMJdRIFOkraqyRC95nnbtqRINPuqe/022SH45oQSG1+/UPnBz5QmXK6jaX590smDZ1TnjV5J+pIR89SLBxKHQKDno2qTT/Omgm735ElLl6hEpnqNByZsvE/f35I9u8+VwsfZXuZ++0rzaVbzqMKbJisxtF5P4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701765; c=relaxed/simple;
-	bh=rwsj6Ujidz0+7VELuQmMXwJEVLkjsdUrhV07Ce3oa6w=;
-	h=Date:To:From:Subject:Message-Id; b=nDxzt26WZeXXYOfIhfFtX+q78VeWSNltFjLpMxshx84lGd4eMBNaA25wMQikp+xQkMaN9PlnvtitCpA1Oxe9DR8nvVhv3Jb51+/cc3qrgAy6VMlfLpdgjCmOUTqZm8rrpq1xqjARc48wx9nX2UqaOnLsyToASiAlmW/94gyr4tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zQosi17j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701767; c=relaxed/simple;
+	bh=hM5PWkPuTL35R4aLtPGD/qRWTFw/g8JORyyPHCU1+5w=;
+	h=Date:To:From:Subject:Message-Id; b=HH8sc88W06yqegrlfJJzL0sWlwNjtAxIryiGqpW82hk4+25pXIgobrq3bnHAk6m+8v/vFJRI9/QoKmfzpg+HjQ+tDVuHS3TMvxqXinSQIxhWgN1ck5wAgr0YnBhCqlldO2obXlQ3oNftq+/qBCEE6rzA4cYXcPzWuefV16yyJVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nu+txHvQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zQosi17j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234B6C116B1;
-	Tue, 23 Jul 2024 02:29:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nu+txHvQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C3B5C116B1;
+	Tue, 23 Jul 2024 02:29:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701765;
-	bh=rwsj6Ujidz0+7VELuQmMXwJEVLkjsdUrhV07Ce3oa6w=;
+	s=korg; t=1721701767;
+	bh=hM5PWkPuTL35R4aLtPGD/qRWTFw/g8JORyyPHCU1+5w=;
 	h=Date:To:From:Subject:From;
-	b=zQosi17jgVZiXjLTSLIovGgARfskQepjazQrbWSZnJJu4CsEPWpxvKVIAhi/+ozHS
-	 htIIRv1yvtF8XO5VbMfLGiKFfSGdko6EEWWK62mgH+q/1VSRBXhBM2qkjQSUUdSk4N
-	 Hj4zsAVGM6UmDZ7Y91iu/NO+/gjaRgWeF/Qs2UoA=
-Date: Mon, 22 Jul 2024 19:29:24 -0700
+	b=Nu+txHvQO91smjITGSPuZuT6qBJpIqAFAUTEN5UpTborAFZLRYVEyfJan1QUnEXSf
+	 LYY+PiqDlWWHtufLnc5QRgjKqiX3BBwt+m85t1YusuaUQR9GJMrjATJfsz2IzZdB8W
+	 wiMhBP0Jt20os5bX/bzvMwZdjPXMnZOxndhLHpn0=
+Date: Mon, 22 Jul 2024 19:29:26 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022925.234B6C116B1@smtp.kernel.org>
+Subject: + xz-add-arm64-bcj-filter.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022927.2C3B5C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xz: optimize for-loop conditions in the BCJ decoders
+     Subject: xz: Add ARM64 BCJ filter
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
+     xz-add-arm64-bcj-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-add-arm64-bcj-filter.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: optimize for-loop conditions in the BCJ decoders
-Date: Sun, 21 Jul 2024 16:36:25 +0300
+Subject: xz: Add ARM64 BCJ filter
+Date: Sun, 21 Jul 2024 16:36:26 +0300
 
-Compilers cannot optimize the addition "i + 4" away since theoretically it
-could overflow.
+Also omit a duplicated check for XZ_DEC_ARM in xz_private.h.
 
-Link: https://lkml.kernel.org/r/20240721133633.47721-11-lasse.collin@tukaani.org
+A later commit updates lib/decompress_unxz.c to enable this filter for
+kernel decompression.  lib/decompress_unxz.c is already used if
+CONFIG_EFI_ZBOOT=y && CONFIG_KERNEL_XZ=y.
+
+This filter can be used by Squashfs without modifications to the Squashfs
+kernel code (only needs support in userspace Squashfs-tools).
+
+Link: https://lkml.kernel.org/r/20240721133633.47721-12-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -89,69 +95,131 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/xz_dec_bcj.c |   23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ lib/xz/Kconfig      |    5 ++++
+ lib/xz/xz_dec_bcj.c |   52 +++++++++++++++++++++++++++++++++++++++++-
+ lib/xz/xz_private.h |    7 ++++-
+ 3 files changed, 61 insertions(+), 3 deletions(-)
 
---- a/lib/xz/xz_dec_bcj.c~xz-optimize-for-loop-conditions-in-the-bcj-decoders
+--- a/lib/xz/Kconfig~xz-add-arm64-bcj-filter
++++ a/lib/xz/Kconfig
+@@ -30,6 +30,11 @@ config XZ_DEC_ARMTHUMB
+ 	default y
+ 	select XZ_DEC_BCJ
+ 
++config XZ_DEC_ARM64
++	bool "ARM64 BCJ filter decoder" if EXPERT
++	default y
++	select XZ_DEC_BCJ
++
+ config XZ_DEC_SPARC
+ 	bool "SPARC BCJ filter decoder" if EXPERT
+ 	default y
+--- a/lib/xz/xz_dec_bcj.c~xz-add-arm64-bcj-filter
 +++ a/lib/xz/xz_dec_bcj.c
-@@ -161,7 +161,9 @@ static size_t bcj_powerpc(struct xz_dec_
- 	size_t i;
- 	uint32_t instr;
+@@ -23,7 +23,8 @@ struct xz_dec_bcj {
+ 		BCJ_IA64 = 6,       /* Big or little endian */
+ 		BCJ_ARM = 7,        /* Little endian only */
+ 		BCJ_ARMTHUMB = 8,   /* Little endian only */
+-		BCJ_SPARC = 9       /* Big or little endian */
++		BCJ_SPARC = 9,      /* Big or little endian */
++		BCJ_ARM64 = 10      /* AArch64 */
+ 	} type;
  
--	for (i = 0; i + 4 <= size; i += 4) {
+ 	/*
+@@ -346,6 +347,47 @@ static size_t bcj_sparc(struct xz_dec_bc
+ }
+ #endif
+ 
++#ifdef XZ_DEC_ARM64
++static size_t bcj_arm64(struct xz_dec_bcj *s, uint8_t *buf, size_t size)
++{
++	size_t i;
++	uint32_t instr;
++	uint32_t addr;
++
 +	size &= ~(size_t)3;
 +
 +	for (i = 0; i < size; i += 4) {
- 		instr = get_unaligned_be32(buf + i);
- 		if ((instr & 0xFC000003) == 0x48000001) {
- 			instr &= 0x03FFFFFC;
-@@ -218,7 +220,9 @@ static size_t bcj_ia64(struct xz_dec_bcj
- 	/* Instruction normalized with bit_res for easier manipulation */
- 	uint64_t norm;
++		instr = get_unaligned_le32(buf + i);
++
++		if ((instr >> 26) == 0x25) {
++			/* BL instruction */
++			addr = instr - ((s->pos + (uint32_t)i) >> 2);
++			instr = 0x94000000 | (addr & 0x03FFFFFF);
++			put_unaligned_le32(instr, buf + i);
++
++		} else if ((instr & 0x9F000000) == 0x90000000) {
++			/* ADRP instruction */
++			addr = ((instr >> 29) & 3) | ((instr >> 3) & 0x1FFFFC);
++
++			/* Only convert values in the range +/-512 MiB. */
++			if ((addr + 0x020000) & 0x1C0000)
++				continue;
++
++			addr -= (s->pos + (uint32_t)i) >> 12;
++
++			instr &= 0x9000001F;
++			instr |= (addr & 3) << 29;
++			instr |= (addr & 0x03FFFC) << 3;
++			instr |= (0U - (addr & 0x020000)) & 0xE00000;
++
++			put_unaligned_le32(instr, buf + i);
++		}
++	}
++
++	return i;
++}
++#endif
++
+ /*
+  * Apply the selected BCJ filter. Update *pos and s->pos to match the amount
+  * of data that got filtered.
+@@ -393,6 +435,11 @@ static void bcj_apply(struct xz_dec_bcj
+ 		filtered = bcj_sparc(s, buf, size);
+ 		break;
+ #endif
++#ifdef XZ_DEC_ARM64
++	case BCJ_ARM64:
++		filtered = bcj_arm64(s, buf, size);
++		break;
++#endif
+ 	default:
+ 		/* Never reached but silence compiler warnings. */
+ 		filtered = 0;
+@@ -566,6 +613,9 @@ XZ_EXTERN enum xz_ret xz_dec_bcj_reset(s
+ #ifdef XZ_DEC_SPARC
+ 	case BCJ_SPARC:
+ #endif
++#ifdef XZ_DEC_ARM64
++	case BCJ_ARM64:
++#endif
+ 		break;
  
--	for (i = 0; i + 16 <= size; i += 16) {
-+	size &= ~(size_t)15;
-+
-+	for (i = 0; i < size; i += 16) {
- 		mask = branch_table[buf[i] & 0x1F];
- 		for (slot = 0, bit_pos = 5; slot < 3; ++slot, bit_pos += 41) {
- 			if (((mask >> slot) & 1) == 0)
-@@ -266,7 +270,9 @@ static size_t bcj_arm(struct xz_dec_bcj
- 	size_t i;
- 	uint32_t addr;
- 
--	for (i = 0; i + 4 <= size; i += 4) {
-+	size &= ~(size_t)3;
-+
-+	for (i = 0; i < size; i += 4) {
- 		if (buf[i + 3] == 0xEB) {
- 			addr = (uint32_t)buf[i] | ((uint32_t)buf[i + 1] << 8)
- 					| ((uint32_t)buf[i + 2] << 16);
-@@ -289,7 +295,12 @@ static size_t bcj_armthumb(struct xz_dec
- 	size_t i;
- 	uint32_t addr;
- 
--	for (i = 0; i + 4 <= size; i += 2) {
-+	if (size < 4)
-+		return 0;
-+
-+	size -= 4;
-+
-+	for (i = 0; i <= size; i += 2) {
- 		if ((buf[i + 1] & 0xF8) == 0xF0
- 				&& (buf[i + 3] & 0xF8) == 0xF8) {
- 			addr = (((uint32_t)buf[i + 1] & 0x07) << 19)
-@@ -317,7 +328,9 @@ static size_t bcj_sparc(struct xz_dec_bc
- 	size_t i;
- 	uint32_t instr;
- 
--	for (i = 0; i + 4 <= size; i += 4) {
-+	size &= ~(size_t)3;
-+
-+	for (i = 0; i < size; i += 4) {
- 		instr = get_unaligned_be32(buf + i);
- 		if ((instr >> 22) == 0x100 || (instr >> 22) == 0x1FF) {
- 			instr <<= 2;
+ 	default:
+--- a/lib/xz/xz_private.h~xz-add-arm64-bcj-filter
++++ a/lib/xz/xz_private.h
+@@ -36,6 +36,9 @@
+ #		ifdef CONFIG_XZ_DEC_SPARC
+ #			define XZ_DEC_SPARC
+ #		endif
++#		ifdef CONFIG_XZ_DEC_ARM64
++#			define XZ_DEC_ARM64
++#		endif
+ #		ifdef CONFIG_XZ_DEC_MICROLZMA
+ #			define XZ_DEC_MICROLZMA
+ #		endif
+@@ -97,9 +100,9 @@
+  */
+ #ifndef XZ_DEC_BCJ
+ #	if defined(XZ_DEC_X86) || defined(XZ_DEC_POWERPC) \
+-			|| defined(XZ_DEC_IA64) || defined(XZ_DEC_ARM) \
++			|| defined(XZ_DEC_IA64) \
+ 			|| defined(XZ_DEC_ARM) || defined(XZ_DEC_ARMTHUMB) \
+-			|| defined(XZ_DEC_SPARC)
++			|| defined(XZ_DEC_SPARC) || defined(XZ_DEC_ARM64)
+ #		define XZ_DEC_BCJ
+ #	endif
+ #endif
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
