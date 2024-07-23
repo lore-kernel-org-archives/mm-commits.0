@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9797EEC2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:49:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C208132804
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:49:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721699363; cv=none; b=u6kpRJ5G7xvd+X4sk+967+UfREZuESEBQr5k5UXEVpGUBK98jAFbhO2r7CcaeP+wDOaw8aS6DEHiiXQgUN7O688gRpyATM7gyjWvohV6zMlXPofcE+RUCJxJZqz733g4EcvDvGSHJV3rJUfW51y2BG0F81QiWKzn8lbpxCJmMqs=
+	t=1721699381; cv=none; b=rQj99/yUE0Ra+ANOtHylBFQ++OuVi4so1uJ7yfJxjps+LdjzIcUtHlZnIDaxKVAMGDS3Wp2BY9018q3rA9M5G0tBDCuHkZgd/D4HUvyLSH+wvhoWgJibqXt7UjEHnXlq1fU9zAzj9Ty0T4B83srrwk9tx6tTu6VbUv5bt8o7LZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721699363; c=relaxed/simple;
-	bh=Lxu2aFmdilcimV6Di89yXRu9cUdb0lJ23b57E5MX8OA=;
-	h=Date:To:From:Subject:Message-Id; b=GbchPDWs2DHHJl09tKHgbWYv5Rx8al7NNSrAKnRW7yhucP2MdruHxU9hBG632IgQal92isExSaYyGZ3E7BVhWmCHluQ9aO3F41hnAG8pZZnwiQYEJTkaYbjXiANlXH/e2Q6ICVdrhCA6hfwOI3bUj5xuM4xdqEJPdIt2Rj+NzD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0oIYKSZ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721699381; c=relaxed/simple;
+	bh=PNyuwkQHiaMeLrL30HrPYfNurD59iXlaT8kCdn6+lb8=;
+	h=Date:To:From:Subject:Message-Id; b=ZDq3Rypl95+W1536+Rb1ZOyPEejsPapUQfERT7UuNX7mj6YbbFmPw1gm/r8V3sKWUTNPdH/MoZVXzAZXi/6MhbZLYrQtzeInb4zGXFUo4BiUwzJfa+1dYcIELQSs3X0ur9p1zKYFEyws1upbHOaeGhQaQ4AXDsn8Wxd/Qh8r1Tc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gIZ2klHE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0oIYKSZ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A091C116B1;
-	Tue, 23 Jul 2024 01:49:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gIZ2klHE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31C44C116B1;
+	Tue, 23 Jul 2024 01:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721699363;
-	bh=Lxu2aFmdilcimV6Di89yXRu9cUdb0lJ23b57E5MX8OA=;
+	s=korg; t=1721699381;
+	bh=PNyuwkQHiaMeLrL30HrPYfNurD59iXlaT8kCdn6+lb8=;
 	h=Date:To:From:Subject:From;
-	b=0oIYKSZ0K/PVw7W0hIV0YQKUu0LVQ0K6YLnZqfFAlpszownkrq0FfPHSoI+Hk/dvW
-	 CLK87Gqrn9t1G/dcDVRihATKoDiDrRYwdEI/ezghBdZUTS3r04v29bOwLJniiVrZgB
-	 88gZ1BUFKOkOEdGRyARRTA0GtjB+mD76Vd8RUwcU=
-Date: Mon, 22 Jul 2024 18:49:07 -0700
+	b=gIZ2klHE0EcObNa7dQbyAjBbPnH6W8WwwA7wLih0NVNN2/LZrAu0Yh9Xqy7B69MuL
+	 C3H4V7KOcopjF3mXICt8GIL0ZbXGrr6YDlz/nVJt8jFgRsFeBgG8jUk2YqREZLbXat
+	 atnuiHFXgLLsCxQDC7LvkdWHGAgo5CJZKiuul+xs=
+Date: Mon, 22 Jul 2024 18:49:25 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch added to mm-unstable branch
-Message-Id: <20240723014923.1A091C116B1@smtp.kernel.org>
+Subject: + mm-move-vma_modify-and-helpers-to-internal-header.patch added to mm-unstable branch
+Message-Id: <20240723014941.31C44C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
+     Subject: mm: move vma_modify() and helpers to internal header
 has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
+     mm-move-vma_modify-and-helpers-to-internal-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vma_modify-and-helpers-to-internal-header.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
-Date: Mon, 22 Jul 2024 12:50:19 +0100
+Subject: mm: move vma_modify() and helpers to internal header
+Date: Mon, 22 Jul 2024 12:50:20 +0100
 
-Patch series "Make core VMA operations internal and testable", v3.
+These are core VMA manipulation functions which invoke VMA splitting and
+merging and should not be directly accessed from outside of mm/.
 
-There are a number of "core" VMA manipulation functions implemented in
-mm/mmap.c, notably those concerning VMA merging, splitting, modifying,
-expanding and shrinking, which logically don't belong there.
-
-More importantly this functionality represents an internal implementation
-detail of memory management and should not be exposed outside of mm/
-itself.
-
-This patch series isolates core VMA manipulation functionality into its
-own file, mm/vma.c, and provides an API to the rest of the mm code in
-mm/vma.h.
-
-Importantly, it also carefully implements mm/vma_internal.h, which
-specifies which headers need to be imported by vma.c, leading to the very
-useful property that vma.c depends only on mm/vma.h and mm/vma_internal.h.
-
-This means we can then re-implement vma_internal.h in userland, adding
-shims for kernel mechanisms as required, allowing us to unit test internal
-VMA functionality.
-
-This testing is useful as opposed to an e.g.  kunit implementation as this
-way we can avoid all external kernel side-effects while testing, run tests
-VERY quickly, and iterate on and debug problems quickly.
-
-Excitingly this opens the door to, in the future, recreating precise
-problems observed in production in userland and very quickly debugging
-problems that might otherwise be very difficult to reproduce.
-
-This patch series takes advantage of existing shim logic and full userland
-maple tree support contained in tools/testing/radix-tree/ and
-tools/include/linux/, separating out shared components of the radix tree
-implementation to provide this testing.
-
-Kernel functionality is stubbed and shimmed as needed in
-tools/testing/vma/ which contains a fully functional userland
-vma_internal.h file and which imports mm/vma.c and mm/vma.h to be directly
-tested from userland.
-
-A simple, skeleton testing implementation is provided in
-tools/testing/vma/vma.c as a proof-of-concept, asserting that simple VMA
-merge, modify (testing split), expand and shrink functionality work
-correctly.
-
-
-This patch (of 7):
-
-This patch forms part of a patch series intending to separate out VMA
-logic and render it testable from userspace, which requires that core
-manipulation functions be exposed in an mm/-internal header file.
-
-In order to do this, we must abstract APIs we wish to test, in this
-instance functions which ultimately invoke vma_modify().
-
-This patch therefore moves all logic which ultimately invokes vma_modify()
-to mm/userfaultfd.c, trying to transfer code at a functional granularity
-where possible.
-
-Link: https://lkml.kernel.org/r/cover.1721648367.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/5fb6ee4aef94d5c6c78c33de86263b15504bca4c.1721648367.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/4fbcf354df31e90e41242724cb7cf1c56ab7f50a.1721648367.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
@@ -141,454 +84,149 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |  160 ++----------------------------
- include/linux/userfaultfd_k.h |   18 +++
- mm/userfaultfd.c              |  168 ++++++++++++++++++++++++++++++++
- 3 files changed, 197 insertions(+), 149 deletions(-)
+ include/linux/mm.h |   60 ------------------------------------------
+ mm/internal.h      |   61 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+), 60 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
-+++ a/fs/userfaultfd.c
-@@ -104,21 +104,6 @@ bool userfaultfd_wp_unpopulated(struct v
- 	return ctx->features & UFFD_FEATURE_WP_UNPOPULATED;
- }
- 
--static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
--				     vm_flags_t flags)
--{
--	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
+--- a/include/linux/mm.h~mm-move-vma_modify-and-helpers-to-internal-header
++++ a/include/linux/mm.h
+@@ -3277,66 +3277,6 @@ extern struct vm_area_struct *copy_vma(s
+ 	unsigned long addr, unsigned long len, pgoff_t pgoff,
+ 	bool *need_rmap_locks);
+ extern void exit_mmap(struct mm_struct *);
+-struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
+-				  struct vm_area_struct *prev,
+-				  struct vm_area_struct *vma,
+-				  unsigned long start, unsigned long end,
+-				  unsigned long vm_flags,
+-				  struct mempolicy *policy,
+-				  struct vm_userfaultfd_ctx uffd_ctx,
+-				  struct anon_vma_name *anon_name);
 -
--	vm_flags_reset(vma, flags);
--	/*
--	 * For shared mappings, we want to enable writenotify while
--	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
--	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
--	 */
--	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
--		vma_set_page_prot(vma);
+-/* We are about to modify the VMA's flags. */
+-static inline struct vm_area_struct
+-*vma_modify_flags(struct vma_iterator *vmi,
+-		  struct vm_area_struct *prev,
+-		  struct vm_area_struct *vma,
+-		  unsigned long start, unsigned long end,
+-		  unsigned long new_flags)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), vma->vm_userfaultfd_ctx,
+-			  anon_vma_name(vma));
 -}
 -
- static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
- 				     int wake_flags, void *key)
- {
-@@ -615,22 +600,7 @@ static void userfaultfd_event_wait_compl
- 	spin_unlock_irq(&ctx->event_wqh.lock);
- 
- 	if (release_new_ctx) {
--		struct vm_area_struct *vma;
--		struct mm_struct *mm = release_new_ctx->mm;
--		VMA_ITERATOR(vmi, mm, 0);
+-/* We are about to modify the VMA's flags and/or anon_name. */
+-static inline struct vm_area_struct
+-*vma_modify_flags_name(struct vma_iterator *vmi,
+-		       struct vm_area_struct *prev,
+-		       struct vm_area_struct *vma,
+-		       unsigned long start,
+-		       unsigned long end,
+-		       unsigned long new_flags,
+-		       struct anon_vma_name *new_name)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), vma->vm_userfaultfd_ctx, new_name);
+-}
 -
--		/* the various vma->vm_userfaultfd_ctx still points to it */
--		mmap_write_lock(mm);
--		for_each_vma(vmi, vma) {
--			if (vma->vm_userfaultfd_ctx.ctx == release_new_ctx) {
--				vma_start_write(vma);
--				vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
--				userfaultfd_set_vm_flags(vma,
--							 vma->vm_flags & ~__VM_UFFD_FLAGS);
--			}
--		}
--		mmap_write_unlock(mm);
+-/* We are about to modify the VMA's memory policy. */
+-static inline struct vm_area_struct
+-*vma_modify_policy(struct vma_iterator *vmi,
+-		   struct vm_area_struct *prev,
+-		   struct vm_area_struct *vma,
+-		   unsigned long start, unsigned long end,
+-		   struct mempolicy *new_pol)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, vma->vm_flags,
+-			  new_pol, vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-}
 -
-+		userfaultfd_release_new(release_new_ctx);
- 		userfaultfd_ctx_put(release_new_ctx);
- 	}
+-/* We are about to modify the VMA's flags and/or uffd context. */
+-static inline struct vm_area_struct
+-*vma_modify_flags_uffd(struct vma_iterator *vmi,
+-		       struct vm_area_struct *prev,
+-		       struct vm_area_struct *vma,
+-		       unsigned long start, unsigned long end,
+-		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), new_ctx, anon_vma_name(vma));
+-}
  
-@@ -662,9 +632,7 @@ int dup_userfaultfd(struct vm_area_struc
- 		return 0;
+ static inline int check_data_rlimit(unsigned long rlim,
+ 				    unsigned long new,
+--- a/mm/internal.h~mm-move-vma_modify-and-helpers-to-internal-header
++++ a/mm/internal.h
+@@ -1244,6 +1244,67 @@ struct vm_area_struct *vma_merge_extend(
+ 					struct vm_area_struct *vma,
+ 					unsigned long delta);
  
- 	if (!(octx->features & UFFD_FEATURE_EVENT_FORK)) {
--		vma_start_write(vma);
--		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
--		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
-+		userfaultfd_reset_ctx(vma);
- 		return 0;
- 	}
- 
-@@ -749,9 +717,7 @@ void mremap_userfaultfd_prep(struct vm_a
- 		up_write(&ctx->map_changing_lock);
- 	} else {
- 		/* Drop uffd context if remap feature not enabled */
--		vma_start_write(vma);
--		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
--		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
-+		userfaultfd_reset_ctx(vma);
- 	}
- }
- 
-@@ -870,54 +836,14 @@ static int userfaultfd_release(struct in
- {
- 	struct userfaultfd_ctx *ctx = file->private_data;
- 	struct mm_struct *mm = ctx->mm;
--	struct vm_area_struct *vma, *prev;
- 	/* len == 0 means wake all */
- 	struct userfaultfd_wake_range range = { .len = 0, };
--	unsigned long new_flags;
--	VMA_ITERATOR(vmi, mm, 0);
- 
- 	WRITE_ONCE(ctx->released, true);
- 
--	if (!mmget_not_zero(mm))
--		goto wakeup;
-+	userfaultfd_release_all(mm, ctx);
- 
- 	/*
--	 * Flush page faults out of all CPUs. NOTE: all page faults
--	 * must be retried without returning VM_FAULT_SIGBUS if
--	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
--	 * changes while handle_userfault released the mmap_lock. So
--	 * it's critical that released is set to true (above), before
--	 * taking the mmap_lock for writing.
--	 */
--	mmap_write_lock(mm);
--	prev = NULL;
--	for_each_vma(vmi, vma) {
--		cond_resched();
--		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
--		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
--		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
--			prev = vma;
--			continue;
--		}
--		/* Reset ptes for the whole vma range if wr-protected */
--		if (userfaultfd_wp(vma))
--			uffd_wp_range(vma, vma->vm_start,
--				      vma->vm_end - vma->vm_start, false);
--		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
--					    vma->vm_end, new_flags,
--					    NULL_VM_UFFD_CTX);
--
--		vma_start_write(vma);
--		userfaultfd_set_vm_flags(vma, new_flags);
--		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
--
--		prev = vma;
--	}
--	mmap_write_unlock(mm);
--	mmput(mm);
--wakeup:
--	/*
- 	 * After no new page faults can wait on this fault_*wqh, flush
- 	 * the last page faults that may have been already waiting on
- 	 * the fault_*wqh.
-@@ -1293,14 +1219,14 @@ static int userfaultfd_register(struct u
- 				unsigned long arg)
- {
- 	struct mm_struct *mm = ctx->mm;
--	struct vm_area_struct *vma, *prev, *cur;
-+	struct vm_area_struct *vma, *cur;
- 	int ret;
- 	struct uffdio_register uffdio_register;
- 	struct uffdio_register __user *user_uffdio_register;
--	unsigned long vm_flags, new_flags;
-+	unsigned long vm_flags;
- 	bool found;
- 	bool basic_ioctls;
--	unsigned long start, end, vma_end;
-+	unsigned long start, end;
- 	struct vma_iterator vmi;
- 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
- 
-@@ -1428,57 +1354,8 @@ static int userfaultfd_register(struct u
- 	} for_each_vma_range(vmi, cur, end);
- 	BUG_ON(!found);
- 
--	vma_iter_set(&vmi, start);
--	prev = vma_prev(&vmi);
--	if (vma->vm_start < start)
--		prev = vma;
--
--	ret = 0;
--	for_each_vma_range(vmi, vma, end) {
--		cond_resched();
--
--		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
--		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
--		       vma->vm_userfaultfd_ctx.ctx != ctx);
--		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
--
--		/*
--		 * Nothing to do: this vma is already registered into this
--		 * userfaultfd and with the right tracking mode too.
--		 */
--		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
--		    (vma->vm_flags & vm_flags) == vm_flags)
--			goto skip;
--
--		if (vma->vm_start > start)
--			start = vma->vm_start;
--		vma_end = min(end, vma->vm_end);
--
--		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
--		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
--					    new_flags,
--					    (struct vm_userfaultfd_ctx){ctx});
--		if (IS_ERR(vma)) {
--			ret = PTR_ERR(vma);
--			break;
--		}
--
--		/*
--		 * In the vma_merge() successful mprotect-like case 8:
--		 * the next vma was merged into the current one and
--		 * the current one has not been updated yet.
--		 */
--		vma_start_write(vma);
--		userfaultfd_set_vm_flags(vma, new_flags);
--		vma->vm_userfaultfd_ctx.ctx = ctx;
--
--		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
--			hugetlb_unshare_all_pmds(vma);
--
--	skip:
--		prev = vma;
--		start = vma->vm_end;
--	}
-+	ret = userfaultfd_register_range(ctx, vma, vm_flags, start, end,
-+					 wp_async);
- 
- out_unlock:
- 	mmap_write_unlock(mm);
-@@ -1519,7 +1396,6 @@ static int userfaultfd_unregister(struct
- 	struct vm_area_struct *vma, *prev, *cur;
- 	int ret;
- 	struct uffdio_range uffdio_unregister;
--	unsigned long new_flags;
- 	bool found;
- 	unsigned long start, end, vma_end;
- 	const void __user *buf = (void __user *)arg;
-@@ -1622,27 +1498,13 @@ static int userfaultfd_unregister(struct
- 			wake_userfault(vma->vm_userfaultfd_ctx.ctx, &range);
- 		}
- 
--		/* Reset ptes for the whole vma range if wr-protected */
--		if (userfaultfd_wp(vma))
--			uffd_wp_range(vma, start, vma_end - start, false);
--
--		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
--					    new_flags, NULL_VM_UFFD_CTX);
-+		vma = userfaultfd_clear_vma(&vmi, prev, vma,
-+					    start, vma_end);
- 		if (IS_ERR(vma)) {
- 			ret = PTR_ERR(vma);
- 			break;
- 		}
- 
--		/*
--		 * In the vma_merge() successful mprotect-like case 8:
--		 * the next vma was merged into the current one and
--		 * the current one has not been updated yet.
--		 */
--		vma_start_write(vma);
--		userfaultfd_set_vm_flags(vma, new_flags);
--		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
--
- 	skip:
- 		prev = vma;
- 		start = vma->vm_end;
---- a/include/linux/userfaultfd_k.h~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
-+++ a/include/linux/userfaultfd_k.h
-@@ -264,6 +264,24 @@ extern void userfaultfd_unmap_complete(s
- extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
- extern bool userfaultfd_wp_async(struct vm_area_struct *vma);
- 
-+void userfaultfd_reset_ctx(struct vm_area_struct *vma);
++struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
++				  struct vm_area_struct *prev,
++				  struct vm_area_struct *vma,
++				  unsigned long start, unsigned long end,
++				  unsigned long vm_flags,
++				  struct mempolicy *policy,
++				  struct vm_userfaultfd_ctx uffd_ctx,
++				  struct anon_vma_name *anon_name);
 +
-+struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
-+					     struct vm_area_struct *prev,
-+					     struct vm_area_struct *vma,
-+					     unsigned long start,
-+					     unsigned long end);
-+
-+int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
-+			       struct vm_area_struct *vma,
-+			       unsigned long vm_flags,
-+			       unsigned long start, unsigned long end,
-+			       bool wp_async);
-+
-+void userfaultfd_release_new(struct userfaultfd_ctx *ctx);
-+
-+void userfaultfd_release_all(struct mm_struct *mm, struct userfaultfd_ctx *ctx);
-+
- #else /* CONFIG_USERFAULTFD */
- 
- /* mm helpers */
---- a/mm/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
-+++ a/mm/userfaultfd.c
-@@ -1760,3 +1760,171 @@ out:
- 	VM_WARN_ON(!moved && !err);
- 	return moved ? moved : err;
- }
-+
-+static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
-+				     vm_flags_t flags)
++/* We are about to modify the VMA's flags. */
++static inline struct vm_area_struct
++*vma_modify_flags(struct vma_iterator *vmi,
++		  struct vm_area_struct *prev,
++		  struct vm_area_struct *vma,
++		  unsigned long start, unsigned long end,
++		  unsigned long new_flags)
 +{
-+	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
-+
-+	vm_flags_reset(vma, flags);
-+	/*
-+	 * For shared mappings, we want to enable writenotify while
-+	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
-+	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
-+	 */
-+	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
-+		vma_set_page_prot(vma);
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), vma->vm_userfaultfd_ctx,
++			  anon_vma_name(vma));
 +}
 +
-+static void userfaultfd_set_ctx(struct vm_area_struct *vma,
-+				struct userfaultfd_ctx *ctx,
-+				unsigned long flags)
++/* We are about to modify the VMA's flags and/or anon_name. */
++static inline struct vm_area_struct
++*vma_modify_flags_name(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start,
++		       unsigned long end,
++		       unsigned long new_flags,
++		       struct anon_vma_name *new_name)
 +{
-+	vma_start_write(vma);
-+	vma->vm_userfaultfd_ctx = (struct vm_userfaultfd_ctx){ctx};
-+	userfaultfd_set_vm_flags(vma,
-+				 (vma->vm_flags & ~__VM_UFFD_FLAGS) | flags);
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), vma->vm_userfaultfd_ctx, new_name);
 +}
 +
-+void userfaultfd_reset_ctx(struct vm_area_struct *vma)
++/* We are about to modify the VMA's memory policy. */
++static inline struct vm_area_struct
++*vma_modify_policy(struct vma_iterator *vmi,
++		   struct vm_area_struct *prev,
++		   struct vm_area_struct *vma,
++		   unsigned long start, unsigned long end,
++		   struct mempolicy *new_pol)
 +{
-+	userfaultfd_set_ctx(vma, NULL, 0);
++	return vma_modify(vmi, prev, vma, start, end, vma->vm_flags,
++			  new_pol, vma->vm_userfaultfd_ctx, anon_vma_name(vma));
 +}
 +
-+struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
-+					     struct vm_area_struct *prev,
-+					     struct vm_area_struct *vma,
-+					     unsigned long start,
-+					     unsigned long end)
++/* We are about to modify the VMA's flags and/or uffd context. */
++static inline struct vm_area_struct
++*vma_modify_flags_uffd(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start, unsigned long end,
++		       unsigned long new_flags,
++		       struct vm_userfaultfd_ctx new_ctx)
 +{
-+	struct vm_area_struct *ret;
-+
-+	/* Reset ptes for the whole vma range if wr-protected */
-+	if (userfaultfd_wp(vma))
-+		uffd_wp_range(vma, start, end - start, false);
-+
-+	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
-+				    vma->vm_flags & ~__VM_UFFD_FLAGS,
-+				    NULL_VM_UFFD_CTX);
-+
-+	/*
-+	 * In the vma_merge() successful mprotect-like case 8:
-+	 * the next vma was merged into the current one and
-+	 * the current one has not been updated yet.
-+	 */
-+	if (!IS_ERR(ret))
-+		userfaultfd_reset_ctx(vma);
-+
-+	return ret;
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), new_ctx, anon_vma_name(vma));
 +}
 +
-+/* Assumes mmap write lock taken, and mm_struct pinned. */
-+int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
-+			       struct vm_area_struct *vma,
-+			       unsigned long vm_flags,
-+			       unsigned long start, unsigned long end,
-+			       bool wp_async)
-+{
-+	VMA_ITERATOR(vmi, ctx->mm, start);
-+	struct vm_area_struct *prev = vma_prev(&vmi);
-+	unsigned long vma_end;
-+	unsigned long new_flags;
-+
-+	if (vma->vm_start < start)
-+		prev = vma;
-+
-+	for_each_vma_range(vmi, vma, end) {
-+		cond_resched();
-+
-+		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
-+		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
-+		       vma->vm_userfaultfd_ctx.ctx != ctx);
-+		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
-+
-+		/*
-+		 * Nothing to do: this vma is already registered into this
-+		 * userfaultfd and with the right tracking mode too.
-+		 */
-+		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
-+		    (vma->vm_flags & vm_flags) == vm_flags)
-+			goto skip;
-+
-+		if (vma->vm_start > start)
-+			start = vma->vm_start;
-+		vma_end = min(end, vma->vm_end);
-+
-+		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
-+		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
-+					    new_flags,
-+					    (struct vm_userfaultfd_ctx){ctx});
-+		if (IS_ERR(vma))
-+			return PTR_ERR(vma);
-+
-+		/*
-+		 * In the vma_merge() successful mprotect-like case 8:
-+		 * the next vma was merged into the current one and
-+		 * the current one has not been updated yet.
-+		 */
-+		userfaultfd_set_ctx(vma, ctx, vm_flags);
-+
-+		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
-+			hugetlb_unshare_all_pmds(vma);
-+
-+skip:
-+		prev = vma;
-+		start = vma->vm_end;
-+	}
-+
-+	return 0;
-+}
-+
-+void userfaultfd_release_new(struct userfaultfd_ctx *ctx)
-+{
-+	struct mm_struct *mm = ctx->mm;
-+	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, mm, 0);
-+
-+	/* the various vma->vm_userfaultfd_ctx still points to it */
-+	mmap_write_lock(mm);
-+	for_each_vma(vmi, vma) {
-+		if (vma->vm_userfaultfd_ctx.ctx == ctx)
-+			userfaultfd_reset_ctx(vma);
-+	}
-+	mmap_write_unlock(mm);
-+}
-+
-+void userfaultfd_release_all(struct mm_struct *mm,
-+			     struct userfaultfd_ctx *ctx)
-+{
-+	struct vm_area_struct *vma, *prev;
-+	VMA_ITERATOR(vmi, mm, 0);
-+
-+	if (!mmget_not_zero(mm))
-+		return;
-+
-+	/*
-+	 * Flush page faults out of all CPUs. NOTE: all page faults
-+	 * must be retried without returning VM_FAULT_SIGBUS if
-+	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
-+	 * changes while handle_userfault released the mmap_lock. So
-+	 * it's critical that released is set to true (above), before
-+	 * taking the mmap_lock for writing.
-+	 */
-+	mmap_write_lock(mm);
-+	prev = NULL;
-+	for_each_vma(vmi, vma) {
-+		cond_resched();
-+		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
-+		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
-+		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
-+			prev = vma;
-+			continue;
-+		}
-+
-+		vma = userfaultfd_clear_vma(&vmi, prev, vma,
-+					    vma->vm_start, vma->vm_end);
-+		prev = vma;
-+	}
-+	mmap_write_unlock(mm);
-+	mmput(mm);
-+}
+ enum {
+ 	/* mark page accessed */
+ 	FOLL_TOUCH = 1 << 16,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
