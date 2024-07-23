@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142D8EC2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:50:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D893EC2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:13:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721699423; cv=none; b=aN2VX7USp2efg3HTe0vh3UQK904bSHBJoF9MUwflIwl3wg01P0im0HyLXCSOWQkSHL23+WNVQgXgwv5xlilS+dhJOTO0AZz0L6U1oCA9bdpORggYcjJJNiTgM2h3QdXyGzay0AyldxB8tKusJOWIeuMBN8OGEWQNEF+grshJiGI=
+	t=1721700838; cv=none; b=ZgNZbi7dtTpPbi/SsduNuaQFVawcU8sbhXh6fpKtYPEIC3k/HS2LCX36aRy7f6Z/MLirCMsWIWx7geSwEtpc+xiGZK8sASr6dd3nZISYM7IUxd6VRd6PTHlee/Aai3A4LriJ4mjTieT2dOGea5SqR/+JI4oZEOK7j56hWeIDcvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721699423; c=relaxed/simple;
-	bh=UFj8ee/N7g+x++9RJm2ymJcNgJtoeU3MJ9bF2eZ8oJE=;
-	h=Date:To:From:Subject:Message-Id; b=uRQIc5oY+IQpnzx95wW/8sAobo9nKXS4KHGcLkuXoY2nP8sQ/rw7WxfTWaT1iXk39o/oTbozRbkNDUdHVztH/Xk0FgIGcSjQkcBQomdgSuzZDRlq0PiId2kkqLiChTJP4r04TbBQwgJPtn6qeglkNHnMN135eT098SzfL0KNxFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E1kwgPKl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721700838; c=relaxed/simple;
+	bh=rzMEbxkcOim8XUw/yp1FGNpYSUr/c5J2uPBL0kqoKAY=;
+	h=Date:To:From:Subject:Message-Id; b=ZscgYNFbGLtZajBeL6W55qUkdqa7o5gqzpkuFLCrx2CP+4I7ipC1v7jCE0m3QCpFw+2zCwcrHYHa5GkblWeRSkGb2LXrepmVocvaC7YlSIn5aBYHF4MWW/ug2L9++geqhEieS18rRfBDwiZePJq7boGMHWW1bWXEkY1eRNZCZ1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fBrYigZ/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E1kwgPKl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F90C116B1;
-	Tue, 23 Jul 2024 01:50:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fBrYigZ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16931C116B1;
+	Tue, 23 Jul 2024 02:13:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721699422;
-	bh=UFj8ee/N7g+x++9RJm2ymJcNgJtoeU3MJ9bF2eZ8oJE=;
+	s=korg; t=1721700838;
+	bh=rzMEbxkcOim8XUw/yp1FGNpYSUr/c5J2uPBL0kqoKAY=;
 	h=Date:To:From:Subject:From;
-	b=E1kwgPKlHvg0MJN4y3D6uezf4BnQYdS+uQCQ9U8+HlEr6YndjOKABUry2+eHZBLU/
-	 PrT8VjyLmcgYZe1MkoUgC0t9tf3jaT4lB3x3V9hEEONbCFSFau1UK9Vex51xqLA3OC
-	 lx42DU1gN56VszJH8UnSPeZ1m23CgB0avPugI0X4=
-Date: Mon, 22 Jul 2024 18:50:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=fBrYigZ/vjpaqZ2SCf/kAsbQ76oITsF0IFsukxDzLMmM7dlS4rd+okOtRlrUEaRkD
+	 7P8IfRh9Mh0Hp3l649Gri7tGdlhGvlwXRoGt2v0rsq1nJmIB+wil63fpwD6v4Qmzrp
+	 rzKHQ6YuJ9bD0n5GdaQYnqHcZSNfpYeMi3RrVHwU=
+Date: Mon, 22 Jul 2024 19:13:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch added to mm-unstable branch
-Message-Id: <20240723015022.80F90C116B1@smtp.kernel.org>
+Subject: + mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch added to mm-unstable branch
+Message-Id: <20240723021358.16931C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools: add skeleton code for userland testing of VMA logic
+     Subject: mm: shmem: simplify the suitable huge orders validation for tmpfs
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
+     mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,1272 +58,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools: add skeleton code for userland testing of VMA logic
-Date: Mon, 22 Jul 2024 12:50:25 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: simplify the suitable huge orders validation for tmpfs
+Date: Mon, 22 Jul 2024 13:43:17 +0800
 
-Establish a new userland VMA unit testing implementation under
-tools/testing which utilises existing logic providing maple tree support
-in userland utilising the now-shared code previously exclusive to radix
-tree testing.
+Patch series "Some cleanups for shmem", v3.
 
-This provides fundamental VMA operations whose API is defined in mm/vma.h,
-while stubbing out superfluous functionality.
+This series does some cleanups to reuse code, rename functions and
+simplify logic to make code more clear.  No functional changes are
+expected.
 
-This exists as a proof-of-concept, with the test implementation functional
-and sufficient to allow userland compilation of vma.c, but containing only
-cursory tests to demonstrate basic functionality.
 
-Link: https://lkml.kernel.org/r/d7a3da08fd7b29bc9368046a7ce9544d3e163152.1721648367.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: SeongJae Park <sj@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Gow <davidgow@google.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kees Cook <kees@kernel.org>
+This patch (of 3):
+
+Move the suitable huge orders validation into shmem_suitable_orders() for
+tmpfs, which can reuse some code to simplify the logic.
+
+In addition, we don't have special handling for the error code -E2BIG when
+checking for conflicts with PMD sized THP in the pagecache for tmpfs,
+instead, it will just fallback to order-0 allocations like this patch
+does, so this simplification will not add functional changes.
+
+Link: https://lkml.kernel.org/r/cover.1721626645.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/965985dd6d322929d78a0beee0dafa1c2a1b81e2.1721626645.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rae Moar <rmoar@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                      |    1 
- tools/testing/shared/shared.mk   |    3 
- tools/testing/vma/.gitignore     |    7 
- tools/testing/vma/Makefile       |   16 
- tools/testing/vma/linux/atomic.h |   12 
- tools/testing/vma/linux/mmzone.h |   38 +
- tools/testing/vma/vma.c          |  207 ++++++
- tools/testing/vma/vma_internal.h |  882 +++++++++++++++++++++++++++++
- 8 files changed, 1166 insertions(+)
+ mm/shmem.c |   39 +++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
---- a/MAINTAINERS~tools-add-skeleton-code-for-userland-testing-of-vma-logic
-+++ a/MAINTAINERS
-@@ -24337,6 +24337,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	mm/vma.c
- F:	mm/vma.h
- F:	mm/vma_internal.h
-+F:	tools/testing/vma/
+--- a/mm/shmem.c~mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs
++++ a/mm/shmem.c
+@@ -1685,19 +1685,29 @@ static unsigned long shmem_suitable_orde
+ 					   struct address_space *mapping, pgoff_t index,
+ 					   unsigned long orders)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
++	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	unsigned long pages;
+ 	int order;
  
- VMALLOC
- M:	Andrew Morton <akpm@linux-foundation.org>
---- a/tools/testing/shared/shared.mk~tools-add-skeleton-code-for-userland-testing-of-vma-logic
-+++ a/tools/testing/shared/shared.mk
-@@ -50,9 +50,11 @@ maple-shared.o: ../shared/maple-shared.c
- 	../../../lib/test_maple_tree.c
- 
- generated/autoconf.h:
-+	@mkdir -p generated
- 	cp ../shared/autoconf.h generated/autoconf.h
- 
- generated/map-shift.h:
-+	@mkdir -p generated
- 	@if ! grep -qws $(SHIFT) generated/map-shift.h; then            \
- 		echo "Generating $@";                                   \
- 		echo "#define XA_CHUNK_SHIFT $(SHIFT)" >                \
-@@ -60,6 +62,7 @@ generated/map-shift.h:
- 	fi
- 
- generated/bit-length.h: FORCE
-+	@mkdir -p generated
- 	@if ! grep -qws CONFIG_$(LONG_BIT)BIT generated/bit-length.h; then   \
- 		echo "Generating $@";                                        \
- 		echo "#define CONFIG_$(LONG_BIT)BIT 1" > $@;                 \
---- /dev/null
-+++ a/tools/testing/vma/.gitignore
-@@ -0,0 +1,7 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+generated/bit-length.h
-+generated/map-shift.h
-+generated/autoconf.h
-+idr.c
-+radix-tree.c
-+vma
---- /dev/null
-+++ a/tools/testing/vma/linux/atomic.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+
-+#ifndef _LINUX_ATOMIC_H
-+#define _LINUX_ATOMIC_H
-+
-+#define atomic_t int32_t
-+#define atomic_inc(x) uatomic_inc(x)
-+#define atomic_read(x) uatomic_read(x)
-+#define atomic_set(x, y) do {} while (0)
-+#define U8_MAX UCHAR_MAX
-+
-+#endif	/* _LINUX_ATOMIC_H */
---- /dev/null
-+++ a/tools/testing/vma/linux/mmzone.h
-@@ -0,0 +1,38 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+
-+#ifndef _LINUX_MMZONE_H
-+#define _LINUX_MMZONE_H
-+
-+#include <linux/atomic.h>
-+
-+struct pglist_data *first_online_pgdat(void);
-+struct pglist_data *next_online_pgdat(struct pglist_data *pgdat);
-+
-+#define for_each_online_pgdat(pgdat)			\
-+	for (pgdat = first_online_pgdat();		\
-+	     pgdat;					\
-+	     pgdat = next_online_pgdat(pgdat))
-+
-+enum zone_type {
-+	__MAX_NR_ZONES
-+};
-+
-+#define MAX_NR_ZONES __MAX_NR_ZONES
-+#define MAX_PAGE_ORDER 10
-+#define MAX_ORDER_NR_PAGES (1 << MAX_PAGE_ORDER)
-+
-+#define pageblock_order		MAX_PAGE_ORDER
-+#define pageblock_nr_pages	BIT(pageblock_order)
-+#define pageblock_align(pfn)	ALIGN((pfn), pageblock_nr_pages)
-+#define pageblock_start_pfn(pfn)	ALIGN_DOWN((pfn), pageblock_nr_pages)
-+
-+struct zone {
-+	atomic_long_t		managed_pages;
-+};
-+
-+typedef struct pglist_data {
-+	struct zone node_zones[MAX_NR_ZONES];
-+
-+} pg_data_t;
-+
-+#endif /* _LINUX_MMZONE_H */
---- /dev/null
-+++ a/tools/testing/vma/Makefile
-@@ -0,0 +1,16 @@
-+# SPDX-License-Identifier: GPL-2.0-or-later
-+
-+.PHONY: default
-+
-+default: vma
-+
-+include ../shared/shared.mk
-+
-+OFILES = $(SHARED_OFILES) vma.o maple-shim.o
-+TARGETS = vma
-+
-+vma:	$(OFILES) vma_internal.h ../../../mm/vma.c ../../../mm/vma.h
-+	$(CC) $(CFLAGS) -o $@ $(OFILES) $(LDLIBS)
-+
-+clean:
-+	$(RM) $(TARGETS) *.o radix-tree.c idr.c generated/map-shift.h generated/bit-length.h generated/autoconf.h
---- /dev/null
-+++ a/tools/testing/vma/vma.c
-@@ -0,0 +1,207 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+
-+#include "maple-shared.h"
-+#include "vma_internal.h"
-+
-+/*
-+ * Directly import the VMA implementation here. Our vma_internal.h wrapper
-+ * provides userland-equivalent functionality for everything vma.c uses.
-+ */
-+#include "../../../mm/vma.c"
-+
-+const struct vm_operations_struct vma_dummy_vm_ops;
-+
-+#define ASSERT_TRUE(_expr)						\
-+	do {								\
-+		if (!(_expr)) {						\
-+			fprintf(stderr,					\
-+				"Assert FAILED at %s:%d:%s(): %s is FALSE.\n", \
-+				__FILE__, __LINE__, __FUNCTION__, #_expr); \
-+			return false;					\
-+		}							\
-+	} while (0)
-+#define ASSERT_FALSE(_expr) ASSERT_TRUE(!(_expr))
-+#define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
-+#define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
-+
-+static struct vm_area_struct *alloc_vma(struct mm_struct *mm,
-+					unsigned long start,
-+					unsigned long end,
-+					pgoff_t pgoff,
-+					vm_flags_t flags)
-+{
-+	struct vm_area_struct *ret = vm_area_alloc(mm);
-+
-+	if (ret == NULL)
-+		return NULL;
-+
-+	ret->vm_start = start;
-+	ret->vm_end = end;
-+	ret->vm_pgoff = pgoff;
-+	ret->__vm_flags = flags;
-+
-+	return ret;
-+}
-+
-+static bool test_simple_merge(void)
-+{
-+	struct vm_area_struct *vma;
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *vma_left = alloc_vma(&mm, 0, 0x1000, 0, flags);
-+	struct vm_area_struct *vma_middle = alloc_vma(&mm, 0x1000, 0x2000, 1, flags);
-+	struct vm_area_struct *vma_right = alloc_vma(&mm, 0x2000, 0x3000, 2, flags);
-+	VMA_ITERATOR(vmi, &mm, 0x1000);
-+
-+	ASSERT_FALSE(vma_link(&mm, vma_left));
-+	ASSERT_FALSE(vma_link(&mm, vma_middle));
-+	ASSERT_FALSE(vma_link(&mm, vma_right));
-+
-+	vma = vma_merge_new_vma(&vmi, vma_left, vma_middle, 0x1000,
-+				0x2000, 1);
-+	ASSERT_NE(vma, NULL);
-+
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x3000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->vm_flags, flags);
-+
-+	vm_area_free(vma);
-+	mtree_destroy(&mm.mm_mt);
-+
-+	return true;
-+}
-+
-+static bool test_simple_modify(void)
-+{
-+	struct vm_area_struct *vma;
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *init_vma = alloc_vma(&mm, 0, 0x3000, 0, flags);
-+	VMA_ITERATOR(vmi, &mm, 0x1000);
-+
-+	ASSERT_FALSE(vma_link(&mm, init_vma));
-+
-+	/*
-+	 * The flags will not be changed, the vma_modify_flags() function
-+	 * performs the merge/split only.
-+	 */
-+	vma = vma_modify_flags(&vmi, init_vma, init_vma,
-+			       0x1000, 0x2000, VM_READ | VM_MAYREAD);
-+	ASSERT_NE(vma, NULL);
-+	/* We modify the provided VMA, and on split allocate new VMAs. */
-+	ASSERT_EQ(vma, init_vma);
-+
-+	ASSERT_EQ(vma->vm_start, 0x1000);
-+	ASSERT_EQ(vma->vm_end, 0x2000);
-+	ASSERT_EQ(vma->vm_pgoff, 1);
-+
-+	/*
-+	 * Now walk through the three split VMAs and make sure they are as
-+	 * expected.
-+	 */
-+
-+	vma_iter_set(&vmi, 0);
-+	vma = vma_iter_load(&vmi);
-+
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x1000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+
-+	vm_area_free(vma);
-+	vma_iter_clear(&vmi);
-+
-+	vma = vma_next(&vmi);
-+
-+	ASSERT_EQ(vma->vm_start, 0x1000);
-+	ASSERT_EQ(vma->vm_end, 0x2000);
-+	ASSERT_EQ(vma->vm_pgoff, 1);
-+
-+	vm_area_free(vma);
-+	vma_iter_clear(&vmi);
-+
-+	vma = vma_next(&vmi);
-+
-+	ASSERT_EQ(vma->vm_start, 0x2000);
-+	ASSERT_EQ(vma->vm_end, 0x3000);
-+	ASSERT_EQ(vma->vm_pgoff, 2);
-+
-+	vm_area_free(vma);
-+	mtree_destroy(&mm.mm_mt);
-+
-+	return true;
-+}
-+
-+static bool test_simple_expand(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *vma = alloc_vma(&mm, 0, 0x1000, 0, flags);
-+	VMA_ITERATOR(vmi, &mm, 0);
-+
-+	ASSERT_FALSE(vma_link(&mm, vma));
-+
-+	ASSERT_FALSE(vma_expand(&vmi, vma, 0, 0x3000, 0, NULL));
-+
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x3000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+
-+	vm_area_free(vma);
-+	mtree_destroy(&mm.mm_mt);
-+
-+	return true;
-+}
-+
-+static bool test_simple_shrink(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *vma = alloc_vma(&mm, 0, 0x3000, 0, flags);
-+	VMA_ITERATOR(vmi, &mm, 0);
-+
-+	ASSERT_FALSE(vma_link(&mm, vma));
-+
-+	ASSERT_FALSE(vma_shrink(&vmi, vma, 0, 0x1000, 0));
-+
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x1000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+
-+	vm_area_free(vma);
-+	mtree_destroy(&mm.mm_mt);
-+
-+	return true;
-+}
-+
-+int main(void)
-+{
-+	int num_tests = 0, num_fail = 0;
-+
-+	maple_tree_init();
-+
-+#define TEST(name)							\
-+	do {								\
-+		num_tests++;						\
-+		if (!test_##name()) {					\
-+			num_fail++;					\
-+			fprintf(stderr, "Test " #name " FAILED\n");	\
-+		}							\
-+	} while (0)
-+
-+	TEST(simple_merge);
-+	TEST(simple_modify);
-+	TEST(simple_expand);
-+	TEST(simple_shrink);
-+
-+#undef TEST
-+
-+	printf("%d tests run, %d passed, %d failed.\n",
-+	       num_tests, num_tests - num_fail, num_fail);
-+
-+	return num_fail == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-+}
---- /dev/null
-+++ a/tools/testing/vma/vma_internal.h
-@@ -0,0 +1,882 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+/*
-+ * vma_internal.h
-+ *
-+ * Header providing userland wrappers and shims for the functionality provided
-+ * by mm/vma_internal.h.
-+ *
-+ * We make the header guard the same as mm/vma_internal.h, so if this shim
-+ * header is included, it precludes the inclusion of the kernel one.
-+ */
-+
-+#ifndef __MM_VMA_INTERNAL_H
-+#define __MM_VMA_INTERNAL_H
-+
-+#define __private
-+#define __bitwise
-+#define __randomize_layout
-+
-+#define CONFIG_MMU
-+#define CONFIG_PER_VMA_LOCK
-+
-+#include <stdlib.h>
-+
-+#include <linux/list.h>
-+#include <linux/maple_tree.h>
-+#include <linux/mm.h>
-+#include <linux/rbtree.h>
-+#include <linux/rwsem.h>
-+
-+#define VM_WARN_ON(_expr) (WARN_ON(_expr))
-+#define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
-+#define VM_BUG_ON(_expr) (BUG_ON(_expr))
-+#define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
-+
-+#define VM_NONE		0x00000000
-+#define VM_READ		0x00000001
-+#define VM_WRITE	0x00000002
-+#define VM_EXEC		0x00000004
-+#define VM_SHARED	0x00000008
-+#define VM_MAYREAD	0x00000010
-+#define VM_MAYWRITE	0x00000020
-+#define VM_GROWSDOWN	0x00000100
-+#define VM_PFNMAP	0x00000400
-+#define VM_LOCKED	0x00002000
-+#define VM_IO           0x00004000
-+#define VM_DONTEXPAND	0x00040000
-+#define VM_ACCOUNT	0x00100000
-+#define VM_MIXEDMAP	0x10000000
-+#define VM_STACK	VM_GROWSDOWN
-+#define VM_SHADOW_STACK	VM_NONE
-+#define VM_SOFTDIRTY	0
-+
-+#define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
-+#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
-+
-+#define FIRST_USER_ADDRESS	0UL
-+#define USER_PGTABLES_CEILING	0UL
-+
-+#define vma_policy(vma) NULL
-+
-+#define down_write_nest_lock(sem, nest_lock)
-+
-+#define pgprot_val(x)		((x).pgprot)
-+#define __pgprot(x)		((pgprot_t) { (x) } )
-+
-+#define for_each_vma(__vmi, __vma)					\
-+	while (((__vma) = vma_next(&(__vmi))) != NULL)
-+
-+/* The MM code likes to work with exclusive end addresses */
-+#define for_each_vma_range(__vmi, __vma, __end)				\
-+	while (((__vma) = vma_find(&(__vmi), (__end))) != NULL)
-+
-+#define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
-+
-+#define PHYS_PFN(x)	((unsigned long)((x) >> PAGE_SHIFT))
-+
-+#define test_and_set_bit(nr, addr) __test_and_set_bit(nr, addr)
-+#define test_and_clear_bit(nr, addr) __test_and_clear_bit(nr, addr)
-+
-+#define TASK_SIZE ((1ul << 47)-PAGE_SIZE)
-+
-+#define AS_MM_ALL_LOCKS 2
-+
-+#define current NULL
-+
-+/* We hardcode this for now. */
-+#define sysctl_max_map_count 0x1000000UL
-+
-+#define pgoff_t unsigned long
-+typedef unsigned long	pgprotval_t;
-+typedef struct pgprot { pgprotval_t pgprot; } pgprot_t;
-+typedef unsigned long vm_flags_t;
-+typedef __bitwise unsigned int vm_fault_t;
-+
-+typedef struct refcount_struct {
-+	atomic_t refs;
-+} refcount_t;
-+
-+struct kref {
-+	refcount_t refcount;
-+};
-+
-+struct anon_vma {
-+	struct anon_vma *root;
-+	struct rb_root_cached rb_root;
-+};
-+
-+struct anon_vma_chain {
-+	struct anon_vma *anon_vma;
-+	struct list_head same_vma;
-+};
-+
-+struct anon_vma_name {
-+	struct kref kref;
-+	/* The name needs to be at the end because it is dynamically sized. */
-+	char name[];
-+};
-+
-+struct vma_iterator {
-+	struct ma_state mas;
-+};
-+
-+#define VMA_ITERATOR(name, __mm, __addr)				\
-+	struct vma_iterator name = {					\
-+		.mas = {						\
-+			.tree = &(__mm)->mm_mt,				\
-+			.index = __addr,				\
-+			.node = NULL,					\
-+			.status = ma_start,				\
-+		},							\
+-	orders = thp_vma_suitable_orders(vma, vmf->address, orders);
+-	if (!orders)
+-		return 0;
++	if (vma) {
++		orders = thp_vma_suitable_orders(vma, vmf->address, orders);
++		if (!orders)
++			return 0;
 +	}
-+
-+struct address_space {
-+	struct rb_root_cached	i_mmap;
-+	unsigned long		flags;
-+	atomic_t		i_mmap_writable;
-+};
-+
-+struct vm_userfaultfd_ctx {};
-+struct mempolicy {};
-+struct mmu_gather {};
-+struct mutex {};
-+#define DEFINE_MUTEX(mutexname) \
-+	struct mutex mutexname = {}
-+
-+struct mm_struct {
-+	struct maple_tree mm_mt;
-+	int map_count;			/* number of VMAs */
-+	unsigned long total_vm;	   /* Total pages mapped */
-+	unsigned long locked_vm;   /* Pages that have PG_mlocked set */
-+	unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
-+	unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
-+	unsigned long stack_vm;	   /* VM_STACK */
-+};
-+
-+struct vma_lock {
-+	struct rw_semaphore lock;
-+};
-+
-+
-+struct file {
-+	struct address_space	*f_mapping;
-+};
-+
-+struct vm_area_struct {
-+	/* The first cache line has the info for VMA tree walking. */
-+
-+	union {
-+		struct {
-+			/* VMA covers [vm_start; vm_end) addresses within mm */
-+			unsigned long vm_start;
-+			unsigned long vm_end;
-+		};
-+#ifdef CONFIG_PER_VMA_LOCK
-+		struct rcu_head vm_rcu;	/* Used for deferred freeing. */
-+#endif
-+	};
-+
-+	struct mm_struct *vm_mm;	/* The address space we belong to. */
-+	pgprot_t vm_page_prot;          /* Access permissions of this VMA. */
-+
-+	/*
-+	 * Flags, see mm.h.
-+	 * To modify use vm_flags_{init|reset|set|clear|mod} functions.
-+	 */
-+	union {
-+		const vm_flags_t vm_flags;
-+		vm_flags_t __private __vm_flags;
-+	};
-+
-+#ifdef CONFIG_PER_VMA_LOCK
-+	/* Flag to indicate areas detached from the mm->mm_mt tree */
-+	bool detached;
-+
-+	/*
-+	 * Can only be written (using WRITE_ONCE()) while holding both:
-+	 *  - mmap_lock (in write mode)
-+	 *  - vm_lock->lock (in write mode)
-+	 * Can be read reliably while holding one of:
-+	 *  - mmap_lock (in read or write mode)
-+	 *  - vm_lock->lock (in read or write mode)
-+	 * Can be read unreliably (using READ_ONCE()) for pessimistic bailout
-+	 * while holding nothing (except RCU to keep the VMA struct allocated).
-+	 *
-+	 * This sequence counter is explicitly allowed to overflow; sequence
-+	 * counter reuse can only lead to occasional unnecessary use of the
-+	 * slowpath.
-+	 */
-+	int vm_lock_seq;
-+	struct vma_lock *vm_lock;
-+#endif
-+
-+	/*
-+	 * For areas with an address space and backing store,
-+	 * linkage into the address_space->i_mmap interval tree.
-+	 *
-+	 */
-+	struct {
-+		struct rb_node rb;
-+		unsigned long rb_subtree_last;
-+	} shared;
-+
-+	/*
-+	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
-+	 * list, after a COW of one of the file pages.	A MAP_SHARED vma
-+	 * can only be in the i_mmap tree.  An anonymous MAP_PRIVATE, stack
-+	 * or brk vma (with NULL file) can only be in an anon_vma list.
-+	 */
-+	struct list_head anon_vma_chain; /* Serialized by mmap_lock &
-+					  * page_table_lock */
-+	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
-+
-+	/* Function pointers to deal with this struct. */
-+	const struct vm_operations_struct *vm_ops;
-+
-+	/* Information about our backing store: */
-+	unsigned long vm_pgoff;		/* Offset (within vm_file) in PAGE_SIZE
-+					   units */
-+	struct file * vm_file;		/* File we map to (can be NULL). */
-+	void * vm_private_data;		/* was vm_pte (shared mem) */
-+
-+#ifdef CONFIG_ANON_VMA_NAME
-+	/*
-+	 * For private and shared anonymous mappings, a pointer to a null
-+	 * terminated string containing the name given to the vma, or NULL if
-+	 * unnamed. Serialized by mmap_lock. Use anon_vma_name to access.
-+	 */
-+	struct anon_vma_name *anon_name;
-+#endif
-+#ifdef CONFIG_SWAP
-+	atomic_long_t swap_readahead_info;
-+#endif
-+#ifndef CONFIG_MMU
-+	struct vm_region *vm_region;	/* NOMMU mapping region */
-+#endif
-+#ifdef CONFIG_NUMA
-+	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
-+#endif
-+#ifdef CONFIG_NUMA_BALANCING
-+	struct vma_numab_state *numab_state;	/* NUMA Balancing state */
-+#endif
-+	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
-+} __randomize_layout;
-+
-+struct vm_fault {};
-+
-+struct vm_operations_struct {
-+	void (*open)(struct vm_area_struct * area);
-+	/**
-+	 * @close: Called when the VMA is being removed from the MM.
-+	 * Context: User context.  May sleep.  Caller holds mmap_lock.
-+	 */
-+	void (*close)(struct vm_area_struct * area);
-+	/* Called any time before splitting to check if it's allowed */
-+	int (*may_split)(struct vm_area_struct *area, unsigned long addr);
-+	int (*mremap)(struct vm_area_struct *area);
-+	/*
-+	 * Called by mprotect() to make driver-specific permission
-+	 * checks before mprotect() is finalised.   The VMA must not
-+	 * be modified.  Returns 0 if mprotect() can proceed.
-+	 */
-+	int (*mprotect)(struct vm_area_struct *vma, unsigned long start,
-+			unsigned long end, unsigned long newflags);
-+	vm_fault_t (*fault)(struct vm_fault *vmf);
-+	vm_fault_t (*huge_fault)(struct vm_fault *vmf, unsigned int order);
-+	vm_fault_t (*map_pages)(struct vm_fault *vmf,
-+			pgoff_t start_pgoff, pgoff_t end_pgoff);
-+	unsigned long (*pagesize)(struct vm_area_struct * area);
-+
-+	/* notification that a previously read-only page is about to become
-+	 * writable, if an error is returned it will cause a SIGBUS */
-+	vm_fault_t (*page_mkwrite)(struct vm_fault *vmf);
-+
-+	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
-+	vm_fault_t (*pfn_mkwrite)(struct vm_fault *vmf);
-+
-+	/* called by access_process_vm when get_user_pages() fails, typically
-+	 * for use by special VMAs. See also generic_access_phys() for a generic
-+	 * implementation useful for any iomem mapping.
-+	 */
-+	int (*access)(struct vm_area_struct *vma, unsigned long addr,
-+		      void *buf, int len, int write);
-+
-+	/* Called by the /proc/PID/maps code to ask the vma whether it
-+	 * has a special name.  Returning non-NULL will also cause this
-+	 * vma to be dumped unconditionally. */
-+	const char *(*name)(struct vm_area_struct *vma);
-+
-+#ifdef CONFIG_NUMA
-+	/*
-+	 * set_policy() op must add a reference to any non-NULL @new mempolicy
-+	 * to hold the policy upon return.  Caller should pass NULL @new to
-+	 * remove a policy and fall back to surrounding context--i.e. do not
-+	 * install a MPOL_DEFAULT policy, nor the task or system default
-+	 * mempolicy.
-+	 */
-+	int (*set_policy)(struct vm_area_struct *vma, struct mempolicy *new);
-+
-+	/*
-+	 * get_policy() op must add reference [mpol_get()] to any policy at
-+	 * (vma,addr) marked as MPOL_SHARED.  The shared policy infrastructure
-+	 * in mm/mempolicy.c will do this automatically.
-+	 * get_policy() must NOT add a ref if the policy at (vma,addr) is not
-+	 * marked as MPOL_SHARED. vma policies are protected by the mmap_lock.
-+	 * If no [shared/vma] mempolicy exists at the addr, get_policy() op
-+	 * must return NULL--i.e., do not "fallback" to task or system default
-+	 * policy.
-+	 */
-+	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
-+					unsigned long addr, pgoff_t *ilx);
-+#endif
-+	/*
-+	 * Called by vm_normal_page() for special PTEs to find the
-+	 * page for @addr.  This is useful if the default behavior
-+	 * (using pte_page()) would not find the correct page.
-+	 */
-+	struct page *(*find_special_page)(struct vm_area_struct *vma,
-+					  unsigned long addr);
-+};
-+
-+static inline void vma_iter_invalidate(struct vma_iterator *vmi)
-+{
-+	mas_pause(&vmi->mas);
-+}
-+
-+static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
-+{
-+	return __pgprot(pgprot_val(oldprot) | pgprot_val(newprot));
-+}
-+
-+static inline pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return __pgprot(vm_flags);
-+}
-+
-+static inline bool is_shared_maywrite(vm_flags_t vm_flags)
-+{
-+	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
-+		(VM_SHARED | VM_MAYWRITE);
-+}
-+
-+static inline bool vma_is_shared_maywrite(struct vm_area_struct *vma)
-+{
-+	return is_shared_maywrite(vma->vm_flags);
-+}
-+
-+static inline struct vm_area_struct *vma_next(struct vma_iterator *vmi)
-+{
-+	/*
-+	 * Uses mas_find() to get the first VMA when the iterator starts.
-+	 * Calling mas_next() could skip the first entry.
-+	 */
-+	return mas_find(&vmi->mas, ULONG_MAX);
-+}
-+
-+static inline bool vma_lock_alloc(struct vm_area_struct *vma)
-+{
-+	vma->vm_lock = calloc(1, sizeof(struct vma_lock));
-+
-+	if (!vma->vm_lock)
-+		return false;
-+
-+	init_rwsem(&vma->vm_lock->lock);
-+	vma->vm_lock_seq = -1;
-+
-+	return true;
-+}
-+
-+static inline void vma_assert_write_locked(struct vm_area_struct *);
-+static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
-+{
-+	/* When detaching vma should be write-locked */
-+	if (detached)
-+		vma_assert_write_locked(vma);
-+	vma->detached = detached;
-+}
-+
-+extern const struct vm_operations_struct vma_dummy_vm_ops;
-+
-+static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
-+{
-+	memset(vma, 0, sizeof(*vma));
-+	vma->vm_mm = mm;
-+	vma->vm_ops = &vma_dummy_vm_ops;
-+	INIT_LIST_HEAD(&vma->anon_vma_chain);
-+	vma_mark_detached(vma, false);
-+}
-+
-+static inline struct vm_area_struct *vm_area_alloc(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma = calloc(1, sizeof(struct vm_area_struct));
-+
-+	if (!vma)
-+		return NULL;
-+
-+	vma_init(vma, mm);
-+	if (!vma_lock_alloc(vma)) {
-+		free(vma);
-+		return NULL;
-+	}
-+
-+	return vma;
-+}
-+
-+static inline struct vm_area_struct *vm_area_dup(struct vm_area_struct *orig)
-+{
-+	struct vm_area_struct *new = calloc(1, sizeof(struct vm_area_struct));
-+
-+	if (!new)
-+		return NULL;
-+
-+	memcpy(new, orig, sizeof(*new));
-+	if (!vma_lock_alloc(new)) {
-+		free(new);
-+		return NULL;
-+	}
-+	INIT_LIST_HEAD(&new->anon_vma_chain);
-+
-+	return new;
-+}
-+
-+/*
-+ * These are defined in vma.h, but sadly vm_stat_account() is referenced by
-+ * kernel/fork.c, so we have to these broadly available there, and temporarily
-+ * define them here to resolve the dependency cycle.
-+ */
-+
-+#define is_exec_mapping(flags) \
-+	((flags & (VM_EXEC | VM_WRITE | VM_STACK)) == VM_EXEC)
-+
-+#define is_stack_mapping(flags) \
-+	(((flags & VM_STACK) == VM_STACK) || (flags & VM_SHADOW_STACK))
-+
-+#define is_data_mapping(flags) \
-+	((flags & (VM_WRITE | VM_SHARED | VM_STACK)) == VM_WRITE)
-+
-+static inline void vm_stat_account(struct mm_struct *mm, vm_flags_t flags,
-+				   long npages)
-+{
-+	WRITE_ONCE(mm->total_vm, READ_ONCE(mm->total_vm)+npages);
-+
-+	if (is_exec_mapping(flags))
-+		mm->exec_vm += npages;
-+	else if (is_stack_mapping(flags))
-+		mm->stack_vm += npages;
-+	else if (is_data_mapping(flags))
-+		mm->data_vm += npages;
-+}
-+
-+#undef is_exec_mapping
-+#undef is_stack_mapping
-+#undef is_data_mapping
-+
-+/* Currently stubbed but we may later wish to un-stub. */
-+static inline void vm_acct_memory(long pages);
-+static inline void vm_unacct_memory(long pages)
-+{
-+	vm_acct_memory(-pages);
-+}
-+
-+static inline void mapping_allow_writable(struct address_space *mapping)
-+{
-+	atomic_inc(&mapping->i_mmap_writable);
-+}
-+
-+static inline void vma_set_range(struct vm_area_struct *vma,
-+				 unsigned long start, unsigned long end,
-+				 pgoff_t pgoff)
-+{
-+	vma->vm_start = start;
-+	vma->vm_end = end;
-+	vma->vm_pgoff = pgoff;
-+}
-+
-+static inline
-+struct vm_area_struct *vma_find(struct vma_iterator *vmi, unsigned long max)
-+{
-+	return mas_find(&vmi->mas, max - 1);
-+}
-+
-+static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
-+			unsigned long start, unsigned long end, gfp_t gfp)
-+{
-+	__mas_set_range(&vmi->mas, start, end - 1);
-+	mas_store_gfp(&vmi->mas, NULL, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static inline void mmap_assert_locked(struct mm_struct *);
-+static inline struct vm_area_struct *find_vma_intersection(struct mm_struct *mm,
-+						unsigned long start_addr,
-+						unsigned long end_addr)
-+{
-+	unsigned long index = start_addr;
-+
-+	mmap_assert_locked(mm);
-+	return mt_find(&mm->mm_mt, &index, end_addr - 1);
-+}
-+
-+static inline
-+struct vm_area_struct *vma_lookup(struct mm_struct *mm, unsigned long addr)
-+{
-+	return mtree_load(&mm->mm_mt, addr);
-+}
-+
-+static inline struct vm_area_struct *vma_prev(struct vma_iterator *vmi)
-+{
-+	return mas_prev(&vmi->mas, 0);
-+}
-+
-+static inline void vma_iter_set(struct vma_iterator *vmi, unsigned long addr)
-+{
-+	mas_set(&vmi->mas, addr);
-+}
-+
-+static inline bool vma_is_anonymous(struct vm_area_struct *vma)
-+{
-+	return !vma->vm_ops;
-+}
-+
-+/* Defined in vma.h, so temporarily define here to avoid circular dependency. */
-+#define vma_iter_load(vmi) \
-+	mas_walk(&(vmi)->mas)
-+
-+static inline struct vm_area_struct *
-+find_vma_prev(struct mm_struct *mm, unsigned long addr,
-+			struct vm_area_struct **pprev)
-+{
-+	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, mm, addr);
-+
-+	vma = vma_iter_load(&vmi);
-+	*pprev = vma_prev(&vmi);
-+	if (!vma)
-+		vma = vma_next(&vmi);
-+	return vma;
-+}
-+
-+#undef vma_iter_load
-+
-+static inline void vma_iter_init(struct vma_iterator *vmi,
-+		struct mm_struct *mm, unsigned long addr)
-+{
-+	mas_init(&vmi->mas, &mm->mm_mt, addr);
-+}
-+
-+/* Stubbed functions. */
-+
-+static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
-+{
-+	return NULL;
-+}
-+
-+static inline bool is_mergeable_vm_userfaultfd_ctx(struct vm_area_struct *vma,
-+					struct vm_userfaultfd_ctx vm_ctx)
-+{
-+	return true;
-+}
-+
-+static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
-+				    struct anon_vma_name *anon_name2)
-+{
-+	return true;
-+}
-+
-+static inline void might_sleep(void)
-+{
-+}
-+
-+static inline unsigned long vma_pages(struct vm_area_struct *vma)
-+{
-+	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
-+}
-+
-+static inline void fput(struct file *)
-+{
-+}
-+
-+static inline void mpol_put(struct mempolicy *)
-+{
-+}
-+
-+static inline void vma_lock_free(struct vm_area_struct *vma)
-+{
-+	free(vma->vm_lock);
-+}
-+
-+static inline void __vm_area_free(struct vm_area_struct *vma)
-+{
-+	vma_lock_free(vma);
-+	free(vma);
-+}
-+
-+static inline void vm_area_free(struct vm_area_struct *vma)
-+{
-+	__vm_area_free(vma);
-+}
-+
-+static inline void lru_add_drain(void)
-+{
-+}
-+
-+static inline void tlb_gather_mmu(struct mmu_gather *, struct mm_struct *)
-+{
-+}
-+
-+static inline void update_hiwater_rss(struct mm_struct *)
-+{
-+}
-+
-+static inline void update_hiwater_vm(struct mm_struct *)
-+{
-+}
-+
-+static inline void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
-+		      struct vm_area_struct *vma, unsigned long start_addr,
-+		      unsigned long end_addr, unsigned long tree_end,
-+		      bool mm_wr_locked)
-+{
-+	(void)tlb;
-+	(void)mas;
-+	(void)vma;
-+	(void)start_addr;
-+	(void)end_addr;
-+	(void)tree_end;
-+	(void)mm_wr_locked;
-+}
-+
-+static inline void free_pgtables(struct mmu_gather *tlb, struct ma_state *mas,
-+		   struct vm_area_struct *vma, unsigned long floor,
-+		   unsigned long ceiling, bool mm_wr_locked)
-+{
-+	(void)tlb;
-+	(void)mas;
-+	(void)vma;
-+	(void)floor;
-+	(void)ceiling;
-+	(void)mm_wr_locked;
-+}
-+
-+static inline void mapping_unmap_writable(struct address_space *)
-+{
-+}
-+
-+static inline void flush_dcache_mmap_lock(struct address_space *)
-+{
-+}
-+
-+static inline void tlb_finish_mmu(struct mmu_gather *)
-+{
-+}
-+
-+static inline void get_file(struct file *)
-+{
-+}
-+
-+static inline int vma_dup_policy(struct vm_area_struct *, struct vm_area_struct *)
-+{
-+	return 0;
-+}
-+
-+static inline int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *)
-+{
-+	return 0;
-+}
-+
-+static inline void vma_start_write(struct vm_area_struct *)
-+{
-+}
-+
-+static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
-+					 unsigned long start,
-+					 unsigned long end,
-+					 long adjust_next)
-+{
-+	(void)vma;
-+	(void)start;
-+	(void)end;
-+	(void)adjust_next;
-+}
-+
-+static inline void vma_iter_free(struct vma_iterator *vmi)
-+{
-+	mas_destroy(&vmi->mas);
-+}
-+
-+static inline void vm_acct_memory(long pages)
-+{
-+}
-+
-+static inline void vma_interval_tree_insert(struct vm_area_struct *,
-+					    struct rb_root_cached *)
-+{
-+}
-+
-+static inline void vma_interval_tree_remove(struct vm_area_struct *,
-+					    struct rb_root_cached *)
-+{
-+}
-+
-+static inline void flush_dcache_mmap_unlock(struct address_space *)
-+{
-+}
-+
-+static inline void anon_vma_interval_tree_insert(struct anon_vma_chain*,
-+						 struct rb_root_cached *)
-+{
-+}
-+
-+static inline void anon_vma_interval_tree_remove(struct anon_vma_chain*,
-+						 struct rb_root_cached *)
-+{
-+}
-+
-+static inline void uprobe_mmap(struct vm_area_struct *)
-+{
-+}
-+
-+static inline void uprobe_munmap(struct vm_area_struct *vma,
-+				 unsigned long start, unsigned long end)
-+{
-+	(void)vma;
-+	(void)start;
-+	(void)end;
-+}
-+
-+static inline void i_mmap_lock_write(struct address_space *)
-+{
-+}
-+
-+static inline void anon_vma_lock_write(struct anon_vma *)
-+{
-+}
-+
-+static inline void vma_assert_write_locked(struct vm_area_struct *)
-+{
-+}
-+
-+static inline void unlink_anon_vmas(struct vm_area_struct *)
-+{
-+}
-+
-+static inline void anon_vma_unlock_write(struct anon_vma *)
-+{
-+}
-+
-+static inline void i_mmap_unlock_write(struct address_space *)
-+{
-+}
-+
-+static inline void anon_vma_merge(struct vm_area_struct *,
-+				  struct vm_area_struct *)
-+{
-+}
-+
-+static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
-+					 unsigned long start,
-+					 unsigned long end,
-+					 struct list_head *unmaps)
-+{
-+	(void)vma;
-+	(void)start;
-+	(void)end;
-+	(void)unmaps;
-+
-+	return 0;
-+}
-+
-+static inline void mmap_write_downgrade(struct mm_struct *)
-+{
-+}
-+
-+static inline void mmap_read_unlock(struct mm_struct *)
-+{
-+}
-+
-+static inline void mmap_write_unlock(struct mm_struct *)
-+{
-+}
-+
-+static inline bool can_modify_mm(struct mm_struct *mm,
-+				 unsigned long start,
-+				 unsigned long end)
-+{
-+	(void)mm;
-+	(void)start;
-+	(void)end;
-+
-+	return true;
-+}
-+
-+static inline void arch_unmap(struct mm_struct *mm,
-+				 unsigned long start,
-+				 unsigned long end)
-+{
-+	(void)mm;
-+	(void)start;
-+	(void)end;
-+}
-+
-+static inline void mmap_assert_locked(struct mm_struct *)
-+{
-+}
-+
-+static inline bool mpol_equal(struct mempolicy *, struct mempolicy *)
-+{
-+	return true;
-+}
-+
-+static inline void khugepaged_enter_vma(struct vm_area_struct *vma,
-+			  unsigned long vm_flags)
-+{
-+	(void)vma;
-+	(void)vm_flags;
-+}
-+
-+static inline bool mapping_can_writeback(struct address_space *)
-+{
-+	return true;
-+}
-+
-+static inline bool is_vm_hugetlb_page(struct vm_area_struct *)
-+{
-+	return false;
-+}
-+
-+static inline bool vma_soft_dirty_enabled(struct vm_area_struct *)
-+{
-+	return false;
-+}
-+
-+static inline bool userfaultfd_wp(struct vm_area_struct *)
-+{
-+	return false;
-+}
-+
-+static inline void mmap_assert_write_locked(struct mm_struct *)
-+{
-+}
-+
-+static inline void mutex_lock(struct mutex *)
-+{
-+}
-+
-+static inline void mutex_unlock(struct mutex *)
-+{
-+}
-+
-+static inline bool mutex_is_locked(struct mutex *)
-+{
-+	return true;
-+}
-+
-+static inline bool signal_pending(void *)
-+{
-+	return false;
-+}
-+
-+#endif	/* __MM_VMA_INTERNAL_H */
+ 
+ 	/* Find the highest order that can add into the page cache */
+ 	order = highest_order(orders);
+ 	while (orders) {
+ 		pages = 1UL << order;
+ 		index = round_down(index, pages);
++		/*
++		 * Check for conflict before waiting on a huge allocation.
++		 * Conflict might be that a huge page has just been allocated
++		 * and added to page cache by a racing thread, or that there
++		 * is already at least one small page in the huge extent.
++		 * Be careful to retry when appropriate, but not forever!
++		 * Elsewhere -EEXIST would be the right code, but not here.
++		 */
+ 		if (!xa_find(&mapping->i_pages, &index,
+ 			     index + pages - 1, XA_PRESENT))
+ 			break;
+@@ -1735,7 +1745,6 @@ static struct folio *shmem_alloc_and_add
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	unsigned long suitable_orders = 0;
+ 	struct folio *folio = NULL;
+ 	long pages;
+@@ -1745,26 +1754,8 @@ static struct folio *shmem_alloc_and_add
+ 		orders = 0;
+ 
+ 	if (orders > 0) {
+-		if (vma && vma_is_anon_shmem(vma)) {
+-			suitable_orders = shmem_suitable_orders(inode, vmf,
++		suitable_orders = shmem_suitable_orders(inode, vmf,
+ 							mapping, index, orders);
+-		} else if (orders & BIT(HPAGE_PMD_ORDER)) {
+-			pages = HPAGE_PMD_NR;
+-			suitable_orders = BIT(HPAGE_PMD_ORDER);
+-			index = round_down(index, HPAGE_PMD_NR);
+-
+-			/*
+-			 * Check for conflict before waiting on a huge allocation.
+-			 * Conflict might be that a huge page has just been allocated
+-			 * and added to page cache by a racing thread, or that there
+-			 * is already at least one small page in the huge extent.
+-			 * Be careful to retry when appropriate, but not forever!
+-			 * Elsewhere -EEXIST would be the right code, but not here.
+-			 */
+-			if (xa_find(&mapping->i_pages, &index,
+-				    index + HPAGE_PMD_NR - 1, XA_PRESENT))
+-				return ERR_PTR(-E2BIG);
+-		}
+ 
+ 		order = highest_order(suitable_orders);
+ 		while (suitable_orders) {
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
-mm-move-vma_modify-and-helpers-to-internal-header.patch
-mm-move-vma_shrink-vma_expand-to-internal-header.patch
-mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
-maintainers-add-entry-for-new-vma-files.patch
-tools-separate-out-shared-radix-tree-components.patch
-tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
+mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
+mm-shmem-rename-shmem_is_huge-to-shmem_huge_global_enabled.patch
+mm-shmem-move-shmem_huge_global_enabled-into-shmem_allowable_huge_orders.patch
 
