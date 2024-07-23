@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19C3A149C59;
-	Tue, 23 Jul 2024 23:40:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7271494D6
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 23:40:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721778043; cv=none; b=cM2uY6/wsbc67i96QjYbL+12IXQBBeSx0VTbN/7/RAXwRWZV+vJXZgtlpuFFa93JigOUbpMUM+vT5X8lD6C/odNuT2ucOiHZ8pcPrH3kw9e/QiHc5empKu2D7iktVvXhlaDzZHw3xCZF1TMHSRi/ALrJ/YlR9bSJvyIiFJll1ps=
+	t=1721778044; cv=none; b=BDpRCb3Dsc/RchviUsKOLuGxtFcsePYxi5nGF+bvygOIer7NwukfzLZzY8UzIpHRlCTboWFpleKk2tGx+rvZCbITG4KZfePxwJyHJYWdFQtjRjT4123FHGva2e3are6afWqyIH4PCH85Js+bgNl2S2j1DBVjnD7PrfNkOcZXpmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721778043; c=relaxed/simple;
-	bh=yogXOnZVei3qScDWNcCWXJVDUacfjuJ5ODTBn3C1/W0=;
-	h=Date:To:From:Subject:Message-Id; b=TBNb+fnMgWUZ/bSNekgQSpeCJk/lX0jFEggQbHthJGfvbIjZcPX87+vgRjYYHoi4haCJy6AoeXrzMIRofrh3mMoVbTvM7o6UBYgDHHpiSHlzvbe0wXhnUWyL9XfbCBKLAiPstqepM0VsTOHrrsKIswRUbnWCOwef1RyOR2q/n+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=klIjDxWh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721778044; c=relaxed/simple;
+	bh=MS+eyO9Gh5kUTyYa7uOsJbxCQF1twuJcoOAiDVrv68g=;
+	h=Date:To:From:Subject:Message-Id; b=i+bVL7seAI/H5RlYv0l5GAyF5XvjKoiRLVudBRTGXoWvCoeg2SgiokIssRj7CrcJH3OgBddvA9vtsDY4G09IXoZjff+U9n/s6BI4N8UBC3dmGz3wMNoDjGiS4DiOgvXklYzu8mFbLSwe+4id4yd7IMMRLfDjRc530jixvFPcX0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3wsR5HB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="klIjDxWh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C787C4AF0A;
-	Tue, 23 Jul 2024 23:40:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3wsR5HB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D8CAC4AF0A;
+	Tue, 23 Jul 2024 23:40:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721778042;
-	bh=yogXOnZVei3qScDWNcCWXJVDUacfjuJ5ODTBn3C1/W0=;
+	s=korg; t=1721778044;
+	bh=MS+eyO9Gh5kUTyYa7uOsJbxCQF1twuJcoOAiDVrv68g=;
 	h=Date:To:From:Subject:From;
-	b=klIjDxWhohoxRWlTQM+JWFgh1qqto8U9NGyJ0wKN+IKclZb4PqZIKI/LJQ6qBDYpe
-	 pRslPOVRi9tw1FDIJa2irk/BBFS5nge5Hm2tG47ATeEQkcVZYGR8DC+eyfktp6XyLS
-	 56Wu/47GbebdkSq+nI+KTFh2MnuQXs73EZRADWQg=
-Date: Tue, 23 Jul 2024 16:40:42 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
+	b=t3wsR5HBN5IzEQootnDuE80LX27wO7ZLepAaTkKEtaefhYC1+zT5J/nBm5xcqtvJJ
+	 xCKKa9hVsxyYAD0I486LQ1ROBi2faa4MS91baDy8UALYgPFWGtCp4ynh2EhaFWjeUu
+	 rRZxBTwh7m/Vr3ev9MyQ81ScgmPpNOMAJMJJG4U8=
+Date: Tue, 23 Jul 2024 16:40:43 -0700
+To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-fix-lx-mounts-command-error.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723234042.9C787C4AF0A@smtp.kernel.org>
+Subject: + scripts-gdb-add-lx-stack_depot_lookup-command.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723234044.6D8CAC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: fix lx-mounts command error
+     Subject: scripts/gdb: add 'lx-stack_depot_lookup' command.
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-fix-lx-mounts-command-error.patch
+     scripts-gdb-add-lx-stack_depot_lookup-command.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-lx-mounts-command-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx-stack_depot_lookup-command.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
-Subject: scripts/gdb: fix lx-mounts command error
-Date: Tue, 23 Jul 2024 14:48:59 +0800
+Subject: scripts/gdb: add 'lx-stack_depot_lookup' command.
+Date: Tue, 23 Jul 2024 14:49:00 +0800
 
-(gdb) lx-mounts
-      mount          super_block     devname pathname fstype options
-Python Exception <class 'gdb.error'>: There is no member named list.
-Error occurred in Python: There is no member named list.
+This command allows users to quickly retrieve a stacktrace using a handle
+obtained from a memory coredump.
 
-We encounter the above issue after commit 2eea9ce4310d ("mounts: keep
-list of mounts in an rbtree"). The commit move a mount from list into
-rbtree.
+Example output:
+(gdb) lx-stack_depot_lookup 0x00c80300
+   0xffff8000807965b4 <kmem_cache_alloc_noprof+660>:    mov     x20, x0
+   0xffff800081a077d8 <kmem_cache_oob_alloc+76>:        mov     x1, x0
+   0xffff800081a079a0 <test_version_show+100>:  cbnz    w0, 0xffff800081a07968 <test_version_show+44>
+   0xffff800082f4a3fc <kobj_attr_show+60>:      ldr     x19, [sp, #16]
+   0xffff800080a0fb34 <sysfs_kf_seq_show+460>:  ldp     x3, x4, [sp, #96]
+   0xffff800080a0a550 <kernfs_seq_show+296>:    ldp     x19, x20, [sp, #16]
+   0xffff8000808e7b40 <seq_read_iter+836>:      mov     w5, w0
+   0xffff800080a0b8ac <kernfs_fop_read_iter+804>:       mov     x23, x0
+   0xffff800080914a48 <copy_splice_read+972>:   mov     x6, x0
+   0xffff8000809151c4 <do_splice_read+348>:     ldr     x21, [sp, #32]
 
-So we can instead use rbtree to iterate all mounts information.
-
-Link: https://lkml.kernel.org/r/20240723064902.124154-4-kuan-ying.lee@canonical.com
-Fixes: 2eea9ce4310d ("mounts: keep list of mounts in an rbtree")
+Link: https://lkml.kernel.org/r/20240723064902.124154-5-kuan-ying.lee@canonical.com
 Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/proc.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/stackdepot.py |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/scripts/gdb/linux/proc.py~scripts-gdb-fix-lx-mounts-command-error
-+++ a/scripts/gdb/linux/proc.py
-@@ -18,6 +18,7 @@ from linux import utils
- from linux import tasks
- from linux import lists
- from linux import vfs
-+from linux import rbtree
- from struct import *
+--- a/scripts/gdb/linux/stackdepot.py~scripts-gdb-add-lx-stack_depot_lookup-command
++++ a/scripts/gdb/linux/stackdepot.py
+@@ -13,6 +13,13 @@ if constants.LX_CONFIG_STACKDEPOT:
+     stack_record_type = utils.CachedType('struct stack_record')
+     DEPOT_STACK_ALIGN = 4
  
- 
-@@ -172,8 +173,7 @@ values of that process namespace"""
-         gdb.write("{:^18} {:^15} {:>9} {} {} options\n".format(
-                   "mount", "super_block", "devname", "pathname", "fstype"))
- 
--        for mnt in lists.list_for_each_entry(namespace['list'],
--                                             mount_ptr_type, "mnt_list"):
-+        for mnt in rbtree.rb_inorder_for_each_entry(namespace['mounts'], mount_ptr_type, "mnt_node"):
-             devname = mnt['mnt_devname'].string()
-             devname = devname if devname else "none"
- 
++def help():
++    t = """Usage: lx-stack_depot_lookup [Hex handle value]
++    Example:
++        lx-stack_depot_lookup 0x00c80300\n"""
++    gdb.write("Unrecognized command\n")
++    raise gdb.GdbError(t)
++
+ def stack_depot_fetch(handle):
+     global DEPOT_STACK_ALIGN
+     global stack_record_type
+@@ -57,3 +64,23 @@ def stack_depot_print(handle):
+                 gdb.execute("x /i 0x%x" % (int(entries[i])))
+             except Exception as e:
+                 gdb.write("%s\n" % e)
++
++class StackDepotLookup(gdb.Command):
++    """Search backtrace by handle"""
++
++    def __init__(self):
++        if constants.LX_CONFIG_STACKDEPOT:
++            super(StackDepotLookup, self).__init__("lx-stack_depot_lookup", gdb.COMMAND_SUPPORT)
++
++    def invoke(self, args, from_tty):
++        if not constants.LX_CONFIG_STACKDEPOT:
++            raise gdb.GdbError('CONFIG_STACKDEPOT is not set')
++
++        argv = gdb.string_to_argv(args)
++        if len(argv) == 1:
++            handle = int(argv[0], 16)
++            stack_depot_print(gdb.Value(handle).cast(utils.get_uint_type()))
++        else:
++            help()
++
++StackDepotLookup()
 _
 
 Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
