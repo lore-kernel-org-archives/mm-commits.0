@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BDAA146D4C
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:51:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C0113B58D
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721771466; cv=none; b=jLv18hc6K4a55N2GXhuaM0Tl699lzdrwEPOZZ3iZDG2nNiy1TDelq/2oUbIWEu4AW8swvHb/96xw1rDf5MEs1RAit8AYYuiJc2dpxUyXnGW0x31uhlu9AUb2aX1KNV7dFN+A+B15GBh2nbPSfynWJJvsZXLYJwCvA8G4vPX71G8=
+	t=1721771469; cv=none; b=c9SuUm6WYHFE4MnkrCFx5ADi6XEqRwF89YD8cUqAraKIOPMsEb292xKTGgBcCauNwh2funU09oLT5AgE/YCBTkUC2NoUDi/9JKTVZi3knDAbdUpP/xut6bOzTZ9OR5f8VaoL6o0b9ntMibjXWWn0JpRtn6aVBjqblh+BsjDkQDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721771466; c=relaxed/simple;
-	bh=yWSlV2kXWBvm/901CBkIBYqVoJDqoNN9URxAgnwX/gU=;
-	h=Date:To:From:Subject:Message-Id; b=Yb9q+5C45ELT1YJvRqTu1kekB42ndAjc4u5ejux6VUrQ32rn+eXwRalF6rG9/cfppFitAkZT5drxqPtkbAmucIDP3LksIvOeGLkQRzJMS/GW/KNXofRZqEZb1Hktq/o8v4uTEDAQD/VBp3apAfnOkKT3HF/kkiPrwBFsyxNMDt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hfyyqJvt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721771469; c=relaxed/simple;
+	bh=ttyLO3yfwonkmOZlLHPkq4qEBAoF4E6x1VuPujv+0Eg=;
+	h=Date:To:From:Subject:Message-Id; b=L7hVgWNdVodp4nLq26/ONlZz+9DEHFbgWUp1FX2PiPGUTlzartF4hwtMrilzR0tu6KiWcvU5SX7KgY6VynX7LeKGthMymLfBDFS8VNTWpU+1byzeAE7lriN1w1wwrt4Bg4mz3k1nhczMs8dcUi+/FEUKaQxk4RSRoVTLvL1pEzg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nNkdgHay; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hfyyqJvt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5533C4AF09;
-	Tue, 23 Jul 2024 21:51:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nNkdgHay"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A77A6C4AF09;
+	Tue, 23 Jul 2024 21:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721771465;
-	bh=yWSlV2kXWBvm/901CBkIBYqVoJDqoNN9URxAgnwX/gU=;
+	s=korg; t=1721771469;
+	bh=ttyLO3yfwonkmOZlLHPkq4qEBAoF4E6x1VuPujv+0Eg=;
 	h=Date:To:From:Subject:From;
-	b=hfyyqJvtNYGIwN1a6Kl8F0klmqVwpDe9JPp7TNgdz9iE4PugDEnFlwxL+X1WY7SMb
-	 6DACyNVhwKgmiTF5kVN6dOxxjJwXN4/sYkuiS/tu2WsHkhcBTTvHXKXE7og5I+kB4b
-	 efFOyCIzU5odgVyswlhEIj8lRJP5LLD6Qr3ReS8c=
-Date: Tue, 23 Jul 2024 14:51:05 -0700
+	b=nNkdgHayxKlCMFzBAfbovVB2zvVCKaUZZxk6BACY7cXq8opEbmAwoeCzk2VK3U/FG
+	 dGwkgUTEA/zlGIVBYVhd0X6DbL9VeVsgZ5mDud7sEP0bQxJhxC0yndh39+T04qwz7G
+	 8XfOigaqrgF7YKMMNcdeCaI2HBMlpYK+UGJ1npZQ=
+Date: Tue, 23 Jul 2024 14:51:09 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mass-constification-of-folio-page-pointers.patch added to mm-unstable branch
-Message-Id: <20240723215105.A5533C4AF09@smtp.kernel.org>
+Subject: + mm-remove-references-to-page-index-in-huge_memoryc.patch added to mm-unstable branch
+Message-Id: <20240723215109.A77A6C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mass constification of folio/page pointers
+     Subject: mm: remove references to page->index in huge_memory.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mass-constification-of-folio-page-pointers.patch
+     mm-remove-references-to-page-index-in-huge_memoryc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mass-constification-of-folio-page-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-references-to-page-index-in-huge_memoryc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,270 +59,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: mass constification of folio/page pointers
-Date: Tue, 23 Jul 2024 16:34:59 +0100
+Subject: mm: remove references to page->index in huge_memory.c
+Date: Tue, 23 Jul 2024 16:35:00 +0100
 
-Now that page_pgoff() takes const pointers, we can constify the pointers
-to a lot of functions.
+We already have folios in all these places; it's just a matter of using
+them instead of the pages.
 
-Link: https://lkml.kernel.org/r/20240723153503.1669586-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240723153503.1669586-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h  |    7 ++++---
- include/linux/rmap.h |   10 +++++-----
- mm/internal.h        |    5 +++--
- mm/ksm.c             |    5 +++--
- mm/memory-failure.c  |   24 +++++++++++++-----------
- mm/page_vma_mapped.c |    5 +++--
- mm/rmap.c            |   11 ++++++-----
- 7 files changed, 37 insertions(+), 30 deletions(-)
+ mm/huge_memory.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/ksm.h~mm-mass-constification-of-folio-page-pointers
-+++ a/include/linux/ksm.h
-@@ -92,7 +92,7 @@ struct folio *ksm_might_need_to_copy(str
- 
- void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
--void collect_procs_ksm(struct folio *folio, struct page *page,
-+void collect_procs_ksm(const struct folio *folio, const struct page *page,
- 		struct list_head *to_kill, int force_early);
- long ksm_process_profit(struct mm_struct *);
- 
-@@ -125,8 +125,9 @@ static inline void ksm_might_unmap_zero_
- {
- }
- 
--static inline void collect_procs_ksm(struct folio *folio, struct page *page,
--				     struct list_head *to_kill, int force_early)
-+static inline void collect_procs_ksm(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- }
- 
---- a/include/linux/rmap.h~mm-mass-constification-of-folio-page-pointers
-+++ a/include/linux/rmap.h
-@@ -171,7 +171,7 @@ static inline void anon_vma_merge(struct
- 	unlink_anon_vmas(next);
- }
- 
--struct anon_vma *folio_get_anon_vma(struct folio *folio);
-+struct anon_vma *folio_get_anon_vma(const struct folio *folio);
- 
- /* RMAP flags, currently only relevant for some anon rmap operations. */
- typedef int __bitwise rmap_t;
-@@ -194,8 +194,8 @@ enum rmap_level {
- 	RMAP_LEVEL_PMD,
- };
- 
--static inline void __folio_rmap_sanity_checks(struct folio *folio,
--		struct page *page, int nr_pages, enum rmap_level level)
-+static inline void __folio_rmap_sanity_checks(const struct folio *folio,
-+		const struct page *page, int nr_pages, enum rmap_level level)
- {
- 	/* hugetlb folios are handled separately. */
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
-@@ -769,14 +769,14 @@ struct rmap_walk_control {
- 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
- 					unsigned long addr, void *arg);
- 	int (*done)(struct folio *folio);
--	struct anon_vma *(*anon_lock)(struct folio *folio,
-+	struct anon_vma *(*anon_lock)(const struct folio *folio,
- 				      struct rmap_walk_control *rwc);
- 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
- };
- 
- void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
- void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
- 					  struct rmap_walk_control *rwc);
- 
- #else	/* !CONFIG_MMU */
---- a/mm/internal.h~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/internal.h
-@@ -1064,10 +1064,11 @@ void ClearPageHWPoisonTakenOff(struct pa
- bool take_page_off_buddy(struct page *page);
- bool put_page_back_buddy(struct page *page);
- struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
--void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
- 		     struct vm_area_struct *vma, struct list_head *to_kill,
- 		     unsigned long ksm_addr);
--unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
-+unsigned long page_mapped_in_vma(const struct page *page,
-+		struct vm_area_struct *vma);
- 
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
---- a/mm/ksm.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/ksm.c
-@@ -1080,7 +1080,8 @@ static int unmerge_ksm_pages(struct vm_a
- 	return err;
- }
- 
--static inline struct ksm_stable_node *folio_stable_node(struct folio *folio)
-+static inline
-+struct ksm_stable_node *folio_stable_node(const struct folio *folio)
- {
- 	return folio_test_ksm(folio) ? folio_raw_mapping(folio) : NULL;
- }
-@@ -3085,7 +3086,7 @@ again:
- /*
-  * Collect processes when the error hit an ksm page.
-  */
--void collect_procs_ksm(struct folio *folio, struct page *page,
-+void collect_procs_ksm(const struct folio *folio, const struct page *page,
- 		struct list_head *to_kill, int force_early)
- {
- 	struct ksm_stable_node *stable_node;
---- a/mm/memory-failure.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/memory-failure.c
-@@ -445,7 +445,7 @@ static unsigned long dev_pagemap_mapping
-  * Schedule a process for later kill.
-  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
-  */
--static void __add_to_kill(struct task_struct *tsk, struct page *p,
-+static void __add_to_kill(struct task_struct *tsk, const struct page *p,
- 			  struct vm_area_struct *vma, struct list_head *to_kill,
- 			  unsigned long addr)
- {
-@@ -461,7 +461,7 @@ static void __add_to_kill(struct task_st
- 	if (is_zone_device_page(p))
- 		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
- 	else
--		tk->size_shift = page_shift(compound_head(p));
-+		tk->size_shift = folio_shift(page_folio(p));
+--- a/mm/huge_memory.c~mm-remove-references-to-page-index-in-huge_memoryc
++++ a/mm/huge_memory.c
+@@ -2862,8 +2862,8 @@ static void __split_huge_page_tail(struc
+ 	/* ->mapping in first and second tail page is replaced by other uses */
+ 	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
+ 			page_tail);
+-	page_tail->mapping = head->mapping;
+-	page_tail->index = head->index + tail;
++	new_folio->mapping = folio->mapping;
++	new_folio->index = folio->index + tail;
  
  	/*
- 	 * Send SIGKILL if "tk->addr == -EFAULT". Also, as
-@@ -486,7 +486,7 @@ static void __add_to_kill(struct task_st
- 	list_add_tail(&tk->nd, to_kill);
- }
+ 	 * page->private should not be set in tail pages. Fix up and warn once
+@@ -2939,11 +2939,11 @@ static void __split_huge_page(struct pag
+ 	ClearPageHasHWPoisoned(head);
  
--static void add_to_kill_anon_file(struct task_struct *tsk, struct page *p,
-+static void add_to_kill_anon_file(struct task_struct *tsk, const struct page *p,
- 		struct vm_area_struct *vma, struct list_head *to_kill,
- 		unsigned long addr)
- {
-@@ -509,7 +509,7 @@ static bool task_in_to_kill_list(struct
- 	return false;
- }
+ 	for (i = nr - new_nr; i >= new_nr; i -= new_nr) {
++		struct folio *tail;
+ 		__split_huge_page_tail(folio, i, lruvec, list, new_order);
++		tail = page_folio(head + i);
+ 		/* Some pages can be beyond EOF: drop them from page cache */
+-		if (head[i].index >= end) {
+-			struct folio *tail = page_folio(head + i);
+-
++		if (tail->index >= end) {
+ 			if (shmem_mapping(folio->mapping))
+ 				nr_dropped++;
+ 			else if (folio_test_clear_dirty(tail))
+@@ -2951,12 +2951,12 @@ static void __split_huge_page(struct pag
+ 					inode_to_wb(folio->mapping->host));
+ 			__filemap_remove_folio(tail, NULL);
+ 			folio_put(tail);
+-		} else if (!PageAnon(page)) {
+-			__xa_store(&folio->mapping->i_pages, head[i].index,
+-					head + i, 0);
++		} else if (!folio_test_anon(folio)) {
++			__xa_store(&folio->mapping->i_pages, tail->index,
++					tail, 0);
+ 		} else if (swap_cache) {
+ 			__xa_store(&swap_cache->i_pages, offset + i,
+-					head + i, 0);
++					tail, 0);
+ 		}
+ 	}
  
--void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
- 		     struct vm_area_struct *vma, struct list_head *to_kill,
- 		     unsigned long addr)
- {
-@@ -606,8 +606,9 @@ struct task_struct *task_early_kill(stru
- /*
-  * Collect processes when the error hit an anonymous page.
-  */
--static void collect_procs_anon(struct folio *folio, struct page *page,
--		struct list_head *to_kill, int force_early)
-+static void collect_procs_anon(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
-@@ -643,8 +644,9 @@ static void collect_procs_anon(struct fo
- /*
-  * Collect processes when the error hit a file mapped page.
-  */
--static void collect_procs_file(struct folio *folio, struct page *page,
--		struct list_head *to_kill, int force_early)
-+static void collect_procs_file(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -680,7 +682,7 @@ static void collect_procs_file(struct fo
- }
- 
- #ifdef CONFIG_FS_DAX
--static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
-+static void add_to_kill_fsdax(struct task_struct *tsk, const struct page *p,
- 			      struct vm_area_struct *vma,
- 			      struct list_head *to_kill, pgoff_t pgoff)
- {
-@@ -691,7 +693,7 @@ static void add_to_kill_fsdax(struct tas
- /*
-  * Collect processes when the error hit a fsdax page.
-  */
--static void collect_procs_fsdax(struct page *page,
-+static void collect_procs_fsdax(const struct page *page,
- 		struct address_space *mapping, pgoff_t pgoff,
- 		struct list_head *to_kill, bool pre_remove)
- {
-@@ -725,7 +727,7 @@ static void collect_procs_fsdax(struct p
- /*
-  * Collect the processes who have the corrupted page mapped to kill.
-  */
--static void collect_procs(struct folio *folio, struct page *page,
-+static void collect_procs(const struct folio *folio, const struct page *page,
- 		struct list_head *tokill, int force_early)
- {
- 	if (!folio->mapping)
---- a/mm/page_vma_mapped.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/page_vma_mapped.c
-@@ -325,9 +325,10 @@ next_pte:
-  * outside the VMA or not present, returns -EFAULT.
-  * Only valid for normal file or anonymous VMAs.
-  */
--unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma)
-+unsigned long page_mapped_in_vma(const struct page *page,
-+		struct vm_area_struct *vma)
- {
--	struct folio *folio = page_folio(page);
-+	const struct folio *folio = page_folio(page);
- 	pgoff_t pgoff = folio->index + folio_page_idx(folio, page);
- 	struct page_vma_mapped_walk pvmw = {
- 		.pfn = page_to_pfn(page),
---- a/mm/rmap.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/rmap.c
-@@ -496,7 +496,7 @@ void __init anon_vma_init(void)
-  * concurrently without folio lock protection). See folio_lock_anon_vma_read()
-  * which has already covered that, and comment above remap_pages().
-  */
--struct anon_vma *folio_get_anon_vma(struct folio *folio)
-+struct anon_vma *folio_get_anon_vma(const struct folio *folio)
- {
- 	struct anon_vma *anon_vma = NULL;
- 	unsigned long anon_mapping;
-@@ -540,7 +540,7 @@ out:
-  * reference like with folio_get_anon_vma() and then block on the mutex
-  * on !rwc->try_lock case.
-  */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
- 					  struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma = NULL;
-@@ -1250,8 +1250,9 @@ static void __folio_set_anon(struct foli
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-  */
--static void __page_check_anon_rmap(struct folio *folio, struct page *page,
--	struct vm_area_struct *vma, unsigned long address)
-+static void __page_check_anon_rmap(const struct folio *folio,
-+		const struct page *page, struct vm_area_struct *vma,
-+		unsigned long address)
- {
- 	/*
- 	 * The page's anon-rmap details (mapping and index) are guaranteed to
-@@ -2535,7 +2536,7 @@ void __put_anon_vma(struct anon_vma *ano
- 		anon_vma_free(root);
- }
- 
--static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
-+static struct anon_vma *rmap_walk_anon_lock(const struct folio *folio,
- 					    struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
