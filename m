@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB79C1FDA
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:45:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9797EEC2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:49:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721699156; cv=none; b=MdtgTcB1zGi7e4Fd5kxw0QYbgAW0/OK1wlRfloKbVF5V/KKn91gPkCnnOVqVilwNoM2Opm0fX28BIwupDd4A0dGw1dN5z9nbFOSnQsfAwfY3Et4J0Piatnish5xXlXrhG/sdGuwQijZfGcrkxErFiEBM/iQTEHgtAOyZNWtJ1vE=
+	t=1721699363; cv=none; b=u6kpRJ5G7xvd+X4sk+967+UfREZuESEBQr5k5UXEVpGUBK98jAFbhO2r7CcaeP+wDOaw8aS6DEHiiXQgUN7O688gRpyATM7gyjWvohV6zMlXPofcE+RUCJxJZqz733g4EcvDvGSHJV3rJUfW51y2BG0F81QiWKzn8lbpxCJmMqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721699156; c=relaxed/simple;
-	bh=LkoVgAP+uHPuH7MP+XcJljeDQZxIWku4pabJt3yMNbg=;
-	h=Date:To:From:Subject:Message-Id; b=Ftn+sqycfT6PAzoe3NVyeykUpW8HkONDuOqyfpizjAO9Ad3cqjmCZ/HLFHwhALIbvK6QXbTm5HJWCCC0qa04DD8GAWfIjnB77D1wlDIG+909IGUUd5DrVjRHFOyq5r5jyQj3jlLlI7PMNyjruJrs5a6YsZnLKjwq43EmpFeYMpQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1IhQRRVw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721699363; c=relaxed/simple;
+	bh=Lxu2aFmdilcimV6Di89yXRu9cUdb0lJ23b57E5MX8OA=;
+	h=Date:To:From:Subject:Message-Id; b=GbchPDWs2DHHJl09tKHgbWYv5Rx8al7NNSrAKnRW7yhucP2MdruHxU9hBG632IgQal92isExSaYyGZ3E7BVhWmCHluQ9aO3F41hnAG8pZZnwiQYEJTkaYbjXiANlXH/e2Q6ICVdrhCA6hfwOI3bUj5xuM4xdqEJPdIt2Rj+NzD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0oIYKSZ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1IhQRRVw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6788C116B1;
-	Tue, 23 Jul 2024 01:45:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0oIYKSZ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A091C116B1;
+	Tue, 23 Jul 2024 01:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721699155;
-	bh=LkoVgAP+uHPuH7MP+XcJljeDQZxIWku4pabJt3yMNbg=;
+	s=korg; t=1721699363;
+	bh=Lxu2aFmdilcimV6Di89yXRu9cUdb0lJ23b57E5MX8OA=;
 	h=Date:To:From:Subject:From;
-	b=1IhQRRVwXGFO44E5HaWjQWzgF7nNwJ+y+amMkNaUX6NoLy7TWiP0CGFrIYGkVJdQD
-	 gatNFA1LCDHv62F9sMWv0CHNPLODhmlHHqOweFyAqrkjRb1VyJxX04raeQnuP2NpwU
-	 KIedzei4YW6BnCSUMbrCyqm4vDChwd21ypLYX418=
-Date: Mon, 22 Jul 2024 18:45:55 -0700
-To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,vbabka@suse.cz,urezki@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,oliver.upton@linux.dev,ojeda@kernel.org,mpe@ellerman.id.au,mhocko@kernel.org,maz@kernel.org,kees@kernel.org,iamjoonsoo.kim@lge.com,hch@infradead.org,cl@linux.com,christian.koenig@amd.com,chandan.babu@oracle.com,42.hyeyoo@gmail.com,dakr@kernel.org,akpm@linux-foundation.org
+	b=0oIYKSZ0K/PVw7W0hIV0YQKUu0LVQ0K6YLnZqfFAlpszownkrq0FfPHSoI+Hk/dvW
+	 CLK87Gqrn9t1G/dcDVRihATKoDiDrRYwdEI/ezghBdZUTS3r04v29bOwLJniiVrZgB
+	 88gZ1BUFKOkOEdGRyARRTA0GtjB+mD76Vd8RUwcU=
+Date: Mon, 22 Jul 2024 18:49:07 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kvmalloc-align-kvrealloc-with-krealloc.patch added to mm-unstable branch
-Message-Id: <20240723014555.A6788C116B1@smtp.kernel.org>
+Subject: + userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch added to mm-unstable branch
+Message-Id: <20240723014923.1A091C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kvmalloc: align kvrealloc() with krealloc()
+     Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kvmalloc-align-kvrealloc-with-krealloc.patch
+     userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kvmalloc-align-kvrealloc-with-krealloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,275 +58,546 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Danilo Krummrich <dakr@kernel.org>
-Subject: mm: kvmalloc: align kvrealloc() with krealloc()
-Date: Mon, 22 Jul 2024 18:29:24 +0200
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
+Date: Mon, 22 Jul 2024 12:50:19 +0100
 
-Besides the obvious (and desired) difference between krealloc() and
-kvrealloc(), there is some inconsistency in their function signatures and
-behavior:
+Patch series "Make core VMA operations internal and testable", v3.
 
- - krealloc() frees the memory when the requested size is zero, whereas
-   kvrealloc() simply returns a pointer to the existing allocation.
+There are a number of "core" VMA manipulation functions implemented in
+mm/mmap.c, notably those concerning VMA merging, splitting, modifying,
+expanding and shrinking, which logically don't belong there.
 
- - krealloc() behaves like kmalloc() if a NULL pointer is passed, whereas
-   kvrealloc() does not accept a NULL pointer at all and, if passed,
-   would fault instead.
+More importantly this functionality represents an internal implementation
+detail of memory management and should not be exposed outside of mm/
+itself.
 
- - krealloc() is self-contained, whereas kvrealloc() relies on the caller
-   to provide the size of the previous allocation.
+This patch series isolates core VMA manipulation functionality into its
+own file, mm/vma.c, and provides an API to the rest of the mm code in
+mm/vma.h.
 
-Inconsistent behavior throughout allocation APIs is error prone, hence
-make kvrealloc() behave like krealloc(), which seems superior in all
-mentioned aspects.
+Importantly, it also carefully implements mm/vma_internal.h, which
+specifies which headers need to be imported by vma.c, leading to the very
+useful property that vma.c depends only on mm/vma.h and mm/vma_internal.h.
 
-Besides that, implementing kvrealloc() by making use of krealloc() and
-vrealloc() provides oppertunities to grow (and shrink) allocations more
-efficiently.  For instance, vrealloc() can be optimized to allocate and
-map additional pages to grow the allocation or unmap and free unused pages
-to shrink the allocation.
+This means we can then re-implement vma_internal.h in userland, adding
+shims for kernel mechanisms as required, allowing us to unit test internal
+VMA functionality.
 
-Link: https://lkml.kernel.org/r/20240722163111.4766-3-dakr@kernel.org
-Signed-off-by: Danilo Krummrich <dakr@kernel.org>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This testing is useful as opposed to an e.g.  kunit implementation as this
+way we can avoid all external kernel side-effects while testing, run tests
+VERY quickly, and iterate on and debug problems quickly.
+
+Excitingly this opens the door to, in the future, recreating precise
+problems observed in production in userland and very quickly debugging
+problems that might otherwise be very difficult to reproduce.
+
+This patch series takes advantage of existing shim logic and full userland
+maple tree support contained in tools/testing/radix-tree/ and
+tools/include/linux/, separating out shared components of the radix tree
+implementation to provide this testing.
+
+Kernel functionality is stubbed and shimmed as needed in
+tools/testing/vma/ which contains a fully functional userland
+vma_internal.h file and which imports mm/vma.c and mm/vma.h to be directly
+tested from userland.
+
+A simple, skeleton testing implementation is provided in
+tools/testing/vma/vma.c as a proof-of-concept, asserting that simple VMA
+merge, modify (testing split), expand and shrink functionality work
+correctly.
+
+
+This patch (of 7):
+
+This patch forms part of a patch series intending to separate out VMA
+logic and render it testable from userspace, which requires that core
+manipulation functions be exposed in an mm/-internal header file.
+
+In order to do this, we must abstract APIs we wish to test, in this
+instance functions which ultimately invoke vma_modify().
+
+This patch therefore moves all logic which ultimately invokes vma_modify()
+to mm/userfaultfd.c, trying to transfer code at a functional granularity
+where possible.
+
+Link: https://lkml.kernel.org/r/cover.1721648367.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/5fb6ee4aef94d5c6c78c33de86263b15504bca4c.1721648367.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Gow <davidgow@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Oliver Upton <oliver.upton@linux.dev>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rae Moar <rmoar@google.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kvm/nested.c                   |    1 
- arch/powerpc/platforms/pseries/papr-vpd.c |    5 -
- drivers/gpu/drm/drm_exec.c                |    3 
- fs/xfs/xfs_log_recover.c                  |    2 
- include/linux/slab.h                      |    4 
- kernel/resource.c                         |    3 
- lib/fortify_kunit.c                       |    3 
- mm/util.c                                 |   89 +++++++++++++-------
- 8 files changed, 66 insertions(+), 44 deletions(-)
+ fs/userfaultfd.c              |  160 ++----------------------------
+ include/linux/userfaultfd_k.h |   18 +++
+ mm/userfaultfd.c              |  168 ++++++++++++++++++++++++++++++++
+ 3 files changed, 197 insertions(+), 149 deletions(-)
 
---- a/arch/arm64/kvm/nested.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/arch/arm64/kvm/nested.c
-@@ -62,7 +62,6 @@ int kvm_vcpu_init_nested(struct kvm_vcpu
- 	 */
- 	num_mmus = atomic_read(&kvm->online_vcpus) * S2_MMU_PER_VCPU;
- 	tmp = kvrealloc(kvm->arch.nested_mmus,
--			size_mul(sizeof(*kvm->arch.nested_mmus), kvm->arch.nested_mmus_size),
- 			size_mul(sizeof(*kvm->arch.nested_mmus), num_mmus),
- 			GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	if (!tmp)
---- a/arch/powerpc/platforms/pseries/papr-vpd.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/arch/powerpc/platforms/pseries/papr-vpd.c
-@@ -156,10 +156,7 @@ static int vpd_blob_extend(struct vpd_bl
- 	const char *old_ptr = blob->data;
- 	char *new_ptr;
- 
--	new_ptr = old_ptr ?
--		kvrealloc(old_ptr, old_len, new_len, GFP_KERNEL_ACCOUNT) :
--		kvmalloc(len, GFP_KERNEL_ACCOUNT);
--
-+	new_ptr = kvrealloc(old_ptr, new_len, GFP_KERNEL_ACCOUNT);
- 	if (!new_ptr)
- 		return -ENOMEM;
- 
---- a/drivers/gpu/drm/drm_exec.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/drivers/gpu/drm/drm_exec.c
-@@ -145,8 +145,7 @@ static int drm_exec_obj_locked(struct dr
- 		size_t size = exec->max_objects * sizeof(void *);
- 		void *tmp;
- 
--		tmp = kvrealloc(exec->objects, size, size + PAGE_SIZE,
--				GFP_KERNEL);
-+		tmp = kvrealloc(exec->objects, size + PAGE_SIZE, GFP_KERNEL);
- 		if (!tmp)
- 			return -ENOMEM;
- 
---- a/fs/xfs/xfs_log_recover.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/fs/xfs/xfs_log_recover.c
-@@ -2128,7 +2128,7 @@ xlog_recover_add_to_cont_trans(
- 	old_ptr = item->ri_buf[item->ri_cnt-1].i_addr;
- 	old_len = item->ri_buf[item->ri_cnt-1].i_len;
- 
--	ptr = kvrealloc(old_ptr, old_len, len + old_len, GFP_KERNEL);
-+	ptr = kvrealloc(old_ptr, len + old_len, GFP_KERNEL);
- 	if (!ptr)
- 		return -ENOMEM;
- 	memcpy(&ptr[old_len], dp, len);
---- a/include/linux/slab.h~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/include/linux/slab.h
-@@ -841,8 +841,8 @@ kvmalloc_array_node_noprof(size_t n, siz
- #define kvcalloc_node(...)			alloc_hooks(kvcalloc_node_noprof(__VA_ARGS__))
- #define kvcalloc(...)				alloc_hooks(kvcalloc_noprof(__VA_ARGS__))
- 
--extern void *kvrealloc_noprof(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
--		      __realloc_size(3);
-+void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
-+		__realloc_size(2);
- #define kvrealloc(...)				alloc_hooks(kvrealloc_noprof(__VA_ARGS__))
- 
- extern void kvfree(const void *addr);
---- a/kernel/resource.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/kernel/resource.c
-@@ -450,8 +450,7 @@ int walk_system_ram_res_rev(u64 start, u
- 			/* re-alloc */
- 			struct resource *rams_new;
- 
--			rams_new = kvrealloc(rams, rams_size * sizeof(struct resource),
--					     (rams_size + 16) * sizeof(struct resource),
-+			rams_new = kvrealloc(rams, (rams_size + 16) * sizeof(struct resource),
- 					     GFP_KERNEL);
- 			if (!rams_new)
- 				goto out;
---- a/lib/fortify_kunit.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/lib/fortify_kunit.c
-@@ -306,8 +306,7 @@ DEFINE_ALLOC_SIZE_TEST_PAIR(vmalloc)
- 	orig = kvmalloc(prev_size, gfp);				\
- 	KUNIT_EXPECT_TRUE(test, orig != NULL);				\
- 	checker(((expected_pages) * PAGE_SIZE) * 2,			\
--		kvrealloc(orig, prev_size,				\
--			  ((alloc_pages) * PAGE_SIZE) * 2, gfp),	\
-+		kvrealloc(orig, ((alloc_pages) * PAGE_SIZE) * 2, gfp),	\
- 		kvfree(p));						\
- } while (0)
- DEFINE_ALLOC_SIZE_TEST_PAIR(kvmalloc)
---- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/mm/util.c
-@@ -608,6 +608,28 @@ unsigned long vm_mmap(struct file *file,
+--- a/fs/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/fs/userfaultfd.c
+@@ -104,21 +104,6 @@ bool userfaultfd_wp_unpopulated(struct v
+ 	return ctx->features & UFFD_FEATURE_WP_UNPOPULATED;
  }
- EXPORT_SYMBOL(vm_mmap);
  
-+static gfp_t kmalloc_gfp_adjust(gfp_t flags, size_t size)
-+{
-+	/*
-+	 * We want to attempt a large physically contiguous block first because
-+	 * it is less likely to fragment multiple larger blocks and therefore
-+	 * contribute to a long term fragmentation less than vmalloc fallback.
-+	 * However make sure that larger requests are not too disruptive - no
-+	 * OOM killer and no allocation failure warnings as we have a fallback.
-+	 */
-+	if (size > PAGE_SIZE) {
-+		flags |= __GFP_NOWARN;
-+
-+		if (!(flags & __GFP_RETRY_MAYFAIL))
-+			flags |= __GFP_NORETRY;
-+
-+		/* nofail semantic is implemented by the vmalloc fallback */
-+		flags &= ~__GFP_NOFAIL;
-+	}
-+
-+	return flags;
-+}
-+
- /**
-  * __kvmalloc_node - attempt to allocate physically contiguous memory, but upon
-  * failure, fall back to non-contiguous (vmalloc) allocation.
-@@ -627,32 +649,15 @@ EXPORT_SYMBOL(vm_mmap);
-  */
- void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), gfp_t flags, int node)
+-static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
+-				     vm_flags_t flags)
+-{
+-	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
+-
+-	vm_flags_reset(vma, flags);
+-	/*
+-	 * For shared mappings, we want to enable writenotify while
+-	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
+-	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
+-	 */
+-	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
+-		vma_set_page_prot(vma);
+-}
+-
+ static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
+ 				     int wake_flags, void *key)
  {
--	gfp_t kmalloc_flags = flags;
- 	void *ret;
+@@ -615,22 +600,7 @@ static void userfaultfd_event_wait_compl
+ 	spin_unlock_irq(&ctx->event_wqh.lock);
+ 
+ 	if (release_new_ctx) {
+-		struct vm_area_struct *vma;
+-		struct mm_struct *mm = release_new_ctx->mm;
+-		VMA_ITERATOR(vmi, mm, 0);
+-
+-		/* the various vma->vm_userfaultfd_ctx still points to it */
+-		mmap_write_lock(mm);
+-		for_each_vma(vmi, vma) {
+-			if (vma->vm_userfaultfd_ctx.ctx == release_new_ctx) {
+-				vma_start_write(vma);
+-				vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-				userfaultfd_set_vm_flags(vma,
+-							 vma->vm_flags & ~__VM_UFFD_FLAGS);
+-			}
+-		}
+-		mmap_write_unlock(mm);
+-
++		userfaultfd_release_new(release_new_ctx);
+ 		userfaultfd_ctx_put(release_new_ctx);
+ 	}
+ 
+@@ -662,9 +632,7 @@ int dup_userfaultfd(struct vm_area_struc
+ 		return 0;
+ 
+ 	if (!(octx->features & UFFD_FEATURE_EVENT_FORK)) {
+-		vma_start_write(vma);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
++		userfaultfd_reset_ctx(vma);
+ 		return 0;
+ 	}
+ 
+@@ -749,9 +717,7 @@ void mremap_userfaultfd_prep(struct vm_a
+ 		up_write(&ctx->map_changing_lock);
+ 	} else {
+ 		/* Drop uffd context if remap feature not enabled */
+-		vma_start_write(vma);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
++		userfaultfd_reset_ctx(vma);
+ 	}
+ }
+ 
+@@ -870,54 +836,14 @@ static int userfaultfd_release(struct in
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+ 	struct mm_struct *mm = ctx->mm;
+-	struct vm_area_struct *vma, *prev;
+ 	/* len == 0 means wake all */
+ 	struct userfaultfd_wake_range range = { .len = 0, };
+-	unsigned long new_flags;
+-	VMA_ITERATOR(vmi, mm, 0);
+ 
+ 	WRITE_ONCE(ctx->released, true);
+ 
+-	if (!mmget_not_zero(mm))
+-		goto wakeup;
++	userfaultfd_release_all(mm, ctx);
  
  	/*
--	 * We want to attempt a large physically contiguous block first because
--	 * it is less likely to fragment multiple larger blocks and therefore
--	 * contribute to a long term fragmentation less than vmalloc fallback.
--	 * However make sure that larger requests are not too disruptive - no
--	 * OOM killer and no allocation failure warnings as we have a fallback.
+-	 * Flush page faults out of all CPUs. NOTE: all page faults
+-	 * must be retried without returning VM_FAULT_SIGBUS if
+-	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
+-	 * changes while handle_userfault released the mmap_lock. So
+-	 * it's critical that released is set to true (above), before
+-	 * taking the mmap_lock for writing.
 -	 */
--	if (size > PAGE_SIZE) {
--		kmalloc_flags |= __GFP_NOWARN;
+-	mmap_write_lock(mm);
+-	prev = NULL;
+-	for_each_vma(vmi, vma) {
+-		cond_resched();
+-		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
+-		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
+-		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
+-			prev = vma;
+-			continue;
+-		}
+-		/* Reset ptes for the whole vma range if wr-protected */
+-		if (userfaultfd_wp(vma))
+-			uffd_wp_range(vma, vma->vm_start,
+-				      vma->vm_end - vma->vm_start, false);
+-		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
+-					    vma->vm_end, new_flags,
+-					    NULL_VM_UFFD_CTX);
 -
--		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
--			kmalloc_flags |= __GFP_NORETRY;
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
 -
--		/* nofail semantic is implemented by the vmalloc fallback */
--		kmalloc_flags &= ~__GFP_NOFAIL;
+-		prev = vma;
 -	}
--
--	ret = __kmalloc_node_noprof(PASS_BUCKET_PARAMS(size, b), kmalloc_flags, node);
--
+-	mmap_write_unlock(mm);
+-	mmput(mm);
+-wakeup:
 -	/*
- 	 * It doesn't really make sense to fallback to vmalloc for sub page
- 	 * requests
- 	 */
-+	ret = __kmalloc_node_noprof(PASS_BUCKET_PARAMS(size, b),
-+				    kmalloc_gfp_adjust(flags, size),
-+				    node);
- 	if (ret || size <= PAGE_SIZE)
- 		return ret;
- 
-@@ -715,18 +720,42 @@ void kvfree_sensitive(const void *addr,
- }
- EXPORT_SYMBOL(kvfree_sensitive);
- 
--void *kvrealloc_noprof(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
-+/**
-+ * kvrealloc - reallocate memory; contents remain unchanged
-+ * @p: object to reallocate memory for
-+ * @size: the size to reallocate
-+ * @flags: the flags for the page level allocator
-+ *
-+ * The contents of the object pointed to are preserved up to the lesser of the
-+ * new and old size (__GFP_ZERO flag is effectively ignored).
-+ *
-+ * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
-+ * and @p is not a %NULL pointer, the object pointed to is freed.
-+ *
-+ * Return: pointer to the allocated memory or %NULL in case of error
-+ */
-+void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
+ 	 * After no new page faults can wait on this fault_*wqh, flush
+ 	 * the last page faults that may have been already waiting on
+ 	 * the fault_*wqh.
+@@ -1293,14 +1219,14 @@ static int userfaultfd_register(struct u
+ 				unsigned long arg)
  {
--	void *newp;
-+	void *n;
+ 	struct mm_struct *mm = ctx->mm;
+-	struct vm_area_struct *vma, *prev, *cur;
++	struct vm_area_struct *vma, *cur;
+ 	int ret;
+ 	struct uffdio_register uffdio_register;
+ 	struct uffdio_register __user *user_uffdio_register;
+-	unsigned long vm_flags, new_flags;
++	unsigned long vm_flags;
+ 	bool found;
+ 	bool basic_ioctls;
+-	unsigned long start, end, vma_end;
++	unsigned long start, end;
+ 	struct vma_iterator vmi;
+ 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
  
--	if (oldsize >= newsize)
--		return (void *)p;
--	newp = kvmalloc_noprof(newsize, flags);
--	if (!newp)
--		return NULL;
--	memcpy(newp, p, oldsize);
--	kvfree(p);
--	return newp;
-+	if (is_vmalloc_addr(p))
-+		return vrealloc_noprof(p, size, flags);
+@@ -1428,57 +1354,8 @@ static int userfaultfd_register(struct u
+ 	} for_each_vma_range(vmi, cur, end);
+ 	BUG_ON(!found);
+ 
+-	vma_iter_set(&vmi, start);
+-	prev = vma_prev(&vmi);
+-	if (vma->vm_start < start)
+-		prev = vma;
+-
+-	ret = 0;
+-	for_each_vma_range(vmi, vma, end) {
+-		cond_resched();
+-
+-		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
+-		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
+-		       vma->vm_userfaultfd_ctx.ctx != ctx);
+-		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
+-
+-		/*
+-		 * Nothing to do: this vma is already registered into this
+-		 * userfaultfd and with the right tracking mode too.
+-		 */
+-		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
+-		    (vma->vm_flags & vm_flags) == vm_flags)
+-			goto skip;
+-
+-		if (vma->vm_start > start)
+-			start = vma->vm_start;
+-		vma_end = min(end, vma->vm_end);
+-
+-		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+-					    new_flags,
+-					    (struct vm_userfaultfd_ctx){ctx});
+-		if (IS_ERR(vma)) {
+-			ret = PTR_ERR(vma);
+-			break;
+-		}
+-
+-		/*
+-		 * In the vma_merge() successful mprotect-like case 8:
+-		 * the next vma was merged into the current one and
+-		 * the current one has not been updated yet.
+-		 */
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx.ctx = ctx;
+-
+-		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
+-			hugetlb_unshare_all_pmds(vma);
+-
+-	skip:
+-		prev = vma;
+-		start = vma->vm_end;
+-	}
++	ret = userfaultfd_register_range(ctx, vma, vm_flags, start, end,
++					 wp_async);
+ 
+ out_unlock:
+ 	mmap_write_unlock(mm);
+@@ -1519,7 +1396,6 @@ static int userfaultfd_unregister(struct
+ 	struct vm_area_struct *vma, *prev, *cur;
+ 	int ret;
+ 	struct uffdio_range uffdio_unregister;
+-	unsigned long new_flags;
+ 	bool found;
+ 	unsigned long start, end, vma_end;
+ 	const void __user *buf = (void __user *)arg;
+@@ -1622,27 +1498,13 @@ static int userfaultfd_unregister(struct
+ 			wake_userfault(vma->vm_userfaultfd_ctx.ctx, &range);
+ 		}
+ 
+-		/* Reset ptes for the whole vma range if wr-protected */
+-		if (userfaultfd_wp(vma))
+-			uffd_wp_range(vma, start, vma_end - start, false);
+-
+-		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+-					    new_flags, NULL_VM_UFFD_CTX);
++		vma = userfaultfd_clear_vma(&vmi, prev, vma,
++					    start, vma_end);
+ 		if (IS_ERR(vma)) {
+ 			ret = PTR_ERR(vma);
+ 			break;
+ 		}
+ 
+-		/*
+-		 * In the vma_merge() successful mprotect-like case 8:
+-		 * the next vma was merged into the current one and
+-		 * the current one has not been updated yet.
+-		 */
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-
+ 	skip:
+ 		prev = vma;
+ 		start = vma->vm_end;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/include/linux/userfaultfd_k.h
+@@ -264,6 +264,24 @@ extern void userfaultfd_unmap_complete(s
+ extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
+ extern bool userfaultfd_wp_async(struct vm_area_struct *vma);
+ 
++void userfaultfd_reset_ctx(struct vm_area_struct *vma);
 +
-+	n = krealloc_noprof(p, size, kmalloc_gfp_adjust(flags, size));
-+	if (!n) {
-+		/* We failed to krealloc(), fall back to kvmalloc(). */
-+		n = kvmalloc_noprof(size, flags);
-+		if (!n)
-+			return NULL;
++struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
++					     struct vm_area_struct *prev,
++					     struct vm_area_struct *vma,
++					     unsigned long start,
++					     unsigned long end);
 +
-+		if (p) {
-+			/* We already know that `p` is not a vmalloc address. */
-+			memcpy(n, p, ksize(p));
-+			kfree(p);
-+		}
++int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
++			       struct vm_area_struct *vma,
++			       unsigned long vm_flags,
++			       unsigned long start, unsigned long end,
++			       bool wp_async);
++
++void userfaultfd_release_new(struct userfaultfd_ctx *ctx);
++
++void userfaultfd_release_all(struct mm_struct *mm, struct userfaultfd_ctx *ctx);
++
+ #else /* CONFIG_USERFAULTFD */
+ 
+ /* mm helpers */
+--- a/mm/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/mm/userfaultfd.c
+@@ -1760,3 +1760,171 @@ out:
+ 	VM_WARN_ON(!moved && !err);
+ 	return moved ? moved : err;
+ }
++
++static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
++				     vm_flags_t flags)
++{
++	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
++
++	vm_flags_reset(vma, flags);
++	/*
++	 * For shared mappings, we want to enable writenotify while
++	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
++	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
++	 */
++	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
++		vma_set_page_prot(vma);
++}
++
++static void userfaultfd_set_ctx(struct vm_area_struct *vma,
++				struct userfaultfd_ctx *ctx,
++				unsigned long flags)
++{
++	vma_start_write(vma);
++	vma->vm_userfaultfd_ctx = (struct vm_userfaultfd_ctx){ctx};
++	userfaultfd_set_vm_flags(vma,
++				 (vma->vm_flags & ~__VM_UFFD_FLAGS) | flags);
++}
++
++void userfaultfd_reset_ctx(struct vm_area_struct *vma)
++{
++	userfaultfd_set_ctx(vma, NULL, 0);
++}
++
++struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
++					     struct vm_area_struct *prev,
++					     struct vm_area_struct *vma,
++					     unsigned long start,
++					     unsigned long end)
++{
++	struct vm_area_struct *ret;
++
++	/* Reset ptes for the whole vma range if wr-protected */
++	if (userfaultfd_wp(vma))
++		uffd_wp_range(vma, start, end - start, false);
++
++	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
++				    vma->vm_flags & ~__VM_UFFD_FLAGS,
++				    NULL_VM_UFFD_CTX);
++
++	/*
++	 * In the vma_merge() successful mprotect-like case 8:
++	 * the next vma was merged into the current one and
++	 * the current one has not been updated yet.
++	 */
++	if (!IS_ERR(ret))
++		userfaultfd_reset_ctx(vma);
++
++	return ret;
++}
++
++/* Assumes mmap write lock taken, and mm_struct pinned. */
++int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
++			       struct vm_area_struct *vma,
++			       unsigned long vm_flags,
++			       unsigned long start, unsigned long end,
++			       bool wp_async)
++{
++	VMA_ITERATOR(vmi, ctx->mm, start);
++	struct vm_area_struct *prev = vma_prev(&vmi);
++	unsigned long vma_end;
++	unsigned long new_flags;
++
++	if (vma->vm_start < start)
++		prev = vma;
++
++	for_each_vma_range(vmi, vma, end) {
++		cond_resched();
++
++		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
++		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
++		       vma->vm_userfaultfd_ctx.ctx != ctx);
++		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
++
++		/*
++		 * Nothing to do: this vma is already registered into this
++		 * userfaultfd and with the right tracking mode too.
++		 */
++		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
++		    (vma->vm_flags & vm_flags) == vm_flags)
++			goto skip;
++
++		if (vma->vm_start > start)
++			start = vma->vm_start;
++		vma_end = min(end, vma->vm_end);
++
++		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
++		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
++					    new_flags,
++					    (struct vm_userfaultfd_ctx){ctx});
++		if (IS_ERR(vma))
++			return PTR_ERR(vma);
++
++		/*
++		 * In the vma_merge() successful mprotect-like case 8:
++		 * the next vma was merged into the current one and
++		 * the current one has not been updated yet.
++		 */
++		userfaultfd_set_ctx(vma, ctx, vm_flags);
++
++		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
++			hugetlb_unshare_all_pmds(vma);
++
++skip:
++		prev = vma;
++		start = vma->vm_end;
 +	}
 +
-+	return n;
- }
- EXPORT_SYMBOL(kvrealloc_noprof);
- 
++	return 0;
++}
++
++void userfaultfd_release_new(struct userfaultfd_ctx *ctx)
++{
++	struct mm_struct *mm = ctx->mm;
++	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
++
++	/* the various vma->vm_userfaultfd_ctx still points to it */
++	mmap_write_lock(mm);
++	for_each_vma(vmi, vma) {
++		if (vma->vm_userfaultfd_ctx.ctx == ctx)
++			userfaultfd_reset_ctx(vma);
++	}
++	mmap_write_unlock(mm);
++}
++
++void userfaultfd_release_all(struct mm_struct *mm,
++			     struct userfaultfd_ctx *ctx)
++{
++	struct vm_area_struct *vma, *prev;
++	VMA_ITERATOR(vmi, mm, 0);
++
++	if (!mmget_not_zero(mm))
++		return;
++
++	/*
++	 * Flush page faults out of all CPUs. NOTE: all page faults
++	 * must be retried without returning VM_FAULT_SIGBUS if
++	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
++	 * changes while handle_userfault released the mmap_lock. So
++	 * it's critical that released is set to true (above), before
++	 * taking the mmap_lock for writing.
++	 */
++	mmap_write_lock(mm);
++	prev = NULL;
++	for_each_vma(vmi, vma) {
++		cond_resched();
++		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
++		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
++		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
++			prev = vma;
++			continue;
++		}
++
++		vma = userfaultfd_clear_vma(&vmi, prev, vma,
++					    vma->vm_start, vma->vm_end);
++		prev = vma;
++	}
++	mmap_write_unlock(mm);
++	mmput(mm);
++}
 _
 
-Patches currently in -mm which might be from dakr@kernel.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-vmalloc-implement-vrealloc.patch
-mm-kvmalloc-align-kvrealloc-with-krealloc.patch
+userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
+mm-move-vma_modify-and-helpers-to-internal-header.patch
+mm-move-vma_shrink-vma_expand-to-internal-header.patch
+mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
+maintainers-add-entry-for-new-vma-files.patch
+tools-separate-out-shared-radix-tree-components.patch
+tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
 
