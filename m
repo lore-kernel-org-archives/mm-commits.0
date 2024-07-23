@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C062913BAD5;
-	Tue, 23 Jul 2024 23:42:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 698614F615
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 23:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721778130; cv=none; b=L2CgSct8Fz3HvFoVeH0KnVSTNKbEHNDnXUVJ6lwb/m4GlOsoiEKEe/7FRJnUZ4wR8IB7+XCEQaEwm3euuI+h2jg0Uo8+z59DTV3YRJzdu6UDTBG7LghYaxkNaIkwAKaNK1b3RkMaGB8alFZ6k8cDbc/NUfeo2b8/yrgJKjdzXfc=
+	t=1721778360; cv=none; b=j0aZ6q2SGjxA+WhiFx8+icf0PeNZhNGWYpY0VxhgC+kdx5J0F22TrDN5e0GSocoF7sp1/f9eCUEQqG8G3i+w7ckHEkRBI/XnfNagCBhEVju7thMyDHq6jpuxWJyPCqOH434mzTVTtTwLz8mlH96u1wNFwOwCs4tMPHPbe18kF+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721778130; c=relaxed/simple;
-	bh=Rs4LiG21LvaC+228rMu8nD6v4wr0Ti8neyhdM1Yppu4=;
-	h=Date:To:From:Subject:Message-Id; b=NMGCihyRa0+7tmjBTqAiLAmMcMD/KQt3REp1oxwxG8krQaFZWM3zxk+TQ0EEShmpPToQRtmwsr4bEneQZetkGp7W5fNHYAorAu72Gx+A3u0S77byVMyR7GWNWvTJdXfSAYBTXP/o9qrZKKpLVb/t7nNsApZ8ezS7TF1Iidl9VSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FqJdwF7F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721778360; c=relaxed/simple;
+	bh=r8V+Gr5OgQF3C78STFcygvLu/E7mj/5ECDS59sYL5jA=;
+	h=Date:To:From:Subject:Message-Id; b=SiZdKvlOLTUXbnZjylN5NAMhTxfCTDzx8G0l/DghqIm+1rWcqmXHhSz0OUWbTTGsjvCiY6sBJ/GSguHTiTR/JHZGRIplxrxRyuDC5PIcFqef3zHDLDsJvWg6cXj7RSp2XVzdoqPGifoBxQhDhs19PkfLTddBNpmxNIUI34kS6kc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rTsWuyzc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FqJdwF7F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DD18C4AF09;
-	Tue, 23 Jul 2024 23:42:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rTsWuyzc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8D67C4AF0A;
+	Tue, 23 Jul 2024 23:45:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721778130;
-	bh=Rs4LiG21LvaC+228rMu8nD6v4wr0Ti8neyhdM1Yppu4=;
+	s=korg; t=1721778360;
+	bh=r8V+Gr5OgQF3C78STFcygvLu/E7mj/5ECDS59sYL5jA=;
 	h=Date:To:From:Subject:From;
-	b=FqJdwF7F/hf+YoYPHnYacENKoAoW4vydRmhJ+nQDfyp4RuGwGijZD4WPjOUsdk8k8
-	 Jni7mo5GyC7tFWAdOa0e9y9MgYgmAmbtM3tBSSg4hChg+U6kRyQxu5Y9hlaGZxqV7z
-	 2Vles0aQ7K/9FfBae3MOgXRRSe8bI6dimbgy04So=
-Date: Tue, 23 Jul 2024 16:42:09 -0700
-To: mm-commits@vger.kernel.org,yaoxt.fnst@fujitsu.com,vbabka@suse.cz,stable@vger.kernel.org,david@redhat.com,lizhijian@fujitsu.com,akpm@linux-foundation.org
+	b=rTsWuyzc1KsHoPsi5EN1QUTjZus++Bzi/mkok1ABlLR7tISRPowj5EsZXM7UZ0Xbi
+	 GP7bbEZ8GI3j9/dc8gD7sFHxpHrpWp3YW4XnGU3eeyYC8h3TYdboUUGVhF1tRVVAXy
+	 QL135C220Ite6kejBtdgIghygnpGnnLE1VE5AvhE=
+Date: Tue, 23 Jul 2024 16:45:59 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,flyingpeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240723234210.3DD18C4AF09@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch added to mm-unstable branch
+Message-Id: <20240723234559.E8D67C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: fix pcp->count race between drain_pages_zone() vs __rmqueue_pcplist()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch
+     Subject: mm/damon/lru_sort: adjust local variable to dynamic allocation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,97 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@fujitsu.com>
-Subject: mm/page_alloc: fix pcp->count race between drain_pages_zone() vs __rmqueue_pcplist()
-Date: Tue, 23 Jul 2024 14:44:28 +0800
+From: Peng Hao <flyingpeng@tencent.com>
+Subject: mm/damon/lru_sort: adjust local variable to dynamic allocation
+Date: Tue, 23 Jul 2024 11:55:13 +0800
 
-It's expected that no page should be left in pcp_list after calling
-zone_pcp_disable() in offline_pages().  Previously, it's observed that
-offline_pages() gets stuck [1] due to some pages remaining in pcp_list.
+When KASAN is enabled and built with clang:
+    mm/damon/lru_sort.c:199:12: error: stack frame size (2328) exceeds
+limit (2048) in 'damon_lru_sort_apply_parameters' [-Werror,-Wframe-larger-than]
+    static int damon_lru_sort_apply_parameters(void)
+               ^
+    1 error generated.
 
-Cause:
-There is a race condition between drain_pages_zone() and __rmqueue_pcplist()
-involving the pcp->count variable. See below scenario:
+This is because damon_lru_sort_quota contains a large array, and
+assigning this variable to a local variable causes a large amount of
+stack space to be occupied.
 
-         CPU0                              CPU1
-    ----------------                    ---------------
-                                      spin_lock(&pcp->lock);
-                                      __rmqueue_pcplist() {
-zone_pcp_disable() {
-                                        /* list is empty */
-                                        if (list_empty(list)) {
-                                          /* add pages to pcp_list */
-                                          alloced = rmqueue_bulk()
-  mutex_lock(&pcp_batch_high_lock)
-  ...
-  __drain_all_pages() {
-    drain_pages_zone() {
-      /* read pcp->count, it's 0 here */
-      count = READ_ONCE(pcp->count)
-      /* 0 means nothing to drain */
-                                          /* update pcp->count */
-                                          pcp->count += alloced << order;
-      ...
-                                      ...
-                                      spin_unlock(&pcp->lock);
+So adjust local variable to dynamic allocation.
 
-In this case, after calling zone_pcp_disable() though, there are still some
-pages in pcp_list. And these pages in pcp_list are neither movable nor
-isolated, offline_pages() gets stuck as a result.
-
-Solution:
-Expand the scope of the pcp->lock to also protect pcp->count in
-drain_pages_zone(), to ensure no pages are left in the pcp list after
-zone_pcp_disable()
-
-[1] https://lore.kernel.org/linux-mm/6a07125f-e720-404c-b2f9-e55f3f166e85@fujitsu.com/
-
-Link: https://lkml.kernel.org/r/20240723064428.1179519-1-lizhijian@fujitsu.com
-Fixes: 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-Reported-by: Yao Xingtao <yaoxt.fnst@fujitsu.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240723035513.20153-1-flyingpeng@tencent.com
+Signed-off-by: Peng Hao <flyingpeng@tencent.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/damon/lru_sort.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist
-+++ a/mm/page_alloc.c
-@@ -2343,16 +2343,20 @@ void drain_zone_pages(struct zone *zone,
- static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation
++++ a/mm/damon/lru_sort.c
+@@ -148,12 +148,17 @@ static struct damon_target *target;
+ static struct damos *damon_lru_sort_new_scheme(
+ 		struct damos_access_pattern *pattern, enum damos_action action)
  {
- 	struct per_cpu_pages *pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
--	int count = READ_ONCE(pcp->count);
--
--	while (count) {
--		int to_drain = min(count, pcp->batch << CONFIG_PCP_BATCH_SCALE_MAX);
--		count -= to_drain;
-+	int count;
- 
-+	do {
- 		spin_lock(&pcp->lock);
--		free_pcppages_bulk(zone, to_drain, pcp, 0);
-+		count = pcp->count;
-+		if (count) {
-+			int to_drain = min(count,
-+				pcp->batch << CONFIG_PCP_BATCH_SCALE_MAX);
+-	struct damos_quota quota = damon_lru_sort_quota;
++	struct damos *damos;
++	struct damos_quota *quota = kmemdup(&damon_lru_sort_quota,
++				    sizeof(damon_lru_sort_quota), GFP_KERNEL);
 +
-+			free_pcppages_bulk(zone, to_drain, pcp, 0);
-+			count -= to_drain;
-+		}
- 		spin_unlock(&pcp->lock);
--	}
-+	} while (count);
++	if (!quota)
++		return NULL;
+ 
+ 	/* Use half of total quota for hot/cold pages sorting */
+-	quota.ms = quota.ms / 2;
++	quota->ms = quota->ms / 2;
+ 
+-	return damon_new_scheme(
++	damos = damon_new_scheme(
+ 			/* find the pattern, and */
+ 			pattern,
+ 			/* (de)prioritize on LRU-lists */
+@@ -161,10 +166,12 @@ static struct damos *damon_lru_sort_new_
+ 			/* for each aggregation interval */
+ 			0,
+ 			/* under the quota. */
+-			&quota,
++			quota,
+ 			/* (De)activate this according to the watermarks. */
+ 			&damon_lru_sort_wmarks,
+ 			NUMA_NO_NODE);
++	kfree(quota);
++	return damos;
  }
  
- /*
+ /* Create a DAMON-based operation scheme for hot memory regions */
 _
 
-Patches currently in -mm which might be from lizhijian@fujitsu.com are
+Patches currently in -mm which might be from flyingpeng@tencent.com are
 
-mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch
+mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
 
