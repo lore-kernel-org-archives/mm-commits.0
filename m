@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1AA130AC8
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EAB9130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701763; cv=none; b=JxTvlZNG9Y6wSYQF3IVW/9flo//TCaJfSBsLTvjg/pX+gYdqdfb1dZ1tD8w3tkoy9kpnGnnuPJlNtWGhO0uzsjDidbp0LqKPTqZo4nmL8cVSvYCQH/fM2uvhMNUjvw1FPL05Xoznayow/J+vAhz+PKeyPUR3gccFJZiW3uHNPMQ=
+	t=1721701765; cv=none; b=O0gI5xTWpUztqfiz4XbHPCS8CBNcrbffmyGOCQWczynK5MNd/c+89pItTrQfu34PnIkGqSY64AyIsFgQnkFpAA2zxqXS4PzlYzGu0ApJXWUPYtg/7tVa0ZhxZRCbXwh7aeDrb5PqP7vz0dzwa36nMWJwfvvRQe07YGhwLjwR2zs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701763; c=relaxed/simple;
-	bh=8etnvcsEn9ov7KchYXGpq9gVb6jNkgseWDnyie3LPD8=;
-	h=Date:To:From:Subject:Message-Id; b=Vr/FfcVQsi3v6xj5tDybS5o4Whf1KnTdIvykjVPlHkqfA+oyYIB5hsfPamx3Loim1CyvjYPZLN6Mq63LLV3vfDkSCkIm2wFnRT0jvFlNbpId5NW1RBfECD3SU/6sa9ssGJoopKcmrRJdQPeeWFoJhuedYuzuF/17nKYWUDAHmOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q354dfO/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701765; c=relaxed/simple;
+	bh=rwsj6Ujidz0+7VELuQmMXwJEVLkjsdUrhV07Ce3oa6w=;
+	h=Date:To:From:Subject:Message-Id; b=nDxzt26WZeXXYOfIhfFtX+q78VeWSNltFjLpMxshx84lGd4eMBNaA25wMQikp+xQkMaN9PlnvtitCpA1Oxe9DR8nvVhv3Jb51+/cc3qrgAy6VMlfLpdgjCmOUTqZm8rrpq1xqjARc48wx9nX2UqaOnLsyToASiAlmW/94gyr4tg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zQosi17j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q354dfO/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFA27C116B1;
-	Tue, 23 Jul 2024 02:29:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zQosi17j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234B6C116B1;
+	Tue, 23 Jul 2024 02:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701762;
-	bh=8etnvcsEn9ov7KchYXGpq9gVb6jNkgseWDnyie3LPD8=;
+	s=korg; t=1721701765;
+	bh=rwsj6Ujidz0+7VELuQmMXwJEVLkjsdUrhV07Ce3oa6w=;
 	h=Date:To:From:Subject:From;
-	b=q354dfO/UHrD34iDuioMY4WzyvTkbfO+gYhx2UP+thjZrbNYr4FazOA6jPf2ta82D
-	 dsEkP3WZSCZyGZ/mQh946j6s8Zxw+mt5aXZ+QJhXid/4/3bhkU2wdsfR1ERV5Oq9Cb
-	 WeqUHEULaa0pnsfHIPIczq6cIayHIo4D7tXHKVpA=
-Date: Mon, 22 Jul 2024 19:29:22 -0700
+	b=zQosi17jgVZiXjLTSLIovGgARfskQepjazQrbWSZnJJu4CsEPWpxvKVIAhi/+ozHS
+	 htIIRv1yvtF8XO5VbMfLGiKFfSGdko6EEWWK62mgH+q/1VSRBXhBM2qkjQSUUdSk4N
+	 Hj4zsAVGM6UmDZ7Y91iu/NO+/gjaRgWeF/Qs2UoA=
+Date: Mon, 22 Jul 2024 19:29:24 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xz-cleanup-crc32-edits-from-2018.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022922.BFA27C116B1@smtp.kernel.org>
+Subject: + xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022925.234B6C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xz: cleanup CRC32 edits from 2018
+     Subject: xz: optimize for-loop conditions in the BCJ decoders
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xz-cleanup-crc32-edits-from-2018.patch
+     xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-cleanup-crc32-edits-from-2018.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: cleanup CRC32 edits from 2018
-Date: Sun, 21 Jul 2024 16:36:24 +0300
+Subject: xz: optimize for-loop conditions in the BCJ decoders
+Date: Sun, 21 Jul 2024 16:36:25 +0300
 
-In 2018, a dependency on <linux/crc32poly.h> was added to avoid
-duplicating the same constant in multiple files.  Two months later it was
-found to be a bad idea and the definition of CRC32_POLY_LE macro was moved
-into xz_private.h to avoid including <linux/crc32poly.h>.
+Compilers cannot optimize the addition "i + 4" away since theoretically it
+could overflow.
 
-xz_private.h is a wrong place for it too.  Revert back to the upstream
-version which has the poly in xz_crc32_init() in xz_crc32.c.
-
-Link: https://lkml.kernel.org/r/20240721133633.47721-10-lasse.collin@tukaani.org
-Fixes: faa16bc404d7 ("lib: Use existing define with polynomial")
-Fixes: 242cdad873a7 ("lib/xz: Put CRC32_POLY_LE in xz_private.h")
+Link: https://lkml.kernel.org/r/20240721133633.47721-11-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Joel Stanley <joel@jms.id.au>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Joel Stanley <joel@jms.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Jubin Zhong <zhongjubin@huawei.com>
 Cc: Jules Maselbas <jmaselbas@zdiv.net>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
@@ -96,34 +89,69 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/xz_crc32.c   |    2 +-
- lib/xz/xz_private.h |    4 ----
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ lib/xz/xz_dec_bcj.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
---- a/lib/xz/xz_crc32.c~xz-cleanup-crc32-edits-from-2018
-+++ a/lib/xz/xz_crc32.c
-@@ -28,7 +28,7 @@ STATIC_RW_DATA uint32_t xz_crc32_table[2
+--- a/lib/xz/xz_dec_bcj.c~xz-optimize-for-loop-conditions-in-the-bcj-decoders
++++ a/lib/xz/xz_dec_bcj.c
+@@ -161,7 +161,9 @@ static size_t bcj_powerpc(struct xz_dec_
+ 	size_t i;
+ 	uint32_t instr;
  
- XZ_EXTERN void xz_crc32_init(void)
- {
--	const uint32_t poly = CRC32_POLY_LE;
-+	const uint32_t poly = 0xEDB88320;
+-	for (i = 0; i + 4 <= size; i += 4) {
++	size &= ~(size_t)3;
++
++	for (i = 0; i < size; i += 4) {
+ 		instr = get_unaligned_be32(buf + i);
+ 		if ((instr & 0xFC000003) == 0x48000001) {
+ 			instr &= 0x03FFFFFC;
+@@ -218,7 +220,9 @@ static size_t bcj_ia64(struct xz_dec_bcj
+ 	/* Instruction normalized with bit_res for easier manipulation */
+ 	uint64_t norm;
  
- 	uint32_t i;
- 	uint32_t j;
---- a/lib/xz/xz_private.h~xz-cleanup-crc32-edits-from-2018
-+++ a/lib/xz/xz_private.h
-@@ -104,10 +104,6 @@
- #	endif
- #endif
+-	for (i = 0; i + 16 <= size; i += 16) {
++	size &= ~(size_t)15;
++
++	for (i = 0; i < size; i += 16) {
+ 		mask = branch_table[buf[i] & 0x1F];
+ 		for (slot = 0, bit_pos = 5; slot < 3; ++slot, bit_pos += 41) {
+ 			if (((mask >> slot) & 1) == 0)
+@@ -266,7 +270,9 @@ static size_t bcj_arm(struct xz_dec_bcj
+ 	size_t i;
+ 	uint32_t addr;
  
--#ifndef CRC32_POLY_LE
--#define CRC32_POLY_LE 0xedb88320
--#endif
--
- /*
-  * Allocate memory for LZMA2 decoder. xz_dec_lzma2_reset() must be used
-  * before calling xz_dec_lzma2_run().
+-	for (i = 0; i + 4 <= size; i += 4) {
++	size &= ~(size_t)3;
++
++	for (i = 0; i < size; i += 4) {
+ 		if (buf[i + 3] == 0xEB) {
+ 			addr = (uint32_t)buf[i] | ((uint32_t)buf[i + 1] << 8)
+ 					| ((uint32_t)buf[i + 2] << 16);
+@@ -289,7 +295,12 @@ static size_t bcj_armthumb(struct xz_dec
+ 	size_t i;
+ 	uint32_t addr;
+ 
+-	for (i = 0; i + 4 <= size; i += 2) {
++	if (size < 4)
++		return 0;
++
++	size -= 4;
++
++	for (i = 0; i <= size; i += 2) {
+ 		if ((buf[i + 1] & 0xF8) == 0xF0
+ 				&& (buf[i + 3] & 0xF8) == 0xF8) {
+ 			addr = (((uint32_t)buf[i + 1] & 0x07) << 19)
+@@ -317,7 +328,9 @@ static size_t bcj_sparc(struct xz_dec_bc
+ 	size_t i;
+ 	uint32_t instr;
+ 
+-	for (i = 0; i + 4 <= size; i += 4) {
++	size &= ~(size_t)3;
++
++	for (i = 0; i < size; i += 4) {
+ 		instr = get_unaligned_be32(buf + i);
+ 		if ((instr >> 22) == 0x100 || (instr >> 22) == 0x1FF) {
+ 			instr <<= 2;
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
