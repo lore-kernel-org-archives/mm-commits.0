@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5523D13D503
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:35:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16E313B58D
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:45:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721770519; cv=none; b=g1jCCyiF3DJQXNykoV2xkFN677INHGdiABgkPV19WkPaFKzDqGKSGlNK27bDU4nsjtV4UQiL2WF5nszIh2o3AJdyZ5Myo4fKpqn83Jn9L4LZOz4X9bYvCsC1Uyd9NeFeDFKAJdJtyMB8Csmc9LP18d0r71BzAvjMGMrxpmC34yQ=
+	t=1721771128; cv=none; b=r2s6vWQJH/eMuDGylyLRNp7KxKu1N0LW14Klo3AfKJwOxUXuztS2tta59YUToLdu9Hv7hD/xS+er2dy8Fxf3iOy1fM4MZgeG498Nyz5nEffS7G0bn1nX2v7uTEiuW99I7fMaApZiM4pUAUq7dHdg6hpGIRKvNRDoJWUHa33XwPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721770519; c=relaxed/simple;
-	bh=VHSgd3PDlR/nyHdoSfOg14OEPy7vkA4IWEy0mQh/RRg=;
-	h=Date:To:From:Subject:Message-Id; b=bDpP2ZTUA33UqsvI8inZTz+nvSMHD6nQOIUo+OdhCNH3wy4T5PKcaGQE01+CJrLwS/pS0ROuXYlcgZY1gQLaEM1MG9/oI4M7tPwrMQmFyQaQNPT8gyQ/yeDft44i6QQL6NnuFdzfKvfDF3Y/YT2RyQK4BFWjUPZJNdiVCSNwE0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/JZeRq3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721771128; c=relaxed/simple;
+	bh=bBwn2QrxdwUi1dH957EqbE5HDofdxQcd0REs3nAJmE4=;
+	h=Date:To:From:Subject:Message-Id; b=hxY8rlWYADmgpq5Gc/tqovT67OL/5nLdho0auQQ0z+au6aTOsUBmRCG/uIBZNlMm4nRJwpLjWwVDozv85iN7XZrtMVC3sJo7XwXkewP1uiD1cYvSRDvwWuRFeemPyWbU+AYbKfKClS6Esyu0TH53WOVp0TtMjmesX1Q6fd+5jX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GSik7His; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/JZeRq3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3CCC4AF0A;
-	Tue, 23 Jul 2024 21:35:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GSik7His"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E5F1C4AF09;
+	Tue, 23 Jul 2024 21:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721770518;
-	bh=VHSgd3PDlR/nyHdoSfOg14OEPy7vkA4IWEy0mQh/RRg=;
+	s=korg; t=1721771128;
+	bh=bBwn2QrxdwUi1dH957EqbE5HDofdxQcd0REs3nAJmE4=;
 	h=Date:To:From:Subject:From;
-	b=k/JZeRq3ESFAnqKBQhjfKnuK87BP5KNABS2bSxRksP9lXvcxo+VKu2EXsEGgJ0R/h
-	 TVdCscGK9jV5dXHO34FWu521HAwRFy7lp5C/oH4TZjPQzHj/pu/M4xSZpXcLjjt1Km
-	 dtduOSKaNtshVXbHc5gkw+JIXlxdwV7O1jP4a+ZI=
-Date: Tue, 23 Jul 2024 14:35:18 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=GSik7HisswuKsn8XIJx08Zt9Pm3XrYATTozeCmmLkHfIucWX0VM8poRmx9Nv4k5nF
+	 ynRMMwEad6Gzvc+sBaMj1vOS9gU57HkKLrQ/TIXXCZRPhYLZ2VYf2atpn8DEaC2S2L
+	 PqhaWAhKSXC929VZvCpRi65ilMRTZHoBC+A2cDL0=
+Date: Tue, 23 Jul 2024 14:45:27 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,lkp@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240723213518.DA3CCC4AF0A@smtp.kernel.org>
+Subject: + memory-tiering-introduce-folio_has_cpupid-check-fix.patch added to mm-unstable branch
+Message-Id: <20240723214528.2E5F1C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
+     Subject: memory-tiering-introduce-folio_has_cpupid-check-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     memory-tiering-introduce-folio_has_cpupid-check-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-introduce-folio_has_cpupid-check-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,52 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
-Date: Tue, 23 Jul 2024 17:12:44 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-tiering-introduce-folio_has_cpupid-check-fix
+Date: Tue Jul 23 02:41:36 PM PDT 2024
 
-Oliver Sand reported a performance regression caused by commit
-98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct
-mem_cgroup_per_node"), which puts some fields of the mem_cgroup_per_node
-structure under the CONFIG_MEMCG_V1 config option.  Apparently it causes a
-false cache sharing between lruvec and lru_zone_size members of the
-structure.  Fix it by adding an explicit padding after the lruvec member.
+fix build
 
-Even though the padding is not required with CONFIG_MEMCG_V1 set, it seems
-like the introduced memory overhead is not significant enough to warrant
-another divergence in the mem_cgroup_per_node layout, so the padding is
-added unconditionally.
-
-Link: https://lkml.kernel.org/r/20240723171244.747521-1-roman.gushchin@linux.dev
-Fixes: 98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202407121335.31a10cb6-oliver.sang@intel.com
-Tested-by: Oliver Sang <oliver.sang@intel.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202407240024.Lhu1XDok-lkp@intel.com/
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory-tiers.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node
-+++ a/include/linux/memcontrol.h
-@@ -109,6 +109,7 @@ struct mem_cgroup_per_node {
- 
- 	/* Fields which get updated often at the end. */
- 	struct lruvec		lruvec;
-+	CACHELINE_PADDING(_pad2_);
- 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
- 	struct mem_cgroup_reclaim_iter	iter;
+--- a/mm/memory-tiers.c~memory-tiering-introduce-folio_has_cpupid-check-fix
++++ a/mm/memory-tiers.c
+@@ -51,6 +51,7 @@ static const struct bus_type memory_tier
+ 	.dev_name = "memory_tier",
  };
+ 
++#ifdef CONFIG_NUMA_BALANCING
+ /**
+  * folio_has_cpupid - check if a folio has cpupid information
+  * @folio: folio to check
+@@ -66,6 +67,7 @@ bool folio_has_cpupid(struct folio *foli
+ 	return !(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) ||
+ 	       node_is_toptier(folio_nid(folio));
+ }
++#endif
+ 
+ #ifdef CONFIG_MIGRATION
+ static int top_tier_adistance;
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
+memory-tiering-introduce-folio_has_cpupid-check-fix.patch
 
