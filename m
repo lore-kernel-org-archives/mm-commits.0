@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 695B62F5E
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:37:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A615C1FDA
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:45:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721698665; cv=none; b=eYq+XXf5Z6mwjIRe3ufeZJaMHoZ3wMesO1i/Cd30DUC4mfStBu0hdLIJ0TXIKO9ZB2lPuhYzlxw8YL5JIh0Y/HWnRxFDiMh5I1GntQMrquPUeR5Ah20wxizcUwcue073j3HFogmY7M6xpkSSXrxcC8EacCg+UtB7MRtuVdfUOOw=
+	t=1721699153; cv=none; b=PBZzqi8bm5ga/oVTZXBnqLMKSXzP6tb3G2Q8biy3ikOIPXdvr+JinU32xMKoHyIL0t2k9BzU5PfPvR7vp085UtaFZtSJZyQzM9A4iPcfZBjgnXYDlxd8jIKTbFw2odSQJDkpQ3r4FlpJvKMpTpphWvkB4JjQm6avj52MTosLhGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721698665; c=relaxed/simple;
-	bh=AYzdw3cVDRGb0naadROx2Yrmzdmj1rPigNvbxA6Ar2U=;
-	h=Date:To:From:Subject:Message-Id; b=ZnL33l8bH+uKi4Reyu8/hC9Mb8dVI8pxomp90NGqLRTi1Zjk/WVlYpP7OJXJh2mOIYD2OLIiY5u94AhB53qy2DILvKsMFjUviQQx7Lk3ioEbpTVkXhPCdyr/FTo5ONiUcmPy3NLGDgJd2AgZJuTEF4fccOpTAHAPdU9zF2McIso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0m7fCn3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721699153; c=relaxed/simple;
+	bh=Z0dDtgzvStKCBj2z2hfFF0evCfQTXj164YSvE4BqSN0=;
+	h=Date:To:From:Subject:Message-Id; b=SuL9Vnrn8l7nz7h2+YFdRiW1zoY+2hPgNnuiAERE3MBLSLIcS4anIupET966KYDFNwcFleBWaPLwaUuEbKCv2lLkdj0maoaRJrvqGTKL/z91qIudAe93fvTuPQgruQXXb9/Yy051en4rywZ9wzBXqOj6aVE7dmY+COCxhJl/A8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LIXL8QGA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0m7fCn3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F3EC116B1;
-	Tue, 23 Jul 2024 01:37:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LIXL8QGA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B3E5C116B1;
+	Tue, 23 Jul 2024 01:45:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721698664;
-	bh=AYzdw3cVDRGb0naadROx2Yrmzdmj1rPigNvbxA6Ar2U=;
+	s=korg; t=1721699153;
+	bh=Z0dDtgzvStKCBj2z2hfFF0evCfQTXj164YSvE4BqSN0=;
 	h=Date:To:From:Subject:From;
-	b=n0m7fCn3kEr+CWZEpG3CWMak7dfWtTIMimksIO363yP1sA2nC0tgVXXmTFK3McQ4/
-	 ghMbl8fGa9HL8u7u1gIG6srjVfv+bTv+lyiRBjlOud2rsWwiLIeyFZSOar08Jeh259
-	 Hu3PYkIMQC8Z5G2i/T4K6SJn4NGFebUFwqFlYZ4M=
-Date: Mon, 22 Jul 2024 18:37:44 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,lizhijian@fujitsu.com,cerasuolodomenico@gmail.com,mcassell411@gmail.com,akpm@linux-foundation.org
+	b=LIXL8QGAWqBOhSDTU6EZ1dlkxrwdutOhWxJCkHty/u1xbjarHyW3gHeUXSYXFsrrG
+	 IolCvQusur2d7lHq5yLitC0N2dujaEvGjWF4pF09eXSCi9CtJjnQ9fK/eWITUPXv9Q
+	 Rie4GdHnWO+yLH1AHWzSXwiPheHpVW3rQAuRX0RA=
+Date: Mon, 22 Jul 2024 18:45:52 -0700
+To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,vbabka@suse.cz,urezki@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,oliver.upton@linux.dev,ojeda@kernel.org,mpe@ellerman.id.au,mhocko@kernel.org,maz@kernel.org,kees@kernel.org,iamjoonsoo.kim@lge.com,hch@infradead.org,cl@linux.com,christian.koenig@amd.com,chandan.babu@oracle.com,42.hyeyoo@gmail.com,dakr@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-added-node_reclaim-successes-to-vm-event-counters.patch added to mm-unstable branch
-Message-Id: <20240723013744.D3F3EC116B1@smtp.kernel.org>
+Subject: + mm-vmalloc-implement-vrealloc.patch added to mm-unstable branch
+Message-Id: <20240723014553.2B3E5C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add node_reclaim successes to VM event counters
+     Subject: mm: vmalloc: implement vrealloc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-added-node_reclaim-successes-to-vm-event-counters.patch
+     mm-vmalloc-implement-vrealloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-added-node_reclaim-successes-to-vm-event-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-implement-vrealloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,69 +58,173 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matthew Cassell <mcassell411@gmail.com>
-Subject: mm: add node_reclaim successes to VM event counters
-Date: Mon, 22 Jul 2024 17:13:16 +0000
+From: Danilo Krummrich <dakr@kernel.org>
+Subject: mm: vmalloc: implement vrealloc()
+Date: Mon, 22 Jul 2024 18:29:23 +0200
 
-/proc/vmstat currently shows the number of node_reclaim() failures when
-vm.zone_reclaim_mode is set appropriately.  It would be convenient to have
-the number of successes right next to zone_reclaim_failed (similar to
-compaction and migration).
+Patch series "Align kvrealloc() with krealloc()", v2.
 
-While just a trivially addition to the vmstat file.  It was helpful during
-benchmarking to not have to probe node_reclaim() to observe the
-success/failure ratio.
+Besides the obvious (and desired) difference between krealloc() and
+kvrealloc(), there is some inconsistency in their function signatures and
+behavior:
 
-Link: https://lkml.kernel.org/r/20240722171316.7517-1-mcassell411@gmail.com
-Signed-off-by: Matthew Cassell <mcassell411@gmail.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+ - krealloc() frees the memory when the requested size is zero, whereas
+   kvrealloc() simply returns a pointer to the existing allocation.
+
+ - krealloc() behaves like kmalloc() if a NULL pointer is passed, whereas
+   kvrealloc() does not accept a NULL pointer at all and, if passed, would fault
+   instead.
+
+ - krealloc() is self-contained, whereas kvrealloc() relies on the caller to
+   provide the size of the previous allocation.
+
+Inconsistent behavior throughout allocation APIs is error prone, hence
+make kvrealloc() behave like krealloc(), which seems superior in all
+mentioned aspects.
+
+In order to be able to get rid of kvrealloc()'s oldsize parameter,
+introduce vrealloc() and make use of it in kvrealloc().
+
+Making use of vrealloc() in kvrealloc() also provides oppertunities to
+grow (and shrink) allocations more efficiently.  For instance, vrealloc()
+can be optimized to allocate and map additional pages to grow the
+allocation or unmap and free unused pages to shrink the allocation.
+
+Besides the above, those functions are required by Rust's allocator abstractons
+[1] (rework based on this series in [2]). With `Vec` or `KVec` respectively,
+potentially growing (and shrinking) data structures are rather common.
+
+[1] https://lore.kernel.org/lkml/20240704170738.3621-1-dakr@redhat.com/
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/dakr/linux.git/log/?h=rust/mm
+
+
+This patch (of 2):
+
+Implement vrealloc() analogous to krealloc().
+
+Currently, krealloc() requires the caller to pass the size of the previous
+memory allocation, which, instead, should be self-contained.
+
+We attempt to fix this in a subsequent patch which, in order to do so,
+requires vrealloc().
+
+Besides that, we need realloc() functions for kernel allocators in Rust
+too.  With `Vec` or `KVec` respectively, potentially growing (and
+shrinking) data structures are rather common.
+
+Link: https://lkml.kernel.org/r/20240722163111.4766-1-dakr@kernel.org
+Link: https://lkml.kernel.org/r/20240722163111.4766-2-dakr@kernel.org
+Signed-off-by: Danilo Krummrich <dakr@kernel.org>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/vmscan.c                   |    4 +++-
- mm/vmstat.c                   |    1 +
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |    4 ++
+ mm/vmalloc.c            |   59 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
 
---- a/include/linux/vm_event_item.h~mm-added-node_reclaim-successes-to-vm-event-counters
-+++ a/include/linux/vm_event_item.h
-@@ -50,6 +50,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSTEAL_ANON,
- 		PGSTEAL_FILE,
- #ifdef CONFIG_NUMA
-+		PGSCAN_ZONE_RECLAIM_SUCCESS,
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_INODESTEAL,
---- a/mm/vmscan.c~mm-added-node_reclaim-successes-to-vm-event-counters
-+++ a/mm/vmscan.c
-@@ -7548,7 +7548,9 @@ int node_reclaim(struct pglist_data *pgd
- 	ret = __node_reclaim(pgdat, gfp_mask, order);
- 	clear_bit(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
+--- a/include/linux/vmalloc.h~mm-vmalloc-implement-vrealloc
++++ a/include/linux/vmalloc.h
+@@ -189,6 +189,10 @@ extern void *__vcalloc_noprof(size_t n,
+ extern void *vcalloc_noprof(size_t n, size_t size) __alloc_size(1, 2);
+ #define vcalloc(...)		alloc_hooks(vcalloc_noprof(__VA_ARGS__))
  
--	if (!ret)
-+	if (ret)
-+		count_vm_event(PGSCAN_ZONE_RECLAIM_SUCCESS);
-+	else
- 		count_vm_event(PGSCAN_ZONE_RECLAIM_FAILED);
++void * __must_check vrealloc_noprof(const void *p, size_t size, gfp_t flags)
++		__realloc_size(2);
++#define vrealloc(...)		alloc_hooks(vrealloc_noprof(__VA_ARGS__))
++
+ extern void vfree(const void *addr);
+ extern void vfree_atomic(const void *addr);
  
- 	return ret;
---- a/mm/vmstat.c~mm-added-node_reclaim-successes-to-vm-event-counters
-+++ a/mm/vmstat.c
-@@ -1296,6 +1296,7 @@ const char * const vmstat_text[] = {
- 	"pgsteal_file",
+--- a/mm/vmalloc.c~mm-vmalloc-implement-vrealloc
++++ a/mm/vmalloc.c
+@@ -4037,6 +4037,65 @@ void *vzalloc_node_noprof(unsigned long
+ }
+ EXPORT_SYMBOL(vzalloc_node_noprof);
  
- #ifdef CONFIG_NUMA
-+	"zone_reclaim_success",
- 	"zone_reclaim_failed",
- #endif
- 	"pginodesteal",
++/**
++ * vrealloc - reallocate virtually contiguous memory; contents remain unchanged
++ * @p: object to reallocate memory for
++ * @size: the size to reallocate
++ * @flags: the flags for the page level allocator
++ *
++ * The contents of the object pointed to are preserved up to the lesser of the
++ * new and old size (__GFP_ZERO flag is effectively ignored).
++ *
++ * If @p is %NULL, vrealloc() behaves exactly like vmalloc(). If @size is 0 and
++ * @p is not a %NULL pointer, the object pointed to is freed.
++ *
++ * Return: pointer to the allocated memory; %NULL if @size is zero or in case of
++ *         failure
++ */
++void *vrealloc_noprof(const void *p, size_t size, gfp_t flags)
++{
++	size_t old_size = 0;
++	void *n;
++
++	if (!size) {
++		vfree(p);
++		return NULL;
++	}
++
++	if (p) {
++		struct vm_struct *vm;
++
++		vm = find_vm_area(p);
++		if (unlikely(!vm)) {
++			WARN(1, "Trying to vrealloc() nonexistent vm area (%p)\n", p);
++			return NULL;
++		}
++
++		old_size = get_vm_area_size(vm);
++	}
++
++	if (size <= old_size) {
++		/*
++		 * TODO: Shrink the vm_area, i.e. unmap and free unused pages.
++		 * What would be a good heuristic for when to shrink the
++		 * vm_area?
++		 */
++		return (void *)p;
++	}
++
++	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
++	n = __vmalloc_noprof(size, flags);
++	if (!n)
++		return NULL;
++
++	if (p) {
++		memcpy(n, p, old_size);
++		vfree(p);
++	}
++
++	return n;
++}
++
+ #if defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA32)
+ #define GFP_VMALLOC32 (GFP_DMA32 | GFP_KERNEL)
+ #elif defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA)
 _
 
-Patches currently in -mm which might be from mcassell411@gmail.com are
+Patches currently in -mm which might be from dakr@kernel.org are
 
-mm-added-node_reclaim-successes-to-vm-event-counters.patch
+mm-vmalloc-implement-vrealloc.patch
+mm-kvmalloc-align-kvrealloc-with-krealloc.patch
 
