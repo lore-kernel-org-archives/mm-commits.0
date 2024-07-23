@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8B6B14287
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:21:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E504B130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:28:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701268; cv=none; b=DSVwNnDxM3M2hQsOa0N6vOwbwiQRTWkOdxQieFsFvaQ0gIfNJw5nqxCbuumSSTtJeTPqnyNpadNIQ4lX6cKknOCiCQaEkZpq512JlpyQUWy31w8cLLKZbPAp9td//b7wZAJRMUDwvLd6NLhrZo3Mwa4vR32Xm+ruOjOGATcSQ+o=
+	t=1721701736; cv=none; b=qFQZaXvfRwTBSvoFA/fy1HlMWrcZwwBHe/mPjEaqr9Gz+nYGBBv0hF2XsG1oUBjnLJJah/V/H0LypfamJlLIJZKQWjT9ON8S2WkYjwkLlHhSOcsk1Ug/ynspRTvLnYD1Q4UcnkHvkZIYoMU0w8Dk2/67+1kMOUJzh3NDmoKcP5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701268; c=relaxed/simple;
-	bh=J4Yyfd2EVWQJV7/bgvWi/tLK6oKN5GERcq3ysW1FqKg=;
-	h=Date:To:From:Subject:Message-Id; b=cc5zjmkdpzt3OOjF8U2atj4a33Rfp0b4QnBHsHIADvYAxnlH2CdVF71WK1e8VCYhGAckiSCLN4TuEAEuMJde46AkPs3q8GZ/kL94svryuCSUG5J6j1BldLUevqrjcF4ddHYXsF1/4P2HQ05UvRd3w/89VnlsUjLlajXXGHqj2ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xlf5eTw3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701736; c=relaxed/simple;
+	bh=p26KiBpgLYOWS9EbVbBoj395ylgwkTmJZycmb7Gdbhw=;
+	h=Date:To:From:Subject:Message-Id; b=JO/IYY/TVtBvvfcuTn035XkB3bplNf20Jqfi0Tgv84gU/vdMlO8eok02gdpIsxTkR7r5GiDPQREFRYPweHNHMosejxDB04QauxhHPhq2YRU0JSAKfIWCs7MUstecuN1481L4oh/kVexcf8vdH8E7exqPhJ1/PqXOpwRP1StKXnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iax+cDle; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xlf5eTw3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F859C116B1;
-	Tue, 23 Jul 2024 02:21:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iax+cDle"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31591C116B1;
+	Tue, 23 Jul 2024 02:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701268;
-	bh=J4Yyfd2EVWQJV7/bgvWi/tLK6oKN5GERcq3ysW1FqKg=;
+	s=korg; t=1721701735;
+	bh=p26KiBpgLYOWS9EbVbBoj395ylgwkTmJZycmb7Gdbhw=;
 	h=Date:To:From:Subject:From;
-	b=Xlf5eTw3CdvjrqS/Sqm+OVz8WVrP+56hNZFLXBB9WJv3uLgH030LnT7UXzK6dXKdA
-	 sIAP1zZxR6SKwA8QiXkZ8l58de7I14p6dLiFEEHgxAyn8CdLiXZKdoRCelhhKTIhFo
-	 pno5aErcM2xwcIh6BN+pONizoGAY0q5QLIl5jJyg=
-Date: Mon, 22 Jul 2024 19:20:52 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,glass.su@suse.com,ghe@suse.com,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=iax+cDle5aWhJO0chseo/5b2Nk/fKjIU2EiSETAeAVqvdDuDYNkWMFPpV9cdQevKO
+	 Z9FXZ4agPUOsMz7Dw5LS5YJZ7Wi2+KwEfCqGLh23E8a2biDug+uj603I9kPgsXFyNO
+	 6n5NJcgFoJuT/MMmUrYmnxmWFLQv6fri3YHd37zk=
+Date: Mon, 22 Jul 2024 19:28:49 -0700
+To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022108.5F859C116B1@smtp.kernel.org>
+Subject: + maintainers-add-xz-embedded-maintainer.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022855.31591C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix the la space leak when unmounting an ocfs2 volume
+     Subject: MAINTAINERS: add XZ Embedded maintainer
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch
+     maintainers-add-xz-embedded-maintainer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-xz-embedded-maintainer.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix the la space leak when unmounting an ocfs2 volume
-Date: Fri, 19 Jul 2024 19:43:10 +0800
+From: Lasse Collin <lasse.collin@tukaani.org>
+Subject: MAINTAINERS: add XZ Embedded maintainer
+Date: Sun, 21 Jul 2024 16:36:16 +0300
 
-This bug has existed since the initial OCFS2 code.  The code logic in
-ocfs2_sync_local_to_main() is wrong, as it ignores the last contiguous
-free bits, which causes an OCFS2 volume to lose the last free clusters of
-LA window on each umount command.
+Patch series "xz: Updates to license, filters, and compression options",
+v2.
 
-Link: https://lkml.kernel.org/r/20240719114310.14245-1-heming.zhao@suse.com
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Reviewed-by: Su Yue <glass.su@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+XZ Embedded, the upstream project, switched from public domain to the BSD
+Zero Clause License (0BSD).  Now matching SPDX license identifiers can be
+added.
+
+Documentation was revised.  Fix syntax errors in kernel-doc comments in
+<linux/xz.h>.  The xz_dec API docs from <linux/xz.h> are now included in
+Documentation/staging/xz.rst.
+
+The new ARM64 and RISC-V filters can be used for kernel decompression if
+CONFIG_EFI_ZBOOT=y.  The filters can be used by Squashfs too.  (Userspace
+Squashfs-tools already had the ARM64 filter support committed but it was
+reverted due to backdoor fears.  I try to get ARM64 and RISC-V filter
+support added to Squashfs-tools somewhat soon.)
+
+Account for the default threading change made in the xz command line tool
+version 5.6.0.  Tweak kernel compression options for archs that support XZ
+compressed kernel.
+
+
+This patch (of 16):
+
+I have been the maintainer of the upstream project since I submitted the
+code to Linux in 2010 but I forgot to add myself to MAINTAINERS.
+
+Link: https://lkml.kernel.org/r/20240721133633.47721-1-lasse.collin@tukaani.org
+Link: https://lkml.kernel.org/r/20240721133633.47721-2-lasse.collin@tukaani.org
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Reviewed-by: Sam James <sam@gentoo.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Joel Stanley <joel@jms.id.au>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jubin Zhong <zhongjubin@huawei.com>
+Cc: Jules Maselbas <jmaselbas@zdiv.net>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rui Li <me@lirui.org>
+Cc: Simon Glass <sjg@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/localalloc.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ MAINTAINERS |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/fs/ocfs2/localalloc.c~ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume
-+++ a/fs/ocfs2/localalloc.c
-@@ -1002,6 +1002,25 @@ static int ocfs2_sync_local_to_main(stru
- 		start = bit_off + 1;
- 	}
+--- a/MAINTAINERS~maintainers-add-xz-embedded-maintainer
++++ a/MAINTAINERS
+@@ -25170,6 +25170,19 @@ S:	Maintained
+ F:	drivers/spi/spi-xtensa-xtfpga.c
+ F:	sound/soc/xtensa/xtfpga-i2s.c
  
-+	/* clear the contiguous bits until the end boundary */
-+	if (count) {
-+		blkno = la_start_blk +
-+			ocfs2_clusters_to_blocks(osb->sb,
-+					start - count);
++XZ EMBEDDED
++M:	Lasse Collin <lasse.collin@tukaani.org>
++S:	Maintained
++W:	https://tukaani.org/xz/embedded.html
++B:	https://github.com/tukaani-project/xz-embedded/issues
++C:	irc://irc.libera.chat/tukaani
++F:	Documentation/staging/xz.rst
++F:	include/linux/decompress/unxz.h
++F:	include/linux/xz.h
++F:	lib/decompress_unxz.c
++F:	lib/xz/
++F:	scripts/xz_wrap.sh
 +
-+		trace_ocfs2_sync_local_to_main_free(
-+				count, start - count,
-+				(unsigned long long)la_start_blk,
-+				(unsigned long long)blkno);
-+
-+		status = ocfs2_release_clusters(handle,
-+				main_bm_inode,
-+				main_bm_bh, blkno,
-+				count);
-+		if (status < 0)
-+			mlog_errno(status);
-+	}
-+
- bail:
- 	if (status)
- 		mlog_errno(status);
+ YAM DRIVER FOR AX.25
+ M:	Jean-Paul Roubelat <jpr@f6fbb.org>
+ L:	linux-hams@vger.kernel.org
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from lasse.collin@tukaani.org are
 
-ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch
+maintainers-add-xz-embedded-maintainer.patch
+licenses-add-0bsd-license-text.patch
+xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch
+xz-fix-comments-and-coding-style.patch
+xz-fix-kernel-doc-formatting-errors-in-xzh.patch
+xz-improve-the-microlzma-kernel-doc-in-xzh.patch
+xz-documentation-staging-xzrst-revise-thoroughly.patch
+docs-add-xz_extern-to-c_id_attributes.patch
+xz-cleanup-crc32-edits-from-2018.patch
+xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
+xz-add-arm64-bcj-filter.patch
+xz-add-risc-v-bcj-filter.patch
+xz-use-128-mib-dictionary-and-force-single-threaded-mode.patch
+xz-adjust-arch-specific-options-for-better-kernel-compression.patch
+arm64-boot-add-imagexz-support.patch
+riscv-boot-add-imagexz-support.patch
 
