@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3065B2561B
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 22:11:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795041494D6;
+	Tue, 23 Jul 2024 23:40:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721772698; cv=none; b=cQn1QFqdG1JT02Q5a34iMBBbOIs89uvES9LC1JJaXe4LXd1xpoia0udV8c5PKMrM1zLCI5GCFzFDTnWW9g8ByuEmMjFOQdZXtecT8SZzK8Do/25VUwznmst7VVL0/4FB7v2L4GqXUIBOD8mHdmRnek8o8ZVI2tAT/vya7rgB6GA=
+	t=1721778039; cv=none; b=Ue9XLIsQ8m86A+xCCGPMLpg3vb1kv+wdxFfah+rNSN8oot7ZmBVg4HNZLgdm6yfBHM7obWorcPzzjvA7BnnQlUJy6sS6aT6ZIpo7kBCRAZg5sb2eGl9oEofR+sgylhEv7cp9ZTpU8+XUKjh1OEipEEaLODT/3kiHvRoeh8BYDYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721772698; c=relaxed/simple;
-	bh=b8a9T7w5HtqJEkslEkF+bPHWBXJGAFFhlYtfPWVrkJY=;
-	h=Date:To:From:Subject:Message-Id; b=aRk1S59uZTzD9/Pj7rHLV9Ox7ys8g21LhDwsdyj3U4PY4c5kmjWmJUj3HQwXvgFaZP+uPX1MH7xtUj3ORZJ+SqZcz5oz0/a7BzkUvLT5eBvq1tpVqr1dwUMFeZX0SRb3/yh+hqwP6xvWccsKF7b1m6Kzp0iSyvNz77Y9u+FJ10M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UZXkQw3B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721778039; c=relaxed/simple;
+	bh=FKAxem+pnGcx+D/lyPGm78QGoUagqEr9ao35pFOmuIU=;
+	h=Date:To:From:Subject:Message-Id; b=Y4i9/hmcJzipPOAhmHkJWSn9ovZqjMfS79F/EwPLwJCeIszSw9p8mcEWpNPgoTukfiPhelSegCfaPp56EDQ+rdaOqzeKNpzsfzeId83VY9yy0m6eY9n0VAdOlWxDQ50RLKq8m7v5Ii17Pmy5NSPTp2pSQEyg5n5EeyFt8UFoIzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tFNC4olP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UZXkQw3B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A77B8C4AF0A;
-	Tue, 23 Jul 2024 22:11:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tFNC4olP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CFEC4AF0A;
+	Tue, 23 Jul 2024 23:40:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721772697;
-	bh=b8a9T7w5HtqJEkslEkF+bPHWBXJGAFFhlYtfPWVrkJY=;
+	s=korg; t=1721778039;
+	bh=FKAxem+pnGcx+D/lyPGm78QGoUagqEr9ao35pFOmuIU=;
 	h=Date:To:From:Subject:From;
-	b=UZXkQw3Bi9Llr2PDJjTsd8rJOvW1M++Wy5yubZeI24cuzFcFtvjmZDg8gPzbbS5A7
-	 IyNirWybRUj1ESPpMOUv0Z0HUqftNPj8J/fi1NNiKFoLLCHqAlQZb8WJEa6zmQKtHO
-	 PJShTUwayi5eq2Ye82Gl9AXj0QZaULXQsmK0gzDg=
-Date: Tue, 23 Jul 2024 15:11:37 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ojeda@kernel.org,n.schier@avm.de,masahiroy@kernel.org,kvalo@kernel.org,jack@suse.cz,djwong@kernel.org,brauner@kernel.org,sunjunchao2870@gmail.com,akpm@linux-foundation.org
+	b=tFNC4olPhOiI040JHZwceVBluiX89f+PU0+ed8vHx1ge766zadNYuwT2hCCnTnzCI
+	 +isoM8i2K8Vxshq9A06/umqUpOq8BoyrLP4NUpC7SSpAcV1D5J0NPgjue0zV0QWCOm
+	 3FmoZEsZtWJ3J8bYdeVWAMlzcFdq8qKteJgys4wM=
+Date: Tue, 23 Jul 2024 16:40:38 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,kuan-ying.lee@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723221137.A77B8C4AF0A@smtp.kernel.org>
+Subject: + scripts-gdb-fix-timerlist-parsing-issue.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723234038.F1CFEC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts: add macro_checker script to check unused parameters in macros
+     Subject: scripts/gdb: fix timerlist parsing issue
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+     scripts-gdb-fix-timerlist-parsing-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-timerlist-parsing-issue.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,187 +58,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: scripts: add macro_checker script to check unused parameters in macros
-Date: Tue, 23 Jul 2024 05:11:54 -0400
+From: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
+Subject: scripts/gdb: fix timerlist parsing issue
+Date: Tue, 23 Jul 2024 14:48:57 +0800
 
-Recently, I saw a patch[1] on the ext4 mailing list regarding
-the correction of a macro definition error. Jan mentioned
-that "The bug in the macro is a really nasty trap...".
-Because existing compilers are unable to detect
-unused parameters in macro definitions. This inspired me
-to write a script to check for unused parameters in
-macro definitions and to run it.
+Patch series "Fix some GDB command error and add some GDB commands", v3.
 
-Surprisingly, the script uncovered numerous issues across
-various subsystems, including filesystems, drivers, and sound etc.
+Fix some GDB command errors and add some useful GDB commands.
 
-Some of these issues involved parameters that were accepted
-but never used, for example:
-	#define	XFS_DAENTER_DBS(mp,w)	\
-	(XFS_DA_NODE_MAXDEPTH + (((w) == XFS_DATA_FORK) ? 2 : 0))
-where mp was unused.
 
-While others are actual bugs.
-For example:
-	#define HAL_SEQ_WCSS_UMAC_CE0_SRC_REG(x) \
-		(ab->hw_params.regs->hal_seq_wcss_umac_ce0_src_reg)
-	#define HAL_SEQ_WCSS_UMAC_CE0_DST_REG(x) \
-		(ab->hw_params.regs->hal_seq_wcss_umac_ce0_dst_reg)
-	#define HAL_SEQ_WCSS_UMAC_CE1_SRC_REG(x) \
-		(ab->hw_params.regs->hal_seq_wcss_umac_ce1_src_reg)
-	#define HAL_SEQ_WCSS_UMAC_CE1_DST_REG(x) \
-		(ab->hw_params.regs->hal_seq_wcss_umac_ce1_dst_reg)
-where x was entirely unused, and instead, a local variable ab was used.
+This patch (of 5):
 
-I have submitted patches[2-5] to fix some of these issues,
-but due to the large number, many still remain unaddressed.
-I believe that the kernel and matainers would benefit from
-this script to check for unused parameters in macro definitions.
+Commit 7988e5ae2be7 ("tick: Split nohz and highres features from
+nohz_mode") and commit 7988e5ae2be7 ("tick: Split nohz and highres
+features from nohz_mode") move 'tick_stopped' and 'nohz_mode' to flags
+field which will break the gdb lx-mounts command:
 
-It should be noted that it may cause some false positives
-in conditional compilation scenarios, such as
-	#ifdef DEBUG
-	static int debug(arg) {};
-	#else
-	#define debug(arg)
-	#endif
-So the caller needs to manually verify whether it is a true
-issue. But this should be fine, because Maintainers should only
-need to review their own subsystems, which typically results
-in only a few reports.
+(gdb) lx-timerlist
+Python Exception <class 'gdb.error'>: There is no member named nohz_mode.
+Error occurred in Python: There is no member named nohz_mode.
 
-[1]: https://patchwork.ozlabs.org/project/linux-ext4/patch/1717652596-58760-1-git-send-email-carrionbent@linux.alibaba.com/
-[2]: https://lore.kernel.org/linux-xfs/20240721112701.212342-1-sunjunchao2870@gmail.com/
-[3]: https://lore.kernel.org/linux-bcachefs/20240721123943.246705-1-sunjunchao2870@gmail.com/
-[4]: https://sourceforge.net/p/linux-f2fs/mailman/message/58797811/
-[5]: https://sourceforge.net/p/linux-f2fs/mailman/message/58797812/
+(gdb) lx-timerlist
+Python Exception <class 'gdb.error'>: There is no member named tick_stopped.
+Error occurred in Python: There is no member named tick_stopped.
 
-Link: https://lkml.kernel.org/r/20240723091154.52458-1-sunjunchao2870@gmail.com
-Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Junchao Sun <sunjunchao2870@gmail.com>
-Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nicolas Schier <n.schier@avm.de>
+We move 'tick_stopped' and 'nohz_mode' to flags field instead.
+
+Link: https://lkml.kernel.org/r/20240723064902.124154-1-kuan-ying.lee@canonical.com
+Link: https://lkml.kernel.org/r/20240723064902.124154-2-kuan-ying.lee@canonical.com
+Fixes: a478ffb2ae23 ("tick: Move individual bit features to debuggable mask accesses")
+Fixes: 7988e5ae2be7 ("tick: Split nohz and highres features from nohz_mode")
+Signed-off-by: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/macro_checker.py |  101 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 101 insertions(+)
+ scripts/gdb/linux/timerlist.py |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
---- /dev/null
-+++ a/scripts/macro_checker.py
-@@ -0,0 +1,101 @@
-+#!/usr/bin/python3
-+# SPDX-License-Identifier: GPL-2.0
-+# Author: Julian Sun <sunjunchao2870@gmail.com>
-+
-+""" Find macro definitions with unused parameters. """
-+
-+import argparse
-+import os
-+import re
-+
-+macro_pattern = r"#define\s+(\w+)\(([^)]*)\)"
-+# below two vars were used to reduce false positives
-+do_while0_pattern = r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)"
-+correct_macros = []
-+
-+def check_macro(macro_line, report):
-+    match = re.match(macro_pattern, macro_line)
-+    if match:
-+        macro_def = re.sub(macro_pattern, '', macro_line)
-+        identifier = match.group(1)
-+        content = match.group(2)
-+        arguments = [item.strip() for item in content.split(',') if item.strip()]
-+
-+        if (re.match(do_while0_pattern, macro_def)):
-+            return
-+
-+        for arg in arguments:
-+            # used to reduce false positives
-+            if "..." in arg:
-+                continue
-+            if not arg in macro_def and report == False:
-+                return
-+            if not arg in macro_def and identifier not in correct_macros:
-+                print(f"Argument {arg} is not used in function-line macro {identifier}")
-+                return
-+
-+        correct_macros.append(identifier)
-+
-+
-+# remove comment and whitespace
-+def macro_strip(macro):
-+    comment_pattern1 = r"\/\/*"
-+    comment_pattern2 = r"\/\**\*\/"
-+
-+    macro = macro.strip()
-+    macro = re.sub(comment_pattern1, '', macro)
-+    macro = re.sub(comment_pattern2, '', macro)
-+
-+    return macro
-+
-+def file_check_macro(file_path, report):
-+    # only check .c and .h file
-+    if not file_path.endswith(".c") and not file_path.endswith(".h"):
-+        return
-+
-+    with open(file_path, "r") as f:
-+        while True:
-+            line = f.readline()
-+            if not line:
-+                return
-+
-+            macro = re.match(macro_pattern, line)
-+            if macro:
-+                macro = macro_strip(macro.string)
-+                while macro[-1] == '\\':
-+                    macro = macro[0:-1]
-+                    macro = macro.strip()
-+                    macro += f.readline()
-+                    macro = macro_strip(macro)
-+                check_macro(macro, report)
-+
-+def get_correct_macros(path):
-+    file_check_macro(path, False)
-+
-+def dir_check_macro(dir_path):
-+
-+    for dentry in os.listdir(dir_path):
-+        path = os.path.join(dir_path, dentry)
-+        if os.path.isdir(path):
-+            dir_check_macro(path)
-+        elif os.path.isfile(path):
-+            get_correct_macros(path)
-+            file_check_macro(path, True)
-+
-+
-+def main():
-+    parser = argparse.ArgumentParser()
-+
-+    parser.add_argument("path", type=str, help="The file or dir path that needs check")
-+    args = parser.parse_args()
-+
-+    if os.path.isfile(args.path):
-+        get_correct_macros(args.path)
-+        file_check_macro(args.path, True)
-+    elif os.path.isdir(args.path):
-+        dir_check_macro(args.path)
-+    else:
-+        print(f"{args.path} doesn't exit or is neither a file nor a dir")
-+
-+if __name__ == "__main__":
-+    main()
-\ No newline at end of file
+--- a/scripts/gdb/linux/timerlist.py~scripts-gdb-fix-timerlist-parsing-issue
++++ a/scripts/gdb/linux/timerlist.py
+@@ -87,21 +87,22 @@ def print_cpu(hrtimer_bases, cpu, max_cl
+             text += "\n"
+ 
+         if constants.LX_CONFIG_TICK_ONESHOT:
+-            fmts = [("  .{}      : {}", 'nohz_mode'),
+-                    ("  .{}      : {} nsecs", 'last_tick'),
+-                    ("  .{}   : {}", 'tick_stopped'),
+-                    ("  .{}   : {}", 'idle_jiffies'),
+-                    ("  .{}     : {}", 'idle_calls'),
+-                    ("  .{}    : {}", 'idle_sleeps'),
+-                    ("  .{} : {} nsecs", 'idle_entrytime'),
+-                    ("  .{}  : {} nsecs", 'idle_waketime'),
+-                    ("  .{}  : {} nsecs", 'idle_exittime'),
+-                    ("  .{} : {} nsecs", 'idle_sleeptime'),
+-                    ("  .{}: {} nsecs", 'iowait_sleeptime'),
+-                    ("  .{}   : {}", 'last_jiffies'),
+-                    ("  .{}     : {}", 'next_timer'),
+-                    ("  .{}   : {} nsecs", 'idle_expires')]
+-            text += "\n".join([s.format(f, ts[f]) for s, f in fmts])
++            TS_FLAG_STOPPED = 1 << 1
++            TS_FLAG_NOHZ = 1 << 4
++            text += f"  .{'nohz':15s}: {int(bool(ts['flags'] & TS_FLAG_NOHZ))}\n"
++            text += f"  .{'last_tick':15s}: {ts['last_tick']}\n"
++            text += f"  .{'tick_stopped':15s}: {int(bool(ts['flags'] & TS_FLAG_STOPPED))}\n"
++            text += f"  .{'idle_jiffies':15s}: {ts['idle_jiffies']}\n"
++            text += f"  .{'idle_calls':15s}: {ts['idle_calls']}\n"
++            text += f"  .{'idle_sleeps':15s}: {ts['idle_sleeps']}\n"
++            text += f"  .{'idle_entrytime':15s}: {ts['idle_entrytime']} nsecs\n"
++            text += f"  .{'idle_waketime':15s}: {ts['idle_waketime']} nsecs\n"
++            text += f"  .{'idle_exittime':15s}: {ts['idle_exittime']} nsecs\n"
++            text += f"  .{'idle_sleeptime':15s}: {ts['idle_sleeptime']} nsecs\n"
++            text += f"  .{'iowait_sleeptime':15s}: {ts['iowait_sleeptime']} nsecs\n"
++            text += f"  .{'last_jiffies':15s}: {ts['last_jiffies']}\n"
++            text += f"  .{'next_timer':15s}: {ts['next_timer']}\n"
++            text += f"  .{'idle_expires':15s}: {ts['idle_expires']} nsecs\n"
+             text += "\njiffies: {}\n".format(jiffies)
+ 
+         text += "\n"
 _
 
-Patches currently in -mm which might be from sunjunchao2870@gmail.com are
+Patches currently in -mm which might be from kuan-ying.lee@canonical.com are
 
-scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+scripts-gdb-fix-timerlist-parsing-issue.patch
+scripts-gdb-add-iteration-function-for-rbtree.patch
+scripts-gdb-fix-lx-mounts-command-error.patch
+scripts-gdb-add-lx-stack_depot_lookup-command.patch
+scripts-gdb-add-lx-kasan_mem_to_shadow-command.patch
 
