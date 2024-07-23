@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E1F7EC2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:50:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0D4DEC2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 01:50:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721699402; cv=none; b=Kq2saplmQ+cMDkfaAGNV9Dm5Nqo8lIOI1UYe8jUHKblKpbYMu6EmCorG252oqw3mHxoXJapwUOHc+05gN8DT8FSCQIvnzR23pbqNDAOeNX9MJWRj0Ou0DDz82mKKRRENgIbQBOzOW16dpFbb+GZPNeyPHTmcUaXy8Poq/pfZ+Jo=
+	t=1721699404; cv=none; b=i4oPATWfzoQzkH2WVvkV0IEDkRxGv4NWKs8sdixGi9+yFuknVdOBARX65kQX67MWRdW0jRC6mdj2zWhhSSQu5myR6GlqH9WWflh74STDKFzPUwcELbiAJaYV3SvhTMkv++jalv0CuDG94TOQqHskM3JKx5PeWlHBXjnXwFTAoYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721699402; c=relaxed/simple;
-	bh=MOfWin9LY2tYl3M+laXm4SFZpkJTLfH5yfPIUCJbMes=;
-	h=Date:To:From:Subject:Message-Id; b=dHqEuu4V4lHvv18OcvQiqXMLku0tRPunFW7ox0YET8OSP14sXPjgOfmqDyFSQwk8r5kcJEL3mWuC4FVPUF1K3PBNg1cek8gzGl7P0I+lnFzB2zku2utgE4a4mnOIVWU/q7DynKdFHuy2l28ddOB4uA4xbwMJPvdJBSM/uxPZ9qE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VY3XGjgR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721699404; c=relaxed/simple;
+	bh=7S7xLvORbG02BO0CW9NFlvQ3TTd36ThvHVMCYVzeMIk=;
+	h=Date:To:From:Subject:Message-Id; b=WmDw1gN3zKtB3KhsjclLfvh8sge97cQ8s/8X3WQD9H8aTb9VyWzJPxn5BZantkFRnC2LKuGIvaKeAr7SdaoQj9BpGkMrDPIzOdS8DCazZuEYM9nKhtwCUnmSBqRGANYQ6NnHhg6NiHIx4PrhTLSTNyNW8raIgAPZ0NkuK7cd3FM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vOtYPUCo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VY3XGjgR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89136C116B1;
-	Tue, 23 Jul 2024 01:50:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vOtYPUCo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE309C116B1;
+	Tue, 23 Jul 2024 01:50:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721699401;
-	bh=MOfWin9LY2tYl3M+laXm4SFZpkJTLfH5yfPIUCJbMes=;
+	s=korg; t=1721699403;
+	bh=7S7xLvORbG02BO0CW9NFlvQ3TTd36ThvHVMCYVzeMIk=;
 	h=Date:To:From:Subject:From;
-	b=VY3XGjgRRFyZUK8KEZ8+o3T62oMnGfbTYkBsq91qn6qNKZ/ltY+gdhB/pkoETT84F
-	 g6VmqxnkGwfV8SRmgJxgwwyIy3/sHfcQhKCrPGYG4Emlm+w1eLExzBN1u17h3lbs/Y
-	 SQJvj+lYBMH0EJY1dzLVYlWhFWhLuBCbIjIDJe98=
-Date: Mon, 22 Jul 2024 18:50:00 -0700
+	b=vOtYPUCoa1FXkTfRgG7WgnBD/qqPi3n6RYPdjGxNy5UJLI82zKAaTYLPDYEALdem5
+	 8+hv1XAEvQyCMWLXoEGn/ZKnPu0f4lntjkOSCaA6E2Mc8u7y4UkUppcy5hXbhy+vk+
+	 KYyLT+FMiX9lVSxfsm4CHr1WdX1ppBp8MqZHCuRc=
+Date: Mon, 22 Jul 2024 18:50:03 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-entry-for-new-vma-files.patch added to mm-unstable branch
-Message-Id: <20240723015001.89136C116B1@smtp.kernel.org>
+Subject: + tools-separate-out-shared-radix-tree-components.patch added to mm-unstable branch
+Message-Id: <20240723015003.AE309C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: Add entry for new VMA files
+     Subject: tools: separate out shared radix-tree components
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-add-entry-for-new-vma-files.patch
+     tools-separate-out-shared-radix-tree-components.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entry-for-new-vma-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-separate-out-shared-radix-tree-components.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: Add entry for new VMA files
-Date: Mon, 22 Jul 2024 12:50:23 +0100
+Subject: tools: separate out shared radix-tree components
+Date: Mon, 22 Jul 2024 12:50:24 +0100
 
-The vma files contain logic split from mmap.c for the most part and are
-all relevant to VMA logic, so maintain the same reviewers for both.
+The core components contained within the radix-tree tests which provide
+shims for kernel headers and access to the maple tree are useful for
+testing other things, so separate them out and make the radix tree tests
+dependent on the shared components.
 
-Link: https://lkml.kernel.org/r/22a61120c04cfe807f35e941feb9345608057713.1721648367.git.lorenzo.stoakes@oracle.com
+This lays the groundwork for us to add VMA tests of the newly introduced
+vma.c file.
+
+Link: https://lkml.kernel.org/r/d5905fa6f25b159a156a5a6a87c5b1ac25568c5b.1721648367.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -84,31 +89,1307 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ tools/testing/radix-tree/Makefile              |   72 ---
+ tools/testing/radix-tree/bitmap.c              |   23 -
+ tools/testing/radix-tree/linux.c               |  271 ---------------
+ tools/testing/radix-tree/linux/bug.h           |    2 
+ tools/testing/radix-tree/linux/cpu.h           |    1 
+ tools/testing/radix-tree/linux/idr.h           |    1 
+ tools/testing/radix-tree/linux/init.h          |    2 
+ tools/testing/radix-tree/linux/kconfig.h       |    1 
+ tools/testing/radix-tree/linux/kernel.h        |   29 -
+ tools/testing/radix-tree/linux/kmemleak.h      |    1 
+ tools/testing/radix-tree/linux/local_lock.h    |    8 
+ tools/testing/radix-tree/linux/lockdep.h       |   16 
+ tools/testing/radix-tree/linux/maple_tree.h    |    7 
+ tools/testing/radix-tree/linux/percpu.h        |   11 
+ tools/testing/radix-tree/linux/preempt.h       |   15 
+ tools/testing/radix-tree/linux/radix-tree.h    |   26 -
+ tools/testing/radix-tree/linux/rcupdate.h      |   12 
+ tools/testing/radix-tree/linux/xarray.h        |    2 
+ tools/testing/radix-tree/maple.c               |   15 
+ tools/testing/radix-tree/xarray.c              |   10 
+ tools/testing/shared/autoconf.h                |    2 
+ tools/testing/shared/bitmap.c                  |   23 +
+ tools/testing/shared/linux.c                   |  271 +++++++++++++++
+ tools/testing/shared/linux/bug.h               |    2 
+ tools/testing/shared/linux/cpu.h               |    1 
+ tools/testing/shared/linux/idr.h               |    1 
+ tools/testing/shared/linux/init.h              |    2 
+ tools/testing/shared/linux/kconfig.h           |    1 
+ tools/testing/shared/linux/kernel.h            |   29 +
+ tools/testing/shared/linux/kmemleak.h          |    1 
+ tools/testing/shared/linux/local_lock.h        |    8 
+ tools/testing/shared/linux/lockdep.h           |   16 
+ tools/testing/shared/linux/maple_tree.h        |    7 
+ tools/testing/shared/linux/percpu.h            |   11 
+ tools/testing/shared/linux/preempt.h           |   15 
+ tools/testing/shared/linux/radix-tree.h        |   26 +
+ tools/testing/shared/linux/rcupdate.h          |   12 
+ tools/testing/shared/linux/xarray.h            |    2 
+ tools/testing/shared/maple-shared.h            |    9 
+ tools/testing/shared/maple-shim.c              |    7 
+ tools/testing/shared/shared.h                  |   34 +
+ tools/testing/shared/shared.mk                 |   68 +++
+ tools/testing/shared/trace/events/maple_tree.h |    5 
+ tools/testing/shared/xarray-shared.c           |    5 
+ tools/testing/shared/xarray-shared.h           |    4 
+ 45 files changed, 577 insertions(+), 510 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-entry-for-new-vma-files
-+++ a/MAINTAINERS
-@@ -24325,6 +24325,19 @@ F:	include/uapi/linux/vsockmon.h
- F:	net/vmw_vsock/
- F:	tools/testing/vsock/
+--- a/tools/testing/radix-tree/bitmap.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* lib/bitmap.c pulls in at least two other files. */
+-
+-#include <linux/bitmap.h>
+-
+-void bitmap_clear(unsigned long *map, unsigned int start, int len)
+-{
+-	unsigned long *p = map + BIT_WORD(start);
+-	const unsigned int size = start + len;
+-	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
+-	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
+-
+-	while (len - bits_to_clear >= 0) {
+-		*p &= ~mask_to_clear;
+-		len -= bits_to_clear;
+-		bits_to_clear = BITS_PER_LONG;
+-		mask_to_clear = ~0UL;
+-		p++;
+-	}
+-	if (len) {
+-		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
+-		*p &= ~mask_to_clear;
+-	}
+-}
+--- a/tools/testing/radix-tree/linux/bug.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-#include <stdio.h>
+-#include "asm/bug.h"
+--- a/tools/testing/radix-tree/linux.c
++++ /dev/null
+@@ -1,271 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-#include <stdlib.h>
+-#include <string.h>
+-#include <malloc.h>
+-#include <pthread.h>
+-#include <unistd.h>
+-#include <assert.h>
+-
+-#include <linux/gfp.h>
+-#include <linux/poison.h>
+-#include <linux/slab.h>
+-#include <linux/radix-tree.h>
+-#include <urcu/uatomic.h>
+-
+-int nr_allocated;
+-int preempt_count;
+-int test_verbose;
+-
+-struct kmem_cache {
+-	pthread_mutex_t lock;
+-	unsigned int size;
+-	unsigned int align;
+-	int nr_objs;
+-	void *objs;
+-	void (*ctor)(void *);
+-	unsigned int non_kernel;
+-	unsigned long nr_allocated;
+-	unsigned long nr_tallocated;
+-};
+-
+-void kmem_cache_set_non_kernel(struct kmem_cache *cachep, unsigned int val)
+-{
+-	cachep->non_kernel = val;
+-}
+-
+-unsigned long kmem_cache_get_alloc(struct kmem_cache *cachep)
+-{
+-	return cachep->size * cachep->nr_allocated;
+-}
+-
+-unsigned long kmem_cache_nr_allocated(struct kmem_cache *cachep)
+-{
+-	return cachep->nr_allocated;
+-}
+-
+-unsigned long kmem_cache_nr_tallocated(struct kmem_cache *cachep)
+-{
+-	return cachep->nr_tallocated;
+-}
+-
+-void kmem_cache_zero_nr_tallocated(struct kmem_cache *cachep)
+-{
+-	cachep->nr_tallocated = 0;
+-}
+-
+-void *kmem_cache_alloc_lru(struct kmem_cache *cachep, struct list_lru *lru,
+-		int gfp)
+-{
+-	void *p;
+-
+-	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
+-		if (!cachep->non_kernel)
+-			return NULL;
+-
+-		cachep->non_kernel--;
+-	}
+-
+-	pthread_mutex_lock(&cachep->lock);
+-	if (cachep->nr_objs) {
+-		struct radix_tree_node *node = cachep->objs;
+-		cachep->nr_objs--;
+-		cachep->objs = node->parent;
+-		pthread_mutex_unlock(&cachep->lock);
+-		node->parent = NULL;
+-		p = node;
+-	} else {
+-		pthread_mutex_unlock(&cachep->lock);
+-		if (cachep->align)
+-			posix_memalign(&p, cachep->align, cachep->size);
+-		else
+-			p = malloc(cachep->size);
+-		if (cachep->ctor)
+-			cachep->ctor(p);
+-		else if (gfp & __GFP_ZERO)
+-			memset(p, 0, cachep->size);
+-	}
+-
+-	uatomic_inc(&cachep->nr_allocated);
+-	uatomic_inc(&nr_allocated);
+-	uatomic_inc(&cachep->nr_tallocated);
+-	if (kmalloc_verbose)
+-		printf("Allocating %p from slab\n", p);
+-	return p;
+-}
+-
+-void __kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
+-{
+-	assert(objp);
+-	if (cachep->nr_objs > 10 || cachep->align) {
+-		memset(objp, POISON_FREE, cachep->size);
+-		free(objp);
+-	} else {
+-		struct radix_tree_node *node = objp;
+-		cachep->nr_objs++;
+-		node->parent = cachep->objs;
+-		cachep->objs = node;
+-	}
+-}
+-
+-void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
+-{
+-	uatomic_dec(&nr_allocated);
+-	uatomic_dec(&cachep->nr_allocated);
+-	if (kmalloc_verbose)
+-		printf("Freeing %p to slab\n", objp);
+-	__kmem_cache_free_locked(cachep, objp);
+-}
+-
+-void kmem_cache_free(struct kmem_cache *cachep, void *objp)
+-{
+-	pthread_mutex_lock(&cachep->lock);
+-	kmem_cache_free_locked(cachep, objp);
+-	pthread_mutex_unlock(&cachep->lock);
+-}
+-
+-void kmem_cache_free_bulk(struct kmem_cache *cachep, size_t size, void **list)
+-{
+-	if (kmalloc_verbose)
+-		pr_debug("Bulk free %p[0-%lu]\n", list, size - 1);
+-
+-	pthread_mutex_lock(&cachep->lock);
+-	for (int i = 0; i < size; i++)
+-		kmem_cache_free_locked(cachep, list[i]);
+-	pthread_mutex_unlock(&cachep->lock);
+-}
+-
+-void kmem_cache_shrink(struct kmem_cache *cachep)
+-{
+-}
+-
+-int kmem_cache_alloc_bulk(struct kmem_cache *cachep, gfp_t gfp, size_t size,
+-			  void **p)
+-{
+-	size_t i;
+-
+-	if (kmalloc_verbose)
+-		pr_debug("Bulk alloc %lu\n", size);
+-
+-	pthread_mutex_lock(&cachep->lock);
+-	if (cachep->nr_objs >= size) {
+-		struct radix_tree_node *node;
+-
+-		for (i = 0; i < size; i++) {
+-			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
+-				if (!cachep->non_kernel)
+-					break;
+-				cachep->non_kernel--;
+-			}
+-
+-			node = cachep->objs;
+-			cachep->nr_objs--;
+-			cachep->objs = node->parent;
+-			p[i] = node;
+-			node->parent = NULL;
+-		}
+-		pthread_mutex_unlock(&cachep->lock);
+-	} else {
+-		pthread_mutex_unlock(&cachep->lock);
+-		for (i = 0; i < size; i++) {
+-			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
+-				if (!cachep->non_kernel)
+-					break;
+-				cachep->non_kernel--;
+-			}
+-
+-			if (cachep->align) {
+-				posix_memalign(&p[i], cachep->align,
+-					       cachep->size);
+-			} else {
+-				p[i] = malloc(cachep->size);
+-				if (!p[i])
+-					break;
+-			}
+-			if (cachep->ctor)
+-				cachep->ctor(p[i]);
+-			else if (gfp & __GFP_ZERO)
+-				memset(p[i], 0, cachep->size);
+-		}
+-	}
+-
+-	if (i < size) {
+-		size = i;
+-		pthread_mutex_lock(&cachep->lock);
+-		for (i = 0; i < size; i++)
+-			__kmem_cache_free_locked(cachep, p[i]);
+-		pthread_mutex_unlock(&cachep->lock);
+-		return 0;
+-	}
+-
+-	for (i = 0; i < size; i++) {
+-		uatomic_inc(&nr_allocated);
+-		uatomic_inc(&cachep->nr_allocated);
+-		uatomic_inc(&cachep->nr_tallocated);
+-		if (kmalloc_verbose)
+-			printf("Allocating %p from slab\n", p[i]);
+-	}
+-
+-	return size;
+-}
+-
+-struct kmem_cache *
+-kmem_cache_create(const char *name, unsigned int size, unsigned int align,
+-		unsigned int flags, void (*ctor)(void *))
+-{
+-	struct kmem_cache *ret = malloc(sizeof(*ret));
+-
+-	pthread_mutex_init(&ret->lock, NULL);
+-	ret->size = size;
+-	ret->align = align;
+-	ret->nr_objs = 0;
+-	ret->nr_allocated = 0;
+-	ret->nr_tallocated = 0;
+-	ret->objs = NULL;
+-	ret->ctor = ctor;
+-	ret->non_kernel = 0;
+-	return ret;
+-}
+-
+-/*
+- * Test the test infrastructure for kem_cache_alloc/free and bulk counterparts.
+- */
+-void test_kmem_cache_bulk(void)
+-{
+-	int i;
+-	void *list[12];
+-	static struct kmem_cache *test_cache, *test_cache2;
+-
+-	/*
+-	 * Testing the bulk allocators without aligned kmem_cache to force the
+-	 * bulk alloc/free to reuse
+-	 */
+-	test_cache = kmem_cache_create("test_cache", 256, 0, SLAB_PANIC, NULL);
+-
+-	for (i = 0; i < 5; i++)
+-		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
+-
+-	for (i = 0; i < 5; i++)
+-		kmem_cache_free(test_cache, list[i]);
+-	assert(test_cache->nr_objs == 5);
+-
+-	kmem_cache_alloc_bulk(test_cache, __GFP_DIRECT_RECLAIM, 5, list);
+-	kmem_cache_free_bulk(test_cache, 5, list);
+-
+-	for (i = 0; i < 12 ; i++)
+-		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
+-
+-	for (i = 0; i < 12; i++)
+-		kmem_cache_free(test_cache, list[i]);
+-
+-	/* The last free will not be kept around */
+-	assert(test_cache->nr_objs == 11);
+-
+-	/* Aligned caches will immediately free */
+-	test_cache2 = kmem_cache_create("test_cache2", 128, 128, SLAB_PANIC, NULL);
+-
+-	kmem_cache_alloc_bulk(test_cache2, __GFP_DIRECT_RECLAIM, 10, list);
+-	kmem_cache_free_bulk(test_cache2, 10, list);
+-	assert(!test_cache2->nr_objs);
+-
+-
+-}
+--- a/tools/testing/radix-tree/linux/cpu.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#define cpuhp_setup_state_nocalls(a, b, c, d)	(0)
+--- a/tools/testing/radix-tree/linux/idr.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include "../../../../include/linux/idr.h"
+--- a/tools/testing/radix-tree/linux/init.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-#define __init
+-#define __exit
+--- a/tools/testing/radix-tree/linux/kconfig.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include "../../../../include/linux/kconfig.h"
+--- a/tools/testing/radix-tree/linux/kernel.h
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _KERNEL_H
+-#define _KERNEL_H
+-
+-#include "../../include/linux/kernel.h"
+-#include <string.h>
+-#include <stdio.h>
+-#include <limits.h>
+-
+-#include <linux/compiler.h>
+-#include <linux/err.h>
+-#include <linux/bitops.h>
+-#include <linux/log2.h>
+-#include "../../../include/linux/kconfig.h"
+-
+-#define printk printf
+-#define pr_err printk
+-#define pr_info printk
+-#define pr_debug printk
+-#define pr_cont printk
+-#define schedule()
+-#define PAGE_SHIFT	12
+-
+-#define __acquires(x)
+-#define __releases(x)
+-#define __must_hold(x)
+-
+-#define EXPORT_PER_CPU_SYMBOL_GPL(x)
+-#endif /* _KERNEL_H */
+--- a/tools/testing/radix-tree/linux/kmemleak.h
++++ /dev/null
+@@ -1 +0,0 @@
+-static inline void kmemleak_update_trace(const void *ptr) { }
+--- a/tools/testing/radix-tree/linux/local_lock.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef _LINUX_LOCAL_LOCK
+-#define _LINUX_LOCAL_LOCK
+-typedef struct { } local_lock_t;
+-
+-static inline void local_lock(local_lock_t *lock) { }
+-static inline void local_unlock(local_lock_t *lock) { }
+-#define INIT_LOCAL_LOCK(x) { }
+-#endif
+--- a/tools/testing/radix-tree/linux/lockdep.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-#ifndef _LINUX_LOCKDEP_H
+-#define _LINUX_LOCKDEP_H
+-
+-#include <linux/spinlock.h>
+-
+-struct lock_class_key {
+-	unsigned int a;
+-};
+-
+-static inline void lockdep_set_class(spinlock_t *lock,
+-					struct lock_class_key *key)
+-{
+-}
+-
+-extern int lockdep_is_held(const void *);
+-#endif /* _LINUX_LOCKDEP_H */
+--- a/tools/testing/radix-tree/linux/maple_tree.h
++++ /dev/null
+@@ -1,7 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0+ */
+-#define atomic_t int32_t
+-#define atomic_inc(x) uatomic_inc(x)
+-#define atomic_read(x) uatomic_read(x)
+-#define atomic_set(x, y) do {} while (0)
+-#define U8_MAX UCHAR_MAX
+-#include "../../../../include/linux/maple_tree.h"
+--- a/tools/testing/radix-tree/linux/percpu.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#define DECLARE_PER_CPU(type, val) extern type val
+-#define DEFINE_PER_CPU(type, val) type val
+-
+-#define __get_cpu_var(var)	var
+-#define this_cpu_ptr(var)	var
+-#define this_cpu_read(var)	var
+-#define this_cpu_xchg(var, val)		uatomic_xchg(&var, val)
+-#define this_cpu_cmpxchg(var, old, new)	uatomic_cmpxchg(&var, old, new)
+-#define per_cpu_ptr(ptr, cpu)   ({ (void)(cpu); (ptr); })
+-#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+--- a/tools/testing/radix-tree/linux/preempt.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __LINUX_PREEMPT_H
+-#define __LINUX_PREEMPT_H
+-
+-extern int preempt_count;
+-
+-#define preempt_disable()	uatomic_inc(&preempt_count)
+-#define preempt_enable()	uatomic_dec(&preempt_count)
+-
+-static inline int in_interrupt(void)
+-{
+-	return 0;
+-}
+-
+-#endif /* __LINUX_PREEMPT_H */
+--- a/tools/testing/radix-tree/linux/radix-tree.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _TEST_RADIX_TREE_H
+-#define _TEST_RADIX_TREE_H
+-
+-#include "../../../../include/linux/radix-tree.h"
+-
+-extern int kmalloc_verbose;
+-extern int test_verbose;
+-
+-static inline void trace_call_rcu(struct rcu_head *head,
+-		void (*func)(struct rcu_head *head))
+-{
+-	if (kmalloc_verbose)
+-		printf("Delaying free of %p to slab\n", (char *)head -
+-				offsetof(struct radix_tree_node, rcu_head));
+-	call_rcu(head, func);
+-}
+-
+-#define printv(verbosity_level, fmt, ...) \
+-	if(test_verbose >= verbosity_level) \
+-		printf(fmt, ##__VA_ARGS__)
+-
+-#undef call_rcu
+-#define call_rcu(x, y) trace_call_rcu(x, y)
+-
+-#endif /* _TEST_RADIX_TREE_H */
+--- a/tools/testing/radix-tree/linux/rcupdate.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _RCUPDATE_H
+-#define _RCUPDATE_H
+-
+-#include <urcu.h>
+-
+-#define rcu_dereference_raw(p) rcu_dereference(p)
+-#define rcu_dereference_protected(p, cond) rcu_dereference(p)
+-#define rcu_dereference_check(p, cond) rcu_dereference(p)
+-#define RCU_INIT_POINTER(p, v)	do { (p) = (v); } while (0)
+-
+-#endif
+--- a/tools/testing/radix-tree/linux/xarray.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-#include "generated/map-shift.h"
+-#include "../../../../include/linux/xarray.h"
+--- a/tools/testing/radix-tree/Makefile~tools-separate-out-shared-radix-tree-components
++++ a/tools/testing/radix-tree/Makefile
+@@ -1,29 +1,16 @@
+ # SPDX-License-Identifier: GPL-2.0
  
-+VMA
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+W:	https://www.linux-mm.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	mm/vma.c
-+F:	mm/vma.h
-+F:	mm/vma_internal.h
+-CFLAGS += -I. -I../../include -I../../../lib -g -Og -Wall \
+-	  -D_LGPL_SOURCE -fsanitize=address -fsanitize=undefined
+-LDFLAGS += -fsanitize=address -fsanitize=undefined
+-LDLIBS+= -lpthread -lurcu
++.PHONY: default
 +
- VMALLOC
- M:	Andrew Morton <akpm@linux-foundation.org>
- R:	Uladzislau Rezki <urezki@gmail.com>
++default: main
++
++include ../shared/shared.mk
++
+ TARGETS = main idr-test multiorder xarray maple
+-CORE_OFILES := xarray.o radix-tree.o idr.o linux.o test.o find_bit.o bitmap.o \
+-			 slab.o maple.o
+-OFILES = main.o $(CORE_OFILES) regression1.o regression2.o regression3.o \
+-	 regression4.o tag_check.o multiorder.o idr-test.o iteration_check.o \
+-	 iteration_check_2.o benchmark.o
+-
+-ifndef SHIFT
+-	SHIFT=3
+-endif
+-
+-ifeq ($(BUILD), 32)
+-	CFLAGS += -m32
+-	LDFLAGS += -m32
+-LONG_BIT := 32
+-endif
+-
+-ifndef LONG_BIT
+-LONG_BIT := $(shell getconf LONG_BIT)
+-endif
++CORE_OFILES = $(SHARED_OFILES) xarray.o maple.o test.o
++OFILES = main.o $(CORE_OFILES) regression1.o regression2.o \
++	 regression3.o regression4.o tag_check.o multiorder.o idr-test.o \
++	iteration_check.o iteration_check_2.o benchmark.o
+ 
+ targets: generated/map-shift.h generated/bit-length.h $(TARGETS)
+ 
+@@ -32,46 +19,13 @@ main:	$(OFILES)
+ idr-test.o: ../../../lib/test_ida.c
+ idr-test: idr-test.o $(CORE_OFILES)
+ 
+-xarray: $(CORE_OFILES)
++xarray: $(CORE_OFILES) xarray.o
+ 
+-maple: $(CORE_OFILES)
++maple: $(CORE_OFILES) maple.o
+ 
+ multiorder: multiorder.o $(CORE_OFILES)
+ 
+ clean:
+ 	$(RM) $(TARGETS) *.o radix-tree.c idr.c generated/map-shift.h generated/bit-length.h
+ 
+-vpath %.c ../../lib
+-
+-$(OFILES): Makefile *.h */*.h generated/map-shift.h generated/bit-length.h \
+-	../../include/linux/*.h \
+-	../../include/asm/*.h \
+-	../../../include/linux/xarray.h \
+-	../../../include/linux/maple_tree.h \
+-	../../../include/linux/radix-tree.h \
+-	../../../lib/radix-tree.h \
+-	../../../include/linux/idr.h
+-
+-radix-tree.c: ../../../lib/radix-tree.c
+-	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
+-
+-idr.c: ../../../lib/idr.c
+-	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
+-
+-xarray.o: ../../../lib/xarray.c ../../../lib/test_xarray.c
+-
+-maple.o: ../../../lib/maple_tree.c ../../../lib/test_maple_tree.c
+-
+-generated/map-shift.h:
+-	@if ! grep -qws $(SHIFT) generated/map-shift.h; then		\
+-		echo "#define XA_CHUNK_SHIFT $(SHIFT)" >		\
+-				generated/map-shift.h;			\
+-	fi
+-
+-generated/bit-length.h: FORCE
+-	@if ! grep -qws CONFIG_$(LONG_BIT)BIT generated/bit-length.h; then   \
+-		echo "Generating $@";                                        \
+-		echo "#define CONFIG_$(LONG_BIT)BIT 1" > $@;                 \
+-	fi
+-
+-FORCE: ;
++$(OFILES): $(SHARED_DEPS) *.h */*.h
+--- a/tools/testing/radix-tree/maple.c~tools-separate-out-shared-radix-tree-components
++++ a/tools/testing/radix-tree/maple.c
+@@ -8,21 +8,8 @@
+  * difficult to handle in kernel tests.
+  */
+ 
+-#define CONFIG_DEBUG_MAPLE_TREE
+-#define CONFIG_MAPLE_SEARCH
+-#define MAPLE_32BIT (MAPLE_NODE_SLOTS > 31)
++#include "maple-shared.h"
+ #include "test.h"
+-#include <stdlib.h>
+-#include <time.h>
+-#include "linux/init.h"
+-
+-#define module_init(x)
+-#define module_exit(x)
+-#define MODULE_AUTHOR(x)
+-#define MODULE_DESCRIPTION(X)
+-#define MODULE_LICENSE(x)
+-#define dump_stack()	assert(0)
+-
+ #include "../../../lib/maple_tree.c"
+ #include "../../../lib/test_maple_tree.c"
+ 
+--- a/tools/testing/radix-tree/xarray.c~tools-separate-out-shared-radix-tree-components
++++ a/tools/testing/radix-tree/xarray.c
+@@ -4,17 +4,9 @@
+  * Copyright (c) 2018 Matthew Wilcox <willy@infradead.org>
+  */
+ 
+-#define XA_DEBUG
++#include "xarray-shared.h"
+ #include "test.h"
+ 
+-#define module_init(x)
+-#define module_exit(x)
+-#define MODULE_AUTHOR(x)
+-#define MODULE_DESCRIPTION(X)
+-#define MODULE_LICENSE(x)
+-#define dump_stack()	assert(0)
+-
+-#include "../../../lib/xarray.c"
+ #undef XA_DEBUG
+ #include "../../../lib/test_xarray.c"
+ 
+--- /dev/null
++++ a/tools/testing/shared/autoconf.h
+@@ -0,0 +1,2 @@
++#include "bit-length.h"
++#define CONFIG_XARRAY_MULTI 1
+--- /dev/null
++++ a/tools/testing/shared/bitmap.c
+@@ -0,0 +1,23 @@
++/* lib/bitmap.c pulls in at least two other files. */
++
++#include <linux/bitmap.h>
++
++void bitmap_clear(unsigned long *map, unsigned int start, int len)
++{
++	unsigned long *p = map + BIT_WORD(start);
++	const unsigned int size = start + len;
++	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
++
++	while (len - bits_to_clear >= 0) {
++		*p &= ~mask_to_clear;
++		len -= bits_to_clear;
++		bits_to_clear = BITS_PER_LONG;
++		mask_to_clear = ~0UL;
++		p++;
++	}
++	if (len) {
++		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
++		*p &= ~mask_to_clear;
++	}
++}
+--- /dev/null
++++ a/tools/testing/shared/linux/bug.h
+@@ -0,0 +1,2 @@
++#include <stdio.h>
++#include "asm/bug.h"
+--- /dev/null
++++ a/tools/testing/shared/linux.c
+@@ -0,0 +1,271 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <stdlib.h>
++#include <string.h>
++#include <malloc.h>
++#include <pthread.h>
++#include <unistd.h>
++#include <assert.h>
++
++#include <linux/gfp.h>
++#include <linux/poison.h>
++#include <linux/slab.h>
++#include <linux/radix-tree.h>
++#include <urcu/uatomic.h>
++
++int nr_allocated;
++int preempt_count;
++int test_verbose;
++
++struct kmem_cache {
++	pthread_mutex_t lock;
++	unsigned int size;
++	unsigned int align;
++	int nr_objs;
++	void *objs;
++	void (*ctor)(void *);
++	unsigned int non_kernel;
++	unsigned long nr_allocated;
++	unsigned long nr_tallocated;
++};
++
++void kmem_cache_set_non_kernel(struct kmem_cache *cachep, unsigned int val)
++{
++	cachep->non_kernel = val;
++}
++
++unsigned long kmem_cache_get_alloc(struct kmem_cache *cachep)
++{
++	return cachep->size * cachep->nr_allocated;
++}
++
++unsigned long kmem_cache_nr_allocated(struct kmem_cache *cachep)
++{
++	return cachep->nr_allocated;
++}
++
++unsigned long kmem_cache_nr_tallocated(struct kmem_cache *cachep)
++{
++	return cachep->nr_tallocated;
++}
++
++void kmem_cache_zero_nr_tallocated(struct kmem_cache *cachep)
++{
++	cachep->nr_tallocated = 0;
++}
++
++void *kmem_cache_alloc_lru(struct kmem_cache *cachep, struct list_lru *lru,
++		int gfp)
++{
++	void *p;
++
++	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
++		if (!cachep->non_kernel)
++			return NULL;
++
++		cachep->non_kernel--;
++	}
++
++	pthread_mutex_lock(&cachep->lock);
++	if (cachep->nr_objs) {
++		struct radix_tree_node *node = cachep->objs;
++		cachep->nr_objs--;
++		cachep->objs = node->parent;
++		pthread_mutex_unlock(&cachep->lock);
++		node->parent = NULL;
++		p = node;
++	} else {
++		pthread_mutex_unlock(&cachep->lock);
++		if (cachep->align)
++			posix_memalign(&p, cachep->align, cachep->size);
++		else
++			p = malloc(cachep->size);
++		if (cachep->ctor)
++			cachep->ctor(p);
++		else if (gfp & __GFP_ZERO)
++			memset(p, 0, cachep->size);
++	}
++
++	uatomic_inc(&cachep->nr_allocated);
++	uatomic_inc(&nr_allocated);
++	uatomic_inc(&cachep->nr_tallocated);
++	if (kmalloc_verbose)
++		printf("Allocating %p from slab\n", p);
++	return p;
++}
++
++void __kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
++{
++	assert(objp);
++	if (cachep->nr_objs > 10 || cachep->align) {
++		memset(objp, POISON_FREE, cachep->size);
++		free(objp);
++	} else {
++		struct radix_tree_node *node = objp;
++		cachep->nr_objs++;
++		node->parent = cachep->objs;
++		cachep->objs = node;
++	}
++}
++
++void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
++{
++	uatomic_dec(&nr_allocated);
++	uatomic_dec(&cachep->nr_allocated);
++	if (kmalloc_verbose)
++		printf("Freeing %p to slab\n", objp);
++	__kmem_cache_free_locked(cachep, objp);
++}
++
++void kmem_cache_free(struct kmem_cache *cachep, void *objp)
++{
++	pthread_mutex_lock(&cachep->lock);
++	kmem_cache_free_locked(cachep, objp);
++	pthread_mutex_unlock(&cachep->lock);
++}
++
++void kmem_cache_free_bulk(struct kmem_cache *cachep, size_t size, void **list)
++{
++	if (kmalloc_verbose)
++		pr_debug("Bulk free %p[0-%lu]\n", list, size - 1);
++
++	pthread_mutex_lock(&cachep->lock);
++	for (int i = 0; i < size; i++)
++		kmem_cache_free_locked(cachep, list[i]);
++	pthread_mutex_unlock(&cachep->lock);
++}
++
++void kmem_cache_shrink(struct kmem_cache *cachep)
++{
++}
++
++int kmem_cache_alloc_bulk(struct kmem_cache *cachep, gfp_t gfp, size_t size,
++			  void **p)
++{
++	size_t i;
++
++	if (kmalloc_verbose)
++		pr_debug("Bulk alloc %lu\n", size);
++
++	pthread_mutex_lock(&cachep->lock);
++	if (cachep->nr_objs >= size) {
++		struct radix_tree_node *node;
++
++		for (i = 0; i < size; i++) {
++			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
++				if (!cachep->non_kernel)
++					break;
++				cachep->non_kernel--;
++			}
++
++			node = cachep->objs;
++			cachep->nr_objs--;
++			cachep->objs = node->parent;
++			p[i] = node;
++			node->parent = NULL;
++		}
++		pthread_mutex_unlock(&cachep->lock);
++	} else {
++		pthread_mutex_unlock(&cachep->lock);
++		for (i = 0; i < size; i++) {
++			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
++				if (!cachep->non_kernel)
++					break;
++				cachep->non_kernel--;
++			}
++
++			if (cachep->align) {
++				posix_memalign(&p[i], cachep->align,
++					       cachep->size);
++			} else {
++				p[i] = malloc(cachep->size);
++				if (!p[i])
++					break;
++			}
++			if (cachep->ctor)
++				cachep->ctor(p[i]);
++			else if (gfp & __GFP_ZERO)
++				memset(p[i], 0, cachep->size);
++		}
++	}
++
++	if (i < size) {
++		size = i;
++		pthread_mutex_lock(&cachep->lock);
++		for (i = 0; i < size; i++)
++			__kmem_cache_free_locked(cachep, p[i]);
++		pthread_mutex_unlock(&cachep->lock);
++		return 0;
++	}
++
++	for (i = 0; i < size; i++) {
++		uatomic_inc(&nr_allocated);
++		uatomic_inc(&cachep->nr_allocated);
++		uatomic_inc(&cachep->nr_tallocated);
++		if (kmalloc_verbose)
++			printf("Allocating %p from slab\n", p[i]);
++	}
++
++	return size;
++}
++
++struct kmem_cache *
++kmem_cache_create(const char *name, unsigned int size, unsigned int align,
++		unsigned int flags, void (*ctor)(void *))
++{
++	struct kmem_cache *ret = malloc(sizeof(*ret));
++
++	pthread_mutex_init(&ret->lock, NULL);
++	ret->size = size;
++	ret->align = align;
++	ret->nr_objs = 0;
++	ret->nr_allocated = 0;
++	ret->nr_tallocated = 0;
++	ret->objs = NULL;
++	ret->ctor = ctor;
++	ret->non_kernel = 0;
++	return ret;
++}
++
++/*
++ * Test the test infrastructure for kem_cache_alloc/free and bulk counterparts.
++ */
++void test_kmem_cache_bulk(void)
++{
++	int i;
++	void *list[12];
++	static struct kmem_cache *test_cache, *test_cache2;
++
++	/*
++	 * Testing the bulk allocators without aligned kmem_cache to force the
++	 * bulk alloc/free to reuse
++	 */
++	test_cache = kmem_cache_create("test_cache", 256, 0, SLAB_PANIC, NULL);
++
++	for (i = 0; i < 5; i++)
++		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
++
++	for (i = 0; i < 5; i++)
++		kmem_cache_free(test_cache, list[i]);
++	assert(test_cache->nr_objs == 5);
++
++	kmem_cache_alloc_bulk(test_cache, __GFP_DIRECT_RECLAIM, 5, list);
++	kmem_cache_free_bulk(test_cache, 5, list);
++
++	for (i = 0; i < 12 ; i++)
++		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
++
++	for (i = 0; i < 12; i++)
++		kmem_cache_free(test_cache, list[i]);
++
++	/* The last free will not be kept around */
++	assert(test_cache->nr_objs == 11);
++
++	/* Aligned caches will immediately free */
++	test_cache2 = kmem_cache_create("test_cache2", 128, 128, SLAB_PANIC, NULL);
++
++	kmem_cache_alloc_bulk(test_cache2, __GFP_DIRECT_RECLAIM, 10, list);
++	kmem_cache_free_bulk(test_cache2, 10, list);
++	assert(!test_cache2->nr_objs);
++
++
++}
+--- /dev/null
++++ a/tools/testing/shared/linux/cpu.h
+@@ -0,0 +1 @@
++#define cpuhp_setup_state_nocalls(a, b, c, d)	(0)
+--- /dev/null
++++ a/tools/testing/shared/linux/idr.h
+@@ -0,0 +1 @@
++#include "../../../../include/linux/idr.h"
+--- /dev/null
++++ a/tools/testing/shared/linux/init.h
+@@ -0,0 +1,2 @@
++#define __init
++#define __exit
+--- /dev/null
++++ a/tools/testing/shared/linux/kconfig.h
+@@ -0,0 +1 @@
++#include "../../../../include/linux/kconfig.h"
+--- /dev/null
++++ a/tools/testing/shared/linux/kernel.h
+@@ -0,0 +1,29 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _KERNEL_H
++#define _KERNEL_H
++
++#include "../../include/linux/kernel.h"
++#include <string.h>
++#include <stdio.h>
++#include <limits.h>
++
++#include <linux/compiler.h>
++#include <linux/err.h>
++#include <linux/bitops.h>
++#include <linux/log2.h>
++#include "../../../include/linux/kconfig.h"
++
++#define printk printf
++#define pr_err printk
++#define pr_info printk
++#define pr_debug printk
++#define pr_cont printk
++#define schedule()
++#define PAGE_SHIFT	12
++
++#define __acquires(x)
++#define __releases(x)
++#define __must_hold(x)
++
++#define EXPORT_PER_CPU_SYMBOL_GPL(x)
++#endif /* _KERNEL_H */
+--- /dev/null
++++ a/tools/testing/shared/linux/kmemleak.h
+@@ -0,0 +1 @@
++static inline void kmemleak_update_trace(const void *ptr) { }
+--- /dev/null
++++ a/tools/testing/shared/linux/local_lock.h
+@@ -0,0 +1,8 @@
++#ifndef _LINUX_LOCAL_LOCK
++#define _LINUX_LOCAL_LOCK
++typedef struct { } local_lock_t;
++
++static inline void local_lock(local_lock_t *lock) { }
++static inline void local_unlock(local_lock_t *lock) { }
++#define INIT_LOCAL_LOCK(x) { }
++#endif
+--- /dev/null
++++ a/tools/testing/shared/linux/lockdep.h
+@@ -0,0 +1,16 @@
++#ifndef _LINUX_LOCKDEP_H
++#define _LINUX_LOCKDEP_H
++
++#include <linux/spinlock.h>
++
++struct lock_class_key {
++	unsigned int a;
++};
++
++static inline void lockdep_set_class(spinlock_t *lock,
++					struct lock_class_key *key)
++{
++}
++
++extern int lockdep_is_held(const void *);
++#endif /* _LINUX_LOCKDEP_H */
+--- /dev/null
++++ a/tools/testing/shared/linux/maple_tree.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++#define atomic_t int32_t
++#define atomic_inc(x) uatomic_inc(x)
++#define atomic_read(x) uatomic_read(x)
++#define atomic_set(x, y) do {} while (0)
++#define U8_MAX UCHAR_MAX
++#include "../../../../include/linux/maple_tree.h"
+--- /dev/null
++++ a/tools/testing/shared/linux/percpu.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#define DECLARE_PER_CPU(type, val) extern type val
++#define DEFINE_PER_CPU(type, val) type val
++
++#define __get_cpu_var(var)	var
++#define this_cpu_ptr(var)	var
++#define this_cpu_read(var)	var
++#define this_cpu_xchg(var, val)		uatomic_xchg(&var, val)
++#define this_cpu_cmpxchg(var, old, new)	uatomic_cmpxchg(&var, old, new)
++#define per_cpu_ptr(ptr, cpu)   ({ (void)(cpu); (ptr); })
++#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+--- /dev/null
++++ a/tools/testing/shared/linux/preempt.h
+@@ -0,0 +1,15 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __LINUX_PREEMPT_H
++#define __LINUX_PREEMPT_H
++
++extern int preempt_count;
++
++#define preempt_disable()	uatomic_inc(&preempt_count)
++#define preempt_enable()	uatomic_dec(&preempt_count)
++
++static inline int in_interrupt(void)
++{
++	return 0;
++}
++
++#endif /* __LINUX_PREEMPT_H */
+--- /dev/null
++++ a/tools/testing/shared/linux/radix-tree.h
+@@ -0,0 +1,26 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TEST_RADIX_TREE_H
++#define _TEST_RADIX_TREE_H
++
++#include "../../../../include/linux/radix-tree.h"
++
++extern int kmalloc_verbose;
++extern int test_verbose;
++
++static inline void trace_call_rcu(struct rcu_head *head,
++		void (*func)(struct rcu_head *head))
++{
++	if (kmalloc_verbose)
++		printf("Delaying free of %p to slab\n", (char *)head -
++				offsetof(struct radix_tree_node, rcu_head));
++	call_rcu(head, func);
++}
++
++#define printv(verbosity_level, fmt, ...) \
++	if(test_verbose >= verbosity_level) \
++		printf(fmt, ##__VA_ARGS__)
++
++#undef call_rcu
++#define call_rcu(x, y) trace_call_rcu(x, y)
++
++#endif /* _TEST_RADIX_TREE_H */
+--- /dev/null
++++ a/tools/testing/shared/linux/rcupdate.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _RCUPDATE_H
++#define _RCUPDATE_H
++
++#include <urcu.h>
++
++#define rcu_dereference_raw(p) rcu_dereference(p)
++#define rcu_dereference_protected(p, cond) rcu_dereference(p)
++#define rcu_dereference_check(p, cond) rcu_dereference(p)
++#define RCU_INIT_POINTER(p, v)	do { (p) = (v); } while (0)
++
++#endif
+--- /dev/null
++++ a/tools/testing/shared/linux/xarray.h
+@@ -0,0 +1,2 @@
++#include "generated/map-shift.h"
++#include "../../../../include/linux/xarray.h"
+--- /dev/null
++++ a/tools/testing/shared/maple-shared.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++
++#define CONFIG_DEBUG_MAPLE_TREE
++#define CONFIG_MAPLE_SEARCH
++#define MAPLE_32BIT (MAPLE_NODE_SLOTS > 31)
++#include "shared.h"
++#include <stdlib.h>
++#include <time.h>
++#include "linux/init.h"
+--- /dev/null
++++ a/tools/testing/shared/maple-shim.c
+@@ -0,0 +1,7 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++/* Very simple shim around the maple tree. */
++
++#include "maple-shared.h"
++
++#include "../../../lib/maple_tree.c"
+--- /dev/null
++++ a/tools/testing/shared/shared.h
+@@ -0,0 +1,34 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#include <linux/types.h>
++#include <linux/bug.h>
++#include <linux/kernel.h>
++#include <linux/bitops.h>
++
++#include <linux/gfp.h>
++#include <linux/types.h>
++#include <linux/rcupdate.h>
++
++#ifndef module_init
++#define module_init(x)
++#endif
++
++#ifndef module_exit
++#define module_exit(x)
++#endif
++
++#ifndef MODULE_AUTHOR
++#define MODULE_AUTHOR(x)
++#endif
++
++#ifndef MODULE_LICENSE
++#define MODULE_LICENSE(x)
++#endif
++
++#ifndef MODULE_DESCRIPTION
++#define MODULE_DESCRIPTION(x)
++#endif
++
++#ifndef dump_stack
++#define dump_stack()	assert(0)
++#endif
+--- /dev/null
++++ a/tools/testing/shared/shared.mk
+@@ -0,0 +1,68 @@
++# SPDX-License-Identifier: GPL-2.0
++
++CFLAGS += -I../shared -I. -I../../include -I../../../lib -g -Og -Wall \
++	  -D_LGPL_SOURCE -fsanitize=address -fsanitize=undefined
++LDFLAGS += -fsanitize=address -fsanitize=undefined
++LDLIBS += -lpthread -lurcu
++SHARED_OFILES = xarray-shared.o radix-tree.o idr.o linux.o find_bit.o bitmap.o \
++	slab.o
++SHARED_DEPS = Makefile ../shared/shared.mk ../shared/*.h generated/map-shift.h \
++	generated/bit-length.h generated/autoconf.h \
++	../../include/linux/*.h \
++	../../include/asm/*.h \
++	../../../include/linux/xarray.h \
++	../../../include/linux/maple_tree.h \
++	../../../include/linux/radix-tree.h \
++	../../../lib/radix-tree.h \
++	../../../include/linux/idr.h
++
++ifndef SHIFT
++	SHIFT=3
++endif
++
++ifeq ($(BUILD), 32)
++	CFLAGS += -m32
++	LDFLAGS += -m32
++LONG_BIT := 32
++endif
++
++ifndef LONG_BIT
++LONG_BIT := $(shell getconf LONG_BIT)
++endif
++
++%.o: ../shared/%.c
++	$(CC) -c $(CFLAGS) $< -o $@
++
++vpath %.c ../../lib
++
++$(SHARED_OFILES): $(SHARED_DEPS)
++
++radix-tree.c: ../../../lib/radix-tree.c
++	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
++
++idr.c: ../../../lib/idr.c
++	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
++
++xarray-shared.o: ../shared/xarray-shared.c ../../../lib/xarray.c \
++	../../../lib/test_xarray.c
++
++maple-shared.o: ../shared/maple-shared.c ../../../lib/maple_tree.c \
++	../../../lib/test_maple_tree.c
++
++generated/autoconf.h:
++	cp ../shared/autoconf.h generated/autoconf.h
++
++generated/map-shift.h:
++	@if ! grep -qws $(SHIFT) generated/map-shift.h; then            \
++		echo "Generating $@";                                   \
++		echo "#define XA_CHUNK_SHIFT $(SHIFT)" >                \
++				generated/map-shift.h;                  \
++	fi
++
++generated/bit-length.h: FORCE
++	@if ! grep -qws CONFIG_$(LONG_BIT)BIT generated/bit-length.h; then   \
++		echo "Generating $@";                                        \
++		echo "#define CONFIG_$(LONG_BIT)BIT 1" > $@;                 \
++	fi
++
++FORCE: ;
+--- /dev/null
++++ a/tools/testing/shared/trace/events/maple_tree.h
+@@ -0,0 +1,5 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++
++#define trace_ma_op(a, b) do {} while (0)
++#define trace_ma_read(a, b) do {} while (0)
++#define trace_ma_write(a, b, c, d) do {} while (0)
+--- /dev/null
++++ a/tools/testing/shared/xarray-shared.c
+@@ -0,0 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include "xarray-shared.h"
++
++#include "../../../lib/xarray.c"
+--- /dev/null
++++ a/tools/testing/shared/xarray-shared.h
+@@ -0,0 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++
++#define XA_DEBUG
++#include "shared.h"
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
