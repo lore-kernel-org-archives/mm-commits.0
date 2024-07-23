@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AAF9145A0F
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DEC3145A0F
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 21:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721771460; cv=none; b=mOw9DGEx5295mr//XYycc/qR8AIBcVmPJzwClA8RCrt9WEqLSocfoNn6lrUv4T2SWcnLDEx1Ic3wcYWmJXkmHQC5qgUXVWf3cavwgkf2akY6VTlyi5bZiWp40RcjRpdVLhkQd5tSX6no2h1REn/hjWO6iXx7ajSTQIbfVfrxKxI=
+	t=1721771463; cv=none; b=JRC1VNpUyDdIajbs7cg+Ua7rvN9qZ57pmsEvW8G3xA0fjFl5hE+JUbkEF+b/sy6yqrp3pclAS1Ghkmy0dijiaU0sYHHPQ0VhVY3hEF8KRpQnxjN0B+deleksAdE8L3TCHA6i8BWDnUa2bWhfWfNhny18KT6fU2Ibq4mBpv9p4qk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721771460; c=relaxed/simple;
-	bh=nMFYhHeJitUV19Tmsb3sihDwPdhyHV5lfvUbD0Sjgoc=;
-	h=Date:To:From:Subject:Message-Id; b=F4DZXHnt3EVJl0FrY6sfZ3HZmSepanPQWK+0xTDE16wI37sLDVtS6VzxYV3GC8myQ7YWveE0eRZF+3WVDxEhxCNDZP0FN6GKujx0V0Tk8uU8y1USPC4PuVVoXf2v62s95KiJYMrdx/1DqTkLN33SeR/Grjf35Ol6tKK2RVmP4YE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j0o6XxB0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721771463; c=relaxed/simple;
+	bh=HZOdh2RLs1E86NuZMdwQOEG5UTvlP0s1ru8AxB4RgW8=;
+	h=Date:To:From:Subject:Message-Id; b=ezsE6GTa2nlhR2rVLFPzHA2L6Cwz0AGjOT18B8PUFXVHbOLv45JOg/VsjpJ8josvAHhJlKsSKrZ34Tcboj+K3OfWNIRuO02vB4P8GSzfdo2soOOZQdI27oOxGz7nR5ZNwU2vZA7EycAq4TfTuHCCi3/Turjh/ZmKT0mqO4wnkc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pNN7h7mU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j0o6XxB0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9590C4AF0A;
-	Tue, 23 Jul 2024 21:50:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pNN7h7mU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1032C4AF09;
+	Tue, 23 Jul 2024 21:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721771459;
-	bh=nMFYhHeJitUV19Tmsb3sihDwPdhyHV5lfvUbD0Sjgoc=;
+	s=korg; t=1721771462;
+	bh=HZOdh2RLs1E86NuZMdwQOEG5UTvlP0s1ru8AxB4RgW8=;
 	h=Date:To:From:Subject:From;
-	b=j0o6XxB0PBQj2ZWxt8YgEv3Y7bQLrBo+a5VhN9NnSY9n7ku2irJ9CD6pESEwItphn
-	 RfPBlGFapo/lVfZE2bOlV1l2SHkjcMOUw4zUqK/1J+nZph1k0sjil5VT4TRKO/Ihr7
-	 52ubzpTdWurF7ilq9jcW8kkwknWjSQ6+dz9t2qTE=
-Date: Tue, 23 Jul 2024 14:50:59 -0700
+	b=pNN7h7mU/Rp2+QhyA5UwNvUs626GVzJJNzzIddDFTV6i6JpdIc/NfALp79XvH74co
+	 hviXhSKK2fyztZDboCo1+Bxy60PZFumbbs200k+Ux513lNSVh/7jKyalnAE0bc6jft
+	 1BisiiJ1CK4Wn1iHMPiXBi8NWoxGX/DBowGSoHmc=
+Date: Tue, 23 Jul 2024 14:51:02 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-constify-page_address_in_vma.patch added to mm-unstable branch
-Message-Id: <20240723215059.C9590C4AF0A@smtp.kernel.org>
+Subject: + mm-convert-page_to_pgoff-to-page_pgoff.patch added to mm-unstable branch
+Message-Id: <20240723215102.B1032C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: constify page_address_in_vma()
+     Subject: mm: convert page_to_pgoff() to page_pgoff()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-constify-page_address_in_vma.patch
+     mm-convert-page_to_pgoff-to-page_pgoff.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-constify-page_address_in_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-page_to_pgoff-to-page_pgoff.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,97 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: constify page_address_in_vma()
-Date: Tue, 23 Jul 2024 16:34:57 +0100
+Subject: mm: convert page_to_pgoff() to page_pgoff()
+Date: Tue, 23 Jul 2024 16:34:58 +0100
 
-If we also mark the struct folio argument to folio_anon_vma(), we can make
-page_address_in_vma() take a const struct page pointer.
+Change the function signature to pass in the folio as all three
+callers have it.  This removes a reference to page->index, which we're
+trying to get rid of.  Also move page_pgoff() to mm/internal.h as
+code outside mm has no business calling it.
 
-Link: https://lkml.kernel.org/r/20240723153503.1669586-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240723153503.1669586-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/internal.h        |    2 +-
- mm/rmap.c            |    5 +++--
- mm/util.c            |    2 +-
- 4 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/pagemap.h |   18 ------------------
+ mm/internal.h           |    6 ++++++
+ mm/memory-failure.c     |    4 ++--
+ mm/rmap.c               |    2 +-
+ 4 files changed, 9 insertions(+), 21 deletions(-)
 
---- a/include/linux/rmap.h~mm-constify-page_address_in_vma
-+++ a/include/linux/rmap.h
-@@ -732,7 +732,7 @@ bool page_vma_mapped_walk(struct page_vm
- /*
-  * Used by swapoff to help locate where page is expected in vma.
-  */
--unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
-+unsigned long page_address_in_vma(const struct page *, struct vm_area_struct *);
+--- a/include/linux/pagemap.h~mm-convert-page_to_pgoff-to-page_pgoff
++++ a/include/linux/pagemap.h
+@@ -914,24 +914,6 @@ static inline struct folio *read_mapping
+ }
  
  /*
-  * Cleans the PTEs of shared mappings.
---- a/mm/internal.h~mm-constify-page_address_in_vma
+- * Get the offset in PAGE_SIZE (even for hugetlb pages).
+- */
+-static inline pgoff_t page_to_pgoff(struct page *page)
+-{
+-	struct page *head;
+-
+-	if (likely(!PageTransTail(page)))
+-		return page->index;
+-
+-	head = compound_head(page);
+-	/*
+-	 *  We don't initialize ->index for tail pages: calculate based on
+-	 *  head page
+-	 */
+-	return head->index + page - head;
+-}
+-
+-/*
+  * Return byte-offset into filesystem object for page.
+  */
+ static inline loff_t page_offset(struct page *page)
+--- a/mm/internal.h~mm-convert-page_to_pgoff-to-page_pgoff
 +++ a/mm/internal.h
-@@ -784,7 +784,7 @@ static inline bool free_area_empty(struc
- }
+@@ -893,6 +893,12 @@ void mlock_drain_remote(int cpu);
  
- /* mm/util.c */
--struct anon_vma *folio_anon_vma(struct folio *folio);
-+struct anon_vma *folio_anon_vma(const struct folio *folio);
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
  
- #ifdef CONFIG_MMU
- void unmap_mapping_folio(struct folio *folio);
---- a/mm/rmap.c~mm-constify-page_address_in_vma
++static inline pgoff_t page_pgoff(const struct folio *folio,
++		const struct page *page)
++{
++	return folio->index + folio_page_idx(folio, page);
++}
++
+ /**
+  * vma_address - Find the virtual address a page range is mapped at
+  * @vma: The vma which maps this object.
+--- a/mm/memory-failure.c~mm-convert-page_to_pgoff-to-page_pgoff
++++ a/mm/memory-failure.c
+@@ -617,7 +617,7 @@ static void collect_procs_anon(struct fo
+ 	if (av == NULL)	/* Not actually mapped anymore */
+ 		return;
+ 
+-	pgoff = page_to_pgoff(page);
++	pgoff = page_pgoff(folio, page);
+ 	rcu_read_lock();
+ 	for_each_process(tsk) {
+ 		struct vm_area_struct *vma;
+@@ -653,7 +653,7 @@ static void collect_procs_file(struct fo
+ 
+ 	i_mmap_lock_read(mapping);
+ 	rcu_read_lock();
+-	pgoff = page_to_pgoff(page);
++	pgoff = page_pgoff(folio, page);
+ 	for_each_process(tsk) {
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
+ 		unsigned long addr;
+--- a/mm/rmap.c~mm-convert-page_to_pgoff-to-page_pgoff
 +++ a/mm/rmap.c
-@@ -771,9 +771,10 @@ static bool should_defer_flush(struct mm
-  * At what user virtual address is page expected in vma?
-  * Caller should check the page is actually part of the vma.
-  */
--unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
-+unsigned long page_address_in_vma(const struct page *page,
-+		struct vm_area_struct *vma)
- {
--	struct folio *folio = page_folio(page);
-+	const struct folio *folio = page_folio(page);
- 	pgoff_t pgoff;
- 
- 	if (folio_test_anon(folio)) {
---- a/mm/util.c~mm-constify-page_address_in_vma
-+++ a/mm/util.c
-@@ -809,7 +809,7 @@ void *vcalloc_noprof(size_t n, size_t si
+@@ -1266,7 +1266,7 @@ static void __page_check_anon_rmap(struc
+ 	 */
+ 	VM_BUG_ON_FOLIO(folio_anon_vma(folio)->root != vma->anon_vma->root,
+ 			folio);
+-	VM_BUG_ON_PAGE(page_to_pgoff(page) != linear_page_index(vma, address),
++	VM_BUG_ON_PAGE(page_pgoff(folio, page) != linear_page_index(vma, address),
+ 		       page);
  }
- EXPORT_SYMBOL(vcalloc_noprof);
- 
--struct anon_vma *folio_anon_vma(struct folio *folio)
-+struct anon_vma *folio_anon_vma(const struct folio *folio)
- {
- 	unsigned long mapping = (unsigned long)folio->mapping;
  
 _
 
