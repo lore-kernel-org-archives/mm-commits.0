@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F30A8130AC8
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1AA130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701761; cv=none; b=uU1YY/1JCtocw6Ng/b7d2Y6SIq/KUykc77/6L+0COJGK1ZVqct4h80cCuDB22ZlLJQyAP4SOQ1nCbUTO2Ylkt16rnCwa5uXXKXnQY+2wnG7DSWH9f1smjiSl8SlSLbPNmHc1WjydtBxp3Mp1gVriCCKJI0mDRIjcEO1BiGgYc3k=
+	t=1721701763; cv=none; b=JxTvlZNG9Y6wSYQF3IVW/9flo//TCaJfSBsLTvjg/pX+gYdqdfb1dZ1tD8w3tkoy9kpnGnnuPJlNtWGhO0uzsjDidbp0LqKPTqZo4nmL8cVSvYCQH/fM2uvhMNUjvw1FPL05Xoznayow/J+vAhz+PKeyPUR3gccFJZiW3uHNPMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701761; c=relaxed/simple;
-	bh=6tOYrSBvwr7wPwu79azLCrOVl1Fz4vUf7Qkdvu6jSsE=;
-	h=Date:To:From:Subject:Message-Id; b=cazAJzu8JKu34n8GQOex6Y3nXMhJ/H+bC4ea2stk4gaQMPpCnxKSGQ3NivT3hAUKQdS7oPmxYN/ElA7O8oCx5NSGuiW1k3FTsEOeSFNhXrBqxoWha99T0KVlwIIhuOCz+jeI2iY7wPXXSgbrgGYSUSUXMHCP2RLEH9ISPFo3WZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NFqW04Ur; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701763; c=relaxed/simple;
+	bh=8etnvcsEn9ov7KchYXGpq9gVb6jNkgseWDnyie3LPD8=;
+	h=Date:To:From:Subject:Message-Id; b=Vr/FfcVQsi3v6xj5tDybS5o4Whf1KnTdIvykjVPlHkqfA+oyYIB5hsfPamx3Loim1CyvjYPZLN6Mq63LLV3vfDkSCkIm2wFnRT0jvFlNbpId5NW1RBfECD3SU/6sa9ssGJoopKcmrRJdQPeeWFoJhuedYuzuF/17nKYWUDAHmOY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q354dfO/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NFqW04Ur"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF9CAC116B1;
-	Tue, 23 Jul 2024 02:29:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q354dfO/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFA27C116B1;
+	Tue, 23 Jul 2024 02:29:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701760;
-	bh=6tOYrSBvwr7wPwu79azLCrOVl1Fz4vUf7Qkdvu6jSsE=;
+	s=korg; t=1721701762;
+	bh=8etnvcsEn9ov7KchYXGpq9gVb6jNkgseWDnyie3LPD8=;
 	h=Date:To:From:Subject:From;
-	b=NFqW04UrYNo+RHS3x+Ul9aEk6xTFt+1wTaZwQPmA4MYn6c0uiC3uK2zyAXvuTRGT7
-	 V5EiUnULSVPJ9Gi0fYPpSmG/vCOw9EIFMVCALk11OhaFvKEzmRGI9tMWmyR0cmMNtw
-	 aj0QdsYhzT992bWl5cfn3BqfczsFAjCGbcUmQJoY=
-Date: Mon, 22 Jul 2024 19:29:20 -0700
+	b=q354dfO/UHrD34iDuioMY4WzyvTkbfO+gYhx2UP+thjZrbNYr4FazOA6jPf2ta82D
+	 dsEkP3WZSCZyGZ/mQh946j6s8Zxw+mt5aXZ+QJhXid/4/3bhkU2wdsfR1ERV5Oq9Cb
+	 WeqUHEULaa0pnsfHIPIczq6cIayHIo4D7tXHKVpA=
+Date: Mon, 22 Jul 2024 19:29:22 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-add-xz_extern-to-c_id_attributes.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022920.BF9CAC116B1@smtp.kernel.org>
+Subject: + xz-cleanup-crc32-edits-from-2018.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022922.BFA27C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: add XZ_EXTERN to c_id_attributes
+     Subject: xz: cleanup CRC32 edits from 2018
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-add-xz_extern-to-c_id_attributes.patch
+     xz-cleanup-crc32-edits-from-2018.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-add-xz_extern-to-c_id_attributes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-cleanup-crc32-edits-from-2018.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: docs: add XZ_EXTERN to c_id_attributes
-Date: Sun, 21 Jul 2024 16:36:23 +0300
+Subject: xz: cleanup CRC32 edits from 2018
+Date: Sun, 21 Jul 2024 16:36:24 +0300
 
-include/linux/xz.h uses XZ_EXTERN in function prototypes.  It's needed in
-the preboot code.  Adding XZ_EXTERN c_id_attributes silences warnings and
-makes the intradocument links to the xz_dec functions work.
+In 2018, a dependency on <linux/crc32poly.h> was added to avoid
+duplicating the same constant in multiple files.  Two months later it was
+found to be a bad idea and the definition of CRC32_POLY_LE macro was moved
+into xz_private.h to avoid including <linux/crc32poly.h>.
 
-Link: https://lkml.kernel.org/r/20240721133633.47721-9-lasse.collin@tukaani.org
+xz_private.h is a wrong place for it too.  Revert back to the upstream
+version which has the poly in xz_crc32_init() in xz_crc32.c.
+
+Link: https://lkml.kernel.org/r/20240721133633.47721-10-lasse.collin@tukaani.org
+Fixes: faa16bc404d7 ("lib: Use existing define with polynomial")
+Fixes: 242cdad873a7 ("lib/xz: Put CRC32_POLY_LE in xz_private.h")
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Joel Stanley <joel@jms.id.au>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Joel Stanley <joel@jms.id.au>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Jubin Zhong <zhongjubin@huawei.com>
 Cc: Jules Maselbas <jmaselbas@zdiv.net>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
@@ -90,21 +96,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/conf.py |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/xz/xz_crc32.c   |    2 +-
+ lib/xz/xz_private.h |    4 ----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
---- a/Documentation/conf.py~docs-add-xz_extern-to-c_id_attributes
-+++ a/Documentation/conf.py
-@@ -123,6 +123,9 @@ if major >= 3:
+--- a/lib/xz/xz_crc32.c~xz-cleanup-crc32-edits-from-2018
++++ a/lib/xz/xz_crc32.c
+@@ -28,7 +28,7 @@ STATIC_RW_DATA uint32_t xz_crc32_table[2
  
-             # include/linux/btf.h
-             "__bpf_kfunc",
-+
-+            # include/linux/xz.h
-+            "XZ_EXTERN",
-         ]
+ XZ_EXTERN void xz_crc32_init(void)
+ {
+-	const uint32_t poly = CRC32_POLY_LE;
++	const uint32_t poly = 0xEDB88320;
  
- else:
+ 	uint32_t i;
+ 	uint32_t j;
+--- a/lib/xz/xz_private.h~xz-cleanup-crc32-edits-from-2018
++++ a/lib/xz/xz_private.h
+@@ -104,10 +104,6 @@
+ #	endif
+ #endif
+ 
+-#ifndef CRC32_POLY_LE
+-#define CRC32_POLY_LE 0xedb88320
+-#endif
+-
+ /*
+  * Allocate memory for LZMA2 decoder. xz_dec_lzma2_reset() must be used
+  * before calling xz_dec_lzma2_run().
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
