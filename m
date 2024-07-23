@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AC7130AC8
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:28:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BBA1130AC8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 02:29:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721701739; cv=none; b=FnoiHXmC89p9vscosu3c0tl7eJxuBx2162FXnIaqucBGexp5HbQcEBdlHUkWDOW4p+Oc4jDGB/z9Sc1WoXG81kviosDcV4ypq9zAdf14H/Sw2USKbCf3B3r0McT4hUFIrjEAjjXU6MFhNurJpIAH4eR6TEiOAtOsizuI0iJZJ0o=
+	t=1721701751; cv=none; b=YX1G5jW5F5+T7GJkT4lrMcERrFOBMY2r7FRx+LC/hLcrLLDFKS3P/MeAaOFGYLiY0tU/277yyJUQeheptlpoYqXDOjkczWeODtGnV672wUGK+qdIft1HblNNggtVyTkPOazAeSulRY96V+DrBpLDPwL5hIgRpzOUTS1GJ9PkT1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721701739; c=relaxed/simple;
-	bh=p530UW7Z/ZPs074jfcl1C4EHbKZFeoaL5ZoGpZdSjso=;
-	h=Date:To:From:Subject:Message-Id; b=te8f4di8nNxnR3Ku58J+ifP12Zp/Jy76NL9qivs3laWuKRq62FWOJphyYT4rmZYdduQBDABxQywtuThDYKeLxueEw2UMDiThcGnuy+z8fC/6FnnZiB7da9AuLiAqCuaWNc+p54Uv5siraYZDNMiBDUJPhnvIfeyMBxbOy+TkrbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Xt/ekwI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721701751; c=relaxed/simple;
+	bh=CE5H86shj4kG23kWnTzk+pAQUIuTDjs/WxxOZ7razvI=;
+	h=Date:To:From:Subject:Message-Id; b=JmTunuGhdWYmQwsb5jfOT6NjpKqkIDUHCp9Y6qlAbxtv3W3qHOY/AFK/rcC7oz7B4fylrZ0FxfnVcadRoZ5+LN94gARmd4f1dH2S/vdi5CMhcgoiFYJiENDQvLuqmOSaP9wAfX8mrjT3GpfwrJsg0+gU0TZ3apM6EQzG59s377s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ODXmGSNY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Xt/ekwI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28D46C116B1;
-	Tue, 23 Jul 2024 02:28:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ODXmGSNY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFB0C116B1;
+	Tue, 23 Jul 2024 02:29:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721701739;
-	bh=p530UW7Z/ZPs074jfcl1C4EHbKZFeoaL5ZoGpZdSjso=;
+	s=korg; t=1721701751;
+	bh=CE5H86shj4kG23kWnTzk+pAQUIuTDjs/WxxOZ7razvI=;
 	h=Date:To:From:Subject:From;
-	b=1Xt/ekwIJLzjAPbDaR5BfBESpxwskm+nhvle87M47j+u8SZ9PP3Fm+VF6aPLRF3J8
-	 MCTzzSQbe23bC/xahqoIq82Kw07T/Rs5TQNNU3S6FBqYTZnQA9dnKzuvKW+Iaw8sVT
-	 19Ck74+PdCkNR4oj8uFPqdFzbd6o7/O4mIB2oYhA=
-Date: Mon, 22 Jul 2024 19:28:58 -0700
+	b=ODXmGSNYbW8iS73z5MQRgQS4KXj2Y0Yw7VeNKIFZMu15FNw62+pUfLOsycqHrSzvG
+	 R6AnfalX1lQdu3MZm7lGRHhfDK/HjeUUOnsyWk/e6bIADDlkiwTPDT7AE2lozqXPX1
+	 WjiidJSeSppUq84Rw5u4lH0UIuIjORdRSKgEe6qc=
+Date: Mon, 22 Jul 2024 19:29:10 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch added to mm-nonmm-unstable branch
-Message-Id: <20240723022859.28D46C116B1@smtp.kernel.org>
+Subject: + xz-fix-comments-and-coding-style.patch added to mm-nonmm-unstable branch
+Message-Id: <20240723022911.6CFB0C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xz: switch from public domain to BSD Zero Clause License (0BSD)
+     Subject: xz: fix comments and coding style
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch
+     xz-fix-comments-and-coding-style.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-fix-comments-and-coding-style.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: switch from public domain to BSD Zero Clause License (0BSD)
-Date: Sun, 21 Jul 2024 16:36:18 +0300
+Subject: xz: fix comments and coding style
+Date: Sun, 21 Jul 2024 16:36:19 +0300
 
-Remove the public domain notices and add SPDX license identifiers.
+- Fix comments that were no longer in sync with the code below them.
+- Fix language errors.
+- Fix coding style.
 
-Change MODULE_LICENSE from "GPL" to "Dual BSD/GPL" because 0BSD should
-count as a BSD license variant here.
-
-The switch to 0BSD was done in the upstream XZ Embedded project because
-public domain has (real or perceived) legal issues in some jurisdictions.
-
-Link: https://lkml.kernel.org/r/20240721133633.47721-4-lasse.collin@tukaani.org
+Link: https://lkml.kernel.org/r/20240721133633.47721-5-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Joel Stanley <joel@jms.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,249 +85,99 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rui Li <me@lirui.org>
 Cc: Simon Glass <sjg@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/unxz.h |    5 ++---
- include/linux/xz.h              |    5 ++---
- lib/decompress_unxz.c           |    5 ++---
- lib/xz/xz_crc32.c               |    5 ++---
- lib/xz/xz_dec_bcj.c             |    5 ++---
- lib/xz/xz_dec_lzma2.c           |    5 ++---
- lib/xz/xz_dec_stream.c          |    5 ++---
- lib/xz/xz_dec_syms.c            |   12 +++---------
- lib/xz/xz_dec_test.c            |   12 +++---------
- lib/xz/xz_lzma2.h               |    5 ++---
- lib/xz/xz_private.h             |    5 ++---
- lib/xz/xz_stream.h              |    5 ++---
- scripts/xz_wrap.sh              |    5 +----
- 13 files changed, 27 insertions(+), 52 deletions(-)
+ lib/decompress_unxz.c |   20 ++++++++++----------
+ lib/xz/Kconfig        |    3 ++-
+ scripts/Makefile.lib  |   13 ++++++++-----
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
---- a/include/linux/decompress/unxz.h~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/include/linux/decompress/unxz.h
-@@ -1,10 +1,9 @@
-+/* SPDX-License-Identifier: 0BSD */
-+
- /*
-  * Wrapper for decompressing XZ-compressed kernel, initramfs, and initrd
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #ifndef DECOMPRESS_UNXZ_H
---- a/include/linux/xz.h~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/include/linux/xz.h
-@@ -1,11 +1,10 @@
-+/* SPDX-License-Identifier: 0BSD */
-+
- /*
-  * XZ decompressor
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-  *          Igor Pavlov <https://7-zip.org/>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #ifndef XZ_H
---- a/lib/decompress_unxz.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
+--- a/lib/decompress_unxz.c~xz-fix-comments-and-coding-style
 +++ a/lib/decompress_unxz.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * Wrapper for decompressing XZ-compressed kernel, initramfs, and initrd
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
+@@ -102,7 +102,7 @@
+ #ifdef STATIC
+ #	define XZ_PREBOOT
+ #else
+-#include <linux/decompress/unxz.h>
++#	include <linux/decompress/unxz.h>
+ #endif
+ #ifdef __KERNEL__
+ #	include <linux/decompress/mm.h>
+@@ -219,7 +219,7 @@ void *memmove(void *dest, const void *sr
+ #endif
  
  /*
---- a/lib/xz/xz_crc32.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_crc32.c
-@@ -1,11 +1,10 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * CRC32 using the polynomial from IEEE-802.3
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-  *          Igor Pavlov <https://7-zip.org/>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
+- * Since we need memmove anyway, would use it as memcpy too.
++ * Since we need memmove anyway, we could use it as memcpy too.
+  * Commented out for now to avoid breaking things.
   */
+ /*
+@@ -389,17 +389,17 @@ error_alloc_state:
+ }
  
  /*
---- a/lib/xz/xz_dec_bcj.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_dec_bcj.c
-@@ -1,11 +1,10 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * Branch/Call/Jump (BCJ) filter decoders
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-  *          Igor Pavlov <https://7-zip.org/>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
+- * This macro is used by architecture-specific files to decompress
++ * This function is used by architecture-specific files to decompress
+  * the kernel image.
   */
+ #ifdef XZ_PREBOOT
+-STATIC int INIT __decompress(unsigned char *buf, long len,
+-			   long (*fill)(void*, unsigned long),
+-			   long (*flush)(void*, unsigned long),
+-			   unsigned char *out_buf, long olen,
+-			   long *pos,
+-			   void (*error)(char *x))
++STATIC int INIT __decompress(unsigned char *in, long in_size,
++			     long (*fill)(void *dest, unsigned long size),
++			     long (*flush)(void *src, unsigned long size),
++			     unsigned char *out, long out_size,
++			     long *in_used,
++			     void (*error)(char *x))
+ {
+-	return unxz(buf, len, fill, flush, out_buf, pos, error);
++	return unxz(in, in_size, fill, flush, out, in_used, error);
+ }
+ #endif
+--- a/lib/xz/Kconfig~xz-fix-comments-and-coding-style
++++ a/lib/xz/Kconfig
+@@ -5,7 +5,8 @@ config XZ_DEC
+ 	help
+ 	  LZMA2 compression algorithm and BCJ filters are supported using
+ 	  the .xz file format as the container. For integrity checking,
+-	  CRC32 is supported. See Documentation/staging/xz.rst for more information.
++	  CRC32 is supported. See Documentation/staging/xz.rst for more
++	  information.
  
- #include "xz_private.h"
---- a/lib/xz/xz_dec_lzma2.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -1,11 +1,10 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * LZMA2 decoder
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-  *          Igor Pavlov <https://7-zip.org/>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
+ if XZ_DEC
  
- #include "xz_private.h"
---- a/lib/xz/xz_dec_stream.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_dec_stream.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * .xz Stream decoder
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
+--- a/scripts/Makefile.lib~xz-fix-comments-and-coding-style
++++ a/scripts/Makefile.lib
+@@ -533,14 +533,17 @@ quiet_cmd_fit = FIT     $@
  
- #include "xz_private.h"
---- a/lib/xz/xz_dec_syms.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_dec_syms.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * XZ decoder module information
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #include <linux/module.h>
-@@ -25,9 +24,4 @@ EXPORT_SYMBOL(xz_dec_microlzma_end);
- MODULE_DESCRIPTION("XZ decompressor");
- MODULE_VERSION("1.1");
- MODULE_AUTHOR("Lasse Collin <lasse.collin@tukaani.org> and Igor Pavlov");
--
--/*
-- * This code is in the public domain, but in Linux it's simplest to just
-- * say it's GPL and consider the authors as the copyright holders.
-- */
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("Dual BSD/GPL");
---- a/lib/xz/xz_dec_test.c~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_dec_test.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: 0BSD
-+
- /*
-  * XZ decoder tester
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #include <linux/kernel.h>
-@@ -212,9 +211,4 @@ module_exit(xz_dec_test_exit);
- MODULE_DESCRIPTION("XZ decompressor tester");
- MODULE_VERSION("1.0");
- MODULE_AUTHOR("Lasse Collin <lasse.collin@tukaani.org>");
--
--/*
-- * This code is in the public domain, but in Linux it's simplest to just
-- * say it's GPL and consider the authors as the copyright holders.
-- */
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("Dual BSD/GPL");
---- a/lib/xz/xz_lzma2.h~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_lzma2.h
-@@ -1,11 +1,10 @@
-+/* SPDX-License-Identifier: 0BSD */
-+
- /*
-  * LZMA2 definitions
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-  *          Igor Pavlov <https://7-zip.org/>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #ifndef XZ_LZMA2_H
---- a/lib/xz/xz_private.h~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_private.h
-@@ -1,10 +1,9 @@
-+/* SPDX-License-Identifier: 0BSD */
-+
- /*
-  * Private includes and definitions
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #ifndef XZ_PRIVATE_H
---- a/lib/xz/xz_stream.h~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/lib/xz/xz_stream.h
-@@ -1,10 +1,9 @@
-+/* SPDX-License-Identifier: 0BSD */
-+
- /*
-  * Definitions for handling the .xz file format
-  *
-  * Author: Lasse Collin <lasse.collin@tukaani.org>
-- *
-- * This file has been put into the public domain.
-- * You can do whatever you want with this file.
-  */
- 
- #ifndef XZ_STREAM_H
---- a/scripts/xz_wrap.sh~xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd
-+++ a/scripts/xz_wrap.sh
-@@ -1,13 +1,10 @@
- #!/bin/sh
-+# SPDX-License-Identifier: 0BSD
+ # XZ
+ # ---------------------------------------------------------------------------
+-# Use xzkern to compress the kernel image and xzmisc to compress other things.
++# Use xzkern or xzkern_with_size to compress the kernel image and xzmisc to
++# compress other things.
  #
- # This is a wrapper for xz to compress the kernel image using appropriate
- # compression options depending on the architecture.
+ # xzkern uses a big LZMA2 dictionary since it doesn't increase memory usage
+ # of the kernel decompressor. A BCJ filter is used if it is available for
+-# the target architecture. xzkern also appends uncompressed size of the data
+-# using size_append. The .xz format has the size information available at
+-# the end of the file too, but it's in more complex format and it's good to
+-# avoid changing the part of the boot code that reads the uncompressed size.
++# the target architecture.
++#
++# xzkern_with_size also appends uncompressed size of the data using
++# size_append. The .xz format has the size information available at the end
++# of the file too, but it's in more complex format and it's good to avoid
++# changing the part of the boot code that reads the uncompressed size.
+ # Note that the bytes added by size_append will make the xz tool think that
+ # the file is corrupt. This is expected.
  #
- # Author: Lasse Collin <lasse.collin@tukaani.org>
--#
--# This file has been put into the public domain.
--# You can do whatever you want with this file.
--#
- 
- BCJ=
- LZMA2OPTS=
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
