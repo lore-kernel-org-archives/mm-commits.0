@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC3C613D
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:27:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA708613D
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:27:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721849232; cv=none; b=ETVRv/d2f5wBVngjjUf2CwSC7OuuXRu+kOZ4MkPExueh/UORW4GRlYV91Npk1eVnuy4gFl63gpY2UF7HBQb252gLtlHZpehcTKAssyPUdlepmr0G1h8QpMhXCL+23ptzeCUMF4FUoouxLvn3fVUacDJO3p+h/dHUPrZAl8JDOQ8=
+	t=1721849234; cv=none; b=aBPRCuD8wtoSairM17xUhW8fjh0P/Q2iE3V7UwMowjyo0Ten6w4zfXCPYsG3f9wz4To9rp/3BVutPqZNtPJu/8aKzT79gKih8pB5UuuIhkkUbjYZ/4aEnbSk78VgATFjYlKhjdEPpqkRgLDlQ+i305gETKMvA/jS8snEMi4agsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721849232; c=relaxed/simple;
-	bh=fcqxZS+WNPIYKKCj9nVQ7s/qcO5CIb8RCFuNFAW2OZE=;
-	h=Date:To:From:Subject:Message-Id; b=ai5CChRn8EDCcd76imyJcL/25+7FKwQ0ypkZE4I+AWwD4IaQgfmywQWh6wfb9f6UE7oUMjLkQe51ximrvtp8ch7LOPvMkZJ9KFn64q953iJ9H/b5+9QU34lGufFijNIVQRhdSh1sKm37DAJLrJoPxJHGrzIYL+naxMWR8FRUnyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0zqkM2ko; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721849234; c=relaxed/simple;
+	bh=doWAKnIX2Om2OmLMkbGzv+Qcj7wdIMeG7zdY8xvWWNk=;
+	h=Date:To:From:Subject:Message-Id; b=k/F39rAnd55HhHR/Q/LhC3fdnqvzPwhcbgfhe4GtgoTY3wR7vuabEprMadIW2W3+uN0ZDR/R/Tdz3feezF8pn+jwUgkyz6iIuLNqudBgtLMMiiJr4fqV223DWzbkXCawS0YvsUC++HCgDe/uyyyU3xQcqphF6WDclBGtkvy0yTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ACOLZTg/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0zqkM2ko"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F38BC32781;
-	Wed, 24 Jul 2024 19:27:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ACOLZTg/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A9DBC32781;
+	Wed, 24 Jul 2024 19:27:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721849232;
-	bh=fcqxZS+WNPIYKKCj9nVQ7s/qcO5CIb8RCFuNFAW2OZE=;
+	s=korg; t=1721849234;
+	bh=doWAKnIX2Om2OmLMkbGzv+Qcj7wdIMeG7zdY8xvWWNk=;
 	h=Date:To:From:Subject:From;
-	b=0zqkM2koabVC9UrTl6tGG7jc/R7WI0A3XBMRcbGwn+Efr/Uh79I9KJ+8VcZ96+46O
-	 Rbc3Ed9U6e5q/1Xyw11D2OXuZ6GVT5l0sqzsqfT8O6tVsZ/QRMTcpRrUv/GcG+l71p
-	 ygEe0AtPYRcN+1fCXxo3S1oOtmkSlQHYrGJ7xDbI=
-Date: Wed, 24 Jul 2024 12:27:11 -0700
+	b=ACOLZTg/1kh3HIruWCSUhWY8A6YyhsIMv6ZwGdzTHAjt6KqgOLePHR+ULWWN3C2N3
+	 kgxrdBjQTFbMpMFmhBPcbCqtMWmUPWSwgsAPkZb8kcsHEi4kabjSXYY1z7b4qckloz
+	 uNhnJn7j0a30AE1yzo5dH7RtwEpI8jkqw8X2BFdM=
+Date: Wed, 24 Jul 2024 12:27:13 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,nphamcs@gmail.com,ngupta@vflare.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-dictionary-support-to-lz4hc.patch added to mm-unstable branch
-Message-Id: <20240724192712.3F38BC32781@smtp.kernel.org>
+Subject: + zram-add-dictionary-support-to-zstd-backend.patch added to mm-unstable branch
+Message-Id: <20240724192714.3A9DBC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add dictionary support to lz4hc
+     Subject: zram: add dictionary support to zstd backend
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-dictionary-support-to-lz4hc.patch
+     zram-add-dictionary-support-to-zstd-backend.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-dictionary-support-to-lz4hc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-dictionary-support-to-zstd-backend.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,28 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add dictionary support to lz4hc
-Date: Fri, 12 Jul 2024 14:18:32 +0900
+Subject: zram: add dictionary support to zstd backend
+Date: Fri, 12 Jul 2024 14:18:33 +0900
 
-Support pre-trained dictionary param. Just like lz4,
-lz4hc doesn't mandate specific format of the dictionary
-and zstd --train can be used to train a dictionary for
-lz4, according to [1].
+This adds support for pre-trained zstd dictionaries [1]
+Dictionary is setup in params once (per-comp) and loaded
+to Cctx and Dctx by reference, so we don't allocate extra
+memory.
 
 TEST
 ====
 
-*** lz4hc
+*** zstd
 /sys/block/zram0/mm_stat
-1750638592 608954620 621031424        0 621031424        1        0    34288    34288
+1750654976 504565092 514203648        0 514203648        1        0    34204    34204
 
-*** lz4hc dict=/home/ss/lz4-dict-amd64
+*** zstd dict=/home/ss/zstd-dict-amd64
 /sys/block/zram0/mm_stat
-1750671360 505068582 514994176        0 514994176        1        0    34278    34278
+1750638592 465851259 475373568        0 475373568        1        0    34185    34185
 
-[1] https://github.com/lz4/lz4/issues/557
+*** zstd level=8 dict=/home/ss/zstd-dict-amd64
+/sys/block/zram0/mm_stat
+1750642688 430765171 439955456        0 439955456        1        0    34185    34185
 
-Link: https://lkml.kernel.org/r/20240712051850.484318-22-senozhatsky@chromium.org
+[1] https://github.com/facebook/zstd/blob/dev/programs/zstd.1.md#dictionary-builder
+
+Link: https://lkml.kernel.org/r/20240712051850.484318-23-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -89,121 +93,222 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_lz4hc.c |   75 ++++++++++++++++++++++++---
- 1 file changed, 68 insertions(+), 7 deletions(-)
+ drivers/block/zram/backend_zstd.c |  150 +++++++++++++++++++++++-----
+ 1 file changed, 124 insertions(+), 26 deletions(-)
 
---- a/drivers/block/zram/backend_lz4hc.c~zram-add-dictionary-support-to-lz4hc
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -5,6 +5,13 @@
+--- a/drivers/block/zram/backend_zstd.c~zram-add-dictionary-support-to-zstd-backend
++++ a/drivers/block/zram/backend_zstd.c
+@@ -15,29 +15,87 @@ struct zstd_ctx {
+ };
  
- #include "backend_lz4hc.h"
+ struct zstd_params {
++	zstd_custom_mem custom_mem;
++	zstd_cdict *cdict;
++	zstd_ddict *ddict;
+ 	zstd_parameters cprm;
+ };
  
-+struct lz4hc_ctx {
-+	void *mem;
++/*
++ * For C/D dictionaries we need to provide zstd with zstd_custom_mem,
++ * which zstd uses internally to allocate/free memory when needed.
++ *
++ * This means that allocator.customAlloc() can be called from zcomp_compress()
++ * under local-lock (per-CPU compression stream), in which case we must use
++ * GFP_ATOMIC.
++ *
++ * Another complication here is that we can be configured as a swap device.
++ */
++static void *zstd_custom_alloc(void *opaque, size_t size)
++{
++	if (!preemptible())
++		return kvzalloc(size, GFP_ATOMIC);
 +
-+	LZ4_streamDecode_t *dstrm;
-+	LZ4_streamHC_t *cstrm;
-+};
++	return kvzalloc(size, __GFP_KSWAPD_RECLAIM | __GFP_NOWARN);
++}
 +
- static void lz4hc_release_params(struct zcomp_params *params)
++static void zstd_custom_free(void *opaque, void *address)
++{
++	kvfree(address);
++}
++
+ static void zstd_release_params(struct zcomp_params *params)
  {
- }
-@@ -19,25 +26,67 @@ static int lz4hc_setup_params(struct zco
- 
- static void lz4hc_destroy(struct zcomp_ctx *ctx)
- {
--	vfree(ctx->context);
-+	struct lz4hc_ctx *zctx = ctx->context;
+-	kfree(params->drv_data);
++	struct zstd_params *zp = params->drv_data;
 +
-+	if (!zctx)
++	params->drv_data = NULL;
++	if (!zp)
 +		return;
 +
-+	kfree(zctx->dstrm);
-+	kfree(zctx->cstrm);
-+	vfree(zctx->mem);
-+	kfree(zctx);
++	zstd_free_cdict(zp->cdict);
++	zstd_free_ddict(zp->ddict);
++	kfree(zp);
  }
  
- static int lz4hc_create(struct zcomp_params *params, struct zcomp_ctx *ctx)
+ static int zstd_setup_params(struct zcomp_params *params)
  {
--	ctx->context = vmalloc(LZ4HC_MEM_COMPRESS);
--	if (!ctx->context)
-+	struct lz4hc_ctx *zctx;
-+
-+	zctx = kzalloc(sizeof(*zctx), GFP_KERNEL);
-+	if (!zctx)
++	zstd_compression_parameters prm;
+ 	struct zstd_params *zp;
+ 
+ 	zp = kzalloc(sizeof(*zp), GFP_KERNEL);
+ 	if (!zp)
  		return -ENOMEM;
  
-+	ctx->context = zctx;
-+	if (params->dict_sz == 0) {
-+		zctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
-+		if (!zctx->mem)
-+			goto error;
-+	} else {
-+		zctx->dstrm = kzalloc(sizeof(*zctx->dstrm), GFP_KERNEL);
-+		if (!zctx->dstrm)
-+			goto error;
++	params->drv_data = zp;
+ 	if (params->level == ZCOMP_PARAM_NO_LEVEL)
+ 		params->level = zstd_default_clevel();
+ 
+ 	zp->cprm = zstd_get_params(params->level, PAGE_SIZE);
+-	params->drv_data = zp;
 +
-+		zctx->cstrm = kzalloc(sizeof(*zctx->cstrm), GFP_KERNEL);
-+		if (!zctx->cstrm)
-+			goto error;
-+	}
++	zp->custom_mem.customAlloc = zstd_custom_alloc;
++	zp->custom_mem.customFree = zstd_custom_free;
 +
++	prm = zstd_get_cparams(params->level, PAGE_SIZE,
++			       params->dict_sz);
++
++	zp->cdict = zstd_create_cdict_byreference(params->dict,
++						  params->dict_sz,
++						  prm,
++						  zp->custom_mem);
++	if (!zp->cdict)
++		goto error;
++
++	zp->ddict = zstd_create_ddict_byreference(params->dict,
++						  params->dict_sz,
++						  zp->custom_mem);
++	if (!zp->ddict)
++		goto error;
+ 
  	return 0;
 +
 +error:
-+	lz4hc_destroy(ctx);
++	zstd_release_params(params);
 +	return -EINVAL;
  }
  
- static int lz4hc_compress(struct zcomp_params *params, struct zcomp_ctx *ctx,
- 			  struct zcomp_req *req)
- {
-+	struct lz4hc_ctx *zctx = ctx->context;
- 	int ret;
+ static void zstd_destroy(struct zcomp_ctx *ctx)
+@@ -47,8 +105,23 @@ static void zstd_destroy(struct zcomp_ct
+ 	if (!zctx)
+ 		return;
  
--	ret = LZ4_compress_HC(req->src, req->dst, req->src_len, req->dst_len,
--			      params->level, ctx->context);
-+	if (!zctx->cstrm) {
-+		ret = LZ4_compress_HC(req->src, req->dst, req->src_len,
-+				      req->dst_len, params->level,
-+				      zctx->mem);
+-	vfree(zctx->cctx_mem);
+-	vfree(zctx->dctx_mem);
++	/*
++	 * If ->cctx_mem and ->dctx_mem were allocated then we didn't use
++	 * C/D dictionary and ->cctx / ->dctx were "embedded" into these
++	 * buffers.
++	 *
++	 * If otherwise then we need to explicitly release ->cctx / ->dctx.
++	 */
++	if (zctx->cctx_mem)
++		vfree(zctx->cctx_mem);
++	else
++		zstd_free_cctx(zctx->cctx);
++
++	if (zctx->dctx_mem)
++		vfree(zctx->dctx_mem);
++	else
++		zstd_free_dctx(zctx->dctx);
++
+ 	kfree(zctx);
+ }
+ 
+@@ -63,28 +136,41 @@ static int zstd_create(struct zcomp_para
+ 		return -ENOMEM;
+ 
+ 	ctx->context = zctx;
+-	prm = zstd_get_params(params->level, PAGE_SIZE);
+-	sz = zstd_cctx_workspace_bound(&prm.cParams);
+-	zctx->cctx_mem = vzalloc(sz);
+-	if (!zctx->cctx_mem)
+-		goto error;
+-
+-	zctx->cctx = zstd_init_cctx(zctx->cctx_mem, sz);
+-	if (!zctx->cctx)
+-		goto error;
+-
+-	sz = zstd_dctx_workspace_bound();
+-	zctx->dctx_mem = vzalloc(sz);
+-	if (!zctx->dctx_mem)
+-		goto error;
+-
+-	zctx->dctx = zstd_init_dctx(zctx->dctx_mem, sz);
+-	if (!zctx->dctx)
+-		goto error;
++	if (params->dict_sz == 0) {
++		prm = zstd_get_params(params->level, PAGE_SIZE);
++		sz = zstd_cctx_workspace_bound(&prm.cParams);
++		zctx->cctx_mem = vzalloc(sz);
++		if (!zctx->cctx_mem)
++			goto error;
++
++		zctx->cctx = zstd_init_cctx(zctx->cctx_mem, sz);
++		if (!zctx->cctx)
++			goto error;
++
++		sz = zstd_dctx_workspace_bound();
++		zctx->dctx_mem = vzalloc(sz);
++		if (!zctx->dctx_mem)
++			goto error;
++
++		zctx->dctx = zstd_init_dctx(zctx->dctx_mem, sz);
++		if (!zctx->dctx)
++			goto error;
 +	} else {
-+		/* Cstrm needs to be reset */
-+		LZ4_resetStreamHC(zctx->cstrm, params->level);
-+		ret = LZ4_loadDictHC(zctx->cstrm, params->dict,
-+				     params->dict_sz);
-+		if (ret != params->dict_sz)
-+			return -EINVAL;
-+		ret = LZ4_compress_HC_continue(zctx->cstrm, req->src, req->dst,
-+					       req->src_len, req->dst_len);
++		struct zstd_params *zp = params->drv_data;
++
++		zctx->cctx = zstd_create_cctx_advanced(zp->custom_mem);
++		if (!zctx->cctx)
++			goto error;
++
++		zctx->dctx = zstd_create_dctx_advanced(zp->custom_mem);
++		if (!zctx->dctx)
++			goto error;
 +	}
- 	if (!ret)
+ 
+ 	return 0;
+ 
+ error:
++	zstd_release_params(params);
+ 	zstd_destroy(ctx);
+ 	return -EINVAL;
+ }
+@@ -96,8 +182,14 @@ static int zstd_compress(struct zcomp_pa
+ 	struct zstd_ctx *zctx = ctx->context;
+ 	size_t ret;
+ 
+-	ret = zstd_compress_cctx(zctx->cctx, req->dst, req->dst_len,
+-				 req->src, req->src_len, &zp->cprm);
++	if (params->dict_sz == 0)
++		ret = zstd_compress_cctx(zctx->cctx, req->dst, req->dst_len,
++					 req->src, req->src_len, &zp->cprm);
++	else
++		ret = zstd_compress_using_cdict(zctx->cctx, req->dst,
++						req->dst_len, req->src,
++						req->src_len,
++						zp->cdict);
+ 	if (zstd_is_error(ret))
  		return -EINVAL;
  	req->dst_len = ret;
-@@ -47,10 +96,22 @@ static int lz4hc_compress(struct zcomp_p
- static int lz4hc_decompress(struct zcomp_params *params, struct zcomp_ctx *ctx,
- 			    struct zcomp_req *req)
+@@ -107,11 +199,17 @@ static int zstd_compress(struct zcomp_pa
+ static int zstd_decompress(struct zcomp_params *params, struct zcomp_ctx *ctx,
+ 			   struct zcomp_req *req)
  {
-+	struct lz4hc_ctx *zctx = ctx->context;
- 	int ret;
++	struct zstd_params *zp = params->drv_data;
+ 	struct zstd_ctx *zctx = ctx->context;
+ 	size_t ret;
  
--	ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
--				  req->dst_len);
-+	if (!zctx->dstrm) {
-+		ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
-+					  req->dst_len);
-+	} else {
-+		/* Dstrm needs to be reset */
-+		ret = LZ4_setStreamDecode(zctx->dstrm, params->dict,
-+					  params->dict_sz);
-+		if (!ret)
-+			return -EINVAL;
-+		ret = LZ4_decompress_safe_continue(zctx->dstrm, req->src,
-+						   req->dst, req->src_len,
-+						   req->dst_len);
-+	}
- 	if (ret < 0)
+-	ret = zstd_decompress_dctx(zctx->dctx, req->dst, req->dst_len,
+-				   req->src, req->src_len);
++	if (params->dict_sz == 0)
++		ret = zstd_decompress_dctx(zctx->dctx, req->dst, req->dst_len,
++					   req->src, req->src_len);
++	else
++		ret = zstd_decompress_using_ddict(zctx->dctx, req->dst,
++						  req->dst_len, req->src,
++						  req->src_len, zp->ddict);
+ 	if (zstd_is_error(ret))
  		return -EINVAL;
  	return 0;
 _
