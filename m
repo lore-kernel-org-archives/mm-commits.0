@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91443613D
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:27:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A50E47781
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:33:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721849236; cv=none; b=sWr8B6B8HmlZXvpAqS7BN5wIkfW+ydXnjD6TpMgoIdjz/L1RYAabBikh155422gwCfdK1ThqxRitrD4LEvKLnfT/dYowZzZ0jV+87J0qe5a+STJRQs4EFhWBcmmUk4qJJzkkz5f5T4fmTVDySGEhTx8mBLKcf3gyeddUMEEEA/8=
+	t=1721849584; cv=none; b=XIrcyRY63/iGCz0ui7eS1JPbQ4seNKuW/vGxCAxtEhHzNqQBUB1trozOTa3ZXM44YtMECxTgpKefWOYy1KT1U+zRYTHW2MJvDi10S6lcGehog0eh+V20mln3OcQMashWrymr1iRtT8lMsBQHeF12w1AA7KSfOIsCRWF9T3oiBtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721849236; c=relaxed/simple;
-	bh=vcsMyaL/J5TC6qyjVr29cWtArdPtJr3aeW1ZE4q5y6o=;
-	h=Date:To:From:Subject:Message-Id; b=tlIJIrVpR2bkStn3PVxFOF/KsBWY5bmVWd/n3DQSWpWMg6HFhuirOyPgNuME0QMmK4XhpX91+YlNRrOTpY+cWrX0Sg/mxVI6gjLwj3suQcbwlhWDgP5TC5GmmdcUh19pAY+yylDdX5A5V2EW+vbadUQx9X0+Jw6JuulsScFt2pc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FrcRLtrU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721849584; c=relaxed/simple;
+	bh=fG8PsVRifbXgWnp4qkpQyMBRPLhYd/VjLvcF6scznEE=;
+	h=Date:To:From:Subject:Message-Id; b=nMuwbbOF3/XmgXUeVXlLh3awQF8UPwHHnjMwXGGfSLy3N4t+v1XUkeS6XSxp+tLbnlsiVuoOCHJwFMakwuM+kbnk6NTFkpxuKbkeSUVehSMcwHexFED+CEp5m47Ykk5PpwPxbGaR3rPu1rqxpahGTEYNjy/zpxW/Cuii5p0CR8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AhQmdjBn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FrcRLtrU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657C5C32781;
-	Wed, 24 Jul 2024 19:27:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AhQmdjBn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7099C32781;
+	Wed, 24 Jul 2024 19:33:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721849236;
-	bh=vcsMyaL/J5TC6qyjVr29cWtArdPtJr3aeW1ZE4q5y6o=;
+	s=korg; t=1721849583;
+	bh=fG8PsVRifbXgWnp4qkpQyMBRPLhYd/VjLvcF6scznEE=;
 	h=Date:To:From:Subject:From;
-	b=FrcRLtrUX7x0dYgiUaFLCi7ZYGEg1gY8SpavkKzp8J1rROJ3s3DbE5JPI2/FbgNPc
-	 KRYag+mmZ1FVeLg0V3tfli9FlNAmUIqtek/fUmso/RqtD9HtD4o8oGH1aA6CTXE2EX
-	 Xz/YTT4AfmtX8tGx4NIjtzOFeEf5fTyfgV82Vlv8=
-Date: Wed, 24 Jul 2024 12:27:15 -0700
-To: mm-commits@vger.kernel.org,terrelln@fb.com,nphamcs@gmail.com,ngupta@vflare.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=AhQmdjBnRAzHLlSBDrkBKLmnhe7d5WtpGesZ2m+fb9jx36ToQK48KFv0rMlRIUL50
+	 dDlvfXujyar3Jcqyz+JkoJdStt3r9Ndzl8FgPAkQwUOwXomAOvfjz6CPB4BQX+lhBX
+	 nHY3AZ/I5uLlMxtDJwb3f7XuCXWKvyLoMn02CBU4=
+Date: Wed, 24 Jul 2024 12:32:58 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-zram-add-documentation-for-algorithm-parameters.patch added to mm-unstable branch
-Message-Id: <20240724192716.657C5C32781@smtp.kernel.org>
+Subject: + mm-swap-reduce-indentation-level.patch added to mm-unstable branch
+Message-Id: <20240724193303.D7099C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/zram: add documentation for algorithm parameters
+     Subject: mm/swap: reduce indentation level
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-zram-add-documentation-for-algorithm-parameters.patch
+     mm-swap-reduce-indentation-level.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-add-documentation-for-algorithm-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-reduce-indentation-level.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,111 +58,391 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation/zram: add documentation for algorithm parameters
-Date: Fri, 12 Jul 2024 14:18:34 +0900
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/swap: reduce indentation level
+Date: Wed, 10 Jul 2024 20:13:13 -0600
 
-Document brief description of compression algorithms' parameters:
-compression level and pre-trained dictionary.
+Patch series "mm/swap: remove boilerplate".
 
-Link: https://lkml.kernel.org/r/20240712051850.484318-24-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nick Terrell <terrelln@fb.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
+
+Use folio_activate() as an example:
+
+Before this series
+------------------
+    if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+      struct folio_batch *fbatch;
+
+      folio_get(folio);
+      if (!folio_test_clear_lru(folio)) {
+        folio_put(folio);
+        return;
+      }
+
+      local_lock(&cpu_fbatches.lock);
+      fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+      folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+      local_unlock(&cpu_fbatches.lock);
+    }
+  }
+
+After this series
+-----------------
+  void folio_activate(struct folio *folio)
+  {
+    if (folio_test_active(folio) || folio_test_unevictable(folio))
+      return;
+  
+    folio_batch_add_and_move(folio, lru_activate, true);
+  }
+
+And this is applied to all 6 folio_batch handlers in mm/swap.c.
+
+bloat-o-meter
+-------------
+  add/remove: 12/13 grow/shrink: 3/2 up/down: 4653/-4721 (-68)
+  ...
+  Total: Before=28083019, After=28082951, chg -0.00%
+
+
+This patch (of 5):
+
+Reduce indentation level by returning directly when there is no cleanup
+needed, i.e.,
+
+  if (condition) {    |    if (condition) {
+    do_this();        |      do_this();
+    return;           |      return;
+  } else {            |    }
+    do_that();        |
+  }                   |    do_that();
+
+and
+
+  if (condition) {    |    if (!condition)
+    do_this();        |      return;
+    do_that();        |
+  }                   |    do_this();
+  return;             |    do_that();
+
+Presumably the old style became repetitive as the result of copy and
+paste.
+
+Link: https://lkml.kernel.org/r/20240711021317.596178-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20240711021317.596178-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   45 ++++++++++++++----
- 1 file changed, 36 insertions(+), 9 deletions(-)
+ mm/swap.c |  209 +++++++++++++++++++++++++++-------------------------
+ 1 file changed, 109 insertions(+), 100 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-add-documentation-for-algorithm-parameters
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -102,15 +102,33 @@ Examples::
- 	#select lzo compression algorithm
- 	echo lzo > /sys/block/zram0/comp_algorithm
+--- a/mm/swap.c~mm-swap-reduce-indentation-level
++++ a/mm/swap.c
+@@ -117,7 +117,9 @@ void __folio_put(struct folio *folio)
+ 	if (unlikely(folio_is_zone_device(folio))) {
+ 		free_zone_device_folio(folio);
+ 		return;
+-	} else if (folio_test_hugetlb(folio)) {
++	}
++
++	if (folio_test_hugetlb(folio)) {
+ 		free_huge_folio(folio);
+ 		return;
+ 	}
+@@ -228,17 +230,19 @@ static void folio_batch_add_and_move(str
+ 	if (folio_batch_add(fbatch, folio) && !folio_test_large(folio) &&
+ 	    !lru_cache_disabled())
+ 		return;
++
+ 	folio_batch_move_lru(fbatch, move_fn);
+ }
  
--For the time being, the `comp_algorithm` content does not necessarily
--show every compression algorithm supported by the kernel. We keep this
--list primarily to simplify device configuration and one can configure
--a new device with a compression algorithm that is not listed in
--`comp_algorithm`. The thing is that, internally, ZRAM uses Crypto API
--and, if some of the algorithms were built as modules, it's impossible
--to list all of them using, for instance, /proc/crypto or any other
--method. This, however, has an advantage of permitting the usage of
--custom crypto compression modules (implementing S/W or H/W compression).
-+For the time being, the `comp_algorithm` content shows only compression
-+algorithms that are supported by zram.
+ static void lru_move_tail_fn(struct lruvec *lruvec, struct folio *folio)
+ {
+-	if (!folio_test_unevictable(folio)) {
+-		lruvec_del_folio(lruvec, folio);
+-		folio_clear_active(folio);
+-		lruvec_add_folio_tail(lruvec, folio);
+-		__count_vm_events(PGROTATED, folio_nr_pages(folio));
+-	}
++	if (folio_test_unevictable(folio))
++		return;
 +
-+It is also possible to pass algorithm specific configuration parameters::
-+
-+	#set compression level to 8
-+	echo "zstd level=8" > /sys/block/zram0/comp_algorithm
-+
-+Note that `comp_algorithm` also supports `algo=name` format::
-+
-+	#set compression level to 8
-+	echo "algo=zstd level=8" > /sys/block/zram0/comp_algorithm
-+
-+Certain compression algorithms support pre-trained dictionaries, which
-+significantly change algorithms' characteristics. In order to configure
-+compression algorithm to use external pre-trained dictionary, pass full
-+path to the dictionary along with other parameters::
-+
-+	#pass path to pre-trained dictionary
-+	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zram0/comp_algorithm
-+
-+Parameters are algorithm specific: not all algorithms support pre-trained
-+dictionaries, not all algorithms support 'level'. Furthermore, for certain
-+algorithms 'level' controls the compression level (the higher the value the
-+better the compression ratio, it even can take negatives values for some
-+algorithms), for other algorithms 'level' is acceleration level (the higher
-+the value the lower the compression ratio).
++	lruvec_del_folio(lruvec, folio);
++	folio_clear_active(folio);
++	lruvec_add_folio_tail(lruvec, folio);
++	__count_vm_events(PGROTATED, folio_nr_pages(folio));
+ }
  
- 4) Set Disksize
- ===============
-@@ -442,6 +460,15 @@ configuration:::
- 	#select deflate recompression algorithm, priority 2
- 	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
+ /*
+@@ -250,22 +254,23 @@ static void lru_move_tail_fn(struct lruv
+  */
+ void folio_rotate_reclaimable(struct folio *folio)
+ {
+-	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
+-	    !folio_test_unevictable(folio)) {
+-		struct folio_batch *fbatch;
+-		unsigned long flags;
++	struct folio_batch *fbatch;
++	unsigned long flags;
  
-+The `recomp_algorithm` also supports algorithm configuration parameters, e.g.
-+compression level and pre-trained dircionary::
-+
-+	#pass compression level
-+	echo "algo=zstd level=8" > /sys/block/zramX/recomp_algorithm
-+
-+	#pass path to pre-trained dictionary
-+	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zramX/recomp_algorithm
-+
- Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
- which controls recompression.
+-		folio_get(folio);
+-		if (!folio_test_clear_lru(folio)) {
+-			folio_put(folio);
+-			return;
+-		}
++	if (folio_test_locked(folio) || folio_test_dirty(folio) ||
++	    folio_test_unevictable(folio))
++		return;
  
+-		local_lock_irqsave(&lru_rotate.lock, flags);
+-		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
+-		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+-		local_unlock_irqrestore(&lru_rotate.lock, flags);
++	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
+ 	}
++
++	local_lock_irqsave(&lru_rotate.lock, flags);
++	fbatch = this_cpu_ptr(&lru_rotate.fbatch);
++	folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
++	local_unlock_irqrestore(&lru_rotate.lock, flags);
+ }
+ 
+ void lru_note_cost(struct lruvec *lruvec, bool file,
+@@ -328,18 +333,19 @@ void lru_note_cost_refault(struct folio
+ 
+ static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
+ {
+-	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+-		long nr_pages = folio_nr_pages(folio);
++	long nr_pages = folio_nr_pages(folio);
+ 
+-		lruvec_del_folio(lruvec, folio);
+-		folio_set_active(folio);
+-		lruvec_add_folio(lruvec, folio);
+-		trace_mm_lru_activate(folio);
++	if (folio_test_active(folio) || folio_test_unevictable(folio))
++		return;
+ 
+-		__count_vm_events(PGACTIVATE, nr_pages);
+-		__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE,
+-				     nr_pages);
+-	}
++
++	lruvec_del_folio(lruvec, folio);
++	folio_set_active(folio);
++	lruvec_add_folio(lruvec, folio);
++	trace_mm_lru_activate(folio);
++
++	__count_vm_events(PGACTIVATE, nr_pages);
++	__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
+ }
+ 
+ #ifdef CONFIG_SMP
+@@ -353,20 +359,21 @@ static void folio_activate_drain(int cpu
+ 
+ void folio_activate(struct folio *folio)
+ {
+-	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
+-		struct folio_batch *fbatch;
++	struct folio_batch *fbatch;
+ 
+-		folio_get(folio);
+-		if (!folio_test_clear_lru(folio)) {
+-			folio_put(folio);
+-			return;
+-		}
++	if (folio_test_active(folio) || folio_test_unevictable(folio))
++		return;
+ 
+-		local_lock(&cpu_fbatches.lock);
+-		fbatch = this_cpu_ptr(&cpu_fbatches.activate);
+-		folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
+-		local_unlock(&cpu_fbatches.lock);
++	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
+ 	}
++
++	local_lock(&cpu_fbatches.lock);
++	fbatch = this_cpu_ptr(&cpu_fbatches.activate);
++	folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
++	local_unlock(&cpu_fbatches.lock);
+ }
+ 
+ #else
+@@ -378,12 +385,13 @@ void folio_activate(struct folio *folio)
+ {
+ 	struct lruvec *lruvec;
+ 
+-	if (folio_test_clear_lru(folio)) {
+-		lruvec = folio_lruvec_lock_irq(folio);
+-		folio_activate_fn(lruvec, folio);
+-		unlock_page_lruvec_irq(lruvec);
+-		folio_set_lru(folio);
+-	}
++	if (!folio_test_clear_lru(folio))
++		return;
++
++	lruvec = folio_lruvec_lock_irq(folio);
++	folio_activate_fn(lruvec, folio);
++	unlock_page_lruvec_irq(lruvec);
++	folio_set_lru(folio);
+ }
+ #endif
+ 
+@@ -610,41 +618,41 @@ static void lru_deactivate_file_fn(struc
+ 
+ static void lru_deactivate_fn(struct lruvec *lruvec, struct folio *folio)
+ {
+-	if (!folio_test_unevictable(folio) && (folio_test_active(folio) || lru_gen_enabled())) {
+-		long nr_pages = folio_nr_pages(folio);
++	long nr_pages = folio_nr_pages(folio);
+ 
+-		lruvec_del_folio(lruvec, folio);
+-		folio_clear_active(folio);
+-		folio_clear_referenced(folio);
+-		lruvec_add_folio(lruvec, folio);
++	if (folio_test_unevictable(folio) || !(folio_test_active(folio) || lru_gen_enabled()))
++		return;
+ 
+-		__count_vm_events(PGDEACTIVATE, nr_pages);
+-		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
+-				     nr_pages);
+-	}
++	lruvec_del_folio(lruvec, folio);
++	folio_clear_active(folio);
++	folio_clear_referenced(folio);
++	lruvec_add_folio(lruvec, folio);
++
++	__count_vm_events(PGDEACTIVATE, nr_pages);
++	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
+ }
+ 
+ static void lru_lazyfree_fn(struct lruvec *lruvec, struct folio *folio)
+ {
+-	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+-		long nr_pages = folio_nr_pages(folio);
++	long nr_pages = folio_nr_pages(folio);
+ 
+-		lruvec_del_folio(lruvec, folio);
+-		folio_clear_active(folio);
+-		folio_clear_referenced(folio);
+-		/*
+-		 * Lazyfree folios are clean anonymous folios.  They have
+-		 * the swapbacked flag cleared, to distinguish them from normal
+-		 * anonymous folios
+-		 */
+-		folio_clear_swapbacked(folio);
+-		lruvec_add_folio(lruvec, folio);
++	if (!folio_test_anon(folio) || !folio_test_swapbacked(folio) ||
++	    folio_test_swapcache(folio) || folio_test_unevictable(folio))
++		return;
+ 
+-		__count_vm_events(PGLAZYFREE, nr_pages);
+-		__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE,
+-				     nr_pages);
+-	}
++	lruvec_del_folio(lruvec, folio);
++	folio_clear_active(folio);
++	folio_clear_referenced(folio);
++	/*
++	 * Lazyfree folios are clean anonymous folios.  They have
++	 * the swapbacked flag cleared, to distinguish them from normal
++	 * anonymous folios
++	 */
++	folio_clear_swapbacked(folio);
++	lruvec_add_folio(lruvec, folio);
++
++	__count_vm_events(PGLAZYFREE, nr_pages);
++	__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
+ }
+ 
+ /*
+@@ -726,21 +734,21 @@ void deactivate_file_folio(struct folio
+  */
+ void folio_deactivate(struct folio *folio)
+ {
+-	if (!folio_test_unevictable(folio) && (folio_test_active(folio) ||
+-	    lru_gen_enabled())) {
+-		struct folio_batch *fbatch;
+-
+-		folio_get(folio);
+-		if (!folio_test_clear_lru(folio)) {
+-			folio_put(folio);
+-			return;
+-		}
++	struct folio_batch *fbatch;
++
++	if (folio_test_unevictable(folio) || !(folio_test_active(folio) || lru_gen_enabled()))
++		return;
+ 
+-		local_lock(&cpu_fbatches.lock);
+-		fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
+-		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+-		local_unlock(&cpu_fbatches.lock);
++	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
+ 	}
++
++	local_lock(&cpu_fbatches.lock);
++	fbatch = this_cpu_ptr(&cpu_fbatches.lru_deactivate);
++	folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
++	local_unlock(&cpu_fbatches.lock);
+ }
+ 
+ /**
+@@ -752,21 +760,22 @@ void folio_deactivate(struct folio *foli
+  */
+ void folio_mark_lazyfree(struct folio *folio)
+ {
+-	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
+-		struct folio_batch *fbatch;
+-
+-		folio_get(folio);
+-		if (!folio_test_clear_lru(folio)) {
+-			folio_put(folio);
+-			return;
+-		}
++	struct folio_batch *fbatch;
+ 
+-		local_lock(&cpu_fbatches.lock);
+-		fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
+-		folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
+-		local_unlock(&cpu_fbatches.lock);
++	if (!folio_test_anon(folio) || !folio_test_swapbacked(folio) ||
++	    folio_test_swapcache(folio) || folio_test_unevictable(folio))
++		return;
++
++	folio_get(folio);
++	if (!folio_test_clear_lru(folio)) {
++		folio_put(folio);
++		return;
+ 	}
++
++	local_lock(&cpu_fbatches.lock);
++	fbatch = this_cpu_ptr(&cpu_fbatches.lru_lazyfree);
++	folio_batch_add_and_move(fbatch, folio, lru_lazyfree_fn);
++	local_unlock(&cpu_fbatches.lock);
+ }
+ 
+ void lru_add_drain(void)
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-lib-zstd-export-api-needed-for-dictionary-support.patch
-lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
-lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch
-zram-introduce-custom-comp-backends-api.patch
-zram-add-lzo-and-lzorle-compression-backends-support.patch
-zram-add-lz4-compression-backend-support.patch
-zram-add-lz4hc-compression-backend-support.patch
-zram-add-zstd-compression-backend-support.patch
-zram-pass-estimated-src-size-hint-to-zstd.patch
-zram-add-zlib-compression-backend-support.patch
-zram-add-842-compression-backend-support.patch
-zram-check-that-backends-array-has-at-least-one-backend.patch
-zram-introduce-zcomp_params-structure.patch
-zram-recalculate-zstd-compression-params-once.patch
-zram-extend-comp_algorithm-attr-write-handling.patch
-zram-add-support-for-dict-comp-config.patch
-zram-introduce-zcomp_req-structure.patch
-zram-introduce-zcomp_ctx-structure.patch
-zram-move-immutable-comp-params-away-from-per-cpu-context.patch
-zram-add-dictionary-support-to-lz4.patch
-zram-add-dictionary-support-to-lz4hc.patch
-zram-add-dictionary-support-to-zstd-backend.patch
-documentation-zram-add-documentation-for-algorithm-parameters.patch
+mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
+mm-swap-reduce-indentation-level.patch
+mm-swap-rename-cpu_fbatches-activate.patch
+mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
+mm-swap-remove-remaining-_fn-suffix.patch
+mm-swap-remove-boilerplate.patch
 
