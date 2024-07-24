@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE18F2F52
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 00:38:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55F423B1
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 01:32:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721781521; cv=none; b=mEDTpBerFEiD7mBl7QUGwtW31EtTr80yqjdwWV/olkJ6I6VeRXxr8xu0YYtJ5GS0cmtNxQOhL3zB/Gw7H+AmlErcx6Dj841mzShl/WsFKslatxxCkAjmmVhPu/MsDRUG7Iutg5kFaxVQbiJsBH6oxTLIOPj6FkRomLtcgkKI+oM=
+	t=1721784760; cv=none; b=jVLkCdjpFevujyjAhv+LMQhnTBpJbQ7CFeYO2H59jYZXlaosmVzvRJvo2QPXEa2FwbNonVIOK1+HCcaZj5s33chMBSyNLPe1rsezEH1Dy+fLX7BhxmiDG/JjnGtYx+SX1Z17nVC6avGt9PbmFNIO/MrN1+a66cqte+0NYZIt4QA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721781521; c=relaxed/simple;
-	bh=MZsC9M7sIzFj5xU8L95zxDj6LtI3phcGmcaqJzidTAo=;
-	h=Date:To:From:Subject:Message-Id; b=rrh5l5VWaMSHFp1SdAgb9WgLAJ9aOYGxxnU4PqeQHF2JdAeOcbPgmndEgQSf9dyviYp3oD4T6wBSlIE4dRPdKfv141N/SdEEHG0U4YipmttXsCH2PJnG3lsDngHkFgfgo/MMGzQ9zDBK+8hyPbSVrYIXXhPcce+SKxdWAJr6wVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k54H97OX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721784760; c=relaxed/simple;
+	bh=ZPBDlJ2huDmGf+FhlgSwcNrV75gJg/LkCSg9Sz1FGVY=;
+	h=Date:To:From:Subject:Message-Id; b=pr+3vaqcat61rqF8mfBgVpE33u1dH6iadg5anZsPaBfA+WCdWx626BVplHxtT6XRPguU/wGUFjIFkCkDe9W15nOU6nNr4uyY80jD8HPNac8KdSPv0KYEjHmfY+uBYa8gUUlLXsI6zKiq92mtD/usUgwVgCnfUZFHQgixkVcOZ1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xm5i0qu8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k54H97OX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 323B7C4AF09;
-	Wed, 24 Jul 2024 00:38:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xm5i0qu8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32342C4AF0A;
+	Wed, 24 Jul 2024 01:32:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721781521;
-	bh=MZsC9M7sIzFj5xU8L95zxDj6LtI3phcGmcaqJzidTAo=;
+	s=korg; t=1721784760;
+	bh=ZPBDlJ2huDmGf+FhlgSwcNrV75gJg/LkCSg9Sz1FGVY=;
 	h=Date:To:From:Subject:From;
-	b=k54H97OX5aP7mpESWnfZ0JKQT1GAMBMQ+ixEzUaKTpjevqCuvdR9C2d7zq5Y1hR5Y
-	 icnq+gD50JPL6PLQM3AWdRhC3D4wqBPqpBtNLWQbzw7iI6DlxIWmuz1x8/dSSnrg2X
-	 l5/qlLCfXSq5yMNq74dqE3HE8gVogo5JgPJfbcdk=
-Date: Tue, 23 Jul 2024 17:38:40 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=Xm5i0qu89VYZTPQpDlJoQ2/5zasW8sAEN5nRCb+EXg9kwruwXV1J2ubPva32BYrZd
+	 svljG0CFGEY5eSXXJ451Nx/aAengp4tlyE3K9h0X/a++riqb+ip/lkg5UTJ6JJgpa8
+	 WXAVm1Ty6rWuM1kl0mWoU467GAYzZG/P3q0kylS0=
+Date: Tue, 23 Jul 2024 18:32:38 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-remove-mem_cgroup_from_obj.patch added to mm-unstable branch
-Message-Id: <20240724003841.323B7C4AF09@smtp.kernel.org>
+Subject: + mm-memcg-cg2-memoryswappeak-write-tests.patch added to mm-unstable branch
+Message-Id: <20240724013240.32342C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmem: remove mem_cgroup_from_obj()
+     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-remove-mem_cgroup_from_obj.patch
+     mm-memcg-cg2-memoryswappeak-write-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-remove-mem_cgroup_from_obj.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,91 +58,395 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: kmem: remove mem_cgroup_from_obj()
-Date: Thu, 18 Jul 2024 17:18:21 +0800
+From: David Finkel <davidf@vimeo.com>
+Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
+Date: Tue, 23 Jul 2024 19:31:49 -0400
 
-There is no user of mem_cgroup_from_obj(), remove it.
+Extend two existing tests to cover extracting memory usage through the
+newly mutable memory.peak and memory.swap.peak handlers.
 
-Link: https://lkml.kernel.org/r/20240718091821.44740-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+In particular, make sure to exercise adding and removing watchers with
+overlapping lifetimes so the less-trivial logic gets tested.
+
+Link: https://lkml.kernel.org/r/20240723233149.3226636-3-davidf@vimeo.com
+Signed-off-by: David Finkel <davidf@vimeo.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ------
- mm/memcontrol.c            |   32 +-------------------------------
- 2 files changed, 1 insertion(+), 37 deletions(-)
+ tools/testing/selftests/cgroup/cgroup_util.c     |   22 +
+ tools/testing/selftests/cgroup/cgroup_util.h     |    2 
+ tools/testing/selftests/cgroup/test_memcontrol.c |  226 ++++++++++++-
+ 3 files changed, 242 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-remove-mem_cgroup_from_obj
-+++ a/include/linux/memcontrol.h
-@@ -1717,7 +1717,6 @@ static inline int memcg_kmem_id(struct m
- 	return memcg ? memcg->kmemcg_id : -1;
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -141,6 +141,16 @@ long cg_read_long(const char *cgroup, co
+ 	return atol(buf);
  }
  
--struct mem_cgroup *mem_cgroup_from_obj(void *p);
- struct mem_cgroup *mem_cgroup_from_slab_obj(void *p);
- 
- static inline void count_objcg_event(struct obj_cgroup *objcg,
-@@ -1780,11 +1779,6 @@ static inline int memcg_kmem_id(struct m
- 	return -1;
- }
- 
--static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
--{
--	return NULL;
--}
--
- static inline struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
++long cg_read_long_fd(int fd)
++{
++	char buf[128];
++
++	if (pread(fd, buf, sizeof(buf), 0) <= 0)
++		return -1;
++
++	return atol(buf);
++}
++
+ long cg_read_key_long(const char *cgroup, const char *control, const char *key)
  {
- 	return NULL;
---- a/mm/memcontrol.c~mm-kmem-remove-mem_cgroup_from_obj
-+++ a/mm/memcontrol.c
-@@ -2446,37 +2446,7 @@ struct mem_cgroup *mem_cgroup_from_obj_f
+ 	char buf[PAGE_SIZE];
+@@ -183,6 +193,18 @@ int cg_write(const char *cgroup, const c
+ 	return ret == len ? 0 : ret;
+ }
+ 
++/*
++ * Returns fd on success, or -1 on failure.
++ * (fd should be closed with close() as usual)
++ */
++int cg_open(const char *cgroup, const char *control, int flags)
++{
++	char path[PATH_MAX];
++
++	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
++	return open(path, flags);
++}
++
+ int cg_write_numeric(const char *cgroup, const char *control, long value)
+ {
+ 	char buf[64];
+--- a/tools/testing/selftests/cgroup/cgroup_util.h~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/cgroup_util.h
+@@ -34,9 +34,11 @@ extern int cg_read_strcmp(const char *cg
+ extern int cg_read_strstr(const char *cgroup, const char *control,
+ 			  const char *needle);
+ extern long cg_read_long(const char *cgroup, const char *control);
++extern long cg_read_long_fd(int fd);
+ long cg_read_key_long(const char *cgroup, const char *control, const char *key);
+ extern long cg_read_lc(const char *cgroup, const char *control);
+ extern int cg_write(const char *cgroup, const char *control, char *buf);
++extern int cg_open(const char *cgroup, const char *control, int flags);
+ int cg_write_numeric(const char *cgroup, const char *control, long value);
+ extern int cg_run(const char *cgroup,
+ 		  int (*fn)(const char *cgroup, void *arg),
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -161,12 +161,12 @@ cleanup:
+ /*
+  * This test create a memory cgroup, allocates
+  * some anonymous memory and some pagecache
+- * and check memory.current and some memory.stat values.
++ * and checks memory.current, memory.peak, and some memory.stat values.
+  */
+-static int test_memcg_current(const char *root)
++static int test_memcg_current_peak(const char *root)
+ {
+ 	int ret = KSFT_FAIL;
+-	long current;
++	long current, peak, peak_reset;
+ 	char *memcg;
+ 
+ 	memcg = cg_name(root, "memcg_test");
+@@ -180,15 +180,108 @@ static int test_memcg_current(const char
+ 	if (current != 0)
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak != 0)
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_anon_50M_check, NULL))
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
++
++	/*
++	 * We'll open a few FDs for the same memory.peak file to exercise the free-path
++	 * We need at least three to be closed in a different order than writes occurred to test
++	 * the linked-list handling.
++	 */
++	int peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd == -1)
++		goto cleanup;
++
++	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
++	int peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd2 == -1)
++		goto cleanup;
++
++	int peak_fd3 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd3 == -1)
++		goto cleanup;
++
++	static const char reset_string[] = "reset\n";
++
++	peak_reset = write(peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(peak_fd2, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(peak_fd3, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	/* Make sure a completely independent read isn't affected by our  FD-local reset above*/
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
++
++	fd2_closed = true;
++	if (close(peak_fd2))
++		goto cleanup;
++
++	int peak_fd4 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd4 == -1)
++		goto cleanup;
++
++	peak_reset = write(peak_fd4, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak = cg_read_long_fd(peak_fd);
++	if (peak > MB(30) || peak < 0)
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_pagecache_50M_check, NULL))
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
++
++	/* Make sure everything is back to normal */
++	peak = cg_read_long_fd(peak_fd);
++	if (peak < MB(50))
++		goto cleanup;
++
++	peak = cg_read_long_fd(peak_fd4);
++	if (peak < MB(50))
++		goto cleanup;
++
++	fd3_closed = true;
++	if (close(peak_fd3))
++		goto cleanup;
++
++	fd4_closed = true;
++	if (close(peak_fd4))
++		goto cleanup;
++
+ 	ret = KSFT_PASS;
+ 
+ cleanup:
++	close(peak_fd);
++	if (!fd2_closed)
++		close(peak_fd2);
++	if (!fd3_closed)
++		close(peak_fd3);
++	if (!fd4_closed)
++		close(peak_fd4);
+ 	cg_destroy(memcg);
+ 	free(memcg);
+ 
+@@ -817,13 +910,16 @@ cleanup:
  
  /*
-  * Returns a pointer to the memory cgroup to which the kernel object is charged.
-- *
-- * A passed kernel object can be a slab object, vmalloc object or a generic
-- * kernel page, so different mechanisms for getting the memory cgroup pointer
-- * should be used.
-- *
-- * In certain cases (e.g. kernel stacks or large kmallocs with SLUB) the caller
-- * can not know for sure how the kernel object is implemented.
-- * mem_cgroup_from_obj() can be safely used in such cases.
-- *
-- * The caller must ensure the memcg lifetime, e.g. by taking rcu_read_lock(),
-- * cgroup_mutex, etc.
-- */
--struct mem_cgroup *mem_cgroup_from_obj(void *p)
--{
--	struct folio *folio;
--
--	if (mem_cgroup_disabled())
--		return NULL;
--
--	if (unlikely(is_vmalloc_addr(p)))
--		folio = page_folio(vmalloc_to_page(p));
--	else
--		folio = virt_to_folio(p);
--
--	return mem_cgroup_from_obj_folio(folio, p);
--}
--
--/*
-- * Returns a pointer to the memory cgroup to which the kernel object is charged.
-- * Similar to mem_cgroup_from_obj(), but faster and not suitable for objects,
-- * allocated using vmalloc().
-+ * It is not suitable for objects allocated using vmalloc().
-  *
-  * A passed kernel object must be a slab object or a generic kernel page.
-  *
+  * This test checks that memory.swap.max limits the amount of
+- * anonymous memory which can be swapped out.
++ * anonymous memory which can be swapped out. Additionally, it verifies that
++ * memory.swap.peak reflects the high watermark and can be reset.
+  */
+-static int test_memcg_swap_max(const char *root)
++static int test_memcg_swap_max_peak(const char *root)
+ {
+ 	int ret = KSFT_FAIL;
+ 	char *memcg;
+-	long max;
++	long max, peak;
++
++	static const char reset_string[] = "reset\n";
+ 
+ 	if (!is_swap_enabled())
+ 		return KSFT_SKIP;
+@@ -840,6 +936,45 @@ static int test_memcg_swap_max(const cha
+ 		goto cleanup;
+ 	}
+ 
++	int swap_peak_fd = cg_open(memcg, "memory.swap.peak",
++				   O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (swap_peak_fd == -1)
++		goto cleanup;
++
++	int mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (mem_peak_fd == -1)
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.swap.peak"))
++		goto cleanup;
++
++	if (cg_read_long_fd(swap_peak_fd))
++		goto cleanup;
++
++	/* switch the swap and mem fds into local-peak tracking mode*/
++	int peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
++
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	if (cg_read_long_fd(swap_peak_fd))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.peak"))
++		goto cleanup;
++
++	if (cg_read_long_fd(mem_peak_fd))
++		goto cleanup;
++
++	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	if (cg_read_long_fd(mem_peak_fd))
++		goto cleanup;
++
+ 	if (cg_read_strcmp(memcg, "memory.max", "max\n"))
+ 		goto cleanup;
+ 
+@@ -862,6 +997,61 @@ static int test_memcg_swap_max(const cha
+ 	if (cg_read_key_long(memcg, "memory.events", "oom_kill ") != 1)
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long(memcg, "memory.swap.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	/*
++	 * open, reset and close the peak swap on another FD to make sure
++	 * multiple extant fds don't corrupt the linked-list
++	 */
++	peak_reset = cg_write(memcg, "memory.swap.peak", (char *)reset_string);
++	if (peak_reset)
++		goto cleanup;
++
++	peak_reset = cg_write(memcg, "memory.peak", (char *)reset_string);
++	if (peak_reset)
++		goto cleanup;
++
++	/* actually reset on the fds */
++	peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak > MB(10))
++		goto cleanup;
++
++	/*
++	 * The cgroup is now empty, but there may be a page or two associated
++	 * with the open FD accounted to it.
++	 */
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak > MB(1))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.peak") < MB(29))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.swap.peak") < MB(29))
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_anon_50M_check_swap, (void *)MB(30)))
+ 		goto cleanup;
+ 
+@@ -869,9 +1059,29 @@ static int test_memcg_swap_max(const cha
+ 	if (max <= 0)
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long(memcg, "memory.swap.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak < MB(19))
++		goto cleanup;
++
+ 	ret = KSFT_PASS;
+ 
+ cleanup:
++	if (close(mem_peak_fd))
++		ret = KSFT_FAIL;
++	if (close(swap_peak_fd))
++		ret = KSFT_FAIL;
+ 	cg_destroy(memcg);
+ 	free(memcg);
+ 
+@@ -1295,7 +1505,7 @@ struct memcg_test {
+ 	const char *name;
+ } tests[] = {
+ 	T(test_memcg_subtree_control),
+-	T(test_memcg_current),
++	T(test_memcg_current_peak),
+ 	T(test_memcg_min),
+ 	T(test_memcg_low),
+ 	T(test_memcg_high),
+@@ -1303,7 +1513,7 @@ struct memcg_test {
+ 	T(test_memcg_max),
+ 	T(test_memcg_reclaim),
+ 	T(test_memcg_oom_events),
+-	T(test_memcg_swap_max),
++	T(test_memcg_swap_max_peak),
+ 	T(test_memcg_sock),
+ 	T(test_memcg_oom_group_leaf_events),
+ 	T(test_memcg_oom_group_parent_events),
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from davidf@vimeo.com are
 
-mm-kmem-remove-mem_cgroup_from_obj.patch
+mm-memcg-cg2-memoryswappeak-write-handlers.patch
+mm-memcg-cg2-memoryswappeak-write-tests.patch
 
