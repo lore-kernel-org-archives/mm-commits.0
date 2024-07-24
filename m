@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8BA613D
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D305E15EFB7
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721849175; cv=none; b=XOSBADvoeC/BtCGA4erBG2Y5BY2dutWm0wa5epOg2ucnEdXka1FMdJQo+oOBZXEFRgJsICMKQUiImV/bLAdNgXBaWm0Flx+iYhHl7ULCeXo/BBO43NCXh9kZ6H77jxo4+CDHGG8qGPoUPwVaGPIV2DravjIEBC1N8BXT/LhyVWE=
+	t=1721849180; cv=none; b=To57YRD94w7dyw5J4eqz7/OQujWW+WAaYSJAYMLx43IOv2DSDNezTjweSpOF1/RD97NehpHa+WooYtVnizuBrimAIhTYJO1Nh5xUgN2nlOThiNKEwcV+NoL5TAY19+3wzZOShhSO2k4zsFA+D0PDTPbWzhHgT/coyngipCY0qKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721849175; c=relaxed/simple;
-	bh=RArjNjH4r+TnjKvkzAMJly3AyVLQsNkQD0Yt5CKUzbg=;
-	h=Date:To:From:Subject:Message-Id; b=Db6jI8tjd59tf2RYz/mQ/s6xh4tCct3wcFprQIA0J5xxzHCC055k/K/v7d5SVNhxFtOImK+3Tm22bKZmPp1lCRQAe4RhpbfYP0J21n+sFgbPVbNRcUogTy1BCIG2XTHUaIib4QZPUsQYug/K2mMPpWHfyr4+ZtZhw97gpp5qaSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=viN5skhD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721849180; c=relaxed/simple;
+	bh=PVu3cgwheqSjQLxC1yb9Q8UmpJ/HnQqCzW6aVbSnTkc=;
+	h=Date:To:From:Subject:Message-Id; b=GTe8iiqVQMuIQx2r6Z6o01HjUhL9WbjR33pfQgL0bsbVlhArOS0yMg6vTVp+5johJG2SkfXpSLOOnV1VkU5JtfIvpsF3XFv2f8M+69hTw57Ht3g8RX58EjpeXttHKkinJYOTflSurl5BuYTXvfQVelvsVRiqbz6+lO1/uv05q2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TLOZNFto; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="viN5skhD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8790EC32781;
-	Wed, 24 Jul 2024 19:26:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TLOZNFto"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1278C32781;
+	Wed, 24 Jul 2024 19:26:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721849175;
-	bh=RArjNjH4r+TnjKvkzAMJly3AyVLQsNkQD0Yt5CKUzbg=;
+	s=korg; t=1721849180;
+	bh=PVu3cgwheqSjQLxC1yb9Q8UmpJ/HnQqCzW6aVbSnTkc=;
 	h=Date:To:From:Subject:From;
-	b=viN5skhDUk/vzOJ5W9FpB+E3TT30E2y0L8CDXClwZlyr+LxkN4LvX0I8XYRX+uYkl
-	 hIm3skyrQtVZGRQSn7orPWxR2onE85oevvwMXu3YPas1ygz06skq2nxV5tgY0WfdPw
-	 6NlrgFeJuhYbFJELC9JpzQnKb5M2oWba2zL7qC4A=
-Date: Wed, 24 Jul 2024 12:26:14 -0700
+	b=TLOZNFtoNPFEkjuEE8w+Xr/0ff1Qlp146kang38u2gPHeDq+BGjlE5RoOv3VmgRjV
+	 +5ThA7uOD9yBtYv2dn6Kw+vvwIvok/W3noy3DRF6DqhqmiuwgMIxBI+e+LrpHIjHS9
+	 oOW9GKhh28wWOKoXdlRHwow6PRTyiXVxGiB6/Wos=
+Date: Wed, 24 Jul 2024 12:26:20 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,nphamcs@gmail.com,ngupta@vflare.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-lzo-and-lzorle-compression-backends-support.patch added to mm-unstable branch
-Message-Id: <20240724192615.8790EC32781@smtp.kernel.org>
+Subject: + zram-add-lz4-compression-backend-support.patch added to mm-unstable branch
+Message-Id: <20240724192620.A1278C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add lzo and lzorle compression backends support
+     Subject: zram: add lz4 compression backend support
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-lzo-and-lzorle-compression-backends-support.patch
+     zram-add-lz4-compression-backend-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-lzo-and-lzorle-compression-backends-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-lz4-compression-backend-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add lzo and lzorle compression backends support
-Date: Fri, 12 Jul 2024 14:18:16 +0900
+Subject: zram: add lz4 compression backend support
+Date: Fri, 12 Jul 2024 14:18:17 +0900
 
-Add s/w lzo/lzorle compression support.
+Add s/w lz4 compression support.
 
-Link: https://lkml.kernel.org/r/20240712051850.484318-6-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240712051850.484318-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -73,191 +73,158 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig          |   23 +++++++++++++
- drivers/block/zram/Makefile         |    3 +
- drivers/block/zram/backend_lzo.c    |   43 +++++++++++++++++++++++++
- drivers/block/zram/backend_lzo.h    |   10 +++++
- drivers/block/zram/backend_lzorle.c |   44 ++++++++++++++++++++++++++
- drivers/block/zram/backend_lzorle.h |   10 +++++
- drivers/block/zram/zcomp.c          |    7 ++++
- 7 files changed, 140 insertions(+)
+ drivers/block/zram/Kconfig       |   11 ++++
+ drivers/block/zram/Makefile      |    1 
+ drivers/block/zram/backend_lz4.c |   72 +++++++++++++++++++++++++++++
+ drivers/block/zram/backend_lz4.h |   10 ++++
+ drivers/block/zram/zcomp.c       |    4 +
+ 5 files changed, 98 insertions(+)
 
 --- /dev/null
-+++ a/drivers/block/zram/backend_lzo.c
-@@ -0,0 +1,43 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
++++ a/drivers/block/zram/backend_lz4.c
+@@ -0,0 +1,72 @@
 +#include <linux/kernel.h>
++#include <linux/lz4.h>
 +#include <linux/slab.h>
-+#include <linux/lzo.h>
++#include <linux/vmalloc.h>
 +
-+#include "backend_lzo.h"
++#include "backend_lz4.h"
 +
-+static void *lzo_create(void)
++struct lz4_ctx {
++	void *mem;
++	s32 level;
++};
++
++static void lz4_destroy(void *ctx)
 +{
-+	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
++	struct lz4_ctx *zctx = ctx;
++
++	vfree(zctx->mem);
++	kfree(zctx);
 +}
 +
-+static void lzo_destroy(void *ctx)
++static void *lz4_create(void)
 +{
-+	kfree(ctx);
++	struct lz4_ctx *ctx;
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return NULL;
++
++	/* @FIXME: using a hardcoded LZ4_ACCELERATION_DEFAULT for now */
++	ctx->level = LZ4_ACCELERATION_DEFAULT;
++	ctx->mem = vmalloc(LZ4_MEM_COMPRESS);
++	if (!ctx->mem)
++		goto error;
++
++	return ctx;
++error:
++	lz4_destroy(ctx);
++	return NULL;
 +}
 +
-+static int lzo_compress(void *ctx, const unsigned char *src, size_t src_len,
++static int lz4_compress(void *ctx, const unsigned char *src, size_t src_len,
 +			unsigned char *dst, size_t *dst_len)
 +{
++	struct lz4_ctx *zctx = ctx;
 +	int ret;
 +
-+	ret = lzo1x_1_compress(src, src_len, dst, dst_len, ctx);
-+	return ret == LZO_E_OK ? 0 : ret;
++	ret = LZ4_compress_fast(src, dst, src_len, *dst_len,
++				zctx->level, zctx->mem);
++	if (!ret)
++		return -EINVAL;
++	*dst_len = ret;
++	return 0;
 +}
 +
-+static int lzo_decompress(void *ctx, const unsigned char *src, size_t src_len,
-+			  unsigned char *dst, size_t dst_len)
++static int lz4_decompress(void *ctx, const unsigned char *src,
++			  size_t src_len, unsigned char *dst, size_t dst_len)
 +{
 +	int ret;
 +
-+	ret = lzo1x_decompress_safe(src, src_len, dst, &dst_len);
-+	return ret == LZO_E_OK ? 0 : ret;
++	ret = LZ4_decompress_safe(src, dst, src_len, dst_len);
++	if (ret < 0)
++		return -EINVAL;
++	return 0;
 +}
 +
-+const struct zcomp_ops backend_lzo = {
-+	.compress	= lzo_compress,
-+	.decompress	= lzo_decompress,
-+	.create_ctx	= lzo_create,
-+	.destroy_ctx	= lzo_destroy,
-+	.name		= "lzo",
++const struct zcomp_ops backend_lz4 = {
++	.compress	= lz4_compress,
++	.decompress	= lz4_decompress,
++	.create_ctx	= lz4_create,
++	.destroy_ctx	= lz4_destroy,
++	.name		= "lz4",
 +};
 --- /dev/null
-+++ a/drivers/block/zram/backend_lzo.h
++++ a/drivers/block/zram/backend_lz4.h
 @@ -0,0 +1,10 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +
-+#ifndef __BACKEND_LZO_H__
-+#define __BACKEND_LZO_H__
++#ifndef __BACKEND_LZ4_H__
++#define __BACKEND_LZ4_H__
 +
 +#include "zcomp.h"
 +
-+extern const struct zcomp_ops backend_lzo;
++extern const struct zcomp_ops backend_lz4;
 +
-+#endif /* __BACKEND_LZO_H__ */
---- /dev/null
-+++ a/drivers/block/zram/backend_lzorle.c
-@@ -0,0 +1,44 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/lzo.h>
-+
-+#include "backend_lzorle.h"
-+
-+static void *lzorle_create(void)
-+{
-+	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
-+}
-+
-+static void lzorle_destroy(void *ctx)
-+{
-+	kfree(ctx);
-+}
-+
-+static int lzorle_compress(void *ctx, const unsigned char *src, size_t src_len,
-+			   unsigned char *dst, size_t *dst_len)
-+{
-+	int ret;
-+
-+	ret = lzorle1x_1_compress(src, src_len, dst, dst_len, ctx);
-+	return ret == LZO_E_OK ? 0 : ret;
-+}
-+
-+static int lzorle_decompress(void *ctx, const unsigned char *src,
-+			     size_t src_len, unsigned char *dst,
-+			     size_t dst_len)
-+{
-+	int ret;
-+
-+	ret = lzo1x_decompress_safe(src, src_len, dst, &dst_len);
-+	return ret == LZO_E_OK ? 0 : ret;
-+}
-+
-+const struct zcomp_ops backend_lzorle = {
-+	.compress	= lzorle_compress,
-+	.decompress	= lzorle_decompress,
-+	.create_ctx	= lzorle_create,
-+	.destroy_ctx	= lzorle_destroy,
-+	.name		= "lzo-rle",
-+};
---- /dev/null
-+++ a/drivers/block/zram/backend_lzorle.h
-@@ -0,0 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#ifndef __BACKEND_LZORLE_H__
-+#define __BACKEND_LZORLE_H__
-+
-+#include "zcomp.h"
-+
-+extern const struct zcomp_ops backend_lzorle;
-+
-+#endif /* __BACKEND_LZORLE_H__ */
---- a/drivers/block/zram/Kconfig~zram-add-lzo-and-lzorle-compression-backends-support
++#endif /* __BACKEND_LZ4_H__ */
+--- a/drivers/block/zram/Kconfig~zram-add-lz4-compression-backend-support
 +++ a/drivers/block/zram/Kconfig
-@@ -15,8 +15,31 @@ config ZRAM
+@@ -21,6 +21,12 @@ config ZRAM_BACKEND_LZO
+ 	select LZO_COMPRESS
+ 	select LZO_DECOMPRESS
  
- 	  See Documentation/admin-guide/blockdev/zram.rst for more information.
++config ZRAM_BACKEND_LZ4
++	bool "lz4 compression support"
++	depends on ZRAM
++	select LZ4_COMPRESS
++	select LZ4_DECOMPRESS
++
+ choice
+ 	prompt "Default zram compressor"
+ 	default ZRAM_DEF_COMP_LZORLE
+@@ -34,12 +40,17 @@ config ZRAM_DEF_COMP_LZO
+ 	bool "lzo"
+ 	depends on ZRAM_BACKEND_LZO
  
-+config ZRAM_BACKEND_LZO
-+	bool "lzo and lzo-rle compression support"
-+	depends on ZRAM
-+	select LZO_COMPRESS
-+	select LZO_DECOMPRESS
++config ZRAM_DEF_COMP_LZ4
++	bool "lz4"
++	depends on ZRAM_BACKEND_LZ4
 +
-+choice
-+	prompt "Default zram compressor"
-+	default ZRAM_DEF_COMP_LZORLE
-+	depends on ZRAM
-+
-+config ZRAM_DEF_COMP_LZORLE
-+	bool "lzo-rle"
-+	depends on ZRAM_BACKEND_LZO
-+
-+config ZRAM_DEF_COMP_LZO
-+	bool "lzo"
-+	depends on ZRAM_BACKEND_LZO
-+
-+endchoice
-+
+ endchoice
+ 
  config ZRAM_DEF_COMP
  	string
-+	default "lzo-rle" if ZRAM_DEF_COMP_LZORLE
-+	default "lzo" if ZRAM_DEF_COMP_LZO
+ 	default "lzo-rle" if ZRAM_DEF_COMP_LZORLE
+ 	default "lzo" if ZRAM_DEF_COMP_LZO
++	default "lz4" if ZRAM_DEF_COMP_LZ4
  	default "unset-value"
  
  config ZRAM_WRITEBACK
---- a/drivers/block/zram/Makefile~zram-add-lzo-and-lzorle-compression-backends-support
+--- a/drivers/block/zram/Makefile~zram-add-lz4-compression-backend-support
 +++ a/drivers/block/zram/Makefile
-@@ -1,4 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0-only
-+
+@@ -3,5 +3,6 @@
  zram-y	:=	zcomp.o zram_drv.o
  
-+zram-$(CONFIG_ZRAM_BACKEND_LZO)	+= backend_lzorle.o backend_lzo.o
-+
+ zram-$(CONFIG_ZRAM_BACKEND_LZO)	+= backend_lzorle.o backend_lzo.o
++zram-$(CONFIG_ZRAM_BACKEND_LZ4)	+= backend_lz4.o
+ 
  obj-$(CONFIG_ZRAM)	+=	zram.o
---- a/drivers/block/zram/zcomp.c~zram-add-lzo-and-lzorle-compression-backends-support
+--- a/drivers/block/zram/zcomp.c~zram-add-lz4-compression-backend-support
 +++ a/drivers/block/zram/zcomp.c
-@@ -12,7 +12,14 @@
+@@ -14,12 +14,16 @@
  
- #include "zcomp.h"
+ #include "backend_lzo.h"
+ #include "backend_lzorle.h"
++#include "backend_lz4.h"
  
-+#include "backend_lzo.h"
-+#include "backend_lzorle.h"
-+
  static const struct zcomp_ops *backends[] = {
-+#if IS_ENABLED(CONFIG_ZRAM_BACKEND_LZO)
-+	&backend_lzorle,
-+	&backend_lzo,
+ #if IS_ENABLED(CONFIG_ZRAM_BACKEND_LZO)
+ 	&backend_lzorle,
+ 	&backend_lzo,
+ #endif
++#if IS_ENABLED(CONFIG_ZRAM_BACKEND_LZ4)
++	&backend_lz4,
 +#endif
  	NULL
  };
