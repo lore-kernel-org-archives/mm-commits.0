@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CF9613D
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32873613D
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721849209; cv=none; b=MV8xY4tZebwV0Cqr01JTnbIrXKLedgZRtJOA53Qecq65+qfwcZyni1PMYEHNoDDZjIGCwkmDePBl8h9mvysCltAi2b6hvQ80AWrMQMs9+0q2kRRmea8EwNRt69UEsz4pGwSa4rulz1+CkY9eyISxilMWi2Ch1MsO/50wSbD7JGM=
+	t=1721849211; cv=none; b=GNXWeN2LpWd5WlmgV5kRlTmxac/v672UvgrfxeaT7Zw8K1eJTLWIr01Fy2CT8on2qzRj4XGhKrBJnF/nu57eWf9HgtOfNYrCKATvTvxLrjwV6M3YI4+EPc7aHOvsQg3jYgLy+WOROLDFpoYGDBNs2Usm0OYFAmkMmXHFkdMiW8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721849209; c=relaxed/simple;
-	bh=WMJ/CeQjuV8fMnB3Twyo3OWDoIMYeOrbp2wWvCMj7Hw=;
-	h=Date:To:From:Subject:Message-Id; b=RnqZF0UCp8brXx+fDHq3zwic6SMaAUrplh41TXzmf9BRrourUWEhP77F9ymhxi2okHo4v0gYnde9np64JaVtd3spqML7BBgZUFyS3+wQNF3oXra/kHk3/f+d2ZeiyC6+sjvRN+917zdAKEzqH5rowCs6+guj0DhrrQrhcG//+8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d7/o0sXT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721849211; c=relaxed/simple;
+	bh=zMZLNvc1uI5JWic5N9pJmVtVzfzvIFBRJ0++c2cuKro=;
+	h=Date:To:From:Subject:Message-Id; b=BD94ca5SKaskTG9wsMjE2wQMA9cv2sRD3km7WLyExQP0HvuD4LlZyRLIG4hSP/ShLZm00eGDZVsGkTqpc6usPTcs30Oe3+/pKs9nsEUEMZM6WBmjQ+eeFTnzUus8csS1k149145ul+8P1+tHSRwARciNtD6vhbNwoJThtARd484=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L6EQXYrX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d7/o0sXT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2616DC32781;
-	Wed, 24 Jul 2024 19:26:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L6EQXYrX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07AF3C32781;
+	Wed, 24 Jul 2024 19:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721849209;
-	bh=WMJ/CeQjuV8fMnB3Twyo3OWDoIMYeOrbp2wWvCMj7Hw=;
+	s=korg; t=1721849211;
+	bh=zMZLNvc1uI5JWic5N9pJmVtVzfzvIFBRJ0++c2cuKro=;
 	h=Date:To:From:Subject:From;
-	b=d7/o0sXTKDLIEPrghEgp+e7DsTRUzZBkWoHVALQNb2nKJekkwV9VRI1aSLjzfuAiq
-	 fPbrazu0wYB6v7TuYiGoDyy3TJnLN0/U0OO8zNDMU8Wobj7XNWjvSfIMrkBOZpGbUZ
-	 odTP0vJXZzD9L4Up6Pe+d0781vD4ixcD6e27V6c0=
-Date: Wed, 24 Jul 2024 12:26:48 -0700
+	b=L6EQXYrX18sCtlQv2lZ7pQse3jnn8i8jFw1MMmU/6tUAPixmDxIaFwmJYihFH8rcu
+	 19YWC4ukJvoTet+JbjNiVrXU0NQPvssuCWsQBb9C2ReqWVWGO4CWrSuZLvlXhQi4j8
+	 ZQJXwsS1jV7rFUkEuiP9zRF9hjd25VJa9YM/zffs=
+Date: Wed, 24 Jul 2024 12:26:50 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,nphamcs@gmail.com,ngupta@vflare.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-recalculate-zstd-compression-params-once.patch added to mm-unstable branch
-Message-Id: <20240724192649.2616DC32781@smtp.kernel.org>
+Subject: + zram-extend-comp_algorithm-attr-write-handling.patch added to mm-unstable branch
+Message-Id: <20240724192651.07AF3C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: recalculate zstd compression params once
+     Subject: zram: extend comp_algorithm attr write handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-recalculate-zstd-compression-params-once.patch
+     zram-extend-comp_algorithm-attr-write-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-recalculate-zstd-compression-params-once.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-extend-comp_algorithm-attr-write-handling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: recalculate zstd compression params once
-Date: Fri, 12 Jul 2024 14:18:25 +0900
+Subject: zram: extend comp_algorithm attr write handling
+Date: Fri, 12 Jul 2024 14:18:26 +0900
 
-zstd compression params depends on level, but are constant
-for a given instance of zstd compression backend.  Calculate
-once (during ctx creation).
+Previously comp_algorithm device attr would accept only
+algorithm name param, however in order to enabled comp
+configuration we need to extend comp_algorithm_store()
+with param=value support.
 
-Link: https://lkml.kernel.org/r/20240712051850.484318-15-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240712051850.484318-16-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -75,40 +76,102 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_zstd.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   54 ++++++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-recalculate-zstd-compression-params-once
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -10,6 +10,7 @@
- struct zstd_ctx {
- 	zstd_cctx *cctx;
- 	zstd_dctx *dctx;
-+	zstd_parameters cprm;
- 	void *cctx_mem;
- 	void *dctx_mem;
- 	s32 level;
-@@ -40,6 +41,7 @@ static void *zstd_create(struct zcomp_pa
- 		ctx->level = zstd_default_clevel();
+--- a/drivers/block/zram/zram_drv.c~zram-extend-comp_algorithm-attr-write-handling
++++ a/drivers/block/zram/zram_drv.c
+@@ -998,6 +998,12 @@ static int __comp_algorithm_store(struct
+ 	return 0;
+ }
  
- 	prm = zstd_get_params(ctx->level, PAGE_SIZE);
-+	ctx->cprm = zstd_get_params(ctx->level, PAGE_SIZE);
- 	sz = zstd_cctx_workspace_bound(&prm.cParams);
- 	ctx->cctx_mem = vzalloc(sz);
- 	if (!ctx->cctx_mem)
-@@ -69,11 +71,10 @@ static int zstd_compress(void *ctx, cons
- 			 unsigned char *dst, size_t *dst_len)
++static int comp_params_store(struct zram *zram, u32 prio, s32 level)
++{
++	zram->params[prio].level = level;
++	return 0;
++}
++
+ static ssize_t comp_algorithm_show(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   char *buf)
+@@ -1013,9 +1019,43 @@ static ssize_t comp_algorithm_store(stru
+ 				    size_t len)
  {
- 	struct zstd_ctx *zctx = ctx;
--	const zstd_parameters prm = zstd_get_params(zctx->level, PAGE_SIZE);
- 	size_t ret;
+ 	struct zram *zram = dev_to_zram(dev);
++	char *args, *param, *val;
++	char *alg = NULL;
++	s32 level = ZCOMP_PARAM_NO_LEVEL;
+ 	int ret;
  
- 	ret = zstd_compress_cctx(zctx->cctx, dst, *dst_len,
--				 src, src_len, &prm);
-+				 src, src_len, &zctx->cprm);
- 	if (zstd_is_error(ret))
+-	ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, buf);
++	args = skip_spaces(buf);
++	while (*args) {
++		args = next_arg(args, &param, &val);
++
++		/*
++		 * We need to support 'param' without value, which is an
++		 * old format for this attr (algorithm name only).
++		 */
++		if (!val || !*val) {
++			alg = param;
++			continue;
++		}
++
++		if (!strcmp(param, "algo")) {
++			alg = val;
++			continue;
++		}
++
++		if (!strcmp(param, "level")) {
++			ret = kstrtoint(val, 10, &level);
++			if (ret)
++				return ret;
++			continue;
++		}
++	}
++
++	if (!alg)
++		return -EINVAL;
++
++	ret = comp_params_store(zram, ZRAM_PRIMARY_COMP, level);
++	if (!ret)
++		ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
+ 	return ret ? ret : len;
+ }
+ 
+@@ -1048,6 +1088,7 @@ static ssize_t recomp_algorithm_store(st
+ 	int prio = ZRAM_SECONDARY_COMP;
+ 	char *args, *param, *val;
+ 	char *alg = NULL;
++	s32 level = ZCOMP_PARAM_NO_LEVEL;
+ 	int ret;
+ 
+ 	args = skip_spaces(buf);
+@@ -1068,6 +1109,13 @@ static ssize_t recomp_algorithm_store(st
+ 				return ret;
+ 			continue;
+ 		}
++
++		if (!strcmp(param, "level")) {
++			ret = kstrtoint(val, 10, &level);
++			if (ret)
++				return ret;
++			continue;
++		}
+ 	}
+ 
+ 	if (!alg)
+@@ -1076,7 +1124,9 @@ static ssize_t recomp_algorithm_store(st
+ 	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS)
  		return -EINVAL;
- 	*dst_len = ret;
+ 
+-	ret = __comp_algorithm_store(zram, prio, alg);
++	ret = comp_params_store(zram, prio, level);
++	if (!ret)
++		ret = __comp_algorithm_store(zram, prio, alg);
+ 	return ret ? ret : len;
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
