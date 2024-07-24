@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48BE1CFB9
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 16:39:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE18E156898
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 17:00:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721839187; cv=none; b=isedOJKLhoG46arLXWLUnceNfa0EBR19MSMMMseUu3GWEbY7ZVnNH0j5ojE8CJaqvnjX+IcLtc+clAE8tlkdetdOzd1Fggs/Fw128oO1eMeWfiKi3McuinlhkrLUf2/TmUvoXtHgP7RuV7uM43X6nqtiQaSquXXduzB7Dxi2roE=
+	t=1721840436; cv=none; b=YXLqT2NurNh8WokazFPnjWK1fhSWB21CnhT8pboALiGqLDgTy490Bqy2HghxiYz+GaVPrsKQqBZVWADvBe8hZ0UweEZEdoW82JmnDXm8kmeR+Xm2AqkgE5ivdpsJ7ZdUgn6I1X7sx9hVV5C2080QeKDtD6oHlDChyzwPwsWvsPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721839187; c=relaxed/simple;
-	bh=c6tUCR6UBJsiU+Mc2fhM5NJfazRwXRquOLBipug4OyI=;
-	h=Date:To:From:Subject:Message-Id; b=DCpk/NIysaLsQxNAnFw9f8CDtkwCklTZKisMrdoUeS0ugH7iYSuEdkYf8f556jnRXT13o/9xL1GjFI72zgzveBupqXlJmodEEhYr1Z5Bfa1wENpcsjxYLHp1h5Pjp0JE7Xt6VxDsmFdAbjMouGroXWckEoEbsIP4kmf/3faS22w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qo5kEYsR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721840436; c=relaxed/simple;
+	bh=kWSJcBhBYgjUbgxm4Q+vcIvLkEWHI9CEwQTUiPc973U=;
+	h=Date:To:From:Subject:Message-Id; b=eCnyDbNEZOuaNzuyBUQiD7ENijtr5dhMLRyoL3l0n002zJbzd1rvwzYy/+Zv42p/Dv8w8pwbHLiWTGA5xqSWImRYzQc8DSpJmJsXGhSwDcFDbl2bHlURVsJr3wT8VGyP9SQ5lOEzCH2JybdU0f/6jbMStSYzvVqCEqB4+yXUM3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ow0zjK59; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qo5kEYsR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CEB3C32781;
-	Wed, 24 Jul 2024 16:39:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ow0zjK59"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F9C6C32781;
+	Wed, 24 Jul 2024 17:00:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721839187;
-	bh=c6tUCR6UBJsiU+Mc2fhM5NJfazRwXRquOLBipug4OyI=;
+	s=korg; t=1721840435;
+	bh=kWSJcBhBYgjUbgxm4Q+vcIvLkEWHI9CEwQTUiPc973U=;
 	h=Date:To:From:Subject:From;
-	b=qo5kEYsRnBMWpTJEdt8e1gdwPACTx9ySbSOBSAUFuX3xCdZXNV+GC++VY3L5LY565
-	 boYanq00JMWuurujo4LtWFGtCVAChehEagh8WYOpQJDV5HN8hmfUnNn4NGTzrVKYfY
-	 41QllCPwUCYgA8g72XJDkjBUIfPCJI2bPppNNknk=
-Date: Wed, 24 Jul 2024 09:39:46 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
+	b=Ow0zjK59MKTtsmWz6Hf9heE/ziiYMCX2OKmDXWCYxWKLP1yEGpD6lc8b8+Bk+6RRM
+	 0ysK6kASSIw5VHog393e2+LVLxHJi/TrA0zQY0dSfLalQCt54bzlkF0M1hV/Cvv063
+	 XObaHIqsDLgfmRmQizbcElxiAf1KI8vu6/V9qQVk=
+Date: Wed, 24 Jul 2024 10:00:34 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,lorenzo.stoakes@oracle.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-cg2-memoryswappeak-write-tests.patch added to mm-unstable branch
-Message-Id: <20240724163947.2CEB3C32781@smtp.kernel.org>
+Subject: + memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch added to mm-unstable branch
+Message-Id: <20240724170035.4F9C6C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
+     Subject: memory tiering: read last_cpupid correctly in do_huge_pmd_numa_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-cg2-memoryswappeak-write-tests.patch
+     memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,395 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Finkel <davidf@vimeo.com>
-Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
-Date: Wed, 24 Jul 2024 12:19:42 -0400
+From: Zi Yan <ziy@nvidia.com>
+Subject: memory tiering: read last_cpupid correctly in do_huge_pmd_numa_page()
+Date: Wed, 24 Jul 2024 09:01:13 -0400
 
-Extend two existing tests to cover extracting memory usage through the
-newly mutable memory.peak and memory.swap.peak handlers.
+Patch series "Various memory tiering fixes", v3.
 
-In particular, make sure to exercise adding and removing watchers with
-overlapping lifetimes so the less-trivial logic gets tested.
 
-Link: https://lkml.kernel.org/r/20240724161942.3448841-3-davidf@vimeo.com
-Signed-off-by: David Finkel <davidf@vimeo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+This patch (of 3):
+
+last_cpupid is only available when memory tiering is off or the folio is
+in toptier node.  Complete the check to read last_cpupid when it is
+available.
+
+Before the fix, the default last_cpupid will be used even if memory
+tiering mode is turned off at runtime instead of the actual value.  This
+can prevent task_numa_fault() from getting right numa fault stats, but
+should not cause any crash.  User might see performance changes after the
+fix.
+
+Link: https://lkml.kernel.org/r/20240724130115.793641-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20240724130115.793641-2-ziy@nvidia.com
+Fixes: 33024536bafd ("memory tiering: hot page selection with hint page fault latency")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Closes: https://lore.kernel.org/linux-mm/9af34a6b-ca56-4a64-8aa6-ade65f109288@redhat.com/
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c     |   22 +
- tools/testing/selftests/cgroup/cgroup_util.h     |    2 
- tools/testing/selftests/cgroup/test_memcontrol.c |  226 ++++++++++++-
- 3 files changed, 242 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -141,6 +141,16 @@ long cg_read_long(const char *cgroup, co
- 	return atol(buf);
- }
- 
-+long cg_read_long_fd(int fd)
-+{
-+	char buf[128];
-+
-+	if (pread(fd, buf, sizeof(buf), 0) <= 0)
-+		return -1;
-+
-+	return atol(buf);
-+}
-+
- long cg_read_key_long(const char *cgroup, const char *control, const char *key)
- {
- 	char buf[PAGE_SIZE];
-@@ -183,6 +193,18 @@ int cg_write(const char *cgroup, const c
- 	return ret == len ? 0 : ret;
- }
- 
-+/*
-+ * Returns fd on success, or -1 on failure.
-+ * (fd should be closed with close() as usual)
-+ */
-+int cg_open(const char *cgroup, const char *control, int flags)
-+{
-+	char path[PATH_MAX];
-+
-+	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
-+	return open(path, flags);
-+}
-+
- int cg_write_numeric(const char *cgroup, const char *control, long value)
- {
- 	char buf[64];
---- a/tools/testing/selftests/cgroup/cgroup_util.h~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.h
-@@ -34,9 +34,11 @@ extern int cg_read_strcmp(const char *cg
- extern int cg_read_strstr(const char *cgroup, const char *control,
- 			  const char *needle);
- extern long cg_read_long(const char *cgroup, const char *control);
-+extern long cg_read_long_fd(int fd);
- long cg_read_key_long(const char *cgroup, const char *control, const char *key);
- extern long cg_read_lc(const char *cgroup, const char *control);
- extern int cg_write(const char *cgroup, const char *control, char *buf);
-+extern int cg_open(const char *cgroup, const char *control, int flags);
- int cg_write_numeric(const char *cgroup, const char *control, long value);
- extern int cg_run(const char *cgroup,
- 		  int (*fn)(const char *cgroup, void *arg),
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -161,12 +161,12 @@ cleanup:
- /*
-  * This test create a memory cgroup, allocates
-  * some anonymous memory and some pagecache
-- * and check memory.current and some memory.stat values.
-+ * and checks memory.current, memory.peak, and some memory.stat values.
-  */
--static int test_memcg_current(const char *root)
-+static int test_memcg_current_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
--	long current;
-+	long current, peak, peak_reset;
- 	char *memcg;
- 
- 	memcg = cg_name(root, "memcg_test");
-@@ -180,15 +180,108 @@ static int test_memcg_current(const char
- 	if (current != 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak != 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/*
-+	 * We'll open a few FDs for the same memory.peak file to exercise the free-path
-+	 * We need at least three to be closed in a different order than writes occurred to test
-+	 * the linked-list handling.
-+	 */
-+	int peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd == -1)
-+		goto cleanup;
-+
-+	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
-+	int peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd2 == -1)
-+		goto cleanup;
-+
-+	int peak_fd3 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd3 == -1)
-+		goto cleanup;
-+
-+	static const char reset_string[] = "reset\n";
-+
-+	peak_reset = write(peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd2, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd3, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	/* Make sure a completely independent read isn't affected by our  FD-local reset above*/
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd2_closed = true;
-+	if (close(peak_fd2))
-+		goto cleanup;
-+
-+	int peak_fd4 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd4 == -1)
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd4, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak > MB(30) || peak < 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_pagecache_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/* Make sure everything is back to normal */
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd4);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd3_closed = true;
-+	if (close(peak_fd3))
-+		goto cleanup;
-+
-+	fd4_closed = true;
-+	if (close(peak_fd4))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	close(peak_fd);
-+	if (!fd2_closed)
-+		close(peak_fd2);
-+	if (!fd3_closed)
-+		close(peak_fd3);
-+	if (!fd4_closed)
-+		close(peak_fd4);
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -817,13 +910,16 @@ cleanup:
- 
- /*
-  * This test checks that memory.swap.max limits the amount of
-- * anonymous memory which can be swapped out.
-+ * anonymous memory which can be swapped out. Additionally, it verifies that
-+ * memory.swap.peak reflects the high watermark and can be reset.
-  */
--static int test_memcg_swap_max(const char *root)
-+static int test_memcg_swap_max_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
- 	char *memcg;
--	long max;
-+	long max, peak;
-+
-+	static const char reset_string[] = "reset\n";
- 
- 	if (!is_swap_enabled())
- 		return KSFT_SKIP;
-@@ -840,6 +936,45 @@ static int test_memcg_swap_max(const cha
- 		goto cleanup;
- 	}
- 
-+	int swap_peak_fd = cg_open(memcg, "memory.swap.peak",
-+				   O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (swap_peak_fd == -1)
-+		goto cleanup;
-+
-+	int mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (mem_peak_fd == -1)
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	/* switch the swap and mem fds into local-peak tracking mode*/
-+	int peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
- 	if (cg_read_strcmp(memcg, "memory.max", "max\n"))
- 		goto cleanup;
- 
-@@ -862,6 +997,61 @@ static int test_memcg_swap_max(const cha
- 	if (cg_read_key_long(memcg, "memory.events", "oom_kill ") != 1)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	/*
-+	 * open, reset and close the peak swap on another FD to make sure
-+	 * multiple extant fds don't corrupt the linked-list
-+	 */
-+	peak_reset = cg_write(memcg, "memory.swap.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
-+
-+	peak_reset = cg_write(memcg, "memory.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
-+
-+	/* actually reset on the fds */
-+	peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak > MB(10))
-+		goto cleanup;
-+
-+	/*
-+	 * The cgroup is now empty, but there may be a page or two associated
-+	 * with the open FD accounted to it.
-+	 */
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak > MB(1))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak") < MB(29))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak") < MB(29))
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check_swap, (void *)MB(30)))
- 		goto cleanup;
- 
-@@ -869,9 +1059,29 @@ static int test_memcg_swap_max(const cha
- 	if (max <= 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(19))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	if (close(mem_peak_fd))
-+		ret = KSFT_FAIL;
-+	if (close(swap_peak_fd))
-+		ret = KSFT_FAIL;
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -1295,7 +1505,7 @@ struct memcg_test {
- 	const char *name;
- } tests[] = {
- 	T(test_memcg_subtree_control),
--	T(test_memcg_current),
-+	T(test_memcg_current_peak),
- 	T(test_memcg_min),
- 	T(test_memcg_low),
- 	T(test_memcg_high),
-@@ -1303,7 +1513,7 @@ struct memcg_test {
- 	T(test_memcg_max),
- 	T(test_memcg_reclaim),
- 	T(test_memcg_oom_events),
--	T(test_memcg_swap_max),
-+	T(test_memcg_swap_max_peak),
- 	T(test_memcg_sock),
- 	T(test_memcg_oom_group_leaf_events),
- 	T(test_memcg_oom_group_parent_events),
+--- a/mm/huge_memory.c~memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page
++++ a/mm/huge_memory.c
+@@ -1707,7 +1707,8 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	 * For memory tiering mode, cpupid of slow memory page is used
+ 	 * to record page access time.  So use default value.
+ 	 */
+-	if (node_is_toptier(nid))
++	if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) ||
++	    node_is_toptier(nid))
+ 		last_cpupid = folio_last_cpupid(folio);
+ 	target_nid = numa_migrate_prep(folio, vmf, haddr, nid, &flags);
+ 	if (target_nid == NUMA_NO_NODE)
 _
 
-Patches currently in -mm which might be from davidf@vimeo.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-memcg-cg2-memoryswappeak-write-handlers.patch
-mm-memcg-cg2-memoryswappeak-write-tests.patch
+memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
+memory-tiering-introduce-folio_use_access_time-check.patch
+memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
 
