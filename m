@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB3DB1428E5
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jul 2024 23:47:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6DC2629
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 00:02:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721778454; cv=none; b=Waa1N8YHJ4YrjwzXEfJ8hWIvqaPmA/C69rNAgh39w+eX3fyReK0Uu1JrNtJOrtN3lkczLas/h3i8NclQXTbX7AVCVxhgPpXm4SyMiWYVXJ8o/VXvX7Klp0ce3FQuKtdJLl/G1EdmOT0bMc/SxSYOpsoFQWjA9kSu+ovH4LTlfA4=
+	t=1721779361; cv=none; b=FiBt4F91dNBRg+Nj+rX0IsPAuGyWgqXXTP7DArIyLC43XDfLEDemUXhp5MATGzGKr6JmwwQ9u5ME5Sq7LRjyuDaVKLW3sYMneklgCFbIwD92XerJsVZWeDOF3FfQK92/00GNAjzn7qfSF5SaEUJUmSUhM3q65y/0lzYiVysEbOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721778454; c=relaxed/simple;
-	bh=godyF1w+3/0oTvjqbZM7Bfak9OBn9d+fohKyenkd4F4=;
-	h=Date:To:From:Subject:Message-Id; b=Bpv2DCuCpeq84PfZivL+8tgRu+dfMLVHro/IlXYJRHudHnNCFzetbEAaDQjDamYhPgINSBAGAbgxwpd3of8GOvBI3P+LhUUyaxZMrSUWXeuMByqEmcbe+BU/IMa3rzR/07WGgTiDgJxgaBpmy3iDdJcma3gX8yNVtfg0xpvPHlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qSbm5y9x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721779361; c=relaxed/simple;
+	bh=RdH2IFoN+OyJTjBkPawLhM2d95jAcvKdw58mmtbrKzA=;
+	h=Date:To:From:Subject:Message-Id; b=h0m5qxGfI3EMDenPO1byDtscsSb462nikXKK0va7+AzOZw0vdzRbsYaeB+8lzGJthLFcCNVs7OCS/j2H1TnbPhx36ETLe+/1zbo/nEW1Yvy1dgGYjHK0ohGSGqfIsNtgZopPi1OTcqQudvH2ExmSWyzNxXW+Mvm7XLrnrsIl7pQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2vqpyZC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qSbm5y9x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D540C4AF09;
-	Tue, 23 Jul 2024 23:47:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2vqpyZC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60FDBC4AF0A;
+	Wed, 24 Jul 2024 00:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721778454;
-	bh=godyF1w+3/0oTvjqbZM7Bfak9OBn9d+fohKyenkd4F4=;
+	s=korg; t=1721779360;
+	bh=RdH2IFoN+OyJTjBkPawLhM2d95jAcvKdw58mmtbrKzA=;
 	h=Date:To:From:Subject:From;
-	b=qSbm5y9xbhTbj+/MscOUR2oMVpp6BYKtSNSdeXfitYqIS1cWDwfZdzZ/52dnqJC1p
-	 W/yySHm+0g4PPKF4ErhkgDPOz5MJQH1M9QPsSu5JlP5fBnoaTxAQDBlwRYBzEpI900
-	 fhVK4zjq6ZSWipP4XADYXRVAQfp1k18vGcAX0P1s=
-Date: Tue, 23 Jul 2024 16:47:33 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,jdike@linux.intel.com,david@redhat.com,blaisorblade@yahoo.it,agk@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=E2vqpyZCdL8XF4bi3G3CV6i+JhskcqngCqZb9uLPcD7BRRZ47fNw/SnY4NcxI8RkD
+	 QRizIm/NUVdg/R/9vbPaVe3rnIEMiSokAlIGZJkG4AfspyEPvgjZJIs8zvXn7RMvHF
+	 csLzwv2AK/cNOZyDNKDKoL8ymsX7J7jb+zxBhfGc=
+Date: Tue, 23 Jul 2024 17:02:39 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + um-mm-remove-redundant-assignment-of-max_low_pfn.patch added to mm-unstable branch
-Message-Id: <20240723234734.6D540C4AF09@smtp.kernel.org>
+Subject: + mm-cleanup-flags-usage-in-faultin_page.patch added to mm-unstable branch
+Message-Id: <20240724000240.60FDBC4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: um/mm: remove redundant assignment of max_low_pfn
+     Subject: mm: cleanup flags usage in faultin_page
 has been added to the -mm mm-unstable branch.  Its filename is
-     um-mm-remove-redundant-assignment-of-max_low_pfn.patch
+     mm-cleanup-flags-usage-in-faultin_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/um-mm-remove-redundant-assignment-of-max_low_pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cleanup-flags-usage-in-faultin_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: um/mm: remove redundant assignment of max_low_pfn
-Date: Sat, 15 Jun 2024 03:41:50 +0000
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm: cleanup flags usage in faultin_page
+Date: Thu, 18 Jul 2024 17:26:06 -0400
 
-Current calculation of max_low_pfn is introduced in commit af84eab20891
-("[PATCH] uml: fix LVM crash").  It is intended to set max_low_pfn to the
-same value as max_pfn.
+Patch series "mm: some small page fault cleanups".
 
-But I am not sure why the max_pfn is set to totalram_pages, which
-represents the number of usable pages in system instead of an absolute
-page frame number.  (The change history stops there.)
+I was recently wreaking havoc in the page fault code and I noticed some
+things that could be cleaned up.  We no longer modify the gup flags in
+faultin_page, so we can clean up how we pass the flags in and remove the
+extra variable in __get_user_pages.
 
-While we have already calculate it in setup_physmem(), so not necessary to
-do it again.
 
-Also this would help changing totalram_pages accounting, since we plan to
-move the accounting into __free_pages_core().  With this change,
-totalram_pages may not represent the total usable pages at this point,
-since some pages would be deferred initialized.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20240615034150.2958-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Alasdair G Kergon <agk@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
+We're passing a pointer to the foll_flags for faultin_page, however we
+never modify the flags in this call.  Change this to just take the flags
+value instead.
+
+Link: https://lkml.kernel.org/r/2df51a54c06bdf93e1cb09a19a9ef1df6557b59e.1721337845.git.josef@toxicpanda.com
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/gup.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/arch/um/kernel/mem.c~um-mm-remove-redundant-assignment-of-max_low_pfn
-+++ a/arch/um/kernel/mem.c
-@@ -73,7 +73,6 @@ void __init mem_init(void)
+--- a/mm/gup.c~mm-cleanup-flags-usage-in-faultin_page
++++ a/mm/gup.c
+@@ -1153,19 +1153,19 @@ unmap:
+  * to 0 and -EBUSY returned.
+  */
+ static int faultin_page(struct vm_area_struct *vma,
+-		unsigned long address, unsigned int *flags, bool unshare,
++		unsigned long address, unsigned int flags, bool unshare,
+ 		int *locked)
+ {
+ 	unsigned int fault_flags = 0;
+ 	vm_fault_t ret;
  
- 	/* this will put all low memory onto the freelists */
- 	memblock_free_all();
--	max_low_pfn = totalram_pages();
- 	max_pfn = max_low_pfn;
- 	kmalloc_ok = 1;
- }
+-	if (*flags & FOLL_NOFAULT)
++	if (flags & FOLL_NOFAULT)
+ 		return -EFAULT;
+-	if (*flags & FOLL_WRITE)
++	if (flags & FOLL_WRITE)
+ 		fault_flags |= FAULT_FLAG_WRITE;
+-	if (*flags & FOLL_REMOTE)
++	if (flags & FOLL_REMOTE)
+ 		fault_flags |= FAULT_FLAG_REMOTE;
+-	if (*flags & FOLL_UNLOCKABLE) {
++	if (flags & FOLL_UNLOCKABLE) {
+ 		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 		/*
+ 		 * FAULT_FLAG_INTERRUPTIBLE is opt-in. GUP callers must set
+@@ -1173,12 +1173,12 @@ static int faultin_page(struct vm_area_s
+ 		 * That's because some callers may not be prepared to
+ 		 * handle early exits caused by non-fatal signals.
+ 		 */
+-		if (*flags & FOLL_INTERRUPTIBLE)
++		if (flags & FOLL_INTERRUPTIBLE)
+ 			fault_flags |= FAULT_FLAG_INTERRUPTIBLE;
+ 	}
+-	if (*flags & FOLL_NOWAIT)
++	if (flags & FOLL_NOWAIT)
+ 		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
+-	if (*flags & FOLL_TRIED) {
++	if (flags & FOLL_TRIED) {
+ 		/*
+ 		 * Note: FAULT_FLAG_ALLOW_RETRY and FAULT_FLAG_TRIED
+ 		 * can co-exist
+@@ -1212,7 +1212,7 @@ static int faultin_page(struct vm_area_s
+ 	}
+ 
+ 	if (ret & VM_FAULT_ERROR) {
+-		int err = vm_fault_to_errno(ret, *flags);
++		int err = vm_fault_to_errno(ret, flags);
+ 
+ 		if (err)
+ 			return err;
+@@ -1490,7 +1490,7 @@ retry:
+ 
+ 		page = follow_page_mask(vma, start, foll_flags, &ctx);
+ 		if (!page || PTR_ERR(page) == -EMLINK) {
+-			ret = faultin_page(vma, start, &foll_flags,
++			ret = faultin_page(vma, start, foll_flags,
+ 					   PTR_ERR(page) == -EMLINK, locked);
+ 			switch (ret) {
+ 			case 0:
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-um-mm-remove-redundant-assignment-of-max_low_pfn.patch
+mm-cleanup-flags-usage-in-faultin_page.patch
+mm-remove-foll_flags-in-__get_user_pages.patch
 
