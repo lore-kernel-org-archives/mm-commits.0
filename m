@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A23C01843
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 00:11:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE18F2F52
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 00:38:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721779866; cv=none; b=BfTIj1ayqDbxSNZDEdpDbyRGhzqor0Kmviqmr51V2FT+I/nel+g4+1TL8k7OyiD+KWTvRUfxds3JOYS9KnGFkzl/OhqGxAN4SxqgDmSuAoi7160zNgk8p4gmuFpK9QC7FWXbpqmmsJiaLwrHOaCfgtgbi8Jita+LXuKLLKk/Bj4=
+	t=1721781521; cv=none; b=mEDTpBerFEiD7mBl7QUGwtW31EtTr80yqjdwWV/olkJ6I6VeRXxr8xu0YYtJ5GS0cmtNxQOhL3zB/Gw7H+AmlErcx6Dj841mzShl/WsFKslatxxCkAjmmVhPu/MsDRUG7Iutg5kFaxVQbiJsBH6oxTLIOPj6FkRomLtcgkKI+oM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721779866; c=relaxed/simple;
-	bh=tAfv+ycidSbx6S/9y/9YxMe0z/vIyucCzZUvvfhDxEc=;
-	h=Date:To:From:Subject:Message-Id; b=olif5ZtK3/G9C2qN6itOUzkZRP6i4NKWWUQ+ee04WY5J4TH+2908KLJkXN6pbs3f1qvvLZkybEW8o5LQ3CJq/5HK0bn0da8QTK6R2PytYLJlOJxaa0Gkm136BsVq5YoFBXEuMLKgjAB2eo/QG5nhADoYtljfx/DxTl7GIrA71co=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BGA3tQML; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721781521; c=relaxed/simple;
+	bh=MZsC9M7sIzFj5xU8L95zxDj6LtI3phcGmcaqJzidTAo=;
+	h=Date:To:From:Subject:Message-Id; b=rrh5l5VWaMSHFp1SdAgb9WgLAJ9aOYGxxnU4PqeQHF2JdAeOcbPgmndEgQSf9dyviYp3oD4T6wBSlIE4dRPdKfv141N/SdEEHG0U4YipmttXsCH2PJnG3lsDngHkFgfgo/MMGzQ9zDBK+8hyPbSVrYIXXhPcce+SKxdWAJr6wVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k54H97OX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BGA3tQML"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26BA3C4AF09;
-	Wed, 24 Jul 2024 00:11:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k54H97OX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 323B7C4AF09;
+	Wed, 24 Jul 2024 00:38:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721779866;
-	bh=tAfv+ycidSbx6S/9y/9YxMe0z/vIyucCzZUvvfhDxEc=;
+	s=korg; t=1721781521;
+	bh=MZsC9M7sIzFj5xU8L95zxDj6LtI3phcGmcaqJzidTAo=;
 	h=Date:To:From:Subject:From;
-	b=BGA3tQMLD40GvFfauvY781LCAPwU5JfWVwNtyykis/oK112ENj4q5XEhDG4F38HJ/
-	 7cmI6E0kv2Va89iUXalvCgOtnsfSi7NoOuXSAFrnP7F7yruYiML3QijhBWwxMb8RbJ
-	 q8xKQE1QzNAOdsMSr394KV+y+VqLoJGktg8mPHn0=
-Date: Tue, 23 Jul 2024 17:11:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,peterz@infradead.org,nphamcs@gmail.com,lizhijian@fujitsu.com,kent.overstreet@linux.dev,cerasuolodomenico@gmail.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=k54H97OX5aP7mpESWnfZ0JKQT1GAMBMQ+ixEzUaKTpjevqCuvdR9C2d7zq5Y1hR5Y
+	 icnq+gD50JPL6PLQM3AWdRhC3D4wqBPqpBtNLWQbzw7iI6DlxIWmuz1x8/dSSnrg2X
+	 l5/qlLCfXSq5yMNq74dqE3HE8gVogo5JgPJfbcdk=
+Date: Tue, 23 Jul 2024 17:38:40 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-kernel-stack-usage-histogram.patch added to mm-unstable branch
-Message-Id: <20240724001106.26BA3C4AF09@smtp.kernel.org>
+Subject: + mm-kmem-remove-mem_cgroup_from_obj.patch added to mm-unstable branch
+Message-Id: <20240724003841.323B7C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmstat: kernel stack usage histogram
+     Subject: mm: kmem: remove mem_cgroup_from_obj()
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmstat-kernel-stack-usage-histogram.patch
+     mm-kmem-remove-mem_cgroup_from_obj.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-kernel-stack-usage-histogram.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-remove-mem_cgroup_from_obj.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,259 +58,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: vmstat: kernel stack usage histogram
-Date: Thu, 18 Jul 2024 20:26:11 +0000
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: kmem: remove mem_cgroup_from_obj()
+Date: Thu, 18 Jul 2024 17:18:21 +0800
 
-As part of the dynamic kernel stack project, we need to know the amount of
-data that can be saved by reducing the default kernel stack size [1].
+There is no user of mem_cgroup_from_obj(), remove it.
 
-Provide a kernel stack usage histogram to aid in optimizing kernel stack
-sizes and minimizing memory waste in large-scale environments.  The
-histogram divides stack usage into power-of-two buckets and reports the
-results in /proc/vmstat.  This information is especially valuable in
-environments with millions of machines, where even small optimizations can
-have a significant impact.
-
-The histogram data is presented in /proc/vmstat with entries like
-"kstack_1k", "kstack_2k", and so on, indicating the number of threads that
-exited with stack usage falling within each respective bucket.
-
-Example outputs:
-Intel:
-$ grep kstack /proc/vmstat
-kstack_1k 3
-kstack_2k 188
-kstack_4k 11391
-kstack_8k 243
-kstack_16k 0
-
-ARM with 64K page_size:
-$ grep kstack /proc/vmstat
-kstack_1k 1
-kstack_2k 340
-kstack_4k 25212
-kstack_8k 1659
-kstack_16k 0
-kstack_32k 0
-kstack_64k 0
-
-Note: once the dynamic kernel stack is implemented it will depend on the
-implementation the usability of this feature: On hardware that supports
-faults on kernel stacks, we will have other metrics that show the total
-number of pages allocated for stacks.  On hardware where faults are not
-supported, we will most likely have some optimization where only some
-threads are extended, and for those, these metrics will still be very
-useful.
-
-[1] https://lwn.net/Articles/974367
-
-Link: https://lkml.kernel.org/r/20240718202611.1695164-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20240718091821.44740-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/task_stack.h |   49 +++++++++++++++++++++++++++--
- include/linux/vm_event_item.h    |   42 ++++++++++++++++++++++++
- include/linux/vmstat.h           |   16 ---------
- mm/vmstat.c                      |   24 ++++++++++++++
- 4 files changed, 113 insertions(+), 18 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ mm/memcontrol.c            |   32 +-------------------------------
+ 2 files changed, 1 insertion(+), 37 deletions(-)
 
---- a/include/linux/sched/task_stack.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/sched/task_stack.h
-@@ -95,9 +95,51 @@ static inline int object_is_on_stack(con
- extern void thread_stack_cache_init(void);
- 
- #ifdef CONFIG_DEBUG_STACK_USAGE
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+#include <linux/vm_event_item.h>
-+
-+/* Count the maximum pages reached in kernel stacks */
-+static inline void kstack_histogram(unsigned long used_stack)
-+{
-+	if (used_stack <= 1024)
-+		this_cpu_inc(vm_event_states.event[KSTACK_1K]);
-+#if THREAD_SIZE > 1024
-+	else if (used_stack <= 2048)
-+		this_cpu_inc(vm_event_states.event[KSTACK_2K]);
-+#endif
-+#if THREAD_SIZE > 2048
-+	else if (used_stack <= 4096)
-+		this_cpu_inc(vm_event_states.event[KSTACK_4K]);
-+#endif
-+#if THREAD_SIZE > 4096
-+	else if (used_stack <= 8192)
-+		this_cpu_inc(vm_event_states.event[KSTACK_8K]);
-+#endif
-+#if THREAD_SIZE > 8192
-+	else if (used_stack <= 16384)
-+		this_cpu_inc(vm_event_states.event[KSTACK_16K]);
-+#endif
-+#if THREAD_SIZE > 16384
-+	else if (used_stack <= 32768)
-+		this_cpu_inc(vm_event_states.event[KSTACK_32K]);
-+#endif
-+#if THREAD_SIZE > 32768
-+	else if (used_stack <= 65536)
-+		this_cpu_inc(vm_event_states.event[KSTACK_64K]);
-+#endif
-+#if THREAD_SIZE > 65536
-+	else
-+		this_cpu_inc(vm_event_states.event[KSTACK_REST]);
-+#endif
-+}
-+#else /* !CONFIG_VM_EVENT_COUNTERS */
-+static inline void kstack_histogram(unsigned long used_stack) {}
-+#endif /* CONFIG_VM_EVENT_COUNTERS */
-+
- static inline unsigned long stack_not_used(struct task_struct *p)
- {
- 	unsigned long *n = end_of_stack(p);
-+	unsigned long unused_stack;
- 
- 	do { 	/* Skip over canary */
- # ifdef CONFIG_STACK_GROWSUP
-@@ -108,10 +150,13 @@ static inline unsigned long stack_not_us
- 	} while (!*n);
- 
- # ifdef CONFIG_STACK_GROWSUP
--	return (unsigned long)end_of_stack(p) - (unsigned long)n;
-+	unused_stack = (unsigned long)end_of_stack(p) - (unsigned long)n;
- # else
--	return (unsigned long)n - (unsigned long)end_of_stack(p);
-+	unused_stack = (unsigned long)n - (unsigned long)end_of_stack(p);
- # endif
-+	kstack_histogram(THREAD_SIZE - unused_stack);
-+
-+	return unused_stack;
+--- a/include/linux/memcontrol.h~mm-kmem-remove-mem_cgroup_from_obj
++++ a/include/linux/memcontrol.h
+@@ -1717,7 +1717,6 @@ static inline int memcg_kmem_id(struct m
+ 	return memcg ? memcg->kmemcg_id : -1;
  }
- #endif
- extern void set_task_stack_end_magic(struct task_struct *tsk);
---- a/include/linux/vm_event_item.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/vm_event_item.h
-@@ -155,9 +155,51 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		VMA_LOCK_RETRY,
- 		VMA_LOCK_MISS,
- #endif
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+		KSTACK_1K,
-+#if THREAD_SIZE > 1024
-+		KSTACK_2K,
-+#endif
-+#if THREAD_SIZE > 2048
-+		KSTACK_4K,
-+#endif
-+#if THREAD_SIZE > 4096
-+		KSTACK_8K,
-+#endif
-+#if THREAD_SIZE > 8192
-+		KSTACK_16K,
-+#endif
-+#if THREAD_SIZE > 16384
-+		KSTACK_32K,
-+#endif
-+#if THREAD_SIZE > 32768
-+		KSTACK_64K,
-+#endif
-+#if THREAD_SIZE > 65536
-+		KSTACK_REST,
-+#endif
-+#endif /* CONFIG_DEBUG_STACK_USAGE */
- 		NR_VM_EVENT_ITEMS
- };
  
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+/*
-+ * Light weight per cpu counter implementation.
-+ *
-+ * Counters should only be incremented and no critical kernel component
-+ * should rely on the counter values.
-+ *
-+ * Counters are handled completely inline. On many platforms the code
-+ * generated will simply be the increment of a global address.
-+ */
-+
-+struct vm_event_state {
-+	unsigned long event[NR_VM_EVENT_ITEMS];
-+};
-+
-+DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
-+#endif
-+
- #ifndef CONFIG_TRANSPARENT_HUGEPAGE
- #define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
- #define THP_FILE_FALLBACK ({ BUILD_BUG(); 0; })
---- a/include/linux/vmstat.h~vmstat-kernel-stack-usage-histogram
-+++ a/include/linux/vmstat.h
-@@ -42,22 +42,6 @@ enum writeback_stat_item {
+-struct mem_cgroup *mem_cgroup_from_obj(void *p);
+ struct mem_cgroup *mem_cgroup_from_slab_obj(void *p);
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
+ static inline void count_objcg_event(struct obj_cgroup *objcg,
+@@ -1780,11 +1779,6 @@ static inline int memcg_kmem_id(struct m
+ 	return -1;
+ }
+ 
+-static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
+-{
+-	return NULL;
+-}
+-
+ static inline struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
+ {
+ 	return NULL;
+--- a/mm/memcontrol.c~mm-kmem-remove-mem_cgroup_from_obj
++++ a/mm/memcontrol.c
+@@ -2446,37 +2446,7 @@ struct mem_cgroup *mem_cgroup_from_obj_f
+ 
  /*
-- * Light weight per cpu counter implementation.
+  * Returns a pointer to the memory cgroup to which the kernel object is charged.
 - *
-- * Counters should only be incremented and no critical kernel component
-- * should rely on the counter values.
+- * A passed kernel object can be a slab object, vmalloc object or a generic
+- * kernel page, so different mechanisms for getting the memory cgroup pointer
+- * should be used.
 - *
-- * Counters are handled completely inline. On many platforms the code
-- * generated will simply be the increment of a global address.
+- * In certain cases (e.g. kernel stacks or large kmallocs with SLUB) the caller
+- * can not know for sure how the kernel object is implemented.
+- * mem_cgroup_from_obj() can be safely used in such cases.
+- *
+- * The caller must ensure the memcg lifetime, e.g. by taking rcu_read_lock(),
+- * cgroup_mutex, etc.
 - */
+-struct mem_cgroup *mem_cgroup_from_obj(void *p)
+-{
+-	struct folio *folio;
 -
--struct vm_event_state {
--	unsigned long event[NR_VM_EVENT_ITEMS];
--};
+-	if (mem_cgroup_disabled())
+-		return NULL;
 -
--DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
+-	if (unlikely(is_vmalloc_addr(p)))
+-		folio = page_folio(vmalloc_to_page(p));
+-	else
+-		folio = virt_to_folio(p);
+-
+-	return mem_cgroup_from_obj_folio(folio, p);
+-}
 -
 -/*
-  * vm counters are allowed to be racy. Use raw_cpu_ops to avoid the
-  * local_irq_disable overhead.
-  */
---- a/mm/vmstat.c~vmstat-kernel-stack-usage-histogram
-+++ a/mm/vmstat.c
-@@ -1418,6 +1418,30 @@ const char * const vmstat_text[] = {
- 	"vma_lock_retry",
- 	"vma_lock_miss",
- #endif
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+	"kstack_1k",
-+#if THREAD_SIZE > 1024
-+	"kstack_2k",
-+#endif
-+#if THREAD_SIZE > 2048
-+	"kstack_4k",
-+#endif
-+#if THREAD_SIZE > 4096
-+	"kstack_8k",
-+#endif
-+#if THREAD_SIZE > 8192
-+	"kstack_16k",
-+#endif
-+#if THREAD_SIZE > 16384
-+	"kstack_32k",
-+#endif
-+#if THREAD_SIZE > 32768
-+	"kstack_64k",
-+#endif
-+#if THREAD_SIZE > 65536
-+	"kstack_rest",
-+#endif
-+#endif
- #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
- };
- #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA || CONFIG_MEMCG */
+- * Returns a pointer to the memory cgroup to which the kernel object is charged.
+- * Similar to mem_cgroup_from_obj(), but faster and not suitable for objects,
+- * allocated using vmalloc().
++ * It is not suitable for objects allocated using vmalloc().
+  *
+  * A passed kernel object must be a slab object or a generic kernel page.
+  *
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-vmstat-kernel-stack-usage-histogram.patch
+mm-kmem-remove-mem_cgroup_from_obj.patch
 
