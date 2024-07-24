@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 290D1613D
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5703F613D
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 19:26:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721849213; cv=none; b=oA8n801AwPoUk0dTucw5ghfAQONun6932p5i4tLdd+m6tNbIOqdZiA95nm23U1Cz6CMfwu+NXaliszegpYJjUt6ro9RlKZaz7dG2SoIXa8qmuCDKNAM7dQiX03Mg0SxQskqye/mPmKhkS89LUYV5WHqYp3FoTu2ANhR4mrKn07s=
+	t=1721849215; cv=none; b=qAohezPK07Dnh9pH1x40B199AfNjFEB54j6Jq+AqGwFbWflt67WPdUNjZK3PK6GjsghctDvDaLRV7JCUrIQ2x9YdRtBA522WmL5DumKQ2RzVmjpwBrSzwceUnbCxFuPjHL//m/b395JLst0yT5fSfKQ2xZzHNsTq638js6bj0R4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721849213; c=relaxed/simple;
-	bh=lmJTFhdQ2NtTrpfRUDE+PR/jdmibSjMGdLOmgN7YUYc=;
-	h=Date:To:From:Subject:Message-Id; b=Is17YZU4/HQX19By8y07CHxKiy7i/eklhQTWffEcaSkYuJBN6HypjxnIR9x1HDVfcih427D4EvUf3tdscNvOw94T1smnWo+Lg4vcpULlOqT2AoekU+wcR0SDTpThVoODFN1lG+R44ZH7/1mU9xv3gj3rO45QL+zqhJ3uLA8pQTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpB+rpKi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721849215; c=relaxed/simple;
+	bh=FxvXEh3XIzZWWJdpI7IHLo+uv2phaH84xsDPd4kvYxc=;
+	h=Date:To:From:Subject:Message-Id; b=IePlUrYQ6Lntep85l/5KQV6YLx29PP5w9TnCXG9jfZJIM3OCS1424rxR5cn18v4LN3uQcnASwSUB0EqKm3ghw8GO5g0Vhjcr1g3eFJMPgqf94W1SnRdTv/iUa2/Hcc6iJuEGoZY3tteobd8Gisk6OegeI1zO/btsl5q7u5Ou+Ww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iiqv3wSS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpB+rpKi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F4182C32781;
-	Wed, 24 Jul 2024 19:26:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iiqv3wSS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02569C32781;
+	Wed, 24 Jul 2024 19:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721849213;
-	bh=lmJTFhdQ2NtTrpfRUDE+PR/jdmibSjMGdLOmgN7YUYc=;
+	s=korg; t=1721849215;
+	bh=FxvXEh3XIzZWWJdpI7IHLo+uv2phaH84xsDPd4kvYxc=;
 	h=Date:To:From:Subject:From;
-	b=kpB+rpKiEv780Qbc9uyPeWWXaEt9UQywbqBVHgWMLB4BjExmvIefj932FOIZ8jBbR
-	 jgSqeTAIIPecqMPERkObsxqxQhTKrd0I/aJLh2Ji5MJAZBp5Y2F3+0DHHJmAqZTEZS
-	 QCGQtWebg0xEcf7KObvn77LxEoKxDWRcb30O6Uiw=
-Date: Wed, 24 Jul 2024 12:26:52 -0700
+	b=iiqv3wSSY8HYM0xLS9rK0jYrVoq0pxKVQtMVxbbrTeClBZRv3o8NEj+0ZeedGavXr
+	 BpSuBl5QAl0jbUEehdL42enqKwBxAih+n9v0F6J4QfcVgVKAwv5531NVV5YwWvFkJs
+	 WJ6dlnj6wVvrkt9qW+6oCOLA10fjhZ4cZ6VgtdBM=
+Date: Wed, 24 Jul 2024 12:26:54 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,nphamcs@gmail.com,ngupta@vflare.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-support-for-dict-comp-config.patch added to mm-unstable branch
-Message-Id: <20240724192652.F4182C32781@smtp.kernel.org>
+Subject: + zram-introduce-zcomp_req-structure.patch added to mm-unstable branch
+Message-Id: <20240724192655.02569C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add support for dict comp config
+     Subject: zram: introduce zcomp_req structure
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-support-for-dict-comp-config.patch
+     zram-introduce-zcomp_req-structure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-support-for-dict-comp-config.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-zcomp_req-structure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add support for dict comp config
-Date: Fri, 12 Jul 2024 14:18:27 +0900
+Subject: zram: introduce zcomp_req structure
+Date: Fri, 12 Jul 2024 14:18:28 +0900
 
-Handle dict=path param so that we can read a pre-trained
-compression algorithm dictionary which we then pass to the
-backend configuration.
+Encapsulate compression/decompression data in zcomp_req
+structure.
 
-Link: https://lkml.kernel.org/r/20240712051850.484318-17-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240712051850.484318-18-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -75,151 +74,345 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   60 ++++++++++++++++++++++++--------
- 1 file changed, 46 insertions(+), 14 deletions(-)
+ drivers/block/zram/backend_842.c     |   17 +++++++---------
+ drivers/block/zram/backend_deflate.c |   26 ++++++++++---------------
+ drivers/block/zram/backend_lz4.c     |   15 ++++++--------
+ drivers/block/zram/backend_lz4hc.c   |   13 +++++-------
+ drivers/block/zram/backend_lzo.c     |   12 +++++------
+ drivers/block/zram/backend_lzorle.c  |   13 +++++-------
+ drivers/block/zram/backend_zstd.c    |   15 ++++++--------
+ drivers/block/zram/zcomp.c           |   23 +++++++++++++++-------
+ drivers/block/zram/zcomp.h           |   15 +++++++++-----
+ 9 files changed, 77 insertions(+), 72 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-add-support-for-dict-comp-config
-+++ a/drivers/block/zram/zram_drv.c
-@@ -33,6 +33,7 @@
- #include <linux/debugfs.h>
- #include <linux/cpuhotplug.h>
- #include <linux/part_stat.h>
-+#include <linux/kernel_read_file.h>
+--- a/drivers/block/zram/backend_842.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_842.c
+@@ -38,25 +38,24 @@ error:
+ 	return NULL;
+ }
  
- #include "zram_drv.h"
+-static int compress_842(void *ctx, const unsigned char *src, size_t src_len,
+-			unsigned char *dst, size_t *dst_len)
++static int compress_842(void *ctx, struct zcomp_req *req)
+ {
+ 	struct sw842_ctx *zctx = ctx;
+-	unsigned int dlen = *dst_len;
++	unsigned int dlen = req->dst_len;
+ 	int ret;
  
-@@ -998,8 +999,34 @@ static int __comp_algorithm_store(struct
+-	ret = sw842_compress(src, src_len, dst, &dlen, zctx->mem);
++	ret = sw842_compress(req->src, req->src_len, req->dst, &dlen,
++			     zctx->mem);
+ 	if (ret == 0)
+-		*dst_len = dlen;
++		req->dst_len = dlen;
+ 	return ret;
+ }
+ 
+-static int decompress_842(void *ctx, const unsigned char *src, size_t src_len,
+-			  unsigned char *dst, size_t dst_len)
++static int decompress_842(void *ctx, struct zcomp_req *req)
+ {
+-	unsigned int dlen = dst_len;
++	unsigned int dlen = req->dst_len;
+ 
+-	return sw842_decompress(src, src_len, dst, &dlen);
++	return sw842_decompress(req->src, req->src_len, req->dst, &dlen);
+ }
+ 
+ const struct zcomp_ops backend_842 = {
+--- a/drivers/block/zram/backend_deflate.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_deflate.c
+@@ -74,9 +74,7 @@ error:
+ 	return NULL;
+ }
+ 
+-static int deflate_compress(void *ctx, const unsigned char *src,
+-			    size_t src_len, unsigned char *dst,
+-			    size_t *dst_len)
++static int deflate_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	struct deflate_ctx *zctx = ctx;
+ 	struct z_stream_s *deflate;
+@@ -87,22 +85,20 @@ static int deflate_compress(void *ctx, c
+ 	if (ret != Z_OK)
+ 		return -EINVAL;
+ 
+-	deflate->next_in = (u8 *)src;
+-	deflate->avail_in = src_len;
+-	deflate->next_out = (u8 *)dst;
+-	deflate->avail_out = *dst_len;
++	deflate->next_in = (u8 *)req->src;
++	deflate->avail_in = req->src_len;
++	deflate->next_out = (u8 *)req->dst;
++	deflate->avail_out = req->dst_len;
+ 
+ 	ret = zlib_deflate(deflate, Z_FINISH);
+ 	if (ret != Z_STREAM_END)
+ 		return -EINVAL;
+ 
+-	*dst_len = deflate->total_out;
++	req->dst_len = deflate->total_out;
  	return 0;
  }
  
--static int comp_params_store(struct zram *zram, u32 prio, s32 level)
-+static void comp_params_reset(struct zram *zram, u32 prio)
+-static int deflate_decompress(void *ctx, const unsigned char *src,
+-			      size_t src_len, unsigned char *dst,
+-			      size_t dst_len)
++static int deflate_decompress(void *ctx, struct zcomp_req *req)
  {
-+	struct zcomp_params *params = &zram->params[prio];
-+
-+	vfree(params->dict);
-+	params->level = ZCOMP_PARAM_NO_LEVEL;
-+	params->dict_sz = 0;
-+	params->dict = NULL;
-+}
-+
-+static int comp_params_store(struct zram *zram, u32 prio, s32 level,
-+			     const char *dict_path)
-+{
-+	ssize_t sz = 0;
-+
-+	comp_params_reset(zram, prio);
-+
-+	if (dict_path) {
-+		sz = kernel_read_file_from_path(dict_path, 0,
-+						&zram->params[prio].dict,
-+						INT_MAX,
-+						NULL,
-+						READING_POLICY);
-+		if (sz < 0)
-+			return -EINVAL;
-+	}
-+
-+	zram->params[prio].dict_sz = sz;
- 	zram->params[prio].level = level;
+ 	struct deflate_ctx *zctx = ctx;
+ 	struct z_stream_s *inflate;
+@@ -114,10 +110,10 @@ static int deflate_decompress(void *ctx,
+ 	if (ret != Z_OK)
+ 		return -EINVAL;
+ 
+-	inflate->next_in = (u8 *)src;
+-	inflate->avail_in = src_len;
+-	inflate->next_out = (u8 *)dst;
+-	inflate->avail_out = dst_len;
++	inflate->next_in = (u8 *)req->src;
++	inflate->avail_in = req->src_len;
++	inflate->next_out = (u8 *)req->dst;
++	inflate->avail_out = req->dst_len;
+ 
+ 	ret = zlib_inflate(inflate, Z_SYNC_FLUSH);
+ 	if (ret != Z_STREAM_END)
+--- a/drivers/block/zram/backend_lz4.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_lz4.c
+@@ -41,26 +41,25 @@ error:
+ 	return NULL;
+ }
+ 
+-static int lz4_compress(void *ctx, const unsigned char *src, size_t src_len,
+-			unsigned char *dst, size_t *dst_len)
++static int lz4_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	struct lz4_ctx *zctx = ctx;
+ 	int ret;
+ 
+-	ret = LZ4_compress_fast(src, dst, src_len, *dst_len,
+-				zctx->level, zctx->mem);
++	ret = LZ4_compress_fast(req->src, req->dst, req->src_len,
++				req->dst_len, zctx->level, zctx->mem);
+ 	if (!ret)
+ 		return -EINVAL;
+-	*dst_len = ret;
++	req->dst_len = ret;
  	return 0;
  }
-@@ -1020,7 +1047,7 @@ static ssize_t comp_algorithm_store(stru
+ 
+-static int lz4_decompress(void *ctx, const unsigned char *src,
+-			  size_t src_len, unsigned char *dst, size_t dst_len)
++static int lz4_decompress(void *ctx, struct zcomp_req *req)
  {
- 	struct zram *zram = dev_to_zram(dev);
- 	char *args, *param, *val;
--	char *alg = NULL;
-+	char *alg = NULL, *dict_path = NULL;
- 	s32 level = ZCOMP_PARAM_NO_LEVEL;
  	int ret;
  
-@@ -1048,12 +1075,17 @@ static ssize_t comp_algorithm_store(stru
- 				return ret;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "dict")) {
-+			dict_path = val;
-+			continue;
-+		}
- 	}
- 
- 	if (!alg)
+-	ret = LZ4_decompress_safe(src, dst, src_len, dst_len);
++	ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
++				  req->dst_len);
+ 	if (ret < 0)
  		return -EINVAL;
+ 	return 0;
+--- a/drivers/block/zram/backend_lz4hc.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_lz4hc.c
+@@ -41,26 +41,25 @@ error:
+ 	return NULL;
+ }
  
--	ret = comp_params_store(zram, ZRAM_PRIMARY_COMP, level);
-+	ret = comp_params_store(zram, ZRAM_PRIMARY_COMP, level, dict_path);
- 	if (!ret)
- 		ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_COMP, alg);
- 	return ret ? ret : len;
-@@ -1087,7 +1119,7 @@ static ssize_t recomp_algorithm_store(st
- 	struct zram *zram = dev_to_zram(dev);
- 	int prio = ZRAM_SECONDARY_COMP;
- 	char *args, *param, *val;
--	char *alg = NULL;
-+	char *alg = NULL, *dict_path = NULL;
- 	s32 level = ZCOMP_PARAM_NO_LEVEL;
+-static int lz4hc_compress(void *ctx, const unsigned char *src, size_t src_len,
+-			  unsigned char *dst, size_t *dst_len)
++static int lz4hc_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	struct lz4hc_ctx *zctx = ctx;
  	int ret;
  
-@@ -1116,6 +1148,11 @@ static ssize_t recomp_algorithm_store(st
- 				return ret;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "dict")) {
-+			dict_path = val;
-+			continue;
-+		}
- 	}
- 
- 	if (!alg)
-@@ -1124,7 +1161,7 @@ static ssize_t recomp_algorithm_store(st
- 	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS)
- 		return -EINVAL;
- 
--	ret = comp_params_store(zram, prio, level);
-+	ret = comp_params_store(zram, prio, level, dict_path);
+-	ret = LZ4_compress_HC(src, dst, src_len, *dst_len,
++	ret = LZ4_compress_HC(req->src, req->dst, req->src_len, req->dst_len,
+ 			      zctx->level, zctx->mem);
  	if (!ret)
- 		ret = __comp_algorithm_store(zram, prio, alg);
- 	return ret ? ret : len;
-@@ -2029,17 +2066,12 @@ static void zram_slot_free_notify(struct
- 	zram_slot_unlock(zram, index);
+ 		return -EINVAL;
+-	*dst_len = ret;
++	req->dst_len = ret;
+ 	return 0;
  }
  
--static void zram_reset_comp_params(struct zram *zram)
-+static void zram_comp_params_reset(struct zram *zram)
+-static int lz4hc_decompress(void *ctx, const unsigned char *src,
+-			    size_t src_len, unsigned char *dst, size_t dst_len)
++static int lz4hc_decompress(void *ctx, struct zcomp_req *req)
  {
- 	u32 prio;
+ 	int ret;
  
- 	for (prio = 0; prio < ZRAM_MAX_COMPS; prio++) {
--		struct zcomp_params *params = &zram->params[prio];
--
--		vfree(params->dict);
--		params->level = ZCOMP_PARAM_NO_LEVEL;
--		params->dict_sz = 0;
--		params->dict = NULL;
-+		comp_params_reset(zram, prio);
- 	}
+-	ret = LZ4_decompress_safe(src, dst, src_len, dst_len);
++	ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
++				  req->dst_len);
+ 	if (ret < 0)
+ 		return -EINVAL;
+ 	return 0;
+--- a/drivers/block/zram/backend_lzo.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_lzo.c
+@@ -16,21 +16,21 @@ static void lzo_destroy(void *ctx)
+ 	kfree(ctx);
  }
  
-@@ -2057,7 +2089,7 @@ static void zram_destroy_comps(struct zr
- 		zram->num_active_comps--;
- 	}
+-static int lzo_compress(void *ctx, const unsigned char *src, size_t src_len,
+-			unsigned char *dst, size_t *dst_len)
++static int lzo_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	int ret;
  
--	zram_reset_comp_params(zram);
-+	zram_comp_params_reset(zram);
+-	ret = lzo1x_1_compress(src, src_len, dst, dst_len, ctx);
++	ret = lzo1x_1_compress(req->src, req->src_len, req->dst,
++			       &req->dst_len, ctx);
+ 	return ret == LZO_E_OK ? 0 : ret;
  }
  
- static void zram_reset_device(struct zram *zram)
-@@ -2321,7 +2353,7 @@ static int zram_add(void)
- 	if (ret)
- 		goto out_cleanup_disk;
+-static int lzo_decompress(void *ctx, const unsigned char *src, size_t src_len,
+-			  unsigned char *dst, size_t dst_len)
++static int lzo_decompress(void *ctx, struct zcomp_req *req)
+ {
+ 	int ret;
  
--	zram_reset_comp_params(zram);
-+	zram_comp_params_reset(zram);
- 	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
+-	ret = lzo1x_decompress_safe(src, src_len, dst, &dst_len);
++	ret = lzo1x_decompress_safe(req->src, req->src_len,
++				    req->dst, &req->dst_len);
+ 	return ret == LZO_E_OK ? 0 : ret;
+ }
  
- 	zram_debugfs_register(zram);
+--- a/drivers/block/zram/backend_lzorle.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_lzorle.c
+@@ -16,22 +16,21 @@ static void lzorle_destroy(void *ctx)
+ 	kfree(ctx);
+ }
+ 
+-static int lzorle_compress(void *ctx, const unsigned char *src, size_t src_len,
+-			   unsigned char *dst, size_t *dst_len)
++static int lzorle_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	int ret;
+ 
+-	ret = lzorle1x_1_compress(src, src_len, dst, dst_len, ctx);
++	ret = lzorle1x_1_compress(req->src, req->src_len, req->dst,
++				  &req->dst_len, ctx);
+ 	return ret == LZO_E_OK ? 0 : ret;
+ }
+ 
+-static int lzorle_decompress(void *ctx, const unsigned char *src,
+-			     size_t src_len, unsigned char *dst,
+-			     size_t dst_len)
++static int lzorle_decompress(void *ctx, struct zcomp_req *req)
+ {
+ 	int ret;
+ 
+-	ret = lzo1x_decompress_safe(src, src_len, dst, &dst_len);
++	ret = lzo1x_decompress_safe(req->src, req->src_len,
++				    req->dst, &req->dst_len);
+ 	return ret == LZO_E_OK ? 0 : ret;
+ }
+ 
+--- a/drivers/block/zram/backend_zstd.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/backend_zstd.c
+@@ -67,27 +67,26 @@ error:
+ 	return NULL;
+ }
+ 
+-static int zstd_compress(void *ctx, const unsigned char *src, size_t src_len,
+-			 unsigned char *dst, size_t *dst_len)
++static int zstd_compress(void *ctx, struct zcomp_req *req)
+ {
+ 	struct zstd_ctx *zctx = ctx;
+ 	size_t ret;
+ 
+-	ret = zstd_compress_cctx(zctx->cctx, dst, *dst_len,
+-				 src, src_len, &zctx->cprm);
++	ret = zstd_compress_cctx(zctx->cctx, req->dst, req->dst_len,
++				 req->src, req->src_len, &zctx->cprm);
+ 	if (zstd_is_error(ret))
+ 		return -EINVAL;
+-	*dst_len = ret;
++	req->dst_len = ret;
+ 	return 0;
+ }
+ 
+-static int zstd_decompress(void *ctx, const unsigned char *src, size_t src_len,
+-			   unsigned char *dst, size_t dst_len)
++static int zstd_decompress(void *ctx, struct zcomp_req *req)
+ {
+ 	struct zstd_ctx *zctx = ctx;
+ 	size_t ret;
+ 
+-	ret = zstd_decompress_dctx(zctx->dctx, dst, dst_len, src, src_len);
++	ret = zstd_decompress_dctx(zctx->dctx, req->dst, req->dst_len,
++				   req->src, req->src_len);
+ 	if (zstd_is_error(ret))
+ 		return -EINVAL;
+ 	return 0;
+--- a/drivers/block/zram/zcomp.c~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/zcomp.c
+@@ -118,22 +118,31 @@ void zcomp_stream_put(struct zcomp *comp
+ int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
+ 		   const void *src, unsigned int *dst_len)
+ {
+-	/* The dst buffer should always be 2 * PAGE_SIZE */
+-	size_t dlen = 2 * PAGE_SIZE;
++	struct zcomp_req req = {
++		.src = src,
++		.dst = zstrm->buffer,
++		.src_len = PAGE_SIZE,
++		.dst_len = 2 * PAGE_SIZE,
++	};
+ 	int ret;
+ 
+-	ret = comp->ops->compress(zstrm->ctx, src, PAGE_SIZE,
+-				  zstrm->buffer, &dlen);
++	ret = comp->ops->compress(zstrm->ctx, &req);
+ 	if (!ret)
+-		*dst_len = dlen;
++		*dst_len = req.dst_len;
+ 	return ret;
+ }
+ 
+ int zcomp_decompress(struct zcomp *comp, struct zcomp_strm *zstrm,
+ 		     const void *src, unsigned int src_len, void *dst)
+ {
+-	return comp->ops->decompress(zstrm->ctx, src, src_len,
+-				     dst, PAGE_SIZE);
++	struct zcomp_req req = {
++		.src = src,
++		.dst = dst,
++		.src_len = src_len,
++		.dst_len = PAGE_SIZE,
++	};
++
++	return comp->ops->decompress(zstrm->ctx, &req);
+ }
+ 
+ int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
+--- a/drivers/block/zram/zcomp.h~zram-introduce-zcomp_req-structure
++++ a/drivers/block/zram/zcomp.h
+@@ -21,12 +21,17 @@ struct zcomp_strm {
+ 	void *ctx;
+ };
+ 
+-struct zcomp_ops {
+-	int (*compress)(void *ctx, const unsigned char *src, size_t src_len,
+-			unsigned char *dst, size_t *dst_len);
++struct zcomp_req {
++	const unsigned char *src;
++	const size_t src_len;
++
++	unsigned char *dst;
++	size_t dst_len;
++};
+ 
+-	int (*decompress)(void *ctx, const unsigned char *src, size_t src_len,
+-			  unsigned char *dst, size_t dst_len);
++struct zcomp_ops {
++	int (*compress)(void *ctx, struct zcomp_req *req);
++	int (*decompress)(void *ctx, struct zcomp_req *req);
+ 
+ 	void *(*create_ctx)(struct zcomp_params *params);
+ 	void (*destroy_ctx)(void *ctx);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
