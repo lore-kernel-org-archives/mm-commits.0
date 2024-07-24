@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45C1C16A95C
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 17:45:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C1AC15F318
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 17:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721843103; cv=none; b=gPm8Pjb4ZzmIld4InscLe3sZcFuY4BWP3zihRP8YbRAPQJ8SknHQ1heXtcoWpZyHI1umBJHbXwqjgLi9N16nBSX+UIlHVPsgwtdbwIV8066XKmTrgKjl5XAywRvCuGmXTkpgpsN4/m6XxpqCAU1BlQVmGCQC3hEv3S4GOHlL1Rw=
+	t=1721843105; cv=none; b=YBcvtscYYDScLi4nol7WfE47Gh9EE26k8VNgHVP3d/GRqUUqzD8JC/Q23MFTrDIyOZ8DLaMNCv5RogfOfeFysmskpVQnblTE8CU/8vDHywDHhbUrp85VXYaq4ESRLjEpDNoqcWv8sviQDtDYbRYaCtS4As0hZB979SVs/miYAns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721843103; c=relaxed/simple;
-	bh=tZaysXnLp0uAEwfUhJciKvmIUMM2xexweCDZ58S2Kfc=;
-	h=Date:To:From:Subject:Message-Id; b=t2M1+o/EoaBKpCAKYHD4Fux1hSlVS8enwssnO7hysc3aSnozAkKJj0QquMTC/70Jn8UoUylmkNKAn9NJROluG5VOiBiY58+0ZJ0xnhrVAY8AiwZvEUPktATSTKMfx1gqhVA3FElRH4K0KS3MeNC7AXknP4rBrnDC3N5H34env10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U5HsTp0l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721843105; c=relaxed/simple;
+	bh=FmeVrrKtUhUBnXkVZkpc897r+JEaWFZizXNQJxw+1Bw=;
+	h=Date:To:From:Subject:Message-Id; b=ckmPmpHffFK3SHjbtGHsaXOMy2vRU8ZRv3cHx0bGhbCaUbD9qs3oFObIlLKy+RM+jy9wg3zopVp8BwPyNJsNrx+z9fTUPIsgWU4XH7+4E/qWlXaOqwr8EtUmppdLrB7VMJyGDyTbW2xA2fDMMLD/oRnbHRST/xFH0IFDl7nH+xY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdftmvnI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5HsTp0l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BEEC32781;
-	Wed, 24 Jul 2024 17:45:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdftmvnI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82385C32781;
+	Wed, 24 Jul 2024 17:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721843102;
-	bh=tZaysXnLp0uAEwfUhJciKvmIUMM2xexweCDZ58S2Kfc=;
+	s=korg; t=1721843104;
+	bh=FmeVrrKtUhUBnXkVZkpc897r+JEaWFZizXNQJxw+1Bw=;
 	h=Date:To:From:Subject:From;
-	b=U5HsTp0lw9iQyjF3sFV7IKibrjiXjRdktcDn8nEMvKjDik9G030bj75byyTe63x5G
-	 azYw1r30YUXAV/cx4ZMRzuSY4sgy5bqA6Civ6LgwF4dzgKt1zpUaNGrzkxYlXsRfXu
-	 5gV/nDolSn6mZAAvxEEMaEUOjMNSpB4k07JZZwaw=
-Date: Wed, 24 Jul 2024 10:45:02 -0700
-To: mm-commits@vger.kernel.org,jim.cromie@gmail.com,jbaron@akamai.com,elfring@users.sourceforge.net,akpm@linux-foundation.org
+	b=gdftmvnIQFDteefnjgvaMnxzXX7PiVlBsuG0xpO8G/jKoL9/e8ydsu6GAI50iuiBz
+	 xk6jCjHasi73vQogkSctdtT4OHHFN0KPa4YGQY3AuV2JuoRvyAU3AGs1ptfToI7Gm9
+	 EJ6vVKOZqqLVOfIsnVL5Oj7KqRchXEw1cDjnY4Ro=
+Date: Wed, 24 Jul 2024 10:45:04 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,elfring@users.sourceforge.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dyndbg-use-seq_putc-in-ddebug_proc_show.patch added to mm-nonmm-unstable branch
-Message-Id: <20240724174502.B6BEEC32781@smtp.kernel.org>
+Subject: + closures-use-seq_putc-in-debug_show.patch added to mm-nonmm-unstable branch
+Message-Id: <20240724174504.82385C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dyndbg: use seq_putc() in ddebug_proc_show()
+     Subject: closures: use seq_putc() in debug_show()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     dyndbg-use-seq_putc-in-ddebug_proc_show.patch
+     closures-use-seq_putc-in-debug_show.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dyndbg-use-seq_putc-in-ddebug_proc_show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/closures-use-seq_putc-in-debug_show.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: dyndbg: use seq_putc() in ddebug_proc_show()
-Date: Sun, 14 Jul 2024 19:33:07 +0200
+Subject: closures: use seq_putc() in debug_show()
+Date: Sun, 14 Jul 2024 19:15:09 +0200
 
-Single characters should be put into a sequence.  Thus use the
+A single line break should be put into a sequence.  Thus use the
 corresponding function "seq_putc".
 
 This issue was transformed by using the Coccinelle software.
 
-Link: https://lkml.kernel.org/r/375b5b4b-6295-419e-bae9-da724a7a682d@web.de
+Link: https://lkml.kernel.org/r/e7faa2c4-9590-44b4-8669-69ef810277b1@web.de
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Jim Cromie <jim.cromie@gmail.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/closure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/dynamic_debug.c~dyndbg-use-seq_putc-in-ddebug_proc_show
-+++ a/lib/dynamic_debug.c
-@@ -1147,7 +1147,7 @@ static int ddebug_proc_show(struct seq_f
- 		   iter->table->mod_name, dp->function,
- 		   ddebug_describe_flags(dp->flags, &flags));
- 	seq_escape_str(m, dp->format, ESCAPE_SPACE, "\t\r\n\"");
--	seq_puts(m, "\"");
-+	seq_putc(m, '"');
+--- a/lib/closure.c~closures-use-seq_putc-in-debug_show
++++ a/lib/closure.c
+@@ -278,7 +278,7 @@ static int debug_show(struct seq_file *f
+ 			seq_printf(f, " W %pS\n",
+ 				   (void *) cl->waiting_on);
  
- 	if (dp->class_id != _DPRINTK_CLASS_DFLT) {
- 		class = ddebug_class_name(iter, dp);
-@@ -1156,7 +1156,7 @@ static int ddebug_proc_show(struct seq_f
- 		else
- 			seq_printf(m, " class unknown, _id:%d", dp->class_id);
+-		seq_puts(f, "\n");
++		seq_putc(f, '\n');
  	}
--	seq_puts(m, "\n");
-+	seq_putc(m, '\n');
  
- 	return 0;
- }
+ 	spin_unlock_irq(&closure_list_lock);
 _
 
 Patches currently in -mm which might be from elfring@users.sourceforge.net are
