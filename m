@@ -1,220 +1,491 @@
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBCC52D030;
-	Wed, 24 Jul 2024 06:44:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01E0E1E488
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 12:52:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721803461; cv=none; b=OBkSvbKsqH7nw7ChCHscJPV6DTOFM4ukUfokySmEIQ4vin5ajSr37xi6lX/1sBPzc/XqDEmiRGbH1fWItiNLySs3Vp1JNxSo6YtWrHjVpeDQFy5wOcNrso2DAZFUHzx+1OrzF6052e3fz2Ps/X7mDfrMM0lWqmsn59AKOSppz9A=
+	t=1721825554; cv=none; b=T0tZs8HLn15pRu+BqM6Tw3QQkC8JJc4WvNEtU3sVrVg++RMr1PKfarhXlZYceDM3+qcC4Nx1pwCJ8F1AcCieTJygtpbf+F4bFZ28JP8RLiXXd0tjOFF0z4IXeZe2uaScwC+v4bAQEF8hJBEay6TZ0t59jSWKEUBZbwN7efb95kE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721803461; c=relaxed/simple;
-	bh=R8ZYgkfN7SOS0zuMxrlYUYT78BQBgHfKcQ0wc5czGtc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=eiU9jB3dPCHbvFe2/33j9t9sGFWXerR/QcWAmdqXcEo4YGsSSt+ILmKJ2sANDDFNw7Nzd7kqkwiM0XuYqJ1DR6YS6+SH0+KELqZumf/Ex6HhUrqqL+86FjIJe8mSEK3yqnkeQ4nSWDzBBHRq2O/kUlg3ft/oDZrFjMWrVxRmzJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.174])
-	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4WTPX34KwXzQml8;
-	Wed, 24 Jul 2024 14:40:03 +0800 (CST)
-Received: from kwepemi100008.china.huawei.com (unknown [7.221.188.57])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9ACF914035E;
-	Wed, 24 Jul 2024 14:44:14 +0800 (CST)
-Received: from [10.67.109.254] (10.67.109.254) by
- kwepemi100008.china.huawei.com (7.221.188.57) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Wed, 24 Jul 2024 14:44:13 +0800
-Message-ID: <7898c0c5-45b6-9795-74a0-f70904dd077c@huawei.com>
-Date: Wed, 24 Jul 2024 14:44:12 +0800
+	s=arc-20240116; t=1721825554; c=relaxed/simple;
+	bh=TfOlkItxGUiHznU7PZJ+LNibn2KCPznbE+SVqazf3nA=;
+	h=Date:To:From:Subject:Message-Id; b=AM29FGCprl+K+5eiEJ0sqrLCeqUgfL4G5W2pnQQawZ+d1lsMpjhElhIvzXbw4ZaKtmgCbTrb3RgROX7EIVp55BOz4eRIFHN8YCT+gZYDDr5qXv/E6iihRjDoTvogPLOEGfDkPcD7BUO6wvp48QvRd/BtE5gm4a4KV+DHbF6dhx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eRKVYgyh; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eRKVYgyh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625CBC32782;
+	Wed, 24 Jul 2024 12:52:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1721825553;
+	bh=TfOlkItxGUiHznU7PZJ+LNibn2KCPznbE+SVqazf3nA=;
+	h=Date:To:From:Subject:From;
+	b=eRKVYgyhmms7x+LmtXxqoPIcmkRjnVJWBNAhtIUjL+pao7hTj90lJGvFp9kbI/cqh
+	 ow2jHAj4apJsKocQtRWLN7sqewUPcaQOA+H2XpcPdDp4S4eh6ZloDMxDVbgGPrsAtE
+	 ZZLL1oQ+gI3dImDdtsJ7zCDDyqg7323XmLA+EL6A=
+Date: Wed, 24 Jul 2024 05:52:27 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-memcg-cg2-memoryswappeak-write-handlers.patch removed from -mm tree
+Message-Id: <20240724125233.625CBC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.0
-Subject: Re: + crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch added
- to mm-nonmm-unstable branch
-Content-Language: en-US
-To: Andrew Morton <akpm@linux-foundation.org>, <mm-commits@vger.kernel.org>,
-	<will@kernel.org>, <vgoyal@redhat.com>, <thunder.leizhen@huawei.com>,
-	<tglx@linutronix.de>, <stable@vger.kernel.org>, <robh@kernel.org>,
-	<paul.walmsley@sifive.com>, <palmer@dabbelt.com>, <mingo@redhat.com>,
-	<linux@armlinux.org.uk>, <linus.walleij@linaro.org>, <javierm@redhat.com>,
-	<hpa@zytor.com>, <hbathini@linux.ibm.com>, <gregkh@linuxfoundation.org>,
-	<eric.devolder@oracle.com>, <dyoung@redhat.com>, <deller@gmx.de>,
-	<dave.hansen@linux.intel.com>, <chenjiahao16@huawei.com>,
-	<catalin.marinas@arm.com>, <bp@alien8.de>, <bhe@redhat.com>, <arnd@arndb.de>,
-	<aou@eecs.berkeley.edu>, <afd@ti.com>
-References: <20240724053727.28397C32782@smtp.kernel.org>
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-In-Reply-To: <20240724053727.28397C32782@smtp.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- kwepemi100008.china.huawei.com (7.221.188.57)
 
 
+The quilt patch titled
+     Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-cg2-memoryswappeak-write-handlers.patch
 
-On 2024/7/24 13:37, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: crash: fix x86_32 crash memory reserve dead loop bug
-> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->      crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
-> 
-> This patch will later appear in the mm-nonmm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Jinjie Ruan <ruanjinjie@huawei.com>
-> Subject: crash: fix x86_32 crash memory reserve dead loop bug
-> Date: Thu, 18 Jul 2024 11:54:42 +0800
-> 
-> Patch series "crash: Fix x86_32 memory reserve dead loop bug", v3.
+This patch was dropped because an updated version will be issued
 
-It seems that the newest is v4, and the loongarch is missing.
+------------------------------------------------------
+From: David Finkel <davidf@vimeo.com>
+Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+Date: Tue, 23 Jul 2024 19:31:48 -0400
 
-> 
-> Fix two bugs for x86_32 crash memory reserve, and prepare to apply generic
-> crashkernel reservation to 32bit system.  Then use generic interface to
-> simplify crashkernel reservation for ARM32.
-> 
-> 
-> This patch (of 3):
-> 
-> On x86_32 Qemu machine with 1GB memory, the cmdline "crashkernel=1G,high"
-> will cause system stall as below:
-> 
-> 	ACPI: Reserving FACP table memory at [mem 0x3ffe18b8-0x3ffe192b]
-> 	ACPI: Reserving DSDT table memory at [mem 0x3ffe0040-0x3ffe18b7]
-> 	ACPI: Reserving FACS table memory at [mem 0x3ffe0000-0x3ffe003f]
-> 	ACPI: Reserving APIC table memory at [mem 0x3ffe192c-0x3ffe19bb]
-> 	ACPI: Reserving HPET table memory at [mem 0x3ffe19bc-0x3ffe19f3]
-> 	ACPI: Reserving WAET table memory at [mem 0x3ffe19f4-0x3ffe1a1b]
-> 	143MB HIGHMEM available.
-> 	879MB LOWMEM available.
-> 	  mapped low ram: 0 - 36ffe000
-> 	  low ram: 0 - 36ffe000
-> 	 (stall here)
-> 
-> The reason is that the CRASH_ADDR_LOW_MAX is equal to CRASH_ADDR_HIGH_MAX
-> on x86_32, the first high crash kernel memory reservation will fail, then
-> go into the "retry" loop and never came out as below.
-> 
-> -> reserve_crashkernel_generic() and high is true
->  -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
->     -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
->        (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
-> 
-> Fix it by prevent crashkernel=,high from being parsed successfully on 32bit
-> system with a architecture-defined macro.
-> 
-> After this patch, the 'crashkernel=,high' for 32bit system can't succeed,
-> and it has no chance to call reserve_crashkernel_generic(), therefore this
-> issue on x86_32 is solved.
-> 
-> Link: https://lkml.kernel.org/r/20240718035444.2977105-1-ruanjinjie@huawei.com
-> Link: https://lkml.kernel.org/r/20240718035444.2977105-2-ruanjinjie@huawei.com
-> Fixes: 9c08a2a139fe ("x86: kdump: use generic interface to simplify crashkernel reservation code")
-> Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-> Signed-off-by: Baoquan He <bhe@redhat.com>
-> Tested-by: Jinjie Ruan <ruanjinjie@huawei.com>
-> Cc: Albert Ou <aou@eecs.berkeley.edu>
-> Cc: Andrew Davis <afd@ti.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Chen Jiahao <chenjiahao16@huawei.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Dave Young <dyoung@redhat.com>
-> Cc: Eric DeVolder <eric.devolder@oracle.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Hari Bathini <hbathini@linux.ibm.com>
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Javier Martinez Canillas <javierm@redhat.com>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Paul Walmsley <paul.walmsley@sifive.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Vivek Goyal <vgoyal@redhat.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Zhen Lei <thunder.leizhen@huawei.com>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/arm64/include/asm/crash_reserve.h |    2 ++
->  arch/riscv/include/asm/crash_reserve.h |    2 ++
->  arch/x86/include/asm/crash_reserve.h   |    1 +
->  kernel/crash_reserve.c                 |    2 +-
->  4 files changed, 6 insertions(+), 1 deletion(-)
-> 
-> --- a/arch/arm64/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
-> +++ a/arch/arm64/include/asm/crash_reserve.h
-> @@ -7,4 +7,6 @@
->  
->  #define CRASH_ADDR_LOW_MAX              arm64_dma_phys_limit
->  #define CRASH_ADDR_HIGH_MAX             (PHYS_MASK + 1)
-> +
-> +#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
->  #endif
-> --- a/arch/riscv/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
-> +++ a/arch/riscv/include/asm/crash_reserve.h
-> @@ -7,5 +7,7 @@
->  #define CRASH_ADDR_LOW_MAX		dma32_phys_limit
->  #define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
->  
-> +#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
-> +
->  extern phys_addr_t memblock_end_of_DRAM(void);
->  #endif
-> --- a/arch/x86/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
-> +++ a/arch/x86/include/asm/crash_reserve.h
-> @@ -26,6 +26,7 @@ extern unsigned long swiotlb_size_or_def
->  #else
->  # define CRASH_ADDR_LOW_MAX     SZ_4G
->  # define CRASH_ADDR_HIGH_MAX    SZ_64T
-> +#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
->  #endif
->  
->  # define DEFAULT_CRASH_KERNEL_LOW_SIZE crash_low_size_default()
-> --- a/kernel/crash_reserve.c~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
-> +++ a/kernel/crash_reserve.c
-> @@ -305,7 +305,7 @@ int __init parse_crashkernel(char *cmdli
->  	/* crashkernel=X[@offset] */
->  	ret = __parse_crashkernel(cmdline, system_ram, crash_size,
->  				crash_base, NULL);
-> -#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
-> +#ifdef HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
->  	/*
->  	 * If non-NULL 'high' passed in and no normal crashkernel
->  	 * setting detected, try parsing crashkernel=,high|low.
-> _
-> 
-> Patches currently in -mm which might be from ruanjinjie@huawei.com are
-> 
-> crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
-> crash-fix-x86_32-crash-memory-reserve-dead-loop-bug-at-high.patch
-> arm-use-generic-interface-to-simplify-crashkernel-reservation.patch
-> 
+Patch series "mm, memcg: cg2 memory{.swap,}.peak write handlers".
+
+
+This patch (of 2):
+
+Other mechanisms for querying the peak memory usage of either a process or
+v1 memory cgroup allow for resetting the high watermark.  Restore parity
+with those mechanisms, but with a less racy API.
+
+For example:
+ - Any write to memory.max_usage_in_bytes in a cgroup v1 mount resets
+   the high watermark.
+ - writing "5" to the clear_refs pseudo-file in a processes's proc
+   directory resets the peak RSS.
+
+This change is an evolution of a previous patch, which mostly copied the
+cgroup v1 behavior, however, there were concerns about races/ownership
+issues with a global reset, so instead this change makes the reset
+filedescriptor-local.
+
+Writing a specific string to the memory.peak and memory.swap.peak
+pseudo-files reset the high watermark to the current usage for subsequent
+reads through that same fd.
+
+Notably, following Johannes's suggestion, this implementation moves the
+O(fds that have written) behavior onto the fd write(2) path.  Instead, on
+the page-allocation path, we simply add one additional watermark to
+conditionally bump per-hierarchy level in the page-counter.
+
+Additionally, this takes Longman's suggestion of nesting the
+page-charging-path checks for the two watermarks to reduce the number of
+common-case comparisons.
+
+This behavior is particularly useful for work scheduling systems that need
+to track memory usage of worker processes/cgroups per-work-item.  Since
+memory can't be squeezed like CPU can (the OOM-killer has opinions), these
+systems need to track the peak memory usage to compute system/container
+fullness when binpacking workitems.
+
+Most notably, Vimeo's use-case involves a system that's doing global
+binpacking across many Kubernetes pods/containers, and while we can use
+PSI for some local decisions about overload, we strive to avoid packing
+workloads too tightly in the first place.  To facilitate this, we track
+the peak memory usage.  However, since we run with long-lived workers (to
+amortize startup costs) we need a way to track the high watermark while a
+work-item is executing.  Polling runs the risk of missing short spikes
+that last for timescales below the polling interval, and peak memory
+tracking at the cgroup level is otherwise perfect for this use-case.
+
+As this data is used to ensure that binpacked work ends up with sufficient
+headroom, this use-case mostly avoids the inaccuracies surrounding
+reclaimable memory.
+
+Link: https://lkml.kernel.org/r/20240723233149.3226636-1-davidf@vimeo.com
+Link: https://lkml.kernel.org/r/20240723233149.3226636-2-davidf@vimeo.com
+Signed-off-by: David Finkel <davidf@vimeo.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Waiman Long <longman@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/cgroup-v2.rst |   26 +++-
+ include/linux/cgroup-defs.h             |    5 
+ include/linux/cgroup.h                  |    3 
+ include/linux/memcontrol.h              |    5 
+ include/linux/page_counter.h            |    6 -
+ kernel/cgroup/cgroup-internal.h         |    2 
+ kernel/cgroup/cgroup.c                  |    7 +
+ mm/memcontrol.c                         |  117 ++++++++++++++++++++--
+ mm/page_counter.c                       |   30 ++++-
+ 9 files changed, 174 insertions(+), 27 deletions(-)
+
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1333,11 +1333,16 @@ The following nested keys are defined.
+ 	all the existing limitations and potential future extensions.
+ 
+   memory.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max memory usage recorded for the cgroup and its descendants since
++	either the creation of the cgroup or the most recent reset for that FD.
+ 
+-	The max memory usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of the string "reset" to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
++	Attempts to write any other non-empty string will return EINVAL
++	(modulo leading and trailing whitespace).
+ 
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+@@ -1663,11 +1668,16 @@ The following nested keys are defined.
+ 	Healthy workloads are not expected to reach this limit.
+ 
+   memory.swap.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max swap usage recorded for the cgroup and its descendants since
++	the creation of the cgroup or the most recent reset for that FD.
+ 
+-	The max swap usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of the string "reset" to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
++	Attempts to write any other non-empty string will return EINVAL
++	(modulo leading and trailing whitespace).
+ 
+   memory.swap.max
+ 	A read-write single value file which exists on non-root
+--- a/include/linux/cgroup-defs.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup-defs.h
+@@ -775,6 +775,11 @@ struct cgroup_subsys {
+ 
+ extern struct percpu_rw_semaphore cgroup_threadgroup_rwsem;
+ 
++struct cgroup_of_peak {
++	long			value;
++	struct list_head	list;
++};
++
+ /**
+  * cgroup_threadgroup_change_begin - threadgroup exclusion for cgroups
+  * @tsk: target task
+--- a/include/linux/cgroup.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/nodemask.h>
++#include <linux/list.h>
+ #include <linux/rculist.h>
+ #include <linux/cgroupstats.h>
+ #include <linux/fs.h>
+@@ -854,4 +855,6 @@ static inline void cgroup_bpf_put(struct
+ 
+ struct cgroup *task_get_cgroup1(struct task_struct *tsk, int hierarchy_id);
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of);
++
+ #endif /* _LINUX_CGROUP_H */
+--- a/include/linux/memcontrol.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/memcontrol.h
+@@ -193,6 +193,11 @@ struct mem_cgroup {
+ 		struct page_counter memsw;	/* v1 only */
+ 	};
+ 
++	/* registered local peak watchers */
++	struct list_head memory_peaks;
++	struct list_head swap_peaks;
++	spinlock_t	 peaks_lock;
++
+ 	/* Range enforcement for interrupt charges */
+ 	struct work_struct high_work;
+ 
+--- a/include/linux/page_counter.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/page_counter.h
+@@ -26,6 +26,7 @@ struct page_counter {
+ 	atomic_long_t children_low_usage;
+ 
+ 	unsigned long watermark;
++	unsigned long local_watermark; /* track min of fd-local resets */
+ 	unsigned long failcnt;
+ 
+ 	/* Keep all the read most fields in a separete cacheline. */
+@@ -78,7 +79,10 @@ int page_counter_memparse(const char *bu
+ 
+ static inline void page_counter_reset_watermark(struct page_counter *counter)
+ {
+-	counter->watermark = page_counter_read(counter);
++	unsigned long usage = page_counter_read(counter);
++
++	counter->watermark = usage;
++	counter->local_watermark = usage;
+ }
+ 
+ void page_counter_calculate_protection(struct page_counter *root,
+--- a/kernel/cgroup/cgroup.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup.c
+@@ -1972,6 +1972,13 @@ static int cgroup2_parse_param(struct fs
+ 	return -EINVAL;
+ }
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of)
++{
++	struct cgroup_file_ctx *ctx = of->priv;
++
++	return &ctx->peak;
++}
++
+ static void apply_cgroup_root_flags(unsigned int root_flags)
+ {
+ 	if (current->nsproxy->cgroup_ns == &init_cgroup_ns) {
+--- a/kernel/cgroup/cgroup-internal.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -81,6 +81,8 @@ struct cgroup_file_ctx {
+ 	struct {
+ 		struct cgroup_pidlist	*pidlist;
+ 	} procs1;
++
++	struct cgroup_of_peak peak;
+ };
+ 
+ /*
+--- a/mm/memcontrol.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/memcontrol.c
+@@ -25,6 +25,7 @@
+  * Copyright (C) 2020 Alibaba, Inc, Alex Shi
+  */
+ 
++#include <linux/cgroup-defs.h>
+ #include <linux/page_counter.h>
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+@@ -41,6 +42,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
+ #include <linux/export.h>
++#include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/rbtree.h>
+ #include <linux/slab.h>
+@@ -3528,6 +3530,9 @@ static struct mem_cgroup *mem_cgroup_all
+ 
+ 	INIT_WORK(&memcg->high_work, high_work_func);
+ 	vmpressure_init(&memcg->vmpressure);
++	INIT_LIST_HEAD(&memcg->memory_peaks);
++	INIT_LIST_HEAD(&memcg->swap_peaks);
++	spin_lock_init(&memcg->peaks_lock);
+ 	memcg->socket_pressure = jiffies;
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+@@ -3920,12 +3925,90 @@ static u64 memory_current_read(struct cg
+ 	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
+ }
+ 
+-static u64 memory_peak_read(struct cgroup_subsys_state *css,
+-			    struct cftype *cft)
++static int peak_show(struct seq_file *sf, void *v, struct page_counter *pc)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct cgroup_of_peak *ofp = of_peak(sf->private);
++	s64 fd_peak = ofp->value, peak;
++
++	/* User wants global or local peak? */
++	if (fd_peak == -1)
++		peak = pc->watermark;
++	else
++		peak = max(fd_peak, (s64)pc->local_watermark);
++
++	seq_printf(sf, "%lld\n", peak * PAGE_SIZE);
++	return 0;
++}
+ 
+-	return (u64)memcg->memory.watermark * PAGE_SIZE;
++static int memory_peak_show(struct seq_file *sf, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->memory);
++}
++
++static int peak_open(struct kernfs_open_file *of)
++{
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	ofp->value = -1;
++	return 0;
++}
++
++static void peak_release(struct kernfs_open_file *of)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	if (ofp->value == -1) {
++		/* fast path (no writes on this fd) */
++		return;
++	}
++	spin_lock(&memcg->peaks_lock);
++	list_del(&ofp->list);
++	spin_unlock(&memcg->peaks_lock);
++}
++
++static ssize_t peak_write(struct kernfs_open_file *of, char *buf, size_t nbytes,
++			  loff_t off, struct page_counter *pc,
++			  struct list_head *watchers)
++{
++	unsigned long usage;
++	struct cgroup_of_peak *peer_ctx;
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	buf = strstrip(buf);
++	/* Only allow "reset" to keep the API clear */
++	if (strcmp(buf, "reset"))
++		return -EINVAL;
++
++	spin_lock(&memcg->peaks_lock);
++
++	pc->local_watermark = page_counter_read(pc);
++	usage = pc->local_watermark;
++
++	list_for_each_entry(peer_ctx, watchers, list)
++		if (usage > peer_ctx->value)
++			peer_ctx->value = usage;
++
++	/* initial write, register watcher */
++	if (ofp->value == -1)
++		list_add(&ofp->list, watchers);
++
++	ofp->value = usage;
++	spin_unlock(&memcg->peaks_lock);
++
++	return nbytes;
++}
++
++static ssize_t memory_peak_write(struct kernfs_open_file *of, char *buf,
++				 size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++
++	return peak_write(of, buf, nbytes, off, &memcg->memory,
++			  &memcg->memory_peaks);
+ }
+ 
+ static int memory_min_show(struct seq_file *m, void *v)
+@@ -4277,7 +4360,10 @@ static struct cftype memory_files[] = {
+ 	{
+ 		.name = "peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = memory_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = memory_peak_show,
++		.write = memory_peak_write,
+ 	},
+ 	{
+ 		.name = "min",
+@@ -5069,12 +5155,20 @@ static u64 swap_current_read(struct cgro
+ 	return (u64)page_counter_read(&memcg->swap) * PAGE_SIZE;
+ }
+ 
+-static u64 swap_peak_read(struct cgroup_subsys_state *css,
+-			  struct cftype *cft)
++static int swap_peak_show(struct seq_file *sf, void *v)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->swap);
++}
++
++static ssize_t swap_peak_write(struct kernfs_open_file *of, char *buf,
++			       size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+-	return (u64)memcg->swap.watermark * PAGE_SIZE;
++	return peak_write(of, buf, nbytes, off, &memcg->swap,
++			  &memcg->swap_peaks);
+ }
+ 
+ static int swap_high_show(struct seq_file *m, void *v)
+@@ -5158,7 +5252,10 @@ static struct cftype swap_files[] = {
+ 	{
+ 		.name = "swap.peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = swap_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = swap_peak_show,
++		.write = swap_peak_write,
+ 	},
+ 	{
+ 		.name = "swap.events",
+--- a/mm/page_counter.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/page_counter.c
+@@ -79,9 +79,22 @@ void page_counter_charge(struct page_cou
+ 		/*
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
++		 *
++		 * Notably, we have two watermarks to allow for both a globally
++		 * visible peak and one that can be reset at a smaller scope.
++		 *
++		 * Since we reset both watermarks when the global reset occurs,
++		 * we can guarantee that watermark >= local_watermark, so we
++		 * don't need to do both comparisons every time.
++		 *
++		 * On systems with branch predictors, the inner condition should
++		 * be almost free.
+ 		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ }
+ 
+@@ -129,12 +142,13 @@ bool page_counter_try_charge(struct page
+ 			goto failed;
+ 		}
+ 		propagate_protected_usage(c, new);
+-		/*
+-		 * Just like with failcnt, we can live with some
+-		 * inaccuracy in the watermark.
+-		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++
++		/* see comment on page_counter_charge */
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ 	return true;
+ 
+_
+
+Patches currently in -mm which might be from davidf@vimeo.com are
+
+mm-memcg-cg2-memoryswappeak-write-tests.patch
+
