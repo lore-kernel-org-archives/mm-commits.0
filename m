@@ -1,472 +1,66 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86679282FA
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jul 2024 17:02:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9723C158A1F;
+	Wed, 24 Jul 2024 17:37:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721840555; cv=none; b=cPYyRhShHmVmZXL/KGYFZjBwdNtVvkV+dnIraVkxq/kw2zu4zlSj6PPfFJi95l3vQDFC3enu03m4NkwPGfuJUY1aCWSqb7gUbGGsVnr9cffcFY3L47NOo+oW1ST9ahSjXtikyCcQe37IMRkSNoNER89/jDmvkRyn1AjJwUC1Sr0=
+	t=1721842674; cv=none; b=gOq+itiZiM/NTV+ukAe06rbRt//U+YYTzDFAsjqCtGuiGReuYpWRcWC6t2geo3AQLrvF3SzfWucjtfAehmsD4J3mWSJbvzjsPzlQlMzUIBPz7tsXsJvOM6r6vHci1yeiz2zuciwUiAZPTZ/pbX2MEhfMnzQKUIV0lggpNuuuxr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721840555; c=relaxed/simple;
-	bh=knMaexw28DBlcWnsOXz8ffP4a9KsGYTJ9UT5ute5aOk=;
-	h=Date:To:From:Subject:Message-Id; b=ruITuvR5CNZ1gsYMxtKq3xkbpW6PCwr7mVYyvCI0goHnJQcxK9n+R12f99fDAVySPrJ87n6qFgx1K0Po1HeNppd1FN27QUFpyZkhd6CfNxa2ptuhbk+3BYJLd7B8QKegZmXSyxcZkd9UNZAdlMO5MRmtpIb1DgsMVNZupd+017c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xDkbXHlN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721842674; c=relaxed/simple;
+	bh=f6VuWljiCI7eqOIXWlyHK73sQUfPuWoDHqeHxjR4gkY=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=MVZMDum+i7LadDY+j9tZfs9fEvoUK4c/j/GQSNn6fv3+t9Z9xa1bh09BAb//JMLldgLpYVWeulQf4dLKl7dO2NPbICvwRRJHvPgcXmLseq1RN+g2JPTpIEBYVCST+KE03Mot8SAG3AqvlE8Avhh1GkPZ8T84OznniFn6wYWfln8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DZ/YlqKQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xDkbXHlN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02FCEC32781;
-	Wed, 24 Jul 2024 17:02:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DZ/YlqKQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 489A8C32781;
+	Wed, 24 Jul 2024 17:37:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721840555;
-	bh=knMaexw28DBlcWnsOXz8ffP4a9KsGYTJ9UT5ute5aOk=;
-	h=Date:To:From:Subject:From;
-	b=xDkbXHlNiz4R9CePSoRB9SdbZ/Pq0c+Q9K2ns9JGmJeaXOtJvta9oXd5ocTiSDL0e
-	 WYg8Armc+9FCRNnEOv4yO5Y5QD0RIFvs0wCYGiz/KC5SXFf/wM+AD5YbvadNV7MQl5
-	 g6MRmBhxfr8OrUc2nNFgr1nc+MvK2qushH2uyihU=
-Date: Wed, 24 Jul 2024 10:02:34 -0700
-To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
+	s=korg; t=1721842674;
+	bh=f6VuWljiCI7eqOIXWlyHK73sQUfPuWoDHqeHxjR4gkY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=DZ/YlqKQsXf1rN/ozob29X7zkd14frKWHMthgZBxHSfI5KIItfnTWoRPw0GmslbLJ
+	 xIZGCTZUULqFUXugwIFTYdMYAnSnVDxLlz2PnZaOE9v2hPBd6O4pRmqSfyskYz4qb1
+	 MPNJqLU/+M/HRKy6ch2oZUkDT25SiITBUm5o6AT4=
+Date: Wed, 24 Jul 2024 10:37:52 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xz-remove-xz_extern-and-extern-from-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20240724170235.02FCEC32781@smtp.kernel.org>
+To: Jinjie Ruan <ruanjinjie@huawei.com>
+Cc: <mm-commits@vger.kernel.org>, <will@kernel.org>, <vgoyal@redhat.com>,
+ <thunder.leizhen@huawei.com>, <tglx@linutronix.de>,
+ <stable@vger.kernel.org>, <robh@kernel.org>, <paul.walmsley@sifive.com>,
+ <palmer@dabbelt.com>, <mingo@redhat.com>, <linux@armlinux.org.uk>,
+ <linus.walleij@linaro.org>, <javierm@redhat.com>, <hpa@zytor.com>,
+ <hbathini@linux.ibm.com>, <gregkh@linuxfoundation.org>,
+ <eric.devolder@oracle.com>, <dyoung@redhat.com>, <deller@gmx.de>,
+ <dave.hansen@linux.intel.com>, <chenjiahao16@huawei.com>,
+ <catalin.marinas@arm.com>, <bp@alien8.de>, <bhe@redhat.com>,
+ <arnd@arndb.de>, <aou@eecs.berkeley.edu>, <afd@ti.com>
+Subject: Re: + crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
+ added to mm-nonmm-unstable branch
+Message-Id: <20240724103752.f3ed5021d203d5e333b47873@linux-foundation.org>
+In-Reply-To: <7898c0c5-45b6-9795-74a0-f70904dd077c@huawei.com>
+References: <20240724053727.28397C32782@smtp.kernel.org>
+	<7898c0c5-45b6-9795-74a0-f70904dd077c@huawei.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 24 Jul 2024 14:44:12 +0800 Jinjie Ruan <ruanjinjie@huawei.com> wrote:
 
-The patch titled
-     Subject: xz: remove XZ_EXTERN and extern from functions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xz-remove-xz_extern-and-extern-from-functions.patch
+> > ------------------------------------------------------
+> > From: Jinjie Ruan <ruanjinjie@huawei.com>
+> > Subject: crash: fix x86_32 crash memory reserve dead loop bug
+> > Date: Thu, 18 Jul 2024 11:54:42 +0800
+> > 
+> > Patch series "crash: Fix x86_32 memory reserve dead loop bug", v3.
+> 
+> It seems that the newest is v4, and the loongarch is missing.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-remove-xz_extern-and-extern-from-functions.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: remove XZ_EXTERN and extern from functions
-Date: Wed, 24 Jul 2024 14:05:41 +0300
-
-XZ_EXTERN was used to make internal functions static in the preboot code. 
-However, in other decompressors this hasn't been done.  On x86-64, this
-makes no difference to the kernel image size.
-
-Omit XZ_EXTERN and let some of the internal functions be extern in the
-preboot code.  Omitting XZ_EXTERN from include/linux/xz.h fixes warnings
-in "make htmldocs" and makes the intradocument links to xz_dec functions
-work in Documentation/staging/xz.rst.  The alternative would have been to
-add "XZ_EXTERN" to c_id_attributes in Documentation/conf.py but omitting
-XZ_EXTERN seemed cleaner.
-
-Link: https://lore.kernel.org/lkml/20240723205437.3c0664b0@kaneli/
-Link: https://lkml.kernel.org/r/20240724110544.16430-1-lasse.collin@tukaani.org
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Sam James <sam@gentoo.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Joel Stanley <joel@jms.id.au>
-Cc: Jubin Zhong <zhongjubin@huawei.com>
-Cc: Jules Maselbas <jmaselbas@zdiv.net>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rui Li <me@lirui.org>
-Cc: Simon Glass <sjg@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/staging/xz.rst  |    3 --
- arch/powerpc/boot/xz_config.h |    3 --
- include/linux/xz.h            |   35 ++++++++++----------------------
- lib/decompress_unxz.c         |    1 
- lib/xz/xz_crc32.c             |    4 +--
- lib/xz/xz_dec_bcj.c           |    9 +++-----
- lib/xz/xz_dec_lzma2.c         |   10 +++------
- lib/xz/xz_dec_stream.c        |    8 +++----
- lib/xz/xz_private.h           |   20 +++++++-----------
- 9 files changed, 34 insertions(+), 59 deletions(-)
-
---- a/arch/powerpc/boot/xz_config.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/arch/powerpc/boot/xz_config.h
-@@ -50,11 +50,8 @@ static inline void put_unaligned_be32(u3
- /* prevent the inclusion of the xz-preboot MM headers */
- #define DECOMPR_MM_H
- #define memmove memmove
--#define XZ_EXTERN static
- 
- /* xz.h needs to be included directly since we need enum xz_mode */
- #include "../../../include/linux/xz.h"
- 
--#undef XZ_EXTERN
--
- #endif
---- a/Documentation/staging/xz.rst~xz-remove-xz_extern-and-extern-from-functions
-+++ a/Documentation/staging/xz.rst
-@@ -95,7 +95,4 @@ xz_dec API
- 
- This is available with ``#include <linux/xz.h>``.
- 
--``XZ_EXTERN`` is a macro used in the preboot code. Ignore it when
--reading this documentation.
--
- .. kernel-doc:: include/linux/xz.h
---- a/include/linux/xz.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/include/linux/xz.h
-@@ -18,11 +18,6 @@
- #	include <stdint.h>
- #endif
- 
--/* In Linux, this is used to make extern functions static when needed. */
--#ifndef XZ_EXTERN
--#	define XZ_EXTERN extern
--#endif
--
- /**
-  * enum xz_mode - Operation mode
-  *
-@@ -190,7 +185,7 @@ struct xz_dec;
-  * ready to be used with xz_dec_run(). If memory allocation fails,
-  * xz_dec_init() returns NULL.
-  */
--XZ_EXTERN struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max);
-+struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max);
- 
- /**
-  * xz_dec_run() - Run the XZ decoder
-@@ -210,7 +205,7 @@ XZ_EXTERN struct xz_dec *xz_dec_init(enu
-  * get that amount valid data from the beginning of the stream. You must use
-  * the multi-call decoder if you don't want to uncompress the whole stream.
-  */
--XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b);
-+enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b);
- 
- /**
-  * xz_dec_reset() - Reset an already allocated decoder state
-@@ -223,14 +218,14 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct
-  * xz_dec_run(). Thus, explicit call to xz_dec_reset() is useful only in
-  * multi-call mode.
-  */
--XZ_EXTERN void xz_dec_reset(struct xz_dec *s);
-+void xz_dec_reset(struct xz_dec *s);
- 
- /**
-  * xz_dec_end() - Free the memory allocated for the decoder state
-  * @s:          Decoder state allocated using xz_dec_init(). If s is NULL,
-  *              this function does nothing.
-  */
--XZ_EXTERN void xz_dec_end(struct xz_dec *s);
-+void xz_dec_end(struct xz_dec *s);
- 
- /**
-  * DOC: MicroLZMA decompressor
-@@ -244,10 +239,6 @@ XZ_EXTERN void xz_dec_end(struct xz_dec
-  * 3/0/2, the first byte is 0xA2. This way the first byte can never be 0x00.
-  * Just like with LZMA2, lc + lp <= 4 must be true. The LZMA end-of-stream
-  * marker must not be used. The unused values are reserved for future use.
-- *
-- * These functions aren't used or available in preboot code and thus aren't
-- * marked with XZ_EXTERN. This avoids warnings about static functions that
-- * are never defined.
-  */
- 
- /*
-@@ -272,8 +263,8 @@ struct xz_dec_microlzma;
-  * struct xz_dec_microlzma. If memory allocation fails or
-  * dict_size is invalid, NULL is returned.
-  */
--extern struct xz_dec_microlzma *xz_dec_microlzma_alloc(enum xz_mode mode,
--						       uint32_t dict_size);
-+struct xz_dec_microlzma *xz_dec_microlzma_alloc(enum xz_mode mode,
-+						uint32_t dict_size);
- 
- /**
-  * xz_dec_microlzma_reset() - Reset the MicroLZMA decoder state
-@@ -289,9 +280,8 @@ extern struct xz_dec_microlzma *xz_dec_m
-  *              requiring stdbool.h. This should normally be set to true.
-  *              When this is set to false, error detection is weaker.
-  */
--extern void xz_dec_microlzma_reset(struct xz_dec_microlzma *s,
--				   uint32_t comp_size, uint32_t uncomp_size,
--				   int uncomp_size_is_exact);
-+void xz_dec_microlzma_reset(struct xz_dec_microlzma *s, uint32_t comp_size,
-+			    uint32_t uncomp_size, int uncomp_size_is_exact);
- 
- /**
-  * xz_dec_microlzma_run() - Run the MicroLZMA decoder
-@@ -329,15 +319,14 @@ extern void xz_dec_microlzma_reset(struc
-  * may be changed normally like with XZ_PREALLOC. This way input data can be
-  * provided from non-contiguous memory.
-  */
--extern enum xz_ret xz_dec_microlzma_run(struct xz_dec_microlzma *s,
--					struct xz_buf *b);
-+enum xz_ret xz_dec_microlzma_run(struct xz_dec_microlzma *s, struct xz_buf *b);
- 
- /**
-  * xz_dec_microlzma_end() - Free the memory allocated for the decoder state
-  * @s:          Decoder state allocated using xz_dec_microlzma_alloc().
-  *              If s is NULL, this function does nothing.
-  */
--extern void xz_dec_microlzma_end(struct xz_dec_microlzma *s);
-+void xz_dec_microlzma_end(struct xz_dec_microlzma *s);
- 
- /*
-  * Standalone build (userspace build or in-kernel build for boot time use)
-@@ -358,13 +347,13 @@ extern void xz_dec_microlzma_end(struct
-  * This must be called before any other xz_* function to initialize
-  * the CRC32 lookup table.
-  */
--XZ_EXTERN void xz_crc32_init(void);
-+void xz_crc32_init(void);
- 
- /*
-  * Update CRC32 value using the polynomial from IEEE-802.3. To start a new
-  * calculation, the third argument must be zero. To continue the calculation,
-  * the previously returned value is passed as the third argument.
-  */
--XZ_EXTERN uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc);
-+uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc);
- #endif
- #endif
---- a/lib/decompress_unxz.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/decompress_unxz.c
-@@ -107,7 +107,6 @@
- #ifdef __KERNEL__
- #	include <linux/decompress/mm.h>
- #endif
--#define XZ_EXTERN STATIC
- 
- #ifndef XZ_PREBOOT
- #	include <linux/slab.h>
---- a/lib/xz/xz_crc32.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_crc32.c
-@@ -26,7 +26,7 @@
- 
- STATIC_RW_DATA uint32_t xz_crc32_table[256];
- 
--XZ_EXTERN void xz_crc32_init(void)
-+void xz_crc32_init(void)
- {
- 	const uint32_t poly = 0xEDB88320;
- 
-@@ -45,7 +45,7 @@ XZ_EXTERN void xz_crc32_init(void)
- 	return;
- }
- 
--XZ_EXTERN uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc)
-+uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc)
- {
- 	crc = ~crc;
- 
---- a/lib/xz/xz_dec_bcj.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_bcj.c
-@@ -572,9 +572,8 @@ static void bcj_flush(struct xz_dec_bcj
-  * data in chunks of 1-16 bytes. To hide this issue, this function does
-  * some buffering.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s,
--				     struct xz_dec_lzma2 *lzma2,
--				     struct xz_buf *b)
-+enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s, struct xz_dec_lzma2 *lzma2,
-+			   struct xz_buf *b)
- {
- 	size_t out_start;
- 
-@@ -682,7 +681,7 @@ XZ_EXTERN enum xz_ret xz_dec_bcj_run(str
- 	return s->ret;
- }
- 
--XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_create(bool single_call)
-+struct xz_dec_bcj *xz_dec_bcj_create(bool single_call)
- {
- 	struct xz_dec_bcj *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s != NULL)
-@@ -691,7 +690,7 @@ XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_
- 	return s;
- }
- 
--XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id)
-+enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id)
- {
- 	switch (id) {
- #ifdef XZ_DEC_X86
---- a/lib/xz/xz_dec_lzma2.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -960,8 +960,7 @@ static bool lzma2_lzma(struct xz_dec_lzm
-  * Take care of the LZMA2 control layer, and forward the job of actual LZMA
-  * decoding or copying of uncompressed chunks to other functions.
-  */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s,
--				       struct xz_buf *b)
-+enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s, struct xz_buf *b)
- {
- 	uint32_t tmp;
- 
-@@ -1137,8 +1136,7 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_run(s
- 	return XZ_OK;
- }
- 
--XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode,
--						   uint32_t dict_max)
-+struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode, uint32_t dict_max)
- {
- 	struct xz_dec_lzma2 *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s == NULL)
-@@ -1161,7 +1159,7 @@ XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lz
- 	return s;
- }
- 
--XZ_EXTERN enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props)
-+enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props)
- {
- 	/* This limits dictionary size to 3 GiB to keep parsing simpler. */
- 	if (props > 39)
-@@ -1197,7 +1195,7 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_reset
- 	return XZ_OK;
- }
- 
--XZ_EXTERN void xz_dec_lzma2_end(struct xz_dec_lzma2 *s)
-+void xz_dec_lzma2_end(struct xz_dec_lzma2 *s)
- {
- 	if (DEC_IS_MULTI(s->dict.mode))
- 		vfree(s->dict.buf);
---- a/lib/xz/xz_dec_stream.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_stream.c
-@@ -746,7 +746,7 @@ static enum xz_ret dec_main(struct xz_de
-  * actually succeeds (that's the price to pay of using the output buffer as
-  * the workspace).
-  */
--XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
-+enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
- {
- 	size_t in_start;
- 	size_t out_start;
-@@ -782,7 +782,7 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct
- 	return ret;
- }
- 
--XZ_EXTERN struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max)
-+struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max)
- {
- 	struct xz_dec *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s == NULL)
-@@ -812,7 +812,7 @@ error_bcj:
- 	return NULL;
- }
- 
--XZ_EXTERN void xz_dec_reset(struct xz_dec *s)
-+void xz_dec_reset(struct xz_dec *s)
- {
- 	s->sequence = SEQ_STREAM_HEADER;
- 	s->allow_buf_error = false;
-@@ -824,7 +824,7 @@ XZ_EXTERN void xz_dec_reset(struct xz_de
- 	s->temp.size = STREAM_HEADER_SIZE;
- }
- 
--XZ_EXTERN void xz_dec_end(struct xz_dec *s)
-+void xz_dec_end(struct xz_dec *s)
- {
- 	if (s != NULL) {
- 		xz_dec_lzma2_end(s->lzma2);
---- a/lib/xz/xz_private.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_private.h
-@@ -115,8 +115,7 @@
-  * Allocate memory for LZMA2 decoder. xz_dec_lzma2_reset() must be used
-  * before calling xz_dec_lzma2_run().
-  */
--XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode,
--						   uint32_t dict_max);
-+struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode, uint32_t dict_max);
- 
- /*
-  * Decode the LZMA2 properties (one byte) and reset the decoder. Return
-@@ -124,22 +123,20 @@ XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lz
-  * big enough, and XZ_OPTIONS_ERROR if props indicates something that this
-  * decoder doesn't support.
-  */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s,
--					 uint8_t props);
-+enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props);
- 
- /* Decode raw LZMA2 stream from b->in to b->out. */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s,
--				       struct xz_buf *b);
-+enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s, struct xz_buf *b);
- 
- /* Free the memory allocated for the LZMA2 decoder. */
--XZ_EXTERN void xz_dec_lzma2_end(struct xz_dec_lzma2 *s);
-+void xz_dec_lzma2_end(struct xz_dec_lzma2 *s);
- 
- #ifdef XZ_DEC_BCJ
- /*
-  * Allocate memory for BCJ decoders. xz_dec_bcj_reset() must be used before
-  * calling xz_dec_bcj_run().
-  */
--XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_create(bool single_call);
-+struct xz_dec_bcj *xz_dec_bcj_create(bool single_call);
- 
- /*
-  * Decode the Filter ID of a BCJ filter. This implementation doesn't
-@@ -147,16 +144,15 @@ XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_
-  * is needed. Returns XZ_OK if the given Filter ID is supported.
-  * Otherwise XZ_OPTIONS_ERROR is returned.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id);
-+enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id);
- 
- /*
-  * Decode raw BCJ + LZMA2 stream. This must be used only if there actually is
-  * a BCJ filter in the chain. If the chain has only LZMA2, xz_dec_lzma2_run()
-  * must be called directly.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s,
--				     struct xz_dec_lzma2 *lzma2,
--				     struct xz_buf *b);
-+enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s, struct xz_dec_lzma2 *lzma2,
-+			   struct xz_buf *b);
- 
- /* Free the memory allocated for the BCJ filters. */
- #define xz_dec_bcj_end(s) kfree(s)
-_
-
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
-
-maintainers-add-xz-embedded-maintainer.patch
-licenses-add-0bsd-license-text.patch
-xz-switch-from-public-domain-to-bsd-zero-clause-license-0bsd.patch
-xz-fix-comments-and-coding-style.patch
-xz-fix-kernel-doc-formatting-errors-in-xzh.patch
-xz-improve-the-microlzma-kernel-doc-in-xzh.patch
-xz-documentation-staging-xzrst-revise-thoroughly.patch
-xz-cleanup-crc32-edits-from-2018.patch
-xz-optimize-for-loop-conditions-in-the-bcj-decoders.patch
-xz-add-arm64-bcj-filter.patch
-xz-add-risc-v-bcj-filter.patch
-xz-use-128-mib-dictionary-and-force-single-threaded-mode.patch
-xz-adjust-arch-specific-options-for-better-kernel-compression.patch
-arm64-boot-add-imagexz-support.patch
-riscv-boot-add-imagexz-support.patch
-xz-remove-xz_extern-and-extern-from-functions.patch
-
+I cannot find a v4 series anywhere.
