@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2281D140384
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 21:15:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBC922746C
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 21:16:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721942107; cv=none; b=TY/wn7UcKXOa9bs1pU+mOS2eCsLH58VOfqV1pjItg/qj+rT768hcvsGJMJOwDtgOpXT08tottM75L4EAKx7cPzUUCBsgF2hHo27aj+4ODI7iqNvk7TU3SOVprqS7Gp5Ne9Ftl66p2rMFaK1mJy6qR7GyBIfzXHx9oo+4R0dD738=
+	t=1721942199; cv=none; b=lT32aZHGrY1e95vsjMRrmUMcqhvPivq1GTuaeJpBLrUBCbx+gz5/ovB50bBzeYQcYBqtyVZ/Efc+TqMYu3p5ZY1xseLAtDedhYK91pzPcHJu1e673nQBjSnVEUV+8VeRCew8OQi/7MmUNX56bTH7IbPaag/9l2O5V/9Vtdbhp+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721942107; c=relaxed/simple;
-	bh=c8N6s+0jcvIK82z4UxXu4/lW+fmWVBDlvZQ6raCELK8=;
-	h=Date:To:From:Subject:Message-Id; b=YTkbAeSjOEZ/vak3uNIOM0ZUL9TDvVITkT1Rzm3iilPMuz5RDtHMrplbPiShWEHlFtIRxfcfUBSv8Awsz/zc3IxNn1fLHPj019TNVJ2nqmx8AaDzYnBJwwZ+OCTS6s8wF2MJN+zVUNLsVNSBPLmaPSemk7VZ2bS4r+2vfpOxSQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TPw1Yrer; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721942199; c=relaxed/simple;
+	bh=ZJyyRAjR9++Mpq1GnfSDmKPddyfFiXcGaV+VzJ7EYUs=;
+	h=Date:To:From:Subject:Message-Id; b=u1igCaAVrMi/vA7EtRDhmeQALLJdcnLnQmGwzb32C/vHrb1n84uQ143pX17kj/VRCLdsW8n9nOSqw4XJCcL6wgnQ2zk0FVFkC6qSDWo87DUZyii6pZpbsIKhJoQfLUqLe7SwgDMDIEn2eDC7wj+x+7Azpz4Itvn2TD1km0RvBHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rAYM6kZj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TPw1Yrer"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B88CC116B1;
-	Thu, 25 Jul 2024 21:15:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rAYM6kZj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 560E8C116B1;
+	Thu, 25 Jul 2024 21:16:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721942106;
-	bh=c8N6s+0jcvIK82z4UxXu4/lW+fmWVBDlvZQ6raCELK8=;
+	s=korg; t=1721942198;
+	bh=ZJyyRAjR9++Mpq1GnfSDmKPddyfFiXcGaV+VzJ7EYUs=;
 	h=Date:To:From:Subject:From;
-	b=TPw1YrerCiOVDoNxEOoORCbypRQzIrRrummdgUVKYd4dqeZUYBh2Y2qX2fq9gIwvG
-	 GbHihmvFXXO/GgobvcgrL9cg7lORSs2++H2aI3pzyXuqgqQAk15hnKGuDOKIeTJFzP
-	 0rESzfztDXBoLzWzHWPysVHoGP3LqOeKw68lI+vM=
-Date: Thu, 25 Jul 2024 14:15:05 -0700
-To: mm-commits@vger.kernel.org,weiyongjun1@huawei.com,chenjun102@huawei.com,catalin.marinas@arm.com,aleksandr.mikhalitsyn@canonical.com,ptikhomirov@virtuozzo.com,akpm@linux-foundation.org
+	b=rAYM6kZj1wuZFGl8Inw/ua+5QZenUR+/ne/fpP6cyTLRAw4sts5zrdLtqeQkBaG+f
+	 oGWwwgdxi+RVspcUkgPM9u4Lik2lxYFbANjTi3AV6soguobgWfXqN06vdpjcpq2h95
+	 OQJrWgOkADFhKVjv5Hn4BEMbZWZDcKsOTgz3cJ3Q=
+Date: Thu, 25 Jul 2024 14:16:37 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmemleak-test-add-percpu-leak.patch added to mm-unstable branch
-Message-Id: <20240725211506.8B88CC116B1@smtp.kernel.org>
+Subject: + mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch added to mm-unstable branch
+Message-Id: <20240725211638.560E8C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmemleak-test: add percpu leak
+     Subject: mm: hugetlb: remove left over comment about follow_huge_foo()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmemleak-test-add-percpu-leak.patch
+     mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmemleak-test-add-percpu-leak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Subject: kmemleak-test: add percpu leak
-Date: Thu, 25 Jul 2024 12:12:16 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: hugetlb: remove left over comment about follow_huge_foo()
+Date: Thu, 25 Jul 2024 10:16:43 +0800
 
-Add a per-CPU memory leak, which will be reported like:
+The comment is useless after commit 57a196a58421 ("hugetlb: simplify
+hugetlb handling in follow_page_mask") since all follow_huge_foo() are
+killed.
 
-unreferenced object 0x3efa840195f8 (size 64):
-  comm "modprobe", pid 4667, jiffies 4294688677
-  hex dump (first 32 bytes on cpu 0):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 0):
-    [<ffffffffa7fa87af>] pcpu_alloc+0x3df/0x840
-    [<ffffffffc11642d9>] kmemleak_test_init+0x2c9/0x2f0 [kmemleak_test]
-    [<ffffffffa7c02264>] do_one_initcall+0x44/0x300
-    [<ffffffffa7de9e10>] do_init_module+0x60/0x240
-    [<ffffffffa7deb946>] init_module_from_file+0x86/0xc0
-    [<ffffffffa7deba99>] idempotent_init_module+0x109/0x2a0
-    [<ffffffffa7debd2a>] __x64_sys_finit_module+0x5a/0xb0
-    [<ffffffffa88f4f3a>] do_syscall_64+0x7a/0x160
-    [<ffffffffa8a0012b>] entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
-Link: https://lkml.kernel.org/r/20240725041223.872472-3-ptikhomirov@virtuozzo.com
-Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chen Jun <chenjun102@huawei.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Link: https://lkml.kernel.org/r/20240725021643.1358536-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kmemleak/kmemleak-test.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/samples/kmemleak/kmemleak-test.c~kmemleak-test-add-percpu-leak
-+++ a/samples/kmemleak/kmemleak-test.c
-@@ -79,6 +79,8 @@ static int kmemleak_test_init(void)
- 			per_cpu(kmemleak_test_pointer, i));
- 	}
+--- a/mm/hugetlb.c~mm-hugetlb-remove-left-over-comment-about-follow_huge_foo
++++ a/mm/hugetlb.c
+@@ -7503,10 +7503,6 @@ __weak unsigned long hugetlb_mask_last_p
  
-+	pr_info("__alloc_percpu(64, 4) = %p\n", __alloc_percpu(64, 4));
-+
- 	return 0;
- }
- module_init(kmemleak_test_init);
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+ 
+-/*
+- * These functions are overwritable if your architecture needs its own
+- * behavior.
+- */
+ bool isolate_hugetlb(struct folio *folio, struct list_head *list)
+ {
+ 	bool ret = true;
 _
 
-Patches currently in -mm which might be from ptikhomirov@virtuozzo.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-kmemleak-enable-tracking-for-percpu-pointers.patch
-kmemleak-test-add-percpu-leak.patch
+mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
 
