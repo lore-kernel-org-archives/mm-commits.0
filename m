@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B652D299
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 21:05:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCBA713E8A5
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 21:06:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721941559; cv=none; b=liVyKw5PqG/S0uEFctDbLuK/SX8MFpgpizlXiL87zRkxJYRyks7s82ZTTlFKq2effLKhlS5H8jwRKGy8RBELUZ/aE5lf4sy+9BuyPq3Qgs9/RG+JkGsQ0S7hGt0Jzo7zuCIbWgVJqZpTW13K1Fbd1K8xvG+GCa37kapeQn7LH+s=
+	t=1721941560; cv=none; b=AOTPuWcNERUOhFV5rwA5j6AulGrgxQ9fqYrhUsyZfyGuwBvZ5Zxwos3e1eyXgQ6n8yP+LrPWHjC3UIHDcroX3ECSq77U9fHzjtzi7OYLfBE6qC/2Nm61uT7m8GM2zUZBoXyo4GBUxTqyxh+i1lJPRzp/wHwXrMu1/ZiRxQNEvuE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721941559; c=relaxed/simple;
-	bh=7F+w0rNnQLDP9y1FF2TFEim7lV9sN4F3pPfid0eoXqs=;
-	h=Date:To:From:Subject:Message-Id; b=mu4oysgRfrdf3NC3SWdqP0NgVU83aiIHB6Eb/s7ftLEf9dwDkSwwOH8fTTSFMMOauJYR4lHi12CNCChicnMEhh4Vh3T3HteRdC4jHLxiK/ZJNbScVkQ0kLk6ujY0CZPPdKtDGglOOAfh+ZWa+Mo2oYu4s2TKb56lrDEBn+TrUa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ty9Js8w5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721941560; c=relaxed/simple;
+	bh=Vg3CNWoJwuq1oTl8wOD6Jro+o+FO+v9GpDE6MWhJRFQ=;
+	h=Date:To:From:Subject:Message-Id; b=jbpq0J9oFFSh5viZAn6tv5pDTSMdD3Ii1w7SSknvktfr2aYC0zPA0Iiij9vep0yIt8hZiNew5n24ExKpmwn2RB/jE7QjEvIIKMEa3qNe9EY+TKobG/nS6AXix7b+oxQxhMFGOt9eeTgw9DCpuVcCV2tHpMwr9Oxec6/LznfM21s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHFK5gsN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ty9Js8w5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7D99C116B1;
-	Thu, 25 Jul 2024 21:05:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHFK5gsN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E10BC116B1;
+	Thu, 25 Jul 2024 21:06:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721941558;
-	bh=7F+w0rNnQLDP9y1FF2TFEim7lV9sN4F3pPfid0eoXqs=;
+	s=korg; t=1721941560;
+	bh=Vg3CNWoJwuq1oTl8wOD6Jro+o+FO+v9GpDE6MWhJRFQ=;
 	h=Date:To:From:Subject:From;
-	b=ty9Js8w5caXjX6zW6aunB/NWiLegjQOuZwC77O53/sgTA1DmwqMWdS2tOaS1B49KI
-	 227+ZHxOOzybSlP6/yt60i73LGW0/31TCoPtETINQ5+K19d8qRdxF19741MiVKtuW6
-	 JvXHuACcUf4FcBIj8IVXu7Z3MlDQAiwwgGi+/YCo=
-Date: Thu, 25 Jul 2024 14:05:58 -0700
+	b=AHFK5gsN0QRE0vh+Q4uEGxsiVpcqMqmD4UspkXky7NV0lRIhCPbfTphWJwwq2OQxI
+	 QRM4IoxmJfLU+MTjg7n4CvZf/oddMztIB2zWWrvTRkp7uBYW01pqykx2ZaLUL5E0vu
+	 lEejeziMdwL5nEpjBGQycAQpK5H5Q8m5NUQP2//E=
+Date: Thu, 25 Jul 2024 14:05:59 -0700
 To: mm-commits@vger.kernel.org,yury.norov@gmail.com,linux@rasmusvillemoes.dk,arnd@arndb.de,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uapi-define-genmask_u128.patch added to mm-nonmm-unstable branch
-Message-Id: <20240725210558.A7D99C116B1@smtp.kernel.org>
+Subject: + lib-test_bitsc-add-tests-for-genmask_u128.patch added to mm-nonmm-unstable branch
+Message-Id: <20240725210600.4E10BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: uapi: define GENMASK_U128
+     Subject: lib/test_bits.c: add tests for GENMASK_U128()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     uapi-define-genmask_u128.patch
+     lib-test_bitsc-add-tests-for-genmask_u128.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uapi-define-genmask_u128.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_bitsc-add-tests-for-genmask_u128.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,80 +59,70 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: uapi: define GENMASK_U128
-Date: Thu, 25 Jul 2024 11:18:07 +0530
+Subject: lib/test_bits.c: add tests for GENMASK_U128()
+Date: Thu, 25 Jul 2024 11:18:08 +0530
 
-Patch series "uapi: Add support for GENMASK_U128()", v2.
+This adds GENMASK_U128() tests although currently only 64 bit wide masks
+are being tested.
 
-This adds support for GENMASK_U128() and some corresponding tests as well.
-GENMASK_U128() generated 128 bit masks will be required later on the
-arm64 platform for enabling FEAT_SYSREG128 and FEAT_D128 features.
-
-Because GENMAKS_U128() depends on __int128 data type being supported in
-the compiler, its usage needs to be protected with
-CONFIG_ARCH_SUPPORTS_INT128.
-
-
-This patch (of 2):
-
-This adds GENMASK_U128() and __GENMASK_U128() macros using __BITS_PER_U128
-and __int128 data types. These macros will be used in providing support for
-generating 128 bit masks.
-
-Link: https://lkml.kernel.org/r/20240725054808.286708-1-anshuman.khandual@arm.com
-Link: https://lkml.kernel.org/r/20240725054808.286708-2-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20240725054808.286708-3-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bits.h                   |    2 ++
- include/uapi/asm-generic/bitsperlong.h |    2 ++
- include/uapi/linux/bits.h              |    3 +++
- include/uapi/linux/const.h             |    1 +
- 4 files changed, 8 insertions(+)
+ lib/test_bits.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
---- a/include/linux/bits.h~uapi-define-genmask_u128
-+++ a/include/linux/bits.h
-@@ -35,5 +35,7 @@
- 	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
- #define GENMASK_ULL(h, l) \
- 	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
-+#define GENMASK_U128(h, l) \
-+	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_U128(h, l))
- 
- #endif	/* __LINUX_BITS_H */
---- a/include/uapi/asm-generic/bitsperlong.h~uapi-define-genmask_u128
-+++ a/include/uapi/asm-generic/bitsperlong.h
-@@ -28,4 +28,6 @@
- #define __BITS_PER_LONG_LONG 64
+--- a/lib/test_bits.c~lib-test_bitsc-add-tests-for-genmask_u128
++++ a/lib/test_bits.c
+@@ -39,6 +39,26 @@ static void genmask_ull_test(struct kuni
  #endif
+ }
  
-+#define __BITS_PER_U128 128
++#ifdef CONFIG_ARCH_SUPPORTS_INT128
++static void genmask_u128_test(struct kunit *test)
++{
++	/* Tests mask generation only when the mask width is within 64 bits */
++	KUNIT_EXPECT_EQ(test, 0x0000000000ff0000ULL, GENMASK_U128(87, 80) >> 64);
++	KUNIT_EXPECT_EQ(test, 0x0000000000ffffffULL, GENMASK_U128(87, 64) >> 64);
++	KUNIT_EXPECT_EQ(test, 0x0000000000000001ULL, GENMASK_U128(0, 0));
++	KUNIT_EXPECT_EQ(test, 0xffffffffffffffffULL, GENMASK_U128(63, 0));
++	KUNIT_EXPECT_EQ(test, 0xffffffffffffffffULL, GENMASK_U128(64, 0) >> 1);
++	KUNIT_EXPECT_EQ(test, 0x00000000ffffffffULL, GENMASK_U128(81, 50) >> 50);
 +
- #endif /* _UAPI__ASM_GENERIC_BITS_PER_LONG */
---- a/include/uapi/linux/bits.h~uapi-define-genmask_u128
-+++ a/include/uapi/linux/bits.h
-@@ -12,4 +12,7 @@
-         (((~_ULL(0)) - (_ULL(1) << (l)) + 1) & \
-          (~_ULL(0) >> (__BITS_PER_LONG_LONG - 1 - (h))))
- 
-+#define __GENMASK_U128(h, l) \
-+	((_BIT128((h) + 1)) - (_BIT128(l)))
++#ifdef TEST_GENMASK_FAILURES
++	/* these should fail compilation */
++	GENMASK_U128(0, 1);
++	GENMASK_U128(0, 10);
++	GENMASK_U128(9, 10);
++#endif
++}
++#endif
 +
- #endif /* _UAPI_LINUX_BITS_H */
---- a/include/uapi/linux/const.h~uapi-define-genmask_u128
-+++ a/include/uapi/linux/const.h
-@@ -27,6 +27,7 @@
+ static void genmask_input_check_test(struct kunit *test)
+ {
+ 	unsigned int x, y;
+@@ -56,12 +76,17 @@ static void genmask_input_check_test(str
+ 	/* Valid input */
+ 	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(1, 1));
+ 	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(39, 21));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(100, 80));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(110, 65));
+ }
  
- #define _BITUL(x)	(_UL(1) << (x))
- #define _BITULL(x)	(_ULL(1) << (x))
-+#define _BIT128(x)	((unsigned __int128)(1) << (x))
  
- #define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (__typeof__(x))(a) - 1)
- #define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+ static struct kunit_case bits_test_cases[] = {
+ 	KUNIT_CASE(genmask_test),
+ 	KUNIT_CASE(genmask_ull_test),
++#ifdef CONFIG_ARCH_SUPPORTS_INT128
++	KUNIT_CASE(genmask_u128_test),
++#endif
+ 	KUNIT_CASE(genmask_input_check_test),
+ 	{}
+ };
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
