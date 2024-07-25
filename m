@@ -1,82 +1,107 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AD981C6BE;
-	Thu, 25 Jul 2024 21:25:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1673101F2;
+	Thu, 25 Jul 2024 21:31:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721942701; cv=none; b=fwULHd0uhGlXtsr0mfzY82e3ROLPa0fCpqiMLy6h3k2loH8KPRgAwJy3EpYceue3rNj4/dSk2ypj3fGOe1y47rt7e0GPFGM9njhhD0YIp8o26WyXooCPsHCj+dxfYvzUl6DUgStqiYZiUKOzrwXdaNP3N0LtQN43nnbdayumhho=
+	t=1721943093; cv=none; b=a+1caLz5lhQic4w5nOZftOqCejE1FWNN+BLrFpoxUQAOfxXheEfzA+o13dojbrjwvMsB9Vp0ChQUhpzQDXwLdaoNVJfSypGwb6iXyHqkcLvO77AeYddDJqfBS5K40yWDUqzxGHn4wtHYca+Xi7NgSzVobsWFaQcaI2IGSbt5NS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721942701; c=relaxed/simple;
-	bh=IHk3f+T3elnXYxk2bFb39E12U4MQ+JWRAjMNpEeGaaw=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=miKMRya6r/rbFKTK9BF2MfZpNuRAwjrULWPPvW932Ila1BElzk6YKHGyuMEFsmrzrp8lQMjXUUjPhLneNPY2IKRTXVj6uVVxeOYrIjS70vvARVKX5odo+SrE1xgixv/h1/Soze3O8tGwzVuK2OFc8oXnbXEYpvgHNMmikgP5h6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=urpxVPAs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721943093; c=relaxed/simple;
+	bh=sXqORwKGPxn7Y8JGN1F1pGA5scS4nu5sRXzIhuIuWyo=;
+	h=Date:To:From:Subject:Message-Id; b=sTvhk53WKeKDzcDsaVe0Qtk3vr9SQrzc6bZJBlzGqhui+PKlNlLB1PLs7xlWiK8iTa5j4z5AMEVN5w4gU8usZFmH8tvHuePsLEBoeHVF0G3nmiyw2BG/R03EB7N5Wgh4tGcsafFRNOOybS9vufgTkv8ts1d5/i2/zsLPIGw1tw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SbgUNn4z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="urpxVPAs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB3AC116B1;
-	Thu, 25 Jul 2024 21:25:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SbgUNn4z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8351AC116B1;
+	Thu, 25 Jul 2024 21:31:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721942701;
-	bh=IHk3f+T3elnXYxk2bFb39E12U4MQ+JWRAjMNpEeGaaw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=urpxVPAst0WfLBiJXqT4GJekTjqJQBE1kHZny3Hoj11+7AGZCWnvJUC2ZcFPdcSOD
-	 L1Id4q8iVFVa829kqndlXt0DS7j2EoWFx6ZuedEQar9thr99Ed8AceruYHGK7DUDBA
-	 2V4RW+GzGlwJ/qRkNpuAPv05Eq7wen4yczWNV6g4=
-Date: Thu, 25 Jul 2024 14:24:59 -0700
+	s=korg; t=1721943091;
+	bh=sXqORwKGPxn7Y8JGN1F1pGA5scS4nu5sRXzIhuIuWyo=;
+	h=Date:To:From:Subject:From;
+	b=SbgUNn4zb56v5a5gNh4tK8y74X6aQ2L2YdHePQosybEVE3OIYEt+ihvDdGyg4sdY+
+	 Dizflrj6FGpErl1Ty5c760vkR5IB0YLbDe8RuBG7KTQlnPuuILdHYadvHVYbCiHtX5
+	 FKvR7kgxUFh7uEZaMXaawrbT9FtW9tppMZzTW/E0=
+Date: Thu, 25 Jul 2024 14:31:30 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,broonie@kernel.org,aou@eecs.berkeley.edu,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: <mm-commits@vger.kernel.org>, <will@kernel.org>, <vgoyal@redhat.com>,
- <thunder.leizhen@huawei.com>, <tglx@linutronix.de>,
- <stable@vger.kernel.org>, <robh@kernel.org>, <paul.walmsley@sifive.com>,
- <palmer@dabbelt.com>, <mingo@redhat.com>, <linux@armlinux.org.uk>,
- <linus.walleij@linaro.org>, <javierm@redhat.com>, <hpa@zytor.com>,
- <hbathini@linux.ibm.com>, <gregkh@linuxfoundation.org>,
- <eric.devolder@oracle.com>, <dyoung@redhat.com>, <deller@gmx.de>,
- <dave.hansen@linux.intel.com>, <chenjiahao16@huawei.com>,
- <catalin.marinas@arm.com>, <bp@alien8.de>, <bhe@redhat.com>,
- <arnd@arndb.de>, <aou@eecs.berkeley.edu>, <afd@ti.com>
-Subject: Re: + crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
- added to mm-nonmm-unstable branch
-Message-Id: <20240725142459.d573ae747382d589adbce18a@linux-foundation.org>
-In-Reply-To: <f177a4ec-821d-982d-3680-434861a4babb@huawei.com>
-References: <20240724053727.28397C32782@smtp.kernel.org>
-	<7898c0c5-45b6-9795-74a0-f70904dd077c@huawei.com>
-	<20240724103752.f3ed5021d203d5e333b47873@linux-foundation.org>
-	<f177a4ec-821d-982d-3680-434861a4babb@huawei.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + selftests-mm-add-s390-to-arch-check.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240725213131.8351AC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Thu, 25 Jul 2024 09:10:33 +0800 Jinjie Ruan <ruanjinjie@huawei.com> wrote:
 
-> 
-> 
-> On 2024/7/25 1:37, Andrew Morton wrote:
-> > On Wed, 24 Jul 2024 14:44:12 +0800 Jinjie Ruan <ruanjinjie@huawei.com> wrote:
-> > 
-> >>> ------------------------------------------------------
-> >>> From: Jinjie Ruan <ruanjinjie@huawei.com>
-> >>> Subject: crash: fix x86_32 crash memory reserve dead loop bug
-> >>> Date: Thu, 18 Jul 2024 11:54:42 +0800
-> >>>
-> >>> Patch series "crash: Fix x86_32 memory reserve dead loop bug", v3.
-> >>
-> >> It seems that the newest is v4, and the loongarch is missing.
-> > 
-> > I cannot find a v4 series anywhere.
-> 
-> Hi, Andrew
-> 
-> v4 is below, thank you!
-> 
-> Link:
-> https://lore.kernel.org/all/20240719095735.1912878-1-ruanjinjie@huawei.com/
+The patch titled
+     Subject: selftests: mm: add s390 to ARCH check
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-add-s390-to-arch-check.patch
 
-Oh, OK.  Unlike v3, v4 wasn't cc:linux-kernel.  I found a copy, thanks.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-s390-to-arch-check.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Nico Pache <npache@redhat.com>
+Subject: selftests: mm: add s390 to ARCH check
+Date: Wed, 24 Jul 2024 15:35:17 -0600
+
+commit 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+changed the env variable for the architecture from MACHINE to ARCH.
+
+This is preventing 3 required TEST_GEN_FILES from being included when
+cross compiling s390x and errors when trying to run the test suite.  This
+is due to the ARCH variable already being set and the arch folder name
+being s390.
+
+Add "s390" to the filtered list to cover this case and have the 3 files
+included in the build.
+
+Link: https://lkml.kernel.org/r/20240724213517.23918-1-npache@redhat.com
+Fixes: 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-s390-to-arch-check
++++ a/tools/testing/selftests/mm/Makefile
+@@ -110,7 +110,7 @@ endif
+ 
+ endif
+ 
+-ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64))
++ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
+ TEST_GEN_FILES += va_high_addr_switch
+ TEST_GEN_FILES += virtual_address_range
+ TEST_GEN_FILES += write_to_hugetlbfs
+_
+
+Patches currently in -mm which might be from npache@redhat.com are
+
+selftests-mm-add-s390-to-arch-check.patch
+
