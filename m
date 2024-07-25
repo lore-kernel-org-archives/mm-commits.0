@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB0C4B5AE
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 20:02:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A87813AD18;
+	Thu, 25 Jul 2024 20:41:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721937755; cv=none; b=XdGnMlS631Fx6LQLPRPVDkENHcLV418JB9rKgXBQFKVWAQlBwttQ9CGKV7vfYcf6m+0Oj+PzeNU35nQi1SzzX0zf08LWr1BIxOR9kXmKTeNxJwOpxxhvW12lraM0BWndQ73BRCE05NvRshb9FFn/Zf2GZaDdjrCWvPnKO5ANIXE=
+	t=1721940100; cv=none; b=N8b97WVulNjuNwjLlXyBwQUBGqy2mThPt6TwymKYo1PPZq1sKfdJ+T0emfncfyErhzHw+ERtF0STC7knIVgcM49btY2XgBrUr9ZWpD+9Hexp2PSukQDBTYwiChGNqUhyowHJWPSn4ureCZZCliZfewNU76mzzESSivP570ZOLAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721937755; c=relaxed/simple;
-	bh=3MQd37zE+sLF3Ut+FUHGhZp2iGvgmJqHEOAWoIPPoIc=;
-	h=Date:To:From:Subject:Message-Id; b=gAVvoW7InQVgG5aoXfpYp5xRwe6hTqu0Vhuw7yvi3IQUXvX0ZlKMFbY/lgTmCC8eg8g0GNTKGRm7qsQPXYkNDKy4CqOb5nQzTeHKJXDP9Ve5+uhxRjyPNoL4P9Oy9sNrLGQ1RGdHAI+uoGmgcdmAZTr7OSW6BALaaLcp/stIkAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NBgMg/Iu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721940100; c=relaxed/simple;
+	bh=o1/hhDP+qkQgHteMC2U5IfLcaQOtEYal/PXFvOVqZtI=;
+	h=Date:To:From:Subject:Message-Id; b=Bx21y+NUop7YtMGp+1yIT62hDOZrNm6ZF43QxV9yoVDgq1A6Np06WuHS0301GYcRAHjrlwW8PL6eQKqv3xqxQzaHYhhllahQf5oAqooRfTXnA+exqCNF+cjuHUzw2V2bgPvceA3R5B46reSTG7uxTtM4AAqtWeq1JoGSUGn80lQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vcoHypMe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NBgMg/Iu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98A51C116B1;
-	Thu, 25 Jul 2024 20:02:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vcoHypMe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3840C32786;
+	Thu, 25 Jul 2024 20:41:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721937754;
-	bh=3MQd37zE+sLF3Ut+FUHGhZp2iGvgmJqHEOAWoIPPoIc=;
+	s=korg; t=1721940099;
+	bh=o1/hhDP+qkQgHteMC2U5IfLcaQOtEYal/PXFvOVqZtI=;
 	h=Date:To:From:Subject:From;
-	b=NBgMg/IuYMs1p0lkLkyredKN1wa78sA+odyz41sAblYTQIaSJgXWSqSYCeyYb/yO1
-	 jI3hafQlKlwP8MdwFRSuhHsr4WOeDVwZNgNIbfqKCsc4YxqPY88+PpV9tg28F70ZHR
-	 Vz6oECpOT05yITIAsN0fqbQxFCORGgWq+aBHt9oE=
-Date: Thu, 25 Jul 2024 13:02:34 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,iamjoonsoo.kim@lge.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,andreyknvl@gmail.com,42.hyeyoo@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=vcoHypMeiDDt5x4XFMzQ/OU0nT98dsVr+Xt8XIAKClfS/vkC40bC5KrqOFeVO37hn
+	 UxTyvhPuoHV9WyPNGwzCiMqDxdH5zbdF+x414iMngxfmJrrcnwzclPZOrR/UWSXrGR
+	 EXxzcfU/A9kSgW3tZMOoHTcHYjmE4y0x8T1L6GZI=
+Date: Thu, 25 Jul 2024 13:41:39 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + slub-introduce-config_slub_rcu_debug-v3.patch added to mm-unstable branch
-Message-Id: <20240725200234.98A51C116B1@smtp.kernel.org>
+Subject: + mm-let-pte_lockptr-consume-a-pte_t-pointer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240725204139.D3840C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: slub-introduce-config_slub_rcu_debug-v3
-has been added to the -mm mm-unstable branch.  Its filename is
-     slub-introduce-config_slub_rcu_debug-v3.patch
+     Subject: mm: let pte_lockptr() consume a pte_t pointer
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-let-pte_lockptr-consume-a-pte_t-pointer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-introduce-config_slub_rcu_debug-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-let-pte_lockptr-consume-a-pte_t-pointer.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,330 +58,178 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: slub-introduce-config_slub_rcu_debug-v3
-Date: Thu, 25 Jul 2024 17:31:35 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: let pte_lockptr() consume a pte_t pointer
+Date: Thu, 25 Jul 2024 20:39:54 +0200
 
-- use dynamically allocated rcu_head to avoid having to add slab
-  metadata, per Vlastimil
+Patch series "mm/hugetlb: fix hugetlb vs. core-mm PT locking".
 
-- add a warning in the kconfig help text that objects can be recycled
-  immediately under memory pressure
+Working on another generic page table walker that tries to avoid
+special-casing hugetlb, I found a page table locking issue with hugetlb
+folios that are not mapped using a single PMD/PUD.
+
+For some hugetlb folio sizes, GUP will take different page table locks
+when walking the page tables than hugetlb when modifying the page tables.
+
+I did not actually try reproducing an issue, but looking at
+follow_pmd_mask() where we might be rereading a PMD value multiple times
+it's rather clear that concurrent modifications are rather unpleasant.
+
+In follow_page_pte() we might be better in that regard -- ptep_get() does
+a READ_ONCE() -- but who knows what else could happen concurrently in some
+weird corner cases (e.g., hugetlb folio getting unmapped and freed).
 
 
-Link: https://lkml.kernel.org/r/20240725-kasan-tsbrcu-v3-2-51c92f8f1101@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>	[slab]
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This patch (of 2):
+
+pte_lockptr() is the only *_lockptr() function that doesn't consume what
+would be expected: it consumes a pmd_t pointer instead of a pte_t pointer.
+
+Let's change that.  The two callers in pgtable-generic.c are easily
+adjusted.  Adjust khugepaged.c:retract_page_tables() to simply do a
+pte_offset_map_nolock() to obtain the lock, even though we won't actually
+be traversing the page table.
+
+This makes the code more similar to the other variants and avoids other
+hacks to make the new pte_lockptr() version happy.  pte_lockptr() users
+reside now only in pgtable-generic.c.
+
+Maybe, using pte_offset_map_nolock() is the right thing to do because the
+PTE table could have been removed in the meantime?  At least it sounds
+more future proof if we ever have other means of page table reclaim.
+
+It's not quite clear if holding the PTE table lock is really required:
+what if someone else obtains the lock just after we unlock it?  But we'll
+leave that as is for now, maybe there are good reasons.
+
+This is a preparation for adapting hugetlb page table locking logic to
+take the same locks as core-mm page table walkers would.
+
+Link: https://lkml.kernel.org/r/20240725183955.2268884-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240725183955.2268884-2-david@redhat.com
+Fixes: 9cb28da54643 ("mm/gup: handle hugetlb in the generic follow_page_mask code")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   24 ++++++-----------
- mm/Kconfig.debug      |    4 ++
- mm/kasan/common.c     |   23 +++++-----------
- mm/slab.h             |    3 --
- mm/slub.c             |   55 ++++++++++++++++++++--------------------
- 5 files changed, 48 insertions(+), 61 deletions(-)
+ include/linux/mm.h   |    7 ++++---
+ mm/khugepaged.c      |   21 +++++++++++++++------
+ mm/pgtable-generic.c |    4 ++--
+ 3 files changed, 21 insertions(+), 11 deletions(-)
 
---- a/include/linux/kasan.h~slub-introduce-config_slub_rcu_debug-v3
-+++ a/include/linux/kasan.h
-@@ -186,12 +186,15 @@ static __always_inline bool kasan_slab_p
+--- a/include/linux/mm.h~mm-let-pte_lockptr-consume-a-pte_t-pointer
++++ a/include/linux/mm.h
+@@ -2915,9 +2915,10 @@ static inline spinlock_t *ptlock_ptr(str
  }
+ #endif /* ALLOC_SPLIT_PTLOCKS */
  
- bool __kasan_slab_free(struct kmem_cache *s, void *object,
--			unsigned long ip, bool init);
-+			unsigned long ip, bool init, bool after_rcu_delay);
- static __always_inline bool kasan_slab_free(struct kmem_cache *s,
--						void *object, bool init)
-+						void *object, bool init,
-+						bool after_rcu_delay)
+-static inline spinlock_t *pte_lockptr(struct mm_struct *mm, pmd_t *pmd)
++static inline spinlock_t *pte_lockptr(struct mm_struct *mm, pte_t *pte)
  {
--	if (kasan_enabled())
--		return __kasan_slab_free(s, object, _RET_IP_, init);
-+	if (kasan_enabled()) {
-+		return __kasan_slab_free(s, object, _RET_IP_, init,
-+				after_rcu_delay);
-+	}
- 	return false;
+-	return ptlock_ptr(page_ptdesc(pmd_page(*pmd)));
++	/* PTE page tables don't currently exceed a single page. */
++	return ptlock_ptr(virt_to_ptdesc(pte));
  }
  
-@@ -349,8 +352,6 @@ static __always_inline void kasan_mempoo
- 		__kasan_mempool_unpoison_object(ptr, size, _RET_IP_);
- }
- 
--void kasan_poison_range_as_redzone(void *ptr, size_t size);
--
+ static inline bool ptlock_init(struct ptdesc *ptdesc)
+@@ -2940,7 +2941,7 @@ static inline bool ptlock_init(struct pt
  /*
-  * Unlike kasan_check_read/write(), kasan_check_byte() is performed even for
-  * the hardware tag-based mode that doesn't rely on compiler instrumentation.
-@@ -363,8 +364,6 @@ static __always_inline bool kasan_check_
- 	return true;
- }
- 
--size_t kasan_align(size_t size);
--
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
-@@ -391,7 +390,8 @@ static inline bool kasan_slab_pre_free(s
- 	return false;
- }
- 
--static inline bool kasan_slab_free(struct kmem_cache *s, void *object, bool init)
-+static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
-+				   bool init, bool after_rcu_delay)
+  * We use mm->page_table_lock to guard all pagetable pages of the mm.
+  */
+-static inline spinlock_t *pte_lockptr(struct mm_struct *mm, pmd_t *pmd)
++static inline spinlock_t *pte_lockptr(struct mm_struct *mm, pte_t *pte)
  {
- 	return false;
+ 	return &mm->page_table_lock;
  }
-@@ -426,16 +426,10 @@ static inline bool kasan_mempool_poison_
- }
- static inline void kasan_mempool_unpoison_object(void *ptr, size_t size) {}
+--- a/mm/khugepaged.c~mm-let-pte_lockptr-consume-a-pte_t-pointer
++++ a/mm/khugepaged.c
+@@ -1697,12 +1697,13 @@ static void retract_page_tables(struct a
+ 	i_mmap_lock_read(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		struct mmu_notifier_range range;
++		bool retracted = false;
+ 		struct mm_struct *mm;
+ 		unsigned long addr;
+ 		pmd_t *pmd, pgt_pmd;
+ 		spinlock_t *pml;
+ 		spinlock_t *ptl;
+-		bool skipped_uffd = false;
++		pte_t *pte;
  
--static inline void kasan_poison_range_as_redzone(void *ptr, size_t size) {}
--
- static inline bool kasan_check_byte(const void *address)
- {
- 	return true;
- }
--static inline size_t kasan_align(size_t size)
--{
--	return size;
--}
+ 		/*
+ 		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
+@@ -1739,9 +1740,17 @@ static void retract_page_tables(struct a
+ 		mmu_notifier_invalidate_range_start(&range);
  
- #endif /* CONFIG_KASAN */
- 
---- a/mm/kasan/common.c~slub-introduce-config_slub_rcu_debug-v3
-+++ a/mm/kasan/common.c
-@@ -238,7 +238,8 @@ static enum free_validation_result check
- }
- 
- static inline bool poison_slab_object(struct kmem_cache *cache, void *object,
--				      unsigned long ip, bool init)
-+				      unsigned long ip, bool init,
-+				      bool after_rcu_delay)
- {
- 	void *tagged_object = object;
- 	enum free_validation_result valid = check_slab_free(cache, object, ip);
-@@ -252,7 +253,7 @@ static inline bool poison_slab_object(st
- 
- 	/* RCU slabs could be legally used after free within the RCU period. */
- 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU) &&
--	    !IS_ENABLED(CONFIG_SLUB_RCU_DEBUG))
-+	    !after_rcu_delay)
- 		return false;
- 
- 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
-@@ -271,7 +272,8 @@ bool __kasan_slab_pre_free(struct kmem_c
- }
- 
- bool __kasan_slab_free(struct kmem_cache *cache, void *object,
--				unsigned long ip, bool init)
-+				unsigned long ip, bool init,
-+				bool after_rcu_delay)
- {
- 	if (is_kfence_address(object))
- 		return false;
-@@ -281,7 +283,7 @@ bool __kasan_slab_free(struct kmem_cache
- 	 * freelist. The object will thus never be allocated again and its
- 	 * metadata will never get released.
- 	 */
--	if (poison_slab_object(cache, object, ip, init))
-+	if (poison_slab_object(cache, object, ip, init, after_rcu_delay))
- 		return true;
- 
- 	/*
-@@ -536,7 +538,7 @@ bool __kasan_mempool_poison_object(void
- 		return false;
- 
- 	slab = folio_slab(folio);
--	return !poison_slab_object(slab->slab_cache, ptr, ip, false);
-+	return !poison_slab_object(slab->slab_cache, ptr, ip, false, false);
- }
- 
- void __kasan_mempool_unpoison_object(void *ptr, size_t size, unsigned long ip)
-@@ -567,12 +569,6 @@ void __kasan_mempool_unpoison_object(voi
- 		poison_kmalloc_redzone(slab->slab_cache, ptr, size, flags);
- }
- 
--void kasan_poison_range_as_redzone(void *ptr, size_t size)
--{
--	if (kasan_enabled())
--		kasan_poison(ptr, size, KASAN_SLAB_REDZONE, false);
--}
--
- bool __kasan_check_byte(const void *address, unsigned long ip)
- {
- 	if (!kasan_byte_accessible(address)) {
-@@ -581,8 +577,3 @@ bool __kasan_check_byte(const void *addr
- 	}
- 	return true;
- }
--
--size_t kasan_align(size_t size)
--{
--	return round_up(size, KASAN_GRANULE_SIZE);
--}
---- a/mm/Kconfig.debug~slub-introduce-config_slub_rcu_debug-v3
-+++ a/mm/Kconfig.debug
-@@ -93,6 +93,10 @@ config SLUB_RCU_DEBUG
- 	  catching all the bugs WAY more than performance, you might want to
- 	  also turn on CONFIG_RCU_STRICT_GRACE_PERIOD.
- 
-+	  WARNING:
-+	  This is designed as a debugging feature, not a security feature.
-+	  Objects are sometimes recycled without RCU delay under memory pressure.
+ 		pml = pmd_lock(mm, pmd);
+-		ptl = pte_lockptr(mm, pmd);
 +
- 	  If unsure, say N.
++		/*
++		 * No need to check the PTE table content, but we'll grab the
++		 * PTE table lock while we zap it.
++		 */
++		pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
++		if (!pte)
++			goto unlock_pmd;
+ 		if (ptl != pml)
+ 			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++		pte_unmap(pte);
  
- config PAGE_OWNER
---- a/mm/slab.h~slub-introduce-config_slub_rcu_debug-v3
-+++ a/mm/slab.h
-@@ -275,9 +275,6 @@ struct kmem_cache {
- 	int refcount;			/* Refcount for slab cache destroy */
- 	void (*ctor)(void *object);	/* Object constructor */
- 	unsigned int inuse;		/* Offset to metadata */
--#ifdef CONFIG_SLUB_RCU_DEBUG
--	unsigned int debug_rcu_head_offset;
--#endif
- 	unsigned int align;		/* Alignment */
- 	unsigned int red_left_pad;	/* Left redzone padding size */
- 	const char *name;		/* Name (only for display!) */
---- a/mm/slub.c~slub-introduce-config_slub_rcu_debug-v3
-+++ a/mm/slub.c
-@@ -1253,8 +1253,7 @@ skip_bug_print:
-  * 	A. Free pointer (if we cannot overwrite object on free)
-  * 	B. Tracking data for SLAB_STORE_USER
-  *	C. Original request size for kmalloc object (SLAB_STORE_USER enabled)
-- *	D. RCU head for CONFIG_SLUB_RCU_DEBUG (with padding around it)
-- *	E. Padding to reach required alignment boundary or at minimum
-+ *	D. Padding to reach required alignment boundary or at minimum
-  * 		one word if debugging is on to be able to detect writes
-  * 		before the word boundary.
-  *
-@@ -1280,11 +1279,6 @@ static int check_pad_bytes(struct kmem_c
- 			off += sizeof(unsigned int);
- 	}
+ 		/*
+ 		 * Huge page lock is still held, so normally the page table
+@@ -1752,20 +1761,20 @@ static void retract_page_tables(struct a
+ 		 * repeating the anon_vma check protects from one category,
+ 		 * and repeating the userfaultfd_wp() check from another.
+ 		 */
+-		if (unlikely(vma->anon_vma || userfaultfd_wp(vma))) {
+-			skipped_uffd = true;
+-		} else {
++		if (likely(!vma->anon_vma && !userfaultfd_wp(vma))) {
+ 			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
+ 			pmdp_get_lockless_sync();
++			retracted = true;
+ 		}
  
--#ifdef CONFIG_SLUB_RCU_DEBUG
--	if (s->flags & SLAB_TYPESAFE_BY_RCU)
--		off = kasan_align(s->debug_rcu_head_offset + sizeof(struct rcu_head));
--#endif /* CONFIG_SLUB_RCU_DEBUG */
--
- 	off += kasan_metadata_size(s, false);
+ 		if (ptl != pml)
+ 			spin_unlock(ptl);
++unlock_pmd:
+ 		spin_unlock(pml);
  
- 	if (size_from_object(s) == off)
-@@ -2208,6 +2202,11 @@ static inline void memcg_slab_free_hook(
+ 		mmu_notifier_invalidate_range_end(&range);
  
- #ifdef CONFIG_SLUB_RCU_DEBUG
- static void slab_free_after_rcu_debug(struct rcu_head *rcu_head);
-+
-+struct rcu_delayed_free {
-+	struct rcu_head head;
-+	void *object;
-+};
- #endif
+-		if (!skipped_uffd) {
++		if (retracted) {
+ 			mm_dec_nr_ptes(mm);
+ 			page_table_check_pte_clear_range(mm, addr, pgt_pmd);
+ 			pte_free_defer(mm, pmd_pgtable(pgt_pmd));
+--- a/mm/pgtable-generic.c~mm-let-pte_lockptr-consume-a-pte_t-pointer
++++ a/mm/pgtable-generic.c
+@@ -313,7 +313,7 @@ pte_t *pte_offset_map_nolock(struct mm_s
  
- /*
-@@ -2247,12 +2246,23 @@ bool slab_free_hook(struct kmem_cache *s
- 
- #ifdef CONFIG_SLUB_RCU_DEBUG
- 	if ((s->flags & SLAB_TYPESAFE_BY_RCU) && !after_rcu_delay) {
--		struct rcu_head *rcu_head;
-+		struct rcu_delayed_free *delayed_free;
- 
--		rcu_head = kasan_reset_tag(x) + s->debug_rcu_head_offset;
--		kasan_unpoison_range(rcu_head, sizeof(*rcu_head));
--		call_rcu(rcu_head, slab_free_after_rcu_debug);
--		return false;
-+		delayed_free = kmalloc(sizeof(*delayed_free), GFP_NOWAIT);
-+		if (delayed_free) {
-+			/*
-+			 * Let KASAN track our call stack as a "related work
-+			 * creation", just like if the object had been freed
-+			 * normally via kfree_rcu().
-+			 * We have to do this manually because the rcu_head is
-+			 * not located inside the object.
-+			 */
-+			kasan_record_aux_stack_noalloc(x);
-+
-+			delayed_free->object = x;
-+			call_rcu(&delayed_free->head, slab_free_after_rcu_debug);
-+			return false;
-+		}
- 	}
- #endif /* CONFIG_SLUB_RCU_DEBUG */
- 
-@@ -2279,7 +2289,7 @@ bool slab_free_hook(struct kmem_cache *s
- 		       s->size - inuse - rsize);
- 	}
- 	/* KASAN might put x into memory quarantine, delaying its reuse. */
--	return !kasan_slab_free(s, x, init);
-+	return !kasan_slab_free(s, x, init, after_rcu_delay);
+ 	pte = __pte_offset_map(pmd, addr, &pmdval);
+ 	if (likely(pte))
+-		*ptlp = pte_lockptr(mm, &pmdval);
++		*ptlp = pte_lockptr(mm, pte);
+ 	return pte;
  }
  
- static __fastpath_inline
-@@ -4531,9 +4541,11 @@ void slab_free_bulk(struct kmem_cache *s
- #ifdef CONFIG_SLUB_RCU_DEBUG
- static void slab_free_after_rcu_debug(struct rcu_head *rcu_head)
- {
--	struct slab *slab = virt_to_slab(rcu_head);
-+	struct rcu_delayed_free *delayed_free =
-+			container_of(rcu_head, struct rcu_delayed_free, head);
-+	void *object = delayed_free->object;
-+	struct slab *slab = virt_to_slab(object);
- 	struct kmem_cache *s;
--	void *object;
- 
- 	if (WARN_ON(is_kfence_address(rcu_head)))
- 		return;
-@@ -4544,13 +4556,12 @@ static void slab_free_after_rcu_debug(st
- 	s = slab->slab_cache;
- 	if (WARN_ON(!(s->flags & SLAB_TYPESAFE_BY_RCU)))
- 		return;
--	object = (void *)rcu_head - s->debug_rcu_head_offset;
--	kasan_poison_range_as_redzone(rcu_head, kasan_align(sizeof(*rcu_head)));
- 
- 	/* resume freeing */
- 	if (!slab_free_hook(s, object, slab_want_init_on_free(s), true))
- 		return;
- 	do_slab_free(s, slab, object, NULL, 1, _THIS_IP_);
-+	kfree(delayed_free);
- }
- #endif /* CONFIG_SLUB_RCU_DEBUG */
- 
-@@ -5284,16 +5295,6 @@ static int calculate_sizes(struct kmem_c
- 		if (flags & SLAB_KMALLOC)
- 			size += sizeof(unsigned int);
- 	}
--
--#ifdef CONFIG_SLUB_RCU_DEBUG
--	if (flags & SLAB_TYPESAFE_BY_RCU) {
--		size = kasan_align(size);
--		size = ALIGN(size, __alignof__(struct rcu_head));
--		s->debug_rcu_head_offset = size;
--		size += sizeof(struct rcu_head);
--		size = kasan_align(size);
--	}
--#endif /* CONFIG_SLUB_RCU_DEBUG */
- #endif
- 
- 	kasan_cache_create(s, &size, &s->flags);
+@@ -371,7 +371,7 @@ again:
+ 	pte = __pte_offset_map(pmd, addr, &pmdval);
+ 	if (unlikely(!pte))
+ 		return pte;
+-	ptl = pte_lockptr(mm, &pmdval);
++	ptl = pte_lockptr(mm, pte);
+ 	spin_lock(ptl);
+ 	if (likely(pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
+ 		*ptlp = ptl;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
-slub-introduce-config_slub_rcu_debug.patch
-slub-introduce-config_slub_rcu_debug-v3.patch
+mm-let-pte_lockptr-consume-a-pte_t-pointer.patch
+mm-hugetlb-fix-hugetlb-vs-core-mm-pt-locking.patch
 
