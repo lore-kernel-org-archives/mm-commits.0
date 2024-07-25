@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E4D376E0
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 20:50:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 851C5139D19
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jul 2024 20:50:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721940638; cv=none; b=NBn6XgKBiDBxgaBxv31iQmS7HdLjEs7+3owZW3aUZB19IdwMDCOtm5Y4JwKkp+1oRyP1KpAyospl68EPrs07/8b5nYcq+hL2YCqr1R5Byp4g8lCQGJwOLOujDadIgdXmCPRM7OtFp2eBtJ0SE4fBLJVdnevoWHaiW6Nsz0dh0Sw=
+	t=1721940639; cv=none; b=hXjld+xusm5r2SCcx/2N7kTncqcou04VdrvevcHvCQpSMBa1HjJDnpAQSftQOJrCG9iknXw5Fwdkemh16ylN/qa6Pt/3W5rZj+TpTdGExOL6lY2Vtc9O9X4aVYAszUsU7AFBRaYElxnN3IG0euMzzGFUa/PzsarwgXtL7fiL128=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721940638; c=relaxed/simple;
-	bh=DmtwmbxPlaUhv1x/TQE0onTkFrNBFsYg+uKC1Hbd3Nk=;
-	h=Date:To:From:Subject:Message-Id; b=PTCMiJ3h+XiZ5huxvTXiRdzOihZ8bcn2LZIXn65Q1L020P++yffZbyHZCYAysmT8DNLdNc+pMfwfQsXUfeMi2tNwVOQIjngrrMyXP+LBynrORi4t2FV5a+i0zaVKF4wILvqjeX91qox/l+qQ3NiW1tr7RCr96nVdcGs/MeL4LGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CRS6rmKv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721940639; c=relaxed/simple;
+	bh=RgmPPz+WhJD2/SDQarnXeY9e7dmJp/dUaKxPBnDr8zU=;
+	h=Date:To:From:Subject:Message-Id; b=lI8s96HeLLgOghF1GZGZQRpk/vF/rXJk1Pj9isOQzjFGzojuC1ImP76CAHgrM3nytu+Xc3fd74H1u/ThOMlJ46c5YimuUfiurYdW4FvzyLTwWnBYilbm4YMBTVvlbLn8keDUI1NpjkaxJIidVkT7CDCEAtsUV+bEQoU9d8iC42Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c6JKeZEN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CRS6rmKv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72453C4AF0A;
-	Thu, 25 Jul 2024 20:50:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c6JKeZEN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9E0BC116B1;
+	Thu, 25 Jul 2024 20:50:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1721940637;
-	bh=DmtwmbxPlaUhv1x/TQE0onTkFrNBFsYg+uKC1Hbd3Nk=;
+	s=korg; t=1721940639;
+	bh=RgmPPz+WhJD2/SDQarnXeY9e7dmJp/dUaKxPBnDr8zU=;
 	h=Date:To:From:Subject:From;
-	b=CRS6rmKvU7ehTjXzcaAlTLHuDncQfgLNy60S/SQjsOpGvM8X2fQwInYu+URbl1cWy
-	 /zMOvFiT910BbgPRohQd7rcDLVqWEHoo26WkOcM/CNN08JMFYs/kdaviXUL6G1x8zY
-	 FaADIS4SW+td5alt3j0wsdu9oJ6+wLTy7DazH0dg=
-Date: Thu, 25 Jul 2024 13:50:36 -0700
+	b=c6JKeZEN7/G/a+tn9svEp6duQJtmD5FgEqiSzVrzdk8t5lLs2g0pd1gaYyY5sr6Zl
+	 m0slp/4HPFFm84ib2t1cgls55y4yMzE4Cf8R6aHVMM82v39YglAdX4ENeNKrc2ElqF
+	 c0SK2Q8eNcmKk77y9SNAURGIJabSY19faNNayDJs=
+Date: Thu, 25 Jul 2024 13:50:38 -0700
 To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,dakr@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-implement-vrealloc-fix-2.patch added to mm-unstable branch
-Message-Id: <20240725205037.72453C4AF0A@smtp.kernel.org>
+Subject: + mm-kvmalloc-align-kvrealloc-with-krealloc-fix.patch added to mm-unstable branch
+Message-Id: <20240725205038.E9E0BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: mm: (k)vrealloc: document concurrency restrictions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-implement-vrealloc-fix-2.patch
+     mm-kvmalloc-align-kvrealloc-with-krealloc-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-implement-vrealloc-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kvmalloc-align-kvrealloc-with-krealloc-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,27 @@ Consequently, the same applies for kvrealloc(), hence also document it
 for kvrealloc().
 
 Link: https://lkml.kernel.org/r/20240725125442.4957-1-dakr@kernel.org
-Signed-off-by: Danilo Krummrich <dakr@kernel.org>
 Suggested-by: Christoph Hellwig <hch@infradead.org>
 Suggested-by: Uladzislau Rezki <urezki@gmail.com>
+Signed-off-by: Danilo Krummrich <dakr@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +++
+ mm/util.c |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-implement-vrealloc-fix-2
-+++ a/mm/vmalloc.c
-@@ -4049,6 +4049,9 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
-  * If @p is %NULL, vrealloc() behaves exactly like vmalloc(). If @size is 0 and
-  * @p is not a %NULL pointer, the object pointed to is freed.
+--- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc-fix
++++ a/mm/util.c
+@@ -732,6 +732,9 @@ EXPORT_SYMBOL(kvfree_sensitive);
+  * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
+  * and @p is not a %NULL pointer, the object pointed to is freed.
   *
-+ * This function must not be called concurrently with itself or vfree() for the
++ * This function must not be called concurrently with itself or kvfree() for the
 + * same memory allocation.
 + *
-  * Return: pointer to the allocated memory; %NULL if @size is zero or in case of
-  *         failure
+  * Return: pointer to the allocated memory or %NULL in case of error
   */
+ void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
 _
 
 Patches currently in -mm which might be from dakr@kernel.org are
