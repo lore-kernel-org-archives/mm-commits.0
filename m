@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C0C41494CD;
-	Fri, 26 Jul 2024 20:38:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2568BFC1F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 20:38:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722026297; cv=none; b=hGrRAzztW076izODkxgTFHZ9h1MhPcxCl0zgL+rcf9i5YMa9LC1RKSFa1Wglfqr5EH1U3+O8tURoDuj89mVHmJpS7hPRQJLrVCQOlxHhYfOpMUND33CBLTJ1Y2oN+xwyFd9QD/pSFI8CYbpaZdLu6tvbiIylWJXs0LGLX2E8xM4=
+	t=1722026298; cv=none; b=rJ+CyL5GaO0z8aml19OiH0+qLVrpPfQOP2ZokpJIqRmQONdolUfshsHvbQMCvZ0eyQC0ZCc/D+hFjRbpKtj812nSs6DrTISvqRavauoXeAktTFp61k3NZYMU4/HlqmcARiCL2zogIPnZfyVT6AEjBdLJ7uGeFN4vHvGbrznrpAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722026297; c=relaxed/simple;
-	bh=bnlXMXLn7XPMRFAmuCRD1hYkCui1/Iq+C4A5mNFxAxo=;
-	h=Date:To:From:Subject:Message-Id; b=ZZFXfxyTpR0YjWsm9u9IfHC6z5bIv1Vtj/gKTlztiGhQMgZ2hgh4nErjRwOZZb7x1uKTrQeUZvpx6m+h2tqxhA06/FgZ843ouDFXw2I1dss1rTjVx1JxM5XPR7MpW+Jt3zg44q6FPWr9jmwxyY+ZY7o/vjzkbtnEYh/x4CpbSj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZapahxOi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722026298; c=relaxed/simple;
+	bh=7y1qkI2PrO5PWWEHdKcvQwFsUUF3SuKZB2dsW4fMClY=;
+	h=Date:To:From:Subject:Message-Id; b=ASINkXozOtrCtChYXaQQepxbTODfFx1fyTgqZ5aL88DOpGQlL+UvWPcMMKJvewDEPit9WRcGeuknz8nirU2N7k85ACG/3vKl0OXk2BP7p+Uk8IEzv0AOUPa1fJclZng21WqPgU2ezrL70oZHYN7O9DUfBUqcv9iJXhCHuThDKEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NS1HoLbL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZapahxOi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2AC9C32782;
-	Fri, 26 Jul 2024 20:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NS1HoLbL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDA83C4AF0A;
+	Fri, 26 Jul 2024 20:38:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722026296;
-	bh=bnlXMXLn7XPMRFAmuCRD1hYkCui1/Iq+C4A5mNFxAxo=;
+	s=korg; t=1722026298;
+	bh=7y1qkI2PrO5PWWEHdKcvQwFsUUF3SuKZB2dsW4fMClY=;
 	h=Date:To:From:Subject:From;
-	b=ZapahxOirk+pM7ep3mL8nYLO6CQMLJaQ7JxOPz70Mgq+5t1vAhjAQH1a9CHJ507j0
-	 LqlWpJh33pgKWEgZv8gmFWxD9NX/J7jR5kKITDWZlelFIA5m8lPCNcICRR1/I9GxsT
-	 cN4dEl1e6eISvMlzmXIYZDM3soLGj9djGWH1Hrrw=
-Date: Fri, 26 Jul 2024 13:38:16 -0700
-To: mm-commits@vger.kernel.org,yaoxt.fnst@fujitsu.com,vbabka@suse.cz,stable@vger.kernel.org,david@redhat.com,lizhijian@fujitsu.com,akpm@linux-foundation.org
+	b=NS1HoLbLxly9qoooshrurSkIwd9z9512KSJDFqheR1ZBfAcCp2oAOv/VfTYKL4mFD
+	 DXZnCzwMNYJCzZfr5R/XC5yA5Txi9nOI95H9qj7hhJ0oyFhtrKYX+EOMTohwhTqfvB
+	 6I20ihHx/kLmsFVhc5+PPEwDNZYRoaG/aigVXZ88=
+Date: Fri, 26 Jul 2024 13:38:17 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,broonie@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch removed from -mm tree
-Message-Id: <20240726203816.C2AC9C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems.patch removed from -mm tree
+Message-Id: <20240726203817.DDA83C4AF0A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: fix pcp->count race between drain_pages_zone() vs __rmqueue_pcplist()
+     Subject: selftests/mm: skip test for non-LPA2 and non-LVA systems
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist.patch
+     selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@fujitsu.com>
-Subject: mm/page_alloc: fix pcp->count race between drain_pages_zone() vs __rmqueue_pcplist()
-Date: Tue, 23 Jul 2024 14:44:28 +0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: skip test for non-LPA2 and non-LVA systems
+Date: Thu, 18 Jul 2024 10:55:04 +0530
 
-It's expected that no page should be left in pcp_list after calling
-zone_pcp_disable() in offline_pages().  Previously, it's observed that
-offline_pages() gets stuck [1] due to some pages remaining in pcp_list.
+Post my improvement of the test in e4a4ba415419 ("selftests/mm:
+va_high_addr_switch: dynamically initialize testcases to enable LPA2
+testing"):
 
-Cause:
-There is a race condition between drain_pages_zone() and __rmqueue_pcplist()
-involving the pcp->count variable. See below scenario:
+The test begins to fail on 4k and 16k pages, on non-LPA2 systems.  To
+reduce noise in the CI systems, let us skip the test when higher address
+space is not implemented.
 
-         CPU0                              CPU1
-    ----------------                    ---------------
-                                      spin_lock(&pcp->lock);
-                                      __rmqueue_pcplist() {
-zone_pcp_disable() {
-                                        /* list is empty */
-                                        if (list_empty(list)) {
-                                          /* add pages to pcp_list */
-                                          alloced = rmqueue_bulk()
-  mutex_lock(&pcp_batch_high_lock)
-  ...
-  __drain_all_pages() {
-    drain_pages_zone() {
-      /* read pcp->count, it's 0 here */
-      count = READ_ONCE(pcp->count)
-      /* 0 means nothing to drain */
-                                          /* update pcp->count */
-                                          pcp->count += alloced << order;
-      ...
-                                      ...
-                                      spin_unlock(&pcp->lock);
-
-In this case, after calling zone_pcp_disable() though, there are still some
-pages in pcp_list. And these pages in pcp_list are neither movable nor
-isolated, offline_pages() gets stuck as a result.
-
-Solution:
-Expand the scope of the pcp->lock to also protect pcp->count in
-drain_pages_zone(), to ensure no pages are left in the pcp list after
-zone_pcp_disable()
-
-[1] https://lore.kernel.org/linux-mm/6a07125f-e720-404c-b2f9-e55f3f166e85@fujitsu.com/
-
-Link: https://lkml.kernel.org/r/20240723064428.1179519-1-lizhijian@fujitsu.com
-Fixes: 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-Reported-by: Yao Xingtao <yaoxt.fnst@fujitsu.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240718052504.356517-1-dev.jain@arm.com
+Fixes: e4a4ba415419 ("selftests/mm: va_high_addr_switch: dynamically initialize testcases to enable LPA2 testing")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.c |   16 ++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-pcp-count-race-between-drain_pages_zone-vs-__rmqueue_pcplist
-+++ a/mm/page_alloc.c
-@@ -2343,16 +2343,20 @@ void drain_zone_pages(struct zone *zone,
- static void drain_pages_zone(unsigned int cpu, struct zone *zone)
- {
- 	struct per_cpu_pages *pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
--	int count = READ_ONCE(pcp->count);
--
--	while (count) {
--		int to_drain = min(count, pcp->batch << CONFIG_PCP_BATCH_SCALE_MAX);
--		count -= to_drain;
-+	int count;
- 
-+	do {
- 		spin_lock(&pcp->lock);
--		free_pcppages_bulk(zone, to_drain, pcp, 0);
-+		count = pcp->count;
-+		if (count) {
-+			int to_drain = min(count,
-+				pcp->batch << CONFIG_PCP_BATCH_SCALE_MAX);
-+
-+			free_pcppages_bulk(zone, to_drain, pcp, 0);
-+			count -= to_drain;
-+		}
- 		spin_unlock(&pcp->lock);
--	}
-+	} while (count);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems
++++ a/tools/testing/selftests/mm/va_high_addr_switch.c
+@@ -293,6 +293,20 @@ static int run_test(struct testcase *tes
+ 	return ret;
  }
  
- /*
++#ifdef __aarch64__
++/* Check if userspace VA > 48 bits */
++static int high_address_present(void)
++{
++	void *ptr = mmap((void *)(1UL << 50), 1, PROT_READ | PROT_WRITE,
++			 MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
++	if (ptr == MAP_FAILED)
++		return 0;
++
++	munmap(ptr, 1);
++	return 1;
++}
++#endif
++
+ static int supported_arch(void)
+ {
+ #if defined(__powerpc64__)
+@@ -300,7 +314,7 @@ static int supported_arch(void)
+ #elif defined(__x86_64__)
+ 	return 1;
+ #elif defined(__aarch64__)
+-	return 1;
++	return high_address_present();
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from lizhijian@fujitsu.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
 
