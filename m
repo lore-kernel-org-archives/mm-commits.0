@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656FE148FFA;
-	Fri, 26 Jul 2024 20:38:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB23BFC1F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 20:38:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722026294; cv=none; b=RceQramGcU8g8rPyVPBABK0Wqbt/XbvvCj/uTOv6tFqeLTNVEM9WXlTU64yvYi8RzYcN4bM8eCPMJDNc7U1kq/leGWXKUEur27Q+rzjC0BfyiI/oQIYj3TgpQ7woxdUPZ/Mn8DdhOLyLZlKHJh2/LSH6p1Cr9Kx8kKSREg2fnNY=
+	t=1722026296; cv=none; b=H0lsubJdLWGs56RAGiMuUBSPIxqj5XWx9BPSOI/CdSbvFW33DvIxJnO+geTuAeom50s6EUkdrk7KwXmaVyHEseB2i2OjakgCRCXxYPPeEtfyikYWK/30pl+xug5N7vAl3pkZM8ZsIWSMEKrFRirDM7gR5wB+zOeucNyA20Y5GuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722026294; c=relaxed/simple;
-	bh=KiwtFBWWjk+HzvIyGnCKaWrhN0OvYvrf9WPRYSzYq0g=;
-	h=Date:To:From:Subject:Message-Id; b=h+lvnjjVXIhBTSXm1C15k35pGikEPUbDnakwDi13eEZQ+TZtcWrxOpf5CHkhss7ReBK22kdNVI5wmkuw0WUAhCUWnm/0hEfX1qLS9brAcR0XBAl/GC/efB/CYnVYJ99QoYeT+oSpGtoeb1e6W7RfYmPFNNAlUnPgXSpwGHrG6xM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tKT0YnHG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722026296; c=relaxed/simple;
+	bh=pv5X9kK41d8k6/Pi4Y9XN6M/F4jFFinaz+Q6Otvp4HA=;
+	h=Date:To:From:Subject:Message-Id; b=dEq6e1CxvZvstq4zhlySV1QOTzbjKJc6vuYmtqUF4ccFqAYWt+DFMGWSCe4v+2QTi/UdxdssHJ0YWGe9NBdYvMsHeDDzaxwJOZn9+KWvFNTDUDNM5zZfkarrn5m/7rR50MzTAn4JEZEOA6dee+wsxYfXYPmVfpqQlOInEY2z2Q0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GIaUh20y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tKT0YnHG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30751C32782;
-	Fri, 26 Jul 2024 20:38:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GIaUh20y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8841AC32782;
+	Fri, 26 Jul 2024 20:38:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722026294;
-	bh=KiwtFBWWjk+HzvIyGnCKaWrhN0OvYvrf9WPRYSzYq0g=;
+	s=korg; t=1722026295;
+	bh=pv5X9kK41d8k6/Pi4Y9XN6M/F4jFFinaz+Q6Otvp4HA=;
 	h=Date:To:From:Subject:From;
-	b=tKT0YnHGTtMN9wsTXVrJhLxJ4Z3brlzG1JVA1AFb+MIuW0uTGlTFg36i4G4j1mOTT
-	 /0kUf0tIAbuMvhAoEWjFN4SrT4ijh3mDMVT8SmBeciQev0XaA9lO5JIXgMMcV8LP2+
-	 wBhazMEWcVTTfQZiIZ7L6KOoDc31OU7O+hu5r9A8=
-Date: Fri, 26 Jul 2024 13:38:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,souravpanda@google.com,pasha.tatashin@soleen.com,lkp@intel.com,kent.overstreet@linux.dev,keescook@chromium.org,hch@infradead.org,surenb@google.com,akpm@linux-foundation.org
+	b=GIaUh20y9b2QY7zy9ibQ3LvX6jgnaEhwC7kyB5CoWscwoIz9J6BQbAzzS3mW4889J
+	 JAH7UAWiHaMirPBv4jWi5SXQre/JquU27P8+bP5liFoetWrcs3C7Uz4mWoh+qXkY+r
+	 mHHlnCyKGTeV8b6IXDv99QyK5hevEiYVRVYwm25s=
+Date: Fri, 26 Jul 2024 13:38:15 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] alloc_tag-outline-and-export-free_reserved_page.patch removed from -mm tree
-Message-Id: <20240726203814.30751C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch removed from -mm tree
+Message-Id: <20240726203815.8841AC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: alloc_tag: outline and export free_reserved_page()
+     Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-outline-and-export-free_reserved_page.patch
+     mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: outline and export free_reserved_page()
-Date: Wed, 17 Jul 2024 14:28:44 -0700
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: memcg: add cacheline padding after lruvec in mem_cgroup_per_node
+Date: Tue, 23 Jul 2024 17:12:44 +0000
 
-Outline and export free_reserved_page() because modules use it and it in
-turn uses page_ext_{get|put} which should not be exported.  The same
-result could be obtained by outlining {get|put}_page_tag_ref() but that
-would have higher performance impact as these functions are used in more
-performance critical paths.
+Oliver Sand reported a performance regression caused by commit
+98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct
+mem_cgroup_per_node"), which puts some fields of the mem_cgroup_per_node
+structure under the CONFIG_MEMCG_V1 config option.  Apparently it causes a
+false cache sharing between lruvec and lru_zone_size members of the
+structure.  Fix it by adding an explicit padding after the lruvec member.
 
-Link: https://lkml.kernel.org/r/20240717212844.2749975-1-surenb@google.com
-Fixes: dcfe378c81f7 ("lib: introduce support for page allocation tagging")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202407080044.DWMC9N9I-lkp@intel.com/
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: <stable@vger.kernel.org>	[6.10]
+Even though the padding is not required with CONFIG_MEMCG_V1 set, it seems
+like the introduced memory overhead is not significant enough to warrant
+another divergence in the mem_cgroup_per_node layout, so the padding is
+added unconditionally.
+
+Link: https://lkml.kernel.org/r/20240723171244.747521-1-roman.gushchin@linux.dev
+Fixes: 98c9daf5ae6b ("mm: memcg: guard memcg1-specific members of struct mem_cgroup_per_node")
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202407121335.31a10cb6-oliver.sang@intel.com
+Tested-by: Oliver Sang <oliver.sang@intel.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   16 +---------------
- mm/page_alloc.c    |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+), 15 deletions(-)
+ include/linux/memcontrol.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/mm.h~alloc_tag-outline-and-export-free_reserved_page
-+++ a/include/linux/mm.h
-@@ -3130,21 +3130,7 @@ extern void reserve_bootmem_region(phys_
- 				   phys_addr_t end, int nid);
+--- a/include/linux/memcontrol.h~mm-memcg-add-cacheline-padding-after-lruvec-in-mem_cgroup_per_node
++++ a/include/linux/memcontrol.h
+@@ -109,6 +109,7 @@ struct mem_cgroup_per_node {
  
- /* Free the reserved page into the buddy system, so it gets managed. */
--static inline void free_reserved_page(struct page *page)
--{
--	if (mem_alloc_profiling_enabled()) {
--		union codetag_ref *ref = get_page_tag_ref(page);
--
--		if (ref) {
--			set_codetag_empty(ref);
--			put_page_tag_ref(ref);
--		}
--	}
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	adjust_managed_page_count(page, 1);
--}
-+void free_reserved_page(struct page *page);
- #define free_highmem_page(page) free_reserved_page(page)
- 
- static inline void mark_page_reserved(struct page *page)
---- a/mm/page_alloc.c~alloc_tag-outline-and-export-free_reserved_page
-+++ a/mm/page_alloc.c
-@@ -5815,6 +5815,23 @@ unsigned long free_reserved_area(void *s
- 	return pages;
- }
- 
-+void free_reserved_page(struct page *page)
-+{
-+	if (mem_alloc_profiling_enabled()) {
-+		union codetag_ref *ref = get_page_tag_ref(page);
-+
-+		if (ref) {
-+			set_codetag_empty(ref);
-+			put_page_tag_ref(ref);
-+		}
-+	}
-+	ClearPageReserved(page);
-+	init_page_count(page);
-+	__free_page(page);
-+	adjust_managed_page_count(page, 1);
-+}
-+EXPORT_SYMBOL(free_reserved_page);
-+
- static int page_alloc_cpu_dead(unsigned int cpu)
- {
- 	struct zone *zone;
+ 	/* Fields which get updated often at the end. */
+ 	struct lruvec		lruvec;
++	CACHELINE_PADDING(_pad2_);
+ 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+ 	struct mem_cgroup_reclaim_iter	iter;
+ };
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
 
