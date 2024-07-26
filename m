@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B4428DCC
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 16:58:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6B53143748
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 20:38:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722013132; cv=none; b=sPUWO2hV6a78KI9GPnYLqTK1ag7cpbHkjDhs8byAjhU8TPPokti/9xiVUN6SWTfbGueYKnI0A8oYptUfDMXxXA94lu9CDJ/s9R4bkj9Xjx+kOawqaNiVAMucuvbwjFjsHoTXj0dfvUIUUD6mSomXVXpVVKUpgDVSdh5hPj2WyNc=
+	t=1722026286; cv=none; b=VIFb8QPQUwiXJyOkmXXR6VZVCeUCeuhlQoeejqeoW6yRJdM8oiiE/mS85o1KbJAn25WMIMpguZXAXvfXmTGxcs63t0M/5/QmtvycPt5YXQxBGV0v1ffnnZnAjQy4i4241HTqRXU+54MOKxHpsON0zKUeXkEPnlRjzJSaE3EsiV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722013132; c=relaxed/simple;
-	bh=MtvGMNMQOmKYdGSfT0Dy1tuN0SSCrfaWxUJue3p+zrg=;
-	h=Date:To:From:Subject:Message-Id; b=jpGNjWQL4Rlhn+cQEX2K5fjYEVHptLAAJ+M1HQAwnMKOHkndaKJyUQ29bpys+KpKH9DOGHWvcEUbrmlzZEU/E0A711y6HOUrfyEWZZn8ZLz2JJ8Ql/z4nK3zQtHEp/GFairn51W9GH0xTIiCt1NERgktSve4jJhBRwhQSS/FSVw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bGmOdCBl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722026286; c=relaxed/simple;
+	bh=EHMJ8eTFstfRpY7G1rIofgVaUnhNNHKD2gOF6pCXo6Y=;
+	h=Date:To:From:Subject:Message-Id; b=EjpsPNgJz43TG8TZonp/j0CSQkxTa3tEeT0M05OUQj8y6RCksbdwiHAFC7L5ejwdqgZmm7BLz0yxIIc/AOVXgWeIcGG1sInnzDon932MurEl6AHgIRYi7pUWZoN8rmyyJzzOzoI1m9EtYIaQDhqdzwat54T0ZrI7BzTd4tESh7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aSrdhJVX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bGmOdCBl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2804C32782;
-	Fri, 26 Jul 2024 16:58:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aSrdhJVX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24757C32782;
+	Fri, 26 Jul 2024 20:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722013132;
-	bh=MtvGMNMQOmKYdGSfT0Dy1tuN0SSCrfaWxUJue3p+zrg=;
+	s=korg; t=1722026286;
+	bh=EHMJ8eTFstfRpY7G1rIofgVaUnhNNHKD2gOF6pCXo6Y=;
 	h=Date:To:From:Subject:From;
-	b=bGmOdCBlkazK77DF+IoLhwfdHCX/YkKpqNwCeEYuzNL/gbnPdP1JkaNyjM93R/U94
-	 x+ji4lzJZrcupTEwmmG1mhacrrNTRLXSD+5VzNZTcFGsJG31inWWy4EW6KiZm1z6Qb
-	 751BFVWY9mYkeIThaqUvLGmaR2bd+OG+3qLDmZUI=
-Date: Fri, 26 Jul 2024 09:58:51 -0700
-To: mm-commits@vger.kernel.org,yangx.jy@fujitsu.com,xuyang2018.jy@fujitsu.com,liwang@redhat.com,jstancek@redhat.com,chrubis@suse.cz,pvorel@suse.cz,akpm@linux-foundation.org
+	b=aSrdhJVX4pyVLaVmGYlrpg38HkKyF6IRcc+GXrIxAn+nZSQDKCmg3aN7uoi+gJ4zr
+	 c6IW+M1+DnfGraWsrC1E/Lsee85Cp7JL1dr7FzRbNui8yQfWsNILPe0ts2Gnnkhhkp
+	 wzH5I1ZL914R9DuhAvDu+yM1PKKLqJIWXi/P6vGU=
+Date: Fri, 26 Jul 2024 13:38:05 -0700
+To: mm-commits@vger.kernel.org,suzuki.poulose@arm.com,robh@kernel.org,quic_jinlmao@quicinc.com,quic_hazha@quicinc.com,quic_bjorande@quicinc.com,o.rempel@pengutronix.de,mike.leach@linaro.org,matttbe@kernel.org,matt@ranostay.sg,kuba@kernel.org,krzk+dt@kernel.org,kees@kernel.org,jikos@kernel.org,geliang@kernel.org,davem@davemloft.net,conor+dt@kernel.org,james.clark@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-ltp-members-and-web.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240726165851.E2804C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mailmap-update-james-clarks-email-address.patch removed from -mm tree
+Message-Id: <20240726203806.24757C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,74 +34,78 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: MAINTAINERS: Update LTP members and web
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-ltp-members-and-web.patch
+The quilt patch titled
+     Subject: MAINTAINERS: mailmap: update James Clark's email address
+has been removed from the -mm tree.  Its filename was
+     maintainers-mailmap-update-james-clarks-email-address.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-ltp-members-and-web.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Vorel <pvorel@suse.cz>
-Subject: MAINTAINERS: Update LTP members and web
-Date: Fri, 26 Jul 2024 09:20:09 +0200
+From: James Clark <james.clark@linaro.org>
+Subject: MAINTAINERS: mailmap: update James Clark's email address
+Date: Tue, 9 Jul 2024 11:25:10 +0100
 
-LTP project uses now readthedocs.org instance instead of GitHub wiki.
+My new address is james.clark@linaro.org
 
-LTP maintainers are listed in alphabetical order.
-
-Link: https://lkml.kernel.org/r/20240726072009.1021599-1-pvorel@suse.cz
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
-Reviewed-by: Li Wang <liwang@redhat.com>
-Reviewed-by: Cyril Hrubis <chrubis@suse.cz>
-Cc: Jan Stancek <jstancek@redhat.com>
-Cc: Xiao Yang <yangx.jy@fujitsu.com>
-Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
+Link: https://lkml.kernel.org/r/20240709102512.31212-2-james.clark@linaro.org
+Signed-off-by: James Clark <james.clark@linaro.org>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Conor Dooley <conor+dt@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Geliang Tang <geliang@kernel.org>
+Cc: Hao Zhang <quic_hazha@quicinc.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jiri Kosina <jikos@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
+Cc: Mao Jinlong <quic_jinlmao@quicinc.com>
+Cc: Matthieu Baerts <matttbe@kernel.org>
+Cc: Matt Ranostay <matt@ranostay.sg>
+Cc: Mike Leach <mike.leach@linaro.org>
+Cc: Oleksij Rempel <o.rempel@pengutronix.de>
+Cc: Rob Herring (Arm) <robh@kernel.org>
+Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-ltp-members-and-web
+--- a/.mailmap~maintainers-mailmap-update-james-clarks-email-address
++++ a/.mailmap
+@@ -260,6 +260,7 @@ Jaegeuk Kim <jaegeuk@kernel.org> <jaegeu
+ Jakub Kicinski <kuba@kernel.org> <jakub.kicinski@netronome.com>
+ James Bottomley <jejb@mulgrave.(none)>
+ James Bottomley <jejb@titanic.il.steeleye.com>
++James Clark <james.clark@linaro.org> <james.clark@arm.com>
+ James E Wilson <wilson@specifix.com>
+ James Hogan <jhogan@kernel.org> <james@albanarts.com>
+ James Hogan <jhogan@kernel.org> <james.hogan@imgtec.com>
+--- a/MAINTAINERS~maintainers-mailmap-update-james-clarks-email-address
 +++ a/MAINTAINERS
-@@ -13322,14 +13322,16 @@ F:	Documentation/devicetree/bindings/i2c
- F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
- 
- LTP (Linux Test Project)
-+M:	Andrea Cervesato <andrea.cervesato@suse.com>
- M:	Cyril Hrubis <chrubis@suse.cz>
- M:	Jan Stancek <jstancek@redhat.com>
- M:	Petr Vorel <pvorel@suse.cz>
- M:	Li Wang <liwang@redhat.com>
- M:	Yang Xu <xuyang2018.jy@fujitsu.com>
-+M:	Xiao Yang <yangx.jy@fujitsu.com>
- L:	ltp@lists.linux.it (subscribers-only)
+@@ -2188,7 +2188,7 @@ N:	digicolor
+ ARM/CORESIGHT FRAMEWORK AND DRIVERS
+ M:	Suzuki K Poulose <suzuki.poulose@arm.com>
+ R:	Mike Leach <mike.leach@linaro.org>
+-R:	James Clark <james.clark@arm.com>
++R:	James Clark <james.clark@linaro.org>
+ L:	coresight@lists.linaro.org (moderated for non-subscribers)
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  S:	Maintained
--W:	http://linux-test-project.github.io/
-+W:	https://linux-test-project.readthedocs.io/
- T:	git https://github.com/linux-test-project/ltp.git
- 
- LTR390 AMBIENT/UV LIGHT SENSOR DRIVER
+@@ -17867,7 +17867,7 @@ F:	tools/perf/
+ PERFORMANCE EVENTS TOOLING ARM64
+ R:	John Garry <john.g.garry@oracle.com>
+ R:	Will Deacon <will@kernel.org>
+-R:	James Clark <james.clark@arm.com>
++R:	James Clark <james.clark@linaro.org>
+ R:	Mike Leach <mike.leach@linaro.org>
+ R:	Leo Yan <leo.yan@linux.dev>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
 _
 
-Patches currently in -mm which might be from pvorel@suse.cz are
+Patches currently in -mm which might be from james.clark@linaro.org are
 
-maintainers-update-ltp-members-and-web.patch
 
