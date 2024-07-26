@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3CC749C
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 16:36:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B4428DCC
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 16:58:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722011761; cv=none; b=eD/kgvRV1P3ovS7O2CBIHaW2W0CSMsoRvx2mYtVFM0v1NCEfTFpjBQFX6u5sh5qeJVVWhZKfYfoygRsqM18KNeFf/wfkjBDuIwN2LW2r5f1319Oa7DsNak6iYN19R2MI3hPhV3qPIimFL4IfWBP+Wn3SDBraFvngduRSXqs9AOU=
+	t=1722013132; cv=none; b=sPUWO2hV6a78KI9GPnYLqTK1ag7cpbHkjDhs8byAjhU8TPPokti/9xiVUN6SWTfbGueYKnI0A8oYptUfDMXxXA94lu9CDJ/s9R4bkj9Xjx+kOawqaNiVAMucuvbwjFjsHoTXj0dfvUIUUD6mSomXVXpVVKUpgDVSdh5hPj2WyNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722011761; c=relaxed/simple;
-	bh=irPJ7YA/z2vpkNfVHg2vGRg46911zeyeFRh8PxKNXCo=;
-	h=Date:To:From:Subject:Message-Id; b=FZ9dzsxGbxXcNc4ynPpChjxjju6jkzz0FueYWYx6t5hJvfOT6WvlZ96r7tf3E64aX6/R+241DoB8kYeZ19NydAFXNB4nFCntEy1feotWh6D2I7zIYLDtCPJh4JMhH8Y8Ngaysj6TfFhoebW9DWfCvLLkncPKb1nuAuM6re/21ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xpPO5ZEX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722013132; c=relaxed/simple;
+	bh=MtvGMNMQOmKYdGSfT0Dy1tuN0SSCrfaWxUJue3p+zrg=;
+	h=Date:To:From:Subject:Message-Id; b=jpGNjWQL4Rlhn+cQEX2K5fjYEVHptLAAJ+M1HQAwnMKOHkndaKJyUQ29bpys+KpKH9DOGHWvcEUbrmlzZEU/E0A711y6HOUrfyEWZZn8ZLz2JJ8Ql/z4nK3zQtHEp/GFairn51W9GH0xTIiCt1NERgktSve4jJhBRwhQSS/FSVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bGmOdCBl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xpPO5ZEX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 488ABC4AF07;
-	Fri, 26 Jul 2024 16:36:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bGmOdCBl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2804C32782;
+	Fri, 26 Jul 2024 16:58:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722011761;
-	bh=irPJ7YA/z2vpkNfVHg2vGRg46911zeyeFRh8PxKNXCo=;
+	s=korg; t=1722013132;
+	bh=MtvGMNMQOmKYdGSfT0Dy1tuN0SSCrfaWxUJue3p+zrg=;
 	h=Date:To:From:Subject:From;
-	b=xpPO5ZEXeVJw4V/D9BuwqnniUri2DWlxyxc9aNZmgE84jr4ilNrJL5yHM8zZH0Ed7
-	 uTe2pN2eunuennweWNapqciYA1bxiLMwrTPIyY3mNIJVJKtAr2v3YYkmcQpQnxWuRP
-	 iXnAQgeSx6cRMIp7NgLjbON3WHFrHOLGENiLPDc8=
-Date: Fri, 26 Jul 2024 09:36:00 -0700
-To: mm-commits@vger.kernel.org,21cnbao@gmail.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=bGmOdCBlkazK77DF+IoLhwfdHCX/YkKpqNwCeEYuzNL/gbnPdP1JkaNyjM93R/U94
+	 x+ji4lzJZrcupTEwmmG1mhacrrNTRLXSD+5VzNZTcFGsJG31inWWy4EW6KiZm1z6Qb
+	 751BFVWY9mYkeIThaqUvLGmaR2bd+OG+3qLDmZUI=
+Date: Fri, 26 Jul 2024 09:58:51 -0700
+To: mm-commits@vger.kernel.org,yangx.jy@fujitsu.com,xuyang2018.jy@fujitsu.com,liwang@redhat.com,jstancek@redhat.com,chrubis@suse.cz,pvorel@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-boilerplate-fix.patch added to mm-unstable branch
-Message-Id: <20240726163601.488ABC4AF07@smtp.kernel.org>
+Subject: + maintainers-update-ltp-members-and-web.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240726165851.E2804C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-swap-remove-boilerplate-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-remove-boilerplate-fix.patch
+     Subject: MAINTAINERS: Update LTP members and web
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-update-ltp-members-and-web.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-boilerplate-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-ltp-members-and-web.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,70 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm-swap-remove-boilerplate-fix
-Date: Fri, 26 Jul 2024 00:50:04 -0600
+From: Petr Vorel <pvorel@suse.cz>
+Subject: MAINTAINERS: Update LTP members and web
+Date: Fri, 26 Jul 2024 09:20:09 +0200
 
-fix "BUG: using smp_processor_id() in preemptible"
+LTP project uses now readthedocs.org instance instead of GitHub wiki.
 
-Link: https://lkml.kernel.org/r/ZqNHHMiHn-9vy_II@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Barry Song <21cnbao@gmail.com>
+LTP maintainers are listed in alphabetical order.
+
+Link: https://lkml.kernel.org/r/20240726072009.1021599-1-pvorel@suse.cz
+Signed-off-by: Petr Vorel <pvorel@suse.cz>
+Reviewed-by: Li Wang <liwang@redhat.com>
+Reviewed-by: Cyril Hrubis <chrubis@suse.cz>
+Cc: Jan Stancek <jstancek@redhat.com>
+Cc: Xiao Yang <yangx.jy@fujitsu.com>
+Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/swap.c~mm-swap-remove-boilerplate-fix
-+++ a/mm/swap.c
-@@ -220,7 +220,7 @@ static void folio_batch_move_lru(struct
- 	folios_put(fbatch);
- }
+--- a/MAINTAINERS~maintainers-update-ltp-members-and-web
++++ a/MAINTAINERS
+@@ -13322,14 +13322,16 @@ F:	Documentation/devicetree/bindings/i2c
+ F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
  
--static void __folio_batch_add_and_move(struct folio_batch *fbatch,
-+static void __folio_batch_add_and_move(struct folio_batch __percpu *fbatch,
- 		struct folio *folio, move_fn_t move_fn,
- 		bool on_lru, bool disable_irq)
- {
-@@ -233,16 +233,14 @@ static void __folio_batch_add_and_move(s
- 		return;
- 	}
+ LTP (Linux Test Project)
++M:	Andrea Cervesato <andrea.cervesato@suse.com>
+ M:	Cyril Hrubis <chrubis@suse.cz>
+ M:	Jan Stancek <jstancek@redhat.com>
+ M:	Petr Vorel <pvorel@suse.cz>
+ M:	Li Wang <liwang@redhat.com>
+ M:	Yang Xu <xuyang2018.jy@fujitsu.com>
++M:	Xiao Yang <yangx.jy@fujitsu.com>
+ L:	ltp@lists.linux.it (subscribers-only)
+ S:	Maintained
+-W:	http://linux-test-project.github.io/
++W:	https://linux-test-project.readthedocs.io/
+ T:	git https://github.com/linux-test-project/ltp.git
  
--	if (folio_batch_add(fbatch, folio) && !folio_test_large(folio) &&
--	    !lru_cache_disabled())
--		return;
--
- 	if (disable_irq)
- 		local_lock_irqsave(&cpu_fbatches.lock_irq, flags);
- 	else
- 		local_lock(&cpu_fbatches.lock);
- 
--	folio_batch_move_lru(fbatch, move_fn);
-+	if (!folio_batch_add(this_cpu_ptr(fbatch), folio) || folio_test_large(folio) ||
-+	    lru_cache_disabled())
-+		folio_batch_move_lru(this_cpu_ptr(fbatch), move_fn);
- 
- 	if (disable_irq)
- 		local_unlock_irqrestore(&cpu_fbatches.lock_irq, flags);
-@@ -252,7 +250,7 @@ static void __folio_batch_add_and_move(s
- 
- #define folio_batch_add_and_move(folio, op, on_lru)						\
- 	__folio_batch_add_and_move(								\
--		this_cpu_ptr(&cpu_fbatches.op),							\
-+		&cpu_fbatches.op,								\
- 		folio,										\
- 		op,										\
- 		on_lru,										\
+ LTR390 AMBIENT/UV LIGHT SENSOR DRIVER
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from pvorel@suse.cz are
 
-mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
-mm-swap-reduce-indentation-level.patch
-mm-swap-rename-cpu_fbatches-activate.patch
-mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
-mm-swap-remove-remaining-_fn-suffix.patch
-mm-swap-remove-boilerplate.patch
-mm-swap-remove-boilerplate-fix.patch
+maintainers-update-ltp-members-and-web.patch
 
