@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2568BFC1F
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jul 2024 20:38:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34E10FC1F;
+	Fri, 26 Jul 2024 20:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722026298; cv=none; b=rJ+CyL5GaO0z8aml19OiH0+qLVrpPfQOP2ZokpJIqRmQONdolUfshsHvbQMCvZ0eyQC0ZCc/D+hFjRbpKtj812nSs6DrTISvqRavauoXeAktTFp61k3NZYMU4/HlqmcARiCL2zogIPnZfyVT6AEjBdLJ7uGeFN4vHvGbrznrpAg=
+	t=1722026299; cv=none; b=NFvKWLPwFJXKKdSONmXhQFxmXpTHdRBviQpgvm6FzEbVSFN5egGLiUFpa09o0pgGrrSlDGGbBWwjI5MSm3a1VNqV7vro3dnbkkziFoIagQIvD8lQJgtL22bK6EjGRM7raNJO1Tz+H9DUHT8z9DUr8s/OdBtlqsx0843nNEZWkoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722026298; c=relaxed/simple;
-	bh=7y1qkI2PrO5PWWEHdKcvQwFsUUF3SuKZB2dsW4fMClY=;
-	h=Date:To:From:Subject:Message-Id; b=ASINkXozOtrCtChYXaQQepxbTODfFx1fyTgqZ5aL88DOpGQlL+UvWPcMMKJvewDEPit9WRcGeuknz8nirU2N7k85ACG/3vKl0OXk2BP7p+Uk8IEzv0AOUPa1fJclZng21WqPgU2ezrL70oZHYN7O9DUfBUqcv9iJXhCHuThDKEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NS1HoLbL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722026299; c=relaxed/simple;
+	bh=erFWMLNHrLCAagBPeoRBSyKy6YQNhkKu95aTVyyJ7ns=;
+	h=Date:To:From:Subject:Message-Id; b=pGOEtZyt/fH6FB6F6NT7Ws89b3a5C+XsObKBCgvUjpPleHD194N1GehZVcTVRBmFPzH5jI/SWjtRjQD/X2lCrInBDcFk4Fa91IEfkOv85EUi7HvM3uPNAWx+/Ulz8WFyvZV05M3wv4oYX668oYexxQbuJfNzqdp0VYk447K0cnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pv/PxPVT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NS1HoLbL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDA83C4AF0A;
-	Fri, 26 Jul 2024 20:38:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pv/PxPVT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 085ADC32782;
+	Fri, 26 Jul 2024 20:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722026298;
-	bh=7y1qkI2PrO5PWWEHdKcvQwFsUUF3SuKZB2dsW4fMClY=;
+	s=korg; t=1722026299;
+	bh=erFWMLNHrLCAagBPeoRBSyKy6YQNhkKu95aTVyyJ7ns=;
 	h=Date:To:From:Subject:From;
-	b=NS1HoLbLxly9qoooshrurSkIwd9z9512KSJDFqheR1ZBfAcCp2oAOv/VfTYKL4mFD
-	 DXZnCzwMNYJCzZfr5R/XC5yA5Txi9nOI95H9qj7hhJ0oyFhtrKYX+EOMTohwhTqfvB
-	 6I20ihHx/kLmsFVhc5+PPEwDNZYRoaG/aigVXZ88=
-Date: Fri, 26 Jul 2024 13:38:17 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,broonie@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=pv/PxPVT7nl0otM6DCkI93AglbvCNruo49lcRmHOC6SR2rlNbm4ZHvUXcPvy+MB31
+	 0fW1ffiK2Ft4/Jb3HkkWVw9zQeY6m+FU4QH1HCFx7owaU6OTh6mXKSNRNfweurdIYN
+	 j3YR04pMcGCFemzT1RZRdOVC1Iu3YdMzo4IDKetk=
+Date: Fri, 26 Jul 2024 13:38:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems.patch removed from -mm tree
-Message-Id: <20240726203817.DDA83C4AF0A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-handle-inconsistent-state-in-nilfs_btnode_create_block.patch removed from -mm tree
+Message-Id: <20240726203819.085ADC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip test for non-LPA2 and non-LVA systems
+     Subject: nilfs2: handle inconsistent state in nilfs_btnode_create_block()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems.patch
+     nilfs2-handle-inconsistent-state-in-nilfs_btnode_create_block.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: skip test for non-LPA2 and non-LVA systems
-Date: Thu, 18 Jul 2024 10:55:04 +0530
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: handle inconsistent state in nilfs_btnode_create_block()
+Date: Thu, 25 Jul 2024 14:20:07 +0900
 
-Post my improvement of the test in e4a4ba415419 ("selftests/mm:
-va_high_addr_switch: dynamically initialize testcases to enable LPA2
-testing"):
+Syzbot reported that a buffer state inconsistency was detected in
+nilfs_btnode_create_block(), triggering a kernel bug.
 
-The test begins to fail on 4k and 16k pages, on non-LPA2 systems.  To
-reduce noise in the CI systems, let us skip the test when higher address
-space is not implemented.
+It is not appropriate to treat this inconsistency as a bug; it can occur
+if the argument block address (the buffer index of the newly created
+block) is a virtual block number and has been reallocated due to
+corruption of the bitmap used to manage its allocation state.
 
-Link: https://lkml.kernel.org/r/20240718052504.356517-1-dev.jain@arm.com
-Fixes: e4a4ba415419 ("selftests/mm: va_high_addr_switch: dynamically initialize testcases to enable LPA2 testing")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
+So, modify nilfs_btnode_create_block() and its callers to treat it as a
+possible filesystem error, rather than triggering a kernel bug.
+
+Link: https://lkml.kernel.org/r/20240725052007.4562-1-konishi.ryusuke@gmail.com
+Fixes: a60be987d45d ("nilfs2: B-tree node cache")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+89cc4f2324ed37988b60@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=89cc4f2324ed37988b60
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.c |   16 ++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/nilfs2/btnode.c |   25 ++++++++++++++++++++-----
+ fs/nilfs2/btree.c  |    4 ++--
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-skip-test-for-non-lpa2-and-non-lva-systems
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.c
-@@ -293,6 +293,20 @@ static int run_test(struct testcase *tes
- 	return ret;
+--- a/fs/nilfs2/btnode.c~nilfs2-handle-inconsistent-state-in-nilfs_btnode_create_block
++++ a/fs/nilfs2/btnode.c
+@@ -51,12 +51,21 @@ nilfs_btnode_create_block(struct address
+ 
+ 	bh = nilfs_grab_buffer(inode, btnc, blocknr, BIT(BH_NILFS_Node));
+ 	if (unlikely(!bh))
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	if (unlikely(buffer_mapped(bh) || buffer_uptodate(bh) ||
+ 		     buffer_dirty(bh))) {
+-		brelse(bh);
+-		BUG();
++		/*
++		 * The block buffer at the specified new address was already
++		 * in use.  This can happen if it is a virtual block number
++		 * and has been reallocated due to corruption of the bitmap
++		 * used to manage its allocation state (if not, the buffer
++		 * clearing of an abandoned b-tree node is missing somewhere).
++		 */
++		nilfs_error(inode->i_sb,
++			    "state inconsistency probably due to duplicate use of b-tree node block address %llu (ino=%lu)",
++			    (unsigned long long)blocknr, inode->i_ino);
++		goto failed;
+ 	}
+ 	memset(bh->b_data, 0, i_blocksize(inode));
+ 	bh->b_bdev = inode->i_sb->s_bdev;
+@@ -67,6 +76,12 @@ nilfs_btnode_create_block(struct address
+ 	folio_unlock(bh->b_folio);
+ 	folio_put(bh->b_folio);
+ 	return bh;
++
++failed:
++	folio_unlock(bh->b_folio);
++	folio_put(bh->b_folio);
++	brelse(bh);
++	return ERR_PTR(-EIO);
  }
  
-+#ifdef __aarch64__
-+/* Check if userspace VA > 48 bits */
-+static int high_address_present(void)
-+{
-+	void *ptr = mmap((void *)(1UL << 50), 1, PROT_READ | PROT_WRITE,
-+			 MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-+	if (ptr == MAP_FAILED)
-+		return 0;
-+
-+	munmap(ptr, 1);
-+	return 1;
-+}
-+#endif
-+
- static int supported_arch(void)
- {
- #if defined(__powerpc64__)
-@@ -300,7 +314,7 @@ static int supported_arch(void)
- #elif defined(__x86_64__)
- 	return 1;
- #elif defined(__aarch64__)
--	return 1;
-+	return high_address_present();
- #else
- 	return 0;
- #endif
+ int nilfs_btnode_submit_block(struct address_space *btnc, __u64 blocknr,
+@@ -217,8 +232,8 @@ retry:
+ 	}
+ 
+ 	nbh = nilfs_btnode_create_block(btnc, newkey);
+-	if (!nbh)
+-		return -ENOMEM;
++	if (IS_ERR(nbh))
++		return PTR_ERR(nbh);
+ 
+ 	BUG_ON(nbh == obh);
+ 	ctxt->newbh = nbh;
+--- a/fs/nilfs2/btree.c~nilfs2-handle-inconsistent-state-in-nilfs_btnode_create_block
++++ a/fs/nilfs2/btree.c
+@@ -63,8 +63,8 @@ static int nilfs_btree_get_new_block(con
+ 	struct buffer_head *bh;
+ 
+ 	bh = nilfs_btnode_create_block(btnc, ptr);
+-	if (!bh)
+-		return -ENOMEM;
++	if (IS_ERR(bh))
++		return PTR_ERR(bh);
+ 
+ 	set_buffer_nilfs_volatile(bh);
+ 	*bhp = bh;
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
