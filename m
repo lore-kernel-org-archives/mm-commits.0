@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3420978C98
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:45:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F332D12FB37
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:58:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722289522; cv=none; b=jT0zuubv7CDJ9HpMH9Z43/ENBOVRqCtzUgbS6/uP0O9qynwl9dVFWy4e/BuJpkB+lOuU997zRvumvY1wYFJj6NEQGzkq497k2gmDjCyI3JiMNEeGpxbpB9eIX9oNy+WHEE4HA+ozy088SzrRqb4DsTESvLcEEJHNxJhw2PLx9SQ=
+	t=1722290297; cv=none; b=BAy/Dbp98nsdQNAqTnQZGhXGxZFhBiDJElHzUiOfnNQkqe48PjVq2nAXMuc6GuAtSygvx1AvJwvQePNI17EYnKJiGIrIol3exNEZZiaC92y/X/UpE6dkt9JjPRIeYkmkcMzE171woStO4/zwxU16EtOw8yZ5qOqDr5erKpM9kng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722289522; c=relaxed/simple;
-	bh=QjX1rPY58QI0+kDci0wRlDh9hPMZHwZT6kDUabYfy6E=;
-	h=Date:To:From:Subject:Message-Id; b=dROMUeDiMlHwIBIPqR1SoLjIymTG72npkshxGe1rFtYuKVblVtrX8WBacB816MfpiJt3Z2mai61wlDAWVi3nsBeBPNxPtGiiPRc1mes6AUozfUSg3PQhPn1ZzEMwVv7zyKgli8ttN83dExHB3eCZRM72y7mQI2AavHdtRk//yn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Of3XVgPv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722290297; c=relaxed/simple;
+	bh=heJpt50AGMWNVZQOLFFkwYAg8INm6I5yn7GIyDWzSHY=;
+	h=Date:To:From:Subject:Message-Id; b=ksqv9u5PZgbmQq3Dp8e/MyG72q3QiEc6fxwEcgn/KjkILpR0YvYUHWtNIslgE8Yba+4SeWnvBINOrkJNGFoHiwA50lDTaqigrZ1SFh1AcEshx2t0bb14Ifv+ZlzCdMr8XbkDcjChTk0Whihgj9QPjgYYcq+I+2Df3b+UeTml3d0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wkUCDJDe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Of3XVgPv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B7FC32786;
-	Mon, 29 Jul 2024 21:45:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wkUCDJDe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81DCCC32786;
+	Mon, 29 Jul 2024 21:58:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722289521;
-	bh=QjX1rPY58QI0+kDci0wRlDh9hPMZHwZT6kDUabYfy6E=;
+	s=korg; t=1722290296;
+	bh=heJpt50AGMWNVZQOLFFkwYAg8INm6I5yn7GIyDWzSHY=;
 	h=Date:To:From:Subject:From;
-	b=Of3XVgPv5AGJVJviwgXHODhojXD4Wg3grX0tgLNf787HAM0Q7rxR6vWUcoMVwyyGV
-	 dgYAS8CtMVPXFNMZIfTTxSf7s2UIyn+canuizsxmkm5+9cUpaNvroCWX1fT6e/VZlo
-	 NIFVlgyAzCgMt4vkDGo6iDDQ/N5NIhP1qcadibjs=
-Date: Mon, 29 Jul 2024 14:45:21 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
+	b=wkUCDJDe9tW3rdqGGsgLKsknyM6UL42MGeRamleHyKMy9lwPI1MHG2ApF1QsliSco
+	 0GnaNkCh31NSbWFSsBLXPonS+Sas+c9fBQUx3SjHwJF4ETNwQC3ii1X8Y/9fDww4+M
+	 9w33VI67AkKH4pQyV9jrebG/seYpoGaQehPwMRpg=
+Date: Mon, 29 Jul 2024 14:58:15 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,bhe@redhat.com,aou@eecs.berkeley.edu,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-cg2-memoryswappeak-write-tests.patch added to mm-unstable branch
-Message-Id: <20240729214521.A3B7FC32786@smtp.kernel.org>
+Subject: + crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch added to mm-nonmm-unstable branch
+Message-Id: <20240729215816.81DCCC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-cg2-memoryswappeak-write-tests.patch
+     Subject: crash: fix crash memory reserve exceed system memory bug
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,400 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Finkel <davidf@vimeo.com>
-Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
-Date: Mon, 29 Jul 2024 10:37:43 -0400
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: crash: fix crash memory reserve exceed system memory bug
+Date: Mon, 29 Jul 2024 19:52:52 +0800
 
-Extend two existing tests to cover extracting memory usage through the
-newly mutable memory.peak and memory.swap.peak handlers.
+On x86_32 Qemu machine with 1GB memory, the cmdline "crashkernel=4G" is ok
+as below:
+	crashkernel reserved: 0x0000000020000000 - 0x0000000120000000 (4096 MB)
 
-In particular, make sure to exercise adding and removing watchers with
-overlapping lifetimes so the less-trivial logic gets tested.
+It's similar on other architectures, such as ARM32 and RISCV32.
 
-Link: https://lkml.kernel.org/r/20240729143743.34236-3-davidf@vimeo.com
-Signed-off-by: David Finkel <davidf@vimeo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+The cause is that the crash_size is parsed and printed with "unsigned long
+long" data type which is 8 bytes but allocated used with "phys_addr_t"
+which is 4 bytes in memblock_phys_alloc_range().
+
+Fix it by checking if crash_size is greater than system RAM size and
+return error if so.
+
+After this patch, there is no above confusing reserve success info.
+
+Link: https://lkml.kernel.org/r/20240729115252.1659112-1-ruanjinjie@huawei.com
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c     |   22 +
- tools/testing/selftests/cgroup/cgroup_util.h     |    2 
- tools/testing/selftests/cgroup/test_memcontrol.c |  229 ++++++++++++-
- 3 files changed, 245 insertions(+), 8 deletions(-)
+ kernel/crash_reserve.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -141,6 +141,16 @@ long cg_read_long(const char *cgroup, co
- 	return atol(buf);
+--- a/kernel/crash_reserve.c~crash-fix-crash-memory-reserve-exceed-system-memory-bug
++++ a/kernel/crash_reserve.c
+@@ -335,6 +335,9 @@ int __init parse_crashkernel(char *cmdli
+ 	if (!*crash_size)
+ 		ret = -EINVAL;
+ 
++	if (*crash_size >= system_ram)
++		ret = -EINVAL;
++
+ 	return ret;
  }
  
-+long cg_read_long_fd(int fd)
-+{
-+	char buf[128];
-+
-+	if (pread(fd, buf, sizeof(buf), 0) <= 0)
-+		return -1;
-+
-+	return atol(buf);
-+}
-+
- long cg_read_key_long(const char *cgroup, const char *control, const char *key)
- {
- 	char buf[PAGE_SIZE];
-@@ -183,6 +193,18 @@ int cg_write(const char *cgroup, const c
- 	return ret == len ? 0 : ret;
- }
- 
-+/*
-+ * Returns fd on success, or -1 on failure.
-+ * (fd should be closed with close() as usual)
-+ */
-+int cg_open(const char *cgroup, const char *control, int flags)
-+{
-+	char path[PATH_MAX];
-+
-+	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
-+	return open(path, flags);
-+}
-+
- int cg_write_numeric(const char *cgroup, const char *control, long value)
- {
- 	char buf[64];
---- a/tools/testing/selftests/cgroup/cgroup_util.h~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.h
-@@ -34,9 +34,11 @@ extern int cg_read_strcmp(const char *cg
- extern int cg_read_strstr(const char *cgroup, const char *control,
- 			  const char *needle);
- extern long cg_read_long(const char *cgroup, const char *control);
-+extern long cg_read_long_fd(int fd);
- long cg_read_key_long(const char *cgroup, const char *control, const char *key);
- extern long cg_read_lc(const char *cgroup, const char *control);
- extern int cg_write(const char *cgroup, const char *control, char *buf);
-+extern int cg_open(const char *cgroup, const char *control, int flags);
- int cg_write_numeric(const char *cgroup, const char *control, long value);
- extern int cg_run(const char *cgroup,
- 		  int (*fn)(const char *cgroup, void *arg),
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -161,13 +161,15 @@ cleanup:
- /*
-  * This test create a memory cgroup, allocates
-  * some anonymous memory and some pagecache
-- * and check memory.current and some memory.stat values.
-+ * and checks memory.current, memory.peak, and some memory.stat values.
-  */
--static int test_memcg_current(const char *root)
-+static int test_memcg_current_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
--	long current;
-+	long current, peak, peak_reset;
- 	char *memcg;
-+	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
-+	int peak_fd = -1, peak_fd2 = -1, peak_fd3 = -1, peak_fd4 = -1;
- 
- 	memcg = cg_name(root, "memcg_test");
- 	if (!memcg)
-@@ -180,15 +182,108 @@ static int test_memcg_current(const char
- 	if (current != 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak != 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/*
-+	 * We'll open a few FDs for the same memory.peak file to exercise the free-path
-+	 * We need at least three to be closed in a different order than writes occurred to test
-+	 * the linked-list handling.
-+	 */
-+	peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd == -1)
-+		goto cleanup;
-+
-+	peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd2 == -1)
-+		goto cleanup;
-+
-+	peak_fd3 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd3 == -1)
-+		goto cleanup;
-+
-+	/* any non-empty string resets, but make it clear */
-+	static const char reset_string[] = "reset\n";
-+
-+	peak_reset = write(peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd2, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd3, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	/* Make sure a completely independent read isn't affected by our  FD-local reset above*/
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd2_closed = true;
-+	if (close(peak_fd2))
-+		goto cleanup;
-+
-+	peak_fd4 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd4 == -1)
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd4, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak > MB(30) || peak < 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_pagecache_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/* Make sure everything is back to normal */
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd4);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd3_closed = true;
-+	if (close(peak_fd3))
-+		goto cleanup;
-+
-+	fd4_closed = true;
-+	if (close(peak_fd4))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	close(peak_fd);
-+	if (!fd2_closed)
-+		close(peak_fd2);
-+	if (!fd3_closed)
-+		close(peak_fd3);
-+	if (!fd4_closed)
-+		close(peak_fd4);
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -817,13 +912,17 @@ cleanup:
- 
- /*
-  * This test checks that memory.swap.max limits the amount of
-- * anonymous memory which can be swapped out.
-+ * anonymous memory which can be swapped out. Additionally, it verifies that
-+ * memory.swap.peak reflects the high watermark and can be reset.
-  */
--static int test_memcg_swap_max(const char *root)
-+static int test_memcg_swap_max_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
- 	char *memcg;
--	long max;
-+	long max, peak;
-+
-+	/* any non-empty string resets */
-+	static const char reset_string[] = "foobarbaz";
- 
- 	if (!is_swap_enabled())
- 		return KSFT_SKIP;
-@@ -840,6 +939,45 @@ static int test_memcg_swap_max(const cha
- 		goto cleanup;
- 	}
- 
-+	int swap_peak_fd = cg_open(memcg, "memory.swap.peak",
-+				   O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (swap_peak_fd == -1)
-+		goto cleanup;
-+
-+	int mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (mem_peak_fd == -1)
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	/* switch the swap and mem fds into local-peak tracking mode*/
-+	int peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
- 	if (cg_read_strcmp(memcg, "memory.max", "max\n"))
- 		goto cleanup;
- 
-@@ -862,6 +1000,61 @@ static int test_memcg_swap_max(const cha
- 	if (cg_read_key_long(memcg, "memory.events", "oom_kill ") != 1)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	/*
-+	 * open, reset and close the peak swap on another FD to make sure
-+	 * multiple extant fds don't corrupt the linked-list
-+	 */
-+	peak_reset = cg_write(memcg, "memory.swap.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
-+
-+	peak_reset = cg_write(memcg, "memory.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
-+
-+	/* actually reset on the fds */
-+	peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak > MB(10))
-+		goto cleanup;
-+
-+	/*
-+	 * The cgroup is now empty, but there may be a page or two associated
-+	 * with the open FD accounted to it.
-+	 */
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak > MB(1))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak") < MB(29))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak") < MB(29))
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check_swap, (void *)MB(30)))
- 		goto cleanup;
- 
-@@ -869,9 +1062,29 @@ static int test_memcg_swap_max(const cha
- 	if (max <= 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(19))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	if (close(mem_peak_fd))
-+		ret = KSFT_FAIL;
-+	if (close(swap_peak_fd))
-+		ret = KSFT_FAIL;
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -1295,7 +1508,7 @@ struct memcg_test {
- 	const char *name;
- } tests[] = {
- 	T(test_memcg_subtree_control),
--	T(test_memcg_current),
-+	T(test_memcg_current_peak),
- 	T(test_memcg_min),
- 	T(test_memcg_low),
- 	T(test_memcg_high),
-@@ -1303,7 +1516,7 @@ struct memcg_test {
- 	T(test_memcg_max),
- 	T(test_memcg_reclaim),
- 	T(test_memcg_oom_events),
--	T(test_memcg_swap_max),
-+	T(test_memcg_swap_max_peak),
- 	T(test_memcg_sock),
- 	T(test_memcg_oom_group_leaf_events),
- 	T(test_memcg_oom_group_parent_events),
 _
 
-Patches currently in -mm which might be from davidf@vimeo.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
-mm-memcg-cg2-memoryswappeak-write-handlers.patch
-mm-memcg-cg2-memoryswappeak-write-tests.patch
+crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
+crash-fix-x86_32-crash-memory-reserve-dead-loop.patch
+arm-use-generic-interface-to-simplify-crashkernel-reservation.patch
+crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
