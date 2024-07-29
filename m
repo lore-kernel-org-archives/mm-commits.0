@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E99378C98
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:45:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3420978C98
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:45:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722289517; cv=none; b=gA1LyuLKw1PeOjP6Wpcb6/RfABuRL9RFaW3Q3ZaA7HMkq7cyS1WgZ0zwybmDtrWSiB13DLJGja1H5mxlu5gXkPwqQ0QeNKdZrrXyGf31xMbdmbozLFI9VGhemo0wul9wdMzVcCOAmhYaVYTEZLU9Vxb9ytMzZwM7CU/zSEPAcsI=
+	t=1722289522; cv=none; b=jT0zuubv7CDJ9HpMH9Z43/ENBOVRqCtzUgbS6/uP0O9qynwl9dVFWy4e/BuJpkB+lOuU997zRvumvY1wYFJj6NEQGzkq497k2gmDjCyI3JiMNEeGpxbpB9eIX9oNy+WHEE4HA+ozy088SzrRqb4DsTESvLcEEJHNxJhw2PLx9SQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722289517; c=relaxed/simple;
-	bh=PeucH4dBi01lK02ZWdmYSrcqt+isXsVIACxUPOgKhC8=;
-	h=Date:To:From:Subject:Message-Id; b=nwdDSvex4WPTel9sAjc015YssaGTsKBPQowwnIYdSEnC/J3YgYTfZIUkt8iiMJkLtPq5IxG5bj5FCgMACvY5XyFpABeqLA9KgPjGxQbYb8807fhHzhMN6q8kFKqSYH36IIaXy2BNqvmO+E1pkqmGgerNp6p3so7EyXSjj+Ia72I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1TCV7w1s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722289522; c=relaxed/simple;
+	bh=QjX1rPY58QI0+kDci0wRlDh9hPMZHwZT6kDUabYfy6E=;
+	h=Date:To:From:Subject:Message-Id; b=dROMUeDiMlHwIBIPqR1SoLjIymTG72npkshxGe1rFtYuKVblVtrX8WBacB816MfpiJt3Z2mai61wlDAWVi3nsBeBPNxPtGiiPRc1mes6AUozfUSg3PQhPn1ZzEMwVv7zyKgli8ttN83dExHB3eCZRM72y7mQI2AavHdtRk//yn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Of3XVgPv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1TCV7w1s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82188C4AF07;
-	Mon, 29 Jul 2024 21:45:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Of3XVgPv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B7FC32786;
+	Mon, 29 Jul 2024 21:45:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722289516;
-	bh=PeucH4dBi01lK02ZWdmYSrcqt+isXsVIACxUPOgKhC8=;
+	s=korg; t=1722289521;
+	bh=QjX1rPY58QI0+kDci0wRlDh9hPMZHwZT6kDUabYfy6E=;
 	h=Date:To:From:Subject:From;
-	b=1TCV7w1sq8nhGtYLQNGWhQy6OvQ6jq2CkEDCwI7/0UWrM8yaEk+gcV6PUr4XwhkKx
-	 nPJDRYtBzjcziNrYi50n5eHNRfMtoFbhWvpN2/nCuZuB3ARYQ6szjiLTgQIcMr/OUh
-	 NS9X/DQSb3SSQB0olabivxAkh25x1/HME3ChVibs=
-Date: Mon, 29 Jul 2024 14:45:10 -0700
+	b=Of3XVgPv5AGJVJviwgXHODhojXD4Wg3grX0tgLNf787HAM0Q7rxR6vWUcoMVwyyGV
+	 dgYAS8CtMVPXFNMZIfTTxSf7s2UIyn+canuizsxmkm5+9cUpaNvroCWX1fT6e/VZlo
+	 NIFVlgyAzCgMt4vkDGo6iDDQ/N5NIhP1qcadibjs=
+Date: Mon, 29 Jul 2024 14:45:21 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-cg2-memoryswappeak-write-handlers.patch added to mm-unstable branch
-Message-Id: <20240729214516.82188C4AF07@smtp.kernel.org>
+Subject: + mm-memcg-cg2-memoryswappeak-write-tests.patch added to mm-unstable branch
+Message-Id: <20240729214521.A3B7FC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-cg2-memoryswappeak-write-handlers.patch
+     mm-memcg-cg2-memoryswappeak-write-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-handlers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,67 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Finkel <davidf@vimeo.com>
-Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
-Date: Mon, 29 Jul 2024 10:37:42 -0400
+Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
+Date: Mon, 29 Jul 2024 10:37:43 -0400
 
-Patch series "mm, memcg: cg2 memory{.swap,}.peak write handlers", v6.
+Extend two existing tests to cover extracting memory usage through the
+newly mutable memory.peak and memory.swap.peak handlers.
 
+In particular, make sure to exercise adding and removing watchers with
+overlapping lifetimes so the less-trivial logic gets tested.
 
-This patch (of 2):
-
-Other mechanisms for querying the peak memory usage of either a process or
-v1 memory cgroup allow for resetting the high watermark.  Restore parity
-with those mechanisms, but with a less racy API.
-
-For example:
- - Any write to memory.max_usage_in_bytes in a cgroup v1 mount resets
-   the high watermark.
- - writing "5" to the clear_refs pseudo-file in a processes's proc
-   directory resets the peak RSS.
-
-This change is an evolution of a previous patch, which mostly copied the
-cgroup v1 behavior, however, there were concerns about races/ownership
-issues with a global reset, so instead this change makes the reset
-filedescriptor-local.
-
-Writing any non-empty string to the memory.peak and memory.swap.peak
-pseudo-files reset the high watermark to the current usage for subsequent
-reads through that same FD.
-
-Notably, following Johannes's suggestion, this implementation moves the
-O(FDs that have written) behavior onto the FD write(2) path.  Instead, on
-the page-allocation path, we simply add one additional watermark to
-conditionally bump per-hierarchy level in the page-counter.
-
-Additionally, this takes Longman's suggestion of nesting the
-page-charging-path checks for the two watermarks to reduce the number of
-common-case comparisons.
-
-This behavior is particularly useful for work scheduling systems that need
-to track memory usage of worker processes/cgroups per-work-item.  Since
-memory can't be squeezed like CPU can (the OOM-killer has opinions), these
-systems need to track the peak memory usage to compute system/container
-fullness when binpacking workitems.
-
-Most notably, Vimeo's use-case involves a system that's doing global
-binpacking across many Kubernetes pods/containers, and while we can use
-PSI for some local decisions about overload, we strive to avoid packing
-workloads too tightly in the first place.  To facilitate this, we track
-the peak memory usage.  However, since we run with long-lived workers (to
-amortize startup costs) we need a way to track the high watermark while a
-work-item is executing.  Polling runs the risk of missing short spikes
-that last for timescales below the polling interval, and peak memory
-tracking at the cgroup level is otherwise perfect for this use-case.
-
-As this data is used to ensure that binpacked work ends up with sufficient
-headroom, this use-case mostly avoids the inaccuracies surrounding
-reclaimable memory.
-
-Link: https://lkml.kernel.org/r/20240729143743.34236-1-davidf@vimeo.com
-Link: https://lkml.kernel.org/r/20240729143743.34236-2-davidf@vimeo.com
+Link: https://lkml.kernel.org/r/20240729143743.34236-3-davidf@vimeo.com
 Signed-off-by: David Finkel <davidf@vimeo.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Waiman Long <longman@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
@@ -128,379 +79,375 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   22 ++--
- include/linux/cgroup-defs.h             |    5 
- include/linux/cgroup.h                  |    3 
- include/linux/memcontrol.h              |    5 
- include/linux/page_counter.h            |   11 +-
- kernel/cgroup/cgroup-internal.h         |    2 
- kernel/cgroup/cgroup.c                  |    7 +
- mm/memcontrol.c                         |  116 ++++++++++++++++++++--
- mm/page_counter.c                       |   29 +++--
- 9 files changed, 173 insertions(+), 27 deletions(-)
+ tools/testing/selftests/cgroup/cgroup_util.c     |   22 +
+ tools/testing/selftests/cgroup/cgroup_util.h     |    2 
+ tools/testing/selftests/cgroup/test_memcontrol.c |  229 ++++++++++++-
+ 3 files changed, 245 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1333,11 +1333,14 @@ The following nested keys are defined.
- 	all the existing limitations and potential future extensions.
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -141,6 +141,16 @@ long cg_read_long(const char *cgroup, co
+ 	return atol(buf);
+ }
  
-   memory.peak
--	A read-only single value file which exists on non-root
--	cgroups.
-+	A read-write single value file which exists on non-root cgroups.
++long cg_read_long_fd(int fd)
++{
++	char buf[128];
 +
-+	The max memory usage recorded for the cgroup and its descendants since
-+	either the creation of the cgroup or the most recent reset for that FD.
- 
--	The max memory usage recorded for the cgroup and its
--	descendants since the creation of the cgroup.
-+	A write of any non-empty string to this file resets it to the
-+	current memory usage for subsequent reads through the same
-+	file descriptor.
- 
-   memory.oom.group
- 	A read-write single value file which exists on non-root
-@@ -1663,11 +1666,14 @@ The following nested keys are defined.
- 	Healthy workloads are not expected to reach this limit.
- 
-   memory.swap.peak
--	A read-only single value file which exists on non-root
--	cgroups.
-+	A read-write single value file which exists on non-root cgroups.
++	if (pread(fd, buf, sizeof(buf), 0) <= 0)
++		return -1;
 +
-+	The max swap usage recorded for the cgroup and its descendants since
-+	the creation of the cgroup or the most recent reset for that FD.
- 
--	The max swap usage recorded for the cgroup and its
--	descendants since the creation of the cgroup.
-+	A write of any non-empty string to this file resets it to the
-+	current memory usage for subsequent reads through the same
-+	file descriptor.
- 
-   memory.swap.max
- 	A read-write single value file which exists on non-root
---- a/include/linux/cgroup-defs.h~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/include/linux/cgroup-defs.h
-@@ -775,6 +775,11 @@ struct cgroup_subsys {
- 
- extern struct percpu_rw_semaphore cgroup_threadgroup_rwsem;
- 
-+struct cgroup_of_peak {
-+	unsigned long		value;
-+	struct list_head	list;
-+};
++	return atol(buf);
++}
 +
- /**
-  * cgroup_threadgroup_change_begin - threadgroup exclusion for cgroups
-  * @tsk: target task
---- a/include/linux/cgroup.h~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/include/linux/cgroup.h
-@@ -11,6 +11,7 @@
- 
- #include <linux/sched.h>
- #include <linux/nodemask.h>
-+#include <linux/list.h>
- #include <linux/rculist.h>
- #include <linux/cgroupstats.h>
- #include <linux/fs.h>
-@@ -854,4 +855,6 @@ static inline void cgroup_bpf_put(struct
- 
- struct cgroup *task_get_cgroup1(struct task_struct *tsk, int hierarchy_id);
- 
-+struct cgroup_of_peak *of_peak(struct kernfs_open_file *of);
-+
- #endif /* _LINUX_CGROUP_H */
---- a/include/linux/memcontrol.h~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/include/linux/memcontrol.h
-@@ -193,6 +193,11 @@ struct mem_cgroup {
- 		struct page_counter memsw;	/* v1 only */
- 	};
- 
-+	/* registered local peak watchers */
-+	struct list_head memory_peaks;
-+	struct list_head swap_peaks;
-+	spinlock_t	 peaks_lock;
-+
- 	/* Range enforcement for interrupt charges */
- 	struct work_struct high_work;
- 
---- a/include/linux/page_counter.h~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/include/linux/page_counter.h
-@@ -26,6 +26,8 @@ struct page_counter {
- 	atomic_long_t children_low_usage;
- 
- 	unsigned long watermark;
-+	/* Latest cg2 reset watermark */
-+	unsigned long local_watermark;
- 	unsigned long failcnt;
- 
- 	/* Keep all the read most fields in a separete cacheline. */
-@@ -84,7 +86,14 @@ int page_counter_memparse(const char *bu
- 
- static inline void page_counter_reset_watermark(struct page_counter *counter)
+ long cg_read_key_long(const char *cgroup, const char *control, const char *key)
  {
--	counter->watermark = page_counter_read(counter);
-+	unsigned long usage = page_counter_read(counter);
+ 	char buf[PAGE_SIZE];
+@@ -183,6 +193,18 @@ int cg_write(const char *cgroup, const c
+ 	return ret == len ? 0 : ret;
+ }
+ 
++/*
++ * Returns fd on success, or -1 on failure.
++ * (fd should be closed with close() as usual)
++ */
++int cg_open(const char *cgroup, const char *control, int flags)
++{
++	char path[PATH_MAX];
++
++	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
++	return open(path, flags);
++}
++
+ int cg_write_numeric(const char *cgroup, const char *control, long value)
+ {
+ 	char buf[64];
+--- a/tools/testing/selftests/cgroup/cgroup_util.h~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/cgroup_util.h
+@@ -34,9 +34,11 @@ extern int cg_read_strcmp(const char *cg
+ extern int cg_read_strstr(const char *cgroup, const char *control,
+ 			  const char *needle);
+ extern long cg_read_long(const char *cgroup, const char *control);
++extern long cg_read_long_fd(int fd);
+ long cg_read_key_long(const char *cgroup, const char *control, const char *key);
+ extern long cg_read_lc(const char *cgroup, const char *control);
+ extern int cg_write(const char *cgroup, const char *control, char *buf);
++extern int cg_open(const char *cgroup, const char *control, int flags);
+ int cg_write_numeric(const char *cgroup, const char *control, long value);
+ extern int cg_run(const char *cgroup,
+ 		  int (*fn)(const char *cgroup, void *arg),
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -161,13 +161,15 @@ cleanup:
+ /*
+  * This test create a memory cgroup, allocates
+  * some anonymous memory and some pagecache
+- * and check memory.current and some memory.stat values.
++ * and checks memory.current, memory.peak, and some memory.stat values.
+  */
+-static int test_memcg_current(const char *root)
++static int test_memcg_current_peak(const char *root)
+ {
+ 	int ret = KSFT_FAIL;
+-	long current;
++	long current, peak, peak_reset;
+ 	char *memcg;
++	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
++	int peak_fd = -1, peak_fd2 = -1, peak_fd3 = -1, peak_fd4 = -1;
+ 
+ 	memcg = cg_name(root, "memcg_test");
+ 	if (!memcg)
+@@ -180,15 +182,108 @@ static int test_memcg_current(const char
+ 	if (current != 0)
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak != 0)
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_anon_50M_check, NULL))
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
 +
 +	/*
-+	 * Update local_watermark first, so it's always <= watermark
-+	 * (modulo CPU/compiler re-ordering)
++	 * We'll open a few FDs for the same memory.peak file to exercise the free-path
++	 * We need at least three to be closed in a different order than writes occurred to test
++	 * the linked-list handling.
 +	 */
-+	counter->local_watermark = usage;
-+	counter->watermark = usage;
- }
++	peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd == -1)
++		goto cleanup;
++
++	peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd2 == -1)
++		goto cleanup;
++
++	peak_fd3 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd3 == -1)
++		goto cleanup;
++
++	/* any non-empty string resets, but make it clear */
++	static const char reset_string[] = "reset\n";
++
++	peak_reset = write(peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(peak_fd2, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(peak_fd3, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	/* Make sure a completely independent read isn't affected by our  FD-local reset above*/
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
++
++	fd2_closed = true;
++	if (close(peak_fd2))
++		goto cleanup;
++
++	peak_fd4 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (peak_fd4 == -1)
++		goto cleanup;
++
++	peak_reset = write(peak_fd4, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak = cg_read_long_fd(peak_fd);
++	if (peak > MB(30) || peak < 0)
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_pagecache_50M_check, NULL))
+ 		goto cleanup;
  
- #ifdef CONFIG_MEMCG
---- a/kernel/cgroup/cgroup.c~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/kernel/cgroup/cgroup.c
-@@ -1972,6 +1972,13 @@ static int cgroup2_parse_param(struct fs
- 	return -EINVAL;
- }
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(50))
++		goto cleanup;
++
++	/* Make sure everything is back to normal */
++	peak = cg_read_long_fd(peak_fd);
++	if (peak < MB(50))
++		goto cleanup;
++
++	peak = cg_read_long_fd(peak_fd4);
++	if (peak < MB(50))
++		goto cleanup;
++
++	fd3_closed = true;
++	if (close(peak_fd3))
++		goto cleanup;
++
++	fd4_closed = true;
++	if (close(peak_fd4))
++		goto cleanup;
++
+ 	ret = KSFT_PASS;
  
-+struct cgroup_of_peak *of_peak(struct kernfs_open_file *of)
-+{
-+	struct cgroup_file_ctx *ctx = of->priv;
-+
-+	return &ctx->peak;
-+}
-+
- static void apply_cgroup_root_flags(unsigned int root_flags)
- {
- 	if (current->nsproxy->cgroup_ns == &init_cgroup_ns) {
---- a/kernel/cgroup/cgroup-internal.h~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/kernel/cgroup/cgroup-internal.h
-@@ -81,6 +81,8 @@ struct cgroup_file_ctx {
- 	struct {
- 		struct cgroup_pidlist	*pidlist;
- 	} procs1;
-+
-+	struct cgroup_of_peak peak;
- };
+ cleanup:
++	close(peak_fd);
++	if (!fd2_closed)
++		close(peak_fd2);
++	if (!fd3_closed)
++		close(peak_fd3);
++	if (!fd4_closed)
++		close(peak_fd4);
+ 	cg_destroy(memcg);
+ 	free(memcg);
+ 
+@@ -817,13 +912,17 @@ cleanup:
  
  /*
---- a/mm/memcontrol.c~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/mm/memcontrol.c
-@@ -25,6 +25,7 @@
-  * Copyright (C) 2020 Alibaba, Inc, Alex Shi
+  * This test checks that memory.swap.max limits the amount of
+- * anonymous memory which can be swapped out.
++ * anonymous memory which can be swapped out. Additionally, it verifies that
++ * memory.swap.peak reflects the high watermark and can be reset.
   */
- 
-+#include <linux/cgroup-defs.h>
- #include <linux/page_counter.h>
- #include <linux/memcontrol.h>
- #include <linux/cgroup.h>
-@@ -41,6 +42,7 @@
- #include <linux/rcupdate.h>
- #include <linux/limits.h>
- #include <linux/export.h>
-+#include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/rbtree.h>
- #include <linux/slab.h>
-@@ -3534,6 +3536,9 @@ static struct mem_cgroup *mem_cgroup_all
- 
- 	INIT_WORK(&memcg->high_work, high_work_func);
- 	vmpressure_init(&memcg->vmpressure);
-+	INIT_LIST_HEAD(&memcg->memory_peaks);
-+	INIT_LIST_HEAD(&memcg->swap_peaks);
-+	spin_lock_init(&memcg->peaks_lock);
- 	memcg->socket_pressure = jiffies;
- 	memcg1_memcg_init(memcg);
- 	memcg->kmemcg_id = -1;
-@@ -3926,14 +3931,91 @@ static u64 memory_current_read(struct cg
- 	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
- }
- 
--static u64 memory_peak_read(struct cgroup_subsys_state *css,
--			    struct cftype *cft)
-+#define OFP_PEAK_UNSET (((-1UL)))
-+
-+static int peak_show(struct seq_file *sf, void *v, struct page_counter *pc)
+-static int test_memcg_swap_max(const char *root)
++static int test_memcg_swap_max_peak(const char *root)
  {
--	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-+	struct cgroup_of_peak *ofp = of_peak(sf->private);
-+	u64 fd_peak = READ_ONCE(ofp->value), peak;
+ 	int ret = KSFT_FAIL;
+ 	char *memcg;
+-	long max;
++	long max, peak;
 +
-+	/* User wants global or local peak? */
-+	if (fd_peak == OFP_PEAK_UNSET)
-+		peak = pc->watermark;
-+	else
-+		peak = max(fd_peak, READ_ONCE(pc->local_watermark));
-+
-+	seq_printf(sf, "%llu\n", peak * PAGE_SIZE);
-+	return 0;
-+}
-+
-+static int memory_peak_show(struct seq_file *sf, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
-+
-+	return peak_show(sf, v, &memcg->memory);
-+}
-+
-+static int peak_open(struct kernfs_open_file *of)
-+{
-+	struct cgroup_of_peak *ofp = of_peak(of);
-+
-+	ofp->value = OFP_PEAK_UNSET;
-+	return 0;
-+}
-+
-+static void peak_release(struct kernfs_open_file *of)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	struct cgroup_of_peak *ofp = of_peak(of);
-+
-+	if (ofp->value == OFP_PEAK_UNSET) {
-+		/* fast path (no writes on this fd) */
-+		return;
-+	}
-+	spin_lock(&memcg->peaks_lock);
-+	list_del(&ofp->list);
-+	spin_unlock(&memcg->peaks_lock);
-+}
-+
-+static ssize_t peak_write(struct kernfs_open_file *of, char *buf, size_t nbytes,
-+			  loff_t off, struct page_counter *pc,
-+			  struct list_head *watchers)
-+{
-+	unsigned long usage;
-+	struct cgroup_of_peak *peer_ctx;
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	struct cgroup_of_peak *ofp = of_peak(of);
-+
-+	spin_lock(&memcg->peaks_lock);
-+
-+	usage = page_counter_read(pc);
-+	WRITE_ONCE(pc->local_watermark, usage);
-+
-+	list_for_each_entry(peer_ctx, watchers, list)
-+		if (usage > peer_ctx->value)
-+			WRITE_ONCE(peer_ctx->value, usage);
-+
-+	/* initial write, register watcher */
-+	if (ofp->value == -1)
-+		list_add(&ofp->list, watchers);
-+
-+	WRITE_ONCE(ofp->value, usage);
-+	spin_unlock(&memcg->peaks_lock);
-+
-+	return nbytes;
-+}
-+
-+static ssize_t memory_peak_write(struct kernfs_open_file *of, char *buf,
-+				 size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	/* any non-empty string resets */
++	static const char reset_string[] = "foobarbaz";
  
--	return (u64)memcg->memory.watermark * PAGE_SIZE;
-+	return peak_write(of, buf, nbytes, off, &memcg->memory,
-+			  &memcg->memory_peaks);
- }
- 
-+#undef OFP_PEAK_UNSET
-+
- static int memory_min_show(struct seq_file *m, void *v)
- {
- 	return seq_puts_memcg_tunable(m,
-@@ -4283,7 +4365,10 @@ static struct cftype memory_files[] = {
- 	{
- 		.name = "peak",
- 		.flags = CFTYPE_NOT_ON_ROOT,
--		.read_u64 = memory_peak_read,
-+		.open = peak_open,
-+		.release = peak_release,
-+		.seq_show = memory_peak_show,
-+		.write = memory_peak_write,
- 	},
- 	{
- 		.name = "min",
-@@ -5075,12 +5160,20 @@ static u64 swap_current_read(struct cgro
- 	return (u64)page_counter_read(&memcg->swap) * PAGE_SIZE;
- }
- 
--static u64 swap_peak_read(struct cgroup_subsys_state *css,
--			  struct cftype *cft)
-+static int swap_peak_show(struct seq_file *sf, void *v)
- {
--	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
-+
-+	return peak_show(sf, v, &memcg->swap);
-+}
-+
-+static ssize_t swap_peak_write(struct kernfs_open_file *of, char *buf,
-+			       size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
- 
--	return (u64)memcg->swap.watermark * PAGE_SIZE;
-+	return peak_write(of, buf, nbytes, off, &memcg->swap,
-+			  &memcg->swap_peaks);
- }
- 
- static int swap_high_show(struct seq_file *m, void *v)
-@@ -5164,7 +5257,10 @@ static struct cftype swap_files[] = {
- 	{
- 		.name = "swap.peak",
- 		.flags = CFTYPE_NOT_ON_ROOT,
--		.read_u64 = swap_peak_read,
-+		.open = peak_open,
-+		.release = peak_release,
-+		.seq_show = swap_peak_show,
-+		.write = swap_peak_write,
- 	},
- 	{
- 		.name = "swap.events",
---- a/mm/page_counter.c~mm-memcg-cg2-memoryswappeak-write-handlers
-+++ a/mm/page_counter.c
-@@ -87,9 +87,22 @@ void page_counter_charge(struct page_cou
- 		/*
- 		 * This is indeed racy, but we can live with some
- 		 * inaccuracy in the watermark.
-+		 *
-+		 * Notably, we have two watermarks to allow for both a globally
-+		 * visible peak and one that can be reset at a smaller scope.
-+		 *
-+		 * Since we reset both watermarks when the global reset occurs,
-+		 * we can guarantee that watermark >= local_watermark, so we
-+		 * don't need to do both comparisons every time.
-+		 *
-+		 * On systems with branch predictors, the inner condition should
-+		 * be almost free.
- 		 */
--		if (new > READ_ONCE(c->watermark))
--			WRITE_ONCE(c->watermark, new);
-+		if (new > READ_ONCE(c->local_watermark)) {
-+			WRITE_ONCE(c->local_watermark, new);
-+			if (new > READ_ONCE(c->watermark))
-+				WRITE_ONCE(c->watermark, new);
-+		}
+ 	if (!is_swap_enabled())
+ 		return KSFT_SKIP;
+@@ -840,6 +939,45 @@ static int test_memcg_swap_max(const cha
+ 		goto cleanup;
  	}
- }
  
-@@ -140,12 +153,12 @@ bool page_counter_try_charge(struct page
- 		if (protection)
- 			propagate_protected_usage(c, new);
++	int swap_peak_fd = cg_open(memcg, "memory.swap.peak",
++				   O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (swap_peak_fd == -1)
++		goto cleanup;
++
++	int mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++
++	if (mem_peak_fd == -1)
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.swap.peak"))
++		goto cleanup;
++
++	if (cg_read_long_fd(swap_peak_fd))
++		goto cleanup;
++
++	/* switch the swap and mem fds into local-peak tracking mode*/
++	int peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
++
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	if (cg_read_long_fd(swap_peak_fd))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.peak"))
++		goto cleanup;
++
++	if (cg_read_long_fd(mem_peak_fd))
++		goto cleanup;
++
++	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	if (cg_read_long_fd(mem_peak_fd))
++		goto cleanup;
++
+ 	if (cg_read_strcmp(memcg, "memory.max", "max\n"))
+ 		goto cleanup;
  
--		/*
--		 * Just like with failcnt, we can live with some
--		 * inaccuracy in the watermark.
--		 */
--		if (new > READ_ONCE(c->watermark))
--			WRITE_ONCE(c->watermark, new);
-+		/* see comment on page_counter_charge */
-+		if (new > READ_ONCE(c->local_watermark)) {
-+			WRITE_ONCE(c->local_watermark, new);
-+			if (new > READ_ONCE(c->watermark))
-+				WRITE_ONCE(c->watermark, new);
-+		}
- 	}
- 	return true;
+@@ -862,6 +1000,61 @@ static int test_memcg_swap_max(const cha
+ 	if (cg_read_key_long(memcg, "memory.events", "oom_kill ") != 1)
+ 		goto cleanup;
  
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long(memcg, "memory.swap.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	/*
++	 * open, reset and close the peak swap on another FD to make sure
++	 * multiple extant fds don't corrupt the linked-list
++	 */
++	peak_reset = cg_write(memcg, "memory.swap.peak", (char *)reset_string);
++	if (peak_reset)
++		goto cleanup;
++
++	peak_reset = cg_write(memcg, "memory.peak", (char *)reset_string);
++	if (peak_reset)
++		goto cleanup;
++
++	/* actually reset on the fds */
++	peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
++	if (peak_reset != sizeof(reset_string))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak > MB(10))
++		goto cleanup;
++
++	/*
++	 * The cgroup is now empty, but there may be a page or two associated
++	 * with the open FD accounted to it.
++	 */
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak > MB(1))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.peak") < MB(29))
++		goto cleanup;
++
++	if (cg_read_long(memcg, "memory.swap.peak") < MB(29))
++		goto cleanup;
++
+ 	if (cg_run(memcg, alloc_anon_50M_check_swap, (void *)MB(30)))
+ 		goto cleanup;
+ 
+@@ -869,9 +1062,29 @@ static int test_memcg_swap_max(const cha
+ 	if (max <= 0)
+ 		goto cleanup;
+ 
++	peak = cg_read_long(memcg, "memory.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long(memcg, "memory.swap.peak");
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(mem_peak_fd);
++	if (peak < MB(29))
++		goto cleanup;
++
++	peak = cg_read_long_fd(swap_peak_fd);
++	if (peak < MB(19))
++		goto cleanup;
++
+ 	ret = KSFT_PASS;
+ 
+ cleanup:
++	if (close(mem_peak_fd))
++		ret = KSFT_FAIL;
++	if (close(swap_peak_fd))
++		ret = KSFT_FAIL;
+ 	cg_destroy(memcg);
+ 	free(memcg);
+ 
+@@ -1295,7 +1508,7 @@ struct memcg_test {
+ 	const char *name;
+ } tests[] = {
+ 	T(test_memcg_subtree_control),
+-	T(test_memcg_current),
++	T(test_memcg_current_peak),
+ 	T(test_memcg_min),
+ 	T(test_memcg_low),
+ 	T(test_memcg_high),
+@@ -1303,7 +1516,7 @@ struct memcg_test {
+ 	T(test_memcg_max),
+ 	T(test_memcg_reclaim),
+ 	T(test_memcg_oom_events),
+-	T(test_memcg_swap_max),
++	T(test_memcg_swap_max_peak),
+ 	T(test_memcg_sock),
+ 	T(test_memcg_oom_group_leaf_events),
+ 	T(test_memcg_oom_group_parent_events),
 _
 
 Patches currently in -mm which might be from davidf@vimeo.com are
