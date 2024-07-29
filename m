@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6793618D4BD
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:09:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E99378C98
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jul 2024 21:45:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722287341; cv=none; b=B/ZkI2nEzD97eeIHMRm7ceAxAgiRmoEAyt+gF9rlMr6OSeJcNPOnglEIJeaSOHv4i0foJwBdWCf9qbVCJHCX6Gjrf+4DuesfCAdYdzFNmltsUtzOHs8/A3gvc/bP3XuS1ln4gHi3/STEj+Nj2YdhYqBalAfqaaiMR8agiFoTEqY=
+	t=1722289517; cv=none; b=gA1LyuLKw1PeOjP6Wpcb6/RfABuRL9RFaW3Q3ZaA7HMkq7cyS1WgZ0zwybmDtrWSiB13DLJGja1H5mxlu5gXkPwqQ0QeNKdZrrXyGf31xMbdmbozLFI9VGhemo0wul9wdMzVcCOAmhYaVYTEZLU9Vxb9ytMzZwM7CU/zSEPAcsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722287341; c=relaxed/simple;
-	bh=Z9mWyhyNCIkdgkmQH1suF7/icYnT26si/+SlQ6YBI3Y=;
-	h=Date:To:From:Subject:Message-Id; b=CK6ozHUF1zstki/XsuVwE8OqLUUFSh4IyqDo6/zSLLsghzDMRv07AxdR2RKvoK0YriK7msP6SYbnz1LYN6fQJlKOeX1GQoWYQRiUQaAGjXYAjLtzE6fwLImI3C9duCjFcKkKf/Abk+j+PTOYE0h1vXrMVPVlGB0a97MQhwcQ4Rk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s64MShQt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722289517; c=relaxed/simple;
+	bh=PeucH4dBi01lK02ZWdmYSrcqt+isXsVIACxUPOgKhC8=;
+	h=Date:To:From:Subject:Message-Id; b=nwdDSvex4WPTel9sAjc015YssaGTsKBPQowwnIYdSEnC/J3YgYTfZIUkt8iiMJkLtPq5IxG5bj5FCgMACvY5XyFpABeqLA9KgPjGxQbYb8807fhHzhMN6q8kFKqSYH36IIaXy2BNqvmO+E1pkqmGgerNp6p3so7EyXSjj+Ia72I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1TCV7w1s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s64MShQt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16902C32786;
-	Mon, 29 Jul 2024 21:09:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1TCV7w1s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82188C4AF07;
+	Mon, 29 Jul 2024 21:45:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722287341;
-	bh=Z9mWyhyNCIkdgkmQH1suF7/icYnT26si/+SlQ6YBI3Y=;
+	s=korg; t=1722289516;
+	bh=PeucH4dBi01lK02ZWdmYSrcqt+isXsVIACxUPOgKhC8=;
 	h=Date:To:From:Subject:From;
-	b=s64MShQtc46rXQisEZsN9VeLAnTR4syvcdawdLsgWBlAgoINPlGX+tQW6ToHIK493
-	 vEutKpEbpFTfKEL1wX6zvuNjucGuUFjwOz0vebDgEF2jeX++Vfj2QLM4DDvLbWhh+8
-	 f7qzpwCsLWNKMRFUvU0A+g96N9//MUI+QZOBW67s=
-Date: Mon, 29 Jul 2024 14:09:00 -0700
-To: mm-commits@vger.kernel.org,jannh@google.com,adobriyan@gmail.com,andrii@kernel.org,akpm@linux-foundation.org
+	b=1TCV7w1sq8nhGtYLQNGWhQy6OvQ6jq2CkEDCwI7/0UWrM8yaEk+gcV6PUr4XwhkKx
+	 nPJDRYtBzjcziNrYi50n5eHNRfMtoFbhWvpN2/nCuZuB3ARYQ6szjiLTgQIcMr/OUh
+	 NS9X/DQSb3SSQB0olabivxAkh25x1/HME3ChVibs=
+Date: Mon, 29 Jul 2024 14:45:10 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-procfs-remove-build-id-related-code-duplication-in-procmap_query.patch added to mm-nonmm-unstable branch
-Message-Id: <20240729210901.16902C32786@smtp.kernel.org>
+Subject: + mm-memcg-cg2-memoryswappeak-write-handlers.patch added to mm-unstable branch
+Message-Id: <20240729214516.82188C4AF07@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/procfs: remove build ID-related code duplication in PROCMAP_QUERY
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-procfs-remove-build-id-related-code-duplication-in-procmap_query.patch
+     Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-cg2-memoryswappeak-write-handlers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-procfs-remove-build-id-related-code-duplication-in-procmap_query.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-cg2-memoryswappeak-write-handlers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,56 +58,453 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrii Nakryiko <andrii@kernel.org>
-Subject: fs/procfs: remove build ID-related code duplication in PROCMAP_QUERY
-Date: Mon, 29 Jul 2024 10:40:44 -0700
+From: David Finkel <davidf@vimeo.com>
+Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+Date: Mon, 29 Jul 2024 10:37:42 -0400
 
-A piece of build ID handling code in PROCMAP_QUERY ioctl() was
-accidentally duplicated.  It wasn't meant to be part of ed5d583a88a9
-("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
-commit, which is what introduced duplication.
+Patch series "mm, memcg: cg2 memory{.swap,}.peak write handlers", v6.
 
-It has no correctness implications, but we unnecessarily perform the same
-work twice, if build ID parsing is requested.  Drop the duplication.
 
-Link: https://lkml.kernel.org/r/20240729174044.4008399-1-andrii@kernel.org
-Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
-Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
-Reported-by: Jann Horn <jannh@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+This patch (of 2):
+
+Other mechanisms for querying the peak memory usage of either a process or
+v1 memory cgroup allow for resetting the high watermark.  Restore parity
+with those mechanisms, but with a less racy API.
+
+For example:
+ - Any write to memory.max_usage_in_bytes in a cgroup v1 mount resets
+   the high watermark.
+ - writing "5" to the clear_refs pseudo-file in a processes's proc
+   directory resets the peak RSS.
+
+This change is an evolution of a previous patch, which mostly copied the
+cgroup v1 behavior, however, there were concerns about races/ownership
+issues with a global reset, so instead this change makes the reset
+filedescriptor-local.
+
+Writing any non-empty string to the memory.peak and memory.swap.peak
+pseudo-files reset the high watermark to the current usage for subsequent
+reads through that same FD.
+
+Notably, following Johannes's suggestion, this implementation moves the
+O(FDs that have written) behavior onto the FD write(2) path.  Instead, on
+the page-allocation path, we simply add one additional watermark to
+conditionally bump per-hierarchy level in the page-counter.
+
+Additionally, this takes Longman's suggestion of nesting the
+page-charging-path checks for the two watermarks to reduce the number of
+common-case comparisons.
+
+This behavior is particularly useful for work scheduling systems that need
+to track memory usage of worker processes/cgroups per-work-item.  Since
+memory can't be squeezed like CPU can (the OOM-killer has opinions), these
+systems need to track the peak memory usage to compute system/container
+fullness when binpacking workitems.
+
+Most notably, Vimeo's use-case involves a system that's doing global
+binpacking across many Kubernetes pods/containers, and while we can use
+PSI for some local decisions about overload, we strive to avoid packing
+workloads too tightly in the first place.  To facilitate this, we track
+the peak memory usage.  However, since we run with long-lived workers (to
+amortize startup costs) we need a way to track the high watermark while a
+work-item is executing.  Polling runs the risk of missing short spikes
+that last for timescales below the polling interval, and peak memory
+tracking at the cgroup level is otherwise perfect for this use-case.
+
+As this data is used to ensure that binpacked work ends up with sufficient
+headroom, this use-case mostly avoids the inaccuracies surrounding
+reclaimable memory.
+
+Link: https://lkml.kernel.org/r/20240729143743.34236-1-davidf@vimeo.com
+Link: https://lkml.kernel.org/r/20240729143743.34236-2-davidf@vimeo.com
+Signed-off-by: David Finkel <davidf@vimeo.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Waiman Long <longman@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   22 ++--
+ include/linux/cgroup-defs.h             |    5 
+ include/linux/cgroup.h                  |    3 
+ include/linux/memcontrol.h              |    5 
+ include/linux/page_counter.h            |   11 +-
+ kernel/cgroup/cgroup-internal.h         |    2 
+ kernel/cgroup/cgroup.c                  |    7 +
+ mm/memcontrol.c                         |  116 ++++++++++++++++++++--
+ mm/page_counter.c                       |   29 +++--
+ 9 files changed, 173 insertions(+), 27 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-procfs-remove-build-id-related-code-duplication-in-procmap_query
-+++ a/fs/proc/task_mmu.c
-@@ -543,21 +543,6 @@ static int do_procmap_query(struct proc_
- 		}
- 	}
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1333,11 +1333,14 @@ The following nested keys are defined.
+ 	all the existing limitations and potential future extensions.
  
--	if (karg.build_id_size) {
--		__u32 build_id_sz;
--
--		err = build_id_parse(vma, build_id_buf, &build_id_sz);
--		if (err) {
--			karg.build_id_size = 0;
--		} else {
--			if (karg.build_id_size < build_id_sz) {
--				err = -ENAMETOOLONG;
--				goto out;
--			}
--			karg.build_id_size = build_id_sz;
--		}
--	}
--
- 	if (karg.vma_name_size) {
- 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
- 		const struct path *path;
+   memory.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max memory usage recorded for the cgroup and its descendants since
++	either the creation of the cgroup or the most recent reset for that FD.
+ 
+-	The max memory usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of any non-empty string to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
+ 
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+@@ -1663,11 +1666,14 @@ The following nested keys are defined.
+ 	Healthy workloads are not expected to reach this limit.
+ 
+   memory.swap.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max swap usage recorded for the cgroup and its descendants since
++	the creation of the cgroup or the most recent reset for that FD.
+ 
+-	The max swap usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of any non-empty string to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
+ 
+   memory.swap.max
+ 	A read-write single value file which exists on non-root
+--- a/include/linux/cgroup-defs.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup-defs.h
+@@ -775,6 +775,11 @@ struct cgroup_subsys {
+ 
+ extern struct percpu_rw_semaphore cgroup_threadgroup_rwsem;
+ 
++struct cgroup_of_peak {
++	unsigned long		value;
++	struct list_head	list;
++};
++
+ /**
+  * cgroup_threadgroup_change_begin - threadgroup exclusion for cgroups
+  * @tsk: target task
+--- a/include/linux/cgroup.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/nodemask.h>
++#include <linux/list.h>
+ #include <linux/rculist.h>
+ #include <linux/cgroupstats.h>
+ #include <linux/fs.h>
+@@ -854,4 +855,6 @@ static inline void cgroup_bpf_put(struct
+ 
+ struct cgroup *task_get_cgroup1(struct task_struct *tsk, int hierarchy_id);
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of);
++
+ #endif /* _LINUX_CGROUP_H */
+--- a/include/linux/memcontrol.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/memcontrol.h
+@@ -193,6 +193,11 @@ struct mem_cgroup {
+ 		struct page_counter memsw;	/* v1 only */
+ 	};
+ 
++	/* registered local peak watchers */
++	struct list_head memory_peaks;
++	struct list_head swap_peaks;
++	spinlock_t	 peaks_lock;
++
+ 	/* Range enforcement for interrupt charges */
+ 	struct work_struct high_work;
+ 
+--- a/include/linux/page_counter.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/page_counter.h
+@@ -26,6 +26,8 @@ struct page_counter {
+ 	atomic_long_t children_low_usage;
+ 
+ 	unsigned long watermark;
++	/* Latest cg2 reset watermark */
++	unsigned long local_watermark;
+ 	unsigned long failcnt;
+ 
+ 	/* Keep all the read most fields in a separete cacheline. */
+@@ -84,7 +86,14 @@ int page_counter_memparse(const char *bu
+ 
+ static inline void page_counter_reset_watermark(struct page_counter *counter)
+ {
+-	counter->watermark = page_counter_read(counter);
++	unsigned long usage = page_counter_read(counter);
++
++	/*
++	 * Update local_watermark first, so it's always <= watermark
++	 * (modulo CPU/compiler re-ordering)
++	 */
++	counter->local_watermark = usage;
++	counter->watermark = usage;
+ }
+ 
+ #ifdef CONFIG_MEMCG
+--- a/kernel/cgroup/cgroup.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup.c
+@@ -1972,6 +1972,13 @@ static int cgroup2_parse_param(struct fs
+ 	return -EINVAL;
+ }
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of)
++{
++	struct cgroup_file_ctx *ctx = of->priv;
++
++	return &ctx->peak;
++}
++
+ static void apply_cgroup_root_flags(unsigned int root_flags)
+ {
+ 	if (current->nsproxy->cgroup_ns == &init_cgroup_ns) {
+--- a/kernel/cgroup/cgroup-internal.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -81,6 +81,8 @@ struct cgroup_file_ctx {
+ 	struct {
+ 		struct cgroup_pidlist	*pidlist;
+ 	} procs1;
++
++	struct cgroup_of_peak peak;
+ };
+ 
+ /*
+--- a/mm/memcontrol.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/memcontrol.c
+@@ -25,6 +25,7 @@
+  * Copyright (C) 2020 Alibaba, Inc, Alex Shi
+  */
+ 
++#include <linux/cgroup-defs.h>
+ #include <linux/page_counter.h>
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+@@ -41,6 +42,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
+ #include <linux/export.h>
++#include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/rbtree.h>
+ #include <linux/slab.h>
+@@ -3534,6 +3536,9 @@ static struct mem_cgroup *mem_cgroup_all
+ 
+ 	INIT_WORK(&memcg->high_work, high_work_func);
+ 	vmpressure_init(&memcg->vmpressure);
++	INIT_LIST_HEAD(&memcg->memory_peaks);
++	INIT_LIST_HEAD(&memcg->swap_peaks);
++	spin_lock_init(&memcg->peaks_lock);
+ 	memcg->socket_pressure = jiffies;
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+@@ -3926,14 +3931,91 @@ static u64 memory_current_read(struct cg
+ 	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
+ }
+ 
+-static u64 memory_peak_read(struct cgroup_subsys_state *css,
+-			    struct cftype *cft)
++#define OFP_PEAK_UNSET (((-1UL)))
++
++static int peak_show(struct seq_file *sf, void *v, struct page_counter *pc)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct cgroup_of_peak *ofp = of_peak(sf->private);
++	u64 fd_peak = READ_ONCE(ofp->value), peak;
++
++	/* User wants global or local peak? */
++	if (fd_peak == OFP_PEAK_UNSET)
++		peak = pc->watermark;
++	else
++		peak = max(fd_peak, READ_ONCE(pc->local_watermark));
++
++	seq_printf(sf, "%llu\n", peak * PAGE_SIZE);
++	return 0;
++}
++
++static int memory_peak_show(struct seq_file *sf, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->memory);
++}
++
++static int peak_open(struct kernfs_open_file *of)
++{
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	ofp->value = OFP_PEAK_UNSET;
++	return 0;
++}
++
++static void peak_release(struct kernfs_open_file *of)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	if (ofp->value == OFP_PEAK_UNSET) {
++		/* fast path (no writes on this fd) */
++		return;
++	}
++	spin_lock(&memcg->peaks_lock);
++	list_del(&ofp->list);
++	spin_unlock(&memcg->peaks_lock);
++}
++
++static ssize_t peak_write(struct kernfs_open_file *of, char *buf, size_t nbytes,
++			  loff_t off, struct page_counter *pc,
++			  struct list_head *watchers)
++{
++	unsigned long usage;
++	struct cgroup_of_peak *peer_ctx;
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	spin_lock(&memcg->peaks_lock);
++
++	usage = page_counter_read(pc);
++	WRITE_ONCE(pc->local_watermark, usage);
++
++	list_for_each_entry(peer_ctx, watchers, list)
++		if (usage > peer_ctx->value)
++			WRITE_ONCE(peer_ctx->value, usage);
++
++	/* initial write, register watcher */
++	if (ofp->value == -1)
++		list_add(&ofp->list, watchers);
++
++	WRITE_ONCE(ofp->value, usage);
++	spin_unlock(&memcg->peaks_lock);
++
++	return nbytes;
++}
++
++static ssize_t memory_peak_write(struct kernfs_open_file *of, char *buf,
++				 size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+-	return (u64)memcg->memory.watermark * PAGE_SIZE;
++	return peak_write(of, buf, nbytes, off, &memcg->memory,
++			  &memcg->memory_peaks);
+ }
+ 
++#undef OFP_PEAK_UNSET
++
+ static int memory_min_show(struct seq_file *m, void *v)
+ {
+ 	return seq_puts_memcg_tunable(m,
+@@ -4283,7 +4365,10 @@ static struct cftype memory_files[] = {
+ 	{
+ 		.name = "peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = memory_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = memory_peak_show,
++		.write = memory_peak_write,
+ 	},
+ 	{
+ 		.name = "min",
+@@ -5075,12 +5160,20 @@ static u64 swap_current_read(struct cgro
+ 	return (u64)page_counter_read(&memcg->swap) * PAGE_SIZE;
+ }
+ 
+-static u64 swap_peak_read(struct cgroup_subsys_state *css,
+-			  struct cftype *cft)
++static int swap_peak_show(struct seq_file *sf, void *v)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->swap);
++}
++
++static ssize_t swap_peak_write(struct kernfs_open_file *of, char *buf,
++			       size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+-	return (u64)memcg->swap.watermark * PAGE_SIZE;
++	return peak_write(of, buf, nbytes, off, &memcg->swap,
++			  &memcg->swap_peaks);
+ }
+ 
+ static int swap_high_show(struct seq_file *m, void *v)
+@@ -5164,7 +5257,10 @@ static struct cftype swap_files[] = {
+ 	{
+ 		.name = "swap.peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = swap_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = swap_peak_show,
++		.write = swap_peak_write,
+ 	},
+ 	{
+ 		.name = "swap.events",
+--- a/mm/page_counter.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/page_counter.c
+@@ -87,9 +87,22 @@ void page_counter_charge(struct page_cou
+ 		/*
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
++		 *
++		 * Notably, we have two watermarks to allow for both a globally
++		 * visible peak and one that can be reset at a smaller scope.
++		 *
++		 * Since we reset both watermarks when the global reset occurs,
++		 * we can guarantee that watermark >= local_watermark, so we
++		 * don't need to do both comparisons every time.
++		 *
++		 * On systems with branch predictors, the inner condition should
++		 * be almost free.
+ 		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ }
+ 
+@@ -140,12 +153,12 @@ bool page_counter_try_charge(struct page
+ 		if (protection)
+ 			propagate_protected_usage(c, new);
+ 
+-		/*
+-		 * Just like with failcnt, we can live with some
+-		 * inaccuracy in the watermark.
+-		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++		/* see comment on page_counter_charge */
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ 	return true;
+ 
 _
 
-Patches currently in -mm which might be from andrii@kernel.org are
+Patches currently in -mm which might be from davidf@vimeo.com are
 
-fs-procfs-remove-build-id-related-code-duplication-in-procmap_query.patch
+mm-memcg-cg2-memoryswappeak-write-handlers.patch
+mm-memcg-cg2-memoryswappeak-write-tests.patch
 
