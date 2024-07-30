@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488FF190074
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:54:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17D0A18CC1E
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:56:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722380094; cv=none; b=n8EsHqK0YxLegft0T9LAhWbaYg9pF3DRq+ZI39lZI1k80eL1A6Z2SeTtFLXZIb+Gj0NFJH1i7Vy6smmRJkOyMyw00iPjZ54WjDHp0lkjwv9iMBnfe4RixSlGN16r9+mVmzSGxEYNX+VI65ilw1mduiNyLWi9q+EE5v+MQs2V9+k=
+	t=1722380175; cv=none; b=Uf4Y+u0PZu9b95Yxxg0b+FbnaXASKYYevdCFsVaYBgSVAaXdlhiE6WqWOOQue9xo3Tf2NnE+TJy8U+R1pUPzGZJLlQJrwf6XRGR3YHcbpyTjYblViLPlRkM8XsnynTVTuBOzs/KQv1lkPYO2agHCwrN56J9freTinzJkwksk0Yo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722380094; c=relaxed/simple;
-	bh=2evlVgbHXd+Kailao1f3134CTE/OIigCFMkF3ZJmV9E=;
-	h=Date:To:From:Subject:Message-Id; b=KnA6URS6Tt97ILfOFg0DOhfsU2iCIlWVzn7e5HhftutLc8kfjpBlTfvDXafvys+5goGZqEpTdaN984Sg85+x1Lw1RSXMjXfm3Rjl5JMtFt1t/nZSNgW9E+wYWZqlYzxoRO0FSSLil6Xaz5zZP04TqXXlXF9PBuxKBedh3CEy89I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zwAjWi0K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722380175; c=relaxed/simple;
+	bh=sEuigucXkRxET1SOA8INM5LXjbg8BZhh9Z1mcasuv9U=;
+	h=Date:To:From:Subject:Message-Id; b=Y0HloglfaMOchiBp7ZSeW3iA3pSy/qg1k3jy1z8WQIqdduyl+71KnwmoerIkh5mR05vAPuClLzHGfchBlz5dj7KNuOzuxsmEjkQryoRuxNlXcnpWbibFvjrjJCiWUyONEvi44mQapBTFdGIKrUYlLmKEj5eEbRocxWj3kM8HMMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HTGj0h3i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zwAjWi0K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE48CC32782;
-	Tue, 30 Jul 2024 22:54:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HTGj0h3i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B07ADC4AF09;
+	Tue, 30 Jul 2024 22:56:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722380093;
-	bh=2evlVgbHXd+Kailao1f3134CTE/OIigCFMkF3ZJmV9E=;
+	s=korg; t=1722380174;
+	bh=sEuigucXkRxET1SOA8INM5LXjbg8BZhh9Z1mcasuv9U=;
 	h=Date:To:From:Subject:From;
-	b=zwAjWi0KlhDP81YA3eldG79y5HuSxP2//5MWdjCXryYfzkQmK78X6wp6MKgDWW+fk
-	 v8pFM+gsoOMwxoCMZztNC11SnHG4KaoqW9j4XRwsmMGzHn2xuI2LmrilXnNj1Unpta
-	 8LGOMmDK6Pqf3vZ8CbhFaFxYlGEIM6Iq2W1EYCUQ=
-Date: Tue, 30 Jul 2024 15:54:53 -0700
+	b=HTGj0h3ifMxBxPyEmUBS4VI/hflhZb9NC5EuiGz3Rb4XJTY7M5DXRi6h1gkhmly/e
+	 qfNOps+x5Qd/ZBb4Q7Yp6oETvdV9slY1NPOgpUHoGpxzXHz4FbzT/D+G+AYA3Zbtkj
+	 Fcj0S5yKlnDP1vDaQ3GxrKd6vg9pY5fy01wg+dY0=
+Date: Tue, 30 Jul 2024 15:56:14 -0700
 To: mm-commits@vger.kernel.org,dakr@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-implement-vrealloc-fix-3.patch added to mm-unstable branch
-Message-Id: <20240730225453.AE48CC32782@smtp.kernel.org>
+Subject: + mm-vmalloc-implement-vrealloc-fix-4.patch added to mm-unstable branch
+Message-Id: <20240730225614.B07ADC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vrealloc: consider spare memory for __GFP_ZERO
+     Subject: mm: vrealloc: properly document __GFP_ZERO behavior
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-implement-vrealloc-fix-3.patch
+     mm-vmalloc-implement-vrealloc-fix-4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-implement-vrealloc-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-implement-vrealloc-fix-4.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Danilo Krummrich <dakr@kernel.org>
-Subject: mm: vrealloc: consider spare memory for __GFP_ZERO
-Date: Tue, 30 Jul 2024 20:49:42 +0200
+Subject: mm: vrealloc: properly document __GFP_ZERO behavior
+Date: Tue, 30 Jul 2024 20:49:43 +0200
 
-Zero spare memory when shrinking a buffer with __GFP_ZERO.
+Properly document that if __GFP_ZERO logic is requested, callers must
+ensure that, starting with the initial memory allocation, every subsequent
+call to this API for the same memory allocation is flagged with
+__GFP_ZERO.  Otherwise, it is possible that __GFP_ZERO is not fully
+honored by this API.
 
-Link: https://lkml.kernel.org/r/20240730185049.6244-3-dakr@kernel.org
-Fixes: 1f39ee9615a8 ("mm: vmalloc: implement vrealloc()")
+Link: https://lkml.kernel.org/r/20240730185049.6244-4-dakr@kernel.org
 Signed-off-by: Danilo Krummrich <dakr@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-implement-vrealloc-fix-3
+--- a/mm/vmalloc.c~mm-vmalloc-implement-vrealloc-fix-4
 +++ a/mm/vmalloc.c
-@@ -4077,12 +4077,15 @@ void *vrealloc_noprof(const void *p, siz
- 		old_size = get_vm_area_size(vm);
- 	}
- 
-+	/*
-+	 * TODO: Shrink the vm_area, i.e. unmap and free unused pages. What
-+	 * would be a good heuristic for when to shrink the vm_area?
-+	 */
- 	if (size <= old_size) {
--		/*
--		 * TODO: Shrink the vm_area, i.e. unmap and free unused pages.
--		 * What would be a good heuristic for when to shrink the
--		 * vm_area?
--		 */
-+		/* Zero out spare memory. */
-+		if (want_init_on_alloc(flags))
-+			memset((void *)p + size, 0, old_size - size);
-+
- 		return (void *)p;
- 	}
- 
+@@ -4043,12 +4043,17 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
+  * @size: the size to reallocate
+  * @flags: the flags for the page level allocator
+  *
+- * The contents of the object pointed to are preserved up to the lesser of the
+- * new and old size (__GFP_ZERO flag is effectively ignored).
+- *
+  * If @p is %NULL, vrealloc() behaves exactly like vmalloc(). If @size is 0 and
+  * @p is not a %NULL pointer, the object pointed to is freed.
+  *
++ * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
++ * initial memory allocation, every subsequent call to this API for the same
++ * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
++ * __GFP_ZERO is not fully honored by this API.
++ *
++ * In any case, the contents of the object pointed to are preserved up to the
++ * lesser of the new and old sizes.
++ *
+  * This function must not be called concurrently with itself or vfree() for the
+  * same memory allocation.
+  *
 _
 
 Patches currently in -mm which might be from dakr@kernel.org are
@@ -104,6 +107,7 @@ mm-vmalloc-implement-vrealloc.patch
 mm-vmalloc-implement-vrealloc-fix.patch
 mm-vmalloc-implement-vrealloc-fix-2.patch
 mm-vmalloc-implement-vrealloc-fix-3.patch
+mm-vmalloc-implement-vrealloc-fix-4.patch
 mm-kvmalloc-align-kvrealloc-with-krealloc.patch
 mm-kvmalloc-align-kvrealloc-with-krealloc-fix.patch
 mm-kvmalloc-align-kvrealloc-with-krealloc-fix-2.patch
