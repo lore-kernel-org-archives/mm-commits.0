@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E43D18A951
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:30:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AA5F1AA3E8
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:31:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722378635; cv=none; b=nV/1h+askc/1Ft41hCJkyuTe7QtTg6S0cYNK1uWTb6ek04a27P5Id4FKDrvsq2q0ObJ1HZwtmlQps9uC6qr12NSIt+DW4wR79hWVENfC/eeNBZtaM3VD72sVgubXUO1rDijghC6dHT5Kphr3MCCphD9si2ofLrX7Uu+vcyB/JPs=
+	t=1722378686; cv=none; b=Yk+LoEtnVZjhQebhupYw9qFlxoug64peFdOXzTMvZPyHuN2/vXODYXzmelVR7bWBBL57MXauqyx4iUywNqYMwGR6b35cUt+gZiUApv0DvH3InPdsk+p5eyI+yNTF/wCyEhLxedYLI9fetndvSqRf4d2TDr+BzuYnR8UHKsE92kQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722378635; c=relaxed/simple;
-	bh=9CmJv77m+Ro8gMJmbtBaOgPYYCneN96ANWvn4p60wJc=;
-	h=Date:To:From:Subject:Message-Id; b=CCH/dYNdZNxiDJz3rpV45LqS8zIeucYiKyVivhRL7q3ZnQIPhHtJl0LEhSYZ6g8/G7dVhHkkz0Cesjkxiq+KNE/CknNHZUn2p53JLg2SHwuUa62YypS4Xeeipmc1Xa5aWBoYzCYHlKZMEcSsHAp3457gA+HMpouqjqgJ+YNeCxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K7HISzKV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722378686; c=relaxed/simple;
+	bh=57YMfJGMPBBDqkTtvTw+QPelFkO0QL0R9sG90kSzmII=;
+	h=Date:To:From:Subject:Message-Id; b=UUrt8lAG5chLiCFxWOqxvrkfyySY8DSpLi9ZRW6h2pZeu1Cliup1sUBiTo17AVTal5HCh5gJFD8tEHtnHKXfIfbwvXgqbvL5svnyb2fmuK7Kg/7kAIoQWUjeG/PksuvCkTDB6a8LiHeW4j5CbSq1AbFjx4mVaexso4xmFvyZ+7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JVZeXzyU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K7HISzKV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F52C32782;
-	Tue, 30 Jul 2024 22:30:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JVZeXzyU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97506C32782;
+	Tue, 30 Jul 2024 22:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722378635;
-	bh=9CmJv77m+Ro8gMJmbtBaOgPYYCneN96ANWvn4p60wJc=;
+	s=korg; t=1722378685;
+	bh=57YMfJGMPBBDqkTtvTw+QPelFkO0QL0R9sG90kSzmII=;
 	h=Date:To:From:Subject:From;
-	b=K7HISzKVbqKIGURiotAyeM+eJiSA9AgFTtEJLAdC1NlzlWKPALZ8miWOSX0Dltkui
-	 km+y5rHd6rKE3lXwMuxRCiOnIeI53JqpcalyEqC4XzsIoQC5mdYgBRfEhT6HWmcWLk
-	 dVipCZ41wn2+PhufOcHlv2V1KiHcA+3mecSE04eg=
-Date: Tue, 30 Jul 2024 15:30:34 -0700
-To: mm-commits@vger.kernel.org,akinobu.mita@gmail.com,leitao@debian.org,akpm@linux-foundation.org
+	b=JVZeXzyUo5RUZslB6B5sWszLlastq6fH/MbsXlOOPzouTMqvH+twDGNYjxla25A5m
+	 zR6kDVtPSGAsNAsapCSu7mgPMFNp06aAgSZneughveoeikbWYHEjDj4KTORt7YcijI
+	 dmHPKyCA8ZwUT5Ki4lkYl5P7W4XwMkooxyLYv2F8=
+Date: Tue, 30 Jul 2024 15:31:25 -0700
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,linmiaohe@huawei.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fault-injection-enhance-failcmd-to-exit-on-non-hex-address-input.patch added to mm-nonmm-unstable branch
-Message-Id: <20240730223035.58F52C32782@smtp.kernel.org>
+Subject: + mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch added to mm-unstable branch
+Message-Id: <20240730223125.97506C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fault-injection: enhance failcmd to exit on non-hex address input
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fault-injection-enhance-failcmd-to-exit-on-non-hex-address-input.patch
+     Subject: mm/z3fold: add __percpu annotation to *unbuddied pointer in struct z3fold_pool
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-injection-enhance-failcmd-to-exit-on-non-hex-address-input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: fault-injection: enhance failcmd to exit on non-hex address input
-Date: Mon, 29 Jul 2024 01:45:08 -0700
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: mm/z3fold: add __percpu annotation to *unbuddied pointer in struct z3fold_pool
+Date: Tue, 30 Jul 2024 14:34:17 +0200
 
-The failcmd.sh script in the fault-injection toolkit does not currently
-validate whether the provided address is in hexadecimal format.  This can
-lead to silent failures if the address is sourced from places like
-`/proc/kallsyms`, which omits the '0x' prefix, potentially causing users
-to operate under incorrect assumptions.
+Compiling z3fold.c results in several sparse warnings:
 
-Introduce a new function, `exit_if_not_hex`, which checks the format of
-the provided address and exits with an error message if the address is not
-a valid hexadecimal number.
+z3fold.c:797:21: warning: incorrect type in initializer (different address spaces)
+z3fold.c:797:21:    expected void const [noderef] __percpu *__vpp_verify
+z3fold.c:797:21:    got struct list_head *
+z3fold.c:852:37: warning: incorrect type in initializer (different address spaces)
+z3fold.c:852:37:    expected void const [noderef] __percpu *__vpp_verify
+z3fold.c:852:37:    got struct list_head *
+z3fold.c:924:25: warning: incorrect type in assignment (different address spaces)
+z3fold.c:924:25:    expected struct list_head *unbuddied
+z3fold.c:924:25:    got void [noderef] __percpu *_res
+z3fold.c:930:33: warning: incorrect type in initializer (different address spaces)
+z3fold.c:930:33:    expected void const [noderef] __percpu *__vpp_verify
+z3fold.c:930:33:    got struct list_head *
+z3fold.c:949:25: warning: incorrect type in argument 1 (different address spaces)
+z3fold.c:949:25:    expected void [noderef] __percpu *__pdata
+z3fold.c:949:25:    got struct list_head *unbuddied
+z3fold.c:979:25: warning: incorrect type in argument 1 (different address spaces)
+z3fold.c:979:25:    expected void [noderef] __percpu *__pdata
+z3fold.c:979:25:    got struct list_head *unbuddied
 
-This enhancement prevents users from running the command with improperly
-formatted addresses, thus improving the robustness and usability of the
-failcmd tool.
+Add __percpu annotation to *unbuddied pointer to fix these warnings.
 
-Link: https://lkml.kernel.org/r/20240729084512.3349928-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
+Link: https://lkml.kernel.org/r/20240730123445.5875-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/fault-injection/failcmd.sh |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/z3fold.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/fault-injection/failcmd.sh~fault-injection-enhance-failcmd-to-exit-on-non-hex-address-input
-+++ a/tools/testing/fault-injection/failcmd.sh
-@@ -64,6 +64,14 @@ ENVIRONMENT
- EOF
- }
- 
-+exit_if_not_hex() {
-+    local value="$1"
-+    if ! [[ $value =~ ^0x[0-9a-fA-F]+$ ]]; then
-+        echo "Error: The provided value '$value' is not a valid hexadecimal number." >&2
-+        exit 1
-+    fi
-+}
-+
- if [ $UID != 0 ]; then
- 	echo must be run as root >&2
- 	exit 1
-@@ -160,18 +168,22 @@ while true; do
- 		shift 2
- 		;;
- 	--require-start)
-+		exit_if_not_hex "$2"
- 		echo $2 > $FAULTATTR/require-start
- 		shift 2
- 		;;
- 	--require-end)
-+		exit_if_not_hex "$2"
- 		echo $2 > $FAULTATTR/require-end
- 		shift 2
- 		;;
- 	--reject-start)
-+		exit_if_not_hex "$2"
- 		echo $2 > $FAULTATTR/reject-start
- 		shift 2
- 		;;
- 	--reject-end)
-+		exit_if_not_hex "$2"
- 		echo $2 > $FAULTATTR/reject-end
- 		shift 2
- 		;;
+--- a/mm/z3fold.c~mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool
++++ a/mm/z3fold.c
+@@ -144,7 +144,7 @@ struct z3fold_pool {
+ 	const char *name;
+ 	spinlock_t lock;
+ 	spinlock_t stale_lock;
+-	struct list_head *unbuddied;
++	struct list_head __percpu *unbuddied;
+ 	struct list_head stale;
+ 	atomic64_t pages_nr;
+ 	struct kmem_cache *c_handle;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-failcmd-add-script-file-in-maintainers.patch
-fault-injection-enhance-failcmd-to-exit-on-non-hex-address-input.patch
+mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
+kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
 
