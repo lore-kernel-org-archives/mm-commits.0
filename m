@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCA919149E
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:25:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAB5619149E
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jul 2024 22:25:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722378314; cv=none; b=nBFh60TQVxhTpP+v4B2hxke54PRIdGGt94InWzuQHpfMBX7PTfsPAPMuvDgLYhdKU9SXQ+t59oYDZ6t40b75NJtfMVlfux7czrXYygMUb7FcbpZF5/ELDJJXpujXWnuh4FjDIHiF5f8AEFZ0YiwPhi5GE8iZHbSA55iM1Eh43bE=
+	t=1722378316; cv=none; b=FdyIvV+O3HALvvTEu1MynusAS/X82kjyHlCl7jgkJehZ24iQePbT+g876h4QadAy0eA7RvcKJvPrfM6BGCjxKJ94fjjO/knASTzzCdE5rsbkv7OSVYppB0CXEvGbkjcTI8Se9RhI3S0iYUqS2EsyzxS6oU5Bl6ROCks6tHjr2IA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722378314; c=relaxed/simple;
-	bh=qBt6TbnPjhC4Q0CuuKDsdXALuamjNwQOMJC9RkzSryU=;
-	h=Date:To:From:Subject:Message-Id; b=XuFNWHR+mIBOQmIA2fK+RPXuta2BwDoYXWCtiOqTzNrqFYhr3BHFH9Uebcj3USef/0SR5gF2q8Hx5rGGJc4ljy02reADqtbUzbF6wJll25mwiKE00uxq/kDEcQZfrHWpXCsK3tEASgo5DjxxIR9yzZekhZrvVpwIHF6mXuRXRak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c3UZiLId; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722378316; c=relaxed/simple;
+	bh=uBUZeQiNOQ+B0d10Mqnd3d8m385KrJCGYsMgxGoodis=;
+	h=Date:To:From:Subject:Message-Id; b=XBbXOpLiB9w0lcAF3fROLThL1+uXgYRDHpq0mnVodS2ioJJhVeD3yrJwZacHgkGaH171HhJOcCj0AQiutoUNr9yski5HyTqsaIEYtXdh2iEtp8TuTqjytlwsEBinVB04Se/nnEzlLU/q77DdPmpW5kxuAsktBKBICRXPv39uwWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i/Vr31CA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c3UZiLId"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB887C32782;
-	Tue, 30 Jul 2024 22:25:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i/Vr31CA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2723CC32782;
+	Tue, 30 Jul 2024 22:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722378314;
-	bh=qBt6TbnPjhC4Q0CuuKDsdXALuamjNwQOMJC9RkzSryU=;
+	s=korg; t=1722378316;
+	bh=uBUZeQiNOQ+B0d10Mqnd3d8m385KrJCGYsMgxGoodis=;
 	h=Date:To:From:Subject:From;
-	b=c3UZiLIdGvGWONspyABt1XXur+KMCV9ECxWSdvYyQYt/1OTgB/wS1GdB0Ad5K+h+4
-	 XYWcXHBE5Uos7R86eCrM60U+cfKOK88fwrlIrWgsHJVD+6etFXf5rHJaS1+BrxzP0y
-	 KymaDH2b4m5g+a+k6Ntk6fUqMjdvTtGnv0Z9dnm0=
-Date: Tue, 30 Jul 2024 15:25:13 -0700
+	b=i/Vr31CA5FIWUkbnN6yJUNgX+xlNDQzoQOxPg5gyv9X5itIJRA1zIS+1pNFZakvG2
+	 Aan1mgL7v/aksbvlfGgY+tuIFCPUSz658eWClDXXbu5Gvi29iao0vkEHqCEtB/8qX0
+	 VnpriTQWINiDoSVDT6bjH09oOtvHJNx25kHznBbQ=
+Date: Tue, 30 Jul 2024 15:25:15 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,viresh.kumar@linaro.org,tglx@linutronix.de,rostedt@goodmis.org,rafael@kernel.org,ppaalanen@gmail.com,peterz@infradead.org,npiggin@gmail.com,nouveau@lists.freedesktop.org,naveen@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mcoquelin.stm32@gmail.com,luto@kernel.org,longman@redhat.com,linux@armlinux.org.uk,karolherbst@gmail.com,joel@jms.id.au,jk@ozlabs.org,hpa@zytor.com,gregkh@linuxfoundation.org,eajames@linux.ibm.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,andrew@codeconstruct.com.au,alistair@popple.id.au,alexandre.torgue@foss.st.com,quic_jjohnson@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crypto-arm-xor-add-missing-module_description-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20240730222513.EB887C32782@smtp.kernel.org>
+Subject: + x86-mm-add-testmmiotrace-module_description.patch added to mm-nonmm-unstable branch
+Message-Id: <20240730222516.2723CC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crypto: arm/xor - add missing MODULE_DESCRIPTION() macro
+     Subject: x86/mm: add testmmiotrace MODULE_DESCRIPTION()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crypto-arm-xor-add-missing-module_description-macro.patch
+     x86-mm-add-testmmiotrace-module_description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-arm-xor-add-missing-module_description-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-add-testmmiotrace-module_description.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Subject: crypto: arm/xor - add missing MODULE_DESCRIPTION() macro
-Date: Tue, 30 Jul 2024 07:43:18 -0700
+Subject: x86/mm: add testmmiotrace MODULE_DESCRIPTION()
+Date: Tue, 30 Jul 2024 07:43:19 -0700
 
-Patch series "treewide: add missing MODULE_DESCRIPTION() macros".
+Fix the following 'make W=1' warning:
 
-Since commit 1fffe7a34c89 ("script: modpost: emit a warning when the
-description is missing"), a module without a MODULE_DESCRIPTION() will
-result in a warning when built with make W=1.
+WARNING: modpost: missing MODULE_DESCRIPTION() in arch/x86/mm/testmmiotrace.o
 
-Recently, multiple developers have been eradicating these warnings
-treewide, and I personally submitted almost 300 patches over the past few
-months.  Almost all of my patches landed by 6.11-rc1, either by being
-merged in a 6.10-rc or by being merged in the 6.11 merge window.  However,
-a few of my patches did not land.
-
-
-This patch (of 5):
-
-With ARCH=arm and CONFIG_KERNEL_MODE_NEON=y, make W=1 C=1 reports:
-WARNING: modpost: missing MODULE_DESCRIPTION() in arch/arm/lib/xor-neon.o
-
-Add the missing invocation of the MODULE_DESCRIPTION() macro.
-
-Link: https://lkml.kernel.org/r/20240730-module_description_orphans-v1-0-7094088076c8@quicinc.com
-Link: https://lkml.kernel.org/r/20240730-module_description_orphans-v1-1-7094088076c8@quicinc.com
+Link: https://lkml.kernel.org/r/20240730-module_description_orphans-v1-2-7094088076c8@quicinc.com
 Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
 Cc: Alistar Popple <alistair@popple.id.au>
@@ -103,7 +86,7 @@ Cc: Joel Stanley <joel@jms.id.au>
 Cc: Karol Herbst <karolherbst@gmail.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Naveen N Rao <naveen@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Nouveau <nouveau@lists.freedesktop.org>
@@ -119,19 +102,16 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/lib/xor-neon.c |    1 +
+ arch/x86/mm/testmmiotrace.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/arch/arm/lib/xor-neon.c~crypto-arm-xor-add-missing-module_description-macro
-+++ a/arch/arm/lib/xor-neon.c
-@@ -8,6 +8,7 @@
- #include <linux/raid/xor.h>
- #include <linux/module.h>
- 
-+MODULE_DESCRIPTION("NEON accelerated XOR implementation");
+--- a/arch/x86/mm/testmmiotrace.c~x86-mm-add-testmmiotrace-module_description
++++ a/arch/x86/mm/testmmiotrace.c
+@@ -144,3 +144,4 @@ static void __exit cleanup(void)
+ module_init(init);
+ module_exit(cleanup);
  MODULE_LICENSE("GPL");
- 
- #ifndef __ARM_NEON__
++MODULE_DESCRIPTION("Test module for mmiotrace");
 _
 
 Patches currently in -mm which might be from quic_jjohnson@quicinc.com are
