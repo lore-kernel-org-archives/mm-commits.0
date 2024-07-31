@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF028F49
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 00:39:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30F014C83
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 00:39:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722386373; cv=none; b=MZVwrD1+uhfeNUAPOw68pV6+WAFBYWXo8hQMByT3SjRzb6T5+QFcWxvtsDblmcFeAFA8c5PItK8Vuev1HHyVdK7UA+gi9sCKED+qP4ae30T/BYvFFqt98NeHFZrVnW76umzMd7zsxS7Pqw3MHvEAxBXwsYPAv3lxScxgIv23640=
+	t=1722386376; cv=none; b=YcaT4kjbLh9edOVb/WbEvEGBPA+YUcqlAcsJZQm8w/5rRZuGBIxRZif8eLXmTpl550MJAD7vCnzY9ZPP/9HCotY+AA8zGMINAnHid5BOnkz51DjeJdn0f81hhPITLBCH6+quTklwppBCaqYnRCDg+DhyuUOt97CRdlMvANzzINM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722386373; c=relaxed/simple;
-	bh=dvKd624DD7Ub3SZRgLH30fseM9is3PFKFu8IEtDTmwc=;
-	h=Date:To:From:Subject:Message-Id; b=BpPt6ZftYsqatYIQcNDuL2p68zAMVPLUgSkjGVlAR2rpVZoZEniii8DRD8cwaympDSu4i75ChksInEPTTQtFYvnXIRszwNk5nKerZZNy1S7Vm4SdoxIkZtF4K77NZfSCBDClnrahXbJi4/GVCvrTjooijIrtjddKJke3kc1PerU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O4qiyhSm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722386376; c=relaxed/simple;
+	bh=e75BC/OWKVZwHniN95BhPv4mcBiJlsGy7Lrx298YGs8=;
+	h=Date:To:From:Subject:Message-Id; b=lrNqHSpYq7W2nhaPiWaNtRA+nzrxMFSFrIloSNwmMn46mFM7oZND21Up/8JVcpgFvtBm5IsEI9a1U4imTmPjozybFce/mu5VfKhpQZvGVr1+Egc/La8DuI2ePISWTWglnWu6SBLUo3/7LZnyEl+/0Q8zYyJxrpWUx0h32K0Ks28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yztt9/rR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O4qiyhSm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB036C32782;
-	Wed, 31 Jul 2024 00:39:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yztt9/rR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CDDC32782;
+	Wed, 31 Jul 2024 00:39:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722386372;
-	bh=dvKd624DD7Ub3SZRgLH30fseM9is3PFKFu8IEtDTmwc=;
+	s=korg; t=1722386375;
+	bh=e75BC/OWKVZwHniN95BhPv4mcBiJlsGy7Lrx298YGs8=;
 	h=Date:To:From:Subject:From;
-	b=O4qiyhSmwJfofen3tqFkuRWmv6hqpcrLj2J3qtr3VLJXS7aKsho4w3TnN4t5lloIg
-	 4Orxs+0WkuXNngQIxn/Yng6vY7nCmkY2RS7GcUjuhq6FKOrK4beWNr52wSTpcYKCwJ
-	 DHpDFGuHxfgKzpfgz9zE/Iyinm+WT75XR4AnYKUM=
-Date: Tue, 30 Jul 2024 17:39:32 -0700
+	b=yztt9/rRLt65BfV3ju0TNEeRlhZSvqazSfQXahToOyi/aOShOkSqPBuBtF+S63IRV
+	 wPbn/9x2oUaZutQe31x0I/TKnLqKX960HH3rQSZVxS9rgdXf8PooFDqoid1E4MboO9
+	 v4dNRYCVqt3us1iccKUJFeHa/OdMXUip48Ub91gE=
+Date: Tue, 30 Jul 2024 17:39:35 -0700
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,urezki@gmail.com,torvalds@linux-foundation.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mst@redhat.com,mhocko@suse.com,maxime.coquelin@redhat.com,lstoakes@gmail.com,kees@kernel.org,jasowang@redhat.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hailong.liu@oppo.com,eperezma@redhat.com,cl@linux.com,42.hyeyoo@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch added to mm-unstable branch
-Message-Id: <20240731003932.CB036C32782@smtp.kernel.org>
+Subject: + mm-document-__gfp_nofail-must-be-blockable.patch added to mm-unstable branch
+Message-Id: <20240731003935.C6CDDC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vpda: try to fix the potential crash due to misusing __GFP_NOFAIL
+     Subject: mm: document __GFP_NOFAIL must be blockable
 has been added to the -mm mm-unstable branch.  Its filename is
-     vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+     mm-document-__gfp_nofail-must-be-blockable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-__gfp_nofail-must-be-blockable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,206 +59,91 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: vpda: try to fix the potential crash due to misusing __GFP_NOFAIL
-Date: Wed, 31 Jul 2024 12:01:52 +1200
+Subject: mm: document __GFP_NOFAIL must be blockable
+Date: Wed, 31 Jul 2024 12:01:53 +1200
 
-Patch series "mm: clarify nofail memory allocation", v2.
-
-__GFP_NOFAIL carries the semantics of never failing, so its callers
-do not check the return value:
-  %__GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-  cannot handle allocation failures. The allocation could block
-  indefinitely but will never return with failure. Testing for
-  failure is pointless.
-
-However, __GFP_NOFAIL can sometimes fail if it exceeds size limits or is
-used with GFP_ATOMIC/GFP_NOWAIT in a non-sleepable context.  This can
-expose security vulnerabilities due to potential NULL dereferences.
-
-Since __GFP_NOFAIL does not support non-blocking allocation, we introduce
-GFP_NOFAIL with inclusive blocking semantics and encourage using
-GFP_NOFAIL as a replacement for __GFP_NOFAIL in non-mm.
-
-If we must still fail a nofail allocation, we should trigger a BUG rather
-than exposing NULL dereferences to callers who do not check the return
-value.
-
-* The discussion started from this topic:
- [PATCH RFC] mm: warn potential return NULL for kmalloc_array and
-             kvmalloc_array with __GFP_NOFAIL
-
- https://lore.kernel.org/linux-mm/20240717230025.77361-1-21cnbao@gmail.com/
-
-
-This patch (of 4):
-
-mm doesn't support non-blockable __GFP_NOFAIL allocation.  Because
-__GFP_NOFAIL without direct reclamation may just result in a busy loop
-within non-sleepable contexts.
+Non-blocking allocation with __GFP_NOFAIL is not supported and may still
+result in NULL pointers (if we don't return NULL, we result in busy-loop
+within non-sleepable contexts):
 
 static inline struct page *
 __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
-                                                struct alloc_context *ac)
+						struct alloc_context *ac)
 {
-        ...
-        /*
-         * Make sure that __GFP_NOFAIL request doesn't leak out and make sure
-         * we always retry
-         */
-        if (gfp_mask & __GFP_NOFAIL) {
-                /*
-                 * All existing users of the __GFP_NOFAIL are blockable, so warn
-                 * of any new users that actually require GFP_NOWAIT
-                 */
-                if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
-                        goto fail;
-                ...
-        }
-        ...
+	...
+	/*
+	 * Make sure that __GFP_NOFAIL request doesn't leak out and make sure
+	 * we always retry
+	 */
+	if (gfp_mask & __GFP_NOFAIL) {
+		/*
+		 * All existing users of the __GFP_NOFAIL are blockable, so warn
+		 * of any new users that actually require GFP_NOWAIT
+		 */
+		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
+			goto fail;
+		...
+	}
+	...
 fail:
-        warn_alloc(gfp_mask, ac->nodemask,
-                        "page allocation failure: order:%u", order);
+	warn_alloc(gfp_mask, ac->nodemask,
+			"page allocation failure: order:%u", order);
 got_pg:
-        return page;
+	return page;
 }
 
-Let's move the memory allocation out of the atomic context and use the
-normal sleepable context to get pages.
+Highlight this in the documentation of __GFP_NOFAIL so that non-mm
+subsystems can reject any illegal usage of __GFP_NOFAIL with GFP_ATOMIC,
+GFP_NOWAIT, etc.
 
-Link: https://lkml.kernel.org/r/20240731000155.109583-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20240731000155.109583-2-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240731000155.109583-3-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: "Eugenio Pérez" <eperezma@redhat.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: "Eugenio Pérez" <eperezma@redhat.com>
 Cc: Hailong.Liu <hailong.liu@oppo.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kees Cook <kees@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vdpa/vdpa_user/iova_domain.c |   31 ++++++++++++++++++++-----
- drivers/vdpa/vdpa_user/iova_domain.h |    5 +++-
- drivers/vdpa/vdpa_user/vduse_dev.c   |    4 ++-
- 3 files changed, 33 insertions(+), 7 deletions(-)
+ include/linux/gfp_types.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/vdpa/vdpa_user/iova_domain.c~vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail
-+++ a/drivers/vdpa/vdpa_user/iova_domain.c
-@@ -283,7 +283,23 @@ out:
- 	return ret;
- }
- 
--void vduse_domain_remove_user_bounce_pages(struct vduse_iova_domain *domain)
-+struct page **vduse_domain_alloc_pages_to_remove_bounce(struct vduse_iova_domain *domain)
-+{
-+	struct page **pages;
-+	unsigned long count, i;
-+
-+	if (!domain->user_bounce_pages)
-+		return NULL;
-+
-+	count = domain->bounce_size >> PAGE_SHIFT;
-+	pages = kmalloc_array(count, sizeof(*pages), GFP_KERNEL | __GFP_NOFAIL);
-+	for (i = 0; i < count; i++)
-+		pages[i] = alloc_page(GFP_KERNEL | __GFP_NOFAIL);
-+
-+	return pages;
-+}
-+
-+void vduse_domain_remove_user_bounce_pages(struct vduse_iova_domain *domain, struct page **pages)
- {
- 	struct vduse_bounce_map *map;
- 	unsigned long i, count;
-@@ -294,15 +310,16 @@ void vduse_domain_remove_user_bounce_pag
- 
- 	count = domain->bounce_size >> PAGE_SHIFT;
- 	for (i = 0; i < count; i++) {
--		struct page *page = NULL;
-+		struct page *page = pages[i];
- 
- 		map = &domain->bounce_maps[i];
--		if (WARN_ON(!map->bounce_page))
-+		if (WARN_ON(!map->bounce_page)) {
-+			put_page(page);
- 			continue;
-+		}
- 
- 		/* Copy user page to kernel page if it's in use */
- 		if (map->orig_phys != INVALID_PHYS_ADDR) {
--			page = alloc_page(GFP_ATOMIC | __GFP_NOFAIL);
- 			memcpy_from_page(page_address(page),
- 					 map->bounce_page, 0, PAGE_SIZE);
- 		}
-@@ -310,6 +327,7 @@ void vduse_domain_remove_user_bounce_pag
- 		map->bounce_page = page;
- 	}
- 	domain->user_bounce_pages = false;
-+	kfree(pages);
- out:
- 	write_unlock(&domain->bounce_lock);
- }
-@@ -543,10 +561,13 @@ static int vduse_domain_mmap(struct file
- static int vduse_domain_release(struct inode *inode, struct file *file)
- {
- 	struct vduse_iova_domain *domain = file->private_data;
-+	struct page **pages;
-+
-+	pages = vduse_domain_alloc_pages_to_remove_bounce(domain);
- 
- 	spin_lock(&domain->iotlb_lock);
- 	vduse_iotlb_del_range(domain, 0, ULLONG_MAX);
--	vduse_domain_remove_user_bounce_pages(domain);
-+	vduse_domain_remove_user_bounce_pages(domain, pages);
- 	vduse_domain_free_kernel_bounce_pages(domain);
- 	spin_unlock(&domain->iotlb_lock);
- 	put_iova_domain(&domain->stream_iovad);
---- a/drivers/vdpa/vdpa_user/iova_domain.h~vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail
-+++ a/drivers/vdpa/vdpa_user/iova_domain.h
-@@ -74,7 +74,10 @@ void vduse_domain_reset_bounce_map(struc
- int vduse_domain_add_user_bounce_pages(struct vduse_iova_domain *domain,
- 				       struct page **pages, int count);
- 
--void vduse_domain_remove_user_bounce_pages(struct vduse_iova_domain *domain);
-+void vduse_domain_remove_user_bounce_pages(struct vduse_iova_domain *domain,
-+					   struct page **pages);
-+
-+struct page **vduse_domain_alloc_pages_to_remove_bounce(struct vduse_iova_domain *domain);
- 
- void vduse_domain_destroy(struct vduse_iova_domain *domain);
- 
---- a/drivers/vdpa/vdpa_user/vduse_dev.c~vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail
-+++ a/drivers/vdpa/vdpa_user/vduse_dev.c
-@@ -1030,6 +1030,7 @@ unlock:
- static int vduse_dev_dereg_umem(struct vduse_dev *dev,
- 				u64 iova, u64 size)
- {
-+	struct page **pages;
- 	int ret;
- 
- 	mutex_lock(&dev->mem_lock);
-@@ -1044,7 +1045,8 @@ static int vduse_dev_dereg_umem(struct v
- 	if (dev->umem->iova != iova || size != dev->domain->bounce_size)
- 		goto unlock;
- 
--	vduse_domain_remove_user_bounce_pages(dev->domain);
-+	pages = vduse_domain_alloc_pages_to_remove_bounce(dev->domain);
-+	vduse_domain_remove_user_bounce_pages(dev->domain, pages);
- 	unpin_user_pages_dirty_lock(dev->umem->pages,
- 				    dev->umem->npages, true);
- 	atomic64_sub(dev->umem->npages, &dev->umem->mm->pinned_vm);
+--- a/include/linux/gfp_types.h~mm-document-__gfp_nofail-must-be-blockable
++++ a/include/linux/gfp_types.h
+@@ -215,7 +215,8 @@ enum {
+  * the caller still has to check for failures) while costly requests try to be
+  * not disruptive and back off even without invoking the OOM killer.
+  * The following three modifiers might be used to override some of these
+- * implicit rules.
++ * implicit rules. Please note that all of them must be used along with
++ * %__GFP_DIRECT_RECLAIM flag.
+  *
+  * %__GFP_NORETRY: The VM implementation will try only very lightweight
+  * memory direct reclaim to get some memory under memory pressure (thus
+@@ -246,6 +247,8 @@ enum {
+  * cannot handle allocation failures. The allocation could block
+  * indefinitely but will never return with failure. Testing for
+  * failure is pointless.
++ * It _must_ be blockable and used together with __GFP_DIRECT_RECLAIM.
++ * It should _never_ be used in non-sleepable contexts.
+  * New users should be evaluated carefully (and the flag should be
+  * used only when there is no reasonable failure policy) but it is
+  * definitely preferable to use the flag rather than opencode endless
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
