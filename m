@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EEE14C80
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 00:39:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7127DDAB;
+	Wed, 31 Jul 2024 01:11:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722386381; cv=none; b=MOLkPbb86a7dXwf3rhmj7m8H1FuZOVQoDLG4SDLzZc+BKEk/TRlIY5fWM+AVHUMLuZFIBf/z1RAhgMjn94L+inAWl/srW76jmaDlPWDS6d8QJcq2j74Odksv08wBWVtYiPHAlVXLflFtuGFBZrNeSQkV1RO+wqqw4Zc8V0VaOBc=
+	t=1722388281; cv=none; b=QxoqExjC04KTb/A5W5hLz4Oan3JgD/rAlxbwWQW90waBGKmLITI/ttlVQAt/e6dIsMzUcUsNjGNFZBiWfhq1OYvRY/3fsKcH4PtKtdFmQioXRr8g1cEbdYHJfkbffV6OhLNI91+5k4nzkqhMHD29oBteiXfI7OffWq7PQbGEYc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722386381; c=relaxed/simple;
-	bh=przTzxwouz2jxj9VRABZiDF3/xUnSCWudoqgqCp0MU8=;
-	h=Date:To:From:Subject:Message-Id; b=mvHV6aaW1FaQ9wuB7dVqXHjzZc1VNjKK3F6kUjHQ/ld6SOT2jko0auYzaVzLoEis+43iOP7QKHgtPcvYu9WCdfxNRA6GyrYRnhdVO1egFVKG18caO0OoYdJkmTe2wlfvfRYTrEMU+/HhMmXHdA/3hsnC2sf22Oc7uJjvsyNjJjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v7ABdd3a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722388281; c=relaxed/simple;
+	bh=oI9krLJZrw/89Ms8TqefCJrxjkRfTdEtjMai1+1lzGg=;
+	h=Date:To:From:Subject:Message-Id; b=VzPH8Ri0sapA++HHJNTG9MJK5M0M9soH9kRtxnjNpYEz7nLsPMLU1v8caHxikbN/EWX/BGhuLAdQBBpG6ngbejDi4aqVQmAhdECa9sZiUvCfw0RpxdHXJvl3RITDWbO2lDgBmrSk+Hm+NK9lZP4ytl9hf5RgOcI7BQeUb7BECB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RZx9kiuA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v7ABdd3a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C293CC32782;
-	Wed, 31 Jul 2024 00:39:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RZx9kiuA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69A61C32782;
+	Wed, 31 Jul 2024 01:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722386380;
-	bh=przTzxwouz2jxj9VRABZiDF3/xUnSCWudoqgqCp0MU8=;
+	s=korg; t=1722388280;
+	bh=oI9krLJZrw/89Ms8TqefCJrxjkRfTdEtjMai1+1lzGg=;
 	h=Date:To:From:Subject:From;
-	b=v7ABdd3ayq1+xvT8xcBAdKyEmNOJX/RcsTi/XQLU056JZxRwhX4WTls8tV+IMZ+x0
-	 PVxqT93v5NltGXwbs6UAKG1/B0CtLBRfD648lGaRaC1OmY1zp93fy62OpaB2Lc7pPq
-	 gwUq5giWpnA3WHzhwiulIhnyJBmy+9rQapLSqkUg=
-Date: Tue, 30 Jul 2024 17:39:40 -0700
-To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,urezki@gmail.com,torvalds@linux-foundation.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mst@redhat.com,mhocko@suse.com,maxime.coquelin@redhat.com,lstoakes@gmail.com,kees@kernel.org,jasowang@redhat.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hailong.liu@oppo.com,eperezma@redhat.com,cl@linux.com,42.hyeyoo@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=RZx9kiuApK3N4mtscra5LHspTGKKELVpyyT8J3dfrORz2gTq8ZcIHrCoPvDo9HeVx
+	 7RC0AtqiIScuydyo1kqaTF9Yy1/zN8IIgAf8IW+s9CMEkMjuS7qxDQVY1LluWMMwmx
+	 CSayfnjvWHBKjXIqPui5o1Ww8MJ2uweUAU0B1WJg=
+Date: Tue, 30 Jul 2024 18:11:19 -0700
+To: mm-commits@vger.kernel.org,sylv@sylv.io,stern@rowland.harvard.edu,stable@vger.kernel.org,nogikh@google.com,gregkh@linuxfoundation.org,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch added to mm-unstable branch
-Message-Id: <20240731003940.C293CC32782@smtp.kernel.org>
+Subject: + kcov-properly-check-for-softirq-context.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240731011120.69A61C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: prohibit NULL deference exposed for unsupported non-blockable __GFP_NOFAIL
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+     Subject: kcov: properly check for softirq context
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kcov-properly-check-for-softirq-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-properly-check-for-softirq-context.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,92 +58,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: prohibit NULL deference exposed for unsupported non-blockable __GFP_NOFAIL
-Date: Wed, 31 Jul 2024 12:01:55 +1200
+From: Andrey Konovalov <andreyknvl@gmail.com>
+Subject: kcov: properly check for softirq context
+Date: Mon, 29 Jul 2024 04:21:58 +0200
 
-When users allocate memory with the __GFP_NOFAIL flag, they might
-incorrectly use it alongside GFP_ATOMIC, GFP_NOWAIT, etc.  This kind of
-non-blockable __GFP_NOFAIL is not supported and is pointless.  If we
-attempt and still fail to allocate memory for these users, we have two
-choices:
+When collecting coverage from softirqs, KCOV uses in_serving_softirq() to
+check whether the code is running in the softirq context.  Unfortunately,
+in_serving_softirq() is > 0 even when the code is running in the hardirq
+or NMI context for hardirqs and NMIs that happened during a softirq.
 
-    1. We could busy-loop and hope that some other direct reclamation or
-    kswapd rescues the current process. However, this is unreliable
-    and could ultimately lead to hard or soft lockups, which might not
-    be well supported by some architectures.
+As a result, if a softirq handler contains a remote coverage collection
+section and a hardirq with another remote coverage collection section
+happens during handling the softirq, KCOV incorrectly detects a nested
+softirq coverate collection section and prints a WARNING, as reported by
+syzbot.
 
-    2. We could use BUG_ON to trigger a reliable system crash, avoiding
-    exposing NULL dereference.
+This issue was exposed by commit a7f3813e589f ("usb: gadget: dummy_hcd:
+Switch to hrtimer transfer scheduler"), which switched dummy_hcd to using
+hrtimer and made the timer's callback be executed in the hardirq context.
 
-This patch chooses the second option because the first is unreliable. 
-Even if the process incorrectly using __GFP_NOFAIL is sometimes rescued,
-the long latency might be unacceptable, especially considering that
-misusing GFP_ATOMIC and __GFP_NOFAIL is likely to occur in atomic contexts
-with strict timing requirements.
+Change the related checks in KCOV to account for this behavior of
+in_serving_softirq() and make KCOV ignore remote coverage collection
+sections in the hardirq and NMI contexts.
 
-Link: https://lkml.kernel.org/r/20240731000155.109583-5-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: "Eugenio Pérez" <eperezma@redhat.com>
-Cc: Hailong.Liu <hailong.liu@oppo.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+This prevents the WARNING printed by syzbot but does not fix the inability
+of KCOV to collect coverage from the __usb_hcd_giveback_urb when dummy_hcd
+is in use (caused by a7f3813e589f); a separate patch is required for that.
+
+Link: https://lkml.kernel.org/r/20240729022158.92059-1-andrey.konovalov@linux.dev
+Fixes: 5ff3b30ab57d ("kcov: collect coverage from interrupts")
+Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
+Reported-by: syzbot+2388cdaeb6b10f0c13ac@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=2388cdaeb6b10f0c13ac
+Acked-by: Marco Elver <elver@google.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marcello Sylvester Bauer <sylv@sylv.io>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/kcov.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -4404,11 +4404,11 @@ nopage:
- 	 */
- 	if (gfp_mask & __GFP_NOFAIL) {
- 		/*
--		 * All existing users of the __GFP_NOFAIL are blockable, so warn
--		 * of any new users that actually require GFP_NOWAIT
-+		 * All existing users of the __GFP_NOFAIL are blockable
-+		 * otherwise we introduce a busy loop with inside the page
-+		 * allocator from non-sleepable contexts
- 		 */
--		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
--			goto fail;
-+		BUG_ON(!can_direct_reclaim);
+--- a/kernel/kcov.c~kcov-properly-check-for-softirq-context
++++ a/kernel/kcov.c
+@@ -161,6 +161,15 @@ static void kcov_remote_area_put(struct
+ 	kmsan_unpoison_memory(&area->list, sizeof(area->list));
+ }
  
- 		/*
- 		 * PF_MEMALLOC request from this context is rather bizarre
-@@ -4439,7 +4439,7 @@ nopage:
- 		cond_resched();
- 		goto retry;
- 	}
--fail:
++/*
++ * Unlike in_serving_softirq(), this function returns false when called during
++ * a hardirq or an NMI that happened in the softirq context.
++ */
++static inline bool in_softirq_really(void)
++{
++	return in_serving_softirq() && !in_hardirq() && !in_nmi();
++}
 +
- 	warn_alloc(gfp_mask, ac->nodemask,
- 			"page allocation failure: order:%u", order);
- got_pg:
+ static notrace bool check_kcov_mode(enum kcov_mode needed_mode, struct task_struct *t)
+ {
+ 	unsigned int mode;
+@@ -170,7 +179,7 @@ static notrace bool check_kcov_mode(enum
+ 	 * so we ignore code executed in interrupts, unless we are in a remote
+ 	 * coverage collection section in a softirq.
+ 	 */
+-	if (!in_task() && !(in_serving_softirq() && t->kcov_softirq))
++	if (!in_task() && !(in_softirq_really() && t->kcov_softirq))
+ 		return false;
+ 	mode = READ_ONCE(t->kcov_mode);
+ 	/*
+@@ -849,7 +858,7 @@ void kcov_remote_start(u64 handle)
+ 
+ 	if (WARN_ON(!kcov_check_handle(handle, true, true, true)))
+ 		return;
+-	if (!in_task() && !in_serving_softirq())
++	if (!in_task() && !in_softirq_really())
+ 		return;
+ 
+ 	local_lock_irqsave(&kcov_percpu_data.lock, flags);
+@@ -991,7 +1000,7 @@ void kcov_remote_stop(void)
+ 	int sequence;
+ 	unsigned long flags;
+ 
+-	if (!in_task() && !in_serving_softirq())
++	if (!in_task() && !in_softirq_really())
+ 		return;
+ 
+ 	local_lock_irqsave(&kcov_percpu_data.lock, flags);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from andreyknvl@gmail.com are
 
-mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
-vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
-mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+kcov-properly-check-for-softirq-context.patch
+kcov-dont-instrument-lib-find_bitc.patch
 
