@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4455A8BE0
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 01:14:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1C423DE
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 01:17:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722388467; cv=none; b=ukbr5ExsBKjfgvCYYSsyN0SY0amdBldRJ7dBpuM1+9B+kyPX1lcAg8cab0XPmsV4g2BGU/p5K/jRJaB/SOcc741kMYBoZLfAC8TmeRAt0C/QdnK8fSxxqO7gfOQ+9pAdHBI2tvwGRtz8KaVhlIcSqwBt2Ez77pzodkbhZhtFT/s=
+	t=1722388669; cv=none; b=f2Qt6gqTnPMuS4cPBULnnRjmvAAjBfW/dE8cr0VWJOBzeEDAO6AXhKaXg5y+7XcdpeYfbtkF3a16iLy/ggqbkR+OjK5f6E3+gZ//+v07ADtlOwTpjwDF+Sn79kisFeR+o2XvTIxMd7ev8sL8ByWv3OyOZfmJBRnYbZPH1WFf1Jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722388467; c=relaxed/simple;
-	bh=Ns0DSGy+C/yFoHmBRE2EqVfflX3Ofb37wclf7F2NpGA=;
-	h=Date:To:From:Subject:Message-Id; b=dwgCflIY8IbBStnj6mxLA+I7QgVfofOCtvglU1epsuyq1u1FQA6d+Z3poSlny8d1ImNqvjsq2gaCbrCV5pzywvNEBucD2aWfqdVT7PTQiFh6KFK5kq6SnzF6gqZlVKZGO4n3Cs+ClUvER/+TITGXM4dZmsCZHE+Uu4zpTbduHGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PJ51pIf/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722388669; c=relaxed/simple;
+	bh=GQp/k4u9pDREOMFbhJFx/LZjqKexyN9WK6cD9RjkP8M=;
+	h=Date:To:From:Subject:Message-Id; b=qavS96XdWv+/0mqLzSlqUKgWyXvl3DGerX+awPTLBFQ00d+cqcmufq/iUqJcyl/x/HAA+ewt5ZhjzLLRRDvnNXTHR0B2dq5zZf3Mpe8r4FCyCz7uZ3jG4eEvaYkFIkHQsw7XoM+haRNx0XLnSXihfgep8w7cYk+qU4TUHHQCuBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iv6mcz4k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PJ51pIf/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5C43C32782;
-	Wed, 31 Jul 2024 01:14:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iv6mcz4k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E30C32782;
+	Wed, 31 Jul 2024 01:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722388466;
-	bh=Ns0DSGy+C/yFoHmBRE2EqVfflX3Ofb37wclf7F2NpGA=;
+	s=korg; t=1722388669;
+	bh=GQp/k4u9pDREOMFbhJFx/LZjqKexyN9WK6cD9RjkP8M=;
 	h=Date:To:From:Subject:From;
-	b=PJ51pIf/ni5FvUWRKtzQObgOxgV1woUtVWFeX+/qNBM+Uabuq5ayYJ8iPRau/8Nvn
-	 eu63LlmTfUojof8JdecCNL81nL4D0XOMSFmxBr6jUJ/9ox38E5hllmIsG3n2NQCu8N
-	 2k35gZo3mV4gBSZAJV8AUltt+6F5oVKdtC31r1wo=
-Date: Tue, 30 Jul 2024 18:14:26 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,hsiangkao@linux.alibaba.com,akpm@linux-foundation.org
+	b=Iv6mcz4kBBJ6iAar6cDf5UdpSG1TxvW00q6laT3Ivay78UwYBCf2pCMpVvqUPmCN2
+	 iya8PFMqY9Av8J193tZ0mPniChxbBk6VvhOJOhsi9nlevDPbPJ9nfyhx4liSiaT+uH
+	 0rngp9azAavQmNdlDK7b14mejPiP5XkubwuV7Ll4=
+Date: Tue, 30 Jul 2024 18:17:48 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ojeda@kernel.org,n.schier@avm.de,masahiroy@kernel.org,kvalo@kernel.org,jack@suse.cz,djwong@kernel.org,brauner@kernel.org,sunjunchao2870@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-fix-deadlock-in-migrate_pages_batch-on-large-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240731011426.D5C43C32782@smtp.kernel.org>
+Subject: + scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20240731011749.05E30C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate: fix deadlock in migrate_pages_batch() on large folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-migrate-fix-deadlock-in-migrate_pages_batch-on-large-folios.patch
+     Subject: scripts: reduce false positives in the macro_checker script
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-deadlock-in-migrate_pages_batch-on-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,160 +58,154 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gao Xiang <hsiangkao@linux.alibaba.com>
-Subject: mm/migrate: fix deadlock in migrate_pages_batch() on large folios
-Date: Mon, 29 Jul 2024 10:13:06 +0800
+From: Julian Sun <sunjunchao2870@gmail.com>
+Subject: scripts: reduce false positives in the macro_checker script
+Date: Thu, 25 Jul 2024 23:13:10 -0400
 
-Currently, migrate_pages_batch() can lock multiple locked folios with an
-arbitrary order.  Although folio_trylock() is used to avoid deadlock as
-commit 2ef7dbb26990 ("migrate_pages: try migrate in batch asynchronously
-firstly") mentioned, it seems try_split_folio() is still missing.
+Reduce false positives in the macro_checker
+in the following scenarios:
+  1. Macro definitions with only a single character
+  2. Macro definitions as (0) and (1)
+  3. Macro definitions as empty
 
-It was found by compaction stress test when I explicitly enable EROFS
-compressed files to use large folios, which case I cannot reproduce with
-the same workload if large folio support is off (current mainline). 
-Typically, filesystem reads (with locked file-backed folios) could use
-another bdev/meta inode to load some other I/Os (e.g.  inode extent
-metadata or caching compressed data), so the locking order will be:
+Also provide an option (-v) that alow users to control
+whether or not to check conditional macros. When -v is
+specified, conditional macros are checked; otherwise,
+thet are not.
 
-  file-backed folios  (A)
-     bdev/meta folios (B)
+Before this patch:
+	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
+	99
 
-The following calltrace shows the deadlock:
-   Thread 1 takes (B) lock and tries to take folio (A) lock
-   Thread 2 takes (A) lock and tries to take folio (B) lock
+After this patch:
+	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
+	11
+	sjc@sjc:linux$ ./scripts/macro_checker.py  -v fs | wc -l
+	31
 
-[Thread 1]
-INFO: task stress:1824 blocked for more than 30 seconds.
-      Tainted: G           OE      6.10.0-rc7+ #6
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:stress          state:D stack:0     pid:1824  tgid:1824  ppid:1822   flags:0x0000000c
-Call trace:
- __switch_to+0xec/0x138
- __schedule+0x43c/0xcb0
- schedule+0x54/0x198
- io_schedule+0x44/0x70
- folio_wait_bit_common+0x184/0x3f8
-			<-- folio mapping ffff00036d69cb18 index 996  (**)
- __folio_lock+0x24/0x38
- migrate_pages_batch+0x77c/0xea0	// try_split_folio (mm/migrate.c:1486:2)
-					// migrate_pages_batch (mm/migrate.c:1734:16)
-		<--- LIST_HEAD(unmap_folios) has
-			..
-			folio mapping 0xffff0000d184f1d8 index 1711;   (*)
-			folio mapping 0xffff0000d184f1d8 index 1712;
-			..
- migrate_pages+0xb28/0xe90
- compact_zone+0xa08/0x10f0
- compact_node+0x9c/0x180
- sysctl_compaction_handler+0x8c/0x118
- proc_sys_call_handler+0x1a8/0x280
- proc_sys_write+0x1c/0x30
- vfs_write+0x240/0x380
- ksys_write+0x78/0x118
- __arm64_sys_write+0x24/0x38
- invoke_syscall+0x78/0x108
- el0_svc_common.constprop.0+0x48/0xf0
- do_el0_svc+0x24/0x38
- el0_svc+0x3c/0x148
- el0t_64_sync_handler+0x100/0x130
- el0t_64_sync+0x190/0x198
-
-[Thread 2]
-INFO: task stress:1825 blocked for more than 30 seconds.
-      Tainted: G           OE      6.10.0-rc7+ #6
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:stress          state:D stack:0     pid:1825  tgid:1825  ppid:1822   flags:0x0000000c
-Call trace:
- __switch_to+0xec/0x138
- __schedule+0x43c/0xcb0
- schedule+0x54/0x198
- io_schedule+0x44/0x70
- folio_wait_bit_common+0x184/0x3f8
-			<-- folio = 0xfffffdffc6b503c0 (mapping == 0xffff0000d184f1d8 index == 1711) (*)
- __folio_lock+0x24/0x38
- z_erofs_runqueue+0x384/0x9c0 [erofs]
- z_erofs_readahead+0x21c/0x350 [erofs]       <-- folio mapping 0xffff00036d69cb18 range from [992, 1024] (**)
- read_pages+0x74/0x328
- page_cache_ra_order+0x26c/0x348
- ondemand_readahead+0x1c0/0x3a0
- page_cache_sync_ra+0x9c/0xc0
- filemap_get_pages+0xc4/0x708
- filemap_read+0x104/0x3a8
- generic_file_read_iter+0x4c/0x150
- vfs_read+0x27c/0x330
- ksys_pread64+0x84/0xd0
- __arm64_sys_pread64+0x28/0x40
- invoke_syscall+0x78/0x108
- el0_svc_common.constprop.0+0x48/0xf0
- do_el0_svc+0x24/0x38
- el0_svc+0x3c/0x148
- el0t_64_sync_handler+0x100/0x130
- el0t_64_sync+0x190/0x198
-
-Link: https://lkml.kernel.org/r/20240729021306.398286-1-hsiangkao@linux.alibaba.com
-Fixes: 5dfab109d519 ("migrate_pages: batch _unmap and _move")
-Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240726031310.254742-1-sunjunchao2870@gmail.com
+Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kalle Valo <kvalo@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nicolas Schier <n.schier@avm.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ scripts/macro_checker.py |   50 +++++++++++++++++++++++++++++--------
+ 1 file changed, 40 insertions(+), 10 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-fix-deadlock-in-migrate_pages_batch-on-large-folios
-+++ a/mm/migrate.c
-@@ -1479,11 +1479,17 @@ out:
- 	return rc;
- }
+--- a/scripts/macro_checker.py~scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix
++++ a/scripts/macro_checker.py
+@@ -8,10 +8,20 @@ import argparse
+ import os
+ import re
  
--static inline int try_split_folio(struct folio *folio, struct list_head *split_folios)
-+static inline int try_split_folio(struct folio *folio, struct list_head *split_folios,
-+				  enum migrate_mode mode)
- {
- 	int rc;
++parser = argparse.ArgumentParser()
++
++parser.add_argument("path", type=str, help="The file or dir path that needs check")
++parser.add_argument("-v", "--verbose", action="store_true",
++                    help="Check conditional macros, but may lead to more false positives")
++args = parser.parse_args()
++
+ macro_pattern = r"#define\s+(\w+)\(([^)]*)\)"
+-# below two vars were used to reduce false positives
+-do_while0_pattern = r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)"
++# below vars were used to reduce false positives
++fp_patterns = [r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)",
++               r"\(?0\)?", r"\(?1\)?"]
+ correct_macros = []
++cond_compile_mark = "#if"
++cond_compile_end = "#endif"
  
--	folio_lock(folio);
-+	if (mode == MIGRATE_ASYNC) {
-+		if (!folio_trylock(folio))
-+			return -EAGAIN;
-+	} else {
-+		folio_lock(folio);
-+	}
- 	rc = split_folio_to_list(folio, split_folios);
- 	folio_unlock(folio);
- 	if (!rc)
-@@ -1677,7 +1683,7 @@ static int migrate_pages_batch(struct li
- 			 */
- 			if (nr_pages > 2 &&
- 			   !list_empty(&folio->_deferred_list)) {
--				if (try_split_folio(folio, split_folios) == 0) {
-+				if (!try_split_folio(folio, split_folios, mode)) {
- 					nr_failed++;
- 					stats->nr_thp_failed += is_thp;
- 					stats->nr_thp_split += is_thp;
-@@ -1699,7 +1705,7 @@ static int migrate_pages_batch(struct li
- 			if (!thp_migration_supported() && is_thp) {
- 				nr_failed++;
- 				stats->nr_thp_failed++;
--				if (!try_split_folio(folio, split_folios)) {
-+				if (!try_split_folio(folio, split_folios, mode)) {
- 					stats->nr_thp_split++;
- 					stats->nr_split++;
- 					continue;
-@@ -1731,7 +1737,7 @@ static int migrate_pages_batch(struct li
- 				stats->nr_thp_failed += is_thp;
- 				/* Large folio NUMA faulting doesn't split to retry. */
- 				if (is_large && !nosplit) {
--					int ret = try_split_folio(folio, split_folios);
-+					int ret = try_split_folio(folio, split_folios, mode);
+ def check_macro(macro_line, report):
+     match = re.match(macro_pattern, macro_line)
+@@ -21,15 +31,25 @@ def check_macro(macro_line, report):
+         content = match.group(2)
+         arguments = [item.strip() for item in content.split(',') if item.strip()]
  
- 					if (!ret) {
- 						stats->nr_thp_split += is_thp;
+-        if (re.match(do_while0_pattern, macro_def)):
++        macro_def = macro_def.strip()
++        if not macro_def:
++            return
++        # used to reduce false positives, like #define endfor_nexthops(rt) }
++        if len(macro_def) == 1:
+             return
+ 
++        for fp_pattern in fp_patterns:
++            if (re.match(fp_pattern, macro_def)):
++                return
++
+         for arg in arguments:
+             # used to reduce false positives
+             if "..." in arg:
+-                continue
++                return
++        for arg in arguments:
+             if not arg in macro_def and report == False:
+                 return
++            # if there is a correct macro with the same name, do not report it.
+             if not arg in macro_def and identifier not in correct_macros:
+                 print(f"Argument {arg} is not used in function-line macro {identifier}")
+                 return
+@@ -49,6 +69,8 @@ def macro_strip(macro):
+     return macro
+ 
+ def file_check_macro(file_path, report):
++    # number of conditional compiling
++    cond_compile = 0
+     # only check .c and .h file
+     if not file_path.endswith(".c") and not file_path.endswith(".h"):
+         return
+@@ -57,7 +79,14 @@ def file_check_macro(file_path, report):
+         while True:
+             line = f.readline()
+             if not line:
+-                return
++                break
++            line = line.strip()
++            if line.startswith(cond_compile_mark):
++                cond_compile += 1
++                continue
++            if line.startswith(cond_compile_end):
++                cond_compile -= 1
++                continue
+ 
+             macro = re.match(macro_pattern, line)
+             if macro:
+@@ -67,6 +96,12 @@ def file_check_macro(file_path, report):
+                     macro = macro.strip()
+                     macro += f.readline()
+                     macro = macro_strip(macro)
++                if not args.verbose:
++                    if file_path.endswith(".c")  and cond_compile != 0:
++                        continue
++                    # 1 is for #ifdef xxx at the beginning of the header file
++                    if file_path.endswith(".h") and cond_compile != 1:
++                        continue
+                 check_macro(macro, report)
+ 
+ def get_correct_macros(path):
+@@ -84,11 +119,6 @@ def dir_check_macro(dir_path):
+ 
+ 
+ def main():
+-    parser = argparse.ArgumentParser()
+-
+-    parser.add_argument("path", type=str, help="The file or dir path that needs check")
+-    args = parser.parse_args()
+-
+     if os.path.isfile(args.path):
+         get_correct_macros(args.path)
+         file_check_macro(args.path, True)
 _
 
-Patches currently in -mm which might be from hsiangkao@linux.alibaba.com are
+Patches currently in -mm which might be from sunjunchao2870@gmail.com are
 
-mm-migrate-fix-deadlock-in-migrate_pages_batch-on-large-folios.patch
+scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
 
