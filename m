@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A53D545023
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 19:54:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 162FA38DE9
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 20:28:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722455673; cv=none; b=TRa5pjaD/ml6n2P3Rc2df1ws0Rd3yfCv4KNL3mni2530RpVyaHwrYZw6r81F0ZY6ZIK+58xYeFfG9l4Okucv9SmetwT8HjNnxpQwxN0JULaWW2WIn3A9ffgeO3m3dhmQEQx8lNenKz56lifZ0fYwkcxm/KQzQp0U5hjjTit+PNs=
+	t=1722457710; cv=none; b=BiG11ShF57MhbbWNwtdkmaRs2m3ZKK9ZDR7XBqlgPa/4RRaTNkhWFhsws6gaSMQ8MPuP/bfOevhFnDHf6jg5eEfPmtaS67kv/8ZBGjmr4h/85top9UNaIhgaBq41bk/5tf0KiWTOpKreN5w1uMyD9RprzkqGjoXR/WmJ+ZhpoZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722455673; c=relaxed/simple;
-	bh=/s130KRwKskuK939M7FbmkyK4PndKHlLvc0Do57BYOI=;
-	h=Date:To:From:Subject:Message-Id; b=pVueukZ3remmogNz6KF/UfEpsXxZBh7tpbD42Vq36kcoe8Bu8tkziaUc+LBopaJU+FKM2qIa2wvTOStpQNZKEuD3pZY9fy1NuyIZqhxIMIFN051orNdIiU6jDxw4r4/z2DNWCdqW18L4m15YjclCQI8t06Uau5y18jMmWep51ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WZKqNtvs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722457710; c=relaxed/simple;
+	bh=zxihI8mt9lkISThbBGy1F7JpcGD/0RGXyozhgbjDdck=;
+	h=Date:To:From:Subject:Message-Id; b=ebbHJ/ks93+VWa6B/5tuBHSCLmv7jg9lqpPsRY8upXCFK8ggj/CHquwC84Z48tsklPDwdjJkHfwT7KeCvsn9KzzyFLrppCQckb9nX2mj+gvL6w3L2PmQIxpa6lVXNT7bWK3DzIn7mz9KkCIEYzhI5RVtosP1ZePee/xKj9h6vlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yJ0XvxBl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WZKqNtvs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20DCAC116B1;
-	Wed, 31 Jul 2024 19:54:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yJ0XvxBl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86F6C116B1;
+	Wed, 31 Jul 2024 20:28:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722455673;
-	bh=/s130KRwKskuK939M7FbmkyK4PndKHlLvc0Do57BYOI=;
+	s=korg; t=1722457709;
+	bh=zxihI8mt9lkISThbBGy1F7JpcGD/0RGXyozhgbjDdck=;
 	h=Date:To:From:Subject:From;
-	b=WZKqNtvsfMVxI6B6KrKo0ivqT4gB/6+GLJ2kYowpg39OxzaCi3f5quwidQfMLJjgI
-	 Zr1kGBn5xZR0V+/35Hc1230RKh7PwIJZUlzUMvREbWeFnCGD7anjOQbNaoqGmDflr4
-	 UqokOmAIcHS0fHvIyyiGZPwK+HxN8Dld4Putye+Y=
-Date: Wed, 31 Jul 2024 12:54:32 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,cerasuolodomenico@gmail.com,liuzhaoyu.zackary@bytedance.com,akpm@linux-foundation.org
+	b=yJ0XvxBl5eZE/nBoKUtZG2EWe94ILP3sCmIx+78oAHOOtCO5ovQBicFQ4v/IewCZu
+	 P0dCux2mlYWqYxqK6cL5ZS/OU0smf5DHkHpwNQYYvT7ALkCu+d5/lF6Dz5BNw0u7RF
+	 brpmx0rJ6uJXTL5cXkPWQRAm5BQs6EBPePEy8VNw=
+Date: Wed, 31 Jul 2024 13:28:29 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch added to mm-unstable branch
-Message-Id: <20240731195433.20DCAC116B1@smtp.kernel.org>
+Subject: + mm-list_lru-fix-uaf-for-memory-cgroup.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240731202829.C86F6C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: allocate folio only first time in __read_swap_cache_async()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch
+     Subject: mm: list_lru: fix UAF for memory cgroup
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-list_lru-fix-uaf-for-memory-cgroup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-fix-uaf-for-memory-cgroup.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,143 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyu Liu <liuzhaoyu.zackary@bytedance.com>
-Subject: mm: swap: allocate folio only first time in __read_swap_cache_async()
-Date: Wed, 31 Jul 2024 21:31:01 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: list_lru: fix UAF for memory cgroup
+Date: Thu, 18 Jul 2024 16:36:07 +0800
 
-It should be checked by filemap_get_folio() if SWAP_HAS_CACHE was
-marked while reading a share swap page. It would re-allocate a folio
-if the swap cache was not ready now. We save the new folio to avoid
-page allocating again.
+The mem_cgroup_from_slab_obj() is supposed to be called under rcu lock or
+cgroup_mutex or others which could prevent returned memcg from being
+freed.  Fix it by adding missing rcu read lock.
 
-Link: https://lkml.kernel.org/r/20240731133101.GA2096752@bytedance
-Signed-off-by: Zhaoyu Liu <liuzhaoyu.zackary@bytedance.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Found by code inspection.
+
+Link: https://lkml.kernel.org/r/20240718083607.42068-1-songmuchun@bytedance.com
+Fixes: 0a97c01cd20bb ("list_lru: allow explicit memcg and NUMA node selection)
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   60 ++++++++++++++++++++++++----------------------
- 1 file changed, 32 insertions(+), 28 deletions(-)
+ mm/list_lru.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async
-+++ a/mm/swap_state.c
-@@ -435,6 +435,8 @@ struct folio *__read_swap_cache_async(sw
- {
- 	struct swap_info_struct *si;
- 	struct folio *folio;
-+	struct folio *new_folio = NULL;
-+	struct folio *result = NULL;
- 	void *shadow = NULL;
- 
- 	*new_page_allocated = false;
-@@ -463,16 +465,19 @@ struct folio *__read_swap_cache_async(sw
- 		 * else swap_off will be aborted if we return NULL.
- 		 */
- 		if (!swap_swapcount(si, entry) && swap_slot_cache_enabled)
--			goto fail_put_swap;
-+			goto put_and_return;
- 
- 		/*
--		 * Get a new folio to read into from swap.  Allocate it now,
--		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
--		 * cause any racers to loop around until we add it to cache.
--		 */
--		folio = folio_alloc_mpol(gfp_mask, 0, mpol, ilx, numa_node_id());
--		if (!folio)
--                        goto fail_put_swap;
-+		 * Get a new folio to read into from swap.  Allocate it now if
-+		 * new_folio not exist, before marking swap_map SWAP_HAS_CACHE,
-+		 * when -EEXIST will cause any racers to loop around until we
-+		 * add it to cache.
-+		 */
-+		if (!new_folio) {
-+			new_folio = folio_alloc_mpol(gfp_mask, 0, mpol, ilx, numa_node_id());
-+			if (!new_folio)
-+				goto put_and_return;
-+		}
- 
- 		/*
- 		 * Swap entry may have been freed since our caller observed it.
-@@ -480,10 +485,8 @@ struct folio *__read_swap_cache_async(sw
- 		err = swapcache_prepare(entry, 1);
- 		if (!err)
- 			break;
--
--		folio_put(folio);
--		if (err != -EEXIST)
--			goto fail_put_swap;
-+		else if (err != -EEXIST)
-+			goto put_and_return;
- 
- 		/*
- 		 * Protect against a recursive call to __read_swap_cache_async()
-@@ -494,7 +497,7 @@ struct folio *__read_swap_cache_async(sw
- 		 * __read_swap_cache_async() in the writeback path.
- 		 */
- 		if (skip_if_exists)
--			goto fail_put_swap;
-+			goto put_and_return;
- 
- 		/*
- 		 * We might race against __delete_from_swap_cache(), and
-@@ -509,36 +512,37 @@ struct folio *__read_swap_cache_async(sw
- 	/*
- 	 * The swap entry is ours to swap in. Prepare the new folio.
- 	 */
-+	__folio_set_locked(new_folio);
-+	__folio_set_swapbacked(new_folio);
- 
--	__folio_set_locked(folio);
--	__folio_set_swapbacked(folio);
--
--	if (mem_cgroup_swapin_charge_folio(folio, NULL, gfp_mask, entry))
-+	if (mem_cgroup_swapin_charge_folio(new_folio, NULL, gfp_mask, entry))
- 		goto fail_unlock;
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
-+	if (add_to_swap_cache(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
- 		goto fail_unlock;
- 
- 	mem_cgroup_swapin_uncharge_swap(entry);
- 
- 	if (shadow)
--		workingset_refault(folio, shadow);
-+		workingset_refault(new_folio, shadow);
- 
--	/* Caller will initiate read into locked folio */
--	folio_add_lru(folio);
-+	/* Caller will initiate read into locked new_folio */
-+	folio_add_lru(new_folio);
- 	*new_page_allocated = true;
-+	folio = new_folio;
- got_folio:
--	put_swap_device(si);
--	return folio;
-+	result = folio;
-+	goto put_and_return;
- 
- fail_unlock:
--	put_swap_folio(folio, entry);
--	folio_unlock(folio);
--	folio_put(folio);
--fail_put_swap:
-+	put_swap_folio(new_folio, entry);
-+	folio_unlock(new_folio);
-+put_and_return:
- 	put_swap_device(si);
--	return NULL;
-+	if (!(*new_page_allocated) && new_folio)
-+		folio_put(new_folio);
-+	return result;
+--- a/mm/list_lru.c~mm-list_lru-fix-uaf-for-memory-cgroup
++++ a/mm/list_lru.c
+@@ -85,6 +85,7 @@ list_lru_from_memcg_idx(struct list_lru
  }
+ #endif /* CONFIG_MEMCG */
  
- /*
++/* The caller must ensure the memcg lifetime. */
+ bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
+ 		    struct mem_cgroup *memcg)
+ {
+@@ -109,14 +110,20 @@ EXPORT_SYMBOL_GPL(list_lru_add);
+ 
+ bool list_lru_add_obj(struct list_lru *lru, struct list_head *item)
+ {
++	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
+-		mem_cgroup_from_slab_obj(item) : NULL;
++	struct mem_cgroup *memcg;
+ 
+-	return list_lru_add(lru, item, nid, memcg);
++	rcu_read_lock();
++	memcg = list_lru_memcg_aware(lru) ? mem_cgroup_from_slab_obj(item) : NULL;
++	ret = list_lru_add(lru, item, nid, memcg);
++	rcu_read_unlock();
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_add_obj);
+ 
++/* The caller must ensure the memcg lifetime. */
+ bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
+ 		    struct mem_cgroup *memcg)
+ {
+@@ -139,11 +146,16 @@ EXPORT_SYMBOL_GPL(list_lru_del);
+ 
+ bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
+ {
++	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
+-		mem_cgroup_from_slab_obj(item) : NULL;
++	struct mem_cgroup *memcg;
++
++	rcu_read_lock();
++	memcg = list_lru_memcg_aware(lru) ? mem_cgroup_from_slab_obj(item) : NULL;
++	ret = list_lru_del(lru, item, nid, memcg);
++	rcu_read_unlock();
+ 
+-	return list_lru_del(lru, item, nid, memcg);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_del_obj);
+ 
 _
 
-Patches currently in -mm which might be from liuzhaoyu.zackary@bytedance.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch
+mm-list_lru-fix-uaf-for-memory-cgroup.patch
+mm-kmem-remove-mem_cgroup_from_obj.patch
 
