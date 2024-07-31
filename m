@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B8971B14FD
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 15:22:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C661799F
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 15:56:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722439369; cv=none; b=qibs65YOZhZ1hScFsdRRXmUsqT9s6F+jW8Ruce8oo9JornvDLJw0Ls06ogcdV+0lreZcGtNkJU2OcGuwn2ucdBcN89vB6SmAIch82nvDzopeu59rZK0v8zbW5ivFtezS9CdQezl+0j+CMw5V7MmTx7qv5/mQRQ32exXFDh+9fuQ=
+	t=1722441372; cv=none; b=QBsfYFRE7zZw6cEVDkQmNZd0kxYlFme1Lz/DfCLfz/YgH+yoxIQxVA8YpWtwKtPc1XYLjNZWfh9glpdMUoHYFQ7Jl6Z1BK9mONgIqJ8QkFCDBRESbNk+7urpm359P9RvpG59Hn0qwbVSeRGWmNHNE+d99JWIGFe8CPaqj1yHhmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722439369; c=relaxed/simple;
-	bh=ttBumW8miJZ5MCVTkMOC5W3D9UZ2TWyWgJ0ACKfbLq0=;
-	h=Date:To:From:Subject:Message-Id; b=bMudAPgyXLf9R2GnX93K8p1apMIFv0JoxMc7pUTOJ84yThNqudxlt7UjxeZYec820bhrao50yNuxpuhFjunGXjbnIyfu9szJYiAZa17yDOg12AJrrIKJF795usUlukzufPuF+jCCEzA8HRO5OqBMXjuRgEWNO+bYPkSqkZuJjCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xkWpzunj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722441372; c=relaxed/simple;
+	bh=0bTb5LgdFF1fDeGD8fBGJ3juUiFpseu69YOa9U3ayEI=;
+	h=Date:To:From:Subject:Message-Id; b=EpzR7NNn3nb+rWjFM5K/3KzfndXiF8uV/mLg96IUiuj2GEMl6azm9LaUOZUdL67mlNCOedlOWyWxHyEVbPecXJbq0d78enb37mBIf/YupnjLh+W8rb/qiUfXB2YPRtP0l5BzYXiOxwPAbbijly0K6kiTOqd03R8p9aT2SW6la78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vm6wpdI+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xkWpzunj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 047F2C4AF0B;
-	Wed, 31 Jul 2024 15:22:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vm6wpdI+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A515BC116B1;
+	Wed, 31 Jul 2024 15:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722439369;
-	bh=ttBumW8miJZ5MCVTkMOC5W3D9UZ2TWyWgJ0ACKfbLq0=;
+	s=korg; t=1722441371;
+	bh=0bTb5LgdFF1fDeGD8fBGJ3juUiFpseu69YOa9U3ayEI=;
 	h=Date:To:From:Subject:From;
-	b=xkWpzunjlP636DRHJcF+AFNWamozFFZZ8QotlXx+nUoEx8V2QVAfJlqwaT7n/Hd52
-	 IeM5fylC7sl/ER70opgKjQno9ppqXzypYLTxT15dZJZJzh2uMPdfZnldwPI9kDa4Om
-	 vTa+9ooiYz2pdLYb2v6qsqm0d12txpVmM0tT/KG0=
-Date: Wed, 31 Jul 2024 08:22:48 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,muchun.song@linux.dev,jack@suse.cz,brauner@kernel.org,david@redhat.com,akpm@linux-foundation.org
+	b=vm6wpdI+uF7fr63ziZjTQhGNpXMMW01PMmtrtj6ZQhBC2S1Zyc9lm4o60vJPWf88m
+	 dhBbMo9WSPkTJauw2aMWn9uDV+z85e8LNaOXCqr1bMszf2tEgno9gKVedhjMQVXDEi
+	 EI2KozO03H9clAoFV+aGMsnwQYW9OcwF1HWPC1Jg=
+Date: Wed, 31 Jul 2024 08:56:11 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch added to mm-unstable branch
-Message-Id: <20240731152249.047F2C4AF0B@smtp.kernel.org>
+Subject: + mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch added to mm-unstable branch
+Message-Id: <20240731155611.A515BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove hugetlb_follow_page_mask() leftover
+     Subject: mm/rmap: cleanup partially-mapped handling in __folio_remove_rmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
+     mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,63 +59,66 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: remove hugetlb_follow_page_mask() leftover
-Date: Wed, 31 Jul 2024 16:20:00 +0200
+Subject: mm/rmap: cleanup partially-mapped handling in __folio_remove_rmap()
+Date: Wed, 10 Jul 2024 23:43:50 +0200
 
-We removed hugetlb_follow_page_mask() in commit 9cb28da54643 ("mm/gup:
-handle hugetlb in the generic follow_page_mask code") but forgot to
-cleanup some leftovers.
+Let's simplify and reduce code indentation.  In the RMAP_LEVEL_PTE case,
+we already check for nr when computing partially_mapped.
 
-While at it, simplify the hugetlb comment, it's overly detailed and rather
-confusing.  Stating that we may end up in there during coredumping is
-sufficient to explain the PF_DUMPCORE usage.
+For RMAP_LEVEL_PMD, it's a bit more confusing.  Likely, we don't need the
+"nr" check, but we could have "nr < nr_pmdmapped" also if we stumbled into
+the "/* Raced ahead of another remove and an add?  */" case.  So let's
+simply move the nr check in there.
 
-Link: https://lkml.kernel.org/r/20240731142000.625044-1-david@redhat.com
+Note that partially_mapped is always false for small folios.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20240710214350.147864-1-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c        |   11 ++---------
- include/linux/hugetlb.h |    3 ---
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ mm/rmap.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
---- a/fs/userfaultfd.c~mm-hugetlb-remove-hugetlb_follow_page_mask-leftover
-+++ a/fs/userfaultfd.c
-@@ -371,15 +371,8 @@ vm_fault_t handle_userfault(struct vm_fa
- 	unsigned int blocking_state;
+--- a/mm/rmap.c~mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap
++++ a/mm/rmap.c
+@@ -1568,22 +1568,19 @@ static __always_inline void __folio_remo
+ 			}
+ 		}
+ 
+-		partially_mapped = nr < nr_pmdmapped;
++		partially_mapped = nr && nr < nr_pmdmapped;
+ 		break;
+ 	}
+ 
+-	if (nr) {
+-		/*
+-		 * Queue anon large folio for deferred split if at least one
+-		 * page of the folio is unmapped and at least one page
+-		 * is still mapped.
+-		 *
+-		 * Check partially_mapped first to ensure it is a large folio.
+-		 */
+-		if (folio_test_anon(folio) && partially_mapped &&
+-		    list_empty(&folio->_deferred_list))
+-			deferred_split_folio(folio);
+-	}
++	/*
++	 * Queue anon large folio for deferred split if at least one page of
++	 * the folio is unmapped and at least one page is still mapped.
++	 *
++	 * Check partially_mapped first to ensure it is a large folio.
++	 */
++	if (partially_mapped && folio_test_anon(folio) &&
++	    list_empty(&folio->_deferred_list))
++		deferred_split_folio(folio);
+ 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
  
  	/*
--	 * We don't do userfault handling for the final child pid update.
--	 *
--	 * We also don't do userfault handling during
--	 * coredumping. hugetlbfs has the special
--	 * hugetlb_follow_page_mask() to skip missing pages in the
--	 * FOLL_DUMP case, anon memory also checks for FOLL_DUMP with
--	 * the no_page_table() helper in follow_page_mask(), but the
--	 * shmem_vm_ops->fault method is invoked even during
--	 * coredumping and it ends up here.
-+	 * We don't do userfault handling for the final child pid update
-+	 * and when coredumping (faults triggered by get_dump_page()).
- 	 */
- 	if (current->flags & (PF_EXITING|PF_DUMPCORE))
- 		goto out;
---- a/include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_follow_page_mask-leftover
-+++ a/include/linux/hugetlb.h
-@@ -127,9 +127,6 @@ int move_hugetlb_page_tables(struct vm_a
- 			     unsigned long len);
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *,
- 			    struct vm_area_struct *, struct vm_area_struct *);
--struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
--				      unsigned long address, unsigned int flags,
--				      unsigned int *page_mask);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -127,4 +130,5 @@ mm-simplify-arch_make_folio_accessible.patch
 mm-gup-convert-to-arch_make_folio_accessible.patch
 s390-uv-drop-arch_make_page_accessible.patch
 mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
+mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
 
