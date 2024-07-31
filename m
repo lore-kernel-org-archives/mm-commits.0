@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3BF71BC40
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 21:12:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08C721BC40
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 21:12:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722460357; cv=none; b=FGEbnWoSDwYvrhi+RpqLuj/uAaTmAgcienyKSNOd3rYoxTuB6GT4JU8tKrcnPVCPg74cSuTR5W+dsKABs/dqvdJ1clR8JSsjlOIQ9n/f27BxT9JwdEaJASQUP3idqygNHqXa4TClXYDA9YwN1OnneTtkWYLn51z0gIVpz/i2q94=
+	t=1722460359; cv=none; b=Q1T7ddtfZwCyAsc9FAvkVWBV4pc2xa3RC+YkUYTFon/XIJ6/fCP1M3kNIc0G6R+uBIQkrrwHz+eeWCHAdfA1oLYJ9KJa87V51KHd5mW8n8gEGH8r4RMxygXlTG+/xu+g5QrqLPGrta8uJcX5qS8JDWWTo5e/EpqeCrvYJ/hjLhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722460357; c=relaxed/simple;
-	bh=r8d52BfDLzNv8wXBEBnLHh9hhcoJYJeBvs7WF1cx+T0=;
-	h=Date:To:From:Subject:Message-Id; b=uGgJuQDrGowpLycfgP3rae9KawYQYcmGBaPKxPr9STgshPaQZF1QpVWOnguNlXpLrP7PGDYuspJVa2UnerXMUBFy3m5jF2PW4uiW5+Z44ShY5fNr57Visz6NI9kzWNtAgH32DeFuRFXc059DF+9b6/09PzMDTFYB6pB+rGX3098=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNfg5bjK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722460359; c=relaxed/simple;
+	bh=G2FWG5EMEjXQCFUR32h2GxoJxCPPuBZPZly1uIcSmM0=;
+	h=Date:To:From:Subject:Message-Id; b=LIwiI4ay67qfTews+1yUHxu/+LSq5E7blhFFtE1kgrOY0UgDlqzaENnNvOWVmq3vukuc7K6lcnay7uvnIUGKJu0wY8euLUTx/1kYXZbpKIdBBlasi/HVZIs+goEPKWmhymbSAFWTZVU+DDzYnMoLchjM1aD8EFSyvW3oLzhMc0U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U/7wiKT/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNfg5bjK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38780C116B1;
-	Wed, 31 Jul 2024 21:12:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U/7wiKT/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84271C116B1;
+	Wed, 31 Jul 2024 21:12:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722460357;
-	bh=r8d52BfDLzNv8wXBEBnLHh9hhcoJYJeBvs7WF1cx+T0=;
+	s=korg; t=1722460358;
+	bh=G2FWG5EMEjXQCFUR32h2GxoJxCPPuBZPZly1uIcSmM0=;
 	h=Date:To:From:Subject:From;
-	b=wNfg5bjK6BItsiwjgLZAG1eQ/Z6HqBigNtjuhVfeUSOfulb4UiKvEkgsjQAiA+H10
-	 uMjTuneiRVMBWxNDCXnOp56RXFHszy1xQl8geb/V7YlJnBWr74rHEl8d2bVe9eeoK9
-	 ZV5xFbQG6qTZpedD5lQpM5PDUZBp12gdTA56zUq0=
-Date: Wed, 31 Jul 2024 14:12:36 -0700
+	b=U/7wiKT/iw3Q5g/iqCoVo9Z7/UK76a1k7I39ejm8dHjYhJVBmX4uaYsOPamitZWhY
+	 nT+z5a161GHF1uk1J49a7mk/x0ylpo7dnobh/UB3cGt7dp0DUJUzG9MAQ9mXuUmDo7
+	 P+R11+sRC0oiygGglw7x2BntyXuB27nvZ3IPLPLE=
+Date: Wed, 31 Jul 2024 14:12:37 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,flintglass@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-global-shrinker-memcg-iteration.patch added to mm-unstable branch
-Message-Id: <20240731211237.38780C116B1@smtp.kernel.org>
+Subject: + mm-zswap-fix-global-shrinker-error-handling-logic.patch added to mm-unstable branch
+Message-Id: <20240731211238.84271C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: fix global shrinker memcg iteration
+     Subject: mm: zswap: fix global shrinker error handling logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-fix-global-shrinker-memcg-iteration.patch
+     mm-zswap-fix-global-shrinker-error-handling-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-global-shrinker-memcg-iteration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-global-shrinker-error-handling-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,157 +59,131 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Takero Funaki <flintglass@gmail.com>
-Subject: mm: zswap: fix global shrinker memcg iteration
-Date: Wed, 31 Jul 2024 00:49:09 +0000
+Subject: mm: zswap: fix global shrinker error handling logic
+Date: Wed, 31 Jul 2024 00:49:10 +0000
 
-Patch series "mm: zswap: fixes for global shrinker", v5.
+This patch fixes the zswap global shrinker, which did not shrink the zpool
+as expected.
 
-This series addresses issues in the zswap global shrinker that could not
-shrink stored pages.  With this series, the shrinker continues to shrink
-pages until it reaches the accept threshold more reliably, gives much
-higher writeback when the zswap pool limit is hit.
+The issue addressed is that shrink_worker() did not distinguish between
+unexpected errors and expected errors, such as failed writeback from an
+empty memcg.  The shrinker would stop shrinking after iterating through
+the memcg tree 16 times, even if there was only one empty memcg.
 
+With this patch, the shrinker no longer considers encountering an empty
+memcg, encountering a memcg with writeback disabled, or reaching the end
+of a memcg tree walk as a failure, as long as there are memcgs that are
+candidates for writeback.  Systems with one or more empty memcgs will now
+observe significantly higher zswap writeback activity after the zswap pool
+limit is hit.
 
-This patch (of 2):
+To avoid an infinite loop when there are no writeback candidates, this
+patch tracks writeback attempts during memcg tree walks and limits reties
+if no writeback candidates are found.
 
-This patch fixes an issue where the zswap global shrinker stopped
-iterating through the memcg tree.
+To handle the empty memcg case, the helper function shrink_memcg() is
+modified to check if the memcg is empty and then return -ENOENT.
 
-The problem was that shrink_worker() would restart iterating memcg tree
-from the tree root, considering an offline memcg as a failure, and abort
-shrinking after encountering the same offline memcg 16 times even if there
-is only one offline memcg.  After this change, an offline memcg in the
-tree is no longer considered a failure.  This allows the shrinker to
-continue shrinking the other online memcgs regardless of whether an
-offline memcg exists, gives higher zswap writeback activity.
-
-To avoid holding refcount of offline memcg encountered during the memcg
-tree walking, shrink_worker() must continue iterating to release the
-offline memcg to ensure the next memcg stored in the cursor is online.
-
-The offline memcg cleaner has also been changed to avoid the same issue. 
-When the next memcg of the offlined memcg is also offline, the refcount
-stored in the iteration cursor was held until the next shrink_worker()
-run.  The cleaner must release the offline memcg recursively.
-
-Link: https://lkml.kernel.org/r/20240731004918.33182-1-flintglass@gmail.com
-Link: https://lkml.kernel.org/r/20240731004918.33182-2-flintglass@gmail.com
+Link: https://lkml.kernel.org/r/20240731004918.33182-3-flintglass@gmail.com
 Fixes: a65b0e7607cc ("zswap: make shrinking memcg-aware")
 Signed-off-by: Takero Funaki <flintglass@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   68 +++++++++++++++++++++++++++++++++------------------
- 1 file changed, 44 insertions(+), 24 deletions(-)
+ mm/zswap.c |   40 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-global-shrinker-memcg-iteration
+--- a/mm/zswap.c~mm-zswap-fix-global-shrinker-error-handling-logic
 +++ a/mm/zswap.c
-@@ -756,12 +756,25 @@ void zswap_folio_swapin(struct folio *fo
- 	}
- }
+@@ -1303,10 +1303,10 @@ static struct shrinker *zswap_alloc_shri
  
-+/*
-+ * This function should be called when a memcg is being offlined.
-+ *
-+ * Since the global shrinker shrink_worker() may hold a reference
-+ * of the memcg, we must check and release the reference in
-+ * zswap_next_shrink.
-+ *
-+ * shrink_worker() must handle the case where this function releases
-+ * the reference of memcg being shrunk.
-+ */
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg)
+ static int shrink_memcg(struct mem_cgroup *memcg)
  {
- 	/* lock out zswap shrinker walking memcg tree */
- 	spin_lock(&zswap_shrink_lock);
--	if (zswap_next_shrink == memcg)
--		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
-+	if (zswap_next_shrink == memcg) {
-+		do {
-+			zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
-+		} while (zswap_next_shrink && !mem_cgroup_online(zswap_next_shrink));
-+	}
- 	spin_unlock(&zswap_shrink_lock);
+-	int nid, shrunk = 0;
++	int nid, shrunk = 0, scanned = 0;
+ 
+ 	if (!mem_cgroup_zswap_writeback_enabled(memcg))
+-		return -EINVAL;
++		return -ENOENT;
+ 
+ 	/*
+ 	 * Skip zombies because their LRUs are reparented and we would be
+@@ -1320,21 +1320,34 @@ static int shrink_memcg(struct mem_cgrou
+ 
+ 		shrunk += list_lru_walk_one(&zswap_list_lru, nid, memcg,
+ 					    &shrink_memcg_cb, NULL, &nr_to_walk);
++		scanned += 1 - nr_to_walk;
+ 	}
++
++	if (!scanned)
++		return -ENOENT;
++
+ 	return shrunk ? 0 : -EAGAIN;
  }
  
-@@ -1320,43 +1333,50 @@ static void shrink_worker(struct work_st
+ static void shrink_worker(struct work_struct *w)
+ {
+ 	struct mem_cgroup *memcg;
+-	int ret, failures = 0;
++	int ret, failures = 0, attempts = 0;
+ 	unsigned long thr;
+ 
  	/* Reclaim down to the accept threshold */
  	thr = zswap_accept_thr_pages();
  
--	/* global reclaim will select cgroup in a round-robin fashion. */
-+	/*
-+	 * Global reclaim will select cgroup in a round-robin fashion.
+ 	/*
+-	 * Global reclaim will select cgroup in a round-robin fashion.
++	 * Global reclaim will select cgroup in a round-robin fashion from all
++	 * online memcgs, but memcgs that have no pages in zswap and
++	 * writeback-disabled memcgs (memory.zswap.writeback=0) are not
++	 * candidates for shrinking.
 +	 *
-+	 * We save iteration cursor memcg into zswap_next_shrink,
-+	 * which can be modified by the offline memcg cleaner
-+	 * zswap_memcg_offline_cleanup().
-+	 *
-+	 * Since the offline cleaner is called only once, we cannot leave an
-+	 * offline memcg reference in zswap_next_shrink.
-+	 * We can rely on the cleaner only if we get online memcg under lock.
-+	 *
-+	 * If we get an offline memcg, we cannot determine if the cleaner has
-+	 * already been called or will be called later. We must put back the
-+	 * reference before returning from this function. Otherwise, the
-+	 * offline memcg left in zswap_next_shrink will hold the reference
-+	 * until the next run of shrink_worker().
-+	 */
- 	do {
- 		spin_lock(&zswap_shrink_lock);
--		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
--		memcg = zswap_next_shrink;
++	 * Shrinking will be aborted if we encounter the following
++	 * MAX_RECLAIM_RETRIES times:
++	 * - No writeback-candidate memcgs found in a memcg tree walk.
++	 * - Shrinking a writeback-candidate memcg failed.
+ 	 *
+ 	 * We save iteration cursor memcg into zswap_next_shrink,
+ 	 * which can be modified by the offline memcg cleaner
+@@ -1372,9 +1385,14 @@ static void shrink_worker(struct work_st
+ 		spin_unlock(&zswap_shrink_lock);
  
- 		/*
--		 * We need to retry if we have gone through a full round trip, or if we
--		 * got an offline memcg (or else we risk undoing the effect of the
--		 * zswap memcg offlining cleanup callback). This is not catastrophic
--		 * per se, but it will keep the now offlined memcg hostage for a while.
--		 *
-+		 * Start shrinking from the next memcg after zswap_next_shrink.
-+		 * When the offline cleaner has already advanced the cursor,
-+		 * advancing the cursor here overlooks one memcg, but this
-+		 * should be negligibly rare.
-+		 */
-+		do {
-+			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
-+			zswap_next_shrink = memcg;
-+		} while (memcg && !mem_cgroup_tryget_online(memcg));
-+		/*
- 		 * Note that if we got an online memcg, we will keep the extra
- 		 * reference in case the original reference obtained by mem_cgroup_iter
- 		 * is dropped by the zswap memcg offlining callback, ensuring that the
- 		 * memcg is not killed when we are reclaiming.
- 		 */
--		if (!memcg) {
--			spin_unlock(&zswap_shrink_lock);
+ 		if (!memcg) {
 -			if (++failures == MAX_RECLAIM_RETRIES)
--				break;
--
--			goto resched;
--		}
--
--		if (!mem_cgroup_tryget_online(memcg)) {
--			/* drop the reference from mem_cgroup_iter() */
--			mem_cgroup_iter_break(NULL, memcg);
--			zswap_next_shrink = NULL;
--			spin_unlock(&zswap_shrink_lock);
-+		spin_unlock(&zswap_shrink_lock);
- 
-+		if (!memcg) {
- 			if (++failures == MAX_RECLAIM_RETRIES)
++			/*
++			 * Continue shrinking without incrementing failures if
++			 * we found candidate memcgs in the last tree walk.
++			 */
++			if (!attempts && ++failures == MAX_RECLAIM_RETRIES)
  				break;
  
++			attempts = 0;
  			goto resched;
  		}
--		spin_unlock(&zswap_shrink_lock);
  
- 		ret = shrink_memcg(memcg);
+@@ -1382,8 +1400,16 @@ static void shrink_worker(struct work_st
  		/* drop the extra reference */
+ 		mem_cgroup_put(memcg);
+ 
+-		if (ret == -EINVAL)
+-			break;
++		/*
++		 * There are no writeback-candidate pages in the memcg.
++		 * This is not an issue as long as we can find another memcg
++		 * with pages in zswap. Skip this without incrementing attempts
++		 * and failures.
++		 */
++		if (ret == -ENOENT)
++			continue;
++		++attempts;
++
+ 		if (ret && ++failures == MAX_RECLAIM_RETRIES)
+ 			break;
+ resched:
 _
 
 Patches currently in -mm which might be from flintglass@gmail.com are
