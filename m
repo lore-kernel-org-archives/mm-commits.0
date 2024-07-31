@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1C423DE
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 01:17:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17358BE0
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 01:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722388669; cv=none; b=f2Qt6gqTnPMuS4cPBULnnRjmvAAjBfW/dE8cr0VWJOBzeEDAO6AXhKaXg5y+7XcdpeYfbtkF3a16iLy/ggqbkR+OjK5f6E3+gZ//+v07ADtlOwTpjwDF+Sn79kisFeR+o2XvTIxMd7ev8sL8ByWv3OyOZfmJBRnYbZPH1WFf1Jg=
+	t=1722388731; cv=none; b=Q5uN3nW9pAmjJYxVLZjEi09WqsegsnrnlZg3S01Czgujd+s7b2VKMgX93gdYbbqwiQaA9T28lyaYI6axfWD4qMhVWlwAR6uNzBzEuRziq5fJrQn2ET4iYbXZfVZAeTI5BeDrfD6ZiVzuN9XAKLp+vLiI9EbaczXQdfSVFfWvaoM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722388669; c=relaxed/simple;
-	bh=GQp/k4u9pDREOMFbhJFx/LZjqKexyN9WK6cD9RjkP8M=;
-	h=Date:To:From:Subject:Message-Id; b=qavS96XdWv+/0mqLzSlqUKgWyXvl3DGerX+awPTLBFQ00d+cqcmufq/iUqJcyl/x/HAA+ewt5ZhjzLLRRDvnNXTHR0B2dq5zZf3Mpe8r4FCyCz7uZ3jG4eEvaYkFIkHQsw7XoM+haRNx0XLnSXihfgep8w7cYk+qU4TUHHQCuBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iv6mcz4k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722388731; c=relaxed/simple;
+	bh=2/Qf1ZZ3yD7HsoxG0U813mhQTNh6jvN/KUyLl1bpO7s=;
+	h=Date:To:From:Subject:Message-Id; b=FxuX0AFG6IYckXgfth8BLger0yucYR2n+Xso5oeFUA0OoWW5E/ogigBTC/QuSQalYWWfk0m4U6JXEKDFP/8A9q9txrOq/HJ+vghM2srg2Ee6G1FkRp+qbsj8xwcnTaF70aimykvLlPqbgi+fUDbJVpIqB6gGghYm/OHW9cKi2Uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WCehgqAv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iv6mcz4k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E30C32782;
-	Wed, 31 Jul 2024 01:17:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WCehgqAv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5599FC32782;
+	Wed, 31 Jul 2024 01:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722388669;
-	bh=GQp/k4u9pDREOMFbhJFx/LZjqKexyN9WK6cD9RjkP8M=;
+	s=korg; t=1722388731;
+	bh=2/Qf1ZZ3yD7HsoxG0U813mhQTNh6jvN/KUyLl1bpO7s=;
 	h=Date:To:From:Subject:From;
-	b=Iv6mcz4kBBJ6iAar6cDf5UdpSG1TxvW00q6laT3Ivay78UwYBCf2pCMpVvqUPmCN2
-	 iya8PFMqY9Av8J193tZ0mPniChxbBk6VvhOJOhsi9nlevDPbPJ9nfyhx4liSiaT+uH
-	 0rngp9azAavQmNdlDK7b14mejPiP5XkubwuV7Ll4=
-Date: Tue, 30 Jul 2024 18:17:48 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ojeda@kernel.org,n.schier@avm.de,masahiroy@kernel.org,kvalo@kernel.org,jack@suse.cz,djwong@kernel.org,brauner@kernel.org,sunjunchao2870@gmail.com,akpm@linux-foundation.org
+	b=WCehgqAv6vOIU1LrjWSt7BLzXIXVRNpf+mmh5/tqW4sXi396dLFUA02rZVYcsdiRZ
+	 3IAIFGrxFsSiTln7opDKjJfIOYYdHsaPJLNtupULGsb1I4bjKv+cy8fr6hIq39hr3y
+	 hVyzkw/sItWQDLgWiHXPG5VPnWLD/uDr6F3gbo4k=
+Date: Tue, 30 Jul 2024 18:18:50 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,masahiroy@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240731011749.05E30C32782@smtp.kernel.org>
+Subject: + mm-memory_hotplug-get-rid-of-__ref.patch added to mm-unstable branch
+Message-Id: <20240731011851.5599FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts: reduce false positives in the macro_checker script
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
+     Subject: mm/memory_hotplug: get rid of __ref
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory_hotplug-get-rid-of-__ref.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-get-rid-of-__ref.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,154 +58,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: scripts: reduce false positives in the macro_checker script
-Date: Thu, 25 Jul 2024 23:13:10 -0400
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memory_hotplug: get rid of __ref
+Date: Fri, 26 Jul 2024 01:01:57 +0000
 
-Reduce false positives in the macro_checker
-in the following scenarios:
-  1. Macro definitions with only a single character
-  2. Macro definitions as (0) and (1)
-  3. Macro definitions as empty
+After commit 73db3abdca58 ("init/modpost: conditionally check section
+mismatch to __meminit*"), we can get rid of __ref annotations.
 
-Also provide an option (-v) that alow users to control
-whether or not to check conditional macros. When -v is
-specified, conditional macros are checked; otherwise,
-thet are not.
-
-Before this patch:
-	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
-	99
-
-After this patch:
-	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
-	11
-	sjc@sjc:linux$ ./scripts/macro_checker.py  -v fs | wc -l
-	31
-
-Link: https://lkml.kernel.org/r/20240726031310.254742-1-sunjunchao2870@gmail.com
-Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kalle Valo <kvalo@kernel.org>
+Link: https://lkml.kernel.org/r/20240726010157.6177-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nicolas Schier <n.schier@avm.de>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/macro_checker.py |   50 +++++++++++++++++++++++++++++--------
- 1 file changed, 40 insertions(+), 10 deletions(-)
+ mm/memory_hotplug.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/scripts/macro_checker.py~scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix
-+++ a/scripts/macro_checker.py
-@@ -8,10 +8,20 @@ import argparse
- import os
- import re
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-__ref
++++ a/mm/memory_hotplug.c
+@@ -366,7 +366,7 @@ struct page *pfn_to_online_page(unsigned
+ }
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
-+parser = argparse.ArgumentParser()
-+
-+parser.add_argument("path", type=str, help="The file or dir path that needs check")
-+parser.add_argument("-v", "--verbose", action="store_true",
-+                    help="Check conditional macros, but may lead to more false positives")
-+args = parser.parse_args()
-+
- macro_pattern = r"#define\s+(\w+)\(([^)]*)\)"
--# below two vars were used to reduce false positives
--do_while0_pattern = r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)"
-+# below vars were used to reduce false positives
-+fp_patterns = [r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)",
-+               r"\(?0\)?", r"\(?1\)?"]
- correct_macros = []
-+cond_compile_mark = "#if"
-+cond_compile_end = "#endif"
+-int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
++int __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		struct mhp_params *params)
+ {
+ 	const unsigned long end_pfn = pfn + nr_pages;
+@@ -524,7 +524,7 @@ static void update_pgdat_span(struct pgl
+ 	pgdat->node_spanned_pages = node_end_pfn - node_start_pfn;
+ }
  
- def check_macro(macro_line, report):
-     match = re.match(macro_pattern, macro_line)
-@@ -21,15 +31,25 @@ def check_macro(macro_line, report):
-         content = match.group(2)
-         arguments = [item.strip() for item in content.split(',') if item.strip()]
+-void __ref remove_pfn_range_from_zone(struct zone *zone,
++void remove_pfn_range_from_zone(struct zone *zone,
+ 				      unsigned long start_pfn,
+ 				      unsigned long nr_pages)
+ {
+@@ -629,7 +629,7 @@ int restore_online_page_callback(online_
+ EXPORT_SYMBOL_GPL(restore_online_page_callback);
  
--        if (re.match(do_while0_pattern, macro_def)):
-+        macro_def = macro_def.strip()
-+        if not macro_def:
-+            return
-+        # used to reduce false positives, like #define endfor_nexthops(rt) }
-+        if len(macro_def) == 1:
-             return
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-void __ref generic_online_page(struct page *page, unsigned int order)
++void generic_online_page(struct page *page, unsigned int order)
+ {
+ 	__free_pages_core(page, order, MEMINIT_HOTPLUG);
+ }
+@@ -741,7 +741,7 @@ static inline void section_taint_zone_de
+  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
+  * zone stats (e.g., nr_isolate_pageblock) are touched.
+  */
+-void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
++void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 				  unsigned long nr_pages,
+ 				  struct vmem_altmap *altmap, int migratetype)
+ {
+@@ -1143,7 +1143,7 @@ void mhp_deinit_memmap_on_memory(unsigne
+ /*
+  * Must be called with mem_hotplug_lock in write mode.
+  */
+-int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
++int online_pages(unsigned long pfn, unsigned long nr_pages,
+ 		       struct zone *zone, struct memory_group *group)
+ {
+ 	unsigned long flags;
+@@ -1233,7 +1233,7 @@ failed_addition:
+ }
  
-+        for fp_pattern in fp_patterns:
-+            if (re.match(fp_pattern, macro_def)):
-+                return
-+
-         for arg in arguments:
-             # used to reduce false positives
-             if "..." in arg:
--                continue
-+                return
-+        for arg in arguments:
-             if not arg in macro_def and report == False:
-                 return
-+            # if there is a correct macro with the same name, do not report it.
-             if not arg in macro_def and identifier not in correct_macros:
-                 print(f"Argument {arg} is not used in function-line macro {identifier}")
-                 return
-@@ -49,6 +69,8 @@ def macro_strip(macro):
-     return macro
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-static pg_data_t __ref *hotadd_init_pgdat(int nid)
++static pg_data_t *hotadd_init_pgdat(int nid)
+ {
+ 	struct pglist_data *pgdat;
  
- def file_check_macro(file_path, report):
-+    # number of conditional compiling
-+    cond_compile = 0
-     # only check .c and .h file
-     if not file_path.endswith(".c") and not file_path.endswith(".h"):
-         return
-@@ -57,7 +79,14 @@ def file_check_macro(file_path, report):
-         while True:
-             line = f.readline()
-             if not line:
--                return
-+                break
-+            line = line.strip()
-+            if line.startswith(cond_compile_mark):
-+                cond_compile += 1
-+                continue
-+            if line.startswith(cond_compile_end):
-+                cond_compile -= 1
-+                continue
+@@ -1386,7 +1386,7 @@ bool mhp_supports_memmap_on_memory(void)
+ }
+ EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
  
-             macro = re.match(macro_pattern, line)
-             if macro:
-@@ -67,6 +96,12 @@ def file_check_macro(file_path, report):
-                     macro = macro.strip()
-                     macro += f.readline()
-                     macro = macro_strip(macro)
-+                if not args.verbose:
-+                    if file_path.endswith(".c")  and cond_compile != 0:
-+                        continue
-+                    # 1 is for #ifdef xxx at the beginning of the header file
-+                    if file_path.endswith(".h") and cond_compile != 1:
-+                        continue
-                 check_macro(macro, report)
+-static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
++static void remove_memory_blocks_and_altmaps(u64 start, u64 size)
+ {
+ 	unsigned long memblock_size = memory_block_size_bytes();
+ 	u64 cur_start;
+@@ -1473,7 +1473,7 @@ out:
+  *
+  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
+  */
+-int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ {
+ 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+@@ -1580,7 +1580,7 @@ error_mem_hotplug_end:
+ }
  
- def get_correct_macros(path):
-@@ -84,11 +119,6 @@ def dir_check_macro(dir_path):
+ /* requires device_hotplug_lock, see add_memory_resource() */
+-int __ref __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
++int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
+ {
+ 	struct resource *res;
+ 	int ret;
+@@ -1939,7 +1939,7 @@ static int count_system_ram_pages_cb(uns
+ /*
+  * Must be called with mem_hotplug_lock in write mode.
+  */
+-int __ref offline_pages(unsigned long start_pfn, unsigned long nr_pages,
++int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
+ 			struct zone *zone, struct memory_group *group)
+ {
+ 	const unsigned long end_pfn = start_pfn + nr_pages;
+@@ -2240,7 +2240,7 @@ static int memory_blocks_have_altmaps(u6
+ 	return 1;
+ }
  
+-static int __ref try_remove_memory(u64 start, u64 size)
++static int try_remove_memory(u64 start, u64 size)
+ {
+ 	int rc, nid = NUMA_NO_NODE;
  
- def main():
--    parser = argparse.ArgumentParser()
--
--    parser.add_argument("path", type=str, help="The file or dir path that needs check")
--    args = parser.parse_args()
--
-     if os.path.isfile(args.path):
-         get_correct_macros(args.path)
-         file_check_macro(args.path, True)
 _
 
-Patches currently in -mm which might be from sunjunchao2870@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
-scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
+mm-improve-code-consistency-with-zonelist_-helper-functions.patch
+mm-memory_hotplug-get-rid-of-__ref.patch
 
