@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C661799F
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 15:56:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3741045BE3
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 19:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722441372; cv=none; b=QBsfYFRE7zZw6cEVDkQmNZd0kxYlFme1Lz/DfCLfz/YgH+yoxIQxVA8YpWtwKtPc1XYLjNZWfh9glpdMUoHYFQ7Jl6Z1BK9mONgIqJ8QkFCDBRESbNk+7urpm359P9RvpG59Hn0qwbVSeRGWmNHNE+d99JWIGFe8CPaqj1yHhmU=
+	t=1722455115; cv=none; b=DUncmZ+I5zWwbaS6mKXJxpkaMIVECINUhDG47rBV/T/eh45RBAZTByLk3+um4vD5p6e1kQ9lROxrgvv8u1Lt+ZqRVAM2SQDi8M///gRLNtVZzT+XpCArFkiNVDZw6+3kaROu54AltEPhrTh8f3w+xhmCBrkd35gRH/zjoiHs0EM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722441372; c=relaxed/simple;
-	bh=0bTb5LgdFF1fDeGD8fBGJ3juUiFpseu69YOa9U3ayEI=;
-	h=Date:To:From:Subject:Message-Id; b=EpzR7NNn3nb+rWjFM5K/3KzfndXiF8uV/mLg96IUiuj2GEMl6azm9LaUOZUdL67mlNCOedlOWyWxHyEVbPecXJbq0d78enb37mBIf/YupnjLh+W8rb/qiUfXB2YPRtP0l5BzYXiOxwPAbbijly0K6kiTOqd03R8p9aT2SW6la78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vm6wpdI+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722455115; c=relaxed/simple;
+	bh=yllA3XDFN8aicdQcuQQXpkaep4MgYQqdTVONolH9bZM=;
+	h=Date:To:From:Subject:Message-Id; b=eYeQkbNjg58YcusPU/aj13BA9h2e12TK5AifMLAy/VMSK+0IU55lOKa4GvDw5Fuhlqa2cTex6VstND8it5HbJKPjOAAne3H+Y5IT6pUXBonRYjth4RZjVZ2RJDMyPxlv6GQLedbCwdCtEBoiJl85Mkpef1b3dOSm5iwR4NK8wy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OCoA8+YD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vm6wpdI+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A515BC116B1;
-	Wed, 31 Jul 2024 15:56:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OCoA8+YD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0BA4C116B1;
+	Wed, 31 Jul 2024 19:45:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722441371;
-	bh=0bTb5LgdFF1fDeGD8fBGJ3juUiFpseu69YOa9U3ayEI=;
+	s=korg; t=1722455114;
+	bh=yllA3XDFN8aicdQcuQQXpkaep4MgYQqdTVONolH9bZM=;
 	h=Date:To:From:Subject:From;
-	b=vm6wpdI+uF7fr63ziZjTQhGNpXMMW01PMmtrtj6ZQhBC2S1Zyc9lm4o60vJPWf88m
-	 dhBbMo9WSPkTJauw2aMWn9uDV+z85e8LNaOXCqr1bMszf2tEgno9gKVedhjMQVXDEi
-	 EI2KozO03H9clAoFV+aGMsnwQYW9OcwF1HWPC1Jg=
-Date: Wed, 31 Jul 2024 08:56:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,david@redhat.com,akpm@linux-foundation.org
+	b=OCoA8+YDhvR+KzUrbWulg1HtnBcy5A905WsY6U3vpLf1jCH6besYbDCnY9m7G87gq
+	 mSQd4I/u6yRznvhWOsH5Ovdc1pZwFXzttUOoDYAt57DYoXX0C+9PcCRxI4tslPNwqY
+	 iJOAcs1/7Vjn3ab0CwPNOwkF0WOSxd3ibYdSH3Ps=
+Date: Wed, 31 Jul 2024 12:45:14 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch added to mm-unstable branch
-Message-Id: <20240731155611.A515BC116B1@smtp.kernel.org>
+Subject: + mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch added to mm-unstable branch
+Message-Id: <20240731194514.A0BA4C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: cleanup partially-mapped handling in __folio_remove_rmap()
+     Subject: mm: clarify folio_likely_mapped_shared() documentation for KSM folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
+     mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,66 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: cleanup partially-mapped handling in __folio_remove_rmap()
-Date: Wed, 10 Jul 2024 23:43:50 +0200
+Subject: mm: clarify folio_likely_mapped_shared() documentation for KSM folios
+Date: Wed, 31 Jul 2024 18:07:58 +0200
 
-Let's simplify and reduce code indentation.  In the RMAP_LEVEL_PTE case,
-we already check for nr when computing partially_mapped.
+For KSM folios, the function actually does what it is supposed to do: even
+having multiple mappings inside the same MM is considered "sharing", as
+there is no real relationship between these KSM page mappings -- in
+contrast to mapping the same file range twice and having the same
+pagecache page mapped twice.
 
-For RMAP_LEVEL_PMD, it's a bit more confusing.  Likely, we don't need the
-"nr" check, but we could have "nr < nr_pmdmapped" also if we stumbled into
-the "/* Raced ahead of another remove and an add?  */" case.  So let's
-simply move the nr check in there.
-
-Note that partially_mapped is always false for small folios.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20240710214350.147864-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240731160758.808925-1-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ include/linux/mm.h |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap
-+++ a/mm/rmap.c
-@@ -1568,22 +1568,19 @@ static __always_inline void __folio_remo
- 			}
- 		}
- 
--		partially_mapped = nr < nr_pmdmapped;
-+		partially_mapped = nr && nr < nr_pmdmapped;
- 		break;
- 	}
- 
--	if (nr) {
--		/*
--		 * Queue anon large folio for deferred split if at least one
--		 * page of the folio is unmapped and at least one page
--		 * is still mapped.
--		 *
--		 * Check partially_mapped first to ensure it is a large folio.
--		 */
--		if (folio_test_anon(folio) && partially_mapped &&
--		    list_empty(&folio->_deferred_list))
--			deferred_split_folio(folio);
--	}
-+	/*
-+	 * Queue anon large folio for deferred split if at least one page of
-+	 * the folio is unmapped and at least one page is still mapped.
-+	 *
-+	 * Check partially_mapped first to ensure it is a large folio.
-+	 */
-+	if (partially_mapped && folio_test_anon(folio) &&
-+	    list_empty(&folio->_deferred_list))
-+		deferred_split_folio(folio);
- 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
- 
- 	/*
+--- a/include/linux/mm.h~mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios
++++ a/include/linux/mm.h
+@@ -2132,14 +2132,19 @@ static inline size_t folio_size(const st
+  * MM ("mapped shared"), or if the folio is only mapped into a single MM
+  * ("mapped exclusively").
+  *
++ * For KSM folios, this function also returns "mapped shared" when a folio is
++ * mapped multiple times into the same MM, because the individual page mappings
++ * are independent.
++ *
+  * As precise information is not easily available for all folios, this function
+  * estimates the number of MMs ("sharers") that are currently mapping a folio
+  * using the number of times the first page of the folio is currently mapped
+  * into page tables.
+  *
+- * For small anonymous folios (except KSM folios) and anonymous hugetlb folios,
+- * the return value will be exactly correct, because they can only be mapped
+- * at most once into an MM, and they cannot be partially mapped.
++ * For small anonymous folios and anonymous hugetlb folios, the return
++ * value will be exactly correct: non-KSM folios can only be mapped at most once
++ * into an MM, and they cannot be partially mapped. KSM folios are
++ * considered shared even if mapped multiple times into the same MM.
+  *
+  * For other folios, the result can be fuzzy:
+  *    #. For partially-mappable large folios (THP), the return value can wrongly
+@@ -2148,9 +2153,6 @@ static inline size_t folio_size(const st
+  *    #. For pagecache folios (including hugetlb), the return value can wrongly
+  *       indicate "mapped shared" (false positive) when two VMAs in the same MM
+  *       cover the same file range.
+- *    #. For (small) KSM folios, the return value can wrongly indicate "mapped
+- *       shared" (false positive), when the folio is mapped multiple times into
+- *       the same MM.
+  *
+  * Further, this function only considers current page table mappings that
+  * are tracked using the folio mapcount(s).
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -131,4 +123,5 @@ mm-gup-convert-to-arch_make_folio_accessible.patch
 s390-uv-drop-arch_make_page_accessible.patch
 mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
 mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
+mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
 
