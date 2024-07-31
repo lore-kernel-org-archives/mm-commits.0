@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A17167296
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 20:41:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B126EB5C
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jul 2024 21:05:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722458503; cv=none; b=RVcblRWDC4+BTfbh5CE+td97sb8apzdTbGWrWH49q+uuNnBPVkTouh6Iue6FO2zZB8e4xC/p5S9S0m13CNeQKs1pmzKjMYzQJa2wvgSxufA+BUp5PczDlY0eaoX6HZtR79nWpXxaV/MmMNBUSn2Q8K3mHZw4pDdFpaG/4muyKN0=
+	t=1722459957; cv=none; b=UtQEJPzyRowQgO1C3KtaJxXDCP8UxHSxixy2yG8NgRJu3YrF/EjAtV9TKMCzXQf+dhStjShZGunG/GSnqE5/C+nAylSxXrwOhrTumsiLIdyTgFN7NpMv8QsHtiaVChp2ZvFjdefr8+njDNDa/ZNlxJ9gBbFRTL2AJmPQGRuMF4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722458503; c=relaxed/simple;
-	bh=CZGGBduzuP4lhXttrm3wCzrmgcfp2gcQOtQVwZEzb5M=;
-	h=Date:To:From:Subject:Message-Id; b=JtPDXC8ecJ/0ZY9K60nq6yBYfHMmqqFCMRiPcuSiGiTW+SOzYuzDiYnt/JSgpI4xKLHClwQn+7o43IdlYxEpIIteztRGezDoLE+kwRFqy/E2fWNV8fJqpEHbwn4mvA5e1cqZaVTJxBUt8f5DDUk6GW3ed5PCjxAhOHR334y9un4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mDW36yfF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722459957; c=relaxed/simple;
+	bh=XHuIZgHXL0kVUIUFVH3uAs/fza5MNXZMSdWqA6T6Sqw=;
+	h=Date:To:From:Subject:Message-Id; b=CwklIZyoPa1QDIXe03hx8Xb/cXO8L/dFs87TtEdtan/6UH6pw5DuQFoJ77OPuzc7Fmtw0EbihGQ+xU/vlkU7aTxWTd9ri8pnakvntQcKSTMEfjJtF+6SG/RmqU8VgpRRWhLghQajFool12Lmplt5Y/nQPfdrI9vW1hRJaXaIuN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CHrJ4PbH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mDW36yfF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38DB1C116B1;
-	Wed, 31 Jul 2024 20:41:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CHrJ4PbH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BD19C116B1;
+	Wed, 31 Jul 2024 21:05:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722458503;
-	bh=CZGGBduzuP4lhXttrm3wCzrmgcfp2gcQOtQVwZEzb5M=;
+	s=korg; t=1722459956;
+	bh=XHuIZgHXL0kVUIUFVH3uAs/fza5MNXZMSdWqA6T6Sqw=;
 	h=Date:To:From:Subject:From;
-	b=mDW36yfFkieAAW2CnO5Z5Ie+70VJzRpQKA7h3Xta+qPkvxt06pUF/3oTR0nbec0fc
-	 QRO0mPgUewc+cveFjz5NgwPvAkBqa+aACl8Sxs6dn2RToQimHjcS2wu+Cuhp3xVMF+
-	 kiGrxl9bMpXHWaxeV0SktgR6cn4NWKc8rSQ3+or4=
-Date: Wed, 31 Jul 2024 13:41:42 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kaleshsingh@google.com,hughd@google.com,chrisl@kernel.org,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=CHrJ4PbHGxfClTQ9YHLURowALMclu2CUv3kiviQ3N+BaJfdBm/La71rs0kYIBJ1Yg
+	 TyFQ7G9aTjZrPmGT9/P2FbkTPPQ/ceQTU0X/w+PiSLYTKC7idVwWjUdEadZtruDut/
+	 za4T5OSR1JaiB8fQNubKsD6tZs7pIYRPE8m8iH/s=
+Date: Wed, 31 Jul 2024 14:05:56 -0700
+To: mm-commits@vger.kernel.org,weiyongjun1@huawei.com,chenjun102@huawei.com,catalin.marinas@arm.com,ptikhomirov@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch added to mm-unstable branch
-Message-Id: <20240731204143.38DB1C116B1@smtp.kernel.org>
+Subject: + kmemleak-enable-tracking-for-percpu-pointers-v2.patch added to mm-unstable branch
+Message-Id: <20240731210556.8BD19C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: add a adaptive full cluster cache reclaim
+     Subject: kmemleak-enable-tracking-for-percpu-pointers-v2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+     kmemleak-enable-tracking-for-percpu-pointers-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmemleak-enable-tracking-for-percpu-pointers-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,185 +58,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm: swap: add a adaptive full cluster cache reclaim
-Date: Tue, 30 Jul 2024 23:49:21 -0700
+From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Subject: kmemleak-enable-tracking-for-percpu-pointers-v2
+Date: Wed, 31 Jul 2024 10:54:09 +0800
 
-Link all full cluster with one full list, and reclaim from it when the
-allocation have ran out of all usable clusters.
+rename confusing scan_pointer to pointer_update_refs and move it just
+after update_refs
 
-There are many reason a folio can end up being in the swap cache while
-having no swap count reference.  So the best way to search for such slots
-is still by iterating the swap clusters.
-
-With the list as an LRU, iterating from the oldest cluster and keep them
-rotating is a very doable and clean way to free up potentially not inuse
-clusters.
-
-When any allocation failure, try reclaim and rotate only one cluster. 
-This is adaptive for high order allocations they can tolerate fallback. 
-So this avoids latency, and give the full cluster list an fair chance to
-get reclaimed.  It release the usage stress for the fallback order 0
-allocation or following up high order allocation.
-
-If the swap device is getting very full, reclaim more aggresively to
-ensure no OOM will happen.  This ensures order 0 heavy workload won't go
-OOM as order 0 won't fail if any cluster still have any space.
-
-Link: https://lkml.kernel.org/r/20240730-swap-allocator-v5-9-cb9c148b9297@kernel.org
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20240731025526.157529-2-ptikhomirov@virtuozzo.com
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: Chen Jun <chenjun102@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swapfile.c        |   68 ++++++++++++++++++++++++++++++++---------
- 2 files changed, 55 insertions(+), 14 deletions(-)
+ mm/kmemleak.c |   48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-add-a-adaptive-full-cluster-cache-reclaim
-+++ a/include/linux/swap.h
-@@ -297,6 +297,7 @@ struct swap_info_struct {
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
- 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
- 	struct list_head free_clusters; /* free clusters list */
-+	struct list_head full_clusters; /* full clusters list */
- 	struct list_head nonfull_clusters[SWAP_NR_ORDERS];
- 					/* list of cluster that contains at least one free slot */
- 	struct list_head frag_clusters[SWAP_NR_ORDERS];
---- a/mm/swapfile.c~mm-swap-add-a-adaptive-full-cluster-cache-reclaim
-+++ a/mm/swapfile.c
-@@ -440,10 +440,7 @@ static void swap_cluster_schedule_discar
- 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
- 
- 	VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
--	if (ci->flags & CLUSTER_FLAG_NONFULL)
--		list_move_tail(&ci->list, &si->discard_clusters);
--	else
--		list_add_tail(&ci->list, &si->discard_clusters);
-+	list_move_tail(&ci->list, &si->discard_clusters);
- 	ci->flags = 0;
- 	schedule_work(&si->discard_work);
- }
-@@ -453,10 +450,7 @@ static void __free_cluster(struct swap_i
- 	lockdep_assert_held(&si->lock);
- 	lockdep_assert_held(&ci->lock);
- 
--	if (ci->flags & CLUSTER_FLAG_NONFULL)
--		list_move_tail(&ci->list, &si->free_clusters);
--	else
--		list_add_tail(&ci->list, &si->free_clusters);
-+	list_move_tail(&ci->list, &si->free_clusters);
- 	ci->flags = CLUSTER_FLAG_FREE;
- 	ci->order = 0;
- }
-@@ -576,12 +570,9 @@ static void dec_cluster_info_page(struct
- 
- 	if (!(ci->flags & CLUSTER_FLAG_NONFULL)) {
- 		VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
--		if (ci->flags & CLUSTER_FLAG_FRAG) {
-+		if (ci->flags & CLUSTER_FLAG_FRAG)
- 			p->frag_cluster_nr[ci->order]--;
--			list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
--		} else {
--			list_add_tail(&ci->list, &p->nonfull_clusters[ci->order]);
--		}
-+		list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
- 		ci->flags = CLUSTER_FLAG_NONFULL;
+--- a/mm/kmemleak.c~kmemleak-enable-tracking-for-percpu-pointers-v2
++++ a/mm/kmemleak.c
+@@ -1362,28 +1362,7 @@ static void update_refs(struct kmemleak_
  	}
  }
-@@ -674,7 +665,7 @@ static void cluster_alloc_range(struct s
- 			  (CLUSTER_FLAG_FREE | CLUSTER_FLAG_NONFULL | CLUSTER_FLAG_FRAG)));
- 		if (ci->flags & CLUSTER_FLAG_FRAG)
- 			si->frag_cluster_nr[ci->order]--;
--		list_del(&ci->list);
-+		list_move_tail(&ci->list, &si->full_clusters);
- 		ci->flags = 0;
- 	}
- }
-@@ -718,6 +709,46 @@ done:
- 	return offset;
+ 
+-/*
+- * Memory scanning is a long process and it needs to be interruptible. This
+- * function checks whether such interrupt condition occurred.
+- */
+-static int scan_should_stop(void)
+-{
+-	if (!kmemleak_enabled)
+-		return 1;
+-
+-	/*
+-	 * This function may be called from either process or kthread context,
+-	 * hence the need to check for both stop conditions.
+-	 */
+-	if (current->mm)
+-		return signal_pending(current);
+-	else
+-		return kthread_should_stop();
+-
+-	return 0;
+-}
+-
+-static void scan_pointer(struct kmemleak_object *scanned,
++static void pointer_update_refs(struct kmemleak_object *scanned,
+ 			 unsigned long pointer, unsigned int objflags)
+ {
+ 	struct kmemleak_object *object;
+@@ -1442,6 +1421,27 @@ static void scan_pointer(struct kmemleak
  }
  
-+static void swap_reclaim_full_clusters(struct swap_info_struct *si)
+ /*
++ * Memory scanning is a long process and it needs to be interruptible. This
++ * function checks whether such interrupt condition occurred.
++ */
++static int scan_should_stop(void)
 +{
-+	long to_scan = 1;
-+	unsigned long offset, end;
-+	struct swap_cluster_info *ci;
-+	unsigned char *map = si->swap_map;
-+	int nr_reclaim, total_reclaimed = 0;
++	if (!kmemleak_enabled)
++		return 1;
 +
-+	if (atomic_long_read(&nr_swap_pages) <= SWAPFILE_CLUSTER)
-+		to_scan = si->inuse_pages / SWAPFILE_CLUSTER;
++	/*
++	 * This function may be called from either process or kthread context,
++	 * hence the need to check for both stop conditions.
++	 */
++	if (current->mm)
++		return signal_pending(current);
++	else
++		return kthread_should_stop();
 +
-+	while (!list_empty(&si->full_clusters)) {
-+		ci = list_first_entry(&si->full_clusters, struct swap_cluster_info, list);
-+		list_move_tail(&ci->list, &si->full_clusters);
-+		offset = cluster_offset(si, ci);
-+		end = min(si->max, offset + SWAPFILE_CLUSTER);
-+		to_scan--;
-+
-+		while (offset < end) {
-+			if (READ_ONCE(map[offset]) == SWAP_HAS_CACHE) {
-+				spin_unlock(&si->lock);
-+				nr_reclaim = __try_to_reclaim_swap(si, offset,
-+								   TTRS_ANYWAY | TTRS_DIRECT);
-+				spin_lock(&si->lock);
-+				if (nr_reclaim > 0) {
-+					offset += nr_reclaim;
-+					total_reclaimed += nr_reclaim;
-+					continue;
-+				} else if (nr_reclaim < 0) {
-+					offset += -nr_reclaim;
-+					continue;
-+				}
-+			}
-+			offset++;
-+		}
-+		if (to_scan <= 0 || total_reclaimed)
-+			break;
-+	}
++	return 0;
 +}
 +
- /*
-  * Try to get swap entries with specified order from current cpu's swap entry
-  * pool (a cluster). This might involve allocating a new cluster for current CPU
-@@ -826,7 +857,15 @@ new_cluster:
- 				goto done;
- 		}
++/*
+  * Scan a memory block (exclusive range) for valid pointers and add those
+  * found to the gray list.
+  */
+@@ -1464,8 +1464,8 @@ static void scan_block(void *_start, voi
+ 		pointer = *(unsigned long *)kasan_reset_tag((void *)ptr);
+ 		kasan_enable_current();
+ 
+-		scan_pointer(scanned, pointer, 0);
+-		scan_pointer(scanned, pointer, OBJECT_PERCPU);
++		pointer_update_refs(scanned, pointer, 0);
++		pointer_update_refs(scanned, pointer, OBJECT_PERCPU);
  	}
-+
- done:
-+	/* Try reclaim from full clusters if device is nearfull */
-+	if (vm_swap_full() && (!found || (si->pages - si->inuse_pages) < SWAPFILE_CLUSTER)) {
-+		swap_reclaim_full_clusters(si);
-+		if (!found && !order && si->pages != si->inuse_pages)
-+			goto new_cluster;
-+	}
-+
- 	cluster->next[order] = offset;
- 	return found;
+ 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
  }
-@@ -3118,6 +3157,7 @@ static int setup_swap_map_and_extents(st
- 	nr_good_pages = maxpages - 1;	/* omit header page */
- 
- 	INIT_LIST_HEAD(&p->free_clusters);
-+	INIT_LIST_HEAD(&p->full_clusters);
- 	INIT_LIST_HEAD(&p->discard_clusters);
- 
- 	for (i = 0; i < SWAP_NR_ORDERS; i++) {
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from ptikhomirov@virtuozzo.com are
 
-mm-swap-clean-up-initialization-helper.patch
-mm-swap-skip-slot-cache-on-freeing-for-mthp.patch
-mm-swap-allow-cache-reclaim-to-skip-slot-cache.patch
-mm-swap-add-a-fragment-cluster-list.patch
-mm-swap-relaim-the-cached-parts-that-got-scanned.patch
-mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+kmemleak-enable-tracking-for-percpu-pointers.patch
+kmemleak-enable-tracking-for-percpu-pointers-v2.patch
+kmemleak-test-add-percpu-leak.patch
 
