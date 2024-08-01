@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207C213C832
-	for <mm-commits@vger.kernel.org>; Thu,  1 Aug 2024 19:58:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0577913E04C
+	for <mm-commits@vger.kernel.org>; Thu,  1 Aug 2024 23:49:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722542330; cv=none; b=IkLIMFYgrzsDkoE87T7JiRdU7P+csqyPlNp2ayLBHiMsswLmAjeePqleOT0/wwoYJTnG4BHHvWf7OGoTPuZJiUjK10P/bqv2+pSRCl8Vlr6SGyqS8clpKe/opSTuAYKVwJZW4FSkBI//azWC/Fy9Ud3/S7JUN1xBQQ32X9U5Uew=
+	t=1722556195; cv=none; b=nI3S1jD1yMH9Hnp6JCdV+0TOWNvxfN4KWfjHDSwVzbzrN8t/QELbFkSJo+tc1JbNm7/uSr0vBj0/u/gcRx7TxkQvXFia71fJIcl3bVfZ2ONZnOma49ppeGFaCqAC9PYSlt+3n65HQQ3i4L/2oiX4Gcaw4MN+J25x6XUCgMd1cEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722542330; c=relaxed/simple;
-	bh=bxzKDSIWhCk8CU2bkGCwejRzqJ8kti2zjW9CHPK3AzE=;
-	h=Date:To:From:Subject:Message-Id; b=i6yMUsLv61qfjm/1DY1AmfEvMzzKzAhlF8VXweLBDVuAXWar2c4Dw3av/RC32p0qyanNmd5Jg5RbzGXFrHT+IlDIffzaXkY9qdGwEqSukIJXqJjzpirTpxqllrds9W7YpJMd29hzt6+KylPmgFYeKZIZc52SImAd9r15sVCRLUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sHu2oKTJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722556195; c=relaxed/simple;
+	bh=M4JG9Lf2YO0jO5P47vupF4Png+hQ10g6hlcMHzGA5Uc=;
+	h=Date:To:From:Subject:Message-Id; b=jEl+ZW8YZYblH44zItFwDzNGRJpve6B8B67GqBrUS/GMl3liboiWy9W3sbVGF6uWXrrLpPLcPh6HPg0e4SYwx/y5tkJhyZgjRjM6qebo8Sy32bmFamqK5VVweA3NUZBWAw0tAjIYGZCBMHXYlqcVc1NrS7raWGk0cGazOf783Vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ys3rMW7u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sHu2oKTJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3AADC32786;
-	Thu,  1 Aug 2024 19:58:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ys3rMW7u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B135C32786;
+	Thu,  1 Aug 2024 23:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722542329;
-	bh=bxzKDSIWhCk8CU2bkGCwejRzqJ8kti2zjW9CHPK3AzE=;
+	s=korg; t=1722556194;
+	bh=M4JG9Lf2YO0jO5P47vupF4Png+hQ10g6hlcMHzGA5Uc=;
 	h=Date:To:From:Subject:From;
-	b=sHu2oKTJd/PNeX9EfLVgMKkbLq8z4mHxps38S0SGo39+g5JQyQyeW4lczbhE5BVNj
-	 tRdovA5ePlg4HjrXo9XTy/Hw/4zPnG8FsEFdvPzCwso/iZNXIdR6Hp9mG1FOAxykzi
-	 rkYRryLx0gChWoxgZhy2cWEAUSHhwmucuQ2Vov/A=
-Date: Thu, 01 Aug 2024 12:58:49 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baohua@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=Ys3rMW7uOY0dH41h6Hcyj1gI/LK7Hf3zkCQ1bC6I56LYGFpbGz4rykvQ2zAKPFvVB
+	 p+wF8jcwJRtt+6zj7sHsXs4gSwsfn5z5xaGEcrksa5p9OxMJ0SJoI2diFR4LOwYqr9
+	 U5CbHgFDiaSd0HDz98x86k86R1naW3/96lbf8gQw=
+Date: Thu, 01 Aug 2024 16:49:53 -0700
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240801195849.A3AADC32786@smtp.kernel.org>
+Subject: + mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch added to mm-unstable branch
+Message-Id: <20240801234954.7B135C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: fix incorrect aligned index when checking conflicts
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch
+     Subject: mm: create promo_wmark_pages and clean up open-coded sites
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fix incorrect aligned index when checking conflicts
-Date: Wed, 31 Jul 2024 13:46:20 +0800
+From: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Subject: mm: create promo_wmark_pages and clean up open-coded sites
+Date: Thu, 1 Aug 2024 23:25:47 +0000
 
-In the shmem_suitable_orders() function, xa_find() is used to check for
-conflicts in the pagecache to select suitable huge orders.  However, when
-checking each huge order in every loop, the aligned index is calculated
-from the previous iteration, which may cause suitable huge orders to be
-missed.
+Patch series "mm: print the promo watermark in zoneinfo", v2.
 
-We should use the original index each time in the loop to calculate a new
-aligned index for checking conflicts to avoid this issue.
 
-Link: https://lkml.kernel.org/r/07433b0f16a152bffb8cee34934a5c040e8e2ad6.1722404078.git.baolin.wang@linux.alibaba.com
-Fixes: e7a2ab7b3bb5 ("mm: shmem: add mTHP support for anonymous shmem")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+This patch (of 2):
+
+Define promo_wmark_pages and convert current call sites of wmark_pages
+with fixed WMARK_PROMO to using it instead.
+
+Link: https://lkml.kernel.org/r/20240801232548.36604-1-kaiyang2@cs.cmu.edu
+Link: https://lkml.kernel.org/r/20240801232548.36604-2-kaiyang2@cs.cmu.edu
+Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    1 +
+ kernel/sched/fair.c    |    2 +-
+ mm/vmscan.c            |    2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts
-+++ a/mm/shmem.c
-@@ -1681,6 +1681,7 @@ static unsigned long shmem_suitable_orde
- 					   unsigned long orders)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-+	pgoff_t aligned_index;
- 	unsigned long pages;
- 	int order;
+--- a/include/linux/mmzone.h~mm-create-promo_wmark_pages-and-clean-up-open-coded-sites
++++ a/include/linux/mmzone.h
+@@ -671,6 +671,7 @@ enum zone_watermarks {
+ #define min_wmark_pages(z) (z->_watermark[WMARK_MIN] + z->watermark_boost)
+ #define low_wmark_pages(z) (z->_watermark[WMARK_LOW] + z->watermark_boost)
+ #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
++#define promo_wmark_pages(z) (z->_watermark[WMARK_PROMO] + z->watermark_boost)
+ #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
  
-@@ -1692,9 +1693,9 @@ static unsigned long shmem_suitable_orde
- 	order = highest_order(orders);
- 	while (orders) {
- 		pages = 1UL << order;
--		index = round_down(index, pages);
--		if (!xa_find(&mapping->i_pages, &index,
--			     index + pages - 1, XA_PRESENT))
-+		aligned_index = round_down(index, pages);
-+		if (!xa_find(&mapping->i_pages, &aligned_index,
-+			     aligned_index + pages - 1, XA_PRESENT))
- 			break;
- 		order = next_order(&orders, order);
+ /*
+--- a/kernel/sched/fair.c~mm-create-promo_wmark_pages-and-clean-up-open-coded-sites
++++ a/kernel/sched/fair.c
+@@ -1742,7 +1742,7 @@ static bool pgdat_free_space_enough(stru
+ 			continue;
+ 
+ 		if (zone_watermark_ok(zone, 0,
+-				      wmark_pages(zone, WMARK_PROMO) + enough_wmark,
++				      promo_wmark_pages(zone) + enough_wmark,
+ 				      ZONE_MOVABLE, 0))
+ 			return true;
  	}
+--- a/mm/vmscan.c~mm-create-promo_wmark_pages-and-clean-up-open-coded-sites
++++ a/mm/vmscan.c
+@@ -6669,7 +6669,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 			continue;
+ 
+ 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
+-			mark = wmark_pages(zone, WMARK_PROMO);
++			mark = promo_wmark_pages(zone);
+ 		else
+ 			mark = high_wmark_pages(zone);
+ 		if (zone_watermark_ok_safe(zone, order, mark, highest_zoneidx))
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
 
-mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch
-mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix.patch
-mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch
-mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
-mm-shmem-rename-shmem_is_huge-to-shmem_huge_global_enabled.patch
-mm-shmem-move-shmem_huge_global_enabled-into-shmem_allowable_huge_orders.patch
+mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
+mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
+mm-print-the-promo-watermark-in-zoneinfo.patch
 
