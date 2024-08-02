@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 930E713E04C
-	for <mm-commits@vger.kernel.org>; Thu,  1 Aug 2024 23:49:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC0398F47
+	for <mm-commits@vger.kernel.org>; Fri,  2 Aug 2024 00:03:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722556197; cv=none; b=hAxep1R5x3wxAcdYRzhkNuVnoEgmfWEomUzZMh7OUHq8CjW2/+X0RvZsQ4qDILQ4sryJ9+a/l4CWdAYR3DnCBevSbIJhL3h13rgLICyvrHbj4NFYPDXznonICiIhahrhi687UQrXnf8ZThKwZfWRTsV3Vk1qEX5+O3J8tcdwO5o=
+	t=1722556988; cv=none; b=oELdt41pPxQp/viFPyvu9349JqcZgXOnRK3kG07nYnjyrNeGdMMKlS1VwvUwskDK+BDqUNllIpZW0Qd49gUtdcjy2nbDikpM07iKYdGTg8R6tdl6wATWLnIPIA+9JlZjY7Jj4ZP3eDGsr+LuUVLBe/z2EaRpF9mJ4lzx+/PVbXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722556197; c=relaxed/simple;
-	bh=zVk2vSMha+p9EN/rFQUB86CtkYEdBs6r/UsQ0+iCw9k=;
-	h=Date:To:From:Subject:Message-Id; b=bmnGNuwcKm3wUrciBCmxHemf3ZvNuuz0/4K7p4IfRME+eZa/u3idIPYfBBtuEZ+/Elz/uddgpKxH+P9y7BRv888cuLd5f7qhkqCBEI19vq/Ak5XuNzVC1viqXQf4He4tSwwt//mVNN/KoXGNOUFP1EDW5eRvJf/TPl9vqtsesro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=STs7HJI+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722556988; c=relaxed/simple;
+	bh=F9oEXkiNwh3lqz3Icn4qeRSKte9/UkpXuGkH4RHTnxM=;
+	h=Date:To:From:Subject:Message-Id; b=X0RNzB/LqMNmsBZl9pnQdVDXgjDwEPn6jB0yAKPRAroApvbkJ3Gnt2yzl4jEY9lVTuTrfBZAlx5/uCQYUqUgODji4iqKPjusFvMz5boLBr/rhvtNbka54n5uqy+9UjY7Nw3LY9gYYE7P53GZvSH1Q9i8Aun6xm91S/AHKnA86OI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwtfnG5a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="STs7HJI+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F472C32786;
-	Thu,  1 Aug 2024 23:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwtfnG5a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494FCC32786;
+	Fri,  2 Aug 2024 00:03:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722556197;
-	bh=zVk2vSMha+p9EN/rFQUB86CtkYEdBs6r/UsQ0+iCw9k=;
+	s=korg; t=1722556988;
+	bh=F9oEXkiNwh3lqz3Icn4qeRSKte9/UkpXuGkH4RHTnxM=;
 	h=Date:To:From:Subject:From;
-	b=STs7HJI+p/qAKeG/2EgnU/E07BhRxVaktka7yDnR2b7kKe3sOrpDk3qsDxPn+iW7z
-	 7bmMqcYLH7aVWDxQ47ekFxzvhTw5Ss6i/XlnJzgGlRJOtEFENDHPmwkK7hUXNfzGn5
-	 RcdaerbSvvpZinvuyYH7kkwe9M8BioGm0INFTFAQ=
-Date: Thu, 01 Aug 2024 16:49:56 -0700
-To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
+	b=qwtfnG5aT/tCpcW24Y6IbQHqS5K5or303KWE6XEvvxfmB2ME+hLvHZGWavJ/2hJTp
+	 GjZnohmk8gOe5lmoFCHZ599cm5c6xyhX80B0E9NLrhWuxbundyzN3B7QvRGU4Kk24I
+	 8yuK9zVa12g9o/vvk1ylat75is08eTagSM+tUqJk=
+Date: Thu, 01 Aug 2024 17:03:07 -0700
+To: mm-commits@vger.kernel.org,kaiyang2@cs.cmu.edu,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-print-the-promo-watermark-in-zoneinfo.patch added to mm-unstable branch
-Message-Id: <20240801234957.1F472C32786@smtp.kernel.org>
+Subject: + include-linux-mmzoneh-clean-up-watermark-accessors.patch added to mm-unstable branch
+Message-Id: <20240802000308.494FCC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: print the promo watermark in zoneinfo
+     Subject: include/linux/mmzone.h: clean up watermark accessors
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-print-the-promo-watermark-in-zoneinfo.patch
+     include-linux-mmzoneh-clean-up-watermark-accessors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-print-the-promo-watermark-in-zoneinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-mmzoneh-clean-up-watermark-accessors.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
-Subject: mm: print the promo watermark in zoneinfo
-Date: Thu, 1 Aug 2024 23:25:48 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/mmzone.h: clean up watermark accessors
+Date: Thu Aug  1 04:50:05 PM PDT 2024
 
-Print the promo watermark in zoneinfo just like other watermarks.  This
-helps users check and verify all the watermarks are appropriate.
+- we have a helper wmark_pages().  Teach min_wmark_pages(),
+  low_wmark_pages(), high_wmark_pages() and promo_wmark_pages() to use
+  it instead of open-coding its implementation.
 
-Link: https://lkml.kernel.org/r/20240801232548.36604-3-kaiyang2@cs.cmu.edu
-Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+- there's no reason to implement all these things as macros.  Redo them
+  in C.
+
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mmzone.h |   32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
---- a/mm/vmstat.c~mm-print-the-promo-watermark-in-zoneinfo
-+++ a/mm/vmstat.c
-@@ -1725,6 +1725,7 @@ static void zoneinfo_show_print(struct s
- 		   "\n        min      %lu"
- 		   "\n        low      %lu"
- 		   "\n        high     %lu"
-+		   "\n        promo    %lu"
- 		   "\n        spanned  %lu"
- 		   "\n        present  %lu"
- 		   "\n        managed  %lu"
-@@ -1734,6 +1735,7 @@ static void zoneinfo_show_print(struct s
- 		   min_wmark_pages(zone),
- 		   low_wmark_pages(zone),
- 		   high_wmark_pages(zone),
-+		   promo_wmark_pages(zone),
- 		   zone->spanned_pages,
- 		   zone->present_pages,
- 		   zone_managed_pages(zone),
+--- a/include/linux/mmzone.h~include-linux-mmzoneh-clean-up-watermark-accessors
++++ a/include/linux/mmzone.h
+@@ -668,12 +668,6 @@ enum zone_watermarks {
+ #define NR_LOWORDER_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1))
+ #define NR_PCP_LISTS (NR_LOWORDER_PCP_LISTS + NR_PCP_THP)
+ 
+-#define min_wmark_pages(z) (z->_watermark[WMARK_MIN] + z->watermark_boost)
+-#define low_wmark_pages(z) (z->_watermark[WMARK_LOW] + z->watermark_boost)
+-#define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
+-#define promo_wmark_pages(z) (z->_watermark[WMARK_PROMO] + z->watermark_boost)
+-#define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
+-
+ /*
+  * Flags used in pcp->flags field.
+  *
+@@ -1019,6 +1013,32 @@ enum zone_flags {
+ 	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
+ };
+ 
++static inline unsigned long wmark_pages(const struct zone *z,
++					enum zone_watermarks w)
++{
++	return z->_watermark[w] + z->watermark_boost;
++}
++
++static inline unsigned long min_wmark_pages(const struct zone *z)
++{
++	return wmark_pages(z, WMARK_MIN);
++}
++
++static inline unsigned long low_wmark_pages(const struct zone *z)
++{
++	return wmark_pages(z, WMARK_LOW);
++}
++
++static inline unsigned long high_wmark_pages(const struct zone *z)
++{
++	return wmark_pages(z, WMARK_HIGH);
++}
++
++static inline unsigned long promo_wmark_pages(const struct zone *z)
++{
++	return wmark_pages(z, WMARK_PROMO);
++}
++
+ static inline unsigned long zone_managed_pages(struct zone *zone)
+ {
+ 	return (unsigned long)atomic_long_read(&zone->managed_pages);
 _
 
-Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
-mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
-mm-print-the-promo-watermark-in-zoneinfo.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
 
