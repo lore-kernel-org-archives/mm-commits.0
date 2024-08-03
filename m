@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C708719BBA
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:42:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39B919BB7
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722710521; cv=none; b=rdnYCgufHrPcAs6jHcRoaNTieDNmC04P3A+DtxvTaSEaCBl35dz0sU+FlzI0ULHcvjTfpFWfPQBiwtDbk5jXQ3i5DIHHUMBZm4jbEe/byFs6M64KsAcKUM5Fn6waRKyGVjXQ8BZIu6tOBjAijnYwSlSItqOpoxzgHBTipYxESZc=
+	t=1722710523; cv=none; b=cyYrtAWDHd4Jk1zEIxVsO3JmuXQ81wmwwYC+uYpEA5uSZVbvmwyc0o0Kt+so7WsEScenWjb8ZJTz7+ajpAKDDR8ZJvnd8ux7tvvKramXyTpw382UqyQt3ly0TH89ZWD0yvSrFXUKaPxdOZgzcAwZ4tC3CzWLKmvXEgIZCeTDSxg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722710521; c=relaxed/simple;
-	bh=ZuQ8F1+ZPrUQ2DaGV2RH44w+yVkRMPLA7YMTbN/QrV4=;
-	h=Date:To:From:Subject:Message-Id; b=VHJCffMbRUxIKXrZ1Nu1la82p0mRQ2WyhMcw5aptKyfV09kc71T42QnK826u+Jy5xdct2kbfmHbE1TlTL+fawpd+7UQJDOFnZh/FqgkQGuFKXGq6zHl3ngpOfjLv3C5AOE6i99/yVes+A7o4uNnHoX2u6vCuxwuVvgSErQ4tlu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jrm1dtjl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722710523; c=relaxed/simple;
+	bh=w/LA7QbRvpm75a5ip+K5fGmMCzoleF7fOp/eToUnOII=;
+	h=Date:To:From:Subject:Message-Id; b=XzB3pxG6Rr12bziFbywmyVpBCw+jVdOsNePZrvovoZkoHXrwOrNEBr6lroErW9wdNGXpiVugwKyL5dU91JYoC5rUDYvDJiLMrCMeyIj2lkpjhC5k+sxYw+8r/Fa9oNAAR/5xgpAeGVfHE/5/IXvj1fC/G3b8LiC+mbEhCj85xbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t5oQEVta; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jrm1dtjl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20B3AC116B1;
-	Sat,  3 Aug 2024 18:42:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t5oQEVta"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68294C116B1;
+	Sat,  3 Aug 2024 18:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722710521;
-	bh=ZuQ8F1+ZPrUQ2DaGV2RH44w+yVkRMPLA7YMTbN/QrV4=;
+	s=korg; t=1722710523;
+	bh=w/LA7QbRvpm75a5ip+K5fGmMCzoleF7fOp/eToUnOII=;
 	h=Date:To:From:Subject:From;
-	b=jrm1dtjlutFMRQgNJH/mLbgUJRCE6sq/iqLf0Wiv7yJlqbIh3HiwZW/iV6Dsmy0tX
-	 hCc0i9AUj36bRHq7YI0S6rqpxl1X9X80HIIHUZqwJ1GR/k0edN5FC6w9fp1NirzofZ
-	 4BkYq4VMGpQJpJMDLjpnRawjcSY+ANueTtOGU7JM=
-Date: Sat, 03 Aug 2024 11:42:00 -0700
+	b=t5oQEVtaAdGglA2j1VqIsfOZpYI0+WhMZKoREm/m50lmTKJdzRGFUelk3KizjSljx
+	 LB09HLseOV+50fceH/g6ftkvv1UlrKS5F816TBjHWkuBWzP2R/aBA4jGeBIY94hkjk
+	 5qWO2SyGLM3Qwk0uJEq6PvrDEziDZtSlfdD0A4YE=
+Date: Sat, 03 Aug 2024 11:42:02 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch added to mm-unstable branch
-Message-Id: <20240803184201.20B3AC116B1@smtp.kernel.org>
+Subject: + mips-sgi-ip27-drop-have_arch_nodedata_extension.patch added to mm-unstable branch
+Message-Id: <20240803184203.68294C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MIPS: sgi-ip27: ensure node_possible_map only contains valid nodes
+     Subject: MIPS: sgi-ip27: drop HAVE_ARCH_NODEDATA_EXTENSION
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
+     mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: MIPS: sgi-ip27: ensure node_possible_map only contains valid nodes
-Date: Thu, 1 Aug 2024 09:08:03 +0300
+Subject: MIPS: sgi-ip27: drop HAVE_ARCH_NODEDATA_EXTENSION
+Date: Thu, 1 Aug 2024 09:08:04 +0300
 
-For SGI IP27 machines node_possible_map is statically set to NODE_MASK_ALL
-and it is not updated during NUMA initialization.
+Commit f8f9f21c7848 ("MIPS: Fix build error for loongson64 and sgi-ip27")
+added HAVE_ARCH_NODEDATA_EXTENSION to sgi-ip27 to silence a compilation
+error that happened because sgi-ip27 didn't define array of pg_data_t as
+node_data like most other architectures did.
 
-Ensure that it only contains nodes present in the system.
+After addition of node_data array that matches other architectures and
+after ensuring that offline nodes do not appear on node_possible_map, it
+is safe to drop arch_alloc_nodedata() and HAVE_ARCH_NODEDATA_EXTENSION
+from sgi-ip27.
 
-Link: https://lkml.kernel.org/r/20240801060826.559858-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240801060826.559858-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
@@ -102,25 +107,36 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/sgi-ip27/ip27-smp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/Kconfig                |    1 -
+ arch/mips/sgi-ip27/ip27-memory.c |   10 ----------
+ 2 files changed, 11 deletions(-)
 
---- a/arch/mips/sgi-ip27/ip27-smp.c~mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes
-+++ a/arch/mips/sgi-ip27/ip27-smp.c
-@@ -70,11 +70,13 @@ void cpu_node_probe(void)
- 	gda_t *gdap = GDA;
- 
- 	nodes_clear(node_online_map);
-+	nodes_clear(node_possible_map);
- 	for (i = 0; i < MAX_NUMNODES; i++) {
- 		nasid_t nasid = gdap->g_nasidtable[i];
- 		if (nasid == INVALID_NASID)
- 			break;
- 		node_set_online(nasid);
-+		node_set(nasid, node_possible_map);
- 		highest = node_scan_cpus(nasid, highest);
- 	}
- 
+--- a/arch/mips/Kconfig~mips-sgi-ip27-drop-have_arch_nodedata_extension
++++ a/arch/mips/Kconfig
+@@ -735,7 +735,6 @@ config SGI_IP27
+ 	select WAR_R10000_LLSC
+ 	select MIPS_L1_CACHE_SHIFT_7
+ 	select NUMA
+-	select HAVE_ARCH_NODEDATA_EXTENSION
+ 	help
+ 	  This are the SGI Origin 200, Origin 2000 and Onyx 2 Graphics
+ 	  workstations.  To compile a Linux kernel that runs on these, say Y
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mips-sgi-ip27-drop-have_arch_nodedata_extension
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -426,13 +426,3 @@ void __init mem_init(void)
+ 	memblock_free_all();
+ 	setup_zero_pages();	/* This comes from node 0 */
+ }
+-
+-pg_data_t * __init arch_alloc_nodedata(int nid)
+-{
+-	return memblock_alloc(sizeof(pg_data_t), SMP_CACHE_BYTES);
+-}
+-
+-void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-{
+-	__node_data[nid] = (struct node_data *)pgdat;
+-}
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
