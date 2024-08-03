@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F076134AB
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:43:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A33134AB
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:43:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722710596; cv=none; b=FPN5pYmU5RsqNO5QBcIXrSrrF69Je3Ipgu5uGDv1PKAoDt8Ucu6+cOPeXJzPrnN26NngUWqWnNToIBQ6wjYB+Typb5h8Tc8D77HUh4rQ55p4JROYjLTVcHsa+RVLN86jgKDW0bzTrczAa8H7x6mN61uON+rT0PMyncwFudjgf68=
+	t=1722710599; cv=none; b=qaUsaoM1o3WUlMsT32JuzUCqDLNgDC2N7o/J5XQX5u0sYwnZMvGDn6nPIJlKMttoCf239vZ6gkrN5lM/mPbhYdE0lPOyucm8cI9SMoMR+Dvjcb9Y61yDK67t0aIYUXzhLgWHlSZRLixXKoA7gEv5D5y0akgDrLyIGykTE5HYK4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722710596; c=relaxed/simple;
-	bh=G0zYMNzLaHooUYM3ngPUs7g5vdicxenXXrojZhuMNrM=;
-	h=Date:To:From:Subject:Message-Id; b=HbxXlR+u6JBV7bH/UwH5dn2Sxipn+XKWkFRSPL2qbyBuTXwm6+xvz17iB5rOF8euGMt6YlrWxrnq12vcW29BcMVdF98O3dNYioLvhK8Tk2SFBnvVYbgVdLNJqBFVc1L0UUqKPRwX+w++rn/7gHbhnppomSh5ZMlBfazSLj8VyL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WU+UMJrk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722710599; c=relaxed/simple;
+	bh=vT/LuAc0zW8blupyyRYKVNrThCp130gFTHnGDKxp+EM=;
+	h=Date:To:From:Subject:Message-Id; b=O0f9D4B6Yp6InWQsZ3cTx3x/JPWm/NppUaT+tu840sSOyvaXH4AoChcU+ehep3A64VwKYUVopZZHdzbqgqumlwSWGE691K37dSNg/7fdyIil7vUa4o0FHus2QWXCk0Yr+M/B6t31FXYOc/TFpgPlkKb+78iBy8+vw26SeYth9Sk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BnyCvYh1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WU+UMJrk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34613C116B1;
-	Sat,  3 Aug 2024 18:43:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BnyCvYh1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F981C116B1;
+	Sat,  3 Aug 2024 18:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722710596;
-	bh=G0zYMNzLaHooUYM3ngPUs7g5vdicxenXXrojZhuMNrM=;
+	s=korg; t=1722710598;
+	bh=vT/LuAc0zW8blupyyRYKVNrThCp130gFTHnGDKxp+EM=;
 	h=Date:To:From:Subject:From;
-	b=WU+UMJrkLd/QgGqxLJ49N3Tf/gP3cN0MWwf7NgTKMZBsmcqA7iuqzUrY1Qeq+u3wW
-	 etO4ZYlsreNsDIcxVdvr5pB4tJti/hdvKorIA4z6ghTuaTi3t90/xAxWq8w55B6Ch0
-	 HwPEZiek9wH/3Q95mKXajN7UBvrAyFewziMDiDfo=
-Date: Sat, 03 Aug 2024 11:43:15 -0700
+	b=BnyCvYh1wMYrmhVVRjyXTVhOvZBntpGZVKbiewpVou10uNXb/AfgauNCL+pn5eYWF
+	 /TqywaBLwBlzLgbQeKFBWD/U0r/Qs+JtWUJbTHrh2usgoM0QwsVw+Yql9kMCVu/C8K
+	 n4SAmnTNiY0SrrUnqLAt5KzsLVKT/kAd02peX18U=
+Date: Sat, 03 Aug 2024 11:43:17 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch added to mm-unstable branch
-Message-Id: <20240803184316.34613C116B1@smtp.kernel.org>
+Subject: + of-numa-return-einval-when-no-numa-node-id-is-found.patch added to mm-unstable branch
+Message-Id: <20240803184318.5F981C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: numa_memblks: use memblock_{start,end}_of_DRAM() when sanitizing meminfo
+     Subject: of, numa: return -EINVAL when no numa-node-id is found
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
+     of-numa-return-einval-when-no-numa-node-id-is-found.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/of-numa-return-einval-when-no-numa-node-id-is-found.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm: numa_memblks: use memblock_{start,end}_of_DRAM() when sanitizing meminfo
-Date: Thu, 1 Aug 2024 09:08:22 +0300
+Subject: of, numa: return -EINVAL when no numa-node-id is found
+Date: Thu, 1 Aug 2024 09:08:23 +0300
 
-numa_cleanup_meminfo() moves blocks outside system RAM to
-numa_reserved_meminfo and it uses 0 and PFN_PHYS(max_pfn) to determine the
-memory boundaries.
+Currently of_numa_parse_memory_nodes() returns 0 if no "memory" node in
+device tree contains "numa-node-id" property.  This makes of_numa_init()
+to return "success" despite no NUMA nodes were actually parsed and set up.
 
-Replace the memory range boundaries with more portable
-memblock_start_of_DRAM() and memblock_end_of_DRAM().
+arch_numa workarounds this by returning an error if numa_nodes_parsed is
+empty.
 
-Link: https://lkml.kernel.org/r/20240801060826.559858-23-rppt@kernel.org
+numa_memblks however would WARN() in such case and since it will be used
+by arch_numa shortly, such warning is not desirable.
+
+Make sure of_numa_init() returns -EINVAL when no NUMA node information was
+found in the device tree.
+
+Link: https://lkml.kernel.org/r/20240801060826.559858-24-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Zi Yan <ziy@nvidia.com>	[x86_64 and arm64]
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -101,25 +106,33 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/numa_memblks.c |    4 ++--
+ drivers/of/of_numa.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/numa_memblks.c~mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo
-+++ a/mm/numa_memblks.c
-@@ -212,8 +212,8 @@ int __init numa_add_memblk(int nid, u64
-  */
- int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
- {
--	const u64 low = 0;
--	const u64 high = PFN_PHYS(max_pfn);
-+	const u64 low = memblock_start_of_DRAM();
-+	const u64 high = memblock_end_of_DRAM();
- 	int i, j, k;
+--- a/drivers/of/of_numa.c~of-numa-return-einval-when-no-numa-node-id-is-found
++++ a/drivers/of/of_numa.c
+@@ -45,7 +45,7 @@ static int __init of_numa_parse_memory_n
+ 	struct device_node *np = NULL;
+ 	struct resource rsrc;
+ 	u32 nid;
+-	int i, r;
++	int i, r = -EINVAL;
  
- 	/* first, trim all entries */
+ 	for_each_node_by_type(np, "memory") {
+ 		r = of_property_read_u32(np, "numa-node-id", &nid);
+@@ -72,7 +72,7 @@ static int __init of_numa_parse_memory_n
+ 		}
+ 	}
+ 
+-	return 0;
++	return r;
+ }
+ 
+ static int __init of_numa_parse_distance_map_v1(struct device_node *map)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
