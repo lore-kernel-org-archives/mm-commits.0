@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4531C6B7
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:43:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58681C6B7
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:43:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722710590; cv=none; b=P8XcOYjOrIkN9Md7NnhlKFbuEKym+tEKlrEWWA1FZKfie5NgWTdM4ykHBVQnbwtbeV94Nz05qfOElNBwA8DvmnaCYPa6Psb1nDl8uMXUQBQOb37EAk441WzDwR16D4igyM38Rfpm9fsEkiZ+NbyZjoBNnjP+xujXyACMirFheNY=
+	t=1722710593; cv=none; b=VxuVQ7nysC9UZp+1w8QMX5dIsXg8BwmtXVSX3ENwCe24FMGbGs6vXgbrJqDS1TPxGBi/nn5tQSliOIPTm4SWkN26opDvPoGuuuqUp7AUomq6iSejoo6cFjswfh+qmyQxN54OlYx6UowVgSD5xgGckxgFSlLnVnYcgQN/eUTYGwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722710590; c=relaxed/simple;
-	bh=75YWcu675W4PGs0B63Qo4uQwEamXy4qEjarEcuWy8mA=;
-	h=Date:To:From:Subject:Message-Id; b=AJ722DXMb2dBr47J8OQQIB4/8Zu57rr7WN9TuHCHCDhaRYeP8fbkfvComWkqplwStuDH9DmS8Hq/P87Uzl8vlq/f4SLzINPBm3cweQmWYCeS8HfTPe7WQV1RulSu01bZkiGual0iWdCHoQUX29DptfptgtKUDJ4XF0CQemRTz4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OoKccFxk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722710593; c=relaxed/simple;
+	bh=5MZWEJPayN8bPTSMh9wbEOMFMnkW/S9W3S1m1HQefgc=;
+	h=Date:To:From:Subject:Message-Id; b=temL74xn/OH5CqtBUypI3oqwYY8g8C8BBhYeCHXs+sBe1D4IuuBPirWrEuqVgmX1tc6yDGPgsb4SOB3XI0tsytPhRxxOM+CXfOEDg8R62pDXUYh+j/z/3tudWmi4SPPHCVnHJ9sJIf0aR2eTEXbM0sl08WK8K1UP3k6DoHE0e4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LOSW5nox; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OoKccFxk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D65C116B1;
-	Sat,  3 Aug 2024 18:43:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LOSW5nox"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94C83C116B1;
+	Sat,  3 Aug 2024 18:43:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722710590;
-	bh=75YWcu675W4PGs0B63Qo4uQwEamXy4qEjarEcuWy8mA=;
+	s=korg; t=1722710593;
+	bh=5MZWEJPayN8bPTSMh9wbEOMFMnkW/S9W3S1m1HQefgc=;
 	h=Date:To:From:Subject:From;
-	b=OoKccFxkP7DcaTY9ncApMyxIqDo/RSPTf/SOABE5tFYmQLVWtXDw3MH5mGSpvz6KA
-	 mmhFVnc15sFIikVwFoCkO6zoF0s2LiUWf2vza9U2HbZjTX2c4eN4rtcaGGrV0Fmrfq
-	 250HUJPssIYWRkZ614Pofe5Jjcql6cwjGtjnN44k=
-Date: Sat, 03 Aug 2024 11:43:10 -0700
+	b=LOSW5nox38lA/FalMtnKQuNRY0HfYtqKa4EPCinW0fGsdPW1jO8pKczQ+rdlyPzZU
+	 A3UKgEnCbZ3KOcXVMLde0HX2FAC1m3LI6mwothmE1mYXcTv9eiiIMlH/BC43+8ckCz
+	 D61fxaDRLqQ4lI+K5VpFu+Quge/hDg/iUOovamPI=
+Date: Sat, 03 Aug 2024 11:43:13 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa_memblks-introduce-numa_memblks_init.patch added to mm-unstable branch
-Message-Id: <20240803184310.95D65C116B1@smtp.kernel.org>
+Subject: + mm-numa_memblks-make-several-functions-and-variables-static.patch added to mm-unstable branch
+Message-Id: <20240803184313.94C83C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: numa_memblks: introduce numa_memblks_init
+     Subject: mm: numa_memblks: make several functions and variables static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-numa_memblks-introduce-numa_memblks_init.patch
+     mm-numa_memblks-make-several-functions-and-variables-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-introduce-numa_memblks_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-make-several-functions-and-variables-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm: numa_memblks: introduce numa_memblks_init
-Date: Thu, 1 Aug 2024 09:08:20 +0300
+Subject: mm: numa_memblks: make several functions and variables static
+Date: Thu, 1 Aug 2024 09:08:21 +0300
 
-Move most of x86::numa_init() to numa_memblks so that the latter will be
-more self-contained.
+Make functions and variables that are exclusively used by numa_memblks
+static.
 
-With this numa_memblk data structures should not be exposed to the
-architecture specific code.
+Move numa_nodemask_from_meminfo() before its callers to avoid forward
+declaration.
 
-Link: https://lkml.kernel.org/r/20240801060826.559858-21-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240801060826.559858-22-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Zi Yan <ziy@nvidia.com>	[x86_64 and arm64]
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -103,133 +103,101 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c           |   40 +++-----------------------------
- include/linux/numa_memblks.h |    3 ++
- mm/numa_memblks.c            |   41 +++++++++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+), 36 deletions(-)
+ include/linux/numa_memblks.h |    8 -------
+ mm/numa_memblks.c            |   36 ++++++++++++++++-----------------
+ 2 files changed, 18 insertions(+), 26 deletions(-)
 
---- a/arch/x86/mm/numa.c~mm-numa_memblks-introduce-numa_memblks_init
-+++ a/arch/x86/mm/numa.c
-@@ -115,13 +115,9 @@ void __init setup_node_to_cpumask_map(vo
- 	pr_debug("Node to cpumask map for %u nodes\n", nr_node_ids);
- }
- 
--static int __init numa_register_memblks(struct numa_meminfo *mi)
-+static int __init numa_register_nodes(void)
- {
--	int nid, err;
--
--	err = numa_register_meminfo(mi);
--	if (err)
--		return err;
-+	int nid;
- 
- 	if (!memblock_validate_numa_coverage(SZ_1M))
- 		return -EINVAL;
-@@ -171,39 +167,11 @@ static int __init numa_init(int (*init_f
- 	for (i = 0; i < MAX_LOCAL_APIC; i++)
- 		set_apicid_to_node(i, NUMA_NO_NODE);
- 
--	nodes_clear(numa_nodes_parsed);
--	nodes_clear(node_possible_map);
--	nodes_clear(node_online_map);
--	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
--	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
--				  NUMA_NO_NODE));
--	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
--				  NUMA_NO_NODE));
--	/* In case that parsing SRAT failed. */
--	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
--	numa_reset_distance();
--
--	ret = init_func();
-+	ret = numa_memblks_init(init_func, /* memblock_force_top_down */ true);
- 	if (ret < 0)
- 		return ret;
- 
--	/*
--	 * We reset memblock back to the top-down direction
--	 * here because if we configured ACPI_NUMA, we have
--	 * parsed SRAT in init_func(). It is ok to have the
--	 * reset here even if we did't configure ACPI_NUMA
--	 * or acpi numa init fails and fallbacks to dummy
--	 * numa init.
--	 */
--	memblock_set_bottom_up(false);
--
--	ret = numa_cleanup_meminfo(&numa_meminfo);
--	if (ret < 0)
--		return ret;
--
--	numa_emulation(&numa_meminfo, numa_distance_cnt);
--
--	ret = numa_register_memblks(&numa_meminfo);
-+	ret = numa_register_nodes();
- 	if (ret < 0)
- 		return ret;
- 
---- a/include/linux/numa_memblks.h~mm-numa_memblks-introduce-numa_memblks_init
+--- a/include/linux/numa_memblks.h~mm-numa_memblks-make-several-functions-and-variables-static
 +++ a/include/linux/numa_memblks.h
-@@ -34,6 +34,9 @@ int __init numa_register_meminfo(struct
- void __init numa_nodemask_from_meminfo(nodemask_t *nodemask,
- 				       const struct numa_meminfo *mi);
+@@ -7,7 +7,6 @@
  
-+int __init numa_memblks_init(int (*init_func)(void),
-+			     bool memblock_force_top_down);
-+
- #ifdef CONFIG_NUMA_EMU
- int numa_emu_cmdline(char *str);
- void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
---- a/mm/numa_memblks.c~mm-numa_memblks-introduce-numa_memblks_init
+ #define NR_NODE_MEMBLKS		(MAX_NUMNODES * 2)
+ 
+-extern int numa_distance_cnt;
+ void __init numa_set_distance(int from, int to, int distance);
+ void __init numa_reset_distance(void);
+ 
+@@ -22,17 +21,10 @@ struct numa_meminfo {
+ 	struct numa_memblk	blk[NR_NODE_MEMBLKS];
+ };
+ 
+-extern struct numa_meminfo numa_meminfo __initdata_or_meminfo;
+-extern struct numa_meminfo numa_reserved_meminfo __initdata_or_meminfo;
+-
+ int __init numa_add_memblk(int nodeid, u64 start, u64 end);
+ void __init numa_remove_memblk_from(int idx, struct numa_meminfo *mi);
+ 
+ int __init numa_cleanup_meminfo(struct numa_meminfo *mi);
+-int __init numa_register_meminfo(struct numa_meminfo *mi);
+-
+-void __init numa_nodemask_from_meminfo(nodemask_t *nodemask,
+-				       const struct numa_meminfo *mi);
+ 
+ int __init numa_memblks_init(int (*init_func)(void),
+ 			     bool memblock_force_top_down);
+--- a/mm/numa_memblks.c~mm-numa_memblks-make-several-functions-and-variables-static
 +++ a/mm/numa_memblks.c
-@@ -415,6 +415,47 @@ int __init numa_register_meminfo(struct
- 	return 0;
+@@ -7,13 +7,27 @@
+ #include <linux/numa.h>
+ #include <linux/numa_memblks.h>
+ 
+-int numa_distance_cnt;
++static int numa_distance_cnt;
+ static u8 *numa_distance;
+ 
+ nodemask_t numa_nodes_parsed __initdata;
+ 
+-struct numa_meminfo numa_meminfo __initdata_or_meminfo;
+-struct numa_meminfo numa_reserved_meminfo __initdata_or_meminfo;
++static struct numa_meminfo numa_meminfo __initdata_or_meminfo;
++static struct numa_meminfo numa_reserved_meminfo __initdata_or_meminfo;
++
++/*
++ * Set nodes, which have memory in @mi, in *@nodemask.
++ */
++static void __init numa_nodemask_from_meminfo(nodemask_t *nodemask,
++					      const struct numa_meminfo *mi)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(mi->blk); i++)
++		if (mi->blk[i].start != mi->blk[i].end &&
++		    mi->blk[i].nid != NUMA_NO_NODE)
++			node_set(mi->blk[i].nid, *nodemask);
++}
+ 
+ /**
+  * numa_reset_distance - Reset NUMA distance table
+@@ -291,20 +305,6 @@ int __init numa_cleanup_meminfo(struct n
  }
  
-+int __init numa_memblks_init(int (*init_func)(void),
-+			     bool memblock_force_top_down)
-+{
-+	int ret;
-+
-+	nodes_clear(numa_nodes_parsed);
-+	nodes_clear(node_possible_map);
-+	nodes_clear(node_online_map);
-+	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
-+	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
-+				  NUMA_NO_NODE));
-+	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
-+				  NUMA_NO_NODE));
-+	/* In case that parsing SRAT failed. */
-+	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
-+	numa_reset_distance();
-+
-+	ret = init_func();
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * We reset memblock back to the top-down direction
-+	 * here because if we configured ACPI_NUMA, we have
-+	 * parsed SRAT in init_func(). It is ok to have the
-+	 * reset here even if we did't configure ACPI_NUMA
-+	 * or acpi numa init fails and fallbacks to dummy
-+	 * numa init.
-+	 */
-+	if (memblock_force_top_down)
-+		memblock_set_bottom_up(false);
-+
-+	ret = numa_cleanup_meminfo(&numa_meminfo);
-+	if (ret < 0)
-+		return ret;
-+
-+	numa_emulation(&numa_meminfo, numa_distance_cnt);
-+
-+	return numa_register_meminfo(&numa_meminfo);
-+}
-+
- static int __init cmp_memblk(const void *a, const void *b)
+ /*
+- * Set nodes, which have memory in @mi, in *@nodemask.
+- */
+-void __init numa_nodemask_from_meminfo(nodemask_t *nodemask,
+-				       const struct numa_meminfo *mi)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(mi->blk); i++)
+-		if (mi->blk[i].start != mi->blk[i].end &&
+-		    mi->blk[i].nid != NUMA_NO_NODE)
+-			node_set(mi->blk[i].nid, *nodemask);
+-}
+-
+-/*
+  * Mark all currently memblock-reserved physical memory (which covers the
+  * kernel's own memory ranges) as hot-unswappable.
+  */
+@@ -371,7 +371,7 @@ static void __init numa_clear_kernel_nod
+ 	}
+ }
+ 
+-int __init numa_register_meminfo(struct numa_meminfo *mi)
++static int __init numa_register_meminfo(struct numa_meminfo *mi)
  {
- 	const struct numa_memblk *ma = *(const struct numa_memblk **)a;
+ 	int i;
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
