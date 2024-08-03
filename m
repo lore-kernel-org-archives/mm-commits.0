@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F4613E02C
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:33:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE5242A82
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:33:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722663226; cv=none; b=UQ5Dg2Kq3T8335l5CS4rR/hgvazJc6S4SuGQHnQGKY9sPJkvX/bjSMId7Qq65LE9H/PMU3gruy9yq038VsogcK3axMylx/WFSXOu0L5lFmLQy/xT4G9kk8cTw6Er9q8Y8BTHWGU44DyudMoOmIc3om/dI4KmL6wQY5u7w5V3xp0=
+	t=1722663227; cv=none; b=cJogowSVAufrefov23qz55W5+EM54VViHADsgMLe8D1MkB3mP9hdKr1lqtiVEwLOowj3GtQgZcfVoMG58x4d37cymzt+Fq6QU7CL5F8jcRM9kvJwCy9naBauKTXh+1uKdepwNoZUd/ewc+ry67woZgtnevY66xmuvNYkizGL2ys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722663226; c=relaxed/simple;
-	bh=6ssCaRIpGatcRAawtDpioESClqRwIIREGvM5vb4VNtU=;
-	h=Date:To:From:Subject:Message-Id; b=nEZRxkOtSh1OI1tTDqa9JUlZim/j1W9cibLlWlVzL6+57v9unh1rYbqrXb8eBbdJn+eBzjIxCvxlWp1LXr+6rMM7Yhy6Oh9oTPMAomRTC1yuuCxQhQaHkGv3+g/+ipHZ4NNIOTgcBxu4NQG3e4VtURsKiqThFzTxO4I0hXxMICs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E9raXwXz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722663227; c=relaxed/simple;
+	bh=QlFJc8JD9rwnSsbkcZwQsxzpRqEIGoQvlTLs0an7JpY=;
+	h=Date:To:From:Subject:Message-Id; b=OIZwOpVt+Nl9N2ZDD/yRUVbe1POr7anWg4f90qMr3zqRwli1kTAdUiVBzZ54ji6lfc5xwfGLpHy0+oqOTzlyZSLSf/0MJu/2ylWa2TQFOD/g1UXfcCReiqQaSpGQ3fxdI9kNbGpivNRvwBbe3nZI204d0ec33p73dZftQB/ENf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xh0iOyBp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E9raXwXz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3950AC116B1;
-	Sat,  3 Aug 2024 05:33:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xh0iOyBp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EAABC116B1;
+	Sat,  3 Aug 2024 05:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722663226;
-	bh=6ssCaRIpGatcRAawtDpioESClqRwIIREGvM5vb4VNtU=;
+	s=korg; t=1722663227;
+	bh=QlFJc8JD9rwnSsbkcZwQsxzpRqEIGoQvlTLs0an7JpY=;
 	h=Date:To:From:Subject:From;
-	b=E9raXwXzzVhXCDc+1jkIaJ2RhWJ3WiTmTAePrCFCArlUeq3aYV0BGpLUtymq3P0PO
-	 oOKFwSNo+7wbx7dAZLykOIU3Y9yDRdJUrzFTQFeBkuADp4zGXTefYKjiVa6Z0xLTVg
-	 JlLm+7tJlonF1EYmRPF7t24J04XlbJc6Qm4IpiVU=
-Date: Fri, 02 Aug 2024 22:33:45 -0700
+	b=Xh0iOyBptTPfpAs5hdjfFn1evbITGmHIPtJG9TyTPCTVgmX+lUyp7tSkgYMQq+SJo
+	 n3sslmL0raZaw5P9lwcyKyDVqh1Co73A7z6UVbY3xqu+JwYKKUPu1AXIn99rDCLN4e
+	 2gI/IBpIfxEfULpBgCe2QzOi5hh2nhzBY4xPfkuo=
+Date: Fri, 02 Aug 2024 22:33:47 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,svens@linux.ibm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch added to mm-unstable branch
-Message-Id: <20240803053346.3950AC116B1@smtp.kernel.org>
+Subject: + s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch added to mm-unstable branch
+Message-Id: <20240803053347.9EAABC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: convert split_huge_pages_pid() from follow_page() to folio_walk
+     Subject: s390/uv: convert gmap_destroy_page() from follow_page() to folio_walk
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
+     s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: convert split_huge_pages_pid() from follow_page() to folio_walk
-Date: Fri, 2 Aug 2024 17:55:20 +0200
+Subject: s390/uv: convert gmap_destroy_page() from follow_page() to folio_walk
+Date: Fri, 2 Aug 2024 17:55:21 +0200
 
-Let's remove yet another follow_page() user.  Note that we have to do the
-split without holding the PTL, after folio_walk_end().  We don't care
-about losing the secretmem check in follow_page().
+Let's get rid of another follow_page() user and perform the UV calls under
+PTL -- which likely should be fine.
 
-Link: https://lkml.kernel.org/r/20240802155524.517137-8-david@redhat.com
+No need for an additional reference while holding the PTL:
+uv_destroy_folio() and uv_convert_from_secure_folio() raise the refcount,
+so any concurrent make_folio_secure() would see an unexpted reference and
+cannot set PG_arch_1 concurrently.
+
+Do we really need a writable PTE?  Likely yes, because the "destroy" part
+is, in comparison to the export, a destructive operation.  So we'll keep
+the writability check for now.
+
+We'll lose the secretmem check from follow_page().  Likely we don't care
+about that here.
+
+Link: https://lkml.kernel.org/r/20240802155524.517137-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -81,65 +92,60 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ arch/s390/kernel/uv.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk
-+++ a/mm/huge_memory.c
-@@ -40,6 +40,7 @@
- #include <linux/memory-tiers.h>
- #include <linux/compat.h>
- #include <linux/pgalloc_tag.h>
+--- a/arch/s390/kernel/uv.c~s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk
++++ a/arch/s390/kernel/uv.c
+@@ -14,6 +14,7 @@
+ #include <linux/memblock.h>
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
 +#include <linux/pagewalk.h>
+ #include <asm/facility.h>
+ #include <asm/sections.h>
+ #include <asm/uv.h>
+@@ -462,9 +463,9 @@ EXPORT_SYMBOL_GPL(gmap_convert_to_secure
+ int gmap_destroy_page(struct gmap *gmap, unsigned long gaddr)
+ {
+ 	struct vm_area_struct *vma;
++	struct folio_walk fw;
+ 	unsigned long uaddr;
+ 	struct folio *folio;
+-	struct page *page;
+ 	int rc;
  
- #include <asm/tlb.h>
- #include <asm/pgalloc.h>
-@@ -3507,7 +3508,7 @@ static int split_huge_pages_pid(int pid,
+ 	rc = -EFAULT;
+@@ -483,11 +484,15 @@ int gmap_destroy_page(struct gmap *gmap,
+ 		goto out;
+ 
+ 	rc = 0;
+-	/* we take an extra reference here */
+-	page = follow_page(vma, uaddr, FOLL_WRITE | FOLL_GET);
+-	if (IS_ERR_OR_NULL(page))
++	folio = folio_walk_start(&fw, vma, uaddr, 0);
++	if (!folio)
+ 		goto out;
+-	folio = page_folio(page);
++	/*
++	 * See gmap_make_secure(): large folios cannot be secure. Small
++	 * folio implies FW_LEVEL_PTE.
++	 */
++	if (folio_test_large(folio) || !pte_write(fw.pte))
++		goto out_walk_end;
+ 	rc = uv_destroy_folio(folio);
+ 	/*
+ 	 * Fault handlers can race; it is possible that two CPUs will fault
+@@ -500,7 +505,8 @@ int gmap_destroy_page(struct gmap *gmap,
  	 */
- 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
- 		struct vm_area_struct *vma = vma_lookup(mm, addr);
--		struct page *page;
-+		struct folio_walk fw;
- 		struct folio *folio;
- 
- 		if (!vma)
-@@ -3519,13 +3520,10 @@ static int split_huge_pages_pid(int pid,
- 			continue;
- 		}
- 
--		/* FOLL_DUMP to ignore special (like zero) pages */
--		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
--
--		if (IS_ERR_OR_NULL(page))
-+		folio = folio_walk_start(&fw, vma, addr, 0);
-+		if (!folio)
- 			continue;
- 
--		folio = page_folio(page);
- 		if (!is_transparent_hugepage(folio))
- 			goto next;
- 
-@@ -3544,13 +3542,19 @@ static int split_huge_pages_pid(int pid,
- 
- 		if (!folio_trylock(folio))
- 			goto next;
-+		folio_get(folio);
-+		folio_walk_end(&fw, vma);
- 
- 		if (!split_folio_to_order(folio, new_order))
- 			split++;
- 
- 		folio_unlock(folio);
--next:
- 		folio_put(folio);
-+
-+		cond_resched();
-+		continue;
-+next:
-+		folio_walk_end(&fw, vma);
- 		cond_resched();
- 	}
- 	mmap_read_unlock(mm);
+ 	if (rc)
+ 		rc = uv_convert_from_secure_folio(folio);
+-	folio_put(folio);
++out_walk_end:
++	folio_walk_end(&fw, vma);
+ out:
+ 	mmap_read_unlock(gmap->mm);
+ 	return rc;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
