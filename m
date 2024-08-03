@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717C715E89;
-	Sat,  3 Aug 2024 18:17:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C44B15E89
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:17:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722709024; cv=none; b=bawqSWJflN8zwRo5rqztWo8/GKI9uFGge3AFoq/MttlQFPWvtzApaWIFOvwsvanbssK3V5Kt/lO6dN7Uo9AXFbQ8dH+W/atNlZogOPRxmSm9UyrIWcwmib10xhLKVDltL6vkRyYLzrea+lSdJpVWw5zHQ/MSLLDiBnP0HuI0fK0=
+	t=1722709076; cv=none; b=KMEUCFvItgPTnNuZNk4NLCE05wDahC5F0aj4k4iMRAjx086TWgC9APfK/9aG0AOUjRPXB9wlDzkpoF8Ti1NX1OsZzbbzAixVY/d4dyqoWYb8luP+5TAzh/BUG+8pJ4IT2bEvvqZNVpTnmSIEEDTYW/bng0+w2HiB6oIHiBsdRmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722709024; c=relaxed/simple;
-	bh=ZbP1XcN0ax1Cb5kQ38tJDDhPz7zzEmmpqlBnAVRPiMY=;
-	h=Date:To:From:Subject:Message-Id; b=Xg1wI4Ddb8Bz4AbzXXXAfdHE2vW/oqZjMD9vErz6iCmjVsXNgkZojFyaofN4FpPjjvVLgJo4mevKfI2+EUDIPnMRhoy+WYFC4kILeeWNZ9UEjNdAHmx3mw2mlYsUWee3r2lLokaTRP2W4jBCj3IcQT7IfGn884vq08TEoP+7spA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ig6wEoAB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722709076; c=relaxed/simple;
+	bh=NCSsnwYlF6BB9KNjWlW4BXPt2VHFd5EyUL7ciRnA+W0=;
+	h=Date:To:From:Subject:Message-Id; b=r4LIqq8DEUWzwZx43zzEnpel1IZB+IoxdhseUiKiSNjsNkYbd7HGWpK00CYx+Aklac3EiiZKPei3MdTCKjzBRjnzpozKYfg5T2QEwOrKw6o6wnZ/6Jl9EEcJuUiyn2S7BV60Z28VZBl5/Xk/qz3FzgLiZ05m7E51prDsjNXrSOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h7yvGSdY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ig6wEoAB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7FAFC116B1;
-	Sat,  3 Aug 2024 18:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h7yvGSdY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71772C116B1;
+	Sat,  3 Aug 2024 18:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722709023;
-	bh=ZbP1XcN0ax1Cb5kQ38tJDDhPz7zzEmmpqlBnAVRPiMY=;
+	s=korg; t=1722709075;
+	bh=NCSsnwYlF6BB9KNjWlW4BXPt2VHFd5EyUL7ciRnA+W0=;
 	h=Date:To:From:Subject:From;
-	b=Ig6wEoAB1J53TR/4I78319z/s9ZM/baYwfsAV9g8Dl11p9rsWtHMHyf8PSjWk2kpT
-	 zuVm+53jZEO2Qoxl5z5bUlL3Wsei7sQNHbSLa12CWOi0IR9JpKe+4foNTOCZrGp1BD
-	 ijeAKsAcm4aF2Jn+mE8RPUP/aECLZnlkH6lu1uDU=
-Date: Sat, 03 Aug 2024 11:17:03 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mcgrof@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,linus.walleij@linaro.org,kees@kernel.org,alex@ghiti.fr,davidgow@google.com,akpm@linux-foundation.org
+	b=h7yvGSdYPMsvLppuyWdoP0DX9VSvC+Fi0RCIGXc+ZqHd7kYoBOeizCd5ZPpnCgey9
+	 pTVW/5Xor8Rfom9fw0m98HaF169pyKQ/UdM2E9OWOEbcGOwERnkXHWscEKJJkmZWMG
+	 VGBimNrDT+64uba9c55wvcojVP5P3ykKSlwtQw8I=
+Date: Sat, 03 Aug 2024 11:17:54 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch added to mm-unstable branch
-Message-Id: <20240803181703.C7FAFC116B1@smtp.kernel.org>
+Subject: + mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch added to mm-unstable branch
+Message-Id: <20240803181755.71772C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: only enforce minimum stack gap size if it's sensible
+     Subject: mm: zswap: make the lock critical section obvious in shrink_worker()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch
+     mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Gow <davidgow@google.com>
-Subject: mm: only enforce minimum stack gap size if it's sensible
-Date: Sat, 3 Aug 2024 15:46:41 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: make the lock critical section obvious in shrink_worker()
+Date: Sat, 3 Aug 2024 05:33:06 +0000
 
-The generic mmap_base code tries to leave a gap between the top of the
-stack and the mmap base address, but enforces a minimum gap size (MIN_GAP)
-of 128MB, which is too large on some setups.  In particular, on arm tasks
-without ADDR_LIMIT_32BIT, the STACK_TOP value is less than 128MB, so it's
-impossible to fit such a gap in.
+Move the comments and spin_{lock/unlock}() calls around in shrink_worker()
+to make it obvious the lock is protecting the loop updating
+zswap_next_shrink.
 
-Only enforce this minimum if MIN_GAP < MAX_GAP, as we'd prefer to honour
-MAX_GAP, which is defined proportionally, so scales better and always
-leaves us with both _some_ stack space and some room for mmap.
-
-This fixes the usercopy KUnit test suite on 32-bit arm, as it doesn't set
-any personality flags so gets the default (in this case 26-bit) task size.
-This test can be run with: ./tools/testing/kunit/kunit.py run --arch arm
-usercopy --make_options LLVM=1
-
-Link: https://lkml.kernel.org/r/20240803074642.1849623-2-davidgow@google.com
-Fixes: dba79c3df4a2 ("arm: use generic mmap top-down layout and brk randomization")
-Signed-off-by: David Gow <davidgow@google.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240803053306.2685541-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Takero Funaki <flintglass@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/mm/util.c~mm-only-enforce-minimum-stack-gap-size-if-its-sensible
-+++ a/mm/util.c
-@@ -463,7 +463,7 @@ static unsigned long mmap_base(unsigned
- 	if (gap + pad > gap)
- 		gap += pad;
+--- a/mm/zswap.c~mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker
++++ a/mm/zswap.c
+@@ -1364,24 +1364,22 @@ static void shrink_worker(struct work_st
+ 	 * until the next run of shrink_worker().
+ 	 */
+ 	do {
+-		spin_lock(&zswap_shrink_lock);
+-
+ 		/*
+ 		 * Start shrinking from the next memcg after zswap_next_shrink.
+ 		 * When the offline cleaner has already advanced the cursor,
+ 		 * advancing the cursor here overlooks one memcg, but this
+ 		 * should be negligibly rare.
++		 *
++		 * If we get an online memcg, keep the extra reference in case
++		 * the original one obtained by mem_cgroup_iter() is dropped by
++		 * zswap_memcg_offline_cleanup() while we are shrinking the
++		 * memcg.
+ 		 */
++		spin_lock(&zswap_shrink_lock);
+ 		do {
+ 			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
+ 			zswap_next_shrink = memcg;
+ 		} while (memcg && !mem_cgroup_tryget_online(memcg));
+-		/*
+-		 * Note that if we got an online memcg, we will keep the extra
+-		 * reference in case the original reference obtained by mem_cgroup_iter
+-		 * is dropped by the zswap memcg offlining callback, ensuring that the
+-		 * memcg is not killed when we are reclaiming.
+-		 */
+ 		spin_unlock(&zswap_shrink_lock);
  
--	if (gap < MIN_GAP)
-+	if (gap < MIN_GAP && MIN_GAP < MAX_GAP)
- 		gap = MIN_GAP;
- 	else if (gap > MAX_GAP)
- 		gap = MAX_GAP;
+ 		if (!memcg) {
 _
 
-Patches currently in -mm which might be from davidgow@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch
+mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch
 
