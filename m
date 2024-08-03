@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C068413E02B
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:33:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BA2D42A82
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:35:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722663232; cv=none; b=rc64SQB7e1YhGTiYKqyyYbs5XkS5MdfZHjD7AfvfxtQ9F8SBRhMKa9i8wksWHRLx2gUR6WkhCObcVvJ6DTzf9vVE/zq9xyGO3N0x5n02UYKrMbsIz19n+2hja3CP1dxXFh3sfc4hm/yxN/8Gfahyzzmg2sj/C977gIChrV9MlvE=
+	t=1722663350; cv=none; b=ETt5mjW4wYYrZ4Dy5RmHq6TtYm+cgIQN++la8UVoBxCzdZI70T2VR04JsBj/FKSmBA0OTQMFzu3Fd6hGRWtjuXm2iKvj1UB6LeZzIoSGsFetb2MlYrLs3O7s1FK1cNfsaonZi8KV0N7QDt5WAqs+Enj3mJm1Poi31ZtcFhsgyIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722663232; c=relaxed/simple;
-	bh=LE6sFFm9OjG6qTB8i8nfY69b9SLM7KukejVRZzoJLWI=;
-	h=Date:To:From:Subject:Message-Id; b=EtiLfyalLwYDwCQrvVYbD1bgOoJjy/vW1J7VubO9+Mf72Y31A7VsR4BR4Mu+PyeAQ+bX3n0P1evmffc5rBxsFDJlbjzq+cD/w7bYTkCArvGjeQHKt+RGvYyZ+IUEbNf2StBejHVHf+dJZ8B6Q2J6Ikth2OCbhkW7shieT1OLU5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g1GvwGNw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722663350; c=relaxed/simple;
+	bh=LN6aPtLE1BqON+4+ZQxOzyrGs8iXjEoYFiXRlEIvIZ8=;
+	h=Date:To:From:Subject:Message-Id; b=d9hsdoZ1MJIRDFLRHQVGJRYq/UiI4Ze9D4wL6AF47BHxR+PNLYoebZJMIXnqiy/BhZWmE4WgCwAeIRoh+M9gEmGyBIvHnFXRYBykpXGas2FoU0qFXLWOvxIiT/bOkMXHZhZ3ydLkH7Xtdy8cAEFN/bbTE/Gj/EEgyVDhep/ePcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kinrdF31; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g1GvwGNw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 835ADC116B1;
-	Sat,  3 Aug 2024 05:33:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kinrdF31"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 105C5C116B1;
+	Sat,  3 Aug 2024 05:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722663232;
-	bh=LE6sFFm9OjG6qTB8i8nfY69b9SLM7KukejVRZzoJLWI=;
+	s=korg; t=1722663350;
+	bh=LN6aPtLE1BqON+4+ZQxOzyrGs8iXjEoYFiXRlEIvIZ8=;
 	h=Date:To:From:Subject:From;
-	b=g1GvwGNw2fKbm9+1Ey3u223enKGzkOkKuaEVXgZSWtEdTcD4zmy64Xjp8E/F9k6LR
-	 0toSqYQ7umulIeaTaTe707bbpHGQtNHqYeKtBnu/A2BTsSYJnIVVnzBNoQqQt/vij7
-	 qwFwU47jOAk3VBUhHtg8Rf78pnToIOwHLOFDksI4=
-Date: Fri, 02 Aug 2024 22:33:51 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,svens@linux.ibm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
+	b=kinrdF31PD7LVEPI6PplcHRv+u+GDYUXDqMTRmur+5uoVXhhr2htw+/s1SjGYQ4fs
+	 ZsJmdPI/75jq7quvC1QGDToanavP8e1tL3O4l2F5VtRwtp0RRJ46xJNq5v6NzbbeRk
+	 bycnYvKNuoYR96N57BjK0oOjBMJLNSEBh7t2VN/M=
+Date: Fri, 02 Aug 2024 22:35:49 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,lizhe.67@bytedance.com,linux@weissschuh.net,j.granados@samsung.com,dianders@chromium.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch added to mm-unstable branch
-Message-Id: <20240803053352.835ADC116B1@smtp.kernel.org>
+Subject: + watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch added to mm-nonmm-unstable branch
+Message-Id: <20240803053550.105C5C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+     Subject: watchdog: Handle the ENODEV failure case of lockup_detector_delay_init() separately
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,136 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk
-Date: Fri, 2 Aug 2024 17:55:24 +0200
+From: Waiman Long <longman@redhat.com>
+Subject: watchdog: Handle the ENODEV failure case of lockup_detector_delay_init() separately
+Date: Fri, 2 Aug 2024 11:16:21 -0400
 
-Let's simplify by reusing folio_walk.  Keep the existing behavior by
-handling migration entries and zeropages.
+When watchdog_hardlockup_probe() is being called by
+lockup_detector_delay_init(), an error return of -ENODEV will happen
+for the arm64 arch when arch_perf_nmi_is_available() returns false. This
+means that NMI is not usable by the hard lockup detector and so has to
+be disabled. This can be considered a deficiency in that particular
+arm64 chip, but there is nothing we can do about it.  That also means
+the following error will always be reported when the kernel boot up.
 
-Link: https://lkml.kernel.org/r/20240802155524.517137-12-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+  watchdog: Delayed init of the lockup detector failed: -19
+
+The word "failed" itself has a connotation that there is something
+wrong with the kernel which is not really the case here. Handle this
+special ENODEV case separately and explain the reason behind disabling
+hard lockup detector without causing anxiety for those users who read
+the above message and wonder about it.
+
+Link: https://lkml.kernel.org/r/20240802151621.617244-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Joel Granados <j.granados@samsung.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   63 +++++++++++++----------------------------------------
- 1 file changed, 16 insertions(+), 47 deletions(-)
+ kernel/watchdog.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/ksm.c~mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk
-+++ a/mm/ksm.c
-@@ -608,47 +608,6 @@ static inline bool ksm_test_exit(struct
- 	return atomic_read(&mm->mm_users) == 0;
- }
+--- a/kernel/watchdog.c~watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately
++++ a/kernel/watchdog.c
+@@ -1203,7 +1203,10 @@ static void __init lockup_detector_delay
  
--static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
--			struct mm_walk *walk)
--{
--	struct page *page = NULL;
--	spinlock_t *ptl;
--	pte_t *pte;
--	pte_t ptent;
--	int ret;
--
--	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
--	if (!pte)
--		return 0;
--	ptent = ptep_get(pte);
--	if (pte_present(ptent)) {
--		page = vm_normal_page(walk->vma, addr, ptent);
--	} else if (!pte_none(ptent)) {
--		swp_entry_t entry = pte_to_swp_entry(ptent);
--
--		/*
--		 * As KSM pages remain KSM pages until freed, no need to wait
--		 * here for migration to end.
--		 */
--		if (is_migration_entry(entry))
--			page = pfn_swap_entry_to_page(entry);
--	}
--	/* return 1 if the page is an normal ksm page or KSM-placed zero page */
--	ret = (page && PageKsm(page)) || is_ksm_zero_pte(ptent);
--	pte_unmap_unlock(pte, ptl);
--	return ret;
--}
--
--static const struct mm_walk_ops break_ksm_ops = {
--	.pmd_entry = break_ksm_pmd_entry,
--	.walk_lock = PGWALK_RDLOCK,
--};
--
--static const struct mm_walk_ops break_ksm_lock_vma_ops = {
--	.pmd_entry = break_ksm_pmd_entry,
--	.walk_lock = PGWALK_WRLOCK,
--};
--
- /*
-  * We use break_ksm to break COW on a ksm page by triggering unsharing,
-  * such that the ksm page will get replaced by an exclusive anonymous page.
-@@ -665,16 +624,26 @@ static const struct mm_walk_ops break_ks
- static int break_ksm(struct vm_area_struct *vma, unsigned long addr, bool lock_vma)
- {
- 	vm_fault_t ret = 0;
--	const struct mm_walk_ops *ops = lock_vma ?
--				&break_ksm_lock_vma_ops : &break_ksm_ops;
-+
-+	if (lock_vma)
-+		vma_start_write(vma);
- 
- 	do {
--		int ksm_page;
-+		bool ksm_page = false;
-+		struct folio_walk fw;
-+		struct folio *folio;
- 
- 		cond_resched();
--		ksm_page = walk_page_range_vma(vma, addr, addr + 1, ops, NULL);
--		if (WARN_ON_ONCE(ksm_page < 0))
--			return ksm_page;
-+		folio = folio_walk_start(&fw, vma, addr,
-+					 FW_MIGRATION | FW_ZEROPAGE);
-+		if (folio) {
-+			/* Small folio implies FW_LEVEL_PTE. */
-+			if (!folio_test_large(folio) &&
-+			    (folio_test_ksm(folio) || is_ksm_zero_pte(fw.pte)))
-+				ksm_page = true;
-+			folio_walk_end(&fw, vma);
-+		}
-+
- 		if (!ksm_page)
- 			return 0;
- 		ret = handle_mm_fault(vma, addr,
+ 	ret = watchdog_hardlockup_probe();
+ 	if (ret) {
+-		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
++		if (ret == -ENODEV)
++			pr_info("NMI not fully supported\n");
++		else
++			pr_info("Delayed init of the lockup detector failed: %d\n", ret);
+ 		pr_info("Hard watchdog permanently disabled\n");
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch
-mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch
-powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch
-mm-simplify-arch_make_folio_accessible.patch
-mm-gup-convert-to-arch_make_folio_accessible.patch
-s390-uv-drop-arch_make_page_accessible.patch
-mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
-mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
-mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
-mm-provide-vm_normal_pagefolio_pmd-with-config_pgtable_has_huge_leaves.patch
-mm-pagewalk-introduce-folio_walk_start-folio_walk_end.patch
-mm-migrate-convert-do_pages_stat_array-from-follow_page-to-folio_walk.patch
-mm-migrate-convert-add_page_for_migration-from-follow_page-to-folio_walk.patch
-mm-ksm-convert-get_mergeable_page-from-follow_page-to-folio_walk.patch
-mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
-mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
-s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
-s390-mm-fault-convert-do_secure_storage_access-from-follow_page-to-folio_walk.patch
-mm-remove-follow_page.patch
-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
