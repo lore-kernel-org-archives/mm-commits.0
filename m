@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F0B146D69;
-	Sat,  3 Aug 2024 05:43:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 979F926286
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:46:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722663837; cv=none; b=nB/ZCU2Cphy9CrsGurQ5PdIZ81eIAX0efsY6LjqrKrVDFlBNO09f8dg4Ba6LAL4Rs4bkloGZlDU4qQg29iKu6HFV78058j0CrV1gvl7xZecZ0+2+fqByJHjJ4nL9l41iDqYkt7cfqD0Qz4AEPrnCzi/ChWCV2cRnKUbjDEOvF3c=
+	t=1722663969; cv=none; b=Me6w7G8vdJv0uO9v8NJa1R8m2yPL7HtP3iunbHNIhfmw/GuTGX3MSKiInBCVvyu2NJAhWSdVIrcmIgaGbLoSiWykq2BvM9/s/INp37QHqwxL8tL1YxWecVTlJPAgVhIrTlLsmv8sMFPVYcXVt8IQjEzMxsVihSVqn8+aQ841cTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722663837; c=relaxed/simple;
-	bh=ZsHMdeaN8XKjW3fVPG9G6327Ij6CCHtoWgElx/+OTiU=;
-	h=Date:To:From:Subject:Message-Id; b=u2dp164RgqUb2aC+she0KFDif2xvpsqPUIPLNfM556iCCUXNSm0cEOED59HmYUspI80zGid6zydvyMryIp+2s2tvCjuoeS28ajuFMnpVqjFyJ3y/bTyEuDz1nakxQb88LWw17XlO4aAvAPWt1dgUVONpXpDHtJuaYczVF8QRecM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wU8CM6FE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722663969; c=relaxed/simple;
+	bh=kODzLErrpTWex8UnPG0LQO0Tn1C4e8htots9sG3QNmw=;
+	h=Date:To:From:Subject:Message-Id; b=bGakayeYaXCsyRl2IPJ21puQdWGlTlbVcXjxgk7+I4Bvx+I5yP58zVlCTPtw8A/4jWHSgTTlFHcfBGDuDvOU/AHZIhjBElvFcNb4c/avJoYsedcIaS+If/tBC3ppu0XQO2jnGqEEnqMt+ClxdJ5K0C5U9uOrLMq7fhPRLDmcmJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cIATx080; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wU8CM6FE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60B62C116B1;
-	Sat,  3 Aug 2024 05:43:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cIATx080"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 231DDC116B1;
+	Sat,  3 Aug 2024 05:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722663836;
-	bh=ZsHMdeaN8XKjW3fVPG9G6327Ij6CCHtoWgElx/+OTiU=;
+	s=korg; t=1722663969;
+	bh=kODzLErrpTWex8UnPG0LQO0Tn1C4e8htots9sG3QNmw=;
 	h=Date:To:From:Subject:From;
-	b=wU8CM6FEriUkTW61avJg75Qp6zXAHIK1Kj17/FVQKRlArp60t2+VP4a6AYnc8OVPm
-	 M8YeGQRuy921KTsufM1adVMgzTyMsfiolUcHy+pw0EfM4ATuzyCN1R/GZsUbBbpzwd
-	 AiBLTV82pye+2TDRC1yVMuUSLmn4KCQBQxHjrhjI=
-Date: Fri, 02 Aug 2024 22:43:55 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,chenjiahao16@huawei.com,bhe@redhat.com,aou@eecs.berkeley.edu,alex@ghiti.fr,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=cIATx0801VxnRlFnHvkx0plTOEJRZK6qs0dgQ5BZWdw45/qPtXnhJ3zxHRoYT/9xY
+	 KgeVCkCMbWDn0fhl8EJDEOKzFi+4bCoeH2Yjj2Od5IMk6RCuiA9UghsBnTn4bO+Oaj
+	 tlM5HvFmxyTnex95YAg/nkrm3vTslOnBzzG8X16c=
+Date: Fri, 02 Aug 2024 22:46:08 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,surenb@google.com,shy828301@gmail.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,ryan.roberts@arm.com,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-fix-riscv64-crash-memory-reserve-dead-loop.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240803054356.60B62C116B1@smtp.kernel.org>
+Subject: + mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch added to mm-unstable branch
+Message-Id: <20240803054609.231DDC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: Fix riscv64 crash memory reserve dead loop
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
+     Subject: mm: clarify swap_count_continued and improve readability for  __swap_duplicate
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,90 +58,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: crash: Fix riscv64 crash memory reserve dead loop
-Date: Fri, 2 Aug 2024 17:01:05 +0800
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: clarify swap_count_continued and improve readability for  __swap_duplicate
+Date: Fri, 2 Aug 2024 17:52:43 +1200
 
-On RISCV64 Qemu machine with 512MB memory, cmdline "crashkernel=500M,high"
-will cause system stall as below:
+When usage=1 and swapcount is very large, the situation can become quite
+complex.  The first entry might succeed with swap_count_continued(), but
+the second entry may require extending to an additional continued page. 
+Rolling back these changes can be extremely challenging.  Therefore,
+anyone using usage==1 for batched __swap_duplicate() operations should
+proceed with caution.
 
-	 Zone ranges:
-	   DMA32    [mem 0x0000000080000000-0x000000009fffffff]
-	   Normal   empty
-	 Movable zone start for each node
-	 Early memory node ranges
-	   node   0: [mem 0x0000000080000000-0x000000008005ffff]
-	   node   0: [mem 0x0000000080060000-0x000000009fffffff]
-	 Initmem setup node 0 [mem 0x0000000080000000-0x000000009fffffff]
-	(stall here)
+Additionally, we have moved swap_count_continued() to the second iteration
+to enhance readability, as this function may modify data.
 
-commit 5d99cadf1568 ("crash: fix x86_32 crash memory reserve dead loop
-bug") fix this on 32-bit architecture.  However, the problem is not
-completely solved.  If `CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX` on
-64-bit architecture, for example, when system memory is equal to
-CRASH_ADDR_LOW_MAX on RISCV64, the following infinite loop will also
-occur:
-
-	-> reserve_crashkernel_generic() and high is true
-	   -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
-	      -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
-	         (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
-
-Before refactor in commit 9c08a2a139fe ("x86: kdump: use generic interface
-to simplify crashkernel reservation code"), x86 do not try to reserve
-crash memory at low if it fails to alloc above high 4G.  However before
-refator in commit fdc268232dbba ("arm64: kdump: use generic interface to
-simplify crashkernel reservation"), arm64 try to reserve crash memory at
-low if it fails above high 4G.  For 64-bit systems, this attempt is less
-beneficial than the opposite, remove it to fix this bug and align with
-native x86 implementation.
-
-After this patch, it print:
-	cannot allocate crashkernel (size:0x1f400000)
-
-Link: https://lkml.kernel.org/r/20240802090105.3871929-1-ruanjinjie@huawei.com
-Fixes: 39365395046f ("riscv: kdump: use generic interface to simplify crashkernel reservation")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Chen Jiahao <chenjiahao16@huawei.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240802071817.47081-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_reserve.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/swapfile.c |   38 +++++++++++++++++---------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
---- a/kernel/crash_reserve.c~crash-fix-riscv64-crash-memory-reserve-dead-loop
-+++ a/kernel/crash_reserve.c
-@@ -416,15 +416,6 @@ retry:
- 			goto retry;
- 		}
+--- a/mm/swapfile.c~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix
++++ a/mm/swapfile.c
+@@ -3386,6 +3386,7 @@ static int __swap_duplicate(swp_entry_t
  
--		/*
--		 * For crashkernel=size[KMG],high, if the first attempt was
--		 * for high memory, fall back to low memory.
--		 */
--		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
--			search_end = CRASH_ADDR_LOW_MAX;
--			search_base = 0;
--			goto retry;
--		}
- 		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
- 			crash_size);
- 		return;
+ 	offset = swp_offset(entry);
+ 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
++	VM_WARN_ON(usage == 1 && nr > 1);
+ 	ci = lock_cluster_or_swap_info(p, offset);
+ 
+ 	err = 0;
+@@ -3404,27 +3405,14 @@ static int __swap_duplicate(swp_entry_t
+ 		has_cache = count & SWAP_HAS_CACHE;
+ 		count &= ~SWAP_HAS_CACHE;
+ 
+-		if (usage == SWAP_HAS_CACHE) {
+-			/* set SWAP_HAS_CACHE if there is no cache and entry is used */
+-			if (!has_cache && count)
+-				continue;
+-			else if (has_cache)		/* someone else added cache */
++		if (!count && !has_cache) {
++			err = -ENOENT;
++		} else if (usage == SWAP_HAS_CACHE) {
++			if (has_cache)
+ 				err = -EEXIST;
+-			else				/* no users remaining */
+-				err = -ENOENT;
+-
+-		} else if (count || has_cache) {
+-
+-			if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
+-				continue;
+-			else if ((count & ~COUNT_CONTINUED) > SWAP_MAP_MAX)
+-				err = -EINVAL;
+-			else if (swap_count_continued(p, offset + i, count))
+-				continue;
+-			else
+-				err = -ENOMEM;
+-		} else
+-			err = -ENOENT;			/* unused swap entry */
++		} else if ((count & ~COUNT_CONTINUED) > SWAP_MAP_MAX) {
++			err = -EINVAL;
++		}
+ 
+ 		if (err)
+ 			goto unlock_out;
+@@ -3439,8 +3427,16 @@ static int __swap_duplicate(swp_entry_t
+ 			has_cache = SWAP_HAS_CACHE;
+ 		else if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
+ 			count += usage;
+-		else
++		else if (swap_count_continued(p, offset + i, count))
+ 			count = COUNT_CONTINUED;
++		else {
++			/*
++			 * Don't need to rollback changes, because if
++			 * usage == 1, there must be nr == 1.
++			 */
++			err = -ENOMEM;
++			goto unlock_out;
++		}
+ 
+ 		WRITE_ONCE(p->swap_map[offset + i], count | has_cache);
+ 	}
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
-crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
-crash-fix-x86_32-crash-memory-reserve-dead-loop.patch
-arm-use-generic-interface-to-simplify-crashkernel-reservation.patch
-crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
+mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
+vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
+mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
