@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BA2D42A82
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:35:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A531422D8
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:40:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722663350; cv=none; b=ETt5mjW4wYYrZ4Dy5RmHq6TtYm+cgIQN++la8UVoBxCzdZI70T2VR04JsBj/FKSmBA0OTQMFzu3Fd6hGRWtjuXm2iKvj1UB6LeZzIoSGsFetb2MlYrLs3O7s1FK1cNfsaonZi8KV0N7QDt5WAqs+Enj3mJm1Poi31ZtcFhsgyIs=
+	t=1722663613; cv=none; b=V1U78Q5M2nThxNEpAOV9w8BvJJAKlQMtvW8xkFj+8btv2xSam3XcpOn6c9loyh7fvdTEOEQYOl0nB/eh7I977toWN9bG4crhslnFlFD62XDczoz9O+Y9h+o5+Hy8ggqrZ7ZANBeWrxs/t92KaCBb/idEZqrM+Y029PvFX0ONCnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722663350; c=relaxed/simple;
-	bh=LN6aPtLE1BqON+4+ZQxOzyrGs8iXjEoYFiXRlEIvIZ8=;
-	h=Date:To:From:Subject:Message-Id; b=d9hsdoZ1MJIRDFLRHQVGJRYq/UiI4Ze9D4wL6AF47BHxR+PNLYoebZJMIXnqiy/BhZWmE4WgCwAeIRoh+M9gEmGyBIvHnFXRYBykpXGas2FoU0qFXLWOvxIiT/bOkMXHZhZ3ydLkH7Xtdy8cAEFN/bbTE/Gj/EEgyVDhep/ePcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kinrdF31; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722663613; c=relaxed/simple;
+	bh=pcGQl1rMOeSFhhAXjJv5t9DgrWkdDFQZDPvWdpcOEDA=;
+	h=Date:To:From:Subject:Message-Id; b=VaquNKaf/NqacADP6fTwqY9qaMCerqA+PBGlCZcmpxKxaw5hOv3WwlF/Q0GvTX71aAwxhsluC9N1DGKA1BaPw5eD5NQkjbtf8JbR4CH248gWcV4gU/DuoTGVM5q8Pg78B3BiPpHc803Z1YjYHzAEwRndxAeQFD7an3wAtfbmLto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WUqgKVfM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kinrdF31"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 105C5C116B1;
-	Sat,  3 Aug 2024 05:35:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WUqgKVfM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91196C116B1;
+	Sat,  3 Aug 2024 05:40:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722663350;
-	bh=LN6aPtLE1BqON+4+ZQxOzyrGs8iXjEoYFiXRlEIvIZ8=;
+	s=korg; t=1722663612;
+	bh=pcGQl1rMOeSFhhAXjJv5t9DgrWkdDFQZDPvWdpcOEDA=;
 	h=Date:To:From:Subject:From;
-	b=kinrdF31PD7LVEPI6PplcHRv+u+GDYUXDqMTRmur+5uoVXhhr2htw+/s1SjGYQ4fs
-	 ZsJmdPI/75jq7quvC1QGDToanavP8e1tL3O4l2F5VtRwtp0RRJ46xJNq5v6NzbbeRk
-	 bycnYvKNuoYR96N57BjK0oOjBMJLNSEBh7t2VN/M=
-Date: Fri, 02 Aug 2024 22:35:49 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,lizhe.67@bytedance.com,linux@weissschuh.net,j.granados@samsung.com,dianders@chromium.org,longman@redhat.com,akpm@linux-foundation.org
+	b=WUqgKVfMqREegkbrsib6QyYF+C2deHtlfgSAsmY/uHiYcEtZ5maTcABRI/7hGOA+X
+	 a3y/69CX8I7PrWikDPth+3jaScppsnenHB61dZZdeJZN3AoXGhYHRKB3Kpznl9J+wa
+	 KjS4n7fw89MyupP9WcJ/1cgWCvOpKAujgmFBB75w=
+Date: Fri, 02 Aug 2024 22:40:11 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,surenb@google.com,shy828301@gmail.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,ryan.roberts@arm.com,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch added to mm-nonmm-unstable branch
-Message-Id: <20240803053550.105C5C116B1@smtp.kernel.org>
+Subject: + mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch added to mm-unstable branch
+Message-Id: <20240803054012.91196C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog: Handle the ENODEV failure case of lockup_detector_delay_init() separately
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
+     Subject: mm: add nr argument in mem_cgroup_swapin_uncharge_swap() helper to support large folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,56 +58,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: watchdog: Handle the ENODEV failure case of lockup_detector_delay_init() separately
-Date: Fri, 2 Aug 2024 11:16:21 -0400
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: add nr argument in mem_cgroup_swapin_uncharge_swap() helper to support large folios
+Date: Sat, 3 Aug 2024 00:20:30 +1200
 
-When watchdog_hardlockup_probe() is being called by
-lockup_detector_delay_init(), an error return of -ENODEV will happen
-for the arm64 arch when arch_perf_nmi_is_available() returns false. This
-means that NMI is not usable by the hard lockup detector and so has to
-be disabled. This can be considered a deficiency in that particular
-arm64 chip, but there is nothing we can do about it.  That also means
-the following error will always be reported when the kernel boot up.
+Patch series "mm: Ignite large folios swap-in support", v6.
 
-  watchdog: Delayed init of the lockup detector failed: -19
+Currently, we support mTHP swapout but not swapin.  This means that once
+mTHP is swapped out, it will come back as small folios when swapped in. 
+This is particularly detrimental for devices like Android, where more than
+half of the memory is in swap.
 
-The word "failed" itself has a connotation that there is something
-wrong with the kernel which is not really the case here. Handle this
-special ENODEV case separately and explain the reason behind disabling
-hard lockup detector without causing anxiety for those users who read
-the above message and wonder about it.
+The lack of mTHP swapin functionality makes mTHP a showstopper in
+scenarios that heavily rely on swap.  This patchset introduces mTHP
+swap-in support.  It starts with synchronous devices similar to zRAM,
+aiming to benefit as many users as possible with minimal changes.
 
-Link: https://lkml.kernel.org/r/20240802151621.617244-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
+
+This patch (of 2):
+
+With large folios swap-in, we might need to uncharge multiple entries all
+together, add nr argument in mem_cgroup_swapin_uncharge_swap().
+
+For the existing two users, just pass nr=1.
+
+Link: https://lkml.kernel.org/r/20240802122031.117548-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240802122031.117548-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    5 +++--
+ mm/memcontrol.c            |    7 ++++---
+ mm/memory.c                |    2 +-
+ mm/swap_state.c            |    2 +-
+ 4 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately
-+++ a/kernel/watchdog.c
-@@ -1203,7 +1203,10 @@ static void __init lockup_detector_delay
+--- a/include/linux/memcontrol.h~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/include/linux/memcontrol.h
+@@ -682,7 +682,8 @@ int mem_cgroup_hugetlb_try_charge(struct
  
- 	ret = watchdog_hardlockup_probe();
- 	if (ret) {
--		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
-+		if (ret == -ENODEV)
-+			pr_info("NMI not fully supported\n");
-+		else
-+			pr_info("Delayed init of the lockup detector failed: %d\n", ret);
- 		pr_info("Hard watchdog permanently disabled\n");
- 		return;
+ int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
+ 				  gfp_t gfp, swp_entry_t entry);
+-void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
++
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
+ 
+ void __mem_cgroup_uncharge(struct folio *folio);
+ 
+@@ -1181,7 +1182,7 @@ static inline int mem_cgroup_swapin_char
+ 	return 0;
+ }
+ 
+-static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr)
+ {
+ }
+ 
+--- a/mm/memcontrol.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/memcontrol.c
+@@ -4590,14 +4590,15 @@ int mem_cgroup_swapin_charge_folio(struc
+ 
+ /*
+  * mem_cgroup_swapin_uncharge_swap - uncharge swap slot
+- * @entry: swap entry for which the page is charged
++ * @entry: the first swap entry for which the pages are charged
++ * @nr_pages: number of pages which will be uncharged
+  *
+  * Call this function after successfully adding the charged page to swapcache.
+  *
+  * Note: This function assumes the page for which swap slot is being uncharged
+  * is order 0 page.
+  */
+-void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
+ {
+ 	/*
+ 	 * Cgroup1's unified memory+swap counter has been charged with the
+@@ -4617,7 +4618,7 @@ void mem_cgroup_swapin_uncharge_swap(swp
+ 		 * let's not wait for it.  The page already received a
+ 		 * memory+swap charge, drop the swap entry duplicate.
+ 		 */
+-		mem_cgroup_uncharge_swap(entry, 1);
++		mem_cgroup_uncharge_swap(entry, nr_pages);
  	}
+ }
+ 
+--- a/mm/memory.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/memory.c
+@@ -4102,7 +4102,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 					ret = VM_FAULT_OOM;
+ 					goto out_page;
+ 				}
+-				mem_cgroup_swapin_uncharge_swap(entry);
++				mem_cgroup_swapin_uncharge_swap(entry, 1);
+ 
+ 				shadow = get_shadow_from_swap_cache(entry);
+ 				if (shadow)
+--- a/mm/swap_state.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/swap_state.c
+@@ -522,7 +522,7 @@ struct folio *__read_swap_cache_async(sw
+ 	if (add_to_swap_cache(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
+ 		goto fail_unlock;
+ 
+-	mem_cgroup_swapin_uncharge_swap(entry);
++	mem_cgroup_swapin_uncharge_swap(entry, 1);
+ 
+ 	if (shadow)
+ 		workingset_refault(new_folio, shadow);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
+mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
+vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
+mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
