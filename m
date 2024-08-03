@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA13134AB
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:43:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D9CC1CF8B
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 18:57:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722710608; cv=none; b=ROhonImS+SWoUUc1mChvfyNUOMhiKa4SMMjICCfZDQIWK2CZ3vJgbqkMPTEjd9z3AzCWqZq9mBhlPM1y8WgFKrldiW84ZYS6cE8i8gnwAJpATAqBORUYiNI/zuB9N98aMUw71eea1D77st9GrxNKssgQ0DfFtUYgJIuVkiY7vHI=
+	t=1722711441; cv=none; b=KjABfn4vVC93nVKhbIj7Y/R80d44j4PtBhJX/RhcKY1tVGiEuj3eiK9wBX933ClpWDANq9Z0dXKlSSI8OyCvFrE+o/GLh2EhrJtKBZ55FrmeskwK/RQCdRfMcI7woaw7DxoYlxt+ebj6vcvzB4QgkWH3ZtqXMBdIHWFQoqDgxOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722710608; c=relaxed/simple;
-	bh=Hui/CzKZMGBPme7Sx5BgKnKojtNT8cReoyF4C4x7u5A=;
-	h=Date:To:From:Subject:Message-Id; b=JxfTNnPGUxlUrj+dnRpazN9bMbv5iRrDpMXFLx8G4+rXWQLeHZH/TTeMPHSUunEejNALWphHGEkpXhFb0IzIU1sTnHqjEO4wz3Yo4hy8cjBqqGl6JybOEfqRT924bl6dzap+UzqdIUO0FA9BvhZMQTSLP2rDLseftHQPBIY2Xjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y48sijfK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722711441; c=relaxed/simple;
+	bh=/NjOdkKdXGuzvU0gBDZYsAVIjWl7cWc7uyz7dSSOtIA=;
+	h=Date:To:From:Subject:Message-Id; b=eP/pZGx96VPve9x7dn4vJuu8f/eGNBCLBTrkpA8m7nrHbNyuFUYq9jg7ZjdSr1aMV0LhFlHBLjFNKFngMjcDrijTvnVa39GtYIzOXliukhPHJocpYfQ8u8h08cDzQjr+TOvpKGcVcmHJ4XfWWslbp0TsNWqV6Cq5YmSuKK3Q/bc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PvObZt6n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y48sijfK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18C9FC116B1;
-	Sat,  3 Aug 2024 18:43:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PvObZt6n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B82CC116B1;
+	Sat,  3 Aug 2024 18:57:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722710608;
-	bh=Hui/CzKZMGBPme7Sx5BgKnKojtNT8cReoyF4C4x7u5A=;
+	s=korg; t=1722711441;
+	bh=/NjOdkKdXGuzvU0gBDZYsAVIjWl7cWc7uyz7dSSOtIA=;
 	h=Date:To:From:Subject:From;
-	b=Y48sijfKdRdswVHjRgHwzLXu2HCjUfr5WD9Ip9pw09YqDg+k19I47CnFx/n7NKEhD
-	 boQzZhfb90f/G8+Y0BX64Gt3OcAj59lfzhD8jxtxOCtUMciM62Y5Drzg3pNlP+5ROS
-	 9vTpQDARUZpIRX2ImAyspgrY4+o+mvYbt1VqjvLQ=
-Date: Sat, 03 Aug 2024 11:43:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=PvObZt6nhDpgymRA9oWyzpDlqBsaoQVN8FrIUmJNzkYTBo7boWMWT+EoampE/S2tV
+	 TOhu9wMHE6mx66WyqDb+lGDmMLkoLJH2EzoY78M1ngTyaHklc2bZZq15OccpoogEqO
+	 JsPwt0m6KvuBlQpj5CSMVoMEmLnA0teXhWPft0BY=
+Date: Sat, 03 Aug 2024 11:57:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,rppt@kernel.org,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-move-numa=fake-description-to-kernel-parameterstxt.patch added to mm-unstable branch
-Message-Id: <20240803184328.18C9FC116B1@smtp.kernel.org>
+Subject: + mm-drop-config_have_arch_nodedata_extension-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240803185721.2B82CC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: move numa=fake description to kernel-parameters.txt
+     Subject: mm-drop-config_have_arch_nodedata_extension-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-move-numa=fake-description-to-kernel-parameterstxt.patch
+     mm-drop-config_have_arch_nodedata_extension-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-move-numa=fake-description-to-kernel-parameterstxt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-config_have_arch_nodedata_extension-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,20 +58,12 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: docs: move numa=fake description to kernel-parameters.txt
-Date: Thu, 1 Aug 2024 09:08:26 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-drop-config_have_arch_nodedata_extension-fix-fix
+Date: Sat Aug  3 11:45:56 AM PDT 2024
 
-NUMA emulation can be now enabled on arm64 and riscv in addition to x86.
+fix CONFIG_NUMA=n build
 
-Move description of numa=fake parameters from x86 documentation of
-admin-guide/kernel-parameters.txt
-
-Link: https://lkml.kernel.org/r/20240801060826.559858-27-rppt@kernel.org
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -89,8 +81,10 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Rob Herring (Arm) <robh@kernel.org>
@@ -99,86 +93,30 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   15 ++++++++++++++
- Documentation/arch/x86/x86_64/boot-options.rst  |   12 -----------
- 2 files changed, 15 insertions(+), 12 deletions(-)
+ mm/mm_init.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~docs-move-numa=fake-description-to-kernel-parameterstxt
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4123,6 +4123,21 @@
- 			Disable NUMA, Only set up a single NUMA node
- 			spanning all memory.
+--- a/mm/mm_init.c~mm-drop-config_have_arch_nodedata_extension-fix-fix
++++ a/mm/mm_init.c
+@@ -1842,7 +1842,9 @@ void __init free_area_init(unsigned long
+ 			if (!pgdat)
+ 				panic("Cannot allocate %zuB for node %d.\n",
+ 				       sizeof(*pgdat), nid);
++#ifdef CONFIG_NUMA
+ 			NODE_DATA(nid) = pgdat;
++#endif
+ 		}
  
-+	numa=fake=<size>[MG]
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as a memory unit, fills all system RAM with
-+			nodes of size interleaved over physical nodes.
-+
-+	numa=fake=<N>
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as an integer, fills all system RAM with N
-+			fake nodes interleaved over physical nodes.
-+
-+	numa=fake=<N>U
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as an integer followed by 'U', it will
-+			divide each physical node into N emulated nodes.
-+
- 	numa_balancing=	[KNL,ARM64,PPC,RISCV,S390,X86] Enable or disable automatic
- 			NUMA balancing.
- 			Allowed values are enable and disable
---- a/Documentation/arch/x86/x86_64/boot-options.rst~docs-move-numa=fake-description-to-kernel-parameterstxt
-+++ a/Documentation/arch/x86/x86_64/boot-options.rst
-@@ -170,18 +170,6 @@ NUMA
-     Don't parse the HMAT table for NUMA setup, or soft-reserved memory
-     partitioning.
- 
--  numa=fake=<size>[MG]
--    If given as a memory unit, fills all system RAM with nodes of
--    size interleaved over physical nodes.
--
--  numa=fake=<N>
--    If given as an integer, fills all system RAM with N fake nodes
--    interleaved over physical nodes.
--
--  numa=fake=<N>U
--    If given as an integer followed by 'U', it will divide each
--    physical node into N emulated nodes.
--
- ACPI
- ====
- 
+ 		pgdat = NODE_DATA(nid);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-move-kernel-numac-to-mm.patch
-mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
-mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
-mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
-mips-loongson64-rename-__node_data-to-node_data.patch
-mips-loongson64-drop-have_arch_nodedata_extension.patch
-mm-drop-config_have_arch_nodedata_extension.patch
-arch-mm-move-definition-of-node_data-to-generic-code.patch
-arch-mm-pull-out-allocation-of-node_data-to-generic-code.patch
-x86-numa-simplify-numa_distance-allocation.patch
-x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
-x86-numa-move-fake_node_-defines-to-numa_emu.patch
-x86-numa_emu-simplify-allocation-of-phys_dist.patch
-x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
-x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
-x86-numa-numa_addremove_cpu-make-cpu-parameter-unsigned.patch
-mm-introduce-numa_memblks.patch
-mm-move-numa_distance-and-related-code-from-x86-to-numa_memblks.patch
-mm-introduce-numa_emulation.patch
-mm-numa_memblks-introduce-numa_memblks_init.patch
-mm-numa_memblks-make-several-functions-and-variables-static.patch
-mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
-of-numa-return-einval-when-no-numa-node-id-is-found.patch
-arch_numa-switch-over-to-numa_memblks.patch
-mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
-docs-move-numa=fake-description-to-kernel-parameterstxt.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-drop-config_have_arch_nodedata_extension-fix.patch
+mm-drop-config_have_arch_nodedata_extension-fix-fix.patch
 
