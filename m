@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 537CB42A82
-	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:33:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F4613E02C
+	for <mm-commits@vger.kernel.org>; Sat,  3 Aug 2024 05:33:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722663225; cv=none; b=IYbuj4mpbB7ukuq5tfhktrFeFnyUEqohfnzDxRNp77wtaybkvEJ0cjprHWSxmXLk34pYq+7qd/2m5R1hEURp0rWSZanwBOHDQlBalojWiSXCwvN6SDUqGsC+H2HhOmzbIh2kk5O8ElAhWUe1Z32bSMcW/QW9unsphek4Xjhb85s=
+	t=1722663226; cv=none; b=UQ5Dg2Kq3T8335l5CS4rR/hgvazJc6S4SuGQHnQGKY9sPJkvX/bjSMId7Qq65LE9H/PMU3gruy9yq038VsogcK3axMylx/WFSXOu0L5lFmLQy/xT4G9kk8cTw6Er9q8Y8BTHWGU44DyudMoOmIc3om/dI4KmL6wQY5u7w5V3xp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722663225; c=relaxed/simple;
-	bh=DvBs4qYOwk1/SNLro845sqJ378w6IzAHG2LiZKnraeQ=;
-	h=Date:To:From:Subject:Message-Id; b=kQZ0yEOhMif3dMurkpnETxJjtP3vKvkY0MAGCwJO31tmV/6VS+eDvsJnXA45mnCelzyLUM27xhxpAgGz/+LhXSi71t8EnoYBS6aQZ/PAHBFiKAUFM9IiFui7xl1+NhmcNAKKAA15WxXCgEcOlwEDl5ODyNXpNck7L1VPOzEfhyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=COTk6i0L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722663226; c=relaxed/simple;
+	bh=6ssCaRIpGatcRAawtDpioESClqRwIIREGvM5vb4VNtU=;
+	h=Date:To:From:Subject:Message-Id; b=nEZRxkOtSh1OI1tTDqa9JUlZim/j1W9cibLlWlVzL6+57v9unh1rYbqrXb8eBbdJn+eBzjIxCvxlWp1LXr+6rMM7Yhy6Oh9oTPMAomRTC1yuuCxQhQaHkGv3+g/+ipHZ4NNIOTgcBxu4NQG3e4VtURsKiqThFzTxO4I0hXxMICs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E9raXwXz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="COTk6i0L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB8F0C116B1;
-	Sat,  3 Aug 2024 05:33:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E9raXwXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3950AC116B1;
+	Sat,  3 Aug 2024 05:33:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1722663224;
-	bh=DvBs4qYOwk1/SNLro845sqJ378w6IzAHG2LiZKnraeQ=;
+	s=korg; t=1722663226;
+	bh=6ssCaRIpGatcRAawtDpioESClqRwIIREGvM5vb4VNtU=;
 	h=Date:To:From:Subject:From;
-	b=COTk6i0Lp83cIO7ORfYpAqe9DxCuKCHsiQ/4cOB5saOkqouBsYanPB7Z1nVNzcW8Y
-	 WfSNaQYHNzW874AmE9DtgWBxR5VvwhyYe/s0mq58XQVCL9MWyvuZrW96AV9JT3Auq5
-	 q6MfHPklyHQazFtpO4a1uQSZKSHFtRJJBUIuPLeQ=
-Date: Fri, 02 Aug 2024 22:33:44 -0700
+	b=E9raXwXzzVhXCDc+1jkIaJ2RhWJ3WiTmTAePrCFCArlUeq3aYV0BGpLUtymq3P0PO
+	 oOKFwSNo+7wbx7dAZLykOIU3Y9yDRdJUrzFTQFeBkuADp4zGXTefYKjiVa6Z0xLTVg
+	 JlLm+7tJlonF1EYmRPF7t24J04XlbJc6Qm4IpiVU=
+Date: Fri, 02 Aug 2024 22:33:45 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,svens@linux.ibm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch added to mm-unstable branch
-Message-Id: <20240803053344.AB8F0C116B1@smtp.kernel.org>
+Subject: + mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch added to mm-unstable branch
+Message-Id: <20240803053346.3950AC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: convert scan_get_next_rmap_item() from follow_page() to folio_walk
+     Subject: mm/huge_memory: convert split_huge_pages_pid() from follow_page() to folio_walk
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
+     mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/ksm: convert scan_get_next_rmap_item() from follow_page() to folio_walk
-Date: Fri, 2 Aug 2024 17:55:19 +0200
+Subject: mm/huge_memory: convert split_huge_pages_pid() from follow_page() to folio_walk
+Date: Fri, 2 Aug 2024 17:55:20 +0200
 
-Let's use folio_walk instead, for example avoiding taking temporary folio
-references if the folio does obviously not even apply and getting rid of
-one more follow_page() user.  We cannot move all handling under the PTL,
-so leave the rmap handling (which implies an allocation) out.
+Let's remove yet another follow_page() user.  Note that we have to do the
+split without holding the PTL, after folio_walk_end().  We don't care
+about losing the secretmem check in follow_page().
 
-Note that zeropages obviously don't apply: old code could just have
-specified FOLL_DUMP.  Further, we don't care about losing the secretmem
-check in follow_page(): these are never anon pages and
-vma_ksm_compatible() would never consider secretmem vmas (VM_SHARED |
-VM_MAYSHARE must be set for secretmem, see secretmem_mmap()).
-
-Link: https://lkml.kernel.org/r/20240802155524.517137-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20240802155524.517137-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -88,72 +81,65 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   38 ++++++++++++++++++++++++--------------
- 1 file changed, 24 insertions(+), 14 deletions(-)
+ mm/huge_memory.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk
-+++ a/mm/ksm.c
-@@ -2564,36 +2564,46 @@ next_mm:
- 			ksm_scan.address = vma->vm_end;
+--- a/mm/huge_memory.c~mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk
++++ a/mm/huge_memory.c
+@@ -40,6 +40,7 @@
+ #include <linux/memory-tiers.h>
+ #include <linux/compat.h>
+ #include <linux/pgalloc_tag.h>
++#include <linux/pagewalk.h>
  
- 		while (ksm_scan.address < vma->vm_end) {
-+			struct page *tmp_page = NULL;
-+			struct folio_walk fw;
-+			struct folio *folio;
-+
- 			if (ksm_test_exit(mm))
- 				break;
--			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
--			if (IS_ERR_OR_NULL(*page)) {
--				ksm_scan.address += PAGE_SIZE;
--				cond_resched();
--				continue;
-+
-+			folio = folio_walk_start(&fw, vma, ksm_scan.address, 0);
-+			if (folio) {
-+				if (!folio_is_zone_device(folio) &&
-+				     folio_test_anon(folio)) {
-+					folio_get(folio);
-+					tmp_page = fw.page;
-+				}
-+				folio_walk_end(&fw, vma);
- 			}
--			if (is_zone_device_page(*page))
--				goto next_page;
--			if (PageAnon(*page)) {
--				flush_anon_page(vma, *page, ksm_scan.address);
--				flush_dcache_page(*page);
-+
-+			if (tmp_page) {
-+				flush_anon_page(vma, tmp_page, ksm_scan.address);
-+				flush_dcache_page(tmp_page);
- 				rmap_item = get_next_rmap_item(mm_slot,
- 					ksm_scan.rmap_list, ksm_scan.address);
- 				if (rmap_item) {
- 					ksm_scan.rmap_list =
- 							&rmap_item->rmap_list;
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+@@ -3507,7 +3508,7 @@ static int split_huge_pages_pid(int pid,
+ 	 */
+ 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
+ 		struct vm_area_struct *vma = vma_lookup(mm, addr);
+-		struct page *page;
++		struct folio_walk fw;
+ 		struct folio *folio;
  
--					if (should_skip_rmap_item(*page, rmap_item))
-+					if (should_skip_rmap_item(tmp_page, rmap_item)) {
-+						folio_put(folio);
- 						goto next_page;
-+					}
- 
- 					ksm_scan.address += PAGE_SIZE;
--				} else
--					put_page(*page);
-+					*page = tmp_page;
-+				} else {
-+					folio_put(folio);
-+				}
- 				mmap_read_unlock(mm);
- 				return rmap_item;
- 			}
- next_page:
--			put_page(*page);
- 			ksm_scan.address += PAGE_SIZE;
- 			cond_resched();
+ 		if (!vma)
+@@ -3519,13 +3520,10 @@ static int split_huge_pages_pid(int pid,
+ 			continue;
  		}
+ 
+-		/* FOLL_DUMP to ignore special (like zero) pages */
+-		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
+-
+-		if (IS_ERR_OR_NULL(page))
++		folio = folio_walk_start(&fw, vma, addr, 0);
++		if (!folio)
+ 			continue;
+ 
+-		folio = page_folio(page);
+ 		if (!is_transparent_hugepage(folio))
+ 			goto next;
+ 
+@@ -3544,13 +3542,19 @@ static int split_huge_pages_pid(int pid,
+ 
+ 		if (!folio_trylock(folio))
+ 			goto next;
++		folio_get(folio);
++		folio_walk_end(&fw, vma);
+ 
+ 		if (!split_folio_to_order(folio, new_order))
+ 			split++;
+ 
+ 		folio_unlock(folio);
+-next:
+ 		folio_put(folio);
++
++		cond_resched();
++		continue;
++next:
++		folio_walk_end(&fw, vma);
+ 		cond_resched();
+ 	}
+ 	mmap_read_unlock(mm);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
