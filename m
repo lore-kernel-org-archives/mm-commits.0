@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C07146A89
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:58:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59954145A07
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:58:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064328; cv=none; b=Of+hDyrATPyepQ2HAJUcWWFRSPS1f+VFr3BmU6TRZtZeqJCiBHNVmu1LkEXHt9ukoQfdlTg052AKZ0FGUsM6p0Wa7U0A02TRcg6abqPtH3FexsEPTNz+F8i4v5MfVnUXN6XSTjc9HKYEOWFI9BH6C3DFVyicCpx8GjCN9RA+xig=
+	t=1723064330; cv=none; b=cSmvLVcNFoWj+uPzkooN+xzVpqsRE5g/u3MTy1Vk4kC+aSKfEsv+V+N5jSVmzRekxlxpx75y7qBPWX+BXoyx0afpEhDMppvzFBu0ayTLaEC8xiXcMUmVO8pn6RdLkpZIz4olUhDm4G1R0jUcbC/udcXwv710Bpmi6ezSpuaqU94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064328; c=relaxed/simple;
-	bh=xKTQ0ke7ffzBlZImXl02wJysdeDGUaqC0RFgn9zSJKE=;
-	h=Date:To:From:Subject:Message-Id; b=ALyUQKBHUeC9IfZlRctLEiKwx5CatsbSoO2KtW2OjTUEbtLoqD/zJzM06pl2I+I8dS1VmNQd33ro+TjpFSJWl/7uAmP75Sklw7jEsSfVh/uHB7kVE9CQttL0fU9cuUGKO6T3FRIjkJdzzO0FAukGSb4ZCLQoB156oSjAagn9Xjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qJ0DhpNa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064330; c=relaxed/simple;
+	bh=d7aLrcWGkit/YNR2tTpLM1Qzig7jK2JRfDOnlsBWw0g=;
+	h=Date:To:From:Subject:Message-Id; b=rNT9mQZs5MvQF1Ci9vInraQWt94PZzbD8ZMIJ0Rp2+iaDC551pWAcLXCJrbhrqhS4ds/psG/lq1sYr2ER6HGSWwNetFXJn11C91Ly/Ydg5f3+1W5VVTr7D7vb1Za1Px147pc/Lr9hBteimnnCywu0FRYffd8nkBeHokDqFzcmrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CY7LEu0+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qJ0DhpNa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E9CEC32781;
-	Wed,  7 Aug 2024 20:58:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CY7LEu0+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08D42C32781;
+	Wed,  7 Aug 2024 20:58:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064328;
-	bh=xKTQ0ke7ffzBlZImXl02wJysdeDGUaqC0RFgn9zSJKE=;
+	s=korg; t=1723064330;
+	bh=d7aLrcWGkit/YNR2tTpLM1Qzig7jK2JRfDOnlsBWw0g=;
 	h=Date:To:From:Subject:From;
-	b=qJ0DhpNayGRFWeEQE8WSm0+ow7ggaJFeujKzrJXqs//Qkw5s/C31Vu+8qKJCTLcPY
-	 0o71ltNjDxHHQp1NMd6+UmsTs/+XOC1jRV8wooFNhpe/6H7IQLEGL7E4dpTT2DrZyF
-	 BxVIxjU8w2ja59MmHJPVrQK5bUQh9kOriztFXKlM=
-Date: Wed, 07 Aug 2024 13:58:47 -0700
+	b=CY7LEu0+oY8/VCjtuPBE8lzNUy0+Tj3XgIBl/r8yokAFhlWMyxNPMm7FYw+pom9gg
+	 DsWVLsisLp0R0of5YNeCRYi+qIKjl1Gu+xleI/kC5qBMJxoQYPBfGOdv0ngFAM/iVV
+	 nTp1I8agJAO6Ai+ddqvXx6mym3Mq9+/nNtC+a5W0=
+Date: Wed, 07 Aug 2024 13:58:49 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-kernel-numac-to-mm.patch added to mm-unstable branch
-Message-Id: <20240807205848.1E9CEC32781@smtp.kernel.org>
+Subject: + mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch added to mm-unstable branch
+Message-Id: <20240807205850.08D42C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move kernel/numa.c to mm/
+     Subject: MIPS: sgi-ip27: make NODE_DATA() the same as on all other architectures
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-kernel-numac-to-mm.patch
+     mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-kernel-numac-to-mm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm: move kernel/numa.c to mm/
-Date: Wed, 7 Aug 2024 09:40:45 +0300
+Subject: MIPS: sgi-ip27: make NODE_DATA() the same as on all other architectures
+Date: Wed, 7 Aug 2024 09:40:46 +0300
 
-Patch series "mm: introduce numa_memblks", v4.
+sgi-ip27 is the only system that defines NODE_DATA() differently than the
+rest of NUMA machines.
 
-Following the discussion about handling of CXL fixed memory windows on
-arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
-the generic code so they will be available on arm64/riscv and maybe on
-loongarch sometime later.
+Add node_data array of struct pglist pointers that will point to
+__node_data[node]->pglist and redefine NODE_DATA() to use node_data array.
 
-While it could be possible to use memblock to describe CXL memory windows,
-it currently lacks notion of unpopulated memory ranges and numa_memblks
-does implement this.
+This will allow pulling declaration of node_data to the generic mm code in
+the next commit.
 
-Another reason to make numa_memblks generic is that both arch_numa (arm64
-and riscv) and loongarch use trimmed copy of x86 code although there is no
-fundamental reason why the same code cannot be used on all these
-platforms.  Having numa_memblks in mm/ will make it's interaction with
-ACPI and FDT more consistent and I believe will reduce maintenance burden.
-
-And with generic numa_memblks it is (almost) straightforward to enable
-NUMA emulation on arm64 and riscv.
-
-The first 9 commits in this series are cleanups that are not strictly
-related to numa_memblks.
-Commits 10-16 slightly reorder code in x86 to allow extracting numa_memblks
-and NUMA emulation to the generic code.
-Commits 17-19 actually move the code from arch/x86/ to mm/ and commits 20-22
-does some aftermath cleanups.
-Commit 23 updates of_numa_init() to return error of no NUMA nodes were
-found in the device tree.
-Commit 24 switches arch_numa to numa_memblks.
-Commit 25 enables usage of phys_to_target_node() and
-memory_add_physaddr_to_nid() with numa_memblks.
-Commit 26 moves the description for numa=fake from x86 to admin-guide.
-
-[1] https://lore.kernel.org/all/20240529171236.32002-1-Jonathan.Cameron@huawei.com/
-
-
-This patch (of 26):
-
-The stub functions in kernel/numa.c belong to mm/ rather than to kernel/
-
-Link: https://lkml.kernel.org/r/20240807064110.1003856-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20240807064110.1003856-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Acked-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -135,97 +102,50 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    1 -
- kernel/numa.c   |   26 --------------------------
- mm/Makefile     |    1 +
- mm/numa.c       |   26 ++++++++++++++++++++++++++
- 4 files changed, 27 insertions(+), 27 deletions(-)
+ arch/mips/include/asm/mach-ip27/mmzone.h |    5 ++++-
+ arch/mips/sgi-ip27/ip27-memory.c         |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/kernel/Makefile~mm-move-kernel-numac-to-mm
-+++ a/kernel/Makefile
-@@ -116,7 +116,6 @@ obj-$(CONFIG_SHADOW_CALL_STACK) += scs.o
- obj-$(CONFIG_HAVE_STATIC_CALL) += static_call.o
- obj-$(CONFIG_HAVE_STATIC_CALL_INLINE) += static_call_inline.o
- obj-$(CONFIG_CFI_CLANG) += cfi.o
--obj-$(CONFIG_NUMA) += numa.o
+--- a/arch/mips/include/asm/mach-ip27/mmzone.h~mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures
++++ a/arch/mips/include/asm/mach-ip27/mmzone.h
+@@ -22,7 +22,10 @@ struct node_data {
  
- obj-$(CONFIG_PERF_EVENTS) += events/
+ extern struct node_data *__node_data[];
  
-diff --git a/kernel/numa.c a/kernel/numa.c
-deleted file mode 100644
---- a/kernel/numa.c
-+++ /dev/null
-@@ -1,26 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-or-later
--
--#include <linux/printk.h>
--#include <linux/numa.h>
--
--/* Stub functions: */
--
--#ifndef memory_add_physaddr_to_nid
--int memory_add_physaddr_to_nid(u64 start)
--{
--	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
--			start);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
--#endif
--
--#ifndef phys_to_target_node
--int phys_to_target_node(u64 start)
--{
--	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
--			start);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(phys_to_target_node);
--#endif
---- a/mm/Makefile~mm-move-kernel-numac-to-mm
-+++ a/mm/Makefile
-@@ -117,6 +117,7 @@ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
- obj-$(CONFIG_Z3FOLD)	+= z3fold.o
- obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
- obj-$(CONFIG_CMA)	+= cma.o
-+obj-$(CONFIG_NUMA) += numa.o
- obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
- obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
-diff --git a/mm/numa.c a/mm/numa.c
-new file mode 100644
---- /dev/null
-+++ a/mm/numa.c
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
+-#define NODE_DATA(n)		(&__node_data[(n)]->pglist)
+ #define hub_data(n)		(&__node_data[(n)]->hub)
+ 
++extern struct pglist_data *node_data[];
 +
-+#include <linux/printk.h>
-+#include <linux/numa.h>
++#define NODE_DATA(nid)		(node_data[nid])
 +
-+/* Stub functions: */
-+
-+#ifndef memory_add_physaddr_to_nid
-+int memory_add_physaddr_to_nid(u64 start)
-+{
-+	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
-+			start);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
-+#endif
-+
-+#ifndef phys_to_target_node
-+int phys_to_target_node(u64 start)
-+{
-+	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
-+			start);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(phys_to_target_node);
-+#endif
+ #endif /* _ASM_MACH_MMZONE_H */
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -34,8 +34,10 @@
+ #define SLOT_PFNSHIFT		(SLOT_SHIFT - PAGE_SHIFT)
+ #define PFN_NASIDSHFT		(NASID_SHFT - PAGE_SHIFT)
+ 
+-struct node_data *__node_data[MAX_NUMNODES];
++struct pglist_data *node_data[MAX_NUMNODES];
++EXPORT_SYMBOL(node_data);
+ 
++struct node_data *__node_data[MAX_NUMNODES];
+ EXPORT_SYMBOL(__node_data);
+ 
+ static u64 gen_region_mask(void)
+@@ -361,6 +363,7 @@ static void __init node_mem_init(nasid_t
+ 	 */
+ 	__node_data[node] = __va(slot_freepfn << PAGE_SHIFT);
+ 	memset(__node_data[node], 0, PAGE_SIZE);
++	node_data[node] = &__node_data[node]->pglist;
+ 
+ 	NODE_DATA(node)->node_start_pfn = start_pfn;
+ 	NODE_DATA(node)->node_spanned_pages = end_pfn - start_pfn;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
