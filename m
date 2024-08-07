@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F569B640
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:05:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37207148857
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064754; cv=none; b=FhF+fDAe8UDbKizURBkB4k2OyHfBoPi0zvgKY4z2woeTpAlAj7Hc86EMl4K8NbnsJ8TKJh4jUUlGGSfogH5zSo5Zpc7VV13zflG4Z1e7zWnup+trwu1BNLvTgAp/eOPKWRXIGbJBmjx4uSyavFKNzTcTEjPkqhlo3YhWBHOK4dQ=
+	t=1723064815; cv=none; b=NNGGjg8g4DIvmjPTe5QEo6DavCn96781KP0bOH4dv3M3rotUZTv3TppYTiOxSHw0vp9raPifc6pvBVqx56S3EZLIr2xEPvXtatWM2vpuTYtFg0WuAkzRTU9Uxu6IPtm+CU75/VmNXVON5jo2iHLbBBdSNPhA888F0ieVc2OJ+5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064754; c=relaxed/simple;
-	bh=J6WJJ+9WFks33M8zvx2iF/Wi/ve/n7dYpfZQOq7xv94=;
-	h=Date:To:From:Subject:Message-Id; b=jkBS+oem499w664Y0ptNbuZfh67IuUH9siDN/lH1G1SHcrApC7OqCdtvLGUAQ4gzbuNG7WQAMA2LchZsiqJLuc8EzXg6vE0GtIEgi2lN6kokm/vdyfy2w7zTvjwZQwWk9ThE1c6huPmb1emJc2dKLeFcjj9CWsAU7gHb3LphZB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XceEa3i5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064815; c=relaxed/simple;
+	bh=agf5jtKMuMqD55f802AmFn+OCZ5kAJ6i10iMo6Ayd4E=;
+	h=Date:To:From:Subject:Message-Id; b=IbSbAzAVuOt3zp5lOvsThM93m2fCB2UfkLJG5UBVgZ5ZKn3jfarLPruqH7uj2jjvScRauGlegdHsZHTNUOIqwFOxM7fNTp/EAB4Tl1agaiVysJt+BtGl0p1h8K3jwukkt6E0e8TJvfAuXcQBSJcJVSdUpcrpS/dsxT4fIEQG46w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zwgQaXVf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XceEa3i5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED87AC32782;
-	Wed,  7 Aug 2024 21:05:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zwgQaXVf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83FEBC32781;
+	Wed,  7 Aug 2024 21:06:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064754;
-	bh=J6WJJ+9WFks33M8zvx2iF/Wi/ve/n7dYpfZQOq7xv94=;
+	s=korg; t=1723064814;
+	bh=agf5jtKMuMqD55f802AmFn+OCZ5kAJ6i10iMo6Ayd4E=;
 	h=Date:To:From:Subject:From;
-	b=XceEa3i524ZaYaE9Qzw7dZ2/uKLq6OqNRWn097PTOlpBFLRwE0dCTmfaFeAlTQp1d
-	 CIpBE3AHZ9Ld4F9TLm+BAjFWlhw86kjHuvtQAOpzdCCgQxCsN3tkBHR6x6VaNlsx5P
-	 D547uy9VGy+ac4f5wDZHJcbtCDiSxubdj040CkVo=
-Date: Wed, 07 Aug 2024 14:05:53 -0700
-To: mm-commits@vger.kernel.org,qiwu.chen@transsion.com,elver@google.com,dvyukov@google.com,qiwuchen55@gmail.com,akpm@linux-foundation.org
+	b=zwgQaXVfm4zDWUB4CxsixKdSJGC/UCpNbVZr4DBQp/pl1a2qjuOVOhVH8kMPhrx9R
+	 LSrlpVJG1EmFu/bXDQClhTf/SYKtv5FZQQIeajTmExmt+p95BR0P+Zn+pRglqcC3+f
+	 J3OEq4ZVKkfw35kJo7IJ7bIcXb58QQJCyJrqNvK4=
+Date: Wed, 07 Aug 2024 14:06:53 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch added to mm-unstable branch
-Message-Id: <20240807210553.ED87AC32782@smtp.kernel.org>
+Subject: + fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch added to mm-unstable branch
+Message-Id: <20240807210654.83FEBC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kfence: print the elapsed time for allocated/freed track
+     Subject: fs: remove calls to set and clear the folio error flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch
+     fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,54 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "qiwu.chen" <qiwuchen55@gmail.com>
-Subject: mm: kfence: print the elapsed time for allocated/freed track
-Date: Wed, 7 Aug 2024 10:56:27 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: fs: remove calls to set and clear the folio error flag
+Date: Wed, 7 Aug 2024 20:35:25 +0100
 
-Print the elapsed time for the allocated or freed track, which can be
-useful in some debugging scenarios.
+Nobody checks the folio error flag any more, so we can stop setting and
+clearing it.  Also remove the documentation suggesting to not bother
+setting the error bit.
 
-Link: https://lkml.kernel.org/r/20240807025627.37419-1-qiwu.chen@transsion.com
-Signed-off-by: qiwu.chen <qiwu.chen@transsion.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: chenqiwu <qiwu.chen@transsion.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20240807193528.1865100-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/report.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/filesystems/vfs.rst |    3 +--
+ mm/filemap.c                      |    8 --------
+ mm/migrate.c                      |    2 --
+ mm/page_io.c                      |    4 +---
+ 4 files changed, 2 insertions(+), 15 deletions(-)
 
---- a/mm/kfence/report.c~mm-kfence-print-the-elapsed-time-for-allocated-freed-track
-+++ a/mm/kfence/report.c
-@@ -16,6 +16,7 @@
- #include <linux/sprintf.h>
- #include <linux/stacktrace.h>
- #include <linux/string.h>
-+#include <linux/sched/clock.h>
- #include <trace/events/error_report.h>
+--- a/Documentation/filesystems/vfs.rst~fs-remove-calls-to-set-and-clear-the-folio-error-flag
++++ a/Documentation/filesystems/vfs.rst
+@@ -913,8 +913,7 @@ cache in your filesystem.  The following
+ 	stop attempting I/O, it can simply return.  The caller will
+ 	remove the remaining pages from the address space, unlock them
+ 	and decrement the page refcount.  Set PageUptodate if the I/O
+-	completes successfully.  Setting PageError on any page will be
+-	ignored; simply unlock the page if an I/O error occurs.
++	completes successfully.
  
- #include <asm/kfence.h>
-@@ -108,11 +109,14 @@ static void kfence_print_stack(struct se
- 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
- 	u64 ts_sec = track->ts_nsec;
- 	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
-+	u64 interval_nsec = local_clock() - meta->alloc_track.ts_nsec;
-+	unsigned long rem_interval_nsec = do_div(interval_nsec, NSEC_PER_SEC);
+ ``write_begin``
+ 	Called by the generic buffered write code to ask the filesystem
+--- a/mm/filemap.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
++++ a/mm/filemap.c
+@@ -530,7 +530,6 @@ static void __filemap_fdatawait_range(st
+ 			struct folio *folio = fbatch.folios[i];
  
- 	/* Timestamp matches printk timestamp format. */
--	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
-+	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus (%lu.%06lus ago):\n",
- 		       show_alloc ? "allocated" : "freed", track->pid,
--		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
-+		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000,
-+		       (unsigned long)interval_nsec, rem_interval_nsec / 1000);
+ 			folio_wait_writeback(folio);
+-			folio_clear_error(folio);
+ 		}
+ 		folio_batch_release(&fbatch);
+ 		cond_resched();
+@@ -2346,13 +2345,6 @@ static int filemap_read_folio(struct fil
+ 	unsigned long pflags;
+ 	int error;
  
- 	if (track->num_stack_entries) {
- 		/* Skip allocation/free internals stack. */
+-	/*
+-	 * A previous I/O error may have been due to temporary failures,
+-	 * eg. multipath errors.  PG_error will be set again if read_folio
+-	 * fails.
+-	 */
+-	folio_clear_error(folio);
+-
+ 	/* Start the actual read. The read will unlock the page. */
+ 	if (unlikely(workingset))
+ 		psi_memstall_enter(&pflags);
+--- a/mm/migrate.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
++++ a/mm/migrate.c
+@@ -640,8 +640,6 @@ void folio_migrate_flags(struct folio *n
+ {
+ 	int cpupid;
+ 
+-	if (folio_test_error(folio))
+-		folio_set_error(newfolio);
+ 	if (folio_test_referenced(folio))
+ 		folio_set_referenced(newfolio);
+ 	if (folio_test_uptodate(folio))
+--- a/mm/page_io.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
++++ a/mm/page_io.c
+@@ -273,9 +273,7 @@ static void sio_write_complete(struct ki
+ 		 * memory for allocating transmit buffers.
+ 		 * Mark the page dirty and avoid
+ 		 * folio_rotate_reclaimable but rate-limit the
+-		 * messages but do not flag PageError like
+-		 * the normal direct-to-bio case as it could
+-		 * be temporary.
++		 * messages.
+ 		 */
+ 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
+ 				   ret, swap_dev_pos(page_swap_entry(page)));
 _
 
-Patches currently in -mm which might be from qiwuchen55@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch
+fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
+mm-remove-pg_error.patch
 
