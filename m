@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752E9145A1D
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:46:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C07146A89
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:58:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723063574; cv=none; b=BsucNNC+SsLWyeVfeQ+ZhvMCT2BOkYXIGbPLp8LDiIJH2pCmhz4rNdMP/P+0rci6ZIWoYRQ+vFxsAWlxy6Mni8QFrS4z6Hh+0p59q0+AG0kw106Rt8yD1hQyLrEocYEG1fJtIwiKX8fn7y1umkT8grpjIY5Gh+7dowvVZyPvd/s=
+	t=1723064328; cv=none; b=Of+hDyrATPyepQ2HAJUcWWFRSPS1f+VFr3BmU6TRZtZeqJCiBHNVmu1LkEXHt9ukoQfdlTg052AKZ0FGUsM6p0Wa7U0A02TRcg6abqPtH3FexsEPTNz+F8i4v5MfVnUXN6XSTjc9HKYEOWFI9BH6C3DFVyicCpx8GjCN9RA+xig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723063574; c=relaxed/simple;
-	bh=mIRx2vgVKQA+V2f0JYFLAQJpEADR4WEkpossRV2NXRw=;
-	h=Date:To:From:Subject:Message-Id; b=hV5ClVnAGRnVjkIKxbMLlXWaERIGlTwOVCgZ/icA+Nj/Ybnr8pmL1BMSFrkIK4qeZLKA1/EtbZK6ItN2hzWTgJ5wvJTxAjNoLHhRbP3JZQyq/h0Om1Btx2xraeMwWEEmzoxcLWcY5n/vwdn7pgd2YBteUYEKsOj5KxjSLKNkDT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YY5qS+bS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064328; c=relaxed/simple;
+	bh=xKTQ0ke7ffzBlZImXl02wJysdeDGUaqC0RFgn9zSJKE=;
+	h=Date:To:From:Subject:Message-Id; b=ALyUQKBHUeC9IfZlRctLEiKwx5CatsbSoO2KtW2OjTUEbtLoqD/zJzM06pl2I+I8dS1VmNQd33ro+TjpFSJWl/7uAmP75Sklw7jEsSfVh/uHB7kVE9CQttL0fU9cuUGKO6T3FRIjkJdzzO0FAukGSb4ZCLQoB156oSjAagn9Xjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qJ0DhpNa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YY5qS+bS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44048C32781;
-	Wed,  7 Aug 2024 20:46:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qJ0DhpNa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E9CEC32781;
+	Wed,  7 Aug 2024 20:58:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723063574;
-	bh=mIRx2vgVKQA+V2f0JYFLAQJpEADR4WEkpossRV2NXRw=;
+	s=korg; t=1723064328;
+	bh=xKTQ0ke7ffzBlZImXl02wJysdeDGUaqC0RFgn9zSJKE=;
 	h=Date:To:From:Subject:From;
-	b=YY5qS+bSDhhQ5i7ueeIaPzDrnL9sz6yZ1GONh2tTdwt1r7LjFcrM+QjrSKZRt3Ap8
-	 STJVYRLnMg9kcXhF7YYfCraDlJZgQ827Trd9T6L7R1Qk+wHiUhEFpxyveiu1PDJQkt
-	 a7Q4sn7wWTac9pBtg08B+E7MouW3vZaN3M1FCF7I=
-Date: Wed, 07 Aug 2024 13:46:13 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=qJ0DhpNayGRFWeEQE8WSm0+ow7ggaJFeujKzrJXqs//Qkw5s/C31Vu+8qKJCTLcPY
+	 0o71ltNjDxHHQp1NMd6+UmsTs/+XOC1jRV8wooFNhpe/6H7IQLEGL7E4dpTT2DrZyF
+	 BxVIxjU8w2ja59MmHJPVrQK5bUQh9kOriztFXKlM=
+Date: Wed, 07 Aug 2024 13:58:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-support-large-folio-swap-out.patch added to mm-unstable branch
-Message-Id: <20240807204614.44048C32781@smtp.kernel.org>
+Subject: + mm-move-kernel-numac-to-mm.patch added to mm-unstable branch
+Message-Id: <20240807205848.1E9CEC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: support large folio swap out
+     Subject: mm: move kernel/numa.c to mm/
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-support-large-folio-swap-out.patch
+     mm-move-kernel-numac-to-mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-swap-out.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-kernel-numac-to-mm.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,140 +58,203 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: support large folio swap out
-Date: Wed, 7 Aug 2024 15:31:15 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm: move kernel/numa.c to mm/
+Date: Wed, 7 Aug 2024 09:40:45 +0300
 
-Shmem will support large folio allocation [1] [2] to get a better
-performance, however, the memory reclaim still splits the precious large
-folios when trying to swap out shmem, which may lead to the memory
-fragmentation issue and can not take advantage of the large folio for
-shmeme.
+Patch series "mm: introduce numa_memblks", v4.
 
-Moreover, the swap code already supports for swapping out large folio
-without split, hence this patch set supports the large folio swap out for
-shmem.
+Following the discussion about handling of CXL fixed memory windows on
+arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
+the generic code so they will be available on arm64/riscv and maybe on
+loongarch sometime later.
 
-Note the i915_gem_shmem driver still need to be split when swapping, thus
-add a new flag 'split_large_folio' for writeback_control to indicate
-spliting the large folio.
+While it could be possible to use memblock to describe CXL memory windows,
+it currently lacks notion of unpopulated memory ranges and numa_memblks
+does implement this.
 
-[1] https://lore.kernel.org/all/cover.1717495894.git.baolin.wang@linux.alibaba.com/
-[2] https://lore.kernel.org/all/20240515055719.32577-1-da.gomez@samsung.com/
-Link: https://lkml.kernel.org/r/a7f632e1d8976e6de37e3e60358e1406048b4e7e.1723012159.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Another reason to make numa_memblks generic is that both arch_numa (arm64
+and riscv) and loongarch use trimmed copy of x86 code although there is no
+fundamental reason why the same code cannot be used on all these
+platforms.  Having numa_memblks in mm/ will make it's interaction with
+ACPI and FDT more consistent and I believe will reduce maintenance burden.
+
+And with generic numa_memblks it is (almost) straightforward to enable
+NUMA emulation on arm64 and riscv.
+
+The first 9 commits in this series are cleanups that are not strictly
+related to numa_memblks.
+Commits 10-16 slightly reorder code in x86 to allow extracting numa_memblks
+and NUMA emulation to the generic code.
+Commits 17-19 actually move the code from arch/x86/ to mm/ and commits 20-22
+does some aftermath cleanups.
+Commit 23 updates of_numa_init() to return error of no NUMA nodes were
+found in the device tree.
+Commit 24 switches arch_numa to numa_memblks.
+Commit 25 enables usage of phys_to_target_node() and
+memory_add_physaddr_to_nid() with numa_memblks.
+Commit 26 moves the description for numa=fake from x86 to admin-guide.
+
+[1] https://lore.kernel.org/all/20240529171236.32002-1-Jonathan.Cameron@huawei.com/
+
+
+This patch (of 26):
+
+The stub functions in kernel/numa.c belong to mm/ rather than to kernel/
+
+Link: https://lkml.kernel.org/r/20240807064110.1003856-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Rob Herring (Arm) <robh@kernel.org>
+Cc: Samuel Holland <samuel.holland@sifive.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    1 +
- include/linux/writeback.h                 |    1 +
- mm/shmem.c                                |    3 +--
- mm/vmscan.c                               |   14 ++++++++++++--
- 4 files changed, 15 insertions(+), 4 deletions(-)
+ kernel/Makefile |    1 -
+ kernel/numa.c   |   26 --------------------------
+ mm/Makefile     |    1 +
+ mm/numa.c       |   26 ++++++++++++++++++++++++++
+ 4 files changed, 27 insertions(+), 27 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-shmem-support-large-folio-swap-out
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -308,6 +308,7 @@ void __shmem_writeback(size_t size, stru
- 		.range_start = 0,
- 		.range_end = LLONG_MAX,
- 		.for_reclaim = 1,
-+		.split_large_folio = 1,
- 	};
- 	unsigned long i;
+--- a/kernel/Makefile~mm-move-kernel-numac-to-mm
++++ a/kernel/Makefile
+@@ -116,7 +116,6 @@ obj-$(CONFIG_SHADOW_CALL_STACK) += scs.o
+ obj-$(CONFIG_HAVE_STATIC_CALL) += static_call.o
+ obj-$(CONFIG_HAVE_STATIC_CALL_INLINE) += static_call_inline.o
+ obj-$(CONFIG_CFI_CLANG) += cfi.o
+-obj-$(CONFIG_NUMA) += numa.o
  
---- a/include/linux/writeback.h~mm-shmem-support-large-folio-swap-out
-+++ a/include/linux/writeback.h
-@@ -63,6 +63,7 @@ struct writeback_control {
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
- 	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
- 	unsigned unpinned_netfs_wb:1;	/* Cleared I_PINNING_NETFS_WB */
-+	unsigned split_large_folio:1;	/* Split large folio for shmem writeback */
+ obj-$(CONFIG_PERF_EVENTS) += events/
  
- 	/*
- 	 * When writeback IOs are bounced through async layers, only the
---- a/mm/shmem.c~mm-shmem-support-large-folio-swap-out
-+++ a/mm/shmem.c
-@@ -795,7 +795,6 @@ static int shmem_add_to_page_cache(struc
- 	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
--	VM_BUG_ON(expected && folio_test_large(folio));
- 
- 	folio_ref_add(folio, nr);
- 	folio->mapping = mapping;
-@@ -1482,7 +1481,7 @@ static int shmem_writepage(struct page *
- 	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
- 	 * and its shmem_writeback() needs them to be split when swapping.
- 	 */
--	if (folio_test_large(folio)) {
-+	if (wbc->split_large_folio && folio_test_large(folio)) {
- 		/* Ensure the subpages are still dirty */
- 		folio_test_set_dirty(folio);
- 		if (split_huge_page(page) < 0)
---- a/mm/vmscan.c~mm-shmem-support-large-folio-swap-out
-+++ a/mm/vmscan.c
-@@ -1268,8 +1268,12 @@ retry:
- 			if (!total_swap_pages)
- 				goto activate_locked;
- 
--			/* Split shmem folio */
--			if (split_folio_to_list(folio, folio_list))
-+			/*
-+			 * Only split shmem folio when CONFIG_THP_SWAP
-+			 * is not enabled.
-+			 */
-+			if (!IS_ENABLED(CONFIG_THP_SWAP) &&
-+			    split_folio_to_list(folio, folio_list))
- 				goto keep_locked;
- 		}
- 
-@@ -1371,10 +1375,16 @@ retry:
- 			 * starts and then write it out here.
- 			 */
- 			try_to_unmap_flush_dirty();
-+try_pageout:
- 			switch (pageout(folio, mapping, &plug)) {
- 			case PAGE_KEEP:
- 				goto keep_locked;
- 			case PAGE_ACTIVATE:
-+				if (shmem_mapping(mapping) && folio_test_large(folio) &&
-+				    !split_folio_to_list(folio, folio_list)) {
-+					nr_pages = 1;
-+					goto try_pageout;
-+				}
- 				goto activate_locked;
- 			case PAGE_SUCCESS:
- 				stat->nr_pageout += nr_pages;
+diff --git a/kernel/numa.c a/kernel/numa.c
+deleted file mode 100644
+--- a/kernel/numa.c
++++ /dev/null
+@@ -1,26 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-
+-#include <linux/printk.h>
+-#include <linux/numa.h>
+-
+-/* Stub functions: */
+-
+-#ifndef memory_add_physaddr_to_nid
+-int memory_add_physaddr_to_nid(u64 start)
+-{
+-	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+-#endif
+-
+-#ifndef phys_to_target_node
+-int phys_to_target_node(u64 start)
+-{
+-	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(phys_to_target_node);
+-#endif
+--- a/mm/Makefile~mm-move-kernel-numac-to-mm
++++ a/mm/Makefile
+@@ -117,6 +117,7 @@ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
+ obj-$(CONFIG_Z3FOLD)	+= z3fold.o
+ obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
+ obj-$(CONFIG_CMA)	+= cma.o
++obj-$(CONFIG_NUMA) += numa.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
+diff --git a/mm/numa.c a/mm/numa.c
+new file mode 100644
+--- /dev/null
++++ a/mm/numa.c
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include <linux/printk.h>
++#include <linux/numa.h>
++
++/* Stub functions: */
++
++#ifndef memory_add_physaddr_to_nid
++int memory_add_physaddr_to_nid(u64 start)
++{
++	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
++#endif
++
++#ifndef phys_to_target_node
++int phys_to_target_node(u64 start)
++{
++	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(phys_to_target_node);
++#endif
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch
-mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix.patch
-mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch
-mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
-mm-shmem-rename-shmem_is_huge-to-shmem_huge_global_enabled.patch
-mm-shmem-move-shmem_huge_global_enabled-into-shmem_allowable_huge_orders.patch
-mm-vmscan-add-validation-before-spliting-shmem-large-folio.patch
-mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
-mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
-mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
-mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
-mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
-mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
-mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
-mm-shmem-support-large-folio-swap-out.patch
+mm-move-kernel-numac-to-mm.patch
+mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
+mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
+mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
+mips-loongson64-rename-__node_data-to-node_data.patch
+mips-loongson64-drop-have_arch_nodedata_extension.patch
+arch-mm-move-definition-of-node_data-to-generic-code.patch
+mm-drop-config_have_arch_nodedata_extension.patch
+arch-mm-pull-out-allocation-of-node_data-to-generic-code.patch
+x86-numa-simplify-numa_distance-allocation.patch
+x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
+x86-numa-move-fake_node_-defines-to-numa_emu.patch
+x86-numa_emu-simplify-allocation-of-phys_dist.patch
+x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
+x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
+x86-numa-numa_addremove_cpu-make-cpu-parameter-unsigned.patch
+mm-introduce-numa_memblks.patch
+mm-move-numa_distance-and-related-code-from-x86-to-numa_memblks.patch
+mm-introduce-numa_emulation.patch
+mm-numa_memblks-introduce-numa_memblks_init.patch
+mm-numa_memblks-make-several-functions-and-variables-static.patch
+mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
+of-numa-return-einval-when-no-numa-node-id-is-found.patch
+arch_numa-switch-over-to-numa_memblks.patch
+arch_numa-switch-over-to-numa_memblks-fix.patch
+mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
+docs-move-numa=fake-description-to-kernel-parameterstxt.patch
 
