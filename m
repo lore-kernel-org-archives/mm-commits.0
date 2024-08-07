@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A4F148857
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:07:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09D51482F4
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064848; cv=none; b=fXdtG1z723D3JicbbpI4y/NC/D9Tkjc9S7ma3TUR6KumEk3YlLCio9nULdQB3+qjknVPyAHukWt2bC3ky9Pszr5BWbwM3Fvuniib9z4JEkdiQUn3zPIOrFlyBBU77f3xX6wRc+xQ8HGmfQ0PS08WDZurPSt3HUvME2oQ7CZeD+E=
+	t=1723066014; cv=none; b=h025X0mMLCeciNygOY7S5Op6y4G5zAP/01fR3KFj1ojbkGgFdWI66Vk2GZYNnjL7J4Zde3/7r06+BvsIqPVkaJyFcLpiOIUzip0VdNghisNLoKgAOAbVnUWkNM3acAo/BMEw/RNkF5qmAayZe8HGfGU+3X4oNnfat8SRctb4Ccc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064848; c=relaxed/simple;
-	bh=sCM2XLm0Ft4O5UMRp0N4Rqde3TXVqtDTjiIhjAWn6Jw=;
-	h=Date:To:From:Subject:Message-Id; b=INUoGTWoj/Y8RUJ69+9hihxwYno1IMDysGiUOjpjygYLCHU+OyKLnm2utARGsK3rU2TgORd7rcPE/etU1dX0uejp11MXs4EecKrrLNQnOoDk5+GlMI6MYMwcGedCy92V43YfVuqd2uRM04O96HMUhVDi1/uxJ4jWswlACqwWWI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVlBXJ32; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723066014; c=relaxed/simple;
+	bh=4dDURUBlDVqE0E+EcmqwOoNKUuOzZH6N4UHapPBvQ1s=;
+	h=Date:To:From:Subject:Message-Id; b=ZwX2L32vC8VghICyEgmdtcEWqe2UN650WE/BhwgWpkqY6lwbrmhqupm5WcRca+nnS6xOSnDgVcFtxkLuh2R19umCzUb4kcgcNdWVsAeDO16bxCoT0R5Jqx3B78EFxuF8pd0LftEgvTJhs02yk80kLzvdnV+296dIMVNuqAEx6eA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EgUJ1nWn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVlBXJ32"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA10FC32782;
-	Wed,  7 Aug 2024 21:07:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EgUJ1nWn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61114C32781;
+	Wed,  7 Aug 2024 21:26:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064847;
-	bh=sCM2XLm0Ft4O5UMRp0N4Rqde3TXVqtDTjiIhjAWn6Jw=;
+	s=korg; t=1723066013;
+	bh=4dDURUBlDVqE0E+EcmqwOoNKUuOzZH6N4UHapPBvQ1s=;
 	h=Date:To:From:Subject:From;
-	b=fVlBXJ32Q23bFqVkAdHm4ywLfsAR3NsOmJ5TyOE+X85d3gNqolZDRtRmaoz4/Dyuw
-	 ch06MJ/TAbl6pVCgBGNddjxQOhf6+q2M71LPm4sO97YCGfi4ybly6XkXkoggyFQJZv
-	 oFP2Ywp1LVdsTZsCgQeULpWiyf2IP+nlf18e/AMg=
-Date: Wed, 07 Aug 2024 14:07:26 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=EgUJ1nWnqRvtymFKCM3czgGu2JjHULbwkINvA36oapEuOgZ9iBb9Ibp2N+DsPxH/Y
+	 WI4eikOYZ9dCkRjuZf4o0v8BYGnzplSvzAACwWYUwyERp0XSiSXF8DVYzMRTqSkRcw
+	 yB++06TGQfDSQ9joqCORYvPXSnkmalUrfYji/ygE=
+Date: Wed, 07 Aug 2024 14:26:52 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mgorman@techsingularity.net,kirill@shutemov.name,jthoughton@google.com,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-return-the-folio-from-swapin_readahead.patch added to mm-unstable branch
-Message-Id: <20240807210727.AA10FC32782@smtp.kernel.org>
+Subject: + mm-dax-dump-start-address-in-fault-handler.patch added to mm-unstable branch
+Message-Id: <20240807212653.61114C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: return the folio from swapin_readahead
+     Subject: mm/dax: dump start address in fault handler
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-return-the-folio-from-swapin_readahead.patch
+     mm-dax-dump-start-address-in-fault-handler.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-return-the-folio-from-swapin_readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dax-dump-start-address-in-fault-handler.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,135 +58,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: return the folio from swapin_readahead
-Date: Wed, 7 Aug 2024 20:37:32 +0100
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/dax: dump start address in fault handler
+Date: Wed, 7 Aug 2024 15:48:05 -0400
 
-The unuse_pte_range() caller only wants the folio while do_swap_page()
-wants both the page and the folio.  Since do_swap_page() already has logic
-for handling both the folio and the page, move the folio-to-page logic
-there.  This also lets us allocate larger folios in the SWP_SYNCHRONOUS_IO
-path in future.
+Patch series "mm/mprotect: Fix dax puds", v4.
 
-Link: https://lkml.kernel.org/r/20240807193734.1865400-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Dax supports pud pages for a while, but mprotect on puds was missing since
+the start.  This series tries to fix that by providing pud handling in
+mprotect().  The goal is to add more types of pud mappings like hugetlb or
+pfnmaps.  This series paves way for it by fixing known pud entries.
+
+Considering nobody reported this until when I looked at those other types
+of pud mappings, I am thinking maybe it doesn't need to be a fix for
+stable and this may not need to be backported.  I would guess whoever
+cares about mprotect() won't care 1G dax puds yet, vice versa.  I hope
+fixing that in new kernels would be fine, but I'm open to suggestions.
+
+There are a few small things changed to teach mprotect work on PUDs.  E.g.
+it will need to start with dropping NUMA_HUGE_PTE_UPDATES which may stop
+making sense when there can be more than one type of huge pte.  OTOH,
+we'll also need to push the mmu notifiers from pmd to pud layers, which
+might need some attention but so far I think it's safe.  For such details,
+please refer to each patch's commit message.
+
+The mprotect() pud process should be straightforward, as I kept it as
+simple as possible.  There's no NUMA handled as dax simply doesn't support
+that.  There's also no userfault involvements as file memory (even if work
+with userfault-wp async mode) will need to split a pud, so pud entry
+doesn't need to yet know userfault's existance (but hugetlb entries will;
+that's also for later).
+
+
+This patch (of 7):
+
+Currently the dax fault handler dumps the vma range when dynamic debugging
+enabled.  That's mostly not useful.  Dump the (aligned) address instead
+with the order info.
+
+Link: https://lkml.kernel.org/r/20240807194812.819412-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240807194812.819412-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c     |    6 ++----
- mm/swap.h       |    6 +++---
- mm/swap_state.c |    8 +++-----
- mm/swapfile.c   |    5 +----
- 4 files changed, 9 insertions(+), 16 deletions(-)
+ drivers/dax/device.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-return-the-folio-from-swapin_readahead
-+++ a/mm/memory.c
-@@ -4223,7 +4223,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 		    __swap_count(entry) == 1) {
- 			/* skip swapcache */
- 			folio = alloc_swap_folio(vmf);
--			page = &folio->page;
- 			if (folio) {
- 				__folio_set_locked(folio);
- 				__folio_set_swapbacked(folio);
-@@ -4265,10 +4264,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 				folio->private = NULL;
- 			}
- 		} else {
--			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
-+			folio = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
- 						vmf);
--			if (page)
--				folio = page_folio(page);
- 			swapcache = folio;
- 		}
+--- a/drivers/dax/device.c~mm-dax-dump-start-address-in-fault-handler
++++ a/drivers/dax/device.c
+@@ -235,9 +235,9 @@ static vm_fault_t dev_dax_huge_fault(str
+ 	int id;
+ 	struct dev_dax *dev_dax = filp->private_data;
  
-@@ -4289,6 +4286,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 		ret = VM_FAULT_MAJOR;
- 		count_vm_event(PGMAJFAULT);
- 		count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
-+		page = folio_file_page(folio, swp_offset(entry));
- 	} else if (PageHWPoison(page)) {
- 		/*
- 		 * hwpoisoned dirty swapcache pages are kept for killing
---- a/mm/swapfile.c~mm-return-the-folio-from-swapin_readahead
-+++ a/mm/swapfile.c
-@@ -2124,7 +2124,6 @@ static int unuse_pte_range(struct vm_are
+-	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) order:%d\n", current->comm,
+-			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
+-			vmf->vma->vm_start, vmf->vma->vm_end, order);
++	dev_dbg(&dev_dax->dev, "%s: op=%s addr=%#lx order=%d\n", current->comm,
++		(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
++		vmf->address & ~((1UL << (order + PAGE_SHIFT)) - 1), order);
  
- 		folio = swap_cache_get_folio(entry, vma, addr);
- 		if (!folio) {
--			struct page *page;
- 			struct vm_fault vmf = {
- 				.vma = vma,
- 				.address = addr,
-@@ -2132,10 +2131,8 @@ static int unuse_pte_range(struct vm_are
- 				.pmd = pmd,
- 			};
- 
--			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
-+			folio = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
- 						&vmf);
--			if (page)
--				folio = page_folio(page);
- 		}
- 		if (!folio) {
- 			swp_count = READ_ONCE(si->swap_map[offset]);
---- a/mm/swap.h~mm-return-the-folio-from-swapin_readahead
-+++ a/mm/swap.h
-@@ -73,8 +73,8 @@ struct folio *__read_swap_cache_async(sw
- 		bool skip_if_exists);
- struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
- 		struct mempolicy *mpol, pgoff_t ilx);
--struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
--			      struct vm_fault *vmf);
-+struct folio *swapin_readahead(swp_entry_t entry, gfp_t flag,
-+		struct vm_fault *vmf);
- 
- static inline unsigned int folio_swap_flags(struct folio *folio)
- {
-@@ -109,7 +109,7 @@ static inline struct folio *swap_cluster
- 	return NULL;
- }
- 
--static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
-+static inline struct folio *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
- 			struct vm_fault *vmf)
- {
- 	return NULL;
---- a/mm/swap_state.c~mm-return-the-folio-from-swapin_readahead
-+++ a/mm/swap_state.c
-@@ -863,13 +863,13 @@ skip:
-  * @gfp_mask: memory allocation flags
-  * @vmf: fault information
-  *
-- * Returns the struct page for entry and addr, after queueing swapin.
-+ * Returns the struct folio for entry and addr, after queueing swapin.
-  *
-  * It's a main entry function for swap readahead. By the configuration,
-  * it will read ahead blocks by cluster-based(ie, physical disk based)
-  * or vma-based(ie, virtual address based on faulty address) readahead.
-  */
--struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+struct folio *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
- 				struct vm_fault *vmf)
- {
- 	struct mempolicy *mpol;
-@@ -882,9 +882,7 @@ struct page *swapin_readahead(swp_entry_
- 		swap_cluster_readahead(entry, gfp_mask, mpol, ilx);
- 	mpol_cond_put(mpol);
- 
--	if (!folio)
--		return NULL;
--	return folio_file_page(folio, swp_offset(entry));
-+	return folio;
- }
- 
- #ifdef CONFIG_SYSFS
+ 	id = dax_read_lock();
+ 	if (order == 0)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
-mm-remove-pg_error.patch
-mm-return-the-folio-from-swapin_readahead.patch
+mm-dax-dump-start-address-in-fault-handler.patch
+mm-mprotect-push-mmu-notifier-to-puds.patch
+mm-powerpc-add-missing-pud-helpers.patch
+mm-x86-make-pud_leaf-only-care-about-pse-bit.patch
+mm-x86-arch_check_zapped_pud.patch
+mm-x86-add-missing-pud-helpers.patch
+mm-mprotect-fix-dax-pud-handlings.patch
 
