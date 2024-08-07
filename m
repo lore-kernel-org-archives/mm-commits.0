@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062761482E1
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC582147C71
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064349; cv=none; b=luUb3WiLUNUWH2j0loYVoFfomPYcTGPadX6pxt6otUESbVNeX0AvLopVguAqmZFNaKBlLpIOEEI8D08zlNKznPlmMaVCYO5mlPZEms+T5tZaLaV0hkN+B7zf2a+3XjyD/chDXDLLonh7pVpG8ORdDMScQcFCOiS10zJEZWAogCo=
+	t=1723064351; cv=none; b=FpxTqLbdNgQvhD9nfbQ7z6H2QCioAj3C9qOnaho2dl9cyBddiDbQKkFcKqhblPln4RUJ3uQrX3C7yO+ntwOnvQwd/C1XeQL3hM9PfLntR6En4Ldy1ZYxdbCDCfhiGFxsxYPS66pwECiqHKZnxuXHtyjRF+OtpQdEs6096w0thF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064349; c=relaxed/simple;
-	bh=NIaiE9UEtMp8Lp2mrQjyNuMbQX9kkYB8rijl+K1PvV8=;
-	h=Date:To:From:Subject:Message-Id; b=PV1vckTP7OfTaGt3ycCf6SW4iJwyOYKSPbbuEdjRL+VUa1CqYqDZfRp3yvhZCbu80nRoRjoXth9CJK5+SQls6yR2gp2Sak4IKAoDXHa72lZzk2IagdEdTK7w5XLvdZgY771Tw/0euqeGL3tBUf2MR6ywzkZTYgxzWyZJGPGRd3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=afuiAOXj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064351; c=relaxed/simple;
+	bh=i8OvAP3K/lum/ba5YjsJqrfgvas+k+ui56o+lEhfzV4=;
+	h=Date:To:From:Subject:Message-Id; b=n8mU5iQMvuS4jQec89GN/xEGcvbYWopuCgRVxFPQck4gjKmGUFaEXChyR41FoMeaskPVoHzQz+YrM/lO1Bb5gtFmnmAgen/o1rogyt2QOLT0yijaOUrsCf+w5m0fJv4XxX9eM6OGXFz8kKqlJm0gjOB14OOrsyAUmIsUVtpykhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Anq+3xgj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="afuiAOXj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E63C32781;
-	Wed,  7 Aug 2024 20:59:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Anq+3xgj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56711C32781;
+	Wed,  7 Aug 2024 20:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064348;
-	bh=NIaiE9UEtMp8Lp2mrQjyNuMbQX9kkYB8rijl+K1PvV8=;
+	s=korg; t=1723064350;
+	bh=i8OvAP3K/lum/ba5YjsJqrfgvas+k+ui56o+lEhfzV4=;
 	h=Date:To:From:Subject:From;
-	b=afuiAOXjuILrvgoqhR1NX+UdwzdVqPKVuKq1/bQmWKosuyfYJz0T9N3Eb9tSjxmGT
-	 R2buP45oUuNkjClYBt1mmc1mp4bC89HAUw/xDltqdZ/og1i/m4cZCHSkKrgsxDjgic
-	 z5YdIpYnqFzW67cTKNzae4g7DVPYYoDn+0lKKz0c=
-Date: Wed, 07 Aug 2024 13:59:08 -0700
+	b=Anq+3xgjBBNSsgJbx92/a8nFOFwW2/9vg2km038IjCOSUU17S5sVbg1SnpPsjmiv0
+	 bDClhWQvx0RCjbMCC8jtDTFytztrocgvyvNRbNoJvprXqWPvi4NLION+wCvhOCwRMb
+	 J85eNh96CSWSaQQbchsSSvBT87+ra0PZHWMi/rzQ=
+Date: Wed, 07 Aug 2024 13:59:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch added to mm-unstable branch
-Message-Id: <20240807205908.C4E63C32781@smtp.kernel.org>
+Subject: + x86-numa-move-fake_node_-defines-to-numa_emu.patch added to mm-unstable branch
+Message-Id: <20240807205910.56711C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/numa: use get_pfn_range_for_nid to verify that node spans memory
+     Subject: x86/numa: move FAKE_NODE_* defines to numa_emu
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
+     x86-numa-move-fake_node_-defines-to-numa_emu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa-move-fake_node_-defines-to-numa_emu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/numa: use get_pfn_range_for_nid to verify that node spans memory
-Date: Wed, 7 Aug 2024 09:40:55 +0300
+Subject: x86/numa: move FAKE_NODE_* defines to numa_emu
+Date: Wed, 7 Aug 2024 09:40:56 +0300
 
-Instead of looping over numa_meminfo array to detect node's start and
-end addresses use get_pfn_range_for_init().
+The definitions of FAKE_NODE_MIN_SIZE and FAKE_NODE_MIN_HASH_MASK are only
+used by numa emulation code, make them local to
+arch/x86/mm/numa_emulation.c
 
-This is shorter and make it easier to lift numa_memblks to generic code.
-
-Link: https://lkml.kernel.org/r/20240807064110.1003856-12-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-13-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Acked-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -102,36 +101,33 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/numa.h  |    2 --
+ arch/x86/mm/numa_emulation.c |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/numa.c~x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory
-+++ a/arch/x86/mm/numa.c
-@@ -521,17 +521,14 @@ static int __init numa_register_memblks(
+--- a/arch/x86/include/asm/numa.h~x86-numa-move-fake_node_-defines-to-numa_emu
++++ a/arch/x86/include/asm/numa.h
+@@ -71,8 +71,6 @@ void debug_cpumask_set_cpu(int cpu, int
+ #endif
  
- 	/* Finally register nodes. */
- 	for_each_node_mask(nid, node_possible_map) {
--		u64 start = PFN_PHYS(max_pfn);
--		u64 end = 0;
-+		unsigned long start_pfn, end_pfn;
+ #ifdef CONFIG_NUMA_EMU
+-#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
+-#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
+ int numa_emu_cmdline(char *str);
+ #else /* CONFIG_NUMA_EMU */
+ static inline int numa_emu_cmdline(char *str)
+--- a/arch/x86/mm/numa_emulation.c~x86-numa-move-fake_node_-defines-to-numa_emu
++++ a/arch/x86/mm/numa_emulation.c
+@@ -10,6 +10,9 @@
  
--		for (i = 0; i < mi->nr_blks; i++) {
--			if (nid != mi->blk[i].nid)
--				continue;
--			start = min(mi->blk[i].start, start);
--			end = max(mi->blk[i].end, end);
--		}
--
--		if (start >= end)
-+		/*
-+		 * Note, get_pfn_range_for_nid() depends on
-+		 * memblock_set_node() having already happened
-+		 */
-+		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+		if (start_pfn >= end_pfn)
- 			continue;
+ #include "numa_internal.h"
  
- 		alloc_node_data(nid);
++#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
++#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
++
+ static int emu_nid_to_phys[MAX_NUMNODES];
+ static char *emu_cmdline __initdata;
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
