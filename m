@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 113EF58203;
-	Wed,  7 Aug 2024 19:38:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 465EC57CBB
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 19:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723059484; cv=none; b=eEAuLBG/xShnNUYNF1HUEOkZadYYspFUKLx7hlHFWA9LiD8sxLYD6ItQkiCyz5AR0xs0Eqmn+QR5mowrltueNRHFFckBrzHeZowDQMC6PkaV9bw/qy/sFRMZMSioidTKdkORzYRwQt97MVNDPnKA/M9lML5rhEUoJk5ehJ8Upuw=
+	t=1723059934; cv=none; b=SNcgWHU6c2c1a00+9Vl3vgfoYwsITVJdX94Xx1r+23qZ1iqws9aIdOQ5GwCD2bI4Zk3CAKDfTa0o1auGBpM3/d9U1L7vZKKxVQqx5kn032b0YwlP31MsGDGtZi1ZtihRc+Cs+m/+Qt7daYr9dBqd866BCLnzizBGhRV/x10Oe44=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723059484; c=relaxed/simple;
-	bh=8210c0fGKL1IT9ZC/AF8fHWLQWhm4JsRTeaP59BE/sU=;
-	h=Date:To:From:Subject:Message-Id; b=SvN2OXgI30pfz5HIYgCNthKWlceddtyEN7E+k0bMD99uBwe2XWx+kdUdjoG5FzhMqzVWrkrZRAcNZUXrvnNylc3LJhgFCOFp3jvnRruNm810zBAk4t3zFc6D/f2bYD+FYUXu3ivxQwngRCtqhkjL3x7oT3U7iAWNqpnBFJkSPXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j2NfsGv2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723059934; c=relaxed/simple;
+	bh=HSF+oIj0wVkeRq3uG4uXq9l33wPBASAWIPEyYRv42Y0=;
+	h=Date:To:From:Subject:Message-Id; b=TFLQfNBrM/fv76xJNYxuDQQ5X71B4sqmBMMK7VOuht5WPBgp4YwoJNrljkrAoLV+h80ZS4f3CsDp6HV633y7QJi1HnhKzIxqYqqSTIYMxsKaf3s7+l4uO2gA0o+fzsBpNO50plreSvSyZb06ro3m0vnYqGFQKp+UQV1bXFwTJrk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jjf3FoHo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j2NfsGv2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86FB6C32781;
-	Wed,  7 Aug 2024 19:38:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jjf3FoHo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5BC8C32781;
+	Wed,  7 Aug 2024 19:45:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723059483;
-	bh=8210c0fGKL1IT9ZC/AF8fHWLQWhm4JsRTeaP59BE/sU=;
+	s=korg; t=1723059933;
+	bh=HSF+oIj0wVkeRq3uG4uXq9l33wPBASAWIPEyYRv42Y0=;
 	h=Date:To:From:Subject:From;
-	b=j2NfsGv2WyzrvI4nFKxB58ljZeXLk4Im8xviAbJ2LsIfSSbriBy274x3bwhWzTxrl
-	 /TuigPBGz2lCoVK/FTz2fr1PyE+qd7eSUIT2isn+PVhHKf6gdn9f/UUoI5k6izoqUW
-	 yKf54gI8g7wUA7E7gaCFfGAp5Ehda0X4dEs6SjpI=
-Date: Wed, 07 Aug 2024 12:38:02 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=jjf3FoHo3GlohzBDHJpLetA6dTohvv2CKlbkYuZtPv+oZUR/NgEwXtziVfZ1WR/zG
+	 aX1ENTXcgCLUL0mVqkw44n0uVFDKcBgLK7ldlko9xhN1D0CtJkWybAHZeR3R/nOTjf
+	 bcT2VNiFuaG4jJ19sqhyLIlSZAJ9NS01EwMs6gEI=
+Date: Wed, 07 Aug 2024 12:45:33 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,pengfei.xu@intel.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240807193803.86FB6C32781@smtp.kernel.org>
+Subject: + userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch added to mm-unstable branch
+Message-Id: <20240807194533.B5BC8C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/numa: no task_numa_fault() call if page table is changed
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
+     Subject: mm: userfaultfd: fix user-after-free in userfaultfd_clear_vma()
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/numa: no task_numa_fault() call if page table is changed
-Date: Wed, 7 Aug 2024 14:47:29 -0400
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: userfaultfd: fix user-after-free in userfaultfd_clear_vma()
+Date: Wed, 7 Aug 2024 12:44:27 +0100
 
-When handling a numa page fault, task_numa_fault() should be called by a
-process that restores the page table of the faulted folio to avoid
-duplicated stats counting.  Commit b99a342d4f11 ("NUMA balancing: reduce
-TLB flush via delaying mapping on hint page fault") restructured
-do_numa_page() and do_huge_pmd_numa_page() and did not avoid
-task_numa_fault() call in the second page table check after a numa
-migration failure.  Fix it by making all !pte_same()/!pmd_same() return
-immediately.
+After invoking vma_modify_flags_uffd() in userfaultfd_clear_vma(), we may
+have merged the vma, and depending on the kind of merge, deleted the vma,
+rendering the vma pointer invalid.
 
-This issue can cause task_numa_fault() being called more than necessary
-and lead to unexpected numa balancing results (It is hard to tell whether
-the issue will cause positive or negative performance impact due to
-duplicated numa fault counting).
+The code incorrectly referenced this now possibly invalid vma pointer when
+invoking userfaultfd_reset_ctx().
 
-Link: https://lkml.kernel.org/r/20240807184730.1266736-1-ziy@nvidia.com
-Fixes: b99a342d4f11 ("NUMA balancing: reduce TLB flush via delaying mapping on hint page fault")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Closes: https://lore.kernel.org/linux-mm/87zfqfw0yw.fsf@yhuang6-desk2.ccr.corp.intel.com/
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>
+If no merge is possible, vma_modify_flags_uffd() performs a split and
+returns the original vma.  Therefore the correct approach is to simply
+pass the ret pointer to userfaultfd_ret_ctx().
+
+Link: https://lkml.kernel.org/r/3c947ddc-b804-49b7-8fe9-3ea3ca13def5@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+Closes: https://lore.kernel.org/all/ZrLt9HIxV9QiZotn@xpf.sh.intel.com/
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Gow <davidgow@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rae Moar <rmoar@google.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 +++--
- mm/memory.c      |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed
-+++ a/mm/huge_memory.c
-@@ -1738,10 +1738,11 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 		goto out_map;
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix
++++ a/mm/userfaultfd.c
+@@ -1813,7 +1813,7 @@ struct vm_area_struct *userfaultfd_clear
+ 	 * the current one has not been updated yet.
+ 	 */
+ 	if (!IS_ERR(ret))
+-		userfaultfd_reset_ctx(vma);
++		userfaultfd_reset_ctx(ret);
  
--out:
-+count_fault:
- 	if (nid != NUMA_NO_NODE)
- 		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
- 
-+out:
- 	return 0;
- 
- out_map:
-@@ -1753,7 +1754,7 @@ out_map:
- 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, pmd);
- 	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 	spin_unlock(vmf->ptl);
--	goto out;
-+	goto count_fault;
+ 	return ret;
  }
- 
- /*
---- a/mm/memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed
-+++ a/mm/memory.c
-@@ -5371,9 +5371,10 @@ static vm_fault_t do_numa_page(struct vm
- 		goto out_map;
- 	}
- 
--out:
-+count_fault:
- 	if (nid != NUMA_NO_NODE)
- 		task_numa_fault(last_cpupid, nid, nr_pages, flags);
-+out:
- 	return 0;
- out_map:
- 	/*
-@@ -5387,7 +5388,7 @@ out_map:
- 		numa_rebuild_single_mapping(vmf, vma, vmf->address, vmf->pte,
- 					    writable);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	goto out;
-+	goto count_fault;
- }
- 
- static inline vm_fault_t create_huge_pmd(struct vm_fault *vmf)
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
-memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
-memory-tiering-introduce-folio_use_access_time-check.patch
-memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
-mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch
+userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
+userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
+mm-move-vma_modify-and-helpers-to-internal-header.patch
+mm-move-vma_shrink-vma_expand-to-internal-header.patch
+mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
+maintainers-add-entry-for-new-vma-files.patch
+tools-separate-out-shared-radix-tree-components.patch
+tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
 
