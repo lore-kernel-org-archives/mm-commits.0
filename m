@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC582147C71
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E4FC1474A2
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064351; cv=none; b=FpxTqLbdNgQvhD9nfbQ7z6H2QCioAj3C9qOnaho2dl9cyBddiDbQKkFcKqhblPln4RUJ3uQrX3C7yO+ntwOnvQwd/C1XeQL3hM9PfLntR6En4Ldy1ZYxdbCDCfhiGFxsxYPS66pwECiqHKZnxuXHtyjRF+OtpQdEs6096w0thF4=
+	t=1723064352; cv=none; b=VovsAugc+lqhDqxxFkWWFEfPUnctCGaBB50SPhI8mdgywMnqAEIwwEx0wyqbIx9MVNLuqr+ej6XeLA65XmlRc0hCmu6PVWWvVR9X7PH6qYu+af8mAG2GupiwZx1ixgTKTOVdeWrdbNWDnUXKktoSegl6a9CeT+LP0WcMMaXMrpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064351; c=relaxed/simple;
-	bh=i8OvAP3K/lum/ba5YjsJqrfgvas+k+ui56o+lEhfzV4=;
-	h=Date:To:From:Subject:Message-Id; b=n8mU5iQMvuS4jQec89GN/xEGcvbYWopuCgRVxFPQck4gjKmGUFaEXChyR41FoMeaskPVoHzQz+YrM/lO1Bb5gtFmnmAgen/o1rogyt2QOLT0yijaOUrsCf+w5m0fJv4XxX9eM6OGXFz8kKqlJm0gjOB14OOrsyAUmIsUVtpykhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Anq+3xgj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064352; c=relaxed/simple;
+	bh=98YAM9yXyKLTTOFHyc6gzN363/hbFVWbriM6CeWVyj0=;
+	h=Date:To:From:Subject:Message-Id; b=JeVxzo5A1sAH0XylWxAwlaICO+T/STMbtv7XoydQahky+HjSfNpBJseseNJ2eQhkGNgl7H0/D4RBfFQQmRFGs+OpFY/ySTTG3Eb9vPYwf3Ef8ISWEekwqaEo3jFQbhvpZpoxWYqc9Wls6EmseNZbwznFRIsjqvWZybiXGXfmKOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OrE5HFjL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Anq+3xgj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56711C32781;
-	Wed,  7 Aug 2024 20:59:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OrE5HFjL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B0EFC32781;
+	Wed,  7 Aug 2024 20:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064350;
-	bh=i8OvAP3K/lum/ba5YjsJqrfgvas+k+ui56o+lEhfzV4=;
+	s=korg; t=1723064352;
+	bh=98YAM9yXyKLTTOFHyc6gzN363/hbFVWbriM6CeWVyj0=;
 	h=Date:To:From:Subject:From;
-	b=Anq+3xgjBBNSsgJbx92/a8nFOFwW2/9vg2km038IjCOSUU17S5sVbg1SnpPsjmiv0
-	 bDClhWQvx0RCjbMCC8jtDTFytztrocgvyvNRbNoJvprXqWPvi4NLION+wCvhOCwRMb
-	 J85eNh96CSWSaQQbchsSSvBT87+ra0PZHWMi/rzQ=
-Date: Wed, 07 Aug 2024 13:59:09 -0700
+	b=OrE5HFjLaa0OLG9DSm2K3FSIGy1rbYsG9YFXs1VvXi2fOxAvS6pNkFPonaOfG93lk
+	 YBhALV5jb6/O8Ve1IWO3vz3kdblfjRAOXXRPkL5eXkKH3UdUaJoJk3lRos/VfnNA+p
+	 W6SUJSTEtA4kaexZmTlX4oJYdbv1DVJVuA5nmCpM=
+Date: Wed, 07 Aug 2024 13:59:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-numa-move-fake_node_-defines-to-numa_emu.patch added to mm-unstable branch
-Message-Id: <20240807205910.56711C32781@smtp.kernel.org>
+Subject: + x86-numa_emu-simplify-allocation-of-phys_dist.patch added to mm-unstable branch
+Message-Id: <20240807205912.1B0EFC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/numa: move FAKE_NODE_* defines to numa_emu
+     Subject: x86/numa_emu: simplify allocation of phys_dist
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-numa-move-fake_node_-defines-to-numa_emu.patch
+     x86-numa_emu-simplify-allocation-of-phys_dist.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa-move-fake_node_-defines-to-numa_emu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa_emu-simplify-allocation-of-phys_dist.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/numa: move FAKE_NODE_* defines to numa_emu
-Date: Wed, 7 Aug 2024 09:40:56 +0300
+Subject: x86/numa_emu: simplify allocation of phys_dist
+Date: Wed, 7 Aug 2024 09:40:57 +0300
 
-The definitions of FAKE_NODE_MIN_SIZE and FAKE_NODE_MIN_HASH_MASK are only
-used by numa emulation code, make them local to
-arch/x86/mm/numa_emulation.c
+By the time numa_emulation() is called, all physical memory is already
+mapped in the direct map and there is no need to define limits for
+memblock allocation.
 
-Link: https://lkml.kernel.org/r/20240807064110.1003856-13-rppt@kernel.org
+Replace memblock_phys_alloc_range() with memblock_alloc().
+
+Link: https://lkml.kernel.org/r/20240807064110.1003856-14-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
@@ -101,33 +103,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/numa.h  |    2 --
- arch/x86/mm/numa_emulation.c |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/mm/numa_emulation.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/arch/x86/include/asm/numa.h~x86-numa-move-fake_node_-defines-to-numa_emu
-+++ a/arch/x86/include/asm/numa.h
-@@ -71,8 +71,6 @@ void debug_cpumask_set_cpu(int cpu, int
- #endif
- 
- #ifdef CONFIG_NUMA_EMU
--#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
--#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
- int numa_emu_cmdline(char *str);
- #else /* CONFIG_NUMA_EMU */
- static inline int numa_emu_cmdline(char *str)
---- a/arch/x86/mm/numa_emulation.c~x86-numa-move-fake_node_-defines-to-numa_emu
+--- a/arch/x86/mm/numa_emulation.c~x86-numa_emu-simplify-allocation-of-phys_dist
 +++ a/arch/x86/mm/numa_emulation.c
-@@ -10,6 +10,9 @@
+@@ -448,15 +448,11 @@ void __init numa_emulation(struct numa_m
  
- #include "numa_internal.h"
+ 	/* copy the physical distance table */
+ 	if (numa_dist_cnt) {
+-		u64 phys;
+-
+-		phys = memblock_phys_alloc_range(phys_size, PAGE_SIZE, 0,
+-						 PFN_PHYS(max_pfn_mapped));
+-		if (!phys) {
++		phys_dist = memblock_alloc(phys_size, PAGE_SIZE);
++		if (!phys_dist) {
+ 			pr_warn("NUMA: Warning: can't allocate copy of distance table, disabling emulation\n");
+ 			goto no_emu;
+ 		}
+-		phys_dist = __va(phys);
  
-+#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
-+#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
-+
- static int emu_nid_to_phys[MAX_NUMNODES];
- static char *emu_cmdline __initdata;
- 
+ 		for (i = 0; i < numa_dist_cnt; i++)
+ 			for (j = 0; j < numa_dist_cnt; j++)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
