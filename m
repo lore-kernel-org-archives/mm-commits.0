@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4D0B1474A2
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CCC1474A2
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064354; cv=none; b=DrekKbsKIczJ0hf6boFGh+Gbc7FGVLJjzOl/Tzp3Aqvdc9shuPv/LrKjsvN36y/93xO3Jmgyt8gLF0aMRvP9tXoHrbfc5WABCvRqZUdt0C85GN23o5P5zMo3s6otzEJH0QyY/cAwJf+0T6XXtw0AI7Dmfr7+xl66XoF0DLdhQJY=
+	t=1723064356; cv=none; b=C1I4H7CN7xTYGqKlOnJzGDlAN5ROAKiLumsKM3grTOYp5ZvkpzPLv6WrTAm+++1zQHuonPMDmY2XxAf6treG4OrX/PcbjVKxLjICnW6jSmlgCTrzlRtuf+R1RCqhoe65lH1/yOnPlAMihT7OW3bQJxdy/mtbnhZsjRJg8e9aYnU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064354; c=relaxed/simple;
-	bh=d49YxQVq20/F+22Q8RnIM2YYtk+iZyiorv65Y6afF8Y=;
-	h=Date:To:From:Subject:Message-Id; b=bFTMomTPPuwk0Qx9lqzV8+XbKuuUK0mPdMfTMR5Lufogy8UuYOLsHnAwcZySEB6Ug5BLbwL5YrtbW6q9AWjibMAyuXBIKwhB7reWvI5R/1CMek0V0yiXiv7PQ/TWC/7gHOIMM2vy7EDW4itD3AFDLxzGN88vFVEw+Wz6RK7Snq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Dw4z0rk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064356; c=relaxed/simple;
+	bh=14Qh9ZbtBpweURk4b2mhys2kbNVRCNGbNUi0VQzAhy0=;
+	h=Date:To:From:Subject:Message-Id; b=Iz3ChyXDY/up938OOq0zOxShnZTDn5rf2CJo3RyGMm5tgASokyc9ajUWJ2wWiT2F1dxdwXnErrUbQ/ZGjFPiJJw5J+jKZSq5abO646kIWXd5LjQKrt1uiMr1JQA7kFVm+RKI+jvNjLE9o0MyKK8c3u1f/DDR6ofuiC5DAY4zMUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zu1MXv1a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Dw4z0rk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDB17C4AF0F;
-	Wed,  7 Aug 2024 20:59:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zu1MXv1a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 293F5C32781;
+	Wed,  7 Aug 2024 20:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064354;
-	bh=d49YxQVq20/F+22Q8RnIM2YYtk+iZyiorv65Y6afF8Y=;
+	s=korg; t=1723064356;
+	bh=14Qh9ZbtBpweURk4b2mhys2kbNVRCNGbNUi0VQzAhy0=;
 	h=Date:To:From:Subject:From;
-	b=1Dw4z0rkTEGqkDeDFIbkMu6ZvXIslvj45m4bKYB8nD0URmxOpiWIZtss32U+oeAG7
-	 qceq683BipmYGup93NusqjlXkgNUwlaAVOeCnlM0DwzhjZVfKSiOTDvMx650D9l3yF
-	 Fb/NcH06h93w/AMVbi8Q0XUs0efsQ7ZhKNBOojgM=
-Date: Wed, 07 Aug 2024 13:59:13 -0700
+	b=zu1MXv1ah7yWdRsX8LEYrYb+Sw0s+tuR40E4gu9My0r0MATcnEdYLBBpz29vZZFG0
+	 IOlXV6VERtb7MlXwC2J6BBMMhQVpwP2GSpuOu3aSmoO0r3kdclCyqKwLb5O/sQyR+i
+	 MJR02TqnHkmDpXOXbi4jgBn5LPo4Yq3SbnXKqalk=
+Date: Wed, 07 Aug 2024 13:59:15 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch added to mm-unstable branch
-Message-Id: <20240807205913.EDB17C4AF0F@smtp.kernel.org>
+Subject: + x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch added to mm-unstable branch
+Message-Id: <20240807205916.293F5C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/numa_emu: split __apicid_to_node update to a helper function
+     Subject: x86/numa_emu: use a helper function to get MAX_DMA32_PFN
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
+     x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/numa_emu: split __apicid_to_node update to a helper function
-Date: Wed, 7 Aug 2024 09:40:58 +0300
+Subject: x86/numa_emu: use a helper function to get MAX_DMA32_PFN
+Date: Wed, 7 Aug 2024 09:40:59 +0300
 
 This is required to make numa emulation code architecture independent so
 that it can be moved to generic code in following commits.
 
-Link: https://lkml.kernel.org/r/20240807064110.1003856-15-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-16-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
@@ -100,76 +100,55 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/numa.h  |    2 ++
- arch/x86/mm/numa.c           |   22 ++++++++++++++++++++++
- arch/x86/mm/numa_emulation.c |   14 +-------------
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ arch/x86/include/asm/numa.h  |    1 +
+ arch/x86/mm/numa.c           |    5 +++++
+ arch/x86/mm/numa_emulation.c |    4 ++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/numa.h~x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function
+--- a/arch/x86/include/asm/numa.h~x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn
 +++ a/arch/x86/include/asm/numa.h
-@@ -72,6 +72,8 @@ void debug_cpumask_set_cpu(int cpu, int
- 
- #ifdef CONFIG_NUMA_EMU
+@@ -74,6 +74,7 @@ void debug_cpumask_set_cpu(int cpu, int
  int numa_emu_cmdline(char *str);
-+void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
-+					unsigned int nr_emu_nids);
+ void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
+ 					unsigned int nr_emu_nids);
++u64 __init numa_emu_dma_end(void);
  #else /* CONFIG_NUMA_EMU */
  static inline int numa_emu_cmdline(char *str)
  {
---- a/arch/x86/mm/numa.c~x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function
+--- a/arch/x86/mm/numa.c~x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn
 +++ a/arch/x86/mm/numa.c
-@@ -852,6 +852,28 @@ EXPORT_SYMBOL(cpumask_of_node);
- 
- #endif	/* !CONFIG_DEBUG_PER_CPU_MAPS */
- 
-+#ifdef CONFIG_NUMA_EMU
-+void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
-+					unsigned int nr_emu_nids)
+@@ -872,6 +872,11 @@ void __init numa_emu_update_cpu_to_node(
+ 		__apicid_to_node[i] = j < nr_emu_nids ? j : 0;
+ 	}
+ }
++
++u64 __init numa_emu_dma_end(void)
 +{
-+	int i, j;
-+
-+	/*
-+	 * Transform __apicid_to_node table to use emulated nids by
-+	 * reverse-mapping phys_nid.  The maps should always exist but fall
-+	 * back to zero just in case.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(__apicid_to_node); i++) {
-+		if (__apicid_to_node[i] == NUMA_NO_NODE)
-+			continue;
-+		for (j = 0; j < nr_emu_nids; j++)
-+			if (__apicid_to_node[i] == emu_nid_to_phys[j])
-+				break;
-+		__apicid_to_node[i] = j < nr_emu_nids ? j : 0;
-+	}
++	return PFN_PHYS(MAX_DMA32_PFN);
 +}
-+#endif /* CONFIG_NUMA_EMU */
-+
+ #endif /* CONFIG_NUMA_EMU */
+ 
  #ifdef CONFIG_NUMA_KEEP_MEMINFO
- static int meminfo_to_nid(struct numa_meminfo *mi, u64 start)
- {
---- a/arch/x86/mm/numa_emulation.c~x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function
+--- a/arch/x86/mm/numa_emulation.c~x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn
 +++ a/arch/x86/mm/numa_emulation.c
-@@ -476,19 +476,7 @@ void __init numa_emulation(struct numa_m
- 		    ei.blk[i].nid != NUMA_NO_NODE)
- 			node_set(ei.blk[i].nid, numa_nodes_parsed);
+@@ -128,7 +128,7 @@ static int __init split_nodes_interleave
+ 	 */
+ 	while (!nodes_empty(physnode_mask)) {
+ 		for_each_node_mask(i, physnode_mask) {
+-			u64 dma32_end = PFN_PHYS(MAX_DMA32_PFN);
++			u64 dma32_end = numa_emu_dma_end();
+ 			u64 start, limit, end;
+ 			int phys_blk;
  
--	/*
--	 * Transform __apicid_to_node table to use emulated nids by
--	 * reverse-mapping phys_nid.  The maps should always exist but fall
--	 * back to zero just in case.
--	 */
--	for (i = 0; i < ARRAY_SIZE(__apicid_to_node); i++) {
--		if (__apicid_to_node[i] == NUMA_NO_NODE)
--			continue;
--		for (j = 0; j < ARRAY_SIZE(emu_nid_to_phys); j++)
--			if (__apicid_to_node[i] == emu_nid_to_phys[j])
--				break;
--		__apicid_to_node[i] = j < ARRAY_SIZE(emu_nid_to_phys) ? j : 0;
--	}
-+	numa_emu_update_cpu_to_node(emu_nid_to_phys, ARRAY_SIZE(emu_nid_to_phys));
+@@ -275,7 +275,7 @@ static int __init split_nodes_size_inter
+ 	 */
+ 	while (!nodes_empty(physnode_mask)) {
+ 		for_each_node_mask(i, physnode_mask) {
+-			u64 dma32_end = PFN_PHYS(MAX_DMA32_PFN);
++			u64 dma32_end = numa_emu_dma_end();
+ 			u64 start, limit, end;
+ 			int phys_blk;
  
- 	/* make sure all emulated nodes are mapped to a physical node */
- 	for (i = 0; i < ARRAY_SIZE(emu_nid_to_phys); i++)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
