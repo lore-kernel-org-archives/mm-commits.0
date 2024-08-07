@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5745584D25
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCF884D25
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:41:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723066909; cv=none; b=ZsNVSRMAbLfmfHAQ254E8K06wfLstpqqaCvmE1ERmPzFDyq6babyj4BEsDyLGfbqLGl+qNAnRDrEAYvlPihGwZUfaG9A9cWJwnrnvYZ5kGhD3ipV3i3gO/O0j5aeW92w6BIlUK6yd129kPKI/pjC/ibjfumVcQFXccGQDNqxY3U=
+	t=1723066910; cv=none; b=rwTcApbzup7Alewo7VQmTooD7tPWY56jYUE+ygVm+D64QOBJWHqMIjWsRSXzhmsgwAggh/Q88B68r64Mmnw8u4hKtSab7/WNUKE8lbNG0xDuctVfNmb1pF1RxkfU2qDs62BStZnKQywJqivF++6bMs+jSNijyrcJ8NhHUZ8iMBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723066909; c=relaxed/simple;
-	bh=daDkM2NtoNcHw/bgCPmeTDeSfb9igkRuybsq4gAVW+Y=;
-	h=Date:To:From:Subject:Message-Id; b=qNWxQpPFDrklEMTei/mqMEADSw6CeLIUTvKC3iG6yN7IhcUvxo8nwzRJzlPIEt3fFvbEL0mV6kxNNIjEX0ARAdAIib06Ref10Km1SZ/xUmD4ALiBEgeVl4oT2ojzm7g4HhHJZpa49o1ef07VPivlwpW5yzYM6V6nnv3Cw5NCRiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XiwG7ULe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723066910; c=relaxed/simple;
+	bh=SSH3Y987SReoOO7a2WF9A2bJcstc0XKfUKdMBEChg5k=;
+	h=Date:To:From:Subject:Message-Id; b=kb0qWXCS20987i85T5Y+8NgI3Hzfuy8Hil/lT4ekk+fcHvhvxSAKEMGWWLHUjtYKTnHZTKQpRaXTyWGwUlTf8ZqHa8jELz67PqOFRfjoNa68IKn8AP8folSMAtORzvXCQrZKeDg8htJcDicHfXrol/5ATNNmNfdWsCiF0KcXPQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lkZOGq63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XiwG7ULe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9229C32781;
-	Wed,  7 Aug 2024 21:41:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lkZOGq63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46D94C32781;
+	Wed,  7 Aug 2024 21:41:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723066908;
-	bh=daDkM2NtoNcHw/bgCPmeTDeSfb9igkRuybsq4gAVW+Y=;
+	s=korg; t=1723066910;
+	bh=SSH3Y987SReoOO7a2WF9A2bJcstc0XKfUKdMBEChg5k=;
 	h=Date:To:From:Subject:From;
-	b=XiwG7ULen5LsD0srk7agMtGeopoA51LtMPHAQYWiaXXx8+McO2/byFVLfqfbTCOR9
-	 lnObVHDfRUMU5O57OaxFNJvRbyiPbbbLfuAMRgnBnEdzcV8JGTpam+wgDWAn9Hkg8X
-	 +IvAwe8sITcmM5M5ILSIdN3eqkXaKAQrx1g7+swU=
-Date: Wed, 07 Aug 2024 14:41:48 -0700
+	b=lkZOGq63K/Z0j8XuJgJY+ET5woOEq6ahkhbzeuKVtIV4uqPKq/4BNOrBqPXuzIteg
+	 utpcHlo6UvdlH+hd381YcDZwl2pSA/ATb62aPgT32DPWZ5LEnEU/YnqTFKhZEJmWeu
+	 cJDrsyQqjIjLp/jHMF8mjOjKZMEl/SCsTvBoOtZI=
+Date: Wed, 07 Aug 2024 14:41:49 -0700
 To: mm-commits@vger.kernel.org,yi.zhang@redhat.com,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,lizhijian@fujitsu.com,j.granados@samsung.com,hannes@cmpxchg.org,david@redhat.com,cerasuolodomenico@gmail.com,alison.schofield@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-the-memmap-stat-before-page-is-freed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240807214148.A9229C32781@smtp.kernel.org>
+Subject: + mm-dont-account-memmap-on-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240807214150.46D94C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: update the memmap stat before page is freed
+     Subject: mm: don't account memmap on failure
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-update-the-memmap-stat-before-page-is-freed.patch
+     mm-dont-account-memmap-on-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-the-memmap-stat-before-page-is-freed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-account-memmap-on-failure.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: update the memmap stat before page is freed
-Date: Wed, 7 Aug 2024 21:19:27 +0000
+Subject: mm: don't account memmap on failure
+Date: Wed, 7 Aug 2024 21:19:28 +0000
 
-Patch series "Fixes for memmap accounting", v2.
+When in alloc_vmemmap_page_list() memmap is failed to allocate, do not
+account, the memory is going to be release at the function exit.
 
-Memmap accounting provides us with observability of how much memory is
-used for per-page metadata: i.e.  "struct page"'s and "struct page_ext". 
-It also provides with information of how much was allocated using boot
-allocator (i.e.  not part of MemTotal), and how much was allocated using
-buddy allocated (i.e.  part of MemTotal).
-
-This small series fixes a few problems that were discovered with the
-original patch which added the accounting of per-page metadata.
-
-
-This patch (of 3):
-
-It is more logical to update the stat before the page is freed, to avoid
-use after free scenarios.
-
-Link: https://lkml.kernel.org/r/20240807211929.3433304-1-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20240807211929.3433304-2-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20240807211929.3433304-3-pasha.tatashin@soleen.com
 Fixes: 15995a352474 ("mm: report per-page metadata information")
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Cc: Joel Granados <j.granados@samsung.com>
@@ -100,51 +85,26 @@ Cc: Yi Zhang <yi.zhang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    4 ++--
- mm/page_ext.c        |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/hugetlb_vmemmap.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-update-the-memmap-stat-before-page-is-freed
+--- a/mm/hugetlb_vmemmap.c~mm-dont-account-memmap-on-failure
 +++ a/mm/hugetlb_vmemmap.c
-@@ -185,11 +185,11 @@ static int vmemmap_remap_range(unsigned
- static inline void free_vmemmap_page(struct page *page)
- {
- 	if (PageReserved(page)) {
--		free_bootmem_page(page);
- 		mod_node_page_state(page_pgdat(page), NR_MEMMAP_BOOT, -1);
-+		free_bootmem_page(page);
- 	} else {
--		__free_page(page);
- 		mod_node_page_state(page_pgdat(page), NR_MEMMAP, -1);
-+		__free_page(page);
- 	}
- }
+@@ -392,13 +392,10 @@ static int alloc_vmemmap_page_list(unsig
  
---- a/mm/page_ext.c~mm-update-the-memmap-stat-before-page-is-freed
-+++ a/mm/page_ext.c
-@@ -330,18 +330,18 @@ static void free_page_ext(void *addr)
- 	if (is_vmalloc_addr(addr)) {
- 		page = vmalloc_to_page(addr);
- 		pgdat = page_pgdat(page);
-+		mod_node_page_state(pgdat, NR_MEMMAP,
-+				    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
- 		vfree(addr);
- 	} else {
- 		page = virt_to_page(addr);
- 		pgdat = page_pgdat(page);
-+		mod_node_page_state(pgdat, NR_MEMMAP,
-+				    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
- 		BUG_ON(PageReserved(page));
- 		kmemleak_free(addr);
- 		free_pages_exact(addr, table_size);
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = alloc_pages_node(nid, gfp_mask, 0);
+-		if (!page) {
+-			mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, i);
++		if (!page)
+ 			goto out;
+-		}
+ 		list_add(&page->lru, list);
  	}
 -
--	mod_node_page_state(pgdat, NR_MEMMAP,
--			    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
--
- }
+ 	mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, nr_pages);
  
- static void __free_page_ext(unsigned long pfn)
+ 	return 0;
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
