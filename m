@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00EC81474A2
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 808441474A2
+	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 20:59:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723064378; cv=none; b=azips4CU0JgE8w09NSvNv7pu8YGpWhFmLrpA0U8xijYQ88/OLeZKMIZcc4eKqMhkM4ixi4yZ7GQbbDKQdNLCrS+Jm2iJunHX6mMfrOMl1Q5Lsz9jZNbqB6xBAJ8Vzy1TuYkm20lpL/TMAIc7w4W/9J4T6Ht9udSoAicRUebu4Sg=
+	t=1723064379; cv=none; b=suNshhAJM7pupENp1IlzJ16fht1de0CP++BTJAuIjTQMN2xlLHOTe8Mn19Q3O4nWMJar100K1WcbMuaIfOQhLTWZm/opbEgiyhE2fpBSe6R7RG+Ln/9dmPYl39ojC2eW7M6lKhIBxEc7zpFRgU8N3NJn8fUE7R+HUvRktw1vwZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723064378; c=relaxed/simple;
-	bh=J20jDqnb7jOMCOC7ubIn5CuYkN4GfWqmBy3nikdLiS4=;
-	h=Date:To:From:Subject:Message-Id; b=PO+3EVvC+CgojE4H5UwfyGMhAEGl9jEP+kNTsvpmiwVdUBTFaXpxICLmFs5CScupbHbTaC+UdUEqzLKeib3vcjNvebjA0pFnpUHA/tO/qLy+ChAD6fcTZyyaR/wztc/bB64tNZL/c81zbikwPnnBiVzaMCCnI+wjgMtcyYxUbTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mde4G/XJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723064379; c=relaxed/simple;
+	bh=uI3c2iNHTHJZOnEsO3cYOxfDhU2R5EePgyBm95VXeIg=;
+	h=Date:To:From:Subject:Message-Id; b=bp/8BJm4POfy70IBN4SJGCzlIWdE478G02tA+xYRzDfuJsTUujrBtMLJTy6PipQ3oh/IUbGmdCrcjSmxquO2J7099COSva20eHwhQdrl7vWFpkTKGohAPDDgFq9Xf14U49a9tSxT8BQPiOlKesEhXA7Bd9/RDj1y2LFeYPp2BGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZJXPP5D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mde4G/XJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6258C32781;
-	Wed,  7 Aug 2024 20:59:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZJXPP5D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCDBC32781;
+	Wed,  7 Aug 2024 20:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723064377;
-	bh=J20jDqnb7jOMCOC7ubIn5CuYkN4GfWqmBy3nikdLiS4=;
+	s=korg; t=1723064379;
+	bh=uI3c2iNHTHJZOnEsO3cYOxfDhU2R5EePgyBm95VXeIg=;
 	h=Date:To:From:Subject:From;
-	b=Mde4G/XJKOLa4CKwbVHyP6Bw5J1eGpnga0Ef7KFHT2Q3eMuTyhmZEWGWBZkRyaAWZ
-	 zwQnRa8FMfn4QqQXwHzvecnPs8RgzNJBFAPRdYbAB34/UNhFMQ2HWtx0V9t6EmzJgn
-	 CqQiswkrAwUWte5xYwIN4fXXx2bqOV3oXSlhm1vk=
-Date: Wed, 07 Aug 2024 13:59:37 -0700
+	b=HZJXPP5DBx2v6SmYfTDROU29aMaWzjwyik7QUlwDi43I3tkooT4TZ3IamqzVp3jdG
+	 jrPGu8lcBEO8x+T9IfAPYY875O5hEvow5crWy9krCoA8PVSQOylcViUxoL6QUA9U/C
+	 ktp9W8Gxxlu/79juOJUqgQ9o7Z6dR/zDxxZXCl/k=
+Date: Wed, 07 Aug 2024 13:59:38 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch_numa-switch-over-to-numa_memblks-fix.patch added to mm-unstable branch
-Message-Id: <20240807205937.B6258C32781@smtp.kernel.org>
+Subject: + mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch added to mm-unstable branch
+Message-Id: <20240807205939.4DCDBC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch_numa-switch-over-to-numa_memblks-fix
+     Subject: mm: make range-to-target_node lookup facility a part of numa_memblks
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch_numa-switch-over-to-numa_memblks-fix.patch
+     mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch_numa-switch-over-to-numa_memblks-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,23 +58,32 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: arch_numa-switch-over-to-numa_memblks-fix
-Date: Wed, 7 Aug 2024 21:18:24 +0300
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm: make range-to-target_node lookup facility a part of numa_memblks
+Date: Wed, 7 Aug 2024 09:41:09 +0300
 
-fix section mismatch
+The x86 implementation of range-to-target_node lookup (i.e. 
+phys_to_target_node() and memory_add_physaddr_to_nid()) relies on
+numa_memblks.
 
-Link: https://lkml.kernel.org/r/ZrO6cExVz1He_yPn@kernel.org
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
+Since numa_memblks are now part of the generic code, move these functions
+from x86 to mm/numa_memblks.c and select CONFIG_NUMA_KEEP_MEMINFO when
+CONFIG_NUMA_MEMBLKS=y for dax and cxl.
+
+Link: https://lkml.kernel.org/r/20240807064110.1003856-26-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -83,7 +92,6 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
@@ -94,24 +102,170 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/numa.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/sparsemem.h |    9 ------
+ arch/x86/mm/numa.c               |   38 -----------------------------
+ drivers/cxl/Kconfig              |    2 -
+ drivers/dax/Kconfig              |    2 -
+ include/linux/numa_memblks.h     |    7 +++++
+ mm/numa.c                        |    1 
+ mm/numa_memblks.c                |   38 +++++++++++++++++++++++++++++
+ 7 files changed, 48 insertions(+), 49 deletions(-)
 
---- a/include/asm-generic/numa.h~arch_numa-switch-over-to-numa_memblks-fix
-+++ a/include/asm-generic/numa.h
-@@ -33,7 +33,7 @@ static inline const struct cpumask *cpum
- void __init arch_numa_init(void);
- int __init numa_add_memblk(int nodeid, u64 start, u64 end);
- void __init early_map_cpu_to_node(unsigned int cpu, int nid);
--int __init early_cpu_to_node(int cpu);
-+int early_cpu_to_node(int cpu);
- void numa_store_cpu_info(unsigned int cpu);
- void numa_add_cpu(unsigned int cpu);
- void numa_remove_cpu(unsigned int cpu);
+--- a/arch/x86/include/asm/sparsemem.h~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/arch/x86/include/asm/sparsemem.h
+@@ -31,13 +31,4 @@
+ 
+ #endif /* CONFIG_SPARSEMEM */
+ 
+-#ifndef __ASSEMBLY__
+-#ifdef CONFIG_NUMA_KEEP_MEMINFO
+-extern int phys_to_target_node(phys_addr_t start);
+-#define phys_to_target_node phys_to_target_node
+-extern int memory_add_physaddr_to_nid(u64 start);
+-#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+-#endif
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* _ASM_X86_SPARSEMEM_H */
+--- a/arch/x86/mm/numa.c~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/arch/x86/mm/numa.c
+@@ -453,41 +453,3 @@ u64 __init numa_emu_dma_end(void)
+ 	return PFN_PHYS(MAX_DMA32_PFN);
+ }
+ #endif /* CONFIG_NUMA_EMU */
+-
+-#ifdef CONFIG_NUMA_KEEP_MEMINFO
+-static int meminfo_to_nid(struct numa_meminfo *mi, u64 start)
+-{
+-	int i;
+-
+-	for (i = 0; i < mi->nr_blks; i++)
+-		if (mi->blk[i].start <= start && mi->blk[i].end > start)
+-			return mi->blk[i].nid;
+-	return NUMA_NO_NODE;
+-}
+-
+-int phys_to_target_node(phys_addr_t start)
+-{
+-	int nid = meminfo_to_nid(&numa_meminfo, start);
+-
+-	/*
+-	 * Prefer online nodes, but if reserved memory might be
+-	 * hot-added continue the search with reserved ranges.
+-	 */
+-	if (nid != NUMA_NO_NODE)
+-		return nid;
+-
+-	return meminfo_to_nid(&numa_reserved_meminfo, start);
+-}
+-EXPORT_SYMBOL_GPL(phys_to_target_node);
+-
+-int memory_add_physaddr_to_nid(u64 start)
+-{
+-	int nid = meminfo_to_nid(&numa_meminfo, start);
+-
+-	if (nid == NUMA_NO_NODE)
+-		nid = numa_meminfo.blk[0].nid;
+-	return nid;
+-}
+-EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+-
+-#endif
+--- a/drivers/cxl/Kconfig~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/drivers/cxl/Kconfig
+@@ -6,7 +6,7 @@ menuconfig CXL_BUS
+ 	select FW_UPLOAD
+ 	select PCI_DOE
+ 	select FIRMWARE_TABLE
+-	select NUMA_KEEP_MEMINFO if (NUMA && X86)
++	select NUMA_KEEP_MEMINFO if NUMA_MEMBLKS
+ 	help
+ 	  CXL is a bus that is electrically compatible with PCI Express, but
+ 	  layers three protocols on that signalling (CXL.io, CXL.cache, and
+--- a/drivers/dax/Kconfig~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/drivers/dax/Kconfig
+@@ -30,7 +30,7 @@ config DEV_DAX_PMEM
+ config DEV_DAX_HMEM
+ 	tristate "HMEM DAX: direct access to 'specific purpose' memory"
+ 	depends on EFI_SOFT_RESERVE
+-	select NUMA_KEEP_MEMINFO if (NUMA && X86)
++	select NUMA_KEEP_MEMINFO if NUMA_MEMBLKS
+ 	default DEV_DAX
+ 	help
+ 	  EFI 2.8 platforms, and others, may advertise 'specific purpose'
+--- a/include/linux/numa_memblks.h~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/include/linux/numa_memblks.h
+@@ -46,6 +46,13 @@ static inline int numa_emu_cmdline(char
+ }
+ #endif /* CONFIG_NUMA_EMU */
+ 
++#ifdef CONFIG_NUMA_KEEP_MEMINFO
++extern int phys_to_target_node(phys_addr_t start);
++#define phys_to_target_node phys_to_target_node
++extern int memory_add_physaddr_to_nid(u64 start);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
++#endif /* CONFIG_NUMA_KEEP_MEMINFO */
++
+ #endif /* CONFIG_NUMA_MEMBLKS */
+ 
+ #endif	/* __NUMA_MEMBLKS_H */
+--- a/mm/numa.c~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/mm/numa.c
+@@ -3,6 +3,7 @@
+ #include <linux/memblock.h>
+ #include <linux/printk.h>
+ #include <linux/numa.h>
++#include <linux/numa_memblks.h>
+ 
+ struct pglist_data *node_data[MAX_NUMNODES];
+ EXPORT_SYMBOL(node_data);
+--- a/mm/numa_memblks.c~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks
++++ a/mm/numa_memblks.c
+@@ -531,3 +531,41 @@ int __init numa_fill_memblks(u64 start,
+ 	}
+ 	return 0;
+ }
++
++#ifdef CONFIG_NUMA_KEEP_MEMINFO
++static int meminfo_to_nid(struct numa_meminfo *mi, u64 start)
++{
++	int i;
++
++	for (i = 0; i < mi->nr_blks; i++)
++		if (mi->blk[i].start <= start && mi->blk[i].end > start)
++			return mi->blk[i].nid;
++	return NUMA_NO_NODE;
++}
++
++int phys_to_target_node(phys_addr_t start)
++{
++	int nid = meminfo_to_nid(&numa_meminfo, start);
++
++	/*
++	 * Prefer online nodes, but if reserved memory might be
++	 * hot-added continue the search with reserved ranges.
++	 */
++	if (nid != NUMA_NO_NODE)
++		return nid;
++
++	return meminfo_to_nid(&numa_reserved_meminfo, start);
++}
++EXPORT_SYMBOL_GPL(phys_to_target_node);
++
++int memory_add_physaddr_to_nid(u64 start)
++{
++	int nid = meminfo_to_nid(&numa_meminfo, start);
++
++	if (nid == NUMA_NO_NODE)
++		nid = numa_meminfo.blk[0].nid;
++	return nid;
++}
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
++
++#endif /* CONFIG_NUMA_KEEP_MEMINFO */
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
