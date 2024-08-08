@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36F7AC121
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 01:42:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A46408F5B
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 01:42:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723081330; cv=none; b=CY95nGths6vjmXQP5i04e2JGs1sYrT9o1B9DyP6Qx2IwQ/p+WAu7Fd3BNknsFlRbIFr1abW76+F/N10dGq7432Z2Cn/eQB4X3aMmJatDWEeqQXHIFF7iD1RcsP+AG66D00Tw5zSPotgoFuFQB3M6pXhwN2w8sqGQBSPQzCKaXxA=
+	t=1723081330; cv=none; b=MegmsPpRkBoXb0bIhw72IMlO7kaF1Tb3l2sdzej9vUgUNlYmkxildN0Hn60k8fiUhfPJStdH7HkpbNnPvfGtAGFLbK06S5fyC8yyIUVO090cYy3bNz115v/x1azoibuxXPX2V8HyrsLQgBJjHtJJoPhq3uj3Qh8yguSOn4/TtDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1723081330; c=relaxed/simple;
-	bh=wH1/iOk/H9BK/Zj0g5GLcOjnE/icXUQV/JBEh4fQc94=;
-	h=Date:To:From:Subject:Message-Id; b=GOaBBa9D/R2uTWpD92eL3jPBS1otOQkO7vPi4Gd82G25LYwfinm4H9qJ+9Hse/khLY3GptPFDnbCR5d/Ong/d+z+4quVKvYX2YlLoXOGWEt7fRyhJBLLO5vss1FP38vONEpwdSj9Ij0SDJMmUV2BjEfjKDxQ6JWXoEZsbiXRprw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Enb2rcMS; arc=none smtp.client-ip=10.30.226.201
+	bh=VhX2CsoRiDmkpP93+BrFnvFzUtMORRx2iq/49SVabkQ=;
+	h=Date:To:From:Subject:Message-Id; b=ri36psxvynOGWjk3aitC5F51ye050gccFDD17kaSmMxEs5Nt69OMW/rcGWUqURbEKLWDKsB5fLCg6tXBHGvRSOtiMiuVVl9wdftdQuBPpFFDuJZjuDFku6nZTh1FM9OVQaXj1zGQ39ex8wY3czkWgcBNc4iJoX3rdWWH0tUJKMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nKh0+UmM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Enb2rcMS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF86EC32781;
-	Thu,  8 Aug 2024 01:42:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKh0+UmM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E31C4AF0B;
+	Thu,  8 Aug 2024 01:42:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723081328;
-	bh=wH1/iOk/H9BK/Zj0g5GLcOjnE/icXUQV/JBEh4fQc94=;
+	s=korg; t=1723081330;
+	bh=VhX2CsoRiDmkpP93+BrFnvFzUtMORRx2iq/49SVabkQ=;
 	h=Date:To:From:Subject:From;
-	b=Enb2rcMSVoElPzAZy0Npjr6H6KnlZWbla8AEGIjkcOx0c0o8kHj7ti+4BTED1hIOf
-	 TvCkbBiaUx1oRBD6d0FJsR/jlp7nL3CK5k1F55WwPZzl/SB6uNq/dhbR356dzHIGyn
-	 0NsOL0UJylJ2BspMCp0X1dp3c76q4fwYKFS2+uLM=
-Date: Wed, 07 Aug 2024 18:42:08 -0700
+	b=nKh0+UmMLWcuVx8EEypWi+QQ6VLEQHyjchwkVxwUYTfOzmesDzbJHreDH1xozOKyV
+	 YZV9RMkOW2/7m23WnvjV2ocfSe4EtIEauYrNL9Mab33YNR7QYcQvnUFnA3ZKqwp1QX
+	 voAawhNbkvPGO3mbe9safOPESPGi092C5RAFzrtQ=
+Date: Wed, 07 Aug 2024 18:42:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baohua@kernel.org,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch removed from -mm tree
-Message-Id: <20240808014208.AF86EC32781@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch removed from -mm tree
+Message-Id: <20240808014210.22E31C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: avoid allocating huge pages larger than MAX_PAGECACHE_ORDER for shmem
+     Subject: mm: shmem: fix incorrect aligned index when checking conflicts
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch
+     mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: avoid allocating huge pages larger than MAX_PAGECACHE_ORDER for shmem
-Date: Wed, 31 Jul 2024 13:46:19 +0800
+Subject: mm: shmem: fix incorrect aligned index when checking conflicts
+Date: Wed, 31 Jul 2024 13:46:20 +0800
 
-Similar to commit d659b715e94ac ("mm/huge_memory: avoid PMD-size page
-cache if needed"), ARM64 can support 512MB PMD-sized THP when the base
-page size is 64KB, which is larger than the maximum supported page cache
-size MAX_PAGECACHE_ORDER.
+In the shmem_suitable_orders() function, xa_find() is used to check for
+conflicts in the pagecache to select suitable huge orders.  However, when
+checking each huge order in every loop, the aligned index is calculated
+from the previous iteration, which may cause suitable huge orders to be
+missed.
 
-This is not expected.  To fix this issue, use THP_ORDERS_ALL_FILE_DEFAULT
-for shmem to filter allowable huge orders.
+We should use the original index each time in the loop to calculate a new
+aligned index for checking conflicts to avoid this issue.
 
-[baolin.wang@linux.alibaba.com: remove comment, per Barry]
-  Link: https://lkml.kernel.org/r/c55d7ef7-78aa-4ed6-b897-c3e03a3f3ab7@linux.alibaba.com
-[wangkefeng.wang@huawei.com: remove local `orders']
-  Link: https://lkml.kernel.org/r/87769ae8-b6c6-4454-925d-1864364af9c8@huawei.com
-Link: https://lkml.kernel.org/r/117121665254442c3c7f585248296495e5e2b45c.1722404078.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/07433b0f16a152bffb8cee34934a5c040e8e2ad6.1722404078.git.baolin.wang@linux.alibaba.com
 Fixes: e7a2ab7b3bb5 ("mm: shmem: add mTHP support for anonymous shmem")
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Barry Song <21cnbao@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Gavin Shan <gshan@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/shmem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem
+--- a/mm/shmem.c~mm-shmem-fix-incorrect-aligned-index-when-checking-conflicts
 +++ a/mm/shmem.c
-@@ -1629,11 +1629,6 @@ unsigned long shmem_allowable_huge_order
- 	unsigned long mask = READ_ONCE(huge_shmem_orders_always);
- 	unsigned long within_size_orders = READ_ONCE(huge_shmem_orders_within_size);
- 	unsigned long vm_flags = vma->vm_flags;
--	/*
--	 * Check all the (large) orders below HPAGE_PMD_ORDER + 1 that
--	 * are enabled for this vma.
--	 */
--	unsigned long orders = BIT(PMD_ORDER + 1) - 1;
- 	loff_t i_size;
+@@ -1681,6 +1681,7 @@ static unsigned long shmem_suitable_orde
+ 					   unsigned long orders)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
++	pgoff_t aligned_index;
+ 	unsigned long pages;
  	int order;
  
-@@ -1678,7 +1673,7 @@ unsigned long shmem_allowable_huge_order
- 	if (global_huge)
- 		mask |= READ_ONCE(huge_shmem_orders_inherit);
- 
--	return orders & mask;
-+	return THP_ORDERS_ALL_FILE_DEFAULT & mask;
- }
- 
- static unsigned long shmem_suitable_orders(struct inode *inode, struct vm_fault *vmf,
+@@ -1692,9 +1693,9 @@ static unsigned long shmem_suitable_orde
+ 	order = highest_order(orders);
+ 	while (orders) {
+ 		pages = 1UL << order;
+-		index = round_down(index, pages);
+-		if (!xa_find(&mapping->i_pages, &index,
+-			     index + pages - 1, XA_PRESENT))
++		aligned_index = round_down(index, pages);
++		if (!xa_find(&mapping->i_pages, &aligned_index,
++			     aligned_index + pages - 1, XA_PRESENT))
+ 			break;
+ 		order = next_order(&orders, order);
+ 	}
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
