@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B89112C460
-	for <mm-commits@vger.kernel.org>; Wed,  7 Aug 2024 21:53:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 903B53D6B;
+	Thu,  8 Aug 2024 01:22:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723067614; cv=none; b=HmudFWjj/EGXf9wj2kDvO7rGWrGN2+c3YZ6/YYg3PLx9RECdr9rsOhKc0a8AsZfmWiLEtHo1ccAiUFKZMVt9exy7DiZdvmsCEPM8xfhfrnAV1QcYg8L61vwmKmk/GdWlUV6+m/Kg9IFG9lMqabalvlZWke1TwqOBDxzM4PbbV2k=
+	t=1723080134; cv=none; b=HmPW9mmjZFNn4STDO7dYcbE00yW7IAWpak5RSfm6HQMJRln+VTzXCVnQEhYIysjP9l3ETf3efyOFR0by+AGfqIvTSMscU3D4QL599EQ1CIK74sEc0qCLlCa1qqgyzu23l50YFFrWxkoX4F1PRXrtugfUC0uUXaK6rfeDLRLadx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723067614; c=relaxed/simple;
-	bh=ABiBrQcTvMM/q55CKuxfAeBFcb0KqU3WdVNW3A0rYxU=;
-	h=Date:To:From:Subject:Message-Id; b=na7lsvkyfQc/DtpRVkd/T53/irhl/D/70DaYDmMxuPxhuICFdxwIRgKsshlcErIi1+5V/KcVzshknXYH1V7L6aPVlCayVYzOms+VL+/7CBSgR4YrbZK/lLwrWoktCOXadmbq1J+yum54PKCvi6zw13/Ov2SoyJRLnztuHQv9wVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0RXTrdNX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723080134; c=relaxed/simple;
+	bh=Q9iG8XcqmMx33JQUTjEOFH7E6Sv0L21shlHay8t5HZ0=;
+	h=Date:To:From:Subject:Message-Id; b=LMtSFV5XO0DIRL+z/SUfX4cdDSyCIcjdX4nDXWf1Aeepk6kiVT8wYHl/X3f/g5xEJb3uF+p++zR2BIIvXFrVqpR4Z5/y+lUFE2rQczfys2UEy2kneXI6tM0z/WkK0ywnyB+Sx4u5AKGxbzMb9D61xgPxwFTODlVXyNIXqmU5Td4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iF8h/1aL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0RXTrdNX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7898C32781;
-	Wed,  7 Aug 2024 21:53:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iF8h/1aL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CCB6C32781;
+	Thu,  8 Aug 2024 01:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723067613;
-	bh=ABiBrQcTvMM/q55CKuxfAeBFcb0KqU3WdVNW3A0rYxU=;
+	s=korg; t=1723080134;
+	bh=Q9iG8XcqmMx33JQUTjEOFH7E6Sv0L21shlHay8t5HZ0=;
 	h=Date:To:From:Subject:From;
-	b=0RXTrdNXVdnig69XJ0fnWc41MchJMB1z5dADjuoxV99tJtwxfrDsxw23UFXlaOQ/b
-	 9muHgxQxwC14Uk00Ykr8NIm2eFZY0ecpFSFTJq8YLurnLhJ7bZREZENB1E/ayvPUIX
-	 e9tJtFIRXhxz5vVlhwqSOy/Jv9bpYTYYUeAwwGvI=
-Date: Wed, 07 Aug 2024 14:53:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=iF8h/1aLtwpmXKTjMstaGDWyQi1AWkVkMG1lvw4IWKEGH4+F8yqx2a7RG4PuIifmU
+	 RaBWuEzKEa4QkCNqrf29dfzFrX0bXDJxfReD8dx/UrhYSYvjwMMb/l1hLTEoOE4QNs
+	 XQuOEUpjoxU7W+Jg7Ula7mi1TcRrUKbF6nT58370=
+Date: Wed, 07 Aug 2024 18:22:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,shakeel.butt@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pg_error.patch added to mm-unstable branch
-Message-Id: <20240807215333.D7898C32781@smtp.kernel.org>
+Subject: [folded-merged] mm-list_lru-fix-uaf-for-memory-cgroup-v2.patch removed from -mm tree
+Message-Id: <20240808012214.0CCB6C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,120 +34,80 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: remove PG_error
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pg_error.patch
+The quilt patch titled
+     Subject: mm-list_lru-fix-uaf-for-memory-cgroup-v2
+has been removed from the -mm tree.  Its filename was
+     mm-list_lru-fix-uaf-for-memory-cgroup-v2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pg_error.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-list_lru-fix-uaf-for-memory-cgroup.patch
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PG_error
-Date: Wed, 7 Aug 2024 20:35:26 +0100
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm-list_lru-fix-uaf-for-memory-cgroup-v2
+Date: Thu, 1 Aug 2024 10:46:03 +0800
 
-The PG_error bit is now unused; delete it and free up a bit in
-page->flags.
+only grab rcu lock when necessary, per Vlastimil
 
-Link: https://lkml.kernel.org/r/20240807193528.1865100-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240801024603.1865-1-songmuchun@bytedance.com
+Fixes: 0a97c01cd20b ("list_lru: allow explicit memcg and NUMA node selection")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: <stable@vger.kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c                         |    1 -
- include/linux/page-flags.h             |    6 +-----
- include/trace/events/mmflags.h         |    1 -
- include/uapi/linux/kernel-page-flags.h |    2 +-
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ mm/list_lru.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/fs/proc/page.c~mm-remove-pg_error
-+++ a/fs/proc/page.c
-@@ -182,7 +182,6 @@ u64 stable_page_flags(const struct page
- #endif
+--- a/mm/list_lru.c~mm-list_lru-fix-uaf-for-memory-cgroup-v2
++++ a/mm/list_lru.c
+@@ -112,12 +112,14 @@ bool list_lru_add_obj(struct list_lru *l
+ {
+ 	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg;
  
- 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
--	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
- 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
- 	u |= kpf_copy_bit(k, KPF_UPTODATE,	PG_uptodate);
- 	u |= kpf_copy_bit(k, KPF_WRITEBACK,	PG_writeback);
---- a/include/linux/page-flags.h~mm-remove-pg_error
-+++ a/include/linux/page-flags.h
-@@ -66,8 +66,6 @@
-  * PG_referenced, PG_reclaim are used for page reclaim for anonymous and
-  * file-backed pagecache (see mm/vmscan.c).
-  *
-- * PG_error is set to indicate that an I/O error occurred on this page.
-- *
-  * PG_arch_1 is an architecture specific page state bit.  The generic code
-  * guarantees that this bit is cleared for a page when it first is entered into
-  * the page cache.
-@@ -103,7 +101,6 @@ enum pageflags {
- 	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_active,
- 	PG_workingset,
--	PG_error,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
- 	PG_arch_1,
- 	PG_reserved,
-@@ -183,7 +180,7 @@ enum pageflags {
- 	 */
+-	rcu_read_lock();
+-	memcg = list_lru_memcg_aware(lru) ? mem_cgroup_from_slab_obj(item) : NULL;
+-	ret = list_lru_add(lru, item, nid, memcg);
+-	rcu_read_unlock();
++	if (list_lru_memcg_aware(lru)) {
++		rcu_read_lock();
++		ret = list_lru_add(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		rcu_read_unlock();
++	} else {
++		ret = list_lru_add(lru, item, nid, NULL);
++	}
  
- 	/* At least one page in this folio has the hwpoison flag set */
--	PG_has_hwpoisoned = PG_error,
-+	PG_has_hwpoisoned = PG_active,
- 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
- };
+ 	return ret;
+ }
+@@ -148,12 +150,14 @@ bool list_lru_del_obj(struct list_lru *l
+ {
+ 	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg;
  
-@@ -506,7 +503,6 @@ static inline int TestClearPage##uname(s
+-	rcu_read_lock();
+-	memcg = list_lru_memcg_aware(lru) ? mem_cgroup_from_slab_obj(item) : NULL;
+-	ret = list_lru_del(lru, item, nid, memcg);
+-	rcu_read_unlock();
++	if (list_lru_memcg_aware(lru)) {
++		rcu_read_lock();
++		ret = list_lru_del(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		rcu_read_unlock();
++	} else {
++		ret = list_lru_del(lru, item, nid, NULL);
++	}
  
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
- FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
--PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
- FOLIO_FLAG(referenced, FOLIO_HEAD_PAGE)
- 	FOLIO_TEST_CLEAR_FLAG(referenced, FOLIO_HEAD_PAGE)
- 	__FOLIO_SET_FLAG(referenced, FOLIO_HEAD_PAGE)
---- a/include/trace/events/mmflags.h~mm-remove-pg_error
-+++ a/include/trace/events/mmflags.h
-@@ -100,7 +100,6 @@
- #define __def_pageflag_names						\
- 	DEF_PAGEFLAG_NAME(locked),					\
- 	DEF_PAGEFLAG_NAME(waiters),					\
--	DEF_PAGEFLAG_NAME(error),					\
- 	DEF_PAGEFLAG_NAME(referenced),					\
- 	DEF_PAGEFLAG_NAME(uptodate),					\
- 	DEF_PAGEFLAG_NAME(dirty),					\
---- a/include/uapi/linux/kernel-page-flags.h~mm-remove-pg_error
-+++ a/include/uapi/linux/kernel-page-flags.h
-@@ -7,7 +7,7 @@
-  */
- 
- #define KPF_LOCKED		0
--#define KPF_ERROR		1
-+#define KPF_ERROR		1	/* Now unused */
- #define KPF_REFERENCED		2
- #define KPF_UPTODATE		3
- #define KPF_DIRTY		4
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
-mm-remove-pg_error.patch
-mm-return-the-folio-from-swapin_readahead.patch
+mm-list_lru-fix-uaf-for-memory-cgroup.patch
+mm-kmem-remove-mem_cgroup_from_obj.patch
 
