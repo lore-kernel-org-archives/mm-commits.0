@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D1A4A1E
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:51:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4491815A87B;
+	Thu,  8 Aug 2024 22:57:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723157466; cv=none; b=HulgaBn6DEpJscqWBzJmwW5k0roMqZp3nSCelLkuAgtYDoTbYEwmA7iMDs0Pg9QSM5BN4uTOc2uDjOIGb+knUYCGCIeh21R69fpI+6Cij6lTRGVEMuEcS6pCCQHZo3mc+yG4l9XDiT0PpLHfO4LrAcfpeggj+GoHLmH+x4BHnYs=
+	t=1723157821; cv=none; b=ORD2JhOa0EgrFJeGUYUGfypM9CCWPXkRP9YTWYYy50RETv5Aj2n06FPlYLUVc9mYIuJkl4VL9DSCYyPPGgmhDUPQrhjT+wVbw/SyGS9h8YV1glUbsX1pnWAQKm679bnVhB4+z+lgzAoP2Xem5BHU5CiNqeKvoT5kRXCeFZfvYMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723157466; c=relaxed/simple;
-	bh=yVCy19sDVpBI//8bapA+NW8HAoQDDpFEWUdXGvKsoKE=;
-	h=Date:To:From:Subject:Message-Id; b=jC9QtT3oKCHglsF5jN71x8JZ6KqBekEmQvuSOWaYIKhSQjlr9K7mcmIO8HptyN6Pw4YJpFE88VC9qNjN9hKFiNgHiUy4G0/WPQLW//L43goK4AUAC2UesCwJ39pdiAas745aHhEdrb++3ric9rZzFkP/e1GJ3Vc+EtOo+qOVX9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbBjLjWG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723157821; c=relaxed/simple;
+	bh=3xVH7kdp21fwBWu5i57L4nDRGH+wwhISXOyckFXh65g=;
+	h=Date:To:From:Subject:Message-Id; b=sMpimHldMmpRyVW7w7AdAYYyYYJ0rTJ8CQ7RudJJ8wBrBPLdZEq42IKdXmSSzHtB+Bb6N9i8J3vzMTY6DcCohBAX7sI50pXWpvxIleWPmNEFR6vXKftw1wAGyczROPCP5/8NxdZgKIohJR8YlpuoxTiaYSihKghKRAt5j62jYAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mod9nZDW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbBjLjWG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF013C32782;
-	Thu,  8 Aug 2024 22:51:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mod9nZDW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD21C32782;
+	Thu,  8 Aug 2024 22:57:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723157465;
-	bh=yVCy19sDVpBI//8bapA+NW8HAoQDDpFEWUdXGvKsoKE=;
+	s=korg; t=1723157820;
+	bh=3xVH7kdp21fwBWu5i57L4nDRGH+wwhISXOyckFXh65g=;
 	h=Date:To:From:Subject:From;
-	b=RbBjLjWGvlIKxA8/uJgq5mJKZThy/Axcgqi5dePQuabhZSI1DBh+JypbnDvLuOGvB
-	 +9ZQ9SeOjvs/+YdFzlYbHIZNjTarlYKm5CtH6rpuh+oXPj/GjgcGgtF7CVqMUjykIr
-	 +5H48jtU+rjsqJyWxmKXQZZWTRmBvyM+zjJiDMs0=
-Date: Thu, 08 Aug 2024 15:51:05 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=mod9nZDWT6qa3OOFuk/qu86I6fEIhxG2ecHwzfjOThQdMqyYWqMpYQxqCa6rZ4FxU
+	 j6J77vqKxUnLs6eA0U4NNgA041oGZNKuj0CGbulCRWsFGgNjem0//kO7wrCaOVXgVV
+	 BTOcLVpyYHIUXXEJeJDw8/s3kRnUNgi1f+f2GsXg=
+Date: Thu, 08 Aug 2024 15:57:00 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240808225105.CF013C32782@smtp.kernel.org>
+Subject: + nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240808225700.ACD21C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
+     Subject: nilfs2: fix state management in error path of log writing function
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
+     nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,133 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
-Date: Thu, 08 Aug 2024 11:12:54 -0400
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix state management in error path of log writing function
+Date: Thu, 8 Aug 2024 08:07:42 +0900
 
-code simplification, per David
+After commit a694291a6211 ("nilfs2: separate wait function from
+nilfs_segctor_write") was applied, the log writing function
+nilfs_segctor_do_construct() was able to issue I/O requests continuously
+even if user data blocks were split into multiple logs across segments,
+but two potential flaws were introduced in its error handling.
 
-Link: https://lkml.kernel.org/r/819987AD-273B-4AFB-9447-39F32664EBDE@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+First, if nilfs_segctor_begin_construction() fails while creating the
+second or subsequent logs, the log writing function returns without
+calling nilfs_segctor_abort_construction(), so the writeback flag set on
+pages/folios will remain uncleared.  This causes page cache operations to
+hang waiting for the writeback flag.  For example,
+truncate_inode_pages_final(), which is called via nilfs_evict_inode() when
+an inode is evicted from memory, will hang.
+
+Second, the NILFS_I_COLLECTED flag set on normal inodes remain uncleared. 
+As a result, if the next log write involves checkpoint creation, that's
+fine, but if a partial log write is performed that does not, inodes with
+NILFS_I_COLLECTED set are erroneously removed from the "sc_dirty_files"
+list, and their data and b-tree blocks may not be written to the device,
+corrupting the block mapping.
+
+Fix these issues by correcting the jump destination of the error branch in
+nilfs_segctor_do_construct() and the condition for calling
+nilfs_redirty_inodes(), which clears the NILFS_I_COLLECTED flag.
+
+Link: https://lkml.kernel.org/r/20240807230742.11151-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Fixes: a694291a6211 ("nilfs2: separate wait function from nilfs_segctor_write")
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++-----------
- mm/memory.c      |   19 ++++++++-----------
- 2 files changed, 15 insertions(+), 22 deletions(-)
+ fs/nilfs2/segment.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
-+++ a/mm/huge_memory.c
-@@ -1685,7 +1685,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
- 	if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
- 		spin_unlock(vmf->ptl);
--		goto out;
-+		return 0;
- 	}
+--- a/fs/nilfs2/segment.c~nilfs2-fix-state-management-in-error-path-of-log-writing-function
++++ a/fs/nilfs2/segment.c
+@@ -2056,7 +2056,7 @@ static int nilfs_segctor_do_construct(st
  
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
-@@ -1728,23 +1728,16 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
- 		flags |= TNF_MIGRATED;
- 		nid = target_nid;
-+		goto out;
- 	} else {
- 		flags |= TNF_MIGRATE_FAIL;
- 		vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
- 		if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
- 			spin_unlock(vmf->ptl);
+ 		err = nilfs_segctor_begin_construction(sci, nilfs);
+ 		if (unlikely(err))
 -			goto out;
-+			return 0;
- 		}
--		goto out_map;
- 	}
++			goto failed;
  
--count_fault:
--	if (nid != NUMA_NO_NODE)
--		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
+ 		/* Update time stamp */
+ 		sci->sc_seg_ctime = ktime_get_real_seconds();
+@@ -2120,10 +2120,9 @@ static int nilfs_segctor_do_construct(st
+ 	return err;
+ 
+  failed_to_write:
+-	if (sci->sc_stage.flags & NILFS_CF_IFILE_STARTED)
+-		nilfs_redirty_inodes(&sci->sc_dirty_files);
 -
--out:
--	return 0;
--
- out_map:
- 	/* Restore the PMD */
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
-@@ -1754,7 +1747,10 @@ out_map:
- 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, pmd);
- 	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 	spin_unlock(vmf->ptl);
--	goto count_fault;
-+out:
-+	if (nid != NUMA_NO_NODE)
-+		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
-+	return 0;
- }
- 
- /*
---- a/mm/memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
-+++ a/mm/memory.c
-@@ -5295,7 +5295,7 @@ static vm_fault_t do_numa_page(struct vm
- 
- 	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		goto out;
-+		return 0;
- 	}
- 
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
-@@ -5358,24 +5358,18 @@ static vm_fault_t do_numa_page(struct vm
- 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
- 		nid = target_nid;
- 		flags |= TNF_MIGRATED;
-+		goto out;
- 	} else {
- 		flags |= TNF_MIGRATE_FAIL;
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					       vmf->address, &vmf->ptl);
- 		if (unlikely(!vmf->pte))
--			goto out;
-+			return 0;
- 		if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			goto out;
-+			return 0;
- 		}
--		goto out_map;
- 	}
--
--count_fault:
--	if (nid != NUMA_NO_NODE)
--		task_numa_fault(last_cpupid, nid, nr_pages, flags);
--out:
--	return 0;
- out_map:
- 	/*
- 	 * Make it present again, depending on how arch implements
-@@ -5388,7 +5382,10 @@ out_map:
- 		numa_rebuild_single_mapping(vmf, vma, vmf->address, vmf->pte,
- 					    writable);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	goto count_fault;
-+out:
-+	if (nid != NUMA_NO_NODE)
-+		task_numa_fault(last_cpupid, nid, nr_pages, flags);
-+	return 0;
- }
- 
- static inline vm_fault_t create_huge_pmd(struct vm_fault *vmf)
+  failed:
++	if (mode == SC_LSEG_SR && nilfs_sc_cstage_get(sci) >= NILFS_ST_IFILE)
++		nilfs_redirty_inodes(&sci->sc_dirty_files);
+ 	if (nilfs_doing_gc())
+ 		nilfs_redirty_inodes(&sci->sc_gc_inodes);
+ 	nilfs_segctor_abort_construction(sci, nilfs, err);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
-mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
-memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
-memory-tiering-introduce-folio_use_access_time-check.patch
-memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
-mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch
+nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
