@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3013C8827
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 21:51:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ACE22A1DF
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 21:59:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723153909; cv=none; b=YmX6aYiAOcoc+63/20g68bJr8n2Jj2l1iMAzcO8BIQnl19Xz/tUpeUJee0ZMAYOrG9iKtorx6C0zGtcObkrUc1Eg3h2LQr9ljzzuB/4HjE16ltAMiR0U/uYMge/ap8qx+r4ISPiOegQr/jbpX8uA1QWwn5jTCINo9cFEs29vZrk=
+	t=1723154349; cv=none; b=DGyuiAB+bD1MohaQj7WIsySMqri2XuSSeqUoHSuJUAGfcvqDFGE5Ff59+MX+IYFLatugOWi38pbMheSMWi8/wWWmSMpT5XlHzEkfriHyXsF68elOm3VE32ISDIy2+5T+ZeDWhjTgwpE7CahEqwext002Q7V4rWTk6G3BY+urSHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723153909; c=relaxed/simple;
-	bh=oexMaeBuv8skb+pxC9RmfCy5vRqioXoMn2I2JeFIf6E=;
-	h=Date:To:From:Subject:Message-Id; b=WhCNqsTDbihUlgxYRhQ/wzvXmpm+aBuWXjfK9DriD8buI/OiFTTbV0dxkTovb2CG5a+SEl5IWLeyjW0OqVgasBBmsC2pshRXWcWCiqmkOvWo/Mg/mAcxGZV2ZjripMCeJ/3DW2+kDFyIlR+KscHFZaZoTcv/dWDr7WjI/SeGFj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RhZoI/2z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723154349; c=relaxed/simple;
+	bh=G5V+GeaeUNqppaIcjDRwPEYsA0TXZzelADVSicWwqhA=;
+	h=Date:To:From:Subject:Message-Id; b=A+i57y1tWrgDmT//aVfeQExlLI1b4duomf8d/ELJ7gBwAI1rssB5jriLKcnXbrXsU+zJaKyw5aL0cb+mzmC0IAWOdUNbSCf5REoGqhxHz7i8EhoZ+oLlc1dulBMoiGSBZW9k6iJiuYhlWsiIyvK8aU0s0U5LfFMxmCkJUtfhDaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+rMeuvI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RhZoI/2z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA757C4AF09;
-	Thu,  8 Aug 2024 21:51:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+rMeuvI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4770C32782;
+	Thu,  8 Aug 2024 21:59:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723153908;
-	bh=oexMaeBuv8skb+pxC9RmfCy5vRqioXoMn2I2JeFIf6E=;
+	s=korg; t=1723154348;
+	bh=G5V+GeaeUNqppaIcjDRwPEYsA0TXZzelADVSicWwqhA=;
 	h=Date:To:From:Subject:From;
-	b=RhZoI/2z2lycUkiP/4FE05G2Q5fShuEHBYjc30oJ5HunPAaHOlWrDNF31HjQiqWzo
-	 AudA/f/0ZrTGpEnbVK96qoV/HvnlPfg14zxfW20b1obowuK4QLMsOBk9l0pOKsmLJr
-	 G0P+52OtSO+SRpi6tWxT3DPuAErtN97yM6JAZkZE=
-Date: Thu, 08 Aug 2024 14:51:48 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,yi.zhang@redhat.com,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,lizhijian@fujitsu.com,j.granados@samsung.com,hannes@cmpxchg.org,fan.ni@samsung.com,david@redhat.com,dan.j.williams@intel.com,cerasuolodomenico@gmail.com,alison.schofield@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=h+rMeuvIipxk2VxOR2h3APoF09GvofbZ5DTndjOJ0uJhrIGzA1kIHGwNQl4wQJweB
+	 ejAGGNZFvTDxB7rr/TVmTGwo0lnd9dcrR1otWlJNaiuIx2Uc6hKfEsDq2EOXgqBS/Y
+	 xhodaM9KATw7XGNSPs4BLCXMWC+fQGDMKTyMZ8zU=
+Date: Thu, 08 Aug 2024 14:59:08 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,iamjoonsoo.kim@lge.com,glider@google.com,elver@google.com,dvyukov@google.com,dsterba@suse.cz,cl@linux.com,andreyknvl@gmail.com,42.hyeyoo@gmail.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-account-memmap-per-node.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240808215148.CA757C4AF09@smtp.kernel.org>
+Subject: + kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch added to mm-unstable branch
+Message-Id: <20240808215908.D4770C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: don't account memmap per-node
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-dont-account-memmap-per-node.patch
+     Subject: kasan: catch invalid free before SLUB reinitializes the object
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-account-memmap-per-node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,359 +58,355 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: don't account memmap per-node
-Date: Thu, 8 Aug 2024 21:34:36 +0000
+From: Jann Horn <jannh@google.com>
+Subject: kasan: catch invalid free before SLUB reinitializes the object
+Date: Thu, 08 Aug 2024 20:30:45 +0200
 
-Fix invalid access to pgdat during hot-remove operation:
-ndctl users reported a GPF when trying to destroy a namespace:
-$ ndctl destroy-namespace all -r all -f
- Segmentation fault
- dmesg:
- Oops: general protection fault, probably for
- non-canonical address 0xdffffc0000005650: 0000 [#1] PREEMPT SMP KASAN
- PTI
- KASAN: probably user-memory-access in range
- [0x000000000002b280-0x000000000002b287]
- CPU: 26 UID: 0 PID: 1868 Comm: ndctl Not tainted 6.11.0-rc1 #1
- Hardware name: Dell Inc. PowerEdge R640/08HT8T, BIOS
- 2.20.1 09/13/2023
- RIP: 0010:mod_node_page_state+0x2a/0x110
+Patch series "allow KASAN to detect UAF in SLAB_TYPESAFE_BY_RCU slabs",
+v7.
 
-cxl-test users report a GPF when trying to unload the test module:
-$ modrpobe -r cxl-test
- dmesg
- BUG: unable to handle page fault for address: 0000000000004200
- #PF: supervisor read access in kernel mode
- #PF: error_code(0x0000) - not-present page
- PGD 0 P4D 0
- Oops: Oops: 0000 [#1] PREEMPT SMP PTI
- CPU: 0 UID: 0 PID: 1076 Comm: modprobe Tainted: G O N 6.11.0-rc1 #197
- Tainted: [O]=OOT_MODULE, [N]=TEST
- Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/15
- RIP: 0010:mod_node_page_state+0x6/0x90
+The purpose of the series is to allow KASAN to detect use-after-free
+access in SLAB_TYPESAFE_BY_RCU slab caches, by essentially making them
+behave as if the cache was not SLAB_TYPESAFE_BY_RCU but instead every
+kfree() in the cache was a kfree_rcu().  This is gated behind a config
+flag that is supposed to only be enabled in fuzzing/testing builds where
+the performance impact doesn't matter.
 
-Currently, when memory is hot-plugged or hot-removed the accounting is
-done based on the assumption that memmap is allocated from the same node
-as the hot-plugged/hot-removed memory, which is not always the case.
+Output of the new kunit testcase I added to the KASAN test suite:
+==================================================================
+BUG: KASAN: slab-use-after-free in kmem_cache_rcu_uaf+0x3ae/0x4d0
+Read of size 1 at addr ffff888106224000 by task kunit_try_catch/224
 
-In addition, there are challenges with keeping the node id of the memory
-that is being remove to the time when memmap accounting is actually
-performed: since this is done after remove_pfn_range_from_zone(), and
-also after remove_memory_block_devices(). Meaning that we cannot use
-pgdat nor walking though memblocks to get the nid.
+CPU: 7 PID: 224 Comm: kunit_try_catch Tainted: G    B            N 6.10.0-00003-g065427d4b87f #430
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x53/0x70
+ print_report+0xce/0x670
+[...]
+ kasan_report+0xa5/0xe0
+[...]
+ kmem_cache_rcu_uaf+0x3ae/0x4d0
+[...]
+ kunit_try_run_case+0x1b3/0x490
+[...]
+ kunit_generic_run_threadfn_adapter+0x80/0xe0
+ kthread+0x2a5/0x370
+[...]
+ ret_from_fork+0x34/0x70
+[...]
+ ret_from_fork_asm+0x1a/0x30
+ </TASK>
 
-Given all of that, account the memmap overhead system wide instead.
+Allocated by task 224:
+ kasan_save_stack+0x33/0x60
+ kasan_save_track+0x14/0x30
+ __kasan_slab_alloc+0x6e/0x70
+ kmem_cache_alloc_noprof+0xef/0x2b0
+ kmem_cache_rcu_uaf+0x10d/0x4d0
+ kunit_try_run_case+0x1b3/0x490
+ kunit_generic_run_threadfn_adapter+0x80/0xe0
+ kthread+0x2a5/0x370
+ ret_from_fork+0x34/0x70
+ ret_from_fork_asm+0x1a/0x30
 
-For this we are going to be using global atomic counters, but given that
-memmap size is rarely modified, and normally is only modified either
-during early boot when there is only one CPU, or under a hotplug global
-mutex lock, therefore there is no need for per-cpu optimizations.
+Freed by task 0:
+ kasan_save_stack+0x33/0x60
+ kasan_save_track+0x14/0x30
+ kasan_save_free_info+0x3b/0x60
+ __kasan_slab_free+0x57/0x80
+ slab_free_after_rcu_debug+0xe3/0x220
+ rcu_core+0x676/0x15b0
+ handle_softirqs+0x22f/0x690
+ irq_exit_rcu+0x84/0xb0
+ sysvec_apic_timer_interrupt+0x6a/0x80
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20
 
-Also, while we are here rename nr_memmap to nr_memmap_pages, and
-nr_memmap_boot to nr_memmap_boot_pages to be self explanatory that the
-units are in page count.
+Last potentially related work creation:
+ kasan_save_stack+0x33/0x60
+ __kasan_record_aux_stack+0x8e/0xa0
+ kmem_cache_free+0x10c/0x420
+ kmem_cache_rcu_uaf+0x16e/0x4d0
+ kunit_try_run_case+0x1b3/0x490
+ kunit_generic_run_threadfn_adapter+0x80/0xe0
+ kthread+0x2a5/0x370
+ ret_from_fork+0x34/0x70
+ ret_from_fork_asm+0x1a/0x30
 
-Link: https://lkml.kernel.org/r/20240808213437.682006-4-pasha.tatashin@soleen.com
-Fixes: 15995a352474 ("mm: report per-page metadata information")
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Yi Zhang <yi.zhang@redhat.com>
-Closes: https://lore.kernel.org/linux-cxl/CAHj4cs9Ax1=CoJkgBGP_+sNu6-6=6v=_L-ZBZY0bVLD3wUWZQg@mail.gmail.com
-Reported-by: Alison Schofield <alison.schofield@intel.com>
-Closes: https://lore.kernel.org/linux-mm/Zq0tPd2h6alFz8XF@aschofie-mobl2/#t
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
+The buggy address belongs to the object at ffff888106224000
+ which belongs to the cache test_cache of size 200
+The buggy address is located 0 bytes inside of
+ freed 200-byte region [ffff888106224000, ffff8881062240c8)
+
+The buggy address belongs to the physical page:
+page: refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x106224
+head: order:1 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+flags: 0x200000000000040(head|node=0|zone=2)
+page_type: 0xffffefff(slab)
+raw: 0200000000000040 ffff88810621c140 dead000000000122 0000000000000000
+raw: 0000000000000000 00000000801f001f 00000001ffffefff 0000000000000000
+head: 0200000000000040 ffff88810621c140 dead000000000122 0000000000000000
+head: 0000000000000000 00000000801f001f 00000001ffffefff 0000000000000000
+head: 0200000000000001 ffffea0004188901 ffffffffffffffff 0000000000000000
+head: 0000000000000002 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888106223f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888106223f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888106224000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888106224080: fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc
+ ffff888106224100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+    ok 38 kmem_cache_rcu_uaf
+
+
+This patch (of 7):
+
+Currently, when KASAN is combined with init-on-free behavior, the
+initialization happens before KASAN's "invalid free" checks.
+
+More importantly, a subsequent commit will want to RCU-delay the actual
+SLUB freeing of an object, and we'd like KASAN to still validate
+synchronously that freeing the object is permitted.  (Otherwise this
+change will make the existing testcase kmem_cache_invalid_free fail.)
+
+So add a new KASAN hook that allows KASAN to pre-validate a
+kmem_cache_free() operation before SLUB actually starts modifying the
+object or its metadata.
+
+Inside KASAN, this:
+
+ - moves checks from poison_slab_object() into check_slab_allocation()
+ - moves kasan_arch_is_ready() up into callers of poison_slab_object()
+ - removes "ip" argument of poison_slab_object() and __kasan_slab_free()
+   (since those functions no longer do any reporting)
+
+Link: https://lkml.kernel.org/r/20240808-kasan-tsbrcu-v7-0-0d0590c54ae6@google.com
+Link: https://lkml.kernel.org/r/20240808-kasan-tsbrcu-v7-1-0d0590c54ae6@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz> #slub
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Fan Ni <fan.ni@samsung.com>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 -
- include/linux/vmstat.h |    7 +++---
- mm/hugetlb_vmemmap.c   |    8 +++---
- mm/mm_init.c           |    3 --
- mm/page_alloc.c        |    1 
- mm/page_ext.c          |   18 +++------------
- mm/sparse-vmemmap.c    |   11 +++------
- mm/sparse.c            |    5 +---
- mm/vmstat.c            |   45 ++++++++++++++++++---------------------
- 9 files changed, 40 insertions(+), 60 deletions(-)
+ include/linux/kasan.h |   54 +++++++++++++++++++++++++++++++++--
+ mm/kasan/common.c     |   61 +++++++++++++++++++++++-----------------
+ mm/slub.c             |    7 ++++
+ 3 files changed, 94 insertions(+), 28 deletions(-)
 
---- a/include/linux/mmzone.h~mm-dont-account-memmap-per-node
-+++ a/include/linux/mmzone.h
-@@ -220,8 +220,6 @@ enum node_stat_item {
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
--	NR_MEMMAP, /* page metadata allocated through buddy allocator */
--	NR_MEMMAP_BOOT, /* page metadata allocated through boot allocator */
- 	NR_VM_NODE_STAT_ITEMS
- };
- 
---- a/include/linux/vmstat.h~mm-dont-account-memmap-per-node
-+++ a/include/linux/vmstat.h
-@@ -38,6 +38,8 @@ struct reclaim_stat {
- enum vm_stat_item {
- 	NR_DIRTY_THRESHOLD,
- 	NR_DIRTY_BG_THRESHOLD,
-+	NR_MEMMAP,	/* page metadata allocated through buddy allocator */
-+	NR_MEMMAP_BOOT,	/* page metadata allocated through boot allocator */
- 	NR_VM_STAT_ITEMS,
- };
- 
-@@ -618,7 +620,6 @@ static inline void lruvec_stat_sub_folio
- 	lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
+--- a/include/linux/kasan.h~kasan-catch-invalid-free-before-slub-reinitializes-the-object
++++ a/include/linux/kasan.h
+@@ -178,13 +178,55 @@ static __always_inline void * __must_che
+ 	return (void *)object;
  }
  
--void __meminit mod_node_early_perpage_metadata(int nid, long delta);
--void __meminit store_early_perpage_metadata(void);
--
-+void mod_memmap_boot(long delta);
-+void mod_memmap(long delta);
- #endif /* _LINUX_VMSTAT_H */
---- a/mm/hugetlb_vmemmap.c~mm-dont-account-memmap-per-node
-+++ a/mm/hugetlb_vmemmap.c
-@@ -185,11 +185,11 @@ static int vmemmap_remap_range(unsigned
- static inline void free_vmemmap_page(struct page *page)
+-bool __kasan_slab_free(struct kmem_cache *s, void *object,
+-			unsigned long ip, bool init);
++bool __kasan_slab_pre_free(struct kmem_cache *s, void *object,
++			unsigned long ip);
++/**
++ * kasan_slab_pre_free - Check whether freeing a slab object is safe.
++ * @object: Object to be freed.
++ *
++ * This function checks whether freeing the given object is safe. It may
++ * check for double-free and invalid-free bugs and report them.
++ *
++ * This function is intended only for use by the slab allocator.
++ *
++ * @Return true if freeing the object is unsafe; false otherwise.
++ */
++static __always_inline bool kasan_slab_pre_free(struct kmem_cache *s,
++						void *object)
++{
++	if (kasan_enabled())
++		return __kasan_slab_pre_free(s, object, _RET_IP_);
++	return false;
++}
++
++bool __kasan_slab_free(struct kmem_cache *s, void *object, bool init);
++/**
++ * kasan_slab_free - Poison, initialize, and quarantine a slab object.
++ * @object: Object to be freed.
++ * @init: Whether to initialize the object.
++ *
++ * This function informs that a slab object has been freed and is not
++ * supposed to be accessed anymore, except for objects in
++ * SLAB_TYPESAFE_BY_RCU caches.
++ *
++ * For KASAN modes that have integrated memory initialization
++ * (kasan_has_integrated_init() == true), this function also initializes
++ * the object's memory. For other modes, the @init argument is ignored.
++ *
++ * This function might also take ownership of the object to quarantine it.
++ * When this happens, KASAN will defer freeing the object to a later
++ * stage and handle it internally until then. The return value indicates
++ * whether KASAN took ownership of the object.
++ *
++ * This function is intended only for use by the slab allocator.
++ *
++ * @Return true if KASAN took ownership of the object; false otherwise.
++ */
+ static __always_inline bool kasan_slab_free(struct kmem_cache *s,
+ 						void *object, bool init)
  {
- 	if (PageReserved(page)) {
-+		mod_memmap_boot(-1);
- 		free_bootmem_page(page);
--		mod_node_page_state(page_pgdat(page), NR_MEMMAP_BOOT, -1);
- 	} else {
-+		mod_memmap(-1);
- 		__free_page(page);
--		mod_node_page_state(page_pgdat(page), NR_MEMMAP, -1);
- 	}
+ 	if (kasan_enabled())
+-		return __kasan_slab_free(s, object, _RET_IP_, init);
++		return __kasan_slab_free(s, object, init);
+ 	return false;
  }
  
-@@ -341,7 +341,7 @@ static int vmemmap_remap_free(unsigned l
- 		copy_page(page_to_virt(walk.reuse_page),
- 			  (void *)walk.reuse_addr);
- 		list_add(&walk.reuse_page->lru, vmemmap_pages);
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, 1);
-+		mod_memmap(1);
+@@ -374,6 +416,12 @@ static inline void *kasan_init_slab_obj(
+ {
+ 	return (void *)object;
+ }
++
++static inline bool kasan_slab_pre_free(struct kmem_cache *s, void *object)
++{
++	return false;
++}
++
+ static inline bool kasan_slab_free(struct kmem_cache *s, void *object, bool init)
+ {
+ 	return false;
+--- a/mm/kasan/common.c~kasan-catch-invalid-free-before-slub-reinitializes-the-object
++++ a/mm/kasan/common.c
+@@ -208,15 +208,12 @@ void * __must_check __kasan_init_slab_ob
+ 	return (void *)object;
+ }
+ 
+-static inline bool poison_slab_object(struct kmem_cache *cache, void *object,
+-				      unsigned long ip, bool init)
++/* Returns true when freeing the object is not safe. */
++static bool check_slab_allocation(struct kmem_cache *cache, void *object,
++				  unsigned long ip)
+ {
+-	void *tagged_object;
+-
+-	if (!kasan_arch_is_ready())
+-		return false;
++	void *tagged_object = object;
+ 
+-	tagged_object = object;
+ 	object = kasan_reset_tag(object);
+ 
+ 	if (unlikely(nearest_obj(cache, virt_to_slab(object), object) != object)) {
+@@ -224,37 +221,46 @@ static inline bool poison_slab_object(st
+ 		return true;
  	}
+ 
+-	/* RCU slabs could be legally used after free within the RCU period. */
+-	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
+-		return false;
+-
+ 	if (!kasan_byte_accessible(tagged_object)) {
+ 		kasan_report_invalid_free(tagged_object, ip, KASAN_REPORT_DOUBLE_FREE);
+ 		return true;
+ 	}
+ 
++	return false;
++}
++
++static inline void poison_slab_object(struct kmem_cache *cache, void *object,
++				      bool init)
++{
++	void *tagged_object = object;
++
++	object = kasan_reset_tag(object);
++
++	/* RCU slabs could be legally used after free within the RCU period. */
++	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
++		return;
++
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+ 			KASAN_SLAB_FREE, init);
+ 
+ 	if (kasan_stack_collection_enabled())
+ 		kasan_save_free_info(cache, tagged_object);
++}
+ 
+-	return false;
++bool __kasan_slab_pre_free(struct kmem_cache *cache, void *object,
++				unsigned long ip)
++{
++	if (!kasan_arch_is_ready() || is_kfence_address(object))
++		return false;
++	return check_slab_allocation(cache, object, ip);
+ }
+ 
+-bool __kasan_slab_free(struct kmem_cache *cache, void *object,
+-				unsigned long ip, bool init)
++bool __kasan_slab_free(struct kmem_cache *cache, void *object, bool init)
+ {
+-	if (is_kfence_address(object))
++	if (!kasan_arch_is_ready() || is_kfence_address(object))
+ 		return false;
+ 
+-	/*
+-	 * If the object is buggy, do not let slab put the object onto the
+-	 * freelist. The object will thus never be allocated again and its
+-	 * metadata will never get released.
+-	 */
+-	if (poison_slab_object(cache, object, ip, init))
+-		return true;
++	poison_slab_object(cache, object, init);
  
  	/*
-@@ -396,7 +396,7 @@ static int alloc_vmemmap_page_list(unsig
- 			goto out;
- 		list_add(&page->lru, list);
+ 	 * If the object is put into quarantine, do not let slab put the object
+@@ -504,11 +510,16 @@ bool __kasan_mempool_poison_object(void
+ 		return true;
  	}
--	mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, nr_pages);
-+	mod_memmap(nr_pages);
  
- 	return 0;
- out:
---- a/mm/mm_init.c~mm-dont-account-memmap-per-node
-+++ a/mm/mm_init.c
-@@ -1623,8 +1623,7 @@ static void __init alloc_node_mem_map(st
- 		panic("Failed to allocate %ld bytes for node %d memory map\n",
- 		      size, pgdat->node_id);
- 	pgdat->node_mem_map = map + offset;
--	mod_node_early_perpage_metadata(pgdat->node_id,
--					DIV_ROUND_UP(size, PAGE_SIZE));
-+	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
- 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
- 		 __func__, pgdat->node_id, (unsigned long)pgdat,
- 		 (unsigned long)pgdat->node_mem_map);
---- a/mm/page_alloc.c~mm-dont-account-memmap-per-node
-+++ a/mm/page_alloc.c
-@@ -5755,7 +5755,6 @@ void __init setup_per_cpu_pageset(void)
- 	for_each_online_pgdat(pgdat)
- 		pgdat->per_cpu_nodestats =
- 			alloc_percpu(struct per_cpu_nodestat);
--	store_early_perpage_metadata();
- }
+-	if (is_kfence_address(ptr))
+-		return false;
++	if (is_kfence_address(ptr) || !kasan_arch_is_ready())
++		return true;
  
- __meminit void zone_pcp_init(struct zone *zone)
---- a/mm/page_ext.c~mm-dont-account-memmap-per-node
-+++ a/mm/page_ext.c
-@@ -214,8 +214,7 @@ static int __init alloc_node_page_ext(in
- 		return -ENOMEM;
- 	NODE_DATA(nid)->node_page_ext = base;
- 	total_usage += table_size;
--	mod_node_page_state(NODE_DATA(nid), NR_MEMMAP_BOOT,
--			    DIV_ROUND_UP(table_size, PAGE_SIZE));
-+	mod_memmap_boot(DIV_ROUND_UP(table_size, PAGE_SIZE));
- 	return 0;
- }
- 
-@@ -275,10 +274,8 @@ static void *__meminit alloc_page_ext(si
- 	else
- 		addr = vzalloc_node(size, nid);
- 
--	if (addr) {
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP,
--				    DIV_ROUND_UP(size, PAGE_SIZE));
--	}
-+	if (addr)
-+		mod_memmap(DIV_ROUND_UP(size, PAGE_SIZE));
- 
- 	return addr;
- }
-@@ -323,25 +320,18 @@ static void free_page_ext(void *addr)
- {
- 	size_t table_size;
- 	struct page *page;
--	struct pglist_data *pgdat;
- 
- 	table_size = page_ext_size * PAGES_PER_SECTION;
-+	mod_memmap(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
- 
- 	if (is_vmalloc_addr(addr)) {
--		page = vmalloc_to_page(addr);
--		pgdat = page_pgdat(page);
- 		vfree(addr);
- 	} else {
- 		page = virt_to_page(addr);
--		pgdat = page_pgdat(page);
- 		BUG_ON(PageReserved(page));
- 		kmemleak_free(addr);
- 		free_pages_exact(addr, table_size);
- 	}
--
--	mod_node_page_state(pgdat, NR_MEMMAP,
--			    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
--
- }
- 
- static void __free_page_ext(unsigned long pfn)
---- a/mm/sparse.c~mm-dont-account-memmap-per-node
-+++ a/mm/sparse.c
-@@ -463,7 +463,7 @@ static void __init sparse_buffer_init(un
- 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
- 	sparsemap_buf_end = sparsemap_buf + size;
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--	mod_node_early_perpage_metadata(nid, DIV_ROUND_UP(size, PAGE_SIZE));
-+	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
- #endif
- }
- 
-@@ -643,8 +643,7 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
--	mod_node_page_state(page_pgdat(pfn_to_page(pfn)), NR_MEMMAP,
--			    -1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
-+	mod_memmap(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
- 	vmemmap_free(start, end, altmap);
- }
- static void free_map_bootmem(struct page *memmap)
---- a/mm/sparse-vmemmap.c~mm-dont-account-memmap-per-node
-+++ a/mm/sparse-vmemmap.c
-@@ -469,13 +469,10 @@ struct page * __meminit __populate_secti
- 	if (r < 0)
- 		return NULL;
- 
--	if (system_state == SYSTEM_BOOTING) {
--		mod_node_early_perpage_metadata(nid, DIV_ROUND_UP(end - start,
--								  PAGE_SIZE));
--	} else {
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP,
--				    DIV_ROUND_UP(end - start, PAGE_SIZE));
--	}
-+	if (system_state == SYSTEM_BOOTING)
-+		mod_memmap_boot(DIV_ROUND_UP(end - start, PAGE_SIZE));
-+	else
-+		mod_memmap(DIV_ROUND_UP(end - start, PAGE_SIZE));
- 
- 	return pfn_to_page(pfn);
- }
---- a/mm/vmstat.c~mm-dont-account-memmap-per-node
-+++ a/mm/vmstat.c
-@@ -1033,6 +1033,23 @@ unsigned long node_page_state(struct pgl
- }
- #endif
- 
-+/*
-+ * Count number of pages "struct page" and "struct page_ext" consume.
-+ * nr_memmap_boot: # of pages allocated by boot allocator & not part of MemTotal
-+ * nr_memmap: # of pages that were allocated by buddy allocator
-+ */
-+static atomic_long_t nr_memmap_boot, nr_memmap;
+ 	slab = folio_slab(folio);
+-	return !poison_slab_object(slab->slab_cache, ptr, ip, false);
 +
-+void mod_memmap_boot(long delta)
-+{
-+	atomic_long_add(delta, &nr_memmap_boot);
-+}
++	if (check_slab_allocation(slab->slab_cache, ptr, ip))
++		return false;
 +
-+void mod_memmap(long delta)
-+{
-+	atomic_long_add(delta, &nr_memmap);
-+}
++	poison_slab_object(slab->slab_cache, ptr, false);
++	return true;
+ }
+ 
+ void __kasan_mempool_unpoison_object(void *ptr, size_t size, unsigned long ip)
+--- a/mm/slub.c~kasan-catch-invalid-free-before-slub-reinitializes-the-object
++++ a/mm/slub.c
+@@ -2227,6 +2227,13 @@ bool slab_free_hook(struct kmem_cache *s
+ 		return false;
+ 
+ 	/*
++	 * Give KASAN a chance to notice an invalid free operation before we
++	 * modify the object.
++	 */
++	if (kasan_slab_pre_free(s, x))
++		return false;
 +
- #ifdef CONFIG_COMPACTION
- 
- struct contig_page_info {
-@@ -1255,11 +1272,11 @@ const char * const vmstat_text[] = {
- 	"pgdemote_kswapd",
- 	"pgdemote_direct",
- 	"pgdemote_khugepaged",
--	"nr_memmap",
--	"nr_memmap_boot",
- 	/* system-wide enum vm_stat_item counters */
- 	"nr_dirty_threshold",
- 	"nr_dirty_background_threshold",
-+	"nr_memmap_pages",
-+	"nr_memmap_boot_pages",
- 
- #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
- 	/* enum vm_event_item counters */
-@@ -1827,6 +1844,8 @@ static void *vmstat_start(struct seq_fil
- 
- 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
- 			    v + NR_DIRTY_THRESHOLD);
-+	v[NR_MEMMAP_BOOT] = atomic_long_read(&nr_memmap_boot);
-+	v[NR_MEMMAP] = atomic_long_read(&nr_memmap);
- 	v += NR_VM_STAT_ITEMS;
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
-@@ -2285,25 +2304,3 @@ static int __init extfrag_debug_init(voi
- module_init(extfrag_debug_init);
- 
- #endif
--
--/*
-- * Page metadata size (struct page and page_ext) in pages
-- */
--static unsigned long early_perpage_metadata[MAX_NUMNODES] __meminitdata;
--
--void __meminit mod_node_early_perpage_metadata(int nid, long delta)
--{
--	early_perpage_metadata[nid] += delta;
--}
--
--void __meminit store_early_perpage_metadata(void)
--{
--	int nid;
--	struct pglist_data *pgdat;
--
--	for_each_online_pgdat(pgdat) {
--		nid = pgdat->node_id;
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP_BOOT,
--				    early_perpage_metadata[nid]);
--	}
--}
++	/*
+ 	 * As memory initialization might be integrated into KASAN,
+ 	 * kasan_slab_free and initialization memset's must be
+ 	 * kept together to avoid discrepancies in behavior.
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-dont-account-memmap-on-failure.patch
-mm-add-system-wide-stats-items-category.patch
-mm-dont-account-memmap-per-node.patch
-memcg-increase-the-valid-index-range-for-memcg-stats-v5.patch
-vmstat-kernel-stack-usage-histogram.patch
-task_stack-uninline-stack_not_used.patch
+mm-fix-harmless-type-confusion-in-lock_vma_under_rcu.patch
+kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
+slub-introduce-config_slub_rcu_debug.patch
 
