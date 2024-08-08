@@ -1,83 +1,84 @@
-Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
+Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D15FB15A85E
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:18:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A42E15A85E
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:19:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723155518; cv=none; b=TOJ+SacSXu2TiqojQ+V8L0ZxmhR7brIru29I/WhFhtbbKxgan7gk+z/1tRV/Klgx7kZwbxePQzu4059AyY5lQaFzyOQ5XkjIweBYAeOhxnE+tpWfnxTD0AV42IsoLRfzgaGM6z8nvk1ip2t+UiHid9TmIe2GNLhPFaotUWN/yXU=
+	t=1723155556; cv=none; b=NAx+k5qY8/CZsfD89MjyTzMJ6lsgYPAsU+ahSdS9tZaAKQY2AeC6QT8u7SiqugfVwKkmPwpAKx/EII+sMAQPfgs3FcumzSG0BhELku4A41arxrEsf3wjZn5s784hoPZtkIHdTjHfWEXV6opcfV6fNmHLjz3ZtM9TVFDwWgauOsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723155518; c=relaxed/simple;
-	bh=g2fz3LHYtQdEh6BMOZKUax+X5tIaOuUHF5RVi3RQXOM=;
+	s=arc-20240116; t=1723155556; c=relaxed/simple;
+	bh=h1o35ozLX6jE83bkerUSVSegPbfvpeQDmPxzY0SPkVo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GxvetZuocz1ZWxIIRErIP4Ua+cEbe/HSQjIvYZGVCLSh62BSO7aNzccGQs3N4Xodn4kajOYLl/m8JHlsMv29vRlwBh4SUg1G+s6GPX+7Oi24Q/W/hIfdu9ZNER3MDPBe1fzbCJwAIFukR7Um7NkiAjhYkwJ5Wo1XPrVGyZSUHJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=ERDU5KTE; arc=none smtp.client-ip=209.85.161.51
+	 To:Cc:Content-Type; b=ly/RtDVHw/1PC57SkqsAP/3+wxiDoApLr90WHe5cnV5NchSxXmsDHxKAvQ3VyL4Z+tE6L8pfLh3f89H3g6wGNEmSeOQcPzm/pJhIxLg7M03FiwfpG6kzcPC0T+26mCH44Bya93TVj61Ldz6azLy1qQHpWm64a7FJm3dUtuqEWSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=SZF4rXzJ; arc=none smtp.client-ip=209.85.210.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ERDU5KTE"
-Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-5d5af7ae388so1235469eaf.0
-        for <mm-commits@vger.kernel.org>; Thu, 08 Aug 2024 15:18:36 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="SZF4rXzJ"
+Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7093d565310so1048733a34.2
+        for <mm-commits@vger.kernel.org>; Thu, 08 Aug 2024 15:19:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1723155516; x=1723760316; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1723155553; x=1723760353; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vmPhqf0HgZuuKA5pp1AA1x5CtuO9Z4jjg/RjWI5ogE8=;
-        b=ERDU5KTERfpbuFFBRpL4PPK0yDSxs0MAHu7nUTxFXghQpLvaQUDBzOx/rZYHJhJkkv
-         rj2Wsn/tkC5WteH9UqSatt7hzDoB69AVrq32Bg5vqWin4IfFkPGdO8uKRsl2ludkceQd
-         KvSn08L3QnkzhBzR58zFB3MdN7CeOzaUP9vWc=
+        bh=wFhTdPmJT39rYZfT2DukWDExZBxYSWIOL4WMbFh4V5o=;
+        b=SZF4rXzJ2ay4YaKbLFESSo6swS97IJYbEhBP7/FTM40HQdKdu6pvnEZ5DtOMlBz0by
+         Wca6pjX/FEdjvHy6I7oSfQ4e0pq/ipoC5/jhrFEqLJcJjzqwG1m4MyoUhRBZInl3bp55
+         fvjLnmJly5VmGR7TeQXOzEllL02UcFvOe/yNo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1723155516; x=1723760316;
+        d=1e100.net; s=20230601; t=1723155553; x=1723760353;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vmPhqf0HgZuuKA5pp1AA1x5CtuO9Z4jjg/RjWI5ogE8=;
-        b=VviMaD6dV8e96iL+rYAypKwAPv5zqGE/EApTs08GtY6zieSSHq88HaWm90Mg0zo/dy
-         Hjvh78gLqlbjCUl7Ca2fVBBTqOq3wz/tSrxakWkdVWY/YP+kQ3soy4fSzqsuUD5WtSme
-         lzAhMuX54qGlIxhKEvVND0ZyMBqvaP8c9B1MczPBF/+s4+zAkX8j9wxq7aITmp2Qwimn
-         ycvi6z+Wn+cOloxiThaxy+GMbwT7GA+9Gg5OB+pV2lianNudobQFjPOJGhfX6Au/ZhI+
-         D7cnrfL+5Qdaa631C1gkL8Tb4C0b9ex57019EKgIlQQTL1oLV6AwBHfFLMQlrIpCqePX
-         3sDw==
-X-Gm-Message-State: AOJu0Yw29eIqv/nx5nU++3avXPCaVRbaThFHvISOvzturdj7wfGFDSib
-	eSOG/KMBJ7GIlE+Iluq6TxkZyCwyuof/1P9RsofAZHE9LDXgO0ccdK+TZPhr9+GuFpVpH29h6ar
-	LRm22JeorOzpcErWAY51eEko+4M2bLWZqI+4C
-X-Google-Smtp-Source: AGHT+IFSXb3SPSimp+dHWUKEV5b2WKyupadPDR4lKPd3awPu9sJJeMjHbJgJq4sO0dFWeAhHyA9m+D1SDv4ikPboY5s=
-X-Received: by 2002:a05:6871:5821:b0:268:a1e0:79db with SMTP id
- 586e51a60fabf-2692d342b92mr1408801fac.14.1723155515884; Thu, 08 Aug 2024
- 15:18:35 -0700 (PDT)
+        bh=wFhTdPmJT39rYZfT2DukWDExZBxYSWIOL4WMbFh4V5o=;
+        b=FmXkiigO8wXMbGM0Tay3ENSEuyaxp5s26NSVNR6iHjfAaC4asrkLbRVGTtNWtnStMB
+         3PMsjtinzQeYqcqL04JNjBmJ0pwExdJSh+erTgxv3yJv4C/h+I0d/WfGxdbAXudldYms
+         d3hHDsvuWFo3OnEx33QoGNYJVSsdAGTPE0THlwY3kv9MUZ3zK0UvrRfkqfzHljWeVAEF
+         GJVTshFvFskEwi1yNIpBePKfioGBGuB4uvIFd7kxSR9Jr+v61/fALdkv+i+qyAv1ZxIS
+         ZqxgFSjnbm6TCJ266s927mwZdN+JqzKLCNGJPAw02+rGx6Qk1ssvigK+AVi59wNgf+by
+         +5bQ==
+X-Gm-Message-State: AOJu0YypZ/jQusK6ByWVHudJoYVDXDOW6iHmjVBD1JbqQU8v9rnKo1El
+	+V92K1EbdP+iuaJUj9Bw2gU8sVaNxTtqlekiE1j+v0axFVL/zG3zPnnSczFVL8Ai1tSoWOiRL38
+	30tfNDBBETJotVnV586NjFJbd5A6pSlx8sDvo
+X-Google-Smtp-Source: AGHT+IGRpjcyGTEBtmGb3gTnIkb6dRWucen9gDy6ZXe8E05TJubRW4WOItKZXVTil1+Cdn4wQ/scISBrDN+VxjRtNcA=
+X-Received: by 2002:a05:6870:96a7:b0:24f:dd11:4486 with SMTP id
+ 586e51a60fabf-2692b7ba04dmr3434848fac.36.1723155553504; Thu, 08 Aug 2024
+ 15:19:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240807185954.1F5F0C32781@smtp.kernel.org>
-In-Reply-To: <20240807185954.1F5F0C32781@smtp.kernel.org>
+References: <20240807212933.88C51C32781@smtp.kernel.org>
+In-Reply-To: <20240807212933.88C51C32781@smtp.kernel.org>
 From: Jeff Xu <jeffxu@chromium.org>
-Date: Thu, 8 Aug 2024 15:18:24 -0700
-Message-ID: <CABi2SkU+A0dhwkGMPKuHvKaLH=kEcRRemo+tYxa9amuiYZxCEQ@mail.gmail.com>
-Subject: Re: + mseal-fix-is_madv_discard.patch added to mm-hotfixes-unstable branch
+Date: Thu, 8 Aug 2024 15:19:01 -0700
+Message-ID: <CABi2SkUnmVwfo9pwjQrHrwvUW3W1COqJxwQj1+avepcTaW4n9Q@mail.gmail.com>
+Subject: Re: + selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
+ added to mm-unstable branch
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, shuah@kernel.org, 
-	Liam.Howlett@oracle.com, kees@kernel.org, pedro.falcato@gmail.com
+Cc: mm-commits@vger.kernel.org, shuah@kernel.org, Liam.Howlett@oracle.com, 
+	kees@kernel.org, pedro.falcato@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 7, 2024 at 11:59=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
+On Wed, Aug 7, 2024 at 2:29=E2=80=AFPM Andrew Morton <akpm@linux-foundation=
+.org> wrote:
 >
 >
 > The patch titled
->      Subject: mseal: fix is_madv_discard()
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      mseal-fix-is_madv_discard.patch
+>      Subject: fixup! selftests/mm: Add mseal test for no-discard madvise
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
 >
 > This patch will shortly appear at
 >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/mseal-fix-is_madv_discard.patch
+/patches/selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
 >
-> This patch will later appear in the mm-hotfixes-unstable branch at
+> This patch will later appear in the mm-unstable branch at
 >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 >
 > Before you just go and hit "reply", please:
@@ -95,68 +96,44 @@ ng your code ***
 >
 > ------------------------------------------------------
 > From: Pedro Falcato <pedro.falcato@gmail.com>
-> Subject: mseal: fix is_madv_discard()
-> Date: Wed, 7 Aug 2024 18:33:35 +0100
+> Subject: fixup! selftests/mm: Add mseal test for no-discard madvise
+> Date: Wed, 7 Aug 2024 21:37:24 +0100
 >
-> is_madv_discard did its check wrong. MADV_ flags are not bitwise,
-> they're normal sequential numbers. So, for instance:
->         behavior & (/* ... */ | MADV_REMOVE)
+> Adjust the mseal test's plan.
 >
-> tagged both MADV_REMOVE and MADV_RANDOM (bit 0 set) as
-> discard operations. This is obviously incorrect, so use
-> a switch statement instead.
->
-> Link: https://lkml.kernel.org/r/20240807173336.2523757-1-pedro.falcato@gm=
+> Link: https://lkml.kernel.org/r/20240807203724.2686144-1-pedro.falcato@gm=
 ail.com
-> Link: https://lkml.kernel.org/r/20240807173336.2523757-2-pedro.falcato@gm=
-ail.com
-> Fixes: 8be7258aad44 ("mseal: add mseal syscall")
 > Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
 > Cc: Jeff Xu <jeffxu@chromium.org>
 > Cc: Kees Cook <kees@kernel.org>
 > Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 > Cc: Shuah Khan <shuah@kernel.org>
-> Cc: <stable@vger.kernel.org>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
     Tested-by: Jeff Xu <jeffxu@chromium.org>
     Reviewed-by: Jeff Xu <jeffxu@chromium.org>
 
-In case needed.
-Thanks
--Jeff
-
 > ---
 >
->  mm/mseal.c |   14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
+>  tools/testing/selftests/mm/mseal_test.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> --- a/mm/mseal.c~mseal-fix-is_madv_discard
-> +++ a/mm/mseal.c
-> @@ -40,9 +40,17 @@ static bool can_modify_vma(struct vm_are
+> --- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-mseal-test=
+-for-no-discard-madvise-fix
+> +++ a/tools/testing/selftests/mm/mseal_test.c
+> @@ -1775,7 +1775,7 @@ int main(int argc, char **argv)
+>         if (!pkey_supported())
+>                 ksft_print_msg("PKEY not supported\n");
 >
->  static bool is_madv_discard(int behavior)
->  {
-> -       return  behavior &
-> -               (MADV_FREE | MADV_DONTNEED | MADV_DONTNEED_LOCKED |
-> -                MADV_REMOVE | MADV_DONTFORK | MADV_WIPEONFORK);
-> +       switch (behavior) {
-> +       case MADV_FREE:
-> +       case MADV_DONTNEED:
-> +       case MADV_DONTNEED_LOCKED:
-> +       case MADV_REMOVE:
-> +       case MADV_DONTFORK:
-> +       case MADV_WIPEONFORK:
-> +               return true;
-> +       }
-> +
-> +       return false;
->  }
+> -       ksft_set_plan(80);
+> +       ksft_set_plan(82);
 >
->  static bool is_ro_anon(struct vm_area_struct *vma)
+>         test_seal_addseal();
+>         test_seal_unmapped_start();
 > _
 >
 > Patches currently in -mm which might be from pedro.falcato@gmail.com are
 >
 > mseal-fix-is_madv_discard.patch
 > selftests-mm-add-mseal-test-for-no-discard-madvise.patch
+> selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
 >
