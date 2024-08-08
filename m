@@ -1,340 +1,162 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8CB15A85E
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:18:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D15FB15A85E
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:18:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723155513; cv=none; b=nb3107Lb8WERJNxmzQBSXkrJpxCDmu4XbE7hu58MCv1tmVgE2TGE1hMVqwhe38v0TnaCohhu4syVcLZzoO3pGzDq6IMOXEeRNQRpfd8DZEYdoPIlmEWcyNkamqg/2M7nuFATD/4CMniILjoLx0RPeGMnL7mrW5ZaHPc+K2unVoo=
+	t=1723155518; cv=none; b=TOJ+SacSXu2TiqojQ+V8L0ZxmhR7brIru29I/WhFhtbbKxgan7gk+z/1tRV/Klgx7kZwbxePQzu4059AyY5lQaFzyOQ5XkjIweBYAeOhxnE+tpWfnxTD0AV42IsoLRfzgaGM6z8nvk1ip2t+UiHid9TmIe2GNLhPFaotUWN/yXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723155513; c=relaxed/simple;
-	bh=pej6TX2+g0iyGAjj9sXy8ecKfJNo21NTbs0qjPK1m6c=;
-	h=Date:To:From:Subject:Message-Id; b=OBcAdtWA+xmrP7gjwN/16kP0+7FXzE+K0vDvbuINF0+jokRPAqIelvgS7hVwSH847GR7jDSmeAGZigJchV2X/PLPj944j9AwruherFz9p0Ko5AjPc+ccw8vVovX5Cw8zw4rR4VckxaujeBO0AwJx0u6DcoN6X2qHs1UzQXHNeKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c2zOhU9f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723155518; c=relaxed/simple;
+	bh=g2fz3LHYtQdEh6BMOZKUax+X5tIaOuUHF5RVi3RQXOM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GxvetZuocz1ZWxIIRErIP4Ua+cEbe/HSQjIvYZGVCLSh62BSO7aNzccGQs3N4Xodn4kajOYLl/m8JHlsMv29vRlwBh4SUg1G+s6GPX+7Oi24Q/W/hIfdu9ZNER3MDPBe1fzbCJwAIFukR7Um7NkiAjhYkwJ5Wo1XPrVGyZSUHJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=ERDU5KTE; arc=none smtp.client-ip=209.85.161.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c2zOhU9f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BE96C32782;
-	Thu,  8 Aug 2024 22:18:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723155512;
-	bh=pej6TX2+g0iyGAjj9sXy8ecKfJNo21NTbs0qjPK1m6c=;
-	h=Date:To:From:Subject:From;
-	b=c2zOhU9fdGm24rqIgnJIE+nsSr0CRTd/Gnk6EfJlGbI7tAmNly/Tv/xn/CPbcZNdg
-	 OU8rAB+bhldmiXH9ksH3gFFnmGdYmL07XW0/2ySGpDCgbIHfjpPZAYkzhNwaiIAMd6
-	 w2dxLpLvfPopWyPCDBpVz0INmgir8qjM2YMqO3e0=
-Date: Thu, 08 Aug 2024 15:18:31 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-tidy-up-shmem-mthp-controls-and-stats.patch added to mm-unstable branch
-Message-Id: <20240808221832.5BE96C32782@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ERDU5KTE"
+Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-5d5af7ae388so1235469eaf.0
+        for <mm-commits@vger.kernel.org>; Thu, 08 Aug 2024 15:18:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1723155516; x=1723760316; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vmPhqf0HgZuuKA5pp1AA1x5CtuO9Z4jjg/RjWI5ogE8=;
+        b=ERDU5KTERfpbuFFBRpL4PPK0yDSxs0MAHu7nUTxFXghQpLvaQUDBzOx/rZYHJhJkkv
+         rj2Wsn/tkC5WteH9UqSatt7hzDoB69AVrq32Bg5vqWin4IfFkPGdO8uKRsl2ludkceQd
+         KvSn08L3QnkzhBzR58zFB3MdN7CeOzaUP9vWc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1723155516; x=1723760316;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vmPhqf0HgZuuKA5pp1AA1x5CtuO9Z4jjg/RjWI5ogE8=;
+        b=VviMaD6dV8e96iL+rYAypKwAPv5zqGE/EApTs08GtY6zieSSHq88HaWm90Mg0zo/dy
+         Hjvh78gLqlbjCUl7Ca2fVBBTqOq3wz/tSrxakWkdVWY/YP+kQ3soy4fSzqsuUD5WtSme
+         lzAhMuX54qGlIxhKEvVND0ZyMBqvaP8c9B1MczPBF/+s4+zAkX8j9wxq7aITmp2Qwimn
+         ycvi6z+Wn+cOloxiThaxy+GMbwT7GA+9Gg5OB+pV2lianNudobQFjPOJGhfX6Au/ZhI+
+         D7cnrfL+5Qdaa631C1gkL8Tb4C0b9ex57019EKgIlQQTL1oLV6AwBHfFLMQlrIpCqePX
+         3sDw==
+X-Gm-Message-State: AOJu0Yw29eIqv/nx5nU++3avXPCaVRbaThFHvISOvzturdj7wfGFDSib
+	eSOG/KMBJ7GIlE+Iluq6TxkZyCwyuof/1P9RsofAZHE9LDXgO0ccdK+TZPhr9+GuFpVpH29h6ar
+	LRm22JeorOzpcErWAY51eEko+4M2bLWZqI+4C
+X-Google-Smtp-Source: AGHT+IFSXb3SPSimp+dHWUKEV5b2WKyupadPDR4lKPd3awPu9sJJeMjHbJgJq4sO0dFWeAhHyA9m+D1SDv4ikPboY5s=
+X-Received: by 2002:a05:6871:5821:b0:268:a1e0:79db with SMTP id
+ 586e51a60fabf-2692d342b92mr1408801fac.14.1723155515884; Thu, 08 Aug 2024
+ 15:18:35 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240807185954.1F5F0C32781@smtp.kernel.org>
+In-Reply-To: <20240807185954.1F5F0C32781@smtp.kernel.org>
+From: Jeff Xu <jeffxu@chromium.org>
+Date: Thu, 8 Aug 2024 15:18:24 -0700
+Message-ID: <CABi2SkU+A0dhwkGMPKuHvKaLH=kEcRRemo+tYxa9amuiYZxCEQ@mail.gmail.com>
+Subject: Re: + mseal-fix-is_madv_discard.patch added to mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, shuah@kernel.org, 
+	Liam.Howlett@oracle.com, kees@kernel.org, pedro.falcato@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Aug 7, 2024 at 11:59=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+>
+> The patch titled
+>      Subject: mseal: fix is_madv_discard()
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      mseal-fix-is_madv_discard.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/mseal-fix-is_madv_discard.patch
+>
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Pedro Falcato <pedro.falcato@gmail.com>
+> Subject: mseal: fix is_madv_discard()
+> Date: Wed, 7 Aug 2024 18:33:35 +0100
+>
+> is_madv_discard did its check wrong. MADV_ flags are not bitwise,
+> they're normal sequential numbers. So, for instance:
+>         behavior & (/* ... */ | MADV_REMOVE)
+>
+> tagged both MADV_REMOVE and MADV_RANDOM (bit 0 set) as
+> discard operations. This is obviously incorrect, so use
+> a switch statement instead.
+>
+> Link: https://lkml.kernel.org/r/20240807173336.2523757-1-pedro.falcato@gm=
+ail.com
+> Link: https://lkml.kernel.org/r/20240807173336.2523757-2-pedro.falcato@gm=
+ail.com
+> Fixes: 8be7258aad44 ("mseal: add mseal syscall")
+> Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
+> Cc: Jeff Xu <jeffxu@chromium.org>
+> Cc: Kees Cook <kees@kernel.org>
+> Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+> Cc: Shuah Khan <shuah@kernel.org>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Tested-by: Jeff Xu <jeffxu@chromium.org>
+    Reviewed-by: Jeff Xu <jeffxu@chromium.org>
 
-The patch titled
-     Subject: mm: tidy up shmem mTHP controls and stats
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-tidy-up-shmem-mthp-controls-and-stats.patch
+In case needed.
+Thanks
+-Jeff
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tidy-up-shmem-mthp-controls-and-stats.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: tidy up shmem mTHP controls and stats
-Date: Thu, 8 Aug 2024 12:18:47 +0100
-
-Previously we had a situation where shmem mTHP controls and stats were not
-exposed for some supported sizes and were exposed for some unsupported
-sizes.  So let's clean that up.
-
-Anon mTHP can support all large orders [2, PMD_ORDER].  But shmem can
-support all large orders [1, MAX_PAGECACHE_ORDER].  However, per-size
-shmem controls and stats were previously being exposed for all the anon
-mTHP orders, meaning order-1 was not present, and for arm64 64K base
-pages, orders 12 and 13 were exposed but were not supported internally.
-
-Tidy this all up by defining ctrl and stats attribute groups for anon and
-file separately.  Anon ctrl and stats groups are populated for all orders
-in THP_ORDERS_ALL_ANON and file ctrl and stats groups are populated for
-all orders in THP_ORDERS_ALL_FILE_DEFAULT.
-
-Additionally, create "any" ctrl and stats attribute groups which are
-populated for all orders in (THP_ORDERS_ALL_ANON |
-THP_ORDERS_ALL_FILE_DEFAULT).  swpout stats use this since they apply to
-anon and shmem.
-
-The side-effect of all this is that different hugepage-*kB directories
-contain different sets of controls and stats, depending on which memory
-types support that size.  This approach is preferred over the alternative,
-which is to populate dummy controls and stats for memory types that do not
-support a given size.
-
-Link: https://lkml.kernel.org/r/20240808111849.651867-3-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/huge_memory.c |  144 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 114 insertions(+), 30 deletions(-)
-
---- a/mm/huge_memory.c~mm-tidy-up-shmem-mthp-controls-and-stats
-+++ a/mm/huge_memory.c
-@@ -459,8 +459,8 @@ static void thpsize_release(struct kobje
- static DEFINE_SPINLOCK(huge_anon_orders_lock);
- static LIST_HEAD(thpsize_list);
- 
--static ssize_t thpsize_enabled_show(struct kobject *kobj,
--				    struct kobj_attribute *attr, char *buf)
-+static ssize_t anon_enabled_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *buf)
- {
- 	int order = to_thpsize(kobj)->order;
- 	const char *output;
-@@ -477,9 +477,9 @@ static ssize_t thpsize_enabled_show(stru
- 	return sysfs_emit(buf, "%s\n", output);
- }
- 
--static ssize_t thpsize_enabled_store(struct kobject *kobj,
--				     struct kobj_attribute *attr,
--				     const char *buf, size_t count)
-+static ssize_t anon_enabled_store(struct kobject *kobj,
-+				  struct kobj_attribute *attr,
-+				  const char *buf, size_t count)
- {
- 	int order = to_thpsize(kobj)->order;
- 	ssize_t ret = count;
-@@ -521,19 +521,35 @@ static ssize_t thpsize_enabled_store(str
- 	return ret;
- }
- 
--static struct kobj_attribute thpsize_enabled_attr =
--	__ATTR(enabled, 0644, thpsize_enabled_show, thpsize_enabled_store);
-+static struct kobj_attribute anon_enabled_attr =
-+	__ATTR(enabled, 0644, anon_enabled_show, anon_enabled_store);
- 
--static struct attribute *thpsize_attrs[] = {
--	&thpsize_enabled_attr.attr,
-+static struct attribute *anon_ctrl_attrs[] = {
-+	&anon_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group anon_ctrl_attr_grp = {
-+	.attrs = anon_ctrl_attrs,
-+};
-+
-+static struct attribute *file_ctrl_attrs[] = {
- #ifdef CONFIG_SHMEM
- 	&thpsize_shmem_enabled_attr.attr,
- #endif
- 	NULL,
- };
- 
--static const struct attribute_group thpsize_attr_group = {
--	.attrs = thpsize_attrs,
-+static const struct attribute_group file_ctrl_attr_grp = {
-+	.attrs = file_ctrl_attrs,
-+};
-+
-+static struct attribute *any_ctrl_attrs[] = {
-+	NULL,
-+};
-+
-+static const struct attribute_group any_ctrl_attr_grp = {
-+	.attrs = any_ctrl_attrs,
- };
- 
- static const struct kobj_type thpsize_ktype = {
-@@ -572,64 +588,132 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
-+#ifdef CONFIG_SHMEM
- DEFINE_MTHP_STAT_ATTR(shmem_alloc, MTHP_STAT_SHMEM_ALLOC);
- DEFINE_MTHP_STAT_ATTR(shmem_fallback, MTHP_STAT_SHMEM_FALLBACK);
- DEFINE_MTHP_STAT_ATTR(shmem_fallback_charge, MTHP_STAT_SHMEM_FALLBACK_CHARGE);
-+#endif
- DEFINE_MTHP_STAT_ATTR(split, MTHP_STAT_SPLIT);
- DEFINE_MTHP_STAT_ATTR(split_failed, MTHP_STAT_SPLIT_FAILED);
- DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
- 
--static struct attribute *stats_attrs[] = {
-+static struct attribute *anon_stats_attrs[] = {
- 	&anon_fault_alloc_attr.attr,
- 	&anon_fault_fallback_attr.attr,
- 	&anon_fault_fallback_charge_attr.attr,
-+#ifndef CONFIG_SHMEM
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
--	&shmem_alloc_attr.attr,
--	&shmem_fallback_attr.attr,
--	&shmem_fallback_charge_attr.attr,
-+#endif
- 	&split_attr.attr,
- 	&split_failed_attr.attr,
- 	&split_deferred_attr.attr,
- 	NULL,
- };
- 
--static struct attribute_group stats_attr_group = {
-+static struct attribute_group anon_stats_attr_grp = {
- 	.name = "stats",
--	.attrs = stats_attrs,
-+	.attrs = anon_stats_attrs,
- };
- 
-+static struct attribute *file_stats_attrs[] = {
-+#ifdef CONFIG_SHMEM
-+	&shmem_alloc_attr.attr,
-+	&shmem_fallback_attr.attr,
-+	&shmem_fallback_charge_attr.attr,
-+#endif
-+	NULL,
-+};
-+
-+static struct attribute_group file_stats_attr_grp = {
-+	.name = "stats",
-+	.attrs = file_stats_attrs,
-+};
-+
-+static struct attribute *any_stats_attrs[] = {
-+#ifdef CONFIG_SHMEM
-+	&swpout_attr.attr,
-+	&swpout_fallback_attr.attr,
-+#endif
-+	NULL,
-+};
-+
-+static struct attribute_group any_stats_attr_grp = {
-+	.name = "stats",
-+	.attrs = any_stats_attrs,
-+};
-+
-+static int sysfs_add_group(struct kobject *kobj,
-+			   const struct attribute_group *grp)
-+{
-+	int ret = -ENOENT;
-+
-+	/*
-+	 * If the group is named, try to merge first, assuming the subdirectory
-+	 * was already created. This avoids the warning emitted by
-+	 * sysfs_create_group() if the directory already exists.
-+	 */
-+	if (grp->name)
-+		ret = sysfs_merge_group(kobj, grp);
-+	if (ret)
-+		ret = sysfs_create_group(kobj, grp);
-+
-+	return ret;
-+}
-+
- static struct thpsize *thpsize_create(int order, struct kobject *parent)
- {
- 	unsigned long size = (PAGE_SIZE << order) / SZ_1K;
- 	struct thpsize *thpsize;
--	int ret;
-+	int ret = -ENOMEM;
- 
- 	thpsize = kzalloc(sizeof(*thpsize), GFP_KERNEL);
- 	if (!thpsize)
--		return ERR_PTR(-ENOMEM);
-+		goto err;
-+
-+	thpsize->order = order;
- 
- 	ret = kobject_init_and_add(&thpsize->kobj, &thpsize_ktype, parent,
- 				   "hugepages-%lukB", size);
- 	if (ret) {
- 		kfree(thpsize);
--		return ERR_PTR(ret);
-+		goto err;
- 	}
- 
--	ret = sysfs_create_group(&thpsize->kobj, &thpsize_attr_group);
--	if (ret) {
--		kobject_put(&thpsize->kobj);
--		return ERR_PTR(ret);
-+
-+	ret = sysfs_add_group(&thpsize->kobj, &any_ctrl_attr_grp);
-+	if (ret)
-+		goto err_put;
-+
-+	ret = sysfs_add_group(&thpsize->kobj, &any_stats_attr_grp);
-+	if (ret)
-+		goto err_put;
-+
-+	if (BIT(order) & THP_ORDERS_ALL_ANON) {
-+		ret = sysfs_add_group(&thpsize->kobj, &anon_ctrl_attr_grp);
-+		if (ret)
-+			goto err_put;
-+
-+		ret = sysfs_add_group(&thpsize->kobj, &anon_stats_attr_grp);
-+		if (ret)
-+			goto err_put;
- 	}
- 
--	ret = sysfs_create_group(&thpsize->kobj, &stats_attr_group);
--	if (ret) {
--		kobject_put(&thpsize->kobj);
--		return ERR_PTR(ret);
-+	if (BIT(order) & THP_ORDERS_ALL_FILE_DEFAULT) {
-+		ret = sysfs_add_group(&thpsize->kobj, &file_ctrl_attr_grp);
-+		if (ret)
-+			goto err_put;
-+
-+		ret = sysfs_add_group(&thpsize->kobj, &file_stats_attr_grp);
-+		if (ret)
-+			goto err_put;
- 	}
- 
--	thpsize->order = order;
- 	return thpsize;
-+err_put:
-+	kobject_put(&thpsize->kobj);
-+err:
-+	return ERR_PTR(ret);
- }
- 
- static void thpsize_release(struct kobject *kobj)
-@@ -669,7 +753,7 @@ static int __init hugepage_init_sysfs(st
- 		goto remove_hp_group;
- 	}
- 
--	orders = THP_ORDERS_ALL_ANON;
-+	orders = THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE_DEFAULT;
- 	order = highest_order(orders);
- 	while (orders) {
- 		thpsize = thpsize_create(order, *hugepage_kobj);
-_
-
-Patches currently in -mm which might be from ryan.roberts@arm.com are
-
-mm-cleanup-count_mthp_stat-definition.patch
-mm-tidy-up-shmem-mthp-controls-and-stats.patch
-
+> ---
+>
+>  mm/mseal.c |   14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+>
+> --- a/mm/mseal.c~mseal-fix-is_madv_discard
+> +++ a/mm/mseal.c
+> @@ -40,9 +40,17 @@ static bool can_modify_vma(struct vm_are
+>
+>  static bool is_madv_discard(int behavior)
+>  {
+> -       return  behavior &
+> -               (MADV_FREE | MADV_DONTNEED | MADV_DONTNEED_LOCKED |
+> -                MADV_REMOVE | MADV_DONTFORK | MADV_WIPEONFORK);
+> +       switch (behavior) {
+> +       case MADV_FREE:
+> +       case MADV_DONTNEED:
+> +       case MADV_DONTNEED_LOCKED:
+> +       case MADV_REMOVE:
+> +       case MADV_DONTFORK:
+> +       case MADV_WIPEONFORK:
+> +               return true;
+> +       }
+> +
+> +       return false;
+>  }
+>
+>  static bool is_ro_anon(struct vm_area_struct *vma)
+> _
+>
+> Patches currently in -mm which might be from pedro.falcato@gmail.com are
+>
+> mseal-fix-is_madv_discard.patch
+> selftests-mm-add-mseal-test-for-no-discard-madvise.patch
+>
