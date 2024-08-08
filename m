@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53683157466;
-	Thu,  8 Aug 2024 23:07:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97F721474A5
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 23:26:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723158445; cv=none; b=RaH76vqkFTuVVUTPFRAFpLMqTRkQ6a9qukGFNeaxe304GJzlOYsRbUQR5p0TP8KUS/Ga6wu4sBl9rbuQIl6sOJRa6mETEARPFOSTA7F+WKQfGBc5KHcsTnpasYv6s9hH2ED1ehgZTz/FuT6yXNIlMdP07hr7+6H5fxl6KGlP8R4=
+	t=1723159575; cv=none; b=iVS0mBs2PU1jQrAygJqHyXU8pxiD4U4kAbkujJAJ5iJ5AfLlJ1559Vi2WiLNJyNa+Mh78ZF9RLF0qrJA+slyc5m0xH0xjQCDeBerQg84dMdF8VVfEBjirvE53TbaqUCkW7HgC4u33qDpRuqzpdIpA1yQblBNowJ5DLe080RZytw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723158445; c=relaxed/simple;
-	bh=qcyZl8+8R+slIVrWSgB26pY2mC6/DFYYz5nZyBghsCc=;
-	h=Date:To:From:Subject:Message-Id; b=NnnWoZHnsNQQJXqfSjdEX7b24n/3xlKsuCCl06LEXHFtxe8+VKufo7IADdiI8f9B+pnCYz60xjy+Wv82i36FXqovlfmiBGh/nmyWpNHAmikacpVceyehO+H0AXRQ0sKnXE3/qhTiQVZX2sLAnTLaP9VBBnNWAMuwu/UZd+diY/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtTCdsHD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723159575; c=relaxed/simple;
+	bh=g4PIgIwTxNfn8xJu9mDIlwKn7gQ8BcoBhjUfYwOR5x0=;
+	h=Date:To:From:Subject:Message-Id; b=oxl30ANayf/zZOETYChEq/AVHqDEyavweoCH5E9OGXQv0xFijTJlTglcEjsEQSfySaTzVHebwf4PW+2J09ineMSOz+C5/eqAD9sk0PCmJIJpDwC7jXFWajKod0OWnAcXtj+zU0jr9mbqfc5XyirwJiK8KcruDwdZUxtZ/aasLIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GZvDB+Ul; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtTCdsHD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB58CC32782;
-	Thu,  8 Aug 2024 23:07:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GZvDB+Ul"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 063F9C32782;
+	Thu,  8 Aug 2024 23:26:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723158444;
-	bh=qcyZl8+8R+slIVrWSgB26pY2mC6/DFYYz5nZyBghsCc=;
+	s=korg; t=1723159575;
+	bh=g4PIgIwTxNfn8xJu9mDIlwKn7gQ8BcoBhjUfYwOR5x0=;
 	h=Date:To:From:Subject:From;
-	b=ZtTCdsHDPEpGq2WKD2Vb5T1YZnXZS3SH1JM6wec0xUZJ6rq2W9gH7Z38SYqmQaZlq
-	 uKSknzCwHz5Z+SJMBXyvrdiPVPn3Uz4QCrAuTlI2cTnETg7GDizp8cuEUBs9lKB1p8
-	 EPv66dxHFJFS5ZuEJ0TyuoYLv7RQM9VU3h2AnZ8Y=
-Date: Thu, 08 Aug 2024 16:07:24 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,stable@vger.kernel.org,pedro.falcato@gmail.com,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,dave.hansen@intel.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=GZvDB+Ul/2TsgrIsFz85lMes74N/gwkGUv+QLpGw4yI0QyA656jjXhyeaXB0m6+2T
+	 xyTDAaTFfgjvOua6B5MEZBIgiqnTFt4h0cAqvmErjW8M4efW+Ki6H7g618S1zMl22N
+	 5/9AlSXcvL9otr4dC+AMo0YBmXxnlyf0TDJZOfjQ=
+Date: Thu, 08 Aug 2024 16:26:14 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-mseal-fix-test_seal_mremap_move_dontunmap_anyaddr.patch added to mm-unstable branch
-Message-Id: <20240808230724.BB58CC32782@smtp.kernel.org>
+Subject: [to-be-updated] mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch removed from -mm tree
+Message-Id: <20240808232615.063F9C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,227 +34,211 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftest mm/mseal: fix test_seal_mremap_move_dontunmap_anyaddr
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-mseal-fix-test_seal_mremap_move_dontunmap_anyaddr.patch
+The quilt patch titled
+     Subject: mm/migrate: move common code to numa_migrate_check (was numa_migrate_prep)
+has been removed from the -mm tree.  Its filename was
+     mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-mseal-fix-test_seal_mremap_move_dontunmap_anyaddr.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: selftest mm/mseal: fix test_seal_mremap_move_dontunmap_anyaddr
-Date: Wed, 7 Aug 2024 21:23:20 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: move common code to numa_migrate_check (was numa_migrate_prep)
+Date: Wed, 7 Aug 2024 14:47:30 -0400
 
-the syscall remap accepts following:
+do_numa_page() and do_huge_pmd_numa_page() share a lot of common code.  To
+reduce redundancy, move common code to numa_migrate_prep() and rename the
+function to numa_migrate_check() to reflect its functionality.
 
-mremap(src, size, size, MREMAP_MAYMOVE | MREMAP_DONTUNMAP, dst)
+Now do_huge_pmd_numa_page() also checks shared folios to set TNF_SHARED
+flag.
 
-when the src is sealed, the call will fail with error code:
-EPERM
-
-Previously, the test uses hard-coded 0xdeaddead as dst, and it
-will fail on the system with newer glibc installed.
-
-This patch removes test's dependency on glibc for mremap(), also
-fix the test and remove the hardcoded address.
-
-Link: https://lkml.kernel.org/r/20240807212320.2831848-1-jeffxu@chromium.org
-Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Reported-by: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240807184730.1266736-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |   57 +++++++++++++---------
- 1 file changed, 36 insertions(+), 21 deletions(-)
+ mm/huge_memory.c |   14 +-------
+ mm/internal.h    |    5 +-
+ mm/memory.c      |   76 ++++++++++++++++++++++-----------------------
+ 3 files changed, 44 insertions(+), 51 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftest-mm-mseal-fix-test_seal_mremap_move_dontunmap_anyaddr
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -110,6 +110,16 @@ static int sys_madvise(void *start, size
- 	return sret;
+--- a/mm/huge_memory.c~mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep
++++ a/mm/huge_memory.c
+@@ -1699,18 +1699,10 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	if (!folio)
+ 		goto out_map;
+ 
+-	/* See similar comment in do_numa_page for explanation */
+-	if (!writable)
+-		flags |= TNF_NO_GROUP;
+-
+ 	nid = folio_nid(folio);
+-	/*
+-	 * For memory tiering mode, cpupid of slow memory page is used
+-	 * to record page access time.  So use default value.
+-	 */
+-	if (!folio_use_access_time(folio))
+-		last_cpupid = folio_last_cpupid(folio);
+-	target_nid = numa_migrate_prep(folio, vmf, haddr, nid, &flags);
++
++	target_nid = numa_migrate_check(folio, vmf, haddr, &flags, writable,
++					&last_cpupid);
+ 	if (target_nid == NUMA_NO_NODE)
+ 		goto out_map;
+ 	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
+--- a/mm/internal.h~mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep
++++ a/mm/internal.h
+@@ -1191,8 +1191,9 @@ void vunmap_range_noflush(unsigned long
+ 
+ void __vunmap_range_noflush(unsigned long start, unsigned long end);
+ 
+-int numa_migrate_prep(struct folio *folio, struct vm_fault *vmf,
+-		      unsigned long addr, int page_nid, int *flags);
++int numa_migrate_check(struct folio *folio, struct vm_fault *vmf,
++		      unsigned long addr, int *flags, bool writable,
++		      int *last_cpupid);
+ 
+ void free_zone_device_folio(struct folio *folio);
+ int migrate_device_coherent_page(struct page *page);
+--- a/mm/memory.c~mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep
++++ a/mm/memory.c
+@@ -5368,16 +5368,43 @@ static vm_fault_t do_fault(struct vm_fau
+ 	return ret;
  }
  
-+static void *sys_mremap(void *addr, size_t old_len, size_t new_len,
-+	unsigned long flags, void *new_addr)
-+{
-+	void *sret;
-+
-+	errno = 0;
-+	sret = (void *) syscall(__NR_mremap, addr, old_len, new_len, flags, new_addr);
-+	return sret;
-+}
-+
- static int sys_pkey_alloc(unsigned long flags, unsigned long init_val)
+-int numa_migrate_prep(struct folio *folio, struct vm_fault *vmf,
+-		      unsigned long addr, int page_nid, int *flags)
++int numa_migrate_check(struct folio *folio, struct vm_fault *vmf,
++		      unsigned long addr, int *flags,
++		      bool writable, int *last_cpupid)
  {
- 	int ret = syscall(__NR_pkey_alloc, flags, init_val);
-@@ -1115,12 +1125,12 @@ static void test_seal_mremap_shrink(bool
- 	}
+ 	struct vm_area_struct *vma = vmf->vma;
  
- 	/* shrink from 4 pages to 2 pages. */
--	ret2 = mremap(ptr, size, 2 * page_size, 0, 0);
-+	ret2 = sys_mremap(ptr, size, 2 * page_size, 0, 0);
- 	if (seal) {
--		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
-+		FAIL_TEST_IF_FALSE(ret2 == (void *) MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
- 	} else {
--		FAIL_TEST_IF_FALSE(ret2 != MAP_FAILED);
-+		FAIL_TEST_IF_FALSE(ret2 != (void *) MAP_FAILED);
- 
- 	}
- 
-@@ -1147,7 +1157,7 @@ static void test_seal_mremap_expand(bool
- 	}
- 
- 	/* expand from 2 page to 4 pages. */
--	ret2 = mremap(ptr, 2 * page_size, 4 * page_size, 0, 0);
-+	ret2 = sys_mremap(ptr, 2 * page_size, 4 * page_size, 0, 0);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
-@@ -1180,7 +1190,7 @@ static void test_seal_mremap_move(bool s
- 	}
- 
- 	/* move from ptr to fixed address. */
--	ret2 = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, newPtr);
-+	ret2 = sys_mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, newPtr);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
-@@ -1299,7 +1309,7 @@ static void test_seal_mremap_shrink_fixe
- 	}
- 
- 	/* mremap to move and shrink to fixed address */
--	ret2 = mremap(ptr, size, 2 * page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
-+	ret2 = sys_mremap(ptr, size, 2 * page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
- 			newAddr);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
-@@ -1330,7 +1340,7 @@ static void test_seal_mremap_expand_fixe
- 	}
- 
- 	/* mremap to move and expand to fixed address */
--	ret2 = mremap(ptr, page_size, size, MREMAP_MAYMOVE | MREMAP_FIXED,
-+	ret2 = sys_mremap(ptr, page_size, size, MREMAP_MAYMOVE | MREMAP_FIXED,
- 			newAddr);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
-@@ -1361,7 +1371,7 @@ static void test_seal_mremap_move_fixed(
- 	}
- 
- 	/* mremap to move to fixed address */
--	ret2 = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, newAddr);
-+	ret2 = sys_mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_FIXED, newAddr);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
-@@ -1390,14 +1400,13 @@ static void test_seal_mremap_move_fixed_
- 	/*
- 	 * MREMAP_FIXED can move the mapping to zero address
- 	 */
--	ret2 = mremap(ptr, size, 2 * page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
-+	ret2 = sys_mremap(ptr, size, 2 * page_size, MREMAP_MAYMOVE | MREMAP_FIXED,
- 			0);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
- 	} else {
- 		FAIL_TEST_IF_FALSE(ret2 == 0);
--
- 	}
- 
- 	REPORT_TEST_PASS();
-@@ -1420,13 +1429,13 @@ static void test_seal_mremap_move_dontun
- 	}
- 
- 	/* mremap to move, and don't unmap src addr. */
--	ret2 = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_DONTUNMAP, 0);
-+	ret2 = sys_mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_DONTUNMAP, 0);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
- 	} else {
-+		/* kernel will allocate a new address */
- 		FAIL_TEST_IF_FALSE(ret2 != MAP_FAILED);
--
- 	}
- 
- 	REPORT_TEST_PASS();
-@@ -1434,7 +1443,7 @@ static void test_seal_mremap_move_dontun
- 
- static void test_seal_mremap_move_dontunmap_anyaddr(bool seal)
- {
--	void *ptr;
-+	void *ptr, *ptr2;
- 	unsigned long page_size = getpagesize();
- 	unsigned long size = 4 * page_size;
- 	int ret;
-@@ -1449,24 +1458,30 @@ static void test_seal_mremap_move_dontun
- 	}
- 
- 	/*
--	 * The 0xdeaddead should not have effect on dest addr
--	 * when MREMAP_DONTUNMAP is set.
-+	 * The new address is any address that not allocated.
-+	 * use allocate/free to similate that.
++	/*
++	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
++	 * much anyway since they can be in shared cache state. This misses
++	 * the case where a mapping is writable but the process never writes
++	 * to it but pte_write gets cleared during protection updates and
++	 * pte_dirty has unpredictable behaviour between PTE scan updates,
++	 * background writeback, dirty balancing and application behaviour.
 +	 */
-+	setup_single_address(size, &ptr2);
-+	FAIL_TEST_IF_FALSE(ptr2 != (void *)-1);
-+	ret = sys_munmap(ptr2, size);
-+	FAIL_TEST_IF_FALSE(!ret);
++	if (!writable)
++		*flags |= TNF_NO_GROUP;
 +
 +	/*
-+	 * remap to any address.
- 	 */
--	ret2 = mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
--			0xdeaddead);
-+	ret2 = sys_mremap(ptr, size, size, MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-+			(void *) ptr2);
- 	if (seal) {
- 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
- 		FAIL_TEST_IF_FALSE(errno == EPERM);
- 	} else {
--		FAIL_TEST_IF_FALSE(ret2 != MAP_FAILED);
--		FAIL_TEST_IF_FALSE((long)ret2 != 0xdeaddead);
--
-+		/* remap success and return ptr2 */
-+		FAIL_TEST_IF_FALSE(ret2 ==  ptr2);
++	 * Flag if the folio is shared between multiple address spaces. This
++	 * is later used when determining whether to group tasks together
++	 */
++	if (folio_likely_mapped_shared(folio) && (vma->vm_flags & VM_SHARED))
++		*flags |= TNF_SHARED;
++	/*
++	 * For memory tiering mode, cpupid of slow memory page is used
++	 * to record page access time.  So use default value.
++	 */
++	if (folio_use_access_time(folio))
++		*last_cpupid = (-1 & LAST_CPUPID_MASK);
++	else
++		*last_cpupid = folio_last_cpupid(folio);
++
+ 	/* Record the current PID acceesing VMA */
+ 	vma_set_access_pid_bit(vma);
+ 
+ 	count_vm_numa_event(NUMA_HINT_FAULTS);
+-	if (page_nid == numa_node_id()) {
++	if (folio_nid(folio) == numa_node_id()) {
+ 		count_vm_numa_event(NUMA_HINT_FAULTS_LOCAL);
+ 		*flags |= TNF_FAULT_LOCAL;
  	}
- 
- 	REPORT_TEST_PASS();
- }
- 
--
- static void test_seal_merge_and_split(void)
+@@ -5442,13 +5469,13 @@ static void numa_rebuild_large_mapping(s
+ static vm_fault_t do_numa_page(struct vm_fault *vmf)
  {
- 	void *ptr;
+ 	struct vm_area_struct *vma = vmf->vma;
++	pte_t old_pte = vmf->orig_pte;
++	pte_t pte;
+ 	struct folio *folio = NULL;
+ 	int nid = NUMA_NO_NODE;
+ 	bool writable = false, ignore_writable = false;
+ 	bool pte_write_upgrade = vma_wants_manual_pte_write_upgrade(vma);
+-	int last_cpupid;
+-	int target_nid;
+-	pte_t pte, old_pte;
++	int target_nid, last_cpupid = (-1 & LAST_CPUPID_MASK);
+ 	int flags = 0, nr_pages;
+ 
+ 	/*
+@@ -5456,10 +5483,7 @@ static vm_fault_t do_numa_page(struct vm
+ 	 * table lock, that its contents have not changed during fault handling.
+ 	 */
+ 	spin_lock(vmf->ptl);
+-	/* Read the live PTE from the page tables: */
+-	old_pte = ptep_get(vmf->pte);
+-
+-	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
++	if (unlikely(!pte_same(old_pte, ptep_get(vmf->pte)))) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		return 0;
+ 	}
+@@ -5479,35 +5503,11 @@ static vm_fault_t do_numa_page(struct vm
+ 	if (!folio || folio_is_zone_device(folio))
+ 		goto out_map;
+ 
+-	/*
+-	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
+-	 * much anyway since they can be in shared cache state. This misses
+-	 * the case where a mapping is writable but the process never writes
+-	 * to it but pte_write gets cleared during protection updates and
+-	 * pte_dirty has unpredictable behaviour between PTE scan updates,
+-	 * background writeback, dirty balancing and application behaviour.
+-	 */
+-	if (!writable)
+-		flags |= TNF_NO_GROUP;
+-
+-	/*
+-	 * Flag if the folio is shared between multiple address spaces. This
+-	 * is later used when determining whether to group tasks together
+-	 */
+-	if (folio_likely_mapped_shared(folio) && (vma->vm_flags & VM_SHARED))
+-		flags |= TNF_SHARED;
+-
+ 	nid = folio_nid(folio);
+ 	nr_pages = folio_nr_pages(folio);
+-	/*
+-	 * For memory tiering mode, cpupid of slow memory page is used
+-	 * to record page access time.  So use default value.
+-	 */
+-	if (folio_use_access_time(folio))
+-		last_cpupid = (-1 & LAST_CPUPID_MASK);
+-	else
+-		last_cpupid = folio_last_cpupid(folio);
+-	target_nid = numa_migrate_prep(folio, vmf, vmf->address, nid, &flags);
++
++	target_nid = numa_migrate_check(folio, vmf, vmf->address, &flags,
++					writable, &last_cpupid);
+ 	if (target_nid == NUMA_NO_NODE)
+ 		goto out_map;
+ 	if (migrate_misplaced_folio_prepare(folio, vma, target_nid)) {
+@@ -5530,7 +5530,7 @@ static vm_fault_t do_numa_page(struct vm
+ 					       vmf->address, &vmf->ptl);
+ 		if (unlikely(!vmf->pte))
+ 			return 0;
+-		if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
++		if (unlikely(!pte_same(old_pte, ptep_get(vmf->pte)))) {
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 			return 0;
+ 		}
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-selftest-mm-mseal-fix-test_seal_mremap_move_dontunmap_anyaddr.patch
+mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
+mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
+memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
+memory-tiering-introduce-folio_use_access_time-check.patch
+memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
 
