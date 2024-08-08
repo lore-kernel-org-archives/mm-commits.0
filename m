@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E2136FD3
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 01:22:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6798B33E1;
+	Thu,  8 Aug 2024 01:42:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723080178; cv=none; b=RG40mEseKGVcrKIVXCp0R1+AA3xlLhVvTBiWEflxegiXER2lxMACZT36KSdIDWrRr99bdkksNnCXPx5P49sWUm1xWQT+KfOC5BTJsSUAo65+6cowqDtyoy/RZS9iXSXQTet1aVOz/NIi8dNws2rcBmz7HWMoua67KLliJkZmLhw=
+	t=1723081324; cv=none; b=VYT0C6FIglKhJt6Y0zFKe36sVljHcpPCSTUYtceTG2w4CqJzKU13i94gcfUjVjHi2fpAiKLuqLszSOydvLvtvGZ5B2fY1hQJ+bjfVSMysZC0FCiPBFtbUO9e3QZDmyzQXzdHEqT3s6QTRimSXk7udkwegT0a5q7/QVvrv3yfU6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723080178; c=relaxed/simple;
-	bh=/XatN3wjZw3UKaQuURdHxDYwOvWq2ItUDpB0YuKjYoM=;
-	h=Date:To:From:Subject:Message-Id; b=Aszk8UUYbBSRYB5aidyEjjqAlrPi00AJUEUY989Q5bo75sBWqasBZHAR5pDbs7XULYM/o1NYeK/NnB+/Kq21vWzweru+B19mOKR0NzAy1upBj19mMCBz4+uB7B52xXQEa/kmDeJ+9VMqZSohs0ZD6oVSefzopOc1lb6dZ6IZmug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eT3Pw5DD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723081324; c=relaxed/simple;
+	bh=AlzzMu/R+8v9a5/h8+kCQiSDvZz8wmWIdddxp0jZLM0=;
+	h=Date:To:From:Subject:Message-Id; b=eW9coB4OyxdeKuvlSJQprFMJC6ePiC3fet2BZ19F13UPi1z2ZAMdtyZ2TWBfpSC+dau4yYAlgtxRSlCbjplv+KD0jcgW1QfLTO7BhmRTmKJZptBFDtvAgHQSNcWN0GtijZkMUKJl4RsYYa2e2rlloiUPlz57pMCi0FuC0INHvVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WQ9OYsQQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eT3Pw5DD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFC36C32781;
-	Thu,  8 Aug 2024 01:22:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WQ9OYsQQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9C7AC32781;
+	Thu,  8 Aug 2024 01:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723080178;
-	bh=/XatN3wjZw3UKaQuURdHxDYwOvWq2ItUDpB0YuKjYoM=;
+	s=korg; t=1723081323;
+	bh=AlzzMu/R+8v9a5/h8+kCQiSDvZz8wmWIdddxp0jZLM0=;
 	h=Date:To:From:Subject:From;
-	b=eT3Pw5DD3N14tRSLluGesQHiYxPI21ZKYT5sd29XM4NmNjDlVyaemoSY6+p+8pOSU
-	 6D+5evXUADVJbKPxTlKtse7+6fRmx3S0+bdLmc81DGKTAWQ5tM53w0LgAfhoNiPL/P
-	 WRpULYAcM80V5yQ14s6PqyL7vdvvnHNsOiFrX5j4=
-Date: Wed, 07 Aug 2024 18:22:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,21cnbao@gmail.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=WQ9OYsQQy02YzVi0l2QE5BJUPYGNWv2ExAmc9rE1FQbsJT2zGgjsEb9I49k5/eWcE
+	 sKwdkz6Doe/HYkAfWhOTtuPgliNEwofdumSOy6xgnIIaM4ViaJ4E5vaU7JNcLmtDG+
+	 Che2ZglLHWcl711Un/H5h7tYFT+kgVHYXItWr+sA=
+Date: Wed, 07 Aug 2024 18:42:03 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,broonie@kernel.org,aou@eecs.berkeley.edu,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix-2.patch removed from -mm tree
-Message-Id: <20240808012257.EFC36C32781@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-add-s390-to-arch-check.patch removed from -mm tree
+Message-Id: <20240808014203.C9C7AC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix-2
+     Subject: selftests: mm: add s390 to ARCH check
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix-2.patch
+     selftests-mm-add-s390-to-arch-check.patch
 
-This patch was dropped because it was folded into mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix-2
-Date: Wed, 31 Jul 2024 17:59:23 +0800
+From: Nico Pache <npache@redhat.com>
+Subject: selftests: mm: add s390 to ARCH check
+Date: Wed, 24 Jul 2024 15:35:17 -0600
 
-remove local `orders'
+commit 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+changed the env variable for the architecture from MACHINE to ARCH.
 
-Link: https://lkml.kernel.org/r/87769ae8-b6c6-4454-925d-1864364af9c8@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This is preventing 3 required TEST_GEN_FILES from being included when
+cross compiling s390x and errors when trying to run the test suite.  This
+is due to the ARCH variable already being set and the arch folder name
+being s390.
+
+Add "s390" to the filtered list to cover this case and have the 3 files
+included in the build.
+
+Link: https://lkml.kernel.org/r/20240724213517.23918-1-npache@redhat.com
+Fixes: 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem-fix-2
-+++ a/mm/shmem.c
-@@ -1629,7 +1629,6 @@ unsigned long shmem_allowable_huge_order
- 	unsigned long mask = READ_ONCE(huge_shmem_orders_always);
- 	unsigned long within_size_orders = READ_ONCE(huge_shmem_orders_within_size);
- 	unsigned long vm_flags = vma->vm_flags;
--	unsigned long orders = THP_ORDERS_ALL_FILE_DEFAULT;
- 	loff_t i_size;
- 	int order;
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-s390-to-arch-check
++++ a/tools/testing/selftests/mm/Makefile
+@@ -110,7 +110,7 @@ endif
  
-@@ -1674,7 +1673,7 @@ unsigned long shmem_allowable_huge_order
- 	if (global_huge)
- 		mask |= READ_ONCE(huge_shmem_orders_inherit);
+ endif
  
--	return orders & mask;
-+	return THP_ORDERS_ALL_FILE_DEFAULT & mask;
- }
- 
- static unsigned long shmem_suitable_orders(struct inode *inode, struct vm_fault *vmf,
+-ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64))
++ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
+ TEST_GEN_FILES += va_high_addr_switch
+ TEST_GEN_FILES += virtual_address_range
+ TEST_GEN_FILES += write_to_hugetlbfs
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-shmem-avoid-allocating-huge-pages-larger-than-max_pagecache_order-for-shmem.patch
-mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
 
