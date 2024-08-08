@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6798B33E1;
-	Thu,  8 Aug 2024 01:42:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B8169450
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 01:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723081324; cv=none; b=VYT0C6FIglKhJt6Y0zFKe36sVljHcpPCSTUYtceTG2w4CqJzKU13i94gcfUjVjHi2fpAiKLuqLszSOydvLvtvGZ5B2fY1hQJ+bjfVSMysZC0FCiPBFtbUO9e3QZDmyzQXzdHEqT3s6QTRimSXk7udkwegT0a5q7/QVvrv3yfU6Y=
+	t=1723081325; cv=none; b=JDXYGeu1u40G5Qe6xt4X80VKezh9dlBV6oTZxvLoyquf9bihZ/72B073gwwUhtwSxcL6+tzSLsECAkU8csfWYIQzU+6mN6cbSOkD8lxr/udBRwRvr5TQ9igURdOobJi18oqjWo7Dj4u/iUJccPgWTM4qE9NaGEBgqjvsFQ+DGSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723081324; c=relaxed/simple;
-	bh=AlzzMu/R+8v9a5/h8+kCQiSDvZz8wmWIdddxp0jZLM0=;
-	h=Date:To:From:Subject:Message-Id; b=eW9coB4OyxdeKuvlSJQprFMJC6ePiC3fet2BZ19F13UPi1z2ZAMdtyZ2TWBfpSC+dau4yYAlgtxRSlCbjplv+KD0jcgW1QfLTO7BhmRTmKJZptBFDtvAgHQSNcWN0GtijZkMUKJl4RsYYa2e2rlloiUPlz57pMCi0FuC0INHvVQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WQ9OYsQQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723081325; c=relaxed/simple;
+	bh=JTYTXhOKbf9IpEGsGHSHk0WpVq27+fJO9z8lJ6ygwIw=;
+	h=Date:To:From:Subject:Message-Id; b=mcTWMo69MPZQh02DDnRO8Jfv9CYMWnAgeIjnNz/Fd2A0qUPX0rNzQP3OQuELmnAO06rZBfPJRITXgmdy7Aw2InxP657LFa1eSKsqnIlW+p7+MCqsardEzKrehkqlHoc/2MDEIn3Xn+Afi14UJmMwbdfFHXob4ar632dUx1EOKug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xoS1XZzJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WQ9OYsQQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9C7AC32781;
-	Thu,  8 Aug 2024 01:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xoS1XZzJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2D09C4AF10;
+	Thu,  8 Aug 2024 01:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723081323;
-	bh=AlzzMu/R+8v9a5/h8+kCQiSDvZz8wmWIdddxp0jZLM0=;
+	s=korg; t=1723081325;
+	bh=JTYTXhOKbf9IpEGsGHSHk0WpVq27+fJO9z8lJ6ygwIw=;
 	h=Date:To:From:Subject:From;
-	b=WQ9OYsQQy02YzVi0l2QE5BJUPYGNWv2ExAmc9rE1FQbsJT2zGgjsEb9I49k5/eWcE
-	 sKwdkz6Doe/HYkAfWhOTtuPgliNEwofdumSOy6xgnIIaM4ViaJ4E5vaU7JNcLmtDG+
-	 Che2ZglLHWcl711Un/H5h7tYFT+kgVHYXItWr+sA=
-Date: Wed, 07 Aug 2024 18:42:03 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,broonie@kernel.org,aou@eecs.berkeley.edu,npache@redhat.com,akpm@linux-foundation.org
+	b=xoS1XZzJ8abMtmncTAoV934Egz180rBYAe0ZUxr0DxFU3YUEy55jJW0LsU4Fk2Tb1
+	 ia/MBm7QzJn6p2PmYsmMIXzrCl8fGob0lOpaK23qlIqJNHqWAsq32fOUbE1fJChbfM
+	 mtzq/Ds/5xpEgodPnFt8ypgh8gKErM5SQUG/V8Kc=
+Date: Wed, 07 Aug 2024 18:42:04 -0700
+To: mm-commits@vger.kernel.org,yangx.jy@fujitsu.com,xuyang2018.jy@fujitsu.com,liwang@redhat.com,jstancek@redhat.com,chrubis@suse.cz,pvorel@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-add-s390-to-arch-check.patch removed from -mm tree
-Message-Id: <20240808014203.C9C7AC32781@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-ltp-members-and-web.patch removed from -mm tree
+Message-Id: <20240808014204.E2D09C4AF10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mm: add s390 to ARCH check
+     Subject: MAINTAINERS: update LTP members and web
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-s390-to-arch-check.patch
+     maintainers-update-ltp-members-and-web.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: selftests: mm: add s390 to ARCH check
-Date: Wed, 24 Jul 2024 15:35:17 -0600
+From: Petr Vorel <pvorel@suse.cz>
+Subject: MAINTAINERS: Update LTP members and web
+Date: Fri, 26 Jul 2024 09:20:09 +0200
 
-commit 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
-changed the env variable for the architecture from MACHINE to ARCH.
+LTP project uses now readthedocs.org instance instead of GitHub wiki.
 
-This is preventing 3 required TEST_GEN_FILES from being included when
-cross compiling s390x and errors when trying to run the test suite.  This
-is due to the ARCH variable already being set and the arch folder name
-being s390.
+LTP maintainers are listed in alphabetical order.
 
-Add "s390" to the filtered list to cover this case and have the 3 files
-included in the build.
-
-Link: https://lkml.kernel.org/r/20240724213517.23918-1-npache@redhat.com
-Fixes: 0518dbe97fe6 ("selftests/mm: fix cross compilation with LLVM")
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240726072009.1021599-1-pvorel@suse.cz
+Signed-off-by: Petr Vorel <pvorel@suse.cz>
+Reviewed-by: Li Wang <liwang@redhat.com>
+Reviewed-by: Cyril Hrubis <chrubis@suse.cz>
+Cc: Jan Stancek <jstancek@redhat.com>
+Cc: Xiao Yang <yangx.jy@fujitsu.com>
+Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-s390-to-arch-check
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -110,7 +110,7 @@ endif
+--- a/MAINTAINERS~maintainers-update-ltp-members-and-web
++++ a/MAINTAINERS
+@@ -13324,14 +13324,16 @@ F:	Documentation/devicetree/bindings/i2c
+ F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
  
- endif
+ LTP (Linux Test Project)
++M:	Andrea Cervesato <andrea.cervesato@suse.com>
+ M:	Cyril Hrubis <chrubis@suse.cz>
+ M:	Jan Stancek <jstancek@redhat.com>
+ M:	Petr Vorel <pvorel@suse.cz>
+ M:	Li Wang <liwang@redhat.com>
+ M:	Yang Xu <xuyang2018.jy@fujitsu.com>
++M:	Xiao Yang <yangx.jy@fujitsu.com>
+ L:	ltp@lists.linux.it (subscribers-only)
+ S:	Maintained
+-W:	http://linux-test-project.github.io/
++W:	https://linux-test-project.readthedocs.io/
+ T:	git https://github.com/linux-test-project/ltp.git
  
--ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64))
-+ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
- TEST_GEN_FILES += va_high_addr_switch
- TEST_GEN_FILES += virtual_address_range
- TEST_GEN_FILES += write_to_hugetlbfs
+ LTR390 AMBIENT/UV LIGHT SENSOR DRIVER
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from pvorel@suse.cz are
 
 
