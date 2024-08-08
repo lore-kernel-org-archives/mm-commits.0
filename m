@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26289473;
-	Thu,  8 Aug 2024 01:42:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BE3BBA38;
+	Thu,  8 Aug 2024 01:42:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723081326; cv=none; b=Qj+47oiVq2sG+ZTQgrXqNPh2xBn+o8s5jSnPv/r6vl+V9VluGZPPyEKtv+W7EWptEGW+e4OqyiHvGHaqUEhH4Zv/RBB89HuoVKOX0TH6FgqwG6CViBiQ2P4Nn5oo3FuaWW3cMj8wXndwZ4HTteFlCIQGCQGb3ybQBJ0/fXdizwI=
+	t=1723081327; cv=none; b=Aj9xq63x2VvJBMBbySFir4tehCiZIfFAFndq6iQk9sUeBB8s3gnOFtiNnrUadQqSo7dOMPv2NP42iNcKOmn2sX3St/afShpKuOtAD/ixMBTkVZtpbsWyX9ueBgbYOMHrf4GAfIcDtwZsn8+tubKIKSq4/RibYCTTNmwHRDfvITI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723081326; c=relaxed/simple;
-	bh=Gj8vMxY8eI2uXfyC7yecHkSU/Z4pFWxfGjlbSJ76K6U=;
-	h=Date:To:From:Subject:Message-Id; b=DrfAka00lUg6hBk4ZYnmlaGjMx57/oygSMKsAXxPcgPrnxMX8w523IxFTEy8Bims0Z6euwga74pvibjdHlZ8V3+AxSEa/uxGC2NIiLlnXaf/niOlgCVbR7JtKZFizWmUoSLHRfX0R62kBj/UKKtLZ0a9xALzfP5xFRdlcV8oDbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RKUEKAHM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723081327; c=relaxed/simple;
+	bh=dmR3ydn5zFJvm0zKNVn0Sl4YSq5Bkw7aElBgl7lFg70=;
+	h=Date:To:From:Subject:Message-Id; b=al1jukS4olioWGaHdukqSgPFSvn2bEK8Vla59z+rh+nULf5u3zI0ArmQ1bvxRioF0KSyQ7NZ7aCN2ZBuWxqDODcBXbvS46M0ijPBloxWMKepOU2MpEGXung+ECTtJl3qNPU7kXpc5CIOVoQDMNYjneHy2reTEsq/JuhjvzoDyDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E51ujiy7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RKUEKAHM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3716FC32781;
-	Thu,  8 Aug 2024 01:42:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E51ujiy7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51546C4AF10;
+	Thu,  8 Aug 2024 01:42:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723081326;
-	bh=Gj8vMxY8eI2uXfyC7yecHkSU/Z4pFWxfGjlbSJ76K6U=;
+	s=korg; t=1723081327;
+	bh=dmR3ydn5zFJvm0zKNVn0Sl4YSq5Bkw7aElBgl7lFg70=;
 	h=Date:To:From:Subject:From;
-	b=RKUEKAHMT2Nm3141mZCc7lxUAVEDhA+3kS0DFq24V50bVlemhUNHOgXXqQVMCVs/Z
-	 Y+jzOFkO5UTFuPXuR2aTmeHxnYchUEKMkEw1TQUEd415JxPAnjHCZxC+fpM0mYBndA
-	 V0JMl38B9Oc3xLTTd11i1GztxirVqZm8YS+gcg5c=
-Date: Wed, 07 Aug 2024 18:42:05 -0700
-To: mm-commits@vger.kernel.org,sylv@sylv.io,stern@rowland.harvard.edu,stable@vger.kernel.org,nogikh@google.com,gregkh@linuxfoundation.org,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org
+	b=E51ujiy7tb+9HVdAXj2ibJVuZoFxwhCqqNZuXPENpHK4UvBg76e6QxhTEkpFqARO6
+	 Oykw3rhEFI7Ynre7+m9MClVJK2pCFEGlowVSmhUgNq6L2cVv4ndcJgtXJU0FuOJicP
+	 vm0vb5AkKxUJTnM6dDRfX+dXy2hFZg8EnZCXeWO0=
+Date: Wed, 07 Aug 2024 18:42:06 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,shakeel.butt@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kcov-properly-check-for-softirq-context.patch removed from -mm tree
-Message-Id: <20240808014206.3716FC32781@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-list_lru-fix-uaf-for-memory-cgroup.patch removed from -mm tree
+Message-Id: <20240808014207.51546C4AF10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: properly check for softirq context
+     Subject: mm: list_lru: fix UAF for memory cgroup
 has been removed from the -mm tree.  Its filename was
-     kcov-properly-check-for-softirq-context.patch
+     mm-list_lru-fix-uaf-for-memory-cgroup.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@gmail.com>
-Subject: kcov: properly check for softirq context
-Date: Mon, 29 Jul 2024 04:21:58 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: list_lru: fix UAF for memory cgroup
+Date: Thu, 18 Jul 2024 16:36:07 +0800
 
-When collecting coverage from softirqs, KCOV uses in_serving_softirq() to
-check whether the code is running in the softirq context.  Unfortunately,
-in_serving_softirq() is > 0 even when the code is running in the hardirq
-or NMI context for hardirqs and NMIs that happened during a softirq.
+The mem_cgroup_from_slab_obj() is supposed to be called under rcu lock or
+cgroup_mutex or others which could prevent returned memcg from being
+freed.  Fix it by adding missing rcu read lock.
 
-As a result, if a softirq handler contains a remote coverage collection
-section and a hardirq with another remote coverage collection section
-happens during handling the softirq, KCOV incorrectly detects a nested
-softirq coverate collection section and prints a WARNING, as reported by
-syzbot.
+Found by code inspection.
 
-This issue was exposed by commit a7f3813e589f ("usb: gadget: dummy_hcd:
-Switch to hrtimer transfer scheduler"), which switched dummy_hcd to using
-hrtimer and made the timer's callback be executed in the hardirq context.
-
-Change the related checks in KCOV to account for this behavior of
-in_serving_softirq() and make KCOV ignore remote coverage collection
-sections in the hardirq and NMI contexts.
-
-This prevents the WARNING printed by syzbot but does not fix the inability
-of KCOV to collect coverage from the __usb_hcd_giveback_urb when dummy_hcd
-is in use (caused by a7f3813e589f); a separate patch is required for that.
-
-Link: https://lkml.kernel.org/r/20240729022158.92059-1-andrey.konovalov@linux.dev
-Fixes: 5ff3b30ab57d ("kcov: collect coverage from interrupts")
-Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reported-by: syzbot+2388cdaeb6b10f0c13ac@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=2388cdaeb6b10f0c13ac
-Acked-by: Marco Elver <elver@google.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Marcello Sylvester Bauer <sylv@sylv.io>
+[songmuchun@bytedance.com: only grab rcu lock when necessary, per Vlastimil]
+  Link: https://lkml.kernel.org/r/20240801024603.1865-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20240718083607.42068-1-songmuchun@bytedance.com
+Fixes: 0a97c01cd20b ("list_lru: allow explicit memcg and NUMA node selection")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/list_lru.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
---- a/kernel/kcov.c~kcov-properly-check-for-softirq-context
-+++ a/kernel/kcov.c
-@@ -161,6 +161,15 @@ static void kcov_remote_area_put(struct
- 	kmsan_unpoison_memory(&area->list, sizeof(area->list));
+--- a/mm/list_lru.c~mm-list_lru-fix-uaf-for-memory-cgroup
++++ a/mm/list_lru.c
+@@ -85,6 +85,7 @@ list_lru_from_memcg_idx(struct list_lru
  }
+ #endif /* CONFIG_MEMCG */
  
-+/*
-+ * Unlike in_serving_softirq(), this function returns false when called during
-+ * a hardirq or an NMI that happened in the softirq context.
-+ */
-+static inline bool in_softirq_really(void)
-+{
-+	return in_serving_softirq() && !in_hardirq() && !in_nmi();
-+}
-+
- static notrace bool check_kcov_mode(enum kcov_mode needed_mode, struct task_struct *t)
++/* The caller must ensure the memcg lifetime. */
+ bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
+ 		    struct mem_cgroup *memcg)
  {
- 	unsigned int mode;
-@@ -170,7 +179,7 @@ static notrace bool check_kcov_mode(enum
- 	 * so we ignore code executed in interrupts, unless we are in a remote
- 	 * coverage collection section in a softirq.
- 	 */
--	if (!in_task() && !(in_serving_softirq() && t->kcov_softirq))
-+	if (!in_task() && !(in_softirq_really() && t->kcov_softirq))
- 		return false;
- 	mode = READ_ONCE(t->kcov_mode);
- 	/*
-@@ -849,7 +858,7 @@ void kcov_remote_start(u64 handle)
+@@ -109,14 +110,22 @@ EXPORT_SYMBOL_GPL(list_lru_add);
  
- 	if (WARN_ON(!kcov_check_handle(handle, true, true, true)))
- 		return;
--	if (!in_task() && !in_serving_softirq())
-+	if (!in_task() && !in_softirq_really())
- 		return;
+ bool list_lru_add_obj(struct list_lru *lru, struct list_head *item)
+ {
++	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
+-		mem_cgroup_from_slab_obj(item) : NULL;
  
- 	local_lock_irqsave(&kcov_percpu_data.lock, flags);
-@@ -991,7 +1000,7 @@ void kcov_remote_stop(void)
- 	int sequence;
- 	unsigned long flags;
+-	return list_lru_add(lru, item, nid, memcg);
++	if (list_lru_memcg_aware(lru)) {
++		rcu_read_lock();
++		ret = list_lru_add(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		rcu_read_unlock();
++	} else {
++		ret = list_lru_add(lru, item, nid, NULL);
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_add_obj);
  
--	if (!in_task() && !in_serving_softirq())
-+	if (!in_task() && !in_softirq_really())
- 		return;
++/* The caller must ensure the memcg lifetime. */
+ bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
+ 		    struct mem_cgroup *memcg)
+ {
+@@ -139,11 +148,18 @@ EXPORT_SYMBOL_GPL(list_lru_del);
  
- 	local_lock_irqsave(&kcov_percpu_data.lock, flags);
+ bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
+ {
++	bool ret;
+ 	int nid = page_to_nid(virt_to_page(item));
+-	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
+-		mem_cgroup_from_slab_obj(item) : NULL;
+ 
+-	return list_lru_del(lru, item, nid, memcg);
++	if (list_lru_memcg_aware(lru)) {
++		rcu_read_lock();
++		ret = list_lru_del(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		rcu_read_unlock();
++	} else {
++		ret = list_lru_del(lru, item, nid, NULL);
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_del_obj);
+ 
 _
 
-Patches currently in -mm which might be from andreyknvl@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-kcov-dont-instrument-lib-find_bitc.patch
+mm-kmem-remove-mem_cgroup_from_obj.patch
 
