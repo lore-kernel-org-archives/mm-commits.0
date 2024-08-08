@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7734315A85E
-	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:20:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D1A4A1E
+	for <mm-commits@vger.kernel.org>; Thu,  8 Aug 2024 22:51:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723155623; cv=none; b=RFR59KGE2tQc0erxlM2IRdqtoQAN3zqk0ukwl1YGhN1uqaxTknPBXFLNTZiC2UjOGKC5RE6JOgJV1USijFshtIg9oMHsSe1DqbKN4uJaWNu34lVztAPgTYdgMolpdvGnPGmeVvWouhyJ4EpY4GwXeRPD3nvail5sWbgOO8svVys=
+	t=1723157466; cv=none; b=HulgaBn6DEpJscqWBzJmwW5k0roMqZp3nSCelLkuAgtYDoTbYEwmA7iMDs0Pg9QSM5BN4uTOc2uDjOIGb+knUYCGCIeh21R69fpI+6Cij6lTRGVEMuEcS6pCCQHZo3mc+yG4l9XDiT0PpLHfO4LrAcfpeggj+GoHLmH+x4BHnYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723155623; c=relaxed/simple;
-	bh=rxyWqJKsFbPfZQUz8Wj3LbVP0HXVMm6Ki/nSmZhQvzo=;
-	h=Date:To:From:Subject:Message-Id; b=d7z6oaYC8XfXIvrqm1o7x9eVEE7H8QnQVXXm+m/AqCRp9cplcH1TFvzEi1Bu4+uK+JLPq9CJUVlggfZ0KTvB86vTqXbmiueGLdm5dx8Xtkw0fj/2yHvshEHlu0B5yf/zFQ7rKcRJeCnJDxl/MvNMCIQOMuUOqGbXlL8oqFQwEz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iHQReJtg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723157466; c=relaxed/simple;
+	bh=yVCy19sDVpBI//8bapA+NW8HAoQDDpFEWUdXGvKsoKE=;
+	h=Date:To:From:Subject:Message-Id; b=jC9QtT3oKCHglsF5jN71x8JZ6KqBekEmQvuSOWaYIKhSQjlr9K7mcmIO8HptyN6Pw4YJpFE88VC9qNjN9hKFiNgHiUy4G0/WPQLW//L43goK4AUAC2UesCwJ39pdiAas745aHhEdrb++3ric9rZzFkP/e1GJ3Vc+EtOo+qOVX9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbBjLjWG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iHQReJtg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC884C32782;
-	Thu,  8 Aug 2024 22:20:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbBjLjWG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF013C32782;
+	Thu,  8 Aug 2024 22:51:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723155623;
-	bh=rxyWqJKsFbPfZQUz8Wj3LbVP0HXVMm6Ki/nSmZhQvzo=;
+	s=korg; t=1723157465;
+	bh=yVCy19sDVpBI//8bapA+NW8HAoQDDpFEWUdXGvKsoKE=;
 	h=Date:To:From:Subject:From;
-	b=iHQReJtgy7HVb6FVW7OnmuHShGovCfMFkbxS6G3+5cHgPxDT4F36kF9+oa65hFhAW
-	 TgoIQsw4fiX8HhifTtjeQpXJ1Ex0FOFu5Gm+GMT0y01Ltlz6lv2/oiJsGe1ztPqsbe
-	 TXDuAPPc19ynpg5C/Qf/jsShSU8J9v/j8xFfIIL8=
-Date: Thu, 08 Aug 2024 15:20:22 -0700
-To: mm-commits@vger.kernel.org,linux@roeck-us.net,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
+	b=RbBjLjWGvlIKxA8/uJgq5mJKZThy/Axcgqi5dePQuabhZSI1DBh+JypbnDvLuOGvB
+	 +9ZQ9SeOjvs/+YdFzlYbHIZNjTarlYKm5CtH6rpuh+oXPj/GjgcGgtF7CVqMUjykIr
+	 +5H48jtU+rjsqJyWxmKXQZZWTRmBvyM+zjJiDMs0=
+Date: Thu, 08 Aug 2024 15:51:05 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-mm-fix-size-of-allocated-pgdir.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240808222022.EC884C32782@smtp.kernel.org>
+Subject: + mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240808225105.CF013C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/mm: fix size of allocated PGDIR
+     Subject: mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     powerpc-mm-fix-size-of-allocated-pgdir.patch
+     mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-fix-size-of-allocated-pgdir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: powerpc/mm: fix size of allocated PGDIR
-Date: Thu, 8 Aug 2024 11:32:47 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
+Date: Thu, 08 Aug 2024 11:12:54 -0400
 
-Commit 6b0e82791bd0 ("powerpc/e500: switch to 64 bits PGD on 85xx
-(32 bits)") increased the size of PGD entries but failed to increase
-the PGD directory.
+code simplification, per David
 
-Use the size of pgd_t instead of the size of pointers to calculate the
-allocated size.
-
-Link: https://lkml.kernel.org/r/1cdaacb391cbd3e0240f0e0faf691202874e9422.1723109462.git.christophe.leroy@csgroup.eu
-Fixes: 6b0e82791bd0 ("powerpc/e500: switch to 64 bits PGD on 85xx (32 bits)")
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Link: https://lkml.kernel.org/r/819987AD-273B-4AFB-9447-39F32664EBDE@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/init-common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   18 +++++++-----------
+ mm/memory.c      |   19 ++++++++-----------
+ 2 files changed, 15 insertions(+), 22 deletions(-)
 
---- a/arch/powerpc/mm/init-common.c~powerpc-mm-fix-size-of-allocated-pgdir
-+++ a/arch/powerpc/mm/init-common.c
-@@ -73,7 +73,7 @@ void setup_kup(void)
+--- a/mm/huge_memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
++++ a/mm/huge_memory.c
+@@ -1685,7 +1685,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+ 	if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
+ 		spin_unlock(vmf->ptl);
+-		goto out;
++		return 0;
+ 	}
  
- #define CTOR(shift) static void ctor_##shift(void *addr) \
- {							\
--	memset(addr, 0, sizeof(void *) << (shift));	\
-+	memset(addr, 0, sizeof(pgd_t) << (shift));	\
+ 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
+@@ -1728,23 +1728,16 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
+ 		flags |= TNF_MIGRATED;
+ 		nid = target_nid;
++		goto out;
+ 	} else {
+ 		flags |= TNF_MIGRATE_FAIL;
+ 		vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+ 		if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
+ 			spin_unlock(vmf->ptl);
+-			goto out;
++			return 0;
+ 		}
+-		goto out_map;
+ 	}
+ 
+-count_fault:
+-	if (nid != NUMA_NO_NODE)
+-		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
+-
+-out:
+-	return 0;
+-
+ out_map:
+ 	/* Restore the PMD */
+ 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
+@@ -1754,7 +1747,10 @@ out_map:
+ 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, pmd);
+ 	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 	spin_unlock(vmf->ptl);
+-	goto count_fault;
++out:
++	if (nid != NUMA_NO_NODE)
++		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
++	return 0;
  }
  
- CTOR(0); CTOR(1); CTOR(2); CTOR(3); CTOR(4); CTOR(5); CTOR(6); CTOR(7);
-@@ -117,7 +117,7 @@ EXPORT_SYMBOL_GPL(pgtable_cache);	/* use
- void pgtable_cache_add(unsigned int shift)
- {
- 	char *name;
--	unsigned long table_size = sizeof(void *) << shift;
-+	unsigned long table_size = sizeof(pgd_t) << shift;
- 	unsigned long align = table_size;
+ /*
+--- a/mm/memory.c~mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix
++++ a/mm/memory.c
+@@ -5295,7 +5295,7 @@ static vm_fault_t do_numa_page(struct vm
  
- 	/* When batching pgtable pointers for RCU freeing, we store
+ 	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		goto out;
++		return 0;
+ 	}
+ 
+ 	pte = pte_modify(old_pte, vma->vm_page_prot);
+@@ -5358,24 +5358,18 @@ static vm_fault_t do_numa_page(struct vm
+ 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
+ 		nid = target_nid;
+ 		flags |= TNF_MIGRATED;
++		goto out;
+ 	} else {
+ 		flags |= TNF_MIGRATE_FAIL;
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 					       vmf->address, &vmf->ptl);
+ 		if (unlikely(!vmf->pte))
+-			goto out;
++			return 0;
+ 		if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			goto out;
++			return 0;
+ 		}
+-		goto out_map;
+ 	}
+-
+-count_fault:
+-	if (nid != NUMA_NO_NODE)
+-		task_numa_fault(last_cpupid, nid, nr_pages, flags);
+-out:
+-	return 0;
+ out_map:
+ 	/*
+ 	 * Make it present again, depending on how arch implements
+@@ -5388,7 +5382,10 @@ out_map:
+ 		numa_rebuild_single_mapping(vmf, vma, vmf->address, vmf->pte,
+ 					    writable);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	goto count_fault;
++out:
++	if (nid != NUMA_NO_NODE)
++		task_numa_fault(last_cpupid, nid, nr_pages, flags);
++	return 0;
+ }
+ 
+ static inline vm_fault_t create_huge_pmd(struct vm_fault *vmf)
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-powerpc-mm-fix-size-of-allocated-pgdir.patch
+mm-numa-no-task_numa_fault-call-if-page-table-is-changed.patch
+mm-numa-no-task_numa_fault-call-if-page-table-is-changed-fix.patch
+memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
+memory-tiering-introduce-folio_use_access_time-check.patch
+memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
+mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch
 
