@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F5D146592;
-	Sat, 10 Aug 2024 06:15:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93244142E6F
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723270515; cv=none; b=REVcR18fI5yabLNPNVVmShCCqi2cuDBqQUv88ee3tB/NMCPnBvAOAUE6rErO4etFIusW7r3uZrqRSj9R6LuOgfHDfsVWRab3I0I7kOG3e28FGmPi0QYvIXWdgYsx8OMeaI9BNkf0Lm0fPtWv1nkWjxM4cP1zia8AJ2RUUD7YFpE=
+	t=1723270757; cv=none; b=GSU4KrbP4KfLX0GJ/G4pJGv1OXetEg8xkhQjAw0MMHEXmDtIujdw5yujIVsOVvj6N9svtaDI7VsYH6DJGokOQZ4YITuVMgl0XwCyVfvR3ABdTmURKg0cNX9lCspzdfQVBpGBGz+aoAxkmaYNpva/lbuO4/UeMbnzRMH6m/SgxL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723270515; c=relaxed/simple;
-	bh=lyRkV0LJu+bodWWI+MR456a6dcbWeUgFgT2HFCrRfGI=;
-	h=Date:To:From:Subject:Message-Id; b=SYHQ5wow33q6QuxZJvReN7keriMO7K6Q6TkaJt1wUlAeD/zENZ45kWzNkWVKBnqwGQtH6WS9SImFJG2zWlEZrnGoRIUaYQD/ur1zdkbtvrtrSgodt+bGDDUelKwQjPbVC369+xBZ+xrH8pb+6eRScU9eZStREbpMtHv9FYO+UQ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KdCsZFAC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723270757; c=relaxed/simple;
+	bh=vMT6GYqF3tRLVlFr+qs/trU5pcOBBNyjqrZDeork+BI=;
+	h=Date:To:From:Subject:Message-Id; b=KZuHaCdqXh6OgrB1RF03A+xq4KMzT6fenHmmgnnVYHIwl0cpxiQvyl0T8WsVhWLDPcMKYxFmA8WE+CTwUTYWr7glml6IMA1Wz0ZrPWQjN4rYD8V3axlF0Kr2+PWHQwCk87xqik75LkZvzsV7Lsh636zBRoHNyDFPdvw0JZr3vIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qN4F/ccW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KdCsZFAC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F927C32781;
-	Sat, 10 Aug 2024 06:15:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qN4F/ccW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1E4CC32781;
+	Sat, 10 Aug 2024 06:19:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723270514;
-	bh=lyRkV0LJu+bodWWI+MR456a6dcbWeUgFgT2HFCrRfGI=;
+	s=korg; t=1723270756;
+	bh=vMT6GYqF3tRLVlFr+qs/trU5pcOBBNyjqrZDeork+BI=;
 	h=Date:To:From:Subject:From;
-	b=KdCsZFACKBTGwJQ8yogh0Pg4CVnxCcLckIskv7io02whxO2fUWB+s0VBcKe1XTSjP
-	 APBJ9Jjm4MDVUwnnAd4c3M1yWBlvpd3QKHv+ogsxVvWl9wS9t9M63HDTRO9r0yBb+Q
-	 J5bwCVtphR3ExjwQ/fE65lsQdcd8H6vWUyNoNI6c=
-Date: Fri, 09 Aug 2024 23:15:13 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,stable@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,jxgao@google.com,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=qN4F/ccWp39yBB8/snkBLf0jD8JqGzSDU1foeftU7xtdjGoYJFSv1O192NdFn8pFn
+	 yLBUuiHO8F7Q0udVrCyIMIgIkQIerRykwuz+933Tuo2ckqxrB834rbQqYolnSMLbvS
+	 0ooR3C2fTVqqniUUEn42nHpAEZqswfLLoYiLOl60=
+Date: Fri, 09 Aug 2024 23:19:16 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240810061514.5F927C32781@smtp.kernel.org>
+Subject: + mm-reduce-deferred-struct-page-init-ifdeffery.patch added to mm-unstable branch
+Message-Id: <20240810061916.C1E4CC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix endless reclaim on machines with unaccepted memory
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
+     Subject: mm: reduce deferred struct page init ifdeffery
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-reduce-deferred-struct-page-init-ifdeffery.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reduce-deferred-struct-page-init-ifdeffery.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,159 +59,103 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix endless reclaim on machines with unaccepted memory
-Date: Fri, 9 Aug 2024 14:48:47 +0300
+Subject: mm: reduce deferred struct page init ifdeffery
+Date: Fri, 9 Aug 2024 14:48:48 +0300
 
-Unaccepted memory is considered unusable free memory, which is not counted
-as free on the zone watermark check.  This causes get_page_from_freelist()
-to accept more memory to hit the high watermark, but it creates problems
-in the reclaim path.
+Patch series "mm: Fix several issues with unaccepted memory", v2.
 
-The reclaim path encounters a failed zone watermark check and attempts to
-reclaim memory.  This is usually successful, but if there is little or no
-reclaimable memory, it can result in endless reclaim with little to no
-progress.  This can occur early in the boot process, just after start of
-the init process when the only reclaimable memory is the page cache of the
-init executable and its libraries.
+The patchset addresses several issues related to unaccepted memory.
 
-Make unaccepted memory free from watermark check point of view.  This way
-unaccepted memory will never be the trigger of memory reclaim.  Accept
-more memory in the get_page_from_freelist() if needed.
+Pacth 1/7 preparatory cleanup.
 
-Link: https://lkml.kernel.org/r/20240809114854.3745464-2-kirill.shutemov@linux.intel.com
+Patch 2/7 ensures that __alloc_pages_bulk() will not exhaust all
+accepted memory without accepting more.
+
+Patches 3/7-5/7 are preparations for patch 6/7, which fixes
+alloc_config_page() on machines with unaccepted memory.  This allows, for
+example, the allocation of gigantic pages at runtime.
+
+Patch 7/7 enables the kernel to accept memory up to the promo watermark.
+
+
+This patch (of 7):
+
+Add dummy _deferred_grow_zone() for !DEFERRED_STRUCT_PAGE_INIT and remove
+#ifdefs in two places.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20240809114854.3745464-1-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20240809114854.3745464-3-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Jianxiong Gao <jxgao@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Fixes: dcdfdd40fa82 ("mm: Add support for unaccepted memory")
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-fix-endless-reclaim-on-machines-with-unaccepted-memory
+--- a/mm/page_alloc.c~mm-reduce-deferred-struct-page-init-ifdeffery
 +++ a/mm/page_alloc.c
-@@ -287,7 +287,7 @@ EXPORT_SYMBOL(nr_online_nodes);
- 
- static bool page_contains_unaccepted(struct page *page, unsigned int order);
- static void accept_page(struct page *page, unsigned int order);
--static bool try_to_accept_memory(struct zone *zone, unsigned int order);
-+static bool cond_accept_memory(struct zone *zone, unsigned int order);
- static inline bool has_unaccepted_memory(void);
- static bool __free_unaccepted(struct page *page);
- 
-@@ -3072,9 +3072,6 @@ static inline long __zone_watermark_unus
- 	if (!(alloc_flags & ALLOC_CMA))
- 		unusable_free += zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
--#ifdef CONFIG_UNACCEPTED_MEMORY
--	unusable_free += zone_page_state(z, NR_UNACCEPTED);
--#endif
- 
- 	return unusable_free;
- }
-@@ -3368,6 +3365,8 @@ retry:
- 			}
- 		}
- 
-+		cond_accept_memory(zone, order);
-+
- 		/*
- 		 * Detect whether the number of free pages is below high
- 		 * watermark.  If so, we will decrease pcp->high and free
-@@ -3393,10 +3392,8 @@ check_alloc_wmark:
- 				       gfp_mask)) {
- 			int ret;
- 
--			if (has_unaccepted_memory()) {
--				if (try_to_accept_memory(zone, order))
--					goto try_this_zone;
--			}
-+			if (cond_accept_memory(zone, order))
-+				goto try_this_zone;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/*
-@@ -3450,10 +3447,8 @@ try_this_zone:
- 
- 			return page;
- 		} else {
--			if (has_unaccepted_memory()) {
--				if (try_to_accept_memory(zone, order))
--					goto try_this_zone;
--			}
-+			if (cond_accept_memory(zone, order))
-+				goto try_this_zone;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/* Try again if zone has deferred pages */
-@@ -6950,9 +6945,6 @@ static bool try_to_accept_memory_one(str
- 	struct page *page;
- 	bool last;
- 
--	if (list_empty(&zone->unaccepted_pages))
--		return false;
--
- 	spin_lock_irqsave(&zone->lock, flags);
- 	page = list_first_entry_or_null(&zone->unaccepted_pages,
- 					struct page, lru);
-@@ -6978,23 +6970,29 @@ static bool try_to_accept_memory_one(str
- 	return true;
- }
- 
--static bool try_to_accept_memory(struct zone *zone, unsigned int order)
-+static bool cond_accept_memory(struct zone *zone, unsigned int order)
- {
- 	long to_accept;
--	int ret = false;
-+	bool ret = false;
-+
-+	if (!has_unaccepted_memory())
-+		return false;
-+
-+	if (list_empty(&zone->unaccepted_pages))
-+		return false;
- 
- 	/* How much to accept to get to high watermark? */
- 	to_accept = high_wmark_pages(zone) -
- 		    (zone_page_state(zone, NR_FREE_PAGES) -
--		    __zone_watermark_unusable_free(zone, order, 0));
-+		    __zone_watermark_unusable_free(zone, order, 0) -
-+		    zone_page_state(zone, NR_UNACCEPTED));
- 
--	/* Accept at least one page */
--	do {
-+	while (to_accept > 0) {
- 		if (!try_to_accept_memory_one(zone))
- 			break;
- 		ret = true;
- 		to_accept -= MAX_ORDER_NR_PAGES;
--	} while (to_accept > 0);
-+	}
- 
- 	return ret;
- }
-@@ -7037,7 +7035,7 @@ static void accept_page(struct page *pag
- {
- }
- 
--static bool try_to_accept_memory(struct zone *zone, unsigned int order)
-+static bool cond_accept_memory(struct zone *zone, unsigned int order)
+@@ -322,6 +322,11 @@ static inline bool deferred_pages_enable
  {
  	return false;
  }
++
++static inline bool _deferred_grow_zone(struct zone *zone, unsigned int order)
++{
++	return false;
++}
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ 
+ /* Return a pointer to the bitmap storing bits affecting a block of pages */
+@@ -3395,7 +3400,6 @@ check_alloc_wmark:
+ 			if (cond_accept_memory(zone, order))
+ 				goto try_this_zone;
+ 
+-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 			/*
+ 			 * Watermark failed for this zone, but see if we can
+ 			 * grow this zone if it contains deferred pages.
+@@ -3404,7 +3408,6 @@ check_alloc_wmark:
+ 				if (_deferred_grow_zone(zone, order))
+ 					goto try_this_zone;
+ 			}
+-#endif
+ 			/* Checked here to keep the fast path fast */
+ 			BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+ 			if (alloc_flags & ALLOC_NO_WATERMARKS)
+@@ -3450,13 +3453,11 @@ try_this_zone:
+ 			if (cond_accept_memory(zone, order))
+ 				goto try_this_zone;
+ 
+-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 			/* Try again if zone has deferred pages */
+ 			if (deferred_pages_enabled()) {
+ 				if (_deferred_grow_zone(zone, order))
+ 					goto try_this_zone;
+ 			}
+-#endif
+ 		}
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
+mm-reduce-deferred-struct-page-init-ifdeffery.patch
+mm-accept-memory-in-__alloc_pages_bulk.patch
+mm-introduce-pageunaccepted-page-type.patch
+mm-rework-accept-memory-helpers.patch
+mm-add-a-helper-to-accept-page.patch
+mm-page_isolation-handle-unaccepted-memory-isolation.patch
+mm-accept-to-promo-watermark.patch
 
