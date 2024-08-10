@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93244142E6F
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557BE142E6F
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723270757; cv=none; b=GSU4KrbP4KfLX0GJ/G4pJGv1OXetEg8xkhQjAw0MMHEXmDtIujdw5yujIVsOVvj6N9svtaDI7VsYH6DJGokOQZ4YITuVMgl0XwCyVfvR3ABdTmURKg0cNX9lCspzdfQVBpGBGz+aoAxkmaYNpva/lbuO4/UeMbnzRMH6m/SgxL4=
+	t=1723270759; cv=none; b=BXIThppQSvQj1C01mZnvqaO8hKgD+1pbiIPVnIJP0w5GqHNYT2MyOgjHsXhta+gLJIG1UpLljhRAivi0ctSk7Bhmcysyy3sHoVXNHAxSKu9L/9N4JEoUD7zfO7gEKK6/yT+WGIJRW+qCypqjhhJb28bGSKU4tiP7lVu+Gv+HCF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723270757; c=relaxed/simple;
-	bh=vMT6GYqF3tRLVlFr+qs/trU5pcOBBNyjqrZDeork+BI=;
-	h=Date:To:From:Subject:Message-Id; b=KZuHaCdqXh6OgrB1RF03A+xq4KMzT6fenHmmgnnVYHIwl0cpxiQvyl0T8WsVhWLDPcMKYxFmA8WE+CTwUTYWr7glml6IMA1Wz0ZrPWQjN4rYD8V3axlF0Kr2+PWHQwCk87xqik75LkZvzsV7Lsh636zBRoHNyDFPdvw0JZr3vIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qN4F/ccW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723270759; c=relaxed/simple;
+	bh=TQgzZSbKEjPau4xRvsTbjocTHr8cbfg+3j9vBhog5Eo=;
+	h=Date:To:From:Subject:Message-Id; b=SDhFxt3bXw1RIMUdBfogJBqYjYCtJg3qEEgfB/VJDR0lcBN9eiXfVNxgJkURf/sfnnBsWPn2D1/iccs0oVJGSFfH/3XOd51zb/Zo4NQuacr1fZMMwG1MadWu1BToqSdXoL5HG/v3EzdOBzTabsDqbwf8IHFqIPUd6oN3GENkq28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m8e8gxRt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qN4F/ccW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1E4CC32781;
-	Sat, 10 Aug 2024 06:19:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m8e8gxRt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD780C32781;
+	Sat, 10 Aug 2024 06:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723270756;
-	bh=vMT6GYqF3tRLVlFr+qs/trU5pcOBBNyjqrZDeork+BI=;
+	s=korg; t=1723270758;
+	bh=TQgzZSbKEjPau4xRvsTbjocTHr8cbfg+3j9vBhog5Eo=;
 	h=Date:To:From:Subject:From;
-	b=qN4F/ccWp39yBB8/snkBLf0jD8JqGzSDU1foeftU7xtdjGoYJFSv1O192NdFn8pFn
-	 yLBUuiHO8F7Q0udVrCyIMIgIkQIerRykwuz+933Tuo2ckqxrB834rbQqYolnSMLbvS
-	 0ooR3C2fTVqqniUUEn42nHpAEZqswfLLoYiLOl60=
-Date: Fri, 09 Aug 2024 23:19:16 -0700
+	b=m8e8gxRtQZ7nk7yi38Ro/LbjQAVbl2F/R8jdsHPUh1roG+EF/wm0p7/B/46VhpC19
+	 91JuGKTneeHV0Hf6uqAURQDRHs/p8MDBQMiuN1ZR7u5iUx9w+ROYA/c8eL1klSQRyO
+	 9aiWexD7PUMK3eYxqchsKrC33pT75bLmNL3lQWGU=
+Date: Fri, 09 Aug 2024 23:19:18 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-reduce-deferred-struct-page-init-ifdeffery.patch added to mm-unstable branch
-Message-Id: <20240810061916.C1E4CC32781@smtp.kernel.org>
+Subject: + mm-accept-memory-in-__alloc_pages_bulk.patch added to mm-unstable branch
+Message-Id: <20240810061918.BD780C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: reduce deferred struct page init ifdeffery
+     Subject: mm: accept memory in __alloc_pages_bulk()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-reduce-deferred-struct-page-init-ifdeffery.patch
+     mm-accept-memory-in-__alloc_pages_bulk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reduce-deferred-struct-page-init-ifdeffery.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-accept-memory-in-__alloc_pages_bulk.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: reduce deferred struct page init ifdeffery
-Date: Fri, 9 Aug 2024 14:48:48 +0300
+Subject: mm: accept memory in __alloc_pages_bulk()
+Date: Fri, 9 Aug 2024 14:48:49 +0300
 
-Patch series "mm: Fix several issues with unaccepted memory", v2.
+Currently, the kernel only accepts memory in get_page_from_freelist(), but
+there is another path that directly takes pages from free lists -
+__alloc_page_bulk().  This function can consume all accepted memory and
+will resort to __alloc_pages_noprof() if necessary.
 
-The patchset addresses several issues related to unaccepted memory.
+Conditionally accepted in __alloc_pages_bulk().
 
-Pacth 1/7 preparatory cleanup.
+The same issue may arise due to deferred page initialization.  Kick the
+deferred initialization machinery before abandoning the zone, as the
+kernel does in get_page_from_freelist().
 
-Patch 2/7 ensures that __alloc_pages_bulk() will not exhaust all
-accepted memory without accepting more.
-
-Patches 3/7-5/7 are preparations for patch 6/7, which fixes
-alloc_config_page() on machines with unaccepted memory.  This allows, for
-example, the allocation of gigantic pages at runtime.
-
-Patch 7/7 enables the kernel to accept memory up to the promo watermark.
-
-
-This patch (of 7):
-
-Add dummy _deferred_grow_zone() for !DEFERRED_STRUCT_PAGE_INIT and remove
-#ifdefs in two places.
-
-No functional changes.
-
-Link: https://lkml.kernel.org/r/20240809114854.3745464-1-kirill.shutemov@linux.intel.com
-Link: https://lkml.kernel.org/r/20240809114854.3745464-3-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20240809114854.3745464-4-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -99,53 +86,35 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/page_alloc.c~mm-reduce-deferred-struct-page-init-ifdeffery
+--- a/mm/page_alloc.c~mm-accept-memory-in-__alloc_pages_bulk
 +++ a/mm/page_alloc.c
-@@ -322,6 +322,11 @@ static inline bool deferred_pages_enable
- {
- 	return false;
- }
-+
-+static inline bool _deferred_grow_zone(struct zone *zone, unsigned int order)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
- /* Return a pointer to the bitmap storing bits affecting a block of pages */
-@@ -3395,7 +3400,6 @@ check_alloc_wmark:
- 			if (cond_accept_memory(zone, order))
- 				goto try_this_zone;
- 
--#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/*
- 			 * Watermark failed for this zone, but see if we can
- 			 * grow this zone if it contains deferred pages.
-@@ -3404,7 +3408,6 @@ check_alloc_wmark:
- 				if (_deferred_grow_zone(zone, order))
- 					goto try_this_zone;
- 			}
--#endif
- 			/* Checked here to keep the fast path fast */
- 			BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
- 			if (alloc_flags & ALLOC_NO_WATERMARKS)
-@@ -3450,13 +3453,11 @@ try_this_zone:
- 			if (cond_accept_memory(zone, order))
- 				goto try_this_zone;
- 
--#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/* Try again if zone has deferred pages */
- 			if (deferred_pages_enabled()) {
- 				if (_deferred_grow_zone(zone, order))
- 					goto try_this_zone;
- 			}
--#endif
+@@ -4577,12 +4577,23 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 			goto failed;
  		}
+ 
++		cond_accept_memory(zone, 0);
++retry_this_zone:
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
+ 		if (zone_watermark_fast(zone, 0,  mark,
+ 				zonelist_zone_idx(ac.preferred_zoneref),
+ 				alloc_flags, gfp)) {
+ 			break;
+ 		}
++
++		if (cond_accept_memory(zone, 0))
++			goto retry_this_zone;
++
++		/* Try again if zone has deferred pages */
++		if (deferred_pages_enabled()) {
++			if (_deferred_grow_zone(zone, 0))
++				goto retry_this_zone;
++		}
  	}
  
+ 	/*
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
