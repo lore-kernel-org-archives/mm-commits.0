@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19AD9A48
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 00:44:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F253C17579
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 00:53:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723250655; cv=none; b=cbo2ztO8V7G2i6PbDQU3tbdGZbaR9tNqFX+QrnPgzpYjEkAqvY+3xD08Q5nQ1et429n1UtaO3pgD4WaA7bynrxKhF2m504Zwv/JSF2DMo4mPsOeUlsEJcbxrx1kI2V9fwkd2fyVxUsMqOrMFTvQ6Catj9vsVjtk6a7tFcF9FXko=
+	t=1723251196; cv=none; b=VqVnUxdjcR9AzSWC0Z6h/s6UAjgqgSL3BHZHKRYZM1Vf3WmVWXhyRjTDEClVeOy185ThKYRuO89S9moPA0IvhYGZXbl24EwhxAGqwhMzYIOgjEChDOEz9O2Lmq7muOdB0yBAAaENowWXlT9h+us6s/O8sPQLCGJr2ARP8q95HAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723250655; c=relaxed/simple;
-	bh=Ai8RYyHO1V3pxEmb/2dKaDa6qSotAwzxzTEaB444SAI=;
-	h=Date:To:From:Subject:Message-Id; b=Tmx117Uelz3Am93jl2WuE68YmnkLrV27Rf4uFXg/m0ZECoFgSIc5e/x2//yz7OB5VqhYuAZog37LH/eT7dVQtQrS85+E/QinPGXZ4UqYWSsAJyTVzDTuVI1K/g/PuCcrgL9awdRRudUZJBIM+vgNZ3wOSt0OO861qx04x6uGv2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eU2Gt0wT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723251196; c=relaxed/simple;
+	bh=Nf2X+znJdizYcmiZFXmwVAUZnRrYrBYyw8zvBg9601I=;
+	h=Date:To:From:Subject:Message-Id; b=rNm82atW6tTr2U2pMUr1qilFcY6a/7LTDrHhH/Td+1CcBDn/NHhAUiphyMwcJENeisvQZSI3qA7zlUsjf3mEmXM0lA8zCCSEpcz3/HIfFQnfKTJNSKPuwW5vT8lhhw2So6H/TZa4IMe1VdxFfq9/mIINUetPBadeVcFkiGz6slo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sfxgkzs9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eU2Gt0wT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD64C32782;
-	Sat, 10 Aug 2024 00:44:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sfxgkzs9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D53AC32782;
+	Sat, 10 Aug 2024 00:53:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723250654;
-	bh=Ai8RYyHO1V3pxEmb/2dKaDa6qSotAwzxzTEaB444SAI=;
+	s=korg; t=1723251195;
+	bh=Nf2X+znJdizYcmiZFXmwVAUZnRrYrBYyw8zvBg9601I=;
 	h=Date:To:From:Subject:From;
-	b=eU2Gt0wTEgpMbLcA79TKPmGRapm3TFBDnPaHSW8Kq0L5imYijhROwO9A038DEvNJe
-	 2XsDvQf8JHiyQ0lmofnLUXkaZKwf610RpK2YNKqUMW6pT1Iqk7e4MF/kRN3Q1yMmX9
-	 L3ZZfiJs0hWql6hhvlANBLVVCzPmTDd3bTppBi30=
-Date: Fri, 09 Aug 2024 17:44:13 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,yi.zhang@redhat.com,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,lizhijian@fujitsu.com,j.granados@samsung.com,hannes@cmpxchg.org,fan.ni@samsung.com,david@redhat.com,dan.j.williams@intel.com,cerasuolodomenico@gmail.com,alison.schofield@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=sfxgkzs9fiD9609DVp/rnJA1MokuSth7xKlXKUO4AstEhhcz9fzqr6M6jCERwBDod
+	 gJ80AjIjENfRnRIGdrA23UoloQO/QEGgheYu+MO7aMtQa7iqK6VS9lvpzrUJjfPJ4H
+	 JLV2Ib9Wz+ggK7f6e0ojtEb4VSoM0pkitWWWLC94=
+Date: Fri, 09 Aug 2024 17:53:14 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-account-memmap-per-node-v5.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240810004414.6AD64C32782@smtp.kernel.org>
+Subject: + memcg-replace-memcg-id-idr-with-xarray.patch added to mm-unstable branch
+Message-Id: <20240810005315.7D53AC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-dont-account-memmap-per-node-v5
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-dont-account-memmap-per-node-v5.patch
+     Subject: memcg: replace memcg ID idr with xarray
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-replace-memcg-id-idr-with-xarray.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-account-memmap-per-node-v5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-replace-memcg-id-idr-with-xarray.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,222 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm-dont-account-memmap-per-node-v5
-Date: Fri, 9 Aug 2024 19:10:20 +0000
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: replace memcg ID idr with xarray
+Date: Fri, 9 Aug 2024 10:26:18 -0700
 
-address a few nits from David Hildenbrand
+At the moment memcg IDs are managed through IDR which requires external
+synchronization mechanisms and makes the allocation code a bit awkward. 
+Let's switch to xarray and make the code simpler.
 
-Link: https://lkml.kernel.org/r/20240809191020.1142142-4-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Fan Ni <fan.ni@samsung.com>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20240809172618.2946790-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yi Zhang <yi.zhang@redhat.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    8 ++++----
- mm/hugetlb_vmemmap.c   |    8 ++++----
- mm/mm_init.c           |    2 +-
- mm/page_ext.c          |    6 +++---
- mm/sparse-vmemmap.c    |    4 ++--
- mm/sparse.c            |    4 ++--
- mm/vmstat.c            |   19 ++++++++++---------
- 7 files changed, 26 insertions(+), 25 deletions(-)
+ mm/memcontrol.c |   34 +++++++---------------------------
+ 1 file changed, 7 insertions(+), 27 deletions(-)
 
---- a/include/linux/vmstat.h~mm-dont-account-memmap-per-node-v5
-+++ a/include/linux/vmstat.h
-@@ -38,8 +38,8 @@ struct reclaim_stat {
- enum vm_stat_item {
- 	NR_DIRTY_THRESHOLD,
- 	NR_DIRTY_BG_THRESHOLD,
--	NR_MEMMAP,	/* page metadata allocated through buddy allocator */
--	NR_MEMMAP_BOOT,	/* page metadata allocated through boot allocator */
-+	NR_MEMMAP_PAGES,	/* page metadata allocated through buddy allocator */
-+	NR_MEMMAP_BOOT_PAGES,	/* page metadata allocated through boot allocator */
- 	NR_VM_STAT_ITEMS,
- };
- 
-@@ -620,6 +620,6 @@ static inline void lruvec_stat_sub_folio
- 	lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
- }
- 
--void mod_memmap_boot(long delta);
--void mod_memmap(long delta);
-+void memmap_boot_pages_add(long delta);
-+void memmap_pages_add(long delta);
- #endif /* _LINUX_VMSTAT_H */
---- a/mm/hugetlb_vmemmap.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/hugetlb_vmemmap.c
-@@ -185,10 +185,10 @@ static int vmemmap_remap_range(unsigned
- static inline void free_vmemmap_page(struct page *page)
- {
- 	if (PageReserved(page)) {
--		mod_memmap_boot(-1);
-+		memmap_boot_pages_add(-1);
- 		free_bootmem_page(page);
- 	} else {
--		mod_memmap(-1);
-+		memmap_pages_add(-1);
- 		__free_page(page);
- 	}
- }
-@@ -341,7 +341,7 @@ static int vmemmap_remap_free(unsigned l
- 		copy_page(page_to_virt(walk.reuse_page),
- 			  (void *)walk.reuse_addr);
- 		list_add(&walk.reuse_page->lru, vmemmap_pages);
--		mod_memmap(1);
-+		memmap_pages_add(1);
- 	}
- 
- 	/*
-@@ -396,7 +396,7 @@ static int alloc_vmemmap_page_list(unsig
- 			goto out;
- 		list_add(&page->lru, list);
- 	}
--	mod_memmap(nr_pages);
-+	memmap_pages_add(nr_pages);
- 
- 	return 0;
- out:
---- a/mm/mm_init.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/mm_init.c
-@@ -1623,7 +1623,7 @@ static void __init alloc_node_mem_map(st
- 		panic("Failed to allocate %ld bytes for node %d memory map\n",
- 		      size, pgdat->node_id);
- 	pgdat->node_mem_map = map + offset;
--	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
- 		 __func__, pgdat->node_id, (unsigned long)pgdat,
- 		 (unsigned long)pgdat->node_mem_map);
---- a/mm/page_ext.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/page_ext.c
-@@ -214,7 +214,7 @@ static int __init alloc_node_page_ext(in
- 		return -ENOMEM;
- 	NODE_DATA(nid)->node_page_ext = base;
- 	total_usage += table_size;
--	mod_memmap_boot(DIV_ROUND_UP(table_size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(table_size, PAGE_SIZE));
- 	return 0;
- }
- 
-@@ -275,7 +275,7 @@ static void *__meminit alloc_page_ext(si
- 		addr = vzalloc_node(size, nid);
- 
- 	if (addr)
--		mod_memmap(DIV_ROUND_UP(size, PAGE_SIZE));
-+		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- 
- 	return addr;
- }
-@@ -322,7 +322,7 @@ static void free_page_ext(void *addr)
- 	struct page *page;
- 
- 	table_size = page_ext_size * PAGES_PER_SECTION;
--	mod_memmap(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
-+	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
- 
- 	if (is_vmalloc_addr(addr)) {
- 		vfree(addr);
---- a/mm/sparse.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/sparse.c
-@@ -463,7 +463,7 @@ static void __init sparse_buffer_init(un
- 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
- 	sparsemap_buf_end = sparsemap_buf + size;
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- #endif
- }
- 
-@@ -643,7 +643,7 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
--	mod_memmap(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
-+	memmap_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
- 	vmemmap_free(start, end, altmap);
- }
- static void free_map_bootmem(struct page *memmap)
---- a/mm/sparse-vmemmap.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/sparse-vmemmap.c
-@@ -470,9 +470,9 @@ struct page * __meminit __populate_secti
- 		return NULL;
- 
- 	if (system_state == SYSTEM_BOOTING)
--		mod_memmap_boot(DIV_ROUND_UP(end - start, PAGE_SIZE));
-+		memmap_boot_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
- 	else
--		mod_memmap(DIV_ROUND_UP(end - start, PAGE_SIZE));
-+		memmap_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
- 
- 	return pfn_to_page(pfn);
- }
---- a/mm/vmstat.c~mm-dont-account-memmap-per-node-v5
-+++ a/mm/vmstat.c
-@@ -1035,19 +1035,20 @@ unsigned long node_page_state(struct pgl
- 
- /*
-  * Count number of pages "struct page" and "struct page_ext" consume.
-- * nr_memmap_boot: # of pages allocated by boot allocator & not part of MemTotal
-- * nr_memmap: # of pages that were allocated by buddy allocator
-+ * nr_memmap_boot_pages: # of pages allocated by boot allocator
-+ * nr_memmap_pages: # of pages that were allocated by buddy allocator
+--- a/mm/memcontrol.c~memcg-replace-memcg-id-idr-with-xarray
++++ a/mm/memcontrol.c
+@@ -3395,29 +3395,12 @@ static void memcg_wb_domain_size_changed
   */
--static atomic_long_t nr_memmap_boot, nr_memmap;
-+static atomic_long_t nr_memmap_boot_pages = ATOMIC_LONG_INIT(0);
-+static atomic_long_t nr_memmap_pages = ATOMIC_LONG_INIT(0);
  
--void mod_memmap_boot(long delta)
-+void memmap_boot_pages_add(long delta)
+ #define MEM_CGROUP_ID_MAX	((1UL << MEM_CGROUP_ID_SHIFT) - 1)
+-static DEFINE_IDR(mem_cgroup_idr);
+-static DEFINE_SPINLOCK(memcg_idr_lock);
+-
+-static int mem_cgroup_alloc_id(void)
+-{
+-	int ret;
+-
+-	idr_preload(GFP_KERNEL);
+-	spin_lock(&memcg_idr_lock);
+-	ret = idr_alloc(&mem_cgroup_idr, NULL, 1, MEM_CGROUP_ID_MAX + 1,
+-			GFP_NOWAIT);
+-	spin_unlock(&memcg_idr_lock);
+-	idr_preload_end();
+-	return ret;
+-}
++static DEFINE_XARRAY_ALLOC1(mem_cgroup_ids);
+ 
+ static void mem_cgroup_id_remove(struct mem_cgroup *memcg)
  {
--	atomic_long_add(delta, &nr_memmap_boot);
-+	atomic_long_add(delta, &nr_memmap_boot_pages);
+ 	if (memcg->id.id > 0) {
+-		spin_lock(&memcg_idr_lock);
+-		idr_remove(&mem_cgroup_idr, memcg->id.id);
+-		spin_unlock(&memcg_idr_lock);
+-
++		xa_erase(&mem_cgroup_ids, memcg->id.id);
+ 		memcg->id.id = 0;
+ 	}
+ }
+@@ -3452,7 +3435,7 @@ static inline void mem_cgroup_id_put(str
+ struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
+ {
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+-	return idr_find(&mem_cgroup_idr, id);
++	return xa_load(&mem_cgroup_ids, id);
  }
  
--void mod_memmap(long delta)
-+void memmap_pages_add(long delta)
- {
--	atomic_long_add(delta, &nr_memmap);
-+	atomic_long_add(delta, &nr_memmap_pages);
- }
+ #ifdef CONFIG_SHRINKER_DEBUG
+@@ -3551,11 +3534,10 @@ static struct mem_cgroup *mem_cgroup_all
+ 	if (!memcg)
+ 		return ERR_PTR(error);
  
- #ifdef CONFIG_COMPACTION
-@@ -1844,8 +1845,8 @@ static void *vmstat_start(struct seq_fil
+-	memcg->id.id = mem_cgroup_alloc_id();
+-	if (memcg->id.id < 0) {
+-		error = memcg->id.id;
++	error = xa_alloc(&mem_cgroup_ids, &memcg->id.id, NULL,
++			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
++	if (error)
+ 		goto fail;
+-	}
  
- 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
- 			    v + NR_DIRTY_THRESHOLD);
--	v[NR_MEMMAP_BOOT] = atomic_long_read(&nr_memmap_boot);
--	v[NR_MEMMAP] = atomic_long_read(&nr_memmap);
-+	v[NR_MEMMAP_PAGES] = atomic_long_read(&nr_memmap_pages);
-+	v[NR_MEMMAP_BOOT_PAGES] = atomic_long_read(&nr_memmap_boot_pages);
- 	v += NR_VM_STAT_ITEMS;
+ 	memcg->vmstats = kzalloc(sizeof(struct memcg_vmstats),
+ 				 GFP_KERNEL_ACCOUNT);
+@@ -3696,9 +3678,7 @@ static int mem_cgroup_css_online(struct
+ 	 * publish it here at the end of onlining. This matches the
+ 	 * regular ID destruction during offlining.
+ 	 */
+-	spin_lock(&memcg_idr_lock);
+-	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
+-	spin_unlock(&memcg_idr_lock);
++	xa_store(&mem_cgroup_ids, memcg->id.id, memcg, GFP_KERNEL);
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
+ 	return 0;
+ offline_kmem:
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-dont-account-memmap-on-failure.patch
-mm-add-system-wide-stats-items-category.patch
-mm-dont-account-memmap-per-node.patch
-mm-dont-account-memmap-per-node-v5.patch
-memcg-increase-the-valid-index-range-for-memcg-stats-v5.patch
-vmstat-kernel-stack-usage-histogram.patch
-task_stack-uninline-stack_not_used.patch
+memcg-increase-the-valid-index-range-for-memcg-stats.patch
+memcg-replace-memcg-id-idr-with-xarray.patch
 
