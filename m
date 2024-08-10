@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 316A123746
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA34021A0B;
+	Sat, 10 Aug 2024 06:55:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723270773; cv=none; b=sYqmlcPzff9+UeYtI3PgHgJppW7lLH8Yy6DHqev6nj55E8GiQS8+q27bfVlePLRHSPCaT+KY/2sxzZOTktauMM3Oxxdb6X6YVTEjwvejRLh0pgo4M6E6HaQfXANd4TVGFlzSC7YrssHFt1vl2qH4mmbp+f4pYFd29khSl/6dAuc=
+	t=1723272943; cv=none; b=XFBKe4mkUVWEk8YQtqpe50MLqM3jDBAAJgwf0JTRXzMWMCCHvpF0BKNJJMxvT0ScPbCnLZyqgStwNUiNHQo+fwKhEbKa/8uBOCG0q/8o0nS+kFOYyQ9ggg6bEIjFWn5m+YtGYukGPdsw+fm1God2QQJsrzJbYVzKlswqaiA5DYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723270773; c=relaxed/simple;
-	bh=h1OH99Bt8Y2OP0ZDJqTtpFK9hVM7dLxWHz8YdRyl1qw=;
-	h=Date:To:From:Subject:Message-Id; b=nh4PUDpCFpxsFwB2gRdP4gmUXUJosEkNvv96/eJhwEaEODTFBTV6LSR7217cLqOnJKWn93o4wjHWjY6pT8A0YaAkEebRHdAeKADa2CcANfidqgIbOL/FKFacNE8Nmu5RHb6BjTYhnIBjh/VewMl5WQ95FrzIlMKhMaguMlA5bjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJnSmngf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723272943; c=relaxed/simple;
+	bh=bq330BsQ+YYXRCIyELW9zYPEOc0BwIMMBu+dn0NMrUc=;
+	h=Date:To:From:Subject:Message-Id; b=SnBZ3jdzsK2ERYDlO6FMTHuNwjsYNOldqkSOs8c09UzV34KgLQwkxITHfb9CJDE7rECoazZJLmosE+u+pSzZwxYEo3dp/UKCL6p4n4dos1NHbsjNYdauIYjSDo55aXqd0Bx1tDHJk9b7ODQhKdx8IcKZW/A0XgwUdGNd2EHJRHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q+CyMlPV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJnSmngf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB253C32781;
-	Sat, 10 Aug 2024 06:19:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q+CyMlPV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B6D7C32781;
+	Sat, 10 Aug 2024 06:55:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723270773;
-	bh=h1OH99Bt8Y2OP0ZDJqTtpFK9hVM7dLxWHz8YdRyl1qw=;
+	s=korg; t=1723272943;
+	bh=bq330BsQ+YYXRCIyELW9zYPEOc0BwIMMBu+dn0NMrUc=;
 	h=Date:To:From:Subject:From;
-	b=nJnSmngfnPLQz6n0rdFXti7vu1ISstqEK7yvOM0WH2hwj8bID5/YT0nVbx4WJpUin
-	 LjOrs+lvHDHWWqyWTsdvu3YwMGZ22OcP1PyyIo5yL4lWj/y5f0s24dT804iXFKMwLW
-	 d+jrmWEV9YHHCJiC+avaRaQbHESQXliY1CGMHRdE=
-Date: Fri, 09 Aug 2024 23:19:32 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=q+CyMlPVqC56bTVlFVckrp6Gv957dWm9F3iu1EzekAp1P30ZD/XnnWCRCn9XT5Jo0
+	 aBURUn28XQWs1YgcFj+qpIeuLIcnyQzv5r4DySnC5WItamxKAdjWnve94IpYFpUZIe
+	 Oke7qPYbRoH3ff4t0B+AzD5xnJwKAMAHYhrcoX2I=
+Date: Fri, 09 Aug 2024 23:55:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-accept-to-promo-watermark.patch added to mm-unstable branch
-Message-Id: <20240810061932.EB253C32781@smtp.kernel.org>
+Subject: + selftests-mm-fix-build-errors-on-armhf.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240810065543.2B6D7C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: accept to promo watermark
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-accept-to-promo-watermark.patch
+     Subject: selftests: mm: fix build errors on armhf
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-fix-build-errors-on-armhf.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-accept-to-promo-watermark.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-build-errors-on-armhf.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,188 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: accept to promo watermark
-Date: Fri, 9 Aug 2024 14:48:54 +0300
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: mm: fix build errors on armhf
+Date: Fri, 9 Aug 2024 13:25:11 +0500
 
-Commit c574bbe91703 ("NUMA balancing: optimize page placement for memory
-tiering system") introduced a new watermark above "high" -- "promo".
+The __NR_mmap isn't found on armhf.  The mmap() is commonly available
+system call and its wrapper is present on all architectures.  So it should
+be used directly.  It solves problem for armhf and doesn't create problem
+for other architectures.
 
-Accept memory memory to the highest watermark which is WMARK_PROMO now.
+Remove sys_mmap() functions as they aren't doing anything else other than
+calling mmap().  There is no need to set errno = 0 manually as glibc
+always resets it.
 
-Link: https://lkml.kernel.org/r/20240809114854.3745464-9-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+For reference errors are as following:
+
+  CC       seal_elf
+seal_elf.c: In function 'sys_mmap':
+seal_elf.c:39:33: error: '__NR_mmap' undeclared (first use in this function)
+   39 |         sret = (void *) syscall(__NR_mmap, addr, len, prot,
+      |                                 ^~~~~~~~~
+
+mseal_test.c: In function 'sys_mmap':
+mseal_test.c:90:33: error: '__NR_mmap' undeclared (first use in this function)
+   90 |         sret = (void *) syscall(__NR_mmap, addr, len, prot,
+      |                                 ^~~~~~~~~
+
+Link: https://lkml.kernel.org/r/20240809082511.497266-1-usama.anjum@collabora.com
+Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/mseal_test.c |   37 +++++++---------------
+ tools/testing/selftests/mm/seal_elf.c   |   13 -------
+ 2 files changed, 14 insertions(+), 36 deletions(-)
 
---- a/mm/page_alloc.c~mm-accept-to-promo-watermark
-+++ a/mm/page_alloc.c
-@@ -7010,8 +7010,8 @@ static bool cond_accept_memory(struct zo
- 	if (list_empty(&zone->unaccepted_pages))
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-fix-build-errors-on-armhf
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -81,17 +81,6 @@ static int sys_mprotect_pkey(void *ptr,
+ 	return sret;
+ }
+ 
+-static void *sys_mmap(void *addr, unsigned long len, unsigned long prot,
+-	unsigned long flags, unsigned long fd, unsigned long offset)
+-{
+-	void *sret;
+-
+-	errno = 0;
+-	sret = (void *) syscall(__NR_mmap, addr, len, prot,
+-		flags, fd, offset);
+-	return sret;
+-}
+-
+ static int sys_munmap(void *ptr, size_t size)
+ {
+ 	int sret;
+@@ -172,7 +161,7 @@ static void setup_single_address(int siz
+ {
+ 	void *ptr;
+ 
+-	ptr = sys_mmap(NULL, size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	ptr = mmap(NULL, size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+ 	*ptrOut = ptr;
+ }
+ 
+@@ -181,7 +170,7 @@ static void setup_single_address_rw(int
+ 	void *ptr;
+ 	unsigned long mapflags = MAP_ANONYMOUS | MAP_PRIVATE;
+ 
+-	ptr = sys_mmap(NULL, size, PROT_READ | PROT_WRITE, mapflags, -1, 0);
++	ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, mapflags, -1, 0);
+ 	*ptrOut = ptr;
+ }
+ 
+@@ -205,7 +194,7 @@ bool seal_support(void)
+ 	void *ptr;
+ 	unsigned long page_size = getpagesize();
+ 
+-	ptr = sys_mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	ptr = mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+ 	if (ptr == (void *) -1)
  		return false;
  
--	/* How much to accept to get to high watermark? */
--	to_accept = high_wmark_pages(zone) -
-+	/* How much to accept to get to promo watermark? */
-+	to_accept = promo_wmark_pages(zone) -
- 		    (zone_page_state(zone, NR_FREE_PAGES) -
- 		    __zone_watermark_unusable_free(zone, order, 0) -
- 		    zone_page_state(zone, NR_UNACCEPTED));
+@@ -481,8 +470,8 @@ static void test_seal_zero_address(void)
+ 	int prot;
+ 
+ 	/* use mmap to change protection. */
+-	ptr = sys_mmap(0, size, PROT_NONE,
+-			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ptr = mmap(0, size, PROT_NONE,
++		   MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+ 	FAIL_TEST_IF_FALSE(ptr == 0);
+ 
+ 	size = get_vma_size(ptr, &prot);
+@@ -1209,8 +1198,8 @@ static void test_seal_mmap_overwrite_pro
+ 	}
+ 
+ 	/* use mmap to change protection. */
+-	ret2 = sys_mmap(ptr, size, PROT_NONE,
+-			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ret2 = mmap(ptr, size, PROT_NONE,
++		    MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+ 	if (seal) {
+ 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
+ 		FAIL_TEST_IF_FALSE(errno == EPERM);
+@@ -1240,8 +1229,8 @@ static void test_seal_mmap_expand(bool s
+ 	}
+ 
+ 	/* use mmap to expand. */
+-	ret2 = sys_mmap(ptr, size, PROT_READ,
+-			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ret2 = mmap(ptr, size, PROT_READ,
++		    MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+ 	if (seal) {
+ 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
+ 		FAIL_TEST_IF_FALSE(errno == EPERM);
+@@ -1268,8 +1257,8 @@ static void test_seal_mmap_shrink(bool s
+ 	}
+ 
+ 	/* use mmap to shrink. */
+-	ret2 = sys_mmap(ptr, 8 * page_size, PROT_READ,
+-			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	ret2 = mmap(ptr, 8 * page_size, PROT_READ,
++		    MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+ 	if (seal) {
+ 		FAIL_TEST_IF_FALSE(ret2 == MAP_FAILED);
+ 		FAIL_TEST_IF_FALSE(errno == EPERM);
+@@ -1650,7 +1639,7 @@ static void test_seal_discard_ro_anon_on
+ 	ret = fallocate(fd, 0, 0, size);
+ 	FAIL_TEST_IF_FALSE(!ret);
+ 
+-	ptr = sys_mmap(NULL, size, PROT_READ, mapflags, fd, 0);
++	ptr = mmap(NULL, size, PROT_READ, mapflags, fd, 0);
+ 	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
+ 
+ 	if (seal) {
+@@ -1680,7 +1669,7 @@ static void test_seal_discard_ro_anon_on
+ 	int ret;
+ 	unsigned long mapflags = MAP_ANONYMOUS | MAP_SHARED;
+ 
+-	ptr = sys_mmap(NULL, size, PROT_READ, mapflags, -1, 0);
++	ptr = mmap(NULL, size, PROT_READ, mapflags, -1, 0);
+ 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
+ 
+ 	if (seal) {
+--- a/tools/testing/selftests/mm/seal_elf.c~selftests-mm-fix-build-errors-on-armhf
++++ a/tools/testing/selftests/mm/seal_elf.c
+@@ -30,17 +30,6 @@ static int sys_mseal(void *start, size_t
+ 	return sret;
+ }
+ 
+-static void *sys_mmap(void *addr, unsigned long len, unsigned long prot,
+-	unsigned long flags, unsigned long fd, unsigned long offset)
+-{
+-	void *sret;
+-
+-	errno = 0;
+-	sret = (void *) syscall(__NR_mmap, addr, len, prot,
+-		flags, fd, offset);
+-	return sret;
+-}
+-
+ static inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
+ {
+ 	int sret;
+@@ -56,7 +45,7 @@ static bool seal_support(void)
+ 	void *ptr;
+ 	unsigned long page_size = getpagesize();
+ 
+-	ptr = sys_mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	ptr = mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+ 	if (ptr == (void *) -1)
+ 		return false;
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
-mm-reduce-deferred-struct-page-init-ifdeffery.patch
-mm-accept-memory-in-__alloc_pages_bulk.patch
-mm-introduce-pageunaccepted-page-type.patch
-mm-rework-accept-memory-helpers.patch
-mm-add-a-helper-to-accept-page.patch
-mm-page_isolation-handle-unaccepted-memory-isolation.patch
-mm-accept-to-promo-watermark.patch
+selftests-mm-fix-build-errors-on-armhf.patch
 
