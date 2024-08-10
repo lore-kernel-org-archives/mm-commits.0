@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C2223746
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 316A123746
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723270771; cv=none; b=Mal+lzKp8V/Drbx5/Q6WPpParrf13itl8Ilj1HkZ5U7UPI534fMEXRSasrmYO7U4gnYG3gF8FMWn57pOVwfBrA0UaVYwDKPZO9G8WfrMRW2lJvgjBGH8Sma3pIPGez/5XR1+Phh8EjwAAnSeLLiZ731zmPA/Os+YjlNXQSOYKU4=
+	t=1723270773; cv=none; b=sYqmlcPzff9+UeYtI3PgHgJppW7lLH8Yy6DHqev6nj55E8GiQS8+q27bfVlePLRHSPCaT+KY/2sxzZOTktauMM3Oxxdb6X6YVTEjwvejRLh0pgo4M6E6HaQfXANd4TVGFlzSC7YrssHFt1vl2qH4mmbp+f4pYFd29khSl/6dAuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723270771; c=relaxed/simple;
-	bh=xRktVrDXQ+9eZjxmhrtugebHM+Zpwj8h+o8y2ne0QUU=;
-	h=Date:To:From:Subject:Message-Id; b=U2kavVFNMnCo7wRsr9GK03NF7cycEEFKU9r874tOvGYQ0zXgU3IWqQQ7QbE8Hc8jtfWa1Dff5f/p4LBp1UNkPQ25dHK+JlnQJJJLyKDUmOgTRm5OyWgbECc+HYM42Qs3bp6Evlz+tA3VnnFqVQCOoL3U17ox3p4T5HL6qiDk+hk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sHKp2xRs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723270773; c=relaxed/simple;
+	bh=h1OH99Bt8Y2OP0ZDJqTtpFK9hVM7dLxWHz8YdRyl1qw=;
+	h=Date:To:From:Subject:Message-Id; b=nh4PUDpCFpxsFwB2gRdP4gmUXUJosEkNvv96/eJhwEaEODTFBTV6LSR7217cLqOnJKWn93o4wjHWjY6pT8A0YaAkEebRHdAeKADa2CcANfidqgIbOL/FKFacNE8Nmu5RHb6BjTYhnIBjh/VewMl5WQ95FrzIlMKhMaguMlA5bjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJnSmngf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sHKp2xRs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CFEDC32781;
-	Sat, 10 Aug 2024 06:19:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJnSmngf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB253C32781;
+	Sat, 10 Aug 2024 06:19:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723270771;
-	bh=xRktVrDXQ+9eZjxmhrtugebHM+Zpwj8h+o8y2ne0QUU=;
+	s=korg; t=1723270773;
+	bh=h1OH99Bt8Y2OP0ZDJqTtpFK9hVM7dLxWHz8YdRyl1qw=;
 	h=Date:To:From:Subject:From;
-	b=sHKp2xRsahgKuDVrDT0Fx6Z5L/g0ey5FW534gEKFxV0PFuEJldwX5KbinLwKA19/X
-	 bysYGzG6PyhUX2Kr1usVs9MDkyMeG/swRmXQrwOJPGbT0Qja+idXLFWmyP9dJ8vaUC
-	 GZ9F261Fqv6jc2p/fmzR0xn1iPyEI8zymfS8jBKw=
-Date: Fri, 09 Aug 2024 23:19:30 -0700
+	b=nJnSmngfnPLQz6n0rdFXti7vu1ISstqEK7yvOM0WH2hwj8bID5/YT0nVbx4WJpUin
+	 LjOrs+lvHDHWWqyWTsdvu3YwMGZ22OcP1PyyIo5yL4lWj/y5f0s24dT804iXFKMwLW
+	 d+jrmWEV9YHHCJiC+avaRaQbHESQXliY1CGMHRdE=
+Date: Fri, 09 Aug 2024 23:19:32 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-handle-unaccepted-memory-isolation.patch added to mm-unstable branch
-Message-Id: <20240810061931.0CFEDC32781@smtp.kernel.org>
+Subject: + mm-accept-to-promo-watermark.patch added to mm-unstable branch
+Message-Id: <20240810061932.EB253C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_isolation: handle unaccepted memory isolation
+     Subject: mm: accept to promo watermark
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_isolation-handle-unaccepted-memory-isolation.patch
+     mm-accept-to-promo-watermark.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-handle-unaccepted-memory-isolation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-accept-to-promo-watermark.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: page_isolation: handle unaccepted memory isolation
-Date: Fri, 9 Aug 2024 14:48:53 +0300
+Subject: mm: accept to promo watermark
+Date: Fri, 9 Aug 2024 14:48:54 +0300
 
-Page isolation machinery doesn't know anything about unaccepted memory and
-considers it non-free.  It leads to alloc_contig_pages() failure.
+Commit c574bbe91703 ("NUMA balancing: optimize page placement for memory
+tiering system") introduced a new watermark above "high" -- "promo".
 
-Treat unaccepted memory as free and accept memory on pageblock isolation. 
-Once memory is accepted it becomes PageBuddy() and page isolation knows
-how to deal with them.
+Accept memory memory to the highest watermark which is WMARK_PROMO now.
 
-Link: https://lkml.kernel.org/r/20240809114854.3745464-8-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A.  Shutemov <kirill.shutemov@linux.intel.com>
+Link: https://lkml.kernel.org/r/20240809114854.3745464-9-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -82,33 +80,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_isolation.c~mm-page_isolation-handle-unaccepted-memory-isolation
-+++ a/mm/page_isolation.c
-@@ -152,6 +152,9 @@ static int set_migratetype_isolate(struc
- 	unsigned long flags;
- 	unsigned long check_unmovable_start, check_unmovable_end;
+--- a/mm/page_alloc.c~mm-accept-to-promo-watermark
++++ a/mm/page_alloc.c
+@@ -7010,8 +7010,8 @@ static bool cond_accept_memory(struct zo
+ 	if (list_empty(&zone->unaccepted_pages))
+ 		return false;
  
-+	if (PageUnaccepted(page))
-+		accept_page(page);
-+
- 	spin_lock_irqsave(&zone->lock, flags);
- 
- 	/*
-@@ -367,6 +370,11 @@ static int isolate_single_pageblock(unsi
- 		VM_BUG_ON(!page);
- 		pfn = page_to_pfn(page);
- 
-+		if (PageUnaccepted(page)) {
-+			pfn += MAX_ORDER_NR_PAGES;
-+			continue;
-+		}
-+
- 		if (PageBuddy(page)) {
- 			int order = buddy_order(page);
- 
+-	/* How much to accept to get to high watermark? */
+-	to_accept = high_wmark_pages(zone) -
++	/* How much to accept to get to promo watermark? */
++	to_accept = promo_wmark_pages(zone) -
+ 		    (zone_page_state(zone, NR_FREE_PAGES) -
+ 		    __zone_watermark_unusable_free(zone, order, 0) -
+ 		    zone_page_state(zone, NR_UNACCEPTED));
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
