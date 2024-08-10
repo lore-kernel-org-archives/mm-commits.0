@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB9CADDDC
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 00:30:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19AD9A48
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 00:44:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723249812; cv=none; b=bd4wReKH7tM+Z9cKROW4Sdh1nLR1/nCebUyxQx69fNiKzaY+zwkhVX7VU9+V9VLiu1kc+NtTWUORUVDOHfFHezKSiYz73SAQpn87ssnLVy0yceSBeX95bXrw43lnoV+34lhjOGNhZKnDvZD8N13bTkK9uDcp9JvN3l7ko5h0M34=
+	t=1723250655; cv=none; b=cbo2ztO8V7G2i6PbDQU3tbdGZbaR9tNqFX+QrnPgzpYjEkAqvY+3xD08Q5nQ1et429n1UtaO3pgD4WaA7bynrxKhF2m504Zwv/JSF2DMo4mPsOeUlsEJcbxrx1kI2V9fwkd2fyVxUsMqOrMFTvQ6Catj9vsVjtk6a7tFcF9FXko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723249812; c=relaxed/simple;
-	bh=pe/t7lyDMelxmM6IQfeoXZtCfTGgCQZcBBt9CYygr1A=;
-	h=Date:To:From:Subject:Message-Id; b=YaoSOdPMv/FcPedQ4ZQfDYrKiNy6Dvw8H3a/E03g3SSo2avlCMGlwx5lzwhrplB5HXVv2cTaqPvbeLjFzyyUNrRjk2+TL7g3j8q6Xfw0Icn1Fq59bLn3wbDKU9KrnCoUvJLu3oHSVpxtSrNRxoa2ocNeV4hzOdH6sQwqKo9dpsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vV1H2Jyn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723250655; c=relaxed/simple;
+	bh=Ai8RYyHO1V3pxEmb/2dKaDa6qSotAwzxzTEaB444SAI=;
+	h=Date:To:From:Subject:Message-Id; b=Tmx117Uelz3Am93jl2WuE68YmnkLrV27Rf4uFXg/m0ZECoFgSIc5e/x2//yz7OB5VqhYuAZog37LH/eT7dVQtQrS85+E/QinPGXZ4UqYWSsAJyTVzDTuVI1K/g/PuCcrgL9awdRRudUZJBIM+vgNZ3wOSt0OO861qx04x6uGv2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eU2Gt0wT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vV1H2Jyn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F61FC32782;
-	Sat, 10 Aug 2024 00:30:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eU2Gt0wT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD64C32782;
+	Sat, 10 Aug 2024 00:44:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723249812;
-	bh=pe/t7lyDMelxmM6IQfeoXZtCfTGgCQZcBBt9CYygr1A=;
+	s=korg; t=1723250654;
+	bh=Ai8RYyHO1V3pxEmb/2dKaDa6qSotAwzxzTEaB444SAI=;
 	h=Date:To:From:Subject:From;
-	b=vV1H2JynWPmUnO0mG2kUeHsaca5rlSBGSKkWvdKEd4soct8aikKDD1A77Y+svJUw8
-	 my6uZYYWD+S1fS56DjHWER7yhHk2i5tD4WghVYtw7anV3q46L32hb5khvW8r5gNqcS
-	 ibXLfRVKK7vZX/svWjpUlCRUZwvh7EBUeBea3y5o=
-Date: Fri, 09 Aug 2024 17:30:11 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
+	b=eU2Gt0wTEgpMbLcA79TKPmGRapm3TFBDnPaHSW8Kq0L5imYijhROwO9A038DEvNJe
+	 2XsDvQf8JHiyQ0lmofnLUXkaZKwf610RpK2YNKqUMW6pT1Iqk7e4MF/kRN3Q1yMmX9
+	 L3ZZfiJs0hWql6hhvlANBLVVCzPmTDd3bTppBi30=
+Date: Fri, 09 Aug 2024 17:44:13 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,yi.zhang@redhat.com,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,lizhijian@fujitsu.com,j.granados@samsung.com,hannes@cmpxchg.org,fan.ni@samsung.com,david@redhat.com,dan.j.williams@intel.com,cerasuolodomenico@gmail.com,alison.schofield@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch added to mm-unstable branch
-Message-Id: <20240810003012.2F61FC32782@smtp.kernel.org>
+Subject: + mm-dont-account-memmap-per-node-v5.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240810004414.6AD64C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,memcg: provide per-cgroup counters for NUMA balancing operations
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
+     Subject: mm-dont-account-memmap-per-node-v5
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-dont-account-memmap-per-node-v5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-account-memmap-per-node-v5.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,288 +58,222 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: kaiyang2@cs.cmu.edu
-Subject: mm,memcg: provide per-cgroup counters for NUMA balancing operations
-Date: Fri, 9 Aug 2024 21:21:15 +0000
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm-dont-account-memmap-per-node-v5
+Date: Fri, 9 Aug 2024 19:10:20 +0000
 
+address a few nits from David Hildenbrand
 
-The ability to observe the demotion and promotion decisions made by the
-kernel on a per-cgroup basis is important for monitoring and tuning
-containerized workloads on either NUMA machines or machines
-equipped with tiered memory.
-
-Different containers in the system may experience drastically different
-memory tiering actions that cannot be distinguished from the global
-counters alone.
-
-For example, a container running a workload that has a much hotter
-memory accesses will likely see more promotions and fewer demotions,
-potentially depriving a colocated container of top tier memory to such
-an extent that its performance degrades unacceptably.
-
-For another example, some containers may exhibit longer periods between
-data reuse, causing much more numa_hint_faults than numa_pages_migrated.
-In this case, tuning hot_threshold_ms may be appropriate, but the signal
-can easily be lost if only global counters are available.
-
-This patch set adds five counters to
-memory.stat in a cgroup: numa_pages_migrated, numa_pte_updates,
-numa_hint_faults, pgdemote_kswapd and pgdemote_direct.
-
-count_memcg_events_mm() is added to count multiple event occurrences at
-once, and get_mem_cgroup_from_folio() is added because we need to get a
-reference to the memcg of a folio before it's migrated to track
-numa_pages_migrated. The accounting of PGDEMOTE_* is moved to
-shrink_inactive_list() before being changed to per-cgroup.
-
-Link: https://lkml.kernel.org/r/20240809212115.59291-1-kaiyang2@cs.cmu.edu
-Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Link: https://lkml.kernel.org/r/20240809191020.1142142-4-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Fan Ni <fan.ni@samsung.com>
+Cc: Joel Granados <j.granados@samsung.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Li Zhijian <lizhijian@fujitsu.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yi Zhang <yi.zhang@redhat.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   24 +++++++++++++++++++++---
- include/linux/vmstat.h     |    1 +
- mm/memcontrol.c            |   32 ++++++++++++++++++++++++++++++++
- mm/memory.c                |    1 +
- mm/mempolicy.c             |    4 +++-
- mm/migrate.c               |    3 +++
- mm/vmscan.c                |    8 ++++----
- 7 files changed, 65 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |    8 ++++----
+ mm/hugetlb_vmemmap.c   |    8 ++++----
+ mm/mm_init.c           |    2 +-
+ mm/page_ext.c          |    6 +++---
+ mm/sparse-vmemmap.c    |    4 ++--
+ mm/sparse.c            |    4 ++--
+ mm/vmstat.c            |   19 ++++++++++---------
+ 7 files changed, 26 insertions(+), 25 deletions(-)
 
---- a/include/linux/memcontrol.h~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/include/linux/memcontrol.h
-@@ -768,6 +768,8 @@ struct mem_cgroup *get_mem_cgroup_from_m
- 
- struct mem_cgroup *get_mem_cgroup_from_current(void);
- 
-+struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio);
-+
- struct lruvec *folio_lruvec_lock(struct folio *folio);
- struct lruvec *folio_lruvec_lock_irq(struct folio *folio);
- struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
-@@ -1012,8 +1014,8 @@ static inline void count_memcg_folio_eve
- 		count_memcg_events(memcg, idx, nr);
- }
- 
--static inline void count_memcg_event_mm(struct mm_struct *mm,
--					enum vm_event_item idx)
-+static inline void count_memcg_events_mm(struct mm_struct *mm,
-+					enum vm_event_item idx, unsigned long count)
- {
- 	struct mem_cgroup *memcg;
- 
-@@ -1023,10 +1025,16 @@ static inline void count_memcg_event_mm(
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 	if (likely(memcg))
--		count_memcg_events(memcg, idx, 1);
-+		count_memcg_events(memcg, idx, count);
- 	rcu_read_unlock();
- }
- 
-+static inline void count_memcg_event_mm(struct mm_struct *mm,
-+					enum vm_event_item idx)
-+{
-+	count_memcg_events_mm(mm, idx, 1);
-+}
-+
- static inline void memcg_memory_event(struct mem_cgroup *memcg,
- 				      enum memcg_memory_event event)
- {
-@@ -1246,6 +1254,11 @@ static inline struct mem_cgroup *get_mem
- 	return NULL;
- }
- 
-+static inline struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
-+{
-+	return NULL;
-+}
-+
- static inline
- struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css)
- {
-@@ -1468,6 +1481,11 @@ static inline void count_memcg_folio_eve
- {
- }
- 
-+static inline void count_memcg_events_mm(struct mm_struct *mm,
-+					enum vm_event_item idx, unsigned long count)
-+{
-+}
-+
- static inline
- void count_memcg_event_mm(struct mm_struct *mm, enum vm_event_item idx)
- {
---- a/include/linux/vmstat.h~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
+--- a/include/linux/vmstat.h~mm-dont-account-memmap-per-node-v5
 +++ a/include/linux/vmstat.h
-@@ -32,6 +32,7 @@ struct reclaim_stat {
- 	unsigned nr_ref_keep;
- 	unsigned nr_unmap_fail;
- 	unsigned nr_lazyfree_fail;
-+	unsigned nr_demoted;
+@@ -38,8 +38,8 @@ struct reclaim_stat {
+ enum vm_stat_item {
+ 	NR_DIRTY_THRESHOLD,
+ 	NR_DIRTY_BG_THRESHOLD,
+-	NR_MEMMAP,	/* page metadata allocated through buddy allocator */
+-	NR_MEMMAP_BOOT,	/* page metadata allocated through boot allocator */
++	NR_MEMMAP_PAGES,	/* page metadata allocated through buddy allocator */
++	NR_MEMMAP_BOOT_PAGES,	/* page metadata allocated through boot allocator */
+ 	NR_VM_STAT_ITEMS,
  };
  
- /* Stat data for system wide items */
---- a/mm/memcontrol.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/mm/memcontrol.c
-@@ -307,6 +307,9 @@ static const unsigned int memcg_node_sta
- #ifdef CONFIG_SWAP
- 	NR_SWAPCACHE,
- #endif
-+	PGDEMOTE_KSWAPD,
-+	PGDEMOTE_DIRECT,
-+	PGDEMOTE_KHUGEPAGED,
- };
- 
- static const unsigned int memcg_stat_items[] = {
-@@ -437,6 +440,11 @@ static const unsigned int memcg_vm_event
- 	THP_SWPOUT,
- 	THP_SWPOUT_FALLBACK,
- #endif
-+#ifdef CONFIG_NUMA_BALANCING
-+	NUMA_PAGE_MIGRATE,
-+	NUMA_PTE_UPDATES,
-+	NUMA_HINT_FAULTS,
-+#endif
- };
- 
- #define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
-@@ -979,6 +987,23 @@ again:
+@@ -620,6 +620,6 @@ static inline void lruvec_stat_sub_folio
+ 	lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
  }
  
- /**
-+ * get_mem_cgroup_from_folio - Obtain a reference on a given folio's memcg.
-+ */
-+struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
-+{
-+	struct mem_cgroup *memcg = folio_memcg(folio);
-+
-+	if (mem_cgroup_disabled())
-+		return NULL;
-+
-+	rcu_read_lock();
-+	if (!memcg || WARN_ON_ONCE(!css_tryget(&memcg->css)))
-+		memcg = root_mem_cgroup;
-+	rcu_read_unlock();
-+	return memcg;
-+}
-+
-+/**
-  * mem_cgroup_iter - iterate over memory cgroup hierarchy
-  * @root: hierarchy root
-  * @prev: previously returned memcg, NULL on first invocation
-@@ -1383,6 +1408,10 @@ static const struct memory_stat memory_s
- 	{ "workingset_restore_anon",	WORKINGSET_RESTORE_ANON		},
- 	{ "workingset_restore_file",	WORKINGSET_RESTORE_FILE		},
- 	{ "workingset_nodereclaim",	WORKINGSET_NODERECLAIM		},
-+
-+	{ "pgdemote_kswapd",		PGDEMOTE_KSWAPD		},
-+	{ "pgdemote_direct",		PGDEMOTE_DIRECT		},
-+	{ "pgdemote_khugepaged",	PGDEMOTE_KHUGEPAGED	},
- };
- 
- /* The actual unit of the state item, not the same as the output unit */
-@@ -1416,6 +1445,9 @@ static int memcg_page_state_output_unit(
- 	case WORKINGSET_RESTORE_ANON:
- 	case WORKINGSET_RESTORE_FILE:
- 	case WORKINGSET_NODERECLAIM:
-+	case PGDEMOTE_KSWAPD:
-+	case PGDEMOTE_DIRECT:
-+	case PGDEMOTE_KHUGEPAGED:
- 		return 1;
- 	default:
- 		return memcg_page_state_unit(item);
---- a/mm/memory.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/mm/memory.c
-@@ -5400,6 +5400,7 @@ int numa_migrate_check(struct folio *fol
- 	vma_set_access_pid_bit(vma);
- 
- 	count_vm_numa_event(NUMA_HINT_FAULTS);
-+	count_memcg_folio_events(folio, NUMA_HINT_FAULTS, 1);
- 	if (folio_nid(folio) == numa_node_id()) {
- 		count_vm_numa_event(NUMA_HINT_FAULTS_LOCAL);
- 		*flags |= TNF_FAULT_LOCAL;
---- a/mm/mempolicy.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/mm/mempolicy.c
-@@ -676,8 +676,10 @@ unsigned long change_prot_numa(struct vm
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 
- 	nr_updated = change_protection(&tlb, vma, addr, end, MM_CP_PROT_NUMA);
--	if (nr_updated > 0)
-+	if (nr_updated > 0) {
- 		count_vm_numa_events(NUMA_PTE_UPDATES, nr_updated);
-+		count_memcg_events_mm(vma->vm_mm, NUMA_PTE_UPDATES, nr_updated);
-+	}
- 
- 	tlb_finish_mmu(&tlb);
- 
---- a/mm/migrate.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/mm/migrate.c
-@@ -2614,6 +2614,7 @@ int migrate_misplaced_folio(struct folio
- 	int nr_remaining;
- 	unsigned int nr_succeeded;
- 	LIST_HEAD(migratepages);
-+	struct mem_cgroup *memcg = get_mem_cgroup_from_folio(folio);
- 
- 	list_add(&folio->lru, &migratepages);
- 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_folio,
-@@ -2623,12 +2624,14 @@ int migrate_misplaced_folio(struct folio
- 		putback_movable_pages(&migratepages);
- 	if (nr_succeeded) {
- 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
-+		count_memcg_events(memcg, NUMA_PAGE_MIGRATE, nr_succeeded);
- 		if ((sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
- 		    && !node_is_toptier(folio_nid(folio))
- 		    && node_is_toptier(node))
- 			mod_node_page_state(pgdat, PGPROMOTE_SUCCESS,
- 					    nr_succeeded);
+-void mod_memmap_boot(long delta);
+-void mod_memmap(long delta);
++void memmap_boot_pages_add(long delta);
++void memmap_pages_add(long delta);
+ #endif /* _LINUX_VMSTAT_H */
+--- a/mm/hugetlb_vmemmap.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/hugetlb_vmemmap.c
+@@ -185,10 +185,10 @@ static int vmemmap_remap_range(unsigned
+ static inline void free_vmemmap_page(struct page *page)
+ {
+ 	if (PageReserved(page)) {
+-		mod_memmap_boot(-1);
++		memmap_boot_pages_add(-1);
+ 		free_bootmem_page(page);
+ 	} else {
+-		mod_memmap(-1);
++		memmap_pages_add(-1);
+ 		__free_page(page);
  	}
-+	mem_cgroup_put(memcg);
- 	BUG_ON(!list_empty(&migratepages));
- 	return nr_remaining ? -EAGAIN : 0;
  }
---- a/mm/vmscan.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
-+++ a/mm/vmscan.c
-@@ -1008,9 +1008,6 @@ static unsigned int demote_folio_list(st
- 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
- 		      &nr_succeeded);
+@@ -341,7 +341,7 @@ static int vmemmap_remap_free(unsigned l
+ 		copy_page(page_to_virt(walk.reuse_page),
+ 			  (void *)walk.reuse_addr);
+ 		list_add(&walk.reuse_page->lru, vmemmap_pages);
+-		mod_memmap(1);
++		memmap_pages_add(1);
+ 	}
  
--	mod_node_page_state(pgdat, PGDEMOTE_KSWAPD + reclaimer_offset(),
--			    nr_succeeded);
--
- 	return nr_succeeded;
+ 	/*
+@@ -396,7 +396,7 @@ static int alloc_vmemmap_page_list(unsig
+ 			goto out;
+ 		list_add(&page->lru, list);
+ 	}
+-	mod_memmap(nr_pages);
++	memmap_pages_add(nr_pages);
+ 
+ 	return 0;
+ out:
+--- a/mm/mm_init.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/mm_init.c
+@@ -1623,7 +1623,7 @@ static void __init alloc_node_mem_map(st
+ 		panic("Failed to allocate %ld bytes for node %d memory map\n",
+ 		      size, pgdat->node_id);
+ 	pgdat->node_mem_map = map + offset;
+-	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
++	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
+ 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+ 		 __func__, pgdat->node_id, (unsigned long)pgdat,
+ 		 (unsigned long)pgdat->node_mem_map);
+--- a/mm/page_ext.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/page_ext.c
+@@ -214,7 +214,7 @@ static int __init alloc_node_page_ext(in
+ 		return -ENOMEM;
+ 	NODE_DATA(nid)->node_page_ext = base;
+ 	total_usage += table_size;
+-	mod_memmap_boot(DIV_ROUND_UP(table_size, PAGE_SIZE));
++	memmap_boot_pages_add(DIV_ROUND_UP(table_size, PAGE_SIZE));
+ 	return 0;
  }
  
-@@ -1518,7 +1515,8 @@ keep:
- 	/* 'folio_list' is always empty here */
+@@ -275,7 +275,7 @@ static void *__meminit alloc_page_ext(si
+ 		addr = vzalloc_node(size, nid);
  
- 	/* Migrate folios selected for demotion */
--	nr_reclaimed += demote_folio_list(&demote_folios, pgdat);
-+	stat->nr_demoted = demote_folio_list(&demote_folios, pgdat);
-+	nr_reclaimed += stat->nr_demoted;
- 	/* Folios that could not be demoted are still in @demote_folios */
- 	if (!list_empty(&demote_folios)) {
- 		/* Folios which weren't demoted go back on @folio_list */
-@@ -1984,6 +1982,8 @@ static unsigned long shrink_inactive_lis
- 	spin_lock_irq(&lruvec->lru_lock);
- 	move_folios_to_lru(lruvec, &folio_list);
+ 	if (addr)
+-		mod_memmap(DIV_ROUND_UP(size, PAGE_SIZE));
++		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
  
-+	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
-+					stat.nr_demoted);
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
- 	item = PGSTEAL_KSWAPD + reclaimer_offset();
- 	if (!cgroup_reclaim(sc))
+ 	return addr;
+ }
+@@ -322,7 +322,7 @@ static void free_page_ext(void *addr)
+ 	struct page *page;
+ 
+ 	table_size = page_ext_size * PAGES_PER_SECTION;
+-	mod_memmap(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
++	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
+ 
+ 	if (is_vmalloc_addr(addr)) {
+ 		vfree(addr);
+--- a/mm/sparse.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/sparse.c
+@@ -463,7 +463,7 @@ static void __init sparse_buffer_init(un
+ 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
+ 	sparsemap_buf_end = sparsemap_buf + size;
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-	mod_memmap_boot(DIV_ROUND_UP(size, PAGE_SIZE));
++	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
+ #endif
+ }
+ 
+@@ -643,7 +643,7 @@ static void depopulate_section_memmap(un
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
+ 
+-	mod_memmap(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
++	memmap_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
+ 	vmemmap_free(start, end, altmap);
+ }
+ static void free_map_bootmem(struct page *memmap)
+--- a/mm/sparse-vmemmap.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/sparse-vmemmap.c
+@@ -470,9 +470,9 @@ struct page * __meminit __populate_secti
+ 		return NULL;
+ 
+ 	if (system_state == SYSTEM_BOOTING)
+-		mod_memmap_boot(DIV_ROUND_UP(end - start, PAGE_SIZE));
++		memmap_boot_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
+ 	else
+-		mod_memmap(DIV_ROUND_UP(end - start, PAGE_SIZE));
++		memmap_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
+ 
+ 	return pfn_to_page(pfn);
+ }
+--- a/mm/vmstat.c~mm-dont-account-memmap-per-node-v5
++++ a/mm/vmstat.c
+@@ -1035,19 +1035,20 @@ unsigned long node_page_state(struct pgl
+ 
+ /*
+  * Count number of pages "struct page" and "struct page_ext" consume.
+- * nr_memmap_boot: # of pages allocated by boot allocator & not part of MemTotal
+- * nr_memmap: # of pages that were allocated by buddy allocator
++ * nr_memmap_boot_pages: # of pages allocated by boot allocator
++ * nr_memmap_pages: # of pages that were allocated by buddy allocator
+  */
+-static atomic_long_t nr_memmap_boot, nr_memmap;
++static atomic_long_t nr_memmap_boot_pages = ATOMIC_LONG_INIT(0);
++static atomic_long_t nr_memmap_pages = ATOMIC_LONG_INIT(0);
+ 
+-void mod_memmap_boot(long delta)
++void memmap_boot_pages_add(long delta)
+ {
+-	atomic_long_add(delta, &nr_memmap_boot);
++	atomic_long_add(delta, &nr_memmap_boot_pages);
+ }
+ 
+-void mod_memmap(long delta)
++void memmap_pages_add(long delta)
+ {
+-	atomic_long_add(delta, &nr_memmap);
++	atomic_long_add(delta, &nr_memmap_pages);
+ }
+ 
+ #ifdef CONFIG_COMPACTION
+@@ -1844,8 +1845,8 @@ static void *vmstat_start(struct seq_fil
+ 
+ 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
+ 			    v + NR_DIRTY_THRESHOLD);
+-	v[NR_MEMMAP_BOOT] = atomic_long_read(&nr_memmap_boot);
+-	v[NR_MEMMAP] = atomic_long_read(&nr_memmap);
++	v[NR_MEMMAP_PAGES] = atomic_long_read(&nr_memmap_pages);
++	v[NR_MEMMAP_BOOT_PAGES] = atomic_long_read(&nr_memmap_boot_pages);
+ 	v += NR_VM_STAT_ITEMS;
+ 
+ #ifdef CONFIG_VM_EVENT_COUNTERS
 _
 
-Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
-mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
-mm-print-the-promo-watermark-in-zoneinfo.patch
-mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
+mm-dont-account-memmap-on-failure.patch
+mm-add-system-wide-stats-items-category.patch
+mm-dont-account-memmap-per-node.patch
+mm-dont-account-memmap-per-node-v5.patch
+memcg-increase-the-valid-index-range-for-memcg-stats-v5.patch
+vmstat-kernel-stack-usage-histogram.patch
+task_stack-uninline-stack_not_used.patch
 
