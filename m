@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 864371DA58
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 01:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EEEC1E4A9;
+	Sat, 10 Aug 2024 01:15:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723251862; cv=none; b=Thq/KRvTwo/YxCSbO4AcxnAg/GVoqQkl4OzjS74AdrMy69LBP3r6Zr8pDX5MgDyKACDI6EYtCSkY/NPgAFfbr93TZFHDre51dKwTs1JF6u2lZD7yH0TbKJGxuD9GEPdAecXxTMgjsYN2Re5DDEowmPpHxJangGcH/nyXDVd/dgg=
+	t=1723252510; cv=none; b=JWS4TpkiXjDe+Ihxfp2isHXVHifwt7MjiJ6rRXAouCSOIMAQ6UFn7sMK6tfLpyJ2Rdr0Tfpn/XseiN1nZCYpm9FE5DJwkIF0ttbliAPPjZYKdCgTM64duB1jx2R0Q3M+E/M4R79TheIbKMdRZpdKuW+xL5xdyFYGiir0yqA4Ekg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723251862; c=relaxed/simple;
-	bh=OoZDY1jluILL1I1dueyf/MejaRggI7f3XhsdZXSfxVE=;
-	h=Date:To:From:Subject:Message-Id; b=SpOKCsA/62DdrN0OUgwwuyhSnl8QezoK2ioJoEYNLFB/PXqv5piYRpxGq+oMfh447BIGWz0kRPQQpVH+3/dNKAr+rzp3wDsZ5tTvP5GKMnW0rqgfSPKaOOvh2TmJf+H7iGfLctcuhbyhN4NOqiH+qlfV4s3qi2rnB/aX5TjG8p4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOYAJJ2M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723252510; c=relaxed/simple;
+	bh=0Rkk6y/0Wz2/3RpwXQGEj/pdFkvruDsLPSG4tJkPm0s=;
+	h=Date:To:From:Subject:Message-Id; b=HDw3hWtvmbtWbUf8+dUfaMI8RKdW+VFugg6q/Gs6LPd8RdvCqnPdu4jl4aSa7DkIKRBayXHYD4nMyLQbyRDye4r+7SrUBf0vZMtSpvP8OK1qiambUavRD/0T0BAXFuJax9AQI8rkK7mZmm3HITdOjcP29UOEB2xTFbxLUNcOqpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1zFMky+h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOYAJJ2M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E2FC32782;
-	Sat, 10 Aug 2024 01:04:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1zFMky+h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8532C32782;
+	Sat, 10 Aug 2024 01:15:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723251862;
-	bh=OoZDY1jluILL1I1dueyf/MejaRggI7f3XhsdZXSfxVE=;
+	s=korg; t=1723252508;
+	bh=0Rkk6y/0Wz2/3RpwXQGEj/pdFkvruDsLPSG4tJkPm0s=;
 	h=Date:To:From:Subject:From;
-	b=QOYAJJ2Mi8ox8PNteuC/S9x6z+juxe8LEyENT7kiA1wmDqbs+OiUtwRWCfUVyTJwr
-	 Vapio2kaFCPqZ+v2f87gmoc5tiCeq68KfImG+javqL5qJCn9WdOv610E+GDflKlN1z
-	 iijsdqnolzJpl/kHp90yuaP8AmxF4nNFDQBn+WHo=
-Date: Fri, 09 Aug 2024 18:04:21 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,iamjoonsoo.kim@lge.com,glider@google.com,elver@google.com,dvyukov@google.com,dsterba@suse.cz,cl@linux.com,andreyknvl@gmail.com,42.hyeyoo@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=1zFMky+hNxXvz5F3XdP1xqWJEqX40GPOIldYctbvpxp8QM0xtkrdt+VV2xxRoEXcO
+	 0DhZnB+CfVdy5hjLXR9SqKE1FI5EchQgjXQWri6o4goxVwEzLlaHwqVEaBLfr+4veR
+	 mM2G7enb2YYyzUGepmDRkq/o4pyxUgk/iGqlnmJI=
+Date: Fri, 09 Aug 2024 18:15:08 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shy828301@gmail.com,mgorman@suse.de,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + slub-introduce-config_slub_rcu_debug-v8.patch added to mm-unstable branch
-Message-Id: <20240810010421.E0E2FC32782@smtp.kernel.org>
+Subject: + mm-numa-no-task_numa_fault-call-if-pte-is-changed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240810011508.C8532C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: slub: Introduce CONFIG_SLUB_RCU_DEBUG
-has been added to the -mm mm-unstable branch.  Its filename is
-     slub-introduce-config_slub_rcu_debug-v8.patch
+     Subject: mm/numa: no task_numa_fault() call if PTE is changed
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-numa-no-task_numa_fault-call-if-pte-is-changed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-introduce-config_slub_rcu_debug-v8.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa-no-task_numa_fault-call-if-pte-is-changed.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,99 +58,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: slub: Introduce CONFIG_SLUB_RCU_DEBUG
-Date: Fri, 09 Aug 2024 17:36:56 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/numa: no task_numa_fault() call if PTE is changed
+Date: Fri, 9 Aug 2024 10:59:04 -0400
 
-  - move rcu_barrier() out of locked region (vbabka)
-  - rearrange code in slab_free_after_rcu_debug (vbabka)
+When handling a numa page fault, task_numa_fault() should be called by a
+process that restores the page table of the faulted folio to avoid
+duplicated stats counting.  Commit b99a342d4f11 ("NUMA balancing: reduce
+TLB flush via delaying mapping on hint page fault") restructured
+do_numa_page() and did not avoid task_numa_fault() call in the second page
+table check after a numa migration failure.  Fix it by making all
+!pte_same() return immediately.
 
-Link: https://lkml.kernel.org/r/20240809-kasan-tsbrcu-v8-2-aef4593f9532@google.com
-Tested-by: syzbot+263726e59eab6b442723@syzkaller.appspotmail.com
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Acked-by: Marco Elver <elver@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz> (slab)
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This issue can cause task_numa_fault() being called more than necessary
+and lead to unexpected numa balancing results (It is hard to tell whether
+the issue will cause positive or negative performance impact due to
+duplicated numa fault counting).
+
+Link: https://lkml.kernel.org/r/20240809145906.1513458-2-ziy@nvidia.com
+Fixes: b99a342d4f11 ("NUMA balancing: reduce TLB flush via delaying mapping on hint page fault")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: "Huang, Ying" <ying.huang@intel.com>
+Closes: https://lore.kernel.org/linux-mm/87zfqfw0yw.fsf@yhuang6-desk2.ccr.corp.intel.com/
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   22 +++++++++++++---------
- mm/slub.c        |    5 ++---
- 2 files changed, 15 insertions(+), 12 deletions(-)
+ mm/memory.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
---- a/mm/slab_common.c~slub-introduce-config_slub_rcu_debug-v8
-+++ a/mm/slab_common.c
-@@ -576,15 +576,6 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (unlikely(!s) || !kasan_check_byte(s))
- 		return;
+--- a/mm/memory.c~mm-numa-no-task_numa_fault-call-if-pte-is-changed
++++ a/mm/memory.c
+@@ -5295,7 +5295,7 @@ static vm_fault_t do_numa_page(struct vm
  
--	cpus_read_lock();
--	mutex_lock(&slab_mutex);
--
--	rcu_set = s->flags & SLAB_TYPESAFE_BY_RCU;
--
--	s->refcount--;
--	if (s->refcount)
--		goto out_unlock;
--
- 	if (IS_ENABLED(CONFIG_SLUB_RCU_DEBUG) &&
- 	    (s->flags & SLAB_TYPESAFE_BY_RCU)) {
- 		/*
-@@ -593,10 +584,23 @@ void kmem_cache_destroy(struct kmem_cach
- 		 * defer their freeing with call_rcu().
- 		 * Wait for such call_rcu() invocations here before actually
- 		 * destroying the cache.
-+		 *
-+		 * It doesn't matter that we haven't looked at the slab refcount
-+		 * yet - slabs with SLAB_TYPESAFE_BY_RCU can't be merged, so
-+		 * the refcount should be 1 here.
- 		 */
- 		rcu_barrier();
+ 	if (unlikely(!pte_same(old_pte, vmf->orig_pte))) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		goto out;
++		return 0;
  	}
  
-+	cpus_read_lock();
-+	mutex_lock(&slab_mutex);
-+
-+	rcu_set = s->flags & SLAB_TYPESAFE_BY_RCU;
-+
-+	s->refcount--;
-+	if (s->refcount)
-+		goto out_unlock;
-+
- 	err = shutdown_cache(s);
- 	WARN(err, "%s %s: Slab cache still has objects when called from %pS",
- 	     __func__, s->name, (void *)_RET_IP_);
---- a/mm/slub.c~slub-introduce-config_slub_rcu_debug-v8
-+++ a/mm/slub.c
-@@ -4563,9 +4563,8 @@ static void slab_free_after_rcu_debug(st
- 		return;
+ 	pte = pte_modify(old_pte, vma->vm_page_prot);
+@@ -5358,23 +5358,19 @@ static vm_fault_t do_numa_page(struct vm
+ 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
+ 		nid = target_nid;
+ 		flags |= TNF_MIGRATED;
+-	} else {
+-		flags |= TNF_MIGRATE_FAIL;
+-		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-					       vmf->address, &vmf->ptl);
+-		if (unlikely(!vmf->pte))
+-			goto out;
+-		if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			goto out;
+-		}
+-		goto out_map;
++		task_numa_fault(last_cpupid, nid, nr_pages, flags);
++		return 0;
+ 	}
  
- 	/* resume freeing */
--	if (!slab_free_hook(s, object, slab_want_init_on_free(s), true))
--		return;
--	do_slab_free(s, slab, object, object, 1, _THIS_IP_);
-+	if (slab_free_hook(s, object, slab_want_init_on_free(s), true))
-+		do_slab_free(s, slab, object, object, 1, _THIS_IP_);
+-out:
+-	if (nid != NUMA_NO_NODE)
+-		task_numa_fault(last_cpupid, nid, nr_pages, flags);
+-	return 0;
++	flags |= TNF_MIGRATE_FAIL;
++	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
++				       vmf->address, &vmf->ptl);
++	if (unlikely(!vmf->pte))
++		return 0;
++	if (unlikely(!pte_same(ptep_get(vmf->pte), vmf->orig_pte))) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		return 0;
++	}
+ out_map:
+ 	/*
+ 	 * Make it present again, depending on how arch implements
+@@ -5387,7 +5383,10 @@ out_map:
+ 		numa_rebuild_single_mapping(vmf, vma, vmf->address, vmf->pte,
+ 					    writable);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	goto out;
++
++	if (nid != NUMA_NO_NODE)
++		task_numa_fault(last_cpupid, nid, nr_pages, flags);
++	return 0;
  }
- #endif /* CONFIG_SLUB_RCU_DEBUG */
  
+ static inline vm_fault_t create_huge_pmd(struct vm_fault *vmf)
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-fix-harmless-type-confusion-in-lock_vma_under_rcu.patch
-kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
-slub-introduce-config_slub_rcu_debug.patch
-slub-introduce-config_slub_rcu_debug-v8.patch
+mm-numa-no-task_numa_fault-call-if-pte-is-changed.patch
+mm-numa-no-task_numa_fault-call-if-pmd-is-changed.patch
+memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
+memory-tiering-introduce-folio_use_access_time-check.patch
+memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
 
