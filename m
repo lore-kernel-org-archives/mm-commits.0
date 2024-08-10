@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D30021A0B;
-	Sat, 10 Aug 2024 06:57:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE07E14A600
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 07:04:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723273071; cv=none; b=DQObwZuS0QJ2T3MTliAttea/+5dO7VWXLh5ZXS4EWAKgG3AWEfgB9cRl7bjsor1AAvJ1aeKqbEnJ5FKzNkQX82fHQO3vwP/+s2Xe0nFKDM3kGlq4A3QnF+eyTtKmslz7YFwacAFkw217YZ133s9dGkcuwKPiS4HP90PHalJIkIE=
+	t=1723273461; cv=none; b=o1wJ7h9atc/zq/k1BvO7HGyWR4FyJtgFzEMjTvanFxw2L8bG9LQlOhA6xXcz7DMz6AtyvXblYa9ucNLPETcROC/8W7FwOZsa16DQQc99wS6ssRxhk2WMegI/fKtA/n3EZKoUkVcnQHQgpCGxbwu6r+nFnQCFklF5zXBPA4RAjuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723273071; c=relaxed/simple;
-	bh=8KWAiP9QqRxubX/w07CI25UoOR41M6XD3z/hOvatN/U=;
-	h=Date:To:From:Subject:Message-Id; b=CcJZAJTm0kxPhglk2uAK3aAR3VHfOiaesRdDHnrF9+i8iAB85y9d9glN2An8NToDO5VezU0Tvt6MOQgMd8KuDej9VVhlIjP8bYhmDyHCcG8Mcyc+kbDbpG+vuYERI6C8lLyPlgbokcSnWAZvzkbcYEy8jBlI+1HfvC7Q4ntrx2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K+QvLXKG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723273461; c=relaxed/simple;
+	bh=cv2gY58QsWWeaw2zwx4BahRghzbnvVa9RrQRLHWZwsA=;
+	h=Date:To:From:Subject:Message-Id; b=ZXIqZQouz6K61Th77tv/21vtHfo9HcEB4yh0cMvOa2OEvYPC4ViI+gUl0GHMMzPJapXES69IZXfE7oBZx0UDlPdecg/7O0QlS/4TgapfH1ClaPZ5JtKB9ltCggMo77wIQuLJu5jNwXtYaLu3Kt24bQOfsww92gkSwZRg/6rTuos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vQ+O6a2j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K+QvLXKG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB7B0C32781;
-	Sat, 10 Aug 2024 06:57:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vQ+O6a2j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C781C32781;
+	Sat, 10 Aug 2024 07:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723273070;
-	bh=8KWAiP9QqRxubX/w07CI25UoOR41M6XD3z/hOvatN/U=;
+	s=korg; t=1723273461;
+	bh=cv2gY58QsWWeaw2zwx4BahRghzbnvVa9RrQRLHWZwsA=;
 	h=Date:To:From:Subject:From;
-	b=K+QvLXKGdJdR5yLGFqq43fs4LMQDc+5wnQadclLNK5d29E2eiOjBb2C6HmcoSWdV8
-	 iMgAsdNmPpsnIcWSW4jooGgcUx5Fv+pdymvpPDCk9iswvz+79wVMChEu+kLmvE5iKD
-	 mRewnJar553q7iNMyS0R3sNNJh71LhrN2GN1gg/Y=
-Date: Fri, 09 Aug 2024 23:57:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,James.Bottomley@HansenPartnership.com,aou@eecs.berkeley.edu,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=vQ+O6a2jSqHlhdRWglpHmRPbsnPkDe9RXIMle1C2RPnsD0DifQ3YgKim35DLHqGT9
+	 Vhy+c6u9Ayo1lxRTnctQ2alBPcMS8Uvvrf7n9oTG8uDt1z++tunL7QH0evQx1o9z4I
+	 7VHGxxXm3WqdSaTsClqgnyK0hMK3kz6M6kew37eg=
+Date: Sat, 10 Aug 2024 00:04:20 -0700
+To: mm-commits@vger.kernel.org,wei.liu@kernel.org,ssengar@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240810065750.BB7B0C32781@smtp.kernel.org>
+Subject: + mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch added to mm-unstable branch
+Message-Id: <20240810070421.5C781C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch
+     Subject: mm/vmstat: defer the refresh_zone_stat_thresholds after all CPUs bringup
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
-Date: Fri, 9 Aug 2024 12:56:42 +0500
+From: Saurabh Sengar <ssengar@linux.microsoft.com>
+Subject: mm/vmstat: defer the refresh_zone_stat_thresholds after all CPUs bringup
+Date: Fri, 5 Jul 2024 01:48:21 -0700
 
-[1] mentions that memfd_secret is only supported on arm64, riscv, x86 and
-x86_64 for now.  It doesn't support other architectures.  I found the
-build error on arm and decided to send the fix as it was creating noise on
-KernelCI.  Hence I'm adding condition that memfd_secret should only be
-compiled on supported architectures.
+refresh_zone_stat_thresholds function has two loops which is expensive for
+higher number of CPUs and NUMA nodes.
 
-Also check in run_vmtests script if memfd_secret binary is present
-before executing it.
+Below is the rough estimation of total iterations done by these loops
+based on number of NUMA and CPUs.
 
-Link: https://lore.kernel.org/all/20210518072034.31572-7-rppt@kernel.org/ [1]
-Link: https://lkml.kernel.org/r/20240809075642.403247-1-usama.anjum@collabora.com
-Fixes: 76fe17ef588a ("secretmem: test: add basic selftest for memfd_secret(2)")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Total number of iterations: nCPU * 2 * Numa * mCPU
+Where:
+ nCPU = total number of CPUs
+ Numa = total number of NUMA nodes
+ mCPU = mean value of total CPUs (e.g., 512 for 1024 total CPUs)
+
+For the system under test with 16 NUMA nodes and 1024 CPUs, this results
+in a substantial increase in the number of loop iterations during boot-up
+when NUMA is enabled:
+
+No NUMA = 1024*2*1*512  =   1,048,576 : Here refresh_zone_stat_thresholds
+takes around 224 ms total for all the CPUs in the system under test.
+16 NUMA = 1024*2*16*512 =  16,777,216 : Here refresh_zone_stat_thresholds
+takes around 4.5 seconds total for all the CPUs in the system under test.
+
+Calling this for each CPU is expensive when there are large number of CPUs
+along with multiple NUMAs.  Fix this by deferring
+refresh_zone_stat_thresholds to be called later at once when all the
+secondary CPUs are up.  Also, register the DYN hooks to keep the existing
+hotplug functionality intact.
+
+Link: https://lkml.kernel.org/r/1720169301-21002-1-git-send-email-ssengar@linux.microsoft.com
+Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile       |    2 ++
- tools/testing/selftests/mm/run_vmtests.sh |    3 +++
- 2 files changed, 5 insertions(+)
+ mm/vmstat.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -53,7 +53,9 @@ TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
-+ifneq (,$(filter $(ARCH),arm64 riscv riscv64 x86 x86_64))
- TEST_GEN_FILES += memfd_secret
-+endif
- TEST_GEN_FILES += migration
- TEST_GEN_FILES += mkdirty
- TEST_GEN_FILES += mlock-random-test
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -374,8 +374,11 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
+--- a/mm/vmstat.c~mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup
++++ a/mm/vmstat.c
+@@ -31,6 +31,7 @@
  
-+if [ -x ./memfd_secret ]
-+then
- (echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
- CATEGORY="memfd_secret" run_test ./memfd_secret
-+fi
+ #include "internal.h"
  
- # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
- CATEGORY="ksm" run_test ./ksm_tests -H -s 100
++static int vmstat_late_init_done;
+ #ifdef CONFIG_NUMA
+ int sysctl_vm_numa_stat = ENABLE_NUMA_STAT;
+ 
+@@ -2130,7 +2131,8 @@ static void __init init_cpu_node_state(v
+ 
+ static int vmstat_cpu_online(unsigned int cpu)
+ {
+-	refresh_zone_stat_thresholds();
++	if (vmstat_late_init_done)
++		refresh_zone_stat_thresholds();
+ 
+ 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
+ 		node_set_state(cpu_to_node(cpu), N_CPU);
+@@ -2162,6 +2164,14 @@ static int vmstat_cpu_dead(unsigned int
+ 	return 0;
+ }
+ 
++static int __init vmstat_late_init(void)
++{
++	refresh_zone_stat_thresholds();
++	vmstat_late_init_done = 1;
++
++	return 0;
++}
++late_initcall(vmstat_late_init);
+ #endif
+ 
+ struct workqueue_struct *mm_percpu_wq;
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from ssengar@linux.microsoft.com are
 
-selftests-mm-fix-build-errors-on-armhf.patch
-selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch
+mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
