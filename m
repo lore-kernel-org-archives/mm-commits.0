@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557BE142E6F
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 338CB142E6F
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 06:19:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723270759; cv=none; b=BXIThppQSvQj1C01mZnvqaO8hKgD+1pbiIPVnIJP0w5GqHNYT2MyOgjHsXhta+gLJIG1UpLljhRAivi0ctSk7Bhmcysyy3sHoVXNHAxSKu9L/9N4JEoUD7zfO7gEKK6/yT+WGIJRW+qCypqjhhJb28bGSKU4tiP7lVu+Gv+HCF0=
+	t=1723270761; cv=none; b=RZIQzFbGSqtqUfhyefu2TTJ5s09DGJ4jh15rWlGJLFl5Pq0v1D2U6qmUvxEyS2o6THRs+CV6jzmRXK8JOmGqrkxU8jAZPjK7UwRPsUupQgryWOqU7DLacxJ17scN9NHYXmzihWk+XavGEqPSGxOQYtIlQX0i7RGhIMC+l1GIK/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723270759; c=relaxed/simple;
-	bh=TQgzZSbKEjPau4xRvsTbjocTHr8cbfg+3j9vBhog5Eo=;
-	h=Date:To:From:Subject:Message-Id; b=SDhFxt3bXw1RIMUdBfogJBqYjYCtJg3qEEgfB/VJDR0lcBN9eiXfVNxgJkURf/sfnnBsWPn2D1/iccs0oVJGSFfH/3XOd51zb/Zo4NQuacr1fZMMwG1MadWu1BToqSdXoL5HG/v3EzdOBzTabsDqbwf8IHFqIPUd6oN3GENkq28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m8e8gxRt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723270761; c=relaxed/simple;
+	bh=g4yFGvZMSCh3qiE5QiEM0bI0mM7qm2ObmfqT12Rnrn4=;
+	h=Date:To:From:Subject:Message-Id; b=tWdUj/gtuZ8VHfbZkokLmSV864ogOVHcFHHULoYcUEsS5EEA0Y99KDR1RIb8omx3ESxLR4fJzzeF14PlbN/Aieiyqcz1orgkNugFmJkwguMZzzX/i6+9RLiuPszzc5/bnYMh1qw6sVFST8uaohq4Pwmy2Zk2IntEY/JBWdf4geg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DuU2+B6c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m8e8gxRt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD780C32781;
-	Sat, 10 Aug 2024 06:19:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DuU2+B6c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2DF1C32781;
+	Sat, 10 Aug 2024 06:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723270758;
-	bh=TQgzZSbKEjPau4xRvsTbjocTHr8cbfg+3j9vBhog5Eo=;
+	s=korg; t=1723270760;
+	bh=g4yFGvZMSCh3qiE5QiEM0bI0mM7qm2ObmfqT12Rnrn4=;
 	h=Date:To:From:Subject:From;
-	b=m8e8gxRtQZ7nk7yi38Ro/LbjQAVbl2F/R8jdsHPUh1roG+EF/wm0p7/B/46VhpC19
-	 91JuGKTneeHV0Hf6uqAURQDRHs/p8MDBQMiuN1ZR7u5iUx9w+ROYA/c8eL1klSQRyO
-	 9aiWexD7PUMK3eYxqchsKrC33pT75bLmNL3lQWGU=
-Date: Fri, 09 Aug 2024 23:19:18 -0700
+	b=DuU2+B6cGsk4DKwE5xo2GsCZNG8E7FuoYbk66elVkhW9MlLjttXTgTkEernpcpg5y
+	 0zHGgoj2cgBN+wvcV8rQ8WBzVr9vg5EAamYkHJWlBvooqjoZPlntSidBLF8Zki50L7
+	 KCdodDr++ooaScI1esb3uvVsICssY7Z1rx5Y2ziQ=
+Date: Fri, 09 Aug 2024 23:19:20 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,rppt@kernel.org,mgorman@suse.de,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-accept-memory-in-__alloc_pages_bulk.patch added to mm-unstable branch
-Message-Id: <20240810061918.BD780C32781@smtp.kernel.org>
+Subject: + mm-introduce-pageunaccepted-page-type.patch added to mm-unstable branch
+Message-Id: <20240810061920.C2DF1C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: accept memory in __alloc_pages_bulk()
+     Subject: mm: introduce PageUnaccepted() page type
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-accept-memory-in-__alloc_pages_bulk.patch
+     mm-introduce-pageunaccepted-page-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-accept-memory-in-__alloc_pages_bulk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-pageunaccepted-page-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: accept memory in __alloc_pages_bulk()
-Date: Fri, 9 Aug 2024 14:48:49 +0300
+Subject: mm: introduce PageUnaccepted() page type
+Date: Fri, 9 Aug 2024 14:48:50 +0300
 
-Currently, the kernel only accepts memory in get_page_from_freelist(), but
-there is another path that directly takes pages from free lists -
-__alloc_page_bulk().  This function can consume all accepted memory and
-will resort to __alloc_pages_noprof() if necessary.
+The new page type allows physical memory scanners to detect unaccepted
+memory and handle it accordingly.
 
-Conditionally accepted in __alloc_pages_bulk().
+The page type is serialized with zone lock.
 
-The same issue may arise due to deferred page initialization.  Kick the
-deferred initialization machinery before abandoning the zone, as the
-kernel does in get_page_from_freelist().
-
-Link: https://lkml.kernel.org/r/20240809114854.3745464-4-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20240809114854.3745464-5-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -86,35 +80,52 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/page-flags.h |    8 ++++++++
+ mm/page_alloc.c            |    2 ++
+ 2 files changed, 10 insertions(+)
 
---- a/mm/page_alloc.c~mm-accept-memory-in-__alloc_pages_bulk
+--- a/include/linux/page-flags.h~mm-introduce-pageunaccepted-page-type
++++ a/include/linux/page-flags.h
+@@ -939,6 +939,7 @@ enum pagetype {
+ 	PG_hugetlb	= 0x04000000,
+ 	PG_slab		= 0x02000000,
+ 	PG_zsmalloc	= 0x01000000,
++	PG_unaccepted	= 0x00800000,
+ 
+ 	PAGE_TYPE_BASE	= 0x80000000,
+ 
+@@ -1072,6 +1073,13 @@ FOLIO_TEST_FLAG_FALSE(hugetlb)
+ 
+ PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmalloc)
+ 
++/*
++ * Mark pages that has to be accepted before touched for the first time.
++ *
++ * Serialized with zone lock.
++ */
++PAGE_TYPE_OPS(Unaccepted, unaccepted, unaccepted)
++
+ /**
+  * PageHuge - Determine if the page belongs to hugetlbfs
+  * @page: The page to test.
+--- a/mm/page_alloc.c~mm-introduce-pageunaccepted-page-type
 +++ a/mm/page_alloc.c
-@@ -4577,12 +4577,23 @@ unsigned long alloc_pages_bulk_noprof(gf
- 			goto failed;
- 		}
+@@ -6972,6 +6972,7 @@ static bool try_to_accept_memory_one(str
  
-+		cond_accept_memory(zone, 0);
-+retry_this_zone:
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
- 		if (zone_watermark_fast(zone, 0,  mark,
- 				zonelist_zone_idx(ac.preferred_zoneref),
- 				alloc_flags, gfp)) {
- 			break;
- 		}
-+
-+		if (cond_accept_memory(zone, 0))
-+			goto retry_this_zone;
-+
-+		/* Try again if zone has deferred pages */
-+		if (deferred_pages_enabled()) {
-+			if (_deferred_grow_zone(zone, 0))
-+				goto retry_this_zone;
-+		}
- 	}
+ 	account_freepages(zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
+ 	__mod_zone_page_state(zone, NR_UNACCEPTED, -MAX_ORDER_NR_PAGES);
++	__ClearPageUnaccepted(page);
+ 	spin_unlock_irqrestore(&zone->lock, flags);
  
- 	/*
+ 	accept_page(page, MAX_PAGE_ORDER);
+@@ -7030,6 +7031,7 @@ static bool __free_unaccepted(struct pag
+ 	list_add_tail(&page->lru, &zone->unaccepted_pages);
+ 	account_freepages(zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
+ 	__mod_zone_page_state(zone, NR_UNACCEPTED, MAX_ORDER_NR_PAGES);
++	__SetPageUnaccepted(page);
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ 	if (first)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
