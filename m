@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F253C17579
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 00:53:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 864371DA58
+	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 01:04:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723251196; cv=none; b=VqVnUxdjcR9AzSWC0Z6h/s6UAjgqgSL3BHZHKRYZM1Vf3WmVWXhyRjTDEClVeOy185ThKYRuO89S9moPA0IvhYGZXbl24EwhxAGqwhMzYIOgjEChDOEz9O2Lmq7muOdB0yBAAaENowWXlT9h+us6s/O8sPQLCGJr2ARP8q95HAY=
+	t=1723251862; cv=none; b=Thq/KRvTwo/YxCSbO4AcxnAg/GVoqQkl4OzjS74AdrMy69LBP3r6Zr8pDX5MgDyKACDI6EYtCSkY/NPgAFfbr93TZFHDre51dKwTs1JF6u2lZD7yH0TbKJGxuD9GEPdAecXxTMgjsYN2Re5DDEowmPpHxJangGcH/nyXDVd/dgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723251196; c=relaxed/simple;
-	bh=Nf2X+znJdizYcmiZFXmwVAUZnRrYrBYyw8zvBg9601I=;
-	h=Date:To:From:Subject:Message-Id; b=rNm82atW6tTr2U2pMUr1qilFcY6a/7LTDrHhH/Td+1CcBDn/NHhAUiphyMwcJENeisvQZSI3qA7zlUsjf3mEmXM0lA8zCCSEpcz3/HIfFQnfKTJNSKPuwW5vT8lhhw2So6H/TZa4IMe1VdxFfq9/mIINUetPBadeVcFkiGz6slo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sfxgkzs9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723251862; c=relaxed/simple;
+	bh=OoZDY1jluILL1I1dueyf/MejaRggI7f3XhsdZXSfxVE=;
+	h=Date:To:From:Subject:Message-Id; b=SpOKCsA/62DdrN0OUgwwuyhSnl8QezoK2ioJoEYNLFB/PXqv5piYRpxGq+oMfh447BIGWz0kRPQQpVH+3/dNKAr+rzp3wDsZ5tTvP5GKMnW0rqgfSPKaOOvh2TmJf+H7iGfLctcuhbyhN4NOqiH+qlfV4s3qi2rnB/aX5TjG8p4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOYAJJ2M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sfxgkzs9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D53AC32782;
-	Sat, 10 Aug 2024 00:53:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOYAJJ2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E2FC32782;
+	Sat, 10 Aug 2024 01:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723251195;
-	bh=Nf2X+znJdizYcmiZFXmwVAUZnRrYrBYyw8zvBg9601I=;
+	s=korg; t=1723251862;
+	bh=OoZDY1jluILL1I1dueyf/MejaRggI7f3XhsdZXSfxVE=;
 	h=Date:To:From:Subject:From;
-	b=sfxgkzs9fiD9609DVp/rnJA1MokuSth7xKlXKUO4AstEhhcz9fzqr6M6jCERwBDod
-	 gJ80AjIjENfRnRIGdrA23UoloQO/QEGgheYu+MO7aMtQa7iqK6VS9lvpzrUJjfPJ4H
-	 JLV2Ib9Wz+ggK7f6e0ojtEb4VSoM0pkitWWWLC94=
-Date: Fri, 09 Aug 2024 17:53:14 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=QOYAJJ2Mi8ox8PNteuC/S9x6z+juxe8LEyENT7kiA1wmDqbs+OiUtwRWCfUVyTJwr
+	 Vapio2kaFCPqZ+v2f87gmoc5tiCeq68KfImG+javqL5qJCn9WdOv610E+GDflKlN1z
+	 iijsdqnolzJpl/kHp90yuaP8AmxF4nNFDQBn+WHo=
+Date: Fri, 09 Aug 2024 18:04:21 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,iamjoonsoo.kim@lge.com,glider@google.com,elver@google.com,dvyukov@google.com,dsterba@suse.cz,cl@linux.com,andreyknvl@gmail.com,42.hyeyoo@gmail.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-replace-memcg-id-idr-with-xarray.patch added to mm-unstable branch
-Message-Id: <20240810005315.7D53AC32782@smtp.kernel.org>
+Subject: + slub-introduce-config_slub_rcu_debug-v8.patch added to mm-unstable branch
+Message-Id: <20240810010421.E0E2FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: replace memcg ID idr with xarray
+     Subject: slub: Introduce CONFIG_SLUB_RCU_DEBUG
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-replace-memcg-id-idr-with-xarray.patch
+     slub-introduce-config_slub_rcu_debug-v8.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-replace-memcg-id-idr-with-xarray.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-introduce-config_slub_rcu_debug-v8.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: replace memcg ID idr with xarray
-Date: Fri, 9 Aug 2024 10:26:18 -0700
+From: Jann Horn <jannh@google.com>
+Subject: slub: Introduce CONFIG_SLUB_RCU_DEBUG
+Date: Fri, 09 Aug 2024 17:36:56 +0200
 
-At the moment memcg IDs are managed through IDR which requires external
-synchronization mechanisms and makes the allocation code a bit awkward. 
-Let's switch to xarray and make the code simpler.
+  - move rcu_barrier() out of locked region (vbabka)
+  - rearrange code in slab_free_after_rcu_debug (vbabka)
 
-Link: https://lkml.kernel.org/r/20240809172618.2946790-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240809-kasan-tsbrcu-v8-2-aef4593f9532@google.com
+Tested-by: syzbot+263726e59eab6b442723@syzkaller.appspotmail.com
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Marco Elver <elver@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz> (slab)
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   34 +++++++---------------------------
- 1 file changed, 7 insertions(+), 27 deletions(-)
+ mm/slab_common.c |   22 +++++++++++++---------
+ mm/slub.c        |    5 ++---
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
---- a/mm/memcontrol.c~memcg-replace-memcg-id-idr-with-xarray
-+++ a/mm/memcontrol.c
-@@ -3395,29 +3395,12 @@ static void memcg_wb_domain_size_changed
-  */
+--- a/mm/slab_common.c~slub-introduce-config_slub_rcu_debug-v8
++++ a/mm/slab_common.c
+@@ -576,15 +576,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (unlikely(!s) || !kasan_check_byte(s))
+ 		return;
  
- #define MEM_CGROUP_ID_MAX	((1UL << MEM_CGROUP_ID_SHIFT) - 1)
--static DEFINE_IDR(mem_cgroup_idr);
--static DEFINE_SPINLOCK(memcg_idr_lock);
+-	cpus_read_lock();
+-	mutex_lock(&slab_mutex);
 -
--static int mem_cgroup_alloc_id(void)
--{
--	int ret;
+-	rcu_set = s->flags & SLAB_TYPESAFE_BY_RCU;
 -
--	idr_preload(GFP_KERNEL);
--	spin_lock(&memcg_idr_lock);
--	ret = idr_alloc(&mem_cgroup_idr, NULL, 1, MEM_CGROUP_ID_MAX + 1,
--			GFP_NOWAIT);
--	spin_unlock(&memcg_idr_lock);
--	idr_preload_end();
--	return ret;
--}
-+static DEFINE_XARRAY_ALLOC1(mem_cgroup_ids);
- 
- static void mem_cgroup_id_remove(struct mem_cgroup *memcg)
- {
- 	if (memcg->id.id > 0) {
--		spin_lock(&memcg_idr_lock);
--		idr_remove(&mem_cgroup_idr, memcg->id.id);
--		spin_unlock(&memcg_idr_lock);
+-	s->refcount--;
+-	if (s->refcount)
+-		goto out_unlock;
 -
-+		xa_erase(&mem_cgroup_ids, memcg->id.id);
- 		memcg->id.id = 0;
+ 	if (IS_ENABLED(CONFIG_SLUB_RCU_DEBUG) &&
+ 	    (s->flags & SLAB_TYPESAFE_BY_RCU)) {
+ 		/*
+@@ -593,10 +584,23 @@ void kmem_cache_destroy(struct kmem_cach
+ 		 * defer their freeing with call_rcu().
+ 		 * Wait for such call_rcu() invocations here before actually
+ 		 * destroying the cache.
++		 *
++		 * It doesn't matter that we haven't looked at the slab refcount
++		 * yet - slabs with SLAB_TYPESAFE_BY_RCU can't be merged, so
++		 * the refcount should be 1 here.
+ 		 */
+ 		rcu_barrier();
  	}
+ 
++	cpus_read_lock();
++	mutex_lock(&slab_mutex);
++
++	rcu_set = s->flags & SLAB_TYPESAFE_BY_RCU;
++
++	s->refcount--;
++	if (s->refcount)
++		goto out_unlock;
++
+ 	err = shutdown_cache(s);
+ 	WARN(err, "%s %s: Slab cache still has objects when called from %pS",
+ 	     __func__, s->name, (void *)_RET_IP_);
+--- a/mm/slub.c~slub-introduce-config_slub_rcu_debug-v8
++++ a/mm/slub.c
+@@ -4563,9 +4563,8 @@ static void slab_free_after_rcu_debug(st
+ 		return;
+ 
+ 	/* resume freeing */
+-	if (!slab_free_hook(s, object, slab_want_init_on_free(s), true))
+-		return;
+-	do_slab_free(s, slab, object, object, 1, _THIS_IP_);
++	if (slab_free_hook(s, object, slab_want_init_on_free(s), true))
++		do_slab_free(s, slab, object, object, 1, _THIS_IP_);
  }
-@@ -3452,7 +3435,7 @@ static inline void mem_cgroup_id_put(str
- struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
- {
- 	WARN_ON_ONCE(!rcu_read_lock_held());
--	return idr_find(&mem_cgroup_idr, id);
-+	return xa_load(&mem_cgroup_ids, id);
- }
+ #endif /* CONFIG_SLUB_RCU_DEBUG */
  
- #ifdef CONFIG_SHRINKER_DEBUG
-@@ -3551,11 +3534,10 @@ static struct mem_cgroup *mem_cgroup_all
- 	if (!memcg)
- 		return ERR_PTR(error);
- 
--	memcg->id.id = mem_cgroup_alloc_id();
--	if (memcg->id.id < 0) {
--		error = memcg->id.id;
-+	error = xa_alloc(&mem_cgroup_ids, &memcg->id.id, NULL,
-+			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
-+	if (error)
- 		goto fail;
--	}
- 
- 	memcg->vmstats = kzalloc(sizeof(struct memcg_vmstats),
- 				 GFP_KERNEL_ACCOUNT);
-@@ -3696,9 +3678,7 @@ static int mem_cgroup_css_online(struct
- 	 * publish it here at the end of onlining. This matches the
- 	 * regular ID destruction during offlining.
- 	 */
--	spin_lock(&memcg_idr_lock);
--	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
--	spin_unlock(&memcg_idr_lock);
-+	xa_store(&mem_cgroup_ids, memcg->id.id, memcg, GFP_KERNEL);
- 
- 	return 0;
- offline_kmem:
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from jannh@google.com are
 
-memcg-increase-the-valid-index-range-for-memcg-stats.patch
-memcg-replace-memcg-id-idr-with-xarray.patch
+mm-fix-harmless-type-confusion-in-lock_vma_under_rcu.patch
+kasan-catch-invalid-free-before-slub-reinitializes-the-object.patch
+slub-introduce-config_slub_rcu_debug.patch
+slub-introduce-config_slub_rcu_debug-v8.patch
 
