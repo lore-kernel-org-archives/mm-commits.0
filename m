@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE2615A8
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 02:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85DCD178381
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 04:36:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723516074; cv=none; b=GENuXGLYFreUEEWu1M+tX+eT50bnLedTSoWfZpw3mIUVXqbGKPY73Nys87pJRDXQXbtJyeg+41Ok7EYjFjXaH8hc3TSwKfsVwDJH/eJd/WscDsB4zFKYMyqQWUWK9bxRX4BKnEU8Wjo1z0bB38aZAj0NN6vaaXT0dMYONZpSeTo=
+	t=1723523799; cv=none; b=XkdnG4idWm0Bf5i9UHgys3Luy+2kB/B7jObNL6r7t3aDEIEpHpWkle/f3U6tgKhP3UaYQdxkmC65y5QgEPhOmTqZFNpj2uHCYXyq6taVK6qbqe6NpSYqDcZ58DGHihKZzT7c55BPSpOdvtfB/yQlwMUh/jg6rhyjYbwKKSZ3vXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723516074; c=relaxed/simple;
-	bh=sP/vb8fp6jS0GiHeMcKgAEjCHea9380KgCmJaV9kj8s=;
-	h=Date:To:From:Subject:Message-Id; b=Sh04VS8i5YxYm6+OyEVwkT77KwkCYQurSZegZXm5rHGYIxuAHeCkG2LenBJXATnXndYSFUZEPcnoUzkFyT33p9H7wctpjKwACb3nqLt0tT3J6of4Mo7FUqw4iyaARVnK+vKLn1IjCHETYgNkl/SgXnk5B+/gO1/hpis/yGFB9Oo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Se7JcI9o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723523799; c=relaxed/simple;
+	bh=V17weZbTg5hVamEcgkisV/nARYgyiuA2DdpSUXivxSQ=;
+	h=Date:To:From:Subject:Message-Id; b=bqKfEM39cNK2EQYA3UpBdiGIZTMUAbJEdOAzrPgOGme+LIFvU+g32dB59peHwMKq+qo7LvMsHiHEPYMtXNalGTkJaLjiEbXNAaRS1lnBnzCwST+BA6JvIB2AVoRcpqLwdMHwMmb9RuYY8DJfKBIABQB3jyDJz5CKeBPi/CmtXZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0C5YE6rV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Se7JcI9o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83743C4AF0E;
-	Tue, 13 Aug 2024 02:27:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0C5YE6rV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D57C7C4AF0B;
+	Tue, 13 Aug 2024 04:36:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723516073;
-	bh=sP/vb8fp6jS0GiHeMcKgAEjCHea9380KgCmJaV9kj8s=;
+	s=korg; t=1723523798;
+	bh=V17weZbTg5hVamEcgkisV/nARYgyiuA2DdpSUXivxSQ=;
 	h=Date:To:From:Subject:From;
-	b=Se7JcI9o1Q9Scjc55RRvbkicUetqBSBPfN9oDSwRJzaOnh5lnZkY9ic+xxhZjoXpI
-	 9yyzBmsWVmgMpX8Ey1chtFy4zPiknMpMU7/dMGUko5mJg83LNTORSQBDPfXZ8wX+nk
-	 kJtjKun8EIVnCT0m4QuiX7hx0GhRZcqdevjkBqzU=
-Date: Mon, 12 Aug 2024 19:27:52 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mgorman@techsingularity.net,kirill@shutemov.name,jthoughton@google.com,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=0C5YE6rVSrfCWl0g7wWYR406OioZpVXv8/Ln/3Y15BpTJQzfv+FioGP0EEmw0r9B1
+	 FWHadFUJXw5wPtB5dGInAxSqY09aTiOooyL0l6iGpfwGRb5c6hna/JeDg/uWAMZyAn
+	 OZKXdg5Rl8C/pROgXBGsaoZChvxAWw5PN/EhWSJU=
+Date: Mon, 12 Aug 2024 21:36:38 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vgoyal@redhat.com,thunder.leizhen@huawei.com,tglx@linutronix.de,tangyouling@kylinos.cn,robh@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,linux@armlinux.org.uk,linus.walleij@linaro.org,kernel@xen0n.name,javierm@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,gregkh@linuxfoundation.org,eric.devolder@oracle.com,dyoung@redhat.com,deller@gmx.de,dave.hansen@linux.intel.com,chenjiahao16@huawei.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,bhe@redhat.com,arnd@arndb.de,aou@eecs.berkeley.edu,afd@ti.com,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mprotect-fix-dax-pud-handlings.patch removed from -mm tree
-Message-Id: <20240813022753.83743C4AF0E@smtp.kernel.org>
+Subject: [to-be-updated] crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch removed from -mm tree
+Message-Id: <20240813043638.D57C7C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,280 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mprotect: fix dax pud handlings
+     Subject: crash: fix x86_32 crash memory reserve dead loop bug
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-fix-dax-pud-handlings.patch
+     crash-fix-x86_32-crash-memory-reserve-dead-loop-bug.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/mprotect: fix dax pud handlings
-Date: Wed, 7 Aug 2024 15:48:11 -0400
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: crash: fix x86_32 crash memory reserve dead loop bug
+Date: Fri, 19 Jul 2024 17:57:33 +0800
 
-This is only relevant to the two archs that support PUD dax, aka, x86_64
-and ppc64.  PUD THPs do not yet exist elsewhere, and hugetlb PUDs do not
-count in this case.
+Patch series "crash: Fix x86_32 memory reserve dead loop bug", v4.
 
-DAX have had PUD mappings for years, but change protection path never
-worked.  When the path is triggered in any form (a simple test program
-would be: call mprotect() on a 1G dev_dax mapping), the kernel will report
-"bad pud".  This patch should fix that.
+Fix two bugs for x86_32 crash memory reserve, and prepare to apply generic
+crashkernel reservation to 32bit system.  Then use generic interface to
+simplify crashkernel reservation for ARM32.
 
-The new change_huge_pud() tries to keep everything simple.  For example,
-it doesn't optimize write bit as that will need even more PUD helpers. 
-It's not too bad anyway to have one more write fault in the worst case
-once for 1G range; may be a bigger thing for each PAGE_SIZE, though. 
-Neither does it support userfault-wp bits, as there isn't such PUD
-mappings that is supported; file mappings always need a split there.
 
-The same to TLB shootdown: the pmd path (which was for x86 only) has the
-trick of using _ad() version of pmdp_invalidate*() which can avoid one
-redundant TLB, but let's also leave that for later.  Again, the larger the
-mapping, the smaller of such effect.
+This patch (of 3):
 
-There's some difference on handling "retry" for change_huge_pud() (where
-it can return 0): it isn't like change_huge_pmd(), as the pmd version is
-safe with all conditions handled in change_pte_range() later, thanks to
-Hugh's new pte_offset_map_lock().  In short, change_pte_range() is simply
-smarter.  For that, change_pud_range() will need proper retry if it races
-with something else when a huge PUD changed from under us.
+On x86_32 Qemu machine with 1GB memory, the cmdline "crashkernel=1G,high"
+will cause system stall as below:
 
-The last thing to mention is currently the PUD path ignores the huge pte
-numa counter (NUMA_HUGE_PTE_UPDATES), not only because DAX is not
-applicable to NUMA, but also that it's ambiguous on its own to decide how
-to account pud in this case.  In one earlier version of this patchset I
-proposed to remove the counter as it doesn't even look right to do the
-accounting as of now [1], but then a further discussion suggests we can
-leave that for later, as that doesn't block this series if we choose to
-ignore that counter.  That's what this patch does, by ignoring it.
+	ACPI: Reserving FACP table memory at [mem 0x3ffe18b8-0x3ffe192b]
+	ACPI: Reserving DSDT table memory at [mem 0x3ffe0040-0x3ffe18b7]
+	ACPI: Reserving FACS table memory at [mem 0x3ffe0000-0x3ffe003f]
+	ACPI: Reserving APIC table memory at [mem 0x3ffe192c-0x3ffe19bb]
+	ACPI: Reserving HPET table memory at [mem 0x3ffe19bc-0x3ffe19f3]
+	ACPI: Reserving WAET table memory at [mem 0x3ffe19f4-0x3ffe1a1b]
+	143MB HIGHMEM available.
+	879MB LOWMEM available.
+	  mapped low ram: 0 - 36ffe000
+	  low ram: 0 - 36ffe000
+	 (stall here)
 
-When at it, touch up the comment in pgtable_split_needed() to make it
-generic to either pmd or pud file THPs.
+The reason is that the CRASH_ADDR_LOW_MAX is equal to CRASH_ADDR_HIGH_MAX
+on x86_32, the first high crash kernel memory reservation will fail, then
+go into the "retry" loop and never came out as below.
 
-[1] https://lore.kernel.org/all/20240715192142.3241557-3-peterx@redhat.com/
-[2] https://lore.kernel.org/r/added2d0-b8be-4108-82ca-1367a388d0b1@redhat.com
+-> reserve_crashkernel_generic() and high is true
+ -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
+    -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
+       (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
 
-Link: https://lkml.kernel.org/r/20240807194812.819412-8-peterx@redhat.com
-Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
-Fixes: 27af67f35631 ("powerpc/book3s64/mm: enable transparent pud hugepage")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+Fix it by prevent crashkernel=,high from being parsed successfully on
+32bit system with a architecture-defined macro.
+
+After this patch, the 'crashkernel=,high' for 32bit system can't succeed,
+and it has no chance to call reserve_crashkernel_generic(), therefore this
+issue on x86_32 is solved.
+
+Link: https://lkml.kernel.org/r/20240719095735.1912878-1-ruanjinjie@huawei.com
+Link: https://lkml.kernel.org/r/20240719095735.1912878-2-ruanjinjie@huawei.com
+Fixes: 9c08a2a139fe ("x86: kdump: use generic interface to simplify crashkernel reservation code")
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Baoquan He <bhe@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Andrew Davis <afd@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chen Jiahao <chenjiahao16@huawei.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Eric DeVolder <eric.devolder@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Javier Martinez Canillas <javierm@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rob Herring (Arm) <robh@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
+Cc: Youling Tang <tangyouling@kylinos.cn>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   24 +++++++++++++++++
- mm/huge_memory.c        |   52 ++++++++++++++++++++++++++++++++++++++
- mm/mprotect.c           |   39 ++++++++++++++++++++++------
- 3 files changed, 107 insertions(+), 8 deletions(-)
+ arch/arm64/include/asm/crash_reserve.h     |    2 ++
+ arch/loongarch/include/asm/crash_reserve.h |    2 ++
+ arch/riscv/include/asm/crash_reserve.h     |    4 ++++
+ arch/x86/include/asm/crash_reserve.h       |    1 +
+ kernel/crash_reserve.c                     |    2 +-
+ 5 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-mprotect-fix-dax-pud-handlings
-+++ a/include/linux/huge_mm.h
-@@ -342,6 +342,17 @@ void split_huge_pmd_address(struct vm_ar
- void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long address);
+--- a/arch/arm64/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
++++ a/arch/arm64/include/asm/crash_reserve.h
+@@ -7,4 +7,6 @@
  
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+int change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags);
-+#else
-+static inline int
-+change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		unsigned long cp_flags) { return 0; }
+ #define CRASH_ADDR_LOW_MAX              arm64_dma_phys_limit
+ #define CRASH_ADDR_HIGH_MAX             (PHYS_MASK + 1)
++
++#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
+ #endif
+--- a/arch/loongarch/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
++++ a/arch/loongarch/include/asm/crash_reserve.h
+@@ -7,6 +7,8 @@
+ #define CRASH_ADDR_LOW_MAX		SZ_4G
+ #define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
+ 
++#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
++
+ extern phys_addr_t memblock_end_of_DRAM(void);
+ 
+ #endif
+--- a/arch/riscv/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
++++ a/arch/riscv/include/asm/crash_reserve.h
+@@ -7,5 +7,9 @@
+ #define CRASH_ADDR_LOW_MAX		dma32_phys_limit
+ #define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
+ 
++#ifdef CONFIG_64BIT
++#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
 +#endif
 +
- #define split_huge_pud(__vma, __pud, __address)				\
- 	do {								\
- 		pud_t *____pud = (__pud);				\
-@@ -585,6 +596,19 @@ static inline int next_order(unsigned lo
- {
- 	return 0;
- }
-+
-+static inline void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
-+				    unsigned long address)
-+{
-+}
-+
-+static inline int change_huge_pud(struct mmu_gather *tlb,
-+				  struct vm_area_struct *vma, pud_t *pudp,
-+				  unsigned long addr, pgprot_t newprot,
-+				  unsigned long cp_flags)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ extern phys_addr_t memblock_end_of_DRAM(void);
+ #endif
+--- a/arch/x86/include/asm/crash_reserve.h~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
++++ a/arch/x86/include/asm/crash_reserve.h
+@@ -26,6 +26,7 @@ extern unsigned long swiotlb_size_or_def
+ #else
+ # define CRASH_ADDR_LOW_MAX     SZ_4G
+ # define CRASH_ADDR_HIGH_MAX    SZ_64T
++#define HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
+ #endif
  
- static inline int split_folio_to_list_to_order(struct folio *folio,
---- a/mm/huge_memory.c~mm-mprotect-fix-dax-pud-handlings
-+++ a/mm/huge_memory.c
-@@ -2111,6 +2111,53 @@ unlock:
- 	return ret;
- }
- 
-+/*
-+ * Returns:
-+ *
-+ * - 0: if pud leaf changed from under us
-+ * - 1: if pud can be skipped
-+ * - HPAGE_PUD_NR: if pud was successfully processed
-+ */
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+int change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	pud_t oldpud, entry;
-+	spinlock_t *ptl;
-+
-+	tlb_change_page_size(tlb, HPAGE_PUD_SIZE);
-+
-+	/* NUMA balancing doesn't apply to dax */
-+	if (cp_flags & MM_CP_PROT_NUMA)
-+		return 1;
-+
-+	/*
-+	 * Huge entries on userfault-wp only works with anonymous, while we
-+	 * don't have anonymous PUDs yet.
-+	 */
-+	if (WARN_ON_ONCE(cp_flags & MM_CP_UFFD_WP_ALL))
-+		return 1;
-+
-+	ptl = __pud_trans_huge_lock(pudp, vma);
-+	if (!ptl)
-+		return 0;
-+
-+	/*
-+	 * Can't clear PUD or it can race with concurrent zapping.  See
-+	 * change_huge_pmd().
-+	 */
-+	oldpud = pudp_invalidate(vma, addr, pudp);
-+	entry = pud_modify(oldpud, newprot);
-+	set_pud_at(mm, addr, pudp, entry);
-+	tlb_flush_pud_range(tlb, addr, HPAGE_PUD_SIZE);
-+
-+	spin_unlock(ptl);
-+	return HPAGE_PUD_NR;
-+}
-+#endif
-+
- #ifdef CONFIG_USERFAULTFD
- /*
-  * The PT lock for src_pmd and dst_vma/src_vma (for reading) are locked by
-@@ -2341,6 +2388,11 @@ out:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(&range);
- }
-+#else
-+void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
-+		unsigned long address)
-+{
-+}
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- 
- static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
---- a/mm/mprotect.c~mm-mprotect-fix-dax-pud-handlings
-+++ a/mm/mprotect.c
-@@ -302,8 +302,9 @@ pgtable_split_needed(struct vm_area_stru
- {
+ # define DEFAULT_CRASH_KERNEL_LOW_SIZE crash_low_size_default()
+--- a/kernel/crash_reserve.c~crash-fix-x86_32-crash-memory-reserve-dead-loop-bug
++++ a/kernel/crash_reserve.c
+@@ -305,7 +305,7 @@ int __init parse_crashkernel(char *cmdli
+ 	/* crashkernel=X[@offset] */
+ 	ret = __parse_crashkernel(cmdline, system_ram, crash_size,
+ 				crash_base, NULL);
+-#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
++#ifdef HAVE_ARCH_CRASHKERNEL_RESERVATION_HIGH
  	/*
- 	 * pte markers only resides in pte level, if we need pte markers,
--	 * we need to split.  We cannot wr-protect shmem thp because file
--	 * thp is handled differently when split by erasing the pmd so far.
-+	 * we need to split.  For example, we cannot wr-protect a file thp
-+	 * (e.g. 2M shmem) because file thp is handled differently when
-+	 * split by erasing the pmd so far.
- 	 */
- 	return (cp_flags & MM_CP_UFFD_WP) && !vma_is_anonymous(vma);
- }
-@@ -430,31 +431,53 @@ static inline long change_pud_range(stru
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	struct mmu_notifier_range range;
--	pud_t *pud;
-+	pud_t *pudp, pud;
- 	unsigned long next;
- 	long pages = 0, ret;
- 
- 	range.start = 0;
- 
--	pud = pud_offset(p4d, addr);
-+	pudp = pud_offset(p4d, addr);
- 	do {
-+again:
- 		next = pud_addr_end(addr, end);
--		ret = change_prepare(vma, pud, pmd, addr, cp_flags);
-+		ret = change_prepare(vma, pudp, pmd, addr, cp_flags);
- 		if (ret) {
- 			pages = ret;
- 			break;
- 		}
--		if (pud_none_or_clear_bad(pud))
-+
-+		pud = READ_ONCE(*pudp);
-+		if (pud_none(pud))
- 			continue;
-+
- 		if (!range.start) {
- 			mmu_notifier_range_init(&range,
- 						MMU_NOTIFY_PROTECTION_VMA, 0,
- 						vma->vm_mm, addr, end);
- 			mmu_notifier_invalidate_range_start(&range);
- 		}
--		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
-+
-+		if (pud_leaf(pud)) {
-+			if ((next - addr != PUD_SIZE) ||
-+			    pgtable_split_needed(vma, cp_flags)) {
-+				__split_huge_pud(vma, pudp, addr);
-+				goto again;
-+			} else {
-+				ret = change_huge_pud(tlb, vma, pudp,
-+						      addr, newprot, cp_flags);
-+				if (ret == 0)
-+					goto again;
-+				/* huge pud was handled */
-+				if (ret == HPAGE_PUD_NR)
-+					pages += HPAGE_PUD_NR;
-+				continue;
-+			}
-+		}
-+
-+		pages += change_pmd_range(tlb, vma, pudp, addr, next, newprot,
- 					  cp_flags);
--	} while (pud++, addr = next, addr != end);
-+	} while (pudp++, addr = next, addr != end);
- 
- 	if (range.start)
- 		mmu_notifier_invalidate_range_end(&range);
+ 	 * If non-NULL 'high' passed in and no normal crashkernel
+ 	 * setting detected, try parsing crashkernel=,high|low.
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
+crash-fix-riscv64-crash-memory-reserve-dead-loop-v2.patch
+crash-fix-x86_32-crash-memory-reserve-dead-loop.patch
+arm-use-generic-interface-to-simplify-crashkernel-reservation.patch
+crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
