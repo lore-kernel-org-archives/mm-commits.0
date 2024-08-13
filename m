@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4E465589A
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 20:12:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CD7A1A4F2E
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 20:13:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723579978; cv=none; b=CzqUO2CY0iPTCURV9EYu/7qkGrkqvVmmfe6rlPbt/lVr0ZC5eXT0C+T2bC7+JREllyzIOGIZfcwYtBEpDRH1pZ8w4QK9LZe5LXK2fcaRZVyNj1LRDT1n5uyrnOSdcopKom/eJeP++5UbsZ7uvkYuwGPFasSwQIA1iHp9UCrk6ME=
+	t=1723579982; cv=none; b=qSXGEzfI7/U+eDCi5HBFUufwVhbOi3AN+MMhDulRLx6w/VJ0hkX5EoB0R+Z7KQlJgHt3zQ38ASA5YLIVzPURV59NlPyVrB+LXg2KXH6RDp14pOV12OV1E6KtZ/7V00EMs3elZeEXL+YyhrhS+1w+Tuv/4tOF9V1PsYk5rvTJp3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723579978; c=relaxed/simple;
-	bh=M767o/OltehSD3wrWhin/TgvEg0uvtKZHEyKDYUJ2a0=;
-	h=Date:To:From:Subject:Message-Id; b=Jbe/RaTyF24B0ohatS7RKEmIw2QQG8nJopOSWBuDq3otJ2Vvlq//BCeVshw7rce+MNqPs1DanyTNYwvshW4ugpnuEaCoR9E2qa1z3lmKZb/NHkbNzmJNV2LqgVTNnvrXCxJ0BJRU+qIBO7kD0uS7bCsbLcGlnR/PNTIGZMBSj+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IB3Bh2gH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723579982; c=relaxed/simple;
+	bh=VntI7lO64UlrwC5J3B1Y3tyJ88J0P3saY8/GOvCqAeI=;
+	h=Date:To:From:Subject:Message-Id; b=n/ECTrDxPB2zOwcTYln6fRz+Rk8QHqBEx8IG97XFbz954Pc0U2J31rAWDZrz+65jvBNbTEgF/w9VgfDEnn+LiGIna7GKHJKapK2/EVrZFmDgjAvfUDxSqgpZMJjFDJSnWzW3MMjschrEb/INts2Ibx+wvRjED0VXWar2o47HD4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DfUkRD5u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IB3Bh2gH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B94C32782;
-	Tue, 13 Aug 2024 20:12:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DfUkRD5u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 970DEC32782;
+	Tue, 13 Aug 2024 20:13:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723579978;
-	bh=M767o/OltehSD3wrWhin/TgvEg0uvtKZHEyKDYUJ2a0=;
+	s=korg; t=1723579981;
+	bh=VntI7lO64UlrwC5J3B1Y3tyJ88J0P3saY8/GOvCqAeI=;
 	h=Date:To:From:Subject:From;
-	b=IB3Bh2gHWLhik2CKHGYLrBiSyWiK4gE+vjzfGIp5sBYiYDXMmH5fKJU+c51aUvPx5
-	 Qs2WrH2iosY3qBVoZnu8c0ER/RXQE0VSsPe9m4njITWC3vymtKY+3POTzuBagGwO0l
-	 snvDGQOuviC6VNk0nInB9UYdeERTaH2p082U5Hvw=
-Date: Tue, 13 Aug 2024 13:12:57 -0700
-To: mm-commits@vger.kernel.org,zhais@google.com,willy@infradead.org,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,alexlzhu@fb.com,ak@linux.intel.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=DfUkRD5uMtrmF8w0GHS0ZTjWSbtyDhR9f5fYvasPRzRcBBQO8R38ej0tONqNldH4L
+	 1rckQi4LXhy386Ouy0bIMgmvGpViUIxULuhQmZR5NA1970Qbe82JcAWN6hyZGsPj2N
+	 yKsK2bcNqXs0/F7PQAHETmpZtsu0YcK2nTyS2cz0=
+Date: Tue, 13 Aug 2024 13:13:00 -0700
+To: mm-commits@vger.kernel.org,zhais@google.com,yuzhao@google.com,willy@infradead.org,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,ak@linux.intel.com,alexlzhu@fb.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch added to mm-unstable branch
-Message-Id: <20240813201258.33B94C32782@smtp.kernel.org>
+Subject: + mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch added to mm-unstable branch
+Message-Id: <20240813201301.970DEC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remap unused subpages to shared zeropage when splitting isolated thp
+     Subject: mm: selftest to verify zero-filled pages are mapped to zeropage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
+     mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,25 +58,18 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: remap unused subpages to shared zeropage when splitting isolated thp
-Date: Tue, 13 Aug 2024 13:02:45 +0100
+From: Alexander Zhu <alexlzhu@fb.com>
+Subject: mm: selftest to verify zero-filled pages are mapped to zeropage
+Date: Tue, 13 Aug 2024 13:02:46 +0100
 
-Here being unused means containing only zeros and inaccessible to
-userspace.  When splitting an isolated thp under reclaim or migration, the
-unused subpages can be mapped to the shared zeropage, hence saving memory.
-This is particularly helpful when the internal fragmentation of a thp is
-high, i.e.  it has many untouched subpages.
+When a THP is split, any subpage that is zero-filled will be mapped to the
+shared zeropage, hence saving memory.  Add selftest to verify this by
+allocating zero-filled THP and comparing RssAnon before and after split.
 
-This is also a prerequisite for THP low utilization shrinker which will be
-introduced in later patches, where underutilized THPs are split, and the
-zero-filled pages are freed saving memory.
-
-Link: https://lkml.kernel.org/r/20240813120328.1275952-3-usamaarif642@gmail.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240813120328.1275952-4-usamaarif642@gmail.com
+Signed-off-by: Alexander Zhu <alexlzhu@fb.com>
 Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Tested-by: Shuang Zhai <zhais@google.com>
-Cc: Alexander Zhu <alexlzhu@fb.com>
+Acked-by: Rik van Riel <riel@surriel.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
@@ -84,237 +77,158 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuang Zhai <zhais@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    7 +++-
- mm/huge_memory.c     |    8 ++--
- mm/migrate.c         |   71 +++++++++++++++++++++++++++++++++++------
- mm/migrate_device.c  |    4 +-
- 4 files changed, 74 insertions(+), 16 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   71 ++++++++++++
+ tools/testing/selftests/mm/vm_util.c              |   22 +++
+ tools/testing/selftests/mm/vm_util.h              |    1 
+ 3 files changed, 94 insertions(+)
 
---- a/include/linux/rmap.h~mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp
-+++ a/include/linux/rmap.h
-@@ -745,7 +745,12 @@ int folio_mkclean(struct folio *);
- int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
- 		      struct vm_area_struct *vma);
- 
--void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
-+enum rmp_flags {
-+	RMP_LOCKED		= 1 << 0,
-+	RMP_USE_SHARED_ZEROPAGE	= 1 << 1,
-+};
-+
-+void remove_migration_ptes(struct folio *src, struct folio *dst, int flags);
- 
- /*
-  * rmap_walk_control: To control rmap traversing for specific needs
---- a/mm/huge_memory.c~mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp
-+++ a/mm/huge_memory.c
-@@ -2904,7 +2904,7 @@ bool unmap_huge_pmd_locked(struct vm_are
- 	return false;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -84,6 +84,76 @@ static void write_debugfs(const char *fm
+ 	write_file(SPLIT_DEBUGFS, input, ret + 1);
  }
  
--static void remap_page(struct folio *folio, unsigned long nr)
-+static void remap_page(struct folio *folio, unsigned long nr, int flags)
- {
- 	int i = 0;
- 
-@@ -2912,7 +2912,7 @@ static void remap_page(struct folio *fol
- 	if (!folio_test_anon(folio))
- 		return;
- 	for (;;) {
--		remove_migration_ptes(folio, folio, true);
-+		remove_migration_ptes(folio, folio, RMP_LOCKED | flags);
- 		i += folio_nr_pages(folio);
- 		if (i >= nr)
- 			break;
-@@ -3122,7 +3122,7 @@ static void __split_huge_page(struct pag
- 
- 	if (nr_dropped)
- 		shmem_uncharge(folio->mapping->host, nr_dropped);
--	remap_page(folio, nr);
-+	remap_page(folio, nr, PageAnon(head) ? RMP_USE_SHARED_ZEROPAGE : 0);
- 
- 	/*
- 	 * set page to its compound_head when split to non order-0 pages, so
-@@ -3417,7 +3417,7 @@ fail:
- 		if (mapping)
- 			xas_unlock(&xas);
- 		local_irq_enable();
--		remap_page(folio, folio_nr_pages(folio));
-+		remap_page(folio, folio_nr_pages(folio), 0);
- 		ret = -EAGAIN;
- 	}
- 
---- a/mm/migrate.c~mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp
-+++ a/mm/migrate.c
-@@ -178,13 +178,56 @@ void putback_movable_pages(struct list_h
- 	}
- }
- 
-+static bool try_to_map_unused_to_zeropage(struct page_vma_mapped_walk *pvmw,
-+					  struct folio *folio,
-+					  unsigned long idx)
++static char *allocate_zero_filled_hugepage(size_t len)
 +{
-+	struct page *page = folio_page(folio, idx);
-+	bool contains_data;
-+	pte_t newpte;
-+	void *addr;
++	char *result;
++	size_t i;
 +
-+	VM_BUG_ON_PAGE(PageCompound(page), page);
-+	VM_BUG_ON_PAGE(!PageAnon(page), page);
-+	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	VM_BUG_ON_PAGE(pte_present(*pvmw->pte), page);
++	result = memalign(pmd_pagesize, len);
++	if (!result) {
++		printf("Fail to allocate memory\n");
++		exit(EXIT_FAILURE);
++	}
 +
-+	if (PageMlocked(page) || (pvmw->vma->vm_flags & VM_LOCKED))
-+		return false;
++	madvise(result, len, MADV_HUGEPAGE);
 +
-+	/*
-+	 * The pmd entry mapping the old thp was flushed and the pte mapping
-+	 * this subpage has been non present. If the subpage is only zero-filled
-+	 * then map it to the shared zeropage.
-+	 */
-+	addr = kmap_local_page(page);
-+	contains_data = memchr_inv(addr, 0, PAGE_SIZE);
-+	kunmap_local(addr);
++	for (i = 0; i < len; i++)
++		result[i] = (char)0;
 +
-+	if (contains_data || mm_forbids_zeropage(pvmw->vma->vm_mm))
-+		return false;
-+
-+	newpte = pte_mkspecial(pfn_pte(my_zero_pfn(pvmw->address),
-+					pvmw->vma->vm_page_prot));
-+	set_pte_at(pvmw->vma->vm_mm, pvmw->address, pvmw->pte, newpte);
-+
-+	dec_mm_counter(pvmw->vma->vm_mm, mm_counter(folio));
-+	return true;
++	return result;
 +}
 +
-+struct rmap_walk_arg {
-+	struct folio *folio;
-+	bool map_unused_to_zeropage;
-+};
++static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
++{
++	unsigned long rss_anon_before, rss_anon_after;
++	size_t i;
 +
- /*
-  * Restore a potential migration pte to a working pte entry
-  */
- static bool remove_migration_pte(struct folio *folio,
--		struct vm_area_struct *vma, unsigned long addr, void *old)
-+		struct vm_area_struct *vma, unsigned long addr, void *arg)
- {
--	DEFINE_FOLIO_VMA_WALK(pvmw, old, vma, addr, PVMW_SYNC | PVMW_MIGRATION);
-+	struct rmap_walk_arg *rmap_walk_arg = arg;
-+	DEFINE_FOLIO_VMA_WALK(pvmw, rmap_walk_arg->folio, vma, addr, PVMW_SYNC | PVMW_MIGRATION);
- 
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		rmap_t rmap_flags = RMAP_NONE;
-@@ -208,6 +251,9 @@ static bool remove_migration_pte(struct
- 			continue;
- 		}
- #endif
-+		if (rmap_walk_arg->map_unused_to_zeropage &&
-+		    try_to_map_unused_to_zeropage(&pvmw, folio, idx))
-+			continue;
- 
- 		folio_get(folio);
- 		pte = mk_pte(new, READ_ONCE(vma->vm_page_prot));
-@@ -286,14 +332,21 @@ static bool remove_migration_pte(struct
-  * Get rid of all migration entries and replace them by
-  * references to the indicated page.
-  */
--void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked)
-+void remove_migration_ptes(struct folio *src, struct folio *dst, int flags)
- {
-+	struct rmap_walk_arg rmap_walk_arg = {
-+		.folio = src,
-+		.map_unused_to_zeropage = flags & RMP_USE_SHARED_ZEROPAGE,
-+	};
++	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
++		printf("No THP is allocated\n");
++		exit(EXIT_FAILURE);
++	}
 +
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = remove_migration_pte,
--		.arg = src,
-+		.arg = &rmap_walk_arg,
- 	};
- 
--	if (locked)
-+	VM_BUG_ON_FOLIO((flags & RMP_USE_SHARED_ZEROPAGE) && (src != dst), src);
++	rss_anon_before = rss_anon();
++	if (!rss_anon_before) {
++		printf("No RssAnon is allocated before split\n");
++		exit(EXIT_FAILURE);
++	}
 +
-+	if (flags & RMP_LOCKED)
- 		rmap_walk_locked(dst, &rwc);
- 	else
- 		rmap_walk(dst, &rwc);
-@@ -903,7 +956,7 @@ static int writeout(struct address_space
- 	 * At this point we know that the migration attempt cannot
- 	 * be successful.
- 	 */
--	remove_migration_ptes(folio, folio, false);
-+	remove_migration_ptes(folio, folio, 0);
- 
- 	rc = mapping->a_ops->writepage(&folio->page, &wbc);
- 
-@@ -1067,7 +1120,7 @@ static void migrate_folio_undo_src(struc
- 				   struct list_head *ret)
++	/* split all THPs */
++	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
++		      (uint64_t)one_page + len, 0);
++
++	for (i = 0; i < len; i++)
++		if (one_page[i] != (char)0) {
++			printf("%ld byte corrupted\n", i);
++			exit(EXIT_FAILURE);
++		}
++
++	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
++		printf("Still AnonHugePages not split\n");
++		exit(EXIT_FAILURE);
++	}
++
++	rss_anon_after = rss_anon();
++	if (rss_anon_after >= rss_anon_before) {
++		printf("Incorrect RssAnon value. Before: %ld After: %ld\n",
++		       rss_anon_before, rss_anon_after);
++		exit(EXIT_FAILURE);
++	}
++}
++
++void split_pmd_zero_pages(void)
++{
++	char *one_page;
++	int nr_hpages = 4;
++	size_t len = nr_hpages * pmd_pagesize;
++
++	one_page = allocate_zero_filled_hugepage(len);
++	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
++	printf("Split zero filled huge pages successful\n");
++	free(one_page);
++}
++
+ void split_pmd_thp(void)
  {
- 	if (page_was_mapped)
--		remove_migration_ptes(src, src, false);
-+		remove_migration_ptes(src, src, 0);
- 	/* Drop an anon_vma reference if we took one */
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
-@@ -1305,7 +1358,7 @@ static int migrate_folio_move(free_folio
- 		lru_add_drain();
+ 	char *one_page;
+@@ -431,6 +501,7 @@ int main(int argc, char **argv)
  
- 	if (old_page_state & PAGE_WAS_MAPPED)
--		remove_migration_ptes(src, dst, false);
-+		remove_migration_ptes(src, dst, 0);
+ 	fd_size = 2 * pmd_pagesize;
  
- out_unlock_both:
- 	folio_unlock(dst);
-@@ -1443,7 +1496,7 @@ static int unmap_and_move_huge_page(new_
++	split_pmd_zero_pages();
+ 	split_pmd_thp();
+ 	split_pte_mapped_thp();
+ 	split_file_backed_thp();
+--- a/tools/testing/selftests/mm/vm_util.c~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -12,6 +12,7 @@
  
- 	if (page_was_mapped)
- 		remove_migration_ptes(src,
--			rc == MIGRATEPAGE_SUCCESS ? dst : src, false);
-+			rc == MIGRATEPAGE_SUCCESS ? dst : src, 0);
+ #define PMD_SIZE_FILE_PATH "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
+ #define SMAP_FILE_PATH "/proc/self/smaps"
++#define STATUS_FILE_PATH "/proc/self/status"
+ #define MAX_LINE_LENGTH 500
  
- unlock_put_anon:
- 	folio_unlock(dst);
---- a/mm/migrate_device.c~mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp
-+++ a/mm/migrate_device.c
-@@ -424,7 +424,7 @@ static unsigned long migrate_device_unma
- 			continue;
+ unsigned int __page_size;
+@@ -171,6 +172,27 @@ uint64_t read_pmd_pagesize(void)
+ 	return strtoul(buf, NULL, 10);
+ }
  
- 		folio = page_folio(page);
--		remove_migration_ptes(folio, folio, false);
-+		remove_migration_ptes(folio, folio, 0);
- 
- 		src_pfns[i] = 0;
- 		folio_unlock(folio);
-@@ -837,7 +837,7 @@ void migrate_device_finalize(unsigned lo
- 
- 		src = page_folio(page);
- 		dst = page_folio(newpage);
--		remove_migration_ptes(src, dst, false);
-+		remove_migration_ptes(src, dst, 0);
- 		folio_unlock(src);
- 
- 		if (is_zone_device_page(page))
++unsigned long rss_anon(void)
++{
++	unsigned long rss_anon = 0;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++
++	fp = fopen(STATUS_FILE_PATH, "r");
++	if (!fp)
++		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, STATUS_FILE_PATH);
++
++	if (!check_for_pattern(fp, "RssAnon:", buffer, sizeof(buffer)))
++		goto err_out;
++
++	if (sscanf(buffer, "RssAnon:%10lu kB", &rss_anon) != 1)
++		ksft_exit_fail_msg("Reading status error\n");
++
++err_out:
++	fclose(fp);
++	return rss_anon;
++}
++
+ bool __check_huge(void *addr, char *pattern, int nr_hpages,
+ 		  uint64_t hpage_size)
+ {
+--- a/tools/testing/selftests/mm/vm_util.h~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -39,6 +39,7 @@ unsigned long pagemap_get_pfn(int fd, ch
+ void clear_softdirty(void);
+ bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
++uint64_t rss_anon(void);
+ bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
+ bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size);
+ bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from alexlzhu@fb.com are
 
-mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
-mm-swap-reduce-indentation-level.patch
-mm-swap-rename-cpu_fbatches-activate.patch
-mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
-mm-swap-remove-remaining-_fn-suffix.patch
-mm-swap-remove-boilerplate.patch
-mm-swap-remove-boilerplate-fix.patch
-mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch
-mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
+mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
 
