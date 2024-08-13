@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7365C1A76D4
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 22:41:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEEF216BE34
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 22:41:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723588902; cv=none; b=nX7K+prXn36lrkM/2JhrgXL03WCjL75eYSl/ggU6B1nKwjT0bzPazzuJhR9LagR/nUQGPxu74teM+JoSmP6JMjdzZnATE5XGC2AuZyoLbqBDcrB0pm1pWYqI8FzZ5nm9HF132erqO+U7g0mFgixZjd8l5r2QikAOAX9IJYXoKLU=
+	t=1723588904; cv=none; b=bYTonI/NRWKEWWI0fEKsMp5aa/h1l8fo9Csxe5oMTLmOtWgYzG/0AorUV5zbfJi3Cm4TFCibtfdh/UcseR05mE+rslkE4tWIplpXQzqWULfn2Wtphg37siyJQU/38arDyrMQ0DNRB8otboDUFYRD1yYvmrDrZrfkdMulPrSPeDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723588902; c=relaxed/simple;
-	bh=d2jLxWuDABBCbgFCokO1nuxUH9c9vyN8bxRK7qKnxgo=;
-	h=Date:To:From:Subject:Message-Id; b=BEphWpMsdQivwf0rNk+6chE/2m+GFNoSkJRWlsQmPPVpsdloGhjNlGSGLyjoxtDinKT++bThSscKdtdt99zNhAvdETJuj20jA/yaFzudf+UMQJW9BEBGL9D9vq+FRsGT4JcUrD0eFxX6RX+o7y9O82Fi2mv7GpAY0/MRrTggYvY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ef+SHrqk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723588904; c=relaxed/simple;
+	bh=aSmMs2xP2tGosWKhI1gueBBia3zbAz8adnrA79YGhz8=;
+	h=Date:To:From:Subject:Message-Id; b=sqmVBGBCf/V/m5LR7xqMGm1V5Plkrjk7pl+qvLi2ezkmsKwqgkBeiV0DC4Ipz7w3Ih6+yKXi+Cp9nXI12VQZNBtenc/q0tBxocvC/xgQOz4TO1FqlHd5nLTa8hyrCa+/qWtAYsmPB1T4CygLdC2mx97TMsgmV2ZM0izdhhymt1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l/tzHr4Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ef+SHrqk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44B79C32782;
-	Tue, 13 Aug 2024 22:41:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l/tzHr4Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81DFAC32782;
+	Tue, 13 Aug 2024 22:41:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723588902;
-	bh=d2jLxWuDABBCbgFCokO1nuxUH9c9vyN8bxRK7qKnxgo=;
+	s=korg; t=1723588904;
+	bh=aSmMs2xP2tGosWKhI1gueBBia3zbAz8adnrA79YGhz8=;
 	h=Date:To:From:Subject:From;
-	b=Ef+SHrqkspV0TAeMX+ai6cuQO/Emsj3RFOhYlHi8CTiDBen1fQrVV0W6k17RkWEHC
-	 YpB0Jj8r3KJM1+7gYxwBPeV6SjOLnAXO0AupMaAACpbHF9PXygsCLyW24tkyMzd3gy
-	 2G0gFUTObygD3RDoZj+mT6oetrIHVoeo5bWR/Qos=
-Date: Tue, 13 Aug 2024 15:41:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=l/tzHr4ZWxbQE0GihG0S1stjZwm2/K9BJtFo1qY1Q7SCe+DDvvm134XFh8zHD0J/K
+	 PKPjn/C2Vl/cWCZRVTkx4LFw+FnBZ+SLP0ca8EPYWysPI6XPew4RaG+/r8mHwZDZtu
+	 cSS3BfzHeDau4hr2ad35XDwa0LDmjOaHZ1zWMhh8=
+Date: Tue, 13 Aug 2024 15:41:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch added to mm-unstable branch
-Message-Id: <20240813224142.44B79C32782@smtp.kernel.org>
+Subject: + mm-shmem-support-large-folio-swap-out.patch added to mm-unstable branch
+Message-Id: <20240813224144.81DFAC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: split large entry if the swapin folio is not large
+     Subject: mm: shmem: support large folio swap out
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
+     mm-shmem-support-large-folio-swap-out.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-swap-out.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: split large entry if the swapin folio is not large
-Date: Mon, 12 Aug 2024 15:42:09 +0800
+Subject: mm: shmem: support large folio swap out
+Date: Mon, 12 Aug 2024 15:42:10 +0800
 
-Now the swap device can only swap-in order 0 folio, even though a large
-folio is swapped out.  This requires us to split the large entry
-previously saved in the shmem pagecache to support the swap in of small
-folios.
+Shmem will support large folio allocation [1] [2] to get a better
+performance, however, the memory reclaim still splits the precious large
+folios when trying to swap out shmem, which may lead to the memory
+fragmentation issue and can not take advantage of the large folio for
+shmeme.
 
-Link: https://lkml.kernel.org/r/4a0f12f27c54a62eb4d9ca1265fed3a62531a63e.1723434324.git.baolin.wang@linux.alibaba.com
+Moreover, the swap code already supports for swapping out large folio
+without split, hence this patch set supports the large folio swap out for
+shmem.
+
+Note the i915_gem_shmem driver still need to be split when swapping, thus
+add a new flag 'split_large_folio' for writeback_control to indicate
+spliting the large folio.
+
+[1] https://lore.kernel.org/all/cover.1717495894.git.baolin.wang@linux.alibaba.com/
+[2] https://lore.kernel.org/all/20240515055719.32577-1-da.gomez@samsung.com/
+Link: https://lkml.kernel.org/r/d80c21abd20e1b0f5ca66b330f074060fb2f082d.1723434324.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -85,131 +95,147 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  100 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 100 insertions(+)
+ drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    1 
+ include/linux/writeback.h                 |    4 ++
+ mm/shmem.c                                |   12 +++++--
+ mm/vmscan.c                               |   32 +++++++++++++++-----
+ 4 files changed, 38 insertions(+), 11 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large
-+++ a/mm/shmem.c
-@@ -1986,6 +1986,81 @@ static void shmem_set_folio_swapin_error
- 	swap_free_nr(swap, nr_pages);
- }
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-shmem-support-large-folio-swap-out
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+@@ -308,6 +308,7 @@ void __shmem_writeback(size_t size, stru
+ 		.range_start = 0,
+ 		.range_end = LLONG_MAX,
+ 		.for_reclaim = 1,
++		.split_large_folio = 1,
+ 	};
+ 	unsigned long i;
  
-+static int shmem_split_large_entry(struct inode *inode, pgoff_t index,
-+				   swp_entry_t swap, int new_order, gfp_t gfp)
-+{
-+	struct address_space *mapping = inode->i_mapping;
-+	XA_STATE_ORDER(xas, &mapping->i_pages, index, new_order);
-+	void *alloced_shadow = NULL;
-+	int alloced_order = 0, i;
+--- a/include/linux/writeback.h~mm-shmem-support-large-folio-swap-out
++++ a/include/linux/writeback.h
+@@ -63,6 +63,7 @@ struct writeback_control {
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
+ 	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
+ 	unsigned unpinned_netfs_wb:1;	/* Cleared I_PINNING_NETFS_WB */
++	unsigned split_large_folio:1;	/* Split large folio for shmem writeback */
+ 
+ 	/*
+ 	 * When writeback IOs are bounced through async layers, only the
+@@ -79,6 +80,9 @@ struct writeback_control {
+ 	 */
+ 	struct swap_iocb **swap_plug;
+ 
++	/* Target list for splitting a large folio */
++	struct list_head *list;
 +
-+	for (;;) {
-+		int order = -1, split_order = 0;
-+		void *old = NULL;
+ 	/* internal fields used by the ->writepages implementation: */
+ 	struct folio_batch fbatch;
+ 	pgoff_t index;
+--- a/mm/shmem.c~mm-shmem-support-large-folio-swap-out
++++ a/mm/shmem.c
+@@ -795,7 +795,6 @@ static int shmem_add_to_page_cache(struc
+ 	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
+-	VM_BUG_ON(expected && folio_test_large(folio));
+ 
+ 	folio_ref_add(folio, nr);
+ 	folio->mapping = mapping;
+@@ -1482,10 +1481,11 @@ static int shmem_writepage(struct page *
+ 	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
+ 	 * and its shmem_writeback() needs them to be split when swapping.
+ 	 */
+-	if (folio_test_large(folio)) {
++	if (wbc->split_large_folio && folio_test_large(folio)) {
++try_split:
+ 		/* Ensure the subpages are still dirty */
+ 		folio_test_set_dirty(folio);
+-		if (split_huge_page(page) < 0)
++		if (split_huge_page_to_list_to_order(page, wbc->list, 0))
+ 			goto redirty;
+ 		folio = page_folio(page);
+ 		folio_clear_dirty(folio);
+@@ -1527,8 +1527,12 @@ static int shmem_writepage(struct page *
+ 	}
+ 
+ 	swap = folio_alloc_swap(folio);
+-	if (!swap.val)
++	if (!swap.val) {
++		if (nr_pages > 1)
++			goto try_split;
 +
-+		xas_lock_irq(&xas);
-+		old = xas_load(&xas);
-+		if (!xa_is_value(old) || swp_to_radix_entry(swap) != old) {
-+			xas_set_err(&xas, -EEXIST);
-+			goto unlock;
-+		}
-+
-+		order = xas_get_order(&xas);
-+
-+		/* Swap entry may have changed before we re-acquire the lock */
-+		if (alloced_order &&
-+		    (old != alloced_shadow || order != alloced_order)) {
-+			xas_destroy(&xas);
-+			alloced_order = 0;
-+		}
-+
-+		/* Try to split large swap entry in pagecache */
-+		if (order > 0 && order > new_order) {
-+			if (!alloced_order) {
-+				split_order = order;
-+				goto unlock;
-+			}
-+			xas_split(&xas, old, order);
-+
-+			/*
-+			 * Re-set the swap entry after splitting, and the swap
-+			 * offset of the original large entry must be continuous.
-+			 */
-+			for (i = 0; i < 1 << order; i += (1 << new_order)) {
-+				pgoff_t aligned_index = round_down(index, 1 << order);
-+				swp_entry_t tmp;
-+
-+				tmp = swp_entry(swp_type(swap), swp_offset(swap) + i);
-+				__xa_store(&mapping->i_pages, aligned_index + i,
-+					   swp_to_radix_entry(tmp), 0);
-+			}
-+		}
-+
-+unlock:
-+		xas_unlock_irq(&xas);
-+
-+		/* split needed, alloc here and retry. */
-+		if (split_order) {
-+			xas_split_alloc(&xas, old, split_order, gfp);
-+			if (xas_error(&xas))
-+				goto error;
-+			alloced_shadow = old;
-+			alloced_order = split_order;
-+			xas_reset(&xas);
-+			continue;
-+		}
-+
-+		if (!xas_nomem(&xas, gfp))
-+			break;
+ 		goto redirty;
 +	}
+ 
+ 	/*
+ 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
+--- a/mm/vmscan.c~mm-shmem-support-large-folio-swap-out
++++ a/mm/vmscan.c
+@@ -628,7 +628,7 @@ typedef enum {
+  * Calls ->writepage().
+  */
+ static pageout_t pageout(struct folio *folio, struct address_space *mapping,
+-			 struct swap_iocb **plug)
++			 struct swap_iocb **plug, struct list_head *folio_list)
+ {
+ 	/*
+ 	 * If the folio is dirty, only perform writeback if that write
+@@ -676,6 +676,16 @@ static pageout_t pageout(struct folio *f
+ 			.swap_plug = plug,
+ 		};
+ 
++		/*
++		 * The large shmem folio can be split if CONFIG_THP_SWAP is
++		 * not enabled or contiguous swap entries are failed to
++		 * allocate.
++		 */
++		if (shmem_mapping(mapping) && folio_test_large(folio)) {
++			wbc.list = folio_list;
++			wbc.split_large_folio = !IS_ENABLED(CONFIG_THP_SWAP);
++		}
 +
-+error:
-+	if (xas_error(&xas))
-+		return xas_error(&xas);
-+
-+	return alloced_order;
-+}
-+
- /*
-  * Swap in the folio pointed to by *foliop.
-  * Caller has to make sure that *foliop contains a valid swapped folio.
-@@ -2022,12 +2097,37 @@ static int shmem_swapin_folio(struct ino
- 	/* Look it up and read it in.. */
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	if (!folio) {
-+		int split_order;
-+
- 		/* Or update major stats only when swapin succeeds?? */
- 		if (fault_type) {
- 			*fault_type |= VM_FAULT_MAJOR;
- 			count_vm_event(PGMAJFAULT);
- 			count_memcg_event_mm(fault_mm, PGMAJFAULT);
+ 		folio_set_reclaim(folio);
+ 		res = mapping->a_ops->writepage(&folio->page, &wbc);
+ 		if (res < 0)
+@@ -1258,11 +1268,6 @@ retry:
+ 						goto activate_locked_split;
+ 				}
+ 			}
+-		} else if (folio_test_swapbacked(folio) &&
+-			   folio_test_large(folio)) {
+-			/* Split shmem folio */
+-			if (split_folio_to_list(folio, folio_list))
+-				goto keep_locked;
  		}
-+
-+		/*
-+		 * Now swap device can only swap in order 0 folio, then we
-+		 * should split the large swap entry stored in the pagecache
-+		 * if necessary.
-+		 */
-+		split_order = shmem_split_large_entry(inode, index, swap, 0, gfp);
-+		if (split_order < 0) {
-+			error = split_order;
-+			goto failed;
-+		}
-+
-+		/*
-+		 * If the large swap entry has already been split, it is
-+		 * necessary to recalculate the new swap entry based on
-+		 * the old order alignment.
-+		 */
-+		if (split_order > 0) {
-+			pgoff_t offset = index - round_down(index, 1 << split_order);
-+
-+			swap = swp_entry(swp_type(swap), swp_offset(swap) + offset);
-+		}
-+
- 		/* Here we actually start the io */
- 		folio = shmem_swapin_cluster(swap, gfp, info, index);
- 		if (!folio) {
+ 
+ 		/*
+@@ -1363,12 +1368,25 @@ retry:
+ 			 * starts and then write it out here.
+ 			 */
+ 			try_to_unmap_flush_dirty();
+-			switch (pageout(folio, mapping, &plug)) {
++			switch (pageout(folio, mapping, &plug, folio_list)) {
+ 			case PAGE_KEEP:
+ 				goto keep_locked;
+ 			case PAGE_ACTIVATE:
++				/*
++				 * If shmem folio is split when writeback to swap,
++				 * the tail pages will make their own pass through
++				 * this function and be accounted then.
++				 */
++				if (nr_pages > 1 && !folio_test_large(folio)) {
++					sc->nr_scanned -= (nr_pages - 1);
++					nr_pages = 1;
++				}
+ 				goto activate_locked;
+ 			case PAGE_SUCCESS:
++				if (nr_pages > 1 && !folio_test_large(folio)) {
++					sc->nr_scanned -= (nr_pages - 1);
++					nr_pages = 1;
++				}
+ 				stat->nr_pageout += nr_pages;
+ 
+ 				if (folio_test_writeback(folio))
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
