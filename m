@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2247543AB0
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 06:28:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71CAB37E
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:06:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723530502; cv=none; b=UOEl05i0IHwiAayfkx9FnS1FJ71G0eFkVr+I7u4b87OZW1+0tkyAGAdieVMUCp5+i9mR15TC0AITh4Vp8QnPFd6yCizyc0Eu/dKUWu39iXsptozdPCFO+RdkUTSsAd+8GWPbfYR/8BRbapNLhmq/f25U2hDeGmhzS504OO0XUMQ=
+	t=1723572397; cv=none; b=nFZTqI+j3CnKnmPtkSg5xR4H9iSy9EL9WQmuInpwUIECVHawoaMqMF0VLvWYesnrdDJOqo4ZPPpKfIdwbGLaGlEE/0IHUqnHW7BoaEjg0ArOmB4kIjj7b769IlIjuUAheaKPMe2Rk5pKNaJlq0CAHZXSVkJ2tBP5lMiul9JgOVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723530502; c=relaxed/simple;
-	bh=ka60lIgJqx8poGwiVEs4DWeOUKVUdSaQavPUrnZRmkk=;
-	h=Date:To:From:Subject:Message-Id; b=jbaRPh9igF9Q1v4HBCvCdLknPn5Wh+1oabojJcNGiVpZkmkeBsRPqxKIVrNGrNV+uwCoNmQuvRji3AFtPJ62byh2/wkW6RXQ3hJUHoWndKEjnVfn/7lNmnk7Lb3wAtq6vud2tHt2+apxvuWhUWUE0V1KiU3M8xAeD2yQqudbFy8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wRlX758+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723572397; c=relaxed/simple;
+	bh=Vq/xI76+MZ02xFXYm73mLzEZQTYaFx7d+fJLVwbhyQI=;
+	h=Date:To:From:Subject:Message-Id; b=YNX4VpF8TYLCiiOLZoiIUYarEmKkOwxXoQxLXX7Rv3WbCwWM9m5JffPadYipeDTZOytIHOPz2tN14HBaRN48toipOIfqQw00ftpK/ZxN1qfEE67ZyPW71RFDYR7Bu4cCHH/oJ+bcygTAXhbZ16+TG7nbYwWM2ZM/0089Xv8YxNQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CkDFXWEC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wRlX758+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92DCBC4AF0B;
-	Tue, 13 Aug 2024 06:28:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CkDFXWEC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9B58C32782;
+	Tue, 13 Aug 2024 18:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723530501;
-	bh=ka60lIgJqx8poGwiVEs4DWeOUKVUdSaQavPUrnZRmkk=;
+	s=korg; t=1723572397;
+	bh=Vq/xI76+MZ02xFXYm73mLzEZQTYaFx7d+fJLVwbhyQI=;
 	h=Date:To:From:Subject:From;
-	b=wRlX758+wpfgJbZJOz2nhn6OrVh9HjD3fi+2Xatjzw8Ms3CaqrA/fG/+P7jWNuitE
-	 +l6b9k4QmDCrBa3dZaDZ1X56QGPxTTOaplW11bUOg93CdWjhXFJ5vTkwuCR9ORCEd5
-	 t/iUxpTo3mut3RMTWehXBT2CSq/zLFgSxbAT7ysw=
-Date: Mon, 12 Aug 2024 23:28:20 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=CkDFXWECHRcDLFhsF/npTQPWdYf0Jt19k22CeYaLVeFP41BwPQEHjzuILai71QLCk
+	 od/5NpwVm/Q2MZJcKg/mHKP2pEK+nU5eMQfeS5cUo3mhouVsnLCdC8R/uUjjRJfl8B
+	 Iix+kJJHE6PPJMgy8/jR6JzHERXmUNUW788tGrPI=
+Date: Tue, 13 Aug 2024 11:06:36 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-fix-riscv64-crash-memory-reserve-dead-loop.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240813062821.92DCBC4AF0B@smtp.kernel.org>
+Subject: + errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch added to mm-unstable branch
+Message-Id: <20240813180636.E9B58C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: fix riscv64 crash memory reserve dead loop
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
+     Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions
+has been added to the -mm mm-unstable branch.  Its filename is
+     errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,75 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: crash: fix riscv64 crash memory reserve dead loop
-Date: Mon, 12 Aug 2024 14:20:17 +0800
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions
+Date: Tue, 13 Aug 2024 19:25:10 +0200
 
-On RISCV64 Qemu machine with 512MB memory, cmdline "crashkernel=500M,high"
-will cause system stall as below:
+Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions that
+operate on pointers in the percpu address space.
 
-	 Zone ranges:
-	   DMA32    [mem 0x0000000080000000-0x000000009fffffff]
-	   Normal   empty
-	 Movable zone start for each node
-	 Early memory node ranges
-	   node   0: [mem 0x0000000080000000-0x000000008005ffff]
-	   node   0: [mem 0x0000000080060000-0x000000009fffffff]
-	 Initmem setup node 0 [mem 0x0000000080000000-0x000000009fffffff]
-	(stall here)
+These functions remove the need for (__force void *) function argument
+casts (to avoid sparse -Wcast-from-as warnings).
 
-commit 5d99cadf1568 ("crash: fix x86_32 crash memory reserve dead loop
-bug") fix this on 32-bit architecture.  However, the problem is not
-completely solved.  If `CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX` on
-64-bit architecture, for example, when system memory is equal to
-CRASH_ADDR_LOW_MAX on RISCV64, the following infinite loop will also
-occur:
+The patch will also avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
 
-	-> reserve_crashkernel_generic() and high is true
-	   -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
-	      -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
-	         (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
-
-As Catalin suggested, do not remove the ",high" reservation fallback to
-",low" logic which will change arm64's kdump behavior, but fix it by
-skipping the above situation similar to commit d2f32f23190b ("crash: fix
-x86_32 crash memory reserve dead loop").
-
-After this patch, it print:
-	cannot allocate crashkernel (size:0x1f400000)
-
-Link: https://lkml.kernel.org/r/20240812062017.2674441-1-ruanjinjie@huawei.com
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20240813172543.38411-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_reserve.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/err.h |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
---- a/kernel/crash_reserve.c~crash-fix-riscv64-crash-memory-reserve-dead-loop
-+++ a/kernel/crash_reserve.c
-@@ -423,7 +423,8 @@ retry:
- 		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
- 			search_end = CRASH_ADDR_LOW_MAX;
- 			search_base = 0;
--			goto retry;
-+			if (search_end != CRASH_ADDR_HIGH_MAX)
-+				goto retry;
- 		}
- 		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
- 			crash_size);
+--- a/include/linux/err.h~errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions
++++ a/include/linux/err.h
+@@ -6,6 +6,7 @@
+ #include <linux/types.h>
+ 
+ #include <asm/errno.h>
++#include <asm/percpu.h>
+ 
+ /*
+  * Kernel pointers have redundant information, so we can use a
+@@ -42,6 +43,22 @@ static inline void * __must_check ERR_PT
+ }
+ 
+ /**
++ * ERR_PTR_PCPU - Create an error pointer in the percpu address space.
++ * @error: A negative error code.
++ *
++ * Encodes @error into a pointer value in the percpu address space.
++ * Users should consider the result opaque and not assume anything
++ * about how the error is encoded.
++ *
++ * Return: A pointer in the percpu address space with @error encoded
++ *	   within its value.
++ */
++static inline void __percpu * __must_check ERR_PTR_PCPU(long error)
++{
++	return (void __percpu *) error;
++}
++
++/**
+  * PTR_ERR - Extract the error code from an error pointer.
+  * @ptr: An error pointer.
+  * Return: The error code within @ptr.
+@@ -52,6 +69,17 @@ static inline long __must_check PTR_ERR(
+ }
+ 
+ /**
++ * PTR_ERR_PCPU - Extract the error code from an error pointer in the
++ *		  percpu address space.
++ * @ptr: An error pointer in the percpu address space.
++ * Return: The error code within @ptr.
++ */
++static inline long __must_check PTR_ERR_PCPU(const void __percpu *ptr)
++{
++	return (__force long) ptr;
++}
++
++/**
+  * IS_ERR - Detect an error pointer.
+  * @ptr: The pointer to check.
+  * Return: true if @ptr is an error pointer, false otherwise.
+@@ -62,6 +90,16 @@ static inline bool __must_check IS_ERR(_
+ }
+ 
+ /**
++ * IS_ERR_PCPU - Detect an error pointer in the percpu address space.
++ * @ptr: The pointer in the percpu address space to check.
++ * Return: true if @ptr is an error pointer, false otherwise.
++ */
++static inline bool __must_check IS_ERR_PCPU(const void __percpu *ptr)
++{
++	return IS_ERR_VALUE((__force unsigned long)ptr);
++}
++
++/**
+  * IS_ERR_OR_NULL - Detect an error pointer or a null pointer.
+  * @ptr: The pointer to check.
+  *
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
-crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
+mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
+errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
+mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
 
