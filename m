@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 826CB381B8
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 04:36:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2247543AB0
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 06:28:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723523802; cv=none; b=qofMMwK8g6Hh295ne6zlg7+pBL/sIznjFNM1Cpjdv3+LOn3rmjuhYpdrHDn3d3s150a8b1TOcixl9BP8U38pza2VafajDuqqE0WySnkKEwu2bBU6fsXyacOnN30hWJVI98sM1nAtOHYoJVwG6fprKJmaIFIL8E9312ERx9ENJ1c=
+	t=1723530502; cv=none; b=UOEl05i0IHwiAayfkx9FnS1FJ71G0eFkVr+I7u4b87OZW1+0tkyAGAdieVMUCp5+i9mR15TC0AITh4Vp8QnPFd6yCizyc0Eu/dKUWu39iXsptozdPCFO+RdkUTSsAd+8GWPbfYR/8BRbapNLhmq/f25U2hDeGmhzS504OO0XUMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723523802; c=relaxed/simple;
-	bh=8xAg2qhBLrEz/4vS6p1BPXJqdrXdXTX8Z4K9ZNWJmm8=;
-	h=Date:To:From:Subject:Message-Id; b=E/Lythk13bXdlXY0e2G3ScAla5vAzMk36XsOw0tVP4KBQXvqueG4qfRrYkZA5ubMzLK8rptXSLT9fQRGgVotytJKzs39+DiuviOaVaNWAnN/YvoRKEgb27zJhn1e+hLp4t5kkKPGXJm+DJNdGQsd8X2mLNP905zjrxPdPeoCQJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Kdaf8LN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723530502; c=relaxed/simple;
+	bh=ka60lIgJqx8poGwiVEs4DWeOUKVUdSaQavPUrnZRmkk=;
+	h=Date:To:From:Subject:Message-Id; b=jbaRPh9igF9Q1v4HBCvCdLknPn5Wh+1oabojJcNGiVpZkmkeBsRPqxKIVrNGrNV+uwCoNmQuvRji3AFtPJ62byh2/wkW6RXQ3hJUHoWndKEjnVfn/7lNmnk7Lb3wAtq6vud2tHt2+apxvuWhUWUE0V1KiU3M8xAeD2yQqudbFy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wRlX758+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Kdaf8LN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24394C4AF09;
-	Tue, 13 Aug 2024 04:36:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wRlX758+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92DCBC4AF0B;
+	Tue, 13 Aug 2024 06:28:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723523802;
-	bh=8xAg2qhBLrEz/4vS6p1BPXJqdrXdXTX8Z4K9ZNWJmm8=;
+	s=korg; t=1723530501;
+	bh=ka60lIgJqx8poGwiVEs4DWeOUKVUdSaQavPUrnZRmkk=;
 	h=Date:To:From:Subject:From;
-	b=1Kdaf8LNAoAhJRRXDsvvzdeg15Z2Zdorg1cOeHyT8fZwjLg5BS6kx7grI7ivYYAqI
-	 nCIkrdFs3WX52LwM6bQk+O+TpSRtIjhvxmBljajzAWgEAUCMWzthhkWaeV5hw3JFJM
-	 DRnQvoAjP7hd/aeQ6jyXmjSvt0X1RW9GNB8072hE=
-Date: Mon, 12 Aug 2024 21:36:41 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vgoyal@redhat.com,thunder.leizhen@huawei.com,tglx@linutronix.de,tangyouling@kylinos.cn,robh@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,linux@armlinux.org.uk,linus.walleij@linaro.org,kernel@xen0n.name,javierm@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,gregkh@linuxfoundation.org,eric.devolder@oracle.com,dyoung@redhat.com,deller@gmx.de,dave.hansen@linux.intel.com,chenjiahao16@huawei.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,bhe@redhat.com,arnd@arndb.de,aou@eecs.berkeley.edu,afd@ti.com,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=wRlX758+wpfgJbZJOz2nhn6OrVh9HjD3fi+2Xatjzw8Ms3CaqrA/fG/+P7jWNuitE
+	 +l6b9k4QmDCrBa3dZaDZ1X56QGPxTTOaplW11bUOg93CdWjhXFJ5vTkwuCR9ORCEd5
+	 t/iUxpTo3mut3RMTWehXBT2CSq/zLFgSxbAT7ysw=
+Date: Mon, 12 Aug 2024 23:28:20 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arm-use-generic-interface-to-simplify-crashkernel-reservation.patch removed from -mm tree
-Message-Id: <20240813043642.24394C4AF09@smtp.kernel.org>
+Subject: + crash-fix-riscv64-crash-memory-reserve-dead-loop.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240813062821.92DCBC4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,240 +34,99 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ARM: use generic interface to simplify crashkernel reservation
-has been removed from the -mm tree.  Its filename was
-     arm-use-generic-interface-to-simplify-crashkernel-reservation.patch
+The patch titled
+     Subject: crash: fix riscv64 crash memory reserve dead loop
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: ARM: use generic interface to simplify crashkernel reservation
-Date: Fri, 19 Jul 2024 17:57:35 +0800
+Subject: crash: fix riscv64 crash memory reserve dead loop
+Date: Mon, 12 Aug 2024 14:20:17 +0800
 
-Currently, x86, arm64, riscv and loongarch has been switched to generic
-crashkernel reservation, which is also ready for 32bit system.  So with
-the help of function parse_crashkernel() and generic
-reserve_crashkernel_generic(), arm32 crashkernel reservation can also be
-simplified by steps:
+On RISCV64 Qemu machine with 512MB memory, cmdline "crashkernel=500M,high"
+will cause system stall as below:
 
-1) Add a new header file <asm/crash_reserve.h>, and define CRASH_ALIGN,
-   CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX in it;
+	 Zone ranges:
+	   DMA32    [mem 0x0000000080000000-0x000000009fffffff]
+	   Normal   empty
+	 Movable zone start for each node
+	 Early memory node ranges
+	   node   0: [mem 0x0000000080000000-0x000000008005ffff]
+	   node   0: [mem 0x0000000080060000-0x000000009fffffff]
+	 Initmem setup node 0 [mem 0x0000000080000000-0x000000009fffffff]
+	(stall here)
 
-2) Add arch_reserve_crashkernel() to call parse_crashkernel() and
-   reserve_crashkernel_generic();
+commit 5d99cadf1568 ("crash: fix x86_32 crash memory reserve dead loop
+bug") fix this on 32-bit architecture.  However, the problem is not
+completely solved.  If `CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX` on
+64-bit architecture, for example, when system memory is equal to
+CRASH_ADDR_LOW_MAX on RISCV64, the following infinite loop will also
+occur:
 
-3) Add ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION Kconfig in
-   arch/arm/Kconfig.
+	-> reserve_crashkernel_generic() and high is true
+	   -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
+	      -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
+	         (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
 
-The old reserve_crashkernel() can be removed.
+As Catalin suggested, do not remove the ",high" reservation fallback to
+",low" logic which will change arm64's kdump behavior, but fix it by
+skipping the above situation similar to commit d2f32f23190b ("crash: fix
+x86_32 crash memory reserve dead loop").
 
-Following test cases have been performed as expected on QEMU vexpress-a9
-(1GB system memory):
+After this patch, it print:
+	cannot allocate crashkernel (size:0x1f400000)
 
-1) crashkernel=4G,high				// invalid
-2) crashkernel=1G,high				// invalid
-3) crashkernel=1G,high crashkernel=0M,low	// invalid
-4) crashkernel=256M,high			// invalid
-5) crashkernel=256M,low				// invalid
-6) crashkernel=256M crashkernel=256M,high	// high is ignored, ok
-7) crashkernel=256M crashkernel=256M,low	// low is ignored, ok
-8) crashkernel=256M,high crashkernel=256M,low	// invalid
-9) crashkernel=256M,high crashkernel=4G,low	// invalid
-10) crashkernel=256M				// ok
-11) crashkernel=512M				// ok
-12) crashkernel=256M@0x88000000			// ok
-13) crashkernel=256M@0x78000000			// ok
-14) crashkernel=512M@0x78000000			// ok
-
-Link: https://lkml.kernel.org/r/20240719095735.1912878-4-ruanjinjie@huawei.com
+Link: https://lkml.kernel.org/r/20240812062017.2674441-1-ruanjinjie@huawei.com
 Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Andrew Davis <afd@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chen Jiahao <chenjiahao16@huawei.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Eric DeVolder <eric.devolder@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Javier Martinez Canillas <javierm@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rob Herring (Arm) <robh@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
-Cc: Youling Tang <tangyouling@kylinos.cn>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                     |    3 +
- arch/arm/include/asm/crash_reserve.h |   24 +++++++++
- arch/arm/kernel/setup.c              |   63 +++----------------------
- 3 files changed, 36 insertions(+), 54 deletions(-)
+ kernel/crash_reserve.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/crash_reserve.h a/arch/arm/include/asm/crash_reserve.h
-new file mode 100664
---- /dev/null
-+++ a/arch/arm/include/asm/crash_reserve.h
-@@ -0,0 +1,24 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef _ARM_CRASH_RESERVE_H
-+#define _ARM_CRASH_RESERVE_H
-+
-+/*
-+ * The crash region must be aligned to 128MB to avoid
-+ * zImage relocating below the reserved region.
-+ */
-+#define CRASH_ALIGN			(128 << 20)
-+
-+#define CRASH_ADDR_LOW_MAX		crash_addr_low_max()
-+#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
-+
-+static inline unsigned long crash_addr_low_max(void)
-+{
-+	unsigned long long crash_max = idmap_to_phys((u32)~0);
-+	unsigned long long lowmem_max = __pa(high_memory - 1) + 1;
-+
-+	return (crash_max > lowmem_max) ? lowmem_max : crash_max;
-+}
-+
-+
-+#define HAVE_ARCH_ADD_CRASH_RES_TO_IOMEM_EARLY
-+#endif
---- a/arch/arm/Kconfig~arm-use-generic-interface-to-simplify-crashkernel-reservation
-+++ a/arch/arm/Kconfig
-@@ -1597,6 +1597,9 @@ config ATAGS_PROC
- config ARCH_SUPPORTS_CRASH_DUMP
- 	def_bool y
- 
-+config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
-+	def_bool CRASH_RESERVE
-+
- config AUTO_ZRELADDR
- 	bool "Auto calculation of the decompressed kernel image address" if !ARCH_MULTIPLATFORM
- 	default !(ARCH_FOOTBRIDGE || ARCH_RPC || ARCH_SA1100)
---- a/arch/arm/kernel/setup.c~arm-use-generic-interface-to-simplify-crashkernel-reservation
-+++ a/arch/arm/kernel/setup.c
-@@ -979,13 +979,6 @@ static int __init init_machine_late(void
- }
- late_initcall(init_machine_late);
- 
--#ifdef CONFIG_CRASH_RESERVE
--/*
-- * The crash region must be aligned to 128MB to avoid
-- * zImage relocating below the reserved region.
-- */
--#define CRASH_ALIGN	(128 << 20)
--
- static inline unsigned long long get_total_mem(void)
- {
- 	unsigned long total;
-@@ -994,60 +987,25 @@ static inline unsigned long long get_tot
- 	return total << PAGE_SHIFT;
- }
- 
--/**
-- * reserve_crashkernel() - reserves memory are for crash kernel
-- *
-- * This function reserves memory area given in "crashkernel=" kernel command
-- * line parameter. The memory reserved is used by a dump capture kernel when
-- * primary kernel is crashing.
-- */
--static void __init reserve_crashkernel(void)
-+static void __init arch_reserve_crashkernel(void)
- {
--	unsigned long long crash_size, crash_base;
-+	unsigned long long crash_size, crash_base, low_size = 0;
- 	unsigned long long total_mem;
-+	bool high = false;
- 	int ret;
- 
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
-+		return;
-+
- 	total_mem = get_total_mem();
- 	ret = parse_crashkernel(boot_command_line, total_mem,
- 				&crash_size, &crash_base,
--				NULL, NULL);
-+				&low_size, &high);
- 	/* invalid value specified or crashkernel=0 */
- 	if (ret || !crash_size)
- 		return;
- 
--	if (crash_base <= 0) {
--		unsigned long long crash_max = idmap_to_phys((u32)~0);
--		unsigned long long lowmem_max = __pa(high_memory - 1) + 1;
--		if (crash_max > lowmem_max)
--			crash_max = lowmem_max;
--
--		crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
--						       CRASH_ALIGN, crash_max);
--		if (!crash_base) {
--			pr_err("crashkernel reservation failed - No suitable area found.\n");
--			return;
--		}
--	} else {
--		unsigned long long crash_max = crash_base + crash_size;
--		unsigned long long start;
--
--		start = memblock_phys_alloc_range(crash_size, SECTION_SIZE,
--						  crash_base, crash_max);
--		if (!start) {
--			pr_err("crashkernel reservation failed - memory is in use.\n");
--			return;
--		}
--	}
--
--	pr_info("Reserving %ldMB of memory at %ldMB for crashkernel (System RAM: %ldMB)\n",
--		(unsigned long)(crash_size >> 20),
--		(unsigned long)(crash_base >> 20),
--		(unsigned long)(total_mem >> 20));
--
--	/* The crashk resource must always be located in normal mem */
--	crashk_res.start = crash_base;
--	crashk_res.end = crash_base + crash_size - 1;
--	insert_resource(&iomem_resource, &crashk_res);
-+	reserve_crashkernel_generic(boot_command_line, crash_size, crash_base, low_size, high);
- 
- 	if (arm_has_idmap_alias()) {
- 		/*
-@@ -1064,9 +1022,6 @@ static void __init reserve_crashkernel(v
- 		insert_resource(&iomem_resource, &crashk_boot_res);
- 	}
- }
--#else
--static inline void reserve_crashkernel(void) {}
--#endif /* CONFIG_CRASH_RESERVE*/
- 
- void __init hyp_mode_check(void)
- {
-@@ -1189,7 +1144,7 @@ void __init setup_arch(char **cmdline_p)
- 	if (!is_smp())
- 		hyp_mode_check();
- 
--	reserve_crashkernel();
-+	arch_reserve_crashkernel();
- 
- #ifdef CONFIG_VT
- #if defined(CONFIG_VGA_CONSOLE)
+--- a/kernel/crash_reserve.c~crash-fix-riscv64-crash-memory-reserve-dead-loop
++++ a/kernel/crash_reserve.c
+@@ -423,7 +423,8 @@ retry:
+ 		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
+ 			search_end = CRASH_ADDR_LOW_MAX;
+ 			search_base = 0;
+-			goto retry;
++			if (search_end != CRASH_ADDR_HIGH_MAX)
++				goto retry;
+ 		}
+ 		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
+ 			crash_size);
 _
 
 Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
-crash-fix-riscv64-crash-memory-reserve-dead-loop-v2.patch
+crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
 crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
