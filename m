@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE07E14A600
-	for <mm-commits@vger.kernel.org>; Sat, 10 Aug 2024 07:04:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AFD54C6D
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 00:42:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723273461; cv=none; b=o1wJ7h9atc/zq/k1BvO7HGyWR4FyJtgFzEMjTvanFxw2L8bG9LQlOhA6xXcz7DMz6AtyvXblYa9ucNLPETcROC/8W7FwOZsa16DQQc99wS6ssRxhk2WMegI/fKtA/n3EZKoUkVcnQHQgpCGxbwu6r+nFnQCFklF5zXBPA4RAjuM=
+	t=1723509769; cv=none; b=taF48A8eZXXrixljHukk2vkpFiy4jfOzwrN4yp2OLABbVfwAuB643/XkiM9avHYLqTf2HNmBWSdUVLNm793RLSovVuWP5bkTSJyuMeO8UGfmkrHUeIYx+28V1bvpd/1yOMMbzpwFlJ+6t2L2itKsW0OxyTiYAS8kUSKKoqpjdLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723273461; c=relaxed/simple;
-	bh=cv2gY58QsWWeaw2zwx4BahRghzbnvVa9RrQRLHWZwsA=;
-	h=Date:To:From:Subject:Message-Id; b=ZXIqZQouz6K61Th77tv/21vtHfo9HcEB4yh0cMvOa2OEvYPC4ViI+gUl0GHMMzPJapXES69IZXfE7oBZx0UDlPdecg/7O0QlS/4TgapfH1ClaPZ5JtKB9ltCggMo77wIQuLJu5jNwXtYaLu3Kt24bQOfsww92gkSwZRg/6rTuos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vQ+O6a2j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723509769; c=relaxed/simple;
+	bh=ANyuwOqHWoKXLPOsQS8luDQ3HRWXqZ5R6TsU7bG1mB8=;
+	h=Date:To:From:Subject:Message-Id; b=HJ+pCNpk2H4d4x+X8rtlr1DtUMiPPZ9dZQdopdfgv9JWI53Po8XFlDqJdNpsFehJ7MhGnVyTDVYWJwpQrfAcNgt0xrvB/DWws12xbTdLZKtMMBMs0M3ld0X2gaSEbE0hlEHrj4vCDJ2bHQwcMMBvKyCInZMRTpa2H8SesnEHsRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VFDkATyP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vQ+O6a2j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C781C32781;
-	Sat, 10 Aug 2024 07:04:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VFDkATyP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7571C4AF0E;
+	Tue, 13 Aug 2024 00:42:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723273461;
-	bh=cv2gY58QsWWeaw2zwx4BahRghzbnvVa9RrQRLHWZwsA=;
+	s=korg; t=1723509768;
+	bh=ANyuwOqHWoKXLPOsQS8luDQ3HRWXqZ5R6TsU7bG1mB8=;
 	h=Date:To:From:Subject:From;
-	b=vQ+O6a2jSqHlhdRWglpHmRPbsnPkDe9RXIMle1C2RPnsD0DifQ3YgKim35DLHqGT9
-	 Vhy+c6u9Ayo1lxRTnctQ2alBPcMS8Uvvrf7n9oTG8uDt1z++tunL7QH0evQx1o9z4I
-	 7VHGxxXm3WqdSaTsClqgnyK0hMK3kz6M6kew37eg=
-Date: Sat, 10 Aug 2024 00:04:20 -0700
-To: mm-commits@vger.kernel.org,wei.liu@kernel.org,ssengar@linux.microsoft.com,akpm@linux-foundation.org
+	b=VFDkATyP2K3kp6cD2TvJEMlRJhHTaaWumIELZjZMpRHxcEQ0puGgsgWj8cNH+k/5P
+	 QDW4+k8t86XvM1/6/LSJiJ/CNSAa9yLg43Yh5sOPGZ3g98Kw3/kbTSKW+XJ39qyJ/i
+	 EcuiMvyM5pBvkOsvsuIWRIAl2CfOeihFmLLMwwFs=
+Date: Mon, 12 Aug 2024 17:42:48 -0700
+To: mm-commits@vger.kernel.org,linux@roeck-us.net,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch added to mm-unstable branch
-Message-Id: <20240810070421.5C781C32781@smtp.kernel.org>
+Subject: [merged] powerpc-mm-fix-size-of-allocated-pgdir.patch removed from -mm tree
+Message-Id: <20240813004248.B7571C4AF0E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,108 +34,58 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmstat: defer the refresh_zone_stat_thresholds after all CPUs bringup
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
+The quilt patch titled
+     Subject: powerpc/mm: fix size of allocated PGDIR
+has been removed from the -mm tree.  Its filename was
+     powerpc-mm-fix-size-of-allocated-pgdir.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Saurabh Sengar <ssengar@linux.microsoft.com>
-Subject: mm/vmstat: defer the refresh_zone_stat_thresholds after all CPUs bringup
-Date: Fri, 5 Jul 2024 01:48:21 -0700
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: powerpc/mm: fix size of allocated PGDIR
+Date: Thu, 8 Aug 2024 11:32:47 +0200
 
-refresh_zone_stat_thresholds function has two loops which is expensive for
-higher number of CPUs and NUMA nodes.
+Commit 6b0e82791bd0 ("powerpc/e500: switch to 64 bits PGD on 85xx
+(32 bits)") increased the size of PGD entries but failed to increase
+the PGD directory.
 
-Below is the rough estimation of total iterations done by these loops
-based on number of NUMA and CPUs.
+Use the size of pgd_t instead of the size of pointers to calculate the
+allocated size.
 
-Total number of iterations: nCPU * 2 * Numa * mCPU
-Where:
- nCPU = total number of CPUs
- Numa = total number of NUMA nodes
- mCPU = mean value of total CPUs (e.g., 512 for 1024 total CPUs)
-
-For the system under test with 16 NUMA nodes and 1024 CPUs, this results
-in a substantial increase in the number of loop iterations during boot-up
-when NUMA is enabled:
-
-No NUMA = 1024*2*1*512  =   1,048,576 : Here refresh_zone_stat_thresholds
-takes around 224 ms total for all the CPUs in the system under test.
-16 NUMA = 1024*2*16*512 =  16,777,216 : Here refresh_zone_stat_thresholds
-takes around 4.5 seconds total for all the CPUs in the system under test.
-
-Calling this for each CPU is expensive when there are large number of CPUs
-along with multiple NUMAs.  Fix this by deferring
-refresh_zone_stat_thresholds to be called later at once when all the
-secondary CPUs are up.  Also, register the DYN hooks to keep the existing
-hotplug functionality intact.
-
-Link: https://lkml.kernel.org/r/1720169301-21002-1-git-send-email-ssengar@linux.microsoft.com
-Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+Link: https://lkml.kernel.org/r/1cdaacb391cbd3e0240f0e0faf691202874e9422.1723109462.git.christophe.leroy@csgroup.eu
+Fixes: 6b0e82791bd0 ("powerpc/e500: switch to 64 bits PGD on 85xx (32 bits)")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/init-common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup
-+++ a/mm/vmstat.c
-@@ -31,6 +31,7 @@
+--- a/arch/powerpc/mm/init-common.c~powerpc-mm-fix-size-of-allocated-pgdir
++++ a/arch/powerpc/mm/init-common.c
+@@ -73,7 +73,7 @@ void setup_kup(void)
  
- #include "internal.h"
- 
-+static int vmstat_late_init_done;
- #ifdef CONFIG_NUMA
- int sysctl_vm_numa_stat = ENABLE_NUMA_STAT;
- 
-@@ -2130,7 +2131,8 @@ static void __init init_cpu_node_state(v
- 
- static int vmstat_cpu_online(unsigned int cpu)
- {
--	refresh_zone_stat_thresholds();
-+	if (vmstat_late_init_done)
-+		refresh_zone_stat_thresholds();
- 
- 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
- 		node_set_state(cpu_to_node(cpu), N_CPU);
-@@ -2162,6 +2164,14 @@ static int vmstat_cpu_dead(unsigned int
- 	return 0;
+ #define CTOR(shift) static void ctor_##shift(void *addr) \
+ {							\
+-	memset(addr, 0, sizeof(void *) << (shift));	\
++	memset(addr, 0, sizeof(pgd_t) << (shift));	\
  }
  
-+static int __init vmstat_late_init(void)
-+{
-+	refresh_zone_stat_thresholds();
-+	vmstat_late_init_done = 1;
-+
-+	return 0;
-+}
-+late_initcall(vmstat_late_init);
- #endif
+ CTOR(0); CTOR(1); CTOR(2); CTOR(3); CTOR(4); CTOR(5); CTOR(6); CTOR(7);
+@@ -117,7 +117,7 @@ EXPORT_SYMBOL_GPL(pgtable_cache);	/* use
+ void pgtable_cache_add(unsigned int shift)
+ {
+ 	char *name;
+-	unsigned long table_size = sizeof(void *) << shift;
++	unsigned long table_size = sizeof(pgd_t) << shift;
+ 	unsigned long align = table_size;
  
- struct workqueue_struct *mm_percpu_wq;
+ 	/* When batching pgtable pointers for RCU freeing, we store
 _
 
-Patches currently in -mm which might be from ssengar@linux.microsoft.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
