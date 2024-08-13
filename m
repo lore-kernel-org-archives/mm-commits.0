@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CD7A1A4F2E
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 20:13:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2F0A953
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 20:13:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723579982; cv=none; b=qSXGEzfI7/U+eDCi5HBFUufwVhbOi3AN+MMhDulRLx6w/VJ0hkX5EoB0R+Z7KQlJgHt3zQ38ASA5YLIVzPURV59NlPyVrB+LXg2KXH6RDp14pOV12OV1E6KtZ/7V00EMs3elZeEXL+YyhrhS+1w+Tuv/4tOF9V1PsYk5rvTJp3g=
+	t=1723579985; cv=none; b=mMAUKN5TdEVnb3Slurz5br8S5W7x+JvRmWgXyc0SNZrdQXktlNELZZeR9QAMC7A3coji3mmuhgiyTu+MSd5xAM15UJC8mtKEfBqzisTjOOaE6RXGLedaIcTVqemXObWVPL/6Dsl8SCUuwZ87jRBr8OjN0W3NQmgrfSkXJjjnuh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723579982; c=relaxed/simple;
-	bh=VntI7lO64UlrwC5J3B1Y3tyJ88J0P3saY8/GOvCqAeI=;
-	h=Date:To:From:Subject:Message-Id; b=n/ECTrDxPB2zOwcTYln6fRz+Rk8QHqBEx8IG97XFbz954Pc0U2J31rAWDZrz+65jvBNbTEgF/w9VgfDEnn+LiGIna7GKHJKapK2/EVrZFmDgjAvfUDxSqgpZMJjFDJSnWzW3MMjschrEb/INts2Ibx+wvRjED0VXWar2o47HD4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DfUkRD5u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723579985; c=relaxed/simple;
+	bh=y3Z6+y2l0Id0LHX/Lk4X2TOLvbpHNnbIL5ijaFx7m84=;
+	h=Date:To:From:Subject:Message-Id; b=cnz6Zn4qg2EYMQ0F+nqDGPOYEg/R1Fk4h7BCnFkZ42u4CafNelsHnQoYHoEk+6Va830cAwqgN8qyb3wTeKwP2xL6HRXyQXbeh+6go8IHqK+qoeUbfyUCzZl4DQ8A6bS3+RyDuL+qZV2NP/Yj37bSvftSMU5UNFu6Te6hCahHGJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YJji5dch; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DfUkRD5u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 970DEC32782;
-	Tue, 13 Aug 2024 20:13:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YJji5dch"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD705C32782;
+	Tue, 13 Aug 2024 20:13:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723579981;
-	bh=VntI7lO64UlrwC5J3B1Y3tyJ88J0P3saY8/GOvCqAeI=;
+	s=korg; t=1723579984;
+	bh=y3Z6+y2l0Id0LHX/Lk4X2TOLvbpHNnbIL5ijaFx7m84=;
 	h=Date:To:From:Subject:From;
-	b=DfUkRD5uMtrmF8w0GHS0ZTjWSbtyDhR9f5fYvasPRzRcBBQO8R38ej0tONqNldH4L
-	 1rckQi4LXhy386Ouy0bIMgmvGpViUIxULuhQmZR5NA1970Qbe82JcAWN6hyZGsPj2N
-	 yKsK2bcNqXs0/F7PQAHETmpZtsu0YcK2nTyS2cz0=
-Date: Tue, 13 Aug 2024 13:13:00 -0700
-To: mm-commits@vger.kernel.org,zhais@google.com,yuzhao@google.com,willy@infradead.org,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,ak@linux.intel.com,alexlzhu@fb.com,akpm@linux-foundation.org
+	b=YJji5dch/wesNJfEMxhUijXahB6W1k1cWKwZOQWb5Z8xxgEHVrYIl0ejsVTJnxKnE
+	 lTbm4cTRHMKIaA828tTCglBHC6Oed4SyRqcGIrlWH30riA8C8jKhd5Dxya/+IaHZhb
+	 n3qMghJRmPZXkc48l7sy7AfjQBotG475af0QrzCw=
+Date: Tue, 13 Aug 2024 13:13:04 -0700
+To: mm-commits@vger.kernel.org,zhais@google.com,yuzhao@google.com,willy@infradead.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,alexlzhu@fb.com,ak@linux.intel.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch added to mm-unstable branch
-Message-Id: <20240813201301.970DEC32782@smtp.kernel.org>
+Subject: + mm-introduce-a-pageflag-for-partially-mapped-folios.patch added to mm-unstable branch
+Message-Id: <20240813201304.AD705C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: selftest to verify zero-filled pages are mapped to zeropage
+     Subject: mm: introduce a pageflag for partially mapped folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
+     mm-introduce-a-pageflag-for-partially-mapped-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-a-pageflag-for-partially-mapped-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,18 +58,30 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Zhu <alexlzhu@fb.com>
-Subject: mm: selftest to verify zero-filled pages are mapped to zeropage
-Date: Tue, 13 Aug 2024 13:02:46 +0100
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm: introduce a pageflag for partially mapped folios
+Date: Tue, 13 Aug 2024 13:02:47 +0100
 
-When a THP is split, any subpage that is zero-filled will be mapped to the
-shared zeropage, hence saving memory.  Add selftest to verify this by
-allocating zero-filled THP and comparing RssAnon before and after split.
+Currently folio->_deferred_list is used to keep track of partially_mapped
+folios that are going to be split under memory pressure.  In the next
+patch, all THPs that are faulted in and collapsed by khugepaged are also
+going to be tracked using _deferred_list.
 
-Link: https://lkml.kernel.org/r/20240813120328.1275952-4-usamaarif642@gmail.com
-Signed-off-by: Alexander Zhu <alexlzhu@fb.com>
+This patch introduces a pageflag to be able to distinguish between
+partially mapped folios and others in the deferred_list at split time in
+deferred_split_scan.  Its needed as __folio_remove_rmap decrements
+_mapcount, _large_mapcount and _entire_mapcount, hence it won't be
+possible to distinguish between partially mapped folios and others in
+deferred_split_scan.
+
+Eventhough it introduces an extra flag to track if the folio is partially
+mapped, there is no functional change intended with this patch and the
+flag is not useful in this patch itself, it will become useful in the next
+patch when _deferred_list has non partially mapped folios.
+
+Link: https://lkml.kernel.org/r/20240813120328.1275952-5-usamaarif642@gmail.com
 Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Acked-by: Rik van Riel <riel@surriel.com>
+Cc: Alexander Zhu <alexlzhu@fb.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
@@ -77,6 +89,7 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -86,149 +99,214 @@ Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   71 ++++++++++++
- tools/testing/selftests/mm/vm_util.c              |   22 +++
- tools/testing/selftests/mm/vm_util.h              |    1 
- 3 files changed, 94 insertions(+)
+ include/linux/huge_mm.h    |    4 ++--
+ include/linux/page-flags.h |    3 +++
+ mm/huge_memory.c           |   21 +++++++++++++--------
+ mm/hugetlb.c               |    1 +
+ mm/internal.h              |    4 +++-
+ mm/memcontrol.c            |    3 ++-
+ mm/migrate.c               |    3 ++-
+ mm/page_alloc.c            |    5 +++--
+ mm/rmap.c                  |    3 ++-
+ mm/vmscan.c                |    3 ++-
+ 10 files changed, 33 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -84,6 +84,76 @@ static void write_debugfs(const char *fm
- 	write_file(SPLIT_DEBUGFS, input, ret + 1);
+--- a/include/linux/huge_mm.h~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/include/linux/huge_mm.h
+@@ -321,7 +321,7 @@ static inline int split_huge_page(struct
+ {
+ 	return split_huge_page_to_list_to_order(page, NULL, 0);
+ }
+-void deferred_split_folio(struct folio *folio);
++void deferred_split_folio(struct folio *folio, bool partially_mapped);
+ 
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long address, bool freeze, struct folio *folio);
+@@ -495,7 +495,7 @@ static inline int split_huge_page(struct
+ {
+ 	return 0;
+ }
+-static inline void deferred_split_folio(struct folio *folio) {}
++static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
+ #define split_huge_pmd(__vma, __pmd, __address)	\
+ 	do { } while (0)
+ 
+--- a/include/linux/page-flags.h~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/include/linux/page-flags.h
+@@ -182,6 +182,7 @@ enum pageflags {
+ 	/* At least one page in this folio has the hwpoison flag set */
+ 	PG_has_hwpoisoned = PG_active,
+ 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
++	PG_partially_mapped, /* was identified to be partially mapped */
+ };
+ 
+ #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
+@@ -861,8 +862,10 @@ static inline void ClearPageCompound(str
+ 	ClearPageHead(page);
+ }
+ FOLIO_FLAG(large_rmappable, FOLIO_SECOND_PAGE)
++FOLIO_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
+ #else
+ FOLIO_FLAG_FALSE(large_rmappable)
++FOLIO_FLAG_FALSE(partially_mapped)
+ #endif
+ 
+ #define PG_head_mask ((1UL << PG_head))
+--- a/mm/huge_memory.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/huge_memory.c
+@@ -3390,6 +3390,7 @@ int split_huge_page_to_list_to_order(str
+ 			 * page_deferred_list.
+ 			 */
+ 			list_del_init(&folio->_deferred_list);
++			folio_clear_partially_mapped(folio);
+ 		}
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ 		if (mapping) {
+@@ -3446,11 +3447,12 @@ void __folio_undo_large_rmappable(struct
+ 	if (!list_empty(&folio->_deferred_list)) {
+ 		ds_queue->split_queue_len--;
+ 		list_del_init(&folio->_deferred_list);
++		folio_clear_partially_mapped(folio);
+ 	}
+ 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
  }
  
-+static char *allocate_zero_filled_hugepage(size_t len)
-+{
-+	char *result;
-+	size_t i;
-+
-+	result = memalign(pmd_pagesize, len);
-+	if (!result) {
-+		printf("Fail to allocate memory\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	madvise(result, len, MADV_HUGEPAGE);
-+
-+	for (i = 0; i < len; i++)
-+		result[i] = (char)0;
-+
-+	return result;
-+}
-+
-+static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
-+{
-+	unsigned long rss_anon_before, rss_anon_after;
-+	size_t i;
-+
-+	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
-+		printf("No THP is allocated\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	rss_anon_before = rss_anon();
-+	if (!rss_anon_before) {
-+		printf("No RssAnon is allocated before split\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	/* split all THPs */
-+	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
-+		      (uint64_t)one_page + len, 0);
-+
-+	for (i = 0; i < len; i++)
-+		if (one_page[i] != (char)0) {
-+			printf("%ld byte corrupted\n", i);
-+			exit(EXIT_FAILURE);
+-void deferred_split_folio(struct folio *folio)
++void deferred_split_folio(struct folio *folio, bool partially_mapped)
+ {
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ #ifdef CONFIG_MEMCG
+@@ -3478,14 +3480,17 @@ void deferred_split_folio(struct folio *
+ 	if (folio_test_swapcache(folio))
+ 		return;
+ 
+-	if (!list_empty(&folio->_deferred_list))
+-		return;
+-
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
++	if (partially_mapped)
++		folio_set_partially_mapped(folio);
++	else
++		folio_clear_partially_mapped(folio);
+ 	if (list_empty(&folio->_deferred_list)) {
+-		if (folio_test_pmd_mappable(folio))
+-			count_vm_event(THP_DEFERRED_SPLIT_PAGE);
+-		count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
++		if (partially_mapped) {
++			if (folio_test_pmd_mappable(folio))
++				count_vm_event(THP_DEFERRED_SPLIT_PAGE);
++			count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
 +		}
-+
-+	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
-+		printf("Still AnonHugePages not split\n");
-+		exit(EXIT_FAILURE);
+ 		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
+ 		ds_queue->split_queue_len++;
+ #ifdef CONFIG_MEMCG
+@@ -3534,6 +3539,7 @@ static unsigned long deferred_split_scan
+ 		} else {
+ 			/* We lost race with folio_put() */
+ 			list_del_init(&folio->_deferred_list);
++			folio_clear_partially_mapped(folio);
+ 			ds_queue->split_queue_len--;
+ 		}
+ 		if (!--sc->nr_to_scan)
+@@ -3551,7 +3557,6 @@ static unsigned long deferred_split_scan
+ next:
+ 		folio_put(folio);
+ 	}
+-
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+ 	list_splice_tail(&list, &ds_queue->split_queue);
+ 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+--- a/mm/hugetlb.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/hugetlb.c
+@@ -1758,6 +1758,7 @@ static void __update_and_free_hugetlb_fo
+ 		free_gigantic_folio(folio, huge_page_order(h));
+ 	} else {
+ 		INIT_LIST_HEAD(&folio->_deferred_list);
++		folio_clear_partially_mapped(folio);
+ 		folio_put(folio);
+ 	}
+ }
+--- a/mm/internal.h~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/internal.h
+@@ -662,8 +662,10 @@ static inline void prep_compound_head(st
+ 	atomic_set(&folio->_entire_mapcount, -1);
+ 	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
+-	if (order > 1)
++	if (order > 1) {
+ 		INIT_LIST_HEAD(&folio->_deferred_list);
++		folio_clear_partially_mapped(folio);
 +	}
-+
-+	rss_anon_after = rss_anon();
-+	if (rss_anon_after >= rss_anon_before) {
-+		printf("Incorrect RssAnon value. Before: %ld After: %ld\n",
-+		       rss_anon_before, rss_anon_after);
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
-+void split_pmd_zero_pages(void)
-+{
-+	char *one_page;
-+	int nr_hpages = 4;
-+	size_t len = nr_hpages * pmd_pagesize;
-+
-+	one_page = allocate_zero_filled_hugepage(len);
-+	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
-+	printf("Split zero filled huge pages successful\n");
-+	free(one_page);
-+}
-+
- void split_pmd_thp(void)
- {
- 	char *one_page;
-@@ -431,6 +501,7 @@ int main(int argc, char **argv)
- 
- 	fd_size = 2 * pmd_pagesize;
- 
-+	split_pmd_zero_pages();
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
---- a/tools/testing/selftests/mm/vm_util.c~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -12,6 +12,7 @@
- 
- #define PMD_SIZE_FILE_PATH "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
- #define SMAP_FILE_PATH "/proc/self/smaps"
-+#define STATUS_FILE_PATH "/proc/self/status"
- #define MAX_LINE_LENGTH 500
- 
- unsigned int __page_size;
-@@ -171,6 +172,27 @@ uint64_t read_pmd_pagesize(void)
- 	return strtoul(buf, NULL, 10);
  }
  
-+unsigned long rss_anon(void)
-+{
-+	unsigned long rss_anon = 0;
-+	FILE *fp;
-+	char buffer[MAX_LINE_LENGTH];
+ static inline void prep_compound_tail(struct page *head, int tail_idx)
+--- a/mm/memcontrol.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/memcontrol.c
+@@ -4649,7 +4649,8 @@ static void uncharge_folio(struct folio
+ 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_order(folio) > 1 &&
+ 			!folio_test_hugetlb(folio) &&
+-			!list_empty(&folio->_deferred_list), folio);
++			!list_empty(&folio->_deferred_list) &&
++			folio_test_partially_mapped(folio), folio);
+ 
+ 	/*
+ 	 * Nobody should be changing or seriously looking at
+--- a/mm/migrate.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/migrate.c
+@@ -1734,7 +1734,8 @@ static int migrate_pages_batch(struct li
+ 			 * use _deferred_list.
+ 			 */
+ 			if (nr_pages > 2 &&
+-			   !list_empty(&folio->_deferred_list)) {
++			   !list_empty(&folio->_deferred_list) &&
++			   folio_test_partially_mapped(folio)) {
+ 				if (!try_split_folio(folio, split_folios, mode)) {
+ 					nr_failed++;
+ 					stats->nr_thp_failed += is_thp;
+--- a/mm/page_alloc.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/page_alloc.c
+@@ -962,8 +962,9 @@ static int free_tail_page_prepare(struct
+ 		break;
+ 	case 2:
+ 		/* the second tail page: deferred_list overlaps ->mapping */
+-		if (unlikely(!list_empty(&folio->_deferred_list))) {
+-			bad_page(page, "on deferred list");
++		if (unlikely(!list_empty(&folio->_deferred_list) &&
++		    folio_test_partially_mapped(folio))) {
++			bad_page(page, "partially mapped folio on deferred list");
+ 			goto out;
+ 		}
+ 		break;
+--- a/mm/rmap.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/rmap.c
+@@ -1579,7 +1579,8 @@ static __always_inline void __folio_remo
+ 	 */
+ 	if (partially_mapped && folio_test_anon(folio) &&
+ 	    list_empty(&folio->_deferred_list))
+-		deferred_split_folio(folio);
++		deferred_split_folio(folio, true);
 +
-+	fp = fopen(STATUS_FILE_PATH, "r");
-+	if (!fp)
-+		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, STATUS_FILE_PATH);
-+
-+	if (!check_for_pattern(fp, "RssAnon:", buffer, sizeof(buffer)))
-+		goto err_out;
-+
-+	if (sscanf(buffer, "RssAnon:%10lu kB", &rss_anon) != 1)
-+		ksft_exit_fail_msg("Reading status error\n");
-+
-+err_out:
-+	fclose(fp);
-+	return rss_anon;
-+}
-+
- bool __check_huge(void *addr, char *pattern, int nr_hpages,
- 		  uint64_t hpage_size)
- {
---- a/tools/testing/selftests/mm/vm_util.h~mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -39,6 +39,7 @@ unsigned long pagemap_get_pfn(int fd, ch
- void clear_softdirty(void);
- bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
- uint64_t read_pmd_pagesize(void);
-+uint64_t rss_anon(void);
- bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
- bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size);
- bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
+ 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
+ 
+ 	/*
+--- a/mm/vmscan.c~mm-introduce-a-pageflag-for-partially-mapped-folios
++++ a/mm/vmscan.c
+@@ -1233,7 +1233,8 @@ retry:
+ 					 * Split partially mapped folios right away.
+ 					 * We can free the unmapped pages without IO.
+ 					 */
+-					if (data_race(!list_empty(&folio->_deferred_list)) &&
++					if (data_race(!list_empty(&folio->_deferred_list) &&
++					    folio_test_partially_mapped(folio)) &&
+ 					    split_folio_to_list(folio, folio_list))
+ 						goto activate_locked;
+ 				}
 _
 
-Patches currently in -mm which might be from alexlzhu@fb.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-selftest-to-verify-zero-filled-pages-are-mapped-to-zeropage.patch
+mm-introduce-a-pageflag-for-partially-mapped-folios.patch
+mm-split-underutilized-thps.patch
+mm-add-sysfs-entry-to-disable-splitting-underutilized-thps.patch
 
