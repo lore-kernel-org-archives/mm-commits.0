@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A228EA3D
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:35:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7246F282E5;
+	Tue, 13 Aug 2024 18:40:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723574128; cv=none; b=TVJ2FxW6+/+O7dvNNhupu5Mr7wJiaY2V0H/HvauGSaNQvxFQRTdYg/+bVpfwOJKBIVwRY0aBo0Hggxd0MzoaZ3gQYmUrlgf/0aU0BwWNaUak1dL5rVGNhnDC1e1LyhmiT91J1WDdPTSx2h7kCEs2nAC7WC2Rg0pp9bp4r9C9HHg=
+	t=1723574402; cv=none; b=ltCznQwHTDXLBQJJU/RranxhhJ6ax/MvtRyNpC9aUhWDYhnb8l2OYsh2jffWFtTIyr8RPMMlXtYBZZEtU1d2ooyX5ekai2/HTF+KMYCzov4lm4REOrnVNv0tEqZHHcotF6dKiFiBvKaH+MWDG+QZFhfXW+Z1s8NCKuIQHfvIxFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723574128; c=relaxed/simple;
-	bh=tR3Qo6ouHEFCLRckwCkw6B7jEz4XCiu+A3j7NPoH69k=;
-	h=Date:To:From:Subject:Message-Id; b=K8bNoYheXAo4KqO1I2npz8qf6jtQtxh9Tbi/mNifJAk9Ei9fHd3jQJxSo8ZyJFsqq9h/KY9M1VOqVHsLfkMD0jIe+DJfrZQUlSuIsOPiYZAplBlgIWgC17dB2SR2c2LDiD86iuXl7MpJkcNHjpiFlvFj8087Sffab/L04AYjaW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GxE/Gy0f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723574402; c=relaxed/simple;
+	bh=v/TW6f1k3Ldsvi4N6VGGYGUfNGU1IEq4UwmGknqthzU=;
+	h=Date:To:From:Subject:Message-Id; b=ZnlAgBukMV5t3ajbH5Ct/WzE37teRRTgvnL8LspmlOyd1fF2mGLoV7SjlM4AaIajyDhmm01Nd3xl7AWyunngnMRdru1ZQWpfvFAxteqrWFLsvf6a/x6uH44WlP5tO2qN4r6eAa+GakbySy321McX9YYBToYD+36iP3Kpi3jxLi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BVW68rCq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GxE/Gy0f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE9CC32782;
-	Tue, 13 Aug 2024 18:35:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BVW68rCq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E27C8C32782;
+	Tue, 13 Aug 2024 18:40:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723574128;
-	bh=tR3Qo6ouHEFCLRckwCkw6B7jEz4XCiu+A3j7NPoH69k=;
+	s=korg; t=1723574402;
+	bh=v/TW6f1k3Ldsvi4N6VGGYGUfNGU1IEq4UwmGknqthzU=;
 	h=Date:To:From:Subject:From;
-	b=GxE/Gy0f3SUL5SU9YlS7Gg0sIqXrJvvj+Mil3fEkYalWQKmCdfZbYqo6Eqo3jueYh
-	 /V9HNPVBukLY3RRViKZFfMtl3M1+locS4OOrN04GdSpRSbfS1b3yZlB7O0lIQrwEVP
-	 vT5v1R4VmRm9ReyDvOtnT42TjCalIy10Rvx72t/Q=
-Date: Tue, 13 Aug 2024 11:35:27 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,ioworker0@gmail.com,yuanchu@google.com,akpm@linux-foundation.org
+	b=BVW68rCqTTzn0qhErHm4EVWQfwD9/+OPiGJQi3hxOJW9xCQphkSbrZbiKM4WEhj90
+	 r8xIkUtE/G1iB1VWymqPs8hTb8EFTZUtsewj9/UVNWrJt/9V+AlhJ6gpquEHiKAcBu
+	 UAeeNKqnp9y/MdfH4fkiM4NemFaWLRJ2DJIvWDpw=
+Date: Tue, 13 Aug 2024 11:40:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,souravpanda@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,keescook@chromium.org,david@redhat.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-ignore-non-leaf-pmd_young-for-force_scan=true.patch added to mm-unstable branch
-Message-Id: <20240813183528.1EE9CC32782@smtp.kernel.org>
+Subject: + alloc_tag-introduce-clear_page_tag_ref-helper-function.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240813184001.E27C8C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: ignore non-leaf pmd_young for force_scan=true
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-ignore-non-leaf-pmd_young-for-force_scan=true.patch
+     Subject: alloc_tag: introduce clear_page_tag_ref() helper function
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     alloc_tag-introduce-clear_page_tag_ref-helper-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-ignore-non-leaf-pmd_young-for-force_scan=true.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-introduce-clear_page_tag_ref-helper-function.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yuanchu Xie <yuanchu@google.com>
-Subject: mm: multi-gen LRU: ignore non-leaf pmd_young for force_scan=true
-Date: Tue, 13 Aug 2024 09:37:59 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: introduce clear_page_tag_ref() helper function
+Date: Tue, 13 Aug 2024 08:07:56 -0700
 
-When non-leaf pmd accessed bits are available, MGLRU page table walks can
-clear the non-leaf pmd accessed bit and ignore the accessed bit on the pte
-if it's on a different node, skipping a generation update as well.  If
-another scan occurs on the same node as said skipped pte.
+In several cases we are freeing pages which were not allocated using
+common page allocators.  For such cases, in order to keep allocation
+accounting correct, we should clear the page tag to indicate that the page
+being freed is expected to not have a valid allocation tag.  Introduce
+clear_page_tag_ref() helper function to be used for this.
 
-The non-leaf pmd accessed bit might remain cleared and the pte accessed
-bits won't be checked.  While this is sufficient for reclaim-driven aging,
-where the goal is to select a reasonably cold page, the access can be
-missed when aging proactively for workingset estimation of a node/memcg.
-
-In more detail, get_pfn_folio returns NULL if the folio's nid != node
-under scanning, so the page table walk skips processing of said pte.  Now
-the pmd_young flag on this pmd is cleared, and if none of the pte's are
-accessed before another scan occurs on the folio's node, the pmd_young
-check fails and the pte accessed bit is skipped.
-
-Since force_scan disables various other optimizations, we check force_scan
-to ignore the non-leaf pmd accessed bit.
-
-Link: https://lkml.kernel.org/r/20240813163759.742675-1-yuanchu@google.com
-Signed-off-by: Yuanchu Xie <yuanchu@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Lance Yang <ioworker0@gmail.com>
+Link: https://lkml.kernel.org/r/20240813150758.855881-1-surenb@google.com
+Fixes: d224eb0287fb ("codetag: debug: mark codetags for reserved pages as empty")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>	[6.10]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pgalloc_tag.h |   13 +++++++++++++
+ mm/mm_init.c                |   10 +---------
+ mm/page_alloc.c             |    9 +--------
+ 3 files changed, 15 insertions(+), 17 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-ignore-non-leaf-pmd_young-for-force_scan=true
-+++ a/mm/vmscan.c
-@@ -3499,7 +3499,7 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
+--- a/include/linux/pgalloc_tag.h~alloc_tag-introduce-clear_page_tag_ref-helper-function
++++ a/include/linux/pgalloc_tag.h
+@@ -43,6 +43,18 @@ static inline void put_page_tag_ref(unio
+ 	page_ext_put(page_ext_from_codetag_ref(ref));
+ }
  
- 		if (!pmd_trans_huge(pmd[i])) {
--			if (should_clear_pmd_young())
-+			if (!walk->force_scan && should_clear_pmd_young())
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
- 			goto next;
- 		}
-@@ -3586,7 +3586,7 @@ restart:
++static inline void clear_page_tag_ref(struct page *page)
++{
++	if (mem_alloc_profiling_enabled()) {
++		union codetag_ref *ref = get_page_tag_ref(page);
++
++		if (ref) {
++			set_codetag_empty(ref);
++			put_page_tag_ref(ref);
++		}
++	}
++}
++
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr)
+ {
+@@ -126,6 +138,7 @@ static inline void pgalloc_tag_sub_pages
  
- 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ static inline union codetag_ref *get_page_tag_ref(struct page *page) { return NULL; }
+ static inline void put_page_tag_ref(union codetag_ref *ref) {}
++static inline void clear_page_tag_ref(struct page *page) {}
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
+--- a/mm/mm_init.c~alloc_tag-introduce-clear_page_tag_ref-helper-function
++++ a/mm/mm_init.c
+@@ -2459,15 +2459,7 @@ void __init memblock_free_pages(struct p
+ 	}
  
--		if (should_clear_pmd_young()) {
-+		if (!walk->force_scan && should_clear_pmd_young()) {
- 			if (!pmd_young(val))
- 				continue;
+ 	/* pages were reserved and not allocated */
+-	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
+-
+-		if (ref) {
+-			set_codetag_empty(ref);
+-			put_page_tag_ref(ref);
+-		}
+-	}
+-
++	clear_page_tag_ref(page);
+ 	__free_pages_core(page, order, MEMINIT_EARLY);
+ }
  
+--- a/mm/page_alloc.c~alloc_tag-introduce-clear_page_tag_ref-helper-function
++++ a/mm/page_alloc.c
+@@ -5815,14 +5815,7 @@ unsigned long free_reserved_area(void *s
+ 
+ void free_reserved_page(struct page *page)
+ {
+-	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
+-
+-		if (ref) {
+-			set_codetag_empty(ref);
+-			put_page_tag_ref(ref);
+-		}
+-	}
++	clear_page_tag_ref(page);
+ 	ClearPageReserved(page);
+ 	init_page_count(page);
+ 	__free_page(page);
 _
 
-Patches currently in -mm which might be from yuanchu@google.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-multi-gen-lru-ignore-non-leaf-pmd_young-for-force_scan=true.patch
+alloc_tag-introduce-clear_page_tag_ref-helper-function.patch
+alloc_tag-mark-pages-reserved-during-cma-activation-as-not-tagged.patch
 
