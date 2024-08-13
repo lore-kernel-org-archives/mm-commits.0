@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF4071AAE25
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 21:06:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46E091A706A;
+	Tue, 13 Aug 2024 21:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723583214; cv=none; b=q0Db7rxd26HUEgNL+aI0sXyLVEWMWhwA4R4vYUmTnFcfDI4ZlkFKg+cVh9gBiTA7t/OMGnBB2G3vLfTqMdrRN1kSlZLli9vjGYCqDziw21rRg/Qk7JSSzDKkAruAx4paLfrpMiNLi/3KXTn6bWnbsGLSs5Nui2Ye4C/3JlqyESo=
+	t=1723583335; cv=none; b=iEOrRXzERbVl7ZnfUaZ9S7bSI2cseZFr2tej2T+YqZz4KNVCHhu1cpn70BhIRqj5Uate1u195Y0x+Dt8hr/55EgtnZcEXOXSRQ7NaMDQgiVbq87qWnzbefrHFLGHL65vAl2nunL2Ls7U4Ap9m/3oRgo6Jn94y8AIlBke0l1mkN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723583214; c=relaxed/simple;
-	bh=pEMw7ZKL0XEZHaAW2O5FJE8lwD4cfesJpDUBKcSGKoE=;
-	h=Date:To:From:Subject:Message-Id; b=Uhcqll52y8vEzYQKa39GAbktg2UdJZxDweA1Q67JbhSKRpzG8EWrlmJLiYNOE0CF2PuOiY/Nzbdc/Z5nl6XSOuYJz4YDdAM+r23sWrGjyVkeQ4u/PDxXMZQRbhGhiK8iNEMbPz5T5LvKBzNUdIhBWClQGgpGWXZ5kDpM07CwhUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MnGeBsIa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723583335; c=relaxed/simple;
+	bh=gWuO5hezVV8kXnzUe6XCJo5DwhOnTZS07C3P9XDvlb0=;
+	h=Date:To:From:Subject:Message-Id; b=lacQRCg5YCvGucp8MsVGFiKGGA/gwrn6r5+HrzMnl0KtxI+kYnlBGeK215KnPKMRMBHW3qJhl4bzfcn81r3xU9q1HgG2gmbuo55MNTLWuPtDhPJl4i+05sVAKGYF5uTTdenCHBWnMooMHmvAUNfNc0mSwsElV7uZ4fKbm5oAb+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JIqPnVif; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MnGeBsIa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50842C4AF10;
-	Tue, 13 Aug 2024 21:06:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JIqPnVif"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A743C32782;
+	Tue, 13 Aug 2024 21:08:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723583214;
-	bh=pEMw7ZKL0XEZHaAW2O5FJE8lwD4cfesJpDUBKcSGKoE=;
+	s=korg; t=1723583334;
+	bh=gWuO5hezVV8kXnzUe6XCJo5DwhOnTZS07C3P9XDvlb0=;
 	h=Date:To:From:Subject:From;
-	b=MnGeBsIaGYWgkcsG91+1BytX4OyY83vyKhUgOs1X5tKnOdRC8QwvDbi2NdmcBNEqH
-	 TGdvgvli/lqGjmlZLymsyi6vvCxIO+BYS8XLQrYzpatVo7ra1K6wB2G55XtBmhinIY
-	 60ORgzEk3ks0goNP/oVUhSn/xE8Gh3zFM3clVxZA=
-Date: Tue, 13 Aug 2024 14:06:53 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=JIqPnVifbgpE1yPoxXcpI5MRCfzaPyWBiLruo/O0KamThW6xkTS/KMf2fDbkUTQKw
+	 Wj14L1Gl7z1KAp7FnUcqB1fXq3lTt9t4p5YH6PUIjjKVH3eKw2TwqD4KKN1zXqOvgp
+	 nAffsnNK/4jMjkN0Bm9vhuKboIQIypKn1D67Js2E=
+Date: Tue, 13 Aug 2024 14:08:54 -0700
+To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,urezki@gmail.com,tglx@linutronix.de,stable@vger.kernel.org,lstoakes@gmail.com,hch@infradead.org,hailong.liu@oppo.com,bhe@redhat.com,will@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-test-to-replicate-low-memory-race-conditions.patch added to mm-unstable branch
-Message-Id: <20240813210654.50842C4AF10@smtp.kernel.org>
+Subject: + mm-vmalloc-ensure-vmap_block-is-initialised-before-adding-to-queue.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240813210854.9A743C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: add test to replicate low memory race conditions
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-test-to-replicate-low-memory-race-conditions.patch
+     Subject: mm: vmalloc: ensure vmap_block is initialised before adding to queue
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-ensure-vmap_block-is-initialised-before-adding-to-queue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-test-to-replicate-low-memory-race-conditions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-ensure-vmap_block-is-initialised-before-adding-to-queue.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,187 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: add test to replicate low memory race conditions
-Date: Mon, 12 Aug 2024 15:05:43 -0400
+From: Will Deacon <will@kernel.org>
+Subject: mm: vmalloc: ensure vmap_block is initialised before adding to queue
+Date: Mon, 12 Aug 2024 18:16:06 +0100
 
-Add new callback fields to the userspace implementation of struct
-kmem_cache.  This allows for executing callback functions in order to
-further test low memory scenarios where node allocation is retried.
+Commit 8c61291fd850 ("mm: fix incorrect vbq reference in
+purge_fragmented_block") extended the 'vmap_block' structure to contain a
+'cpu' field which is set at allocation time to the id of the initialising
+CPU.
 
-This callback can help test race conditions by calling a function when a
-low memory event is tested.
+When a new 'vmap_block' is being instantiated by new_vmap_block(), the
+partially initialised structure is added to the local 'vmap_block_queue'
+xarray before the 'cpu' field has been initialised.  If another CPU is
+concurrently walking the xarray (e.g.  via vm_unmap_aliases()), then it
+may perform an out-of-bounds access to the remote queue thanks to an
+uninitialised index.
 
-Link: https://lkml.kernel.org/r/20240812190543.71967-2-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+This has been observed as UBSAN errors in Android:
+
+ | Internal error: UBSAN: array index out of bounds: 00000000f2005512 [#1] PREEMPT SMP
+ |
+ | Call trace:
+ |  purge_fragmented_block+0x204/0x21c
+ |  _vm_unmap_aliases+0x170/0x378
+ |  vm_unmap_aliases+0x1c/0x28
+ |  change_memory_common+0x1dc/0x26c
+ |  set_memory_ro+0x18/0x24
+ |  module_enable_ro+0x98/0x238
+ |  do_init_module+0x1b0/0x310
+
+Move the initialisation of 'vb->cpu' in new_vmap_block() ahead of the
+addition to the xarray.
+
+Link: https://lkml.kernel.org/r/20240812171606.17486-1-will@kernel.org
+Fixes: 8c61291fd850 ("mm: fix incorrect vbq reference in purge_fragmented_block")
+Signed-off-by: Will Deacon <will@kernel.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Cc: Hailong.Liu <hailong.liu@oppo.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c                 |   13 +++++
- tools/testing/radix-tree/maple.c |   63 +++++++++++++++++++++++++++++
- tools/testing/shared/linux.c     |   26 +++++++++++
- 3 files changed, 101 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-add-test-to-replicate-low-memory-race-conditions
-+++ a/lib/maple_tree.c
-@@ -7005,6 +7005,19 @@ void mt_set_non_kernel(unsigned int val)
- 	kmem_cache_set_non_kernel(maple_node_cache, val);
- }
+--- a/mm/vmalloc.c~mm-vmalloc-ensure-vmap_block-is-initialised-before-adding-to-queue
++++ a/mm/vmalloc.c
+@@ -2626,6 +2626,7 @@ static void *new_vmap_block(unsigned int
+ 	vb->dirty_max = 0;
+ 	bitmap_set(vb->used_map, 0, (1UL << order));
+ 	INIT_LIST_HEAD(&vb->free_list);
++	vb->cpu = raw_smp_processor_id();
  
-+extern void kmem_cache_set_callback(struct kmem_cache *cachep,
-+		void (*callback)(void *));
-+void mt_set_callback(void (*callback)(void *))
-+{
-+	kmem_cache_set_callback(maple_node_cache, callback);
-+}
-+
-+extern void kmem_cache_set_private(struct kmem_cache *cachep, void *private);
-+void mt_set_private(void *private)
-+{
-+	kmem_cache_set_private(maple_node_cache, private);
-+}
-+
- extern unsigned long kmem_cache_get_alloc(struct kmem_cache *);
- unsigned long mt_get_alloc_size(void)
- {
---- a/tools/testing/radix-tree/maple.c~maple_tree-add-test-to-replicate-low-memory-race-conditions
-+++ a/tools/testing/radix-tree/maple.c
-@@ -36224,6 +36224,65 @@ static noinline void __init check_mtree_
- 
- extern void test_kmem_cache_bulk(void);
- 
-+/* callback function used for check_nomem_writer_race() */
-+static void writer2(void *maple_tree)
-+{
-+	struct maple_tree *mt = (struct maple_tree *)maple_tree;
-+	MA_STATE(mas, mt, 6, 10);
-+
-+	mtree_lock(mas.tree);
-+	mas_store(&mas, xa_mk_value(0xC));
-+	mas_destroy(&mas);
-+	mtree_unlock(mas.tree);
-+}
-+
-+/*
-+ * check_nomem_writer_race() - test a possible race in the mas_nomem() path
-+ * @mt: The tree to build.
-+ *
-+ * There is a possible race condition in low memory conditions when mas_nomem()
-+ * gives up its lock. A second writer can chagne the entry that the primary
-+ * writer executing the mas_nomem() path is modifying. This test recreates this
-+ * scenario to ensure we are handling it correctly.
-+ */
-+static void check_nomem_writer_race(struct maple_tree *mt)
-+{
-+	MA_STATE(mas, mt, 0, 5);
-+
-+	mt_set_non_kernel(0);
-+	/* setup root with 2 values with NULL in between */
-+	mtree_store_range(mt, 0, 5, xa_mk_value(0xA), GFP_KERNEL);
-+	mtree_store_range(mt, 6, 10, NULL, GFP_KERNEL);
-+	mtree_store_range(mt, 11, 15, xa_mk_value(0xB), GFP_KERNEL);
-+
-+	/* setup writer 2 that will trigger the race condition */
-+	mt_set_private(mt);
-+	mt_set_callback(writer2);
-+
-+	mtree_lock(mt);
-+	/* erase 0-5 */
-+	mas_erase(&mas);
-+
-+	/* index 6-10 should retain the value from writer 2 */
-+	check_load(mt, 6, xa_mk_value(0xC));
-+	mtree_unlock(mt);
-+
-+	/* test for the same race but with mas_store_gfp() */
-+	mtree_store_range(mt, 0, 5, xa_mk_value(0xA), GFP_KERNEL);
-+	mtree_store_range(mt, 6, 10, NULL, GFP_KERNEL);
-+
-+	mas_set_range(&mas, 0, 5);
-+	mtree_lock(mt);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+
-+	/* ensure write made by writer 2 is retained */
-+	check_load(mt, 6, xa_mk_value(0xC));
-+
-+	mt_set_private(NULL);
-+	mt_set_callback(NULL);
-+	mtree_unlock(mt);
-+}
-+
- void farmer_tests(void)
- {
- 	struct maple_node *node;
-@@ -36257,6 +36316,10 @@ void farmer_tests(void)
- 	check_dfs_preorder(&tree);
- 	mtree_destroy(&tree);
- 
-+	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_USE_RCU);
-+	check_nomem_writer_race(&tree);
-+	mtree_destroy(&tree);
-+
- 	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
- 	check_prealloc(&tree);
- 	mtree_destroy(&tree);
---- a/tools/testing/shared/linux.c~maple_tree-add-test-to-replicate-low-memory-race-conditions
-+++ a/tools/testing/shared/linux.c
-@@ -26,8 +26,21 @@ struct kmem_cache {
- 	unsigned int non_kernel;
- 	unsigned long nr_allocated;
- 	unsigned long nr_tallocated;
-+	bool exec_callback;
-+	void (*callback)(void *);
-+	void *private;
- };
- 
-+void kmem_cache_set_callback(struct kmem_cache *cachep, void (*callback)(void *))
-+{
-+	cachep->callback = callback;
-+}
-+
-+void kmem_cache_set_private(struct kmem_cache *cachep, void *private)
-+{
-+	cachep->private = private;
-+}
-+
- void kmem_cache_set_non_kernel(struct kmem_cache *cachep, unsigned int val)
- {
- 	cachep->non_kernel = val;
-@@ -58,9 +71,17 @@ void *kmem_cache_alloc_lru(struct kmem_c
- {
- 	void *p;
- 
-+	if (cachep->exec_callback) {
-+		if (cachep->callback)
-+			cachep->callback(cachep->private);
-+		cachep->exec_callback = false;
-+	}
-+
- 	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
--		if (!cachep->non_kernel)
-+		if (!cachep->non_kernel) {
-+			cachep->exec_callback = true;
- 			return NULL;
-+		}
- 
- 		cachep->non_kernel--;
- 	}
-@@ -223,6 +244,9 @@ kmem_cache_create(const char *name, unsi
- 	ret->objs = NULL;
- 	ret->ctor = ctor;
- 	ret->non_kernel = 0;
-+	ret->exec_callback = false;
-+	ret->callback = NULL;
-+	ret->private = NULL;
- 	return ret;
- }
- 
+ 	xa = addr_to_vb_xa(va->va_start);
+ 	vb_idx = addr_to_vb_idx(va->va_start);
+@@ -2642,7 +2643,6 @@ static void *new_vmap_block(unsigned int
+ 	 * integrity together with list_for_each_rcu from read
+ 	 * side.
+ 	 */
+-	vb->cpu = raw_smp_processor_id();
+ 	vbq = per_cpu_ptr(&vmap_block_queue, vb->cpu);
+ 	spin_lock(&vbq->lock);
+ 	list_add_tail_rcu(&vb->free_list, &vbq->free);
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from will@kernel.org are
 
-maple_tree-reset-mas-index-and-mas-last-on-write-retries.patch
-maple_tree-add-test-to-replicate-low-memory-race-conditions.patch
+mm-vmalloc-ensure-vmap_block-is-initialised-before-adding-to-queue.patch
 
