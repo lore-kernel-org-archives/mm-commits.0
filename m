@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411131BF53
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:47:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888CD1BF53
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:47:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723574855; cv=none; b=Wug8hzgnI9TMlhQrHIRdcvl+21sVjMisKiK1208awVOIZaYffuY8lkq3LIIJwP27IDzcHviditFuJvdf+4Nn45D0OcOuwpG6i7X2YjArCW+UsFuxXpltkNv+3ePNIWb7Y6E+bYFx9B8haknYt3mPNEsy1oVaUMuLkGeW5w2iF8Q=
+	t=1723574857; cv=none; b=kYgP7xCMhFJF/K2hx8eMfv6SI76p7Fhad6IbCP1YJ53P7jZ6Ts/U6SGUHFQFMg0wdOwRn5a2Q2papazbnKmvViMct+kG0jYX7Tc1pIaPRnneOUeS0KCyLXyFVbhDYyg3nAwfrLRvC9ZVmj8PUuNHapVYfuYV8hBQAAGo//lVJQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723574855; c=relaxed/simple;
-	bh=qkNB/p5DJVVu1J7NbstVuf/yy3DED/LuRReDjxwSF2A=;
-	h=Date:To:From:Subject:Message-Id; b=k8HGwU3DSM0QtSL9Rvb3qkXPnGOG5yWj0UqtyYKK/Q779vXBgUNo2Gi+DsqT7xWDxU3MVfZinVwQ7UMbIcHwnSKbm4ro5pCaaiXnBD/wc+ZeFu9uElzRDeFe8NcvXGrDdSesZkS+iNc06p+iNBbcJ2LJkDJCLBR7Op7rQDVSFpQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nUpmfjsM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723574857; c=relaxed/simple;
+	bh=6wmF+zh3P5aWBApBGUtuDaeszvbIww5Rf/H7AxKFazI=;
+	h=Date:To:From:Subject:Message-Id; b=Yj2FGdbChHURpuoO694bO5zOTXeh3hvgQtL9mwE2G7FzQS1tIEK80/BVmEq1UZtGpP7aKyVjL2U/wJWKNXXXFdaPHN7XixIMdMC1HrjBoISsTTnkNTJFg9Phgb3yh/zsw6/enIB9w2QqVsaCVrqgMEX7woB/QSg6NPVI9tFBqI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pAtYAr+C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nUpmfjsM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 958A4C32782;
-	Tue, 13 Aug 2024 18:47:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pAtYAr+C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D86D2C32782;
+	Tue, 13 Aug 2024 18:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723574854;
-	bh=qkNB/p5DJVVu1J7NbstVuf/yy3DED/LuRReDjxwSF2A=;
+	s=korg; t=1723574856;
+	bh=6wmF+zh3P5aWBApBGUtuDaeszvbIww5Rf/H7AxKFazI=;
 	h=Date:To:From:Subject:From;
-	b=nUpmfjsMX/HLMHFJpIo2ZTqV5mXqoj2dpsr68zRClBUXhUv257VdCc6AGqIeiCpde
-	 zGUJncNOEqMlbg/Tj4NYqEF0JjkLdHnpZB8YOJAkumChyW8p0BfvNpKx78Amt9wJJU
-	 bVT3fmplqw/42mvy/dDwMo9FGGT49hbSLdFZP3HY=
-Date: Tue, 13 Aug 2024 11:47:33 -0700
+	b=pAtYAr+CXB6PT8n+ebfxMPJjXJ69doI4SSNWxFg2q8Yu2kwkRt458MH7bK0h1s+aq
+	 /5El4hcNWFpp7d//DZiCsnpsZ3g/X30r9woEgFyp85c0Fw2atAMN8ky1VqmOL1DFmQ
+	 yp72GtIT10bvUtpLht3BA30kKKVv3cC8m4syjbZE=
+Date: Tue, 13 Aug 2024 11:47:36 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dax-dump-start-address-in-fault-handler.patch added to mm-unstable branch
-Message-Id: <20240813184734.958A4C32782@smtp.kernel.org>
+Subject: + mm-mprotect-push-mmu-notifier-to-puds.patch added to mm-unstable branch
+Message-Id: <20240813184736.D86D2C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/dax: dump start address in fault handler
+     Subject: mm/mprotect: push mmu notifier to PUDs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dax-dump-start-address-in-fault-handler.patch
+     mm-mprotect-push-mmu-notifier-to-puds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dax-dump-start-address-in-fault-handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-push-mmu-notifier-to-puds.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,54 +59,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/dax: dump start address in fault handler
-Date: Mon, 12 Aug 2024 14:12:19 -0400
+Subject: mm/mprotect: push mmu notifier to PUDs
+Date: Mon, 12 Aug 2024 14:12:20 -0400
 
-Patch series "mm/mprotect: Fix dax puds", v5.
+mprotect() does mmu notifiers in PMD levels.  It's there since 2014 of
+commit a5338093bfb4 ("mm: move mmu notifier call from change_protection to
+change_pmd_range").
 
-Dax supports pud pages for a while, but mprotect on puds was missing since
-the start.  This series tries to fix that by providing pud handling in
-mprotect().  The goal is to add more types of pud mappings like hugetlb or
-pfnmaps.  This series paves way for it by fixing known pud entries.
+At that time, the issue was that NUMA balancing can be applied on a huge
+range of VM memory, even if nothing was populated.  The notification can
+be avoided in this case if no valid pmd detected, which includes either
+THP or a PTE pgtable page.
 
-Considering nobody reported this until when I looked at those other types
-of pud mappings, I am thinking maybe it doesn't need to be a fix for
-stable and this may not need to be backported.  I would guess whoever
-cares about mprotect() won't care 1G dax puds yet, vice versa.  I hope
-fixing that in new kernels would be fine, but I'm open to suggestions.
+Now to pave way for PUD handling, this isn't enough.  We need to generate
+mmu notifications even on PUD entries properly.  mprotect() is currently
+broken on PUD (e.g., one can easily trigger kernel error with dax 1G
+mappings already), this is the start to fix it.
 
-There're a few small things changed to teach mprotect work on PUDs.  E.g. 
-it will need to start with dropping NUMA_HUGE_PTE_UPDATES which may stop
-making sense when there can be more than one type of huge pte.  OTOH,
-we'll also need to push the mmu notifiers from pmd to pud layers, which
-might need some attention but so far I think it's safe.  For such details,
-please refer to each patch's commit message.
+To fix that, this patch proposes to push such notifications to the PUD
+layers.
 
-The mprotect() pud process should be straightforward, as I kept it as
-simple as possible.  There's no NUMA handled as dax simply doesn't support
-that.  There's also no userfault involvements as file memory (even if work
-with userfault-wp async mode) will need to split a pud, so pud entry
-doesn't need to yet know userfault's existance (but hugetlb entries will;
-that's also for later).
+There is risk on regressing the problem Rik wanted to resolve before, but I
+think it shouldn't really happen, and I still chose this solution because
+of a few reasons:
 
+  1) Consider a large VM that should definitely contain more than GBs of
+  memory, it's highly likely that PUDs are also none.  In this case there
+  will have no regression.
 
-This patch (of 7):
+  2) KVM has evolved a lot over the years to get rid of rmap walks, which
+  might be the major cause of the previous soft-lockup.  At least TDP MMU
+  already got rid of rmap as long as not nested (which should be the major
+  use case, IIUC), then the TDP MMU pgtable walker will simply see empty VM
+  pgtable (e.g. EPT on x86), the invalidation of a full empty region in
+  most cases could be pretty fast now, comparing to 2014.
 
-Currently the dax fault handler dumps the vma range when dynamic debugging
-enabled.  That's mostly not useful.  Dump the (aligned) address instead
-with the order info.
+  3) KVM has explicit code paths now to even give way for mmu notifiers
+  just like this one, e.g. in commit d02c357e5bfa ("KVM: x86/mmu: Retry
+  fault before acquiring mmu_lock if mapping is changing").  It'll also
+  avoid contentions that may also contribute to a soft-lockup.
 
-Link: https://lkml.kernel.org/r/20240812181225.1360970-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20240812181225.1360970-2-peterx@redhat.com
+  4) Stick with PMD layer simply don't work when PUD is there...  We need
+  one way or another to fix PUD mappings on mprotect().
+
+Pushing it to PUD should be the safest approach as of now, e.g. there's yet
+no sign of huge P4D coming on any known archs.
+
+Link: https://lkml.kernel.org/r/20240812181225.1360970-3-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -115,32 +126,90 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Sean Christopherson <seanjc@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mprotect.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/drivers/dax/device.c~mm-dax-dump-start-address-in-fault-handler
-+++ a/drivers/dax/device.c
-@@ -235,9 +235,9 @@ static vm_fault_t dev_dax_huge_fault(str
- 	int id;
- 	struct dev_dax *dev_dax = filp->private_data;
+--- a/mm/mprotect.c~mm-mprotect-push-mmu-notifier-to-puds
++++ a/mm/mprotect.c
+@@ -363,9 +363,6 @@ static inline long change_pmd_range(stru
+ 	unsigned long next;
+ 	long pages = 0;
+ 	unsigned long nr_huge_updates = 0;
+-	struct mmu_notifier_range range;
+-
+-	range.start = 0;
  
--	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) order:%d\n", current->comm,
--			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
--			vmf->vma->vm_start, vmf->vma->vm_end, order);
-+	dev_dbg(&dev_dax->dev, "%s: op=%s addr=%#lx order=%d\n", current->comm,
-+		(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
-+		vmf->address & ~((1UL << (order + PAGE_SHIFT)) - 1), order);
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+@@ -383,14 +380,6 @@ again:
+ 		if (pmd_none(*pmd))
+ 			goto next;
  
- 	id = dax_read_lock();
- 	if (order == 0)
+-		/* invoke the mmu notifier if the pmd is populated */
+-		if (!range.start) {
+-			mmu_notifier_range_init(&range,
+-				MMU_NOTIFY_PROTECTION_VMA, 0,
+-				vma->vm_mm, addr, end);
+-			mmu_notifier_invalidate_range_start(&range);
+-		}
+-
+ 		_pmd = pmdp_get_lockless(pmd);
+ 		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
+ 			if ((next - addr != HPAGE_PMD_SIZE) ||
+@@ -431,9 +420,6 @@ next:
+ 		cond_resched();
+ 	} while (pmd++, addr = next, addr != end);
+ 
+-	if (range.start)
+-		mmu_notifier_invalidate_range_end(&range);
+-
+ 	if (nr_huge_updates)
+ 		count_vm_numa_events(NUMA_HUGE_PTE_UPDATES, nr_huge_updates);
+ 	return pages;
+@@ -443,22 +429,36 @@ static inline long change_pud_range(stru
+ 		struct vm_area_struct *vma, p4d_t *p4d, unsigned long addr,
+ 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
+ {
++	struct mmu_notifier_range range;
+ 	pud_t *pud;
+ 	unsigned long next;
+ 	long pages = 0, ret;
+ 
++	range.start = 0;
++
+ 	pud = pud_offset(p4d, addr);
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 		ret = change_prepare(vma, pud, pmd, addr, cp_flags);
+-		if (ret)
+-			return ret;
++		if (ret) {
++			pages = ret;
++			break;
++		}
+ 		if (pud_none_or_clear_bad(pud))
+ 			continue;
++		if (!range.start) {
++			mmu_notifier_range_init(&range,
++						MMU_NOTIFY_PROTECTION_VMA, 0,
++						vma->vm_mm, addr, end);
++			mmu_notifier_invalidate_range_start(&range);
++		}
+ 		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
+ 					  cp_flags);
+ 	} while (pud++, addr = next, addr != end);
+ 
++	if (range.start)
++		mmu_notifier_invalidate_range_end(&range);
++
+ 	return pages;
+ }
+ 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
