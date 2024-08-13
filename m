@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74DCA37E
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:06:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7D337E
+	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 18:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723572399; cv=none; b=YVfEd42GJAhtfdtB0kGLcu1bMzRnHXH5SDUy1KWRkXoVJgCGMnakzz8jnBByAfrcObzJnNPB6O4fMLUN9wOe/7ZG3tSXLiSsxFHv2ARSBDR+DI0aZIilkICJKfgCD8r8dlwFlyHOkibh2TCMtQUsnixki2T1rdW3HZerZekx7+U=
+	t=1723572534; cv=none; b=oZB5Ha8s4b/i2+ZuI1ZRbAg5RmjbH38RN8E0UIcH7KkXsd2Nt5Zlwn3C9G3W5CZk4OK8HJCd1N3Yp+IBn8Dp9BT+ZrTAMa2bGgEcg9Hyy0PzjxubVuo0HnR6/GEmK5+rzmu84wZKdWxpOT0jEqbHtqg6JHqBipEae42VvM40Gv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723572399; c=relaxed/simple;
-	bh=VO96VUw6H8QSGFHo31TMqoXjTvdpTciGsHu6L0PtHno=;
-	h=Date:To:From:Subject:Message-Id; b=H6NFpGLQL1kTNtEuOVzqa6tiBXv/pHFDoeqjrlIFDOYmdQE+wURo9KFP26xiFDsU8AkouKVGfybSYB4+YNHzsQ9ZJ+JhkvZ+JZNf0SpyI59fYFsCAzcqHHy40UbEsf7yOcwCv3xYLDj+09a+LxiPFYf5Q6IDhRq1GYjRatCcLP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dtTpExrI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723572534; c=relaxed/simple;
+	bh=HCJNddCXgUbj9JoKZcuTdT3tgGcJe05PToNJgYnRMRo=;
+	h=Date:To:From:Subject:Message-Id; b=tPUqT0H1k3/+LvTsqCyT1UMfbLAMwIfOBwI/5QeZ3Jan5HNWOJFK7p+AVHCm55PwGkqxst+BSYaLVIV+2SKyC+f2nfTEnf4ygytXWP1ehJ4UPfI0ipYaN8HQg7Kq0TElmU0WgDdb85EGiGVmdwsh0rxLcHJw8jATaaf8Y+fYruo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gEW6Y2lP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dtTpExrI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C89C32782;
-	Tue, 13 Aug 2024 18:06:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gEW6Y2lP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E80D4C32782;
+	Tue, 13 Aug 2024 18:08:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723572399;
-	bh=VO96VUw6H8QSGFHo31TMqoXjTvdpTciGsHu6L0PtHno=;
+	s=korg; t=1723572534;
+	bh=HCJNddCXgUbj9JoKZcuTdT3tgGcJe05PToNJgYnRMRo=;
 	h=Date:To:From:Subject:From;
-	b=dtTpExrIxRVQ+XrikIPnTcB8yjRix/sdngVxv8bF27430YwQvYUFUBIEDIaBiqhpq
-	 H6hZpwtf0y0TzU9NJBXpi5fE1vSP3V6Ps+/f/9VAZcQmwf7rdEVk1x6v4CCRHJ6XMI
-	 DDp7EH1CPdyLvhdFgscPDHSn/JvH+MZV3evXLyhk=
-Date: Tue, 13 Aug 2024 11:06:38 -0700
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=gEW6Y2lPxEM+HbBKalmzBar/ksxSYf2w3QrxwcDaOEWZ4oLIdKh40cSh6Xl6PZQly
+	 rZPHocEPAz7JbGIqgwvDW+qGpu+nZQSMZPM7mMUmTHCz8Ae7s7CNedeeyrcPykRGjQ
+	 CSaGE2SsaCsZJMza2otiOfb68sIfxg9lY7+FTSeA=
+Date: Tue, 13 Aug 2024 11:08:53 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,hariom1.p@samsung.com,shankerwangmiao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch added to mm-unstable branch
-Message-Id: <20240813180638.F3C89C32782@smtp.kernel.org>
+Subject: + mm-vmalloc-add-optimization-hint-on-page-existence-check.patch added to mm-unstable branch
+Message-Id: <20240813180853.E80D4C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
+     Subject: mm: vmalloc: add optimization hint on page existence check
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+     mm-vmalloc-add-optimization-hint-on-page-existence-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-optimization-hint-on-page-existence-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
-Date: Tue, 13 Aug 2024 19:25:11 +0200
+From: Miao Wang <shankerwangmiao@gmail.com>
+Subject: mm: vmalloc: add optimization hint on page existence check
+Date: Wed, 14 Aug 2024 01:12:13 +0800
 
-Use IS_ERR_PCPU() instead of IS_ERR() for pointers in the percpu address
-space.  The patch also fixes following sparse warnings:
+In commit 21e516b913c1 ("mm: vmalloc: dump page owner info if page is
+already mapped"), a BUG_ON macro was changed into an if statement, where
+the compiler optimization hint introduced in the BUG_ON macro was removed
+along with this change.  This patch adds back the hint.
 
-kmemleak.c:1063:39: warning: cast removes address space '__percpu' of expression
-kmemleak.c:1138:37: warning: cast removes address space '__percpu' of expression
-
-Link: https://lkml.kernel.org/r/20240813172543.38411-2-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20240814-fix_vmap_unlikely-v1-1-cd7954775f12@gmail.com
+Fixes: 21e516b913c1 ("mm: vmalloc: dump page owner info if page is already mapped")
+Signed-off-by: Miao Wang <shankerwangmiao@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hariom Panthi <hariom1.p@samsung.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space
-+++ a/mm/kmemleak.c
-@@ -1070,8 +1070,8 @@ void __ref kmemleak_alloc_percpu(const v
- {
- 	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
- 
--	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		create_object_percpu((unsigned long)ptr, size, 1, gfp);
-+	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
-+		create_object_percpu((__force unsigned long)ptr, size, 1, gfp);
- }
- EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
- 
-@@ -1145,8 +1145,8 @@ void __ref kmemleak_free_percpu(const vo
- {
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
--	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
--		delete_object_full((unsigned long)ptr, OBJECT_PERCPU);
-+	if (kmemleak_free_enabled && ptr && !IS_ERR_PCPU(ptr))
-+		delete_object_full((__force unsigned long)ptr, OBJECT_PERCPU);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
- 
+--- a/mm/vmalloc.c~mm-vmalloc-add-optimization-hint-on-page-existence-check
++++ a/mm/vmalloc.c
+@@ -105,7 +105,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	if (!pte)
+ 		return -ENOMEM;
+ 	do {
+-		if (!pte_none(ptep_get(pte))) {
++		if (unlikely(!pte_none(ptep_get(pte)))) {
+ 			if (pfn_valid(pfn)) {
+ 				page = pfn_to_page(pfn);
+ 				dump_page(page, "remapping already mapped page");
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from shankerwangmiao@gmail.com are
 
-mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
-errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
-mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
-kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
+mm-vmalloc-add-optimization-hint-on-page-existence-check.patch
 
