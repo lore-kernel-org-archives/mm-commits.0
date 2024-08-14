@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F195C7346D
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 21:43:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 405EE7346D
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 21:43:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723671801; cv=none; b=pRCqzAND1ets+ZsZsOxoKH9DiNEa1ZwYWnma/DPn1Kkcb4F1Ap0MW8vAuU1ybVFUpDO+N1HcWHTZGCXIqFHRogUCDL3PTBCXce/ZxtQHfsAh2o+tj8d8aDWScGfPQfO+UBMs05Y8EpSyrwrrTubMnyhCFFk1HQbkiaP574a2V18=
+	t=1723671802; cv=none; b=oLVXEEAFi10lrmYJTk6xa3ks5zcpJpEKX9t0O0pyASr/OZimEVMEAuhLVqdch9hi+jxGYPvhgC8+0CYybnrUdi98WjbScj66GILQ4qC9QW/uxpTAkvNPOK66RT1fKfqu8jv+9ZpiwImln+wllvNxRqI/IGm2Z+W+NCjvUq3I7t0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723671801; c=relaxed/simple;
-	bh=1ENF+Yu1ZMEXWdEcNfHfw83xOTw18dN5JZK5VFDxWkM=;
-	h=Date:To:From:Subject:Message-Id; b=uT/9Vza9MwLboHwkgyauPEyfLGl4MFAAVEb2ytfdorm03oRNE3ZICg4oJDxDS5cEmpsPZJ+xUiG5nAYtnXJud0k7AiPWDeJOZkGa72clweTKSiowHI7gztagWO5VxQ+NJsuw8M9rr9ygoHD6Na+ZhPrup/lRP+8BveiBRVmNGh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MgDTgl8B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723671802; c=relaxed/simple;
+	bh=sM5OMRva1qhBd9oldOJwCq/Sc3a/FNFXgogyvbx9IyM=;
+	h=Date:To:From:Subject:Message-Id; b=L7/1uTyLkt/PG9TDFU5bg9vUwRawzvPw1ztUg7mBfp/E2FxEc8DZW6Bszw43UOeUnvBx4yHmyMaNrGp/upjHLkaQfMMGawv7IE5+rilvIShTNMgmyHC3M/sF4I5uq4nJy4V4jEOvknMB3Np6QUXJTTA7H0hlrNBg5vVCEb0qQ4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w9JICObY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MgDTgl8B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39698C116B1;
-	Wed, 14 Aug 2024 21:43:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w9JICObY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7311C116B1;
+	Wed, 14 Aug 2024 21:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723671800;
-	bh=1ENF+Yu1ZMEXWdEcNfHfw83xOTw18dN5JZK5VFDxWkM=;
+	s=korg; t=1723671801;
+	bh=sM5OMRva1qhBd9oldOJwCq/Sc3a/FNFXgogyvbx9IyM=;
 	h=Date:To:From:Subject:From;
-	b=MgDTgl8BGmJWxYUG25nmcuGILxoqJpwhhuaOThkUzR3RKYuuaDtmOk8P7tqZv56GO
-	 HoXgTCHrlAF3g+OePa5tMGm+zyNRd8QoULh6DfE0qoRohTzCqo7xO+H67rf0atf9k7
-	 HME+ARQ6JfxS5tNDYpeSYVjP++sOkGw8dT+fGfsE=
-Date: Wed, 14 Aug 2024 14:43:19 -0700
+	b=w9JICObY8QQqE+gQ8ALuHWoqXOj+g/3UsLtyu85FWcRtcmj6rj6Hjn6eF2TiYzHPy
+	 fJN7JKmsuIkK8BdQlVgCOLf8q5+REH7VscD5u81dTOTzK0dXsgkCDT6qLsnB8n3Wd3
+	 ni7TFhPprqQ2A3HqeFaSwUtWNu36ZAFZ6HRZDJbY=
+Date: Wed, 14 Aug 2024 14:43:21 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,muchun.song@linux.dev,fvdl@google.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-contig_alloc-support-__gfp_comp.patch added to mm-unstable branch
-Message-Id: <20240814214320.39698C116B1@smtp.kernel.org>
+Subject: + mm-cma-add-cma_allocfree_folio.patch added to mm-unstable branch
+Message-Id: <20240814214321.C7311C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/contig_alloc: support __GFP_COMP
+     Subject: mm/cma: add cma_{alloc,free}_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-contig_alloc-support-__gfp_comp.patch
+     mm-cma-add-cma_allocfree_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-contig_alloc-support-__gfp_comp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-cma_allocfree_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,378 +59,141 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/contig_alloc: support __GFP_COMP
-Date: Tue, 13 Aug 2024 21:54:49 -0600
+Subject: mm/cma: add cma_{alloc,free}_folio()
+Date: Tue, 13 Aug 2024 21:54:50 -0600
 
-Patch series "mm/hugetlb: alloc/free gigantic folios", v2.
+With alloc_contig_range() and free_contig_range() supporting large folios,
+CMA can allocate and free large folios too, by cma_alloc_folio() and
+cma_free_folio().
 
-Use __GFP_COMP for gigantic folios can greatly reduce not only the amount
-of code but also the allocation and free time.
-
-Approximate LOC to mm/hugetlb.c: +60, -240
-
-Allocate and free 500 1GB hugeTLB memory without HVO by:
-  time echo 500 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-  time echo 0 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-
-       Before  After
-Alloc  ~13s    ~10s
-Free   ~15s    <1s
-
-The above magnitude generally holds for multiple x86 and arm64 CPU
-models.
-
-Perf profile before:
-  Alloc
-    - 99.99% alloc_pool_huge_folio
-       - __alloc_fresh_hugetlb_folio
-          - 83.23% alloc_contig_pages_noprof
-             - 47.46% alloc_contig_range_noprof
-                - 20.96% isolate_freepages_range
-                     16.10% split_page
-                - 14.10% start_isolate_page_range
-                - 12.02% undo_isolate_page_range
-
-  Free
-    - update_and_free_pages_bulk
-       - 87.71% free_contig_range
-          - 76.02% free_unref_page
-             - 41.30% free_unref_page_commit
-                - 32.58% free_pcppages_bulk
-                   - 24.75% __free_one_page
-               13.96% _raw_spin_trylock
-         12.27% __update_and_free_hugetlb_folio
-
-Perf profile after:
-  Alloc
-    - 99.99% alloc_pool_huge_folio
-         alloc_gigantic_folio
-       - alloc_contig_pages_noprof
-          - 59.15% alloc_contig_range_noprof
-             - 20.72% start_isolate_page_range
-               20.64% prep_new_page
-             - 17.13% undo_isolate_page_range
-
-  Free
-    - update_and_free_pages_bulk
-       - __folio_put
-       - __free_pages_ok
-            7.46% free_tail_page_prepare
-          - 1.97% free_one_page
-               1.86% __free_one_page
-
-This patch (of 3):
-
-Support __GFP_COMP in alloc_contig_range().  When the flag is set, upon
-success the function returns a large folio prepared by prep_new_page(),
-rather than a range of order-0 pages prepared by split_free_pages() (which
-is renamed from split_map_pages()).
-
-alloc_contig_range() can be used to allocate folios larger than
-MAX_PAGE_ORDER, e.g., gigantic hugeTLB folios.  So on the free path,
-free_one_page() needs to handle that by split_large_buddy().
-
-Link: https://lkml.kernel.org/r/20240814035451.773331-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/20240814035451.773331-2-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20240814035451.773331-3-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Frank van der Linden <fvdl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   23 ++++++++
- mm/compaction.c     |   41 +--------------
- mm/page_alloc.c     |  111 ++++++++++++++++++++++++++++++------------
- 3 files changed, 108 insertions(+), 67 deletions(-)
+ include/linux/cma.h |   16 ++++++++++++
+ mm/cma.c            |   55 ++++++++++++++++++++++++++++++------------
+ 2 files changed, 56 insertions(+), 15 deletions(-)
 
---- a/include/linux/gfp.h~mm-contig_alloc-support-__gfp_comp
-+++ a/include/linux/gfp.h
-@@ -446,4 +446,27 @@ extern struct page *alloc_contig_pages_n
- #endif
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
+--- a/include/linux/cma.h~mm-cma-add-cma_allocfree_folio
++++ a/include/linux/cma.h
+@@ -52,4 +52,20 @@ extern bool cma_release(struct cma *cma,
+ extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
  
-+#ifdef CONFIG_CONTIG_ALLOC
-+static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
-+							int nid, nodemask_t *node)
+ extern void cma_reserve_pages_on_error(struct cma *cma);
++
++#ifdef CONFIG_CMA
++struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp);
++bool cma_free_folio(struct cma *cma, const struct folio *folio);
++#else
++static inline struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
++{
++	return NULL;
++}
++
++static inline bool cma_free_folio(struct cma *cma, const struct folio *folio)
++{
++	return false;
++}
++#endif
++
+ #endif
+--- a/mm/cma.c~mm-cma-add-cma_allocfree_folio
++++ a/mm/cma.c
+@@ -403,18 +403,8 @@ static void cma_debug_show_areas(struct
+ 	spin_unlock_irq(&cma->lock);
+ }
+ 
+-/**
+- * cma_alloc() - allocate pages from contiguous area
+- * @cma:   Contiguous memory region for which the allocation is performed.
+- * @count: Requested number of pages.
+- * @align: Requested alignment of pages (in PAGE_SIZE order).
+- * @no_warn: Avoid printing message about failed allocation
+- *
+- * This function allocates part of contiguous memory on specific
+- * contiguous memory area.
+- */
+-struct page *cma_alloc(struct cma *cma, unsigned long count,
+-		       unsigned int align, bool no_warn)
++static struct page *__cma_alloc(struct cma *cma, unsigned long count,
++				unsigned int align, gfp_t gfp)
+ {
+ 	unsigned long mask, offset;
+ 	unsigned long pfn = -1;
+@@ -463,8 +453,7 @@ struct page *cma_alloc(struct cma *cma,
+ 
+ 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
+ 		mutex_lock(&cma_mutex);
+-		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
+-				     GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
++		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA, gfp);
+ 		mutex_unlock(&cma_mutex);
+ 		if (ret == 0) {
+ 			page = pfn_to_page(pfn);
+@@ -494,7 +483,7 @@ struct page *cma_alloc(struct cma *cma,
+ 			page_kasan_tag_reset(nth_page(page, i));
+ 	}
+ 
+-	if (ret && !no_warn) {
++	if (ret && !(gfp & __GFP_NOWARN)) {
+ 		pr_err_ratelimited("%s: %s: alloc failed, req-size: %lu pages, ret: %d\n",
+ 				   __func__, cma->name, count, ret);
+ 		cma_debug_show_areas(cma);
+@@ -513,6 +502,34 @@ struct page *cma_alloc(struct cma *cma,
+ 	return page;
+ }
+ 
++/**
++ * cma_alloc() - allocate pages from contiguous area
++ * @cma:   Contiguous memory region for which the allocation is performed.
++ * @count: Requested number of pages.
++ * @align: Requested alignment of pages (in PAGE_SIZE order).
++ * @no_warn: Avoid printing message about failed allocation
++ *
++ * This function allocates part of contiguous memory on specific
++ * contiguous memory area.
++ */
++struct page *cma_alloc(struct cma *cma, unsigned long count,
++		       unsigned int align, bool no_warn)
++{
++	return __cma_alloc(cma, count, align, GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
++}
++
++struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
 +{
 +	struct page *page;
 +
 +	if (WARN_ON(!order || !(gfp | __GFP_COMP)))
 +		return NULL;
 +
-+	page = alloc_contig_pages_noprof(1 << order, gfp, nid, node);
++	page = __cma_alloc(cma, 1 << order, order, gfp);
 +
 +	return page ? page_folio(page) : NULL;
 +}
-+#else
-+static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
-+							int nid, nodemask_t *node)
-+{
-+	return NULL;
-+}
-+#endif
-+/* This should be paired with folio_put() rather than free_contig_range(). */
-+#define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
 +
- #endif /* __LINUX_GFP_H */
---- a/mm/compaction.c~mm-contig_alloc-support-__gfp_comp
-+++ a/mm/compaction.c
-@@ -86,33 +86,6 @@ static struct page *mark_allocated_nopro
- }
- #define mark_allocated(...)	alloc_hooks(mark_allocated_noprof(__VA_ARGS__))
- 
--static void split_map_pages(struct list_head *freepages)
--{
--	unsigned int i, order;
--	struct page *page, *next;
--	LIST_HEAD(tmp_list);
--
--	for (order = 0; order < NR_PAGE_ORDERS; order++) {
--		list_for_each_entry_safe(page, next, &freepages[order], lru) {
--			unsigned int nr_pages;
--
--			list_del(&page->lru);
--
--			nr_pages = 1 << order;
--
--			mark_allocated(page, order, __GFP_MOVABLE);
--			if (order)
--				split_page(page, order);
--
--			for (i = 0; i < nr_pages; i++) {
--				list_add(&page->lru, &tmp_list);
--				page++;
--			}
--		}
--		list_splice_init(&tmp_list, &freepages[0]);
--	}
--}
--
- static unsigned long release_free_list(struct list_head *freepages)
+ bool cma_pages_valid(struct cma *cma, const struct page *pages,
+ 		     unsigned long count)
  {
- 	int order;
-@@ -742,11 +715,11 @@ isolate_fail:
-  *
-  * Non-free pages, invalid PFNs, or zone boundaries within the
-  * [start_pfn, end_pfn) range are considered errors, cause function to
-- * undo its actions and return zero.
-+ * undo its actions and return zero. cc->freepages[] are empty.
-  *
-  * Otherwise, function returns one-past-the-last PFN of isolated page
-  * (which may be greater then end_pfn if end fell in a middle of
-- * a free page).
-+ * a free page). cc->freepages[] contain free pages isolated.
-  */
- unsigned long
- isolate_freepages_range(struct compact_control *cc,
-@@ -754,10 +727,9 @@ isolate_freepages_range(struct compact_c
- {
- 	unsigned long isolated, pfn, block_start_pfn, block_end_pfn;
- 	int order;
--	struct list_head tmp_freepages[NR_PAGE_ORDERS];
- 
- 	for (order = 0; order < NR_PAGE_ORDERS; order++)
--		INIT_LIST_HEAD(&tmp_freepages[order]);
-+		INIT_LIST_HEAD(&cc->freepages[order]);
- 
- 	pfn = start_pfn;
- 	block_start_pfn = pageblock_start_pfn(pfn);
-@@ -788,7 +760,7 @@ isolate_freepages_range(struct compact_c
- 			break;
- 
- 		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
--					block_end_pfn, tmp_freepages, 0, true);
-+					block_end_pfn, cc->freepages, 0, true);
- 
- 		/*
- 		 * In strict mode, isolate_freepages_block() returns 0 if
-@@ -807,13 +779,10 @@ isolate_freepages_range(struct compact_c
- 
- 	if (pfn < end_pfn) {
- 		/* Loop terminated early, cleanup. */
--		release_free_list(tmp_freepages);
-+		release_free_list(cc->freepages);
- 		return 0;
- 	}
- 
--	/* __isolate_free_page() does not map the pages */
--	split_map_pages(tmp_freepages);
--
- 	/* We don't use freelists for anything. */
- 	return pfn;
- }
---- a/mm/page_alloc.c~mm-contig_alloc-support-__gfp_comp
-+++ a/mm/page_alloc.c
-@@ -1197,16 +1197,36 @@ static void free_pcppages_bulk(struct zo
- 	spin_unlock_irqrestore(&zone->lock, flags);
+@@ -564,6 +581,14 @@ bool cma_release(struct cma *cma, const
+ 	return true;
  }
  
-+/* Split a multi-block free page into its individual pageblocks. */
-+static void split_large_buddy(struct zone *zone, struct page *page,
-+			      unsigned long pfn, int order, fpi_t fpi)
++bool cma_free_folio(struct cma *cma, const struct folio *folio)
 +{
-+	unsigned long end = pfn + (1 << order);
++	if (WARN_ON(!folio_test_large(folio)))
++		return false;
 +
-+	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn, 1 << order));
-+	/* Caller removed page from freelist, buddy info cleared! */
-+	VM_WARN_ON_ONCE(PageBuddy(page));
-+
-+	if (order > pageblock_order)
-+		order = pageblock_order;
-+
-+	while (pfn != end) {
-+		int mt = get_pfnblock_migratetype(page, pfn);
-+
-+		__free_one_page(page, pfn, zone, order, mt, fpi);
-+		pfn += 1 << order;
-+		page = pfn_to_page(pfn);
-+	}
++	return cma_release(cma, &folio->page, folio_nr_pages(folio));
 +}
 +
- static void free_one_page(struct zone *zone, struct page *page,
- 			  unsigned long pfn, unsigned int order,
- 			  fpi_t fpi_flags)
+ int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
  {
- 	unsigned long flags;
--	int migratetype;
- 
- 	spin_lock_irqsave(&zone->lock, flags);
--	migratetype = get_pfnblock_migratetype(page, pfn);
--	__free_one_page(page, pfn, zone, order, migratetype, fpi_flags);
-+	split_large_buddy(zone, page, pfn, order, fpi_flags);
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-@@ -1698,27 +1718,6 @@ static unsigned long find_large_buddy(un
- 	return start_pfn;
- }
- 
--/* Split a multi-block free page into its individual pageblocks */
--static void split_large_buddy(struct zone *zone, struct page *page,
--			      unsigned long pfn, int order)
--{
--	unsigned long end_pfn = pfn + (1 << order);
--
--	VM_WARN_ON_ONCE(order <= pageblock_order);
--	VM_WARN_ON_ONCE(pfn & (pageblock_nr_pages - 1));
--
--	/* Caller removed page from freelist, buddy info cleared! */
--	VM_WARN_ON_ONCE(PageBuddy(page));
--
--	while (pfn != end_pfn) {
--		int mt = get_pfnblock_migratetype(page, pfn);
--
--		__free_one_page(page, pfn, zone, pageblock_order, mt, FPI_NONE);
--		pfn += pageblock_nr_pages;
--		page = pfn_to_page(pfn);
--	}
--}
--
- /**
-  * move_freepages_block_isolate - move free pages in block for page isolation
-  * @zone: the zone
-@@ -1759,7 +1758,7 @@ bool move_freepages_block_isolate(struct
- 		del_page_from_free_list(buddy, zone, order,
- 					get_pfnblock_migratetype(buddy, pfn));
- 		set_pageblock_migratetype(page, migratetype);
--		split_large_buddy(zone, buddy, pfn, order);
-+		split_large_buddy(zone, buddy, pfn, order, FPI_NONE);
- 		return true;
- 	}
- 
-@@ -1770,7 +1769,7 @@ bool move_freepages_block_isolate(struct
- 		del_page_from_free_list(page, zone, order,
- 					get_pfnblock_migratetype(page, pfn));
- 		set_pageblock_migratetype(page, migratetype);
--		split_large_buddy(zone, page, pfn, order);
-+		split_large_buddy(zone, page, pfn, order, FPI_NONE);
- 		return true;
- 	}
- move:
-@@ -6440,6 +6439,31 @@ int __alloc_contig_migrate_range(struct
- 	return (ret < 0) ? ret : 0;
- }
- 
-+static void split_free_pages(struct list_head *list)
-+{
-+	int order;
-+
-+	for (order = 0; order < NR_PAGE_ORDERS; order++) {
-+		struct page *page, *next;
-+		int nr_pages = 1 << order;
-+
-+		list_for_each_entry_safe(page, next, &list[order], lru) {
-+			int i;
-+
-+			post_alloc_hook(page, order, __GFP_MOVABLE);
-+			if (!order)
-+				continue;
-+
-+			split_page(page, order);
-+
-+			/* Add all subpages to the order-0 head, in sequence. */
-+			list_del(&page->lru);
-+			for (i = 0; i < nr_pages; i++)
-+				list_add_tail(&page[i].lru, &list[0]);
-+		}
-+	}
-+}
-+
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -6552,12 +6576,25 @@ int alloc_contig_range_noprof(unsigned l
- 		goto done;
- 	}
- 
--	/* Free head and tail (if any) */
--	if (start != outer_start)
--		free_contig_range(outer_start, start - outer_start);
--	if (end != outer_end)
--		free_contig_range(end, outer_end - end);
-+	if (!(gfp_mask & __GFP_COMP)) {
-+		split_free_pages(cc.freepages);
- 
-+		/* Free head and tail (if any) */
-+		if (start != outer_start)
-+			free_contig_range(outer_start, start - outer_start);
-+		if (end != outer_end)
-+			free_contig_range(end, outer_end - end);
-+	} else if (start == outer_start && end == outer_end && is_power_of_2(end - start)) {
-+		struct page *head = pfn_to_page(start);
-+		int order = ilog2(end - start);
-+
-+		check_new_pages(head, order);
-+		prep_new_page(head, order, gfp_mask, 0);
-+	} else {
-+		ret = -EINVAL;
-+		WARN(true, "PFN range: requested [%lu, %lu), allocated [%lu, %lu)\n",
-+		     start, end, outer_start, outer_end);
-+	}
- done:
- 	undo_isolate_page_range(start, end, migratetype);
- 	return ret;
-@@ -6666,6 +6703,18 @@ struct page *alloc_contig_pages_noprof(u
- void free_contig_range(unsigned long pfn, unsigned long nr_pages)
- {
- 	unsigned long count = 0;
-+	struct folio *folio = pfn_folio(pfn);
-+
-+	if (folio_test_large(folio)) {
-+		int expected = folio_nr_pages(folio);
-+
-+		if (nr_pages == expected)
-+			folio_put(folio);
-+		else
-+			WARN(true, "PFN %lu: nr_pages %lu != expected %d\n",
-+			     pfn, nr_pages, expected);
-+		return;
-+	}
- 
- 	for (; nr_pages--; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
+ 	int i;
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
