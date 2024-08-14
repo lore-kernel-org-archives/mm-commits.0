@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F90E1DAC5A
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:40:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11681D545
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:52:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723668043; cv=none; b=UPPufN6EuRHNPkRBnkHa0OR7l3iZXSPXiprg23Z4zLfBlN6kMP3y0521EnpnY8epKlitlZWznOsE02KSuTA89yanb9d4LFWk8vG5ejkiZ4oOcY5nnQi8Q8xN3VWHjYpPVLJoV5Cg00s6Y5Punw5cVdebnPswlNuLNaWAp612Im0=
+	t=1723668732; cv=none; b=Th2IfaVhxJ7FbRexku+WEnZz6xccOlP3K1behY50KvgL/XU6IdPPR+aXp9RzCZ+wkNtq5kt8G/XIcHU5EFDbdx3T6BsKbm2RNXfWlefhQXSzHYNB7vDjeRj6OZxvsHaxqwuJ3ZsRH3+SFTF6nJ2MyY9INuzMqZHgN8KAPNRNXAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723668043; c=relaxed/simple;
-	bh=Lb5T6cufDb2b4jgyI3I/7ugY/XuL4aBTl/MIzAMv+ys=;
-	h=Date:To:From:Subject:Message-Id; b=uOW00YokLN9TII4+fX5l+zt4nxTjyFrRoTPHqoW6u78x6TcjThbAikIbvuhL6RYNWvK0zYoWed3i/ZXGboNeBeuwD6fMHOWYiphHdT9vT+kQznv4P6C94AtCpTgLmBKMOFqgLKW81nROtxCtI82zu1Gk5BJONzTa1rvBugH8iLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hwl8dA1Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723668732; c=relaxed/simple;
+	bh=wrcQQoQKvB7pEsy5TCWHMyojYYk8TMKJ8fj5IO7hjCY=;
+	h=Date:To:From:Subject:Message-Id; b=I/s6xuoT+oNxRx+Jf54Hf8lxO4WRy/4EF+OojslMXxL8bQM2+lMefzRvl3DGQ4SOTLCBusuu/NXSkbZsIE58AL0NQVNcBT+F3it23hsaZxLLzB5ncHcwVQUeJ2Qp6/FzL93/2LdGTtGHkETeOiqz25Y7g22vQ0oieOwhEYw/4dI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=snq9o119; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hwl8dA1Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 351CEC116B1;
-	Wed, 14 Aug 2024 20:40:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="snq9o119"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB0BC116B1;
+	Wed, 14 Aug 2024 20:52:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723668043;
-	bh=Lb5T6cufDb2b4jgyI3I/7ugY/XuL4aBTl/MIzAMv+ys=;
+	s=korg; t=1723668731;
+	bh=wrcQQoQKvB7pEsy5TCWHMyojYYk8TMKJ8fj5IO7hjCY=;
 	h=Date:To:From:Subject:From;
-	b=Hwl8dA1Qamdp65LgsTrnx6a/OnqpgQV7L4oU5i+5u7Ecm4+TVn+2c5LU60Mam+722
-	 BC8EY858JwVtV36TLcI9RjBsNGPspwTWmx1K9tEUIWwJyin/3dt9h0tt0bOLMBIX0J
-	 /MKthihn7970aA7RhDQavvW2rCTaA9v0jxdOuF1s=
-Date: Wed, 14 Aug 2024 13:40:42 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=snq9o1197nHvIeo3Oh80w6i9FmfNmXMpQ7zWdSTvdAw4fkTXu0p+vAru5mIOTPiLM
+	 jizr6wd1neE1r5vUYSCJfHj/Hy//6YMQUpavxztjZPGaosd/g4FxsdLSjJhVFtGz1f
+	 HGl8RxiUCR4qjOvdVZUJ6vVYlxFLcBB4mfGSlyzQ=
+Date: Wed, 14 Aug 2024 13:52:11 -0700
+To: mm-commits@vger.kernel.org,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-make-write-helper-functions-void.patch added to mm-unstable branch
-Message-Id: <20240814204043.351CEC116B1@smtp.kernel.org>
+Subject: + mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch added to mm-unstable branch
+Message-Id: <20240814205211.9FB0BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: make write helper functions void
+     Subject: mm,memcg: provide per-cgroup counters for NUMA balancing operations
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-make-write-helper-functions-void.patch
+     mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-make-write-helper-functions-void.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,212 +58,314 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: make write helper functions void
-Date: Wed, 14 Aug 2024 12:19:44 -0400
+From: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Subject: mm,memcg: provide per-cgroup counters for NUMA balancing operations
+Date: Wed, 14 Aug 2024 17:42:27 +0000
 
-The return value of various write helper functions are not checked. We
-can safely change the return type of these functions to be void.
+The ability to observe the demotion and promotion decisions made by the
+kernel on a per-cgroup basis is important for monitoring and tuning
+containerized workloads on either NUMA machines or machines equipped with
+tiered memory.
 
-Link: https://lkml.kernel.org/r/20240814161944.55347-18-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Different containers in the system may experience drastically different
+memory tiering actions that cannot be distinguished from the global
+counters alone.
+
+For example, a container running a workload that has a much hotter memory
+accesses will likely see more promotions and fewer demotions, potentially
+depriving a colocated container of top tier memory to such an extent that
+its performance degrades unacceptably.
+
+For another example, some containers may exhibit longer periods between
+data reuse, causing much more numa_hint_faults than numa_pages_migrated. 
+In this case, tuning hot_threshold_ms may be appropriate, but the signal
+can easily be lost if only global counters are available.
+
+This patch set adds seven counters to memory.stat in a cgroup:
+numa_pages_migrated, numa_pte_updates, numa_hint_faults, pgdemote_kswapd,
+pgdemote_khugepaged, pgdemote_direct and pgpromote_success.  pgdemote_*
+and pgpromote_success are also available in memory.numa_stat.
+
+count_memcg_events_mm() is added to count multiple event occurrences at
+once, and get_mem_cgroup_from_folio() is added because we need to get a
+reference to the memcg of a folio before it's migrated to track
+numa_pages_migrated.  The accounting of PGDEMOTE_* is moved to
+shrink_inactive_list() before being changed to per-cgroup.
+
+Link: https://lkml.kernel.org/r/20240814174227.30639-1-kaiyang2@cs.cmu.edu
+Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   47 +++++++++++++++------------------------------
- 1 file changed, 16 insertions(+), 31 deletions(-)
+ include/linux/memcontrol.h |   24 ++++++++++++++++--
+ include/linux/vmstat.h     |    1 
+ mm/memcontrol.c            |   45 +++++++++++++++++++++++++++++++++++
+ mm/memory.c                |    3 ++
+ mm/mempolicy.c             |    4 ++-
+ mm/migrate.c               |    7 +++--
+ mm/vmscan.c                |    8 +++---
+ 7 files changed, 82 insertions(+), 10 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-make-write-helper-functions-void
-+++ a/lib/maple_tree.c
-@@ -2823,10 +2823,8 @@ dead_node:
-  * orig_l_mas->last is used in mas_consume to find the slots that will need to
-  * be either freed or destroyed.  orig_l_mas->depth keeps track of the height of
-  * the new sub-tree in case the sub-tree becomes the full tree.
-- *
-- * Return: the number of elements in b_node during the last loop.
-  */
--static int mas_spanning_rebalance(struct ma_state *mas,
-+static void mas_spanning_rebalance(struct ma_state *mas,
- 		struct maple_subtree_state *mast, unsigned char count)
- {
- 	unsigned char split, mid_split;
-@@ -2942,7 +2940,7 @@ new_root:
- 	mas->offset = l_mas.offset;
- 	mas_wmb_replace(mas, old_enode);
- 	mtree_range_walk(mas);
--	return mast->bn->b_end;
-+	return;
+--- a/include/linux/memcontrol.h~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/include/linux/memcontrol.h
+@@ -782,6 +782,8 @@ struct mem_cgroup *get_mem_cgroup_from_m
+ 
+ struct mem_cgroup *get_mem_cgroup_from_current(void);
+ 
++struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio);
++
+ struct lruvec *folio_lruvec_lock(struct folio *folio);
+ struct lruvec *folio_lruvec_lock_irq(struct folio *folio);
+ struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
+@@ -1026,8 +1028,8 @@ static inline void count_memcg_folio_eve
+ 		count_memcg_events(memcg, idx, nr);
  }
  
- /*
-@@ -2952,10 +2950,8 @@ new_root:
-  *
-  * Rebalance two nodes into a single node or two new nodes that are sufficient.
-  * Continue upwards until tree is sufficient.
-- *
-- * Return: the number of elements in b_node during the last loop.
-  */
--static inline int mas_rebalance(struct ma_state *mas,
-+static inline void mas_rebalance(struct ma_state *mas,
- 				struct maple_big_node *b_node)
+-static inline void count_memcg_event_mm(struct mm_struct *mm,
+-					enum vm_event_item idx)
++static inline void count_memcg_events_mm(struct mm_struct *mm,
++					enum vm_event_item idx, unsigned long count)
  {
- 	char empty_count = mas_mt_height(mas);
-@@ -3300,9 +3296,8 @@ static inline bool mas_push_data(struct
-  * mas_split() - Split data that is too big for one node into two.
-  * @mas: The maple state
-  * @b_node: The maple big node
-- * Return: 1 on success, 0 on failure.
-  */
--static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
-+static void mas_split(struct ma_state *mas, struct maple_big_node *b_node)
- {
- 	struct maple_subtree_state mast;
- 	int height = 0;
-@@ -3380,7 +3375,7 @@ static int mas_split(struct ma_state *ma
- 	mas->node = l_mas.node;
- 	mas_wmb_replace(mas, old);
- 	mtree_range_walk(mas);
--	return 1;
-+	return;
+ 	struct mem_cgroup *memcg;
+ 
+@@ -1037,10 +1039,16 @@ static inline void count_memcg_event_mm(
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
+ 	if (likely(memcg))
+-		count_memcg_events(memcg, idx, 1);
++		count_memcg_events(memcg, idx, count);
+ 	rcu_read_unlock();
  }
  
- /*
-@@ -3388,7 +3383,7 @@ static int mas_split(struct ma_state *ma
-  * @wr_mas: The maple write state
-  * @b_node: The maple big node
-  */
--static noinline_for_kasan int mas_commit_b_node(struct ma_wr_state *wr_mas,
-+static noinline_for_kasan void mas_commit_b_node(struct ma_wr_state *wr_mas,
- 			    struct maple_big_node *b_node)
++static inline void count_memcg_event_mm(struct mm_struct *mm,
++					enum vm_event_item idx)
++{
++	count_memcg_events_mm(mm, idx, 1);
++}
++
+ static inline void memcg_memory_event(struct mem_cgroup *memcg,
+ 				      enum memcg_memory_event event)
  {
- 	enum store_type type = wr_mas->mas->store_type;
-@@ -3664,10 +3659,8 @@ static void mte_destroy_walk(struct mapl
-  * @entry: The entry to store.
-  *
-  * Only valid when the index == 0 and the last == ULONG_MAX
-- *
-- * Return 0 on error, 1 on success.
-  */
--static inline int mas_new_root(struct ma_state *mas, void *entry)
-+static inline void mas_new_root(struct ma_state *mas, void *entry)
- {
- 	struct maple_enode *root = mas_root_locked(mas);
- 	enum maple_type type = maple_leaf_64;
-@@ -3699,7 +3692,7 @@ done:
- 	if (xa_is_node(root))
- 		mte_destroy_walk(root, mas->tree);
- 
--	return 1;
-+	return;
- }
- /*
-  * mas_wr_spanning_store() - Create a subtree with the store operation completed
-@@ -3707,10 +3700,8 @@ done:
-  * Note that mas is expected to point to the node which caused the store to
-  * span.
-  * @wr_mas: The maple write state
-- *
-- * Return: 0 on error, positive on success.
-  */
--static noinline int mas_wr_spanning_store(struct ma_wr_state *wr_mas)
-+static noinline void mas_wr_spanning_store(struct ma_wr_state *wr_mas)
- {
- 	struct maple_subtree_state mast;
- 	struct maple_big_node b_node;
-@@ -3802,10 +3793,8 @@ static noinline int mas_wr_spanning_stor
-  * @wr_mas: The maple write state
-  *
-  * Attempts to reuse the node, but may allocate.
-- *
-- * Return: True if stored, false otherwise
-  */
--static inline bool mas_wr_node_store(struct ma_wr_state *wr_mas,
-+static inline void mas_wr_node_store(struct ma_wr_state *wr_mas,
- 				     unsigned char new_end)
- {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -3878,16 +3867,14 @@ done:
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
- 	mas_update_gap(mas);
- 	mas->end = new_end;
--	return true;
-+	return;
+@@ -1260,6 +1268,11 @@ static inline struct mem_cgroup *get_mem
+ 	return NULL;
  }
  
- /*
-  * mas_wr_slot_store: Attempt to store a value in a slot.
-  * @wr_mas: the maple write state
-- *
-- * Return: True if stored, false otherwise
-  */
--static inline bool mas_wr_slot_store(struct ma_wr_state *wr_mas)
-+static inline void mas_wr_slot_store(struct ma_wr_state *wr_mas)
++static inline struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
++{
++	return NULL;
++}
++
+ static inline
+ struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css)
  {
- 	struct ma_state *mas = wr_mas->mas;
- 	unsigned char offset = mas->offset;
-@@ -3919,7 +3906,7 @@ static inline bool mas_wr_slot_store(str
- 		wr_mas->pivots[offset + 1] = mas->last;
- 		mas->offset++; /* Keep mas accurate. */
- 	} else {
--		return false;
-+		return;
+@@ -1482,6 +1495,11 @@ static inline void count_memcg_folio_eve
+ {
+ }
+ 
++static inline void count_memcg_events_mm(struct mm_struct *mm,
++					enum vm_event_item idx, unsigned long count)
++{
++}
++
+ static inline
+ void count_memcg_event_mm(struct mm_struct *mm, enum vm_event_item idx)
+ {
+--- a/include/linux/vmstat.h~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/include/linux/vmstat.h
+@@ -32,6 +32,7 @@ struct reclaim_stat {
+ 	unsigned nr_ref_keep;
+ 	unsigned nr_unmap_fail;
+ 	unsigned nr_lazyfree_fail;
++	unsigned nr_demoted;
+ };
+ 
+ /* Stat data for system wide items */
+--- a/mm/memcontrol.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/mm/memcontrol.c
+@@ -307,6 +307,12 @@ static const unsigned int memcg_node_sta
+ #ifdef CONFIG_SWAP
+ 	NR_SWAPCACHE,
+ #endif
++#ifdef CONFIG_NUMA_BALANCING
++	PGPROMOTE_SUCCESS,
++#endif
++	PGDEMOTE_KSWAPD,
++	PGDEMOTE_DIRECT,
++	PGDEMOTE_KHUGEPAGED,
+ };
+ 
+ static const unsigned int memcg_stat_items[] = {
+@@ -437,6 +443,11 @@ static const unsigned int memcg_vm_event
+ 	THP_SWPOUT,
+ 	THP_SWPOUT_FALLBACK,
+ #endif
++#ifdef CONFIG_NUMA_BALANCING
++	NUMA_PAGE_MIGRATE,
++	NUMA_PTE_UPDATES,
++	NUMA_HINT_FAULTS,
++#endif
+ };
+ 
+ #define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
+@@ -979,6 +990,24 @@ again:
+ }
+ 
+ /**
++ * get_mem_cgroup_from_folio - Obtain a reference on a given folio's memcg.
++ * @folio: folio from which memcg should be extracted.
++ */
++struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
++{
++	struct mem_cgroup *memcg = folio_memcg(folio);
++
++	if (mem_cgroup_disabled())
++		return NULL;
++
++	rcu_read_lock();
++	if (!memcg || WARN_ON_ONCE(!css_tryget(&memcg->css)))
++		memcg = root_mem_cgroup;
++	rcu_read_unlock();
++	return memcg;
++}
++
++/**
+  * mem_cgroup_iter - iterate over memory cgroup hierarchy
+  * @root: hierarchy root
+  * @prev: previously returned memcg, NULL on first invocation
+@@ -1383,6 +1412,13 @@ static const struct memory_stat memory_s
+ 	{ "workingset_restore_anon",	WORKINGSET_RESTORE_ANON		},
+ 	{ "workingset_restore_file",	WORKINGSET_RESTORE_FILE		},
+ 	{ "workingset_nodereclaim",	WORKINGSET_NODERECLAIM		},
++
++	{ "pgdemote_kswapd",		PGDEMOTE_KSWAPD		},
++	{ "pgdemote_direct",		PGDEMOTE_DIRECT		},
++	{ "pgdemote_khugepaged",	PGDEMOTE_KHUGEPAGED	},
++#ifdef CONFIG_NUMA_BALANCING
++	{ "pgpromote_success",		PGPROMOTE_SUCCESS	},
++#endif
+ };
+ 
+ /* The actual unit of the state item, not the same as the output unit */
+@@ -1407,6 +1443,9 @@ static int memcg_page_state_output_unit(
+ 	/*
+ 	 * Workingset state is actually in pages, but we export it to userspace
+ 	 * as a scalar count of events, so special case it here.
++	 *
++	 * Demotion and promotion activities are exported in pages, consistent
++	 * with their global counterparts.
+ 	 */
+ 	switch (item) {
+ 	case WORKINGSET_REFAULT_ANON:
+@@ -1416,6 +1455,12 @@ static int memcg_page_state_output_unit(
+ 	case WORKINGSET_RESTORE_ANON:
+ 	case WORKINGSET_RESTORE_FILE:
+ 	case WORKINGSET_NODERECLAIM:
++	case PGDEMOTE_KSWAPD:
++	case PGDEMOTE_DIRECT:
++	case PGDEMOTE_KHUGEPAGED:
++#ifdef CONFIG_NUMA_BALANCING
++	case PGPROMOTE_SUCCESS:
++#endif
+ 		return 1;
+ 	default:
+ 		return memcg_page_state_unit(item);
+--- a/mm/memory.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/mm/memory.c
+@@ -5400,6 +5400,9 @@ int numa_migrate_check(struct folio *fol
+ 	vma_set_access_pid_bit(vma);
+ 
+ 	count_vm_numa_event(NUMA_HINT_FAULTS);
++#ifdef CONFIG_NUMA_BALANCING
++	count_memcg_folio_events(folio, NUMA_HINT_FAULTS, 1);
++#endif
+ 	if (folio_nid(folio) == numa_node_id()) {
+ 		count_vm_numa_event(NUMA_HINT_FAULTS_LOCAL);
+ 		*flags |= TNF_FAULT_LOCAL;
+--- a/mm/mempolicy.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/mm/mempolicy.c
+@@ -676,8 +676,10 @@ unsigned long change_prot_numa(struct vm
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 
+ 	nr_updated = change_protection(&tlb, vma, addr, end, MM_CP_PROT_NUMA);
+-	if (nr_updated > 0)
++	if (nr_updated > 0) {
+ 		count_vm_numa_events(NUMA_PTE_UPDATES, nr_updated);
++		count_memcg_events_mm(vma->vm_mm, NUMA_PTE_UPDATES, nr_updated);
++	}
+ 
+ 	tlb_finish_mmu(&tlb);
+ 
+--- a/mm/migrate.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/mm/migrate.c
+@@ -2668,6 +2668,8 @@ int migrate_misplaced_folio(struct folio
+ 	int nr_remaining;
+ 	unsigned int nr_succeeded;
+ 	LIST_HEAD(migratepages);
++	struct mem_cgroup *memcg = get_mem_cgroup_from_folio(folio);
++	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+ 	list_add(&folio->lru, &migratepages);
+ 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_folio,
+@@ -2677,12 +2679,13 @@ int migrate_misplaced_folio(struct folio
+ 		putback_movable_pages(&migratepages);
+ 	if (nr_succeeded) {
+ 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
++		count_memcg_events(memcg, NUMA_PAGE_MIGRATE, nr_succeeded);
+ 		if ((sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
+ 		    && !node_is_toptier(folio_nid(folio))
+ 		    && node_is_toptier(node))
+-			mod_node_page_state(pgdat, PGPROMOTE_SUCCESS,
+-					    nr_succeeded);
++			mod_lruvec_state(lruvec, PGPROMOTE_SUCCESS, nr_succeeded);
  	}
++	mem_cgroup_put(memcg);
+ 	BUG_ON(!list_empty(&migratepages));
+ 	return nr_remaining ? -EAGAIN : 0;
+ }
+--- a/mm/vmscan.c~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations
++++ a/mm/vmscan.c
+@@ -1018,9 +1018,6 @@ static unsigned int demote_folio_list(st
+ 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
+ 		      &nr_succeeded);
  
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-@@ -3930,7 +3917,7 @@ static inline bool mas_wr_slot_store(str
- 	if (!wr_mas->entry || gap)
- 		mas_update_gap(mas);
- 
--	return true;
-+	return;
+-	mod_node_page_state(pgdat, PGDEMOTE_KSWAPD + reclaimer_offset(),
+-			    nr_succeeded);
+-
+ 	return nr_succeeded;
  }
  
- static inline void mas_wr_extend_null(struct ma_wr_state *wr_mas)
-@@ -4004,10 +3991,8 @@ static inline unsigned char mas_wr_new_e
-  * This is currently unsafe in rcu mode since the end of the node may be cached
-  * by readers while the node contents may be updated which could result in
-  * inaccurate information.
-- *
-- * Return: True if appended, false otherwise
-  */
--static inline bool mas_wr_append(struct ma_wr_state *wr_mas,
-+static inline void mas_wr_append(struct ma_wr_state *wr_mas,
- 		unsigned char new_end)
- {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -4046,7 +4031,7 @@ static inline bool mas_wr_append(struct
+@@ -1519,7 +1516,8 @@ keep:
+ 	/* 'folio_list' is always empty here */
  
- 	mas->end = new_end;
- 	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
--	return  true;
-+	return;
- }
+ 	/* Migrate folios selected for demotion */
+-	nr_reclaimed += demote_folio_list(&demote_folios, pgdat);
++	stat->nr_demoted = demote_folio_list(&demote_folios, pgdat);
++	nr_reclaimed += stat->nr_demoted;
+ 	/* Folios that could not be demoted are still in @demote_folios */
+ 	if (!list_empty(&demote_folios)) {
+ 		/* Folios which weren't demoted go back on @folio_list */
+@@ -1985,6 +1983,8 @@ static unsigned long shrink_inactive_lis
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 	move_folios_to_lru(lruvec, &folio_list);
  
- /*
++	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
++					stat.nr_demoted);
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset();
+ 	if (!cgroup_reclaim(sc))
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
 
-maple_tree-reset-mas-index-and-mas-last-on-write-retries.patch
-maple_tree-add-test-to-replicate-low-memory-race-conditions.patch
-maple_tree-introduce-store_type-enum.patch
-maple_tree-introduce-mas_wr_prealloc_setup.patch
-maple_tree-move-up-mas_wr_store_setup-and-mas_wr_prealloc_setup.patch
-maple_tree-introduce-mas_wr_store_type.patch
-maple_tree-remove-mas_destroy-from-mas_nomem.patch
-maple_tree-preallocate-nodes-in-mas_erase.patch
-maple_tree-use-mas_store_gfp-in-mtree_store_range.patch
-maple_tree-print-store-type-in-mas_dump.patch
-maple_tree-use-store-type-in-mas_wr_store_entry.patch
-maple_tree-convert-mas_insert-to-preallocate-nodes.patch
-maple_tree-simplify-mas_commit_b_node.patch
-maple_tree-remove-mas_wr_modify.patch
-maple_tree-have-mas_store-allocate-nodes-if-needed.patch
-maple_tree-remove-node-allocations-from-various-write-helper-functions.patch
-maple_tree-remove-repeated-sanity-checks-from-write-helper-functions.patch
-maple_tree-remove-unneeded-mas_wr_walk-in-mas_store_prealloc.patch
-maple_tree-make-write-helper-functions-void.patch
+mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
+mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
+mm-print-the-promo-watermark-in-zoneinfo.patch
+mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
 
