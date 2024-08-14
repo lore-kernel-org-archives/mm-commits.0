@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2161B86C1
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:58:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C30513BC0C
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 21:30:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723669086; cv=none; b=iTIcG2JNBdjV2E5PKuUe+ioe6PUZDmD28CcQ9EGwmU7pb8PYlAefs1g/GaAJEsSRprH4oARmsSKt1aaasodx8z+3d4WUaWOuqlQBf2EWczQ41CcQsV96CKFf9W+Xg2khLcGllP1NS3ngRLWe6C00W7ZuGrfApbtL1Uaue4dxlB4=
+	t=1723671058; cv=none; b=EcUg4e2aGTf/Uwyb2keXG7qXkgGdXS3uM+1O8j2B2ibu65YcKwlge5CgcACg2DwBu1c6ag6PkjtJt/C6vqRo7OtF+MzcMIIf+9P2KRfpi4ESH2jjB6n2gvp/avMWDXXLpS5jIZvhuWNY8uhluRyQfBbDSmVF7xwoWwacA0Ne1Ag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723669086; c=relaxed/simple;
-	bh=i7SHBYirrcNFo02OG52F7q8q18z5CJJ3BtLfi6Xq0ns=;
-	h=Date:To:From:Subject:Message-Id; b=PXkPoH7IdNcUwFm6pi2rfIg8RbqGoFvsT18wOUhwjGEqnHtHoNX1LG+nKzCPyKFqfY6mtObSJRIeyKXOIP2IyhNnGfRyGO/HBf4+i5iohlBaEBFXHUpvvu/OGke7tCa8RKugeZh93WFSClp0n52im1KbnMti6P4dQkF19nf9C8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DPl3149w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723671058; c=relaxed/simple;
+	bh=u7B02F29GBjNFUjWfnTr7913yn9c+eAJY8fOAuolqNs=;
+	h=Date:To:From:Subject:Message-Id; b=CFUokNPFJgqxuf5DP0ku61jHDDB5KNbX6c30VUaiSHqIWIwZszbYjiNoYiDSuvEuZqwS9+huVXQZlO0LDJ7QlPf0RqNpmT76aKO56Y9yuxzn4Q235MQfZpaCogj3NcG2rQlYky+54ptCnh0VLDoslkkn146w81g4dJ9XP3rfbLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ikzj6Hox; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DPl3149w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA130C116B1;
-	Wed, 14 Aug 2024 20:58:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ikzj6Hox"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73DE6C116B1;
+	Wed, 14 Aug 2024 21:30:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723669086;
-	bh=i7SHBYirrcNFo02OG52F7q8q18z5CJJ3BtLfi6Xq0ns=;
+	s=korg; t=1723671057;
+	bh=u7B02F29GBjNFUjWfnTr7913yn9c+eAJY8fOAuolqNs=;
 	h=Date:To:From:Subject:From;
-	b=DPl3149wRoqJDLTTvxkWyAFdJYiHSZ+whXTsZvuoa2FdZMWII+HnEilP6Rt/lZciL
-	 9CuavUYJzRkajYa3mSBDkSO68soCvHq2lLG6VCTCvtw0/KMl1QAx6864gv7a5elPx8
-	 ecS5GIU2qMsAMWpuH2gSk6Xgc4on4JWtLNb6gWlc=
-Date: Wed, 14 Aug 2024 13:58:05 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=ikzj6HoxVyfdjnI5GKhRS1ZZ+Zo9KcsaRjkk1QzND33oz6eqkakHvwwd94tr6aAJa
+	 uuQQw7En9hqFc3RS65l+khzoJHh4aghuNfA3EPLAtZNJk++SOsoVIb9F14NgREwG0x
+	 o8mBBcHCyxib8GurIsmi4uahip7cGzTRyMpbSyMw=
+Date: Wed, 14 Aug 2024 14:30:56 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-initiate-deprecation-of-pressure_level.patch added to mm-unstable branch
-Message-Id: <20240814205805.EA130C116B1@smtp.kernel.org>
+Subject: + lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch added to mm-nonmm-unstable branch
+Message-Id: <20240814213057.73DE6C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: initiate deprecation of pressure_level
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-initiate-deprecation-of-pressure_level.patch
+     Subject: lib/percpu_counter: add missing __percpu qualifier to a cast
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-initiate-deprecation-of-pressure_level.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: initiate deprecation of pressure_level
-Date: Wed, 14 Aug 2024 13:28:25 -0700
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: lib/percpu_counter: add missing __percpu qualifier to a cast
+Date: Wed, 14 Aug 2024 08:44:13 +0200
 
-The pressure_level in memcg v1 provides memory pressure notifications to
-the user space.  At the moment it provides notifications for three levels
-of memory pressure i.e.  low, medium and critical, which are defined based
-on internal memory reclaim implementation details.  More specifically the
-ratio or scanned and reclaimed pages during a memory reclaim.  However
-this is not robust as there are workloads with mostly unreclaimable user
-memory or kernel memory.
+Add missing __percpu qualifier to a (void *) cast to fix
 
-For v2, the users can use PSI for memory pressure status of the system or
-the cgroup.  Let's start the deprecation process for pressure_level and
-add warnings to gather the info on how the current users are using this
-interface and how they can be used to PSI.
+percpu_counter.c:212:36: warning: cast removes address space '__percpu' of expression
+percpu_counter.c:212:33: warning: incorrect type in assignment (different address spaces)
+percpu_counter.c:212:33:    expected signed int [noderef] [usertype] __percpu *counters
+percpu_counter.c:212:33:    got void *
 
-Link: https://lkml.kernel.org/r/20240814202825.2694077-5-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+sparse warnings.
+
+Found by GCC's named address space checks.
+
+There were no changes in the resulting object file.
+
+Link: https://lkml.kernel.org/r/20240814064437.940162-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |    8 ++++++--
- mm/memcontrol-v1.c                             |    3 +++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ lib/percpu_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-initiate-deprecation-of-pressure_level
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -86,6 +86,8 @@ Brief summary of control files.
-                                      used.
-  memory.force_empty		     trigger forced page reclaim
-  memory.pressure_level		     set memory pressure notifications
-+                                     This knob is deprecated and shouldn't be
-+                                     used.
-  memory.swappiness		     set/show swappiness parameter of vmscan
- 				     (See sysctl's vm.swappiness)
-  memory.move_charge_at_immigrate     set/show controls of moving charges
-@@ -898,8 +900,10 @@ At reading, current status of OOM is sho
-           The number of processes belonging to this cgroup killed by any
-           kind of OOM killer.
+--- a/lib/percpu_counter.c~lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast
++++ a/lib/percpu_counter.c
+@@ -209,7 +209,7 @@ int __percpu_counter_init_many(struct pe
+ 		INIT_LIST_HEAD(&fbc[i].list);
+ #endif
+ 		fbc[i].count = amount;
+-		fbc[i].counters = (void *)counters + (i * counter_size);
++		fbc[i].counters = (void __percpu *)counters + i * counter_size;
  
--11. Memory Pressure
--===================
-+11. Memory Pressure (DEPRECATED)
-+================================
-+
-+THIS IS DEPRECATED!
- 
- The pressure level notifications can be used to monitor the memory
- allocation cost; based on the pressure, applications can implement
---- a/mm/memcontrol-v1.c~memcg-initiate-deprecation-of-pressure_level
-+++ a/mm/memcontrol-v1.c
-@@ -1910,6 +1910,9 @@ static ssize_t memcg_write_event_control
- 		event->register_event = mem_cgroup_oom_register_event;
- 		event->unregister_event = mem_cgroup_oom_unregister_event;
- 	} else if (!strcmp(name, "memory.pressure_level")) {
-+		pr_warn_once("pressure_level is deprecated and will be removed. "
-+			     "Please report your usecase to linux-mm-@kvack.org "
-+			     "if you depend on this functionality. \n";
- 		event->register_event = vmpressure_register_event;
- 		event->unregister_event = vmpressure_unregister_event;
- 	} else if (!strcmp(name, "memory.memsw.usage_in_bytes")) {
+ 		debug_percpu_counter_activate(&fbc[i]);
+ 	}
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-memcg-increase-the-valid-index-range-for-memcg-stats.patch
-memcg-replace-memcg-id-idr-with-xarray.patch
-memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
-memcg-initiate-deprecation-of-v1-tcp-accounting.patch
-memcg-initiate-deprecation-of-v1-soft-limit.patch
-memcg-initiate-deprecation-of-oom_control.patch
-memcg-initiate-deprecation-of-pressure_level.patch
+mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
+errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
+mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
+lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
 
