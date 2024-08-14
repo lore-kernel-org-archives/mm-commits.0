@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12881D61BC
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:40:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7491C8FC5
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:40:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723668032; cv=none; b=vEa3P171HUuSjz9TPNjqVqlI/GY2e9Do+mtUzMPXdPMfqGC1iXZrvghAM/C/FxWQcHdu7CHT/luPm6euZ5vZ/rzHChNifeAWVKRlxeqtEc+gRW8O10Cek0GhJE+ZEg5bt6HmHmlhL9w6StnfxL6CS2gT1/FF8KOIK+whg+atvYE=
+	t=1723668033; cv=none; b=CAXDKE8YjZLT07s6NuAPTMrT6Oc/B6tTLQB6zU22Bm47LQ2Ngsk/H37wrjPNrviuBdtcFQCv6sNA/avSiQL8kVLT8IydJLeDZj59ZeA3pngZDyXvZP7uFAjAle9Z6tjkG30oZy8qBdGK9bhJmHLk85KRC+I46UDK0ewfPBc8heM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723668032; c=relaxed/simple;
-	bh=lDQdSCpEoPVHm241KnQzhk+kjgYzApaZ35VC5b/sKPU=;
-	h=Date:To:From:Subject:Message-Id; b=nJjiwAVu55/dytFE0qMsMaa2HqORaElHejqadbckmxQUGP5oCUitoJLjlBPirECa8iSKaU3JS4r+/zzXO/lLmgftnIUD4dt9vefzFeal5TBelvtmc+KyS0bw2orDkyGSKDDBmPNYxzX7yQa2y+5SHSPbjuJv8aZcqnFRn6JfTNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZwXrDk+t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723668033; c=relaxed/simple;
+	bh=mV8E8wAjCdCJh1GLbHMKbb8velcS4NjQ+w+JIqiDAIE=;
+	h=Date:To:From:Subject:Message-Id; b=gKAVc4xXzQTgxDcNYp4kRgN3G/II+HviHPGszZXZ/BX924TlaE/Vkttwi0Fhr+ikSVhJXmcaxOmgoe4tLi2wefM0Fofxye9PDffji1NK9IU77t5JjCyYtBXEHcCTdOJCWIGmXxuH6pIx57v0iZ8vqWF1EvUmCbSL8dtodeg86Ag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rmNmARSB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZwXrDk+t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A5FC116B1;
-	Wed, 14 Aug 2024 20:40:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rmNmARSB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12324C116B1;
+	Wed, 14 Aug 2024 20:40:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723668031;
-	bh=lDQdSCpEoPVHm241KnQzhk+kjgYzApaZ35VC5b/sKPU=;
+	s=korg; t=1723668033;
+	bh=mV8E8wAjCdCJh1GLbHMKbb8velcS4NjQ+w+JIqiDAIE=;
 	h=Date:To:From:Subject:From;
-	b=ZwXrDk+tUEKgTDL/qQof4SYxB+sdf7gRA740fjN0liqCSdhE5nc3x0VJwGkCsC9QB
-	 hcqm6J34Z/Sclbv7rJxZxrKHex24YHyJBCpe2QCO3HsaxrGVMOnKAg57IdAd/IPll6
-	 03ODplAvlsXvb5KknPfL0OYv6pyhhw/L3SwMdoIQ=
-Date: Wed, 14 Aug 2024 13:40:31 -0700
+	b=rmNmARSBspzTcVyW9brEl2xGqAMoW0jtz9LgFl39B35o8P91nQU8EVInbG0a0iKRT
+	 UzIwMwvw/A3lbEyCwGLJmQEg3NK0YgL10dPGbItnHgLnYBY3yIiwprtWuRc/tibXSf
+	 DbEoTR2vAG32J6C2u0OeWUVdHt5GE9JoB6iZ1PCg=
+Date: Wed, 14 Aug 2024 13:40:32 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-print-store-type-in-mas_dump.patch added to mm-unstable branch
-Message-Id: <20240814204031.B9A5FC116B1@smtp.kernel.org>
+Subject: + maple_tree-use-store-type-in-mas_wr_store_entry.patch added to mm-unstable branch
+Message-Id: <20240814204033.12324C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: print store type in mas_dump()
+     Subject: maple_tree: use store type in mas_wr_store_entry()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-print-store-type-in-mas_dump.patch
+     maple_tree-use-store-type-in-mas_wr_store_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-print-store-type-in-mas_dump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-store-type-in-mas_wr_store_entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,66 +59,177 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: print store type in mas_dump()
-Date: Wed, 14 Aug 2024 12:19:35 -0400
+Subject: maple_tree: use store type in mas_wr_store_entry()
+Date: Wed, 14 Aug 2024 12:19:36 -0400
 
-Knowing the store type of the maple state could be helpful for debugging.
-Have mas_dump() print mas->store_type.
+When storing an entry, we can read the store type that was set from a
+previous partial walk of the tree. Now that the type of store is known,
+select the correct write helper function to use to complete the store.
 
-Link: https://lkml.kernel.org/r/20240814161944.55347-9-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Also noinline mas_wr_spanning_store() to limit stack frame usage in
+mas_wr_store_entry() as it allocates a maple_big_node on the stack.
+
+Link: https://lkml.kernel.org/r/20240814161944.55347-10-sidhartha.kumar@oracle.com
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ lib/maple_tree.c |   90 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 52 insertions(+), 38 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-print-store-type-in-mas_dump
+--- a/lib/maple_tree.c~maple_tree-use-store-type-in-mas_wr_store_entry
 +++ a/lib/maple_tree.c
-@@ -7760,6 +7760,40 @@ void mas_dump(const struct ma_state *mas
- 		break;
- 	}
+@@ -3780,7 +3780,7 @@ done:
+  *
+  * Return: 0 on error, positive on success.
+  */
+-static inline int mas_wr_spanning_store(struct ma_wr_state *wr_mas)
++static noinline int mas_wr_spanning_store(struct ma_wr_state *wr_mas)
+ {
+ 	struct maple_subtree_state mast;
+ 	struct maple_big_node b_node;
+@@ -4206,43 +4206,62 @@ slow_path:
+ static inline void mas_wr_store_entry(struct ma_wr_state *wr_mas)
+ {
+ 	struct ma_state *mas = wr_mas->mas;
++	unsigned char new_end = mas_wr_new_end(wr_mas);
  
-+	pr_err("Store Type: ");
+-	wr_mas->content = mas_start(mas);
+-	if (mas_is_none(mas) || mas_is_ptr(mas)) {
+-		mas_store_root(mas, wr_mas->entry);
 +	switch (mas->store_type) {
 +	case wr_invalid:
-+		pr_err("invalid store type\n");
-+		break;
++		MT_BUG_ON(mas->tree, 1);
+ 		return;
+-	}
+-
+-	if (unlikely(!mas_wr_walk(wr_mas))) {
 +	case wr_new_root:
-+		pr_err("new_root\n");
++		mas_new_root(mas, wr_mas->entry);
 +		break;
 +	case wr_store_root:
-+		pr_err("store_root\n");
++		mas_store_root(mas, wr_mas->entry);
 +		break;
 +	case wr_exact_fit:
-+		pr_err("exact_fit\n");
-+		break;
-+	case wr_split_store:
-+		pr_err("split_store\n");
-+		break;
-+	case wr_slot_store:
-+		pr_err("slot_store\n");
++		rcu_assign_pointer(wr_mas->slots[mas->offset], wr_mas->entry);
++		if (!!wr_mas->entry ^ !!wr_mas->content)
++			mas_update_gap(mas);
 +		break;
 +	case wr_append:
-+		pr_err("append\n");
++		mas_wr_append(wr_mas, new_end);
++		break;
++	case wr_slot_store:
++		mas_wr_slot_store(wr_mas);
 +		break;
 +	case wr_node_store:
-+		pr_err("node_store\n");
++		mas_wr_node_store(wr_mas, new_end);
 +		break;
 +	case wr_spanning_store:
-+		pr_err("spanning_store\n");
+ 		mas_wr_spanning_store(wr_mas);
+-		return;
 +		break;
++	case wr_split_store:
 +	case wr_rebalance:
-+		pr_err("rebalance\n");
++		mas_wr_bnode(wr_mas);
 +		break;
-+	}
+ 	}
+ 
+-	/* At this point, we are at the leaf node that needs to be altered. */
+-	mas_wr_end_piv(wr_mas);
+-	/* New root for a single pointer */
+-	if (unlikely(!mas->index && mas->last == ULONG_MAX))
+-		mas_new_root(mas, wr_mas->entry);
+-	else
+-		mas_wr_modify(wr_mas);
++	return;
+ }
+ 
+-static void mas_wr_store_setup(struct ma_wr_state *wr_mas)
++static inline void mas_wr_prealloc_setup(struct ma_wr_state *wr_mas)
+ {
+-	if (!mas_is_active(wr_mas->mas)) {
+-		if (mas_is_start(wr_mas->mas))
+-			return;
++	struct ma_state *mas = wr_mas->mas;
+ 
+-		if (unlikely(mas_is_paused(wr_mas->mas)))
++	if (!mas_is_active(mas)) {
++		if (mas_is_start(mas))
++			goto set_content;
 +
- 	pr_err("[%u/%u] index=%lx last=%lx\n", mas->offset, mas->end,
- 	       mas->index, mas->last);
- 	pr_err("     min=%lx max=%lx alloc=%p, depth=%u, flags=%x\n",
++		if (unlikely(mas_is_paused(mas)))
+ 			goto reset;
+ 
+-		if (unlikely(mas_is_none(wr_mas->mas)))
++		if (unlikely(mas_is_none(mas)))
+ 			goto reset;
+ 
+-		if (unlikely(mas_is_overflow(wr_mas->mas)))
++		if (unlikely(mas_is_overflow(mas)))
+ 			goto reset;
+ 
+-		if (unlikely(mas_is_underflow(wr_mas->mas)))
++		if (unlikely(mas_is_underflow(mas)))
+ 			goto reset;
+ 	}
+ 
+@@ -4251,27 +4270,20 @@ static void mas_wr_store_setup(struct ma
+ 	 * writes within this node.  This is to stop partial walks in
+ 	 * mas_prealloc() from being reset.
+ 	 */
+-	if (wr_mas->mas->last > wr_mas->mas->max)
++	if (mas->last > mas->max)
+ 		goto reset;
+ 
+ 	if (wr_mas->entry)
+-		return;
++		goto set_content;
+ 
+-	if (mte_is_leaf(wr_mas->mas->node) &&
+-	    wr_mas->mas->last == wr_mas->mas->max)
++	if (mte_is_leaf(mas->node) && mas->last == mas->max)
+ 		goto reset;
+ 
+-	return;
++	goto set_content;
+ 
+ reset:
+-	mas_reset(wr_mas->mas);
+-}
+-
+-static inline void mas_wr_prealloc_setup(struct ma_wr_state *wr_mas)
+-{
+-	struct ma_state *mas = wr_mas->mas;
+-
+-	mas_wr_store_setup(wr_mas);
++	mas_reset(mas);
++set_content:
+ 	wr_mas->content = mas_start(mas);
+ }
+ 
+@@ -5582,7 +5594,8 @@ void *mas_store(struct ma_state *mas, vo
+ 	 * want to examine what happens if a single store operation was to
+ 	 * overwrite multiple entries within a self-balancing B-Tree.
+ 	 */
+-	mas_wr_store_setup(&wr_mas);
++	mas_wr_prealloc_setup(&wr_mas);
++	mas_wr_store_type(&wr_mas);
+ 	mas_wr_store_entry(&wr_mas);
+ 	return wr_mas.content;
+ }
+@@ -5634,7 +5647,8 @@ void mas_store_prealloc(struct ma_state
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
+ 
+-	mas_wr_store_setup(&wr_mas);
++	mas_wr_prealloc_setup(&wr_mas);
++	mas_wr_store_type(&wr_mas);
+ 	trace_ma_write(__func__, mas, 0, entry);
+ 	mas_wr_store_entry(&wr_mas);
+ 	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
