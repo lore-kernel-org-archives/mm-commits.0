@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27C901C8FD3
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:40:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6361D6DA7
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:40:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723668036; cv=none; b=CPsTT/xlgXsS9Us/WVBVajw3XjmfLmG3Sor1Z9YjzlDAyCt0VWv7/sTP9OsM6KnL+u4SgLmK/FbZd/yQHjEzpLWtDto+IpIA+rT52YJMPzdWG3O4oyHtYqqknesCCcgul8XlvVI3TAOz7KXgP/tUZ1Cu2DriFI8saEDOYqoel2U=
+	t=1723668037; cv=none; b=rLy35MJxsmKh5/AL9pnkuNwxD6DccGA6mLHFyaDVf60lKTe4Kxvj1UPHamg9N8DnIbEzDwiWlWVkcMNRunOCiKeV+gbKt60yklWxc0Rrnt+FLQjKx6yA6Iq9VZCUX+R3mad7IdUc21P23TGzW7BwADC9zOVOWu+xxl73HRQUj54=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723668036; c=relaxed/simple;
-	bh=Hsoz0T9B4LhnV9WWjmgJEZUR9mAthQMFT6/hcgGyFXE=;
-	h=Date:To:From:Subject:Message-Id; b=ekCT2y1zUy8T9Oof8ZrdeLkQEcNmhNuIzhATpSJ5QR5P7Ha4zIbdCdiFXepY2y7Sx1evl/7x/8My325w1CtzCe9btHIHR6N/sgjo+mPYuo/6wlCrSc8632MTfiXD2HS2G9U+JYpXP06MhK26KFSOH8noYeyxJk4fUZYAwuHO8kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Th++jpBP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723668037; c=relaxed/simple;
+	bh=UoXOlF8y93ufJRCh3kl3DFxvX7wqHGZ8wSxNoRx1zdQ=;
+	h=Date:To:From:Subject:Message-Id; b=QoZbyN9TMBnrApCovDEVUUehyFgPP+9oM9v753dIzQrMjCbZOrV9OlgGJZtpvDt6u24C7TXi5hNpDZZBJU7hL33mOfUYd1prY591HCs7TL3NmbDyP54L4cRa5BqXoaXt+DHJlz5s5/WC1Ik5EY6sIO5UjlYcFvWQkUkuScCa8GA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BBB02QqJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Th++jpBP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4944C4AF0B;
-	Wed, 14 Aug 2024 20:40:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BBB02QqJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 218E3C116B1;
+	Wed, 14 Aug 2024 20:40:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723668035;
-	bh=Hsoz0T9B4LhnV9WWjmgJEZUR9mAthQMFT6/hcgGyFXE=;
+	s=korg; t=1723668037;
+	bh=UoXOlF8y93ufJRCh3kl3DFxvX7wqHGZ8wSxNoRx1zdQ=;
 	h=Date:To:From:Subject:From;
-	b=Th++jpBPPNG96gckAB/WWBNbU2Ti1TolrB8JtEP6TxSLvxg5gcMYNgC1qPaMDdTSo
-	 FLiurGq3c+5CQMBU7zGqtUhO8b7mbSxLqUBug7DyTWy4eIiWW+xdBQXQY46NzSqBIX
-	 E+fYNtqv/fKDIrdOvZp6alISMFp3g502xETxAhLs=
-Date: Wed, 14 Aug 2024 13:40:35 -0700
+	b=BBB02QqJUk1VKRHBbPNw/jNBXxDFTOAe9PMWqvNwKa9C+XLwco2wUECVrwK7Rj2vO
+	 kxRVRepxSK+U++RGpUZcCzkeRqm9C0KbpT2Fh5b3reqcV4j36eZmdmGzqKMQoyzrEq
+	 HySDcd1gEgI4PzlcRq+ZAg+L3K16+tP+AwxXPmRw=
+Date: Wed, 14 Aug 2024 13:40:36 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-simplify-mas_commit_b_node.patch added to mm-unstable branch
-Message-Id: <20240814204035.B4944C4AF0B@smtp.kernel.org>
+Subject: + maple_tree-remove-mas_wr_modify.patch added to mm-unstable branch
+Message-Id: <20240814204037.218E3C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: simplify mas_commit_b_node()
+     Subject: maple_tree: remove mas_wr_modify()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-simplify-mas_commit_b_node.patch
+     maple_tree-remove-mas_wr_modify.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-simplify-mas_commit_b_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-mas_wr_modify.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,114 +59,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: simplify mas_commit_b_node()
-Date: Wed, 14 Aug 2024 12:19:38 -0400
+Subject: maple_tree: remove mas_wr_modify()
+Date: Wed, 14 Aug 2024 12:19:39 -0400
 
-The only callers of mas_commit_b_node() are those with store type of
-wr_rebalance and wr_split_store. Use mas->store_type to dispatch to the
-correct helper function. This allows the removal of mas_reuse_node() as
-it is no longer used.
+There are no more users of the function, safely remove it.
 
-Link: https://lkml.kernel.org/r/20240814161944.55347-12-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20240814161944.55347-13-sidhartha.kumar@oracle.com
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   64 ++++-----------------------------------------
- 1 file changed, 7 insertions(+), 57 deletions(-)
+ lib/maple_tree.c |   38 --------------------------------------
+ 1 file changed, 38 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-simplify-mas_commit_b_node
+--- a/lib/maple_tree.c~maple_tree-remove-mas_wr_modify
 +++ a/lib/maple_tree.c
-@@ -3396,71 +3396,21 @@ static int mas_split(struct ma_state *ma
+@@ -4108,44 +4108,6 @@ static void mas_wr_bnode(struct ma_wr_st
+ 	mas_commit_b_node(wr_mas, &b_node);
  }
  
- /*
-- * mas_reuse_node() - Reuse the node to store the data.
-- * @wr_mas: The maple write state
-- * @bn: The maple big node
-- * @end: The end of the data.
-- *
-- * Will always return false in RCU mode.
-- *
-- * Return: True if node was reused, false otherwise.
-- */
--static inline bool mas_reuse_node(struct ma_wr_state *wr_mas,
--			  struct maple_big_node *bn, unsigned char end)
+-static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
 -{
--	/* Need to be rcu safe. */
--	if (mt_in_rcu(wr_mas->mas->tree))
--		return false;
+-	struct ma_state *mas = wr_mas->mas;
+-	unsigned char new_end;
 -
--	if (end > bn->b_end) {
--		int clear = mt_slots[wr_mas->type] - bn->b_end;
--
--		memset(wr_mas->slots + bn->b_end, 0, sizeof(void *) * clear--);
--		memset(wr_mas->pivots + bn->b_end, 0, sizeof(void *) * clear);
+-	/* Direct replacement */
+-	if (wr_mas->r_min == mas->index && wr_mas->r_max == mas->last) {
+-		rcu_assign_pointer(wr_mas->slots[mas->offset], wr_mas->entry);
+-		if (!!wr_mas->entry ^ !!wr_mas->content)
+-			mas_update_gap(mas);
+-		return;
 -	}
--	mab_mas_cp(bn, 0, bn->b_end, wr_mas->mas, false);
--	return true;
+-
+-	/*
+-	 * new_end exceeds the size of the maple node and cannot enter the fast
+-	 * path.
+-	 */
+-	new_end = mas_wr_new_end(wr_mas);
+-	if (new_end >= mt_slots[wr_mas->type])
+-		goto slow_path;
+-
+-	/* Attempt to append */
+-	if (mas_wr_append(wr_mas, new_end))
+-		return;
+-
+-	if (new_end == mas->end && mas_wr_slot_store(wr_mas))
+-		return;
+-
+-	if (mas_wr_node_store(wr_mas, new_end))
+-		return;
+-
+-	if (mas_is_err(mas))
+-		return;
+-
+-slow_path:
+-	mas_wr_bnode(wr_mas);
 -}
 -
--/*
-  * mas_commit_b_node() - Commit the big node into the tree.
-  * @wr_mas: The maple write state
-  * @b_node: The maple big node
-- * @end: The end of the data.
-  */
- static noinline_for_kasan int mas_commit_b_node(struct ma_wr_state *wr_mas,
--			    struct maple_big_node *b_node, unsigned char end)
-+			    struct maple_big_node *b_node)
- {
--	struct maple_node *node;
--	struct maple_enode *old_enode;
--	unsigned char b_end = b_node->b_end;
--	enum maple_type b_type = b_node->type;
--
--	old_enode = wr_mas->mas->node;
--	if ((b_end < mt_min_slots[b_type]) &&
--	    (!mte_is_root(old_enode)) &&
--	    (mas_mt_height(wr_mas->mas) > 1))
--		return mas_rebalance(wr_mas->mas, b_node);
-+	enum store_type type = wr_mas->mas->store_type;
- 
--	if (b_end >= mt_slots[b_type])
--		return mas_split(wr_mas->mas, b_node);
-+	WARN_ON_ONCE(type != wr_rebalance && type != wr_split_store);
- 
--	if (mas_reuse_node(wr_mas, b_node, end))
--		goto reuse_node;
--
--	mas_node_count(wr_mas->mas, 1);
--	if (mas_is_err(wr_mas->mas))
--		return 0;
-+	if (type == wr_rebalance)
-+		return mas_rebalance(wr_mas->mas, b_node);
- 
--	node = mas_pop_node(wr_mas->mas);
--	node->parent = mas_mn(wr_mas->mas)->parent;
--	wr_mas->mas->node = mt_mk_node(node, b_type);
--	mab_mas_cp(b_node, 0, b_end, wr_mas->mas, false);
--	mas_replace_node(wr_mas->mas, old_enode);
--reuse_node:
--	mas_update_gap(wr_mas->mas);
--	wr_mas->mas->end = b_end;
--	return 1;
-+	return mas_split(wr_mas->mas, b_node);
- }
- 
  /*
-@@ -4155,7 +4105,7 @@ static void mas_wr_bnode(struct ma_wr_st
- 	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
- 	memset(&b_node, 0, sizeof(struct maple_big_node));
- 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
--	mas_commit_b_node(wr_mas, &b_node, wr_mas->mas->end);
-+	mas_commit_b_node(wr_mas, &b_node);
- }
- 
- static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
+  * mas_wr_store_entry() - Internal call to store a value
+  * @mas: The maple state
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
