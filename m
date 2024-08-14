@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D53F21C8240
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 21:43:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE701B5801
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 21:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723671803; cv=none; b=f5v+0Wxf1k9qIOCpDjpF0mholm6Hgnp3VXdpUYywlizHQ0wr73Xm0haAkS3npS2ZxfSmxTiRib/C5M5CUOtBc36hD2LvbiNmi3YftP/YiMrjJSLXgqMENb4RVq2tm2OLhxdeTnTPQt/yj+UcijYUw7pLPd84+0uks8Ai3ZW68h8=
+	t=1723671919; cv=none; b=ESuTzatsVKWoJ/Y2+zIlDHaGS1uBvlGzvxLLHxXU/TgOe4Oym3Vk2tEzofz4jYEWruLWEKBZhUujZuTGWGDq8O5l1IJaOrNnQpKCFWxJugMNWvlSD6kMmvLD1uM/9tfOfR0oZ5hyrqGu1hvRcfX/tazpCWxPYD8aa5I6i9I/6y4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723671803; c=relaxed/simple;
-	bh=tU4NxgTMVyc7kmiP5xV2ntUAnmvdOS4hVBod4pkimMg=;
-	h=Date:To:From:Subject:Message-Id; b=kn2glJzfMR5FS+AUqyzYIzUTaMFXzURYBawiKw4XxyrK2MWZ5ON88kghHIypO2e6uzGj3XL3ZX4ABq5B93AS2wIOkP2082x9nM1ZHQyIwyBCfJRkzoeEOmtUeEULrMlOvrNof8GpkImQmzhIyjExv+DsraGBffbE6Q2DLGQ4dDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AwJ1k400; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723671919; c=relaxed/simple;
+	bh=FkLXLIgbX1ibwvje4hJoBBvj5pgb2PSflBinDxhXJwI=;
+	h=Date:To:From:Subject:Message-Id; b=SsepKTUafDmmOL2wve1ZCbsfe4YE7Ql+CXhtL4fGC/e0TxQ2pOv7ybAC0h9Ey+cfyvu0pulAwJK/XS83ZX8cP+0uO+24SifgarfqiDGnyOWgLMyJz6tcleHoE8rhdt0DT5DbHgO7P0hesJje+vjQkRIp781w71/4iU3dlMuwW68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LiSv7AWS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AwJ1k400"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55482C116B1;
-	Wed, 14 Aug 2024 21:43:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LiSv7AWS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB74DC116B1;
+	Wed, 14 Aug 2024 21:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723671803;
-	bh=tU4NxgTMVyc7kmiP5xV2ntUAnmvdOS4hVBod4pkimMg=;
+	s=korg; t=1723671918;
+	bh=FkLXLIgbX1ibwvje4hJoBBvj5pgb2PSflBinDxhXJwI=;
 	h=Date:To:From:Subject:From;
-	b=AwJ1k400W0ilqyxpmtMNmoGcKGpdW/08ZMPKeWH3tKC+eZAhMkbS19Zsz7+XDFijF
-	 Y9h7Jw0aDVyq0mOk79M9kCGJEf3Ttv2/6xM3y+zPB7xnXi01aR7i0D9++UFqeCosyp
-	 S+rnCNiXlZCmEQ0u6EVcb5RtCQIVzg8mGYTtoRvM=
-Date: Wed, 14 Aug 2024 14:43:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,muchun.song@linux.dev,fvdl@google.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=LiSv7AWSsqmXZI+dmasjSQc+tzCGRcyo+JAbQ0xO5MSiyHUEkUg3ZyUQ93ajBf2bD
+	 dzhdJJZcSGxpHxPDvnXCO/mRIXNndOgIamy1OATsluseVg32Jg2fmJsp8mxGYz3tt/
+	 9iSLWH/acKyob5F3gkL/xPuA16paAErVSTQIAajg=
+Date: Wed, 14 Aug 2024 14:45:18 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch added to mm-unstable branch
-Message-Id: <20240814214323.55482C116B1@smtp.kernel.org>
+Subject: + mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch added to mm-unstable branch
+Message-Id: <20240814214518.AB74DC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: use __GFP_COMP for gigantic folios
+     Subject: mm: override mTHP "enabled" defaults at kernel cmdline
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+     mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,482 +58,229 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/hugetlb: use __GFP_COMP for gigantic folios
-Date: Tue, 13 Aug 2024 21:54:51 -0600
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: override mTHP "enabled" defaults at kernel cmdline
+Date: Wed, 14 Aug 2024 14:02:47 +1200
 
-Use __GFP_COMP for gigantic folios to greatly reduce not only the amount
-of code but also the allocation and free time.
+Add thp_anon= cmdline parameter to allow specifying the default enablement
+of each supported anon THP size.  The parameter accepts the following
+format and can be provided multiple times to configure each size:
 
-LOC (approximately): +60, -240
+thp_anon=<size>,<size>[KMG]:<value>;<size>-<size>[KMG]:<value>
 
-Allocate and free 500 1GB hugeTLB memory without HVO by:
-  time echo 500 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-  time echo 0 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+An example:
 
-       Before  After
-Alloc  ~13s    ~10s
-Free   ~15s    <1s
+thp_anon=16K-64K:always;128K,512K:inherit;256K:madvise;1M-2M:never
 
-The above magnitude generally holds for multiple x86 and arm64 CPU models.
+See Documentation/admin-guide/mm/transhuge.rst for more details.
 
-Link: https://lkml.kernel.org/r/20240814035451.773331-4-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Frank van der Linden <fvdl@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Configuring the defaults at boot time is useful to allow early user
+space to take advantage of mTHP before its been configured through
+sysfs.
+
+Link: https://lkml.kernel.org/r/20240814020247.67297-1-21cnbao@gmail.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Co-developed-by: Barry Song <v-songbaohua@oppo.com>
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    9 -
- mm/hugetlb.c            |  293 +++++++-------------------------------
- 2 files changed, 62 insertions(+), 240 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    9 +
+ Documentation/admin-guide/mm/transhuge.rst      |   35 ++++-
+ mm/huge_memory.c                                |   96 +++++++++++++-
+ 3 files changed, 133 insertions(+), 7 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-use-__gfp_comp-for-gigantic-folios
-+++ a/include/linux/hugetlb.h
-@@ -896,10 +896,11 @@ static inline bool hugepage_movable_supp
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
--	if (hugepage_movable_supported(h))
--		return GFP_HIGHUSER_MOVABLE;
--	else
--		return GFP_HIGHUSER;
-+	gfp_t gfp = __GFP_COMP | __GFP_NOWARN;
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6629,6 +6629,15 @@
+ 			<deci-seconds>: poll all this frequency
+ 			0: no polling (default)
+ 
++	thp_anon=	[KNL]
++			Format: <size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>
++			state is one of "always", "madvise", "never" or "inherit".
++			Can be used to control the default behavior of the
++			system with respect to anonymous transparent hugepages.
++			Can be used multiple times for multiple anon THP sizes.
++			See Documentation/admin-guide/mm/transhuge.rst for more
++			details.
 +
-+	gfp |= hugepage_movable_supported(h) ? GFP_HIGHUSER_MOVABLE : GFP_HIGHUSER;
+ 	threadirqs	[KNL,EARLY]
+ 			Force threading of all interrupt handlers except those
+ 			marked explicitly IRQF_NO_THREAD.
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -284,13 +284,36 @@ that THP is shared. Exceeding the number
+ 
+ A higher value may increase memory footprint for some workloads.
+ 
+-Boot parameter
+-==============
++Boot parameters
++===============
+ 
+-You can change the sysfs boot time defaults of Transparent Hugepage
+-Support by passing the parameter ``transparent_hugepage=always`` or
+-``transparent_hugepage=madvise`` or ``transparent_hugepage=never``
+-to the kernel command line.
++You can change the sysfs boot time default for the top-level "enabled"
++control by passing the parameter ``transparent_hugepage=always`` or
++``transparent_hugepage=madvise`` or ``transparent_hugepage=never`` to the
++kernel command line.
 +
-+	return gfp;
++Alternatively, each supported anonymous THP size can be controlled by
++passing ``thp_anon=<size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>``,
++where ``<size>`` is the THP size and ``<state>`` is one of ``always``,
++``madvise``, ``never`` or ``inherit``.
++
++For example, the following will set 16K, 32K, 64K THP to ``always``,
++set 128K, 512K to ``inherit``, set 256K to ``madvise`` and 1M, 2M
++to ``never``::
++
++	thp_anon=16K-64K:always;128K,512K:inherit;256K:madvise;1M-2M:never
++
++``thp_anon=`` may be specified multiple times to configure all THP sizes as
++required. If ``thp_anon=`` is specified at least once, any anon THP sizes
++not explicitly configured on the command line are implicitly set to
++``never``.
++
++``transparent_hugepage`` setting only affects the global toggle. If
++``thp_anon`` is not specified, PMD_ORDER THP will default to ``inherit``.
++However, if a valid ``thp_anon`` setting is provided by the user, the
++PMD_ORDER THP policy will be overridden. If the policy for PMD_ORDER
++is not defined within a valid ``thp_anon``, its policy will default to
++``never``.
+ 
+ Hugepages in tmpfs/shmem
+ ========================
+--- a/mm/huge_memory.c~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/mm/huge_memory.c
+@@ -82,6 +82,7 @@ unsigned long huge_zero_pfn __read_mostl
+ unsigned long huge_anon_orders_always __read_mostly;
+ unsigned long huge_anon_orders_madvise __read_mostly;
+ unsigned long huge_anon_orders_inherit __read_mostly;
++static bool anon_orders_configured;
+ 
+ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
+ 					 unsigned long vm_flags,
+@@ -756,7 +757,10 @@ static int __init hugepage_init_sysfs(st
+ 	 * disable all other sizes. powerpc's PMD_ORDER isn't a compile-time
+ 	 * constant so we have to do this here.
+ 	 */
+-	huge_anon_orders_inherit = BIT(PMD_ORDER);
++	if (!anon_orders_configured) {
++		huge_anon_orders_inherit = BIT(PMD_ORDER);
++		anon_orders_configured = true;
++	}
+ 
+ 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!*hugepage_kobj)) {
+@@ -941,6 +945,96 @@ out:
  }
+ __setup("transparent_hugepage=", setup_transparent_hugepage);
  
- static inline gfp_t htlb_modify_alloc_mask(struct hstate *h, gfp_t gfp_mask)
---- a/mm/hugetlb.c~mm-hugetlb-use-__gfp_comp-for-gigantic-folios
-+++ a/mm/hugetlb.c
-@@ -56,16 +56,6 @@ struct hstate hstates[HUGE_MAX_HSTATE];
- #ifdef CONFIG_CMA
- static struct cma *hugetlb_cma[MAX_NUMNODES];
- static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
--static bool hugetlb_cma_folio(struct folio *folio, unsigned int order)
--{
--	return cma_pages_valid(hugetlb_cma[folio_nid(folio)], &folio->page,
--				1 << order);
--}
--#else
--static bool hugetlb_cma_folio(struct folio *folio, unsigned int order)
--{
--	return false;
--}
- #endif
- static unsigned long hugetlb_cma_size __initdata;
- 
-@@ -100,6 +90,17 @@ static void hugetlb_unshare_pmds(struct
- 		unsigned long start, unsigned long end);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
- 
-+static void hugetlb_free_folio(struct folio *folio)
++static inline int get_order_from_str(const char *size_str)
 +{
-+#ifdef CONFIG_CMA
-+	int nid = folio_nid(folio);
++	unsigned long size;
++	char *endptr;
++	int order;
 +
-+	if (cma_free_folio(hugetlb_cma[nid], folio))
-+		return;
-+#endif
-+	folio_put(folio);
++	size = memparse(size_str, &endptr);
++	order = fls(size >> PAGE_SHIFT) - 1;
++	if ((1 << order) & ~THP_ORDERS_ALL_ANON) {
++		pr_err("invalid size %s(order %d) in thp_anon boot parameter\n",
++			size_str, order);
++		return -EINVAL;
++	}
++
++	return order;
 +}
 +
- static inline bool subpool_is_free(struct hugepage_subpool *spool)
- {
- 	if (spool->count)
-@@ -1512,95 +1513,54 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--/* used to demote non-gigantic_huge pages as well */
--static void __destroy_compound_gigantic_folio(struct folio *folio,
--					unsigned int order, bool demote)
--{
--	int i;
--	int nr_pages = 1 << order;
--	struct page *p;
--
--	atomic_set(&folio->_entire_mapcount, 0);
--	atomic_set(&folio->_large_mapcount, 0);
--	atomic_set(&folio->_pincount, 0);
--
--	for (i = 1; i < nr_pages; i++) {
--		p = folio_page(folio, i);
--		p->flags &= ~PAGE_FLAGS_CHECK_AT_FREE;
--		p->mapping = NULL;
--		clear_compound_head(p);
--		if (!demote)
--			set_page_refcounted(p);
--	}
--
--	__folio_clear_head(folio);
--}
--
--static void destroy_compound_hugetlb_folio_for_demote(struct folio *folio,
--					unsigned int order)
--{
--	__destroy_compound_gigantic_folio(folio, order, true);
--}
--
- #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--static void destroy_compound_gigantic_folio(struct folio *folio,
--					unsigned int order)
--{
--	__destroy_compound_gigantic_folio(folio, order, false);
--}
--
--static void free_gigantic_folio(struct folio *folio, unsigned int order)
--{
--	/*
--	 * If the page isn't allocated using the cma allocator,
--	 * cma_release() returns false.
--	 */
--#ifdef CONFIG_CMA
--	int nid = folio_nid(folio);
--
--	if (cma_release(hugetlb_cma[nid], &folio->page, 1 << order))
--		return;
--#endif
--
--	free_contig_range(folio_pfn(folio), 1 << order);
--}
--
- #ifdef CONFIG_CONTIG_ALLOC
- static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
--	struct page *page;
--	unsigned long nr_pages = pages_per_huge_page(h);
-+	struct folio *folio;
-+	int order = huge_page_order(h);
-+	bool retried = false;
++static char str_dup[PAGE_SIZE] __meminitdata;
++static int __init setup_thp_anon(char *str)
++{
++	char *token, *range, *policy, *subtoken;
++	unsigned long always, inherit, madvise;
++	char *start_size, *end_size;
++	int start, end;
++	char *p;
 +
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
--
-+retry:
-+	folio = NULL;
- #ifdef CONFIG_CMA
- 	{
- 		int node;
- 
--		if (hugetlb_cma[nid]) {
--			page = cma_alloc(hugetlb_cma[nid], nr_pages,
--					huge_page_order(h), true);
--			if (page)
--				return page_folio(page);
--		}
-+		if (hugetlb_cma[nid])
-+			folio = cma_alloc_folio(hugetlb_cma[nid], order, gfp_mask);
- 
--		if (!(gfp_mask & __GFP_THISNODE)) {
-+		if (!folio && !(gfp_mask & __GFP_THISNODE)) {
- 			for_each_node_mask(node, *nodemask) {
- 				if (node == nid || !hugetlb_cma[node])
- 					continue;
- 
--				page = cma_alloc(hugetlb_cma[node], nr_pages,
--						huge_page_order(h), true);
--				if (page)
--					return page_folio(page);
-+				folio = cma_alloc_folio(hugetlb_cma[node], order, gfp_mask);
-+				if (folio)
-+					break;
- 			}
- 		}
- 	}
- #endif
-+	if (!folio) {
-+		folio = folio_alloc_gigantic(order, gfp_mask, nid, nodemask);
-+		if (!folio)
-+			return NULL;
++	if (!str || strlen(str) + 1 > PAGE_SIZE)
++		goto err;
++	strcpy(str_dup, str);
++
++	always = huge_anon_orders_always;
++	madvise = huge_anon_orders_madvise;
++	inherit = huge_anon_orders_inherit;
++	p = str_dup;
++	while ((token = strsep(&p, ";")) != NULL) {
++		range = strsep(&token, ":");
++		policy = token;
++
++		if (!policy)
++			goto err;
++
++		while ((subtoken = strsep(&range, ",")) != NULL) {
++			if (strchr(subtoken, '-')) {
++				start_size = strsep(&subtoken, "-");
++				end_size = subtoken;
++
++				start = get_order_from_str(start_size);
++				end = get_order_from_str(end_size);
++			} else {
++				start = end = get_order_from_str(subtoken);
++			}
++
++			if (start < 0 || end < 0 || start > end)
++				goto err;
++
++			if (!strcmp(policy, "always")) {
++				bitmap_set(&always, start, end - start + 1);
++				bitmap_clear(&inherit, start, end - start + 1);
++				bitmap_clear(&madvise, start, end - start + 1);
++			} else if (!strcmp(policy, "madvise")) {
++				bitmap_set(&madvise, start, end - start + 1);
++				bitmap_clear(&inherit, start, end - start + 1);
++				bitmap_clear(&always, start, end - start + 1);
++			} else if (!strcmp(policy, "inherit")) {
++				bitmap_set(&inherit, start, end - start + 1);
++				bitmap_clear(&madvise, start, end - start + 1);
++				bitmap_clear(&always, start, end - start + 1);
++			} else if (!strcmp(policy, "never")) {
++				bitmap_clear(&inherit, start, end - start + 1);
++				bitmap_clear(&madvise, start, end - start + 1);
++				bitmap_clear(&always, start, end - start + 1);
++			} else {
++				pr_err("invalid policy %s in thp_anon boot parameter\n", policy);
++				goto err;
++			}
++		}
 +	}
 +
-+	if (folio_ref_freeze(folio, 1))
-+		return folio;
- 
--	page = alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
--	return page ? page_folio(page) : NULL;
-+	pr_warn("HugeTLB: unexpected refcount on PFN %lu\n", folio_pfn(folio));
-+	hugetlb_free_folio(folio);
-+	if (!retried) {
-+		retried = true;
-+		goto retry;
-+	}
-+	return NULL;
- }
- 
- #else /* !CONFIG_CONTIG_ALLOC */
-@@ -1617,10 +1577,6 @@ static struct folio *alloc_gigantic_foli
- {
- 	return NULL;
- }
--static inline void free_gigantic_folio(struct folio *folio,
--						unsigned int order) { }
--static inline void destroy_compound_gigantic_folio(struct folio *folio,
--						unsigned int order) { }
- #endif
- 
- /*
-@@ -1747,20 +1703,9 @@ static void __update_and_free_hugetlb_fo
- 		folio_clear_hugetlb_hwpoison(folio);
- 
- 	folio_ref_unfreeze(folio, 1);
--
--	/*
--	 * Non-gigantic pages demoted from CMA allocated gigantic pages
--	 * need to be given back to CMA in free_gigantic_folio.
--	 */
--	if (hstate_is_gigantic(h) ||
--	    hugetlb_cma_folio(folio, huge_page_order(h))) {
--		destroy_compound_gigantic_folio(folio, huge_page_order(h));
--		free_gigantic_folio(folio, huge_page_order(h));
--	} else {
--		INIT_LIST_HEAD(&folio->_deferred_list);
--		folio_clear_partially_mapped(folio);
--		folio_put(folio);
--	}
-+	INIT_LIST_HEAD(&folio->_deferred_list);
-+	folio_clear_partially_mapped(folio);
-+	hugetlb_free_folio(folio);
- }
- 
- /*
-@@ -2033,95 +1978,6 @@ static void prep_new_hugetlb_folio(struc
- 	spin_unlock_irq(&hugetlb_lock);
- }
- 
--static bool __prep_compound_gigantic_folio(struct folio *folio,
--					unsigned int order, bool demote)
--{
--	int i, j;
--	int nr_pages = 1 << order;
--	struct page *p;
--
--	__folio_clear_reserved(folio);
--	for (i = 0; i < nr_pages; i++) {
--		p = folio_page(folio, i);
--
--		/*
--		 * For gigantic hugepages allocated through bootmem at
--		 * boot, it's safer to be consistent with the not-gigantic
--		 * hugepages and clear the PG_reserved bit from all tail pages
--		 * too.  Otherwise drivers using get_user_pages() to access tail
--		 * pages may get the reference counting wrong if they see
--		 * PG_reserved set on a tail page (despite the head page not
--		 * having PG_reserved set).  Enforcing this consistency between
--		 * head and tail pages allows drivers to optimize away a check
--		 * on the head page when they need know if put_page() is needed
--		 * after get_user_pages().
--		 */
--		if (i != 0)	/* head page cleared above */
--			__ClearPageReserved(p);
--		/*
--		 * Subtle and very unlikely
--		 *
--		 * Gigantic 'page allocators' such as memblock or cma will
--		 * return a set of pages with each page ref counted.  We need
--		 * to turn this set of pages into a compound page with tail
--		 * page ref counts set to zero.  Code such as speculative page
--		 * cache adding could take a ref on a 'to be' tail page.
--		 * We need to respect any increased ref count, and only set
--		 * the ref count to zero if count is currently 1.  If count
--		 * is not 1, we return an error.  An error return indicates
--		 * the set of pages can not be converted to a gigantic page.
--		 * The caller who allocated the pages should then discard the
--		 * pages using the appropriate free interface.
--		 *
--		 * In the case of demote, the ref count will be zero.
--		 */
--		if (!demote) {
--			if (!page_ref_freeze(p, 1)) {
--				pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
--				goto out_error;
--			}
--		} else {
--			VM_BUG_ON_PAGE(page_count(p), p);
--		}
--		if (i != 0)
--			set_compound_head(p, &folio->page);
--	}
--	__folio_set_head(folio);
--	/* we rely on prep_new_hugetlb_folio to set the hugetlb flag */
--	folio_set_order(folio, order);
--	atomic_set(&folio->_entire_mapcount, -1);
--	atomic_set(&folio->_large_mapcount, -1);
--	atomic_set(&folio->_pincount, 0);
--	return true;
--
--out_error:
--	/* undo page modifications made above */
--	for (j = 0; j < i; j++) {
--		p = folio_page(folio, j);
--		if (j != 0)
--			clear_compound_head(p);
--		set_page_refcounted(p);
--	}
--	/* need to clear PG_reserved on remaining tail pages  */
--	for (; j < nr_pages; j++) {
--		p = folio_page(folio, j);
--		__ClearPageReserved(p);
--	}
--	return false;
--}
--
--static bool prep_compound_gigantic_folio(struct folio *folio,
--							unsigned int order)
--{
--	return __prep_compound_gigantic_folio(folio, order, false);
--}
--
--static bool prep_compound_gigantic_folio_for_demote(struct folio *folio,
--							unsigned int order)
--{
--	return __prep_compound_gigantic_folio(folio, order, true);
--}
--
- /*
-  * Find and lock address space (mapping) in write mode.
-  *
-@@ -2160,7 +2016,6 @@ static struct folio *alloc_buddy_hugetlb
- 	 */
- 	if (node_alloc_noretry && node_isset(nid, *node_alloc_noretry))
- 		alloc_try_hard = false;
--	gfp_mask |= __GFP_COMP|__GFP_NOWARN;
- 	if (alloc_try_hard)
- 		gfp_mask |= __GFP_RETRY_MAYFAIL;
- 	if (nid == NUMA_NO_NODE)
-@@ -2207,48 +2062,16 @@ retry:
- 	return folio;
- }
- 
--static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
--				gfp_t gfp_mask, int nid, nodemask_t *nmask,
--				nodemask_t *node_alloc_noretry)
--{
--	struct folio *folio;
--	bool retry = false;
--
--retry:
--	if (hstate_is_gigantic(h))
--		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
--	else
--		folio = alloc_buddy_hugetlb_folio(h, gfp_mask,
--				nid, nmask, node_alloc_noretry);
--	if (!folio)
--		return NULL;
--
--	if (hstate_is_gigantic(h)) {
--		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
--			/*
--			 * Rare failure to convert pages to compound page.
--			 * Free pages and try again - ONCE!
--			 */
--			free_gigantic_folio(folio, huge_page_order(h));
--			if (!retry) {
--				retry = true;
--				goto retry;
--			}
--			return NULL;
--		}
--	}
--
--	return folio;
--}
--
- static struct folio *only_alloc_fresh_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
- 
--	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
--						node_alloc_noretry);
-+	if (hstate_is_gigantic(h))
-+		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
-+	else
-+		folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, nmask, node_alloc_noretry);
- 	if (folio)
- 		init_new_hugetlb_folio(h, folio);
- 	return folio;
-@@ -2266,7 +2089,10 @@ static struct folio *alloc_fresh_hugetlb
- {
- 	struct folio *folio;
- 
--	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (hstate_is_gigantic(h))
-+		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
-+	else
-+		folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
- 	if (!folio)
- 		return NULL;
- 
-@@ -2550,9 +2376,8 @@ struct folio *alloc_buddy_hugetlb_folio_
- 
- 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
- 	if (mpol_is_preferred_many(mpol)) {
--		gfp_t gfp = gfp_mask | __GFP_NOWARN;
-+		gfp_t gfp = gfp_mask & ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 
--		gfp &=  ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 		folio = alloc_surplus_hugetlb_folio(h, gfp, nid, nodemask);
- 
- 		/* Fallback to all nodes if page==NULL */
-@@ -3334,6 +3159,7 @@ static void __init hugetlb_folio_init_ta
- 	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
- 
-+		__ClearPageReserved(folio_page(folio, pfn - head_pfn));
- 		__init_single_page(page, pfn, zone, nid);
- 		prep_compound_tail((struct page *)folio, pfn - head_pfn);
- 		ret = page_ref_freeze(page, 1);
-@@ -3950,21 +3776,16 @@ static long demote_free_hugetlb_folios(s
- 			continue;
- 
- 		list_del(&folio->lru);
--		/*
--		 * Use destroy_compound_hugetlb_folio_for_demote for all huge page
--		 * sizes as it will not ref count folios.
--		 */
--		destroy_compound_hugetlb_folio_for_demote(folio, huge_page_order(src));
++	huge_anon_orders_always = always;
++	huge_anon_orders_madvise = madvise;
++	huge_anon_orders_inherit = inherit;
++	anon_orders_configured = true;
++	return 1;
 +
-+		split_page_owner(&folio->page, huge_page_order(src), huge_page_order(dst));
-+		pgalloc_tag_split(&folio->page, 1 <<  huge_page_order(src));
- 
- 		for (i = 0; i < pages_per_huge_page(src); i += pages_per_huge_page(dst)) {
- 			struct page *page = folio_page(folio, i);
- 
--			if (hstate_is_gigantic(dst))
--				prep_compound_gigantic_folio_for_demote(page_folio(page),
--									dst->order);
--			else
--				prep_compound_page(page, dst->order);
--			set_page_private(page, 0);
-+			page->mapping = NULL;
-+			clear_compound_head(page);
-+			prep_compound_page(page, dst->order);
- 
- 			init_new_hugetlb_folio(dst, page_folio(page));
- 			list_add(&page->lru, &dst_list);
++err:
++	pr_warn("thp_anon=%s: cannot parse, ignored\n", str);
++	return 0;
++}
++__setup("thp_anon=", setup_thp_anon);
++
+ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
+ {
+ 	if (likely(vma->vm_flags & VM_WRITE))
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
-mm-swap-reduce-indentation-level.patch
-mm-swap-rename-cpu_fbatches-activate.patch
-mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
-mm-swap-remove-remaining-_fn-suffix.patch
-mm-swap-remove-boilerplate.patch
-mm-swap-remove-boilerplate-fix.patch
-mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch
-mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
-mm-hugetlb_vmemmap-batch-hvo-work-when-demoting.patch
-mm-contig_alloc-support-__gfp_comp.patch
-mm-cma-add-cma_allocfree_folio.patch
-mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+mm-cleanup-count_mthp_stat-definition.patch
+mm-tidy-up-shmem-mthp-controls-and-stats.patch
+mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch
 
