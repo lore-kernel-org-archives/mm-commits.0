@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D6AFEDC;
-	Wed, 14 Aug 2024 00:58:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D755C2FB6;
+	Wed, 14 Aug 2024 01:00:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723597098; cv=none; b=qd8U0EXXPuD/uTSR2EK0lTr8mOAxRTh9ae7O24omyVKiTQALbBnb+MuKx+PkqMkBEtKkminA6j7oPgD5DRLeIA1+2rcqqj54nMyANfP1SdSKpzmqrgpWlyFo/7HuGyI3jX35lDD/NX6M53LK2KufeFarbToI7BYbXmXPIgU2SRk=
+	t=1723597207; cv=none; b=W8QAUOI2p2ys9O8129c510NCz71FnU4JRyEr1Vl+qtPlCaXgD4BnCzt6UAF3K3TwFbmCnDx5MZjFx/OEmlmK8O2jRItOGpl797tpph7LS9B3vqBhG8QFHRgs5w+w+VNs0n1zxwRHUaUQfaQvYtWKPHRHhTNZBuhFZ76RSRWTJ3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723597098; c=relaxed/simple;
-	bh=1GAGsivwfdix6+CNKazVUKevywXvFZXQnxC13vS6ims=;
-	h=Date:To:From:Subject:Message-Id; b=JebkwA2x9E6yd2SNOUEOclXngzHSy6SyfIppLChZjOR4zmfSy6yy4KE0AfP3MY/xNuGbHd9ctGdlZQI03cOBdHUsixW7zerEvKUkGOycABxAHUW1bbRO9awNtFxtxH/xXT9fMH7QpnEKMUGjNI2hityRdkJWmS6dg5b52HImnH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J8hLj633; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723597207; c=relaxed/simple;
+	bh=O7qGOvj8p5QpN31ChhAw+7snwztHmeYt13uya/6L8qg=;
+	h=Date:To:From:Subject:Message-Id; b=gkUajsdqirJfXpYI0664jvXupIURGd0ZzhogMrWFyOQqL6eoGtyvpD1+sN1rGDygDqkXGv1UcYAcvgUlaLKERpsbvMneHgGoYXM4LxPfSI+7Ify1uTB1/mm+tsPmyz9ELNRPoDuxpDJT4VDgXteP3N5mU2/ohfTNp7Yvj+dnPSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mqOpoxHR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J8hLj633"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E29CC32782;
-	Wed, 14 Aug 2024 00:58:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mqOpoxHR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36CE6C32782;
+	Wed, 14 Aug 2024 01:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723597097;
-	bh=1GAGsivwfdix6+CNKazVUKevywXvFZXQnxC13vS6ims=;
+	s=korg; t=1723597206;
+	bh=O7qGOvj8p5QpN31ChhAw+7snwztHmeYt13uya/6L8qg=;
 	h=Date:To:From:Subject:From;
-	b=J8hLj633DGjdPG8U6+zso43wso36mtwGZSsG1brYLgAvufLRmA9rDYkDC/iz56Wf5
-	 Z4y8+8odP7PAbd1xt70zt9BQM7CGrUBd8aYloELjbktXJlQfCEZIwmswFTJRNgmWpO
-	 fh3pD140d2snx6MsSILjP/qjG0ZiM2yv7rs5xeJw=
-Date: Tue, 13 Aug 2024 17:58:16 -0700
+	b=mqOpoxHRXXcP4PplioIuq6ZxSoLjaCg3r/2SdmZNzTRfyWZGeeECeKT2Z7jWIS1FY
+	 5Izrw8MVrASMMuweDQeVmYpr11/075OmbMbD6Eywya7Qtz+R4/y48BLdaRJDqfKNAS
+	 B2C3q8dCXOYT3fkNNQmozvDLL+5nJHsFYykKX02w=
+Date: Tue, 13 Aug 2024 18:00:05 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240814005817.4E29CC32782@smtp.kernel.org>
+Subject: + nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240814010006.36CE6C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: protect references to superblock parameters exposed in sysfs
+     Subject: nilfs2: fix missing cleanup on rollforward recovery error
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
+     nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,107 +59,94 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: protect references to superblock parameters exposed in sysfs
-Date: Sun, 11 Aug 2024 19:03:20 +0900
+Subject: nilfs2: fix missing cleanup on rollforward recovery error
+Date: Sat, 10 Aug 2024 15:52:42 +0900
 
-The superblock buffers of nilfs2 can not only be overwritten at runtime
-for modifications/repairs, but they are also regularly swapped, replaced
-during resizing, and even abandoned when degrading to one side due to
-backing device issues.  So, accessing them requires mutual exclusion using
-the reader/writer semaphore "nilfs->ns_sem".
+In an error injection test of a routine for mount-time recovery, KASAN
+found a use-after-free bug.
 
-Some sysfs attribute show methods read this superblock buffer without the
-necessary mutual exclusion, which can cause problems with pointer
-dereferencing and memory access, so fix it.
+It turned out that if data recovery was performed using partial logs
+created by dsync writes, but an error occurred before starting the log
+writer to create a recovered checkpoint, the inodes whose data had been
+recovered were left in the ns_dirty_files list of the nilfs object and
+were not freed.
 
-Link: https://lkml.kernel.org/r/20240811100320.9913-1-konishi.ryusuke@gmail.com
-Fixes: da7141fb78db ("nilfs2: add /sys/fs/nilfs2/<device> group")
+Fix this issue by cleaning up inodes that have read the recovery data if
+the recovery routine fails midway before the log writer starts.
+
+Link: https://lkml.kernel.org/r/20240810065242.3701-1-konishi.ryusuke@gmail.com
+Fixes: 0f3e1c7f23f8 ("nilfs2: recovery functions")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sysfs.c |   43 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 33 insertions(+), 10 deletions(-)
+ fs/nilfs2/recovery.c |   35 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/sysfs.c~nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs
-+++ a/fs/nilfs2/sysfs.c
-@@ -836,9 +836,15 @@ ssize_t nilfs_dev_revision_show(struct n
- 				struct the_nilfs *nilfs,
- 				char *buf)
- {
--	struct nilfs_super_block **sbp = nilfs->ns_sbp;
--	u32 major = le32_to_cpu(sbp[0]->s_rev_level);
--	u16 minor = le16_to_cpu(sbp[0]->s_minor_rev_level);
-+	struct nilfs_super_block *raw_sb;
-+	u32 major;
-+	u16 minor;
-+
-+	down_read(&nilfs->ns_sem);
-+	raw_sb = nilfs->ns_sbp[0];
-+	major = le32_to_cpu(raw_sb->s_rev_level);
-+	minor = le16_to_cpu(raw_sb->s_minor_rev_level);
-+	up_read(&nilfs->ns_sem);
- 
- 	return sysfs_emit(buf, "%d.%d\n", major, minor);
- }
-@@ -856,8 +862,13 @@ ssize_t nilfs_dev_device_size_show(struc
- 				    struct the_nilfs *nilfs,
- 				    char *buf)
- {
--	struct nilfs_super_block **sbp = nilfs->ns_sbp;
--	u64 dev_size = le64_to_cpu(sbp[0]->s_dev_size);
-+	struct nilfs_super_block *raw_sb;
-+	u64 dev_size;
-+
-+	down_read(&nilfs->ns_sem);
-+	raw_sb = nilfs->ns_sbp[0];
-+	dev_size = le64_to_cpu(raw_sb->s_dev_size);
-+	up_read(&nilfs->ns_sem);
- 
- 	return sysfs_emit(buf, "%llu\n", dev_size);
- }
-@@ -879,9 +890,15 @@ ssize_t nilfs_dev_uuid_show(struct nilfs
- 			    struct the_nilfs *nilfs,
- 			    char *buf)
- {
--	struct nilfs_super_block **sbp = nilfs->ns_sbp;
-+	struct nilfs_super_block *raw_sb;
-+	ssize_t len;
-+
-+	down_read(&nilfs->ns_sem);
-+	raw_sb = nilfs->ns_sbp[0];
-+	len = sysfs_emit(buf, "%pUb\n", raw_sb->s_uuid);
-+	up_read(&nilfs->ns_sem);
- 
--	return sysfs_emit(buf, "%pUb\n", sbp[0]->s_uuid);
-+	return len;
+--- a/fs/nilfs2/recovery.c~nilfs2-fix-missing-cleanup-on-rollforward-recovery-error
++++ a/fs/nilfs2/recovery.c
+@@ -716,6 +716,33 @@ static void nilfs_finish_roll_forward(st
  }
  
- static
-@@ -889,10 +906,16 @@ ssize_t nilfs_dev_volume_name_show(struc
- 				    struct the_nilfs *nilfs,
- 				    char *buf)
- {
--	struct nilfs_super_block **sbp = nilfs->ns_sbp;
-+	struct nilfs_super_block *raw_sb;
-+	ssize_t len;
+ /**
++ * nilfs_abort_roll_forward - cleaning up after a failed rollforward recovery
++ * @nilfs: nilfs object
++ */
++static void nilfs_abort_roll_forward(struct the_nilfs *nilfs)
++{
++	struct nilfs_inode_info *ii, *n;
++	LIST_HEAD(head);
 +
-+	down_read(&nilfs->ns_sem);
-+	raw_sb = nilfs->ns_sbp[0];
-+	len = scnprintf(buf, sizeof(raw_sb->s_volume_name), "%s\n",
-+			raw_sb->s_volume_name);
-+	up_read(&nilfs->ns_sem);
++	/* Abandon inodes that have read recovery data */
++	spin_lock(&nilfs->ns_inode_lock);
++	list_splice_init(&nilfs->ns_dirty_files, &head);
++	spin_unlock(&nilfs->ns_inode_lock);
++	if (list_empty(&head))
++		return;
++
++	set_nilfs_purging(nilfs);
++	list_for_each_entry_safe(ii, n, &head, i_dirty) {
++		spin_lock(&nilfs->ns_inode_lock);
++		list_del_init(&ii->i_dirty);
++		spin_unlock(&nilfs->ns_inode_lock);
++
++		iput(&ii->vfs_inode);
++	}
++	clear_nilfs_purging(nilfs);
++}
++
++/**
+  * nilfs_salvage_orphan_logs - salvage logs written after the latest checkpoint
+  * @nilfs: nilfs object
+  * @sb: super block instance
+@@ -773,15 +800,19 @@ int nilfs_salvage_orphan_logs(struct the
+ 		if (unlikely(err)) {
+ 			nilfs_err(sb, "error %d writing segment for recovery",
+ 				  err);
+-			goto failed;
++			goto put_root;
+ 		}
  
--	return scnprintf(buf, sizeof(sbp[0]->s_volume_name), "%s\n",
--			 sbp[0]->s_volume_name);
-+	return len;
+ 		nilfs_finish_roll_forward(nilfs, ri);
+ 	}
+ 
+- failed:
++put_root:
+ 	nilfs_put_root(root);
+ 	return err;
++
++failed:
++	nilfs_abort_roll_forward(nilfs);
++	goto put_root;
  }
  
- static const char dev_readme_str[] =
+ /**
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
+nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
 
