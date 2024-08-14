@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABF321A3BCA
-	for <mm-commits@vger.kernel.org>; Tue, 13 Aug 2024 23:34:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFDB6195
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 00:07:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723592071; cv=none; b=L1gx+dJ61VNdwMJR0edPe9kbSOrivoejkqLiUOB/Hl/CapT5Zv/yk9VmVclpqCYNh671669Cdz+QEbG6GZLZiqPs9EPpx0+yAeBSa5es0kwhWFUe1UW4Syi4SHMAf4W39dsryi1Gq84JnwMqCaXsuZg62bvnyOkpCPdWB1Odmto=
+	t=1723594062; cv=none; b=Pi/2UY/DXLJPn8WtZ6jST5wsSHig9T6GHPFtvP9pZacYTMw8fLrgV4bIzKx6KqxHuRiQcgtjr5AuANTwSFjsWA8AdPuAik3Zs95VptLQUQWgH+9eBVx43UGLbMGb37bTCGmUBYV/oRRd6NikVeGYiVXQeB59HniJ10MlX1YDFf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723592071; c=relaxed/simple;
-	bh=CVDjupwuWqpxkZzXrDS85COHXn0Yld/HZ3s2pA2dEvU=;
-	h=Date:To:From:Subject:Message-Id; b=NebHeUon5UUJ3xt5Xej8kKq/hNKD8zoH4dE5FrNiZH0BFMOAOGLjcPpzGIrDsyQyX0RUI0x8lLSiwAdxSiwSQ3eFYiGVZ6hjSeLd5tJaZWIo4BFVp1MfWRh/tMWuCkKu39LoPMJBb18fa6v7xnNAKo+JdYK3otKs++EQgtkuK6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YLI0ywr7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723594062; c=relaxed/simple;
+	bh=9x/0KRnRE5WAZ4szq32WwPSj4sSxKSiBuOfDK1suh5w=;
+	h=Date:To:From:Subject:Message-Id; b=Dfy+3T0OXqeh0gwpUaR9y1UM4ZSgL424GK3PjtZIIMNQjhdcsgEn+k62Xn8bBVz8yzGeZVbIjzyRgudpJ7edmAUZP7iaqrmVvsoSHbQ/AxZGKc+Z487z3vkI7XLf2Kmu8ux4s1sxJQYDlHMKIAjQo2/D6YQu1UQXvYz2OK/1YoA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wuitahzD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YLI0ywr7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6375AC32782;
-	Tue, 13 Aug 2024 23:34:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wuitahzD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FB57C32782;
+	Wed, 14 Aug 2024 00:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723592070;
-	bh=CVDjupwuWqpxkZzXrDS85COHXn0Yld/HZ3s2pA2dEvU=;
+	s=korg; t=1723594061;
+	bh=9x/0KRnRE5WAZ4szq32WwPSj4sSxKSiBuOfDK1suh5w=;
 	h=Date:To:From:Subject:From;
-	b=YLI0ywr7ktG2zfkprjdnEevl+zHdKmapt0p+nUEObMJp/mBvMyYWUG7y1TLbNc8iN
-	 tM6MV7aacKgxCmrfPB0QAfvEGrlz018+abPnsP3hCBBnNBOKtLFq8VUMbYou6jRBVi
-	 cfV752be7Fu2wE0UkH8J2AIaH6QGaHmdQuW7+bzw=
-Date: Tue, 13 Aug 2024 16:34:29 -0700
-To: mm-commits@vger.kernel.org,mtodorovac69@gmail.com,ssengar@linux.microsoft.com,akpm@linux-foundation.org
+	b=wuitahzDmusZfYz+yi3a4t0p7Xu8qDnKCnXAP5H+TeGgxddd6ClFXj3Bz81AWfROn
+	 r6sB/tYdTvk4Yb+WlMSi6dAbcaX5900FgWAwUdJi7dng0uVlge/bv1M9Vfldqj1Wfw
+	 H1zjGtVFcfGMqrsny+OQl7mmuh0ZRxAe/CQX52JY=
+Date: Tue, 13 Aug 2024 17:07:40 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rdunlap@infradead.org,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,geert+renesas@glider.be,dianders@chromium.org,dave.hansen@linux.intel.com,daniel.thompson@linaro.org,christophe.leroy@csgroup.eu,christophe.jaillet@wanadoo.fr,bp@alien8.de,mail@florommel.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch added to mm-unstable branch
-Message-Id: <20240813233430.6375AC32782@smtp.kernel.org>
+Subject: + x86-kgdb-convert-early-breakpoints-to-poke-breakpoints.patch added to mm-unstable branch
+Message-Id: <20240814000741.5FB57C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
+     Subject: x86/kgdb: convert early breakpoints to poke breakpoints
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch
+     x86-kgdb-convert-early-breakpoints-to-poke-breakpoints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kgdb-convert-early-breakpoints-to-poke-breakpoints.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,141 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Saurabh Sengar <ssengar@linux.microsoft.com>
-Subject: mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
-Date: Sun, 11 Aug 2024 23:13:40 -0700
+From: Florian Rommel <mail@florommel.de>
+Subject: x86/kgdb: convert early breakpoints to poke breakpoints
+Date: Mon, 12 Aug 2024 01:22:07 +0200
 
-move vmstat_late_init_done under CONFIG_SMP to fix variable 'defined but
-not used' warning
+Patch series "kgdb: x86: fix breakpoint removal problems".
 
-Link: https://lkml.kernel.org/r/1723443220-20623-1-git-send-email-ssengar@linux.microsoft.com
-Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
-Cc: Mirsad Todorovac <mtodorovac69@gmail.com>
+This series fixes two problems with KGDB on x86 concerning the removal
+of breakpoints, causing the kernel to hang.  Note that breakpoint
+removal is not only performed when explicitly deleting a breakpoint,
+but also happens before continuing execution or single stepping.
+
+
+This patch (of 2):
+
+On x86, after booting, the kernel text is read-only.  Then, KGDB has to
+use the text_poke mechanism to install software breakpoints.  KGDB uses a
+special (x86-specific) breakpoint type for these kinds of breakpoints
+(BP_POKE_BREAKPOINT).  When removing a breakpoint, KGDB always adheres to
+the breakpoint's original installment method, which is determined by its
+type.
+
+Before this fix, early (non-"poke") breakpoints could not be removed after
+the kernel text was set as read-only since the original code patching
+mechanism was no longer allowed to remove the breakpoints.  Eventually,
+this even caused the kernel to hang (loop between int3 instruction and the
+function kgdb_skipexception).
+
+With this patch, we convert early breakpoints to "poke" breakpoints after
+the kernel text has been made read-only.  This makes them removable later.
+
+Link: https://lkml.kernel.org/r/20240811232208.234261-1-mail@florommel.de
+Link: https://lkml.kernel.org/r/20240811232208.234261-2-mail@florommel.de
+Signed-off-by: Florian Rommel <mail@florommel.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/kgdb.c    |   14 ++++++++++++++
+ include/linux/kgdb.h      |    3 +++
+ init/main.c               |    1 +
+ kernel/debug/debug_core.c |    7 ++++++-
+ 4 files changed, 24 insertions(+), 1 deletion(-)
 
---- a/mm/vmstat.c~mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
-+++ a/mm/vmstat.c
-@@ -31,7 +31,6 @@
+--- a/arch/x86/kernel/kgdb.c~x86-kgdb-convert-early-breakpoints-to-poke-breakpoints
++++ a/arch/x86/kernel/kgdb.c
+@@ -623,6 +623,20 @@ out:
+ 	return retval;
+ }
  
- #include "internal.h"
++void kgdb_after_mark_readonly(void)
++{
++	int i;
++
++	/* Convert all breakpoints in rodata to BP_POKE_BREAKPOINT. */
++	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
++		if (kgdb_break[i].state != BP_UNDEFINED &&
++		    kgdb_break[i].type == BP_BREAKPOINT &&
++		    is_kernel_text(kgdb_break[i].bpt_addr)) {
++			kgdb_break[i].type = BP_POKE_BREAKPOINT;
++		}
++	}
++}
++
+ static void kgdb_hw_overflow_handler(struct perf_event *event,
+ 		struct perf_sample_data *data, struct pt_regs *regs)
+ {
+--- a/include/linux/kgdb.h~x86-kgdb-convert-early-breakpoints-to-poke-breakpoints
++++ a/include/linux/kgdb.h
+@@ -98,6 +98,8 @@ extern int dbg_set_reg(int regno, void *
+ # define KGDB_MAX_BREAKPOINTS	1000
+ #endif
  
--static int vmstat_late_init_done;
- #ifdef CONFIG_NUMA
- int sysctl_vm_numa_stat = ENABLE_NUMA_STAT;
++extern struct kgdb_bkpt kgdb_break[KGDB_MAX_BREAKPOINTS];
++
+ #define KGDB_HW_BREAKPOINT	1
  
-@@ -1929,6 +1928,7 @@ static const struct seq_operations vmsta
- #ifdef CONFIG_SMP
- static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
- int sysctl_stat_interval __read_mostly = HZ;
-+static int vmstat_late_init_done;
+ /*
+@@ -360,6 +362,7 @@ extern bool dbg_is_early;
+ extern void __init dbg_late_init(void);
+ extern void kgdb_panic(const char *msg);
+ extern void kgdb_free_init_mem(void);
++extern void kgdb_after_mark_readonly(void);
+ #else /* ! CONFIG_KGDB */
+ #define in_dbg_master() (0)
+ #define dbg_late_init()
+--- a/init/main.c~x86-kgdb-convert-early-breakpoints-to-poke-breakpoints
++++ a/init/main.c
+@@ -1441,6 +1441,7 @@ static void mark_readonly(void)
+ 		mark_rodata_ro();
+ 		debug_checkwx();
+ 		rodata_test();
++		kgdb_after_mark_readonly();
+ 	} else if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX)) {
+ 		pr_info("Kernel memory protection disabled.\n");
+ 	} else if (IS_ENABLED(CONFIG_ARCH_HAS_STRICT_KERNEL_RWX)) {
+--- a/kernel/debug/debug_core.c~x86-kgdb-convert-early-breakpoints-to-poke-breakpoints
++++ a/kernel/debug/debug_core.c
+@@ -98,7 +98,7 @@ module_param(kgdbreboot, int, 0644);
+  * Holds information about breakpoints in a kernel. These breakpoints are
+  * added and removed by gdb.
+  */
+-static struct kgdb_bkpt		kgdb_break[KGDB_MAX_BREAKPOINTS] = {
++struct kgdb_bkpt		kgdb_break[KGDB_MAX_BREAKPOINTS] = {
+ 	[0 ... KGDB_MAX_BREAKPOINTS-1] = { .state = BP_UNDEFINED }
+ };
  
- #ifdef CONFIG_PROC_FS
- static void refresh_vm_stats(struct work_struct *work)
+@@ -452,6 +452,11 @@ void kgdb_free_init_mem(void)
+ 	}
+ }
+ 
++void __weak kgdb_after_mark_readonly(void)
++{
++	/* Weak implementation, may be overridden by arch code */
++}
++
+ #ifdef CONFIG_KGDB_KDB
+ void kdb_dump_stack_on_cpu(int cpu)
+ {
 _
 
-Patches currently in -mm which might be from ssengar@linux.microsoft.com are
+Patches currently in -mm which might be from mail@florommel.de are
 
-mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
-mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch
+x86-kgdb-convert-early-breakpoints-to-poke-breakpoints.patch
+x86-kgdb-fix-hang-on-failed-breakpoint-removal.patch
 
