@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2064F4A02
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 00:44:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34BA1631;
+	Wed, 14 Aug 2024 00:50:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723596264; cv=none; b=ZlvepL+FoGY4ItgU4jRodHjnxiCMsaTg3vZBQqRm0NAWH7BU+160qXrVQDL1iL0PnkUqzIYMsX4PDSbCBKYbeM/tLSCitsBR8TLq9lM9yw9QhdUa7kKsQVC8Bvz5hbPYIoRTvLM9ZUYjaW0yBtg2POW1JefuvfnPNUNbHfDpJeU=
+	t=1723596603; cv=none; b=VUliDyzQzG37SNAuwsu+25vYzJMd0hZHhODigtgX7bv7TcVie/ADRIgc2yjpuGlRguBfSZc5zzGuSlc9fKbd7lbncQMIHdtdMM7bH9bS5AkT4PEdSBOXQ3r5G6nGXOrJ7bTSSpXeyqF8ArPtHTJDAM5YxI/hr5YZxvgg8XJsdKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723596264; c=relaxed/simple;
-	bh=rcXJ0cf1vnYJiJFyzfW0kcB8/RAUb9cf2g0Pi1a0kUY=;
-	h=Date:To:From:Subject:Message-Id; b=UBG44nOROleR1SZ8FlvBu/77KjxY99gA2RNWnLQ6gB8AmDmHrgRyMY/9CEwXl/0/l9hKuGLn7mWfK9k/cJSXyyQbj+9EMJ8hTEOfsxLcL9Vu6kSTVtifhcBhKJimejmjuB+q7GislO/PBqghqYPosXuLBCEJbxJvcvSrwoyIQcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRqKjIpX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723596603; c=relaxed/simple;
+	bh=I32+sTObO1qHA580hNby1ngJWF5eI+mQSCNRkHDgNhA=;
+	h=Date:To:From:Subject:Message-Id; b=HlSBbTKyWpdTGoo6QcustLoaPSppZhDQ4MysO2t6bGvLBMdn+2PRNEANqY1dsMA3pL2eRVF3/giXr1Ox1qazgbl4zhaDj8APnQqvExH4oCZEn10/8U/tEE07EEEXd68l3qYqotkAp06bjnsi2zbD0/6w6gcWJXR4ekUIJvWLLWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wIwB2lL/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRqKjIpX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93F76C32782;
-	Wed, 14 Aug 2024 00:44:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wIwB2lL/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9121FC32782;
+	Wed, 14 Aug 2024 00:50:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723596263;
-	bh=rcXJ0cf1vnYJiJFyzfW0kcB8/RAUb9cf2g0Pi1a0kUY=;
+	s=korg; t=1723596602;
+	bh=I32+sTObO1qHA580hNby1ngJWF5eI+mQSCNRkHDgNhA=;
 	h=Date:To:From:Subject:From;
-	b=MRqKjIpXcVlCSsGB5bg0vnAoJ5ShbFTQey1KjAfgUJ/XdJnf3IBYHJrtGBg6LpIso
-	 GcPsKhS4EXHI2C6J441j7dBMqaJg3vwQw9w7yNgIRrGe0RqQXQyP0mXJupfoa5FKoO
-	 lZwI/W/+Kb2eKLGkUPGx8dEyzaTRyVEjjz+L0zZA=
-Date: Tue, 13 Aug 2024 17:44:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,muchun.song@linux.dev,yuzhao@google.com,akpm@linux-foundation.org
+	b=wIwB2lL/5vdLN3JxUM9BreLVaoNb271sZMAP/Wwb6xaVQfzU5PRoqVxtzW1MSNDTk
+	 ZCweGICPvmNKS4XcnpZarZlLK1h42OETK8i2gkaMte+pYcpRQAguUv4s+rejZ/Qzio
+	 KwLGardXIeB0tzCHPr6V7/WaeBgVFXy9itpcyaXc=
+Date: Tue, 13 Aug 2024 17:50:01 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,lizhi.xu@windriver.com,jack@suse.cz,brauner@kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch added to mm-unstable branch
-Message-Id: <20240814004423.93F76C32782@smtp.kernel.org>
+Subject: + squashfs-sanity-check-symbolic-link-size.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240814005002.9121FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: use __GFP_COMP for gigantic folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+     Subject: Squashfs: sanity check symbolic link size
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     squashfs-sanity-check-symbolic-link-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-sanity-check-symbolic-link-size.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,426 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/hugetlb: use __GFP_COMP for gigantic folios
-Date: Sun, 11 Aug 2024 15:21:29 -0600
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: sanity check symbolic link size
+Date: Sun, 11 Aug 2024 21:13:01 +0100
 
-Use __GFP_COMP for gigantic folios to greatly reduce not only the code
-but also the allocation and free time.
+Syzkiller reports a "KMSAN: uninit-value in pick_link" bug.
 
-LOC (approximately): -200, +50
+This is caused by an uninitialised page, which is ultimately caused
+by a corrupted symbolic link size read from disk.
 
-Allocate and free 500 1GB hugeTLB memory without HVO by:
-  time echo 500 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-  time echo 0 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+The reason why the corrupted symlink size causes an uninitialised
+page is due to the following sequence of events:
 
-       Before  After
-Alloc  ~13s    ~10s
-Free   ~15s    <1s
+1. squashfs_read_inode() is called to read the symbolic
+   link from disk.  This assigns the corrupted value
+   3875536935 to inode->i_size.
 
-The above magnitude generally holds for multiple x86 and arm64 CPU
-models.
+2. Later squashfs_symlink_read_folio() is called, which assigns
+   this corrupted value to the length variable, which being a
+   signed int, overflows producing a negative number.
 
-Link: https://lkml.kernel.org/r/20240811212129.3074314-4-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+3. The following loop that fills in the page contents checks that
+   the copied bytes is less than length, which being negative means
+   the loop is skipped, producing an unitialised page.
+
+This patch adds a sanity check which checks that the symbolic
+link size is not larger than expected.
+
+Link: https://lkml.kernel.org/r/20240811201301.13076-1-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Lizhi Xu <lizhi.xu@windriver.com>
+Reported-by: syzbot+24ac24ff58dc5b0d26b9@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000a90e8c061e86a76b@google.com/
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    9 -
- mm/hugetlb.c            |  239 ++++++--------------------------------
- 2 files changed, 48 insertions(+), 200 deletions(-)
+ fs/squashfs/inode.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-use-__gfp_comp-for-gigantic-folios
-+++ a/include/linux/hugetlb.h
-@@ -896,10 +896,11 @@ static inline bool hugepage_movable_supp
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
--	if (hugepage_movable_supported(h))
--		return GFP_HIGHUSER_MOVABLE;
--	else
--		return GFP_HIGHUSER;
-+	gfp_t gfp = __GFP_COMP | __GFP_NOWARN;
+--- a/fs/squashfs/inode.c~squashfs-sanity-check-symbolic-link-size
++++ a/fs/squashfs/inode.c
+@@ -279,8 +279,13 @@ int squashfs_read_inode(struct inode *in
+ 		if (err < 0)
+ 			goto failed_read;
+ 
+-		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+ 		inode->i_size = le32_to_cpu(sqsh_ino->symlink_size);
++		if (inode->i_size > PAGE_SIZE) {
++			ERROR("Corrupted symlink\n");
++			return -EINVAL;
++		}
 +
-+	gfp |= hugepage_movable_supported(h) ? GFP_HIGHUSER_MOVABLE : GFP_HIGHUSER;
-+
-+	return gfp;
- }
- 
- static inline gfp_t htlb_modify_alloc_mask(struct hstate *h, gfp_t gfp_mask)
---- a/mm/hugetlb.c~mm-hugetlb-use-__gfp_comp-for-gigantic-folios
-+++ a/mm/hugetlb.c
-@@ -1512,43 +1512,7 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--/* used to demote non-gigantic_huge pages as well */
--static void __destroy_compound_gigantic_folio(struct folio *folio,
--					unsigned int order, bool demote)
--{
--	int i;
--	int nr_pages = 1 << order;
--	struct page *p;
--
--	atomic_set(&folio->_entire_mapcount, 0);
--	atomic_set(&folio->_large_mapcount, 0);
--	atomic_set(&folio->_pincount, 0);
--
--	for (i = 1; i < nr_pages; i++) {
--		p = folio_page(folio, i);
--		p->flags &= ~PAGE_FLAGS_CHECK_AT_FREE;
--		p->mapping = NULL;
--		clear_compound_head(p);
--		if (!demote)
--			set_page_refcounted(p);
--	}
--
--	__folio_clear_head(folio);
--}
--
--static void destroy_compound_hugetlb_folio_for_demote(struct folio *folio,
--					unsigned int order)
--{
--	__destroy_compound_gigantic_folio(folio, order, true);
--}
--
- #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--static void destroy_compound_gigantic_folio(struct folio *folio,
--					unsigned int order)
--{
--	__destroy_compound_gigantic_folio(folio, order, false);
--}
--
- static void free_gigantic_folio(struct folio *folio, unsigned int order)
- {
- 	/*
-@@ -1569,38 +1533,52 @@ static void free_gigantic_folio(struct f
- static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
--	struct page *page;
--	unsigned long nr_pages = pages_per_huge_page(h);
-+	struct folio *folio;
-+	int order = huge_page_order(h);
-+	bool retry = false;
-+
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
--
-+retry:
-+	folio = NULL;
- #ifdef CONFIG_CMA
- 	{
- 		int node;
- 
--		if (hugetlb_cma[nid]) {
--			page = cma_alloc(hugetlb_cma[nid], nr_pages,
--					huge_page_order(h), true);
--			if (page)
--				return page_folio(page);
--		}
-+		if (hugetlb_cma[nid])
-+			folio = cma_alloc_folio(hugetlb_cma[nid], order, gfp_mask);
- 
--		if (!(gfp_mask & __GFP_THISNODE)) {
-+		if (!folio && !(gfp_mask & __GFP_THISNODE)) {
- 			for_each_node_mask(node, *nodemask) {
- 				if (node == nid || !hugetlb_cma[node])
- 					continue;
- 
--				page = cma_alloc(hugetlb_cma[node], nr_pages,
--						huge_page_order(h), true);
--				if (page)
--					return page_folio(page);
-+				folio = cma_alloc_folio(hugetlb_cma[node], order, gfp_mask);
-+				if (folio)
-+					break;
- 			}
- 		}
- 	}
- #endif
-+	if (!folio) {
-+		struct page *page = alloc_contig_pages(1 << order, gfp_mask, nid, nodemask);
-+
-+		if (!page)
-+			return NULL;
- 
--	page = alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
--	return page ? page_folio(page) : NULL;
-+		folio = page_folio(page);
-+	}
-+
-+	if (folio_ref_freeze(folio, 1))
-+		return folio;
-+
-+	pr_warn("HugeTLB: unexpected refcount on PFN %lu\n", folio_pfn(folio));
-+	free_gigantic_folio(folio, order);
-+	if (!retry) {
-+		retry = true;
-+		goto retry;
-+	}
-+	return NULL;
- }
- 
- #else /* !CONFIG_CONTIG_ALLOC */
-@@ -1619,8 +1597,6 @@ static struct folio *alloc_gigantic_foli
- }
- static inline void free_gigantic_folio(struct folio *folio,
- 						unsigned int order) { }
--static inline void destroy_compound_gigantic_folio(struct folio *folio,
--						unsigned int order) { }
- #endif
- 
- /*
-@@ -1747,6 +1723,7 @@ static void __update_and_free_hugetlb_fo
- 		folio_clear_hugetlb_hwpoison(folio);
- 
- 	folio_ref_unfreeze(folio, 1);
-+	INIT_LIST_HEAD(&folio->_deferred_list);
- 
- 	/*
- 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
-@@ -1754,10 +1731,8 @@ static void __update_and_free_hugetlb_fo
- 	 */
- 	if (hstate_is_gigantic(h) ||
- 	    hugetlb_cma_folio(folio, huge_page_order(h))) {
--		destroy_compound_gigantic_folio(folio, huge_page_order(h));
- 		free_gigantic_folio(folio, huge_page_order(h));
- 	} else {
--		INIT_LIST_HEAD(&folio->_deferred_list);
- 		folio_clear_partially_mapped(folio);
- 		folio_put(folio);
- 	}
-@@ -2033,95 +2008,6 @@ static void prep_new_hugetlb_folio(struc
- 	spin_unlock_irq(&hugetlb_lock);
- }
- 
--static bool __prep_compound_gigantic_folio(struct folio *folio,
--					unsigned int order, bool demote)
--{
--	int i, j;
--	int nr_pages = 1 << order;
--	struct page *p;
--
--	__folio_clear_reserved(folio);
--	for (i = 0; i < nr_pages; i++) {
--		p = folio_page(folio, i);
--
--		/*
--		 * For gigantic hugepages allocated through bootmem at
--		 * boot, it's safer to be consistent with the not-gigantic
--		 * hugepages and clear the PG_reserved bit from all tail pages
--		 * too.  Otherwise drivers using get_user_pages() to access tail
--		 * pages may get the reference counting wrong if they see
--		 * PG_reserved set on a tail page (despite the head page not
--		 * having PG_reserved set).  Enforcing this consistency between
--		 * head and tail pages allows drivers to optimize away a check
--		 * on the head page when they need know if put_page() is needed
--		 * after get_user_pages().
--		 */
--		if (i != 0)	/* head page cleared above */
--			__ClearPageReserved(p);
--		/*
--		 * Subtle and very unlikely
--		 *
--		 * Gigantic 'page allocators' such as memblock or cma will
--		 * return a set of pages with each page ref counted.  We need
--		 * to turn this set of pages into a compound page with tail
--		 * page ref counts set to zero.  Code such as speculative page
--		 * cache adding could take a ref on a 'to be' tail page.
--		 * We need to respect any increased ref count, and only set
--		 * the ref count to zero if count is currently 1.  If count
--		 * is not 1, we return an error.  An error return indicates
--		 * the set of pages can not be converted to a gigantic page.
--		 * The caller who allocated the pages should then discard the
--		 * pages using the appropriate free interface.
--		 *
--		 * In the case of demote, the ref count will be zero.
--		 */
--		if (!demote) {
--			if (!page_ref_freeze(p, 1)) {
--				pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
--				goto out_error;
--			}
--		} else {
--			VM_BUG_ON_PAGE(page_count(p), p);
--		}
--		if (i != 0)
--			set_compound_head(p, &folio->page);
--	}
--	__folio_set_head(folio);
--	/* we rely on prep_new_hugetlb_folio to set the hugetlb flag */
--	folio_set_order(folio, order);
--	atomic_set(&folio->_entire_mapcount, -1);
--	atomic_set(&folio->_large_mapcount, -1);
--	atomic_set(&folio->_pincount, 0);
--	return true;
--
--out_error:
--	/* undo page modifications made above */
--	for (j = 0; j < i; j++) {
--		p = folio_page(folio, j);
--		if (j != 0)
--			clear_compound_head(p);
--		set_page_refcounted(p);
--	}
--	/* need to clear PG_reserved on remaining tail pages  */
--	for (; j < nr_pages; j++) {
--		p = folio_page(folio, j);
--		__ClearPageReserved(p);
--	}
--	return false;
--}
--
--static bool prep_compound_gigantic_folio(struct folio *folio,
--							unsigned int order)
--{
--	return __prep_compound_gigantic_folio(folio, order, false);
--}
--
--static bool prep_compound_gigantic_folio_for_demote(struct folio *folio,
--							unsigned int order)
--{
--	return __prep_compound_gigantic_folio(folio, order, true);
--}
--
- /*
-  * Find and lock address space (mapping) in write mode.
-  *
-@@ -2160,7 +2046,6 @@ static struct folio *alloc_buddy_hugetlb
- 	 */
- 	if (node_alloc_noretry && node_isset(nid, *node_alloc_noretry))
- 		alloc_try_hard = false;
--	gfp_mask |= __GFP_COMP|__GFP_NOWARN;
- 	if (alloc_try_hard)
- 		gfp_mask |= __GFP_RETRY_MAYFAIL;
- 	if (nid == NUMA_NO_NODE)
-@@ -2207,48 +2092,14 @@ retry:
- 	return folio;
- }
- 
--static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
--				gfp_t gfp_mask, int nid, nodemask_t *nmask,
--				nodemask_t *node_alloc_noretry)
--{
--	struct folio *folio;
--	bool retry = false;
--
--retry:
--	if (hstate_is_gigantic(h))
--		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
--	else
--		folio = alloc_buddy_hugetlb_folio(h, gfp_mask,
--				nid, nmask, node_alloc_noretry);
--	if (!folio)
--		return NULL;
--
--	if (hstate_is_gigantic(h)) {
--		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
--			/*
--			 * Rare failure to convert pages to compound page.
--			 * Free pages and try again - ONCE!
--			 */
--			free_gigantic_folio(folio, huge_page_order(h));
--			if (!retry) {
--				retry = true;
--				goto retry;
--			}
--			return NULL;
--		}
--	}
--
--	return folio;
--}
--
- static struct folio *only_alloc_fresh_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
- 
--	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
--						node_alloc_noretry);
-+	folio = hstate_is_gigantic(h) ? alloc_gigantic_folio(h, gfp_mask, nid, nmask) :
-+		alloc_buddy_hugetlb_folio(h, gfp_mask, nid, nmask, node_alloc_noretry);
- 	if (folio)
- 		init_new_hugetlb_folio(h, folio);
- 	return folio;
-@@ -2266,7 +2117,8 @@ static struct folio *alloc_fresh_hugetlb
- {
- 	struct folio *folio;
- 
--	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	folio = hstate_is_gigantic(h) ? alloc_gigantic_folio(h, gfp_mask, nid, nmask) :
-+		alloc_buddy_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
- 	if (!folio)
- 		return NULL;
- 
-@@ -2550,9 +2402,8 @@ struct folio *alloc_buddy_hugetlb_folio_
- 
- 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
- 	if (mpol_is_preferred_many(mpol)) {
--		gfp_t gfp = gfp_mask | __GFP_NOWARN;
-+		gfp_t gfp = gfp_mask & ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 
--		gfp &=  ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 		folio = alloc_surplus_hugetlb_folio(h, gfp, nid, nodemask);
- 
- 		/* Fallback to all nodes if page==NULL */
-@@ -3334,6 +3185,7 @@ static void __init hugetlb_folio_init_ta
- 	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
- 
-+		__ClearPageReserved(folio_page(folio, pfn - head_pfn));
- 		__init_single_page(page, pfn, zone, nid);
- 		prep_compound_tail((struct page *)folio, pfn - head_pfn);
- 		ret = page_ref_freeze(page, 1);
-@@ -3950,21 +3802,16 @@ static long demote_free_hugetlb_folios(s
- 			continue;
- 
- 		list_del(&folio->lru);
--		/*
--		 * Use destroy_compound_hugetlb_folio_for_demote for all huge page
--		 * sizes as it will not ref count folios.
--		 */
--		destroy_compound_hugetlb_folio_for_demote(folio, huge_page_order(src));
-+
-+		split_page_owner(&folio->page, huge_page_order(src), huge_page_order(dst));
-+		pgalloc_tag_split(&folio->page, 1 <<  huge_page_order(src));
- 
- 		for (i = 0; i < pages_per_huge_page(src); i += pages_per_huge_page(dst)) {
- 			struct page *page = folio_page(folio, i);
- 
--			if (hstate_is_gigantic(dst))
--				prep_compound_gigantic_folio_for_demote(page_folio(page),
--									dst->order);
--			else
--				prep_compound_page(page, dst->order);
--			set_page_private(page, 0);
-+			page->mapping = NULL;
-+			clear_compound_head(page);
-+			prep_compound_page(page, dst->order);
- 
- 			init_new_hugetlb_folio(dst, page_folio(page));
- 			list_add(&page->lru, &dst_list);
++		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+ 		inode->i_op = &squashfs_symlink_inode_ops;
+ 		inode_nohighmem(inode);
+ 		inode->i_data.a_ops = &squashfs_symlink_aops;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
-mm-swap-reduce-indentation-level.patch
-mm-swap-rename-cpu_fbatches-activate.patch
-mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
-mm-swap-remove-remaining-_fn-suffix.patch
-mm-swap-remove-boilerplate.patch
-mm-swap-remove-boilerplate-fix.patch
-mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch
-mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
-mm-hugetlb_vmemmap-batch-hvo-work-when-demoting.patch
-mm-contig_alloc-support-__gfp_comp.patch
-mm-cma-add-cma_alloc_folio.patch
-mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+squashfs-sanity-check-symbolic-link-size.patch
 
