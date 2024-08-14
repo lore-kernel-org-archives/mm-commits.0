@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7DD31B1505
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 19:27:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BEAB1BE859;
+	Wed, 14 Aug 2024 19:28:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723663630; cv=none; b=MMAYzMwKykdHlXbmD1vXiATQPKiZThWfItjAFNb8/i/qt2CZaMEl1KXQW7WbW1wc24svJGlYKuQdEc+XQbDOB8WlUWpcK7EHJm/W+i79kR08yzYOgH+bKdI6cG8vmhXQZVB0KnO1Wi/xHKDp6Ue6FYI+SNliSpGc7GGRIx6MUQg=
+	t=1723663732; cv=none; b=YztXdxT9CyJBRwrO8BRqwYQFhAP8lTADb//Pvisc7eJJ6q3dre71LtNlMGTOclUsjA124UiJkf3Oeyypd31LHwlH+7+KnKnY5L0aZY31ZD1G9J2sl3qyF45ksJxnJDkEYRuC1qK9BCXhFJCxGyM2WOOmnAwBAn5OeNAalWJ6lDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723663630; c=relaxed/simple;
-	bh=KTJHVBjM9gNVt/u+vvayStakispL2mnLtxzgMi0FIBE=;
-	h=Date:To:From:Subject:Message-Id; b=uxbH/qVURWoaqMuvZ+d2aJCn5vsu02tKbfCLGcTu7CttQTtzMTn3bOfq0IuL263clRCYU8gTTPhrrWvjo20ODTEJZcR1BhhiGjUvIGDkOTm4iQmgGlJHw/AWXYo0KM3O24HvzDaSqMkvTQYbKC8CRFCAGz1kplyD+QSsm3rCfKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KA450T4L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723663732; c=relaxed/simple;
+	bh=eaf5+zdx3xtHjOdmlUOAJIL8hsjjZTu8slWcJF11e1U=;
+	h=Date:To:From:Subject:Message-Id; b=urpPA+ZO3gaOHgxIJvJYjgRCwlQI4uEUfqMBeYjywXBiD91L64Mpqr9cYpitbos5kYOhl2OgKEErcTsSxOpph1mjLF7yo+IefeBSFRT9VUzPdxPc7ejLXvkxlBQyKumG1Dj4ifwafD40ZjaQ1zsXZ3uKJuVbWyBnWpq/OK4MtR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ub/HBg8j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KA450T4L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C0D1C116B1;
-	Wed, 14 Aug 2024 19:27:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ub/HBg8j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83686C116B1;
+	Wed, 14 Aug 2024 19:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723663630;
-	bh=KTJHVBjM9gNVt/u+vvayStakispL2mnLtxzgMi0FIBE=;
+	s=korg; t=1723663731;
+	bh=eaf5+zdx3xtHjOdmlUOAJIL8hsjjZTu8slWcJF11e1U=;
 	h=Date:To:From:Subject:From;
-	b=KA450T4L+JkZeiQF9KinSq2DzqCU49B0FgiHOhu9QLkYXfZMRWwHoiycHo4QxaLUJ
-	 l8TaQWgjqmWv0Y2dZE37wA7mP62RWTjIW9yJPecGo40KpcX3SSBualR/AGks/uerzg
-	 ZoKpnZTNPQUCNoEq9AhY7nhbYbadaRt7I6L5uzyo=
-Date: Wed, 14 Aug 2024 12:27:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=Ub/HBg8jTj0g/y6CLac1oxLB2+4Jhk1ThwlYt/DlK7ia6/FUzvCFG7iuubNlafnLC
+	 kBxfCoLaUq+uC6zrFl3D1byESw2ZXcBdO1/SrXdF2jgatGjkKyiQ4ccM5XVA86z9Lc
+	 2zmFiAlb6Mc+My/mDcGcXilK5aYFKrkFXRTKEcgM=
+Date: Wed, 14 Aug 2024 12:28:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch added to mm-unstable branch
-Message-Id: <20240814192710.3C0D1C116B1@smtp.kernel.org>
+Subject: + nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240814192851.83686C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmem: add lockdep assertion to obj_cgroup_memcg
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch
+     Subject: nilfs2: fix state management in error path of log writing function
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,131 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: kmem: add lockdep assertion to obj_cgroup_memcg
-Date: Wed, 14 Aug 2024 17:34:15 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix state management in error path of log writing function
+Date: Wed, 14 Aug 2024 19:11:19 +0900
 
-obj_cgroup_memcg() is supposed to safe to prevent the returned memory
-cgroup from being freed only when the caller is holding the rcu read lock
-or objcg_lock or cgroup_mutex.  It is very easy to ignore thoes conditions
-when users call some upper APIs which call obj_cgroup_memcg() internally
-like mem_cgroup_from_slab_obj() (See the link below).  So it is better to
-add lockdep assertion to obj_cgroup_memcg() to find those issues ASAP.
+After commit a694291a6211 ("nilfs2: separate wait function from
+nilfs_segctor_write") was applied, the log writing function
+nilfs_segctor_do_construct() was able to issue I/O requests continuously
+even if user data blocks were split into multiple logs across segments,
+but two potential flaws were introduced in its error handling.
 
-Because there is no user of obj_cgroup_memcg() holding objcg_lock to make
-the returned memory cgroup safe, do not add objcg_lock assertion (We
-should export objcg_lock if we really want to do).  Additionally, this is
-some internal implementation detail of memcg and should not be accessible
-outside memcg code.
+First, if nilfs_segctor_begin_construction() fails while creating the
+second or subsequent logs, the log writing function returns without
+calling nilfs_segctor_abort_construction(), so the writeback flag set on
+pages/folios will remain uncleared.  This causes page cache operations to
+hang waiting for the writeback flag.  For example,
+truncate_inode_pages_final(), which is called via nilfs_evict_inode() when
+an inode is evicted from memory, will hang.
 
-Some users like __mem_cgroup_uncharge() do not care the lifetime of the
-returned memory cgroup, which just want to know if the folio is charged to
-a memory cgroup, therefore, they do not need to hold the needed locks.  In
-which case, introduce a new helper folio_memcg_charged() to do this. 
-Compare it to folio_memcg(), it could eliminate a memory access of
-objcg->memcg for kmem, actually, a really small gain.
+Second, the NILFS_I_COLLECTED flag set on normal inodes remain uncleared. 
+As a result, if the next log write involves checkpoint creation, that's
+fine, but if a partial log write is performed that does not, inodes with
+NILFS_I_COLLECTED set are erroneously removed from the "sc_dirty_files"
+list, and their data and b-tree blocks may not be written to the device,
+corrupting the block mapping.
 
-Link: https://lore.kernel.org/all/20240718083607.42068-1-songmuchun@bytedance.com/
-Link: https://lkml.kernel.org/r/20240814093415.17634-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Fix these issues by uniformly calling nilfs_segctor_abort_construction()
+on failure of each step in the loop in nilfs_segctor_do_construct(),
+having it clean up logs and segment usages according to progress, and
+correcting the conditions for calling nilfs_redirty_inodes() to ensure
+that the NILFS_I_COLLECTED flag is cleared.
+
+Link: https://lkml.kernel.org/r/20240814101119.4070-1-konishi.ryusuke@gmail.com
+Fixes: a694291a6211 ("nilfs2: separate wait function from nilfs_segctor_write")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   20 +++++++++++++++++---
- mm/memcontrol.c            |    6 +++---
- 2 files changed, 20 insertions(+), 6 deletions(-)
+ fs/nilfs2/segment.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg
-+++ a/include/linux/memcontrol.h
-@@ -366,11 +366,11 @@ static inline bool folio_memcg_kmem(stru
-  * After the initialization objcg->memcg is always pointing at
-  * a valid memcg, but can be atomically swapped to the parent memcg.
-  *
-- * The caller must ensure that the returned memcg won't be released:
-- * e.g. acquire the rcu_read_lock or css_set_lock.
-+ * The caller must ensure that the returned memcg won't be released.
-  */
- static inline struct mem_cgroup *obj_cgroup_memcg(struct obj_cgroup *objcg)
- {
-+	lockdep_assert_once(rcu_read_lock_held() || lockdep_is_held(&cgroup_mutex));
- 	return READ_ONCE(objcg->memcg);
- }
+--- a/fs/nilfs2/segment.c~nilfs2-fix-state-management-in-error-path-of-log-writing-function
++++ a/fs/nilfs2/segment.c
+@@ -1812,6 +1812,9 @@ static void nilfs_segctor_abort_construc
+ 	nilfs_abort_logs(&logs, ret ? : err);
  
-@@ -444,6 +444,19 @@ static inline struct mem_cgroup *folio_m
- 	return __folio_memcg(folio);
- }
- 
-+/*
-+ * folio_memcg_charged - If a folio is charged to a memory cgroup.
-+ * @folio: Pointer to the folio.
-+ *
-+ * Returns true if folio is charged to a memory cgroup, otherwise returns false.
-+ */
-+static inline bool folio_memcg_charged(struct folio *folio)
-+{
-+	if (folio_memcg_kmem(folio))
-+		return __folio_objcg(folio) != NULL;
-+	return __folio_memcg(folio) != NULL;
-+}
+ 	list_splice_tail_init(&sci->sc_segbufs, &logs);
++	if (list_empty(&logs))
++		return; /* if the first segment buffer preparation failed */
 +
- /**
-  * folio_memcg_rcu - Locklessly get the memory cgroup associated with a folio.
-  * @folio: Pointer to the folio.
-@@ -460,7 +473,6 @@ static inline struct mem_cgroup *folio_m
- 	unsigned long memcg_data = READ_ONCE(folio->memcg_data);
+ 	nilfs_cancel_segusage(&logs, nilfs->ns_sufile);
+ 	nilfs_free_incomplete_logs(&logs, nilfs);
  
- 	VM_BUG_ON_FOLIO(folio_test_slab(folio), folio);
--	WARN_ON_ONCE(!rcu_read_lock_held());
+@@ -2056,7 +2059,7 @@ static int nilfs_segctor_do_construct(st
  
- 	if (memcg_data & MEMCG_DATA_KMEM) {
- 		struct obj_cgroup *objcg;
-@@ -469,6 +481,8 @@ static inline struct mem_cgroup *folio_m
- 		return obj_cgroup_memcg(objcg);
- 	}
+ 		err = nilfs_segctor_begin_construction(sci, nilfs);
+ 		if (unlikely(err))
+-			goto out;
++			goto failed;
  
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+
- 	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
- }
+ 		/* Update time stamp */
+ 		sci->sc_seg_ctime = ktime_get_real_seconds();
+@@ -2120,10 +2123,9 @@ static int nilfs_segctor_do_construct(st
+ 	return err;
  
---- a/mm/memcontrol.c~mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg
-+++ a/mm/memcontrol.c
-@@ -2374,7 +2374,7 @@ void mem_cgroup_cancel_charge(struct mem
- 
- static void commit_charge(struct folio *folio, struct mem_cgroup *memcg)
- {
--	VM_BUG_ON_FOLIO(folio_memcg(folio), folio);
-+	VM_BUG_ON_FOLIO(folio_memcg_charged(folio), folio);
- 	/*
- 	 * Any of the following ensures page's memcg stability:
- 	 *
-@@ -4708,7 +4708,7 @@ void __mem_cgroup_uncharge(struct folio
- 	struct uncharge_gather ug;
- 
- 	/* Don't touch folio->lru of any random page, pre-check: */
--	if (!folio_memcg(folio))
-+	if (!folio_memcg_charged(folio))
- 		return;
- 
- 	uncharge_gather_clear(&ug);
-@@ -4753,7 +4753,7 @@ void mem_cgroup_replace_folio(struct fol
- 		return;
- 
- 	/* Page cache replacement: new folio already charged? */
--	if (folio_memcg(new))
-+	if (folio_memcg_charged(new))
- 		return;
- 
- 	memcg = folio_memcg(old);
+  failed_to_write:
+-	if (sci->sc_stage.flags & NILFS_CF_IFILE_STARTED)
+-		nilfs_redirty_inodes(&sci->sc_dirty_files);
+-
+  failed:
++	if (mode == SC_LSEG_SR && nilfs_sc_cstage_get(sci) >= NILFS_ST_IFILE)
++		nilfs_redirty_inodes(&sci->sc_dirty_files);
+ 	if (nilfs_doing_gc())
+ 		nilfs_redirty_inodes(&sci->sc_gc_inodes);
+ 	nilfs_segctor_abort_construction(sci, nilfs, err);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-kmem-remove-mem_cgroup_from_obj.patch
-mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch
+nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
+nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
+nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
