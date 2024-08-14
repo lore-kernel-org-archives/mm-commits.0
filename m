@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A256E1B86C1
-	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:58:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9C71B86C1
+	for <mm-commits@vger.kernel.org>; Wed, 14 Aug 2024 20:58:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723669083; cv=none; b=p9HqVbjWIFOWKyN9ERislmX5FCz9NDn2QFdJu4LxoWRVpMb5UiLfT9oeafbDDq9U/Q2kTq1NkUd+SzfjfHNhfWncA7JEz1eRF4/PmtxYpsh0e4NDh1mM1qeWgsRCgAQq45lslkMLfxp1Iugpf1t/lsIsCvWbB/mq9QQrm/W9ZcE=
+	t=1723669085; cv=none; b=HtXEQkBUn377yejOzDEwALflRKXl7xLa5SIkDz5H5SYS7snxyueOApDPGIIS7iObgco9QQ5TaQpkQ0XsTm2MwyRBrUxzwZRL9HqSI29R21ECUelnuT7yImVUGpAdp5P5JS1FYOPthigDUDB4U5+5oCw0o/dmgtuZnUPaivQ+Yy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723669083; c=relaxed/simple;
-	bh=TPpNOxlVuIV1+WNbs7IKFkHIWb+f7KIHnqTzhy8WDCo=;
-	h=Date:To:From:Subject:Message-Id; b=AiJiRr9jPuAtuD6imSRisVMzm+DQem41aUwInstHQL4EpcSrfOT8AJlNVFtB8LxzFWpyuHfq47tHTjvuZGflSLm3HBD93vCCuypntW+yxeJX0lJ1+RODh9A8K7/UArRgmhwGZqzP2Bmspx0vrTgmDyr83oM3SYuMi89/ZqM+l9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQ77umLW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723669085; c=relaxed/simple;
+	bh=k8M4OKjp+panzprlaH7s3cS58EnT8cwg9koqD1U5dV4=;
+	h=Date:To:From:Subject:Message-Id; b=WfEw/STmDpN9LNWC5LyORLGxy4GV6NmyOqOEvQCMY+tkIWAt0m6tverEYnwO2uhGx3n9WzCKMlT2c5XjqAmdA8HDIORFcxiFIuIFPmDYpiPNHmfjiIGdQDf++AwD29+GNsz2RDDiQT/h7CjSuQEjiA7Wsj0YQOIILHI55Y/KnC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eCOIlJxp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQ77umLW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10700C116B1;
-	Wed, 14 Aug 2024 20:58:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eCOIlJxp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C39BC116B1;
+	Wed, 14 Aug 2024 20:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723669083;
-	bh=TPpNOxlVuIV1+WNbs7IKFkHIWb+f7KIHnqTzhy8WDCo=;
+	s=korg; t=1723669084;
+	bh=k8M4OKjp+panzprlaH7s3cS58EnT8cwg9koqD1U5dV4=;
 	h=Date:To:From:Subject:From;
-	b=AQ77umLWysMynFUozr5TckS+PHn4GcsSpSy53+q1Q+FYQSeW1hOeqvBeq81HI4TFh
-	 iwOfXUXtApvFBIypHb/DI/txBguHDqzXeUcLFnX1z9yeNZtp+kLUPQbuUJWdnDBrp3
-	 9e4njmMCUTBTvuppec/dDVFFUVjYTt8MewSgMjF4=
-Date: Wed, 14 Aug 2024 13:58:02 -0700
+	b=eCOIlJxpeEHY0+fvLhQHGfa5yQ4ZuGoR0x3Gtn4zyXmmI+43XAz1osGR8RpeH6dp8
+	 2RO3MJcxFUp1lrA6PVxegTYUKR5V4OK6zinvNXlqF0wXyoR1QsLK9UU2qxivdod2wP
+	 dgVcoWVin0N2rLGhyvXZ1RXMujH2LxqO8T/gQ2eY=
+Date: Wed, 14 Aug 2024 13:58:03 -0700
 To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-initiate-deprecation-of-v1-soft-limit.patch added to mm-unstable branch
-Message-Id: <20240814205803.10700C116B1@smtp.kernel.org>
+Subject: + memcg-initiate-deprecation-of-oom_control.patch added to mm-unstable branch
+Message-Id: <20240814205804.8C39BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: initiate deprecation of v1 soft limit
+     Subject: memcg: initiate deprecation of oom_control
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-initiate-deprecation-of-v1-soft-limit.patch
+     memcg-initiate-deprecation-of-oom_control.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-initiate-deprecation-of-v1-soft-limit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-initiate-deprecation-of-oom_control.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: initiate deprecation of v1 soft limit
-Date: Wed, 14 Aug 2024 13:28:23 -0700
+Subject: memcg: initiate deprecation of oom_control
+Date: Wed, 14 Aug 2024 13:28:24 -0700
 
-Memcg v1 provides soft limit functionality for the best effort memory
-sharing between multiple workloads on a system.  It is usually triggered
-through kswapd and at the moment does not reclaim kernel memory.
+The oom_control provides functionality to disable memcg oom-killer,
+notifications on oom-kill and reading the stats regarding oom-kills.  This
+interface was mainly introduced to provide functionality for userspace
+oom-killers.  However it is not robust enough and only supports OOM
+handling in the page fault path.
 
-Memcg v2 provide more straightforward best effort (memory.low) and hard
-protection (memory.min) functionalities.  Let's initiate the deprecation
-of soft limit from v1 and gather if v2 needs something more to move the
-existing v1 users to v2 regarding soft limit.
+For v2, the users can use the combination of memory.events notifications
+and memory.high interface to provide userspace OOM-killing functionality. 
+Let's start the deprecation process for v1 and gather the info on how the
+current users are using this interface and work on providing a more robust
+functionality in v2.
 
-Link: https://lkml.kernel.org/r/20240814202825.2694077-3-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240814202825.2694077-4-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -81,45 +84,56 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Documentation/admin-guide/cgroup-v1/memory.rst |    8 ++++++--
- mm/memcontrol-v1.c                             |    3 +++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ mm/memcontrol-v1.c                             |    7 +++++++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-initiate-deprecation-of-v1-soft-limit
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-initiate-deprecation-of-oom_control
 +++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -78,6 +78,8 @@ Brief summary of control files.
-  memory.memsw.max_usage_in_bytes     show max memory+Swap usage recorded
-  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
- 				     This knob is not available on CONFIG_PREEMPT_RT systems.
+@@ -92,6 +92,8 @@ Brief summary of control files.
+                                      This knob is deprecated and shouldn't be
+                                      used.
+  memory.oom_control		     set/show oom controls.
 +                                     This knob is deprecated and shouldn't be
 +                                     used.
-  memory.stat			     show various statistics
-  memory.use_hierarchy		     set/show hierarchical account enabled
-                                      This knob is deprecated and shouldn't be
-@@ -701,8 +703,10 @@ For compatibility reasons writing 1 to m
+  memory.numa_stat		     show the number of memory usage per numa
+ 				     node
+  memory.kmem.limit_in_bytes          Deprecated knob to set and read the kernel
+@@ -846,8 +848,10 @@ It's applicable for root and non-root cg
  
- 	# echo 1 > memory.use_hierarchy
+ .. _cgroup-v1-memory-oom-control:
  
--7. Soft limits
--==============
-+7. Soft limits (DEPRECATED)
-+===========================
+-10. OOM Control
+-===============
++10. OOM Control (DEPRECATED)
++============================
 +
 +THIS IS DEPRECATED!
  
- Soft limits allow for greater sharing of memory. The idea behind soft limits
- is to allow control groups to use as much of the memory as needed, provided
---- a/mm/memcontrol-v1.c~memcg-initiate-deprecation-of-v1-soft-limit
+ memory.oom_control file is for OOM notification and other controls.
+ 
+--- a/mm/memcontrol-v1.c~memcg-initiate-deprecation-of-oom_control
 +++ a/mm/memcontrol-v1.c
-@@ -2455,6 +2455,9 @@ static ssize_t mem_cgroup_write(struct k
- 		if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
- 			ret = -EOPNOTSUPP;
- 		} else {
-+			pr_warn_once("soft_limit_in_bytes is deprecated and will be removed. "
-+				     "Please report your usecase to linux-mm@kvack.org if you "
-+				     "depend on this functionality.\n");
- 			WRITE_ONCE(memcg->soft_limit, nr_pages);
- 			ret = 0;
- 		}
+@@ -1904,6 +1904,9 @@ static ssize_t memcg_write_event_control
+ 		event->register_event = mem_cgroup_usage_register_event;
+ 		event->unregister_event = mem_cgroup_usage_unregister_event;
+ 	} else if (!strcmp(name, "memory.oom_control")) {
++		pr_warn_once("oom_control is deprecated and will be removed. "
++			     "Please report your usecase to linux-mm-@kvack.org"
++			     " if you depend on this functionality. \n";
+ 		event->register_event = mem_cgroup_oom_register_event;
+ 		event->unregister_event = mem_cgroup_oom_unregister_event;
+ 	} else if (!strcmp(name, "memory.pressure_level")) {
+@@ -2751,6 +2754,10 @@ static int mem_cgroup_oom_control_write(
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
++	pr_warn_once("oom_control is deprecated and will be removed. "
++		     "Please report your usecase to linux-mm-@kvack.org if you "
++		     "depend on this functionality. \n";
++
+ 	/* cannot set to root cgroup and only 0 and 1 are allowed */
+ 	if (mem_cgroup_is_root(memcg) || !((val == 0) || (val == 1)))
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
