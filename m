@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D81E12B94;
-	Thu, 15 Aug 2024 23:04:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856BC1537DE
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:06:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723763050; cv=none; b=ko/0UtD7P0K6eIN5wdU/YWGbg3K1+UsPKFS6Ap0+druDRmu7Cvwxf1SpcEK373H5B6GvXz46/QKlbwNN96VHbkeXyyWitAlCMjm8pc/WOfEJgJ7e7LfR761s+2ZrPCNSnPxnvbwjm2mrT4GWc7mWsMrpSiFP5veD+14CIAoyBkI=
+	t=1723763186; cv=none; b=TA2RX4EYiGmQiD79Xbxs4WcG9THJC4kGFryZ6k4xnV0XuzX2ZaDYY8F0g8FAte8JaSTXK8r9LkO9pO2PbjffXuReerl9bvhIwIZvXJkIbyAkMIkRv/JX2RXBXakdJ6Xe7SnQOXEUSlfVF2MUm5A0C5ef17ekrfZUJ197jATqJ9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723763050; c=relaxed/simple;
-	bh=IEEC+jtffX5lcp1nrDsJrcpgvd25d72MFCtAJE047JM=;
-	h=Date:To:From:Subject:Message-Id; b=CKxL+CePSOWmtnXN32GOL7vinygmWZY1m0+WNFfEBYFOGUByJyWCZAxl0ClKwbBEPEkK0nR6RxDwjMgf90iH6wNVIPTKAvxaTn5JHIyuD+g27jMD3do+n7485/TjuDBOC93M3pJP3JJik5WmUMFIQgMFAIOrNYFVw6ZGowVvrUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mrhlIJJJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723763186; c=relaxed/simple;
+	bh=jGbkntmKnYFxA/7TNR1lG2GzVWxAbkf98CBcRbzimc4=;
+	h=Date:To:From:Subject:Message-Id; b=cxtuGxp5OHjVwE40tYP39aerM6YgAMYnALeqlApSRTNrGDdzkRR388oHVrD/Ykskebs9K5rklQRKlQ4WlHutWDyZea4BVAfsdfBKJuqctTCTvBeAZQcpMsdfIzvPpiTKraZB8JbmAjCe1W3Sv3C2DxrNcmMv2C30kFCttfivfdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fj4keSmc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mrhlIJJJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FB69C32786;
-	Thu, 15 Aug 2024 23:04:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fj4keSmc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06658C32786;
+	Thu, 15 Aug 2024 23:06:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723763050;
-	bh=IEEC+jtffX5lcp1nrDsJrcpgvd25d72MFCtAJE047JM=;
+	s=korg; t=1723763186;
+	bh=jGbkntmKnYFxA/7TNR1lG2GzVWxAbkf98CBcRbzimc4=;
 	h=Date:To:From:Subject:From;
-	b=mrhlIJJJ90XRPcdDb2P5mX6YOp0iDTX8treDLHfu9KysdlNFx8BHY5tHnG5xB9wSH
-	 mlfmBGX34jBcHeIH+SXwmlxk9+WdUl00/b3mtupzMTJfQDAl13tNijN59onKw6/HNu
-	 UYdKZeM6Pkso2QW6vGK1hLCRa8DsQ7q/yo3yE2zE=
-Date: Thu, 15 Aug 2024 16:04:09 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,erhard_f@mailbox.org,davidgow@google.com,ivan.orlov0322@gmail.com,akpm@linux-foundation.org
+	b=Fj4keSmc3LHF+jtbMgdOAtlIMaVBdVI5vutbayQInWClf5lWZwdcQQR1Xlpufsr8n
+	 EnJP3UkfKA5Xv3STQSsYbIGbAorwQlB0F67Qj14Pv3Up/vi5vmf5bd3XtF5h0kgWEa
+	 58DH29IEerNoQw1yZzPZxy2yYyi2mETaubAV6tdM=
+Date: Thu, 15 Aug 2024 16:06:25 -0700
+To: mm-commits@vger.kernel.org,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-overflow-fix-ub-in-overflow_allocation_test.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240815230410.2FB69C32786@smtp.kernel.org>
+Subject: + mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch added to mm-unstable branch
+Message-Id: <20240815230626.06658C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit/overflow: fix UB in overflow_allocation_test
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kunit-overflow-fix-ub-in-overflow_allocation_test.patch
+     Subject: mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-overflow-fix-ub-in-overflow_allocation_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,53 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Subject: kunit/overflow: fix UB in overflow_allocation_test
-Date: Thu, 15 Aug 2024 01:04:31 +0100
+From: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Subject: mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
+Date: Wed, 14 Aug 2024 23:51:22 +0000
 
-The 'device_name' array doesn't exist out of the
-'overflow_allocation_test' function scope.  However, it is being used as a
-driver name when calling 'kunit_driver_create' from
-'kunit_device_register'.  It produces the kernel panic with KASAN enabled.
+added documentation of the memcg counters in cgroup-v2.rst
 
-Since this variable is used in one place only, remove it and pass the
-device name into kunit_device_register directly as an ascii string.
-
-Link: https://lkml.kernel.org/r/20240815000431.401869-1-ivan.orlov0322@gmail.com
-Fixes: ca90800a91ba ("test_overflow: Add memory allocation overflow tests")
-Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-Tested-by: Erhard Furtner <erhard_f@mailbox.org>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240814235122.252309-1-kaiyang2@cs.cmu.edu
+Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/overflow_kunit.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/lib/overflow_kunit.c~kunit-overflow-fix-ub-in-overflow_allocation_test
-+++ a/lib/overflow_kunit.c
-@@ -668,7 +668,6 @@ DEFINE_TEST_ALLOC(devm_kzalloc,  devm_kf
+--- a/Documentation/admin-guide/cgroup-v2.rst~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1617,6 +1617,25 @@ The following nested keys are defined.
+ 		Usually because failed to allocate some continuous swap space
+ 		for the huge page.
  
- static void overflow_allocation_test(struct kunit *test)
- {
--	const char device_name[] = "overflow-test";
- 	struct device *dev;
- 	int count = 0;
- 
-@@ -678,7 +677,7 @@ static void overflow_allocation_test(str
- } while (0)
- 
- 	/* Create dummy device for devm_kmalloc()-family tests. */
--	dev = kunit_device_register(test, device_name);
-+	dev = kunit_device_register(test, "overflow-test");
- 	KUNIT_ASSERT_FALSE_MSG(test, IS_ERR(dev),
- 			       "Cannot register test device\n");
++	  numa_pages_migrated (npn)
++		Number of pages migrated by NUMA balancing.
++
++	  numa_pte_updates (npn)
++		Number of pages whose page table entries are modified by
++		NUMA balancing to produce NUMA hinting faults on access.
++
++	  numa_hint_faults (npn)
++		Number of NUMA hinting faults.
++
++	  pgdemote_kswapd
++		Number of pages demoted by kswapd.
++
++	  pgdemote_direct
++		Number of pages demoted directly.
++
++	  pgdemote_khugepaged
++		Number of pages demoted by khugepaged.
++
+   memory.numa_stat
+ 	A read-only nested-keyed file which exists on non-root cgroups.
  
 _
 
-Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
+Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
 
-kunit-overflow-fix-ub-in-overflow_allocation_test.patch
+mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
+mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
+mm-print-the-promo-watermark-in-zoneinfo.patch
+mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
+mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
 
