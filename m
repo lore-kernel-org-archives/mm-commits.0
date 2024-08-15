@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90341547C0
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 21:43:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BB6A24211
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:11:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723758213; cv=none; b=de/V8omdK/NXDhZ95MXuwFKYwACzE9dn5LYgcg47bRvIsYcMr1xnnIayFHOUvFcs0DlRT++nudPXAB/l3o5gTxeUGYhMy3P9aQu0sUku0wlQWQhusNhsDLB3jlaP07IEa5oBenIR0yyU0yrfHWy4PBMeXLfCEBM3uDPoMcJ46lU=
+	t=1723759907; cv=none; b=n9v0b6OxWLnT1yR3P3AHhU6pBnwbRoiutN4US2qC8v2GYmXHkq+9+OhCnZCTSb0ysZAkqcdtRcnaskfc8YH2ZE0aWkaRS2FVWUoSORfH0ObdIWg3k2oh5CpIxHuLNr/XYwBW/DbWrlePU2CU6YbJs+0KnkgDz2gNrDkwXS/xX88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723758213; c=relaxed/simple;
-	bh=AOmA2Ij1gtNkwPO6hqhxw201PS+kaGJXi+WztGTibAo=;
-	h=Date:To:From:Subject:Message-Id; b=pXCkBtw3AS5/BE2/c0yChPL3I0iT8GZQP1kP6UZDTL4QucvrCNctD4gcqg8Q96H2QSBbuCIgnfv/QrS+wQl8IcihIjyTD/F6S9MSqcn5EAPZzmLvLqsBa6rS4ih30O4en00jtLg5ylhpoNL6g2PmzsM/MCS3m8aGb2wz9Wrp5MY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I6uSrQmK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723759907; c=relaxed/simple;
+	bh=dR73n4yQoplCpC7QHd4PUqXup/nFZLCFlJqssDajaMQ=;
+	h=Date:To:From:Subject:Message-Id; b=N9/ChypVHVW/kkdVRLCP/+0+CAgZerGv5fNJwQNvzA9Xe9EqLQQq1VGywGb1Azzl1BEG8oUrLHCoqfTDJeB7S1S1eraLj4iY5IAogI/9cAxEzem2gvs0EJ7ZmSQ/PZ9/A/xHCv+lhzDhdLT6gRX2YCOVeuJDhK2xm8+yC3wIHoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WJtIwb4i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I6uSrQmK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6503DC32786;
-	Thu, 15 Aug 2024 21:43:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WJtIwb4i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9910EC32786;
+	Thu, 15 Aug 2024 22:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723758212;
-	bh=AOmA2Ij1gtNkwPO6hqhxw201PS+kaGJXi+WztGTibAo=;
+	s=korg; t=1723759906;
+	bh=dR73n4yQoplCpC7QHd4PUqXup/nFZLCFlJqssDajaMQ=;
 	h=Date:To:From:Subject:From;
-	b=I6uSrQmK3c5VNgFjlSrsreKOwVoux3j4ZSeLW80yA/s7fIk58T7ydwRFz01BvgOuz
-	 kRoNDGjk6kJIXDD5w18KRy8xj1ZGwIPxmuH0rW4hyiOR9458PtU83CkX3X5MJ7D9mq
-	 OqIJ4SzDVJq8vCoFztRIOQKC8NAvOPno48gcKMls=
-Date: Thu, 15 Aug 2024 14:43:31 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,jani.nikula@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=WJtIwb4iUKnkUJ0rCPSfHl33+wJB3HkHfF1pq7xIH5zotbLLAkneFXYyJwE98t+/a
+	 OhHmAXDD6D4WeYz2N14u8nOsztcKlnoFkytzyS/ZiNKcdFMbcd5QGNZJDvPeRA/dnm
+	 9B6YcM53ceu9NNuUoN9xAh4XQeCZ5gMm420TAACk=
+Date: Thu, 15 Aug 2024 15:11:45 -0700
+To: mm-commits@vger.kernel.org,ryncsn@gmail.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch added to mm-nonmm-unstable branch
-Message-Id: <20240815214332.6503DC32786@smtp.kernel.org>
+Subject: + mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch added to mm-unstable branch
+Message-Id: <20240815221146.9910EC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+     Subject: mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-2
-Date: Thu Aug 15 02:41:21 PM PDT 2024
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix
+Date: Thu, 15 Aug 2024 20:16:56 +0100
 
-fix drivers/misc/xilinx_tmr_inject.c
+fix bug going from v1 page version to the folio version of the patch in v3
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202408160254.7w492KEu-lkp@intel.com/
-Cc: Jani Nikula <jani.nikula@intel.com>
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Reported-by: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/xilinx_tmr_inject.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/misc/xilinx_tmr_inject.c~fault-inject-improve-build-for-config_fault_injection=n-fix-2
-+++ a/drivers/misc/xilinx_tmr_inject.c
-@@ -12,6 +12,7 @@
- #include <asm/xilinx_mb_manager.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/debugfs.h>
- #include <linux/platform_device.h>
- #include <linux/fault-inject.h>
+--- a/mm/huge_memory.c~mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix
++++ a/mm/huge_memory.c
+@@ -3152,7 +3152,7 @@ static void __split_huge_page(struct pag
  
+ 			folio_clear_active(new_folio);
+ 			folio_clear_unevictable(new_folio);
+-			if (!folio_batch_add(&free_folios, folio)) {
++			if (!folio_batch_add(&free_folios, new_folio)) {
+ 				mem_cgroup_uncharge_folios(&free_folios);
+ 				free_unref_folios(&free_folios);
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-support-large-folios-swap-in-for-zram-like-devices-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch
+mm-introduce-a-pageflag-for-partially-mapped-folios.patch
+mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch
+mm-split-underutilized-thps.patch
+mm-add-sysfs-entry-to-disable-splitting-underutilized-thps.patch
 
