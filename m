@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856BC1537DE
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:06:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8305854FAD
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723763186; cv=none; b=TA2RX4EYiGmQiD79Xbxs4WcG9THJC4kGFryZ6k4xnV0XuzX2ZaDYY8F0g8FAte8JaSTXK8r9LkO9pO2PbjffXuReerl9bvhIwIZvXJkIbyAkMIkRv/JX2RXBXakdJ6Xe7SnQOXEUSlfVF2MUm5A0C5ef17ekrfZUJ197jATqJ9o=
+	t=1723763320; cv=none; b=JT3XuSRAcVst1kngQ7l1BIt5QVZX1+mFtUF6HHCBOYWrgb6aBhj1N8P+joknKbkQ6Ih7BKvZnxTG8yzR+oP890HvrByl5BOhPD3qnx44FnCCKLiGTdOEXPa42JoUmjRZKipxJ3XZJ7UNqpIlcv0KhlZ5CdpV9TiG7h6Akpsz0hA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723763186; c=relaxed/simple;
-	bh=jGbkntmKnYFxA/7TNR1lG2GzVWxAbkf98CBcRbzimc4=;
-	h=Date:To:From:Subject:Message-Id; b=cxtuGxp5OHjVwE40tYP39aerM6YgAMYnALeqlApSRTNrGDdzkRR388oHVrD/Ykskebs9K5rklQRKlQ4WlHutWDyZea4BVAfsdfBKJuqctTCTvBeAZQcpMsdfIzvPpiTKraZB8JbmAjCe1W3Sv3C2DxrNcmMv2C30kFCttfivfdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fj4keSmc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723763320; c=relaxed/simple;
+	bh=L1HyezewLT9/x3tuw2ue72cJIEq1oufCgD0U+HSP/8Q=;
+	h=Date:To:From:Subject:Message-Id; b=GbnmR9aIyr46SmI3JuljK8gwxJKwpIuxhcHQsmrMt2NFdlqaTX7XorBR1l5VVF9cxDsPyDGvgFK89libYsA/eqNKvFsPEtBMnl4pKeo2cK8CsDU3GwZKRUF/NHyDSGQZ1V8UXnQvRq09uzMMMBo5OeiEERkkqSdv7471ttzZ3hI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bfNwf1q8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fj4keSmc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06658C32786;
-	Thu, 15 Aug 2024 23:06:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bfNwf1q8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00992C32786;
+	Thu, 15 Aug 2024 23:08:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723763186;
-	bh=jGbkntmKnYFxA/7TNR1lG2GzVWxAbkf98CBcRbzimc4=;
+	s=korg; t=1723763320;
+	bh=L1HyezewLT9/x3tuw2ue72cJIEq1oufCgD0U+HSP/8Q=;
 	h=Date:To:From:Subject:From;
-	b=Fj4keSmc3LHF+jtbMgdOAtlIMaVBdVI5vutbayQInWClf5lWZwdcQQR1Xlpufsr8n
-	 EnJP3UkfKA5Xv3STQSsYbIGbAorwQlB0F67Qj14Pv3Up/vi5vmf5bd3XtF5h0kgWEa
-	 58DH29IEerNoQw1yZzPZxy2yYyi2mETaubAV6tdM=
-Date: Thu, 15 Aug 2024 16:06:25 -0700
-To: mm-commits@vger.kernel.org,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kaiyang2@cs.cmu.edu,akpm@linux-foundation.org
+	b=bfNwf1q8ALPE/vTdQtE1uX48vtctw1jpRZ86sNZ8VORwIPgnKya1oCTp7g3LSFC37
+	 HoIhBxZf52tljedJzsth3fbiPL71XMYBk7YK0rUOqWyke/zqcwin0w2LgfbksMgKWt
+	 jnamPHm/MfHGfgqv0F3kkbmxVcOLDEOuqkA7Fw98=
+Date: Thu, 15 Aug 2024 16:08:39 -0700
+To: mm-commits@vger.kernel.org,baohua@kernel.org,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch added to mm-unstable branch
-Message-Id: <20240815230626.06658C32786@smtp.kernel.org>
+Subject: [to-be-updated] mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch removed from -mm tree
+Message-Id: <20240815230840.00992C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,86 +34,82 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
+The quilt patch titled
+     Subject: mm-introduce-a-pageflag-for-partially-mapped-folios-fix
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
-Subject: mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
-Date: Wed, 14 Aug 2024 23:51:22 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm-introduce-a-pageflag-for-partially-mapped-folios-fix
+Date: Wed, 14 Aug 2024 13:36:58 +0100
 
-added documentation of the memcg counters in cgroup-v2.rst
+fix MTHP_STAT_SPLIT_DEFERRED for PMD_ORDER
 
-Link: https://lkml.kernel.org/r/20240814235122.252309-1-kaiyang2@cs.cmu.edu
-Signed-off-by: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
+Link: https://lkml.kernel.org/r/88d411c5-6d66-4d41-ae86-e0f943e5fb91@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Cc: Barry Song <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ mm/huge_memory.c |   17 +++++++++--------
+ mm/rmap.c        |    2 +-
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1617,6 +1617,25 @@ The following nested keys are defined.
- 		Usually because failed to allocate some continuous swap space
- 		for the huge page.
+--- a/mm/huge_memory.c~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
++++ a/mm/huge_memory.c
+@@ -3452,6 +3452,7 @@ void __folio_undo_large_rmappable(struct
+ 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+ }
  
-+	  numa_pages_migrated (npn)
-+		Number of pages migrated by NUMA balancing.
-+
-+	  numa_pte_updates (npn)
-+		Number of pages whose page table entries are modified by
-+		NUMA balancing to produce NUMA hinting faults on access.
-+
-+	  numa_hint_faults (npn)
-+		Number of NUMA hinting faults.
-+
-+	  pgdemote_kswapd
-+		Number of pages demoted by kswapd.
-+
-+	  pgdemote_direct
-+		Number of pages demoted directly.
-+
-+	  pgdemote_khugepaged
-+		Number of pages demoted by khugepaged.
-+
-   memory.numa_stat
- 	A read-only nested-keyed file which exists on non-root cgroups.
++/* partially_mapped=false won't clear PG_partially_mapped folio flag */
+ void deferred_split_folio(struct folio *folio, bool partially_mapped)
+ {
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+@@ -3481,16 +3482,16 @@ void deferred_split_folio(struct folio *
+ 		return;
  
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+-	if (partially_mapped)
++	if (partially_mapped) {
+ 		folio_set_partially_mapped(folio);
+-	else
+-		folio_clear_partially_mapped(folio);
++		if (folio_test_pmd_mappable(folio))
++			count_vm_event(THP_DEFERRED_SPLIT_PAGE);
++		count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
++	} else {
++		/* partially mapped folios cannont become partially unmapped */
++		VM_WARN_ON_FOLIO(folio_test_partially_mapped(folio), folio);
++	}
+ 	if (list_empty(&folio->_deferred_list)) {
+-		if (partially_mapped) {
+-			if (folio_test_pmd_mappable(folio))
+-				count_vm_event(THP_DEFERRED_SPLIT_PAGE);
+-			count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
+-		}
+ 		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
+ 		ds_queue->split_queue_len++;
+ #ifdef CONFIG_MEMCG
+--- a/mm/rmap.c~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
++++ a/mm/rmap.c
+@@ -1578,7 +1578,7 @@ static __always_inline void __folio_remo
+ 	 * Check partially_mapped first to ensure it is a large folio.
+ 	 */
+ 	if (partially_mapped && folio_test_anon(folio) &&
+-	    list_empty(&folio->_deferred_list))
++	    !folio_test_partially_mapped(folio))
+ 		deferred_split_folio(folio, true);
+ 
+ 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
 _
 
-Patches currently in -mm which might be from kaiyang2@cs.cmu.edu are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-consider-cma-pages-in-watermark-check-for-numa-balancing-target-node.patch
-mm-create-promo_wmark_pages-and-clean-up-open-coded-sites.patch
-mm-print-the-promo-watermark-in-zoneinfo.patch
-mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations.patch
-mmmemcg-provide-per-cgroup-counters-for-numa-balancing-operations-v4.patch
+mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch
+mm-introduce-a-pageflag-for-partially-mapped-folios.patch
+mm-split-underutilized-thps.patch
+mm-add-sysfs-entry-to-disable-splitting-underutilized-thps.patch
 
