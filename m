@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D758415E88
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:47:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D868415E88
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:47:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723762052; cv=none; b=nuW52xnDia5od6yz8MIfYNs5p/afonIhFlUUAdnEM8Ae9tgbLaReXB5+rzd1ke9hd/5/J26f/5IaQjTed88s5JH0aiTqwsz21JvuDvN6eJBlsfzLYu9KzoxRozjdDHxgjuUUjctQg2sB63BmLDknXcCqLYi+iwyH+Z1AVWWVbsE=
+	t=1723762054; cv=none; b=KYaNJhkDqvFyQ6H/bE9FoaxZMoJe10z6buWk1kKgLCXaA75A3REnRQguKB05YEhpcEBCSGlnmSKfz07frr3tqrnAMdYjcxQYK14yc0RMtxDhbGLu85NZKSa/maOrNrlvuTmKZlSuC6WKw09jzn3Y61cqDDC4ej6Sw4Lj0QyNIMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723762052; c=relaxed/simple;
-	bh=c32WYVx7iuV+9C8juhOysbh0hs2CHDNi4u9asOEqpaM=;
-	h=Date:To:From:Subject:Message-Id; b=FcXNI9c8wIu7rtNdDJDeEB4kmCRpXAuYoW4GDz/fl01LZSeTo8pO/Y5pSjfcWenWxRJLy3lTrBvUKfvt9mbYPUWdmQ6cRZURbwRtAomphUJwafwH8ss1HzO4gp7LJkVaSSsOwJjmmcozajAjG3q1GvTTqLnLzrvFRvK3Mp8bXkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=euoulL3g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723762054; c=relaxed/simple;
+	bh=TqLkXUtZa6asryZIClwo8eBxnOqnJAb2G1WlS6RRw+E=;
+	h=Date:To:From:Subject:Message-Id; b=pnbBMseD/p916ub9GNWhyGWS6YkkAxz/BBanbj47bMAobdUgwjLRImSYHTsVCdGxok56BG/vriBsWWWVJp42BkKjhd+mtodHktN4z2mHvQqDckQvJD/VQ/k4g6X9TkKuQR6eOP2WkLA3Mc8TTtC9+sg3CIdHkAYlDetMp2SZjD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ATgXjNn1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="euoulL3g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93DA8C32786;
-	Thu, 15 Aug 2024 22:47:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ATgXjNn1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5958CC32786;
+	Thu, 15 Aug 2024 22:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723762052;
-	bh=c32WYVx7iuV+9C8juhOysbh0hs2CHDNi4u9asOEqpaM=;
+	s=korg; t=1723762054;
+	bh=TqLkXUtZa6asryZIClwo8eBxnOqnJAb2G1WlS6RRw+E=;
 	h=Date:To:From:Subject:From;
-	b=euoulL3giVtOoG7e8U+J/aCpMA28cf8mmGMd++GHvdI+TIw1njbkh4c5z12KJWi69
-	 ErVdBDM1xKXTKVBb35JB867eB5tZL2ur/qx0GYpBhP/6PDrRAnPS+FdC05GnFMm93n
-	 GxyFllkpGmJ3Hs7hzruDY5uqflMWfNp+uMXcc3cA=
-Date: Thu, 15 Aug 2024 15:47:31 -0700
+	b=ATgXjNn1oBJelsBRtPEC2AvEBppL1dFzZl8tszn1JlC+cRr97PS8ve6O6z/clLKbO
+	 5f9iyD7/mUbqnMSuwoDS7B7R5bnoz1oHuUTYIipl+QWf3Z3ebzaMpRPxRua29eh9fF
+	 Qunc+2P7ZH/4pbqK3WBgFPQLv6kNd7OokJaxIwJg=
+Date: Thu, 15 Aug 2024 15:47:33 -0700
 To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-move-v1-only-percpu-stats-in-separate-struct.patch added to mm-unstable branch
-Message-Id: <20240815224732.93DA8C32786@smtp.kernel.org>
+Subject: + memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch added to mm-unstable branch
+Message-Id: <20240815224734.5958CC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: move v1 only percpu stats in separate struct
+     Subject: memcg: move mem_cgroup_event_ratelimit to v1 code
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-move-v1-only-percpu-stats-in-separate-struct.patch
+     memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-v1-only-percpu-stats-in-separate-struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,164 +59,133 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: move v1 only percpu stats in separate struct
-Date: Wed, 14 Aug 2024 22:04:47 -0700
+Subject: memcg: move mem_cgroup_event_ratelimit to v1 code
+Date: Wed, 14 Aug 2024 22:04:48 -0700
 
-Patch series "memcg: further decouple v1 code from v2".
+There are no callers of mem_cgroup_event_ratelimit() in the v2 code.  Move
+it to v1 only code and rename it to memcg1_event_ratelimit().
 
-Some of the v1 code is still in v2 code base due to v1 fields in the
-struct memcg_vmstats_percpu.  This field decouples those fileds from v2
-struct and move all the related code into v1 only code base.
-
-
-This patch (of 7):
-
-At the moment struct memcg_vmstats_percpu contains two v1 only fields
-which consumes memory even when CONFIG_MEMCG_V1 is not enabled.  In
-addition there are v1 only functions accessing them and are in the main
-memcontrol source file and can not be moved to v1 only source file due to
-these fields.  Let's move these fields into their own struct.  Later
-patches will move the functions accessing them to v1 source file and only
-allocate these fields when CONFIG_MEMCG_V1 is enabled.
-
-Link: https://lkml.kernel.org/r/20240815050453.1298138-1-shakeel.butt@linux.dev
-Link: https://lkml.kernel.org/r/20240815050453.1298138-2-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240815050453.1298138-3-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- mm/memcontrol-v1.h         |   19 +++++++++++++++++++
- mm/memcontrol.c            |   18 +++++++++---------
- 3 files changed, 30 insertions(+), 9 deletions(-)
+ mm/memcontrol-v1.c |   32 ++++++++++++++++++++++++++++++--
+ mm/memcontrol-v1.h |    2 --
+ mm/memcontrol.c    |   28 ----------------------------
+ 3 files changed, 30 insertions(+), 32 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-move-v1-only-percpu-stats-in-separate-struct
-+++ a/include/linux/memcontrol.h
-@@ -70,6 +70,7 @@ struct mem_cgroup_id {
- };
- 
- struct memcg_vmstats_percpu;
-+struct memcg1_events_percpu;
- struct memcg_vmstats;
- struct lruvec_stats_percpu;
- struct lruvec_stats;
-@@ -254,6 +255,7 @@ struct mem_cgroup {
- 	struct list_head objcg_list;
- 
- 	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
-+	struct memcg1_events_percpu __percpu *events_percpu;
- 
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	struct list_head cgwb_list;
---- a/mm/memcontrol.c~memcg-move-v1-only-percpu-stats-in-separate-struct
+--- a/mm/memcontrol.c~memcg-move-mem_cgroup_event_ratelimit-to-v1-code
 +++ a/mm/memcontrol.c
-@@ -488,10 +488,6 @@ struct memcg_vmstats_percpu {
- 	/* Delta calculation for lockless upward propagation */
- 	long			state_prev[MEMCG_VMSTAT_SIZE];
- 	unsigned long		events_prev[NR_MEMCG_EVENTS];
+@@ -95,9 +95,6 @@ static bool cgroup_memory_nobpf __ro_aft
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgwb_frn_waitq);
+ #endif
+ 
+-#define THRESHOLDS_EVENTS_TARGET 128
+-#define SOFTLIMIT_EVENTS_TARGET 1024
 -
--	/* Cgroup1: threshold notifications & softlimit tree updates */
--	unsigned long		nr_page_events;
--	unsigned long		targets[MEM_CGROUP_NTARGETS];
- } ____cacheline_aligned;
- 
- struct memcg_vmstats {
-@@ -868,7 +864,7 @@ void mem_cgroup_charge_statistics(struct
- 		nr_pages = -nr_pages; /* for event */
- 	}
- 
--	__this_cpu_add(memcg->vmstats_percpu->nr_page_events, nr_pages);
-+	__this_cpu_add(memcg->events_percpu->nr_page_events, nr_pages);
+ static inline bool task_is_dying(void)
+ {
+ 	return tsk_is_oom_victim(current) || fatal_signal_pending(current) ||
+@@ -867,31 +864,6 @@ void mem_cgroup_charge_statistics(struct
+ 	__this_cpu_add(memcg->events_percpu->nr_page_events, nr_pages);
  }
  
- bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
-@@ -876,8 +872,8 @@ bool mem_cgroup_event_ratelimit(struct m
+-bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
+-				enum mem_cgroup_events_target target)
+-{
+-	unsigned long val, next;
+-
+-	val = __this_cpu_read(memcg->events_percpu->nr_page_events);
+-	next = __this_cpu_read(memcg->events_percpu->targets[target]);
+-	/* from time_after() in jiffies.h */
+-	if ((long)(next - val) < 0) {
+-		switch (target) {
+-		case MEM_CGROUP_TARGET_THRESH:
+-			next = val + THRESHOLDS_EVENTS_TARGET;
+-			break;
+-		case MEM_CGROUP_TARGET_SOFTLIMIT:
+-			next = val + SOFTLIMIT_EVENTS_TARGET;
+-			break;
+-		default:
+-			break;
+-		}
+-		__this_cpu_write(memcg->events_percpu->targets[target], next);
+-		return true;
+-	}
+-	return false;
+-}
+-
+ struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
  {
- 	unsigned long val, next;
+ 	/*
+--- a/mm/memcontrol-v1.c~memcg-move-mem_cgroup_event_ratelimit-to-v1-code
++++ a/mm/memcontrol-v1.c
+@@ -1439,6 +1439,34 @@ static void mem_cgroup_threshold(struct
+ 	}
+ }
  
--	val = __this_cpu_read(memcg->vmstats_percpu->nr_page_events);
--	next = __this_cpu_read(memcg->vmstats_percpu->targets[target]);
++#define THRESHOLDS_EVENTS_TARGET 128
++#define SOFTLIMIT_EVENTS_TARGET 1024
++
++static bool memcg1_event_ratelimit(struct mem_cgroup *memcg,
++				enum mem_cgroup_events_target target)
++{
++	unsigned long val, next;
++
 +	val = __this_cpu_read(memcg->events_percpu->nr_page_events);
 +	next = __this_cpu_read(memcg->events_percpu->targets[target]);
- 	/* from time_after() in jiffies.h */
- 	if ((long)(next - val) < 0) {
- 		switch (target) {
-@@ -890,7 +886,7 @@ bool mem_cgroup_event_ratelimit(struct m
- 		default:
- 			break;
- 		}
--		__this_cpu_write(memcg->vmstats_percpu->targets[target], next);
++	/* from time_after() in jiffies.h */
++	if ((long)(next - val) < 0) {
++		switch (target) {
++		case MEM_CGROUP_TARGET_THRESH:
++			next = val + THRESHOLDS_EVENTS_TARGET;
++			break;
++		case MEM_CGROUP_TARGET_SOFTLIMIT:
++			next = val + SOFTLIMIT_EVENTS_TARGET;
++			break;
++		default:
++			break;
++		}
 +		__this_cpu_write(memcg->events_percpu->targets[target], next);
- 		return true;
- 	}
- 	return false;
-@@ -3523,6 +3519,7 @@ static void __mem_cgroup_free(struct mem
- 
- 	for_each_node(node)
- 		free_mem_cgroup_per_node_info(memcg, node);
-+	memcg1_free_events(memcg);
- 	kfree(memcg->vmstats);
- 	free_percpu(memcg->vmstats_percpu);
- 	kfree(memcg);
-@@ -3563,6 +3560,9 @@ static struct mem_cgroup *mem_cgroup_all
- 	if (!memcg->vmstats_percpu)
- 		goto fail;
- 
-+	if (!memcg1_alloc_events(memcg))
-+		goto fail;
++		return true;
++	}
++	return false;
++}
 +
- 	for_each_possible_cpu(cpu) {
- 		if (parent)
- 			pstatc = per_cpu_ptr(parent->vmstats_percpu, cpu);
-@@ -4678,7 +4678,7 @@ static void uncharge_batch(const struct
+ /*
+  * Check events in order.
+  *
+@@ -1449,11 +1477,11 @@ void memcg1_check_events(struct mem_cgro
+ 		return;
  
- 	local_irq_save(flags);
- 	__count_memcg_events(ug->memcg, PGPGOUT, ug->pgpgout);
--	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_memory);
-+	__this_cpu_add(ug->memcg->events_percpu->nr_page_events, ug->nr_memory);
- 	memcg1_check_events(ug->memcg, ug->nid);
- 	local_irq_restore(flags);
+ 	/* threshold event is triggered in finer grain than soft limit */
+-	if (unlikely(mem_cgroup_event_ratelimit(memcg,
++	if (unlikely(memcg1_event_ratelimit(memcg,
+ 						MEM_CGROUP_TARGET_THRESH))) {
+ 		bool do_softlimit;
  
---- a/mm/memcontrol-v1.h~memcg-move-v1-only-percpu-stats-in-separate-struct
+-		do_softlimit = mem_cgroup_event_ratelimit(memcg,
++		do_softlimit = memcg1_event_ratelimit(memcg,
+ 						MEM_CGROUP_TARGET_SOFTLIMIT);
+ 		mem_cgroup_threshold(memcg);
+ 		if (unlikely(do_softlimit))
+--- a/mm/memcontrol-v1.h~memcg-move-mem_cgroup_event_ratelimit-to-v1-code
 +++ a/mm/memcontrol-v1.h
-@@ -56,6 +56,12 @@ enum mem_cgroup_events_target {
- 	MEM_CGROUP_NTARGETS,
+@@ -62,8 +62,6 @@ struct memcg1_events_percpu {
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
-+/* Cgroup1: threshold notifications & softlimit tree updates */
-+struct memcg1_events_percpu {
-+	unsigned long nr_page_events;
-+	unsigned long targets[MEM_CGROUP_NTARGETS];
-+};
-+
- bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
- 				enum mem_cgroup_events_target target);
+-bool mem_cgroup_event_ratelimit(struct mem_cgroup *memcg,
+-				enum mem_cgroup_events_target target);
  unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
-@@ -69,6 +75,19 @@ unsigned long memcg_page_state_output(st
- unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- int memory_stat_show(struct seq_file *m, void *v);
  
-+static inline bool memcg1_alloc_events(struct mem_cgroup *memcg)
-+{
-+	memcg->events_percpu = alloc_percpu_gfp(struct memcg1_events_percpu,
-+						GFP_KERNEL_ACCOUNT);
-+	return !!memcg->events_percpu;
-+}
-+
-+static inline void memcg1_free_events(struct mem_cgroup *memcg)
-+{
-+	if (memcg->events_percpu)
-+		free_percpu(memcg->events_percpu);
-+}
-+
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
- void memcg1_memcg_init(struct mem_cgroup *memcg);
+ void drain_all_stock(struct mem_cgroup *root_memcg);
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
