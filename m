@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4437156861
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:47:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD0C915532E
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:47:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723762060; cv=none; b=WIAQI5PS05VfREDMw0bgjAxoWRb2d45taZpUWOZO+0crLyaHnkeNK3JImByS7AgpJPlOUXxyAqo28HDjFoSGzxMKm3EfAG9yLagoXt6vZ4Pfxz/2aYIAWGeDyxfQ5XfgqcokJrX+Hp8PxGj05E/tMhmL1QOloy84PLOB3tRjFco=
+	t=1723762063; cv=none; b=JrtFO6q0CTi8u0bIrCibQAI6CuhSf0WEw8p3JEP/iLDqr7dIkzerkm5g/oPzsx7UKjLg4YV5047rF0+F/x+rcLgKNT5CQrTh+fNmKh3bZHBLaWjasyhC5leFIR2CJS6ejkUKaDgl4FWN3fogrwnFKq8ih1Dg/XB4YV8U6bDK/pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723762060; c=relaxed/simple;
-	bh=APaIcR5PZAKIMcEqsXYYZ2EUIuy+C7hHRZ8TyzET2QY=;
-	h=Date:To:From:Subject:Message-Id; b=AyjyV3A4h7lKA09sHxuA5VvpMqPohwMH80SyYnibLLiF0A+D9xjjsLwJXmoBBDruX5owUplh7+ssiHgKYlTBs6krOXgjWMKihf8TDFzYCKmo1V9vf5rJ6Vrirt1i/qifOzrxKqldaDNV+SMWzIajp4mZ+IYo9KS+n5b2HSC2QpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n8e/aTce; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723762063; c=relaxed/simple;
+	bh=ggISc++j8cOsEHIA66NpMdtCWVxXV1m/EUJFaogyfuM=;
+	h=Date:To:From:Subject:Message-Id; b=judfUFonciQeOpcgOrxJo86X0zyGPET+sqqQVcRKyxBgRkf6PaKY7qfBiMUa9Az4O1X/rE0XBucrq38zRmirUT1MqLFmSZjLQTcGLER/F6c0avti0L3qBFpBpsQIlJjxSH151DaD1p0TqZDgJ6hhALwnmKj2YslCg7G/pYyFKVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mByox1vx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n8e/aTce"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1EE5C32786;
-	Thu, 15 Aug 2024 22:47:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mByox1vx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C99AC32786;
+	Thu, 15 Aug 2024 22:47:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723762060;
-	bh=APaIcR5PZAKIMcEqsXYYZ2EUIuy+C7hHRZ8TyzET2QY=;
+	s=korg; t=1723762062;
+	bh=ggISc++j8cOsEHIA66NpMdtCWVxXV1m/EUJFaogyfuM=;
 	h=Date:To:From:Subject:From;
-	b=n8e/aTceK+ibQSXFOLRCxMkC1fqmFL2Jydg5dhWXobwwa/6qymB6eyR1q/VFUhpr9
-	 NXfUWm4k6lTHPcU+2GN5b8jGrAkg8CLqAq0WdCnRXluwqLx5sddlOKFuU/w+F2Op30
-	 Q3PBFtilDx8DgTjN/O1C4G88GxjD87nt3xCcRtak=
-Date: Thu, 15 Aug 2024 15:47:40 -0700
+	b=mByox1vx6pE7NRefJk+BfzHt5uoFWcF7XN9p4shU1Hm7c8MOIgTvBXLGLrwXYkagW
+	 ZO4KRsonXMVZiqg9N5qXVcKs4Tup48DTPGLLE5sFvUZIyJRJRzoxcckc883h3ytoG0
+	 U2cVn+Jc6HHBdHEg/IPpWzytz7RF67eLW9z9eigQ=
+Date: Thu, 15 Aug 2024 15:47:41 -0700
 To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch added to mm-unstable branch
-Message-Id: <20240815224740.A1EE5C32786@smtp.kernel.org>
+Subject: + memcg-make-pgpgin-and-pgpgout-v1-only.patch added to mm-unstable branch
+Message-Id: <20240815224742.4C99AC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: allocate v1 event percpu only on v1 deployment
+     Subject: memcg: make PGPGIN and PGPGOUT v1 only
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch
+     memcg-make-pgpgin-and-pgpgout-v1-only.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-make-pgpgin-and-pgpgout-v1-only.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: allocate v1 event percpu only on v1 deployment
-Date: Wed, 14 Aug 2024 22:04:52 -0700
+Subject: memcg: make PGPGIN and PGPGOUT v1 only
+Date: Wed, 14 Aug 2024 22:04:53 -0700
 
-Currently memcg->events_percpu gets allocated on v2 deployments.  Let's
-move the allocation to v1 only codebase.  This is not needed in v2.
+Currently PGPGIN and PGPGOUT are used and exposed in the memcg v1 only
+code.  So, let's put them under CONFIG_MEMCG_V1.
 
-Link: https://lkml.kernel.org/r/20240815050453.1298138-7-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240815050453.1298138-8-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -75,116 +75,35 @@ Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- mm/memcontrol-v1.c         |   19 +++++++++++++++++++
- mm/memcontrol-v1.h         |   26 +++++++-------------------
- 3 files changed, 28 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-allocate-v1-event-percpu-only-on-v1-deployment
-+++ a/include/linux/memcontrol.h
-@@ -255,7 +255,6 @@ struct mem_cgroup {
- 	struct list_head objcg_list;
+--- a/mm/memcontrol.c~memcg-make-pgpgin-and-pgpgout-v1-only
++++ a/mm/memcontrol.c
+@@ -414,8 +414,10 @@ unsigned long lruvec_page_state_local(st
  
- 	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
--	struct memcg1_events_percpu __percpu *events_percpu;
+ /* Subset of vm_event_item to report for memcg event stats */
+ static const unsigned int memcg_vm_event_stat[] = {
++#ifdef CONFIG_MEMCG_V1
+ 	PGPGIN,
+ 	PGPGOUT,
++#endif
+ 	PGSCAN_KSWAPD,
+ 	PGSCAN_DIRECT,
+ 	PGSCAN_KHUGEPAGED,
+@@ -1474,10 +1476,11 @@ static void memcg_stat_format(struct mem
+ 		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
  
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	struct list_head cgwb_list;
-@@ -277,6 +276,8 @@ struct mem_cgroup {
- 	struct page_counter kmem;		/* v1 only */
- 	struct page_counter tcpmem;		/* v1 only */
- 
-+	struct memcg1_events_percpu __percpu *events_percpu;
-+
- 	unsigned long soft_limit;
- 
- 	/* protected by memcg_oom_lock */
---- a/mm/memcontrol-v1.c~memcg-allocate-v1-event-percpu-only-on-v1-deployment
-+++ a/mm/memcontrol-v1.c
-@@ -1442,6 +1442,12 @@ static void mem_cgroup_threshold(struct
- 	}
- }
- 
-+/* Cgroup1: threshold notifications & softlimit tree updates */
-+struct memcg1_events_percpu {
-+	unsigned long nr_page_events;
-+	unsigned long targets[MEM_CGROUP_NTARGETS];
-+};
-+
- static void memcg1_charge_statistics(struct mem_cgroup *memcg, int nr_pages)
- {
- 	/* pagein of a big page is an event. So, ignore page size */
-@@ -3030,6 +3036,19 @@ bool memcg1_charge_skmem(struct mem_cgro
- 	return false;
- }
- 
-+bool memcg1_alloc_events(struct mem_cgroup *memcg)
-+{
-+	memcg->events_percpu = alloc_percpu_gfp(struct memcg1_events_percpu,
-+						GFP_KERNEL_ACCOUNT);
-+	return !!memcg->events_percpu;
-+}
-+
-+void memcg1_free_events(struct mem_cgroup *memcg)
-+{
-+	if (memcg->events_percpu)
-+		free_percpu(memcg->events_percpu);
-+}
-+
- static int __init memcg1_init(void)
- {
- 	int node;
---- a/mm/memcontrol-v1.h~memcg-allocate-v1-event-percpu-only-on-v1-deployment
-+++ a/mm/memcontrol-v1.h
-@@ -55,12 +55,6 @@ enum mem_cgroup_events_target {
- 	MEM_CGROUP_NTARGETS,
- };
- 
--/* Cgroup1: threshold notifications & softlimit tree updates */
--struct memcg1_events_percpu {
--	unsigned long nr_page_events;
--	unsigned long targets[MEM_CGROUP_NTARGETS];
--};
+ 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
++#ifdef CONFIG_MEMCG_V1
+ 		if (memcg_vm_event_stat[i] == PGPGIN ||
+ 		    memcg_vm_event_stat[i] == PGPGOUT)
+ 			continue;
 -
- unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
- 
- void drain_all_stock(struct mem_cgroup *root_memcg);
-@@ -72,21 +66,12 @@ unsigned long memcg_page_state_output(st
- unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- int memory_stat_show(struct seq_file *m, void *v);
- 
--static inline bool memcg1_alloc_events(struct mem_cgroup *memcg)
--{
--	memcg->events_percpu = alloc_percpu_gfp(struct memcg1_events_percpu,
--						GFP_KERNEL_ACCOUNT);
--	return !!memcg->events_percpu;
--}
--
--static inline void memcg1_free_events(struct mem_cgroup *memcg)
--{
--	if (memcg->events_percpu)
--		free_percpu(memcg->events_percpu);
--}
--
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
-+
-+bool memcg1_alloc_events(struct mem_cgroup *memcg);
-+void memcg1_free_events(struct mem_cgroup *memcg);
-+
- void memcg1_memcg_init(struct mem_cgroup *memcg);
- void memcg1_remove_from_trees(struct mem_cgroup *memcg);
- 
-@@ -139,6 +124,9 @@ extern struct cftype mem_cgroup_legacy_f
- 
- #else	/* CONFIG_MEMCG_V1 */
- 
-+static inline bool memcg1_alloc_events(struct mem_cgroup *memcg) { return true; }
-+static inline void memcg1_free_events(struct mem_cgroup *memcg) {}
-+
- static inline void memcg1_memcg_init(struct mem_cgroup *memcg) {}
- static inline void memcg1_remove_from_trees(struct mem_cgroup *memcg) {}
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
++#endif
+ 		seq_buf_printf(s, "%s %lu\n",
+ 			       vm_event_name(memcg_vm_event_stat[i]),
+ 			       memcg_events(memcg, memcg_vm_event_stat[i]));
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
