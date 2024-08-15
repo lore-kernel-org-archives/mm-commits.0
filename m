@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3925424211
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:13:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EE0780B
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:18:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723759993; cv=none; b=k5nAlWxEgEzjmK0W4/IAORSSyyQfgxZ7+mqm7cS9R7cqNO9ESb2cdbPDeC0ilgaI7xJPLOsK+40ly/uUXiCJgN0UFX8EbHo8Jow7wkAAmF5lN2TBUh92Mzj66hFNmr0NKdRRQBksF/SY5vay0htfgywpPoIXsCe7kr6S3nRl9WA=
+	t=1723760319; cv=none; b=HduEwIxbvp3oy6p+OsHBZd8di5c76ChW4WfrvQ6VMWrOPWqRzwQ45N6GiM5O32yXbOGS85T+nyh9JeiDf+6q0MU66LlNv0RP5Dukc6mRMPcsQF2uYoQXuY6SRkzoX3PzXTWKFi8hiAxbAOllD6KRZyeBcu+Jfwiv91KonpiIY00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723759993; c=relaxed/simple;
-	bh=qVRmOWU9H94w7UNlh78oRlIEAXR3ULVFoANMC0c5dT8=;
-	h=Date:To:From:Subject:Message-Id; b=XdreAb0INxZH4tIDYJN5OLWtqb0sAjom+mSAHQSwD7puddbW2WIiiWSS/pgrADPzG3Swq+aUoFiZ4zZ8HMod8enK5Ng3QOymOc2BDvWJDtPVLvwJHDtrBrIdOOh66O3sW988W0yHdCq8KozlAf5lMu3xwYZf77gdD/xki1YZaK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rIJAzT1r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723760319; c=relaxed/simple;
+	bh=2HirZpSguoO/8q93eXnk+sdDKwWz6WP1OO0X9Dr0RUU=;
+	h=Date:To:From:Subject:Message-Id; b=LGY3RiPnJP+f59r6p5OxjD7yALNfdvb8WZBBG1+Jrzu1lH4hx0iupOxbJSodPxhdCRPDPsyf/RwRY8lDyeoZHV0xgdz3cyjRZJjsCFedeSTsi94X1IhTvjykptjz6HIdQ8V9lHpBUolZZsIR6+TRqv3Pp68I67SdlRFB472kaC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uGaJz7e9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rIJAzT1r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94782C32786;
-	Thu, 15 Aug 2024 22:13:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uGaJz7e9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF89CC32786;
+	Thu, 15 Aug 2024 22:18:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723759992;
-	bh=qVRmOWU9H94w7UNlh78oRlIEAXR3ULVFoANMC0c5dT8=;
+	s=korg; t=1723760318;
+	bh=2HirZpSguoO/8q93eXnk+sdDKwWz6WP1OO0X9Dr0RUU=;
 	h=Date:To:From:Subject:From;
-	b=rIJAzT1r7G9C8i6jvX8VTPBmQAaIQz1w4EFtchQTP4REwvquhoAzKGUeOU1vVEMqY
-	 hPe+eT3Wjc1xKTGqwOEHlIuCI02x685HuLsnCtA8PHL21U0I0g/NRDcU80tSjt93ue
-	 vtjdfNggMVYGDq0FWzCpcnyTchMaksglYVtrYLxM=
-Date: Thu, 15 Aug 2024 15:13:11 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=uGaJz7e9IDX4V9KBlrhEag1UFn/JdUqq7yhRft8BQyonOtoSU3DbXTmMzhcGpCJL/
+	 9pa4NBa0IdThEGRrUQM3u6oloYwPb4B7G69HKcxrw92UUeDnWJJHEVmkZrLQzPKJLs
+	 kVl/TA43e4JCUS5Vtjxx0896rxFFB3uSK37CEHpc=
+Date: Thu, 15 Aug 2024 15:18:38 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,dan.carpenter@linaro.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch added to mm-unstable branch
-Message-Id: <20240815221312.94782C32786@smtp.kernel.org>
+Subject: + memcg-replace-memcg-id-idr-with-xarray-v2.patch added to mm-unstable branch
+Message-Id: <20240815221838.AF89CC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
+     Subject: memcg: replace memcg ID idr with xarray
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+     memcg-replace-memcg-id-idr-with-xarray-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-replace-memcg-id-idr-with-xarray-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,72 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
-Date: Fri, 16 Aug 2024 09:36:23 +1200
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: replace memcg ID idr with xarray
+Date: Thu, 15 Aug 2024 08:54:02 -0700
 
-Right now, it is possible two folios are contiguous in swap slots but they
-don't belong to one memcg.  In this case, even we return a large nr, we
-can't really batch free all slots.
+fix error path in mem_cgroup_alloc(), per Dan
 
-Link: https://lkml.kernel.org/r/20240815215308.55233-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reported-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/20240815155402.3630804-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix
-+++ a/mm/internal.h
-@@ -15,6 +15,7 @@
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/swap_cgroup.h>
- #include <linux/tracepoint-defs.h>
+--- a/mm/memcontrol.c~memcg-replace-memcg-id-idr-with-xarray-v2
++++ a/mm/memcontrol.c
+@@ -3496,16 +3496,17 @@ static struct mem_cgroup *mem_cgroup_all
+ 	struct mem_cgroup *memcg;
+ 	int node, cpu;
+ 	int __maybe_unused i;
+-	long error = -ENOMEM;
++	long error;
  
- /* Internal core VMA manipulation functions. */
-@@ -275,18 +276,22 @@ static inline int swap_pte_batch(pte_t *
- {
- 	pte_t expected_pte = pte_next_swp_offset(pte);
- 	const pte_t *end_ptep = start_ptep + max_nr;
-+	swp_entry_t entry = pte_to_swp_entry(pte);
- 	pte_t *ptep = start_ptep + 1;
-+	unsigned short cgroup_id;
+ 	memcg = kzalloc(struct_size(memcg, nodeinfo, nr_node_ids), GFP_KERNEL);
+ 	if (!memcg)
+-		return ERR_PTR(error);
++		return ERR_PTR(-ENOMEM);
  
- 	VM_WARN_ON(max_nr < 1);
- 	VM_WARN_ON(!is_swap_pte(pte));
--	VM_WARN_ON(non_swap_entry(pte_to_swp_entry(pte)));
-+	VM_WARN_ON(non_swap_entry(entry));
+ 	error = xa_alloc(&mem_cgroup_ids, &memcg->id.id, NULL,
+ 			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
+ 	if (error)
+ 		goto fail;
++	error = -ENOMEM;
  
-+	cgroup_id = lookup_swap_cgroup_id(entry);
- 	while (ptep < end_ptep) {
- 		pte = ptep_get(ptep);
- 
- 		if (!pte_same(pte, expected_pte))
- 			break;
--
-+		if (lookup_swap_cgroup_id(pte_to_swp_entry(pte)) != cgroup_id)
-+			break;
- 		expected_pte = pte_next_swp_offset(expected_pte);
- 		ptep++;
- 	}
+ 	memcg->vmstats = kzalloc(sizeof(struct memcg_vmstats),
+ 				 GFP_KERNEL_ACCOUNT);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
-vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
-mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
-mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
-mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+memcg-increase-the-valid-index-range-for-memcg-stats.patch
+memcg-replace-memcg-id-idr-with-xarray.patch
+memcg-replace-memcg-id-idr-with-xarray-v2.patch
+memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
 
