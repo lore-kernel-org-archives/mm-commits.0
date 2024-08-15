@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD0C915532E
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:47:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1D17154BEA
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:56:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723762063; cv=none; b=JrtFO6q0CTi8u0bIrCibQAI6CuhSf0WEw8p3JEP/iLDqr7dIkzerkm5g/oPzsx7UKjLg4YV5047rF0+F/x+rcLgKNT5CQrTh+fNmKh3bZHBLaWjasyhC5leFIR2CJS6ejkUKaDgl4FWN3fogrwnFKq8ih1Dg/XB4YV8U6bDK/pc=
+	t=1723762607; cv=none; b=XUBIxUkxehQyf01IS5O2aYF17FISVECvgEdoHIJbivCQmDLQhTQZ+ZC4QO8X5soEGSB5bVMBRDmVxWPSN+7NImIeIa3JlXpUoEdP26OU5402NSgs50q+lC1P0Wybuv0OlSijGrxrosuIsjFLZTlfsTQ3K4h94ExwgmoLP9Oa2dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723762063; c=relaxed/simple;
-	bh=ggISc++j8cOsEHIA66NpMdtCWVxXV1m/EUJFaogyfuM=;
-	h=Date:To:From:Subject:Message-Id; b=judfUFonciQeOpcgOrxJo86X0zyGPET+sqqQVcRKyxBgRkf6PaKY7qfBiMUa9Az4O1X/rE0XBucrq38zRmirUT1MqLFmSZjLQTcGLER/F6c0avti0L3qBFpBpsQIlJjxSH151DaD1p0TqZDgJ6hhALwnmKj2YslCg7G/pYyFKVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mByox1vx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723762607; c=relaxed/simple;
+	bh=VBIcim/ntM8LSfSGwLEXNV/RajYV0x7HM/C9cnQywDQ=;
+	h=Date:To:From:Subject:Message-Id; b=M06s+LLDOv9CLEPikO4Nq6MLViDY65Rl9w7nylUvslvmHZO8v0HPrU+cbE9eu0XB13v3Xybhkszt6KWQkUruk5vCBOmmBt5iF4+HCX9IwGcqt2j9xC+2+j1SqhMUG2jXXOJIlu2kQIbHtrFfkOcM3h60lyOuwoE0L0bNQasfHBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N5s1dL2C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mByox1vx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C99AC32786;
-	Thu, 15 Aug 2024 22:47:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N5s1dL2C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF60C4AF09;
+	Thu, 15 Aug 2024 22:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723762062;
-	bh=ggISc++j8cOsEHIA66NpMdtCWVxXV1m/EUJFaogyfuM=;
+	s=korg; t=1723762607;
+	bh=VBIcim/ntM8LSfSGwLEXNV/RajYV0x7HM/C9cnQywDQ=;
 	h=Date:To:From:Subject:From;
-	b=mByox1vx6pE7NRefJk+BfzHt5uoFWcF7XN9p4shU1Hm7c8MOIgTvBXLGLrwXYkagW
-	 ZO4KRsonXMVZiqg9N5qXVcKs4Tup48DTPGLLE5sFvUZIyJRJRzoxcckc883h3ytoG0
-	 U2cVn+Jc6HHBdHEg/IPpWzytz7RF67eLW9z9eigQ=
-Date: Thu, 15 Aug 2024 15:47:41 -0700
-To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=N5s1dL2CwGsEvuUwrtgBVngdeHMnrlxy8pDYLFvMFOGXFVEmw1CGIpDkb1Cq1ZWbx
+	 bqE33lZxK5f0Yv4s1le7MgK58nCqgoPYDg8UhxCFCW6W7p/GbY96O6mJ0PREwZseqd
+	 ZGQo4xayHj1H2QykfuCUBlS4NqeHOzrH4ZfHkqEQ=
+Date: Thu, 15 Aug 2024 15:56:46 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,jani.nikula@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-make-pgpgin-and-pgpgout-v1-only.patch added to mm-unstable branch
-Message-Id: <20240815224742.4C99AC32786@smtp.kernel.org>
+Subject: + fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch added to mm-nonmm-unstable branch
+Message-Id: <20240815225647.6BF60C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: make PGPGIN and PGPGOUT v1 only
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-make-pgpgin-and-pgpgout-v1-only.patch
+     Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-3
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-make-pgpgin-and-pgpgout-v1-only.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make PGPGIN and PGPGOUT v1 only
-Date: Wed, 14 Aug 2024 22:04:53 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-3
+Date: Thu Aug 15 03:54:55 PM PDT 2024
 
-Currently PGPGIN and PGPGOUT are used and exposed in the memcg v1 only
-code.  So, let's put them under CONFIG_MEMCG_V1.
+Add debugfs.h inclusion to more files, per Stephen
 
-Link: https://lkml.kernel.org/r/20240815050453.1298138-8-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/msm/msm_drv.c          |    1 +
+ drivers/ufs/core/ufs-fault-injection.c |    1 +
+ include/linux/mmc/host.h               |    1 +
+ include/ufs/ufshcd.h                   |    1 +
+ 4 files changed, 4 insertions(+)
 
---- a/mm/memcontrol.c~memcg-make-pgpgin-and-pgpgout-v1-only
-+++ a/mm/memcontrol.c
-@@ -414,8 +414,10 @@ unsigned long lruvec_page_state_local(st
+--- a/drivers/gpu/drm/msm/msm_drv.c~fault-inject-improve-build-for-config_fault_injection=n-fix-3
++++ a/drivers/gpu/drm/msm/msm_drv.c
+@@ -7,6 +7,7 @@
  
- /* Subset of vm_event_item to report for memcg event stats */
- static const unsigned int memcg_vm_event_stat[] = {
-+#ifdef CONFIG_MEMCG_V1
- 	PGPGIN,
- 	PGPGOUT,
-+#endif
- 	PGSCAN_KSWAPD,
- 	PGSCAN_DIRECT,
- 	PGSCAN_KHUGEPAGED,
-@@ -1474,10 +1476,11 @@ static void memcg_stat_format(struct mem
- 		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
+ #include <linux/dma-mapping.h>
+ #include <linux/fault-inject.h>
++#include <linux/debugfs.h>
+ #include <linux/of_address.h>
+ #include <linux/uaccess.h>
  
- 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
-+#ifdef CONFIG_MEMCG_V1
- 		if (memcg_vm_event_stat[i] == PGPGIN ||
- 		    memcg_vm_event_stat[i] == PGPGOUT)
- 			continue;
--
-+#endif
- 		seq_buf_printf(s, "%s %lu\n",
- 			       vm_event_name(memcg_vm_event_stat[i]),
- 			       memcg_events(memcg, memcg_vm_event_stat[i]));
+--- a/drivers/ufs/core/ufs-fault-injection.c~fault-inject-improve-build-for-config_fault_injection=n-fix-3
++++ a/drivers/ufs/core/ufs-fault-injection.c
+@@ -3,6 +3,7 @@
+ #include <linux/kconfig.h>
+ #include <linux/types.h>
+ #include <linux/fault-inject.h>
++#include <linux/debugfs.h>
+ #include <linux/module.h>
+ #include <ufs/ufshcd.h>
+ #include "ufs-fault-injection.h"
+--- a/include/linux/mmc/host.h~fault-inject-improve-build-for-config_fault_injection=n-fix-3
++++ a/include/linux/mmc/host.h
+@@ -10,6 +10,7 @@
+ #include <linux/sched.h>
+ #include <linux/device.h>
+ #include <linux/fault-inject.h>
++#include <linux/debugfs.h>
+ 
+ #include <linux/mmc/core.h>
+ #include <linux/mmc/card.h>
+--- a/include/ufs/ufshcd.h~fault-inject-improve-build-for-config_fault_injection=n-fix-3
++++ a/include/ufs/ufshcd.h
+@@ -17,6 +17,7 @@
+ #include <linux/blk-mq.h>
+ #include <linux/devfreq.h>
+ #include <linux/fault-inject.h>
++#include <linux/debugfs.h>
+ #include <linux/msi.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/dma-direction.h>
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-increase-the-valid-index-range-for-memcg-stats.patch
-memcg-replace-memcg-id-idr-with-xarray.patch
-memcg-replace-memcg-id-idr-with-xarray-v2.patch
-memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
-memcg-move-v1-only-percpu-stats-in-separate-struct.patch
-memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch
-memcg-move-mem_cgroup_charge_statistics-to-v1-code.patch
-memcg-move-v1-events-and-statistics-code-to-v1-file.patch
-memcg-make-v1-only-functions-static.patch
-memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch
-memcg-make-pgpgin-and-pgpgout-v1-only.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-support-large-folios-swap-in-for-zram-like-devices-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
