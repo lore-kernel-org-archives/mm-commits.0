@@ -1,95 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E867D625
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 00:02:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48A201714D0
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 13:34:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723680174; cv=none; b=at53xPxkDtHKOOAHy5CZauCCRqZ3nTYhbeOXx+aILO/dgdK9PHgUKDh31u5iufpDRpiI+PYzs9aTyfOI6bRZlbKtWUQmNkFEuBg3QTBgxO3uTFUUk0KYJNwwDqEVKN9TmMJRfr9efzLll4zX3nCrTHRFgFdqD2KN4b339j6fMq4=
+	t=1723728884; cv=none; b=jkqlNGGn47V2OM0r47og0kxQYK/GxZK5Gcr1lFYtylU18+na1z9HMoB01yhB7Fp95LXJonZbT1RKwsj4yvttZzEg2zown0fZS9Dp/uPxa10ILqIQSy17p6XoOAALYgaSFDaoKUVGQabTABeBNfaWhpGjgFEk9IRQIL8AdbW4eFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723680174; c=relaxed/simple;
-	bh=sho+qQNMqUbXgAdVSz4kh5B5WxyDgEs4P0h7KGqV9eU=;
-	h=Date:To:From:Subject:Message-Id; b=DlC50RtIQmmSUoyC/N3u1NB7QPAWJ29M0oTHIXfo+EdcKI1yVCOya4i5OVIa72T8QrWi2FN1Cc2pq6W8Ve2UF88O4mV1ybnLR97U1DbogEkWjeEbz2AX4T0tImS/0en+6yPUixIw/UEbRRnsNbklGYoeLGX5f4CRDoXj8N7aMRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tMYdyqOR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723728884; c=relaxed/simple;
+	bh=LxQFSfuzvmkveXtjKBwsYlnTgh7u+bLcpxWU99qf/z0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=n6eoakrS10Zo5CsFf1AM7vYVXhV18L6luAV+gAZsIv2b157sUnjd8vd+syhyZq4SVtUIlRiEO7bvse5XODUrIqiOhSaQFWRIETQSVTU4/8tfKexy2SDYIFO9ADg3OmNPq96EHkbeAwLJ9rkMkOfgHljGCDBaIVJpSH2WVd2EaNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dBc7OQpp; arc=none smtp.client-ip=209.85.216.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tMYdyqOR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4098AC116B1;
-	Thu, 15 Aug 2024 00:02:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723680173;
-	bh=sho+qQNMqUbXgAdVSz4kh5B5WxyDgEs4P0h7KGqV9eU=;
-	h=Date:To:From:Subject:From;
-	b=tMYdyqORsNvkdbu0P088FckWUikEseYxjs1hoGJyorywm8CfxTWvzMUVx5XMu1Qam
-	 UjFoj2zyyqZjUYjVLtKLVJSH0TC0zB2lRbM+YIJ9gdubWIYzY6aEcs+inYCKINZ6zG
-	 XWLE/Mu/dcIZCJK7XdWcmS0s9dmbHLl/AA4uXuSM=
-Date: Wed, 14 Aug 2024 17:02:52 -0700
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch removed from -mm tree
-Message-Id: <20240815000253.4098AC116B1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dBc7OQpp"
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-2d3d0b06a2dso281152a91.0
+        for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 06:34:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1723728882; x=1724333682; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LQwxBKf3uU+3GvALboAFtrbyH9GotoKzkq4mFpsuiGY=;
+        b=dBc7OQppRDQrknfToikYn2TaLO5NJBjjK7Bt3rPHnBn8ULR7lW98CLHolgQSmU5p1p
+         yttzQv3ftTB+ehWIB9VSja9Nwh95n41xHx6+PtntQpNw7HExZln87A659YnCJ57vdfs5
+         A3a106LmW/YzYNw7PNpUgE7GgDL/E4G4F9ZobQLa93QLUkrr64xYeYmpoqG/ZnF8CUe/
+         nxTov3rQ7AUh/fT+Oulkmtvg/XriAApl57hr3G/SSxbV5sFkBCqGHsgkFZ/m6wt2jlPB
+         cgtmHAeXwHQAhMRBXhjIJ3x5zE8AzTd1+9RM9GwtNacV9/pSQ68RyrWugQwxGOzHCcy1
+         yo9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1723728882; x=1724333682;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=LQwxBKf3uU+3GvALboAFtrbyH9GotoKzkq4mFpsuiGY=;
+        b=JgL7E/4Xr70Jbu9yfRmjZsanPR/CjG7ljgcyYrONWh2XxRuZJsQfsZUuLBKkUziLte
+         pm6qsxEYIT2o9N6Ce++oEfDzCZoTUf5C6oOFNG8orf+uKSzw9aGfQ5WtHdN0Z8+51Wl+
+         y335Nfd5MVNkdLviHsNaUUAZkjlbPdl/TIb77rQwpK4KUg4copKufw4QVoP28TEvefVL
+         eui7hx2l+849PzkHKe0gtlxJgJzYw/NyEx2+mv0SFdcod+i8DzIjZOA6pUuZKvj56VMM
+         4HN+IeXpEFhlYFLUaZOfZKNp2skLwAd9WRBFYNzdXUrpcA55Lj5AozYBb+T0wt7JuCiz
+         hxBw==
+X-Gm-Message-State: AOJu0YwAxiOu+52PeBfiTjAA7MHdlrN5X7avNiQI9VSgC2CXwt2vIunq
+	vB3ULpFkunYkkpD5Wf2SwUgTOmIbO0RWG/FBJM8UVQUPjfiQSHWKvPNu4m/B0kj+Oo/4SER8MgZ
+	PYc640BYBq0lLI60Uaq4o/rRj083bSRR1UDY=
+X-Google-Smtp-Source: AGHT+IGQPiGr04e5GTBWx6PzyzS8clv5IYitRVg4QxJBk4T60As30lQpg8OCfBigEBI7pHwj7d4/nbbmuhUa3nUdJ4k=
+X-Received: by 2002:a17:90b:3687:b0:2d3:c4cd:245f with SMTP id
+ 98e67ed59e1d1-2d3c4cd24ffmr3165600a91.17.1723728882513; Thu, 15 Aug 2024
+ 06:34:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240814202725.5BE36C116B1@smtp.kernel.org>
+In-Reply-To: <20240814202725.5BE36C116B1@smtp.kernel.org>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Thu, 15 Aug 2024 15:34:30 +0200
+Message-ID: <CANiq72mOivuUg_S5KCmrh71d9Tk49LaaCWjgxLFFNAs3dZWQFA@mail.gmail.com>
+Subject: Re: + kasan-simplify-and-clarify-makefile-v2.patch added to
+ mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, ojeda@kernel.org, andreyknvl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi Andrew, Andrey,
 
-The quilt patch titled
-     Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
-has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+On Wed, Aug 14, 2024 at 10:27=E2=80=AFPM Andrew Morton
+<akpm@linux-foundation.org> wrote:
+>
+> The patch titled
+>      Subject: kasan-simplify-and-clarify-makefile-v2
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      kasan-simplify-and-clarify-makefile-v2.patch
 
-This patch was dropped because an updated version will be issued
+Would it be an option to take this through the Rust tree, since it is
+a dependency for the KASAN series? (which hopefully a new version may
+make it to the merge window)
 
-------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
-Date: Tue, 13 Aug 2024 19:25:11 +0200
+https://lore.kernel.org/rust-for-linux/20240812232910.2026387-1-mmaurer@goo=
+gle.com/
 
-Use IS_ERR_PCPU() instead of IS_ERR() for pointers in the percpu address
-space.  The patch also fixes following sparse warnings:
+Normally I would ask whether you want to take everything through the
+KASAN tree, but in this case the KASAN one also depends on another
+non-KASAN patch (target JSON), and that one is a dependency for KCFI,
+so it is tricky this time around.
 
-kmemleak.c:1063:39: warning: cast removes address space '__percpu' of expression
-kmemleak.c:1138:37: warning: cast removes address space '__percpu' of expression
+If that is OK with you, an Acked-by or similar would be really
+appreciated -- thanks!
 
-Link: https://lkml.kernel.org/r/20240813172543.38411-2-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- a/mm/kmemleak.c~mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space
-+++ a/mm/kmemleak.c
-@@ -1070,8 +1070,8 @@ void __ref kmemleak_alloc_percpu(const v
- {
- 	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
- 
--	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		create_object_percpu((unsigned long)ptr, size, 1, gfp);
-+	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
-+		create_object_percpu((__force unsigned long)ptr, size, 1, gfp);
- }
- EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
- 
-@@ -1145,8 +1145,8 @@ void __ref kmemleak_free_percpu(const vo
- {
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
--	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
--		delete_object_full((unsigned long)ptr, OBJECT_PERCPU);
-+	if (kmemleak_free_enabled && ptr && !IS_ERR_PCPU(ptr))
-+		delete_object_full((__force unsigned long)ptr, OBJECT_PERCPU);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
- 
-_
-
-Patches currently in -mm which might be from ubizjak@gmail.com are
-
-mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
-kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
-lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
-
+Cheers,
+Miguel
