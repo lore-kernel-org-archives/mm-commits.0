@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 916781AC897
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:31:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CB10156668
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:41:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723764661; cv=none; b=Lb38/UBYPGO533ETJYVA16ArbRsCZ79uWrxgDoZg9Cy4HXP/ezxt5+YgRqUPG5Lsp639IvK3FICxAJ1tOJ7KlNrdvA1xvNOUakZgerK4wzi+162+pW31WREKtPurL80ytrZrH0IrZpWCQcj9F2i3QREVm8Ax90qME8p1wOpS8Y4=
+	t=1723765286; cv=none; b=UOwgORo5VIBhksvOdQP5BJZaBQlI9hYEEkZR20nSk7mHL7KPu4z4xsJcbxyqO9DdDzjppRWXeLZgCPEJ7tINPyx94VFr4+17iymd+3++RMnvIlhPRihbOxXw2PwWZsI6hzVdrUp2ndd02dlHlYUEvLtwunlJ6Y/zv1O9cBWyfnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723764661; c=relaxed/simple;
-	bh=PW/ESyJspoxdBtoy12x4UMnSj5V6GztRMV99WIHuDJU=;
-	h=Date:To:From:Subject:Message-Id; b=VtBOnSpoyewTxYocI+Y0AaR002istZUtevrSDMApm0Ev3TMM4g32Uu0LAlEbE9DjQT5T2zI6ZGt9OZXsFOT13a0CTOhY0MMogHeTnEmeumoOLm7unGKxnEnfkapk5rT6Iq8dPABsGL7aSGg9woaRdjWsijNrLQD9ksQycRsFgcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K9xaFB7o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723765286; c=relaxed/simple;
+	bh=iAqHGXTP7HI9s+Tm1hFdU/QtqOpJ3gumvPt52mREN+g=;
+	h=Date:To:From:Subject:Message-Id; b=g7GG27oI38r9sduWxo/cKkWAyxJy23WLUgtlYiNJNsplW/sj9gClVtGleNgQ5oxHFOibxOUUmX+va5VoPA9vyFOjiHRszYaIhL9uZFbLgMg1vTqCRRQi8Ru6Zb1vq5BAUn1z9uyqYQ6u4NOKQUvIoevXcO9eg9/pmrzk4xht4Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mLU22JX5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9xaFB7o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B476C32786;
-	Thu, 15 Aug 2024 23:31:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mLU22JX5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1709CC4AF0E;
+	Thu, 15 Aug 2024 23:41:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723764661;
-	bh=PW/ESyJspoxdBtoy12x4UMnSj5V6GztRMV99WIHuDJU=;
+	s=korg; t=1723765286;
+	bh=iAqHGXTP7HI9s+Tm1hFdU/QtqOpJ3gumvPt52mREN+g=;
 	h=Date:To:From:Subject:From;
-	b=K9xaFB7oz+uWRhjQx0WTGNALGdwrCuyY/J/9RfSt3vWOuzyMuOVMTF9O7aRgUjbNL
-	 +16FgbLv3Dk/4NipMBclJjnrJxx2552BbCXeBdtZt56CBJO87QQTRPPV6XYPnSbuki
-	 jn6l//A/+/484ULW2ensMfqmHmhonMNUpm7xjouI=
-Date: Thu, 15 Aug 2024 16:31:00 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=mLU22JX5aACMJR2aHRXPf8+VpPkWrNhluA3bH0pzrobMG+Lfxs+IL6DD/TbysMstn
+	 1VZnssOQ0IOLrxEHgYOBWqVhTXc8jkDZeq5h3v2etNrFAAecWrgNdInq5G9orKFBjn
+	 brLT0A0oiBcmA4KL/tcRV1ssjT75I/vaACzv17fg=
+Date: Thu, 15 Aug 2024 16:41:25 -0700
+To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch added to mm-unstable branch
-Message-Id: <20240815233101.0B476C32786@smtp.kernel.org>
+Subject: + memcg-initiate-deprecation-of-v1-tcp-accounting.patch added to mm-unstable branch
+Message-Id: <20240815234126.1709CC4AF0E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use get_oder() and check size is is_power_of_2
+     Subject: memcg: initiate deprecation of v1 tcp accounting
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
+     memcg-initiate-deprecation-of-v1-tcp-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-initiate-deprecation-of-v1-tcp-accounting.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: use get_oder() and check size is is_power_of_2
-Date: Thu, 15 Aug 2024 10:34:16 +1200
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: initiate deprecation of v1 tcp accounting
+Date: Wed, 14 Aug 2024 15:00:18 -0700
 
-Using get_order() is more robust according to Baolin.  It is also better
-to filter illegal size such as 3KB, 16KB according to David.
+Patch series "memcg: initiate deprecation of v1 features", v2.
 
-Link: https://lkml.kernel.org/r/20240814224635.43272-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Start the deprecation process of the memcg v1 features which we discussed
+during LSFMMBPF 2024 [1].  For now add the warnings to collect the
+information on how the current users are using these features.  Next we
+will work on providing better alternatives in v2 (if needed) and fully
+deprecate these features.
+
+Link: https://lwn.net/Articles/974575 [1]
+
+
+This patch (of 4):
+
+Memcg v1 provides opt-in TCP memory accounting feature.  However it is
+mostly unused due to its performance impact on the network traffic.  In
+v2, the TCP memory is accounted in the regular memory usage and is
+transparent to the users but they can observe the TCP memory usage through
+memcg stats.
+
+Let's initiate the deprecation process of memcg v1's tcp accounting
+functionality and add warnings to gather if there are any users and if
+there are, collect how they are using it and plan to provide them better
+alternative in v2.
+
+Link: https://lkml.kernel.org/r/20240814220021.3208384-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20240814220021.3208384-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: T.J. Mercier <tjmercier@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |    8 ++++++++
+ mm/memcontrol-v1.c                             |    3 +++
+ 2 files changed, 11 insertions(+)
 
---- a/mm/huge_memory.c~mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix
-+++ a/mm/huge_memory.c
-@@ -952,14 +952,17 @@ static inline int get_order_from_str(con
- 	int order;
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-initiate-deprecation-of-v1-tcp-accounting
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -105,10 +105,18 @@ Brief summary of control files.
+  memory.kmem.max_usage_in_bytes      show max kernel memory usage recorded
  
- 	size = memparse(size_str, &endptr);
--	order = fls(size >> PAGE_SHIFT) - 1;
--	if ((1 << order) & ~THP_ORDERS_ALL_ANON) {
--		pr_err("invalid size %s(order %d) in thp_anon boot parameter\n",
--			size_str, order);
--		return -EINVAL;
--	}
-+
-+	if (!is_power_of_2(size >> PAGE_SHIFT))
-+		goto err;
-+	order = get_order(size);
-+	if ((1 << order) & ~THP_ORDERS_ALL_ANON)
-+		goto err;
+  memory.kmem.tcp.limit_in_bytes      set/show hard limit for tcp buf memory
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.kmem.tcp.usage_in_bytes      show current tcp buf memory allocation
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.kmem.tcp.failcnt             show the number of tcp buf memory usage
+ 				     hits limits
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.kmem.tcp.max_usage_in_bytes  show max tcp buf memory usage recorded
++                                     This knob is deprecated and shouldn't be
++                                     used.
+ ==================================== ==========================================
  
- 	return order;
-+err:
-+	pr_err("invalid size %s in thp_anon boot parameter\n", size_str);
-+	return -EINVAL;
- }
- 
- static char str_dup[PAGE_SIZE] __meminitdata;
+ 1. History
+--- a/mm/memcontrol-v1.c~memcg-initiate-deprecation-of-v1-tcp-accounting
++++ a/mm/memcontrol-v1.c
+@@ -2531,6 +2531,9 @@ static ssize_t mem_cgroup_write(struct k
+ 			ret = 0;
+ 			break;
+ 		case _TCP:
++			pr_warn_once("kmem.tcp.limit_in_bytes is deprecated and will be removed. "
++				     "Please report your usecase to linux-mm@kvack.org if you "
++				     "depend on this functionality.\n");
+ 			ret = memcg_update_tcp_max(memcg, nr_pages);
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
-vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
-mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
-mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
-mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
-mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
+memcg-increase-the-valid-index-range-for-memcg-stats.patch
+memcg-replace-memcg-id-idr-with-xarray.patch
+memcg-replace-memcg-id-idr-with-xarray-v2.patch
+memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
+memcg-move-v1-only-percpu-stats-in-separate-struct.patch
+memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch
+memcg-move-mem_cgroup_charge_statistics-to-v1-code.patch
+memcg-move-v1-events-and-statistics-code-to-v1-file.patch
+memcg-make-v1-only-functions-static.patch
+memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch
+memcg-make-pgpgin-and-pgpgout-v1-only.patch
+memcg-initiate-deprecation-of-v1-tcp-accounting.patch
+memcg-initiate-deprecation-of-v1-soft-limit.patch
+memcg-initiate-deprecation-of-oom_control.patch
+memcg-initiate-deprecation-of-pressure_level.patch
 
