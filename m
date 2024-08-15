@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C43B644
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 00:02:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E867D625
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 00:02:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723680172; cv=none; b=u9zw7+hAKyOLdQAx6hKfMhkxF4e28qNRF6h/8ALTvqz6mNoD8BER+ImvjV/V+DLQHBdAMac7yc2b5n1tPjwHO2lL2NFxw/SDreNRX3OWVN+jTWEo1KtTY9RMH06glDGlbAzXa1/TfvIvg/IcKD3SW4rZ4hCwwrLb4oxeEI0RJ2U=
+	t=1723680174; cv=none; b=at53xPxkDtHKOOAHy5CZauCCRqZ3nTYhbeOXx+aILO/dgdK9PHgUKDh31u5iufpDRpiI+PYzs9aTyfOI6bRZlbKtWUQmNkFEuBg3QTBgxO3uTFUUk0KYJNwwDqEVKN9TmMJRfr9efzLll4zX3nCrTHRFgFdqD2KN4b339j6fMq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723680172; c=relaxed/simple;
-	bh=hdL51+D73ler8k/xhuAneCI7D4H1+ciLmD/gMfbzAbc=;
-	h=Date:To:From:Subject:Message-Id; b=hmhfM7S3+XI8CLHQyGaLl1viAk5czFf3u+B86WxfhPxFnDfmU/9iLSzlgfjIwrEzDT5rxCPESzPpk5wR+7/D9wdXEA3jnhGCzmRgv9KW+183GVeoSYYzqE2S0FNuFm2ecDhpi6EiC2WE8cD2GgdduGW9hEHmeTF+01Ia7VQMdJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOekK6PV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723680174; c=relaxed/simple;
+	bh=sho+qQNMqUbXgAdVSz4kh5B5WxyDgEs4P0h7KGqV9eU=;
+	h=Date:To:From:Subject:Message-Id; b=DlC50RtIQmmSUoyC/N3u1NB7QPAWJ29M0oTHIXfo+EdcKI1yVCOya4i5OVIa72T8QrWi2FN1Cc2pq6W8Ve2UF88O4mV1ybnLR97U1DbogEkWjeEbz2AX4T0tImS/0en+6yPUixIw/UEbRRnsNbklGYoeLGX5f4CRDoXj8N7aMRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tMYdyqOR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOekK6PV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E20B5C116B1;
-	Thu, 15 Aug 2024 00:02:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tMYdyqOR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4098AC116B1;
+	Thu, 15 Aug 2024 00:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723680172;
-	bh=hdL51+D73ler8k/xhuAneCI7D4H1+ciLmD/gMfbzAbc=;
+	s=korg; t=1723680173;
+	bh=sho+qQNMqUbXgAdVSz4kh5B5WxyDgEs4P0h7KGqV9eU=;
 	h=Date:To:From:Subject:From;
-	b=QOekK6PVUxRrk+TMhErrkhOjt/CS8szZw9gfaCUBiuWKPfuobYSvqu5VaG+3PhqHK
-	 CMKBs/v3W+9WNWnIUmaftGlNum4yfgd8nzKvDGf5xI40k1d5EvlBlyovXQjVXXOi6w
-	 Xfmn62QGq+Uf1Y4Zfu/tx7fc3TaDhE9VLNreLD1I=
-Date: Wed, 14 Aug 2024 17:02:51 -0700
+	b=tMYdyqORsNvkdbu0P088FckWUikEseYxjs1hoGJyorywm8CfxTWvzMUVx5XMu1Qam
+	 UjFoj2zyyqZjUYjVLtKLVJSH0TC0zB2lRbM+YIJ9gdubWIYzY6aEcs+inYCKINZ6zG
+	 XWLE/Mu/dcIZCJK7XdWcmS0s9dmbHLl/AA4uXuSM=
+Date: Wed, 14 Aug 2024 17:02:52 -0700
 To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch removed from -mm tree
-Message-Id: <20240815000251.E20B5C116B1@smtp.kernel.org>
+Subject: [to-be-updated] mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch removed from -mm tree
+Message-Id: <20240815000253.4098AC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions
+     Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
 has been removed from the -mm tree.  Its filename was
-     errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions.patch
+     mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions
-Date: Tue, 13 Aug 2024 19:25:10 +0200
+Subject: mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space
+Date: Tue, 13 Aug 2024 19:25:11 +0200
 
-Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() functions that
-operate on pointers in the percpu address space.
+Use IS_ERR_PCPU() instead of IS_ERR() for pointers in the percpu address
+space.  The patch also fixes following sparse warnings:
 
-These functions remove the need for (__force void *) function argument
-casts (to avoid sparse -Wcast-from-as warnings).
+kmemleak.c:1063:39: warning: cast removes address space '__percpu' of expression
+kmemleak.c:1138:37: warning: cast removes address space '__percpu' of expression
 
-The patch will also avoid future build errors due to pointer address space
-mismatch with enabled strict percpu address space checks.
-
-Link: https://lkml.kernel.org/r/20240813172543.38411-1-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20240813172543.38411-2-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ mm/kmemleak.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/err.h~errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-functions
-+++ a/include/linux/err.h
-@@ -6,6 +6,7 @@
- #include <linux/types.h>
+--- a/mm/kmemleak.c~mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space
++++ a/mm/kmemleak.c
+@@ -1070,8 +1070,8 @@ void __ref kmemleak_alloc_percpu(const v
+ {
+ 	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
  
- #include <asm/errno.h>
-+#include <asm/percpu.h>
- 
- /*
-  * Kernel pointers have redundant information, so we can use a
-@@ -42,6 +43,22 @@ static inline void * __must_check ERR_PT
+-	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+-		create_object_percpu((unsigned long)ptr, size, 1, gfp);
++	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
++		create_object_percpu((__force unsigned long)ptr, size, 1, gfp);
  }
+ EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
  
- /**
-+ * ERR_PTR_PCPU - Create an error pointer in the percpu address space.
-+ * @error: A negative error code.
-+ *
-+ * Encodes @error into a pointer value in the percpu address space.
-+ * Users should consider the result opaque and not assume anything
-+ * about how the error is encoded.
-+ *
-+ * Return: A pointer in the percpu address space with @error encoded
-+ *	   within its value.
-+ */
-+static inline void __percpu * __must_check ERR_PTR_PCPU(long error)
-+{
-+	return (void __percpu *) error;
-+}
-+
-+/**
-  * PTR_ERR - Extract the error code from an error pointer.
-  * @ptr: An error pointer.
-  * Return: The error code within @ptr.
-@@ -52,6 +69,17 @@ static inline long __must_check PTR_ERR(
+@@ -1145,8 +1145,8 @@ void __ref kmemleak_free_percpu(const vo
+ {
+ 	pr_debug("%s(0x%px)\n", __func__, ptr);
+ 
+-	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+-		delete_object_full((unsigned long)ptr, OBJECT_PERCPU);
++	if (kmemleak_free_enabled && ptr && !IS_ERR_PCPU(ptr))
++		delete_object_full((__force unsigned long)ptr, OBJECT_PERCPU);
  }
+ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
  
- /**
-+ * PTR_ERR_PCPU - Extract the error code from an error pointer in the
-+ *		  percpu address space.
-+ * @ptr: An error pointer in the percpu address space.
-+ * Return: The error code within @ptr.
-+ */
-+static inline long __must_check PTR_ERR_PCPU(const void __percpu *ptr)
-+{
-+	return (__force long) ptr;
-+}
-+
-+/**
-  * IS_ERR - Detect an error pointer.
-  * @ptr: The pointer to check.
-  * Return: true if @ptr is an error pointer, false otherwise.
-@@ -62,6 +90,16 @@ static inline bool __must_check IS_ERR(_
- }
- 
- /**
-+ * IS_ERR_PCPU - Detect an error pointer in the percpu address space.
-+ * @ptr: The pointer in the percpu address space to check.
-+ * Return: true if @ptr is an error pointer, false otherwise.
-+ */
-+static inline bool __must_check IS_ERR_PCPU(const void __percpu *ptr)
-+{
-+	return IS_ERR_VALUE((__force unsigned long)ptr);
-+}
-+
-+/**
-  * IS_ERR_OR_NULL - Detect an error pointer or a null pointer.
-  * @ptr: The pointer to check.
-  *
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
 
 mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
-mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
 kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
 lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
 
