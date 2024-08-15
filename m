@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AA76154C08
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:14:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 916781AC897
+	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 23:31:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723763667; cv=none; b=ME1+GL1gUfs83h7rIx1pdBPfThMcDN8ZQRIMnGqf+3k/cobgeCnE0cDwMeGJGClEUCY0e/ZbH+cD7SH0sC5he2iIM9wQ8jmGG4g+Z2KngH0OlYXf59OkygB5Ac6+wpuQc3yWr0neDCxSMRwC10GIPNzYdcuYa7RyMa6hGHch8M4=
+	t=1723764661; cv=none; b=Lb38/UBYPGO533ETJYVA16ArbRsCZ79uWrxgDoZg9Cy4HXP/ezxt5+YgRqUPG5Lsp639IvK3FICxAJ1tOJ7KlNrdvA1xvNOUakZgerK4wzi+162+pW31WREKtPurL80ytrZrH0IrZpWCQcj9F2i3QREVm8Ax90qME8p1wOpS8Y4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723763667; c=relaxed/simple;
-	bh=vsVbTSXML5dNgfAXklYx0alb9b+p8VLgFNXFkjlUbJI=;
-	h=Date:To:From:Subject:Message-Id; b=t6J4ZKWI5t8lJ8InzUsx86IgA6Wo9fkI39eGflcUsBguHxRqcMZoAsMvyb3wGlJ3QhW8xOcb0EtD7VqS5nYlvgAVdEL+/LadFFRF/+oA09qt2BJlor75P31Cnjhenj7m1hqTSUkhkVA3r/BQVJqVdpKnzgsKK6qhTd4TPMSy4MU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PgxDcLBx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723764661; c=relaxed/simple;
+	bh=PW/ESyJspoxdBtoy12x4UMnSj5V6GztRMV99WIHuDJU=;
+	h=Date:To:From:Subject:Message-Id; b=VtBOnSpoyewTxYocI+Y0AaR002istZUtevrSDMApm0Ev3TMM4g32Uu0LAlEbE9DjQT5T2zI6ZGt9OZXsFOT13a0CTOhY0MMogHeTnEmeumoOLm7unGKxnEnfkapk5rT6Iq8dPABsGL7aSGg9woaRdjWsijNrLQD9ksQycRsFgcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K9xaFB7o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PgxDcLBx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97A1CC32786;
-	Thu, 15 Aug 2024 23:14:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9xaFB7o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B476C32786;
+	Thu, 15 Aug 2024 23:31:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723763666;
-	bh=vsVbTSXML5dNgfAXklYx0alb9b+p8VLgFNXFkjlUbJI=;
+	s=korg; t=1723764661;
+	bh=PW/ESyJspoxdBtoy12x4UMnSj5V6GztRMV99WIHuDJU=;
 	h=Date:To:From:Subject:From;
-	b=PgxDcLBxHV7KY4LmMqJW9hsRRgDMfrwRGfyKowj6bdWmA8ustiT0KpMANV27HjqgM
-	 XiTOo0ox4RAqxV1E7x1l/hvB1BypRHFlvKi82tzEOTCfrQ2Chb9+iKSiFgRFrefBTe
-	 Wis5CvSfcGnH3sGLWsfpXyqB8lT/ABsHvym/NEv0=
-Date: Thu, 15 Aug 2024 16:14:25 -0700
-To: mm-commits@vger.kernel.org,zhais@google.com,yuzhao@google.com,willy@infradead.org,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,link@vivo.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,alexlzhu@fb.com,ak@linux.intel.com,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=K9xaFB7oz+uWRhjQx0WTGNALGdwrCuyY/J/9RfSt3vWOuzyMuOVMTF9O7aRgUjbNL
+	 +16FgbLv3Dk/4NipMBclJjnrJxx2552BbCXeBdtZt56CBJO87QQTRPPV6XYPnSbuki
+	 jn6l//A/+/484ULW2ensMfqmHmhonMNUpm7xjouI=
+Date: Thu, 15 Aug 2024 16:31:00 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch added to mm-unstable branch
-Message-Id: <20240815231426.97A1CC32786@smtp.kernel.org>
+Subject: + mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch added to mm-unstable branch
+Message-Id: <20240815233101.0B476C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-introduce-a-pageflag-for-partially-mapped-folios-fix
+     Subject: mm: use get_oder() and check size is is_power_of_2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch
+     mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,112 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm-introduce-a-pageflag-for-partially-mapped-folios-fix
-Date: Thu, 15 Aug 2024 16:25:09 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: use get_oder() and check size is is_power_of_2
+Date: Thu, 15 Aug 2024 10:34:16 +1200
 
-don't clear partially mapped bit in hugeTLB folios and fix deferred split THP stats
+Using get_order() is more robust according to Baolin.  It is also better
+to filter illegal size such as 3KB, 16KB according to David.
 
-Link: https://lkml.kernel.org/r/4acdf2b7-ed65-4087-9806-8f4a187b4eb5@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Alexander Zhu <alexlzhu@fb.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Huan Yang <link@vivo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20240814224635.43272-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuang Zhai <zhais@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    1 +
- mm/huge_memory.c           |   14 ++++++++------
- mm/hugetlb.c               |    1 -
- mm/rmap.c                  |    2 +-
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
-+++ a/include/linux/page-flags.h
-@@ -863,6 +863,7 @@ static inline void ClearPageCompound(str
- }
- FOLIO_FLAG(large_rmappable, FOLIO_SECOND_PAGE)
- FOLIO_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
-+FOLIO_TEST_SET_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
- #else
- FOLIO_FLAG_FALSE(large_rmappable)
- FOLIO_FLAG_FALSE(partially_mapped)
---- a/mm/huge_memory.c~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
+--- a/mm/huge_memory.c~mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix
 +++ a/mm/huge_memory.c
-@@ -3452,6 +3452,7 @@ void __folio_undo_large_rmappable(struct
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+@@ -952,14 +952,17 @@ static inline int get_order_from_str(con
+ 	int order;
+ 
+ 	size = memparse(size_str, &endptr);
+-	order = fls(size >> PAGE_SHIFT) - 1;
+-	if ((1 << order) & ~THP_ORDERS_ALL_ANON) {
+-		pr_err("invalid size %s(order %d) in thp_anon boot parameter\n",
+-			size_str, order);
+-		return -EINVAL;
+-	}
++
++	if (!is_power_of_2(size >> PAGE_SHIFT))
++		goto err;
++	order = get_order(size);
++	if ((1 << order) & ~THP_ORDERS_ALL_ANON)
++		goto err;
+ 
+ 	return order;
++err:
++	pr_err("invalid size %s in thp_anon boot parameter\n", size_str);
++	return -EINVAL;
  }
  
-+/* partially_mapped=false won't clear PG_partially_mapped folio flag */
- void deferred_split_folio(struct folio *folio, bool partially_mapped)
- {
- 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
-@@ -3481,16 +3482,17 @@ void deferred_split_folio(struct folio *
- 		return;
- 
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
--	if (partially_mapped)
--		folio_set_partially_mapped(folio);
--	else
--		folio_clear_partially_mapped(folio);
--	if (list_empty(&folio->_deferred_list)) {
--		if (partially_mapped) {
-+	if (partially_mapped) {
-+		if (!folio_test_set_partially_mapped(folio)) {
- 			if (folio_test_pmd_mappable(folio))
- 				count_vm_event(THP_DEFERRED_SPLIT_PAGE);
- 			count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
- 		}
-+	} else {
-+		/* partially mapped folios cannot become non-partially mapped */
-+		VM_WARN_ON_FOLIO(folio_test_partially_mapped(folio), folio);
-+	}
-+	if (list_empty(&folio->_deferred_list)) {
- 		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
- 		ds_queue->split_queue_len++;
- #ifdef CONFIG_MEMCG
---- a/mm/hugetlb.c~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
-+++ a/mm/hugetlb.c
-@@ -1758,7 +1758,6 @@ static void __update_and_free_hugetlb_fo
- 		free_gigantic_folio(folio, huge_page_order(h));
- 	} else {
- 		INIT_LIST_HEAD(&folio->_deferred_list);
--		folio_clear_partially_mapped(folio);
- 		folio_put(folio);
- 	}
- }
---- a/mm/rmap.c~mm-introduce-a-pageflag-for-partially-mapped-folios-fix
-+++ a/mm/rmap.c
-@@ -1578,7 +1578,7 @@ static __always_inline void __folio_remo
- 	 * Check partially_mapped first to ensure it is a large folio.
- 	 */
- 	if (partially_mapped && folio_test_anon(folio) &&
--	    list_empty(&folio->_deferred_list))
-+	    !folio_test_partially_mapped(folio))
- 		deferred_split_folio(folio, true);
- 
- 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
+ static char str_dup[PAGE_SIZE] __meminitdata;
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-free-zapped-tail-pages-when-splitting-isolated-thp-fix.patch
-mm-introduce-a-pageflag-for-partially-mapped-folios.patch
-mm-introduce-a-pageflag-for-partially-mapped-folios-fix.patch
-mm-split-underutilized-thps.patch
-mm-add-sysfs-entry-to-disable-splitting-underutilized-thps.patch
+mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
+vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
+mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
+mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
 
