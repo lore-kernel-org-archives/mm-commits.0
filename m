@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1D17154BEA
-	for <mm-commits@vger.kernel.org>; Thu, 15 Aug 2024 22:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D81E12B94;
+	Thu, 15 Aug 2024 23:04:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723762607; cv=none; b=XUBIxUkxehQyf01IS5O2aYF17FISVECvgEdoHIJbivCQmDLQhTQZ+ZC4QO8X5soEGSB5bVMBRDmVxWPSN+7NImIeIa3JlXpUoEdP26OU5402NSgs50q+lC1P0Wybuv0OlSijGrxrosuIsjFLZTlfsTQ3K4h94ExwgmoLP9Oa2dg=
+	t=1723763050; cv=none; b=ko/0UtD7P0K6eIN5wdU/YWGbg3K1+UsPKFS6Ap0+druDRmu7Cvwxf1SpcEK373H5B6GvXz46/QKlbwNN96VHbkeXyyWitAlCMjm8pc/WOfEJgJ7e7LfR761s+2ZrPCNSnPxnvbwjm2mrT4GWc7mWsMrpSiFP5veD+14CIAoyBkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723762607; c=relaxed/simple;
-	bh=VBIcim/ntM8LSfSGwLEXNV/RajYV0x7HM/C9cnQywDQ=;
-	h=Date:To:From:Subject:Message-Id; b=M06s+LLDOv9CLEPikO4Nq6MLViDY65Rl9w7nylUvslvmHZO8v0HPrU+cbE9eu0XB13v3Xybhkszt6KWQkUruk5vCBOmmBt5iF4+HCX9IwGcqt2j9xC+2+j1SqhMUG2jXXOJIlu2kQIbHtrFfkOcM3h60lyOuwoE0L0bNQasfHBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N5s1dL2C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723763050; c=relaxed/simple;
+	bh=IEEC+jtffX5lcp1nrDsJrcpgvd25d72MFCtAJE047JM=;
+	h=Date:To:From:Subject:Message-Id; b=CKxL+CePSOWmtnXN32GOL7vinygmWZY1m0+WNFfEBYFOGUByJyWCZAxl0ClKwbBEPEkK0nR6RxDwjMgf90iH6wNVIPTKAvxaTn5JHIyuD+g27jMD3do+n7485/TjuDBOC93M3pJP3JJik5WmUMFIQgMFAIOrNYFVw6ZGowVvrUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mrhlIJJJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N5s1dL2C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF60C4AF09;
-	Thu, 15 Aug 2024 22:56:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mrhlIJJJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FB69C32786;
+	Thu, 15 Aug 2024 23:04:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723762607;
-	bh=VBIcim/ntM8LSfSGwLEXNV/RajYV0x7HM/C9cnQywDQ=;
+	s=korg; t=1723763050;
+	bh=IEEC+jtffX5lcp1nrDsJrcpgvd25d72MFCtAJE047JM=;
 	h=Date:To:From:Subject:From;
-	b=N5s1dL2CwGsEvuUwrtgBVngdeHMnrlxy8pDYLFvMFOGXFVEmw1CGIpDkb1Cq1ZWbx
-	 bqE33lZxK5f0Yv4s1le7MgK58nCqgoPYDg8UhxCFCW6W7p/GbY96O6mJ0PREwZseqd
-	 ZGQo4xayHj1H2QykfuCUBlS4NqeHOzrH4ZfHkqEQ=
-Date: Thu, 15 Aug 2024 15:56:46 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,jani.nikula@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=mrhlIJJJ90XRPcdDb2P5mX6YOp0iDTX8treDLHfu9KysdlNFx8BHY5tHnG5xB9wSH
+	 mlfmBGX34jBcHeIH+SXwmlxk9+WdUl00/b3mtupzMTJfQDAl13tNijN59onKw6/HNu
+	 UYdKZeM6Pkso2QW6vGK1hLCRa8DsQ7q/yo3yE2zE=
+Date: Thu, 15 Aug 2024 16:04:09 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,erhard_f@mailbox.org,davidgow@google.com,ivan.orlov0322@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch added to mm-nonmm-unstable branch
-Message-Id: <20240815225647.6BF60C4AF09@smtp.kernel.org>
+Subject: + kunit-overflow-fix-ub-in-overflow_allocation_test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240815230410.2FB69C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-3
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+     Subject: kunit/overflow: fix UB in overflow_allocation_test
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kunit-overflow-fix-ub-in-overflow_allocation_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-overflow-fix-ub-in-overflow_allocation_test.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,70 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fault-inject-improve-build-for-config_fault_injection=n-fix-3
-Date: Thu Aug 15 03:54:55 PM PDT 2024
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
+Subject: kunit/overflow: fix UB in overflow_allocation_test
+Date: Thu, 15 Aug 2024 01:04:31 +0100
 
-Add debugfs.h inclusion to more files, per Stephen
+The 'device_name' array doesn't exist out of the
+'overflow_allocation_test' function scope.  However, it is being used as a
+driver name when calling 'kunit_driver_create' from
+'kunit_device_register'.  It produces the kernel panic with KASAN enabled.
 
-Cc: Jani Nikula <jani.nikula@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Since this variable is used in one place only, remove it and pass the
+device name into kunit_device_register directly as an ascii string.
+
+Link: https://lkml.kernel.org/r/20240815000431.401869-1-ivan.orlov0322@gmail.com
+Fixes: ca90800a91ba ("test_overflow: Add memory allocation overflow tests")
+Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Tested-by: Erhard Furtner <erhard_f@mailbox.org>
+Reviewed-by: David Gow <davidgow@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/msm/msm_drv.c          |    1 +
- drivers/ufs/core/ufs-fault-injection.c |    1 +
- include/linux/mmc/host.h               |    1 +
- include/ufs/ufshcd.h                   |    1 +
- 4 files changed, 4 insertions(+)
+ lib/overflow_kunit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/msm/msm_drv.c~fault-inject-improve-build-for-config_fault_injection=n-fix-3
-+++ a/drivers/gpu/drm/msm/msm_drv.c
-@@ -7,6 +7,7 @@
+--- a/lib/overflow_kunit.c~kunit-overflow-fix-ub-in-overflow_allocation_test
++++ a/lib/overflow_kunit.c
+@@ -668,7 +668,6 @@ DEFINE_TEST_ALLOC(devm_kzalloc,  devm_kf
  
- #include <linux/dma-mapping.h>
- #include <linux/fault-inject.h>
-+#include <linux/debugfs.h>
- #include <linux/of_address.h>
- #include <linux/uaccess.h>
+ static void overflow_allocation_test(struct kunit *test)
+ {
+-	const char device_name[] = "overflow-test";
+ 	struct device *dev;
+ 	int count = 0;
  
---- a/drivers/ufs/core/ufs-fault-injection.c~fault-inject-improve-build-for-config_fault_injection=n-fix-3
-+++ a/drivers/ufs/core/ufs-fault-injection.c
-@@ -3,6 +3,7 @@
- #include <linux/kconfig.h>
- #include <linux/types.h>
- #include <linux/fault-inject.h>
-+#include <linux/debugfs.h>
- #include <linux/module.h>
- #include <ufs/ufshcd.h>
- #include "ufs-fault-injection.h"
---- a/include/linux/mmc/host.h~fault-inject-improve-build-for-config_fault_injection=n-fix-3
-+++ a/include/linux/mmc/host.h
-@@ -10,6 +10,7 @@
- #include <linux/sched.h>
- #include <linux/device.h>
- #include <linux/fault-inject.h>
-+#include <linux/debugfs.h>
+@@ -678,7 +677,7 @@ static void overflow_allocation_test(str
+ } while (0)
  
- #include <linux/mmc/core.h>
- #include <linux/mmc/card.h>
---- a/include/ufs/ufshcd.h~fault-inject-improve-build-for-config_fault_injection=n-fix-3
-+++ a/include/ufs/ufshcd.h
-@@ -17,6 +17,7 @@
- #include <linux/blk-mq.h>
- #include <linux/devfreq.h>
- #include <linux/fault-inject.h>
-+#include <linux/debugfs.h>
- #include <linux/msi.h>
- #include <linux/pm_runtime.h>
- #include <linux/dma-direction.h>
+ 	/* Create dummy device for devm_kmalloc()-family tests. */
+-	dev = kunit_device_register(test, device_name);
++	dev = kunit_device_register(test, "overflow-test");
+ 	KUNIT_ASSERT_FALSE_MSG(test, IS_ERR(dev),
+ 			       "Cannot register test device\n");
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-support-large-folios-swap-in-for-zram-like-devices-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+kunit-overflow-fix-ub-in-overflow_allocation_test.patch
 
