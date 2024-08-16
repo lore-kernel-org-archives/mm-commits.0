@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E2657DA89;
-	Fri, 16 Aug 2024 05:17:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B466A8172D
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 05:17:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723785420; cv=none; b=cZ6Jx5w++gLxeU+7DG2PsHBSOu2UTBc6hkTa6s04W9mHq2MCJPKXftNetfOckYspzRAVBR8B7UnwtQHG8GIRB0UB9/ftaRtWNriwO7i6lKtDy4y4n9uIlURYrGrPYwuez58IkugvwGiH33R1YDni0/E29/Ezcu5+8q1XJ4DC6V0=
+	t=1723785421; cv=none; b=PD1irR5I9UWsNadhkBYVJnfLNPII3Y6ykIJ7DhcWRjUfyU4MXMlAKDtBjh6hcz/O8n7BtyRLVdF2d+pdqxV1Rc5ps1A1f/CTmiyqyjqcHx2mLQtf0NrTEeDjsjcgWA9AkN78gd/QuMQcwkH/a3ZHpSSy+ABHii+35qPl0W84xcY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723785420; c=relaxed/simple;
-	bh=o6wrP7wy90tCN8CE8gc1Mxm5L1hLG7tkv+oHkWo2rLQ=;
-	h=Date:To:From:Subject:Message-Id; b=WAaV9ToxPtXZIgyFcJ3gEs2xU7IjZfJcMc0cq9otv+0W64mTGWgZufv/460kUTL/mXdCH8lyXN+j7cV8w+JeX4tDiJf5uf6CWWx2zvm5kmuVnCl6MNBtOsQIrjETz4suNoECFxIFhlsjMEHvtC/c+M9zfHNWUYR200SH3xbyfBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2T7GuSg/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785421; c=relaxed/simple;
+	bh=bm1TMj20wZEvWQ6fYUqvxm47Hx+muA45O9TErpjqicI=;
+	h=Date:To:From:Subject:Message-Id; b=DzGThfVPzR02hMNzPkRnu6wQgp+EUDgIS/a8bf/NIUGbU+kLbyClqlgZ7EjodX8aay+F100N/xmU0v/jFVRmV3xQu1K9lWzb1f+3iVJa+N++/j5LzVrlX48ahAwKhsw3IUXkv8rMbmS54bFuaVlTv0T2oAT7USnSMvoRCscTIF0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfAFOKB+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2T7GuSg/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658C4C32782;
-	Fri, 16 Aug 2024 05:17:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfAFOKB+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89EE0C4AF0E;
+	Fri, 16 Aug 2024 05:17:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723785420;
-	bh=o6wrP7wy90tCN8CE8gc1Mxm5L1hLG7tkv+oHkWo2rLQ=;
+	s=korg; t=1723785421;
+	bh=bm1TMj20wZEvWQ6fYUqvxm47Hx+muA45O9TErpjqicI=;
 	h=Date:To:From:Subject:From;
-	b=2T7GuSg/6nJBxFc3rSALm9uEbDRVzru5R+yiiGXLti8gx3lZ806UHGNWgF9MicgUV
-	 Me0vlkUDb6q90HNdCcfO/GtbuwK4Evq6pTzigfqoT2QbcEEj3HHQYSWd6W2c4qgaYJ
-	 FwSUxo/+ubjojhlQ1CVA/T3fD7PWE03IXRxH0Q0s=
-Date: Thu, 15 Aug 2024 22:16:59 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shy828301@gmail.com,mgorman@suse.de,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=VfAFOKB+MJDLNYiD+JLPsjAD84Agsa/4AocE7aVNZTKq1YTYEBJNPmij0cZi4F3CD
+	 iJob7iSBzcXhd5462TZyhJ8lgUVaSKVVNikgvVv52oEHQgZ45G3BN6K3++yVWaQ8hn
+	 QalzbFtDW5d06+ZbiDYx3Aoeq+HGlAttsBNCAf3E=
+Date: Thu, 15 Aug 2024 22:17:00 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-numa-no-task_numa_fault-call-if-pmd-is-changed.patch removed from -mm tree
-Message-Id: <20240816051700.658C4C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-compaction_test-fix-off-by-one-in-check_compaction.patch removed from -mm tree
+Message-Id: <20240816051701.89EE0C4AF0E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/numa: no task_numa_fault() call if PMD is changed
+     Subject: selftests/mm: compaction_test: fix off by one in check_compaction()
 has been removed from the -mm tree.  Its filename was
-     mm-numa-no-task_numa_fault-call-if-pmd-is-changed.patch
+     selftests-mm-compaction_test-fix-off-by-one-in-check_compaction.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/numa: no task_numa_fault() call if PMD is changed
-Date: Fri, 9 Aug 2024 10:59:05 -0400
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: selftests/mm: compaction_test: fix off by one in check_compaction()
+Date: Fri, 9 Aug 2024 15:32:30 +0300
 
-When handling a numa page fault, task_numa_fault() should be called by a
-process that restores the page table of the faulted folio to avoid
-duplicated stats counting.  Commit c5b5a3dd2c1f ("mm: thp: refactor NUMA
-fault handling") restructured do_huge_pmd_numa_page() and did not avoid
-task_numa_fault() call in the second page table check after a numa
-migration failure.  Fix it by making all !pmd_same() return immediately.
+The "initial_nr_hugepages" variable is unsigned long so it takes up to 20
+characters to print, plus 1 more character for the NUL terminator. 
+Unfortunately, this buffer is not quite large enough for the terminator to
+fit.  Also use snprintf() for a belt and suspenders approach.
 
-This issue can cause task_numa_fault() being called more than necessary
-and lead to unexpected numa balancing results (It is hard to tell whether
-the issue will cause positive or negative performance impact due to
-duplicated numa fault counting).
-
-Link: https://lkml.kernel.org/r/20240809145906.1513458-3-ziy@nvidia.com
-Fixes: c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling")
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Closes: https://lore.kernel.org/linux-mm/87zfqfw0yw.fsf@yhuang6-desk2.ccr.corp.intel.com/
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/87470c06-b45a-4e83-92ff-aac2e7b9c6ba@stanley.mountain
+Fixes: fb9293b6b015 ("selftests/mm: compaction_test: fix bogus test success and reduce probability of OOM-killer invocation")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ tools/testing/selftests/mm/compaction_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-numa-no-task_numa_fault-call-if-pmd-is-changed
-+++ a/mm/huge_memory.c
-@@ -1685,7 +1685,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
- 	if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
- 		spin_unlock(vmf->ptl);
--		goto out;
-+		return 0;
- 	}
+--- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-compaction_test-fix-off-by-one-in-check_compaction
++++ a/tools/testing/selftests/mm/compaction_test.c
+@@ -89,9 +89,10 @@ int check_compaction(unsigned long mem_f
+ 	int fd, ret = -1;
+ 	int compaction_index = 0;
+ 	char nr_hugepages[20] = {0};
+-	char init_nr_hugepages[20] = {0};
++	char init_nr_hugepages[24] = {0};
  
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
-@@ -1728,22 +1728,16 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	if (!migrate_misplaced_folio(folio, vma, target_nid)) {
- 		flags |= TNF_MIGRATED;
- 		nid = target_nid;
--	} else {
--		flags |= TNF_MIGRATE_FAIL;
--		vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
--		if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
--			spin_unlock(vmf->ptl);
--			goto out;
--		}
--		goto out_map;
--	}
--
--out:
--	if (nid != NUMA_NO_NODE)
- 		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
-+		return 0;
-+	}
+-	sprintf(init_nr_hugepages, "%lu", initial_nr_hugepages);
++	snprintf(init_nr_hugepages, sizeof(init_nr_hugepages),
++		 "%lu", initial_nr_hugepages);
  
--	return 0;
--
-+	flags |= TNF_MIGRATE_FAIL;
-+	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
-+	if (unlikely(!pmd_same(oldpmd, *vmf->pmd))) {
-+		spin_unlock(vmf->ptl);
-+		return 0;
-+	}
- out_map:
- 	/* Restore the PMD */
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
-@@ -1753,7 +1747,10 @@ out_map:
- 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, pmd);
- 	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 	spin_unlock(vmf->ptl);
--	goto out;
-+
-+	if (nid != NUMA_NO_NODE)
-+		task_numa_fault(last_cpupid, nid, HPAGE_PMD_NR, flags);
-+	return 0;
- }
- 
- /*
+ 	/* We want to test with 80% of available memory. Else, OOM killer comes
+ 	   in to play */
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-memory-tiering-read-last_cpupid-correctly-in-do_huge_pmd_numa_page.patch
-memory-tiering-introduce-folio_use_access_time-check.patch
-memory-tiering-count-pgpromote_success-when-mem-tiering-is-enabled.patch
-mm-migrate-move-common-code-to-numa_migrate_check-was-numa_migrate_prep.patch
 
