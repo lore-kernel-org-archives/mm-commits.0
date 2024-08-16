@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5197710E4;
-	Fri, 16 Aug 2024 05:05:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C53378C8F
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 05:11:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723784721; cv=none; b=Ewpmw8I6E2Sso4VV+ml/8prg8sn1ZymnazSbqt2QSHZvWKKaB77CmcqMCz1AsEh0wqwDWCtqKBvZuOMx3aaLJYyS9ZCyR/iLEpCwdKeY2LuqUT1P2VA805k3qitKvOR1s6QAhxE9Qpjp8y/cYBiQUV9joO+SHlE7J+mCfXQb0do=
+	t=1723785070; cv=none; b=guqGdGxA73ZNALhogA1KmiYUte/8OKNhdXTbzFX0xmxJSJEfiuMKYDFB6f3NXso3dQhMf8jBxxAg+aUr4PAAG1LoP0B93Irh8bqdyoIiLOvx2w61KxiBD1K7ZwER24hPvi99oaOpU2Jh2UZaOMNh9Da/TcYyB588K99fQ6wXqHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723784721; c=relaxed/simple;
-	bh=thRftasXeKAp1xoZHeymtapgv6/bUxFyILs/GVZ+H4w=;
-	h=Date:To:From:Subject:Message-Id; b=lPwm6JneuI0a1BhrnTfa9fUilS1m3N+8YawxMNhqtPA9CluncgRr/nCy1HVPNvp0VwN7tPro6390UXNYvo5J2D+CNcbZIB9I38XW5+BteyXhRpsy+AqIlTAHPzL3beErAjgmi5ApiPAnbD98uFhfdgnk2Op6C2r35WYyQf2Z1ZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RS8izRtp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785070; c=relaxed/simple;
+	bh=9tLcUyNz79alV3DQeG7j6QpeKMHHGJsNWBaPSsDLq34=;
+	h=Date:To:From:Subject:Message-Id; b=QtWBZTWFW92id12ea4qUGTB1AgLE4uhV9cGBBratoXTI/26co3oBPFJq49m2x+lNe6TK6Cwe5xAaZSIaPvMNvRH19LRntsR/t+VhslmFi2IOypRsET9OEsmXLXPMOKVxmPGukynomKNdjEaqYewsXOT+8zzt8vtj52nN5NHkOF4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YIY5hgFJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RS8izRtp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E014FC32782;
-	Fri, 16 Aug 2024 05:05:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YIY5hgFJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B763C4AF0B;
+	Fri, 16 Aug 2024 05:11:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723784720;
-	bh=thRftasXeKAp1xoZHeymtapgv6/bUxFyILs/GVZ+H4w=;
+	s=korg; t=1723785070;
+	bh=9tLcUyNz79alV3DQeG7j6QpeKMHHGJsNWBaPSsDLq34=;
 	h=Date:To:From:Subject:From;
-	b=RS8izRtpdrnlgwsmPngUk2s59+MZvx0NEBUiPeSZOl+A4/GvCgrpFWziZQZowMi3U
-	 D+vGf2ZXUPPHb4pgarYvatuYZB+79ziRuT6n/7jrJ7Q0B1yf//uTKKYijOg0reC2xW
-	 v+Zvc542eMylxYIOeAP6A2k1J56oDRJ9LTg5Sl/s=
-Date: Thu, 15 Aug 2024 22:05:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryabinin.a.a@gmail.com,andreyknvl@google.com,longman@redhat.com,akpm@linux-foundation.org
+	b=YIY5hgFJyKM0eZ2fv1YzczaL62PZDkftSP9pAV+uXwaWCiv26zQToJhGS14ykPQtL
+	 JrDrHDkGDCLoLzsjqnWWHWPVpfRPS9JsCMP1I7jXSX1AyL4vDp6InQqAbEscfTizGg
+	 QzEh+/TDRTApJAUCUV2boHIp2x0+0tEt7fIKZyb4=
+Date: Thu, 15 Aug 2024 22:11:09 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,len.brown@intel.com,juri.lelli@redhat.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled.patch removed from -mm tree
-Message-Id: <20240816050520.E014FC32782@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3.patch removed from -mm tree
+Message-Id: <20240816051110.1B763C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: double DEPOT_POOLS_CAP if KASAN is enabled
+     Subject: mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled.patch
+     mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: lib/stackdepot: double DEPOT_POOLS_CAP if KASAN is enabled
-Date: Wed, 7 Aug 2024 12:52:28 -0400
+Subject: mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3
+Date: Wed, 7 Aug 2024 14:11:30 -0400
 
-When a wide variety of workloads are run on a debug kernel with KASAN
-enabled, the following warning may sometimes be printed.
+don't hold percpu ref across pr_err(), per Miaohe
 
- [ 6818.650674] Stack depot reached limit capacity
- [ 6818.650730] WARNING: CPU: 1 PID: 272741 at lib/stackdepot.c:252 depot_alloc_stack+0x39e/0x3d0
-   :
- [ 6818.650907] Call Trace:
- [ 6818.650909]  [<00047dd453d84b92>] depot_alloc_stack+0x3a2/0x3d0
- [ 6818.650916]  [<00047dd453d85254>] stack_depot_save_flags+0x4f4/0x5c0
- [ 6818.650920]  [<00047dd4535872c6>] kasan_save_stack+0x56/0x70
- [ 6818.650924]  [<00047dd453587328>] kasan_save_track+0x28/0x40
- [ 6818.650927]  [<00047dd45358a27a>] kasan_save_free_info+0x4a/0x70
- [ 6818.650930]  [<00047dd45358766a>] __kasan_slab_free+0x12a/0x1d0
- [ 6818.650933]  [<00047dd45350deb4>] kmem_cache_free+0x1b4/0x580
- [ 6818.650938]  [<00047dd452c520da>] __put_task_struct+0x24a/0x320
- [ 6818.650945]  [<00047dd452c6aee4>] delayed_put_task_struct+0x294/0x350
- [ 6818.650949]  [<00047dd452e9066a>] rcu_do_batch+0x6ea/0x2090
- [ 6818.650953]  [<00047dd452ea60f4>] rcu_core+0x474/0xa90
- [ 6818.650956]  [<00047dd452c780c0>] handle_softirqs+0x3c0/0xf90
- [ 6818.650960]  [<00047dd452c76fbe>] __irq_exit_rcu+0x35e/0x460
- [ 6818.650963]  [<00047dd452c79992>] irq_exit_rcu+0x22/0xb0
- [ 6818.650966]  [<00047dd454bd8128>] do_ext_irq+0xd8/0x120
- [ 6818.650972]  [<00047dd454c0ddd0>] ext_int_handler+0xb8/0xe8
- [ 6818.650979]  [<00047dd453589cf6>] kasan_check_range+0x236/0x2f0
- [ 6818.650982]  [<00047dd453378cf0>] filemap_get_pages+0x190/0xaa0
- [ 6818.650986]  [<00047dd453379940>] filemap_read+0x340/0xa70
- [ 6818.650989]  [<00047dd3d325d226>] xfs_file_buffered_read+0x2c6/0x400 [xfs]
- [ 6818.651431]  [<00047dd3d325dfe2>] xfs_file_read_iter+0x2c2/0x550 [xfs]
- [ 6818.651663]  [<00047dd45364710c>] vfs_read+0x64c/0x8c0
- [ 6818.651669]  [<00047dd453648ed8>] ksys_read+0x118/0x200
- [ 6818.651672]  [<00047dd452b6cf5a>] do_syscall+0x27a/0x380
- [ 6818.651676]  [<00047dd454bd7e74>] __do_syscall+0xf4/0x1a0
- [ 6818.651680]  [<00047dd454c0db58>] system_call+0x70/0x98
-
-As KASAN is a big user of stackdepot, the current DEPOT_POOLS_CAP of
-8192 may not be enough. Double DEPOT_POOLS_CAP if KASAN is enabled to
-avoid hitting this problem.
-
-Also use the MIN() macro for defining DEPOT_MAX_POOLS to clarify the
-intention.
-
-Link: https://lkml.kernel.org/r/20240807165228.1116831-1-longman@redhat.com
-Fixes: 02754e0a484a ("lib/stackdepot.c: bump stackdepot capacity from 16MB to 128MB")
+Link: https://lkml.kernel.org/r/20240807181130.1122660-1-longman@redhat.com
+Fixes: 0f383b6dc96e ("locking/spinlock: Provide RT variant")
 Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled
-+++ a/lib/stackdepot.c
-@@ -36,11 +36,12 @@
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
+--- a/mm/memory-failure.c~mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3
++++ a/mm/memory-failure.c
+@@ -2455,10 +2455,10 @@ void memory_failure_queue(unsigned long
+ 	if (!buffer_overflow)
+ 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+ 	raw_spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
++	put_cpu_var(memory_failure_cpu);
+ 	if (buffer_overflow)
+ 		pr_err("buffer overflow when queuing memory failure at %#lx\n",
+ 		       pfn);
+-	put_cpu_var(memory_failure_cpu);
+ }
+ EXPORT_SYMBOL_GPL(memory_failure_queue);
  
--#define DEPOT_POOLS_CAP 8192
-+/* KASAN is a big user of stackdepot, double the cap if KASAN is enabled */
-+#define DEPOT_POOLS_CAP (8192 * (IS_ENABLED(CONFIG_KASAN) ? 2 : 1))
-+
- /* The pool_index is offset by 1 so the first record does not have a 0 handle. */
- #define DEPOT_MAX_POOLS \
--	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
--	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
-+	MIN((1LL << (DEPOT_POOL_INDEX_BITS)) - 1, DEPOT_POOLS_CAP)
- 
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
 
 mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch
-mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3.patch
 watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
