@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB3E78C7A;
-	Fri, 16 Aug 2024 05:16:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4608C8005B;
+	Fri, 16 Aug 2024 05:16:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723785416; cv=none; b=JOLiST38ba7ky5J7KbmLbxEfC+B1OlvD34zH1to/gFdTGiwBvnJo6yRkTlsVgBlp9cGWCNGMRPczPflJlHaa4drBrqQZpy4GihbSjKNuOrjakNltXNIVThISNURBvDV1YQzLSPb3jxT/zD9niG5n3OIDd3/D4QYOsF7TOrJ+Uxs=
+	t=1723785418; cv=none; b=EbTYenIYKOpw/mkoz52PnHETOG178M2BA1xZcayS0JQ5gnwU4TcdTkisSbZQCXmHp0bJddWSGCr8KfvT4Gph+WLnOPlf7VQtIi07ji8OZ0iTv80iI9URZRXTd9SlPWuYhCRSiZGzT+PR1WTBAaDibJJG5dhw/rcggRkf5V3ThIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723785416; c=relaxed/simple;
-	bh=Ox/EL5U1+Z8vk7aJGjY/0MfiqMn8bj4QbmKLNFXfIXg=;
-	h=Date:To:From:Subject:Message-Id; b=E/DkY82VLRyjc2a+vMBiEVpZ+MS6VN+w71AtVNlTsBjvjLBm8UOQtQVd+vjJbp0dpZhyn44lBuFTZAXrTLQgSkZ31unTkuGUHRIHjltigt/pqA9xWE7z296+dQSkzyRGfs91w8vlq3p3XfnZc8sIMftwZ21FnE8m6IAMqzGMnnU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CwCNvAjC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785418; c=relaxed/simple;
+	bh=rl1qikBqr2hmiOML9y/s0RcliLFqJiNfDD166Qmmy3w=;
+	h=Date:To:From:Subject:Message-Id; b=H20I9hI07CQdREQfIHDKu+heKEZSFm4IArtqFuKAB3Qke7LvfWZA7cZ86de4Sv0ZFzCrOR54ugeFOB+dZbky2lpmRtwnSqBxoju2VZMR6N1ZbuV92ceyl0H/0BKdcnCobpunHS7NdylrKryBNBEPi1g11Vj7aAg8kVVr2Z2EnFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xl4uy2xm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CwCNvAjC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD82C4AF0B;
-	Fri, 16 Aug 2024 05:16:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xl4uy2xm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 180EBC32782;
+	Fri, 16 Aug 2024 05:16:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723785416;
-	bh=Ox/EL5U1+Z8vk7aJGjY/0MfiqMn8bj4QbmKLNFXfIXg=;
+	s=korg; t=1723785418;
+	bh=rl1qikBqr2hmiOML9y/s0RcliLFqJiNfDD166Qmmy3w=;
 	h=Date:To:From:Subject:From;
-	b=CwCNvAjCWtxqFYUnp86fKOeiP9t6ngBxOzFOpjf5J2Q0VNs06I4cV56huO9kYVnmE
-	 2jA1XDfsoQ2T5MP4hbyKfjo+ofSsKxePxPuMS+7DGTFN9Kuy8q8Pdnlwq7zokXQob5
-	 e8i2Hi00trjQ3ZrFJhg8Xn2DXbQQbPtcJFEZ/wsQ=
-Date: Thu, 15 Aug 2024 22:16:55 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,stable@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,len.brown@intel.com,juri.lelli@redhat.com,longman@redhat.com,akpm@linux-foundation.org
+	b=xl4uy2xmwrTCUTRb5Xf9GARo/B4fXtUJsAGueOSYIFlMQKo+qutgmsrf/6RyQNbaJ
+	 uJcvhu4h3gv5/F66EzpTJ8RW6+wgQDWZCbVNJapvTfGxxJV5/rzMEKP2eIgzvIlCOo
+	 irsjsg3Fnc9JxQhQBKrQt6TiYo9U/AHO76dzzzF0=
+Date: Thu, 15 Aug 2024 22:16:57 -0700
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,willy@infradead.org,urezki@gmail.com,stable@vger.kernel.org,mhocko@suse.com,bhe@redhat.com,baohua@kernel.org,hailong.liu@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch removed from -mm tree
-Message-Id: <20240816051656.2AD82C4AF0B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmalloc-fix-page-mapping-if-vm_area_alloc_pages-with-high-order-fallback-to-order-0.patch removed from -mm tree
+Message-Id: <20240816051658.180EBC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,141 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: use raw_spinlock_t in struct memory_failure_cpu
+     Subject: mm/vmalloc: fix page mapping if vm_area_alloc_pages() with high order fallback to order 0
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch
+     mm-vmalloc-fix-page-mapping-if-vm_area_alloc_pages-with-high-order-fallback-to-order-0.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memory-failure: use raw_spinlock_t in struct memory_failure_cpu
-Date: Tue, 6 Aug 2024 12:41:07 -0400
+From: Hailong Liu <hailong.liu@oppo.com>
+Subject: mm/vmalloc: fix page mapping if vm_area_alloc_pages() with high order fallback to order 0
+Date: Thu, 8 Aug 2024 20:19:56 +0800
 
-The memory_failure_cpu structure is a per-cpu structure.  Access to its
-content requires the use of get_cpu_var() to lock in the current CPU and
-disable preemption.  The use of a regular spinlock_t for locking purpose
-is fine for a non-RT kernel.
+The __vmap_pages_range_noflush() assumes its argument pages** contains
+pages with the same page shift.  However, since commit e9c3cda4d86e ("mm,
+vmalloc: fix high order __GFP_NOFAIL allocations"), if gfp_flags includes
+__GFP_NOFAIL with high order in vm_area_alloc_pages() and page allocation
+failed for high order, the pages** may contain two different page shifts
+(high order and order-0).  This could lead __vmap_pages_range_noflush() to
+perform incorrect mappings, potentially resulting in memory corruption.
 
-Since the integration of RT spinlock support into the v5.15 kernel, a
-spinlock_t in a RT kernel becomes a sleeping lock and taking a sleeping
-lock in a preemption disabled context is illegal resulting in the
-following kind of warning.
+Users might encounter this as follows (vmap_allow_huge = true, 2M is for
+PMD_SIZE):
 
-  [12135.732244] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
-  [12135.732248] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 270076, name: kworker/0:0
-  [12135.732252] preempt_count: 1, expected: 0
-  [12135.732255] RCU nest depth: 2, expected: 2
-    :
-  [12135.732420] Hardware name: Dell Inc. PowerEdge R640/0HG0J8, BIOS 2.10.2 02/24/2021
-  [12135.732423] Workqueue: kacpi_notify acpi_os_execute_deferred
-  [12135.732433] Call Trace:
-  [12135.732436]  <TASK>
-  [12135.732450]  dump_stack_lvl+0x57/0x81
-  [12135.732461]  __might_resched.cold+0xf4/0x12f
-  [12135.732479]  rt_spin_lock+0x4c/0x100
-  [12135.732491]  memory_failure_queue+0x40/0xe0
-  [12135.732503]  ghes_do_memory_failure+0x53/0x390
-  [12135.732516]  ghes_do_proc.constprop.0+0x229/0x3e0
-  [12135.732575]  ghes_proc+0xf9/0x1a0
-  [12135.732591]  ghes_notify_hed+0x6a/0x150
-  [12135.732602]  notifier_call_chain+0x43/0xb0
-  [12135.732626]  blocking_notifier_call_chain+0x43/0x60
-  [12135.732637]  acpi_ev_notify_dispatch+0x47/0x70
-  [12135.732648]  acpi_os_execute_deferred+0x13/0x20
-  [12135.732654]  process_one_work+0x41f/0x500
-  [12135.732695]  worker_thread+0x192/0x360
-  [12135.732715]  kthread+0x111/0x140
-  [12135.732733]  ret_from_fork+0x29/0x50
-  [12135.732779]  </TASK>
+kvmalloc(2M, __GFP_NOFAIL|GFP_X)
+    __vmalloc_node_range_noprof(vm_flags=VM_ALLOW_HUGE_VMAP)
+        vm_area_alloc_pages(order=9) ---> order-9 allocation failed and fallback to order-0
+            vmap_pages_range()
+                vmap_pages_range_noflush()
+                    __vmap_pages_range_noflush(page_shift = 21) ----> wrong mapping happens
 
-Fix it by using a raw_spinlock_t for locking instead.
+We can remove the fallback code because if a high-order allocation fails,
+__vmalloc_node_range_noprof() will retry with order-0.  Therefore, it is
+unnecessary to fallback to order-0 here.  Therefore, fix this by removing
+the fallback code.
 
-Also move the pr_err() out of the lock critical section and after
-put_cpu_ptr() to avoid indeterminate latency and the possibility of sleep
-with this call.
-
-[longman@redhat.com: don't hold percpu ref across pr_err(), per Miaohe]
-  Link: https://lkml.kernel.org/r/20240807181130.1122660-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20240806164107.1044956-1-longman@redhat.com
-Fixes: 0f383b6dc96e ("locking/spinlock: Provide RT variant")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lkml.kernel.org/r/20240808122019.3361-1-hailong.liu@oppo.com
+Fixes: e9c3cda4d86e ("mm, vmalloc: fix high order __GFP_NOFAIL allocations")
+Signed-off-by: Hailong Liu <hailong.liu@oppo.com>
+Reported-by: Tangquan Zheng <zhengtangquan@oppo.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ mm/vmalloc.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu
-+++ a/mm/memory-failure.c
-@@ -2417,7 +2417,7 @@ struct memory_failure_entry {
- struct memory_failure_cpu {
- 	DECLARE_KFIFO(fifo, struct memory_failure_entry,
- 		      MEMORY_FAILURE_FIFO_SIZE);
--	spinlock_t lock;
-+	raw_spinlock_t lock;
- 	struct work_struct work;
- };
+--- a/mm/vmalloc.c~mm-vmalloc-fix-page-mapping-if-vm_area_alloc_pages-with-high-order-fallback-to-order-0
++++ a/mm/vmalloc.c
+@@ -3584,15 +3584,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			page = alloc_pages_noprof(alloc_gfp, order);
+ 		else
+ 			page = alloc_pages_node_noprof(nid, alloc_gfp, order);
+-		if (unlikely(!page)) {
+-			if (!nofail)
+-				break;
+-
+-			/* fall back to the zero order allocations */
+-			alloc_gfp |= __GFP_NOFAIL;
+-			order = 0;
+-			continue;
+-		}
++		if (unlikely(!page))
++			break;
  
-@@ -2443,20 +2443,22 @@ void memory_failure_queue(unsigned long
- {
- 	struct memory_failure_cpu *mf_cpu;
- 	unsigned long proc_flags;
-+	bool buffer_overflow;
- 	struct memory_failure_entry entry = {
- 		.pfn =		pfn,
- 		.flags =	flags,
- 	};
- 
- 	mf_cpu = &get_cpu_var(memory_failure_cpu);
--	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
--	if (kfifo_put(&mf_cpu->fifo, entry))
-+	raw_spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-+	buffer_overflow = !kfifo_put(&mf_cpu->fifo, entry);
-+	if (!buffer_overflow)
- 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
--	else
-+	raw_spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
-+	put_cpu_var(memory_failure_cpu);
-+	if (buffer_overflow)
- 		pr_err("buffer overflow when queuing memory failure at %#lx\n",
- 		       pfn);
--	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
--	put_cpu_var(memory_failure_cpu);
- }
- EXPORT_SYMBOL_GPL(memory_failure_queue);
- 
-@@ -2469,9 +2471,9 @@ static void memory_failure_work_func(str
- 
- 	mf_cpu = container_of(work, struct memory_failure_cpu, work);
- 	for (;;) {
--		spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-+		raw_spin_lock_irqsave(&mf_cpu->lock, proc_flags);
- 		gotten = kfifo_get(&mf_cpu->fifo, &entry);
--		spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
-+		raw_spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
- 		if (!gotten)
- 			break;
- 		if (entry.flags & MF_SOFT_OFFLINE)
-@@ -2501,7 +2503,7 @@ static int __init memory_failure_init(vo
- 
- 	for_each_possible_cpu(cpu) {
- 		mf_cpu = &per_cpu(memory_failure_cpu, cpu);
--		spin_lock_init(&mf_cpu->lock);
-+		raw_spin_lock_init(&mf_cpu->lock);
- 		INIT_KFIFO(mf_cpu->fifo);
- 		INIT_WORK(&mf_cpu->work, memory_failure_work_func);
- 	}
+ 		/*
+ 		 * Higher order allocations must be able to be treated as
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from hailong.liu@oppo.com are
 
-watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
