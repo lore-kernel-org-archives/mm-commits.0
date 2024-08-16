@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 381B810E4;
-	Fri, 16 Aug 2024 04:45:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AC748489
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 04:54:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723783528; cv=none; b=g8Vy3enir9nqORioqbjvVQwtIRCqAcIehg056MsyNMzyo78dNLXIuTEQERc+JOIqW4GVb0lHHR5q+MCoYtvpeGbRYaM26UgtQuOLNhbS4QIxOXA16KtfHqIa7gKCP2qSEe+q6ifrtjjhBYhyQBcT9/6rYjbxsGl83CZ3ui5kTTM=
+	t=1723784049; cv=none; b=AcgYri3nlgBZox3xidtYQsoBi4Hfjt7cerGLxdV+T9D4Z0JN10f8cJoV3iPt7PxtBYh2JHeMgvRMMqJS8dGU+LI9mk7BJX3pvCe8Zzg2qNNZf+5BaA5hDVfUtzTrRiQqw7aqfZy7pBYF+43DiPJ/ArK2Aa4uZyPFgvLQY8168f8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723783528; c=relaxed/simple;
-	bh=tjEQXuIrF/JMlAdKx+RtTwQKX7g/szbKv2fX1bKd7r0=;
-	h=Date:To:From:Subject:Message-Id; b=IMrmuvCFPJRr/TVU/L19skJ5qDJQZUF9BJ8K+0komC/w8MAfifsB77L/aQK3NMQxtO5+vdMMMIdsTbSkajeGUwZ+8Qt5Rq46bZyiex9ETCBCMFQ4EosYvLK4Xs9w/Vb7oNa4WSl5+abEgY3A/mYiL9uJfDFxKLCb26PIw+RnBIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mb4CT3/C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723784049; c=relaxed/simple;
+	bh=ciCuB0mTdu5/0JXILJ33xW7CflnHE6bO08lfPuG/658=;
+	h=Date:To:From:Subject:Message-Id; b=nO70wiLJeTs/I1EgmFLsibF6lrSfaAq76sUJLpmjJCe7vTK8wouh1hGSM3sDai1iyS2kqrFLHczEGVYeDaIvwYcmhgNtCNz0sAQ1WmobFi/Y67z6w7pYaORs3PuqNhQoVEperM2iuop9UDApzc/QMVfmB5M1mBFVchPq0idm8mQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H82w0yE5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mb4CT3/C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E56EC32782;
-	Fri, 16 Aug 2024 04:45:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H82w0yE5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1695C4AF0B;
+	Fri, 16 Aug 2024 04:54:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723783527;
-	bh=tjEQXuIrF/JMlAdKx+RtTwQKX7g/szbKv2fX1bKd7r0=;
+	s=korg; t=1723784048;
+	bh=ciCuB0mTdu5/0JXILJ33xW7CflnHE6bO08lfPuG/658=;
 	h=Date:To:From:Subject:From;
-	b=mb4CT3/CcLGkXZQEJsIrFt5AOsnKiEHR+j4zlse//dopDt1zTuwfevqFOR31F/aHY
-	 wC9ayg9MMT8SfVsgkQvfYr5i6jhxBdo6j4fcRT5Rf59Ej71bYIY5/l2ggLkWQZICXc
-	 vDwA+s954hxO8xLlms9OG68WxBGYQ3w7vHmoCeHk=
-Date: Thu, 15 Aug 2024 21:45:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,kent.overstreet@linux.dev,kees@kernel.org,iamjoonsoo.kim@lge.com,cl@linux.com,42.hyeyoo@gmail.com,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=H82w0yE5awi73XUkGKwR+ski/2Ucwj1MIjZhCJ3C1Veh8zHtitPUumdsbQB4gw0Pr
+	 AdSqob6NVrXziVi+CYqjaxwRMzDJV77gU7xZLlVtnbxP1hP8V3IV50+u2Pl1zy0ug5
+	 dFWDmZdYsyZIbvE8xQcIs2b1QLJIMyQJEY28avS8=
+Date: Thu, 15 Aug 2024 21:54:08 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,ira.weiny@intel.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slub-add-check-for-s-flags-in-the-alloc_tagging_slab_free_hook.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240816044527.8E56EC32782@smtp.kernel.org>
+Subject: + resource-fix-region_intersects-for-cxl-memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240816045408.D1695C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
+     Subject: resource: fix region_intersects() for CXL memory
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-slub-add-check-for-s-flags-in-the-alloc_tagging_slab_free_hook.patch
+     resource-fix-region_intersects-for-cxl-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-add-check-for-s-flags-in-the-alloc_tagging_slab_free_hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-fix-region_intersects-for-cxl-memory.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,105 +58,197 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
-Date: Fri, 16 Aug 2024 09:33:36 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: resource: fix region_intersects() for CXL memory
+Date: Fri, 16 Aug 2024 10:07:23 +0800
 
-When enable CONFIG_MEMCG & CONFIG_KFENCE & CONFIG_KMEMLEAK, the following
-warning always occurs,This is because the following call stack occurred:
-mem_pool_alloc
-    kmem_cache_alloc_noprof
-        slab_alloc_node
-            kfence_alloc
+On a system with CXL memory installed, the resource tree (/proc/iomem)
+related to CXL memory looks like something as follows.
 
-Once the kfence allocation is successful,slab->obj_exts will not be empty,
-because it has already been assigned a value in kfence_init_pool.
+490000000-50fffffff : CXL Window 0
+  490000000-50fffffff : region0
+    490000000-50fffffff : dax0.0
+      490000000-50fffffff : System RAM (kmem)
 
-Since in the prepare_slab_obj_exts_hook function,we perform a check for
-s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE),the alloc_tag_add function
-will not be called as a result.Therefore,ref->ct remains NULL.
+When the following command line is run to try writing some memory in
+CXL memory range,
 
-However,when we call mem_pool_free,since obj_ext is not empty, it
-eventually leads to the alloc_tag_sub scenario being invoked.  This is
-where the warning occurs.
+ $ dd if=data of=/dev/mem bs=1k seek=19136512 count=1
+ dd: error writing '/dev/mem': Bad address
+ 1+0 records in
+ 0+0 records out
+ 0 bytes copied, 0.0283507 s, 0.0 kB/s
 
-So we should add corresponding checks in the alloc_tagging_slab_free_hook.
-For __GFP_NO_OBJ_EXT case,I didn't see the specific case where it's using
-kfence,so I won't add the corresponding check in
-alloc_tagging_slab_free_hook for now.
+the command fails as expected.  However, the error code is wrong.  It
+should be "Operation not permitted" instead of "Bad address".  And,
+the following warning is reported in kernel log.
 
-[    3.734349] ------------[ cut here ]------------
-[    3.734807] alloc_tag was not set
-[    3.735129] WARNING: CPU: 4 PID: 40 at ./include/linux/alloc_tag.h:130 kmem_cache_free+0x444/0x574
-[    3.735866] Modules linked in: autofs4
-[    3.736211] CPU: 4 UID: 0 PID: 40 Comm: ksoftirqd/4 Tainted: G        W          6.11.0-rc3-dirty #1
-[    3.736969] Tainted: [W]=WARN
-[    3.737258] Hardware name: QEMU KVM Virtual Machine, BIOS unknown 2/2/2022
-[    3.737875] pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[    3.738501] pc : kmem_cache_free+0x444/0x574
-[    3.738951] lr : kmem_cache_free+0x444/0x574
-[    3.739361] sp : ffff80008357bb60
-[    3.739693] x29: ffff80008357bb70 x28: 0000000000000000 x27: 0000000000000000
-[    3.740338] x26: ffff80008207f000 x25: ffff000b2eb2fd60 x24: ffff0000c0005700
-[    3.740982] x23: ffff8000804229e4 x22: ffff800082080000 x21: ffff800081756000
-[    3.741630] x20: fffffd7ff8253360 x19: 00000000000000a8 x18: ffffffffffffffff
-[    3.742274] x17: ffff800ab327f000 x16: ffff800083398000 x15: ffff800081756df0
-[    3.742919] x14: 0000000000000000 x13: 205d344320202020 x12: 5b5d373038343337
-[    3.743560] x11: ffff80008357b650 x10: 000000000000005d x9 : 00000000ffffffd0
-[    3.744231] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008237bad0 x6 : c0000000ffff7fff
-[    3.744907] x5 : ffff80008237ba78 x4 : ffff8000820bbad0 x3 : 0000000000000001
-[    3.745580] x2 : 68d66547c09f7800 x1 : 68d66547c09f7800 x0 : 0000000000000000
-[    3.746255] Call trace:
-[    3.746530]  kmem_cache_free+0x444/0x574
-[    3.746931]  mem_pool_free+0x44/0xf4
-[    3.747306]  free_object_rcu+0xc8/0xdc
-[    3.747693]  rcu_do_batch+0x234/0x8a4
-[    3.748075]  rcu_core+0x230/0x3e4
-[    3.748424]  rcu_core_si+0x14/0x1c
-[    3.748780]  handle_softirqs+0x134/0x378
-[    3.749189]  run_ksoftirqd+0x70/0x9c
-[    3.749560]  smpboot_thread_fn+0x148/0x22c
-[    3.749978]  kthread+0x10c/0x118
-[    3.750323]  ret_from_fork+0x10/0x20
-[    3.750696] ---[ end trace 0000000000000000 ]---
+ ioremap on RAM at 0x0000000490000000 - 0x0000000490000fff
+ WARNING: CPU: 2 PID: 416 at arch/x86/mm/ioremap.c:216 __ioremap_caller.constprop.0+0x131/0x35d
+ Modules linked in: cxl_pmem libnvdimm cbc encrypted_keys cxl_pmu
+ CPU: 2 UID: 0 PID: 416 Comm: dd Not tainted 6.11.0-rc3-kvm #40
+ Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+ RIP: 0010:__ioremap_caller.constprop.0+0x131/0x35d
+ Code: 2d 80 3d 24 6a a1 02 00 75 c1 48 8d 54 24 70 48 8d b4 24 90 00 00 00 48 c7 c7 40 3a 05 8a c6 05 07 6a a1 02 01 e8 a3 a0 01 00 <0f> 0b eb 9d 48 8b 84 24 90 00 00 00 48 8d 4c 24 60 89 ea 48 bf 00
+ RSP: 0018:ffff888105387bf0 EFLAGS: 00010282
+ RAX: 0000000000000000 RBX: 0000000490000fff RCX: 0000000000000000
+ RDX: 0000000000000001 RSI: 0000000000000003 RDI: ffffed1020a70f73
+ RBP: 0000000000000000 R08: ffffed100d9fce92 R09: 0000000000000001
+ R10: ffffffff892348e7 R11: ffffed100d9fce91 R12: 0000000490000000
+ R13: 0000000000000001 R14: 0000000000000001 R15: ffff888105387ca0
+ FS:  00007f86c438c740(0000) GS:ffff88806ce00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 000055ba75b1b818 CR3: 0000000005231000 CR4: 0000000000350eb0
+ Call Trace:
+  <TASK>
+  ? __warn+0xd7/0x1b8
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? report_bug+0x136/0x19e
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? handle_bug+0x3c/0x64
+  ? exc_invalid_op+0x13/0x38
+  ? asm_exc_invalid_op+0x16/0x20
+  ? irq_work_claim+0x16/0x38
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? tracer_hardirqs_off+0x18/0x16d
+  ? kmem_cache_debug_flags+0x16/0x23
+  ? memremap+0xcb/0x184
+  ? iounmap+0xfe/0xfe
+  ? lock_sync+0xc7/0xc7
+  ? lock_sync+0xc7/0xc7
+  ? rcu_is_watching+0x1c/0x38
+  ? do_raw_read_unlock+0x37/0x42
+  ? _raw_read_unlock+0x1f/0x2f
+  memremap+0xcb/0x184
+  ? pfn_valid+0x159/0x159
+  ? resource_is_exclusive+0xba/0xc5
+  xlate_dev_mem_ptr+0x25/0x2f
+  write_mem+0x94/0xfb
+  vfs_write+0x128/0x26d
+  ? kernel_write+0x89/0x89
+  ? rcu_is_watching+0x1c/0x38
+  ? __might_fault+0x72/0xba
+  ? __might_fault+0x72/0xba
+  ? rcu_is_watching+0x1c/0x38
+  ? lock_release+0xba/0x13e
+  ? files_lookup_fd_raw+0x40/0x4b
+  ? __fget_light+0x64/0x89
+  ksys_write+0xac/0xfe
+  ? __ia32_sys_read+0x40/0x40
+  ? tracer_hardirqs_off+0x18/0x16d
+  ? tracer_hardirqs_on+0x11/0x146
+  do_syscall_64+0x9a/0xfd
+  entry_SYSCALL_64_after_hwframe+0x4b/0x53
+ RIP: 0033:0x7f86c4487140
+ Code: 40 00 48 8b 15 c1 9c 0d 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 80 3d a1 24 0e 00 00 74 17 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 58 c3 0f 1f 80 00 00 00 00 48 83 ec 28 48 89
+ RSP: 002b:00007ffca9f62af8 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+ RAX: ffffffffffffffda RBX: 0000000000000400 RCX: 00007f86c4487140
+ RDX: 0000000000000400 RSI: 000055ba75b1a000 RDI: 0000000000000001
+ RBP: 000055ba75b1a000 R08: 0000000000000000 R09: 00007f86c457c080
+ R10: 00007f86c43a84d0 R11: 0000000000000202 R12: 0000000000000000
+ R13: 0000000000000000 R14: 000055ba75b1a000 R15: 0000000000000400
+  </TASK>
+ irq event stamp: 0
+ hardirqs last  enabled at (0): [<0000000000000000>] 0x0
+ hardirqs last disabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
+ softirqs last  enabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
+ softirqs last disabled at (0): [<0000000000000000>] 0x0
 
-Link: https://lkml.kernel.org/r/20240816013336.17505-1-hao.ge@linux.dev
-Fixes: 4b8736964640 ("mm/slab: add allocation accounting into slab allocation and free paths")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+After investigation, we found the following bug.
+
+In the above resource tree, "System RAM" is a descendant of "CXL Window 0"
+instead of a top level resource.  So, region_intersects() will report no
+System RAM resources in the CXL memory region incorrectly, because it only
+checks the top level resources.  Consequently, devmem_is_allowed() will
+return 1 (allow access via /dev/mem) for CXL memory region incorrectly. 
+Fortunately, ioremap() doesn't allow to map System RAM and reject the
+access.
+
+However, region_intersects() needs to be fixed to work correctly with the
+resources tree with CXL Window as above.  To fix it, we will search
+matched resources in the descendant resources too.  So, we will not miss
+any matched resources anymore.
+
+Link: https://lkml.kernel.org/r/20240816020723.771196-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/resource.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
---- a/mm/slub.c~mm-slub-add-check-for-s-flags-in-the-alloc_tagging_slab_free_hook
-+++ a/mm/slub.c
-@@ -2116,6 +2116,10 @@ alloc_tagging_slab_free_hook(struct kmem
- 	if (!mem_alloc_profiling_enabled())
- 		return;
+--- a/kernel/resource.c~resource-fix-region_intersects-for-cxl-memory
++++ a/kernel/resource.c
+@@ -542,18 +542,48 @@ static int __region_intersects(struct re
+ {
+ 	struct resource res;
+ 	int type = 0; int other = 0;
+-	struct resource *p;
++	struct resource *p, *dp;
++	resource_size_t ostart, oend;
++	bool is_type;
  
-+	/* slab->obj_exts might not be NULL if it was created for MEMCG accounting. */
-+	if (s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE))
-+		return;
-+
- 	obj_exts = slab_obj_exts(slab);
- 	if (!obj_exts)
- 		return;
+ 	res.start = start;
+ 	res.end = start + size - 1;
+ 
+ 	for (p = parent->child; p ; p = p->sibling) {
+-		bool is_type = (((p->flags & flags) == flags) &&
+-				((desc == IORES_DESC_NONE) ||
+-				 (desc == p->desc)));
+-
+-		if (resource_overlaps(p, &res))
+-			is_type ? type++ : other++;
++		if (!resource_overlaps(p, &res))
++			continue;
++		is_type = (((p->flags & flags) == flags) &&
++			   ((desc == IORES_DESC_NONE) || (desc == p->desc)));
++		if (is_type) {
++			type++;
++			continue;
++		}
++		/*
++		 * Continue to search in descendant resources.  Unless
++		 * the matched descendant resources cover the whole
++		 * overlapped range, increase 'other', because it
++		 * overlaps with 'p' at least.
++		 */
++		other++;
++		ostart = max(res.start, p->start);
++		oend = min(res.end, p->end);
++		for_each_resource(p, dp, false) {
++			if (!resource_overlaps(dp, &res))
++				continue;
++			is_type = (((dp->flags & flags) == flags) &&
++				   ((desc == IORES_DESC_NONE) ||
++				    (desc == dp->desc)));
++			if (is_type) {
++				type++;
++				if (dp->start > ostart)
++					break;
++				if (dp->end >= oend) {
++					other--;
++					break;
++				}
++				ostart = dp->end + 1;
++			}
++		}
+ 	}
+ 
+ 	if (type == 0)
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-slub-add-check-for-s-flags-in-the-alloc_tagging_slab_free_hook.patch
-mm-cma-change-the-addition-of-totalcma_pages-in-the-cma_init_reserved_mem.patch
+resource-fix-region_intersects-for-cxl-memory.patch
 
