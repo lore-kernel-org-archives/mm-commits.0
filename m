@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83EB6383A5;
-	Fri, 16 Aug 2024 05:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D248383A5
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 05:17:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723785425; cv=none; b=AWzK38d+zn+OhuQGg1PihSj5ei5SxEJBNoZ52FePxBDHn1WFoO/ANgxmPWNYCPrCmJIQKOckCeC4Js6bRks9n74/6a7O/QK/5+MjaTT59GlywspmbFoULLxV3N0LfowTCYRDUKN1wcH7gBD59gqbY1kCXkrxxlPDud769vPC/Y0=
+	t=1723785426; cv=none; b=N5aWd+wnsKrqMzh6mRJhUuDgSEMegl8ThYd2Wc6QWVY1tUDXjru5oarh7CEMhbfQH8Jt+XKT2NpxiKh8bY1ZctOX2ib+mzZ/l6kTWKUddWT5aqWMnjm6+jCldNQE0WiDxq5AHtWb4AXlSLew1Rws6oqGgD2hYRan1oIiWLUNMfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723785425; c=relaxed/simple;
-	bh=ymQN2rXxI6SIahUW2kurIUD0LP0afmSitIQEFwKRpnc=;
-	h=Date:To:From:Subject:Message-Id; b=dJhFvsWJqZUtDzB0v1BTbuN1UL4bvx6hqKSRqW1FC/E9C89sauoSZhbx7qv7YHKX+9yXoJ+LiRXxbxKmTrXg2ny7pHd8ghZSDH+7IsdQolPf6AyZxYUAWNkVSA+t8pfrdItnBBn+Y1D4BKx0TJPWi9mbBiaYw+pM59go3puyDKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XqtLxrhw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785426; c=relaxed/simple;
+	bh=GaUbMgQk9MkvELBH6JGPE9XPIKKqDXOZF2iTPkVEmEQ=;
+	h=Date:To:From:Subject:Message-Id; b=JbTEk+ewREPVUC9fGDSJseWRQQHX4EcLHvfqVYVz+QUNvKd8TOwOW6WHw8YDlR7ofiCnULexP7b8uLNKKGx4fGBV/v2l+vQuMnQhr9lBSFgZfjVogrb4hfl32BqRmpK99nTR1MXAHbIeavSvS4L0qMqzzAr947owy+GEXJEE2LI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dNcDVq8E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XqtLxrhw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DDDC32782;
-	Fri, 16 Aug 2024 05:17:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dNcDVq8E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32895C4AF0B;
+	Fri, 16 Aug 2024 05:17:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723785425;
-	bh=ymQN2rXxI6SIahUW2kurIUD0LP0afmSitIQEFwKRpnc=;
+	s=korg; t=1723785426;
+	bh=GaUbMgQk9MkvELBH6JGPE9XPIKKqDXOZF2iTPkVEmEQ=;
 	h=Date:To:From:Subject:From;
-	b=XqtLxrhwFpXqviMvfG2S6ZziIqxpQFQdw87I+x7CDb37ORwlHGhYO7Xm8j94rRjfW
-	 UyGUyNbshbkI8mfgTNr+gjS0ndEZAGMyRF5/pl7qyLCCtTBQO9Xtb7I5xqYQHnzADl
-	 v0Qyt2tHhLdoDWl/1aPJD7XXMXQRpBJMMO9ysLDA=
-Date: Thu, 15 Aug 2024 22:17:04 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,skhan@linuxfoundation.org,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,James.Bottomley@HansenPartnership.com,aou@eecs.berkeley.edu,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=dNcDVq8EbIZZjyCupv7cndzJHQKL8fXTgNGlHNeCU1bUGg+gw7L7lVf63Ftj2uyW2
+	 qQiTgFqPu+iopKi5i/kEhCnebHMjj96VPnVRowSNlJ6UjwXM12XXgEwt3USG6pFR3Q
+	 /8LZ6yusyhMC0Uk2FVnxnpKrURRNpIUXS21vPU0Q=
+Date: Thu, 15 Aug 2024 22:17:05 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch removed from -mm tree
-Message-Id: <20240816051704.E6DDDC32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] crash-fix-riscv64-crash-memory-reserve-dead-loop.patch removed from -mm tree
+Message-Id: <20240816051706.32895C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
+     Subject: crash: fix riscv64 crash memory reserve dead loop
 has been removed from the -mm tree.  Its filename was
-     selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch
+     crash-fix-riscv64-crash-memory-reserve-dead-loop.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
-Date: Fri, 9 Aug 2024 12:56:42 +0500
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: crash: fix riscv64 crash memory reserve dead loop
+Date: Mon, 12 Aug 2024 14:20:17 +0800
 
-[1] mentions that memfd_secret is only supported on arm64, riscv, x86 and
-x86_64 for now.  It doesn't support other architectures.  I found the
-build error on arm and decided to send the fix as it was creating noise on
-KernelCI:
+On RISCV64 Qemu machine with 512MB memory, cmdline "crashkernel=500M,high"
+will cause system stall as below:
 
-memfd_secret.c: In function 'memfd_secret':
-memfd_secret.c:42:24: error: '__NR_memfd_secret' undeclared (first use in this function);
-did you mean 'memfd_secret'?
-   42 |         return syscall(__NR_memfd_secret, flags);
-      |                        ^~~~~~~~~~~~~~~~~
-      |                        memfd_secret
+	 Zone ranges:
+	   DMA32    [mem 0x0000000080000000-0x000000009fffffff]
+	   Normal   empty
+	 Movable zone start for each node
+	 Early memory node ranges
+	   node   0: [mem 0x0000000080000000-0x000000008005ffff]
+	   node   0: [mem 0x0000000080060000-0x000000009fffffff]
+	 Initmem setup node 0 [mem 0x0000000080000000-0x000000009fffffff]
+	(stall here)
 
-Hence I'm adding condition that memfd_secret should only be compiled on
-supported architectures.
+commit 5d99cadf1568 ("crash: fix x86_32 crash memory reserve dead loop
+bug") fix this on 32-bit architecture.  However, the problem is not
+completely solved.  If `CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX` on
+64-bit architecture, for example, when system memory is equal to
+CRASH_ADDR_LOW_MAX on RISCV64, the following infinite loop will also
+occur:
 
-Also check in run_vmtests script if memfd_secret binary is present before
-executing it.
+	-> reserve_crashkernel_generic() and high is true
+	   -> alloc at [CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX] fail
+	      -> alloc at [0, CRASH_ADDR_LOW_MAX] fail and repeatedly
+	         (because CRASH_ADDR_LOW_MAX = CRASH_ADDR_HIGH_MAX).
 
-Link: https://lkml.kernel.org/r/20240812061522.1933054-1-usama.anjum@collabora.com
-Link: https://lore.kernel.org/all/20210518072034.31572-7-rppt@kernel.org/ [1]
-Link: https://lkml.kernel.org/r/20240809075642.403247-1-usama.anjum@collabora.com
-Fixes: 76fe17ef588a ("secretmem: test: add basic selftest for memfd_secret(2)")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+As Catalin suggested, do not remove the ",high" reservation fallback to
+",low" logic which will change arm64's kdump behavior, but fix it by
+skipping the above situation similar to commit d2f32f23190b ("crash: fix
+x86_32 crash memory reserve dead loop").
+
+After this patch, it print:
+	cannot allocate crashkernel (size:0x1f400000)
+
+Link: https://lkml.kernel.org/r/20240812062017.2674441-1-ruanjinjie@huawei.com
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: <stable@vger.kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile       |    2 ++
- tools/testing/selftests/mm/run_vmtests.sh |    3 +++
- 2 files changed, 5 insertions(+)
+ kernel/crash_reserve.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -53,7 +53,9 @@ TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
-+ifneq (,$(filter $(ARCH),arm64 riscv riscv64 x86 x86_64))
- TEST_GEN_FILES += memfd_secret
-+endif
- TEST_GEN_FILES += migration
- TEST_GEN_FILES += mkdirty
- TEST_GEN_FILES += mlock-random-test
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -374,8 +374,11 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
-+if [ -x ./memfd_secret ]
-+then
- (echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
- CATEGORY="memfd_secret" run_test ./memfd_secret
-+fi
- 
- # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
- CATEGORY="ksm" run_test ./ksm_tests -H -s 100
+--- a/kernel/crash_reserve.c~crash-fix-riscv64-crash-memory-reserve-dead-loop
++++ a/kernel/crash_reserve.c
+@@ -423,7 +423,8 @@ retry:
+ 		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
+ 			search_end = CRASH_ADDR_LOW_MAX;
+ 			search_base = 0;
+-			goto retry;
++			if (search_end != CRASH_ADDR_HIGH_MAX)
++				goto retry;
+ 		}
+ 		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
+ 			crash_size);
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
-selftests-mm-fix-build-errors-on-armhf.patch
+crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
