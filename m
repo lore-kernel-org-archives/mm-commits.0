@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ABD778297
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:18:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 157B778297
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:19:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723846739; cv=none; b=pt/+sm16Jtv1B9sZ+Y2ZFm8QLgnC0yOhIh04EKjnw4qi+xF57z9rSGy7ssW5Qy+Aa2t3lHGg4eKhFoD6pACoyJgAdbTH4kb8Y6vDe6eh3OFYo1ITjslZP7uMt3OUvq7UBV8tvr2mdWYLPe5dH04GCQzsUeyxj92ztwF5dG8PQ4w=
+	t=1723846741; cv=none; b=Q6D71JxirIa1DxlJOSES+v/ILimTnCEqOBoj7cgCaxCdQggI0aKBonUWmvOn8rNL7wuEn6yJL26dLJ8Dz2L0DIuSXPd3SdS0gksdkvrxQsVc3z2EPKMwYQlPjchsPId59NNvOFUCD/1tCLgjaU1KXsawa/77NbPOl2tvM6DUbQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723846739; c=relaxed/simple;
-	bh=Wep+3VoPpjSK5qf1HDEaEO3eQWyanI6lXvpfIfoOOOs=;
-	h=Date:To:From:Subject:Message-Id; b=gkaC7fJsy8o0l+93jBAr6d2QctvjJRsQWDz12DROwViuah66+SndVYYQS+m4CegPDiCfsbcMHaIdDfQiITCHgfGaWVEPq9TjHcKvs2RhE6WQd2WJJLABLK9gxQHCv13rESXVEUhAVtgkBJhvDj16f/iHt2LJm/bRY+t2g7YsUSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cGxdx8RP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723846741; c=relaxed/simple;
+	bh=WYx71Z0A2O6BlixezG/25wiwglbsTymYrb0nLLvflvk=;
+	h=Date:To:From:Subject:Message-Id; b=b6NeSRI4v+COBL/Vxn6qIaVaLX4oCLIpHrBmQEhq8Lw7ArO18lPekYPh3cifTqI9rGgvNDs7S6iTUaqEAo/tkFviWl3xh653DN6mZcH5CLcZW5ZM4DkszKd6OB++AKuYjkhZwdkgMLohAsselIwguytAl9qxNSGXhwvUNcYSF5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yg962RD9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cGxdx8RP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E7D2C32782;
-	Fri, 16 Aug 2024 22:18:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yg962RD9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 763CAC32782;
+	Fri, 16 Aug 2024 22:19:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723846738;
-	bh=Wep+3VoPpjSK5qf1HDEaEO3eQWyanI6lXvpfIfoOOOs=;
+	s=korg; t=1723846740;
+	bh=WYx71Z0A2O6BlixezG/25wiwglbsTymYrb0nLLvflvk=;
 	h=Date:To:From:Subject:From;
-	b=cGxdx8RPMAAZlgQVi8971JLgn5xkwSUeqbzealn0dZlH63locdjut1SHNF+1/AfFa
-	 rtkjy+fBrG3PveVzjRAwkJ4IHdw+9O0psrMrhaU9WdyTonuR3hwxNmPzRL0k2vqC5M
-	 IFrgrC8f0ZVXrs6HryoOvTlbF5Wp+RD+ZF2UyXEA=
-Date: Fri, 16 Aug 2024 15:18:58 -0700
+	b=Yg962RD9UYGuOOvS13W7lXseCSyRLmpbcYbO5uL619q3KR82KZoA5N2ZMxrGZBK8x
+	 vwuibkxoaXo9eZ5Ho6crtI2T0HgijLv7C8pboxHVAtzq0o1xUNWQXJPk/NqeyyqpuH
+	 bbG9zypGhhgP8/blaMq7Upx7vAyNAHUcUQhjziLc=
+Date: Fri, 16 Aug 2024 15:18:59 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-add-missing-argument-description-for-__nilfs_error.patch added to mm-nonmm-unstable branch
-Message-Id: <20240816221858.9E7D2C32782@smtp.kernel.org>
+Subject: + nilfs2-add-missing-argument-descriptions-for-ioctl-related-helpers.patch added to mm-nonmm-unstable branch
+Message-Id: <20240816221900.763CAC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: add missing argument description for __nilfs_error()
+     Subject: nilfs2: add missing argument descriptions for ioctl-related helpers
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-add-missing-argument-description-for-__nilfs_error.patch
+     nilfs2-add-missing-argument-descriptions-for-ioctl-related-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-missing-argument-description-for-__nilfs_error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-missing-argument-descriptions-for-ioctl-related-helpers.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: add missing argument description for __nilfs_error()
-Date: Fri, 16 Aug 2024 16:43:12 +0900
+Subject: nilfs2: add missing argument descriptions for ioctl-related helpers
+Date: Fri, 16 Aug 2024 16:43:13 +0900
 
-Patch series "This series fixes a number of formatting issues in kernel
-doc comments"
+Add missing argument descriptions and return value information to the
+kernel-doc comments for ioctl helper functions, and eliminate the
+following warnings output by the kernel-doc script:
 
+ fs/nilfs2/ioctl.c:120: warning: Function parameter or struct member
+  'dentry' not described in 'nilfs_fileattr_get'
+ fs/nilfs2/ioctl.c:120: warning: Function parameter or struct member 'fa'
+  not described in 'nilfs_fileattr_get'
+ fs/nilfs2/ioctl.c:133: warning: Function parameter or struct member 'idmap'
+  not described in 'nilfs_fileattr_set'
+ fs/nilfs2/ioctl.c:133: warning: Function parameter or struct member
+  'dentry' not described in 'nilfs_fileattr_set'
+ fs/nilfs2/ioctl.c:133: warning: Function parameter or struct member 'fa'
+  not described in 'nilfs_fileattr_set'
+ fs/nilfs2/ioctl.c:164: warning: Function parameter or struct member 'inode'
+  not described in 'nilfs_ioctl_getversion'
+ fs/nilfs2/ioctl.c:164: warning: Function parameter or struct member 'argp'
+  not described in 'nilfs_ioctl_getversion'
 
-This series fixes a number of formatting issues in kernel doc comments
-that were detected as warnings by the kernel-doc script, making violations
-more noticeable when adding or modifying kernel doc.
-
-There are still warnings output by "kernel-doc -Wall", but they are
-widespread, so I plan to fix them at another time while considering
-priorities.
-
-
-This patch (of 8):
-
-Add missing argument description to __nilfs_error function and remove the
-following warnings from kernel-doc script output:
-
- fs/nilfs2/super.c:121: warning: Function parameter or struct member 'sb'
-  not described in '__nilfs_error'
- fs/nilfs2/super.c:121: warning: Function parameter or struct member
-  'function' not described in '__nilfs_error'
- fs/nilfs2/super.c:121: warning: Function parameter or struct member 'fmt'
-  not described in '__nilfs_error'
-
-Link: https://lkml.kernel.org/r/20240816074319.3253-1-konishi.ryusuke@gmail.com
-Link: https://lkml.kernel.org/r/20240816074319.3253-2-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240816074319.3253-3-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/nilfs2/ioctl.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/super.c~nilfs2-add-missing-argument-description-for-__nilfs_error
-+++ a/fs/nilfs2/super.c
-@@ -105,6 +105,10 @@ static void nilfs_set_error(struct super
+--- a/fs/nilfs2/ioctl.c~nilfs2-add-missing-argument-descriptions-for-ioctl-related-helpers
++++ a/fs/nilfs2/ioctl.c
+@@ -115,7 +115,11 @@ static int nilfs_ioctl_wrap_copy(struct
+ }
  
  /**
-  * __nilfs_error() - report failure condition on a filesystem
-+ * @sb:       super block instance
-+ * @function: name of calling function
-+ * @fmt:      format string for message to be output
-+ * @...:      optional arguments to @fmt
-  *
-  * __nilfs_error() sets an ERROR_FS flag on the superblock as well as
-  * reporting an error message.  This function should be called when
+- * nilfs_fileattr_get - ioctl to support lsattr
++ * nilfs_fileattr_get - retrieve miscellaneous file attributes
++ * @dentry: the object to retrieve from
++ * @fa:     fileattr pointer
++ *
++ * Return: always 0 as success.
+  */
+ int nilfs_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+ {
+@@ -127,7 +131,12 @@ int nilfs_fileattr_get(struct dentry *de
+ }
+ 
+ /**
+- * nilfs_fileattr_set - ioctl to support chattr
++ * nilfs_fileattr_set - change miscellaneous file attributes
++ * @idmap:  idmap of the mount
++ * @dentry: the object to change
++ * @fa:     fileattr pointer
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_fileattr_set(struct mnt_idmap *idmap,
+ 		       struct dentry *dentry, struct fileattr *fa)
+@@ -160,6 +169,10 @@ int nilfs_fileattr_set(struct mnt_idmap
+ 
+ /**
+  * nilfs_ioctl_getversion - get info about a file's version (generation number)
++ * @inode: inode object
++ * @argp:  userspace memory where the generation number of @inode is stored
++ *
++ * Return: 0 on success, or %-EFAULT on error.
+  */
+ static int nilfs_ioctl_getversion(struct inode *inode, void __user *argp)
+ {
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
