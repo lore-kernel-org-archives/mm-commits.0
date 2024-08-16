@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB1F146593
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:43:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7F97DA64
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:51:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723844626; cv=none; b=bQO6Ozxz2vPcM7DiO3C9t5wCBzYI26M8asq4VAvlBu2FEc9O0rySKzwwZfPd75McD+2hdl/qBsTScvL0ilpXYO8dWbMbQnEuO+3irElj0qhZHKA6ne3xkkQGPH7OsfenkfPMLBihPM9uS1nPUnLoV48QNz9x3fePXNL6BSIq7vQ=
+	t=1723845093; cv=none; b=B+SHm0J5adnTcFXIsccCaYoTKUAsrp60BmhTxzyJr7S3zdRH4a/KeKpuUdZmokmF0+qWtEKXRIBhnwfuxpBKjke2y8qvCJi0nen14PYxAqlZE1Q6xXXYu9rXk1Fylul5KF1J08e2Zo7J/Xb5NBBiQIAzAVqSaKrkO8Pia8QhxLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723844626; c=relaxed/simple;
-	bh=nuXRO8O0B/NPioEkwxwdJGSVGNtIVN4DNbMaNEFcBuY=;
-	h=Date:To:From:Subject:Message-Id; b=MuN+FPMY2X6q3TTiCAfbosCk4A1bHQ2cipknhZ0GB9Zt6rbb5P7xPuRTOPkjV9HvxpTK4YUp3EPVIjS2bW2xYgcg3m41bcZzNfuE4u9vrEHkaO+FwSKAxHj8VTcqkLfVwI1AVEv1X17MXgIPjhMK/sgtoTh3aZF0+3UlksNb4P8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YL3mqt45; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723845093; c=relaxed/simple;
+	bh=H0ZHe0pyHqBtlHq+owoENDzqZ0P3QsJewDrhcNfztNE=;
+	h=Date:To:From:Subject:Message-Id; b=sOTvBARUB26IV2BGlVa0Hm+o+KrSuaZzGgf5ghOYJFj3+EdZvVFqq8kGX4QgA0QiFAVrnavWC0p+b7wOXPrt9uMKIPuWq6ooJwqdcbeg0go5ozXuB/aFv0TCpPN24zt2sqwmjWiL/jArTs7ffhDyV47c28lYyIQ9Fi5K3D2d8vc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ag++g7c3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YL3mqt45"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97CA2C32782;
-	Fri, 16 Aug 2024 21:43:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ag++g7c3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E111BC32782;
+	Fri, 16 Aug 2024 21:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723844626;
-	bh=nuXRO8O0B/NPioEkwxwdJGSVGNtIVN4DNbMaNEFcBuY=;
+	s=korg; t=1723845092;
+	bh=H0ZHe0pyHqBtlHq+owoENDzqZ0P3QsJewDrhcNfztNE=;
 	h=Date:To:From:Subject:From;
-	b=YL3mqt45LC6aS033B2CP081pugwprariRsH1ya9gINgHOGPAJO6A9tiPSB8oVlmrm
-	 /hN8Lwzx6aiyty2SMze4R91D8QZElXb3c2jf1Wmro+BT15MsuUxLLm5yUgSs7szsa4
-	 oEkv9320s2IyKqatX6fk9A8sKN3ZJx9eV+N9gOAo=
-Date: Fri, 16 Aug 2024 14:43:46 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=ag++g7c3+LxIga7Xgo87Jd3UjUpWv5d/alYafoWWg2QPtldgrzmk1nf7Amj9xgwG1
+	 xd5pmSKJs+SmkI5PzxKVnziCdYJZhZU1l9Sg+G1fERKhDO8I088H5P/EdrAIGUIJy2
+	 63HlUWRsaFIYfHHoYRel7ZuUOhqYUcxIzohmB4To=
+Date: Fri, 16 Aug 2024 14:51:31 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,shli@fb.com,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,kaleshsingh@google.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch added to mm-nonmm-unstable branch
-Message-Id: <20240816214346.97CA2C32782@smtp.kernel.org>
+Subject: + mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch added to mm-unstable branch
+Message-Id: <20240816215131.E111BC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: do not output warnings when clearing dirty buffers
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch
+     Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,156 +58,127 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not output warnings when clearing dirty buffers
-Date: Fri, 16 Aug 2024 18:01:28 +0900
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
+Date: Fri, 16 Aug 2024 17:04:35 +0800
 
-After detecting file system corruption and degrading to a read-only mount,
-dirty folios and buffers in the page cache are cleared, and a large number
-of warnings are output at that time, often filling up the kernel log.
+Use the isolate_folio_to_list() to unify hugetlb/LRU/non-LRU folio
+isolation, which cleanup code a bit and save a few calls to
+compound_head().
 
-In this case, since the degrading to a read-only mount is output to the
-kernel log, these warnings are not very meaningful, and are rather a
-nuisance in system management and debugging.
-
-The related nilfs2-specific page/folio routines have a silent argument
-that suppresses the warning output, but since it is not currently used
-meaningfully, remove both the silent argument and the warning output.
-
-Link: https://lkml.kernel.org/r/20240816090128.4561-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240816090435.888946-6-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |    4 ++--
- fs/nilfs2/mdt.c   |    6 +++---
- fs/nilfs2/page.c  |   19 +++----------------
- fs/nilfs2/page.h  |    4 ++--
- 4 files changed, 10 insertions(+), 23 deletions(-)
+ mm/memory_hotplug.c |   45 +++++++++++++++---------------------------
+ 1 file changed, 17 insertions(+), 28 deletions(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
-+++ a/fs/nilfs2/inode.c
-@@ -162,7 +162,7 @@ static int nilfs_writepages(struct addre
- 	int err = 0;
- 
- 	if (sb_rdonly(inode->i_sb)) {
--		nilfs_clear_dirty_pages(mapping, false);
-+		nilfs_clear_dirty_pages(mapping);
- 		return -EROFS;
- 	}
- 
-@@ -186,7 +186,7 @@ static int nilfs_writepage(struct page *
- 		 * have dirty pages that try to be flushed in background.
- 		 * So, here we simply discard this dirty page.
- 		 */
--		nilfs_clear_folio_dirty(folio, false);
-+		nilfs_clear_folio_dirty(folio);
- 		folio_unlock(folio);
- 		return -EROFS;
- 	}
---- a/fs/nilfs2/mdt.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
-+++ a/fs/nilfs2/mdt.c
-@@ -411,7 +411,7 @@ nilfs_mdt_write_page(struct page *page,
- 		 * have dirty folios that try to be flushed in background.
- 		 * So, here we simply discard this dirty folio.
- 		 */
--		nilfs_clear_folio_dirty(folio, false);
-+		nilfs_clear_folio_dirty(folio);
- 		folio_unlock(folio);
- 		return -EROFS;
- 	}
-@@ -638,10 +638,10 @@ void nilfs_mdt_restore_from_shadow_map(s
- 	if (mi->mi_palloc_cache)
- 		nilfs_palloc_clear_cache(inode);
- 
--	nilfs_clear_dirty_pages(inode->i_mapping, true);
-+	nilfs_clear_dirty_pages(inode->i_mapping);
- 	nilfs_copy_back_pages(inode->i_mapping, shadow->inode->i_mapping);
- 
--	nilfs_clear_dirty_pages(ii->i_assoc_inode->i_mapping, true);
-+	nilfs_clear_dirty_pages(ii->i_assoc_inode->i_mapping);
- 	nilfs_copy_back_pages(ii->i_assoc_inode->i_mapping,
- 			      NILFS_I(shadow->inode)->i_assoc_inode->i_mapping);
- 
---- a/fs/nilfs2/page.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
-+++ a/fs/nilfs2/page.c
-@@ -357,9 +357,8 @@ repeat:
- /**
-  * nilfs_clear_dirty_pages - discard dirty pages in address space
-  * @mapping: address space with dirty pages for discarding
-- * @silent: suppress [true] or print [false] warning messages
-  */
--void nilfs_clear_dirty_pages(struct address_space *mapping, bool silent)
-+void nilfs_clear_dirty_pages(struct address_space *mapping)
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation
++++ a/mm/memory_hotplug.c
+@@ -1773,14 +1773,14 @@ found:
+ static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
  {
- 	struct folio_batch fbatch;
- 	unsigned int i;
-@@ -380,7 +379,7 @@ void nilfs_clear_dirty_pages(struct addr
- 			 * was acquired.  Skip processing in that case.
- 			 */
- 			if (likely(folio->mapping == mapping))
--				nilfs_clear_folio_dirty(folio, silent);
-+				nilfs_clear_folio_dirty(folio);
+ 	unsigned long pfn;
+-	struct page *page;
+ 	LIST_HEAD(source);
++	struct folio *folio;
+ 	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 				      DEFAULT_RATELIMIT_BURST);
  
- 			folio_unlock(folio);
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-		struct folio *folio;
+-		bool isolated;
++		struct page *page;
++		bool huge;
+ 
+ 		if (!pfn_valid(pfn))
+ 			continue;
+@@ -1812,34 +1812,22 @@ static void do_migrate_range(unsigned lo
+ 			continue;
  		}
-@@ -392,20 +391,13 @@ void nilfs_clear_dirty_pages(struct addr
- /**
-  * nilfs_clear_folio_dirty - discard dirty folio
-  * @folio: dirty folio that will be discarded
-- * @silent: suppress [true] or print [false] warning messages
-  */
--void nilfs_clear_folio_dirty(struct folio *folio, bool silent)
-+void nilfs_clear_folio_dirty(struct folio *folio)
- {
--	struct inode *inode = folio->mapping->host;
--	struct super_block *sb = inode->i_sb;
- 	struct buffer_head *bh, *head;
  
- 	BUG_ON(!folio_test_locked(folio));
+-		if (folio_test_hugetlb(folio)) {
+-			isolate_hugetlb(folio, &source);
+-			continue;
++		huge = folio_test_hugetlb(folio);
++		if (!huge) {
++			folio = folio_get_nontail_page(page);
++			if (!folio)
++				continue;
+ 		}
  
--	if (!silent)
--		nilfs_warn(sb, "discard dirty page: offset=%lld, ino=%lu",
--			   folio_pos(folio), inode->i_ino);
+-		if (!get_page_unless_zero(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can deal with pages on
+-		 * LRU and non-lru movable pages.
+-		 */
+-		if (PageLRU(page))
+-			isolated = isolate_lru_page(page);
+-		else
+-			isolated = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
+-		if (isolated) {
+-			list_add_tail(&page->lru, &source);
+-			if (!__PageMovable(page))
+-				inc_node_page_state(page, NR_ISOLATED_ANON +
+-						    page_is_file_lru(page));
 -
- 	folio_clear_uptodate(folio);
- 	folio_clear_mappedtodisk(folio);
+-		} else {
++		if (!isolate_folio_to_list(folio, &source)) {
+ 			if (__ratelimit(&migrate_rs)) {
+ 				pr_warn("failed to isolate pfn %lx\n", pfn);
+ 				dump_page(page, "isolation failed");
+ 			}
+ 		}
+-		put_page(page);
++
++		if (!huge)
++			folio_put(folio);
+ 	}
+ 	if (!list_empty(&source)) {
+ 		nodemask_t nmask = node_states[N_MEMORY];
+@@ -1854,7 +1842,7 @@ static void do_migrate_range(unsigned lo
+ 		 * We have checked that migration range is on a single zone so
+ 		 * we can use the nid of the first page to all the others.
+ 		 */
+-		mtc.nid = page_to_nid(list_first_entry(&source, struct page, lru));
++		mtc.nid = folio_nid(list_first_entry(&source, struct folio, lru));
  
-@@ -419,11 +411,6 @@ void nilfs_clear_folio_dirty(struct foli
- 		bh = head;
- 		do {
- 			lock_buffer(bh);
--			if (!silent)
--				nilfs_warn(sb,
--					   "discard dirty block: blocknr=%llu, size=%zu",
--					   (u64)bh->b_blocknr, bh->b_size);
--
- 			set_mask_bits(&bh->b_state, clear_bits, 0);
- 			unlock_buffer(bh);
- 		} while (bh = bh->b_this_page, bh != head);
---- a/fs/nilfs2/page.h~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
-+++ a/fs/nilfs2/page.h
-@@ -41,8 +41,8 @@ void nilfs_folio_bug(struct folio *);
- 
- int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
- void nilfs_copy_back_pages(struct address_space *, struct address_space *);
--void nilfs_clear_folio_dirty(struct folio *, bool);
--void nilfs_clear_dirty_pages(struct address_space *, bool);
-+void nilfs_clear_folio_dirty(struct folio *folio);
-+void nilfs_clear_dirty_pages(struct address_space *mapping);
- unsigned int nilfs_page_count_clean_buffers(struct page *, unsigned int,
- 					    unsigned int);
- unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
+ 		/*
+ 		 * try to allocate from a different node but reuse this node
+@@ -1867,11 +1855,12 @@ static void do_migrate_range(unsigned lo
+ 		ret = migrate_pages(&source, alloc_migration_target, NULL,
+ 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG, NULL);
+ 		if (ret) {
+-			list_for_each_entry(page, &source, lru) {
++			list_for_each_entry(folio, &source, lru) {
+ 				if (__ratelimit(&migrate_rs)) {
+ 					pr_warn("migrating pfn %lx failed ret:%d\n",
+-						page_to_pfn(page), ret);
+-					dump_page(page, "migration failure");
++						folio_pfn(folio), ret);
++					dump_page(&folio->page,
++						  "migration failure");
+ 				}
+ 			}
+ 			putback_movable_pages(&source);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
-nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
-nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
-nilfs2-add-support-for-fs_ioc_getuuid.patch
-nilfs2-add-support-for-fs_ioc_getfssysfspath.patch
-nilfs2-add-support-for-fs_ioc_getfslabel.patch
-nilfs2-add-support-for-fs_ioc_setfslabel.patch
-nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch
+mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
+mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
+mm-memory-failure-add-unmap_posioned_folio.patch
+mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
+mm-migrate-add-isolate_folio_to_list.patch
+mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
 
