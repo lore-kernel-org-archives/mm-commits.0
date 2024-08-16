@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66551448E0
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:19:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59EE978297
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:19:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723846750; cv=none; b=XJf+oQ+leVe2+2y6h6reZfsMTVJR2bWLyCICizSRlacuBLtbC3wKaWUxp9IjaObKMesqd2TCh8Va+y8KIPH2zg2uotr5c3sWSvTe6l5vjpP4tB8b7DE7kcncD1hdDaLk77hY+BhciLOTo/hwBimJGHDcMQcnNSvAW0TTHxHXhbs=
+	t=1723846752; cv=none; b=Hj8C35Hje0eM6DP3vO10OhNDQJy6YJfhp7Z7x8mu7Xn22BpzM4qgwjb6Y0buLM8XXq6wQyfWmXyQc+4jvF3T3eCRucJ2PknzpMS+1SNKGS2atsb47jnT3ulHlFgBYScxY9D0ACg9HPTdYrFjFFZNEVc4RPQhWpHJsSbMoL8QQgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723846750; c=relaxed/simple;
-	bh=SeApVOF4yVxL94bvDUWbohrEn2+iK2Pn7NmKCa3wU+Y=;
-	h=Date:To:From:Subject:Message-Id; b=cccOg9vE/LYAjZPZmXtHBG7bSG/qHhViKcyW5NGbXfecJA1Zd3vs83+cPCiEyk79bgtbtqJLmCZaJsIXt7o9Asx6PXwQ5egoNyLnH54OoVbY4vqGb3WGPB/bevzfp3SbWPQBA0FFrL3uu/y65UUF9Q06TypwFk6Pm1AVAUGDnFo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SwXdp9Qj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723846752; c=relaxed/simple;
+	bh=Min+GJdUl4CCewdObHwtLBXLFKc4ahRMbNHOc7LhY4o=;
+	h=Date:To:From:Subject:Message-Id; b=TY0K6YwcTyF7KiO3u2W5UF0SFqXI4OzReNCKeQShxsJTtx+KxmI8et7YgPbhpZwun40FoQ+ft4S61e3tCfwUgdxn86VzfyWd7kz3vtYDSTydPDBm3vauWhnb8BLbYFKs6Ll7owX44qh1MICCYyYDUusu1tW5Mih1MjLVXwe7Nh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dmildd71; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SwXdp9Qj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBFD1C32782;
-	Fri, 16 Aug 2024 22:19:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dmildd71"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8ECBC32782;
+	Fri, 16 Aug 2024 22:19:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723846749;
-	bh=SeApVOF4yVxL94bvDUWbohrEn2+iK2Pn7NmKCa3wU+Y=;
+	s=korg; t=1723846751;
+	bh=Min+GJdUl4CCewdObHwtLBXLFKc4ahRMbNHOc7LhY4o=;
 	h=Date:To:From:Subject:From;
-	b=SwXdp9QjZgoe+9e6xGAwf0ztC8FhYVP6p1cWSODvKGR48iCuwCbC2WsR3VOHXcFc0
-	 tWWOfX1Tu3XM4kqmKi3dFVsG+/FOq9XjRnvAcwQej2m+WsxN+cOYDXliTYnMUgHwSb
-	 n/VzFgKz3GWa/a1lqJFJz8rw7brN2bIPPicmXVso=
-Date: Fri, 16 Aug 2024 15:19:09 -0700
+	b=dmildd71ZFAndf6AUAN5LVLSUeCRB9+QZ67Vu0R3ayK5p1XRhR2lzQxPsS20LYEcI
+	 PT///N0QCCHAjhhZmxegwKAX7wtRZ4IStn2dJRVVyyyEZ7Urmty1MpkY5NHhG5Zkdt
+	 4ZiYLYpTKYDdlmnAevUnN8TJIM1WWhoAAXXNOnlI=
+Date: Fri, 16 Aug 2024 15:19:11 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch added to mm-nonmm-unstable branch
-Message-Id: <20240816221909.BBFD1C32782@smtp.kernel.org>
+Subject: + nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments.patch added to mm-nonmm-unstable branch
+Message-Id: <20240816221911.C8ECBC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
+     Subject: nilfs2: fix missing initial short descriptions of kernel-doc comments
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
+     nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,69 +59,156 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
-Date: Fri, 16 Aug 2024 16:43:18 +0900
+Subject: nilfs2: fix missing initial short descriptions of kernel-doc comments
+Date: Fri, 16 Aug 2024 16:43:19 +0900
 
-Fix incorrect or missing variable names in the member variable
-descriptions in the nilfs_recovery_info and nilfs_sc_info structures,
-thereby eliminating the following warnings output by the kernel-doc
+Update some kernel-doc comments that are missing the initial short
+description and fix the following warnings output by the kernel-doc
 script:
 
- fs/nilfs2/segment.h:49: warning: Function parameter or struct member
-  'ri_cno' not described in 'nilfs_recovery_info'
- fs/nilfs2/segment.h:49: warning: Function parameter or struct member
-  'ri_lsegs_start_seq' not described in 'nilfs_recovery_info'
- fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_ri_cno'
-  description in 'nilfs_recovery_info'
- fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_lseg_start_seq'
-  description in 'nilfs_recovery_info'
- fs/nilfs2/segment.h:177: warning: Function parameter or struct member
-  'sc_seq_accepted' not described in 'nilfs_sc_info'
- fs/nilfs2/segment.h:177: warning: Function parameter or struct member
-  'sc_timer_task' not described in 'nilfs_sc_info'
- fs/nilfs2/segment.h:177: warning: Excess struct member 'sc_seq_accept'
-  description in 'nilfs_sc_info'
+ fs/nilfs2/bmap.c:353: warning: missing initial short description on line:
+  * nilfs_bmap_lookup_dirty_buffers -
+ fs/nilfs2/cpfile.c:708: warning: missing initial short description on line:
+  * nilfs_cpfile_delete_checkpoint -
+ fs/nilfs2/cpfile.c:972: warning: missing initial short description on line:
+  * nilfs_cpfile_is_snapshot -
+ fs/nilfs2/dat.c:275: warning: missing initial short description on line:
+  * nilfs_dat_mark_dirty -
+ fs/nilfs2/sufile.c:844: warning: missing initial short description on line:
+  * nilfs_sufile_get_suinfo -
 
-Link: https://lkml.kernel.org/r/20240816074319.3253-8-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240816074319.3253-9-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/nilfs2/bmap.c   |    2 +-
+ fs/nilfs2/cpfile.c |   32 ++++++++++++++++----------------
+ fs/nilfs2/dat.c    |   17 +++++++----------
+ fs/nilfs2/sufile.c |   20 ++++++++------------
+ 4 files changed, 32 insertions(+), 39 deletions(-)
 
---- a/fs/nilfs2/segment.h~nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth
-+++ a/fs/nilfs2/segment.h
-@@ -22,10 +22,10 @@ struct nilfs_root;
-  * struct nilfs_recovery_info - Recovery information
-  * @ri_need_recovery: Recovery status
-  * @ri_super_root: Block number of the last super root
-- * @ri_ri_cno: Number of the last checkpoint
-+ * @ri_cno: Number of the last checkpoint
-  * @ri_lsegs_start: Region for roll-forwarding (start block number)
-  * @ri_lsegs_end: Region for roll-forwarding (end block number)
-- * @ri_lseg_start_seq: Sequence value of the segment at ri_lsegs_start
-+ * @ri_lsegs_start_seq: Sequence value of the segment at ri_lsegs_start
-  * @ri_used_segments: List of segments to be mark active
-  * @ri_pseg_start: Block number of the last partial segment
-  * @ri_seq: Sequence number on the last partial segment
-@@ -107,7 +107,7 @@ struct nilfs_segsum_pointer {
-  * @sc_wait_daemon: Daemon wait queue
-  * @sc_wait_task: Start/end wait queue to control segctord task
-  * @sc_seq_request: Request counter
-- * @sc_seq_accept: Accepted request count
-+ * @sc_seq_accepted: Accepted request count
-  * @sc_seq_done: Completion counter
-  * @sc_sync: Request of explicit sync operation
-  * @sc_interval: Timeout value of background construction
-@@ -115,6 +115,7 @@ struct nilfs_segsum_pointer {
-  * @sc_lseg_stime: Start time of the latest logical segment
-  * @sc_watermark: Watermark for the number of dirty buffers
-  * @sc_timer: Timer for segctord
-+ * @sc_timer_task: Thread woken up by @sc_timer
-  * @sc_task: current thread of segctord
+--- a/fs/nilfs2/bmap.c~nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments
++++ a/fs/nilfs2/bmap.c
+@@ -349,7 +349,7 @@ int nilfs_bmap_propagate(struct nilfs_bm
+ }
+ 
+ /**
+- * nilfs_bmap_lookup_dirty_buffers -
++ * nilfs_bmap_lookup_dirty_buffers - collect dirty block buffers
+  * @bmap: bmap
+  * @listp: pointer to buffer head list
   */
- struct nilfs_sc_info {
+--- a/fs/nilfs2/cpfile.c~nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments
++++ a/fs/nilfs2/cpfile.c
+@@ -704,9 +704,15 @@ ssize_t nilfs_cpfile_get_cpinfo(struct i
+ }
+ 
+ /**
+- * nilfs_cpfile_delete_checkpoint -
+- * @cpfile:
+- * @cno:
++ * nilfs_cpfile_delete_checkpoint - delete a checkpoint
++ * @cpfile: checkpoint file inode
++ * @cno:    checkpoint number to delete
++ *
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EBUSY	- Checkpoint in use (snapshot specified).
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- No valid checkpoint found.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_cpfile_delete_checkpoint(struct inode *cpfile, __u64 cno)
+ {
+@@ -968,21 +974,15 @@ static int nilfs_cpfile_clear_snapshot(s
+ }
+ 
+ /**
+- * nilfs_cpfile_is_snapshot -
++ * nilfs_cpfile_is_snapshot - determine if checkpoint is a snapshot
+  * @cpfile: inode of checkpoint file
+- * @cno: checkpoint number
+- *
+- * Description:
+- *
+- * Return Value: On success, 1 is returned if the checkpoint specified by
+- * @cno is a snapshot, or 0 if not. On error, one of the following negative
+- * error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * @cno:    checkpoint number
+  *
+- * %-ENOENT - No such checkpoint.
++ * Return: 1 if the checkpoint specified by @cno is a snapshot, 0 if not, or
++ * the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- No such checkpoint.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_cpfile_is_snapshot(struct inode *cpfile, __u64 cno)
+ {
+--- a/fs/nilfs2/dat.c~nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments
++++ a/fs/nilfs2/dat.c
+@@ -271,18 +271,15 @@ void nilfs_dat_abort_update(struct inode
+ }
+ 
+ /**
+- * nilfs_dat_mark_dirty -
+- * @dat: DAT file inode
++ * nilfs_dat_mark_dirty - mark the DAT block buffer containing the specified
++ *                        virtual block address entry as dirty
++ * @dat:      DAT file inode
+  * @vblocknr: virtual block number
+  *
+- * Description:
+- *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EINVAL	- Invalid DAT entry (internal code).
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_dat_mark_dirty(struct inode *dat, __u64 vblocknr)
+ {
+--- a/fs/nilfs2/sufile.c~nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments
++++ a/fs/nilfs2/sufile.c
+@@ -840,21 +840,17 @@ out:
+ }
+ 
+ /**
+- * nilfs_sufile_get_suinfo -
++ * nilfs_sufile_get_suinfo - get segment usage information
+  * @sufile: inode of segment usage file
+  * @segnum: segment number to start looking
+- * @buf: array of suinfo
+- * @sisz: byte size of suinfo
+- * @nsi: size of suinfo array
++ * @buf:    array of suinfo
++ * @sisz:   byte size of suinfo
++ * @nsi:    size of suinfo array
+  *
+- * Description:
+- *
+- * Return Value: On success, 0 is returned and .... On error, one of the
+- * following negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * Return: Count of segment usage info items stored in the output buffer on
++ * success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ ssize_t nilfs_sufile_get_suinfo(struct inode *sufile, __u64 segnum, void *buf,
+ 				unsigned int sisz, size_t nsi)
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
