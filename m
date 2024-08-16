@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC2578C7A
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 05:16:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB3E78C7A;
+	Fri, 16 Aug 2024 05:16:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723785415; cv=none; b=QwYCVBVv092wVmvD67K/m31A50epeSeX8azCQ7MiQIh7MtIhQXR7Nrqt0V9lrZGc3/a4X8V5Z3xYBdbF9kD28D2kUCUwvdAMG2rWHhGyymJp7yR1h8lQEXwfgEWZiQmZVH5BkgD08/61qZolzqfLmyiwqU7HQAAxfX03ykTPznw=
+	t=1723785416; cv=none; b=JOLiST38ba7ky5J7KbmLbxEfC+B1OlvD34zH1to/gFdTGiwBvnJo6yRkTlsVgBlp9cGWCNGMRPczPflJlHaa4drBrqQZpy4GihbSjKNuOrjakNltXNIVThISNURBvDV1YQzLSPb3jxT/zD9niG5n3OIDd3/D4QYOsF7TOrJ+Uxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723785415; c=relaxed/simple;
-	bh=iWC8PQ6Qa97zpNXqaZPhAPeYvF4bfQ+xTK3nAo16nj8=;
-	h=Date:To:From:Subject:Message-Id; b=WIZ9ixfav8j5l4tTs/8OaFHGiC+Dtxz/eOp4YlQ3TxlPsrrDfXcuuTcU+SjSiMctMpY4QbigV57wnrB7KonZlao3tO/Bnpsnm4lkuDvTlh2X/EOd+NWec92F5zrfBlLgY610tUEQ370RdkqT+PDL7jLN3xJqMxm0C3mE2ajP7fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gk04bsaN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785416; c=relaxed/simple;
+	bh=Ox/EL5U1+Z8vk7aJGjY/0MfiqMn8bj4QbmKLNFXfIXg=;
+	h=Date:To:From:Subject:Message-Id; b=E/DkY82VLRyjc2a+vMBiEVpZ+MS6VN+w71AtVNlTsBjvjLBm8UOQtQVd+vjJbp0dpZhyn44lBuFTZAXrTLQgSkZ31unTkuGUHRIHjltigt/pqA9xWE7z296+dQSkzyRGfs91w8vlq3p3XfnZc8sIMftwZ21FnE8m6IAMqzGMnnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CwCNvAjC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gk04bsaN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC05C32782;
-	Fri, 16 Aug 2024 05:16:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CwCNvAjC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD82C4AF0B;
+	Fri, 16 Aug 2024 05:16:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723785414;
-	bh=iWC8PQ6Qa97zpNXqaZPhAPeYvF4bfQ+xTK3nAo16nj8=;
+	s=korg; t=1723785416;
+	bh=Ox/EL5U1+Z8vk7aJGjY/0MfiqMn8bj4QbmKLNFXfIXg=;
 	h=Date:To:From:Subject:From;
-	b=gk04bsaNbTDGlw/ZwmizpvBaK6kB538ex6rswpkVHgXnlAvRhA96o6hA/MLHHsZOM
-	 hDYEdschpctxwTDbKeRaaRAoNlfe29W1gqwYuOadhNxFArnDMTdVBVdQRZ2jrXx8VJ
-	 8a8aeeONU8Y129yI8up8FXeYCusTCdb46RBRY/d8=
-Date: Thu, 15 Aug 2024 22:16:53 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,yi.zhang@redhat.com,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,lizhijian@fujitsu.com,j.granados@samsung.com,hannes@cmpxchg.org,fan.ni@samsung.com,david@redhat.com,dan.j.williams@intel.com,cerasuolodomenico@gmail.com,alison.schofield@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=CwCNvAjCWtxqFYUnp86fKOeiP9t6ngBxOzFOpjf5J2Q0VNs06I4cV56huO9kYVnmE
+	 2jA1XDfsoQ2T5MP4hbyKfjo+ofSsKxePxPuMS+7DGTFN9Kuy8q8Pdnlwq7zokXQob5
+	 e8i2Hi00trjQ3ZrFJhg8Xn2DXbQQbPtcJFEZ/wsQ=
+Date: Thu, 15 Aug 2024 22:16:55 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,stable@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,len.brown@intel.com,juri.lelli@redhat.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-dont-account-memmap-per-node.patch removed from -mm tree
-Message-Id: <20240816051653.ECC05C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch removed from -mm tree
+Message-Id: <20240816051656.2AD82C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,370 +35,141 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: don't account memmap per-node
+     Subject: mm/memory-failure: use raw_spinlock_t in struct memory_failure_cpu
 has been removed from the -mm tree.  Its filename was
-     mm-dont-account-memmap-per-node.patch
+     mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: don't account memmap per-node
-Date: Thu, 8 Aug 2024 21:34:36 +0000
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memory-failure: use raw_spinlock_t in struct memory_failure_cpu
+Date: Tue, 6 Aug 2024 12:41:07 -0400
 
-Fix invalid access to pgdat during hot-remove operation:
-ndctl users reported a GPF when trying to destroy a namespace:
-$ ndctl destroy-namespace all -r all -f
- Segmentation fault
- dmesg:
- Oops: general protection fault, probably for
- non-canonical address 0xdffffc0000005650: 0000 [#1] PREEMPT SMP KASAN
- PTI
- KASAN: probably user-memory-access in range
- [0x000000000002b280-0x000000000002b287]
- CPU: 26 UID: 0 PID: 1868 Comm: ndctl Not tainted 6.11.0-rc1 #1
- Hardware name: Dell Inc. PowerEdge R640/08HT8T, BIOS
- 2.20.1 09/13/2023
- RIP: 0010:mod_node_page_state+0x2a/0x110
+The memory_failure_cpu structure is a per-cpu structure.  Access to its
+content requires the use of get_cpu_var() to lock in the current CPU and
+disable preemption.  The use of a regular spinlock_t for locking purpose
+is fine for a non-RT kernel.
 
-cxl-test users report a GPF when trying to unload the test module:
-$ modrpobe -r cxl-test
- dmesg
- BUG: unable to handle page fault for address: 0000000000004200
- #PF: supervisor read access in kernel mode
- #PF: error_code(0x0000) - not-present page
- PGD 0 P4D 0
- Oops: Oops: 0000 [#1] PREEMPT SMP PTI
- CPU: 0 UID: 0 PID: 1076 Comm: modprobe Tainted: G O N 6.11.0-rc1 #197
- Tainted: [O]=OOT_MODULE, [N]=TEST
- Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/15
- RIP: 0010:mod_node_page_state+0x6/0x90
+Since the integration of RT spinlock support into the v5.15 kernel, a
+spinlock_t in a RT kernel becomes a sleeping lock and taking a sleeping
+lock in a preemption disabled context is illegal resulting in the
+following kind of warning.
 
-Currently, when memory is hot-plugged or hot-removed the accounting is
-done based on the assumption that memmap is allocated from the same node
-as the hot-plugged/hot-removed memory, which is not always the case.
+  [12135.732244] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
+  [12135.732248] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 270076, name: kworker/0:0
+  [12135.732252] preempt_count: 1, expected: 0
+  [12135.732255] RCU nest depth: 2, expected: 2
+    :
+  [12135.732420] Hardware name: Dell Inc. PowerEdge R640/0HG0J8, BIOS 2.10.2 02/24/2021
+  [12135.732423] Workqueue: kacpi_notify acpi_os_execute_deferred
+  [12135.732433] Call Trace:
+  [12135.732436]  <TASK>
+  [12135.732450]  dump_stack_lvl+0x57/0x81
+  [12135.732461]  __might_resched.cold+0xf4/0x12f
+  [12135.732479]  rt_spin_lock+0x4c/0x100
+  [12135.732491]  memory_failure_queue+0x40/0xe0
+  [12135.732503]  ghes_do_memory_failure+0x53/0x390
+  [12135.732516]  ghes_do_proc.constprop.0+0x229/0x3e0
+  [12135.732575]  ghes_proc+0xf9/0x1a0
+  [12135.732591]  ghes_notify_hed+0x6a/0x150
+  [12135.732602]  notifier_call_chain+0x43/0xb0
+  [12135.732626]  blocking_notifier_call_chain+0x43/0x60
+  [12135.732637]  acpi_ev_notify_dispatch+0x47/0x70
+  [12135.732648]  acpi_os_execute_deferred+0x13/0x20
+  [12135.732654]  process_one_work+0x41f/0x500
+  [12135.732695]  worker_thread+0x192/0x360
+  [12135.732715]  kthread+0x111/0x140
+  [12135.732733]  ret_from_fork+0x29/0x50
+  [12135.732779]  </TASK>
 
-In addition, there are challenges with keeping the node id of the memory
-that is being remove to the time when memmap accounting is actually
-performed: since this is done after remove_pfn_range_from_zone(), and
-also after remove_memory_block_devices(). Meaning that we cannot use
-pgdat nor walking though memblocks to get the nid.
+Fix it by using a raw_spinlock_t for locking instead.
 
-Given all of that, account the memmap overhead system wide instead.
+Also move the pr_err() out of the lock critical section and after
+put_cpu_ptr() to avoid indeterminate latency and the possibility of sleep
+with this call.
 
-For this we are going to be using global atomic counters, but given that
-memmap size is rarely modified, and normally is only modified either
-during early boot when there is only one CPU, or under a hotplug global
-mutex lock, therefore there is no need for per-cpu optimizations.
-
-Also, while we are here rename nr_memmap to nr_memmap_pages, and
-nr_memmap_boot to nr_memmap_boot_pages to be self explanatory that the
-units are in page count.
-
-[pasha.tatashin@soleen.com: address a few nits from David Hildenbrand]
-  Link: https://lkml.kernel.org/r/20240809191020.1142142-4-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20240809191020.1142142-4-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20240808213437.682006-4-pasha.tatashin@soleen.com
-Fixes: 15995a352474 ("mm: report per-page metadata information")
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Yi Zhang <yi.zhang@redhat.com>
-Closes: https://lore.kernel.org/linux-cxl/CAHj4cs9Ax1=CoJkgBGP_+sNu6-6=6v=_L-ZBZY0bVLD3wUWZQg@mail.gmail.com
-Reported-by: Alison Schofield <alison.schofield@intel.com>
-Closes: https://lore.kernel.org/linux-mm/Zq0tPd2h6alFz8XF@aschofie-mobl2/#t
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Alison Schofield <alison.schofield@intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Tested-by: Yi Zhang <yi.zhang@redhat.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Fan Ni <fan.ni@samsung.com>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+[longman@redhat.com: don't hold percpu ref across pr_err(), per Miaohe]
+  Link: https://lkml.kernel.org/r/20240807181130.1122660-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20240806164107.1044956-1-longman@redhat.com
+Fixes: 0f383b6dc96e ("locking/spinlock: Provide RT variant")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 -
- include/linux/vmstat.h |    7 +++--
- mm/hugetlb_vmemmap.c   |    8 +++---
- mm/mm_init.c           |    3 --
- mm/page_alloc.c        |    1 
- mm/page_ext.c          |   18 +++------------
- mm/sparse-vmemmap.c    |   11 +++------
- mm/sparse.c            |    5 +---
- mm/vmstat.c            |   46 ++++++++++++++++++---------------------
- 9 files changed, 41 insertions(+), 60 deletions(-)
+ mm/memory-failure.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmzone.h~mm-dont-account-memmap-per-node
-+++ a/include/linux/mmzone.h
-@@ -220,8 +220,6 @@ enum node_stat_item {
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
--	NR_MEMMAP, /* page metadata allocated through buddy allocator */
--	NR_MEMMAP_BOOT, /* page metadata allocated through boot allocator */
- 	NR_VM_NODE_STAT_ITEMS
+--- a/mm/memory-failure.c~mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu
++++ a/mm/memory-failure.c
+@@ -2417,7 +2417,7 @@ struct memory_failure_entry {
+ struct memory_failure_cpu {
+ 	DECLARE_KFIFO(fifo, struct memory_failure_entry,
+ 		      MEMORY_FAILURE_FIFO_SIZE);
+-	spinlock_t lock;
++	raw_spinlock_t lock;
+ 	struct work_struct work;
  };
  
---- a/include/linux/vmstat.h~mm-dont-account-memmap-per-node
-+++ a/include/linux/vmstat.h
-@@ -38,6 +38,8 @@ struct reclaim_stat {
- enum vm_stat_item {
- 	NR_DIRTY_THRESHOLD,
- 	NR_DIRTY_BG_THRESHOLD,
-+	NR_MEMMAP_PAGES,	/* page metadata allocated through buddy allocator */
-+	NR_MEMMAP_BOOT_PAGES,	/* page metadata allocated through boot allocator */
- 	NR_VM_STAT_ITEMS,
- };
- 
-@@ -618,7 +620,6 @@ static inline void lruvec_stat_sub_folio
- 	lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
- }
- 
--void __meminit mod_node_early_perpage_metadata(int nid, long delta);
--void __meminit store_early_perpage_metadata(void);
--
-+void memmap_boot_pages_add(long delta);
-+void memmap_pages_add(long delta);
- #endif /* _LINUX_VMSTAT_H */
---- a/mm/hugetlb_vmemmap.c~mm-dont-account-memmap-per-node
-+++ a/mm/hugetlb_vmemmap.c
-@@ -185,11 +185,11 @@ static int vmemmap_remap_range(unsigned
- static inline void free_vmemmap_page(struct page *page)
+@@ -2443,20 +2443,22 @@ void memory_failure_queue(unsigned long
  {
- 	if (PageReserved(page)) {
-+		memmap_boot_pages_add(-1);
- 		free_bootmem_page(page);
--		mod_node_page_state(page_pgdat(page), NR_MEMMAP_BOOT, -1);
- 	} else {
-+		memmap_pages_add(-1);
- 		__free_page(page);
--		mod_node_page_state(page_pgdat(page), NR_MEMMAP, -1);
+ 	struct memory_failure_cpu *mf_cpu;
+ 	unsigned long proc_flags;
++	bool buffer_overflow;
+ 	struct memory_failure_entry entry = {
+ 		.pfn =		pfn,
+ 		.flags =	flags,
+ 	};
+ 
+ 	mf_cpu = &get_cpu_var(memory_failure_cpu);
+-	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+-	if (kfifo_put(&mf_cpu->fifo, entry))
++	raw_spin_lock_irqsave(&mf_cpu->lock, proc_flags);
++	buffer_overflow = !kfifo_put(&mf_cpu->fifo, entry);
++	if (!buffer_overflow)
+ 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+-	else
++	raw_spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
++	put_cpu_var(memory_failure_cpu);
++	if (buffer_overflow)
+ 		pr_err("buffer overflow when queuing memory failure at %#lx\n",
+ 		       pfn);
+-	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
+-	put_cpu_var(memory_failure_cpu);
+ }
+ EXPORT_SYMBOL_GPL(memory_failure_queue);
+ 
+@@ -2469,9 +2471,9 @@ static void memory_failure_work_func(str
+ 
+ 	mf_cpu = container_of(work, struct memory_failure_cpu, work);
+ 	for (;;) {
+-		spin_lock_irqsave(&mf_cpu->lock, proc_flags);
++		raw_spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+ 		gotten = kfifo_get(&mf_cpu->fifo, &entry);
+-		spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
++		raw_spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
+ 		if (!gotten)
+ 			break;
+ 		if (entry.flags & MF_SOFT_OFFLINE)
+@@ -2501,7 +2503,7 @@ static int __init memory_failure_init(vo
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		mf_cpu = &per_cpu(memory_failure_cpu, cpu);
+-		spin_lock_init(&mf_cpu->lock);
++		raw_spin_lock_init(&mf_cpu->lock);
+ 		INIT_KFIFO(mf_cpu->fifo);
+ 		INIT_WORK(&mf_cpu->work, memory_failure_work_func);
  	}
- }
- 
-@@ -341,7 +341,7 @@ static int vmemmap_remap_free(unsigned l
- 		copy_page(page_to_virt(walk.reuse_page),
- 			  (void *)walk.reuse_addr);
- 		list_add(&walk.reuse_page->lru, vmemmap_pages);
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, 1);
-+		memmap_pages_add(1);
- 	}
- 
- 	/*
-@@ -396,7 +396,7 @@ static int alloc_vmemmap_page_list(unsig
- 			goto out;
- 		list_add(&page->lru, list);
- 	}
--	mod_node_page_state(NODE_DATA(nid), NR_MEMMAP, nr_pages);
-+	memmap_pages_add(nr_pages);
- 
- 	return 0;
- out:
---- a/mm/mm_init.c~mm-dont-account-memmap-per-node
-+++ a/mm/mm_init.c
-@@ -1623,8 +1623,7 @@ static void __init alloc_node_mem_map(st
- 		panic("Failed to allocate %ld bytes for node %d memory map\n",
- 		      size, pgdat->node_id);
- 	pgdat->node_mem_map = map + offset;
--	mod_node_early_perpage_metadata(pgdat->node_id,
--					DIV_ROUND_UP(size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
- 		 __func__, pgdat->node_id, (unsigned long)pgdat,
- 		 (unsigned long)pgdat->node_mem_map);
---- a/mm/page_alloc.c~mm-dont-account-memmap-per-node
-+++ a/mm/page_alloc.c
-@@ -5755,7 +5755,6 @@ void __init setup_per_cpu_pageset(void)
- 	for_each_online_pgdat(pgdat)
- 		pgdat->per_cpu_nodestats =
- 			alloc_percpu(struct per_cpu_nodestat);
--	store_early_perpage_metadata();
- }
- 
- __meminit void zone_pcp_init(struct zone *zone)
---- a/mm/page_ext.c~mm-dont-account-memmap-per-node
-+++ a/mm/page_ext.c
-@@ -214,8 +214,7 @@ static int __init alloc_node_page_ext(in
- 		return -ENOMEM;
- 	NODE_DATA(nid)->node_page_ext = base;
- 	total_usage += table_size;
--	mod_node_page_state(NODE_DATA(nid), NR_MEMMAP_BOOT,
--			    DIV_ROUND_UP(table_size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(table_size, PAGE_SIZE));
- 	return 0;
- }
- 
-@@ -275,10 +274,8 @@ static void *__meminit alloc_page_ext(si
- 	else
- 		addr = vzalloc_node(size, nid);
- 
--	if (addr) {
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP,
--				    DIV_ROUND_UP(size, PAGE_SIZE));
--	}
-+	if (addr)
-+		memmap_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- 
- 	return addr;
- }
-@@ -323,25 +320,18 @@ static void free_page_ext(void *addr)
- {
- 	size_t table_size;
- 	struct page *page;
--	struct pglist_data *pgdat;
- 
- 	table_size = page_ext_size * PAGES_PER_SECTION;
-+	memmap_pages_add(-1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
- 
- 	if (is_vmalloc_addr(addr)) {
--		page = vmalloc_to_page(addr);
--		pgdat = page_pgdat(page);
- 		vfree(addr);
- 	} else {
- 		page = virt_to_page(addr);
--		pgdat = page_pgdat(page);
- 		BUG_ON(PageReserved(page));
- 		kmemleak_free(addr);
- 		free_pages_exact(addr, table_size);
- 	}
--
--	mod_node_page_state(pgdat, NR_MEMMAP,
--			    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
--
- }
- 
- static void __free_page_ext(unsigned long pfn)
---- a/mm/sparse.c~mm-dont-account-memmap-per-node
-+++ a/mm/sparse.c
-@@ -463,7 +463,7 @@ static void __init sparse_buffer_init(un
- 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
- 	sparsemap_buf_end = sparsemap_buf + size;
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--	mod_node_early_perpage_metadata(nid, DIV_ROUND_UP(size, PAGE_SIZE));
-+	memmap_boot_pages_add(DIV_ROUND_UP(size, PAGE_SIZE));
- #endif
- }
- 
-@@ -643,8 +643,7 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
--	mod_node_page_state(page_pgdat(pfn_to_page(pfn)), NR_MEMMAP,
--			    -1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
-+	memmap_pages_add(-1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
- 	vmemmap_free(start, end, altmap);
- }
- static void free_map_bootmem(struct page *memmap)
---- a/mm/sparse-vmemmap.c~mm-dont-account-memmap-per-node
-+++ a/mm/sparse-vmemmap.c
-@@ -469,13 +469,10 @@ struct page * __meminit __populate_secti
- 	if (r < 0)
- 		return NULL;
- 
--	if (system_state == SYSTEM_BOOTING) {
--		mod_node_early_perpage_metadata(nid, DIV_ROUND_UP(end - start,
--								  PAGE_SIZE));
--	} else {
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP,
--				    DIV_ROUND_UP(end - start, PAGE_SIZE));
--	}
-+	if (system_state == SYSTEM_BOOTING)
-+		memmap_boot_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
-+	else
-+		memmap_pages_add(DIV_ROUND_UP(end - start, PAGE_SIZE));
- 
- 	return pfn_to_page(pfn);
- }
---- a/mm/vmstat.c~mm-dont-account-memmap-per-node
-+++ a/mm/vmstat.c
-@@ -1033,6 +1033,24 @@ unsigned long node_page_state(struct pgl
- }
- #endif
- 
-+/*
-+ * Count number of pages "struct page" and "struct page_ext" consume.
-+ * nr_memmap_boot_pages: # of pages allocated by boot allocator
-+ * nr_memmap_pages: # of pages that were allocated by buddy allocator
-+ */
-+static atomic_long_t nr_memmap_boot_pages = ATOMIC_LONG_INIT(0);
-+static atomic_long_t nr_memmap_pages = ATOMIC_LONG_INIT(0);
-+
-+void memmap_boot_pages_add(long delta)
-+{
-+	atomic_long_add(delta, &nr_memmap_boot_pages);
-+}
-+
-+void memmap_pages_add(long delta)
-+{
-+	atomic_long_add(delta, &nr_memmap_pages);
-+}
-+
- #ifdef CONFIG_COMPACTION
- 
- struct contig_page_info {
-@@ -1255,11 +1273,11 @@ const char * const vmstat_text[] = {
- 	"pgdemote_kswapd",
- 	"pgdemote_direct",
- 	"pgdemote_khugepaged",
--	"nr_memmap",
--	"nr_memmap_boot",
- 	/* system-wide enum vm_stat_item counters */
- 	"nr_dirty_threshold",
- 	"nr_dirty_background_threshold",
-+	"nr_memmap_pages",
-+	"nr_memmap_boot_pages",
- 
- #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
- 	/* enum vm_event_item counters */
-@@ -1827,6 +1845,8 @@ static void *vmstat_start(struct seq_fil
- 
- 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
- 			    v + NR_DIRTY_THRESHOLD);
-+	v[NR_MEMMAP_PAGES] = atomic_long_read(&nr_memmap_pages);
-+	v[NR_MEMMAP_BOOT_PAGES] = atomic_long_read(&nr_memmap_boot_pages);
- 	v += NR_VM_STAT_ITEMS;
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
-@@ -2285,25 +2305,3 @@ static int __init extfrag_debug_init(voi
- module_init(extfrag_debug_init);
- 
- #endif
--
--/*
-- * Page metadata size (struct page and page_ext) in pages
-- */
--static unsigned long early_perpage_metadata[MAX_NUMNODES] __meminitdata;
--
--void __meminit mod_node_early_perpage_metadata(int nid, long delta)
--{
--	early_perpage_metadata[nid] += delta;
--}
--
--void __meminit store_early_perpage_metadata(void)
--{
--	int nid;
--	struct pglist_data *pgdat;
--
--	for_each_online_pgdat(pgdat) {
--		nid = pgdat->node_id;
--		mod_node_page_state(NODE_DATA(nid), NR_MEMMAP_BOOT,
--				    early_perpage_metadata[nid]);
--	}
--}
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-memcg-increase-the-valid-index-range-for-memcg-stats-v5.patch
-vmstat-kernel-stack-usage-histogram.patch
-task_stack-uninline-stack_not_used.patch
+watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
