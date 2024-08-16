@@ -1,79 +1,138 @@
-Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF2E20E3
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 08:51:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F4A1BE85D
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:22:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723798295; cv=none; b=X4PblmMHINdUz6hRiRVwED4V7dF9J5EotcsWSXKOBGBuFCJMp9r/W/joNyPZZvadFysuQ3CIDQ/mgpsNxEVRsDTT+6N8y5TLmBRdheizW3XA8eTVCnawmtdY6b8DDSHH/aQ4bUrieqSED54F+qmELVM4Qi1YAhFXmoF2Vy9BoK0=
+	t=1723843356; cv=none; b=nHv95HcguL1AI20wSnWpqiWmlNlrEWAQkS2Yudkrx7w+oNX7ykESXwmOqLBwkhn8zopa/Nb3ZrpyQ3+hQzSbc4xBhaPrv32QioI7U/uTAfcDaERZhtOqqy67D1SrkZpnZkJ5HrrPtnSvWf7An9PR5D2Gj4DSsKI6/Z7VxV/citM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723798295; c=relaxed/simple;
-	bh=bqWnjN/SUQKeGCoWGtHU4a8gyskwj0hW7hqLD/zXP28=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BotRltc6WuETIMkQebON8Cr2wzG1ctAGEQYdAjJ7/Xq5MatNCkIMWVOjlh1Q8HpbA7C0Xv2NexkPyQraVQ7AHmAaXklYOHmsgvPDNnyBl2rvvbIGX1XfToXDUeZZhAiJRG1Zq/1Qq8iTmmvRb23sGjrIJCMrJM0XVjPSwEF+lv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wlc+BggE; arc=none smtp.client-ip=209.85.215.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1723843356; c=relaxed/simple;
+	bh=Fs51K56LPxmbc7D7zYYxiR25GaseQVZ5ncuSvaxyBHk=;
+	h=Date:To:From:Subject:Message-Id; b=hVhDmidOfXGXKiKlexzuLucC6mLmTpBOrMUdjLr3jGj/R2phBQKDEtblES1xqs9dkvFq9A/3oQaPazdgx2fXaTmR8cnv5YpLqLZBJSqbkRJPuIh1kVHev8qdTOaa761WDFAC/7Gx5+twwnHTr+j8wpm80J4N0O4oDofOp3POc4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OUW+zs4W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wlc+BggE"
-Received: by mail-pg1-f177.google.com with SMTP id 41be03b00d2f7-7b0c9bbddb4so1220199a12.3
-        for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 01:51:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1723798293; x=1724403093; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=bqWnjN/SUQKeGCoWGtHU4a8gyskwj0hW7hqLD/zXP28=;
-        b=Wlc+BggEfUWDR5J1IzWwgKwCxKyXCKgFi+fCOAAmxL1lNRby+5dg38/dL8Sml4ErEL
-         DsxnL/9V9uqK1pmDbcwnq3hUJqD0RCQORHZ6lbTxplVlF3x97ZVZiseGljsgkn711n/R
-         6whkNUJjObom/78ZU9jwKjEYXu9XgIgMqfUtuoYMQ8hCpe7sG8GnU45PJQVD1nE6qkrb
-         9/NnY5FybCjUulV6PFMBB5N+mymI/DC5y9DKNbM1cJ60JKGV4PKsF4r3/9PRujVjss/c
-         aKQX1fOOQhiDkcvEdKEROQ5ENECBkBB0yvsHYV0wnkLKFSXXfMaY2ZkbOWtPvI/7ydpJ
-         rDbQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1723798293; x=1724403093;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=bqWnjN/SUQKeGCoWGtHU4a8gyskwj0hW7hqLD/zXP28=;
-        b=jyxzBpkCh+MR+In1IVMDELak6wWmY39Cov4k4WKEEGRcjvqfg+17VmIetO6f542agy
-         ire7ndVlamBcIAJ64d+bMbG+Z5VZrnguw8+3xJCi5F4jank+7u/MBwGtWVWASLrIN9dw
-         b/yStM0vJ19siunLOUq9I1IQSCwjrzeVe647e1KDGyP5UQWzzCy1NbWcnQjs07uW4S7M
-         MycE6goqDHlKLxsQg5+2S8Ldv7Nl2uSdSQ0lji28rc0hcyrsOwXPfz64ZCKf7pLmGepg
-         YnZYfooX7yH5zdMJqY6kaIbLjoMCqVvni0Af69IMlExNnsSuGCoAfxfvgLgEsSFWW/v0
-         LlKA==
-X-Gm-Message-State: AOJu0Ywe7ShIoyBakEfKqz83yafmICR56Qvgt/niDO6tqIQBPHZs3JEg
-	e5ufMHBv8q+udmp5BtFFEAA0g/IyZDr7qqV0/I6YktUmmJo9rJ/18WldZMa0k/ja9XUffjYiCQ8
-	5gcFULi3OS0EhfmZ4lXucq8vbImI=
-X-Google-Smtp-Source: AGHT+IE62VYpg1b2pyg4sIR266mCSYMxtp2mlF67K/tY9hmxX6MHK2u1TRl+VOmANjgQjIJEHqNtVkpbjE3wqz2Fii8=
-X-Received: by 2002:a05:6a20:564d:b0:1c9:1606:89b2 with SMTP id
- adf61e73a8af0-1c916068b65mr1723892637.0.1723798293441; Fri, 16 Aug 2024
- 01:51:33 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OUW+zs4W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 400E6C32782;
+	Fri, 16 Aug 2024 21:22:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1723843356;
+	bh=Fs51K56LPxmbc7D7zYYxiR25GaseQVZ5ncuSvaxyBHk=;
+	h=Date:To:From:Subject:From;
+	b=OUW+zs4WB953/sHQEwu55eJ88vPpu/UOKMaoq/kvJcnK+UeULLhg4SyA2V36sEPia
+	 JmKSz9XSeO0FMY6ThM5kjr3+Sn1+lttBQ83xZnuwjlLOgPk/GevfEzBJhO3dhtVygU
+	 ybcM5arK+2bjD0ccZXSe9xxlJac129iuS/xVn208=
+Date: Fri, 16 Aug 2024 14:22:35 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,me@yhndnzj.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch added to mm-unstable branch
+Message-Id: <20240816212236.400E6C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240814202725.5BE36C116B1@smtp.kernel.org> <CANiq72mOivuUg_S5KCmrh71d9Tk49LaaCWjgxLFFNAs3dZWQFA@mail.gmail.com>
- <20240815141952.4c400e28e50494f34bd3705b@linux-foundation.org>
-In-Reply-To: <20240815141952.4c400e28e50494f34bd3705b@linux-foundation.org>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Fri, 16 Aug 2024 10:51:21 +0200
-Message-ID: <CANiq72mv=vkJ=Fy2KARKf9aFh1K-WNaXuOoZcm3Wm1gin0apeg@mail.gmail.com>
-Subject: Re: + kasan-simplify-and-clarify-makefile-v2.patch added to
- mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, ojeda@kernel.org, andreyknvl@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 15, 2024 at 11:19=E2=80=AFPM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> Sure, go for it.
 
-Thanks, will do!
+The patch titled
+     Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
 
-Cheers,
-Miguel
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Mike Yuan <me@yhndnzj.com>
+Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
+Date: Fri, 16 Aug 2024 14:44:07 +0000
+
+Currently, the behavior of zswap.writeback wrt.  the cgroup hierarchy
+seems a bit odd.  Unlike zswap.max, it doesn't honor the value from parent
+cgroups.  This surfaced when people tried to globally disable zswap
+writeback, i.e.  reserve physical swap space only for hibernation [1] -
+disabling zswap.writeback only for the root cgroup results in subcgroups
+with zswap.writeback=3D1 still performing writeback.
+
+The inconsistency became more noticeable after I introduced the
+MemoryZSwapWriteback=3D systemd unit setting [2] for controlling the knob.
+The patch assumed that the kernel would enforce the value of parent
+cgroups.  It could probably be workarounded from systemd's side, by going
+up the slice unit tree and inheriting the value.  Yet I think it's more
+sensible to make it behave consistently with zswap.max and friends.
+
+[1] https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate=
+#Disable_zswap_writeback_to_use_the_swap_space_only_for_hibernation
+[2] https://github.com/systemd/systemd/pull/31734
+
+Link: https://lkml.kernel.org/r/20240816144344.18135-1-me@yhndnzj.com
+Signed-off-by: Mike Yuan <me@yhndnzj.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/cgroup-v2.rst |    5 ++++-
+ mm/memcontrol.c                         |    9 ++++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
+
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1744,7 +1744,10 @@ The following nested keys are defined.
+   memory.zswap.writeback
+ 	A read-write single value file. The default value is "1". The
+ 	initial value of the root cgroup is 1, and when a new cgroup is
+-	created, it inherits the current value of its parent.
++	created, it inherits the current value of its parent. Note that
++	this setting is hierarchical, i.e. the writeback would be
++	implicitly disabled for child cgroups if the upper hierarchy
++	does so.
+ 
+ 	When this is set to 0, all swapping attempts to swapping devices
+ 	are disabled. This included both zswap writebacks, and swapping due
+--- a/mm/memcontrol.c~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
++++ a/mm/memcontrol.c
+@@ -5355,7 +5355,14 @@ void obj_cgroup_uncharge_zswap(struct ob
+ bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
+ {
+ 	/* if zswap is disabled, do not block pages going to the swapping device */
+-	return !zswap_is_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
++	if (!zswap_is_enabled())
++		return true;
++
++	for (; memcg; memcg = parent_mem_cgroup(memcg))
++		if (!READ_ONCE(memcg->zswap_writeback))
++			return false;
++
++	return true;
+ }
+ 
+ static u64 zswap_current_read(struct cgroup_subsys_state *css,
+_
+
+Patches currently in -mm which might be from me@yhndnzj.com are
+
+mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+selftests-test_zswap-add-test-for-hierarchical-zswapwriteback.patch
+
