@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AC748489
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 04:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5197710E4;
+	Fri, 16 Aug 2024 05:05:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723784049; cv=none; b=AcgYri3nlgBZox3xidtYQsoBi4Hfjt7cerGLxdV+T9D4Z0JN10f8cJoV3iPt7PxtBYh2JHeMgvRMMqJS8dGU+LI9mk7BJX3pvCe8Zzg2qNNZf+5BaA5hDVfUtzTrRiQqw7aqfZy7pBYF+43DiPJ/ArK2Aa4uZyPFgvLQY8168f8=
+	t=1723784721; cv=none; b=Ewpmw8I6E2Sso4VV+ml/8prg8sn1ZymnazSbqt2QSHZvWKKaB77CmcqMCz1AsEh0wqwDWCtqKBvZuOMx3aaLJYyS9ZCyR/iLEpCwdKeY2LuqUT1P2VA805k3qitKvOR1s6QAhxE9Qpjp8y/cYBiQUV9joO+SHlE7J+mCfXQb0do=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723784049; c=relaxed/simple;
-	bh=ciCuB0mTdu5/0JXILJ33xW7CflnHE6bO08lfPuG/658=;
-	h=Date:To:From:Subject:Message-Id; b=nO70wiLJeTs/I1EgmFLsibF6lrSfaAq76sUJLpmjJCe7vTK8wouh1hGSM3sDai1iyS2kqrFLHczEGVYeDaIvwYcmhgNtCNz0sAQ1WmobFi/Y67z6w7pYaORs3PuqNhQoVEperM2iuop9UDApzc/QMVfmB5M1mBFVchPq0idm8mQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H82w0yE5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723784721; c=relaxed/simple;
+	bh=thRftasXeKAp1xoZHeymtapgv6/bUxFyILs/GVZ+H4w=;
+	h=Date:To:From:Subject:Message-Id; b=lPwm6JneuI0a1BhrnTfa9fUilS1m3N+8YawxMNhqtPA9CluncgRr/nCy1HVPNvp0VwN7tPro6390UXNYvo5J2D+CNcbZIB9I38XW5+BteyXhRpsy+AqIlTAHPzL3beErAjgmi5ApiPAnbD98uFhfdgnk2Op6C2r35WYyQf2Z1ZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RS8izRtp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H82w0yE5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1695C4AF0B;
-	Fri, 16 Aug 2024 04:54:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RS8izRtp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E014FC32782;
+	Fri, 16 Aug 2024 05:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723784048;
-	bh=ciCuB0mTdu5/0JXILJ33xW7CflnHE6bO08lfPuG/658=;
+	s=korg; t=1723784720;
+	bh=thRftasXeKAp1xoZHeymtapgv6/bUxFyILs/GVZ+H4w=;
 	h=Date:To:From:Subject:From;
-	b=H82w0yE5awi73XUkGKwR+ski/2Ucwj1MIjZhCJ3C1Veh8zHtitPUumdsbQB4gw0Pr
-	 AdSqob6NVrXziVi+CYqjaxwRMzDJV77gU7xZLlVtnbxP1hP8V3IV50+u2Pl1zy0ug5
-	 dFWDmZdYsyZIbvE8xQcIs2b1QLJIMyQJEY28avS8=
-Date: Thu, 15 Aug 2024 21:54:08 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,ira.weiny@intel.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
+	b=RS8izRtpdrnlgwsmPngUk2s59+MZvx0NEBUiPeSZOl+A4/GvCgrpFWziZQZowMi3U
+	 D+vGf2ZXUPPHb4pgarYvatuYZB+79ziRuT6n/7jrJ7Q0B1yf//uTKKYijOg0reC2xW
+	 v+Zvc542eMylxYIOeAP6A2k1J56oDRJ9LTg5Sl/s=
+Date: Thu, 15 Aug 2024 22:05:20 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryabinin.a.a@gmail.com,andreyknvl@google.com,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-fix-region_intersects-for-cxl-memory.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240816045408.D1695C4AF0B@smtp.kernel.org>
+Subject: [obsolete] lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled.patch removed from -mm tree
+Message-Id: <20240816050520.E014FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,221 +34,94 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: resource: fix region_intersects() for CXL memory
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     resource-fix-region_intersects-for-cxl-memory.patch
+The quilt patch titled
+     Subject: lib/stackdepot: double DEPOT_POOLS_CAP if KASAN is enabled
+has been removed from the -mm tree.  Its filename was
+     lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-fix-region_intersects-for-cxl-memory.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: resource: fix region_intersects() for CXL memory
-Date: Fri, 16 Aug 2024 10:07:23 +0800
+From: Waiman Long <longman@redhat.com>
+Subject: lib/stackdepot: double DEPOT_POOLS_CAP if KASAN is enabled
+Date: Wed, 7 Aug 2024 12:52:28 -0400
 
-On a system with CXL memory installed, the resource tree (/proc/iomem)
-related to CXL memory looks like something as follows.
+When a wide variety of workloads are run on a debug kernel with KASAN
+enabled, the following warning may sometimes be printed.
 
-490000000-50fffffff : CXL Window 0
-  490000000-50fffffff : region0
-    490000000-50fffffff : dax0.0
-      490000000-50fffffff : System RAM (kmem)
+ [ 6818.650674] Stack depot reached limit capacity
+ [ 6818.650730] WARNING: CPU: 1 PID: 272741 at lib/stackdepot.c:252 depot_alloc_stack+0x39e/0x3d0
+   :
+ [ 6818.650907] Call Trace:
+ [ 6818.650909]  [<00047dd453d84b92>] depot_alloc_stack+0x3a2/0x3d0
+ [ 6818.650916]  [<00047dd453d85254>] stack_depot_save_flags+0x4f4/0x5c0
+ [ 6818.650920]  [<00047dd4535872c6>] kasan_save_stack+0x56/0x70
+ [ 6818.650924]  [<00047dd453587328>] kasan_save_track+0x28/0x40
+ [ 6818.650927]  [<00047dd45358a27a>] kasan_save_free_info+0x4a/0x70
+ [ 6818.650930]  [<00047dd45358766a>] __kasan_slab_free+0x12a/0x1d0
+ [ 6818.650933]  [<00047dd45350deb4>] kmem_cache_free+0x1b4/0x580
+ [ 6818.650938]  [<00047dd452c520da>] __put_task_struct+0x24a/0x320
+ [ 6818.650945]  [<00047dd452c6aee4>] delayed_put_task_struct+0x294/0x350
+ [ 6818.650949]  [<00047dd452e9066a>] rcu_do_batch+0x6ea/0x2090
+ [ 6818.650953]  [<00047dd452ea60f4>] rcu_core+0x474/0xa90
+ [ 6818.650956]  [<00047dd452c780c0>] handle_softirqs+0x3c0/0xf90
+ [ 6818.650960]  [<00047dd452c76fbe>] __irq_exit_rcu+0x35e/0x460
+ [ 6818.650963]  [<00047dd452c79992>] irq_exit_rcu+0x22/0xb0
+ [ 6818.650966]  [<00047dd454bd8128>] do_ext_irq+0xd8/0x120
+ [ 6818.650972]  [<00047dd454c0ddd0>] ext_int_handler+0xb8/0xe8
+ [ 6818.650979]  [<00047dd453589cf6>] kasan_check_range+0x236/0x2f0
+ [ 6818.650982]  [<00047dd453378cf0>] filemap_get_pages+0x190/0xaa0
+ [ 6818.650986]  [<00047dd453379940>] filemap_read+0x340/0xa70
+ [ 6818.650989]  [<00047dd3d325d226>] xfs_file_buffered_read+0x2c6/0x400 [xfs]
+ [ 6818.651431]  [<00047dd3d325dfe2>] xfs_file_read_iter+0x2c2/0x550 [xfs]
+ [ 6818.651663]  [<00047dd45364710c>] vfs_read+0x64c/0x8c0
+ [ 6818.651669]  [<00047dd453648ed8>] ksys_read+0x118/0x200
+ [ 6818.651672]  [<00047dd452b6cf5a>] do_syscall+0x27a/0x380
+ [ 6818.651676]  [<00047dd454bd7e74>] __do_syscall+0xf4/0x1a0
+ [ 6818.651680]  [<00047dd454c0db58>] system_call+0x70/0x98
 
-When the following command line is run to try writing some memory in
-CXL memory range,
+As KASAN is a big user of stackdepot, the current DEPOT_POOLS_CAP of
+8192 may not be enough. Double DEPOT_POOLS_CAP if KASAN is enabled to
+avoid hitting this problem.
 
- $ dd if=data of=/dev/mem bs=1k seek=19136512 count=1
- dd: error writing '/dev/mem': Bad address
- 1+0 records in
- 0+0 records out
- 0 bytes copied, 0.0283507 s, 0.0 kB/s
+Also use the MIN() macro for defining DEPOT_MAX_POOLS to clarify the
+intention.
 
-the command fails as expected.  However, the error code is wrong.  It
-should be "Operation not permitted" instead of "Bad address".  And,
-the following warning is reported in kernel log.
-
- ioremap on RAM at 0x0000000490000000 - 0x0000000490000fff
- WARNING: CPU: 2 PID: 416 at arch/x86/mm/ioremap.c:216 __ioremap_caller.constprop.0+0x131/0x35d
- Modules linked in: cxl_pmem libnvdimm cbc encrypted_keys cxl_pmu
- CPU: 2 UID: 0 PID: 416 Comm: dd Not tainted 6.11.0-rc3-kvm #40
- Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
- RIP: 0010:__ioremap_caller.constprop.0+0x131/0x35d
- Code: 2d 80 3d 24 6a a1 02 00 75 c1 48 8d 54 24 70 48 8d b4 24 90 00 00 00 48 c7 c7 40 3a 05 8a c6 05 07 6a a1 02 01 e8 a3 a0 01 00 <0f> 0b eb 9d 48 8b 84 24 90 00 00 00 48 8d 4c 24 60 89 ea 48 bf 00
- RSP: 0018:ffff888105387bf0 EFLAGS: 00010282
- RAX: 0000000000000000 RBX: 0000000490000fff RCX: 0000000000000000
- RDX: 0000000000000001 RSI: 0000000000000003 RDI: ffffed1020a70f73
- RBP: 0000000000000000 R08: ffffed100d9fce92 R09: 0000000000000001
- R10: ffffffff892348e7 R11: ffffed100d9fce91 R12: 0000000490000000
- R13: 0000000000000001 R14: 0000000000000001 R15: ffff888105387ca0
- FS:  00007f86c438c740(0000) GS:ffff88806ce00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 000055ba75b1b818 CR3: 0000000005231000 CR4: 0000000000350eb0
- Call Trace:
-  <TASK>
-  ? __warn+0xd7/0x1b8
-  ? __ioremap_caller.constprop.0+0x131/0x35d
-  ? report_bug+0x136/0x19e
-  ? __ioremap_caller.constprop.0+0x131/0x35d
-  ? handle_bug+0x3c/0x64
-  ? exc_invalid_op+0x13/0x38
-  ? asm_exc_invalid_op+0x16/0x20
-  ? irq_work_claim+0x16/0x38
-  ? __ioremap_caller.constprop.0+0x131/0x35d
-  ? tracer_hardirqs_off+0x18/0x16d
-  ? kmem_cache_debug_flags+0x16/0x23
-  ? memremap+0xcb/0x184
-  ? iounmap+0xfe/0xfe
-  ? lock_sync+0xc7/0xc7
-  ? lock_sync+0xc7/0xc7
-  ? rcu_is_watching+0x1c/0x38
-  ? do_raw_read_unlock+0x37/0x42
-  ? _raw_read_unlock+0x1f/0x2f
-  memremap+0xcb/0x184
-  ? pfn_valid+0x159/0x159
-  ? resource_is_exclusive+0xba/0xc5
-  xlate_dev_mem_ptr+0x25/0x2f
-  write_mem+0x94/0xfb
-  vfs_write+0x128/0x26d
-  ? kernel_write+0x89/0x89
-  ? rcu_is_watching+0x1c/0x38
-  ? __might_fault+0x72/0xba
-  ? __might_fault+0x72/0xba
-  ? rcu_is_watching+0x1c/0x38
-  ? lock_release+0xba/0x13e
-  ? files_lookup_fd_raw+0x40/0x4b
-  ? __fget_light+0x64/0x89
-  ksys_write+0xac/0xfe
-  ? __ia32_sys_read+0x40/0x40
-  ? tracer_hardirqs_off+0x18/0x16d
-  ? tracer_hardirqs_on+0x11/0x146
-  do_syscall_64+0x9a/0xfd
-  entry_SYSCALL_64_after_hwframe+0x4b/0x53
- RIP: 0033:0x7f86c4487140
- Code: 40 00 48 8b 15 c1 9c 0d 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 80 3d a1 24 0e 00 00 74 17 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 58 c3 0f 1f 80 00 00 00 00 48 83 ec 28 48 89
- RSP: 002b:00007ffca9f62af8 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
- RAX: ffffffffffffffda RBX: 0000000000000400 RCX: 00007f86c4487140
- RDX: 0000000000000400 RSI: 000055ba75b1a000 RDI: 0000000000000001
- RBP: 000055ba75b1a000 R08: 0000000000000000 R09: 00007f86c457c080
- R10: 00007f86c43a84d0 R11: 0000000000000202 R12: 0000000000000000
- R13: 0000000000000000 R14: 000055ba75b1a000 R15: 0000000000000400
-  </TASK>
- irq event stamp: 0
- hardirqs last  enabled at (0): [<0000000000000000>] 0x0
- hardirqs last disabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
- softirqs last  enabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
- softirqs last disabled at (0): [<0000000000000000>] 0x0
-
-After investigation, we found the following bug.
-
-In the above resource tree, "System RAM" is a descendant of "CXL Window 0"
-instead of a top level resource.  So, region_intersects() will report no
-System RAM resources in the CXL memory region incorrectly, because it only
-checks the top level resources.  Consequently, devmem_is_allowed() will
-return 1 (allow access via /dev/mem) for CXL memory region incorrectly. 
-Fortunately, ioremap() doesn't allow to map System RAM and reject the
-access.
-
-However, region_intersects() needs to be fixed to work correctly with the
-resources tree with CXL Window as above.  To fix it, we will search
-matched resources in the descendant resources too.  So, we will not miss
-any matched resources anymore.
-
-Link: https://lkml.kernel.org/r/20240816020723.771196-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20240807165228.1116831-1-longman@redhat.com
+Fixes: 02754e0a484a ("lib/stackdepot.c: bump stackdepot capacity from 16MB to 128MB")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   44 +++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 7 deletions(-)
+ lib/stackdepot.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/kernel/resource.c~resource-fix-region_intersects-for-cxl-memory
-+++ a/kernel/resource.c
-@@ -542,18 +542,48 @@ static int __region_intersects(struct re
- {
- 	struct resource res;
- 	int type = 0; int other = 0;
--	struct resource *p;
-+	struct resource *p, *dp;
-+	resource_size_t ostart, oend;
-+	bool is_type;
+--- a/lib/stackdepot.c~lib-stackdepot-double-depot_pools_cap-if-kasan-is-enabled
++++ a/lib/stackdepot.c
+@@ -36,11 +36,12 @@
+ #include <linux/memblock.h>
+ #include <linux/kasan-enabled.h>
  
- 	res.start = start;
- 	res.end = start + size - 1;
+-#define DEPOT_POOLS_CAP 8192
++/* KASAN is a big user of stackdepot, double the cap if KASAN is enabled */
++#define DEPOT_POOLS_CAP (8192 * (IS_ENABLED(CONFIG_KASAN) ? 2 : 1))
++
+ /* The pool_index is offset by 1 so the first record does not have a 0 handle. */
+ #define DEPOT_MAX_POOLS \
+-	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
+-	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
++	MIN((1LL << (DEPOT_POOL_INDEX_BITS)) - 1, DEPOT_POOLS_CAP)
  
- 	for (p = parent->child; p ; p = p->sibling) {
--		bool is_type = (((p->flags & flags) == flags) &&
--				((desc == IORES_DESC_NONE) ||
--				 (desc == p->desc)));
--
--		if (resource_overlaps(p, &res))
--			is_type ? type++ : other++;
-+		if (!resource_overlaps(p, &res))
-+			continue;
-+		is_type = (((p->flags & flags) == flags) &&
-+			   ((desc == IORES_DESC_NONE) || (desc == p->desc)));
-+		if (is_type) {
-+			type++;
-+			continue;
-+		}
-+		/*
-+		 * Continue to search in descendant resources.  Unless
-+		 * the matched descendant resources cover the whole
-+		 * overlapped range, increase 'other', because it
-+		 * overlaps with 'p' at least.
-+		 */
-+		other++;
-+		ostart = max(res.start, p->start);
-+		oend = min(res.end, p->end);
-+		for_each_resource(p, dp, false) {
-+			if (!resource_overlaps(dp, &res))
-+				continue;
-+			is_type = (((dp->flags & flags) == flags) &&
-+				   ((desc == IORES_DESC_NONE) ||
-+				    (desc == dp->desc)));
-+			if (is_type) {
-+				type++;
-+				if (dp->start > ostart)
-+					break;
-+				if (dp->end >= oend) {
-+					other--;
-+					break;
-+				}
-+				ostart = dp->end + 1;
-+			}
-+		}
- 	}
- 
- 	if (type == 0)
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-resource-fix-region_intersects-for-cxl-memory.patch
+mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu.patch
+mm-memory-failure-use-raw_spinlock_t-in-struct-memory_failure_cpu-v3.patch
+watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
 
