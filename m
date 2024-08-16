@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8CD1C579E;
-	Fri, 16 Aug 2024 21:30:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566094315D
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:33:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723843842; cv=none; b=X39ELvVsJOa7eqKuK118ze2mP855pbM+8SSBh2tlgrXkGBqNREJILfAOizGu7A3Iqbcvx22eHDcfGuCTFhltRKL6G0lWzhiArUbRiNPlJ48SiV7I/Y1/RohulCMnPu/MetjxVhy+i2EsEXpO3xfhcwbKfKArlRXrAWSODRlkgAg=
+	t=1723844015; cv=none; b=ShefpkDPc9dHBqR7QC7P2iccH9tZrZLQaqqy267xNKs9Wz2A22W3mY6R9/oaqGeAlChJYrTcbGs4AoPEl6sxoUHJRPX9omou8u93igID5Hp5SbUVmW0u8Zqy2t5RNcsNeeAaKyv8Sjo6sRT56+sipMM4BdjxEWGt+wRw8C0gnx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723843842; c=relaxed/simple;
-	bh=u3DSAAUfU08UXeCPRQf7jZvv4EvlO7NBPG5KBltXVNw=;
-	h=Date:To:From:Subject:Message-Id; b=hUE6Nmovsg88sUo+5FhkaLxGi5p7cGPZHLDuURAp4L1ksbbwwmlzO42w5SVnhmHrVcDocnbL1tYpg6V5w9Qan7fQ/nQuzjQhhMyJbCt+G9v4vCCQ2n0D2kCejRL9EgYqXpYOpjo4PygS0KXd49SfKvQFKoYGr7NIGa++aWO2Hp4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0Pfj6wH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723844015; c=relaxed/simple;
+	bh=NLl78eCwMBvi6wGVl0X79TBYFXFeE+H1DQTucn+wji4=;
+	h=Date:To:From:Subject:Message-Id; b=Uv6iV1r0KgOtsb/GW7LQbkR9tBn/GAa04pb77JqScyWapMJSnkWf3p1kTg7GbTjZsTmwq+hVZskTCPNTi2ouBd6z4FfggwKa/TB7EFJnGrVlxGPsnaD3Me3a/JKmVjSdvplHMXcpjsHpnbUMNWKQzmf3DqnRz9uIEY/yWUWmNwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iIVv++f+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0Pfj6wH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ACB2C32782;
-	Fri, 16 Aug 2024 21:30:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iIVv++f+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7800C32782;
+	Fri, 16 Aug 2024 21:33:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723843842;
-	bh=u3DSAAUfU08UXeCPRQf7jZvv4EvlO7NBPG5KBltXVNw=;
+	s=korg; t=1723844014;
+	bh=NLl78eCwMBvi6wGVl0X79TBYFXFeE+H1DQTucn+wji4=;
 	h=Date:To:From:Subject:From;
-	b=p0Pfj6wH+ANmnS39Se9YZY2750ewrpu7byge4xRSebTLh8Gz+j2eteniS3fxVGB0b
-	 eeDy6I1pCSCvliX/DSJQnuLlbaZbZYGaNHiLhv7YNCpiN/gB5Ixwhgco5TzfxItqi2
-	 KFrZbVSw3AFoyYMDpJmEjw4ZlsmwL0m6ydbNptSE=
-Date: Fri, 16 Aug 2024 14:30:41 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sourabhjain@linux.ibm.com,hbathini@linux.ibm.com,eric_devolder@yahoo.com,ebiederm@xmission.com,bhe@redhat.com,ptesarik@suse.com,akpm@linux-foundation.org
+	b=iIVv++f+VG93onp0n0ICzU8tVjNf+1T8Z388lRMyhizMOGVAOg6ckDq9CFUkvWrxt
+	 C6zlrtlHN4cp2HXBph1zfxDvYWOuS/dz+RI3TAT9oLTK48F+AHzEHMzWzcboPI5MbO
+	 h2FmHqeHAn5K0sZH5VF+vwhHx3kvF6keUyl+h5x0=
+Date: Fri, 16 Aug 2024 14:33:34 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240816213042.2ACB2C32782@smtp.kernel.org>
+Subject: + mm-rmap-use-folio-_mapcount-for-small-folios.patch added to mm-unstable branch
+Message-Id: <20240816213334.B7800C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch
+     Subject: mm/rmap: use folio->_mapcount for small folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-use-folio-_mapcount-for-small-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-folio-_mapcount-for-small-folios.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
-Date: Mon, 5 Aug 2024 17:07:50 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: use folio->_mapcount for small folios
+Date: Fri, 16 Aug 2024 12:32:46 +0200
 
-Fix the condition to exclude the elfcorehdr segment from the SHA digest
-calculation.
+We have some cases left whereby we operate on small folios and still refer
+to page->_mapcount.  Let's just use folio->_mapcount instead, which
+currently still overlays page->_mapcount, so no change.
 
-The j iterator is an index into the output sha_regions[] array, not into
-the input image->segment[] array.  Once it reaches
-image->elfcorehdr_index, all subsequent segments are excluded.  Besides,
-if the purgatory segment precedes the elfcorehdr segment, the elfcorehdr
-may be wrongly included in the calculation.
+This change will make it easier to later spot any remaining users of
+page->_mapcount that target tail pages.
 
-Link: https://lkml.kernel.org/r/20240805150750.170739-1-petr.tesarik@suse.com
-Fixes: f7cc804a9fd4 ("kexec: exclude elfcorehdr from the segment digest")
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Eric DeVolder <eric_devolder@yahoo.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240816103246.719209-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    4 ++--
+ mm/rmap.c            |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/kexec_file.c~kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y
-+++ a/kernel/kexec_file.c
-@@ -752,7 +752,7 @@ static int kexec_calculate_store_digests
+--- a/include/linux/rmap.h~mm-rmap-use-folio-_mapcount-for-small-folios
++++ a/include/linux/rmap.h
+@@ -331,7 +331,7 @@ static __always_inline void __folio_dup_
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
+ 		if (!folio_test_large(folio)) {
+-			atomic_inc(&page->_mapcount);
++			atomic_inc(&folio->_mapcount);
+ 			break;
+ 		}
  
- #ifdef CONFIG_CRASH_HOTPLUG
- 		/* Exclude elfcorehdr segment to allow future changes via hotplug */
--		if (j == image->elfcorehdr_index)
-+		if (i == image->elfcorehdr_index)
- 			continue;
- #endif
+@@ -425,7 +425,7 @@ static __always_inline int __folio_try_d
+ 		if (!folio_test_large(folio)) {
+ 			if (PageAnonExclusive(page))
+ 				ClearPageAnonExclusive(page);
+-			atomic_inc(&page->_mapcount);
++			atomic_inc(&folio->_mapcount);
+ 			break;
+ 		}
+ 
+--- a/mm/rmap.c~mm-rmap-use-folio-_mapcount-for-small-folios
++++ a/mm/rmap.c
+@@ -1165,7 +1165,7 @@ static __always_inline unsigned int __fo
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
+ 		if (!folio_test_large(folio)) {
+-			nr = atomic_inc_and_test(&page->_mapcount);
++			nr = atomic_inc_and_test(&folio->_mapcount);
+ 			break;
+ 		}
+ 
+@@ -1535,7 +1535,7 @@ static __always_inline void __folio_remo
+ 	switch (level) {
+ 	case RMAP_LEVEL_PTE:
+ 		if (!folio_test_large(folio)) {
+-			nr = atomic_add_negative(-1, &page->_mapcount);
++			nr = atomic_add_negative(-1, &folio->_mapcount);
+ 			break;
+ 		}
  
 _
 
-Patches currently in -mm which might be from ptesarik@suse.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch
+mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch
+mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch
+powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch
+mm-simplify-arch_make_folio_accessible.patch
+mm-gup-convert-to-arch_make_folio_accessible.patch
+s390-uv-drop-arch_make_page_accessible.patch
+mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
+mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
+mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
+mm-provide-vm_normal_pagefolio_pmd-with-config_pgtable_has_huge_leaves.patch
+mm-pagewalk-introduce-folio_walk_start-folio_walk_end.patch
+mm-migrate-convert-do_pages_stat_array-from-follow_page-to-folio_walk.patch
+mm-migrate-convert-add_page_for_migration-from-follow_page-to-folio_walk.patch
+mm-ksm-convert-get_mergeable_page-from-follow_page-to-folio_walk.patch
+mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
+mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
+mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix.patch
+s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
+s390-mm-fault-convert-do_secure_storage_access-from-follow_page-to-folio_walk.patch
+mm-remove-follow_page.patch
+mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping.patch
+mm-rmap-use-folio-_mapcount-for-small-folios.patch
 
