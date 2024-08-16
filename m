@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566094315D
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:33:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E3E1420D0
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:42:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723844015; cv=none; b=ShefpkDPc9dHBqR7QC7P2iccH9tZrZLQaqqy267xNKs9Wz2A22W3mY6R9/oaqGeAlChJYrTcbGs4AoPEl6sxoUHJRPX9omou8u93igID5Hp5SbUVmW0u8Zqy2t5RNcsNeeAaKyv8Sjo6sRT56+sipMM4BdjxEWGt+wRw8C0gnx4=
+	t=1723844576; cv=none; b=qppADzkImPGN4tdSD9pj4XnkqlRVjDwgYO7nIj8Uvm4iURw2a0ZfQ/GDq2aKFVQhuwZwTzWHwuPE1IJwGezGLGY+5O1yJSRC6H8nN/k17Q+3JUoyVE17c/AlTuXoB1mj7Xq9bLMYJdoy9sStMoTUpAUhErbKL7M7RiH4fDc3Inw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723844015; c=relaxed/simple;
-	bh=NLl78eCwMBvi6wGVl0X79TBYFXFeE+H1DQTucn+wji4=;
-	h=Date:To:From:Subject:Message-Id; b=Uv6iV1r0KgOtsb/GW7LQbkR9tBn/GAa04pb77JqScyWapMJSnkWf3p1kTg7GbTjZsTmwq+hVZskTCPNTi2ouBd6z4FfggwKa/TB7EFJnGrVlxGPsnaD3Me3a/JKmVjSdvplHMXcpjsHpnbUMNWKQzmf3DqnRz9uIEY/yWUWmNwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iIVv++f+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723844576; c=relaxed/simple;
+	bh=a8imfhtKqSZdkW9tC7AubDJccQgpJ4hR/NH+uAoEPag=;
+	h=Date:To:From:Subject:Message-Id; b=kLGtPWyCVDsmeZO9all7k/ZxAG7hOC7sZKupF6eX9NW1xnEb7ic/G2LRfrO4isfyP+iPP9M8v9xgcVxF1L5yCFWGbaZrcrBKJ8QzS7t4NqEjdxZJBX7qU6473Isuh2o/S8nLZVfe3TGj+bLxBvvqlkqmN0zE/h0sYEf6xBiutrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XUEHJxRE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iIVv++f+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7800C32782;
-	Fri, 16 Aug 2024 21:33:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XUEHJxRE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E93CC32782;
+	Fri, 16 Aug 2024 21:42:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723844014;
-	bh=NLl78eCwMBvi6wGVl0X79TBYFXFeE+H1DQTucn+wji4=;
+	s=korg; t=1723844576;
+	bh=a8imfhtKqSZdkW9tC7AubDJccQgpJ4hR/NH+uAoEPag=;
 	h=Date:To:From:Subject:From;
-	b=iIVv++f+VG93onp0n0ICzU8tVjNf+1T8Z388lRMyhizMOGVAOg6ckDq9CFUkvWrxt
-	 C6zlrtlHN4cp2HXBph1zfxDvYWOuS/dz+RI3TAT9oLTK48F+AHzEHMzWzcboPI5MbO
-	 h2FmHqeHAn5K0sZH5VF+vwhHx3kvF6keUyl+h5x0=
-Date: Fri, 16 Aug 2024 14:33:34 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,akpm@linux-foundation.org
+	b=XUEHJxRE7n/YoMUVWB+2rIf0z67vtMd1+Klqpbjz5avQWKCS8L3W5sqzYd9XEifH/
+	 AadAbig4UHYdeaD8Fca5+KdHZwNxT0rJF+qvocbD19cSG7PUuhch8M9Gn9x/TPd5Jr
+	 Cy5KA2aUDo9fXIz4CcdZU8fqg4KrmWZIvnUtwF1c=
+Date: Fri, 16 Aug 2024 14:42:55 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-folio-_mapcount-for-small-folios.patch added to mm-unstable branch
-Message-Id: <20240816213334.B7800C32782@smtp.kernel.org>
+Subject: + mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch added to mm-unstable branch
+Message-Id: <20240816214256.1E93CC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: use folio->_mapcount for small folios
+     Subject: mm: memory_hotplug: remove head variable in do_migrate_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-use-folio-_mapcount-for-small-folios.patch
+     mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-folio-_mapcount-for-small-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,92 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: use folio->_mapcount for small folios
-Date: Fri, 16 Aug 2024 12:32:46 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory_hotplug: remove head variable in do_migrate_range()
+Date: Fri, 16 Aug 2024 17:04:31 +0800
 
-We have some cases left whereby we operate on small folios and still refer
-to page->_mapcount.  Let's just use folio->_mapcount instead, which
-currently still overlays page->_mapcount, so no change.
+Patch series "mm: memory_hotplug: improve do_migrate_range()", v2.
 
-This change will make it easier to later spot any remaining users of
-page->_mapcount that target tail pages.
+Unify hwpoisoned page handling and isolation of HugeTLB/LRU/non-LRU
+movable page, also convert to use folios in do_migrate_range().
 
-Link: https://lkml.kernel.org/r/20240816103246.719209-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+
+This patch (of 2):
+
+Directly use a folio for HugeTLB and THP when calculate the next pfn, then
+remove unused head variable.
+
+Link: https://lkml.kernel.org/r/20240816090435.888946-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240816090435.888946-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    4 ++--
- mm/rmap.c            |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-use-folio-_mapcount-for-small-folios
-+++ a/include/linux/rmap.h
-@@ -331,7 +331,7 @@ static __always_inline void __folio_dup_
- 	switch (level) {
- 	case RMAP_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
--			atomic_inc(&page->_mapcount);
-+			atomic_inc(&folio->_mapcount);
- 			break;
- 		}
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-head-variable-in-do_migrate_range
++++ a/mm/memory_hotplug.c
+@@ -1773,7 +1773,7 @@ found:
+ static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+ {
+ 	unsigned long pfn;
+-	struct page *page, *head;
++	struct page *page;
+ 	LIST_HEAD(source);
+ 	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 				      DEFAULT_RATELIMIT_BURST);
+@@ -1786,14 +1786,20 @@ static void do_migrate_range(unsigned lo
+ 			continue;
+ 		page = pfn_to_page(pfn);
+ 		folio = page_folio(page);
+-		head = &folio->page;
  
-@@ -425,7 +425,7 @@ static __always_inline int __folio_try_d
- 		if (!folio_test_large(folio)) {
- 			if (PageAnonExclusive(page))
- 				ClearPageAnonExclusive(page);
--			atomic_inc(&page->_mapcount);
-+			atomic_inc(&folio->_mapcount);
- 			break;
- 		}
+-		if (PageHuge(page)) {
+-			pfn = page_to_pfn(head) + compound_nr(head) - 1;
+-			isolate_hugetlb(folio, &source);
+-			continue;
+-		} else if (PageTransHuge(page))
+-			pfn = page_to_pfn(head) + thp_nr_pages(page) - 1;
++		/*
++		 * The folio hold no reference or lock, it might be changed
++		 * concurrently(eg, split), folio_nr_pages() may read garbage,
++		 * but out loop could handle that as it revisits the split
++		 * folio later.
++		 */
++		if (folio_test_large(folio)) {
++			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
++			if (folio_test_hugetlb(folio)) {
++				isolate_hugetlb(folio);
++				continue;
++			}
++		}
  
---- a/mm/rmap.c~mm-rmap-use-folio-_mapcount-for-small-folios
-+++ a/mm/rmap.c
-@@ -1165,7 +1165,7 @@ static __always_inline unsigned int __fo
- 	switch (level) {
- 	case RMAP_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
--			nr = atomic_inc_and_test(&page->_mapcount);
-+			nr = atomic_inc_and_test(&folio->_mapcount);
- 			break;
- 		}
- 
-@@ -1535,7 +1535,7 @@ static __always_inline void __folio_remo
- 	switch (level) {
- 	case RMAP_LEVEL_PTE:
- 		if (!folio_test_large(folio)) {
--			nr = atomic_add_negative(-1, &page->_mapcount);
-+			nr = atomic_add_negative(-1, &folio->_mapcount);
- 			break;
- 		}
- 
+ 		/*
+ 		 * HWPoison pages have elevated reference counts so the migration would
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch
-mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch
-powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch
-mm-simplify-arch_make_folio_accessible.patch
-mm-gup-convert-to-arch_make_folio_accessible.patch
-s390-uv-drop-arch_make_page_accessible.patch
-mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
-mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
-mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
-mm-provide-vm_normal_pagefolio_pmd-with-config_pgtable_has_huge_leaves.patch
-mm-pagewalk-introduce-folio_walk_start-folio_walk_end.patch
-mm-migrate-convert-do_pages_stat_array-from-follow_page-to-folio_walk.patch
-mm-migrate-convert-add_page_for_migration-from-follow_page-to-folio_walk.patch
-mm-ksm-convert-get_mergeable_page-from-follow_page-to-folio_walk.patch
-mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
-mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
-mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix.patch
-s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
-s390-mm-fault-convert-do_secure_storage_access-from-follow_page-to-folio_walk.patch
-mm-remove-follow_page.patch
-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
-mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping.patch
-mm-rmap-use-folio-_mapcount-for-small-folios.patch
+mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
+mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
+mm-memory-failure-add-unmap_posioned_folio.patch
+mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
+mm-migrate-add-isolate_folio_to_list.patch
+mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
 
