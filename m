@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACDCA74E26;
-	Fri, 16 Aug 2024 05:17:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83EB6383A5;
+	Fri, 16 Aug 2024 05:17:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723785423; cv=none; b=od2WfgcRIx+m9exJl5fOMeli5z9nnJavjDJmpCcgQ5YBHlf80QFeLqGk16QXTLKBtarAvYLMX/ZEa9q3pNm//g0+a+Jl1nPuafFGOIKL0SYtYkkbLMeM46GTM88/l/nGFYE6D5xVLAV7ipV8O8QzW5eegB7eMZrhC1hfggLIgwQ=
+	t=1723785425; cv=none; b=AWzK38d+zn+OhuQGg1PihSj5ei5SxEJBNoZ52FePxBDHn1WFoO/ANgxmPWNYCPrCmJIQKOckCeC4Js6bRks9n74/6a7O/QK/5+MjaTT59GlywspmbFoULLxV3N0LfowTCYRDUKN1wcH7gBD59gqbY1kCXkrxxlPDud769vPC/Y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723785423; c=relaxed/simple;
-	bh=jkYcdl+vKTPFspuyPIudIK81Do0NTosJ49wDYNeiInU=;
-	h=Date:To:From:Subject:Message-Id; b=E6lrWpjXcvDZmzYVifhV2oaKL00aaMAQOg1y/H10HJMK9IXlQ38CMxNudr8lu81LA90erhkzHkl29XKZYrImoXZ8YpbnksPFYGwpvwQ1NAGvTk7nuVAMb3G3SN+LsepHAB7asZYQtP9xtdgfceunBEfTjsEeYPPFsbHhTfaoStY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IE3NZBTi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723785425; c=relaxed/simple;
+	bh=ymQN2rXxI6SIahUW2kurIUD0LP0afmSitIQEFwKRpnc=;
+	h=Date:To:From:Subject:Message-Id; b=dJhFvsWJqZUtDzB0v1BTbuN1UL4bvx6hqKSRqW1FC/E9C89sauoSZhbx7qv7YHKX+9yXoJ+LiRXxbxKmTrXg2ny7pHd8ghZSDH+7IsdQolPf6AyZxYUAWNkVSA+t8pfrdItnBBn+Y1D4BKx0TJPWi9mbBiaYw+pM59go3puyDKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XqtLxrhw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IE3NZBTi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81BB1C32782;
-	Fri, 16 Aug 2024 05:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XqtLxrhw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DDDC32782;
+	Fri, 16 Aug 2024 05:17:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723785423;
-	bh=jkYcdl+vKTPFspuyPIudIK81Do0NTosJ49wDYNeiInU=;
+	s=korg; t=1723785425;
+	bh=ymQN2rXxI6SIahUW2kurIUD0LP0afmSitIQEFwKRpnc=;
 	h=Date:To:From:Subject:From;
-	b=IE3NZBTi3Ttr7si52hOl30aeFSi3asDLn9HjqLcqRcMrYgP9Q6ovlUDxL+bYkFXu5
-	 +Ksy4SmXYv2bFxEcuwIdMck98ZCIWm51Vglt5gM+fKHP5ZlHXkpsEoVGGpWYVWMokf
-	 YWGdB5FHRe/KtRG5IfNAuPl+WzcxBjGNytgTA1Q0=
-Date: Thu, 15 Aug 2024 22:17:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.lendacky@amd.com,stable@vger.kernel.org,rppt@kernel.org,mgorman@suse.de,jxgao@google.com,hannes@cmpxchg.org,david@redhat.com,bp@alien8.de,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=XqtLxrhwFpXqviMvfG2S6ZziIqxpQFQdw87I+x7CDb37ORwlHGhYO7Xm8j94rRjfW
+	 UyGUyNbshbkI8mfgTNr+gjS0ndEZAGMyRF5/pl7qyLCCtTBQO9Xtb7I5xqYQHnzADl
+	 v0Qyt2tHhLdoDWl/1aPJD7XXMXQRpBJMMO9ysLDA=
+Date: Thu, 15 Aug 2024 22:17:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,skhan@linuxfoundation.org,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,James.Bottomley@HansenPartnership.com,aou@eecs.berkeley.edu,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch removed from -mm tree
-Message-Id: <20240816051703.81BB1C32782@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch removed from -mm tree
+Message-Id: <20240816051704.E6DDDC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,175 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix endless reclaim on machines with unaccepted memory
+     Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
 has been removed from the -mm tree.  Its filename was
-     mm-fix-endless-reclaim-on-machines-with-unaccepted-memory.patch
+     selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix endless reclaim on machines with unaccepted memory
-Date: Fri, 9 Aug 2024 14:48:47 +0300
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: memfd_secret: don't build memfd_secret test on unsupported arches
+Date: Fri, 9 Aug 2024 12:56:42 +0500
 
-Unaccepted memory is considered unusable free memory, which is not counted
-as free on the zone watermark check.  This causes get_page_from_freelist()
-to accept more memory to hit the high watermark, but it creates problems
-in the reclaim path.
+[1] mentions that memfd_secret is only supported on arm64, riscv, x86 and
+x86_64 for now.  It doesn't support other architectures.  I found the
+build error on arm and decided to send the fix as it was creating noise on
+KernelCI:
 
-The reclaim path encounters a failed zone watermark check and attempts to
-reclaim memory.  This is usually successful, but if there is little or no
-reclaimable memory, it can result in endless reclaim with little to no
-progress.  This can occur early in the boot process, just after start of
-the init process when the only reclaimable memory is the page cache of the
-init executable and its libraries.
+memfd_secret.c: In function 'memfd_secret':
+memfd_secret.c:42:24: error: '__NR_memfd_secret' undeclared (first use in this function);
+did you mean 'memfd_secret'?
+   42 |         return syscall(__NR_memfd_secret, flags);
+      |                        ^~~~~~~~~~~~~~~~~
+      |                        memfd_secret
 
-Make unaccepted memory free from watermark check point of view.  This way
-unaccepted memory will never be the trigger of memory reclaim.  Accept
-more memory in the get_page_from_freelist() if needed.
+Hence I'm adding condition that memfd_secret should only be compiled on
+supported architectures.
 
-Link: https://lkml.kernel.org/r/20240809114854.3745464-2-kirill.shutemov@linux.intel.com
-Fixes: dcdfdd40fa82 ("mm: Add support for unaccepted memory")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Jianxiong Gao <jxgao@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Tested-by: Jianxiong Gao <jxgao@google.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Also check in run_vmtests script if memfd_secret binary is present before
+executing it.
+
+Link: https://lkml.kernel.org/r/20240812061522.1933054-1-usama.anjum@collabora.com
+Link: https://lore.kernel.org/all/20210518072034.31572-7-rppt@kernel.org/ [1]
+Link: https://lkml.kernel.org/r/20240809075642.403247-1-usama.anjum@collabora.com
+Fixes: 76fe17ef588a ("secretmem: test: add basic selftest for memfd_secret(2)")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[6.5+]
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ tools/testing/selftests/mm/Makefile       |    2 ++
+ tools/testing/selftests/mm/run_vmtests.sh |    3 +++
+ 2 files changed, 5 insertions(+)
 
---- a/mm/page_alloc.c~mm-fix-endless-reclaim-on-machines-with-unaccepted-memory
-+++ a/mm/page_alloc.c
-@@ -287,7 +287,7 @@ EXPORT_SYMBOL(nr_online_nodes);
+--- a/tools/testing/selftests/mm/Makefile~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
++++ a/tools/testing/selftests/mm/Makefile
+@@ -53,7 +53,9 @@ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+ TEST_GEN_FILES += map_populate
++ifneq (,$(filter $(ARCH),arm64 riscv riscv64 x86 x86_64))
+ TEST_GEN_FILES += memfd_secret
++endif
+ TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mkdirty
+ TEST_GEN_FILES += mlock-random-test
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-memfd_secret-dont-build-memfd_secret-test-on-unsupported-arches
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -374,8 +374,11 @@ CATEGORY="hmm" run_test bash ./test_hmm.
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
  
- static bool page_contains_unaccepted(struct page *page, unsigned int order);
- static void accept_page(struct page *page, unsigned int order);
--static bool try_to_accept_memory(struct zone *zone, unsigned int order);
-+static bool cond_accept_memory(struct zone *zone, unsigned int order);
- static inline bool has_unaccepted_memory(void);
- static bool __free_unaccepted(struct page *page);
++if [ -x ./memfd_secret ]
++then
+ (echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
+ CATEGORY="memfd_secret" run_test ./memfd_secret
++fi
  
-@@ -3072,9 +3072,6 @@ static inline long __zone_watermark_unus
- 	if (!(alloc_flags & ALLOC_CMA))
- 		unusable_free += zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
--#ifdef CONFIG_UNACCEPTED_MEMORY
--	unusable_free += zone_page_state(z, NR_UNACCEPTED);
--#endif
- 
- 	return unusable_free;
- }
-@@ -3368,6 +3365,8 @@ retry:
- 			}
- 		}
- 
-+		cond_accept_memory(zone, order);
-+
- 		/*
- 		 * Detect whether the number of free pages is below high
- 		 * watermark.  If so, we will decrease pcp->high and free
-@@ -3393,10 +3392,8 @@ check_alloc_wmark:
- 				       gfp_mask)) {
- 			int ret;
- 
--			if (has_unaccepted_memory()) {
--				if (try_to_accept_memory(zone, order))
--					goto try_this_zone;
--			}
-+			if (cond_accept_memory(zone, order))
-+				goto try_this_zone;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/*
-@@ -3450,10 +3447,8 @@ try_this_zone:
- 
- 			return page;
- 		} else {
--			if (has_unaccepted_memory()) {
--				if (try_to_accept_memory(zone, order))
--					goto try_this_zone;
--			}
-+			if (cond_accept_memory(zone, order))
-+				goto try_this_zone;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 			/* Try again if zone has deferred pages */
-@@ -6950,9 +6945,6 @@ static bool try_to_accept_memory_one(str
- 	struct page *page;
- 	bool last;
- 
--	if (list_empty(&zone->unaccepted_pages))
--		return false;
--
- 	spin_lock_irqsave(&zone->lock, flags);
- 	page = list_first_entry_or_null(&zone->unaccepted_pages,
- 					struct page, lru);
-@@ -6978,23 +6970,29 @@ static bool try_to_accept_memory_one(str
- 	return true;
- }
- 
--static bool try_to_accept_memory(struct zone *zone, unsigned int order)
-+static bool cond_accept_memory(struct zone *zone, unsigned int order)
- {
- 	long to_accept;
--	int ret = false;
-+	bool ret = false;
-+
-+	if (!has_unaccepted_memory())
-+		return false;
-+
-+	if (list_empty(&zone->unaccepted_pages))
-+		return false;
- 
- 	/* How much to accept to get to high watermark? */
- 	to_accept = high_wmark_pages(zone) -
- 		    (zone_page_state(zone, NR_FREE_PAGES) -
--		    __zone_watermark_unusable_free(zone, order, 0));
-+		    __zone_watermark_unusable_free(zone, order, 0) -
-+		    zone_page_state(zone, NR_UNACCEPTED));
- 
--	/* Accept at least one page */
--	do {
-+	while (to_accept > 0) {
- 		if (!try_to_accept_memory_one(zone))
- 			break;
- 		ret = true;
- 		to_accept -= MAX_ORDER_NR_PAGES;
--	} while (to_accept > 0);
-+	}
- 
- 	return ret;
- }
-@@ -7037,7 +7035,7 @@ static void accept_page(struct page *pag
- {
- }
- 
--static bool try_to_accept_memory(struct zone *zone, unsigned int order)
-+static bool cond_accept_memory(struct zone *zone, unsigned int order)
- {
- 	return false;
- }
+ # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
+ CATEGORY="ksm" run_test ./ksm_tests -H -s 100
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-reduce-deferred-struct-page-init-ifdeffery.patch
-mm-accept-memory-in-__alloc_pages_bulk.patch
-mm-introduce-pageunaccepted-page-type.patch
-mm-rework-accept-memory-helpers.patch
-mm-add-a-helper-to-accept-page.patch
-mm-page_isolation-handle-unaccepted-memory-isolation.patch
-mm-accept-to-promo-watermark.patch
+selftests-mm-fix-build-errors-on-armhf.patch
 
