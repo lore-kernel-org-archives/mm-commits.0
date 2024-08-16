@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B4E11C460C
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:43:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36F72D02E
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723844580; cv=none; b=WlE16ZWmOXDqkct0LcYfpqRsDNh+tZgNYEVdVNrijBGy5TGDoZRzLb4EjugSHpHxTq2OdJJXm7PNi46B9HGkXl8O9nMea9ruZSwGNuAYqjXE0sF4uuyvmANEgi2Ya5puRGFSbIbK8cIsuLXYq8C8+UXaLc65mChGM/ok2AD5WGI=
+	t=1723844582; cv=none; b=XOapGYEeg9A8U353xczBN8e6TzFvSMxW066W0qGitJgw6SPQmmYk8Txo25raAH4/xiPLrwFO4f+/NPR0B6liLb/RtGyyJFtvxlQ8BjhORJWPynChYb6oBB2/GQM2bcMTc3bFhSCGaG362HrDtbIm51/OMm9s/wjjgCAVAdohWFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723844580; c=relaxed/simple;
-	bh=oqFO2e400vSyvjxG8j2sbGlsmLCyuy8/rB5Xz8Rjd1g=;
-	h=Date:To:From:Subject:Message-Id; b=mGwq/FKfdAD2EBEPYymJI9rCVLWfUx5UNz5EjcyjV0AX/ydrR3Q5SlKIKez2VYZyxJlindeNH7OOuylN7hTz4hWSUSG/AqjoHjtwPsYAP+EIeux42bNzfwzDw+TKkPlJ048AfPSag3q0w7tw0ifyivZY8BC04GNb9mQZ1FAW0wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZPvdginN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723844582; c=relaxed/simple;
+	bh=3Q1dlA4j6j6VBvRlwa6JqfwdTpMgKiSDmo8nsybdhTA=;
+	h=Date:To:From:Subject:Message-Id; b=qky4ZkvK/TrvCNBs+AMjhBkUSStw9xHRPNgSZNugD9/xUiTkaa1dMjMT5vt/qMouVE8szQfQNX0s1li4Rgl2iM8akKXKwgTvqb3iqcMxdic57CllnOeMVhEvP8r+vqdu8z52NOzXCY+bRAPQUv73vKBOcIws1k4boYbTjHovuIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zsmwb804; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZPvdginN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7F0C32782;
-	Fri, 16 Aug 2024 21:43:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zsmwb804"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 583BEC32782;
+	Fri, 16 Aug 2024 21:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723844580;
-	bh=oqFO2e400vSyvjxG8j2sbGlsmLCyuy8/rB5Xz8Rjd1g=;
+	s=korg; t=1723844582;
+	bh=3Q1dlA4j6j6VBvRlwa6JqfwdTpMgKiSDmo8nsybdhTA=;
 	h=Date:To:From:Subject:From;
-	b=ZPvdginNeO81KqkSNDw3seyGVrGjcfdunsrLyTLih+9vJqbZe8M9V7rSRabJO8RIu
-	 sPb9uH6Guzq3vOWkVwsrmgpc1vXCGND/nhg/V0+xLeyjDDc+zGuwzvdpBPplmdXyG2
-	 eMSgy9PURKQHWZDrDb8EOSe+g9ntPdmqf2bxp2Xg=
-Date: Fri, 16 Aug 2024 14:42:59 -0700
+	b=Zsmwb804NvP0/yClX4q2EoR8VgteMyOVmz9D4IEvZKtR/qTE7BWLqXaHrSz/Qbg2W
+	 4MdR926PMY9aio85fkW9lWqmtwh0HNmn8TxYh/LqX+42IGEmPRVIh5BeMgSFUjwr7W
+	 lvAh9pezAiLOPM67kFsxSgCAT4BKqAxkRjiucyWI=
+Date: Fri, 16 Aug 2024 14:43:01 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch added to mm-unstable branch
-Message-Id: <20240816214300.5D7F0C32782@smtp.kernel.org>
+Subject: + mm-migrate-add-isolate_folio_to_list.patch added to mm-unstable branch
+Message-Id: <20240816214302.583BEC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory_hotplug: check hwpoisoned page firstly in do_migrate_range()
+     Subject: mm: migrate: add isolate_folio_to_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
+     mm-migrate-add-isolate_folio_to_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-add-isolate_folio_to_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,76 +59,153 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory_hotplug: check hwpoisoned page firstly in do_migrate_range()
-Date: Fri, 16 Aug 2024 17:04:33 +0800
+Subject: mm: migrate: add isolate_folio_to_list()
+Date: Fri, 16 Aug 2024 17:04:34 +0800
 
-The commit b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages
-to be offlined") don't handle the hugetlb pages, the endless loop still
-occur if offline a hwpoison hugetlb, luckly, with the commit e591ef7d96d6
-("mm,hwpoison,hugetlb,memory_hotplug: hotremove memory section with
-hwpoisoned hugepage") section with hwpoisoned hugepage"), the
-HPageMigratable of hugetlb page will be clear, and the hwpoison hugetlb
-page will be skipped in scan_movable_pages(), so the endless loop issue is
-fixed.
+Add isolate_folio_to_list() helper to try to isolate HugeTLB, no-LRU
+movable and LRU folios to a list, which will be reused by
+do_migrate_range() from memory hotplug soon, also drop the
+mf_isolate_folio() since we could directly use new helper in the
+soft_offline_in_use_page().
 
-However if the HPageMigratable() check passed(without reference and lock),
-the hugetlb page may be hwpoisoned, it won't cause issue since the
-hwpoisoned page will be handled correctly in the next movable pages scan
-loop, and it will be isolated in do_migrate_range() but fails to migrate. 
-In order to avoid the unnecessary isolation and unify all hwpoisoned page
-handling, let's unconditionally check hwpoison firstly, and if it is a
-hwpoisoned hugetlb page, try to unmap it as the catch all safety net like
-normal page does.
-
-Link: https://lkml.kernel.org/r/20240816090435.888946-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240816090435.888946-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/migrate.h |    3 ++
+ mm/memory-failure.c     |   46 +++++++++-----------------------------
+ mm/migrate.c            |   27 ++++++++++++++++++++++
+ 3 files changed, 41 insertions(+), 35 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range
-+++ a/mm/memory_hotplug.c
-@@ -1793,13 +1793,8 @@ static void do_migrate_range(unsigned lo
- 		 * but out loop could handle that as it revisits the split
- 		 * folio later.
- 		 */
--		if (folio_test_large(folio)) {
-+		if (folio_test_large(folio))
- 			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
--			if (folio_test_hugetlb(folio)) {
--				isolate_hugetlb(folio);
--				continue;
--			}
+--- a/include/linux/migrate.h~mm-migrate-add-isolate_folio_to_list
++++ a/include/linux/migrate.h
+@@ -70,6 +70,7 @@ int migrate_pages(struct list_head *l, n
+ 		  unsigned int *ret_succeeded);
+ struct folio *alloc_migration_target(struct folio *src, unsigned long private);
+ bool isolate_movable_page(struct page *page, isolate_mode_t mode);
++bool isolate_folio_to_list(struct folio *folio, struct list_head *list);
+ 
+ int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 		struct folio *dst, struct folio *src);
+@@ -91,6 +92,8 @@ static inline struct folio *alloc_migrat
+ 	{ return NULL; }
+ static inline bool isolate_movable_page(struct page *page, isolate_mode_t mode)
+ 	{ return false; }
++static inline bool isolate_folio_to_list(struct folio *folio, struct list_head *list)
++	{ return false; }
+ 
+ static inline int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 				  struct folio *dst, struct folio *src)
+--- a/mm/memory-failure.c~mm-migrate-add-isolate_folio_to_list
++++ a/mm/memory-failure.c
+@@ -2652,40 +2652,6 @@ EXPORT_SYMBOL(unpoison_memory);
+ #undef pr_fmt
+ #define pr_fmt(fmt) "Soft offline: " fmt
+ 
+-static bool mf_isolate_folio(struct folio *folio, struct list_head *pagelist)
+-{
+-	bool isolated = false;
+-
+-	if (folio_test_hugetlb(folio)) {
+-		isolated = isolate_hugetlb(folio, pagelist);
+-	} else {
+-		bool lru = !__folio_test_movable(folio);
+-
+-		if (lru)
+-			isolated = folio_isolate_lru(folio);
+-		else
+-			isolated = isolate_movable_page(&folio->page,
+-							ISOLATE_UNEVICTABLE);
+-
+-		if (isolated) {
+-			list_add(&folio->lru, pagelist);
+-			if (lru)
+-				node_stat_add_folio(folio, NR_ISOLATED_ANON +
+-						    folio_is_file_lru(folio));
 -		}
+-	}
+-
+-	/*
+-	 * If we succeed to isolate the folio, we grabbed another refcount on
+-	 * the folio, so we can safely drop the one we got from get_any_page().
+-	 * If we failed to isolate the folio, it means that we cannot go further
+-	 * and we will return an error, so drop the reference we got from
+-	 * get_any_page() as well.
+-	 */
+-	folio_put(folio);
+-	return isolated;
+-}
+-
+ /*
+  * soft_offline_in_use_page handles hugetlb-pages and non-hugetlb pages.
+  * If the page is a non-dirty unmapped page-cache page, it simply invalidates.
+@@ -2737,7 +2703,7 @@ static int soft_offline_in_use_page(stru
+ 		return 0;
+ 	}
  
- 		/*
- 		 * HWPoison pages have elevated reference counts so the migration would
-@@ -1808,11 +1803,17 @@ static void do_migrate_range(unsigned lo
- 		 * (e.g. current hwpoison implementation doesn't unmap KSM pages but keep
- 		 * the unmap as the catch all safety net).
- 		 */
--		if (PageHWPoison(page)) {
-+		if (folio_test_hwpoison(folio) ||
-+		    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio))) {
- 			if (WARN_ON(folio_test_lru(folio)))
- 				folio_isolate_lru(folio);
- 			if (folio_mapped(folio))
--				try_to_unmap(folio, TTU_IGNORE_MLOCK);
-+				unmap_posioned_folio(folio, TTU_IGNORE_MLOCK);
-+			continue;
-+		}
+-	if (mf_isolate_folio(folio, &pagelist)) {
++	if (isolate_folio_to_list(folio, &pagelist)) {
+ 		ret = migrate_pages(&pagelist, alloc_migration_target, NULL,
+ 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE, NULL);
+ 		if (!ret) {
+@@ -2759,6 +2725,16 @@ static int soft_offline_in_use_page(stru
+ 			pfn, msg_page[huge], page_count(page), &page->flags);
+ 		ret = -EBUSY;
+ 	}
 +
-+		if (folio_test_hugetlb(folio)) {
-+			isolate_hugetlb(folio, &source);
- 			continue;
- 		}
++	/*
++	 * If we succeed to isolate the folio, we grabbed another refcount on
++	 * the folio, so we can safely drop the one we got from get_any_page().
++	 * If we failed to isolate the folio, it means that we cannot go further
++	 * and we will return an error, so drop the reference we got from
++	 * get_any_page() as well.
++	 */
++	folio_put(folio);
++
+ 	return ret;
+ }
  
+--- a/mm/migrate.c~mm-migrate-add-isolate_folio_to_list
++++ a/mm/migrate.c
+@@ -137,6 +137,33 @@ static void putback_movable_folio(struct
+ 	folio_clear_isolated(folio);
+ }
+ 
++/* Must be called with an elevated refcount on the non-hugetlb folio */
++bool isolate_folio_to_list(struct folio *folio, struct list_head *list)
++{
++	bool isolated = false;
++
++	if (folio_test_hugetlb(folio)) {
++		isolated = isolate_hugetlb(folio, list);
++	} else {
++		bool lru = !__folio_test_movable(folio);
++
++		if (lru)
++			isolated = folio_isolate_lru(folio);
++		else
++			isolated = isolate_movable_page(&folio->page,
++							ISOLATE_UNEVICTABLE);
++
++		if (isolated) {
++			list_add(&folio->lru, list);
++			if (lru)
++				node_stat_add_folio(folio, NR_ISOLATED_ANON +
++						    folio_is_file_lru(folio));
++		}
++	}
++
++	return isolated;
++}
++
+ /*
+  * Put previously isolated pages back onto the appropriate lists
+  * from where they were once taken off for compaction/migration.
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
