@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 551E61420D0
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:42:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B4E11C460C
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 21:43:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723844578; cv=none; b=lSkHPp2KCXfPvrF+BIXSkwI+MSi750tRYBiIv9nqrCXdUyGPZvT+BnAFNy0YxRLB7cBFq8LCsB+IZFU9gvVTwxYAfN5J6PXgJOOnBpX26D5omNrQ3lz9z9V/5t1CGceNQax9nBHIQ730gVnuDzHnC+Q5rRuBQKthlbwFu94POfA=
+	t=1723844580; cv=none; b=WlE16ZWmOXDqkct0LcYfpqRsDNh+tZgNYEVdVNrijBGy5TGDoZRzLb4EjugSHpHxTq2OdJJXm7PNi46B9HGkXl8O9nMea9ruZSwGNuAYqjXE0sF4uuyvmANEgi2Ya5puRGFSbIbK8cIsuLXYq8C8+UXaLc65mChGM/ok2AD5WGI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723844578; c=relaxed/simple;
-	bh=6f71g/0gTRcccjfQmwhQU3JXEmPEEnT/V3i9XfePIls=;
-	h=Date:To:From:Subject:Message-Id; b=WY+QOFYyxVUcO6pxIvcbqY6cFKToTrQRQHushtwsyXRDfDQghm40UeFl4wJ2+8QttmvZnMboiIHu0/sXorzRPsEFTz4q7hCjIDiLeIfirIttEobjO0GqFCuovbKLeTMzkh225eA9ui1g2532Bxqb2VFH28qsNxlIaEbj5PqWFAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3Esl3OS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723844580; c=relaxed/simple;
+	bh=oqFO2e400vSyvjxG8j2sbGlsmLCyuy8/rB5Xz8Rjd1g=;
+	h=Date:To:From:Subject:Message-Id; b=mGwq/FKfdAD2EBEPYymJI9rCVLWfUx5UNz5EjcyjV0AX/ydrR3Q5SlKIKez2VYZyxJlindeNH7OOuylN7hTz4hWSUSG/AqjoHjtwPsYAP+EIeux42bNzfwzDw+TKkPlJ048AfPSag3q0w7tw0ifyivZY8BC04GNb9mQZ1FAW0wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZPvdginN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3Esl3OS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0684CC32782;
-	Fri, 16 Aug 2024 21:42:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZPvdginN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7F0C32782;
+	Fri, 16 Aug 2024 21:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723844578;
-	bh=6f71g/0gTRcccjfQmwhQU3JXEmPEEnT/V3i9XfePIls=;
+	s=korg; t=1723844580;
+	bh=oqFO2e400vSyvjxG8j2sbGlsmLCyuy8/rB5Xz8Rjd1g=;
 	h=Date:To:From:Subject:From;
-	b=j3Esl3OSvErhRf+gkdkiIOr24ygIxL64LMBBjMvUWHxBBKd113O9oQYWRBSSibzcE
-	 kIdaZMO6hQKzUBqtiD/txUnPI8pc0tA/G+aAuKuYMMHdvOnnlCMgsv9KaubzE6/uhw
-	 QuVty/AWjF2r4Gh9DzZMm8lNrfakYTBMlhJyBG50=
-Date: Fri, 16 Aug 2024 14:42:57 -0700
+	b=ZPvdginNeO81KqkSNDw3seyGVrGjcfdunsrLyTLih+9vJqbZe8M9V7rSRabJO8RIu
+	 sPb9uH6Guzq3vOWkVwsrmgpc1vXCGND/nhg/V0+xLeyjDDc+zGuwzvdpBPplmdXyG2
+	 eMSgy9PURKQHWZDrDb8EOSe+g9ntPdmqf2bxp2Xg=
+Date: Fri, 16 Aug 2024 14:42:59 -0700
 To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-add-unmap_posioned_folio.patch added to mm-unstable branch
-Message-Id: <20240816214258.0684CC32782@smtp.kernel.org>
+Subject: + mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch added to mm-unstable branch
+Message-Id: <20240816214300.5D7F0C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory-failure: add unmap_posioned_folio()
+     Subject: mm: memory_hotplug: check hwpoisoned page firstly in do_migrate_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-add-unmap_posioned_folio.patch
+     mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-unmap_posioned_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,109 +59,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: add unmap_posioned_folio()
-Date: Fri, 16 Aug 2024 17:04:32 +0800
+Subject: mm: memory_hotplug: check hwpoisoned page firstly in do_migrate_range()
+Date: Fri, 16 Aug 2024 17:04:33 +0800
 
-Add unmap_posioned_folio() helper which will be reused by
-do_migrate_range() from memory hotplug soon.
+The commit b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages
+to be offlined") don't handle the hugetlb pages, the endless loop still
+occur if offline a hwpoison hugetlb, luckly, with the commit e591ef7d96d6
+("mm,hwpoison,hugetlb,memory_hotplug: hotremove memory section with
+hwpoisoned hugepage") section with hwpoisoned hugepage"), the
+HPageMigratable of hugetlb page will be clear, and the hwpoison hugetlb
+page will be skipped in scan_movable_pages(), so the endless loop issue is
+fixed.
 
-Link: https://lkml.kernel.org/r/20240816090435.888946-3-wangkefeng.wang@huawei.com
+However if the HPageMigratable() check passed(without reference and lock),
+the hugetlb page may be hwpoisoned, it won't cause issue since the
+hwpoisoned page will be handled correctly in the next movable pages scan
+loop, and it will be isolated in do_migrate_range() but fails to migrate. 
+In order to avoid the unnecessary isolation and unify all hwpoisoned page
+handling, let's unconditionally check hwpoison firstly, and if it is a
+hwpoisoned hugetlb page, try to unmap it as the catch all safety net like
+normal page does.
+
+Link: https://lkml.kernel.org/r/20240816090435.888946-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h       |    9 ++++++++
- mm/memory-failure.c |   43 +++++++++++++++++++++++++-----------------
- 2 files changed, 35 insertions(+), 17 deletions(-)
+ mm/memory_hotplug.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/internal.h~mm-memory-failure-add-unmap_posioned_folio
-+++ a/mm/internal.h
-@@ -1048,6 +1048,8 @@ static inline int find_next_best_node(in
- /*
-  * mm/memory-failure.c
-  */
-+#ifdef CONFIG_MEMORY_FAILURE
-+int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu);
- void shake_folio(struct folio *folio);
- extern int hwpoison_filter(struct page *p);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range
++++ a/mm/memory_hotplug.c
+@@ -1793,13 +1793,8 @@ static void do_migrate_range(unsigned lo
+ 		 * but out loop could handle that as it revisits the split
+ 		 * folio later.
+ 		 */
+-		if (folio_test_large(folio)) {
++		if (folio_test_large(folio))
+ 			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
+-			if (folio_test_hugetlb(folio)) {
+-				isolate_hugetlb(folio);
+-				continue;
+-			}
+-		}
  
-@@ -1068,6 +1070,13 @@ void add_to_kill_ksm(struct task_struct
- 		     unsigned long ksm_addr);
- unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
- 
-+#else
-+static inline int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
-+{
-+	return 0;
-+}
-+#endif
+ 		/*
+ 		 * HWPoison pages have elevated reference counts so the migration would
+@@ -1808,11 +1803,17 @@ static void do_migrate_range(unsigned lo
+ 		 * (e.g. current hwpoison implementation doesn't unmap KSM pages but keep
+ 		 * the unmap as the catch all safety net).
+ 		 */
+-		if (PageHWPoison(page)) {
++		if (folio_test_hwpoison(folio) ||
++		    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio))) {
+ 			if (WARN_ON(folio_test_lru(folio)))
+ 				folio_isolate_lru(folio);
+ 			if (folio_mapped(folio))
+-				try_to_unmap(folio, TTU_IGNORE_MLOCK);
++				unmap_posioned_folio(folio, TTU_IGNORE_MLOCK);
++			continue;
++		}
 +
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
---- a/mm/memory-failure.c~mm-memory-failure-add-unmap_posioned_folio
-+++ a/mm/memory-failure.c
-@@ -1554,6 +1554,30 @@ static int get_hwpoison_page(struct page
- 	return ret;
- }
++		if (folio_test_hugetlb(folio)) {
++			isolate_hugetlb(folio, &source);
+ 			continue;
+ 		}
  
-+int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
-+{
-+	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
-+		struct address_space *mapping;
-+		/*
-+		 * For hugetlb pages in shared mappings, try_to_unmap
-+		 * could potentially call huge_pmd_unshare.  Because of
-+		 * this, take semaphore in write mode here and set
-+		 * TTU_RMAP_LOCKED to indicate we have taken the lock
-+		 * at this higher level.
-+		 */
-+		mapping = hugetlb_folio_mapping_lock_write(folio);
-+		if (!mapping)
-+			return -EAGAIN;
-+
-+		try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
-+		i_mmap_unlock_write(mapping);
-+	} else {
-+		try_to_unmap(folio, ttu);
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
-@@ -1615,23 +1639,8 @@ static bool hwpoison_user_mappings(struc
- 	 */
- 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
- 
--	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
--		/*
--		 * For hugetlb pages in shared mappings, try_to_unmap
--		 * could potentially call huge_pmd_unshare.  Because of
--		 * this, take semaphore in write mode here and set
--		 * TTU_RMAP_LOCKED to indicate we have taken the lock
--		 * at this higher level.
--		 */
--		mapping = hugetlb_folio_mapping_lock_write(folio);
--		if (mapping) {
--			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
--			i_mmap_unlock_write(mapping);
--		} else
--			pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
--	} else {
--		try_to_unmap(folio, ttu);
--	}
-+	if (unmap_posioned_folio(folio, ttu))
-+		pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
- 
- 	unmap_success = !folio_mapped(folio);
- 	if (!unmap_success)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
