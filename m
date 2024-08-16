@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DD6714037F
-	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:19:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66551448E0
+	for <mm-commits@vger.kernel.org>; Fri, 16 Aug 2024 22:19:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723846748; cv=none; b=tEYtk+3syjF12YaZfegvqY6BKduyh+7Z2lrxCLZNrCUDoMCOpnGzgxxQDhlvRbmg3tG6PnANmV8sYEv30ItqjRD48ETEAUFxmDbtHZsRfiBbTr4kkk8+Dg0hl1CE0ivNvqAJoZGkPAcF9MP9liizjCe0zMISONs8fExH0Q4WZ5E=
+	t=1723846750; cv=none; b=XJf+oQ+leVe2+2y6h6reZfsMTVJR2bWLyCICizSRlacuBLtbC3wKaWUxp9IjaObKMesqd2TCh8Va+y8KIPH2zg2uotr5c3sWSvTe6l5vjpP4tB8b7DE7kcncD1hdDaLk77hY+BhciLOTo/hwBimJGHDcMQcnNSvAW0TTHxHXhbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723846748; c=relaxed/simple;
-	bh=S/g/r/mevyGgipBpLcpvRIH+OAxGbWBGhJU28b9X4mI=;
-	h=Date:To:From:Subject:Message-Id; b=S5z0O2Mq4Bqwus5zFOdvK9QTuFwVKcxD1NhXx58yoX4hG4eVuN3a0PYw/XpW4Ylq4ZAFHqOmk1qp8d6Bo0/MJgL9Bslu1rFWpnqv46OOWYRN89xZhOzmgngRQ4odTNzGzXzWtMzoQhU45YBhauMSoCeQA5zf0zi8MrjvuCbcHT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nm7mAPGh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723846750; c=relaxed/simple;
+	bh=SeApVOF4yVxL94bvDUWbohrEn2+iK2Pn7NmKCa3wU+Y=;
+	h=Date:To:From:Subject:Message-Id; b=cccOg9vE/LYAjZPZmXtHBG7bSG/qHhViKcyW5NGbXfecJA1Zd3vs83+cPCiEyk79bgtbtqJLmCZaJsIXt7o9Asx6PXwQ5egoNyLnH54OoVbY4vqGb3WGPB/bevzfp3SbWPQBA0FFrL3uu/y65UUF9Q06TypwFk6Pm1AVAUGDnFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SwXdp9Qj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nm7mAPGh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E80C8C32782;
-	Fri, 16 Aug 2024 22:19:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SwXdp9Qj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBFD1C32782;
+	Fri, 16 Aug 2024 22:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1723846748;
-	bh=S/g/r/mevyGgipBpLcpvRIH+OAxGbWBGhJU28b9X4mI=;
+	s=korg; t=1723846749;
+	bh=SeApVOF4yVxL94bvDUWbohrEn2+iK2Pn7NmKCa3wU+Y=;
 	h=Date:To:From:Subject:From;
-	b=Nm7mAPGhzm2fGlUDgnfHE7xAZV4c4gSMuBFoVuKm2prOrzPMU5wkTBgqND8upaacq
-	 v/A0uQVkrcuLI394EtPAP0pk+yxkmrbwDbgn4h80+Rr5lplKUeJR9KKsGy2wWyBgbq
-	 2mUYcVvsFH0QWEiIpjo2Jr1HxyHEf2K2B1Fuu0Sw=
-Date: Fri, 16 Aug 2024 15:19:07 -0700
+	b=SwXdp9QjZgoe+9e6xGAwf0ztC8FhYVP6p1cWSODvKGR48iCuwCbC2WsR3VOHXcFc0
+	 tWWOfX1Tu3XM4kqmKi3dFVsG+/FOq9XjRnvAcwQej2m+WsxN+cOYDXliTYnMUgHwSb
+	 n/VzFgKz3GWa/a1lqJFJz8rw7brN2bIPPicmXVso=
+Date: Fri, 16 Aug 2024 15:19:09 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch added to mm-nonmm-unstable branch
-Message-Id: <20240816221907.E80C8C32782@smtp.kernel.org>
+Subject: + nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch added to mm-nonmm-unstable branch
+Message-Id: <20240816221909.BBFD1C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: describe the members of nilfs_bmap_operations structure
+     Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch
+     nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: describe the members of nilfs_bmap_operations structure
-Date: Fri, 16 Aug 2024 16:43:17 +0900
+Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
+Date: Fri, 16 Aug 2024 16:43:18 +0900
 
-Add missing member variable descriptions in the kernel-doc comments for
-the nilfs_bmap_operations structure, hiding the internal operations with
-the "private:" tag.  This eliminates the following warnings output by the
-kernel-doc script:
+Fix incorrect or missing variable names in the member variable
+descriptions in the nilfs_recovery_info and nilfs_sc_info structures,
+thereby eliminating the following warnings output by the kernel-doc
+script:
 
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_lookup' not described in 'nilfs_bmap_operations'
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_lookup_contig' not described in 'nilfs_bmap_operations'
- ...
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_gather_data' not described in 'nilfs_bmap_operations'
+ fs/nilfs2/segment.h:49: warning: Function parameter or struct member
+  'ri_cno' not described in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Function parameter or struct member
+  'ri_lsegs_start_seq' not described in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_ri_cno'
+  description in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_lseg_start_seq'
+  description in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:177: warning: Function parameter or struct member
+  'sc_seq_accepted' not described in 'nilfs_sc_info'
+ fs/nilfs2/segment.h:177: warning: Function parameter or struct member
+  'sc_timer_task' not described in 'nilfs_sc_info'
+ fs/nilfs2/segment.h:177: warning: Excess struct member 'sc_seq_accept'
+  description in 'nilfs_sc_info'
 
-Link: https://lkml.kernel.org/r/20240816074319.3253-7-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240816074319.3253-8-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/bmap.h |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/nilfs2/bmap.h~nilfs2-describe-the-members-of-nilfs_bmap_operations-structure
-+++ a/fs/nilfs2/bmap.h
-@@ -44,6 +44,19 @@ struct nilfs_bmap_stats {
- 
- /**
-  * struct nilfs_bmap_operations - bmap operation table
-+ * @bop_lookup:               single block search operation
-+ * @bop_lookup_contig:        consecutive block search operation
-+ * @bop_insert:               block insertion operation
-+ * @bop_delete:               block delete operation
-+ * @bop_clear:                block mapping resource release operation
-+ * @bop_propagate:            operation to propagate dirty state towards the
-+ *                            mapping root
-+ * @bop_lookup_dirty_buffers: operation to collect dirty block buffers
-+ * @bop_assign:               disk block address assignment operation
-+ * @bop_mark:                 operation to mark in-use blocks as dirty for
-+ *                            relocation by GC
-+ * @bop_seek_key:             find valid block key operation
-+ * @bop_last_key:             find last valid block key operation
+--- a/fs/nilfs2/segment.h~nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth
++++ a/fs/nilfs2/segment.h
+@@ -22,10 +22,10 @@ struct nilfs_root;
+  * struct nilfs_recovery_info - Recovery information
+  * @ri_need_recovery: Recovery status
+  * @ri_super_root: Block number of the last super root
+- * @ri_ri_cno: Number of the last checkpoint
++ * @ri_cno: Number of the last checkpoint
+  * @ri_lsegs_start: Region for roll-forwarding (start block number)
+  * @ri_lsegs_end: Region for roll-forwarding (end block number)
+- * @ri_lseg_start_seq: Sequence value of the segment at ri_lsegs_start
++ * @ri_lsegs_start_seq: Sequence value of the segment at ri_lsegs_start
+  * @ri_used_segments: List of segments to be mark active
+  * @ri_pseg_start: Block number of the last partial segment
+  * @ri_seq: Sequence number on the last partial segment
+@@ -107,7 +107,7 @@ struct nilfs_segsum_pointer {
+  * @sc_wait_daemon: Daemon wait queue
+  * @sc_wait_task: Start/end wait queue to control segctord task
+  * @sc_seq_request: Request counter
+- * @sc_seq_accept: Accepted request count
++ * @sc_seq_accepted: Accepted request count
+  * @sc_seq_done: Completion counter
+  * @sc_sync: Request of explicit sync operation
+  * @sc_interval: Timeout value of background construction
+@@ -115,6 +115,7 @@ struct nilfs_segsum_pointer {
+  * @sc_lseg_stime: Start time of the latest logical segment
+  * @sc_watermark: Watermark for the number of dirty buffers
+  * @sc_timer: Timer for segctord
++ * @sc_timer_task: Thread woken up by @sc_timer
+  * @sc_task: current thread of segctord
   */
- struct nilfs_bmap_operations {
- 	int (*bop_lookup)(const struct nilfs_bmap *, __u64, int, __u64 *);
-@@ -66,7 +79,7 @@ struct nilfs_bmap_operations {
- 	int (*bop_seek_key)(const struct nilfs_bmap *, __u64, __u64 *);
- 	int (*bop_last_key)(const struct nilfs_bmap *, __u64 *);
- 
--	/* The following functions are internal use only. */
-+	/* private: internal use only */
- 	int (*bop_check_insert)(const struct nilfs_bmap *, __u64);
- 	int (*bop_check_delete)(struct nilfs_bmap *, __u64);
- 	int (*bop_gather_data)(struct nilfs_bmap *, __u64 *, __u64 *, int);
+ struct nilfs_sc_info {
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
