@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D5F2BAEB
-	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 05:38:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF56D14AD2B;
+	Tue, 20 Aug 2024 23:27:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724132337; cv=none; b=JSgOd05GBAhTJeTsHbktDGeB/7q9cTFy4gTsR482M+zuWiQwq+BBUnkR+eeWsQJWS7TgGeuHVyCvY03RS4ZUqTkzHJ+FwkDJ9fZalHlZo6E2F0650+Q66ZOPGoLy+97889EM7APYerVFiZPlSOl0sawFxjKjQcjZdJH45rb/Sh0=
+	t=1724196458; cv=none; b=KCnWUrjpEk3TeS8NJhRhU9dZGVFtqpxWA0CyR2XsST0LdGer4DGx/AeWiWHSX+brtC+UXR6R5OcElM4FOCY20xncupnVRSFTFQDmv75sznyZ2N0sOfVui2mKudRno7f95nyHrb7Ni+8lTbrn5PaX8X4PXRXYJdGDGDIPxuriCu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724132337; c=relaxed/simple;
-	bh=NNtQFs3bEy88NYJAFqKtefqZpkNuJT5k8t5BEfCLDfY=;
-	h=Date:To:From:Subject:Message-Id; b=Zsjw8kgeWfSXxPx2zn6CQF81F/HMZdcXYF8aALD95RK0/2DpqGBLR+lM2eiTyZNfIKHTxfbfrZf1dsl70E7IZe/0QTdMZ+WchuoD2t9fnxYwC00clqTDRCpGIjYGbyHTbLeNvVp4SEKXg/FLQ5FHHYuUglECmJ7qSOwx6/c/L7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HEaI+JMr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724196458; c=relaxed/simple;
+	bh=MyFJJaII4UYwmlMtCN1h5B1KLyLGvVHISgNJjtrGOp4=;
+	h=Date:To:From:Subject:Message-Id; b=U5/0uHTz1FL1+E6S+mRW1AzgY18zlHmiWku9+HG8naYY+njGzRjW9BNolwwPbCi4DTgmP1NF6u6zPa+IYIbGp8pHRS2M/Zy5Cf+giTeV4SNxAeErJA15uPKaFe96IH9m30C+zOZsD798eKscXUQ6mIw+r2S/Q+OQBaYMd7Qog6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SKwZcALh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HEaI+JMr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E0B1C4AF0B;
-	Tue, 20 Aug 2024 05:38:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SKwZcALh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35166C4AF0B;
+	Tue, 20 Aug 2024 23:27:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724132337;
-	bh=NNtQFs3bEy88NYJAFqKtefqZpkNuJT5k8t5BEfCLDfY=;
+	s=korg; t=1724196458;
+	bh=MyFJJaII4UYwmlMtCN1h5B1KLyLGvVHISgNJjtrGOp4=;
 	h=Date:To:From:Subject:From;
-	b=HEaI+JMrXX/yWa0NSeHEOJP2J1vIg0zfU2Z7MhAOBGwq9qXRplaKkv8btkWHn5Xg7
-	 9mYDgRUFVHaXRE4YYggQZEwa/OLAlEZNwuGQbZp7N7N0aQZ1yUignLqwm2gGbUvL23
-	 JTYp1BJzy6ZmmTRSW6ObLEysx8ZslWSUmCs8tmU4=
-Date: Mon, 19 Aug 2024 22:38:56 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,Jonathan.Cameron@Huawei.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=SKwZcALh4NmkpfR32gRLetSIfAGCSeUvRNEmGbdNEq1+b8XLbnLB9mXXmWxAX19Jw
+	 G3rd67HMW1BZA2AxJeRSzFxcoNyKg+q17gz34AxwtDJn6RN27MiVSj5kOKg4giuZkl
+	 +QQCXBLkuYSYJoPKVvqfxV8lCZ0iHWfmX31zhghc=
+Date: Tue, 20 Aug 2024 16:27:37 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,paulmck@kernel.org,hdanton@sina.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch added to mm-unstable branch
-Message-Id: <20240820053857.4E0B1C4AF0B@smtp.kernel.org>
+Subject: + maple_tree-remove-rcu_read_lock-from-mt_validate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240820232738.35166C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
+     Subject: maple_tree: remove rcu_read_lock() from mt_validate()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-remove-rcu_read_lock-from-mt_validate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-rcu_read_lock-from-mt_validate.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,124 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
-Date: Sat, 17 Aug 2024 16:49:41 +0800
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: maple_tree: remove rcu_read_lock() from mt_validate()
+Date: Tue, 20 Aug 2024 13:54:17 -0400
 
-Use the isolate_folio_to_list() to unify hugetlb/LRU/non-LRU folio
-isolation, which cleanup code a bit and save a few calls to
-compound_head().
+The write lock should be held when validating the tree to avoid updates
+racing with checks.  Holding the rcu read lock during a large tree
+validation may also cause a prolonged rcu read window and "rcu_preempt
+detected stalls" warnings.
 
-Link: https://lkml.kernel.org/r/20240817084941.2375713-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lore.kernel.org/all/0000000000001d12d4062005aea1@google.com/
+Link: https://lkml.kernel.org/r/20240820175417.2782532-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reported-by: syzbot+036af2f0c7338a33b0cd@syzkaller.appspotmail.com
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   45 +++++++++++++++---------------------------
- 1 file changed, 17 insertions(+), 28 deletions(-)
+ lib/maple_tree.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation
-+++ a/mm/memory_hotplug.c
-@@ -1773,14 +1773,14 @@ found:
- static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+--- a/lib/maple_tree.c~maple_tree-remove-rcu_read_lock-from-mt_validate
++++ a/lib/maple_tree.c
+@@ -7566,14 +7566,14 @@ static void mt_validate_nulls(struct map
+  * 2. The gap is correctly set in the parents
+  */
+ void mt_validate(struct maple_tree *mt)
++	__must_hold(mas->tree->ma_lock)
  {
- 	unsigned long pfn;
--	struct page *page;
- 	LIST_HEAD(source);
-+	struct folio *folio;
- 	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
+ 	unsigned char end;
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
--		struct folio *folio;
--		bool isolated;
-+		struct page *page;
-+		bool huge;
+ 	MA_STATE(mas, mt, 0, 0);
+-	rcu_read_lock();
+ 	mas_start(&mas);
+ 	if (!mas_is_active(&mas))
+-		goto done;
++		return;
  
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -1812,34 +1812,22 @@ static void do_migrate_range(unsigned lo
- 			continue;
- 		}
- 
--		if (folio_test_hugetlb(folio)) {
--			isolate_hugetlb(folio, &source);
--			continue;
-+		huge = folio_test_hugetlb(folio);
-+		if (!huge) {
-+			folio = folio_get_nontail_page(page);
-+			if (!folio)
-+				continue;
- 		}
- 
--		if (!get_page_unless_zero(page))
--			continue;
--		/*
--		 * We can skip free pages. And we can deal with pages on
--		 * LRU and non-lru movable pages.
--		 */
--		if (PageLRU(page))
--			isolated = isolate_lru_page(page);
--		else
--			isolated = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
--		if (isolated) {
--			list_add_tail(&page->lru, &source);
--			if (!__PageMovable(page))
--				inc_node_page_state(page, NR_ISOLATED_ANON +
--						    page_is_file_lru(page));
--
--		} else {
-+		if (!isolate_folio_to_list(folio, &source)) {
- 			if (__ratelimit(&migrate_rs)) {
- 				pr_warn("failed to isolate pfn %lx\n", pfn);
- 				dump_page(page, "isolation failed");
- 			}
- 		}
--		put_page(page);
-+
-+		if (!huge)
-+			folio_put(folio);
+ 	while (!mte_is_leaf(mas.node))
+ 		mas_descend(&mas);
+@@ -7594,9 +7594,6 @@ void mt_validate(struct maple_tree *mt)
+ 		mas_dfs_postorder(&mas, ULONG_MAX);
  	}
- 	if (!list_empty(&source)) {
- 		nodemask_t nmask = node_states[N_MEMORY];
-@@ -1854,7 +1842,7 @@ static void do_migrate_range(unsigned lo
- 		 * We have checked that migration range is on a single zone so
- 		 * we can use the nid of the first page to all the others.
- 		 */
--		mtc.nid = page_to_nid(list_first_entry(&source, struct page, lru));
-+		mtc.nid = folio_nid(list_first_entry(&source, struct folio, lru));
+ 	mt_validate_nulls(mt);
+-done:
+-	rcu_read_unlock();
+-
+ }
+ EXPORT_SYMBOL_GPL(mt_validate);
  
- 		/*
- 		 * try to allocate from a different node but reuse this node
-@@ -1867,11 +1855,12 @@ static void do_migrate_range(unsigned lo
- 		ret = migrate_pages(&source, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG, NULL);
- 		if (ret) {
--			list_for_each_entry(page, &source, lru) {
-+			list_for_each_entry(folio, &source, lru) {
- 				if (__ratelimit(&migrate_rs)) {
- 					pr_warn("migrating pfn %lx failed ret:%d\n",
--						page_to_pfn(page), ret);
--					dump_page(page, "migration failure");
-+						folio_pfn(folio), ret);
-+					dump_page(&folio->page,
-+						  "migration failure");
- 				}
- 			}
- 			putback_movable_pages(&source);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
-mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
-mm-memory-failure-add-unmap_posioned_folio.patch
-mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
-mm-migrate-add-isolate_folio_to_list.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
+maple_tree-remove-rcu_read_lock-from-mt_validate.patch
 
