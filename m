@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BAE1862
-	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 05:31:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E50F21862
+	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 05:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724131895; cv=none; b=HYjM62UaNOGq8vyL1hz895rMuI2JO4jtc8/IwlbcdbsCEF/besNNdB1byxiFibVp0HL1E6hK+bYoMz0Zp89oOm6BA+LtgwfU/93x+vqtQO/2cuJTBU5SpXGUJx4fVuvDAgghdTPfG2zwvZ3symiSJq4SmGua5RG2HfzDoIf9IPM=
+	t=1724132012; cv=none; b=piZ/fE9UMILwNcLsEfHRly5xE87ptwz3P+W/usqMPiMihzti5e1S2AOobxf8/0i0Jpr1Yxz6KQtU4GKufqnLXGM+Rx8qCTcCUlr/EcBT0Gnq4Qnm3gFhzMO8HvNwgGoecbp7jKwK3axZcpMf6XzWJ3HMWGJoT+72ap4+nphp6Hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724131895; c=relaxed/simple;
-	bh=RVmLxDlUmLbiGwDEU+UpsH01oCeaKdBCAlzwaVOHV5k=;
-	h=Date:To:From:Subject:Message-Id; b=WqoUofcanhOllgKvufmuFHTtgHxdi1bm3c4bu3Qjxl+oHvBgmV9RmuL4CuEtSI+raSSSLyC2xH9nOETmX4BvfpGvd486bJ1XmjZuchQyg2VzzfBsVory2aQm1V0gUHQvFctC+qqHij2i9G5ujiJIouG1R8G401al+85KyyNgTY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nkP7+/Zm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724132012; c=relaxed/simple;
+	bh=wtOBDrCCYcoPSGEiNvDXS6NTvx1FhJ7UBBsA2ZP/BUY=;
+	h=Date:To:From:Subject:Message-Id; b=uq5bbLA1zmwaFtqKcIAbTFGo2voHW0JTlm9onD9AxANFRE9gYKdGaB4SdRQDRV7/oSeVYlO/7JPmfSo37fQCRAYa4hAR+FZopg1pOdQSBD4C4QA53xnWiMTJJ3IY6vkOMVWyuMBDgwD4aBGPIxts5dvA3909QsqxHHPZWw2iGTg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xjcEOvjA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nkP7+/Zm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 369D5C4AF0B;
-	Tue, 20 Aug 2024 05:31:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xjcEOvjA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5951DC4AF09;
+	Tue, 20 Aug 2024 05:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724131895;
-	bh=RVmLxDlUmLbiGwDEU+UpsH01oCeaKdBCAlzwaVOHV5k=;
+	s=korg; t=1724132011;
+	bh=wtOBDrCCYcoPSGEiNvDXS6NTvx1FhJ7UBBsA2ZP/BUY=;
 	h=Date:To:From:Subject:From;
-	b=nkP7+/ZmkYj9wVYC0SdBUuH+gQdW6JfS4F3PEqKCjkPpsB73IZUOI21cC6+fn15Hg
-	 p3yc5/p73QdudtQ2K7BBcVnJxNc2eQC9AuHeDIcbGGoMIjsmsYc6twCR71pb35Cs14
-	 q7Uqu6dMLg7sHyoIidHBQtWnpvvUMv2AcmkGLKhE=
-Date: Mon, 19 Aug 2024 22:31:34 -0700
-To: mm-commits@vger.kernel.org,xndchn@gmail.com,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=xjcEOvjA+SI5DlDB2ssMvGsCQDgNi2rgr9ZwjNFM5osgjkEWy4pFn73nSDs7UMsrv
+	 2zNW5q3HSDJuLGEJJkfrBSqVX2ZQUz9m8UaEsLN4ZWvIAxNAF7ZEtgWUUaqQvuXbUH
+	 8vvuoTnji2mQnd5/+UlDgxd3U605W3Sa1XdzWL6E=
+Date: Mon, 19 Aug 2024 22:33:30 -0700
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-nix-ify.patch added to mm-nonmm-unstable branch
-Message-Id: <20240820053135.369D5C4AF0B@smtp.kernel.org>
+Subject: + ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch added to mm-nonmm-unstable branch
+Message-Id: <20240820053331.5951DC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: nix-ify
+     Subject: ratelimit: convert flags to int to save 8 bytes in size
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-nix-ify.patch
+     ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-nix-ify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,35 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: scripts/decode_stacktrace.sh: nix-ify
-Date: Sat, 17 Aug 2024 17:50:25 -0400
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: ratelimit: convert flags to int to save 8 bytes in size
+Date: Sat, 17 Aug 2024 14:37:54 +0200
 
-nix only puts /usr/bin/env at the standard location (as required by
-posix), so shebangs have to be tweaked.
+Only bit 1 is used, making an unsigned long a total overkill.
 
-Link: https://lkml.kernel.org/r/20240817215025.161628-1-kent.overstreet@linux.dev
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Elliot Berman <quic_eberman@quicinc.com>
-Cc: Xiong Nandi <xndchn@gmail.com>
+This brings it from 40 to 32 bytes, which in turn shrinks user_struct from
+136 to 128 bytes.  Since the latter is allocated with hwalign, this means
+the total usage goes down from 192 to 128 bytes per object.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20240817123754.240924-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    2 +-
+ include/linux/ratelimit_types.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-nix-ify
-+++ a/scripts/decode_stacktrace.sh
-@@ -1,4 +1,4 @@
--#!/bin/bash
-+#!/usr/bin/env bash
- # SPDX-License-Identifier: GPL-2.0
- # (c) 2014, Sasha Levin <sasha.levin@oracle.com>
- #set -x
+--- a/include/linux/ratelimit_types.h~ratelimit-convert-flags-to-int-to-save-8-bytes-in-size
++++ a/include/linux/ratelimit_types.h
+@@ -19,8 +19,8 @@ struct ratelimit_state {
+ 	int		burst;
+ 	int		printed;
+ 	int		missed;
++	unsigned int	flags;
+ 	unsigned long	begin;
+-	unsigned long	flags;
+ };
+ 
+ #define RATELIMIT_STATE_INIT_FLAGS(name, interval_init, burst_init, flags_init) { \
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
-scripts-decode_stacktracesh-nix-ify.patch
+ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch
 
