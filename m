@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C11911487F1
-	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 05:21:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C28B36B0D
+	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 05:28:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724131298; cv=none; b=gB9XZ9x1ZMlf0SNjQ4+7BY7xgHSSdcUDIfflTX8ork2IohmB4GOfn0/sp/TG+7krAtQyue1fvgB50Ui29RDPIHwFc9jVGvmSvmB2zzEVKLQ/tZdPcCplbx41XQvxkJXHX7H3/GPVm7ej0ga6bJi7VX95+eRzJHOT+8g9JiFxGzw=
+	t=1724131733; cv=none; b=WV5jdkK967A8N5Upv8rnOQUdP4vBlTTIMCaKFXbZwFV4/Ub+aIBtI0YzTAAE0d7KaCmAAOs7bjRTQ6C5WQTUFX2aI4czbopCtJXpDvVrLPbxaEQiIAN/PFQ7yBuFfq3JQHpY1tNZ7G4zoCWzV7Ii8MYDn9vU26N+cfZ5WCB5uQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724131298; c=relaxed/simple;
-	bh=9mrp2g1L73OInVnismBPNBk/NHGYiqKV4Oagr4KP0rM=;
-	h=Date:To:From:Subject:Message-Id; b=WcT/Hls9JCwSmCbMwXH8h2XJJGsmKyYkoMah094tyCySiCDTzJll3yl7TXVcTa6Z3QcgLsyR53idoS5hmmQN8/EjNofRtWhczoX/zrGr0UhOrd2bRYutkgj/8nc6urAHhM5Q8XpkY/l5pgWlAIQBWcRyj6xHmrXr6GfsUeAbYg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QxI8w5pZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724131733; c=relaxed/simple;
+	bh=CoL1tK86vUtDfXQ1qTJoRcR0Qi149XsOpoy+fl5R91s=;
+	h=Date:To:From:Subject:Message-Id; b=U00DEC7ye+WaekFq99YYtZh9XhUDTiAcU8tFrbFzXjf+loTDvpRBrXdpcD/sqe6TZp63hl3EGndpXxes7KMd3z7EWr53BNTL7Jvpvvwd5hPMMy5rLmRLPQ3AprYVwAtOtK+04av2MOhk+cC9D7fgBlPkomht1QKT9rQbLNUTqq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=va/Qgqvz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QxI8w5pZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420DAC4AF09;
-	Tue, 20 Aug 2024 05:21:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="va/Qgqvz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB380C4AF0B;
+	Tue, 20 Aug 2024 05:28:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724131298;
-	bh=9mrp2g1L73OInVnismBPNBk/NHGYiqKV4Oagr4KP0rM=;
+	s=korg; t=1724131732;
+	bh=CoL1tK86vUtDfXQ1qTJoRcR0Qi149XsOpoy+fl5R91s=;
 	h=Date:To:From:Subject:From;
-	b=QxI8w5pZHkk/L73KQ4hl7gNg+LB4Z32hXXPojViLU/aTR/SFNGTak54B4gWhZaBJK
-	 V3eR72cGziiNqDz8FU8Z6FdmcuNBrwJusfT1Zmclw35vdovPG/Uj+8SAMOBWCqQXp1
-	 0WKgVY0fvvRaz7XWY76BXRMX5lljhSseJuOdaj7I=
-Date: Mon, 19 Aug 2024 22:21:37 -0700
-To: mm-commits@vger.kernel.org,zhangshida@kylinos.cn,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,chizhiling@kylinos.cn,akpm@linux-foundation.org
+	b=va/QgqvzUOP9BYW0xnmltIogG6BrsUCr1sTrWRZNVDFVuLLAwKDv/LmP9CdoUIus8
+	 gA9jU0AOTkcuHR8IZ5BafAXZfKuYf/uzVsU1vSzkRfU3Y/oOxLnsru/BMVAjaZD3Br
+	 s1oyu8Dhz6ugNo93tMGRUHQq7f/TztT32Ct2f/k8=
+Date: Mon, 19 Aug 2024 22:28:52 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-unexpected-zeroing-of-virtual-disk.patch added to mm-nonmm-unstable branch
-Message-Id: <20240820052138.420DAC4AF09@smtp.kernel.org>
+Subject: + errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch added to mm-nonmm-unstable branch
+Message-Id: <20240820052852.CB380C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix unexpected zeroing of virtual disk
+     Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-unexpected-zeroing-of-virtual-disk.patch
+     errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-unexpected-zeroing-of-virtual-disk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,70 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: ocfs2: fix unexpected zeroing of virtual disk
-Date: Thu, 15 Aug 2024 17:21:41 +0800
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
+Date: Sun, 18 Aug 2024 23:01:51 +0200
 
-In a guest virtual machine, we found that there is unexpected data zeroing
-problem detected occassionly:
+Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros that operate
+on pointers in the percpu address space.
 
-XFS (vdb): Mounting V5 Filesystem
-XFS (vdb): Ending clean mount
-XFS (vdb): Metadata CRC error detected at xfs_refcountbt_read_verify+0x2c/0xf0, xfs_refcountbt block 0x200028
-XFS (vdb): Unmount and run xfs_repair
-XFS (vdb): First 128 bytes of corrupted metadata buffer:
-00000000e0cd2f5e: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000cafd57f5: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000d0298d7d: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000f0698484: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000adb789a7: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-000000005292b878: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000885b4700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000000fd4b4df7: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-XFS (vdb): metadata I/O error in "xfs_trans_read_buf_map" at daddr 0x200028 len 8 error 74
-XFS (vdb): Error -117 recovering leftover CoW allocations.
-XFS (vdb): xfs_do_force_shutdown(0x8) called from line 994 of file fs/xfs/xfs_mount.c.  Return address = 000000003a53523a
-XFS (vdb): Corruption of in-memory data detected.  Shutting down filesystem
-XFS (vdb): Please umount the filesystem and rectify the problem(s)
+These macros remove the need for (__force void *) function argument casts
+(to avoid sparse -Wcast-from-as warnings).
 
-It turns out that the root cause is from the physical host machine.  More
-specifically, it is caused by the ocfs2.
+The patch will also avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
 
-when the page_size is 64k, the block should advance by 16 each time
-instead of 1.  This will lead to a wrong mapping from the page to the
-disk, which will zero some adjacent part of the disk.
-
-Link: https://lkml.kernel.org/r/20240815092141.1223238-1-chizhiling@163.com
-Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
-Suggested-by: Shida Zhang <zhangshida@kylinos.cn>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20240818210235.33481-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/err.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/ocfs2/aops.c~ocfs2-fix-unexpected-zeroing-of-virtual-disk
-+++ a/fs/ocfs2/aops.c
-@@ -1187,7 +1187,7 @@ static int ocfs2_write_cluster(struct ad
+--- a/include/linux/err.h~errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros
++++ a/include/linux/err.h
+@@ -41,6 +41,9 @@ static inline void * __must_check ERR_PT
+ 	return (void *) error;
+ }
  
- 		/* This is the direct io target page. */
- 		if (wc->w_pages[i] == NULL) {
--			p_blkno++;
-+			p_blkno += (1 << (PAGE_SHIFT - inode->i_sb->s_blocksize_bits));
- 			continue;
- 		}
++/* Return the pointer in the percpu address space. */
++#define ERR_PTR_PCPU(error) ((void __percpu *)(unsigned long)ERR_PTR(error))
++
+ /**
+  * PTR_ERR - Extract the error code from an error pointer.
+  * @ptr: An error pointer.
+@@ -51,6 +54,9 @@ static inline long __must_check PTR_ERR(
+ 	return (long) ptr;
+ }
  
++/* Read an error pointer from the percpu address space. */
++#define PTR_ERR_PCPU(ptr) (PTR_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR - Detect an error pointer.
+  * @ptr: The pointer to check.
+@@ -61,6 +67,9 @@ static inline bool __must_check IS_ERR(_
+ 	return IS_ERR_VALUE((unsigned long)ptr);
+ }
+ 
++/* Read an error pointer from the percpu address space. */
++#define IS_ERR_PCPU(ptr) (IS_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR_OR_NULL - Detect an error pointer or a null pointer.
+  * @ptr: The pointer to check.
 _
 
-Patches currently in -mm which might be from chizhiling@kylinos.cn are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-ocfs2-fix-unexpected-zeroing-of-virtual-disk.patch
+mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
+kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
+lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
+errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
+mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
 
