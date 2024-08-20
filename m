@@ -1,63 +1,94 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF37A2F4A;
-	Sun, 18 Aug 2024 03:11:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6060C2F52;
+	Tue, 20 Aug 2024 00:32:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723950684; cv=none; b=ic5IU9HrN/q+8nTYjCwrwvOF0OmycyOF5KHxO/+h7AvN1xo8wuirBBm57SWL2nI4WC7Frp1l6Gn46hJJri3Yjt9Bx/upUintAmMPGkrS8NFz2sQVTnyenybfCGFFQUMd4VIDMfaY3oCH61NTFL7RBbKQRruDcNLHlSnuA3Vc2XY=
+	t=1724113927; cv=none; b=neYljUoI9i5vcAgjnlbMIu6jCQavx1qc1OM2ACuz7/PIEd4fNua0hOGOkJGma860EoHDY08fqmyY+6itZxBv2oyRuG4jDMSGiqrirPxnmnwFU/vrDx+U3Tuo005VqVm9s8YKezBXYxmwgZkYP1cott+vKWyEDnXZiZWAS2bc5+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723950684; c=relaxed/simple;
-	bh=XB88mgj4UgieCqLOM7Syp7axLwThrYPBIRhhhia7xc8=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=MX/QoEub6z9rtI9v+nZXl1Pu2h1yZwdVRy1Qcx5uFZD1MeIrQS5/LctE8pVoGHdbVdMh1C/p1PFf4rM+2SghLlc2Ou2UppUaKu5TuTLSvpKNd1NA5bSjlnXrAME/6A0in17zLJDiDpmbCaIJ0GWRQjbIbViLAGJMyHKRbjaXyDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rJq8TNWU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724113927; c=relaxed/simple;
+	bh=P87OLKr407u0qrHQWhxQpfh60h0AgrZzDDHtTTEYnAo=;
+	h=Date:To:From:Subject:Message-Id; b=BAdBtXzfzLHV20sZ6eSykZOC7HP09Yc3pTK6+KrSChSneZy7+lLxvFRCsWv50fwW486wiMgA084lgq1/E7k86QAhv+t9WQN9r8RHs3w37ZWNMUFx0Ktd+kwAztQHeX3/bUd1ntm53licHzDn2k5Th4ZWmxqCIwNEf3c9OTrc39k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I4hrVPpw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rJq8TNWU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99F0CC32786;
-	Sun, 18 Aug 2024 03:11:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723950684;
-	bh=XB88mgj4UgieCqLOM7Syp7axLwThrYPBIRhhhia7xc8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=rJq8TNWUv+31Q/WqojD+ugnUQhEt6MQ4guC9ht/uQsZleeM/qBBG7ms1LtZAIIOvq
-	 Rh2Dw+CCWE2Xktzz7PwPVWuS36gabXWpp9KVgBXl8Y60/ECLBjPU5VjU/hBBBZh1cD
-	 hBagyyrlNUhY250xEfc3d6nLjCfHINRcUGVPThPO9AThyosYACHY9UBxm2gY+XfGhW
-	 OA1E0ZqFQTLBIZID3s+4teK25OzyYiUAEW4xRxv9HoeB/C9xhmp+HeSYH9WYMw1mSj
-	 MutYxeTQwRNrdC8+7gNWpfqJdETducswei9h4uDMmkV7FbjJm+dAh02pO8YeFltNag
-	 x5dkEMcsXFdlQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3400B38231F8;
-	Sun, 18 Aug 2024 03:11:25 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.11-rc4
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240817194908.0d40388a9e597b5b99af644d@linux-foundation.org>
-References: <20240817194908.0d40388a9e597b5b99af644d@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240817194908.0d40388a9e597b5b99af644d@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-08-17-19-34
-X-PR-Tracked-Commit-Id: 2e6506e1c4eed2676a8412231046f31e10e240da
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: c3f2d783a459980eafd24c5af94ccd56a615961f
-Message-Id: <172395068364.3861226.13951086628472744403.pr-tracker-bot@kernel.org>
-Date: Sun, 18 Aug 2024 03:11:23 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I4hrVPpw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C26CCC32782;
+	Tue, 20 Aug 2024 00:32:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1724113926;
+	bh=P87OLKr407u0qrHQWhxQpfh60h0AgrZzDDHtTTEYnAo=;
+	h=Date:To:From:Subject:From;
+	b=I4hrVPpwproGO/rlu4UWIYigLvfMZhCw6fCt2kHUgoqjw/TgmgVqetnGkcmw8HUCI
+	 OQD0tKo2KvYbf1mus3286reQIYv0QM9qpKz53LH30QyV2yYW2Oy7guoCEqYjOzRq7P
+	 tTDvnFFiaoBMTyW+Ik5y2fM71cOZMjs59nWfQgcc=
+Date: Mon, 19 Aug 2024 17:32:06 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,erhard_f@mailbox.org,davidgow@google.com,ivan.orlov0322@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] kunit-overflow-fix-ub-in-overflow_allocation_test.patch removed from -mm tree
+Message-Id: <20240820003206.C26CCC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Sat, 17 Aug 2024 19:49:08 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-08-17-19-34
+The quilt patch titled
+     Subject: kunit/overflow: fix UB in overflow_allocation_test
+has been removed from the -mm tree.  Its filename was
+     kunit-overflow-fix-ub-in-overflow_allocation_test.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/c3f2d783a459980eafd24c5af94ccd56a615961f
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Thank you!
+------------------------------------------------------
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
+Subject: kunit/overflow: fix UB in overflow_allocation_test
+Date: Thu, 15 Aug 2024 01:04:31 +0100
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+The 'device_name' array doesn't exist out of the
+'overflow_allocation_test' function scope.  However, it is being used
+as a driver name when calling 'kunit_driver_create' from
+'kunit_device_register'.  It produces the kernel panic with KASAN
+enabled due to undefined behaviour.
+
+Since this variable is used in one place only, remove it and pass the
+device name into kunit_device_register directly as an ascii string.
+
+Link: https://lkml.kernel.org/r/20240815000431.401869-1-ivan.orlov0322@gmail.com
+Fixes: ca90800a91ba ("test_overflow: Add memory allocation overflow tests")
+Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Tested-by: Erhard Furtner <erhard_f@mailbox.org>
+Reviewed-by: David Gow <davidgow@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/overflow_kunit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/lib/overflow_kunit.c~kunit-overflow-fix-ub-in-overflow_allocation_test
++++ a/lib/overflow_kunit.c
+@@ -668,7 +668,6 @@ DEFINE_TEST_ALLOC(devm_kzalloc,  devm_kf
+ 
+ static void overflow_allocation_test(struct kunit *test)
+ {
+-	const char device_name[] = "overflow-test";
+ 	struct device *dev;
+ 	int count = 0;
+ 
+@@ -678,7 +677,7 @@ static void overflow_allocation_test(str
+ } while (0)
+ 
+ 	/* Create dummy device for devm_kmalloc()-family tests. */
+-	dev = kunit_device_register(test, device_name);
++	dev = kunit_device_register(test, "overflow-test");
+ 	KUNIT_ASSERT_FALSE_MSG(test, IS_ERR(dev),
+ 			       "Cannot register test device\n");
+ 
+_
+
+Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
+
+
