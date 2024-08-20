@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65FF117FE
-	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 02:18:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1979EAE7
+	for <mm-commits@vger.kernel.org>; Tue, 20 Aug 2024 04:48:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724120324; cv=none; b=sYinDzeyTd6AMUzWqt96ZHaqM5Cu7aQqy0Vq5K+zbgfsijY2y0D6M9Y7xvKcPHNQ52YTA+JScpRfna9SO+5eQMKSWQBdpx1AbrkTYS5NC6UZC7b1ugTCmv/Htif7KXSSfBuGY1L9G7eVom0nI9kICpQiVijqxO9YFlzxZ6Lw7Es=
+	t=1724129289; cv=none; b=UoZJ9PBRfJStcmy1IQC+gKyhTYBd66+4mHukubTlJ+bMV+VLayq6Z3BMiZYCbuKRUYm97vRFlc2biGIHaPcC+lieoRHC74FM/FO9LzxaK4S67ErCulyoKJOKJUACsZnebQ5xa3WWzXi2OghaXGCFwWVazge6qO5LoI9hsEW9C14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724120324; c=relaxed/simple;
-	bh=2QlU8dOG/9SuGH/ut2v2+OJL3C5RbY/J7mnVxmw8GLE=;
-	h=Date:To:From:Subject:Message-Id; b=Y+3qMbRIlIcRbYRDc21TVKsB+KKG9c+1Pc1/JYCCBuGPzP5RNpj3MNBCSIkpgHAqZC/e61otDyLlxcEE4QLNzkK9LuVaZEOihx9ZQ911M5Kh8pJ2wz2IPQ0yi19RGVrzNYVgY3KGEIss3k2H4dEzEJGDs+jbPPHRmLzjkJlUzzk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aXFdAMbI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724129289; c=relaxed/simple;
+	bh=/3ZqTeNynxoDHJPeY9idocCj/203w852NCb/49CwDgk=;
+	h=Date:To:From:Subject:Message-Id; b=RW20WzWNsQF2ASoCp3hKVp0XetaG8QX3Ldpf6DAHcmvQds11h8O1PrLEaNg6p0DeDH8JqazaoBa7A2cTgvGn2Jfm3SDcBoGQg8Jw/BztJqMO7zRKHiOpyGnLnJPq2fglKHAR5TCQrKsAmPKQaS/9A8+b0PHUM2ZhokrHeErWKNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDcH0lZE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aXFdAMbI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D6DC32782;
-	Tue, 20 Aug 2024 02:18:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDcH0lZE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C6CC4AF09;
+	Tue, 20 Aug 2024 04:48:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724120324;
-	bh=2QlU8dOG/9SuGH/ut2v2+OJL3C5RbY/J7mnVxmw8GLE=;
+	s=korg; t=1724129289;
+	bh=/3ZqTeNynxoDHJPeY9idocCj/203w852NCb/49CwDgk=;
 	h=Date:To:From:Subject:From;
-	b=aXFdAMbI8woTzpNMCmfRp8jj7qNSMk+RG6YoyzqxzY6sxOVEFJw3zSkP35+tsWXdV
-	 vD89h08TvuI2pReSSq2IX1IRwlAhn4uHSANCPIi8ZKmFz2SRdID2iMRfLaJLfyAAz5
-	 AWrur/ECPi6vfAUGXN8WZORubp6LsxfHdviSgMzk=
-Date: Mon, 19 Aug 2024 19:18:43 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,rppt@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=sDcH0lZEQ8HFZyxT0QC8CkSPpnXvPJnldy15yQbRh0HyZT7VgtPxcGndCAmuNl4Vv
+	 XL6ZQpJag/QS7zCSwZBfkX/cQQng+90kcd2sTzKU1BZaoUW+xJJ32j9ELAtMVN8gor
+	 5r9AxhZZwH+DF8UufU+cdATZYMOMmluhHw2kblR0=
+Date: Mon, 19 Aug 2024 21:48:08 -0700
+To: mm-commits@vger.kernel.org,ptesarik@suse.com,petr@tesarici.cz,hbathini@linux.ibm.com,corbet@lwn.net,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-unnecessary-ia64-code-and-comment.patch added to mm-unstable branch
-Message-Id: <20240820021844.18D6DC32782@smtp.kernel.org>
+Subject: + document-kexec-generalize-crash-hotplug-description.patch added to mm-nonmm-unstable branch
+Message-Id: <20240820044809.44C6CC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove unnecessary ia64 code and comment
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-remove-unnecessary-ia64-code-and-comment.patch
+     Subject: Document/kexec: generalize crash hotplug description
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     document-kexec-generalize-crash-hotplug-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-unnecessary-ia64-code-and-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/document-kexec-generalize-crash-hotplug-description.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,218 +58,162 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: selftests/mm: remove unnecessary ia64 code and comment
-Date: Mon, 19 Aug 2024 21:06:09 +0800
+From: Sourabh Jain <sourabhjain@linux.ibm.com>
+Subject: Document/kexec: generalize crash hotplug description
+Date: Mon, 12 Aug 2024 09:46:51 +0530
 
-IA64 has gone with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
-architecture"), so remove unnecessary ia64 special mm code and comment in
-selftests too.
+Commit 79365026f869 ("crash: add a new kexec flag for hotplug support")
+generalizes the crash hotplug support to allow architectures to update
+multiple kexec segments on CPU/Memory hotplug and not just elfcorehdr. 
+Therefore, update the relevant kernel documentation to reflect the same.
 
-Link: https://lkml.kernel.org/r/20240819130609.3386195-1-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+No functional change.
+
+Link: https://lkml.kernel.org/r/20240812041651.703156-1-sourabhjain@linux.ibm.com
+Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Reviewed-by: Petr Tesarik <ptesarik@suse.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Petr Tesarik <petr@tesarici.cz>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile           |    2 -
- tools/testing/selftests/mm/hugepage-mmap.c    |   18 ----------------
- tools/testing/selftests/mm/hugepage-shm.c     |   18 ----------------
- tools/testing/selftests/mm/hugepage-vmemmap.c |   17 +--------------
- tools/testing/selftests/mm/map_hugetlb.c      |   18 +---------------
- tools/testing/selftests/mm/run_vmtests.sh     |    2 -
- 6 files changed, 8 insertions(+), 67 deletions(-)
+ Documentation/ABI/testing/sysfs-devices-memory     |    6 +-
+ Documentation/ABI/testing/sysfs-devices-system-cpu |    6 +-
+ Documentation/admin-guide/mm/memory-hotplug.rst    |    5 +
+ Documentation/core-api/cpu_hotplug.rst             |   10 ++-
+ kernel/crash_core.c                                |   33 ++++++-----
+ 5 files changed, 35 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage-mmap.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-mmap.c
-@@ -8,13 +8,6 @@
-  * like /mnt) using the command mount -t hugetlbfs nodev /mnt. In this
-  * example, the app is requesting memory of size 256MB that is backed by
-  * huge pages.
-- *
-- * For the ia64 architecture, the Linux kernel reserves Region number 4 for
-- * huge pages.  That means that if one requires a fixed address, a huge page
-- * aligned address starting with 0x800000... will be required.  If a fixed
-- * address is not required, the kernel will select an address in the proper
-- * range.
-- * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-  */
- #define _GNU_SOURCE
- #include <stdlib.h>
-@@ -27,15 +20,6 @@
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
+--- a/Documentation/ABI/testing/sysfs-devices-memory~document-kexec-generalize-crash-hotplug-description
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -115,6 +115,6 @@ What:		/sys/devices/system/memory/crash_
+ Date:		Aug 2023
+ Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
+ Description:
+-		(RO) indicates whether or not the kernel directly supports
+-		modifying the crash elfcorehdr for memory hot un/plug and/or
+-		on/offline changes.
++		(RO) indicates whether or not the kernel updates relevant kexec
++		segments on memory hot un/plug and/or on/offline events, avoiding the
++		need to reload kdump kernel.
+--- a/Documentation/ABI/testing/sysfs-devices-system-cpu~document-kexec-generalize-crash-hotplug-description
++++ a/Documentation/ABI/testing/sysfs-devices-system-cpu
+@@ -703,9 +703,9 @@ What:		/sys/devices/system/cpu/crash_hot
+ Date:		Aug 2023
+ Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
+ Description:
+-		(RO) indicates whether or not the kernel directly supports
+-		modifying the crash elfcorehdr for CPU hot un/plug and/or
+-		on/offline changes.
++		(RO) indicates whether or not the kernel updates relevant kexec
++		segments on memory hot un/plug and/or on/offline events, avoiding the
++		need to reload kdump kernel.
  
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define FLAGS (MAP_SHARED | MAP_FIXED)
--#else
--#define ADDR (void *)(0x0UL)
--#define FLAGS (MAP_SHARED)
--#endif
--
- static void check_bytes(char *addr)
- {
- 	ksft_print_msg("First hex is %x\n", *((unsigned int *)addr));
-@@ -74,7 +58,7 @@ int main(void)
- 	if (fd < 0)
- 		ksft_exit_fail_msg("memfd_create() failed: %s\n", strerror(errno));
+ What:		/sys/devices/system/cpu/enabled
+ Date:		Nov 2022
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~document-kexec-generalize-crash-hotplug-description
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -294,8 +294,9 @@ The following files are currently define
+ ``crash_hotplug``      read-only: when changes to the system memory map
+ 		       occur due to hot un/plug of memory, this file contains
+ 		       '1' if the kernel updates the kdump capture kernel memory
+-		       map itself (via elfcorehdr), or '0' if userspace must update
+-		       the kdump capture kernel memory map.
++		       map itself (via elfcorehdr and other relevant kexec
++		       segments), or '0' if userspace must update the kdump
++		       capture kernel memory map.
  
--	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, fd, 0);
-+	addr = mmap(NULL, LENGTH, PROTECTION, MAP_SHARED, fd, 0);
- 	if (addr == MAP_FAILED) {
- 		close(fd);
- 		ksft_exit_fail_msg("mmap(): %s\n", strerror(errno));
---- a/tools/testing/selftests/mm/hugepage-shm.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-shm.c
-@@ -8,13 +8,6 @@
-  * SHM_HUGETLB in the shmget system call to inform the kernel that it is
-  * requesting huge pages.
-  *
-- * For the ia64 architecture, the Linux kernel reserves Region number 4 for
-- * huge pages.  That means that if one requires a fixed address, a huge page
-- * aligned address starting with 0x800000... will be required.  If a fixed
-- * address is not required, the kernel will select an address in the proper
-- * range.
-- * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-- *
-  * Note: The default shared memory limit is quite low on many kernels,
-  * you may need to increase it via:
-  *
-@@ -39,15 +32,6 @@
+ 		       Availability depends on the CONFIG_MEMORY_HOTPLUG kernel
+ 		       configuration option.
+--- a/Documentation/core-api/cpu_hotplug.rst~document-kexec-generalize-crash-hotplug-description
++++ a/Documentation/core-api/cpu_hotplug.rst
+@@ -737,8 +737,9 @@ can process the event further.
  
- #define dprintf(x)  printf(x)
+ When changes to the CPUs in the system occur, the sysfs file
+ /sys/devices/system/cpu/crash_hotplug contains '1' if the kernel
+-updates the kdump capture kernel list of CPUs itself (via elfcorehdr),
+-or '0' if userspace must update the kdump capture kernel list of CPUs.
++updates the kdump capture kernel list of CPUs itself (via elfcorehdr and
++other relevant kexec segment), or '0' if userspace must update the kdump
++capture kernel list of CPUs.
  
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define SHMAT_FLAGS (SHM_RND)
--#else
--#define ADDR (void *)(0x0UL)
--#define SHMAT_FLAGS (0)
--#endif
--
- int main(void)
- {
- 	int shmid;
-@@ -61,7 +45,7 @@ int main(void)
+ The availability depends on the CONFIG_HOTPLUG_CPU kernel configuration
+ option.
+@@ -750,8 +751,9 @@ file can be used in a udev rule as follo
+  SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+ 
+ For a CPU hot un/plug event, if the architecture supports kernel updates
+-of the elfcorehdr (which contains the list of CPUs), then the rule skips
+-the unload-then-reload of the kdump capture kernel.
++of the elfcorehdr (which contains the list of CPUs) and other relevant
++kexec segments, then the rule skips the unload-then-reload of the kdump
++capture kernel.
+ 
+ Kernel Inline Documentations Reference
+ ======================================
+--- a/kernel/crash_core.c~document-kexec-generalize-crash-hotplug-description
++++ a/kernel/crash_core.c
+@@ -505,7 +505,7 @@ int crash_check_hotplug_support(void)
+ 	crash_hotplug_lock();
+ 	/* Obtain lock while reading crash information */
+ 	if (!kexec_trylock()) {
+-		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
++		pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
+ 		crash_hotplug_unlock();
+ 		return 0;
  	}
- 	printf("shmid: 0x%x\n", shmid);
+@@ -520,18 +520,25 @@ int crash_check_hotplug_support(void)
+ }
  
--	shmaddr = shmat(shmid, ADDR, SHMAT_FLAGS);
-+	shmaddr = shmat(shmid, NULL, 0);
- 	if (shmaddr == (char *)-1) {
- 		perror("Shared memory attach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
---- a/tools/testing/selftests/mm/hugepage-vmemmap.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-vmemmap.c
-@@ -22,20 +22,6 @@
- #define PM_PFRAME_BITS		55
- #define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
- 
--/*
-- * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
-- * That means the addresses starting with 0x800000... will need to be
-- * specified.  Specifying a fixed address is not required on ppc64, i386
-- * or x86_64.
-- */
--#ifdef __ia64__
--#define MAP_ADDR		(void *)(0x8000000000000000UL)
--#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
--#else
--#define MAP_ADDR		NULL
--#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
--#endif
--
- static size_t pagesize;
- static size_t maplength;
- 
-@@ -113,7 +99,8 @@ int main(int argc, char **argv)
- 		exit(1);
- 	}
- 
--	addr = mmap(MAP_ADDR, maplength, PROT_READ | PROT_WRITE, MAP_FLAGS, -1, 0);
-+	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
- 	if (addr == MAP_FAILED) {
- 		perror("mmap");
- 		exit(1);
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -112,7 +112,7 @@ endif
- 
- endif
- 
--ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
-+ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
- TEST_GEN_FILES += va_high_addr_switch
- TEST_GEN_FILES += virtual_address_range
- TEST_GEN_FILES += write_to_hugetlbfs
---- a/tools/testing/selftests/mm/map_hugetlb.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/map_hugetlb.c
-@@ -4,11 +4,6 @@
-  * system call with MAP_HUGETLB flag.  Before running this program make
-  * sure the administrator has allocated enough default sized huge pages
-  * to cover the 256 MB allocation.
-- *
-- * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
-- * That means the addresses starting with 0x800000... will need to be
-- * specified.  Specifying a fixed address is not required on ppc64, i386
-- * or x86_64.
+ /*
+- * To accurately reflect hot un/plug changes of cpu and memory resources
+- * (including onling and offlining of those resources), the elfcorehdr
+- * (which is passed to the crash kernel via the elfcorehdr= parameter)
+- * must be updated with the new list of CPUs and memories.
++ * To accurately reflect hot un/plug changes of CPU and Memory resources
++ * (including onling and offlining of those resources), the relevant
++ * kexec segments must be updated with latest CPU and Memory resources.
+  *
+- * In order to make changes to elfcorehdr, two conditions are needed:
+- * First, the segment containing the elfcorehdr must be large enough
+- * to permit a growing number of resources; the elfcorehdr memory size
+- * is based on NR_CPUS_DEFAULT and CRASH_MAX_MEMORY_RANGES.
+- * Second, purgatory must explicitly exclude the elfcorehdr from the
+- * list of segments it checks (since the elfcorehdr changes and thus
+- * would require an update to purgatory itself to update the digest).
++ * Architectures must ensure two things for all segments that need
++ * updating during hotplug events:
++ *
++ * 1. Segments must be large enough to accommodate a growing number of
++ *    resources.
++ * 2. Exclude the segments from SHA verification.
++ *
++ * For example, on most architectures, the elfcorehdr (which is passed
++ * to the crash kernel via the elfcorehdr= parameter) must include the
++ * new list of CPUs and memory. To make changes to the elfcorehdr, it
++ * should be large enough to permit a growing number of CPU and Memory
++ * resources. One can estimate the elfcorehdr memory size based on
++ * NR_CPUS_DEFAULT and CRASH_MAX_MEMORY_RANGES. The elfcorehdr is
++ * excluded from SHA verification by default if the architecture
++ * supports crash hotplug.
   */
- #include <stdlib.h>
- #include <stdio.h>
-@@ -21,15 +16,6 @@
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
- 
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
--#else
--#define ADDR (void *)(0x0UL)
--#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
--#endif
--
- static void check_bytes(char *addr)
+ static void crash_handle_hotplug_event(unsigned int hp_action, unsigned int cpu, void *arg)
  {
- 	ksft_print_msg("First hex is %x\n", *((unsigned int *)addr));
-@@ -60,7 +46,7 @@ int main(int argc, char **argv)
- 	void *addr;
- 	size_t hugepage_size;
- 	size_t length = LENGTH;
--	int flags = FLAGS;
-+	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
- 	int shift = 0;
- 
- 	hugepage_size = default_huge_page_size();
-@@ -85,7 +71,7 @@ int main(int argc, char **argv)
- 		ksft_print_msg("Default size hugepages\n");
- 	ksft_print_msg("Mapping %lu Mbytes\n", (unsigned long)length >> 20);
- 
--	addr = mmap(ADDR, length, PROTECTION, flags, -1, 0);
-+	addr = mmap(NULL, length, PROTECTION, flags, -1, 0);
- 	if (addr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -189,7 +189,7 @@ else
- fi
- 
- # filter 64bit architectures
--ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
-+ARCH64STR="arm64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
- if [ -z "$ARCH" ]; then
- 	ARCH=$(uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/')
- fi
+@@ -540,7 +547,7 @@ static void crash_handle_hotplug_event(u
+ 	crash_hotplug_lock();
+ 	/* Obtain lock while changing crash information */
+ 	if (!kexec_trylock()) {
+-		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
++		pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
+ 		crash_hotplug_unlock();
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
 
-selftests-mm-remove-unnecessary-ia64-code-and-comment.patch
+document-kexec-generalize-crash-hotplug-description.patch
 
