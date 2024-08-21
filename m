@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2F6C79D1
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 22:12:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35CE516DED4
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 22:18:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724278379; cv=none; b=WkPGVdktq7hDP6rzUfKZOnCTeO7qQGwCSdbdMsPpg9yuG4y4pXmRFWsLuAjLBSn1lgoczHAnsslpdIUlh+C5Ejy5S8rpxGjCEy+xHQL6NtzncbDvNrCgLb4b+PtjRAAy0CwT/15ckqS8cvAP4HvQ2jIaiJItXfd4BOywiLER0Mw=
+	t=1724278738; cv=none; b=sFFHpjMcVydJCMBjastMfssoVxeUrl3fTkZN/rFhNudDIEEKqMhDL4iquU8dYpJ0lasNt5XDPvENZjCc9oVIZiBzP9st38jqpUb80CeoqHxD/lBgF45ELdMJGZrGFSghjBZxktLHy97igUCb1EXXwEXEbFyvEAjMcJ0cgnQLb8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724278379; c=relaxed/simple;
-	bh=+BGBheiuHFOKfD8jU/2PecvWwYAEeNrXS50OO7DpVyM=;
-	h=Date:To:From:Subject:Message-Id; b=aV6uKfIjL+oJamTnu8lpHt1CMIm8+GV7nb9B1fwF+gAZw4YTJBYjXcGU+3MBxDOQbPnE+hZdD5yT+JqkTbwjaRg0+DXeGswUS/ZJWl3JQ62UFehUQk5SzR1x9ol4b6Dnilz3A+5Mz2taicoRHG1rU0NUkHvq672m15je0GNAwlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R0J/j7lz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724278738; c=relaxed/simple;
+	bh=6h1GqtcNjRKPGETxQ5nuhZkCchvAlIV/dZmCf8Faevg=;
+	h=Date:To:From:Subject:Message-Id; b=DrKYWex4JTtc8r0XFb39RNivrnG+ifDdf+i2DS5lmi23chmznLyzLSvlWycCOTbasufJGCkMVsheCtz0pH8dZCJSCIIF1hXeiP2OcJgS4xYYcvWWJG/GQbpRJj5WEQqeiFFIOd8zILDs8l+C3lP4Ju25ku5EVqhfb5t+5ewSkmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uDRxFeKW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R0J/j7lz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60622C32781;
-	Wed, 21 Aug 2024 22:12:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uDRxFeKW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B200C32781;
+	Wed, 21 Aug 2024 22:18:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724278378;
-	bh=+BGBheiuHFOKfD8jU/2PecvWwYAEeNrXS50OO7DpVyM=;
+	s=korg; t=1724278736;
+	bh=6h1GqtcNjRKPGETxQ5nuhZkCchvAlIV/dZmCf8Faevg=;
 	h=Date:To:From:Subject:From;
-	b=R0J/j7lzTcBp8+gzUpvFsIWA+SyqSZNDS4XuBIVsiZlMyYBLsdqg4HaCbtwFNIpJp
-	 JC376MBxjzCCP+4hLvwj8op7O0ffjSgQK5cUB3EJofbSD+D6PSswgouCbJ0n9zKWa4
-	 yzIz+uaJCGc7Mk2TccC04C/5O/2gLLvD2BHjsNMM=
-Date: Wed, 21 Aug 2024 15:12:57 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,liyuesong@vivo.com,akpm@linux-foundation.org
+	b=uDRxFeKWyu84A6l7Pt2N2t1pwZ34SS/ZR60hfD78TFV9j7rH11NIFNheVLEyzOdU+
+	 VP8RjBKYk6R0CeQkqSZgV5y9pS1/Iaic3Nr46UfXUvsNoVqhe5qtZNjvnSqaTnx6T8
+	 eDhsV2rFLTZt4HKjbnsWRI8tArRn+wTWvP5yY7gs=
+Date: Wed, 21 Aug 2024 15:18:55 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,11162571@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch added to mm-unstable branch
-Message-Id: <20240821221258.60622C32781@smtp.kernel.org>
+Subject: + tools-mm-check-mmap-based-on-return-values.patch added to mm-unstable branch
+Message-Id: <20240821221856.9B200C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm:page-writeback: use folio_next_index() helper in writeback_iter()
+     Subject: tools:mm: check mmap based on return values
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch
+     tools-mm-check-mmap-based-on-return-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-check-mmap-based-on-return-values.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,36 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yuesong Li <liyuesong@vivo.com>
-Subject: mm:page-writeback: use folio_next_index() helper in writeback_iter()
-Date: Wed, 21 Aug 2024 14:31:12 +0800
+From: Yang Ruibin <11162571@vivo.com>
+Subject: tools:mm: check mmap based on return values
+Date: Tue, 20 Aug 2024 23:50:03 -0400
 
-Simplify code pattern of 'folio->index + folio_nr_pages(folio)' by using
-the existing helper folio_next_index().
+To correctly detect whether mmap is successful, must use if (map_ptr ==
+MAP_FAILED)to avoid incorrectly handling a valid mapping.
 
-Link: https://lkml.kernel.org/r/20240821063112.4053157-1-liyuesong@vivo.com
-Signed-off-by: Yuesong Li <liyuesong@vivo.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240821035005.4423-1-11162571@vivo.com
+Signed-off-by: Yang Ruibin <11162571@vivo.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/ksm_tests.c     |    2 +-
+ tools/testing/selftests/mm/madv_populate.c |    2 +-
+ tools/testing/selftests/mm/soft-dirty.c    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-use-folio_next_index-helper-in-writeback_iter
-+++ a/mm/page-writeback.c
-@@ -2612,7 +2612,7 @@ struct folio *writeback_iter(struct addr
+--- a/tools/testing/selftests/mm/ksm_tests.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -201,7 +201,7 @@ static void  *allocate_memory(void *ptr,
+ {
+ 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
  
- done:
- 	if (wbc->range_cyclic)
--		mapping->writeback_index = folio->index + folio_nr_pages(folio);
-+		mapping->writeback_index = folio_next_index(folio);
- 	folio_batch_release(&wbc->fbatch);
- 	return NULL;
- }
+-	if (!map_ptr) {
++	if (map_ptr == MAP_FAILED) {
+ 		perror("mmap");
+ 		return NULL;
+ 	}
+--- a/tools/testing/selftests/mm/madv_populate.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/madv_populate.c
+@@ -34,7 +34,7 @@ static void sense_support(void)
+ 
+ 	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
+ 		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+-	if (!addr)
++	if (addr == MAP_FAILED)
+ 		ksft_exit_fail_msg("mmap failed\n");
+ 
+ 	ret = madvise(addr, pagesize, MADV_POPULATE_READ);
+--- a/tools/testing/selftests/mm/soft-dirty.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -134,7 +134,7 @@ static void test_mprotect(int pagemap_fd
+ 	if (anon) {
+ 		map = mmap(NULL, pagesize, PROT_READ|PROT_WRITE,
+ 			   MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+-		if (!map)
++		if (map == MAP_FAILED)
+ 			ksft_exit_fail_msg("anon mmap failed\n");
+ 	} else {
+ 		test_fd = open(fname, O_RDWR | O_CREAT, 0664);
 _
 
-Patches currently in -mm which might be from liyuesong@vivo.com are
+Patches currently in -mm which might be from 11162571@vivo.com are
 
-mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch
+tools-mm-check-mmap-based-on-return-values.patch
+lib-fix-the-null-vs-is_err-bug-for-debugfs_create_dir.patch
 
