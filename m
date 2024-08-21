@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAC5816FF26
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:34:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF58F16FF26
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:34:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724272443; cv=none; b=iR/psamvUjL/BJkCQMlm6XeRFToWJPT/4FKWz2VZwzRcjM3gUjuUhuEhcphKmLsAn+ORLldx1altOjZ+h9ndoZSzqltpY0znXEAjRpp/7sAtdlB25XIEmr4C8+Otfx4EKs9v2IDyVtP03b72znC+k3Hx2a+9lVrSWBvIGDgiwEg=
+	t=1724272445; cv=none; b=MFfzbBSD7/I8L64zAEDoK81CT8iVmXRFqjAD1q7bmbkT3QIFPQEUsyfPb1bpQhTPLoA+dNOzgMpicnVdUerlogt4kNq3UoZh1ytvE/CgPdWrU21FEBCCq2MOEjjChtXHVRpR5NXWYJBdR7gyuXBjU1g6pXZI9vAOQApkgp1gmWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724272443; c=relaxed/simple;
-	bh=UUonAP3lgxgXpK9fbo/RS/aKJO9Y/MyH0l5jnJ9gNUM=;
-	h=Date:To:From:Subject:Message-Id; b=KrYupDdQqo80K3LRBFy0hz0rLF9KcyyEKeUbHzAhmMS6tGO1T91uLHOf0pFBcs5DcuNZkVWb+g9oepl80fPKGDNbXu85iordkIAa4UKqUaPDdYejkSV/XhCl4nXF7OL03WTNNnZ8ABfQPOnskEk3l2Bs3iekhqm/Bk0yqmHWD2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MyGIdE2Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724272445; c=relaxed/simple;
+	bh=sGqqr3ewHxvxTUiaVKVxEJk5NBaFokEPB+Oq4l1KdY0=;
+	h=Date:To:From:Subject:Message-Id; b=a7HP6sHjx5SVkmvEKLixGr+4bHMYsOXfLDGrI+EcMT7YEVA1/T6zs9ifxOBttRxZtdZcvmntaS4VH17IHWyT1uNIXEosL7NcRoT/dWsSnX/ovjtspwA4GIgwh6MIxnC10zkxJnA4Iy3QyLE8mEcku6069VRUkEFCK613JMkOVJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E+MRmE46; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MyGIdE2Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E4C7C32781;
-	Wed, 21 Aug 2024 20:34:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E+MRmE46"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B14FC32782;
+	Wed, 21 Aug 2024 20:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724272443;
-	bh=UUonAP3lgxgXpK9fbo/RS/aKJO9Y/MyH0l5jnJ9gNUM=;
+	s=korg; t=1724272445;
+	bh=sGqqr3ewHxvxTUiaVKVxEJk5NBaFokEPB+Oq4l1KdY0=;
 	h=Date:To:From:Subject:From;
-	b=MyGIdE2Y9xscMLGpKnls9eXDtpCM6tvNCdpM78zs5Q9u7MNlFu38+4U7CI+rWZItX
-	 qDPWvSltaB24/3P3QbFdj0C9pmVQWy6Zyq8vAbEz7KiseS5MBpuR5nottoN0oNXJvL
-	 gFxeKmxB/pHg7PKJoI2Qlys3V7X8Zzi6w2SYuGS8=
-Date: Wed, 21 Aug 2024 13:34:02 -0700
+	b=E+MRmE46T3cD8uBeYcdit0x6tYuSrdd/X5ILi1rKwPUAgSe/DCgBef2TNWxOiQHv7
+	 rUwXwtsMmGxTgYPL0FlsLAJnUTVVDGS6Y1a9/SyWsVHIi4qEEFhX7ZXzkCSYf3mArt
+	 +oh7XkhQXCc8M2iGN7uOcHj8Fw/EmClWATpSxtFo=
+Date: Wed, 21 Aug 2024 13:34:04 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pageunevictable.patch added to mm-unstable branch
-Message-Id: <20240821203403.8E4C7C32781@smtp.kernel.org>
+Subject: + mm-remove-pagemlocked.patch added to mm-unstable branch
+Message-Id: <20240821203405.2B14FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove PageUnevictable
+     Subject: mm: remove PageMlocked
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pageunevictable.patch
+     mm-remove-pagemlocked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pageunevictable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagemlocked.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,80 +59,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageUnevictable
-Date: Wed, 21 Aug 2024 20:34:38 +0100
+Subject: mm: remove PageMlocked
+Date: Wed, 21 Aug 2024 20:34:39 +0100
 
-There is only one caller of PageUnevictable() left; convert it to call
-folio_test_unevictable() and remove all the page accessors.
+This flag is now only used on folios, so we can remove all the page
+accessors.
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821193445.2294269-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- mm/huge_memory.c           |   16 ++++++++--------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ Documentation/mm/unevictable-lru.rst |    4 ++--
+ include/linux/page-flags.h           |   13 ++++++++-----
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-pageunevictable
-+++ a/include/linux/page-flags.h
-@@ -580,9 +580,9 @@ FOLIO_CLEAR_FLAG(swapcache, FOLIO_HEAD_P
- FOLIO_FLAG_FALSE(swapcache)
- #endif
+--- a/Documentation/mm/unevictable-lru.rst~mm-remove-pagemlocked
++++ a/Documentation/mm/unevictable-lru.rst
+@@ -253,8 +253,8 @@ Basic Management
  
--PAGEFLAG(Unevictable, unevictable, PF_HEAD)
--	__CLEARPAGEFLAG(Unevictable, unevictable, PF_HEAD)
--	TESTCLEARFLAG(Unevictable, unevictable, PF_HEAD)
-+FOLIO_FLAG(unevictable, FOLIO_HEAD_PAGE)
-+	__FOLIO_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
+ mlocked pages - pages mapped into a VM_LOCKED VMA - are a class of unevictable
+ pages.  When such a page has been "noticed" by the memory management subsystem,
+-the page is marked with the PG_mlocked flag.  This can be manipulated using the
+-PageMlocked() functions.
++the folio is marked with the PG_mlocked flag.  This can be manipulated using
++folio_set_mlocked() and folio_clear_mlocked() functions.
+ 
+ A PG_mlocked page will be placed on the unevictable list when it is added to
+ the LRU.  Such pages can be "noticed" by memory management in several places:
+--- a/include/linux/page-flags.h~mm-remove-pagemlocked
++++ a/include/linux/page-flags.h
+@@ -585,12 +585,15 @@ FOLIO_FLAG(unevictable, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
  
  #ifdef CONFIG_MMU
- PAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
---- a/mm/huge_memory.c~mm-remove-pageunevictable
-+++ a/mm/huge_memory.c
-@@ -3016,25 +3016,25 @@ static void remap_page(struct folio *fol
- 	}
- }
+-PAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
+-	__CLEARPAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
+-	TESTSCFLAG(Mlocked, mlocked, PF_NO_TAIL)
++FOLIO_FLAG(mlocked, FOLIO_HEAD_PAGE)
++	__FOLIO_CLEAR_FLAG(mlocked, FOLIO_HEAD_PAGE)
++	FOLIO_TEST_CLEAR_FLAG(mlocked, FOLIO_HEAD_PAGE)
++	FOLIO_TEST_SET_FLAG(mlocked, FOLIO_HEAD_PAGE)
+ #else
+-PAGEFLAG_FALSE(Mlocked, mlocked) __CLEARPAGEFLAG_NOOP(Mlocked, mlocked)
+-	TESTSCFLAG_FALSE(Mlocked, mlocked)
++FOLIO_FLAG_FALSE(mlocked)
++	__FOLIO_CLEAR_FLAG_NOOP(mlocked)
++	FOLIO_TEST_CLEAR_FLAG_FALSE(mlocked)
++	FOLIO_TEST_SET_FLAG_FALSE(mlocked)
+ #endif
  
--static void lru_add_page_tail(struct page *head, struct page *tail,
-+static void lru_add_page_tail(struct folio *folio, struct page *tail,
- 		struct lruvec *lruvec, struct list_head *list)
- {
--	VM_BUG_ON_PAGE(!PageHead(head), head);
--	VM_BUG_ON_PAGE(PageLRU(tail), head);
-+	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
-+	VM_BUG_ON_FOLIO(PageLRU(tail), folio);
- 	lockdep_assert_held(&lruvec->lru_lock);
- 
- 	if (list) {
- 		/* page reclaim is reclaiming a huge page */
--		VM_WARN_ON(PageLRU(head));
-+		VM_WARN_ON(folio_test_lru(folio));
- 		get_page(tail);
- 		list_add_tail(&tail->lru, list);
- 	} else {
- 		/* head is still on lru (and we have it frozen) */
--		VM_WARN_ON(!PageLRU(head));
--		if (PageUnevictable(tail))
-+		VM_WARN_ON(!folio_test_lru(folio));
-+		if (folio_test_unevictable(folio))
- 			tail->mlock_count = 0;
- 		else
--			list_add_tail(&tail->lru, &head->lru);
-+			list_add_tail(&tail->lru, &folio->lru);
- 		SetPageLRU(tail);
- 	}
- }
-@@ -3133,7 +3133,7 @@ static void __split_huge_page_tail(struc
- 	 * pages to show after the currently processed elements - e.g.
- 	 * migrate_pages
- 	 */
--	lru_add_page_tail(head, page_tail, lruvec, list);
-+	lru_add_page_tail(folio, page_tail, lruvec, list);
- }
- 
- static void __split_huge_page(struct page *page, struct list_head *list,
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
