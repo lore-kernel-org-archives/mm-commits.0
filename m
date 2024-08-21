@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7326553370
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 02:07:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B838753370
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 02:07:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724206074; cv=none; b=pHThYD/i5lVDtTfBX/sNqCMSRQkVxpVV51UBHBNKTE4wYlqRUQxJpEgQfZJY9wjsoUA6p29mJjZYfVFzHyf0C+v53TTWX6ymJo4dVzSLQdePZCoAhm+8LRkOE76BLwK4VT/U61dDEtJaOiRFFDo7R+adtnxc0IB8E45Ga0P++KE=
+	t=1724206076; cv=none; b=AS4LTJpDYFaKm9VL9ooODnyiUzvhxKCzAJUKFjEAO7E0yFhkij3VqRAbQnLHcb9Ky0jj7oewbwI1Pi7lwBJzXnUHcjs9/CTwYVTJNyMynnALycIt2fpYI3N4223YUz1FyL4LuSe4CK0ai/IRvtJk5iGqOGjyrdSmKOdIBC47RZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724206074; c=relaxed/simple;
-	bh=4i3cq7b/982IS8DmdNUjQ0GP3gmhOdq8+bm9S0YqUtA=;
-	h=Date:To:From:Subject:Message-Id; b=jkBDIiFpfgBKWt0pVNTcr4uVkYfa0wfanmw5hLReBUqKSBPR1EntzvVit/ybq8uiNV4OJ171ft8XrdV3TBSymSSO4mGdsb5Ve5Fhd2IA+sBkFQsXbwdVIy+JjLGuABL+M+4VBfaHQQszgNer+OMndeDTgE+OZ/Klct1D+mizvtk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aPwefiYg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724206076; c=relaxed/simple;
+	bh=ej/6DknchUdQGqSTsiRV13NMrt9kkgbgQQXa77eb110=;
+	h=Date:To:From:Subject:Message-Id; b=h2npLQdRPwWLjGTIh7UWhgrn+H4Ul/GmAoMxGMtpUZev+ECOMItiY4Nr6+Z8xKFMmV1tBifuZlcuiyGBLvWj/SXzEPPctNKxjf8R/fkF7c/Lr4Y86AqZK1hGnAwJHkmiNmZSSbX2CdGPeVRSIgFF9DbCEhICug9ZVQmEWnPzldQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kDSiFicS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aPwefiYg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCDA8C4AF17;
-	Wed, 21 Aug 2024 02:07:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kDSiFicS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28AA3C4AF12;
+	Wed, 21 Aug 2024 02:07:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724206073;
-	bh=4i3cq7b/982IS8DmdNUjQ0GP3gmhOdq8+bm9S0YqUtA=;
+	s=korg; t=1724206076;
+	bh=ej/6DknchUdQGqSTsiRV13NMrt9kkgbgQQXa77eb110=;
 	h=Date:To:From:Subject:From;
-	b=aPwefiYgPiTUMB0vAhaIeSOg0wKIkm2UuCvs2BgaPkzOvPJ+K92W2LNfbX/esYnhe
-	 4uQ8ebX4y3nZSQK0NKjVTxU8xA2wzENaBfLojEmC6TM+P+rBH0168An0YB3gauYCji
-	 NK4ZDWSguf/ISS/7d9/cOXqie2c+wY4g9jeBJKtQ=
-Date: Tue, 20 Aug 2024 19:07:53 -0700
+	b=kDSiFicSzGjHNU0mobF/Cb6IPE3BGqs4rHOZ6cQhnEJHNLRdC6jkwyRS8a7o7FsvB
+	 xzQXEVolDY47PjMAI3Vvge6nfRHnuP2L13exICHp6OTp0Ki9VFsSQpWNFLQei/H+OR
+	 pXMWc2xa89WuHYa5NxglWEBTU5TKMqY/vuq+4rvM=
+Date: Tue, 20 Aug 2024 19:07:55 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-munmap-replace-can_modify_mm-with-can_modify_vma.patch added to mm-unstable branch
-Message-Id: <20240821020753.CCDA8C4AF17@smtp.kernel.org>
+Subject: + mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch added to mm-unstable branch
+Message-Id: <20240821020756.28AA3C4AF12@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/munmap: replace can_modify_mm with can_modify_vma
+     Subject: mm/mprotect: replace can_modify_mm with can_modify_vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-munmap-replace-can_modify_mm-with-can_modify_vma.patch
+     mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-munmap-replace-can_modify_mm-with-can_modify_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pedro Falcato <pedro.falcato@gmail.com>
-Subject: mm/munmap: replace can_modify_mm with can_modify_vma
-Date: Sat, 17 Aug 2024 01:18:29 +0100
+Subject: mm/mprotect: replace can_modify_mm with can_modify_vma
+Date: Sat, 17 Aug 2024 01:18:30 +0100
 
-We were doing an extra mmap tree traversal just to check if the entire
-range is modifiable.  This can be done when we iterate through the VMAs
-instead.
+Avoid taking an extra trip down the mmap tree by checking the vmas
+directly.  mprotect (per POSIX) tolerates partial failure.
 
-Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-2-d8d2e037df30@gmail.com
+Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-3-d8d2e037df30@gmail.com
 Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
@@ -79,79 +78,37 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 +----------
- mm/vma.c  |   19 ++++++++++++-------
- 2 files changed, 13 insertions(+), 17 deletions(-)
+ mm/mprotect.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/mm/mmap.c~mm-munmap-replace-can_modify_mm-with-can_modify_vma
-+++ a/mm/mmap.c
-@@ -1740,16 +1740,7 @@ int do_vma_munmap(struct vma_iterator *v
- 		unsigned long start, unsigned long end, struct list_head *uf,
- 		bool unlock)
- {
--	struct mm_struct *mm = vma->vm_mm;
--
--	/*
--	 * Check if memory is sealed, prevent unmapping a sealed VMA.
--	 * can_modify_mm assumes we have acquired the lock on MM.
--	 */
--	if (unlikely(!can_modify_mm(mm, start, end)))
--		return -EPERM;
--
--	return do_vmi_align_munmap(vmi, vma, mm, start, end, uf, unlock);
-+	return do_vmi_align_munmap(vmi, vma, vma->vm_mm, start, end, uf, unlock);
- }
+--- a/mm/mprotect.c~mm-mprotect-replace-can_modify_mm-with-can_modify_vma
++++ a/mm/mprotect.c
+@@ -611,6 +611,9 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	unsigned long charged = 0;
+ 	int error;
  
- /*
---- a/mm/vma.c~mm-munmap-replace-can_modify_mm-with-can_modify_vma
-+++ a/mm/vma.c
-@@ -712,6 +712,12 @@ do_vmi_align_munmap(struct vma_iterator
- 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
- 			goto map_count_exceeded;
- 
-+		/* Don't bother splitting the VMA if we can't unmap it anyway */
-+		if (!can_modify_vma(vma)) {
-+			error = -EPERM;
-+			goto start_split_failed;
-+		}
++	if (!can_modify_vma(vma))
++		return -EPERM;
 +
- 		error = __split_vma(vmi, vma, start, 1);
- 		if (error)
- 			goto start_split_failed;
-@@ -723,6 +729,11 @@ do_vmi_align_munmap(struct vma_iterator
- 	 */
- 	next = vma;
- 	do {
-+		if (!can_modify_vma(next)) {
-+			error = -EPERM;
-+			goto modify_vma_failed;
-+		}
-+
- 		/* Does it split the end? */
- 		if (next->vm_end > end) {
- 			error = __split_vma(vmi, next, end, 0);
-@@ -815,6 +826,7 @@ do_vmi_align_munmap(struct vma_iterator
- 	__mt_destroy(&mt_detach);
- 	return 0;
- 
-+modify_vma_failed:
- clear_tree_failed:
- userfaultfd_error:
- munmap_gather_failed:
-@@ -860,13 +872,6 @@ int do_vmi_munmap(struct vma_iterator *v
- 	if (end == start)
- 		return -EINVAL;
+ 	if (newflags == oldflags) {
+ 		*pprev = vma;
+ 		return 0;
+@@ -769,15 +772,6 @@ static int do_mprotect_pkey(unsigned lon
+ 		}
+ 	}
  
 -	/*
--	 * Check if memory is sealed, prevent unmapping a sealed VMA.
+-	 * checking if memory is sealed.
 -	 * can_modify_mm assumes we have acquired the lock on MM.
 -	 */
--	if (unlikely(!can_modify_mm(mm, start, end)))
--		return -EPERM;
+-	if (unlikely(!can_modify_mm(current->mm, start, end))) {
+-		error = -EPERM;
+-		goto out;
+-	}
 -
- 	/* Find the first overlapping VMA */
- 	vma = vma_find(vmi, end);
- 	if (!vma) {
+ 	prev = vma_prev(&vmi);
+ 	if (start > vma->vm_start)
+ 		prev = vma;
 _
 
 Patches currently in -mm which might be from pedro.falcato@gmail.com are
