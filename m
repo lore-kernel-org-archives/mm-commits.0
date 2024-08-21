@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7368E170854;
-	Wed, 21 Aug 2024 20:07:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B7291531C5
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:30:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724270873; cv=none; b=qa07Exop2F0behE978VWIy2uBJTgshrHSb2jHWuw/J/DrsPQpdw1Hfdnu7mUvL/+M9L0lshN/9DzEozZMb5SgFteNUMc+o5BIjK3fPwfrY/jQYe/+U+ZmbgNnQapG8t9RpNbpqAZLvABhLPvm8KoZqlpon7NJ1TeuB5IrBQcZK8=
+	t=1724272229; cv=none; b=iaXKI/x2Iz6wme6h7snXXFh05DwnqO4hiWFQtXUT895/biffR4hRelPdYE9pYQjtA8rNHp6uch4kMj5v4GTGWzoRXH2gQH6hB9ukzQ7/LnqE6dZUI0W2Vn/3yFZNA+mxXDF//0SHzI4/SyEQRRGiUU/+rvqX0TU0W2wjBu5o4RE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724270873; c=relaxed/simple;
-	bh=GNVLiZ5ygNrXffL6ds9GHFULUnbe5MiagZ6/faSJb90=;
-	h=Date:To:From:Subject:Message-Id; b=WDrhQ1VpV6TDOQsMDELrPbVvxxXSleBphTHjrl9ajsH/bnS11om/J+ebJzw4ckYZrKHU3N8onCS52RXVBW8SV6LSQCBw/kBUCLPJtmk7cN0iKv3IhtgYoxANxf+T6/CYzfi9xC+M/fAqhlbtHL4zc4qwcpRJcdlmK/jtyuN4WsM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aok85hY9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724272229; c=relaxed/simple;
+	bh=YS3XYiWQUU2lxoGICGGsT0OLap+HD5OSwIN19HffQfU=;
+	h=Date:To:From:Subject:Message-Id; b=BACRS0h2OShMo3y0Y9wP73BNNE1Iq4ioSa27uIedN0RJSMvUlvn0tE5x/vKk3SPU1R2pu2eSRsJjv6XrNDTYbmLFqFSk0UVyrODRbGkHnmbBV7g5dE2tD86Cgn5hs8P3hs9sBQA6D5d53eJ567mZGWMecAhL3+AgN55fVKqf9wU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vCxNvE1B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aok85hY9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC7CEC32781;
-	Wed, 21 Aug 2024 20:07:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vCxNvE1B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B5EC32781;
+	Wed, 21 Aug 2024 20:30:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724270873;
-	bh=GNVLiZ5ygNrXffL6ds9GHFULUnbe5MiagZ6/faSJb90=;
+	s=korg; t=1724272229;
+	bh=YS3XYiWQUU2lxoGICGGsT0OLap+HD5OSwIN19HffQfU=;
 	h=Date:To:From:Subject:From;
-	b=aok85hY9t6f8jVCWoUUFEakGQTMdfQStPxa2Bc86ZPev9TuXOtojndFyJUf1uYRZI
-	 LhXix4Go9WiELUMNeGC+Jv1jyowZB4RAfIITv0mE27gPgIs5OT+W+MGGHEHk6qgUu3
-	 YQy9d8+wLLDpQHkAY15po3mR3Tmzf1XkC0IwvqgQ=
-Date: Wed, 21 Aug 2024 13:07:55 -0700
-To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,yuzhao@google.com,willy@infradead.org,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,leitao@debian.org,huangzhaoyang@gmail.com,hannes@cmpxchg.org,david@redhat.com,bharata@amd.com,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=vCxNvE1BANKvWxv7EqyyRx+EFoXw1kXUJBAYSaxPVN9kJaxMwaPvDhQB1FofXd+PT
+	 yVp0lpXC30+6dsQkDXut0km3xxwxWg8xpeO3lPAGs+1umZBoYf3+C1wQgfi8uDJuKH
+	 bmHmvANT4uFO2Ghtzti9Z34h5Uq0cqW4nYrlCb34=
+Date: Wed, 21 Aug 2024 13:30:28 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,david@redhat.com,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-skip-cma-pages-when-they-are-not-available.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240821200752.DC7CEC32781@smtp.kernel.org>
+Subject: + printf-remove-%pgt-support.patch added to mm-unstable branch
+Message-Id: <20240821203029.14B5EC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm: skip CMA pages when they are not available"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-mm-skip-cma-pages-when-they-are-not-available.patch
+     Subject: printf: remove %pGt support
+has been added to the -mm mm-unstable branch.  Its filename is
+     printf-remove-%pgt-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-skip-cma-pages-when-they-are-not-available.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/printf-remove-%pgt-support.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,110 +58,199 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: Revert "mm: skip CMA pages when they are not available"
-Date: Wed, 21 Aug 2024 20:26:07 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: printf: remove %pGt support
+Date: Wed, 21 Aug 2024 18:39:09 +0100
 
-This reverts commit 5da226dbfce3a2f44978c2c7cf88166e69a6788b.
+Patch series "Increase the number of bits available in page_type".
 
-lruvec->lru_lock is highly contended and is held when calling
-isolate_lru_folios.  If the lru has a large number of CMA folios
-consecutively, while the allocation type requested is not MIGRATE_MOVABLE,
-isolate_lru_folios can hold the lock for a very long time while it skips
-those.  For FIO workload, ~150million order=0 folios were skipped to
-isolate a few ZONE_DMA folios [1].  This can cause lockups [1] and high
-memory pressure for extended periods of time [2].
+Kent wants more than 16 bits in page_type, so I resurrected this old patch
+and expanded it a bit.  It's a bit more efficient than our current scheme
+(1 4-byte insn vs 3 insns of 13 bytes total) to test a single page type.
 
-[1] https://lore.kernel.org/all/CAOUHufbkhMZYz20aM_3rHZ3OcK4m2puji2FGpUpn_-DevGk3Kg@mail.gmail.com/
-[2] https://lore.kernel.org/all/ZrssOrcJIDy8hacI@gmail.com/
 
-Link: https://lkml.kernel.org/r/9060a32d-b2d7-48c0-8626-1db535653c54@gmail.com
-Fixes: 5da226dbfce3 ("mm: skip CMA pages when they are not available")
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Breno Leitao <leitao@debian.org>
+This patch (of 4):
+
+An upcoming patch will convert page type from being a bitfield to a single
+bit, so we will not be able to use %pG to print the page type any more. 
+The printing of the symbolic name will be restored in that patch.
+
+Link: https://lkml.kernel.org/r/20240821173914.2270383-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821173914.2270383-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: <stable@vger.kernel.org>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ Documentation/core-api/printk-formats.rst |    4 ---
+ include/trace/events/mmflags.h            |   10 -------
+ lib/test_printf.c                         |   26 --------------------
+ lib/vsprintf.c                            |   21 ----------------
+ mm/debug.c                                |    2 -
+ mm/internal.h                             |    1 
+ 6 files changed, 2 insertions(+), 62 deletions(-)
 
---- a/mm/vmscan.c~revert-mm-skip-cma-pages-when-they-are-not-available
-+++ a/mm/vmscan.c
-@@ -1604,25 +1604,6 @@ static __always_inline void update_lru_s
+--- a/Documentation/core-api/printk-formats.rst~printf-remove-%pgt-support
++++ a/Documentation/core-api/printk-formats.rst
+@@ -576,13 +576,12 @@ The field width is passed by value, the
+ Helper macros cpumask_pr_args() and nodemask_pr_args() are available to ease
+ printing cpumask and nodemask.
  
+-Flags bitfields such as page flags, page_type, gfp_flags
++Flags bitfields such as page flags and gfp_flags
+ --------------------------------------------------------
+ 
+ ::
+ 
+ 	%pGp	0x17ffffc0002036(referenced|uptodate|lru|active|private|node=0|zone=2|lastcpupid=0x1fffff)
+-	%pGt	0xffffff7f(buddy)
+ 	%pGg	GFP_USER|GFP_DMA32|GFP_NOWARN
+ 	%pGv	read|exec|mayread|maywrite|mayexec|denywrite
+ 
+@@ -591,7 +590,6 @@ would construct the value. The type of f
+ character. Currently supported are:
+ 
+         - p - [p]age flags, expects value of type (``unsigned long *``)
+-        - t - page [t]ype, expects value of type (``unsigned int *``)
+         - v - [v]ma_flags, expects value of type (``unsigned long *``)
+         - g - [g]fp_flags, expects value of type (``gfp_t *``)
+ 
+--- a/include/trace/events/mmflags.h~printf-remove-%pgt-support
++++ a/include/trace/events/mmflags.h
+@@ -130,16 +130,6 @@ IF_HAVE_PG_ARCH_X(arch_3)
+ 	__def_pageflag_names						\
+ 	) : "none"
+ 
+-#define DEF_PAGETYPE_NAME(_name) { PG_##_name, __stringify(_name) }
+-
+-#define __def_pagetype_names						\
+-	DEF_PAGETYPE_NAME(slab),					\
+-	DEF_PAGETYPE_NAME(hugetlb),					\
+-	DEF_PAGETYPE_NAME(offline),					\
+-	DEF_PAGETYPE_NAME(guard),					\
+-	DEF_PAGETYPE_NAME(table),					\
+-	DEF_PAGETYPE_NAME(buddy)
+-
+ #if defined(CONFIG_X86)
+ #define __VM_ARCH_SPECIFIC_1 {VM_PAT,     "pat"           }
+ #elif defined(CONFIG_PPC)
+--- a/lib/test_printf.c~printf-remove-%pgt-support
++++ a/lib/test_printf.c
+@@ -641,26 +641,12 @@ page_flags_test(int section, int node, i
+ 	test(cmp_buf, "%pGp", &flags);
  }
  
--#ifdef CONFIG_CMA
--/*
-- * It is waste of effort to scan and reclaim CMA pages if it is not available
-- * for current allocation context. Kswapd can not be enrolled as it can not
-- * distinguish this scenario by using sc->gfp_mask = GFP_KERNEL
-- */
--static bool skip_cma(struct folio *folio, struct scan_control *sc)
+-static void __init page_type_test(unsigned int page_type, const char *name,
+-				  char *cmp_buf)
 -{
--	return !current_is_kswapd() &&
--			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
--			folio_migratetype(folio) == MIGRATE_CMA;
--}
--#else
--static bool skip_cma(struct folio *folio, struct scan_control *sc)
--{
--	return false;
--}
--#endif
+-	unsigned long size;
 -
- /*
-  * Isolating page from the lruvec to fill in @dst list by nr_to_scan times.
-  *
-@@ -1669,8 +1650,7 @@ static unsigned long isolate_lru_folios(
- 		nr_pages = folio_nr_pages(folio);
- 		total_scan += nr_pages;
+-	size = scnprintf(cmp_buf, BUF_SIZE, "%#x(", page_type);
+-	if (page_type_has_type(page_type))
+-		size += scnprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
+-
+-	snprintf(cmp_buf + size, BUF_SIZE - size, ")");
+-	test(cmp_buf, "%pGt", &page_type);
+-}
+-
+ static void __init
+ flags(void)
+ {
+ 	unsigned long flags;
+ 	char *cmp_buffer;
+ 	gfp_t gfp;
+-	unsigned int page_type;
  
--		if (folio_zonenum(folio) > sc->reclaim_idx ||
--				skip_cma(folio, sc)) {
-+		if (folio_zonenum(folio) > sc->reclaim_idx) {
- 			nr_skipped[folio_zonenum(folio)] += nr_pages;
- 			move_to = &folios_skipped;
- 			goto move;
-@@ -4273,6 +4253,25 @@ void lru_gen_soft_reclaim(struct mem_cgr
+ 	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+ 	if (!cmp_buffer)
+@@ -700,18 +686,6 @@ flags(void)
+ 	gfp |= __GFP_HIGH;
+ 	test(cmp_buffer, "%pGg", &gfp);
  
- #endif /* CONFIG_MEMCG */
+-	page_type = ~0;
+-	page_type_test(page_type, "", cmp_buffer);
+-
+-	page_type = 10;
+-	page_type_test(page_type, "", cmp_buffer);
+-
+-	page_type = ~PG_buddy;
+-	page_type_test(page_type, "buddy", cmp_buffer);
+-
+-	page_type = ~(PG_table | PG_buddy);
+-	page_type_test(page_type, "table|buddy", cmp_buffer);
+-
+ 	kfree(cmp_buffer);
+ }
  
-+#ifdef CONFIG_CMA
-+/*
-+ * It is waste of effort to scan and reclaim CMA pages if it is not available
-+ * for current allocation context. Kswapd can not be enrolled as it can not
-+ * distinguish this scenario by using sc->gfp_mask = GFP_KERNEL
-+ */
-+static bool skip_cma(struct folio *folio, struct scan_control *sc)
-+{
-+	return !current_is_kswapd() &&
-+			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
-+			folio_migratetype(folio) == MIGRATE_CMA;
-+}
-+#else
-+static bool skip_cma(struct folio *folio, struct scan_control *sc)
-+{
-+	return false;
-+}
-+#endif
-+
- /******************************************************************************
-  *                          the eviction
-  ******************************************************************************/
+--- a/lib/vsprintf.c~printf-remove-%pgt-support
++++ a/lib/vsprintf.c
+@@ -2054,25 +2054,6 @@ char *format_page_flags(char *buf, char
+ 	return buf;
+ }
+ 
+-static
+-char *format_page_type(char *buf, char *end, unsigned int page_type)
+-{
+-	buf = number(buf, end, page_type, default_flag_spec);
+-
+-	if (buf < end)
+-		*buf = '(';
+-	buf++;
+-
+-	if (page_type_has_type(page_type))
+-		buf = format_flags(buf, end, ~page_type, pagetype_names);
+-
+-	if (buf < end)
+-		*buf = ')';
+-	buf++;
+-
+-	return buf;
+-}
+-
+ static noinline_for_stack
+ char *flags_string(char *buf, char *end, void *flags_ptr,
+ 		   struct printf_spec spec, const char *fmt)
+@@ -2086,8 +2067,6 @@ char *flags_string(char *buf, char *end,
+ 	switch (fmt[1]) {
+ 	case 'p':
+ 		return format_page_flags(buf, end, *(unsigned long *)flags_ptr);
+-	case 't':
+-		return format_page_type(buf, end, *(unsigned int *)flags_ptr);
+ 	case 'v':
+ 		flags = *(unsigned long *)flags_ptr;
+ 		names = vmaflag_names;
+--- a/mm/debug.c~printf-remove-%pgt-support
++++ a/mm/debug.c
+@@ -92,7 +92,7 @@ static void __dump_folio(struct folio *f
+ 	pr_warn("%sflags: %pGp%s\n", type, &folio->flags,
+ 		is_migrate_cma_folio(folio, pfn) ? " CMA" : "");
+ 	if (page_has_type(&folio->page))
+-		pr_warn("page_type: %pGt\n", &folio->page.page_type);
++		pr_warn("page_type: %x\n", folio->page.page_type);
+ 
+ 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
+ 			sizeof(unsigned long), page,
+--- a/mm/internal.h~printf-remove-%pgt-support
++++ a/mm/internal.h
+@@ -1153,7 +1153,6 @@ static inline void flush_tlb_batched_pen
+ #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
+ 
+ extern const struct trace_print_flags pageflag_names[];
+-extern const struct trace_print_flags pagetype_names[];
+ extern const struct trace_print_flags vmaflag_names[];
+ extern const struct trace_print_flags gfpflag_names[];
+ 
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-revert-mm-skip-cma-pages-when-they-are-not-available.patch
+fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
+mm-remove-pg_error.patch
+mm-return-the-folio-from-swapin_readahead.patch
+printf-remove-%pgt-support.patch
+mm-introduce-page_mapcount_is_type.patch
+mm-support-only-one-page_type-per-page.patch
+zsmalloc-use-all-available-24-bits-of-page_type.patch
 
