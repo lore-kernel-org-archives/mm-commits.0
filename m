@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1443B16FF3B
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:34:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A5E7405A
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:06:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724272452; cv=none; b=qepBorr/qxzZgyUz7OmwFNrwcNnfRuwZH6dkhIpu39loappiCt16809laY8UhCV9WGkhK+P0a0LrmUO1Zy2MAkleaoNyJGKmGp4OLE03fRIE/gkTEyFd/z0O2/nbrwJWwaXRM0gWvf7Q6yvB2wYWOgMxY3ubhWkJUTAC/pThQ90=
+	t=1724274376; cv=none; b=i1c26H3H5uP5x5yA8tLnm2VHOOfgUMRK/2QvcBzbmDtQ/aXK5ECRXVDv/L6BZM1u4hl/loo6DilQEZes2Ac7kTMniuEzVHqPrTzLC3VjyBScH3enFlNzl4pEl3xrhnVa7LompEpwRTmhXB6d7GNR7wB0ciglgrEqZnNMSKKBVyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724272452; c=relaxed/simple;
-	bh=6VDBMR1UUvY61Z7LcdobQgKSP/0dnp4qUnRgRKQLi7U=;
-	h=Date:To:From:Subject:Message-Id; b=kJ12Zg+aaFRH+QZn3PLesvtOGKU4+7RaHVfovhORtPfH4iiNF1MKc12PRE40nRuvRrdCyKLkDW/76X8VgqsNtxEmSJEgtdY1VpqeJtudZ3fYgG9ocQSGG1juKahVOTUTyaTGtkya2do7cX54wp0RO3uz+31gKxnGN0ZWnbeKnmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyLiRGTW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724274376; c=relaxed/simple;
+	bh=ZADX0+WEeOEwypjse+iX1xtxwwDsYQX2D7mySDgzGIM=;
+	h=Date:To:From:Subject:Message-Id; b=X8Hvcs4qaGmxtHgPk95UQpr4P5DqNI5yYrTJ2wxjIKlGOwIPetrpOvHhJsO6JGJIjb0T8fOp7iMaPXGlK7JuZYesLr3K4UcRzdjUNLHC+zRZ2YFiyQhKuGQSUDxrjEjyp4DpjXt2lkS3TUkf4WBELqoqBdUad79YQtcJGJ9zcys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OB7c5ts8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyLiRGTW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A07C32781;
-	Wed, 21 Aug 2024 20:34:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OB7c5ts8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EFC1C4AF10;
+	Wed, 21 Aug 2024 21:06:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724272452;
-	bh=6VDBMR1UUvY61Z7LcdobQgKSP/0dnp4qUnRgRKQLi7U=;
+	s=korg; t=1724274375;
+	bh=ZADX0+WEeOEwypjse+iX1xtxwwDsYQX2D7mySDgzGIM=;
 	h=Date:To:From:Subject:From;
-	b=oyLiRGTWun4hM0lFWwGB370GFLhmt0hnybOu+NfMR7rzL6latfrMhQGRSOK/zpLr3
-	 1Uyh+adzvFLGlA+IguOjQk+l6Cs74yhS2803MzyZt8Y7wIzq7T0lcEnd74i6aZ067L
-	 oFYEJAmo5D0hE7n7sD3B2b51/yz3s0LLv7rhQReg=
-Date: Wed, 21 Aug 2024 13:34:11 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=OB7c5ts8ogpGhkSJua7MHSkN87y8qZ0RC482thcyNsoWdwcErefb24bfPSTpSYiAE
+	 gtKuyDHg+4xiUe+zz81qZp38gJvppAGq4VCiV+mquKqBICy9k4tyeUFjkpmkFOhlRG
+	 lwy27vwkqg6G6Tl+07EYtrD4KeOeuuc2DCxFkkz0=
+Date: Wed, 21 Aug 2024 14:06:14 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,ira.weiny@intel.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-remove-pg_uncached.patch added to mm-unstable branch
-Message-Id: <20240821203411.D5A07C32781@smtp.kernel.org>
+Subject: [to-be-updated] resource-fix-region_intersects-for-cxl-memory.patch removed from -mm tree
+Message-Id: <20240821210615.6EFC1C4AF10@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,339 +34,204 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: x86: remove PG_uncached
-has been added to the -mm mm-unstable branch.  Its filename is
-     x86-remove-pg_uncached.patch
+The quilt patch titled
+     Subject: resource: fix region_intersects() for CXL memory
+has been removed from the -mm tree.  Its filename was
+     resource-fix-region_intersects-for-cxl-memory.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-remove-pg_uncached.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: x86: remove PG_uncached
-Date: Wed, 21 Aug 2024 20:34:43 +0100
+From: Huang Ying <ying.huang@intel.com>
+Subject: resource: fix region_intersects() for CXL memory
+Date: Fri, 16 Aug 2024 10:07:23 +0800
 
-Convert x86 to use PG_arch_2 instead of PG_uncached and remove
-PG_uncached.
+On a system with CXL memory installed, the resource tree (/proc/iomem)
+related to CXL memory looks like something as follows.
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-11-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+490000000-50fffffff : CXL Window 0
+  490000000-50fffffff : region0
+    490000000-50fffffff : dax0.0
+      490000000-50fffffff : System RAM (kmem)
+
+When the following command line is run to try writing some memory in
+CXL memory range,
+
+ $ dd if=data of=/dev/mem bs=1k seek=19136512 count=1
+ dd: error writing '/dev/mem': Bad address
+ 1+0 records in
+ 0+0 records out
+ 0 bytes copied, 0.0283507 s, 0.0 kB/s
+
+the command fails as expected.  However, the error code is wrong.  It
+should be "Operation not permitted" instead of "Bad address".  And,
+the following warning is reported in kernel log.
+
+ ioremap on RAM at 0x0000000490000000 - 0x0000000490000fff
+ WARNING: CPU: 2 PID: 416 at arch/x86/mm/ioremap.c:216 __ioremap_caller.constprop.0+0x131/0x35d
+ Modules linked in: cxl_pmem libnvdimm cbc encrypted_keys cxl_pmu
+ CPU: 2 UID: 0 PID: 416 Comm: dd Not tainted 6.11.0-rc3-kvm #40
+ Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+ RIP: 0010:__ioremap_caller.constprop.0+0x131/0x35d
+ Code: 2d 80 3d 24 6a a1 02 00 75 c1 48 8d 54 24 70 48 8d b4 24 90 00 00 00 48 c7 c7 40 3a 05 8a c6 05 07 6a a1 02 01 e8 a3 a0 01 00 <0f> 0b eb 9d 48 8b 84 24 90 00 00 00 48 8d 4c 24 60 89 ea 48 bf 00
+ RSP: 0018:ffff888105387bf0 EFLAGS: 00010282
+ RAX: 0000000000000000 RBX: 0000000490000fff RCX: 0000000000000000
+ RDX: 0000000000000001 RSI: 0000000000000003 RDI: ffffed1020a70f73
+ RBP: 0000000000000000 R08: ffffed100d9fce92 R09: 0000000000000001
+ R10: ffffffff892348e7 R11: ffffed100d9fce91 R12: 0000000490000000
+ R13: 0000000000000001 R14: 0000000000000001 R15: ffff888105387ca0
+ FS:  00007f86c438c740(0000) GS:ffff88806ce00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 000055ba75b1b818 CR3: 0000000005231000 CR4: 0000000000350eb0
+ Call Trace:
+  <TASK>
+  ? __warn+0xd7/0x1b8
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? report_bug+0x136/0x19e
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? handle_bug+0x3c/0x64
+  ? exc_invalid_op+0x13/0x38
+  ? asm_exc_invalid_op+0x16/0x20
+  ? irq_work_claim+0x16/0x38
+  ? __ioremap_caller.constprop.0+0x131/0x35d
+  ? tracer_hardirqs_off+0x18/0x16d
+  ? kmem_cache_debug_flags+0x16/0x23
+  ? memremap+0xcb/0x184
+  ? iounmap+0xfe/0xfe
+  ? lock_sync+0xc7/0xc7
+  ? lock_sync+0xc7/0xc7
+  ? rcu_is_watching+0x1c/0x38
+  ? do_raw_read_unlock+0x37/0x42
+  ? _raw_read_unlock+0x1f/0x2f
+  memremap+0xcb/0x184
+  ? pfn_valid+0x159/0x159
+  ? resource_is_exclusive+0xba/0xc5
+  xlate_dev_mem_ptr+0x25/0x2f
+  write_mem+0x94/0xfb
+  vfs_write+0x128/0x26d
+  ? kernel_write+0x89/0x89
+  ? rcu_is_watching+0x1c/0x38
+  ? __might_fault+0x72/0xba
+  ? __might_fault+0x72/0xba
+  ? rcu_is_watching+0x1c/0x38
+  ? lock_release+0xba/0x13e
+  ? files_lookup_fd_raw+0x40/0x4b
+  ? __fget_light+0x64/0x89
+  ksys_write+0xac/0xfe
+  ? __ia32_sys_read+0x40/0x40
+  ? tracer_hardirqs_off+0x18/0x16d
+  ? tracer_hardirqs_on+0x11/0x146
+  do_syscall_64+0x9a/0xfd
+  entry_SYSCALL_64_after_hwframe+0x4b/0x53
+ RIP: 0033:0x7f86c4487140
+ Code: 40 00 48 8b 15 c1 9c 0d 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 80 3d a1 24 0e 00 00 74 17 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 58 c3 0f 1f 80 00 00 00 00 48 83 ec 28 48 89
+ RSP: 002b:00007ffca9f62af8 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+ RAX: ffffffffffffffda RBX: 0000000000000400 RCX: 00007f86c4487140
+ RDX: 0000000000000400 RSI: 000055ba75b1a000 RDI: 0000000000000001
+ RBP: 000055ba75b1a000 R08: 0000000000000000 R09: 00007f86c457c080
+ R10: 00007f86c43a84d0 R11: 0000000000000202 R12: 0000000000000000
+ R13: 0000000000000000 R14: 000055ba75b1a000 R15: 0000000000000400
+  </TASK>
+ irq event stamp: 0
+ hardirqs last  enabled at (0): [<0000000000000000>] 0x0
+ hardirqs last disabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
+ softirqs last  enabled at (0): [<ffffffff89091e85>] copy_process+0xb60/0x255f
+ softirqs last disabled at (0): [<0000000000000000>] 0x0
+
+After investigation, we found the following bug.
+
+In the above resource tree, "System RAM" is a descendant of "CXL Window 0"
+instead of a top level resource.  So, region_intersects() will report no
+System RAM resources in the CXL memory region incorrectly, because it only
+checks the top level resources.  Consequently, devmem_is_allowed() will
+return 1 (allow access via /dev/mem) for CXL memory region incorrectly. 
+Fortunately, ioremap() doesn't allow to map System RAM and reject the
+access.
+
+However, region_intersects() needs to be fixed to work correctly with the
+resources tree with CXL Window as above.  To fix it, we will search
+matched resources in the descendant resources too.  So, we will not miss
+any matched resources anymore.
+
+Link: https://lkml.kernel.org/r/20240816020723.771196-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/vm/PG_uncached/arch-support.txt |   30 ----------
- arch/arm64/Kconfig                                     |    3 -
- arch/x86/Kconfig                                       |    5 -
- arch/x86/mm/pat/memtype.c                              |    8 +-
- fs/proc/page.c                                         |    8 +-
- include/linux/kernel-page-flags.h                      |    1 
- include/linux/page-flags.h                             |   13 +---
- include/trace/events/mmflags.h                         |   23 +++----
- mm/Kconfig                                             |    9 +--
- mm/huge_memory.c                                       |    4 +
- tools/mm/page-types.c                                  |    3 -
- 11 files changed, 31 insertions(+), 76 deletions(-)
+ kernel/resource.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
---- a/arch/arm64/Kconfig~x86-remove-pg_uncached
-+++ a/arch/arm64/Kconfig
-@@ -2100,7 +2100,8 @@ config ARM64_MTE
- 	depends on ARM64_PAN
- 	select ARCH_HAS_SUBPAGE_FAULTS
- 	select ARCH_USES_HIGH_VMA_FLAGS
--	select ARCH_USES_PG_ARCH_X
-+	select ARCH_USES_PG_ARCH_2
-+	select ARCH_USES_PG_ARCH_3
- 	help
- 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
- 	  architectural support for run-time, always-on detection of
---- a/arch/x86/Kconfig~x86-remove-pg_uncached
-+++ a/arch/x86/Kconfig
-@@ -1799,6 +1799,7 @@ config X86_PAT
- 	def_bool y
- 	prompt "x86 PAT support" if EXPERT
- 	depends on MTRR
-+	select ARCH_USES_PG_ARCH_2
- 	help
- 	  Use PAT attributes to setup page level cache control.
+--- a/kernel/resource.c~resource-fix-region_intersects-for-cxl-memory
++++ a/kernel/resource.c
+@@ -542,18 +542,48 @@ static int __region_intersects(struct re
+ {
+ 	struct resource res;
+ 	int type = 0; int other = 0;
+-	struct resource *p;
++	struct resource *p, *dp;
++	resource_size_t ostart, oend;
++	bool is_type;
  
-@@ -1810,10 +1811,6 @@ config X86_PAT
+ 	res.start = start;
+ 	res.end = start + size - 1;
  
- 	  If unsure, say Y.
- 
--config ARCH_USES_PG_UNCACHED
--	def_bool y
--	depends on X86_PAT
+ 	for (p = parent->child; p ; p = p->sibling) {
+-		bool is_type = (((p->flags & flags) == flags) &&
+-				((desc == IORES_DESC_NONE) ||
+-				 (desc == p->desc)));
 -
- config X86_UMIP
- 	def_bool y
- 	prompt "User Mode Instruction Prevention" if EXPERT
---- a/arch/x86/mm/pat/memtype.c~x86-remove-pg_uncached
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -104,7 +104,7 @@ __setup("debugpat", pat_debug_setup);
+-		if (resource_overlaps(p, &res))
+-			is_type ? type++ : other++;
++		if (!resource_overlaps(p, &res))
++			continue;
++		is_type = (((p->flags & flags) == flags) &&
++			   ((desc == IORES_DESC_NONE) || (desc == p->desc)));
++		if (is_type) {
++			type++;
++			continue;
++		}
++		/*
++		 * Continue to search in descendant resources.  Unless
++		 * the matched descendant resources cover the whole
++		 * overlapped range, increase 'other', because it
++		 * overlaps with 'p' at least.
++		 */
++		other++;
++		ostart = max(res.start, p->start);
++		oend = min(res.end, p->end);
++		for_each_resource(p, dp, false) {
++			if (!resource_overlaps(dp, &res))
++				continue;
++			is_type = (((dp->flags & flags) == flags) &&
++				   ((desc == IORES_DESC_NONE) ||
++				    (desc == dp->desc)));
++			if (is_type) {
++				type++;
++				if (dp->start > ostart)
++					break;
++				if (dp->end >= oend) {
++					other--;
++					break;
++				}
++				ostart = dp->end + 1;
++			}
++		}
+ 	}
  
- #ifdef CONFIG_X86_PAT
- /*
-- * X86 PAT uses page flags arch_1 and uncached together to keep track of
-+ * X86 PAT uses page flags arch_1 and arch_2 together to keep track of
-  * memory type of pages that have backing page struct.
-  *
-  * X86 PAT supports 4 different memory types:
-@@ -118,9 +118,9 @@ __setup("debugpat", pat_debug_setup);
- 
- #define _PGMT_WB		0
- #define _PGMT_WC		(1UL << PG_arch_1)
--#define _PGMT_UC_MINUS		(1UL << PG_uncached)
--#define _PGMT_WT		(1UL << PG_uncached | 1UL << PG_arch_1)
--#define _PGMT_MASK		(1UL << PG_uncached | 1UL << PG_arch_1)
-+#define _PGMT_UC_MINUS		(1UL << PG_arch_2)
-+#define _PGMT_WT		(1UL << PG_arch_2 | 1UL << PG_arch_1)
-+#define _PGMT_MASK		(1UL << PG_arch_2 | 1UL << PG_arch_1)
- #define _PGMT_CLEAR_MASK	(~_PGMT_MASK)
- 
- static inline enum page_cache_mode get_page_memtype(struct page *pg)
-diff --git a/Documentation/features/vm/PG_uncached/arch-support.txt a/Documentation/features/vm/PG_uncached/arch-support.txt
-deleted file mode 100644
---- a/Documentation/features/vm/PG_uncached/arch-support.txt
-+++ /dev/null
-@@ -1,30 +0,0 @@
--#
--# Feature name:          PG_uncached
--#         Kconfig:       ARCH_USES_PG_UNCACHED
--#         description:   arch supports the PG_uncached page flag
--#
--    -----------------------
--    |         arch |status|
--    -----------------------
--    |       alpha: | TODO |
--    |         arc: | TODO |
--    |         arm: | TODO |
--    |       arm64: | TODO |
--    |        csky: | TODO |
--    |     hexagon: | TODO |
--    |   loongarch: | TODO |
--    |        m68k: | TODO |
--    |  microblaze: | TODO |
--    |        mips: | TODO |
--    |       nios2: | TODO |
--    |    openrisc: | TODO |
--    |      parisc: | TODO |
--    |     powerpc: | TODO |
--    |       riscv: | TODO |
--    |        s390: | TODO |
--    |          sh: | TODO |
--    |       sparc: | TODO |
--    |          um: | TODO |
--    |         x86: |  ok  |
--    |      xtensa: | TODO |
--    -----------------------
---- a/fs/proc/page.c~x86-remove-pg_uncached
-+++ a/fs/proc/page.c
-@@ -206,18 +206,16 @@ u64 stable_page_flags(const struct page
- 		u |= kpf_copy_bit(page->flags, KPF_HWPOISON,	PG_hwpoison);
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--	u |= kpf_copy_bit(k, KPF_UNCACHED,	PG_uncached);
--#endif
--
- 	u |= kpf_copy_bit(k, KPF_RESERVED,	PG_reserved);
- 	u |= kpf_copy_bit(k, KPF_OWNER_2,	PG_owner_2);
- 	u |= kpf_copy_bit(k, KPF_PRIVATE,	PG_private);
- 	u |= kpf_copy_bit(k, KPF_PRIVATE_2,	PG_private_2);
- 	u |= kpf_copy_bit(k, KPF_OWNER_PRIVATE,	PG_owner_priv_1);
- 	u |= kpf_copy_bit(k, KPF_ARCH,		PG_arch_1);
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 	u |= kpf_copy_bit(k, KPF_ARCH_2,	PG_arch_2);
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 	u |= kpf_copy_bit(k, KPF_ARCH_3,	PG_arch_3);
- #endif
- 
---- a/include/linux/kernel-page-flags.h~x86-remove-pg_uncached
-+++ a/include/linux/kernel-page-flags.h
-@@ -15,7 +15,6 @@
- #define KPF_PRIVATE_2		36
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
--#define KPF_UNCACHED		39
- #define KPF_SOFTDIRTY		40
- #define KPF_ARCH_2		41
- #define KPF_ARCH_3		42
---- a/include/linux/page-flags.h~x86-remove-pg_uncached
-+++ a/include/linux/page-flags.h
-@@ -113,9 +113,6 @@ enum pageflags {
- #ifdef CONFIG_MMU
- 	PG_mlocked,		/* Page is vma mlocked */
- #endif
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--	PG_uncached,		/* Page has been mapped as uncached */
--#endif
- #ifdef CONFIG_MEMORY_FAILURE
- 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
- #endif
-@@ -123,8 +120,10 @@ enum pageflags {
- 	PG_young,
- 	PG_idle,
- #endif
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 	PG_arch_2,
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 	PG_arch_3,
- #endif
- 	__NR_PAGEFLAGS,
-@@ -602,12 +601,6 @@ FOLIO_FLAG_FALSE(mlocked)
- 	FOLIO_TEST_SET_FLAG_FALSE(mlocked)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--PAGEFLAG(Uncached, uncached, PF_NO_COMPOUND)
--#else
--PAGEFLAG_FALSE(Uncached, uncached)
--#endif
--
- #ifdef CONFIG_MEMORY_FAILURE
- PAGEFLAG(HWPoison, hwpoison, PF_ANY)
- TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
---- a/include/trace/events/mmflags.h~x86-remove-pg_uncached
-+++ a/include/trace/events/mmflags.h
-@@ -71,12 +71,6 @@
- #define IF_HAVE_PG_MLOCK(_name)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--#define IF_HAVE_PG_UNCACHED(_name) ,{1UL << PG_##_name, __stringify(_name)}
--#else
--#define IF_HAVE_PG_UNCACHED(_name)
--#endif
--
- #ifdef CONFIG_MEMORY_FAILURE
- #define IF_HAVE_PG_HWPOISON(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
-@@ -89,10 +83,16 @@
- #define IF_HAVE_PG_IDLE(_name)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
--#define IF_HAVE_PG_ARCH_X(_name) ,{1UL << PG_##_name, __stringify(_name)}
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
-+#define IF_HAVE_PG_ARCH_2(_name) ,{1UL << PG_##_name, __stringify(_name)}
-+#else
-+#define IF_HAVE_PG_ARCH_2(_name)
-+#endif
-+
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
-+#define IF_HAVE_PG_ARCH_3(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_ARCH_X(_name)
-+#define IF_HAVE_PG_ARCH_3(_name)
- #endif
- 
- #define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
-@@ -118,12 +118,11 @@
- 	DEF_PAGEFLAG_NAME(swapbacked),					\
- 	DEF_PAGEFLAG_NAME(unevictable)					\
- IF_HAVE_PG_MLOCK(mlocked)						\
--IF_HAVE_PG_UNCACHED(uncached)						\
- IF_HAVE_PG_HWPOISON(hwpoison)						\
- IF_HAVE_PG_IDLE(idle)							\
- IF_HAVE_PG_IDLE(young)							\
--IF_HAVE_PG_ARCH_X(arch_2)						\
--IF_HAVE_PG_ARCH_X(arch_3)
-+IF_HAVE_PG_ARCH_2(arch_2)						\
-+IF_HAVE_PG_ARCH_3(arch_3)
- 
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
---- a/mm/huge_memory.c~x86-remove-pg_uncached
-+++ a/mm/huge_memory.c
-@@ -3077,8 +3077,10 @@ static void __split_huge_page_tail(struc
- 			 (1L << PG_workingset) |
- 			 (1L << PG_locked) |
- 			 (1L << PG_unevictable) |
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 			 (1L << PG_arch_2) |
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 			 (1L << PG_arch_3) |
- #endif
- 			 (1L << PG_dirty) |
---- a/mm/Kconfig~x86-remove-pg_uncached
-+++ a/mm/Kconfig
-@@ -1079,13 +1079,10 @@ config ARCH_USES_HIGH_VMA_FLAGS
- config ARCH_HAS_PKEYS
- 	bool
- 
--config ARCH_USES_PG_ARCH_X
-+config ARCH_USES_PG_ARCH_2
-+	bool
-+config ARCH_USES_PG_ARCH_3
- 	bool
--	help
--	  Enable the definition of PG_arch_x page flags with x > 1. Only
--	  suitable for 64-bit architectures with CONFIG_FLATMEM or
--	  CONFIG_SPARSEMEM_VMEMMAP enabled, otherwise there may not be
--	  enough room for additional bits in page->flags.
- 
- config VM_EVENT_COUNTERS
- 	default y
---- a/tools/mm/page-types.c~x86-remove-pg_uncached
-+++ a/tools/mm/page-types.c
-@@ -76,7 +76,7 @@
- #define KPF_PRIVATE_2		36
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
--#define KPF_UNCACHED		39
-+#define KPF_UNCACHED		39	/* unused */
- #define KPF_SOFTDIRTY		40
- #define KPF_ARCH_2		41
- 
-@@ -134,7 +134,6 @@ static const char * const page_flag_name
- 	[KPF_PRIVATE_2]		= "p:private_2",
- 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
- 	[KPF_ARCH]		= "h:arch",
--	[KPF_UNCACHED]		= "c:uncached",
- 	[KPF_SOFTDIRTY]		= "f:softdirty",
- 	[KPF_ARCH_2]		= "H:arch_2",
- 
+ 	if (type == 0)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
-mm-remove-pg_error.patch
-mm-return-the-folio-from-swapin_readahead.patch
-printf-remove-%pgt-support.patch
-mm-introduce-page_mapcount_is_type.patch
-mm-support-only-one-page_type-per-page.patch
-zsmalloc-use-all-available-24-bits-of-page_type.patch
-mm-remove-pageactive.patch
-mm-remove-pageswapbacked.patch
-mm-remove-pagereadahead.patch
-mm-remove-pageswapcache.patch
-mm-remove-pageunevictable.patch
-mm-remove-pagemlocked.patch
-mm-remove-pageownerpriv1.patch
-mm-remove-page_has_private.patch
-mm-rename-pg_mappedtodisk-to-pg_owner_2.patch
-x86-remove-pg_uncached.patch
 
