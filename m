@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410C417C211
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:58:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1031317C7B6
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:58:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724277489; cv=none; b=iCZyNTeIo5jBwOQ7sTTzuFtSWrbqyUduiYMO/p6j8nkorkYUNpTyHc//yX5lUC3uAgnSXd8mqAzRoysy6Pj4RmhBgpYMmgd8bDdCu4uziaYgHYMXjESGcbP5c+W0PYQhpYDOV/DQRyx/OTsIeBtfGqCuM33BDcWHV1RzftiepGg=
+	t=1724277491; cv=none; b=m+eUxA2pXf8p+IFPIqO8bA57ii5FHrOQLivYBqVqpZEGju1C4E/APqttEKAzMwk2Uvakdadw3BJQG2LVIhsEnCyIcs5Og9xtHxKGEqiSyzG532/MofldzAEgcXWGPCBxB+kZtBJxme8QOqcfeRegtaSDczO01N7rzde64QKR5x0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724277489; c=relaxed/simple;
-	bh=ng1jNyrQPiTHiJ0s9CU7YiY6zfFECD4x1M6M3H4Fw0I=;
-	h=Date:To:From:Subject:Message-Id; b=FmixYZ6RoMpM0k7FEjrXNy0wBo34fxeRPPxbgH/EX8UK3PAZVzO9f11SHg9LfEJCAcbI3NzoucFOjOrGhZzgVIiuhb8RxhwzPZOzoLyzMskTiu9ZW7eEAWcr5Y6UBWq8TkmY1maPYaRLnrXbuOi5wlIJHt0aI41aYdHgEXSpfjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=skocs2+d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724277491; c=relaxed/simple;
+	bh=v9JU0mAwkDowSTBXj9WKz9hR8iOOLhlVHmJpPr7/E98=;
+	h=Date:To:From:Subject:Message-Id; b=HSXJGIzyhUP+sR4PupZm0dDCcT6QcAZ6Fa8PkMADRFBZITtNvwWVMPUn4BBFySL6D4a70g1D1RJ8AgsZWvSTh5CI/5Xp76wHpQVQ5dPScWlmO8DA3qydBh4tdJpKcaP+1P6NnZ/zzd7YV0gOzIN/pSulRE5Yl5GxLBb3aRfBb4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p5AbMBmc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="skocs2+d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC757C32781;
-	Wed, 21 Aug 2024 21:58:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p5AbMBmc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F54BC4AF0E;
+	Wed, 21 Aug 2024 21:58:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724277488;
-	bh=ng1jNyrQPiTHiJ0s9CU7YiY6zfFECD4x1M6M3H4Fw0I=;
+	s=korg; t=1724277490;
+	bh=v9JU0mAwkDowSTBXj9WKz9hR8iOOLhlVHmJpPr7/E98=;
 	h=Date:To:From:Subject:From;
-	b=skocs2+d4U1yl3Z3curriNhL2LXxBniwdiFyK97ceWoktkENqFknymmYCu97oTz3e
-	 2ry6eI/QZeBgz3JLnAWrD1rYGHtVbzoXa/wn+6dnneNdh8v5EjgzS0Fb2XV8GFRGWt
-	 3do2+jY+zCPSIg8iH9xwXaAy3bup/7Jp0p1ih8AI=
-Date: Wed, 21 Aug 2024 14:58:07 -0700
+	b=p5AbMBmcpd4V2AC3FMAIDN8rVb9AFCfuPFFALIFryie7rIK89czccu2lQgv8OncQw
+	 rKXzVeMh95RmT7Ub0odOuYtajfXJhQZPYwyQS3EN3D4S32/H5YM/j+APZmAgF5KRg6
+	 oDe4w/xMvNNg3xtEU6EEhAA8WrOlt3oCAbK2ECEw=
+Date: Wed, 21 Aug 2024 14:58:09 -0700
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,Jonathan.Cameron@Huawei.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-add-unmap_posioned_folio-fix.patch added to mm-unstable branch
-Message-Id: <20240821215808.AC757C32781@smtp.kernel.org>
+Subject: + mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix.patch added to mm-unstable branch
+Message-Id: <20240821215810.7F54BC4AF0E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memory-failure-add-unmap_posioned_folio-fix
+     Subject: mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-add-unmap_posioned_folio-fix.patch
+     mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-unmap_posioned_folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,10 +59,10 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failure-add-unmap_posioned_folio-fix
-Date: Wed Aug 21 02:55:01 PM PDT 2024
+Subject: mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix
+Date: Wed Aug 21 02:56:38 PM PDT 2024
 
-s/unmap_posioned_folio/unmap_posioned_folio/, per Miaohe Lin
+s/unmap_posioned_folio/unmap_poisoned_folio/
 
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
@@ -73,50 +73,20 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h       |    4 ++--
- mm/memory-failure.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-memory-failure-add-unmap_posioned_folio-fix
-+++ a/mm/internal.h
-@@ -1049,7 +1049,7 @@ static inline int find_next_best_node(in
-  * mm/memory-failure.c
-  */
- #ifdef CONFIG_MEMORY_FAILURE
--int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu);
-+int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu);
- void shake_folio(struct folio *folio);
- extern int hwpoison_filter(struct page *p);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix
++++ a/mm/memory_hotplug.c
+@@ -1808,7 +1808,7 @@ static void do_migrate_range(unsigned lo
+ 			if (WARN_ON(folio_test_lru(folio)))
+ 				folio_isolate_lru(folio);
+ 			if (folio_mapped(folio))
+-				unmap_posioned_folio(folio, TTU_IGNORE_MLOCK);
++				unmap_poisoned_folio(folio, TTU_IGNORE_MLOCK);
+ 			continue;
+ 		}
  
-@@ -1071,7 +1071,7 @@ void add_to_kill_ksm(struct task_struct
- unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
- 
- #else
--static inline int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
-+static inline int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
- {
- 	return 0;
- }
---- a/mm/memory-failure.c~mm-memory-failure-add-unmap_posioned_folio-fix
-+++ a/mm/memory-failure.c
-@@ -1554,7 +1554,7 @@ static int get_hwpoison_page(struct page
- 	return ret;
- }
- 
--int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
-+int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
- {
- 	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
- 		struct address_space *mapping;
-@@ -1639,7 +1639,7 @@ static bool hwpoison_user_mappings(struc
- 	 */
- 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
- 
--	if (unmap_posioned_folio(folio, ttu))
-+	if (unmap_poisoned_folio(folio, ttu))
- 		pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
- 
- 	unmap_success = !folio_mapped(folio);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
