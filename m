@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADB313A3E8
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:40:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410C417C211
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:58:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724276426; cv=none; b=jQ84ThBkfK43LnZeS+8SD3D9OhMpq0wdrtdS1+FP5UShf4pJN4dVxanql9IRZ3DRD/GnTXkmMtxb5Et6Yz2jWhKqagLdTCVAyjSdiXgVIN89B0+YvQJ59Dv6QSpfmUJ6glnfunMM1OU1f/tXAc5FRbaN+smFc18c6qCxAiSu1UY=
+	t=1724277489; cv=none; b=iCZyNTeIo5jBwOQ7sTTzuFtSWrbqyUduiYMO/p6j8nkorkYUNpTyHc//yX5lUC3uAgnSXd8mqAzRoysy6Pj4RmhBgpYMmgd8bDdCu4uziaYgHYMXjESGcbP5c+W0PYQhpYDOV/DQRyx/OTsIeBtfGqCuM33BDcWHV1RzftiepGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724276426; c=relaxed/simple;
-	bh=VrMG7NfOlYit9gkoGby23Aevlniuc3UKhnw5qybRy3c=;
-	h=Date:To:From:Subject:Message-Id; b=fnmd8Mbf7kFY8o3JQXo/1Ew3vmexbKs6eqPDaroHH3BNIpeSz4M5TC3KYm436wk8DaXVpmHZvKoOhTP6xIVp7xOWAzjY1GiYN6+EOU3mpkXh0GtnVSuzvOvOVGNM/U0OVQoeMbCj7DFVInEC1ilxI7RG5srcBWXOA+KgAwR5k6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G31RsWHo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724277489; c=relaxed/simple;
+	bh=ng1jNyrQPiTHiJ0s9CU7YiY6zfFECD4x1M6M3H4Fw0I=;
+	h=Date:To:From:Subject:Message-Id; b=FmixYZ6RoMpM0k7FEjrXNy0wBo34fxeRPPxbgH/EX8UK3PAZVzO9f11SHg9LfEJCAcbI3NzoucFOjOrGhZzgVIiuhb8RxhwzPZOzoLyzMskTiu9ZW7eEAWcr5Y6UBWq8TkmY1maPYaRLnrXbuOi5wlIJHt0aI41aYdHgEXSpfjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=skocs2+d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G31RsWHo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0BFC4AF0E;
-	Wed, 21 Aug 2024 21:40:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="skocs2+d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC757C32781;
+	Wed, 21 Aug 2024 21:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724276425;
-	bh=VrMG7NfOlYit9gkoGby23Aevlniuc3UKhnw5qybRy3c=;
+	s=korg; t=1724277488;
+	bh=ng1jNyrQPiTHiJ0s9CU7YiY6zfFECD4x1M6M3H4Fw0I=;
 	h=Date:To:From:Subject:From;
-	b=G31RsWHo/qYc75cif35uu6w0eySC1TSjOl+6rx6p0Y1XV343ogclgRz+jPuuqP0Cv
-	 /xISKHU91s+JNw/pWq4lQ98N9XxQSDkKsFAilQCKUw7ypMAjiW+Mg/1WQp1tnx4ALI
-	 /laH+YbeQPNnNHAo+sDKg6p8hE1jXIQMeCqbPxks=
-Date: Wed, 21 Aug 2024 14:40:24 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,lizhi.xu@windriver.com,akpm@linux-foundation.org
+	b=skocs2+d4U1yl3Z3curriNhL2LXxBniwdiFyK97ceWoktkENqFknymmYCu97oTz3e
+	 2ry6eI/QZeBgz3JLnAWrD1rYGHtVbzoXa/wn+6dnneNdh8v5EjgzS0Fb2XV8GFRGWt
+	 3do2+jY+zCPSIg8iH9xwXaAy3bup/7Jp0p1ih8AI=
+Date: Wed, 21 Aug 2024 14:58:07 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,Jonathan.Cameron@Huawei.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240821214025.7F0BFC4AF0E@smtp.kernel.org>
+Subject: + mm-memory-failure-add-unmap_posioned_folio-fix.patch added to mm-unstable branch
+Message-Id: <20240821215808.AC757C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix possible null-ptr-deref in ocfs2_set_buffer_uptodate
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate.patch
+     Subject: mm-memory-failure-add-unmap_posioned_folio-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-add-unmap_posioned_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-unmap_posioned_folio-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lizhi Xu <lizhi.xu@windriver.com>
-Subject: ocfs2: fix possible null-ptr-deref in ocfs2_set_buffer_uptodate
-Date: Wed, 21 Aug 2024 14:14:50 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failure-add-unmap_posioned_folio-fix
+Date: Wed Aug 21 02:55:01 PM PDT 2024
 
-When doing cleanup, if flags without OCFS2_BH_READAHEAD, it may trigger
-NULL pointer dereference in the following ocfs2_set_buffer_uptodate() if
-bh is NULL.
+s/unmap_posioned_folio/unmap_posioned_folio/, per Miaohe Lin
 
-Link: https://lkml.kernel.org/r/20240821061450.3478602-1-lizhi.xu@windriver.com
-Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
-Reported-by: Heming Zhao <heming.zhao@suse.com>
-Suggested-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/buffer_head_io.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/internal.h       |    4 ++--
+ mm/memory-failure.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/buffer_head_io.c~ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate
-+++ a/fs/ocfs2/buffer_head_io.c
-@@ -388,7 +388,8 @@ read_failure:
- 		/* Always set the buffer in the cache, even if it was
- 		 * a forced read, or read-ahead which hasn't yet
- 		 * completed. */
--		ocfs2_set_buffer_uptodate(ci, bh);
-+		if (bh)
-+			ocfs2_set_buffer_uptodate(ci, bh);
- 	}
- 	ocfs2_metadata_cache_io_unlock(ci);
+--- a/mm/internal.h~mm-memory-failure-add-unmap_posioned_folio-fix
++++ a/mm/internal.h
+@@ -1049,7 +1049,7 @@ static inline int find_next_best_node(in
+  * mm/memory-failure.c
+  */
+ #ifdef CONFIG_MEMORY_FAILURE
+-int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu);
++int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu);
+ void shake_folio(struct folio *folio);
+ extern int hwpoison_filter(struct page *p);
  
+@@ -1071,7 +1071,7 @@ void add_to_kill_ksm(struct task_struct
+ unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+ 
+ #else
+-static inline int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
++static inline int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
+ {
+ 	return 0;
+ }
+--- a/mm/memory-failure.c~mm-memory-failure-add-unmap_posioned_folio-fix
++++ a/mm/memory-failure.c
+@@ -1554,7 +1554,7 @@ static int get_hwpoison_page(struct page
+ 	return ret;
+ }
+ 
+-int unmap_posioned_folio(struct folio *folio, enum ttu_flags ttu)
++int unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
+ {
+ 	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+ 		struct address_space *mapping;
+@@ -1639,7 +1639,7 @@ static bool hwpoison_user_mappings(struc
+ 	 */
+ 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
+ 
+-	if (unmap_posioned_folio(folio, ttu))
++	if (unmap_poisoned_folio(folio, ttu))
+ 		pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
+ 
+ 	unmap_success = !folio_mapped(folio);
 _
 
-Patches currently in -mm which might be from lizhi.xu@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-remove-unreasonable-unlock.patch
-ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
+mm-memory_hotplug-remove-head-variable-in-do_migrate_range-fix.patch
+mm-memory-failure-add-unmap_posioned_folio-fix.patch
+mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix.patch
+mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
