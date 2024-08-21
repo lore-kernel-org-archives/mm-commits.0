@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B838753370
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 02:07:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ADBE53370
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 02:07:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724206076; cv=none; b=AS4LTJpDYFaKm9VL9ooODnyiUzvhxKCzAJUKFjEAO7E0yFhkij3VqRAbQnLHcb9Ky0jj7oewbwI1Pi7lwBJzXnUHcjs9/CTwYVTJNyMynnALycIt2fpYI3N4223YUz1FyL4LuSe4CK0ai/IRvtJk5iGqOGjyrdSmKOdIBC47RZc=
+	t=1724206078; cv=none; b=JN6fz6Cpmf0ETbzE4NfDGtjWd1crjtOxsruHjWcJU2erM8Ajbp7EBHIm9CSthrkfhcc3gT2/mbREW520DbNL1lnPxjIJrryMAYIwHjH0SksRIq9pyqTObaiYiDHHIDnRd2W4RLorqZfEsvTl7g9dIaPQfw/MdR0q5oMy8/LyPOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724206076; c=relaxed/simple;
-	bh=ej/6DknchUdQGqSTsiRV13NMrt9kkgbgQQXa77eb110=;
-	h=Date:To:From:Subject:Message-Id; b=h2npLQdRPwWLjGTIh7UWhgrn+H4Ul/GmAoMxGMtpUZev+ECOMItiY4Nr6+Z8xKFMmV1tBifuZlcuiyGBLvWj/SXzEPPctNKxjf8R/fkF7c/Lr4Y86AqZK1hGnAwJHkmiNmZSSbX2CdGPeVRSIgFF9DbCEhICug9ZVQmEWnPzldQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kDSiFicS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724206078; c=relaxed/simple;
+	bh=xXwFJnc6/Je+iDAJU0QV1fRawZCG1Xq70h3WoLBBhOE=;
+	h=Date:To:From:Subject:Message-Id; b=UPxYErFHGoEzSjS5+HY+yGl1fG0B6XuLF4QjQVgWf+SqYGDH/t3QZjHJMioplPoV0RWMPBEt8BV9wh1OTaTWQ9HMD+hVT+xsKpExteS83+nt55oVfBElIrqVf6ZkcfovEChbCcCWfq4xOYYaGljYfGuHufk0ZMWQulocRwNk5Ds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krvTmUd7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kDSiFicS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28AA3C4AF12;
-	Wed, 21 Aug 2024 02:07:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krvTmUd7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15220C4AF17;
+	Wed, 21 Aug 2024 02:07:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724206076;
-	bh=ej/6DknchUdQGqSTsiRV13NMrt9kkgbgQQXa77eb110=;
+	s=korg; t=1724206078;
+	bh=xXwFJnc6/Je+iDAJU0QV1fRawZCG1Xq70h3WoLBBhOE=;
 	h=Date:To:From:Subject:From;
-	b=kDSiFicSzGjHNU0mobF/Cb6IPE3BGqs4rHOZ6cQhnEJHNLRdC6jkwyRS8a7o7FsvB
-	 xzQXEVolDY47PjMAI3Vvge6nfRHnuP2L13exICHp6OTp0Ki9VFsSQpWNFLQei/H+OR
-	 pXMWc2xa89WuHYa5NxglWEBTU5TKMqY/vuq+4rvM=
-Date: Tue, 20 Aug 2024 19:07:55 -0700
+	b=krvTmUd7vJCA0i56gTtMbhjU02IwH/I6jFyD1L+WZColoy3QJQZW/gVg5Ho0zrySX
+	 Z1p0gMkd3SNEMPMArJP71J2mJbFF0dMRaytARmyLCS1cdfVheCuEUl1fDPmr/LhS40
+	 wZOtMgnBRtmHOt8VlPEDXrYt2UlFR0zwQEFZ/sGA=
+Date: Tue, 20 Aug 2024 19:07:57 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch added to mm-unstable branch
-Message-Id: <20240821020756.28AA3C4AF12@smtp.kernel.org>
+Subject: + mm-mremap-replace-can_modify_mm-with-can_modify_vma.patch added to mm-unstable branch
+Message-Id: <20240821020758.15220C4AF17@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mprotect: replace can_modify_mm with can_modify_vma
+     Subject: mm/mremap: replace can_modify_mm with can_modify_vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
+     mm-mremap-replace-can_modify_mm-with-can_modify_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-replace-can_modify_mm-with-can_modify_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pedro Falcato <pedro.falcato@gmail.com>
-Subject: mm/mprotect: replace can_modify_mm with can_modify_vma
-Date: Sat, 17 Aug 2024 01:18:30 +0100
+Subject: mm/mremap: replace can_modify_mm with can_modify_vma
+Date: Sat, 17 Aug 2024 01:18:31 +0100
 
-Avoid taking an extra trip down the mmap tree by checking the vmas
-directly.  mprotect (per POSIX) tolerates partial failure.
+Delegate all can_modify checks to the proper places.  Unmap checks are
+done in do_unmap (et al).  The source VMA check is done purposefully
+before unmapping, to keep the original mseal semantics.
 
-Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-3-d8d2e037df30@gmail.com
+Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-4-d8d2e037df30@gmail.com
 Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
@@ -78,37 +79,64 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/mremap.c |   32 ++++++--------------------------
+ 1 file changed, 6 insertions(+), 26 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-replace-can_modify_mm-with-can_modify_vma
-+++ a/mm/mprotect.c
-@@ -611,6 +611,9 @@ mprotect_fixup(struct vma_iterator *vmi,
- 	unsigned long charged = 0;
- 	int error;
+--- a/mm/mremap.c~mm-mremap-replace-can_modify_mm-with-can_modify_vma
++++ a/mm/mremap.c
+@@ -902,19 +902,6 @@ static unsigned long mremap_to(unsigned
+ 	if ((mm->map_count + 2) >= sysctl_max_map_count - 3)
+ 		return -ENOMEM;
  
-+	if (!can_modify_vma(vma))
-+		return -EPERM;
+-	/*
+-	 * In mremap_to().
+-	 * Move a VMA to another location, check if src addr is sealed.
+-	 *
+-	 * Place can_modify_mm here because mremap_to()
+-	 * does its own checking for address range, and we only
+-	 * check the sealing after passing those checks.
+-	 *
+-	 * can_modify_mm assumes we have acquired the lock on MM.
+-	 */
+-	if (unlikely(!can_modify_mm(mm, addr, addr + old_len)))
+-		return -EPERM;
+-
+ 	if (flags & MREMAP_FIXED) {
+ 		/*
+ 		 * In mremap_to().
+@@ -1052,6 +1039,12 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 		goto out;
+ 	}
+ 
++	/* Don't allow remapping vmas when they have already been sealed */
++	if (!can_modify_vma(vma)) {
++		ret = -EPERM;
++		goto out;
++	}
 +
- 	if (newflags == oldflags) {
- 		*pprev = vma;
- 		return 0;
-@@ -769,15 +772,6 @@ static int do_mprotect_pkey(unsigned lon
- 		}
+ 	if (is_vm_hugetlb_page(vma)) {
+ 		struct hstate *h __maybe_unused = hstate_vma(vma);
+ 
+@@ -1079,19 +1072,6 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 		goto out;
  	}
  
 -	/*
--	 * checking if memory is sealed.
--	 * can_modify_mm assumes we have acquired the lock on MM.
+-	 * Below is shrink/expand case (not mremap_to())
+-	 * Check if src address is sealed, if so, reject.
+-	 * In other words, prevent shrinking or expanding a sealed VMA.
+-	 *
+-	 * Place can_modify_mm here so we can keep the logic related to
+-	 * shrink/expand together.
 -	 */
--	if (unlikely(!can_modify_mm(current->mm, start, end))) {
--		error = -EPERM;
+-	if (unlikely(!can_modify_mm(mm, addr, addr + old_len))) {
+-		ret = -EPERM;
 -		goto out;
 -	}
 -
- 	prev = vma_prev(&vmi);
- 	if (start > vma->vm_start)
- 		prev = vma;
+ 	/*
+ 	 * Always allow a shrinking remap: that just unmaps
+ 	 * the unnecessary pages..
 _
 
 Patches currently in -mm which might be from pedro.falcato@gmail.com are
