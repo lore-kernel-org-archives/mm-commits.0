@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E246C17BB26
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 22:26:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE66A17C22E;
+	Wed, 21 Aug 2024 22:42:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724279165; cv=none; b=HecAUd197UbmqUgMZmm71ps2jRp6/6vxKL/4IUrwzLg7rga8rc+ZjYzGdYCOG0LYs2Plw/OuA7ngfs2PVYbmIV1RGb2XpKTnjhuao5B1Moh9LGWF03001se6MawU4S/gpXVcsmo35oBmai39haRHWKTM8tTv2ImT+EHyliczqiw=
+	t=1724280155; cv=none; b=TOXaByzZgfOw3yN3ONcYlKUR9RN8NWdP0alh/gCFcMlxjnar6VZVlQIF9B2ygNW3VwuykehGJwn5hLzQdO7r6S0L8nFwDefQ4MBFeiNE78NxT2hEWMbmwh2C1SZlZGU6/EwymRKdlv1vRnwZPs8EKhZR7QfbhRdZ36E+6YTCw20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724279165; c=relaxed/simple;
-	bh=tk0oLYXoxEc6p8GX5hT/aWZ6tk9gYMtdu5VencarrAQ=;
-	h=Date:To:From:Subject:Message-Id; b=gdwSirrIxtLNCyD+zKrXjZW1wUCCa3MQio18G5w7uuFHfwrLEv7X7CdOC4CxLpyfmZxZaJyFezYedCD5JuieVyIXrdqi7C3UW4HwZtYjcdK7KFj08gf6g9c2bCV9fnWLduxaNz2bs7/+b7tqbkMqWHOmBDvAdOlX2xW+hJLUuC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hUA9THk4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724280155; c=relaxed/simple;
+	bh=lorCgRFqM+goDnTEmf/zgJFlsofexBgPxiQqbPxOEV4=;
+	h=Date:To:From:Subject:Message-Id; b=O8uafrJ09JWvzAKkRcmzKzhKe1dL2bW8K7iBfpBpQCj+bpaihjrHRZI27qK0Q8OdwrfDcpRQ9+RM5jFTqt5YJqSTUQj2KS+UpiNZ9JkpbGZhMa0WyqABUOn4ZcvmcLWw94cF6SJFCC5x69knyKSOWfT0FqZKJs9WSH04KCLwjK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8D6F8O8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hUA9THk4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4041DC32781;
-	Wed, 21 Aug 2024 22:26:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8D6F8O8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4448EC32781;
+	Wed, 21 Aug 2024 22:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724279164;
-	bh=tk0oLYXoxEc6p8GX5hT/aWZ6tk9gYMtdu5VencarrAQ=;
+	s=korg; t=1724280155;
+	bh=lorCgRFqM+goDnTEmf/zgJFlsofexBgPxiQqbPxOEV4=;
 	h=Date:To:From:Subject:From;
-	b=hUA9THk4j9TTOYJpgTAMkIH6NPs45M1Ibg1S+rO2ey8fWJljBwfjECNoLhI5vgsDl
-	 Lwa67rSkuUjhvSBWh/3FIqnAfcGDldKYSK0AjK70hZOTtIefoJUfVJigsSymXJnIzI
-	 wIb2IW1Sr56frKR5O1yIqGm8dtgJQizL7h+Opbqs=
-Date: Wed, 21 Aug 2024 15:26:03 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,Jonathan.Cameron@Huawei.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=h8D6F8O86pgHWhDflBFzgD2Ws4wooeVzKA12BPg2fnh/Mq9bNoETRepaBrGcKKkWN
+	 YI+NbE2alPDljD9D9/NsToOfnKZnUdzUb4QKQnRnny+xytdv84Y9Io+fHOo99FqxFK
+	 TR6XG1rXVUvZcF9MvaI+dJUsdVcYSA/vO3M7T1zM=
+Date: Wed, 21 Aug 2024 15:42:34 -0700
+To: mm-commits@vger.kernel.org,steffen.klassert@secunet.com,stable@vger.kernel.org,longman@redhat.com,herbert@gondor.apana.org.au,daniel.m.jordan@oracle.com,kamlesh@ti.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-add-isolate_folio_to_list-fix.patch added to mm-unstable branch
-Message-Id: <20240821222604.4041DC32781@smtp.kernel.org>
+Subject: + padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240821224235.4448EC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-migrate-add-isolate_folio_to_list-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-add-isolate_folio_to_list-fix.patch
+     Subject: padata: honor the caller's alignment in case of chunk_size 0
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-add-isolate_folio_to_list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-migrate-add-isolate_folio_to_list-fix
-Date: Tue, 20 Aug 2024 17:46:41 +0800
+From: Kamlesh Gurudasani <kamlesh@ti.com>
+Subject: padata: honor the caller's alignment in case of chunk_size 0
+Date: Thu, 22 Aug 2024 02:32:52 +0530
 
-updates per Miaohe Lin
+In the case where we are forcing the ps.chunk_size to be at least 1, we
+are ignoring the caller's alignment.
 
-Link: https://lkml.kernel.org/r/927205ab-bd83-4765-b2bb-3fd311f5ac6d@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Move the forcing of ps.chunk_size to be at least 1 before rounding it up
+to caller's alignment, so that caller's alignment is honored.
+
+While at it, use max() to force the ps.chunk_size to be at least 1 to
+improve readability.
+
+Link: https://lkml.kernel.org/r/20240822-max-v1-1-cb4bc5b1c101@ti.com
+Fixes: 6d45e1c948a8 ("padata: Fix possible divide-by-0 panic in padata_mt_helper()")
+Signed-off-by: Kamlesh Gurudasani <kamlesh@ti.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ kernel/padata.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/mm/memory-failure.c~mm-migrate-add-isolate_folio_to_list-fix
-+++ a/mm/memory-failure.c
-@@ -2664,6 +2664,7 @@ static int soft_offline_in_use_page(stru
- 	struct folio *folio = page_folio(page);
- 	char const *msg_page[] = {"page", "hugepage"};
- 	bool huge = folio_test_hugetlb(folio);
-+	bool isolated;
- 	LIST_HEAD(pagelist);
- 	struct migration_target_control mtc = {
- 		.nid = NUMA_NO_NODE,
-@@ -2703,7 +2704,18 @@ static int soft_offline_in_use_page(stru
- 		return 0;
- 	}
+--- a/kernel/padata.c~padata-honor-the-callers-alignment-in-case-of-chunk_size-0
++++ a/kernel/padata.c
+@@ -509,21 +509,17 @@ void __init padata_do_multithreaded(stru
  
--	if (isolate_folio_to_list(folio, &pagelist)) {
-+       isolated = isolate_folio_to_list(folio, &pagelist);
-+
-+	/*
-+	 * If we succeed to isolate the folio, we grabbed another refcount on
-+	 * the folio, so we can safely drop the one we got from get_any_page().
-+	 * If we failed to isolate the folio, it means that we cannot go further
-+	 * and we will return an error, so drop the reference we got from
-+	 * get_any_page() as well.
-+	 */
-+	folio_put(folio);
-+
-+	if (isolated) {
- 		ret = migrate_pages(&pagelist, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE, NULL);
- 		if (!ret) {
-@@ -2726,15 +2738,6 @@ static int soft_offline_in_use_page(stru
- 		ret = -EBUSY;
- 	}
+ 	/*
+ 	 * Chunk size is the amount of work a helper does per call to the
+-	 * thread function.  Load balance large jobs between threads by
++	 * thread function. Load balance large jobs between threads by
+ 	 * increasing the number of chunks, guarantee at least the minimum
+ 	 * chunk size from the caller, and honor the caller's alignment.
++	 * Ensure chunk_size is at least 1 to prevent divide-by-0
++	 * panic in padata_mt_helper().
+ 	 */
+ 	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
+ 	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
++	ps.chunk_size = max(ps.chunk_size, 1ul);
+ 	ps.chunk_size = roundup(ps.chunk_size, job->align);
  
 -	/*
--	 * If we succeed to isolate the folio, we grabbed another refcount on
--	 * the folio, so we can safely drop the one we got from get_any_page().
--	 * If we failed to isolate the folio, it means that we cannot go further
--	 * and we will return an error, so drop the reference we got from
--	 * get_any_page() as well.
+-	 * chunk_size can be 0 if the caller sets min_chunk to 0. So force it
+-	 * to at least 1 to prevent divide-by-0 panic in padata_mt_helper().`
 -	 */
--	folio_put(folio);
+-	if (!ps.chunk_size)
+-		ps.chunk_size = 1U;
 -
- 	return ret;
- }
- 
+ 	list_for_each_entry(pw, &works, pw_list)
+ 		if (job->numa_aware) {
+ 			int old_node = atomic_read(&last_used_nid);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from kamlesh@ti.com are
 
-mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
-mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
-mm-memory-failure-add-unmap_posioned_folio.patch
-mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
-mm-migrate-add-isolate_folio_to_list.patch
-mm-migrate-add-isolate_folio_to_list-fix.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
-mm-remove-migration-for-hugepage-in-isolate_single_pageblock.patch
+padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
 
