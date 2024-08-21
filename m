@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28143139CFE
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC70175D42
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 21:24:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724275444; cv=none; b=kvazcTYz/fwxeLi/8jTiUkfQ3IeX5eBCWrdApTg+DGWhSAmB2V8eeET/BvQHCCPJrP2EZLXMYPaNF1PHun13VrhMXyceaasKAnGledlZHUyNXmS2h5zw6s3yWE/1EOtEz6JCZA1RAvfuc5qz9R4WkQ9EDLc7GCoRIKtTAbJ1asY=
+	t=1724275445; cv=none; b=hvTuVrpT3QgqgKpod8IJom4IXKJeREbtpupzXaeg3V7CZq3O8zLiac6xfEGfPbWXmVahkUTb7pDgifekflFbZH9ATIzdeEZqQRRDXqh2cRTbdCYPqp5RY8Vw/2nDTPDsxDkJugFJMvXPJeC9MhTQkjuozHT2JuSSzIhZIR98jHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724275444; c=relaxed/simple;
-	bh=ckr//UUfbEWhhoyBx05eQG3Gb53Xc5IiI94B4rB5pAk=;
-	h=Date:To:From:Subject:Message-Id; b=eiS1rYPOFe88AoGX2SEvkSbOppYvWkg9lzupySxESetbBbSP2XI7u4KQe0LhOquU4JIVD9mbmu0Y4gKF316eIXlXJ4fur6sycEkX/OmURwGPRiaM+z9VDIv2DUtTS2XhvwT3SvkohiqMO6JROWIBEg0bc8020JucUSMKfe6JMaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q63oKZte; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724275445; c=relaxed/simple;
+	bh=IdEmJUdQJ6573Va1OiFC0aMrGvaG6wcqWmLwWUZ10XQ=;
+	h=Date:To:From:Subject:Message-Id; b=XKK/K3Ej3kVq2h9tp79AFHJJ51InrOohCRTpNiZhW15Koca5sdnblG4dQsJGt2UYkjTyUa7pG7aFUGDue01eSa4TJTRWMZjd/N1wY/5nBIp8cC36NFRhX3l+B8udXKv02uaWY9MDw7ge2QlVtp12gcDa1lMUWuurZPc86AuFP58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aU0OiSrL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q63oKZte"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7771AC4AF09;
-	Wed, 21 Aug 2024 21:24:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aU0OiSrL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 318DFC4AF0E;
+	Wed, 21 Aug 2024 21:24:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724275443;
-	bh=ckr//UUfbEWhhoyBx05eQG3Gb53Xc5IiI94B4rB5pAk=;
+	s=korg; t=1724275445;
+	bh=IdEmJUdQJ6573Va1OiFC0aMrGvaG6wcqWmLwWUZ10XQ=;
 	h=Date:To:From:Subject:From;
-	b=Q63oKZteZnpTDS6dCFw2jEadkOoWKiVGNTVlyYkqLHwTVUMxPZhf+1jyyG1s8EIkc
-	 +DI3eEcRYaBPU3dRjd7sfxw/w3tQYZqPk8DLBZk0ZUwM8F096WrBpdIBkBKoxv91f3
-	 iIda0uA2dJySmhcfWJ8iJQJioIbbatgap/7JbRzs=
-Date: Wed, 21 Aug 2024 14:24:02 -0700
+	b=aU0OiSrL63LtrMGfX/U68p28c5RVSqmuWn6yvsN8/A8ZxaaPa2O/JZzhteI3XHIzR
+	 LF6lse9ZibhSAr/mjus/PJSU94CkKRCeaSCOoxV7HHwJIvuywHlbwm241qXSCdB78P
+	 cZCTLZSC3KWVR+KwwtQbhoUB2i7vmLEdjn11TIxQ=
+Date: Wed, 21 Aug 2024 14:24:04 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-do-not-propagate-enoent-error-from-sufile-during-gc.patch added to mm-nonmm-unstable branch
-Message-Id: <20240821212403.7771AC4AF09@smtp.kernel.org>
+Subject: + nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch added to mm-nonmm-unstable branch
+Message-Id: <20240821212405.318DFC4AF0E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: do not propagate ENOENT error from sufile during GC
+     Subject: nilfs2: do not propagate ENOENT error from nilfs_sufile_mark_dirty()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-do-not-propagate-enoent-error-from-sufile-during-gc.patch
+     nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-propagate-enoent-error-from-sufile-during-gc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,113 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not propagate ENOENT error from sufile during GC
-Date: Thu, 22 Aug 2024 00:46:26 +0900
+Subject: nilfs2: do not propagate ENOENT error from nilfs_sufile_mark_dirty()
+Date: Thu, 22 Aug 2024 00:46:27 +0900
 
-nilfs_sufile_freev(), which is used to free segments in GC, aborts with
--ENOENT if the target segment usage is on a hole block.
+nilfs_sufile_mark_dirty(), which marks a block in the sufile metadata file
+as dirty in preparation for log writing, returns -ENOENT to the caller if
+the block containing the segment usage of the specified segment is
+missing.
 
-This error only occurs if one of the segment numbers to be freed passed by
-the GC ioctl is invalid, so return -EINVAL instead.
+This internal code can propagate through the log writer to system calls
+such as fsync.  To prevent this, treat this case as a filesystem error and
+return -EIO instead.
 
-To avoid impairing readability, introduce a wrapper function that
-encapsulates error handling including the error code conversion (and error
-message output).
-
-Link: https://lkml.kernel.org/r/20240821154627.11848-5-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240821154627.11848-6-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   64 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 56 insertions(+), 8 deletions(-)
+ fs/nilfs2/sufile.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-do-not-propagate-enoent-error-from-sufile-during-gc
-+++ a/fs/nilfs2/segment.c
-@@ -1102,12 +1102,64 @@ static int nilfs_segctor_scan_file_dsync
- 	return err;
- }
+--- a/fs/nilfs2/sufile.c~nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty
++++ a/fs/nilfs2/sufile.c
+@@ -513,8 +513,15 @@ int nilfs_sufile_mark_dirty(struct inode
  
-+/**
-+ * nilfs_free_segments - free the segments given by an array of segment numbers
-+ * @nilfs:   nilfs object
-+ * @segnumv: array of segment numbers to be freed
-+ * @nsegs:   number of segments to be freed in @segnumv
-+ *
-+ * nilfs_free_segments() wraps nilfs_sufile_freev() and
-+ * nilfs_sufile_cancel_freev(), and edits the segment usage metadata file
-+ * (sufile) to free all segments given by @segnumv and @nsegs at once.  If
-+ * it fails midway, it cancels the changes so that none of the segments are
-+ * freed.  If @nsegs is 0, this function does nothing.
-+ *
-+ * The freeing of segments is not finalized until the writing of a log with
-+ * a super root block containing this sufile change is complete, and it can
-+ * be canceled with nilfs_sufile_cancel_freev() until then.
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Invalid segment number.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-+ */
-+static int nilfs_free_segments(struct the_nilfs *nilfs, __u64 *segnumv,
-+			       size_t nsegs)
-+{
-+	size_t ndone;
-+	int ret;
-+
-+	if (!nsegs)
-+		return 0;
-+
-+	ret = nilfs_sufile_freev(nilfs->ns_sufile, segnumv, nsegs, &ndone);
+ 	down_write(&NILFS_MDT(sufile)->mi_sem);
+ 	ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 0, &bh);
+-	if (ret)
 +	if (unlikely(ret)) {
-+		nilfs_sufile_cancel_freev(nilfs->ns_sufile, segnumv, ndone,
-+					  NULL);
-+		/*
-+		 * If a segment usage of the segments to be freed is in a
-+		 * hole block, nilfs_sufile_freev() will return -ENOENT.
-+		 * In this case, -EINVAL should be returned to the caller
-+		 * since there is something wrong with the given segment
-+		 * number array.  This error can only occur during GC, so
-+		 * there is no need to worry about it propagating to other
-+		 * callers (such as fsync).
-+		 */
 +		if (ret == -ENOENT) {
-+			nilfs_err(nilfs->ns_sb,
-+				  "The segment usage entry %llu to be freed is invalid (in a hole)",
-+				  (unsigned long long)segnumv[ndone]);
-+			ret = -EINVAL;
++			nilfs_error(sufile->i_sb,
++				    "segment usage for segment %llu is unreadable due to a hole block",
++				    (unsigned long long)segnum);
++			ret = -EIO;
 +		}
+ 		goto out_sem;
 +	}
-+	return ret;
-+}
-+
- static int nilfs_segctor_collect_blocks(struct nilfs_sc_info *sci, int mode)
- {
- 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
- 	struct list_head *head;
- 	struct nilfs_inode_info *ii;
--	size_t ndone;
- 	int err = 0;
  
- 	switch (nilfs_sc_cstage_get(sci)) {
-@@ -1201,14 +1253,10 @@ static int nilfs_segctor_collect_blocks(
- 		nilfs_sc_cstage_inc(sci);
- 		fallthrough;
- 	case NILFS_ST_SUFILE:
--		err = nilfs_sufile_freev(nilfs->ns_sufile, sci->sc_freesegs,
--					 sci->sc_nfreesegs, &ndone);
--		if (unlikely(err)) {
--			nilfs_sufile_cancel_freev(nilfs->ns_sufile,
--						  sci->sc_freesegs, ndone,
--						  NULL);
-+		err = nilfs_free_segments(nilfs, sci->sc_freesegs,
-+					  sci->sc_nfreesegs);
-+		if (unlikely(err))
- 			break;
--		}
- 		sci->sc_stage.flags |= NILFS_CF_SUFREED;
- 
- 		err = nilfs_segctor_scan_file(sci, nilfs->ns_sufile,
+ 	kaddr = kmap_local_page(bh->b_page);
+ 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
