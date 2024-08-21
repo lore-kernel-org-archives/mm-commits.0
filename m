@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198905227
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 00:48:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E363E3B7A8
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 01:18:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724201297; cv=none; b=P7PQXOg/Gh71KmldIUkMYc+6xd4Hpmc1iW7AsguTDejaQEHnk5q4m2cJ/u67LxhiXAqKVfBENzuv0dW/I7VOJDRcoFp9o+TOBG+eXyNoz8A6HJ5fANZaiUQAgpLU59rAOiPvmMdTVidNujqqmPMTBP37PAYuxbfkH87bosW5RiM=
+	t=1724203121; cv=none; b=f53/acNaax6y7HqnreEpE2b6VSyrqJSZ8QhSQlUj7tWSJJZejI57gE77JOJVH9tAPB+b8Td//kT8d0Fqe+2i6SCZt3X0JTzrxSyEtJVwZ/JX3CYiV/P2xm00HUqskQx4a8Nb6QhJpmcnPvFxkykDwJEoFFGWiARlbKrIjooUfPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724201297; c=relaxed/simple;
-	bh=HcbLQ8Wr1NUxtTQgVoZi06fxJol8NBaP3laG0oUnk9E=;
-	h=Date:To:From:Subject:Message-Id; b=O4xsnQOewOTI8z0k9eITqDxsQH9MmwrIsUREej+HauhgiRNo2iPxA84C22jSoQ1e94vO/G4K6VuVdfx/5RXRBFM+2rv+ohdicr0Ec+e3pUEz3PYTe75FSwPFxv68BaWspvaHNMMsXQelGOdj/vo8XPjyAnnWv4xKyqio44kiHNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eKKQbybA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724203121; c=relaxed/simple;
+	bh=g/J2s2iwBcBgHjeTa/mfsq56oEr2RQBn/n05E6ntBOA=;
+	h=Date:To:From:Subject:Message-Id; b=VT0rqi99b30CSRQ1NZAHNulJ3JudavXhgsQvx3Lypc+KsUfk7cbQg/Gh1t9lEytc5RdxgDEu0geM5TxCL3GFqWafaPXYzKGN/WS8R4lrdIc3yZ3U672I91SEVA+fw6SZlu6/b8DDox0pVDkTx1OI5UneA67dOm8I+HVdOQxPznM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V/8QD9F8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eKKQbybA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BBB3C4AF09;
-	Wed, 21 Aug 2024 00:48:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V/8QD9F8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66B72C4AF1C;
+	Wed, 21 Aug 2024 01:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724201296;
-	bh=HcbLQ8Wr1NUxtTQgVoZi06fxJol8NBaP3laG0oUnk9E=;
+	s=korg; t=1724203120;
+	bh=g/J2s2iwBcBgHjeTa/mfsq56oEr2RQBn/n05E6ntBOA=;
 	h=Date:To:From:Subject:From;
-	b=eKKQbybAHtfyD1jzhWH2rYE64pJXkbTSxJ4mq2Bhn7Tzm5kmsI/9xW/BnUOaFYSPZ
-	 y2yz1PZyy+6qEqirCyxgCTjEsHk1Bx8QuoFyTRvLZ5JNMMFPNLcb6KI9AdX2DqGRwF
-	 L8ALIORY6S/MrIwU/rnv3ZKkHyW4nnHS0UCNuD2M=
-Date: Tue, 20 Aug 2024 17:48:15 -0700
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=V/8QD9F8c9MjVaGEipoglUXqqeqBxQaSPD/fY3zhwPxttedhieF2i8KzMYly72GEa
+	 G0WRBKh9Txf2NypD0GS8edHKVKmBF/bcGe9qbsB4+jEw7bp7OdqNPtDwv3XGVRIcj4
+	 IWpPK4FIyQR3vSq17afm/f447HMDO2gKwz4bV9O0=
+Date: Tue, 20 Aug 2024 18:18:39 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,rob@landley.net,richard@nod.at,pedro.falcato@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,Liam.Howlett@oracle.com,johannes@sipsolutions.net,jeffxu@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,dinguyen@kernel.org,dalias@libc.org,christophe.leroy@csgroup.eu,bcain@quicinc.com,anton.ivanov@cambridgegreys.com,torvalds@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-workingset-make-anon-shadow-nodes-memcg-aware.patch added to mm-unstable branch
-Message-Id: <20240821004816.5BBB3C4AF09@smtp.kernel.org>
+Subject: + mm-remove-legacy-install_special_mapping-code.patch added to mm-unstable branch
+Message-Id: <20240821011840.66B72C4AF1C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap, workingset: make anon shadow nodes memcg aware
+     Subject: mm: remove legacy install_special_mapping() code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-workingset-make-anon-shadow-nodes-memcg-aware.patch
+     mm-remove-legacy-install_special_mapping-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-workingset-make-anon-shadow-nodes-memcg-aware.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-legacy-install_special_mapping-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,88 +58,336 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/swap, workingset: make anon shadow nodes memcg aware
-Date: Tue, 20 Aug 2024 17:23:59 +0800
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: mm: remove legacy install_special_mapping() code
+Date: Tue, 20 Aug 2024 15:14:47 -0700
 
-Currently, the workingset (shadow) nodes of the swap cache are not
-accounted to their corresponding memory cgroup, instead, they are all
-accounted to the root cgroup.  This leads to inaccurate accounting and
-ineffective reclaiming.  One cgroup could swap out a large amount of
-memory, take up a large amount of memory with shadow nodes without being
-accounted.
+All relevant architectures had already been converted to the new interface
+(which just has an underscore in front of the name - not very imaginative
+naming), this just force-converts the stragglers.
 
-This issue is similar to commit 7b785645e8f1 ("mm: fix page cache
-convergence regression"), where page cache shadow nodes were incorrectly
-accounted.  That was due to the accidental dropping of the accounting flag
-during the XArray conversion in commit a28334862993 ("page cache: Finish
-XArray conversion").
+The modern interface is almost identical to the old one, except instead of
+the page pointer it takes a "struct vm_special_mapping" that describes the
+mapping (and contains the page pointer as one member), and it returns the
+resulting 'vma' instead of just the error code.
 
-However, this fix has a different cause.  Swap cache shadow nodes were
-never accounted even before the XArray conversion, since they did not
-exist until commit 3852f6768ede ("mm/swapcache: support to handle the
-shadow entries"), which was years after the XArray conversion.
+Getting rid of the old interface also gets rid of some special casing,
+which had caused problems with the mremap extensions to "struct
+vm_special_mapping".
 
-It's worth noting that one anon shadow Xarray node may contain different
-entries from different cgroup, and it gets accounted at reclaim time, so
-it's arguable which cgroup it should be accounted to (as Shakeal Butt
-pointed out [1]).  File pages may suffer similar issue but less common. 
-Things like proactive memory reclaim could make thing more complex.
-
-So this commit still can't provide a 100% accurate accounting of anon
-shadows, but it covers the cases when one memory cgroup uses significant
-amount of swap, and in most cases memory pressure in one cgroup only
-suppose to reclaim this cgroup and children.  Besides, this fix is clean
-and easy enough.
-
-Link: https://lore.kernel.org/all/7gzevefivueqtebzvikzbucnrnpurmh3scmfuiuo2tnrs37xso@haj7gzepjur2/ [1]
-Link: https://lkml.kernel.org/r/20240820092359.97782-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/CAHk-=whvR+z=0=0gzgdfUiK70JTa-=+9vxD-4T=3BagXR6dciA@mail.gmail.comTested-by: Rob Landley <rob@landley.net> # arch/sh/
+Link: https://lore.kernel.org/all/20240819195120.GA1113263@thelio-3990X/
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/csky/kernel/vdso.c            |   28 +++++++++++++++++------
+ arch/hexagon/kernel/vdso.c         |   14 ++++++++---
+ arch/nios2/mm/init.c               |   12 ++++++----
+ arch/sh/kernel/vsyscall/vsyscall.c |   14 +++++++++--
+ arch/x86/um/vdso/vma.c             |   12 ++++++----
+ include/linux/mm.h                 |    4 ---
+ mm/mmap.c                          |   32 ++++-----------------------
+ 7 files changed, 63 insertions(+), 53 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-workingset-make-anon-shadow-nodes-memcg-aware
-+++ a/mm/swap_state.c
-@@ -97,6 +97,7 @@ int add_to_swap_cache(struct folio *foli
- 	void *old;
+--- a/arch/csky/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code
++++ a/arch/csky/kernel/vdso.c
+@@ -45,9 +45,16 @@ arch_initcall(vdso_init);
+ int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 	int uses_interp)
+ {
++	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long vdso_base, vdso_len;
+ 	int ret;
++	static struct vm_special_mapping vdso_mapping = {
++		.name = "[vdso]",
++	};
++	static struct vm_special_mapping vvar_mapping = {
++		.name = "[vvar]",
++	};
  
- 	xas_set_update(&xas, workingset_update_node);
-+	xas_set_lru(&xas, &shadow_nodes);
+ 	vdso_len = (vdso_pages + 1) << PAGE_SHIFT;
  
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
-@@ -718,7 +719,7 @@ int init_swap_address_space(unsigned int
- 		return -ENOMEM;
- 	for (i = 0; i < nr; i++) {
- 		space = spaces + i;
--		xa_init_flags(&space->i_pages, XA_FLAGS_LOCK_IRQ);
-+		xa_init_flags(&space->i_pages, XA_FLAGS_LOCK_IRQ | XA_FLAGS_ACCOUNT);
- 		atomic_set(&space->i_mmap_writable, 0);
- 		space->a_ops = &swap_aops;
- 		/* swap cache doesn't use writeback related tags */
+@@ -65,22 +72,29 @@ int arch_setup_additional_pages(struct l
+ 	 */
+ 	mm->context.vdso = (void *)vdso_base;
+ 
+-	ret =
+-	   install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
++	vdso_mapping.pages = vdso_pagelist;
++	vma =
++	   _install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
+ 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
+-		vdso_pagelist);
++		&vdso_mapping);
+ 
+-	if (unlikely(ret)) {
++	if (unlikely(IS_ERR(vma))) {
++		ret = PTR_ERR(vma);
+ 		mm->context.vdso = NULL;
+ 		goto end;
+ 	}
+ 
+ 	vdso_base += (vdso_pages << PAGE_SHIFT);
+-	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
+-		(VM_READ | VM_MAYREAD), &vdso_pagelist[vdso_pages]);
++	vvar_mapping.pages = &vdso_pagelist[vdso_pages];
++	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
++		(VM_READ | VM_MAYREAD), &vvar_mapping);
+ 
+-	if (unlikely(ret))
++	if (unlikely(IS_ERR(vma))) {
++		ret = PTR_ERR(vma);
+ 		mm->context.vdso = NULL;
++		goto end;
++	}
++	ret = 0;
+ end:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+--- a/arch/hexagon/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code
++++ a/arch/hexagon/kernel/vdso.c
+@@ -51,7 +51,11 @@ int arch_setup_additional_pages(struct l
+ {
+ 	int ret;
+ 	unsigned long vdso_base;
++	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
++	static struct vm_special_mapping vdso_mapping = {
++		name = "[vdso]",
++	};
+ 
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+@@ -66,16 +70,18 @@ int arch_setup_additional_pages(struct l
+ 	}
+ 
+ 	/* MAYWRITE to allow gdb to COW and set breakpoints. */
+-	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
++	vdso_mapping.pages = &vdso_page;
++	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
+ 				      VM_READ|VM_EXEC|
+ 				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+-				      &vdso_page);
++				      &vdso_mapping);
+ 
+-	if (ret)
++	ret = PTR_ERR(vma);
++	if (IS_ERR(vma))
+ 		goto up_fail;
+ 
+ 	mm->context.vdso = (void *)vdso_base;
+-
++	ret = 0;
+ up_fail:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+--- a/arch/nios2/mm/init.c~mm-remove-legacy-install_special_mapping-code
++++ a/arch/nios2/mm/init.c
+@@ -82,6 +82,10 @@ void __init mmu_init(void)
+ pgd_t swapper_pg_dir[PTRS_PER_PGD] __aligned(PAGE_SIZE);
+ pte_t invalid_pte_table[PTRS_PER_PTE] __aligned(PAGE_SIZE);
+ static struct page *kuser_page[1];
++static struct vm_special_mapping vdso_mapping = {
++	.name = "[vdso]",
++	.pages = kuser_page,
++};
+ 
+ static int alloc_kuser_page(void)
+ {
+@@ -106,18 +110,18 @@ arch_initcall(alloc_kuser_page);
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	int ret;
++	struct vm_area_struct *vma;
+ 
+ 	mmap_write_lock(mm);
+ 
+ 	/* Map kuser helpers to user space address */
+-	ret = install_special_mapping(mm, KUSER_BASE, KUSER_SIZE,
++	vma = _install_special_mapping(mm, KUSER_BASE, KUSER_SIZE,
+ 				      VM_READ | VM_EXEC | VM_MAYREAD |
+-				      VM_MAYEXEC, kuser_page);
++				      VM_MAYEXEC, &vdso_mapping);
+ 
+ 	mmap_write_unlock(mm);
+ 
+-	return ret;
++	return IS_ERR(vma) ? PTR_ERR(vma) : 0;
+ }
+ 
+ const char *arch_vma_name(struct vm_area_struct *vma)
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~mm-remove-legacy-install_special_mapping-code
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -36,6 +36,10 @@ __setup("vdso=", vdso_setup);
+  */
+ extern const char vsyscall_trapa_start, vsyscall_trapa_end;
+ static struct page *syscall_pages[1];
++static struct vm_special_mapping vdso_mapping = {
++	.name = "[vdso]",
++	.pages = syscall_pages,
++};
+ 
+ int __init vsyscall_init(void)
+ {
+@@ -58,6 +62,7 @@ int __init vsyscall_init(void)
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ {
+ 	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
+ 	unsigned long addr;
+ 	int ret;
+ 
+@@ -70,14 +75,17 @@ int arch_setup_additional_pages(struct l
+ 		goto up_fail;
+ 	}
+ 
+-	ret = install_special_mapping(mm, addr, PAGE_SIZE,
++	vdso_mapping.pages = syscall_pages;
++	vma = _install_special_mapping(mm, addr, PAGE_SIZE,
+ 				      VM_READ | VM_EXEC |
+ 				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+-				      syscall_pages);
+-	if (unlikely(ret))
++				      &vdso_mapping);
++	ret = PTR_ERR(vma);
++	if (unlikely(IS_ERR(vma)))
+ 		goto up_fail;
+ 
+ 	current->mm->context.vdso = (void *)addr;
++	ret = 0;
+ 
+ up_fail:
+ 	mmap_write_unlock(mm);
+--- a/arch/x86/um/vdso/vma.c~mm-remove-legacy-install_special_mapping-code
++++ a/arch/x86/um/vdso/vma.c
+@@ -52,8 +52,11 @@ subsys_initcall(init_vdso);
+ 
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ {
+-	int err;
++	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
++	static struct vm_special_mapping vdso_mapping = {
++		.name = "[vdso]",
++	};
+ 
+ 	if (!vdso_enabled)
+ 		return 0;
+@@ -61,12 +64,13 @@ int arch_setup_additional_pages(struct l
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+-	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
++	vdso_mapping.pages = vdsop;
++	vma = _install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
+ 		VM_READ|VM_EXEC|
+ 		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+-		vdsop);
++		&vdso_mapping);
+ 
+ 	mmap_write_unlock(mm);
+ 
+-	return err;
++	return IS_ERR(vma) ? PTR_ERR(vma) : 0;
+ }
+--- a/include/linux/mm.h~mm-remove-legacy-install_special_mapping-code
++++ a/include/linux/mm.h
+@@ -3263,10 +3263,6 @@ extern struct vm_area_struct *_install_s
+ 				   unsigned long addr, unsigned long len,
+ 				   unsigned long flags,
+ 				   const struct vm_special_mapping *spec);
+-/* This is an obsolete alternative to _install_special_mapping. */
+-extern int install_special_mapping(struct mm_struct *mm,
+-				   unsigned long addr, unsigned long len,
+-				   unsigned long flags, struct page **pages);
+ 
+ unsigned long randomize_stack_top(unsigned long stack_top);
+ unsigned long randomize_page(unsigned long start, unsigned long range);
+--- a/mm/mmap.c~mm-remove-legacy-install_special_mapping-code
++++ a/mm/mmap.c
+@@ -2094,27 +2094,17 @@ static const struct vm_operations_struct
+ 	.may_split = special_mapping_split,
+ };
+ 
+-static const struct vm_operations_struct legacy_special_mapping_vmops = {
+-	.close = special_mapping_close,
+-	.fault = special_mapping_fault,
+-};
+-
+ static vm_fault_t special_mapping_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	pgoff_t pgoff;
+ 	struct page **pages;
++	struct vm_special_mapping *sm = vma->vm_private_data;
+ 
+-	if (vma->vm_ops == &legacy_special_mapping_vmops) {
+-		pages = vma->vm_private_data;
+-	} else {
+-		struct vm_special_mapping *sm = vma->vm_private_data;
++	if (sm->fault)
++		return sm->fault(sm, vmf->vma, vmf);
+ 
+-		if (sm->fault)
+-			return sm->fault(sm, vmf->vma, vmf);
+-
+-		pages = sm->pages;
+-	}
++	pages = sm->pages;
+ 
+ 	for (pgoff = vmf->pgoff; pgoff && *pages; ++pages)
+ 		pgoff--;
+@@ -2169,8 +2159,7 @@ bool vma_is_special_mapping(const struct
+ 	const struct vm_special_mapping *sm)
+ {
+ 	return vma->vm_private_data == sm &&
+-		(vma->vm_ops == &special_mapping_vmops ||
+-		 vma->vm_ops == &legacy_special_mapping_vmops);
++		vma->vm_ops == &special_mapping_vmops;
+ }
+ 
+ /*
+@@ -2191,17 +2180,6 @@ struct vm_area_struct *_install_special_
+ 					&special_mapping_vmops);
+ }
+ 
+-int install_special_mapping(struct mm_struct *mm,
+-			    unsigned long addr, unsigned long len,
+-			    unsigned long vm_flags, struct page **pages)
+-{
+-	struct vm_area_struct *vma = __install_special_mapping(
+-		mm, addr, len, vm_flags, (void *)pages,
+-		&legacy_special_mapping_vmops);
+-
+-	return PTR_ERR_OR_ZERO(vma);
+-}
+-
+ /*
+  * initialise the percpu counter for VM
+  */
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-mm-swap-clean-up-initialization-helper.patch
-mm-swap-skip-slot-cache-on-freeing-for-mthp.patch
-mm-swap-allow-cache-reclaim-to-skip-slot-cache.patch
-mm-swap-add-a-fragment-cluster-list.patch
-mm-swap-relaim-the-cached-parts-that-got-scanned.patch
-mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
-mm-swap-workingset-make-anon-shadow-nodes-memcg-aware.patch
+mm-remove-legacy-install_special_mapping-code.patch
 
