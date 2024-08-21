@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF58F16FF26
-	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:34:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4463C16FF26
+	for <mm-commits@vger.kernel.org>; Wed, 21 Aug 2024 20:34:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724272445; cv=none; b=MFfzbBSD7/I8L64zAEDoK81CT8iVmXRFqjAD1q7bmbkT3QIFPQEUsyfPb1bpQhTPLoA+dNOzgMpicnVdUerlogt4kNq3UoZh1ytvE/CgPdWrU21FEBCCq2MOEjjChtXHVRpR5NXWYJBdR7gyuXBjU1g6pXZI9vAOQApkgp1gmWw=
+	t=1724272447; cv=none; b=Dp2sLWdqbBkqnzSV5c0QXA9LU0JKP0HdTdIeOZZgcT2F/x/Zz4Um4v3Gmo9/OLXnFscwT7m+gYfHkUaFAeweP9FMCarvyj6nb0pQvTRZ5rFWccxxKHPg8OK5jB467OcajDHEUVO8MjOYm13FipJ5//tQfMrTR1po3e6LsU0YAXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724272445; c=relaxed/simple;
-	bh=sGqqr3ewHxvxTUiaVKVxEJk5NBaFokEPB+Oq4l1KdY0=;
-	h=Date:To:From:Subject:Message-Id; b=a7HP6sHjx5SVkmvEKLixGr+4bHMYsOXfLDGrI+EcMT7YEVA1/T6zs9ifxOBttRxZtdZcvmntaS4VH17IHWyT1uNIXEosL7NcRoT/dWsSnX/ovjtspwA4GIgwh6MIxnC10zkxJnA4Iy3QyLE8mEcku6069VRUkEFCK613JMkOVJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E+MRmE46; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724272447; c=relaxed/simple;
+	bh=Gs0UmyiyRozXvpS/bm1sx88QEoducsH4bPEKTZl8X4Y=;
+	h=Date:To:From:Subject:Message-Id; b=lto3VHlCYhWwiuuYuxT4bUjnrw5wXPWoO7LQ/0ZPotBWDmiyq5+bef15R2YWCVH1j8L89ff3rCSegCNyu3X0MZTpjWhyI7HcxJMKJU640VFX3ZHKi61WMw/kJ5kWQKOf15Ugox/MAcBnC60Y9INJCm8kW1CKegr9pkSnm3x0BtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GWcqSle7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E+MRmE46"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B14FC32782;
-	Wed, 21 Aug 2024 20:34:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GWcqSle7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4614C32781;
+	Wed, 21 Aug 2024 20:34:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724272445;
-	bh=sGqqr3ewHxvxTUiaVKVxEJk5NBaFokEPB+Oq4l1KdY0=;
+	s=korg; t=1724272446;
+	bh=Gs0UmyiyRozXvpS/bm1sx88QEoducsH4bPEKTZl8X4Y=;
 	h=Date:To:From:Subject:From;
-	b=E+MRmE46T3cD8uBeYcdit0x6tYuSrdd/X5ILi1rKwPUAgSe/DCgBef2TNWxOiQHv7
-	 rUwXwtsMmGxTgYPL0FlsLAJnUTVVDGS6Y1a9/SyWsVHIi4qEEFhX7ZXzkCSYf3mArt
-	 +oh7XkhQXCc8M2iGN7uOcHj8Fw/EmClWATpSxtFo=
-Date: Wed, 21 Aug 2024 13:34:04 -0700
+	b=GWcqSle7TdNyo1QQURQaswIqcvyFMTxpT633nD2PYIFPk0CWn08cJIbw43+VYmQVX
+	 ZAAeFGmt1O7C+smnLJyUzeWcnZDJ3XLPfqVffHi9GhJhgZUGPwVH3SKkA7MLFl1nEN
+	 N91geihwgaul7ONUGC3ZcNTVaZcH2x+A5N03UJAc=
+Date: Wed, 21 Aug 2024 13:34:05 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pagemlocked.patch added to mm-unstable branch
-Message-Id: <20240821203405.2B14FC32782@smtp.kernel.org>
+Subject: + mm-remove-pageownerpriv1.patch added to mm-unstable branch
+Message-Id: <20240821203406.B4614C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove PageMlocked
+     Subject: mm: remove PageOwnerPriv1
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pagemlocked.patch
+     mm-remove-pageownerpriv1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagemlocked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pageownerpriv1.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageMlocked
-Date: Wed, 21 Aug 2024 20:34:39 +0100
+Subject: mm: remove PageOwnerPriv1
+Date: Wed, 21 Aug 2024 20:34:40 +0100
 
-This flag is now only used on folios, so we can remove all the page
-accessors.
+While there are many aliases for this flag, nobody actually uses the
+*PageOwnerPriv1() nor folio_*_owner_priv_1() accessors.  Remove them.
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821193445.2294269-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/unevictable-lru.rst |    4 ++--
- include/linux/page-flags.h           |   13 ++++++++-----
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ include/linux/page-flags.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-pagemlocked
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -253,8 +253,8 @@ Basic Management
- 
- mlocked pages - pages mapped into a VM_LOCKED VMA - are a class of unevictable
- pages.  When such a page has been "noticed" by the memory management subsystem,
--the page is marked with the PG_mlocked flag.  This can be manipulated using the
--PageMlocked() functions.
-+the folio is marked with the PG_mlocked flag.  This can be manipulated using
-+folio_set_mlocked() and folio_clear_mlocked() functions.
- 
- A PG_mlocked page will be placed on the unevictable list when it is added to
- the LRU.  Such pages can be "noticed" by memory management in several places:
---- a/include/linux/page-flags.h~mm-remove-pagemlocked
+--- a/include/linux/page-flags.h~mm-remove-pageownerpriv1
 +++ a/include/linux/page-flags.h
-@@ -585,12 +585,15 @@ FOLIO_FLAG(unevictable, FOLIO_HEAD_PAGE)
- 	FOLIO_TEST_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
+@@ -539,8 +539,6 @@ FOLIO_FLAG(swapbacked, FOLIO_HEAD_PAGE)
+  */
+ PAGEFLAG(Private, private, PF_ANY)
+ PAGEFLAG(Private2, private_2, PF_ANY) TESTSCFLAG(Private2, private_2, PF_ANY)
+-PAGEFLAG(OwnerPriv1, owner_priv_1, PF_ANY)
+-	TESTCLEARFLAG(OwnerPriv1, owner_priv_1, PF_ANY)
  
- #ifdef CONFIG_MMU
--PAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
--	__CLEARPAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
--	TESTSCFLAG(Mlocked, mlocked, PF_NO_TAIL)
-+FOLIO_FLAG(mlocked, FOLIO_HEAD_PAGE)
-+	__FOLIO_CLEAR_FLAG(mlocked, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_CLEAR_FLAG(mlocked, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_SET_FLAG(mlocked, FOLIO_HEAD_PAGE)
- #else
--PAGEFLAG_FALSE(Mlocked, mlocked) __CLEARPAGEFLAG_NOOP(Mlocked, mlocked)
--	TESTSCFLAG_FALSE(Mlocked, mlocked)
-+FOLIO_FLAG_FALSE(mlocked)
-+	__FOLIO_CLEAR_FLAG_NOOP(mlocked)
-+	FOLIO_TEST_CLEAR_FLAG_FALSE(mlocked)
-+	FOLIO_TEST_SET_FLAG_FALSE(mlocked)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+ /*
+  * Only test-and-set exist for PG_writeback.  The unconditional operators are
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
