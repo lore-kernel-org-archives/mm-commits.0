@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A73876025
-	for <mm-commits@vger.kernel.org>; Thu, 22 Aug 2024 19:09:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411021D04A8
+	for <mm-commits@vger.kernel.org>; Thu, 22 Aug 2024 19:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724353742; cv=none; b=Bg3DnfdrvDPGYTUmhZN9EBe+nYqn1Dsb2jLFyc192H35rOBX433PHsmWSDd4hKetBDrQTcKT6MESp3VXqoOV5QTfb3XnFdCPUnIOS/it8nOtP8XTgtG1dWtR7m1cGcO5fYBA/Lgm3C0NUsU5qC0RifgOlnQ6SrLbK4+Ru8hZAsg=
+	t=1724354806; cv=none; b=eXBxDdqqQ5mDQ5JIz1eo2Bpo+w0zYDNtUntTNybgxjYG0Akrz5jgxYD4YEvne5Nw+85DVfx98bCPoRtcyV7XKM4Dnnm7FlZvze1OctIXAdsmQt0Fj1b6K2baElTQerdzKrPtRTsa6QWCEo5XsYl9uRH0JB78lqAksYQPZLcvfFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724353742; c=relaxed/simple;
-	bh=lVq1f4YtIZ9r8LGC4n5rN4PKInH0DHfSSITElAIItWk=;
-	h=Date:To:From:Subject:Message-Id; b=FeC2rSLtruIp4cbfEOucc7axH7Evvo/aPae0larn0u3JzmzY5VvMNCY2V1G/Yj9fhh56iYcY1DatkH2jW8ObvmqUE6Me6o4BRgsGraFGrr/Apc1ZDoZZ2/Lu1vTauaJ/hniAekyzH5sy0W1h/3mwKwS0eCjX/6RyTO3l1jiwpz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0OGhZJZ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724354806; c=relaxed/simple;
+	bh=Q28AOgFCQlTkHfJp8kDwfQuSDF8pNE4v8joDOXoQR4Q=;
+	h=Date:To:From:Subject:Message-Id; b=kk0Npo9uhekl+EzzyJj5c3AwepIrXlDgm8G/rvuSA1Ekpt6FiEbmdPFv2fy633MiNbzuOeHkqbl/R13WhZfd8aORAkXirw0rOglbGJT5rj2usSmHiaxxRQDTArUGpXMDUnAZ5Moa066UuyI57KEjX7eWuFhtxzXczh2r4AUX/9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqqaJYax; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0OGhZJZ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A8DEC32782;
-	Thu, 22 Aug 2024 19:09:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqqaJYax"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF93EC32782;
+	Thu, 22 Aug 2024 19:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724353742;
-	bh=lVq1f4YtIZ9r8LGC4n5rN4PKInH0DHfSSITElAIItWk=;
+	s=korg; t=1724354805;
+	bh=Q28AOgFCQlTkHfJp8kDwfQuSDF8pNE4v8joDOXoQR4Q=;
 	h=Date:To:From:Subject:From;
-	b=0OGhZJZ0RiR1Fs8WuozEymaxQw14jz8mKxSlMgcZp8lwfKc1svSn5wDQaiIlMMQdE
-	 ddsAApDgE1K22kSiLdHBBP710Q9YGAJngw1ghJzYb8cG3hk6hzzmjwrlCPQ8sfiLSL
-	 8p66tJrPt0WE7e0GvQaWxxXl/ngd61i8luwez8R8=
-Date: Thu, 22 Aug 2024 12:09:01 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
+	b=oqqaJYaxUMZNZiEiBM/Ar948pO+F0r2z8ss/9eXsyzuR4kuEUGuk4HgppbX4Qyybm
+	 HAJxIKZiHm0PKf10zx4GE9qb50kLrOnMSGi9QRsKmaOhEdCYiH4SVA51BDi2BdW9Fv
+	 5MhbmTNgYE0STGmIdxRVsvuxmUZHNjmKk6ZZAcE8=
+Date: Thu, 22 Aug 2024 12:26:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,muchun.song@linux.dev,fvdl@google.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-more-mseal-traversal-tests-fix-2.patch added to mm-unstable branch
-Message-Id: <20240822190902.0A8DEC32782@smtp.kernel.org>
+Subject: + mm-cma-add-cma_allocfree_folio-fix.patch added to mm-unstable branch
+Message-Id: <20240822192645.AF93EC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix mseal's length
+     Subject: mm-cma-add-cma_allocfree_folio-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-more-mseal-traversal-tests-fix-2.patch
+     mm-cma-add-cma_allocfree_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-more-mseal-traversal-tests-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-cma_allocfree_folio-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pedro Falcato <pedro.falcato@gmail.com>
-Subject: selftests/mm: fix mseal's length
-Date: Thu, 22 Aug 2024 00:20:19 +0100
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm-cma-add-cma_allocfree_folio-fix
+Date: Thu, 22 Aug 2024 11:24:14 -0600
 
-We accidentally msealed too much, which could overrun and try to mseal
-other regions.  This seems to be harmless (at least on top-down
-architectures) due to various reasons all aligning, but may very well
-cause spurious test failures to e.g bottom-up mmap architectures.
+fix WARN in cma_alloc_folio()
 
-Link: https://lkml.kernel.org/r/vc4czyuemmu3kylqb4ctaga6y5yvondlyabimx6jvljlw2fkea@djawlllf45xa
-Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/Zsd0PgAQmbpR8jS6@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-more-mseal-traversal-tests-fix-2
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -778,7 +778,7 @@ static void test_seal_mprotect_partial_m
- 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
+--- a/mm/cma.c~mm-cma-add-cma_allocfree_folio-fix
++++ a/mm/cma.c
+@@ -522,7 +522,7 @@ struct folio *cma_alloc_folio(struct cma
+ {
+ 	struct page *page;
  
- 	if (seal) {
--		ret = sys_mseal(ptr + page_size, size);
-+		ret = sys_mseal(ptr + page_size, page_size);
- 		FAIL_TEST_IF_FALSE(!ret);
- 	}
+-	if (WARN_ON(!order || !(gfp | __GFP_COMP)))
++	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
+ 		return NULL;
  
-@@ -1031,7 +1031,7 @@ static void test_seal_munmap_partial_acr
- 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
- 	if (seal) {
--		ret = sys_mseal(ptr + page_size, size);
-+		ret = sys_mseal(ptr + page_size, page_size);
- 		FAIL_TEST_IF_FALSE(!ret);
- 	}
- 
+ 	page = __cma_alloc(cma, 1 << order, order, gfp);
 _
 
-Patches currently in -mm which might be from pedro.falcato@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-selftests-mm-add-mseal-test-for-no-discard-madvise.patch
-selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
-mm-move-can_modify_vma-to-mm-vmah.patch
-mm-munmap-replace-can_modify_mm-with-can_modify_vma.patch
-mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
-mm-mremap-replace-can_modify_mm-with-can_modify_vma.patch
-mseal-replace-can_modify_mm_madv-with-a-vma-variant.patch
-mm-remove-can_modify_mm.patch
-selftests-mm-add-more-mseal-traversal-tests.patch
-selftests-mm-add-more-mseal-traversal-tests-fix-2.patch
+mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
+mm-swap-reduce-indentation-level.patch
+mm-swap-rename-cpu_fbatches-activate.patch
+mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
+mm-swap-remove-remaining-_fn-suffix.patch
+mm-swap-remove-boilerplate.patch
+mm-swap-remove-boilerplate-fix.patch
+mm-hugetlb_vmemmap-batch-hvo-work-when-demoting.patch
+mm-contig_alloc-support-__gfp_comp.patch
+mm-cma-add-cma_allocfree_folio.patch
+mm-cma-add-cma_allocfree_folio-fix.patch
+mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
 
