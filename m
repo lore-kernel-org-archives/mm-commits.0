@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE66A17C22E;
-	Wed, 21 Aug 2024 22:42:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62E9917C220;
+	Thu, 22 Aug 2024 18:03:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724280155; cv=none; b=TOXaByzZgfOw3yN3ONcYlKUR9RN8NWdP0alh/gCFcMlxjnar6VZVlQIF9B2ygNW3VwuykehGJwn5hLzQdO7r6S0L8nFwDefQ4MBFeiNE78NxT2hEWMbmwh2C1SZlZGU6/EwymRKdlv1vRnwZPs8EKhZR7QfbhRdZ36E+6YTCw20=
+	t=1724349816; cv=none; b=oqCBAVTyN3AAtcRqQiFXrD6SVIY7OtgLC/xDFo37H8EkIf+QxtD3Ijj2pb6j4HdyQJPgGnArXNbEwy2Qf896+Mc0xJiOnFiyyQuoqcUKpW/3q0dtq0ntV7h2ETqJ4AlfLLzzn4aRVwLNt+kXneEbXWLJy1OKvGBKjeWK0ftsl+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724280155; c=relaxed/simple;
-	bh=lorCgRFqM+goDnTEmf/zgJFlsofexBgPxiQqbPxOEV4=;
-	h=Date:To:From:Subject:Message-Id; b=O8uafrJ09JWvzAKkRcmzKzhKe1dL2bW8K7iBfpBpQCj+bpaihjrHRZI27qK0Q8OdwrfDcpRQ9+RM5jFTqt5YJqSTUQj2KS+UpiNZ9JkpbGZhMa0WyqABUOn4ZcvmcLWw94cF6SJFCC5x69knyKSOWfT0FqZKJs9WSH04KCLwjK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8D6F8O8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724349816; c=relaxed/simple;
+	bh=gr3S8ktoJyMn1jKPhSjw3jsHWwnV8gxwwtqDDDkTOok=;
+	h=Date:To:From:Subject:Message-Id; b=ZI5RlVssotSp2rGslOhvRYLNbA/DORWahwxbgDc0dLFm9769NcTi1Ynq9uFeG4q/SHsQIK6y/90TlHjGtuKwKsukmi3RyOfGaZ9SRm/kMfxv189rmWXQt164tkGXi/eGSzHL4p9t8RwOCJ2LNVfJJE1PIuQhDFmNwXxDls7OSWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=quHScmSi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8D6F8O8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4448EC32781;
-	Wed, 21 Aug 2024 22:42:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="quHScmSi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12784C32782;
+	Thu, 22 Aug 2024 18:03:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724280155;
-	bh=lorCgRFqM+goDnTEmf/zgJFlsofexBgPxiQqbPxOEV4=;
+	s=korg; t=1724349815;
+	bh=gr3S8ktoJyMn1jKPhSjw3jsHWwnV8gxwwtqDDDkTOok=;
 	h=Date:To:From:Subject:From;
-	b=h8D6F8O86pgHWhDflBFzgD2Ws4wooeVzKA12BPg2fnh/Mq9bNoETRepaBrGcKKkWN
-	 YI+NbE2alPDljD9D9/NsToOfnKZnUdzUb4QKQnRnny+xytdv84Y9Io+fHOo99FqxFK
-	 TR6XG1rXVUvZcF9MvaI+dJUsdVcYSA/vO3M7T1zM=
-Date: Wed, 21 Aug 2024 15:42:34 -0700
-To: mm-commits@vger.kernel.org,steffen.klassert@secunet.com,stable@vger.kernel.org,longman@redhat.com,herbert@gondor.apana.org.au,daniel.m.jordan@oracle.com,kamlesh@ti.com,akpm@linux-foundation.org
+	b=quHScmSidZl9ca7nGACl+UzgC5EVFxZ3gDDIgM+gERzCDuGDntAcwptbbKa0X4xaA
+	 Rg7Y6i82hr0HXnTorPKvJg3Rw6gJN4SNAVrs3USWrzY35Cd2UhOIMOvfPuyQ74equt
+	 HKuDCKqHfptP2sweqmALPn6vsWmep1jXKv+/KRtw=
+Date: Thu, 22 Aug 2024 11:03:33 -0700
+To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,yuzhao@google.com,willy@infradead.org,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,leitao@debian.org,huangzhaoyang@gmail.com,hannes@cmpxchg.org,david@redhat.com,bharata@amd.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240821224235.4448EC32781@smtp.kernel.org>
+Subject: + revert-mm-skip-cma-pages-when-they-are-not-available-update.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240822180335.12784C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: padata: honor the caller's alignment in case of chunk_size 0
+     Subject: revert-mm-skip-cma-pages-when-they-are-not-available-update
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
+     revert-mm-skip-cma-pages-when-they-are-not-available-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-skip-cma-pages-when-they-are-not-available-update.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kamlesh Gurudasani <kamlesh@ti.com>
-Subject: padata: honor the caller's alignment in case of chunk_size 0
-Date: Thu, 22 Aug 2024 02:32:52 +0530
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: revert-mm-skip-cma-pages-when-they-are-not-available-update
+Date: Wed, 21 Aug 2024 20:26:07 +0100
 
-In the case where we are forcing the ps.chunk_size to be at least 1, we
-are ignoring the caller's alignment.
+also revert b7108d66318a ("Multi-gen LRU: skip CMA pages when they are not
+eligible"), per Johannes
 
-Move the forcing of ps.chunk_size to be at least 1 before rounding it up
-to caller's alignment, so that caller's alignment is honored.
-
-While at it, use max() to force the ps.chunk_size to be at least 1 to
-improve readability.
-
-Link: https://lkml.kernel.org/r/20240822-max-v1-1-cb4bc5b1c101@ti.com
-Fixes: 6d45e1c948a8 ("padata: Fix possible divide-by-0 panic in padata_mt_helper()")
-Signed-off-by: Kamlesh Gurudasani <kamlesh@ti.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Waiman Long <longman@redhat.com>
+Link: https://lkml.kernel.org/r/9060a32d-b2d7-48c0-8626-1db535653c54@gmail.com
+Link: https://lkml.kernel.org/r/357ac325-4c61-497a-92a3-bdbd230d5ec9@gmail.com
+Fixes: 5da226dbfce3 ("mm: skip CMA pages when they are not available")
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
---- a/kernel/padata.c~padata-honor-the-callers-alignment-in-case-of-chunk_size-0
-+++ a/kernel/padata.c
-@@ -509,21 +509,17 @@ void __init padata_do_multithreaded(stru
+--- a/mm/vmscan.c~revert-mm-skip-cma-pages-when-they-are-not-available-update
++++ a/mm/vmscan.c
+@@ -4253,25 +4253,6 @@ void lru_gen_soft_reclaim(struct mem_cgr
  
- 	/*
- 	 * Chunk size is the amount of work a helper does per call to the
--	 * thread function.  Load balance large jobs between threads by
-+	 * thread function. Load balance large jobs between threads by
- 	 * increasing the number of chunks, guarantee at least the minimum
- 	 * chunk size from the caller, and honor the caller's alignment.
-+	 * Ensure chunk_size is at least 1 to prevent divide-by-0
-+	 * panic in padata_mt_helper().
- 	 */
- 	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
- 	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
-+	ps.chunk_size = max(ps.chunk_size, 1ul);
- 	ps.chunk_size = roundup(ps.chunk_size, job->align);
+ #endif /* CONFIG_MEMCG */
  
--	/*
--	 * chunk_size can be 0 if the caller sets min_chunk to 0. So force it
--	 * to at least 1 to prevent divide-by-0 panic in padata_mt_helper().`
--	 */
--	if (!ps.chunk_size)
--		ps.chunk_size = 1U;
+-#ifdef CONFIG_CMA
+-/*
+- * It is waste of effort to scan and reclaim CMA pages if it is not available
+- * for current allocation context. Kswapd can not be enrolled as it can not
+- * distinguish this scenario by using sc->gfp_mask = GFP_KERNEL
+- */
+-static bool skip_cma(struct folio *folio, struct scan_control *sc)
+-{
+-	return !current_is_kswapd() &&
+-			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
+-			folio_migratetype(folio) == MIGRATE_CMA;
+-}
+-#else
+-static bool skip_cma(struct folio *folio, struct scan_control *sc)
+-{
+-	return false;
+-}
+-#endif
 -
- 	list_for_each_entry(pw, &works, pw_list)
- 		if (job->numa_aware) {
- 			int old_node = atomic_read(&last_used_nid);
+ /******************************************************************************
+  *                          the eviction
+  ******************************************************************************/
+@@ -4319,7 +4300,7 @@ static bool sort_folio(struct lruvec *lr
+ 	}
+ 
+ 	/* ineligible */
+-	if (zone > sc->reclaim_idx || skip_cma(folio, sc)) {
++	if (zone > sc->reclaim_idx) {
+ 		gen = folio_inc_gen(lruvec, folio, false);
+ 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 		return true;
 _
 
-Patches currently in -mm which might be from kamlesh@ti.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
+revert-mm-skip-cma-pages-when-they-are-not-available.patch
+revert-mm-skip-cma-pages-when-they-are-not-available-update.patch
 
