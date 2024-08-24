@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63D1257D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 06:22:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31E3A257D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 06:22:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724480571; cv=none; b=QzdhnADE8/aCnE9V1m19txaQC37yDQ9WauUZqNIW+DwRJWloiygZoKmGF4cWMmXV191TdTG7gqrCVa0VdByBpX5+fR0uGsBHE4cA3pquA9DQ6sbJ4/3EV5qNJ1BdyWl8MxDSxH1EUtJr3xkVxqXoONuOLgM28aZsq1KZXmouXI0=
+	t=1724480574; cv=none; b=cWTU9UuC0QjXPMoZ0hhy8t7vXsr+336123l/4yRIvqDtjvZnAhg4ZBWeMsJZ5mlz3a6t2GCq/smwh01KzqGYC84UUVWInc20fDNRYSFoP+9bNfR+UWwPnf2P9CsqpHaGG/17xb2PSuLt1vQyXnPK0VXHkCMuRAZYVgDuzH1dJYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724480571; c=relaxed/simple;
-	bh=UHbQUgaMqnRxmu0huulx4mw1ViMNzfxBAvJKeXVnY/w=;
-	h=Date:To:From:Subject:Message-Id; b=PUbda2B65W4FAV4Yw2r49mr3EpFQmwGmJV8FW/o14909Up9QVBQ10B9pt32ZQQOjgxdVbfW+x5hQffCGsqUk+vGek/po+hdwlfKrtk/Lq3KYD5T4lqnQvL11HD6ZPMjrKRNX9sXiqbsy+7R+beSc552QqZXPXl4MHf18kduoWvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YcMhJkBq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724480574; c=relaxed/simple;
+	bh=cHKwwEjwGd+u9QhQ1ebpM7f7p5hTDQGSw8BOm7kRMuM=;
+	h=Date:To:From:Subject:Message-Id; b=IZd7DedL9rrZ8juKzHT6Oz4UHQDjA9JXBmn+3PH8j3iInaJ7uuDYy7IzzSzQ92JfbIdlC3I158eODBI6JxNoiMWlkzEWmfzD1P+LSjBH17h6psCVAZRFpex7r1QXO4wdfitV08F8ca4fN19m8z6u6hwzjJ+EreBRr3lRdnyBeEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ywkyoXlf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YcMhJkBq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32FCBC32781;
-	Sat, 24 Aug 2024 06:22:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ywkyoXlf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDA5CC32781;
+	Sat, 24 Aug 2024 06:22:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724480571;
-	bh=UHbQUgaMqnRxmu0huulx4mw1ViMNzfxBAvJKeXVnY/w=;
+	s=korg; t=1724480573;
+	bh=cHKwwEjwGd+u9QhQ1ebpM7f7p5hTDQGSw8BOm7kRMuM=;
 	h=Date:To:From:Subject:From;
-	b=YcMhJkBq3kuwD6fER+dVPRVnqVa4+f8RkfXzUbFS3MF8tAqqeidnxJa99h6ss6uhc
-	 5w9OM+pjQc4/MXP3yLAsfGrMUvwDVN6jH97v9d1kAJcvMYYhr7mO5fBnLEG89pWXIk
-	 +uvcjgcmUF2h4u/LTRkFKiQw6KZEb7l4RZYGhcAQ=
-Date: Fri, 23 Aug 2024 23:22:50 -0700
+	b=ywkyoXlfbRywPNUEIksKCKK6c8v5a9I6mWNPxe6IfUC5ad5k1ZshXU8s4YUf+CHQe
+	 Mk62cbYwqnbUgs1MqWNt8oSndtr5npY/FwqcJBBIEi35De2vecc/2wYWAqHoD0Fott
+	 EC4ZBD8NjTW+DKEWwPDRLpxwQQxJP4gYTed4RVC0=
+Date: Fri, 23 Aug 2024 23:22:53 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch added to mm-unstable branch
-Message-Id: <20240824062251.32FCBC32781@smtp.kernel.org>
+Subject: + mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch added to mm-unstable branch
+Message-Id: <20240824062253.BDA5CC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make vma_prepare() and friends static and internal to vma.c
+     Subject: mm: introduce commit_merge(), abstracting final commit of merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
+     mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: make vma_prepare() and friends static and internal to vma.c
-Date: Fri, 23 Aug 2024 21:07:02 +0100
+Subject: mm: introduce commit_merge(), abstracting final commit of merge
+Date: Fri, 23 Aug 2024 21:07:03 +0100
 
-Now we have abstracted merge behaviour for new VMA ranges, we are able to
-render vma_prepare(), init_vma_prep(), vma_complete(),
-can_vma_merge_before() and can_vma_merge_after() static and internal to
-vma.c.
+Pull the part of vma_expand() which actually commits the merge operation,
+that is inserts it into the maple tree and sets the VMA's vma->vm_start and
+vma->vm_end parameters, into its own function.
 
-These are internal implementation details of kernel VMA manipulation and
-merging mechanisms and thus should not be exposed. This also renders the
-functions userland testable.
+We implement only the parts needed for vma_expand() which now as a result
+of previous work is also the means by which new VMA ranges are merged.
 
-Link: https://lkml.kernel.org/r/b063950be644779efb9a367fda9f435df8162605.1724441678.git.lorenzo.stoakes@oracle.com
+The next commit in the series will implement merging of existing ranges
+which will extend commit_merge() to accommodate this case and result in all
+merges using this common code.
+
+Link: https://lkml.kernel.org/r/1574f1e878da4dc2f23be611f318c4f5eb82ef01.1724441678.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jiri Olsa <olsajiri@gmail.com>
@@ -87,413 +89,78 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |  318 ++++++++++++++++++++++++++---------------------------
- mm/vma.h |   25 ----
- 2 files changed, 158 insertions(+), 185 deletions(-)
+ mm/vma.c |   39 +++++++++++++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 12 deletions(-)
 
---- a/mm/vma.c~mm-make-vma_prepare-and-friends-static-and-internal-to-vmac
+--- a/mm/vma.c~mm-introduce-commit_merge-abstracting-final-commit-of-merge
 +++ a/mm/vma.c
-@@ -97,8 +97,7 @@ static void init_multi_vma_prep(struct v
-  *
-  * We assume the vma may be removed as part of the merge.
-  */
--bool
--can_vma_merge_before(struct vma_merge_struct *vmg)
-+static bool can_vma_merge_before(struct vma_merge_struct *vmg)
- {
- 	pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
- 
-@@ -120,7 +119,7 @@ can_vma_merge_before(struct vma_merge_st
-  *
-  * We assume that vma is not removed as part of the merge.
-  */
--bool can_vma_merge_after(struct vma_merge_struct *vmg)
-+static bool can_vma_merge_after(struct vma_merge_struct *vmg)
- {
- 	if (is_mergeable_vma(vmg, false) &&
- 	    is_mergeable_anon_vma(vmg->anon_vma, vmg->prev->anon_vma, vmg->prev)) {
-@@ -130,6 +129,162 @@ bool can_vma_merge_after(struct vma_merg
- 	return false;
+@@ -540,6 +540,31 @@ void validate_mm(struct mm_struct *mm)
  }
+ #endif /* CONFIG_DEBUG_VM_MAPLE_TREE */
  
-+static void __vma_link_file(struct vm_area_struct *vma,
-+			    struct address_space *mapping)
++/* Actually perform the VMA merge operation. */
++static int commit_merge(struct vma_merge_struct *vmg,
++			struct vm_area_struct *remove)
 +{
-+	if (vma_is_shared_maywrite(vma))
-+		mapping_allow_writable(mapping);
++	struct vma_prepare vp;
 +
-+	flush_dcache_mmap_lock(mapping);
-+	vma_interval_tree_insert(vma, &mapping->i_mmap);
-+	flush_dcache_mmap_unlock(mapping);
-+}
++	init_multi_vma_prep(&vp, vmg->vma, NULL, remove, NULL);
 +
-+/*
-+ * Requires inode->i_mapping->i_mmap_rwsem
-+ */
-+static void __remove_shared_vm_struct(struct vm_area_struct *vma,
-+				      struct address_space *mapping)
-+{
-+	if (vma_is_shared_maywrite(vma))
-+		mapping_unmap_writable(mapping);
++	/* Note: vma iterator must be pointing to 'start'. */
++	vma_iter_config(vmg->vmi, vmg->start, vmg->end);
 +
-+	flush_dcache_mmap_lock(mapping);
-+	vma_interval_tree_remove(vma, &mapping->i_mmap);
-+	flush_dcache_mmap_unlock(mapping);
-+}
++	if (vma_iter_prealloc(vmg->vmi, vmg->vma))
++		return -ENOMEM;
 +
-+/*
-+ * vma_prepare() - Helper function for handling locking VMAs prior to altering
-+ * @vp: The initialized vma_prepare struct
-+ */
-+static void vma_prepare(struct vma_prepare *vp)
-+{
-+	if (vp->file) {
-+		uprobe_munmap(vp->vma, vp->vma->vm_start, vp->vma->vm_end);
++	vma_prepare(&vp);
++	vma_adjust_trans_huge(vmg->vma, vmg->start, vmg->end, 0);
++	vma_set_range(vmg->vma, vmg->start, vmg->end, vmg->pgoff);
 +
-+		if (vp->adj_next)
-+			uprobe_munmap(vp->adj_next, vp->adj_next->vm_start,
-+				      vp->adj_next->vm_end);
++	vma_iter_store(vmg->vmi, vmg->vma);
 +
-+		i_mmap_lock_write(vp->mapping);
-+		if (vp->insert && vp->insert->vm_file) {
-+			/*
-+			 * Put into interval tree now, so instantiated pages
-+			 * are visible to arm/parisc __flush_dcache_page
-+			 * throughout; but we cannot insert into address
-+			 * space until vma start or end is updated.
-+			 */
-+			__vma_link_file(vp->insert,
-+					vp->insert->vm_file->f_mapping);
-+		}
-+	}
++	vma_complete(&vp, vmg->vmi, vmg->vma->vm_mm);
 +
-+	if (vp->anon_vma) {
-+		anon_vma_lock_write(vp->anon_vma);
-+		anon_vma_interval_tree_pre_update_vma(vp->vma);
-+		if (vp->adj_next)
-+			anon_vma_interval_tree_pre_update_vma(vp->adj_next);
-+	}
-+
-+	if (vp->file) {
-+		flush_dcache_mmap_lock(vp->mapping);
-+		vma_interval_tree_remove(vp->vma, &vp->mapping->i_mmap);
-+		if (vp->adj_next)
-+			vma_interval_tree_remove(vp->adj_next,
-+						 &vp->mapping->i_mmap);
-+	}
-+
-+}
-+
-+/*
-+ * vma_complete- Helper function for handling the unlocking after altering VMAs,
-+ * or for inserting a VMA.
-+ *
-+ * @vp: The vma_prepare struct
-+ * @vmi: The vma iterator
-+ * @mm: The mm_struct
-+ */
-+static void vma_complete(struct vma_prepare *vp, struct vma_iterator *vmi,
-+			 struct mm_struct *mm)
-+{
-+	if (vp->file) {
-+		if (vp->adj_next)
-+			vma_interval_tree_insert(vp->adj_next,
-+						 &vp->mapping->i_mmap);
-+		vma_interval_tree_insert(vp->vma, &vp->mapping->i_mmap);
-+		flush_dcache_mmap_unlock(vp->mapping);
-+	}
-+
-+	if (vp->remove && vp->file) {
-+		__remove_shared_vm_struct(vp->remove, vp->mapping);
-+		if (vp->remove2)
-+			__remove_shared_vm_struct(vp->remove2, vp->mapping);
-+	} else if (vp->insert) {
-+		/*
-+		 * split_vma has split insert from vma, and needs
-+		 * us to insert it before dropping the locks
-+		 * (it may either follow vma or precede it).
-+		 */
-+		vma_iter_store(vmi, vp->insert);
-+		mm->map_count++;
-+	}
-+
-+	if (vp->anon_vma) {
-+		anon_vma_interval_tree_post_update_vma(vp->vma);
-+		if (vp->adj_next)
-+			anon_vma_interval_tree_post_update_vma(vp->adj_next);
-+		anon_vma_unlock_write(vp->anon_vma);
-+	}
-+
-+	if (vp->file) {
-+		i_mmap_unlock_write(vp->mapping);
-+		uprobe_mmap(vp->vma);
-+
-+		if (vp->adj_next)
-+			uprobe_mmap(vp->adj_next);
-+	}
-+
-+	if (vp->remove) {
-+again:
-+		vma_mark_detached(vp->remove, true);
-+		if (vp->file) {
-+			uprobe_munmap(vp->remove, vp->remove->vm_start,
-+				      vp->remove->vm_end);
-+			fput(vp->file);
-+		}
-+		if (vp->remove->anon_vma)
-+			anon_vma_merge(vp->vma, vp->remove);
-+		mm->map_count--;
-+		mpol_put(vma_policy(vp->remove));
-+		if (!vp->remove2)
-+			WARN_ON_ONCE(vp->vma->vm_end < vp->remove->vm_end);
-+		vm_area_free(vp->remove);
-+
-+		/*
-+		 * In mprotect's case 6 (see comments on vma_merge),
-+		 * we are removing both mid and next vmas
-+		 */
-+		if (vp->remove2) {
-+			vp->remove = vp->remove2;
-+			vp->remove2 = NULL;
-+			goto again;
-+		}
-+	}
-+	if (vp->insert && vp->file)
-+		uprobe_mmap(vp->insert);
-+}
-+
-+/*
-+ * init_vma_prep() - Initializer wrapper for vma_prepare struct
-+ * @vp: The vma_prepare struct
-+ * @vma: The vma that will be altered once locked
-+ */
-+static void init_vma_prep(struct vma_prepare *vp, struct vm_area_struct *vma)
-+{
-+	init_multi_vma_prep(vp, vma, NULL, NULL, NULL);
++	return 0;
 +}
 +
  /*
-  * Close a vm structure and free it.
-  */
-@@ -271,31 +426,6 @@ static int split_vma(struct vma_iterator
- }
- 
- /*
-- * init_vma_prep() - Initializer wrapper for vma_prepare struct
-- * @vp: The vma_prepare struct
-- * @vma: The vma that will be altered once locked
-- */
--void init_vma_prep(struct vma_prepare *vp,
--		   struct vm_area_struct *vma)
--{
--	init_multi_vma_prep(vp, vma, NULL, NULL, NULL);
--}
--
--/*
-- * Requires inode->i_mapping->i_mmap_rwsem
-- */
--static void __remove_shared_vm_struct(struct vm_area_struct *vma,
--				      struct address_space *mapping)
--{
--	if (vma_is_shared_maywrite(vma))
--		mapping_unmap_writable(mapping);
--
--	flush_dcache_mmap_lock(mapping);
--	vma_interval_tree_remove(vma, &mapping->i_mmap);
--	flush_dcache_mmap_unlock(mapping);
--}
--
--/*
-  * vma has some anon_vma assigned, and is already inserted on that
-  * anon_vma's interval trees.
+  * vma_merge_new_range - Attempt to merge a new VMA into address space
   *
-@@ -327,60 +457,6 @@ anon_vma_interval_tree_post_update_vma(s
- 		anon_vma_interval_tree_insert(avc, &avc->anon_vma->rb_root);
- }
+@@ -672,7 +697,6 @@ int vma_expand(struct vma_merge_struct *
+ 	bool remove_next = false;
+ 	struct vm_area_struct *vma = vmg->vma;
+ 	struct vm_area_struct *next = vmg->next;
+-	struct vma_prepare vp;
  
--static void __vma_link_file(struct vm_area_struct *vma,
--			    struct address_space *mapping)
--{
--	if (vma_is_shared_maywrite(vma))
--		mapping_allow_writable(mapping);
+ 	mmap_assert_write_locked(vmg->mm);
+ 
+@@ -687,24 +711,15 @@ int vma_expand(struct vma_merge_struct *
+ 			return ret;
+ 	}
+ 
+-	init_multi_vma_prep(&vp, vma, NULL, remove_next ? next : NULL, NULL);
+ 	/* Not merging but overwriting any part of next is not handled. */
+-	VM_WARN_ON(next && !vp.remove &&
++	VM_WARN_ON(next && !remove_next &&
+ 		  next != vma && vmg->end > next->vm_start);
+ 	/* Only handles expanding */
+ 	VM_WARN_ON(vma->vm_start < vmg->start || vma->vm_end > vmg->end);
+ 
+-	/* Note: vma iterator must be pointing to 'start' */
+-	vma_iter_config(vmg->vmi, vmg->start, vmg->end);
+-	if (vma_iter_prealloc(vmg->vmi, vma))
++	if (commit_merge(vmg, remove_next ? next : NULL))
+ 		goto nomem;
+ 
+-	vma_prepare(&vp);
+-	vma_adjust_trans_huge(vma, vmg->start, vmg->end, 0);
+-	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
+-	vma_iter_store(vmg->vmi, vma);
 -
--	flush_dcache_mmap_lock(mapping);
--	vma_interval_tree_insert(vma, &mapping->i_mmap);
--	flush_dcache_mmap_unlock(mapping);
--}
--
--/*
-- * vma_prepare() - Helper function for handling locking VMAs prior to altering
-- * @vp: The initialized vma_prepare struct
-- */
--void vma_prepare(struct vma_prepare *vp)
--{
--	if (vp->file) {
--		uprobe_munmap(vp->vma, vp->vma->vm_start, vp->vma->vm_end);
--
--		if (vp->adj_next)
--			uprobe_munmap(vp->adj_next, vp->adj_next->vm_start,
--				      vp->adj_next->vm_end);
--
--		i_mmap_lock_write(vp->mapping);
--		if (vp->insert && vp->insert->vm_file) {
--			/*
--			 * Put into interval tree now, so instantiated pages
--			 * are visible to arm/parisc __flush_dcache_page
--			 * throughout; but we cannot insert into address
--			 * space until vma start or end is updated.
--			 */
--			__vma_link_file(vp->insert,
--					vp->insert->vm_file->f_mapping);
--		}
--	}
--
--	if (vp->anon_vma) {
--		anon_vma_lock_write(vp->anon_vma);
--		anon_vma_interval_tree_pre_update_vma(vp->vma);
--		if (vp->adj_next)
--			anon_vma_interval_tree_pre_update_vma(vp->adj_next);
--	}
--
--	if (vp->file) {
--		flush_dcache_mmap_lock(vp->mapping);
--		vma_interval_tree_remove(vp->vma, &vp->mapping->i_mmap);
--		if (vp->adj_next)
--			vma_interval_tree_remove(vp->adj_next,
--						 &vp->mapping->i_mmap);
--	}
--
--}
--
- /*
-  * dup_anon_vma() - Helper function to duplicate anon_vma
-  * @dst: The destination VMA
-@@ -675,84 +751,6 @@ int vma_shrink(struct vma_iterator *vmi,
+-	vma_complete(&vp, vmg->vmi, vma->vm_mm);
  	return 0;
- }
  
--/*
-- * vma_complete- Helper function for handling the unlocking after altering VMAs,
-- * or for inserting a VMA.
-- *
-- * @vp: The vma_prepare struct
-- * @vmi: The vma iterator
-- * @mm: The mm_struct
-- */
--void vma_complete(struct vma_prepare *vp,
--		  struct vma_iterator *vmi, struct mm_struct *mm)
--{
--	if (vp->file) {
--		if (vp->adj_next)
--			vma_interval_tree_insert(vp->adj_next,
--						 &vp->mapping->i_mmap);
--		vma_interval_tree_insert(vp->vma, &vp->mapping->i_mmap);
--		flush_dcache_mmap_unlock(vp->mapping);
--	}
--
--	if (vp->remove && vp->file) {
--		__remove_shared_vm_struct(vp->remove, vp->mapping);
--		if (vp->remove2)
--			__remove_shared_vm_struct(vp->remove2, vp->mapping);
--	} else if (vp->insert) {
--		/*
--		 * split_vma has split insert from vma, and needs
--		 * us to insert it before dropping the locks
--		 * (it may either follow vma or precede it).
--		 */
--		vma_iter_store(vmi, vp->insert);
--		mm->map_count++;
--	}
--
--	if (vp->anon_vma) {
--		anon_vma_interval_tree_post_update_vma(vp->vma);
--		if (vp->adj_next)
--			anon_vma_interval_tree_post_update_vma(vp->adj_next);
--		anon_vma_unlock_write(vp->anon_vma);
--	}
--
--	if (vp->file) {
--		i_mmap_unlock_write(vp->mapping);
--		uprobe_mmap(vp->vma);
--
--		if (vp->adj_next)
--			uprobe_mmap(vp->adj_next);
--	}
--
--	if (vp->remove) {
--again:
--		vma_mark_detached(vp->remove, true);
--		if (vp->file) {
--			uprobe_munmap(vp->remove, vp->remove->vm_start,
--				      vp->remove->vm_end);
--			fput(vp->file);
--		}
--		if (vp->remove->anon_vma)
--			anon_vma_merge(vp->vma, vp->remove);
--		mm->map_count--;
--		mpol_put(vma_policy(vp->remove));
--		if (!vp->remove2)
--			WARN_ON_ONCE(vp->vma->vm_end < vp->remove->vm_end);
--		vm_area_free(vp->remove);
--
--		/*
--		 * In mprotect's case 6 (see comments on vma_merge),
--		 * we are removing both mid and next vmas
--		 */
--		if (vp->remove2) {
--			vp->remove = vp->remove2;
--			vp->remove2 = NULL;
--			goto again;
--		}
--	}
--	if (vp->insert && vp->file)
--		uprobe_mmap(vp->insert);
--}
--
- static inline void vms_clear_ptes(struct vma_munmap_struct *vms,
- 		    struct ma_state *mas_detach, bool mm_wr_locked)
- {
---- a/mm/vma.h~mm-make-vma_prepare-and-friends-static-and-internal-to-vmac
-+++ a/mm/vma.h
-@@ -132,17 +132,6 @@ void anon_vma_interval_tree_pre_update_v
- /* Required for expand_downwards(). */
- void anon_vma_interval_tree_post_update_vma(struct vm_area_struct *vma);
- 
--/* Required for do_brk_flags(). */
--void vma_prepare(struct vma_prepare *vp);
--
--/* Required for do_brk_flags(). */
--void init_vma_prep(struct vma_prepare *vp,
--		   struct vm_area_struct *vma);
--
--/* Required for do_brk_flags(). */
--void vma_complete(struct vma_prepare *vp,
--		  struct vma_iterator *vmi, struct mm_struct *mm);
--
- int vma_expand(struct vma_merge_struct *vmg);
- int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 	       unsigned long start, unsigned long end, pgoff_t pgoff);
-@@ -273,20 +262,6 @@ void remove_vma(struct vm_area_struct *v
- void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
- 		struct vm_area_struct *prev, struct vm_area_struct *next);
- 
--/*
-- * Can we merge the VMA described by vmg into the following VMA vmg->next?
-- *
-- * Required by mmap_region().
-- */
--bool can_vma_merge_before(struct vma_merge_struct *vmg);
--
--/*
-- * Can we merge the VMA described by vmg into the preceding VMA vmg->prev?
-- *
-- * Required by mmap_region() and do_brk_flags().
-- */
--bool can_vma_merge_after(struct vma_merge_struct *vmg);
--
- /* We are about to modify the VMA's flags. */
- struct vm_area_struct *vma_modify_flags(struct vma_iterator *vmi,
- 					struct vm_area_struct *prev,
+ nomem:
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
