@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2FA22F2F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 05:37:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD57A38FA1
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 05:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724477847; cv=none; b=tcHkvkE69NkdZVEEa6k7+kVxWvwMlEevM3vqKHLhQYEAFk5zMbFOJjY0XEaIuWkMkGF9U8Y3WIjkSSyEL5h15ZxC6FOfnSgbUJBHInkYDv5ljt1AW5CXtvb69flK8K+jkh+66e7SuQeWqBukyiyEH8jznTlQ2+ov5WiP7Uy3uUc=
+	t=1724478962; cv=none; b=kXfmrP63Ua4CwgLPQaUxSOCDjWQN3Ly7Rxx5GeSZhCdrWAuQP81PruNlIUyZclP3hNf0puSlQM07A6XvEeGiAEipfQdP5wwoX3QQZQlHlsI13Os/cqBBfX+EZwW/vCvoU5HjuXwhR9QTStTUVU1jDSaBZ8FDrfq9VaJD1gpCIcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724477847; c=relaxed/simple;
-	bh=A8XhD2cU0MiNpWnOrXggFza8jefEMce/qaeK7b9m6Ak=;
-	h=Date:To:From:Subject:Message-Id; b=Ev4eni1cg7URzZrd1uhoD7jEMJ1O4QwL8Xecan/TWV2PivyRnfx+BHljN7d+2IAeTas4+IVeD3p2TiTx2RktgsMTxGNeLtXtLbW9bw9wOAI4BI/jUxQvYM4zwAjQtWKum5BbjSw8DyBoafpGtz8qAQKmbtxVGSBpKhRlQePHI+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfxBlBwz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724478962; c=relaxed/simple;
+	bh=DwdFNwda6RJbgLQvFrDAEGaqyVTsO+UVLotHBOOsoCE=;
+	h=Date:To:From:Subject:Message-Id; b=bu6RWa2zNmKB85QeL7JDqsC4hSmqEHZA9mpfhni8dmW+8JNRou9lG+VKqDf9aLCm3tQ5OCYyb6tT9aCRlhF4Uoipvv3XRcU2eKabhzrOa9LdmYbyfWStnGy3Kt3ipLG9mpDgm+uRB3AeWaSJz3KTgIi0o64oytR8noe9wamlmwo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CTE/q1d3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfxBlBwz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DC01C32781;
-	Sat, 24 Aug 2024 05:37:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CTE/q1d3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 496FFC32781;
+	Sat, 24 Aug 2024 05:56:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724477847;
-	bh=A8XhD2cU0MiNpWnOrXggFza8jefEMce/qaeK7b9m6Ak=;
+	s=korg; t=1724478962;
+	bh=DwdFNwda6RJbgLQvFrDAEGaqyVTsO+UVLotHBOOsoCE=;
 	h=Date:To:From:Subject:From;
-	b=IfxBlBwzFuPMEgoc5/rl1KBTHNh4hgY962KOSSceJSMcupRAKiiwJyFFMVgat97W5
-	 YUCh469oJYOqDk2Bj6kXTV2zIBvPPhUa7CRv+nmushUvo7TJw7zRBC3i/ToYH8ivSm
-	 +mwWo7TmzVqrGqhpPiITGdrUrUtRiUeF3QQiJHk0=
-Date: Fri, 23 Aug 2024 22:37:26 -0700
-To: mm-commits@vger.kernel.org,justinjiang@vivo.com,akpm@linux-foundation.org
+	b=CTE/q1d3jAzn3Lhy3s/DJi+9+dA6MeGuMtB5Vh0EtETDEX9Cxb8H8eqJ/EpxiV/Zj
+	 iDJHE0/mAhP4xgxkUe0HB6s6QLvXCwoWjpc+zpJVMFKbxG62i65oO1Y7jyuigY6qWR
+	 CpaJ0j/5xA6hFRgoMJONSYkopnwkY4kgTblHrfI4=
+Date: Fri, 23 Aug 2024 22:56:01 -0700
+To: mm-commits@vger.kernel.org,thomas.petazzoni@bootlin.com,swboyd@chromium.org,sashal@kernel.org,koct9i@gmail.com,alexis.lothore@bootlin.com,luca.ceresoli@bootlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vma-remove-the-unneeded-avc-bound-with-non-cowed-folio.patch added to mm-unstable branch
-Message-Id: <20240824053727.3DC01C32781@smtp.kernel.org>
+Subject: + scripts-decode_stacktracesh-remove-find_module-recursion-and-improve-error-reporting.patch added to mm-nonmm-unstable branch
+Message-Id: <20240824055602.496FFC32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vma remove the unneeded avc bound with non-CoWed folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     vma-remove-the-unneeded-avc-bound-with-non-cowed-folio.patch
+     Subject: scripts/decode_stacktrace.sh: remove find_module recursion and improve error reporting
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-decode_stacktracesh-remove-find_module-recursion-and-improve-error-reporting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vma-remove-the-unneeded-avc-bound-with-non-cowed-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-remove-find_module-recursion-and-improve-error-reporting.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,124 +58,132 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhiguo Jiang <justinjiang@vivo.com>
-Subject: vma remove the unneeded avc bound with non-CoWed folio
-Date: Fri, 23 Aug 2024 23:02:06 +0800
+From: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Subject: scripts/decode_stacktrace.sh: remove find_module recursion and improve error reporting
+Date: Fri, 23 Aug 2024 10:27:42 +0200
 
-After CoWed by do_wp_page, the vma established a new mapping relationship
-with the CoWed folio instead of the non-CoWed folio.  However, regarding
-the situation where vma->anon_vma and the non-CoWed folio's anon_vma are
-not same, the avc binding relationship between them will no longer be
-needed, so it is issue for the avc binding relationship still existing
-between them.
+Patch series "scripts/decode_stacktrace.sh: improve error reporting and
+usability", v2.
 
-This patch will remove the avc binding relationship between vma and the
-non-CoWed folio's anon_vma, which each has their own independent anon_vma.
-It can also alleviates rmap overhead simultaneously.
+This small series improves usability of scripts/decode_stacktrace.sh by
+improving the usage text and correctly reporting when modules are built
+without debugging symbols.
 
-Link: https://lkml.kernel.org/r/20240823150206.565-1-justinjiang@vivo.com
-Signed-off-by: Zhiguo Jiang <justinjiang@vivo.com>
+
+This patch (of 3):
+
+The find_module() function can fail for two reasons:
+
+ * the module was not found
+ * the module was found but without debugging info
+
+In both cases the user is reported the same error:
+
+   WARNING! Modules path isn't set, but is needed to parse this symbol
+
+This is misleading in case the modules path is set correctly.
+
+find_module() is currently implemented as a recursive function based on
+global variables in order to check up to 4 different paths.  This is not
+straightforward to read and even less to modify.
+
+Besides, the debuginfo code at the beginning of find_module() is executed
+identically every time the function is entered, i.e.  up to 4 times per
+each module search due to recursion.
+
+To be able to improve error reporting, first rewrite the find_module()
+function to remove recursion.  The new version of the function iterates
+over all the same (up to 4) paths as before and for each of them does the
+same checks as before.  At the end of the iteration it is now able to
+print an appropriate error message, so that has been moved from the caller
+into find_module().
+
+Finally, when the module is found but without debugging info, mention the
+two Kconfig variables one needs to set in order to have the needed
+debugging symbols.
+
+Link: https://lkml.kernel.org/r/20240823-decode_stacktrace-find_module-improvements-v2-0-d7a57d35558b@bootlin.com
+Link: https://lkml.kernel.org/r/20240823-decode_stacktrace-find_module-improvements-v2-1-d7a57d35558b@bootlin.com
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Alexis Lothoré (eBPF Foundation) <alexis.lothore@bootlin.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 
- mm/memory.c          |    8 ++++++
- mm/rmap.c            |   53 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 62 insertions(+)
+ scripts/decode_stacktrace.sh |   40 ++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
---- a/include/linux/rmap.h~vma-remove-the-unneeded-avc-bound-with-non-cowed-folio
-+++ a/include/linux/rmap.h
-@@ -257,6 +257,7 @@ void folio_remove_rmap_ptes(struct folio
- 	folio_remove_rmap_ptes(folio, page, 1, vma)
- void folio_remove_rmap_pmd(struct folio *, struct page *,
- 		struct vm_area_struct *);
-+void folio_remove_anon_avc(struct folio *, struct vm_area_struct *);
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-remove-find_module-recursion-and-improve-error-reporting
++++ a/scripts/decode_stacktrace.sh
+@@ -89,31 +89,32 @@ find_module() {
+ 		fi
+ 	fi
  
- void hugetlb_add_anon_rmap(struct folio *, struct vm_area_struct *,
- 		unsigned long address, rmap_t flags);
---- a/mm/memory.c~vma-remove-the-unneeded-avc-bound-with-non-cowed-folio
-+++ a/mm/memory.c
-@@ -3428,6 +3428,14 @@ static vm_fault_t wp_page_copy(struct vm
- 			 * old page will be flushed before it can be reused.
- 			 */
- 			folio_remove_rmap_pte(old_folio, vmf->page, vma);
+-	if [[ "$modpath" != "" ]] ; then
+-		for fn in $(find "$modpath" -name "${module//_/[-_]}.ko*") ; do
+-			if ${READELF} -WS "$fn" | grep -qwF .debug_line ; then
+-				echo $fn
+-				return
+-			fi
+-		done
+-		return 1
+-	fi
+-
+-	modpath=$(dirname "$vmlinux")
+-	find_module && return
+-
+-	if [[ $release == "" ]] ; then
++	if [ -z $release ] ; then
+ 		release=$(gdb -ex 'print init_uts_ns.name.release' -ex 'quit' -quiet -batch "$vmlinux" 2>/dev/null | sed -n 's/\$1 = "\(.*\)".*/\1/p')
+ 	fi
++	if [ -n "${release}" ] ; then
++		release_dirs="/usr/lib/debug/lib/modules/$release /lib/modules/$release"
++	fi
+ 
+-	for dn in {/usr/lib/debug,}/lib/modules/$release ; do
+-		if [ -e "$dn" ] ; then
+-			modpath="$dn"
+-			find_module && return
++	found_without_debug_info=false
++	for dir in "$modpath" "$(dirname "$vmlinux")" ${release_dirs}; do
++		if [ -n "${dir}" ] && [ -e "${dir}" ]; then
++			for fn in $(find "$dir" -name "${module//_/[-_]}.ko*") ; do
++				if ${READELF} -WS "$fn" | grep -qwF .debug_line ; then
++					echo $fn
++					return
++				fi
++				found_without_debug_info=true
++			done
+ 		fi
+ 	done
+ 
+-	modpath=""
++	if [[ ${found_without_debug_info} == true ]]; then
++		echo "WARNING! No debugging info in module ${module}, rebuild with DEBUG_KERNEL and DEBUG_INFO" >&2
++	else
++		echo "WARNING! Cannot find .ko for module ${module}, please pass a valid module path" >&2
++	fi
 +
-+			/*
-+			 * If the new_folio's anon_vma is different from the
-+			 * old_folio's anon_vma, the avc binding relationship
-+			 * between vma and the old_folio's anon_vma is removed,
-+			 * avoiding rmap redundant overhead.
-+			 */
-+			folio_remove_anon_avc(old_folio, vma);
- 		}
- 
- 		/* Free the old page.. */
---- a/mm/rmap.c~vma-remove-the-unneeded-avc-bound-with-non-cowed-folio
-+++ a/mm/rmap.c
-@@ -1522,6 +1522,59 @@ void folio_add_file_rmap_pmd(struct foli
- #endif
+ 	return 1
  }
  
-+/**
-+ * folio_remove_anon_avc - remove the avc binding relationship between
-+ * folio and vma with different anon_vmas.
-+ * @folio:	The folio with anon_vma to remove the binded avc from
-+ * @vma:	The vm area to remove the binded avc with folio's anon_vma
-+ *
-+ * The caller is currently used for CoWed scene.
-+ */
-+void folio_remove_anon_avc(struct folio *folio,
-+		struct vm_area_struct *vma)
-+{
-+	struct anon_vma *anon_vma = folio_anon_vma(folio);
-+	pgoff_t pgoff_start, pgoff_end;
-+	struct anon_vma_chain *avc;
-+
-+	/*
-+	 * Ensure that the vma's anon_vma and the folio's
-+	 * anon_vma exist and are not same.
-+	 */
-+	if (!folio_test_anon(folio) || unlikely(!anon_vma) ||
-+	    anon_vma == vma->anon_vma)
-+		return;
-+
-+	pgoff_start = folio_pgoff(folio);
-+	pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
-+
-+	if (!anon_vma_trylock_write(anon_vma))
-+		return;
-+
-+	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
-+			pgoff_start, pgoff_end) {
-+		/*
-+		 * Find the avc associated with vma from the folio's
-+		 * anon_vma and remove it.
-+		 */
-+		if (avc->vma == vma) {
-+			anon_vma_interval_tree_remove(avc, &anon_vma->rb_root);
-+			/*
-+			 * When removing the avc with anon_vma that is
-+			 * different from the parent anon_vma from parent
-+			 * anon_vma->rb_root, the parent num_children
-+			 * count value is needed to reduce one.
-+			 */
-+			anon_vma->num_children--;
-+
-+			list_del(&avc->same_vma);
-+			anon_vma_chain_free(avc);
-+			break;
-+		}
-+	}
-+	anon_vma_unlock_write(anon_vma);
-+}
-+
- static __always_inline void __folio_remove_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
- 		enum rmap_level level)
+@@ -131,7 +132,6 @@ parse_symbol() {
+ 	else
+ 		local objfile=$(find_module)
+ 		if [[ $objfile == "" ]] ; then
+-			echo "WARNING! Modules path isn't set, but is needed to parse this symbol" >&2
+ 			return
+ 		fi
+ 		if [[ $aarray_support == true ]]; then
 _
 
-Patches currently in -mm which might be from justinjiang@vivo.com are
+Patches currently in -mm which might be from luca.ceresoli@bootlin.com are
 
-mm-shrink-skip-folio-mapped-by-an-exiting-process.patch
-vma-remove-the-unneeded-avc-bound-with-non-cowed-folio.patch
+scripts-decode_stacktracesh-remove-find_module-recursion-and-improve-error-reporting.patch
+scripts-decode_stacktracesh-clarify-command-line.patch
+scripts-decode_stacktracesh-add-h-flag.patch
 
