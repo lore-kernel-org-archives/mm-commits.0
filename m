@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24632EEC8
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAC4EEC8
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724464710; cv=none; b=ugCS8OegxvZzXNLkOHfC7UkjSj3yCPPQUKS7h9pX8puP8yJT4kzi7PgP/n6CNVyv+wtgqFKCdJ647L3hlxFk3RZzPDJEU8dr1r5+roo73jYqBLbxPUiK6JCmz9yVGBzNKFEinzedP9pPf/M+k6o/fwcrGIx7dcr3zD8oBRuBlXg=
+	t=1724464712; cv=none; b=Qri7C66deQS64HHWaOe6mdfq0e9POSQSq6NsYaPNMGh1XRHCXBon34eRb2/Yrhcz15jf0XrQp8JrkQUhkewIbydLiRMoIC7qe6tihhUeaWbD9142ShEPa0lf92SrHsoyNbUWff0EgDzKRGj44fyOK2werCCRV5N+btboZH1yPKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724464710; c=relaxed/simple;
-	bh=qgCmpC3zjalCNblpP+56NJX6fBUs4HI0C0g4zpwBcS4=;
-	h=Date:To:From:Subject:Message-Id; b=kXt6SWoE7o+n8qjfQ4Mcxd6z5yvW7D2b16ArCA/FJlk9Xukr78O/AkmrwNUCC0YsEzHzqA0/qMJeAUZ+JetK2KNcNqZB2hQ4Xsk4JilB8o50DLGvihAOl/JlVj1r/0SRlTRApGEjGPu9GhTJePBW9hZ9eOVC9k5txzkTUMhQ6ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZS/Mk3E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724464712; c=relaxed/simple;
+	bh=klnD2MN6k8AmJp+lQ/oN9eqe7xSbHxvrgihx2S4PmpU=;
+	h=Date:To:From:Subject:Message-Id; b=sDhJ5eIq7BRKpU+Mj+IKFc4cqY7T1XNGgqLJP5CS83vlyOuy2sncOk2pE4kWoFG0G93m7lG663RA4zPxtINM3GzC5zzAYCqE8SYGNOBUeYgV35MU0bWARO4nyUZWtiSXgl6RocEmO2tpt0cdJ7XgWgg6b3BOylmbdRoh6n1S+u8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfjsLruB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZS/Mk3E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9D4BC32786;
-	Sat, 24 Aug 2024 01:58:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfjsLruB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AB7FC32786;
+	Sat, 24 Aug 2024 01:58:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724464710;
-	bh=qgCmpC3zjalCNblpP+56NJX6fBUs4HI0C0g4zpwBcS4=;
+	s=korg; t=1724464712;
+	bh=klnD2MN6k8AmJp+lQ/oN9eqe7xSbHxvrgihx2S4PmpU=;
 	h=Date:To:From:Subject:From;
-	b=jZS/Mk3EWK+QCJdZxdaGOlsTpnYbaAIm5tD+u2PG+v3LNznjVbC20oqmI8Cs8YD54
-	 ujpDTHXCpIdq+j6upxeTKTKFgkYPbmWG8/WhLjui5r59pWJKQVl5CrjHhIbut8MnVd
-	 0rbDUx096vN9vDnDEjymPXuLF1vUqb/BJyy4w8Z4=
-Date: Fri, 23 Aug 2024 18:58:28 -0700
+	b=dfjsLruBovZn1pocTF0b/4KHeeu2Izenw/ISEpOYKCprt12I79D6Ks/smCqy0o0Mr
+	 abS8aH1+HYpCPrYFIHz8Jkt5NY2QiPrqV6KoEqvbqD1WIZ4h7Nh2epHfSZWmQLz4lU
+	 o4gfRIQKCGe9PIisEBNo3wccrrERvRFV9j/OASUU=
+Date: Fri, 23 Aug 2024 18:58:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch added to mm-unstable branch
-Message-Id: <20240824015829.D9D4BC32786@smtp.kernel.org>
+Subject: + mm-clean-up-unmap_region-argument-list.patch added to mm-unstable branch
+Message-Id: <20240824015832.4AB7FC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: track start and end for munmap in vma_munmap_struct
+     Subject: mm: clean up unmap_region() argument list
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch
+     mm-clean-up-unmap_region-argument-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-unmap_region-argument-list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/vma: track start and end for munmap in vma_munmap_struct
-Date: Thu, 22 Aug 2024 15:25:34 -0400
+Subject: mm: clean up unmap_region() argument list
+Date: Thu, 22 Aug 2024 15:25:35 -0400
 
-Set the start and end address for munmap when the prev and next are
-gathered.  This is needed to avoid incorrect addresses being used during
-the vms_complete_munmap_vmas() function if the prev/next vma are expanded.
+With the only caller to unmap_region() being the error path of
+mmap_region(), the argument list can be significantly reduced.
 
-Add a new helper vms_complete_pte_clear(), which is needed later and will
-avoid growing the argument list to unmap_region() beyond the 9 it already
-has.
-
-Link: https://lkml.kernel.org/r/20240822192543.3359552-13-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240822192543.3359552-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
@@ -86,92 +81,71 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   32 +++++++++++++++++++++++++-------
- mm/vma.h |    4 ++++
- 2 files changed, 29 insertions(+), 7 deletions(-)
+ mm/mmap.c |    3 +--
+ mm/vma.c  |   17 ++++++++---------
+ mm/vma.h  |    6 ++----
+ 3 files changed, 11 insertions(+), 15 deletions(-)
 
---- a/mm/vma.c~mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct
+--- a/mm/mmap.c~mm-clean-up-unmap_region-argument-list
++++ a/mm/mmap.c
+@@ -1613,8 +1613,7 @@ unmap_and_free_vma:
+ 
+ 		vma_iter_set(&vmi, vma->vm_end);
+ 		/* Undo any partial mapping done by a device driver. */
+-		unmap_region(mm, &vmi.mas, vma, prev, next, vma->vm_start,
+-			     vma->vm_end, vma->vm_end, true);
++		unmap_region(&vmi.mas, vma, prev, next);
+ 	}
+ 	if (writable_file_mapping)
+ 		mapping_unmap_writable(file->f_mapping);
+--- a/mm/vma.c~mm-clean-up-unmap_region-argument-list
 +++ a/mm/vma.c
-@@ -646,6 +646,26 @@ again:
- 		uprobe_mmap(vp->insert);
+@@ -155,22 +155,21 @@ void remove_vma(struct vm_area_struct *v
+  *
+  * Called with the mm semaphore held.
+  */
+-void unmap_region(struct mm_struct *mm, struct ma_state *mas,
+-		struct vm_area_struct *vma, struct vm_area_struct *prev,
+-		struct vm_area_struct *next, unsigned long start,
+-		unsigned long end, unsigned long tree_end, bool mm_wr_locked)
++void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct vm_area_struct *next)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
+-	unsigned long mt_start = mas->index;
+ 
+ 	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
+-	unmap_vmas(&tlb, mas, vma, start, end, tree_end, mm_wr_locked);
+-	mas_set(mas, mt_start);
++	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
++		   /* mm_wr_locked = */ true);
++	mas_set(mas, vma->vm_end);
+ 	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
+-				 next ? next->vm_start : USER_PGTABLES_CEILING,
+-				 mm_wr_locked);
++		      next ? next->vm_start : USER_PGTABLES_CEILING,
++		      /* mm_wr_locked = */ true);
+ 	tlb_finish_mmu(&tlb);
  }
  
-+static void vms_complete_pte_clear(struct vma_munmap_struct *vms,
-+		struct ma_state *mas_detach, bool mm_wr_locked)
-+{
-+	struct mmu_gather tlb;
-+
-+	/*
-+	 * We can free page tables without write-locking mmap_lock because VMAs
-+	 * were isolated before we downgraded mmap_lock.
-+	 */
-+	mas_set(mas_detach, 1);
-+	lru_add_drain();
-+	tlb_gather_mmu(&tlb, vms->mm);
-+	update_hiwater_rss(vms->mm);
-+	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end, vms->vma_count, mm_wr_locked);
-+	mas_set(mas_detach, 1);
-+	/* start and end may be different if there is no prev or next vma. */
-+	free_pgtables(&tlb, mas_detach, vms->vma, vms->unmap_start, vms->unmap_end, mm_wr_locked);
-+	tlb_finish_mmu(&tlb);
-+}
-+
- /*
-  * vms_complete_munmap_vmas() - Finish the munmap() operation
-  * @vms: The vma munmap struct
-@@ -667,13 +687,7 @@ void vms_complete_munmap_vmas(struct vma
- 	if (vms->unlock)
- 		mmap_write_downgrade(mm);
- 
--	/*
--	 * We can free page tables without write-locking mmap_lock because VMAs
--	 * were isolated before we downgraded mmap_lock.
--	 */
--	mas_set(mas_detach, 1);
--	unmap_region(mm, mas_detach, vms->vma, vms->prev, vms->next,
--		     vms->start, vms->end, vms->vma_count, !vms->unlock);
-+	vms_complete_pte_clear(vms, mas_detach, !vms->unlock);
- 	/* Update high watermark before we lower total_vm */
- 	update_hiwater_vm(mm);
- 	/* Stat accounting */
-@@ -746,6 +760,8 @@ int vms_gather_munmap_vmas(struct vma_mu
- 			goto start_split_failed;
- 	}
- 	vms->prev = vma_prev(vms->vmi);
-+	if (vms->prev)
-+		vms->unmap_start = vms->prev->vm_end;
- 
- 	/*
- 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
-@@ -810,6 +826,8 @@ int vms_gather_munmap_vmas(struct vma_mu
- 	}
- 
- 	vms->next = vma_next(vms->vmi);
-+	if (vms->next)
-+		vms->unmap_end = vms->next->vm_start;
- 
- #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
- 	/* Make sure no VMAs are about to be lost. */
---- a/mm/vma.h~mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct
+--- a/mm/vma.h~mm-clean-up-unmap_region-argument-list
 +++ a/mm/vma.h
-@@ -38,6 +38,8 @@ struct vma_munmap_struct {
- 	struct list_head *uf;           /* Userfaultfd list_head */
- 	unsigned long start;            /* Aligned start addr (inclusive) */
- 	unsigned long end;              /* Aligned end addr (exclusive) */
-+	unsigned long unmap_start;      /* Unmap PTE start */
-+	unsigned long unmap_end;        /* Unmap PTE end */
- 	int vma_count;                  /* Number of vmas that will be removed */
- 	unsigned long nr_pages;         /* Number of pages being removed */
- 	unsigned long locked_vm;        /* Number of locked pages */
-@@ -108,6 +110,8 @@ static inline void init_vma_munmap(struc
- 	vms->vma_count = 0;
- 	vms->nr_pages = vms->locked_vm = vms->nr_accounted = 0;
- 	vms->exec_vm = vms->stack_vm = vms->data_vm = 0;
-+	vms->unmap_start = FIRST_USER_ADDRESS;
-+	vms->unmap_end = USER_PGTABLES_CEILING;
- }
+@@ -147,10 +147,8 @@ int do_vmi_munmap(struct vma_iterator *v
  
- int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
+ void remove_vma(struct vm_area_struct *vma, bool unreachable);
+ 
+-void unmap_region(struct mm_struct *mm, struct ma_state *mas,
+-		struct vm_area_struct *vma, struct vm_area_struct *prev,
+-		struct vm_area_struct *next, unsigned long start,
+-		unsigned long end, unsigned long tree_end, bool mm_wr_locked);
++void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct vm_area_struct *next);
+ 
+ /* Required by mmap_region(). */
+ bool
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
