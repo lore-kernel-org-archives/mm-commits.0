@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 838A339FE5;
-	Sat, 24 Aug 2024 05:21:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3948C14A60E
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 05:26:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724476912; cv=none; b=p+EVEUJQMIfqPn+zIb+Sk1VJDmTNsLUuGTbNPy0JwvxzXwsLxYevC3+PdAZmq7MXIrWFTBTLh1bjWJ6+YCGv0Z+pXCkQ8IhDn/gZ8rFGBRA8PWVZzACu5kLWCmpLHpsezXBYsdhhQjzl2gAU+4ysciGoWP8mtYAwClM983ru/Ug=
+	t=1724477162; cv=none; b=hbHipJ+ZvVMI/9yd2k9lJo3BA6uJKI/LvdeVUXhdg7PuOu7DHUWWENebB2+wD2GVTzESgJXeVsLeB+SLs7l5rcoAN+LJjt29oR4XMEpi1qlyasgpl5XH1qeubuq6JiIA2+dU1YnEf3uVqs7phyJBWk1tD8W+hGTz+KyJxVHNGZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724476912; c=relaxed/simple;
-	bh=dKevw9Im7V/XWOVfxvrk8/Ou2IDfcHqlFUOO2BXrfV4=;
-	h=Date:To:From:Subject:Message-Id; b=Gi7zQ1diRxkVr4hKmW0Ght+sDY2I8xApfHL3ZN636kkE+sGN5H3I68DnF/7OFOq4UCOsrcjbIP/wRl5hjWPiYrbNEf31nkYpiVB+kHHmFi6Cy/7xkia3P4QIecuQUw0k/9ZowniiIu9/vbmMEb1wSype2JoC1btD4bBBLRiWemk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uATMonK6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724477162; c=relaxed/simple;
+	bh=qIK1f35WnOTGMniayT0MBg45I6ivzcvx6NQFPXSE/Ro=;
+	h=Date:To:From:Subject:Message-Id; b=GhB0XhPdJ1RBoCx/0BAoeR3eqqL2nMR903Ah7y63BQr9udWrHx4V9/uwbQ4jgf7pO1/isvjqYs687CyqyHgI+BXk+Ms2Ph2TjpUbHfOL5T2kXzwA5mQSqK7s4PlUcMCdscV1Wq71uFfzu+BPXx1MZZZHGo8E4umV0fWWEBsmhgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fm505gQr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uATMonK6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4C44C32781;
-	Sat, 24 Aug 2024 05:21:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fm505gQr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0CD0C32781;
+	Sat, 24 Aug 2024 05:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724476912;
-	bh=dKevw9Im7V/XWOVfxvrk8/Ou2IDfcHqlFUOO2BXrfV4=;
+	s=korg; t=1724477161;
+	bh=qIK1f35WnOTGMniayT0MBg45I6ivzcvx6NQFPXSE/Ro=;
 	h=Date:To:From:Subject:From;
-	b=uATMonK6Wrysjm4k5ZpZtqLtzIuDYvDpAFqsNFwTcB9gvMaml4q+NYEPTzzkklv7D
-	 4hKjsnwFS4fUcj6KRglEnNvNKxgkGIX5W2ONQ9T+j+H8bkgv0FEE0j67t1+ZdMgjlO
-	 G3qOZ6H5d0O/eJ43K30cR8fOA8KK3NSb9NDbm/V8=
-Date: Fri, 23 Aug 2024 22:21:51 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,me@yhndnzj.com,akpm@linux-foundation.org
+	b=fm505gQrSkuUyod1Mo/9+gCq34n4XKe4JFqfrI3EueZx45221HStDcIJgqIafbZqu
+	 knW9om9Vj4AwDI9uxkKFS7ty3sABN3G0pt/zCkFaL0os+TmTWANjoRfPotm2dLWaFj
+	 gymBWpY2FCnPz+JvJAlBKFBGvKmd8JUUqnG83YAM=
+Date: Fri, 23 Aug 2024 22:26:01 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,me@yhndnzj.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240824052151.E4C44C32781@smtp.kernel.org>
+Subject: + documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled.patch added to mm-unstable branch
+Message-Id: <20240824052601.A0CD0C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+     Subject: Documentation/cgroup-v2: clarify that zswap.writeback is ignored if zswap is disabled
+has been added to the -mm mm-unstable branch.  Its filename is
+     documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,91 +59,176 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Yuan <me@yhndnzj.com>
-Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
-Date: Fri, 23 Aug 2024 16:27:06 +0000
+Subject: Documentation/cgroup-v2: clarify that zswap.writeback is ignored if zswap is disabled
+Date: Fri, 23 Aug 2024 16:27:11 +0000
 
-Currently, the behavior of zswap.writeback wrt.  the cgroup hierarchy
-seems a bit odd.  Unlike zswap.max, it doesn't honor the value from parent
-cgroups.  This surfaced when people tried to globally disable zswap
-writeback, i.e.  reserve physical swap space only for hibernation [1] -
-disabling zswap.writeback only for the root cgroup results in subcgroups
-with zswap.writeback=3D1 still performing writeback.
+As discussed in [1], zswap-related settings natually lose their effect
+when zswap is disabled, specifically zswap.writeback here.  Be explicit
+about this behavior.
 
-The inconsistency became more noticeable after I introduced the
-MemoryZSwapWriteback=3D systemd unit setting [2] for controlling the knob.
-The patch assumed that the kernel would enforce the value of parent
-cgroups.  It could probably be workarounded from systemd's side, by going
-up the slice unit tree and inheriting the value.  Yet I think it's more
-sensible to make it behave consistently with zswap.max and friends.
+[1] https://lore.kernel.org/linux-kernel/CAKEwX=3DMhbwhh-=3DxxCU-RjMXS_n=3D=
+RpV3Gtznb2m_3JgL+jzz++g@mail.gmail.com/
 
-[1] https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate=
-#Disable_zswap_writeback_to_use_the_swap_space_only_for_hibernation
-[2] https://github.com/systemd/systemd/pull/31734
-
-Link: https://lkml.kernel.org/r/20240823162506.12117-1-me@yhndnzj.com
-Fixes: 501a06fe8e4c ("zswap: memcontrol: implement zswap writeback disablin=
-g")
+Link: https://lkml.kernel.org/r/20240823162506.12117-3-me@yhndnzj.com
 Signed-off-by: Mike Yuan <me@yhndnzj.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    7 ++++---
- mm/memcontrol.c                         |   12 +++++++++---
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   75 ++++++++++++------
+ 1 file changed, 54 insertions(+), 21 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1717,9 +1717,10 @@ The following nested keys are defined.
- 	entries fault back in or are written out to disk.
- 
-   memory.zswap.writeback
--	A read-write single value file. The default value is "1". The
--	initial value of the root cgroup is 1, and when a new cgroup is
--	created, it inherits the current value of its parent.
-+	A read-write single value file. The default value is "1".
-+	Note that this setting is hierarchical, i.e. the writeback would be
-+	implicitly disabled for child cgroups if the upper hierarchy
-+	does so.
- 
- 	When this is set to 0, all swapping attempts to swapping devices
- 	are disabled. This included both zswap writebacks, and swapping due
---- a/mm/memcontrol.c~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
-+++ a/mm/memcontrol.c
-@@ -3613,8 +3613,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	memcg1_soft_limit_reset(memcg);
- #ifdef CONFIG_ZSWAP
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
--	WRITE_ONCE(memcg->zswap_writeback,
--		!parent || READ_ONCE(parent->zswap_writeback));
-+	WRITE_ONCE(memcg->zswap_writeback, true);
- #endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
-@@ -5320,7 +5319,14 @@ void obj_cgroup_uncharge_zswap(struct ob
- bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
+--- a/tools/testing/selftests/cgroup/test_zswap.c~documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -263,15 +263,13 @@ out:
+ static int attempt_writeback(const char *cgroup, void *arg)
  {
- 	/* if zswap is disabled, do not block pages going to the swapping device */
--	return !zswap_is_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
-+	if (!zswap_is_enabled())
-+		return true;
-+
-+	for (; memcg; memcg = parent_mem_cgroup(memcg))
-+		if (!READ_ONCE(memcg->zswap_writeback))
-+			return false;
-+
-+	return true;
+ 	long pagesize = sysconf(_SC_PAGESIZE);
+-	char *test_group = arg;
+ 	size_t memsize = MB(4);
+ 	char buf[pagesize];
+ 	long zswap_usage;
+-	bool wb_enabled;
++	bool wb_enabled = *(bool *) arg;
+ 	int ret = -1;
+ 	char *mem;
+ 
+-	wb_enabled = cg_read_long(test_group, "memory.zswap.writeback");
+ 	mem = (char *)malloc(memsize);
+ 	if (!mem)
+ 		return ret;
+@@ -288,12 +286,12 @@ static int attempt_writeback(const char
+ 		memcpy(&mem[i], buf, pagesize);
+ 
+ 	/* Try and reclaim allocated memory */
+-	if (cg_write_numeric(test_group, "memory.reclaim", memsize)) {
++	if (cg_write_numeric(cgroup, "memory.reclaim", memsize)) {
+ 		ksft_print_msg("Failed to reclaim all of the requested memory\n");
+ 		goto out;
+ 	}
+ 
+-	zswap_usage = cg_read_long(test_group, "memory.zswap.current");
++	zswap_usage = cg_read_long(cgroup, "memory.zswap.current");
+ 
+ 	/* zswpin */
+ 	for (int i = 0; i < memsize; i += pagesize) {
+@@ -303,7 +301,7 @@ static int attempt_writeback(const char
+ 		}
+ 	}
+ 
+-	if (cg_write_numeric(test_group, "memory.zswap.max", zswap_usage/2))
++	if (cg_write_numeric(cgroup, "memory.zswap.max", zswap_usage/2))
+ 		goto out;
+ 
+ 	/*
+@@ -312,7 +310,7 @@ static int attempt_writeback(const char
+ 	 * If writeback is disabled, memory reclaim will fail as zswap is limited and
+ 	 * it can't writeback to swap.
+ 	 */
+-	ret = cg_write_numeric(test_group, "memory.reclaim", memsize);
++	ret = cg_write_numeric(cgroup, "memory.reclaim", memsize);
+ 	if (!wb_enabled)
+ 		ret = (ret == -EAGAIN) ? 0 : -1;
+ 
+@@ -321,12 +319,41 @@ out:
+ 	return ret;
  }
  
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
++static int test_zswap_writeback_one(const char *cgroup, bool wb)
++{
++	long zswpwb_before, zswpwb_after;
++
++	zswpwb_before = get_cg_wb_count(cgroup);
++	if (zswpwb_before != 0) {
++		ksft_print_msg("zswpwb_before = %ld instead of 0\n", zswpwb_before);
++		return -1;
++	}
++
++	if (cg_run(cgroup, attempt_writeback, (void *) &wb))
++		return -1;
++
++	/* Verify that zswap writeback occurred only if writeback was enabled */
++	zswpwb_after = get_cg_wb_count(cgroup);
++	if (zswpwb_after < 0)
++		return -1;
++
++	if (wb != !!zswpwb_after) {
++		ksft_print_msg("zswpwb_after is %ld while wb is %s",
++				zswpwb_after, wb ? "enabled" : "disabled");
++		return -1;
++	}
++
++	return 0;
++}
++
+ /* Test to verify the zswap writeback path */
+ static int test_zswap_writeback(const char *root, bool wb)
+ {
+-	long zswpwb_before, zswpwb_after;
+ 	int ret = KSFT_FAIL;
+-	char *test_group;
++	char *test_group, *test_group_child = NULL;
++
++	if (cg_read_strcmp(root, "memory.zswap.writeback", "1"))
++		return KSFT_SKIP;
+ 
+ 	test_group = cg_name(root, "zswap_writeback_test");
+ 	if (!test_group)
+@@ -336,29 +363,35 @@ static int test_zswap_writeback(const ch
+ 	if (cg_write(test_group, "memory.zswap.writeback", wb ? "1" : "0"))
+ 		goto out;
+ 
+-	zswpwb_before = get_cg_wb_count(test_group);
+-	if (zswpwb_before != 0) {
+-		ksft_print_msg("zswpwb_before = %ld instead of 0\n", zswpwb_before);
++	if (test_zswap_writeback_one(test_group, wb))
+ 		goto out;
+-	}
+ 
+-	if (cg_run(test_group, attempt_writeback, (void *) test_group))
++	/* Reset memory.zswap.max to max (modified by attempt_writeback), and
++	 * set up child cgroup, whose memory.zswap.writeback is hardcoded to 1.
++	 * Thus, the parent's setting shall be what's in effect. */
++	if (cg_write(test_group, "memory.zswap.max", "max"))
++		goto out;
++	if (cg_write(test_group, "cgroup.subtree_control", "+memory"))
+ 		goto out;
+ 
+-	/* Verify that zswap writeback occurred only if writeback was enabled */
+-	zswpwb_after = get_cg_wb_count(test_group);
+-	if (zswpwb_after < 0)
++	test_group_child = cg_name(test_group, "zswap_writeback_test_child");
++	if (!test_group_child)
++		goto out;
++	if (cg_create(test_group_child))
++		goto out;
++	if (cg_write(test_group_child, "memory.zswap.writeback", "1"))
+ 		goto out;
+ 
+-	if (wb != !!zswpwb_after) {
+-		ksft_print_msg("zswpwb_after is %ld while wb is %s",
+-				zswpwb_after, wb ? "enabled" : "disabled");
++	if (test_zswap_writeback_one(test_group_child, wb))
+ 		goto out;
+-	}
+ 
+ 	ret = KSFT_PASS;
+ 
+ out:
++	if (test_group_child) {
++		cg_destroy(test_group_child);
++		free(test_group_child);
++	}
+ 	cg_destroy(test_group);
+ 	free(test_group);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from me@yhndnzj.com are
