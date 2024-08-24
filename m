@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1994F4ED
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F51F18028
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724464697; cv=none; b=e4F1LF9ss0+yZnEuSgKXlBfglNVp/ljcwrreJRTe1nkxRwc25n5+u3HuPEaMsOsHSPmesJkwj+kahEa7N8zmjLegzLakNyNgkQD9VC+61C+vXErumB86xeC0TRlszKzld1YqyLIzza8qAXAKg993Hetde5qt1NPufH4b7o1qKAM=
+	t=1724464699; cv=none; b=W5ogqjRDM5TGEn6S9Bv9LFZvIUCN6YpM6WaxoZd+fHe+sRt2rQ6oXilfRdL6lMGbgiAYn/3JnuHeendzEcGUqexCV6fQDn5ye5rybU+oz+8GLOPucnAivxk1+0r+hvSw1sBvVE4ih8GcOJ4bw+hKDZkjwYVCW7hvlAogsMb4Eso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724464697; c=relaxed/simple;
-	bh=xK/JHPe6YS/OpXDBUtORfOXKHgeolSL7OC1y+VHZ+UQ=;
-	h=Date:To:From:Subject:Message-Id; b=aW2Kx7Qi+QlH32yQ4FNx98VIkLNyiSa0e/EW2V9FH9ZkxAab/q61XIIJ/XSAdXFuZtz1ZBJ6tHB9B3oeYsqIc68bN/aAqyQNnIrCKZClx5VoQnse+6X/u5nvVioXA2evHBDFQ7e46PLnGJukJ/vlrq37TAcoL6Qt+4wmYvY12Ks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DNhMC22O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724464699; c=relaxed/simple;
+	bh=3GWrwwoopslZWMldsRxgtTJq9RbRJdS1ifl3mhO6m/I=;
+	h=Date:To:From:Subject:Message-Id; b=Ts3LsokjR/AKPKhkV8Yi5kX0hJ+uoIAF0JnHzoyMam5LDZprzzqaeXQvVRMegw8tO7+vuNB0FOahvnFLlaj/zV2a3qaa5mHzlIP9Ff768MQAeRu6IEPeGwS+jry3akqm7ncHtBSZcVaiwH0Gi2/bI2krwwbpdUCi0w2CG3hTbTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2sTZIly0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DNhMC22O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87634C4AF10;
-	Sat, 24 Aug 2024 01:58:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2sTZIly0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC79FC32786;
+	Sat, 24 Aug 2024 01:58:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724464696;
-	bh=xK/JHPe6YS/OpXDBUtORfOXKHgeolSL7OC1y+VHZ+UQ=;
+	s=korg; t=1724464698;
+	bh=3GWrwwoopslZWMldsRxgtTJq9RbRJdS1ifl3mhO6m/I=;
 	h=Date:To:From:Subject:From;
-	b=DNhMC22OBo+zw/GpOLKecls/6HP0LKzFDObrR6jMq/JxZ68LAhUbn2QVWUrucWZUJ
-	 D7jgoL4LTa/kcA/LXbeH6LBeR9G8+ORP29LqwvXg/nq5+4zxXgKOM1EbFTkE4HXnms
-	 zXhsMIWOSsxMBnAImAf0ULZvP5VuEl22uam42Xvc=
-Date: Fri, 23 Aug 2024 18:58:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=2sTZIly0zUoqeeDM5qt0zUn8CpKJ/5nAzk26RsfvLLKzhewRqV57YQPlwqW43uRgI
+	 ntd2OY2yqM9QWrCbmukNsc6rPoXl2yosJidStJQ+a1M+IutEJj90CzbklEyXGDvzS+
+	 hfm2/p9/XfpIUdAAON9lA+q0hlCnScC+UdKyg9/I=
+Date: Fri, 23 Aug 2024 18:58:18 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-extract-validate_mm-from-vma_complete.patch added to mm-unstable branch
-Message-Id: <20240824015816.87634C4AF10@smtp.kernel.org>
+Subject: + mm-vma-inline-munmap-operation-in-mmap_region.patch added to mm-unstable branch
+Message-Id: <20240824015818.DC79FC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: extract validate_mm() from vma_complete()
+     Subject: mm/vma: inline munmap operation in mmap_region()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-extract-validate_mm-from-vma_complete.patch
+     mm-vma-inline-munmap-operation-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-extract-validate_mm-from-vma_complete.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-inline-munmap-operation-in-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/vma: extract validate_mm() from vma_complete()
-Date: Thu, 22 Aug 2024 15:25:29 -0400
+Subject: mm/vma: inline munmap operation in mmap_region()
+Date: Thu, 22 Aug 2024 15:25:30 -0400
 
-vma_complete() will need to be called during an unsafe time to call
-validate_mm().  Extract the call in all places now so that only one
-location can be modified in the next change.
+mmap_region is already passed sanitized addr and len, so change the call
+to do_vmi_munmap() to do_vmi_align_munmap() and inline the other checks.
 
-Link: https://lkml.kernel.org/r/20240822192543.3359552-8-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+The inlining of the function and checks is an intermediate step in the
+series so future patches are easier to follow.
+
+Link: https://lkml.kernel.org/r/20240822192543.3359552-9-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jiri Olsa <olsajiri@gmail.com>
@@ -82,62 +84,32 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 +
- mm/vma.c  |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/mmap.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/mmap.c~mm-vma-extract-validate_mm-from-vma_complete
+--- a/mm/mmap.c~mm-vma-inline-munmap-operation-in-mmap_region
 +++ a/mm/mmap.c
-@@ -1796,6 +1796,7 @@ static int do_brk_flags(struct vma_itera
- 		vma_iter_store(vmi, vma);
- 
- 		vma_complete(&vp, vmi, mm);
-+		validate_mm(mm);
- 		khugepaged_enter_vma(vma, flags);
- 		goto out;
- 	}
---- a/mm/vma.c~mm-vma-extract-validate_mm-from-vma_complete
-+++ a/mm/vma.c
-@@ -269,6 +269,7 @@ static int __split_vma(struct vma_iterat
- 
- 	/* vma_complete stores the new vma */
- 	vma_complete(&vp, vmi, vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 
- 	/* Success. */
- 	if (new_below)
-@@ -548,6 +549,7 @@ int vma_expand(struct vma_iterator *vmi,
- 	vma_iter_store(vmi, vma);
- 
- 	vma_complete(&vp, vmi, vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 	return 0;
- 
- nomem:
-@@ -589,6 +591,7 @@ int vma_shrink(struct vma_iterator *vmi,
- 	vma_iter_clear(vmi);
- 	vma_set_range(vma, start, end, pgoff);
- 	vma_complete(&vp, vmi, vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 	return 0;
- }
- 
-@@ -668,7 +671,6 @@ again:
- 	}
- 	if (vp->insert && vp->file)
- 		uprobe_mmap(vp->insert);
--	validate_mm(mm);
- }
- 
- /*
-@@ -1202,6 +1204,7 @@ static struct vm_area_struct
+@@ -1388,12 +1388,14 @@ unsigned long mmap_region(struct file *f
+ 			return -ENOMEM;
  	}
  
- 	vma_complete(&vp, vmi, mm);
-+	validate_mm(mm);
- 	khugepaged_enter_vma(res, vm_flags);
- 	return res;
+-	/* Unmap any existing mapping in the area */
+-	error = do_vmi_munmap(&vmi, mm, addr, len, uf, false);
+-	if (error == -EPERM)
+-		return error;
+-	else if (error)
+-		return -ENOMEM;
++	/* Find the first overlapping VMA */
++	vma = vma_find(&vmi, end);
++	if (vma) {
++		/* Unmap any existing mapping in the area */
++		if (do_vmi_align_munmap(&vmi, vma, mm, addr, end, uf, false))
++			return -ENOMEM;
++		vma = NULL;
++	}
  
+ 	/*
+ 	 * Private writable mapping: check memory availability
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
