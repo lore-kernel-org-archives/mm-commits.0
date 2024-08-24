@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4EE1BA20
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 590AFB669
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724464728; cv=none; b=QYQX+L3RMnx6me95o54bexfsyILSYMnyVOHenwwReCG5J8uoDnE+qm8RhVcA3HKwPWzfeVI/hBn6LnVzIhByBXvjtPcduvnc3a40kwMXl3qITbA90Xy0t6KDe+oU3ZvhbAWX0eLjKXPWC0Y3E7+Q9FPMYnKpItPHnEd5tXkYn8Q=
+	t=1724464731; cv=none; b=qaj5dJ2B5ANNujCV2t7EarJLntYkeTPCyIAYW5op335V78CyeKqyFaCAZbJ711j+2HrOI6AdAL9ZeT3aor+M9Fs7c7fqICYPbxyhe5zABmMqfGPAEUYOZeQ5/Y35q5Jl26Al82K6wbM06ayRP+o0o+TLIAcDo32v2uj0I6FnH64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724464728; c=relaxed/simple;
-	bh=Qsl+MiBuvlaHkKtttmoFCJLWJP7hNbiYjHstr0+DUvA=;
-	h=Date:To:From:Subject:Message-Id; b=A0qUUOYHR8CZXZmCpHiF6n8S+KuPrgznQoQ30+xM2y0tqThxXyFbxvc8zDn6K3OEZu6ljp/bde+L5QQ+rupDfYxUhg7C2vXW/qH+yDpN24djMc5F/spawt8Hj0RyK/GwDDFN3xwCCb7y8LOjgKoGmMopLwjjCDFkACm1bt4blJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N8GGi99u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724464731; c=relaxed/simple;
+	bh=maWArM76GZPehiqCfTi5y/M7J5jyj6I7kWSdz8gZIWA=;
+	h=Date:To:From:Subject:Message-Id; b=fAf9eyxR3+nqlNdIA0pFdObWNaipfO0ahIuMhjAkwcwruFJjOMA9eRm7Q+TUAZAznxynP0SVRAXtTEfCZyCwipi5E7osr02xso9ELWHLBr0L1Nv6d+k8O737Um5kLvfo1oove+uuhT9UnsK7SuCHWyyWozPI+h6mGGHm+xLqz4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EKSzif9A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N8GGi99u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D5BDC32786;
-	Sat, 24 Aug 2024 01:58:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EKSzif9A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D948FC32786;
+	Sat, 24 Aug 2024 01:58:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724464728;
-	bh=Qsl+MiBuvlaHkKtttmoFCJLWJP7hNbiYjHstr0+DUvA=;
+	s=korg; t=1724464730;
+	bh=maWArM76GZPehiqCfTi5y/M7J5jyj6I7kWSdz8gZIWA=;
 	h=Date:To:From:Subject:From;
-	b=N8GGi99uXIQW3bK8sy//7O6KlLR3oWSpI5i95amEMUO8bXrni9aKwSx31SV11WRrA
-	 xZ+OUkPzY+T4rOYKLIrpVtV1cdYgMBYrf7m4BMAlQ/lg4oo3cmDrSy7zBcHdBDqATw
-	 n3bP2RAFXG2Owkh0SJF8ZmE6DIJMkmShUC1QsYAU=
-Date: Fri, 23 Aug 2024 18:58:47 -0700
+	b=EKSzif9AoVFP9jRiuZPP4PSm1ZaMb9cNMNydGWHZSsMIxp0yOyOsVUr0O6db19fg1
+	 noX8wpuk4gnUEoY9yl3OvlGu5+3q0OB9LUfBI3nX61EpTqxRn8VbM17SZRdBlaYoW8
+	 uMOZTe4dT9736UTHt/oMjSX5raASUq+7TQBAYCKI=
+Date: Fri, 23 Aug 2024 18:58:50 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-may_expand_vm-check-in-mmap_region.patch added to mm-unstable branch
-Message-Id: <20240824015848.3D5BDC32786@smtp.kernel.org>
+Subject: + mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch added to mm-unstable branch
+Message-Id: <20240824015850.D948FC32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move may_expand_vm() check in mmap_region()
+     Subject: mm/vma: drop incorrect comment from vms_gather_munmap_vmas()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-may_expand_vm-check-in-mmap_region.patch
+     mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-may_expand_vm-check-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: move may_expand_vm() check in mmap_region()
-Date: Thu, 22 Aug 2024 15:25:41 -0400
+Subject: mm/vma: drop incorrect comment from vms_gather_munmap_vmas()
+Date: Thu, 22 Aug 2024 15:25:42 -0400
 
-The may_expand_vm() check requires the count of the pages within the
-munmap range.  Since this is needed for accounting and obtained later, the
-reodering of ma_expand_vm() to later in the call stack, after the vma
-munmap struct (vms) is initialised and the gather stage is potentially
-run, will allow for a single loop over the vmas.  The gather sage does not
-commit any work and so everything can be undone in the case of a failure.
+The comment has been outdated since 6b73cff239e52 ("mm: change munmap
+splitting order and move_vma()").  The move_vma() was altered to fix the
+fragile state of the accounting since then.
 
-The MAP_FIXED page count is available after the vms_gather_munmap_vmas()
-call, so use it instead of looping over the vmas twice.
-
-Link: https://lkml.kernel.org/r/20240822192543.3359552-20-Liam.Howlett@oracle.com
-Signed-off-by: Liam R.  Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/20240822192543.3359552-21-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jiri Olsa <olsajiri@gmail.com>
@@ -88,84 +82,26 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   15 ++++-----------
- mm/vma.c  |   21 ---------------------
- mm/vma.h  |    3 ---
- 3 files changed, 4 insertions(+), 35 deletions(-)
+ mm/vma.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/mmap.c~mm-move-may_expand_vm-check-in-mmap_region
-+++ a/mm/mmap.c
-@@ -1376,17 +1376,6 @@ unsigned long mmap_region(struct file *f
- 	pgoff_t vm_pgoff;
- 	int error = -ENOMEM;
- 	VMA_ITERATOR(vmi, mm, addr);
--	unsigned long nr_pages, nr_accounted;
--
--	nr_pages = count_vma_pages_range(mm, addr, end, &nr_accounted);
--
--	/*
--	 * Check against address space limit.
--	 * MAP_FIXED may remove pages of mappings that intersects with requested
--	 * mapping. Account for the pages it would unmap.
--	 */
--	if (!may_expand_vm(mm, vm_flags, pglen - nr_pages))
--		return -ENOMEM;
- 
- 	/* Find the first overlapping VMA */
- 	vma = vma_find(&vmi, end);
-@@ -1409,6 +1398,10 @@ unsigned long mmap_region(struct file *f
- 			vma_iter_next_range(&vmi);
- 	}
- 
-+	/* Check against address space limit. */
-+	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages))
-+		goto abort_munmap;
-+
- 	/*
- 	 * Private writable mapping: check memory availability
- 	 */
---- a/mm/vma.c~mm-move-may_expand_vm-check-in-mmap_region
+--- a/mm/vma.c~mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas
 +++ a/mm/vma.c
-@@ -1645,27 +1645,6 @@ bool vma_wants_writenotify(struct vm_are
- 	return vma_fs_can_writeback(vma);
- }
+@@ -755,13 +755,8 @@ int vms_gather_munmap_vmas(struct vma_mu
  
--unsigned long count_vma_pages_range(struct mm_struct *mm,
--		unsigned long addr, unsigned long end,
--		unsigned long *nr_accounted)
--{
--	VMA_ITERATOR(vmi, mm, addr);
--	struct vm_area_struct *vma;
--	unsigned long nr_pages = 0;
+ 	/*
+ 	 * If we need to split any vma, do it now to save pain later.
+-	 *
+-	 * Note: mremap's move_vma VM_ACCOUNT handling assumes a partially
+-	 * unmapped vm_area_struct will remain in use: so lower split_vma
+-	 * places tmp vma above, and higher split_vma places tmp vma below.
++	 * Does it split the first one?
+ 	 */
 -
--	*nr_accounted = 0;
--	for_each_vma_range(vmi, vma, end) {
--		unsigned long vm_start = max(addr, vma->vm_start);
--		unsigned long vm_end = min(end, vma->vm_end);
--
--		nr_pages += PHYS_PFN(vm_end - vm_start);
--		if (vma->vm_flags & VM_ACCOUNT)
--			*nr_accounted += PHYS_PFN(vm_end - vm_start);
--	}
--
--	return nr_pages;
--}
--
- static DEFINE_MUTEX(mm_all_locks_mutex);
+-	/* Does it split the first one? */
+ 	if (vms->start > vms->vma->vm_start) {
  
- static void vm_lock_anon_vma(struct mm_struct *mm, struct anon_vma *anon_vma)
---- a/mm/vma.h~mm-move-may_expand_vm-check-in-mmap_region
-+++ a/mm/vma.h
-@@ -315,9 +315,6 @@ bool vma_wants_writenotify(struct vm_are
- 
- int mm_take_all_locks(struct mm_struct *mm);
- void mm_drop_all_locks(struct mm_struct *mm);
--unsigned long count_vma_pages_range(struct mm_struct *mm,
--				    unsigned long addr, unsigned long end,
--				    unsigned long *nr_accounted);
- 
- static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
- {
+ 		/*
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
