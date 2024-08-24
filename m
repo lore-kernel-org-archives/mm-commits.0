@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAC4EEC8
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B29EEAD2
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724464712; cv=none; b=Qri7C66deQS64HHWaOe6mdfq0e9POSQSq6NsYaPNMGh1XRHCXBon34eRb2/Yrhcz15jf0XrQp8JrkQUhkewIbydLiRMoIC7qe6tihhUeaWbD9142ShEPa0lf92SrHsoyNbUWff0EgDzKRGj44fyOK2werCCRV5N+btboZH1yPKs=
+	t=1724464715; cv=none; b=E/GYf7oTIuAS5HYCw2pVusCKqEpDkYq5N+YSPqFI8fOWk0498AZQPOg+Wvbtv2BOP0jr5+9bNp2igxQEHp8Lkjhfhmr7H4BdCnidJAXlx9qp10VfovualTfwHbSu5kQj+tq0PyZQrMIGliFeCX7nEMHZma+tKb8Wp/5dCo/Cqq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724464712; c=relaxed/simple;
-	bh=klnD2MN6k8AmJp+lQ/oN9eqe7xSbHxvrgihx2S4PmpU=;
-	h=Date:To:From:Subject:Message-Id; b=sDhJ5eIq7BRKpU+Mj+IKFc4cqY7T1XNGgqLJP5CS83vlyOuy2sncOk2pE4kWoFG0G93m7lG663RA4zPxtINM3GzC5zzAYCqE8SYGNOBUeYgV35MU0bWARO4nyUZWtiSXgl6RocEmO2tpt0cdJ7XgWgg6b3BOylmbdRoh6n1S+u8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfjsLruB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724464715; c=relaxed/simple;
+	bh=qtwptNR0LieafgbvhYJgdhpks1G4AghQ+8PXC23pCLw=;
+	h=Date:To:From:Subject:Message-Id; b=lSEYE0c0TdxkLxoc0duyKvynuEZ+YqkDLbtHHkhHyogZcJtHwWRLYgMS/xVjFswf659abpRniwAiT2K5MjzVblMgdtw8rpb1YdHjlOVtdTAEiboZXPuaIR423JpfX6URCrgNO8a5CUNpev54x+B6E/EE2S2fuiU81qTGv/iJj5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y13brkXj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfjsLruB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AB7FC32786;
-	Sat, 24 Aug 2024 01:58:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y13brkXj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16BC6C32786;
+	Sat, 24 Aug 2024 01:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724464712;
-	bh=klnD2MN6k8AmJp+lQ/oN9eqe7xSbHxvrgihx2S4PmpU=;
+	s=korg; t=1724464715;
+	bh=qtwptNR0LieafgbvhYJgdhpks1G4AghQ+8PXC23pCLw=;
 	h=Date:To:From:Subject:From;
-	b=dfjsLruBovZn1pocTF0b/4KHeeu2Izenw/ISEpOYKCprt12I79D6Ks/smCqy0o0Mr
-	 abS8aH1+HYpCPrYFIHz8Jkt5NY2QiPrqV6KoEqvbqD1WIZ4h7Nh2epHfSZWmQLz4lU
-	 o4gfRIQKCGe9PIisEBNo3wccrrERvRFV9j/OASUU=
-Date: Fri, 23 Aug 2024 18:58:31 -0700
+	b=y13brkXjJAtYU49ycR61suwRyfJ0PhZMGI7249teKcdoGkyfqFMc/tgSIWdI49xFW
+	 QA1AuckGLwNveXhxpiRBOHzHb00x6SRZmyBb+abmQ1q2fKtyVB7XwmJCBKZTBqTfzU
+	 YJ36xOnSVWww5vSSYkfEv5DdZJufHPHS6LbpUIf8=
+Date: Fri, 23 Aug 2024 18:58:34 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-clean-up-unmap_region-argument-list.patch added to mm-unstable branch
-Message-Id: <20240824015832.4AB7FC32786@smtp.kernel.org>
+Subject: + mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch added to mm-unstable branch
+Message-Id: <20240824015835.16BC6C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: clean up unmap_region() argument list
+     Subject: mm/mmap: avoid zeroing vma tree in mmap_region()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-clean-up-unmap_region-argument-list.patch
+     mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-unmap_region-argument-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: clean up unmap_region() argument list
-Date: Thu, 22 Aug 2024 15:25:35 -0400
+Subject: mm/mmap: avoid zeroing vma tree in mmap_region()
+Date: Thu, 22 Aug 2024 15:25:36 -0400
 
-With the only caller to unmap_region() being the error path of
-mmap_region(), the argument list can be significantly reduced.
+Instead of zeroing the vma tree and then overwriting the area, let the
+area be overwritten and then clean up the gathered vmas using
+vms_complete_munmap_vmas().
 
-Link: https://lkml.kernel.org/r/20240822192543.3359552-14-Liam.Howlett@oracle.com
+To ensure locking is downgraded correctly, the mm is set regardless of
+MAP_FIXED or not (NULL vma).
+
+If a driver is mapping over an existing vma, then clear the ptes before
+the call_mmap() invocation.  This is done using the vms_clean_up_area()
+helper.  If there is a close vm_ops, that must also be called to ensure
+any cleanup is done before mapping over the area.  This also means that
+calling open has been added to the abort of an unmap operation, for now.
+
+Since vm_ops->open() and vm_ops->close() are not always undo each other
+(state cleanup may exist in ->close() that is lost forever), the code
+cannot be left in this way, but that change has been isolated to another
+commit to make this point very obvious for traceability.
+
+Temporarily keep track of the number of pages that will be removed and
+reduce the charged amount.
+
+This also drops the validate_mm() call in the vma_expand() function.  It
+is necessary to drop the validate as it would fail since the mm map_count
+would be incorrect during a vma expansion, prior to the cleanup from
+vms_complete_munmap_vmas().
+
+Clean up the error handing of the vms_gather_munmap_vmas() by calling
+the verification within the function.
+
+Link: https://lkml.kernel.org/r/20240822192543.3359552-15-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
@@ -81,71 +107,371 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +--
- mm/vma.c  |   17 ++++++++---------
- mm/vma.h  |    6 ++----
- 3 files changed, 11 insertions(+), 15 deletions(-)
+ mm/mmap.c |   62 ++++++++++++++++++++++++----------------------------
+ mm/vma.c  |   54 +++++++++++++++++++++++++++++++++++----------
+ mm/vma.h  |   22 +++++++++++++-----
+ 3 files changed, 87 insertions(+), 51 deletions(-)
 
---- a/mm/mmap.c~mm-clean-up-unmap_region-argument-list
+--- a/mm/mmap.c~mm-mmap-avoid-zeroing-vma-tree-in-mmap_region
 +++ a/mm/mmap.c
-@@ -1613,8 +1613,7 @@ unmap_and_free_vma:
+@@ -1373,23 +1373,19 @@ unsigned long mmap_region(struct file *f
+ 	unsigned long merge_start = addr, merge_end = end;
+ 	bool writable_file_mapping = false;
+ 	pgoff_t vm_pgoff;
+-	int error;
++	int error = -ENOMEM;
+ 	VMA_ITERATOR(vmi, mm, addr);
++	unsigned long nr_pages, nr_accounted;
  
- 		vma_iter_set(&vmi, vma->vm_end);
- 		/* Undo any partial mapping done by a device driver. */
--		unmap_region(mm, &vmi.mas, vma, prev, next, vma->vm_start,
--			     vma->vm_end, vma->vm_end, true);
-+		unmap_region(&vmi.mas, vma, prev, next);
+-	/* Check against address space limit. */
+-	if (!may_expand_vm(mm, vm_flags, len >> PAGE_SHIFT)) {
+-		unsigned long nr_pages;
++	nr_pages = count_vma_pages_range(mm, addr, end, &nr_accounted);
+ 
+-		/*
+-		 * MAP_FIXED may remove pages of mappings that intersects with
+-		 * requested mapping. Account for the pages it would unmap.
+-		 */
+-		nr_pages = count_vma_pages_range(mm, addr, end);
+-
+-		if (!may_expand_vm(mm, vm_flags,
+-					(len >> PAGE_SHIFT) - nr_pages))
+-			return -ENOMEM;
+-	}
++	/*
++	 * Check against address space limit.
++	 * MAP_FIXED may remove pages of mappings that intersects with requested
++	 * mapping. Account for the pages it would unmap.
++	 */
++	if (!may_expand_vm(mm, vm_flags, (len >> PAGE_SHIFT) - nr_pages))
++		return -ENOMEM;
+ 
+ 	/* Find the first overlapping VMA */
+ 	vma = vma_find(&vmi, end);
+@@ -1400,14 +1396,8 @@ unsigned long mmap_region(struct file *f
+ 		mas_init(&mas_detach, &mt_detach, /* addr = */ 0);
+ 		/* Prepare to unmap any existing mapping in the area */
+ 		if (vms_gather_munmap_vmas(&vms, &mas_detach))
+-			goto gather_failed;
+-
+-		/* Remove any existing mappings from the vma tree */
+-		if (vma_iter_clear_gfp(&vmi, addr, end, GFP_KERNEL))
+-			goto clear_tree_failed;
++			return -ENOMEM;
+ 
+-		/* Unmap any existing mapping in the area */
+-		vms_complete_munmap_vmas(&vms, &mas_detach);
+ 		next = vms.next;
+ 		prev = vms.prev;
+ 		vma = NULL;
+@@ -1423,8 +1413,10 @@ unsigned long mmap_region(struct file *f
+ 	 */
+ 	if (accountable_mapping(file, vm_flags)) {
+ 		charged = len >> PAGE_SHIFT;
++		charged -= nr_accounted;
+ 		if (security_vm_enough_memory_mm(mm, charged))
+-			return -ENOMEM;
++			goto abort_munmap;
++		vms.nr_accounted = 0;
+ 		vm_flags |= VM_ACCOUNT;
  	}
- 	if (writable_file_mapping)
- 		mapping_unmap_writable(file->f_mapping);
---- a/mm/vma.c~mm-clean-up-unmap_region-argument-list
-+++ a/mm/vma.c
-@@ -155,22 +155,21 @@ void remove_vma(struct vm_area_struct *v
-  *
-  * Called with the mm semaphore held.
-  */
--void unmap_region(struct mm_struct *mm, struct ma_state *mas,
--		struct vm_area_struct *vma, struct vm_area_struct *prev,
--		struct vm_area_struct *next, unsigned long start,
--		unsigned long end, unsigned long tree_end, bool mm_wr_locked)
-+void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
-+		struct vm_area_struct *prev, struct vm_area_struct *next)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct mmu_gather tlb;
--	unsigned long mt_start = mas->index;
  
- 	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm);
- 	update_hiwater_rss(mm);
--	unmap_vmas(&tlb, mas, vma, start, end, tree_end, mm_wr_locked);
--	mas_set(mas, mt_start);
-+	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
-+		   /* mm_wr_locked = */ true);
-+	mas_set(mas, vma->vm_end);
- 	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
--				 next ? next->vm_start : USER_PGTABLES_CEILING,
--				 mm_wr_locked);
-+		      next ? next->vm_start : USER_PGTABLES_CEILING,
-+		      /* mm_wr_locked = */ true);
- 	tlb_finish_mmu(&tlb);
+@@ -1473,10 +1465,8 @@ cannot_expand:
+ 	 * not unmapped, but the maps are removed from the list.
+ 	 */
+ 	vma = vm_area_alloc(mm);
+-	if (!vma) {
+-		error = -ENOMEM;
++	if (!vma)
+ 		goto unacct_error;
+-	}
+ 
+ 	vma_iter_config(&vmi, addr, end);
+ 	vma_set_range(vma, addr, end, pgoff);
+@@ -1485,6 +1475,11 @@ cannot_expand:
+ 
+ 	if (file) {
+ 		vma->vm_file = get_file(file);
++		/*
++		 * call_mmap() may map PTE, so ensure there are no existing PTEs
++		 * call the vm_ops close function if one exists.
++		 */
++		vms_clean_up_area(&vms, &mas_detach, true);
+ 		error = call_mmap(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
+@@ -1575,6 +1570,9 @@ unmap_writable:
+ expanded:
+ 	perf_event_mmap(vma);
+ 
++	/* Unmap any existing mapping in the area */
++	vms_complete_munmap_vmas(&vms, &mas_detach);
++
+ 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
+ 	if (vm_flags & VM_LOCKED) {
+ 		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
+@@ -1603,7 +1601,7 @@ expanded:
+ 	return addr;
+ 
+ close_and_free_vma:
+-	if (file && vma->vm_ops && vma->vm_ops->close)
++	if (file && !vms.closed_vm_ops && vma->vm_ops && vma->vm_ops->close)
+ 		vma->vm_ops->close(vma);
+ 
+ 	if (file || vma->vm_file) {
+@@ -1622,14 +1620,12 @@ free_vma:
+ unacct_error:
+ 	if (charged)
+ 		vm_unacct_memory(charged);
+-	validate_mm(mm);
+-	return error;
+ 
+-clear_tree_failed:
+-	abort_munmap_vmas(&mas_detach);
+-gather_failed:
++abort_munmap:
++	if (vms.nr_pages)
++		abort_munmap_vmas(&mas_detach, vms.closed_vm_ops);
+ 	validate_mm(mm);
+-	return -ENOMEM;
++	return error;
  }
  
---- a/mm/vma.h~mm-clean-up-unmap_region-argument-list
+ static int __vm_munmap(unsigned long start, size_t len, bool unlock)
+@@ -1959,7 +1955,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	do {
+ 		if (vma->vm_flags & VM_ACCOUNT)
+ 			nr_accounted += vma_pages(vma);
+-		remove_vma(vma, true);
++		remove_vma(vma, /* unreachable = */ true, /* closed = */ false);
+ 		count++;
+ 		cond_resched();
+ 		vma = vma_next(&vmi);
+--- a/mm/vma.c~mm-mmap-avoid-zeroing-vma-tree-in-mmap_region
++++ a/mm/vma.c
+@@ -136,10 +136,10 @@ can_vma_merge_after(struct vm_area_struc
+ /*
+  * Close a vm structure and free it.
+  */
+-void remove_vma(struct vm_area_struct *vma, bool unreachable)
++void remove_vma(struct vm_area_struct *vma, bool unreachable, bool closed)
+ {
+ 	might_sleep();
+-	if (vma->vm_ops && vma->vm_ops->close)
++	if (!closed && vma->vm_ops && vma->vm_ops->close)
+ 		vma->vm_ops->close(vma);
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+@@ -521,7 +521,6 @@ int vma_expand(struct vma_iterator *vmi,
+ 	vma_iter_store(vmi, vma);
+ 
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+-	validate_mm(vma->vm_mm);
+ 	return 0;
+ 
+ nomem:
+@@ -645,11 +644,14 @@ again:
+ 		uprobe_mmap(vp->insert);
+ }
+ 
+-static void vms_complete_pte_clear(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach, bool mm_wr_locked)
++static inline void vms_clear_ptes(struct vma_munmap_struct *vms,
++		    struct ma_state *mas_detach, bool mm_wr_locked)
+ {
+ 	struct mmu_gather tlb;
+ 
++	if (!vms->clear_ptes) /* Nothing to do */
++		return;
++
+ 	/*
+ 	 * We can free page tables without write-locking mmap_lock because VMAs
+ 	 * were isolated before we downgraded mmap_lock.
+@@ -658,11 +660,31 @@ static void vms_complete_pte_clear(struc
+ 	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, vms->mm);
+ 	update_hiwater_rss(vms->mm);
+-	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end, vms->vma_count, mm_wr_locked);
++	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
++		   vms->vma_count, mm_wr_locked);
++
+ 	mas_set(mas_detach, 1);
+ 	/* start and end may be different if there is no prev or next vma. */
+-	free_pgtables(&tlb, mas_detach, vms->vma, vms->unmap_start, vms->unmap_end, mm_wr_locked);
++	free_pgtables(&tlb, mas_detach, vms->vma, vms->unmap_start,
++		      vms->unmap_end, mm_wr_locked);
+ 	tlb_finish_mmu(&tlb);
++	vms->clear_ptes = false;
++}
++
++void vms_clean_up_area(struct vma_munmap_struct *vms,
++		struct ma_state *mas_detach, bool mm_wr_locked)
++{
++	struct vm_area_struct *vma;
++
++	if (!vms->nr_pages)
++		return;
++
++	vms_clear_ptes(vms, mas_detach, mm_wr_locked);
++	mas_set(mas_detach, 0);
++	mas_for_each(mas_detach, vma, ULONG_MAX)
++		if (vma->vm_ops && vma->vm_ops->close)
++			vma->vm_ops->close(vma);
++	vms->closed_vm_ops = true;
+ }
+ 
+ /*
+@@ -686,7 +708,10 @@ void vms_complete_munmap_vmas(struct vma
+ 	if (vms->unlock)
+ 		mmap_write_downgrade(mm);
+ 
+-	vms_complete_pte_clear(vms, mas_detach, !vms->unlock);
++	if (!vms->nr_pages)
++		return;
++
++	vms_clear_ptes(vms, mas_detach, !vms->unlock);
+ 	/* Update high watermark before we lower total_vm */
+ 	update_hiwater_vm(mm);
+ 	/* Stat accounting */
+@@ -702,7 +727,7 @@ void vms_complete_munmap_vmas(struct vma
+ 	/* Remove and clean up vmas */
+ 	mas_set(mas_detach, 0);
+ 	mas_for_each(mas_detach, vma, ULONG_MAX)
+-		remove_vma(vma, false);
++		remove_vma(vma, /* = */ false, vms->closed_vm_ops);
+ 
+ 	vm_unacct_memory(vms->nr_accounted);
+ 	validate_mm(mm);
+@@ -851,13 +876,14 @@ int vms_gather_munmap_vmas(struct vma_mu
+ 	while (vma_iter_addr(vms->vmi) > vms->start)
+ 		vma_iter_prev_range(vms->vmi);
+ 
++	vms->clear_ptes = true;
+ 	return 0;
+ 
+ userfaultfd_error:
+ munmap_gather_failed:
+ end_split_failed:
+ modify_vma_failed:
+-	abort_munmap_vmas(mas_detach);
++	abort_munmap_vmas(mas_detach, /* closed = */ false);
+ start_split_failed:
+ map_count_exceeded:
+ 	return error;
+@@ -902,7 +928,7 @@ int do_vmi_align_munmap(struct vma_itera
+ 	return 0;
+ 
+ clear_tree_failed:
+-	abort_munmap_vmas(&mas_detach);
++	abort_munmap_vmas(&mas_detach, /* closed = */ false);
+ gather_failed:
+ 	validate_mm(mm);
+ 	return error;
+@@ -1620,17 +1646,21 @@ bool vma_wants_writenotify(struct vm_are
+ }
+ 
+ unsigned long count_vma_pages_range(struct mm_struct *mm,
+-				    unsigned long addr, unsigned long end)
++		unsigned long addr, unsigned long end,
++		unsigned long *nr_accounted)
+ {
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	struct vm_area_struct *vma;
+ 	unsigned long nr_pages = 0;
+ 
++	*nr_accounted = 0;
+ 	for_each_vma_range(vmi, vma, end) {
+ 		unsigned long vm_start = max(addr, vma->vm_start);
+ 		unsigned long vm_end = min(end, vma->vm_end);
+ 
+ 		nr_pages += PHYS_PFN(vm_end - vm_start);
++		if (vma->vm_flags & VM_ACCOUNT)
++			*nr_accounted += PHYS_PFN(vm_end - vm_start);
+ 	}
+ 
+ 	return nr_pages;
+--- a/mm/vma.h~mm-mmap-avoid-zeroing-vma-tree-in-mmap_region
 +++ a/mm/vma.h
-@@ -147,10 +147,8 @@ int do_vmi_munmap(struct vma_iterator *v
+@@ -48,6 +48,8 @@ struct vma_munmap_struct {
+ 	unsigned long stack_vm;
+ 	unsigned long data_vm;
+ 	bool unlock;                    /* Unlock after the munmap */
++	bool clear_ptes;                /* If there are outstanding PTE to be cleared */
++	bool closed_vm_ops;		/* call_mmap() was encountered, so vmas may be closed */
+ };
  
- void remove_vma(struct vm_area_struct *vma, bool unreachable);
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+@@ -95,14 +97,13 @@ static inline void init_vma_munmap(struc
+ 		unsigned long start, unsigned long end, struct list_head *uf,
+ 		bool unlock)
+ {
++	vms->mm = current->mm;
+ 	vms->vmi = vmi;
+ 	vms->vma = vma;
+ 	if (vma) {
+-		vms->mm = vma->vm_mm;
+ 		vms->start = start;
+ 		vms->end = end;
+ 	} else {
+-		vms->mm = NULL;
+ 		vms->start = vms->end = 0;
+ 	}
+ 	vms->unlock = unlock;
+@@ -112,6 +113,8 @@ static inline void init_vma_munmap(struc
+ 	vms->exec_vm = vms->stack_vm = vms->data_vm = 0;
+ 	vms->unmap_start = FIRST_USER_ADDRESS;
+ 	vms->unmap_end = USER_PGTABLES_CEILING;
++	vms->clear_ptes = false;
++	vms->closed_vm_ops = false;
+ }
  
--void unmap_region(struct mm_struct *mm, struct ma_state *mas,
--		struct vm_area_struct *vma, struct vm_area_struct *prev,
--		struct vm_area_struct *next, unsigned long start,
--		unsigned long end, unsigned long tree_end, bool mm_wr_locked);
-+void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
-+		struct vm_area_struct *prev, struct vm_area_struct *next);
+ int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
+@@ -120,18 +123,24 @@ int vms_gather_munmap_vmas(struct vma_mu
+ void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach);
  
- /* Required by mmap_region(). */
- bool
++void vms_clean_up_area(struct vma_munmap_struct *vms,
++		struct ma_state *mas_detach, bool mm_wr_locked);
++
+ /*
+  * abort_munmap_vmas - Undo any munmap work and free resources
+  *
+  * Reattach any detached vmas and free up the maple tree used to track the vmas.
+  */
+-static inline void abort_munmap_vmas(struct ma_state *mas_detach)
++static inline void abort_munmap_vmas(struct ma_state *mas_detach, bool closed)
+ {
+ 	struct vm_area_struct *vma;
+ 
+ 	mas_set(mas_detach, 0);
+-	mas_for_each(mas_detach, vma, ULONG_MAX)
++	mas_for_each(mas_detach, vma, ULONG_MAX) {
+ 		vma_mark_detached(vma, false);
++		if (closed && vma->vm_ops && vma->vm_ops->open)
++			vma->vm_ops->open(vma);
++	}
+ 
+ 	__mt_destroy(mas_detach->tree);
+ }
+@@ -145,7 +154,7 @@ int do_vmi_munmap(struct vma_iterator *v
+ 		  unsigned long start, size_t len, struct list_head *uf,
+ 		  bool unlock);
+ 
+-void remove_vma(struct vm_area_struct *vma, bool unreachable);
++void remove_vma(struct vm_area_struct *vma, bool unreachable, bool closed);
+ 
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
+ 		struct vm_area_struct *prev, struct vm_area_struct *next);
+@@ -259,7 +268,8 @@ bool vma_wants_writenotify(struct vm_are
+ int mm_take_all_locks(struct mm_struct *mm);
+ void mm_drop_all_locks(struct mm_struct *mm);
+ unsigned long count_vma_pages_range(struct mm_struct *mm,
+-				    unsigned long addr, unsigned long end);
++				    unsigned long addr, unsigned long end,
++				    unsigned long *nr_accounted);
+ 
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
