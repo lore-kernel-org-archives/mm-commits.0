@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39D5B676
-	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8EE8B669
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:58:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724464723; cv=none; b=GBtYRRQ5uloxISmZLIunwa/cE0eOnsbZAMUFgXRSUgmyniUF+cEQtRSq4qS3HgFXQYMs01bSV8z5ul8znBOMaFKAYeQBotDo/ppEHxza97cz9WxwvHQavV8g0ALKfSy3952szUSxl/vlNwBT3pjhjOtHT1TevaPE+Niq4Nhn6t0=
+	t=1724464725; cv=none; b=Ctg7+T4+uqVMLFNtMJn0YlIulaxrSXzJM8EzSEMrfrIRKVjAs/Wfr/PVLUbMMNhfB4YOXK0qVOUhzfKpa1hDHzD+0916m6RZfB9qD6d/cQdvu15zFjyz2lIRuRq2B0okcM/uTe2ZRh46w5usFTBWmuWg6G7PdUxiU+Js4fNQ4zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724464723; c=relaxed/simple;
-	bh=FZUDeYk8jarcYW4eLdqL1AOE791tLIohnXC23qM4+lM=;
-	h=Date:To:From:Subject:Message-Id; b=rqujcgI+mkTIW7FoROQym2fx1HTuGn5XUnZkuQG3eFSt4EKy1ulRkO71XPhZDk2Kz3FNSMSzoR1AeZkiX0xclvAjUpMP+iknEp+40FWC7XpsZI1QCB4PVSYofYxK7G1MEg9WJMSl9HJ9x/pEJpp4DQ1ebU4oVJxejjTN8HmGR5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fKNrB1ZH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724464725; c=relaxed/simple;
+	bh=iX3YavKfLwteKV8+T/r+2nNfrRxPAc9z+U/57phWD9s=;
+	h=Date:To:From:Subject:Message-Id; b=p8TcQ3iCpWPuk1DlH68Q6vi4u/1bSgO4HboZaxBmkJY2RHGaHOoX95o/0ZGw+I8B+pUyXHiNNYI4d9HQcMjMkJBC5ivXQltq1HwAQPqzW+Nhr++x8WT4AiWhQ7A1ihlQfesUtYOgHlDLPAYwVzKmRH6yCVsgHjhiiHhHIrBNkew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FDr7a46I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fKNrB1ZH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8B79C32786;
-	Sat, 24 Aug 2024 01:58:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FDr7a46I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC1E9C32786;
+	Sat, 24 Aug 2024 01:58:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724464722;
-	bh=FZUDeYk8jarcYW4eLdqL1AOE791tLIohnXC23qM4+lM=;
+	s=korg; t=1724464724;
+	bh=iX3YavKfLwteKV8+T/r+2nNfrRxPAc9z+U/57phWD9s=;
 	h=Date:To:From:Subject:From;
-	b=fKNrB1ZHAaP5E/yq1AN/3/4w9KXObWkt6aBQg/Sa0SbzyjRAfOqtonxjfHCQy/t1W
-	 AXh4EkdOVcgD7GijFmaYdtP1ANNwlquXi50SLHJhEH3FfNTsS94BQ8qE0AafO2tmxt
-	 YmLd4+bcocFFtEIdmLMVYvgiowdYdqoov+e4XGd8=
-Date: Fri, 23 Aug 2024 18:58:42 -0700
+	b=FDr7a46I06CKyYCcpYqzl1lWSenaSJeyXaVWT3+bL2FsTVhZPtdValY/6GtHfEMaq
+	 K6mrXSy936RLvoQoEMBGK8SryqBquXIUwidQVwT03XEZmI1i34ZKTfGzXUnTo2wMOc
+	 v+3HmpB811hvW0FhtU8KnQhSCsF9Ad+2Q8DTz3Q8=
+Date: Fri, 23 Aug 2024 18:58:44 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-vms-accounted-pages-in-mmap_region.patch added to mm-unstable branch
-Message-Id: <20240824015842.B8B79C32786@smtp.kernel.org>
+Subject: + ipc-shm-mm-drop-do_vma_munmap.patch added to mm-unstable branch
+Message-Id: <20240824015844.BC1E9C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: use vms accounted pages in mmap_region()
+     Subject: ipc/shm, mm: drop do_vma_munmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
+     ipc-shm-mm-drop-do_vma_munmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-shm-mm-drop-do_vma_munmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,219 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: use vms accounted pages in mmap_region()
-Date: Thu, 22 Aug 2024 15:25:39 -0400
+Subject: ipc/shm, mm: drop do_vma_munmap()
+Date: Thu, 22 Aug 2024 15:25:40 -0400
 
-Change from nr_pages variable to vms.nr_accounted for the charged pages
-calculation.  This is necessary for a future patch.
+The do_vma_munmap() wrapper existed for callers that didn't have a vma
+iterator and needed to check the vma mseal status prior to calling the
+underlying munmap().  All callers now use a vma iterator and since the
+mseal check has been moved to do_vmi_align_munmap() and the vmas are
+aligned, this function can just be called instead.
 
-This also avoids checking security_vm_enough_memory_mm() if the amount of
-memory won't change.
+do_vmi_align_munmap() can no longer be static as ipc/shm is using it and
+it is exported via the mm.h header.
 
-Link: https://lkml.kernel.org/r/20240822192543.3359552-18-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240822192543.3359552-19-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Kees Cook <kees@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Paul Moore <paul@paul-moore.com> (LSM)
-Cc: Kees Cook <kees@kernel.org>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jiri Olsa <olsajiri@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    6 +++---
+ ipc/shm.c          |    8 ++++----
+ mm/mmap.c          |   33 ++++++---------------------------
+ mm/vma.c           |   12 ++++++------
+ mm/vma.h           |    4 +---
+ 5 files changed, 20 insertions(+), 43 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-vms-accounted-pages-in-mmap_region
+--- a/include/linux/mm.h~ipc-shm-mm-drop-do_vma_munmap
++++ a/include/linux/mm.h
+@@ -3287,14 +3287,14 @@ extern unsigned long do_mmap(struct file
+ extern int do_vmi_munmap(struct vma_iterator *vmi, struct mm_struct *mm,
+ 			 unsigned long start, size_t len, struct list_head *uf,
+ 			 bool unlock);
++int do_vmi_align_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		    struct mm_struct *mm, unsigned long start,
++		    unsigned long end, struct list_head *uf, bool unlock);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t,
+ 		     struct list_head *uf);
+ extern int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior);
+ 
+ #ifdef CONFIG_MMU
+-extern int do_vma_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-			 unsigned long start, unsigned long end,
+-			 struct list_head *uf, bool unlock);
+ extern int __mm_populate(unsigned long addr, unsigned long len,
+ 			 int ignore_errors);
+ static inline void mm_populate(unsigned long addr, unsigned long len)
+--- a/ipc/shm.c~ipc-shm-mm-drop-do_vma_munmap
++++ a/ipc/shm.c
+@@ -1778,8 +1778,8 @@ long ksys_shmdt(char __user *shmaddr)
+ 			 */
+ 			file = vma->vm_file;
+ 			size = i_size_read(file_inode(vma->vm_file));
+-			do_vma_munmap(&vmi, vma, vma->vm_start, vma->vm_end,
+-				      NULL, false);
++			do_vmi_align_munmap(&vmi, vma, mm, vma->vm_start,
++					    vma->vm_end, NULL, false);
+ 			/*
+ 			 * We discovered the size of the shm segment, so
+ 			 * break out of here and fall through to the next
+@@ -1803,8 +1803,8 @@ long ksys_shmdt(char __user *shmaddr)
+ 		if ((vma->vm_ops == &shm_vm_ops) &&
+ 		    ((vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff) &&
+ 		    (vma->vm_file == file)) {
+-			do_vma_munmap(&vmi, vma, vma->vm_start, vma->vm_end,
+-				      NULL, false);
++			do_vmi_align_munmap(&vmi, vma, mm, vma->vm_start,
++					    vma->vm_end, NULL, false);
+ 		}
+ 
+ 		vma = vma_next(&vmi);
+--- a/mm/mmap.c~ipc-shm-mm-drop-do_vma_munmap
 +++ a/mm/mmap.c
-@@ -1413,9 +1413,10 @@ unsigned long mmap_region(struct file *f
+@@ -169,11 +169,12 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 			goto out; /* mapping intersects with an existing non-brk vma. */
+ 		/*
+ 		 * mm->brk must be protected by write mmap_lock.
+-		 * do_vma_munmap() will drop the lock on success,  so update it
+-		 * before calling do_vma_munmap().
++		 * do_vmi_align_munmap() will drop the lock on success,  so
++		 * update it before calling do_vma_munmap().
+ 		 */
+ 		mm->brk = brk;
+-		if (do_vma_munmap(&vmi, brkvma, newbrk, oldbrk, &uf, true))
++		if (do_vmi_align_munmap(&vmi, brkvma, mm, newbrk, oldbrk, &uf,
++					/* unlock = */ true))
+ 			goto out;
+ 
+ 		goto success_unlocked;
+@@ -1478,9 +1479,9 @@ cannot_expand:
+ 		vma->vm_file = get_file(file);
+ 		/*
+ 		 * call_mmap() may map PTE, so ensure there are no existing PTEs
+-		 * call the vm_ops close function if one exists.
++		 * and call the vm_ops close function if one exists.
+ 		 */
+-		vms_clean_up_area(&vms, &mas_detach, true);
++		vms_clean_up_area(&vms, &mas_detach);
+ 		error = call_mmap(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
+@@ -1743,28 +1744,6 @@ out:
+ }
+ 
+ /*
+- * do_vma_munmap() - Unmap a full or partial vma.
+- * @vmi: The vma iterator pointing at the vma
+- * @vma: The first vma to be munmapped
+- * @start: the start of the address to unmap
+- * @end: The end of the address to unmap
+- * @uf: The userfaultfd list_head
+- * @unlock: Drop the lock on success
+- *
+- * unmaps a VMA mapping when the vma iterator is already in position.
+- * Does not handle alignment.
+- *
+- * Return: 0 on success drops the lock of so directed, error on failure and will
+- * still hold the lock.
+- */
+-int do_vma_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, struct list_head *uf,
+-		bool unlock)
+-{
+-	return do_vmi_align_munmap(vmi, vma, vma->vm_mm, start, end, uf, unlock);
+-}
+-
+-/*
+  * do_brk_flags() - Increase the brk vma if the flags match.
+  * @vmi: The vma iterator
+  * @addr: The start address
+--- a/mm/vma.c~ipc-shm-mm-drop-do_vma_munmap
++++ a/mm/vma.c
+@@ -658,8 +658,8 @@ static inline void vms_clear_ptes(struct
  	 */
- 	if (accountable_mapping(file, vm_flags)) {
- 		charged = pglen;
--		charged -= nr_accounted;
--		if (security_vm_enough_memory_mm(mm, charged))
-+		charged -= vms.nr_accounted;
-+		if (charged && security_vm_enough_memory_mm(mm, charged))
- 			goto abort_munmap;
-+
- 		vms.nr_accounted = 0;
- 		vm_flags |= VM_ACCOUNT;
- 	}
+ 	mas_set(mas_detach, 1);
+ 	lru_add_drain();
+-	tlb_gather_mmu(&tlb, vms->mm);
+-	update_hiwater_rss(vms->mm);
++	tlb_gather_mmu(&tlb, vms->vma->vm_mm);
++	update_hiwater_rss(vms->vma->vm_mm);
+ 	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
+ 		   vms->vma_count, mm_wr_locked);
+ 
+@@ -672,14 +672,14 @@ static inline void vms_clear_ptes(struct
+ }
+ 
+ void vms_clean_up_area(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach, bool mm_wr_locked)
++		struct ma_state *mas_detach)
+ {
+ 	struct vm_area_struct *vma;
+ 
+ 	if (!vms->nr_pages)
+ 		return;
+ 
+-	vms_clear_ptes(vms, mas_detach, mm_wr_locked);
++	vms_clear_ptes(vms, mas_detach, true);
+ 	mas_set(mas_detach, 0);
+ 	mas_for_each(mas_detach, vma, ULONG_MAX)
+ 		if (vma->vm_ops && vma->vm_ops->close)
+@@ -702,7 +702,7 @@ void vms_complete_munmap_vmas(struct vma
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 
+-	mm = vms->mm;
++	mm = current->mm;
+ 	mm->map_count -= vms->vma_count;
+ 	mm->locked_vm -= vms->locked_vm;
+ 	if (vms->unlock)
+@@ -770,7 +770,7 @@ int vms_gather_munmap_vmas(struct vma_mu
+ 		 * its limit temporarily, to help free resources as expected.
+ 		 */
+ 		if (vms->end < vms->vma->vm_end &&
+-		    vms->mm->map_count >= sysctl_max_map_count)
++		    vms->vma->vm_mm->map_count >= sysctl_max_map_count)
+ 			goto map_count_exceeded;
+ 
+ 		/* Don't bother splitting the VMA if we can't unmap it anyway */
+--- a/mm/vma.h~ipc-shm-mm-drop-do_vma_munmap
++++ a/mm/vma.h
+@@ -31,7 +31,6 @@ struct unlink_vma_file_batch {
+  */
+ struct vma_munmap_struct {
+ 	struct vma_iterator *vmi;
+-	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;     /* The first vma to munmap */
+ 	struct vm_area_struct *prev;    /* vma before the munmap area */
+ 	struct vm_area_struct *next;    /* vma after the munmap area */
+@@ -113,7 +112,6 @@ static inline void init_vma_munmap(struc
+ 		unsigned long start, unsigned long end, struct list_head *uf,
+ 		bool unlock)
+ {
+-	vms->mm = current->mm;
+ 	vms->vmi = vmi;
+ 	vms->vma = vma;
+ 	if (vma) {
+@@ -140,7 +138,7 @@ void vms_complete_munmap_vmas(struct vma
+ 		struct ma_state *mas_detach);
+ 
+ void vms_clean_up_area(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach, bool mm_wr_locked);
++		struct ma_state *mas_detach);
+ 
+ /*
+  * reattach_vmas() - Undo any munmap work and free resources
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
