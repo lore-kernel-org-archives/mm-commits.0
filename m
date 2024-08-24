@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411021D04A8
-	for <mm-commits@vger.kernel.org>; Thu, 22 Aug 2024 19:26:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CC2A3D7A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Aug 2024 01:42:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724354806; cv=none; b=eXBxDdqqQ5mDQ5JIz1eo2Bpo+w0zYDNtUntTNybgxjYG0Akrz5jgxYD4YEvne5Nw+85DVfx98bCPoRtcyV7XKM4Dnnm7FlZvze1OctIXAdsmQt0Fj1b6K2baElTQerdzKrPtRTsa6QWCEo5XsYl9uRH0JB78lqAksYQPZLcvfFo=
+	t=1724463762; cv=none; b=fwRUVxG7TB4NZ6vjWQp//Tf9Q5Adf3Mx8KSM1nHC2xYHjWpJ0RnZ+GcocyC22x4KUJTw7WqZz7RxiPZWjceC5NMZSYfZJzlmgzbhXFRs4PZLoc3KPC2ybFSjqnLb5cwMF7h4nx9CPW1UrNZsrGy8CAXsa/vw+UNbFdu4rRmEf4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724354806; c=relaxed/simple;
-	bh=Q28AOgFCQlTkHfJp8kDwfQuSDF8pNE4v8joDOXoQR4Q=;
-	h=Date:To:From:Subject:Message-Id; b=kk0Npo9uhekl+EzzyJj5c3AwepIrXlDgm8G/rvuSA1Ekpt6FiEbmdPFv2fy633MiNbzuOeHkqbl/R13WhZfd8aORAkXirw0rOglbGJT5rj2usSmHiaxxRQDTArUGpXMDUnAZ5Moa066UuyI57KEjX7eWuFhtxzXczh2r4AUX/9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqqaJYax; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724463762; c=relaxed/simple;
+	bh=gokAEn8zh/0sOy2dbiOIWbU5YU1vwD56aNnVfyFCEnw=;
+	h=Date:To:From:Subject:Message-Id; b=u7Bf7aCM1Y0YHsHFDLMY0chCMF8cNVkkUG+FWJXyz4TXnPLeuVA8IuNzWenmMiwkNChyqAVabOyWYu323i+wg2+oIHrh8iYEgmBcnCk5VlD8vq7lmZAg6VREBtpURF/XCx6ZKXbJL9FkcBUMHZAgDkdpbLC+U6At5OHLNsokBXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e6nCLD7t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqqaJYax"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF93EC32782;
-	Thu, 22 Aug 2024 19:26:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e6nCLD7t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 745A2C32786;
+	Sat, 24 Aug 2024 01:42:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724354805;
-	bh=Q28AOgFCQlTkHfJp8kDwfQuSDF8pNE4v8joDOXoQR4Q=;
+	s=korg; t=1724463761;
+	bh=gokAEn8zh/0sOy2dbiOIWbU5YU1vwD56aNnVfyFCEnw=;
 	h=Date:To:From:Subject:From;
-	b=oqqaJYaxUMZNZiEiBM/Ar948pO+F0r2z8ss/9eXsyzuR4kuEUGuk4HgppbX4Qyybm
-	 HAJxIKZiHm0PKf10zx4GE9qb50kLrOnMSGi9QRsKmaOhEdCYiH4SVA51BDi2BdW9Fv
-	 5MhbmTNgYE0STGmIdxRVsvuxmUZHNjmKk6ZZAcE8=
-Date: Thu, 22 Aug 2024 12:26:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,muchun.song@linux.dev,fvdl@google.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=e6nCLD7tWudz/ZXb+ORArl7IrnL8Z8I53Ed4ml/OKOwTrbnhCD1vH2qjadFIFCg+U
+	 m9GVUfeI7SReRR6VYpcqyw3aE2C/MqVKUrUP4z/pAiRYEUwsTpPmrt73LXkIoHcrs6
+	 M+AoiX5Cpq7jYfhlX/xmuostoUJSnkTF2kThC1jI=
+Date: Fri, 23 Aug 2024 18:42:40 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanshuai@oppo.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,ioworker0@gmail.com,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-add-cma_allocfree_folio-fix.patch added to mm-unstable branch
-Message-Id: <20240822192645.AF93EC32782@smtp.kernel.org>
+Subject: + mm-count-the-number-of-anonymous-thps-per-size.patch added to mm-unstable branch
+Message-Id: <20240824014241.745A2C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-cma-add-cma_allocfree_folio-fix
+     Subject: mm: count the number of anonymous THPs per size
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-add-cma_allocfree_folio-fix.patch
+     mm-count-the-number-of-anonymous-thps-per-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-cma_allocfree_folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-count-the-number-of-anonymous-thps-per-size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,243 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm-cma-add-cma_allocfree_folio-fix
-Date: Thu, 22 Aug 2024 11:24:14 -0600
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: count the number of anonymous THPs per size
+Date: Sat, 24 Aug 2024 13:04:40 +1200
 
-fix WARN in cma_alloc_folio()
+Patch series "mm: count the number of anonymous THPs per size", v4.
 
-Link: https://lkml.kernel.org/r/Zsd0PgAQmbpR8jS6@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Knowing the number of transparent anon THPs in the system is crucial
+for performance analysis. It helps in understanding the ratio and
+distribution of THPs versus small folios throughout the system.
+
+Additionally, partial unmapping by userspace can lead to significant waste
+of THPs over time and increase memory reclamation pressure. We need this
+information for comprehensive system tuning.
+
+
+This patch (of 2):
+
+Let's track for each anonymous THP size, how many of them are currently
+allocated.  We'll track the complete lifespan of an anon THP, starting
+when it becomes an anon THP ("large anon folio") (->mapping gets set),
+until it gets freed (->mapping gets cleared).
+
+Introduce a new "nr_anon" counter per THP size and adjust the
+corresponding counter in the following cases:
+* We allocate a new THP and call folio_add_new_anon_rmap() to map
+   it the first time and turn it into an anon THP.
+* We split an anon THP into multiple smaller ones.
+* We migrate an anon THP, when we prepare the destination.
+* We free an anon THP back to the buddy.
+
+Note that AnonPages in /proc/meminfo currently tracks the total number of
+*mapped* anonymous *pages*, and therefore has slightly different
+semantics.  In the future, we might also want to track "nr_anon_mapped"
+for each THP size, which might be helpful when comparing it to the number
+of allocated anon THPs (long-term pinning, stuck in swapcache, memory
+leaks, ...).
+
+Further note that for now, we only track anon THPs after they got their
+->mapping set, for example via folio_add_new_anon_rmap().  If we would
+allocate some in the swapcache, they will only show up in the statistics
+for now after they have been mapped to user space the first time, where we
+call folio_add_new_anon_rmap().
+
+Link: https://lkml.kernel.org/r/20240824010441.21308-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240824010441.21308-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuai Yuan <yuanshuai@oppo.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/transhuge.rst |    5 +++++
+ include/linux/huge_mm.h                    |   15 +++++++++++++--
+ mm/huge_memory.c                           |   13 ++++++++++---
+ mm/migrate.c                               |    4 ++++
+ mm/page_alloc.c                            |    5 ++++-
+ mm/rmap.c                                  |    1 +
+ 6 files changed, 37 insertions(+), 6 deletions(-)
 
---- a/mm/cma.c~mm-cma-add-cma_allocfree_folio-fix
-+++ a/mm/cma.c
-@@ -522,7 +522,7 @@ struct folio *cma_alloc_folio(struct cma
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-count-the-number-of-anonymous-thps-per-size
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -551,6 +551,11 @@ split_deferred
+         it would free up some memory. Pages on split queue are going to
+         be split under memory pressure, if splitting is possible.
+ 
++nr_anon
++       the number of transparent anon huge pages we have in the whole system.
++       These huge pages could be entirely mapped or have partially
++       unmapped/unused subpages.
++
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+ huge page for use. There are some counters in ``/proc/vmstat`` to help
+--- a/include/linux/huge_mm.h~mm-count-the-number-of-anonymous-thps-per-size
++++ a/include/linux/huge_mm.h
+@@ -126,6 +126,7 @@ enum mthp_stat_item {
+ 	MTHP_STAT_SPLIT,
+ 	MTHP_STAT_SPLIT_FAILED,
+ 	MTHP_STAT_SPLIT_DEFERRED,
++	MTHP_STAT_NR_ANON,
+ 	__MTHP_STAT_COUNT
+ };
+ 
+@@ -136,14 +137,24 @@ struct mthp_stat {
+ 
+ DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
+ 
+-static inline void count_mthp_stat(int order, enum mthp_stat_item item)
++static inline void mod_mthp_stat(int order, enum mthp_stat_item item, int delta)
  {
- 	struct page *page;
+ 	if (order <= 0 || order > PMD_ORDER)
+ 		return;
  
--	if (WARN_ON(!order || !(gfp | __GFP_COMP)))
-+	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
- 		return NULL;
+-	this_cpu_inc(mthp_stats.stats[order][item]);
++	this_cpu_add(mthp_stats.stats[order][item], delta);
++}
++
++static inline void count_mthp_stat(int order, enum mthp_stat_item item)
++{
++	mod_mthp_stat(order, item, 1);
+ }
++
+ #else
++static inline void mod_mthp_stat(int order, enum mthp_stat_item item, int delta)
++{
++}
++
+ static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+ {
+ }
+--- a/mm/huge_memory.c~mm-count-the-number-of-anonymous-thps-per-size
++++ a/mm/huge_memory.c
+@@ -597,6 +597,7 @@ DEFINE_MTHP_STAT_ATTR(shmem_fallback_cha
+ DEFINE_MTHP_STAT_ATTR(split, MTHP_STAT_SPLIT);
+ DEFINE_MTHP_STAT_ATTR(split_failed, MTHP_STAT_SPLIT_FAILED);
+ DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
++DEFINE_MTHP_STAT_ATTR(nr_anon, MTHP_STAT_NR_ANON);
  
- 	page = __cma_alloc(cma, 1 << order, order, gfp);
+ static struct attribute *anon_stats_attrs[] = {
+ 	&anon_fault_alloc_attr.attr,
+@@ -609,6 +610,7 @@ static struct attribute *anon_stats_attr
+ 	&split_attr.attr,
+ 	&split_failed_attr.attr,
+ 	&split_deferred_attr.attr,
++	&nr_anon_attr.attr,
+ 	NULL,
+ };
+ 
+@@ -3314,8 +3316,9 @@ int split_huge_page_to_list_to_order(str
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	/* reset xarray order to new order after split */
+ 	XA_STATE_ORDER(xas, &folio->mapping->i_pages, folio->index, new_order);
+-	struct anon_vma *anon_vma = NULL;
++	bool is_anon = folio_test_anon(folio);
+ 	struct address_space *mapping = NULL;
++	struct anon_vma *anon_vma = NULL;
+ 	int order = folio_order(folio);
+ 	int extra_pins, ret;
+ 	pgoff_t end;
+@@ -3327,7 +3330,7 @@ int split_huge_page_to_list_to_order(str
+ 	if (new_order >= folio_order(folio))
+ 		return -EINVAL;
+ 
+-	if (folio_test_anon(folio)) {
++	if (is_anon) {
+ 		/* order-1 is not supported for anonymous THP. */
+ 		if (new_order == 1) {
+ 			VM_WARN_ONCE(1, "Cannot split to order-1 folio");
+@@ -3367,7 +3370,7 @@ int split_huge_page_to_list_to_order(str
+ 	if (folio_test_writeback(folio))
+ 		return -EBUSY;
+ 
+-	if (folio_test_anon(folio)) {
++	if (is_anon) {
+ 		/*
+ 		 * The caller does not necessarily hold an mmap_lock that would
+ 		 * prevent the anon_vma disappearing so we first we take a
+@@ -3480,6 +3483,10 @@ int split_huge_page_to_list_to_order(str
+ 			}
+ 		}
+ 
++		if (is_anon) {
++			mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
++			mod_mthp_stat(new_order, MTHP_STAT_NR_ANON, 1 << (order - new_order));
++		}
+ 		__split_huge_page(page, list, end, new_order);
+ 		ret = 0;
+ 	} else {
+--- a/mm/migrate.c~mm-count-the-number-of-anonymous-thps-per-size
++++ a/mm/migrate.c
+@@ -450,6 +450,8 @@ static int __folio_migrate_mapping(struc
+ 		/* No turning back from here */
+ 		newfolio->index = folio->index;
+ 		newfolio->mapping = folio->mapping;
++		if (folio_test_anon(folio) && folio_test_large(folio))
++			mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ 		if (folio_test_swapbacked(folio))
+ 			__folio_set_swapbacked(newfolio);
+ 
+@@ -474,6 +476,8 @@ static int __folio_migrate_mapping(struc
+ 	 */
+ 	newfolio->index = folio->index;
+ 	newfolio->mapping = folio->mapping;
++	if (folio_test_anon(folio) && folio_test_large(folio))
++		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ 	folio_ref_add(newfolio, nr); /* add cache reference */
+ 	if (folio_test_swapbacked(folio)) {
+ 		__folio_set_swapbacked(newfolio);
+--- a/mm/page_alloc.c~mm-count-the-number-of-anonymous-thps-per-size
++++ a/mm/page_alloc.c
+@@ -1084,8 +1084,11 @@ __always_inline bool free_pages_prepare(
+ 			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 		}
+ 	}
+-	if (PageMappingFlags(page))
++	if (PageMappingFlags(page)) {
++		if (PageAnon(page))
++			mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 		page->mapping = NULL;
++	}
+ 	if (is_check_pages_enabled()) {
+ 		if (free_page_is_bad(page))
+ 			bad++;
+--- a/mm/rmap.c~mm-count-the-number-of-anonymous-thps-per-size
++++ a/mm/rmap.c
+@@ -1467,6 +1467,7 @@ void folio_add_new_anon_rmap(struct foli
+ 	}
+ 
+ 	__folio_mod_stat(folio, nr, nr_pmdmapped);
++	mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ }
+ 
+ static __always_inline void __folio_add_file_rmap(struct folio *folio,
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
-mm-swap-reduce-indentation-level.patch
-mm-swap-rename-cpu_fbatches-activate.patch
-mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
-mm-swap-remove-remaining-_fn-suffix.patch
-mm-swap-remove-boilerplate.patch
-mm-swap-remove-boilerplate-fix.patch
-mm-hugetlb_vmemmap-batch-hvo-work-when-demoting.patch
-mm-contig_alloc-support-__gfp_comp.patch
-mm-cma-add-cma_allocfree_folio.patch
-mm-cma-add-cma_allocfree_folio-fix.patch
-mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
+mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
+vpda-try-to-fix-the-potential-crash-due-to-misusing-__gfp_nofail.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-bug_on-to-avoid-null-deference-while-__gfp_nofail-fails.patch
+mm-prohibit-null-deference-exposed-for-unsupported-non-blockable-__gfp_nofail.patch
+mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size.patch
+mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
 
