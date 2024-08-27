@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C838977117
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF9AF77117
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802751; cv=none; b=WNip5eLbveFZ6YH6dpxl/2pmk6jXFwx41495DEu+3zR0hyaZjfXJxpbih4C7qUmajJ31empb3SZ1Ve91wE/ib8CYQXPf2nBFuQUe8/xXkZeU1dpC5F8ifnt9aMh5IyTrkOS8ZuB1Kny8cuDl/c3rzKZ2rchuCddKgbikCp7uobM=
+	t=1724802753; cv=none; b=CIzhvpeq5z0Vk+piSIKgxiIW3IrpJNlHN5HBKPJwNlPyyMjYwUXXZaskNgMRBUkk7uReqkS5dZKs/Juq5FmcDRFm+N1pp1oKHTQpqzl6sUu4HvXcec4PP6faaLVpXiqI1kRMPjPNxZYGexWowKwGGxUHvb/mqyGEKMOkRgcu5dQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802751; c=relaxed/simple;
-	bh=uwGkZgvp8bZbvC4UF5qWhs79FvEji0oTtI6da7ld83U=;
-	h=Date:To:From:Subject:Message-Id; b=Wq31F0e3bHCIppQ9g73utWTQAE1UfmzkScqhqBbp6EX2Gfu93CPZL19BztwsVw7L8MmFjQ7TQC7yfCScOv0awnu6vVIB67BoWSvl8z4SySij2YaSUa3c8dcFMCqz4oNmvwospbkhB/YG3Nf2cctBH8cO2S1FUd+EPlt4zmUVeag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x7nVJGJ5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802753; c=relaxed/simple;
+	bh=eJ1wIphM45UwLImFIms2rOl0gBhWwUsJ0FTZ9i3DFpA=;
+	h=Date:To:From:Subject:Message-Id; b=QOmJN/vF777mvwdVUXgB4HFMbRj3h61HQ86YxgiJw6c86RVAucL0VGy3xKoqIqDBS2kWeFH7bheQE+uGZj/5VNXQ5ounPLJaadTrzoY9tVZKmUg9JMCz6SDSDMv0DiivHv0ut89n+hSTg7B41KiLcDLHT7bMszz0n6uhNmcDsa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KsCdV18Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x7nVJGJ5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25A23C32782;
-	Tue, 27 Aug 2024 23:52:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KsCdV18Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 451F2C32782;
+	Tue, 27 Aug 2024 23:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802751;
-	bh=uwGkZgvp8bZbvC4UF5qWhs79FvEji0oTtI6da7ld83U=;
+	s=korg; t=1724802753;
+	bh=eJ1wIphM45UwLImFIms2rOl0gBhWwUsJ0FTZ9i3DFpA=;
 	h=Date:To:From:Subject:From;
-	b=x7nVJGJ5NdjoFFXQjM1YEITqIeNoMCsjWVJpJUY1PizvQefQQ2VBB1di/VipXOfU4
-	 E/OvoaU5N2LRsLCmjOkhOqD5yyknriVK45sIhUq0yF5evZxHhOs/LIYnGM+39MWMn4
-	 VF+JUIBydIcwp3o+34v7DWhYYpgvUBzPF6ZlQqCA=
-Date: Tue, 27 Aug 2024 16:52:30 -0700
+	b=KsCdV18YSwGPspufZkS7935tQXCF6vnJToqmqRW7x+CARYVWNfZNfEdqjo7H643e3
+	 8UD3U15oR+gAAb3UIzaCyVObWn3DbG/1SC/P6+dEwdL92hqxZIWYLQBu52aDoUFDvr
+	 D3oriMXgSRW/XvyQAM8L3YR+xfLH4Q8up73bBhrE=
+Date: Tue, 27 Aug 2024 16:52:32 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vfio-use-the-new-follow_pfnmap-api.patch added to mm-unstable branch
-Message-Id: <20240827235231.25A23C32782@smtp.kernel.org>
+Subject: + acrn-use-the-new-follow_pfnmap-api.patch added to mm-unstable branch
+Message-Id: <20240827235233.451F2C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vfio: use the new follow_pfnmap API
+     Subject: acrn: use the new follow_pfnmap API
 has been added to the -mm mm-unstable branch.  Its filename is
-     vfio-use-the-new-follow_pfnmap-api.patch
+     acrn-use-the-new-follow_pfnmap-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vfio-use-the-new-follow_pfnmap-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acrn-use-the-new-follow_pfnmap-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: vfio: use the new follow_pfnmap API
-Date: Mon, 26 Aug 2024 16:43:47 -0400
+Subject: acrn: use the new follow_pfnmap API
+Date: Mon, 26 Aug 2024 16:43:48 -0400
 
 Use the new API that can understand huge pfn mappings.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-14-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-15-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -79,6 +78,7 @@ Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
@@ -92,50 +92,47 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/vfio_iommu_type1.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/virt/acrn/mm.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/drivers/vfio/vfio_iommu_type1.c~vfio-use-the-new-follow_pfnmap-api
-+++ a/drivers/vfio/vfio_iommu_type1.c
-@@ -513,12 +513,10 @@ static int follow_fault_pfn(struct vm_ar
- 			    unsigned long vaddr, unsigned long *pfn,
- 			    bool write_fault)
- {
--	pte_t *ptep;
--	pte_t pte;
--	spinlock_t *ptl;
-+	struct follow_pfnmap_args args = { .vma = vma, .address = vaddr };
- 	int ret;
+--- a/drivers/virt/acrn/mm.c~acrn-use-the-new-follow_pfnmap-api
++++ a/drivers/virt/acrn/mm.c
+@@ -177,9 +177,7 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 	vma = vma_lookup(current->mm, memmap->vma_base);
+ 	if (vma && ((vma->vm_flags & VM_PFNMAP) != 0)) {
+ 		unsigned long start_pfn, cur_pfn;
+-		spinlock_t *ptl;
+ 		bool writable;
+-		pte_t *ptep;
  
--	ret = follow_pte(vma, vaddr, &ptep, &ptl);
-+	ret = follow_pfnmap_start(&args);
- 	if (ret) {
- 		bool unlocked = false;
+ 		if ((memmap->vma_base + memmap->len) > vma->vm_end) {
+ 			mmap_read_unlock(current->mm);
+@@ -187,16 +185,20 @@ int acrn_vm_ram_map(struct acrn_vm *vm,
+ 		}
  
-@@ -532,19 +530,17 @@ static int follow_fault_pfn(struct vm_ar
- 		if (ret)
- 			return ret;
+ 		for (i = 0; i < nr_pages; i++) {
+-			ret = follow_pte(vma, memmap->vma_base + i * PAGE_SIZE,
+-					 &ptep, &ptl);
++			struct follow_pfnmap_args args = {
++				.vma = vma,
++				.address = memmap->vma_base + i * PAGE_SIZE,
++			};
++
++			ret = follow_pfnmap_start(&args);
+ 			if (ret)
+ 				break;
  
--		ret = follow_pte(vma, vaddr, &ptep, &ptl);
-+		ret = follow_pfnmap_start(&args);
- 		if (ret)
- 			return ret;
- 	}
+-			cur_pfn = pte_pfn(ptep_get(ptep));
++			cur_pfn = args.pfn;
+ 			if (i == 0)
+ 				start_pfn = cur_pfn;
+-			writable = !!pte_write(ptep_get(ptep));
+-			pte_unmap_unlock(ptep, ptl);
++			writable = args.writable;
++			follow_pfnmap_end(&args);
  
--	pte = ptep_get(ptep);
--
--	if (write_fault && !pte_write(pte))
-+	if (write_fault && !args.writable)
- 		ret = -EFAULT;
- 	else
--		*pfn = pte_pfn(pte);
-+		*pfn = args.pfn;
- 
--	pte_unmap_unlock(ptep, ptl);
-+	follow_pfnmap_end(&args);
- 	return ret;
- }
- 
+ 			/* Disallow write access if the PTE is not writable. */
+ 			if (!writable &&
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
