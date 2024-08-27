@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF6D81D45E3
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83C491C8FB0
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802738; cv=none; b=k1n38f5+8iUlaALCB4C7sb6rMnyh4D3GT+cwD8Tpi/powm2V8orX1yPoCYRkX406E1VHf3owdiAZ5RjJWMvr/1NcP2IoKEx24I3wR7drxpkmQJyKw6e8qA3+M9deuWUf/fiPv0Irb5XQkKtvo/Yh1li+t6Y7x55NRS5ri+fhw2g=
+	t=1724802742; cv=none; b=d+BFvL78e+Y1z4KULyt5mWJZWItjnYDWi0XDkIGwvJAdbsL308DVQLlKirmgNlSfkETN8B01s7tZh//XBidsnDeOqLJsySoBtd0uNAk7nHU9XTXG/j7tiOCd6puOazeJgom+VMt4c2r+FV6kPXFDnnREsyrr7A5NJMObIiJde+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802738; c=relaxed/simple;
-	bh=RaW3ELvTZWIl0kjb9/Za237nDLvzkIu1Vx+Vc/Nb0mY=;
-	h=Date:To:From:Subject:Message-Id; b=oO40wVY5NgwB73EN8wUUp3vtQz2MDQ0WZq6EHmF5HI9OJKYDeLlbFCedoYY/xbAlgy4kTH6IwqrugMKN6mtpduYjkoE46ON1/Ev6YPQ4vNIVPvxPXhVDwA1eIAHMNh7ZQapnkyhiQcM+euI74s5ROyxJJNf2+/EEaxNsGSwlIUI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNkOxLyO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802742; c=relaxed/simple;
+	bh=ef8/k8Sznf2J8nijeeKxk9mZ9yDBsPHziwBpJpoxOKI=;
+	h=Date:To:From:Subject:Message-Id; b=R8a2M1x/lK03I2x2z+qtB0eCUe1tpUtmaOr+XrgfbBN5+OACuVYoTDStqFqhU+vRe1/g6fjDOIu4mRoWu7KsITEfOjhqvXIxwhxpV+MFhA47DEtpp6ZBNf/n3NKVHTLIg1ViYftxBte4TSJhXBC60ekxVlHDWFnOn37dB2P2mzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mTIGl0Do; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNkOxLyO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83CCFC4FF6F;
-	Tue, 27 Aug 2024 23:52:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mTIGl0Do"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19ED5C4FF73;
+	Tue, 27 Aug 2024 23:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802738;
-	bh=RaW3ELvTZWIl0kjb9/Za237nDLvzkIu1Vx+Vc/Nb0mY=;
+	s=korg; t=1724802742;
+	bh=ef8/k8Sznf2J8nijeeKxk9mZ9yDBsPHziwBpJpoxOKI=;
 	h=Date:To:From:Subject:From;
-	b=rNkOxLyOB42oK9Eygnu+fiaMxFNVlWzE+fgnu/yi+UzPVqr2pF5IcREZndI7oBqhP
-	 53TIxnmcqRwJWlq1jdzMf0LnpZkQC5m0mQ303SUY2sCzgelQoMTc0F0Li/BiJRPC25
-	 CAB4xITxEJWHafafazs8Y50W4InW521Aa45BO6Ag=
-Date: Tue, 27 Aug 2024 16:52:18 -0700
+	b=mTIGl0DoxtSf8ufPZhOvezbqu7wVmzMmAErpev6amtfXnrYcK8JQ/xfArqGsYhLGt
+	 8vZl/bSeI/ylDhcUM/SK8PH3caMWcu6+WXRgDwrYFGEpmHIcKtIHNbrRSvNKI64Bb9
+	 IfEJYitADdNoQBumAvLfEDAqcdvxyBCLKXzUkVK8=
+Date: Tue, 27 Aug 2024 16:52:21 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-always-define-pxx_pgprot.patch added to mm-unstable branch
-Message-Id: <20240827235218.83CCFC4FF6F@smtp.kernel.org>
+Subject: + mm-new-follow_pfnmap-api.patch added to mm-unstable branch
+Message-Id: <20240827235222.19ED5C4FF73@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: always define pxx_pgprot()
+     Subject: mm: new follow_pfnmap API
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-always-define-pxx_pgprot.patch
+     mm-new-follow_pfnmap-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-always-define-pxx_pgprot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-new-follow_pfnmap-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: always define pxx_pgprot()
-Date: Mon, 26 Aug 2024 16:43:42 -0400
+Subject: mm: new follow_pfnmap API
+Date: Mon, 26 Aug 2024 16:43:43 -0400
 
-There're:
+Introduce a pair of APIs to follow pfn mappings to get entry information. 
+It's very similar to what follow_pte() does before, but different in that
+it recognizes huge pfn mappings.
 
-  - 8 archs (arc, arm64, include, mips, powerpc, s390, sh, x86) that
-  support pte_pgprot().
-
-  - 2 archs (x86, sparc) that support pmd_pgprot().
-
-  - 1 arch (x86) that support pud_pgprot().
-
-Always define them to be used in generic code, and then we don't need to
-fiddle with "#ifdef"s when doing so.
-
-Link: https://lkml.kernel.org/r/20240826204353.2228736-9-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-10-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -89,6 +80,7 @@ Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
@@ -102,74 +94,209 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h    |    1 +
- arch/powerpc/include/asm/pgtable.h  |    1 +
- arch/s390/include/asm/pgtable.h     |    1 +
- arch/sparc/include/asm/pgtable_64.h |    1 +
- include/linux/pgtable.h             |   12 ++++++++++++
- 5 files changed, 16 insertions(+)
+ include/linux/mm.h |   31 ++++++++
+ mm/memory.c        |  150 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 181 insertions(+)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-always-define-pxx_pgprot
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -384,6 +384,7 @@ static inline void __sync_cache_and_tags
- /*
-  * Select all bits except the pfn
-  */
-+#define pte_pgprot pte_pgprot
- static inline pgprot_t pte_pgprot(pte_t pte)
- {
- 	unsigned long pfn = pte_pfn(pte);
---- a/arch/powerpc/include/asm/pgtable.h~mm-always-define-pxx_pgprot
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -65,6 +65,7 @@ static inline unsigned long pte_pfn(pte_
- /*
-  * Select all bits except the pfn
-  */
-+#define pte_pgprot pte_pgprot
- static inline pgprot_t pte_pgprot(pte_t pte)
- {
- 	unsigned long pte_flags;
---- a/arch/s390/include/asm/pgtable.h~mm-always-define-pxx_pgprot
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -955,6 +955,7 @@ static inline int pte_unused(pte_t pte)
-  * young/old accounting is not supported, i.e _PAGE_PROTECT and _PAGE_INVALID
-  * must not be set.
-  */
-+#define pte_pgprot pte_pgprot
- static inline pgprot_t pte_pgprot(pte_t pte)
- {
- 	unsigned long pte_flags = pte_val(pte) & _PAGE_CHG_MASK;
---- a/arch/sparc/include/asm/pgtable_64.h~mm-always-define-pxx_pgprot
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -783,6 +783,7 @@ static inline pmd_t pmd_mkwrite_novma(pm
- 	return __pmd(pte_val(pte));
+--- a/include/linux/mm.h~mm-new-follow_pfnmap-api
++++ a/include/linux/mm.h
+@@ -2373,6 +2373,37 @@ int follow_pte(struct vm_area_struct *vm
+ int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
+ 			void *buf, int len, int write);
+ 
++struct follow_pfnmap_args {
++	/**
++	 * Inputs:
++	 * @vma: Pointer to @vm_area_struct struct
++	 * @address: the virtual address to walk
++	 */
++	struct vm_area_struct *vma;
++	unsigned long address;
++	/**
++	 * Internals:
++	 *
++	 * The caller shouldn't touch any of these.
++	 */
++	spinlock_t *lock;
++	pte_t *ptep;
++	/**
++	 * Outputs:
++	 *
++	 * @pfn: the PFN of the address
++	 * @pgprot: the pgprot_t of the mapping
++	 * @writable: whether the mapping is writable
++	 * @special: whether the mapping is a special mapping (real PFN maps)
++	 */
++	unsigned long pfn;
++	pgprot_t pgprot;
++	bool writable;
++	bool special;
++};
++int follow_pfnmap_start(struct follow_pfnmap_args *args);
++void follow_pfnmap_end(struct follow_pfnmap_args *args);
++
+ extern void truncate_pagecache(struct inode *inode, loff_t new);
+ extern void truncate_setsize(struct inode *inode, loff_t newsize);
+ void pagecache_isize_extended(struct inode *inode, loff_t from, loff_t to);
+--- a/mm/memory.c~mm-new-follow_pfnmap-api
++++ a/mm/memory.c
+@@ -6369,6 +6369,156 @@ out:
  }
+ EXPORT_SYMBOL_GPL(follow_pte);
  
-+#define pmd_pgprot pmd_pgprot
- static inline pgprot_t pmd_pgprot(pmd_t entry)
- {
- 	unsigned long val = pmd_val(entry);
---- a/include/linux/pgtable.h~mm-always-define-pxx_pgprot
-+++ a/include/linux/pgtable.h
-@@ -1956,6 +1956,18 @@ typedef unsigned int pgtbl_mod_mask;
- #define MAX_PTRS_PER_P4D PTRS_PER_P4D
- #endif
- 
-+#ifndef pte_pgprot
-+#define pte_pgprot(x) ((pgprot_t) {0})
-+#endif
++static inline void pfnmap_args_setup(struct follow_pfnmap_args *args,
++				     spinlock_t *lock, pte_t *ptep,
++				     pgprot_t pgprot, unsigned long pfn_base,
++				     unsigned long addr_mask, bool writable,
++				     bool special)
++{
++	args->lock = lock;
++	args->ptep = ptep;
++	args->pfn = pfn_base + ((args->address & ~addr_mask) >> PAGE_SHIFT);
++	args->pgprot = pgprot;
++	args->writable = writable;
++	args->special = special;
++}
 +
-+#ifndef pmd_pgprot
-+#define pmd_pgprot(x) ((pgprot_t) {0})
-+#endif
++static inline void pfnmap_lockdep_assert(struct vm_area_struct *vma)
++{
++#ifdef CONFIG_LOCKDEP
++	struct address_space *mapping = vma->vm_file->f_mapping;
 +
-+#ifndef pud_pgprot
-+#define pud_pgprot(x) ((pgprot_t) {0})
++	if (mapping)
++		lockdep_assert(lockdep_is_held(&vma->vm_file->f_mapping->i_mmap_rwsem) ||
++			       lockdep_is_held(&vma->vm_mm->mmap_lock));
++	else
++		lockdep_assert(lockdep_is_held(&vma->vm_mm->mmap_lock));
 +#endif
++}
 +
- /* description of effects of mapping type and prot in current implementation.
-  * this is due to the limited x86 page protection hardware.  The expected
-  * behavior is in parens:
++/**
++ * follow_pfnmap_start() - Look up a pfn mapping at a user virtual address
++ * @args: Pointer to struct @follow_pfnmap_args
++ *
++ * The caller needs to setup args->vma and args->address to point to the
++ * virtual address as the target of such lookup.  On a successful return,
++ * the results will be put into other output fields.
++ *
++ * After the caller finished using the fields, the caller must invoke
++ * another follow_pfnmap_end() to proper releases the locks and resources
++ * of such look up request.
++ *
++ * During the start() and end() calls, the results in @args will be valid
++ * as proper locks will be held.  After the end() is called, all the fields
++ * in @follow_pfnmap_args will be invalid to be further accessed.  Further
++ * use of such information after end() may require proper synchronizations
++ * by the caller with page table updates, otherwise it can create a
++ * security bug.
++ *
++ * If the PTE maps a refcounted page, callers are responsible to protect
++ * against invalidation with MMU notifiers; otherwise access to the PFN at
++ * a later point in time can trigger use-after-free.
++ *
++ * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
++ * should be taken for read, and the mmap semaphore cannot be released
++ * before the end() is invoked.
++ *
++ * This function must not be used to modify PTE content.
++ *
++ * Return: zero on success, negative otherwise.
++ */
++int follow_pfnmap_start(struct follow_pfnmap_args *args)
++{
++	struct vm_area_struct *vma = args->vma;
++	unsigned long address = args->address;
++	struct mm_struct *mm = vma->vm_mm;
++	spinlock_t *lock;
++	pgd_t *pgdp;
++	p4d_t *p4dp, p4d;
++	pud_t *pudp, pud;
++	pmd_t *pmdp, pmd;
++	pte_t *ptep, pte;
++
++	pfnmap_lockdep_assert(vma);
++
++	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
++		goto out;
++
++	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++		goto out;
++retry:
++	pgdp = pgd_offset(mm, address);
++	if (pgd_none(*pgdp) || unlikely(pgd_bad(*pgdp)))
++		goto out;
++
++	p4dp = p4d_offset(pgdp, address);
++	p4d = READ_ONCE(*p4dp);
++	if (p4d_none(p4d) || unlikely(p4d_bad(p4d)))
++		goto out;
++
++	pudp = pud_offset(p4dp, address);
++	pud = READ_ONCE(*pudp);
++	if (pud_none(pud))
++		goto out;
++	if (pud_leaf(pud)) {
++		lock = pud_lock(mm, pudp);
++		if (!unlikely(pud_leaf(pud))) {
++			spin_unlock(lock);
++			goto retry;
++		}
++		pfnmap_args_setup(args, lock, NULL, pud_pgprot(pud),
++				  pud_pfn(pud), PUD_MASK, pud_write(pud),
++				  pud_special(pud));
++		return 0;
++	}
++
++	pmdp = pmd_offset(pudp, address);
++	pmd = pmdp_get_lockless(pmdp);
++	if (pmd_leaf(pmd)) {
++		lock = pmd_lock(mm, pmdp);
++		if (!unlikely(pmd_leaf(pmd))) {
++			spin_unlock(lock);
++			goto retry;
++		}
++		pfnmap_args_setup(args, lock, NULL, pmd_pgprot(pmd),
++				  pmd_pfn(pmd), PMD_MASK, pmd_write(pmd),
++				  pmd_special(pmd));
++		return 0;
++	}
++
++	ptep = pte_offset_map_lock(mm, pmdp, address, &lock);
++	if (!ptep)
++		goto out;
++	pte = ptep_get(ptep);
++	if (!pte_present(pte))
++		goto unlock;
++	pfnmap_args_setup(args, lock, ptep, pte_pgprot(pte),
++			  pte_pfn(pte), PAGE_MASK, pte_write(pte),
++			  pte_special(pte));
++	return 0;
++unlock:
++	pte_unmap_unlock(ptep, lock);
++out:
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(follow_pfnmap_start);
++
++/**
++ * follow_pfnmap_end(): End a follow_pfnmap_start() process
++ * @args: Pointer to struct @follow_pfnmap_args
++ *
++ * Must be used in pair of follow_pfnmap_start().  See the start() function
++ * above for more information.
++ */
++void follow_pfnmap_end(struct follow_pfnmap_args *args)
++{
++	if (args->lock)
++		spin_unlock(args->lock);
++	if (args->ptep)
++		pte_unmap(args->ptep);
++}
++EXPORT_SYMBOL_GPL(follow_pfnmap_end);
++
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+ /**
+  * generic_access_phys - generic implementation for iomem mmap access
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
