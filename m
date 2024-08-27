@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2064B19A281
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:33:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78611D4611
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:42:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724801602; cv=none; b=GOlPEG3ERPmC4nRYm3Rul6Lf8w8ylTfskh50wgytcI7Q5iEpH5DmuQky4/VraGMt6JaJg/bs6L2VfSo80RMvLF3r7EPos+FiiA53cECM0Alhu9lYvw1aXfhs4ehJhty1Kxxslqiype10eydCg6TWt8INKptfqmAUh//bwsJtD1c=
+	t=1724802154; cv=none; b=uLa4oz8LjZL27I1JoxXbGr43kZ0opLVFAx+homgnmmnAA7b79jYWSMws7fQLUmO50eND+9d4tubFrjb47K45p9t0vXBghKBNXPEfgzsxNMZc8CRjc3FxUxk8Uy8KqNcWT2vfgisJmChAmhIPQq5K0Rodhhbz/4L3XRATdc8UwQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724801602; c=relaxed/simple;
-	bh=0W9ZR4gsoHHI30cYuAHkFmzLx8Nlqjn24XowZerjek4=;
-	h=Date:To:From:Subject:Message-Id; b=D77H9qdmYks7EMmtE1iW+Xpke7TdUhT9+1iPA8K+e9re74sQ1AVeandCmJZQ8iAeWRFgHJXkPjnNkbSZGqxJyTKqqJKCvCkjHjlk1iKcWDoRl7lv7PmjCJuYSkhT+odosbmroQdyS0lXB9oAyOzV7VK6DoNA6Yaen5dXALUJpe4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yB4MQ/XH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802154; c=relaxed/simple;
+	bh=i3AnuNkjyKQXo0ThZNJQGddBUW3Ykd+yXQCkD8HBpGg=;
+	h=Date:To:From:Subject:Message-Id; b=DQDrdPy4gc4Eng1r7QqjoX/A1NciyNo6Uk+DjfrPt0W/MLMT+R0e/5NJxZnaM0JgG68hjY3/4ihoxO0We0ltJ6TOCHUfCd8M4fmp4k7ez8kUwS+sH3DC5omqMwOy9efDUH/vLGpr0HlkwyIpv0WwuTkkRTmN1mL6kh1EKAeeIJM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AkXbdQGP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yB4MQ/XH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4D27C4FF7C;
-	Tue, 27 Aug 2024 23:33:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AkXbdQGP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D447C32786;
+	Tue, 27 Aug 2024 23:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724801602;
-	bh=0W9ZR4gsoHHI30cYuAHkFmzLx8Nlqjn24XowZerjek4=;
+	s=korg; t=1724802154;
+	bh=i3AnuNkjyKQXo0ThZNJQGddBUW3Ykd+yXQCkD8HBpGg=;
 	h=Date:To:From:Subject:From;
-	b=yB4MQ/XHnFh0utlXTlYHhh+vEh3iKMeNLqme8z+DaIxNUFQZauDCoK4JhBxxIU3s8
-	 eb97QA+yYR3q6YfqWbE846tetkS7fVAKJWEcxlVoyZBdsgp3Vc8zZ3lC7z4oiOUT6c
-	 y7cHoBEfgy7XjmMvpLCVcl41QE3HWIkzl6CBnmYo=
-Date: Tue, 27 Aug 2024 16:33:21 -0700
-To: mm-commits@vger.kernel.org,davidgow@google.com,brendanhiggins@google.com,sj@kernel.org,akpm@linux-foundation.org
+	b=AkXbdQGPtLTNCc9D51Eq/ponHwN67bZuzkzE6Hj5H+0e3nHjkmEMYZ3YjHjnnKL8E
+	 OBjmprZhW2VSe85mI+9YVsv2uHvqzWDKSP5lFBu7VShsEPdqKIc4353Z95v1/QdITe
+	 36wDedQBhaKT/ztsLlsSWXke7tEUmzlJlD9YklSI=
+Date: Tue, 27 Aug 2024 16:42:34 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,trondmy@kernel.org,kees@kernel.org,gregkh@linuxfoundation.org,anna@kernel.org,andy@kernel.org,lihongbo22@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch added to mm-unstable branch
-Message-Id: <20240827233321.E4D27C4FF7C@smtp.kernel.org>
+Subject: + lib-string_choices-add-str_true_false-str_false_true-helper.patch added to mm-nonmm-unstable branch
+Message-Id: <20240827234234.8D447C32786@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests: add .kunitconfig file for DAMON kunit tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch
+     Subject: lib/string_choices: add str_true_false()/str_false_true() helper
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-string_choices-add-str_true_false-str_false_true-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-string_choices-add-str_true_false-str_false_true-helper.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,62 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests: add .kunitconfig file for DAMON kunit tests
-Date: Mon, 26 Aug 2024 20:03:36 -0700
+From: Hongbo Li <lihongbo22@huawei.com>
+Subject: lib/string_choices: add str_true_false()/str_false_true() helper
+Date: Tue, 27 Aug 2024 10:45:15 +0800
 
-'--kunitconfig' option of 'kunit.py run' supports '.kunitconfig' file name
-convention.  Add the file for DAMON kunit tests for more convenient kunit
-run.
+Add str_true_false()/str_false_true() helper to retur a "true" or "false"
+string literal.  We found more than 10 cases currently exist in the tree. 
+So these helpers can be used for these cases.
 
-Link: https://lkml.kernel.org/r/20240827030336.7930-10-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
+
+This patch (of 3):
+
+Add str_true_false()/str_false_true() helper to return "true" or "false"
+string literal.
+
+Link: https://lkml.kernel.org/r/20240827024517.914100-1-lihongbo22@huawei.com
+Link: https://lkml.kernel.org/r/20240827024517.914100-2-lihongbo22@huawei.com
+Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+Cc: Andy Shevchenko <andy@kernel.org>
+Cc: Anna Schumaker <anna@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Trond Myklebust <trondmy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/.kunitconfig |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/linux/string_choices.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/mm/damon/tests/.kunitconfig a/mm/damon/tests/.kunitconfig
-new file mode 100644
---- /dev/null
-+++ a/mm/damon/tests/.kunitconfig
-@@ -0,0 +1,22 @@
-+# for DAMON core
-+CONFIG_KUNIT=y
-+CONFIG_DAMON=y
-+CONFIG_DAMON_KUNIT_TEST=y
+--- a/include/linux/string_choices.h~lib-string_choices-add-str_true_false-str_false_true-helper
++++ a/include/linux/string_choices.h
+@@ -42,6 +42,12 @@ static inline const char *str_yes_no(boo
+ 	return v ? "yes" : "no";
+ }
+ 
++static inline const char *str_true_false(bool v)
++{
++	return v ? "true" : "false";
++}
++#define str_false_true(v)		str_true_false(!(v))
 +
-+# for DAMON vaddr ops
-+CONFIG_MMU=y
-+CONFIG_PAGE_IDLE_FLAG=y
-+CONFIG_DAMON_VADDR=y
-+CONFIG_DAMON_VADDR_KUNIT_TEST=y
-+
-+# for DAMON sysfs interface
-+CONFIG_SYSFS=y
-+CONFIG_DAMON_SYSFS=y
-+CONFIG_DAMON_SYSFS_KUNIT_TEST=y
-+
-+# for DAMON debugfs interface
-+CONFIG_DEBUG_FS=y
-+CONFIG_DAMON_PADDR=y
-+CONFIG_DAMON_DBGFS_DEPRECATED=y
-+CONFIG_DAMON_DBGFS=y
-+CONFIG_DAMON_DBGFS_KUNIT_TEST=y
+ /**
+  * str_plural - Return the simple pluralization based on English counts
+  * @num: Number used for deciding pluralization
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lihongbo22@huawei.com are
 
-selftests-damon-add-access_memory_even-to-gitignore.patch
-selftests-damon-cleanup-__pycache__-with-make-clean.patch
-selftests-damon-add-execute-permissions-to-test-scripts.patch
-mm-damon-core-test-test-only-vaddr-case-on-ops-registration-test.patch
-mm-damon-core-test-fix-damon_test_ops_registration-for-damon_vaddr-unset-case.patch
-mm-damon-dbgfs-test-skip-dbgfs_set_targets-test-if-paddr-is-not-registered.patch
-mm-damon-dbgfs-test-skip-dbgfs_set_init_regions-test-if-paddr-is-not-registered.patch
-mm-damon-move-kunit-tests-to-tests-subdirectory-with-_kunit-suffix.patch
-mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch
+lib-string_choices-add-str_true_false-str_false_true-helper.patch
+mm-make-use-of-str_true_false-helper.patch
+nfs-make-use-of-str_false_true-helper.patch
 
