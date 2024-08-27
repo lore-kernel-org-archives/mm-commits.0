@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418AF77117
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77CA51C8FB0
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802732; cv=none; b=f7n+KFl32IfN0ouGCJ6sHlhsDxB61Uw7jMNwJgUTEL4DpNKJEKKHnVMuqXLYF4eGUvh8X0xLuwYPulvUov4WA/wt5Rwf0dSps0SsHqaV1f1tDhMhMuiicitLVDExjPOTEDqQwTDnKqz6Mqmb2ywpExG8npr+MScRqn6BsNQ3bDY=
+	t=1724802734; cv=none; b=HgO/KL3R80f0QTbQK8z1W/kJwmY67WA+u8EOj/ZsGK0OIVlZCptpDs30HDRzx+TBKWrrMzup58o5zDTyV5h6peWD2BBaU5ciVJxXpiCowoHw4vpCK0LM+EjvhCTEzJC0DDgGTSgkJ+edzW3VJgzP3TwYjDKzy44BcBJ8oEzIBmw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802732; c=relaxed/simple;
-	bh=/NjqUlDdMIF0cY+rppY9oOtisuNVwcnlUeJNBWSjkao=;
-	h=Date:To:From:Subject:Message-Id; b=qIfFQus0wy73FUz56ciConNCGK7sQYDMQRJm7IlnYsvzJR/TgNz76jpaGUTdlF8q9RUECypVM8kA5bzaPFBlBpoKdku6Kj4HOKUUejUMhK4yHPsZjwEt1qtMBI68jHKu5xGUXxea2i8/4EAXRyIDmRQEcGL2qzxPEnnLsxF/Jnk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uaKB8RrI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802734; c=relaxed/simple;
+	bh=fu/ITFm5Qk8ddgNDE65KQVbRT6x7C51fVpEBU3m+9UQ=;
+	h=Date:To:From:Subject:Message-Id; b=UjtxmgaYcn5FhSUPpymlALfKTJ3Dn9jKhrU1Gf9VWwO0sVNIWxKVkjvygcznoGHrNaYwzl0IXWICviG0MGw6VT3PaJ8WSL1W0Sdzh9FOoPtbYFKefCb84FqWMI3/zUPybesK0kkfPTW+jZATvTW2ONA4I27GHMgEodsvITlIv0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2pYz6HaE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uaKB8RrI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8D9C4FF73;
-	Tue, 27 Aug 2024 23:52:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2pYz6HaE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3516FC4FF74;
+	Tue, 27 Aug 2024 23:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802732;
-	bh=/NjqUlDdMIF0cY+rppY9oOtisuNVwcnlUeJNBWSjkao=;
+	s=korg; t=1724802734;
+	bh=fu/ITFm5Qk8ddgNDE65KQVbRT6x7C51fVpEBU3m+9UQ=;
 	h=Date:To:From:Subject:From;
-	b=uaKB8RrIe94X7WGWsomYD9U/PAxM1VTUdfinhjx2ydVwBXfGiwMQq0DbcOquqKCm2
-	 GICJ8/M2vUGfixtkLXQTIFSIC4hEgJQlHVKcqNk+I2X+4NAD5/11fN/wMKk2H9agps
-	 S2Wz740eG6W/atRe48i/pa5mgS09M5ibsXajovis=
-Date: Tue, 27 Aug 2024 16:52:11 -0700
+	b=2pYz6HaEc0uF+hCLgnFJMwdsBVX3qMQVbGExNXWRkfc/0ylFoxlfQuANZlhEXuR4V
+	 SBcmaXcYO6razT0sWVLUMq807U5WX8MpwU1Lm6aXyMdGuqjLQYUGhpQn/gdA2OyNzA
+	 oYKEQQRoVwXG1kI/A3/E9R8wcPYtCH9fd7xkY2B4=
+Date: Tue, 27 Aug 2024 16:52:13 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch added to mm-unstable branch
-Message-Id: <20240827235212.0D8D9C4FF73@smtp.kernel.org>
+Subject: + mm-pagewalk-check-pfnmap-for-folio_walk_start.patch added to mm-unstable branch
+Message-Id: <20240827235214.3516FC4FF74@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: detect huge pfnmap entries in gup-fast
+     Subject: mm/pagewalk: check pfnmap for folio_walk_start()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
+     mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: detect huge pfnmap entries in gup-fast
-Date: Mon, 26 Aug 2024 16:43:39 -0400
+Subject: mm/pagewalk: check pfnmap for folio_walk_start()
+Date: Mon, 26 Aug 2024 16:43:40 -0400
 
-Since gup-fast doesn't have the vma reference, teach it to detect such huge
-pfnmaps by checking the special bit for pmd/pud too, just like ptes.
+Teach folio_walk_start() to recognize special pmd/pud mappings, and fail
+them properly as it means there's no folio backing them.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-6-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-7-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -80,6 +79,7 @@ Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
@@ -93,31 +93,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/pagewalk.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-detect-huge-pfnmap-entries-in-gup-fast
-+++ a/mm/gup.c
-@@ -3038,6 +3038,9 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
+--- a/mm/pagewalk.c~mm-pagewalk-check-pfnmap-for-folio_walk_start
++++ a/mm/pagewalk.c
+@@ -753,7 +753,7 @@ struct folio *folio_walk_start(struct fo
+ 		fw->pudp = pudp;
+ 		fw->pud = pud;
  
-+	if (pmd_special(orig))
-+		return 0;
-+
- 	if (pmd_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
-@@ -3082,6 +3085,9 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
+-		if (!pud_present(pud) || pud_devmap(pud)) {
++		if (!pud_present(pud) || pud_devmap(pud) || pud_special(pud)) {
+ 			spin_unlock(ptl);
+ 			goto not_found;
+ 		} else if (!pud_leaf(pud)) {
+@@ -783,7 +783,7 @@ pmd_table:
+ 		fw->pmdp = pmdp;
+ 		fw->pmd = pmd;
  
-+	if (pud_special(orig))
-+		return 0;
-+
- 	if (pud_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
+-		if (pmd_none(pmd)) {
++		if (pmd_none(pmd) || pmd_special(pmd)) {
+ 			spin_unlock(ptl);
+ 			goto not_found;
+ 		} else if (!pmd_leaf(pmd)) {
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
