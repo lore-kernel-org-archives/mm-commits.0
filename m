@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3661B77117
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418AF77117
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802731; cv=none; b=SndDAeLZFk9L2RYN/BsTu6TDVl59K5L6FAV6/z0spINeH6OZrN32YWBV2S1eENKYVqIfftGNCGSoi29+zr9urZiNYdWH8XR36IurCXoLUZGfV4ScNkiS6zwvOTfy+wZ/tdKVXZeG9SNe4bH7OrHccOg7cOfw+0etjNET0gZVp64=
+	t=1724802732; cv=none; b=f7n+KFl32IfN0ouGCJ6sHlhsDxB61Uw7jMNwJgUTEL4DpNKJEKKHnVMuqXLYF4eGUvh8X0xLuwYPulvUov4WA/wt5Rwf0dSps0SsHqaV1f1tDhMhMuiicitLVDExjPOTEDqQwTDnKqz6Mqmb2ywpExG8npr+MScRqn6BsNQ3bDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802731; c=relaxed/simple;
-	bh=xcaXNvzloVpBRPNCCjxbQJSk3iXrVVNXONHoBGK0fjg=;
-	h=Date:To:From:Subject:Message-Id; b=f+OH/oZ3wdyF/C2l0Gkzg4odgke32cfUqk7PpnFpOAucl2eJFd6nSvAJALAW9c9mtMr02B3fOUT1IGTvtAQARatLCpMDUW4KxMKWoa66tN1cRqXUlA+yTiOkW1f3fuPBRdYeRxW2mKiP2M/nsnvcgM2Yfnl5bRRJYyCwJJCLK9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y9F82UID; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802732; c=relaxed/simple;
+	bh=/NjqUlDdMIF0cY+rppY9oOtisuNVwcnlUeJNBWSjkao=;
+	h=Date:To:From:Subject:Message-Id; b=qIfFQus0wy73FUz56ciConNCGK7sQYDMQRJm7IlnYsvzJR/TgNz76jpaGUTdlF8q9RUECypVM8kA5bzaPFBlBpoKdku6Kj4HOKUUejUMhK4yHPsZjwEt1qtMBI68jHKu5xGUXxea2i8/4EAXRyIDmRQEcGL2qzxPEnnLsxF/Jnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uaKB8RrI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y9F82UID"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F592C4FF6F;
-	Tue, 27 Aug 2024 23:52:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uaKB8RrI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8D9C4FF73;
+	Tue, 27 Aug 2024 23:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802729;
-	bh=xcaXNvzloVpBRPNCCjxbQJSk3iXrVVNXONHoBGK0fjg=;
+	s=korg; t=1724802732;
+	bh=/NjqUlDdMIF0cY+rppY9oOtisuNVwcnlUeJNBWSjkao=;
 	h=Date:To:From:Subject:From;
-	b=Y9F82UIDyGQayOuIVDKjVXSGTg88l5nhY0g9WzvfTo+ic0N8HSHO9xiil3WlgYgfS
-	 sB7d7WHJ3qG5ThCDssrvR9qNpIS2dovtrEysvUye9DV85zt97u6Q3/ojPCt2RW+ULM
-	 ImwiGDX+yjEZyirdvFcnSlIWHMK+GwsjrgLiKBU4=
-Date: Tue, 27 Aug 2024 16:52:09 -0700
+	b=uaKB8RrIe94X7WGWsomYD9U/PAxM1VTUdfinhjx2ydVwBXfGiwMQq0DbcOquqKCm2
+	 GICJ8/M2vUGfixtkLXQTIFSIC4hEgJQlHVKcqNk+I2X+4NAD5/11fN/wMKk2H9agps
+	 S2Wz740eG6W/atRe48i/pa5mgS09M5ibsXajovis=
+Date: Tue, 27 Aug 2024 16:52:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-thp-orders-for-pfnmaps.patch added to mm-unstable branch
-Message-Id: <20240827235209.8F592C4FF6F@smtp.kernel.org>
+Subject: + mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch added to mm-unstable branch
+Message-Id: <20240827235212.0D8D9C4FF73@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: allow THP orders for PFNMAPs
+     Subject: mm/gup: detect huge pfnmap entries in gup-fast
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-thp-orders-for-pfnmaps.patch
+     mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-thp-orders-for-pfnmaps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: allow THP orders for PFNMAPs
-Date: Mon, 26 Aug 2024 16:43:38 -0400
+Subject: mm/gup: detect huge pfnmap entries in gup-fast
+Date: Mon, 26 Aug 2024 16:43:39 -0400
 
-This enables PFNMAPs to be mapped at either pmd/pud layers.  Generalize the
-dax case into vma_is_special_huge() so as to cover both.  Meanwhile, rename
-the macro to THP_ORDERS_ALL_SPECIAL.
+Since gup-fast doesn't have the vma reference, teach it to detect such huge
+pfnmaps by checking the special bit for pmd/pud too, just like ptes.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-5-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-6-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -81,59 +76,48 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sean Christopherson <seanjc@google.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    6 +++---
- mm/huge_memory.c        |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/gup.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-allow-thp-orders-for-pfnmaps
-+++ a/include/linux/huge_mm.h
-@@ -76,9 +76,9 @@ extern struct kobj_attribute thpsize_shm
- /*
-  * Mask of all large folio orders supported for file THP. Folios in a DAX
-  * file is never split and the MAX_PAGECACHE_ORDER limit does not apply to
-- * it.
-+ * it.  Same to PFNMAPs where there's neither page* nor pagecache.
-  */
--#define THP_ORDERS_ALL_FILE_DAX		\
-+#define THP_ORDERS_ALL_SPECIAL		\
- 	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
- #define THP_ORDERS_ALL_FILE_DEFAULT	\
- 	((BIT(MAX_PAGECACHE_ORDER + 1) - 1) & ~BIT(0))
-@@ -87,7 +87,7 @@ extern struct kobj_attribute thpsize_shm
-  * Mask of all large folio orders supported for THP.
-  */
- #define THP_ORDERS_ALL	\
--	(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE_DAX | THP_ORDERS_ALL_FILE_DEFAULT)
-+	(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_SPECIAL | THP_ORDERS_ALL_FILE_DEFAULT)
+--- a/mm/gup.c~mm-gup-detect-huge-pfnmap-entries-in-gup-fast
++++ a/mm/gup.c
+@@ -3038,6 +3038,9 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+ 	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
+ 		return 0;
  
- #define TVA_SMAPS		(1 << 0)	/* Will be used for procfs */
- #define TVA_IN_PF		(1 << 1)	/* Page fault handler */
---- a/mm/huge_memory.c~mm-allow-thp-orders-for-pfnmaps
-+++ a/mm/huge_memory.c
-@@ -96,8 +96,8 @@ unsigned long __thp_vma_allowable_orders
- 	/* Check the intersection of requested and supported orders. */
- 	if (vma_is_anonymous(vma))
- 		supported_orders = THP_ORDERS_ALL_ANON;
--	else if (vma_is_dax(vma))
--		supported_orders = THP_ORDERS_ALL_FILE_DAX;
-+	else if (vma_is_special_huge(vma))
-+		supported_orders = THP_ORDERS_ALL_SPECIAL;
- 	else
- 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
++	if (pmd_special(orig))
++		return 0;
++
+ 	if (pmd_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+@@ -3082,6 +3085,9 @@ static int gup_fast_pud_leaf(pud_t orig,
+ 	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
+ 		return 0;
  
++	if (pud_special(orig))
++		return 0;
++
+ 	if (pud_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
