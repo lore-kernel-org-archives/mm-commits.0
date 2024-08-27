@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E71D47AD
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF6D81D45E3
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802736; cv=none; b=fMSm+ofeotf8n5unVPR/Cha0zmR4iEYRjKnNerBcL0dshwLYP6NwB7jM8cqMKzeZow/j+ilEdI1eiyfjjlEtLkDQKpqHbB6Lr5YRjR/sJ2OSpnaUZ6CKoLzK1LRTMZftzziOP59K0Ku/yYMKAXQc5YI91RVD49Mg1fawMMiDPOQ=
+	t=1724802738; cv=none; b=k1n38f5+8iUlaALCB4C7sb6rMnyh4D3GT+cwD8Tpi/powm2V8orX1yPoCYRkX406E1VHf3owdiAZ5RjJWMvr/1NcP2IoKEx24I3wR7drxpkmQJyKw6e8qA3+M9deuWUf/fiPv0Irb5XQkKtvo/Yh1li+t6Y7x55NRS5ri+fhw2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802736; c=relaxed/simple;
-	bh=bmpY7V6RzZyOT/YBUVsYtr8O/HQIvXD+NHAffq1k+Fk=;
-	h=Date:To:From:Subject:Message-Id; b=MsI2+rnrkvI5lILLYm5k4FEaNQKOMCBXzb5+kv/EZAytlWNjRiLobsFh4vzBZHFvR6GolKr5aqI0kcNUAmswBtTvFlKiFZBYbcu69tyZemNCpdEs86AUbaE0gCYu2CG1pwE60cSOun5XbctUfGw4hd/IdGcZA3H25VKCTghHPDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjlSbfoS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802738; c=relaxed/simple;
+	bh=RaW3ELvTZWIl0kjb9/Za237nDLvzkIu1Vx+Vc/Nb0mY=;
+	h=Date:To:From:Subject:Message-Id; b=oO40wVY5NgwB73EN8wUUp3vtQz2MDQ0WZq6EHmF5HI9OJKYDeLlbFCedoYY/xbAlgy4kTH6IwqrugMKN6mtpduYjkoE46ON1/Ev6YPQ4vNIVPvxPXhVDwA1eIAHMNh7ZQapnkyhiQcM+euI74s5ROyxJJNf2+/EEaxNsGSwlIUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNkOxLyO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjlSbfoS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6AEC4FF73;
-	Tue, 27 Aug 2024 23:52:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNkOxLyO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83CCFC4FF6F;
+	Tue, 27 Aug 2024 23:52:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802736;
-	bh=bmpY7V6RzZyOT/YBUVsYtr8O/HQIvXD+NHAffq1k+Fk=;
+	s=korg; t=1724802738;
+	bh=RaW3ELvTZWIl0kjb9/Za237nDLvzkIu1Vx+Vc/Nb0mY=;
 	h=Date:To:From:Subject:From;
-	b=DjlSbfoSo4OOlZvk5QxOyEHAo+zGh+C+wyb0nrj9RfapkYY+6V9o+IiMpk16vlnG5
-	 c+kD5jGeIgwAmBPEHRFcgNDBD7OdFjvYXJGVv0vOX1IftgNcihS5IrAC5GqqKBORyW
-	 +VzhTekCR4larWWfLLzJQ/J8FNZqWyVmMgdvvkTM=
-Date: Tue, 27 Aug 2024 16:52:15 -0700
+	b=rNkOxLyOB42oK9Eygnu+fiaMxFNVlWzE+fgnu/yi+UzPVqr2pF5IcREZndI7oBqhP
+	 53TIxnmcqRwJWlq1jdzMf0LnpZkQC5m0mQ303SUY2sCzgelQoMTc0F0Li/BiJRPC25
+	 CAB4xITxEJWHafafazs8Y50W4InW521Aa45BO6Ag=
+Date: Tue, 27 Aug 2024 16:52:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fork-accept-huge-pfnmap-entries.patch added to mm-unstable branch
-Message-Id: <20240827235216.4C6AEC4FF73@smtp.kernel.org>
+Subject: + mm-always-define-pxx_pgprot.patch added to mm-unstable branch
+Message-Id: <20240827235218.83CCFC4FF6F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/fork: accept huge pfnmap entries
+     Subject: mm: always define pxx_pgprot()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fork-accept-huge-pfnmap-entries.patch
+     mm-always-define-pxx_pgprot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fork-accept-huge-pfnmap-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-always-define-pxx_pgprot.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/fork: accept huge pfnmap entries
-Date: Mon, 26 Aug 2024 16:43:41 -0400
+Subject: mm: always define pxx_pgprot()
+Date: Mon, 26 Aug 2024 16:43:42 -0400
 
-Teach the fork code to properly copy pfnmaps for pmd/pud levels.  Pud is
-much easier, the write bit needs to be persisted though for writable and
-shared pud mappings like PFNMAP ones, otherwise a follow up write in
-either parent or child process will trigger a write fault.
+There're:
 
-Do the same for pmd level.
+  - 8 archs (arc, arm64, include, mips, powerpc, s390, sh, x86) that
+  support pte_pgprot().
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-8-peterx@redhat.com
+  - 2 archs (x86, sparc) that support pmd_pgprot().
+
+  - 1 arch (x86) that support pud_pgprot().
+
+Always define them to be used in generic code, and then we don't need to
+fiddle with "#ifdef"s when doing so.
+
+Link: https://lkml.kernel.org/r/20240826204353.2228736-9-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -83,7 +89,6 @@ Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
@@ -97,61 +102,74 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/pgtable.h    |    1 +
+ arch/powerpc/include/asm/pgtable.h  |    1 +
+ arch/s390/include/asm/pgtable.h     |    1 +
+ arch/sparc/include/asm/pgtable_64.h |    1 +
+ include/linux/pgtable.h             |   12 ++++++++++++
+ 5 files changed, 16 insertions(+)
 
---- a/mm/huge_memory.c~mm-fork-accept-huge-pfnmap-entries
-+++ a/mm/huge_memory.c
-@@ -1559,6 +1559,24 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	pgtable_t pgtable = NULL;
- 	int ret = -ENOMEM;
+--- a/arch/arm64/include/asm/pgtable.h~mm-always-define-pxx_pgprot
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -384,6 +384,7 @@ static inline void __sync_cache_and_tags
+ /*
+  * Select all bits except the pfn
+  */
++#define pte_pgprot pte_pgprot
+ static inline pgprot_t pte_pgprot(pte_t pte)
+ {
+ 	unsigned long pfn = pte_pfn(pte);
+--- a/arch/powerpc/include/asm/pgtable.h~mm-always-define-pxx_pgprot
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -65,6 +65,7 @@ static inline unsigned long pte_pfn(pte_
+ /*
+  * Select all bits except the pfn
+  */
++#define pte_pgprot pte_pgprot
+ static inline pgprot_t pte_pgprot(pte_t pte)
+ {
+ 	unsigned long pte_flags;
+--- a/arch/s390/include/asm/pgtable.h~mm-always-define-pxx_pgprot
++++ a/arch/s390/include/asm/pgtable.h
+@@ -955,6 +955,7 @@ static inline int pte_unused(pte_t pte)
+  * young/old accounting is not supported, i.e _PAGE_PROTECT and _PAGE_INVALID
+  * must not be set.
+  */
++#define pte_pgprot pte_pgprot
+ static inline pgprot_t pte_pgprot(pte_t pte)
+ {
+ 	unsigned long pte_flags = pte_val(pte) & _PAGE_CHG_MASK;
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-always-define-pxx_pgprot
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -783,6 +783,7 @@ static inline pmd_t pmd_mkwrite_novma(pm
+ 	return __pmd(pte_val(pte));
+ }
  
-+	pmd = pmdp_get_lockless(src_pmd);
-+	if (unlikely(pmd_special(pmd))) {
-+		dst_ptl = pmd_lock(dst_mm, dst_pmd);
-+		src_ptl = pmd_lockptr(src_mm, src_pmd);
-+		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
-+		/*
-+		 * No need to recheck the pmd, it can't change with write
-+		 * mmap lock held here.
-+		 *
-+		 * Meanwhile, making sure it's not a CoW VMA with writable
-+		 * mapping, otherwise it means either the anon page wrongly
-+		 * applied special bit, or we made the PRIVATE mapping be
-+		 * able to wrongly write to the backend MMIO.
-+		 */
-+		VM_WARN_ON_ONCE(is_cow_mapping(src_vma->vm_flags) && pmd_write(pmd));
-+		goto set_pmd;
-+	}
++#define pmd_pgprot pmd_pgprot
+ static inline pgprot_t pmd_pgprot(pmd_t entry)
+ {
+ 	unsigned long val = pmd_val(entry);
+--- a/include/linux/pgtable.h~mm-always-define-pxx_pgprot
++++ a/include/linux/pgtable.h
+@@ -1956,6 +1956,18 @@ typedef unsigned int pgtbl_mod_mask;
+ #define MAX_PTRS_PER_P4D PTRS_PER_P4D
+ #endif
+ 
++#ifndef pte_pgprot
++#define pte_pgprot(x) ((pgprot_t) {0})
++#endif
 +
- 	/* Skip if can be re-fill on fault */
- 	if (!vma_is_anonymous(dst_vma))
- 		return 0;
-@@ -1640,7 +1658,9 @@ out_zero_page:
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	if (!userfaultfd_wp(dst_vma))
- 		pmd = pmd_clear_uffd_wp(pmd);
--	pmd = pmd_mkold(pmd_wrprotect(pmd));
-+	pmd = pmd_wrprotect(pmd);
-+set_pmd:
-+	pmd = pmd_mkold(pmd);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
- 
- 	ret = 0;
-@@ -1686,8 +1706,11 @@ int copy_huge_pud(struct mm_struct *dst_
- 	 * TODO: once we support anonymous pages, use
- 	 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
- 	 */
--	pudp_set_wrprotect(src_mm, addr, src_pud);
--	pud = pud_mkold(pud_wrprotect(pud));
-+	if (is_cow_mapping(vma->vm_flags) && pud_write(pud)) {
-+		pudp_set_wrprotect(src_mm, addr, src_pud);
-+		pud = pud_wrprotect(pud);
-+	}
-+	pud = pud_mkold(pud);
- 	set_pud_at(dst_mm, addr, dst_pud, pud);
- 
- 	ret = 0;
++#ifndef pmd_pgprot
++#define pmd_pgprot(x) ((pgprot_t) {0})
++#endif
++
++#ifndef pud_pgprot
++#define pud_pgprot(x) ((pgprot_t) {0})
++#endif
++
+ /* description of effects of mapping type and prot in current implementation.
+  * this is due to the limited x86 page protection hardware.  The expected
+  * behavior is in parens:
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
