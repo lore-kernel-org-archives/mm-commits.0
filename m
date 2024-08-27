@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3624B41760
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:57:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378FF41760
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:57:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724803048; cv=none; b=ssQfA3zgFEDZpjuo/jeF/cco4AxcEpabL0ljVFglCbHl9scA6tQfIFoDgHeIAXLEvKhEpK421jD0Vmp3mdU4DeAkO/vOnI+gqgvltbENuR9aQpoNrxT4ZCOTqAsboue1paQ35kMstRvTACMw0MyKqj8+imwgAQS2wosNa6h3Kc8=
+	t=1724803050; cv=none; b=IlrVLeLYLOwqCakt9QEcjPeC4FnPzV1OT/tSHX1NPHS3rAH4RBVhUE8bHVv5ij862JVqvKLAuZg+oE21cgPQLiIPqAuEqv7cODdCRWonJN1Vb8eQNZj5YFljiXHIhJb005rqD83RG81qrrW5LKU4dtxouFid6ZVyEWkP02mzlFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724803048; c=relaxed/simple;
-	bh=yNrs/M+dbeyt53mV8DEejfYl7zahnFG+rtq1nzZyxWI=;
-	h=Date:To:From:Subject:Message-Id; b=NFxDlvNzhdALEWmWVo3uGmAgvo/7zKkASMtKn6a7SSZ5ubg6ww9ntJzMayFFAiCDoVl0tZ9h1FUmn7m5ZnZWybM3m2piTwvqeRbViXKAecY+zAQQNuYorhJxEAJTrIHW94fnDalP3ICC+3FNbZg+CC5OuQ67Na1WyiO9F3GuUmc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nZ4hzj2Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724803050; c=relaxed/simple;
+	bh=pnp59yGlOo00mQqc7wVk1lTg+4J9Y1F+EKdaeBeIfMY=;
+	h=Date:To:From:Subject:Message-Id; b=Dq0HVDAmaOcI0eEpKfNZTtPFR9LNG3+Lg18MBQxGC7/wBLcUCjT8WLDA+fijLJvvqY9TuUfnNiHRbMQY6+pnZLC6mD1AFHlLL6fh/i2PVsJgSo9HrSJ78a1/TOKY/JuzIZTjG/svHq7J4EWX+9b3QsTdl6jMeVakwV29ckX/oyM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FexE1Rhj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nZ4hzj2Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96944C32782;
-	Tue, 27 Aug 2024 23:57:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FexE1Rhj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6874C32782;
+	Tue, 27 Aug 2024 23:57:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724803047;
-	bh=yNrs/M+dbeyt53mV8DEejfYl7zahnFG+rtq1nzZyxWI=;
+	s=korg; t=1724803050;
+	bh=pnp59yGlOo00mQqc7wVk1lTg+4J9Y1F+EKdaeBeIfMY=;
 	h=Date:To:From:Subject:From;
-	b=nZ4hzj2Y50zvidw7Y4v2PX3Tvg6mvZ57+qC4zZNL3J9+WvNJeaT/4MmAYkrBZ4aUG
-	 WM6CIIccoUSr2zb1+odEudqzxxk64PwLnojaeK/DQMMYk3TMbrc/HZKNzsdDJag8ow
-	 VKSpSCZWnuLCzgNEnOCcRtqDBnJ/5Am2R3P9rolo=
-Date: Tue, 27 Aug 2024 16:57:27 -0700
+	b=FexE1RhjO8bWB74IWQ0QymO0ZxmbWTJw3+kv69HAi2kAMS0u2AzWR6DncCbj853Ro
+	 brIIQ7CV/89zWTB57UF3bf8VBNbf0UT4dPSSOLLHW3RwDCOZCreY0ddmNn+asQdHj8
+	 CNuNZrWI4a3yv7Hyro/WdEVbxXOPusFhEho4UxEU=
+Date: Tue, 27 Aug 2024 16:57:29 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-restart-if-multiple-traversals-raced.patch added to mm-unstable branch
-Message-Id: <20240827235727.96944C32782@smtp.kernel.org>
+Subject: + mm-clean-up-mem_cgroup_iter.patch added to mm-unstable branch
+Message-Id: <20240827235729.E6874C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: restart if multiple traversals raced
+     Subject: mm: clean up mem_cgroup_iter()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-restart-if-multiple-traversals-raced.patch
+     mm-clean-up-mem_cgroup_iter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-restart-if-multiple-traversals-raced.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-mem_cgroup_iter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm: restart if multiple traversals raced
-Date: Tue, 27 Aug 2024 23:07:41 +0000
+Subject: mm: clean up mem_cgroup_iter()
+Date: Tue, 27 Aug 2024 23:07:42 +0000
 
-Currently, if multiple reclaimers raced on the same position, the
-reclaimers which detect the race will still reclaim from the same memcg. 
-Instead, the reclaimers which detect the race should move on to the next
-memcg in the hierarchy.
+A clean up to make variable names more clear and to improve code
+readability.
 
-So, in the case where multiple traversals race, jump back to the start of
-the mem_cgroup_iter() function to find the next memcg in the hierarchy to
-reclaim from.
+No functional change.
 
-Link: https://lkml.kernel.org/r/20240827230753.2073580-5-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20240827230753.2073580-6-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -85,104 +81,94 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |   22 ++++++++++++++--------
- 2 files changed, 16 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-restart-if-multiple-traversals-raced
-+++ a/include/linux/memcontrol.h
-@@ -57,7 +57,7 @@ enum memcg_memory_event {
- 
- struct mem_cgroup_reclaim_cookie {
- 	pg_data_t *pgdat;
--	unsigned int generation;
-+	int generation;
- };
- 
- #ifdef CONFIG_MEMCG
-@@ -78,7 +78,7 @@ struct lruvec_stats;
- struct mem_cgroup_reclaim_iter {
- 	struct mem_cgroup *position;
- 	/* scan generation, increased every round-trip */
--	unsigned int generation;
-+	atomic_t generation;
- };
- 
- /*
---- a/mm/memcontrol.c~mm-restart-if-multiple-traversals-raced
+--- a/mm/memcontrol.c~mm-clean-up-mem_cgroup_iter
 +++ a/mm/memcontrol.c
-@@ -986,7 +986,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 				   struct mem_cgroup_reclaim_cookie *reclaim)
+@@ -987,8 +987,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
  {
  	struct mem_cgroup_reclaim_iter *iter;
--	struct cgroup_subsys_state *css = NULL;
-+	struct cgroup_subsys_state *css;
- 	struct mem_cgroup *memcg = NULL;
- 	struct mem_cgroup *pos = NULL;
+ 	struct cgroup_subsys_state *css;
+-	struct mem_cgroup *memcg = NULL;
+-	struct mem_cgroup *pos = NULL;
++	struct mem_cgroup *pos;
++	struct mem_cgroup *next = NULL;
  
-@@ -999,18 +999,20 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	rcu_read_lock();
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1000,10 +1000,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
  restart:
  	if (reclaim) {
-+		int gen;
- 		struct mem_cgroup_per_node *mz;
+ 		int gen;
+-		struct mem_cgroup_per_node *mz;
++		int nid = reclaim->pgdat->node_id;
  
- 		mz = root->nodeinfo[reclaim->pgdat->node_id];
- 		iter = &mz->iter;
-+		gen = atomic_read(&iter->generation);
+-		mz = root->nodeinfo[reclaim->pgdat->node_id];
+-		iter = &mz->iter;
++		iter = &root->nodeinfo[nid]->iter;
+ 		gen = atomic_read(&iter->generation);
  
  		/*
- 		 * On start, join the current reclaim iteration cycle.
- 		 * Exit when a concurrent walker completes it.
- 		 */
- 		if (!prev)
--			reclaim->generation = iter->generation;
--		else if (reclaim->generation != iter->generation)
-+			reclaim->generation = gen;
-+		else if (reclaim->generation != gen)
+@@ -1016,29 +1015,22 @@ restart:
  			goto out_unlock;
  
  		pos = READ_ONCE(iter->position);
-@@ -1018,8 +1020,7 @@ restart:
+-	} else if (prev) {
++	} else
  		pos = prev;
- 	}
+-	}
  
--	if (pos)
--		css = &pos->css;
-+	css = pos ? &pos->css : NULL;
+ 	css = pos ? &pos->css : NULL;
  
- 	for (;;) {
- 		css = css_next_descendant_pre(css, &root->css);
-@@ -1033,21 +1034,26 @@ restart:
+-	for (;;) {
+-		css = css_next_descendant_pre(css, &root->css);
+-		if (!css) {
+-			break;
+-		}
+-
++	while ((css = css_next_descendant_pre(css, &root->css))) {
+ 		/*
+ 		 * Verify the css and acquire a reference.  The root
+ 		 * is provided by the caller, so we know it's alive
  		 * and kicking, and don't take an extra reference.
  		 */
- 		if (css == &root->css || css_tryget(css)) {
--			memcg = mem_cgroup_from_css(css);
+-		if (css == &root->css || css_tryget(css)) {
++		if (css == &root->css || css_tryget(css))
  			break;
- 		}
+-		}
  	}
  
-+	memcg = mem_cgroup_from_css(css);
-+
+-	memcg = mem_cgroup_from_css(css);
++	next = mem_cgroup_from_css(css);
+ 
  	if (reclaim) {
  		/*
- 		 * The position could have already been updated by a competing
+@@ -1046,13 +1038,13 @@ restart:
  		 * thread, so check that the value hasn't changed since we read
  		 * it to avoid reclaiming from the same cgroup twice.
  		 */
--		(void)cmpxchg(&iter->position, pos, memcg);
-+		if (cmpxchg(&iter->position, pos, memcg) != pos) {
-+			if (css && css != &root->css)
-+				css_put(css);
-+			goto restart;
-+		}
+-		if (cmpxchg(&iter->position, pos, memcg) != pos) {
++		if (cmpxchg(&iter->position, pos, next) != pos) {
+ 			if (css && css != &root->css)
+ 				css_put(css);
+ 			goto restart;
+ 		}
  
- 		if (!memcg) {
--			iter->generation++;
-+			atomic_inc(&iter->generation);
+-		if (!memcg) {
++		if (!next) {
+ 			atomic_inc(&iter->generation);
  
  			/*
- 			 * Reclaimers share the hierarchy walk, and a
+@@ -1071,7 +1063,7 @@ out_unlock:
+ 	if (prev && prev != root)
+ 		css_put(&prev->css);
+ 
+-	return memcg;
++	return next;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
