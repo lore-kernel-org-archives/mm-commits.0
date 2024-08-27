@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1422A1D2799
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 19:51:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1201442E8
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 22:58:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724788298; cv=none; b=ISLVui3HyM1LESGCUpD6wI8GgUcU3+tSt1pkrZXSWNyLrkGcJzaarBl4lITDF+aMVgu4yJr/br0mCl1qCZuNVCnMgQQGRN5SCjOjhGFiKIOoQL67QFVApt08TOTTBB3Luh9hwcldzI35G8LjTbfs47JbMZVaad/e3vZ0CDl7pO0=
+	t=1724799516; cv=none; b=SFy3Afd/A7ptT6mAKUPwtRJtgaCvt7mmIsh/FRUIqhhfHHlS7mz1bgx01GtqWy4jD1TxDNOrGkFbMN67kohVV+OeXQ9WjMt0RGZ63is0UrGPZcYA59KHGLoOa5WTSPaQL+j7RL52MaXKT/e47creLOo9BuOdTzV6tT2gSDTS3QE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724788298; c=relaxed/simple;
-	bh=o2OzQ/F1NCqfjOrfG6XdAljOB/IwMKHeWdB7KqtNTh4=;
-	h=Date:To:From:Subject:Message-Id; b=UJ/pfonsei5lk9RNwFFe89Ll0vMgEPMeE68LIxCFlyez6s5kMdu2b5BJUimpMvb6KTN1RnJ8b4A7quai7IuvT+/T65jSJRO+l4RZ+W8oqXif71Q0O5de1Y72zoDOCPXnokkV1RwdSlr8L/F+GQ+msWlEQYuXQWqWevDNQ2oPapY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nZOyoVvj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724799516; c=relaxed/simple;
+	bh=+gbi6zBnXiLyiyNjWx43ezwkWqJpl5QYbH5F+13iR6c=;
+	h=Date:To:From:Subject:Message-Id; b=fOHQqfil6w9/p5KQwuuy1pUIB29akjreNCslAIE5wiPHaYlczL/9wKFDTBxXhbxNYd0EnVkK+XxwNUZuFZ0Y5Uc+wJ/e6oABkbiNCvW+jk09BFaqUpG1wYAzPpK4avv1FYdERI3Vb5tqsECkBznQJZe4Ri+wDadQl0hj4T27FFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nAfoclHN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nZOyoVvj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70503C4FF1A;
-	Tue, 27 Aug 2024 19:51:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nAfoclHN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 857A6C4E674;
+	Tue, 27 Aug 2024 22:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724788297;
-	bh=o2OzQ/F1NCqfjOrfG6XdAljOB/IwMKHeWdB7KqtNTh4=;
+	s=korg; t=1724799515;
+	bh=+gbi6zBnXiLyiyNjWx43ezwkWqJpl5QYbH5F+13iR6c=;
 	h=Date:To:From:Subject:From;
-	b=nZOyoVvjgNB+ysFrJG9hDZzHl6KNobbczjjwp96EOvQykcGjKGI5aPKxkTt4eSYe9
-	 Nne9lDH94//iVmJREBySspXACdF0mpwllcxp/MBg/3v9ugQiKw9meogZElfemWZuoP
-	 DdC46EKJCEcw++qdrOVibtrLydv/LtLm9JCyULRI=
-Date: Tue, 27 Aug 2024 12:51:36 -0700
-To: mm-commits@vger.kernel.org,oleksiy.avramchenko@sony.com,mhocko@suse.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=nAfoclHN+WBlYMWdfJGi2OGsxy7O/w77hwWF2d3T3loqKpyZ911FxC6YjahjDhCtp
+	 dp7MQ73lsycW8bEseubkQqof27SfFnjneF2XGCX6SUVcPmCIMBeyqkW12sEAhc+Fy/
+	 skcQNZXvUU4PrgWoxHzhgjSyhKcTTSCtq5KYx2qY=
+Date: Tue, 27 Aug 2024 15:58:34 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paulmck@kernel.org,olsajiri@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,dan.carpenter@linaro.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-refactor-vm_area_alloc_pages-function.patch added to mm-unstable branch
-Message-Id: <20240827195137.70503C4FF1A@smtp.kernel.org>
+Subject: + mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch added to mm-unstable branch
+Message-Id: <20240827225835.857A6C4E674@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmalloc: refactor vm_area_alloc_pages() function
+     Subject: mm/vma: fix null pointer dereference in vms_abort_munmap_vmas()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-refactor-vm_area_alloc_pages-function.patch
+     mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-refactor-vm_area_alloc_pages-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,127 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: refactor vm_area_alloc_pages() function
-Date: Tue, 27 Aug 2024 21:09:16 +0200
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/vma: fix null pointer dereference in vms_abort_munmap_vmas()
+Date: Tue, 27 Aug 2024 13:15:49 -0400
 
-The aim is to simplify and making the vm_area_alloc_pages()
-function less confusing as it became more clogged nowadays:
+Don't pass a NULL vma to the vma_iter_store(), instead set up the maple
+state for the store and do it manually.  vma_iter_clear() cannot be used
+as it needs preallocations.
 
-- eliminate a "bulk_gfp" variable and do not overwrite a gfp
-  flag for bulk allocator;
-- drop __GFP_NOFAIL flag for high-order-page requests on upper
-  layer. It becomes less spread between levels when it comes to
-  __GFP_NOFAIL allocations;
-- add a comment about a fallback path if high-order attempt is
-  unsuccessful because for such cases __GFP_NOFAIL is dropped;
-- fix a typo in a commit message.
-
-Link: https://lkml.kernel.org/r/20240827190916.34242-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Link: https://lkml.kernel.org/r/20240827171549.273063-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Bert Karwatzki <spasswolf@web.de>
+Cc: Jiri Olsa <olsajiri@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   37 +++++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+ mm/vma.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-refactor-vm_area_alloc_pages-function
-+++ a/mm/vmalloc.c
-@@ -3531,8 +3531,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
+--- a/mm/vma.h~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix
++++ a/mm/vma.h
+@@ -173,6 +173,7 @@ static inline void reattach_vmas(struct
+ static inline void vms_abort_munmap_vmas(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach)
  {
- 	unsigned int nr_allocated = 0;
--	gfp_t alloc_gfp = gfp;
--	bool nofail = gfp & __GFP_NOFAIL;
- 	struct page *page;
- 	int i;
++	struct ma_state *mas = &vms->vmi->mas;
+ 	if (!vms->nr_pages)
+ 		return;
  
-@@ -3543,9 +3541,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	 * more permissive.
+@@ -184,13 +185,14 @@ static inline void vms_abort_munmap_vmas
+ 	 * not symmetrical and state data has been lost.  Resort to the old
+ 	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
  	 */
- 	if (!order) {
--		/* bulk allocator doesn't support nofail req. officially */
--		gfp_t bulk_gfp = gfp & ~__GFP_NOFAIL;
--
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
- 
-@@ -3563,12 +3558,11 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			 * but mempolicy wants to alloc memory by interleaving.
- 			 */
- 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
--				nr = alloc_pages_bulk_array_mempolicy_noprof(bulk_gfp,
-+				nr = alloc_pages_bulk_array_mempolicy_noprof(gfp,
- 							nr_pages_request,
- 							pages + nr_allocated);
--
- 			else
--				nr = alloc_pages_bulk_array_node_noprof(bulk_gfp, nid,
-+				nr = alloc_pages_bulk_array_node_noprof(gfp, nid,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 
-@@ -3582,30 +3576,24 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			if (nr != nr_pages_request)
- 				break;
- 		}
--	} else if (gfp & __GFP_NOFAIL) {
--		/*
--		 * Higher order nofail allocations are really expensive and
--		 * potentially dangerous (pre-mature OOM, disruptive reclaim
--		 * and compaction etc.
--		 */
--		alloc_gfp &= ~__GFP_NOFAIL;
+-	if (unlikely(vma_iter_store_gfp(vms->vmi, NULL, GFP_KERNEL))) {
++	mas_set_range(mas, vms->start, vms->end);
++	if (unlikely(mas_store_gfp(mas, NULL, GFP_KERNEL))) {
+ 		pr_warn_once("%s: (%d) Unable to abort munmap() operation\n",
+ 			     current->comm, current->pid);
+ 		/* Leaving vmas detached and in-tree may hamper recovery */
+ 		reattach_vmas(mas_detach);
+ 	} else {
+-		/* Clean up the insertion of unfortunate the gap */
++		/* Clean up the insertion of the unfortunate gap */
+ 		vms_complete_munmap_vmas(vms, mas_detach);
  	}
- 
- 	/* High-order pages or fallback path if "bulk" fails. */
- 	while (nr_allocated < nr_pages) {
--		if (!nofail && fatal_signal_pending(current))
-+		if (!(gfp & __GFP_NOFAIL) && fatal_signal_pending(current))
- 			break;
- 
- 		if (nid == NUMA_NO_NODE)
--			page = alloc_pages_noprof(alloc_gfp, order);
-+			page = alloc_pages_noprof(gfp, order);
- 		else
--			page = alloc_pages_node_noprof(nid, alloc_gfp, order);
-+			page = alloc_pages_node_noprof(nid, gfp, order);
-+
- 		if (unlikely(!page))
- 			break;
- 
- 		/*
- 		 * Higher order allocations must be able to be treated as
--		 * indepdenent small pages by callers (as they can with
-+		 * independent small pages by callers (as they can with
- 		 * small-page vmallocs). Some drivers do their own refcounting
- 		 * on vmalloc_to_page() pages, some use page->mapping,
- 		 * page->lru, etc.
-@@ -3666,7 +3654,16 @@ static void *__vmalloc_area_node(struct
- 	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
- 	page_order = vm_area_page_order(area);
- 
--	area->nr_pages = vm_area_alloc_pages(gfp_mask | __GFP_NOWARN,
-+	/*
-+	 * Higher order nofail allocations are really expensive and
-+	 * potentially dangerous (pre-mature OOM, disruptive reclaim
-+	 * and compaction etc.
-+	 *
-+	 * Please note, the __vmalloc_node_range_noprof() falls-back
-+	 * to order-0 pages if high-order attempt is unsuccessful.
-+	 */
-+	area->nr_pages = vm_area_alloc_pages((page_order ?
-+		gfp_mask & ~__GFP_NOFAIL : gfp_mask) | __GFP_NOWARN,
- 		node, page_order, nr_small_pages, area->pages);
- 
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
+ }
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-vmalloc-refactor-vm_area_alloc_pages-function.patch
+maple_tree-remove-rcu_read_lock-from-mt_validate.patch
+mm-vma-correctly-position-vma_iterator-in-__split_vma.patch
+mm-vma-introduce-abort_munmap_vmas.patch
+mm-vma-introduce-vmi_complete_munmap_vmas.patch
+mm-vma-extract-the-gathering-of-vmas-from-do_vmi_align_munmap.patch
+mm-vma-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+mm-vma-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
+mm-vma-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas-fix.patch
+mm-vma-extract-validate_mm-from-vma_complete.patch
+mm-vma-inline-munmap-operation-in-mmap_region.patch
+mm-vma-expand-mmap_region-munmap-call.patch
+mm-vma-support-vma-==-null-in-init_vma_munmap.patch
+mm-mmap-reposition-vma-iterator-in-mmap_region.patch
+mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch
+mm-clean-up-unmap_region-argument-list.patch
+mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch
+mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
+mm-mmap-use-phys_pfn-in-mmap_region.patch
+mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
+ipc-shm-mm-drop-do_vma_munmap.patch
+mm-move-may_expand_vm-check-in-mmap_region.patch
+mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch
+mm-vmah-optimise-vma_munmap_struct.patch
 
