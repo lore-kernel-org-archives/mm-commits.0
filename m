@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051CA1C8FB0
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4768B1C8FB0
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802745; cv=none; b=UwH4U/xEplj2M9VEbIM10cNZkrumdXgPcB8odrwHpJU+FAXbkCaL3SpdyJvizpH6a76s65IvwVfaGy2WjkrPBSxggaguXU71nVyS13vbkAaBB0G70WhtsreK80IvpzyYa9pTEWzxtYGOOh/VS6cFtPuqfaWHTMpM+r0CR5tu0/o=
+	t=1724802747; cv=none; b=e08a1R84lTCOyjdFA8WuWYRZ1r85hL87tm/bDiAdbj6HRa9tIIJOAYI4AUoiUqJ93YqCJoR+VshaOeH09HGt+nTG38Npqxjvm6Mmkyxf9/EWwx+Tq1dVO8WfjltqFBORGWjXwvEILfoCIULguiPpaYICtAQgeWg4triLJJL0BII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802745; c=relaxed/simple;
-	bh=l63amU0A9Rxyn5GzvywuGmYMWGmQcwzbHmOFLSDvmLQ=;
-	h=Date:To:From:Subject:Message-Id; b=uOiJbk1OXEDCuQHLSkAH2pIwBf5K8PKdX+gVXOwwFbxEO4q3bq8QR7I5wzAwo+tA5R6vpHmOgaD1carg5pLKPrU7prrnJNpkkmcvhTwjkPhg3QwcAOya4EzioCcBuQoI8ilN7tIpwTZFPLXbiOoSkfgPAmQEVM6/sloRWos4470=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FRJnnQ9l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802747; c=relaxed/simple;
+	bh=pDI4Nht0/fC4Fkca44tc44rlk06HeudV3mxZ592/mqY=;
+	h=Date:To:From:Subject:Message-Id; b=VMcSe+YFP6UKJibMB4MMSSpYrOGowef9PuqC3zo9VSppI6bd8yzNH+mSQ8vY9L6FUocxD7TL3rjSyJjgKyVv813nrulzgU/OaaIvYqRz9LW4N2nuNDkpevcCMKclNntLfcf4cIqZ7nrB5gLwrEB+Nzr9d2eZeMJay1sZf+7ZSYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nmU6U+mp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FRJnnQ9l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAECBC32782;
-	Tue, 27 Aug 2024 23:52:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nmU6U+mp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9434C32782;
+	Tue, 27 Aug 2024 23:52:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802744;
-	bh=l63amU0A9Rxyn5GzvywuGmYMWGmQcwzbHmOFLSDvmLQ=;
+	s=korg; t=1724802746;
+	bh=pDI4Nht0/fC4Fkca44tc44rlk06HeudV3mxZ592/mqY=;
 	h=Date:To:From:Subject:From;
-	b=FRJnnQ9lt6cIzGNNeYo+PZ/6qpywMSUHcnrQe0jgxBgwMUb5abb7t/p+fWe8aBHCW
-	 qzh3M6TsUPC9VhEKzz2aWoyHg7nTRpidzLH4YgPxrPJqu6ADiY5xur9GSuBo4UdLIx
-	 TDwBnqZay45P2TntGx5tR4HAh+3lKotLPSACJMzI=
-Date: Tue, 27 Aug 2024 16:52:24 -0700
+	b=nmU6U+mpz8ulpGp9Ps/UXm7OHfofDgn+yfuZVE1HftYn6XRlemqxeRhOX6dVB83/0
+	 Wz4xTzgvBrk1aspxuQAs6llnf4NYqsiA2WvjcWpJzebJCuOrwOmMnEY0my5u3jDWqR
+	 QIPS3M9eVZwf8GdHgrmJ3tkpKqtQKOBUCCdoh+0k=
+Date: Tue, 27 Aug 2024 16:52:26 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-use-follow_pfnmap-api.patch added to mm-unstable branch
-Message-Id: <20240827235224.CAECBC32782@smtp.kernel.org>
+Subject: + s390-pci_mmio-use-follow_pfnmap-api.patch added to mm-unstable branch
+Message-Id: <20240827235226.D9434C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: use follow_pfnmap API
+     Subject: s390/pci_mmio: use follow_pfnmap API
 has been added to the -mm mm-unstable branch.  Its filename is
-     kvm-use-follow_pfnmap-api.patch
+     s390-pci_mmio-use-follow_pfnmap-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-use-follow_pfnmap-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-pci_mmio-use-follow_pfnmap-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,98 +59,122 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: KVM: use follow_pfnmap API
-Date: Mon, 26 Aug 2024 16:43:44 -0400
+Subject: s390/pci_mmio: use follow_pfnmap API
+Date: Mon, 26 Aug 2024 16:43:45 -0400
 
-Use the new pfnmap API to allow huge MMIO mappings for VMs.  The rest work
-is done perfectly on the other side (host_pfn_mapping_level()).
+Use the new API that can understand huge pfn mappings.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-11-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-12-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Gavin Shan <gshan@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ arch/s390/pci/pci_mmio.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/virt/kvm/kvm_main.c~kvm-use-follow_pfnmap-api
-+++ a/virt/kvm/kvm_main.c
-@@ -2860,13 +2860,11 @@ static int hva_to_pfn_remapped(struct vm
- 			       unsigned long addr, bool write_fault,
- 			       bool *writable, kvm_pfn_t *p_pfn)
+--- a/arch/s390/pci/pci_mmio.c~s390-pci_mmio-use-follow_pfnmap-api
++++ a/arch/s390/pci/pci_mmio.c
+@@ -118,12 +118,11 @@ static inline int __memcpy_toio_inuser(v
+ SYSCALL_DEFINE3(s390_pci_mmio_write, unsigned long, mmio_addr,
+ 		const void __user *, user_buffer, size_t, length)
  {
-+	struct follow_pfnmap_args args = { .vma = vma, .address = addr };
- 	kvm_pfn_t pfn;
++	struct follow_pfnmap_args args = { };
+ 	u8 local_buf[64];
+ 	void __iomem *io_addr;
+ 	void *buf;
+ 	struct vm_area_struct *vma;
 -	pte_t *ptep;
--	pte_t pte;
 -	spinlock_t *ptl;
- 	int r;
+ 	long ret;
  
--	r = follow_pte(vma, addr, &ptep, &ptl);
-+	r = follow_pfnmap_start(&args);
- 	if (r) {
- 		/*
- 		 * get_user_pages fails for VM_IO and VM_PFNMAP vmas and does
-@@ -2881,21 +2879,19 @@ static int hva_to_pfn_remapped(struct vm
- 		if (r)
- 			return r;
+ 	if (!zpci_is_enabled())
+@@ -169,11 +168,13 @@ SYSCALL_DEFINE3(s390_pci_mmio_write, uns
+ 	if (!(vma->vm_flags & VM_WRITE))
+ 		goto out_unlock_mmap;
  
--		r = follow_pte(vma, addr, &ptep, &ptl);
-+		r = follow_pfnmap_start(&args);
- 		if (r)
- 			return r;
- 	}
+-	ret = follow_pte(vma, mmio_addr, &ptep, &ptl);
++	args.address = mmio_addr;
++	args.vma = vma;
++	ret = follow_pfnmap_start(&args);
+ 	if (ret)
+ 		goto out_unlock_mmap;
  
--	pte = ptep_get(ptep);
--
--	if (write_fault && !pte_write(pte)) {
-+	if (write_fault && !args.writable) {
- 		pfn = KVM_PFN_ERR_RO_FAULT;
- 		goto out;
- 	}
+-	io_addr = (void __iomem *)((pte_pfn(*ptep) << PAGE_SHIFT) |
++	io_addr = (void __iomem *)((args.pfn << PAGE_SHIFT) |
+ 			(mmio_addr & ~PAGE_MASK));
  
- 	if (writable)
--		*writable = pte_write(pte);
--	pfn = pte_pfn(pte);
-+		*writable = args.writable;
-+	pfn = args.pfn;
+ 	if ((unsigned long) io_addr < ZPCI_IOMAP_ADDR_BASE)
+@@ -181,7 +182,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_write, uns
  
- 	/*
- 	 * Get a reference here because callers of *hva_to_pfn* and
-@@ -2916,9 +2912,8 @@ static int hva_to_pfn_remapped(struct vm
- 	 */
- 	if (!kvm_try_get_pfn(pfn))
- 		r = -EFAULT;
--
- out:
+ 	ret = zpci_memcpy_toio(io_addr, buf, length);
+ out_unlock_pt:
 -	pte_unmap_unlock(ptep, ptl);
 +	follow_pfnmap_end(&args);
- 	*p_pfn = pfn;
+ out_unlock_mmap:
+ 	mmap_read_unlock(current->mm);
+ out_free:
+@@ -260,12 +261,11 @@ static inline int __memcpy_fromio_inuser
+ SYSCALL_DEFINE3(s390_pci_mmio_read, unsigned long, mmio_addr,
+ 		void __user *, user_buffer, size_t, length)
+ {
++	struct follow_pfnmap_args args = { };
+ 	u8 local_buf[64];
+ 	void __iomem *io_addr;
+ 	void *buf;
+ 	struct vm_area_struct *vma;
+-	pte_t *ptep;
+-	spinlock_t *ptl;
+ 	long ret;
  
- 	return r;
+ 	if (!zpci_is_enabled())
+@@ -308,11 +308,13 @@ SYSCALL_DEFINE3(s390_pci_mmio_read, unsi
+ 	if (!(vma->vm_flags & VM_WRITE))
+ 		goto out_unlock_mmap;
+ 
+-	ret = follow_pte(vma, mmio_addr, &ptep, &ptl);
++	args.vma = vma;
++	args.address = mmio_addr;
++	ret = follow_pfnmap_start(&args);
+ 	if (ret)
+ 		goto out_unlock_mmap;
+ 
+-	io_addr = (void __iomem *)((pte_pfn(*ptep) << PAGE_SHIFT) |
++	io_addr = (void __iomem *)((args.pfn << PAGE_SHIFT) |
+ 			(mmio_addr & ~PAGE_MASK));
+ 
+ 	if ((unsigned long) io_addr < ZPCI_IOMAP_ADDR_BASE) {
+@@ -322,7 +324,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_read, unsi
+ 	ret = zpci_memcpy_fromio(buf, io_addr, length);
+ 
+ out_unlock_pt:
+-	pte_unmap_unlock(ptep, ptl);
++	follow_pfnmap_end(&args);
+ out_unlock_mmap:
+ 	mmap_read_unlock(current->mm);
+ 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
