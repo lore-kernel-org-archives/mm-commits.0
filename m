@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0DA80034
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:15:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC47B80034
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:16:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724800533; cv=none; b=C3H0oZJLnxCBdSwxMJRCelMdxzyeSKjMWeUfUECOIkWTKFmltlHqhn7h+YStaxixWesnClyCWu8Udd8EakmBlqO88KnIBZxOFiZ7a0W2hlkYdoEuOnly6rYrLcT9vJb5pXJReAV7f9nM4D+tObtSD96VPceHwgwTEnmItwKa5MI=
+	t=1724800608; cv=none; b=G3/DeIYcs7FptmLSHV0ZHRpN2sDwAuygLQgH4KzvG/5MaXFgJ9mRnNebPFWY4MtKvjWi6Gl+xnxa2C8TzfxmmxTez9PJ0jrno9+HpUUiI5zuAktPxQFV4p0PmrA+Jun1gPSr1aAgOh9FN76y/FUjrO87Oh9wf50gsj3p11CgIuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724800533; c=relaxed/simple;
-	bh=+gVfqTREQGtZ0X3YEe0ul6VJ7yH69HLi/1drWjpCZyU=;
-	h=Date:To:From:Subject:Message-Id; b=ikClAAEvpeFJofgAgVVrzyvLT4vTVCAokqwPIsy8qPmcHA1e3v4KLimbTC1gazSw6cFW2Fc1OBkD0MD+EvBe9cuWDCSmHADmU1Q4MRH3njAv5O+VOi/kADIjoFwPpMcfIZVBf+aHSBDsglDAM1mW9mo1SSgkpiXBqTM9xTpSZzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HhEg7+TZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724800608; c=relaxed/simple;
+	bh=AsaYI7TVRw/M++d9QRZ0nCpRaYrg9IIom4IMMApkr40=;
+	h=Date:To:From:Subject:Message-Id; b=XQdlJjnEygou/7sFdof7YWFgcIi9hyn8AdDQJ7WhpSjPPzV5FXMUTu79am/GWAbSQBsKVjlegjP46JnIXm3bPPpvkjr5VEyIFP01nWviC54vx0NuK8pecQ3PeIZTuxFg64JorRnAQZNDBZNQQAA50sQDENhQBCdDnxZjaNrVYmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XNzC8aiF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HhEg7+TZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1612C4AF10;
-	Tue, 27 Aug 2024 23:15:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XNzC8aiF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56C9BC4AF12;
+	Tue, 27 Aug 2024 23:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724800532;
-	bh=+gVfqTREQGtZ0X3YEe0ul6VJ7yH69HLi/1drWjpCZyU=;
+	s=korg; t=1724800608;
+	bh=AsaYI7TVRw/M++d9QRZ0nCpRaYrg9IIom4IMMApkr40=;
 	h=Date:To:From:Subject:From;
-	b=HhEg7+TZkpDX1NYm0KvdnOTV6d0QcChqkgVCB4AkcG/442SI3/AT1ExIweNu+Klun
-	 SVL3FP3IFhBUC8MbXgAqT7ba1zdg5BVRE1Tn8tj0LuNktBFda478wIlo6F8YE3w91r
-	 1ikoMfBfAfoPCWkvXM6Ex4dFumAexisqWJpg7xpA=
-Date: Tue, 27 Aug 2024 16:15:32 -0700
-To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,xiaoping.zhou@intel.com,vincent.guittot@linaro.org,tim.c.chen@intel.com,raghavendra.kt@amd.com,peterz@infradead.org,mingo@redhat.com,mgorman@techsingularity.net,juri.lelli@redhat.com,yujie.liu@intel.com,akpm@linux-foundation.org
+	b=XNzC8aiF0d+ImrNcszkVehML8WpejeOMrVSbVdPlsysN5y2l5VP5JH1l7ki0z5SzH
+	 2QGLWJg/YoEB8/ipwauRxUBXWMvrEEEYgafW39hYciPXJrb3q/EwEvmx9kV0/8HLTF
+	 l+nPtNBxRAvxbNFog+0znqDuq5qcg1WAgSJE9U5A=
+Date: Tue, 27 Aug 2024 16:16:47 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,peterz@infradead.org,mjguzik@gmail.com,mic@digikod.net,davidgow@google.com,akpm@linux-foundation.org,agruenba@redhat.com,yu.c.chen@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-fix-the-vma-scan-starving-issue.patch added to mm-unstable branch
-Message-Id: <20240827231532.C1612C4AF10@smtp.kernel.org>
+Subject: + kthread-fix-task-state-in-kthread-worker-if-being-frozen.patch added to mm-nonmm-unstable branch
+Message-Id: <20240827231648.56C9BC4AF12@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched/numa: Fix the vma scan starving issue
-has been added to the -mm mm-unstable branch.  Its filename is
-     sched-numa-fix-the-vma-scan-starving-issue.patch
+     Subject: kthread: fix task state in kthread worker if being frozen
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kthread-fix-task-state-in-kthread-worker-if-being-frozen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-fix-the-vma-scan-starving-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-fix-task-state-in-kthread-worker-if-being-frozen.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,139 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yujie Liu <yujie.liu@intel.com>
-Subject: sched/numa: Fix the vma scan starving issue
-Date: Tue, 27 Aug 2024 19:29:58 +0800
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: kthread: fix task state in kthread worker if being frozen
+Date: Tue, 27 Aug 2024 19:23:08 +0800
 
-Problem statement:
-Since commit fc137c0ddab2 ("sched/numa: enhance vma scanning logic"), the
-Numa vma scan overhead has been reduced a lot.  Meanwhile, the reducing of
-the vma scan might create less Numa page fault information.  The
-insufficient information makes it harder for the Numa balancer to make
-decision.  Later, commit b7a5b537c55c08 ("sched/numa: Complete scanning of
-partial VMAs regardless of PID activity") and commit 84db47ca7146d7
-("sched/numa: Fix mm numa_scan_seq based unconditional scan") are found to
-bring back part of the performance.
+When analyzing a kernel waring message, Peter pointed out that there is a
+race condition when the kworker is being frozen and falls into
+try_to_freeze() with TASK_INTERRUPTIBLE, which could trigger a
+might_sleep() warning in try_to_freeze().  Although the root cause is not
+related to freeze()[1], it is still worthy to fix this issue ahead.
 
-Recently when running SPECcpu omnetpp_r on a 320 CPUs/2 Sockets system, a
-long duration of remote Numa node read was observed by PMU events: A few
-cores having ~500MB/s remote memory access for ~20 seconds.  It causes
-high core-to-core variance and performance penalty.  After the
-investigation, it is found that many vmas are skipped due to the active
-PID check.  According to the trace events, in most cases,
-vma_is_accessed() returns false because the history access info stored in
-pids_active array has been cleared.
+One possible race scenario:
 
-Proposal:
-The main idea is to adjust vma_is_accessed() to let it return true easier.
-Thus compare the diff between mm->numa_scan_seq and
-vma->numab_state->prev_scan_seq.  If the diff has exceeded the threshold,
-scan the vma.
+        CPU 0                                           CPU 1
+        -----                                           -----
 
-This patch especially helps the cases where there are small number of
-threads, like the process-based SPECcpu.  Without this patch, if the
-SPECcpu process access the vma at the beginning, then sleeps for a long
-time, the pid_active array will be cleared.  A a result, if this process
-is woken up again, it never has a chance to set prot_none anymore. 
-Because only the first 2 times of access is granted for vma scan:
-(current->mm->numa_scan_seq) - vma->numab_state->start_scan_seq) < 2 to be
-worse, no other threads within the task can help set the prot_none.  This
-causes information lost.
+        // kthread_worker_fn
+        set_current_state(TASK_INTERRUPTIBLE);
+                                                       suspend_freeze_processes()
+                                                         freeze_processes
+                                                           static_branch_inc(&freezer_active);
+                                                         freeze_kernel_threads
+                                                           pm_nosig_freezing = true;
+        if (work) { //false
+          __set_current_state(TASK_RUNNING);
 
-Raghavendra helped test current patch and got the positive result
-on the AMD platform:
+        } else if (!freezing(current)) //false, been frozen
 
-autonumabench NUMA01
-                            base                  patched
-Amean     syst-NUMA01      194.05 (   0.00%)      165.11 *  14.92%*
-Amean     elsp-NUMA01      324.86 (   0.00%)      315.58 *   2.86%*
+                      freezing():
+                      if (static_branch_unlikely(&freezer_active))
+                        if (pm_nosig_freezing)
+                          return true;
+          schedule()
+	}
 
-Duration User      380345.36   368252.04
-Duration System      1358.89     1156.23
-Duration Elapsed     2277.45     2213.25
+        // state is still TASK_INTERRUPTIBLE
+        try_to_freeze()
+          might_sleep() <--- warning
 
-autonumabench NUMA02
+Fix this by explicitly set the TASK_RUNNING before entering
+try_to_freeze().
 
-Amean     syst-NUMA02        1.12 (   0.00%)        1.09 *   2.93%*
-Amean     elsp-NUMA02        3.50 (   0.00%)        3.56 *  -1.84%*
-
-Duration User        1513.23     1575.48
-Duration System         8.33        8.13
-Duration Elapsed       28.59       29.71
-
-kernbench
-
-Amean     user-256    22935.42 (   0.00%)    22535.19 *   1.75%*
-Amean     syst-256     7284.16 (   0.00%)     7608.72 *  -4.46%*
-Amean     elsp-256      159.01 (   0.00%)      158.17 *   0.53%*
-
-Duration User       68816.41    67615.74
-Duration System     21873.94    22848.08
-Duration Elapsed      506.66      504.55
-
-Intel 256 CPUs/2 Sockets:
-autonuma benchmark also shows improvements:
-
-                                               v6.10-rc5              v6.10-rc5
-                                                                         +patch
-Amean     syst-NUMA01                  245.85 (   0.00%)      230.84 *   6.11%*
-Amean     syst-NUMA01_THREADLOCAL      205.27 (   0.00%)      191.86 *   6.53%*
-Amean     syst-NUMA02                   18.57 (   0.00%)       18.09 *   2.58%*
-Amean     syst-NUMA02_SMT                2.63 (   0.00%)        2.54 *   3.47%*
-Amean     elsp-NUMA01                  517.17 (   0.00%)      526.34 *  -1.77%*
-Amean     elsp-NUMA01_THREADLOCAL       99.92 (   0.00%)      100.59 *  -0.67%*
-Amean     elsp-NUMA02                   15.81 (   0.00%)       15.72 *   0.59%*
-Amean     elsp-NUMA02_SMT               13.23 (   0.00%)       12.89 *   2.53%*
-
-                   v6.10-rc5   v6.10-rc5
-                                  +patch
-Duration User     1064010.16  1075416.23
-Duration System      3307.64     3104.66
-Duration Elapsed     4537.54     4604.73
-
-The SPECcpu remote node access issue disappears with the patch applied.
-
-Link: https://lkml.kernel.org/r/20240827112958.181388-1-yu.c.chen@intel.com
-Fixes: fc137c0ddab2 ("sched/numa: enhance vma scanning logic")
+Link: https://lore.kernel.org/lkml/Zs2ZoAcUsZMX2B%2FI@chenyu5-mobl2/ [1]
+Link: https://lkml.kernel.org/r/20240827112308.181081-1-yu.c.chen@intel.com
+Fixes: b56c0d8937e6 ("kthread: implement kthread_worker")
 Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-Co-developed-by: Chen Yu <yu.c.chen@intel.com>
-Signed-off-by: Yujie Liu <yujie.liu@intel.com>
-Reported-by: Xiaoping Zhou <xiaoping.zhou@intel.com>
-Reviewed-and-tested-by: Raghavendra K T <raghavendra.kt@amd.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Raghavendra K T <raghavendra.kt@amd.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Mickaël Salaün <mic@digikod.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/kthread.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/kernel/sched/fair.c~sched-numa-fix-the-vma-scan-starving-issue
-+++ a/kernel/sched/fair.c
-@@ -3187,6 +3187,15 @@ static bool vma_is_accessed(struct mm_st
- 		return true;
- 	}
+--- a/kernel/kthread.c~kthread-fix-task-state-in-kthread-worker-if-being-frozen
++++ a/kernel/kthread.c
+@@ -845,8 +845,16 @@ repeat:
+ 		 * event only cares about the address.
+ 		 */
+ 		trace_sched_kthread_work_execute_end(work, func);
+-	} else if (!freezing(current))
++	} else if (!freezing(current)) {
+ 		schedule();
++	} else {
++		/*
++		 * Handle the case where the current remains
++		 * TASK_INTERRUPTIBLE. try_to_freeze() expects
++		 * the current to be TASK_RUNNING.
++		 */
++		__set_current_state(TASK_RUNNING);
++	}
  
-+	/*
-+	 * This vma has not been accessed for a while, and if the number
-+	 * the threads in the same process is low, which means no other
-+	 * threads can help scan this vma, force a vma scan.
-+	 */
-+	if (READ_ONCE(mm->numa_scan_seq) >
-+	   (vma->numab_state->prev_scan_seq + get_nr_threads(current)))
-+		return true;
-+
- 	return false;
- }
- 
+ 	try_to_freeze();
+ 	cond_resched();
 _
 
-Patches currently in -mm which might be from yujie.liu@intel.com are
+Patches currently in -mm which might be from yu.c.chen@intel.com are
 
-sched-numa-fix-the-vma-scan-starving-issue.patch
+kthread-fix-task-state-in-kthread-worker-if-being-frozen.patch
 
