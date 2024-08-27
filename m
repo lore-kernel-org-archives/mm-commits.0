@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77CA51C8FB0
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E71D47AD
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802734; cv=none; b=HgO/KL3R80f0QTbQK8z1W/kJwmY67WA+u8EOj/ZsGK0OIVlZCptpDs30HDRzx+TBKWrrMzup58o5zDTyV5h6peWD2BBaU5ciVJxXpiCowoHw4vpCK0LM+EjvhCTEzJC0DDgGTSgkJ+edzW3VJgzP3TwYjDKzy44BcBJ8oEzIBmw=
+	t=1724802736; cv=none; b=fMSm+ofeotf8n5unVPR/Cha0zmR4iEYRjKnNerBcL0dshwLYP6NwB7jM8cqMKzeZow/j+ilEdI1eiyfjjlEtLkDQKpqHbB6Lr5YRjR/sJ2OSpnaUZ6CKoLzK1LRTMZftzziOP59K0Ku/yYMKAXQc5YI91RVD49Mg1fawMMiDPOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802734; c=relaxed/simple;
-	bh=fu/ITFm5Qk8ddgNDE65KQVbRT6x7C51fVpEBU3m+9UQ=;
-	h=Date:To:From:Subject:Message-Id; b=UjtxmgaYcn5FhSUPpymlALfKTJ3Dn9jKhrU1Gf9VWwO0sVNIWxKVkjvygcznoGHrNaYwzl0IXWICviG0MGw6VT3PaJ8WSL1W0Sdzh9FOoPtbYFKefCb84FqWMI3/zUPybesK0kkfPTW+jZATvTW2ONA4I27GHMgEodsvITlIv0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2pYz6HaE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724802736; c=relaxed/simple;
+	bh=bmpY7V6RzZyOT/YBUVsYtr8O/HQIvXD+NHAffq1k+Fk=;
+	h=Date:To:From:Subject:Message-Id; b=MsI2+rnrkvI5lILLYm5k4FEaNQKOMCBXzb5+kv/EZAytlWNjRiLobsFh4vzBZHFvR6GolKr5aqI0kcNUAmswBtTvFlKiFZBYbcu69tyZemNCpdEs86AUbaE0gCYu2CG1pwE60cSOun5XbctUfGw4hd/IdGcZA3H25VKCTghHPDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjlSbfoS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2pYz6HaE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3516FC4FF74;
-	Tue, 27 Aug 2024 23:52:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjlSbfoS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6AEC4FF73;
+	Tue, 27 Aug 2024 23:52:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802734;
-	bh=fu/ITFm5Qk8ddgNDE65KQVbRT6x7C51fVpEBU3m+9UQ=;
+	s=korg; t=1724802736;
+	bh=bmpY7V6RzZyOT/YBUVsYtr8O/HQIvXD+NHAffq1k+Fk=;
 	h=Date:To:From:Subject:From;
-	b=2pYz6HaEc0uF+hCLgnFJMwdsBVX3qMQVbGExNXWRkfc/0ylFoxlfQuANZlhEXuR4V
-	 SBcmaXcYO6razT0sWVLUMq807U5WX8MpwU1Lm6aXyMdGuqjLQYUGhpQn/gdA2OyNzA
-	 oYKEQQRoVwXG1kI/A3/E9R8wcPYtCH9fd7xkY2B4=
-Date: Tue, 27 Aug 2024 16:52:13 -0700
+	b=DjlSbfoSo4OOlZvk5QxOyEHAo+zGh+C+wyb0nrj9RfapkYY+6V9o+IiMpk16vlnG5
+	 c+kD5jGeIgwAmBPEHRFcgNDBD7OdFjvYXJGVv0vOX1IftgNcihS5IrAC5GqqKBORyW
+	 +VzhTekCR4larWWfLLzJQ/J8FNZqWyVmMgdvvkTM=
+Date: Tue, 27 Aug 2024 16:52:15 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-check-pfnmap-for-folio_walk_start.patch added to mm-unstable branch
-Message-Id: <20240827235214.3516FC4FF74@smtp.kernel.org>
+Subject: + mm-fork-accept-huge-pfnmap-entries.patch added to mm-unstable branch
+Message-Id: <20240827235216.4C6AEC4FF73@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: check pfnmap for folio_walk_start()
+     Subject: mm/fork: accept huge pfnmap entries
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
+     mm-fork-accept-huge-pfnmap-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fork-accept-huge-pfnmap-entries.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/pagewalk: check pfnmap for folio_walk_start()
-Date: Mon, 26 Aug 2024 16:43:40 -0400
+Subject: mm/fork: accept huge pfnmap entries
+Date: Mon, 26 Aug 2024 16:43:41 -0400
 
-Teach folio_walk_start() to recognize special pmd/pud mappings, and fail
-them properly as it means there's no folio backing them.
+Teach the fork code to properly copy pfnmaps for pmd/pud levels.  Pud is
+much easier, the write bit needs to be persisted though for writable and
+shared pud mappings like PFNMAP ones, otherwise a follow up write in
+either parent or child process will trigger a write fault.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-7-peterx@redhat.com
+Do the same for pmd level.
+
+Link: https://lkml.kernel.org/r/20240826204353.2228736-8-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -75,6 +78,7 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Gavin Shan <gshan@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
@@ -93,29 +97,61 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-check-pfnmap-for-folio_walk_start
-+++ a/mm/pagewalk.c
-@@ -753,7 +753,7 @@ struct folio *folio_walk_start(struct fo
- 		fw->pudp = pudp;
- 		fw->pud = pud;
+--- a/mm/huge_memory.c~mm-fork-accept-huge-pfnmap-entries
++++ a/mm/huge_memory.c
+@@ -1559,6 +1559,24 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	pgtable_t pgtable = NULL;
+ 	int ret = -ENOMEM;
  
--		if (!pud_present(pud) || pud_devmap(pud)) {
-+		if (!pud_present(pud) || pud_devmap(pud) || pud_special(pud)) {
- 			spin_unlock(ptl);
- 			goto not_found;
- 		} else if (!pud_leaf(pud)) {
-@@ -783,7 +783,7 @@ pmd_table:
- 		fw->pmdp = pmdp;
- 		fw->pmd = pmd;
++	pmd = pmdp_get_lockless(src_pmd);
++	if (unlikely(pmd_special(pmd))) {
++		dst_ptl = pmd_lock(dst_mm, dst_pmd);
++		src_ptl = pmd_lockptr(src_mm, src_pmd);
++		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
++		/*
++		 * No need to recheck the pmd, it can't change with write
++		 * mmap lock held here.
++		 *
++		 * Meanwhile, making sure it's not a CoW VMA with writable
++		 * mapping, otherwise it means either the anon page wrongly
++		 * applied special bit, or we made the PRIVATE mapping be
++		 * able to wrongly write to the backend MMIO.
++		 */
++		VM_WARN_ON_ONCE(is_cow_mapping(src_vma->vm_flags) && pmd_write(pmd));
++		goto set_pmd;
++	}
++
+ 	/* Skip if can be re-fill on fault */
+ 	if (!vma_is_anonymous(dst_vma))
+ 		return 0;
+@@ -1640,7 +1658,9 @@ out_zero_page:
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	if (!userfaultfd_wp(dst_vma))
+ 		pmd = pmd_clear_uffd_wp(pmd);
+-	pmd = pmd_mkold(pmd_wrprotect(pmd));
++	pmd = pmd_wrprotect(pmd);
++set_pmd:
++	pmd = pmd_mkold(pmd);
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
  
--		if (pmd_none(pmd)) {
-+		if (pmd_none(pmd) || pmd_special(pmd)) {
- 			spin_unlock(ptl);
- 			goto not_found;
- 		} else if (!pmd_leaf(pmd)) {
+ 	ret = 0;
+@@ -1686,8 +1706,11 @@ int copy_huge_pud(struct mm_struct *dst_
+ 	 * TODO: once we support anonymous pages, use
+ 	 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
+ 	 */
+-	pudp_set_wrprotect(src_mm, addr, src_pud);
+-	pud = pud_mkold(pud_wrprotect(pud));
++	if (is_cow_mapping(vma->vm_flags) && pud_write(pud)) {
++		pudp_set_wrprotect(src_mm, addr, src_pud);
++		pud = pud_wrprotect(pud);
++	}
++	pud = pud_mkold(pud);
+ 	set_pud_at(dst_mm, addr, dst_pud, pud);
+ 
+ 	ret = 0;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
