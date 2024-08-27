@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3306B1D417F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:52:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAF241760
+	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:57:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724802765; cv=none; b=cfpOtTzn6hNCRHH1wKYiKRG8kZ7eOu79ndi2vnO8SDqnyW3PqCRXkK0nyi5SOeiZd4r0tLHPH3FwunuNMry4YjGz7IfS7nqsdHH0l4bc+IKXAgnsMP+NyEsBUYnhPdCMPf0Od2F6mXGiV7P04ogEBtNAZWZMUfCgaCPbuPeaRUk=
+	t=1724803041; cv=none; b=fov+NdqQXe/o9gT5xiEQz/tmeMw0pGRYrWY/v+Qvjsnht9izc+ZOTUDL2w+COC+QLfHTj8RHHqD2eegSbMGId5s4odbfhUWFXlbTOggvcnzv15+Ow9fD3is4OkIaAp/JyqVzBHD894/qYbiCdEoDD3TPbmSBdeEqa4ZfcoW68HM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724802765; c=relaxed/simple;
-	bh=b2ABi/RNUi9u3i+B39df0K1BI721v3vwfndgH6delYM=;
-	h=Date:To:From:Subject:Message-Id; b=RIcYLvQZ5w3F4yePbB4Ka+z7v2ZGggAzgwf+Jwcti2d2WNeUcR8dHSXJckC4KGr2aVyqCgKb5qrBG9Div5toN2/go3G2h0rxIauXISlUdxa28KvEOw9uEgEfDzCiDDzehpm45ehme6rPe0UElsJyVzAFi//6Bbyv0gy/r2UBLoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tIXD4hUI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724803041; c=relaxed/simple;
+	bh=kccdPUYg+HoiZW23Alq5dnCBnPn6xV/ZwJ4GU0c5f8E=;
+	h=Date:To:From:Subject:Message-Id; b=mzs4sQ7MA+qv0JEolIxjX+Ym5oBdNjk6UsHlofcj0utR72N2vi6J04IAVtAW3Yh7nJhx1yBYCEql5PP7u3XwadEmiN2V7I6e+mklb/LHAWwCuPpp4Tz2dV/NqPG7kGFoycEtb5FcwYlCsljK/jDDkLLh1kTX5Pyp2BanbYU4bQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PkKQV+t6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tIXD4hUI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0622AC32782;
-	Tue, 27 Aug 2024 23:52:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PkKQV+t6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60CD2C32782;
+	Tue, 27 Aug 2024 23:57:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724802765;
-	bh=b2ABi/RNUi9u3i+B39df0K1BI721v3vwfndgH6delYM=;
+	s=korg; t=1724803041;
+	bh=kccdPUYg+HoiZW23Alq5dnCBnPn6xV/ZwJ4GU0c5f8E=;
 	h=Date:To:From:Subject:From;
-	b=tIXD4hUIeYPYIFghcYwbK1QevnXtnIQCWo9IM79EiWewMjOby2dCgOrAoQDaDh66a
-	 ogJ2KgZ0/PA6PR4d0EbJ7tp6iLlBVb2dRnuVA2rU4H0fuO1vGOVI8OFfKcI43IckPq
-	 CtM1G006FRq7tn5ZWedhZ6PHYkBbrhaW4TCR9eGE=
-Date: Tue, 27 Aug 2024 16:52:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,peterx@redhat.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,alex.williamson@redhat.com,akpm@linux-foundation.org
+	b=PkKQV+t6IkhnWRs0dje3O2L+O8WePwChSRCAVOkpL7OZsJkSyC5YugwKpGFlEoBo7
+	 uvUqZs5esmd8eTtWtRnhtlxM3IML8IwK2K0gRaobPUHUVR5ZaRNdGgyDSTu2IVLZob
+	 mDnEnRK2r9Laj81nvIXX7KhKYysq9H8YXEWcT1WE=
+Date: Tue, 27 Aug 2024 16:57:20 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vfio-pci-implement-huge_fault-support.patch added to mm-unstable branch
-Message-Id: <20240827235245.0622AC32782@smtp.kernel.org>
+Subject: + cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch added to mm-unstable branch
+Message-Id: <20240827235721.60CD2C32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vfio/pci: implement huge_fault support
+     Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
 has been added to the -mm mm-unstable branch.  Its filename is
-     vfio-pci-implement-huge_fault-support.patch
+     cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vfio-pci-implement-huge_fault-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,155 +58,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: vfio/pci: implement huge_fault support
-Date: Mon, 26 Aug 2024 16:43:53 -0400
+From: Kinsey Ho <kinseyho@google.com>
+Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
+Date: Tue, 27 Aug 2024 23:07:38 +0000
 
-With the addition of pfnmap support in vmf_insert_pfn_{pmd,pud}() we can
-take advantage of PMD and PUD faults to PCI BAR mmaps and create more
-efficient mappings.  PCI BARs are always a power of two and will typically
-get at least PMD alignment without userspace even trying.  Userspace
-alignment for PUD mappings is also not too difficult.
+Pach series "Improve mem_cgroup_iter()", v3.
 
-Consolidate faults through a single handler with a new wrapper for
-standard single page faults.  The pre-faulting behavior of commit
-d71a989cf5d9 ("vfio/pci: Insert full vma on mmap'd MMIO fault") is removed
-in this refactoring since huge_fault will cover the bulk of the faults and
-results in more efficient page table usage.  We also want to avoid that
-pre-faulted single page mappings preempt huge page mappings.
+Incremental cgroup iteration is being used again [1].  This patchset
+improves the reliability of mem_cgroup_iter().  It also improves
+simplicity and code readability.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-20-peterx@redhat.com
-Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+[1] https://lore.kernel.org/20240514202641.2821494-1-hannes@cmpxchg.org/
+
+
+This patch (of 5):
+
+Explicitly document that css sibling/descendant linkage is protected by
+cgroup_mutex or RCU.  Also, document in css_next_descendant_pre() and
+similar functions that it isn't necessary to hold a ref on @pos.
+
+The following changes in this patchset rely on this clarification for
+simplification in memcg iteration code.
+
+Link: https://lkml.kernel.org/r/20240827230753.2073580-1-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20240827230753.2073580-2-kinseyho@google.com
+Suggested-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Signed-off-by: Kinsey Ho <kinseyho@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/pci/vfio_pci_core.c |   60 ++++++++++++++++++++---------
- 1 file changed, 43 insertions(+), 17 deletions(-)
+ include/linux/cgroup-defs.h |    6 +++++-
+ kernel/cgroup/cgroup.c      |   16 +++++++++-------
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
---- a/drivers/vfio/pci/vfio_pci_core.c~vfio-pci-implement-huge_fault-support
-+++ a/drivers/vfio/pci/vfio_pci_core.c
-@@ -20,6 +20,7 @@
- #include <linux/mutex.h>
- #include <linux/notifier.h>
- #include <linux/pci.h>
-+#include <linux/pfn_t.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -1657,14 +1658,20 @@ static unsigned long vma_to_pfn(struct v
- 	return (pci_resource_start(vdev->pdev, index) >> PAGE_SHIFT) + pgoff;
- }
+--- a/include/linux/cgroup-defs.h~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
++++ a/include/linux/cgroup-defs.h
+@@ -172,7 +172,11 @@ struct cgroup_subsys_state {
+ 	/* reference count - access via css_[try]get() and css_put() */
+ 	struct percpu_ref refcnt;
  
--static vm_fault_t vfio_pci_mmap_fault(struct vm_fault *vmf)
-+static vm_fault_t vfio_pci_mmap_huge_fault(struct vm_fault *vmf,
-+					   unsigned int order)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct vfio_pci_core_device *vdev = vma->vm_private_data;
- 	unsigned long pfn, pgoff = vmf->pgoff - vma->vm_pgoff;
--	unsigned long addr = vma->vm_start;
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
+-	/* siblings list anchored at the parent's ->children */
++	/*
++	 * siblings list anchored at the parent's ->children
++	 *
++	 * linkage is protected by cgroup_mutex or RCU
++	 */
+ 	struct list_head sibling;
+ 	struct list_head children;
  
-+	if (order && (vmf->address & ((PAGE_SIZE << order) - 1) ||
-+		      vmf->address + (PAGE_SIZE << order) > vma->vm_end)) {
-+		ret = VM_FAULT_FALLBACK;
-+		goto out;
-+	}
-+
- 	pfn = vma_to_pfn(vma);
- 
- 	down_read(&vdev->memory_lock);
-@@ -1672,30 +1679,49 @@ static vm_fault_t vfio_pci_mmap_fault(st
- 	if (vdev->pm_runtime_engaged || !__vfio_pci_memory_enabled(vdev))
- 		goto out_unlock;
- 
--	ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
--	if (ret & VM_FAULT_ERROR)
--		goto out_unlock;
--
--	/*
--	 * Pre-fault the remainder of the vma, abort further insertions and
--	 * supress error if fault is encountered during pre-fault.
--	 */
--	for (; addr < vma->vm_end; addr += PAGE_SIZE, pfn++) {
--		if (addr == vmf->address)
--			continue;
--
--		if (vmf_insert_pfn(vma, addr, pfn) & VM_FAULT_ERROR)
--			break;
-+	switch (order) {
-+	case 0:
-+		ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
-+		break;
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
-+	case PMD_ORDER:
-+		ret = vmf_insert_pfn_pmd(vmf, __pfn_to_pfn_t(pfn + pgoff,
-+							     PFN_DEV), false);
-+		break;
-+#endif
-+#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
-+	case PUD_ORDER:
-+		ret = vmf_insert_pfn_pud(vmf, __pfn_to_pfn_t(pfn + pgoff,
-+							     PFN_DEV), false);
-+		break;
-+#endif
-+	default:
-+		ret = VM_FAULT_FALLBACK;
- 	}
- 
- out_unlock:
- 	up_read(&vdev->memory_lock);
-+out:
-+	dev_dbg_ratelimited(&vdev->pdev->dev,
-+			   "%s(,order = %d) BAR %ld page offset 0x%lx: 0x%x\n",
-+			    __func__, order,
-+			    vma->vm_pgoff >>
-+				(VFIO_PCI_OFFSET_SHIFT - PAGE_SHIFT),
-+			    pgoff, (unsigned int)ret);
- 
- 	return ret;
- }
- 
-+static vm_fault_t vfio_pci_mmap_page_fault(struct vm_fault *vmf)
-+{
-+	return vfio_pci_mmap_huge_fault(vmf, 0);
-+}
-+
- static const struct vm_operations_struct vfio_pci_mmap_ops = {
--	.fault = vfio_pci_mmap_fault,
-+	.fault = vfio_pci_mmap_page_fault,
-+#ifdef CONFIG_ARCH_SUPPORTS_HUGE_PFNMAP
-+	.huge_fault = vfio_pci_mmap_huge_fault,
-+#endif
- };
- 
- int vfio_pci_core_mmap(struct vfio_device *core_vdev, struct vm_area_struct *vma)
+--- a/kernel/cgroup/cgroup.c~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
++++ a/kernel/cgroup/cgroup.c
+@@ -4602,8 +4602,9 @@ struct cgroup_subsys_state *css_next_chi
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct next descendant as long
+- * as both @pos and @root are accessible and @pos is a descendant of @root.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct next descendant as long as both @pos
++ * and @root are accessible and @pos is a descendant of @root.
+  *
+  * If a subsystem synchronizes ->css_online() and the start of iteration, a
+  * css which finished ->css_online() is guaranteed to be visible in the
+@@ -4651,8 +4652,9 @@ EXPORT_SYMBOL_GPL(css_next_descendant_pr
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct rightmost descendant as
+- * long as @pos is accessible.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct rightmost descendant as long as @pos
++ * is accessible.
+  */
+ struct cgroup_subsys_state *
+ css_rightmost_descendant(struct cgroup_subsys_state *pos)
+@@ -4696,9 +4698,9 @@ css_leftmost_descendant(struct cgroup_su
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct next descendant as long
+- * as both @pos and @cgroup are accessible and @pos is a descendant of
+- * @cgroup.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct next descendant as long as both @pos
++ * and @cgroup are accessible and @pos is a descendant of @cgroup.
+  *
+  * If a subsystem synchronizes ->css_online() and the start of iteration, a
+  * css which finished ->css_online() is guaranteed to be visible in the
 _
 
-Patches currently in -mm which might be from alex.williamson@redhat.com are
+Patches currently in -mm which might be from kinseyho@google.com are
 
-vfio-pci-implement-huge_fault-support.patch
+cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
+mm-dont-hold-css-refcnt-during-traversal.patch
+mm-increment-gen-before-restarting-traversal.patch
+mm-restart-if-multiple-traversals-raced.patch
+mm-clean-up-mem_cgroup_iter.patch
 
