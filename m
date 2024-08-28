@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EEC0322A
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:53:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C408322A
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:53:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724806388; cv=none; b=LZ+cnARzxuO+bl3+QbtAqcTIZb0Z0BX25ykXa8HPNNXT15RwVEKz/tdDYyLgsMVZgDlmqx1fbwbgqSWUghoJjQqdtz/uIjpy/3FxQKXm+tZvDkw+wxKzq/uuWqM3/3ZrefynO5w/iM2YkJcYYc0dT7iEfgDJ5o2tkOJfYYtnHNk=
+	t=1724806393; cv=none; b=XNeZ5XAMnNkALHELvZrYJrA3UWThMZTBGW4AwOez48uTBZf33/3Vyj1byqDNDMgU5o4JKcEZeAuinI/SnyiWFqmTnCFIipam/6TW9l1M8ypvae+hpV3OI9nCHqZjwTIZmzAAGsJnpUCqnp2yfNAsnVCDIB/Hdc/SFAYoRg2W9N4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724806388; c=relaxed/simple;
-	bh=ENxN+q2LXcST7Do8SzjhfyeuhoAiEFK8TJ/gzU3t2y8=;
-	h=Date:To:From:Subject:Message-Id; b=muVvPgP7pa4HesmQ2ziCDNH+VqgskOoFrJZ6YNCADSwTBCuoo5lH2HaJJm3+tl0fyewXqpCHwq0awR716J/sNUQhnW2ZgAGLomX/egdelP+vymO7HWOKupHUeDq0WOY9dg928kf/s8j9WC5l7s9qcTY+HT3osoFStFcLcBxJgf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LvbZ6A6b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724806393; c=relaxed/simple;
+	bh=B9hFkXHsXbqXdmyv33CEIfi8PvjxEQ10Ts44kIhVQKQ=;
+	h=Date:To:From:Subject:Message-Id; b=iMDkZG3A29gWsvZfRxDIb9zrdau4cRV4vvl/buvfVBeM3z5mo9VaF5LAvorYzG/ILL9IixITGktUtw4XPdy4N6QniBWe8Yhmqu8eN6L8LFTSBGbKt3mLm4lJIsSq56qF7IRfj+On5Fr1WfrOs4qWj0GDYWYBCo+l+ff1Sn9mIoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KGtxmHUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LvbZ6A6b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0806C4AF0C;
-	Wed, 28 Aug 2024 00:53:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KGtxmHUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FE88C4AF0C;
+	Wed, 28 Aug 2024 00:53:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724806387;
-	bh=ENxN+q2LXcST7Do8SzjhfyeuhoAiEFK8TJ/gzU3t2y8=;
+	s=korg; t=1724806392;
+	bh=B9hFkXHsXbqXdmyv33CEIfi8PvjxEQ10Ts44kIhVQKQ=;
 	h=Date:To:From:Subject:From;
-	b=LvbZ6A6baO/eJeLj1NF/18MlZ06TYEaVDj3VYI4JTyb895XMZAi/BDdqtx2cmr6zG
-	 /gKER1yeIYFt2WtwrW8bBE+nZNuBcIauKw8PAcP0+18zananS65C+nc03hKwC2A9jp
-	 31R0GiLxmc9EPx9daIOmFUKn2vQ/vTEsgLaopyFk=
-Date: Tue, 27 Aug 2024 17:53:07 -0700
+	b=KGtxmHUb54MW3Y5iDZrD+2OTJJ1EyvG9dbB7oRT2/hX18NJGjCqNeA4JUqwHO3ety
+	 KvsFXMsBDxbD4eYo6Z9vgxz2B2eJCwKsMt+P4uxTgmg06MsQC5gqtTPq4ZMfjLcPLQ
+	 C2cR5f0igF/Ixr8pTnFQav/ucGuN/4Yu9Nt3b96c=
+Date: Tue, 27 Aug 2024 17:53:12 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-isolate_lru_page.patch added to mm-unstable branch
-Message-Id: <20240828005307.D0806C4AF0C@smtp.kernel.org>
+Subject: + mm-remove-isolate_lru_page-fix.patch added to mm-unstable branch
+Message-Id: <20240828005312.8FE88C4AF0C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove isolate_lru_page()
+     Subject: mm: remove isolate_lru_page() fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-isolate_lru_page.patch
+     mm-remove-isolate_lru_page-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-isolate_lru_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-isolate_lru_page-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,177 +59,116 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove isolate_lru_page()
-Date: Mon, 26 Aug 2024 14:58:13 +0800
+Subject: mm: remove isolate_lru_page() fix
+Date: Mon, 26 Aug 2024 22:41:14 +0800
 
-There are no more callers of isolate_lru_page(), remove it.
+convert page to folio in comment and document, per Matthew
 
-Link: https://lkml.kernel.org/r/20240826065814.1336616-6-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240826144114.1928071-1-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_migration.rst                    |    6 +++---
- Documentation/mm/unevictable-lru.rst                   |    2 +-
- Documentation/translations/zh_CN/mm/page_migration.rst |    6 +++---
- mm/filemap.c                                           |    2 +-
- mm/folio-compat.c                                      |    7 -------
- mm/internal.h                                          |    1 -
- mm/khugepaged.c                                        |    6 +++---
- mm/migrate_device.c                                    |    2 +-
- mm/swap.c                                              |    2 +-
- 9 files changed, 13 insertions(+), 21 deletions(-)
+ Documentation/mm/page_migration.rst  |   18 +++++++++---------
+ Documentation/mm/unevictable-lru.rst |    2 +-
+ mm/khugepaged.c                      |    2 +-
+ mm/migrate_device.c                  |    4 ++--
+ mm/swap.c                            |    4 ++--
+ 5 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/Documentation/mm/page_migration.rst~mm-remove-isolate_lru_page
+--- a/Documentation/mm/page_migration.rst~mm-remove-isolate_lru_page-fix
 +++ a/Documentation/mm/page_migration.rst
-@@ -67,8 +67,8 @@ In kernel use of migrate_pages()
+@@ -63,15 +63,15 @@ and then a low level description of how
+ In kernel use of migrate_pages()
+ ================================
  
-    Lists of pages to be migrated are generated by scanning over
-    pages and moving them into lists. This is done by
--   calling isolate_lru_page().
--   Calling isolate_lru_page() increases the references to the page
-+   calling folio_isolate_lru().
-+   Calling folio_isolate_lru() increases the references to the page
-    so that it cannot vanish while the page migration occurs.
+-1. Remove pages from the LRU.
++1. Remove folios from the LRU.
+ 
+-   Lists of pages to be migrated are generated by scanning over
+-   pages and moving them into lists. This is done by
++   Lists of folios to be migrated are generated by scanning over
++   folios and moving them into lists. This is done by
+    calling folio_isolate_lru().
+-   Calling folio_isolate_lru() increases the references to the page
+-   so that it cannot vanish while the page migration occurs.
++   Calling folio_isolate_lru() increases the references to the folio
++   so that it cannot vanish while the folio migration occurs.
     It also prevents the swapper or other scans from encountering
-    the page.
-@@ -86,7 +86,7 @@ How migrate_pages() works
+-   the page.
++   the folio.
  
- migrate_pages() does several passes over its list of pages. A page is moved
- if all references to a page are removable at the time. The page has
--already been removed from the LRU via isolate_lru_page() and the refcount
-+already been removed from the LRU via folio_isolate_lru() and the refcount
- is increased so that the page cannot be freed while page migration occurs.
+ 2. We need to have a function of type new_folio_t that can be
+    passed to migrate_pages(). This function should figure out
+@@ -84,10 +84,10 @@ In kernel use of migrate_pages()
+ How migrate_pages() works
+ =========================
+ 
+-migrate_pages() does several passes over its list of pages. A page is moved
+-if all references to a page are removable at the time. The page has
++migrate_pages() does several passes over its list of folios. A folio is moved
++if all references to a folio are removable at the time. The folio has
+ already been removed from the LRU via folio_isolate_lru() and the refcount
+-is increased so that the page cannot be freed while page migration occurs.
++is increased so that the folio cannot be freed while folio migration occurs.
  
  Steps:
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-isolate_lru_page
+ 
+--- a/Documentation/mm/unevictable-lru.rst~mm-remove-isolate_lru_page-fix
 +++ a/Documentation/mm/unevictable-lru.rst
-@@ -230,7 +230,7 @@ In Nick's patch, he used one of the stru
- of VM_LOCKED VMAs that map the page (Rik van Riel had the same idea three years
- earlier).  But this use of the link field for a count prevented the management
- of the pages on an LRU list, and thus mlocked pages were not migratable as
--isolate_lru_page() could not detect them, and the LRU list link field was not
-+folio_isolate_lru() could not detect them, and the LRU list link field was not
- available to the migration subsystem.
+@@ -80,7 +80,7 @@ on an additional LRU list for a few reas
+  (2) We want to be able to migrate unevictable folios between nodes for memory
+      defragmentation, workload management and memory hotplug.  The Linux kernel
+      can only migrate folios that it can successfully isolate from the LRU
+-     lists (or "Movable" pages: outside of consideration here).  If we were to
++     lists (or "Movable" folios: outside of consideration here).  If we were to
+      maintain folios elsewhere than on an LRU-like list, where they can be
+      detected by folio_isolate_lru(), we would prevent their migration.
  
- Nick resolved this by putting mlocked pages back on the LRU list before
---- a/Documentation/translations/zh_CN/mm/page_migration.rst~mm-remove-isolate_lru_page
-+++ a/Documentation/translations/zh_CN/mm/page_migration.rst
-@@ -50,8 +50,8 @@ 在内核中使用 migrate_pages()
- 
- 1. 从LRU中移除页面。
- 
--   要迁移的页面列表是通过扫描页面并把它们移到列表中来生成的。这是通过调用 isolate_lru_page()
--   来完成的。调用isolate_lru_page()增加了对该页的引用，这样在页面迁移发生时它就不会
-+   要迁移的页面列表是通过扫描页面并把它们移到列表中来生成的。这是通过调用 folio_isolate_lru()
-+   来完成的。调用folio_isolate_lru()增加了对该页的引用，这样在页面迁移发生时它就不会
-    消失。它还可以防止交换器或其他扫描器遇到该页。
- 
- 
-@@ -65,7 +65,7 @@ migrate_pages()如何工作
- =======================
- 
- migrate_pages()对它的页面列表进行了多次处理。如果当时对一个页面的所有引用都可以被移除，
--那么这个页面就会被移动。该页已经通过isolate_lru_page()从LRU中移除，并且refcount被
-+那么这个页面就会被移动。该页已经通过folio_isolate_lru()从LRU中移除，并且refcount被
- 增加，以便在页面迁移发生时不释放该页。
- 
- 步骤:
---- a/mm/filemap.c~mm-remove-isolate_lru_page
-+++ a/mm/filemap.c
-@@ -114,7 +114,7 @@
-  *    ->private_lock		(try_to_unmap_one)
-  *    ->i_pages lock		(try_to_unmap_one)
-  *    ->lruvec->lru_lock	(follow_page_mask->mark_page_accessed)
-- *    ->lruvec->lru_lock	(check_pte_range->isolate_lru_page)
-+ *    ->lruvec->lru_lock	(check_pte_range->folio_isolate_lru)
-  *    ->private_lock		(folio_remove_rmap_pte->set_page_dirty)
-  *    ->i_pages lock		(folio_remove_rmap_pte->set_page_dirty)
-  *    bdi.wb->list_lock		(folio_remove_rmap_pte->set_page_dirty)
---- a/mm/folio-compat.c~mm-remove-isolate_lru_page
-+++ a/mm/folio-compat.c
-@@ -93,13 +93,6 @@ struct page *grab_cache_page_write_begin
- }
- EXPORT_SYMBOL(grab_cache_page_write_begin);
- 
--bool isolate_lru_page(struct page *page)
--{
--	if (WARN_RATELIMIT(PageTail(page), "trying to isolate tail page"))
--		return false;
--	return folio_isolate_lru((struct folio *)page);
--}
--
- void putback_lru_page(struct page *page)
- {
- 	folio_putback_lru(page_folio(page));
---- a/mm/internal.h~mm-remove-isolate_lru_page
-+++ a/mm/internal.h
-@@ -416,7 +416,6 @@ extern unsigned long highest_memmap_pfn;
- /*
-  * in mm/vmscan.c:
-  */
--bool isolate_lru_page(struct page *page);
- bool folio_isolate_lru(struct folio *folio);
- void putback_lru_page(struct page *page);
- void folio_putback_lru(struct folio *folio);
---- a/mm/khugepaged.c~mm-remove-isolate_lru_page
+--- a/mm/khugepaged.c~mm-remove-isolate_lru_page-fix
 +++ a/mm/khugepaged.c
-@@ -627,7 +627,7 @@ static int __collapse_huge_page_isolate(
- 		}
+@@ -628,7 +628,7 @@ static int __collapse_huge_page_isolate(
  
  		/*
--		 * We can do it before isolate_lru_page because the
-+		 * We can do it before folio_isolate_lru because the
- 		 * page can't be freed from under us. NOTE: PG_lock
+ 		 * We can do it before folio_isolate_lru because the
+-		 * page can't be freed from under us. NOTE: PG_lock
++		 * folio can't be freed from under us. NOTE: PG_lock
  		 * is needed to serialize against split_huge_page
  		 * when invoked from the VM.
-@@ -1874,7 +1874,7 @@ static int collapse_file(struct mm_struc
- 					result = SCAN_FAIL;
- 					goto xa_unlocked;
- 				}
--				/* drain lru cache to help isolate_lru_page() */
-+				/* drain lru cache to help folio_isolate_lru() */
- 				lru_add_drain();
- 			} else if (folio_trylock(folio)) {
- 				folio_get(folio);
-@@ -1889,7 +1889,7 @@ static int collapse_file(struct mm_struc
- 				page_cache_sync_readahead(mapping, &file->f_ra,
- 							  file, index,
- 							  end - index);
--				/* drain lru cache to help isolate_lru_page() */
-+				/* drain lru cache to help folio_isolate_lru() */
- 				lru_add_drain();
- 				folio = filemap_lock_folio(mapping, index);
- 				if (IS_ERR(folio)) {
---- a/mm/migrate_device.c~mm-remove-isolate_lru_page
+ 		 */
+--- a/mm/migrate_device.c~mm-remove-isolate_lru_page-fix
 +++ a/mm/migrate_device.c
-@@ -328,7 +328,7 @@ static bool migrate_vma_check_page(struc
+@@ -328,8 +328,8 @@ static bool migrate_vma_check_page(struc
  
  	/*
  	 * One extra ref because caller holds an extra reference, either from
--	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
-+	 * folio_isolate_lru() for a regular page, or migrate_vma_collect() for
- 	 * a device page.
+-	 * folio_isolate_lru() for a regular page, or migrate_vma_collect() for
+-	 * a device page.
++	 * folio_isolate_lru() for a regular folio, or migrate_vma_collect() for
++	 * a device folio.
  	 */
  	int extra = 1 + (page == fault_page);
---- a/mm/swap.c~mm-remove-isolate_lru_page
+ 
+--- a/mm/swap.c~mm-remove-isolate_lru_page-fix
 +++ a/mm/swap.c
-@@ -906,7 +906,7 @@ atomic_t lru_disable_count = ATOMIC_INIT
+@@ -906,8 +906,8 @@ atomic_t lru_disable_count = ATOMIC_INIT
  
  /*
   * lru_cache_disable() needs to be called before we start compiling
-- * a list of pages to be migrated using isolate_lru_page().
-+ * a list of pages to be migrated using folio_isolate_lru().
-  * It drains pages on LRU cache and then disable on all cpus until
+- * a list of pages to be migrated using folio_isolate_lru().
+- * It drains pages on LRU cache and then disable on all cpus until
++ * a list of folios to be migrated using folio_isolate_lru().
++ * It drains folios on LRU cache and then disable on all cpus until
   * lru_cache_enable is called.
   *
+  * Must be paired with a call to lru_cache_enable().
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
