@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12AE818D
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:05:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C55010E0
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:09:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724803508; cv=none; b=jNqNRpvZl+5wInZlkIFwtv6DjrcBcufbDpAUz20J470jwOwtMITaslEQlb30yWrfHxRWmc9BNS1OionxsncUlOtXxYsuXlgFWxlzVhtgF0aWlNS9hu2MNo9VlXmjDAv/X0j1RU2zS4pt/NV+OEBi9uQvDH+Q19AiEDvIJ3BU8Z0=
+	t=1724803796; cv=none; b=SKFQbMYdhd0J8KfXk60XNH4qSkYPG4ZD57QSds+GhP+4ib/QEr3mZHTj/okZkD6eaW3z3cHmMJ0O39g95oZpQ4PScDcq7SQ3bKPyjtnheZeKQNwoLu+K4owUOdRL887SnN7f452HmuC1udUUms/R/ZBx6XXJDNCVTgvqWcnEvKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724803508; c=relaxed/simple;
-	bh=jDTIPQEz+N1fUsFuqrvkU9Zt6V91k39CWHDE7FF+KFQ=;
-	h=Date:To:From:Subject:Message-Id; b=CuAIb1ClqJZ+/rSEyWd/SGo+LT6i8oS5w1M2i/CFvt45YPT0EnRmYWSgcAUGEUaFM4yUHidMFID2ylR4Beq5ewmOAdDYZAmP9VawsVyzpxtFfIkDAcT9fQaOJnoM0aY2IW6SG2OGv/g/bopcAligAd0DsC73SNY0VluI4U1f/Gg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qp5AT4g4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724803796; c=relaxed/simple;
+	bh=5Q/PgWmxEyvQm7MMdVWsZzhdbpgp0t1EkPHmAoMLaNI=;
+	h=Date:To:From:Subject:Message-Id; b=q7cHqkKGgYKBil9pXjknLA0iayguXshetL50IlAOPTiqUTn7zGYLhABb1/W15b94knOQT/SbPvTtmlr7AE3Ums2EISqOpjRe6YgMzLlk/dSMW3aKDiiW75PO0KcEevWoQEgMwHKl/z1WAcK7E5CXYmeE+4e8G8FuHGljQHiutsI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YMduBzo1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qp5AT4g4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B8BC4AF12;
-	Wed, 28 Aug 2024 00:05:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YMduBzo1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD4F4C4AF51;
+	Wed, 28 Aug 2024 00:09:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724803507;
-	bh=jDTIPQEz+N1fUsFuqrvkU9Zt6V91k39CWHDE7FF+KFQ=;
+	s=korg; t=1724803795;
+	bh=5Q/PgWmxEyvQm7MMdVWsZzhdbpgp0t1EkPHmAoMLaNI=;
 	h=Date:To:From:Subject:From;
-	b=qp5AT4g41xCXz0cwE3sFYe5zo5iuB/k/wBjqLPejvZZNgXwj2Z5eCgdp9allz2Hh8
-	 9vSECfMdBEDswbznMqhTuaNiLxrvKNM4+CgMQOYXYwmXoNxGyoxUIqvL1EBhycYsbt
-	 VoQITHW6qCCCXb90KbFTipseVy61HWDDcrtmlp3M=
-Date: Tue, 27 Aug 2024 17:05:07 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=YMduBzo1FdYVCREqVqcJLDe18Y9KSvua2X+DvMyE6S5c0XDtz6lPkFwh0aQPSdYJp
+	 P8gwd+AR8yqEBLQrEMeIBeBM2dfIAeu7KN8KTfCEQWENOp9yHsyNC65NdZUgpbyo5J
+	 VKa6EflykX95d2uKIJ8/5oSOLVURX9CNIpReHqbE=
+Date: Tue, 27 Aug 2024 17:09:55 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,huangxiaojia2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-convert-swapon-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20240828000507.84B8BC4AF12@smtp.kernel.org>
+Subject: + nilfs2-use-common-implementation-of-file-type.patch added to mm-nonmm-unstable branch
+Message-Id: <20240828000955.AD4F4C4AF51@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: swap: convert swapon() to use a folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     swap-convert-swapon-to-use-a-folio.patch
+     Subject: nilfs2: use common implementation of file type
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-use-common-implementation-of-file-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-convert-swapon-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-common-implementation-of-file-type.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,82 +58,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: swap: convert swapon() to use a folio
-Date: Mon, 26 Aug 2024 21:21:35 +0100
+From: Huang Xiaojia <huangxiaojia2@huawei.com>
+Subject: nilfs2: use common implementation of file type
+Date: Tue, 27 Aug 2024 02:41:09 +0900
 
-Retrieve a folio from the page cache rather than a page.  Saves a couple
-of conversions between page & folio.
+Patch series "nilfs2: assorted cleanups".
 
-Link: https://lkml.kernel.org/r/20240826202138.3804238-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+This is a collection of cleanup patches, with only the last three focused
+on the log writer thread, the rest are miscellaneous.
+
+Patches 1/8, 4/8, and 7/8 adopt common implementations, 2/8 uses a generic
+macro, 5/8 removes dead code, 6/8 removes an unnecessary reference, and
+3/8 and 8/8 each simplify a paticular messy implementation.
+
+
+This patch (of 8):
+
+Deduplicate the nilfs2 file type conversion implementation.
+
+Link: https://lkml.kernel.org/r/20240826174116.5008-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240815013442.1220909-1-huangxiaojia2@huawei.com
+Link: https://lkml.kernel.org/r/20240826174116.5008-2-konishi.ryusuke@gmail.com
+Signed-off-by: Huang Xiaojia <huangxiaojia2@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ fs/nilfs2/dir.c |   44 +++++---------------------------------------
+ 1 file changed, 5 insertions(+), 39 deletions(-)
 
---- a/mm/swapfile.c~swap-convert-swapon-to-use-a-folio
-+++ a/mm/swapfile.c
-@@ -3355,7 +3355,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	unsigned char *swap_map = NULL;
- 	unsigned long *zeromap = NULL;
- 	struct swap_cluster_info *cluster_info = NULL;
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 	struct inode *inode = NULL;
- 	bool inced_nr_rotate_swap = false;
+--- a/fs/nilfs2/dir.c~nilfs2-use-common-implementation-of-file-type
++++ a/fs/nilfs2/dir.c
+@@ -231,37 +231,6 @@ static struct nilfs_dir_entry *nilfs_nex
+ 					  nilfs_rec_len_from_disk(p->rec_len));
+ }
  
-@@ -3413,12 +3413,12 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		error = -EINVAL;
- 		goto bad_swap_unlock_inode;
- 	}
--	page = read_mapping_page(mapping, 0, swap_file);
--	if (IS_ERR(page)) {
--		error = PTR_ERR(page);
-+	folio = read_mapping_folio(mapping, 0, swap_file);
-+	if (IS_ERR(folio)) {
-+		error = PTR_ERR(folio);
- 		goto bad_swap_unlock_inode;
- 	}
--	swap_header = kmap(page);
-+	swap_header = kmap_local_folio(folio, 0);
+-static unsigned char
+-nilfs_filetype_table[NILFS_FT_MAX] = {
+-	[NILFS_FT_UNKNOWN]	= DT_UNKNOWN,
+-	[NILFS_FT_REG_FILE]	= DT_REG,
+-	[NILFS_FT_DIR]		= DT_DIR,
+-	[NILFS_FT_CHRDEV]	= DT_CHR,
+-	[NILFS_FT_BLKDEV]	= DT_BLK,
+-	[NILFS_FT_FIFO]		= DT_FIFO,
+-	[NILFS_FT_SOCK]		= DT_SOCK,
+-	[NILFS_FT_SYMLINK]	= DT_LNK,
+-};
+-
+-#define S_SHIFT 12
+-static unsigned char
+-nilfs_type_by_mode[(S_IFMT >> S_SHIFT) + 1] = {
+-	[S_IFREG >> S_SHIFT]	= NILFS_FT_REG_FILE,
+-	[S_IFDIR >> S_SHIFT]	= NILFS_FT_DIR,
+-	[S_IFCHR >> S_SHIFT]	= NILFS_FT_CHRDEV,
+-	[S_IFBLK >> S_SHIFT]	= NILFS_FT_BLKDEV,
+-	[S_IFIFO >> S_SHIFT]	= NILFS_FT_FIFO,
+-	[S_IFSOCK >> S_SHIFT]	= NILFS_FT_SOCK,
+-	[S_IFLNK >> S_SHIFT]	= NILFS_FT_SYMLINK,
+-};
+-
+-static void nilfs_set_de_type(struct nilfs_dir_entry *de, struct inode *inode)
+-{
+-	umode_t mode = inode->i_mode;
+-
+-	de->file_type = nilfs_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
+-}
+-
+ static int nilfs_readdir(struct file *file, struct dir_context *ctx)
+ {
+ 	loff_t pos = ctx->pos;
+@@ -297,10 +266,7 @@ static int nilfs_readdir(struct file *fi
+ 			if (de->inode) {
+ 				unsigned char t;
  
- 	maxpages = read_swap_header(si, swap_header, inode);
- 	if (unlikely(!maxpages)) {
-@@ -3572,10 +3572,8 @@ bad_swap:
- 	if (swap_file)
- 		filp_close(swap_file, NULL);
- out:
--	if (page && !IS_ERR(page)) {
--		kunmap(page);
--		put_page(page);
--	}
-+	if (!IS_ERR_OR_NULL(folio))
-+		folio_release_kmap(folio, swap_header);
- 	if (name)
- 		putname(name);
- 	if (inode)
+-				if (de->file_type < NILFS_FT_MAX)
+-					t = nilfs_filetype_table[de->file_type];
+-				else
+-					t = DT_UNKNOWN;
++				t = fs_ftype_to_dtype(de->file_type);
+ 
+ 				if (!dir_emit(ctx, de->name, de->name_len,
+ 						le64_to_cpu(de->inode), t)) {
+@@ -444,7 +410,7 @@ void nilfs_set_link(struct inode *dir, s
+ 	err = nilfs_prepare_chunk(folio, from, to);
+ 	BUG_ON(err);
+ 	de->inode = cpu_to_le64(inode->i_ino);
+-	nilfs_set_de_type(de, inode);
++	de->file_type = fs_umode_to_ftype(inode->i_mode);
+ 	nilfs_commit_chunk(folio, mapping, from, to);
+ 	inode_set_mtime_to_ts(dir, inode_set_ctime_current(dir));
+ }
+@@ -531,7 +497,7 @@ got_it:
+ 	de->name_len = namelen;
+ 	memcpy(de->name, name, namelen);
+ 	de->inode = cpu_to_le64(inode->i_ino);
+-	nilfs_set_de_type(de, inode);
++	de->file_type = fs_umode_to_ftype(inode->i_mode);
+ 	nilfs_commit_chunk(folio, folio->mapping, from, to);
+ 	inode_set_mtime_to_ts(dir, inode_set_ctime_current(dir));
+ 	nilfs_mark_inode_dirty(dir);
+@@ -612,14 +578,14 @@ int nilfs_make_empty(struct inode *inode
+ 	de->rec_len = nilfs_rec_len_to_disk(NILFS_DIR_REC_LEN(1));
+ 	memcpy(de->name, ".\0\0", 4);
+ 	de->inode = cpu_to_le64(inode->i_ino);
+-	nilfs_set_de_type(de, inode);
++	de->file_type = fs_umode_to_ftype(inode->i_mode);
+ 
+ 	de = (struct nilfs_dir_entry *)(kaddr + NILFS_DIR_REC_LEN(1));
+ 	de->name_len = 2;
+ 	de->rec_len = nilfs_rec_len_to_disk(chunk_size - NILFS_DIR_REC_LEN(1));
+ 	de->inode = cpu_to_le64(parent->i_ino);
+ 	memcpy(de->name, "..\0", 4);
+-	nilfs_set_de_type(de, inode);
++	de->file_type = fs_umode_to_ftype(inode->i_mode);
+ 	kunmap_local(kaddr);
+ 	nilfs_commit_chunk(folio, mapping, 0, chunk_size);
+ fail:
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from huangxiaojia2@huawei.com are
 
-fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
-mm-remove-pg_error.patch
-mm-return-the-folio-from-swapin_readahead.patch
-printf-remove-%pgt-support.patch
-mm-introduce-page_mapcount_is_type.patch
-mm-support-only-one-page_type-per-page.patch
-zsmalloc-use-all-available-24-bits-of-page_type.patch
-mm-remove-pageactive.patch
-mm-remove-pageswapbacked.patch
-mm-remove-pagereadahead.patch
-mm-remove-pageswapcache.patch
-mm-remove-pageunevictable.patch
-mm-remove-pagemlocked.patch
-mm-remove-pageownerpriv1.patch
-mm-remove-page_has_private.patch
-mm-rename-pg_mappedtodisk-to-pg_owner_2.patch
-x86-remove-pg_uncached.patch
-swap-convert-swapon-to-use-a-folio.patch
+nilfs2-use-common-implementation-of-file-type.patch
 
