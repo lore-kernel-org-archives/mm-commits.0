@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3165F182B3
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:02:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42D2E11CA0
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724806944; cv=none; b=hpORMxfMLZ3+l/b7avy4RZe3cj8E/7DhtLz2uVEicpzyVOKOrdfCPZllggDi8YJh57QPzuVQsM/MgwA69f4O0ExuJXnvV/D/iMJ0A13ZDiuEk4XTEChfdWVxxwbch3ek3vnv7K+WRaQBPwakZLw/V/iz2vN9/ZTOfatAfm+UuFg=
+	t=1724807258; cv=none; b=pctU1RSnlRoiHuUCgez3oYiqPvANnulskMy4CL3UhHBUmZ8rk+SJgNNoey7RCixD8sEXivfI2vZOFHLisJTVgxaseI8FiTjdwY9CRUQzNDc8Mi0SJMGRKWIFNKSYU2f3bvP9SndJfSiEJMEZwj4MrpZMHXxnkzJfU6NsAaBxkNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724806944; c=relaxed/simple;
-	bh=jQxbHI/feW3TS6CpGeeB2hgVdwHttM5fNdHlEyLW5jQ=;
-	h=Date:To:From:Subject:Message-Id; b=JcLZ34gy8fkIarinO59tuYs7G9DbiktmWCM1wbIChuNLeKlNlTqFNMlHb98y0rKxk+nePN3L5VejWDpyXAoHPnJ4z9tr698ARoXDBq4ExukJjk5/kBGg+saWH0pHUpQMIdmQiTIBw+NDBlj4lHTFXVtKbwcjLs912bc4Dt2z0+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQsjauxP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724807258; c=relaxed/simple;
+	bh=iMYmH5iqghnETlxC8GZfdrmEFX/9RCzXA8Qeu6jLb7A=;
+	h=Date:To:From:Subject:Message-Id; b=Cp+yBzbr591kAYYt3QIMDITQh0VFK+5ajaxZE7D36Zm2ePcoOlru8HGdqSt2myjaMRNGZz92eXgVQkyLNkm71kU1/2UUiwDcxBNzKfXE1Mg7HQMCxp4rBuz0iCrEqkgaZaTQ8O/3HC/+pm9m8mmJ7+ugh5FAcWgDAzicGuWCJmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHzIjKQE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQsjauxP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA164C4AF0F;
-	Wed, 28 Aug 2024 01:02:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHzIjKQE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A4CC4AF48;
+	Wed, 28 Aug 2024 01:07:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724806943;
-	bh=jQxbHI/feW3TS6CpGeeB2hgVdwHttM5fNdHlEyLW5jQ=;
+	s=korg; t=1724807257;
+	bh=iMYmH5iqghnETlxC8GZfdrmEFX/9RCzXA8Qeu6jLb7A=;
 	h=Date:To:From:Subject:From;
-	b=aQsjauxPjSU3kmh7yxc+1XJTO3/IVDNELpKMMJ7e2pZinDdDKTdvr6LC55ZRlQkSM
-	 AM1drDqkzoyMUFA5W15IKu9erOdtvkETIcdqAEShshBIbOt2gFbQway8/KSbAGC2aw
-	 u8L3ujSVKu5KrYRW9SWyj1dxApqqxannn0/PszO4=
-Date: Tue, 27 Aug 2024 18:02:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanshuai@oppo.com,v-songbaohua@oppo.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,ioworker0@gmail.com,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jHzIjKQEnJHue9BNAyD5xqrZYMpYS+NR47OE5aKLtMxcp06XKNk0+e51h2QhJdfNa
+	 QXyYKLQ3TkCB0Jegh/M9Vz1yNHgHsZyLL9oOV3gWFySJ4QakxXTNZ7qTwI67mkT4Ge
+	 6NXjvj+nOMXd6htmqfeq1AHdDSgWn361mL1sOIcE=
+Date: Tue, 27 Aug 2024 18:07:37 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-count-the-number-of-anonymous-thps-per-size-fix.patch added to mm-unstable branch
-Message-Id: <20240828010223.AA164C4AF0F@smtp.kernel.org>
+Subject: + mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch added to mm-unstable branch
+Message-Id: <20240828010737.B0A4CC4AF48@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-count-the-number-of-anonymous-thps-per-size-fix
+     Subject: mm/damon/core: introduce per-context region priorities histogram buffer
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+     mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-count-the-number-of-anonymous-thps-per-size-fix
-Date: Tue Aug 27 06:00:44 PM PDT 2024
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce per-context region priorities histogram buffer
+Date: Sun, 25 Aug 2024 21:23:20 -0700
 
-documentation fixups, per David
+Patch series "replace per-quota region priorities histogram buffer with
+per-context one".
 
-Link: https://lkml.kernel.org/r/3e8add35-e26b-443b-8a04-1078f4bc78f6@redhat.com
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuai Yuan <yuanshuai@oppo.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Each DAMOS quota (struct damos_quota) maintains a histogram for total
+regions size per its prioritization score.  DAMOS calcultes minimum
+prioritization score of regions that are ok to apply the DAMOS action to
+while respecting the quota.  The histogram is constructed only for the
+calculation of the minimum score in damos_adjust_quota() for each quota
+which called by kdamond_fn().
+
+Hence, there is no real reason to have per-quota histogram.  Only
+per-kdamond histogram is needed, since parallel kdamonds could have races
+otherwise.  The current implementation is only wasting the memory, and can
+easily cause unintended stack usage[1].
+
+So, introducing a per-kdamond histogram and replacing the per-quota one
+with it would be the right solution for the issue.  However, supporting
+multiple DAMON contexts per kdamond is still an ongoing work[2] without a
+clear estimated time of arrival.  Meanwhile, per-context histogram could
+be an effective and straightforward solution having no blocker.  Let's fix
+the problem first in the way.
+
+
+This patch (of 4):
+
+Introduce per-context buffer for region priority scores-total size
+histogram.  Same to the per-quota one (->histogram of struct damos_quota),
+the new buffer is hidden from DAMON API users by being defined as a
+private field of DAMON context structure.  It is dynamically allocated and
+de-allocated at the beginning and ending of the execution of the kdamond
+by kdamond_fn() itself.
+
+[1] commit 0742cadf5e4c ("mm/damon/lru_sort: adjust local variable to dynamic allocation")
+[2] https://lore.kernel.org/20240531122320.909060-1-yorha.op@gmail.com
+
+Link: https://lkml.kernel.org/r/20240826042323.87025-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240826042323.87025-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |    5 +++++
+ 2 files changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-count-the-number-of-anonymous-thps-per-size-fix
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -552,9 +552,9 @@ split_deferred
-         be split under memory pressure, if splitting is possible.
+--- a/include/linux/damon.h~mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer
++++ a/include/linux/damon.h
+@@ -630,6 +630,8 @@ struct damon_ctx {
+ 	unsigned long next_ops_update_sis;
+ 	/* for waiting until the execution of the kdamond_fn is started */
+ 	struct completion kdamond_started;
++	/* for scheme quotas prioritization */
++	unsigned long *regions_score_histogram;
  
- nr_anon
--       the number of transparent anon huge pages we have in the whole system.
--       These huge pages could be entirely mapped or have partially
--       unmapped/unused subpages.
-+       the number of anonymous THP we have in the whole system. These THPs
-+       might be currently entirely mapped or have partially unmapped/unused
-+       subpages.
+ /* public: */
+ 	struct task_struct *kdamond;
+--- a/mm/damon/core.c~mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer
++++ a/mm/damon/core.c
+@@ -1957,6 +1957,10 @@ static int kdamond_fn(void *data)
+ 		ctx->ops.init(ctx);
+ 	if (ctx->callback.before_start && ctx->callback.before_start(ctx))
+ 		goto done;
++	ctx->regions_score_histogram = kmalloc_array(DAMOS_MAX_SCORE + 1,
++			sizeof(*ctx->regions_score_histogram), GFP_KERNEL);
++	if (!ctx->regions_score_histogram)
++		goto done;
  
- As the system ages, allocating huge pages may be expensive as the
- system uses memory compaction to copy data around memory to free a
+ 	sz_limit = damon_region_sz_limit(ctx);
+ 
+@@ -2034,6 +2038,7 @@ done:
+ 		ctx->callback.before_terminate(ctx);
+ 	if (ctx->ops.cleanup)
+ 		ctx->ops.cleanup(ctx);
++	kfree(ctx->regions_score_histogram);
+ 
+ 	pr_debug("kdamond (%d) finishes\n", current->pid);
+ 	mutex_lock(&ctx->kdamond_lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+selftests-damon-add-access_memory_even-to-gitignore.patch
+selftests-damon-cleanup-__pycache__-with-make-clean.patch
+selftests-damon-add-execute-permissions-to-test-scripts.patch
+mm-damon-core-test-test-only-vaddr-case-on-ops-registration-test.patch
+mm-damon-core-test-fix-damon_test_ops_registration-for-damon_vaddr-unset-case.patch
+mm-damon-dbgfs-test-skip-dbgfs_set_targets-test-if-paddr-is-not-registered.patch
+mm-damon-dbgfs-test-skip-dbgfs_set_init_regions-test-if-paddr-is-not-registered.patch
+mm-damon-move-kunit-tests-to-tests-subdirectory-with-_kunit-suffix.patch
+mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch
+mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
+mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch
+mm-damon-core-remove-per-scheme-region-priority-histogram-buffer.patch
+revert-mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
 
