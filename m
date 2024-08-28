@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8792F18638
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:17:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B067215E96
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:27:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724807870; cv=none; b=QZM2uvc3wCJzS/mDmaHF9sYXq5g2ozkGGTGktFKceHVc9LLs5FDs/LY6IUnt9KI99GRlctGDie6uVCqWV0ykMAZVwBZzGYrdm9Av5VlOb4eMUio1TfJD5rJBwM+9BdNZ0/ya5w6UDXHawSr2R4ieusLzigtuUWgLNfoItkmTsPo=
+	t=1724808451; cv=none; b=nVu1ZRkVu3XhFPjx1DIlBDrEUQhE6qhdefso2/PnDy0fT6oADlsC1+MWg3iu7GQOxxPD0nZraNze5fU513JGQ39zTwW1nRK2gY/NoS6tf+ViF/BgGxUv648MAqCp95MRNGzfd8gkU5iv/I+/S4XVtGaRyE2dwm6E57Esu6LvE8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724807870; c=relaxed/simple;
-	bh=UJpv+I8bOeqRTiDvrBL0HgGYYgDjSSJGx2M0hOg+LMw=;
-	h=Date:To:From:Subject:Message-Id; b=HlPYqll0Z4n7DgqwZH2uyuLYnWG5ZM2Xq/ar0MUEVtH7xWrqqnyvLf6LaLWy9a6dKcQVYD44PnIi8I912pPoaZGk1F4gJ/+FlRZW4MVXTWaInisA/X3tcyOLxX/jzV+fVhsWyDbbHhGJD40zHhW3BQfgCYDXindxryovTd0RUHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BTahrm1u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724808451; c=relaxed/simple;
+	bh=1bVcNC/by6185uHAz8su6Afs0fvREpGs+9zUxJIuoZE=;
+	h=Date:To:From:Subject:Message-Id; b=DjTn4iX8lxuuS+uryJZmFZPSuMkv0LIgxHpznEZi1UB5gl3POQdfFzwkCH7KlhuNb0bmQACfejn6W4Y0sD+aqZRfVVqmalf+WhDqfmZmGYDtFPGWYcMB0VjuyEcPcwaSxAHulAO9WBTxGPXhVQYMYOThWr5OcN0hk/KOWDs9ykw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B2iNtQSX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BTahrm1u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED52BC32782;
-	Wed, 28 Aug 2024 01:17:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B2iNtQSX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11B6BC32782;
+	Wed, 28 Aug 2024 01:27:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724807870;
-	bh=UJpv+I8bOeqRTiDvrBL0HgGYYgDjSSJGx2M0hOg+LMw=;
+	s=korg; t=1724808450;
+	bh=1bVcNC/by6185uHAz8su6Afs0fvREpGs+9zUxJIuoZE=;
 	h=Date:To:From:Subject:From;
-	b=BTahrm1ucQ3IMROlL7HLcq9Y57utpBhDI6jSU2Cw5QPFkoG6wJ06Dsm4SvZHP4DN9
-	 ToD4+AM9Ae/5On3NT4Od10NPBpGXEKVm3zOS1JCKQGZDPCQ5UovesBdvJIvJRLLDfU
-	 ZsYP6OHff7jOMoS1Sa3uS9uBdzf+NUS8dzODm4Ac=
-Date: Tue, 27 Aug 2024 18:17:49 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=B2iNtQSXeMntQC+awXt+xAMRiCyQSPOniF98svRvnzoNfGgC2zxhWNz/VTNDNGERW
+	 E3MpDM1B8O7f7tUBWoVkLCp841D3S+VdKbLyq2v+j1WgICoq9gxz1sQbM1P+1XGR2e
+	 9UzScmVVXBugrc7smK2cOctlnfoxdW/C8Z7oevbc=
+Date: Tue, 27 Aug 2024 18:27:29 -0700
+To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20240828011749.ED52BC32782@smtp.kernel.org>
+Subject: + docs-damon-use-damonitor-github-organization-instead-of-awslabs.patch added to mm-unstable branch
+Message-Id: <20240828012730.11B6BC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
+     Subject: Docs/damon: use damonitor GitHub organization instead of awslabs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
+     docs-damon-use-damonitor-github-organization-instead-of-awslabs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-damon-use-damonitor-github-organization-instead-of-awslabs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,249 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
-Date: Tue Aug 27 06:17:16 PM PDT 2024
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/damon: use damonitor GitHub organization instead of awslabs
+Date: Sun, 25 Aug 2024 18:57:39 -0700
 
-WARNING: suspect code indent for conditional statements (8, 24)
-#24: FILE: mm/migrate.c:199:
- 	else
-+			isolated = folio_isolate_movable(folio,
+Patch series "Docs/damon: update GitHub repo URLs and maintainer-profile".
 
-total: 0 errors, 1 warnings, 10 lines checked
+Replace GitHub URLS on DAMON documents for none-kernel parts DAMON repos
+with new ones[1] via the first patch.  With following two patches,
+wordsmith maitnainer-profile for better readability, and document the
+Google clendsar for bi-weekly meetups, respectively.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+[1] https://lore.kernel.org/20240813232158.83903-1-sj@kernel.org
 
-./patches/mm-migrate-convert-to-folio_isolate_movable.patch has style problems, please review.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+This patch (of 3):
 
-Please run checkpatch prior to sending patches
+GitHub repos for non-kernel parts of DAMON project including 'damo',
+'damon-tests' and 'damoos' will be moved[1] from 'awslabs' org to
+'damonitor', by 2024-09-05.  Update related URLs in kernel tree.
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
+[1] https://lore.kernel.org/20240813232158.83903-1-sj@kernel.org
+
+Link: https://lkml.kernel.org/r/20240826015741.80707-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240826015741.80707-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst                    |    4 ++--
+ Documentation/admin-guide/mm/damon/usage.rst                    |    8 ++++----
+ Documentation/mm/damon/design.rst                               |    2 +-
+ Documentation/mm/damon/maintainer-profile.rst                   |    8 ++++----
+ Documentation/translations/zh_CN/admin-guide/mm/damon/start.rst |    4 ++--
+ Documentation/translations/zh_CN/admin-guide/mm/damon/usage.rst |    8 ++++----
+ Documentation/translations/zh_TW/admin-guide/mm/damon/start.rst |    4 ++--
+ Documentation/translations/zh_TW/admin-guide/mm/damon/usage.rst |    8 ++++----
+ 8 files changed, 23 insertions(+), 23 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
-+++ a/mm/migrate.c
-@@ -197,8 +197,7 @@ bool isolate_folio_to_list(struct folio
- 	if (lru)
- 		isolated = folio_isolate_lru(folio);
- 	else
--			isolated = folio_isolate_movable(folio,
--							 ISOLATE_UNEVICTABLE);
-+		isolated = folio_isolate_movable(folio, ISOLATE_UNEVICTABLE);
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -7,7 +7,7 @@ Getting Started
+ This document briefly describes how you can use DAMON by demonstrating its
+ default user space tool.  Please note that this document describes only a part
+ of its features for brevity.  Please refer to the usage `doc
+-<https://github.com/awslabs/damo/blob/next/USAGE.md>`_ of the tool for more
++<https://github.com/damonitor/damo/blob/next/USAGE.md>`_ of the tool for more
+ details.
  
- 	if (!isolated)
- 		return false;
+ 
+@@ -26,7 +26,7 @@ User Space Tool
+ 
+ For the demonstration, we will use the default user space tool for DAMON,
+ called DAMON Operator (DAMO).  It is available at
+-https://github.com/awslabs/damo.  The examples below assume that ``damo`` is on
++https://github.com/damonitor/damo.  The examples below assume that ``damo`` is on
+ your ``$PATH``.  It's not mandatory, though.
+ 
+ Because DAMO is using the sysfs interface (refer to :doc:`usage` for the
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -7,19 +7,19 @@ Detailed Usages
+ DAMON provides below interfaces for different users.
+ 
+ - *DAMON user space tool.*
+-  `This <https://github.com/awslabs/damo>`_ is for privileged people such as
++  `This <https://github.com/damonitor/damo>`_ is for privileged people such as
+   system administrators who want a just-working human-friendly interface.
+   Using this, users can use the DAMON’s major features in a human-friendly way.
+   It may not be highly tuned for special cases, though.  For more detail,
+   please refer to its `usage document
+-  <https://github.com/awslabs/damo/blob/next/USAGE.md>`_.
++  <https://github.com/damonitor/damo/blob/next/USAGE.md>`_.
+ - *sysfs interface.*
+   :ref:`This <sysfs_interface>` is for privileged user space programmers who
+   want more optimized use of DAMON.  Using this, users can use DAMON’s major
+   features by reading from and writing to special sysfs files.  Therefore,
+   you can write and use your personalized DAMON sysfs wrapper programs that
+   reads/writes the sysfs files instead of you.  The `DAMON user space tool
+-  <https://github.com/awslabs/damo>`_ is one example of such programs.
++  <https://github.com/damonitor/damo>`_ is one example of such programs.
+ - *Kernel Space Programming Interface.*
+   :doc:`This </mm/damon/api>` is for kernel space programmers.  Using this,
+   users can utilize every feature of DAMON most flexibly and efficiently by
+@@ -543,7 +543,7 @@ memory rate becomes larger than 60%, or
+     # echo 300 > watermarks/low
+ 
+ Please note that it's highly recommended to use user space tools like `damo
+-<https://github.com/awslabs/damo>`_ rather than manually reading and writing
++<https://github.com/damonitor/damo>`_ rather than manually reading and writing
+ the files as above.  Above is only for an example.
+ 
+ .. _tracepoint:
+--- a/Documentation/mm/damon/design.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/mm/damon/design.rst
+@@ -586,7 +586,7 @@ API, and return the results to the user-
+ The ABIs are designed to be used for user space applications development,
+ rather than human beings' fingers.  Human users are recommended to use such
+ user space tools.  One such Python-written user space tool is available at
+-Github (https://github.com/awslabs/damo), Pypi
++Github (https://github.com/damonitor/damo), Pypi
+ (https://pypistats.org/packages/damo), and Fedora
+ (https://packages.fedoraproject.org/pkgs/python-damo/damo/).
+ 
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -91,9 +91,9 @@ list (damon@lists.linux.dev).
+ .. [1] https://git.kernel.org/akpm/mm/h/mm-unstable
+ .. [2] https://git.kernel.org/sj/h/damon/next
+ .. [3] https://git.kernel.org/akpm/mm/h/mm-stable
+-.. [4] https://github.com/awslabs/damon-tests/blob/master/corr/run.sh#L49
+-.. [5] https://github.com/awslabs/damon-tests/blob/master/corr/tests/kunit.sh
+-.. [6] https://github.com/awslabs/damon-tests/tree/master/corr
+-.. [7] https://github.com/awslabs/damon-tests/tree/master/perf
++.. [4] https://github.com/damonitor/damon-tests/blob/master/corr/run.sh#L49
++.. [5] https://github.com/damonitor/damon-tests/blob/master/corr/tests/kunit.sh
++.. [6] https://github.com/damonitor/damon-tests/tree/master/corr
++.. [7] https://github.com/damonitor/damon-tests/tree/master/perf
+ .. [8] https://github.com/damonitor/hackermail
+ .. [9] https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing
+--- a/Documentation/translations/zh_CN/admin-guide/mm/damon/start.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/translations/zh_CN/admin-guide/mm/damon/start.rst
+@@ -15,7 +15,7 @@ 入门指南
+ 
+ 本文通过演示DAMON的默认用户空间工具，简要地介绍了如何使用DAMON。请注意，为了简洁
+ 起见，本文档只描述了它的部分功能。更多细节请参考该工具的使用文档。
+-`doc <https://github.com/awslabs/damo/blob/next/USAGE.md>`_ .
++`doc <https://github.com/damonitor/damo/blob/next/USAGE.md>`_ .
+ 
+ 
+ 前提条件
+@@ -31,7 +31,7 @@ 用户空间工具
+ ------------
+ 
+ 在演示中，我们将使用DAMON的默认用户空间工具，称为DAMON Operator（DAMO）。它可以在
+-https://github.com/awslabs/damo找到。下面的例子假设DAMO在你的$PATH上。当然，但
++https://github.com/damonitor/damo找到。下面的例子假设DAMO在你的$PATH上。当然，但
+ 这并不是强制性的。
+ 
+ 因为DAMO使用了DAMON的sysfs接口（详情请参考:doc:`usage`），你应该确保
+--- a/Documentation/translations/zh_CN/admin-guide/mm/damon/usage.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/translations/zh_CN/admin-guide/mm/damon/usage.rst
+@@ -16,16 +16,16 @@ 详细用法
+ DAMON 为不同的用户提供了下面这些接口。
+ 
+ - *DAMON用户空间工具。*
+-  `这 <https://github.com/awslabs/damo>`_ 为有这特权的人， 如系统管理员，希望有一个刚好
++  `这 <https://github.com/damonitor/damo>`_ 为有这特权的人， 如系统管理员，希望有一个刚好
+   可以工作的人性化界面。
+   使用它，用户可以以人性化的方式使用DAMON的主要功能。不过，它可能不会为特殊情况进行高度调整。
+   它同时支持虚拟和物理地址空间的监测。更多细节，请参考它的 `使用文档
+-  <https://github.com/awslabs/damo/blob/next/USAGE.md>`_。
++  <https://github.com/damonitor/damo/blob/next/USAGE.md>`_。
+ - *sysfs接口。*
+   :ref:`这 <sysfs_interface>` 是为那些希望更高级的使用DAMON的特权用户空间程序员准备的。
+   使用它，用户可以通过读取和写入特殊的sysfs文件来使用DAMON的主要功能。因此，你可以编写和使
+   用你个性化的DAMON sysfs包装程序，代替你读/写sysfs文件。  `DAMON用户空间工具
+-  <https://github.com/awslabs/damo>`_ 就是这种程序的一个例子  它同时支持虚拟和物理地址
++  <https://github.com/damonitor/damo>`_ 就是这种程序的一个例子  它同时支持虚拟和物理地址
+   空间的监测。注意，这个界面只提供简单的监测结果 :ref:`统计 <damos_stats>`。对于详细的监测
+   结果，DAMON提供了一个:ref:`跟踪点 <tracepoint>`。
+ - *debugfs interface.*
+@@ -332,7 +332,7 @@ 止监测。“ ::
+     # echo 500 > watermarks/mid
+     # echo 300 > watermarks/low
+ 
+-请注意，我们强烈建议使用用户空间的工具，如 `damo <https://github.com/awslabs/damo>`_ ，
++请注意，我们强烈建议使用用户空间的工具，如 `damo <https://github.com/damonitor/damo>`_ ，
+ 而不是像上面那样手动读写文件。以上只是一个例子。
+ 
+ debugfs接口
+--- a/Documentation/translations/zh_TW/admin-guide/mm/damon/start.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/translations/zh_TW/admin-guide/mm/damon/start.rst
+@@ -15,7 +15,7 @@ 入門指南
+ 
+ 本文通過演示DAMON的默認用戶空間工具，簡要地介紹瞭如何使用DAMON。請注意，爲了簡潔
+ 起見，本文檔只描述了它的部分功能。更多細節請參考該工具的使用文檔。
+-`doc <https://github.com/awslabs/damo/blob/next/USAGE.md>`_ .
++`doc <https://github.com/damonitor/damo/blob/next/USAGE.md>`_ .
+ 
+ 
+ 前提條件
+@@ -31,7 +31,7 @@ 用戶空間工具
+ ------------
+ 
+ 在演示中，我們將使用DAMON的默認用戶空間工具，稱爲DAMON Operator（DAMO）。它可以在
+-https://github.com/awslabs/damo找到。下面的例子假設DAMO在你的$PATH上。當然，但
++https://github.com/damonitor/damo找到。下面的例子假設DAMO在你的$PATH上。當然，但
+ 這並不是強制性的。
+ 
+ 因爲DAMO使用了DAMON的sysfs接口（詳情請參考:doc:`usage`），你應該確保
+--- a/Documentation/translations/zh_TW/admin-guide/mm/damon/usage.rst~docs-damon-use-damonitor-github-organization-instead-of-awslabs
++++ a/Documentation/translations/zh_TW/admin-guide/mm/damon/usage.rst
+@@ -16,16 +16,16 @@ 詳細用法
+ DAMON 爲不同的用戶提供了下面這些接口。
+ 
+ - *DAMON用戶空間工具。*
+-  `這 <https://github.com/awslabs/damo>`_ 爲有這特權的人， 如系統管理員，希望有一個剛好
++  `這 <https://github.com/damonitor/damo>`_ 爲有這特權的人， 如系統管理員，希望有一個剛好
+   可以工作的人性化界面。
+   使用它，用戶可以以人性化的方式使用DAMON的主要功能。不過，它可能不會爲特殊情況進行高度調整。
+   它同時支持虛擬和物理地址空間的監測。更多細節，請參考它的 `使用文檔
+-  <https://github.com/awslabs/damo/blob/next/USAGE.md>`_。
++  <https://github.com/damonitor/damo/blob/next/USAGE.md>`_。
+ - *sysfs接口。*
+   :ref:`這 <sysfs_interface>` 是爲那些希望更高級的使用DAMON的特權用戶空間程序員準備的。
+   使用它，用戶可以通過讀取和寫入特殊的sysfs文件來使用DAMON的主要功能。因此，你可以編寫和使
+   用你個性化的DAMON sysfs包裝程序，代替你讀/寫sysfs文件。  `DAMON用戶空間工具
+-  <https://github.com/awslabs/damo>`_ 就是這種程序的一個例子  它同時支持虛擬和物理地址
++  <https://github.com/damonitor/damo>`_ 就是這種程序的一個例子  它同時支持虛擬和物理地址
+   空間的監測。注意，這個界面只提供簡單的監測結果 :ref:`統計 <damos_stats>`。對於詳細的監測
+   結果，DAMON提供了一個:ref:`跟蹤點 <tracepoint>`。
+ - *debugfs interface.*
+@@ -332,7 +332,7 @@ 止監測。“ ::
+     # echo 500 > watermarks/mid
+     # echo 300 > watermarks/low
+ 
+-請注意，我們強烈建議使用用戶空間的工具，如 `damo <https://github.com/awslabs/damo>`_ ，
++請注意，我們強烈建議使用用戶空間的工具，如 `damo <https://github.com/damonitor/damo>`_ ，
+ 而不是像上面那樣手動讀寫文件。以上只是一個例子。
+ 
+ debugfs接口
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+selftests-damon-add-access_memory_even-to-gitignore.patch
+selftests-damon-cleanup-__pycache__-with-make-clean.patch
+selftests-damon-add-execute-permissions-to-test-scripts.patch
+mm-damon-core-test-test-only-vaddr-case-on-ops-registration-test.patch
+mm-damon-core-test-fix-damon_test_ops_registration-for-damon_vaddr-unset-case.patch
+mm-damon-dbgfs-test-skip-dbgfs_set_targets-test-if-paddr-is-not-registered.patch
+mm-damon-dbgfs-test-skip-dbgfs_set_init_regions-test-if-paddr-is-not-registered.patch
+mm-damon-move-kunit-tests-to-tests-subdirectory-with-_kunit-suffix.patch
+mm-damon-tests-add-kunitconfig-file-for-damon-kunit-tests.patch
+mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
+mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch
+mm-damon-core-remove-per-scheme-region-priority-histogram-buffer.patch
+revert-mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
+docs-damon-use-damonitor-github-organization-instead-of-awslabs.patch
+docs-damon-maintainer-profile-add-links-in-place.patch
+docs-damon-maintainer-profile-document-google-calendar-for-bi-weekly-meetups.patch
 
