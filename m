@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB762D2F5
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:10:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF5ABEEB3
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724803809; cv=none; b=n2Jo5HJezQKhTVRrIaHUUnrllQ9faljIL1Ncgq2820XWMAeWaLgWWPQS6pgkWv2X8tvWrl/zJTF7S4K/+Ns8Fefdb0rPCiY4cjMeTnff3bv8/Qd4RmJEBATqqI78XcxS5//FQqdQhUOfAPQkzV1yyI9PpuNcIcaAPIiM1Apveug=
+	t=1724803811; cv=none; b=bbjCpcbPwx0iY7ueBpXu2hOcLDE3jx16o6sHdLj6mEtHwqoExpoI5uQu9ZTDoBn7ti0U6LVIjdrfKA3S1gJKqNmfGqH6JHgl7d9hwiBVTQPZrenTvV9NWMJfSPHTkAiqslsn5aApX6valF6y3UtpBx2WkrQEpcfzmLMsR1Qwxgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724803809; c=relaxed/simple;
-	bh=0SyteD71/H5rll+D+pr5viYzIcyathOD9qL8Jqs6HD4=;
-	h=Date:To:From:Subject:Message-Id; b=D7OlPBeHVww8+UfBBY25lmA6tn3gIrCfjlJbrgKJdlTes4yUXgi4QdKqtAvFlgpaAntTeIm/jQubzcdeA+8K5ioGXVGczA8t6iXwe1iTNjQDnuJlkgu0wL5wXLHPBs+1m/V+zg68vZqSiOy4SjASNOxFdD0Fd/CTShgucXwKOhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QQ2DwoJH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724803811; c=relaxed/simple;
+	bh=gxSKWhsOJIY92NNiF9fyg19Uo/50AIBSVfeeHzBId7c=;
+	h=Date:To:From:Subject:Message-Id; b=AdFd3LxsR9JPtMFtxZObF7DdBgvhed2J5iZSWJWl8/QA1hOAd5EylagX2dsNiMSFyDa2m7li3exE6+H9LWyDZ3Fg/Sf0tqaMTu2kKZdJWRIlnl0baQjK+iQ8heYtqwboRUMR0zyGT5eMUGyThvmLoWhbfpYb9BhSTwU/rApmp0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kzlegpk4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QQ2DwoJH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3208FC4AF64;
-	Wed, 28 Aug 2024 00:10:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kzlegpk4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A7BFC4AF51;
+	Wed, 28 Aug 2024 00:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724803809;
-	bh=0SyteD71/H5rll+D+pr5viYzIcyathOD9qL8Jqs6HD4=;
+	s=korg; t=1724803811;
+	bh=gxSKWhsOJIY92NNiF9fyg19Uo/50AIBSVfeeHzBId7c=;
 	h=Date:To:From:Subject:From;
-	b=QQ2DwoJHfKhsQ16detb/4moFfjpXXg4ZJsbGc54NHxEP4MS15lN0C4wURIoiQlogV
-	 gEW6FUpa5ODCcCxFS91BjjuY+OPMqgzNs0rG+ybzq+Hye4icd3mkj+5/aFqsWbSqP4
-	 A0rcZUaW61R2Ko2mRP6SeMLOu9BUXkQt0DJ4gwpo=
-Date: Tue, 27 Aug 2024 17:10:08 -0700
+	b=Kzlegpk44tKElQbvgW9AP4yQpoeBAS/0vpVC8sHYecab+5QuL2Ia8geuufmutbv0s
+	 sAGWY3k4FSsUHY/GGexFi7I7MX2mNXjh1vuOTnG6JGD6B52wsUZ7sW+2cxtF82ISKT
+	 HwdKO10ihj1aSMcDtzZXHaNDSIuMt0nFmyvuknjA=
+Date: Tue, 27 Aug 2024 17:10:10 -0700
 To: mm-commits@vger.kernel.org,huangxiaojia2@huawei.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread.patch added to mm-nonmm-unstable branch
-Message-Id: <20240828001009.3208FC4AF64@smtp.kernel.org>
+Subject: + nilfs2-refactor-nilfs_segctor_thread.patch added to mm-nonmm-unstable branch
+Message-Id: <20240828001011.7A7BFC4AF51@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: use kthread_create and kthread_stop for the log writer thread
+     Subject: nilfs2: refactor nilfs_segctor_thread()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread.patch
+     nilfs2-refactor-nilfs_segctor_thread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-refactor-nilfs_segctor_thread.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,208 +59,146 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: use kthread_create and kthread_stop for the log writer thread
-Date: Tue, 27 Aug 2024 02:41:15 +0900
+Subject: nilfs2: refactor nilfs_segctor_thread()
+Date: Tue, 27 Aug 2024 02:41:16 +0900
 
-By using kthread_create() and kthread_stop() to start and stop the log
-writer thread, eliminate custom thread start and stop helpers, as well as
-the wait queue "sc_wait_task" on the "nilfs_sc_info" struct and
-NILFS_SEGCTOR_QUIT flag that exist only to implement them.
+Simplify nilfs_segctor_thread(), the main loop function of the log writer
+thread, to make the basic structure easier to understand.
 
-Also, update the kernel doc comments of the changed functions as
-appropriate.
+In particular, the acquisition and release of the sc_state_lock spinlock
+was scattered throughout the function, so extract the determination of
+whether log writing is required into a helper function and make the
+spinlock lock sections clearer.
 
-Link: https://lkml.kernel.org/r/20240826174116.5008-8-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240826174116.5008-9-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Huang Xiaojia <huangxiaojia2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   82 +++++++++++++++---------------------------
- fs/nilfs2/segment.h |    3 -
- 2 files changed, 31 insertions(+), 54 deletions(-)
+ fs/nilfs2/segment.c |   85 +++++++++++++++++++-----------------------
+ 1 file changed, 40 insertions(+), 45 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread
+--- a/fs/nilfs2/segment.c~nilfs2-refactor-nilfs_segctor_thread
 +++ a/fs/nilfs2/segment.c
-@@ -2630,11 +2630,15 @@ static int nilfs_segctor_flush_mode(stru
+@@ -2630,6 +2630,32 @@ static int nilfs_segctor_flush_mode(stru
  }
  
  /**
-- * nilfs_segctor_thread - main loop of the segment constructor thread.
-+ * nilfs_segctor_thread - main loop of the log writer thread
++ * nilfs_log_write_required - determine whether log writing is required
++ * @sci:   nilfs_sc_info struct
++ * @modep: location for storing log writing mode
++ *
++ * Return: true if log writing is required, false otherwise.  If log writing
++ * is required, the mode is stored in the location pointed to by @modep.
++ */
++static bool nilfs_log_write_required(struct nilfs_sc_info *sci, int *modep)
++{
++	bool timedout, ret = true;
++
++	spin_lock(&sci->sc_state_lock);
++	timedout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
++		   time_after_eq(jiffies, sci->sc_timer.expires));
++	if (timedout || sci->sc_seq_request != sci->sc_seq_done)
++		*modep = SC_LSEG_SR;
++	else if (sci->sc_flush_request)
++		*modep = nilfs_segctor_flush_mode(sci);
++	else
++		ret = false;
++
++	spin_unlock(&sci->sc_state_lock);
++	return ret;
++}
++
++/**
+  * nilfs_segctor_thread - main loop of the log writer thread
   * @arg: pointer to a struct nilfs_sc_info.
   *
-- * nilfs_segctor_thread() initializes a timer and serves as a daemon
-- * to execute segment constructions.
-+ * nilfs_segctor_thread() is the main loop function of the log writer kernel
-+ * thread, which determines whether log writing is necessary, and if so,
-+ * performs the log write in the background, or waits if not.  It is also
-+ * used to decide the background writeback of the superblock.
-+ *
-+ * Return: Always 0.
-  */
- static int nilfs_segctor_thread(void *arg)
+@@ -2644,70 +2670,39 @@ static int nilfs_segctor_thread(void *ar
  {
-@@ -2642,11 +2646,6 @@ static int nilfs_segctor_thread(void *ar
+ 	struct nilfs_sc_info *sci = (struct nilfs_sc_info *)arg;
  	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
- 	int timeout = 0;
+-	int timeout = 0;
  
--	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
--
--	/* start sync. */
--	sci->sc_task = current;
--	wake_up(&sci->sc_wait_task); /* for nilfs_segctor_start_thread() */
  	nilfs_info(sci->sc_super,
  		   "segctord starting. Construction interval = %lu seconds, CP frequency < %lu seconds",
  		   sci->sc_interval / HZ, sci->sc_mjcp_freq / HZ);
-@@ -2657,7 +2656,7 @@ static int nilfs_segctor_thread(void *ar
- 	for (;;) {
- 		int mode;
  
--		if (sci->sc_state & NILFS_SEGCTOR_QUIT)
-+		if (kthread_should_stop())
- 			goto end_thread;
+ 	set_freezable();
+-	spin_lock(&sci->sc_state_lock);
+- loop:
+-	for (;;) {
+-		int mode;
  
- 		if (timeout || sci->sc_seq_request != sci->sc_seq_done)
-@@ -2711,41 +2710,10 @@ static int nilfs_segctor_thread(void *ar
+-		if (kthread_should_stop())
+-			goto end_thread;
+-
+-		if (timeout || sci->sc_seq_request != sci->sc_seq_done)
+-			mode = SC_LSEG_SR;
+-		else if (sci->sc_flush_request)
+-			mode = nilfs_segctor_flush_mode(sci);
+-		else
+-			break;
+-
+-		spin_unlock(&sci->sc_state_lock);
+-		nilfs_segctor_thread_construct(sci, mode);
+-		spin_lock(&sci->sc_state_lock);
+-		timeout = 0;
+-	}
+-
+-
+-	if (freezing(current)) {
+-		spin_unlock(&sci->sc_state_lock);
+-		try_to_freeze();
+-		spin_lock(&sci->sc_state_lock);
+-	} else {
++	while (!kthread_should_stop()) {
+ 		DEFINE_WAIT(wait);
+-		int should_sleep = 1;
++		bool should_write;
++		int mode;
++
++		if (freezing(current)) {
++			try_to_freeze();
++			continue;
++		}
+ 
+ 		prepare_to_wait(&sci->sc_wait_daemon, &wait,
+ 				TASK_INTERRUPTIBLE);
+-
+-		if (sci->sc_seq_request != sci->sc_seq_done)
+-			should_sleep = 0;
+-		else if (sci->sc_flush_request)
+-			should_sleep = 0;
+-		else if (sci->sc_state & NILFS_SEGCTOR_COMMIT)
+-			should_sleep = time_before(jiffies,
+-					sci->sc_timer.expires);
+-
+-		if (should_sleep) {
+-			spin_unlock(&sci->sc_state_lock);
++		should_write = nilfs_log_write_required(sci, &mode);
++		if (!should_write)
+ 			schedule();
+-			spin_lock(&sci->sc_state_lock);
+-		}
+ 		finish_wait(&sci->sc_wait_daemon, &wait);
+-		timeout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
+-			   time_after_eq(jiffies, sci->sc_timer.expires));
+ 
+ 		if (nilfs_sb_dirty(nilfs) && nilfs_sb_need_update(nilfs))
+ 			set_nilfs_discontinued(nilfs);
++
++		if (should_write)
++			nilfs_segctor_thread_construct(sci, mode);
+ 	}
+-	goto loop;
+ 
+- end_thread:
  	/* end sync. */
++	spin_lock(&sci->sc_state_lock);
  	sci->sc_task = NULL;
  	timer_shutdown_sync(&sci->sc_timer);
--	wake_up(&sci->sc_wait_task); /* for nilfs_segctor_kill_thread() */
  	spin_unlock(&sci->sc_state_lock);
- 	return 0;
- }
- 
--static int nilfs_segctor_start_thread(struct nilfs_sc_info *sci)
--{
--	struct task_struct *t;
--
--	t = kthread_run(nilfs_segctor_thread, sci, "segctord");
--	if (IS_ERR(t)) {
--		int err = PTR_ERR(t);
--
--		nilfs_err(sci->sc_super, "error %d creating segctord thread",
--			  err);
--		return err;
--	}
--	wait_event(sci->sc_wait_task, sci->sc_task != NULL);
--	return 0;
--}
--
--static void nilfs_segctor_kill_thread(struct nilfs_sc_info *sci)
--	__acquires(&sci->sc_state_lock)
--	__releases(&sci->sc_state_lock)
--{
--	sci->sc_state |= NILFS_SEGCTOR_QUIT;
--
--	while (sci->sc_task) {
--		wake_up(&sci->sc_wait_daemon);
--		spin_unlock(&sci->sc_state_lock);
--		wait_event(sci->sc_wait_task, sci->sc_task == NULL);
--		spin_lock(&sci->sc_state_lock);
--	}
--}
--
- /*
-  * Setup & clean-up functions
-  */
-@@ -2766,7 +2734,6 @@ static struct nilfs_sc_info *nilfs_segct
- 
- 	init_waitqueue_head(&sci->sc_wait_request);
- 	init_waitqueue_head(&sci->sc_wait_daemon);
--	init_waitqueue_head(&sci->sc_wait_task);
- 	spin_lock_init(&sci->sc_state_lock);
- 	INIT_LIST_HEAD(&sci->sc_dirty_files);
- 	INIT_LIST_HEAD(&sci->sc_segbufs);
-@@ -2821,8 +2788,12 @@ static void nilfs_segctor_destroy(struct
- 
- 	up_write(&nilfs->ns_segctor_sem);
- 
-+	if (sci->sc_task) {
-+		wake_up(&sci->sc_wait_daemon);
-+		kthread_stop(sci->sc_task);
-+	}
-+
- 	spin_lock(&sci->sc_state_lock);
--	nilfs_segctor_kill_thread(sci);
- 	flag = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) || sci->sc_flush_request
- 		|| sci->sc_seq_request != sci->sc_seq_done);
- 	spin_unlock(&sci->sc_state_lock);
-@@ -2870,14 +2841,15 @@ static void nilfs_segctor_destroy(struct
-  * This allocates a log writer object, initializes it, and starts the
-  * log writer.
-  *
-- * Return Value: On success, 0 is returned. On error, one of the following
-- * negative error code is returned.
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINTR	- Log writer thread creation failed due to interruption.
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- int nilfs_attach_log_writer(struct super_block *sb, struct nilfs_root *root)
- {
- 	struct the_nilfs *nilfs = sb->s_fs_info;
-+	struct nilfs_sc_info *sci;
-+	struct task_struct *t;
- 	int err;
- 
- 	if (nilfs->ns_writer) {
-@@ -2890,15 +2862,23 @@ int nilfs_attach_log_writer(struct super
- 		return 0;
- 	}
- 
--	nilfs->ns_writer = nilfs_segctor_new(sb, root);
--	if (!nilfs->ns_writer)
-+	sci = nilfs_segctor_new(sb, root);
-+	if (unlikely(!sci))
- 		return -ENOMEM;
- 
--	err = nilfs_segctor_start_thread(nilfs->ns_writer);
--	if (unlikely(err))
-+	nilfs->ns_writer = sci;
-+	t = kthread_create(nilfs_segctor_thread, sci, "segctord");
-+	if (IS_ERR(t)) {
-+		err = PTR_ERR(t);
-+		nilfs_err(sb, "error %d creating segctord thread", err);
- 		nilfs_detach_log_writer(sb);
-+		return err;
-+	}
-+	sci->sc_task = t;
-+	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
- 
--	return err;
-+	wake_up_process(sci->sc_task);
-+	return 0;
- }
- 
- /**
---- a/fs/nilfs2/segment.h~nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread
-+++ a/fs/nilfs2/segment.h
-@@ -105,7 +105,6 @@ struct nilfs_segsum_pointer {
-  * @sc_flush_request: inode bitmap of metadata files to be flushed
-  * @sc_wait_request: Client request queue
-  * @sc_wait_daemon: Daemon wait queue
-- * @sc_wait_task: Start/end wait queue to control segctord task
-  * @sc_seq_request: Request counter
-  * @sc_seq_accepted: Accepted request count
-  * @sc_seq_done: Completion counter
-@@ -158,7 +157,6 @@ struct nilfs_sc_info {
- 
- 	wait_queue_head_t	sc_wait_request;
- 	wait_queue_head_t	sc_wait_daemon;
--	wait_queue_head_t	sc_wait_task;
- 
- 	__u32			sc_seq_request;
- 	__u32			sc_seq_accepted;
-@@ -191,7 +189,6 @@ enum {
- };
- 
- /* sc_state */
--#define NILFS_SEGCTOR_QUIT	    0x0001  /* segctord is being destroyed */
- #define NILFS_SEGCTOR_COMMIT	    0x0004  /* committed transaction exists */
- 
- /*
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
