@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0619E1DA32
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 02:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F91C3D96A
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 04:14:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724813773; cv=none; b=Unnx99DrITXHf9+63CyBRJYl5uOclqZRmB1n2E8TN0P5K5M8zwds4f7LjQr4QHQYo7GoF7M13TS+iU7CisbqIepQPH4ekSXhLSUfQ8s4HedfnP5PLVmPoc3SD8QgZaWBE8JjpE36tG72dcbGHt276r9cr/tmgRgLQIg9WHZCVpc=
+	t=1724818494; cv=none; b=XPoEsWJbUrxipHIgJk7jnSS1z7VJCr0mT6QNvP17fm+ERDF0yvvQQNrmOGR5X/ukEGduTJIOLWjU8w3YPc/WEHaFBWzoGd9w6Djk21L/j42y2BuCLvXMcquKniZy2P3Bci4rbeqv+NkdLRWivlxUmWEbxeXMG7s25YZ/D2a7yhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724813773; c=relaxed/simple;
-	bh=UEdB/U2uy/6zyxsT25wDAQ2K4UM/CQRQ91gXpi4h45I=;
-	h=Date:To:From:Subject:Message-Id; b=ErBE6tjxGd6dKLv2EtjmSoKHnfWe6Ev/jQnC5AM2/x6K3/TzxNSeIPb7WkMZb3cJhSHFaUYZKhF97YjJapMuf1rQLOr907RzW7J9tgSiizwZh8l5/Odl2v/vf50RjigCB4A1t9aQ5gnRS6y1N9v9ajoduJRuXOZRweZiShvIP9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2lkwWa3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724818494; c=relaxed/simple;
+	bh=BALHt/l1MmxV19rBp3u05tg017iMNA3czmzSOVzgDnw=;
+	h=Date:To:From:Subject:Message-Id; b=l5su/PMn49N26seGAuckW1hDNQzwH2czjFEwPwaS2+FmQClgnXqSOvdyJKP8rzMHDCPM5yx0S/VFca90Fpj+ZwWbaf4fy4e+ErgcObZDfQutYkUUkZ3HK5Kx2BIOeUJso+6nFJrMr8U41iQlyBjhajxcc9Auogx/29dsJCP16zM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WNKug50c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2lkwWa3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79FCAC4AF11;
-	Wed, 28 Aug 2024 02:56:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WNKug50c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FC28C4DE05;
+	Wed, 28 Aug 2024 04:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724813772;
-	bh=UEdB/U2uy/6zyxsT25wDAQ2K4UM/CQRQ91gXpi4h45I=;
+	s=korg; t=1724818493;
+	bh=BALHt/l1MmxV19rBp3u05tg017iMNA3czmzSOVzgDnw=;
 	h=Date:To:From:Subject:From;
-	b=O2lkwWa3xs9qRB3rmfn7hP6r+9QamOVJnS6Bw3avWpZwIyTRISwios+DiV6kZoXRN
-	 wWU2IMKrTTiTFS1u8AHlzStE1Ll+bZoOKIc1AxSJdTG3xeget42OpRA3900Azjm0v6
-	 jtINiw7N3pthpivJouBjSMaruByITchr8TmQza1U=
-Date: Tue, 27 Aug 2024 19:56:11 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=WNKug50cgGb6+ZgHaJGUdhNtoiNsXEJLbeAi3lDPvh2MPuTqgaY+F+64to2EVVKNJ
+	 DOWuUm6w3ojPyDIYkxUoXiP7SYiKVanEqZcDkLP9SPXlNV6V6fh4F3RACjj5EKgKKg
+	 /Do6Yg2+qZ49iyhRI8N3QKxTtnM3SB94XKkjdHSo=
+Date: Tue, 27 Aug 2024 21:14:52 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-duplicated-include-in-vma_internalh-fix.patch added to mm-unstable branch
-Message-Id: <20240828025612.79FCAC4AF11@smtp.kernel.org>
+Subject: + mm-support-only-one-page_type-per-page-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20240828041453.3FC28C4DE05@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fixup vma.h for nommu
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-duplicated-include-in-vma_internalh-fix.patch
+     Subject: mm-support-only-one-page_type-per-page-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-support-only-one-page_type-per-page-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-duplicated-include-in-vma_internalh-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-only-one-page_type-per-page-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: fixup vma.h for nommu
-Date: Sun, 25 Aug 2024 12:29:47 +0100
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-support-only-one-page_type-per-page-fix
+Date: Wed, 28 Aug 2024 11:35:28 +0800
 
-Some series of includes result in vma.h being imported by nommu under
-certain circumstances, which references FIRST_USER_ADDRESS and
-USER_PGTABLES_CEILING, neither of which are necessarily defined in a nommu
-scenario.
+fix ubsan warnings
 
-Work around this by wrapping the inline function which references these
-(init_vma_munmap()) in an #ifdef CONFIG_MMU.
+UBSAN: shift-out-of-bounds in ../include/linux/page-flags.h:998:1
+left shift of 240 by 24 places cannot be represented in type 'int'
+...
 
-Link: https://lkml.kernel.org/r/7d0ea994-f750-49c5-b392-ae7117369cf3@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: SeongJae Park <sj@kernel.org>
+Changing significant bit to unsigned to fix it.
+
+Link: https://lkml.kernel.org/r/2d19c48a-c550-4345-bf36-d05cd303c5de@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/page-flags.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vma.h~mm-remove-duplicated-include-in-vma_internalh-fix
-+++ a/mm/vma.h
-@@ -225,6 +225,7 @@ static inline int vma_iter_store_gfp(str
- }
- 
- 
-+#ifdef CONFIG_MMU
- /*
-  * These three helpers classifies VMAs for virtual memory accounting.
-  */
-@@ -255,6 +256,7 @@ static inline bool is_data_mapping(vm_fl
- {
- 	return (flags & (VM_WRITE | VM_SHARED | VM_STACK)) == VM_WRITE;
- }
-+#endif
- 
- 
- static inline void vma_iter_config(struct vma_iterator *vmi,
+--- a/include/linux/page-flags.h~mm-support-only-one-page_type-per-page-fix
++++ a/include/linux/page-flags.h
+@@ -966,7 +966,7 @@ static __always_inline void __folio_set_
+ {									\
+ 	VM_BUG_ON_FOLIO(data_race(folio->page.page_type) != UINT_MAX,	\
+ 			folio);						\
+-	folio->page.page_type = PGTY_##lname << 24;			\
++	folio->page.page_type = (unsigned int)PGTY_##lname << 24;	\
+ }									\
+ static __always_inline void __folio_clear_##fname(struct folio *folio)	\
+ {									\
+@@ -983,7 +983,7 @@ static __always_inline int Page##uname(c
+ static __always_inline void __SetPage##uname(struct page *page)		\
+ {									\
+ 	VM_BUG_ON_PAGE(data_race(page->page_type) != UINT_MAX, page);	\
+-	page->page_type = PGTY_##lname << 24;				\
++	page->page_type = (unsigned int)PGTY_##lname << 24;		\
+ }									\
+ static __always_inline void __ClearPage##uname(struct page *page)	\
+ {									\
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
-mm-move-vma_modify-and-helpers-to-internal-header.patch
-mm-move-vma_shrink-vma_expand-to-internal-header.patch
-mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
-maintainers-add-entry-for-new-vma-files.patch
-tools-separate-out-shared-radix-tree-components.patch
-tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
-mm-remove-duplicated-include-in-vma_internalh-fix.patch
-mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct-fix.patch
-tools-improve-vma-test-makefile.patch
-tools-add-vma-merge-tests.patch
-mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
-mm-remove-duplicated-open-coded-vma-policy-check.patch
-mm-abstract-vma_expand-to-use-vma_merge_struct.patch
-mm-avoid-using-vma_merge-for-new-vmas.patch
-mm-avoid-using-vma_merge-for-new-vmas-fix.patch
-mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
-mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
-mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
-mm-rework-vm_ops-close-handling-on-vma-merge.patch
+mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
+mm-remove-migration-for-hugepage-in-isolate_single_pageblock.patch
+mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
+mm-memory-failure-add-unmap_poisoned_folio.patch
+mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
+mm-migrate-add-isolate_folio_to_list.patch
+mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
+mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
+mm-migrate_device-use-a-folio-in-migrate_device_range.patch
+mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
+mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
+mm-remove-isolate_lru_page.patch
+mm-remove-isolate_lru_page-fix.patch
+mm-remove-putback_lru_page.patch
+mm-migrate-add-folio_isolate_movable.patch
+mm-compaction-convert-to-folio_isolate_movable.patch
+mm-migrate-convert-to-folio_isolate_movable.patch
+mm-migrate-remove-isolate_movable_page.patch
+mm-support-only-one-page_type-per-page-fix.patch
 
