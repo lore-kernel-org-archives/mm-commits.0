@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A8603770C
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:35:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55A2F1401C
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:45:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724808913; cv=none; b=OYPMuHZJOObciT6FLT/NL2rfCOcW2sS3fZ9uj7c4ycKeNT/LidcjsC+0fsr/X6l0kw5MU0OEKmgqQApLDz9Tjm8AorIkLd8AY0oW5xAtQgfRivc/yy2l/H4wbxazEC6Z9Ai4HTjQo0j8GfKtJGaZuG0p0KvM24VxEPeNBxyPsks=
+	t=1724809524; cv=none; b=Hfpa8eAu147no/dAXeIUw4T9tlceCKSzEyXVmIG7vq+oAweAcA81V9Y12frvR01IOl1OzuMMycvoSEv0n6Js8jxRYkO6yq8was4gESI07GBjBZNLM+mYll13m5ksfX0jmXmyiLzR1Yf50a34dWARN9n5J5Y8zJMDHx4jDJldXl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724808913; c=relaxed/simple;
-	bh=9yc7Q5eCwnJdaPsI+kpC8Eax5GG9XLPAp4Vs4FSBcA8=;
-	h=Date:To:From:Subject:Message-Id; b=CirT9aOvy4Zqz8zCtmfc0oN388PNhzIZX428SEJXVN7WYLrDhzym9+U0Sr+9JWvfvgaTCG3lmrpB1sgUTur2v5xuBHbItUI2phRQ8jvgQorV0HtMSNVS81U85XtPfmwEEosC37pf4GZ9ae5kcjNZTurqpBaKhkMtZSKzfY8Eg3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQoIldMA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724809524; c=relaxed/simple;
+	bh=AYMUYwh0NiESl2xhJWFkDWs6cDteB+TD/rpSyCjcLrY=;
+	h=Date:To:From:Subject:Message-Id; b=AlxSN/+vYhc6z14mz9wxT+nagdgT3ozelx1epQ6N1GX04zd2XSjS2DsRu8fL53rx9AJSvVCC1+vyimnl8XJtcItyYvI7x8/bHIH3XCgiFSk20Rsr8+TfauUMJ1D57dz/bA6zv1Qx7MNukFwodBiukXi44WAhNQt3CZ+IBUgsFkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N7U+indg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQoIldMA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3260C32782;
-	Wed, 28 Aug 2024 01:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N7U+indg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D552FC32782;
+	Wed, 28 Aug 2024 01:45:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724808912;
-	bh=9yc7Q5eCwnJdaPsI+kpC8Eax5GG9XLPAp4Vs4FSBcA8=;
+	s=korg; t=1724809523;
+	bh=AYMUYwh0NiESl2xhJWFkDWs6cDteB+TD/rpSyCjcLrY=;
 	h=Date:To:From:Subject:From;
-	b=aQoIldMAY/Kwwqcif/0boHnE+Oev7Q5dJN0OXwXPs63bhigYq33a9PBk91NidPyaS
-	 YZnL99xZSGAZ73qRkElq6qEING/iNG4ZSja3OnYeh42kbHedYwpTPa6g2GSU8hAS5R
-	 WI0Viy/rkegYtgA5f5SfB7BtVaq6Q8xLlwoi7GgY=
-Date: Tue, 27 Aug 2024 18:35:12 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=N7U+indg4e/Prqnc0biNtxZShuKVPFtSLFljv1YsZznTXJVttmkGy1aFCQZKuVo02
+	 ZE8CDWeUYjRb/n2r2RlRqw/VzLiUzOTxAQnD7ZWnvdUMeNO+v4UD3MJKJgSxjWDrip
+	 GRhG0e/VkyS/KtYXAzxNvk8CttKa7DEMOY5ilDac=
+Date: Tue, 27 Aug 2024 18:45:23 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-dump-error-message-based-on-format.patch added to mm-unstable branch
-Message-Id: <20240828013512.D3260C32782@smtp.kernel.org>
+Subject: + mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix.patch added to mm-unstable branch
+Message-Id: <20240828014523.D552FC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: dump error message based on format
+     Subject: mm: shmem: fix the gfp flag for large folio allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-dump-error-message-based-on-format.patch
+     mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-dump-error-message-based-on-format.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: dump error message based on format
-Date: Mon, 26 Aug 2024 01:24:22 +0000
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fix the gfp flag for large folio allocation
+Date: Tue, 27 Aug 2024 11:06:34 +0800
 
-Just do what mt_dump_range64() does.
+In shmem_replace_folio(), it may be necessary to allocate a large folio,
+so we should update the gfp flags to ensure it is suitable for allocating
+the large folio.
 
-Dump the error message based on format.
-
-Link: https://lkml.kernel.org/r/20240826012422.29935-2-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/5b1e9c5a-7f61-4d97-a8d7-41767ca04c77@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ 0 files changed
 
---- a/lib/maple_tree.c~maple_tree-dump-error-message-based-on-format
-+++ a/lib/maple_tree.c
-@@ -7243,9 +7243,15 @@ static void mt_dump_arange64(const struc
- 		if (last == max)
- 			break;
- 		if (last > max) {
--			pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+			switch(format) {
-+			case mt_dump_hex:
-+				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
- 					node, last, max, i);
--			break;
-+				break;
-+			case mt_dump_dec:
-+				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+					node, last, max, i);
-+			}
- 		}
- 		first = last + 1;
- 	}
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-improve-code-consistency-with-zonelist_-helper-functions.patch
-mm-memory_hotplug-get-rid-of-__ref.patch
-maple_tree-fix-comment-typo-of-ma_root.patch
-maple_tree-fix-comment-typo-with-corresponding-maple_status.patch
-maple_tree-arange64-node-is-not-a-leaf-node.patch
-maple_tree-dump-error-message-based-on-format.patch
+mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
+mm-shmem-rename-shmem_is_huge-to-shmem_huge_global_enabled.patch
+mm-shmem-move-shmem_huge_global_enabled-into-shmem_allowable_huge_orders.patch
+mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
+mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
+mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
+mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix.patch
+mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
+mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
+mm-shmem-support-large-folio-swap-out.patch
+mm-khugepaged-expand-the-is_refcount_suitable-to-support-file-folios.patch
+mm-khugepaged-use-the-number-of-pages-in-the-folio-to-check-the-reference-count.patch
+mm-khugepaged-support-shmem-mthp-copy.patch
+mm-khugepaged-support-shmem-mthp-collapse.patch
+selftests-mm-support-shmem-mthp-collapse-testing.patch
 
