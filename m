@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F91C3D96A
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 04:14:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B2DD18030
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 04:27:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724818494; cv=none; b=XPoEsWJbUrxipHIgJk7jnSS1z7VJCr0mT6QNvP17fm+ERDF0yvvQQNrmOGR5X/ukEGduTJIOLWjU8w3YPc/WEHaFBWzoGd9w6Djk21L/j42y2BuCLvXMcquKniZy2P3Bci4rbeqv+NkdLRWivlxUmWEbxeXMG7s25YZ/D2a7yhU=
+	t=1724819227; cv=none; b=WHbHqts7ava0PQzj/UA+22PppOqT2tB2naSK7AskaL5RLCvRNCAtjYRtrg1JfQubrZ/maddCcuwfi9FPSQ1iDkEqv9KOwJJrJZyg48OGxHI0NH6Pqndwo+wDep3BO5hYtQEEzlZoldOonnxVGy2rTwgENPW4e9XMWqCsKpznWt4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724818494; c=relaxed/simple;
-	bh=BALHt/l1MmxV19rBp3u05tg017iMNA3czmzSOVzgDnw=;
-	h=Date:To:From:Subject:Message-Id; b=l5su/PMn49N26seGAuckW1hDNQzwH2czjFEwPwaS2+FmQClgnXqSOvdyJKP8rzMHDCPM5yx0S/VFca90Fpj+ZwWbaf4fy4e+ErgcObZDfQutYkUUkZ3HK5Kx2BIOeUJso+6nFJrMr8U41iQlyBjhajxcc9Auogx/29dsJCP16zM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WNKug50c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724819227; c=relaxed/simple;
+	bh=DfjCw1SjQF+Y8cXRMPSZX1MdUJuDSzSzDrkIt7/eMxE=;
+	h=Date:To:From:Subject:Message-Id; b=G8ayRd/kipz6F/Bd3+rfhAZ8rzBubqGHKMHwGpr/OchULKSdgD8lm0zVNhpS0sEttooNjXmZ1qAPWJ6oU9jCfTEJBmen6nTiOxWyWWdRlxAeFXUKQjibzR4NM2vgGIA3FYlH0uJZzTcrTDqaExhZWWIikldR3Gn3yZIZT6QqPSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jua2OAO5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WNKug50c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FC28C4DE05;
-	Wed, 28 Aug 2024 04:14:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jua2OAO5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2216C4FF0D;
+	Wed, 28 Aug 2024 04:27:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724818493;
-	bh=BALHt/l1MmxV19rBp3u05tg017iMNA3czmzSOVzgDnw=;
+	s=korg; t=1724819226;
+	bh=DfjCw1SjQF+Y8cXRMPSZX1MdUJuDSzSzDrkIt7/eMxE=;
 	h=Date:To:From:Subject:From;
-	b=WNKug50cgGb6+ZgHaJGUdhNtoiNsXEJLbeAi3lDPvh2MPuTqgaY+F+64to2EVVKNJ
-	 DOWuUm6w3ojPyDIYkxUoXiP7SYiKVanEqZcDkLP9SPXlNV6V6fh4F3RACjj5EKgKKg
-	 /Do6Yg2+qZ49iyhRI8N3QKxTtnM3SB94XKkjdHSo=
-Date: Tue, 27 Aug 2024 21:14:52 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=jua2OAO5efiszwKC24wvenHzWF/V5vGw7+w7U3/5m/AE+l/mdl8KFV2mW1WQWGOUk
+	 0ftt7BynIXPvtXhwZV0bgQm1uvH/S+v0xxqoq67kgIIFRrOQdYBhkv2K6gctd9Eick
+	 EGiivToD9LqNsJ7adhSV0eCjd5eY0IYWjp7NFEVw=
+Date: Tue, 27 Aug 2024 21:27:06 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-only-one-page_type-per-page-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240828041453.3FC28C4DE05@smtp.kernel.org>
+Subject: + mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3.patch added to mm-unstable branch
+Message-Id: <20240828042706.C2216C4FF0D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-support-only-one-page_type-per-page-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-support-only-one-page_type-per-page-fix.patch
+     Subject: mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-only-one-page_type-per-page-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-support-only-one-page_type-per-page-fix
-Date: Wed, 28 Aug 2024 11:35:28 +0800
+From: Barry Song <21cnbao@gmail.com>
+Subject: mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3
+Date: Wed, 21 Aug 2024 17:49:21 +1200
 
-fix ubsan warnings
+add missing zswap_invalidate()
 
-UBSAN: shift-out-of-bounds in ../include/linux/page-flags.h:998:1
-left shift of 240 by 24 places cannot be represented in type 'int'
-...
-
-Changing significant bit to unsigned to fix it.
-
-Link: https://lkml.kernel.org/r/2d19c48a-c550-4345-bf36-d05cd303c5de@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20240821054921.43468-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <21cnbao@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/page-flags.h~mm-support-only-one-page_type-per-page-fix
-+++ a/include/linux/page-flags.h
-@@ -966,7 +966,7 @@ static __always_inline void __folio_set_
- {									\
- 	VM_BUG_ON_FOLIO(data_race(folio->page.page_type) != UINT_MAX,	\
- 			folio);						\
--	folio->page.page_type = PGTY_##lname << 24;			\
-+	folio->page.page_type = (unsigned int)PGTY_##lname << 24;	\
- }									\
- static __always_inline void __folio_clear_##fname(struct folio *folio)	\
- {									\
-@@ -983,7 +983,7 @@ static __always_inline int Page##uname(c
- static __always_inline void __SetPage##uname(struct page *page)		\
- {									\
- 	VM_BUG_ON_PAGE(data_race(page->page_type) != UINT_MAX, page);	\
--	page->page_type = PGTY_##lname << 24;				\
-+	page->page_type = (unsigned int)PGTY_##lname << 24;		\
- }									\
- static __always_inline void __ClearPage##uname(struct page *page)	\
- {									\
+--- a/mm/swapfile.c~mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3
++++ a/mm/swapfile.c
+@@ -1514,6 +1514,8 @@ static bool __swap_entries_free(struct s
+ 	unlock_cluster_or_swap_info(si, ci);
+ 
+ 	if (!has_cache) {
++		for (i = 0; i < nr; i++)
++			zswap_invalidate(swp_entry(si->type, offset + i));
+ 		spin_lock(&si->lock);
+ 		swap_entry_range_free(si, entry, nr);
+ 		spin_unlock(&si->lock);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from 21cnbao@gmail.com are
 
-mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
-mm-remove-migration-for-hugepage-in-isolate_single_pageblock.patch
-mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
-mm-memory-failure-add-unmap_poisoned_folio.patch
-mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
-mm-migrate-add-isolate_folio_to_list.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
-mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
-mm-migrate_device-use-a-folio-in-migrate_device_range.patch
-mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
-mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
-mm-remove-isolate_lru_page.patch
-mm-remove-isolate_lru_page-fix.patch
-mm-remove-putback_lru_page.patch
-mm-migrate-add-folio_isolate_movable.patch
-mm-compaction-convert-to-folio_isolate_movable.patch
-mm-migrate-convert-to-folio_isolate_movable.patch
-mm-migrate-remove-isolate_movable_page.patch
-mm-support-only-one-page_type-per-page-fix.patch
+mm-swap-allow-cache-reclaim-to-skip-slot-cache-fix.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-3.patch
 
