@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF5ABEEB3
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F974182B3
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:19:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724803811; cv=none; b=bbjCpcbPwx0iY7ueBpXu2hOcLDE3jx16o6sHdLj6mEtHwqoExpoI5uQu9ZTDoBn7ti0U6LVIjdrfKA3S1gJKqNmfGqH6JHgl7d9hwiBVTQPZrenTvV9NWMJfSPHTkAiqslsn5aApX6valF6y3UtpBx2WkrQEpcfzmLMsR1Qwxgg=
+	t=1724804391; cv=none; b=SxlU8nHo2mCoYwh7Grdfr95FWrtMYdB8ImnUPnRm5uFKfLzOFHgyFyorjwZxV0sa2CCsq4e8MlvMlH/udfJTFEfHNKUVowGCQPFyzHtuLJQOLojrNB36or8Q70CNNytW+Y8FuzVmOzSucDBmMOdHPqmhgInUVyWssknA6dCsEbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724803811; c=relaxed/simple;
-	bh=gxSKWhsOJIY92NNiF9fyg19Uo/50AIBSVfeeHzBId7c=;
-	h=Date:To:From:Subject:Message-Id; b=AdFd3LxsR9JPtMFtxZObF7DdBgvhed2J5iZSWJWl8/QA1hOAd5EylagX2dsNiMSFyDa2m7li3exE6+H9LWyDZ3Fg/Sf0tqaMTu2kKZdJWRIlnl0baQjK+iQ8heYtqwboRUMR0zyGT5eMUGyThvmLoWhbfpYb9BhSTwU/rApmp0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kzlegpk4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724804391; c=relaxed/simple;
+	bh=PTxgu5Bu+f28vlk95h1rS1G/V676l9AJd82pXEuRWlc=;
+	h=Date:To:From:Subject:Message-Id; b=YBiytXNJFDlSPsOVKdECEje8AJmL6zUb55mHrehk5Mvmy5WULlnDg5mOwX9Y/CagA/MuY60YrG9KtEUxFUNbmOck0/YJmtVkDF//eeJqDo9uMvz3wTzWF+dxZ6gjiQ/K5wq0lSRm5sfZUJx0bbXHwl7hE88AD5ZR2czbkB5Ar2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SLqwJPwE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kzlegpk4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A7BFC4AF51;
-	Wed, 28 Aug 2024 00:10:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SLqwJPwE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 965A0C4DE0B;
+	Wed, 28 Aug 2024 00:19:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724803811;
-	bh=gxSKWhsOJIY92NNiF9fyg19Uo/50AIBSVfeeHzBId7c=;
+	s=korg; t=1724804390;
+	bh=PTxgu5Bu+f28vlk95h1rS1G/V676l9AJd82pXEuRWlc=;
 	h=Date:To:From:Subject:From;
-	b=Kzlegpk44tKElQbvgW9AP4yQpoeBAS/0vpVC8sHYecab+5QuL2Ia8geuufmutbv0s
-	 sAGWY3k4FSsUHY/GGexFi7I7MX2mNXjh1vuOTnG6JGD6B52wsUZ7sW+2cxtF82ISKT
-	 HwdKO10ihj1aSMcDtzZXHaNDSIuMt0nFmyvuknjA=
-Date: Tue, 27 Aug 2024 17:10:10 -0700
-To: mm-commits@vger.kernel.org,huangxiaojia2@huawei.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=SLqwJPwET/UmEnBvfB8etsEYn1MvjeWlOnTOD2eMpn6o4MberhJGBzo3rI4RtpZd9
+	 3U4PhK+faZcU6yICVlsVX0CoFU+tUTAVYfr2itPaR7spbGEM7A9MA6uX0+pdg0jb1V
+	 6sYI7aGmEcdmeOdX9IRfWQRcD4dns8umYWw7DcKk=
+Date: Tue, 27 Aug 2024 17:19:50 -0700
+To: mm-commits@vger.kernel.org,swaminathanalok@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-refactor-nilfs_segctor_thread.patch added to mm-nonmm-unstable branch
-Message-Id: <20240828001011.7A7BFC4AF51@smtp.kernel.org>
+Subject: + lib-globc-added-null-check-for-character-class.patch added to mm-nonmm-unstable branch
+Message-Id: <20240828001950.965A0C4DE0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: refactor nilfs_segctor_thread()
+     Subject: lib: glob.c: added null check for character class
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-refactor-nilfs_segctor_thread.patch
+     lib-globc-added-null-check-for-character-class.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-refactor-nilfs_segctor_thread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-globc-added-null-check-for-character-class.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,177 +58,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: refactor nilfs_segctor_thread()
-Date: Tue, 27 Aug 2024 02:41:16 +0900
+From: Alok Swaminathan <swaminathanalok@gmail.com>
+Subject: lib: glob.c: added null check for character class
+Date: Mon, 26 Aug 2024 11:57:09 -0400
 
-Simplify nilfs_segctor_thread(), the main loop function of the log writer
-thread, to make the basic structure easier to understand.
+Add null check for character class.  Previously, an inverted character
+class could result in a nul byte being matched and lead to the function
+reading past the end of the inputted string.
 
-In particular, the acquisition and release of the sc_state_lock spinlock
-was scattered throughout the function, so extract the determination of
-whether log writing is required into a helper function and make the
-spinlock lock sections clearer.
-
-Link: https://lkml.kernel.org/r/20240826174116.5008-9-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Huang Xiaojia <huangxiaojia2@huawei.com>
+Link: https://lkml.kernel.org/r/20240826155709.12383-1-swaminathanalok@gmail.com
+Signed-off-by: Alok Swaminathan <swaminathanalok@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   85 +++++++++++++++++++-----------------------
- 1 file changed, 40 insertions(+), 45 deletions(-)
+ lib/glob.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/nilfs2/segment.c~nilfs2-refactor-nilfs_segctor_thread
-+++ a/fs/nilfs2/segment.c
-@@ -2630,6 +2630,32 @@ static int nilfs_segctor_flush_mode(stru
- }
- 
- /**
-+ * nilfs_log_write_required - determine whether log writing is required
-+ * @sci:   nilfs_sc_info struct
-+ * @modep: location for storing log writing mode
-+ *
-+ * Return: true if log writing is required, false otherwise.  If log writing
-+ * is required, the mode is stored in the location pointed to by @modep.
-+ */
-+static bool nilfs_log_write_required(struct nilfs_sc_info *sci, int *modep)
-+{
-+	bool timedout, ret = true;
-+
-+	spin_lock(&sci->sc_state_lock);
-+	timedout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
-+		   time_after_eq(jiffies, sci->sc_timer.expires));
-+	if (timedout || sci->sc_seq_request != sci->sc_seq_done)
-+		*modep = SC_LSEG_SR;
-+	else if (sci->sc_flush_request)
-+		*modep = nilfs_segctor_flush_mode(sci);
-+	else
-+		ret = false;
-+
-+	spin_unlock(&sci->sc_state_lock);
-+	return ret;
-+}
-+
-+/**
-  * nilfs_segctor_thread - main loop of the log writer thread
-  * @arg: pointer to a struct nilfs_sc_info.
-  *
-@@ -2644,70 +2670,39 @@ static int nilfs_segctor_thread(void *ar
- {
- 	struct nilfs_sc_info *sci = (struct nilfs_sc_info *)arg;
- 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
--	int timeout = 0;
- 
- 	nilfs_info(sci->sc_super,
- 		   "segctord starting. Construction interval = %lu seconds, CP frequency < %lu seconds",
- 		   sci->sc_interval / HZ, sci->sc_mjcp_freq / HZ);
- 
- 	set_freezable();
--	spin_lock(&sci->sc_state_lock);
-- loop:
--	for (;;) {
--		int mode;
- 
--		if (kthread_should_stop())
--			goto end_thread;
--
--		if (timeout || sci->sc_seq_request != sci->sc_seq_done)
--			mode = SC_LSEG_SR;
--		else if (sci->sc_flush_request)
--			mode = nilfs_segctor_flush_mode(sci);
--		else
--			break;
--
--		spin_unlock(&sci->sc_state_lock);
--		nilfs_segctor_thread_construct(sci, mode);
--		spin_lock(&sci->sc_state_lock);
--		timeout = 0;
--	}
--
--
--	if (freezing(current)) {
--		spin_unlock(&sci->sc_state_lock);
--		try_to_freeze();
--		spin_lock(&sci->sc_state_lock);
--	} else {
-+	while (!kthread_should_stop()) {
- 		DEFINE_WAIT(wait);
--		int should_sleep = 1;
-+		bool should_write;
-+		int mode;
-+
-+		if (freezing(current)) {
-+			try_to_freeze();
-+			continue;
-+		}
- 
- 		prepare_to_wait(&sci->sc_wait_daemon, &wait,
- 				TASK_INTERRUPTIBLE);
--
--		if (sci->sc_seq_request != sci->sc_seq_done)
--			should_sleep = 0;
--		else if (sci->sc_flush_request)
--			should_sleep = 0;
--		else if (sci->sc_state & NILFS_SEGCTOR_COMMIT)
--			should_sleep = time_before(jiffies,
--					sci->sc_timer.expires);
--
--		if (should_sleep) {
--			spin_unlock(&sci->sc_state_lock);
-+		should_write = nilfs_log_write_required(sci, &mode);
-+		if (!should_write)
- 			schedule();
--			spin_lock(&sci->sc_state_lock);
--		}
- 		finish_wait(&sci->sc_wait_daemon, &wait);
--		timeout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
--			   time_after_eq(jiffies, sci->sc_timer.expires));
- 
- 		if (nilfs_sb_dirty(nilfs) && nilfs_sb_need_update(nilfs))
- 			set_nilfs_discontinued(nilfs);
-+
-+		if (should_write)
-+			nilfs_segctor_thread_construct(sci, mode);
- 	}
--	goto loop;
- 
-- end_thread:
- 	/* end sync. */
-+	spin_lock(&sci->sc_state_lock);
- 	sci->sc_task = NULL;
- 	timer_shutdown_sync(&sci->sc_timer);
- 	spin_unlock(&sci->sc_state_lock);
+--- a/lib/glob.c~lib-globc-added-null-check-for-character-class
++++ a/lib/glob.c
+@@ -68,6 +68,8 @@ bool __pure glob_match(char const *pat,
+ 			back_str = --str;	/* Allow zero-length match */
+ 			break;
+ 		case '[': {	/* Character class */
++			if (c == '\0')	/* No possible match */
++				return false;
+ 			bool match = false, inverted = (*pat == '!');
+ 			char const *class = pat + inverted;
+ 			unsigned char a = *class++;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from swaminathanalok@gmail.com are
 
-nilfs2-protect-references-to-superblock-parameters-exposed-in-sysfs.patch
-nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
-nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
-nilfs2-add-support-for-fs_ioc_getuuid.patch
-nilfs2-add-support-for-fs_ioc_getfssysfspath.patch
-nilfs2-add-support-for-fs_ioc_getfslabel.patch
-nilfs2-add-support-for-fs_ioc_setfslabel.patch
-nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch
-nilfs2-add-missing-argument-description-for-__nilfs_error.patch
-nilfs2-add-missing-argument-descriptions-for-ioctl-related-helpers.patch
-nilfs2-improve-kernel-doc-comments-for-b-tree-node-helpers.patch
-nilfs2-fix-incorrect-kernel-doc-declaration-of-nilfs_palloc_req-structure.patch
-nilfs2-add-missing-description-of-nilfs_btree_path-structure.patch
-nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch
-nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
-nilfs2-fix-missing-initial-short-descriptions-of-kernel-doc-comments.patch
-nilfs2-treat-missing-sufile-header-block-as-metadata-corruption.patch
-nilfs2-treat-missing-cpfile-header-block-as-metadata-corruption.patch
-nilfs2-do-not-propagate-enoent-error-from-sufile-during-recovery.patch
-nilfs2-do-not-propagate-enoent-error-from-sufile-during-gc.patch
-nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch
-nilfs2-use-the-bits_per_long-macro.patch
-nilfs2-separate-inode-type-information-from-i_state-field.patch
-nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation.patch
-nilfs2-do-not-repair-reserved-inode-bitmap-in-nilfs_new_inode.patch
-nilfs2-remove-sc_timer_task.patch
-nilfs2-use-kthread_create-and-kthread_stop-for-the-log-writer-thread.patch
-nilfs2-refactor-nilfs_segctor_thread.patch
+lib-globc-added-null-check-for-character-class.patch
 
