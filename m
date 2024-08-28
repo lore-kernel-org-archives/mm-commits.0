@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEBF1401C
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:16:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8792F18638
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:17:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724807776; cv=none; b=RcXbnQegYJCU0XARYVG6zpR+CPCQE8rewAib9rk/X9yjrBzaAFJsS5o8NJUx0ibBOd4/LhkAZQADodrgjViD5B+cXc+DfzYY2adugTZkWKEn96AnOElhyAK1ktzMXjGfJGFzBVGpD857wqXP8NAGOOqcq1EbesGeXpd7/GOh0Jo=
+	t=1724807870; cv=none; b=QZM2uvc3wCJzS/mDmaHF9sYXq5g2ozkGGTGktFKceHVc9LLs5FDs/LY6IUnt9KI99GRlctGDie6uVCqWV0ykMAZVwBZzGYrdm9Av5VlOb4eMUio1TfJD5rJBwM+9BdNZ0/ya5w6UDXHawSr2R4ieusLzigtuUWgLNfoItkmTsPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724807776; c=relaxed/simple;
-	bh=MFg7DLVzedlvzELf9YIiHGIonLRJuwfG2VgGDoWaOqE=;
-	h=Date:To:From:Subject:Message-Id; b=gUT06RmffrZOrNyKtiDgE0t9IjFQmH7jzPQMPaRILq5PcarP2snplUdIsTF+CbddvmCGGt6/XvzX6EJdkCUosK5NdkuDvERJeLesgFSTK4nEOe2mFcLUMrUE3lXRC2IWVNJhmUBP0qojDZwUNv/aY02b3LNJpU46+DULuDXWSwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6rnnCLM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724807870; c=relaxed/simple;
+	bh=UJpv+I8bOeqRTiDvrBL0HgGYYgDjSSJGx2M0hOg+LMw=;
+	h=Date:To:From:Subject:Message-Id; b=HlPYqll0Z4n7DgqwZH2uyuLYnWG5ZM2Xq/ar0MUEVtH7xWrqqnyvLf6LaLWy9a6dKcQVYD44PnIi8I912pPoaZGk1F4gJ/+FlRZW4MVXTWaInisA/X3tcyOLxX/jzV+fVhsWyDbbHhGJD40zHhW3BQfgCYDXindxryovTd0RUHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BTahrm1u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6rnnCLM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B59C4FE01;
-	Wed, 28 Aug 2024 01:16:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BTahrm1u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED52BC32782;
+	Wed, 28 Aug 2024 01:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724807775;
-	bh=MFg7DLVzedlvzELf9YIiHGIonLRJuwfG2VgGDoWaOqE=;
+	s=korg; t=1724807870;
+	bh=UJpv+I8bOeqRTiDvrBL0HgGYYgDjSSJGx2M0hOg+LMw=;
 	h=Date:To:From:Subject:From;
-	b=H6rnnCLMaa3FP2BuYgqVfQsGgqq4GVnoCge+1/7isqh+HTq3U8KQVgC77wm0AQCCr
-	 YCgKfDlUzyi5DQFnmNZEAfuOb8fgq9OEOtark93ksNczReTsjdIYoIlgKEHMG2AynK
-	 rtSOw08284HpOYSWGqUPITGpRDcyIASA018+QwFs=
-Date: Tue, 27 Aug 2024 18:16:14 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,david@redhat.com,baolin.wang@linux.alibaba.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=BTahrm1ucQ3IMROlL7HLcq9Y57utpBhDI6jSU2Cw5QPFkoG6wJ06Dsm4SvZHP4DN9
+	 ToD4+AM9Ae/5On3NT4Od10NPBpGXEKVm3zOS1JCKQGZDPCQ5UovesBdvJIvJRLLDfU
+	 ZsYP6OHff7jOMoS1Sa3uS9uBdzf+NUS8dzODm4Ac=
+Date: Tue, 27 Aug 2024 18:17:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-remove-isolate_movable_page.patch added to mm-unstable branch
-Message-Id: <20240828011615.51B59C4FE01@smtp.kernel.org>
+Subject: + mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch added to mm-unstable branch
+Message-Id: <20240828011749.ED52BC32782@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: migrate: remove isolate_movable_page()
+     Subject: mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-remove-isolate_movable_page.patch
+     mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-isolate_movable_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,81 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: remove isolate_movable_page()
-Date: Mon, 26 Aug 2024 12:01:32 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
+Date: Tue Aug 27 06:17:16 PM PDT 2024
 
-There are no more callers of isolate_movable_page(), remove it.
+WARNING: suspect code indent for conditional statements (8, 24)
+#24: FILE: mm/migrate.c:199:
+ 	else
++			isolated = folio_isolate_movable(folio,
 
-Link: https://lkml.kernel.org/r/20240826040132.1202297-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+total: 0 errors, 1 warnings, 10 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-migrate-convert-to-folio_isolate_movable.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    3 ---
- mm/migrate.c            |    8 --------
- 2 files changed, 11 deletions(-)
+ mm/migrate.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/migrate.h~mm-migrate-remove-isolate_movable_page
-+++ a/include/linux/migrate.h
-@@ -69,7 +69,6 @@ int migrate_pages(struct list_head *l, n
- 		  unsigned long private, enum migrate_mode mode, int reason,
- 		  unsigned int *ret_succeeded);
- struct folio *alloc_migration_target(struct folio *src, unsigned long private);
--bool isolate_movable_page(struct page *page, isolate_mode_t mode);
- bool folio_isolate_movable(struct folio *folio, isolate_mode_t mode);
- bool isolate_folio_to_list(struct folio *folio, struct list_head *list);
- 
-@@ -91,8 +90,6 @@ static inline int migrate_pages(struct l
- static inline struct folio *alloc_migration_target(struct folio *src,
- 		unsigned long private)
- 	{ return NULL; }
--static inline bool isolate_movable_page(struct page *page, isolate_mode_t mode)
--	{ return false; }
- static inline bool folio_isolate_movable(struct folio *folio,
- 					 isolate_mode_t mode)
- 	{ return false; }
---- a/mm/migrate.c~mm-migrate-remove-isolate_movable_page
+--- a/mm/migrate.c~mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes
 +++ a/mm/migrate.c
-@@ -128,14 +128,6 @@ out:
- 	return false;
- }
+@@ -197,8 +197,7 @@ bool isolate_folio_to_list(struct folio
+ 	if (lru)
+ 		isolated = folio_isolate_lru(folio);
+ 	else
+-			isolated = folio_isolate_movable(folio,
+-							 ISOLATE_UNEVICTABLE);
++		isolated = folio_isolate_movable(folio, ISOLATE_UNEVICTABLE);
  
--bool isolate_movable_page(struct page *page, isolate_mode_t mode)
--{
--	if (PageTail(page))
--		return false;
--
--	return folio_isolate_movable((struct folio *)page, mode);
--}
--
- static void putback_movable_folio(struct folio *folio)
- {
- 	const struct movable_operations *mops = folio_movable_ops(folio);
+ 	if (!isolated)
+ 		return false;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
-mm-remove-migration-for-hugepage-in-isolate_single_pageblock.patch
-mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
-mm-memory-failure-add-unmap_poisoned_folio.patch
-mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
-mm-migrate-add-isolate_folio_to_list.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
-mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
-mm-migrate_device-use-a-folio-in-migrate_device_range.patch
-mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
-mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
-mm-remove-isolate_lru_page.patch
-mm-remove-isolate_lru_page-fix.patch
-mm-remove-putback_lru_page.patch
-mm-migrate-add-folio_isolate_movable.patch
-mm-compaction-convert-to-folio_isolate_movable.patch
-mm-migrate-convert-to-folio_isolate_movable.patch
-mm-migrate-remove-isolate_movable_page.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
+mm-contig_alloc-support-__gfp_comp-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix.patch
+mm-remove-pageactive-fix.patch
+selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+mm-migrate-convert-to-folio_isolate_movable-checkpatch-fixes.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
