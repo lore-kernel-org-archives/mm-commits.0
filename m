@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378FF41760
-	for <mm-commits@vger.kernel.org>; Tue, 27 Aug 2024 23:57:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12AE818D
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 00:05:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724803050; cv=none; b=IlrVLeLYLOwqCakt9QEcjPeC4FnPzV1OT/tSHX1NPHS3rAH4RBVhUE8bHVv5ij862JVqvKLAuZg+oE21cgPQLiIPqAuEqv7cODdCRWonJN1Vb8eQNZj5YFljiXHIhJb005rqD83RG81qrrW5LKU4dtxouFid6ZVyEWkP02mzlFA=
+	t=1724803508; cv=none; b=jNqNRpvZl+5wInZlkIFwtv6DjrcBcufbDpAUz20J470jwOwtMITaslEQlb30yWrfHxRWmc9BNS1OionxsncUlOtXxYsuXlgFWxlzVhtgF0aWlNS9hu2MNo9VlXmjDAv/X0j1RU2zS4pt/NV+OEBi9uQvDH+Q19AiEDvIJ3BU8Z0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724803050; c=relaxed/simple;
-	bh=pnp59yGlOo00mQqc7wVk1lTg+4J9Y1F+EKdaeBeIfMY=;
-	h=Date:To:From:Subject:Message-Id; b=Dq0HVDAmaOcI0eEpKfNZTtPFR9LNG3+Lg18MBQxGC7/wBLcUCjT8WLDA+fijLJvvqY9TuUfnNiHRbMQY6+pnZLC6mD1AFHlLL6fh/i2PVsJgSo9HrSJ78a1/TOKY/JuzIZTjG/svHq7J4EWX+9b3QsTdl6jMeVakwV29ckX/oyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FexE1Rhj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724803508; c=relaxed/simple;
+	bh=jDTIPQEz+N1fUsFuqrvkU9Zt6V91k39CWHDE7FF+KFQ=;
+	h=Date:To:From:Subject:Message-Id; b=CuAIb1ClqJZ+/rSEyWd/SGo+LT6i8oS5w1M2i/CFvt45YPT0EnRmYWSgcAUGEUaFM4yUHidMFID2ylR4Beq5ewmOAdDYZAmP9VawsVyzpxtFfIkDAcT9fQaOJnoM0aY2IW6SG2OGv/g/bopcAligAd0DsC73SNY0VluI4U1f/Gg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qp5AT4g4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FexE1Rhj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6874C32782;
-	Tue, 27 Aug 2024 23:57:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qp5AT4g4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B8BC4AF12;
+	Wed, 28 Aug 2024 00:05:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724803050;
-	bh=pnp59yGlOo00mQqc7wVk1lTg+4J9Y1F+EKdaeBeIfMY=;
+	s=korg; t=1724803507;
+	bh=jDTIPQEz+N1fUsFuqrvkU9Zt6V91k39CWHDE7FF+KFQ=;
 	h=Date:To:From:Subject:From;
-	b=FexE1RhjO8bWB74IWQ0QymO0ZxmbWTJw3+kv69HAi2kAMS0u2AzWR6DncCbj853Ro
-	 brIIQ7CV/89zWTB57UF3bf8VBNbf0UT4dPSSOLLHW3RwDCOZCreY0ddmNn+asQdHj8
-	 CNuNZrWI4a3yv7Hyro/WdEVbxXOPusFhEho4UxEU=
-Date: Tue, 27 Aug 2024 16:57:29 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
+	b=qp5AT4g41xCXz0cwE3sFYe5zo5iuB/k/wBjqLPejvZZNgXwj2Z5eCgdp9allz2Hh8
+	 9vSECfMdBEDswbznMqhTuaNiLxrvKNM4+CgMQOYXYwmXoNxGyoxUIqvL1EBhycYsbt
+	 VoQITHW6qCCCXb90KbFTipseVy61HWDDcrtmlp3M=
+Date: Tue, 27 Aug 2024 17:05:07 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-clean-up-mem_cgroup_iter.patch added to mm-unstable branch
-Message-Id: <20240827235729.E6874C32782@smtp.kernel.org>
+Subject: + swap-convert-swapon-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240828000507.84B8BC4AF12@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: clean up mem_cgroup_iter()
+     Subject: swap: convert swapon() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-clean-up-mem_cgroup_iter.patch
+     swap-convert-swapon-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-mem_cgroup_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-convert-swapon-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,124 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kinsey Ho <kinseyho@google.com>
-Subject: mm: clean up mem_cgroup_iter()
-Date: Tue, 27 Aug 2024 23:07:42 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: swap: convert swapon() to use a folio
+Date: Mon, 26 Aug 2024 21:21:35 +0100
 
-A clean up to make variable names more clear and to improve code
-readability.
+Retrieve a folio from the page cache rather than a page.  Saves a couple
+of conversions between page & folio.
 
-No functional change.
-
-Link: https://lkml.kernel.org/r/20240827230753.2073580-6-kinseyho@google.com
-Signed-off-by: Kinsey Ho <kinseyho@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Link: https://lkml.kernel.org/r/20240826202138.3804238-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ mm/swapfile.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~mm-clean-up-mem_cgroup_iter
-+++ a/mm/memcontrol.c
-@@ -987,8 +987,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
- {
- 	struct mem_cgroup_reclaim_iter *iter;
- 	struct cgroup_subsys_state *css;
--	struct mem_cgroup *memcg = NULL;
--	struct mem_cgroup *pos = NULL;
-+	struct mem_cgroup *pos;
-+	struct mem_cgroup *next = NULL;
+--- a/mm/swapfile.c~swap-convert-swapon-to-use-a-folio
++++ a/mm/swapfile.c
+@@ -3355,7 +3355,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	unsigned char *swap_map = NULL;
+ 	unsigned long *zeromap = NULL;
+ 	struct swap_cluster_info *cluster_info = NULL;
+-	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	struct inode *inode = NULL;
+ 	bool inced_nr_rotate_swap = false;
  
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -1000,10 +1000,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
- restart:
- 	if (reclaim) {
- 		int gen;
--		struct mem_cgroup_per_node *mz;
-+		int nid = reclaim->pgdat->node_id;
- 
--		mz = root->nodeinfo[reclaim->pgdat->node_id];
--		iter = &mz->iter;
-+		iter = &root->nodeinfo[nid]->iter;
- 		gen = atomic_read(&iter->generation);
- 
- 		/*
-@@ -1016,29 +1015,22 @@ restart:
- 			goto out_unlock;
- 
- 		pos = READ_ONCE(iter->position);
--	} else if (prev) {
-+	} else
- 		pos = prev;
--	}
- 
- 	css = pos ? &pos->css : NULL;
- 
--	for (;;) {
--		css = css_next_descendant_pre(css, &root->css);
--		if (!css) {
--			break;
--		}
--
-+	while ((css = css_next_descendant_pre(css, &root->css))) {
- 		/*
- 		 * Verify the css and acquire a reference.  The root
- 		 * is provided by the caller, so we know it's alive
- 		 * and kicking, and don't take an extra reference.
- 		 */
--		if (css == &root->css || css_tryget(css)) {
-+		if (css == &root->css || css_tryget(css))
- 			break;
--		}
+@@ -3413,12 +3413,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		error = -EINVAL;
+ 		goto bad_swap_unlock_inode;
  	}
+-	page = read_mapping_page(mapping, 0, swap_file);
+-	if (IS_ERR(page)) {
+-		error = PTR_ERR(page);
++	folio = read_mapping_folio(mapping, 0, swap_file);
++	if (IS_ERR(folio)) {
++		error = PTR_ERR(folio);
+ 		goto bad_swap_unlock_inode;
+ 	}
+-	swap_header = kmap(page);
++	swap_header = kmap_local_folio(folio, 0);
  
--	memcg = mem_cgroup_from_css(css);
-+	next = mem_cgroup_from_css(css);
- 
- 	if (reclaim) {
- 		/*
-@@ -1046,13 +1038,13 @@ restart:
- 		 * thread, so check that the value hasn't changed since we read
- 		 * it to avoid reclaiming from the same cgroup twice.
- 		 */
--		if (cmpxchg(&iter->position, pos, memcg) != pos) {
-+		if (cmpxchg(&iter->position, pos, next) != pos) {
- 			if (css && css != &root->css)
- 				css_put(css);
- 			goto restart;
- 		}
- 
--		if (!memcg) {
-+		if (!next) {
- 			atomic_inc(&iter->generation);
- 
- 			/*
-@@ -1071,7 +1063,7 @@ out_unlock:
- 	if (prev && prev != root)
- 		css_put(&prev->css);
- 
--	return memcg;
-+	return next;
- }
- 
- /**
+ 	maxpages = read_swap_header(si, swap_header, inode);
+ 	if (unlikely(!maxpages)) {
+@@ -3572,10 +3572,8 @@ bad_swap:
+ 	if (swap_file)
+ 		filp_close(swap_file, NULL);
+ out:
+-	if (page && !IS_ERR(page)) {
+-		kunmap(page);
+-		put_page(page);
+-	}
++	if (!IS_ERR_OR_NULL(folio))
++		folio_release_kmap(folio, swap_header);
+ 	if (name)
+ 		putname(name);
+ 	if (inode)
 _
 
-Patches currently in -mm which might be from kinseyho@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
-mm-dont-hold-css-refcnt-during-traversal.patch
-mm-increment-gen-before-restarting-traversal.patch
-mm-restart-if-multiple-traversals-raced.patch
-mm-clean-up-mem_cgroup_iter.patch
+fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
+mm-remove-pg_error.patch
+mm-return-the-folio-from-swapin_readahead.patch
+printf-remove-%pgt-support.patch
+mm-introduce-page_mapcount_is_type.patch
+mm-support-only-one-page_type-per-page.patch
+zsmalloc-use-all-available-24-bits-of-page_type.patch
+mm-remove-pageactive.patch
+mm-remove-pageswapbacked.patch
+mm-remove-pagereadahead.patch
+mm-remove-pageswapcache.patch
+mm-remove-pageunevictable.patch
+mm-remove-pagemlocked.patch
+mm-remove-pageownerpriv1.patch
+mm-remove-page_has_private.patch
+mm-rename-pg_mappedtodisk-to-pg_owner_2.patch
+x86-remove-pg_uncached.patch
+swap-convert-swapon-to-use-a-folio.patch
 
