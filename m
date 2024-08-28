@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42D2E11CA0
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 307C211CA0
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724807258; cv=none; b=pctU1RSnlRoiHuUCgez3oYiqPvANnulskMy4CL3UhHBUmZ8rk+SJgNNoey7RCixD8sEXivfI2vZOFHLisJTVgxaseI8FiTjdwY9CRUQzNDc8Mi0SJMGRKWIFNKSYU2f3bvP9SndJfSiEJMEZwj4MrpZMHXxnkzJfU6NsAaBxkNw=
+	t=1724807260; cv=none; b=HUqJZKQiqPS+uY+ZZhgRmq0564BFXHSGZE8vUFjQJqU3TbzLku9IMWplk0fRa9lKS+IqNNZZy7QOlEDk1FPQYMHmFIIFqNN3SSjoV+eroQTmQ/4Ev6FIU3cKB8Rj5YDmjmpJTk0ga3aXqQ5kj2iO1blq93/PpuY6/eNQbuBqfGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724807258; c=relaxed/simple;
-	bh=iMYmH5iqghnETlxC8GZfdrmEFX/9RCzXA8Qeu6jLb7A=;
-	h=Date:To:From:Subject:Message-Id; b=Cp+yBzbr591kAYYt3QIMDITQh0VFK+5ajaxZE7D36Zm2ePcoOlru8HGdqSt2myjaMRNGZz92eXgVQkyLNkm71kU1/2UUiwDcxBNzKfXE1Mg7HQMCxp4rBuz0iCrEqkgaZaTQ8O/3HC/+pm9m8mmJ7+ugh5FAcWgDAzicGuWCJmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHzIjKQE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724807260; c=relaxed/simple;
+	bh=gkvfotGmoh20BVVWRAEgLosHBxgoVy550ezEYh08WSs=;
+	h=Date:To:From:Subject:Message-Id; b=lv7YHzf1gw0tgRvTgLb96H/ene8IfWK2fkdLPp+FmymUwAyzOkeoELrGmOoyTYFXDypvrQVjv3NEfhNybaiRMdi5BgqoHuK5utfQNmsZ6OoinT02MUkJ9SGsJsrizYzIUSZhmKpMFwJQ0tTFxMCVkb/c+6yNN6xb0sOaVu5FvzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kK5oTXfE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHzIjKQE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A4CC4AF48;
-	Wed, 28 Aug 2024 01:07:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kK5oTXfE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5D6EC4AF53;
+	Wed, 28 Aug 2024 01:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724807257;
-	bh=iMYmH5iqghnETlxC8GZfdrmEFX/9RCzXA8Qeu6jLb7A=;
+	s=korg; t=1724807260;
+	bh=gkvfotGmoh20BVVWRAEgLosHBxgoVy550ezEYh08WSs=;
 	h=Date:To:From:Subject:From;
-	b=jHzIjKQEnJHue9BNAyD5xqrZYMpYS+NR47OE5aKLtMxcp06XKNk0+e51h2QhJdfNa
-	 QXyYKLQ3TkCB0Jegh/M9Vz1yNHgHsZyLL9oOV3gWFySJ4QakxXTNZ7qTwI67mkT4Ge
-	 6NXjvj+nOMXd6htmqfeq1AHdDSgWn361mL1sOIcE=
-Date: Tue, 27 Aug 2024 18:07:37 -0700
+	b=kK5oTXfEv34yvzAQZk1FIc2ludg+3NaMI24YiikeeJW0cf8QL/ZaAGf2JZLVKIRS+
+	 +nfW2563rFUoKiRYOuPtEAuO0R4As+ERNNO8UT2XG5Zn9dX21xF/gfDC7NDq6yyaWR
+	 8kPCJ5zsoVL8leL3x0hFzV/14+XXLPQ3UXw6eagg=
+Date: Tue, 27 Aug 2024 18:07:39 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch added to mm-unstable branch
-Message-Id: <20240828010737.B0A4CC4AF48@smtp.kernel.org>
+Subject: + mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch added to mm-unstable branch
+Message-Id: <20240828010739.E5D6EC4AF53@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce per-context region priorities histogram buffer
+     Subject: mm/damon/core: replace per-quota regions priority histogram buffer usage with per-context one
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
+     mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,86 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: introduce per-context region priorities histogram buffer
-Date: Sun, 25 Aug 2024 21:23:20 -0700
+Subject: mm/damon/core: replace per-quota regions priority histogram buffer usage with per-context one
+Date: Sun, 25 Aug 2024 21:23:21 -0700
 
-Patch series "replace per-quota region priorities histogram buffer with
-per-context one".
+Replace the usage of per-quota region priorities histogram buffer with the
+per-context one.  After this change, the per-quota histogram is not used
+by anyone, and hence it is ready to be removed.
 
-Each DAMOS quota (struct damos_quota) maintains a histogram for total
-regions size per its prioritization score.  DAMOS calcultes minimum
-prioritization score of regions that are ok to apply the DAMOS action to
-while respecting the quota.  The histogram is constructed only for the
-calculation of the minimum score in damos_adjust_quota() for each quota
-which called by kdamond_fn().
-
-Hence, there is no real reason to have per-quota histogram.  Only
-per-kdamond histogram is needed, since parallel kdamonds could have races
-otherwise.  The current implementation is only wasting the memory, and can
-easily cause unintended stack usage[1].
-
-So, introducing a per-kdamond histogram and replacing the per-quota one
-with it would be the right solution for the issue.  However, supporting
-multiple DAMON contexts per kdamond is still an ongoing work[2] without a
-clear estimated time of arrival.  Meanwhile, per-context histogram could
-be an effective and straightforward solution having no blocker.  Let's fix
-the problem first in the way.
-
-
-This patch (of 4):
-
-Introduce per-context buffer for region priority scores-total size
-histogram.  Same to the per-quota one (->histogram of struct damos_quota),
-the new buffer is hidden from DAMON API users by being defined as a
-private field of DAMON context structure.  It is dynamically allocated and
-de-allocated at the beginning and ending of the execution of the kdamond
-by kdamond_fn() itself.
-
-[1] commit 0742cadf5e4c ("mm/damon/lru_sort: adjust local variable to dynamic allocation")
-[2] https://lore.kernel.org/20240531122320.909060-1-yorha.op@gmail.com
-
-Link: https://lkml.kernel.org/r/20240826042323.87025-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240826042323.87025-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240826042323.87025-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |    5 +++++
- 2 files changed, 7 insertions(+)
+ mm/damon/core.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer
-+++ a/include/linux/damon.h
-@@ -630,6 +630,8 @@ struct damon_ctx {
- 	unsigned long next_ops_update_sis;
- 	/* for waiting until the execution of the kdamond_fn is started */
- 	struct completion kdamond_started;
-+	/* for scheme quotas prioritization */
-+	unsigned long *regions_score_histogram;
- 
- /* public: */
- 	struct task_struct *kdamond;
---- a/mm/damon/core.c~mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer
+--- a/mm/damon/core.c~mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one
 +++ a/mm/damon/core.c
-@@ -1957,6 +1957,10 @@ static int kdamond_fn(void *data)
- 		ctx->ops.init(ctx);
- 	if (ctx->callback.before_start && ctx->callback.before_start(ctx))
- 		goto done;
-+	ctx->regions_score_histogram = kmalloc_array(DAMOS_MAX_SCORE + 1,
-+			sizeof(*ctx->regions_score_histogram), GFP_KERNEL);
-+	if (!ctx->regions_score_histogram)
-+		goto done;
+@@ -1582,13 +1582,16 @@ static void damos_adjust_quota(struct da
+ 		return;
  
- 	sz_limit = damon_region_sz_limit(ctx);
+ 	/* Fill up the score histogram */
+-	memset(quota->histogram, 0, sizeof(quota->histogram));
++	memset(c->regions_score_histogram, 0,
++			sizeof(*c->regions_score_histogram) *
++			(DAMOS_MAX_SCORE + 1));
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region(r, t) {
+ 			if (!__damos_valid_target(r, s))
+ 				continue;
+ 			score = c->ops.get_scheme_score(c, t, r, s);
+-			quota->histogram[score] += damon_sz_region(r);
++			c->regions_score_histogram[score] +=
++				damon_sz_region(r);
+ 			if (score > max_score)
+ 				max_score = score;
+ 		}
+@@ -1596,7 +1599,7 @@ static void damos_adjust_quota(struct da
  
-@@ -2034,6 +2038,7 @@ done:
- 		ctx->callback.before_terminate(ctx);
- 	if (ctx->ops.cleanup)
- 		ctx->ops.cleanup(ctx);
-+	kfree(ctx->regions_score_histogram);
- 
- 	pr_debug("kdamond (%d) finishes\n", current->pid);
- 	mutex_lock(&ctx->kdamond_lock);
+ 	/* Set the min score limit */
+ 	for (cumulated_sz = 0, score = max_score; ; score--) {
+-		cumulated_sz += quota->histogram[score];
++		cumulated_sz += c->regions_score_histogram[score];
+ 		if (cumulated_sz >= quota->esz || !score)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
