@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1BBE1401C
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:16:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEBF1401C
+	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 01:16:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724807774; cv=none; b=oXf5LBMl1rV9Doat3xl2Xkbf8poe6ha6cVU4acNQFCeUjZouBe0tCrQRJWk17Us2cy9kvTFNRg16m+elGrfNzev/VKdc7VM0CzQfPDm79+kX1MkwGh0st7n1LaV/akDwJTQoyoEvFpOUvVvxqymRE7FYjWnPbM5n01VlnpgG3MY=
+	t=1724807776; cv=none; b=RcXbnQegYJCU0XARYVG6zpR+CPCQE8rewAib9rk/X9yjrBzaAFJsS5o8NJUx0ibBOd4/LhkAZQADodrgjViD5B+cXc+DfzYY2adugTZkWKEn96AnOElhyAK1ktzMXjGfJGFzBVGpD857wqXP8NAGOOqcq1EbesGeXpd7/GOh0Jo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724807774; c=relaxed/simple;
-	bh=MRKsFZwd4Qp7PJH9W1lfV5giLF9MKtWescRKpO6UUMw=;
-	h=Date:To:From:Subject:Message-Id; b=u5zldUBlIUwNZqX9OKMqMVqWBAuH0U7FmFJI5Rda+fwM49eyO+iHkddBUDLVaNNy+WaB7rqmLL1ndQdoEJHkbH1CtVFS7hepayYPzGezRxGMfvyODU15dshJq/ttICnGj75WDAzNQN7qUB89EyF8MRKZp0zYeUxUud6Sg3Xjtzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVszFDeQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724807776; c=relaxed/simple;
+	bh=MFg7DLVzedlvzELf9YIiHGIonLRJuwfG2VgGDoWaOqE=;
+	h=Date:To:From:Subject:Message-Id; b=gUT06RmffrZOrNyKtiDgE0t9IjFQmH7jzPQMPaRILq5PcarP2snplUdIsTF+CbddvmCGGt6/XvzX6EJdkCUosK5NdkuDvERJeLesgFSTK4nEOe2mFcLUMrUE3lXRC2IWVNJhmUBP0qojDZwUNv/aY02b3LNJpU46+DULuDXWSwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6rnnCLM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVszFDeQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C27C4FE07;
-	Wed, 28 Aug 2024 01:16:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6rnnCLM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B59C4FE01;
+	Wed, 28 Aug 2024 01:16:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724807773;
-	bh=MRKsFZwd4Qp7PJH9W1lfV5giLF9MKtWescRKpO6UUMw=;
+	s=korg; t=1724807775;
+	bh=MFg7DLVzedlvzELf9YIiHGIonLRJuwfG2VgGDoWaOqE=;
 	h=Date:To:From:Subject:From;
-	b=nVszFDeQYGsMtGcV53nns0kma7fEwPUcHhXOuOOJHTaQkfFYbN8JNXqm2ZA9aeqJA
-	 S1lbXkY1QrNBQE7qemGy+RZ5q7d91nGId7UG2tqY/V0WqQ6fPbtDQwu2xgYtVQYMBY
-	 Nw3fdLsMC4OU40Jz6H8KsR3Dd54QIWcWCsC/lm1I=
-Date: Tue, 27 Aug 2024 18:16:12 -0700
+	b=H6rnnCLMaa3FP2BuYgqVfQsGgqq4GVnoCge+1/7isqh+HTq3U8KQVgC77wm0AQCCr
+	 YCgKfDlUzyi5DQFnmNZEAfuOb8fgq9OEOtark93ksNczReTsjdIYoIlgKEHMG2AynK
+	 rtSOw08284HpOYSWGqUPITGpRDcyIASA018+QwFs=
+Date: Tue, 27 Aug 2024 18:16:14 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,david@redhat.com,baolin.wang@linux.alibaba.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-convert-to-folio_isolate_movable.patch added to mm-unstable branch
-Message-Id: <20240828011613.74C27C4FE07@smtp.kernel.org>
+Subject: + mm-migrate-remove-isolate_movable_page.patch added to mm-unstable branch
+Message-Id: <20240828011615.51B59C4FE01@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: migrate: convert to folio_isolate_movable()
+     Subject: mm: migrate: remove isolate_movable_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-convert-to-folio_isolate_movable.patch
+     mm-migrate-remove-isolate_movable_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-convert-to-folio_isolate_movable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-isolate_movable_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: convert to folio_isolate_movable()
-Date: Mon, 26 Aug 2024 12:01:31 +0800
+Subject: mm: migrate: remove isolate_movable_page()
+Date: Mon, 26 Aug 2024 12:01:32 +0800
 
-Directly use folio_isolate_movable() helper in isolate_folio_to_list().
+There are no more callers of isolate_movable_page(), remove it.
 
-Link: https://lkml.kernel.org/r/20240826040132.1202297-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240826040132.1202297-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -73,22 +73,46 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/migrate.h |    3 ---
+ mm/migrate.c            |    8 --------
+ 2 files changed, 11 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-convert-to-folio_isolate_movable
-+++ a/mm/migrate.c
-@@ -197,8 +197,8 @@ bool isolate_folio_to_list(struct folio
- 	if (lru)
- 		isolated = folio_isolate_lru(folio);
- 	else
--		isolated = isolate_movable_page(&folio->page,
--						ISOLATE_UNEVICTABLE);
-+			isolated = folio_isolate_movable(folio,
-+							 ISOLATE_UNEVICTABLE);
+--- a/include/linux/migrate.h~mm-migrate-remove-isolate_movable_page
++++ a/include/linux/migrate.h
+@@ -69,7 +69,6 @@ int migrate_pages(struct list_head *l, n
+ 		  unsigned long private, enum migrate_mode mode, int reason,
+ 		  unsigned int *ret_succeeded);
+ struct folio *alloc_migration_target(struct folio *src, unsigned long private);
+-bool isolate_movable_page(struct page *page, isolate_mode_t mode);
+ bool folio_isolate_movable(struct folio *folio, isolate_mode_t mode);
+ bool isolate_folio_to_list(struct folio *folio, struct list_head *list);
  
- 	if (!isolated)
- 		return false;
+@@ -91,8 +90,6 @@ static inline int migrate_pages(struct l
+ static inline struct folio *alloc_migration_target(struct folio *src,
+ 		unsigned long private)
+ 	{ return NULL; }
+-static inline bool isolate_movable_page(struct page *page, isolate_mode_t mode)
+-	{ return false; }
+ static inline bool folio_isolate_movable(struct folio *folio,
+ 					 isolate_mode_t mode)
+ 	{ return false; }
+--- a/mm/migrate.c~mm-migrate-remove-isolate_movable_page
++++ a/mm/migrate.c
+@@ -128,14 +128,6 @@ out:
+ 	return false;
+ }
+ 
+-bool isolate_movable_page(struct page *page, isolate_mode_t mode)
+-{
+-	if (PageTail(page))
+-		return false;
+-
+-	return folio_isolate_movable((struct folio *)page, mode);
+-}
+-
+ static void putback_movable_folio(struct folio *folio)
+ {
+ 	const struct movable_operations *mops = folio_movable_ops(folio);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
