@@ -1,104 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 956A41B2530
-	for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 20:46:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6040D18B1A
+	for <mm-commits@vger.kernel.org>; Thu, 29 Aug 2024 02:01:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724877969; cv=none; b=B4ATFKkcJIvETlI2jagIbWByd9A1EErjecazahtMbXlqbQI9K1o6eT8j2xpr/LCDaG4Akg8PJXxLmEesIXM0zo5cG43BT59dcfBh0kfsf2SBzCfUWIEdSIh+JLxu2XB1LBtVJWHe93NqE73gi5AuWdWDDMwFLi2w5URUGHSpO78=
+	t=1724896916; cv=none; b=d8sTt5B2xfsnVmPE/zTTGaKngS4NBhUxmSHuTmcDdvOnR1xi1wxGVD3L10DJf4gKotIOaPqEqsee7KMSsTqEQa/jUjK7IQ816mf9fhVsFAE5SN85N89NOjr/wGbrducOXLQb12TvdytoSEzCORrIYPNDq9Hu3cz+hH7XdGg1GHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724877969; c=relaxed/simple;
-	bh=IWFu7P1coZVSkcmp80MOvMwPZXJwTzFsUjJibUb8dZY=;
-	h=Date:To:From:Subject:Message-Id; b=bSVbNdB9Ez5u9UY+NL6cjbXXoBBdZ+WeuClWGcbnhdYINgDhBWX3ytljYoWVOgZ7K5zHf0rEb0GnU7H9g+dJnvWhIyXyVWjIqdg0Mo5Efqcori9el20vTEm7huRFM2UIjZTS1o3kEFAoumD2la2avJbper7buVTv8mmLu0K5iAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LizRAcgR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724896916; c=relaxed/simple;
+	bh=TUyECRLtLo+TghTXmMN8V5Hn9Po5TB5Q5kHLL8xlrGM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TklB1kZkvJpROEFBOjbkAZPrPQg7DIQrSTTNrdPgkVoFmMBRvSHyJQm1rV/r1Og1emlx5bn8psTpYxBhfV4HocfCJ0rJL6moaeaeoVlbu/G0Fj20WZjQOrV+vT6oWwxysD+902KHQ6/bVly3kHHNBT3b+xY85+nBhcOCVpOyOO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=J+F7vchz; arc=none smtp.client-ip=209.85.214.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LizRAcgR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C13CC4CEC1;
-	Wed, 28 Aug 2024 20:46:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1724877969;
-	bh=IWFu7P1coZVSkcmp80MOvMwPZXJwTzFsUjJibUb8dZY=;
-	h=Date:To:From:Subject:From;
-	b=LizRAcgRbfhJJL2RyP0PS5Un5qF0nWQmK2ZJimPL5Gt8k1GFCFXNEsXEaFsKu50rG
-	 27L7VZDSSJR8kaSjUstJNwugqRkk1oaHMJr4KEixt/LsreD3/x13EfOV5diK7h1102
-	 XT44MpShJTtjoglmMLU+pMMGE8lnj6/P3fRCi/MQ=
-Date: Wed, 28 Aug 2024 13:46:08 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,mjguzik@gmail.com,dave@stgolabs.net,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch added to mm-unstable branch
-Message-Id: <20240828204609.1C13CC4CEC1@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="J+F7vchz"
+Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-201fbd0d7c2so1300895ad.0
+        for <mm-commits@vger.kernel.org>; Wed, 28 Aug 2024 19:01:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1724896914; x=1725501714; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=GnzWPdswANA8qDaBEnblao+is+FN544TK7j/chFuL/0=;
+        b=J+F7vchzxHdHclD+unAwBrGRbmlsyMwt/cpy/8UVK9SzJWUXaDPWerlEgQduAtQNJm
+         1czXdZWDYobWy24D+4Nj2EuORB959ojqknLZd/PA7AmUDKvekVifJ3OdHwni+HrKFxWk
+         kgt0yxLhOhAbu7lbEVNT7MDEsydXcd1wVXDt4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724896914; x=1725501714;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GnzWPdswANA8qDaBEnblao+is+FN544TK7j/chFuL/0=;
+        b=c4PErwMjeYccyMBvRZP+7sUJOsC8mGmzmV2aqSoEAAWUzZJa8ohTIjnaPEwrwal/KD
+         kiZOHEztAW8MiAWqfEZsEuPR+Dx1dLUieBwaG0CKaa984rDRD+fjT9+ceU8vbYK3SRTW
+         StvDxKhwJcehGYamtXivMLYDvHKdk4JTiTsHkaDBRkb2UkkeZUlxoHTywqL1dHRg40y9
+         /qG9WuCQGuHNenOp4k4sOWAyGeCWexVsRzMsU1DD1sBekgJiR2oDhIO2ozhYSAUPQ4+5
+         4flPz0BC31zPdXnNQ8RUeJxd9YYXdx+OwE7qUTvWpBqg6h2pNnCv6JbWeldvuRP9P54c
+         V+/Q==
+X-Gm-Message-State: AOJu0YyY7Acl5zBpivpSgMHp42e5tiKpOdWP+SO5T5Pyj+1rLUWct96w
+	l3wqqjYkw8E6wKImL+Vvy3af3gJahzCG2CroDKedgQ55cdqU7dfkcmeyBBe4tQ==
+X-Google-Smtp-Source: AGHT+IH9UkyUgiv43FvWiuFKd3ChYbqTZj5T7CWHU/KiKSlUNk2RsKR11W2w6WAyo01/BO/L0uu7HA==
+X-Received: by 2002:a17:903:2347:b0:1fb:8f72:d5ea with SMTP id d9443c01a7336-2050c42f00dmr15288315ad.50.1724896914501;
+        Wed, 28 Aug 2024 19:01:54 -0700 (PDT)
+Received: from google.com ([2401:fa00:8f:203:b156:6761:b52:2576])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-205152b12d3sm1276245ad.41.2024.08.28.19.01.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 28 Aug 2024 19:01:54 -0700 (PDT)
+Date: Thu, 29 Aug 2024 11:01:50 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, terrelln@fb.com, nphamcs@gmail.com,
+	ngupta@vflare.org, minchan@kernel.org, senozhatsky@chromium.org
+Subject: Re: +
+ documentation-zram-add-documentation-for-algorithm-parameters.patch added to
+ mm-unstable branch
+Message-ID: <20240829020150.GA9738@google.com>
+References: <20240724192716.657C5C32781@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240724192716.657C5C32781@smtp.kernel.org>
 
+On (24/07/24 12:27), Andrew Morton wrote:
+> The patch titled
+>      Subject: Documentation/zram: add documentation for algorithm parameters
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      documentation-zram-add-documentation-for-algorithm-parameters.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-add-documentation-for-algorithm-parameters.patch
+> 
+> Document brief description of compression algorithms' parameters:
+> compression level and pre-trained dictionary.
+> 
 
-The patch titled
-     Subject: mm-hugetlb-sort-out-global-lock-annotations-fix-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+Hello Andrew,
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-sort-out-global-lock-annotations-fix-fix
-Date: Wed Aug 28 01:40:09 PM PDT 2024
-
-DEFINE_SPINLOCK doesn't permit section modifiers at end-of-definition
-
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/hugetlb.c~mm-hugetlb-sort-out-global-lock-annotations-fix-fix
-+++ a/mm/hugetlb.c
-@@ -72,7 +72,7 @@ static unsigned int default_hugepages_in
-  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
-  * free_huge_pages, and surplus_huge_pages.
-  */
--DEFINE_SPINLOCK(hugetlb_lock) __cacheline_aligned_in_smp;
-+__cacheline_aligned_in_smp DEFINE_SPINLOCK(hugetlb_lock);
- 
- /*
-  * Serializes faults on the same logical page.  This is used to
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
-
+Sorry to bother you, can you please drop this entire series?  I will
+send out a new version shortly.  There aren't any serious changes,
+I just don't like zram-extend-comp_algorithm-attr-write-handling
+patch anymore and instead of changing behavior of an existing
+device attribute I'd rather introduce a new one: algorithm_params.
+Other than that the series is exactly the same, so we should be
+fine landing it this coming merge window.
