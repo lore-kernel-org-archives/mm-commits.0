@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB3351BE84B
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63CA1BE84B
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725055906; cv=none; b=nPr6MCDvXYIz8psYPqUYgEdfyh8Pbh+nTFJGbYDAv1Xroqr3dTYA515dYBB1OE9JqaYsqVy2nHsmOKPilkPivQxz/idTJm/sPujBxYOD1OTl96V1W3bhjroSzeaPZ1wpDeqpCz11eoOo4yuMZtjZ1rm3fOaJgvsYRxFsAhPQd8M=
+	t=1725055910; cv=none; b=fXv5D0MFBPzudF9wVfRx1FSDyZWyjLVQU0ie4MRSnc5rKLjXTbm8QfWFAU/rOIVokyrav/5zC0GL/6mCBavaYsjP20+QveNFskIkIGr4ZFI7wDQyBJJBxFaDXp3LwLlAGo2vAcP0utx5qchhprOabreN230tIB0DqTodUVKUYrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725055906; c=relaxed/simple;
-	bh=YBVEj2/V7iO27YUSkLkUKRQzlbdHXbey/O3wyPUX9dA=;
-	h=Date:To:From:Subject:Message-Id; b=cncCz7LqmOXGrjNRry0H5ToDFAnZPzf3PPwPp0ZgbrPzES9iux7tU9H/47/BVlZhThHXFKUN0lHzc/PChj0DEu77GP2c96J+qFSEjfrgk20m+wd3bEmvRZ0vA5yQFmYqBpwAy81NsrySl+3UWJbWwNEIyd2uDFMT3jyt9DumhME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxO6xbZn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725055910; c=relaxed/simple;
+	bh=nN0pi5W78Hr4Hfg9zW95a1hTUpTpFWIfMb1gLEnNEsg=;
+	h=Date:To:From:Subject:Message-Id; b=oRzWcZMhspzCCFXQivqZJmwXTSZaiD9sXfV5mH2jCQE8BGSgC3XpMOPUDa7xeky/2+af27X86Dktv5g7RWfrC3zqKiWXO4SdIZ8ZJgDoYQ8LETe5n3Q4xC9CRlrdku5ZzA7xRMKq3K3zW/yN5FRSZ0lavLhNY5lNxbunotPENPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VwaoI55x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxO6xbZn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E973C4CEC2;
-	Fri, 30 Aug 2024 22:11:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VwaoI55x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8424AC4CEC2;
+	Fri, 30 Aug 2024 22:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725055906;
-	bh=YBVEj2/V7iO27YUSkLkUKRQzlbdHXbey/O3wyPUX9dA=;
+	s=korg; t=1725055910;
+	bh=nN0pi5W78Hr4Hfg9zW95a1hTUpTpFWIfMb1gLEnNEsg=;
 	h=Date:To:From:Subject:From;
-	b=YxO6xbZn4vYJ2kD1U/ehYIVgxd/YPWJ9PjKQbqgFWrVYVbD18sGWyu3FzzwmO2dNM
-	 3M9Mcrv8WqrSldO13aVMbnZroXMfs5sezvupnaODxPRJFCu1oMeCYVASW0JZgJvWHV
-	 YLaLJ06tiZW0AXgvnlH3HzuaShQEMcy0dz0kx6YM=
-Date: Fri, 30 Aug 2024 15:11:45 -0700
+	b=VwaoI55xGjiR+rlsbXll7tDoKSvBhl27n4EvddskdP57JoXG9kWzcnl4WvA90/iER
+	 tb/UpwbTO9Fbwmzac7SDmGAGfgRGLqA3Rnf+lc6MLIxIhIfD9D/iWf4FtUYDAaoOWU
+	 FrA/pRJGfcmSI+xvHx72mbxkNWlwjhi1495j9Axw=
+Date: Fri, 30 Aug 2024 15:11:50 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-add-vma-merge-tests.patch added to mm-unstable branch
-Message-Id: <20240830221146.7E973C4CEC2@smtp.kernel.org>
+Subject: + mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch added to mm-unstable branch
+Message-Id: <20240830221150.8424AC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools: add VMA merge tests
+     Subject: mm: introduce vma_merge_struct and abstract vma_merge(),vma_modify()
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-add-vma-merge-tests.patch
+     mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-vma-merge-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools: add VMA merge tests
-Date: Fri, 30 Aug 2024 19:10:14 +0100
+Subject: mm: introduce vma_merge_struct and abstract vma_merge(),vma_modify()
+Date: Fri, 30 Aug 2024 19:10:15 +0100
 
-Add a variety of VMA merge unit tests to assert that the behaviour of VMA
-merge is correct at an abstract level and VMAs are merged or not merged as
-expected.
+Rather than passing around huge numbers of parameters to numerous helper
+functions, abstract them into a single struct that we thread through the
+operation, the vma_merge_struct ('vmg').
 
-These are intentionally added _before_ we start refactoring vma_merge() in
-order that we can continually assert correctness throughout the rest of
-the series.
+Adjust vma_merge() and vma_modify() to accept this parameter, as well as
+predicate functions can_vma_merge_before(), can_vma_merge_after(), and the
+vma_modify_...() helper functions.
 
-In order to reduce churn going forward, we backport the vma_merge_struct
-data type to the test code which we introduce and use in a future commit,
-and add wrappers around the merge new and existing VMA cases.
+Also introduce VMG_STATE() and VMG_VMA_STATE() helper macros to allow for
+easy vmg declaration.
 
-Link: https://lkml.kernel.org/r/1c7a0b43cfad2c511a6b1b52f3507696478ff51a.1725040657.git.lorenzo.stoakes@oracle.com
+We additionally remove the requirement that vma_merge() is passed a VMA
+object representing the candidate new VMA.  Previously it used this to
+obtain the mm_struct, file and anon_vma properties of the proposed range
+(a rather confusing state of affairs), which are now provided by the vmg
+directly.
+
+We also remove the pgoff calculation previously performed vma_modify(),
+and instead calculate this in VMG_VMA_STATE() via the vma_pgoff_offset()
+helper.
+
+Link: https://lkml.kernel.org/r/a955aad09d81329f6fbeb636b2dd10cde7b73dab.1725040657.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Mark Brown <broonie@kernel.org>
@@ -92,34 +101,518 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/vma.c          | 1282 ++++++++++++++++++++++++++++-
- tools/testing/vma/vma_internal.h |   45 -
- 2 files changed, 1317 insertions(+), 10 deletions(-)
+ mm/mmap.c               |   76 +++++++------
+ mm/vma.c                |  213 +++++++++++++++++++++++---------------
+ mm/vma.h                |  127 +++++++++++++---------
+ tools/testing/vma/vma.c |   43 -------
+ 4 files changed, 249 insertions(+), 210 deletions(-)
 
---- a/tools/testing/vma/vma.c~tools-add-vma-merge-tests
-+++ a/tools/testing/vma/vma.c
-@@ -7,13 +7,43 @@
- #include "maple-shared.h"
- #include "vma_internal.h"
+--- a/mm/mmap.c~mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify
++++ a/mm/mmap.c
+@@ -1373,10 +1373,11 @@ unsigned long mmap_region(struct file *f
+ 	unsigned long end = addr + len;
+ 	unsigned long merge_start = addr, merge_end = end;
+ 	bool writable_file_mapping = false;
+-	pgoff_t vm_pgoff;
+ 	int error = -ENOMEM;
+ 	VMA_ITERATOR(vmi, mm, addr);
++	VMG_STATE(vmg, mm, &vmi, addr, end, vm_flags, pgoff);
  
-+/* Include so header guard set. */
-+#include "../../../mm/vma.h"
++	vmg.file = file;
+ 	/* Find the first overlapping VMA */
+ 	vma = vma_find(&vmi, end);
+ 	init_vma_munmap(&vms, &vmi, vma, addr, end, uf, /* unlock = */ false);
+@@ -1389,12 +1390,12 @@ unsigned long mmap_region(struct file *f
+ 		if (error)
+ 			goto gather_failed;
+ 
+-		next = vms.next;
+-		prev = vms.prev;
++		next = vmg.next = vms.next;
++		prev = vmg.prev = vms.prev;
+ 		vma = NULL;
+ 	} else {
+-		next = vma_next(&vmi);
+-		prev = vma_prev(&vmi);
++		next = vmg.next = vma_next(&vmi);
++		prev = vmg.prev = vma_prev(&vmi);
+ 		if (prev)
+ 			vma_iter_next_range(&vmi);
+ 	}
+@@ -1414,6 +1415,7 @@ unsigned long mmap_region(struct file *f
+ 
+ 		vms.nr_accounted = 0;
+ 		vm_flags |= VM_ACCOUNT;
++		vmg.flags = vm_flags;
+ 	}
+ 
+ 	if (vm_flags & VM_SPECIAL)
+@@ -1422,28 +1424,31 @@ unsigned long mmap_region(struct file *f
+ 	/* Attempt to expand an old mapping */
+ 	/* Check next */
+ 	if (next && next->vm_start == end && !vma_policy(next) &&
+-	    can_vma_merge_before(next, vm_flags, NULL, file, pgoff+pglen,
+-				 NULL_VM_UFFD_CTX, NULL)) {
++	    can_vma_merge_before(&vmg)) {
+ 		merge_end = next->vm_end;
+ 		vma = next;
+-		vm_pgoff = next->vm_pgoff - pglen;
++		vmg.pgoff = next->vm_pgoff - pglen;
++		/*
++		 * We set this here so if we will merge with the previous VMA in
++		 * the code below, can_vma_merge_after() ensures anon_vma
++		 * compatibility between prev and next.
++		 */
++		vmg.anon_vma = vma->anon_vma;
++		vmg.uffd_ctx = vma->vm_userfaultfd_ctx;
+ 	}
+ 
+ 	/* Check prev */
+ 	if (prev && prev->vm_end == addr && !vma_policy(prev) &&
+-	    (vma ? can_vma_merge_after(prev, vm_flags, vma->anon_vma, file,
+-				       pgoff, vma->vm_userfaultfd_ctx, NULL) :
+-		   can_vma_merge_after(prev, vm_flags, NULL, file, pgoff,
+-				       NULL_VM_UFFD_CTX, NULL))) {
++	    can_vma_merge_after(&vmg)) {
+ 		merge_start = prev->vm_start;
+ 		vma = prev;
+-		vm_pgoff = prev->vm_pgoff;
++		vmg.pgoff = prev->vm_pgoff;
+ 		vma_prev(&vmi); /* Equivalent to going to the previous range */
+ 	}
+ 
+ 	if (vma) {
+ 		/* Actually expand, if possible */
+-		if (!vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
++		if (!vma_expand(&vmi, vma, merge_start, merge_end, vmg.pgoff, next)) {
+ 			khugepaged_enter_vma(vma, vm_flags);
+ 			goto expanded;
+ 		}
+@@ -1774,26 +1779,29 @@ static int do_brk_flags(struct vma_itera
+ 	 * Expand the existing vma if possible; Note that singular lists do not
+ 	 * occur after forking, so the expand will only happen on new VMAs.
+ 	 */
+-	if (vma && vma->vm_end == addr && !vma_policy(vma) &&
+-	    can_vma_merge_after(vma, flags, NULL, NULL,
+-				addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL)) {
+-		vma_iter_config(vmi, vma->vm_start, addr + len);
+-		if (vma_iter_prealloc(vmi, vma))
+-			goto unacct_fail;
+-
+-		vma_start_write(vma);
+-
+-		init_vma_prep(&vp, vma);
+-		vma_prepare(&vp);
+-		vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
+-		vma->vm_end = addr + len;
+-		vm_flags_set(vma, VM_SOFTDIRTY);
+-		vma_iter_store(vmi, vma);
+-
+-		vma_complete(&vp, vmi, mm);
+-		validate_mm(mm);
+-		khugepaged_enter_vma(vma, flags);
+-		goto out;
++	if (vma && vma->vm_end == addr && !vma_policy(vma)) {
++		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
 +
-+static bool fail_prealloc;
++		vmg.prev = vma;
++		if (can_vma_merge_after(&vmg)) {
++			vma_iter_config(vmi, vma->vm_start, addr + len);
++			if (vma_iter_prealloc(vmi, vma))
++				goto unacct_fail;
 +
-+/* Then override vma_iter_prealloc() so we can choose to fail it. */
-+#define vma_iter_prealloc(vmi, vma)					\
-+	(fail_prealloc ? -ENOMEM : mas_preallocate(&(vmi)->mas, (vma), GFP_KERNEL))
++			vma_start_write(vma);
++
++			init_vma_prep(&vp, vma);
++			vma_prepare(&vp);
++			vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
++			vma->vm_end = addr + len;
++			vm_flags_set(vma, VM_SOFTDIRTY);
++			vma_iter_store(vmi, vma);
++
++			vma_complete(&vp, vmi, mm);
++			validate_mm(mm);
++			khugepaged_enter_vma(vma, flags);
++			goto out;
++		}
+ 	}
+ 
+ 	if (vma)
+--- a/mm/vma.c~mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify
++++ a/mm/vma.c
+@@ -7,16 +7,18 @@
+ #include "vma_internal.h"
+ #include "vma.h"
+ 
+-/*
+- * If the vma has a ->close operation then the driver probably needs to release
+- * per-vma resources, so we don't attempt to merge those if the caller indicates
+- * the current vma may be removed as part of the merge.
+- */
+-static inline bool is_mergeable_vma(struct vm_area_struct *vma,
+-		struct file *file, unsigned long vm_flags,
+-		struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		struct anon_vma_name *anon_name, bool may_remove_vma)
++static inline bool is_mergeable_vma(struct vma_merge_struct *vmg, bool merge_next)
+ {
++	struct vm_area_struct *vma = merge_next ? vmg->next : vmg->prev;
++	/*
++	 * If the vma has a ->close operation then the driver probably needs to
++	 * release per-vma resources, so we don't attempt to merge those if the
++	 * caller indicates the current vma may be removed as part of the merge,
++	 * which is the case if we are attempting to merge the next VMA into
++	 * this one.
++	 */
++	bool may_remove_vma = merge_next;
++
+ 	/*
+ 	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
+ 	 * match the flags but dirty bit -- the caller should mark
+@@ -25,15 +27,15 @@ static inline bool is_mergeable_vma(stru
+ 	 * the kernel to generate new VMAs when old one could be
+ 	 * extended instead.
+ 	 */
+-	if ((vma->vm_flags ^ vm_flags) & ~VM_SOFTDIRTY)
++	if ((vma->vm_flags ^ vmg->flags) & ~VM_SOFTDIRTY)
+ 		return false;
+-	if (vma->vm_file != file)
++	if (vma->vm_file != vmg->file)
+ 		return false;
+ 	if (may_remove_vma && vma->vm_ops && vma->vm_ops->close)
+ 		return false;
+-	if (!is_mergeable_vm_userfaultfd_ctx(vma, vm_userfaultfd_ctx))
++	if (!is_mergeable_vm_userfaultfd_ctx(vma, vmg->uffd_ctx))
+ 		return false;
+-	if (!anon_vma_name_eq(anon_vma_name(vma), anon_name))
++	if (!anon_vma_name_eq(anon_vma_name(vma), vmg->anon_name))
+ 		return false;
+ 	return true;
+ }
+@@ -94,16 +96,16 @@ static void init_multi_vma_prep(struct v
+  * We assume the vma may be removed as part of the merge.
+  */
+ bool
+-can_vma_merge_before(struct vm_area_struct *vma, unsigned long vm_flags,
+-		struct anon_vma *anon_vma, struct file *file,
+-		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		struct anon_vma_name *anon_name)
+-{
+-	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name, true) &&
+-	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+-		if (vma->vm_pgoff == vm_pgoff)
++can_vma_merge_before(struct vma_merge_struct *vmg)
++{
++	pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
++
++	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
++	    is_mergeable_anon_vma(vmg->anon_vma, vmg->next->anon_vma, vmg->next)) {
++		if (vmg->next->vm_pgoff == vmg->pgoff + pglen)
+ 			return true;
+ 	}
++
+ 	return false;
+ }
+ 
+@@ -116,18 +118,11 @@ can_vma_merge_before(struct vm_area_stru
+  *
+  * We assume that vma is not removed as part of the merge.
+  */
+-bool
+-can_vma_merge_after(struct vm_area_struct *vma, unsigned long vm_flags,
+-		struct anon_vma *anon_vma, struct file *file,
+-		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		struct anon_vma_name *anon_name)
+-{
+-	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name, false) &&
+-	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+-		pgoff_t vm_pglen;
+-
+-		vm_pglen = vma_pages(vma);
+-		if (vma->vm_pgoff + vm_pglen == vm_pgoff)
++bool can_vma_merge_after(struct vma_merge_struct *vmg)
++{
++	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
++	    is_mergeable_anon_vma(vmg->anon_vma, vmg->prev->anon_vma, vmg->prev)) {
++		if (vmg->prev->vm_pgoff + vma_pages(vmg->prev) == vmg->pgoff)
+ 			return true;
+ 	}
+ 	return false;
+@@ -1017,16 +1012,10 @@ int do_vmi_munmap(struct vma_iterator *v
+  * **** is not represented - it will be merged and the vma containing the
+  *      area is returned, or the function will return NULL
+  */
+-static struct vm_area_struct
+-*vma_merge(struct vma_iterator *vmi, struct vm_area_struct *prev,
+-	   struct vm_area_struct *src, unsigned long addr, unsigned long end,
+-	   unsigned long vm_flags, pgoff_t pgoff, struct mempolicy *policy,
+-	   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-	   struct anon_vma_name *anon_name)
+-{
+-	struct mm_struct *mm = src->vm_mm;
+-	struct anon_vma *anon_vma = src->anon_vma;
+-	struct file *file = src->vm_file;
++static struct vm_area_struct *vma_merge(struct vma_merge_struct *vmg)
++{
++	struct mm_struct *mm = vmg->mm;
++	struct vm_area_struct *prev = vmg->prev;
+ 	struct vm_area_struct *curr, *next, *res;
+ 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
+ 	struct vm_area_struct *anon_dup = NULL;
+@@ -1036,16 +1025,18 @@ static struct vm_area_struct
+ 	bool merge_prev = false;
+ 	bool merge_next = false;
+ 	bool vma_expanded = false;
++	unsigned long addr = vmg->start;
++	unsigned long end = vmg->end;
+ 	unsigned long vma_start = addr;
+ 	unsigned long vma_end = end;
+-	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
++	pgoff_t pglen = PHYS_PFN(end - addr);
+ 	long adj_start = 0;
+ 
+ 	/*
+ 	 * We later require that vma->vm_flags == vm_flags,
+ 	 * so this tests vma->vm_flags & VM_SPECIAL, too.
+ 	 */
+-	if (vm_flags & VM_SPECIAL)
++	if (vmg->flags & VM_SPECIAL)
+ 		return NULL;
+ 
+ 	/* Does the input range span an existing VMA? (cases 5 - 8) */
+@@ -1053,27 +1044,26 @@ static struct vm_area_struct
+ 
+ 	if (!curr ||			/* cases 1 - 4 */
+ 	    end == curr->vm_end)	/* cases 6 - 8, adjacent VMA */
+-		next = vma_lookup(mm, end);
++		next = vmg->next = vma_lookup(mm, end);
+ 	else
+-		next = NULL;		/* case 5 */
++		next = vmg->next = NULL;	/* case 5 */
+ 
+ 	if (prev) {
+ 		vma_start = prev->vm_start;
+ 		vma_pgoff = prev->vm_pgoff;
+ 
+ 		/* Can we merge the predecessor? */
+-		if (addr == prev->vm_end && mpol_equal(vma_policy(prev), policy)
+-		    && can_vma_merge_after(prev, vm_flags, anon_vma, file,
+-					   pgoff, vm_userfaultfd_ctx, anon_name)) {
++		if (addr == prev->vm_end && mpol_equal(vma_policy(prev), vmg->policy)
++		    && can_vma_merge_after(vmg)) {
++
+ 			merge_prev = true;
+-			vma_prev(vmi);
++			vma_prev(vmg->vmi);
+ 		}
+ 	}
+ 
+ 	/* Can we merge the successor? */
+-	if (next && mpol_equal(policy, vma_policy(next)) &&
+-	    can_vma_merge_before(next, vm_flags, anon_vma, file, pgoff+pglen,
+-				 vm_userfaultfd_ctx, anon_name)) {
++	if (next && mpol_equal(vmg->policy, vma_policy(next)) &&
++	    can_vma_merge_before(vmg)) {
+ 		merge_next = true;
+ 	}
+ 
+@@ -1164,13 +1154,13 @@ static struct vm_area_struct
+ 		vma_expanded = true;
+ 
+ 	if (vma_expanded) {
+-		vma_iter_config(vmi, vma_start, vma_end);
++		vma_iter_config(vmg->vmi, vma_start, vma_end);
+ 	} else {
+-		vma_iter_config(vmi, adjust->vm_start + adj_start,
++		vma_iter_config(vmg->vmi, adjust->vm_start + adj_start,
+ 				adjust->vm_end);
+ 	}
+ 
+-	if (vma_iter_prealloc(vmi, vma))
++	if (vma_iter_prealloc(vmg->vmi, vma))
+ 		goto prealloc_fail;
+ 
+ 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
+@@ -1182,20 +1172,20 @@ static struct vm_area_struct
+ 	vma_set_range(vma, vma_start, vma_end, vma_pgoff);
+ 
+ 	if (vma_expanded)
+-		vma_iter_store(vmi, vma);
++		vma_iter_store(vmg->vmi, vma);
+ 
+ 	if (adj_start) {
+ 		adjust->vm_start += adj_start;
+ 		adjust->vm_pgoff += adj_start >> PAGE_SHIFT;
+ 		if (adj_start < 0) {
+ 			WARN_ON(vma_expanded);
+-			vma_iter_store(vmi, next);
++			vma_iter_store(vmg->vmi, next);
+ 		}
+ 	}
+ 
+-	vma_complete(&vp, vmi, mm);
++	vma_complete(&vp, vmg->vmi, mm);
+ 	validate_mm(mm);
+-	khugepaged_enter_vma(res, vm_flags);
++	khugepaged_enter_vma(res, vmg->flags);
+ 	return res;
+ 
+ prealloc_fail:
+@@ -1203,8 +1193,8 @@ prealloc_fail:
+ 		unlink_anon_vmas(anon_dup);
+ 
+ anon_vma_fail:
+-	vma_iter_set(vmi, addr);
+-	vma_iter_load(vmi);
++	vma_iter_set(vmg->vmi, addr);
++	vma_iter_load(vmg->vmi);
+ 	return NULL;
+ }
+ 
+@@ -1221,32 +1211,27 @@ anon_vma_fail:
+  * The function returns either the merged VMA, the original VMA if a split was
+  * required instead, or an error if the split failed.
+  */
+-struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
+-				  struct vm_area_struct *prev,
+-				  struct vm_area_struct *vma,
+-				  unsigned long start, unsigned long end,
+-				  unsigned long vm_flags,
+-				  struct mempolicy *policy,
+-				  struct vm_userfaultfd_ctx uffd_ctx,
+-				  struct anon_vma_name *anon_name)
++static struct vm_area_struct *vma_modify(struct vma_merge_struct *vmg)
+ {
+-	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
++	struct vm_area_struct *vma = vmg->vma;
+ 	struct vm_area_struct *merged;
+ 
+-	merged = vma_merge(vmi, prev, vma, start, end, vm_flags,
+-			   pgoff, policy, uffd_ctx, anon_name);
++	/* First, try to merge. */
++	merged = vma_merge(vmg);
+ 	if (merged)
+ 		return merged;
+ 
+-	if (vma->vm_start < start) {
+-		int err = split_vma(vmi, vma, start, 1);
++	/* Split any preceding portion of the VMA. */
++	if (vma->vm_start < vmg->start) {
++		int err = split_vma(vmg->vmi, vma, vmg->start, 1);
+ 
+ 		if (err)
+ 			return ERR_PTR(err);
+ 	}
+ 
+-	if (vma->vm_end > end) {
+-		int err = split_vma(vmi, vma, end, 0);
++	/* Split any trailing portion of the VMA. */
++	if (vma->vm_end > vmg->end) {
++		int err = split_vma(vmg->vmi, vma, vmg->end, 0);
+ 
+ 		if (err)
+ 			return ERR_PTR(err);
+@@ -1255,6 +1240,65 @@ struct vm_area_struct *vma_modify(struct
+ 	return vma;
+ }
+ 
++struct vm_area_struct *vma_modify_flags(
++	struct vma_iterator *vmi, struct vm_area_struct *prev,
++	struct vm_area_struct *vma, unsigned long start, unsigned long end,
++	unsigned long new_flags)
++{
++	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++
++	vmg.flags = new_flags;
++
++	return vma_modify(&vmg);
++}
++
++struct vm_area_struct
++*vma_modify_flags_name(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start,
++		       unsigned long end,
++		       unsigned long new_flags,
++		       struct anon_vma_name *new_name)
++{
++	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++
++	vmg.flags = new_flags;
++	vmg.anon_name = new_name;
++
++	return vma_modify(&vmg);
++}
++
++struct vm_area_struct
++*vma_modify_policy(struct vma_iterator *vmi,
++		   struct vm_area_struct *prev,
++		   struct vm_area_struct *vma,
++		   unsigned long start, unsigned long end,
++		   struct mempolicy *new_pol)
++{
++	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++
++	vmg.policy = new_pol;
++
++	return vma_modify(&vmg);
++}
++
++struct vm_area_struct
++*vma_modify_flags_uffd(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start, unsigned long end,
++		       unsigned long new_flags,
++		       struct vm_userfaultfd_ctx new_ctx)
++{
++	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++
++	vmg.flags = new_flags;
++	vmg.uffd_ctx = new_ctx;
++
++	return vma_modify(&vmg);
++}
 +
  /*
-  * Directly import the VMA implementation here. Our vma_internal.h wrapper
-  * provides userland-equivalent functionality for everything vma.c uses.
-  */
- #include "../../../mm/vma.c"
+  * Attempt to merge a newly mapped VMA with those adjacent to it. The caller
+  * must ensure that [start, end) does not overlap any existing VMA.
+@@ -1264,8 +1308,11 @@ struct vm_area_struct
+ 		   struct vm_area_struct *vma, unsigned long start,
+ 		   unsigned long end, pgoff_t pgoff)
+ {
+-	return vma_merge(vmi, prev, vma, start, end, vma->vm_flags, pgoff,
+-			 vma_policy(vma), vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++
++	vmg.pgoff = pgoff;
++
++	return vma_merge(&vmg);
+ }
  
-+/*
-+ * Temporarily forward-ported from a future in which vmg's are used for merging.
-+ */
+ /*
+@@ -1276,12 +1323,10 @@ struct vm_area_struct *vma_merge_extend(
+ 					struct vm_area_struct *vma,
+ 					unsigned long delta)
+ {
+-	pgoff_t pgoff = vma->vm_pgoff + vma_pages(vma);
++	VMG_VMA_STATE(vmg, vmi, vma, vma, vma->vm_end, vma->vm_end + delta);
+ 
+ 	/* vma is specified as prev, so case 1 or 2 will apply. */
+-	return vma_merge(vmi, vma, vma, vma->vm_end, vma->vm_end + delta,
+-			 vma->vm_flags, pgoff, vma_policy(vma),
+-			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++	return vma_merge(&vmg);
+ }
+ 
+ void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb)
+--- a/mm/vma.h~mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify
++++ a/mm/vma.h
+@@ -52,6 +52,59 @@ struct vma_munmap_struct {
+ 	unsigned long data_vm;
+ };
+ 
++/* Represents a VMA merge operation. */
 +struct vma_merge_struct {
 +	struct mm_struct *mm;
 +	struct vma_iterator *vmi;
@@ -137,1409 +630,221 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	struct anon_vma_name *anon_name;
 +};
 +
- const struct vm_operations_struct vma_dummy_vm_ops;
-+static struct anon_vma dummy_anon_vma;
- 
- #define ASSERT_TRUE(_expr)						\
- 	do {								\
-@@ -28,6 +58,14 @@ const struct vm_operations_struct vma_du
- #define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
- #define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
- 
-+static struct task_struct __current;
-+
-+struct task_struct *get_current(void)
++/* Assumes addr >= vma->vm_start. */
++static inline pgoff_t vma_pgoff_offset(struct vm_area_struct *vma,
++				       unsigned long addr)
 +{
-+	return &__current;
++	return vma->vm_pgoff + PHYS_PFN(addr - vma->vm_start);
 +}
 +
-+/* Helper function to simply allocate a VMA. */
- static struct vm_area_struct *alloc_vma(struct mm_struct *mm,
- 					unsigned long start,
- 					unsigned long end,
-@@ -47,22 +85,201 @@ static struct vm_area_struct *alloc_vma(
- 	return ret;
- }
- 
-+/* Helper function to allocate a VMA and link it to the tree. */
-+static struct vm_area_struct *alloc_and_link_vma(struct mm_struct *mm,
-+						 unsigned long start,
-+						 unsigned long end,
-+						 pgoff_t pgoff,
-+						 vm_flags_t flags)
-+{
-+	struct vm_area_struct *vma = alloc_vma(mm, start, end, pgoff, flags);
-+
-+	if (vma == NULL)
-+		return NULL;
-+
-+	if (vma_link(mm, vma)) {
-+		vm_area_free(vma);
-+		return NULL;
++#define VMG_STATE(name, mm_, vmi_, start_, end_, flags_, pgoff_)	\
++	struct vma_merge_struct name = {				\
++		.mm = mm_,						\
++		.vmi = vmi_,						\
++		.start = start_,					\
++		.end = end_,						\
++		.flags = flags_,					\
++		.pgoff = pgoff_,					\
 +	}
 +
-+	/*
-+	 * Reset this counter which we use to track whether writes have
-+	 * begun. Linking to the tree will have caused this to be incremented,
-+	 * which means we will get a false positive otherwise.
-+	 */
-+	vma->vm_lock_seq = -1;
-+
-+	return vma;
-+}
-+
-+/* Helper function which provides a wrapper around a merge new VMA operation. */
-+static struct vm_area_struct *merge_new(struct vma_merge_struct *vmg)
-+{
-+	/* vma_merge() needs a VMA to determine mm, anon_vma, and file. */
-+	struct vm_area_struct dummy = {
-+		.vm_mm = vmg->mm,
-+		.vm_flags = vmg->flags,
-+		.anon_vma = vmg->anon_vma,
-+		.vm_file = vmg->file,
-+	};
-+
-+	/*
-+	 * For convenience, get prev and next VMAs. Which the new VMA operation
-+	 * requires.
-+	 */
-+	vmg->next = vma_next(vmg->vmi);
-+	vmg->prev = vma_prev(vmg->vmi);
-+
-+	vma_iter_set(vmg->vmi, vmg->start);
-+	return vma_merge_new_vma(vmg->vmi, vmg->prev, &dummy, vmg->start,
-+				 vmg->end, vmg->pgoff);
-+}
-+
-+/*
-+ * Helper function which provides a wrapper around a merge existing VMA
-+ * operation.
-+ */
-+static struct vm_area_struct *merge_existing(struct vma_merge_struct *vmg)
-+{
-+	/* vma_merge() needs a VMA to determine mm, anon_vma, and file. */
-+	struct vm_area_struct dummy = {
-+		.vm_mm = vmg->mm,
-+		.vm_flags = vmg->flags,
-+		.anon_vma = vmg->anon_vma,
-+		.vm_file = vmg->file,
-+	};
-+
-+	return vma_merge(vmg->vmi, vmg->prev, &dummy, vmg->start, vmg->end,
-+			 vmg->flags, vmg->pgoff, vmg->policy, vmg->uffd_ctx,
-+			 vmg->anon_name);
-+}
-+
-+/*
-+ * Helper function which provides a wrapper around the expansion of an existing
-+ * VMA.
-+ */
-+static int expand_existing(struct vma_merge_struct *vmg)
-+{
-+	return vma_expand(vmg->vmi, vmg->vma, vmg->start, vmg->end, vmg->pgoff,
-+			  vmg->next);
-+}
-+
-+/*
-+ * Helper function to reset merge state the associated VMA iterator to a
-+ * specified new range.
-+ */
-+static void vmg_set_range(struct vma_merge_struct *vmg, unsigned long start,
-+			  unsigned long end, pgoff_t pgoff, vm_flags_t flags)
-+{
-+	vma_iter_set(vmg->vmi, start);
-+
-+	vmg->prev = NULL;
-+	vmg->next = NULL;
-+	vmg->vma = NULL;
-+
-+	vmg->start = start;
-+	vmg->end = end;
-+	vmg->pgoff = pgoff;
-+	vmg->flags = flags;
-+}
-+
-+/*
-+ * Helper function to try to merge a new VMA.
-+ *
-+ * Update vmg and the iterator for it and try to merge, otherwise allocate a new
-+ * VMA, link it to the maple tree and return it.
-+ */
-+static struct vm_area_struct *try_merge_new_vma(struct mm_struct *mm,
-+						struct vma_merge_struct *vmg,
-+						unsigned long start, unsigned long end,
-+						pgoff_t pgoff, vm_flags_t flags,
-+						bool *was_merged)
-+{
-+	struct vm_area_struct *merged;
-+
-+	vmg_set_range(vmg, start, end, pgoff, flags);
-+
-+	merged = merge_new(vmg);
-+	if (merged) {
-+		*was_merged = true;
-+		return merged;
++#define VMG_VMA_STATE(name, vmi_, prev_, vma_, start_, end_)	\
++	struct vma_merge_struct name = {			\
++		.mm = vma_->vm_mm,				\
++		.vmi = vmi_,					\
++		.prev = prev_,					\
++		.next = NULL,					\
++		.vma = vma_,					\
++		.start = start_,				\
++		.end = end_,					\
++		.flags = vma_->vm_flags,			\
++		.pgoff = vma_pgoff_offset(vma_, start_),	\
++		.file = vma_->vm_file,				\
++		.anon_vma = vma_->anon_vma,			\
++		.policy = vma_policy(vma_),			\
++		.uffd_ctx = vma_->vm_userfaultfd_ctx,		\
++		.anon_name = anon_vma_name(vma_),		\
 +	}
 +
-+	*was_merged = false;
-+	return alloc_and_link_vma(mm, start, end, pgoff, flags);
-+}
-+
-+/*
-+ * Helper function to reset the dummy anon_vma to indicate it has not been
-+ * duplicated.
-+ */
-+static void reset_dummy_anon_vma(void)
-+{
-+	dummy_anon_vma.was_cloned = false;
-+	dummy_anon_vma.was_unlinked = false;
-+}
-+
-+/*
-+ * Helper function to remove all VMAs and destroy the maple tree associated with
-+ * a virtual address space. Returns a count of VMAs in the tree.
-+ */
-+static int cleanup_mm(struct mm_struct *mm, struct vma_iterator *vmi)
-+{
-+	struct vm_area_struct *vma;
-+	int count = 0;
-+
-+	fail_prealloc = false;
-+	reset_dummy_anon_vma();
-+
-+	vma_iter_set(vmi, 0);
-+	for_each_vma(*vmi, vma) {
-+		vm_area_free(vma);
-+		count++;
-+	}
-+
-+	mtree_destroy(&mm->mm_mt);
-+	mm->map_count = 0;
-+	return count;
-+}
-+
-+/* Helper function to determine if VMA has had vma_start_write() performed. */
-+static bool vma_write_started(struct vm_area_struct *vma)
-+{
-+	int seq = vma->vm_lock_seq;
-+
-+	/* We reset after each check. */
-+	vma->vm_lock_seq = -1;
-+
-+	/* The vma_start_write() stub simply increments this value. */
-+	return seq > -1;
-+}
-+
-+/* Helper function providing a dummy vm_ops->close() method.*/
-+static void dummy_close(struct vm_area_struct *)
-+{
-+}
-+
- static bool test_simple_merge(void)
- {
- 	struct vm_area_struct *vma;
- 	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
- 	struct mm_struct mm = {};
- 	struct vm_area_struct *vma_left = alloc_vma(&mm, 0, 0x1000, 0, flags);
--	struct vm_area_struct *vma_middle = alloc_vma(&mm, 0x1000, 0x2000, 1, flags);
- 	struct vm_area_struct *vma_right = alloc_vma(&mm, 0x2000, 0x3000, 2, flags);
- 	VMA_ITERATOR(vmi, &mm, 0x1000);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+		.start = 0x1000,
-+		.end = 0x2000,
-+		.flags = flags,
-+		.pgoff = 1,
-+	};
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+ void validate_mm(struct mm_struct *mm);
+ #else
+@@ -212,80 +265,52 @@ void remove_vma(struct vm_area_struct *v
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
+ 		struct vm_area_struct *prev, struct vm_area_struct *next);
  
- 	ASSERT_FALSE(vma_link(&mm, vma_left));
--	ASSERT_FALSE(vma_link(&mm, vma_middle));
- 	ASSERT_FALSE(vma_link(&mm, vma_right));
- 
--	vma = vma_merge_new_vma(&vmi, vma_left, vma_middle, 0x1000,
--				0x2000, 1);
-+	vma = merge_new(&vmg);
- 	ASSERT_NE(vma, NULL);
- 
- 	ASSERT_EQ(vma->vm_start, 0);
-@@ -142,10 +359,17 @@ static bool test_simple_expand(void)
- 	struct mm_struct mm = {};
- 	struct vm_area_struct *vma = alloc_vma(&mm, 0, 0x1000, 0, flags);
- 	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.vmi = &vmi,
-+		.vma = vma,
-+		.start = 0,
-+		.end = 0x3000,
-+		.pgoff = 0,
-+	};
- 
- 	ASSERT_FALSE(vma_link(&mm, vma));
- 
--	ASSERT_FALSE(vma_expand(&vmi, vma, 0, 0x3000, 0, NULL));
-+	ASSERT_FALSE(expand_existing(&vmg));
- 
- 	ASSERT_EQ(vma->vm_start, 0);
- 	ASSERT_EQ(vma->vm_end, 0x3000);
-@@ -178,6 +402,1042 @@ static bool test_simple_shrink(void)
- 	return true;
- }
- 
-+static bool test_merge_new(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain_a = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain_b = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain_c = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain_d = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	int count;
-+	struct vm_area_struct *vma, *vma_a, *vma_b, *vma_c, *vma_d;
-+	bool merged;
-+
-+	/*
-+	 * 0123456789abc
-+	 * AA B       CC
-+	 */
-+	vma_a = alloc_and_link_vma(&mm, 0, 0x2000, 0, flags);
-+	ASSERT_NE(vma_a, NULL);
-+	/* We give each VMA a single avc so we can test anon_vma duplication. */
-+	INIT_LIST_HEAD(&vma_a->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain_a.same_vma, &vma_a->anon_vma_chain);
-+
-+	vma_b = alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, flags);
-+	ASSERT_NE(vma_b, NULL);
-+	INIT_LIST_HEAD(&vma_b->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain_b.same_vma, &vma_b->anon_vma_chain);
-+
-+	vma_c = alloc_and_link_vma(&mm, 0xb000, 0xc000, 0xb, flags);
-+	ASSERT_NE(vma_c, NULL);
-+	INIT_LIST_HEAD(&vma_c->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain_c.same_vma, &vma_c->anon_vma_chain);
-+
-+	/*
-+	 * NO merge.
-+	 *
-+	 * 0123456789abc
-+	 * AA B   **  CC
-+	 */
-+	vma_d = try_merge_new_vma(&mm, &vmg, 0x7000, 0x9000, 7, flags, &merged);
-+	ASSERT_NE(vma_d, NULL);
-+	INIT_LIST_HEAD(&vma_d->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain_d.same_vma, &vma_d->anon_vma_chain);
-+	ASSERT_FALSE(merged);
-+	ASSERT_EQ(mm.map_count, 4);
-+
-+	/*
-+	 * Merge BOTH sides.
-+	 *
-+	 * 0123456789abc
-+	 * AA*B   DD  CC
-+	 */
-+	vma_b->anon_vma = &dummy_anon_vma;
-+	vma = try_merge_new_vma(&mm, &vmg, 0x2000, 0x3000, 2, flags, &merged);
-+	ASSERT_EQ(vma, vma_a);
-+	/* Merge with A, delete B. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x4000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 3);
-+
-+	/*
-+	 * Merge to PREVIOUS VMA.
-+	 *
-+	 * 0123456789abc
-+	 * AAAA*  DD  CC
-+	 */
-+	vma = try_merge_new_vma(&mm, &vmg, 0x4000, 0x5000, 4, flags, &merged);
-+	ASSERT_EQ(vma, vma_a);
-+	/* Extend A. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x5000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 3);
-+
-+	/*
-+	 * Merge to NEXT VMA.
-+	 *
-+	 * 0123456789abc
-+	 * AAAAA *DD  CC
-+	 */
-+	vma_d->anon_vma = &dummy_anon_vma;
-+	vma = try_merge_new_vma(&mm, &vmg, 0x6000, 0x7000, 6, flags, &merged);
-+	ASSERT_EQ(vma, vma_d);
-+	/* Prepend. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0x6000);
-+	ASSERT_EQ(vma->vm_end, 0x9000);
-+	ASSERT_EQ(vma->vm_pgoff, 6);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 3);
-+
-+	/*
-+	 * Merge BOTH sides.
-+	 *
-+	 * 0123456789abc
-+	 * AAAAA*DDD  CC
-+	 */
-+	vma = try_merge_new_vma(&mm, &vmg, 0x5000, 0x6000, 5, flags, &merged);
-+	ASSERT_EQ(vma, vma_a);
-+	/* Merge with A, delete D. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x9000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	/*
-+	 * Merge to NEXT VMA.
-+	 *
-+	 * 0123456789abc
-+	 * AAAAAAAAA *CC
-+	 */
-+	vma_c->anon_vma = &dummy_anon_vma;
-+	vma = try_merge_new_vma(&mm, &vmg, 0xa000, 0xb000, 0xa, flags, &merged);
-+	ASSERT_EQ(vma, vma_c);
-+	/* Prepend C. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0xa000);
-+	ASSERT_EQ(vma->vm_end, 0xc000);
-+	ASSERT_EQ(vma->vm_pgoff, 0xa);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	/*
-+	 * Merge BOTH sides.
-+	 *
-+	 * 0123456789abc
-+	 * AAAAAAAAA*CCC
-+	 */
-+	vma = try_merge_new_vma(&mm, &vmg, 0x9000, 0xa000, 0x9, flags, &merged);
-+	ASSERT_EQ(vma, vma_a);
-+	/* Extend A and delete C. */
-+	ASSERT_TRUE(merged);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0xc000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 1);
-+
-+	/*
-+	 * Final state.
-+	 *
-+	 * 0123456789abc
-+	 * AAAAAAAAAAAAA
-+	 */
-+
-+	count = 0;
-+	vma_iter_set(&vmi, 0);
-+	for_each_vma(vmi, vma) {
-+		ASSERT_NE(vma, NULL);
-+		ASSERT_EQ(vma->vm_start, 0);
-+		ASSERT_EQ(vma->vm_end, 0xc000);
-+		ASSERT_EQ(vma->vm_pgoff, 0);
-+		ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
-+
-+		vm_area_free(vma);
-+		count++;
-+	}
-+
-+	/* Should only have one VMA left (though freed) after all is done.*/
-+	ASSERT_EQ(count, 1);
-+
-+	mtree_destroy(&mm.mm_mt);
-+	return true;
-+}
-+
-+static bool test_vma_merge_special_flags(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	vm_flags_t special_flags[] = { VM_IO, VM_DONTEXPAND, VM_PFNMAP, VM_MIXEDMAP };
-+	vm_flags_t all_special_flags = 0;
-+	int i;
-+	struct vm_area_struct *vma_left, *vma;
-+
-+	/* Make sure there aren't new VM_SPECIAL flags. */
-+	for (i = 0; i < ARRAY_SIZE(special_flags); i++) {
-+		all_special_flags |= special_flags[i];
-+	}
-+	ASSERT_EQ(all_special_flags, VM_SPECIAL);
-+
-+	/*
-+	 * 01234
-+	 * AAA
-+	 */
-+	vma_left = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	ASSERT_NE(vma_left, NULL);
-+
-+	/* 1. Set up new VMA with special flag that would otherwise merge. */
-+
-+	/*
-+	 * 01234
-+	 * AAA*
-+	 *
-+	 * This should merge if not for the VM_SPECIAL flag.
-+	 */
-+	vmg_set_range(&vmg, 0x3000, 0x4000, 3, flags);
-+	for (i = 0; i < ARRAY_SIZE(special_flags); i++) {
-+		vm_flags_t special_flag = special_flags[i];
-+
-+		vma_left->__vm_flags = flags | special_flag;
-+		vmg.flags = flags | special_flag;
-+		vma = merge_new(&vmg);
-+		ASSERT_EQ(vma, NULL);
-+	}
-+
-+	/* 2. Modify VMA with special flag that would otherwise merge. */
-+
-+	/*
-+	 * 01234
-+	 * AAAB
-+	 *
-+	 * Create a VMA to modify.
-+	 */
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, flags);
-+	ASSERT_NE(vma, NULL);
-+	vmg.vma = vma;
-+
-+	for (i = 0; i < ARRAY_SIZE(special_flags); i++) {
-+		vm_flags_t special_flag = special_flags[i];
-+
-+		vma_left->__vm_flags = flags | special_flag;
-+		vmg.flags = flags | special_flag;
-+		vma = merge_existing(&vmg);
-+		ASSERT_EQ(vma, NULL);
-+	}
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_vma_merge_with_close(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	const struct vm_operations_struct vm_ops = {
-+		.close = dummy_close,
-+	};
-+	struct vm_area_struct *vma_next =
-+		alloc_and_link_vma(&mm, 0x2000, 0x3000, 2, flags);
-+	struct vm_area_struct *vma;
-+
-+	/*
-+	 * When we merge VMAs we sometimes have to delete others as part of the
-+	 * operation.
-+	 *
-+	 * Considering the two possible adjacent VMAs to which a VMA can be
-+	 * merged:
-+	 *
-+	 * [ prev ][ vma ][ next ]
-+	 *
-+	 * In no case will we need to delete prev. If the operation is
-+	 * mergeable, then prev will be extended with one or both of vma and
-+	 * next deleted.
-+	 *
-+	 * As a result, during initial mergeability checks, only
-+	 * can_vma_merge_before() (which implies the VMA being merged with is
-+	 * 'next' as shown above) bothers to check to see whether the next VMA
-+	 * has a vm_ops->close() callback that will need to be called when
-+	 * removed.
-+	 *
-+	 * If it does, then we cannot merge as the resources that the close()
-+	 * operation potentially clears down are tied only to the existing VMA
-+	 * range and we have no way of extending those to the nearly merged one.
-+	 *
-+	 * We must consider two scenarios:
-+	 *
-+	 * A.
-+	 *
-+	 * vm_ops->close:     -       -    !NULL
-+	 *                 [ prev ][ vma ][ next ]
-+	 *
-+	 * Where prev may or may not be present/mergeable.
-+	 *
-+	 * This is picked up by a specific check in can_vma_merge_before().
-+	 *
-+	 * B.
-+	 *
-+	 * vm_ops->close:     -     !NULL
-+	 *                 [ prev ][ vma ]
-+	 *
-+	 * Where prev and vma are present and mergeable.
-+	 *
-+	 * This is picked up by a specific check in the modified VMA merge.
-+	 *
-+	 * IMPORTANT NOTE: We make the assumption that the following case:
-+	 *
-+	 *    -     !NULL   NULL
-+	 * [ prev ][ vma ][ next ]
-+	 *
-+	 * Cannot occur, because vma->vm_ops being the same implies the same
-+	 * vma->vm_file, and therefore this would mean that next->vm_ops->close
-+	 * would be set too, and thus scenario A would pick this up.
-+	 */
-+
-+	ASSERT_NE(vma_next, NULL);
-+
-+	/*
-+	 * SCENARIO A
-+	 *
-+	 * 0123
-+	 *  *N
-+	 */
-+
-+	/* Make the next VMA have a close() callback. */
-+	vma_next->vm_ops = &vm_ops;
-+
-+	/* Our proposed VMA has characteristics that would otherwise be merged. */
-+	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
-+
-+	/* The next VMA having a close() operator should cause the merge to fail.*/
-+	ASSERT_EQ(merge_new(&vmg), NULL);
-+
-+	/* Now create the VMA so we can merge via modified flags */
-+	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
-+	vma = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, flags);
-+	vmg.vma = vma;
-+
-+	/*
-+	 * The VMA being modified in a way that would otherwise merge should
-+	 * also fail.
-+	 */
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	/* SCENARIO B
-+	 *
-+	 * 0123
-+	 * P*
-+	 *
-+	 * In order for this scenario to trigger, the VMA currently being
-+	 * modified must also have a .close().
-+	 */
-+
-+	/* Reset VMG state. */
-+	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
-+	/*
-+	 * Make next unmergeable, and don't let the scenario A check pick this
-+	 * up, we want to reproduce scenario B only.
-+	 */
-+	vma_next->vm_ops = NULL;
-+	vma_next->__vm_flags &= ~VM_MAYWRITE;
-+	/* Allocate prev. */
-+	vmg.prev = alloc_and_link_vma(&mm, 0, 0x1000, 0, flags);
-+	/* Assign a vm_ops->close() function to VMA explicitly. */
-+	vma->vm_ops = &vm_ops;
-+	vmg.vma = vma;
-+	/* Make sure merge does not occur. */
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_vma_merge_new_with_close(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	struct vm_area_struct *vma_prev = alloc_and_link_vma(&mm, 0, 0x2000, 0, flags);
-+	struct vm_area_struct *vma_next = alloc_and_link_vma(&mm, 0x5000, 0x7000, 5, flags);
-+	const struct vm_operations_struct vm_ops = {
-+		.close = dummy_close,
-+	};
-+	struct vm_area_struct *vma;
-+
-+	/*
-+	 * We should allow the partial merge of a proposed new VMA if the
-+	 * surrounding VMAs have vm_ops->close() hooks (but are otherwise
-+	 * compatible), e.g.:
-+	 *
-+	 *        New VMA
-+	 *    A  v-------v  B
-+	 * |-----|       |-----|
-+	 *  close         close
-+	 *
-+	 * Since the rule is to not DELETE a VMA with a close operation, this
-+	 * should be permitted, only rather than expanding A and deleting B, we
-+	 * should simply expand A and leave B intact, e.g.:
-+	 *
-+	 *        New VMA
-+	 *       A          B
-+	 * |------------||-----|
-+	 *  close         close
-+	 */
-+
-+	/* Have prev and next have a vm_ops->close() hook. */
-+	vma_prev->vm_ops = &vm_ops;
-+	vma_next->vm_ops = &vm_ops;
-+
-+	vmg_set_range(&vmg, 0x2000, 0x5000, 2, flags);
-+	vma = merge_new(&vmg);
-+	ASSERT_NE(vma, NULL);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x5000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_EQ(vma->vm_ops, &vm_ops);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_merge_existing(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vm_area_struct *vma, *vma_prev, *vma_next;
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+
-+	/*
-+	 * Merge right case - partial span.
-+	 *
-+	 *    <->
-+	 * 0123456789
-+	 *   VVVVNNN
-+	 *            ->
-+	 * 0123456789
-+	 *   VNNNNNN
-+	 */
-+	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
-+	vmg.vma = vma;
-+	vmg.prev = vma;
-+	vma->anon_vma = &dummy_anon_vma;
-+	ASSERT_EQ(merge_existing(&vmg), vma_next);
-+	ASSERT_EQ(vma_next->vm_start, 0x3000);
-+	ASSERT_EQ(vma_next->vm_end, 0x9000);
-+	ASSERT_EQ(vma_next->vm_pgoff, 3);
-+	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
-+	ASSERT_EQ(vma->vm_start, 0x2000);
-+	ASSERT_EQ(vma->vm_end, 0x3000);
-+	ASSERT_EQ(vma->vm_pgoff, 2);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_TRUE(vma_write_started(vma_next));
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	/* Clear down and reset. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * Merge right case - full span.
-+	 *
-+	 *   <-->
-+	 * 0123456789
-+	 *   VVVVNNN
-+	 *            ->
-+	 * 0123456789
-+	 *   NNNNNNN
-+	 */
-+	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
-+	vmg_set_range(&vmg, 0x2000, 0x6000, 2, flags);
-+	vmg.vma = vma;
-+	vma->anon_vma = &dummy_anon_vma;
-+	ASSERT_EQ(merge_existing(&vmg), vma_next);
-+	ASSERT_EQ(vma_next->vm_start, 0x2000);
-+	ASSERT_EQ(vma_next->vm_end, 0x9000);
-+	ASSERT_EQ(vma_next->vm_pgoff, 2);
-+	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma_next));
-+	ASSERT_EQ(mm.map_count, 1);
-+
-+	/* Clear down and reset. We should have deleted vma. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
-+
-+	/*
-+	 * Merge left case - partial span.
-+	 *
-+	 *    <->
-+	 * 0123456789
-+	 * PPPVVVV
-+	 *            ->
-+	 * 0123456789
-+	 * PPPPPPV
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+	vma->anon_vma = &dummy_anon_vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x6000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_EQ(vma->vm_start, 0x6000);
-+	ASSERT_EQ(vma->vm_end, 0x7000);
-+	ASSERT_EQ(vma->vm_pgoff, 6);
-+	ASSERT_TRUE(vma_write_started(vma_prev));
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	/* Clear down and reset. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * Merge left case - full span.
-+	 *
-+	 *    <-->
-+	 * 0123456789
-+	 * PPPVVVV
-+	 *            ->
-+	 * 0123456789
-+	 * PPPPPPP
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+	vma->anon_vma = &dummy_anon_vma;
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x7000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma_prev));
-+	ASSERT_EQ(mm.map_count, 1);
-+
-+	/* Clear down and reset. We should have deleted vma. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
-+
-+	/*
-+	 * Merge both case.
-+	 *
-+	 *    <-->
-+	 * 0123456789
-+	 * PPPVVVVNNN
-+	 *             ->
-+	 * 0123456789
-+	 * PPPPPPPPPP
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+	vma->anon_vma = &dummy_anon_vma;
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x9000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_write_started(vma_prev));
-+	ASSERT_EQ(mm.map_count, 1);
-+
-+	/* Clear down and reset. We should have deleted prev and next. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
-+
-+	/*
-+	 * Non-merge ranges. the modified VMA merge operation assumes that the
-+	 * caller always specifies ranges within the input VMA so we need only
-+	 * examine these cases.
-+	 *
-+	 *     -
-+	 *      -
-+	 *       -
-+	 *     <->
-+	 *     <>
-+	 *      <>
-+	 * 0123456789a
-+	 * PPPVVVVVNNN
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x8000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x8000, 0xa000, 8, flags);
-+
-+	vmg_set_range(&vmg, 0x4000, 0x5000, 4, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	vmg_set_range(&vmg, 0x5000, 0x6000, 5, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	vmg_set_range(&vmg, 0x6000, 0x7000, 6, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	vmg_set_range(&vmg, 0x4000, 0x7000, 4, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	vmg_set_range(&vmg, 0x4000, 0x6000, 4, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	vmg_set_range(&vmg, 0x5000, 0x6000, 5, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 3);
-+
-+	return true;
-+}
-+
-+static bool test_anon_vma_non_mergeable(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vm_area_struct *vma, *vma_prev, *vma_next;
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain1 = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain2 = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+
-+	/*
-+	 * In the case of modified VMA merge, merging both left and right VMAs
-+	 * but where prev and next have incompatible anon_vma objects, we revert
-+	 * to a merge of prev and VMA:
-+	 *
-+	 *    <-->
-+	 * 0123456789
-+	 * PPPVVVVNNN
-+	 *            ->
-+	 * 0123456789
-+	 * PPPPPPPNNN
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
-+
-+	/*
-+	 * Give both prev and next single anon_vma_chain fields, so they will
-+	 * merge with the NULL vmg->anon_vma.
-+	 *
-+	 * However, when prev is compared to next, the merge should fail.
-+	 */
-+
-+	INIT_LIST_HEAD(&vma_prev->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain1.same_vma, &vma_prev->anon_vma_chain);
-+	ASSERT_TRUE(list_is_singular(&vma_prev->anon_vma_chain));
-+	vma_prev->anon_vma = &dummy_anon_vma;
-+	ASSERT_TRUE(is_mergeable_anon_vma(NULL, vma_prev->anon_vma, vma_prev));
-+
-+	INIT_LIST_HEAD(&vma_next->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain2.same_vma, &vma_next->anon_vma_chain);
-+	ASSERT_TRUE(list_is_singular(&vma_next->anon_vma_chain));
-+	vma_next->anon_vma = (struct anon_vma *)2;
-+	ASSERT_TRUE(is_mergeable_anon_vma(NULL, vma_next->anon_vma, vma_next));
-+
-+	ASSERT_FALSE(is_mergeable_anon_vma(vma_prev->anon_vma, vma_next->anon_vma, NULL));
-+
-+	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x7000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+	ASSERT_TRUE(vma_write_started(vma_prev));
-+	ASSERT_FALSE(vma_write_started(vma_next));
-+
-+	/* Clear down and reset. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * Now consider the new VMA case. This is equivalent, only adding a new
-+	 * VMA in a gap between prev and next.
-+	 *
-+	 *    <-->
-+	 * 0123456789
-+	 * PPP****NNN
-+	 *            ->
-+	 * 0123456789
-+	 * PPPPPPPNNN
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
-+
-+	INIT_LIST_HEAD(&vma_prev->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain1.same_vma, &vma_prev->anon_vma_chain);
-+	vma_prev->anon_vma = (struct anon_vma *)1;
-+
-+	INIT_LIST_HEAD(&vma_next->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain2.same_vma, &vma_next->anon_vma_chain);
-+	vma_next->anon_vma = (struct anon_vma *)2;
-+
-+	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
-+	vmg.prev = vma_prev;
-+
-+	ASSERT_EQ(merge_new(&vmg), vma_prev);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x7000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+	ASSERT_TRUE(vma_write_started(vma_prev));
-+	ASSERT_FALSE(vma_write_started(vma_next));
-+
-+	/* Final cleanup. */
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	return true;
-+}
-+
-+static bool test_dup_anon_vma(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	struct anon_vma_chain dummy_anon_vma_chain = {
-+		.anon_vma = &dummy_anon_vma,
-+	};
-+	struct vm_area_struct *vma_prev, *vma_next, *vma;
-+
-+	reset_dummy_anon_vma();
-+
-+	/*
-+	 * Expanding a VMA delete the next one duplicates next's anon_vma and
-+	 * assigns it to the expanded VMA.
-+	 *
-+	 * This covers new VMA merging, as these operations amount to a VMA
-+	 * expand.
-+	 */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next->anon_vma = &dummy_anon_vma;
-+
-+	vmg_set_range(&vmg, 0, 0x5000, 0, flags);
-+	vmg.vma = vma_prev;
-+	vmg.next = vma_next;
-+
-+	ASSERT_EQ(expand_existing(&vmg), 0);
-+
-+	/* Will have been cloned. */
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_prev->anon_vma->was_cloned);
-+
-+	/* Cleanup ready for next run. */
-+	cleanup_mm(&mm, &vmi);
-+
-+	/*
-+	 * next has anon_vma, we assign to prev.
-+	 *
-+	 *         |<----->|
-+	 * |-------*********-------|
-+	 *   prev     vma     next
-+	 *  extend   delete  delete
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x8000, 5, flags);
-+
-+	/* Initialise avc so mergeability check passes. */
-+	INIT_LIST_HEAD(&vma_next->anon_vma_chain);
-+	list_add(&dummy_anon_vma_chain.same_vma, &vma_next->anon_vma_chain);
-+
-+	vma_next->anon_vma = &dummy_anon_vma;
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x8000);
-+
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_prev->anon_vma->was_cloned);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/*
-+	 * vma has anon_vma, we assign to prev.
-+	 *
-+	 *         |<----->|
-+	 * |-------*********-------|
-+	 *   prev     vma     next
-+	 *  extend   delete  delete
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x8000, 5, flags);
-+
-+	vma->anon_vma = &dummy_anon_vma;
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x8000);
-+
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_prev->anon_vma->was_cloned);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/*
-+	 * vma has anon_vma, we assign to prev.
-+	 *
-+	 *         |<----->|
-+	 * |-------*************
-+	 *   prev       vma
-+	 *  extend shrink/delete
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x8000, 3, flags);
-+
-+	vma->anon_vma = &dummy_anon_vma;
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x5000);
-+
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_prev->anon_vma->was_cloned);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/*
-+	 * vma has anon_vma, we assign to next.
-+	 *
-+	 *     |<----->|
-+	 * *************-------|
-+	 *      vma       next
-+	 * shrink/delete extend
-+	 */
-+
-+	vma = alloc_and_link_vma(&mm, 0, 0x5000, 0, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x8000, 5, flags);
-+
-+	vma->anon_vma = &dummy_anon_vma;
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_next);
-+
-+	ASSERT_EQ(vma_next->vm_start, 0x3000);
-+	ASSERT_EQ(vma_next->vm_end, 0x8000);
-+
-+	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(vma_next->anon_vma->was_cloned);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_vmi_prealloc_fail(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vma_merge_struct vmg = {
-+		.mm = &mm,
-+		.vmi = &vmi,
-+	};
-+	struct vm_area_struct *vma_prev, *vma;
-+
-+	/*
-+	 * We are merging vma into prev, with vma possessing an anon_vma, which
-+	 * will be duplicated. We cause the vmi preallocation to fail and assert
-+	 * the duplicated anon_vma is unlinked.
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma->anon_vma = &dummy_anon_vma;
-+
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	fail_prealloc = true;
-+
-+	/* This will cause the merge to fail. */
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+	/* We will already have assigned the anon_vma. */
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	/* And it was both cloned and unlinked. */
-+	ASSERT_TRUE(dummy_anon_vma.was_cloned);
-+	ASSERT_TRUE(dummy_anon_vma.was_unlinked);
-+
-+	cleanup_mm(&mm, &vmi); /* Resets fail_prealloc too. */
-+
-+	/*
-+	 * We repeat the same operation for expanding a VMA, which is what new
-+	 * VMA merging ultimately uses too. This asserts that unlinking is
-+	 * performed in this case too.
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma->anon_vma = &dummy_anon_vma;
-+
-+	vmg_set_range(&vmg, 0, 0x5000, 3, flags);
-+	vmg.vma = vma_prev;
-+	vmg.next = vma;
-+
-+	fail_prealloc = true;
-+	ASSERT_EQ(expand_existing(&vmg), -ENOMEM);
-+
-+	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
-+	ASSERT_TRUE(dummy_anon_vma.was_cloned);
-+	ASSERT_TRUE(dummy_anon_vma.was_unlinked);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_merge_extend(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	VMA_ITERATOR(vmi, &mm, 0x1000);
-+	struct vm_area_struct *vma;
-+
-+	vma = alloc_and_link_vma(&mm, 0, 0x1000, 0, flags);
-+	alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, flags);
-+
-+	/*
-+	 * Extend a VMA into the gap between itself and the following VMA.
-+	 * This should result in a merge.
-+	 *
-+	 * <->
-+	 * *  *
-+	 *
-+	 */
-+
-+	ASSERT_EQ(vma_merge_extend(&vmi, vma, 0x2000), vma);
-+	ASSERT_EQ(vma->vm_start, 0);
-+	ASSERT_EQ(vma->vm_end, 0x4000);
-+	ASSERT_EQ(vma->vm_pgoff, 0);
-+	ASSERT_TRUE(vma_write_started(vma));
-+	ASSERT_EQ(mm.map_count, 1);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
-+static bool test_copy_vma(void)
-+{
-+	unsigned long flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-+	struct mm_struct mm = {};
-+	bool need_locks = false;
-+	VMA_ITERATOR(vmi, &mm, 0);
-+	struct vm_area_struct *vma, *vma_new, *vma_next;
-+
-+	/* Move backwards and do not merge. */
-+
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_new = copy_vma(&vma, 0, 0x2000, 0, &need_locks);
-+
-+	ASSERT_NE(vma_new, vma);
-+	ASSERT_EQ(vma_new->vm_start, 0);
-+	ASSERT_EQ(vma_new->vm_end, 0x2000);
-+	ASSERT_EQ(vma_new->vm_pgoff, 0);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/* Move a VMA into position next to another and merge the two. */
-+
-+	vma = alloc_and_link_vma(&mm, 0, 0x2000, 0, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x8000, 6, flags);
-+	vma_new = copy_vma(&vma, 0x4000, 0x2000, 4, &need_locks);
-+
-+	ASSERT_EQ(vma_new, vma_next);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
-+}
-+
- int main(void)
- {
- 	int num_tests = 0, num_fail = 0;
-@@ -193,11 +1453,23 @@ int main(void)
- 		}							\
- 	} while (0)
- 
-+	/* Very simple tests to kick the tyres. */
- 	TEST(simple_merge);
- 	TEST(simple_modify);
- 	TEST(simple_expand);
- 	TEST(simple_shrink);
- 
-+	TEST(merge_new);
-+	TEST(vma_merge_special_flags);
-+	TEST(vma_merge_with_close);
-+	TEST(vma_merge_new_with_close);
-+	TEST(merge_existing);
-+	TEST(anon_vma_non_mergeable);
-+	TEST(dup_anon_vma);
-+	TEST(vmi_prealloc_fail);
-+	TEST(merge_extend);
-+	TEST(copy_vma);
-+
- #undef TEST
- 
- 	printf("%d tests run, %d passed, %d failed.\n",
---- a/tools/testing/vma/vma_internal.h~tools-add-vma-merge-tests
-+++ a/tools/testing/vma/vma_internal.h
-@@ -81,8 +81,6 @@
- 
- #define AS_MM_ALL_LOCKS 2
- 
--#define current NULL
+-/* Required by mmap_region(). */
+-bool
+-can_vma_merge_before(struct vm_area_struct *vma, unsigned long vm_flags,
+-		struct anon_vma *anon_vma, struct file *file,
+-		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		struct anon_vma_name *anon_name);
 -
- /* We hardcode this for now. */
- #define sysctl_max_map_count 0x1000000UL
- 
-@@ -92,6 +90,12 @@ typedef struct pgprot { pgprotval_t pgpr
- typedef unsigned long vm_flags_t;
- typedef __bitwise unsigned int vm_fault_t;
- 
+-/* Required by mmap_region() and do_brk_flags(). */
+-bool
+-can_vma_merge_after(struct vm_area_struct *vma, unsigned long vm_flags,
+-		struct anon_vma *anon_vma, struct file *file,
+-		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		struct anon_vma_name *anon_name);
+-
+-struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
+-				  struct vm_area_struct *prev,
+-				  struct vm_area_struct *vma,
+-				  unsigned long start, unsigned long end,
+-				  unsigned long vm_flags,
+-				  struct mempolicy *policy,
+-				  struct vm_userfaultfd_ctx uffd_ctx,
+-				  struct anon_vma_name *anon_name);
 +/*
-+ * The shared stubs do not implement this, it amounts to an fprintf(STDERR,...)
-+ * either way :)
++ * Can we merge the VMA described by vmg into the following VMA vmg->next?
++ *
++ * Required by mmap_region().
 + */
-+#define pr_warn_once pr_err
++bool can_vma_merge_before(struct vma_merge_struct *vmg);
 +
- typedef struct refcount_struct {
- 	atomic_t refs;
- } refcount_t;
-@@ -100,9 +104,30 @@ struct kref {
- 	refcount_t refcount;
- };
- 
 +/*
-+ * Define the task command name length as enum, then it can be visible to
-+ * BPF programs.
++ * Can we merge the VMA described by vmg into the preceding VMA vmg->prev?
++ *
++ * Required by mmap_region() and do_brk_flags().
 + */
-+enum {
-+	TASK_COMM_LEN = 16,
-+};
-+
-+struct task_struct {
-+	char comm[TASK_COMM_LEN];
-+	pid_t pid;
-+	struct mm_struct *mm;
-+};
-+
-+struct task_struct *get_current(void);
-+#define current get_current()
-+
- struct anon_vma {
- 	struct anon_vma *root;
- 	struct rb_root_cached rb_root;
-+
-+	/* Test fields. */
-+	bool was_cloned;
-+	bool was_unlinked;
- };
++bool can_vma_merge_after(struct vma_merge_struct *vmg);
  
- struct anon_vma_chain {
-@@ -682,13 +707,21 @@ static inline int vma_dup_policy(struct
- 	return 0;
- }
+ /* We are about to modify the VMA's flags. */
+-static inline struct vm_area_struct
+-*vma_modify_flags(struct vma_iterator *vmi,
+-		  struct vm_area_struct *prev,
+-		  struct vm_area_struct *vma,
+-		  unsigned long start, unsigned long end,
+-		  unsigned long new_flags)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), vma->vm_userfaultfd_ctx,
+-			  anon_vma_name(vma));
+-}
++struct vm_area_struct *vma_modify_flags(struct vma_iterator *vmi,
++		struct vm_area_struct *prev, struct vm_area_struct *vma,
++		unsigned long start, unsigned long end,
++		unsigned long new_flags);
  
--static inline int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *)
-+static inline int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
+ /* We are about to modify the VMA's flags and/or anon_name. */
+-static inline struct vm_area_struct
++struct vm_area_struct
+ *vma_modify_flags_name(struct vma_iterator *vmi,
+ 		       struct vm_area_struct *prev,
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start,
+ 		       unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct anon_vma_name *new_name)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), vma->vm_userfaultfd_ctx, new_name);
+-}
++		       struct anon_vma_name *new_name);
+ 
+ /* We are about to modify the VMA's memory policy. */
+-static inline struct vm_area_struct
++struct vm_area_struct
+ *vma_modify_policy(struct vma_iterator *vmi,
+ 		   struct vm_area_struct *prev,
+ 		   struct vm_area_struct *vma,
+ 		   unsigned long start, unsigned long end,
+-		   struct mempolicy *new_pol)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, vma->vm_flags,
+-			  new_pol, vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-}
++		   struct mempolicy *new_pol);
+ 
+ /* We are about to modify the VMA's flags and/or uffd context. */
+-static inline struct vm_area_struct
++struct vm_area_struct
+ *vma_modify_flags_uffd(struct vma_iterator *vmi,
+ 		       struct vm_area_struct *prev,
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx)
+-{
+-	return vma_modify(vmi, prev, vma, start, end, new_flags,
+-			  vma_policy(vma), new_ctx, anon_vma_name(vma));
+-}
++		       struct vm_userfaultfd_ctx new_ctx);
+ 
+ struct vm_area_struct
+ *vma_merge_new_vma(struct vma_iterator *vmi, struct vm_area_struct *prev,
+--- a/tools/testing/vma/vma.c~mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify
++++ a/tools/testing/vma/vma.c
+@@ -22,26 +22,6 @@ static bool fail_prealloc;
+  */
+ #include "../../../mm/vma.c"
+ 
+-/*
+- * Temporarily forward-ported from a future in which vmg's are used for merging.
+- */
+-struct vma_merge_struct {
+-	struct mm_struct *mm;
+-	struct vma_iterator *vmi;
+-	pgoff_t pgoff;
+-	struct vm_area_struct *prev;
+-	struct vm_area_struct *next; /* Modified by vma_merge(). */
+-	struct vm_area_struct *vma; /* Either a new VMA or the one being modified. */
+-	unsigned long start;
+-	unsigned long end;
+-	unsigned long flags;
+-	struct file *file;
+-	struct anon_vma *anon_vma;
+-	struct mempolicy *policy;
+-	struct vm_userfaultfd_ctx uffd_ctx;
+-	struct anon_vma_name *anon_name;
+-};
+-
+ const struct vm_operations_struct vma_dummy_vm_ops;
+ static struct anon_vma dummy_anon_vma;
+ 
+@@ -115,14 +95,6 @@ static struct vm_area_struct *alloc_and_
+ /* Helper function which provides a wrapper around a merge new VMA operation. */
+ static struct vm_area_struct *merge_new(struct vma_merge_struct *vmg)
  {
-+	/* For testing purposes. We indicate that an anon_vma has been cloned. */
-+	if (src->anon_vma != NULL) {
-+		dst->anon_vma = src->anon_vma;
-+		dst->anon_vma->was_cloned = true;
-+	}
-+
- 	return 0;
+-	/* vma_merge() needs a VMA to determine mm, anon_vma, and file. */
+-	struct vm_area_struct dummy = {
+-		.vm_mm = vmg->mm,
+-		.vm_flags = vmg->flags,
+-		.anon_vma = vmg->anon_vma,
+-		.vm_file = vmg->file,
+-	};
+-
+ 	/*
+ 	 * For convenience, get prev and next VMAs. Which the new VMA operation
+ 	 * requires.
+@@ -131,8 +103,7 @@ static struct vm_area_struct *merge_new(
+ 	vmg->prev = vma_prev(vmg->vmi);
+ 
+ 	vma_iter_set(vmg->vmi, vmg->start);
+-	return vma_merge_new_vma(vmg->vmi, vmg->prev, &dummy, vmg->start,
+-				 vmg->end, vmg->pgoff);
++	return vma_merge(vmg);
  }
  
--static inline void vma_start_write(struct vm_area_struct *)
-+static inline void vma_start_write(struct vm_area_struct *vma)
+ /*
+@@ -141,17 +112,7 @@ static struct vm_area_struct *merge_new(
+  */
+ static struct vm_area_struct *merge_existing(struct vma_merge_struct *vmg)
  {
-+	/* Used to indicate to tests that a write operation has begun. */
-+	vma->vm_lock_seq++;
+-	/* vma_merge() needs a VMA to determine mm, anon_vma, and file. */
+-	struct vm_area_struct dummy = {
+-		.vm_mm = vmg->mm,
+-		.vm_flags = vmg->flags,
+-		.anon_vma = vmg->anon_vma,
+-		.vm_file = vmg->file,
+-	};
+-
+-	return vma_merge(vmg->vmi, vmg->prev, &dummy, vmg->start, vmg->end,
+-			 vmg->flags, vmg->pgoff, vmg->policy, vmg->uffd_ctx,
+-			 vmg->anon_name);
++	return vma_merge(vmg);
  }
  
- static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
-@@ -759,8 +792,10 @@ static inline void vma_assert_write_lock
- {
- }
- 
--static inline void unlink_anon_vmas(struct vm_area_struct *)
-+static inline void unlink_anon_vmas(struct vm_area_struct *vma)
- {
-+	/* For testing purposes, indicate that the anon_vma was unlinked. */
-+	vma->anon_vma->was_unlinked = true;
- }
- 
- static inline void anon_vma_unlock_write(struct anon_vma *)
+ /*
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
