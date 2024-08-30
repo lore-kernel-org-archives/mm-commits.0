@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 362AB1BFE11
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48F822AE84
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725055890; cv=none; b=G9JtB2vN8Bn09PI8doKAhmBKKRSeLkFtNSXsvqVMBDvXs75WNXsHeQkfdy0POX84feg5KxspKZEpEZc8/hO/VN//OMZJGccwO6zTky2IxwB/c7adEMSkyJ3TEKQRbpMJPxMN0KXVSlSyy618pyXOE65xW8eL1b8OKOS8RIMYkpk=
+	t=1725055892; cv=none; b=BTF4/VQ4IQKLNaskGmvLxZAbiel5eqRBm3BAn4OUYKFgkrwIbApKYwioSq/PfcYRj6z2/EfUwGlisHqY9yQ/n0xEPeGqXtv5XTo/DcwOawA2Du9GejZPCW+VPcx0GHZGoAwbjehPdTVX9io6JqwcpX9anVmWfByJF6e3b1GIIHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725055890; c=relaxed/simple;
-	bh=UJ3Qor0s83VYSTLh/vEdRlx5IUsS2K/EDjFFMvLnYUQ=;
-	h=Date:To:From:Subject:Message-Id; b=gz7oqnPaKEYo575scpSuZplxwIq3NaidrNwBLABWKd6Dwu8bq3XEMEb3tVnpDsVjkDEgB8IE9LZHr4U03aDk2NEX4tPgV+tutqG/+wzIKluMD8Z2eo0y38SwrrQcIzUhy9k7mok9jlJjoXOmPfVfauqJJw4vdniuP+DOQcXPxVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mzYP1Hep; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725055892; c=relaxed/simple;
+	bh=ElxGD1OweVVc4BKJDc6JtRnRJTboUg+4VJMhFAZyBx4=;
+	h=Date:To:From:Subject:Message-Id; b=QJYS9e1xmb4wyZ4BmpfIBgFhkBh8Dc1oJOAFXt1UhExPwcZcIA5OpUjI9AIkcpCqS7jQGia+4+g5e1YOWcVGgjTbY2O8mK1wNceIl+8S6LM6XKxQdLq5ocS+8fnYlKvMM1EBiGcOAHZl4T5+g3N9cNoRAzrxUy5xgShvR6YGeyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N0CpslFA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mzYP1Hep"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029F7C4CEC2;
-	Fri, 30 Aug 2024 22:11:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N0CpslFA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08150C4CEC2;
+	Fri, 30 Aug 2024 22:11:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725055890;
-	bh=UJ3Qor0s83VYSTLh/vEdRlx5IUsS2K/EDjFFMvLnYUQ=;
+	s=korg; t=1725055892;
+	bh=ElxGD1OweVVc4BKJDc6JtRnRJTboUg+4VJMhFAZyBx4=;
 	h=Date:To:From:Subject:From;
-	b=mzYP1HepbyS4g3DUvsd0j+0G3jlEGG2j8Hr0v9ltXAMoQWpOVPrmaFqCoftURVeE0
-	 7OhGtOntHljb1RQf3EebZ69ZtjTCGiKkpQh4/6xL0HMvh59MviBxmdNvD9g8o/oOod
-	 HrxltVuv5E0tuQGmS4IGrBYq9QNIor0APyt8AIgI=
-Date: Fri, 30 Aug 2024 15:11:29 -0700
+	b=N0CpslFAEXfy4lNf1vyQiQD4J2w2dUCxTUA0W9e78HZMEuxBqoAEf0LB2Bg3e/KZu
+	 zQxndAF6EgK+YKHGN/JLinm8rt9ZTMoh+HWMJSm70XTVpG6HNFVpyMgTFAoh5Prm65
+	 xAGyeSfSD5Nktu6evV119PnrBs2F75A7TvNsEet8=
+Date: Fri, 30 Aug 2024 15:11:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-phys_pfn-in-mmap_region.patch added to mm-unstable branch
-Message-Id: <20240830221130.029F7C4CEC2@smtp.kernel.org>
+Subject: + mm-mmap-use-vms-accounted-pages-in-mmap_region.patch added to mm-unstable branch
+Message-Id: <20240830221132.08150C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: use PHYS_PFN in mmap_region()
+     Subject: mm/mmap: use vms accounted pages in mmap_region()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-phys_pfn-in-mmap_region.patch
+     mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-phys_pfn-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,79 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: use PHYS_PFN in mmap_region()
-Date: Fri, 30 Aug 2024 00:00:56 -0400
+Subject: mm/mmap: use vms accounted pages in mmap_region()
+Date: Fri, 30 Aug 2024 00:00:57 -0400
 
-Instead of shifting the length by PAGE_SIZE, use PHYS_PFN.  Also use the
-existing local variable everywhere instead of some of the time.
+Change from nr_pages variable to vms.nr_accounted for the charged pages
+calculation.  This is necessary for a future patch.
 
-Link: https://lkml.kernel.org/r/20240830040101.822209-17-Liam.Howlett@oracle.com
+This also avoids checking security_vm_enough_memory_mm() if the amount of
+memory won't change.
+
+Link: https://lkml.kernel.org/r/20240830040101.822209-18-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Kees Cook <kees@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Paul Moore <paul@paul-moore.com>	[LSM]
+Cc: Kees Cook <kees@kernel.org>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Jiri Olsa <olsajiri@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-phys_pfn-in-mmap_region
+--- a/mm/mmap.c~mm-mmap-use-vms-accounted-pages-in-mmap_region
 +++ a/mm/mmap.c
-@@ -1364,7 +1364,7 @@ unsigned long mmap_region(struct file *f
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma = NULL;
- 	struct vm_area_struct *next, *prev, *merge;
--	pgoff_t pglen = len >> PAGE_SHIFT;
-+	pgoff_t pglen = PHYS_PFN(len);
- 	unsigned long charged = 0;
- 	struct vma_munmap_struct vms;
- 	struct ma_state mas_detach;
-@@ -1384,7 +1384,7 @@ unsigned long mmap_region(struct file *f
- 	 * MAP_FIXED may remove pages of mappings that intersects with requested
- 	 * mapping. Account for the pages it would unmap.
- 	 */
--	if (!may_expand_vm(mm, vm_flags, (len >> PAGE_SHIFT) - nr_pages))
-+	if (!may_expand_vm(mm, vm_flags, pglen - nr_pages))
- 		return -ENOMEM;
- 
- 	/* Find the first overlapping VMA */
-@@ -1413,7 +1413,7 @@ unsigned long mmap_region(struct file *f
- 	 * Private writable mapping: check memory availability
+@@ -1414,9 +1414,10 @@ unsigned long mmap_region(struct file *f
  	 */
  	if (accountable_mapping(file, vm_flags)) {
--		charged = len >> PAGE_SHIFT;
-+		charged = pglen;
- 		charged -= nr_accounted;
- 		if (security_vm_enough_memory_mm(mm, charged))
+ 		charged = pglen;
+-		charged -= nr_accounted;
+-		if (security_vm_enough_memory_mm(mm, charged))
++		charged -= vms.nr_accounted;
++		if (charged && security_vm_enough_memory_mm(mm, charged))
  			goto abort_munmap;
-@@ -1574,14 +1574,14 @@ expanded:
- 	/* Unmap any existing mapping in the area */
- 	vms_complete_munmap_vmas(&vms, &mas_detach);
- 
--	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
-+	vm_stat_account(mm, vm_flags, pglen);
- 	if (vm_flags & VM_LOCKED) {
- 		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
- 					is_vm_hugetlb_page(vma) ||
- 					vma == get_gate_vma(current->mm))
- 			vm_flags_clear(vma, VM_LOCKED_MASK);
- 		else
--			mm->locked_vm += (len >> PAGE_SHIFT);
-+			mm->locked_vm += pglen;
++
+ 		vms.nr_accounted = 0;
+ 		vm_flags |= VM_ACCOUNT;
  	}
- 
- 	if (file)
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
