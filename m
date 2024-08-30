@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4D171BFE11
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 362AB1BFE11
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:11:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725055887; cv=none; b=hV9/b/Uio2J0UO5CURuSFmhDUMl63X1REjG9jsETyfM1znrr1f5goXmR4TIa53gAi/L2t1/Dwey8zi8KZeKHGE4BUjff38DFhFMnw+NCUYCZTs8q/hfX0hfZET+e9NzTOcUOvk95JhAYCttytKWkWpTIfjuTYvXlJEhR+jIFi8Y=
+	t=1725055890; cv=none; b=G9JtB2vN8Bn09PI8doKAhmBKKRSeLkFtNSXsvqVMBDvXs75WNXsHeQkfdy0POX84feg5KxspKZEpEZc8/hO/VN//OMZJGccwO6zTky2IxwB/c7adEMSkyJ3TEKQRbpMJPxMN0KXVSlSyy618pyXOE65xW8eL1b8OKOS8RIMYkpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725055887; c=relaxed/simple;
-	bh=iVRSKRTJtJcZhGqucjw55jv/VIwJ/ZHPGnhsl5/dLGo=;
-	h=Date:To:From:Subject:Message-Id; b=efXFDjttOK9fz1NDDFQou+5keJArixY83DyMumBQ2UEJmmKVRuzJO+5DNQhDQ/zBpS2vcOUmEwLy5kPAyj7e/HxRB5STe9Zg0cEZv8nU4r2gUdoDkNLDWO5kF9JtyOac6YsFZXkix00HDXLq4hNaGG2ldmK3LRtlir4XLmdkDi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m+iwXMFK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725055890; c=relaxed/simple;
+	bh=UJ3Qor0s83VYSTLh/vEdRlx5IUsS2K/EDjFFMvLnYUQ=;
+	h=Date:To:From:Subject:Message-Id; b=gz7oqnPaKEYo575scpSuZplxwIq3NaidrNwBLABWKd6Dwu8bq3XEMEb3tVnpDsVjkDEgB8IE9LZHr4U03aDk2NEX4tPgV+tutqG/+wzIKluMD8Z2eo0y38SwrrQcIzUhy9k7mok9jlJjoXOmPfVfauqJJw4vdniuP+DOQcXPxVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mzYP1Hep; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m+iwXMFK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E12EC4CEC6;
-	Fri, 30 Aug 2024 22:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mzYP1Hep"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029F7C4CEC2;
+	Fri, 30 Aug 2024 22:11:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725055887;
-	bh=iVRSKRTJtJcZhGqucjw55jv/VIwJ/ZHPGnhsl5/dLGo=;
+	s=korg; t=1725055890;
+	bh=UJ3Qor0s83VYSTLh/vEdRlx5IUsS2K/EDjFFMvLnYUQ=;
 	h=Date:To:From:Subject:From;
-	b=m+iwXMFKWBPmIgDgsXtZhl/P/H+b7aiYnUxJHgPPKNmjAJsMyZrl1Sr4k99COn/6a
-	 7z1tlDP1C2b9x+XPH9/JzyE1q3FwU6EG7bmO0nbPTgUxaU1KhrTW+XmMQ/XptugjbP
-	 QKA8iQp7Uxx4sA/ea22aVdAbqeWgx9EbxPu5GVbg=
-Date: Fri, 30 Aug 2024 15:11:26 -0700
+	b=mzYP1HepbyS4g3DUvsd0j+0G3jlEGG2j8Hr0v9ltXAMoQWpOVPrmaFqCoftURVeE0
+	 7OhGtOntHljb1RQf3EebZ69ZtjTCGiKkpQh4/6xL0HMvh59MviBxmdNvD9g8o/oOod
+	 HrxltVuv5E0tuQGmS4IGrBYq9QNIor0APyt8AIgI=
+Date: Fri, 30 Aug 2024 15:11:29 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch added to mm-unstable branch
-Message-Id: <20240830221127.2E12EC4CEC6@smtp.kernel.org>
+Subject: + mm-mmap-use-phys_pfn-in-mmap_region.patch added to mm-unstable branch
+Message-Id: <20240830221130.029F7C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: change failure of MAP_FIXED to restoring the gap on failure
+     Subject: mm/mmap: use PHYS_PFN in mmap_region()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+     mm-mmap-use-phys_pfn-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-phys_pfn-in-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: change failure of MAP_FIXED to restoring the gap on failure
-Date: Fri, 30 Aug 2024 00:00:55 -0400
+Subject: mm/mmap: use PHYS_PFN in mmap_region()
+Date: Fri, 30 Aug 2024 00:00:56 -0400
 
-Prior to call_mmap(), the vmas that will be replaced need to clear the way
-for what may happen in the call_mmap().  This clean up work includes
-clearing the ptes and calling the close() vm_ops.  Some users do more
-setup than can be restored by calling the vm_ops open() function.  It is
-safer to store the gap in the vma tree in these cases.
+Instead of shifting the length by PAGE_SIZE, use PHYS_PFN.  Also use the
+existing local variable everywhere instead of some of the time.
 
-That is to say that the failure scenario that existed before the MAP_FIXED
-gap exposure is restored as it is safer than trying to undo a partial
-mapping.
-
-Since abort_munmap_vmas() is only reattaching vmas with this change, the
-function is renamed to reattach_vmas().
-
-There is also a secondary failure that may occur if there is not enough
-memory to store the gap.  In this case, the vmas are reattached and
-resources freed.  If the system cannot complete the call_mmap() and fails
-to allocate with GFP_KERNEL, then the system will print a warning about
-the failure.
-
-Link: https://lkml.kernel.org/r/20240830040101.822209-16-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240830040101.822209-17-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Jiri Olsa <olsajiri@gmail.com>
@@ -94,163 +79,59 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Cc: Paul Moore <paul@paul-moore.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 -
- mm/vma.c  |    4 +-
- mm/vma.h  |   80 +++++++++++++++++++++++++++++++++++++---------------
- 3 files changed, 61 insertions(+), 26 deletions(-)
+ mm/mmap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure
+--- a/mm/mmap.c~mm-mmap-use-phys_pfn-in-mmap_region
 +++ a/mm/mmap.c
-@@ -1623,8 +1623,7 @@ unacct_error:
- 		vm_unacct_memory(charged);
+@@ -1364,7 +1364,7 @@ unsigned long mmap_region(struct file *f
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+ 	struct vm_area_struct *next, *prev, *merge;
+-	pgoff_t pglen = len >> PAGE_SHIFT;
++	pgoff_t pglen = PHYS_PFN(len);
+ 	unsigned long charged = 0;
+ 	struct vma_munmap_struct vms;
+ 	struct ma_state mas_detach;
+@@ -1384,7 +1384,7 @@ unsigned long mmap_region(struct file *f
+ 	 * MAP_FIXED may remove pages of mappings that intersects with requested
+ 	 * mapping. Account for the pages it would unmap.
+ 	 */
+-	if (!may_expand_vm(mm, vm_flags, (len >> PAGE_SHIFT) - nr_pages))
++	if (!may_expand_vm(mm, vm_flags, pglen - nr_pages))
+ 		return -ENOMEM;
  
- abort_munmap:
--	if (vms.nr_pages)
--		abort_munmap_vmas(&mas_detach, vms.closed_vm_ops);
-+	vms_abort_munmap_vmas(&vms, &mas_detach);
- gather_failed:
- 	validate_mm(mm);
- 	return error;
---- a/mm/vma.c~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure
-+++ a/mm/vma.c
-@@ -878,7 +878,7 @@ userfaultfd_error:
- munmap_gather_failed:
- end_split_failed:
- modify_vma_failed:
--	abort_munmap_vmas(mas_detach, /* closed = */ false);
-+	reattach_vmas(mas_detach);
- start_split_failed:
- map_count_exceeded:
- 	return error;
-@@ -923,7 +923,7 @@ int do_vmi_align_munmap(struct vma_itera
- 	return 0;
+ 	/* Find the first overlapping VMA */
+@@ -1413,7 +1413,7 @@ unsigned long mmap_region(struct file *f
+ 	 * Private writable mapping: check memory availability
+ 	 */
+ 	if (accountable_mapping(file, vm_flags)) {
+-		charged = len >> PAGE_SHIFT;
++		charged = pglen;
+ 		charged -= nr_accounted;
+ 		if (security_vm_enough_memory_mm(mm, charged))
+ 			goto abort_munmap;
+@@ -1574,14 +1574,14 @@ expanded:
+ 	/* Unmap any existing mapping in the area */
+ 	vms_complete_munmap_vmas(&vms, &mas_detach);
  
- clear_tree_failed:
--	abort_munmap_vmas(&mas_detach, /* closed = */ false);
-+	reattach_vmas(&mas_detach);
- gather_failed:
- 	validate_mm(mm);
- 	return error;
---- a/mm/vma.h~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure
-+++ a/mm/vma.h
-@@ -82,6 +82,22 @@ int vma_expand(struct vma_iterator *vmi,
- int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 	       unsigned long start, unsigned long end, pgoff_t pgoff);
+-	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
++	vm_stat_account(mm, vm_flags, pglen);
+ 	if (vm_flags & VM_LOCKED) {
+ 		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
+ 					is_vm_hugetlb_page(vma) ||
+ 					vma == get_gate_vma(current->mm))
+ 			vm_flags_clear(vma, VM_LOCKED_MASK);
+ 		else
+-			mm->locked_vm += (len >> PAGE_SHIFT);
++			mm->locked_vm += pglen;
+ 	}
  
-+static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
-+			struct vm_area_struct *vma, gfp_t gfp)
-+
-+{
-+	if (vmi->mas.status != ma_start &&
-+	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
-+		vma_iter_invalidate(vmi);
-+
-+	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
-+	mas_store_gfp(&vmi->mas, vma, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- #ifdef CONFIG_MMU
- /*
-  * init_vma_munmap() - Initializer wrapper for vma_munmap_struct
-@@ -129,24 +145,60 @@ void vms_clean_up_area(struct vma_munmap
- 		struct ma_state *mas_detach, bool mm_wr_locked);
- 
- /*
-- * abort_munmap_vmas - Undo any munmap work and free resources
-+ * reattach_vmas() - Undo any munmap work and free resources
-+ * @mas_detach: The maple state with the detached maple tree
-  *
-  * Reattach any detached vmas and free up the maple tree used to track the vmas.
-  */
--static inline void abort_munmap_vmas(struct ma_state *mas_detach, bool closed)
-+static inline void reattach_vmas(struct ma_state *mas_detach)
- {
- 	struct vm_area_struct *vma;
- 
- 	mas_set(mas_detach, 0);
--	mas_for_each(mas_detach, vma, ULONG_MAX) {
-+	mas_for_each(mas_detach, vma, ULONG_MAX)
- 		vma_mark_detached(vma, false);
--		if (closed && vma->vm_ops && vma->vm_ops->open)
--			vma->vm_ops->open(vma);
--	}
- 
- 	__mt_destroy(mas_detach->tree);
- }
- 
-+/*
-+ * vms_abort_munmap_vmas() - Undo as much as possible from an aborted munmap()
-+ * operation.
-+ * @vms: The vma unmap structure
-+ * @mas_detach: The maple state with the detached maple tree
-+ *
-+ * Reattach any detached vmas, free up the maple tree used to track the vmas.
-+ * If that's not possible because the ptes are cleared (and vm_ops->closed() may
-+ * have been called), then a NULL is written over the vmas and the vmas are
-+ * removed (munmap() completed).
-+ */
-+static inline void vms_abort_munmap_vmas(struct vma_munmap_struct *vms,
-+		struct ma_state *mas_detach)
-+{
-+	struct ma_state *mas = &vms->vmi->mas;
-+	if (!vms->nr_pages)
-+		return;
-+
-+	if (vms->clear_ptes)
-+		return reattach_vmas(mas_detach);
-+
-+	/*
-+	 * Aborting cannot just call the vm_ops open() because they are often
-+	 * not symmetrical and state data has been lost.  Resort to the old
-+	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
-+	 */
-+	mas_set_range(mas, vms->start, vms->end);
-+	if (unlikely(mas_store_gfp(mas, NULL, GFP_KERNEL))) {
-+		pr_warn_once("%s: (%d) Unable to abort munmap() operation\n",
-+			     current->comm, current->pid);
-+		/* Leaving vmas detached and in-tree may hamper recovery */
-+		reattach_vmas(mas_detach);
-+	} else {
-+		/* Clean up the insertion of the unfortunate gap */
-+		vms_complete_munmap_vmas(vms, mas_detach);
-+	}
-+}
-+
- int
- do_vmi_align_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		    struct mm_struct *mm, unsigned long start,
-@@ -299,22 +351,6 @@ static inline struct vm_area_struct *vma
- 	return mas_prev(&vmi->mas, min);
- }
- 
--static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
--			struct vm_area_struct *vma, gfp_t gfp)
--{
--	if (vmi->mas.status != ma_start &&
--	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
--		vma_iter_invalidate(vmi);
--
--	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
--	mas_store_gfp(&vmi->mas, vma, gfp);
--	if (unlikely(mas_is_err(&vmi->mas)))
--		return -ENOMEM;
--
--	return 0;
--}
--
--
- /*
-  * These three helpers classifies VMAs for virtual memory accounting.
-  */
+ 	if (file)
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
