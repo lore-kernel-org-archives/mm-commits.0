@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 206471C1742
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:17:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA72917B4E9
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:30:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725056221; cv=none; b=LbYny3lzPxeBEVGxT2Uksif/QB/S0edeW8qPdKBGIo8z6gnkM7gFsb5vaKUY0qEbW+HeKZLvBFTDLrKE39Lp1X34+GdG4qH8BjDVEv2nNCjWwhRdKRu6eZPwJTu3mENxKbgVOExsSZF9dETrSEX+WypkRM4sutKXImGz/ldzBD4=
+	t=1725057051; cv=none; b=nl17QGyR7La9NkE69orXT7poDRuweZ5XE08m+TjPobwhIYgI+S4jyLzuQ1xDCaET/LULWzMG1c5rv5N5N7b9HTcLfWTAtbVxOysButdCx2DVvPwqzT2q7zNAq4JspyTNGVIkuA5EbMvDAohlYf1zyIMn5beSPUpqCzU55T76iOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725056221; c=relaxed/simple;
-	bh=DGYnUHLSYzOITrl8pHWVDwm0zo901/N/CLkoXoXQob8=;
-	h=Date:To:From:Subject:Message-Id; b=GI1vy/a4a7QQ4eKKZjd228vzSkumD43DeaLRSe+bjSrszCyVa5xwSPsRHMp+t6P2AIE+fURIqSbOn24ooB1L+RQmEVaZyndgDub+bwJD7YaieKYw/5RItkNeDjznsaS/DURbOXGwQbVg4RvkyiF2kTdH6bwR5kiZnRwlYfcsXKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mwTJxGXz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725057051; c=relaxed/simple;
+	bh=vsBX8kcibZbC9WB02jTW33Y+ta0Dlp0r7dMr+3TCQbE=;
+	h=Date:To:From:Subject:Message-Id; b=SSrb9S3/MBb6/FgVLMOlADS2JshEmbKsAjo/VNxYbX2Wd/0eP2mQHTkupb4bZVXbsLDXaRMfmTSb1Ioy2cMwBdtgy8amv4Gdgk9/bbd3SsJfebscWqijN9Fp7rQ+SZejqzzx+AMT9KTJIKv7RBSVg3OwT9qwWMdgJy7FW4aSCbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uCZPawyZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mwTJxGXz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81C0CC4CEC2;
-	Fri, 30 Aug 2024 22:17:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uCZPawyZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3205EC4CEC2;
+	Fri, 30 Aug 2024 22:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725056220;
-	bh=DGYnUHLSYzOITrl8pHWVDwm0zo901/N/CLkoXoXQob8=;
+	s=korg; t=1725057051;
+	bh=vsBX8kcibZbC9WB02jTW33Y+ta0Dlp0r7dMr+3TCQbE=;
 	h=Date:To:From:Subject:From;
-	b=mwTJxGXzAFl1ovDpsucQdsA1UYCJxi1VoeCL9o3wBTj4msU8EfmZuT2JuTQLcG8xX
-	 8UWT0Drg+k09rjzoZARPucM+z9jQvyy9VHx0kZQs//xkAJch2jvGzenOI9UePuMceY
-	 G4xA48NKiz7qjuhKM0jcdCs6QviNT1Tr+61chwyA=
-Date: Fri, 30 Aug 2024 15:16:59 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,pedro.falcato@gmail.com,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=uCZPawyZORwdR+SeGrioz5ZJ4Dhvr5nGmmMZtCiCF0k+rF3x2B6ik5xpUTrPsX/It
+	 bm+dWYLtghKEnaW85W9H41zHn7ewVduwDE4fNw+OSLTXTWvBIsj7OHjsRUvNxXqtOa
+	 Yz51pmpO/a7cc1ac/QyONuvrdSyxt1eS83zlC6HA=
+Date: Fri, 30 Aug 2024 15:30:50 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,Jonathan.Cameron@huawei.com,horen.chuang@linux.dev,yanfei.xu@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch added to mm-unstable branch
-Message-Id: <20240830221700.81C0CC4CEC2@smtp.kernel.org>
+Subject: + memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch added to mm-unstable branch
+Message-Id: <20240830223051.3205EC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-add-more-mseal-traversal-tests-fix-fix
+     Subject: memory tier: fix deadlock warning while onlining pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
+     memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,70 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-mm-add-more-mseal-traversal-tests-fix-fix
-Date: Fri Aug 30 03:15:52 PM PDT 2024
+From: Yanfei Xu <yanfei.xu@intel.com>
+Subject: memory tier: fix deadlock warning while onlining pages
+Date: Fri, 30 Aug 2024 18:24:47 +0800
 
-remove the correct comment, per Pedro
+Add the mutex_lock/unlock() pair back and exclude the
+hotplug_memory_notifier() from the locked region, per Ying Huang.
 
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Link: https://lkml.kernel.org/r/20240830102447.1445296-1-yanfei.xu@intel.com
+Fixes: 823430c8e9d9 ("memory tier: consolidate the initialization of memory tiers")
+Signed-off-by: Yanfei Xu <yanfei.xu@intel.com>
+Cc: Ho-Ren (Jack) Chuang <horen.chuang@linux.dev>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memory-tiers.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-more-mseal-traversal-tests-fix-fix
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -774,6 +774,11 @@ static void test_seal_mprotect_partial_m
- 	int ret;
- 	int prot;
+--- a/mm/memory-tiers.c~memory-tier-fix-deadlock-warning-while-onlining-pages-v2
++++ a/mm/memory-tiers.c
+@@ -914,12 +914,14 @@ static int __init memory_tier_init(void)
+ 	WARN_ON(!node_demotion);
+ #endif
  
-+	/*
-+	 * Check if a partial mseal (that results in two vmas) works correctly.
-+	 * It might mprotect the first, but it'll never touch the second (msealed) vma.
-+	 */
-+
- 	setup_single_address(size, &ptr);
- 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
- 
-@@ -1022,11 +1027,6 @@ static void test_seal_munmap_partial_acr
- 	int ret;
- 	int prot;
- 
--	/*
--	 * Check if a partial mseal (that results in two vmas) works correctly.
--	 * It might unmap the first, but it'll never unmap the second (msealed) vma.
--	 */
--
- 	setup_single_address(size, &ptr);
- 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
++	mutex_lock(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
+ 	 */
+ 	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
+ 						      &default_memory_types);
++	mutex_unlock(&memory_tier_lock);
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yanfei.xu@intel.com are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+memory-tier-fix-deadlock-warning-while-onlining-pages.patch
+memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch
 
