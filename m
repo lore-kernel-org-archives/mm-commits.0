@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4211BE84B
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:39:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EECDC165F0B
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:50:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725057580; cv=none; b=LN/tKdxQJeo1OhLAxhwwKX2ot5Ubx2Wx/0QnQRlLn+ohvJJCRYCbGUVucN0dM/L1oA4ZBuWpICZeMsf7hZxYVhwqLqPVU6ZDTY41Z7fqfdFCN2l0ETQm5RYm6higKeqEz4KezdJjAC6bv+uwQ4KAsIUCcqb1sMwBlrpkDUe9z9Q=
+	t=1725058258; cv=none; b=ux3sNzopEHP8O2qlseYLLlXk+IVeQIAZv1SPSEt5bDKZruSD4/UbL0tGA8KLcHrKLqyQOkEKQPsyWS81I/RGCBaAmjq2bn1rBn9Dw6na4wchLaxiqpl08isRNyI/2SyQJVBdaRr5BIvOI+i+j0y6KVvJ58oGwD9rKEWySrvmW7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725057580; c=relaxed/simple;
-	bh=jPynuPs2DCZfFb/RuFVr0i1E1U9HQ92aouvJCxQ5YQA=;
-	h=Date:To:From:Subject:Message-Id; b=Bm3vSk1507Ysghuq95hU1fCXq419PesvLy+KU4St5hUoESP7I8nIu/ahv14sptLajH6rNAjoUWFgKzLdfnO97cw0WS3EWO71CjI/H3Qr+m5qrv/8lTZZyGYFFSnQyjHpjKeGrXsQzSwAsnSlV3Kl6HR4dOFKXdjyJmjEuqgTzUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uVrwlhgv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725058258; c=relaxed/simple;
+	bh=1XvpaRZk9IxjR8K+I9KVfkzeujQi+zeAcrfeYuBwCDs=;
+	h=Date:To:From:Subject:Message-Id; b=TJvVAdlWJD//l736JGqlM05XL57VzoedMrfHo8nqPP2Udvu2nKkG7FN8B/XFJ+4j4HIUiPrMDeO1YBH3Cm8RjuTh5p2B5jYH9xs51Tscjnav6L/a6CU5y83b9iOq6LbBKGzmNbsXtsFvVVpW01WNHRRSuyoqlZ7hIgAb+gUzzk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vMQyEXwa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uVrwlhgv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6BECC4CEC2;
-	Fri, 30 Aug 2024 22:39:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vMQyEXwa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6267EC4CEC2;
+	Fri, 30 Aug 2024 22:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725057579;
-	bh=jPynuPs2DCZfFb/RuFVr0i1E1U9HQ92aouvJCxQ5YQA=;
+	s=korg; t=1725058257;
+	bh=1XvpaRZk9IxjR8K+I9KVfkzeujQi+zeAcrfeYuBwCDs=;
 	h=Date:To:From:Subject:From;
-	b=uVrwlhgvWMqZCju87SLxjaLicAreouu0Rz/JZeSZrvXd/lQxIxJlp2IyAJ6uN08gW
-	 KbzxDAEDUifaC89IaSxkIKoMO7g+jIldA717M5C+Nx/NJSUQrGT0ZRsZFR0EIWRWjO
-	 n8JY53RmrboMIMGTg93o4l3Lrw/yl+foS31dC454=
-Date: Fri, 30 Aug 2024 15:39:39 -0700
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=vMQyEXwaQkr1y1Und+BYzsvrjwzUiOgwKCkJI6ZIjrfvXtNSeNXI/+60gYN/je+QY
+	 rFI3OVI2WxNkgjFkulHG75R1G6DLGc8TCrzEWu6ZBtta7Yp//587U7o6eFMz/3CF7h
+	 HsjJRbuy8m6Ia5nXT5+No3rGR3OlLqwVub9M0Lhw=
+Date: Fri, 30 Aug 2024 15:50:56 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,linuszeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch added to mm-nonmm-unstable branch
-Message-Id: <20240830223939.C6BECC4CEC2@smtp.kernel.org>
+Subject: + mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch added to mm-unstable branch
+Message-Id: <20240830225057.6267EC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: fix percpu address space issues in decompressor_multi_percpu.c
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
+     Subject: mm/memcontrol: add per-memcg pgpgin/pswpin counter
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,82 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: squashfs: fix percpu address space issues in decompressor_multi_percpu.c
-Date: Fri, 30 Aug 2024 11:10:50 +0200
+From: Jingxiang Zeng <linuszeng@tencent.com>
+Subject: mm/memcontrol: add per-memcg pgpgin/pswpin counter
+Date: Fri, 30 Aug 2024 16:22:44 +0800
 
-When strict percpu address space checks are enabled, then current direct
-casts between the percpu address space and the generic address space fail
-the compilation on x86_64 with:
+In proactive memory reclamation scenarios, it is necessary to estimate the
+pswpin and pswpout metrics of the cgroup to determine whether to continue
+reclaiming anonymous pages in the current batch.  This patch will collect
+these metrics and expose them.
 
-decompressor_multi_percpu.c: In function `squashfs_decompressor_create':
-decompressor_multi_percpu.c:49:16: error: cast to generic address space pointer from disjoint `__seg_gs' address space pointer
-
-decompressor_multi_percpu.c: In function `squashfs_decompressor_destroy':
-decompressor_multi_percpu.c:64:25: error: cast to `__seg_gs' address space pointer from disjoint generic address space pointer
-
-decompressor_multi_percpu.c: In function `squashfs_decompress':
-decompressor_multi_percpu.c:82:25: error: cast to `__seg_gs' address space pointer from disjoint generic address space pointer
-
-Add intermediate casts to unsigned long, as advised in [1] and [2].
-
-Side note: sparse still requires __force when casting from the percpu
-address space, although the documentation [2] allows casts to unsigned
-long without __force attribute.
-
-Found by GCC's named address space checks.
-
-There were no changes in the resulting object file.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Named-Address-Spaces.html#x86-Named-Address-Spaces
-[2] https://sparse.docs.kernel.org/en/latest/annotations.html#address-space-name
-
-Link: https://lkml.kernel.org/r/20240830091104.13049-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20240830082244.156923-1-jingxiangzeng.cas@gmail.com
+Signed-off-by: Jingxiang Zeng <linuszeng@tencent.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/decompressor_multi_percpu.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol-v1.c |    2 ++
+ mm/memcontrol.c    |    2 ++
+ mm/page_io.c       |    4 ++++
+ 3 files changed, 8 insertions(+)
 
---- a/fs/squashfs/decompressor_multi_percpu.c~squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc
-+++ a/fs/squashfs/decompressor_multi_percpu.c
-@@ -46,7 +46,7 @@ static void *squashfs_decompressor_creat
+--- a/mm/memcontrol.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter
++++ a/mm/memcontrol.c
+@@ -418,6 +418,8 @@ static const unsigned int memcg_vm_event
+ 	PGPGIN,
+ 	PGPGOUT,
+ #endif
++	PSWPIN,
++	PSWPOUT,
+ 	PGSCAN_KSWAPD,
+ 	PGSCAN_DIRECT,
+ 	PGSCAN_KHUGEPAGED,
+--- a/mm/memcontrol-v1.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter
++++ a/mm/memcontrol-v1.c
+@@ -2729,6 +2729,8 @@ static const char *const memcg1_stat_nam
+ static const unsigned int memcg1_events[] = {
+ 	PGPGIN,
+ 	PGPGOUT,
++	PSWPIN,
++	PSWPOUT,
+ 	PGFAULT,
+ 	PGMAJFAULT,
+ };
+--- a/mm/page_io.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter
++++ a/mm/page_io.c
+@@ -310,6 +310,7 @@ static inline void count_swpout_vm_event
  	}
+ 	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
+ #endif
++	count_memcg_folio_events(folio, PSWPOUT, folio_nr_pages(folio));
+ 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
+ }
  
- 	kfree(comp_opts);
--	return (__force void *) percpu;
-+	return (void *)(__force unsigned long) percpu;
+@@ -505,6 +506,7 @@ static void sio_read_complete(struct kio
+ 		for (p = 0; p < sio->pages; p++) {
+ 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
  
- out:
- 	for_each_possible_cpu(cpu) {
-@@ -61,7 +61,7 @@ out:
- static void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
- {
- 	struct squashfs_stream __percpu *percpu =
--			(struct squashfs_stream __percpu *) msblk->stream;
-+			(void __percpu *)(unsigned long) msblk->stream;
- 	struct squashfs_stream *stream;
- 	int cpu;
- 
-@@ -79,7 +79,7 @@ static int squashfs_decompress(struct sq
- {
- 	struct squashfs_stream *stream;
- 	struct squashfs_stream __percpu *percpu =
--			(struct squashfs_stream __percpu *) msblk->stream;
-+			(void __percpu *)(unsigned long) msblk->stream;
- 	int res;
- 
- 	local_lock(&percpu->lock);
++			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 		}
+@@ -588,6 +590,7 @@ static void swap_read_folio_bdev_sync(st
+ 	 * attempt to access it in the page fault retry time check.
+ 	 */
+ 	get_task_struct(current);
++	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_event(PSWPIN);
+ 	submit_bio_wait(&bio);
+ 	__end_swap_bio_read(&bio);
+@@ -603,6 +606,7 @@ static void swap_read_folio_bdev_async(s
+ 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio->bi_end_io = end_swap_bio_read;
+ 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
++	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_event(PSWPIN);
+ 	submit_bio(bio);
+ }
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from linuszeng@tencent.com are
 
-mm-z3fold-add-__percpu-annotation-to-unbuddied-pointer-in-struct-z3fold_pool.patch
-errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
-mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
-kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
-lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
-squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
+mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
 
