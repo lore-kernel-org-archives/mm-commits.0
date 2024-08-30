@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8363D153BF9
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 21:45:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D53652AE84
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:10:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725054349; cv=none; b=HAntK2BpyUqAo1s1UYyljLeTDIDB5ZceDVC1wKU4110aOExULkVuaYk7wTzeaAZGRBKXNwekBNXZlevLEdrf2TjQyu2IXFeudyXWII2UJVYhovqnhTaXYbpPLHh4LcZL/vWk2wDtN+3oHMBLv7S3i03MHJaGIRY8x3P5VY4h5c4=
+	t=1725055852; cv=none; b=IBm9tbhcWRS8SDoPN+eDRHxXFgy81AMI6Cw5d44Hf2P6HKxng8FhekHM5X92zLKqX2Wpivt4PoqN3CUAHLwohXYKrQKtZMfC8fi4WDl+39JerGEWdxZv6oru8MQrQ3pWCDJZQlELoaas1zatmjm9vSf62yryKEj+gtDATPBGmoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725054349; c=relaxed/simple;
-	bh=tT9SntABoUORGdrFntLQeYZdhuZnTLS8L3T1BnaWb/I=;
-	h=Date:To:From:Subject:Message-Id; b=KiPYb9Pgpa/inE/WpDUHT2SQArRB2F/uQY1IElw/vz8YrR02TYS5nVGB8Qu0X8/DdZLI/FQcv06NtbO9RgAv/FS9KOFKALlZjaL39g8+bizx44JHyxr8F+FcxA5+ik4EbFK7lHK94LUHmMCE4eTh2BUfxXkZTK4LnBLsYmWK7lw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aAQ/0RyK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725055852; c=relaxed/simple;
+	bh=u8+ZG3zGtamyVNaJLU55UAbNU9iXsQlMF1rH0PPNmKo=;
+	h=Date:To:From:Subject:Message-Id; b=BymADlFYd30IzhvuFcy32gZpv/5cchWxHYZKlh58W8eSV3MmO5kZT/tLw62NlzgdKFVdsJas+P7WxphjjqrFCE/DHTTjxIClQHndFoRV2gw5sumh0NGLYCLzM+Ps/YJ0i6UT3+je2lrPRAhsLx5FlUddPgimg7Jjxq46box1bp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Isu7WlY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aAQ/0RyK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE377C4CEC2;
-	Fri, 30 Aug 2024 21:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Isu7WlY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69895C4CEC2;
+	Fri, 30 Aug 2024 22:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725054348;
-	bh=tT9SntABoUORGdrFntLQeYZdhuZnTLS8L3T1BnaWb/I=;
+	s=korg; t=1725055852;
+	bh=u8+ZG3zGtamyVNaJLU55UAbNU9iXsQlMF1rH0PPNmKo=;
 	h=Date:To:From:Subject:From;
-	b=aAQ/0RyK4s1AzPnyxTCh1Hm7eUCX7RPAJXZAPqHXHDoUlgJMysKnrpugw07G/9dD2
-	 KP0HgDdyYFKVv/ZtPMHdKrIpkGSXSPth4L/3mM1VI4ec7GiBbAaupxjSjgFJZ2cwa1
-	 wDOvK83tlqIALpSfLmb6L4DjM5G43tI3N7aM4PtE=
-Date: Fri, 30 Aug 2024 14:45:48 -0700
-To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,xieyongji@bytedance.com,vbabka@suse.cz,urezki@gmail.com,torvalds@linux-foundation.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mst@redhat.com,mhocko@suse.com,maxime.coquelin@redhat.com,lorenzo.stoakes@oracle.com,laoar.shao@gmail.com,kees@kernel.org,jasowang@redhat.com,iamjoonsoo.kim@lge.com,hch@lst.de,hch@infradead.org,hailong.liu@oppo.com,eperezma@redhat.com,david@redhat.com,dave@stgolabs.net,cl@linux.com,42.hyeyoo@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=1Isu7WlYJBOpsTD/zIE/571UWbjE0HDR969EhYjTn+VoRl/+QLcdCljS+Ai1uchfd
+	 RPfgHBsdYZCR/h+ZnsvPhg+BstExriF/jRTbuJIk5PlJJZxAE29fgebggyAtS0SuN3
+	 zu7OaAHkFhQmcLISx5mlHkX+Z3yt5870vDl37cjU=
+Date: Fri, 30 Aug 2024 15:10:51 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch added to mm-unstable branch
-Message-Id: <20240830214548.CE377C4CEC2@smtp.kernel.org>
+Subject: + mm-vma-correctly-position-vma_iterator-in-__split_vma.patch added to mm-unstable branch
+Message-Id: <20240830221052.69895C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: warn about illegal __GFP_NOFAIL usage in a more appropriate location and manner
+     Subject: mm/vma: correctly position vma_iterator in __split_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+     mm-vma-correctly-position-vma_iterator-in-__split_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-correctly-position-vma_iterator-in-__split_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,159 +58,119 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: warn about illegal __GFP_NOFAIL usage in a more appropriate location and manner
-Date: Sat, 31 Aug 2024 08:28:23 +1200
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/vma: correctly position vma_iterator in __split_vma()
+Date: Fri, 30 Aug 2024 00:00:41 -0400
 
-Three points for this change:
+Patch series "Avoid MAP_FIXED gap exposure", v8.
 
-1. We should consolidate all warnings in one place. Currently, the
-   order > 1 warning is in the hotpath, while others are in less
-   likely scenarios. Moving all warnings to the slowpath will reduce
-   the overhead for order > 1 and increase the visibility of other
-   warnings.
+It is now possible to walk the vma tree using the rcu read locks and is
+beneficial to do so to reduce lock contention.  Doing so while a MAP_FIXED
+mapping is executing means that a reader may see a gap in the vma tree
+that should never logically exist - and does not when using the mmap lock
+in read mode.  The temporal gap exists because mmap_region() calls
+munmap() prior to installing the new mapping.
 
-2. We currently have two warnings for order: one for order > 1 in
-   the hotpath and another for order > costly_order in the laziest
-   path. I suggest standardizing on order > 1 since it's been in
-   use for a long time.
+This patch set stops rcu readers from seeing the temporal gap by splitting
+up the munmap() function into two parts.  The first part prepares the vma
+tree for modifications by doing the necessary splits and tracks the vmas
+marked for removal in a side tree.  The second part completes the
+munmapping of the vmas after the vma tree has been overwritten (either by
+a MAP_FIXED replacement vma or by a NULL in the munmap() case).
 
-3. We don't need to check for __GFP_NOWARN in this case. __GFP_NOWARN
-   is meant to suppress allocation failure reports, but here we're
-   dealing with bug detection, not allocation failures. So replace
-   WARN_ON_ONCE_GFP by WARN_ON_ONCE.
+Please note that rcu walkers will still be able to see a temporary state
+of split vmas that may be in the process of being removed, but the
+temporal gap will not be exposed.  vma_start_write() are called on both
+parts of the split vma, so this state is detectable.
 
-Link: https://lkml.kernel.org/r/20240830202823.21478-4-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Eugenio Pérez" <eperezma@redhat.com>
-Cc: Hailong.Liu <hailong.liu@oppo.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+If existing vmas have a vm_ops->close(), then they will be called prior to
+mapping the new vmas (and ptes are cleared out).  Without calling
+->close(), hugetlbfs tests fail (hugemmap06 specifically) due to resources
+still being marked as 'busy'.  Unfortunately, calling the corresponding
+->open() may not restore the state of the vmas, so it is safer to keep the
+existing failure scenario where a gap is inserted and never replaced.  The
+failure scenario is in its own patch (0015) for traceability.
+
+
+This patch (of 21):
+
+The vma iterator may be left pointing to the newly created vma.  This
+happens when inserting the new vma at the end of the old vma (!new_below).
+
+The incorrect position in the vma iterator is not exposed currently since
+the vma iterator is repositioned in the munmap path and is not reused in
+any of the other paths.
+
+This has limited impact in the current code, but is required for future
+changes.
+
+Link: https://lkml.kernel.org/r/20240830040101.822209-2-Liam.Howlett@oracle.com
+Fixes: b2b3b886738f ("mm: don't use __vma_adjust() in __split_vma()")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Bert Karwatzki <spasswolf@web.de>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Jiri Olsa <olsajiri@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Xie Yongji <xieyongji@bytedance.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Paul Moore <paul@paul-moore.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   50 +++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ mm/vma.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner
-+++ a/mm/page_alloc.c
-@@ -3039,12 +3039,6 @@ struct page *rmqueue(struct zone *prefer
- {
- 	struct page *page;
- 
--	/*
--	 * We most definitely don't want callers attempting to
--	 * allocate greater than order-1 page units with __GFP_NOFAIL.
--	 */
--	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
--
- 	if (likely(pcp_allowed_order(order))) {
- 		page = rmqueue_pcplist(preferred_zone, zone, order,
- 				       migratetype, alloc_flags);
-@@ -4182,6 +4176,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- {
- 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
- 	bool can_compact = gfp_compaction_allowed(gfp_mask);
-+	bool nofail = gfp_mask & __GFP_NOFAIL;
- 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
- 	struct page *page = NULL;
- 	unsigned int alloc_flags;
-@@ -4194,6 +4189,25 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned int zonelist_iter_cookie;
- 	int reserve_flags;
- 
-+	if (unlikely(nofail)) {
-+		/*
-+		 * We most definitely don't want callers attempting to
-+		 * allocate greater than order-1 page units with __GFP_NOFAIL.
-+		 */
-+		WARN_ON_ONCE(order > 1);
-+		/*
-+		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
-+		 * otherwise, we may result in lockup.
-+		 */
-+		WARN_ON_ONCE(!can_direct_reclaim);
-+		/*
-+		 * PF_MEMALLOC request from this context is rather bizarre
-+		 * because we cannot reclaim anything and only can loop waiting
-+		 * for somebody to do a work for us.
-+		 */
-+		WARN_ON_ONCE(current->flags & PF_MEMALLOC);
-+	}
+--- a/mm/vma.c~mm-vma-correctly-position-vma_iterator-in-__split_vma
++++ a/mm/vma.c
+@@ -177,7 +177,7 @@ void unmap_region(struct mm_struct *mm,
+ /*
+  * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
+  * has already been checked or doesn't make sense to fail.
+- * VMA Iterator will point to the end VMA.
++ * VMA Iterator will point to the original VMA.
+  */
+ static int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		       unsigned long addr, int new_below)
+@@ -246,6 +246,9 @@ static int __split_vma(struct vma_iterat
+ 	/* Success. */
+ 	if (new_below)
+ 		vma_next(vmi);
++	else
++		vma_prev(vmi);
 +
- restart:
- 	compaction_retries = 0;
- 	no_progress_loops = 0;
-@@ -4411,30 +4425,16 @@ nopage:
- 	 * Make sure that __GFP_NOFAIL request doesn't leak out and make sure
- 	 * we always retry
- 	 */
--	if (gfp_mask & __GFP_NOFAIL) {
-+	if (unlikely(nofail)) {
- 		/*
--		 * All existing users of the __GFP_NOFAIL are blockable, so warn
--		 * of any new users that actually require GFP_NOWAIT
-+		 * Lacking direct_reclaim we can't do anything to reclaim memory,
-+		 * we disregard these unreasonable nofail requests and still
-+		 * return NULL
- 		 */
--		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
-+		if (!can_direct_reclaim)
- 			goto fail;
+ 	return 0;
  
- 		/*
--		 * PF_MEMALLOC request from this context is rather bizarre
--		 * because we cannot reclaim anything and only can loop waiting
--		 * for somebody to do a work for us
--		 */
--		WARN_ON_ONCE_GFP(current->flags & PF_MEMALLOC, gfp_mask);
--
--		/*
--		 * non failing costly orders are a hard requirement which we
--		 * are not prepared for much so let's warn about these users
--		 * so that we can identify them and convert them to something
--		 * else.
--		 */
--		WARN_ON_ONCE_GFP(costly_order, gfp_mask);
--
--		/*
- 		 * Help non-failing allocations by giving some access to memory
- 		 * reserves normally used for high priority non-blocking
- 		 * allocations but do not use ALLOC_NO_WATERMARKS because this
+ out_free_mpol:
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-extend-usage-parameter-so-that-cluster_swap_free_nr-can-be-reused.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
-mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios-fix.patch
-mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
-mm-override-mthp-enabled-defaults-at-kernel-cmdline-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size.patch
-mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
-mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+maple_tree-remove-rcu_read_lock-from-mt_validate.patch
+mm-vma-correctly-position-vma_iterator-in-__split_vma.patch
+mm-vma-introduce-abort_munmap_vmas.patch
+mm-vma-introduce-vmi_complete_munmap_vmas.patch
+mm-vma-extract-the-gathering-of-vmas-from-do_vmi_align_munmap.patch
+mm-vma-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+mm-vma-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
+mm-vma-extract-validate_mm-from-vma_complete.patch
+mm-vma-inline-munmap-operation-in-mmap_region.patch
+mm-vma-expand-mmap_region-munmap-call.patch
+mm-vma-support-vma-==-null-in-init_vma_munmap.patch
+mm-mmap-reposition-vma-iterator-in-mmap_region.patch
+mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch
+mm-clean-up-unmap_region-argument-list.patch
+mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch
+mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+mm-mmap-use-phys_pfn-in-mmap_region.patch
+mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
+ipc-shm-mm-drop-do_vma_munmap.patch
+mm-move-may_expand_vm-check-in-mmap_region.patch
+mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch
+mm-vmah-optimise-vma_munmap_struct.patch
 
