@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB122AE84
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:10:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C09892AE84
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:10:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725055855; cv=none; b=H6BmhbtZV7y9CX0GTYMgx8o9L9uyfaahVgPi1Cy8uydnLsQqwQiHNXAy76BX5o9JfMN1reul34ohCRR41TBsZKz5PJ4Mm0b0H0qv42STsglBOoiNUs2/yEixgVEeVtK+JAj8t+O26fNlISVqnaoYV+ZCfzvMYoPl0TkC5x+AgiM=
+	t=1725055857; cv=none; b=V+am1IUSIKeKk1lzwlJSkWaoYlrom6lxAq46eK8tL2besKHOU902Ie9OZ/0n5yp3kcUUuvfSZxc4wIKsmdiUoW03WLtsvaZBcdHYNkYQmjmyPMdphNWqUJ0EFANXNqIr5SqhHTAFosgoDH2Nip4gzFUASzvZ+geFQYtLtwrFRAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725055855; c=relaxed/simple;
-	bh=tQZaOMewUKg2y4dSxtZEwofSj19UWwtfXQlfjpZWfyM=;
-	h=Date:To:From:Subject:Message-Id; b=Bm8nQR4XwrMNxGbPX6W3h7FgPWuxNicGOpEJW0ObFgh61SLFezPgRR4zzeivZtXvLMabR8V+4tcUmImB95Gic8N+LMQugOe2qUXPWJkfL0cyqtWAvUYX725l0Y9K6o98vAFbQm6X/V3JbW3lj9VdqlSPPkjxmcCZdJUOOupPUn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ax/71vpl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725055857; c=relaxed/simple;
+	bh=x2V+kTFFisZqAvrbz4ZxTGxSyxaVS5Nkyds1k4Fidq0=;
+	h=Date:To:From:Subject:Message-Id; b=EeDScoIObdKFajSLDsNm0zT5IBSM31r5CQywALvWg3TZsF2a8ltk5rdOy7dGIu6FKgjmhUjaVzrrbO8MUKFrNLWfCer4cV8HUxux+ZzDh4pLkGmhX50qpB6xTkyP/BnilPGDxs0+FAlRCjF0JfGPMHE8emmajp6//aUlbyQzfbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QFH2Z4mf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ax/71vpl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F237C4CEC2;
-	Fri, 30 Aug 2024 22:10:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QFH2Z4mf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B110C4CEC2;
+	Fri, 30 Aug 2024 22:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725055855;
-	bh=tQZaOMewUKg2y4dSxtZEwofSj19UWwtfXQlfjpZWfyM=;
+	s=korg; t=1725055857;
+	bh=x2V+kTFFisZqAvrbz4ZxTGxSyxaVS5Nkyds1k4Fidq0=;
 	h=Date:To:From:Subject:From;
-	b=ax/71vplwZxLjSnw34CnemYkkhzX8Xb972sLKAI09P1KeuhqT7Jx4Mq571yRgAeDO
-	 PfNJ/UJnuGG7zEEKXtRsfy05/22DCCAkzGeEGJYxWO4HrN8mWy4LOFj54Z0Y2DG0du
-	 63TueqgNPFZCQfmYM0J2FnHZ8MsZGngntpmklzTE=
-Date: Fri, 30 Aug 2024 15:10:54 -0700
+	b=QFH2Z4mfr1v/obsH6QPehH3hqYh3Gx8H6AzvH7FHm8hAUyuvAI9WuaCHgcLQsVYBh
+	 pQd4G9LSCLGgHBiNJMRVkdyMCoyyXO+i/XSsLQ20SHkSsVom+3cL7jD9cprQ4UnkQy
+	 aGdV9X3IWb6jSWnGhgvJ5IKdA0fh0MKltxOnyp/Q=
+Date: Fri, 30 Aug 2024 15:10:56 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-abort_munmap_vmas.patch added to mm-unstable branch
-Message-Id: <20240830221055.2F237C4CEC2@smtp.kernel.org>
+Subject: + mm-vma-introduce-vmi_complete_munmap_vmas.patch added to mm-unstable branch
+Message-Id: <20240830221057.3B110C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: introduce abort_munmap_vmas()
+     Subject: mm/vma: introduce vmi_complete_munmap_vmas()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-introduce-abort_munmap_vmas.patch
+     mm-vma-introduce-vmi_complete_munmap_vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-abort_munmap_vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-vmi_complete_munmap_vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/vma: introduce abort_munmap_vmas()
-Date: Fri, 30 Aug 2024 00:00:42 -0400
+Subject: mm/vma: introduce vmi_complete_munmap_vmas()
+Date: Fri, 30 Aug 2024 00:00:43 -0400
 
-Extract clean up of failed munmap() operations from do_vmi_align_munmap().
-This simplifies later patches in the series.
+Extract all necessary operations that need to be completed after the vma
+maple tree is updated from a munmap() operation.  Extracting this makes
+the later patch in the series easier to understand.
 
-It is worth noting that the mas_for_each() loop now has a different upper
-limit.  This should not change the number of vmas visited for reattaching
-to the main vma tree (mm_mt), as all vmas are reattached in both
-scenarios.
-
-Link: https://lkml.kernel.org/r/20240830040101.822209-3-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20240830040101.822209-4-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
@@ -88,26 +84,62 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ mm/vma.c |   80 ++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 55 insertions(+), 25 deletions(-)
 
---- a/mm/vma.c~mm-vma-introduce-abort_munmap_vmas
+--- a/mm/vma.c~mm-vma-introduce-vmi_complete_munmap_vmas
 +++ a/mm/vma.c
-@@ -669,6 +669,22 @@ again:
+@@ -685,6 +685,58 @@ static inline void abort_munmap_vmas(str
  }
  
  /*
-+ * abort_munmap_vmas - Undo any munmap work and free resources
++ * vmi_complete_munmap_vmas() - Finish the munmap() operation
++ * @vmi: The vma iterator
++ * @vma: The first vma to be munmapped
++ * @mm: The mm struct
++ * @start: The start address
++ * @end: The end address
++ * @unlock: Unlock the mm or not
++ * @mas_detach: them maple state of the detached vma maple tree
++ * @locked_vm: The locked_vm count in the detached vmas
 + *
-+ * Reattach any detached vmas and free up the maple tree used to track the vmas.
++ * This function updates the mm_struct, unmaps the region, frees the resources
++ * used for the munmap() and may downgrade the lock - if requested.  Everything
++ * needed to be done once the vma maple tree is updated.
 + */
-+static inline void abort_munmap_vmas(struct ma_state *mas_detach)
++static void
++vmi_complete_munmap_vmas(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		struct mm_struct *mm, unsigned long start, unsigned long end,
++		bool unlock, struct ma_state *mas_detach,
++		unsigned long locked_vm)
 +{
-+	struct vm_area_struct *vma;
++	struct vm_area_struct *prev, *next;
++	int count;
 +
++	count = mas_detach->index + 1;
++	mm->map_count -= count;
++	mm->locked_vm -= locked_vm;
++	if (unlock)
++		mmap_write_downgrade(mm);
++
++	prev = vma_iter_prev_range(vmi);
++	next = vma_next(vmi);
++	if (next)
++		vma_iter_prev_range(vmi);
++
++	/*
++	 * We can free page tables without write-locking mmap_lock because VMAs
++	 * were isolated before we downgraded mmap_lock.
++	 */
++	mas_set(mas_detach, 1);
++	unmap_region(mm, mas_detach, vma, prev, next, start, end, count,
++		     !unlock);
++	/* Statistics and freeing VMAs */
 +	mas_set(mas_detach, 0);
-+	mas_for_each(mas_detach, vma, ULONG_MAX)
-+		vma_mark_detached(vma, false);
++	remove_mt(mm, mas_detach);
++	validate_mm(mm);
++	if (unlock)
++		mmap_read_unlock(mm);
 +
 +	__mt_destroy(mas_detach->tree);
 +}
@@ -116,19 +148,49 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
   * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
   * @vmi: The vma iterator
   * @vma: The starting vm_area_struct
-@@ -834,11 +850,7 @@ clear_tree_failed:
- userfaultfd_error:
- munmap_gather_failed:
- end_split_failed:
--	mas_set(&mas_detach, 0);
--	mas_for_each(&mas_detach, next, end)
--		vma_mark_detached(next, false);
+@@ -703,7 +755,7 @@ do_vmi_align_munmap(struct vma_iterator
+ 		    struct mm_struct *mm, unsigned long start,
+ 		    unsigned long end, struct list_head *uf, bool unlock)
+ {
+-	struct vm_area_struct *prev, *next = NULL;
++	struct vm_area_struct *next = NULL;
+ 	struct maple_tree mt_detach;
+ 	int count = 0;
+ 	int error = -ENOMEM;
+@@ -818,31 +870,9 @@ do_vmi_align_munmap(struct vma_iterator
+ 		goto clear_tree_failed;
+ 
+ 	/* Point of no return */
+-	mm->locked_vm -= locked_vm;
+-	mm->map_count -= count;
+-	if (unlock)
+-		mmap_write_downgrade(mm);
 -
+-	prev = vma_iter_prev_range(vmi);
+-	next = vma_next(vmi);
+-	if (next)
+-		vma_iter_prev_range(vmi);
+-
+-	/*
+-	 * We can free page tables without write-locking mmap_lock because VMAs
+-	 * were isolated before we downgraded mmap_lock.
+-	 */
+-	mas_set(&mas_detach, 1);
+-	unmap_region(mm, &mas_detach, vma, prev, next, start, end, count,
+-		     !unlock);
+-	/* Statistics and freeing VMAs */
+-	mas_set(&mas_detach, 0);
+-	remove_mt(mm, &mas_detach);
+-	validate_mm(mm);
+-	if (unlock)
+-		mmap_read_unlock(mm);
++	vmi_complete_munmap_vmas(vmi, vma, mm, start, end, unlock, &mas_detach,
++				 locked_vm);
+ 
 -	__mt_destroy(&mt_detach);
-+	abort_munmap_vmas(&mas_detach);
- start_split_failed:
- map_count_exceeded:
- 	validate_mm(mm);
+ 	return 0;
+ 
+ modify_vma_failed:
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
