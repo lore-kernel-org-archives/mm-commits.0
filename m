@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 441BA1C1AAB
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:12:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 206471C1742
+	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 22:17:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725055931; cv=none; b=n9E7ghXaqA+D8wEsKlg3grhztExLnQIOdvjlKEHM02jbe6g446vuU5n+OB3mkcgV0xa4O8xr/PqduAcZoAiKVRp06SkRQjmbP5Zo2Ip5WMLxUX5VSkQ6mwP8TUn7twEckp+DHgwzGT2iqnyUUdZjEybNo6+yZQ3R6NY4e3CAC1o=
+	t=1725056221; cv=none; b=LbYny3lzPxeBEVGxT2Uksif/QB/S0edeW8qPdKBGIo8z6gnkM7gFsb5vaKUY0qEbW+HeKZLvBFTDLrKE39Lp1X34+GdG4qH8BjDVEv2nNCjWwhRdKRu6eZPwJTu3mENxKbgVOExsSZF9dETrSEX+WypkRM4sutKXImGz/ldzBD4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725055931; c=relaxed/simple;
-	bh=K+5rYZdT/9saRCFA/VCwPH60xDHNthjh0MzSqDnHrcQ=;
-	h=Date:To:From:Subject:Message-Id; b=cHXPCuk1q89JW3UB6WcbmVyKKG8F1VCbWqIk8b/Afmm7FZruE1wQydWl4NR8o8hSjSj1piOvcWjBCrj4mIu1pQYCiZE1pYXCsiPMPr05Y5eR+8EShK91IucyexaQNCeaVKxKtO52P8HxtqatZtxPqtSjEUFz6JhEkC9dhRz74os=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVfumyss; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725056221; c=relaxed/simple;
+	bh=DGYnUHLSYzOITrl8pHWVDwm0zo901/N/CLkoXoXQob8=;
+	h=Date:To:From:Subject:Message-Id; b=GI1vy/a4a7QQ4eKKZjd228vzSkumD43DeaLRSe+bjSrszCyVa5xwSPsRHMp+t6P2AIE+fURIqSbOn24ooB1L+RQmEVaZyndgDub+bwJD7YaieKYw/5RItkNeDjznsaS/DURbOXGwQbVg4RvkyiF2kTdH6bwR5kiZnRwlYfcsXKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mwTJxGXz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVfumyss"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A6A5C4CEC2;
-	Fri, 30 Aug 2024 22:12:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mwTJxGXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81C0CC4CEC2;
+	Fri, 30 Aug 2024 22:17:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725055931;
-	bh=K+5rYZdT/9saRCFA/VCwPH60xDHNthjh0MzSqDnHrcQ=;
+	s=korg; t=1725056220;
+	bh=DGYnUHLSYzOITrl8pHWVDwm0zo901/N/CLkoXoXQob8=;
 	h=Date:To:From:Subject:From;
-	b=qVfumyssJwWCCa+xbUh57vCn8QOswRSutb+IDy1TRNc2FJb85f1QrCjWDdBven5F+
-	 2WHPNj66pYR3oWXiEJFqNRcPgf2kOTl80dw8DCC1emjUbbjqimlaBT5+Y25HwFahI/
-	 F05BZp8hzZaLfv482jUzqn0250XJeZDFqL+Dy7JA=
-Date: Fri, 30 Aug 2024 15:12:10 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=mwTJxGXzAFl1ovDpsucQdsA1UYCJxi1VoeCL9o3wBTj4msU8EfmZuT2JuTQLcG8xX
+	 8UWT0Drg+k09rjzoZARPucM+z9jQvyy9VHx0kZQs//xkAJch2jvGzenOI9UePuMceY
+	 G4xA48NKiz7qjuhKM0jcdCs6QviNT1Tr+61chwyA=
+Date: Fri, 30 Aug 2024 15:16:59 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,pedro.falcato@gmail.com,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rework-vm_ops-close-handling-on-vma-merge.patch added to mm-unstable branch
-Message-Id: <20240830221211.1A6A5C4CEC2@smtp.kernel.org>
+Subject: + selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240830221700.81C0CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rework vm_ops->close() handling on VMA merge
+     Subject: selftests-mm-add-more-mseal-traversal-tests-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rework-vm_ops-close-handling-on-vma-merge.patch
+     selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rework-vm_ops-close-handling-on-vma-merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,504 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: rework vm_ops->close() handling on VMA merge
-Date: Fri, 30 Aug 2024 19:10:22 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-add-more-mseal-traversal-tests-fix-fix
+Date: Fri Aug 30 03:15:52 PM PDT 2024
 
-In commit 714965ca8252 ("mm/mmap: start distinguishing if vma can be
-removed in mergeability test") we relaxed the VMA merge rules for VMAs
-possessing a vm_ops->close() hook, permitting this operation in instances
-where we wouldn't delete the VMA as part of the merge operation.
+remove the correct comment, per Pedro
 
-This was later corrected in commit fc0c8f9089c2 ("mm, mmap: fix
-vma_merge() case 7 with vma_ops->close") to account for a subtle case that
-the previous commit had not taken into account.
-
-In both instances, we first rely on is_mergeable_vma() to determine
-whether we might be dealing with a VMA that might be removed, taking
-advantage of the fact that a 'previous' VMA will never be deleted, only
-VMAs that follow it.
-
-The second patch corrects the instance where a merge of the previous VMA
-into a subsequent one did not correctly check whether the subsequent VMA
-had a vm_ops->close() handler.
-
-Both changes prevent merge cases that are actually permissible (for
-instance a merge of a VMA into a following VMA with a vm_ops->close(), but
-with no previous VMA, which would result in the next VMA being extended,
-not deleted).
-
-In addition, both changes fail to consider the case where a VMA that would
-otherwise be merged with the previous and next VMA might have
-vm_ops->close(), on the assumption that for this to be the case, all three
-would have to have the same vma->vm_file to be mergeable and thus the same
-vm_ops.
-
-And in addition both changes operate at 50,000 feet, trying to guess
-whether a VMA will be deleted.
-
-As we have majorly refactored the VMA merge operation and de-duplicated
-code to the point where we know precisely where deletions will occur, this
-patch removes the aforementioned checks altogether and instead explicitly
-checks whether a VMA will be deleted.
-
-In cases where a reduced merge is still possible (where we merge both
-previous and next VMA but the next VMA has a vm_ops->close hook, meaning
-we could just merge the previous and current VMA), we do so, otherwise the
-merge is not permitted.
-
-We take advantage of our userland testing to assert that this functions
-correctly - replacing the previous limited vm_ops->close() tests with
-tests for every single case where we delete a VMA.
-
-We also update all testing for both new and modified VMAs to set
-vma->vm_ops->close() in every single instance where this would not prevent
-the merge, to assert that we never do so.
-
-Link: https://lkml.kernel.org/r/9f96b8cfeef3d14afabddac3d6144afdfbef2e22.1725040657.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Jiri Olsa <olsajiri@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c                |   57 ++++++++-----
- tools/testing/vma/vma.c |  166 +++++++++++++++++++++++++++++---------
- 2 files changed, 164 insertions(+), 59 deletions(-)
+ tools/testing/selftests/mm/mseal_test.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/vma.c~mm-rework-vm_ops-close-handling-on-vma-merge
-+++ a/mm/vma.c
-@@ -10,14 +10,6 @@
- static inline bool is_mergeable_vma(struct vma_merge_struct *vmg, bool merge_next)
- {
- 	struct vm_area_struct *vma = merge_next ? vmg->next : vmg->prev;
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-more-mseal-traversal-tests-fix-fix
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -774,6 +774,11 @@ static void test_seal_mprotect_partial_m
+ 	int ret;
+ 	int prot;
+ 
++	/*
++	 * Check if a partial mseal (that results in two vmas) works correctly.
++	 * It might mprotect the first, but it'll never touch the second (msealed) vma.
++	 */
++
+ 	setup_single_address(size, &ptr);
+ 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
+ 
+@@ -1022,11 +1027,6 @@ static void test_seal_munmap_partial_acr
+ 	int ret;
+ 	int prot;
+ 
 -	/*
--	 * If the vma has a ->close operation then the driver probably needs to
--	 * release per-vma resources, so we don't attempt to merge those if the
--	 * caller indicates the current vma may be removed as part of the merge,
--	 * which is the case if we are attempting to merge the next VMA into
--	 * this one.
+-	 * Check if a partial mseal (that results in two vmas) works correctly.
+-	 * It might unmap the first, but it'll never unmap the second (msealed) vma.
 -	 */
--	bool may_remove_vma = merge_next;
- 
- 	if (!mpol_equal(vmg->policy, vma_policy(vma)))
- 		return false;
-@@ -33,8 +25,6 @@ static inline bool is_mergeable_vma(stru
- 		return false;
- 	if (vma->vm_file != vmg->file)
- 		return false;
--	if (may_remove_vma && vma->vm_ops && vma->vm_ops->close)
--		return false;
- 	if (!is_mergeable_vm_userfaultfd_ctx(vma, vmg->uffd_ctx))
- 		return false;
- 	if (!anon_vma_name_eq(anon_vma_name(vma), vmg->anon_name))
-@@ -632,6 +622,12 @@ static int commit_merge(struct vma_merge
- 	return 0;
- }
- 
-+/* We can only remove VMAs when merging if they do not have a close hook. */
-+static bool can_merge_remove_vma(struct vm_area_struct *vma)
-+{
-+	return !vma->vm_ops || !vma->vm_ops->close;
-+}
-+
- /*
-  * vma_merge_existing_range - Attempt to merge VMAs based on a VMA having its
-  * attributes modified.
-@@ -725,12 +721,30 @@ static struct vm_area_struct *vma_merge_
- 	merge_both = merge_left && merge_right;
- 	/* If we span the entire VMA, a merge implies it will be deleted. */
- 	merge_will_delete_vma = left_side && right_side;
-+
-+	/*
-+	 * If we need to remove vma in its entirety but are unable to do so,
-+	 * we have no sensible recourse but to abort the merge.
-+	 */
-+	if (merge_will_delete_vma && !can_merge_remove_vma(vma))
-+		return NULL;
-+
- 	/*
- 	 * If we merge both VMAs, then next is also deleted. This implies
- 	 * merge_will_delete_vma also.
- 	 */
- 	merge_will_delete_next = merge_both;
- 
-+	/*
-+	 * If we cannot delete next, then we can reduce the operation to merging
-+	 * prev and vma (thereby deleting vma).
-+	 */
-+	if (merge_will_delete_next && !can_merge_remove_vma(next)) {
-+		merge_will_delete_next = false;
-+		merge_right = false;
-+		merge_both = false;
-+	}
-+
- 	/* No matter what happens, we will be adjusting vma. */
- 	vma_start_write(vma);
- 
-@@ -772,21 +786,12 @@ static struct vm_area_struct *vma_merge_
- 		vmg->start = prev->vm_start;
- 		vmg->pgoff = prev->vm_pgoff;
- 
--		if (merge_will_delete_vma) {
--			/*
--			 * can_vma_merge_after() assumed we would not be
--			 * removing vma, so it skipped the check for
--			 * vm_ops->close, but we are removing vma.
--			 */
--			if (vma->vm_ops && vma->vm_ops->close)
--				err = -EINVAL;
--		} else {
-+		if (!merge_will_delete_vma) {
- 			adjust = vma;
- 			adj_start = vmg->end - vma->vm_start;
- 		}
- 
--		if (!err)
--			err = dup_anon_vma(prev, vma, &anon_dup);
-+		err = dup_anon_vma(prev, vma, &anon_dup);
- 	} else { /* merge_right */
- 		/*
- 		 *     |<----->| OR
-@@ -940,6 +945,14 @@ struct vm_area_struct *vma_merge_new_ran
- 		vmg->vma = prev;
- 		vmg->pgoff = prev->vm_pgoff;
- 
-+		/*
-+		 * If this merge would result in removal of the next VMA but we
-+		 * are not permitted to do so, reduce the operation to merging
-+		 * prev and vma.
-+		 */
-+		if (can_merge_right && !can_merge_remove_vma(next))
-+			vmg->end = end;
-+
- 		vma_prev(vmg->vmi); /* Equivalent to going to the previous range */
- 	}
- 
-@@ -994,6 +1007,8 @@ int vma_expand(struct vma_merge_struct *
- 		int ret;
- 
- 		remove_next = true;
-+		/* This should already have been checked by this point. */
-+		VM_WARN_ON(!can_merge_remove_vma(next));
- 		vma_start_write(next);
- 		ret = dup_anon_vma(vma, next, &anon_dup);
- 		if (ret)
---- a/tools/testing/vma/vma.c~mm-rework-vm_ops-close-handling-on-vma-merge
-+++ a/tools/testing/vma/vma.c
-@@ -387,6 +387,9 @@ static bool test_merge_new(void)
- 	struct anon_vma_chain dummy_anon_vma_chain_d = {
- 		.anon_vma = &dummy_anon_vma,
- 	};
-+	const struct vm_operations_struct vm_ops = {
-+		.close = dummy_close,
-+	};
- 	int count;
- 	struct vm_area_struct *vma, *vma_a, *vma_b, *vma_c, *vma_d;
- 	bool merged;
-@@ -430,6 +433,7 @@ static bool test_merge_new(void)
- 	 * 0123456789abc
- 	 * AA*B   DD  CC
- 	 */
-+	vma_a->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma_b->anon_vma = &dummy_anon_vma;
- 	vma = try_merge_new_vma(&mm, &vmg, 0x2000, 0x3000, 2, flags, &merged);
- 	ASSERT_EQ(vma, vma_a);
-@@ -466,6 +470,7 @@ static bool test_merge_new(void)
- 	 * AAAAA *DD  CC
- 	 */
- 	vma_d->anon_vma = &dummy_anon_vma;
-+	vma_d->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = try_merge_new_vma(&mm, &vmg, 0x6000, 0x7000, 6, flags, &merged);
- 	ASSERT_EQ(vma, vma_d);
- 	/* Prepend. */
-@@ -483,6 +488,7 @@ static bool test_merge_new(void)
- 	 * 0123456789abc
- 	 * AAAAA*DDD  CC
- 	 */
-+	vma_d->vm_ops = NULL; /* This would otherwise degrade the merge. */
- 	vma = try_merge_new_vma(&mm, &vmg, 0x5000, 0x6000, 5, flags, &merged);
- 	ASSERT_EQ(vma, vma_a);
- 	/* Merge with A, delete D. */
-@@ -640,13 +646,11 @@ static bool test_vma_merge_with_close(vo
- 	const struct vm_operations_struct vm_ops = {
- 		.close = dummy_close,
- 	};
--	struct vm_area_struct *vma_next =
--		alloc_and_link_vma(&mm, 0x2000, 0x3000, 2, flags);
--	struct vm_area_struct *vma;
-+	struct vm_area_struct *vma_prev, *vma_next, *vma;
- 
- 	/*
--	 * When we merge VMAs we sometimes have to delete others as part of the
--	 * operation.
-+	 * When merging VMAs we are not permitted to remove any VMA that has a
-+	 * vm_ops->close() hook.
- 	 *
- 	 * Considering the two possible adjacent VMAs to which a VMA can be
- 	 * merged:
-@@ -697,28 +701,52 @@ static bool test_vma_merge_with_close(vo
- 	 * would be set too, and thus scenario A would pick this up.
- 	 */
- 
--	ASSERT_NE(vma_next, NULL);
 -
- 	/*
--	 * SCENARIO A
-+	 * The only case of a new VMA merge that results in a VMA being deleted
-+	 * is one where both the previous and next VMAs are merged - in this
-+	 * instance the next VMA is deleted, and the previous VMA is extended.
- 	 *
--	 * 0123
--	 *  *N
-+	 * If we are unable to do so, we reduce the operation to simply
-+	 * extending the prev VMA and not merging next.
-+	 *
-+	 * 0123456789
-+	 * PPP**NNNN
-+	 *             ->
-+	 * 0123456789
-+	 * PPPPPPNNN
- 	 */
+ 	setup_single_address(size, &ptr);
+ 	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
  
--	/* Make the next VMA have a close() callback. */
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x9000, 5, flags);
- 	vma_next->vm_ops = &vm_ops;
- 
--	/* Our proposed VMA has characteristics that would otherwise be merged. */
--	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	ASSERT_EQ(merge_new(&vmg), vma_prev);
-+	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x5000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
- 
--	/* The next VMA having a close() operator should cause the merge to fail.*/
--	ASSERT_EQ(merge_new(&vmg), NULL);
--	ASSERT_EQ(vmg.state, VMA_MERGE_NOMERGE);
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * When modifying an existing VMA there are further cases where we
-+	 * delete VMAs.
-+	 *
-+	 *    <>
-+	 * 0123456789
-+	 * PPPVV
-+	 *
-+	 * In this instance, if vma has a close hook, the merge simply cannot
-+	 * proceed.
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma->vm_ops = &vm_ops;
- 
--	/* Now create the VMA so we can merge via modified flags */
--	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
--	vma = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, flags);
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
- 	vmg.vma = vma;
- 
- 	/*
-@@ -728,38 +756,90 @@ static bool test_vma_merge_with_close(vo
- 	ASSERT_EQ(merge_existing(&vmg), NULL);
- 	ASSERT_EQ(vmg.state, VMA_MERGE_NOMERGE);
- 
--	/* SCENARIO B
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * This case is mirrored if merging with next.
- 	 *
--	 * 0123
--	 * P*
-+	 *    <>
-+	 * 0123456789
-+	 *    VVNNNN
- 	 *
--	 * In order for this scenario to trigger, the VMA currently being
--	 * modified must also have a .close().
-+	 * In this instance, if vma has a close hook, the merge simply cannot
-+	 * proceed.
- 	 */
- 
--	/* Reset VMG state. */
--	vmg_set_range(&vmg, 0x1000, 0x2000, 1, flags);
--	/*
--	 * Make next unmergeable, and don't let the scenario A check pick this
--	 * up, we want to reproduce scenario B only.
--	 */
--	vma_next->vm_ops = NULL;
--	vma_next->__vm_flags &= ~VM_MAYWRITE;
--	/* Allocate prev. */
--	vmg.prev = alloc_and_link_vma(&mm, 0, 0x1000, 0, flags);
--	/* Assign a vm_ops->close() function to VMA explicitly. */
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x9000, 5, flags);
- 	vma->vm_ops = &vm_ops;
-+
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
- 	vmg.vma = vma;
--	/* Make sure merge does not occur. */
- 	ASSERT_EQ(merge_existing(&vmg), NULL);
- 	/*
- 	 * Initially this is misapprehended as an out of memory report, as the
- 	 * close() check is handled in the same way as anon_vma duplication
- 	 * failures, however a subsequent patch resolves this.
- 	 */
--	ASSERT_EQ(vmg.state, VMA_MERGE_ERROR_NOMEM);
-+	ASSERT_EQ(vmg.state, VMA_MERGE_NOMERGE);
-+
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
-+
-+	/*
-+	 * Finally, we consider two variants of the case where we modify a VMA
-+	 * to merge with both the previous and next VMAs.
-+	 *
-+	 * The first variant is where vma has a close hook. In this instance, no
-+	 * merge can proceed.
-+	 *
-+	 *    <>
-+	 * 0123456789
-+	 * PPPVVNNNN
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x9000, 5, flags);
-+	vma->vm_ops = &vm_ops;
-+
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), NULL);
-+	ASSERT_EQ(vmg.state, VMA_MERGE_NOMERGE);
-+
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 3);
-+
-+	/*
-+	 * The second variant is where next has a close hook. In this instance,
-+	 * we reduce the operation to a merge between prev and vma.
-+	 *
-+	 *    <>
-+	 * 0123456789
-+	 * PPPVVNNNN
-+	 *            ->
-+	 * 0123456789
-+	 * PPPPPNNNN
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x5000, 3, flags);
-+	vma_next = alloc_and_link_vma(&mm, 0x5000, 0x9000, 5, flags);
-+	vma_next->vm_ops = &vm_ops;
-+
-+	vmg_set_range(&vmg, 0x3000, 0x5000, 3, flags);
-+	vmg.prev = vma_prev;
-+	vmg.vma = vma;
-+
-+	ASSERT_EQ(merge_existing(&vmg), vma_prev);
-+	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
-+	ASSERT_EQ(vma_prev->vm_start, 0);
-+	ASSERT_EQ(vma_prev->vm_end, 0x5000);
-+	ASSERT_EQ(vma_prev->vm_pgoff, 0);
-+
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
- 
--	cleanup_mm(&mm, &vmi);
- 	return true;
- }
- 
-@@ -828,6 +908,9 @@ static bool test_merge_existing(void)
- 		.mm = &mm,
- 		.vmi = &vmi,
- 	};
-+	const struct vm_operations_struct vm_ops = {
-+		.close = dummy_close,
-+	};
- 
- 	/*
- 	 * Merge right case - partial span.
-@@ -840,7 +923,9 @@ static bool test_merge_existing(void)
- 	 *   VNNNNNN
- 	 */
- 	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, flags);
-+	vma->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
-+	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
- 	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
- 	vmg.vma = vma;
- 	vmg.prev = vma;
-@@ -873,6 +958,7 @@ static bool test_merge_existing(void)
- 	 */
- 	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, flags);
-+	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
- 	vmg_set_range(&vmg, 0x2000, 0x6000, 2, flags);
- 	vmg.vma = vma;
- 	vma->anon_vma = &dummy_anon_vma;
-@@ -899,7 +985,9 @@ static bool test_merge_existing(void)
- 	 * PPPPPPV
- 	 */
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
-+	vma->vm_ops = &vm_ops; /* This should have no impact. */
- 	vmg_set_range(&vmg, 0x3000, 0x6000, 3, flags);
- 	vmg.prev = vma_prev;
- 	vmg.vma = vma;
-@@ -932,6 +1020,7 @@ static bool test_merge_existing(void)
- 	 * PPPPPPP
- 	 */
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
- 	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
- 	vmg.prev = vma_prev;
-@@ -960,6 +1049,7 @@ static bool test_merge_existing(void)
- 	 * PPPPPPPPPP
- 	 */
- 	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, flags);
-+	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
- 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, flags);
- 	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, flags);
- 	vmg_set_range(&vmg, 0x3000, 0x7000, 3, flags);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
-userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
-mm-move-vma_modify-and-helpers-to-internal-header.patch
-mm-move-vma_shrink-vma_expand-to-internal-header.patch
-mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
-maintainers-add-entry-for-new-vma-files.patch
-tools-separate-out-shared-radix-tree-components.patch
-tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
-tools-improve-vma-test-makefile.patch
-tools-add-vma-merge-tests.patch
-mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
-mm-remove-duplicated-open-coded-vma-policy-check.patch
-mm-abstract-vma_expand-to-use-vma_merge_struct.patch
-mm-avoid-using-vma_merge-for-new-vmas.patch
-mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
-mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
-mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
-mm-rework-vm_ops-close-handling-on-vma-merge.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
+mm-contig_alloc-support-__gfp_comp-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
+mm-remove-pageactive-fix.patch
+selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
