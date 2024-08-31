@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F285B3FC2
-	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 01:02:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D36F134A8
+	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 01:08:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725066174; cv=none; b=ao2szCNLkFNFBOrp4l4GwZ69m1UX0XrnVbJ9xlzAnw3RiCvG0KcM0TPNWklyRupcw0JtMa2vjs3Z5YWWYHdGL/Idn8jyeR8jVIZ7T+rFL6NsFlIz1VF3LF6CLi8/pifJNb1Ou5pad60n6kVuGrvkXdVKHb3n0j4oKs2FJ5z4Auk=
+	t=1725066524; cv=none; b=ZsIOsjeGLuLOj4WwUtR7JQySrO6b6WBnCLLwzNyj633XzTHiqwwXSxD1mFxvNku058jd/0Kp6uN/EOiHDoBNd5t1iD5URBLJThMvsiFTjrO6FGRKDGRVmAyMQ/svGNXROQUEykKmip5atRkXIHgOf0sbXlMzbOLbu9ulWdF7OLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725066174; c=relaxed/simple;
-	bh=DhIVRI00Qv/ijA4oQnyRIyyxdZxjyZqdR7obUW0BKxI=;
-	h=Date:To:From:Subject:Message-Id; b=A/WNskqRr08Tr480KGeo13jpRjlcdeAWqj0k3FTP3DJolmAtI8FtXwxuxOmBtbcw/k2jujDc9+U3vVWh67nBLq87JQtWGWgGKKFOGud65nHTNZi2YPmklBgg/obdcnldwXagLy0aVuZkz9KVPtsLHiou+qvILcy5cOL+mTJSiwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cpvuGFvi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725066524; c=relaxed/simple;
+	bh=1r3RHAwqwchrZFNBtoO6MDxnrebdEUQhZsRfNAihKds=;
+	h=Date:To:From:Subject:Message-Id; b=Wu03ND6OtVogyRafcTrX8zNI0Vcdvf6GTaLyTcuzcvFz7bQod8cZ7KpyiQN4+dpbPGCslXgSeSWPFAxzO4K+eAFcHk5yArclP/WXlZYoHVldSag207xybiG+DJ84XeIdQ+hbkNQMWR3Q1+2/B6zjji6qFhUs2vNYgWWEz0Q6Qzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k9bwMi/8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cpvuGFvi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581A3C4CEC5;
-	Sat, 31 Aug 2024 01:02:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k9bwMi/8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E01FC4CEC2;
+	Sat, 31 Aug 2024 01:08:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725066173;
-	bh=DhIVRI00Qv/ijA4oQnyRIyyxdZxjyZqdR7obUW0BKxI=;
+	s=korg; t=1725066523;
+	bh=1r3RHAwqwchrZFNBtoO6MDxnrebdEUQhZsRfNAihKds=;
 	h=Date:To:From:Subject:From;
-	b=cpvuGFviQ1bjRgfxTQbDAl4eWIAgIC5q5WxqQ1Fa44quBiUutSaYrea/b+vJ0dVN7
-	 yg4FzWL5Q14IJr+cHLR/s7EpulrI+DotZxmLB0kz2BQsNM3XDTkyvkXNhh6ii+2mDT
-	 tnIqHSWLuTYJA8WPSyhDaUd4wPcNteh0irn7cUaw=
-Date: Fri, 30 Aug 2024 18:02:52 -0700
-To: mm-commits@vger.kernel.org,zhangjiao2@cmss.chinamobile.com,akpm@linux-foundation.org
+	b=k9bwMi/8ShX9Fq+g+Rfy2UXhD3DogFhPToFDgaX2RMBtmmfb9UHH6lBNQxgrX7CCh
+	 LiYetZ6k2WloahJz6YVR27Pl5LpoYVQ/XEORjncx2bMKlDpamntJEtR0irT7MgIqCz
+	 2a38xKK3diD3ZsSU3NYPavQiLWNLLe1Z7VNl4mK4=
+Date: Fri, 30 Aug 2024 18:08:42 -0700
+To: mm-commits@vger.kernel.org,zeming@nfschina.com,rdunlap@infradead.org,kees@kernel.org,brauner@kernel.org,adobriyan@gmail.com,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch added to mm-nonmm-unstable branch
-Message-Id: <20240831010253.581A3C4CEC5@smtp.kernel.org>
+Subject: + user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20240831010843.6E01FC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm: rm thp_swap_allocator_test when make clean
+     Subject: user_namespace: use kmemdup_array() instead of kmemdup() for multiple allocation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
+     user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,34 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhangjiao <zhangjiao2@cmss.chinamobile.com>
-Subject: tools/mm: rm thp_swap_allocator_test when make clean
-Date: Thu, 29 Aug 2024 12:20:08 +0800
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: user_namespace: use kmemdup_array() instead of kmemdup() for multiple allocation
+Date: Wed, 28 Aug 2024 15:23:40 +0800
 
-rm thp_swap_allocator_test when make clean
+Let the kmemdup_array() take care about multiplication and possible
+overflows.
 
-Link: https://lkml.kernel.org/r/20240829042008.6937-1-zhangjiao2@cmss.chinamobile.com
-Signed-off-by: zhangjiao <zhangjiao2@cmss.chinamobile.com>
+Link: https://lkml.kernel.org/r/20240828072340.1249310-1-ruanjinjie@huawei.com
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Reviewed-by: Kees Cook <kees@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Li zeming <zeming@nfschina.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/user_namespace.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/tools/mm/Makefile~tools-mm-rm-thp_swap_allocator_test-when-make-clean
-+++ a/tools/mm/Makefile
-@@ -23,7 +23,7 @@ $(LIBS):
- 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+--- a/kernel/user_namespace.c~user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation
++++ a/kernel/user_namespace.c
+@@ -853,9 +853,8 @@ static int sort_idmaps(struct uid_gid_ma
+ 	     cmp_extents_forward, NULL);
  
- clean:
--	$(RM) page-types slabinfo page_owner_sort
-+	$(RM) page-types slabinfo page_owner_sort thp_swap_allocator_test
- 	make -C $(LIB_DIR) clean
+ 	/* Only copy the memory from forward we actually need. */
+-	map->reverse = kmemdup(map->forward,
+-			       map->nr_extents * sizeof(struct uid_gid_extent),
+-			       GFP_KERNEL);
++	map->reverse = kmemdup_array(map->forward, map->nr_extents,
++				     sizeof(struct uid_gid_extent), GFP_KERNEL);
+ 	if (!map->reverse)
+ 		return -ENOMEM;
  
- sbindir ?= /usr/sbin
 _
 
-Patches currently in -mm which might be from zhangjiao2@cmss.chinamobile.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
-tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
+crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
+user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation.patch
 
