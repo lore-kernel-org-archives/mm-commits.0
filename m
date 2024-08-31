@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 342ED1D12ED
-	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:26:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B643C3C
+	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:26:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725064009; cv=none; b=ZTeDL4A20oblW3SSZRVW2ygqMQNivOsXXbk62SpvJIXy1LEc2cV7R6d7FKxacxh4HrNG4CTXaOv5sP3LriGCrHMmcb1gnE9RtxFl9x0fLdRzdYA+MTKISIPVWQ+zxMPYnU1pcSnXvi8mOZMRZbkpf0SCPEs3Q4HZZpVd9uOKBwQ=
+	t=1725064011; cv=none; b=SLN7puxqpf0wSQp/JCU7ElKroGBwsBLMEdu6apYXWpWcoj8qrJqZqFIHCu+20rKFPMkaXd+m4L2iH+0eHc1oBpXGPUjXGIxpF4u/Mvr1aOKHf/ZjTv4GFkOS08Eyzzrzf3WIUUcDIX971Q9S57yXwoDM+BaE6AsUJCz3y807xKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725064009; c=relaxed/simple;
-	bh=sBNLAeH2lzKFDHRYIH5usNVvBTEXmhWt9yG2yc3PRMQ=;
-	h=Date:To:From:Subject:Message-Id; b=l+cQzwVeFoEjGuCKVwhylavcTR9hCHC7W0pL8fJW14yU4DZeFxwlMNNADo/evbOUGPzfXv+BFdjCCD7QlS6yj1dwp7TFIaoQY1og9+4vWDcPjmnjpGqffkKv6D/E3a/zb1eVEQYIB9pJBgSH1ry6XPDHDyv0lOjSFP42gtDDieo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfUW/0um; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725064011; c=relaxed/simple;
+	bh=nHZuiglF72h+/sfpsZTZ38kuht7JEVpZUL3Owrv+PE8=;
+	h=Date:To:From:Subject:Message-Id; b=rV5an+0IHxgz80fqQ0aB4ik7CFb6DSlpmeZmpo1bD9hQw0h0CEfjsXPuj9h2YQgsNit5lk0awSe5/eA0RYx2HweE62sSG0pq4/CyxMLlgcSPJkU38OYqvCOTZWfYSzRPcpTR0tXFIyou6csobM6x6UVPn/vQu21Mw5C5S/N6LIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfN5cWyy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfUW/0um"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D76DC4CEC2;
-	Sat, 31 Aug 2024 00:26:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfN5cWyy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF209C4CEC2;
+	Sat, 31 Aug 2024 00:26:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725064008;
-	bh=sBNLAeH2lzKFDHRYIH5usNVvBTEXmhWt9yG2yc3PRMQ=;
+	s=korg; t=1725064010;
+	bh=nHZuiglF72h+/sfpsZTZ38kuht7JEVpZUL3Owrv+PE8=;
 	h=Date:To:From:Subject:From;
-	b=rfUW/0umYKoc9hwbO6aFQHNSyzneleOt/lHDJbpD8FdL67MvKYw7w03fk9BNXP6cZ
-	 K82f54olJnqIqQDfU4DQYAsPPCjX4dztgmlxk5uFvaZnWj2Nnypb4fooMm6rrMt+TC
-	 CGd065kjkaK2nl9K9HodQDD7vSrvZ7fdOlvjq/oE=
-Date: Fri, 30 Aug 2024 17:26:48 -0700
+	b=dfN5cWyygFQiHJtZXWgx96R5xskBSeuPzyQi9YilUmBb5cZPD4Ti4+8ASd0mFoMse
+	 Jlocy0P2NhNi5rB6/KQwLnna9sVPsN8Mdalst3B3aSsqAjhmJf3UAaEPEK1J+riUUc
+	 8Y+ATDEkty5TXA/tvKxhIkkztAb4CMu0mSO0QA3A=
+Date: Fri, 30 Aug 2024 17:26:50 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,david@redhat.com,baolin.wang@linux.alibaba.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-get-reference-before-non-lru-movable-folio-isolation.patch added to mm-unstable branch
-Message-Id: <20240831002648.9D76DC4CEC2@smtp.kernel.org>
+Subject: + mm-migrate-add-folio_isolate_movable.patch added to mm-unstable branch
+Message-Id: <20240831002650.AF209C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: compaction: get reference before non LRU movable folio isolation
+     Subject: mm: migrate: add folio_isolate_movable()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-get-reference-before-non-lru-movable-folio-isolation.patch
+     mm-migrate-add-folio_isolate_movable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-get-reference-before-non-lru-movable-folio-isolation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-add-folio_isolate_movable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: compaction: get reference before non LRU movable folio isolation
-Date: Thu, 29 Aug 2024 22:54:52 +0800
+Subject: mm: migrate: add folio_isolate_movable()
+Date: Thu, 29 Aug 2024 22:54:53 +0800
 
-Patch series "mm: convert to folio_isolate_movable()", v2.
+Like isolate_lru_page(), make isolate_movable_page() as a wrapper around
+folio_isolate_movable(), since isolate_movable_page() always fails on a
+tail page, return immediately for a tail page in the warpper, and the
+wrapper will be removed once all callers are converted to
+folio_isolate_movable().
 
-Convert to the new folio_isolate_movable() to get rid of
-isolate_movable_page().
+Note all isolate_movable_page() users increased page reference, so replace
+redundant folio_get_nontail_page() with folio_get() and add a reference
+count check into folio_isolate_movable().
 
-
-This patch (of 5):
-
-Non-LRU movable folio isolation will fail if it can't grab a reference in
-isolate_movable_page(), so folio_get_nontail_page() could be called ahead
-to unify the handling of non-LRU movable/LRU folio isolation a bit, this
-is also prepare to convert isolate_movable_page() to take a folio.  Since
-the reference count of the non-LRU movable folio is increased, a
-folio_put() is needed whether the folio is isolated or not.
-
-Link: https://lkml.kernel.org/r/20240829145456.2591719-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240829145456.2591719-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240829145456.2591719-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -88,72 +82,121 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ include/linux/migrate.h |    4 ++
+ mm/migrate.c            |   54 +++++++++++++++++++++-----------------
+ 2 files changed, 34 insertions(+), 24 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-get-reference-before-non-lru-movable-folio-isolation
-+++ a/mm/compaction.c
-@@ -1075,41 +1075,41 @@ isolate_migratepages_block(struct compac
- 		}
+--- a/include/linux/migrate.h~mm-migrate-add-folio_isolate_movable
++++ a/include/linux/migrate.h
+@@ -70,6 +70,7 @@ int migrate_pages(struct list_head *l, n
+ 		  unsigned int *ret_succeeded);
+ struct folio *alloc_migration_target(struct folio *src, unsigned long private);
+ bool isolate_movable_page(struct page *page, isolate_mode_t mode);
++bool folio_isolate_movable(struct folio *folio, isolate_mode_t mode);
+ bool isolate_folio_to_list(struct folio *folio, struct list_head *list);
  
- 		/*
-+		 * Be careful not to clear lru flag until after we're
-+		 * sure the folio is not being freed elsewhere -- the
-+		 * folio release code relies on it.
-+		 */
-+		folio = folio_get_nontail_page(page);
-+		if (unlikely(!folio))
-+			goto isolate_fail;
+ int migrate_huge_page_move_mapping(struct address_space *mapping,
+@@ -92,6 +93,9 @@ static inline struct folio *alloc_migrat
+ 	{ return NULL; }
+ static inline bool isolate_movable_page(struct page *page, isolate_mode_t mode)
+ 	{ return false; }
++static inline bool folio_isolate_movable(struct folio *folio,
++					 isolate_mode_t mode)
++	{ return false; }
+ static inline bool isolate_folio_to_list(struct folio *folio, struct list_head *list)
+ 	{ return false; }
+ 
+--- a/mm/migrate.c~mm-migrate-add-folio_isolate_movable
++++ a/mm/migrate.c
+@@ -58,31 +58,30 @@
+ 
+ #include "internal.h"
+ 
+-bool isolate_movable_page(struct page *page, isolate_mode_t mode)
++/**
++ * folio_isolate_movable() - Try to isolate a non-lru movable folio.
++ * @folio: Folio to isolate.
++ *
++ * Must be called with an elevated refcount on the folio.
++ *
++ * Return: true if the folio was isolated, false otherwise
++ */
++bool folio_isolate_movable(struct folio *folio, isolate_mode_t mode)
+ {
+-	struct folio *folio = folio_get_nontail_page(page);
+ 	const struct movable_operations *mops;
+ 
+-	/*
+-	 * Avoid burning cycles with pages that are yet under __free_pages(),
+-	 * or just got freed under us.
+-	 *
+-	 * In case we 'win' a race for a movable page being freed under us and
+-	 * raise its refcount preventing __free_pages() from doing its job
+-	 * the put_page() at the end of this block will take care of
+-	 * release this page, thus avoiding a nasty leakage.
+-	 */
+-	if (!folio)
+-		goto out;
++	VM_BUG_ON_FOLIO(!folio_ref_count(folio), folio);
 +
-+		/*
- 		 * Check may be lockless but that's ok as we recheck later.
--		 * It's possible to migrate LRU and non-lru movable pages.
--		 * Skip any other type of page
-+		 * It's possible to migrate LRU and non-lru movable folioss.
-+		 * Skip any other type of folios.
- 		 */
--		if (!PageLRU(page)) {
-+		if (!folio_test_lru(folio)) {
- 			/*
--			 * __PageMovable can return false positive so we need
--			 * to verify it under page_lock.
-+			 * __folio_test_movable can return false positive so
-+			 * we need to verify it under page_lock.
- 			 */
--			if (unlikely(__PageMovable(page)) &&
--					!PageIsolated(page)) {
-+			if (unlikely(__folio_test_movable(folio)) &&
-+					!folio_test_isolated(folio)) {
- 				if (locked) {
- 					unlock_page_lruvec_irqrestore(locked, flags);
- 					locked = NULL;
- 				}
++	folio_get(folio);
  
--				if (isolate_movable_page(page, mode)) {
--					folio = page_folio(page);
-+				if (isolate_movable_page(&folio->page, mode)) {
-+					folio_put(folio);
- 					goto isolate_success;
- 				}
- 			}
+ 	if (unlikely(folio_test_slab(folio)))
+ 		goto out_putfolio;
+ 	/* Pairs with smp_wmb() in slab freeing, e.g. SLUB's __free_slab() */
+ 	smp_rmb();
+ 	/*
+-	 * Check movable flag before taking the page lock because
+-	 * we use non-atomic bitops on newly allocated page flags so
+-	 * unconditionally grabbing the lock ruins page's owner side.
++	 * Check movable flag before taking the folio lock because
++	 * we use non-atomic bitops on newly allocated folio flags so
++	 * unconditionally grabbing the lock ruins folio's owner side.
+ 	 */
+ 	if (unlikely(!__folio_test_movable(folio)))
+ 		goto out_putfolio;
+@@ -92,15 +91,15 @@ bool isolate_movable_page(struct page *p
+ 		goto out_putfolio;
  
--			goto isolate_fail;
-+			goto isolate_fail_put;
- 		}
+ 	/*
+-	 * As movable pages are not isolated from LRU lists, concurrent
+-	 * compaction threads can race against page migration functions
+-	 * as well as race against the releasing a page.
++	 * As movable folios are not isolated from LRU lists, concurrent
++	 * compaction threads can race against folio migration functions
++	 * as well as race against the releasing a folio.
+ 	 *
+-	 * In order to avoid having an already isolated movable page
++	 * In order to avoid having an already isolated movable folio
+ 	 * being (wrongly) re-isolated while it is under migration,
+-	 * or to avoid attempting to isolate pages being released,
+-	 * lets be sure we have the page lock
+-	 * before proceeding with the movable page isolation steps.
++	 * or to avoid attempting to isolate folios being released,
++	 * lets be sure we have the folio lock
++	 * before proceeding with the movable folio isolation steps.
+ 	 */
+ 	if (unlikely(!folio_trylock(folio)))
+ 		goto out_putfolio;
+@@ -125,10 +124,17 @@ out_no_isolated:
+ 	folio_unlock(folio);
+ out_putfolio:
+ 	folio_put(folio);
+-out:
+ 	return false;
+ }
  
- 		/*
--		 * Be careful not to clear PageLRU until after we're
--		 * sure the page is not being freed elsewhere -- the
--		 * page release code relies on it.
--		 */
--		folio = folio_get_nontail_page(page);
--		if (unlikely(!folio))
--			goto isolate_fail;
--
--		/*
- 		 * Migration will fail if an anonymous page is pinned in memory,
- 		 * so avoid taking lru_lock and isolating it unnecessarily in an
- 		 * admittedly racy check.
++bool isolate_movable_page(struct page *page, isolate_mode_t mode)
++{
++	if (PageTail(page))
++		return false;
++
++	return folio_isolate_movable((struct folio *)page, mode);
++}
++
+ static void putback_movable_folio(struct folio *folio)
+ {
+ 	const struct movable_operations *mops = folio_movable_ops(folio);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
