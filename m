@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAD9814AD38
-	for <mm-commits@vger.kernel.org>; Fri, 30 Aug 2024 23:49:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823283D76
+	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:18:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725061767; cv=none; b=rMpwTvBksY6YDn/arx7YFQZrutuMmB8mXVIL0hZwqznB+IozHI8n1jLIlN55RVrUDrjtUC97lakssDQWtvZ8AsbIO3i7QqNcJTBoFsI9hdc6ayFfhCaZAtV1nReL0wkeOFVXJeSpb2zvVT+ribK2VqVraombdtlS8VX7XGztnEo=
+	t=1725063534; cv=none; b=s1pduxf0Bz8rypH3Lk6eOYGEpBMDpBA4IUUomQP2CMTkbqlcC2XckcMFnopwzQfHW6Pnr3IyCTQZsG9MMXvyevydcqTfRNFxvxT4KKz00dZ4g2ZjER+yF5GrS//tjqv1WQCXoptIJaYioHFeDam7dap41YC7UfNgV9xMt7g7nM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725061767; c=relaxed/simple;
-	bh=6Z6n3vpk6QJru0QcyybO8hIln3nsuejmppRLfEFMbR4=;
-	h=Date:To:From:Subject:Message-Id; b=UP/mOM5IgejxHATKfp465H8ObMowwF//How7pFkjGDRR29/UlmN5F+dKtJ7tXImZNoaILpKpTtPZ74D98vEFNiJA5HDzn1hoDlGWXB4Z+SfIT0m6fMnVF9ltP73eShk954mEBsUn/WtzwtqHkjXT1v9D5Vbzuk6rnp5KKQEB1jM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Clasr3C8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725063534; c=relaxed/simple;
+	bh=tK26em3WlXvDJiteBMlyABYnqFmJGJ4KDHLJMfr/0CI=;
+	h=Date:To:From:Subject:Message-Id; b=cnzglwFx+LaMsjvFE6P703XnFxhMo8avwEiMQimFwCFriBAxd2ob3CtZrex9z5GSDSnRWAgWAMQasaFojX1ed8EX6mRvjNNhBhOiDn3GWJBzFlHQV58iMvCjK0LtSCAuL9uY8PPs/Vho1/V0d1FyzBsqWgh6InThTOgv9urXRks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dWp8U0iM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Clasr3C8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35E63C4CEC2;
-	Fri, 30 Aug 2024 23:49:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dWp8U0iM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6E85C4CEC2;
+	Sat, 31 Aug 2024 00:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725061766;
-	bh=6Z6n3vpk6QJru0QcyybO8hIln3nsuejmppRLfEFMbR4=;
+	s=korg; t=1725063534;
+	bh=tK26em3WlXvDJiteBMlyABYnqFmJGJ4KDHLJMfr/0CI=;
 	h=Date:To:From:Subject:From;
-	b=Clasr3C8IUAKJlkh+sFl4Wz8QGaU56pmSDOBWMvIs5NHmLblosM1YFgDlzCTkKZnF
-	 VezLbPIg4EOn+EBOJpKj6G54WENfmRIfeOeTXmTPdlDimpqB9XeS42Oqbp5HvZS9kK
-	 D+yG+eD+7gOSX6uGF6epZvlW30g3F58Tmqpy+xQ0=
-Date: Fri, 30 Aug 2024 16:49:25 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=dWp8U0iM5ip62cLiufYPsBbXZ0t4uvo2k5LPt6fTA0ssjDU656aaNXjUmmiqtB2AC
+	 ieDamTRdJWHyfmKxnpzuipbtryKFJVjH1+/y5PMyqmctzgnp/uQypC7llIydpnjcvU
+	 sSZ5PwPQstOLkLCDTdyJs1fqeGyxfHWw7wjcMLgw=
+Date: Fri, 30 Aug 2024 17:18:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,link@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch added to mm-unstable branch
-Message-Id: <20240830234926.35E63C4CEC2@smtp.kernel.org>
+Subject: + mm-page_alloc-simpify-page-del-and-expand.patch added to mm-unstable branch
+Message-Id: <20240831001853.E6E85C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup! mm/pagewalk: check pfnmap for folio_walk_start()
+     Subject: mm: page_alloc: simpify page del and expand
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch
+     mm-page_alloc-simpify-page-del-and-expand.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simpify-page-del-and-expand.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,103 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: fixup! mm/pagewalk: check pfnmap for folio_walk_start()
-Date: Thu, 29 Aug 2024 16:22:37 -0400
+From: Huan Yang <link@vivo.com>
+Subject: mm: page_alloc: simpify page del and expand
+Date: Mon, 26 Aug 2024 14:40:48 +0800
 
-Per David's suggestion, remove some stale comment in vm_normal_page_pmd()
-as we start to have special bit in pmd too.  Meanwhile move the
-pmd_special() check here from folio_walk_start().
+When page del from buddy and need expand, it will account free_pages in
+zone's migratetype.
 
-Link: https://lkml.kernel.org/r/20240829202237.2640288-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+The current way is to subtract the page number of the current order when
+deleting, and then add it back when expanding.
+
+This is unnecessary, as when migrating the same type, we can directly
+record the difference between the high-order pages and the expand added,
+and then subtract it directly.
+
+This patch merge that, only when del and expand done, then account
+free_pages.
+
+Link: https://lkml.kernel.org/r/20240826064048.187790-1-link@vivo.com
+Signed-off-by: Huan Yang <link@vivo.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c   |    9 ++++-----
- mm/pagewalk.c |    2 +-
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
 
---- a/mm/memory.c~mm-pagewalk-check-pfnmap-for-folio_walk_start-fix
-+++ a/mm/memory.c
-@@ -672,11 +672,10 @@ struct page *vm_normal_page_pmd(struct v
+--- a/mm/page_alloc.c~mm-page_alloc-simpify-page-del-and-expand
++++ a/mm/page_alloc.c
+@@ -1374,11 +1374,11 @@ struct page *__pageblock_pfn_to_page(uns
+  *
+  * -- nyc
+  */
+-static inline void expand(struct zone *zone, struct page *page,
+-	int low, int high, int migratetype)
++static inline unsigned int expand(struct zone *zone, struct page *page, int low,
++				  int high, int migratetype)
  {
- 	unsigned long pfn = pmd_pfn(pmd);
+-	unsigned long size = 1 << high;
+-	unsigned long nr_added = 0;
++	unsigned int size = 1 << high;
++	unsigned int nr_added = 0;
  
--	/*
--	 * There is no pmd_special() but there may be special pmds, e.g.
--	 * in a direct-access (dax) mapping, so let's just replicate the
--	 * !CONFIG_ARCH_HAS_PTE_SPECIAL case from vm_normal_page() here.
--	 */
-+	/* Currently it's only used for huge pfnmaps */
-+	if (unlikely(pmd_special(pmd)))
-+		return NULL;
+ 	while (high > low) {
+ 		high--;
+@@ -1398,7 +1398,19 @@ static inline void expand(struct zone *z
+ 		set_buddy_order(&page[size], high);
+ 		nr_added += size;
+ 	}
+-	account_freepages(zone, nr_added, migratetype);
 +
- 	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
- 		if (vma->vm_flags & VM_MIXEDMAP) {
- 			if (!pfn_valid(pfn))
---- a/mm/pagewalk.c~mm-pagewalk-check-pfnmap-for-folio_walk_start-fix
-+++ a/mm/pagewalk.c
-@@ -783,7 +783,7 @@ pmd_table:
- 		fw->pmdp = pmdp;
- 		fw->pmd = pmd;
++	return nr_added;
++}
++
++static __always_inline void page_del_and_expand(struct zone *zone,
++						struct page *page, int low,
++						int high, int migratetype)
++{
++	int nr_pages = 1 << high;
++
++	__del_page_from_free_list(page, zone, high, migratetype);
++	nr_pages -= expand(zone, page, low, high, migratetype);
++	account_freepages(zone, -nr_pages, migratetype);
+ }
  
--		if (pmd_none(pmd) || pmd_special(pmd)) {
-+		if (pmd_none(pmd)) {
- 			spin_unlock(ptl);
- 			goto not_found;
- 		} else if (!pmd_leaf(pmd)) {
+ static void check_new_page_bad(struct page *page)
+@@ -1568,8 +1580,9 @@ struct page *__rmqueue_smallest(struct z
+ 		page = get_page_from_free_area(area, migratetype);
+ 		if (!page)
+ 			continue;
+-		del_page_from_free_list(page, zone, current_order, migratetype);
+-		expand(zone, page, order, current_order, migratetype);
++
++		page_del_and_expand(zone, page, order, current_order,
++				    migratetype);
+ 		trace_mm_page_alloc_zone_locked(page, order, migratetype,
+ 				pcp_allowed_order(order) &&
+ 				migratetype < MIGRATE_PCPTYPES);
+@@ -1899,9 +1912,12 @@ steal_suitable_fallback(struct zone *zon
+ 
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
++		unsigned int nr_added;
++
+ 		del_page_from_free_list(page, zone, current_order, block_type);
+ 		change_pageblock_range(page, current_order, start_type);
+-		expand(zone, page, order, current_order, start_type);
++		nr_added = expand(zone, page, order, current_order, start_type);
++		account_freepages(zone, nr_added, start_type);
+ 		return page;
+ 	}
+ 
+@@ -1954,8 +1970,7 @@ steal_suitable_fallback(struct zone *zon
+ 	}
+ 
+ single_page:
+-	del_page_from_free_list(page, zone, current_order, block_type);
+-	expand(zone, page, order, current_order, block_type);
++	page_del_and_expand(zone, page, order, current_order, block_type);
+ 	return page;
+ }
+ 
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from link@vivo.com are
 
-mm-dax-dump-start-address-in-fault-handler.patch
-mm-mprotect-push-mmu-notifier-to-puds.patch
-mm-powerpc-add-missing-pud-helpers.patch
-mm-x86-make-pud_leaf-only-care-about-pse-bit.patch
-mm-x86-implement-arch_check_zapped_pud.patch
-mm-x86-add-missing-pud-helpers.patch
-mm-mprotect-fix-dax-pud-handlings.patch
-mm-introduce-arch_supports_huge_pfnmap-and-special-bits-to-pmd-pud.patch
-mm-drop-is_huge_zero_pud.patch
-mm-mark-special-bits-for-huge-pfn-mappings-when-inject.patch
-mm-allow-thp-orders-for-pfnmaps.patch
-mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
-mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
-mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch
-mm-fork-accept-huge-pfnmap-entries.patch
-mm-always-define-pxx_pgprot.patch
-mm-new-follow_pfnmap-api.patch
-kvm-use-follow_pfnmap-api.patch
-s390-pci_mmio-use-follow_pfnmap-api.patch
-mm-x86-pat-use-the-new-follow_pfnmap-api.patch
-vfio-use-the-new-follow_pfnmap-api.patch
-acrn-use-the-new-follow_pfnmap-api.patch
-mm-access_process_vm-use-the-new-follow_pfnmap-api.patch
-mm-remove-follow_pte.patch
-mm-x86-support-large-pfn-mappings.patch
-mm-arm64-support-large-pfn-mappings.patch
+mm-page_alloc-simpify-page-del-and-expand.patch
 
