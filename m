@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996F42C9D
-	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:53:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F285B3FC2
+	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 01:02:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725065623; cv=none; b=W2rU7RcMGhyTYTKtrW91Yw7dAZPcmtb0G9OJk+d1TX9tUa5/dvst8BIeU8ETC7djLU3/WLt3Yccu3zRwGLRMyA/hO4mzlrTJs7iPVHkAhjAgEcHSZrT2IZXfdqAHA2/hK9RwwBOwZkuo4xfHYf06NWzqnsuCV4JxirwrACf2zY8=
+	t=1725066174; cv=none; b=ao2szCNLkFNFBOrp4l4GwZ69m1UX0XrnVbJ9xlzAnw3RiCvG0KcM0TPNWklyRupcw0JtMa2vjs3Z5YWWYHdGL/Idn8jyeR8jVIZ7T+rFL6NsFlIz1VF3LF6CLi8/pifJNb1Ou5pad60n6kVuGrvkXdVKHb3n0j4oKs2FJ5z4Auk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725065623; c=relaxed/simple;
-	bh=WnV4RanUr9blT0KOOCoiJC/jFMXc6CuwF/0ahlG3ztM=;
-	h=Date:To:From:Subject:Message-Id; b=HeFsAg3TZINQPnExC9yhv5j0XLFlMFnZ6ERDGIwP5H9OmLBEaFJLWvCEJRjg6+CCXSAockCzo0agBWinJR9YsRxGZB3pIDHl8bHYLdWd8fPnIA7vdhCdlxBiLXh5Xd7HYtk+KLhTn8zghfeWfCH0mQfYXFQwxmx5Ni4aL8pFbAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iiSICZBX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725066174; c=relaxed/simple;
+	bh=DhIVRI00Qv/ijA4oQnyRIyyxdZxjyZqdR7obUW0BKxI=;
+	h=Date:To:From:Subject:Message-Id; b=A/WNskqRr08Tr480KGeo13jpRjlcdeAWqj0k3FTP3DJolmAtI8FtXwxuxOmBtbcw/k2jujDc9+U3vVWh67nBLq87JQtWGWgGKKFOGud65nHTNZi2YPmklBgg/obdcnldwXagLy0aVuZkz9KVPtsLHiou+qvILcy5cOL+mTJSiwc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cpvuGFvi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iiSICZBX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2E44C4CEC2;
-	Sat, 31 Aug 2024 00:53:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cpvuGFvi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581A3C4CEC5;
+	Sat, 31 Aug 2024 01:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725065623;
-	bh=WnV4RanUr9blT0KOOCoiJC/jFMXc6CuwF/0ahlG3ztM=;
+	s=korg; t=1725066173;
+	bh=DhIVRI00Qv/ijA4oQnyRIyyxdZxjyZqdR7obUW0BKxI=;
 	h=Date:To:From:Subject:From;
-	b=iiSICZBXxsLZ9mNbpECQoOZDc3xbj/kdCPA32T/rDJbi0wEWqZdyVtUCXsokVaVCW
-	 a5IuzOdbSTUUOKlFOojOsKCGG65L+UiLAqjri36AHLZoYKgjaiguzRNQugC6aLZdRy
-	 0LvOwG2EK2dn0ZeZYyyLpeAra7R2m0FjQDs6Hulw=
-Date: Fri, 30 Aug 2024 17:53:42 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=cpvuGFviQ1bjRgfxTQbDAl4eWIAgIC5q5WxqQ1Fa44quBiUutSaYrea/b+vJ0dVN7
+	 yg4FzWL5Q14IJr+cHLR/s7EpulrI+DotZxmLB0kz2BQsNM3XDTkyvkXNhh6ii+2mDT
+	 tnIqHSWLuTYJA8WPSyhDaUd4wPcNteh0irn7cUaw=
+Date: Fri, 30 Aug 2024 18:02:52 -0700
+To: mm-commits@vger.kernel.org,zhangjiao2@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-maple_treec-remove-unused-functions.patch added to mm-unstable branch
-Message-Id: <20240831005342.F2E44C4CEC2@smtp.kernel.org>
+Subject: + tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch added to mm-nonmm-unstable branch
+Message-Id: <20240831010253.581A3C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/maple_tree.c: remove unused functions
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-maple_treec-remove-unused-functions.patch
+     Subject: tools/mm: rm thp_swap_allocator_test when make clean
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-maple_treec-remove-unused-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/maple_tree.c: remove unused functions
-Date: Fri Aug 30 05:46:21 PM PDT 2024
+From: zhangjiao <zhangjiao2@cmss.chinamobile.com>
+Subject: tools/mm: rm thp_swap_allocator_test when make clean
+Date: Thu, 29 Aug 2024 12:20:08 +0800
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202408310728.S7EE59BN-lkp@intel.com/
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+rm thp_swap_allocator_test when make clean
+
+Link: https://lkml.kernel.org/r/20240829042008.6937-1-zhangjiao2@cmss.chinamobile.com
+Signed-off-by: zhangjiao <zhangjiao2@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ tools/mm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~lib-maple_treec-remove-unused-functions
-+++ a/lib/maple_tree.c
-@@ -348,21 +348,6 @@ static inline void *mte_safe_root(const
- 	return (void *)((unsigned long)node & ~MAPLE_ROOT_NODE);
- }
+--- a/tools/mm/Makefile~tools-mm-rm-thp_swap_allocator_test-when-make-clean
++++ a/tools/mm/Makefile
+@@ -23,7 +23,7 @@ $(LIBS):
+ 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
  
--static inline void *mte_set_full(const struct maple_enode *node)
--{
--	return (void *)((unsigned long)node & ~MAPLE_ENODE_NULL);
--}
--
--static inline void *mte_clear_full(const struct maple_enode *node)
--{
--	return (void *)((unsigned long)node | MAPLE_ENODE_NULL);
--}
--
--static inline bool mte_has_null(const struct maple_enode *node)
--{
--	return (unsigned long)node & MAPLE_ENODE_NULL;
--}
--
- static __always_inline bool ma_is_root(struct maple_node *node)
- {
- 	return ((unsigned long)node->parent & MA_ROOT_PARENT);
+ clean:
+-	$(RM) page-types slabinfo page_owner_sort
++	$(RM) page-types slabinfo page_owner_sort thp_swap_allocator_test
+ 	make -C $(LIB_DIR) clean
+ 
+ sbindir ?= /usr/sbin
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangjiao2@cmss.chinamobile.com are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-lib-maple_treec-remove-unused-functions.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+tools-mm-rm-thp_swap_allocator_test-when-make-clean.patch
 
