@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D705E545
-	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:40:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C951184F
+	for <mm-commits@vger.kernel.org>; Sat, 31 Aug 2024 00:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725064806; cv=none; b=olHV92+tPUMJwMQ1sgoHb+7Um5wuXdY1O7w9qHmibAwRk+/TktAO16MV2NlPgmNTrpPwpzps2eDEMOnzwGQiPBU1y6ZriN8Pdth8NXwAsG38cjmLgDgS2Wo8Q6guaOtQ8jA85DVQ/Nig4CbumiOfdCaUyyxTTkSqeLUDTw/lD7s=
+	t=1725064924; cv=none; b=qyGU5TAL1SKJ9xicXVlkI/k3v+2DxncCcE4UPzoewhGMUK5i3kUMhJadMnA1CYEMsl1D9b5U0WJeP/5rEx+hI7idnOi2gMvkSz7im4QzppLPQm/VMHUk53Wj9udZgwXRXN/okYsNFUNck4T4273lpkPWNMRXS6IQ4f13QFZQ0I0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725064806; c=relaxed/simple;
-	bh=AyDWU/WQO8jCxXfYJeA9s5PgbT9LD86rU1102zYP9jM=;
-	h=Date:To:From:Subject:Message-Id; b=nz3KK9pGKX+g9jUs4J+TbgqQuyu3LCPk6ty/anv2aQKzelaWFyr0vv2kiwEk7enQu4pOa9mX1VvBwLb+SpbUE7XLA49JyijNjhS6xB3qIPSUbPgxlksuF+HEcTW7WfQO/JmQP+rSHg76vQONmX/fs3CfSjErhyhGpZi0lgE928s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WtKv8YMg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725064924; c=relaxed/simple;
+	bh=umpBbneBFg1HvEQvtjCH6fKIw4hEYMtWEZXuPD10gYE=;
+	h=Date:To:From:Subject:Message-Id; b=ilaobqtnHu/mP8ktBwqoyBIlt4dWrRPQpJvGIhWOTJLuKCK7XWO+uncwGArmxLkj+6KfDmidWJ9Heyu7iu5IqGDzouO3BJAuNbCM7fWrNgOgKAs+1ZSErHAjoSdbrvyhZpWIfR2bezEOgzrGw5asuYHqiOV1Sd+xzrzbvfcpqPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MynAgYYn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WtKv8YMg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D319FC4CEC2;
-	Sat, 31 Aug 2024 00:40:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MynAgYYn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90887C4CEC2;
+	Sat, 31 Aug 2024 00:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725064805;
-	bh=AyDWU/WQO8jCxXfYJeA9s5PgbT9LD86rU1102zYP9jM=;
+	s=korg; t=1725064923;
+	bh=umpBbneBFg1HvEQvtjCH6fKIw4hEYMtWEZXuPD10gYE=;
 	h=Date:To:From:Subject:From;
-	b=WtKv8YMgOwEfzSEyJg9yUpiBTsgETqvZ1hDmUYcR4Gx8tvcqmfLb6AqH+HAnGTCJL
-	 Rq3p1Ic9FcnwnMFoIL1SmuqeZlsVVYs4wd2KjXCBgqatOs4IdUqb9N9uNsxF5kQVbt
-	 cBEYlBAZVUFG7MpgGjXXqIK35MkS6VS+87JsEoP0=
-Date: Fri, 30 Aug 2024 17:40:05 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,tjmercier@google.com,kasong@tencent.com,linuszeng@tencent.com,akpm@linux-foundation.org
+	b=MynAgYYnofmWkLHZjWFBCmPTlfB2banYFUqLkxfPgT2Nd7mNOc/QJ4BoavElpkGB/
+	 M6aUxxHM5s6NSYl62vLIHMiNcMhDQW13kIuHpVgswpKlyRrBUtKftQZhP2ZTkk3z6D
+	 10OiJ/7Yy6EucsgXXQHNKpfG8fMpNp8obXL2r++o=
+Date: Fri, 30 Aug 2024 17:42:03 -0700
+To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch added to mm-unstable branch
-Message-Id: <20240831004005.D319FC4CEC2@smtp.kernel.org>
+Subject: + maple_tree-cleanup-function-descriptions.patch added to mm-unstable branch
+Message-Id: <20240831004203.90887C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
+     Subject: maple_tree: cleanup function descriptions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+     maple_tree-cleanup-function-descriptions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-cleanup-function-descriptions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,111 +58,372 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zeng Jingxiang <linuszeng@tencent.com>
-Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-Date: Thu, 29 Aug 2024 18:25:43 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: maple_tree: cleanup function descriptions
+Date: Fri, 30 Aug 2024 22:04:00 +0000
 
-Commit 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-removed the opportunity to wake up flushers during the MGLRU page
-reclamation process can lead to an increased likelihood of triggering OOM
-when encountering many dirty pages during reclamation on MGLRU.
+This patch tries to cleanup some function description:
 
-This leads to premature OOM if there are too many dirty pages in cgroup:
-Killed
+  * function name mismatch
+  * parameter name mismatch
+  * parameter all end up with ':'
+  * not prefix '*' if parameter is a pointer
 
-dd invoked oom-killer: gfp_mask=0x101cca(GFP_HIGHUSER_MOVABLE|__GFP_WRITE),
-order=0, oom_score_adj=0
+There is still some missing description of parameters, I didn't add them
+since I am not sure the exact meaning.
 
-Call Trace:
-  <TASK>
-  dump_stack_lvl+0x5f/0x80
-  dump_stack+0x14/0x20
-  dump_header+0x46/0x1b0
-  oom_kill_process+0x104/0x220
-  out_of_memory+0x112/0x5a0
-  mem_cgroup_out_of_memory+0x13b/0x150
-  try_charge_memcg+0x44f/0x5c0
-  charge_memcg+0x34/0x50
-  __mem_cgroup_charge+0x31/0x90
-  filemap_add_folio+0x4b/0xf0
-  __filemap_get_folio+0x1a4/0x5b0
-  ? srso_return_thunk+0x5/0x5f
-  ? __block_commit_write+0x82/0xb0
-  ext4_da_write_begin+0xe5/0x270
-  generic_perform_write+0x134/0x2b0
-  ext4_buffered_write_iter+0x57/0xd0
-  ext4_file_write_iter+0x76/0x7d0
-  ? selinux_file_permission+0x119/0x150
-  ? srso_return_thunk+0x5/0x5f
-  ? srso_return_thunk+0x5/0x5f
-  vfs_write+0x30c/0x440
-  ksys_write+0x65/0xe0
-  __x64_sys_write+0x1e/0x30
-  x64_sys_call+0x11c2/0x1d50
-  do_syscall_64+0x47/0x110
-  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
- memory: usage 308224kB, limit 308224kB, failcnt 2589
- swap: usage 0kB, limit 9007199254740988kB, failcnt 0
-
-  ...
-  file_dirty 303247360
-  file_writeback 0
-  ...
-
-oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=test,
-mems_allowed=0,oom_memcg=/test,task_memcg=/test,task=dd,pid=4404,uid=0
-Memory cgroup out of memory: Killed process 4404 (dd) total-vm:10512kB,
-anon-rss:1152kB, file-rss:1824kB, shmem-rss:0kB, UID:0 pgtables:76kB
-oom_score_adj:0
-
-The flusher wake up was removed to decrease SSD wearing, but if we are
-seeing all dirty folios at the tail of an LRU, not waking up the flusher
-could lead to thrashing easily. So wake it up when a mem cgroups is
-about to OOM due to dirty caches.
-
-Link: https://lkml.kernel.org/r/20240829102543.189453-1-jingxiangzeng.cas@gmail.com
-Fixes: 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240830220400.2007-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ lib/maple_tree.c |  105 ++++++++++++++++++++-------------------------
+ 1 file changed, 47 insertions(+), 58 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom
-+++ a/mm/vmscan.c
-@@ -4448,6 +4448,7 @@ static int scan_folios(struct lruvec *lr
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+--- a/lib/maple_tree.c~maple_tree-cleanup-function-descriptions
++++ a/lib/maple_tree.c
+@@ -474,6 +474,7 @@ enum maple_type mas_parent_type(struct m
  
-+	sc->nr.taken += isolated;
- 	/*
- 	 * There might not be eligible folios due to reclaim_idx. Check the
- 	 * remaining to prevent livelock if it's not making progress.
-@@ -4920,6 +4921,14 @@ static void lru_gen_shrink_lruvec(struct
- 	if (try_to_shrink_lruvec(lruvec, sc))
- 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_YOUNG);
+ /*
+  * mas_set_parent() - Set the parent node and encode the slot
++ * @mas: The maple state
+  * @enode: The encoded maple node.
+  * @parent: The encoded maple node that is the parent of @enode.
+  * @slot: The slot that @enode resides in @parent.
+@@ -534,7 +535,7 @@ unsigned int mte_parent_slot(const struc
  
-+	/*
-+	 * If too many pages failed to evict due to page being dirty,
-+	 * memory pressure have pushed dirty pages to oldest gen,
-+	 * wake up flusher.
-+	 */
-+	if (sc->nr.unqueued_dirty >= sc->nr.taken)
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+
- 	clear_mm_walk();
+ /*
+  * mte_parent() - Get the parent of @node.
+- * @node: The encoded maple node.
++ * @enode: The encoded maple node.
+  *
+  * Return: The parent maple node.
+  */
+@@ -641,8 +642,8 @@ static inline unsigned int mas_alloc_req
  
- 	blk_finish_plug(&plug);
+ /*
+  * ma_pivots() - Get a pointer to the maple node pivots.
+- * @node - the maple node
+- * @type - the node type
++ * @node: the maple node
++ * @type: the node type
+  *
+  * In the event of a dead node, this array may be %NULL
+  *
+@@ -665,8 +666,8 @@ static inline unsigned long *ma_pivots(s
+ 
+ /*
+  * ma_gaps() - Get a pointer to the maple node gaps.
+- * @node - the maple node
+- * @type - the node type
++ * @node: the maple node
++ * @type: the node type
+  *
+  * Return: A pointer to the maple node gaps
+  */
+@@ -880,8 +881,6 @@ static inline void ma_set_meta(struct ma
+  * @mt: The maple tree
+  * @mn: The maple node
+  * @type: The maple node type
+- * @offset: The offset of the highest sub-gap in this node.
+- * @end: The end of the data in this node.
+  */
+ static inline void mt_clear_meta(struct maple_tree *mt, struct maple_node *mn,
+ 				  enum maple_type type)
+@@ -939,7 +938,7 @@ static inline unsigned char ma_meta_gap(
+ /*
+  * ma_set_meta_gap() - Set the largest gap location in a nodes metadata
+  * @mn: The maple node
+- * @mn: The maple node type
++ * @mt: The maple node type
+  * @offset: The location of the largest gap.
+  */
+ static inline void ma_set_meta_gap(struct maple_node *mn, enum maple_type mt,
+@@ -953,8 +952,8 @@ static inline void ma_set_meta_gap(struc
+ 
+ /*
+  * mat_add() - Add a @dead_enode to the ma_topiary of a list of dead nodes.
+- * @mat - the ma_topiary, a linked list of dead nodes.
+- * @dead_enode - the node to be marked as dead and added to the tail of the list
++ * @mat: the ma_topiary, a linked list of dead nodes.
++ * @dead_enode: the node to be marked as dead and added to the tail of the list
+  *
+  * Add the @dead_enode to the linked list in @mat.
+  */
+@@ -977,8 +976,8 @@ static void mt_destroy_walk(struct maple
+ 			    bool free);
+ /*
+  * mas_mat_destroy() - Free all nodes and subtrees in a dead list.
+- * @mas - the maple state
+- * @mat - the ma_topiary linked list of dead nodes to free.
++ * @mas: the maple state
++ * @mat: the ma_topiary linked list of dead nodes to free.
+  *
+  * Destroy walk a dead list.
+  */
+@@ -999,7 +998,7 @@ static void mas_mat_destroy(struct ma_st
+ }
+ /*
+  * mas_descend() - Descend into the slot stored in the ma_state.
+- * @mas - the maple state.
++ * @mas: the maple state.
+  *
+  * Note: Not RCU safe, only use in write side or debug code.
+  */
+@@ -1462,7 +1461,7 @@ static inline unsigned char mas_data_end
+ 
+ /*
+  * mas_leaf_max_gap() - Returns the largest gap in a leaf node
+- * @mas - the maple state
++ * @mas: the maple state
+  *
+  * Return: The maximum gap in the leaf.
+  */
+@@ -1544,7 +1543,7 @@ static unsigned long mas_leaf_max_gap(st
+  * @node: The maple node
+  * @gaps: The pointer to the gaps
+  * @mt: The maple node type
+- * @*off: Pointer to store the offset location of the gap.
++ * @off: Pointer to store the offset location of the gap.
+  *
+  * Uses the metadata data end to scan backwards across set gaps.
+  *
+@@ -1651,7 +1650,7 @@ ascend:
+ 
+ /*
+  * mas_update_gap() - Update a nodes gaps and propagate up if necessary.
+- * @mas - the maple state.
++ * @mas: the maple state.
+  */
+ static inline void mas_update_gap(struct ma_state *mas)
+ {
+@@ -1678,8 +1677,8 @@ static inline void mas_update_gap(struct
+ /*
+  * mas_adopt_children() - Set the parent pointer of all nodes in @parent to
+  * @parent with the slot encoded.
+- * @mas - the maple state (for the tree)
+- * @parent - the maple encoded node containing the children.
++ * @mas: the maple state (for the tree)
++ * @parent: the maple encoded node containing the children.
+  */
+ static inline void mas_adopt_children(struct ma_state *mas,
+ 		struct maple_enode *parent)
+@@ -1701,8 +1700,8 @@ static inline void mas_adopt_children(st
+ /*
+  * mas_put_in_tree() - Put a new node in the tree, smp_wmb(), and mark the old
+  * node as dead.
+- * @mas - the maple state with the new node
+- * @old_enode - The old maple encoded node to replace.
++ * @mas: the maple state with the new node
++ * @old_enode: The old maple encoded node to replace.
+  */
+ static inline void mas_put_in_tree(struct ma_state *mas,
+ 		struct maple_enode *old_enode)
+@@ -1730,8 +1729,8 @@ static inline void mas_put_in_tree(struc
+  * mas_replace_node() - Replace a node by putting it in the tree, marking it
+  * dead, and freeing it.
+  * the parent encoding to locate the maple node in the tree.
+- * @mas - the ma_state with @mas->node pointing to the new node.
+- * @old_enode - The old maple encoded node.
++ * @mas: the ma_state with @mas->node pointing to the new node.
++ * @old_enode: The old maple encoded node.
+  */
+ static inline void mas_replace_node(struct ma_state *mas,
+ 		struct maple_enode *old_enode)
+@@ -1796,7 +1795,6 @@ static inline void mab_shift_right(struc
+ /*
+  * mab_middle_node() - Check if a middle node is needed (unlikely)
+  * @b_node: the maple_big_node that contains the data.
+- * @size: the amount of data in the b_node
+  * @split: the potential split location
+  * @slot_count: the size that can be stored in a single node being considered.
+  *
+@@ -1844,6 +1842,7 @@ static inline int mab_no_null_split(stru
+ /*
+  * mab_calc_split() - Calculate the split location and if there needs to be two
+  * splits.
++ * @mas: The maple state
+  * @bn: The maple_big_node with the data
+  * @mid_split: The second split, if required.  0 otherwise.
+  *
+@@ -2177,7 +2176,8 @@ static inline bool mas_next_sibling(stru
+ }
+ 
+ /*
+- * mte_node_or_none() - Set the enode and state.
++ * mas_node_or_none() - Set the enode and state.
++ * @mas: the maple state
+  * @enode: The encoded maple node.
+  *
+  * Set the node to the enode and the status.
+@@ -2228,7 +2228,6 @@ static inline void mas_wr_node_walk(stru
+ /*
+  * mast_rebalance_next() - Rebalance against the next node
+  * @mast: The maple subtree state
+- * @old_r: The encoded maple node to the right (next node).
+  */
+ static inline void mast_rebalance_next(struct maple_subtree_state *mast)
+ {
+@@ -2242,7 +2241,6 @@ static inline void mast_rebalance_next(s
+ /*
+  * mast_rebalance_prev() - Rebalance against the previous node
+  * @mast: The maple subtree state
+- * @old_l: The encoded maple node to the left (previous node)
+  */
+ static inline void mast_rebalance_prev(struct maple_subtree_state *mast)
+ {
+@@ -2393,9 +2391,9 @@ static inline unsigned char mas_mab_to_n
+ /*
+  * mab_set_b_end() - Add entry to b_node at b_node->b_end and increment the end
+  * pointer.
+- * @b_node - the big node to add the entry
+- * @mas - the maple state to get the pivot (mas->max)
+- * @entry - the entry to add, if NULL nothing happens.
++ * @b_node: the big node to add the entry
++ * @mas: the maple state to get the pivot (mas->max)
++ * @entry: the entry to add, if NULL nothing happens.
+  */
+ static inline void mab_set_b_end(struct maple_big_node *b_node,
+ 				 struct ma_state *mas,
+@@ -2414,11 +2412,11 @@ static inline void mab_set_b_end(struct
+  * mas_set_split_parent() - combine_then_separate helper function.  Sets the parent
+  * of @mas->node to either @left or @right, depending on @slot and @split
+  *
+- * @mas - the maple state with the node that needs a parent
+- * @left - possible parent 1
+- * @right - possible parent 2
+- * @slot - the slot the mas->node was placed
+- * @split - the split location between @left and @right
++ * @mas: the maple state with the node that needs a parent
++ * @left: possible parent 1
++ * @right: possible parent 2
++ * @slot: the slot the mas->node was placed
++ * @split: the split location between @left and @right
+  */
+ static inline void mas_set_split_parent(struct ma_state *mas,
+ 					struct maple_enode *left,
+@@ -2438,11 +2436,11 @@ static inline void mas_set_split_parent(
+ 
+ /*
+  * mte_mid_split_check() - Check if the next node passes the mid-split
+- * @**l: Pointer to left encoded maple node.
+- * @**m: Pointer to middle encoded maple node.
+- * @**r: Pointer to right encoded maple node.
++ * @l: Pointer to left encoded maple node.
++ * @m: Pointer to middle encoded maple node.
++ * @r: Pointer to right encoded maple node.
+  * @slot: The offset
+- * @*split: The split location.
++ * @split: The split location.
+  * @mid_split: The middle split.
+  */
+ static inline void mte_mid_split_check(struct maple_enode **l,
+@@ -2466,10 +2464,10 @@ static inline void mte_mid_split_check(s
+ /*
+  * mast_set_split_parents() - Helper function to set three nodes parents.  Slot
+  * is taken from @mast->l.
+- * @mast - the maple subtree state
+- * @left - the left node
+- * @right - the right node
+- * @split - the split location.
++ * @mast: the maple subtree state
++ * @left: the left node
++ * @right: the right node
++ * @split: the split location.
+  */
+ static inline void mast_set_split_parents(struct maple_subtree_state *mast,
+ 					  struct maple_enode *left,
+@@ -2503,7 +2501,6 @@ static inline void mast_set_split_parent
+ /*
+  * mas_topiary_node() - Dispose of a single node
+  * @mas: The maple state for pushing nodes
+- * @enode: The encoded maple node
+  * @in_rcu: If the tree is in rcu mode
+  *
+  * The node will either be RCU freed or pushed back on the maple state.
+@@ -2635,7 +2632,7 @@ static inline void mas_topiary_replace(s
+ /*
+  * mas_wmb_replace() - Write memory barrier and replace
+  * @mas: The maple state
+- * @old: The old maple encoded node that is being replaced.
++ * @old_enode: The old maple encoded node that is being replaced.
+  *
+  * Updates gap as necessary.
+  */
+@@ -3455,10 +3452,7 @@ static inline void mas_store_root(struct
+ /*
+  * mas_is_span_wr() - Check if the write needs to be treated as a write that
+  * spans the node.
+- * @mas: The maple state
+- * @piv: The pivot value being written
+- * @type: The maple node type
+- * @entry: The data to write
++ * @wr_mas: The maple write state
+  *
+  * Spanning writes are writes that start in one node and end in another OR if
+  * the write of a %NULL will cause the node to end with a %NULL.
+@@ -4052,10 +4046,7 @@ static void mas_wr_bnode(struct ma_wr_st
+ 
+ /*
+  * mas_wr_store_entry() - Internal call to store a value
+- * @mas: The maple state
+- * @entry: The entry to store.
+- *
+- * Return: The contents that was stored at the index.
++ * @wr_mas: The maple write state
+  */
+ static inline void mas_wr_store_entry(struct ma_wr_state *wr_mas)
+ {
+@@ -4493,9 +4484,8 @@ no_entry:
+  * mas_prev_slot() - Get the entry in the previous slot
+  *
+  * @mas: The maple state
+- * @max: The minimum starting range
++ * @min: The minimum starting range
+  * @empty: Can be empty
+- * @set_underflow: Set the @mas->node to underflow state on limit.
+  *
+  * Return: The entry in the previous slot which is possibly NULL
+  */
+@@ -4578,6 +4568,7 @@ underflow:
+ /*
+  * mas_next_node() - Get the next node at the same level in the tree.
+  * @mas: The maple state
++ * @node: The maple node
+  * @max: The maximum pivot value to check.
+  *
+  * The next value will be mas->node[mas->offset] or the status will have
+@@ -4668,8 +4659,6 @@ overflow:
+  * @mas: The maple state
+  * @max: The maximum starting range
+  * @empty: Can be empty
+- * @set_overflow: Should @mas->node be set to overflow when the limit is
+- * reached.
+  *
+  * Return: The entry in the next slot which is possibly NULL
+  */
+@@ -5203,9 +5192,9 @@ EXPORT_SYMBOL_GPL(mas_empty_area_rev);
+ 
+ /*
+  * mte_dead_leaves() - Mark all leaves of a node as dead.
+- * @mas: The maple state
++ * @enode: the encoded node
++ * @mt: the maple tree
+  * @slots: Pointer to the slot array
+- * @type: The maple node type
+  *
+  * Must hold the write lock.
+  *
 _
 
-Patches currently in -mm which might be from linuszeng@tencent.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
-mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+mm-improve-code-consistency-with-zonelist_-helper-functions.patch
+mm-memory_hotplug-get-rid-of-__ref.patch
+maple_tree-fix-comment-typo-of-ma_root.patch
+maple_tree-fix-comment-typo-with-corresponding-maple_status.patch
+maple_tree-arange64-node-is-not-a-leaf-node.patch
+maple_tree-dump-error-message-based-on-format.patch
+maple_tree-cleanup-function-descriptions.patch
 
