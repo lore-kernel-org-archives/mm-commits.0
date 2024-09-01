@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C587F1D12FF;
-	Sat, 31 Aug 2024 01:14:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 493072A1B8
+	for <mm-commits@vger.kernel.org>; Sun,  1 Sep 2024 22:41:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725066851; cv=none; b=FR76ENvgQVRsnVlescifMPkQUAiLIcgwANgbTuXkPQJno3dTuWru4lCuMhRtGsx3gUg0i0A/LCqNh8tpMyfuw0TQxuHcBZghx70OFcJAASbWiXunti2NKol6xYANdyXDFNlYGSCFUEne72pB3xE1Qdr+nP/mPJQbDuuM8qN5bA8=
+	t=1725230520; cv=none; b=BJ/vqJkozc8mwee7hTw+ivxHFL9aFfv1jv6n4hzVrO0ANGWF1Z4YDNMhOtX85WBQ3PR8Xx4wZxdfkCxXNws9l2Jxubpp4dyARP62P4OmFaZVfK+NCcU+VB2Uo7VSrmBO7rXNEqq2vFMj5aJNf+I0z0jreHoFEPsiT68m2igZYKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725066851; c=relaxed/simple;
-	bh=rOGAbE559xd2jiSuFjaUZjkm4vO67jm4qc1SmzRoaoM=;
-	h=Date:To:From:Subject:Message-Id; b=OnrP2N3VZjh5l609F7W6Tq91bMJCALuDD072maF602mUBx1CKcynrjkPK27mzkQBchjCQglVZ78ZR01oD0vZ6ICz1w6h6OTzzkKKD6APuXWKuDoSqae3ledrbdPjr8uL23VX5S23mS+jy9dIIx8ecIC1xEN1Lr7xZM8Z4NsbXZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LphuKG4e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725230520; c=relaxed/simple;
+	bh=n5I/ie6PWNaqB4zoV6e9wPp1MWI+nlN1RuCQJK5rFKQ=;
+	h=Date:To:From:Subject:Message-Id; b=IYM92CtwRsL6hCLay7LQ/W/T4SVpoXuZRi078Bn1KB0vpSmgk9H6wts3zkaqy3fnpHPamgaWfLeO3f7J7AhSzKHZfWRq1RmEJDl18gNfWvKaEke85RFTpEHHyW05G/aJAEalOuMp+ER8Xr1y1A787xuXKLQ2wv1CBZx8WS09gvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JExSd5Ln; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LphuKG4e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3245DC4CEC2;
-	Sat, 31 Aug 2024 01:14:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JExSd5Ln"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A34F8C4CEC3;
+	Sun,  1 Sep 2024 22:41:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725066851;
-	bh=rOGAbE559xd2jiSuFjaUZjkm4vO67jm4qc1SmzRoaoM=;
+	s=korg; t=1725230519;
+	bh=n5I/ie6PWNaqB4zoV6e9wPp1MWI+nlN1RuCQJK5rFKQ=;
 	h=Date:To:From:Subject:From;
-	b=LphuKG4eAqGKFk9+itSot7Dfo9StGddWrpLON4ylIXy6Xs+rgSmwOC2Z98k+YGuY4
-	 kUOe8K6ZpcVW/TjS36ObJa4DSpDT/3w7xFl/EuZCshLN2674IeA9HvnQgrEMgEugNl
-	 FdFegLZWAjNSPRM8q2OrSTmj/0cT6xjgETHFD/rk=
-Date: Fri, 30 Aug 2024 18:14:10 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,souravpanda@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,keescook@chromium.org,david@redhat.com,surenb@google.com,akpm@linux-foundation.org
+	b=JExSd5LnDMzyeWowevnAiRjM1nT9r3P/PC5PhuvXgbYe/SxB4Htgo89m5GBXp0VAf
+	 yQzot9m5JXRht8hZBJfysm6+Ex30l7VNJZVwz9uEEbd3U6A9hJOC2K+wPl7TpPMuZX
+	 YGT7c3pqMsnj3qJovRaKvPWulrDGorub+eQWG0R4=
+Date: Sun, 01 Sep 2024 15:41:59 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-fix-allocation-tag-reporting-when-config_modules=n.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240831011411.3245DC4CEC2@smtp.kernel.org>
+Subject: + mm-fix-folio_alloc_noprof.patch added to mm-unstable branch
+Message-Id: <20240901224159.A34F8C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-fix-allocation-tag-reporting-when-config_modules=n.patch
+     Subject: mm: fix folio_alloc_noprof()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-folio_alloc_noprof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-fix-allocation-tag-reporting-when-config_modules=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-folio_alloc_noprof.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,91 +58,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n
-Date: Wed, 28 Aug 2024 16:15:36 -0700
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: mm: fix folio_alloc_noprof()
+Date: Sun, 1 Sep 2024 16:24:59 -0400
 
-codetag_module_init() is used to initialize sections containing allocation
-tags.  This function is used to initialize module sections as well as core
-kernel sections, in which case the module parameter is set to NULL.  This
-function has to be called even when CONFIG_MODULES=n to initialize core
-kernel allocation tag sections.  When CONFIG_MODULES=n, this function is a
-NOP, which is wrong.  This leads to /proc/allocinfo reported as empty. 
-Fix this by making it independent of CONFIG_MODULES.
+folio_alloc_noprof) wasn't calling the _noprof version, causing
+allocations to be accounted here instead of to the caller
 
-Link: https://lkml.kernel.org/r/20240828231536.1770519-1-surenb@google.com
-Fixes: 916cc5167cc6 ("lib: code tagging framework")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[6.10+]
+Link: https://lkml.kernel.org/r/20240901202459.4867-1-kent.overstreet@linux.dev
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/codetag.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/linux/gfp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/codetag.c~alloc_tag-fix-allocation-tag-reporting-when-config_modules=n
-+++ a/lib/codetag.c
-@@ -125,7 +125,6 @@ static inline size_t range_size(const st
- 			cttype->desc.tag_size;
+--- a/include/linux/gfp.h~mm-fix-folio_alloc_noprof
++++ a/include/linux/gfp.h
+@@ -319,7 +319,7 @@ static inline struct page *alloc_pages_m
  }
- 
--#ifdef CONFIG_MODULES
- static void *get_symbol(struct module *mod, const char *prefix, const char *name)
+ static inline struct folio *folio_alloc_noprof(gfp_t gfp, unsigned int order)
  {
- 	DECLARE_SEQ_BUF(sb, KSYM_NAME_LEN);
-@@ -155,6 +154,15 @@ static struct codetag_range get_section_
- 	};
+-	return __folio_alloc_node(gfp, order, numa_node_id());
++	return __folio_alloc_node_noprof(gfp, order, numa_node_id());
  }
- 
-+static const char *get_mod_name(__maybe_unused struct module *mod)
-+{
-+#ifdef CONFIG_MODULES
-+	if (mod)
-+		return mod->name;
-+#endif
-+	return "(built-in)";
-+}
-+
- static int codetag_module_init(struct codetag_type *cttype, struct module *mod)
- {
- 	struct codetag_range range;
-@@ -164,8 +172,7 @@ static int codetag_module_init(struct co
- 	range = get_section_range(mod, cttype->desc.section);
- 	if (!range.start || !range.stop) {
- 		pr_warn("Failed to load code tags of type %s from the module %s\n",
--			cttype->desc.section,
--			mod ? mod->name : "(built-in)");
-+			cttype->desc.section, get_mod_name(mod));
- 		return -EINVAL;
- 	}
- 
-@@ -199,6 +206,7 @@ static int codetag_module_init(struct co
- 	return 0;
- }
- 
-+#ifdef CONFIG_MODULES
- void codetag_load_module(struct module *mod)
- {
- 	struct codetag_type *cttype;
-@@ -248,9 +256,6 @@ bool codetag_unload_module(struct module
- 
- 	return unload_ok;
- }
--
--#else /* CONFIG_MODULES */
--static int codetag_module_init(struct codetag_type *cttype, struct module *mod) { return 0; }
- #endif /* CONFIG_MODULES */
- 
- struct codetag_type *
+ static inline struct folio *folio_alloc_mpol_noprof(gfp_t gfp, unsigned int order,
+ 		struct mempolicy *mpol, pgoff_t ilx, int nid)
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
-alloc_tag-fix-allocation-tag-reporting-when-config_modules=n.patch
+mm-fix-folio_alloc_noprof.patch
+scripts-decode_stacktracesh-nix-ify.patch
 
