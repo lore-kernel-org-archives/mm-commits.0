@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A84579C0
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:09:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC59D79C0
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:09:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725246555; cv=none; b=fvFHts7Q/slXHb5p4t0SNuGKp2qBNeZrx1HcuxFPn2Ubt9pBTdgCauq++MLG6eyLqVsbQroNi6aBThDVQllbEntBLiYPfKlH+9euFRaqBUrfs/Vtc5U5+LOjHMGxVPMxCbab0QRtpHK+s2LFR6sHFNanSK4Ph99j86mg8z2ZYGM=
+	t=1725246584; cv=none; b=DML8PJO08QeJzHQkOY8gLMStPvMC8gwsgwzNFTgDYo77KW++oRqn3mu37J4OP3x18puRZ7xO30f0vjU1Vhi0PFTCT6TH9KDJv12/pyh/cg8GEWFSSdS0M/CbZPW5KTuZYzYsUqvVk011jFp/Kd7SQa+0UR4xypzKK6Cci7wFMlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725246555; c=relaxed/simple;
-	bh=j8Gee6qA76PRwKKLUBpqPVQM5UEymdqBYW7HhzKQ3RQ=;
-	h=Date:To:From:Subject:Message-Id; b=Kn2cny3E84jIMNnt+MSS7uwMwSmcwZe9d5UD+bPp2TIciIcoN24EjYzVYMCEloLLYNmWV9tBnSvg3hxZYP8nzilie8uSssayTQ2dAHwU98fL67BHda/q3wbo4Lb3EWgV0YFm0+b2rn9G29sC7Ljt7SJKE8VCAGKsbmz4eE7NXIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=feaZs4SE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725246584; c=relaxed/simple;
+	bh=Axf2esi+Vb+gn5YqmkpeTaPGuMcIIc0prLZhSvs6u6Q=;
+	h=Date:To:From:Subject:Message-Id; b=QDwL9CcXju+rIMPUtNEXyY4wV8SuvN2fE1JBqvX8LhrpE7gcw+49gbKajsvJTn5oGmNTV3RP5x7G288gB5ExNxH6l/egIUeX6d5AAQ29Hwb3+2JeDJXdLwff34nyV/KFNxGDPJP1NaBDRbzUkuw9fgnS5xoiAR97nCoAApwLoBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FIHUnOEX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="feaZs4SE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4149C4CEC3;
-	Mon,  2 Sep 2024 03:09:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FIHUnOEX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EB40C4CEC3;
+	Mon,  2 Sep 2024 03:09:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725246554;
-	bh=j8Gee6qA76PRwKKLUBpqPVQM5UEymdqBYW7HhzKQ3RQ=;
+	s=korg; t=1725246584;
+	bh=Axf2esi+Vb+gn5YqmkpeTaPGuMcIIc0prLZhSvs6u6Q=;
 	h=Date:To:From:Subject:From;
-	b=feaZs4SEK/+1J9JbVWhCw3wKqA7B1NILGHMDE5up94PiCqzKpbC5AXQXqZiY6cbke
-	 1HJyGQjkgj/1bVPJJLJT6nc+mBCf3iG/xybXBllm/UQWzIusaVD6AB0bdv7YuDQCWw
-	 SMbJvfXMoO3fk4HstrbA+7m+DSA3T53YKjYEOKmg=
-Date: Sun, 01 Sep 2024 20:09:14 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
+	b=FIHUnOEXOkMCpt0ZvqyBWDDNGt09XXjNOC5TJbCflMNtHEBlYbtD7LCuMqD+88KpV
+	 3gkXiRlSj0UTYfl0hh6dmButEjgvgqPCButEQUaKbJIjLfrIo74yPkAX8BtWNL7KQH
+	 bZfaX+1/5rrn6EatPLOl76aRQoCTZUxTZ8iJCUIQ=
+Date: Sun, 01 Sep 2024 20:09:43 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,pengfei.xu@intel.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcg-cg2-memoryswappeak-write-tests-v7.patch removed from -mm tree
-Message-Id: <20240902030914.C4149C4CEC3@smtp.kernel.org>
+Subject: [folded-merged] userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch removed from -mm tree
+Message-Id: <20240902030944.6EB40C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
+     Subject: mm: userfaultfd: fix user-after-free in userfaultfd_clear_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-cg2-memoryswappeak-write-tests-v7.patch
+     userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix.patch
 
-This patch was dropped because it was folded into mm-memcg-cg2-memoryswappeak-write-tests.patch
+This patch was dropped because it was folded into userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
 
 ------------------------------------------------------
-From: David Finkel <davidf@vimeo.com>
-Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
-Date: Tue, 30 Jul 2024 19:13:04 -0400
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: userfaultfd: fix user-after-free in userfaultfd_clear_vma()
+Date: Wed, 7 Aug 2024 12:44:27 +0100
 
-update tests
+After invoking vma_modify_flags_uffd() in userfaultfd_clear_vma(), we may
+have merged the vma, and depending on the kind of merge, deleted the vma,
+rendering the vma pointer invalid.
 
-Link: https://lkml.kernel.org/r/20240730231304.761942-3-davidf@vimeo.com
-Signed-off-by: David Finkel <davidf@vimeo.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+The code incorrectly referenced this now possibly invalid vma pointer when
+invoking userfaultfd_reset_ctx().
+
+If no merge is possible, vma_modify_flags_uffd() performs a split and
+returns the original vma.  Therefore the correct approach is to simply
+pass the ret pointer to userfaultfd_ret_ctx().
+
+Link: https://lkml.kernel.org/r/3c947ddc-b804-49b7-8fe9-3ea3ca13def5@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+Closes: https://lore.kernel.org/all/ZrLt9HIxV9QiZotn@xpf.sh.intel.com/
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Gow <davidgow@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rae Moar <rmoar@google.com>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |   49 +++++++++++--
- 1 file changed, 42 insertions(+), 7 deletions(-)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests-v7
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -170,6 +170,7 @@ static int test_memcg_current_peak(const
- 	char *memcg;
- 	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
- 	int peak_fd = -1, peak_fd2 = -1, peak_fd3 = -1, peak_fd4 = -1;
-+	struct stat ss;
- 
- 	memcg = cg_name(root, "memcg_test");
- 	if (!memcg)
-@@ -200,9 +201,25 @@ static int test_memcg_current_peak(const
+--- a/mm/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc-fix
++++ a/mm/userfaultfd.c
+@@ -1816,7 +1816,7 @@ struct vm_area_struct *userfaultfd_clear
+ 	 * the current one has not been updated yet.
  	 */
- 	peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
+ 	if (!IS_ERR(ret))
+-		userfaultfd_reset_ctx(vma);
++		userfaultfd_reset_ctx(ret);
  
--	if (peak_fd == -1)
-+	if (peak_fd == -1) {
-+		if (errno == ENOENT)
-+			ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
-+	/*
-+	 * Before we try to use memory.peak's fd, try to figure out whether
-+	 * this kernel supports writing to that file in the first place. (by
-+	 * checking the writable bit on the file's st_mode)
-+	 */
-+	if (fstat(peak_fd, &ss))
- 		goto cleanup;
- 
-+	if ((ss.st_mode & S_IWUSR) == 0) {
-+		ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
- 	peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
- 
- 	if (peak_fd2 == -1)
-@@ -920,6 +937,8 @@ static int test_memcg_swap_max_peak(cons
- 	int ret = KSFT_FAIL;
- 	char *memcg;
- 	long max, peak;
-+	struct stat ss;
-+	int swap_peak_fd = -1, mem_peak_fd = -1;
- 
- 	/* any non-empty string resets */
- 	static const char reset_string[] = "foobarbaz";
-@@ -939,13 +958,29 @@ static int test_memcg_swap_max_peak(cons
- 		goto cleanup;
- 	}
- 
--	int swap_peak_fd = cg_open(memcg, "memory.swap.peak",
--				   O_RDWR | O_APPEND | O_CLOEXEC);
-+	swap_peak_fd = cg_open(memcg, "memory.swap.peak",
-+			       O_RDWR | O_APPEND | O_CLOEXEC);
- 
--	if (swap_peak_fd == -1)
-+	if (swap_peak_fd == -1) {
-+		if (errno == ENOENT)
-+			ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
-+	/*
-+	 * Before we try to use memory.swap.peak's fd, try to figure out
-+	 * whether this kernel supports writing to that file in the first
-+	 * place. (by checking the writable bit on the file's st_mode)
-+	 */
-+	if (fstat(swap_peak_fd, &ss))
- 		goto cleanup;
- 
--	int mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+	if ((ss.st_mode & S_IWUSR) == 0) {
-+		ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
-+	mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
- 
- 	if (mem_peak_fd == -1)
- 		goto cleanup;
-@@ -1081,9 +1116,9 @@ static int test_memcg_swap_max_peak(cons
- 	ret = KSFT_PASS;
- 
- cleanup:
--	if (close(mem_peak_fd))
-+	if (mem_peak_fd != -1 && close(mem_peak_fd))
- 		ret = KSFT_FAIL;
--	if (close(swap_peak_fd))
-+	if (swap_peak_fd != -1 && close(swap_peak_fd))
- 		ret = KSFT_FAIL;
- 	cg_destroy(memcg);
- 	free(memcg);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from davidf@vimeo.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-memcg-cg2-memoryswappeak-write-handlers.patch
-mm-memcg-cg2-memoryswappeak-write-tests.patch
+userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
+mm-move-vma_modify-and-helpers-to-internal-header.patch
+mm-move-vma_shrink-vma_expand-to-internal-header.patch
+mm-move-internal-core-vma-manipulation-functions-to-own-file.patch
+maintainers-add-entry-for-new-vma-files.patch
+tools-separate-out-shared-radix-tree-components.patch
+tools-add-skeleton-code-for-userland-testing-of-vma-logic.patch
+tools-improve-vma-test-makefile.patch
+tools-add-vma-merge-tests.patch
+mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
+mm-remove-duplicated-open-coded-vma-policy-check.patch
+mm-abstract-vma_expand-to-use-vma_merge_struct.patch
+mm-avoid-using-vma_merge-for-new-vmas.patch
+mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
+mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
+mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
+mm-rework-vm_ops-close-handling-on-vma-merge.patch
 
