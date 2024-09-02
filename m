@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A0CC145B2C
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 555B8139D19
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248780; cv=none; b=b5m3eBX70IK1pi048H5V8kH3mPGTMVctvoGItw2vwKroophbXFFfz2OxfJ4PBot9iA5y5OVNSJ/iY4oozLf+hCzTBzUDxbCw+mRgNwtWr0TAT6KaqZufKs/h7aJRo1qwqkD9IbETHobvRdA2fV8lg13TcnlgJOh6nvcH8Jp9Jzo=
+	t=1725248781; cv=none; b=MYGOyal597JFalXaTtZmCRhLs2TpkmppSiFgMMNa3P1PX3OpC0FMzKBOIA0kn4syX2n7fT0Lw+BVAiJ7d0tVaGeGMvhN8rQoB5aTeTm53cdRBQWSpuJ5nFIx1kq+ejyllPpPxeYQ7yzTuO3ub2sKWHe0TTm5oKUvAi8IZHMmvv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248780; c=relaxed/simple;
-	bh=Ox16anCJucffsxygBmNQtAWm9LKNLZhzPc3QcsF3hLs=;
-	h=Date:To:From:Subject:Message-Id; b=nDb0z1hTfD9lDuCFOxXdw55fllRR64EGHc6uMaWWQ7n4YJnYHhFcNYMXyjc6cantyEKZoMUGM8T3OMxE8mGf99Zfi5lh7/0elJHugX0LIUYQdfES5QWIOUHDMC7a02VM/iL1EIFdckF48aNRsXBbPAcjgRpexYXQv4C2vjAV/go=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r5Bfhisw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248781; c=relaxed/simple;
+	bh=16+HXRJr8Gxg3YccUI3JOPzml6r7IpATTqH5qH7nOZ0=;
+	h=Date:To:From:Subject:Message-Id; b=OCnxyY1gg5DEvWYgSmJT3bZFBq7lktzqS/9wtXFbbbHwkE+4WDKQ0RiU1EvjdSUecLQUNjzKKj//j5IoZC7+tBChYPVMyhr6MlUWTiGHaDPVpjrUhZZ15IbPidVOwXswSVU+3Hf/EtO4CI2o/dCaPjjCaLcjMpzZzGBvxpCJaDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OqAWn8sp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r5Bfhisw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0414C4CEC2;
-	Mon,  2 Sep 2024 03:46:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OqAWn8sp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23C55C4CEC2;
+	Mon,  2 Sep 2024 03:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248780;
-	bh=Ox16anCJucffsxygBmNQtAWm9LKNLZhzPc3QcsF3hLs=;
+	s=korg; t=1725248781;
+	bh=16+HXRJr8Gxg3YccUI3JOPzml6r7IpATTqH5qH7nOZ0=;
 	h=Date:To:From:Subject:From;
-	b=r5Bfhiswi5F1FqD4hu1M37KqyWYVaSu9t0QhBBCeZ9wY+yg/+xP1wVREAXbzMK8bn
-	 tIe+4bMLqjjcrzHcrWjSoYlNiSdhoKNK1oF5BfROaaVoFbXQaN4Bod183Jzsk+NI2v
-	 p1LRS6nymYcNd0dlMzm2f/xAoW6brVZ3jgX/cMNo=
-Date: Sun, 01 Sep 2024 20:46:19 -0700
-To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
+	b=OqAWn8spMN3xNbLN4YyUUzqV9384iPbUzJZjv137V0iCAAm2XqJzHsB4mMxMy+Xmo
+	 S7MN8Aar0dh3jY67gAA+hWTRCLRjXdWETX2ddA/u9UWMFI8/dPCSwcJyPZC9VUMe/+
+	 bfwatzdCcvGI1hdQhtiqqmcqKgeOHpJ/Wdb7oFNM=
+Date: Sun, 01 Sep 2024 20:46:20 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ojeda@kernel.org,n.schier@avm.de,masahiroy@kernel.org,kvalo@kernel.org,jack@suse.cz,djwong@kernel.org,brauner@kernel.org,sunjunchao2870@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xz-remove-xz_extern-and-extern-from-functions.patch removed from -mm tree
-Message-Id: <20240902034619.E0414C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch removed from -mm tree
+Message-Id: <20240902034621.23C55C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,407 +35,228 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xz: remove XZ_EXTERN and extern from functions
+     Subject: scripts: add macro_checker script to check unused parameters in macros
 has been removed from the -mm tree.  Its filename was
-     xz-remove-xz_extern-and-extern-from-functions.patch
+     scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: remove XZ_EXTERN and extern from functions
-Date: Wed, 24 Jul 2024 14:05:41 +0300
+From: Julian Sun <sunjunchao2870@gmail.com>
+Subject: scripts: add macro_checker script to check unused parameters in macros
+Date: Tue, 23 Jul 2024 05:11:54 -0400
 
-XZ_EXTERN was used to make internal functions static in the preboot code. 
-However, in other decompressors this hasn't been done.  On x86-64, this
-makes no difference to the kernel image size.
+Recently, I saw a patch[1] on the ext4 mailing list regarding
+the correction of a macro definition error. Jan mentioned
+that "The bug in the macro is a really nasty trap...".
+Because existing compilers are unable to detect
+unused parameters in macro definitions. This inspired me
+to write a script to check for unused parameters in
+macro definitions and to run it.
 
-Omit XZ_EXTERN and let some of the internal functions be extern in the
-preboot code.  Omitting XZ_EXTERN from include/linux/xz.h fixes warnings
-in "make htmldocs" and makes the intradocument links to xz_dec functions
-work in Documentation/staging/xz.rst.  The alternative would have been to
-add "XZ_EXTERN" to c_id_attributes in Documentation/conf.py but omitting
-XZ_EXTERN seemed cleaner.
+Surprisingly, the script uncovered numerous issues across
+various subsystems, including filesystems, drivers, and sound etc.
 
-Link: https://lore.kernel.org/lkml/20240723205437.3c0664b0@kaneli/
-Link: https://lkml.kernel.org/r/20240724110544.16430-1-lasse.collin@tukaani.org
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Sam James <sam@gentoo.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Joel Stanley <joel@jms.id.au>
-Cc: Jubin Zhong <zhongjubin@huawei.com>
-Cc: Jules Maselbas <jmaselbas@zdiv.net>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rui Li <me@lirui.org>
-Cc: Simon Glass <sjg@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Some of these issues involved parameters that were accepted
+but never used, for example:
+	#define	XFS_DAENTER_DBS(mp,w)	\
+	(XFS_DA_NODE_MAXDEPTH + (((w) == XFS_DATA_FORK) ? 2 : 0))
+where mp was unused.
+
+While others are actual bugs.
+For example:
+	#define HAL_SEQ_WCSS_UMAC_CE0_SRC_REG(x) \
+		(ab->hw_params.regs->hal_seq_wcss_umac_ce0_src_reg)
+	#define HAL_SEQ_WCSS_UMAC_CE0_DST_REG(x) \
+		(ab->hw_params.regs->hal_seq_wcss_umac_ce0_dst_reg)
+	#define HAL_SEQ_WCSS_UMAC_CE1_SRC_REG(x) \
+		(ab->hw_params.regs->hal_seq_wcss_umac_ce1_src_reg)
+	#define HAL_SEQ_WCSS_UMAC_CE1_DST_REG(x) \
+		(ab->hw_params.regs->hal_seq_wcss_umac_ce1_dst_reg)
+where x was entirely unused, and instead, a local variable ab was used.
+
+I have submitted patches[2-5] to fix some of these issues,
+but due to the large number, many still remain unaddressed.
+I believe that the kernel and matainers would benefit from
+this script to check for unused parameters in macro definitions.
+
+It should be noted that it may cause some false positives
+in conditional compilation scenarios, such as
+	#ifdef DEBUG
+	static int debug(arg) {};
+	#else
+	#define debug(arg)
+	#endif
+So the caller needs to manually verify whether it is a true
+issue. But this should be fine, because Maintainers should only
+need to review their own subsystems, which typically results
+in only a few reports.
+
+[1]: https://patchwork.ozlabs.org/project/linux-ext4/patch/1717652596-58760-1-git-send-email-carrionbent@linux.alibaba.com/
+[2]: https://lore.kernel.org/linux-xfs/20240721112701.212342-1-sunjunchao2870@gmail.com/
+[3]: https://lore.kernel.org/linux-bcachefs/20240721123943.246705-1-sunjunchao2870@gmail.com/
+[4]: https://sourceforge.net/p/linux-f2fs/mailman/message/58797811/
+[5]: https://sourceforge.net/p/linux-f2fs/mailman/message/58797812/
+
+[sunjunchao2870@gmail.com: reduce false positives]
+  Link: https://lkml.kernel.org/r/20240726031310.254742-1-sunjunchao2870@gmail.com
+Link: https://lkml.kernel.org/r/20240723091154.52458-1-sunjunchao2870@gmail.com
+Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Junchao Sun <sunjunchao2870@gmail.com>
+Cc: Kalle Valo <kvalo@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nicolas Schier <n.schier@avm.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/staging/xz.rst  |    3 --
- arch/powerpc/boot/xz_config.h |    3 --
- include/linux/xz.h            |   35 ++++++++++----------------------
- lib/decompress_unxz.c         |    1 
- lib/xz/xz_crc32.c             |    4 +--
- lib/xz/xz_dec_bcj.c           |    9 +++-----
- lib/xz/xz_dec_lzma2.c         |   10 +++------
- lib/xz/xz_dec_stream.c        |    8 +++----
- lib/xz/xz_private.h           |   20 +++++++-----------
- 9 files changed, 34 insertions(+), 59 deletions(-)
+ scripts/macro_checker.py |  131 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 131 insertions(+)
 
---- a/arch/powerpc/boot/xz_config.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/arch/powerpc/boot/xz_config.h
-@@ -50,11 +50,8 @@ static inline void put_unaligned_be32(u3
- /* prevent the inclusion of the xz-preboot MM headers */
- #define DECOMPR_MM_H
- #define memmove memmove
--#define XZ_EXTERN static
- 
- /* xz.h needs to be included directly since we need enum xz_mode */
- #include "../../../include/linux/xz.h"
- 
--#undef XZ_EXTERN
--
- #endif
---- a/Documentation/staging/xz.rst~xz-remove-xz_extern-and-extern-from-functions
-+++ a/Documentation/staging/xz.rst
-@@ -95,7 +95,4 @@ xz_dec API
- 
- This is available with ``#include <linux/xz.h>``.
- 
--``XZ_EXTERN`` is a macro used in the preboot code. Ignore it when
--reading this documentation.
--
- .. kernel-doc:: include/linux/xz.h
---- a/include/linux/xz.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/include/linux/xz.h
-@@ -18,11 +18,6 @@
- #	include <stdint.h>
- #endif
- 
--/* In Linux, this is used to make extern functions static when needed. */
--#ifndef XZ_EXTERN
--#	define XZ_EXTERN extern
--#endif
--
- /**
-  * enum xz_mode - Operation mode
-  *
-@@ -190,7 +185,7 @@ struct xz_dec;
-  * ready to be used with xz_dec_run(). If memory allocation fails,
-  * xz_dec_init() returns NULL.
-  */
--XZ_EXTERN struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max);
-+struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max);
- 
- /**
-  * xz_dec_run() - Run the XZ decoder
-@@ -210,7 +205,7 @@ XZ_EXTERN struct xz_dec *xz_dec_init(enu
-  * get that amount valid data from the beginning of the stream. You must use
-  * the multi-call decoder if you don't want to uncompress the whole stream.
-  */
--XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b);
-+enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b);
- 
- /**
-  * xz_dec_reset() - Reset an already allocated decoder state
-@@ -223,14 +218,14 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct
-  * xz_dec_run(). Thus, explicit call to xz_dec_reset() is useful only in
-  * multi-call mode.
-  */
--XZ_EXTERN void xz_dec_reset(struct xz_dec *s);
-+void xz_dec_reset(struct xz_dec *s);
- 
- /**
-  * xz_dec_end() - Free the memory allocated for the decoder state
-  * @s:          Decoder state allocated using xz_dec_init(). If s is NULL,
-  *              this function does nothing.
-  */
--XZ_EXTERN void xz_dec_end(struct xz_dec *s);
-+void xz_dec_end(struct xz_dec *s);
- 
- /**
-  * DOC: MicroLZMA decompressor
-@@ -244,10 +239,6 @@ XZ_EXTERN void xz_dec_end(struct xz_dec
-  * 3/0/2, the first byte is 0xA2. This way the first byte can never be 0x00.
-  * Just like with LZMA2, lc + lp <= 4 must be true. The LZMA end-of-stream
-  * marker must not be used. The unused values are reserved for future use.
-- *
-- * These functions aren't used or available in preboot code and thus aren't
-- * marked with XZ_EXTERN. This avoids warnings about static functions that
-- * are never defined.
-  */
- 
- /*
-@@ -272,8 +263,8 @@ struct xz_dec_microlzma;
-  * struct xz_dec_microlzma. If memory allocation fails or
-  * dict_size is invalid, NULL is returned.
-  */
--extern struct xz_dec_microlzma *xz_dec_microlzma_alloc(enum xz_mode mode,
--						       uint32_t dict_size);
-+struct xz_dec_microlzma *xz_dec_microlzma_alloc(enum xz_mode mode,
-+						uint32_t dict_size);
- 
- /**
-  * xz_dec_microlzma_reset() - Reset the MicroLZMA decoder state
-@@ -289,9 +280,8 @@ extern struct xz_dec_microlzma *xz_dec_m
-  *              requiring stdbool.h. This should normally be set to true.
-  *              When this is set to false, error detection is weaker.
-  */
--extern void xz_dec_microlzma_reset(struct xz_dec_microlzma *s,
--				   uint32_t comp_size, uint32_t uncomp_size,
--				   int uncomp_size_is_exact);
-+void xz_dec_microlzma_reset(struct xz_dec_microlzma *s, uint32_t comp_size,
-+			    uint32_t uncomp_size, int uncomp_size_is_exact);
- 
- /**
-  * xz_dec_microlzma_run() - Run the MicroLZMA decoder
-@@ -329,15 +319,14 @@ extern void xz_dec_microlzma_reset(struc
-  * may be changed normally like with XZ_PREALLOC. This way input data can be
-  * provided from non-contiguous memory.
-  */
--extern enum xz_ret xz_dec_microlzma_run(struct xz_dec_microlzma *s,
--					struct xz_buf *b);
-+enum xz_ret xz_dec_microlzma_run(struct xz_dec_microlzma *s, struct xz_buf *b);
- 
- /**
-  * xz_dec_microlzma_end() - Free the memory allocated for the decoder state
-  * @s:          Decoder state allocated using xz_dec_microlzma_alloc().
-  *              If s is NULL, this function does nothing.
-  */
--extern void xz_dec_microlzma_end(struct xz_dec_microlzma *s);
-+void xz_dec_microlzma_end(struct xz_dec_microlzma *s);
- 
- /*
-  * Standalone build (userspace build or in-kernel build for boot time use)
-@@ -358,13 +347,13 @@ extern void xz_dec_microlzma_end(struct
-  * This must be called before any other xz_* function to initialize
-  * the CRC32 lookup table.
-  */
--XZ_EXTERN void xz_crc32_init(void);
-+void xz_crc32_init(void);
- 
- /*
-  * Update CRC32 value using the polynomial from IEEE-802.3. To start a new
-  * calculation, the third argument must be zero. To continue the calculation,
-  * the previously returned value is passed as the third argument.
-  */
--XZ_EXTERN uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc);
-+uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc);
- #endif
- #endif
---- a/lib/decompress_unxz.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/decompress_unxz.c
-@@ -107,7 +107,6 @@
- #ifdef __KERNEL__
- #	include <linux/decompress/mm.h>
- #endif
--#define XZ_EXTERN STATIC
- 
- #ifndef XZ_PREBOOT
- #	include <linux/slab.h>
---- a/lib/xz/xz_crc32.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_crc32.c
-@@ -26,7 +26,7 @@
- 
- STATIC_RW_DATA uint32_t xz_crc32_table[256];
- 
--XZ_EXTERN void xz_crc32_init(void)
-+void xz_crc32_init(void)
- {
- 	const uint32_t poly = 0xEDB88320;
- 
-@@ -45,7 +45,7 @@ XZ_EXTERN void xz_crc32_init(void)
- 	return;
- }
- 
--XZ_EXTERN uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc)
-+uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc)
- {
- 	crc = ~crc;
- 
---- a/lib/xz/xz_dec_bcj.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_bcj.c
-@@ -572,9 +572,8 @@ static void bcj_flush(struct xz_dec_bcj
-  * data in chunks of 1-16 bytes. To hide this issue, this function does
-  * some buffering.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s,
--				     struct xz_dec_lzma2 *lzma2,
--				     struct xz_buf *b)
-+enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s, struct xz_dec_lzma2 *lzma2,
-+			   struct xz_buf *b)
- {
- 	size_t out_start;
- 
-@@ -682,7 +681,7 @@ XZ_EXTERN enum xz_ret xz_dec_bcj_run(str
- 	return s->ret;
- }
- 
--XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_create(bool single_call)
-+struct xz_dec_bcj *xz_dec_bcj_create(bool single_call)
- {
- 	struct xz_dec_bcj *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s != NULL)
-@@ -691,7 +690,7 @@ XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_
- 	return s;
- }
- 
--XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id)
-+enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id)
- {
- 	switch (id) {
- #ifdef XZ_DEC_X86
---- a/lib/xz/xz_dec_lzma2.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -960,8 +960,7 @@ static bool lzma2_lzma(struct xz_dec_lzm
-  * Take care of the LZMA2 control layer, and forward the job of actual LZMA
-  * decoding or copying of uncompressed chunks to other functions.
-  */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s,
--				       struct xz_buf *b)
-+enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s, struct xz_buf *b)
- {
- 	uint32_t tmp;
- 
-@@ -1137,8 +1136,7 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_run(s
- 	return XZ_OK;
- }
- 
--XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode,
--						   uint32_t dict_max)
-+struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode, uint32_t dict_max)
- {
- 	struct xz_dec_lzma2 *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s == NULL)
-@@ -1161,7 +1159,7 @@ XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lz
- 	return s;
- }
- 
--XZ_EXTERN enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props)
-+enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props)
- {
- 	/* This limits dictionary size to 3 GiB to keep parsing simpler. */
- 	if (props > 39)
-@@ -1197,7 +1195,7 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_reset
- 	return XZ_OK;
- }
- 
--XZ_EXTERN void xz_dec_lzma2_end(struct xz_dec_lzma2 *s)
-+void xz_dec_lzma2_end(struct xz_dec_lzma2 *s)
- {
- 	if (DEC_IS_MULTI(s->dict.mode))
- 		vfree(s->dict.buf);
---- a/lib/xz/xz_dec_stream.c~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_dec_stream.c
-@@ -746,7 +746,7 @@ static enum xz_ret dec_main(struct xz_de
-  * actually succeeds (that's the price to pay of using the output buffer as
-  * the workspace).
-  */
--XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
-+enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
- {
- 	size_t in_start;
- 	size_t out_start;
-@@ -782,7 +782,7 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct
- 	return ret;
- }
- 
--XZ_EXTERN struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max)
-+struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max)
- {
- 	struct xz_dec *s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s == NULL)
-@@ -812,7 +812,7 @@ error_bcj:
- 	return NULL;
- }
- 
--XZ_EXTERN void xz_dec_reset(struct xz_dec *s)
-+void xz_dec_reset(struct xz_dec *s)
- {
- 	s->sequence = SEQ_STREAM_HEADER;
- 	s->allow_buf_error = false;
-@@ -824,7 +824,7 @@ XZ_EXTERN void xz_dec_reset(struct xz_de
- 	s->temp.size = STREAM_HEADER_SIZE;
- }
- 
--XZ_EXTERN void xz_dec_end(struct xz_dec *s)
-+void xz_dec_end(struct xz_dec *s)
- {
- 	if (s != NULL) {
- 		xz_dec_lzma2_end(s->lzma2);
---- a/lib/xz/xz_private.h~xz-remove-xz_extern-and-extern-from-functions
-+++ a/lib/xz/xz_private.h
-@@ -115,8 +115,7 @@
-  * Allocate memory for LZMA2 decoder. xz_dec_lzma2_reset() must be used
-  * before calling xz_dec_lzma2_run().
-  */
--XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode,
--						   uint32_t dict_max);
-+struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode, uint32_t dict_max);
- 
- /*
-  * Decode the LZMA2 properties (one byte) and reset the decoder. Return
-@@ -124,22 +123,20 @@ XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lz
-  * big enough, and XZ_OPTIONS_ERROR if props indicates something that this
-  * decoder doesn't support.
-  */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s,
--					 uint8_t props);
-+enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s, uint8_t props);
- 
- /* Decode raw LZMA2 stream from b->in to b->out. */
--XZ_EXTERN enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s,
--				       struct xz_buf *b);
-+enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s, struct xz_buf *b);
- 
- /* Free the memory allocated for the LZMA2 decoder. */
--XZ_EXTERN void xz_dec_lzma2_end(struct xz_dec_lzma2 *s);
-+void xz_dec_lzma2_end(struct xz_dec_lzma2 *s);
- 
- #ifdef XZ_DEC_BCJ
- /*
-  * Allocate memory for BCJ decoders. xz_dec_bcj_reset() must be used before
-  * calling xz_dec_bcj_run().
-  */
--XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_create(bool single_call);
-+struct xz_dec_bcj *xz_dec_bcj_create(bool single_call);
- 
- /*
-  * Decode the Filter ID of a BCJ filter. This implementation doesn't
-@@ -147,16 +144,15 @@ XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_
-  * is needed. Returns XZ_OK if the given Filter ID is supported.
-  * Otherwise XZ_OPTIONS_ERROR is returned.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id);
-+enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id);
- 
- /*
-  * Decode raw BCJ + LZMA2 stream. This must be used only if there actually is
-  * a BCJ filter in the chain. If the chain has only LZMA2, xz_dec_lzma2_run()
-  * must be called directly.
-  */
--XZ_EXTERN enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s,
--				     struct xz_dec_lzma2 *lzma2,
--				     struct xz_buf *b);
-+enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s, struct xz_dec_lzma2 *lzma2,
-+			   struct xz_buf *b);
- 
- /* Free the memory allocated for the BCJ filters. */
- #define xz_dec_bcj_end(s) kfree(s)
+diff --git a/scripts/macro_checker.py a/scripts/macro_checker.py
+new file mode 100755
+--- /dev/null
++++ a/scripts/macro_checker.py
+@@ -0,0 +1,131 @@
++#!/usr/bin/python3
++# SPDX-License-Identifier: GPL-2.0
++# Author: Julian Sun <sunjunchao2870@gmail.com>
++
++""" Find macro definitions with unused parameters. """
++
++import argparse
++import os
++import re
++
++parser = argparse.ArgumentParser()
++
++parser.add_argument("path", type=str, help="The file or dir path that needs check")
++parser.add_argument("-v", "--verbose", action="store_true",
++                    help="Check conditional macros, but may lead to more false positives")
++args = parser.parse_args()
++
++macro_pattern = r"#define\s+(\w+)\(([^)]*)\)"
++# below vars were used to reduce false positives
++fp_patterns = [r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)",
++               r"\(?0\)?", r"\(?1\)?"]
++correct_macros = []
++cond_compile_mark = "#if"
++cond_compile_end = "#endif"
++
++def check_macro(macro_line, report):
++    match = re.match(macro_pattern, macro_line)
++    if match:
++        macro_def = re.sub(macro_pattern, '', macro_line)
++        identifier = match.group(1)
++        content = match.group(2)
++        arguments = [item.strip() for item in content.split(',') if item.strip()]
++
++        macro_def = macro_def.strip()
++        if not macro_def:
++            return
++        # used to reduce false positives, like #define endfor_nexthops(rt) }
++        if len(macro_def) == 1:
++            return
++
++        for fp_pattern in fp_patterns:
++            if (re.match(fp_pattern, macro_def)):
++                return
++
++        for arg in arguments:
++            # used to reduce false positives
++            if "..." in arg:
++                return
++        for arg in arguments:
++            if not arg in macro_def and report == False:
++                return
++            # if there is a correct macro with the same name, do not report it.
++            if not arg in macro_def and identifier not in correct_macros:
++                print(f"Argument {arg} is not used in function-line macro {identifier}")
++                return
++
++        correct_macros.append(identifier)
++
++
++# remove comment and whitespace
++def macro_strip(macro):
++    comment_pattern1 = r"\/\/*"
++    comment_pattern2 = r"\/\**\*\/"
++
++    macro = macro.strip()
++    macro = re.sub(comment_pattern1, '', macro)
++    macro = re.sub(comment_pattern2, '', macro)
++
++    return macro
++
++def file_check_macro(file_path, report):
++    # number of conditional compiling
++    cond_compile = 0
++    # only check .c and .h file
++    if not file_path.endswith(".c") and not file_path.endswith(".h"):
++        return
++
++    with open(file_path, "r") as f:
++        while True:
++            line = f.readline()
++            if not line:
++                break
++            line = line.strip()
++            if line.startswith(cond_compile_mark):
++                cond_compile += 1
++                continue
++            if line.startswith(cond_compile_end):
++                cond_compile -= 1
++                continue
++
++            macro = re.match(macro_pattern, line)
++            if macro:
++                macro = macro_strip(macro.string)
++                while macro[-1] == '\\':
++                    macro = macro[0:-1]
++                    macro = macro.strip()
++                    macro += f.readline()
++                    macro = macro_strip(macro)
++                if not args.verbose:
++                    if file_path.endswith(".c")  and cond_compile != 0:
++                        continue
++                    # 1 is for #ifdef xxx at the beginning of the header file
++                    if file_path.endswith(".h") and cond_compile != 1:
++                        continue
++                check_macro(macro, report)
++
++def get_correct_macros(path):
++    file_check_macro(path, False)
++
++def dir_check_macro(dir_path):
++
++    for dentry in os.listdir(dir_path):
++        path = os.path.join(dir_path, dentry)
++        if os.path.isdir(path):
++            dir_check_macro(path)
++        elif os.path.isfile(path):
++            get_correct_macros(path)
++            file_check_macro(path, True)
++
++
++def main():
++    if os.path.isfile(args.path):
++        get_correct_macros(args.path)
++        file_check_macro(args.path, True)
++    elif os.path.isdir(args.path):
++        dir_check_macro(args.path)
++    else:
++        print(f"{args.path} doesn't exit or is neither a file nor a dir")
++
++if __name__ == "__main__":
++    main()
+\ No newline at end of file
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from sunjunchao2870@gmail.com are
 
 
