@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAE34A0F;
-	Mon,  2 Sep 2024 00:59:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C84384A0F;
+	Mon,  2 Sep 2024 00:59:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725238785; cv=none; b=D7tj0Hy9V9eZ6urDp+1wJ0DIkmHhJ7AUzSW9HLL/VBqZ14/YmGktzWd1grwF83fmR62TFThyRk6CNaxlJn57UOfX3tt2IDeamjct9abfy4f+T2KSJ/gqOiDgSgXaxEw1GBO9q1KprQhOTEBL4woWEEqK/CcfkxwNVMRXFPjk9BI=
+	t=1725238786; cv=none; b=euUIm/ovr4IuQsoezluALJr8ilgIvYv3XJMPPJTpI3x7iT2eyNUF2yAlk3N6gRl5SBHk31wDqeG5e4YFR23MwaSI8PNSuxRF0KLAk9KOFE5XsXkjNY3Kbdk0h9T8FBXHSWQ/ApC4TpQrDo9QfS3p5GYMVrWYe0gm7dp5B27juB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725238785; c=relaxed/simple;
-	bh=eZYSraelY4chJl/boj5Eis5VJktRkyjQFuZl5WSBlPU=;
-	h=Date:To:From:Subject:Message-Id; b=oO3EyPiRTTXayKSvN8pPO4cXlQi2e8cXnQUn0bsuohdJMpdmqIwbU/ULwSxpLxuu9pD6zd1ekSydDb/QChU0lTsrylNhQPk3RS9A2FxGHj/KNntOKyPG/mXYhIjLUf8J3NS+Vq2hwyFYXP9pIPk2uWQFAX0edchwL69XzzQ996A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytoZzvyG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725238786; c=relaxed/simple;
+	bh=1jn4TGDHWfYKXirAXT27VjoHje+4G/jU/u9G17bPcw4=;
+	h=Date:To:From:Subject:Message-Id; b=C6+lI2t8PdnMBz6oAXZ9u6zMLHEszvDknfEy6dCoYt1cFhH/ylVUYW1T16ob3qsipulet2wZv2J8RBobs7EyXWURZ0zfWPPWxu9Poftno1ZTNpb2LnIy2S2U2ZbEZdlIDBP3qgBzy3MkJ6AYdE5jcbmu4sHaPvo0zmCwzxaZK30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BsHBOHns; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytoZzvyG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B0FC4CEC3;
-	Mon,  2 Sep 2024 00:59:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BsHBOHns"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D7DCC4CEC3;
+	Mon,  2 Sep 2024 00:59:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725238785;
-	bh=eZYSraelY4chJl/boj5Eis5VJktRkyjQFuZl5WSBlPU=;
+	s=korg; t=1725238786;
+	bh=1jn4TGDHWfYKXirAXT27VjoHje+4G/jU/u9G17bPcw4=;
 	h=Date:To:From:Subject:From;
-	b=ytoZzvyG1wdfiZ3oBpjepPWuiK+/4V2RQXMSwepIRhpaAh5+7VVDdZWiHlmXtlY9h
-	 INxYAPMAnyl2HFW0dnyU8QFQlCSy/M3J6/Ju4qiMDpuk3KBw9yiSXQNyLgIGHyyJkH
-	 a05hGu7CnXsUmymEwFiMrBwSSXHWFbrpOfr0Zeos=
-Date: Sun, 01 Sep 2024 17:59:44 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,me@yhndnzj.com,akpm@linux-foundation.org
+	b=BsHBOHnssm+t5ja13LbdXH9zpd4tkkNmnzkkypSVhz9wjsUv7npNg7/BQMhgLWA/4
+	 P5uKelCGwGVvLlPzhpL5EtP1Sguje63tg3U45F++v+u/mNmEwOAmXdR8CMJAGX4JL1
+	 3D4zUKgTSgIDtfUPYaHC47oQ9raZOPysZHzfj5Kg=
+Date: Sun, 01 Sep 2024 17:59:46 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,pasha.tatashin@soleen.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,kent.overstreet@linux.dev,david@redhat.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch removed from -mm tree
-Message-Id: <20240902005945.34B0FC4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] codetag-debug-mark-codetags-for-poisoned-page-as-empty.patch removed from -mm tree
+Message-Id: <20240902005946.9D7DCC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
+     Subject: codetag: debug: mark codetags for poisoned page as empty
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+     codetag-debug-mark-codetags-for-poisoned-page-as-empty.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Yuan <me@yhndnzj.com>
-Subject: mm/memcontrol: respect zswap.writeback setting from parent cg too
-Date: Fri, 23 Aug 2024 16:27:06 +0000
+From: Hao Ge <gehao@kylinos.cn>
+Subject: codetag: debug: mark codetags for poisoned page as empty
+Date: Mon, 26 Aug 2024 00:36:49 +0800
 
-Currently, the behavior of zswap.writeback wrt.  the cgroup hierarchy
-seems a bit odd.  Unlike zswap.max, it doesn't honor the value from parent
-cgroups.  This surfaced when people tried to globally disable zswap
-writeback, i.e.  reserve physical swap space only for hibernation [1] -
-disabling zswap.writeback only for the root cgroup results in subcgroups
-with zswap.writeback=1 still performing writeback.
+When PG_hwpoison pages are freed they are treated differently in
+free_pages_prepare() and instead of being released they are isolated.
 
-The inconsistency became more noticeable after I introduced the
-MemoryZSwapWriteback= systemd unit setting [2] for controlling the knob.
-The patch assumed that the kernel would enforce the value of parent
-cgroups.  It could probably be workarounded from systemd's side, by going
-up the slice unit tree and inheriting the value.  Yet I think it's more
-sensible to make it behave consistently with zswap.max and friends.
+Page allocation tag counters are decremented at this point since the page
+is considered not in use.  Later on when such pages are released by
+unpoison_memory(), the allocation tag counters will be decremented again
+and the following warning gets reported:
 
-[1] https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Disable_zswap_writeback_to_use_the_swap_space_only_for_hibernation
-[2] https://github.com/systemd/systemd/pull/31734
+[  113.930443][ T3282] ------------[ cut here ]------------
+[  113.931105][ T3282] alloc_tag was not set
+[  113.931576][ T3282] WARNING: CPU: 2 PID: 3282 at ./include/linux/alloc_tag.h:130 pgalloc_tag_sub.part.66+0x154/0x164
+[  113.932866][ T3282] Modules linked in: hwpoison_inject fuse ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute ip6table_nat ip6table_man4
+[  113.941638][ T3282] CPU: 2 UID: 0 PID: 3282 Comm: madvise11 Kdump: loaded Tainted: G        W          6.11.0-rc4-dirty #18
+[  113.943003][ T3282] Tainted: [W]=WARN
+[  113.943453][ T3282] Hardware name: QEMU KVM Virtual Machine, BIOS unknown 2/2/2022
+[  113.944378][ T3282] pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[  113.945319][ T3282] pc : pgalloc_tag_sub.part.66+0x154/0x164
+[  113.946016][ T3282] lr : pgalloc_tag_sub.part.66+0x154/0x164
+[  113.946706][ T3282] sp : ffff800087093a10
+[  113.947197][ T3282] x29: ffff800087093a10 x28: ffff0000d7a9d400 x27: ffff80008249f0a0
+[  113.948165][ T3282] x26: 0000000000000000 x25: ffff80008249f2b0 x24: 0000000000000000
+[  113.949134][ T3282] x23: 0000000000000001 x22: 0000000000000001 x21: 0000000000000000
+[  113.950597][ T3282] x20: ffff0000c08fcad8 x19: ffff80008251e000 x18: ffffffffffffffff
+[  113.952207][ T3282] x17: 0000000000000000 x16: 0000000000000000 x15: ffff800081746210
+[  113.953161][ T3282] x14: 0000000000000000 x13: 205d323832335420 x12: 5b5d353031313339
+[  113.954120][ T3282] x11: ffff800087093500 x10: 000000000000005d x9 : 00000000ffffffd0
+[  113.955078][ T3282] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008236ba90 x6 : c0000000ffff7fff
+[  113.956036][ T3282] x5 : ffff000b34bf4dc8 x4 : ffff8000820aba90 x3 : 0000000000000001
+[  113.956994][ T3282] x2 : ffff800ab320f000 x1 : 841d1e35ac932e00 x0 : 0000000000000000
+[  113.957962][ T3282] Call trace:
+[  113.958350][ T3282]  pgalloc_tag_sub.part.66+0x154/0x164
+[  113.959000][ T3282]  pgalloc_tag_sub+0x14/0x1c
+[  113.959539][ T3282]  free_unref_page+0xf4/0x4b8
+[  113.960096][ T3282]  __folio_put+0xd4/0x120
+[  113.960614][ T3282]  folio_put+0x24/0x50
+[  113.961103][ T3282]  unpoison_memory+0x4f0/0x5b0
+[  113.961678][ T3282]  hwpoison_unpoison+0x30/0x48 [hwpoison_inject]
+[  113.962436][ T3282]  simple_attr_write_xsigned.isra.34+0xec/0x1cc
+[  113.963183][ T3282]  simple_attr_write+0x38/0x48
+[  113.963750][ T3282]  debugfs_attr_write+0x54/0x80
+[  113.964330][ T3282]  full_proxy_write+0x68/0x98
+[  113.964880][ T3282]  vfs_write+0xdc/0x4d0
+[  113.965372][ T3282]  ksys_write+0x78/0x100
+[  113.965875][ T3282]  __arm64_sys_write+0x24/0x30
+[  113.966440][ T3282]  invoke_syscall+0x7c/0x104
+[  113.966984][ T3282]  el0_svc_common.constprop.1+0x88/0x104
+[  113.967652][ T3282]  do_el0_svc+0x2c/0x38
+[  113.968893][ T3282]  el0_svc+0x3c/0x1b8
+[  113.969379][ T3282]  el0t_64_sync_handler+0x98/0xbc
+[  113.969980][ T3282]  el0t_64_sync+0x19c/0x1a0
+[  113.970511][ T3282] ---[ end trace 0000000000000000 ]---
 
-Link: https://lkml.kernel.org/r/20240823162506.12117-1-me@yhndnzj.com
-Fixes: 501a06fe8e4c ("zswap: memcontrol: implement zswap writeback disabling")
-Signed-off-by: Mike Yuan <me@yhndnzj.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+To fix this, clear the page tag reference after the page got isolated
+and accounted for.
+
+Link: https://lkml.kernel.org/r/20240825163649.33294-1-hao.ge@linux.dev
+Fixes: d224eb0287fb ("codetag: debug: mark codetags for reserved pages as empty")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hao Ge <gehao@kylinos.cn>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: <stable@vger.kernel.org>	[6.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    7 ++++---
- mm/memcontrol.c                         |   12 +++++++++---
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1717,9 +1717,10 @@ The following nested keys are defined.
- 	entries fault back in or are written out to disk.
- 
-   memory.zswap.writeback
--	A read-write single value file. The default value is "1". The
--	initial value of the root cgroup is 1, and when a new cgroup is
--	created, it inherits the current value of its parent.
-+	A read-write single value file. The default value is "1".
-+	Note that this setting is hierarchical, i.e. the writeback would be
-+	implicitly disabled for child cgroups if the upper hierarchy
-+	does so.
- 
- 	When this is set to 0, all swapping attempts to swapping devices
- 	are disabled. This included both zswap writebacks, and swapping due
---- a/mm/memcontrol.c~mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too
-+++ a/mm/memcontrol.c
-@@ -3613,8 +3613,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	memcg1_soft_limit_reset(memcg);
- #ifdef CONFIG_ZSWAP
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
--	WRITE_ONCE(memcg->zswap_writeback,
--		!parent || READ_ONCE(parent->zswap_writeback));
-+	WRITE_ONCE(memcg->zswap_writeback, true);
- #endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
-@@ -5320,7 +5319,14 @@ void obj_cgroup_uncharge_zswap(struct ob
- bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
- {
- 	/* if zswap is disabled, do not block pages going to the swapping device */
--	return !zswap_is_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
-+	if (!zswap_is_enabled())
-+		return true;
+--- a/mm/page_alloc.c~codetag-debug-mark-codetags-for-poisoned-page-as-empty
++++ a/mm/page_alloc.c
+@@ -1054,6 +1054,13 @@ __always_inline bool free_pages_prepare(
+ 		reset_page_owner(page, order);
+ 		page_table_check_free(page, order);
+ 		pgalloc_tag_sub(page, 1 << order);
 +
-+	for (; memcg; memcg = parent_mem_cgroup(memcg))
-+		if (!READ_ONCE(memcg->zswap_writeback))
-+			return false;
-+
-+	return true;
- }
++		/*
++		 * The page is isolated and accounted for.
++		 * Mark the codetag as empty to avoid accounting error
++		 * when the page is freed by unpoison_memory().
++		 */
++		clear_page_tag_ref(page);
+ 		return false;
+ 	}
  
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
 _
 
-Patches currently in -mm which might be from me@yhndnzj.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback.patch
+mm-cma-change-the-addition-of-totalcma_pages-in-the-cma_init_reserved_mem.patch
 
