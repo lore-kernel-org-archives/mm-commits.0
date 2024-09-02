@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B30114BF86
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DD0414BF86
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248814; cv=none; b=t9Jtv3kpeZI4Ku10+Tidj5/+yoTdAME7z68f4PMDeiA77q3vGetouDk/bfX5QbkWvl7JN90wGcATW5UWeeKGNe3ofpR5mUj9M0pB042XapHrRV9h5l/5InGNPNeH7xHPvoXBznw2uo9bN+H7Ha+I/dipc0zd7XIU6MCfQmiWKRk=
+	t=1725248815; cv=none; b=HmtZuT+JCIqE5YKHC2RLQZIb+sNBFLphxdnwERJT7WosYWkc4+59APtKQogaeO3s9eMkiL+aDoB/NYMvqHrw+bEW9AriKHaothtSb0tADA8QkeTv7AIq7BbGZ2gdAy4rkN1tLTjUimx6Rifkt6awIDs0HDoVSSaxcAOGKvSUpvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248814; c=relaxed/simple;
-	bh=+UKfGyxdCLW3tuDv8SM54yA7PEV6XrvGO2sE2Za48NI=;
-	h=Date:To:From:Subject:Message-Id; b=pbNAYWIyrELx3E2SuDiU9B1azDbp+Nrxhdunndt9G48cWPTSqWeOhjrjQSCxGyK+ZkFSizu5tU7w/YwVsjGl6gKdNItvdK+UwKdWORPPKOcSWSCc06lEEgRCqLvQs6aGVGwTCGh3M3v90oVrEaCdm2W9eFc1BFPdOEnSkoTlhxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q+ANeQxt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248815; c=relaxed/simple;
+	bh=T5LPknbnbq/4GZzR2foJ5CoXxc6csEAUzzPBAKzcot4=;
+	h=Date:To:From:Subject:Message-Id; b=msx4CxMRMPT+ydaRJEzcOpW06CdUqtpbdvPubTfBh/2cigcTrqYdTs8mDyrvf9hLoe8feNOR1SPJKw1on4t3XoDnX9IweuA3e++4RMZkjHJu54RO/IZiqNomnYfVB6tu9ynEGSSe44BS6EF1/Cs+n2VDCxH+U6CAHZkA56MBanQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zqBx+3lB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q+ANeQxt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 032EDC4CEC2;
-	Mon,  2 Sep 2024 03:46:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zqBx+3lB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0478DC4CEC2;
+	Mon,  2 Sep 2024 03:46:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248814;
-	bh=+UKfGyxdCLW3tuDv8SM54yA7PEV6XrvGO2sE2Za48NI=;
+	s=korg; t=1725248815;
+	bh=T5LPknbnbq/4GZzR2foJ5CoXxc6csEAUzzPBAKzcot4=;
 	h=Date:To:From:Subject:From;
-	b=Q+ANeQxt1a9d4uJSWuv0x0ZBBS7OXBTSc4HBV7dsWi0tkVQnv1+9ZTRR3/0G+aPAW
-	 l5EsEnY3uH/g35C4qS3dH5dz+/6AhaNHlZ3GMVP8fzKYdD8EcJ2YeCQTsWMc2w5IzR
-	 l+V1hgvtOM4SV6IEmImUMINKlNR3rwP8ssNGwOhk=
-Date: Sun, 01 Sep 2024 20:46:53 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=zqBx+3lBObF0OoNRo1qtPyR5p22OncixsIgWRHwzNLEMxdeJ3fg8WUykZ+YVaGlyx
+	 LqgiGgejo1qSPal1sD221QBms0HuGL2eUT0uv8M52o7CCm0MAietJ0QmBgiYlWHJSE
+	 x/KZXcRAKjrL1pW/yqEwRt0bcSPQcXZxHeIBWaqU=
+Date: Sun, 01 Sep 2024 20:46:54 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch removed from -mm tree
-Message-Id: <20240902034654.032EDC4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-add-support-for-fs_ioc_getuuid.patch removed from -mm tree
+Message-Id: <20240902034655.0478DC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/percpu_counter: add missing __percpu qualifier to a cast
+     Subject: nilfs2: add support for FS_IOC_GETUUID
 has been removed from the -mm tree.  Its filename was
-     lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast.patch
+     nilfs2-add-support-for-fs_ioc_getuuid.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: lib/percpu_counter: add missing __percpu qualifier to a cast
-Date: Wed, 14 Aug 2024 08:44:13 +0200
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: add support for FS_IOC_GETUUID
+Date: Thu, 15 Aug 2024 16:44:05 +0900
 
-Add missing __percpu qualifier to a (void *) cast to fix
+Patch series "nilfs2: add support for some common ioctls".
 
-percpu_counter.c:212:36: warning: cast removes address space '__percpu' of expression
-percpu_counter.c:212:33: warning: incorrect type in assignment (different address spaces)
-percpu_counter.c:212:33:    expected signed int [noderef] [usertype] __percpu *counters
-percpu_counter.c:212:33:    got void *
+This series adds support for common ioctls to nilfs2 for getting the
+volume UUID and the relative path of an FS instance within the sysfs
+namespace, and also implements ioctls for nilfs2 to get and set the volume
+label.
 
-sparse warnings.
 
-Found by GCC's named address space checks.
+This patch (of 2):
 
-There were no changes in the resulting object file.
+Expose the UUID of a file system instance using the super_set_uuid helper
+and support the FS_IOC_GETUUID ioctl.
 
-Link: https://lkml.kernel.org/r/20240814064437.940162-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: https://lkml.kernel.org/r/20240815074408.5550-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240815074408.5550-2-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/super.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/percpu_counter.c~lib-percpu_counter-add-missing-__percpu-qualifier-to-a-cast
-+++ a/lib/percpu_counter.c
-@@ -209,7 +209,7 @@ int __percpu_counter_init_many(struct pe
- 		INIT_LIST_HEAD(&fbc[i].list);
- #endif
- 		fbc[i].count = amount;
--		fbc[i].counters = (void *)counters + (i * counter_size);
-+		fbc[i].counters = (void __percpu *)counters + i * counter_size;
+--- a/fs/nilfs2/super.c~nilfs2-add-support-for-fs_ioc_getuuid
++++ a/fs/nilfs2/super.c
+@@ -1063,6 +1063,9 @@ nilfs_fill_super(struct super_block *sb,
+ 	if (err)
+ 		goto failed_nilfs;
  
- 		debug_percpu_counter_activate(&fbc[i]);
- 	}
++	super_set_uuid(sb, nilfs->ns_sbp[0]->s_uuid,
++		       sizeof(nilfs->ns_sbp[0]->s_uuid));
++
+ 	cno = nilfs_last_cno(nilfs);
+ 	err = nilfs_attach_checkpoint(sb, cno, true, &fsroot);
+ 	if (err) {
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
-mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
-squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
 
