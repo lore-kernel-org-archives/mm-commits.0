@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F289433A4
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBC643AB4
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247696; cv=none; b=JN7iTUsjVbtdr97zuM2ZO6lnDs3ZaTF/cVtzmKKf7GM4LM2/p7+FHisnX70Yr3SyVAWQBd6al33v0tqzCteAcaVdNn7IuHGOYCgLLyouVDSs4nO0+yfCiIyAB5XBJ6KlogVeOhljIH2n14TtXtb8RrHku6oNbH/vEMqddXBRI28=
+	t=1725247697; cv=none; b=u4/S3vf+X8GhFQbs1PqdAZ22frCDahWBKnUth9+UnWR7hlGye5ew30kNSpLS+5sCrPN18pQ3/kDsktMkpP26CUYur9IuO/PZiPsruI6zM+9QC8E6wR/QVnfVosiaxPImimDU89IhscTiSPxau5+rMCa7m1wDaz6/Hqbsu7bT0Bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247696; c=relaxed/simple;
-	bh=AnUKxjHaxyTtqNPF7cAvEuAG8INvnMIMaamKuuA6pFM=;
-	h=Date:To:From:Subject:Message-Id; b=eu+qv7HmXJDP94vUN+jd0ijwTPA3LUsi64/2a/hA6Cwum//YklShJxG7b3ahwnu6rMzv2l93RvHbeCY+X9Vt3j8KSCMVwubT0CR0RlWTwkraWZgHTGOPRFCo8YQVyoNh2epFg+nVVLT9Qxoe7HsgNydjKDA4qhjOMqir5jlDFdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jnq3UJq3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247697; c=relaxed/simple;
+	bh=AICOf4K4+C2Gxo2dciE6Rz0YMMlupBv180ffDUA+YnU=;
+	h=Date:To:From:Subject:Message-Id; b=TFQOZWouUKVQ8czkoqJop+tIpL8qXFQnxqBtdXgqjbse0HLH60d/tqhqH1pPl2YOHsxLXEJ2Ko6QKEg6sMcma6tuoaKocr+KbXaTyeFAiaN4Akc03S4Zd3GtKfdwqh+9Rl90NalVCCSIrb1PydhXVXaEiRLcEvmyaGwTX0105nI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zGECKsYF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jnq3UJq3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 168A8C4CEC2;
-	Mon,  2 Sep 2024 03:28:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGECKsYF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64028C4CEC2;
+	Mon,  2 Sep 2024 03:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247696;
-	bh=AnUKxjHaxyTtqNPF7cAvEuAG8INvnMIMaamKuuA6pFM=;
+	s=korg; t=1725247697;
+	bh=AICOf4K4+C2Gxo2dciE6Rz0YMMlupBv180ffDUA+YnU=;
 	h=Date:To:From:Subject:From;
-	b=Jnq3UJq379a/hfVudb4CZpMv7OZ7BtKQiQMbipHNsHelbJwA6COom4fTgp38Ou90S
-	 lUDjHUI3e/lDGr7IrJv2RxVdf3MeQE7o5nRQ38NmakPaAH6VZESggn3/PhesDg6rAp
-	 cpO8hm3bUpNBD7YF2nnthe0Q3S283cJdzlQb7cXU=
-Date: Sun, 01 Sep 2024 20:28:15 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=zGECKsYF2gB3nRWyMjtx1hNSIW3BB22lSeZfO3hbC/6+3dTzV+Nlu9kEy37q1PnLR
+	 w2SJe/w+UoNRS/1IBQKK5Ud0tduUWAslQbLaRMPONzH2PEPbQ30rbtE63/7R/dK+hI
+	 TTdHHZlukuuR1Hzgo0eif+Luid3l2DX5OFoEUTgA=
+Date: Sun, 01 Sep 2024 20:28:16 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,viro@zeniv.linux.org.uk,tglx@linutronix.de,rppt@kernel.org,rmk+kernel@armlinux.org.uk,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_counters-initialize-usage-using-atomic_long_init-macro.patch removed from -mm tree
-Message-Id: <20240902032816.168A8C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch removed from -mm tree
+Message-Id: <20240902032817.64028C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,267 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_counters: initialize usage using ATOMIC_LONG_INIT() macro
+     Subject: mm: turn USE_SPLIT_PTE_PTLOCKS / USE_SPLIT_PTE_PTLOCKS into Kconfig options
 has been removed from the -mm tree.  Its filename was
-     mm-page_counters-initialize-usage-using-atomic_long_init-macro.patch
+     mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: page_counters: initialize usage using ATOMIC_LONG_INIT() macro
-Date: Fri, 26 Jul 2024 20:31:10 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: turn USE_SPLIT_PTE_PTLOCKS / USE_SPLIT_PTE_PTLOCKS into Kconfig options
+Date: Fri, 26 Jul 2024 17:07:26 +0200
 
-When a page_counter structure is initialized, there is no need to use an
-atomic set operation to initialize the usage counter because at this point
-the structure is not visible to anybody else.  ATOMIC_LONG_INIT() is what
-should be used in such cases.
+Patch series "mm: split PTE/PMD PT table Kconfig cleanups+clarifications".
 
-Link: https://lkml.kernel.org/r/20240726203110.1577216-4-roman.gushchin@linux.dev
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+This series is a follow up to the fixes:
+	"[PATCH v1 0/2] mm/hugetlb: fix hugetlb vs. core-mm PT locking"
+
+When working on the fixes, I wondered why 8xx is fine (-> never uses split
+PT locks) and how PT locking even works properly with PMD page table
+sharing (-> always requires split PMD PT locks).
+
+Let's improve the split PT lock detection, make hugetlb properly depend on
+it and make 8xx bail out if it would ever get enabled by accident.
+
+As an alternative to patch #3 we could extend the Kconfig
+SPLIT_PTE_PTLOCKS option from patch #2 -- but enforcing it closer to the
+code that actually implements it feels a bit nicer for documentation
+purposes, and there is no need to actually disable it because it should
+always be disabled (!SMP).
+
+Did a bunch of cross-compilations to make sure that split PTE/PMD PT locks
+are still getting used where we would expect them.
+
+[1] https://lkml.kernel.org/r/20240725183955.2268884-1-david@redhat.com
+
+
+This patch (of 3):
+
+Let's clean that up a bit and prepare for depending on
+CONFIG_SPLIT_PMD_PTLOCKS in other Kconfig options.
+
+More cleanups would be reasonable (like the arch-specific "depends on" for
+CONFIG_SPLIT_PTE_PTLOCKS), but we'll leave that for another day.
+
+Link: https://lkml.kernel.org/r/20240726150728.3159964-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240726150728.3159964-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_counter.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mm/fault-armv.c      |    6 +++---
+ arch/x86/xen/mmu_pv.c         |    7 ++++---
+ include/linux/mm.h            |    8 ++++----
+ include/linux/mm_types.h      |    2 +-
+ include/linux/mm_types_task.h |    3 ---
+ kernel/fork.c                 |    4 ++--
+ mm/Kconfig                    |   18 +++++++++++-------
+ mm/memory.c                   |    2 +-
+ 8 files changed, 26 insertions(+), 24 deletions(-)
 
---- a/include/linux/page_counter.h~mm-page_counters-initialize-usage-using-atomic_long_init-macro
-+++ a/include/linux/page_counter.h
-@@ -52,7 +52,7 @@ static inline void page_counter_init(str
- 				     struct page_counter *parent,
- 				     bool protection_support)
+--- a/arch/arm/mm/fault-armv.c~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/arch/arm/mm/fault-armv.c
+@@ -61,7 +61,7 @@ static int do_adjust_pte(struct vm_area_
+ 	return ret;
+ }
+ 
+-#if USE_SPLIT_PTE_PTLOCKS
++#if defined(CONFIG_SPLIT_PTE_PTLOCKS)
+ /*
+  * If we are using split PTE locks, then we need to take the page
+  * lock here.  Otherwise we are using shared mm->page_table_lock
+@@ -80,10 +80,10 @@ static inline void do_pte_unlock(spinloc
  {
--	atomic_long_set(&counter->usage, 0);
-+	counter->usage = (atomic_long_t)ATOMIC_LONG_INIT(0);
- 	counter->max = PAGE_COUNTER_MAX;
- 	counter->parent = parent;
- 	counter->protection_support = protection_support;
+ 	spin_unlock(ptl);
+ }
+-#else /* !USE_SPLIT_PTE_PTLOCKS */
++#else /* !defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ static inline void do_pte_lock(spinlock_t *ptl) {}
+ static inline void do_pte_unlock(spinlock_t *ptl) {}
+-#endif /* USE_SPLIT_PTE_PTLOCKS */
++#endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ 
+ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long pfn)
+--- a/arch/x86/xen/mmu_pv.c~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/arch/x86/xen/mmu_pv.c
+@@ -665,7 +665,7 @@ static spinlock_t *xen_pte_lock(struct p
+ {
+ 	spinlock_t *ptl = NULL;
+ 
+-#if USE_SPLIT_PTE_PTLOCKS
++#if defined(CONFIG_SPLIT_PTE_PTLOCKS)
+ 	ptl = ptlock_ptr(page_ptdesc(page));
+ 	spin_lock_nest_lock(ptl, &mm->page_table_lock);
+ #endif
+@@ -1553,7 +1553,8 @@ static inline void xen_alloc_ptpage(stru
+ 
+ 		__set_pfn_prot(pfn, PAGE_KERNEL_RO);
+ 
+-		if (level == PT_PTE && USE_SPLIT_PTE_PTLOCKS && !pinned)
++		if (level == PT_PTE && IS_ENABLED(CONFIG_SPLIT_PTE_PTLOCKS) &&
++		    !pinned)
+ 			__pin_pagetable_pfn(MMUEXT_PIN_L1_TABLE, pfn);
+ 
+ 		xen_mc_issue(XEN_LAZY_MMU);
+@@ -1581,7 +1582,7 @@ static inline void xen_release_ptpage(un
+ 	if (pinned) {
+ 		xen_mc_batch();
+ 
+-		if (level == PT_PTE && USE_SPLIT_PTE_PTLOCKS)
++		if (level == PT_PTE && IS_ENABLED(CONFIG_SPLIT_PTE_PTLOCKS))
+ 			__pin_pagetable_pfn(MMUEXT_UNPIN_TABLE, pfn);
+ 
+ 		__set_pfn_prot(pfn, PAGE_KERNEL);
+--- a/include/linux/mm.h~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/include/linux/mm.h
+@@ -2891,7 +2891,7 @@ static inline void pagetable_free(struct
+ 	__free_pages(page, compound_order(page));
+ }
+ 
+-#if USE_SPLIT_PTE_PTLOCKS
++#if defined(CONFIG_SPLIT_PTE_PTLOCKS)
+ #if ALLOC_SPLIT_PTLOCKS
+ void __init ptlock_cache_init(void);
+ bool ptlock_alloc(struct ptdesc *ptdesc);
+@@ -2949,7 +2949,7 @@ static inline bool ptlock_init(struct pt
+ 	return true;
+ }
+ 
+-#else	/* !USE_SPLIT_PTE_PTLOCKS */
++#else	/* !defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ /*
+  * We use mm->page_table_lock to guard all pagetable pages of the mm.
+  */
+@@ -2964,7 +2964,7 @@ static inline spinlock_t *ptep_lockptr(s
+ static inline void ptlock_cache_init(void) {}
+ static inline bool ptlock_init(struct ptdesc *ptdesc) { return true; }
+ static inline void ptlock_free(struct ptdesc *ptdesc) {}
+-#endif /* USE_SPLIT_PTE_PTLOCKS */
++#endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ 
+ static inline bool pagetable_pte_ctor(struct ptdesc *ptdesc)
+ {
+@@ -3024,7 +3024,7 @@ pte_t *pte_offset_map_nolock(struct mm_s
+ 	((unlikely(pmd_none(*(pmd))) && __pte_alloc_kernel(pmd))? \
+ 		NULL: pte_offset_kernel(pmd, address))
+ 
+-#if USE_SPLIT_PMD_PTLOCKS
++#if defined(CONFIG_SPLIT_PMD_PTLOCKS)
+ 
+ static inline struct page *pmd_pgtable_page(pmd_t *pmd)
+ {
+--- a/include/linux/mm_types.h~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/include/linux/mm_types.h
+@@ -947,7 +947,7 @@ struct mm_struct {
+ #ifdef CONFIG_MMU_NOTIFIER
+ 		struct mmu_notifier_subscriptions *notifier_subscriptions;
+ #endif
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !defined(CONFIG_SPLIT_PMD_PTLOCKS)
+ 		pgtable_t pmd_huge_pte; /* protected by page_table_lock */
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+--- a/include/linux/mm_types_task.h~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/include/linux/mm_types_task.h
+@@ -16,9 +16,6 @@
+ #include <asm/tlbbatch.h>
+ #endif
+ 
+-#define USE_SPLIT_PTE_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
+-#define USE_SPLIT_PMD_PTLOCKS	(USE_SPLIT_PTE_PTLOCKS && \
+-		IS_ENABLED(CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK))
+ #define ALLOC_SPLIT_PTLOCKS	(SPINLOCK_SIZE > BITS_PER_LONG/8)
+ 
+ /*
+--- a/kernel/fork.c~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/kernel/fork.c
+@@ -832,7 +832,7 @@ static void check_mm(struct mm_struct *m
+ 		pr_alert("BUG: non-zero pgtables_bytes on freeing mm: %ld\n",
+ 				mm_pgtables_bytes(mm));
+ 
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !defined(CONFIG_SPLIT_PMD_PTLOCKS)
+ 	VM_BUG_ON_MM(mm->pmd_huge_pte, mm);
+ #endif
+ }
+@@ -1276,7 +1276,7 @@ static struct mm_struct *mm_init(struct
+ 	RCU_INIT_POINTER(mm->exe_file, NULL);
+ 	mmu_notifier_subscriptions_init(mm);
+ 	init_tlb_flush_pending(mm);
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !defined(CONFIG_SPLIT_PMD_PTLOCKS)
+ 	mm->pmd_huge_pte = NULL;
+ #endif
+ 	mm_init_uprobes_state(mm);
+--- a/mm/Kconfig~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/mm/Kconfig
+@@ -585,17 +585,21 @@ config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+ # at the same time (e.g. copy_page_range()).
+ # DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC spinlock_t also enlarge struct page.
+ #
+-config SPLIT_PTLOCK_CPUS
+-	int
+-	default "999999" if !MMU
+-	default "999999" if ARM && !CPU_CACHE_VIPT
+-	default "999999" if PARISC && !PA20
+-	default "999999" if SPARC32
+-	default "4"
++config SPLIT_PTE_PTLOCKS
++	def_bool y
++	depends on MMU
++	depends on NR_CPUS >= 4
++	depends on !ARM || CPU_CACHE_VIPT
++	depends on !PARISC || PA20
++	depends on !SPARC32
+ 
+ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	bool
+ 
++config SPLIT_PMD_PTLOCKS
++	def_bool y
++	depends on SPLIT_PTE_PTLOCKS && ARCH_ENABLE_SPLIT_PMD_PTLOCK
++
+ #
+ # support for memory balloon
+ config MEMORY_BALLOON
+--- a/mm/memory.c~mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options
++++ a/mm/memory.c
+@@ -6571,7 +6571,7 @@ long copy_folio_from_user(struct folio *
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
+ 
+-#if USE_SPLIT_PTE_PTLOCKS && ALLOC_SPLIT_PTLOCKS
++#if defined(CONFIG_SPLIT_PTE_PTLOCKS) && ALLOC_SPLIT_PTLOCKS
+ 
+ static struct kmem_cache *page_ptl_cachep;
+ 
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-rmap-use-folio-_mapcount-for-small-folios.patch
+mm-always-inline-_compound_head-with-config_hugetlb_page_optimize_vmemmap=y.patch
+selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
