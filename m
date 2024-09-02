@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0617224EF
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54DEA6F2FE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247841; cv=none; b=qwrOhBSXM/4XgBFfsYiHipfJmPLv5P//sPUCJf4LIiVAZjfGnEdYwUPJqCIQbrDrh4mVWQBcpJogHdssPQVCQ+PycmQru2aQgPhLsYj3vSIQYcCCLpYja5n5WAYQEGQI5PLQpNzYU+036z3hz09s4acSGXiEONf9+1547iVtEaI=
+	t=1725247842; cv=none; b=oTZMbdBw+Sl+o5FDEto/o8gMjH0sp5ztYkc0LFaHn8q3s0W+GP2xCWYE1EdMgP9AM2WBagKqTunUYpr53Ce6HKtUknX4CGUvynCEYCGvG95reYnYWC7VZjC+MWmmMJRhokV0ezYlRmMEaQqaO+/LmLbpa8g0fh+B9rJYOaZ6bF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247841; c=relaxed/simple;
-	bh=Cx1+AgvVNxlKBFAUZa6+JgT5hmRkbzvpsuVKatrUvhY=;
-	h=Date:To:From:Subject:Message-Id; b=Ex4qIAG2db3f4ot2qQczF+fFW5DcYIv9S6muad8ziuLcck7xHqzGREUehxQxdRHL5NgRYchQZie6rPbK0pOtbrK9oC85uKBhA4X2w3pbyYrplQwb0A6M0D0J4/1NmevXGP2nOW93jyHoYgoEhh3hKTLf0W+oiYc/LQSq9UHEBrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WRnxNCF0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247842; c=relaxed/simple;
+	bh=ffNRIiYV9pkbOrNhBXLh8NofATqict6v82P7ppZzJkI=;
+	h=Date:To:From:Subject:Message-Id; b=i9XannZ0kqLwY/BJZb7lv02M0tFBUMpsUpWP7SxLPQ7E5hMAUjtVToBndwhX7R8b5LRpdUxNPzVuTVRP3FSwubmvTmfkDZ3VBTME+doETjByAvvfbUJOItjnqbg2m9R9+FSmydxfMHJ9Ym8n+OUDq+7HI9Ta5IZ/CUSVr7QCtac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x5K4IkYO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WRnxNCF0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C78FAC4CEC2;
-	Mon,  2 Sep 2024 03:30:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x5K4IkYO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1806BC4CEC2;
+	Mon,  2 Sep 2024 03:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247840;
-	bh=Cx1+AgvVNxlKBFAUZa6+JgT5hmRkbzvpsuVKatrUvhY=;
+	s=korg; t=1725247842;
+	bh=ffNRIiYV9pkbOrNhBXLh8NofATqict6v82P7ppZzJkI=;
 	h=Date:To:From:Subject:From;
-	b=WRnxNCF0PThvwYlpbtqfjRUg6fOEoUcPcuPM/NREdPfGwTKKc9IK92aJYRGN8RmNU
-	 GomAxG4oKzpMhNAr3Fpgos7N+Lc/jlLRRyFgV9dPRV6+8pkB8PxvS/qwvoYrUAyvuN
-	 2EJoRbDiuioyPzH/pKYi36W0bGNepN8yHCUfXAM8=
-Date: Sun, 01 Sep 2024 20:30:40 -0700
+	b=x5K4IkYOeoUfIBrvmAirc+Kq/lEqwIqHbMfPISW/jH2gHAyaNF21joPmlEDpSnbRH
+	 +8PRWi6oPUDBZA3HkD8FpJzPMS2ukbxL/xZj7kpdM/X53la4D1NUnKaikyf2F7CD+Z
+	 wc0yyYNxZmPa0Neri6ynE7YTZkzjxEBwXkkY0qRY=
+Date: Sun, 01 Sep 2024 20:30:41 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-remove-node-allocations-from-various-write-helper-functions.patch removed from -mm tree
-Message-Id: <20240902033040.C78FAC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-repeated-sanity-checks-from-write-helper-functions.patch removed from -mm tree
+Message-Id: <20240902033042.1806BC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: remove node allocations from various write helper functions
+     Subject: maple_tree: remove repeated sanity checks from write helper functions
 has been removed from the -mm tree.  Its filename was
-     maple_tree-remove-node-allocations-from-various-write-helper-functions.patch
+     maple_tree-remove-repeated-sanity-checks-from-write-helper-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: remove node allocations from various write helper functions
-Date: Wed, 14 Aug 2024 12:19:41 -0400
+Subject: maple_tree: remove repeated sanity checks from write helper functions
+Date: Wed, 14 Aug 2024 12:19:42 -0400
 
-These write helper functions are all called from store paths which
-preallocate enough nodes that will be needed for the write. There is no
-more need to allocate within the functions themselves.
+These sanity checks are now redundant as they are already checked in
+mas_wr_store_type(). We can remove them from mas_wr_append() and
+mas_wr_node_store().
 
-Link: https://lkml.kernel.org/r/20240814161944.55347-15-sidhartha.kumar@oracle.com
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20240814161944.55347-16-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ lib/maple_tree.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-node-allocations-from-various-write-helper-functions
+--- a/lib/maple_tree.c~maple_tree-remove-repeated-sanity-checks-from-write-helper-functions
 +++ a/lib/maple_tree.c
-@@ -2976,9 +2976,6 @@ static inline int mas_rebalance(struct m
- 	 * tries to combine the data in the same way.  If one node contains the
- 	 * entire range of the tree, then that node is used as a new root node.
- 	 */
--	mas_node_count(mas, empty_count * 2 - 1);
--	if (mas_is_err(mas))
--		return 0;
+@@ -3816,11 +3816,6 @@ static inline bool mas_wr_node_store(str
+ 	unsigned char copy_size, node_pivots = mt_pivots[wr_mas->type];
+ 	bool in_rcu = mt_in_rcu(mas->tree);
  
- 	mast.orig_l = &l_mas;
- 	mast.orig_r = &r_mas;
-@@ -3029,11 +3026,6 @@ static inline void mas_destroy_rebalance
- 
- 	/* set up node. */
- 	if (in_rcu) {
--		/* Allocate for both left and right as well as parent. */
--		mas_node_count(mas, 3);
--		if (mas_is_err(mas))
--			return;
+-	/* Check if there is enough data. The room is enough. */
+-	if (!mte_is_root(mas->node) && (new_end < mt_min_slots[wr_mas->type]) &&
+-	    !(mas->mas_flags & MA_STATE_BULK))
+-		return false;
 -
- 		newnode = mas_pop_node(mas);
- 	} else {
- 		newnode = &reuse;
-@@ -3341,10 +3333,6 @@ static int mas_split(struct ma_state *ma
- 
- 	trace_ma_op(__func__, mas);
- 	mas->depth = mas_mt_height(mas);
--	/* Allocation failures will happen early. */
--	mas_node_count(mas, 1 + mas->depth * 2);
--	if (mas_is_err(mas))
--		return 0;
- 
- 	mast.l = &l_mas;
- 	mast.r = &r_mas;
-@@ -3427,10 +3415,6 @@ static inline int mas_root_expand(struct
- 	unsigned long *pivots;
- 	int slot = 0;
- 
--	mas_node_count(mas, 1);
--	if (unlikely(mas_is_err(mas)))
--		return 0;
+ 	if (mas->last == wr_mas->end_piv)
+ 		offset_end++; /* don't copy this offset */
+ 	else if (unlikely(wr_mas->r_max == ULONG_MAX))
+@@ -4018,17 +4013,9 @@ static inline unsigned char mas_wr_new_e
+ static inline bool mas_wr_append(struct ma_wr_state *wr_mas,
+ 		unsigned char new_end)
+ {
+-	struct ma_state *mas;
++	struct ma_state *mas = wr_mas->mas;
+ 	void __rcu **slots;
+-	unsigned char end;
 -
- 	node = mas_pop_node(mas);
- 	pivots = ma_pivots(node, type);
- 	slots = ma_slots(node, type);
-@@ -3699,10 +3683,6 @@ static inline int mas_new_root(struct ma
- 		goto done;
- 	}
- 
--	mas_node_count(mas, 1);
--	if (mas_is_err(mas))
--		return 0;
+-	mas = wr_mas->mas;
+-	if (mt_in_rcu(mas->tree))
+-		return false;
 -
- 	node = mas_pop_node(mas);
- 	pivots = ma_pivots(node, type);
- 	slots = ma_slots(node, type);
-@@ -3765,9 +3745,6 @@ static noinline int mas_wr_spanning_stor
- 	 * entries per level plus a new root.
- 	 */
- 	height = mas_mt_height(mas);
--	mas_node_count(mas, 1 + height * 3);
--	if (mas_is_err(mas))
--		return 0;
+-	end = mas->end;
+-	if (mas->offset != end)
+-		return false;
++	unsigned char end = mas->end;
  
- 	/*
- 	 * Set up right side.  Need to get to the next offset after the spanning
-@@ -3851,10 +3828,6 @@ static inline bool mas_wr_node_store(str
- 
- 	/* set up node. */
- 	if (in_rcu) {
--		mas_node_count(mas, 1);
--		if (mas_is_err(mas))
--			return false;
--
- 		newnode = mas_pop_node(mas);
- 	} else {
- 		memset(&reuse, 0, sizeof(struct maple_node));
+ 	if (new_end < mt_pivots[wr_mas->type]) {
+ 		wr_mas->pivots[new_end] = wr_mas->pivots[end];
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
