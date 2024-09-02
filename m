@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A6B29CFB
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:16:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DF8C282EE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:16:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725246984; cv=none; b=UQTCwln9uqSJoQ55hQa5FP384NyC9EnxEHg5Ad+Lfn/l09i4tTV3SXb2diQaVCc0nox2MewjNt33HPYv0kD4jxTYXg0oS7OUTEQG19X2h3hdOpvQWQ4Yl+85jxyrMFPbi41TCZl2TwW/Py+E1P1gRq5RZAPPKlOroXGcz20ucyE=
+	t=1725247009; cv=none; b=nS7cALutG7sLIlWyJKsp0RrQxja2TmQLejAAnHVyHvdgMZcR4iHqUdEegeH3hc/GJ0LDTGYNGCvhrDmp+RTnX6m9fHPubgGJnKocjA4CPLQB2ZZYf+mLwevZOdO7lXonOr9Jp3ObNGjHOOsE9G34hQhgQrSd3a9AKB4JtrMrhEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725246984; c=relaxed/simple;
-	bh=7IIYwokxku1yEd6LfdgZXA81+cuOLCSxR2IV6oLnJnU=;
-	h=Date:To:From:Subject:Message-Id; b=fDBpc9bA2oRu/dHZED5+jxTRwo1iSV/1kDs1QnAQN+jmyMtj0MHueRvQBc+XupImYPwrZZpopHclvIw/yB1JJKjiQIsPK6xsjQko9WD1UrFJM4v0vogeXzZhPQeD2H3STymSGfthkZOEP5AEYme/6DC6gnKfxJMveoDHL9DQKYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a33TT+Za; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247009; c=relaxed/simple;
+	bh=ZBILbcRL5UkQAP3ICeQks81e3Fnpf+ECvEXIdUuhJew=;
+	h=Date:To:From:Subject:Message-Id; b=frQhfxB/61n/sw+Z9DRoypnzwqsS3XaYWsYYsTv4ijU45F2LJZ/MuxXA41a1li9RrToMBvRE/UsztjInsRCYf/FZW6CyMi3X4boXHcQub1S/hpLJPi9apJqiUef/ESC/kEf+ZMUTyfXkFuYPNU5z8Pc1P1vLU7nytOxBHa+GqPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fnWQssvZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a33TT+Za"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3100C4CEC3;
-	Mon,  2 Sep 2024 03:16:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fnWQssvZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB49C4CEC3;
+	Mon,  2 Sep 2024 03:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725246984;
-	bh=7IIYwokxku1yEd6LfdgZXA81+cuOLCSxR2IV6oLnJnU=;
+	s=korg; t=1725247008;
+	bh=ZBILbcRL5UkQAP3ICeQks81e3Fnpf+ECvEXIdUuhJew=;
 	h=Date:To:From:Subject:From;
-	b=a33TT+ZaqMJeOMu+h0IZ+h+W5WgZI0gaOHPB7gOS0vrBVx4d8YrFVKoY4vnCZ+LEO
-	 hxU1pQo4JFK18+ruExBFdG+j+ouTG2wE3J93m54byVzPKwy7ElCXw0pJISzlB/1f95
-	 30AM5LJlwEbCXhX5UMw1VuGKKiXceSt6v27duHAw=
-Date: Sun, 01 Sep 2024 20:16:23 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,torvalds@linux-foundation.org,rob@landley.net,richard@nod.at,pedro.falcato@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,Liam.Howlett@oracle.com,johannes@sipsolutions.net,jeffxu@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,dinguyen@kernel.org,dalias@libc.org,christophe.leroy@csgroup.eu,bcain@quicinc.com,anton.ivanov@cambridgegreys.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=fnWQssvZnd6h77S2YecilK0RZFViVICbc8VzzEd4jgxtRuYNOv/VS6Xu4ubEX88O1
+	 k/byyA86Ub7CEfHx+nMWRiELdi2h7SlJ1Ssni1SzQAXqGsqchz0bQgy7I/9jnZAlrG
+	 usE4lT5NxIr6mOUFAn25V7EyMaJW6z1nJwuMddYc=
+Date: Sun, 01 Sep 2024 20:16:47 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20240902031623.E3100C4CEC3@smtp.kernel.org>
+Subject: [folded-merged] mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg-fix.patch removed from -mm tree
+Message-Id: <20240902031648.8BB49C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
+     Subject: mm: kmem: fix split_page_memcg()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
+     mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg-fix.patch
 
-This patch was dropped because it was folded into mm-remove-legacy-install_special_mapping-code.patch
+This patch was dropped because it was folded into mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
-Date: Tue Aug 20 06:23:03 PM PDT 2024
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: kmem: fix split_page_memcg()
+Date: Mon, 19 Aug 2024 16:04:15 +0800
 
-WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
-#83: FILE: arch/csky/kernel/vdso.c:81:
-+	if (unlikely(IS_ERR(vma))) {
+split_page_memcg() does not care about the returned memcg for kmem
+pages, so folio_memcg_charged() should be used, otherwise obj_cgroup_memcg
+will complain about this.
 
-WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
-#97: FILE: arch/csky/kernel/vdso.c:92:
-+	if (unlikely(IS_ERR(vma))) {
-
-WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
-#213: FILE: arch/sh/kernel/vsyscall/vsyscall.c:84:
-+	if (unlikely(IS_ERR(vma)))
-
-total: 0 errors, 3 warnings, 249 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-remove-legacy-install_special_mapping-code.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20240819080415.44964-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: syzbot+ef4ecf7b6bdc4157bfa4@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/0000000000006f7e4d0620042b96@google.com
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/kernel/vdso.c            |    4 ++--
- arch/sh/kernel/vsyscall/vsyscall.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/csky/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
-+++ a/arch/csky/kernel/vdso.c
-@@ -78,7 +78,7 @@ int arch_setup_additional_pages(struct l
- 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
- 		&vdso_mapping);
+--- a/mm/memcontrol.c~mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg-fix
++++ a/mm/memcontrol.c
+@@ -3035,12 +3035,11 @@ void __memcg_slab_free_hook(struct kmem_
+ void split_page_memcg(struct page *head, int old_order, int new_order)
+ {
+ 	struct folio *folio = page_folio(head);
+-	struct mem_cgroup *memcg = folio_memcg(folio);
+ 	int i;
+ 	unsigned int old_nr = 1 << old_order;
+ 	unsigned int new_nr = 1 << new_order;
  
--	if (unlikely(IS_ERR(vma))) {
-+	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
- 		mm->context.vdso = NULL;
- 		goto end;
-@@ -89,7 +89,7 @@ int arch_setup_additional_pages(struct l
- 	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
- 		(VM_READ | VM_MAYREAD), &vvar_mapping);
+-	if (mem_cgroup_disabled() || !memcg)
++	if (mem_cgroup_disabled() || !folio_memcg_charged(folio))
+ 		return;
  
--	if (unlikely(IS_ERR(vma))) {
-+	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
- 		mm->context.vdso = NULL;
- 		goto end;
---- a/arch/sh/kernel/vsyscall/vsyscall.c~mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -81,7 +81,7 @@ int arch_setup_additional_pages(struct l
- 				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
- 				      &vdso_mapping);
- 	ret = PTR_ERR(vma);
--	if (unlikely(IS_ERR(vma)))
-+	if (IS_ERR(vma))
- 		goto up_fail;
+ 	for (i = new_nr; i < old_nr; i += new_nr)
+@@ -3049,7 +3048,7 @@ void split_page_memcg(struct page *head,
+ 	if (folio_memcg_kmem(folio))
+ 		obj_cgroup_get_many(__folio_objcg(folio), old_nr / new_nr - 1);
+ 	else
+-		css_get_many(&memcg->css, old_nr / new_nr - 1);
++		css_get_many(&folio_memcg(folio)->css, old_nr / new_nr - 1);
+ }
  
- 	current->mm->context.vdso = (void *)addr;
+ unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-include-linux-mmzoneh-clean-up-watermark-accessors.patch
-mm-remove-legacy-install_special_mapping-code.patch
-mm-contig_alloc-support-__gfp_comp-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix.patch
-selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
-mm-remove-pageactive-fix.patch
-selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-memory-failure-add-unmap_poisoned_folio-fix.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-lib-maple_treec-remove-unused-functions.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
-fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
+mm-kmem-remove-mem_cgroup_from_obj.patch
+mm-kmem-add-lockdep-assertion-to-obj_cgroup_memcg.patch
 
