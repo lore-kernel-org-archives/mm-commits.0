@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A8A44C81
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B74654502B
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247713; cv=none; b=IjIgaCTJ4VpAAT5x0vlEE/WdeVOYoLfm8nLAel1pNsxSkoFpiPHWzXR/cQQ6YiYXfMTU3YWAhzPIX81WQnjzYetD1jzMG06uLkQXwr8R59so3f+rj24aXDm+TO2ssAgs+cJqO2sVWSxgQeHJLcE38yy4dad5rHTyGe0t4z1gM+4=
+	t=1725247716; cv=none; b=S8xuP1gLj1rHRkX0v+lzU3O4eLV3wttc7+x1mPKC8kkpB2saHKxFC7DTMARK3xkNKG5SrFVExx7IubpueTOWcv+EqshpVhAf0WVTkOfYuXOpTLy3A6KtwMQhfNTaDDvdHLDB9DY6bBJmBGQYKD8JES11Yu4LZDSVvaSPxRpA0ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247713; c=relaxed/simple;
-	bh=U3ADUBKoiZ8/V+gjMc4cZ8M8kHH0GI3HHGTErMYX4Ao=;
-	h=Date:To:From:Subject:Message-Id; b=OcI8uoUyhhkDGlsYs97+AW0K1gOW7oqL984u0dl3hkxCMaAnATyY1sXKLB51c/G9ts1JE0uYQoKfhtR+yc9z+Saz0KTPjk8b6dzeMMBDdPeaPKETrPJdENNfzhNFWctGWNOmrcXQcZyOFKCOCFKQe8x4wxFUD2rDLavTXtuF4M0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ovy2kQYt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247716; c=relaxed/simple;
+	bh=rxn7Hj6D7pvt6A3dTWCpHRzc4f+N8uCaaoCJAhIdDTQ=;
+	h=Date:To:From:Subject:Message-Id; b=cOWWAvkIPtg33X8YQ8RjiFyu7jYEzvOEz4Y/oGij6DRBOkW0fQm94MGOE/6UcAUWqJ2HuQkAr4g3Ot2eMQJ/3mvLp86Smu5CFbU6Ljro9ZdqPGbee+pOXj+j2jSnPYjl4hzwPLXwUxRdohEaG9pLEojiUScKWMSs91W+oJLOyBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KvtAsD8N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ovy2kQYt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9809CC4CEC2;
-	Mon,  2 Sep 2024 03:28:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KvtAsD8N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A305C4CEC7;
+	Mon,  2 Sep 2024 03:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247713;
-	bh=U3ADUBKoiZ8/V+gjMc4cZ8M8kHH0GI3HHGTErMYX4Ao=;
+	s=korg; t=1725247716;
+	bh=rxn7Hj6D7pvt6A3dTWCpHRzc4f+N8uCaaoCJAhIdDTQ=;
 	h=Date:To:From:Subject:From;
-	b=Ovy2kQYtPfQf1G2T8Cbc2DPyH/6clWrLeL1Kt8KV4Eg+kC1dMzcmerJbUjhWA3wng
-	 FAwuOI4CkffqlTr/FdnECzS03fsv6iUYkiSKgqVTeqZjUkFH8CTlRTNxf6mHTWRxaa
-	 7UMruG5Vz7wfybHtBRL2zEXUSkois/5mjyZckcpc=
-Date: Sun, 01 Sep 2024 20:28:33 -0700
+	b=KvtAsD8NX66+gRqpEC7GdyzmTx2lyHI5GUAA9G/mEAttitMzSRnX74MGN541hqL/q
+	 XmK0mFHugmLwnGHCKnKX16fMUDpirRNYyoLDAr5JWSElpmDE5xmh2debBN2X4Pe90X
+	 g+cBPDEGHi765PH6gMOa9LQL0cCvISEhvosAgZgU=
+Date: Sun, 01 Sep 2024 20:28:36 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,pengfei.xu@intel.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-vma_shrink-vma_expand-to-internal-header.patch removed from -mm tree
-Message-Id: <20240902032833.9809CC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-entry-for-new-vma-files.patch removed from -mm tree
+Message-Id: <20240902032836.8A305C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: move vma_shrink(), vma_expand() to internal header
+     Subject: MAINTAINERS: add entry for new VMA files
 has been removed from the -mm tree.  Its filename was
-     mm-move-vma_shrink-vma_expand-to-internal-header.patch
+     maintainers-add-entry-for-new-vma-files.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: move vma_shrink(), vma_expand() to internal header
-Date: Mon, 29 Jul 2024 12:50:37 +0100
+Subject: MAINTAINERS: add entry for new VMA files
+Date: Mon, 29 Jul 2024 12:50:39 +0100
 
-The vma_shrink() and vma_expand() functions are internal VMA manipulation
-functions which we ought to abstract for use outside of memory management
-code.
+The vma files contain logic split from mmap.c for the most part and are
+all relevant to VMA logic, so maintain the same reviewers for both.
 
-To achieve this, we replace shift_arg_pages() in fs/exec.c with an
-invocation of a new relocate_vma_down() function implemented in mm/mmap.c,
-which enables us to also move move_page_tables() and vma_iter_prev_range()
-to internal.h.
-
-The purpose of doing this is to isolate key VMA manipulation functions in
-order that we can both abstract them and later render them easily
-testable.
-
-Link: https://lkml.kernel.org/r/3cfcd9ec433e032a85f636fdc0d7d98fafbd19c5.1722251717.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/bf2581cce2b4d210deabb5376c6aa0ad6facf1ff.1722251717.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -80,282 +70,31 @@ Cc: Pengfei Xu <pengfei.xu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |   81 +++----------------------------------------
- include/linux/mm.h |   17 ---------
- mm/internal.h      |   18 +++++++++
- mm/mmap.c          |   81 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 106 insertions(+), 91 deletions(-)
+ MAINTAINERS |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/fs/exec.c~mm-move-vma_shrink-vma_expand-to-internal-header
-+++ a/fs/exec.c
-@@ -712,80 +712,6 @@ static int copy_strings_kernel(int argc,
- #ifdef CONFIG_MMU
+--- a/MAINTAINERS~maintainers-add-entry-for-new-vma-files
++++ a/MAINTAINERS
+@@ -24411,6 +24411,19 @@ F:	include/uapi/linux/vsockmon.h
+ F:	net/vmw_vsock/
+ F:	tools/testing/vsock/
  
- /*
-- * During bprm_mm_init(), we create a temporary stack at STACK_TOP_MAX.  Once
-- * the binfmt code determines where the new stack should reside, we shift it to
-- * its final location.  The process proceeds as follows:
-- *
-- * 1) Use shift to calculate the new vma endpoints.
-- * 2) Extend vma to cover both the old and new ranges.  This ensures the
-- *    arguments passed to subsequent functions are consistent.
-- * 3) Move vma's page tables to the new range.
-- * 4) Free up any cleared pgd range.
-- * 5) Shrink the vma to cover only the new range.
-- */
--static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
--{
--	struct mm_struct *mm = vma->vm_mm;
--	unsigned long old_start = vma->vm_start;
--	unsigned long old_end = vma->vm_end;
--	unsigned long length = old_end - old_start;
--	unsigned long new_start = old_start - shift;
--	unsigned long new_end = old_end - shift;
--	VMA_ITERATOR(vmi, mm, new_start);
--	struct vm_area_struct *next;
--	struct mmu_gather tlb;
--
--	BUG_ON(new_start > new_end);
--
--	/*
--	 * ensure there are no vmas between where we want to go
--	 * and where we are
--	 */
--	if (vma != vma_next(&vmi))
--		return -EFAULT;
--
--	vma_iter_prev_range(&vmi);
--	/*
--	 * cover the whole range: [new_start, old_end)
--	 */
--	if (vma_expand(&vmi, vma, new_start, old_end, vma->vm_pgoff, NULL))
--		return -ENOMEM;
--
--	/*
--	 * move the page tables downwards, on failure we rely on
--	 * process cleanup to remove whatever mess we made.
--	 */
--	if (length != move_page_tables(vma, old_start,
--				       vma, new_start, length, false, true))
--		return -ENOMEM;
--
--	lru_add_drain();
--	tlb_gather_mmu(&tlb, mm);
--	next = vma_next(&vmi);
--	if (new_end > old_start) {
--		/*
--		 * when the old and new regions overlap clear from new_end.
--		 */
--		free_pgd_range(&tlb, new_end, old_end, new_end,
--			next ? next->vm_start : USER_PGTABLES_CEILING);
--	} else {
--		/*
--		 * otherwise, clean from old_start; this is done to not touch
--		 * the address space in [new_end, old_start) some architectures
--		 * have constraints on va-space that make this illegal (IA64) -
--		 * for the others its just a little faster.
--		 */
--		free_pgd_range(&tlb, old_start, old_end, new_end,
--			next ? next->vm_start : USER_PGTABLES_CEILING);
--	}
--	tlb_finish_mmu(&tlb);
--
--	vma_prev(&vmi);
--	/* Shrink the vma to just the new range */
--	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
--}
--
--/*
-  * Finalizes the stack vm_area_struct. The flags and permissions are updated,
-  * the stack is optionally relocated, and some extra space is added.
-  */
-@@ -877,7 +803,12 @@ int setup_arg_pages(struct linux_binprm
- 
- 	/* Move stack pages down in memory. */
- 	if (stack_shift) {
--		ret = shift_arg_pages(vma, stack_shift);
-+		/*
-+		 * During bprm_mm_init(), we create a temporary stack at STACK_TOP_MAX.  Once
-+		 * the binfmt code determines where the new stack should reside, we shift it to
-+		 * its final location.
-+		 */
-+		ret = relocate_vma_down(vma, stack_shift);
- 		if (ret)
- 			goto out_unlock;
- 	}
---- a/include/linux/mm.h~mm-move-vma_shrink-vma_expand-to-internal-header
-+++ a/include/linux/mm.h
-@@ -1005,12 +1005,6 @@ static inline struct vm_area_struct *vma
- 	return mas_prev(&vmi->mas, 0);
- }
- 
--static inline
--struct vm_area_struct *vma_iter_prev_range(struct vma_iterator *vmi)
--{
--	return mas_prev_range(&vmi->mas, 0);
--}
--
- static inline unsigned long vma_iter_addr(struct vma_iterator *vmi)
- {
- 	return vmi->mas.index;
-@@ -2520,11 +2514,6 @@ int set_page_dirty_lock(struct page *pag
- 
- int get_cmdline(struct task_struct *task, char *buffer, int buflen);
- 
--extern unsigned long move_page_tables(struct vm_area_struct *vma,
--		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len,
--		bool need_rmap_locks, bool for_stack);
--
- /*
-  * Flags used by change_protection().  For now we make it a bitmap so
-  * that we can pass in multiple flags just like parameters.  However
-@@ -3267,11 +3256,6 @@ void anon_vma_interval_tree_verify(struc
- 
- /* mmap.c */
- extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
--extern int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		      unsigned long start, unsigned long end, pgoff_t pgoff,
--		      struct vm_area_struct *next);
--extern int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		       unsigned long start, unsigned long end, pgoff_t pgoff);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void unlink_file_vma(struct vm_area_struct *);
-@@ -3279,6 +3263,7 @@ extern struct vm_area_struct *copy_vma(s
- 	unsigned long addr, unsigned long len, pgoff_t pgoff,
- 	bool *need_rmap_locks);
- extern void exit_mmap(struct mm_struct *);
-+int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
- 
- static inline int check_data_rlimit(unsigned long rlim,
- 				    unsigned long new,
---- a/mm/internal.h~mm-move-vma_shrink-vma_expand-to-internal-header
-+++ a/mm/internal.h
-@@ -1305,6 +1305,12 @@ static inline struct vm_area_struct
- 			  vma_policy(vma), new_ctx, anon_vma_name(vma));
- }
- 
-+int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	      unsigned long start, unsigned long end, pgoff_t pgoff,
-+	      struct vm_area_struct *next);
-+int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	       unsigned long start, unsigned long end, pgoff_t pgoff);
++VMA
++M:	Andrew Morton <akpm@linux-foundation.org>
++R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	https://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	mm/vma.c
++F:	mm/vma.h
++F:	mm/vma_internal.h
 +
- enum {
- 	/* mark page accessed */
- 	FOLL_TOUCH = 1 << 16,
-@@ -1528,6 +1534,12 @@ static inline int vma_iter_store_gfp(str
- 	return 0;
- }
- 
-+static inline
-+struct vm_area_struct *vma_iter_prev_range(struct vma_iterator *vmi)
-+{
-+	return mas_prev_range(&vmi->mas, 0);
-+}
-+
- /*
-  * VMA lock generalization
-  */
-@@ -1639,4 +1651,10 @@ void unlink_file_vma_batch_init(struct u
- void unlink_file_vma_batch_add(struct unlink_vma_file_batch *, struct vm_area_struct *);
- void unlink_file_vma_batch_final(struct unlink_vma_file_batch *);
- 
-+/* mremap.c */
-+unsigned long move_page_tables(struct vm_area_struct *vma,
-+	unsigned long old_addr, struct vm_area_struct *new_vma,
-+	unsigned long new_addr, unsigned long len,
-+	bool need_rmap_locks, bool for_stack);
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/mmap.c~mm-move-vma_shrink-vma_expand-to-internal-header
-+++ a/mm/mmap.c
-@@ -4088,3 +4088,84 @@ static int __meminit init_reserve_notifi
- 	return 0;
- }
- subsys_initcall(init_reserve_notifier);
-+
-+/*
-+ * Relocate a VMA downwards by shift bytes. There cannot be any VMAs between
-+ * this VMA and its relocated range, which will now reside at [vma->vm_start -
-+ * shift, vma->vm_end - shift).
-+ *
-+ * This function is almost certainly NOT what you want for anything other than
-+ * early executable temporary stack relocation.
-+ */
-+int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift)
-+{
-+	/*
-+	 * The process proceeds as follows:
-+	 *
-+	 * 1) Use shift to calculate the new vma endpoints.
-+	 * 2) Extend vma to cover both the old and new ranges.  This ensures the
-+	 *    arguments passed to subsequent functions are consistent.
-+	 * 3) Move vma's page tables to the new range.
-+	 * 4) Free up any cleared pgd range.
-+	 * 5) Shrink the vma to cover only the new range.
-+	 */
-+
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long old_start = vma->vm_start;
-+	unsigned long old_end = vma->vm_end;
-+	unsigned long length = old_end - old_start;
-+	unsigned long new_start = old_start - shift;
-+	unsigned long new_end = old_end - shift;
-+	VMA_ITERATOR(vmi, mm, new_start);
-+	struct vm_area_struct *next;
-+	struct mmu_gather tlb;
-+
-+	BUG_ON(new_start > new_end);
-+
-+	/*
-+	 * ensure there are no vmas between where we want to go
-+	 * and where we are
-+	 */
-+	if (vma != vma_next(&vmi))
-+		return -EFAULT;
-+
-+	vma_iter_prev_range(&vmi);
-+	/*
-+	 * cover the whole range: [new_start, old_end)
-+	 */
-+	if (vma_expand(&vmi, vma, new_start, old_end, vma->vm_pgoff, NULL))
-+		return -ENOMEM;
-+
-+	/*
-+	 * move the page tables downwards, on failure we rely on
-+	 * process cleanup to remove whatever mess we made.
-+	 */
-+	if (length != move_page_tables(vma, old_start,
-+				       vma, new_start, length, false, true))
-+		return -ENOMEM;
-+
-+	lru_add_drain();
-+	tlb_gather_mmu(&tlb, mm);
-+	next = vma_next(&vmi);
-+	if (new_end > old_start) {
-+		/*
-+		 * when the old and new regions overlap clear from new_end.
-+		 */
-+		free_pgd_range(&tlb, new_end, old_end, new_end,
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
-+	} else {
-+		/*
-+		 * otherwise, clean from old_start; this is done to not touch
-+		 * the address space in [new_end, old_start) some architectures
-+		 * have constraints on va-space that make this illegal (IA64) -
-+		 * for the others its just a little faster.
-+		 */
-+		free_pgd_range(&tlb, old_start, old_end, new_end,
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
-+	}
-+	tlb_finish_mmu(&tlb);
-+
-+	vma_prev(&vmi);
-+	/* Shrink the vma to just the new range */
-+	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
-+}
+ VMALLOC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Uladzislau Rezki <urezki@gmail.com>
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
