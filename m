@@ -1,191 +1,69 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC6214BF89
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3011D2794
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 09:44:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248860; cv=none; b=eVH/cax4LOHZ8XaMtFfQlZa1S9cnhIOd+5c/Pf4JWtdiLyKbRVC8SsRdv/MLiPT618gydAyCFR/1xZo6j8s2b2IwQvKVO8ZAX+e3CHmqdWJyXU4c/K4Q5Tyn1LiAE1ZPZBudHhchfnEWOF8s2ZTMpNv/bayj6raoKgoWARyXn18=
+	t=1725270301; cv=none; b=Qe8t+P5mgjY5nwWicaPm1DB+aw8kvokYY+4SckMi7sMUEpXYMZbhlM5ykin4PsGCcEm++b1TWxefdZGZvHFUFi8LgkqDRX87F9jfShIA1yjLNMdwviDOlFDr/tWxmpIDYnGnVvsqqaMlzeT0dd1cX4sdppegHvptzdGRTQ3kje4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248860; c=relaxed/simple;
-	bh=GLdFPwv28ufl8hqjaphnsWizFcrujs4S8/Cvpd1R2YU=;
-	h=Date:To:From:Subject:Message-Id; b=pcaiDOOG+qq+cLv7uwrb7tZrLYvt8l46rN1YWM/uDPIY/S0Epuk/0mzIAB3dYom/DZf5lrh8yOgSnOZUkYdVfn8rnkDhSMQNwVlgnBSobNpbftIK85XwnXWEpkF82GnDWgUsOBeQsnyMH3Q1goMZJ4C3OB9ffnG3tUNZQchj2Ps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NIAFEw8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725270301; c=relaxed/simple;
+	bh=7YYg8VEFEQtf9A2mWWjR5atTkwbrbBewDKUGPlCKvTE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VP0nLEqK7lcnGvxHsGVDYBVttRRNVpkz/eiKWL+3CFTUILyBPNQCbH8EJLTEsN0HxZEmx66yY4SPw1eoavbyt9MJBmKQdxeCxZ9+Bz3+bH5an23at6JPjNIU6zaI2SP6EW/A3I5mANnRbtyeI+bVlWpGfhCbni8S+zqOaoEXWPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=fs0/ZxEJ; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NIAFEw8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 026B6C4CEC2;
-	Mon,  2 Sep 2024 03:47:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248860;
-	bh=GLdFPwv28ufl8hqjaphnsWizFcrujs4S8/Cvpd1R2YU=;
-	h=Date:To:From:Subject:From;
-	b=1NIAFEw853rbt5DGbG3Ci1OfiW71I1o+CupZrUE417NER4jeOFm6/n7obRoV+k7R2
-	 Pp3lc1pLCFfHzspNY0dxTuh/FkYCfpY2csPJVur9ir+GrGe6J35SIGTgnYs+WQe6pt
-	 3/s/M1gB0cCmt8RFUfdJpVlMFC+wted0C2BcFg1g=
-Date: Sun, 01 Sep 2024 20:47:39 -0700
-To: mm-commits@vger.kernel.org,huangxiaojia2@huawei.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-refactor-nilfs_segctor_thread.patch removed from -mm tree
-Message-Id: <20240902034740.026B6C4CEC2@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="fs0/ZxEJ"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5343d2af735so3873120e87.1
+        for <mm-commits@vger.kernel.org>; Mon, 02 Sep 2024 02:44:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1725270297; x=1725875097; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=7YYg8VEFEQtf9A2mWWjR5atTkwbrbBewDKUGPlCKvTE=;
+        b=fs0/ZxEJp2Lm1+rvdXYtyVH7u5MjEAPG2LpxxzXAaSMQy6QjxbG/2tCWa1wqtgOoRK
+         qC5koN7FzYcz2yCv3MCB7n9+YdzGOeEDubcSWP7AprYQ0x8DqEDBmAOCVDwIvzn+6Qmn
+         UiqzxzG+Ee1jmTHRLKKyNYTCtKa4GwDGnZlro=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725270297; x=1725875097;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=7YYg8VEFEQtf9A2mWWjR5atTkwbrbBewDKUGPlCKvTE=;
+        b=Sm4X3x0e0NgDqNJYIKtHx0OKmD4xHrjTRx1NMqeuYkicN9Yl91dQUCqbspzyZwUFND
+         XMJ3lpiLTPXDxEgdo7W5dpwjWZlnCfKOFhjEZq7uZknTIwKLnh1vIZnOixZRc7ZSPZZh
+         W+FBnlc0btQq1anY6MHQ7DW3zApUAHEAqzTCHVpGWmV15tChh3Kvwwmx0wiBH1DhWo0i
+         2yD5qGfdsTeByx8z5VmdnXIOBSfwifMDnhRELuQbHEuzfQKTc8KUORhuzWBqJb5xSEHL
+         4OJnuvI56ZtJZ5sdnyBr+qWvvg3WJFrGgVpXruBqKVkkaf38pXENl61jjjOnne55mR0H
+         Kx1Q==
+X-Gm-Message-State: AOJu0YxuW61v6ihEueCZD2eSPDCTrfjmcZy/lJRQ0V54pzBwHMr4ot0p
+	dPbhmsRaylyz44CO4IUISmus997vPQ5v6bGtb4vK/VAWBhkK0cpwBY2lBAkaGhg7DWK6VgeLlF/
+	LqBohScvF0ytNdcMgMPxnzelOehctfJFugKe39J/saq0qkBNm
+X-Google-Smtp-Source: AGHT+IG6ugVnz9FVVGsqRb1xuBW+0eiPZLwqPzsbJSiYVByvEFSVI9tup4E87bnSzK3fC6hJSnOF7EUK2Qn19T/vm1E=
+X-Received: by 2002:a05:6512:39d4:b0:530:abec:9a23 with SMTP id
+ 2adb3069b0e04-53546b25841mr6622961e87.17.1725270297334; Mon, 02 Sep 2024
+ 02:44:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240902033004.5128EC4CEC2@smtp.kernel.org>
+In-Reply-To: <20240902033004.5128EC4CEC2@smtp.kernel.org>
+From: Takaya Saeki <takayas@chromium.org>
+Date: Mon, 2 Sep 2024 18:44:45 +0900
+Message-ID: <CAH9xa6eWt4nDE-1a4ZHsz9Z2e5muAYwEZ1+dJRSeKxzowhkYfA@mail.gmail.com>
+Subject: Re: [merged mm-stable] filemap-add-trace-events-for-get_pages-map_pages-and-fault.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, willy@infradead.org, uekawa@chromium.org, 
+	rostedt@goodmis.org, mhiramat@kernel.org, mathieu.desnoyers@efficios.com
+Content-Type: text/plain; charset="UTF-8"
 
-
-The quilt patch titled
-     Subject: nilfs2: refactor nilfs_segctor_thread()
-has been removed from the -mm tree.  Its filename was
-     nilfs2-refactor-nilfs_segctor_thread.patch
-
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: refactor nilfs_segctor_thread()
-Date: Tue, 27 Aug 2024 02:41:16 +0900
-
-Simplify nilfs_segctor_thread(), the main loop function of the log writer
-thread, to make the basic structure easier to understand.
-
-In particular, the acquisition and release of the sc_state_lock spinlock
-was scattered throughout the function, so extract the determination of
-whether log writing is required into a helper function and make the
-spinlock lock sections clearer.
-
-Link: https://lkml.kernel.org/r/20240826174116.5008-9-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Huang Xiaojia <huangxiaojia2@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/nilfs2/segment.c |   85 +++++++++++++++++++-----------------------
- 1 file changed, 40 insertions(+), 45 deletions(-)
-
---- a/fs/nilfs2/segment.c~nilfs2-refactor-nilfs_segctor_thread
-+++ a/fs/nilfs2/segment.c
-@@ -2628,6 +2628,32 @@ static int nilfs_segctor_flush_mode(stru
- }
- 
- /**
-+ * nilfs_log_write_required - determine whether log writing is required
-+ * @sci:   nilfs_sc_info struct
-+ * @modep: location for storing log writing mode
-+ *
-+ * Return: true if log writing is required, false otherwise.  If log writing
-+ * is required, the mode is stored in the location pointed to by @modep.
-+ */
-+static bool nilfs_log_write_required(struct nilfs_sc_info *sci, int *modep)
-+{
-+	bool timedout, ret = true;
-+
-+	spin_lock(&sci->sc_state_lock);
-+	timedout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
-+		   time_after_eq(jiffies, sci->sc_timer.expires));
-+	if (timedout || sci->sc_seq_request != sci->sc_seq_done)
-+		*modep = SC_LSEG_SR;
-+	else if (sci->sc_flush_request)
-+		*modep = nilfs_segctor_flush_mode(sci);
-+	else
-+		ret = false;
-+
-+	spin_unlock(&sci->sc_state_lock);
-+	return ret;
-+}
-+
-+/**
-  * nilfs_segctor_thread - main loop of the log writer thread
-  * @arg: pointer to a struct nilfs_sc_info.
-  *
-@@ -2642,70 +2668,39 @@ static int nilfs_segctor_thread(void *ar
- {
- 	struct nilfs_sc_info *sci = (struct nilfs_sc_info *)arg;
- 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
--	int timeout = 0;
- 
- 	nilfs_info(sci->sc_super,
- 		   "segctord starting. Construction interval = %lu seconds, CP frequency < %lu seconds",
- 		   sci->sc_interval / HZ, sci->sc_mjcp_freq / HZ);
- 
- 	set_freezable();
--	spin_lock(&sci->sc_state_lock);
-- loop:
--	for (;;) {
--		int mode;
- 
--		if (kthread_should_stop())
--			goto end_thread;
--
--		if (timeout || sci->sc_seq_request != sci->sc_seq_done)
--			mode = SC_LSEG_SR;
--		else if (sci->sc_flush_request)
--			mode = nilfs_segctor_flush_mode(sci);
--		else
--			break;
--
--		spin_unlock(&sci->sc_state_lock);
--		nilfs_segctor_thread_construct(sci, mode);
--		spin_lock(&sci->sc_state_lock);
--		timeout = 0;
--	}
--
--
--	if (freezing(current)) {
--		spin_unlock(&sci->sc_state_lock);
--		try_to_freeze();
--		spin_lock(&sci->sc_state_lock);
--	} else {
-+	while (!kthread_should_stop()) {
- 		DEFINE_WAIT(wait);
--		int should_sleep = 1;
-+		bool should_write;
-+		int mode;
-+
-+		if (freezing(current)) {
-+			try_to_freeze();
-+			continue;
-+		}
- 
- 		prepare_to_wait(&sci->sc_wait_daemon, &wait,
- 				TASK_INTERRUPTIBLE);
--
--		if (sci->sc_seq_request != sci->sc_seq_done)
--			should_sleep = 0;
--		else if (sci->sc_flush_request)
--			should_sleep = 0;
--		else if (sci->sc_state & NILFS_SEGCTOR_COMMIT)
--			should_sleep = time_before(jiffies,
--					sci->sc_timer.expires);
--
--		if (should_sleep) {
--			spin_unlock(&sci->sc_state_lock);
-+		should_write = nilfs_log_write_required(sci, &mode);
-+		if (!should_write)
- 			schedule();
--			spin_lock(&sci->sc_state_lock);
--		}
- 		finish_wait(&sci->sc_wait_daemon, &wait);
--		timeout = ((sci->sc_state & NILFS_SEGCTOR_COMMIT) &&
--			   time_after_eq(jiffies, sci->sc_timer.expires));
- 
- 		if (nilfs_sb_dirty(nilfs) && nilfs_sb_need_update(nilfs))
- 			set_nilfs_discontinued(nilfs);
-+
-+		if (should_write)
-+			nilfs_segctor_thread_construct(sci, mode);
- 	}
--	goto loop;
- 
-- end_thread:
- 	/* end sync. */
-+	spin_lock(&sci->sc_state_lock);
- 	sci->sc_task = NULL;
- 	timer_shutdown_sync(&sci->sc_timer);
- 	spin_unlock(&sci->sc_state_lock);
-_
-
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
-
-
+Hello Andrew, there is a newer v4 version for this patch.
+https://lore.kernel.org/lkml/20240816211029.903842-1-takayas@chromium.org/T/
+Do you mind letting me know how to correct the patch being merged to
+the latest version?
