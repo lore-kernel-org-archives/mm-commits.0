@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B21A2D613
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 059D53A8CB
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247666; cv=none; b=PdSXVJnkNaRy5I4+I8XFUQ6BYAUa5YH03b7nX2tW8fw7rOR2acnlDN6QOIbY1QGwPoYh9a4LoCbIqUFaFGKQRqzV81labA/at0UihRlTL0y1imk5koNoGNBfgeBLMN0ElaPykCs1D27nU3ArzXWlmrhZbJdSOzcTx7/d7gq60X0=
+	t=1725247667; cv=none; b=af74o0SOFmKWuC+hawu5RPGf49TtYbsdi4Rfi9kYF1nsrI5nGYurDRZWL+wiLA7WKsiyEy9tpbRJAAOB+tty1k0RZDktJybSZ7cGsKdfVI9em6zaWgxA+MNwlGFenGUE031pgEDC6SFiiUAcmdB411X5y5rVDxBRW5YB7y+io38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247666; c=relaxed/simple;
-	bh=+7Q60RRWA/FrwUurYnVrGVV6IwL51K67hqoJ1sJqCLU=;
-	h=Date:To:From:Subject:Message-Id; b=rgdoo5u0QEkrIjabbqGQUljM/MQgjqwO8AzV//JNjoCfELLhNcEoNY7/YmqdH/jOwbCaoWe8QXH+JRfEJttcTjqmiq0j01ELisg8iBY80HQiCpf8KDty2ChHMhPQRmdnTfY92JhftjGAo9qpenkLZfJxFYuaXqld4ivDusn+qDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fpSjMsO9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247667; c=relaxed/simple;
+	bh=ddUxWJrWYLS55UfjcrDOliSgLAK0uWlC/5R7pWmTQGM=;
+	h=Date:To:From:Subject:Message-Id; b=KZAtqNCwc1MqCLTmra5ihibSGU1eOLGqzkAwzCkiSpVM2Ra+ubKxBlt4BMdoZdrORYPlYpjhzHnfb//oiJlj13YMWHMS8vY8nJ1/uJ6PW1Tg/1HFFo+cRM6CC/8uF8BLPj7lITZqmwZh1dGy2ITwrr2GlYWqHymmsv9VGimfYHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FvnT8rP7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fpSjMsO9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A046C4CEC2;
-	Mon,  2 Sep 2024 03:27:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FvnT8rP7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E9D0C4CEC2;
+	Mon,  2 Sep 2024 03:27:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247665;
-	bh=+7Q60RRWA/FrwUurYnVrGVV6IwL51K67hqoJ1sJqCLU=;
+	s=korg; t=1725247666;
+	bh=ddUxWJrWYLS55UfjcrDOliSgLAK0uWlC/5R7pWmTQGM=;
 	h=Date:To:From:Subject:From;
-	b=fpSjMsO9BOpLeMWjTOk1iJh2dWBdrTVi1iZpExD/5UD7cJuL/e2pTO1pO2SbYunVh
-	 UHf59BsN9QunqPMfAs9+0L9lUhPReCtA3viOFU20EljYP2ZdwSu4msEHGUlI9NHA0m
-	 v2KIWZsLcM0YFVK6SQlizPnwB21ge5YcKgc0+wc4=
-Date: Sun, 01 Sep 2024 20:27:44 -0700
-To: mm-commits@vger.kernel.org,jack@suse.cz,hughd@google.com,cmaiolino@redhat.com,brauner@kernel.org,aris@redhat.com,cem@kernel.org,akpm@linux-foundation.org
+	b=FvnT8rP7HvtWLxmoHtOZPunELYH9W/xhmnbSoBiyBLOzw6V3kxxsRH2ZNX+K7UZsC
+	 msFn1fTjvVwx9epey9W3CDyGYBxqnwJ/HF8GoE+Cj8YN7xY3OksLcZRql6QAvk508a
+	 2EhPRFXxpsEucGpbC6vS4w/hzH5UbxPKIp8KjHvY=
+Date: Sun, 01 Sep 2024 20:27:45 -0700
+To: mm-commits@vger.kernel.org,oliver.sang@intel.com,muchun.song@linux.dev,mhartmay@linux.ibm.com,frankja@linux.ibm.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] shmem_quota-build-the-object-file-conditionally-to-the-config-option.patch removed from -mm tree
-Message-Id: <20240902032745.5A046C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch removed from -mm tree
+Message-Id: <20240902032746.6E9D0C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,160 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: shmem_quota: build the object file conditionally to the config option
+     Subject: mm/hugetlb_vmemmap: don't synchronize_rcu() without HVO
 has been removed from the -mm tree.  Its filename was
-     shmem_quota-build-the-object-file-conditionally-to-the-config-option.patch
+     mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Carlos Maiolino <cem@kernel.org>
-Subject: shmem_quota: build the object file conditionally to the config option
-Date: Wed, 17 Jul 2024 08:37:27 +0200
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/hugetlb_vmemmap: don't synchronize_rcu() without HVO
+Date: Thu, 18 Jul 2024 22:25:03 -0600
 
-Initially I added shmem-quota to obj-y, move it to the correct place and
-remove the unneeded full file #ifdef
+hugetlb_vmemmap_optimize_folio() and hugetlb_vmemmap_restore_folio() are
+wrappers meant to be called regardless of whether HVO is enabled. 
+Therefore, they should not call synchronize_rcu().  Otherwise, it
+regresses use cases not enabling HVO.
 
-Link: https://lkml.kernel.org/r/20240717063737.910840-1-cem@kernel.org
-Signed-off-by: Carlos Maiolino <cmaiolino@redhat.com>
-Suggested-by: Aristeu Rozanski <aris@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+So move synchronize_rcu() to __hugetlb_vmemmap_optimize_folio() and
+__hugetlb_vmemmap_restore_folio(), and call it once for each batch of
+folios when HVO is enabled.
+
+Link: https://lkml.kernel.org/r/20240719042503.2752316-1-yuzhao@google.com
+Fixes: bd225530a4c7 ("mm/hugetlb_vmemmap: fix race with speculative PFN walkers")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202407091001.1250ad4a-oliver.sang@intel.com
+Reported-by: Janosch Frank <frankja@linux.ibm.com>
+Tested-by: Marc Hartmayer <mhartmay@linux.ibm.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Makefile      |    3 ++-
- mm/shmem_quota.c |    3 ---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/hugetlb_vmemmap.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
---- a/mm/Makefile~shmem_quota-build-the-object-file-conditionally-to-the-config-option
-+++ a/mm/Makefile
-@@ -53,7 +53,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   readahead.o swap.o truncate.o vmscan.o shrinker.o \
- 			   shmem.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o percpu.o slab_common.o \
--			   compaction.o show_mem.o shmem_quota.o\
-+			   compaction.o show_mem.o \
- 			   interval_tree.o list_lru.o workingset.o \
- 			   debug.o gup.o mmap_lock.o $(mmu-y)
- 
-@@ -141,3 +141,4 @@ obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) +=
- obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
- obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
- obj-$(CONFIG_EXECMEM) += execmem.o
-+obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
---- a/mm/shmem_quota.c~shmem_quota-build-the-object-file-conditionally-to-the-config-option
-+++ a/mm/shmem_quota.c
-@@ -34,8 +34,6 @@
- #include <linux/quotaops.h>
- #include <linux/quota.h>
- 
--#ifdef CONFIG_TMPFS_QUOTA
--
- /*
-  * The following constants define the amount of time given a user
-  * before the soft limits are treated as hard limits (usually resulting
-@@ -351,4 +349,3 @@ const struct dquot_operations shmem_quot
- 	.mark_dirty		= shmem_mark_dquot_dirty,
- 	.get_next_id		= shmem_get_next_id,
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-dont-synchronize_rcu-without-hvo
++++ a/mm/hugetlb_vmemmap.c
+@@ -43,6 +43,8 @@ struct vmemmap_remap_walk {
+ #define VMEMMAP_SPLIT_NO_TLB_FLUSH	BIT(0)
+ /* Skip the TLB flush when we remap the PTE */
+ #define VMEMMAP_REMAP_NO_TLB_FLUSH	BIT(1)
++/* synchronize_rcu() to avoid writes from page_ref_add_unless() */
++#define VMEMMAP_SYNCHRONIZE_RCU		BIT(2)
+ 	unsigned long		flags;
  };
--#endif /* CONFIG_TMPFS_QUOTA */
+ 
+@@ -457,6 +459,9 @@ static int __hugetlb_vmemmap_restore_fol
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		return 0;
+ 
++	if (flags & VMEMMAP_SYNCHRONIZE_RCU)
++		synchronize_rcu();
++
+ 	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
+ 	vmemmap_reuse	= vmemmap_start;
+ 	vmemmap_start	+= HUGETLB_VMEMMAP_RESERVE_SIZE;
+@@ -489,10 +494,7 @@ static int __hugetlb_vmemmap_restore_fol
+  */
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio)
+ {
+-	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
+-	synchronize_rcu();
+-
+-	return __hugetlb_vmemmap_restore_folio(h, folio, 0);
++	return __hugetlb_vmemmap_restore_folio(h, folio, VMEMMAP_SYNCHRONIZE_RCU);
+ }
+ 
+ /**
+@@ -515,14 +517,14 @@ long hugetlb_vmemmap_restore_folios(cons
+ 	struct folio *folio, *t_folio;
+ 	long restored = 0;
+ 	long ret = 0;
+-
+-	/* avoid writes from page_ref_add_unless() while unfolding vmemmap */
+-	synchronize_rcu();
++	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH | VMEMMAP_SYNCHRONIZE_RCU;
+ 
+ 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
+ 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
+-			ret = __hugetlb_vmemmap_restore_folio(h, folio,
+-							      VMEMMAP_REMAP_NO_TLB_FLUSH);
++			ret = __hugetlb_vmemmap_restore_folio(h, folio, flags);
++			/* only need to synchronize_rcu() once for each batch */
++			flags &= ~VMEMMAP_SYNCHRONIZE_RCU;
++
+ 			if (ret)
+ 				break;
+ 			restored++;
+@@ -570,6 +572,9 @@ static int __hugetlb_vmemmap_optimize_fo
+ 		return ret;
+ 
+ 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
++
++	if (flags & VMEMMAP_SYNCHRONIZE_RCU)
++		synchronize_rcu();
+ 	/*
+ 	 * Very Subtle
+ 	 * If VMEMMAP_REMAP_NO_TLB_FLUSH is set, TLB flushing is not performed
+@@ -617,10 +622,7 @@ void hugetlb_vmemmap_optimize_folio(cons
+ {
+ 	LIST_HEAD(vmemmap_pages);
+ 
+-	/* avoid writes from page_ref_add_unless() while folding vmemmap */
+-	synchronize_rcu();
+-
+-	__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, 0);
++	__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, VMEMMAP_SYNCHRONIZE_RCU);
+ 	free_vmemmap_page_list(&vmemmap_pages);
+ }
+ 
+@@ -647,6 +649,7 @@ void hugetlb_vmemmap_optimize_folios(str
+ {
+ 	struct folio *folio;
+ 	LIST_HEAD(vmemmap_pages);
++	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH | VMEMMAP_SYNCHRONIZE_RCU;
+ 
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret = hugetlb_vmemmap_split_folio(h, folio);
+@@ -663,14 +666,12 @@ void hugetlb_vmemmap_optimize_folios(str
+ 
+ 	flush_tlb_all();
+ 
+-	/* avoid writes from page_ref_add_unless() while folding vmemmap */
+-	synchronize_rcu();
+-
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
+ 
+-		ret = __hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages,
+-						       VMEMMAP_REMAP_NO_TLB_FLUSH);
++		ret = __hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, flags);
++		/* only need to synchronize_rcu() once for each batch */
++		flags &= ~VMEMMAP_SYNCHRONIZE_RCU;
+ 
+ 		/*
+ 		 * Pages to be freed may have been accumulated.  If we
+@@ -684,8 +685,7 @@ void hugetlb_vmemmap_optimize_folios(str
+ 			flush_tlb_all();
+ 			free_vmemmap_page_list(&vmemmap_pages);
+ 			INIT_LIST_HEAD(&vmemmap_pages);
+-			__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages,
+-							 VMEMMAP_REMAP_NO_TLB_FLUSH);
++			__hugetlb_vmemmap_optimize_folio(h, folio, &vmemmap_pages, flags);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from cem@kernel.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
+mm-contig_alloc-support-__gfp_comp.patch
+mm-cma-add-cma_allocfree_folio.patch
+mm-cma-add-cma_allocfree_folio-fix.patch
+mm-hugetlb-use-__gfp_comp-for-gigantic-folios.patch
+mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch
+mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
 
