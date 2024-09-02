@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F1B7DA7B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:45:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B3497DA7B
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:45:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248754; cv=none; b=OYqn0P3m9KANeCuety2ebFxPkqwncSlQqvPL3SOuP+K7Ywsz4KEeR5MaUihDX4X9jzgdPcDrkhHlUlo0mG/eviNvn0U1sKQiiWDzs+bw6/QxaSLuzh2eoFYqTqRV/itwONwrfpH5s/Ah6XhRlqW58xBe1m/+56hmn4H6Dx4s1W8=
+	t=1725248755; cv=none; b=BBocWlJtNBZ1S4mVFSQdRUg/D8fGTpE5gFmWOEHUbrbmxNBY06OhgKDSLJRahJPKrfqU2Z74nRDHORxcRDUY64anDOb3UpI7nPQVAYnQNCwdpSEUfcr4Ijx62CGyF0p2MCm9oSx1nV+pSWVlg2dtK+fHva8M06groDDZKcXC99c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248754; c=relaxed/simple;
-	bh=JNXjk5IXjmg81IZrBPFKgdqsEz/43zWjmtMUqi2kp2Y=;
-	h=Date:To:From:Subject:Message-Id; b=jgyMETYNLm3yyb4Xt7UwLY+ntCOeOgLRsqwObJUX3Hrsx9B3Zw6h0dK4KWbrYcQq8fj6qExQmQhjYINKoxJ4x7gEgeMt8Y1pH5eydUZ/TWxQOjyLcAQyi5BTuOQDIcTVrPaksJnZWenVpJda5I605+/socEPMPMkZO4+btScPA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z/+Ceic5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248755; c=relaxed/simple;
+	bh=5352q2WvbgAh05JUJEQi3brrxcxbn/h7ZGYFeN+JX/Q=;
+	h=Date:To:From:Subject:Message-Id; b=iq9TFAhEHtJVCoDNPkGEF3P9gAj5PC3XPCJGIiEbP2mO2zYZvQ4LExBeUxIGuscOOmXKYDmpviybWGs7og4pg2b9gLQHqZjC29vaeYw13hxhQX971L+nPhA6gt5639f9mVNUdOCmxbGOopGjpCd7s1FI2hH0jG6KX2XNVdymGWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cIuL0J1f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z/+Ceic5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA5C1C4CEC2;
-	Mon,  2 Sep 2024 03:45:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cIuL0J1f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2F16C4CEC2;
+	Mon,  2 Sep 2024 03:45:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248753;
-	bh=JNXjk5IXjmg81IZrBPFKgdqsEz/43zWjmtMUqi2kp2Y=;
+	s=korg; t=1725248754;
+	bh=5352q2WvbgAh05JUJEQi3brrxcxbn/h7ZGYFeN+JX/Q=;
 	h=Date:To:From:Subject:From;
-	b=Z/+Ceic5OApbNpG+ZHsD/ovVpZwu4/Ju/kFQc8K8mdTjQC14phBysA5+TJt/KDuE9
-	 pQieYXUp8Y0Z0wTdIz5cBaLlCp5J/STUsoW2STTbqpMM7egQMP5cmSAT9rieYodTiR
-	 qLQRMB/v33HKlad9NswUz03zJp0dwWYzvw+06+9o=
-Date: Sun, 01 Sep 2024 20:45:53 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,nogikh@google.com,linux@rasmusvillemoes.dk,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org
+	b=cIuL0J1ftdBj2pLKwidT8bf4/Az2MPSAYzUQSVqTkWDCrWV1TUYVGcN48dFzPWgF6
+	 gWQxWnTf7vZT/hkftnbCKo/9Fb3aC6b6zn5orpfUv83hfxWSUXUyG30FRrKdwUsgbX
+	 DAtnBsFSaSsfSp4shZEWeKv9cSyuPSzzGOdwuaAA=
+Date: Sun, 01 Sep 2024 20:45:54 -0700
+To: mm-commits@vger.kernel.org,ebiederm@xmission.com,bhe@redhat.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kcov-dont-instrument-lib-find_bitc.patch removed from -mm tree
-Message-Id: <20240902034553.CA5C1C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch removed from -mm tree
+Message-Id: <20240902034554.D2F16C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: don't instrument lib/find_bit.c
+     Subject: kexec: use atomic_try_cmpxchg_acquire() in kexec_trylock()
 has been removed from the -mm tree.  Its filename was
-     kcov-dont-instrument-lib-find_bitc.patch
+     kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@gmail.com>
-Subject: kcov: don't instrument lib/find_bit.c
-Date: Tue, 23 Jul 2024 00:37:26 +0200
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: kexec: use atomic_try_cmpxchg_acquire() in kexec_trylock()
+Date: Fri, 19 Jul 2024 12:38:52 +0200
 
-This file produces large amounts of flaky coverage not useful for the
-KCOV's intended use case (guiding the fuzzing process).
+Use atomic_try_cmpxchg_acquire(*ptr, &old, new) instead of
+atomic_cmpxchg_acquire(*ptr, old, new) == old in kexec_trylock().
+x86 CMPXCHG instruction returns success in ZF flag, so
+this change saves a compare after cmpxchg.
 
-Link: https://lkml.kernel.org/r/20240722223726.194658-1-andrey.konovalov@linux.dev
-Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Yury Norov <yury.norov@gmail.com>
+Link: https://lkml.kernel.org/r/20240719103937.53742-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kexec_internal.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/Makefile~kcov-dont-instrument-lib-find_bitc
-+++ a/lib/Makefile
-@@ -14,6 +14,7 @@ KCOV_INSTRUMENT_list_debug.o := n
- KCOV_INSTRUMENT_debugobjects.o := n
- KCOV_INSTRUMENT_dynamic_debug.o := n
- KCOV_INSTRUMENT_fault-inject.o := n
-+KCOV_INSTRUMENT_find_bit.o := n
- 
- # string.o implements standard library functions like memset/memcpy etc.
- # Use -ffreestanding to ensure that the compiler does not try to "optimize"
+--- a/kernel/kexec_internal.h~kexec-use-atomic_try_cmpxchg_acquire-in-kexec_trylock
++++ a/kernel/kexec_internal.h
+@@ -23,7 +23,8 @@ int kimage_is_destination_range(struct k
+ extern atomic_t __kexec_lock;
+ static inline bool kexec_trylock(void)
+ {
+-	return atomic_cmpxchg_acquire(&__kexec_lock, 0, 1) == 0;
++	int old = 0;
++	return atomic_try_cmpxchg_acquire(&__kexec_lock, &old, 1);
+ }
+ static inline void kexec_unlock(void)
+ {
 _
 
-Patches currently in -mm which might be from andreyknvl@gmail.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-kasan-simplify-and-clarify-makefile.patch
-kasan-simplify-and-clarify-makefile-v2.patch
+errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
+mm-kmemleak-use-is_err_pcpu-for-pointer-in-the-percpu-address-space.patch
+squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
 
