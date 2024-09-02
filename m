@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE3C8F6D;
-	Mon,  2 Sep 2024 00:59:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5324A4A0F;
+	Mon,  2 Sep 2024 00:59:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725238779; cv=none; b=uyiDs7z2ZnCbWGjkpyBVu9/Mh79bOyJ2o4sHZP1MvEfFPK40IobpqP0BiqCQ3d0wN7FSoA2MIidqxiw1uevdTeLnPXyRl0QJ7uyrGE2qjjHIZV1fN5rwnoZEO5JpH+yt2rVc6f854piPQ/XHoLnNcR48qbG0m/Q1DFS7E18ly8A=
+	t=1725238781; cv=none; b=VJb4kJLpsg2eozUpl/NdpVGJGmSZvipxTL8zr3BQOtaKarVhP9OqtMRLelrEYmTdA8wi1U1s/EBuHsJWhqTvp6jjRyxuv+xh/ujHjB+btgeOEDxqBA83YCHlLX6qDLzPHFNIzI3CxAQ+awtEaLbJ+Wc1keYNzjwuy+iX280rf4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725238779; c=relaxed/simple;
-	bh=ZUmM/ginxjLaQp6ZnOyQgF9ZkrJt+TFjRT+v6kBEw/w=;
-	h=Date:To:From:Subject:Message-Id; b=ZCXP2ErvMKZcPTtIqoX6TLbtLLo5D4qAnk13ksjSbfN40K3+1I/gDbnLaffOBP59eifzbT486Oc8PyuDm12OSNM0NnbiL/SqZP1oCSe2Y/KqVOnW4fVxJzeDTv9OBDPpHnW5PpxNnw/y3/gCxmyawXAKiEyQbj3BBn9EPKh33SE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dacljknU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725238781; c=relaxed/simple;
+	bh=b0JEExeUuZQnI7NbAF4xnU+o5Z+3doOmj9zHBQ0EWvY=;
+	h=Date:To:From:Subject:Message-Id; b=IJ0MA7h1S7NU4Y9Uk6V8Dw2xkbgzWE+sMZWHfQldDKMStDSraN4o7hAYrYhEZqjeU7b4urgZ1qCWA8TP1KVPsFO8TljCT+GPTNDYZpZXIfCpr1tGXSlpPEfwC9aLCCOmyNlb+hJLlTr5qiqBxJ4hnStVFCV0fDtW0rkxXLdFPv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HjQ5vh3t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dacljknU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 848A6C4CEC3;
-	Mon,  2 Sep 2024 00:59:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HjQ5vh3t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B95ADC4CEC3;
+	Mon,  2 Sep 2024 00:59:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725238779;
-	bh=ZUmM/ginxjLaQp6ZnOyQgF9ZkrJt+TFjRT+v6kBEw/w=;
+	s=korg; t=1725238780;
+	bh=b0JEExeUuZQnI7NbAF4xnU+o5Z+3doOmj9zHBQ0EWvY=;
 	h=Date:To:From:Subject:From;
-	b=dacljknUN91fe8UI0skgVg5NCq9QjEfWzVbJjX2CQHIdwEyq4BA5jiRH7OU1SZDUl
-	 rp7hRELJ4FI9ddlmXZkoByoXSScXyp07ZNLWl+AVzea6CFZXIbEahtlZRVpgUjsLNJ
-	 AmOWqHnVp0a6FIGzdJMZwvnKEn50cEqTdJ6QPAjg=
-Date: Sun, 01 Sep 2024 17:59:39 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sourabhjain@linux.ibm.com,hbathini@linux.ibm.com,eric_devolder@yahoo.com,ebiederm@xmission.com,bhe@redhat.com,ptesarik@suse.com,akpm@linux-foundation.org
+	b=HjQ5vh3tCf64Q8aKwH2avaRz+G6w9MRFukyBlF6ae4uLfnOuRptiJ5Ru59uwS8GYz
+	 SmlC8ttI7oXVNZcLl2yH/nzMX5cWuW2NQRXfatxZCtAu1vAJeiC5TR6AR+ZZaMQTed
+	 ZP0qGxZqymHMQ4/vnrIPTn+iavqAe5WwPFVta1jU=
+Date: Sun, 01 Sep 2024 17:59:40 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,paulmck@kernel.org,hdanton@sina.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch removed from -mm tree
-Message-Id: <20240902005939.848A6C4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-remove-rcu_read_lock-from-mt_validate.patch removed from -mm tree
+Message-Id: <20240902005940.B95ADC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
+     Subject: maple_tree: remove rcu_read_lock() from mt_validate()
 has been removed from the -mm tree.  Its filename was
-     kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y.patch
+     maple_tree-remove-rcu_read_lock-from-mt_validate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
-Date: Mon, 5 Aug 2024 17:07:50 +0200
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: maple_tree: remove rcu_read_lock() from mt_validate()
+Date: Tue, 20 Aug 2024 13:54:17 -0400
 
-Fix the condition to exclude the elfcorehdr segment from the SHA digest
-calculation.
+The write lock should be held when validating the tree to avoid updates
+racing with checks.  Holding the rcu read lock during a large tree
+validation may also cause a prolonged rcu read window and "rcu_preempt
+detected stalls" warnings.
 
-The j iterator is an index into the output sha_regions[] array, not into
-the input image->segment[] array.  Once it reaches
-image->elfcorehdr_index, all subsequent segments are excluded.  Besides,
-if the purgatory segment precedes the elfcorehdr segment, the elfcorehdr
-may be wrongly included in the calculation.
-
-Link: https://lkml.kernel.org/r/20240805150750.170739-1-petr.tesarik@suse.com
-Fixes: f7cc804a9fd4 ("kexec: exclude elfcorehdr from the segment digest")
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Eric DeVolder <eric_devolder@yahoo.com>
+Link: https://lore.kernel.org/all/0000000000001d12d4062005aea1@google.com/
+Link: https://lkml.kernel.org/r/20240820175417.2782532-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reported-by: syzbot+036af2f0c7338a33b0cd@syzkaller.appspotmail.com
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/kernel/kexec_file.c~kexec_file-fix-elfcorehdr-digest-exclusion-when-config_crash_hotplug=y
-+++ a/kernel/kexec_file.c
-@@ -752,7 +752,7 @@ static int kexec_calculate_store_digests
+--- a/lib/maple_tree.c~maple_tree-remove-rcu_read_lock-from-mt_validate
++++ a/lib/maple_tree.c
+@@ -7566,14 +7566,14 @@ static void mt_validate_nulls(struct map
+  * 2. The gap is correctly set in the parents
+  */
+ void mt_validate(struct maple_tree *mt)
++	__must_hold(mas->tree->ma_lock)
+ {
+ 	unsigned char end;
  
- #ifdef CONFIG_CRASH_HOTPLUG
- 		/* Exclude elfcorehdr segment to allow future changes via hotplug */
--		if (j == image->elfcorehdr_index)
-+		if (i == image->elfcorehdr_index)
- 			continue;
- #endif
+ 	MA_STATE(mas, mt, 0, 0);
+-	rcu_read_lock();
+ 	mas_start(&mas);
+ 	if (!mas_is_active(&mas))
+-		goto done;
++		return;
+ 
+ 	while (!mte_is_leaf(mas.node))
+ 		mas_descend(&mas);
+@@ -7594,9 +7594,6 @@ void mt_validate(struct maple_tree *mt)
+ 		mas_dfs_postorder(&mas, ULONG_MAX);
+ 	}
+ 	mt_validate_nulls(mt);
+-done:
+-	rcu_read_unlock();
+-
+ }
+ EXPORT_SYMBOL_GPL(mt_validate);
  
 _
 
-Patches currently in -mm which might be from ptesarik@suse.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
+mm-vma-correctly-position-vma_iterator-in-__split_vma.patch
+mm-vma-introduce-abort_munmap_vmas.patch
+mm-vma-introduce-vmi_complete_munmap_vmas.patch
+mm-vma-extract-the-gathering-of-vmas-from-do_vmi_align_munmap.patch
+mm-vma-introduce-vma_munmap_struct-for-use-in-munmap-operations.patch
+mm-vma-change-munmap-to-use-vma_munmap_struct-for-accounting-and-surrounding-vmas.patch
+mm-vma-extract-validate_mm-from-vma_complete.patch
+mm-vma-inline-munmap-operation-in-mmap_region.patch
+mm-vma-expand-mmap_region-munmap-call.patch
+mm-vma-support-vma-==-null-in-init_vma_munmap.patch
+mm-mmap-reposition-vma-iterator-in-mmap_region.patch
+mm-vma-track-start-and-end-for-munmap-in-vma_munmap_struct.patch
+mm-clean-up-unmap_region-argument-list.patch
+mm-mmap-avoid-zeroing-vma-tree-in-mmap_region.patch
+mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+mm-mmap-use-phys_pfn-in-mmap_region.patch
+mm-mmap-use-vms-accounted-pages-in-mmap_region.patch
+ipc-shm-mm-drop-do_vma_munmap.patch
+mm-move-may_expand_vm-check-in-mmap_region.patch
+mm-vma-drop-incorrect-comment-from-vms_gather_munmap_vmas.patch
+mm-vmah-optimise-vma_munmap_struct.patch
 
