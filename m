@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE2B3D984
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AB59273FC
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247660; cv=none; b=r6aLSINwLptlZJm0Yieo0GRPMU+mDxA2Vlfrgh3aQTbRmXAB37FGzjkAL3+wzbYpKKe2HOaPgIYHGpgIESkXWqXLrhhSJhbMQG0EXmK85wL5DwJXbvzRvqceIvbxTTzxexwiKtJAJ0jy0oS3PxLZMn/zGSPwBXJChmZO3qqBSsE=
+	t=1725247661; cv=none; b=hD5mBL+ecNw88b+krnz9x32XdxoP8RfHdmuXQHxze/IUgeSgs7CM97eBumZy09G42QKCCww8uQT3SHNrpTgGQGNbZmjm3U6I2Y0z/us6svcOXxMaKo3yc1ebp8De0YvbhC9RhLxDkU2sZSsosIKicAcaIEK2YZQsn2V78m7Fe8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247660; c=relaxed/simple;
-	bh=+8Bbd2FYYweMi+SJRlZKDY0QMMVToQ+f4lcBv54h2YU=;
-	h=Date:To:From:Subject:Message-Id; b=UCM1BlKQdhjPqD111naqgbrgfWVtWom9aJxozo6kp1r0Jogi0O56imZ70K5tcUK5r9A5SSttGc+3jCKu9e5HY0mqOydDRwYGnWw5kzWaSgOPCJ7jFuBLK31UABKDuKAiDemVmYoOLA/pwoTznTqtMdypq8jryRGT/93JgP/zU2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LMkMy9/Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247661; c=relaxed/simple;
+	bh=4r3Bac92NOUlhi7+n556bEjxxlrWFw5aBUFWc2HYtqc=;
+	h=Date:To:From:Subject:Message-Id; b=lI1pW0JLPlABwbeuMh0Mn44+JU+HxInSDJ2ypZH6s7c4IMVYR+eZaYM3fuHypBGZjiENAxu9f5Qtrmw1eTvtXcq2DXchmMwl4GdkwbDGFvvLCor6648K1JuiN5Rz3xAZx9AuD7dqPjxztOlIbODpjG0a/qkGeXOx2Xt99ObJWZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NNIj5CIh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LMkMy9/Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA21C4CEC2;
-	Mon,  2 Sep 2024 03:27:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NNIj5CIh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0130C4CEC2;
+	Mon,  2 Sep 2024 03:27:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247659;
-	bh=+8Bbd2FYYweMi+SJRlZKDY0QMMVToQ+f4lcBv54h2YU=;
+	s=korg; t=1725247661;
+	bh=4r3Bac92NOUlhi7+n556bEjxxlrWFw5aBUFWc2HYtqc=;
 	h=Date:To:From:Subject:From;
-	b=LMkMy9/QwAFM8peZDrPtDOCU5lHA+x0dPSW5N1U4K7CiIEQ78taYKuqpC6GZDwrVU
-	 +o1VANDxk7mMOR/onqq5r9ieSf7XGdceNMsopOdSKNA+6sYVBuHG0zYF6keYOXlOqb
-	 U//9E7llvUCzLVUsxbn+FZgsKvsIn5N44WojFQ1w=
-Date: Sun, 01 Sep 2024 20:27:39 -0700
-To: mm-commits@vger.kernel.org,wedsonaf@gmail.com,vbabka@suse.cz,urezki@gmail.com,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,oliver.upton@linux.dev,ojeda@kernel.org,mpe@ellerman.id.au,mhocko@suse.com,maz@kernel.org,kees@kernel.org,iamjoonsoo.kim@lge.com,hch@infradead.org,cl@linux.com,christian.koenig@amd.com,chandan.babu@oracle.com,42.hyeyoo@gmail.com,dakr@kernel.org,akpm@linux-foundation.org
+	b=NNIj5CIh7tuRzbvSkptv2N4ivsD15svR0OHsrQtJlFiwN95qIFZjEYMKXjXs50R3u
+	 0qclAnQbOzoKZGrYK28yUy7adbT7vL9/0ziIdTc/Rq2WGX1yb/5h9J65EEFQ3hrD3M
+	 R0qlKoPT8MX0jyrR93TDRBQtkHc0b3eZ5mUmLDKw=
+Date: Sun, 01 Sep 2024 20:27:40 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kvmalloc-align-kvrealloc-with-krealloc.patch removed from -mm tree
-Message-Id: <20240902032739.CFA21C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch removed from -mm tree
+Message-Id: <20240902032740.F0130C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,300 +35,143 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: kvmalloc: align kvrealloc() with krealloc()
+     Subject: mm: shmem: simplify the suitable huge orders validation for tmpfs
 has been removed from the -mm tree.  Its filename was
-     mm-kvmalloc-align-kvrealloc-with-krealloc.patch
+     mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Danilo Krummrich <dakr@kernel.org>
-Subject: mm: kvmalloc: align kvrealloc() with krealloc()
-Date: Mon, 22 Jul 2024 18:29:24 +0200
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: simplify the suitable huge orders validation for tmpfs
+Date: Mon, 22 Jul 2024 13:43:17 +0800
 
-Besides the obvious (and desired) difference between krealloc() and
-kvrealloc(), there is some inconsistency in their function signatures and
-behavior:
+Patch series "Some cleanups for shmem", v3.
 
- - krealloc() frees the memory when the requested size is zero, whereas
-   kvrealloc() simply returns a pointer to the existing allocation.
+This series does some cleanups to reuse code, rename functions and
+simplify logic to make code more clear.  No functional changes are
+expected.
 
- - krealloc() behaves like kmalloc() if a NULL pointer is passed, whereas
-   kvrealloc() does not accept a NULL pointer at all and, if passed,
-   would fault instead.
 
- - krealloc() is self-contained, whereas kvrealloc() relies on the caller
-   to provide the size of the previous allocation.
+This patch (of 3):
 
-Inconsistent behavior throughout allocation APIs is error prone, hence
-make kvrealloc() behave like krealloc(), which seems superior in all
-mentioned aspects.
+Move the suitable huge orders validation into shmem_suitable_orders() for
+tmpfs, which can reuse some code to simplify the logic.
 
-Besides that, implementing kvrealloc() by making use of krealloc() and
-vrealloc() provides oppertunities to grow (and shrink) allocations more
-efficiently.  For instance, vrealloc() can be optimized to allocate and
-map additional pages to grow the allocation or unmap and free unused pages
-to shrink the allocation.
+In addition, we don't have special handling for the error code -E2BIG when
+checking for conflicts with PMD sized THP in the pagecache for tmpfs,
+instead, it will just fallback to order-0 allocations like this patch
+does, so this simplification will not add functional changes.
 
-[dakr@kernel.org: document concurrency restrictions]
-  Link: https://lkml.kernel.org/r/20240725125442.4957-1-dakr@kernel.org
-[dakr@kernel.org: disable KASAN when switching to vmalloc]
-  Link: https://lkml.kernel.org/r/20240730185049.6244-2-dakr@kernel.org
-[dakr@kernel.org: properly document __GFP_ZERO behavior]
-  Link: https://lkml.kernel.org/r/20240730185049.6244-5-dakr@kernel.org
-Link: https://lkml.kernel.org/r/20240722163111.4766-3-dakr@kernel.org
-Signed-off-by: Danilo Krummrich <dakr@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Oliver Upton <oliver.upton@linux.dev>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Wedson Almeida Filho <wedsonaf@gmail.com>
+Link: https://lkml.kernel.org/r/cover.1721626645.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/965985dd6d322929d78a0beee0dafa1c2a1b81e2.1721626645.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kvm/nested.c                   |    1 
- arch/powerpc/platforms/pseries/papr-vpd.c |    5 -
- drivers/gpu/drm/drm_exec.c                |    3 
- fs/xfs/xfs_log_recover.c                  |    2 
- include/linux/slab.h                      |    4 
- kernel/resource.c                         |    3 
- lib/fortify_kunit.c                       |    3 
- mm/util.c                                 |  100 ++++++++++++++------
- 8 files changed, 77 insertions(+), 44 deletions(-)
+ mm/shmem.c |   39 +++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
---- a/arch/arm64/kvm/nested.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/arch/arm64/kvm/nested.c
-@@ -62,7 +62,6 @@ int kvm_vcpu_init_nested(struct kvm_vcpu
- 	 */
- 	num_mmus = atomic_read(&kvm->online_vcpus) * S2_MMU_PER_VCPU;
- 	tmp = kvrealloc(kvm->arch.nested_mmus,
--			size_mul(sizeof(*kvm->arch.nested_mmus), kvm->arch.nested_mmus_size),
- 			size_mul(sizeof(*kvm->arch.nested_mmus), num_mmus),
- 			GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	if (!tmp)
---- a/arch/powerpc/platforms/pseries/papr-vpd.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/arch/powerpc/platforms/pseries/papr-vpd.c
-@@ -156,10 +156,7 @@ static int vpd_blob_extend(struct vpd_bl
- 	const char *old_ptr = blob->data;
- 	char *new_ptr;
- 
--	new_ptr = old_ptr ?
--		kvrealloc(old_ptr, old_len, new_len, GFP_KERNEL_ACCOUNT) :
--		kvmalloc(len, GFP_KERNEL_ACCOUNT);
--
-+	new_ptr = kvrealloc(old_ptr, new_len, GFP_KERNEL_ACCOUNT);
- 	if (!new_ptr)
- 		return -ENOMEM;
- 
---- a/drivers/gpu/drm/drm_exec.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/drivers/gpu/drm/drm_exec.c
-@@ -145,8 +145,7 @@ static int drm_exec_obj_locked(struct dr
- 		size_t size = exec->max_objects * sizeof(void *);
- 		void *tmp;
- 
--		tmp = kvrealloc(exec->objects, size, size + PAGE_SIZE,
--				GFP_KERNEL);
-+		tmp = kvrealloc(exec->objects, size + PAGE_SIZE, GFP_KERNEL);
- 		if (!tmp)
- 			return -ENOMEM;
- 
---- a/fs/xfs/xfs_log_recover.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/fs/xfs/xfs_log_recover.c
-@@ -2128,7 +2128,7 @@ xlog_recover_add_to_cont_trans(
- 	old_ptr = item->ri_buf[item->ri_cnt-1].i_addr;
- 	old_len = item->ri_buf[item->ri_cnt-1].i_len;
- 
--	ptr = kvrealloc(old_ptr, old_len, len + old_len, GFP_KERNEL);
-+	ptr = kvrealloc(old_ptr, len + old_len, GFP_KERNEL);
- 	if (!ptr)
- 		return -ENOMEM;
- 	memcpy(&ptr[old_len], dp, len);
---- a/include/linux/slab.h~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/include/linux/slab.h
-@@ -841,8 +841,8 @@ kvmalloc_array_node_noprof(size_t n, siz
- #define kvcalloc_node(...)			alloc_hooks(kvcalloc_node_noprof(__VA_ARGS__))
- #define kvcalloc(...)				alloc_hooks(kvcalloc_noprof(__VA_ARGS__))
- 
--extern void *kvrealloc_noprof(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
--		      __realloc_size(3);
-+void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
-+		__realloc_size(2);
- #define kvrealloc(...)				alloc_hooks(kvrealloc_noprof(__VA_ARGS__))
- 
- extern void kvfree(const void *addr);
---- a/kernel/resource.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/kernel/resource.c
-@@ -450,8 +450,7 @@ int walk_system_ram_res_rev(u64 start, u
- 			/* re-alloc */
- 			struct resource *rams_new;
- 
--			rams_new = kvrealloc(rams, rams_size * sizeof(struct resource),
--					     (rams_size + 16) * sizeof(struct resource),
-+			rams_new = kvrealloc(rams, (rams_size + 16) * sizeof(struct resource),
- 					     GFP_KERNEL);
- 			if (!rams_new)
- 				goto out;
---- a/lib/fortify_kunit.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/lib/fortify_kunit.c
-@@ -306,8 +306,7 @@ DEFINE_ALLOC_SIZE_TEST_PAIR(vmalloc)
- 	orig = kvmalloc(prev_size, gfp);				\
- 	KUNIT_EXPECT_TRUE(test, orig != NULL);				\
- 	checker(((expected_pages) * PAGE_SIZE) * 2,			\
--		kvrealloc(orig, prev_size,				\
--			  ((alloc_pages) * PAGE_SIZE) * 2, gfp),	\
-+		kvrealloc(orig, ((alloc_pages) * PAGE_SIZE) * 2, gfp),	\
- 		kvfree(p));						\
- } while (0)
- DEFINE_ALLOC_SIZE_TEST_PAIR(kvmalloc)
---- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc
-+++ a/mm/util.c
-@@ -608,6 +608,28 @@ unsigned long vm_mmap(struct file *file,
- }
- EXPORT_SYMBOL(vm_mmap);
- 
-+static gfp_t kmalloc_gfp_adjust(gfp_t flags, size_t size)
-+{
-+	/*
-+	 * We want to attempt a large physically contiguous block first because
-+	 * it is less likely to fragment multiple larger blocks and therefore
-+	 * contribute to a long term fragmentation less than vmalloc fallback.
-+	 * However make sure that larger requests are not too disruptive - no
-+	 * OOM killer and no allocation failure warnings as we have a fallback.
-+	 */
-+	if (size > PAGE_SIZE) {
-+		flags |= __GFP_NOWARN;
-+
-+		if (!(flags & __GFP_RETRY_MAYFAIL))
-+			flags |= __GFP_NORETRY;
-+
-+		/* nofail semantic is implemented by the vmalloc fallback */
-+		flags &= ~__GFP_NOFAIL;
-+	}
-+
-+	return flags;
-+}
-+
- /**
-  * __kvmalloc_node - attempt to allocate physically contiguous memory, but upon
-  * failure, fall back to non-contiguous (vmalloc) allocation.
-@@ -627,32 +649,15 @@ EXPORT_SYMBOL(vm_mmap);
-  */
- void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), gfp_t flags, int node)
+--- a/mm/shmem.c~mm-shmem-simplify-the-suitable-huge-orders-validation-for-tmpfs
++++ a/mm/shmem.c
+@@ -1680,20 +1680,30 @@ static unsigned long shmem_suitable_orde
+ 					   struct address_space *mapping, pgoff_t index,
+ 					   unsigned long orders)
  {
--	gfp_t kmalloc_flags = flags;
- 	void *ret;
+-	struct vm_area_struct *vma = vmf->vma;
++	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	pgoff_t aligned_index;
+ 	unsigned long pages;
+ 	int order;
  
- 	/*
--	 * We want to attempt a large physically contiguous block first because
--	 * it is less likely to fragment multiple larger blocks and therefore
--	 * contribute to a long term fragmentation less than vmalloc fallback.
--	 * However make sure that larger requests are not too disruptive - no
--	 * OOM killer and no allocation failure warnings as we have a fallback.
--	 */
--	if (size > PAGE_SIZE) {
--		kmalloc_flags |= __GFP_NOWARN;
--
--		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
--			kmalloc_flags |= __GFP_NORETRY;
--
--		/* nofail semantic is implemented by the vmalloc fallback */
--		kmalloc_flags &= ~__GFP_NOFAIL;
--	}
--
--	ret = __kmalloc_node_noprof(PASS_BUCKET_PARAMS(size, b), kmalloc_flags, node);
--
--	/*
- 	 * It doesn't really make sense to fallback to vmalloc for sub page
- 	 * requests
- 	 */
-+	ret = __kmalloc_node_noprof(PASS_BUCKET_PARAMS(size, b),
-+				    kmalloc_gfp_adjust(flags, size),
-+				    node);
- 	if (ret || size <= PAGE_SIZE)
- 		return ret;
- 
-@@ -715,18 +720,53 @@ void kvfree_sensitive(const void *addr,
- }
- EXPORT_SYMBOL(kvfree_sensitive);
- 
--void *kvrealloc_noprof(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
-+/**
-+ * kvrealloc - reallocate memory; contents remain unchanged
-+ * @p: object to reallocate memory for
-+ * @size: the size to reallocate
-+ * @flags: the flags for the page level allocator
-+ *
-+ * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
-+ * and @p is not a %NULL pointer, the object pointed to is freed.
-+ *
-+ * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
-+ * initial memory allocation, every subsequent call to this API for the same
-+ * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
-+ * __GFP_ZERO is not fully honored by this API.
-+ *
-+ * In any case, the contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.
-+ *
-+ * This function must not be called concurrently with itself or kvfree() for the
-+ * same memory allocation.
-+ *
-+ * Return: pointer to the allocated memory or %NULL in case of error
-+ */
-+void *kvrealloc_noprof(const void *p, size_t size, gfp_t flags)
- {
--	void *newp;
-+	void *n;
- 
--	if (oldsize >= newsize)
--		return (void *)p;
--	newp = kvmalloc_noprof(newsize, flags);
--	if (!newp)
--		return NULL;
--	memcpy(newp, p, oldsize);
--	kvfree(p);
--	return newp;
-+	if (is_vmalloc_addr(p))
-+		return vrealloc_noprof(p, size, flags);
-+
-+	n = krealloc_noprof(p, size, kmalloc_gfp_adjust(flags, size));
-+	if (!n) {
-+		/* We failed to krealloc(), fall back to kvmalloc(). */
-+		n = kvmalloc_noprof(size, flags);
-+		if (!n)
-+			return NULL;
-+
-+		if (p) {
-+			/* We already know that `p` is not a vmalloc address. */
-+			kasan_disable_current();
-+			memcpy(n, kasan_reset_tag(p), ksize(p));
-+			kasan_enable_current();
-+
-+			kfree(p);
-+		}
+-	orders = thp_vma_suitable_orders(vma, vmf->address, orders);
+-	if (!orders)
+-		return 0;
++	if (vma) {
++		orders = thp_vma_suitable_orders(vma, vmf->address, orders);
++		if (!orders)
++			return 0;
 +	}
-+
-+	return n;
- }
- EXPORT_SYMBOL(kvrealloc_noprof);
  
+ 	/* Find the highest order that can add into the page cache */
+ 	order = highest_order(orders);
+ 	while (orders) {
+ 		pages = 1UL << order;
+ 		aligned_index = round_down(index, pages);
++		/*
++		 * Check for conflict before waiting on a huge allocation.
++		 * Conflict might be that a huge page has just been allocated
++		 * and added to page cache by a racing thread, or that there
++		 * is already at least one small page in the huge extent.
++		 * Be careful to retry when appropriate, but not forever!
++		 * Elsewhere -EEXIST would be the right code, but not here.
++		 */
+ 		if (!xa_find(&mapping->i_pages, &aligned_index,
+ 			     aligned_index + pages - 1, XA_PRESENT))
+ 			break;
+@@ -1731,7 +1741,6 @@ static struct folio *shmem_alloc_and_add
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	unsigned long suitable_orders = 0;
+ 	struct folio *folio = NULL;
+ 	long pages;
+@@ -1741,26 +1750,8 @@ static struct folio *shmem_alloc_and_add
+ 		orders = 0;
+ 
+ 	if (orders > 0) {
+-		if (vma && vma_is_anon_shmem(vma)) {
+-			suitable_orders = shmem_suitable_orders(inode, vmf,
++		suitable_orders = shmem_suitable_orders(inode, vmf,
+ 							mapping, index, orders);
+-		} else if (orders & BIT(HPAGE_PMD_ORDER)) {
+-			pages = HPAGE_PMD_NR;
+-			suitable_orders = BIT(HPAGE_PMD_ORDER);
+-			index = round_down(index, HPAGE_PMD_NR);
+-
+-			/*
+-			 * Check for conflict before waiting on a huge allocation.
+-			 * Conflict might be that a huge page has just been allocated
+-			 * and added to page cache by a racing thread, or that there
+-			 * is already at least one small page in the huge extent.
+-			 * Be careful to retry when appropriate, but not forever!
+-			 * Elsewhere -EEXIST would be the right code, but not here.
+-			 */
+-			if (xa_find(&mapping->i_pages, &index,
+-				    index + HPAGE_PMD_NR - 1, XA_PRESENT))
+-				return ERR_PTR(-E2BIG);
+-		}
+ 
+ 		order = highest_order(suitable_orders);
+ 		while (suitable_orders) {
 _
 
-Patches currently in -mm which might be from dakr@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-krealloc-consider-spare-memory-for-__gfp_zero.patch
-mm-krealloc-clarify-valid-usage-of-__gfp_zero.patch
+mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
+mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
+mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
+mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix.patch
+mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix.patch
+mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
+mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
+mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix-2.patch
+mm-shmem-support-large-folio-swap-out.patch
+mm-shmem-support-large-folio-swap-out-fix-2.patch
+mm-khugepaged-expand-the-is_refcount_suitable-to-support-file-folios.patch
+mm-khugepaged-use-the-number-of-pages-in-the-folio-to-check-the-reference-count.patch
+mm-khugepaged-support-shmem-mthp-copy.patch
+mm-khugepaged-support-shmem-mthp-collapse.patch
+selftests-mm-support-shmem-mthp-collapse-testing.patch
 
