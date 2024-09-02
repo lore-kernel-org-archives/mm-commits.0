@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C529126AF3
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A60F846434
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247725; cv=none; b=psNIRePn1syWnx71VDxXk3seBZA1sWogiqEYBtJ7PEplZCejEYhI7UWgVfILB7OwJbcTHp3pc7ClO6KMxGpxEMSIrAHOmqkBqM3hEiV+i1keiUVPq5Ziy2fTrG+Wo9XOeP6UC2aOnkxxVc/zfSH6HSXmfzaOhF2E2uA7uI4efsw=
+	t=1725247727; cv=none; b=OGiWblS/FAoklGWXcSrWFRuD2zPekXhPWbwXj5bPyhBrrzvOQIwVVR//VP9yGkAJR9oaF7MaZQVIU/EuT5nNUItt66kM9vNwi1oVXEwSYK1h+OIKDWTsDf2SirSulgBRpOJYesckZIOQllNBDYbkHrkVrXWGGaWpT56yYtif6Wo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247725; c=relaxed/simple;
-	bh=oT6xqn3gazq/pIgx70OSdGsMZedj6FnYBINhLCLqIJY=;
-	h=Date:To:From:Subject:Message-Id; b=VZcahsy3rDcPTctKeKM/7wdpqpk6Fd4Zo0tGzdf0Afjgrnkdq6h5sFRqKrSJoimH734oB8dG8dFjnOCJclJ+ZjJnpwsVcx6mPZP9m7MfmfV3SnNsj68dEEQFEsAyzZUmZIOvg52631qpBkigm0e5FaoJXVKRlaekLRGaA398hyA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZhOKoPjV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247727; c=relaxed/simple;
+	bh=uJZzXLnBW0iLs4xNLg+stFZZLnygHA0Q8eeLr25xM9M=;
+	h=Date:To:From:Subject:Message-Id; b=ExqHE5abG0tlB0ML5EYgVZtcVLdubC3+Iu6+iup4CzK11Ma3w1g4zTC9nKMH8+0TgszbIIBsGILDd+5DRmyIbXL7T9UeESsBbOpvcRg7swZdOWCCSF3uccNctfHFcLfPWF6PT1Sl7sSrOnnn5StDz02iNkkDAaZlRR4GXkie6CU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=08+YVE4b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZhOKoPjV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B87FC4CEC2;
-	Mon,  2 Sep 2024 03:28:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="08+YVE4b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBCEC4CEC2;
+	Mon,  2 Sep 2024 03:28:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247725;
-	bh=oT6xqn3gazq/pIgx70OSdGsMZedj6FnYBINhLCLqIJY=;
+	s=korg; t=1725247727;
+	bh=uJZzXLnBW0iLs4xNLg+stFZZLnygHA0Q8eeLr25xM9M=;
 	h=Date:To:From:Subject:From;
-	b=ZhOKoPjV1GkwwWc+CwtM/14xNflkEfWwUiz0h88LESR0uZ1roPx2glnUjNovM145r
-	 +KzpcRed0HmwwnSQeiXRW3LYYezATG5bhm/+KE7yQEaBN5qKSOxPDSdVbA9hbsnmGy
-	 tuSnWCxuzqQ8pI7WfWvwwmvrfDmHmxc35+vVYGNk=
-Date: Sun, 01 Sep 2024 20:28:45 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,surenb@google.com,shy828301@gmail.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,ryan.roberts@arm.com,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=08+YVE4bz+zg/NbmOcbXjhvz2ouh3P97b4YTbMIDJSfwe7teTuMlUcCM6zF73FPgG
+	 KW13N7FcMdKgosEmPMwioY4Wub8rcpzR00D4UkWE6fnB+kVXfck0COYSzh2wMDx4wd
+	 6zgjMzwx38wZHlh750BhSS8TZ/GubB7NB43QBGWY=
+Date: Sun, 01 Sep 2024 20:28:47 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,masahiroy@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch removed from -mm tree
-Message-Id: <20240902032845.9B87FC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-get-rid-of-__ref.patch removed from -mm tree
+Message-Id: <20240902032847.7DBCEC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,320 +35,142 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: add nr argument in swapcache_prepare and swapcache_clear to support large folios
+     Subject: mm/memory_hotplug: get rid of __ref
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios.patch
+     mm-memory_hotplug-get-rid-of-__ref.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: swap: add nr argument in swapcache_prepare and swapcache_clear to support large folios
-Date: Tue, 30 Jul 2024 19:13:39 +1200
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memory_hotplug: get rid of __ref
+Date: Fri, 26 Jul 2024 01:01:57 +0000
 
-Right now, swapcache_prepare() and swapcache_clear() supports one entry
-only, to support large folios, we need to handle multiple swap entries.
+After commit 73db3abdca58 ("init/modpost: conditionally check section
+mismatch to __meminit*"), we can get rid of __ref annotations.
 
-To optimize stack usage, we iterate twice in __swap_duplicate(): the first
-time to verify that all entries are valid, and the second time to apply
-the modifications to the entries.
-
-Currently, we're using nr=1 for the existing users.
-
-[v-songbaohua@oppo.com: clarify swap_count_continued and improve readability for  __swap_duplicate]
-  Link: https://lkml.kernel.org/r/20240802071817.47081-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20240730071339.107447-2-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20240726010157.6177-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 -
- mm/memory.c          |    6 +-
- mm/swap.h            |    5 +-
- mm/swap_state.c      |    2 
- mm/swapfile.c        |   95 +++++++++++++++++++++++------------------
- 5 files changed, 63 insertions(+), 49 deletions(-)
+ mm/memory_hotplug.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios
-+++ a/include/linux/swap.h
-@@ -480,7 +480,7 @@ extern int get_swap_pages(int n, swp_ent
- extern int add_swap_count_continuation(swp_entry_t, gfp_t);
- extern void swap_shmem_alloc(swp_entry_t);
- extern int swap_duplicate(swp_entry_t);
--extern int swapcache_prepare(swp_entry_t);
-+extern int swapcache_prepare(swp_entry_t entry, int nr);
- extern void swap_free_nr(swp_entry_t entry, int nr_pages);
- extern void swapcache_free_entries(swp_entry_t *entries, int n);
- extern void free_swap_and_cache_nr(swp_entry_t entry, int nr);
-@@ -554,7 +554,7 @@ static inline int swap_duplicate(swp_ent
- 	return 0;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-__ref
++++ a/mm/memory_hotplug.c
+@@ -366,7 +366,7 @@ struct page *pfn_to_online_page(unsigned
  }
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
--static inline int swapcache_prepare(swp_entry_t swp)
-+static inline int swapcache_prepare(swp_entry_t swp, int nr)
+-int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
++int __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		struct mhp_params *params)
  {
- 	return 0;
- }
---- a/mm/memory.c~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios
-+++ a/mm/memory.c
-@@ -4081,7 +4081,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			 * reusing the same entry. It's undetectable as
- 			 * pte_same() returns true due to entry reuse.
- 			 */
--			if (swapcache_prepare(entry)) {
-+			if (swapcache_prepare(entry, 1)) {
- 				/* Relax a bit to prevent rapid repeated page faults */
- 				schedule_timeout_uninterruptible(1);
- 				goto out;
-@@ -4387,7 +4387,7 @@ unlock:
- out:
- 	/* Clear the swap cache pin for direct swapin after PTL unlock */
- 	if (need_clear_cache)
--		swapcache_clear(si, entry);
-+		swapcache_clear(si, entry, 1);
- 	if (si)
- 		put_swap_device(si);
- 	return ret;
-@@ -4403,7 +4403,7 @@ out_release:
- 		folio_put(swapcache);
- 	}
- 	if (need_clear_cache)
--		swapcache_clear(si, entry);
-+		swapcache_clear(si, entry, 1);
- 	if (si)
- 		put_swap_device(si);
- 	return ret;
---- a/mm/swapfile.c~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios
-+++ a/mm/swapfile.c
-@@ -3363,7 +3363,7 @@ void si_swapinfo(struct sysinfo *val)
+ 	const unsigned long end_pfn = pfn + nr_pages;
+@@ -524,7 +524,7 @@ static void update_pgdat_span(struct pgl
+ 	pgdat->node_spanned_pages = node_end_pfn - node_start_pfn;
  }
  
+-void __ref remove_pfn_range_from_zone(struct zone *zone,
++void remove_pfn_range_from_zone(struct zone *zone,
+ 				      unsigned long start_pfn,
+ 				      unsigned long nr_pages)
+ {
+@@ -629,7 +629,7 @@ int restore_online_page_callback(online_
+ EXPORT_SYMBOL_GPL(restore_online_page_callback);
+ 
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-void __ref generic_online_page(struct page *page, unsigned int order)
++void generic_online_page(struct page *page, unsigned int order)
+ {
+ 	__free_pages_core(page, order, MEMINIT_HOTPLUG);
+ }
+@@ -741,7 +741,7 @@ static inline void section_taint_zone_de
+  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
+  * zone stats (e.g., nr_isolate_pageblock) are touched.
+  */
+-void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
++void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 				  unsigned long nr_pages,
+ 				  struct vmem_altmap *altmap, int migratetype)
+ {
+@@ -1143,7 +1143,7 @@ void mhp_deinit_memmap_on_memory(unsigne
  /*
-- * Verify that a swap entry is valid and increment its swap map count.
-+ * Verify that nr swap entries are valid and increment their swap map counts.
+  * Must be called with mem_hotplug_lock in write mode.
+  */
+-int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
++int online_pages(unsigned long pfn, unsigned long nr_pages,
+ 		       struct zone *zone, struct memory_group *group)
+ {
+ 	unsigned long flags;
+@@ -1233,7 +1233,7 @@ failed_addition:
+ }
+ 
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-static pg_data_t __ref *hotadd_init_pgdat(int nid)
++static pg_data_t *hotadd_init_pgdat(int nid)
+ {
+ 	struct pglist_data *pgdat;
+ 
+@@ -1386,7 +1386,7 @@ bool mhp_supports_memmap_on_memory(void)
+ }
+ EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
+ 
+-static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
++static void remove_memory_blocks_and_altmaps(u64 start, u64 size)
+ {
+ 	unsigned long memblock_size = memory_block_size_bytes();
+ 	u64 cur_start;
+@@ -1473,7 +1473,7 @@ out:
   *
-  * Returns error code in following case.
-  * - success -> 0
-@@ -3373,60 +3373,73 @@ void si_swapinfo(struct sysinfo *val)
-  * - swap-cache reference is requested but the entry is not used. -> ENOENT
-  * - swap-mapped reference requested but needs continued swap count. -> ENOMEM
+  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
   */
--static int __swap_duplicate(swp_entry_t entry, unsigned char usage)
-+static int __swap_duplicate(swp_entry_t entry, unsigned char usage, int nr)
+-int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
  {
- 	struct swap_info_struct *p;
- 	struct swap_cluster_info *ci;
- 	unsigned long offset;
- 	unsigned char count;
- 	unsigned char has_cache;
--	int err;
-+	int err, i;
- 
- 	p = swp_swap_info(entry);
- 
- 	offset = swp_offset(entry);
-+	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
-+	VM_WARN_ON(usage == 1 && nr > 1);
- 	ci = lock_cluster_or_swap_info(p, offset);
- 
--	count = p->swap_map[offset];
--
--	/*
--	 * swapin_readahead() doesn't check if a swap entry is valid, so the
--	 * swap entry could be SWAP_MAP_BAD. Check here with lock held.
--	 */
--	if (unlikely(swap_count(count) == SWAP_MAP_BAD)) {
--		err = -ENOENT;
--		goto unlock_out;
--	}
--
--	has_cache = count & SWAP_HAS_CACHE;
--	count &= ~SWAP_HAS_CACHE;
- 	err = 0;
-+	for (i = 0; i < nr; i++) {
-+		count = p->swap_map[offset + i];
- 
--	if (usage == SWAP_HAS_CACHE) {
-+		/*
-+		 * swapin_readahead() doesn't check if a swap entry is valid, so the
-+		 * swap entry could be SWAP_MAP_BAD. Check here with lock held.
-+		 */
-+		if (unlikely(swap_count(count) == SWAP_MAP_BAD)) {
-+			err = -ENOENT;
-+			goto unlock_out;
-+		}
- 
--		/* set SWAP_HAS_CACHE if there is no cache and entry is used */
--		if (!has_cache && count)
--			has_cache = SWAP_HAS_CACHE;
--		else if (has_cache)		/* someone else added cache */
--			err = -EEXIST;
--		else				/* no users remaining */
-+		has_cache = count & SWAP_HAS_CACHE;
-+		count &= ~SWAP_HAS_CACHE;
-+
-+		if (!count && !has_cache) {
- 			err = -ENOENT;
-+		} else if (usage == SWAP_HAS_CACHE) {
-+			if (has_cache)
-+				err = -EEXIST;
-+		} else if ((count & ~COUNT_CONTINUED) > SWAP_MAP_MAX) {
-+			err = -EINVAL;
-+		}
-+
-+		if (err)
-+			goto unlock_out;
-+	}
- 
--	} else if (count || has_cache) {
-+	for (i = 0; i < nr; i++) {
-+		count = p->swap_map[offset + i];
-+		has_cache = count & SWAP_HAS_CACHE;
-+		count &= ~SWAP_HAS_CACHE;
- 
--		if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
-+		if (usage == SWAP_HAS_CACHE)
-+			has_cache = SWAP_HAS_CACHE;
-+		else if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
- 			count += usage;
--		else if ((count & ~COUNT_CONTINUED) > SWAP_MAP_MAX)
--			err = -EINVAL;
--		else if (swap_count_continued(p, offset, count))
-+		else if (swap_count_continued(p, offset + i, count))
- 			count = COUNT_CONTINUED;
--		else
-+		else {
-+			/*
-+			 * Don't need to rollback changes, because if
-+			 * usage == 1, there must be nr == 1.
-+			 */
- 			err = -ENOMEM;
--	} else
--		err = -ENOENT;			/* unused swap entry */
-+			goto unlock_out;
-+		}
- 
--	if (!err)
--		WRITE_ONCE(p->swap_map[offset], count | has_cache);
-+		WRITE_ONCE(p->swap_map[offset + i], count | has_cache);
-+	}
- 
- unlock_out:
- 	unlock_cluster_or_swap_info(p, ci);
-@@ -3439,7 +3452,7 @@ unlock_out:
-  */
- void swap_shmem_alloc(swp_entry_t entry)
- {
--	__swap_duplicate(entry, SWAP_MAP_SHMEM);
-+	__swap_duplicate(entry, SWAP_MAP_SHMEM, 1);
+ 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+@@ -1580,7 +1580,7 @@ error_mem_hotplug_end:
  }
  
+ /* requires device_hotplug_lock, see add_memory_resource() */
+-int __ref __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
++int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
+ {
+ 	struct resource *res;
+ 	int ret;
+@@ -1939,7 +1939,7 @@ static int count_system_ram_pages_cb(uns
  /*
-@@ -3453,29 +3466,29 @@ int swap_duplicate(swp_entry_t entry)
- {
- 	int err = 0;
- 
--	while (!err && __swap_duplicate(entry, 1) == -ENOMEM)
-+	while (!err && __swap_duplicate(entry, 1, 1) == -ENOMEM)
- 		err = add_swap_count_continuation(entry, GFP_ATOMIC);
- 	return err;
- }
- 
- /*
-- * @entry: swap entry for which we allocate swap cache.
-+ * @entry: first swap entry from which we allocate nr swap cache.
-  *
-- * Called when allocating swap cache for existing swap entry,
-+ * Called when allocating swap cache for existing swap entries,
-  * This can return error codes. Returns 0 at success.
-  * -EEXIST means there is a swap cache.
-  * Note: return code is different from swap_duplicate().
+  * Must be called with mem_hotplug_lock in write mode.
   */
--int swapcache_prepare(swp_entry_t entry)
-+int swapcache_prepare(swp_entry_t entry, int nr)
+-int __ref offline_pages(unsigned long start_pfn, unsigned long nr_pages,
++int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
+ 			struct zone *zone, struct memory_group *group)
  {
--	return __swap_duplicate(entry, SWAP_HAS_CACHE);
-+	return __swap_duplicate(entry, SWAP_HAS_CACHE, nr);
+ 	const unsigned long end_pfn = start_pfn + nr_pages;
+@@ -2240,7 +2240,7 @@ static int memory_blocks_have_altmaps(u6
+ 	return 1;
  }
  
--void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry)
-+void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr)
+-static int __ref try_remove_memory(u64 start, u64 size)
++static int try_remove_memory(u64 start, u64 size)
  {
- 	unsigned long offset = swp_offset(entry);
- 
--	cluster_swap_free_nr(si, offset, 1, SWAP_HAS_CACHE);
-+	cluster_swap_free_nr(si, offset, nr, SWAP_HAS_CACHE);
- }
- 
- struct swap_info_struct *swp_swap_info(swp_entry_t entry)
---- a/mm/swap.h~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios
-+++ a/mm/swap.h
-@@ -59,7 +59,7 @@ void __delete_from_swap_cache(struct fol
- void delete_from_swap_cache(struct folio *folio);
- void clear_shadow_from_swap_cache(int type, unsigned long begin,
- 				  unsigned long end);
--void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry);
-+void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
- struct folio *swap_cache_get_folio(swp_entry_t entry,
- 		struct vm_area_struct *vma, unsigned long addr);
- struct folio *filemap_get_incore_folio(struct address_space *mapping,
-@@ -120,7 +120,7 @@ static inline int swap_writepage(struct
- 	return 0;
- }
- 
--static inline void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry)
-+static inline void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr)
- {
- }
- 
-@@ -172,4 +172,5 @@ static inline unsigned int folio_swap_fl
- 	return 0;
- }
- #endif /* CONFIG_SWAP */
-+
- #endif /* _MM_SWAP_H */
---- a/mm/swap_state.c~mm-swap-add-nr-argument-in-swapcache_prepare-and-swapcache_clear-to-support-large-folios
-+++ a/mm/swap_state.c
-@@ -477,7 +477,7 @@ struct folio *__read_swap_cache_async(sw
- 		/*
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
--		err = swapcache_prepare(entry);
-+		err = swapcache_prepare(entry, 1);
- 		if (!err)
- 			break;
+ 	int rc, nid = NUMA_NO_NODE;
  
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
-mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
-mm-count-the-number-of-anonymous-thps-per-size.patch
-mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
-mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+maple_tree-arange64-node-is-not-a-leaf-node.patch
+maple_tree-dump-error-message-based-on-format.patch
+maple_tree-cleanup-function-descriptions.patch
+maple_tree-fix-comment-typo-on-ma_flag-of-allocation-tree.patch
+maple_tree-use-ma_data_end-in-mas_data_end.patch
+maple_tree-use-mas_safe_pivot-to-get-the-pivot-range.patch
+maple_tree-local-variable-count-is-not-necessary.patch
 
