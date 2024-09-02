@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBDA14F10F
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DF08144D0A
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248840; cv=none; b=pIEhv75toovVVPfAplm0CYEwYrQ9mOGGbtSudpKnrTZ7iqfY5jp9TBQFCaPxr46FMkmYpaHU/Qi/swDMHElMMParifCDy/6DG8M17CHalW2JCik2ShRSPHhc3X6Yff1ckVEhZ2QqUq0TqDnolW7VOqduUnOquWJRF7pGBZG4N0U=
+	t=1725248841; cv=none; b=LpBzWQjqZTd24FXRBXlfvJRLCyjjBsRUX2RZp/HvVYQgUb8ukODJn/vXTiRrK/dXJy3ax8Q20ypmgOXAAv+sFKAhhC3ErZH/Xx0J9z8l8vz1yol6d2b6xC7v0FaH5hjkPJT2U1a/CMoPtYe6MereDWm45UCN1/yhVHKo5ilA89c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248840; c=relaxed/simple;
-	bh=mlfqLZCEMcvdfn6xRyQ5io92gHM+4CipNHFOaoxwok4=;
-	h=Date:To:From:Subject:Message-Id; b=oZ/HCN0rSq6tMp5ey161fU4ajZfUbypE2u0TiJxVGo3tr+BMGwWJhV2PW3fqWetHXtA5xkqEaDadLWmbptFTYpr2vWaG+sRbeqMIkLl4bterwki7wChYjMd8X5iXxR+bI9+sDRjUby9kgMFFuCEVVTGO7drZ4fJV8UD7k03tUJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pU+nHDhl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248841; c=relaxed/simple;
+	bh=WDDriJbGhG3VdLlSXV/j7bFI/BfDCQxMgUPTbaNLTk4=;
+	h=Date:To:From:Subject:Message-Id; b=vFHtgh9QwUa2Km5OEGt5u6nIbKm0VyryyR8U5AO49hQFtdmCsl2dGDGyxJ5C9XGD4MqQGN9G1n0AsgLyZVlgwjOJW4AgiiyB4Fc31DiJ3MUHp1P5n5PueTOCGirTX588b/ohLliIOK4kwNykyUNgzZCR3m8ArRlqDb21QpuKJfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qb02gwSG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pU+nHDhl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64881C4CEC2;
-	Mon,  2 Sep 2024 03:47:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qb02gwSG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76F85C4CEC2;
+	Mon,  2 Sep 2024 03:47:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248840;
-	bh=mlfqLZCEMcvdfn6xRyQ5io92gHM+4CipNHFOaoxwok4=;
+	s=korg; t=1725248841;
+	bh=WDDriJbGhG3VdLlSXV/j7bFI/BfDCQxMgUPTbaNLTk4=;
 	h=Date:To:From:Subject:From;
-	b=pU+nHDhl8AOxVzUM7TLFbGwzZ1neOPxAXdqno7Eq+csxl43B7g5aN9eaBFLi+jmfo
-	 RBlSTOv4n9ycUVcJblK7uQCC0X6tK1t2ut9WIC4XjrutV23YdgRTQAC31b07rkbjLK
-	 v4dqkI3wTPlascWUWLDZP8NSrKIae0ECfxXkbkKY=
-Date: Sun, 01 Sep 2024 20:47:19 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=qb02gwSGhUIR7akdo6EyMcJ7sbVGiR+skzhZTMUBTWiAc6PZUf9gBqlQknWmW1Rox
+	 Vzfe9FDRzJH8z0ixof8Ew4LLzkf1dIgibzt7iYrG5Rq5ec6HxniOUrC0iHy2c2lnyW
+	 G9IXx0/nb96J1JUyMGL1K8RaHeThzwNo3UKMq5MI=
+Date: Sun, 01 Sep 2024 20:47:20 -0700
+To: mm-commits@vger.kernel.org,talgi@nvidia.com,linux@rasmusvillemoes.dk,florian.fainelli@broadcom.com,aleksander.lobakin@intel.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch removed from -mm tree
-Message-Id: <20240902034720.64881C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] dimlib-use-y-instead-of-objs-in-makefile.patch removed from -mm tree
+Message-Id: <20240902034721.76F85C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: do not propagate ENOENT error from nilfs_sufile_mark_dirty()
+     Subject: dimlib: use *-y instead of *-objs in Makefile
 has been removed from the -mm tree.  Its filename was
-     nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty.patch
+     dimlib-use-y-instead-of-objs-in-makefile.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not propagate ENOENT error from nilfs_sufile_mark_dirty()
-Date: Thu, 22 Aug 2024 00:46:27 +0900
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: dimlib: use *-y instead of *-objs in Makefile
+Date: Wed, 21 Aug 2024 18:51:04 +0300
 
-nilfs_sufile_mark_dirty(), which marks a block in the sufile metadata file
-as dirty in preparation for log writing, returns -ENOENT to the caller if
-the block containing the segment usage of the specified segment is
-missing.
+*-objs suffix is reserved rather for (user-space) host programs while
+usually *-y suffix is used for kernel drivers (although *-objs works for
+that purpose for now).
 
-This internal code can propagate through the log writer to system calls
-such as fsync.  To prevent this, treat this case as a filesystem error and
-return -EIO instead.
+Let's correct the old usages of *-objs in Makefiles.
 
-Link: https://lkml.kernel.org/r/20240821154627.11848-6-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240821155140.611514-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Florian Fainelli <florian.fainelli@broadcom.com>
+Reviewed-by: Alexander Lobakin <aleksander.lobakin@intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Tal Gilboa <talgi@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ lib/dim/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-do-not-propagate-enoent-error-from-nilfs_sufile_mark_dirty
-+++ a/fs/nilfs2/sufile.c
-@@ -513,8 +513,15 @@ int nilfs_sufile_mark_dirty(struct inode
+--- a/lib/dim/Makefile~dimlib-use-y-instead-of-objs-in-makefile
++++ a/lib/dim/Makefile
+@@ -4,4 +4,4 @@
  
- 	down_write(&NILFS_MDT(sufile)->mi_sem);
- 	ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 0, &bh);
--	if (ret)
-+	if (unlikely(ret)) {
-+		if (ret == -ENOENT) {
-+			nilfs_error(sufile->i_sb,
-+				    "segment usage for segment %llu is unreadable due to a hole block",
-+				    (unsigned long long)segnum);
-+			ret = -EIO;
-+		}
- 		goto out_sem;
-+	}
+ obj-$(CONFIG_DIMLIB) += dimlib.o
  
- 	kaddr = kmap_local_page(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
+-dimlib-objs := dim.o net_dim.o rdma_dim.o
++dimlib-y := dim.o net_dim.o rdma_dim.o
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
