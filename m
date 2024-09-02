@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC3C3BBD8
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:11:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BC1979C0
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:12:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725246689; cv=none; b=TD5oHpuTpSFKXv48m/jjewm68gzAY9LvSVfwCARo11xV25A+OYeRKB1dPvPRjMyorm54nK6sIW+QnYay8MpstseHBNLiiykPgt7BmFin0EmLlpB8OLWOZphmIbLlmOIKTClDvB3quAI/S5OBRy934MA5nGmMkzuWVrcQqiD6JdQ=
+	t=1725246770; cv=none; b=f/uVBQcOZOpcfDHY6Kvists6IDuAx4VAlJ+rHr0fFAZ33MP0ryEXygkC7SxytbeSSENkp+EKd1wEcObRANdmaXL8OLPAEWYypV4wkYq5QQY1qWLgvpHmJ7a/pFAa0bSftZrrOudA0jl8CK+1Ae5tK70HdbKkOHqeJLthKGuSf9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725246689; c=relaxed/simple;
-	bh=zd04iSGWeHUz1qw6l0/S9YnfuFCZx0R9BTN8IrDvUJ0=;
-	h=Date:To:From:Subject:Message-Id; b=nYRa49Qpg91tKby1nMEf87z2eG3ogC4rARZtqdZ2e8dYJvlsn4s5qCbz+m5TbtejNGiT4Ow80MuqQH+UitxMazJbWIjnkexpNneKAkfRJMHJOFy+GpMJG9phaczbZdXDHNOxjDXkVMrg9Otqyc0TBbGcYCiEQTujZBdrcoklQrk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rD4GScii; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725246770; c=relaxed/simple;
+	bh=GHB1UVGu1g8YB6SYjVlVuMzlbkqjSyif6T7ujgwxBnc=;
+	h=Date:To:From:Subject:Message-Id; b=cUYjk+O5MtXbEqossf8C2r2VJr5ZXpXafP7Ku4BzKo31HnZbfdZfSXzBhXkx7mFFjcE7fEmhvBqCgMotaOWWgfnmu6Kb31yfM/Pc3Rjvdk2vAB7DUjqOC6trzDKg8ah+X3ZjMYTuiH3FIdKJms6CSQzMml+UY42s/aopyohGm34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D0rZLfpD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rD4GScii"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1638DC4CEC3;
-	Mon,  2 Sep 2024 03:11:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D0rZLfpD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6359C4CEC3;
+	Mon,  2 Sep 2024 03:12:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725246689;
-	bh=zd04iSGWeHUz1qw6l0/S9YnfuFCZx0R9BTN8IrDvUJ0=;
+	s=korg; t=1725246769;
+	bh=GHB1UVGu1g8YB6SYjVlVuMzlbkqjSyif6T7ujgwxBnc=;
 	h=Date:To:From:Subject:From;
-	b=rD4GSciiaKvSfGTOfyW+oOHYQlU18RIhk65VM0+yJKZWZXgKHkeMYaFBcz5RFGrAf
-	 mkNy6+oWZe2DtfkOR3cv4HqHXXERG6DVjwT8n530yTMebRHUsCOGCsoHZ485ZhI5BL
-	 7bDHdWUjsQHwWTYdA7tC5mdYRmNDygZIEHRUlTxk=
-Date: Sun, 01 Sep 2024 20:11:28 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
+	b=D0rZLfpDVGKI/WT0qoWENml7zbIZd7W2mp5XHCd2r+KWvC1VL3XjsG369EG/A3Yo0
+	 GHVf3UDZ8VN8DNR608Ks45dOJ4pMvldhtA9ttfFtwn/zq3zNSoGDlZj7snNFX9cDkY
+	 B7bK41AO1Oj5agDOr4tja16G2Ck9uu3mGy8Pxyms=
+Date: Sun, 01 Sep 2024 20:12:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,svens@linux.ibm.com,ryan.roberts@arm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch removed from -mm tree
-Message-Id: <20240902031129.1638DC4CEC3@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix.patch removed from -mm tree
+Message-Id: <20240902031249.D6359C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
+     Subject: mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
+     mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix.patch
 
-This patch was dropped because it was folded into mm-zswap-fix-global-shrinker-memcg-iteration.patch
+This patch was dropped because it was folded into mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
-Date: Fri, 2 Aug 2024 21:14:17 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix
+Date: Tue, 6 Aug 2024 12:08:17 +0200
 
-move the spin_lock/unlock() closer to the loop to make the critical
-section more obvious, and unify the comments above and below into a single
-block.
+teach can_split_folio() that we are not holding an additional reference
 
-Link: https://lkml.kernel.org/r/CAJD7tkaScz+SbB90Q1d5mMD70UfM2a-J2zhXDT9sePR7Qap45Q@mail.gmail.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Takero Funaki <flintglass@gmail.com>
+Link: https://lkml.kernel.org/r/c75d1c6c-8ea6-424f-853c-1ccda6c77ba2@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/huge_mm.h |    4 ++--
+ mm/huge_memory.c        |    9 +++++----
+ mm/vmscan.c             |    2 +-
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
-+++ a/mm/zswap.c
-@@ -1335,24 +1335,22 @@ static void shrink_worker(struct work_st
- 	 * until the next run of shrink_worker().
- 	 */
- 	do {
--		spin_lock(&zswap_shrink_lock);
--
- 		/*
- 		 * Start shrinking from the next memcg after zswap_next_shrink.
- 		 * When the offline cleaner has already advanced the cursor,
- 		 * advancing the cursor here overlooks one memcg, but this
- 		 * should be negligibly rare.
-+		 *
-+		 * If we get an online memcg, keep the extra reference in case
-+		 * the original one obtained by mem_cgroup_iter() is dropped by
-+		 * zswap_memcg_offline_cleanup() while we are shrinking the
-+		 * memcg.
- 		 */
-+		spin_lock(&zswap_shrink_lock);
- 		do {
- 			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
- 			zswap_next_shrink = memcg;
- 		} while (memcg && !mem_cgroup_tryget_online(memcg));
--		/*
--		 * Note that if we got an online memcg, we will keep the extra
--		 * reference in case the original reference obtained by mem_cgroup_iter
--		 * is dropped by the zswap memcg offlining callback, ensuring that the
--		 * memcg is not killed when we are reclaiming.
--		 */
- 		spin_unlock(&zswap_shrink_lock);
+--- a/include/linux/huge_mm.h~mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix
++++ a/include/linux/huge_mm.h
+@@ -314,7 +314,7 @@ unsigned long thp_get_unmapped_area_vmfl
+ 		unsigned long len, unsigned long pgoff, unsigned long flags,
+ 		vm_flags_t vm_flags);
  
- 		if (!memcg) {
+-bool can_split_folio(struct folio *folio, int *pextra_pins);
++bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins);
+ int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+ 		unsigned int new_order);
+ static inline int split_huge_page(struct page *page)
+@@ -470,7 +470,7 @@ thp_get_unmapped_area_vmflags(struct fil
+ }
+ 
+ static inline bool
+-can_split_folio(struct folio *folio, int *pextra_pins)
++can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins)
+ {
+ 	return false;
+ }
+--- a/mm/huge_memory.c~mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix
++++ a/mm/huge_memory.c
+@@ -3018,7 +3018,7 @@ static void __split_huge_page(struct pag
+ }
+ 
+ /* Racy check whether the huge page can be split */
+-bool can_split_folio(struct folio *folio, int *pextra_pins)
++bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins)
+ {
+ 	int extra_pins;
+ 
+@@ -3030,7 +3030,8 @@ bool can_split_folio(struct folio *folio
+ 		extra_pins = folio_nr_pages(folio);
+ 	if (pextra_pins)
+ 		*pextra_pins = extra_pins;
+-	return folio_mapcount(folio) == folio_ref_count(folio) - extra_pins - 1;
++	return folio_mapcount(folio) == folio_ref_count(folio) - extra_pins -
++					caller_pins;
+ }
+ 
+ /*
+@@ -3198,7 +3199,7 @@ int split_huge_page_to_list_to_order(str
+ 	 * Racy check if we can split the page, before unmap_folio() will
+ 	 * split PMDs
+ 	 */
+-	if (!can_split_folio(folio, &extra_pins)) {
++	if (!can_split_folio(folio, 1, &extra_pins)) {
+ 		ret = -EAGAIN;
+ 		goto out_unlock;
+ 	}
+@@ -3534,7 +3535,7 @@ static int split_huge_pages_pid(int pid,
+ 		 * can be split or not. So skip the check here.
+ 		 */
+ 		if (!folio_test_private(folio) &&
+-		    !can_split_folio(folio, NULL))
++		    !can_split_folio(folio, 0, NULL))
+ 			goto next;
+ 
+ 		if (!folio_trylock(folio))
+--- a/mm/vmscan.c~mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk-fix
++++ a/mm/vmscan.c
+@@ -1227,7 +1227,7 @@ retry:
+ 					goto keep_locked;
+ 				if (folio_test_large(folio)) {
+ 					/* cannot split folio, skip it */
+-					if (!can_split_folio(folio, NULL))
++					if (!can_split_folio(folio, 1, NULL))
+ 						goto activate_locked;
+ 					/*
+ 					 * Split partially mapped folios right away.
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-zswap-fix-global-shrinker-memcg-iteration.patch
+mm-turn-use_split_pte_ptlocks-use_split_pte_ptlocks-into-kconfig-options.patch
+mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch
+powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch
+mm-simplify-arch_make_folio_accessible.patch
+mm-gup-convert-to-arch_make_folio_accessible.patch
+s390-uv-drop-arch_make_page_accessible.patch
+mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
+mm-rmap-cleanup-partially-mapped-handling-in-__folio_remove_rmap.patch
+mm-clarify-folio_likely_mapped_shared-documentation-for-ksm-folios.patch
+mm-provide-vm_normal_pagefolio_pmd-with-config_pgtable_has_huge_leaves.patch
+mm-pagewalk-introduce-folio_walk_start-folio_walk_end.patch
+mm-migrate-convert-do_pages_stat_array-from-follow_page-to-folio_walk.patch
+mm-migrate-convert-add_page_for_migration-from-follow_page-to-folio_walk.patch
+mm-ksm-convert-get_mergeable_page-from-follow_page-to-folio_walk.patch
+mm-ksm-convert-scan_get_next_rmap_item-from-follow_page-to-folio_walk.patch
+mm-huge_memory-convert-split_huge_pages_pid-from-follow_page-to-folio_walk.patch
+s390-uv-convert-gmap_destroy_page-from-follow_page-to-folio_walk.patch
+s390-mm-fault-convert-do_secure_storage_access-from-follow_page-to-folio_walk.patch
+mm-remove-follow_page.patch
+mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping.patch
+mm-rmap-use-folio-_mapcount-for-small-folios.patch
+mm-always-inline-_compound_head-with-config_hugetlb_page_optimize_vmemmap=y.patch
+selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
