@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030EF54907;
-	Mon,  2 Sep 2024 03:29:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B0154AEF7
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247757; cv=none; b=lNpPAbJmJpoU5wHx2/fAoZKDO4Km7LTOeuk3mVfYNIFLGopWN8ayAWvXz+CaB08YCpHK4oAdu838yKU0SJ9e+rfLKHMD1JwxzhWLMavzBQUU4+3IXQboAp04OcHxvivbZWYnpxr23rD/vW4RbpxLUm4og/AevTkASFHDg/Cd3aw=
+	t=1725247758; cv=none; b=QHVS+cdyqBW3IGGuIP4Xdo/KE2aR1rpMQexoIIDC47fi2V3K5gzncHgsYlbUKZtk7v81fZR0344idua7psOLXEQEHyDABPVv3NcZqs1L+SK8ziWRWbOiJNLzELXlRzTvtPHgffM8fXwscMyp6TOX8UadsYGHMtnntJTru1MpfCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247757; c=relaxed/simple;
-	bh=pz0WxglGqzLEjF1NmqqPccZlOy1fRvfLZ2ihSanfnPI=;
-	h=Date:To:From:Subject:Message-Id; b=jJC6kpviibKLi5jd/MWIWIiSDc3Jb5jLz66Rhr/m5XBgLP/il1TvBJQ5PGzXAlxd0Ztw92Inr09BN+g/wK/T8GONpjfRJJEky6RPG6nVIap4JAEg7WLeNmOiWaOFISXEsL6Zsgk9pmrKgfsKc1XWmUFs7e6RjeToc5hHrFjCO/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rwoywP37; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247758; c=relaxed/simple;
+	bh=GM9953GW/ZK80G/m5OMZPLCiHzycKJF56XkBEMsQWiQ=;
+	h=Date:To:From:Subject:Message-Id; b=cPPXDD3Oys9mMXOB/BcpK6uppUWF3OtZ6opCSzRgmkNiQQwEIOhdiDPCQWuXRcKYK3qMySMi0dZHEbrn3eAGjPuCtI11Xnr3mrvKPGBd9tIGj0d66LOrwz5Wsxjd2p1/U8/Rr4TtUZlry/+y1t/G3ROPnuHL/I4+7+vDuv5BjAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xre49Q9H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rwoywP37"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6D61C4CEC2;
-	Mon,  2 Sep 2024 03:29:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xre49Q9H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20E53C4CEC2;
+	Mon,  2 Sep 2024 03:29:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247756;
-	bh=pz0WxglGqzLEjF1NmqqPccZlOy1fRvfLZ2ihSanfnPI=;
+	s=korg; t=1725247758;
+	bh=GM9953GW/ZK80G/m5OMZPLCiHzycKJF56XkBEMsQWiQ=;
 	h=Date:To:From:Subject:From;
-	b=rwoywP37PuqIcLGvVZZl8zpUGzJaD4bZC2EATqXesDAcBolMe5ADn+HmHcXXPi43a
-	 FZuiOek29U19QRHItyr1ADEE4Pnd/H2RetMf772DSGgKSpVL3DhcWdYZlJbp8AcAsm
-	 W/UH8WQ1RgeQlUq/9XwYVQCiwG2MmnUJiT/GrPjs=
-Date: Sun, 01 Sep 2024 20:29:16 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mcgrof@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,linus.walleij@linaro.org,kees@kernel.org,alex@ghiti.fr,davidgow@google.com,akpm@linux-foundation.org
+	b=Xre49Q9HW1xjZlbEOgaj/xhHXSC5iaIGeNWRc/3TYmQhtsTY43mgqMWh6pE0JsKlE
+	 EpF7P2H1Ms+rlBRQW9slfKYvBMY7n23P19mYtGYXkBLvAisSg9DvPsmg2iz7kON4RP
+	 R+VvGjwzMUQoZMO8p9ICsuDmWr/x+UbdARGlGgdg=
+Date: Sun, 01 Sep 2024 20:29:17 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch removed from -mm tree
-Message-Id: <20240902032916.C6D61C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] zswap-implement-a-second-chance-algorithm-for-dynamic-zswap-shrinker.patch removed from -mm tree
+Message-Id: <20240902032918.20E53C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,389 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: only enforce minimum stack gap size if it's sensible
+     Subject: zswap: implement a second chance algorithm for dynamic zswap shrinker
 has been removed from the -mm tree.  Its filename was
-     mm-only-enforce-minimum-stack-gap-size-if-its-sensible.patch
+     zswap-implement-a-second-chance-algorithm-for-dynamic-zswap-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Gow <davidgow@google.com>
-Subject: mm: only enforce minimum stack gap size if it's sensible
-Date: Sat, 3 Aug 2024 15:46:41 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zswap: implement a second chance algorithm for dynamic zswap shrinker
+Date: Mon, 5 Aug 2024 16:22:42 -0700
 
-The generic mmap_base code tries to leave a gap between the top of the
-stack and the mmap base address, but enforces a minimum gap size (MIN_GAP)
-of 128MB, which is too large on some setups.  In particular, on arm tasks
-without ADDR_LIMIT_32BIT, the STACK_TOP value is less than 128MB, so it's
-impossible to fit such a gap in.
+Patch series "improving dynamic zswap shrinker protection scheme", v3.
 
-Only enforce this minimum if MIN_GAP < MAX_GAP, as we'd prefer to honour
-MAX_GAP, which is defined proportionally, so scales better and always
-leaves us with both _some_ stack space and some room for mmap.
+When experimenting with the memory-pressure based (i.e "dynamic") zswap
+shrinker in production, we observed a sharp increase in the number of
+swapins, which led to performance regression.  We were able to trace this
+regression to the following problems with the shrinker's warm pages
+protection scheme: 
 
-This fixes the usercopy KUnit test suite on 32-bit arm, as it doesn't set
-any personality flags so gets the default (in this case 26-bit) task size.
-This test can be run with: ./tools/testing/kunit/kunit.py run --arch arm
-usercopy --make_options LLVM=1
+1. The protection decays way too rapidly, and the decaying is coupled with
+   zswap stores, leading to anomalous patterns, in which a small batch of
+   zswap stores effectively erase all the protection in place for the
+   warmer pages in the zswap LRU.
 
-Link: https://lkml.kernel.org/r/20240803074642.1849623-2-davidgow@google.com
-Fixes: dba79c3df4a2 ("arm: use generic mmap top-down layout and brk randomization")
-Signed-off-by: David Gow <davidgow@google.com>
-Reviewed-by: Kees Cook <kees@kernel.org>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: <stable@vger.kernel.org>
+   This observation has also been corroborated upstream by Takero Funaki
+   (in [1]).
+
+2. We inaccurately track the number of swapped in pages, missing the
+   non-pivot pages that are part of the readahead window, while counting
+   the pages that are found in the zswap pool.
+
+
+To alleviate these two issues, this patch series improve the dynamic zswap
+shrinker in the following manner:
+
+1. Replace the protection size tracking scheme with a second chance
+   algorithm. This new scheme removes the need for haphazard stats
+   decaying, and automatically adjusts the pace of pages aging with memory
+   pressure, and writeback rate with pool activities: slowing down when
+   the pool is dominated with zswpouts, and speeding up when the pool is
+   dominated with stale entries.
+
+2. Fix the tracking of the number of swapins to take into account
+   non-pivot pages in the readahead window.
+
+With these two changes in place, in a kernel-building benchmark without
+any cold data added, the number of swapins is reduced by 64.12%.  This
+translate to a 10.32% reduction in build time.  We also observe a 3%
+reduction in kernel CPU time.
+
+In another benchmark, with cold data added (to gauge the new algorithm's
+ability to offload cold data), the new second chance scheme outperforms
+the old protection scheme by around 0.7%, and actually written back around
+21% more pages to backing swap device.  So the new scheme is just as good,
+if not even better than the old scheme on this front as well.
+
+[1]: https://lore.kernel.org/linux-mm/CAPpodddcGsK=0Xczfuk8usgZ47xeyf4ZjiofdT+ujiyz6V2pFQ@mail.gmail.com/
+
+
+This patch (of 2):
+
+Current zswap shrinker's heuristics to prevent overshrinking is brittle
+and inaccurate, specifically in the way we decay the protection size (i.e
+making pages in the zswap LRU eligible for reclaim).
+
+We currently decay protection aggressively in zswap_lru_add() calls.  This
+leads to the following unfortunate effect: when a new batch of pages enter
+zswap, the protection size rapidly decays to below 25% of the zswap LRU
+size, which is way too low.
+
+We have observed this effect in production, when experimenting with the
+zswap shrinker: the rate of shrinking shoots up massively right after a
+new batch of zswap stores.  This is somewhat the opposite of what we want
+originally - when new pages enter zswap, we want to protect both these new
+pages AND the pages that are already protected in the zswap LRU.
+
+Replace existing heuristics with a second chance algorithm
+
+1. When a new zswap entry is stored in the zswap pool, its referenced
+   bit is set.
+2. When the zswap shrinker encounters a zswap entry with the referenced
+   bit set, give it a second chance - only flips the referenced bit and
+   rotate it in the LRU.
+3. If the shrinker encounters the entry again, this time with its
+   referenced bit unset, then it can reclaim the entry.
+
+In this manner, the aging of the pages in the zswap LRUs are decoupled
+from zswap stores, and picks up the pace with increasing memory pressure
+(which is what we want).
+
+The second chance scheme allows us to modulate the writeback rate based on
+recent pool activities.  Entries that recently entered the pool will be
+protected, so if the pool is dominated by such entries the writeback rate
+will reduce proportionally, protecting the workload's workingset.On the
+other hand, stale entries will be written back quickly, which increases
+the effective writeback rate.
+
+The referenced bit is added at the hole after the `length` field of struct
+zswap_entry, so there is no extra space overhead for this algorithm.
+
+We will still maintain the count of swapins, which is consumed and
+subtracted from the lru size in zswap_shrinker_count(), to further
+penalize past overshrinking that led to disk swapins.  The idea is that
+had we considered this many more pages in the LRU active/protected, they
+would not have been written back and we would not have had to swapped them
+in.
+
+To test this new heuristics, I built the kernel under a cgroup with
+memory.max set to 2G, on a host with 36 cores:
+
+With the old shrinker:
+
+real: 263.89s
+user: 4318.11s
+sys: 673.29s
+swapins: 227300.5
+
+With the second chance algorithm:
+
+real: 244.85s
+user: 4327.22s
+sys: 664.39s
+swapins: 94663
+
+(average over 5 runs)
+
+We observe an 1.3% reduction in kernel CPU usage, and around 7.2%
+reduction in real time. Note that the number of swapped in pages
+dropped by 58%.
+
+[nphamcs@gmail.com: fix a small mistake in the referenced bit documentation]
+  Link: https://lkml.kernel.org/r/20240806003403.3142387-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20240805232243.2896283-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20240805232243.2896283-2-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Takero Funaki <flintglass@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/zswap.h |   16 ++---
+ mm/zswap.c            |  108 +++++++++++++++++++++++-----------------
+ 2 files changed, 70 insertions(+), 54 deletions(-)
 
---- a/mm/util.c~mm-only-enforce-minimum-stack-gap-size-if-its-sensible
-+++ a/mm/util.c
-@@ -463,7 +463,7 @@ static unsigned long mmap_base(unsigned
- 	if (gap + pad > gap)
- 		gap += pad;
+--- a/include/linux/zswap.h~zswap-implement-a-second-chance-algorithm-for-dynamic-zswap-shrinker
++++ a/include/linux/zswap.h
+@@ -13,17 +13,15 @@ extern atomic_t zswap_stored_pages;
  
--	if (gap < MIN_GAP)
-+	if (gap < MIN_GAP && MIN_GAP < MAX_GAP)
- 		gap = MIN_GAP;
- 	else if (gap > MAX_GAP)
- 		gap = MAX_GAP;
+ struct zswap_lruvec_state {
+ 	/*
+-	 * Number of pages in zswap that should be protected from the shrinker.
+-	 * This number is an estimate of the following counts:
++	 * Number of swapped in pages from disk, i.e not found in the zswap pool.
+ 	 *
+-	 * a) Recent page faults.
+-	 * b) Recent insertion to the zswap LRU. This includes new zswap stores,
+-	 *    as well as recent zswap LRU rotations.
+-	 *
+-	 * These pages are likely to be warm, and might incur IO if the are written
+-	 * to swap.
++	 * This is consumed and subtracted from the lru size in
++	 * zswap_shrinker_count() to penalize past overshrinking that led to disk
++	 * swapins. The idea is that had we considered this many more pages in the
++	 * LRU active/protected and not written them back, we would not have had to
++	 * swapped them in.
+ 	 */
+-	atomic_long_t nr_zswap_protected;
++	atomic_long_t nr_disk_swapins;
+ };
+ 
+ unsigned long zswap_total_pages(void);
+--- a/mm/zswap.c~zswap-implement-a-second-chance-algorithm-for-dynamic-zswap-shrinker
++++ a/mm/zswap.c
+@@ -187,6 +187,10 @@ static struct shrinker *zswap_shrinker;
+  * length - the length in bytes of the compressed page data.  Needed during
+  *          decompression. For a same value filled page length is 0, and both
+  *          pool and lru are invalid and must be ignored.
++ * referenced - true if the entry recently entered the zswap pool. Unset by the
++ *              writeback logic. The entry is only reclaimed by the writeback
++ *              logic if referenced is unset. See comments in the shrinker
++ *              section for context.
+  * pool - the zswap_pool the entry's data is in
+  * handle - zpool allocation handle that stores the compressed page data
+  * value - value of the same-value filled pages which have same content
+@@ -196,6 +200,7 @@ static struct shrinker *zswap_shrinker;
+ struct zswap_entry {
+ 	swp_entry_t swpentry;
+ 	unsigned int length;
++	bool referenced;
+ 	struct zswap_pool *pool;
+ 	union {
+ 		unsigned long handle;
+@@ -700,11 +705,8 @@ static inline int entry_to_nid(struct zs
+ 
+ static void zswap_lru_add(struct list_lru *list_lru, struct zswap_entry *entry)
+ {
+-	atomic_long_t *nr_zswap_protected;
+-	unsigned long lru_size, old, new;
+ 	int nid = entry_to_nid(entry);
+ 	struct mem_cgroup *memcg;
+-	struct lruvec *lruvec;
+ 
+ 	/*
+ 	 * Note that it is safe to use rcu_read_lock() here, even in the face of
+@@ -722,19 +724,6 @@ static void zswap_lru_add(struct list_lr
+ 	memcg = mem_cgroup_from_entry(entry);
+ 	/* will always succeed */
+ 	list_lru_add(list_lru, &entry->lru, nid, memcg);
+-
+-	/* Update the protection area */
+-	lru_size = list_lru_count_one(list_lru, nid, memcg);
+-	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+-	nr_zswap_protected = &lruvec->zswap_lruvec_state.nr_zswap_protected;
+-	old = atomic_long_inc_return(nr_zswap_protected);
+-	/*
+-	 * Decay to avoid overflow and adapt to changing workloads.
+-	 * This is based on LRU reclaim cost decaying heuristics.
+-	 */
+-	do {
+-		new = old > lru_size / 4 ? old / 2 : old;
+-	} while (!atomic_long_try_cmpxchg(nr_zswap_protected, &old, new));
+ 	rcu_read_unlock();
+ }
+ 
+@@ -752,7 +741,7 @@ static void zswap_lru_del(struct list_lr
+ 
+ void zswap_lruvec_state_init(struct lruvec *lruvec)
+ {
+-	atomic_long_set(&lruvec->zswap_lruvec_state.nr_zswap_protected, 0);
++	atomic_long_set(&lruvec->zswap_lruvec_state.nr_disk_swapins, 0);
+ }
+ 
+ void zswap_folio_swapin(struct folio *folio)
+@@ -761,7 +750,7 @@ void zswap_folio_swapin(struct folio *fo
+ 
+ 	if (folio) {
+ 		lruvec = folio_lruvec(folio);
+-		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
++		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_disk_swapins);
+ 	}
+ }
+ 
+@@ -1095,6 +1084,28 @@ static int zswap_writeback_entry(struct
+ /*********************************
+ * shrinker functions
+ **********************************/
++/*
++ * The dynamic shrinker is modulated by the following factors:
++ *
++ * 1. Each zswap entry has a referenced bit, which the shrinker unsets (giving
++ *    the entry a second chance) before rotating it in the LRU list. If the
++ *    entry is considered again by the shrinker, with its referenced bit unset,
++ *    it is written back. The writeback rate as a result is dynamically
++ *    adjusted by the pool activities - if the pool is dominated by new entries
++ *    (i.e lots of recent zswapouts), these entries will be protected and
++ *    the writeback rate will slow down. On the other hand, if the pool has a
++ *    lot of stagnant entries, these entries will be reclaimed immediately,
++ *    effectively increasing the writeback rate.
++ *
++ * 2. Swapins counter: If we observe swapins, it is a sign that we are
++ *    overshrinking and should slow down. We maintain a swapins counter, which
++ *    is consumed and subtract from the number of eligible objects on the LRU
++ *    in zswap_shrinker_count().
++ *
++ * 3. Compression ratio. The better the workload compresses, the less gains we
++ *    can expect from writeback. We scale down the number of objects available
++ *    for reclaim by this ratio.
++ */
+ static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
+ 				       spinlock_t *lock, void *arg)
+ {
+@@ -1105,6 +1116,16 @@ static enum lru_status shrink_memcg_cb(s
+ 	int writeback_result;
+ 
+ 	/*
++	 * Second chance algorithm: if the entry has its referenced bit set, give it
++	 * a second chance. Only clear the referenced bit and rotate it in the
++	 * zswap's LRU list.
++	 */
++	if (entry->referenced) {
++		entry->referenced = false;
++		return LRU_ROTATE;
++	}
++
++	/*
+ 	 * As soon as we drop the LRU lock, the entry can be freed by
+ 	 * a concurrent invalidation. This means the following:
+ 	 *
+@@ -1170,8 +1191,7 @@ static enum lru_status shrink_memcg_cb(s
+ static unsigned long zswap_shrinker_scan(struct shrinker *shrinker,
+ 		struct shrink_control *sc)
+ {
+-	struct lruvec *lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
+-	unsigned long shrink_ret, nr_protected, lru_size;
++	unsigned long shrink_ret;
+ 	bool encountered_page_in_swapcache = false;
+ 
+ 	if (!zswap_shrinker_enabled ||
+@@ -1180,25 +1200,6 @@ static unsigned long zswap_shrinker_scan
+ 		return SHRINK_STOP;
+ 	}
+ 
+-	nr_protected =
+-		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+-	lru_size = list_lru_shrink_count(&zswap_list_lru, sc);
+-
+-	/*
+-	 * Abort if we are shrinking into the protected region.
+-	 *
+-	 * This short-circuiting is necessary because if we have too many multiple
+-	 * concurrent reclaimers getting the freeable zswap object counts at the
+-	 * same time (before any of them made reasonable progress), the total
+-	 * number of reclaimed objects might be more than the number of unprotected
+-	 * objects (i.e the reclaimers will reclaim into the protected area of the
+-	 * zswap LRU).
+-	 */
+-	if (nr_protected >= lru_size - sc->nr_to_scan) {
+-		sc->nr_scanned = 0;
+-		return SHRINK_STOP;
+-	}
+-
+ 	shrink_ret = list_lru_shrink_walk(&zswap_list_lru, sc, &shrink_memcg_cb,
+ 		&encountered_page_in_swapcache);
+ 
+@@ -1213,7 +1214,10 @@ static unsigned long zswap_shrinker_coun
+ {
+ 	struct mem_cgroup *memcg = sc->memcg;
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(sc->nid));
+-	unsigned long nr_backing, nr_stored, nr_freeable, nr_protected;
++	atomic_long_t *nr_disk_swapins =
++		&lruvec->zswap_lruvec_state.nr_disk_swapins;
++	unsigned long nr_backing, nr_stored, nr_freeable, nr_disk_swapins_cur,
++		nr_remain;
+ 
+ 	if (!zswap_shrinker_enabled || !mem_cgroup_zswap_writeback_enabled(memcg))
+ 		return 0;
+@@ -1246,14 +1250,27 @@ static unsigned long zswap_shrinker_coun
+ 	if (!nr_stored)
+ 		return 0;
+ 
+-	nr_protected =
+-		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+ 	nr_freeable = list_lru_shrink_count(&zswap_list_lru, sc);
++	if (!nr_freeable)
++		return 0;
++
+ 	/*
+-	 * Subtract the lru size by an estimate of the number of pages
+-	 * that should be protected.
++	 * Subtract from the lru size the number of pages that are recently swapped
++	 * in from disk. The idea is that had we protect the zswap's LRU by this
++	 * amount of pages, these disk swapins would not have happened.
+ 	 */
+-	nr_freeable = nr_freeable > nr_protected ? nr_freeable - nr_protected : 0;
++	nr_disk_swapins_cur = atomic_long_read(nr_disk_swapins);
++	do {
++		if (nr_freeable >= nr_disk_swapins_cur)
++			nr_remain = 0;
++		else
++			nr_remain = nr_disk_swapins_cur - nr_freeable;
++	} while (!atomic_long_try_cmpxchg(
++		nr_disk_swapins, &nr_disk_swapins_cur, nr_remain));
++
++	nr_freeable -= nr_disk_swapins_cur - nr_remain;
++	if (!nr_freeable)
++		return 0;
+ 
+ 	/*
+ 	 * Scale the number of freeable pages by the memory saving factor.
+@@ -1506,6 +1523,7 @@ bool zswap_store(struct folio *folio)
+ store_entry:
+ 	entry->swpentry = swp;
+ 	entry->objcg = objcg;
++	entry->referenced = true;
+ 
+ 	old = xa_store(tree, offset, entry, GFP_KERNEL);
+ 	if (xa_is_err(old)) {
 _
 
-Patches currently in -mm which might be from davidgow@google.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
 
