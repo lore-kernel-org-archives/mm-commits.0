@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD037149C50
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D167A14B092
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248855; cv=none; b=BnBBxSKxs2nxa383Dim9tnCg6ioZy/Lb6prJb5QkAEuh5fm0v9VlmXAuE7n2bg16Yal1EI59+uWeyFYuUe+t/bz7S/nPki8dp0XIcW4vTqaGoeVflUxxB09IhitQywXfHzmOmqvI1DR/MpfObXTogKCggDRjk5aYq88/aoxQyhw=
+	t=1725248856; cv=none; b=Vuir0/R2GeZms+QqijmSKCkZQxn7ehk3kdnluHFtOI50+AxbjWBizoeufc/DzGfxl8gTlgjYC6pWMV9pDwXJny9/rtdrRpZOPohCoX4PBJnbybG6inqTpjTiVMBgQRDI9tML18ZejYNRMgpLqT80ucS62NxfA9ToXQVBJuaIWFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248855; c=relaxed/simple;
-	bh=qk2p83Q174vq4Z2F7WqF98hAmVz6/tYRxpKk3EfoTpU=;
-	h=Date:To:From:Subject:Message-Id; b=Fd0VJI6I5kAkPErzEaKAqut/pZVGJC1RvGcSjWt4fX+vIEY6QMhbbdLP11oY2xIxjezZLfPNP0qfJfKLTFH3duBgGPtO1JcOpurnSRD2m19UVXJ45I2Hiz350w47Tey4g9jQYo8bqcQap7jvqiamuLK7AeEM35ZZmS2JD9n9wZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/NMH0kf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248856; c=relaxed/simple;
+	bh=n6STb+yNElqS7c4NN0nR8QveQ7XRjCIvqnOI9uUs1T8=;
+	h=Date:To:From:Subject:Message-Id; b=RyVas7zj2zEXwFM7W+nVx2Uvyo8+OJaHbuZ2wXMcU/ppNIMCejw9G+/nCnwexZYd++kMkmOsNqDDXeaM3MXGtpzNNSUtdPM9D/8Xp54LPjGIngrYGzS8fW0+AYIsYA4IlsqSAFOmQwH73Gcv3m/Vu25iAKv/6PV2dtXTsa6E4uQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i5CxJHQj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/NMH0kf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A44B8C4CEC2;
-	Mon,  2 Sep 2024 03:47:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i5CxJHQj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6A6FC4CEC2;
+	Mon,  2 Sep 2024 03:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248855;
-	bh=qk2p83Q174vq4Z2F7WqF98hAmVz6/tYRxpKk3EfoTpU=;
+	s=korg; t=1725248856;
+	bh=n6STb+yNElqS7c4NN0nR8QveQ7XRjCIvqnOI9uUs1T8=;
 	h=Date:To:From:Subject:From;
-	b=A/NMH0kfKOONuq9ShTCBmgI4v5qQab/JJCKPM2df/rxv9LUaezbpNLVRZEk8eaLAX
-	 EORhT9tpvMb7ajFM3o9BBR5/0rmq3dSfYu22ue4fo0wwan52wjkfPSv3gcizAsGtBO
-	 VS/XEKXDoe9f/tqie5a1rBX/ZFCWBxfmQrusDQ30=
-Date: Sun, 01 Sep 2024 20:47:35 -0700
+	b=i5CxJHQjUo5LMGwKPtQOJxDSMPqE/iWinc7wwTwJofM+/0f8nIYFwM16Yd2RJ0Fef
+	 PIYbyjw7fyMfJao+A5p4MSAd3vhB5dpFZBaWyzyIPqPL6kTmpAgmDiFwV2uQqVi1B3
+	 gEdAn20LNvtvHzkLW8EgIUyjpbsUzDxSYtTAkcuE=
+Date: Sun, 01 Sep 2024 20:47:36 -0700
 To: mm-commits@vger.kernel.org,huangxiaojia2@huawei.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-do-not-repair-reserved-inode-bitmap-in-nilfs_new_inode.patch removed from -mm tree
-Message-Id: <20240902034735.A44B8C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-remove-sc_timer_task.patch removed from -mm tree
+Message-Id: <20240902034736.A6A6FC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: do not repair reserved inode bitmap in nilfs_new_inode()
+     Subject: nilfs2: remove sc_timer_task
 has been removed from the -mm tree.  Its filename was
-     nilfs2-do-not-repair-reserved-inode-bitmap-in-nilfs_new_inode.patch
+     nilfs2-remove-sc_timer_task.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: do not repair reserved inode bitmap in nilfs_new_inode()
-Date: Tue, 27 Aug 2024 02:41:13 +0900
+Subject: nilfs2: remove sc_timer_task
+Date: Tue, 27 Aug 2024 02:41:14 +0900
 
-After commit 93aef9eda1ce ("nilfs2: fix incorrect inode allocation from
-reserved inodes") is applied, the inode number returned by
-nilfs_ifile_create_inode() is guaranteed to always be greater than or
-equal to NILFS_USER_INO, so if the inode number is a reserved inode number
-(less than NILFS_USER_INO), the code to repair the bitmap immediately
-following it is no longer executed.  So, delete it.
+After commit f5d4e04634c9 ("nilfs2: fix use-after-free of timer for log
+writer thread") is applied, nilfs_construct_timeout(), which is called by
+a timer and wakes up the log writer thread, is never called after the log
+writer thread has terminated.
 
-Link: https://lkml.kernel.org/r/20240826174116.5008-6-konishi.ryusuke@gmail.com
+As a result, the member variable "sc_timer_task" of the "nilfs_sc_info"
+structure, which was added when timer_setup() was adopted to retain a
+reference to the log writer thread's task even after it had terminated, is
+no longer needed, as it should be; we can simply use "sc_task" instead,
+which holds a reference to the log writer thread's task for its lifetime. 
+So, eliminate "sc_timer_task" by this means.
+
+Link: https://lkml.kernel.org/r/20240826174116.5008-7-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Huang Xiaojia <huangxiaojia2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ fs/nilfs2/segment.c |    3 +--
+ fs/nilfs2/segment.h |    2 --
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-do-not-repair-reserved-inode-bitmap-in-nilfs_new_inode
-+++ a/fs/nilfs2/inode.c
-@@ -345,19 +345,6 @@ struct inode *nilfs_new_inode(struct ino
- 	if (unlikely(err))
- 		goto failed_ifile_create_inode;
- 	/* reference count of i_bh inherits from nilfs_mdt_read_block() */
--
--	if (unlikely(ino < NILFS_USER_INO)) {
--		nilfs_warn(sb,
--			   "inode bitmap is inconsistent for reserved inodes");
--		do {
--			brelse(bh);
--			err = nilfs_ifile_create_inode(root->ifile, &ino, &bh);
--			if (unlikely(err))
--				goto failed_ifile_create_inode;
--		} while (ino < NILFS_USER_INO);
--
--		nilfs_info(sb, "repaired inode bitmap for reserved inodes");
--	}
- 	ii->i_bh = bh;
+--- a/fs/nilfs2/segment.c~nilfs2-remove-sc_timer_task
++++ a/fs/nilfs2/segment.c
+@@ -2502,7 +2502,7 @@ static void nilfs_construction_timeout(s
+ {
+ 	struct nilfs_sc_info *sci = from_timer(sci, t, sc_timer);
  
- 	atomic64_inc(&root->inodes_count);
+-	wake_up_process(sci->sc_timer_task);
++	wake_up_process(sci->sc_task);
+ }
+ 
+ static void
+@@ -2640,7 +2640,6 @@ static int nilfs_segctor_thread(void *ar
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int timeout = 0;
+ 
+-	sci->sc_timer_task = current;
+ 	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
+ 
+ 	/* start sync. */
+--- a/fs/nilfs2/segment.h~nilfs2-remove-sc_timer_task
++++ a/fs/nilfs2/segment.h
+@@ -115,7 +115,6 @@ struct nilfs_segsum_pointer {
+  * @sc_lseg_stime: Start time of the latest logical segment
+  * @sc_watermark: Watermark for the number of dirty buffers
+  * @sc_timer: Timer for segctord
+- * @sc_timer_task: Thread woken up by @sc_timer
+  * @sc_task: current thread of segctord
+  */
+ struct nilfs_sc_info {
+@@ -172,7 +171,6 @@ struct nilfs_sc_info {
+ 	unsigned long		sc_watermark;
+ 
+ 	struct timer_list	sc_timer;
+-	struct task_struct     *sc_timer_task;
+ 	struct task_struct     *sc_task;
+ };
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
