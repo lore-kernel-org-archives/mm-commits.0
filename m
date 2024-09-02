@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E16891388
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 01:02:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48D01388
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 01:02:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725238978; cv=none; b=NhIJowtZIVndn7aiuxMlV3yrfH+PHjWtYFwc0dFPboEMgd7KesSdQFEsVsOga7b73GIZ+KiLJjZWjV8+q3p7YlFj7f0G8vXtxliWD0BMnnsG3Ee3ei7kOrSzIa/+ggmH6IcVTGayduLaHPQyiERT9u3SXy1mW0gQQ3opDXwBbFw=
+	t=1725238978; cv=none; b=MeW/Fa007nuGg88KqcAwU/jnwZvlFUoRHEzMdE/LOV+PPxaSqzQpRMauZuHym06w9FaoJSlerVhYu5e8g5dmgw0V21+gJ0ZwfOflUpeVpsreSoURyRcfkrPw+5QaWROR+J6Ahfij3AETqyRZJ5jruwCj8jv2+nVR8jjl08wT4sw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725238978; c=relaxed/simple;
-	bh=oclbzcoLeWcopyzVnbyTHyOhZmd5u3iCyegpblOaDiY=;
-	h=Date:To:From:Subject:Message-Id; b=dB71ulUCozv5BZ/XBdIoHaOzn6gpfP6hYTpQ7FqSNJFddsHPkrsRm3TcormRDsengVmhYhNUbZjZ4wR3EdcOManwChzEBQdIresHqKm3Q0ez5n8rtNnLVOjLBwKw/46egYqY/6tyCO4LfKjNikus3KnITy5S2UdyVXSiJOaivG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GDV0doJA; arc=none smtp.client-ip=10.30.226.201
+	bh=H0DxhmIcMKncynCtt0PlqadqVPA7msg1V4RPHEB4kCs=;
+	h=Date:To:From:Subject:Message-Id; b=M8c/rimFO8C0Bx1BBKz/Otg7eMcP8qvL24jhK7cQRYFC41OX1x1k0LjZiyhuBKyU/0aLqX3INarnajp91ZBoHhRfglvjTthD+JWxfRd8Vvq1W8Ud/9JZ+EHt+8PuB3JrThwDVO9oCUjbCkc0pDa5fjoNdneNadfwGqlKpMYNFSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EgQKvEOs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GDV0doJA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A79DC4CEC3;
-	Mon,  2 Sep 2024 01:02:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EgQKvEOs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98575C4CEC3;
+	Mon,  2 Sep 2024 01:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725238977;
-	bh=oclbzcoLeWcopyzVnbyTHyOhZmd5u3iCyegpblOaDiY=;
+	s=korg; t=1725238978;
+	bh=H0DxhmIcMKncynCtt0PlqadqVPA7msg1V4RPHEB4kCs=;
 	h=Date:To:From:Subject:From;
-	b=GDV0doJA8P8rn2Rsvey1ATKXHVBVD6iGn/77z/I6D6h1/N7X7V3RTwPtK1fgOVH/M
-	 EYGv1+Fkt3xZB81g8yCd9RBzoQ/NvfcggR8WENdwTAClhmiXUkvyW8JZjg7D5svitr
-	 NqM+3OkXrVv3RNoKgKVVcDAGAnlosBVY1iAuwVCY=
-Date: Sun, 01 Sep 2024 18:02:56 -0700
+	b=EgQKvEOs4TbMzYeXD8r7YgaP78k5/OWPzMsBoYFvREFSJq7dAuUqwYowW8msrIGZm
+	 N6bVRNNOn+dqxIypG5TjXYiR7lYjZN7ay59D7w1DNE4j0ergh6b3FMQopLVqXcHDXD
+	 G1TMqKHrDmut3r4WXyJ6Fb/EOGcq6gmdZtQFT6T0=
+Date: Sun, 01 Sep 2024 18:02:58 -0700
 To: mm-commits@vger.kernel.org,dakr@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-kvmalloc-align-kvrealloc-with-krealloc-fix-2.patch removed from -mm tree
-Message-Id: <20240902010257.6A79DC4CEC3@smtp.kernel.org>
+Subject: [folded-merged] mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3.patch removed from -mm tree
+Message-Id: <20240902010258.98575C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: kvrealloc: disable KASAN when switching to vmalloc
+     Subject: mm: kvrealloc: properly document __GFP_ZERO behavior
 has been removed from the -mm tree.  Its filename was
-     mm-kvmalloc-align-kvrealloc-with-krealloc-fix-2.patch
+     mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3.patch
 
 This patch was dropped because it was folded into mm-kvmalloc-align-kvrealloc-with-krealloc.patch
 
 ------------------------------------------------------
 From: Danilo Krummrich <dakr@kernel.org>
-Subject: mm: kvrealloc: disable KASAN when switching to vmalloc
-Date: Tue, 30 Jul 2024 20:49:41 +0200
+Subject: mm: kvrealloc: properly document __GFP_ZERO behavior
+Date: Tue, 30 Jul 2024 20:49:44 +0200
 
-Disable KASAN accessibility checks when switching from a kmalloc buffer
-to a vmalloc buffer.
+Properly document that if __GFP_ZERO logic is requested, callers must
+ensure that, starting with the initial memory allocation, every subsequent
+call to this API for the same memory allocation is flagged with
+__GFP_ZERO.  Otherwise, it is possible that __GFP_ZERO is not fully
+honored by this API.
 
-Link: https://lkml.kernel.org/r/20240730185049.6244-2-dakr@kernel.org
-Fixes: 923a26b4c679 ("mm: kvmalloc: align kvrealloc() with krealloc()")
+Link: https://lkml.kernel.org/r/20240730185049.6244-5-dakr@kernel.org
 Signed-off-by: Danilo Krummrich <dakr@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/util.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc-fix-2
+--- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3
 +++ a/mm/util.c
-@@ -753,7 +753,10 @@ void *kvrealloc_noprof(const void *p, si
- 
- 		if (p) {
- 			/* We already know that `p` is not a vmalloc address. */
--			memcpy(n, p, ksize(p));
-+			kasan_disable_current();
-+			memcpy(n, kasan_reset_tag(p), ksize(p));
-+			kasan_enable_current();
-+
- 			kfree(p);
- 		}
- 	}
+@@ -726,12 +726,17 @@ EXPORT_SYMBOL(kvfree_sensitive);
+  * @size: the size to reallocate
+  * @flags: the flags for the page level allocator
+  *
+- * The contents of the object pointed to are preserved up to the lesser of the
+- * new and old size (__GFP_ZERO flag is effectively ignored).
+- *
+  * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
+  * and @p is not a %NULL pointer, the object pointed to is freed.
+  *
++ * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
++ * initial memory allocation, every subsequent call to this API for the same
++ * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
++ * __GFP_ZERO is not fully honored by this API.
++ *
++ * In any case, the contents of the object pointed to are preserved up to the
++ * lesser of the new and old sizes.
++ *
+  * This function must not be called concurrently with itself or kvfree() for the
+  * same memory allocation.
+  *
 _
 
 Patches currently in -mm which might be from dakr@kernel.org are
 
 mm-vmalloc-implement-vrealloc.patch
 mm-kvmalloc-align-kvrealloc-with-krealloc.patch
-mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3.patch
 mm-krealloc-consider-spare-memory-for-__gfp_zero.patch
 mm-krealloc-clarify-valid-usage-of-__gfp_zero.patch
 
