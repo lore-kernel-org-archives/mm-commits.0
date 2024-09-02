@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD89F153837
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5F7423BE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248804; cv=none; b=r2vB4N1eDTqfY3lbds0J9grsMvDV3F85BM5sJakfsEXAfMU4VOitKGhR4yUVcfS9yzZII4i9DRMngfG+i88WBMmJGOO5Sg3N1cnjPfKf4CLFeimgET3+YVJOl0RWrXhvlreMWegDy2X2AVse725sgbC+03DzhY8wcgX6SfLYlps=
+	t=1725248806; cv=none; b=LdBvkmV2kUXX0zxypq2/rfW8MddCkF50lU/tbYWyxYhPOBk6wA+tlBhNOoVqfDMjwGKc4Wf34EXtqNNQF0qz39WQAGAyuv+yu7fplTxs3ugcAQNX7gDParECAjB+15ZinEQpd1SqJ9s2qAQTrOYMQTq2G0Nfv7mbsydvW1d+0Sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248804; c=relaxed/simple;
-	bh=dmqCeNWoJ2ERGuI7vb5LbnqhZ5O9GK1x2XT6JF8R8q0=;
-	h=Date:To:From:Subject:Message-Id; b=IuOy4F05j6ymlQ1ZLmX9XGEmzpCVr29t/gjEDdxU8eeDO6VLrs+mEjvFFuBfXQrD/3xirnaOvwJtRWqdhXDOMfpEhQyRruBK8wu9lv4HODw7EHJ7uM2h+duUNNzwOxqMLoyskvkyLI9ZvjXmvS7NyYESSJghDmLvuf8CN8XMNn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OXWRUqdD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248806; c=relaxed/simple;
+	bh=9McFxPPA6PlJbVYB1X9UEax2kJ2K8qdODQZwSJPgySc=;
+	h=Date:To:From:Subject:Message-Id; b=e4EURXIDudSsQLGfurnqNzPN2dRhgG7Z1yn5Hr0R287b1MBTrmqdPsSaq1RaSo/t1jcNyhF+1F9WuKOFxI3RN3I48HxbURpttygsCTI9tKnEzyYOrz+NJE0AT5VSzo9h+S7ibY+RMAVFQstGZtk8fULzgRIRywTBYZ60CA8ZKsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t0OBzeEe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OXWRUqdD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77051C4CEC8;
-	Mon,  2 Sep 2024 03:46:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t0OBzeEe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA823C4CEC7;
+	Mon,  2 Sep 2024 03:46:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248804;
-	bh=dmqCeNWoJ2ERGuI7vb5LbnqhZ5O9GK1x2XT6JF8R8q0=;
+	s=korg; t=1725248806;
+	bh=9McFxPPA6PlJbVYB1X9UEax2kJ2K8qdODQZwSJPgySc=;
 	h=Date:To:From:Subject:From;
-	b=OXWRUqdDcq7deDlGMwo8VgugiQrfzq7FTE0jY4adls7VRbOO/IyRWO4RvXSsrwpli
-	 83nWpW2fDugs8UNCiVvfmklvEuFIZq24XqdJmD2Zuu2p0yOl6bBLGqVqy7FyqkdCVE
-	 Ai9Qy0QqbxMLGRiehkD15e22ScN0CRglPsR2FznQ=
-Date: Sun, 01 Sep 2024 20:46:43 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,lizhe.67@bytedance.com,linux@weissschuh.net,j.granados@samsung.com,dianders@chromium.org,longman@redhat.com,akpm@linux-foundation.org
+	b=t0OBzeEer8DkhIrVkLtj/gu3USrD88O9Oplz9BlSQTpyIDCKVLLE4MdDNpjUlFoAo
+	 63+FjIprkanK/sBT0KSRCAfX4gtowY5rVhB0c3Ign9WIbAkQSpoO2+xc5tDnZgfFmI
+	 sLItsxytxP1LWMvmATH+A6EvPbS5VDlJSBVQcCsA=
+Date: Sun, 01 Sep 2024 20:46:46 -0700
+To: mm-commits@vger.kernel.org,mhocko@suse.com,herbert@gondor.apana.org.au,dave@stgolabs.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch removed from -mm tree
-Message-Id: <20240902034644.77051C4CEC8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-rhashtable-cleanup-fallback-check-in-bucket_table_alloc.patch removed from -mm tree
+Message-Id: <20240902034646.AA823C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog: handle the ENODEV failure case of lockup_detector_delay_init() separately
+     Subject: lib/rhashtable: cleanup fallback check in bucket_table_alloc()
 has been removed from the -mm tree.  Its filename was
-     watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately.patch
+     lib-rhashtable-cleanup-fallback-check-in-bucket_table_alloc.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: watchdog: handle the ENODEV failure case of lockup_detector_delay_init() separately
-Date: Fri, 2 Aug 2024 11:16:21 -0400
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/rhashtable: cleanup fallback check in bucket_table_alloc()
+Date: Tue, 6 Aug 2024 08:39:27 -0700
 
-When watchdog_hardlockup_probe() is being called by
-lockup_detector_delay_init(), an error return of -ENODEV will happen
-for the arm64 arch when arch_perf_nmi_is_available() returns false. This
-means that NMI is not usable by the hard lockup detector and so has to
-be disabled. This can be considered a deficiency in that particular
-arm64 chip, but there is nothing we can do about it.  That also means
-the following error will always be reported when the kernel boot up.
+Upon allocation failure, the current check with the nofail bits is
+unnecessary, and further stands in the way of discouraging direct use of
+__GFP_NOFAIL.  Remove this and replace with the proper way of determining
+if doing a non-blocking allocation for the nested table case.
 
-  watchdog: Delayed init of the lockup detector failed: -19
-
-The word "failed" itself has a connotation that there is something
-wrong with the kernel which is not really the case here. Handle this
-special ENODEV case separately and explain the reason behind disabling
-hard lockup detector without causing anxiety for those users who read
-the above message and wonder about it.
-
-Link: https://lkml.kernel.org/r/20240802151621.617244-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
+Link: https://lkml.kernel.org/r/20240806153927.184515-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/rhashtable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-handle-the-enodev-failure-case-of-lockup_detector_delay_init-separately
-+++ a/kernel/watchdog.c
-@@ -1203,7 +1203,10 @@ static void __init lockup_detector_delay
+--- a/lib/rhashtable.c~lib-rhashtable-cleanup-fallback-check-in-bucket_table_alloc
++++ a/lib/rhashtable.c
+@@ -189,7 +189,7 @@ static struct bucket_table *bucket_table
  
- 	ret = watchdog_hardlockup_probe();
- 	if (ret) {
--		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
-+		if (ret == -ENODEV)
-+			pr_info("NMI not fully supported\n");
-+		else
-+			pr_info("Delayed init of the lockup detector failed: %d\n", ret);
- 		pr_info("Hard watchdog permanently disabled\n");
- 		return;
+ 	size = nbuckets;
+ 
+-	if (tbl == NULL && (gfp & ~__GFP_NOFAIL) != GFP_KERNEL) {
++	if (tbl == NULL && !gfpflags_allow_blocking(gfp)) {
+ 		tbl = nested_bucket_table_alloc(ht, nbuckets, gfp);
+ 		nbuckets = 0;
  	}
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
