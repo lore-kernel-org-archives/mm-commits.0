@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B361A32
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5836FA32
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248762; cv=none; b=SrOLxU4cExbBTTzyI6e621Y801QnNgq1A2lrn9mL8r7A6pl74HgsS54JkcRETxwC34ju0HK0HKMm/bso1VaghuoHMsn70VHyxfUwTbp/lNAamuu55Y5qBPDz211swY386PgbYmi56KP7Pxq0EPO6ZwBOi3lRhvi76mskhV6gg+o=
+	t=1725248764; cv=none; b=q0hj4piGAZjygOC4fWenyVjXIo6dQ9zr6AswofiXPV4b1xu6esF6DMzIA7KL8rNVIqPz1mqO2WE/V7DQxgDQMKSLIAqlanTtjyawfdDdloODZpi7oW9caNMjvUbhjuqWRr4OIeCiZ07/X4s5fo9SeYl1IirIIomNiJQHoCS3fHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248762; c=relaxed/simple;
-	bh=RUODdIMif7TKI9BarNWwFxr81DbhbCMYi0fUF7zgJRk=;
-	h=Date:To:From:Subject:Message-Id; b=OzY0A9D8LPoMSfTj8iYYSYyaAKmgCOkjy13hb6lK/I8YnjL8Auu67osjIUMHtAdDB9Tw6Id2x2iZYtx8PHcQ7wKXPHrce9ahjsTpDUYd9813wT4adOY5ncJgN9fKeysJCnqZnTP/GaxDDe0FWK1SEaxlwwlazmldrRWprnqWEqU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xWfYrAQf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248764; c=relaxed/simple;
+	bh=uK0gbccRrHnk0S0vknktS+tcJnUu1upyuSFv+Or3ccA=;
+	h=Date:To:From:Subject:Message-Id; b=Zi7OEvq27yCIRtu5kV9781K993dlENOE8p1E95G0x4xXNnG+HjSstpbd0bPpjklyVtCHcnfW6MKwyK8GVH06iYnALjKDX5d9hMXph1E6y082zmti1a41MtfDerL6kyizt8C+wifIt3kDQTFk2Z0QiwGceBq5lRtJ2y31cRnC7M4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MkV+9qFZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xWfYrAQf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFA3C4CEC2;
-	Mon,  2 Sep 2024 03:46:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MkV+9qFZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B313C4CEC2;
+	Mon,  2 Sep 2024 03:46:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248762;
-	bh=RUODdIMif7TKI9BarNWwFxr81DbhbCMYi0fUF7zgJRk=;
+	s=korg; t=1725248764;
+	bh=uK0gbccRrHnk0S0vknktS+tcJnUu1upyuSFv+Or3ccA=;
 	h=Date:To:From:Subject:From;
-	b=xWfYrAQfeuVKkcsO4m5olQ3vi2d0MpROouIfBVcAbVO5SAg2bf1sO9bpr85E/cD2y
-	 rQKmyj7xGJWB1aEf7XBJ8+XTqk9MTDxhd2sen8jT0MicwmDxGdBiXGHDn8eKcim0iy
-	 Er0hLmirHe/9/aGVsELb79u9/CWtbkSA2mpJdXfE=
-Date: Sun, 01 Sep 2024 20:46:01 -0700
+	b=MkV+9qFZNxNcWUqNxHGecfU7H6shxxWH2TwgHCGyMu8vC8Fa+TLPXchjNPnjL89DK
+	 XGMOzbcVVGAbbwmQj9QXLjTDkA+hmCG6yymvNlw9sXj+ZyEziyX7FhT+B3sDZ55y2n
+	 jqkdts/jeOm0oV8eLlHLPb5FQsTh7tEpoj96OhAE=
+Date: Sun, 01 Sep 2024 20:46:03 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xz-fix-comments-and-coding-style.patch removed from -mm tree
-Message-Id: <20240902034602.1FFA3C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xz-fix-kernel-doc-formatting-errors-in-xzh.patch removed from -mm tree
+Message-Id: <20240902034604.2B313C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xz: fix comments and coding style
+     Subject: xz: fix kernel-doc formatting errors in xz.h
 has been removed from the -mm tree.  Its filename was
-     xz-fix-comments-and-coding-style.patch
+     xz-fix-kernel-doc-formatting-errors-in-xzh.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: fix comments and coding style
-Date: Sun, 21 Jul 2024 16:36:19 +0300
+Subject: xz: fix kernel-doc formatting errors in xz.h
+Date: Sun, 21 Jul 2024 16:36:20 +0300
 
-- Fix comments that were no longer in sync with the code below them.
-- Fix language errors.
-- Fix coding style.
+The opaque structs xz_dec and xz_dec_microlzma are declared in xz.h but
+their definitions are in xz_dec_lzma2.c without kernel-doc comments.  Use
+regular comments for these structs in xz.h to avoid errors when building
+the docs.
 
-Link: https://lkml.kernel.org/r/20240721133633.47721-5-lasse.collin@tukaani.org
+Add a few missing colons.
+
+Link: https://lkml.kernel.org/r/20240721133633.47721-6-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -75,94 +78,69 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unxz.c |   20 ++++++++++----------
- lib/xz/Kconfig        |    3 ++-
- scripts/Makefile.lib  |   13 ++++++++-----
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ include/linux/xz.h |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/lib/decompress_unxz.c~xz-fix-comments-and-coding-style
-+++ a/lib/decompress_unxz.c
-@@ -102,7 +102,7 @@
- #ifdef STATIC
- #	define XZ_PREBOOT
- #else
--#include <linux/decompress/unxz.h>
-+#	include <linux/decompress/unxz.h>
- #endif
- #ifdef __KERNEL__
- #	include <linux/decompress/mm.h>
-@@ -219,7 +219,7 @@ void *memmove(void *dest, const void *sr
- #endif
+--- a/include/linux/xz.h~xz-fix-kernel-doc-formatting-errors-in-xzh
++++ a/include/linux/xz.h
+@@ -142,7 +142,7 @@ struct xz_buf {
+ 	size_t out_size;
+ };
  
- /*
-- * Since we need memmove anyway, would use it as memcpy too.
-+ * Since we need memmove anyway, we could use it as memcpy too.
-  * Commented out for now to avoid breaking things.
+-/**
++/*
+  * struct xz_dec - Opaque type to hold the XZ decoder state
   */
- /*
-@@ -389,17 +389,17 @@ error_alloc_state:
- }
- 
- /*
-- * This macro is used by architecture-specific files to decompress
-+ * This function is used by architecture-specific files to decompress
-  * the kernel image.
+ struct xz_dec;
+@@ -240,15 +240,16 @@ XZ_EXTERN void xz_dec_end(struct xz_dec
+  * marked with XZ_EXTERN. This avoids warnings about static functions that
+  * are never defined.
   */
- #ifdef XZ_PREBOOT
--STATIC int INIT __decompress(unsigned char *buf, long len,
--			   long (*fill)(void*, unsigned long),
--			   long (*flush)(void*, unsigned long),
--			   unsigned char *out_buf, long olen,
--			   long *pos,
--			   void (*error)(char *x))
-+STATIC int INIT __decompress(unsigned char *in, long in_size,
-+			     long (*fill)(void *dest, unsigned long size),
-+			     long (*flush)(void *src, unsigned long size),
-+			     unsigned char *out, long out_size,
-+			     long *in_used,
-+			     void (*error)(char *x))
- {
--	return unxz(buf, len, fill, flush, out_buf, pos, error);
-+	return unxz(in, in_size, fill, flush, out, in_used, error);
- }
- #endif
---- a/lib/xz/Kconfig~xz-fix-comments-and-coding-style
-+++ a/lib/xz/Kconfig
-@@ -5,7 +5,8 @@ config XZ_DEC
- 	help
- 	  LZMA2 compression algorithm and BCJ filters are supported using
- 	  the .xz file format as the container. For integrity checking,
--	  CRC32 is supported. See Documentation/staging/xz.rst for more information.
-+	  CRC32 is supported. See Documentation/staging/xz.rst for more
-+	  information.
+-/**
++
++/*
+  * struct xz_dec_microlzma - Opaque type to hold the MicroLZMA decoder state
+  */
+ struct xz_dec_microlzma;
  
- if XZ_DEC
+ /**
+  * xz_dec_microlzma_alloc() - Allocate memory for the MicroLZMA decoder
+- * @mode        XZ_SINGLE or XZ_PREALLOC
+- * @dict_size   LZMA dictionary size. This must be at least 4 KiB and
++ * @mode:       XZ_SINGLE or XZ_PREALLOC
++ * @dict_size:  LZMA dictionary size. This must be at least 4 KiB and
+  *              at most 3 GiB.
+  *
+  * In contrast to xz_dec_init(), this function only allocates the memory
+@@ -276,15 +277,15 @@ extern struct xz_dec_microlzma *xz_dec_m
  
---- a/scripts/Makefile.lib~xz-fix-comments-and-coding-style
-+++ a/scripts/Makefile.lib
-@@ -530,14 +530,17 @@ quiet_cmd_fit = FIT     $@
+ /**
+  * xz_dec_microlzma_reset() - Reset the MicroLZMA decoder state
+- * @s           Decoder state allocated using xz_dec_microlzma_alloc()
+- * @comp_size   Compressed size of the input stream
+- * @uncomp_size Uncompressed size of the input stream. A value smaller
++ * @s:          Decoder state allocated using xz_dec_microlzma_alloc()
++ * @comp_size:  Compressed size of the input stream
++ * @uncomp_size:  Uncompressed size of the input stream. A value smaller
+  *              than the real uncompressed size of the input stream can
+  *              be specified if uncomp_size_is_exact is set to false.
+  *              uncomp_size can never be set to a value larger than the
+  *              expected real uncompressed size because it would eventually
+  *              result in XZ_DATA_ERROR.
+- * @uncomp_size_is_exact  This is an int instead of bool to avoid
++ * @uncomp_size_is_exact:  This is an int instead of bool to avoid
+  *              requiring stdbool.h. This should normally be set to true.
+  *              When this is set to false, error detection is weaker.
+  */
+@@ -294,7 +295,7 @@ extern void xz_dec_microlzma_reset(struc
  
- # XZ
- # ---------------------------------------------------------------------------
--# Use xzkern to compress the kernel image and xzmisc to compress other things.
-+# Use xzkern or xzkern_with_size to compress the kernel image and xzmisc to
-+# compress other things.
- #
- # xzkern uses a big LZMA2 dictionary since it doesn't increase memory usage
- # of the kernel decompressor. A BCJ filter is used if it is available for
--# the target architecture. xzkern also appends uncompressed size of the data
--# using size_append. The .xz format has the size information available at
--# the end of the file too, but it's in more complex format and it's good to
--# avoid changing the part of the boot code that reads the uncompressed size.
-+# the target architecture.
-+#
-+# xzkern_with_size also appends uncompressed size of the data using
-+# size_append. The .xz format has the size information available at the end
-+# of the file too, but it's in more complex format and it's good to avoid
-+# changing the part of the boot code that reads the uncompressed size.
- # Note that the bytes added by size_append will make the xz tool think that
- # the file is corrupt. This is expected.
- #
+ /**
+  * xz_dec_microlzma_run() - Run the MicroLZMA decoder
+- * @s           Decoder state initialized using xz_dec_microlzma_reset()
++ * @s:          Decoder state initialized using xz_dec_microlzma_reset()
+  * @b:          Input and output buffers
+  *
+  * This works similarly to xz_dec_run() with a few important differences.
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
