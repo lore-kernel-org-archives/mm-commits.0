@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D28001388
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095541388
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248774; cv=none; b=YgYLkE/jyO0R/aQ9mhCtQqczlL7G55RD+vr7n/g0dtHTklKvhAeRKFx89Bm7ljKnpQM8bh7PtlpnKlp6AzdY+1UZrVrm6N/oODheOpXEC+XrpNbQrRms2Y1A2YwcEKTjUt3L1u0HTA0d4E5mL+meqS0BWdVzXAAEjZHTEHTvqY4=
+	t=1725248776; cv=none; b=HKLU9M2BYrKzTfACciGlrAmJXlQ19cEueqc8U+tP8/I+SVuRkNiiXlHnWInsXMUzVOzdHqGlYmWWrmxs1OK0+EisRsL5ygK/XiIATODGUKTmOcIscRJlCTJOkuRmzoWDP3lRTvyD6amUenIzW0KHsPDBuFBgVoKaMYbyF/FDWRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248774; c=relaxed/simple;
-	bh=CaVx3jwmAJu3lfoQpkzDDGBiFZDJopRrD0A9Txz5Vso=;
-	h=Date:To:From:Subject:Message-Id; b=iSB1lMkyTo2+PcW1zch9hkQIiJRw44ZTrXLEMsxe0gkCBTfsRpOEqF6kqAl+LQlnkAh3AVi6urkHse2vCztCVHjP8lkv/nJA4aBWMkHlAkuGVdWxKbO052Mg340GcfwO2lSEe94/PhF6uX30JSGPhPAcryxjeQ8d4KWL189P3LI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vJrxXX1M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248776; c=relaxed/simple;
+	bh=cCSevLlGqfQRuBy8VhOPK1ypnxkVtsxdtufYZsikje8=;
+	h=Date:To:From:Subject:Message-Id; b=HARzlUBXwIog78GB8dszFMKsH+jbt2N+nFBxjapzztr+xkaLvm28CfR0F/GPQAmxBMGShk7/wPq93mPvnErbsJWHvjpHBIAvxVQKECs1eRggQpCgVb5HfJB5iIa6nCX9em+qeZcTU1WFPcjTEJFus1/Bg4+TKF6sCDmO1vcJatc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bk42D7Sd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJrxXX1M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DB53C4CEC2;
-	Mon,  2 Sep 2024 03:46:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bk42D7Sd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12E1C4CEC2;
+	Mon,  2 Sep 2024 03:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248774;
-	bh=CaVx3jwmAJu3lfoQpkzDDGBiFZDJopRrD0A9Txz5Vso=;
+	s=korg; t=1725248775;
+	bh=cCSevLlGqfQRuBy8VhOPK1ypnxkVtsxdtufYZsikje8=;
 	h=Date:To:From:Subject:From;
-	b=vJrxXX1MjM4MYcKl5zGcybsW36a3ueK4MxSBjbfzX0Q2GNV4pMB5FH1Gvt7iWDq+B
-	 FugUonO65fGxJyx2N5mNCXXeDQAF+xKG6Res8uYACRFYkYZ4mrw+N2kLqbDbk8mte9
-	 +Hf1UuT00N7mgLMjilT9GoPE61ecmMfVvOM9UW+Q=
-Date: Sun, 01 Sep 2024 20:46:13 -0700
+	b=Bk42D7SdTIBwi6vEYAWGcyoaUSx+4VU0rXnWlOinvz1Fa2cxXDR44yg+85+fw3svP
+	 IZay0MREh2pzQVDV5mmPL7d3hUZN06F7LVM+3MYL4bPXfK0oemtz4jWESZxLE/E6ox
+	 TtvhdfW/C82u99ivNy5OeDr5DzaN+BH4Ujx4Dp0Y=
+Date: Sun, 01 Sep 2024 20:46:15 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xz-use-128-mib-dictionary-and-force-single-threaded-mode.patch removed from -mm tree
-Message-Id: <20240902034614.3DB53C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xz-adjust-arch-specific-options-for-better-kernel-compression.patch removed from -mm tree
+Message-Id: <20240902034615.C12E1C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,264 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xz: use 128 MiB dictionary and force single-threaded mode
+     Subject: xz: adjust arch-specific options for better kernel compression
 has been removed from the -mm tree.  Its filename was
-     xz-use-128-mib-dictionary-and-force-single-threaded-mode.patch
+     xz-adjust-arch-specific-options-for-better-kernel-compression.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: use 128 MiB dictionary and force single-threaded mode
-Date: Sun, 21 Jul 2024 16:36:28 +0300
+Subject: xz: adjust arch-specific options for better kernel compression
+Date: Sun, 21 Jul 2024 16:36:29 +0300
 
-This only affects kernel image compression, not any other xz usage.
+Use LZMA2 options that match the arch-specific alignment of instructions. 
+This change reduces compressed kernel size 0-2 % depending on the arch. 
+On 1-byte-aligned x86 it makes no difference and on 4-byte-aligned archs
+it helps the most.
 
-Desktop kernels on x86-64 are already around 60 MiB.  Using a dictionary
-larger than 32 MiB should have no downsides nowadays as anyone building
-the kernel should have plenty of RAM.  128 MiB dictionary needs 1346 MiB
-of RAM with xz versions 5.0.x - 5.6.x in single-threaded mode.  On archs
-that use xz_wrap.sh, kernel decompression is done in single-call mode so a
-larger dictionary doesn't affect boot-time memory requirements.
+Use the ARM-Thumb filter for ARM-Thumb2 kernels.  This reduces compressed
+kernel size about 5 %.[1] Previously such kernels were compressed using
+the ARM filter which didn't do anything useful with ARM-Thumb2 code.
 
-xz >= 5.6.0 uses multithreaded mode by default which compresses slightly
-worse than single-threaded mode.  Kernel compression rarely used more than
-one thread anyway because with 32 MiB dictionary size the default block
-size was 96 MiB in multithreaded mode.  So only a single thread was used
-anyway unless the kernel was over 96 MiB.
+Add BCJ filter support for ARM64 and RISC-V.  Compared to unfiltered XZ or
+plain LZMA, the compressed kernel size is reduced about 5 % on ARM64 and 7
+% on RISC-V.  A new enough version of the xz tool is required: 5.4.0 for
+ARM64 and 5.6.0 for RISC-V.  With an old xz version, a message is printed
+to standard error and the kernel is compressed without the filter.
 
-Comparison to CONFIG_KERNEL_LZMA: It uses "lzma -9" which mapped to 32 MiB
-dictionary in LZMA Utils 4.32.7 (the final release in 2008).  Nowadays the
-lzma tool on most systems is from XZ Utils where -9 maps to 64 MiB
-dictionary.  So using a 32 MiB dictionary with CONFIG_KERNEL_XZ may have
-compressed big kernels slightly worse than the old LZMA option.
+Update lib/decompress_unxz.c to match the changes to xz_wrap.sh.
 
-Comparison to CONFIG_KERNEL_ZSTD: zstd uses 128 MiB dictionary.
+Update the CONFIG_KERNEL_XZ help text in init/Kconfig:
+  - Add the RISC-V and ARM64 filters.
+  - Clarify that the PowerPC filter is for big endian only.
+  - Omit IA-64.
 
-Link: https://lkml.kernel.org/r/20240721133633.47721-14-lasse.collin@tukaani.org
+Link: https://lore.kernel.org/lkml/1637379771-39449-1-git-send-email-zhongjubin@huawei.com/ [1]
+Link: https://lkml.kernel.org/r/20240721133633.47721-15-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Simon Glass <sjg@chromium.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Jubin Zhong <zhongjubin@huawei.com>
+Cc: Jules Maselbas <jmaselbas@zdiv.net>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Joel Stanley <joel@jms.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jubin Zhong <zhongjubin@huawei.com>
-Cc: Jules Maselbas <jmaselbas@zdiv.net>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rui Li <me@lirui.org>
-Cc: Simon Glass <sjg@chromium.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/xz_wrap.sh |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ init/Kconfig          |    5 -
+ lib/decompress_unxz.c |   14 +++
+ scripts/xz_wrap.sh    |  142 ++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 152 insertions(+), 9 deletions(-)
 
---- a/scripts/xz_wrap.sh~xz-use-128-mib-dictionary-and-force-single-threaded-mode
+--- a/init/Kconfig~xz-adjust-arch-specific-options-for-better-kernel-compression
++++ a/init/Kconfig
+@@ -310,8 +310,9 @@ config KERNEL_XZ
+ 	  BCJ filters which can improve compression ratio of executable
+ 	  code. The size of the kernel is about 30% smaller with XZ in
+ 	  comparison to gzip. On architectures for which there is a BCJ
+-	  filter (i386, x86_64, ARM, IA-64, PowerPC, and SPARC), XZ
+-	  will create a few percent smaller kernel than plain LZMA.
++	  filter (i386, x86_64, ARM, ARM64, RISC-V, big endian PowerPC,
++	  and SPARC), XZ will create a few percent smaller kernel than
++	  plain LZMA.
+ 
+ 	  The speed is about the same as with LZMA: The decompression
+ 	  speed of XZ is better than that of bzip2 but worse than gzip
+--- a/lib/decompress_unxz.c~xz-adjust-arch-specific-options-for-better-kernel-compression
++++ a/lib/decompress_unxz.c
+@@ -126,11 +126,21 @@
+ #ifdef CONFIG_X86
+ #	define XZ_DEC_X86
+ #endif
+-#ifdef CONFIG_PPC
++#if defined(CONFIG_PPC) && defined(CONFIG_CPU_BIG_ENDIAN)
+ #	define XZ_DEC_POWERPC
+ #endif
+ #ifdef CONFIG_ARM
+-#	define XZ_DEC_ARM
++#	ifdef CONFIG_THUMB2_KERNEL
++#		define XZ_DEC_ARMTHUMB
++#	else
++#		define XZ_DEC_ARM
++#	endif
++#endif
++#ifdef CONFIG_ARM64
++#	define XZ_DEC_ARM64
++#endif
++#ifdef CONFIG_RISCV
++#	define XZ_DEC_RISCV
+ #endif
+ #ifdef CONFIG_SPARC
+ #	define XZ_DEC_SPARC
+--- a/scripts/xz_wrap.sh~xz-adjust-arch-specific-options-for-better-kernel-compression
 +++ a/scripts/xz_wrap.sh
-@@ -16,4 +16,15 @@ case $SRCARCH in
- 	sparc)          BCJ=--sparc ;;
+@@ -6,14 +6,146 @@
+ #
+ # Author: Lasse Collin <lasse.collin@tukaani.org>
+ 
++# This has specialized settings for the following archs. However,
++# XZ-compressed kernel isn't currently supported on every listed arch.
++#
++#   Arch        Align   Notes
++#   arm          2/4    ARM and ARM-Thumb2
++#   arm64         4
++#   csky          2
++#   loongarch     4
++#   mips         2/4    MicroMIPS is 2-byte aligned
++#   parisc        4
++#   powerpc       4     Uses its own wrapper for compressors instead of this.
++#   riscv        2/4
++#   s390          2
++#   sh            2
++#   sparc         4
++#   x86           1
++
++# A few archs use 2-byte or 4-byte aligned instructions depending on
++# the kernel config. This function is used to check if the relevant
++# config option is set to "y".
++is_enabled()
++{
++	grep -q "^$1=y$" include/config/auto.conf
++}
++
++# XZ_VERSION is needed to disable features that aren't available in
++# old XZ Utils versions.
++XZ_VERSION=$($XZ --robot --version) || exit
++XZ_VERSION=$(printf '%s\n' "$XZ_VERSION" | sed -n 's/^XZ_VERSION=//p')
++
++# Assume that no BCJ filter is available.
+ BCJ=
+-LZMA2OPTS=
+ 
++# Set the instruction alignment to 1, 2, or 4 bytes.
++#
++# Set the BCJ filter if one is available.
++# It must match the #ifdef usage in lib/decompress_unxz.c.
+ case $SRCARCH in
+-	x86)            BCJ=--x86 ;;
+-	powerpc)        BCJ=--powerpc ;;
+-	arm)            BCJ=--arm ;;
+-	sparc)          BCJ=--sparc ;;
++	arm)
++		if is_enabled CONFIG_THUMB2_KERNEL; then
++			ALIGN=2
++			BCJ=--armthumb
++		else
++			ALIGN=4
++			BCJ=--arm
++		fi
++		;;
++
++	arm64)
++		ALIGN=4
++
++		# ARM64 filter was added in XZ Utils 5.4.0.
++		if [ "$XZ_VERSION" -ge 50040002 ]; then
++			BCJ=--arm64
++		else
++			echo "$0: Upgrading to xz >= 5.4.0" \
++				"would enable the ARM64 filter" \
++				"for better compression" >&2
++		fi
++		;;
++
++	csky)
++		ALIGN=2
++		;;
++
++	loongarch)
++		ALIGN=4
++		;;
++
++	mips)
++		if is_enabled CONFIG_CPU_MICROMIPS; then
++			ALIGN=2
++		else
++			ALIGN=4
++		fi
++		;;
++
++	parisc)
++		ALIGN=4
++		;;
++
++	powerpc)
++		ALIGN=4
++
++		# The filter is only for big endian instruction encoding.
++		if is_enabled CONFIG_CPU_BIG_ENDIAN; then
++			BCJ=--powerpc
++		fi
++		;;
++
++	riscv)
++		if is_enabled CONFIG_RISCV_ISA_C; then
++			ALIGN=2
++		else
++			ALIGN=4
++		fi
++
++		# RISC-V filter was added in XZ Utils 5.6.0.
++		if [ "$XZ_VERSION" -ge 50060002 ]; then
++			BCJ=--riscv
++		else
++			echo "$0: Upgrading to xz >= 5.6.0" \
++				"would enable the RISC-V filter" \
++				"for better compression" >&2
++		fi
++		;;
++
++	s390)
++		ALIGN=2
++		;;
++
++	sh)
++		ALIGN=2
++		;;
++
++	sparc)
++		ALIGN=4
++		BCJ=--sparc
++		;;
++
++	x86)
++		ALIGN=1
++		BCJ=--x86
++		;;
++
++	*)
++		echo "$0: Arch-specific tuning is missing for '$SRCARCH'" >&2
++
++		# Guess 2-byte-aligned instructions. Guessing too low
++		# should hurt less than guessing too high.
++		ALIGN=2
++		;;
++esac
++
++# Select the LZMA2 options matching the instruction alignment.
++case $ALIGN in
++	1)  LZMA2OPTS= ;;
++	2)  LZMA2OPTS=lp=1 ;;
++	4)  LZMA2OPTS=lp=2,lc=2 ;;
++	*)  echo "$0: ALIGN wrong or missing" >&2; exit 1 ;;
  esac
  
--exec $XZ --check=crc32 $BCJ --lzma2=$LZMA2OPTS,dict=32MiB
-+# Use single-threaded mode because it compresses a little better
-+# (and uses less RAM) than multithreaded mode.
-+#
-+# For the best compression, the dictionary size shouldn't be
-+# smaller than the uncompressed kernel. 128 MiB dictionary
-+# needs less than 1400 MiB of RAM in single-threaded mode.
-+#
-+# On the archs that use this script to compress the kernel,
-+# decompression in the preboot code is done in single-call mode.
-+# Thus the dictionary size doesn't affect the memory requirements
-+# of the preboot decompressor at all.
-+exec $XZ --check=crc32 --threads=1 $BCJ --lzma2=$LZMA2OPTS,dict=128MiB
+ # Use single-threaded mode because it compresses a little better
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
