@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED6D1448C1
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD382149C50
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248854; cv=none; b=ValRuUXpwXvTm9bH/Z47RYfZlioz3zsO05JbB8FR7MpbM0qM7lidqxQ4L4ryNVv3/GMPyMbVbYoKfBzhEPHbMh3JAZ7sSpf4HoC7YETXGkjV4IYO/vlYOVSQH5hEWGtvTAjtybvYp5FpW4w/ac8+3xX1lr5wxcBUhpODgZLS4CQ=
+	t=1725248854; cv=none; b=G2TufrhClljvLEVTb4NuSerIWeq6J8E9UMXUwFIbHSht7PRh6FAk65ymS1v8ICsCPq/PKZdU6q7JjsnolBiUQz/Eg+wHdQ0O/DByUZAOwDB8LPhOuBSEuAZG5ajdcLoHUPTOKFvnNT/VKifLya9MfRC8MYIDj/VEhAkFGsB6h6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725248854; c=relaxed/simple;
-	bh=1o6DpJ9nwlz2eKnlvnlqkOrClf4EvbIMhReF2IUd5s4=;
-	h=Date:To:From:Subject:Message-Id; b=YzDfKuzv026zMyAIT3vtcVb0Rdu6dbkTa/e/+FaTR2IZMExBI7IS3t2d2rxA9A6Vj7Xz1WQoisElis7kEB1kpdOeQXV55sxnyd4pQBPYT4Ia5I/vZXiYLzI3DU/B4+4EDAINUkZb4tQBzxXVajlO0IZ/a5JowysQuVzB7R+vpsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bsxxyjm7; arc=none smtp.client-ip=10.30.226.201
+	bh=rPVUvwMC/kQ/0Y8ZfObFo7DBKXVQmHVMnoejMgBXiBI=;
+	h=Date:To:From:Subject:Message-Id; b=TKTwQskI5VFOI79P9MR6h8WElC22DNo3tykN1LBPak3/UuvD1CGbJDnZieLnxZNx7GJYFnD2x5YtQnYu+CVSIo8+8oXHFTFu73BOuQTK9DRCPgIm0xig5fltK1yT7iqjh7zwHqzvPrYSlC3Eky5G+bLBrVPKVXnS+qMKOoMP05w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yEa/z/tc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bsxxyjm7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83957C4CEC2;
-	Mon,  2 Sep 2024 03:47:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yEa/z/tc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94F12C4CEC2;
+	Mon,  2 Sep 2024 03:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248853;
-	bh=1o6DpJ9nwlz2eKnlvnlqkOrClf4EvbIMhReF2IUd5s4=;
+	s=korg; t=1725248854;
+	bh=rPVUvwMC/kQ/0Y8ZfObFo7DBKXVQmHVMnoejMgBXiBI=;
 	h=Date:To:From:Subject:From;
-	b=bsxxyjm7039YeaJxfb70CzFM1ZwjJ4qy5GJWpf93I8kjlhQgMxBp8tXt2fI/vMV2m
-	 nluKcnj9oGUa+bkLU4R32aU6Ez9u2WYv6ZLxQ7GCi/h6YJJT277m1tdprbuMuNZAEQ
-	 xjXBTGhb63gInaMQ8KP40W/iiug5NZewbTbP5P8s=
-Date: Sun, 01 Sep 2024 20:47:33 -0700
+	b=yEa/z/tcDqpFCUUGBl+3gmCeltZdJQkGVCuUvstLgSXnyPnRXuHX0+bb8LPMsIumR
+	 79/lT3ke3pHGbtTxfPzdJ62krP+aIY56CsQK0keOJcCIxumo3A0mJahJlcZO81oYCj
+	 W3vhxcUbr4YBJ4G3a4d3vVpzeIP59MORpuckvRco=
+Date: Sun, 01 Sep 2024 20:47:34 -0700
 To: mm-commits@vger.kernel.org,huangxiaojia2@huawei.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-separate-inode-type-information-from-i_state-field.patch removed from -mm tree
-Message-Id: <20240902034733.83957C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation.patch removed from -mm tree
+Message-Id: <20240902034734.94F12C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,243 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: separate inode type information from i_state field
+     Subject: nilfs2: eliminate the shared counter and spinlock for i_generation
 has been removed from the -mm tree.  Its filename was
-     nilfs2-separate-inode-type-information-from-i_state-field.patch
+     nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: separate inode type information from i_state field
-Date: Tue, 27 Aug 2024 02:41:11 +0900
+Subject: nilfs2: eliminate the shared counter and spinlock for i_generation
+Date: Tue, 27 Aug 2024 02:41:12 +0900
 
-In nilfs_iget_locked() and nilfs_ilookup(), which are used to find or
-obtain nilfs2 inodes, the nilfs_iget_args structure used to identify
-inodes has type information divided into multiple booleans, making type
-determination complicated.
+Use get_random_u32() as the source for inode->i_generation for new inodes,
+and eliminate the original source, the shared counter ns_next_generation
+along with its exclusive access spinlock ns_next_gen_lock.
 
-Simplify inode type determination by consolidating inode type information
-into an unsigned integer represented by a comibination of flags and by
-separating the type identification information for on-memory inodes from
-the i_state member in the nilfs_inode_info structure.
-
-Link: https://lkml.kernel.org/r/20240826174116.5008-4-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240826174116.5008-5-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Huang Xiaojia <huangxiaojia2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c   |   56 ++++++++++--------------------------------
- fs/nilfs2/nilfs.h   |   15 +++++++++--
- fs/nilfs2/segment.c |    2 -
- fs/nilfs2/super.c   |    1 
- 4 files changed, 28 insertions(+), 46 deletions(-)
+ fs/nilfs2/inode.c     |    6 ++----
+ fs/nilfs2/the_nilfs.c |    5 -----
+ fs/nilfs2/the_nilfs.h |    6 ------
+ 3 files changed, 2 insertions(+), 15 deletions(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-separate-inode-type-information-from-i_state-field
+--- a/fs/nilfs2/inode.c~nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation
 +++ a/fs/nilfs2/inode.c
-@@ -28,17 +28,13 @@
-  * @ino: inode number
-  * @cno: checkpoint number
-  * @root: pointer on NILFS root object (mounted checkpoint)
-- * @for_gc: inode for GC flag
-- * @for_btnc: inode for B-tree node cache flag
-- * @for_shadow: inode for shadowed page cache flag
-+ * @type: inode type
-  */
- struct nilfs_iget_args {
- 	u64 ino;
- 	__u64 cno;
- 	struct nilfs_root *root;
--	bool for_gc;
--	bool for_btnc;
--	bool for_shadow;
-+	unsigned int type;
- };
- 
- static int nilfs_iget_test(struct inode *inode, void *opaque);
-@@ -315,8 +311,7 @@ static int nilfs_insert_inode_locked(str
- 				     unsigned long ino)
+@@ -15,6 +15,7 @@
+ #include <linux/writeback.h>
+ #include <linux/uio.h>
+ #include <linux/fiemap.h>
++#include <linux/random.h>
+ #include "nilfs.h"
+ #include "btnode.h"
+ #include "segment.h"
+@@ -320,7 +321,6 @@ static int nilfs_insert_inode_locked(str
+ struct inode *nilfs_new_inode(struct inode *dir, umode_t mode)
  {
- 	struct nilfs_iget_args args = {
--		.ino = ino, .root = root, .cno = 0, .for_gc = false,
--		.for_btnc = false, .for_shadow = false
-+		.ino = ino, .root = root, .cno = 0, .type = NILFS_I_TYPE_NORMAL
- 	};
- 
- 	return insert_inode_locked4(inode, ino, nilfs_iget_test, &args);
-@@ -343,6 +338,7 @@ struct inode *nilfs_new_inode(struct ino
- 	root = NILFS_I(dir)->i_root;
- 	ii = NILFS_I(inode);
- 	ii->i_state = BIT(NILFS_I_NEW);
-+	ii->i_type = NILFS_I_TYPE_NORMAL;
- 	ii->i_root = root;
- 
- 	err = nilfs_ifile_create_inode(root->ifile, &ino, &bh);
-@@ -546,23 +542,10 @@ static int nilfs_iget_test(struct inode
- 		return 0;
- 
- 	ii = NILFS_I(inode);
--	if (test_bit(NILFS_I_BTNC, &ii->i_state)) {
--		if (!args->for_btnc)
--			return 0;
--	} else if (args->for_btnc) {
-+	if (ii->i_type != args->type)
- 		return 0;
--	}
--	if (test_bit(NILFS_I_SHADOW, &ii->i_state)) {
--		if (!args->for_shadow)
--			return 0;
--	} else if (args->for_shadow) {
--		return 0;
--	}
- 
--	if (!test_bit(NILFS_I_GCINODE, &ii->i_state))
--		return !args->for_gc;
--
--	return args->for_gc && args->cno == ii->i_cno;
-+	return !(args->type & NILFS_I_TYPE_GC) || args->cno == ii->i_cno;
- }
- 
- static int nilfs_iget_set(struct inode *inode, void *opaque)
-@@ -572,15 +555,9 @@ static int nilfs_iget_set(struct inode *
- 	inode->i_ino = args->ino;
- 	NILFS_I(inode)->i_cno = args->cno;
- 	NILFS_I(inode)->i_root = args->root;
-+	NILFS_I(inode)->i_type = args->type;
- 	if (args->root && args->ino == NILFS_ROOT_INO)
- 		nilfs_get_root(args->root);
--
--	if (args->for_gc)
--		NILFS_I(inode)->i_state = BIT(NILFS_I_GCINODE);
--	if (args->for_btnc)
--		NILFS_I(inode)->i_state |= BIT(NILFS_I_BTNC);
--	if (args->for_shadow)
--		NILFS_I(inode)->i_state |= BIT(NILFS_I_SHADOW);
- 	return 0;
- }
- 
-@@ -588,8 +565,7 @@ struct inode *nilfs_ilookup(struct super
- 			    unsigned long ino)
- {
- 	struct nilfs_iget_args args = {
--		.ino = ino, .root = root, .cno = 0, .for_gc = false,
--		.for_btnc = false, .for_shadow = false
-+		.ino = ino, .root = root, .cno = 0, .type = NILFS_I_TYPE_NORMAL
- 	};
- 
- 	return ilookup5(sb, ino, nilfs_iget_test, &args);
-@@ -599,8 +575,7 @@ struct inode *nilfs_iget_locked(struct s
- 				unsigned long ino)
- {
- 	struct nilfs_iget_args args = {
--		.ino = ino, .root = root, .cno = 0, .for_gc = false,
--		.for_btnc = false, .for_shadow = false
-+		.ino = ino, .root = root, .cno = 0, .type = NILFS_I_TYPE_NORMAL
- 	};
- 
- 	return iget5_locked(sb, ino, nilfs_iget_test, nilfs_iget_set, &args);
-@@ -631,8 +606,7 @@ struct inode *nilfs_iget_for_gc(struct s
- 				__u64 cno)
- {
- 	struct nilfs_iget_args args = {
--		.ino = ino, .root = NULL, .cno = cno, .for_gc = true,
--		.for_btnc = false, .for_shadow = false
-+		.ino = ino, .root = NULL, .cno = cno, .type = NILFS_I_TYPE_GC
- 	};
+ 	struct super_block *sb = dir->i_sb;
+-	struct the_nilfs *nilfs = sb->s_fs_info;
  	struct inode *inode;
- 	int err;
-@@ -677,9 +651,7 @@ int nilfs_attach_btree_node_cache(struct
- 	args.ino = inode->i_ino;
- 	args.root = ii->i_root;
- 	args.cno = ii->i_cno;
--	args.for_gc = test_bit(NILFS_I_GCINODE, &ii->i_state) != 0;
--	args.for_btnc = true;
--	args.for_shadow = test_bit(NILFS_I_SHADOW, &ii->i_state) != 0;
-+	args.type = ii->i_type | NILFS_I_TYPE_BTNC;
+ 	struct nilfs_inode_info *ii;
+ 	struct nilfs_root *root;
+@@ -381,9 +381,7 @@ struct inode *nilfs_new_inode(struct ino
+ 	/* ii->i_dir_acl = 0; */
+ 	ii->i_dir_start_lookup = 0;
+ 	nilfs_set_inode_flags(inode);
+-	spin_lock(&nilfs->ns_next_gen_lock);
+-	inode->i_generation = nilfs->ns_next_generation++;
+-	spin_unlock(&nilfs->ns_next_gen_lock);
++	inode->i_generation = get_random_u32();
+ 	if (nilfs_insert_inode_locked(inode, root, ino) < 0) {
+ 		err = -EIO;
+ 		goto failed_after_creation;
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation
++++ a/fs/nilfs2/the_nilfs.c
+@@ -12,7 +12,6 @@
+ #include <linux/slab.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+-#include <linux/random.h>
+ #include <linux/log2.h>
+ #include <linux/crc32.h>
+ #include "nilfs.h"
+@@ -69,7 +68,6 @@ struct the_nilfs *alloc_nilfs(struct sup
+ 	INIT_LIST_HEAD(&nilfs->ns_dirty_files);
+ 	INIT_LIST_HEAD(&nilfs->ns_gc_inodes);
+ 	spin_lock_init(&nilfs->ns_inode_lock);
+-	spin_lock_init(&nilfs->ns_next_gen_lock);
+ 	spin_lock_init(&nilfs->ns_last_segment_lock);
+ 	nilfs->ns_cptree = RB_ROOT;
+ 	spin_lock_init(&nilfs->ns_cptree_lock);
+@@ -754,9 +752,6 @@ int init_nilfs(struct the_nilfs *nilfs,
+ 	nilfs->ns_blocksize_bits = sb->s_blocksize_bits;
+ 	nilfs->ns_blocksize = blocksize;
  
- 	btnc_inode = iget5_locked(inode->i_sb, inode->i_ino, nilfs_iget_test,
- 				  nilfs_iget_set, &args);
-@@ -733,8 +705,8 @@ void nilfs_detach_btree_node_cache(struc
- struct inode *nilfs_iget_for_shadow(struct inode *inode)
- {
- 	struct nilfs_iget_args args = {
--		.ino = inode->i_ino, .root = NULL, .cno = 0, .for_gc = false,
--		.for_btnc = false, .for_shadow = true
-+		.ino = inode->i_ino, .root = NULL, .cno = 0,
-+		.type = NILFS_I_TYPE_SHADOW
- 	};
- 	struct inode *s_inode;
- 	int err;
-@@ -900,7 +872,7 @@ static void nilfs_clear_inode(struct ino
- 	if (test_bit(NILFS_I_BMAP, &ii->i_state))
- 		nilfs_bmap_clear(ii->i_bmap);
+-	get_random_bytes(&nilfs->ns_next_generation,
+-			 sizeof(nilfs->ns_next_generation));
+-
+ 	err = nilfs_store_disk_layout(nilfs, sbp);
+ 	if (err)
+ 		goto failed_sbh;
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-eliminate-the-shared-counter-and-spinlock-for-i_generation
++++ a/fs/nilfs2/the_nilfs.h
+@@ -71,8 +71,6 @@ enum {
+  * @ns_dirty_files: list of dirty files
+  * @ns_inode_lock: lock protecting @ns_dirty_files
+  * @ns_gc_inodes: dummy inodes to keep live blocks
+- * @ns_next_generation: next generation number for inodes
+- * @ns_next_gen_lock: lock protecting @ns_next_generation
+  * @ns_mount_opt: mount options
+  * @ns_resuid: uid for reserved blocks
+  * @ns_resgid: gid for reserved blocks
+@@ -161,10 +159,6 @@ struct the_nilfs {
+ 	/* GC inode list */
+ 	struct list_head	ns_gc_inodes;
  
--	if (!test_bit(NILFS_I_BTNC, &ii->i_state))
-+	if (!(ii->i_type & NILFS_I_TYPE_BTNC))
- 		nilfs_detach_btree_node_cache(inode);
+-	/* Inode allocator */
+-	u32			ns_next_generation;
+-	spinlock_t		ns_next_gen_lock;
+-
+ 	/* Mount options */
+ 	unsigned long		ns_mount_opt;
  
- 	if (ii->i_root && inode->i_ino == NILFS_ROOT_INO)
---- a/fs/nilfs2/nilfs.h~nilfs2-separate-inode-type-information-from-i_state-field
-+++ a/fs/nilfs2/nilfs.h
-@@ -22,6 +22,7 @@
- /**
-  * struct nilfs_inode_info - nilfs inode data in memory
-  * @i_flags: inode flags
-+ * @i_type: inode type (combination of flags that inidicate usage)
-  * @i_state: dynamic state flags
-  * @i_bmap: pointer on i_bmap_data
-  * @i_bmap_data: raw block mapping
-@@ -37,6 +38,7 @@
-  */
- struct nilfs_inode_info {
- 	__u32 i_flags;
-+	unsigned int i_type;
- 	unsigned long  i_state;		/* Dynamic state flags */
- 	struct nilfs_bmap *i_bmap;
- 	struct nilfs_bmap i_bmap_data;
-@@ -90,9 +92,16 @@ enum {
- 	NILFS_I_UPDATED,		/* The file has been written back */
- 	NILFS_I_INODE_SYNC,		/* dsync is not allowed for inode */
- 	NILFS_I_BMAP,			/* has bmap and btnode_cache */
--	NILFS_I_GCINODE,		/* inode for GC, on memory only */
--	NILFS_I_BTNC,			/* inode for btree node cache */
--	NILFS_I_SHADOW,			/* inode for shadowed page cache */
-+};
-+
-+/*
-+ * Flags to identify the usage of on-memory inodes (i_type)
-+ */
-+enum {
-+	NILFS_I_TYPE_NORMAL =	0,
-+	NILFS_I_TYPE_GC =	0x0001,	/* For data caching during GC */
-+	NILFS_I_TYPE_BTNC =	0x0002,	/* For btree node cache */
-+	NILFS_I_TYPE_SHADOW =	0x0004,	/* For shadowed page cache */
- };
- 
- /*
---- a/fs/nilfs2/segment.c~nilfs2-separate-inode-type-information-from-i_state-field
-+++ a/fs/nilfs2/segment.c
-@@ -519,7 +519,7 @@ static void nilfs_segctor_end_finfo(stru
- 
- 	ii = NILFS_I(inode);
- 
--	if (test_bit(NILFS_I_GCINODE, &ii->i_state))
-+	if (ii->i_type & NILFS_I_TYPE_GC)
- 		cno = ii->i_cno;
- 	else if (NILFS_ROOT_METADATA_FILE(inode->i_ino))
- 		cno = 0;
---- a/fs/nilfs2/super.c~nilfs2-separate-inode-type-information-from-i_state-field
-+++ a/fs/nilfs2/super.c
-@@ -160,6 +160,7 @@ struct inode *nilfs_alloc_inode(struct s
- 		return NULL;
- 	ii->i_bh = NULL;
- 	ii->i_state = 0;
-+	ii->i_type = 0;
- 	ii->i_cno = 0;
- 	ii->i_assoc_inode = NULL;
- 	ii->i_bmap = &ii->i_bmap_data;
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
