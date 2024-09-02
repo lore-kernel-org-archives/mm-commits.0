@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 790B0152E02
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8F2514A627
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248793; cv=none; b=dfPqyXdWAGypAF4yinb/eobWsZbQ+JUFnVSxrVth8EUrSxsGVvtQ/BudZf49cRb8ExBL+S5EQc2fCqIq1ozEBU5oBzS+nsDQQ+wu0fTeQOq2ow2tFUxAARCSznrHqxsCb5IF/vtG+Phx5W2kPwaPPiVRhfNqLpFt2v2+XGj3Po4=
+	t=1725248794; cv=none; b=JavOiVfc+aeNdUudtPn6mEaSUV0A+7mhrEX/1AFQcE3OD2HpTeEQj5C5cSxvpH0ikwHRIY9i1BZv61Pl1+7AeWyqcFe64BHGFn8/Lw1Uk+lf8Jtd2rhXZWur1DTT+y0V8gOgwhi91uP2c1jXlPZ+sYz6RhMh+Bi4sTDVrrkEO1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248793; c=relaxed/simple;
-	bh=uVHc7WQ5g6BZDE95VkRH2aA/ho4lPaoAr2WaP+iSUQU=;
-	h=Date:To:From:Subject:Message-Id; b=erNfJEeXTa12NLCm+vdfpk0iDVlxtFs5Klc6pWA5n8NinZk4BMICq1E+LBtPdkB4G0THgKEtUAXYAH0GvwD8wiIeq1WYSNUkmDsHwRIsHY7R+02IORae3l0C96pRlusrCrfIPshiGlx0oA/Y8XPbfMzAgHXoLPUYASYn3LdijcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oNEB5c5i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248794; c=relaxed/simple;
+	bh=Q1wL2iC1FwAaEysVrjZC46wX7sWXynoxTx4DoI8HlAI=;
+	h=Date:To:From:Subject:Message-Id; b=GXMB/naGR+LRU3A+7DEoHR++7XrkT7X8d5sqvKrWwCmOeeLnsWj3qSHSVRVxS2GmSL9HuRVOTEmzVVlcrprMoHUOownw0uCfnsd3PuUaKt1nxN77h85f/IDuUDKcjHp3C49SfcjH1dqtz32L3Trt1S2A9+taopKg9PXEQH77XUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KEv9k0sV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oNEB5c5i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4FB0C4CEC2;
-	Mon,  2 Sep 2024 03:46:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KEv9k0sV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF57C4CEC2;
+	Mon,  2 Sep 2024 03:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248791;
-	bh=uVHc7WQ5g6BZDE95VkRH2aA/ho4lPaoAr2WaP+iSUQU=;
+	s=korg; t=1725248794;
+	bh=Q1wL2iC1FwAaEysVrjZC46wX7sWXynoxTx4DoI8HlAI=;
 	h=Date:To:From:Subject:From;
-	b=oNEB5c5iCb6vi+rd9IgF98i50p34msr4+v6bR2QIhjtBeggkoXtIbf4QvLrxTzXW+
-	 d/yhkWFQlR4uqgzGGYXiGjMPEghj1KbdkIJ3e7KRcKbOMQyPTwu0lKPGtl6uy1Mw/3
-	 mTCZ+FUBBobktE1KlKRmaPZxdzLc8TvNwTjnX8EE=
-Date: Sun, 01 Sep 2024 20:46:30 -0700
-To: mm-commits@vger.kernel.org,philipp.reisner@linbit.com,lars.ellenberg@linbit.com,christoph.boehmwalder@linbit.com,deshan@nfschina.com,akpm@linux-foundation.org
+	b=KEv9k0sVDtPo0gybQLVtar8TXYQBoZ/6pm6cpz+1nUe0Y11zwoF1flBr0BG44mJSk
+	 W8mqT/vHGwT1vIGcNQtHrN0Y3qaRy0EtVXYYUPXDxAbK1RpY9VhUXxCPB1DeOzT+Mp
+	 DZ/aiPBdBooKPuPmWWNvkbmHIfjG2jzqo6OhghO4=
+Date: Sun, 01 Sep 2024 20:46:33 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,dyoung@redhat.com,bhe@redhat.com,aou@eecs.berkeley.edu,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-lru_cache-fix-spelling-mistake-colision-collision.patch removed from -mm tree
-Message-Id: <20240902034630.E4FB0C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch removed from -mm tree
+Message-Id: <20240902034634.2FF57C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/lru_cache: fix spelling mistake "colision"->"collision"
+     Subject: crash: fix crash memory reserve exceed system memory bug
 has been removed from the -mm tree.  Its filename was
-     lib-lru_cache-fix-spelling-mistake-colision-collision.patch
+     crash-fix-crash-memory-reserve-exceed-system-memory-bug.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deshan Zhang <deshan@nfschina.com>
-Subject: lib/lru_cache: fix spelling mistake "colision"->"collision"
-Date: Thu, 25 Jul 2024 17:30:45 +0800
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: crash: fix crash memory reserve exceed system memory bug
+Date: Mon, 29 Jul 2024 19:52:52 +0800
 
-There is a spelling mistake in a literal string and in cariable names. 
-Fix these.
+On x86_32 Qemu machine with 1GB memory, the cmdline "crashkernel=4G" is ok
+as below:
+	crashkernel reserved: 0x0000000020000000 - 0x0000000120000000 (4096 MB)
 
-Link: https://lkml.kernel.org/r/20240725093044.1742842-1-deshan@nfschina.com
-Signed-off-by: Deshan Zhang <deshan@nfschina.com>
-Cc: Christoph Böhmwalder <christoph.boehmwalder@linbit.com>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
+It's similar on other architectures, such as ARM32 and RISCV32.
+
+The cause is that the crash_size is parsed and printed with "unsigned long
+long" data type which is 8 bytes but allocated used with "phys_addr_t"
+which is 4 bytes in memblock_phys_alloc_range().
+
+Fix it by checking if crash_size is greater than system RAM size and
+return error if so.
+
+After this patch, there is no above confusing reserve success info.
+
+Link: https://lkml.kernel.org/r/20240729115252.1659112-1-ruanjinjie@huawei.com
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lru_cache.h |    4 ++--
- lib/lru_cache.c           |   10 +++++-----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/crash_reserve.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/lru_cache.h~lib-lru_cache-fix-spelling-mistake-colision-collision
-+++ a/include/linux/lru_cache.h
-@@ -119,7 +119,7 @@ write intent log information, three of w
- */
+--- a/kernel/crash_reserve.c~crash-fix-crash-memory-reserve-exceed-system-memory-bug
++++ a/kernel/crash_reserve.c
+@@ -335,6 +335,9 @@ int __init parse_crashkernel(char *cmdli
+ 	if (!*crash_size)
+ 		ret = -EINVAL;
  
- /* this defines an element in a tracked set
-- * .colision is for hash table lookup.
-+ * .collision is for hash table lookup.
-  * When we process a new IO request, we know its sector, thus can deduce the
-  * region number (label) easily.  To do the label -> object lookup without a
-  * full list walk, we use a simple hash table.
-@@ -145,7 +145,7 @@ write intent log information, three of w
-  * But it avoids high order page allocations in kmalloc.
-  */
- struct lc_element {
--	struct hlist_node colision;
-+	struct hlist_node collision;
- 	struct list_head list;		 /* LRU list or free list */
- 	unsigned refcnt;
- 	/* back "pointer" into lc_cache->element[index],
---- a/lib/lru_cache.c~lib-lru_cache-fix-spelling-mistake-colision-collision
-+++ a/lib/lru_cache.c
-@@ -243,7 +243,7 @@ static struct lc_element *__lc_find(stru
- 
- 	BUG_ON(!lc);
- 	BUG_ON(!lc->nr_elements);
--	hlist_for_each_entry(e, lc_hash_slot(lc, enr), colision) {
-+	hlist_for_each_entry(e, lc_hash_slot(lc, enr), collision) {
- 		/* "about to be changed" elements, pending transaction commit,
- 		 * are hashed by their "new number". "Normal" elements have
- 		 * lc_number == lc_new_number. */
-@@ -303,7 +303,7 @@ void lc_del(struct lru_cache *lc, struct
- 	BUG_ON(e->refcnt);
- 
- 	e->lc_number = e->lc_new_number = LC_FREE;
--	hlist_del_init(&e->colision);
-+	hlist_del_init(&e->collision);
- 	list_move(&e->list, &lc->free);
- 	RETURN();
++	if (*crash_size >= system_ram)
++		ret = -EINVAL;
++
+ 	return ret;
  }
-@@ -324,9 +324,9 @@ static struct lc_element *lc_prepare_for
- 	PARANOIA_LC_ELEMENT(lc, e);
  
- 	e->lc_new_number = new_number;
--	if (!hlist_unhashed(&e->colision))
--		__hlist_del(&e->colision);
--	hlist_add_head(&e->colision, lc_hash_slot(lc, new_number));
-+	if (!hlist_unhashed(&e->collision))
-+		__hlist_del(&e->collision);
-+	hlist_add_head(&e->collision, lc_hash_slot(lc, new_number));
- 	list_move(&e->list, &lc->to_be_changed);
- 
- 	return e;
 _
 
-Patches currently in -mm which might be from deshan@nfschina.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
+user_namespace-use-kmemdup_array-instead-of-kmemdup-for-multiple-allocation.patch
 
