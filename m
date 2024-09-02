@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED5C31388
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:15:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A6B29CFB
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:16:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725246931; cv=none; b=F4tEp2eB1zYdiGIVUTJZXdSKLoxgJ+WleZyXDgA4d2qKsqKxT1Aobn4oahBDYXmNGZ+ZJhFv534jxklpf7FkD5JWnZJmWOMuR46seMtnADZYThpmu0ouQJAiS6WfByphu7AWLTLMOt3rUWWwiNOOW6yqD07DIVSOe8yjKYb8gUM=
+	t=1725246984; cv=none; b=UQTCwln9uqSJoQ55hQa5FP384NyC9EnxEHg5Ad+Lfn/l09i4tTV3SXb2diQaVCc0nox2MewjNt33HPYv0kD4jxTYXg0oS7OUTEQG19X2h3hdOpvQWQ4Yl+85jxyrMFPbi41TCZl2TwW/Py+E1P1gRq5RZAPPKlOroXGcz20ucyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725246931; c=relaxed/simple;
-	bh=HWJLqp6WQnlU8OfQbLzUWfq0agWGuUk6ml5JJpEYYC0=;
-	h=Date:To:From:Subject:Message-Id; b=UJmcz6a012hhbSVFUBGpeLvBjTtZ49hKYNdvyCmaSyL+L4lXQAh+BS4lt8Q1uNeyMZVC+dYmA6zAG5gOZoSTfIZ42UWchXPZDQ8EhPqMZG7GH7PjCK6y0ZEoJSUuxv7eelFb4BHzzxoMHRkTeVqt2L8g9Ip/dVFV93rn9eQA3o8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TZkqRQ0k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725246984; c=relaxed/simple;
+	bh=7IIYwokxku1yEd6LfdgZXA81+cuOLCSxR2IV6oLnJnU=;
+	h=Date:To:From:Subject:Message-Id; b=fDBpc9bA2oRu/dHZED5+jxTRwo1iSV/1kDs1QnAQN+jmyMtj0MHueRvQBc+XupImYPwrZZpopHclvIw/yB1JJKjiQIsPK6xsjQko9WD1UrFJM4v0vogeXzZhPQeD2H3STymSGfthkZOEP5AEYme/6DC6gnKfxJMveoDHL9DQKYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a33TT+Za; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TZkqRQ0k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F57C4CEC3;
-	Mon,  2 Sep 2024 03:15:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a33TT+Za"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3100C4CEC3;
+	Mon,  2 Sep 2024 03:16:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725246930;
-	bh=HWJLqp6WQnlU8OfQbLzUWfq0agWGuUk6ml5JJpEYYC0=;
+	s=korg; t=1725246984;
+	bh=7IIYwokxku1yEd6LfdgZXA81+cuOLCSxR2IV6oLnJnU=;
 	h=Date:To:From:Subject:From;
-	b=TZkqRQ0kFAS4aBcE2yaFhOSdRPjjbYOmu1aoRBaULfuEMtzRlOFf1apCYQl8D037p
-	 81ib08ZXZaWA6oy2sooTR6ZpxK0kU4uXht1NNsT5TlwxpI4ByMPwq06NiZ74YdqnGn
-	 VFR/3VEnERRnTJ8pzL61LEbd5FWe3qaSlR0vuo10=
-Date: Sun, 01 Sep 2024 20:15:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,dan.carpenter@linaro.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=a33TT+ZaqMJeOMu+h0IZ+h+W5WgZI0gaOHPB7gOS0vrBVx4d8YrFVKoY4vnCZ+LEO
+	 hxU1pQo4JFK18+ruExBFdG+j+ouTG2wE3J93m54byVzPKwy7ElCXw0pJISzlB/1f95
+	 30AM5LJlwEbCXhX5UMw1VuGKKiXceSt6v27duHAw=
+Date: Sun, 01 Sep 2024 20:16:23 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,torvalds@linux-foundation.org,rob@landley.net,richard@nod.at,pedro.falcato@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,Liam.Howlett@oracle.com,johannes@sipsolutions.net,jeffxu@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,dinguyen@kernel.org,dalias@libc.org,christophe.leroy@csgroup.eu,bcain@quicinc.com,anton.ivanov@cambridgegreys.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memcg-replace-memcg-id-idr-with-xarray-v2.patch removed from -mm tree
-Message-Id: <20240902031530.B6F57C4CEC3@smtp.kernel.org>
+Subject: [folded-merged] mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20240902031623.E3100C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: replace memcg ID idr with xarray
+     Subject: mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-replace-memcg-id-idr-with-xarray-v2.patch
+     mm-remove-legacy-install_special_mapping-code-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memcg-replace-memcg-id-idr-with-xarray.patch
+This patch was dropped because it was folded into mm-remove-legacy-install_special_mapping-code.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: replace memcg ID idr with xarray
-Date: Thu, 15 Aug 2024 08:54:02 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
+Date: Tue Aug 20 06:23:03 PM PDT 2024
 
-fix error path in mem_cgroup_alloc(), per Dan
+WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
+#83: FILE: arch/csky/kernel/vdso.c:81:
++	if (unlikely(IS_ERR(vma))) {
 
-Link: https://lkml.kernel.org/r/20240815155402.3630804-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
+WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
+#97: FILE: arch/csky/kernel/vdso.c:92:
++	if (unlikely(IS_ERR(vma))) {
+
+WARNING: nested (un)?likely() calls, IS_ERR already uses unlikely() internally
+#213: FILE: arch/sh/kernel/vsyscall/vsyscall.c:84:
++	if (unlikely(IS_ERR(vma)))
+
+total: 0 errors, 3 warnings, 249 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-remove-legacy-install_special_mapping-code.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/csky/kernel/vdso.c            |    4 ++--
+ arch/sh/kernel/vsyscall/vsyscall.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-replace-memcg-id-idr-with-xarray-v2
-+++ a/mm/memcontrol.c
-@@ -3496,16 +3496,17 @@ static struct mem_cgroup *mem_cgroup_all
- 	struct mem_cgroup *memcg;
- 	int node, cpu;
- 	int __maybe_unused i;
--	long error = -ENOMEM;
-+	long error;
+--- a/arch/csky/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
++++ a/arch/csky/kernel/vdso.c
+@@ -78,7 +78,7 @@ int arch_setup_additional_pages(struct l
+ 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
+ 		&vdso_mapping);
  
- 	memcg = kzalloc(struct_size(memcg, nodeinfo, nr_node_ids), GFP_KERNEL);
- 	if (!memcg)
--		return ERR_PTR(error);
-+		return ERR_PTR(-ENOMEM);
+-	if (unlikely(IS_ERR(vma))) {
++	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
+ 		mm->context.vdso = NULL;
+ 		goto end;
+@@ -89,7 +89,7 @@ int arch_setup_additional_pages(struct l
+ 	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
+ 		(VM_READ | VM_MAYREAD), &vvar_mapping);
  
- 	error = xa_alloc(&mem_cgroup_ids, &memcg->id.id, NULL,
- 			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
- 	if (error)
- 		goto fail;
-+	error = -ENOMEM;
+-	if (unlikely(IS_ERR(vma))) {
++	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
+ 		mm->context.vdso = NULL;
+ 		goto end;
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~mm-remove-legacy-install_special_mapping-code-checkpatch-fixes
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -81,7 +81,7 @@ int arch_setup_additional_pages(struct l
+ 				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+ 				      &vdso_mapping);
+ 	ret = PTR_ERR(vma);
+-	if (unlikely(IS_ERR(vma)))
++	if (IS_ERR(vma))
+ 		goto up_fail;
  
- 	memcg->vmstats = kzalloc(sizeof(struct memcg_vmstats),
- 				 GFP_KERNEL_ACCOUNT);
+ 	current->mm->context.vdso = (void *)addr;
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-increase-the-valid-index-range-for-memcg-stats.patch
-memcg-replace-memcg-id-idr-with-xarray.patch
-memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
-memcg-move-v1-only-percpu-stats-in-separate-struct.patch
-memcg-move-mem_cgroup_event_ratelimit-to-v1-code.patch
-memcg-move-mem_cgroup_charge_statistics-to-v1-code.patch
-memcg-move-v1-events-and-statistics-code-to-v1-file.patch
-memcg-make-v1-only-functions-static.patch
-memcg-allocate-v1-event-percpu-only-on-v1-deployment.patch
-memcg-make-pgpgin-and-pgpgout-v1-only.patch
-memcg-initiate-deprecation-of-v1-tcp-accounting.patch
-memcg-initiate-deprecation-of-v1-soft-limit.patch
-memcg-initiate-deprecation-of-oom_control.patch
-memcg-initiate-deprecation-of-pressure_level.patch
+include-linux-mmzoneh-clean-up-watermark-accessors.patch
+mm-remove-legacy-install_special_mapping-code.patch
+mm-contig_alloc-support-__gfp_comp-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
+mm-remove-pageactive-fix.patch
+selftests-test_zswap-add-test-for-hierarchical-zswapwriteback-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+mm-memory-failure-add-unmap_poisoned_folio-fix.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+lib-maple_treec-remove-unused-functions.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-2.patch
+fault-inject-improve-build-for-config_fault_injection=n-fix-3.patch
 
