@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DD74502B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14943D3B8
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247692; cv=none; b=MqpLy8KOwjWd7ybOXE1rx27x6xPM4uQQk8qfcBE9gwjRDNIqC8ODHgmAsVCA56xnYau7XSzuSre7co5i2h0qdWJVlzEDuvz4hJwHHbySGHBm/I9icWI6gE2yWLmlTinxEuKHkOWsICHhUjWobjtyULSCQaR+BprQgaEEUycY3fI=
+	t=1725247693; cv=none; b=WWaraNrYPNYNxzgzQaC1XSTd1k2Z1eiTTfzpbK46UtoeX+VBE9UHXBdhvhICoNXQBziSLN3/emWwVoi+rBUi3JPI9zhjDDiQIxz6dpt9YRTUg9lIUSPoJSoHB+tsSO0EzdWG3/2j9+FET16y912ZFH2uxG3DumT19nQKO8FgAps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247692; c=relaxed/simple;
-	bh=Fr4lvYYTpKQytkI1H/UlaS3+OeXLyg7S90+nmfh3l74=;
-	h=Date:To:From:Subject:Message-Id; b=t2oRiWKdFHNp2qMxSoGki2DtAOU3lSSJgzU2s+cSN/mlPn33g1IlOHG9ubsEWDrLQkSDkhJpxgGfLN65arulG1VgutCjAxUSIb1KbDRyYoq9Pno+zLzG/vhPTwBomEEeuvBt7K/YcQMDEj9xxIicrytM86CsTAAIBd+JofCkhqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1JmRdj22; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247693; c=relaxed/simple;
+	bh=YOhpO3G/gnsxraaJAxvmS3lc/bfoCfmT9OOUJ3PaspQ=;
+	h=Date:To:From:Subject:Message-Id; b=btPPUJzSQDreoirPSefL8xW3jiLyXfLdsDyMZAELMSRw/ppa9xMiyDIvg0Wbc70NjYjXSk8CSAGQitDoVhCtLd1f84x1YPAqzlvkzM0ZQb0XX8gj/4LbYKzb03WS0MV7Sdyo+rSjU/efOv1/B+f9LFmPI77k82vqnLMxCGKed74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j1RofIdv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1JmRdj22"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66D35C4CEC2;
-	Mon,  2 Sep 2024 03:28:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j1RofIdv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849FEC4CEC2;
+	Mon,  2 Sep 2024 03:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247692;
-	bh=Fr4lvYYTpKQytkI1H/UlaS3+OeXLyg7S90+nmfh3l74=;
+	s=korg; t=1725247693;
+	bh=YOhpO3G/gnsxraaJAxvmS3lc/bfoCfmT9OOUJ3PaspQ=;
 	h=Date:To:From:Subject:From;
-	b=1JmRdj226PMC9r8iLTd6fTg9iPYpYuvKjhzLx+KvdNJXo1RnDriCu/PXH+yQSyAU+
-	 sBivutYcBDGrIuS45jxXaL865B7hlSDm6rRxrMTHD5mx89scMh0L2LlVt+Jh+z9hSk
-	 o/tfntWpHWtkkWyDEXyH0KunXCdGcm4FD7dH+N4w=
-Date: Sun, 01 Sep 2024 20:28:11 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=j1RofIdvfSRGiI6EHxfRkH9Dgbah2EbFECiMvW1O54baA5iSSB5abl3ZLEXW1nkkY
+	 TM+z2KafQ16u/ruvwbnBOg+quEOpvyGm4fLG/ZA6MhSgQ9BuLm+MxTAv9TkLEGUuY9
+	 9ALA9iOOJ09EUjqfn//MQLI4gkD9fHTGsTR8Sl98=
+Date: Sun, 01 Sep 2024 20:28:12 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch removed from -mm tree
-Message-Id: <20240902032812.66D35C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-dont-call-propagate_protected_usage-needlessly.patch removed from -mm tree
+Message-Id: <20240902032813.849FEC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,188 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: remove left over comment about follow_huge_foo()
+     Subject: mm: memcg: don't call propagate_protected_usage() needlessly
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-left-over-comment-about-follow_huge_foo.patch
+     mm-memcg-dont-call-propagate_protected_usage-needlessly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb: remove left over comment about follow_huge_foo()
-Date: Thu, 25 Jul 2024 10:16:43 +0800
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: memcg: don't call propagate_protected_usage() needlessly
+Date: Fri, 26 Jul 2024 20:31:08 +0000
 
-The comment is useless after commit 57a196a58421 ("hugetlb: simplify
-hugetlb handling in follow_page_mask") since all follow_huge_foo() are
-killed.
+Patch series "mm: memcg: page counters optimizations", v3.
 
-Link: https://lkml.kernel.org/r/20240725021643.1358536-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+This patchset contains 3 independent small optimizations of page counters.
+
+
+This patch (of 3):
+
+Memory protection (min/low) requires a constant tracking of protected
+memory usage.  propagate_protected_usage() is called on each page counters
+update and does a number of operations even in cases when the actual
+memory protection functionality is not supported (e.g.  hugetlb cgroups or
+memcg swap counters).
+
+It's obviously inefficient and leads to a waste of CPU cycles.  It can be
+addressed by calling propagate_protected_usage() only for the counters
+which do support memory guarantees.  As of now it's only memcg->memory -
+the unified memory memcg counter.
+
+Link: https://lkml.kernel.org/r/20240726203110.1577216-2-roman.gushchin@linux.dev
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/page_counter.h |    8 +++++++-
+ mm/hugetlb_cgroup.c          |    4 ++--
+ mm/memcontrol.c              |   16 ++++++++--------
+ mm/page_counter.c            |   17 ++++++++++++++---
+ 4 files changed, 31 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-left-over-comment-about-follow_huge_foo
-+++ a/mm/hugetlb.c
-@@ -7503,10 +7503,6 @@ __weak unsigned long hugetlb_mask_last_p
+--- a/include/linux/page_counter.h~mm-memcg-dont-call-propagate_protected_usage-needlessly
++++ a/include/linux/page_counter.h
+@@ -31,6 +31,7 @@ struct page_counter {
+ 	/* Keep all the read most fields in a separete cacheline. */
+ 	CACHELINE_PADDING(_pad2_);
  
- #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
++	bool protection_support;
+ 	unsigned long min;
+ 	unsigned long low;
+ 	unsigned long high;
+@@ -44,12 +45,17 @@ struct page_counter {
+ #define PAGE_COUNTER_MAX (LONG_MAX / PAGE_SIZE)
+ #endif
  
--/*
-- * These functions are overwritable if your architecture needs its own
-- * behavior.
-- */
- bool isolate_hugetlb(struct folio *folio, struct list_head *list)
++/*
++ * Protection is supported only for the first counter (with id 0).
++ */
+ static inline void page_counter_init(struct page_counter *counter,
+-				     struct page_counter *parent)
++				     struct page_counter *parent,
++				     bool protection_support)
  {
- 	bool ret = true;
+ 	atomic_long_set(&counter->usage, 0);
+ 	counter->max = PAGE_COUNTER_MAX;
+ 	counter->parent = parent;
++	counter->protection_support = protection_support;
+ }
+ 
+ static inline unsigned long page_counter_read(struct page_counter *counter)
+--- a/mm/hugetlb_cgroup.c~mm-memcg-dont-call-propagate_protected_usage-needlessly
++++ a/mm/hugetlb_cgroup.c
+@@ -114,10 +114,10 @@ static void hugetlb_cgroup_init(struct h
+ 		}
+ 		page_counter_init(hugetlb_cgroup_counter_from_cgroup(h_cgroup,
+ 								     idx),
+-				  fault_parent);
++				  fault_parent, false);
+ 		page_counter_init(
+ 			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
+-			rsvd_parent);
++			rsvd_parent, false);
+ 
+ 		limit = round_down(PAGE_COUNTER_MAX,
+ 				   pages_per_huge_page(&hstates[idx]));
+--- a/mm/memcontrol.c~mm-memcg-dont-call-propagate_protected_usage-needlessly
++++ a/mm/memcontrol.c
+@@ -3596,21 +3596,21 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (parent) {
+ 		WRITE_ONCE(memcg->swappiness, mem_cgroup_swappiness(parent));
+ 
+-		page_counter_init(&memcg->memory, &parent->memory);
+-		page_counter_init(&memcg->swap, &parent->swap);
++		page_counter_init(&memcg->memory, &parent->memory, true);
++		page_counter_init(&memcg->swap, &parent->swap, false);
+ #ifdef CONFIG_MEMCG_V1
+ 		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
+-		page_counter_init(&memcg->kmem, &parent->kmem);
+-		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
++		page_counter_init(&memcg->kmem, &parent->kmem, false);
++		page_counter_init(&memcg->tcpmem, &parent->tcpmem, false);
+ #endif
+ 	} else {
+ 		init_memcg_stats();
+ 		init_memcg_events();
+-		page_counter_init(&memcg->memory, NULL);
+-		page_counter_init(&memcg->swap, NULL);
++		page_counter_init(&memcg->memory, NULL, true);
++		page_counter_init(&memcg->swap, NULL, false);
+ #ifdef CONFIG_MEMCG_V1
+-		page_counter_init(&memcg->kmem, NULL);
+-		page_counter_init(&memcg->tcpmem, NULL);
++		page_counter_init(&memcg->kmem, NULL, false);
++		page_counter_init(&memcg->tcpmem, NULL, false);
+ #endif
+ 		root_mem_cgroup = memcg;
+ 		return &memcg->css;
+--- a/mm/page_counter.c~mm-memcg-dont-call-propagate_protected_usage-needlessly
++++ a/mm/page_counter.c
+@@ -13,6 +13,11 @@
+ #include <linux/bug.h>
+ #include <asm/page.h>
+ 
++static bool track_protection(struct page_counter *c)
++{
++	return c->protection_support;
++}
++
+ static void propagate_protected_usage(struct page_counter *c,
+ 				      unsigned long usage)
+ {
+@@ -57,7 +62,8 @@ void page_counter_cancel(struct page_cou
+ 		new = 0;
+ 		atomic_long_set(&counter->usage, new);
+ 	}
+-	propagate_protected_usage(counter, new);
++	if (track_protection(counter))
++		propagate_protected_usage(counter, new);
+ }
+ 
+ /**
+@@ -70,12 +76,14 @@ void page_counter_cancel(struct page_cou
+ void page_counter_charge(struct page_counter *counter, unsigned long nr_pages)
+ {
+ 	struct page_counter *c;
++	bool protection = track_protection(counter);
+ 
+ 	for (c = counter; c; c = c->parent) {
+ 		long new;
+ 
+ 		new = atomic_long_add_return(nr_pages, &c->usage);
+-		propagate_protected_usage(c, new);
++		if (protection)
++			propagate_protected_usage(c, new);
+ 		/*
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
+@@ -99,6 +107,7 @@ bool page_counter_try_charge(struct page
+ 			     struct page_counter **fail)
+ {
+ 	struct page_counter *c;
++	bool protection = track_protection(counter);
+ 
+ 	for (c = counter; c; c = c->parent) {
+ 		long new;
+@@ -128,7 +137,9 @@ bool page_counter_try_charge(struct page
+ 			*fail = c;
+ 			goto failed;
+ 		}
+-		propagate_protected_usage(c, new);
++		if (protection)
++			propagate_protected_usage(c, new);
++
+ 		/*
+ 		 * Just like with failcnt, we can live with some
+ 		 * inaccuracy in the watermark.
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-mm-remove-migration-for-hugepage-in-isolate_single_pageblock.patch
-mm-support-only-one-page_type-per-page-fix.patch
-mm-memory_hotplug-remove-head-variable-in-do_migrate_range.patch
-mm-memory-failure-add-unmap_poisoned_folio.patch
-mm-memory_hotplug-check-hwpoisoned-page-firstly-in-do_migrate_range.patch
-mm-migrate-add-isolate_folio_to_list.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
-mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation-fix.patch
-mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
-mm-migrate_device-use-a-folio-in-migrate_device_range.patch
-mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
-mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
-mm-remove-isolate_lru_page.patch
-mm-remove-isolate_lru_page-fix.patch
-mm-remove-putback_lru_page.patch
 
