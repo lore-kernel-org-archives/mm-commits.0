@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E27A7DA81
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B95E7DA73
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247802; cv=none; b=QQ/rsSg9Yg/IAa3E5XY6usq0uuhBkng1NK/ZnVAz5943B5RLC+HNDUsfTHP6yPwbxE218RRmtWjXMrLURG33XwGtFTfoyFbWATWgXs/uYC58TVZpP0gFFMkzXUfybmkZ+IulfbKgCX6bnFWfFuEJyVcGTZSDhnOeEa1BZYvLWSU=
+	t=1725247804; cv=none; b=uwkge6QtgVgtZd1jFE5RAl3I72wBz8slD/KQbKzZSv049AhSlBrls0RHrm6t9hq+STd57cooqoyN5Wqk/KrnWWU1t7/+1Gw+LtfYN+/vPVJafLhpzcT+E9+losSrlIwEBKg3rZJ+GJvF1jJrCikgNh3Rgx3rTcy3EiN9fvmJSiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247802; c=relaxed/simple;
-	bh=rI8iGVzbZj46VJxwIjI094BU+m1rQGPZKcQXEimsoz8=;
-	h=Date:To:From:Subject:Message-Id; b=MliHDvWhb0p/+mZl4STuAcKyKkRv0AtmIvvDaMMnJMKeKfVlrvfragxLgwGDqnD9VsSFTATL9ED0kHBsS371+3YHAnC3CTZYX6WkFLtWQxVGcIPDj6ZPPbazjuXUCY5ILTmOV8pwl8FxtsaqCavUEXQmqOlIO6uCO8q/6jpgp5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mM5YWtEf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247804; c=relaxed/simple;
+	bh=8a6e85MwUxNG6Hmn7jHx84KHKyNLvIaDVTGOkVqwaBQ=;
+	h=Date:To:From:Subject:Message-Id; b=Ps/J83FgUDs20zuqAeUP19+YD6cxeJYWG7zDQgWLsP2A8qI7407MTwqtQddc/cSpwMHqNqQ+u8tB94jCm+7f5gxUpEUAErEadZg24OExA77HW753a4BJPikG5N/20FtSDGN43TFjuK9mTI8R1/74TiQd4NG97Vwxg/LT6XwAwM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MuigJYQ9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mM5YWtEf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7196AC4CEC2;
-	Mon,  2 Sep 2024 03:30:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MuigJYQ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5128EC4CEC2;
+	Mon,  2 Sep 2024 03:30:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247802;
-	bh=rI8iGVzbZj46VJxwIjI094BU+m1rQGPZKcQXEimsoz8=;
+	s=korg; t=1725247804;
+	bh=8a6e85MwUxNG6Hmn7jHx84KHKyNLvIaDVTGOkVqwaBQ=;
 	h=Date:To:From:Subject:From;
-	b=mM5YWtEfA4lt1yNyEnLtoW42CtQMANJQZqF7VqNmhpoDbJrzYRxjgM98Scbmm1xRO
-	 VtgFOf4Rs5VQJS6TClK53PuFCwsCS2W5jI8Ed3k9c5mAZAVDo6wMcBepCFOowlk9Fw
-	 muN3oMMqdCY1hhOlloNWDbhFjTen81fpzNMQZNnQ=
-Date: Sun, 01 Sep 2024 20:30:01 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=MuigJYQ9dr3AyIPS62KxytsKvXTh62+uervtacmV1aQgeLNf9q1CAcovJRJBS+KaC
+	 8td+np/dkC4ne5wpZ9TdeWHIi70QzF91bqCKAuw8TWlrBR2ZjFgOYez7F1JZE4Mrde
+	 jdGcBiWZN1b84hUSqBQsB1ab7wPkDU6GrmvnaBQA=
+Date: Sun, 01 Sep 2024 20:30:03 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,uekawa@chromium.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,takayas@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-fix-dax-pud-handlings.patch removed from -mm tree
-Message-Id: <20240902033002.7196AC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-add-trace-events-for-get_pages-map_pages-and-fault.patch removed from -mm tree
+Message-Id: <20240902033004.5128EC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,297 +35,180 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mprotect: fix dax pud handlings
+     Subject: filemap: add trace events for get_pages, map_pages, and fault
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-fix-dax-pud-handlings.patch
+     filemap-add-trace-events-for-get_pages-map_pages-and-fault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/mprotect: fix dax pud handlings
-Date: Mon, 12 Aug 2024 14:12:25 -0400
+From: Takaya Saeki <takayas@chromium.org>
+Subject: filemap: add trace events for get_pages, map_pages, and fault
+Date: Tue, 13 Aug 2024 10:03:12 +0000
 
-This is only relevant to the two archs that support PUD dax, aka, x86_64
-and ppc64.  PUD THPs do not yet exist elsewhere, and hugetlb PUDs do not
-count in this case.
+To allow precise tracking of page caches accessed, add new tracepoints
+that trigger when a process actually accesses them.
 
-DAX have had PUD mappings for years, but change protection path never
-worked.  When the path is triggered in any form (a simple test program
-would be: call mprotect() on a 1G dev_dax mapping), the kernel will report
-"bad pud".  This patch should fix that.
+The ureadahead program used by ChromeOS traces the disk access of programs
+as they start up at boot up.  It uses mincore(2) or the
+'mm_filemap_add_to_page_cache' trace event to accomplish this.  It stores
+this information in a "pack" file and on subsequent boots, it will read
+the pack file and call readahead(2) on the information so that disk
+storage can be loaded into RAM before the applications actually need it.
 
-The new change_huge_pud() tries to keep everything simple.  For example,
-it doesn't optimize write bit as that will need even more PUD helpers. 
-It's not too bad anyway to have one more write fault in the worst case
-once for 1G range; may be a bigger thing for each PAGE_SIZE, though. 
-Neither does it support userfault-wp bits, as there isn't such PUD
-mappings that is supported; file mappings always need a split there.
+A problem we see is that due to the kernel's readahead algorithm that can
+aggressively pull in more data than needed (to try and accomplish the same
+goal) and this data is also recorded.  The end result is that the pack
+file contains a lot of pages on disk that are never actually used. 
+Calling readahead(2) on these unused pages can slow down the system boot
+up times.
 
-The same to TLB shootdown: the pmd path (which was for x86 only) has the
-trick of using _ad() version of pmdp_invalidate*() which can avoid one
-redundant TLB, but let's also leave that for later.  Again, the larger the
-mapping, the smaller of such effect.
+To solve this, add 3 new trace events, get_pages, map_pages, and fault. 
+These will be used to trace the pages are not only pulled in from disk,
+but are actually used by the application.  Only those pages will be stored
+in the pack file, and this helps out the performance of boot up.
 
-There's some difference on handling "retry" for change_huge_pud() (where
-it can return 0): it isn't like change_huge_pmd(), as the pmd version is
-safe with all conditions handled in change_pte_range() later, thanks to
-Hugh's new pte_offset_map_lock().  In short, change_pte_range() is simply
-smarter.  For that, change_pud_range() will need proper retry if it races
-with something else when a huge PUD changed from under us.
+With the combination of these 3 new trace events and
+mm_filemap_add_to_page_cache, we observed a reduction in the pack file by
+7.3% - 20% on ChromeOS varying by device.
 
-The last thing to mention is currently the PUD path ignores the huge pte
-numa counter (NUMA_HUGE_PTE_UPDATES), not only because DAX is not
-applicable to NUMA, but also that it's ambiguous on its own to decide how
-to account pud in this case.  In one earlier version of this patchset I
-proposed to remove the counter as it doesn't even look right to do the
-accounting as of now [1], but then a further discussion suggests we can
-leave that for later, as that doesn't block this series if we choose to
-ignore that counter.  That's what this patch does, by ignoring it.
-
-When at it, touch up the comment in pgtable_split_needed() to make it
-generic to either pmd or pud file THPs.
-
-[1] https://lore.kernel.org/all/20240715192142.3241557-3-peterx@redhat.com/
-[2] https://lore.kernel.org/r/added2d0-b8be-4108-82ca-1367a388d0b1@redhat.com
-
-Link: https://lkml.kernel.org/r/20240812181225.1360970-8-peterx@redhat.com
-Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
-Fixes: 27af67f35631 ("powerpc/book3s64/mm: enable transparent pud hugepage")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20240813100312.3930505-1-takayas@chromium.org
+Signed-off-by: Takaya Saeki <takayas@chromium.org>
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Junichi Uekawa <uekawa@chromium.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Sean Christopherson <seanjc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   24 +++++++++++++++++
- mm/huge_memory.c        |   52 ++++++++++++++++++++++++++++++++++++++
- mm/mprotect.c           |   39 ++++++++++++++++++++++------
- 3 files changed, 107 insertions(+), 8 deletions(-)
+ include/trace/events/filemap.h |   84 +++++++++++++++++++++++++++++++
+ mm/filemap.c                   |    4 +
+ 2 files changed, 88 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-mprotect-fix-dax-pud-handlings
-+++ a/include/linux/huge_mm.h
-@@ -342,6 +342,17 @@ void split_huge_pmd_address(struct vm_ar
- void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long address);
+--- a/include/trace/events/filemap.h~filemap-add-trace-events-for-get_pages-map_pages-and-fault
++++ a/include/trace/events/filemap.h
+@@ -56,6 +56,90 @@ DEFINE_EVENT(mm_filemap_op_page_cache, m
+ 	TP_ARGS(folio)
+ 	);
  
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+int change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags);
-+#else
-+static inline int
-+change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		unsigned long cp_flags) { return 0; }
-+#endif
++DECLARE_EVENT_CLASS(mm_filemap_op_page_cache_range,
 +
- #define split_huge_pud(__vma, __pud, __address)				\
- 	do {								\
- 		pud_t *____pud = (__pud);				\
-@@ -585,6 +596,19 @@ static inline int next_order(unsigned lo
- {
++	TP_PROTO(
++		struct address_space *mapping,
++		pgoff_t index,
++		pgoff_t last_index
++	),
++
++	TP_ARGS(mapping, index, last_index),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, i_ino)
++		__field(dev_t, s_dev)
++		__field(unsigned long, index)
++		__field(unsigned long, last_index)
++	),
++
++	TP_fast_assign(
++		__entry->i_ino = mapping->host->i_ino;
++		if (mapping->host->i_sb)
++			__entry->s_dev =
++				mapping->host->i_sb->s_dev;
++		else
++			__entry->s_dev = mapping->host->i_rdev;
++		__entry->index = index;
++		__entry->last_index = last_index;
++	),
++
++	TP_printk(
++		"dev=%d:%d ino=%lx ofs=%lld-%lld",
++		MAJOR(__entry->s_dev),
++		MINOR(__entry->s_dev), __entry->i_ino,
++		((loff_t)__entry->index) << PAGE_SHIFT,
++		((((loff_t)__entry->last_index + 1) << PAGE_SHIFT) - 1)
++	)
++);
++
++DEFINE_EVENT(mm_filemap_op_page_cache_range, mm_filemap_get_pages,
++	TP_PROTO(
++		struct address_space *mapping,
++		pgoff_t index,
++		pgoff_t last_index
++	),
++	TP_ARGS(mapping, index, last_index)
++);
++
++DEFINE_EVENT(mm_filemap_op_page_cache_range, mm_filemap_map_pages,
++	TP_PROTO(
++		struct address_space *mapping,
++		pgoff_t index,
++		pgoff_t last_index
++	),
++	TP_ARGS(mapping, index, last_index)
++);
++
++TRACE_EVENT(mm_filemap_fault,
++	TP_PROTO(struct address_space *mapping, pgoff_t index),
++
++	TP_ARGS(mapping, index),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, i_ino)
++		__field(dev_t, s_dev)
++		__field(unsigned long, index)
++	),
++
++	TP_fast_assign(
++		__entry->i_ino = mapping->host->i_ino;
++		if (mapping->host->i_sb)
++			__entry->s_dev =
++				mapping->host->i_sb->s_dev;
++		else
++			__entry->s_dev = mapping->host->i_rdev;
++		__entry->index = index;
++	),
++
++	TP_printk(
++		"dev=%d:%d ino=%lx ofs=%lld",
++		MAJOR(__entry->s_dev),
++		MINOR(__entry->s_dev), __entry->i_ino,
++		((loff_t)__entry->index) << PAGE_SHIFT
++	)
++);
++
+ TRACE_EVENT(filemap_set_wb_err,
+ 		TP_PROTO(struct address_space *mapping, errseq_t eseq),
+ 
+--- a/mm/filemap.c~filemap-add-trace-events-for-get_pages-map_pages-and-fault
++++ a/mm/filemap.c
+@@ -2548,6 +2548,7 @@ retry:
+ 			goto err;
+ 	}
+ 
++	trace_mm_filemap_get_pages(mapping, index, last_index);
  	return 0;
- }
-+
-+static inline void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
-+				    unsigned long address)
-+{
-+}
-+
-+static inline int change_huge_pud(struct mmu_gather *tlb,
-+				  struct vm_area_struct *vma, pud_t *pudp,
-+				  unsigned long addr, pgprot_t newprot,
-+				  unsigned long cp_flags)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ err:
+ 	if (err < 0)
+@@ -3279,6 +3280,8 @@ vm_fault_t filemap_fault(struct vm_fault
+ 	if (unlikely(index >= max_idx))
+ 		return VM_FAULT_SIGBUS;
  
- static inline int split_folio_to_list_to_order(struct folio *folio,
---- a/mm/huge_memory.c~mm-mprotect-fix-dax-pud-handlings
-+++ a/mm/huge_memory.c
-@@ -2104,6 +2104,53 @@ unlock:
- 	return ret;
- }
- 
-+/*
-+ * Returns:
-+ *
-+ * - 0: if pud leaf changed from under us
-+ * - 1: if pud can be skipped
-+ * - HPAGE_PUD_NR: if pud was successfully processed
-+ */
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+int change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pud_t *pudp, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	pud_t oldpud, entry;
-+	spinlock_t *ptl;
++	trace_mm_filemap_fault(mapping, index);
 +
-+	tlb_change_page_size(tlb, HPAGE_PUD_SIZE);
-+
-+	/* NUMA balancing doesn't apply to dax */
-+	if (cp_flags & MM_CP_PROT_NUMA)
-+		return 1;
-+
-+	/*
-+	 * Huge entries on userfault-wp only works with anonymous, while we
-+	 * don't have anonymous PUDs yet.
-+	 */
-+	if (WARN_ON_ONCE(cp_flags & MM_CP_UFFD_WP_ALL))
-+		return 1;
-+
-+	ptl = __pud_trans_huge_lock(pudp, vma);
-+	if (!ptl)
-+		return 0;
-+
-+	/*
-+	 * Can't clear PUD or it can race with concurrent zapping.  See
-+	 * change_huge_pmd().
-+	 */
-+	oldpud = pudp_invalidate(vma, addr, pudp);
-+	entry = pud_modify(oldpud, newprot);
-+	set_pud_at(mm, addr, pudp, entry);
-+	tlb_flush_pud_range(tlb, addr, HPAGE_PUD_SIZE);
-+
-+	spin_unlock(ptl);
-+	return HPAGE_PUD_NR;
-+}
-+#endif
-+
- #ifdef CONFIG_USERFAULTFD
- /*
-  * The PT lock for src_pmd and dst_vma/src_vma (for reading) are locked by
-@@ -2334,6 +2381,11 @@ out:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(&range);
- }
-+#else
-+void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
-+		unsigned long address)
-+{
-+}
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- 
- static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
---- a/mm/mprotect.c~mm-mprotect-fix-dax-pud-handlings
-+++ a/mm/mprotect.c
-@@ -302,8 +302,9 @@ pgtable_split_needed(struct vm_area_stru
- {
  	/*
- 	 * pte markers only resides in pte level, if we need pte markers,
--	 * we need to split.  We cannot wr-protect shmem thp because file
--	 * thp is handled differently when split by erasing the pmd so far.
-+	 * we need to split.  For example, we cannot wr-protect a file thp
-+	 * (e.g. 2M shmem) because file thp is handled differently when
-+	 * split by erasing the pmd so far.
+ 	 * Do we have something in the page cache already?
  	 */
- 	return (cp_flags & MM_CP_UFFD_WP) && !vma_is_anonymous(vma);
- }
-@@ -430,31 +431,53 @@ static inline long change_pud_range(stru
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	struct mmu_notifier_range range;
--	pud_t *pud;
-+	pud_t *pudp, pud;
- 	unsigned long next;
- 	long pages = 0, ret;
+@@ -3645,6 +3648,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
+ 	add_mm_counter(vma->vm_mm, folio_type, rss);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
++	trace_mm_filemap_map_pages(mapping, start_pgoff, end_pgoff);
+ out:
+ 	rcu_read_unlock();
  
- 	range.start = 0;
- 
--	pud = pud_offset(p4d, addr);
-+	pudp = pud_offset(p4d, addr);
- 	do {
-+again:
- 		next = pud_addr_end(addr, end);
--		ret = change_prepare(vma, pud, pmd, addr, cp_flags);
-+		ret = change_prepare(vma, pudp, pmd, addr, cp_flags);
- 		if (ret) {
- 			pages = ret;
- 			break;
- 		}
--		if (pud_none_or_clear_bad(pud))
-+
-+		pud = READ_ONCE(*pudp);
-+		if (pud_none(pud))
- 			continue;
-+
- 		if (!range.start) {
- 			mmu_notifier_range_init(&range,
- 						MMU_NOTIFY_PROTECTION_VMA, 0,
- 						vma->vm_mm, addr, end);
- 			mmu_notifier_invalidate_range_start(&range);
- 		}
--		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
-+
-+		if (pud_leaf(pud)) {
-+			if ((next - addr != PUD_SIZE) ||
-+			    pgtable_split_needed(vma, cp_flags)) {
-+				__split_huge_pud(vma, pudp, addr);
-+				goto again;
-+			} else {
-+				ret = change_huge_pud(tlb, vma, pudp,
-+						      addr, newprot, cp_flags);
-+				if (ret == 0)
-+					goto again;
-+				/* huge pud was handled */
-+				if (ret == HPAGE_PUD_NR)
-+					pages += HPAGE_PUD_NR;
-+				continue;
-+			}
-+		}
-+
-+		pages += change_pmd_range(tlb, vma, pudp, addr, next, newprot,
- 					  cp_flags);
--	} while (pud++, addr = next, addr != end);
-+	} while (pudp++, addr = next, addr != end);
- 
- 	if (range.start)
- 		mmu_notifier_invalidate_range_end(&range);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from takayas@chromium.org are
 
-mm-introduce-arch_supports_huge_pfnmap-and-special-bits-to-pmd-pud.patch
-mm-drop-is_huge_zero_pud.patch
-mm-mark-special-bits-for-huge-pfn-mappings-when-inject.patch
-mm-allow-thp-orders-for-pfnmaps.patch
-mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
-mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
-mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch
-mm-fork-accept-huge-pfnmap-entries.patch
-mm-always-define-pxx_pgprot.patch
-mm-new-follow_pfnmap-api.patch
-kvm-use-follow_pfnmap-api.patch
-s390-pci_mmio-use-follow_pfnmap-api.patch
-mm-x86-pat-use-the-new-follow_pfnmap-api.patch
-vfio-use-the-new-follow_pfnmap-api.patch
-acrn-use-the-new-follow_pfnmap-api.patch
-mm-access_process_vm-use-the-new-follow_pfnmap-api.patch
-mm-remove-follow_pte.patch
-mm-x86-support-large-pfn-mappings.patch
-mm-arm64-support-large-pfn-mappings.patch
 
