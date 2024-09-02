@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B7684D8BC
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40D2343AAE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247732; cv=none; b=YoV13gIbH4p6bHk3AfE+SFbK5hUIFqv4GtAnMNXKd0KH9csVCxXBwq49p8a1w1NJ201Wg4lGlk34yuNWrHXrXOqNFHqi9owm6Ry9RTSzHsn/ZB5ibjh3KOuvQi9QFqQ7tQz0NVDDu0VbNeWGaN8SSE6p3ogoRZ65j0rMrpl9Qa4=
+	t=1725247733; cv=none; b=gi7VyOnr0ZheSddvfjKZpfk5wbeR235TDzqOvxE/SqFjm9QBKejhuSAGkQwNlKZgxS/q8hTaCda1E7mGJNmGBClLnFD2hPIDHBHWn2tYtPv5R47QLnCcPePeCHiBfpOSZ9bVIWYucsZzpwUnVgSWxcjYR6rsFLcsMltKSDAHYy4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247732; c=relaxed/simple;
-	bh=3N63zZjueHjVWJa4MRM3BjU54iUMRUxL5HTWy4FKuVg=;
-	h=Date:To:From:Subject:Message-Id; b=SbuAkxNcTMEt3zJTv2qvqzCdLBW3/b+33LmS0W6DqvPAAzhhPi0Of+z806p4T5+kbcBOVWIqcbmmbF6h3LiAJYAOToI0KMVdWdcj/6bR1hhNXIlwxNdh0xvU1b/vYFt/oqSTK8nNvWlOWjCIcel7U8wW+man0vSn76FEGVnx0yM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JvfKSBd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247733; c=relaxed/simple;
+	bh=b6LBzOsp2yVFPEqYDYdM6MMYWDRCB1XJ0KNVRBs8pLo=;
+	h=Date:To:From:Subject:Message-Id; b=s3yf1oK0Ef9raSc2/1gXgn2rQUOHCG++C6B2c0LwWByOX+IIzN+wHKVYB5ci71zx1rNYhuTNW4kKYgkwVDqe4eWdruy3lurkMw8i0Sx9LRZODAzIjq+Nlca+x1DjNQpJuLxGnRF09CYbzac5lsokfepDd0D9qjav0os2vL8Eyg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IGERzJVH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JvfKSBd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3E7FC4CEC2;
-	Mon,  2 Sep 2024 03:28:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IGERzJVH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17ADEC4CEC2;
+	Mon,  2 Sep 2024 03:28:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247732;
-	bh=3N63zZjueHjVWJa4MRM3BjU54iUMRUxL5HTWy4FKuVg=;
+	s=korg; t=1725247733;
+	bh=b6LBzOsp2yVFPEqYDYdM6MMYWDRCB1XJ0KNVRBs8pLo=;
 	h=Date:To:From:Subject:From;
-	b=0JvfKSBdrZ2RuRM9hkts9CFfqJKK8oCY7cTFVRvFhDXw489Qmw6i4lyF/RMWZ1pKa
-	 mFYbvkNm2HoSEmrRZtQcceh0cXpYpis/cYj62LnevQYbqEIC6ORxAgo2RRyTHjZ7go
-	 GeDZRGD8O9+bwC6fSzrCVO8P6U6p/sQibRC2cFrQ=
-Date: Sun, 01 Sep 2024 20:28:51 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,kasong@tencent.com,cerasuolodomenico@gmail.com,liuzhaoyu.zackary@bytedance.com,akpm@linux-foundation.org
+	b=IGERzJVHqrFfrPS+w2LPpwndqPUGXumTyL4g+tb7XYBIe6hnbMMBmcivp9tj6zkhf
+	 PyJfLHpNrDSk0tQ1ISTcmBTf3jPzgDPctOMetKP5sfFYHsn7uoDrbJ/RRY9e14jOZr
+	 JohA1ZhhnXsB0yvtN4sQee0AVEdMfJbQRnCeDnrg=
+Date: Sun, 01 Sep 2024 20:28:52 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,flintglass@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch removed from -mm tree
-Message-Id: <20240902032851.E3E7FC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-fix-global-shrinker-memcg-iteration.patch removed from -mm tree
+Message-Id: <20240902032853.17ADEC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,150 +35,174 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: allocate folio only first time in __read_swap_cache_async()
+     Subject: mm: zswap: fix global shrinker memcg iteration
 has been removed from the -mm tree.  Its filename was
-     mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async.patch
+     mm-zswap-fix-global-shrinker-memcg-iteration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhaoyu Liu <liuzhaoyu.zackary@bytedance.com>
-Subject: mm: swap: allocate folio only first time in __read_swap_cache_async()
-Date: Wed, 31 Jul 2024 21:31:01 +0800
+From: Takero Funaki <flintglass@gmail.com>
+Subject: mm: zswap: fix global shrinker memcg iteration
+Date: Wed, 31 Jul 2024 00:49:09 +0000
 
-It should be checked by filemap_get_folio() if SWAP_HAS_CACHE was
-marked while reading a share swap page. It would re-allocate a folio
-if the swap cache was not ready now. We save the new folio to avoid
-page allocating again.
+Patch series "mm: zswap: fixes for global shrinker", v5.
 
-Link: https://lkml.kernel.org/r/20240731133101.GA2096752@bytedance
-Signed-off-by: Zhaoyu Liu <liuzhaoyu.zackary@bytedance.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+This series addresses issues in the zswap global shrinker that could not
+shrink stored pages.  With this series, the shrinker continues to shrink
+pages until it reaches the accept threshold more reliably, gives much
+higher writeback when the zswap pool limit is hit.
+
+
+This patch (of 2):
+
+This patch fixes an issue where the zswap global shrinker stopped
+iterating through the memcg tree.
+
+The problem was that shrink_worker() would restart iterating memcg tree
+from the tree root, considering an offline memcg as a failure, and abort
+shrinking after encountering the same offline memcg 16 times even if there
+is only one offline memcg.  After this change, an offline memcg in the
+tree is no longer considered a failure.  This allows the shrinker to
+continue shrinking the other online memcgs regardless of whether an
+offline memcg exists, gives higher zswap writeback activity.
+
+To avoid holding refcount of offline memcg encountered during the memcg
+tree walking, shrink_worker() must continue iterating to release the
+offline memcg to ensure the next memcg stored in the cursor is online.
+
+The offline memcg cleaner has also been changed to avoid the same issue. 
+When the next memcg of the offlined memcg is also offline, the refcount
+stored in the iteration cursor was held until the next shrink_worker()
+run.  The cleaner must release the offline memcg recursively.
+
+[yosryahmed@google.com: make critical section more obvious, unify comments]
+  Link: https://lkml.kernel.org/r/CAJD7tkaScz+SbB90Q1d5mMD70UfM2a-J2zhXDT9sePR7Qap45Q@mail.gmail.com
+Link: https://lkml.kernel.org/r/20240731004918.33182-1-flintglass@gmail.com
+Link: https://lkml.kernel.org/r/20240731004918.33182-2-flintglass@gmail.com
+Fixes: a65b0e7607cc ("zswap: make shrinking memcg-aware")
+Signed-off-by: Takero Funaki <flintglass@gmail.com>
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   60 ++++++++++++++++++++++++----------------------
- 1 file changed, 32 insertions(+), 28 deletions(-)
+ mm/zswap.c |   76 +++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 47 insertions(+), 29 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-allocate-folio-only-first-time-in-__read_swap_cache_async
-+++ a/mm/swap_state.c
-@@ -435,6 +435,8 @@ struct folio *__read_swap_cache_async(sw
- {
- 	struct swap_info_struct *si;
- 	struct folio *folio;
-+	struct folio *new_folio = NULL;
-+	struct folio *result = NULL;
- 	void *shadow = NULL;
- 
- 	*new_page_allocated = false;
-@@ -463,16 +465,19 @@ struct folio *__read_swap_cache_async(sw
- 		 * else swap_off will be aborted if we return NULL.
- 		 */
- 		if (!swap_swapcount(si, entry) && swap_slot_cache_enabled)
--			goto fail_put_swap;
-+			goto put_and_return;
- 
- 		/*
--		 * Get a new folio to read into from swap.  Allocate it now,
--		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
--		 * cause any racers to loop around until we add it to cache.
--		 */
--		folio = folio_alloc_mpol(gfp_mask, 0, mpol, ilx, numa_node_id());
--		if (!folio)
--                        goto fail_put_swap;
-+		 * Get a new folio to read into from swap.  Allocate it now if
-+		 * new_folio not exist, before marking swap_map SWAP_HAS_CACHE,
-+		 * when -EEXIST will cause any racers to loop around until we
-+		 * add it to cache.
-+		 */
-+		if (!new_folio) {
-+			new_folio = folio_alloc_mpol(gfp_mask, 0, mpol, ilx, numa_node_id());
-+			if (!new_folio)
-+				goto put_and_return;
-+		}
- 
- 		/*
- 		 * Swap entry may have been freed since our caller observed it.
-@@ -480,10 +485,8 @@ struct folio *__read_swap_cache_async(sw
- 		err = swapcache_prepare(entry, 1);
- 		if (!err)
- 			break;
--
--		folio_put(folio);
--		if (err != -EEXIST)
--			goto fail_put_swap;
-+		else if (err != -EEXIST)
-+			goto put_and_return;
- 
- 		/*
- 		 * Protect against a recursive call to __read_swap_cache_async()
-@@ -494,7 +497,7 @@ struct folio *__read_swap_cache_async(sw
- 		 * __read_swap_cache_async() in the writeback path.
- 		 */
- 		if (skip_if_exists)
--			goto fail_put_swap;
-+			goto put_and_return;
- 
- 		/*
- 		 * We might race against __delete_from_swap_cache(), and
-@@ -509,36 +512,37 @@ struct folio *__read_swap_cache_async(sw
- 	/*
- 	 * The swap entry is ours to swap in. Prepare the new folio.
- 	 */
-+	__folio_set_locked(new_folio);
-+	__folio_set_swapbacked(new_folio);
- 
--	__folio_set_locked(folio);
--	__folio_set_swapbacked(folio);
--
--	if (mem_cgroup_swapin_charge_folio(folio, NULL, gfp_mask, entry))
-+	if (mem_cgroup_swapin_charge_folio(new_folio, NULL, gfp_mask, entry))
- 		goto fail_unlock;
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
-+	if (add_to_swap_cache(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
- 		goto fail_unlock;
- 
- 	mem_cgroup_swapin_uncharge_swap(entry);
- 
- 	if (shadow)
--		workingset_refault(folio, shadow);
-+		workingset_refault(new_folio, shadow);
- 
--	/* Caller will initiate read into locked folio */
--	folio_add_lru(folio);
-+	/* Caller will initiate read into locked new_folio */
-+	folio_add_lru(new_folio);
- 	*new_page_allocated = true;
-+	folio = new_folio;
- got_folio:
--	put_swap_device(si);
--	return folio;
-+	result = folio;
-+	goto put_and_return;
- 
- fail_unlock:
--	put_swap_folio(folio, entry);
--	folio_unlock(folio);
--	folio_put(folio);
--fail_put_swap:
-+	put_swap_folio(new_folio, entry);
-+	folio_unlock(new_folio);
-+put_and_return:
- 	put_swap_device(si);
--	return NULL;
-+	if (!(*new_page_allocated) && new_folio)
-+		folio_put(new_folio);
-+	return result;
+--- a/mm/zswap.c~mm-zswap-fix-global-shrinker-memcg-iteration
++++ a/mm/zswap.c
+@@ -765,12 +765,25 @@ void zswap_folio_swapin(struct folio *fo
+ 	}
  }
  
- /*
++/*
++ * This function should be called when a memcg is being offlined.
++ *
++ * Since the global shrinker shrink_worker() may hold a reference
++ * of the memcg, we must check and release the reference in
++ * zswap_next_shrink.
++ *
++ * shrink_worker() must handle the case where this function releases
++ * the reference of memcg being shrunk.
++ */
+ void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg)
+ {
+ 	/* lock out zswap shrinker walking memcg tree */
+ 	spin_lock(&zswap_shrink_lock);
+-	if (zswap_next_shrink == memcg)
+-		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
++	if (zswap_next_shrink == memcg) {
++		do {
++			zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
++		} while (zswap_next_shrink && !mem_cgroup_online(zswap_next_shrink));
++	}
+ 	spin_unlock(&zswap_shrink_lock);
+ }
+ 
+@@ -1304,43 +1317,48 @@ static void shrink_worker(struct work_st
+ 	/* Reclaim down to the accept threshold */
+ 	thr = zswap_accept_thr_pages();
+ 
+-	/* global reclaim will select cgroup in a round-robin fashion. */
++	/*
++	 * Global reclaim will select cgroup in a round-robin fashion.
++	 *
++	 * We save iteration cursor memcg into zswap_next_shrink,
++	 * which can be modified by the offline memcg cleaner
++	 * zswap_memcg_offline_cleanup().
++	 *
++	 * Since the offline cleaner is called only once, we cannot leave an
++	 * offline memcg reference in zswap_next_shrink.
++	 * We can rely on the cleaner only if we get online memcg under lock.
++	 *
++	 * If we get an offline memcg, we cannot determine if the cleaner has
++	 * already been called or will be called later. We must put back the
++	 * reference before returning from this function. Otherwise, the
++	 * offline memcg left in zswap_next_shrink will hold the reference
++	 * until the next run of shrink_worker().
++	 */
+ 	do {
+-		spin_lock(&zswap_shrink_lock);
+-		zswap_next_shrink = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
+-		memcg = zswap_next_shrink;
+-
+ 		/*
+-		 * We need to retry if we have gone through a full round trip, or if we
+-		 * got an offline memcg (or else we risk undoing the effect of the
+-		 * zswap memcg offlining cleanup callback). This is not catastrophic
+-		 * per se, but it will keep the now offlined memcg hostage for a while.
++		 * Start shrinking from the next memcg after zswap_next_shrink.
++		 * When the offline cleaner has already advanced the cursor,
++		 * advancing the cursor here overlooks one memcg, but this
++		 * should be negligibly rare.
+ 		 *
+-		 * Note that if we got an online memcg, we will keep the extra
+-		 * reference in case the original reference obtained by mem_cgroup_iter
+-		 * is dropped by the zswap memcg offlining callback, ensuring that the
+-		 * memcg is not killed when we are reclaiming.
++		 * If we get an online memcg, keep the extra reference in case
++		 * the original one obtained by mem_cgroup_iter() is dropped by
++		 * zswap_memcg_offline_cleanup() while we are shrinking the
++		 * memcg.
+ 		 */
+-		if (!memcg) {
+-			spin_unlock(&zswap_shrink_lock);
+-			if (++failures == MAX_RECLAIM_RETRIES)
+-				break;
+-
+-			goto resched;
+-		}
+-
+-		if (!mem_cgroup_tryget_online(memcg)) {
+-			/* drop the reference from mem_cgroup_iter() */
+-			mem_cgroup_iter_break(NULL, memcg);
+-			zswap_next_shrink = NULL;
+-			spin_unlock(&zswap_shrink_lock);
++		spin_lock(&zswap_shrink_lock);
++		do {
++			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
++			zswap_next_shrink = memcg;
++		} while (memcg && !mem_cgroup_tryget_online(memcg));
++		spin_unlock(&zswap_shrink_lock);
+ 
++		if (!memcg) {
+ 			if (++failures == MAX_RECLAIM_RETRIES)
+ 				break;
+ 
+ 			goto resched;
+ 		}
+-		spin_unlock(&zswap_shrink_lock);
+ 
+ 		ret = shrink_memcg(memcg);
+ 		/* drop the extra reference */
 _
 
-Patches currently in -mm which might be from liuzhaoyu.zackary@bytedance.com are
+Patches currently in -mm which might be from flintglass@gmail.com are
 
 
