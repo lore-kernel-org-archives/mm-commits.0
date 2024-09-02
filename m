@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAD0B4C62E
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DED1605BA
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247794; cv=none; b=dgfdhO/hLirvIQW+egy8c/tNkozY7WvJ79k7Cza12NgwXF5Oz5Lf56DQQuJjHyNSEto1/bOPdGXkJF59Wo/k5fxCZvriXZx+PMOgcZmnKwFFlY1kB1xYqbL/XVod/5jL9uOlmkriJO3Aw5P4gqDpWYnu6vf1uAcExKujPlugXZc=
+	t=1725247796; cv=none; b=UKai2eiJEXK4VM9Au3+8q+wBg3AOWTyYHmvfzIE8fz+vfY2guUcHILPAIf4zqkimNmMvblzZhHdr2fWMoOy+ExRWvZzA+wpjthQhiKvGcUKuluaNTDhGk1HPEqitOZJdH+99nx+DskRP9M9paClbmfZ7OE8EYT5sqqi9ERlY/6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247794; c=relaxed/simple;
-	bh=fdf29bFbCVAtHKbErr20roldATLuLH7yZy2GQcW84Fg=;
-	h=Date:To:From:Subject:Message-Id; b=JqzDNqxljX+bqdRbWEMamL63rPGzctbjUFZEF9PFOIuZleGtNzMUCON9Cey8vc43Ur2lDoUphniTKa3HCcjaKK6U54172OBc6X8YccgVQMzXWxqnMK9jgKi8kyFRtOsz4PxD3+oeFkIV8Q3LUW+Tq//7X4cIYQalnSPz9SUiB+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+eSSaAJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247796; c=relaxed/simple;
+	bh=Zrs0Ta/KRfpCVWnjA6CrTFwGzI788p2ERMeUppzlRzM=;
+	h=Date:To:From:Subject:Message-Id; b=RLtYd2vmTvXUlMLo6Sp+EGK2XA4YsfVxEQD1ioZsPA+cXYzBZ8Qd23YYLKjZ+yaKsoIexD/BIVQ5oDjNCr7yC8k8yDjBTFGAfYn/jCGQOnYFR4zAC3I/U0knmukrDLfiuKLIjpLBP2eyBJ596JMDODkjJivWJm17OgD58W8qtvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2V4WMIel; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+eSSaAJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F89AC4CEC2;
-	Mon,  2 Sep 2024 03:29:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2V4WMIel"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1405CC4CEC2;
+	Mon,  2 Sep 2024 03:29:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247794;
-	bh=fdf29bFbCVAtHKbErr20roldATLuLH7yZy2GQcW84Fg=;
+	s=korg; t=1725247796;
+	bh=Zrs0Ta/KRfpCVWnjA6CrTFwGzI788p2ERMeUppzlRzM=;
 	h=Date:To:From:Subject:From;
-	b=z+eSSaAJmYQqPRYYroFWS2IegM/8x7Rn7d+QGynUhiD27kj4wo6K9QXoVFVp1JZBf
-	 UKM0GM0ht9BhCiBRweuiUaAWpEK8fTc/LX2AbwpXNQEbSd4exSETnOI4felNXwpiOM
-	 z0semKAZ5KnwFlx7v4VYUkWZdiwszY5xiINZp7ps=
-Date: Sun, 01 Sep 2024 20:29:54 -0700
+	b=2V4WMIelmI6mKVQ6Xa/hOByCcJy9Ah901DqRmCUb1LeEpHnZpUdBAPgYBUUW6+xDc
+	 OF6OyyquodYP3sKPtYAjNwi6EGaU6KRXWXOGlOSAGEl5IK/dd6gYARyss049J5rHEn
+	 LjLhZdxWY3fCVIUhtFMeLPiIWzoYS/MY2TJdp0FI=
+Date: Sun, 01 Sep 2024 20:29:55 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-push-mmu-notifier-to-puds.patch removed from -mm tree
-Message-Id: <20240902032954.8F89AC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-powerpc-add-missing-pud-helpers.patch removed from -mm tree
+Message-Id: <20240902032956.1405CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,166 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mprotect: push mmu notifier to PUDs
+     Subject: mm/powerpc: add missing pud helpers
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-push-mmu-notifier-to-puds.patch
+     mm-powerpc-add-missing-pud-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/mprotect: push mmu notifier to PUDs
-Date: Mon, 12 Aug 2024 14:12:20 -0400
+Subject: mm/powerpc: add missing pud helpers
+Date: Mon, 12 Aug 2024 14:12:21 -0400
 
-mprotect() does mmu notifiers in PMD levels.  It's there since 2014 of
-commit a5338093bfb4 ("mm: move mmu notifier call from change_protection to
-change_pmd_range").
+Some new helpers will be needed for pud entry updates soon.  Introduce
+these helpers by referencing the pmd ones.  Namely:
 
-At that time, the issue was that NUMA balancing can be applied on a huge
-range of VM memory, even if nothing was populated.  The notification can
-be avoided in this case if no valid pmd detected, which includes either
-THP or a PTE pgtable page.
+  - pudp_invalidate(): this helper invalidates a huge pud before a split
+  happens, so that the invalidated pud entry will make sure no race will
+  happen (either with software, like a concurrent zap, or hardware, like
+  a/d bit lost).
 
-Now to pave way for PUD handling, this isn't enough.  We need to generate
-mmu notifications even on PUD entries properly.  mprotect() is currently
-broken on PUD (e.g., one can easily trigger kernel error with dax 1G
-mappings already), this is the start to fix it.
+  - pud_modify(): this helper applies a new pgprot to an existing huge pud
+  mapping.
 
-To fix that, this patch proposes to push such notifications to the PUD
-layers.
+For more information on why we need these two helpers, please refer to the
+corresponding pmd helpers in the mprotect() code path.
 
-There is risk on regressing the problem Rik wanted to resolve before, but I
-think it shouldn't really happen, and I still chose this solution because
-of a few reasons:
-
-  1) Consider a large VM that should definitely contain more than GBs of
-  memory, it's highly likely that PUDs are also none.  In this case there
-  will have no regression.
-
-  2) KVM has evolved a lot over the years to get rid of rmap walks, which
-  might be the major cause of the previous soft-lockup.  At least TDP MMU
-  already got rid of rmap as long as not nested (which should be the major
-  use case, IIUC), then the TDP MMU pgtable walker will simply see empty VM
-  pgtable (e.g. EPT on x86), the invalidation of a full empty region in
-  most cases could be pretty fast now, comparing to 2014.
-
-  3) KVM has explicit code paths now to even give way for mmu notifiers
-  just like this one, e.g. in commit d02c357e5bfa ("KVM: x86/mmu: Retry
-  fault before acquiring mmu_lock if mapping is changing").  It'll also
-  avoid contentions that may also contribute to a soft-lockup.
-
-  4) Stick with PMD layer simply don't work when PUD is there...  We need
-  one way or another to fix PUD mappings on mprotect().
-
-Pushing it to PUD should be the safest approach as of now, e.g. there's yet
-no sign of huge P4D coming on any known archs.
-
-Link: https://lkml.kernel.org/r/20240812181225.1360970-3-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240812181225.1360970-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    3 ++
+ arch/powerpc/mm/book3s64/pgtable.c           |   20 +++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/mm/mprotect.c~mm-mprotect-push-mmu-notifier-to-puds
-+++ a/mm/mprotect.c
-@@ -363,9 +363,6 @@ static inline long change_pmd_range(stru
- 	unsigned long next;
- 	long pages = 0;
- 	unsigned long nr_huge_updates = 0;
--	struct mmu_notifier_range range;
--
--	range.start = 0;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-powerpc-add-missing-pud-helpers
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1124,6 +1124,7 @@ extern pmd_t pfn_pmd(unsigned long pfn,
+ extern pud_t pfn_pud(unsigned long pfn, pgprot_t pgprot);
+ extern pmd_t mk_pmd(struct page *page, pgprot_t pgprot);
+ extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
++extern pud_t pud_modify(pud_t pud, pgprot_t newprot);
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		       pmd_t *pmdp, pmd_t pmd);
+ extern void set_pud_at(struct mm_struct *mm, unsigned long addr,
+@@ -1384,6 +1385,8 @@ static inline pgtable_t pgtable_trans_hu
+ #define __HAVE_ARCH_PMDP_INVALIDATE
+ extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 			     pmd_t *pmdp);
++extern pud_t pudp_invalidate(struct vm_area_struct *vma, unsigned long address,
++			     pud_t *pudp);
  
- 	pmd = pmd_offset(pud, addr);
- 	do {
-@@ -383,14 +380,6 @@ again:
- 		if (pmd_none(*pmd))
- 			goto next;
- 
--		/* invoke the mmu notifier if the pmd is populated */
--		if (!range.start) {
--			mmu_notifier_range_init(&range,
--				MMU_NOTIFY_PROTECTION_VMA, 0,
--				vma->vm_mm, addr, end);
--			mmu_notifier_invalidate_range_start(&range);
--		}
--
- 		_pmd = pmdp_get_lockless(pmd);
- 		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
-@@ -431,9 +420,6 @@ next:
- 		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
- 
--	if (range.start)
--		mmu_notifier_invalidate_range_end(&range);
--
- 	if (nr_huge_updates)
- 		count_vm_numa_events(NUMA_HUGE_PTE_UPDATES, nr_huge_updates);
- 	return pages;
-@@ -443,22 +429,36 @@ static inline long change_pud_range(stru
- 		struct vm_area_struct *vma, p4d_t *p4d, unsigned long addr,
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
-+	struct mmu_notifier_range range;
- 	pud_t *pud;
- 	unsigned long next;
- 	long pages = 0, ret;
- 
-+	range.start = 0;
-+
- 	pud = pud_offset(p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
- 		ret = change_prepare(vma, pud, pmd, addr, cp_flags);
--		if (ret)
--			return ret;
-+		if (ret) {
-+			pages = ret;
-+			break;
-+		}
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
-+		if (!range.start) {
-+			mmu_notifier_range_init(&range,
-+						MMU_NOTIFY_PROTECTION_VMA, 0,
-+						vma->vm_mm, addr, end);
-+			mmu_notifier_invalidate_range_start(&range);
-+		}
- 		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
- 					  cp_flags);
- 	} while (pud++, addr = next, addr != end);
- 
-+	if (range.start)
-+		mmu_notifier_invalidate_range_end(&range);
-+
- 	return pages;
+ #define pmd_move_must_withdraw pmd_move_must_withdraw
+ struct spinlock;
+--- a/arch/powerpc/mm/book3s64/pgtable.c~mm-powerpc-add-missing-pud-helpers
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -176,6 +176,17 @@ pmd_t pmdp_invalidate(struct vm_area_str
+ 	return __pmd(old_pmd);
  }
  
++pud_t pudp_invalidate(struct vm_area_struct *vma, unsigned long address,
++		      pud_t *pudp)
++{
++	unsigned long old_pud;
++
++	VM_WARN_ON_ONCE(!pud_present(*pudp));
++	old_pud = pud_hugepage_update(vma->vm_mm, address, pudp, _PAGE_PRESENT, _PAGE_INVALID);
++	flush_pud_tlb_range(vma, address, address + HPAGE_PUD_SIZE);
++	return __pud(old_pud);
++}
++
+ pmd_t pmdp_huge_get_and_clear_full(struct vm_area_struct *vma,
+ 				   unsigned long addr, pmd_t *pmdp, int full)
+ {
+@@ -259,6 +270,15 @@ pmd_t pmd_modify(pmd_t pmd, pgprot_t new
+ 	pmdv &= _HPAGE_CHG_MASK;
+ 	return pmd_set_protbits(__pmd(pmdv), newprot);
+ }
++
++pud_t pud_modify(pud_t pud, pgprot_t newprot)
++{
++	unsigned long pudv;
++
++	pudv = pud_val(pud);
++	pudv &= _HPAGE_CHG_MASK;
++	return pud_set_protbits(__pud(pudv), newprot);
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ /* For use by kexec, called with MMU off */
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
