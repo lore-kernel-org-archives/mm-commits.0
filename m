@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D04918734F;
-	Mon,  2 Sep 2024 22:21:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630D1187877;
+	Mon,  2 Sep 2024 22:29:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725315700; cv=none; b=rFLVCJ5hXCjrOm9JW+GG1IAGNSrLojKMr8ISSVb5AG55GRsdSn0jgwp9XAkQFjIMtWg5SgF5r4YEBLcAgSFw2Fwkc+CWeTDNt/ONLuriToa+8ggWq28kHD/a/ygKFSJnQg5Q4mKJgXflW6xRdq6WyGC7bnwj/TNqQHJk5eQSZFE=
+	t=1725316158; cv=none; b=tjiLvfgOB/hlUuqSx3Q9m1MXnYXXQG8PfD7V143d1W43QzZuk1NMnjsPsM4oOXGhjIGjchDDPfcrXtJNh9s/365nxsUhEB6JU1lJQmlmZkJAqKQ4fPEPzt7KHG7Fxr/aeh3veM8nqTA08Wo+UCgGDDOdBf2ZvORjT85foQ6VIGc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725315700; c=relaxed/simple;
-	bh=dK31dFTbWlffb7HRNqG2pSPG8fd8DE1U1nkljqorpTQ=;
-	h=Date:To:From:Subject:Message-Id; b=FxXneG6sWNUu0JjtRNjd1HOOw3mNRk+PSNprCz5DGeIP6uTtwzS+qBdrOOFZNnarx4WCZIPyYmy3rxYGNShny5x2gIuec5TwxdLMOk0cR6l6emDLgz6t97kM4iz//RCGPNJOtb4kb6m6yaqg56KphuCEsuK5PE9RuVY0/c6MD98=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y7IufcCF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725316158; c=relaxed/simple;
+	bh=riqUGujwKdnCXKz96jg3soQh+Z2wQN1hYYjTJ3cRyk0=;
+	h=Date:To:From:Subject:Message-Id; b=g/n6MwHzIVdMSb1AorJ2sOlCOAeoWQOyXPOLkV2rq9uT4RC51zgli1d4mM1VGUt5XjmT+mcTLaRnd0nUkVtI8e5OslqvJB2rtKkvDu/T2pCxkb7Vfb8OWgUAWdkeoxgCZzaWDaDocK2gFCryD6GSQZQs6KqqW0TsPvc0h+4lB4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qJI+2+qa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y7IufcCF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73419C4CEC2;
-	Mon,  2 Sep 2024 22:21:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qJI+2+qa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A00C4CEC2;
+	Mon,  2 Sep 2024 22:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725315698;
-	bh=dK31dFTbWlffb7HRNqG2pSPG8fd8DE1U1nkljqorpTQ=;
+	s=korg; t=1725316157;
+	bh=riqUGujwKdnCXKz96jg3soQh+Z2wQN1hYYjTJ3cRyk0=;
 	h=Date:To:From:Subject:From;
-	b=Y7IufcCFHvZnWkbEA3yv0Kjyto8Axi5MDzKS0MZE5IDtkwDyI4rkbznAL1bvQY+5T
-	 iiq4bCFAqlJastmae0pSMSNJXGmlv8Zmz+y3dYTTLm8cy1gmjgVpehF8DAJQlakgXd
-	 fVXxkTz2SecJ/w69zNBdEwLfW3rip8KHiBHvtNbU=
-Date: Mon, 02 Sep 2024 15:21:37 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,sunjunchao2870@gmail.com,akpm@linux-foundation.org
+	b=qJI+2+qa7Nbsq/Htv1IZxZowvnx/H3bjFnhdYnok8YA6U7rARIV6ClOtxIdM/HAsS
+	 Tmvofcy70vm+UytzzlqlVcQx/pH2Lsg4CCddM40M3HdjtyJ0SF/TQO+rnxcE8A04s/
+	 My1eKKoMIk714zfpdRFftjjMRTJz/bKHzqX/hjt8=
+Date: Mon, 02 Sep 2024 15:29:17 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,lizhi.xu@windriver.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240902222138.73419C4CEC2@smtp.kernel.org>
+Subject: + ocfs2-remove-unreasonable-unlock-in-ocfs2_read_blocks.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240902222917.D5A00C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix null-ptr-deref when journal load failed.
+     Subject: ocfs2: remove unreasonable unlock in ocfs2_read_blocks
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
+     ocfs2-remove-unreasonable-unlock-in-ocfs2_read_blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unreasonable-unlock-in-ocfs2_read_blocks.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,69 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: ocfs2: fix null-ptr-deref when journal load failed.
-Date: Mon, 2 Sep 2024 11:08:44 +0800
+From: Lizhi Xu <lizhi.xu@windriver.com>
+Subject: ocfs2: remove unreasonable unlock in ocfs2_read_blocks
+Date: Mon, 2 Sep 2024 10:36:35 +0800
 
-During the mounting process, if journal_reset() fails because of too short
-journal, then lead to jbd2_journal_load() fails with NULL j_sb_buffer. 
-Subsequently, ocfs2_journal_shutdown() calls
-jbd2_journal_flush()->jbd2_cleanup_journal_tail()->
-__jbd2_update_log_tail()->jbd2_journal_update_sb_log_tail()
-->lock_buffer(journal->j_sb_buffer), resulting in a null-pointer
-dereference error.
+Patch series "Misc fixes for ocfs2_read_blocks", v5.
 
-To resolve this issue, we should check the JBD2_LOADED flag to ensure the
-journal was properly loaded.  Additionally, use journal instead of
-osb->journal directly to simplify the code.
+This series contains 2 fixes for ocfs2_read_blocks().  The first patch fix
+the issue reported by syzbot, which detects bad unlock balance in
+ocfs2_read_blocks().  The second patch fixes an issue reported by Heming
+Zhao when reviewing above fix.
 
-Link: https://syzkaller.appspot.com/bug?extid=05b9b39d8bdfe1a0861f
-Link: https://lkml.kernel.org/r/20240902030844.422725-1-sunjunchao2870@gmail.com
-Fixes: f6f50e28f0cb ("jbd2: Fail to load a journal if it is too short")
-Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Reported-by: syzbot+05b9b39d8bdfe1a0861f@syzkaller.appspotmail.com
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+
+This patch (of 2):
+
+There was a lock release before exiting, so remove the unreasonable unlock.
+
+Link: https://lkml.kernel.org/r/20240902023636.1843422-1-joseph.qi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20240902023636.1843422-2-joseph.qi@linux.alibaba.com
+Fixes: cf76c78595ca ("ocfs2: don't put and assigning null to bh allocated outside")
+Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reported-by: syzbot+ab134185af9ef88dfed5@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=ab134185af9ef88dfed5
+Tested-by: syzbot+ab134185af9ef88dfed5@syzkaller.appspotmail.com
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
 Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernel.org>	[4.20+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/ocfs2/buffer_head_io.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/ocfs2/journal.c~ocfs2-fix-null-ptr-deref-when-journal-load-failed
-+++ a/fs/ocfs2/journal.c
-@@ -1055,7 +1055,7 @@ void ocfs2_journal_shutdown(struct ocfs2
- 	if (!igrab(inode))
- 		BUG();
- 
--	num_running_trans = atomic_read(&(osb->journal->j_num_trans));
-+	num_running_trans = atomic_read(&(journal->j_num_trans));
- 	trace_ocfs2_journal_shutdown(num_running_trans);
- 
- 	/* Do a commit_cache here. It will flush our journal, *and*
-@@ -1074,9 +1074,10 @@ void ocfs2_journal_shutdown(struct ocfs2
- 		osb->commit_task = NULL;
- 	}
- 
--	BUG_ON(atomic_read(&(osb->journal->j_num_trans)) != 0);
-+	BUG_ON(atomic_read(&(journal->j_num_trans)) != 0);
- 
--	if (ocfs2_mount_local(osb)) {
-+	if (ocfs2_mount_local(osb) &&
-+	    (journal->j_journal->j_flags & JBD2_LOADED)) {
- 		jbd2_journal_lock_updates(journal->j_journal);
- 		status = jbd2_journal_flush(journal->j_journal, 0);
- 		jbd2_journal_unlock_updates(journal->j_journal);
+--- a/fs/ocfs2/buffer_head_io.c~ocfs2-remove-unreasonable-unlock-in-ocfs2_read_blocks
++++ a/fs/ocfs2/buffer_head_io.c
+@@ -235,7 +235,6 @@ int ocfs2_read_blocks(struct ocfs2_cachi
+ 		if (bhs[i] == NULL) {
+ 			bhs[i] = sb_getblk(sb, block++);
+ 			if (bhs[i] == NULL) {
+-				ocfs2_metadata_cache_io_unlock(ci);
+ 				status = -ENOMEM;
+ 				mlog_errno(status);
+ 				/* Don't forget to put previous bh! */
 _
 
-Patches currently in -mm which might be from sunjunchao2870@gmail.com are
+Patches currently in -mm which might be from lizhi.xu@windriver.com are
 
-ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
+ocfs2-remove-unreasonable-unlock-in-ocfs2_read_blocks.patch
+ocfs2-fix-possible-null-ptr-deref-in-ocfs2_set_buffer_uptodate.patch
 
