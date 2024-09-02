@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FC58224EF
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:33:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E68129406
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:38:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248023; cv=none; b=l7jK2dsF3AHTvuYp8u8TDpMPymFq0IDjDMtfTIqjhxTKA0R4ptIzv/BRtUrozDVwLEZ4RataTZmD7zG6Oypj8Z2XQHEkO7buJpNochAUQglylncDdL0y54InOnBTb7Nt7jt88ddDD4rWkHlCKD8s63koAjSSk28d8OedtVe+4oU=
+	t=1725248284; cv=none; b=IFUaGNvnISwKVzZxqQML70FRAUWyA4Gwa1i9fznFAK/t8v6tuLiN4bfta6EgpkJVX9SMVJ4kG/ZE8D/mz7tUROqyYM+ri/B+p61/LSarGcX1Rt6uJRUxvmbGlgc5y//5UiphAKb4HgYNuhB4yPT1ULBjGkUhbxXm4kQglcWoos0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248023; c=relaxed/simple;
-	bh=6bkZnkpmBnu2egEJOdgZubhaizQX1WVCnkof9f1tFXs=;
-	h=Date:To:From:Subject:Message-Id; b=n8Jm04U9x0KgpFiwMPpnLBflFzmlQal8KDwyzooSQuaaNk39+TCzRS8t8aqOvuUO8rPqi7T+TWJHfZxdGGz+MipOt1AqUeRHz///gU9W8K+ina3LrGYgAxLrBux2Yll/knd6s2Jd4Keoz13yYijquZR/nS89K0I4Lzp9lNXfJIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BH6+smP2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248284; c=relaxed/simple;
+	bh=oaUYlwNIohJeZh8HWbOY0t9aIOl9RJIpzv7Qgoja8Cg=;
+	h=Date:To:From:Subject:Message-Id; b=psGRuRnJdNGF6SvBCKDSDezcGLkuhSlhyszljdRU+y0ozFDTnpqeocdu5M9mjcGEK70IhHExIscxwG/qipOP+DG0jeOPwQ0sbhGfbiH/SKubIMS4A4KH/x4zG9vnmx1KC9lM8wfkP71MrWl8sb8CXiN0ZiqfIJDHOPCwUiiJ3mY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xErnXTTP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BH6+smP2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA5CFC4CEC2;
-	Mon,  2 Sep 2024 03:33:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xErnXTTP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A0DC4CEC2;
+	Mon,  2 Sep 2024 03:38:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248022;
-	bh=6bkZnkpmBnu2egEJOdgZubhaizQX1WVCnkof9f1tFXs=;
+	s=korg; t=1725248282;
+	bh=oaUYlwNIohJeZh8HWbOY0t9aIOl9RJIpzv7Qgoja8Cg=;
 	h=Date:To:From:Subject:From;
-	b=BH6+smP2KeOF0BrJ67tGiu1fM3TY02K+AdaFP0kEMJVrTDsr9KQleqBxNhYNpxExz
-	 SCDmaBOmHA3JLJRur/YOBJApD1B4WHVkpoU8OqGu+uQAG3+HtBphwSuBa2NrJoJ555
-	 uDENO8+54g8+ioj4xz8muEdYpNf6akdlyy7hoPgk=
-Date: Sun, 01 Sep 2024 20:33:42 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ojeda@kernel.org,n.schier@avm.de,masahiroy@kernel.org,kvalo@kernel.org,jack@suse.cz,djwong@kernel.org,brauner@kernel.org,sunjunchao2870@gmail.com,akpm@linux-foundation.org
+	b=xErnXTTPBNL7CL0QctvaZ0EF8OwVJ/rTgxn99OSPxVKVIaX/5xojTnGmyPK6+7/TS
+	 mw0/8cd0UFuWh7U0t+x3cUkSzCnsc5J4HqGbHJEod1XDtkV6UxgSqrHhm/KhXt8/lG
+	 tlu/UyGvBTnSVP1oL+ADuavStLkFPF2bCNst9nnQ=
+Date: Sun, 01 Sep 2024 20:38:01 -0700
+To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,oliver.sang@intel.com,biju.das.jz@bp.renesas.com,npitre@baylibre.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch removed from -mm tree
-Message-Id: <20240902033342.DA5CFC4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mul_u64_u64_div_u64-basic-sanity-test-fix.patch removed from -mm tree
+Message-Id: <20240902033802.71A0DC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,160 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts: reduce false positives in the macro_checker script
+     Subject: mul_u64_u64_div_u64: avoid undefined shift value
 has been removed from the -mm tree.  Its filename was
-     scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix.patch
+     mul_u64_u64_div_u64-basic-sanity-test-fix.patch
 
-This patch was dropped because it was folded into scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+This patch was dropped because it was folded into mul_u64_u64_div_u64-basic-sanity-test.patch
 
 ------------------------------------------------------
-From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: scripts: reduce false positives in the macro_checker script
-Date: Thu, 25 Jul 2024 23:13:10 -0400
+From: Nicolas Pitre <npitre@baylibre.com>
+Subject: mul_u64_u64_div_u64: avoid undefined shift value
+Date: Fri, 12 Jul 2024 13:41:46 -0400 (EDT)
 
-Reduce false positives in the macro_checker
-in the following scenarios:
-  1. Macro definitions with only a single character
-  2. Macro definitions as (0) and (1)
-  3. Macro definitions as empty
+Shifting a value to its type's size or beyond is undefined.  This may
+happen if the product of a * b is not more than 64 bits despite ilog2(a) +
+ilog2(b) being 63 and c having no trailing 0 bits.  We end up with shift=0
+and n_lo >> shift | (n_hi << (64 - shift).  Take care of that case and add
+such case to the test module.
 
-Also provide an option (-v) that alow users to control
-whether or not to check conditional macros. When -v is
-specified, conditional macros are checked; otherwise,
-thet are not.
+Using __builtin_ctzll() with 0 is also undefined so take care of that
+case too.
 
-Before this patch:
-	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
-	99
-
-After this patch:
-	sjc@sjc:linux$ ./scripts/macro_checker.py  fs | wc -l
-	11
-	sjc@sjc:linux$ ./scripts/macro_checker.py  -v fs | wc -l
-	31
-
-Link: https://lkml.kernel.org/r/20240726031310.254742-1-sunjunchao2870@gmail.com
-Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nicolas Schier <n.schier@avm.de>
+Link: https://lkml.kernel.org/r/7rrs9pn1-n266-3013-9q6n-1osp8r8s0rrn@syhkavp.arg
+Signed-off-by: Nicolas Pitre <npitre@baylibre.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202407121652.69e657c5-oliver.sang@intel.com
+Reviewed-by: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+Cc: Biju Das <biju.das.jz@bp.renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/macro_checker.py |   50 +++++++++++++++++++++++++++++--------
- 1 file changed, 40 insertions(+), 10 deletions(-)
+ lib/math/div64.c                    |    9 ++++++++-
+ lib/math/test_mul_u64_u64_div_u64.c |    1 +
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
---- a/scripts/macro_checker.py~scripts-add-macro_checker-script-to-check-unused-parameters-in-macros-fix
-+++ a/scripts/macro_checker.py
-@@ -8,10 +8,20 @@ import argparse
- import os
- import re
+--- a/lib/math/div64.c~mul_u64_u64_div_u64-basic-sanity-test-fix
++++ a/lib/math/div64.c
+@@ -212,11 +212,18 @@ u64 mul_u64_u64_div_u64(u64 a, u64 b, u6
  
-+parser = argparse.ArgumentParser()
+ #endif
+ 
++	/* make sure c is not zero, trigger exception otherwise */
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wdiv-by-zero"
++	if (unlikely(c == 0))
++		return 1/0;
++#pragma GCC diagnostic pop
 +
-+parser.add_argument("path", type=str, help="The file or dir path that needs check")
-+parser.add_argument("-v", "--verbose", action="store_true",
-+                    help="Check conditional macros, but may lead to more false positives")
-+args = parser.parse_args()
-+
- macro_pattern = r"#define\s+(\w+)\(([^)]*)\)"
--# below two vars were used to reduce false positives
--do_while0_pattern = r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)"
-+# below vars were used to reduce false positives
-+fp_patterns = [r"\s*do\s*\{\s*\}\s*while\s*\(\s*0\s*\)",
-+               r"\(?0\)?", r"\(?1\)?"]
- correct_macros = []
-+cond_compile_mark = "#if"
-+cond_compile_end = "#endif"
+ 	int shift = __builtin_ctzll(c);
  
- def check_macro(macro_line, report):
-     match = re.match(macro_pattern, macro_line)
-@@ -21,15 +31,25 @@ def check_macro(macro_line, report):
-         content = match.group(2)
-         arguments = [item.strip() for item in content.split(',') if item.strip()]
+ 	/* try reducing the fraction in case the dividend becomes <= 64 bits */
+ 	if ((n_hi >> shift) == 0) {
+-		u64 n = (n_lo >> shift) | (n_hi << (64 - shift));
++		u64 n = shift ? (n_lo >> shift) | (n_hi << (64 - shift)) : n_lo;
  
--        if (re.match(do_while0_pattern, macro_def)):
-+        macro_def = macro_def.strip()
-+        if not macro_def:
-+            return
-+        # used to reduce false positives, like #define endfor_nexthops(rt) }
-+        if len(macro_def) == 1:
-             return
- 
-+        for fp_pattern in fp_patterns:
-+            if (re.match(fp_pattern, macro_def)):
-+                return
-+
-         for arg in arguments:
-             # used to reduce false positives
-             if "..." in arg:
--                continue
-+                return
-+        for arg in arguments:
-             if not arg in macro_def and report == False:
-                 return
-+            # if there is a correct macro with the same name, do not report it.
-             if not arg in macro_def and identifier not in correct_macros:
-                 print(f"Argument {arg} is not used in function-line macro {identifier}")
-                 return
-@@ -49,6 +69,8 @@ def macro_strip(macro):
-     return macro
- 
- def file_check_macro(file_path, report):
-+    # number of conditional compiling
-+    cond_compile = 0
-     # only check .c and .h file
-     if not file_path.endswith(".c") and not file_path.endswith(".h"):
-         return
-@@ -57,7 +79,14 @@ def file_check_macro(file_path, report):
-         while True:
-             line = f.readline()
-             if not line:
--                return
-+                break
-+            line = line.strip()
-+            if line.startswith(cond_compile_mark):
-+                cond_compile += 1
-+                continue
-+            if line.startswith(cond_compile_end):
-+                cond_compile -= 1
-+                continue
- 
-             macro = re.match(macro_pattern, line)
-             if macro:
-@@ -67,6 +96,12 @@ def file_check_macro(file_path, report):
-                     macro = macro.strip()
-                     macro += f.readline()
-                     macro = macro_strip(macro)
-+                if not args.verbose:
-+                    if file_path.endswith(".c")  and cond_compile != 0:
-+                        continue
-+                    # 1 is for #ifdef xxx at the beginning of the header file
-+                    if file_path.endswith(".h") and cond_compile != 1:
-+                        continue
-                 check_macro(macro, report)
- 
- def get_correct_macros(path):
-@@ -84,11 +119,6 @@ def dir_check_macro(dir_path):
- 
- 
- def main():
--    parser = argparse.ArgumentParser()
--
--    parser.add_argument("path", type=str, help="The file or dir path that needs check")
--    args = parser.parse_args()
--
-     if os.path.isfile(args.path):
-         get_correct_macros(args.path)
-         file_check_macro(args.path, True)
+ 		return div64_u64(n, c >> shift);
+ 		/*
+--- a/lib/math/test_mul_u64_u64_div_u64.c~mul_u64_u64_div_u64-basic-sanity-test-fix
++++ a/lib/math/test_mul_u64_u64_div_u64.c
+@@ -23,6 +23,7 @@ static test_params test_values[] = {
+ {        0x1ffffffff,        0x1ffffffff,                0x4, 0xffffffff00000000 },
+ { 0xffff000000000000, 0xffff000000000000, 0xffff000000000001, 0xfffeffffffffffff },
+ { 0x3333333333333333, 0x3333333333333333, 0x5555555555555555, 0x1eb851eb851eb851 },
++{ 0x7fffffffffffffff,                0x2,                0x3, 0x5555555555555554 },
+ { 0xffffffffffffffff,                0x2, 0x8000000000000000,                0x3 },
+ { 0xffffffffffffffff,                0x2, 0xc000000000000000,                0x2 },
+ { 0xffffffffffffffff, 0x4000000000000004, 0x8000000000000000, 0x8000000000000007 },
 _
 
-Patches currently in -mm which might be from sunjunchao2870@gmail.com are
+Patches currently in -mm which might be from npitre@baylibre.com are
 
-scripts-add-macro_checker-script-to-check-unused-parameters-in-macros.patch
+mul_u64_u64_div_u64-make-it-precise-always.patch
+mul_u64_u64_div_u64-basic-sanity-test.patch
 
