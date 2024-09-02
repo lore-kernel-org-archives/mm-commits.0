@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31FC35381E
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EAA55381E
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247771; cv=none; b=NudMlixZZ/klKUv8FH2cGyB6htah4J7tvGbNZlhoA2nRERAiNLoSUHlL/hHe9k2dZRWlkMlEOceY6S8EDtOYOy4M/vWwlDN1rKGb3y2wp2Vsy9Y4MTHdD3788PMfoXZ1Bku5tsFtpoxgEAUvx76SI+inChwj6USVyZco14JSnkw=
+	t=1725247772; cv=none; b=Or8aPdcaJAqJ+N6Kk4aXPxLFI6BMZQhZKhfqm8QUpzOLhZwRoCmOyFYdbC+CJ3ud1QPjhRGo/K5HmqRGfzFVIXG66Rd9qmOQRZbExT0c48LVuN1dAbuuQgvyao8QabP3eGJTSuBtYO/n5t9HRa3XfgBBLLqk/G5ExlhI86fZ4yI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247771; c=relaxed/simple;
-	bh=njlmr5ThqjnvtVmUGOdkb8+EEzSKLo2XD4xKcG0z9qc=;
-	h=Date:To:From:Subject:Message-Id; b=lPoSEneBveiVD7XmLClAmBXy0ISHDgDGDGpaEOewVZ31SBVI5mLMd0k4N4Ot462/V+1OWxJKjj1QnAuTI3xO+XHAyNEVrLVTDP6HJSeVxUC6/2rcZUvaSOO+Kwox/PyjllpoWd5jm+J9Q7xnPNw+2J3iAUi7HN08zYGypTPATeg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r62RmPBp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247772; c=relaxed/simple;
+	bh=6FPnI9blolYivp3mjJrsrrmTHYdjlHmQiAQLV9CeZCk=;
+	h=Date:To:From:Subject:Message-Id; b=pWLwq2CoppWRgN9JE2dU6d/Jk9WwcBHQUtOlGUHg9XsZfrf2KiK3iKqnBkI6kO9TCEts+rJK6JC8XztPUB1JS0in0kVGrgcrvOPFQN7alOwwatdethL07qcYHNsktW6bm1G4BFa8Vvr31dcnZcowErUYxy8pRjsupOF8PZakCw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=005ba3vl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r62RmPBp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 082DBC4CEC2;
-	Mon,  2 Sep 2024 03:29:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="005ba3vl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13009C4CEC2;
+	Mon,  2 Sep 2024 03:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247771;
-	bh=njlmr5ThqjnvtVmUGOdkb8+EEzSKLo2XD4xKcG0z9qc=;
+	s=korg; t=1725247772;
+	bh=6FPnI9blolYivp3mjJrsrrmTHYdjlHmQiAQLV9CeZCk=;
 	h=Date:To:From:Subject:From;
-	b=r62RmPBplRbCKWF0kAUjkYf7IxrHCm8PCkdGIrZGq5edgqj/s/7vGwdGRJI3IO+nR
-	 OvKNDJWyLo/4UOI0yb0zPzobcoMPenwS8I6dMQM5RLiHWu79UBB/LNmpam36TXcMTS
-	 i0Rr3XAktI0G86LVyeXDgzmgZhOvg8vF6zdO1mB0=
-Date: Sun, 01 Sep 2024 20:29:30 -0700
+	b=005ba3vluzyQzltkemiTS96xr3AmUUbB32E340jB2ZNRBow87AXuDcc0c9X9gJLAu
+	 Kc8TG05bXC8W3LW/weDw2yOYjY5sRNp9Dc0gqx4bh6aTJNppj/5yVQPgX5cLIlOTHT
+	 H3Y6vZe3SAoRG75SnYHauBPuukWJeraASZLBv394=
+Date: Sun, 01 Sep 2024 20:29:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pg_error.patch removed from -mm tree
-Message-Id: <20240902032931.082DBC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-return-the-folio-from-swapin_readahead.patch removed from -mm tree
+Message-Id: <20240902032932.13009C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PG_error
+     Subject: mm: return the folio from swapin_readahead
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pg_error.patch
+     mm-return-the-folio-from-swapin_readahead.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PG_error
-Date: Wed, 7 Aug 2024 20:35:26 +0100
+Subject: mm: return the folio from swapin_readahead
+Date: Wed, 7 Aug 2024 20:37:32 +0100
 
-The PG_error bit is now unused; delete it and free up a bit in
-page->flags.
+The unuse_pte_range() caller only wants the folio while do_swap_page()
+wants both the page and the folio.  Since do_swap_page() already has logic
+for handling both the folio and the page, move the folio-to-page logic
+there.  This also lets us allocate larger folios in the SWP_SYNCHRONOUS_IO
+path in future.
 
-Link: https://lkml.kernel.org/r/20240807193528.1865100-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240807193734.1865400-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c                         |    1 -
- include/linux/page-flags.h             |    6 +-----
- include/trace/events/mmflags.h         |    1 -
- include/uapi/linux/kernel-page-flags.h |    2 +-
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ mm/memory.c     |    6 ++----
+ mm/swap.h       |    6 +++---
+ mm/swap_state.c |    8 +++-----
+ mm/swapfile.c   |    5 +----
+ 4 files changed, 9 insertions(+), 16 deletions(-)
 
---- a/fs/proc/page.c~mm-remove-pg_error
-+++ a/fs/proc/page.c
-@@ -182,7 +182,6 @@ u64 stable_page_flags(const struct page
- #endif
+--- a/mm/memory.c~mm-return-the-folio-from-swapin_readahead
++++ a/mm/memory.c
+@@ -4091,7 +4091,6 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			/* skip swapcache */
+ 			folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0,
+ 						vma, vmf->address, false);
+-			page = &folio->page;
+ 			if (folio) {
+ 				__folio_set_locked(folio);
+ 				__folio_set_swapbacked(folio);
+@@ -4116,10 +4115,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 				folio->private = NULL;
+ 			}
+ 		} else {
+-			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
++			folio = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
+ 						vmf);
+-			if (page)
+-				folio = page_folio(page);
+ 			swapcache = folio;
+ 		}
  
- 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
--	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
- 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
- 	u |= kpf_copy_bit(k, KPF_UPTODATE,	PG_uptodate);
- 	u |= kpf_copy_bit(k, KPF_WRITEBACK,	PG_writeback);
---- a/include/linux/page-flags.h~mm-remove-pg_error
-+++ a/include/linux/page-flags.h
-@@ -66,8 +66,6 @@
-  * PG_referenced, PG_reclaim are used for page reclaim for anonymous and
-  * file-backed pagecache (see mm/vmscan.c).
+@@ -4140,6 +4137,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		ret = VM_FAULT_MAJOR;
+ 		count_vm_event(PGMAJFAULT);
+ 		count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
++		page = folio_file_page(folio, swp_offset(entry));
+ 	} else if (PageHWPoison(page)) {
+ 		/*
+ 		 * hwpoisoned dirty swapcache pages are kept for killing
+--- a/mm/swapfile.c~mm-return-the-folio-from-swapin_readahead
++++ a/mm/swapfile.c
+@@ -1980,7 +1980,6 @@ static int unuse_pte_range(struct vm_are
+ 
+ 		folio = swap_cache_get_folio(entry, vma, addr);
+ 		if (!folio) {
+-			struct page *page;
+ 			struct vm_fault vmf = {
+ 				.vma = vma,
+ 				.address = addr,
+@@ -1988,10 +1987,8 @@ static int unuse_pte_range(struct vm_are
+ 				.pmd = pmd,
+ 			};
+ 
+-			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
++			folio = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
+ 						&vmf);
+-			if (page)
+-				folio = page_folio(page);
+ 		}
+ 		if (!folio) {
+ 			swp_count = READ_ONCE(si->swap_map[offset]);
+--- a/mm/swap.h~mm-return-the-folio-from-swapin_readahead
++++ a/mm/swap.h
+@@ -73,8 +73,8 @@ struct folio *__read_swap_cache_async(sw
+ 		bool skip_if_exists);
+ struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
+ 		struct mempolicy *mpol, pgoff_t ilx);
+-struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
+-			      struct vm_fault *vmf);
++struct folio *swapin_readahead(swp_entry_t entry, gfp_t flag,
++		struct vm_fault *vmf);
+ 
+ static inline unsigned int folio_swap_flags(struct folio *folio)
+ {
+@@ -109,7 +109,7 @@ static inline struct folio *swap_cluster
+ 	return NULL;
+ }
+ 
+-static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
++static inline struct folio *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
+ 			struct vm_fault *vmf)
+ {
+ 	return NULL;
+--- a/mm/swap_state.c~mm-return-the-folio-from-swapin_readahead
++++ a/mm/swap_state.c
+@@ -863,13 +863,13 @@ skip:
+  * @gfp_mask: memory allocation flags
+  * @vmf: fault information
   *
-- * PG_error is set to indicate that an I/O error occurred on this page.
-- *
-  * PG_arch_1 is an architecture specific page state bit.  The generic code
-  * guarantees that this bit is cleared for a page when it first is entered into
-  * the page cache.
-@@ -103,7 +101,6 @@ enum pageflags {
- 	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_active,
- 	PG_workingset,
--	PG_error,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
- 	PG_arch_1,
- 	PG_reserved,
-@@ -183,7 +180,7 @@ enum pageflags {
- 	 */
- 
- 	/* At least one page in this folio has the hwpoison flag set */
--	PG_has_hwpoisoned = PG_error,
-+	PG_has_hwpoisoned = PG_active,
- 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
- };
- 
-@@ -506,7 +503,6 @@ static inline int TestClearPage##uname(s
- 
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
- FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
--PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
- FOLIO_FLAG(referenced, FOLIO_HEAD_PAGE)
- 	FOLIO_TEST_CLEAR_FLAG(referenced, FOLIO_HEAD_PAGE)
- 	__FOLIO_SET_FLAG(referenced, FOLIO_HEAD_PAGE)
---- a/include/trace/events/mmflags.h~mm-remove-pg_error
-+++ a/include/trace/events/mmflags.h
-@@ -100,7 +100,6 @@
- #define __def_pageflag_names						\
- 	DEF_PAGEFLAG_NAME(locked),					\
- 	DEF_PAGEFLAG_NAME(waiters),					\
--	DEF_PAGEFLAG_NAME(error),					\
- 	DEF_PAGEFLAG_NAME(referenced),					\
- 	DEF_PAGEFLAG_NAME(uptodate),					\
- 	DEF_PAGEFLAG_NAME(dirty),					\
---- a/include/uapi/linux/kernel-page-flags.h~mm-remove-pg_error
-+++ a/include/uapi/linux/kernel-page-flags.h
-@@ -7,7 +7,7 @@
+- * Returns the struct page for entry and addr, after queueing swapin.
++ * Returns the struct folio for entry and addr, after queueing swapin.
+  *
+  * It's a main entry function for swap readahead. By the configuration,
+  * it will read ahead blocks by cluster-based(ie, physical disk based)
+  * or vma-based(ie, virtual address based on faulty address) readahead.
   */
+-struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
++struct folio *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
+ 				struct vm_fault *vmf)
+ {
+ 	struct mempolicy *mpol;
+@@ -882,9 +882,7 @@ struct page *swapin_readahead(swp_entry_
+ 		swap_cluster_readahead(entry, gfp_mask, mpol, ilx);
+ 	mpol_cond_put(mpol);
  
- #define KPF_LOCKED		0
--#define KPF_ERROR		1
-+#define KPF_ERROR		1	/* Now unused */
- #define KPF_REFERENCED		2
- #define KPF_UPTODATE		3
- #define KPF_DIRTY		4
+-	if (!folio)
+-		return NULL;
+-	return folio_file_page(folio, swp_offset(entry));
++	return folio;
+ }
+ 
+ #ifdef CONFIG_SYSFS
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
