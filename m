@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C723A32
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B96E13AA45
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248790; cv=none; b=Bn8zalhCXat1bRYLW+SGrgrhTF6+d4P4zEvIubIv8VXcmU2zJjTjPdipJ2fOIvmauChcz8xIx6uR1Y/9CyVL3De7dQFV0bYnaT1BuW17xYBKEm1Me7zD5Tpd4X30pgV8yIr779LQ/tGcynu8fA/uCtsDZA+0neIxA+tGrWrhad0=
+	t=1725248792; cv=none; b=bzhpp4MsPUs/Pu+WLxjk4kguX8CdHRSj0xUciOJj/dSXQbIPImhB5rqGpgRXAR5UZoT2gEDTwYAnDk8tZNXLzMzAria6IbNpsw3GR6ZjohF1lYmH4UDIbMe0CuK3LcChfhSFX9rGP/P8TMX1NKhIukvSweArbfrdQDAxLlC8/ls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248790; c=relaxed/simple;
-	bh=gJDTd2RC8zBPZFnzrwn74r+XkRMVpCWGZ4DLocTmdBQ=;
-	h=Date:To:From:Subject:Message-Id; b=Ukd1dPeQQOuNksLvVZ4Q6V2reybqryOywQeDvuycwbm5YiEXyF6uWvI49PYzdLLA0TL36G/1p0OxiBx7x+nzdvLSyMleZ8mBpEldH1/vguBzHbIMwmxWVFuMXNfDQrnK/2v0f47aL1AEf4L6P6UEAnUPyntXqPQMi7aIf5aRKmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=toFQE7uH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248792; c=relaxed/simple;
+	bh=w5kHZWfjE0pCa/Vgi716dDIZjYo9LlO4EdEA4gMfv7c=;
+	h=Date:To:From:Subject:Message-Id; b=e5QDDMo2l928A5sUDAaqxcFJCNIuT2gE3fNKC8vueT9CsGqRG3HCxa2Vqq7JUwKvifEah+MOBWVGqCoKJCJIH3Oo62H4nSfOtp/VSb3TJsgjVfvodZi8guovG9ZPA1Hs4J+3+h8blKJ1zRj7bhweNMsRjKdrUnKS8pQHdZ/gA7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jwJHfs4s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="toFQE7uH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6E0CC4CEC2;
-	Mon,  2 Sep 2024 03:46:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jwJHfs4s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8124C4CEC7;
+	Mon,  2 Sep 2024 03:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248789;
-	bh=gJDTd2RC8zBPZFnzrwn74r+XkRMVpCWGZ4DLocTmdBQ=;
+	s=korg; t=1725248792;
+	bh=w5kHZWfjE0pCa/Vgi716dDIZjYo9LlO4EdEA4gMfv7c=;
 	h=Date:To:From:Subject:From;
-	b=toFQE7uHaygw/k39aIdv1pgoMIn1WR+SfUD/L5CMVql7LKewv9fdiYsD79gw0kKn9
-	 qceQJpcCCZF20LW/Qd6wgomerPA6FzU6GPDlCBLqfqysoDRh/VSBUD0DgjWVXwOd71
-	 yRu/4FChBpc+1Dm0MG6qQLdPiR+FbdrlxP8x9ENY=
-Date: Sun, 01 Sep 2024 20:46:29 -0700
-To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,elfring@users.sourceforge.net,akpm@linux-foundation.org
+	b=jwJHfs4sfnRamvS5KpXfmBpuVk052Sjg7tlSELZzq5p/UKJKqJ07oLJ5bRH6t/BS+
+	 RhZ775/3sS/KZYbt/W4Xksd5qaM6POiMB7LY10ScSRTvlD5mm4B1IohfpvNK0cQlv3
+	 ptAyzydd/qGevD/vdT3b78swTL1rJt3PM/QujPa0=
+Date: Sun, 01 Sep 2024 20:46:31 -0700
+To: mm-commits@vger.kernel.org,thorsten.blum@toblux.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] closures-use-seq_putc-in-debug_show.patch removed from -mm tree
-Message-Id: <20240902034629.D6E0CC4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-checksum-use-array_size-to-improve-assert_setup_correct.patch removed from -mm tree
+Message-Id: <20240902034631.E8124C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: closures: use seq_putc() in debug_show()
+     Subject: lib: checksum: use ARRAY_SIZE() to improve assert_setup_correct()
 has been removed from the -mm tree.  Its filename was
-     closures-use-seq_putc-in-debug_show.patch
+     lib-checksum-use-array_size-to-improve-assert_setup_correct.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: closures: use seq_putc() in debug_show()
-Date: Sun, 14 Jul 2024 19:15:09 +0200
+From: Thorsten Blum <thorsten.blum@toblux.com>
+Subject: lib: checksum: use ARRAY_SIZE() to improve assert_setup_correct()
+Date: Fri, 26 Jul 2024 17:49:46 +0200
 
-A single line break should be put into a sequence.  Thus use the
-corresponding function "seq_putc".
+Use ARRAY_SIZE() to simplify the assert_setup_correct() function and
+improve its readability.
 
-This issue was transformed by using the Coccinelle software.
-
-Link: https://lkml.kernel.org/r/e7faa2c4-9590-44b4-8669-69ef810277b1@web.de
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20240726154946.230928-1-thorsten.blum@toblux.com
+Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/closure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/checksum_kunit.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/lib/closure.c~closures-use-seq_putc-in-debug_show
-+++ a/lib/closure.c
-@@ -278,7 +278,7 @@ static int debug_show(struct seq_file *f
- 			seq_printf(f, " W %pS\n",
- 				   (void *) cl->waiting_on);
+--- a/lib/checksum_kunit.c~lib-checksum-use-array_size-to-improve-assert_setup_correct
++++ a/lib/checksum_kunit.c
+@@ -468,12 +468,9 @@ static __wsum to_wsum(u32 x)
  
--		seq_puts(f, "\n");
-+		seq_putc(f, '\n');
- 	}
+ static void assert_setup_correct(struct kunit *test)
+ {
+-	CHECK_EQ(sizeof(random_buf) / sizeof(random_buf[0]), MAX_LEN);
+-	CHECK_EQ(sizeof(expected_results) / sizeof(expected_results[0]),
+-		 MAX_LEN);
+-	CHECK_EQ(sizeof(init_sums_no_overflow) /
+-			 sizeof(init_sums_no_overflow[0]),
+-		 MAX_LEN);
++	CHECK_EQ(ARRAY_SIZE(random_buf), MAX_LEN);
++	CHECK_EQ(ARRAY_SIZE(expected_results), MAX_LEN);
++	CHECK_EQ(ARRAY_SIZE(init_sums_no_overflow), MAX_LEN);
+ }
  
- 	spin_unlock_irq(&closure_list_lock);
+ /*
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from thorsten.blum@toblux.com are
 
+mm-shrinker-use-min-to-improve-shrinker_debugfs_scan_write.patch
 
