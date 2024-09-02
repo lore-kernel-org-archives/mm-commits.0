@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7CF042A9F
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0368C5FB8D
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247817; cv=none; b=QTBU9yAvhPlHYWRJs2j8cLRR7kJftei7FFBM/Qr/3e3OkNSOWMGMtbN/Y4Ss5hBu/O+0z/I6UzgrByZx/Je4ytxt1Zt2Mh8pphV25Ijd8WTou9aU98poVJGW4XKZhhvpoJy21ylztLuusoxetGoHK0hN3vS3bDJ1JwjTi/rOi1U=
+	t=1725247820; cv=none; b=Uq3dmonx2/3/03Ht7gv+s22/nnRo6GiK7zIrJ6478jx6k/+60kBKoVDJAIWf2JALWh544fvNDGTgTPnNlkykF47W/1+TRmypf0E05JHQbgXqfmWU86Qa1G40bnyh+aEWARAVMlWeFekK++a78JFspalqvjoY/3BqUSMUST3/X8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247817; c=relaxed/simple;
-	bh=ahyvCed1OyWdMnkLEwa/ZwrZUcGDZUg7FP0cUnLU2I8=;
-	h=Date:To:From:Subject:Message-Id; b=KtVahNYIU2tggYya0clUM3w8jogGrFscdau7i9mxSYUfNz/Y6w+9g2Vmzoo81g63JuUpMXYFYp/BMkd2Ea9tS8lWDBjGX0cx1mqnxId1FlFn0hJu5P/XBlZ6DC06AhnMW5NvwrA69BFnXlNeWzZSiJZiN4xz/sDsfnuLCSxdWy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U56aMgU0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247820; c=relaxed/simple;
+	bh=M0ASFF9jC2eJyZrmqcoiFPM/aQ9yqi1efi2K39DGl+M=;
+	h=Date:To:From:Subject:Message-Id; b=gDZX7j0b7NQz4NBK613cNH3DYH/QF69YetWDJGLxyd8f5ld3xNS26AGytURGOyEpHWWwPpiLj3xYU5kQfsFEfJ2bjk1oMW6xR4CvAe6CG1C4M+t1j6G+wsp02drA0f+jLfHmNx+OhznZHp3umf8fi+5I09J4LP8Nx0dZ3qDH5Vg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FNl12XkL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U56aMgU0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 949BFC4CEC2;
-	Mon,  2 Sep 2024 03:30:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FNl12XkL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D10C4CEC2;
+	Mon,  2 Sep 2024 03:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247817;
-	bh=ahyvCed1OyWdMnkLEwa/ZwrZUcGDZUg7FP0cUnLU2I8=;
+	s=korg; t=1725247819;
+	bh=M0ASFF9jC2eJyZrmqcoiFPM/aQ9yqi1efi2K39DGl+M=;
 	h=Date:To:From:Subject:From;
-	b=U56aMgU0/cadHV95vwVvzM+wfDDXlkUic0LUDqQRZMM1AY5t7AfeufGG+E87imRFx
-	 CG9636NL7BSPHD6O/MMo7++4DFE4v6/tA6sw/LocYeTecGHEE+PJYirxiVBAjJ0CcP
-	 uF1Ye3m/JPs4Fj1c5xiy3eRXnwKPezQ0Zz1ezBXI=
-Date: Sun, 01 Sep 2024 20:30:17 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,rob@landley.net,richard@nod.at,pedro.falcato@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,Liam.Howlett@oracle.com,johannes@sipsolutions.net,jeffxu@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,dinguyen@kernel.org,dalias@libc.org,christophe.leroy@csgroup.eu,bcain@quicinc.com,anton.ivanov@cambridgegreys.com,torvalds@linux-foundation.org,akpm@linux-foundation.org
+	b=FNl12XkLihyK7mR/oAS3E749Cqd7IsiE+n2tTvHBlxzOqAf5w9MF7LqS2zRfxSlDP
+	 GYCXVxGmBS+rO+/WhWXO6bQN/3Q7qI+5B3X+j8X59/Z8ppLBwepI7ost+V08egtd3B
+	 MJ+AFjqDIfhQc/5oNchA/mWoikNbxiyEaKBlVnEo=
+Date: Sun, 01 Sep 2024 20:30:19 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hawk@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-legacy-install_special_mapping-code.patch removed from -mm tree
-Message-Id: <20240902033017.949BFC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-use-ratelimited-stats-flush-in-the-reclaim.patch removed from -mm tree
+Message-Id: <20240902033019.C7D10C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,344 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove legacy install_special_mapping() code
+     Subject: memcg: use ratelimited stats flush in the reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-remove-legacy-install_special_mapping-code.patch
+     memcg-use-ratelimited-stats-flush-in-the-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: mm: remove legacy install_special_mapping() code
-Date: Tue, 20 Aug 2024 15:14:47 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: use ratelimited stats flush in the reclaim
+Date: Tue, 13 Aug 2024 14:53:58 -0700
 
-All relevant architectures had already been converted to the new interface
-(which just has an underscore in front of the name - not very imaginative
-naming), this just force-converts the stragglers.
+The Meta prod is seeing large amount of stalls in memcg stats flush from
+the memcg reclaim code path.  At the moment, this specific callsite is
+doing a synchronous memcg stats flush.  The rstat flush is an expensive
+and time consuming operation, so concurrent relaimers will busywait on the
+lock potentially for a long time.  Actually this issue is not unique to
+Meta and has been observed by Cloudflare [1] as well.  For the Cloudflare
+case, the stalls were due to contention between kswapd threads running on
+their 8 numa node machines which does not make sense as rstat flush is
+global and flush from one kswapd thread should be sufficient for all. 
+Simply replace the synchronous flush with the ratelimited one.
 
-The modern interface is almost identical to the old one, except instead of
-the page pointer it takes a "struct vm_special_mapping" that describes the
-mapping (and contains the page pointer as one member), and it returns the
-resulting 'vma' instead of just the error code.
+One may raise a concern on potentially using 2 sec stale (at worst) stats
+for heuristics like desirable inactive:active ratio and preferring
+inactive file pages over anon pages but these specific heuristics do not
+require very precise stats and also are ignored under severe memory
+pressure.
 
-Getting rid of the old interface also gets rid of some special casing,
-which had caused problems with the mremap extensions to "struct
-vm_special_mapping".
+More specifically for this code path, the stats are needed for two
+specific heuristics:
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/CAHk-=whvR+z=0=0gzgdfUiK70JTa-=+9vxD-4T=3BagXR6dciA@mail.gmail.comTested-by: Rob Landley <rob@landley.net> # arch/sh/
-Link: https://lore.kernel.org/all/20240819195120.GA1113263@thelio-3990X/
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+1. Deactivate LRUs
+2. Cache trim mode
+
+The deactivate LRUs heuristic is to maintain a desirable inactive:active
+ratio of the LRUs.  The specific stats needed are WORKINGSET_ACTIVATE* and
+the hierarchical LRU size.  The WORKINGSET_ACTIVATE* is needed to check if
+there is a refault since last snapshot and the LRU size are needed for the
+desirable ratio between inactive and active LRUs.  See the table below on
+how the desirable ratio is calculated.
+
+/* total     target    max
+ * memory    ratio     inactive
+ * -------------------------------------
+ *   10MB       1         5MB
+ *  100MB       1        50MB
+ *    1GB       3       250MB
+ *   10GB      10       0.9GB
+ *  100GB      31         3GB
+ *    1TB     101        10GB
+ *   10TB     320        32GB
+ */
+
+The desirable ratio only changes at the boundary of 1 GiB, 10 GiB, 100
+GiB, 1 TiB and 10 TiB.  There is no need for the precise and accurate LRU
+size information to calculate this ratio.  In addition, if deactivation is
+skipped for some LRU, the kernel will force deactive on the severe memory
+pressure situation.
+
+For the cache trim mode, inactive file LRU size is read and the kernel
+scales it down based on the reclaim iteration (file >> sc->priority) and
+only checks if it is zero or not.  Again precise information is not
+needed.
+
+This patch has been running on Meta fleet for several months and we have
+not observed any issues.  Please note that MGLRU is not impacted by this
+issue at all as it avoids rstat flushing completely.
+
+Link: https://lore.kernel.org/all/6ee2518b-81dd-4082-bdf5-322883895ffc@kernel.org [1]
+Link: https://lkml.kernel.org/r/20240813215358.2259750-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/kernel/vdso.c            |   28 +++++++++++++++++------
- arch/hexagon/kernel/vdso.c         |   14 ++++++++---
- arch/nios2/mm/init.c               |   12 ++++++----
- arch/sh/kernel/vsyscall/vsyscall.c |   14 +++++++++--
- arch/x86/um/vdso/vma.c             |   12 ++++++----
- include/linux/mm.h                 |    4 ---
- mm/mmap.c                          |   32 ++++-----------------------
- 7 files changed, 63 insertions(+), 53 deletions(-)
+ mm/vmscan.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/arch/csky/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code
-+++ a/arch/csky/kernel/vdso.c
-@@ -45,9 +45,16 @@ arch_initcall(vdso_init);
- int arch_setup_additional_pages(struct linux_binprm *bprm,
- 	int uses_interp)
- {
-+	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long vdso_base, vdso_len;
- 	int ret;
-+	static struct vm_special_mapping vdso_mapping = {
-+		.name = "[vdso]",
-+	};
-+	static struct vm_special_mapping vvar_mapping = {
-+		.name = "[vvar]",
-+	};
+--- a/mm/vmscan.c~memcg-use-ratelimited-stats-flush-in-the-reclaim
++++ a/mm/vmscan.c
+@@ -2264,10 +2264,11 @@ static void prepare_scan_control(pg_data
+ 	target_lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup, pgdat);
  
- 	vdso_len = (vdso_pages + 1) << PAGE_SHIFT;
- 
-@@ -65,22 +72,29 @@ int arch_setup_additional_pages(struct l
+ 	/*
+-	 * Flush the memory cgroup stats, so that we read accurate per-memcg
+-	 * lruvec stats for heuristics.
++	 * Flush the memory cgroup stats in rate-limited way as we don't need
++	 * most accurate stats here. We may switch to regular stats flushing
++	 * in the future once it is cheap enough.
  	 */
- 	mm->context.vdso = (void *)vdso_base;
+-	mem_cgroup_flush_stats(sc->target_mem_cgroup);
++	mem_cgroup_flush_stats_ratelimited(sc->target_mem_cgroup);
  
--	ret =
--	   install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
-+	vdso_mapping.pages = vdso_pagelist;
-+	vma =
-+	   _install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
- 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
--		vdso_pagelist);
-+		&vdso_mapping);
- 
--	if (unlikely(ret)) {
-+	if (IS_ERR(vma)) {
-+		ret = PTR_ERR(vma);
- 		mm->context.vdso = NULL;
- 		goto end;
- 	}
- 
- 	vdso_base += (vdso_pages << PAGE_SHIFT);
--	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
--		(VM_READ | VM_MAYREAD), &vdso_pagelist[vdso_pages]);
-+	vvar_mapping.pages = &vdso_pagelist[vdso_pages];
-+	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
-+		(VM_READ | VM_MAYREAD), &vvar_mapping);
- 
--	if (unlikely(ret))
-+	if (IS_ERR(vma)) {
-+		ret = PTR_ERR(vma);
- 		mm->context.vdso = NULL;
-+		goto end;
-+	}
-+	ret = 0;
- end:
- 	mmap_write_unlock(mm);
- 	return ret;
---- a/arch/hexagon/kernel/vdso.c~mm-remove-legacy-install_special_mapping-code
-+++ a/arch/hexagon/kernel/vdso.c
-@@ -51,7 +51,11 @@ int arch_setup_additional_pages(struct l
- {
- 	int ret;
- 	unsigned long vdso_base;
-+	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
-+	static struct vm_special_mapping vdso_mapping = {
-+		name = "[vdso]",
-+	};
- 
- 	if (mmap_write_lock_killable(mm))
- 		return -EINTR;
-@@ -66,16 +70,18 @@ int arch_setup_additional_pages(struct l
- 	}
- 
- 	/* MAYWRITE to allow gdb to COW and set breakpoints. */
--	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
-+	vdso_mapping.pages = &vdso_page;
-+	vma = _install_special_mapping(mm, vdso_base, PAGE_SIZE,
- 				      VM_READ|VM_EXEC|
- 				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
--				      &vdso_page);
-+				      &vdso_mapping);
- 
--	if (ret)
-+	ret = PTR_ERR(vma);
-+	if (IS_ERR(vma))
- 		goto up_fail;
- 
- 	mm->context.vdso = (void *)vdso_base;
--
-+	ret = 0;
- up_fail:
- 	mmap_write_unlock(mm);
- 	return ret;
---- a/arch/nios2/mm/init.c~mm-remove-legacy-install_special_mapping-code
-+++ a/arch/nios2/mm/init.c
-@@ -82,6 +82,10 @@ void __init mmu_init(void)
- pgd_t swapper_pg_dir[PTRS_PER_PGD] __aligned(PAGE_SIZE);
- pte_t invalid_pte_table[PTRS_PER_PTE] __aligned(PAGE_SIZE);
- static struct page *kuser_page[1];
-+static struct vm_special_mapping vdso_mapping = {
-+	.name = "[vdso]",
-+	.pages = kuser_page,
-+};
- 
- static int alloc_kuser_page(void)
- {
-@@ -106,18 +110,18 @@ arch_initcall(alloc_kuser_page);
- int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- {
- 	struct mm_struct *mm = current->mm;
--	int ret;
-+	struct vm_area_struct *vma;
- 
- 	mmap_write_lock(mm);
- 
- 	/* Map kuser helpers to user space address */
--	ret = install_special_mapping(mm, KUSER_BASE, KUSER_SIZE,
-+	vma = _install_special_mapping(mm, KUSER_BASE, KUSER_SIZE,
- 				      VM_READ | VM_EXEC | VM_MAYREAD |
--				      VM_MAYEXEC, kuser_page);
-+				      VM_MAYEXEC, &vdso_mapping);
- 
- 	mmap_write_unlock(mm);
- 
--	return ret;
-+	return IS_ERR(vma) ? PTR_ERR(vma) : 0;
- }
- 
- const char *arch_vma_name(struct vm_area_struct *vma)
---- a/arch/sh/kernel/vsyscall/vsyscall.c~mm-remove-legacy-install_special_mapping-code
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -36,6 +36,10 @@ __setup("vdso=", vdso_setup);
-  */
- extern const char vsyscall_trapa_start, vsyscall_trapa_end;
- static struct page *syscall_pages[1];
-+static struct vm_special_mapping vdso_mapping = {
-+	.name = "[vdso]",
-+	.pages = syscall_pages,
-+};
- 
- int __init vsyscall_init(void)
- {
-@@ -58,6 +62,7 @@ int __init vsyscall_init(void)
- int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- {
- 	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
- 	unsigned long addr;
- 	int ret;
- 
-@@ -70,14 +75,17 @@ int arch_setup_additional_pages(struct l
- 		goto up_fail;
- 	}
- 
--	ret = install_special_mapping(mm, addr, PAGE_SIZE,
-+	vdso_mapping.pages = syscall_pages;
-+	vma = _install_special_mapping(mm, addr, PAGE_SIZE,
- 				      VM_READ | VM_EXEC |
- 				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
--				      syscall_pages);
--	if (unlikely(ret))
-+				      &vdso_mapping);
-+	ret = PTR_ERR(vma);
-+	if (IS_ERR(vma))
- 		goto up_fail;
- 
- 	current->mm->context.vdso = (void *)addr;
-+	ret = 0;
- 
- up_fail:
- 	mmap_write_unlock(mm);
---- a/arch/x86/um/vdso/vma.c~mm-remove-legacy-install_special_mapping-code
-+++ a/arch/x86/um/vdso/vma.c
-@@ -52,8 +52,11 @@ subsys_initcall(init_vdso);
- 
- int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- {
--	int err;
-+	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
-+	static struct vm_special_mapping vdso_mapping = {
-+		.name = "[vdso]",
-+	};
- 
- 	if (!vdso_enabled)
- 		return 0;
-@@ -61,12 +64,13 @@ int arch_setup_additional_pages(struct l
- 	if (mmap_write_lock_killable(mm))
- 		return -EINTR;
- 
--	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
-+	vdso_mapping.pages = vdsop;
-+	vma = _install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
- 		VM_READ|VM_EXEC|
- 		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
--		vdsop);
-+		&vdso_mapping);
- 
- 	mmap_write_unlock(mm);
- 
--	return err;
-+	return IS_ERR(vma) ? PTR_ERR(vma) : 0;
- }
---- a/include/linux/mm.h~mm-remove-legacy-install_special_mapping-code
-+++ a/include/linux/mm.h
-@@ -3263,10 +3263,6 @@ extern struct vm_area_struct *_install_s
- 				   unsigned long addr, unsigned long len,
- 				   unsigned long flags,
- 				   const struct vm_special_mapping *spec);
--/* This is an obsolete alternative to _install_special_mapping. */
--extern int install_special_mapping(struct mm_struct *mm,
--				   unsigned long addr, unsigned long len,
--				   unsigned long flags, struct page **pages);
- 
- unsigned long randomize_stack_top(unsigned long stack_top);
- unsigned long randomize_page(unsigned long start, unsigned long range);
---- a/mm/mmap.c~mm-remove-legacy-install_special_mapping-code
-+++ a/mm/mmap.c
-@@ -2094,27 +2094,17 @@ static const struct vm_operations_struct
- 	.may_split = special_mapping_split,
- };
- 
--static const struct vm_operations_struct legacy_special_mapping_vmops = {
--	.close = special_mapping_close,
--	.fault = special_mapping_fault,
--};
--
- static vm_fault_t special_mapping_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	pgoff_t pgoff;
- 	struct page **pages;
-+	struct vm_special_mapping *sm = vma->vm_private_data;
- 
--	if (vma->vm_ops == &legacy_special_mapping_vmops) {
--		pages = vma->vm_private_data;
--	} else {
--		struct vm_special_mapping *sm = vma->vm_private_data;
-+	if (sm->fault)
-+		return sm->fault(sm, vmf->vma, vmf);
- 
--		if (sm->fault)
--			return sm->fault(sm, vmf->vma, vmf);
--
--		pages = sm->pages;
--	}
-+	pages = sm->pages;
- 
- 	for (pgoff = vmf->pgoff; pgoff && *pages; ++pages)
- 		pgoff--;
-@@ -2169,8 +2159,7 @@ bool vma_is_special_mapping(const struct
- 	const struct vm_special_mapping *sm)
- {
- 	return vma->vm_private_data == sm &&
--		(vma->vm_ops == &special_mapping_vmops ||
--		 vma->vm_ops == &legacy_special_mapping_vmops);
-+		vma->vm_ops == &special_mapping_vmops;
- }
- 
- /*
-@@ -2191,17 +2180,6 @@ struct vm_area_struct *_install_special_
- 					&special_mapping_vmops);
- }
- 
--int install_special_mapping(struct mm_struct *mm,
--			    unsigned long addr, unsigned long len,
--			    unsigned long vm_flags, struct page **pages)
--{
--	struct vm_area_struct *vma = __install_special_mapping(
--		mm, addr, len, vm_flags, (void *)pages,
--		&legacy_special_mapping_vmops);
--
--	return PTR_ERR_OR_ZERO(vma);
--}
--
- /*
-  * initialise the percpu counter for VM
-  */
+ 	/*
+ 	 * Determine the scan balance between anon and file LRUs.
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
