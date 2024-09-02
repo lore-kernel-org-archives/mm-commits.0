@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2361CD2B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 21:17:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5874D186E4F
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 21:18:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725311878; cv=none; b=rge/3KVnpmQ+T3B/lohjpcxS0uKD578R2KSSAsObaWKmiU05e2AZ4GvfhODYZd8VRY8bu6sXV3kr7MX/fVxaXaWhdqnoxZxUro4jwr/cNMgXOS0xBByyBfSEZWC0wLMarZ6FEMrMMXib16FFYN6mwfpfh72EexohnMi+zYVJsFM=
+	t=1725311880; cv=none; b=bmn/Gp3bslxTdfWkSLnRut9l4xVS44j6pELXH/fe22vynWzudzwfBtsKyyjtCOJwt82r2FL/rSZgyVKj0aOY/kOhyM+uvpm+oS6WyPmiRDz3QfQEJAs9D1M1vTrz+21365JMIFwgxgwDd+5k6lh4apD6Kn+6PGfGYmMqblTG4WA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725311878; c=relaxed/simple;
-	bh=4KQ8/UUxKSySDVrbCkqPR/pH6PotR0sYkTjEjgj6GeE=;
-	h=Date:To:From:Subject:Message-Id; b=YkmKahgoZi/D2HvHwGem/PMbwaCJ0+BppLbcsWfp334ZkR8jdFvwwCCE+EiAHOgiY8ND1xcosM/INkrU5rEYzskDAQuHOPfhKCYJs3KBBdTq75AKH4wc33dmox1T5hMF6bK1b8Pga/yIMtsB1yfo7Z7KOIfobHkaKXa79RTzIF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BnNmvCIT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725311880; c=relaxed/simple;
+	bh=AMtosgYNXhWim7gTp7NzFQwEdN3L6BIX0v7YjakcBcg=;
+	h=Date:To:From:Subject:Message-Id; b=Ox4RpT8sBgEdjn+YFDIyRqkRebc+gTs5MPpNbcBjuAqiXXJYiyryoSPvaycSH5P/00s9f1UnjqSRLR4T5MUYDHNe939U0tbzPME7tQONFCasvc6v5LuFnI3yfS4fry/srFLEXpqTVrSA7M6Da8uaq/x5nt8976QlukVkqUASKDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sh67MVMb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BnNmvCIT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F027FC4CEC2;
-	Mon,  2 Sep 2024 21:17:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sh67MVMb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA0F2C4CEC2;
+	Mon,  2 Sep 2024 21:17:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725311878;
-	bh=4KQ8/UUxKSySDVrbCkqPR/pH6PotR0sYkTjEjgj6GeE=;
+	s=korg; t=1725311879;
+	bh=AMtosgYNXhWim7gTp7NzFQwEdN3L6BIX0v7YjakcBcg=;
 	h=Date:To:From:Subject:From;
-	b=BnNmvCITHdowK5nzOGV1hZQ/yygZrzy62q7aT2WEAUwsN0SFMwAHWdImdn+du5AFE
-	 ytE6Hhncy01T3L68hoQE3Us9JukJtrw+rt8wCaF+a+Jktcd5kUx+legcdSQK8oj0x8
-	 DjFlYaI4I8s7KqE8KtaQId+kAIE9GQYTDtH+fAjU=
-Date: Mon, 02 Sep 2024 14:17:57 -0700
+	b=Sh67MVMbV40EQ+f+YTAv7H3IwLtpegzgKOaQaUqp2cYqOMkg0GqfmZjG3XMt3zDxk
+	 FmhYYH1qQYB/VJn6tDOEpZM69bV2OUbeDypqezDJfuSfoG9jFf89X/eqP71v+LUuEq
+	 xwKrfMKnWVEypMDMBjJdcFbcxTL/YeCQMfDYb8kg=
+Date: Mon, 02 Sep 2024 14:17:59 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-lz4hc-export-lz4_resetstreamhc-symbol.patch added to mm-unstable branch
-Message-Id: <20240902211757.F027FC4CEC2@smtp.kernel.org>
+Subject: + lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch added to mm-unstable branch
+Message-Id: <20240902211759.CA0F2C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: lz4hc: export LZ4_resetStreamHC symbol
+     Subject: lib: zstd: fix null-deref in ZSTD_createCDict_advanced2()
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
+     lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: lib: lz4hc: export LZ4_resetStreamHC symbol
-Date: Mon, 2 Sep 2024 19:55:50 +0900
+Subject: lib: zstd: fix null-deref in ZSTD_createCDict_advanced2()
+Date: Mon, 2 Sep 2024 19:55:51 +0900
 
-This symbol is needed to enable lz4hc dictionary support.
+ZSTD_createCDict_advanced2() must ensure that
+ZSTD_createCDict_advanced_internal() has successfully allocated cdict. 
+customMalloc() may be called under low memory condition and may be unable
+to allocate workspace for cdict.
 
-Link: https://lkml.kernel.org/r/20240902105656.1383858-3-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240902105656.1383858-4-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4hc_compress.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/zstd/compress/zstd_compress.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/lz4/lz4hc_compress.c~lib-lz4hc-export-lz4_resetstreamhc-symbol
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -621,6 +621,7 @@ void LZ4_resetStreamHC(LZ4_streamHC_t *L
- 	LZ4_streamHCPtr->internal_donotuse.base = NULL;
- 	LZ4_streamHCPtr->internal_donotuse.compressionLevel = (unsigned int)compressionLevel;
- }
-+EXPORT_SYMBOL(LZ4_resetStreamHC);
+--- a/lib/zstd/compress/zstd_compress.c~lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2
++++ a/lib/zstd/compress/zstd_compress.c
+@@ -4810,6 +4810,8 @@ ZSTD_CDict* ZSTD_createCDict_advanced2(
+                         dictLoadMethod, cctxParams.cParams,
+                         cctxParams.useRowMatchFinder, cctxParams.enableDedicatedDictSearch,
+                         customMem);
++    if (!cdict)
++        return NULL;
  
- int LZ4_loadDictHC(LZ4_streamHC_t *LZ4_streamHCPtr,
- 	const char *dictionary,
+     if (ZSTD_isError( ZSTD_initCDict_internal(cdict,
+                                     dict, dictSize,
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
