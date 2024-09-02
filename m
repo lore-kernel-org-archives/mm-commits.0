@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095541388
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7573E23BE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248776; cv=none; b=HKLU9M2BYrKzTfACciGlrAmJXlQ19cEueqc8U+tP8/I+SVuRkNiiXlHnWInsXMUzVOzdHqGlYmWWrmxs1OK0+EisRsL5ygK/XiIATODGUKTmOcIscRJlCTJOkuRmzoWDP3lRTvyD6amUenIzW0KHsPDBuFBgVoKaMYbyF/FDWRs=
+	t=1725248777; cv=none; b=cQri+cdL9z6bbWPRAUnBtUOxjEoAvaryO7TISXp6DeKNEB1TZ9pEcyf3pp1Z+Riw8BfSlXoC7xkKd2zJjtq/dif3LidDGc99mUCJg76ASSeSGWJ9b/3gHBXE+KHXOceQw9HPFrg6UEv1iFOWzIeMzb+WSl/Qg/drzaTILrE4Fro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248776; c=relaxed/simple;
-	bh=cCSevLlGqfQRuBy8VhOPK1ypnxkVtsxdtufYZsikje8=;
-	h=Date:To:From:Subject:Message-Id; b=HARzlUBXwIog78GB8dszFMKsH+jbt2N+nFBxjapzztr+xkaLvm28CfR0F/GPQAmxBMGShk7/wPq93mPvnErbsJWHvjpHBIAvxVQKECs1eRggQpCgVb5HfJB5iIa6nCX9em+qeZcTU1WFPcjTEJFus1/Bg4+TKF6sCDmO1vcJatc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bk42D7Sd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248777; c=relaxed/simple;
+	bh=dJ91whNXUj0FZQ+qJfLlYn0QfMi8PMqKFL/XzfCw/NM=;
+	h=Date:To:From:Subject:Message-Id; b=uPSnolcrSHfilg8R5kpixVsLwfJgR8W4C+naW2eD7BScIx2iBVQhEo5/XQwWJychbFPqF738z2acHCGY2wrkyr57CSbok/NYFlOaO/1W3+PjzNBE4VQJjUbcHgFk+d3dPxKgPQhaOPq+VKrck3u06PnPasuM7Irf/PRyNTPe2VQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YZ+2AvGc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bk42D7Sd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12E1C4CEC2;
-	Mon,  2 Sep 2024 03:46:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YZ+2AvGc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49A7DC4CEC2;
+	Mon,  2 Sep 2024 03:46:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248775;
-	bh=cCSevLlGqfQRuBy8VhOPK1ypnxkVtsxdtufYZsikje8=;
+	s=korg; t=1725248777;
+	bh=dJ91whNXUj0FZQ+qJfLlYn0QfMi8PMqKFL/XzfCw/NM=;
 	h=Date:To:From:Subject:From;
-	b=Bk42D7SdTIBwi6vEYAWGcyoaUSx+4VU0rXnWlOinvz1Fa2cxXDR44yg+85+fw3svP
-	 IZay0MREh2pzQVDV5mmPL7d3hUZN06F7LVM+3MYL4bPXfK0oemtz4jWESZxLE/E6ox
-	 TtvhdfW/C82u99ivNy5OeDr5DzaN+BH4Ujx4Dp0Y=
-Date: Sun, 01 Sep 2024 20:46:15 -0700
+	b=YZ+2AvGcGACqAB2NXT+S6jYXXhMymF/EnyOEOauK3uSbDq7tWDEnW3qzM66qaM+zu
+	 dyrKdqRI4wJtnJTggEvJopyjTPT2dQhm/1bOL0bDkip48kPqqqeFk0gdUl6WldbGtI
+	 zfMtD0eTiuqGgdM2ADjwAnzvp05TZtVAj2HwgDyM=
+Date: Sun, 01 Sep 2024 20:46:16 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xz-adjust-arch-specific-options-for-better-kernel-compression.patch removed from -mm tree
-Message-Id: <20240902034615.C12E1C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] arm64-boot-add-imagexz-support.patch removed from -mm tree
+Message-Id: <20240902034617.49A7DC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,264 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xz: adjust arch-specific options for better kernel compression
+     Subject: arm64: boot: add Image.xz support
 has been removed from the -mm tree.  Its filename was
-     xz-adjust-arch-specific-options-for-better-kernel-compression.patch
+     arm64-boot-add-imagexz-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: adjust arch-specific options for better kernel compression
-Date: Sun, 21 Jul 2024 16:36:29 +0300
+Subject: arm64: boot: add Image.xz support
+Date: Sun, 21 Jul 2024 16:36:30 +0300
 
-Use LZMA2 options that match the arch-specific alignment of instructions. 
-This change reduces compressed kernel size 0-2 % depending on the arch. 
-On 1-byte-aligned x86 it makes no difference and on 4-byte-aligned archs
-it helps the most.
+The Image.* targets existed for other compressors already.  Bootloader
+support is needed for decompression.
 
-Use the ARM-Thumb filter for ARM-Thumb2 kernels.  This reduces compressed
-kernel size about 5 %.[1] Previously such kernels were compressed using
-the ARM filter which didn't do anything useful with ARM-Thumb2 code.
+This is for CONFIG_EFI_ZBOOT=n. With CONFIG_EFI_ZBOOT=y, XZ was already
+available.
 
-Add BCJ filter support for ARM64 and RISC-V.  Compared to unfiltered XZ or
-plain LZMA, the compressed kernel size is reduced about 5 % on ARM64 and 7
-% on RISC-V.  A new enough version of the xz tool is required: 5.4.0 for
-ARM64 and 5.6.0 for RISC-V.  With an old xz version, a message is printed
-to standard error and the kernel is compressed without the filter.
-
-Update lib/decompress_unxz.c to match the changes to xz_wrap.sh.
-
-Update the CONFIG_KERNEL_XZ help text in init/Kconfig:
-  - Add the RISC-V and ARM64 filters.
-  - Clarify that the PowerPC filter is for big endian only.
-  - Omit IA-64.
-
-Link: https://lore.kernel.org/lkml/1637379771-39449-1-git-send-email-zhongjubin@huawei.com/ [1]
-Link: https://lkml.kernel.org/r/20240721133633.47721-15-lasse.collin@tukaani.org
+Link: https://lkml.kernel.org/r/20240721133633.47721-16-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Reviewed-by: Sam James <sam@gentoo.org>
 Cc: Simon Glass <sjg@chromium.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Jubin Zhong <zhongjubin@huawei.com>
 Cc: Jules Maselbas <jmaselbas@zdiv.net>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Joel Stanley <joel@jms.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jubin Zhong <zhongjubin@huawei.com>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rui Li <me@lirui.org>
+Cc: Sam James <sam@gentoo.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig          |    5 -
- lib/decompress_unxz.c |   14 +++
- scripts/xz_wrap.sh    |  142 ++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 152 insertions(+), 9 deletions(-)
+ arch/arm64/boot/Makefile |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/init/Kconfig~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/init/Kconfig
-@@ -310,8 +310,9 @@ config KERNEL_XZ
- 	  BCJ filters which can improve compression ratio of executable
- 	  code. The size of the kernel is about 30% smaller with XZ in
- 	  comparison to gzip. On architectures for which there is a BCJ
--	  filter (i386, x86_64, ARM, IA-64, PowerPC, and SPARC), XZ
--	  will create a few percent smaller kernel than plain LZMA.
-+	  filter (i386, x86_64, ARM, ARM64, RISC-V, big endian PowerPC,
-+	  and SPARC), XZ will create a few percent smaller kernel than
-+	  plain LZMA.
+--- a/arch/arm64/boot/Makefile~arm64-boot-add-imagexz-support
++++ a/arch/arm64/boot/Makefile
+@@ -17,7 +17,7 @@
+ OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
  
- 	  The speed is about the same as with LZMA: The decompression
- 	  speed of XZ is better than that of bzip2 but worse than gzip
---- a/lib/decompress_unxz.c~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/lib/decompress_unxz.c
-@@ -126,11 +126,21 @@
- #ifdef CONFIG_X86
- #	define XZ_DEC_X86
- #endif
--#ifdef CONFIG_PPC
-+#if defined(CONFIG_PPC) && defined(CONFIG_CPU_BIG_ENDIAN)
- #	define XZ_DEC_POWERPC
- #endif
- #ifdef CONFIG_ARM
--#	define XZ_DEC_ARM
-+#	ifdef CONFIG_THUMB2_KERNEL
-+#		define XZ_DEC_ARMTHUMB
-+#	else
-+#		define XZ_DEC_ARM
-+#	endif
-+#endif
-+#ifdef CONFIG_ARM64
-+#	define XZ_DEC_ARM64
-+#endif
-+#ifdef CONFIG_RISCV
-+#	define XZ_DEC_RISCV
- #endif
- #ifdef CONFIG_SPARC
- #	define XZ_DEC_SPARC
---- a/scripts/xz_wrap.sh~xz-adjust-arch-specific-options-for-better-kernel-compression
-+++ a/scripts/xz_wrap.sh
-@@ -6,14 +6,146 @@
- #
- # Author: Lasse Collin <lasse.collin@tukaani.org>
+ targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo \
+-	Image.zst image.fit
++	Image.zst Image.xz image.fit
  
-+# This has specialized settings for the following archs. However,
-+# XZ-compressed kernel isn't currently supported on every listed arch.
-+#
-+#   Arch        Align   Notes
-+#   arm          2/4    ARM and ARM-Thumb2
-+#   arm64         4
-+#   csky          2
-+#   loongarch     4
-+#   mips         2/4    MicroMIPS is 2-byte aligned
-+#   parisc        4
-+#   powerpc       4     Uses its own wrapper for compressors instead of this.
-+#   riscv        2/4
-+#   s390          2
-+#   sh            2
-+#   sparc         4
-+#   x86           1
-+
-+# A few archs use 2-byte or 4-byte aligned instructions depending on
-+# the kernel config. This function is used to check if the relevant
-+# config option is set to "y".
-+is_enabled()
-+{
-+	grep -q "^$1=y$" include/config/auto.conf
-+}
-+
-+# XZ_VERSION is needed to disable features that aren't available in
-+# old XZ Utils versions.
-+XZ_VERSION=$($XZ --robot --version) || exit
-+XZ_VERSION=$(printf '%s\n' "$XZ_VERSION" | sed -n 's/^XZ_VERSION=//p')
-+
-+# Assume that no BCJ filter is available.
- BCJ=
--LZMA2OPTS=
+ $(obj)/Image: vmlinux FORCE
+ 	$(call if_changed,objcopy)
+@@ -40,6 +40,9 @@ $(obj)/Image.lzo: $(obj)/Image FORCE
+ $(obj)/Image.zst: $(obj)/Image FORCE
+ 	$(call if_changed,zstd)
  
-+# Set the instruction alignment to 1, 2, or 4 bytes.
-+#
-+# Set the BCJ filter if one is available.
-+# It must match the #ifdef usage in lib/decompress_unxz.c.
- case $SRCARCH in
--	x86)            BCJ=--x86 ;;
--	powerpc)        BCJ=--powerpc ;;
--	arm)            BCJ=--arm ;;
--	sparc)          BCJ=--sparc ;;
-+	arm)
-+		if is_enabled CONFIG_THUMB2_KERNEL; then
-+			ALIGN=2
-+			BCJ=--armthumb
-+		else
-+			ALIGN=4
-+			BCJ=--arm
-+		fi
-+		;;
++$(obj)/Image.xz: $(obj)/Image FORCE
++	$(call if_changed,xzkern)
 +
-+	arm64)
-+		ALIGN=4
-+
-+		# ARM64 filter was added in XZ Utils 5.4.0.
-+		if [ "$XZ_VERSION" -ge 50040002 ]; then
-+			BCJ=--arm64
-+		else
-+			echo "$0: Upgrading to xz >= 5.4.0" \
-+				"would enable the ARM64 filter" \
-+				"for better compression" >&2
-+		fi
-+		;;
-+
-+	csky)
-+		ALIGN=2
-+		;;
-+
-+	loongarch)
-+		ALIGN=4
-+		;;
-+
-+	mips)
-+		if is_enabled CONFIG_CPU_MICROMIPS; then
-+			ALIGN=2
-+		else
-+			ALIGN=4
-+		fi
-+		;;
-+
-+	parisc)
-+		ALIGN=4
-+		;;
-+
-+	powerpc)
-+		ALIGN=4
-+
-+		# The filter is only for big endian instruction encoding.
-+		if is_enabled CONFIG_CPU_BIG_ENDIAN; then
-+			BCJ=--powerpc
-+		fi
-+		;;
-+
-+	riscv)
-+		if is_enabled CONFIG_RISCV_ISA_C; then
-+			ALIGN=2
-+		else
-+			ALIGN=4
-+		fi
-+
-+		# RISC-V filter was added in XZ Utils 5.6.0.
-+		if [ "$XZ_VERSION" -ge 50060002 ]; then
-+			BCJ=--riscv
-+		else
-+			echo "$0: Upgrading to xz >= 5.6.0" \
-+				"would enable the RISC-V filter" \
-+				"for better compression" >&2
-+		fi
-+		;;
-+
-+	s390)
-+		ALIGN=2
-+		;;
-+
-+	sh)
-+		ALIGN=2
-+		;;
-+
-+	sparc)
-+		ALIGN=4
-+		BCJ=--sparc
-+		;;
-+
-+	x86)
-+		ALIGN=1
-+		BCJ=--x86
-+		;;
-+
-+	*)
-+		echo "$0: Arch-specific tuning is missing for '$SRCARCH'" >&2
-+
-+		# Guess 2-byte-aligned instructions. Guessing too low
-+		# should hurt less than guessing too high.
-+		ALIGN=2
-+		;;
-+esac
-+
-+# Select the LZMA2 options matching the instruction alignment.
-+case $ALIGN in
-+	1)  LZMA2OPTS= ;;
-+	2)  LZMA2OPTS=lp=1 ;;
-+	4)  LZMA2OPTS=lp=2,lc=2 ;;
-+	*)  echo "$0: ALIGN wrong or missing" >&2; exit 1 ;;
- esac
+ $(obj)/image.fit: $(obj)/Image $(obj)/dts/dtbs-list FORCE
+ 	$(call if_changed,fit)
  
- # Use single-threaded mode because it compresses a little better
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
