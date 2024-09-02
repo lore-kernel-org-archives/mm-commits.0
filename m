@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20E33EA76
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6D746434
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247698; cv=none; b=KbJu5UwTUdwMgwNdTkIvhkKK7oGeqFl34hkpn5LPcMKtC1Qsq7zITSwSv1PHDz81iiCYJY8FpKTazpnXVBMvBQw7oGnlz3/80ZojYGJcH+Fs/NRfkuE7nop9nmZ5HN4sTUxlDGsRG4NxaR4RPdXsBMYIJ9yJucUIebvtXb5U1uE=
+	t=1725247700; cv=none; b=ADSaGLmvtzm8EZNyWxUtD/ATTtiqVtI2xV12kU1n/zw9X6HFgUauDsMMEOrpLbNfkaE2Y6NeQ0o9ICrOvAIOS3ADRAg0DKvzu/L2DoirPEvSOa1ykVxMpwqZxc5tcd3Hi6JUU62DlF0BUKBqtlHPUi/jIDSDT0jG2KAiRGiOoLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247698; c=relaxed/simple;
-	bh=X9EksDq64i6i0iapW0iarmXnoVtYEzhKVIHzNdB7Ag4=;
-	h=Date:To:From:Subject:Message-Id; b=VPN/PY/neCSPIj7AuPmY5M7aVMBY3Ff/4WT5iI4NuLpd+0XvySl8siKkSNzTA7lhTwVP6Pq8ELEFAmAk42xJfd3eULIpDlPfumlZE+gPJuFx+S0bwgq5lE8gmRJZTc39LtXbb+jhsDnxPE9tioKACk16INtKOq9UWO20fQiNWb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GW8FTMAH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247700; c=relaxed/simple;
+	bh=j/a8qXfl1USQeHbURDTD29vYEGq7+sQCNgK48hgA5KM=;
+	h=Date:To:From:Subject:Message-Id; b=KOewH19hE3VE8H9gs7giDX8c7Yz7qLMLJ7H/x0SiVVsBTRHuAFmdBXMZlwwodCoUo11c6/YeMAH4h61sras/7jkFUw5CG0+RczZ7DvJX8nzNVH82APTtNTKwvUc6MHQ0njtO3GxPW4JwVr/ThCGLKj8i50Mgmr3+1WfxwwmHwLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AP6e4k16; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GW8FTMAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7C71C4CEC2;
-	Mon,  2 Sep 2024 03:28:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AP6e4k16"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC266C4CEC2;
+	Mon,  2 Sep 2024 03:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247698;
-	bh=X9EksDq64i6i0iapW0iarmXnoVtYEzhKVIHzNdB7Ag4=;
+	s=korg; t=1725247700;
+	bh=j/a8qXfl1USQeHbURDTD29vYEGq7+sQCNgK48hgA5KM=;
 	h=Date:To:From:Subject:From;
-	b=GW8FTMAHOVgqJDGWchyg6I0FNrr3Py3VpwR/rKLHsFsGloQq/44KXD6diSPVDMyul
-	 tMEr9Dt0XVZfqoaS3bHPnretsdKI12AxYMKvdCcu50bf19oPvZ4FCZCTyjYo+HZxtI
-	 Plz5/SZ2va5gu7TzeIhIZ18S1EvcuD4MTPRxorOU=
-Date: Sun, 01 Sep 2024 20:28:18 -0700
+	b=AP6e4k16/CK7CvkX3vxJsYQpOR5gzzxBZPMBInSz6PlDF56Wledw2rstbKH4NVPzd
+	 Stl/aLT88f6pDkp2vbRnV0Yar/YN98/KZBSqeFiiwwAMsLIXgTIrCHXDqqP0eC+LuE
+	 NwUS6TvBYuA90sObNUQRlPhcqiXKXfAGfS4/7EGA=
+Date: Sun, 01 Sep 2024 20:28:19 -0700
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,tglx@linutronix.de,rppt@kernel.org,peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,linux@armlinux.org.uk,jgross@suse.com,hpa@zytor.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,brauner@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch removed from -mm tree
-Message-Id: <20240902032818.A7C71C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch removed from -mm tree
+Message-Id: <20240902032819.EC266C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: enforce that PMD PT sharing has split PMD PT locks
+     Subject: powerpc/8xx: document and enforce that split PT locks are not used
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks.patch
+     powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: enforce that PMD PT sharing has split PMD PT locks
-Date: Fri, 26 Jul 2024 17:07:27 +0200
+Subject: powerpc/8xx: document and enforce that split PT locks are not used
+Date: Fri, 26 Jul 2024 17:07:28 +0200
 
-Sharing page tables between processes but falling back to per-MM page
-table locks cannot possibly work.
+Right now, we cannot have split PT locks because 8xx does not support SMP.
 
-So, let's make sure that we do have split PMD locks by adding a new
-Kconfig option and letting that depend on CONFIG_SPLIT_PMD_PTLOCKS.
+But for the sake of documentation *why* 8xx is fine regarding what we
+documented in huge_pte_lockptr(), let's just add code to enforce it at the
+same time as documenting it.
 
-Link: https://lkml.kernel.org/r/20240726150728.3159964-3-david@redhat.com
+This should also make everybody who wants to copy from the 8xx approach of
+supporting such unusual ways of mapping hugetlb folios aware that it gets
+tricky once multiple page tables are involved.
+
+Link: https://lkml.kernel.org/r/20240726150728.3159964-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
@@ -66,6 +69,7 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -76,83 +80,24 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig              |    4 ++++
- include/linux/hugetlb.h |    5 ++---
- mm/hugetlb.c            |    8 ++++----
- 3 files changed, 10 insertions(+), 7 deletions(-)
+ arch/powerpc/mm/pgtable.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/fs/Kconfig~mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks
-+++ a/fs/Kconfig
-@@ -288,6 +288,10 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
- 	depends on SPARSEMEM_VMEMMAP
+--- a/arch/powerpc/mm/pgtable.c~powerpc-8xx-document-and-enforce-that-split-pt-locks-are-not-used
++++ a/arch/powerpc/mm/pgtable.c
+@@ -297,6 +297,12 @@ int huge_ptep_set_access_flags(struct vm
+ }
  
-+config HUGETLB_PMD_PAGE_TABLE_SHARING
-+	def_bool HUGETLB_PAGE
-+	depends on ARCH_WANT_HUGE_PMD_SHARE && SPLIT_PMD_PTLOCKS
+ #if defined(CONFIG_PPC_8xx)
 +
- config ARCH_HAS_GIGANTIC_PAGE
- 	bool
- 
---- a/include/linux/hugetlb.h~mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks
-+++ a/include/linux/hugetlb.h
-@@ -1251,7 +1251,7 @@ static inline __init void hugetlb_cma_re
- }
- #endif
- 
--#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
- static inline bool hugetlb_pmd_shared(pte_t *pte)
++#if defined(CONFIG_SPLIT_PTE_PTLOCKS) || defined(CONFIG_SPLIT_PMD_PTLOCKS)
++/* We need the same lock to protect the PMD table and the two PTE tables. */
++#error "8M hugetlb folios are incompatible with split page table locks"
++#endif
++
+ static void __set_huge_pte_at(pmd_t *pmd, pte_t *ptep, pte_basic_t val)
  {
- 	return page_count(virt_to_page(pte)) > 1;
-@@ -1287,8 +1287,7 @@ bool __vma_private_lock(struct vm_area_s
- static inline pte_t *
- hugetlb_walk(struct vm_area_struct *vma, unsigned long addr, unsigned long sz)
- {
--#if defined(CONFIG_HUGETLB_PAGE) && \
--	defined(CONFIG_ARCH_WANT_HUGE_PMD_SHARE) && defined(CONFIG_LOCKDEP)
-+#if defined(CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING) && defined(CONFIG_LOCKDEP)
- 	struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 	/*
---- a/mm/hugetlb.c~mm-hugetlb-enforce-that-pmd-pt-sharing-has-split-pmd-pt-locks
-+++ a/mm/hugetlb.c
-@@ -7211,7 +7211,7 @@ long hugetlb_unreserve_pages(struct inod
- 	return 0;
- }
- 
--#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
- static unsigned long page_table_shareable(struct vm_area_struct *svma,
- 				struct vm_area_struct *vma,
- 				unsigned long addr, pgoff_t idx)
-@@ -7373,7 +7373,7 @@ int huge_pmd_unshare(struct mm_struct *m
- 	return 1;
- }
- 
--#else /* !CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
-+#else /* !CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING */
- 
- pte_t *huge_pmd_share(struct mm_struct *mm, struct vm_area_struct *vma,
- 		      unsigned long addr, pud_t *pud)
-@@ -7396,7 +7396,7 @@ bool want_pmd_share(struct vm_area_struc
- {
- 	return false;
- }
--#endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
-+#endif /* CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING */
- 
- #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
- pte_t *huge_pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
-@@ -7494,7 +7494,7 @@ unsigned long hugetlb_mask_last_page(str
- /* See description above.  Architectures can provide their own version. */
- __weak unsigned long hugetlb_mask_last_page(struct hstate *h)
- {
--#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
- 	if (huge_page_size(h) == PMD_SIZE)
- 		return PUD_SIZE - PMD_SIZE;
- #endif
+ 	pte_basic_t *entry = (pte_basic_t *)ptep;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
