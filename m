@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB4C57CB6
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31FC35381E
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247770; cv=none; b=Bbm534rSmeMo61h2iMuMKnv81O3+nCXIXf1DmGAq7pPt076+U5bAnyCydp7CHlTEYTjMPAK+BXcRG9gSZcdW9yHLSO6GiP3tFHNPB3j/XwXjidZhYFob5djfSfwii9KH0+kutB/ObdPm+OEFl5Hqjvvk+ONqIVcyUriIPI+vbr8=
+	t=1725247771; cv=none; b=NudMlixZZ/klKUv8FH2cGyB6htah4J7tvGbNZlhoA2nRERAiNLoSUHlL/hHe9k2dZRWlkMlEOceY6S8EDtOYOy4M/vWwlDN1rKGb3y2wp2Vsy9Y4MTHdD3788PMfoXZ1Bku5tsFtpoxgEAUvx76SI+inChwj6USVyZco14JSnkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247770; c=relaxed/simple;
-	bh=zYfTm5dyL1wBin1NLX+NchuaE6Dxzxdo5PJ8qAFwkbQ=;
-	h=Date:To:From:Subject:Message-Id; b=RLHSthRqkLv4SStF3P59e4Uh8ZepKud0kuzF9K1ztO6sri6ERvdpPtD2Bge1wlxLaxnTuyeUF5PPOj5SXuFXC4RaK6eRU6GvGnIRAE27t02UiUdUWkqZ6wNR464AyP4RgrMYaaa/HpWHcIWPrpDiNLSaR16TJV5mjQxk9HWrUX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A8jTD2A5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247771; c=relaxed/simple;
+	bh=njlmr5ThqjnvtVmUGOdkb8+EEzSKLo2XD4xKcG0z9qc=;
+	h=Date:To:From:Subject:Message-Id; b=lPoSEneBveiVD7XmLClAmBXy0ISHDgDGDGpaEOewVZ31SBVI5mLMd0k4N4Ot462/V+1OWxJKjj1QnAuTI3xO+XHAyNEVrLVTDP6HJSeVxUC6/2rcZUvaSOO+Kwox/PyjllpoWd5jm+J9Q7xnPNw+2J3iAUi7HN08zYGypTPATeg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r62RmPBp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A8jTD2A5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03DB5C4CEC2;
-	Mon,  2 Sep 2024 03:29:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r62RmPBp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 082DBC4CEC2;
+	Mon,  2 Sep 2024 03:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247770;
-	bh=zYfTm5dyL1wBin1NLX+NchuaE6Dxzxdo5PJ8qAFwkbQ=;
+	s=korg; t=1725247771;
+	bh=njlmr5ThqjnvtVmUGOdkb8+EEzSKLo2XD4xKcG0z9qc=;
 	h=Date:To:From:Subject:From;
-	b=A8jTD2A56CwsiliJNiHpeXlFr/lh/NwFIDk50BlmwvLStg55Lq3/PUN7B7MShBpEO
-	 sgZKbjcaMsRzo31h+41BrXU6P8YoHk6t6kQsAOQddgBTgOpB/3YeyjNTXypo0Oerc9
-	 lwGKXxF3vJFUkCZk5KLsOOkKEPrQiEe5IuIQrW8U=
-Date: Sun, 01 Sep 2024 20:29:29 -0700
+	b=r62RmPBplRbCKWF0kAUjkYf7IxrHCm8PCkdGIrZGq5edgqj/s/7vGwdGRJI3IO+nR
+	 OvKNDJWyLo/4UOI0yb0zPzobcoMPenwS8I6dMQM5RLiHWu79UBB/LNmpam36TXcMTS
+	 i0Rr3XAktI0G86LVyeXDgzmgZhOvg8vF6zdO1mB0=
+Date: Sun, 01 Sep 2024 20:29:30 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch removed from -mm tree
-Message-Id: <20240902032930.03DB5C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-pg_error.patch removed from -mm tree
+Message-Id: <20240902032931.082DBC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs: remove calls to set and clear the folio error flag
+     Subject: mm: remove PG_error
 has been removed from the -mm tree.  Its filename was
-     fs-remove-calls-to-set-and-clear-the-folio-error-flag.patch
+     mm-remove-pg_error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: remove calls to set and clear the folio error flag
-Date: Wed, 7 Aug 2024 20:35:25 +0100
+Subject: mm: remove PG_error
+Date: Wed, 7 Aug 2024 20:35:26 +0100
 
-Nobody checks the folio error flag any more, so we can stop setting and
-clearing it.  Also remove the documentation suggesting to not bother
-setting the error bit.
+The PG_error bit is now unused; delete it and free up a bit in
+page->flags.
 
-Link: https://lkml.kernel.org/r/20240807193528.1865100-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240807193528.1865100-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.rst |    3 +--
- mm/filemap.c                      |    8 --------
- mm/migrate.c                      |    2 --
- mm/page_io.c                      |    4 +---
- 4 files changed, 2 insertions(+), 15 deletions(-)
+ fs/proc/page.c                         |    1 -
+ include/linux/page-flags.h             |    6 +-----
+ include/trace/events/mmflags.h         |    1 -
+ include/uapi/linux/kernel-page-flags.h |    2 +-
+ 4 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/Documentation/filesystems/vfs.rst~fs-remove-calls-to-set-and-clear-the-folio-error-flag
-+++ a/Documentation/filesystems/vfs.rst
-@@ -913,8 +913,7 @@ cache in your filesystem.  The following
- 	stop attempting I/O, it can simply return.  The caller will
- 	remove the remaining pages from the address space, unlock them
- 	and decrement the page refcount.  Set PageUptodate if the I/O
--	completes successfully.  Setting PageError on any page will be
--	ignored; simply unlock the page if an I/O error occurs.
-+	completes successfully.
+--- a/fs/proc/page.c~mm-remove-pg_error
++++ a/fs/proc/page.c
+@@ -182,7 +182,6 @@ u64 stable_page_flags(const struct page
+ #endif
  
- ``write_begin``
- 	Called by the generic buffered write code to ask the filesystem
---- a/mm/filemap.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
-+++ a/mm/filemap.c
-@@ -530,7 +530,6 @@ static void __filemap_fdatawait_range(st
- 			struct folio *folio = fbatch.folios[i];
+ 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
+-	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
+ 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
+ 	u |= kpf_copy_bit(k, KPF_UPTODATE,	PG_uptodate);
+ 	u |= kpf_copy_bit(k, KPF_WRITEBACK,	PG_writeback);
+--- a/include/linux/page-flags.h~mm-remove-pg_error
++++ a/include/linux/page-flags.h
+@@ -66,8 +66,6 @@
+  * PG_referenced, PG_reclaim are used for page reclaim for anonymous and
+  * file-backed pagecache (see mm/vmscan.c).
+  *
+- * PG_error is set to indicate that an I/O error occurred on this page.
+- *
+  * PG_arch_1 is an architecture specific page state bit.  The generic code
+  * guarantees that this bit is cleared for a page when it first is entered into
+  * the page cache.
+@@ -103,7 +101,6 @@ enum pageflags {
+ 	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_active,
+ 	PG_workingset,
+-	PG_error,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+ 	PG_arch_1,
+ 	PG_reserved,
+@@ -183,7 +180,7 @@ enum pageflags {
+ 	 */
  
- 			folio_wait_writeback(folio);
--			folio_clear_error(folio);
- 		}
- 		folio_batch_release(&fbatch);
- 		cond_resched();
-@@ -2342,13 +2341,6 @@ static int filemap_read_folio(struct fil
- 	unsigned long pflags;
- 	int error;
+ 	/* At least one page in this folio has the hwpoison flag set */
+-	PG_has_hwpoisoned = PG_error,
++	PG_has_hwpoisoned = PG_active,
+ 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
+ };
  
--	/*
--	 * A previous I/O error may have been due to temporary failures,
--	 * eg. multipath errors.  PG_error will be set again if read_folio
--	 * fails.
--	 */
--	folio_clear_error(folio);
--
- 	/* Start the actual read. The read will unlock the page. */
- 	if (unlikely(workingset))
- 		psi_memstall_enter(&pflags);
---- a/mm/migrate.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
-+++ a/mm/migrate.c
-@@ -586,8 +586,6 @@ void folio_migrate_flags(struct folio *n
- {
- 	int cpupid;
+@@ -506,7 +503,6 @@ static inline int TestClearPage##uname(s
  
--	if (folio_test_error(folio))
--		folio_set_error(newfolio);
- 	if (folio_test_referenced(folio))
- 		folio_set_referenced(newfolio);
- 	if (folio_test_uptodate(folio))
---- a/mm/page_io.c~fs-remove-calls-to-set-and-clear-the-folio-error-flag
-+++ a/mm/page_io.c
-@@ -273,9 +273,7 @@ static void sio_write_complete(struct ki
- 		 * memory for allocating transmit buffers.
- 		 * Mark the page dirty and avoid
- 		 * folio_rotate_reclaimable but rate-limit the
--		 * messages but do not flag PageError like
--		 * the normal direct-to-bio case as it could
--		 * be temporary.
-+		 * messages.
- 		 */
- 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
- 				   ret, swap_dev_pos(page_swap_entry(page)));
+ __PAGEFLAG(Locked, locked, PF_NO_TAIL)
+ FOLIO_FLAG(waiters, FOLIO_HEAD_PAGE)
+-PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
+ FOLIO_FLAG(referenced, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(referenced, FOLIO_HEAD_PAGE)
+ 	__FOLIO_SET_FLAG(referenced, FOLIO_HEAD_PAGE)
+--- a/include/trace/events/mmflags.h~mm-remove-pg_error
++++ a/include/trace/events/mmflags.h
+@@ -100,7 +100,6 @@
+ #define __def_pageflag_names						\
+ 	DEF_PAGEFLAG_NAME(locked),					\
+ 	DEF_PAGEFLAG_NAME(waiters),					\
+-	DEF_PAGEFLAG_NAME(error),					\
+ 	DEF_PAGEFLAG_NAME(referenced),					\
+ 	DEF_PAGEFLAG_NAME(uptodate),					\
+ 	DEF_PAGEFLAG_NAME(dirty),					\
+--- a/include/uapi/linux/kernel-page-flags.h~mm-remove-pg_error
++++ a/include/uapi/linux/kernel-page-flags.h
+@@ -7,7 +7,7 @@
+  */
+ 
+ #define KPF_LOCKED		0
+-#define KPF_ERROR		1
++#define KPF_ERROR		1	/* Now unused */
+ #define KPF_REFERENCED		2
+ #define KPF_UPTODATE		3
+ #define KPF_DIRTY		4
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
