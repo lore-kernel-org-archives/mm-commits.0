@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1758A6F073
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225AE54907
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247768; cv=none; b=Yfr5D7QCM7cTPFUpMXXT23gn5EQL7RBc8TJPiCQcvWCCuG8U4sLvDviCinJI9nvRA5hiu7j1r9iBfaRls/BS89BW1HgIj9A/CwW2qXJWLWAvyCVWhy7FAbLRsV6vxH2KNTct2SveuH/o/ZvqUwFXR9pidYkOEQf6x458EzCAhJo=
+	t=1725247769; cv=none; b=syloFmqOpB2oYEUKawWpJzu3cAbefAqSKw9VClDe30c5mhsnEfVmQ9MG8hx5RqMmjw27zuBtDIdQPx7kf24sxHRjXkqs9YHO4ezmby5qsQoOouZXUfHKeo6UM7ZVKS03yEALsd8lKUaXz+liXUtVujoiIzsQ/yQNJebwn8Mz898=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247768; c=relaxed/simple;
-	bh=NdVarNRKwYIuSB74YU96ELLU9SOFWB5+o+dbpziMWCo=;
-	h=Date:To:From:Subject:Message-Id; b=om+2sQABhc5U5fKSLBIps9e2PXBy6JJYl9e/67iQXvxLKi9YAEjNp7DAXIfcBbLfhBHoVs9DzHO99cW1U/vH5fD/qNzJ5M2+M/Aicd/UCfRDglYO/jQGYgYYiyZYjyG3fsFYUlmwvcTS4ju4CXuwQOSkj7Wcpvyjp77ht0Me+Xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=op4at8WO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247769; c=relaxed/simple;
+	bh=RB/7anoMy4Je7t6yaEM7or9vrJjxbmk0htL9pByp1ck=;
+	h=Date:To:From:Subject:Message-Id; b=nZsuCHcE/Z+IEddQ5oT1t8WpIqqzbMaXGC8biAU8HFVvhFuFU34xf3ueB/NhSbnlDZsZ37wBb1nerDewZclbHwQbdKswsFZ7JZfR5PqdQ2Kvq3JYbE7mTwFKvDU7J+qm7FWn/NwlI+QxH9dAVgILssYr6LCUjvl74nBdI77KCgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AuG2wKQo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="op4at8WO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1462C4CEC2;
-	Mon,  2 Sep 2024 03:29:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AuG2wKQo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECE32C4CEC2;
+	Mon,  2 Sep 2024 03:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247768;
-	bh=NdVarNRKwYIuSB74YU96ELLU9SOFWB5+o+dbpziMWCo=;
+	s=korg; t=1725247769;
+	bh=RB/7anoMy4Je7t6yaEM7or9vrJjxbmk0htL9pByp1ck=;
 	h=Date:To:From:Subject:From;
-	b=op4at8WOzaa8XS9rwLzx9ycLrNy/o5vyd31X73ISkUiI5QiDhpJXG7XLfThgqUL7P
-	 psOcVSbpWPCZ/c2/Nr5XlZNOKNzPy7f6hqBWl06SXVivG/HAzHjGEzO4+vLromz7bM
-	 wPyLPKHaOE1dwsGbnhZHPzR9JwXahh/ft+2tTm58=
-Date: Sun, 01 Sep 2024 20:29:27 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,JonasZhou@zhaoxin.com,dennis@kernel.org,cl@linux.com,912460177@qq.com,akpm@linux-foundation.org
+	b=AuG2wKQoXw7fzWDPBM3chXr13izW1x74LCLtyfR5xCZH6OuSEaHILV2Z7OXZs0JQw
+	 YQLWYQjVXncA7pHjfRDg0z+0v8FqNrAYt6hmA79VAx81oJEBy5IzHEAASfHuCcZYO4
+	 +moT/VOhcT8ehVjDMJqalMbJbsaFhgNGkdH++pMw=
+Date: Sun, 01 Sep 2024 20:29:28 -0700
+To: mm-commits@vger.kernel.org,qiwu.chen@transsion.com,elver@google.com,dvyukov@google.com,qiwuchen55@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] percpu-remove-pcpu_alloc_size.patch removed from -mm tree
-Message-Id: <20240902032927.E1462C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch removed from -mm tree
+Message-Id: <20240902032928.ECE32C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: percpu: remove pcpu_alloc_size()
+     Subject: mm: kfence: print the elapsed time for allocated/freed track
 has been removed from the -mm tree.  Its filename was
-     percpu-remove-pcpu_alloc_size.patch
+     mm-kfence-print-the-elapsed-time-for-allocated-freed-track.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jianhui Zhou <912460177@qq.com>
-Subject: percpu: remove pcpu_alloc_size()
-Date: Wed, 7 Aug 2024 15:44:48 +0800
+From: "qiwu.chen" <qiwuchen55@gmail.com>
+Subject: mm: kfence: print the elapsed time for allocated/freed track
+Date: Wed, 7 Aug 2024 10:56:27 +0800
 
-pcpu_alloc_size() was added in 7ac5c53e0073 "mm/percpu.c: introduce
-pcpu_alloc_size()", which is used to get the allocated memory size in bpf.
-However, pcpu_alloc_size() is no longer used in "bpf: Use c->unit_size to
-select target cache during free" because its actuall allocated memory size
-may change at runtime due to its slab merging mechanism.  Therefore,
-pcpu_alloc_size() can be removed.
+Print the elapsed time for the allocated or freed track, which can be
+useful in some debugging scenarios.
 
-Link: https://lkml.kernel.org/r/tencent_AD5C50E8D78C07A3CE539BD5F6BF39706507@qq.com
-Signed-off-by: Jianhui Zhou <912460177@qq.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: JonasZhou <JonasZhou@zhaoxin.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20240807025627.37419-1-qiwu.chen@transsion.com
+Signed-off-by: qiwu.chen <qiwu.chen@transsion.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: chenqiwu <qiwu.chen@transsion.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    1 -
- mm/percpu.c            |   31 -------------------------------
- 2 files changed, 32 deletions(-)
+ mm/kfence/report.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/include/linux/percpu.h~percpu-remove-pcpu_alloc_size
-+++ a/include/linux/percpu.h
-@@ -135,7 +135,6 @@ extern void __init setup_per_cpu_areas(v
+--- a/mm/kfence/report.c~mm-kfence-print-the-elapsed-time-for-allocated-freed-track
++++ a/mm/kfence/report.c
+@@ -16,6 +16,7 @@
+ #include <linux/sprintf.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
++#include <linux/sched/clock.h>
+ #include <trace/events/error_report.h>
  
- extern void __percpu *pcpu_alloc_noprof(size_t size, size_t align, bool reserved,
- 				   gfp_t gfp) __alloc_size(1);
--extern size_t pcpu_alloc_size(void __percpu *__pdata);
+ #include <asm/kfence.h>
+@@ -108,11 +109,14 @@ static void kfence_print_stack(struct se
+ 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
+ 	u64 ts_sec = track->ts_nsec;
+ 	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
++	u64 interval_nsec = local_clock() - meta->alloc_track.ts_nsec;
++	unsigned long rem_interval_nsec = do_div(interval_nsec, NSEC_PER_SEC);
  
- #define __alloc_percpu_gfp(_size, _align, _gfp)				\
- 	alloc_hooks(pcpu_alloc_noprof(_size, _align, false, _gfp))
---- a/mm/percpu.c~percpu-remove-pcpu_alloc_size
-+++ a/mm/percpu.c
-@@ -2217,37 +2217,6 @@ static void pcpu_balance_workfn(struct w
- }
+ 	/* Timestamp matches printk timestamp format. */
+-	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
++	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus (%lu.%06lus ago):\n",
+ 		       show_alloc ? "allocated" : "freed", track->pid,
+-		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
++		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000,
++		       (unsigned long)interval_nsec, rem_interval_nsec / 1000);
  
- /**
-- * pcpu_alloc_size - the size of the dynamic percpu area
-- * @ptr: pointer to the dynamic percpu area
-- *
-- * Returns the size of the @ptr allocation.  This is undefined for statically
-- * defined percpu variables as there is no corresponding chunk->bound_map.
-- *
-- * RETURNS:
-- * The size of the dynamic percpu area.
-- *
-- * CONTEXT:
-- * Can be called from atomic context.
-- */
--size_t pcpu_alloc_size(void __percpu *ptr)
--{
--	struct pcpu_chunk *chunk;
--	unsigned long bit_off, end;
--	void *addr;
--
--	if (!ptr)
--		return 0;
--
--	addr = __pcpu_ptr_to_addr(ptr);
--	/* No pcpu_lock here: ptr has not been freed, so chunk is still alive */
--	chunk = pcpu_chunk_addr_search(addr);
--	bit_off = (addr - chunk->base_addr) / PCPU_MIN_ALLOC_SIZE;
--	end = find_next_bit(chunk->bound_map, pcpu_chunk_map_bits(chunk),
--			    bit_off + 1);
--	return (end - bit_off) * PCPU_MIN_ALLOC_SIZE;
--}
--
--/**
-  * free_percpu - free percpu area
-  * @ptr: pointer to area to free
-  *
+ 	if (track->num_stack_entries) {
+ 		/* Skip allocation/free internals stack. */
 _
 
-Patches currently in -mm which might be from 912460177@qq.com are
+Patches currently in -mm which might be from qiwuchen55@gmail.com are
 
 
