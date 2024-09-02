@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E78917346F
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD4B57603F
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247754; cv=none; b=nGCwI3/6qLtUO1kljRbLWqaBJAHxXdUogITPi4DuORYYRufFgQVQ/qnfJZjRfqX6pjt6qkCgG5WDl5LK4KaHeYbEkuREHfZCqucEmuQOHtf7vu+rwO0TQc0kiCsbBcyz6JgSAPi26eI3BAK71/vxD2ZB0fWtTyd+R9yZA9r0CTg=
+	t=1725247754; cv=none; b=ZaajILZaWrhHKzI1ydmedfnTp1fVK9PkuvyIEcJw2kbGwfitR70r9Qm6l/r2tjMiZSwi+ehVxFmuBxx1STxMeutmGOnYzeRigxuJVwUR8NNJpCADNOTiNsn8LMyvfESnnZqSods1JZGvAmXsZ2IjbvXSXRP/zYMHUypePfmOVCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725247754; c=relaxed/simple;
-	bh=9gAIyZr+3y5kkxMq1nus86QURY/RZ9+EU8K0HV8yKo8=;
-	h=Date:To:From:Subject:Message-Id; b=HSH7bv/8fnUm17nK3q6BuarGUXjMKn8yhXciCEFViiCje722UpAeiWrurU+8oHKlyNb3QJLPKTW0D4D6tkzl5j94Ej+nhsXK/64RBx4I4LC5E+JG/VQddJ8mguYtqEs/DlSONO4iYCSbkVRTFDzMvMwpNhXsYCUFpxvm5em6PpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SAZAcDuw; arc=none smtp.client-ip=10.30.226.201
+	bh=hbj6bftqzFHIZCcxLQXYZi2cz8aIDDH/AhRaXmBo2JM=;
+	h=Date:To:From:Subject:Message-Id; b=Ue6H9MC4i5C+7qSTSzLnKUZFTQnJRFbn/3rRxaNZLRRSD5RRFB+7VnoVduC8JKV9V4q7hLH0GHQ/HdcstG9a9ZbPG8Q4/AFxhb84pRpcTXAvfHHMGleip6NUVztfeN1AiKi0kffDggg21cHtD5lKO7uYXsL8qoQIku8BdC/ksDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bplRnnef; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SAZAcDuw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72218C4CEC7;
-	Mon,  2 Sep 2024 03:29:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bplRnnef"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2D8C4CEC2;
+	Mon,  2 Sep 2024 03:29:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247753;
-	bh=9gAIyZr+3y5kkxMq1nus86QURY/RZ9+EU8K0HV8yKo8=;
+	s=korg; t=1725247754;
+	bh=hbj6bftqzFHIZCcxLQXYZi2cz8aIDDH/AhRaXmBo2JM=;
 	h=Date:To:From:Subject:From;
-	b=SAZAcDuwkXYT/yAEU1CNGPHml8/bPlTgYWf7qoixHXpu71y9CHbLDqm79PPhLUuiz
-	 OuIPZxVdY6UoSMkYH3mbDi9OJU0Hj3ZTU46DteH7R9Logr6ueus3lLQdx2/V+CrZWy
-	 RkLpzlkGxPYiiAqWxw3NbgGXkJtliSf5Oq9fodm0=
-Date: Sun, 01 Sep 2024 20:29:12 -0700
+	b=bplRnnefuy4lCRTNQtQFC/AJdhfiKmeJryWcx0rXF/xRne73sfnupI1ght/OkmyT6
+	 WSsGiLa3++MqW5/4uob+r4UokWo42AMYZgH/QBaG7QGrigSM+wWglzMl+gPtxGFiLo
+	 dmiuWXVE/GoN4WVEgbqSxYtZBDOQMch+4yvyF11w=
+Date: Sun, 01 Sep 2024 20:29:14 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,svens@linux.ibm.com,ryan.roberts@arm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,corbet@lwn.net,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-follow_page.patch removed from -mm tree
-Message-Id: <20240902032913.72218C4CEC7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch removed from -mm tree
+Message-Id: <20240902032914.9C2D8C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove follow_page()
+     Subject: mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk
 has been removed from the -mm tree.  Its filename was
-     mm-remove-follow_page.patch
+     mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove follow_page()
-Date: Fri, 2 Aug 2024 17:55:23 +0200
+Subject: mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk
+Date: Fri, 2 Aug 2024 17:55:24 +0200
 
-All users are gone, let's remove it and any leftovers in comments.  We'll
-leave any FOLL/follow_page_() naming cleanups as future work.
+Let's simplify by reusing folio_walk.  Keep the existing behavior by
+handling migration entries and zeropages.
 
-Link: https://lkml.kernel.org/r/20240802155524.517137-11-david@redhat.com
+Link: https://lkml.kernel.org/r/20240802155524.517137-12-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -67,107 +67,92 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/transhuge.rst |    6 +++---
- include/linux/mm.h             |    3 ---
- mm/filemap.c                   |    2 +-
- mm/gup.c                       |   24 +-----------------------
- mm/nommu.c                     |    6 ------
- 5 files changed, 5 insertions(+), 36 deletions(-)
+ mm/ksm.c |   63 +++++++++++++----------------------------------------
+ 1 file changed, 16 insertions(+), 47 deletions(-)
 
---- a/Documentation/mm/transhuge.rst~mm-remove-follow_page
-+++ a/Documentation/mm/transhuge.rst
-@@ -31,10 +31,10 @@ Design principles
-   feature that applies to all dynamic high order allocations in the
-   kernel)
- 
--get_user_pages and follow_page
--==============================
-+get_user_pages and pin_user_pages
-+=================================
- 
--get_user_pages and follow_page if run on a hugepage, will return the
-+get_user_pages and pin_user_pages if run on a hugepage, will return the
- head or tail pages as usual (exactly as they would do on
- hugetlbfs). Most GUP users will only care about the actual physical
- address of the page and its temporary pinning to release after the I/O
---- a/include/linux/mm.h~mm-remove-follow_page
-+++ a/include/linux/mm.h
-@@ -3527,9 +3527,6 @@ static inline vm_fault_t vmf_fs_error(in
- 	return VM_FAULT_SIGBUS;
+--- a/mm/ksm.c~mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk
++++ a/mm/ksm.c
+@@ -608,47 +608,6 @@ static inline bool ksm_test_exit(struct
+ 	return atomic_read(&mm->mm_users) == 0;
  }
  
--struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
--			 unsigned int foll_flags);
--
- static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
- {
- 	if (vm_fault & VM_FAULT_OOM)
---- a/mm/filemap.c~mm-remove-follow_page
-+++ a/mm/filemap.c
-@@ -112,7 +112,7 @@
-  *    ->swap_lock		(try_to_unmap_one)
-  *    ->private_lock		(try_to_unmap_one)
-  *    ->i_pages lock		(try_to_unmap_one)
-- *    ->lruvec->lru_lock	(follow_page->mark_page_accessed)
-+ *    ->lruvec->lru_lock	(follow_page_mask->mark_page_accessed)
-  *    ->lruvec->lru_lock	(check_pte_range->isolate_lru_page)
-  *    ->private_lock		(folio_remove_rmap_pte->set_page_dirty)
-  *    ->i_pages lock		(folio_remove_rmap_pte->set_page_dirty)
---- a/mm/gup.c~mm-remove-follow_page
-+++ a/mm/gup.c
-@@ -1072,28 +1072,6 @@ static struct page *follow_page_mask(str
- 	return page;
- }
- 
--struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
--			 unsigned int foll_flags)
+-static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
+-			struct mm_walk *walk)
 -{
--	struct follow_page_context ctx = { NULL };
--	struct page *page;
+-	struct page *page = NULL;
+-	spinlock_t *ptl;
+-	pte_t *pte;
+-	pte_t ptent;
+-	int ret;
 -
--	if (vma_is_secretmem(vma))
--		return NULL;
+-	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+-	if (!pte)
+-		return 0;
+-	ptent = ptep_get(pte);
+-	if (pte_present(ptent)) {
+-		page = vm_normal_page(walk->vma, addr, ptent);
+-	} else if (!pte_none(ptent)) {
+-		swp_entry_t entry = pte_to_swp_entry(ptent);
 -
--	if (WARN_ON_ONCE(foll_flags & FOLL_PIN))
--		return NULL;
--
--	/*
--	 * We never set FOLL_HONOR_NUMA_FAULT because callers don't expect
--	 * to fail on PROT_NONE-mapped pages.
--	 */
--	page = follow_page_mask(vma, address, foll_flags, &ctx);
--	if (ctx.pgmap)
--		put_dev_pagemap(ctx.pgmap);
--	return page;
+-		/*
+-		 * As KSM pages remain KSM pages until freed, no need to wait
+-		 * here for migration to end.
+-		 */
+-		if (is_migration_entry(entry))
+-			page = pfn_swap_entry_to_page(entry);
+-	}
+-	/* return 1 if the page is an normal ksm page or KSM-placed zero page */
+-	ret = (page && PageKsm(page)) || is_ksm_zero_pte(ptent);
+-	pte_unmap_unlock(pte, ptl);
+-	return ret;
 -}
 -
- static int get_gate_page(struct mm_struct *mm, unsigned long address,
- 		unsigned int gup_flags, struct vm_area_struct **vma,
- 		struct page **page)
-@@ -2519,7 +2497,7 @@ static bool is_valid_gup_args(struct pag
- 	 * These flags not allowed to be specified externally to the gup
- 	 * interfaces:
- 	 * - FOLL_TOUCH/FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
--	 * - FOLL_REMOTE is internal only and used on follow_page()
-+	 * - FOLL_REMOTE is internal only, set in (get|pin)_user_pages_remote()
- 	 * - FOLL_UNLOCKABLE is internal only and used if locked is !NULL
- 	 */
- 	if (WARN_ON_ONCE(gup_flags & INTERNAL_GUP_FLAGS))
---- a/mm/nommu.c~mm-remove-follow_page
-+++ a/mm/nommu.c
-@@ -1578,12 +1578,6 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	return ret;
- }
- 
--struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
--			 unsigned int foll_flags)
--{
--	return NULL;
--}
+-static const struct mm_walk_ops break_ksm_ops = {
+-	.pmd_entry = break_ksm_pmd_entry,
+-	.walk_lock = PGWALK_RDLOCK,
+-};
 -
- int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
- 		unsigned long pfn, unsigned long size, pgprot_t prot)
+-static const struct mm_walk_ops break_ksm_lock_vma_ops = {
+-	.pmd_entry = break_ksm_pmd_entry,
+-	.walk_lock = PGWALK_WRLOCK,
+-};
+-
+ /*
+  * We use break_ksm to break COW on a ksm page by triggering unsharing,
+  * such that the ksm page will get replaced by an exclusive anonymous page.
+@@ -665,16 +624,26 @@ static const struct mm_walk_ops break_ks
+ static int break_ksm(struct vm_area_struct *vma, unsigned long addr, bool lock_vma)
  {
+ 	vm_fault_t ret = 0;
+-	const struct mm_walk_ops *ops = lock_vma ?
+-				&break_ksm_lock_vma_ops : &break_ksm_ops;
++
++	if (lock_vma)
++		vma_start_write(vma);
+ 
+ 	do {
+-		int ksm_page;
++		bool ksm_page = false;
++		struct folio_walk fw;
++		struct folio *folio;
+ 
+ 		cond_resched();
+-		ksm_page = walk_page_range_vma(vma, addr, addr + 1, ops, NULL);
+-		if (WARN_ON_ONCE(ksm_page < 0))
+-			return ksm_page;
++		folio = folio_walk_start(&fw, vma, addr,
++					 FW_MIGRATION | FW_ZEROPAGE);
++		if (folio) {
++			/* Small folio implies FW_LEVEL_PTE. */
++			if (!folio_test_large(folio) &&
++			    (folio_test_ksm(folio) || is_ksm_zero_pte(fw.pte)))
++				ksm_page = true;
++			folio_walk_end(&fw, vma);
++		}
++
+ 		if (!ksm_page)
+ 			return 0;
+ 		ret = handle_mm_fault(vma, addr,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
