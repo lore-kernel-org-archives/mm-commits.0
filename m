@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A60F846434
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47BA47A5C
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247727; cv=none; b=OGiWblS/FAoklGWXcSrWFRuD2zPekXhPWbwXj5bPyhBrrzvOQIwVVR//VP9yGkAJR9oaF7MaZQVIU/EuT5nNUItt66kM9vNwi1oVXEwSYK1h+OIKDWTsDf2SirSulgBRpOJYesckZIOQllNBDYbkHrkVrXWGGaWpT56yYtif6Wo=
+	t=1725247728; cv=none; b=MAcX/dzhsJg+VuhkdLQNHQlEJ5tG3WdCR/zyRjnTDhFk7bT6EMA5ivkR5kl/ztnQFgMPqr99pYqji251Rgicc7JtChPjJOvZ5qqNaHcWh9guBwU6+8F0BPa/lawZfkrb/fXM6f5WbY+zBZnn2nUOwCemab80LJAzYm16z/+AkBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247727; c=relaxed/simple;
-	bh=uJZzXLnBW0iLs4xNLg+stFZZLnygHA0Q8eeLr25xM9M=;
-	h=Date:To:From:Subject:Message-Id; b=ExqHE5abG0tlB0ML5EYgVZtcVLdubC3+Iu6+iup4CzK11Ma3w1g4zTC9nKMH8+0TgszbIIBsGILDd+5DRmyIbXL7T9UeESsBbOpvcRg7swZdOWCCSF3uccNctfHFcLfPWF6PT1Sl7sSrOnnn5StDz02iNkkDAaZlRR4GXkie6CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=08+YVE4b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247728; c=relaxed/simple;
+	bh=yu7C8DgsbrybH5Wa9gfiHUGmk9iqHNekoHDk30YL88M=;
+	h=Date:To:From:Subject:Message-Id; b=DO5k+SLDbVjHL7OVlstoQTySuCoESMQ79BHje/nGiIMj5dt0Cj0+B+9JnWE7Nc4szmRccsaT7Ii2SAybz/gtAsWmdYje5gI5kiArqpFF81so2rTrshI632HxkXvSEoQ7TZXrsiTQGaT8EO1spnH/jbZNClKmYGq/ymCqHJkIpD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DoN9r9gI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="08+YVE4b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBCEC4CEC2;
-	Mon,  2 Sep 2024 03:28:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DoN9r9gI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AABFC4CEC2;
+	Mon,  2 Sep 2024 03:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247727;
-	bh=uJZzXLnBW0iLs4xNLg+stFZZLnygHA0Q8eeLr25xM9M=;
+	s=korg; t=1725247728;
+	bh=yu7C8DgsbrybH5Wa9gfiHUGmk9iqHNekoHDk30YL88M=;
 	h=Date:To:From:Subject:From;
-	b=08+YVE4bz+zg/NbmOcbXjhvz2ouh3P97b4YTbMIDJSfwe7teTuMlUcCM6zF73FPgG
-	 KW13N7FcMdKgosEmPMwioY4Wub8rcpzR00D4UkWE6fnB+kVXfck0COYSzh2wMDx4wd
-	 6zgjMzwx38wZHlh750BhSS8TZ/GubB7NB43QBGWY=
-Date: Sun, 01 Sep 2024 20:28:47 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,masahiroy@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=DoN9r9gImb/Vu0IE5kNwlIFPLm/GiwOVYhV6cXNbkO3H3G/gCzFBJRU1wOahXDR/9
+	 i27KXB2OgZ1hrBTKfaK7mhYEeWwFOvw3SodkCE1ILaQvKgGGB+v+DG7Pc5Em0WU8Ap
+	 LgyHSjo20elQ2ZCMy3picu78R8GILXdShtAsTcDY=
+Date: Sun, 01 Sep 2024 20:28:48 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,muchun.song@linux.dev,jack@suse.cz,brauner@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-get-rid-of-__ref.patch removed from -mm tree
-Message-Id: <20240902032847.7DBCEC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch removed from -mm tree
+Message-Id: <20240902032848.9AABFC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,142 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: get rid of __ref
+     Subject: mm/hugetlb: remove hugetlb_follow_page_mask() leftover
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-get-rid-of-__ref.patch
+     mm-hugetlb-remove-hugetlb_follow_page_mask-leftover.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memory_hotplug: get rid of __ref
-Date: Fri, 26 Jul 2024 01:01:57 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/hugetlb: remove hugetlb_follow_page_mask() leftover
+Date: Wed, 31 Jul 2024 16:20:00 +0200
 
-After commit 73db3abdca58 ("init/modpost: conditionally check section
-mismatch to __meminit*"), we can get rid of __ref annotations.
+We removed hugetlb_follow_page_mask() in commit 9cb28da54643 ("mm/gup:
+handle hugetlb in the generic follow_page_mask code") but forgot to
+cleanup some leftovers.
 
-Link: https://lkml.kernel.org/r/20240726010157.6177-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+While at it, simplify the hugetlb comment, it's overly detailed and rather
+confusing.  Stating that we may end up in there during coredumping is
+sufficient to explain the PF_DUMPCORE usage.
+
+Link: https://lkml.kernel.org/r/20240731142000.625044-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/userfaultfd.c        |   11 ++---------
+ include/linux/hugetlb.h |    3 ---
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-__ref
-+++ a/mm/memory_hotplug.c
-@@ -366,7 +366,7 @@ struct page *pfn_to_online_page(unsigned
- }
- EXPORT_SYMBOL_GPL(pfn_to_online_page);
+--- a/fs/userfaultfd.c~mm-hugetlb-remove-hugetlb_follow_page_mask-leftover
++++ a/fs/userfaultfd.c
+@@ -371,15 +371,8 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	unsigned int blocking_state;
  
--int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
-+int __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
- 		struct mhp_params *params)
- {
- 	const unsigned long end_pfn = pfn + nr_pages;
-@@ -524,7 +524,7 @@ static void update_pgdat_span(struct pgl
- 	pgdat->node_spanned_pages = node_end_pfn - node_start_pfn;
- }
- 
--void __ref remove_pfn_range_from_zone(struct zone *zone,
-+void remove_pfn_range_from_zone(struct zone *zone,
- 				      unsigned long start_pfn,
- 				      unsigned long nr_pages)
- {
-@@ -629,7 +629,7 @@ int restore_online_page_callback(online_
- EXPORT_SYMBOL_GPL(restore_online_page_callback);
- 
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--void __ref generic_online_page(struct page *page, unsigned int order)
-+void generic_online_page(struct page *page, unsigned int order)
- {
- 	__free_pages_core(page, order, MEMINIT_HOTPLUG);
- }
-@@ -741,7 +741,7 @@ static inline void section_taint_zone_de
-  * (usually MIGRATE_MOVABLE). Besides setting the migratetype, no related
-  * zone stats (e.g., nr_isolate_pageblock) are touched.
-  */
--void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
-+void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
- 				  unsigned long nr_pages,
- 				  struct vmem_altmap *altmap, int migratetype)
- {
-@@ -1143,7 +1143,7 @@ void mhp_deinit_memmap_on_memory(unsigne
- /*
-  * Must be called with mem_hotplug_lock in write mode.
-  */
--int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
-+int online_pages(unsigned long pfn, unsigned long nr_pages,
- 		       struct zone *zone, struct memory_group *group)
- {
- 	unsigned long flags;
-@@ -1233,7 +1233,7 @@ failed_addition:
- }
- 
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--static pg_data_t __ref *hotadd_init_pgdat(int nid)
-+static pg_data_t *hotadd_init_pgdat(int nid)
- {
- 	struct pglist_data *pgdat;
- 
-@@ -1386,7 +1386,7 @@ bool mhp_supports_memmap_on_memory(void)
- }
- EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
- 
--static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
-+static void remove_memory_blocks_and_altmaps(u64 start, u64 size)
- {
- 	unsigned long memblock_size = memory_block_size_bytes();
- 	u64 cur_start;
-@@ -1473,7 +1473,7 @@ out:
-  *
-  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
-  */
--int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
-+int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- {
- 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
- 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
-@@ -1580,7 +1580,7 @@ error_mem_hotplug_end:
- }
- 
- /* requires device_hotplug_lock, see add_memory_resource() */
--int __ref __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
-+int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
- {
- 	struct resource *res;
- 	int ret;
-@@ -1939,7 +1939,7 @@ static int count_system_ram_pages_cb(uns
- /*
-  * Must be called with mem_hotplug_lock in write mode.
-  */
--int __ref offline_pages(unsigned long start_pfn, unsigned long nr_pages,
-+int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
- 			struct zone *zone, struct memory_group *group)
- {
- 	const unsigned long end_pfn = start_pfn + nr_pages;
-@@ -2240,7 +2240,7 @@ static int memory_blocks_have_altmaps(u6
- 	return 1;
- }
- 
--static int __ref try_remove_memory(u64 start, u64 size)
-+static int try_remove_memory(u64 start, u64 size)
- {
- 	int rc, nid = NUMA_NO_NODE;
- 
+ 	/*
+-	 * We don't do userfault handling for the final child pid update.
+-	 *
+-	 * We also don't do userfault handling during
+-	 * coredumping. hugetlbfs has the special
+-	 * hugetlb_follow_page_mask() to skip missing pages in the
+-	 * FOLL_DUMP case, anon memory also checks for FOLL_DUMP with
+-	 * the no_page_table() helper in follow_page_mask(), but the
+-	 * shmem_vm_ops->fault method is invoked even during
+-	 * coredumping and it ends up here.
++	 * We don't do userfault handling for the final child pid update
++	 * and when coredumping (faults triggered by get_dump_page()).
+ 	 */
+ 	if (current->flags & (PF_EXITING|PF_DUMPCORE))
+ 		goto out;
+--- a/include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_follow_page_mask-leftover
++++ a/include/linux/hugetlb.h
+@@ -127,9 +127,6 @@ int move_hugetlb_page_tables(struct vm_a
+ 			     unsigned long len);
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *,
+ 			    struct vm_area_struct *, struct vm_area_struct *);
+-struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
+-				      unsigned long address, unsigned int flags,
+-				      unsigned int *page_mask);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+ 			  zap_flags_t);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-maple_tree-arange64-node-is-not-a-leaf-node.patch
-maple_tree-dump-error-message-based-on-format.patch
-maple_tree-cleanup-function-descriptions.patch
-maple_tree-fix-comment-typo-on-ma_flag-of-allocation-tree.patch
-maple_tree-use-ma_data_end-in-mas_data_end.patch
-maple_tree-use-mas_safe_pivot-to-get-the-pivot-range.patch
-maple_tree-local-variable-count-is-not-necessary.patch
+mm-rmap-use-folio-_mapcount-for-small-folios.patch
+mm-always-inline-_compound_head-with-config_hugetlb_page_optimize_vmemmap=y.patch
+selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
