@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48D01388
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 01:02:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E85DEEC8
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 01:26:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725238978; cv=none; b=MeW/Fa007nuGg88KqcAwU/jnwZvlFUoRHEzMdE/LOV+PPxaSqzQpRMauZuHym06w9FaoJSlerVhYu5e8g5dmgw0V21+gJ0ZwfOflUpeVpsreSoURyRcfkrPw+5QaWROR+J6Ahfij3AETqyRZJ5jruwCj8jv2+nVR8jjl08wT4sw=
+	t=1725240360; cv=none; b=OYEKnhmS36ZLvrKeYaQYXgXKpSHmQFO4FKj4Ze5WUx/qBla3nTk5VTe2JM465RwZSlhCohW+rxNWIDUtTFrbF+C2NkxQN/A+Juwgq+WGAS+LbTCz2Wu3a6taYfqj9Atsh4RXGyrUiopbsHqJTmGo0QUW6AZGs4dpdxnyj5BWEOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725238978; c=relaxed/simple;
-	bh=H0DxhmIcMKncynCtt0PlqadqVPA7msg1V4RPHEB4kCs=;
-	h=Date:To:From:Subject:Message-Id; b=M8c/rimFO8C0Bx1BBKz/Otg7eMcP8qvL24jhK7cQRYFC41OX1x1k0LjZiyhuBKyU/0aLqX3INarnajp91ZBoHhRfglvjTthD+JWxfRd8Vvq1W8Ud/9JZ+EHt+8PuB3JrThwDVO9oCUjbCkc0pDa5fjoNdneNadfwGqlKpMYNFSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EgQKvEOs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725240360; c=relaxed/simple;
+	bh=VvtsdtXmMGq/IfhKc45DjgS3NAjrzKeoKHrINqYzqVE=;
+	h=Date:To:From:Subject:Message-Id; b=k8Neq8Qu7fap/B4x1Fmg9wrbNNaHlrI4zr+zbR/Mzy+q8B62E8Pt6YWF7RLx+L7DTzOQw6oABH5L13RvqHOi6t+oi9yBdhtRyPGIPlWKrPpUS/jzWRSM+aARYc+E4IWL8xgkmv0ZikjpSIsiey9TQwzIxzqJ/cI4KmNk8U3F0fI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3T87q5d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EgQKvEOs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98575C4CEC3;
-	Mon,  2 Sep 2024 01:02:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3T87q5d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C282C4CEC3;
+	Mon,  2 Sep 2024 01:26:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725238978;
-	bh=H0DxhmIcMKncynCtt0PlqadqVPA7msg1V4RPHEB4kCs=;
+	s=korg; t=1725240360;
+	bh=VvtsdtXmMGq/IfhKc45DjgS3NAjrzKeoKHrINqYzqVE=;
 	h=Date:To:From:Subject:From;
-	b=EgQKvEOs4TbMzYeXD8r7YgaP78k5/OWPzMsBoYFvREFSJq7dAuUqwYowW8msrIGZm
-	 N6bVRNNOn+dqxIypG5TjXYiR7lYjZN7ay59D7w1DNE4j0ergh6b3FMQopLVqXcHDXD
-	 G1TMqKHrDmut3r4WXyJ6Fb/EOGcq6gmdZtQFT6T0=
-Date: Sun, 01 Sep 2024 18:02:58 -0700
-To: mm-commits@vger.kernel.org,dakr@kernel.org,akpm@linux-foundation.org
+	b=F3T87q5d/TXYhwl49qZv2Ssr6tG6vUFt5lPl2fZUlBOrCDmc2mJaJ++oWww5bUjx6
+	 LXEUzUeppDzf5lHfhyZBgDxsOESYn6HEX0T3TZ5mN0SLRIZ6fShB/c4OyD4JNHkIvt
+	 ZaaS0TtlBSFHT5eRbUINurwGvuqg9TPfH0eGt3aA=
+Date: Sun, 01 Sep 2024 18:25:59 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3.patch removed from -mm tree
-Message-Id: <20240902010258.98575C4CEC3@smtp.kernel.org>
+Subject: + mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch added to mm-unstable branch
+Message-Id: <20240902012600.4C282C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,61 +34,87 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: kvrealloc: properly document __GFP_ZERO behavior
-has been removed from the -mm tree.  Its filename was
-     mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3.patch
+The patch titled
+     Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
 
-This patch was dropped because it was folded into mm-kvmalloc-align-kvrealloc-with-krealloc.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Danilo Krummrich <dakr@kernel.org>
-Subject: mm: kvrealloc: properly document __GFP_ZERO behavior
-Date: Tue, 30 Jul 2024 20:49:44 +0200
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
+Date: Fri, 2 Aug 2024 21:14:17 -0700
 
-Properly document that if __GFP_ZERO logic is requested, callers must
-ensure that, starting with the initial memory allocation, every subsequent
-call to this API for the same memory allocation is flagged with
-__GFP_ZERO.  Otherwise, it is possible that __GFP_ZERO is not fully
-honored by this API.
+move the spin_lock/unlock() closer to the loop to make the critical
+section more obvious, and unify the comments above and below into a single
+block.
 
-Link: https://lkml.kernel.org/r/20240730185049.6244-5-dakr@kernel.org
-Signed-off-by: Danilo Krummrich <dakr@kernel.org>
+Link: https://lkml.kernel.org/r/CAJD7tkaScz+SbB90Q1d5mMD70UfM2a-J2zhXDT9sePR7Qap45Q@mail.gmail.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Takero Funaki <flintglass@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/zswap.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/mm/util.c~mm-kvmalloc-align-kvrealloc-with-krealloc-fix-3
-+++ a/mm/util.c
-@@ -726,12 +726,17 @@ EXPORT_SYMBOL(kvfree_sensitive);
-  * @size: the size to reallocate
-  * @flags: the flags for the page level allocator
-  *
-- * The contents of the object pointed to are preserved up to the lesser of the
-- * new and old size (__GFP_ZERO flag is effectively ignored).
-- *
-  * If @p is %NULL, kvrealloc() behaves exactly like kvmalloc(). If @size is 0
-  * and @p is not a %NULL pointer, the object pointed to is freed.
-  *
-+ * If __GFP_ZERO logic is requested, callers must ensure that, starting with the
-+ * initial memory allocation, every subsequent call to this API for the same
-+ * memory allocation is flagged with __GFP_ZERO. Otherwise, it is possible that
-+ * __GFP_ZERO is not fully honored by this API.
-+ *
-+ * In any case, the contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.
-+ *
-  * This function must not be called concurrently with itself or kvfree() for the
-  * same memory allocation.
-  *
+--- a/mm/zswap.c~mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
++++ a/mm/zswap.c
+@@ -1335,24 +1335,22 @@ static void shrink_worker(struct work_st
+ 	 * until the next run of shrink_worker().
+ 	 */
+ 	do {
+-		spin_lock(&zswap_shrink_lock);
+-
+ 		/*
+ 		 * Start shrinking from the next memcg after zswap_next_shrink.
+ 		 * When the offline cleaner has already advanced the cursor,
+ 		 * advancing the cursor here overlooks one memcg, but this
+ 		 * should be negligibly rare.
++		 *
++		 * If we get an online memcg, keep the extra reference in case
++		 * the original one obtained by mem_cgroup_iter() is dropped by
++		 * zswap_memcg_offline_cleanup() while we are shrinking the
++		 * memcg.
+ 		 */
++		spin_lock(&zswap_shrink_lock);
+ 		do {
+ 			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
+ 			zswap_next_shrink = memcg;
+ 		} while (memcg && !mem_cgroup_tryget_online(memcg));
+-		/*
+-		 * Note that if we got an online memcg, we will keep the extra
+-		 * reference in case the original reference obtained by mem_cgroup_iter
+-		 * is dropped by the zswap memcg offlining callback, ensuring that the
+-		 * memcg is not killed when we are reclaiming.
+-		 */
+ 		spin_unlock(&zswap_shrink_lock);
+ 
+ 		if (!memcg) {
 _
 
-Patches currently in -mm which might be from dakr@kernel.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-vmalloc-implement-vrealloc.patch
-mm-kvmalloc-align-kvrealloc-with-krealloc.patch
-mm-krealloc-consider-spare-memory-for-__gfp_zero.patch
-mm-krealloc-clarify-valid-usage-of-__gfp_zero.patch
+mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
+mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch
 
