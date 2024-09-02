@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E3036F2F3
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 087A573477
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247765; cv=none; b=BMIsaSpmIgocPOBkpjUJ+7YKMBQzzDowbSbj+TD5T2qf0hCaAylmcTZfIonpNVuBbKqx0MFRskbfdlXmKUEdv1JpXGEdNJOUVLHEHAztqpy+0CY6/EsEZAOg+PdE/tgITzDazR7VlzWn2lwfOO6o/c6nHoN3H9R1b951KF57Af4=
+	t=1725247767; cv=none; b=boaHCtZDNGbp12qkYKZxYPk9udueZ+75V+KrQRff1FKe91whYNKs6CUpGrLLCA9YtZ/0p7col9njGqPrJtq+r1pQ8oOYXZIT1jGvBl0xFSV5h5P4+Ejczbh6ZbkfhaROvaVM1wz9v/Vv3f9oHj+wbC6Pm5GlKLWyLrRXKw12Luc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247765; c=relaxed/simple;
-	bh=ONetgZwF5xhNi8EMqV8fIRLj9YoYFDZgvWLcwIzFRfk=;
-	h=Date:To:From:Subject:Message-Id; b=NqHvwOq4Y+GtWaiXLhKt14C+/6Wn3Irl6xo699DWGONrwYlCGqnlPxEhdQLLUiHdQTM8e+AtRDL7lodV8BYFnfkeZJa2DwxlR6PDww1QRvT0IKtxYfOZKvEezqW/oiwzzgO2ogn1jiXVMCBsMpi4TJPGIYHliEPPNkB4UPdZeB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GYFt15xC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247767; c=relaxed/simple;
+	bh=rKNXG7GLEZ6S0v+KbEvedC78cCE/Che8XTbnVEQ9XOY=;
+	h=Date:To:From:Subject:Message-Id; b=NhJsRBaGe2DVsoiJs8Lj6HMi+nsq7qVLjEgVaXW//ubTfiDLzI8efwIjfgPa7IV9l71Wu+sAfJ3+4wx4OvZQOPebPcuk7G3T7ESSIsgQPgUrov1AvGC3kCclQHfghLDjl8aDk2yCMFR1ua+DpeZd04i6huOomTtQ0yrTvtnfB/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPqtGGpN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GYFt15xC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C249BC4CEC2;
-	Mon,  2 Sep 2024 03:29:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPqtGGpN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D36E3C4CEC2;
+	Mon,  2 Sep 2024 03:29:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247763;
-	bh=ONetgZwF5xhNi8EMqV8fIRLj9YoYFDZgvWLcwIzFRfk=;
+	s=korg; t=1725247766;
+	bh=rKNXG7GLEZ6S0v+KbEvedC78cCE/Che8XTbnVEQ9XOY=;
 	h=Date:To:From:Subject:From;
-	b=GYFt15xCqnga84Z1vzumQaxCEwpRyvVUqy9PLq04QvlqraY3UzRQH4STTXv4rixNF
-	 wSVUltry3eAOdHbjFV19xeTaDNzdZwpFZMw+9IXCSHI2TMokhaouUSK/QozM0nb04i
-	 x8Wm4Cd0Z1IOTHoE5Bzg82kB9Sc/8TsB+Fm+/a9w=
-Date: Sun, 01 Sep 2024 20:29:23 -0700
-To: mm-commits@vger.kernel.org,jannh@google.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
+	b=QPqtGGpNPmn2uYw3MPzaBfTDGMHdGAHlwDbIp2fmL515mgBxu6Iy4F2iAnzwEbV5s
+	 jbb7OhjnVaNc4vP6NntfWKq+BoVghYyL/84V9wi3ZYS2757LAmQwWuVpn4ydHB+a5T
+	 IVRMwurO+/dDG4au068RtdbXJjn/LvKfVYXDmbxk=
+Date: Sun, 01 Sep 2024 20:29:26 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kfence-introduce-burst-mode.patch removed from -mm tree
-Message-Id: <20240902032923.C249BC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping.patch removed from -mm tree
+Message-Id: <20240902032926.D36E3C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,169 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kfence: introduce burst mode
+     Subject: mm/rmap: minimize folio->_nr_pages_mapped updates when batching PTE (un)mapping
 has been removed from the -mm tree.  Its filename was
-     kfence-introduce-burst-mode.patch
+     mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: introduce burst mode
-Date: Mon, 5 Aug 2024 14:39:39 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: minimize folio->_nr_pages_mapped updates when batching PTE (un)mapping
+Date: Wed, 7 Aug 2024 13:55:15 +0200
 
-Introduce burst mode, which can be configured with kfence.burst=$count,
-where the burst count denotes the additional successive slab allocations
-to be allocated through KFENCE for each sample interval.
+It is not immediately obvious, but we can move the folio->_nr_pages_mapped
+update out of the loop and reduce the number of atomic ops without
+affecting the stats.
 
-The idea is that this can give developers an additional knob to make
-KFENCE more aggressive when debugging specific issues of systems where
-either rebooting or recompiling the kernel with KASAN is not possible.
+The important point to realize is that only removing the last PMD mapping
+will result in _nr_pages_mapped going below ENTIRELY_MAPPED, not the
+individual atomic_inc_return_relaxed() calls.  Concurrent races with
+removal of PMD mappings should be handled as expected, just like when we
+would have such races right now on a single mapcount update.
 
-Experiment: To assess the effectiveness of the new option, we randomly
-picked a recent out-of-bounds [1] and use-after-free bug [2], each with a
-reproducer provided by syzbot, that initially detected these bugs with
-KASAN.  We then tried to reproduce the bugs with KFENCE below.
+In a simple munmap() microbenchmark [1] on 1 GiB of memory backed by the
+same PTE-mapped folio size (only mapped by a single process such that they
+will get completely unmapped), this change results in a speedup (positive
+is good) per folio size on a x86-64 Intel machine of roughly (a bit of
+noise expected):
 
-[1] Fixed by: 7c55b78818cf ("jfs: xattr: fix buffer overflow for invalid xattr")
-    https://syzkaller.appspot.com/bug?id=9d1b59d4718239da6f6069d3891863c25f9f24a2
-[2] Fixed by: f8ad00f3fb2a ("l2tp: fix possible UAF when cleaning up tunnels")
-    https://syzkaller.appspot.com/bug?id=4f34adc84f4a3b080187c390eeef60611fd450e1
+* 16 KiB: +10%
+* 32 KiB: +15%
+* 64 KiB: +17%
+* 128 KiB: +21%
+* 256 KiB: +22%
+* 512 KiB: +22%
+* 1024 KiB: +23%
+* 2048 KiB: +27%
 
-The following KFENCE configs were compared. A pool size of 1023 objects
-was used for all configurations.
+[1] https://gitlab.com/davidhildenbrand/scratchspace/-/blob/main/pte-mapped-folio-benchmarks.c
 
-	Baseline
-		kfence.sample_interval=100
-		kfence.skip_covered_thresh=75
-		kfence.burst=0
-
-	Aggressive
-		kfence.sample_interval=1
-		kfence.skip_covered_thresh=10
-		kfence.burst=0
-
-	AggressiveBurst
-		kfence.sample_interval=1
-		kfence.skip_covered_thresh=10
-		kfence.burst=1000
-
-Each reproducer was run 10 times (after a fresh reboot), with the
-following detection counts for each KFENCE config:
-
-                    | Detection Count out of 10 |
-                    |    OOB [1]  |    UAF [2]  |
-  ------------------+-------------+-------------+
-  Default           |     0/10    |     0/10    |
-  Aggressive        |     0/10    |     0/10    |
-  AggressiveBurst   |     8/10    |     8/10    |
-
-With the Default and even the Aggressive configs the results are
-unsurprising, given KFENCE has not been designed for deterministic bug
-detection of small test cases.
-
-However, when enabling burst mode with relatively large burst count,
-KFENCE can start to detect heap memory-safety bugs even in simpler test
-cases with high probability (in the above cases with ~80% probability).
-
-Link: https://lkml.kernel.org/r/20240805124203.2692278-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20240807115515.1640951-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kfence.rst |    7 +++++++
- include/linux/kfence.h             |    2 +-
- mm/kfence/core.c                   |   14 ++++++++++----
- 3 files changed, 18 insertions(+), 5 deletions(-)
+ mm/rmap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/Documentation/dev-tools/kfence.rst~kfence-introduce-burst-mode
-+++ a/Documentation/dev-tools/kfence.rst
-@@ -53,6 +53,13 @@ configurable via the Kconfig option ``CO
-    The KUnit test suite is very likely to fail when using a deferrable timer
-    since it currently causes very unpredictable sample intervals.
+--- a/mm/rmap.c~mm-rmap-minimize-folio-_nr_pages_mapped-updates-when-batching-pte-unmapping
++++ a/mm/rmap.c
+@@ -1158,7 +1158,7 @@ static __always_inline unsigned int __fo
+ {
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
+ 	const int orig_nr_pages = nr_pages;
+-	int first, nr = 0;
++	int first = 0, nr = 0;
  
-+By default KFENCE will only sample 1 heap allocation within each sample
-+interval. *Burst mode* allows to sample successive heap allocations, where the
-+kernel boot parameter ``kfence.burst`` can be set to a non-zero value which
-+denotes the *additional* successive allocations within a sample interval;
-+setting ``kfence.burst=N`` means that ``1 + N`` successive allocations are
-+attempted through KFENCE for each sample interval.
+ 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+ 
+@@ -1170,13 +1170,13 @@ static __always_inline unsigned int __fo
+ 		}
+ 
+ 		do {
+-			first = atomic_inc_and_test(&page->_mapcount);
+-			if (first) {
+-				first = atomic_inc_return_relaxed(mapped);
+-				if (first < ENTIRELY_MAPPED)
+-					nr++;
+-			}
++			first += atomic_inc_and_test(&page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
 +
- The KFENCE memory pool is of fixed size, and if the pool is exhausted, no
- further KFENCE allocations occur. With ``CONFIG_KFENCE_NUM_OBJECTS`` (default
- 255), the number of available guarded objects can be controlled. Each object
---- a/include/linux/kfence.h~kfence-introduce-burst-mode
-+++ a/include/linux/kfence.h
-@@ -124,7 +124,7 @@ static __always_inline void *kfence_allo
- 	if (!static_branch_likely(&kfence_allocation_key))
- 		return NULL;
- #endif
--	if (likely(atomic_read(&kfence_allocation_gate)))
-+	if (likely(atomic_read(&kfence_allocation_gate) > 0))
- 		return NULL;
- 	return __kfence_alloc(s, size, flags);
- }
---- a/mm/kfence/core.c~kfence-introduce-burst-mode
-+++ a/mm/kfence/core.c
-@@ -99,6 +99,10 @@ module_param_cb(sample_interval, &sample
- static unsigned long kfence_skip_covered_thresh __read_mostly = 75;
- module_param_named(skip_covered_thresh, kfence_skip_covered_thresh, ulong, 0644);
- 
-+/* Allocation burst count: number of excess KFENCE allocations per sample. */
-+static unsigned int kfence_burst __read_mostly;
-+module_param_named(burst, kfence_burst, uint, 0644);
++		if (first &&
++		    atomic_add_return_relaxed(first, mapped) < ENTIRELY_MAPPED)
++			nr = first;
 +
- /* If true, use a deferrable timer. */
- static bool kfence_deferrable __read_mostly = IS_ENABLED(CONFIG_KFENCE_DEFERRABLE);
- module_param_named(deferrable, kfence_deferrable, bool, 0444);
-@@ -827,12 +831,12 @@ static void toggle_allocation_gate(struc
- 	if (!READ_ONCE(kfence_enabled))
- 		return;
+ 		atomic_add(orig_nr_pages, &folio->_large_mapcount);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+@@ -1527,7 +1527,7 @@ static __always_inline void __folio_remo
+ 		enum rmap_level level)
+ {
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
+-	int last, nr = 0, nr_pmdmapped = 0;
++	int last = 0, nr = 0, nr_pmdmapped = 0;
+ 	bool partially_mapped = false;
  
--	atomic_set(&kfence_allocation_gate, 0);
-+	atomic_set(&kfence_allocation_gate, -kfence_burst);
- #ifdef CONFIG_KFENCE_STATIC_KEYS
- 	/* Enable static key, and await allocation to happen. */
- 	static_branch_enable(&kfence_allocation_key);
+ 	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+@@ -1541,14 +1541,13 @@ static __always_inline void __folio_remo
  
--	wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate));
-+	wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate) > 0);
+ 		atomic_sub(nr_pages, &folio->_large_mapcount);
+ 		do {
+-			last = atomic_add_negative(-1, &page->_mapcount);
+-			if (last) {
+-				last = atomic_dec_return_relaxed(mapped);
+-				if (last < ENTIRELY_MAPPED)
+-					nr++;
+-			}
++			last += atomic_add_negative(-1, &page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
  
- 	/* Disable static key and reset timer. */
- 	static_branch_disable(&kfence_allocation_key);
-@@ -1052,6 +1056,7 @@ void *__kfence_alloc(struct kmem_cache *
- 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
- 	size_t num_stack_entries;
- 	u32 alloc_stack_hash;
-+	int allocation_gate;
- 
- 	/*
- 	 * Perform size check before switching kfence_allocation_gate, so that
-@@ -1080,14 +1085,15 @@ void *__kfence_alloc(struct kmem_cache *
- 	if (s->flags & SLAB_SKIP_KFENCE)
- 		return NULL;
- 
--	if (atomic_inc_return(&kfence_allocation_gate) > 1)
-+	allocation_gate = atomic_inc_return(&kfence_allocation_gate);
-+	if (allocation_gate > 1)
- 		return NULL;
- #ifdef CONFIG_KFENCE_STATIC_KEYS
- 	/*
- 	 * waitqueue_active() is fully ordered after the update of
- 	 * kfence_allocation_gate per atomic_inc_return().
- 	 */
--	if (waitqueue_active(&allocation_wait)) {
-+	if (allocation_gate == 1 && waitqueue_active(&allocation_wait)) {
- 		/*
- 		 * Calling wake_up() here may deadlock when allocations happen
- 		 * from within timer code. Use an irq_work to defer it.
++		if (last &&
++		    atomic_sub_return_relaxed(last, mapped) < ENTIRELY_MAPPED)
++			nr = last;
++
+ 		partially_mapped = nr && atomic_read(mapped);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-rmap-use-folio-_mapcount-for-small-folios.patch
+mm-always-inline-_compound_head-with-config_hugetlb_page_optimize_vmemmap=y.patch
+selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
