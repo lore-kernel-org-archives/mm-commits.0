@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A59115383E
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D22A14AD0A
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248818; cv=none; b=saWM+h9vOjUMRlqi6yNWUetWk8meLGYjyogUx2sXPJ01A/Sgny5ZEaRQbDyMnVEZa4J9LiZ2sbA5zbSmPX3EEdbOkq6G3mK6sXkHi0UedmfATJz19t8pCqVCbACDWXyP987G6Rm4Kz1xJ/GdDYL73gvy8ixi/JT+RQ4x5mdvjK8=
+	t=1725248819; cv=none; b=qtC0gY1jig15CVew1Zm7NT2pLJyhV0HhLgOtBqxt8fC+365AAvOJX/2NWcSXQnjjZ68CmI3HD+a+dfhoBozI4Q7Wxtl3EaEZ/mESodrdfK5WSPCxzsNfRTEOJsg0nHIodIgPF7k0M6YdV1+JXy+fVgIc7GoqvtpfcquBHsHSl+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248818; c=relaxed/simple;
-	bh=ZQwsagqO/Ofrg+2GyzmUCXmU6dfWOIdUm+Val7AVDXY=;
-	h=Date:To:From:Subject:Message-Id; b=Bc8QQDrGPbJDydo6WFGZJl1CWtYz61g6NGlDrKnk8N+pT/AVX70ibscZs/FILFMxT13lnFbghwH5ck+bC0SK3ZXB/AI7DmiR6+hiS7AuJfDBTfH7Sdu5tlytkPEi4wn4p25DSaFVn/wv6fi0cYoKBKemYjDjmLxZtD5FqfuCmU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HqJ7z5lu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248819; c=relaxed/simple;
+	bh=bKtQy/p1V4ZfAnHuxU6AJhAtGiPlBe66R3vl75KUdQU=;
+	h=Date:To:From:Subject:Message-Id; b=CE4G7AYppcfaN1snxPaXdLePeTsmU3QaK3nJHnJ7VWqUa/wOsYqysZT3t3n9H4H4+pXjsieZRbEbf/hs2emjSGLPViqi57MCkGB6L/yZfceqrK1dXQdjLHhaYTLEhimrKnpoPn6oBkN5FSaw4sbZzDnAM8/ZxZvusjD9Tpv2RBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XgOm+6+s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HqJ7z5lu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E682C4CEC2;
-	Mon,  2 Sep 2024 03:46:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XgOm+6+s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26BFDC4CEC2;
+	Mon,  2 Sep 2024 03:46:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248818;
-	bh=ZQwsagqO/Ofrg+2GyzmUCXmU6dfWOIdUm+Val7AVDXY=;
+	s=korg; t=1725248819;
+	bh=bKtQy/p1V4ZfAnHuxU6AJhAtGiPlBe66R3vl75KUdQU=;
 	h=Date:To:From:Subject:From;
-	b=HqJ7z5luwknewUzmDxNHcwOr9xSrBQreUuHgRXLYX8yREPclmCLs49w8L/ocONbwp
-	 fMzTf892+UQ4Zczp/XNmmOnrU7kGqRc3P3Aje110lZg3eOYnP/k8TC3ci4DYBHQwmk
-	 7BQDChniNF7WMNZeBpsa15c2bYlAyOBvWqQucyDE=
-Date: Sun, 01 Sep 2024 20:46:57 -0700
+	b=XgOm+6+sVbDodrkQoNYA+GwnrFeg3Cag8pJYXWr+XoshU3bW4Agf7a3BwzubNam1V
+	 rEO1ZJ2cKw6pt1ktCQTvfdPjOreBBxOjs6sY+sezMbDnSWD7CJgSQ/EITHvAU2N+Tt
+	 EzRazmzPZaM2vykp9r8Pfa2FvUjcRCOtwltPw9Q8=
+Date: Sun, 01 Sep 2024 20:46:58 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-add-support-for-fs_ioc_setfslabel.patch removed from -mm tree
-Message-Id: <20240902034658.0E682C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch removed from -mm tree
+Message-Id: <20240902034659.26BFDC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,116 +35,154 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: add support for FS_IOC_SETFSLABEL
+     Subject: nilfs2: do not output warnings when clearing dirty buffers
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-support-for-fs_ioc_setfslabel.patch
+     nilfs2-do-not-output-warnings-when-clearing-dirty-buffers.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: add support for FS_IOC_SETFSLABEL
-Date: Thu, 15 Aug 2024 16:44:08 +0900
+Subject: nilfs2: do not output warnings when clearing dirty buffers
+Date: Fri, 16 Aug 2024 18:01:28 +0900
 
-Implement support for FS_IOC_SETFSLABEL ioctl to write filesystem label.
+After detecting file system corruption and degrading to a read-only mount,
+dirty folios and buffers in the page cache are cleared, and a large number
+of warnings are output at that time, often filling up the kernel log.
 
-Link: https://lkml.kernel.org/r/20240815074408.5550-5-konishi.ryusuke@gmail.com
+In this case, since the degrading to a read-only mount is output to the
+kernel log, these warnings are not very meaningful, and are rather a
+nuisance in system management and debugging.
+
+The related nilfs2-specific page/folio routines have a silent argument
+that suppresses the warning output, but since it is not currently used
+meaningfully, remove both the silent argument and the warning output.
+
+Link: https://lkml.kernel.org/r/20240816090128.4561-1-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   65 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ fs/nilfs2/inode.c |    4 ++--
+ fs/nilfs2/mdt.c   |    6 +++---
+ fs/nilfs2/page.c  |   19 +++----------------
+ fs/nilfs2/page.h  |    4 ++--
+ 4 files changed, 10 insertions(+), 23 deletions(-)
 
---- a/fs/nilfs2/ioctl.c~nilfs2-add-support-for-fs_ioc_setfslabel
-+++ a/fs/nilfs2/ioctl.c
-@@ -1290,6 +1290,68 @@ static int nilfs_ioctl_get_fslabel(struc
- 	return 0;
- }
+--- a/fs/nilfs2/inode.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
++++ a/fs/nilfs2/inode.c
+@@ -162,7 +162,7 @@ static int nilfs_writepages(struct addre
+ 	int err = 0;
  
-+/**
-+ * nilfs_ioctl_set_fslabel - set the volume name of the file system
-+ * @sb:   super block instance
-+ * @filp: file object
-+ * @argp: pointer to userspace memory that contains the volume name
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EFAULT	- Error copying input data.
-+ * * %-EINVAL	- Label length exceeds record size in superblock.
-+ * * %-EIO	- I/O error.
-+ * * %-EPERM	- Operation not permitted (insufficient permissions).
-+ * * %-EROFS	- Read only file system.
-+ */
-+static int nilfs_ioctl_set_fslabel(struct super_block *sb, struct file *filp,
-+				   void __user *argp)
-+{
-+	char label[NILFS_MAX_VOLUME_NAME + 1];
-+	struct the_nilfs *nilfs = sb->s_fs_info;
-+	struct nilfs_super_block **sbp;
-+	size_t len;
-+	int ret;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	ret = mnt_want_write_file(filp);
-+	if (ret)
-+		return ret;
-+
-+	if (copy_from_user(label, argp, NILFS_MAX_VOLUME_NAME + 1)) {
-+		ret = -EFAULT;
-+		goto out_drop_write;
-+	}
-+
-+	len = strnlen(label, NILFS_MAX_VOLUME_NAME + 1);
-+	if (len > NILFS_MAX_VOLUME_NAME) {
-+		nilfs_err(sb, "unable to set label with more than %zu bytes",
-+			  NILFS_MAX_VOLUME_NAME);
-+		ret = -EINVAL;
-+		goto out_drop_write;
-+	}
-+
-+	down_write(&nilfs->ns_sem);
-+	sbp = nilfs_prepare_super(sb, false);
-+	if (unlikely(!sbp)) {
-+		ret = -EIO;
-+		goto out_unlock;
-+	}
-+
-+	strtomem_pad(sbp[0]->s_volume_name, label, 0);
-+	if (sbp[1])
-+		strtomem_pad(sbp[1]->s_volume_name, label, 0);
-+
-+	ret = nilfs_commit_super(sb, NILFS_SB_COMMIT_ALL);
-+
-+out_unlock:
-+	up_write(&nilfs->ns_sem);
-+out_drop_write:
-+	mnt_drop_write_file(filp);
-+	return ret;
-+}
-+
- long nilfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
- 	struct inode *inode = file_inode(filp);
-@@ -1334,6 +1396,8 @@ long nilfs_ioctl(struct file *filp, unsi
- 		return nilfs_ioctl_trim_fs(inode, argp);
- 	case FS_IOC_GETFSLABEL:
- 		return nilfs_ioctl_get_fslabel(inode->i_sb, argp);
-+	case FS_IOC_SETFSLABEL:
-+		return nilfs_ioctl_set_fslabel(inode->i_sb, filp, argp);
- 	default:
- 		return -ENOTTY;
+ 	if (sb_rdonly(inode->i_sb)) {
+-		nilfs_clear_dirty_pages(mapping, false);
++		nilfs_clear_dirty_pages(mapping);
+ 		return -EROFS;
  	}
-@@ -1361,6 +1425,7 @@ long nilfs_compat_ioctl(struct file *fil
- 	case NILFS_IOCTL_SET_ALLOC_RANGE:
- 	case FITRIM:
- 	case FS_IOC_GETFSLABEL:
-+	case FS_IOC_SETFSLABEL:
- 		break;
- 	default:
- 		return -ENOIOCTLCMD;
+ 
+@@ -186,7 +186,7 @@ static int nilfs_writepage(struct page *
+ 		 * have dirty pages that try to be flushed in background.
+ 		 * So, here we simply discard this dirty page.
+ 		 */
+-		nilfs_clear_folio_dirty(folio, false);
++		nilfs_clear_folio_dirty(folio);
+ 		folio_unlock(folio);
+ 		return -EROFS;
+ 	}
+--- a/fs/nilfs2/mdt.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
++++ a/fs/nilfs2/mdt.c
+@@ -411,7 +411,7 @@ nilfs_mdt_write_page(struct page *page,
+ 		 * have dirty folios that try to be flushed in background.
+ 		 * So, here we simply discard this dirty folio.
+ 		 */
+-		nilfs_clear_folio_dirty(folio, false);
++		nilfs_clear_folio_dirty(folio);
+ 		folio_unlock(folio);
+ 		return -EROFS;
+ 	}
+@@ -638,10 +638,10 @@ void nilfs_mdt_restore_from_shadow_map(s
+ 	if (mi->mi_palloc_cache)
+ 		nilfs_palloc_clear_cache(inode);
+ 
+-	nilfs_clear_dirty_pages(inode->i_mapping, true);
++	nilfs_clear_dirty_pages(inode->i_mapping);
+ 	nilfs_copy_back_pages(inode->i_mapping, shadow->inode->i_mapping);
+ 
+-	nilfs_clear_dirty_pages(ii->i_assoc_inode->i_mapping, true);
++	nilfs_clear_dirty_pages(ii->i_assoc_inode->i_mapping);
+ 	nilfs_copy_back_pages(ii->i_assoc_inode->i_mapping,
+ 			      NILFS_I(shadow->inode)->i_assoc_inode->i_mapping);
+ 
+--- a/fs/nilfs2/page.c~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
++++ a/fs/nilfs2/page.c
+@@ -357,9 +357,8 @@ repeat:
+ /**
+  * nilfs_clear_dirty_pages - discard dirty pages in address space
+  * @mapping: address space with dirty pages for discarding
+- * @silent: suppress [true] or print [false] warning messages
+  */
+-void nilfs_clear_dirty_pages(struct address_space *mapping, bool silent)
++void nilfs_clear_dirty_pages(struct address_space *mapping)
+ {
+ 	struct folio_batch fbatch;
+ 	unsigned int i;
+@@ -380,7 +379,7 @@ void nilfs_clear_dirty_pages(struct addr
+ 			 * was acquired.  Skip processing in that case.
+ 			 */
+ 			if (likely(folio->mapping == mapping))
+-				nilfs_clear_folio_dirty(folio, silent);
++				nilfs_clear_folio_dirty(folio);
+ 
+ 			folio_unlock(folio);
+ 		}
+@@ -392,20 +391,13 @@ void nilfs_clear_dirty_pages(struct addr
+ /**
+  * nilfs_clear_folio_dirty - discard dirty folio
+  * @folio: dirty folio that will be discarded
+- * @silent: suppress [true] or print [false] warning messages
+  */
+-void nilfs_clear_folio_dirty(struct folio *folio, bool silent)
++void nilfs_clear_folio_dirty(struct folio *folio)
+ {
+-	struct inode *inode = folio->mapping->host;
+-	struct super_block *sb = inode->i_sb;
+ 	struct buffer_head *bh, *head;
+ 
+ 	BUG_ON(!folio_test_locked(folio));
+ 
+-	if (!silent)
+-		nilfs_warn(sb, "discard dirty page: offset=%lld, ino=%lu",
+-			   folio_pos(folio), inode->i_ino);
+-
+ 	folio_clear_uptodate(folio);
+ 	folio_clear_mappedtodisk(folio);
+ 
+@@ -419,11 +411,6 @@ void nilfs_clear_folio_dirty(struct foli
+ 		bh = head;
+ 		do {
+ 			lock_buffer(bh);
+-			if (!silent)
+-				nilfs_warn(sb,
+-					   "discard dirty block: blocknr=%llu, size=%zu",
+-					   (u64)bh->b_blocknr, bh->b_size);
+-
+ 			set_mask_bits(&bh->b_state, clear_bits, 0);
+ 			unlock_buffer(bh);
+ 		} while (bh = bh->b_this_page, bh != head);
+--- a/fs/nilfs2/page.h~nilfs2-do-not-output-warnings-when-clearing-dirty-buffers
++++ a/fs/nilfs2/page.h
+@@ -41,8 +41,8 @@ void nilfs_folio_bug(struct folio *);
+ 
+ int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
+ void nilfs_copy_back_pages(struct address_space *, struct address_space *);
+-void nilfs_clear_folio_dirty(struct folio *, bool);
+-void nilfs_clear_dirty_pages(struct address_space *, bool);
++void nilfs_clear_folio_dirty(struct folio *folio);
++void nilfs_clear_dirty_pages(struct address_space *mapping);
+ unsigned int nilfs_page_count_clean_buffers(struct page *, unsigned int,
+ 					    unsigned int);
+ unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
