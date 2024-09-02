@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CDC38382
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADCAE41C92
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247678; cv=none; b=FTBT0dcDlMz7L3bgGewoYA4kraEu7XUWVe85Lgfp5xMsSoPvRHLVzrSFVGyA3lHKeqSYBldHuPFlrNeomipAZ0+gyPShJwt2x2MgYtjnPzSFSc23mL2sZGB1EQNll7tdhah99cfUR77kl3J/tQycqZ0d6od0w3nFdYTq9lsyZ1Y=
+	t=1725247679; cv=none; b=IHoTcfUluhlM9lhg/tqZnIcnlgRFoQvpGk9zxJ1J2/TltXuhScpoPZ9qT7jdHGEDImZdoLpE5YKiRIhWjvabzSS/Qv/WyuaKzfnTodHyHgIKVXbE7VDRI60gsHiwunr+Dcx4e195/mCLKpYht/UlkI6j97qGAA7srAOwCUMK5g4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247678; c=relaxed/simple;
-	bh=kQMk/5s7mbNgjOwrNEMjArnYJhyUbDcM5jcnqSd21Ls=;
-	h=Date:To:From:Subject:Message-Id; b=EPyMzLuzIE1z6ERVwlOYfuVddrG1881pbbS2MzHH0whPZd9fR3wO7yQo1Qy/UHxErUTGz1AFmEWhAMdUmIqZXiZuZo41TxSq3nKNPnpbzks9zyH9moRJO9E2lWXKq7s2nmn6wjbr3dcY7qKm0PnU7RHLKWQwTqYMvL6x4fSe0/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ayQDNspZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247679; c=relaxed/simple;
+	bh=X3hfX+6nAAsXTo3CTq/s4sVlZTrWFOORiJvZgaupyk0=;
+	h=Date:To:From:Subject:Message-Id; b=uXqn/XlvYD0fDB/eVLAy9UggZtjWXDlnmE4JUbMgBfxKlrcDQ8+UM9W1tO3apkWOB7mRn0CZAS0qPz93L7c4G8ik4E3BjGln9SmxFl7BMOKEOmccfDqJEZxDgSOueWPBX1h/bs/Aakk+rqYjPLraXLA1EtH7RFV4nAo/XlP6wig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DDOf8Mul; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ayQDNspZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C68AC4CEC2;
-	Mon,  2 Sep 2024 03:27:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDOf8Mul"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83A60C4CEC2;
+	Mon,  2 Sep 2024 03:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247678;
-	bh=kQMk/5s7mbNgjOwrNEMjArnYJhyUbDcM5jcnqSd21Ls=;
+	s=korg; t=1725247679;
+	bh=X3hfX+6nAAsXTo3CTq/s4sVlZTrWFOORiJvZgaupyk0=;
 	h=Date:To:From:Subject:From;
-	b=ayQDNspZBiKTwKkPGWfG5YWdoFwduvM/0bsFLc0VI2CK9B5IMr2d1wfemm/rrzDCs
-	 ZvXFOAshY2OukHuLA2zxn9hu7QDdC4QQgGIv2pzFHvy8v7ycFHDZbcYGTneuKj1AaO
-	 0sG3swda4lw6RhBXGfKcm5NLafkmN2YwyYUx5sEQ=
-Date: Sun, 01 Sep 2024 20:27:58 -0700
+	b=DDOf8MulBZyNyUvX2ND7tlqbrwy/kaZrTDnHJJRoZ98/M1SxNxKyRZe1Mfc2cGr6L
+	 YTnbAThoQBqc6K3/FBD0fgEtJvhpXKXeSirDnC9s22YSFIAT51n5YBsj92OpgP44T7
+	 kg9n+BoWXcyu2EIzknhEj6ra9WY7zhqx/4z5GqHA=
+Date: Sun, 01 Sep 2024 20:27:59 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-rename-cpu_fbatches-activate.patch removed from -mm tree
-Message-Id: <20240902032758.8C68AC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-fold-lru_rotate-into-cpu_fbatches.patch removed from -mm tree
+Message-Id: <20240902032759.83A60C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: rename cpu_fbatches->activate
+     Subject: mm/swap: fold lru_rotate into cpu_fbatches
 has been removed from the -mm tree.  Its filename was
-     mm-swap-rename-cpu_fbatches-activate.patch
+     mm-swap-fold-lru_rotate-into-cpu_fbatches.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/swap: rename cpu_fbatches->activate
-Date: Wed, 10 Jul 2024 20:13:14 -0600
+Subject: mm/swap: fold lru_rotate into cpu_fbatches
+Date: Wed, 10 Jul 2024 20:13:15 -0600
 
-Rename cpu_fbatches->activate to cpu_fbatches->lru_activate, and its
-handler folio_activate_fn() to lru_activate() so that all the boilerplate
-can be removed at the end of this series.
+Fold lru_rotate into cpu_fbatches, and rename the folio_batch and the lock
+protecting it to lru_move_tail and lock_irq respectively so that all the
+boilerplate can be removed at the end of this series.
 
-Link: https://lkml.kernel.org/r/20240711021317.596178-3-yuzhao@google.com
+Also remove data_race() around folio_batch_count(), which is out of place:
+all folio_batch_count() calls on remote cpu_fbatches are subject to
+data_race(), and therefore data_race() should be inside
+folio_batch_count().
+
+Link: https://lkml.kernel.org/r/20240711021317.596178-4-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/swap.c |   36 ++++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
---- a/mm/swap.c~mm-swap-rename-cpu_fbatches-activate
+--- a/mm/swap.c~mm-swap-fold-lru_rotate-into-cpu_fbatches
 +++ a/mm/swap.c
-@@ -67,7 +67,7 @@ struct cpu_fbatches {
- 	struct folio_batch lru_deactivate;
- 	struct folio_batch lru_lazyfree;
+@@ -47,20 +47,11 @@
+ int page_cluster;
+ const int page_cluster_max = 31;
+ 
+-/* Protecting only lru_rotate.fbatch which requires disabling interrupts */
+-struct lru_rotate {
+-	local_lock_t lock;
+-	struct folio_batch fbatch;
+-};
+-static DEFINE_PER_CPU(struct lru_rotate, lru_rotate) = {
+-	.lock = INIT_LOCAL_LOCK(lock),
+-};
+-
+-/*
+- * The following folio batches are grouped together because they are protected
+- * by disabling preemption (and interrupts remain enabled).
+- */
+ struct cpu_fbatches {
++	/*
++	 * The following folio batches are grouped together because they are protected
++	 * by disabling preemption (and interrupts remain enabled).
++	 */
+ 	local_lock_t lock;
+ 	struct folio_batch lru_add;
+ 	struct folio_batch lru_deactivate_file;
+@@ -69,9 +60,14 @@ struct cpu_fbatches {
  #ifdef CONFIG_SMP
--	struct folio_batch activate;
-+	struct folio_batch lru_activate;
+ 	struct folio_batch lru_activate;
  #endif
++	/* Protecting the following batches which require disabling interrupts */
++	local_lock_t lock_irq;
++	struct folio_batch lru_move_tail;
  };
++
  static DEFINE_PER_CPU(struct cpu_fbatches, cpu_fbatches) = {
-@@ -331,7 +331,7 @@ void lru_note_cost_refault(struct folio
- 		      folio_nr_pages(folio), 0);
- }
+ 	.lock = INIT_LOCAL_LOCK(lock),
++	.lock_irq = INIT_LOCAL_LOCK(lock_irq),
+ };
  
--static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
-+static void lru_activate(struct lruvec *lruvec, struct folio *folio)
- {
- 	long nr_pages = folio_nr_pages(folio);
- 
-@@ -351,10 +351,10 @@ static void folio_activate_fn(struct lru
- #ifdef CONFIG_SMP
- static void folio_activate_drain(int cpu)
- {
--	struct folio_batch *fbatch = &per_cpu(cpu_fbatches.activate, cpu);
-+	struct folio_batch *fbatch = &per_cpu(cpu_fbatches.lru_activate, cpu);
- 
- 	if (folio_batch_count(fbatch))
--		folio_batch_move_lru(fbatch, folio_activate_fn);
-+		folio_batch_move_lru(fbatch, lru_activate);
- }
- 
- void folio_activate(struct folio *folio)
-@@ -371,8 +371,8 @@ void folio_activate(struct folio *folio)
+ static void __page_cache_release(struct folio *folio, struct lruvec **lruvecp,
+@@ -267,10 +263,10 @@ void folio_rotate_reclaimable(struct fol
+ 		return;
  	}
  
- 	local_lock(&cpu_fbatches.lock);
--	fbatch = this_cpu_ptr(&cpu_fbatches.activate);
--	folio_batch_add_and_move(fbatch, folio, folio_activate_fn);
-+	fbatch = this_cpu_ptr(&cpu_fbatches.lru_activate);
-+	folio_batch_add_and_move(fbatch, folio, lru_activate);
- 	local_unlock(&cpu_fbatches.lock);
+-	local_lock_irqsave(&lru_rotate.lock, flags);
+-	fbatch = this_cpu_ptr(&lru_rotate.fbatch);
++	local_lock_irqsave(&cpu_fbatches.lock_irq, flags);
++	fbatch = this_cpu_ptr(&cpu_fbatches.lru_move_tail);
+ 	folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
+-	local_unlock_irqrestore(&lru_rotate.lock, flags);
++	local_unlock_irqrestore(&cpu_fbatches.lock_irq, flags);
  }
  
-@@ -389,7 +389,7 @@ void folio_activate(struct folio *folio)
- 		return;
+ void lru_note_cost(struct lruvec *lruvec, bool file,
+@@ -668,15 +664,15 @@ void lru_add_drain_cpu(int cpu)
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_add_fn);
  
- 	lruvec = folio_lruvec_lock_irq(folio);
--	folio_activate_fn(lruvec, folio);
-+	lru_activate(lruvec, folio);
- 	unlock_page_lruvec_irq(lruvec);
- 	folio_set_lru(folio);
- }
-@@ -490,7 +490,7 @@ void folio_mark_accessed(struct folio *f
- 	} else if (!folio_test_active(folio)) {
- 		/*
- 		 * If the folio is on the LRU, queue it for activation via
--		 * cpu_fbatches.activate. Otherwise, assume the folio is in a
-+		 * cpu_fbatches.lru_activate. Otherwise, assume the folio is in a
- 		 * folio_batch, mark it active and it'll be moved to the active
- 		 * LRU on the next drain.
- 		 */
-@@ -829,7 +829,7 @@ static bool cpu_needs_drain(unsigned int
+-	fbatch = &per_cpu(lru_rotate.fbatch, cpu);
++	fbatch = &fbatches->lru_move_tail;
+ 	/* Disabling interrupts below acts as a compiler barrier. */
+ 	if (data_race(folio_batch_count(fbatch))) {
+ 		unsigned long flags;
+ 
+ 		/* No harm done if a racing interrupt already did this */
+-		local_lock_irqsave(&lru_rotate.lock, flags);
++		local_lock_irqsave(&cpu_fbatches.lock_irq, flags);
+ 		folio_batch_move_lru(fbatch, lru_move_tail_fn);
+-		local_unlock_irqrestore(&lru_rotate.lock, flags);
++		local_unlock_irqrestore(&cpu_fbatches.lock_irq, flags);
+ 	}
+ 
+ 	fbatch = &fbatches->lru_deactivate_file;
+@@ -825,7 +821,7 @@ static bool cpu_needs_drain(unsigned int
+ 
+ 	/* Check these in order of likelihood that they're not zero */
+ 	return folio_batch_count(&fbatches->lru_add) ||
+-		data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
++		folio_batch_count(&fbatches->lru_move_tail) ||
  		folio_batch_count(&fbatches->lru_deactivate_file) ||
  		folio_batch_count(&fbatches->lru_deactivate) ||
  		folio_batch_count(&fbatches->lru_lazyfree) ||
--		folio_batch_count(&fbatches->activate) ||
-+		folio_batch_count(&fbatches->lru_activate) ||
- 		need_mlock_drain(cpu) ||
- 		has_bh_in_lru(cpu, NULL);
- }
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
