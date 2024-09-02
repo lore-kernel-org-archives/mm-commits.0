@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87C7443AB4
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC384502B
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247704; cv=none; b=mqpHy0VMmvEvJKbEuUO36dFoXJIiQswajYU4WwNE8veQXY+C0JUcC5qGrJ9R1qrn5BtX0+Uf8oO5ALItgaApOISM5xeKqN1xyK1XtA4D2yyZuiwX4CovGhIjg5PxdpGAzmprTCmBVaAuz4O9pkSG3r5lsHr5wuvaB7mq1Ct6Esw=
+	t=1725247705; cv=none; b=bS87an4DEMRMHENeczmwZ0vVNx1zlEidWwBV30c/jKpnxyF6qe32yjEktoWAr/iqgNAbQTCz5YKSYd1kRpunNtlDyR4yBn4mOMAVjD6t7tXNsBjAmQhufL01fhmI3o76hcZgM5Ugck2VguGqhesiPnUCzvBs1YQa/zwEBVNpVTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247704; c=relaxed/simple;
-	bh=m5YObLt/FDdOvQ5f+oCsOSGgs9dqXqKruMWoBnWTNZk=;
-	h=Date:To:From:Subject:Message-Id; b=IdvYQ1DMaRy5mxMYwYAvBcD9EUITwnCxP0rKLPSYVxUviXgyS0mStF1MuCgUt/bhgPXFLH5cSrg+7Jp3FkZRKiWHdiTE0PVmPiqJDT0z335hI9PagfhgOIlWITT7X7mrMPuiRZDuSYpOoW1QaCQnejnMIBsI3psYnTYecU+GiJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0y8yCvZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247705; c=relaxed/simple;
+	bh=PLyi2mPMGa8/Lxs50ro8cwCJ/vLwJEutAYjSfh7wUrc=;
+	h=Date:To:From:Subject:Message-Id; b=k+oIBqOK6D8FA2XFum2oXig1ESY1bPBggPk/ThWea4VKhHGsZn31pFxksfNkhPYu1xpvFJNBRifQldMqjIyCGPZXlrjvm4iNsOxbUqw4211AIXG30wPZkYtx7Pf/lmGpHJMovqxdKoIumEtuFrr6JlpfUD8IpTk3U3CZbFVaI/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yaJDX35V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0y8yCvZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB16C4CEC2;
-	Mon,  2 Sep 2024 03:28:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yaJDX35V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A242DC4CEC2;
+	Mon,  2 Sep 2024 03:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247704;
-	bh=m5YObLt/FDdOvQ5f+oCsOSGgs9dqXqKruMWoBnWTNZk=;
+	s=korg; t=1725247705;
+	bh=PLyi2mPMGa8/Lxs50ro8cwCJ/vLwJEutAYjSfh7wUrc=;
 	h=Date:To:From:Subject:From;
-	b=p0y8yCvZ1VpjLFQSycFRZGFENhVgl+p2s74g/p72VGWIH/dFH2pk1p7tNnDvMmd9y
-	 NrogXwnAyAFcoIv9rsDinGMR7xr/U2Fu3iggd3PzjgGd4XC3BTb7d5ACL3jcH1BpZc
-	 Gv0jt2gsfnO7AAecFT8KRNS99mEltEKFABBTRzqM=
-Date: Sun, 01 Sep 2024 20:28:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,svens@linux.ibm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,frankja@linux.ibm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
+	b=yaJDX35V0YHKZOdH+p7GX0FG0yM+RbTUTlm+PoC/Tdn8ZYgtVkJgVc61dxQTcqraX
+	 7kMXBkp2REmSNvEaZ9yW8+GMfkrPX+yZDfA8yIXkskUMn2HRQ+kLZAVJLXCj2HVOQ1
+	 AMi4Kzlt4KBXWzELObv+6NTE057AsjXeZZeTn9/w=
+Date: Sun, 01 Sep 2024 20:28:25 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] s390-uv-drop-arch_make_page_accessible.patch removed from -mm tree
-Message-Id: <20240902032824.5CB16C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-cg2-memoryswappeak-write-handlers.patch removed from -mm tree
+Message-Id: <20240902032825.A242DC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,461 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: s390/uv: drop arch_make_page_accessible()
+     Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
 has been removed from the -mm tree.  Its filename was
-     s390-uv-drop-arch_make_page_accessible.patch
+     mm-memcg-cg2-memoryswappeak-write-handlers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: s390/uv: drop arch_make_page_accessible()
-Date: Mon, 29 Jul 2024 20:38:44 +0200
+From: David Finkel <davidf@vimeo.com>
+Subject: mm, memcg: cg2 memory{.swap,}.peak write handlers
+Date: Mon, 29 Jul 2024 10:37:42 -0400
 
-All code was converted to using arch_make_folio_accessible(), let's drop
-arch_make_page_accessible().
+Patch series "mm, memcg: cg2 memory{.swap,}.peak write handlers", v7.
 
-Link: https://lkml.kernel.org/r/20240729183844.388481-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+
+This patch (of 2):
+
+Other mechanisms for querying the peak memory usage of either a process or
+v1 memory cgroup allow for resetting the high watermark.  Restore parity
+with those mechanisms, but with a less racy API.
+
+For example:
+ - Any write to memory.max_usage_in_bytes in a cgroup v1 mount resets
+   the high watermark.
+ - writing "5" to the clear_refs pseudo-file in a processes's proc
+   directory resets the peak RSS.
+
+This change is an evolution of a previous patch, which mostly copied the
+cgroup v1 behavior, however, there were concerns about races/ownership
+issues with a global reset, so instead this change makes the reset
+filedescriptor-local.
+
+Writing any non-empty string to the memory.peak and memory.swap.peak
+pseudo-files reset the high watermark to the current usage for subsequent
+reads through that same FD.
+
+Notably, following Johannes's suggestion, this implementation moves the
+O(FDs that have written) behavior onto the FD write(2) path.  Instead, on
+the page-allocation path, we simply add one additional watermark to
+conditionally bump per-hierarchy level in the page-counter.
+
+Additionally, this takes Longman's suggestion of nesting the
+page-charging-path checks for the two watermarks to reduce the number of
+common-case comparisons.
+
+This behavior is particularly useful for work scheduling systems that need
+to track memory usage of worker processes/cgroups per-work-item.  Since
+memory can't be squeezed like CPU can (the OOM-killer has opinions), these
+systems need to track the peak memory usage to compute system/container
+fullness when binpacking workitems.
+
+Most notably, Vimeo's use-case involves a system that's doing global
+binpacking across many Kubernetes pods/containers, and while we can use
+PSI for some local decisions about overload, we strive to avoid packing
+workloads too tightly in the first place.  To facilitate this, we track
+the peak memory usage.  However, since we run with long-lived workers (to
+amortize startup costs) we need a way to track the high watermark while a
+work-item is executing.  Polling runs the risk of missing short spikes
+that last for timescales below the polling interval, and peak memory
+tracking at the cgroup level is otherwise perfect for this use-case.
+
+As this data is used to ensure that binpacked work ends up with sufficient
+headroom, this use-case mostly avoids the inaccuracies surrounding
+reclaimable memory.
+
+Link: https://lkml.kernel.org/r/20240730231304.761942-1-davidf@vimeo.com
+Link: https://lkml.kernel.org/r/20240729143743.34236-1-davidf@vimeo.com
+Link: https://lkml.kernel.org/r/20240729143743.34236-2-davidf@vimeo.com
+Signed-off-by: David Finkel <davidf@vimeo.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Waiman Long <longman@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    2 --
- arch/s390/kernel/uv.c        |    5 -----
- include/linux/mm.h           |    7 -------
- 3 files changed, 14 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   22 ++--
+ include/linux/cgroup-defs.h             |    5 
+ include/linux/cgroup.h                  |    3 
+ include/linux/memcontrol.h              |    5 
+ include/linux/page_counter.h            |   11 +-
+ kernel/cgroup/cgroup-internal.h         |    2 
+ kernel/cgroup/cgroup.c                  |    7 +
+ mm/memcontrol.c                         |  116 ++++++++++++++++++++--
+ mm/page_counter.c                       |   29 +++--
+ 9 files changed, 173 insertions(+), 27 deletions(-)
 
---- a/arch/s390/include/asm/page.h~s390-uv-drop-arch_make_page_accessible
-+++ a/arch/s390/include/asm/page.h
-@@ -176,8 +176,6 @@ static inline int devmem_is_allowed(unsi
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1333,11 +1333,14 @@ The following nested keys are defined.
+ 	all the existing limitations and potential future extensions.
  
- int arch_make_folio_accessible(struct folio *folio);
- #define HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
--int arch_make_page_accessible(struct page *page);
--#define HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
+   memory.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max memory usage recorded for the cgroup and its descendants since
++	either the creation of the cgroup or the most recent reset for that FD.
  
- struct vm_layout {
- 	unsigned long kaslr_offset;
---- a/arch/s390/kernel/uv.c~s390-uv-drop-arch_make_page_accessible
-+++ a/arch/s390/kernel/uv.c
-@@ -548,11 +548,6 @@ int arch_make_folio_accessible(struct fo
- }
- EXPORT_SYMBOL_GPL(arch_make_folio_accessible);
+-	The max memory usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of any non-empty string to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
  
--int arch_make_page_accessible(struct page *page)
--{
--	return arch_make_folio_accessible(page_folio(page));
--}
--EXPORT_SYMBOL_GPL(arch_make_page_accessible);
- static ssize_t uv_query_facilities(struct kobject *kobj,
- 				   struct kobj_attribute *attr, char *buf)
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+@@ -1663,11 +1666,14 @@ The following nested keys are defined.
+ 	Healthy workloads are not expected to reach this limit.
+ 
+   memory.swap.peak
+-	A read-only single value file which exists on non-root
+-	cgroups.
++	A read-write single value file which exists on non-root cgroups.
++
++	The max swap usage recorded for the cgroup and its descendants since
++	the creation of the cgroup or the most recent reset for that FD.
+ 
+-	The max swap usage recorded for the cgroup and its
+-	descendants since the creation of the cgroup.
++	A write of any non-empty string to this file resets it to the
++	current memory usage for subsequent reads through the same
++	file descriptor.
+ 
+   memory.swap.max
+ 	A read-write single value file which exists on non-root
+--- a/include/linux/cgroup-defs.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup-defs.h
+@@ -775,6 +775,11 @@ struct cgroup_subsys {
+ 
+ extern struct percpu_rw_semaphore cgroup_threadgroup_rwsem;
+ 
++struct cgroup_of_peak {
++	unsigned long		value;
++	struct list_head	list;
++};
++
+ /**
+  * cgroup_threadgroup_change_begin - threadgroup exclusion for cgroups
+  * @tsk: target task
+--- a/include/linux/cgroup.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/cgroup.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/nodemask.h>
++#include <linux/list.h>
+ #include <linux/rculist.h>
+ #include <linux/cgroupstats.h>
+ #include <linux/fs.h>
+@@ -854,4 +855,6 @@ static inline void cgroup_bpf_put(struct
+ 
+ struct cgroup *task_get_cgroup1(struct task_struct *tsk, int hierarchy_id);
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of);
++
+ #endif /* _LINUX_CGROUP_H */
+--- a/include/linux/memcontrol.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/memcontrol.h
+@@ -193,6 +193,11 @@ struct mem_cgroup {
+ 		struct page_counter memsw;	/* v1 only */
+ 	};
+ 
++	/* registered local peak watchers */
++	struct list_head memory_peaks;
++	struct list_head swap_peaks;
++	spinlock_t	 peaks_lock;
++
+ 	/* Range enforcement for interrupt charges */
+ 	struct work_struct high_work;
+ 
+--- a/include/linux/page_counter.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/include/linux/page_counter.h
+@@ -26,6 +26,8 @@ struct page_counter {
+ 	atomic_long_t children_low_usage;
+ 
+ 	unsigned long watermark;
++	/* Latest cg2 reset watermark */
++	unsigned long local_watermark;
+ 	unsigned long failcnt;
+ 
+ 	/* Keep all the read most fields in a separete cacheline. */
+@@ -84,7 +86,14 @@ int page_counter_memparse(const char *bu
+ 
+ static inline void page_counter_reset_watermark(struct page_counter *counter)
  {
---- a/include/linux/mm.h~s390-uv-drop-arch_make_page_accessible
-+++ a/include/linux/mm.h
-@@ -2205,13 +2205,6 @@ static inline bool folio_likely_mapped_s
- 	return atomic_read(&folio->_mapcount) > 0;
+-	counter->watermark = page_counter_read(counter);
++	unsigned long usage = page_counter_read(counter);
++
++	/*
++	 * Update local_watermark first, so it's always <= watermark
++	 * (modulo CPU/compiler re-ordering)
++	 */
++	counter->local_watermark = usage;
++	counter->watermark = usage;
  }
  
--#ifndef HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
--static inline int arch_make_page_accessible(struct page *page)
--{
--	return 0;
--}
--#endif
--
- #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
- static inline int arch_make_folio_accessible(struct folio *folio)
+ #ifdef CONFIG_MEMCG
+--- a/kernel/cgroup/cgroup.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup.c
+@@ -1972,6 +1972,13 @@ static int cgroup2_parse_param(struct fs
+ 	return -EINVAL;
+ }
+ 
++struct cgroup_of_peak *of_peak(struct kernfs_open_file *of)
++{
++	struct cgroup_file_ctx *ctx = of->priv;
++
++	return &ctx->peak;
++}
++
+ static void apply_cgroup_root_flags(unsigned int root_flags)
  {
+ 	if (current->nsproxy->cgroup_ns == &init_cgroup_ns) {
+--- a/kernel/cgroup/cgroup-internal.h~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -81,6 +81,8 @@ struct cgroup_file_ctx {
+ 	struct {
+ 		struct cgroup_pidlist	*pidlist;
+ 	} procs1;
++
++	struct cgroup_of_peak peak;
+ };
+ 
+ /*
+--- a/mm/memcontrol.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/memcontrol.c
+@@ -25,6 +25,7 @@
+  * Copyright (C) 2020 Alibaba, Inc, Alex Shi
+  */
+ 
++#include <linux/cgroup-defs.h>
+ #include <linux/page_counter.h>
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+@@ -41,6 +42,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
+ #include <linux/export.h>
++#include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/rbtree.h>
+ #include <linux/slab.h>
+@@ -3550,6 +3552,9 @@ static struct mem_cgroup *mem_cgroup_all
+ 
+ 	INIT_WORK(&memcg->high_work, high_work_func);
+ 	vmpressure_init(&memcg->vmpressure);
++	INIT_LIST_HEAD(&memcg->memory_peaks);
++	INIT_LIST_HEAD(&memcg->swap_peaks);
++	spin_lock_init(&memcg->peaks_lock);
+ 	memcg->socket_pressure = jiffies;
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+@@ -3944,14 +3949,91 @@ static u64 memory_current_read(struct cg
+ 	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
+ }
+ 
+-static u64 memory_peak_read(struct cgroup_subsys_state *css,
+-			    struct cftype *cft)
++#define OFP_PEAK_UNSET (((-1UL)))
++
++static int peak_show(struct seq_file *sf, void *v, struct page_counter *pc)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct cgroup_of_peak *ofp = of_peak(sf->private);
++	u64 fd_peak = READ_ONCE(ofp->value), peak;
++
++	/* User wants global or local peak? */
++	if (fd_peak == OFP_PEAK_UNSET)
++		peak = pc->watermark;
++	else
++		peak = max(fd_peak, READ_ONCE(pc->local_watermark));
++
++	seq_printf(sf, "%llu\n", peak * PAGE_SIZE);
++	return 0;
++}
++
++static int memory_peak_show(struct seq_file *sf, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->memory);
++}
++
++static int peak_open(struct kernfs_open_file *of)
++{
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	ofp->value = OFP_PEAK_UNSET;
++	return 0;
++}
++
++static void peak_release(struct kernfs_open_file *of)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	if (ofp->value == OFP_PEAK_UNSET) {
++		/* fast path (no writes on this fd) */
++		return;
++	}
++	spin_lock(&memcg->peaks_lock);
++	list_del(&ofp->list);
++	spin_unlock(&memcg->peaks_lock);
++}
++
++static ssize_t peak_write(struct kernfs_open_file *of, char *buf, size_t nbytes,
++			  loff_t off, struct page_counter *pc,
++			  struct list_head *watchers)
++{
++	unsigned long usage;
++	struct cgroup_of_peak *peer_ctx;
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	struct cgroup_of_peak *ofp = of_peak(of);
++
++	spin_lock(&memcg->peaks_lock);
++
++	usage = page_counter_read(pc);
++	WRITE_ONCE(pc->local_watermark, usage);
++
++	list_for_each_entry(peer_ctx, watchers, list)
++		if (usage > peer_ctx->value)
++			WRITE_ONCE(peer_ctx->value, usage);
++
++	/* initial write, register watcher */
++	if (ofp->value == -1)
++		list_add(&ofp->list, watchers);
++
++	WRITE_ONCE(ofp->value, usage);
++	spin_unlock(&memcg->peaks_lock);
++
++	return nbytes;
++}
++
++static ssize_t memory_peak_write(struct kernfs_open_file *of, char *buf,
++				 size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+-	return (u64)memcg->memory.watermark * PAGE_SIZE;
++	return peak_write(of, buf, nbytes, off, &memcg->memory,
++			  &memcg->memory_peaks);
+ }
+ 
++#undef OFP_PEAK_UNSET
++
+ static int memory_min_show(struct seq_file *m, void *v)
+ {
+ 	return seq_puts_memcg_tunable(m,
+@@ -4301,7 +4383,10 @@ static struct cftype memory_files[] = {
+ 	{
+ 		.name = "peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = memory_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = memory_peak_show,
++		.write = memory_peak_write,
+ 	},
+ 	{
+ 		.name = "min",
+@@ -5093,12 +5178,20 @@ static u64 swap_current_read(struct cgro
+ 	return (u64)page_counter_read(&memcg->swap) * PAGE_SIZE;
+ }
+ 
+-static u64 swap_peak_read(struct cgroup_subsys_state *css,
+-			  struct cftype *cft)
++static int swap_peak_show(struct seq_file *sf, void *v)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(sf));
++
++	return peak_show(sf, v, &memcg->swap);
++}
++
++static ssize_t swap_peak_write(struct kernfs_open_file *of, char *buf,
++			       size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+ 
+-	return (u64)memcg->swap.watermark * PAGE_SIZE;
++	return peak_write(of, buf, nbytes, off, &memcg->swap,
++			  &memcg->swap_peaks);
+ }
+ 
+ static int swap_high_show(struct seq_file *m, void *v)
+@@ -5182,7 +5275,10 @@ static struct cftype swap_files[] = {
+ 	{
+ 		.name = "swap.peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+-		.read_u64 = swap_peak_read,
++		.open = peak_open,
++		.release = peak_release,
++		.seq_show = swap_peak_show,
++		.write = swap_peak_write,
+ 	},
+ 	{
+ 		.name = "swap.events",
+--- a/mm/page_counter.c~mm-memcg-cg2-memoryswappeak-write-handlers
++++ a/mm/page_counter.c
+@@ -87,9 +87,22 @@ void page_counter_charge(struct page_cou
+ 		/*
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
++		 *
++		 * Notably, we have two watermarks to allow for both a globally
++		 * visible peak and one that can be reset at a smaller scope.
++		 *
++		 * Since we reset both watermarks when the global reset occurs,
++		 * we can guarantee that watermark >= local_watermark, so we
++		 * don't need to do both comparisons every time.
++		 *
++		 * On systems with branch predictors, the inner condition should
++		 * be almost free.
+ 		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ }
+ 
+@@ -140,12 +153,12 @@ bool page_counter_try_charge(struct page
+ 		if (protection)
+ 			propagate_protected_usage(c, new);
+ 
+-		/*
+-		 * Just like with failcnt, we can live with some
+-		 * inaccuracy in the watermark.
+-		 */
+-		if (new > READ_ONCE(c->watermark))
+-			WRITE_ONCE(c->watermark, new);
++		/* see comment on page_counter_charge */
++		if (new > READ_ONCE(c->local_watermark)) {
++			WRITE_ONCE(c->local_watermark, new);
++			if (new > READ_ONCE(c->watermark))
++				WRITE_ONCE(c->watermark, new);
++		}
+ 	}
+ 	return true;
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from davidf@vimeo.com are
 
-mm-rmap-use-folio-_mapcount-for-small-folios.patch
-mm-always-inline-_compound_head-with-config_hugetlb_page_optimize_vmemmap=y.patch
-selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
