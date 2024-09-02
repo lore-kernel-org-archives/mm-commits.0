@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F415466B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA84426AF3
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247760; cv=none; b=lwzEo9W7bzDF2aY3oD3nSjJMcK5HMowt7S1eGRGpCBdKBp4jmXQ6LgjqYVO9LUJpP3DTriHhkBtqp6iMNOM1t1zXB1Jnk2Kx9+lqU1CjZtB55bfxHongVle4RQx4Hl82LlwpiAEKo9BU2n1Tl2Re/jlqwms9/+eJQe74oX1ftHY=
+	t=1725247762; cv=none; b=BpHmsOkcHMQSstDt+gDUAXj/TmXYgO/yXkcijGZ8f0QyBxv7mVxc+m1cFk3Wo6yAgze0CpT0xE1hJbxbyoAG0CzunwPHyaNIxM9IZCFq/m69KXsOa00QqT+yigFXsU8yiFe6cS3HwqF4d5D17xEgfhN1usqAam7Fcs+yprEBXhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247760; c=relaxed/simple;
-	bh=7pGWj99Cfe44TZIO4FFiLQ74m/B1xqyQG3kU8l0clnI=;
-	h=Date:To:From:Subject:Message-Id; b=cNM0GOLhI2am76CHBbUQjPMgWnr9kySCdxCu4k8ouj7BPaWkdgaiSwUTZ8Ns1txb1Z2bur8wkiIzk1qxTSVzVdM6Cp+yDh8y3fguPzpoCum02uziS9JGre3zVYJpwN6g+ALo3g9lK00BzDO+X+JQd2/5iuBybv0YA5AtP/A3kts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TUsocQM1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247762; c=relaxed/simple;
+	bh=zUJwvj9YF3WbBpsd7L4Wl9Z7atUr8aLN7GVlOJV57RM=;
+	h=Date:To:From:Subject:Message-Id; b=ht3et0gaAmJBVse3cgEmaB9MY9YTBXUGtXuI+zdv6sC9maiBCqse5Me5+HA4C/OFIkS95dOCtcr3xnE2T3NpaHPJB8TbKTDOLiNYazpLM5OZNcb/G9czPJK5WdZ0SD+lG/fC4S8lNnFIebW48P+2ixB5LXDeDDupGPurkb8xGOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XVxqC2bv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TUsocQM1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D6F0C4CEC2;
-	Mon,  2 Sep 2024 03:29:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVxqC2bv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1FD0C4CEC2;
+	Mon,  2 Sep 2024 03:29:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247760;
-	bh=7pGWj99Cfe44TZIO4FFiLQ74m/B1xqyQG3kU8l0clnI=;
+	s=korg; t=1725247762;
+	bh=zUJwvj9YF3WbBpsd7L4Wl9Z7atUr8aLN7GVlOJV57RM=;
 	h=Date:To:From:Subject:From;
-	b=TUsocQM16oGF8rxdRxpVyBHFN5VNJ2Bm8/3L1WvQQ0/1bV3QpbQUW3mGqNaUZPELU
-	 y7cv7TzbIZo3JLPLa1LqnLYZVC+QKksQsJb4K/CF+hVPfzjFBQH0ggWykN01kPgids
-	 aB29EOglD0RI7iq/jzeAnV6fr4MDlSfvywTUCWcs=
-Date: Sun, 01 Sep 2024 20:29:20 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=XVxqC2bvNaqRRsOl8KjUcnKmwTSuhJINFsd1mTJ3DV+ityh/blYjsDGByfyQcLiZc
+	 s+ynS/dOKo/pcnhZeQhj+VVAuEVAw1fE6oFP7+9Agqove8xkR0TVHKw9/R3MrIhiYL
+	 saqaFJiXunzeCGa6m3TpjGy8tpXk3awQxN5psYZQ=
+Date: Sun, 01 Sep 2024 20:29:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zswap-track-swapins-from-disk-more-accurately.patch removed from -mm tree
-Message-Id: <20240902032920.9D6F0C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-harmless-type-confusion-in-lock_vma_under_rcu.patch removed from -mm tree
+Message-Id: <20240902032922.A1FD0C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,164 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zswap: track swapins from disk more accurately
+     Subject: mm: fix (harmless) type confusion in lock_vma_under_rcu()
 has been removed from the -mm tree.  Its filename was
-     zswap-track-swapins-from-disk-more-accurately.patch
+     mm-fix-harmless-type-confusion-in-lock_vma_under_rcu.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: track swapins from disk more accurately
-Date: Mon, 5 Aug 2024 16:22:43 -0700
+From: Jann Horn <jannh@google.com>
+Subject: mm: fix (harmless) type confusion in lock_vma_under_rcu()
+Date: Mon, 05 Aug 2024 14:52:03 +0200
 
-Currently, there are a couple of issues with our disk swapin tracking for
-dynamic zswap shrinker heuristics:
+There is a (harmless) type confusion in lock_vma_under_rcu(): After
+vma_start_read(), we have taken the VMA lock but don't know yet whether
+the VMA has already been detached and scheduled for RCU freeing.  At this
+point, ->vm_start and ->vm_end are accessed.
 
-1. We only increment the swapin counter on pivot pages. This means we
-   are not taking into account pages that also need to be swapped in,
-   but are already taken care of as part of the readahead window.
+vm_area_struct contains a union such that ->vm_rcu uses the same memory as
+->vm_start and ->vm_end; so accessing ->vm_start and ->vm_end of a
+detached VMA is illegal and leads to type confusion between union members.
 
-2. We are also incrementing when the pages are read from the zswap pool,
-   which is inaccurate.
+Fix it by reordering the vma->detached check above the address checks, and
+document the rules for RCU readers accessing VMAs.
 
-This patch rectifies these issues by incrementing the counter whenever we
-need to perform a non-zswap read.  Note that we are slightly overcounting,
-as a page might be read into memory by the readahead algorithm even though
-it will not be neeeded by users - however, this is an acceptable
-inaccuracy, as the readahead logic itself will adapt to these kind of
-scenarios.
+This will probably change the number of observed VMA_LOCK_MISS events
+(since previously, trying to access a detached VMA whose ->vm_rcu has been
+scheduled would bail out when checking the fault address against the
+rcu_head members reinterpreted as VMA bounds).
 
-To test this change, I built the kernel under a cgroup with its memory.max
-set to 2 GB:
-
-real: 236.66s
-user: 4286.06s
-sys: 652.86s
-swapins: 81552
-
-For comparison, with just the new second chance algorithm, the build time
-is as follows:
-
-real: 244.85s
-user: 4327.22s
-sys: 664.39s
-swapins: 94663
-
-Without neither:
-
-real: 263.89s
-user: 4318.11s
-sys: 673.29s
-swapins: 227300.5
-
-(average over 5 runs)
-
-With this change, the kernel CPU time reduces by a further 1.7%, and the
-real time is reduced by another 3.3%, compared to just the second chance
-algorithm by itself.  The swapins count also reduces by another 13.85%.
-
-Combinng the two changes, we reduce the real time by 10.32%, kernel CPU
-time by 3%, and number of swapins by 64.12%.
-
-To gauge the new scheme's ability to offload cold data, I ran another
-benchmark, in which the kernel was built under a cgroup with memory.max
-set to 3 GB, but with 0.5 GB worth of cold data allocated before each
-build (in a shmem file).
-
-Under the old scheme:
-
-real: 197.18s
-user: 4365.08s
-sys: 289.02s
-zswpwb: 72115.2
-
-Under the new scheme:
-
-real: 195.8s
-user: 4362.25s
-sys: 290.14s
-zswpwb: 87277.8
-
-(average over 5 runs)
-
-Notice that we actually observe a 21% increase in the number of written
-back pages - so the new scheme is just as good, if not better at
-offloading pages from the zswap pool when they are cold.  Build time
-reduces by around 0.7% as a result.
-
-[nphamcs@gmail.com: squeeze a comment into a single line]
-  Link: https://lkml.kernel.org/r/20240806004518.3183562-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20240805232243.2896283-3-nphamcs@gmail.com
-Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Takero Funaki <flintglass@gmail.com>
+Link: https://lkml.kernel.org/r/20240805-fix-vma-lock-type-confusion-v1-1-9f25443a9a71@google.com
+Fixes: 50ee32537206 ("mm: introduce lock_vma_under_rcu to be used from arch-specific code")
+Signed-off-by: Jann Horn <jannh@google.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c    |    9 ++++++++-
- mm/swap_state.c |    8 ++------
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ include/linux/mm_types.h |   15 +++++++++++++--
+ mm/memory.c              |   14 ++++++++++----
+ 2 files changed, 23 insertions(+), 6 deletions(-)
 
---- a/mm/page_io.c~zswap-track-swapins-from-disk-more-accurately
-+++ a/mm/page_io.c
-@@ -521,7 +521,13 @@ void swap_read_folio(struct folio *folio
+--- a/include/linux/mm_types.h~mm-fix-harmless-type-confusion-in-lock_vma_under_rcu
++++ a/include/linux/mm_types.h
+@@ -660,6 +660,9 @@ struct vma_numab_state {
+  * per VM-area/task. A VM area is any part of the process virtual memory
+  * space that has a special rule for the page-fault handlers (ie a shared
+  * library, the executable area etc).
++ *
++ * Only explicitly marked struct members may be accessed by RCU readers before
++ * getting a stable reference.
+  */
+ struct vm_area_struct {
+ 	/* The first cache line has the info for VMA tree walking. */
+@@ -675,7 +678,11 @@ struct vm_area_struct {
+ #endif
+ 	};
  
- 	if (zswap_load(folio)) {
- 		folio_unlock(folio);
--	} else if (data_race(sis->flags & SWP_FS_OPS)) {
-+		goto finish;
-+	}
-+
-+	/* We have to read from slower devices. Increase zswap protection. */
-+	zswap_folio_swapin(folio);
-+
-+	if (data_race(sis->flags & SWP_FS_OPS)) {
- 		swap_read_folio_fs(folio, plug);
- 	} else if (synchronous) {
- 		swap_read_folio_bdev_sync(folio, sis);
-@@ -529,6 +535,7 @@ void swap_read_folio(struct folio *folio
- 		swap_read_folio_bdev_async(folio, sis);
+-	struct mm_struct *vm_mm;	/* The address space we belong to. */
++	/*
++	 * The address space we belong to.
++	 * Unstable RCU readers are allowed to read this.
++	 */
++	struct mm_struct *vm_mm;
+ 	pgprot_t vm_page_prot;          /* Access permissions of this VMA. */
+ 
+ 	/*
+@@ -688,7 +695,10 @@ struct vm_area_struct {
+ 	};
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+-	/* Flag to indicate areas detached from the mm->mm_mt tree */
++	/*
++	 * Flag to indicate areas detached from the mm->mm_mt tree.
++	 * Unstable RCU readers are allowed to read this.
++	 */
+ 	bool detached;
+ 
+ 	/*
+@@ -706,6 +716,7 @@ struct vm_area_struct {
+ 	 * slowpath.
+ 	 */
+ 	int vm_lock_seq;
++	/* Unstable RCU readers are allowed to read this. */
+ 	struct vma_lock *vm_lock;
+ #endif
+ 
+--- a/mm/memory.c~mm-fix-harmless-type-confusion-in-lock_vma_under_rcu
++++ a/mm/memory.c
+@@ -5997,10 +5997,6 @@ retry:
+ 	if (!vma_start_read(vma))
+ 		goto inval;
+ 
+-	/* Check since vm_start/vm_end might change before we lock the VMA */
+-	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
+-		goto inval_end_read;
+-
+ 	/* Check if the VMA got isolated after we found it */
+ 	if (vma->detached) {
+ 		vma_end_read(vma);
+@@ -6008,6 +6004,16 @@ retry:
+ 		/* The area was replaced with another one */
+ 		goto retry;
  	}
++	/*
++	 * At this point, we have a stable reference to a VMA: The VMA is
++	 * locked and we know it hasn't already been isolated.
++	 * From here on, we can access the VMA without worrying about which
++	 * fields are accessible for RCU readers.
++	 */
++
++	/* Check since vm_start/vm_end might change before we lock the VMA */
++	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
++		goto inval_end_read;
  
-+finish:
- 	if (workingset) {
- 		delayacct_thrashing_end(&in_thrashing);
- 		psi_memstall_leave(&pflags);
---- a/mm/swap_state.c~zswap-track-swapins-from-disk-more-accurately
-+++ a/mm/swap_state.c
-@@ -702,10 +702,8 @@ skip:
- 	/* The page was likely read above, so no need for plugging here */
- 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 					&page_allocated, false);
--	if (unlikely(page_allocated)) {
--		zswap_folio_swapin(folio);
-+	if (unlikely(page_allocated))
- 		swap_read_folio(folio, NULL);
--	}
- 	return folio;
- }
- 
-@@ -854,10 +852,8 @@ skip:
- 	/* The folio was likely read above, so no need for plugging here */
- 	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
- 					&page_allocated, false);
--	if (unlikely(page_allocated)) {
--		zswap_folio_swapin(folio);
-+	if (unlikely(page_allocated))
- 		swap_read_folio(folio, NULL);
--	}
- 	return folio;
- }
- 
+ 	rcu_read_unlock();
+ 	return vma;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from jannh@google.com are
 
 
