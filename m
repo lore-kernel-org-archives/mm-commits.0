@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E85DEEC8
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 01:26:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F20A1804A
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 02:08:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725240360; cv=none; b=OYEKnhmS36ZLvrKeYaQYXgXKpSHmQFO4FKj4Ze5WUx/qBla3nTk5VTe2JM465RwZSlhCohW+rxNWIDUtTFrbF+C2NkxQN/A+Juwgq+WGAS+LbTCz2Wu3a6taYfqj9Atsh4RXGyrUiopbsHqJTmGo0QUW6AZGs4dpdxnyj5BWEOA=
+	t=1725242907; cv=none; b=ZIAEmb35asITZxf4SpfIBQ9C7kw9whhMs7lwPPPoVM0Rlyc8zDTOajV/jyPLVN+a9Og+8q8/d/+wvV96EGB4a3/o01CxLz80wpnvlhtzSrar8FR1Rd2ZZo5GFk8HZKXcqfn2kVMrP6srkEbQq5RmAG8cm2yWE5hp9qrQHke8Cmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725240360; c=relaxed/simple;
-	bh=VvtsdtXmMGq/IfhKc45DjgS3NAjrzKeoKHrINqYzqVE=;
-	h=Date:To:From:Subject:Message-Id; b=k8Neq8Qu7fap/B4x1Fmg9wrbNNaHlrI4zr+zbR/Mzy+q8B62E8Pt6YWF7RLx+L7DTzOQw6oABH5L13RvqHOi6t+oi9yBdhtRyPGIPlWKrPpUS/jzWRSM+aARYc+E4IWL8xgkmv0ZikjpSIsiey9TQwzIxzqJ/cI4KmNk8U3F0fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3T87q5d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725242907; c=relaxed/simple;
+	bh=dHXh+nejGMEQ+bqhO1PJm5hcXsqRaqcxOTpGR7IL2DI=;
+	h=Date:To:From:Subject:Message-Id; b=PN1vY3Se+jexr5lNqeIRsVfiNKLyttM9Qwm4+MORL0Fiwo6RPGZT4sEFQq+quWzHQSvmuegxg/H0rxnrB7qTyVT9ETTyJbLM2fuOUDMO2m+QNvBgv9IQvjSixscr+PviBJK/a9O1WKx6BHWOitATDS64sd/2In1svkc2r1y6yQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P56h1Utp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3T87q5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C282C4CEC3;
-	Mon,  2 Sep 2024 01:26:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P56h1Utp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4956C4CEC3;
+	Mon,  2 Sep 2024 02:08:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725240360;
-	bh=VvtsdtXmMGq/IfhKc45DjgS3NAjrzKeoKHrINqYzqVE=;
+	s=korg; t=1725242905;
+	bh=dHXh+nejGMEQ+bqhO1PJm5hcXsqRaqcxOTpGR7IL2DI=;
 	h=Date:To:From:Subject:From;
-	b=F3T87q5d/TXYhwl49qZv2Ssr6tG6vUFt5lPl2fZUlBOrCDmc2mJaJ++oWww5bUjx6
-	 LXEUzUeppDzf5lHfhyZBgDxsOESYn6HEX0T3TZ5mN0SLRIZ6fShB/c4OyD4JNHkIvt
-	 ZaaS0TtlBSFHT5eRbUINurwGvuqg9TPfH0eGt3aA=
-Date: Sun, 01 Sep 2024 18:25:59 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,yosryahmed@google.com,akpm@linux-foundation.org
+	b=P56h1UtpUHBiE2wJFUsySuKN0cOIqR11PSccREx7kK/YQp7CaSbZic5yi6GuOVPDV
+	 z4gkel2hpitgm48//kbN+xmUWV8VCRDKrvDGqe7FJqBihmgIIT+0S2HjXtqyeGhVIK
+	 ntJB5x79tW72imuK71Tip2OVk51+zqbUkL/B07QQ=
+Date: Sun, 01 Sep 2024 19:08:25 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch added to mm-unstable branch
-Message-Id: <20240902012600.4C282C4CEC3@smtp.kernel.org>
+Subject: + mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix.patch added to mm-unstable branch
+Message-Id: <20240902020825.C4956C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
+     Subject: Re: mm: filemap: use xa_get_order() to get the swap entry order
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
+     mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,139 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
-Date: Fri, 2 Aug 2024 21:14:17 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: mm: filemap: use xa_get_order() to get the swap entry order
+Date: Thu, 29 Aug 2024 01:07:17 -0700 (PDT)
 
-move the spin_lock/unlock() closer to the loop to make the critical
-section more obvious, and unify the comments above and below into a single
-block.
+find_lock_entries(), used in the first pass of shmem_undo_range() and
+truncate_inode_pages_range() before partial folios are dealt with, has to
+be careful to avoid those partial folios: as its doc helpfully says,
+"Folios which are partially outside the range are not returned".  Of
+course, the same must be true of any value entries returned, otherwise
+truncation and hole-punch risk erasing swapped areas - as has been seen.
 
-Link: https://lkml.kernel.org/r/CAJD7tkaScz+SbB90Q1d5mMD70UfM2a-J2zhXDT9sePR7Qap45Q@mail.gmail.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Takero Funaki <flintglass@gmail.com>
+Rewrite find_lock_entries() to emphasize that, following the same pattern
+for folios and for value entries.
+
+Adjust find_get_entries() slightly, to get order while still holding
+rcu_read_lock(), and to round down the updated start: good changes, like
+find_lock_entries() now does, but it's unclear if either is ever
+important.
+
+Link: https://lkml.kernel.org/r/c336e6e4-da7f-b714-c0f1-12df715f2611@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/filemap.c |   41 +++++++++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 16 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix
-+++ a/mm/zswap.c
-@@ -1335,24 +1335,22 @@ static void shrink_worker(struct work_st
- 	 * until the next run of shrink_worker().
- 	 */
- 	do {
--		spin_lock(&zswap_shrink_lock);
--
- 		/*
- 		 * Start shrinking from the next memcg after zswap_next_shrink.
- 		 * When the offline cleaner has already advanced the cursor,
- 		 * advancing the cursor here overlooks one memcg, but this
- 		 * should be negligibly rare.
-+		 *
-+		 * If we get an online memcg, keep the extra reference in case
-+		 * the original one obtained by mem_cgroup_iter() is dropped by
-+		 * zswap_memcg_offline_cleanup() while we are shrinking the
-+		 * memcg.
- 		 */
-+		spin_lock(&zswap_shrink_lock);
- 		do {
- 			memcg = mem_cgroup_iter(NULL, zswap_next_shrink, NULL);
- 			zswap_next_shrink = memcg;
- 		} while (memcg && !mem_cgroup_tryget_online(memcg));
--		/*
--		 * Note that if we got an online memcg, we will keep the extra
--		 * reference in case the original reference obtained by mem_cgroup_iter
--		 * is dropped by the zswap memcg offlining callback, ensuring that the
--		 * memcg is not killed when we are reclaiming.
--		 */
- 		spin_unlock(&zswap_shrink_lock);
+--- a/mm/filemap.c~mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix
++++ a/mm/filemap.c
+@@ -2046,10 +2046,9 @@ unsigned find_get_entries(struct address
+ 		if (!folio_batch_add(fbatch, folio))
+ 			break;
+ 	}
+-	rcu_read_unlock();
  
- 		if (!memcg) {
+ 	if (folio_batch_count(fbatch)) {
+-		unsigned long nr = 1;
++		unsigned long nr;
+ 		int idx = folio_batch_count(fbatch) - 1;
+ 
+ 		folio = fbatch->folios[idx];
+@@ -2057,8 +2056,10 @@ unsigned find_get_entries(struct address
+ 			nr = folio_nr_pages(folio);
+ 		else
+ 			nr = 1 << xa_get_order(&mapping->i_pages, indices[idx]);
+-		*start = indices[idx] + nr;
++		*start = round_down(indices[idx] + nr, nr);
+ 	}
++	rcu_read_unlock();
++
+ 	return folio_batch_count(fbatch);
+ }
+ 
+@@ -2090,10 +2091,17 @@ unsigned find_lock_entries(struct addres
+ 
+ 	rcu_read_lock();
+ 	while ((folio = find_get_entry(&xas, end, XA_PRESENT))) {
++		unsigned long base;
++		unsigned long nr;
++
+ 		if (!xa_is_value(folio)) {
+-			if (folio->index < *start)
++			nr = folio_nr_pages(folio);
++			base = folio->index;
++			/* Omit large folio which begins before the start */
++			if (base < *start)
+ 				goto put;
+-			if (folio_next_index(folio) - 1 > end)
++			/* Omit large folio which extends beyond the end */
++			if (base + nr - 1 > end)
+ 				goto put;
+ 			if (!folio_trylock(folio))
+ 				goto put;
+@@ -2102,7 +2110,19 @@ unsigned find_lock_entries(struct addres
+ 				goto unlock;
+ 			VM_BUG_ON_FOLIO(!folio_contains(folio, xas.xa_index),
+ 					folio);
++		} else {
++			nr = 1 << xa_get_order(&mapping->i_pages, xas.xa_index);
++			base = xas.xa_index & ~(nr - 1);
++			/* Omit order>0 value which begins before the start */
++			if (base < *start)
++				continue;
++			/* Omit order>0 value which extends beyond the end */
++			if (base + nr - 1 > end)
++				break;
+ 		}
++
++		/* Update start now so that last update is correct on return */
++		*start = base + nr;
+ 		indices[fbatch->nr] = xas.xa_index;
+ 		if (!folio_batch_add(fbatch, folio))
+ 			break;
+@@ -2114,17 +2134,6 @@ put:
+ 	}
+ 	rcu_read_unlock();
+ 
+-	if (folio_batch_count(fbatch)) {
+-		unsigned long nr = 1;
+-		int idx = folio_batch_count(fbatch) - 1;
+-
+-		folio = fbatch->folios[idx];
+-		if (!xa_is_value(folio))
+-			nr = folio_nr_pages(folio);
+-		else
+-			nr = 1 << xa_get_order(&mapping->i_pages, indices[idx]);
+-		*start = indices[idx] + nr;
+-	}
+ 	return folio_batch_count(fbatch);
+ }
+ 
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-zswap-fix-global-shrinker-memcg-iterationpatch-fix.patch
-mm-zswap-make-the-lock-critical-section-obvious-in-shrink_worker.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-2.patch
+mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix.patch
+mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix.patch
+mm-shmem-support-large-folio-swap-out-fix.patch
+mm-restart-if-multiple-traversals-raced-fix.patch
+mm-shmem-fix-minor-off-by-one-in-shrinkable-calculation.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes.patch
 
