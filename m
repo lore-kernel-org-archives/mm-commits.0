@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E511013B288
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20A413B288
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:46:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248766; cv=none; b=ZmQC1mPE9Xusha4jfYN5W58qRHh9hmna8VtyW6VZIesYmoFUNoM0G9mRB71fj0TEbAJF3B/osKJSSq20wg4NCaiwj5/6ERGlhjmp0FpQfB1VS2XDb3LyedUee4hHNlPu4aDkQScuIaobC8gomLz1oCO+svCnwg/LiVyozX3h/uA=
+	t=1725248766; cv=none; b=KLhjzy7ofcfijdP48Gs7xOdoP0aerzJUPXSxn9QkUX9bA/6x0dX9GzD1qn8PDP9WdpGdMqtXXuh+de6xyQbGW9aBOrs1VpmxF9BIcVlJ3AHDxTA1toGdeXXS47PK1k1aYcm3kVjMLmbFv3dA5g9yPP1Z/dV+ugq3TYh3HGusEL0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725248766; c=relaxed/simple;
-	bh=zkVwd4+ZhKjE03ABeTpCyAzXTcZtSh4nO2w4ClhzeSs=;
-	h=Date:To:From:Subject:Message-Id; b=jNKGysetI/JuCCXRGugvL8Gc4l+ox4Fqd2UaJp54m2Ffx0CUIxccsq+oFOptohDZqcfgwqScEcPEEEM/gaVf8kZmGY3VCD1UNC6bvR5M3DAT+wfeqZivlUs8uObtq450p8uH2PUZDWXCeyyOYXV1PVZZDjnMBerBSKjHrEbCYNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EPvyAlfR; arc=none smtp.client-ip=10.30.226.201
+	bh=HfZSd2W8DmZBsEzf4AbOkqphT2unAwfhhpT+wITqM0Q=;
+	h=Date:To:From:Subject:Message-Id; b=aXy5a3U5xSt7u4d7E75aZ4dcY+54GJ25Lt+GDKvz5Vj01Tm8lZewumNtT1jNMhGW43BLlj/jKjyJC/aiTjfGiRWLWgCB3JkWuGKu/B1dwcyKPx8JEwdg/SuDuSRHWXSz9mlKexdFlaYaGQz7aKi4GzjHReKg2+UStvoAEVMCo7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GWyax7jg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPvyAlfR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65F5EC4CEC2;
-	Mon,  2 Sep 2024 03:46:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GWyax7jg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A845CC4CEC2;
+	Mon,  2 Sep 2024 03:46:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248765;
-	bh=zkVwd4+ZhKjE03ABeTpCyAzXTcZtSh4nO2w4ClhzeSs=;
+	s=korg; t=1725248766;
+	bh=HfZSd2W8DmZBsEzf4AbOkqphT2unAwfhhpT+wITqM0Q=;
 	h=Date:To:From:Subject:From;
-	b=EPvyAlfR6/Zm8J8OHcjPpNyFwAU/r/y2Z+TAmTjKyXhjY15/2qf+9Tgs57xPj4TmK
-	 pBWWXmpRuJH6NAgRhcBWCvOZYWraFR0TI6hEnUE7eUpRfi0QSPQXkfe4Q/ufU7cZTG
-	 CAU3cHV7sEdTc4xx075nfuAl4P5n0etVv46Mdjyk=
-Date: Sun, 01 Sep 2024 20:46:04 -0700
+	b=GWyax7jgeSUkFHiBW5XsolP2YsZ+Sr8sY5RuPQm0t56vq4z/lRwX8Rndk8fK0n+bw
+	 CxO8aTU8F2GTXJJ9f1AH6ZKFSpia1fdSR2slIztHaajjlwan3eY+7S4rKU7KAgvsvY
+	 BdaHqmYqjcwfrqoAUmgJJ9i/jhY9IpDoJfcU4pJ4=
+Date: Sun, 01 Sep 2024 20:46:06 -0700
 To: mm-commits@vger.kernel.org,zhongjubin@huawei.com,will@kernel.org,tglx@linutronix.de,sjg@chromium.org,sam@gentoo.org,rdunlap@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,me@lirui.org,krzk@kernel.org,joel@jms.id.au,jmaselbas@zdiv.net,herbert@gondor.apana.org.au,gregkh@linuxfoundation.org,emil.renner.berthing@canonical.com,corbet@lwn.net,catalin.marinas@arm.com,aou@eecs.berkeley.edu,lasse.collin@tukaani.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xz-improve-the-microlzma-kernel-doc-in-xzh.patch removed from -mm tree
-Message-Id: <20240902034605.65F5EC4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xz-documentation-staging-xzrst-revise-thoroughly.patch removed from -mm tree
+Message-Id: <20240902034606.A845CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xz: improve the MicroLZMA kernel-doc in xz.h
+     Subject: xz: Documentation/staging/xz.rst: Revise thoroughly
 has been removed from the -mm tree.  Its filename was
-     xz-improve-the-microlzma-kernel-doc-in-xzh.patch
+     xz-documentation-staging-xzrst-revise-thoroughly.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: xz: improve the MicroLZMA kernel-doc in xz.h
-Date: Sun, 21 Jul 2024 16:36:21 +0300
+Subject: xz: Documentation/staging/xz.rst: Revise thoroughly
+Date: Sun, 21 Jul 2024 16:36:22 +0300
 
-Move the description of the format into a "DOC:" comment.  Emphasize that
-MicroLZMA functions aren't usually needed.
+Add SPDX license identifier.
 
-Link: https://lkml.kernel.org/r/20240721133633.47721-7-lasse.collin@tukaani.org
+Omit xz_dec_test info. That isn't relevant to developers of non-XZ code.
+
+Revise the docs about xzkern and add xzkern_with_size.  The latter was
+added to scripts/Makefile.lib in the commit 7ce7e984ab2b ("kbuild: rename
+cmd_{bzip2,lzma,lzo,lz4,xzkern,zstd22}").
+
+Omit contact info as MAINTAINERS has it.
+
+Omit other info that is outdated or not relevant in the kernel context.
+
+Include the xz_dec kernel-doc from include/linux/xz.h.
+
+Link: https://lkml.kernel.org/r/20240721133633.47721-8-lasse.collin@tukaani.org
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Reviewed-by: Sam James <sam@gentoo.org>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rui Li <me@lirui.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Emil Renner Berthing <emil.renner.berthing@canonical.com>
@@ -66,57 +80,209 @@ Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rui Li <me@lirui.org>
 Cc: Simon Glass <sjg@chromium.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xz.h |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ Documentation/staging/xz.rst |  160 +++++++++++++--------------------
+ 1 file changed, 67 insertions(+), 93 deletions(-)
 
---- a/include/linux/xz.h~xz-improve-the-microlzma-kernel-doc-in-xzh
-+++ a/include/linux/xz.h
-@@ -232,9 +232,18 @@ XZ_EXTERN void xz_dec_reset(struct xz_de
-  */
- XZ_EXTERN void xz_dec_end(struct xz_dec *s);
+--- a/Documentation/staging/xz.rst~xz-documentation-staging-xzrst-revise-thoroughly
++++ a/Documentation/staging/xz.rst
+@@ -1,3 +1,5 @@
++.. SPDX-License-Identifier: 0BSD
++
+ ============================
+ XZ data compression in Linux
+ ============================
+@@ -6,62 +8,55 @@ Introduction
+ ============
  
--/*
-- * Decompressor for MicroLZMA, an LZMA variant with a very minimal header.
-- * See xz_dec_microlzma_alloc() below for details.
-+/**
-+ * DOC: MicroLZMA decompressor
-+ *
-+ * This MicroLZMA header format was created for use in EROFS but may be used
-+ * by others too. **In most cases one needs the XZ APIs above instead.**
-+ *
-+ * The compressed format supported by this decoder is a raw LZMA stream
-+ * whose first byte (always 0x00) has been replaced with bitwise-negation
-+ * of the LZMA properties (lc/lp/pb) byte. For example, if lc/lp/pb is
-+ * 3/0/2, the first byte is 0xA2. This way the first byte can never be 0x00.
-+ * Just like with LZMA2, lc + lp <= 4 must be true. The LZMA end-of-stream
-+ * marker must not be used. The unused values are reserved for future use.
-  *
-  * These functions aren't used or available in preboot code and thus aren't
-  * marked with XZ_EXTERN. This avoids warnings about static functions that
-@@ -262,15 +271,6 @@ struct xz_dec_microlzma;
-  * On success, xz_dec_microlzma_alloc() returns a pointer to
-  * struct xz_dec_microlzma. If memory allocation fails or
-  * dict_size is invalid, NULL is returned.
-- *
-- * The compressed format supported by this decoder is a raw LZMA stream
-- * whose first byte (always 0x00) has been replaced with bitwise-negation
-- * of the LZMA properties (lc/lp/pb) byte. For example, if lc/lp/pb is
-- * 3/0/2, the first byte is 0xA2. This way the first byte can never be 0x00.
-- * Just like with LZMA2, lc + lp <= 4 must be true. The LZMA end-of-stream
-- * marker must not be used. The unused values are reserved for future use.
-- * This MicroLZMA header format was created for use in EROFS but may be used
-- * by others too.
-  */
- extern struct xz_dec_microlzma *xz_dec_microlzma_alloc(enum xz_mode mode,
- 						       uint32_t dict_size);
+ XZ is a general purpose data compression format with high compression
+-ratio and relatively fast decompression. The primary compression
+-algorithm (filter) is LZMA2. Additional filters can be used to improve
+-compression ratio even further. E.g. Branch/Call/Jump (BCJ) filters
+-improve compression ratio of executable data.
+-
+-The XZ decompressor in Linux is called XZ Embedded. It supports
+-the LZMA2 filter and optionally also BCJ filters. CRC32 is supported
+-for integrity checking. The home page of XZ Embedded is at
+-<https://tukaani.org/xz/embedded.html>, where you can find the
+-latest version and also information about using the code outside
+-the Linux kernel.
+-
+-For userspace, XZ Utils provide a zlib-like compression library
+-and a gzip-like command line tool. XZ Utils can be downloaded from
+-<https://tukaani.org/xz/>.
++ratio. The XZ decompressor in Linux is called XZ Embedded. It supports
++the LZMA2 filter and optionally also Branch/Call/Jump (BCJ) filters
++for executable code. CRC32 is supported for integrity checking.
++
++See the `XZ Embedded`_ home page for the latest version which includes
++a few optional extra features that aren't required in the Linux kernel
++and information about using the code outside the Linux kernel.
++
++For userspace, `XZ Utils`_ provide a zlib-like compression library
++and a gzip-like command line tool.
++
++.. _XZ Embedded: https://tukaani.org/xz/embedded.html
++.. _XZ Utils: https://tukaani.org/xz/
+ 
+ XZ related components in the kernel
+ ===================================
+ 
+ The xz_dec module provides XZ decompressor with single-call (buffer
+-to buffer) and multi-call (stateful) APIs. The usage of the xz_dec
+-module is documented in include/linux/xz.h.
+-
+-The xz_dec_test module is for testing xz_dec. xz_dec_test is not
+-useful unless you are hacking the XZ decompressor. xz_dec_test
+-allocates a char device major dynamically to which one can write
+-.xz files from userspace. The decompressed output is thrown away.
+-Keep an eye on dmesg to see diagnostics printed by xz_dec_test.
+-See the xz_dec_test source code for the details.
++to buffer) and multi-call (stateful) APIs in include/linux/xz.h.
+ 
+ For decompressing the kernel image, initramfs, and initrd, there
+ is a wrapper function in lib/decompress_unxz.c. Its API is the
+ same as in other decompress_*.c files, which is defined in
+ include/linux/decompress/generic.h.
+ 
+-scripts/xz_wrap.sh is a wrapper for the xz command line tool found
+-from XZ Utils. The wrapper sets compression options to values suitable
+-for compressing the kernel image.
+-
+-For kernel makefiles, two commands are provided for use with
+-$(call if_needed). The kernel image should be compressed with
+-$(call if_needed,xzkern) which will use a BCJ filter and a big LZMA2
+-dictionary. It will also append a four-byte trailer containing the
+-uncompressed size of the file, which is needed by the boot code.
+-Other things should be compressed with $(call if_needed,xzmisc)
+-which will use no BCJ filter and 1 MiB LZMA2 dictionary.
++For kernel makefiles, three commands are provided for use with
++``$(call if_changed)``. They require the xz tool from XZ Utils.
++
++- ``$(call if_changed,xzkern)`` is for compressing the kernel image.
++  It runs the script scripts/xz_wrap.sh which uses arch-optimized
++  options and a big LZMA2 dictionary.
++
++- ``$(call if_changed,xzkern_with_size)`` is like ``xzkern`` above but
++  this also appends a four-byte trailer containing the uncompressed size
++  of the file. The trailer is needed by the boot code on some archs.
++
++- Other things can be compressed with ``$(call if_needed,xzmisc)``
++  which will use no BCJ filter and 1 MiB LZMA2 dictionary.
+ 
+ Notes on compression options
+ ============================
+ 
+-Since the XZ Embedded supports only streams with no integrity check or
+-CRC32, make sure that you don't use some other integrity check type
+-when encoding files that are supposed to be decoded by the kernel. With
+-liblzma, you need to use either LZMA_CHECK_NONE or LZMA_CHECK_CRC32
+-when encoding. With the xz command line tool, use --check=none or
+---check=crc32.
++Since the XZ Embedded supports only streams with CRC32 or no integrity
++check, make sure that you don't use some other integrity check type
++when encoding files that are supposed to be decoded by the kernel.
++With liblzma from XZ Utils, you need to use either ``LZMA_CHECK_CRC32``
++or ``LZMA_CHECK_NONE`` when encoding. With the ``xz`` command line tool,
++use ``--check=crc32`` or ``--check=none`` to override the default
++``--check=crc64``.
+ 
+ Using CRC32 is strongly recommended unless there is some other layer
+ which will verify the integrity of the uncompressed data anyway.
+@@ -71,57 +66,36 @@ by the decoder; you can only change the
+ disable it) for the actual uncompressed data.
+ 
+ In userspace, LZMA2 is typically used with dictionary sizes of several
+-megabytes. The decoder needs to have the dictionary in RAM, thus big
+-dictionaries cannot be used for files that are intended to be decoded
+-by the kernel. 1 MiB is probably the maximum reasonable dictionary
+-size for in-kernel use (maybe more is OK for initramfs). The presets
+-in XZ Utils may not be optimal when creating files for the kernel,
+-so don't hesitate to use custom settings. Example::
+-
+-	xz --check=crc32 --lzma2=dict=512KiB inputfile
+-
+-An exception to above dictionary size limitation is when the decoder
+-is used in single-call mode. Decompressing the kernel itself is an
+-example of this situation. In single-call mode, the memory usage
+-doesn't depend on the dictionary size, and it is perfectly fine to
+-use a big dictionary: for maximum compression, the dictionary should
+-be at least as big as the uncompressed data itself.
++megabytes. The decoder needs to have the dictionary in RAM:
+ 
+-Future plans
+-============
++- In multi-call mode the dictionary is allocated as part of the
++  decoder state. The reasonable maximum dictionary size for in-kernel
++  use will depend on the target hardware: a few megabytes is fine for
++  desktop systems while 64 KiB to 1 MiB might be more appropriate on
++  some embedded systems.
++
++- In single-call mode the output buffer is used as the dictionary
++  buffer. That is, the size of the dictionary doesn't affect the
++  decompressor memory usage at all. Only the base data structures
++  are allocated which take a little less than 30 KiB of memory.
++  For the best compression, the dictionary should be at least
++  as big as the uncompressed data. A notable example of single-call
++  mode is decompressing the kernel itself (except on PowerPC).
++
++The compression presets in XZ Utils may not be optimal when creating
++files for the kernel, so don't hesitate to use custom settings to,
++for example, set the dictionary size. Also, xz may produce a smaller
++file in single-threaded mode so setting that explicitly is recommended.
++Example::
++
++    xz --threads=1 --check=crc32 --lzma2=dict=512KiB inputfile
++
++xz_dec API
++==========
++
++This is available with ``#include <linux/xz.h>``.
++
++``XZ_EXTERN`` is a macro used in the preboot code. Ignore it when
++reading this documentation.
+ 
+-Creating a limited XZ encoder may be considered if people think it is
+-useful. LZMA2 is slower to compress than e.g. Deflate or LZO even at
+-the fastest settings, so it isn't clear if LZMA2 encoder is wanted
+-into the kernel.
+-
+-Support for limited random-access reading is planned for the
+-decompression code. I don't know if it could have any use in the
+-kernel, but I know that it would be useful in some embedded projects
+-outside the Linux kernel.
+-
+-Conformance to the .xz file format specification
+-================================================
+-
+-There are a couple of corner cases where things have been simplified
+-at expense of detecting errors as early as possible. These should not
+-matter in practice all, since they don't cause security issues. But
+-it is good to know this if testing the code e.g. with the test files
+-from XZ Utils.
+-
+-Reporting bugs
+-==============
+-
+-Before reporting a bug, please check that it's not fixed already
+-at upstream. See <https://tukaani.org/xz/embedded.html> to get the
+-latest code.
+-
+-Report bugs to <lasse.collin@tukaani.org> or visit #tukaani on
+-Freenode and talk to Larhzu. I don't actively read LKML or other
+-kernel-related mailing lists, so if there's something I should know,
+-you should email to me personally or use IRC.
+-
+-Don't bother Igor Pavlov with questions about the XZ implementation
+-in the kernel or about XZ Utils. While these two implementations
+-include essential code that is directly based on Igor Pavlov's code,
+-these implementations aren't maintained nor supported by him.
++.. kernel-doc:: include/linux/xz.h
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
