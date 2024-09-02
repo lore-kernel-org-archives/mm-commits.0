@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4E633D3B8
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 121D443AAE
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247707; cv=none; b=bOxkFlqQ48bG8fZ+14NFx1hYDtiPloVS3IrO+/gBHd0UKTR9cKZB736w6O8iv66SmKnlUs4Zb/RGvufoP0Q+tBvtLVarqPgE8QRD16oSz2q2JWUr5dUqa6fuD0ZZLFJQx4+WF26eIT9fbjPnU7cpgY3VdpU0I5FLzO97VhXBB9c=
+	t=1725247710; cv=none; b=pHOtLAFTQFOCbtJ1uNUkl/gkk2sGOIyBXipLiijEEtQ6t3Pt6/twVSadhL9eyi+w/0Foe7XrZxjMnuRfqjdq7euoIlcvjw/ztKIDZNgBz/hi4ZhmV6ZTm9H0U5Yr7fjl4v6echTpz0z0kY9gMV5WHWIHwkC1zYnqPaeEgfuo5ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247707; c=relaxed/simple;
-	bh=zNfuD10GcsP3B7WmqnKdsjtDE1PIDcpe6O873TVe40g=;
-	h=Date:To:From:Subject:Message-Id; b=UmkrMRwRL2unzUubsNS+jxjS941IiZEB6zoWmALrQSkLV3jko+z0wR67heLq6ozEI8ghsWPw4+gPz4AL1U7fQ9Cs7zCuS+YyTsXGa8t5EQieoNB37vOb4GZccihcvYusSzRFQ2Os5WF9XOUYyrptiH/Pa03T+qh9M3V/79Qf5ik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eu0c6n1R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247710; c=relaxed/simple;
+	bh=cS1v7xKIHS2zu4229X/pgBrX3a01KasgBtDrItt1Jpw=;
+	h=Date:To:From:Subject:Message-Id; b=Ex7xN5FlZ+MWhzs/BNBuLP79Q/8qATRwTB7+z3ODvpOj2fNqKOi3/XPK7tx09pPp/D1pB0w1MC4meaiXWK826thAu4/wE9qaVdASV7THXNgmNY4zcjx/x8TMHJ9bAAzYSyKwxwi6RTl5zGWl/sY/IbuN8ElrnesUBjwOVgZtQPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CDy6SEl2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eu0c6n1R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77C64C4CEC2;
-	Mon,  2 Sep 2024 03:28:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CDy6SEl2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB770C4CEC2;
+	Mon,  2 Sep 2024 03:28:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247707;
-	bh=zNfuD10GcsP3B7WmqnKdsjtDE1PIDcpe6O873TVe40g=;
+	s=korg; t=1725247709;
+	bh=cS1v7xKIHS2zu4229X/pgBrX3a01KasgBtDrItt1Jpw=;
 	h=Date:To:From:Subject:From;
-	b=Eu0c6n1RKkO3HxRjXae/OsqoYiGHUk7PjMOrG9fem51aMTV23eEqHbfktLT2KJdBD
-	 w9dU1OjUOEiC6sO87EabZwUC+g171AnEBCbOmhUCc9jui8sdmD7IaOllFsAGH+EoEF
-	 A4nfdsyPSZPojaFbjY/U/UKKfuFi10/CGRgrWmSQ=
-Date: Sun, 01 Sep 2024 20:28:26 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,davidf@vimeo.com,akpm@linux-foundation.org
+	b=CDy6SEl2j1/JNtlDou8j0x42ASNZR5chriiWfMM41anetH8NezOu8a7dBEsGT6V3w
+	 iAeCpcA3i3N4nrbT4CS08sqY/IHHxqMGO+PiS4oLlXyCzg/b0Ynf2NOooCtguux+hz
+	 sOz3PXWzuIgN2y1+12B/rhmtihYIXLEPgIKRNP6g=
+Date: Sun, 01 Sep 2024 20:28:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rmoar@google.com,pengfei.xu@intel.com,Liam.Howlett@oracle.com,kees@kernel.org,jack@suse.cz,ebiederm@xmission.com,davidgow@google.com,brendanhiggins@google.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-cg2-memoryswappeak-write-tests.patch removed from -mm tree
-Message-Id: <20240902032827.77C64C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch removed from -mm tree
+Message-Id: <20240902032829.DB770C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,447 +35,561 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
+     Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-cg2-memoryswappeak-write-tests.patch
+     userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Finkel <davidf@vimeo.com>
-Subject: mm, memcg: cg2 memory{.swap,}.peak write tests
-Date: Mon, 29 Jul 2024 10:37:43 -0400
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: userfaultfd: move core VMA manipulation logic to mm/userfaultfd.c
+Date: Mon, 29 Jul 2024 12:50:35 +0100
 
-Extend two existing tests to cover extracting memory usage through the
-newly mutable memory.peak and memory.swap.peak handlers.
+Patch series "Make core VMA operations internal and testable", v4.
 
-In particular, make sure to exercise adding and removing watchers with
-overlapping lifetimes so the less-trivial logic gets tested.
+There are a number of "core" VMA manipulation functions implemented in
+mm/mmap.c, notably those concerning VMA merging, splitting, modifying,
+expanding and shrinking, which logically don't belong there.
 
-The new/updated tests attempt to detect a lack of the write handler by
-fstat'ing the memory.peak and memory.swap.peak files and skip the tests if
-that's the case.  Additionally, skip if the file doesn't exist at all.
+More importantly this functionality represents an internal implementation
+detail of memory management and should not be exposed outside of mm/
+itself.
 
-[davidf@vimeo.com: update tests]
-  Link: https://lkml.kernel.org/r/20240730231304.761942-3-davidf@vimeo.com
-Link: https://lkml.kernel.org/r/20240729143743.34236-3-davidf@vimeo.com
-Signed-off-by: David Finkel <davidf@vimeo.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+This patch series isolates core VMA manipulation functionality into its
+own file, mm/vma.c, and provides an API to the rest of the mm code in
+mm/vma.h.
+
+Importantly, it also carefully implements mm/vma_internal.h, which
+specifies which headers need to be imported by vma.c, leading to the very
+useful property that vma.c depends only on mm/vma.h and mm/vma_internal.h.
+
+This means we can then re-implement vma_internal.h in userland, adding
+shims for kernel mechanisms as required, allowing us to unit test internal
+VMA functionality.
+
+This testing is useful as opposed to an e.g.  kunit implementation as this
+way we can avoid all external kernel side-effects while testing, run tests
+VERY quickly, and iterate on and debug problems quickly.
+
+Excitingly this opens the door to, in the future, recreating precise
+problems observed in production in userland and very quickly debugging
+problems that might otherwise be very difficult to reproduce.
+
+This patch series takes advantage of existing shim logic and full userland
+maple tree support contained in tools/testing/radix-tree/ and
+tools/include/linux/, separating out shared components of the radix tree
+implementation to provide this testing.
+
+Kernel functionality is stubbed and shimmed as needed in
+tools/testing/vma/ which contains a fully functional userland
+vma_internal.h file and which imports mm/vma.c and mm/vma.h to be directly
+tested from userland.
+
+A simple, skeleton testing implementation is provided in
+tools/testing/vma/vma.c as a proof-of-concept, asserting that simple VMA
+merge, modify (testing split), expand and shrink functionality work
+correctly.
+
+
+This patch (of 4):
+
+This patch forms part of a patch series intending to separate out VMA
+logic and render it testable from userspace, which requires that core
+manipulation functions be exposed in an mm/-internal header file.
+
+In order to do this, we must abstract APIs we wish to test, in this
+instance functions which ultimately invoke vma_modify().
+
+This patch therefore moves all logic which ultimately invokes vma_modify()
+to mm/userfaultfd.c, trying to transfer code at a functional granularity
+where possible.
+
+[lorenzo.stoakes@oracle.com: fix user-after-free in userfaultfd_clear_vma()]
+  Link: https://lkml.kernel.org/r/3c947ddc-b804-49b7-8fe9-3ea3ca13def5@lucifer.local
+Link: https://lkml.kernel.org/r/cover.1722251717.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/50c3ed995fd81c45876c86304c8a00bf3e396cfd.1722251717.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Gow <davidgow@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rae Moar <rmoar@google.com>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Pengfei Xu <pengfei.xu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c     |   22 +
- tools/testing/selftests/cgroup/cgroup_util.h     |    2 
- tools/testing/selftests/cgroup/test_memcontrol.c |  264 ++++++++++++-
- 3 files changed, 280 insertions(+), 8 deletions(-)
+ fs/userfaultfd.c              |  160 ++----------------------------
+ include/linux/userfaultfd_k.h |   19 +++
+ mm/userfaultfd.c              |  168 ++++++++++++++++++++++++++++++++
+ 3 files changed, 198 insertions(+), 149 deletions(-)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -141,6 +141,16 @@ long cg_read_long(const char *cgroup, co
- 	return atol(buf);
+--- a/fs/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/fs/userfaultfd.c
+@@ -104,21 +104,6 @@ bool userfaultfd_wp_unpopulated(struct v
+ 	return ctx->features & UFFD_FEATURE_WP_UNPOPULATED;
  }
  
-+long cg_read_long_fd(int fd)
-+{
-+	char buf[128];
-+
-+	if (pread(fd, buf, sizeof(buf), 0) <= 0)
-+		return -1;
-+
-+	return atol(buf);
-+}
-+
- long cg_read_key_long(const char *cgroup, const char *control, const char *key)
+-static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
+-				     vm_flags_t flags)
+-{
+-	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
+-
+-	vm_flags_reset(vma, flags);
+-	/*
+-	 * For shared mappings, we want to enable writenotify while
+-	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
+-	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
+-	 */
+-	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
+-		vma_set_page_prot(vma);
+-}
+-
+ static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
+ 				     int wake_flags, void *key)
  {
- 	char buf[PAGE_SIZE];
-@@ -183,6 +193,18 @@ int cg_write(const char *cgroup, const c
- 	return ret == len ? 0 : ret;
- }
+@@ -615,22 +600,7 @@ static void userfaultfd_event_wait_compl
+ 	spin_unlock_irq(&ctx->event_wqh.lock);
  
-+/*
-+ * Returns fd on success, or -1 on failure.
-+ * (fd should be closed with close() as usual)
-+ */
-+int cg_open(const char *cgroup, const char *control, int flags)
-+{
-+	char path[PATH_MAX];
-+
-+	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
-+	return open(path, flags);
-+}
-+
- int cg_write_numeric(const char *cgroup, const char *control, long value)
- {
- 	char buf[64];
---- a/tools/testing/selftests/cgroup/cgroup_util.h~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/cgroup_util.h
-@@ -34,9 +34,11 @@ extern int cg_read_strcmp(const char *cg
- extern int cg_read_strstr(const char *cgroup, const char *control,
- 			  const char *needle);
- extern long cg_read_long(const char *cgroup, const char *control);
-+extern long cg_read_long_fd(int fd);
- long cg_read_key_long(const char *cgroup, const char *control, const char *key);
- extern long cg_read_lc(const char *cgroup, const char *control);
- extern int cg_write(const char *cgroup, const char *control, char *buf);
-+extern int cg_open(const char *cgroup, const char *control, int flags);
- int cg_write_numeric(const char *cgroup, const char *control, long value);
- extern int cg_run(const char *cgroup,
- 		  int (*fn)(const char *cgroup, void *arg),
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-memcg-cg2-memoryswappeak-write-tests
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -161,13 +161,16 @@ cleanup:
- /*
-  * This test create a memory cgroup, allocates
-  * some anonymous memory and some pagecache
-- * and check memory.current and some memory.stat values.
-+ * and checks memory.current, memory.peak, and some memory.stat values.
-  */
--static int test_memcg_current(const char *root)
-+static int test_memcg_current_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
--	long current;
-+	long current, peak, peak_reset;
- 	char *memcg;
-+	bool fd2_closed = false, fd3_closed = false, fd4_closed = false;
-+	int peak_fd = -1, peak_fd2 = -1, peak_fd3 = -1, peak_fd4 = -1;
-+	struct stat ss;
- 
- 	memcg = cg_name(root, "memcg_test");
- 	if (!memcg)
-@@ -180,15 +183,124 @@ static int test_memcg_current(const char
- 	if (current != 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak != 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/*
-+	 * We'll open a few FDs for the same memory.peak file to exercise the free-path
-+	 * We need at least three to be closed in a different order than writes occurred to test
-+	 * the linked-list handling.
-+	 */
-+	peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd == -1) {
-+		if (errno == ENOENT)
-+			ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
-+	/*
-+	 * Before we try to use memory.peak's fd, try to figure out whether
-+	 * this kernel supports writing to that file in the first place. (by
-+	 * checking the writable bit on the file's st_mode)
-+	 */
-+	if (fstat(peak_fd, &ss))
-+		goto cleanup;
-+
-+	if ((ss.st_mode & S_IWUSR) == 0) {
-+		ret = KSFT_SKIP;
-+		goto cleanup;
-+	}
-+
-+	peak_fd2 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd2 == -1)
-+		goto cleanup;
-+
-+	peak_fd3 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd3 == -1)
-+		goto cleanup;
-+
-+	/* any non-empty string resets, but make it clear */
-+	static const char reset_string[] = "reset\n";
-+
-+	peak_reset = write(peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd2, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd3, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	/* Make sure a completely independent read isn't affected by our  FD-local reset above*/
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd2_closed = true;
-+	if (close(peak_fd2))
-+		goto cleanup;
-+
-+	peak_fd4 = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
-+
-+	if (peak_fd4 == -1)
-+		goto cleanup;
-+
-+	peak_reset = write(peak_fd4, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak > MB(30) || peak < 0)
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_pagecache_50M_check, NULL))
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	/* Make sure everything is back to normal */
-+	peak = cg_read_long_fd(peak_fd);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(peak_fd4);
-+	if (peak < MB(50))
-+		goto cleanup;
-+
-+	fd3_closed = true;
-+	if (close(peak_fd3))
-+		goto cleanup;
-+
-+	fd4_closed = true;
-+	if (close(peak_fd4))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	close(peak_fd);
-+	if (!fd2_closed)
-+		close(peak_fd2);
-+	if (!fd3_closed)
-+		close(peak_fd3);
-+	if (!fd4_closed)
-+		close(peak_fd4);
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -817,13 +929,19 @@ cleanup:
- 
- /*
-  * This test checks that memory.swap.max limits the amount of
-- * anonymous memory which can be swapped out.
-+ * anonymous memory which can be swapped out. Additionally, it verifies that
-+ * memory.swap.peak reflects the high watermark and can be reset.
-  */
--static int test_memcg_swap_max(const char *root)
-+static int test_memcg_swap_max_peak(const char *root)
- {
- 	int ret = KSFT_FAIL;
- 	char *memcg;
--	long max;
-+	long max, peak;
-+	struct stat ss;
-+	int swap_peak_fd = -1, mem_peak_fd = -1;
-+
-+	/* any non-empty string resets */
-+	static const char reset_string[] = "foobarbaz";
- 
- 	if (!is_swap_enabled())
- 		return KSFT_SKIP;
-@@ -840,6 +958,61 @@ static int test_memcg_swap_max(const cha
- 		goto cleanup;
+ 	if (release_new_ctx) {
+-		struct vm_area_struct *vma;
+-		struct mm_struct *mm = release_new_ctx->mm;
+-		VMA_ITERATOR(vmi, mm, 0);
+-
+-		/* the various vma->vm_userfaultfd_ctx still points to it */
+-		mmap_write_lock(mm);
+-		for_each_vma(vmi, vma) {
+-			if (vma->vm_userfaultfd_ctx.ctx == release_new_ctx) {
+-				vma_start_write(vma);
+-				vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-				userfaultfd_set_vm_flags(vma,
+-							 vma->vm_flags & ~__VM_UFFD_FLAGS);
+-			}
+-		}
+-		mmap_write_unlock(mm);
+-
++		userfaultfd_release_new(release_new_ctx);
+ 		userfaultfd_ctx_put(release_new_ctx);
  	}
  
-+	swap_peak_fd = cg_open(memcg, "memory.swap.peak",
-+			       O_RDWR | O_APPEND | O_CLOEXEC);
+@@ -662,9 +632,7 @@ int dup_userfaultfd(struct vm_area_struc
+ 		return 0;
+ 
+ 	if (!(octx->features & UFFD_FEATURE_EVENT_FORK)) {
+-		vma_start_write(vma);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
++		userfaultfd_reset_ctx(vma);
+ 		return 0;
+ 	}
+ 
+@@ -749,9 +717,7 @@ void mremap_userfaultfd_prep(struct vm_a
+ 		up_write(&ctx->map_changing_lock);
+ 	} else {
+ 		/* Drop uffd context if remap feature not enabled */
+-		vma_start_write(vma);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
++		userfaultfd_reset_ctx(vma);
+ 	}
+ }
+ 
+@@ -870,54 +836,14 @@ static int userfaultfd_release(struct in
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+ 	struct mm_struct *mm = ctx->mm;
+-	struct vm_area_struct *vma, *prev;
+ 	/* len == 0 means wake all */
+ 	struct userfaultfd_wake_range range = { .len = 0, };
+-	unsigned long new_flags;
+-	VMA_ITERATOR(vmi, mm, 0);
+ 
+ 	WRITE_ONCE(ctx->released, true);
+ 
+-	if (!mmget_not_zero(mm))
+-		goto wakeup;
++	userfaultfd_release_all(mm, ctx);
+ 
+ 	/*
+-	 * Flush page faults out of all CPUs. NOTE: all page faults
+-	 * must be retried without returning VM_FAULT_SIGBUS if
+-	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
+-	 * changes while handle_userfault released the mmap_lock. So
+-	 * it's critical that released is set to true (above), before
+-	 * taking the mmap_lock for writing.
+-	 */
+-	mmap_write_lock(mm);
+-	prev = NULL;
+-	for_each_vma(vmi, vma) {
+-		cond_resched();
+-		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
+-		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
+-		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
+-			prev = vma;
+-			continue;
+-		}
+-		/* Reset ptes for the whole vma range if wr-protected */
+-		if (userfaultfd_wp(vma))
+-			uffd_wp_range(vma, vma->vm_start,
+-				      vma->vm_end - vma->vm_start, false);
+-		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
+-					    vma->vm_end, new_flags,
+-					    NULL_VM_UFFD_CTX);
+-
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-
+-		prev = vma;
+-	}
+-	mmap_write_unlock(mm);
+-	mmput(mm);
+-wakeup:
+-	/*
+ 	 * After no new page faults can wait on this fault_*wqh, flush
+ 	 * the last page faults that may have been already waiting on
+ 	 * the fault_*wqh.
+@@ -1293,14 +1219,14 @@ static int userfaultfd_register(struct u
+ 				unsigned long arg)
+ {
+ 	struct mm_struct *mm = ctx->mm;
+-	struct vm_area_struct *vma, *prev, *cur;
++	struct vm_area_struct *vma, *cur;
+ 	int ret;
+ 	struct uffdio_register uffdio_register;
+ 	struct uffdio_register __user *user_uffdio_register;
+-	unsigned long vm_flags, new_flags;
++	unsigned long vm_flags;
+ 	bool found;
+ 	bool basic_ioctls;
+-	unsigned long start, end, vma_end;
++	unsigned long start, end;
+ 	struct vma_iterator vmi;
+ 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
+ 
+@@ -1428,57 +1354,8 @@ static int userfaultfd_register(struct u
+ 	} for_each_vma_range(vmi, cur, end);
+ 	BUG_ON(!found);
+ 
+-	vma_iter_set(&vmi, start);
+-	prev = vma_prev(&vmi);
+-	if (vma->vm_start < start)
+-		prev = vma;
+-
+-	ret = 0;
+-	for_each_vma_range(vmi, vma, end) {
+-		cond_resched();
+-
+-		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
+-		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
+-		       vma->vm_userfaultfd_ctx.ctx != ctx);
+-		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
+-
+-		/*
+-		 * Nothing to do: this vma is already registered into this
+-		 * userfaultfd and with the right tracking mode too.
+-		 */
+-		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
+-		    (vma->vm_flags & vm_flags) == vm_flags)
+-			goto skip;
+-
+-		if (vma->vm_start > start)
+-			start = vma->vm_start;
+-		vma_end = min(end, vma->vm_end);
+-
+-		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+-					    new_flags,
+-					    (struct vm_userfaultfd_ctx){ctx});
+-		if (IS_ERR(vma)) {
+-			ret = PTR_ERR(vma);
+-			break;
+-		}
+-
+-		/*
+-		 * In the vma_merge() successful mprotect-like case 8:
+-		 * the next vma was merged into the current one and
+-		 * the current one has not been updated yet.
+-		 */
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx.ctx = ctx;
+-
+-		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
+-			hugetlb_unshare_all_pmds(vma);
+-
+-	skip:
+-		prev = vma;
+-		start = vma->vm_end;
+-	}
++	ret = userfaultfd_register_range(ctx, vma, vm_flags, start, end,
++					 wp_async);
+ 
+ out_unlock:
+ 	mmap_write_unlock(mm);
+@@ -1519,7 +1396,6 @@ static int userfaultfd_unregister(struct
+ 	struct vm_area_struct *vma, *prev, *cur;
+ 	int ret;
+ 	struct uffdio_range uffdio_unregister;
+-	unsigned long new_flags;
+ 	bool found;
+ 	unsigned long start, end, vma_end;
+ 	const void __user *buf = (void __user *)arg;
+@@ -1622,27 +1498,13 @@ static int userfaultfd_unregister(struct
+ 			wake_userfault(vma->vm_userfaultfd_ctx.ctx, &range);
+ 		}
+ 
+-		/* Reset ptes for the whole vma range if wr-protected */
+-		if (userfaultfd_wp(vma))
+-			uffd_wp_range(vma, start, vma_end - start, false);
+-
+-		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+-					    new_flags, NULL_VM_UFFD_CTX);
++		vma = userfaultfd_clear_vma(&vmi, prev, vma,
++					    start, vma_end);
+ 		if (IS_ERR(vma)) {
+ 			ret = PTR_ERR(vma);
+ 			break;
+ 		}
+ 
+-		/*
+-		 * In the vma_merge() successful mprotect-like case 8:
+-		 * the next vma was merged into the current one and
+-		 * the current one has not been updated yet.
+-		 */
+-		vma_start_write(vma);
+-		userfaultfd_set_vm_flags(vma, new_flags);
+-		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-
+ 	skip:
+ 		prev = vma;
+ 		start = vma->vm_end;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/include/linux/userfaultfd_k.h
+@@ -267,6 +267,25 @@ extern void userfaultfd_unmap_complete(s
+ extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
+ extern bool userfaultfd_wp_async(struct vm_area_struct *vma);
+ 
++void userfaultfd_reset_ctx(struct vm_area_struct *vma);
 +
-+	if (swap_peak_fd == -1) {
-+		if (errno == ENOENT)
-+			ret = KSFT_SKIP;
-+		goto cleanup;
++struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
++					     struct vm_area_struct *prev,
++					     struct vm_area_struct *vma,
++					     unsigned long start,
++					     unsigned long end);
++
++int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
++			       struct vm_area_struct *vma,
++			       unsigned long vm_flags,
++			       unsigned long start, unsigned long end,
++			       bool wp_async);
++
++void userfaultfd_release_new(struct userfaultfd_ctx *ctx);
++
++void userfaultfd_release_all(struct mm_struct *mm,
++			     struct userfaultfd_ctx *ctx);
++
+ #else /* CONFIG_USERFAULTFD */
+ 
+ /* mm helpers */
+--- a/mm/userfaultfd.c~userfaultfd-move-core-vma-manipulation-logic-to-mm-userfaultfdc
++++ a/mm/userfaultfd.c
+@@ -1760,3 +1760,171 @@ out:
+ 	VM_WARN_ON(!moved && !err);
+ 	return moved ? moved : err;
+ }
++
++static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
++				     vm_flags_t flags)
++{
++	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
++
++	vm_flags_reset(vma, flags);
++	/*
++	 * For shared mappings, we want to enable writenotify while
++	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
++	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
++	 */
++	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
++		vma_set_page_prot(vma);
++}
++
++static void userfaultfd_set_ctx(struct vm_area_struct *vma,
++				struct userfaultfd_ctx *ctx,
++				unsigned long flags)
++{
++	vma_start_write(vma);
++	vma->vm_userfaultfd_ctx = (struct vm_userfaultfd_ctx){ctx};
++	userfaultfd_set_vm_flags(vma,
++				 (vma->vm_flags & ~__VM_UFFD_FLAGS) | flags);
++}
++
++void userfaultfd_reset_ctx(struct vm_area_struct *vma)
++{
++	userfaultfd_set_ctx(vma, NULL, 0);
++}
++
++struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
++					     struct vm_area_struct *prev,
++					     struct vm_area_struct *vma,
++					     unsigned long start,
++					     unsigned long end)
++{
++	struct vm_area_struct *ret;
++
++	/* Reset ptes for the whole vma range if wr-protected */
++	if (userfaultfd_wp(vma))
++		uffd_wp_range(vma, start, end - start, false);
++
++	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
++				    vma->vm_flags & ~__VM_UFFD_FLAGS,
++				    NULL_VM_UFFD_CTX);
++
++	/*
++	 * In the vma_merge() successful mprotect-like case 8:
++	 * the next vma was merged into the current one and
++	 * the current one has not been updated yet.
++	 */
++	if (!IS_ERR(ret))
++		userfaultfd_reset_ctx(ret);
++
++	return ret;
++}
++
++/* Assumes mmap write lock taken, and mm_struct pinned. */
++int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
++			       struct vm_area_struct *vma,
++			       unsigned long vm_flags,
++			       unsigned long start, unsigned long end,
++			       bool wp_async)
++{
++	VMA_ITERATOR(vmi, ctx->mm, start);
++	struct vm_area_struct *prev = vma_prev(&vmi);
++	unsigned long vma_end;
++	unsigned long new_flags;
++
++	if (vma->vm_start < start)
++		prev = vma;
++
++	for_each_vma_range(vmi, vma, end) {
++		cond_resched();
++
++		BUG_ON(!vma_can_userfault(vma, vm_flags, wp_async));
++		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
++		       vma->vm_userfaultfd_ctx.ctx != ctx);
++		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
++
++		/*
++		 * Nothing to do: this vma is already registered into this
++		 * userfaultfd and with the right tracking mode too.
++		 */
++		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
++		    (vma->vm_flags & vm_flags) == vm_flags)
++			goto skip;
++
++		if (vma->vm_start > start)
++			start = vma->vm_start;
++		vma_end = min(end, vma->vm_end);
++
++		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
++		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
++					    new_flags,
++					    (struct vm_userfaultfd_ctx){ctx});
++		if (IS_ERR(vma))
++			return PTR_ERR(vma);
++
++		/*
++		 * In the vma_merge() successful mprotect-like case 8:
++		 * the next vma was merged into the current one and
++		 * the current one has not been updated yet.
++		 */
++		userfaultfd_set_ctx(vma, ctx, vm_flags);
++
++		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
++			hugetlb_unshare_all_pmds(vma);
++
++skip:
++		prev = vma;
++		start = vma->vm_end;
 +	}
 +
-+	/*
-+	 * Before we try to use memory.swap.peak's fd, try to figure out
-+	 * whether this kernel supports writing to that file in the first
-+	 * place. (by checking the writable bit on the file's st_mode)
-+	 */
-+	if (fstat(swap_peak_fd, &ss))
-+		goto cleanup;
++	return 0;
++}
 +
-+	if ((ss.st_mode & S_IWUSR) == 0) {
-+		ret = KSFT_SKIP;
-+		goto cleanup;
++void userfaultfd_release_new(struct userfaultfd_ctx *ctx)
++{
++	struct mm_struct *mm = ctx->mm;
++	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
++
++	/* the various vma->vm_userfaultfd_ctx still points to it */
++	mmap_write_lock(mm);
++	for_each_vma(vmi, vma) {
++		if (vma->vm_userfaultfd_ctx.ctx == ctx)
++			userfaultfd_reset_ctx(vma);
 +	}
++	mmap_write_unlock(mm);
++}
 +
-+	mem_peak_fd = cg_open(memcg, "memory.peak", O_RDWR | O_APPEND | O_CLOEXEC);
++void userfaultfd_release_all(struct mm_struct *mm,
++			     struct userfaultfd_ctx *ctx)
++{
++	struct vm_area_struct *vma, *prev;
++	VMA_ITERATOR(vmi, mm, 0);
 +
-+	if (mem_peak_fd == -1)
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	/* switch the swap and mem fds into local-peak tracking mode*/
-+	int peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(swap_peak_fd))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak"))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	if (cg_read_long_fd(mem_peak_fd))
-+		goto cleanup;
-+
- 	if (cg_read_strcmp(memcg, "memory.max", "max\n"))
- 		goto cleanup;
- 
-@@ -862,6 +1035,61 @@ static int test_memcg_swap_max(const cha
- 	if (cg_read_key_long(memcg, "memory.events", "oom_kill ") != 1)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
++	if (!mmget_not_zero(mm))
++		return;
 +
 +	/*
-+	 * open, reset and close the peak swap on another FD to make sure
-+	 * multiple extant fds don't corrupt the linked-list
++	 * Flush page faults out of all CPUs. NOTE: all page faults
++	 * must be retried without returning VM_FAULT_SIGBUS if
++	 * userfaultfd_ctx_get() succeeds but vma->vma_userfault_ctx
++	 * changes while handle_userfault released the mmap_lock. So
++	 * it's critical that released is set to true (above), before
++	 * taking the mmap_lock for writing.
 +	 */
-+	peak_reset = cg_write(memcg, "memory.swap.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
++	mmap_write_lock(mm);
++	prev = NULL;
++	for_each_vma(vmi, vma) {
++		cond_resched();
++		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
++		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
++		if (vma->vm_userfaultfd_ctx.ctx != ctx) {
++			prev = vma;
++			continue;
++		}
 +
-+	peak_reset = cg_write(memcg, "memory.peak", (char *)reset_string);
-+	if (peak_reset)
-+		goto cleanup;
-+
-+	/* actually reset on the fds */
-+	peak_reset = write(swap_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak_reset = write(mem_peak_fd, reset_string, sizeof(reset_string));
-+	if (peak_reset != sizeof(reset_string))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak > MB(10))
-+		goto cleanup;
-+
-+	/*
-+	 * The cgroup is now empty, but there may be a page or two associated
-+	 * with the open FD accounted to it.
-+	 */
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak > MB(1))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.peak") < MB(29))
-+		goto cleanup;
-+
-+	if (cg_read_long(memcg, "memory.swap.peak") < MB(29))
-+		goto cleanup;
-+
- 	if (cg_run(memcg, alloc_anon_50M_check_swap, (void *)MB(30)))
- 		goto cleanup;
- 
-@@ -869,9 +1097,29 @@ static int test_memcg_swap_max(const cha
- 	if (max <= 0)
- 		goto cleanup;
- 
-+	peak = cg_read_long(memcg, "memory.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long(memcg, "memory.swap.peak");
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(mem_peak_fd);
-+	if (peak < MB(29))
-+		goto cleanup;
-+
-+	peak = cg_read_long_fd(swap_peak_fd);
-+	if (peak < MB(19))
-+		goto cleanup;
-+
- 	ret = KSFT_PASS;
- 
- cleanup:
-+	if (mem_peak_fd != -1 && close(mem_peak_fd))
-+		ret = KSFT_FAIL;
-+	if (swap_peak_fd != -1 && close(swap_peak_fd))
-+		ret = KSFT_FAIL;
- 	cg_destroy(memcg);
- 	free(memcg);
- 
-@@ -1295,7 +1543,7 @@ struct memcg_test {
- 	const char *name;
- } tests[] = {
- 	T(test_memcg_subtree_control),
--	T(test_memcg_current),
-+	T(test_memcg_current_peak),
- 	T(test_memcg_min),
- 	T(test_memcg_low),
- 	T(test_memcg_high),
-@@ -1303,7 +1551,7 @@ struct memcg_test {
- 	T(test_memcg_max),
- 	T(test_memcg_reclaim),
- 	T(test_memcg_oom_events),
--	T(test_memcg_swap_max),
-+	T(test_memcg_swap_max_peak),
- 	T(test_memcg_sock),
- 	T(test_memcg_oom_group_leaf_events),
- 	T(test_memcg_oom_group_parent_events),
++		vma = userfaultfd_clear_vma(&vmi, prev, vma,
++					    vma->vm_start, vma->vm_end);
++		prev = vma;
++	}
++	mmap_write_unlock(mm);
++	mmput(mm);
++}
 _
 
-Patches currently in -mm which might be from davidf@vimeo.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+tools-improve-vma-test-makefile.patch
+tools-add-vma-merge-tests.patch
+mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
+mm-remove-duplicated-open-coded-vma-policy-check.patch
+mm-abstract-vma_expand-to-use-vma_merge_struct.patch
+mm-avoid-using-vma_merge-for-new-vmas.patch
+mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
+mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
+mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
+mm-rework-vm_ops-close-handling-on-vma-merge.patch
 
