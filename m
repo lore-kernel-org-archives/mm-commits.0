@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 068533EA76
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA31C3EA76
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:27:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247670; cv=none; b=DAa6TPJhhal/h5jbPxQ7iO7w+Md05m5+DyilWo3V+pvIE4TzOezK+33uX7S9ojp7e27ye/ZCmQbCLywFm9MiqOtwSeiSY9WNVz5ghr4hSHX2pW6N/NqSTsNcHirq7tXZ6oeLo1JE2jgQCSm4zWInDOKep9VSmau8CFpN33K+rzg=
+	t=1725247670; cv=none; b=tzrju6t05ZNqSEUxRuYGSpgpW9wuwHoC4QntC9HOUoZbmni7V0UIwKWHGGkv5unzcKbsRx3udFB4TYlk7ApFXq3pk5N2/fOip9b1G52BSkiSf8kMD5KphS6d9VScfBRAKe8wTuvxRigmYdNnantaFZZX+GGmNitmo+SfNKUCOfg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725247670; c=relaxed/simple;
-	bh=kG9AWZG4kEDQtyDKhbfWqcqiqJj9+oItO3YI7wcN1xk=;
-	h=Date:To:From:Subject:Message-Id; b=fAxqIq9hF4ROaJWH6kzBfy1rFzXxFf4S2BzGvgs3qYTFUREiVt0TTSFos11OLtzzF/b6fuhbAlRZmlQkUSpGk5kF/WpjWdwI3sFqmddais5pD8H8MbLS9M9tzwz9rMqZbzmwnfkFPZd+s0+xqQhzwxIQNzqcMAJnfC/6X9BQeGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gfMZX3au; arc=none smtp.client-ip=10.30.226.201
+	bh=ys5cSgPBBXyfZP9OMkYukfo/os7wq71O6HjPooFwB8k=;
+	h=Date:To:From:Subject:Message-Id; b=ohSmpazk260MIdr7Xyk4pFN0UnRNFINeR9r7Rut8/a9h2qiH2pUTq7iWECU2SH8IesSl2b+Bsp85vIKPEPC2qYs3a8TOroBLnhMOGQLHLF5tR/SOJKB6ZBBnz5DggX23ywiIcCsbgcp6BuDAltSE8772Kc0NNpgnVWBmDdOGVB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JAekzGTa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gfMZX3au"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91BB8C4CEC2;
-	Mon,  2 Sep 2024 03:27:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JAekzGTa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1097C4CEC2;
+	Mon,  2 Sep 2024 03:27:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247669;
-	bh=kG9AWZG4kEDQtyDKhbfWqcqiqJj9+oItO3YI7wcN1xk=;
+	s=korg; t=1725247670;
+	bh=ys5cSgPBBXyfZP9OMkYukfo/os7wq71O6HjPooFwB8k=;
 	h=Date:To:From:Subject:From;
-	b=gfMZX3aufSUB2FwcYwbxhxZrgYTG+ywy91fqdoFeS8YfR/QHggWsOQDl1Xfqh53PT
-	 Mm1pdhYFWyJ1Frs8RbjXXnlH9RCYBtFI3jK4HqZBMWgVFki2psbM+RiP/BAuBnXBQ5
-	 pjwAi8wUwxOc7h0zBr3N7rMbNkG4A4F4ouknT6xQ=
-Date: Sun, 01 Sep 2024 20:27:49 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,josef@toxicpanda.com,akpm@linux-foundation.org
+	b=JAekzGTaB3KgcrGG41wkaAs4DteZt5wm8rzJPee7UsKyruO0SLHwyPDz1eWyS0m+L
+	 wg8lAavlI1iY5OhTkV4zzNzhWoK46Qg+h9twGPmFqATdM7hH9cDBZMNnUCnRXUuQuU
+	 KlhYxnJgON9zeEctmV+23dVEub3trIsMZ+VY54vo=
+Date: Sun, 01 Sep 2024 20:27:50 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-foll_flags-in-__get_user_pages.patch removed from -mm tree
-Message-Id: <20240902032749.91BB8C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmem-remove-mem_cgroup_from_obj.patch removed from -mm tree
+Message-Id: <20240902032750.A1097C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,98 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove foll_flags in __get_user_pages
+     Subject: mm: kmem: remove mem_cgroup_from_obj()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-foll_flags-in-__get_user_pages.patch
+     mm-kmem-remove-mem_cgroup_from_obj.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm: remove foll_flags in __get_user_pages
-Date: Thu, 18 Jul 2024 17:26:07 -0400
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: kmem: remove mem_cgroup_from_obj()
+Date: Thu, 18 Jul 2024 17:18:21 +0800
 
-Now that we're not passing around a pointer to the flags, there's no
-reason to have an extra variable for the gup_flags, simply pass the
-gup_flags directly everywhere.
+There is no user of mem_cgroup_from_obj(), remove it.
 
-Link: https://lkml.kernel.org/r/1e79b84bd30287cc9847f2aeb002374e6e60a10f.1721337845.git.josef@toxicpanda.com
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20240718091821.44740-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ mm/memcontrol.c            |   32 +-------------------------------
+ 2 files changed, 1 insertion(+), 37 deletions(-)
 
---- a/mm/gup.c~mm-remove-foll_flags-in-__get_user_pages
-+++ a/mm/gup.c
-@@ -1437,7 +1437,6 @@ static long __get_user_pages(struct mm_s
+--- a/include/linux/memcontrol.h~mm-kmem-remove-mem_cgroup_from_obj
++++ a/include/linux/memcontrol.h
+@@ -1717,7 +1717,6 @@ static inline int memcg_kmem_id(struct m
+ 	return memcg ? memcg->kmemcg_id : -1;
+ }
  
- 	do {
- 		struct page *page;
--		unsigned int foll_flags = gup_flags;
- 		unsigned int page_increm;
+-struct mem_cgroup *mem_cgroup_from_obj(void *p);
+ struct mem_cgroup *mem_cgroup_from_slab_obj(void *p);
  
- 		/* first iteration or cross vma bound */
-@@ -1488,9 +1487,9 @@ retry:
- 		}
- 		cond_resched();
+ static inline void count_objcg_event(struct obj_cgroup *objcg,
+@@ -1780,11 +1779,6 @@ static inline int memcg_kmem_id(struct m
+ 	return -1;
+ }
  
--		page = follow_page_mask(vma, start, foll_flags, &ctx);
-+		page = follow_page_mask(vma, start, gup_flags, &ctx);
- 		if (!page || PTR_ERR(page) == -EMLINK) {
--			ret = faultin_page(vma, start, foll_flags,
-+			ret = faultin_page(vma, start, gup_flags,
- 					   PTR_ERR(page) == -EMLINK, locked);
- 			switch (ret) {
- 			case 0:
-@@ -1547,13 +1546,12 @@ next_page:
- 				 * large folio, this should never fail.
- 				 */
- 				if (try_grab_folio(folio, page_increm - 1,
--						   foll_flags)) {
-+						   gup_flags)) {
- 					/*
- 					 * Release the 1st page ref if the
- 					 * folio is problematic, fail hard.
- 					 */
--					gup_put_folio(folio, 1,
--						      foll_flags);
-+					gup_put_folio(folio, 1, gup_flags);
- 					ret = -EFAULT;
- 					goto out;
- 				}
+-static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
+-{
+-	return NULL;
+-}
+-
+ static inline struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
+ {
+ 	return NULL;
+--- a/mm/memcontrol.c~mm-kmem-remove-mem_cgroup_from_obj
++++ a/mm/memcontrol.c
+@@ -2446,37 +2446,7 @@ struct mem_cgroup *mem_cgroup_from_obj_f
+ 
+ /*
+  * Returns a pointer to the memory cgroup to which the kernel object is charged.
+- *
+- * A passed kernel object can be a slab object, vmalloc object or a generic
+- * kernel page, so different mechanisms for getting the memory cgroup pointer
+- * should be used.
+- *
+- * In certain cases (e.g. kernel stacks or large kmallocs with SLUB) the caller
+- * can not know for sure how the kernel object is implemented.
+- * mem_cgroup_from_obj() can be safely used in such cases.
+- *
+- * The caller must ensure the memcg lifetime, e.g. by taking rcu_read_lock(),
+- * cgroup_mutex, etc.
+- */
+-struct mem_cgroup *mem_cgroup_from_obj(void *p)
+-{
+-	struct folio *folio;
+-
+-	if (mem_cgroup_disabled())
+-		return NULL;
+-
+-	if (unlikely(is_vmalloc_addr(p)))
+-		folio = page_folio(vmalloc_to_page(p));
+-	else
+-		folio = virt_to_folio(p);
+-
+-	return mem_cgroup_from_obj_folio(folio, p);
+-}
+-
+-/*
+- * Returns a pointer to the memory cgroup to which the kernel object is charged.
+- * Similar to mem_cgroup_from_obj(), but faster and not suitable for objects,
+- * allocated using vmalloc().
++ * It is not suitable for objects allocated using vmalloc().
+  *
+  * A passed kernel object must be a slab object or a generic kernel page.
+  *
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
