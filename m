@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78A8DEEC0
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:14:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA6F2EEC0
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:14:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725246851; cv=none; b=pKW1LdcUFJfz73U5VupMyo8RmcXl/fHSMj6gKTtvCpLjjsD9uOlJRyEwObIPLIC1GTip0HdIZ1CkY3PdxHJIx2PMrN3+FQ5OLrwrQgo4uSDVwm6BvVZuQ3VLRmgrL4sEgHlm4JvFwh/+MnW/FU+RmSA99RYYfQ3j+W+K9q/zWNs=
+	t=1725246882; cv=none; b=ju3jUvFa0Ki/4wx515TaYLi5SUQX8jmlf8utFQRLUA70WelTVAhgjt0bckKJVQymBWPlmAUSL5owr4mS6dKlJMo6TM8hziSzYFeLH0BN7bie/fpfW1V8xCDy52OsryExL2xN7Gvut3sLy1hXo0LnLfOuDLRyG1ZZJAlhURLA9W8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725246851; c=relaxed/simple;
-	bh=pmxLWvnZVUc3MZI0DmIz5ftY5J1PN6wl9q1t1OBxMN4=;
-	h=Date:To:From:Subject:Message-Id; b=qe6XhQtNZbZ/KaP5nc3TxMkYt0TRA0QFQjW+UIm7p9zH2pBUhkgFRrr25fCcomBhR+nMr7VdsPMr8R+CdhkHQP7HwH37HgrtLZJQoiKmRq6ciS8NnFDfxO7B7iaoxQWGpDfnz99rLVcO2s/W+j2EGC9rY5+Dez/LwyjGuGEfZq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOQfKRcQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725246882; c=relaxed/simple;
+	bh=h3FE7CJoJ1T2Zee/rWLaJP10+UtlIsCM6/O1syRgsFA=;
+	h=Date:To:From:Subject:Message-Id; b=NEb5tBxc4yOptqrm/J8HQ6om0Nn/RDAjzUN1q1AKODvckY6Vnd1qpVvlAOOZlUw86CxHAsQqcQdT5sSzfkU2kZtDTsC7wW5ytYMALY/mo7E5elkm9K3+lvbUy2O3Hu9SGHqriAFpTrLvN7Psc68PUb2f2N4Q2oaRJjRIszsX494=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VnLWRN2O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOQfKRcQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41F6EC4CEC3;
-	Mon,  2 Sep 2024 03:14:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VnLWRN2O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44878C4CEC3;
+	Mon,  2 Sep 2024 03:14:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725246851;
-	bh=pmxLWvnZVUc3MZI0DmIz5ftY5J1PN6wl9q1t1OBxMN4=;
+	s=korg; t=1725246882;
+	bh=h3FE7CJoJ1T2Zee/rWLaJP10+UtlIsCM6/O1syRgsFA=;
 	h=Date:To:From:Subject:From;
-	b=KOQfKRcQVxMKm0ldWknImPFwD71TmYsuCCJERju4eEPkR6Ws7vMzXrzRIIcyoqVv/
-	 srOSp5O2yIBmiGP87y8OGhVMrGV10+hXyni+Fb0VvNX5m/PQthiT0xCZ/rAs8eOWBL
-	 NPvjRKYaGP2Y3UF7MnP/Rzranr04dVQpvbhMmsFE=
-Date: Sun, 01 Sep 2024 20:14:10 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,hannes@cmpxchg.org,flintglass@gmail.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=VnLWRN2O4S7GOUL07CppEVi+mwWqhMneFjcfIbdGrlgRvxHO/feeuNbYfIKwoiQej
+	 MsBbt58ST9hLKZK/95FNMp9LBAeaHR5O2M8GzoEu97VthxwJ7n+l8Y6nbZVH97CtM4
+	 tjyIBthhUHGNaCNsU11fJ/BEfHT9dsf+kRkKdBv4=
+Date: Sun, 01 Sep 2024 20:14:41 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] zswap-track-swapins-from-disk-more-accurately-fix.patch removed from -mm tree
-Message-Id: <20240902031411.41F6EC4CEC3@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch removed from -mm tree
+Message-Id: <20240902031442.44878C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zswap: track swapins from disk more accurately (fix)
+     Subject: fixup! selftests/mm: Add mseal test for no-discard madvise
 has been removed from the -mm tree.  Its filename was
-     zswap-track-swapins-from-disk-more-accurately-fix.patch
+     selftests-mm-add-mseal-test-for-no-discard-madvise-fix.patch
 
-This patch was dropped because it was folded into zswap-track-swapins-from-disk-more-accurately.patch
+This patch was dropped because it was folded into selftests-mm-add-mseal-test-for-no-discard-madvise.patch
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: track swapins from disk more accurately (fix)
-Date: Mon, 5 Aug 2024 17:45:18 -0700
+From: Pedro Falcato <pedro.falcato@gmail.com>
+Subject: fixup! selftests/mm: Add mseal test for no-discard madvise
+Date: Wed, 7 Aug 2024 21:37:24 +0100
 
-Squeeze a comment into a single line.
+Adjust the mseal test's plan.
 
-Link: https://lkml.kernel.org/r/20240806004518.3183562-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Takero Funaki <flintglass@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20240807203724.2686144-1-pedro.falcato@gmail.com
+Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
+Tested-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ tools/testing/selftests/mm/mseal_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_io.c~zswap-track-swapins-from-disk-more-accurately-fix
-+++ a/mm/page_io.c
-@@ -524,9 +524,7 @@ void swap_read_folio(struct folio *folio
- 		goto finish;
- 	}
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-mseal-test-for-no-discard-madvise-fix
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -1764,7 +1764,7 @@ int main(int argc, char **argv)
+ 	if (!pkey_supported())
+ 		ksft_print_msg("PKEY not supported\n");
  
--	/*
--	 * We have to read the page from slower devices. Increase zswap protection.
--	 */
-+	/* We have to read from slower devices. Increase zswap protection. */
- 	zswap_folio_swapin(folio);
+-	ksft_set_plan(80);
++	ksft_set_plan(82);
  
- 	if (data_race(sis->flags & SWP_FS_OPS)) {
+ 	test_seal_addseal();
+ 	test_seal_unmapped_start();
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from pedro.falcato@gmail.com are
 
-zswap-implement-a-second-chance-algorithm-for-dynamic-zswap-shrinker.patch
-zswap-track-swapins-from-disk-more-accurately.patch
+selftests-mm-add-mseal-test-for-no-discard-madvise.patch
+mm-move-can_modify_vma-to-mm-vmah.patch
+mm-munmap-replace-can_modify_mm-with-can_modify_vma.patch
+mm-mprotect-replace-can_modify_mm-with-can_modify_vma.patch
+mm-mremap-replace-can_modify_mm-with-can_modify_vma.patch
+mseal-replace-can_modify_mm_madv-with-a-vma-variant.patch
+mm-remove-can_modify_mm.patch
+selftests-mm-add-more-mseal-traversal-tests.patch
+selftests-mm-add-more-mseal-traversal-tests-fix-2.patch
 
