@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94B852C80
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1FFA2C80
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:30:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247844; cv=none; b=CjVbSzysQIurR+00ZdhgfS8y6l9XpSjBKT8NZ+7utwySfJs5cvbsjDcYDnwKyvdvG95ZZYJNftNY9VmqgVw6N2Ha2eWfLoiAi/WnwFi2mO3o/yTrtBT/DZnn/rXIU0CLOfE/idCcRc3vdprNE1u3ndk2sdcR1W4YduC/WxzMkzo=
+	t=1725247845; cv=none; b=VS0P7eZsOY2dHjbjIFn8keyovKCH1OTLrEZZXpCoo+BmR3cVFtqYTx0BlIhk3dAW5D0tHmhKGVrH3Qfhr4ysGG1L7ILyx8+WsfNZ+/FvpuSlVyYiWGo2lsvIXMntL1C12OpPXfIqfVsHs42I+kHAveSKwgBBTnuyRVwGigLRcuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247844; c=relaxed/simple;
-	bh=VthgJVdy9ilJR04ExzPLWHq9ivKZo1ct8XoIWtIeZLo=;
-	h=Date:To:From:Subject:Message-Id; b=SQzV3Kdbbg3GElQyN8C8fdHTYmwS9CL1qa9SykhteYDmxn2BGSDbY2X0eXY3pTrFx0ie3YqjSu8yZf+Lkd0/raERDNQUYrJzT8QulLCwM56qY5T0+gHp4pzNNqdpth0B7GzLQ+KOCZWXflW/Xd/41bMoxlHAXmUsD7UqzY/EmYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g7N2tMMJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247845; c=relaxed/simple;
+	bh=LETfujevItDzpgIMImFfVAR9IOKpmedVBvmWyPqOckA=;
+	h=Date:To:From:Subject:Message-Id; b=msZ8qVltpshHFOgNGx+6cV9cFD3VbuCHuHwANgYuCs5v5Sqf/3S6si3HrJBVE5/ytMp2lslcHVPfGIK2aUqeMBMmFDtQqZ9N67V+8KdN6AZRFU8NreVyKpS/dtD/PoU7jArAvMVd0BzGU3ddxCey3r4A3Z9wyBvhyOL6wX7QkWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIgX/0Hc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g7N2tMMJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DE55C4CEC2;
-	Mon,  2 Sep 2024 03:30:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIgX/0Hc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C88C4CEC2;
+	Mon,  2 Sep 2024 03:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247844;
-	bh=VthgJVdy9ilJR04ExzPLWHq9ivKZo1ct8XoIWtIeZLo=;
+	s=korg; t=1725247845;
+	bh=LETfujevItDzpgIMImFfVAR9IOKpmedVBvmWyPqOckA=;
 	h=Date:To:From:Subject:From;
-	b=g7N2tMMJwUJ166/6xtgxjIGr2nn01Clg7ZGYAo1bVEFkQ8B1tntl3hQUYTOsVVflS
-	 wWf2Dv2DTJeh+bGihh0V9ruvzOujBpIgd7xSMFC6OgseszuacnqVyCpcnq4PcRNqGe
-	 mpzbDbzPwyuihYuf6puRJd4DAxzEVFfG3LY0emz4=
-Date: Sun, 01 Sep 2024 20:30:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=aIgX/0HcxMuJZr+y4PWJIIuQPd7/81iTDhUcX3nFI9NnQ6kUAS1pU29nC9FZBIAnL
+	 r1B9FuPMstRLSPhD0FzuUTIjO6n4I+HPUYp+VRFnInN3SgJFBVq1EbUoLBgJreaIgY
+	 CSSnjnLrbt9HnWF7bbYo60wXvKCpnTkqE8NczpOw=
+Date: Sun, 01 Sep 2024 20:30:45 -0700
+To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-make-write-helper-functions-void.patch removed from -mm tree
-Message-Id: <20240902033044.6DE55C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch removed from -mm tree
+Message-Id: <20240902033045.86C88C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,201 +35,243 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: make write helper functions void
+     Subject: mm: override mTHP "enabled" defaults at kernel cmdline
 has been removed from the -mm tree.  Its filename was
-     maple_tree-make-write-helper-functions-void.patch
+     mm-override-mthp-enabled-defaults-at-kernel-cmdline.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: make write helper functions void
-Date: Wed, 14 Aug 2024 12:19:44 -0400
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: override mTHP "enabled" defaults at kernel cmdline
+Date: Wed, 14 Aug 2024 14:02:47 +1200
 
-The return value of various write helper functions are not checked. We
-can safely change the return type of these functions to be void.
+Add thp_anon= cmdline parameter to allow specifying the default enablement
+of each supported anon THP size.  The parameter accepts the following
+format and can be provided multiple times to configure each size:
 
-Link: https://lkml.kernel.org/r/20240814161944.55347-18-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+thp_anon=<size>,<size>[KMG]:<value>;<size>-<size>[KMG]:<value>
+
+An example:
+
+thp_anon=16K-64K:always;128K,512K:inherit;256K:madvise;1M-2M:never
+
+See Documentation/admin-guide/mm/transhuge.rst for more details.
+
+Configuring the defaults at boot time is useful to allow early user space
+to take advantage of mTHP before its been configured through sysfs.
+
+[v-songbaohua@oppo.com: use get_oder() and check size is is_power_of_2]
+  Link: https://lkml.kernel.org/r/20240814224635.43272-1-21cnbao@gmail.com
+[ryan.roberts@arm.com: some minor cleanup according to David's comments]
+  Link: https://lkml.kernel.org/r/20240820105244.62703-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240814020247.67297-1-21cnbao@gmail.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Co-developed-by: Barry Song <v-songbaohua@oppo.com>
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   47 +++++++++++++++------------------------------
- 1 file changed, 16 insertions(+), 31 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    9 +
+ Documentation/admin-guide/mm/transhuge.rst      |   36 ++++-
+ mm/huge_memory.c                                |   98 +++++++++++++-
+ 3 files changed, 136 insertions(+), 7 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-make-write-helper-functions-void
-+++ a/lib/maple_tree.c
-@@ -2823,10 +2823,8 @@ dead_node:
-  * orig_l_mas->last is used in mas_consume to find the slots that will need to
-  * be either freed or destroyed.  orig_l_mas->depth keeps track of the height of
-  * the new sub-tree in case the sub-tree becomes the full tree.
-- *
-- * Return: the number of elements in b_node during the last loop.
-  */
--static int mas_spanning_rebalance(struct ma_state *mas,
-+static void mas_spanning_rebalance(struct ma_state *mas,
- 		struct maple_subtree_state *mast, unsigned char count)
- {
- 	unsigned char split, mid_split;
-@@ -2942,7 +2940,7 @@ new_root:
- 	mas->offset = l_mas.offset;
- 	mas_wmb_replace(mas, old_enode);
- 	mtree_range_walk(mas);
--	return mast->bn->b_end;
-+	return;
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6614,6 +6614,15 @@
+ 			<deci-seconds>: poll all this frequency
+ 			0: no polling (default)
+ 
++	thp_anon=	[KNL]
++			Format: <size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>
++			state is one of "always", "madvise", "never" or "inherit".
++			Control the default behavior of the system with respect
++			to anonymous transparent hugepages.
++			Can be used multiple times for multiple anon THP sizes.
++			See Documentation/admin-guide/mm/transhuge.rst for more
++			details.
++
+ 	threadirqs	[KNL,EARLY]
+ 			Force threading of all interrupt handlers except those
+ 			marked explicitly IRQF_NO_THREAD.
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -284,13 +284,37 @@ that THP is shared. Exceeding the number
+ 
+ A higher value may increase memory footprint for some workloads.
+ 
+-Boot parameter
+-==============
++Boot parameters
++===============
+ 
+-You can change the sysfs boot time defaults of Transparent Hugepage
+-Support by passing the parameter ``transparent_hugepage=always`` or
+-``transparent_hugepage=madvise`` or ``transparent_hugepage=never``
+-to the kernel command line.
++You can change the sysfs boot time default for the top-level "enabled"
++control by passing the parameter ``transparent_hugepage=always`` or
++``transparent_hugepage=madvise`` or ``transparent_hugepage=never`` to the
++kernel command line.
++
++Alternatively, each supported anonymous THP size can be controlled by
++passing ``thp_anon=<size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>``,
++where ``<size>`` is the THP size (must be a power of 2 of PAGE_SIZE and
++supported anonymous THP)  and ``<state>`` is one of ``always``, ``madvise``,
++``never`` or ``inherit``.
++
++For example, the following will set 16K, 32K, 64K THP to ``always``,
++set 128K, 512K to ``inherit``, set 256K to ``madvise`` and 1M, 2M
++to ``never``::
++
++	thp_anon=16K-64K:always;128K,512K:inherit;256K:madvise;1M-2M:never
++
++``thp_anon=`` may be specified multiple times to configure all THP sizes as
++required. If ``thp_anon=`` is specified at least once, any anon THP sizes
++not explicitly configured on the command line are implicitly set to
++``never``.
++
++``transparent_hugepage`` setting only affects the global toggle. If
++``thp_anon`` is not specified, PMD_ORDER THP will default to ``inherit``.
++However, if a valid ``thp_anon`` setting is provided by the user, the
++PMD_ORDER THP policy will be overridden. If the policy for PMD_ORDER
++is not defined within a valid ``thp_anon``, its policy will default to
++``never``.
+ 
+ Hugepages in tmpfs/shmem
+ ========================
+--- a/mm/huge_memory.c~mm-override-mthp-enabled-defaults-at-kernel-cmdline
++++ a/mm/huge_memory.c
+@@ -81,6 +81,7 @@ unsigned long huge_zero_pfn __read_mostl
+ unsigned long huge_anon_orders_always __read_mostly;
+ unsigned long huge_anon_orders_madvise __read_mostly;
+ unsigned long huge_anon_orders_inherit __read_mostly;
++static bool anon_orders_configured __initdata;
+ 
+ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
+ 					 unsigned long vm_flags,
+@@ -649,7 +650,8 @@ static int __init hugepage_init_sysfs(st
+ 	 * disable all other sizes. powerpc's PMD_ORDER isn't a compile-time
+ 	 * constant so we have to do this here.
+ 	 */
+-	huge_anon_orders_inherit = BIT(PMD_ORDER);
++	if (!anon_orders_configured)
++		huge_anon_orders_inherit = BIT(PMD_ORDER);
+ 
+ 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!*hugepage_kobj)) {
+@@ -834,6 +836,100 @@ out:
  }
+ __setup("transparent_hugepage=", setup_transparent_hugepage);
  
- /*
-@@ -2952,10 +2950,8 @@ new_root:
-  *
-  * Rebalance two nodes into a single node or two new nodes that are sufficient.
-  * Continue upwards until tree is sufficient.
-- *
-- * Return: the number of elements in b_node during the last loop.
-  */
--static inline int mas_rebalance(struct ma_state *mas,
-+static inline void mas_rebalance(struct ma_state *mas,
- 				struct maple_big_node *b_node)
++static inline int get_order_from_str(const char *size_str)
++{
++	unsigned long size;
++	char *endptr;
++	int order;
++
++	size = memparse(size_str, &endptr);
++
++	if (!is_power_of_2(size))
++		goto err;
++	order = get_order(size);
++	if (BIT(order) & ~THP_ORDERS_ALL_ANON)
++		goto err;
++
++	return order;
++err:
++	pr_err("invalid size %s in thp_anon boot parameter\n", size_str);
++	return -EINVAL;
++}
++
++static char str_dup[PAGE_SIZE] __initdata;
++static int __init setup_thp_anon(char *str)
++{
++	char *token, *range, *policy, *subtoken;
++	unsigned long always, inherit, madvise;
++	char *start_size, *end_size;
++	int start, end, nr;
++	char *p;
++
++	if (!str || strlen(str) + 1 > PAGE_SIZE)
++		goto err;
++	strcpy(str_dup, str);
++
++	always = huge_anon_orders_always;
++	madvise = huge_anon_orders_madvise;
++	inherit = huge_anon_orders_inherit;
++	p = str_dup;
++	while ((token = strsep(&p, ";")) != NULL) {
++		range = strsep(&token, ":");
++		policy = token;
++
++		if (!policy)
++			goto err;
++
++		while ((subtoken = strsep(&range, ",")) != NULL) {
++			if (strchr(subtoken, '-')) {
++				start_size = strsep(&subtoken, "-");
++				end_size = subtoken;
++
++				start = get_order_from_str(start_size);
++				end = get_order_from_str(end_size);
++			} else {
++				start = end = get_order_from_str(subtoken);
++			}
++
++			if (start < 0 || end < 0 || start > end)
++				goto err;
++
++			nr = end - start + 1;
++			if (!strcmp(policy, "always")) {
++				bitmap_set(&always, start, nr);
++				bitmap_clear(&inherit, start, nr);
++				bitmap_clear(&madvise, start, nr);
++			} else if (!strcmp(policy, "madvise")) {
++				bitmap_set(&madvise, start, nr);
++				bitmap_clear(&inherit, start, nr);
++				bitmap_clear(&always, start, nr);
++			} else if (!strcmp(policy, "inherit")) {
++				bitmap_set(&inherit, start, nr);
++				bitmap_clear(&madvise, start, nr);
++				bitmap_clear(&always, start, nr);
++			} else if (!strcmp(policy, "never")) {
++				bitmap_clear(&inherit, start, nr);
++				bitmap_clear(&madvise, start, nr);
++				bitmap_clear(&always, start, nr);
++			} else {
++				pr_err("invalid policy %s in thp_anon boot parameter\n", policy);
++				goto err;
++			}
++		}
++	}
++
++	huge_anon_orders_always = always;
++	huge_anon_orders_madvise = madvise;
++	huge_anon_orders_inherit = inherit;
++	anon_orders_configured = true;
++	return 1;
++
++err:
++	pr_warn("thp_anon=%s: error parsing string, ignoring setting\n", str);
++	return 0;
++}
++__setup("thp_anon=", setup_thp_anon);
++
+ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
  {
- 	char empty_count = mas_mt_height(mas);
-@@ -3300,9 +3296,8 @@ static inline bool mas_push_data(struct
-  * mas_split() - Split data that is too big for one node into two.
-  * @mas: The maple state
-  * @b_node: The maple big node
-- * Return: 1 on success, 0 on failure.
-  */
--static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
-+static void mas_split(struct ma_state *mas, struct maple_big_node *b_node)
- {
- 	struct maple_subtree_state mast;
- 	int height = 0;
-@@ -3380,7 +3375,7 @@ static int mas_split(struct ma_state *ma
- 	mas->node = l_mas.node;
- 	mas_wmb_replace(mas, old);
- 	mtree_range_walk(mas);
--	return 1;
-+	return;
- }
- 
- /*
-@@ -3388,7 +3383,7 @@ static int mas_split(struct ma_state *ma
-  * @wr_mas: The maple write state
-  * @b_node: The maple big node
-  */
--static noinline_for_kasan int mas_commit_b_node(struct ma_wr_state *wr_mas,
-+static noinline_for_kasan void mas_commit_b_node(struct ma_wr_state *wr_mas,
- 			    struct maple_big_node *b_node)
- {
- 	enum store_type type = wr_mas->mas->store_type;
-@@ -3664,10 +3659,8 @@ static void mte_destroy_walk(struct mapl
-  * @entry: The entry to store.
-  *
-  * Only valid when the index == 0 and the last == ULONG_MAX
-- *
-- * Return 0 on error, 1 on success.
-  */
--static inline int mas_new_root(struct ma_state *mas, void *entry)
-+static inline void mas_new_root(struct ma_state *mas, void *entry)
- {
- 	struct maple_enode *root = mas_root_locked(mas);
- 	enum maple_type type = maple_leaf_64;
-@@ -3699,7 +3692,7 @@ done:
- 	if (xa_is_node(root))
- 		mte_destroy_walk(root, mas->tree);
- 
--	return 1;
-+	return;
- }
- /*
-  * mas_wr_spanning_store() - Create a subtree with the store operation completed
-@@ -3707,10 +3700,8 @@ done:
-  * Note that mas is expected to point to the node which caused the store to
-  * span.
-  * @wr_mas: The maple write state
-- *
-- * Return: 0 on error, positive on success.
-  */
--static noinline int mas_wr_spanning_store(struct ma_wr_state *wr_mas)
-+static noinline void mas_wr_spanning_store(struct ma_wr_state *wr_mas)
- {
- 	struct maple_subtree_state mast;
- 	struct maple_big_node b_node;
-@@ -3802,10 +3793,8 @@ static noinline int mas_wr_spanning_stor
-  * @wr_mas: The maple write state
-  *
-  * Attempts to reuse the node, but may allocate.
-- *
-- * Return: True if stored, false otherwise
-  */
--static inline bool mas_wr_node_store(struct ma_wr_state *wr_mas,
-+static inline void mas_wr_node_store(struct ma_wr_state *wr_mas,
- 				     unsigned char new_end)
- {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -3878,16 +3867,14 @@ done:
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
- 	mas_update_gap(mas);
- 	mas->end = new_end;
--	return true;
-+	return;
- }
- 
- /*
-  * mas_wr_slot_store: Attempt to store a value in a slot.
-  * @wr_mas: the maple write state
-- *
-- * Return: True if stored, false otherwise
-  */
--static inline bool mas_wr_slot_store(struct ma_wr_state *wr_mas)
-+static inline void mas_wr_slot_store(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
- 	unsigned char offset = mas->offset;
-@@ -3919,7 +3906,7 @@ static inline bool mas_wr_slot_store(str
- 		wr_mas->pivots[offset + 1] = mas->last;
- 		mas->offset++; /* Keep mas accurate. */
- 	} else {
--		return false;
-+		return;
- 	}
- 
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-@@ -3930,7 +3917,7 @@ static inline bool mas_wr_slot_store(str
- 	if (!wr_mas->entry || gap)
- 		mas_update_gap(mas);
- 
--	return true;
-+	return;
- }
- 
- static inline void mas_wr_extend_null(struct ma_wr_state *wr_mas)
-@@ -4004,10 +3991,8 @@ static inline unsigned char mas_wr_new_e
-  * This is currently unsafe in rcu mode since the end of the node may be cached
-  * by readers while the node contents may be updated which could result in
-  * inaccurate information.
-- *
-- * Return: True if appended, false otherwise
-  */
--static inline bool mas_wr_append(struct ma_wr_state *wr_mas,
-+static inline void mas_wr_append(struct ma_wr_state *wr_mas,
- 		unsigned char new_end)
- {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -4046,7 +4031,7 @@ static inline bool mas_wr_append(struct
- 
- 	mas->end = new_end;
- 	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
--	return  true;
-+	return;
- }
- 
- /*
+ 	if (likely(vma->vm_flags & VM_WRITE))
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
+mm-cleanup-count_mthp_stat-definition.patch
+mm-tidy-up-shmem-mthp-controls-and-stats.patch
 
