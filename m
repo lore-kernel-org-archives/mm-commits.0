@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E23414E2D6
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B9A154BF0
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248825; cv=none; b=nKee90GpbiFMB3xlcgbjYVyc8WgZDopsBn9Gnxdq7XoMoZ4oR2zfeJT0oSvlTt0xYWyD8h5hp+hIQ9J6rBObw669LflltASyCYZB74FZtGEg1zr942WlCLf0Ov1szcpdC+SwPkx3nZ3HmAImuJgTisYNQHJYOPv6w80ZZdp4C90=
+	t=1725248826; cv=none; b=AYmPeewfWbiCcP08f0oDUOjJ7CtWH6dR1fClskxkOSl/kjY6FEfVT/TtPnzIBOMzmXhWf1iKiq+z+MtZfqIEIH1ilsEqNn8stHlr+B+aFX/DQH2ZAEeoMpmlF2DvzSucf6+uKxcs20QwGbbP1wogw8ldw9dnKcR3U4hoT7hhe0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248825; c=relaxed/simple;
-	bh=8tVIMiVbB5gvQJ0JsS3OUNmZJp3iNW3Vz1n31FF/Ot0=;
-	h=Date:To:From:Subject:Message-Id; b=uEiV0Ad6oezX3pCtK3y5c6bI8lI+3C8hZIZBpcJ2fBjIXeFDfji5A0j7It5DfPdKtlUB8juFeCDY/zoWxOXPqCDzA9n8ZHIRNf8PlYjG2J3Qo4A+D/B3yfXYrz3TdA7rjILbJ9kBbasAL6r02bxZjFBn3jdAC2aZI/PuDbAb3xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IgCSYKda; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248826; c=relaxed/simple;
+	bh=ZiktLVoMTacsvN34vvSQyipUhg/d5wFJIjbnfVVwbsA=;
+	h=Date:To:From:Subject:Message-Id; b=T68VaNlNfq+4PPPWPN/IJaa3ufLf9k7p/IDfPIaporrl8qmUCTjrblQhOUudD/sfr72nQh7sZoJtqjhTMUKrVxL5F/kH0FDYOexxROwBDKQNjIfdViDo9OkxY1UutVvIArye88qSzj5bgCer8yT1xLBHpb7nLfi04ATY+9Ug/fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fcfrp1fP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IgCSYKda"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65451C4CEC2;
-	Mon,  2 Sep 2024 03:47:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fcfrp1fP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C7FFC4CEC2;
+	Mon,  2 Sep 2024 03:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248825;
-	bh=8tVIMiVbB5gvQJ0JsS3OUNmZJp3iNW3Vz1n31FF/Ot0=;
+	s=korg; t=1725248826;
+	bh=ZiktLVoMTacsvN34vvSQyipUhg/d5wFJIjbnfVVwbsA=;
 	h=Date:To:From:Subject:From;
-	b=IgCSYKdaqToH20dNYeGVhEbCfPTyFYzzcE9fBMStouyeBOKVrhJWPgqLKnuOp0YL6
-	 US5eMiQdKfye0tq2uvGKwQdxbdPHkRtADQhMw4pjJ2ePdP9vKOdzr2F0TtnYFuiP1c
-	 xT/ghWC3lg23960tqRz0Ctyvx70Nenbu0n+Ky0vw=
-Date: Sun, 01 Sep 2024 20:47:04 -0700
+	b=fcfrp1fP8macTgYzlBPuG1pRJUvlu4v8LyLXVDX25iC7AYJCwU2LD4MovMJEMazEs
+	 BVznYERMzLbjgyvC4u1vqrbUBy2tL5HV1g6JB+tVnIOFNuAaB8jifcqaAFPs4fnBRR
+	 Tx2ATUmJhuV1EeD3RFxS3+BrFUw+KzXOxnNR3UAY=
+Date: Sun, 01 Sep 2024 20:47:05 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch removed from -mm tree
-Message-Id: <20240902034705.65451C4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch removed from -mm tree
+Message-Id: <20240902034706.6C7FFC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: describe the members of nilfs_bmap_operations structure
+     Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
 has been removed from the -mm tree.  Its filename was
-     nilfs2-describe-the-members-of-nilfs_bmap_operations-structure.patch
+     nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: describe the members of nilfs_bmap_operations structure
-Date: Fri, 16 Aug 2024 16:43:17 +0900
+Subject: nilfs2: fix inconsistencies in kernel-doc comments in segment.h
+Date: Fri, 16 Aug 2024 16:43:18 +0900
 
-Add missing member variable descriptions in the kernel-doc comments for
-the nilfs_bmap_operations structure, hiding the internal operations with
-the "private:" tag.  This eliminates the following warnings output by the
-kernel-doc script:
+Fix incorrect or missing variable names in the member variable
+descriptions in the nilfs_recovery_info and nilfs_sc_info structures,
+thereby eliminating the following warnings output by the kernel-doc
+script:
 
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_lookup' not described in 'nilfs_bmap_operations'
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_lookup_contig' not described in 'nilfs_bmap_operations'
- ...
- fs/nilfs2/bmap.h:74: warning: Function parameter or struct member
-  'bop_gather_data' not described in 'nilfs_bmap_operations'
+ fs/nilfs2/segment.h:49: warning: Function parameter or struct member
+  'ri_cno' not described in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Function parameter or struct member
+  'ri_lsegs_start_seq' not described in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_ri_cno'
+  description in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:49: warning: Excess struct member 'ri_lseg_start_seq'
+  description in 'nilfs_recovery_info'
+ fs/nilfs2/segment.h:177: warning: Function parameter or struct member
+  'sc_seq_accepted' not described in 'nilfs_sc_info'
+ fs/nilfs2/segment.h:177: warning: Function parameter or struct member
+  'sc_timer_task' not described in 'nilfs_sc_info'
+ fs/nilfs2/segment.h:177: warning: Excess struct member 'sc_seq_accept'
+  description in 'nilfs_sc_info'
 
-Link: https://lkml.kernel.org/r/20240816074319.3253-7-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240816074319.3253-8-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/bmap.h |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/nilfs2/bmap.h~nilfs2-describe-the-members-of-nilfs_bmap_operations-structure
-+++ a/fs/nilfs2/bmap.h
-@@ -44,6 +44,19 @@ struct nilfs_bmap_stats {
- 
- /**
-  * struct nilfs_bmap_operations - bmap operation table
-+ * @bop_lookup:               single block search operation
-+ * @bop_lookup_contig:        consecutive block search operation
-+ * @bop_insert:               block insertion operation
-+ * @bop_delete:               block delete operation
-+ * @bop_clear:                block mapping resource release operation
-+ * @bop_propagate:            operation to propagate dirty state towards the
-+ *                            mapping root
-+ * @bop_lookup_dirty_buffers: operation to collect dirty block buffers
-+ * @bop_assign:               disk block address assignment operation
-+ * @bop_mark:                 operation to mark in-use blocks as dirty for
-+ *                            relocation by GC
-+ * @bop_seek_key:             find valid block key operation
-+ * @bop_last_key:             find last valid block key operation
+--- a/fs/nilfs2/segment.h~nilfs2-fix-inconsistencies-in-kernel-doc-comments-in-segmenth
++++ a/fs/nilfs2/segment.h
+@@ -22,10 +22,10 @@ struct nilfs_root;
+  * struct nilfs_recovery_info - Recovery information
+  * @ri_need_recovery: Recovery status
+  * @ri_super_root: Block number of the last super root
+- * @ri_ri_cno: Number of the last checkpoint
++ * @ri_cno: Number of the last checkpoint
+  * @ri_lsegs_start: Region for roll-forwarding (start block number)
+  * @ri_lsegs_end: Region for roll-forwarding (end block number)
+- * @ri_lseg_start_seq: Sequence value of the segment at ri_lsegs_start
++ * @ri_lsegs_start_seq: Sequence value of the segment at ri_lsegs_start
+  * @ri_used_segments: List of segments to be mark active
+  * @ri_pseg_start: Block number of the last partial segment
+  * @ri_seq: Sequence number on the last partial segment
+@@ -107,7 +107,7 @@ struct nilfs_segsum_pointer {
+  * @sc_wait_daemon: Daemon wait queue
+  * @sc_wait_task: Start/end wait queue to control segctord task
+  * @sc_seq_request: Request counter
+- * @sc_seq_accept: Accepted request count
++ * @sc_seq_accepted: Accepted request count
+  * @sc_seq_done: Completion counter
+  * @sc_sync: Request of explicit sync operation
+  * @sc_interval: Timeout value of background construction
+@@ -115,6 +115,7 @@ struct nilfs_segsum_pointer {
+  * @sc_lseg_stime: Start time of the latest logical segment
+  * @sc_watermark: Watermark for the number of dirty buffers
+  * @sc_timer: Timer for segctord
++ * @sc_timer_task: Thread woken up by @sc_timer
+  * @sc_task: current thread of segctord
   */
- struct nilfs_bmap_operations {
- 	int (*bop_lookup)(const struct nilfs_bmap *, __u64, int, __u64 *);
-@@ -66,7 +79,7 @@ struct nilfs_bmap_operations {
- 	int (*bop_seek_key)(const struct nilfs_bmap *, __u64, __u64 *);
- 	int (*bop_last_key)(const struct nilfs_bmap *, __u64 *);
- 
--	/* The following functions are internal use only. */
-+	/* private: internal use only */
- 	int (*bop_check_insert)(const struct nilfs_bmap *, __u64);
- 	int (*bop_check_delete)(struct nilfs_bmap *, __u64);
- 	int (*bop_gather_data)(struct nilfs_bmap *, __u64 *, __u64 *, int);
+ struct nilfs_sc_info {
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
