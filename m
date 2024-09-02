@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CCB15098F
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C5B15098F
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:47:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725248832; cv=none; b=Z+mLXF5MDF1wAb80Yl9uVr9gU5xCxorprNhSsZGQdNUFlNlk+pp4u11+6sh3aWolY/OYkC616d9/3LkQTRhQZWlTSZAQD9uicwTObWe2k51b7QVfCfm+SMu3itSk2Q43oVrkVFU3Xjl7U10Gw9jDjolweYfUwBHFPw3hfos6djM=
+	t=1725248833; cv=none; b=r14twrFoSjBvvgRyQcWD8KIarcgj0H+W4j8Rk8tXh+iFxInB/TmCwpvnWgUfdVFdNKk+hDKE5OVmwskwUotTclJklQVdJLJx447NyUTYkOKNHapSZkvZiIqdtpZ7bNXP4OTuM70ztfDgvMsf7DauRqYFxp97ZYLVbOQkOCPQ3Hs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725248832; c=relaxed/simple;
-	bh=fSobh8MxDdXczoUeRPaB5883MsOjdHJTv8zk8NJsRZQ=;
-	h=Date:To:From:Subject:Message-Id; b=APmR6V3Fah84jtdOoSp7uEw4bNB0f7GPvXsquy9nYmsXguj79Z8T0kk/6Ep8BEuJ7qsTP2iFNwsnnu9bJju8hIzxMnVhg5tRblD5rfd2CXr/JAG4OK5X9Ianqmtaf0FJJFCk9jlWSMSOhfQ1esvnc/GYC+5x7gkPszzN+XrfO9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sEDidRfG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725248833; c=relaxed/simple;
+	bh=s9h+l0Q2g/1FMLVItorfh6IBYleKoIE/Xy3tqeYxa98=;
+	h=Date:To:From:Subject:Message-Id; b=TedI0mdV4P3948O1Hy8upMmOlUuZO6DhUyX0pGGgdtIo88G1F+wfiV06eoSde96vZKLf9jFuXdbHM6/rfYGo5Qo2+asUl/VwOp7kbXYL3GqhNtXOpkrSTe9p4S+1Jh84e9MIOKvj/0v3rfYi/ckqXozRoHVJ+VtkQFnNKHf2rdk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cjNFsJ+6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sEDidRfG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E699BC4CEC2;
-	Mon,  2 Sep 2024 03:47:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cjNFsJ+6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F6AC4CEC2;
+	Mon,  2 Sep 2024 03:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725248832;
-	bh=fSobh8MxDdXczoUeRPaB5883MsOjdHJTv8zk8NJsRZQ=;
+	s=korg; t=1725248833;
+	bh=s9h+l0Q2g/1FMLVItorfh6IBYleKoIE/Xy3tqeYxa98=;
 	h=Date:To:From:Subject:From;
-	b=sEDidRfGO4fK/4MUudyRWQsDKcvScIuONliEHj9IZaeOv/tQfSZ+rtUab3DVacxio
-	 KrXmUk0QvaU0paRCeoWNcYJoebZS+mlzvUSLzFUN2ZGjTWu9BeRSQ682ijsyWuvCiL
-	 JirrQ98I2B+RJQ5BOoZmusnG+h+yLF5VwvI3e81s=
-Date: Sun, 01 Sep 2024 20:47:11 -0700
-To: mm-commits@vger.kernel.org,xndchn@gmail.com,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=cjNFsJ+6COA7ynpPRI6l98PCUls9iLtFGdKm+Evss/Z3+Ekvdx58KAn6yaJeX6M+h
+	 EuGL8NF+6oqhCeXWWiqEQ+zTPSJjvYTLDSaMBaSuVMFTy5FXB5GG7mch+Z4iVLjeG+
+	 ZsqPEF58/qRC81uxcx0qgRiEX2m/CB6lnqlgtilM=
+Date: Sun, 01 Sep 2024 20:47:12 -0700
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-decode_stacktracesh-nix-ify.patch removed from -mm tree
-Message-Id: <20240902034711.E699BC4CEC2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch removed from -mm tree
+Message-Id: <20240902034712.F0F6AC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/decode_stacktrace.sh: nix-ify
+     Subject: ratelimit: convert flags to int to save 8 bytes in size
 has been removed from the -mm tree.  Its filename was
-     scripts-decode_stacktracesh-nix-ify.patch
+     ratelimit-convert-flags-to-int-to-save-8-bytes-in-size.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: scripts/decode_stacktrace.sh: nix-ify
-Date: Sat, 17 Aug 2024 17:50:25 -0400
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: ratelimit: convert flags to int to save 8 bytes in size
+Date: Sat, 17 Aug 2024 14:37:54 +0200
 
-nix only puts /usr/bin/env at the standard location (as required by
-posix), so shebangs have to be tweaked.
+Only bit 1 is used, making an unsigned long a total overkill.
 
-Link: https://lkml.kernel.org/r/20240817215025.161628-1-kent.overstreet@linux.dev
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Elliot Berman <quic_eberman@quicinc.com>
-Cc: Xiong Nandi <xndchn@gmail.com>
+This brings it from 40 to 32 bytes, which in turn shrinks user_struct from
+136 to 128 bytes.  Since the latter is allocated with hwalign, this means
+the total usage goes down from 192 to 128 bytes per object.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20240817123754.240924-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    2 +-
+ include/linux/ratelimit_types.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-nix-ify
-+++ a/scripts/decode_stacktrace.sh
-@@ -1,4 +1,4 @@
--#!/bin/bash
-+#!/usr/bin/env bash
- # SPDX-License-Identifier: GPL-2.0
- # (c) 2014, Sasha Levin <sasha.levin@oracle.com>
- #set -x
+--- a/include/linux/ratelimit_types.h~ratelimit-convert-flags-to-int-to-save-8-bytes-in-size
++++ a/include/linux/ratelimit_types.h
+@@ -19,8 +19,8 @@ struct ratelimit_state {
+ 	int		burst;
+ 	int		printed;
+ 	int		missed;
++	unsigned int	flags;
+ 	unsigned long	begin;
+-	unsigned long	flags;
+ };
+ 
+ #define RATELIMIT_STATE_INIT_FLAGS(name, interval_init, burst_init, flags_init) { \
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
-mm-fix-folio_alloc_noprof.patch
+mm-hugetlb-sort-out-global-lock-annotations.patch
 
