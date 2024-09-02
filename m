@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D33334A0F;
-	Mon,  2 Sep 2024 00:59:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1DD4A0F;
+	Mon,  2 Sep 2024 00:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725238775; cv=none; b=BMX59CWU9uXvaHM5WCNZ5f6E6mQ8kLXJ8/uYXHFPm2Mobnkddu/VROxpJh0Agol1gVP0t/o58Jt/8W47CNdlwh/yn4tpCcYRpLa4eHajIPdjOXvhngws9oLvMw4G9wOd5YUWMKwFtuGg/+E9Anj6lftXSdNlSVfm6TaUVOsc+hM=
+	t=1725238777; cv=none; b=hvHjlnApZWIKo/7VYJNN8QAPTqG2Wvgf7H7QxBw/Rr9NaBk+sbRzn+XTc/ZlQsvE65QVVO1N6QNIjBkA+8aHgLBnT8qrTIR6RCEZD296h51ga4OYJyUjAVyZY+n3FB2zvWtuJVuv7MrulP0b0Rnbdbirai0qJ53+cuWLv57xzL0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725238775; c=relaxed/simple;
-	bh=+f77JFb09UVmuQcrc8lOIUpmzArxFFtSJpnAEGtOLBQ=;
-	h=Date:To:From:Subject:Message-Id; b=hNvsPEVaaQQ900w4u98AQfrulO8u571B632dkICwSZcvZpXE5oylK9IlYgND83pgaGCMvKcUVcBu/pZyfqQB/QL+iTna0Jiaoi7VjpdgLdLVTGvMm8xa2NS1T+NftnSUfULZft3P05XoFRb6/LjGvhggCcWWCay5FpAa4qtMSzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YenY0plC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725238777; c=relaxed/simple;
+	bh=6V98E/J9OV6/Tg9M3Gpj64K/rLYvb+YyWCvtIQYuU80=;
+	h=Date:To:From:Subject:Message-Id; b=POCqLaccqhjV5AV2xFR7sG8Ub6nKxxfp3wqVoU0PH7jFjEbDrJ5dCk9nIDF8D4sQYImll3Yp+nOS5U7xNPe3LWW/B6V+WbfAo/p0OldcIX3dKblGIKLsDO6G4l79L5KHqJ3dWNIKLcxR3nogmD+PbrKHjT0XlT4pUpeLu77+OW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2oA9uxgA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YenY0plC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5835C4CEC7;
-	Mon,  2 Sep 2024 00:59:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2oA9uxgA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D084EC4CEC3;
+	Mon,  2 Sep 2024 00:59:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725238775;
-	bh=+f77JFb09UVmuQcrc8lOIUpmzArxFFtSJpnAEGtOLBQ=;
+	s=korg; t=1725238776;
+	bh=6V98E/J9OV6/Tg9M3Gpj64K/rLYvb+YyWCvtIQYuU80=;
 	h=Date:To:From:Subject:From;
-	b=YenY0plCeRpfrboB1Xx8SRGg8nDY0uSIJ4OVRDYkCwG8l3PuY/e4EpsmfoJeU+nEC
-	 ibsFx69m7urTOpc+Mz+dNzpOkI2ulDi82jyoYhhTeFWIawIHxB//2UvdRlgRMTAc1M
-	 WB/aGJB6TAYyGebtBWMkAezWTXA52tXXJ1k24Hr0=
-Date: Sun, 01 Sep 2024 17:59:35 -0700
+	b=2oA9uxgAG1J4eqzaeZlNDOD9Hq7Hsn1JzY0Ohw0EKN7JMRLopxZOAFKDSX6Dc/gNw
+	 uEft87O7zvgJJlwv43/lhaFrT6SynqtzhVn6b/Hqvy4aJr3aKkdSjxRqlfFsuHdvgL
+	 WqgwR6phrH2OKgFVnxs7TfvuBIw4+FVWXjjt4W6Y=
+Date: Sun, 01 Sep 2024 17:59:36 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch removed from -mm tree
-Message-Id: <20240902005935.A5835C4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch removed from -mm tree
+Message-Id: <20240902005936.D084EC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix missing cleanup on rollforward recovery error
+     Subject: nilfs2: fix state management in error path of log writing function
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-missing-cleanup-on-rollforward-recovery-error.patch
+     nilfs2-fix-state-management-in-error-path-of-log-writing-function.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix missing cleanup on rollforward recovery error
-Date: Sat, 10 Aug 2024 15:52:42 +0900
+Subject: nilfs2: fix state management in error path of log writing function
+Date: Wed, 14 Aug 2024 19:11:19 +0900
 
-In an error injection test of a routine for mount-time recovery, KASAN
-found a use-after-free bug.
+After commit a694291a6211 ("nilfs2: separate wait function from
+nilfs_segctor_write") was applied, the log writing function
+nilfs_segctor_do_construct() was able to issue I/O requests continuously
+even if user data blocks were split into multiple logs across segments,
+but two potential flaws were introduced in its error handling.
 
-It turned out that if data recovery was performed using partial logs
-created by dsync writes, but an error occurred before starting the log
-writer to create a recovered checkpoint, the inodes whose data had been
-recovered were left in the ns_dirty_files list of the nilfs object and
-were not freed.
+First, if nilfs_segctor_begin_construction() fails while creating the
+second or subsequent logs, the log writing function returns without
+calling nilfs_segctor_abort_construction(), so the writeback flag set on
+pages/folios will remain uncleared.  This causes page cache operations to
+hang waiting for the writeback flag.  For example,
+truncate_inode_pages_final(), which is called via nilfs_evict_inode() when
+an inode is evicted from memory, will hang.
 
-Fix this issue by cleaning up inodes that have read the recovery data if
-the recovery routine fails midway before the log writer starts.
+Second, the NILFS_I_COLLECTED flag set on normal inodes remain uncleared. 
+As a result, if the next log write involves checkpoint creation, that's
+fine, but if a partial log write is performed that does not, inodes with
+NILFS_I_COLLECTED set are erroneously removed from the "sc_dirty_files"
+list, and their data and b-tree blocks may not be written to the device,
+corrupting the block mapping.
 
-Link: https://lkml.kernel.org/r/20240810065242.3701-1-konishi.ryusuke@gmail.com
-Fixes: 0f3e1c7f23f8 ("nilfs2: recovery functions")
+Fix these issues by uniformly calling nilfs_segctor_abort_construction()
+on failure of each step in the loop in nilfs_segctor_do_construct(),
+having it clean up logs and segment usages according to progress, and
+correcting the conditions for calling nilfs_redirty_inodes() to ensure
+that the NILFS_I_COLLECTED flag is cleared.
+
+Link: https://lkml.kernel.org/r/20240814101119.4070-1-konishi.ryusuke@gmail.com
+Fixes: a694291a6211 ("nilfs2: separate wait function from nilfs_segctor_write")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/recovery.c |   35 +++++++++++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+ fs/nilfs2/segment.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/recovery.c~nilfs2-fix-missing-cleanup-on-rollforward-recovery-error
-+++ a/fs/nilfs2/recovery.c
-@@ -716,6 +716,33 @@ static void nilfs_finish_roll_forward(st
- }
+--- a/fs/nilfs2/segment.c~nilfs2-fix-state-management-in-error-path-of-log-writing-function
++++ a/fs/nilfs2/segment.c
+@@ -1812,6 +1812,9 @@ static void nilfs_segctor_abort_construc
+ 	nilfs_abort_logs(&logs, ret ? : err);
  
- /**
-+ * nilfs_abort_roll_forward - cleaning up after a failed rollforward recovery
-+ * @nilfs: nilfs object
-+ */
-+static void nilfs_abort_roll_forward(struct the_nilfs *nilfs)
-+{
-+	struct nilfs_inode_info *ii, *n;
-+	LIST_HEAD(head);
+ 	list_splice_tail_init(&sci->sc_segbufs, &logs);
++	if (list_empty(&logs))
++		return; /* if the first segment buffer preparation failed */
 +
-+	/* Abandon inodes that have read recovery data */
-+	spin_lock(&nilfs->ns_inode_lock);
-+	list_splice_init(&nilfs->ns_dirty_files, &head);
-+	spin_unlock(&nilfs->ns_inode_lock);
-+	if (list_empty(&head))
-+		return;
-+
-+	set_nilfs_purging(nilfs);
-+	list_for_each_entry_safe(ii, n, &head, i_dirty) {
-+		spin_lock(&nilfs->ns_inode_lock);
-+		list_del_init(&ii->i_dirty);
-+		spin_unlock(&nilfs->ns_inode_lock);
-+
-+		iput(&ii->vfs_inode);
-+	}
-+	clear_nilfs_purging(nilfs);
-+}
-+
-+/**
-  * nilfs_salvage_orphan_logs - salvage logs written after the latest checkpoint
-  * @nilfs: nilfs object
-  * @sb: super block instance
-@@ -773,15 +800,19 @@ int nilfs_salvage_orphan_logs(struct the
- 		if (unlikely(err)) {
- 			nilfs_err(sb, "error %d writing segment for recovery",
- 				  err);
--			goto failed;
-+			goto put_root;
- 		}
+ 	nilfs_cancel_segusage(&logs, nilfs->ns_sufile);
+ 	nilfs_free_incomplete_logs(&logs, nilfs);
  
- 		nilfs_finish_roll_forward(nilfs, ri);
- 	}
+@@ -2056,7 +2059,7 @@ static int nilfs_segctor_do_construct(st
  
-- failed:
-+put_root:
- 	nilfs_put_root(root);
+ 		err = nilfs_segctor_begin_construction(sci, nilfs);
+ 		if (unlikely(err))
+-			goto out;
++			goto failed;
+ 
+ 		/* Update time stamp */
+ 		sci->sc_seg_ctime = ktime_get_real_seconds();
+@@ -2120,10 +2123,9 @@ static int nilfs_segctor_do_construct(st
  	return err;
-+
-+failed:
-+	nilfs_abort_roll_forward(nilfs);
-+	goto put_root;
- }
  
- /**
+  failed_to_write:
+-	if (sci->sc_stage.flags & NILFS_CF_IFILE_STARTED)
+-		nilfs_redirty_inodes(&sci->sc_dirty_files);
+-
+  failed:
++	if (mode == SC_LSEG_SR && nilfs_sc_cstage_get(sci) >= NILFS_ST_IFILE)
++		nilfs_redirty_inodes(&sci->sc_dirty_files);
+ 	if (nilfs_doing_gc())
+ 		nilfs_redirty_inodes(&sci->sc_gc_inodes);
+ 	nilfs_segctor_abort_construction(sci, nilfs, err);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
