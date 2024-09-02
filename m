@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED6C18733B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 21:19:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D04918734F;
+	Mon,  2 Sep 2024 22:21:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725311948; cv=none; b=bJ2uuaujrvoEjEhTRFEOswgTtjzKZYCkeRk76pgIyV5CYqlO8L0qfk1qsg/y2UQF5oHC+uhkyP76VrqAXRl5TmaGjq1LFjhFNnecoqGpPM4Ze2htQWBsbtQyNxaDqUOZLyd8AKWAinNOmwGryiCdfugg4R18KgEXvlNgIVmPggU=
+	t=1725315700; cv=none; b=rFLVCJ5hXCjrOm9JW+GG1IAGNSrLojKMr8ISSVb5AG55GRsdSn0jgwp9XAkQFjIMtWg5SgF5r4YEBLcAgSFw2Fwkc+CWeTDNt/ONLuriToa+8ggWq28kHD/a/ygKFSJnQg5Q4mKJgXflW6xRdq6WyGC7bnwj/TNqQHJk5eQSZFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725311948; c=relaxed/simple;
-	bh=7BEkKcQtaMXTWr6Si2OStioaYTwsWStb+6Gmfw3+AQ4=;
-	h=Date:To:From:Subject:Message-Id; b=ij36u1Ei1dYvUTkk8Xbzz1Cjpn48xjREL9NE4pjDTuCD0O7msX2u7Bp8gKP37m9LainQroYWzrVyoj3tVq1JVQDFTsW5He0l5MoSB56FBn9X1eoy6guFSAh4nlt2mLWYt8Vx3rcAAknWKl8ZhIctoAm4BUX69eMMaCH9uK0TpTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2liosnjO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725315700; c=relaxed/simple;
+	bh=dK31dFTbWlffb7HRNqG2pSPG8fd8DE1U1nkljqorpTQ=;
+	h=Date:To:From:Subject:Message-Id; b=FxXneG6sWNUu0JjtRNjd1HOOw3mNRk+PSNprCz5DGeIP6uTtwzS+qBdrOOFZNnarx4WCZIPyYmy3rxYGNShny5x2gIuec5TwxdLMOk0cR6l6emDLgz6t97kM4iz//RCGPNJOtb4kb6m6yaqg56KphuCEsuK5PE9RuVY0/c6MD98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y7IufcCF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2liosnjO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82D13C4CEC2;
-	Mon,  2 Sep 2024 21:19:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y7IufcCF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73419C4CEC2;
+	Mon,  2 Sep 2024 22:21:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725311948;
-	bh=7BEkKcQtaMXTWr6Si2OStioaYTwsWStb+6Gmfw3+AQ4=;
+	s=korg; t=1725315698;
+	bh=dK31dFTbWlffb7HRNqG2pSPG8fd8DE1U1nkljqorpTQ=;
 	h=Date:To:From:Subject:From;
-	b=2liosnjOpTf7sN1nyEpbxJpsF+WR4kiPutefuuDjd2QVnvnBUo3H8xFYy+MAfMEUz
-	 tw0uId6Hen2x3x+gjLA7pgnuoEhJIpxaUxYPh0Ncpzw771MlkXMHe+zwX5/3/ZAJVq
-	 7IbhRJcAGDfTlq8SIRYrPzPaAOEBTXd60rjWCmDQ=
-Date: Mon, 02 Sep 2024 14:19:08 -0700
-To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=Y7IufcCFHvZnWkbEA3yv0Kjyto8Axi5MDzKS0MZE5IDtkwDyI4rkbznAL1bvQY+5T
+	 iiq4bCFAqlJastmae0pSMSNJXGmlv8Zmz+y3dYTTLm8cy1gmjgVpehF8DAJQlakgXd
+	 fVXxkTz2SecJ/w69zNBdEwLfW3rip8KHiBHvtNbU=
+Date: Mon, 02 Sep 2024 15:21:37 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,sunjunchao2870@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-support-priority-parameter-in-recompression.patch added to mm-unstable branch
-Message-Id: <20240902211908.82D13C4CEC2@smtp.kernel.org>
+Subject: + ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240902222138.73419C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: support priority parameter in recompression
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-support-priority-parameter-in-recompression.patch
+     Subject: ocfs2: fix null-ptr-deref when journal load failed.
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-support-priority-parameter-in-recompression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: support priority parameter in recompression
-Date: Mon, 2 Sep 2024 19:56:12 +0900
+From: Julian Sun <sunjunchao2870@gmail.com>
+Subject: ocfs2: fix null-ptr-deref when journal load failed.
+Date: Mon, 2 Sep 2024 11:08:44 +0800
 
-recompress device attribute supports alg=NAME parameter so that we can
-specify only one particular algorithm we want to perform recompression
-with.  However, with algo params we now can have several exactly same
-secondary algorithms but each with its own params tuning (e.g.  priority 1
-configured to use more aggressive level, and priority 2 configured to use
-a pre-trained dictionary).  Support priority=NUM parameter so that we can
-correctly determine which secondary algorithm we want to use.
+During the mounting process, if journal_reset() fails because of too short
+journal, then lead to jbd2_journal_load() fails with NULL j_sb_buffer. 
+Subsequently, ocfs2_journal_shutdown() calls
+jbd2_journal_flush()->jbd2_cleanup_journal_tail()->
+__jbd2_update_log_tail()->jbd2_journal_update_sb_log_tail()
+->lock_buffer(journal->j_sb_buffer), resulting in a null-pointer
+dereference error.
 
-Link: https://lkml.kernel.org/r/20240902105656.1383858-25-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nick Terrell <terrelln@fb.com>
+To resolve this issue, we should check the JBD2_LOADED flag to ensure the
+journal was properly loaded.  Additionally, use journal instead of
+osb->journal directly to simplify the code.
+
+Link: https://syzkaller.appspot.com/bug?extid=05b9b39d8bdfe1a0861f
+Link: https://lkml.kernel.org/r/20240902030844.422725-1-sunjunchao2870@gmail.com
+Fixes: f6f50e28f0cb ("jbd2: Fail to load a journal if it is too short")
+Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
+Reported-by: syzbot+05b9b39d8bdfe1a0861f@syzkaller.appspotmail.com
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    5 ++++-
- drivers/block/zram/zram_drv.c               |   12 ++++++++++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ fs/ocfs2/journal.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-support-priority-parameter-in-recompression
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -512,11 +512,14 @@ registered compression algorithms, incre
- algorithm that successfully compresses a particular page. Sometimes, however,
- it is convenient (and sometimes even necessary) to limit recompression to
- only one particular algorithm so that it will not try any other algorithms.
--This can be achieved by providing a algo=NAME parameter:::
-+This can be achieved by providing a `algo` or `priority` parameter:::
+--- a/fs/ocfs2/journal.c~ocfs2-fix-null-ptr-deref-when-journal-load-failed
++++ a/fs/ocfs2/journal.c
+@@ -1055,7 +1055,7 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 	if (!igrab(inode))
+ 		BUG();
  
- 	#use zstd algorithm only (if registered)
- 	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
+-	num_running_trans = atomic_read(&(osb->journal->j_num_trans));
++	num_running_trans = atomic_read(&(journal->j_num_trans));
+ 	trace_ocfs2_journal_shutdown(num_running_trans);
  
-+	#use zstd algorithm only (if zstd was registered under priority 1)
-+	echo "type=huge priority=1" > /sys/block/zramX/recompress
-+
- memory tracking
- ===============
- 
---- a/drivers/block/zram/zram_drv.c~zram-support-priority-parameter-in-recompression
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1855,6 +1855,18 @@ static ssize_t recompress_store(struct d
- 			algo = val;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "priority")) {
-+			ret = kstrtouint(val, 10, &prio);
-+			if (ret)
-+				return ret;
-+
-+			if (prio == ZRAM_PRIMARY_COMP)
-+				prio = ZRAM_SECONDARY_COMP;
-+
-+			prio_max = min(prio + 1, ZRAM_MAX_COMPS);
-+			continue;
-+		}
+ 	/* Do a commit_cache here. It will flush our journal, *and*
+@@ -1074,9 +1074,10 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 		osb->commit_task = NULL;
  	}
  
- 	if (threshold >= huge_class_size)
+-	BUG_ON(atomic_read(&(osb->journal->j_num_trans)) != 0);
++	BUG_ON(atomic_read(&(journal->j_num_trans)) != 0);
+ 
+-	if (ocfs2_mount_local(osb)) {
++	if (ocfs2_mount_local(osb) &&
++	    (journal->j_journal->j_flags & JBD2_LOADED)) {
+ 		jbd2_journal_lock_updates(journal->j_journal);
+ 		status = jbd2_journal_flush(journal->j_journal, 0);
+ 		jbd2_journal_unlock_updates(journal->j_journal);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from sunjunchao2870@gmail.com are
 
-lib-zstd-export-api-needed-for-dictionary-support.patch
-lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
-lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch
-zram-introduce-custom-comp-backends-api.patch
-zram-add-lzo-and-lzorle-compression-backends-support.patch
-zram-add-lz4-compression-backend-support.patch
-zram-add-lz4hc-compression-backend-support.patch
-zram-add-zstd-compression-backend-support.patch
-zram-pass-estimated-src-size-hint-to-zstd.patch
-zram-add-zlib-compression-backend-support.patch
-zram-add-842-compression-backend-support.patch
-zram-check-that-backends-array-has-at-least-one-backend.patch
-zram-introduce-zcomp_params-structure.patch
-zram-recalculate-zstd-compression-params-once.patch
-zram-introduce-algorithm_params-device-attribute.patch
-zram-add-support-for-dict-comp-config.patch
-zram-introduce-zcomp_req-structure.patch
-zram-introduce-zcomp_ctx-structure.patch
-zram-move-immutable-comp-params-away-from-per-cpu-context.patch
-zram-add-dictionary-support-to-lz4.patch
-zram-add-dictionary-support-to-lz4hc.patch
-zram-add-dictionary-support-to-zstd-backend.patch
-documentation-zram-add-documentation-for-algorithm-parameters.patch
-zram-support-priority-parameter-in-recompression.patch
+ocfs2-fix-null-ptr-deref-when-journal-load-failed.patch
 
