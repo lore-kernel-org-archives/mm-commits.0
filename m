@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2B9186E36
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 21:18:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F80185946
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 21:18:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725311907; cv=none; b=XXERleua+ioPcvHBnIhgoaVjTmlQfbgrFQI1c2IQs9pYqQYp4yEJnnkc1fd8ZNBou197lgS9p6ANLsCCKx0V3SKkJyg4mDEWGu7qa/Z/+9N0ESQCRkO0XyE79in5xsUE9Z341NX+pvXPom8WJkFkwsIq37uIkkJNV8gW53DRtmI=
+	t=1725311911; cv=none; b=KKP2B93HiNTz40NsSKmMAPRbbgSCV/l517YUdvbdCkbHxjemW4/e0iY8nvuMakHnLJ2oh7VNfUozvAsWv/64c13nu2N1S/ItFOoKRdEelLc/dLkr3fEOiHcNDAbeiLl+WQO/HDU0z71iHXEHHhFEVAnKEBIsPGMVYIttZm6yPhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725311907; c=relaxed/simple;
-	bh=iNnUAg3ePqAKXBYkYcb8BkrUZGGT+8Ts4vYg8BU2h7Y=;
-	h=Date:To:From:Subject:Message-Id; b=TPbmZholUPdrdIU8EebcHQIV3MeKqZ7AWR6iPET7uX2IHr718NEtd3RlatdNEwoUjiK2WbSdYYx1AHvrSTdQG38gnk91GDf4z0DFgYmMBose3iIvkAkdN3decs+DSvr2wf4r4ZVt4zFk3IO9/8hP/4s++RFCVOg3ES52wRuQo7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FM/YyfJA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725311911; c=relaxed/simple;
+	bh=kPAw/KytnoZweeO17XtbypB5feMsOapcJlrNM2zb1Fw=;
+	h=Date:To:From:Subject:Message-Id; b=hH/MyXSmcvrgDcbqK4nyXioNVUjBRKy6+lGuEsfa1a68SAO6used0nYOMCXls6dbqW0D2WETMor1TCIMidi+88Jcd2RbOuCRLflaQftYUNuW/iZsAsN3+fu3pFov4umgrobuwMSzAO8k4jJay9bCOr1iwxHHqcszJw3J6+RdmMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bLNki9F1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FM/YyfJA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18971C4CEC2;
-	Mon,  2 Sep 2024 21:18:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bLNki9F1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEAFFC4CEC2;
+	Mon,  2 Sep 2024 21:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725311907;
-	bh=iNnUAg3ePqAKXBYkYcb8BkrUZGGT+8Ts4vYg8BU2h7Y=;
+	s=korg; t=1725311911;
+	bh=kPAw/KytnoZweeO17XtbypB5feMsOapcJlrNM2zb1Fw=;
 	h=Date:To:From:Subject:From;
-	b=FM/YyfJAARRIOQsU03jDYzdc/eKhdUjb8FTTOan/E4y+P7CYKGVcDnbEVdgfUWeI4
-	 0xULNDXYEx0DgJNMsCbuwzhvD4WLtlZyW3f/nyE9IaBsBQXVquHLWOSRYAumWZd/bO
-	 diNO7ld4hgnh4bNM/LQm5F/kWJSkO6dqfpWHgn/o=
-Date: Mon, 02 Sep 2024 14:18:26 -0700
+	b=bLNki9F1SlXcKPYuhrlhdZKpI5YKlWsx9KHZiy/akh9LC4Ec1yDsm8AAgPDGo5jXl
+	 oVZ1FuPHrhSdwtr8fIUQFDm4BzWfhhDKJav9lCqW/p9BLt5CG4/zWLVn7usoXMWkNh
+	 HYTuEyXpEdIO4QXZwhOFQCCIDZDAUMyobpYlVDqU=
+Date: Mon, 02 Sep 2024 14:18:30 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-842-compression-backend-support.patch added to mm-unstable branch
-Message-Id: <20240902211827.18971C4CEC2@smtp.kernel.org>
+Subject: + zram-check-that-backends-array-has-at-least-one-backend.patch added to mm-unstable branch
+Message-Id: <20240902211830.DEAFFC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add 842 compression backend support
+     Subject: zram: check that backends array has at least one backend
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-842-compression-backend-support.patch
+     zram-check-that-backends-array-has-at-least-one-backend.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-842-compression-backend-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-check-that-backends-array-has-at-least-one-backend.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,176 +59,77 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add 842 compression backend support
-Date: Mon, 2 Sep 2024 19:55:59 +0900
+Subject: zram: check that backends array has at least one backend
+Date: Mon, 2 Sep 2024 19:56:00 +0900
 
-Add s/w 842 compression support.
+Make sure that backends array has anything apart from the sentinel NULL
+value.
 
-Link: https://lkml.kernel.org/r/20240902105656.1383858-12-senozhatsky@chromium.org
+We also select LZO_BACKEND if none backends were selected.
+
+Link: https://lkml.kernel.org/r/20240902105656.1383858-13-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig       |   11 ++++
- drivers/block/zram/Makefile      |    1 
- drivers/block/zram/backend_842.c |   68 +++++++++++++++++++++++++++++
- drivers/block/zram/backend_842.h |   10 ++++
- drivers/block/zram/zcomp.c       |    4 +
- 5 files changed, 94 insertions(+)
+ drivers/block/zram/Kconfig |   19 +++++++++++++------
+ drivers/block/zram/zcomp.c |    8 ++++++++
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/block/zram/backend_842.c a/drivers/block/zram/backend_842.c
-new file mode 100644
---- /dev/null
-+++ a/drivers/block/zram/backend_842.c
-@@ -0,0 +1,68 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/sw842.h>
-+#include <linux/vmalloc.h>
-+
-+#include "backend_842.h"
-+
-+struct sw842_ctx {
-+	void *mem;
-+};
-+
-+static void destroy_842(void *ctx)
-+{
-+	struct sw842_ctx *zctx = ctx;
-+
-+	kfree(zctx->mem);
-+	kfree(zctx);
-+}
-+
-+static void *create_842(void)
-+{
-+	struct sw842_ctx *ctx;
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return NULL;
-+
-+	ctx->mem = kmalloc(SW842_MEM_COMPRESS, GFP_KERNEL);
-+	if (!ctx->mem)
-+		goto error;
-+
-+	return ctx;
-+
-+error:
-+	destroy_842(ctx);
-+	return NULL;
-+}
-+
-+static int compress_842(void *ctx, const unsigned char *src, size_t src_len,
-+			unsigned char *dst, size_t *dst_len)
-+{
-+	struct sw842_ctx *zctx = ctx;
-+	unsigned int dlen = *dst_len;
-+	int ret;
-+
-+	ret = sw842_compress(src, src_len, dst, &dlen, zctx->mem);
-+	if (ret == 0)
-+		*dst_len = dlen;
-+	return ret;
-+}
-+
-+static int decompress_842(void *ctx, const unsigned char *src, size_t src_len,
-+			  unsigned char *dst, size_t dst_len)
-+{
-+	unsigned int dlen = dst_len;
-+
-+	return sw842_decompress(src, src_len, dst, &dlen);
-+}
-+
-+const struct zcomp_ops backend_842 = {
-+	.compress	= compress_842,
-+	.decompress	= decompress_842,
-+	.create_ctx	= create_842,
-+	.destroy_ctx	= destroy_842,
-+	.name		= "842",
-+};
-diff --git a/drivers/block/zram/backend_842.h a/drivers/block/zram/backend_842.h
-new file mode 100644
---- /dev/null
-+++ a/drivers/block/zram/backend_842.h
-@@ -0,0 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#ifndef __BACKEND_842_H__
-+#define __BACKEND_842_H__
-+
-+#include "zcomp.h"
-+
-+extern const struct zcomp_ops backend_842;
-+
-+#endif /* __BACKEND_842_H__ */
---- a/drivers/block/zram/Kconfig~zram-add-842-compression-backend-support
+--- a/drivers/block/zram/Kconfig~zram-check-that-backends-array-has-at-least-one-backend
 +++ a/drivers/block/zram/Kconfig
-@@ -44,6 +44,12 @@ config ZRAM_BACKEND_DEFLATE
- 	select ZLIB_DEFLATE
- 	select ZLIB_INFLATE
+@@ -14,12 +14,6 @@ config ZRAM
  
-+config ZRAM_BACKEND_842
-+	bool "842 compression support"
+ 	  See Documentation/admin-guide/blockdev/zram.rst for more information.
+ 
+-config ZRAM_BACKEND_LZO
+-	bool "lzo and lzo-rle compression support"
+-	depends on ZRAM
+-	select LZO_COMPRESS
+-	select LZO_DECOMPRESS
+-
+ config ZRAM_BACKEND_LZ4
+ 	bool "lz4 compression support"
+ 	depends on ZRAM
+@@ -50,6 +44,19 @@ config ZRAM_BACKEND_842
+ 	select 842_COMPRESS
+ 	select 842_DECOMPRESS
+ 
++config ZRAM_BACKEND_FORCE_LZO
 +	depends on ZRAM
-+	select 842_COMPRESS
-+	select 842_DECOMPRESS
++	def_bool !ZRAM_BACKEND_LZ4 && !ZRAM_BACKEND_LZ4HC && \
++		!ZRAM_BACKEND_ZSTD && !ZRAM_BACKEND_DEFLATE && \
++		!ZRAM_BACKEND_842
++
++config ZRAM_BACKEND_LZO
++	bool "lzo and lzo-rle compression support" if !ZRAM_BACKEND_FORCE_LZO
++	depends on ZRAM
++	default ZRAM_BACKEND_FORCE_LZO
++	select LZO_COMPRESS
++	select LZO_DECOMPRESS
 +
  choice
  	prompt "Default zram compressor"
  	default ZRAM_DEF_COMP_LZORLE
-@@ -73,6 +79,10 @@ config ZRAM_DEF_COMP_DEFLATE
- 	bool "deflate"
- 	depends on ZRAM_BACKEND_DEFLATE
- 
-+config ZRAM_DEF_COMP_842
-+	bool "842"
-+	depends on ZRAM_BACKEND_842
-+
- endchoice
- 
- config ZRAM_DEF_COMP
-@@ -83,6 +93,7 @@ config ZRAM_DEF_COMP
- 	default "lz4hc" if ZRAM_DEF_COMP_LZ4HC
- 	default "zstd" if ZRAM_DEF_COMP_ZSTD
- 	default "deflate" if ZRAM_DEF_COMP_DEFLATE
-+	default "842" if ZRAM_DEF_COMP_842
- 	default "unset-value"
- 
- config ZRAM_WRITEBACK
---- a/drivers/block/zram/Makefile~zram-add-842-compression-backend-support
-+++ a/drivers/block/zram/Makefile
-@@ -7,5 +7,6 @@ zram-$(CONFIG_ZRAM_BACKEND_LZ4)		+= back
- zram-$(CONFIG_ZRAM_BACKEND_LZ4HC)	+= backend_lz4hc.o
- zram-$(CONFIG_ZRAM_BACKEND_ZSTD)	+= backend_zstd.o
- zram-$(CONFIG_ZRAM_BACKEND_DEFLATE)	+= backend_deflate.o
-+zram-$(CONFIG_ZRAM_BACKEND_842)		+= backend_842.o
- 
- obj-$(CONFIG_ZRAM)	+=	zram.o
---- a/drivers/block/zram/zcomp.c~zram-add-842-compression-backend-support
+--- a/drivers/block/zram/zcomp.c~zram-check-that-backends-array-has-at-least-one-backend
 +++ a/drivers/block/zram/zcomp.c
-@@ -18,6 +18,7 @@
- #include "backend_lz4hc.h"
- #include "backend_zstd.h"
- #include "backend_deflate.h"
-+#include "backend_842.h"
+@@ -192,6 +192,14 @@ struct zcomp *zcomp_create(const char *a
+ 	struct zcomp *comp;
+ 	int error;
  
- static const struct zcomp_ops *backends[] = {
- #if IS_ENABLED(CONFIG_ZRAM_BACKEND_LZO)
-@@ -36,6 +37,9 @@ static const struct zcomp_ops *backends[
- #if IS_ENABLED(CONFIG_ZRAM_BACKEND_DEFLATE)
- 	&backend_deflate,
- #endif
-+#if IS_ENABLED(CONFIG_ZRAM_BACKEND_842)
-+	&backend_842,
-+#endif
- 	NULL
- };
- 
++	/*
++	 * The backends array has a sentinel NULL value, so the minimum
++	 * size is 1. In order to be valid the array, apart from the
++	 * sentinel NULL element, should have at least one compression
++	 * backend selected.
++	 */
++	BUILD_BUG_ON(ARRAY_SIZE(backends) <= 1);
++
+ 	comp = kzalloc(sizeof(struct zcomp), GFP_KERNEL);
+ 	if (!comp)
+ 		return ERR_PTR(-ENOMEM);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
