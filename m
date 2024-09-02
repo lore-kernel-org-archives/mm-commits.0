@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781C844C81
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87C7443AB4
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:28:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247703; cv=none; b=COEi3PrvKs7Tou2hO9XJfMJ/PeHEh0UsZtg7ZwtnA7RjiYYOQ8gJiAPJcq1Ht20IfAhrj2u5AZjsB5LmoJn9Wg2ILqf698/oM4sEmQi24K8xpGh7FOyz1yahO/zsoq9hrnbDgtLZfO+f++V93PotpytSKySViwgs3UOzKEyiLV8=
+	t=1725247704; cv=none; b=mqpHy0VMmvEvJKbEuUO36dFoXJIiQswajYU4WwNE8veQXY+C0JUcC5qGrJ9R1qrn5BtX0+Uf8oO5ALItgaApOISM5xeKqN1xyK1XtA4D2yyZuiwX4CovGhIjg5PxdpGAzmprTCmBVaAuz4O9pkSG3r5lsHr5wuvaB7mq1Ct6Esw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247703; c=relaxed/simple;
-	bh=VZnxKSnsVEmFONq0rjOXhEKVpyvder6Qiqa7S0C/6Vw=;
-	h=Date:To:From:Subject:Message-Id; b=iuxJ0p8K4VHas2xVwpHa71lJlxlDDDErWWlWAFSyxz50XTkL7jsMnntpB3A3gbordWqFf1Uh7ZGLnItSXB2EzsfoQv1yMNirVGpEbYELisCf17MWdmJxrgTVYQ2iyIX9vVhg2aeVrPvCUxVRQG+wMjD+7YeW7O5fdsH/uWLd1bg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bSFc+tvJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247704; c=relaxed/simple;
+	bh=m5YObLt/FDdOvQ5f+oCsOSGgs9dqXqKruMWoBnWTNZk=;
+	h=Date:To:From:Subject:Message-Id; b=IdvYQ1DMaRy5mxMYwYAvBcD9EUITwnCxP0rKLPSYVxUviXgyS0mStF1MuCgUt/bhgPXFLH5cSrg+7Jp3FkZRKiWHdiTE0PVmPiqJDT0z335hI9PagfhgOIlWITT7X7mrMPuiRZDuSYpOoW1QaCQnejnMIBsI3psYnTYecU+GiJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0y8yCvZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bSFc+tvJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43E39C4CEC2;
-	Mon,  2 Sep 2024 03:28:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0y8yCvZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB16C4CEC2;
+	Mon,  2 Sep 2024 03:28:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247703;
-	bh=VZnxKSnsVEmFONq0rjOXhEKVpyvder6Qiqa7S0C/6Vw=;
+	s=korg; t=1725247704;
+	bh=m5YObLt/FDdOvQ5f+oCsOSGgs9dqXqKruMWoBnWTNZk=;
 	h=Date:To:From:Subject:From;
-	b=bSFc+tvJofHYLZ+q6QwcXNYYkPheY7rTe94C6tYi8++rw4cjYe+cbj5O+MK5sWeNY
-	 +q6t3hulq7L0kVKHDBhWGt0XvDDVmF5dKw74svXlAJhwoUWMrAPnNmbfjB25FH8dzx
-	 omKhNfPVcEpMpeqKFjX6SyXaAAZS2vaVQgU65gGI=
-Date: Sun, 01 Sep 2024 20:28:22 -0700
+	b=p0y8yCvZ1VpjLFQSycFRZGFENhVgl+p2s74g/p72VGWIH/dFH2pk1p7tNnDvMmd9y
+	 NrogXwnAyAFcoIv9rsDinGMR7xr/U2Fu3iggd3PzjgGd4XC3BTb7d5ACL3jcH1BpZc
+	 Gv0jt2gsfnO7AAecFT8KRNS99mEltEKFABBTRzqM=
+Date: Sun, 01 Sep 2024 20:28:23 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,svens@linux.ibm.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,frankja@linux.ibm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-convert-to-arch_make_folio_accessible.patch removed from -mm tree
-Message-Id: <20240902032823.43E39C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] s390-uv-drop-arch_make_page_accessible.patch removed from -mm tree
+Message-Id: <20240902032824.5CB16C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: convert to arch_make_folio_accessible()
+     Subject: s390/uv: drop arch_make_page_accessible()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-convert-to-arch_make_folio_accessible.patch
+     s390-uv-drop-arch_make_page_accessible.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: convert to arch_make_folio_accessible()
-Date: Mon, 29 Jul 2024 20:38:43 +0200
+Subject: s390/uv: drop arch_make_page_accessible()
+Date: Mon, 29 Jul 2024 20:38:44 +0200
 
-Let's use arch_make_folio_accessible() instead so we can get rid of
+All code was converted to using arch_make_folio_accessible(), let's drop
 arch_make_page_accessible().
 
-Link: https://lkml.kernel.org/r/20240729183844.388481-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240729183844.388481-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
@@ -64,54 +64,52 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/s390/include/asm/page.h |    2 --
+ arch/s390/kernel/uv.c        |    5 -----
+ include/linux/mm.h           |    7 -------
+ 3 files changed, 14 deletions(-)
 
---- a/mm/gup.c~mm-gup-convert-to-arch_make_folio_accessible
-+++ a/mm/gup.c
-@@ -819,6 +819,7 @@ static struct page *follow_page_pte(stru
- 		struct dev_pagemap **pgmap)
+--- a/arch/s390/include/asm/page.h~s390-uv-drop-arch_make_page_accessible
++++ a/arch/s390/include/asm/page.h
+@@ -176,8 +176,6 @@ static inline int devmem_is_allowed(unsi
+ 
+ int arch_make_folio_accessible(struct folio *folio);
+ #define HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
+-int arch_make_page_accessible(struct page *page);
+-#define HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
+ 
+ struct vm_layout {
+ 	unsigned long kaslr_offset;
+--- a/arch/s390/kernel/uv.c~s390-uv-drop-arch_make_page_accessible
++++ a/arch/s390/kernel/uv.c
+@@ -548,11 +548,6 @@ int arch_make_folio_accessible(struct fo
+ }
+ EXPORT_SYMBOL_GPL(arch_make_folio_accessible);
+ 
+-int arch_make_page_accessible(struct page *page)
+-{
+-	return arch_make_folio_accessible(page_folio(page));
+-}
+-EXPORT_SYMBOL_GPL(arch_make_page_accessible);
+ static ssize_t uv_query_facilities(struct kobject *kobj,
+ 				   struct kobj_attribute *attr, char *buf)
  {
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct folio *folio;
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t *ptep, pte;
-@@ -876,6 +877,7 @@ static struct page *follow_page_pte(stru
- 			goto out;
- 		}
- 	}
-+	folio = page_folio(page);
+--- a/include/linux/mm.h~s390-uv-drop-arch_make_page_accessible
++++ a/include/linux/mm.h
+@@ -2205,13 +2205,6 @@ static inline bool folio_likely_mapped_s
+ 	return atomic_read(&folio->_mapcount) > 0;
+ }
  
- 	if (!pte_write(pte) && gup_must_unshare(vma, flags, page)) {
- 		page = ERR_PTR(-EMLINK);
-@@ -886,7 +888,7 @@ static struct page *follow_page_pte(stru
- 		       !PageAnonExclusive(page), page);
- 
- 	/* try_grab_folio() does nothing unless FOLL_GET or FOLL_PIN is set. */
--	ret = try_grab_folio(page_folio(page), 1, flags);
-+	ret = try_grab_folio(folio, 1, flags);
- 	if (unlikely(ret)) {
- 		page = ERR_PTR(ret);
- 		goto out;
-@@ -898,7 +900,7 @@ static struct page *follow_page_pte(stru
- 	 * Documentation/core-api/pin_user_pages.rst for details.
- 	 */
- 	if (flags & FOLL_PIN) {
--		ret = arch_make_page_accessible(page);
-+		ret = arch_make_folio_accessible(folio);
- 		if (ret) {
- 			unpin_user_page(page);
- 			page = ERR_PTR(ret);
-@@ -2919,7 +2921,7 @@ static int gup_fast_pte_range(pmd_t pmd,
- 		 * details.
- 		 */
- 		if (flags & FOLL_PIN) {
--			ret = arch_make_page_accessible(page);
-+			ret = arch_make_folio_accessible(folio);
- 			if (ret) {
- 				gup_put_folio(folio, 1, flags);
- 				goto pte_unmap;
+-#ifndef HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
+-static inline int arch_make_page_accessible(struct page *page)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
+ static inline int arch_make_folio_accessible(struct folio *folio)
+ {
 _
 
 Patches currently in -mm which might be from david@redhat.com are
