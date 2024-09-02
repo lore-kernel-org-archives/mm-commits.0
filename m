@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DED1605BA
-	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38B364A8F
+	for <mm-commits@vger.kernel.org>; Mon,  2 Sep 2024 03:29:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725247796; cv=none; b=UKai2eiJEXK4VM9Au3+8q+wBg3AOWTyYHmvfzIE8fz+vfY2guUcHILPAIf4zqkimNmMvblzZhHdr2fWMoOy+ExRWvZzA+wpjthQhiKvGcUKuluaNTDhGk1HPEqitOZJdH+99nx+DskRP9M9paClbmfZ7OE8EYT5sqqi9ERlY/6g=
+	t=1725247798; cv=none; b=ARDNP11pM9rPOL4gKQivjIogxKfbyDTNMzjU5qFYiVweA+0iAiJOUIJjBAgomsuwkqGB4oZcrWiAC1+59zvs4usGFkznUZzGqbsxYunPy9DtvH57RqsAPJ0C6EJikhMJymqH8Yv6yNV3KUT8s2bVIdUmpOf7y/XMtkaamecUWJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725247796; c=relaxed/simple;
-	bh=Zrs0Ta/KRfpCVWnjA6CrTFwGzI788p2ERMeUppzlRzM=;
-	h=Date:To:From:Subject:Message-Id; b=RLtYd2vmTvXUlMLo6Sp+EGK2XA4YsfVxEQD1ioZsPA+cXYzBZ8Qd23YYLKjZ+yaKsoIexD/BIVQ5oDjNCr7yC8k8yDjBTFGAfYn/jCGQOnYFR4zAC3I/U0knmukrDLfiuKLIjpLBP2eyBJ596JMDODkjJivWJm17OgD58W8qtvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2V4WMIel; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725247798; c=relaxed/simple;
+	bh=mpKK4wcK+qvxK8oGYdgHe+MEORqAQHH36UwN6aStm1k=;
+	h=Date:To:From:Subject:Message-Id; b=cAh76oFKhG57PYTdZBcx2q9IaPaLAcMIvvUBiFCfsT2TOleegvYPQuL49z7+70o76pha4PNHE6x/yYK/qRCfjHMdqhC+igtLhUwO8S/KOuGkHY8fLfwkB9B6cxRIdhTURP3H73KbTWkPnxlKsWzmYbCd9TJh+VsILPL4ECcqK3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+UM6loa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2V4WMIel"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1405CC4CEC2;
-	Mon,  2 Sep 2024 03:29:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+UM6loa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8917AC4CEC2;
+	Mon,  2 Sep 2024 03:29:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725247796;
-	bh=Zrs0Ta/KRfpCVWnjA6CrTFwGzI788p2ERMeUppzlRzM=;
+	s=korg; t=1725247797;
+	bh=mpKK4wcK+qvxK8oGYdgHe+MEORqAQHH36UwN6aStm1k=;
 	h=Date:To:From:Subject:From;
-	b=2V4WMIelmI6mKVQ6Xa/hOByCcJy9Ah901DqRmCUb1LeEpHnZpUdBAPgYBUUW6+xDc
-	 OF6OyyquodYP3sKPtYAjNwi6EGaU6KRXWXOGlOSAGEl5IK/dd6gYARyss049J5rHEn
-	 LjLhZdxWY3fCVIUhtFMeLPiIWzoYS/MY2TJdp0FI=
-Date: Sun, 01 Sep 2024 20:29:55 -0700
+	b=M+UM6loa5klUKusCbCzsSig+A9wz8CRAhKp9oAlwbvD16GfBAFvyTm3Tj5L/gVmrF
+	 3iC+vmk1u9FS/V+Jz42bj2apms2aAghKfMCFf4bMlnDLNPluJ6a+DAIrzvA/spyMEz
+	 aLV0KT38I30sJEZwW5fPNLL5z1Gtpc3WsfrV4+a8=
+Date: Sun, 01 Sep 2024 20:29:57 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,seanjc@google.com,rientjes@google.com,riel@surriel.com,rick.p.edgecombe@intel.com,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,kirill@shutemov.name,hughd@google.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,christophe.leroy@csgroup.eu,bp@alien8.de,aneesh.kumar@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-powerpc-add-missing-pud-helpers.patch removed from -mm tree
-Message-Id: <20240902032956.1405CC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-x86-make-pud_leaf-only-care-about-pse-bit.patch removed from -mm tree
+Message-Id: <20240902032957.8917AC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/powerpc: add missing pud helpers
+     Subject: mm/x86: make pud_leaf() only care about PSE bit
 has been removed from the -mm tree.  Its filename was
-     mm-powerpc-add-missing-pud-helpers.patch
+     mm-x86-make-pud_leaf-only-care-about-pse-bit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/powerpc: add missing pud helpers
-Date: Mon, 12 Aug 2024 14:12:21 -0400
+Subject: mm/x86: make pud_leaf() only care about PSE bit
+Date: Mon, 12 Aug 2024 14:12:22 -0400
 
-Some new helpers will be needed for pud entry updates soon.  Introduce
-these helpers by referencing the pmd ones.  Namely:
+When working on mprotect() on 1G dax entries, I hit an zap bad pud error
+when zapping a huge pud that is with PROT_NONE permission.
 
-  - pudp_invalidate(): this helper invalidates a huge pud before a split
-  happens, so that the invalidated pud entry will make sure no race will
-  happen (either with software, like a concurrent zap, or hardware, like
-  a/d bit lost).
+Here the problem is x86's pud_leaf() requires both PRESENT and PSE bits
+set to report a pud entry as a leaf, but that doesn't look right, as it's
+not following the pXd_leaf() definition that we stick with so far, where
+PROT_NONE entries should be reported as leaves.
 
-  - pud_modify(): this helper applies a new pgprot to an existing huge pud
-  mapping.
+To fix it, change x86's pud_leaf() implementation to only check against
+PSE bit to report a leaf, irrelevant of whether PRESENT bit is set.
 
-For more information on why we need these two helpers, please refer to the
-corresponding pmd helpers in the mprotect() code path.
-
-Link: https://lkml.kernel.org/r/20240812181225.1360970-4-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240812181225.1360970-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Sean Christopherson <seanjc@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |    3 ++
- arch/powerpc/mm/book3s64/pgtable.c           |   20 +++++++++++++++++
- 2 files changed, 23 insertions(+)
+ arch/x86/include/asm/pgtable.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-powerpc-add-missing-pud-helpers
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1124,6 +1124,7 @@ extern pmd_t pfn_pmd(unsigned long pfn,
- extern pud_t pfn_pud(unsigned long pfn, pgprot_t pgprot);
- extern pmd_t mk_pmd(struct page *page, pgprot_t pgprot);
- extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
-+extern pud_t pud_modify(pud_t pud, pgprot_t newprot);
- extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 		       pmd_t *pmdp, pmd_t pmd);
- extern void set_pud_at(struct mm_struct *mm, unsigned long addr,
-@@ -1384,6 +1385,8 @@ static inline pgtable_t pgtable_trans_hu
- #define __HAVE_ARCH_PMDP_INVALIDATE
- extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 			     pmd_t *pmdp);
-+extern pud_t pudp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+			     pud_t *pudp);
- 
- #define pmd_move_must_withdraw pmd_move_must_withdraw
- struct spinlock;
---- a/arch/powerpc/mm/book3s64/pgtable.c~mm-powerpc-add-missing-pud-helpers
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -176,6 +176,17 @@ pmd_t pmdp_invalidate(struct vm_area_str
- 	return __pmd(old_pmd);
- }
- 
-+pud_t pudp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+		      pud_t *pudp)
-+{
-+	unsigned long old_pud;
-+
-+	VM_WARN_ON_ONCE(!pud_present(*pudp));
-+	old_pud = pud_hugepage_update(vma->vm_mm, address, pudp, _PAGE_PRESENT, _PAGE_INVALID);
-+	flush_pud_tlb_range(vma, address, address + HPAGE_PUD_SIZE);
-+	return __pud(old_pud);
-+}
-+
- pmd_t pmdp_huge_get_and_clear_full(struct vm_area_struct *vma,
- 				   unsigned long addr, pmd_t *pmdp, int full)
+--- a/arch/x86/include/asm/pgtable.h~mm-x86-make-pud_leaf-only-care-about-pse-bit
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1078,8 +1078,7 @@ static inline pmd_t *pud_pgtable(pud_t p
+ #define pud_leaf pud_leaf
+ static inline bool pud_leaf(pud_t pud)
  {
-@@ -259,6 +270,15 @@ pmd_t pmd_modify(pmd_t pmd, pgprot_t new
- 	pmdv &= _HPAGE_CHG_MASK;
- 	return pmd_set_protbits(__pmd(pmdv), newprot);
+-	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
+-		(_PAGE_PSE | _PAGE_PRESENT);
++	return pud_val(pud) & _PAGE_PSE;
  }
-+
-+pud_t pud_modify(pud_t pud, pgprot_t newprot)
-+{
-+	unsigned long pudv;
-+
-+	pudv = pud_val(pud);
-+	pudv &= _HPAGE_CHG_MASK;
-+	return pud_set_protbits(__pud(pudv), newprot);
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- /* For use by kexec, called with MMU off */
+ static inline int pud_bad(pud_t pud)
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
