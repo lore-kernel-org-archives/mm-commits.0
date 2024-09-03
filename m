@@ -1,114 +1,138 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D2B18E77D
-	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 20:18:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB90175D45
+	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 20:18:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725394714; cv=none; b=ZVLmqtvCwtQjqcbkHzKhMsTHZ7eSTfmFVwZUA+lwy4Qn35Uwt9vbKV2bZDsaP7XbpVuC3FOglrPVk/UEfo0p3dCUtbTt7121a0Cm6hmUXv5pAbhO9X0ej3IPRCxZkbQRDWUl1lnq8jSKAmpx+TfmNmdF+nemPRhmyhQsdyrFeDY=
+	t=1725394736; cv=none; b=qNrSAYGCIaTHdl+vQ29heV7UGVj/MFTX/hkdqdOXJvVNzD5du+NqxG4aQsmw3Ev9Gj8AqA/fdlPum7AowG7ij4GtLVdLmm2NJdF+Wr/wxKspkHVaV7OIHQf9cSUpTRMV7M3v2s4BxwHe+P2uQpc7nRAIVuh1654pWHsmUKFlHR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725394714; c=relaxed/simple;
-	bh=hzAqGd3F7AgPkCeGGqromJaKIJXJKAOln3vKkvXFg18=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hxnBBo5nBT2uKKmYHWP988ceEXiG5f7Jkef82Vslgw+pL9udgxe+KSAEHhCPUyDOg6Z21JqKujZnOPJh0czIgmCHGbsDOdhBC17BZvlwKh1igL+gAa8VJLqbVCir0oWFtIND2cNGT7CIO/dvzg+4IjqL2tJQLSlKK9x+zfts+Qg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=dKHr6GCS; arc=none smtp.client-ip=209.85.218.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1725394736; c=relaxed/simple;
+	bh=6XuvqcMZNxC1g+vX3l7iNK5rTNJHQtY9reDuz86NWGw=;
+	h=Date:To:From:Subject:Message-Id; b=XNwrEHBVxGIdMuMS+1xu8Lm1B12OPgP7wleZv65SDtKDCAyIATzSYAnR+sXivJo5aA7TQbK1bCKGXB2cQr7iecKIEF8RM8neAMo+Hs5oT93bez/t1eFwSHgUXNX6RucKzdbrfOyYSvl360ivJrbPKop/j5nugBLh4qzmQ40LHos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RzUExGkQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="dKHr6GCS"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a8696e9bd24so686383566b.0
-        for <mm-commits@vger.kernel.org>; Tue, 03 Sep 2024 13:18:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1725394711; x=1725999511; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oWbMfvcljod0JpxC0uK+HPRl2MlFSfhObh8ySh6Wf0c=;
-        b=dKHr6GCSu1E9dNajNUGM0Ptso8C9KH3okxYNy/PRq31DIH+W5xkRJcZtW9nWI8FMMa
-         ac4vifZuqMFzxV5ZET2InYh3QHaDCKr/hU5apSu9kx3/G45ReIXLcznxCr8ITIh0XTtu
-         bS+oskDCQeTyGGwrTrM8yY79wNftAuweWMeYyczawGnDfs/6W6PhMaJaBUDVLRQiXRzb
-         GwQP1bKf2lsR9WTBOMorz5vWqZbV1uk4M8Ex44/aKBM+iuHj5pLeyllcbDPYYCHhAFhL
-         MGROiuGJjF8iTDHsm+PtTZ2HOMGfnjH9iIU2Aj9Og3Gt9bNwYu6hvoRhAEboKtnauURN
-         LvTA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725394711; x=1725999511;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oWbMfvcljod0JpxC0uK+HPRl2MlFSfhObh8ySh6Wf0c=;
-        b=ine2JHAwejIwWb9p8LsNCnzrCYyhgwH4lSqRBUvxCixapx2XLgcqmowFf7xc0kUSTq
-         tAvMD5UDDK8Je7+BH4MtfkFj+JEag4PjrUHoDthJel/19criUKcyWBtqrveSvcWw+nUK
-         ccl1xKUbt0npHsamzeVHxB9v+jodjTdTmkMCPLXA2TmFJpB4Fw3R/UQBEjKKe6LI6M9G
-         ZIO9X177k/cgkPhEErXG6yAHFmOfuAO3FY1eLM34MaYdhU5hYmopPKUj92GtAnyTfPNB
-         0SNMqQMIeE+zSMyhKvzQRu2mnQAYT4E5ItF8cDgqOBa5cGGMFKdmEOiVvkJdD8wZVEFu
-         yVBQ==
-X-Gm-Message-State: AOJu0YyZ4pRslVgq2hwsQ4cvvSPqAvMuiWc/qWVGU9Y6DWR7GfYDNdjb
-	dDjqRinexhnrqNFida4ihWyLjZ551ib+U1xRfoU5ZYKggfXkJ3j012sb9sSn6RhkBDsaQmgxTFL
-	qcZnm7UzqvYatUPg2xYVnhrOoxLO3QUY6l+E5aLjmgGl6BSytdw==
-X-Google-Smtp-Source: AGHT+IFYUH/hVNuhhP40aPgAS7zEvNZTSTwvvuFNeAMEV+ZwBawVLkqTESoQZXwhziKheUUQ5XgC8wxLk0fxSFgcBAI=
-X-Received: by 2002:a17:907:9485:b0:a86:a41c:29b with SMTP id
- a640c23a62f3a-a897f78cc4emr1417395766b.8.1725394710002; Tue, 03 Sep 2024
- 13:18:30 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RzUExGkQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A98AC4CEC4;
+	Tue,  3 Sep 2024 20:18:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1725394736;
+	bh=6XuvqcMZNxC1g+vX3l7iNK5rTNJHQtY9reDuz86NWGw=;
+	h=Date:To:From:Subject:From;
+	b=RzUExGkQaA3PfW7hETEqwrCrQcRW2evnRqRAprCKTCGNpYwdq6vHCnahZVmQHZNzl
+	 bN+7rl1AL+/XHUmm9GMbEPgjmGjFxx5JcFIZRmbQYdEsGLy2LKHN90FroYdSHn1e6R
+	 PJjKaoqnFZRUWvR1/1/UwL2ChMnixtyhNSsX6wf4=
+Date: Tue, 03 Sep 2024 13:18:55 -0700
+To: mm-commits@vger.kernel.org,riel@surriel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch added to mm-unstable branch
+Message-Id: <20240903201856.5A98AC4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240902005945.34B0FC4CEC3@smtp.kernel.org> <CAJD7tkYtM8gQDX8RrT1cnkfDQ0dRv4woNY4jrwjc1oUuavbuTg@mail.gmail.com>
- <20240903125329.726489169d81399a954f7787@linux-foundation.org>
-In-Reply-To: <20240903125329.726489169d81399a954f7787@linux-foundation.org>
-From: Yosry Ahmed <yosryahmed@google.com>
-Date: Tue, 3 Sep 2024 13:17:52 -0700
-Message-ID: <CAJD7tkZ9PQXKkt=74dGHZgfCLs+jRz8KPPv5UZ2z9NScwOdT1w@mail.gmail.com>
-Subject: Re: [merged mm-hotfixes-stable] mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
- removed from -mm tree
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, shakeel.butt@linux.dev, 
-	roman.gushchin@linux.dev, nphamcs@gmail.com, muchun.song@linux.dev, 
-	mkoutny@suse.com, mhocko@kernel.org, hannes@cmpxchg.org, me@yhndnzj.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 3, 2024 at 12:53=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
-> On Tue, 3 Sep 2024 10:53:21 -0700 Yosry Ahmed <yosryahmed@google.com> wro=
-te:
->
-> > > The inconsistency became more noticeable after I introduced the
-> > > MemoryZSwapWriteback=3D systemd unit setting [2] for controlling the =
-knob.
-> > > The patch assumed that the kernel would enforce the value of parent
-> > > cgroups.  It could probably be workarounded from systemd's side, by g=
-oing
-> > > up the slice unit tree and inheriting the value.  Yet I think it's mo=
-re
-> > > sensible to make it behave consistently with zswap.max and friends.
-> > >
-> > > [1] https://wiki.archlinux.org/title/Power_management/Suspend_and_hib=
-ernate#Disable_zswap_writeback_to_use_the_swap_space_only_for_hibernation
-> > > [2] https://github.com/systemd/systemd/pull/31734
-> > >
-> > > Link: https://lkml.kernel.org/r/20240823162506.12117-1-me@yhndnzj.com
-> > > Fixes: 501a06fe8e4c ("zswap: memcontrol: implement zswap writeback di=
-sabling")
-> > > Signed-off-by: Mike Yuan <me@yhndnzj.com>
-> > > Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-> > > Acked-by: Yosry Ahmed <yosryahmed@google.com>
-> >
-> > We wanted to CC stable here, it's too late at this point, right?
->
-> It has cc:stable?
->
-> > > Cc: Johannes Weiner <hannes@cmpxchg.org>
-> > > Cc: Michal Hocko <mhocko@kernel.org>
-> > > Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
-> > > Cc: Muchun Song <muchun.song@linux.dev>
-> > > Cc: Roman Gushchin <roman.gushchin@linux.dev>
-> > > Cc: Shakeel Butt <shakeel.butt@linux.dev>
-> > > Cc: <stable@vger.kernel.org>
->
-> ^^ here
 
-Sorry for the noise, I'll go find an eye doctor.
+The patch titled
+     Subject: mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
+Date: Tue Sep  3 01:17:51 PM PDT 2024
+
+ERROR: code indent should use tabs where possible
+#215: FILE: mm/shmem.c:1676:
++^I^I       ^I^I^I^Ishmem_huge_force, vma, vm_flags);$
+
+WARNING: please, no space before tabs
+#215: FILE: mm/shmem.c:1676:
++^I^I       ^I^I^I^Ishmem_huge_force, vma, vm_flags);$
+
+ERROR: code indent should use tabs where possible
+#254: FILE: mm/shmem.c:2439:
++^I       ^Istruct folio **foliop, enum sgp_type sgp)$
+
+WARNING: please, no space before tabs
+#254: FILE: mm/shmem.c:2439:
++^I       ^Istruct folio **foliop, enum sgp_type sgp)$
+
+total: 2 errors, 2 warnings, 263 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Rik van Riel <riel@surriel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/mm/shmem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
++++ a/mm/shmem.c
+@@ -1673,7 +1673,7 @@ unsigned long shmem_allowable_huge_order
+ 		return 0;
+ 
+ 	global_huge = shmem_huge_global_enabled(inode, index, write_end,
+-		       				shmem_huge_force, vma, vm_flags);
++					shmem_huge_force, vma, vm_flags);
+ 	if (!vma || !vma_is_anon_shmem(vma)) {
+ 		/*
+ 		 * For tmpfs, we now only support PMD sized THP if huge page
+@@ -2436,7 +2436,7 @@ unlock:
+  * Return: 0 if successful, else a negative error code.
+  */
+ int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
+-	       	struct folio **foliop, enum sgp_type sgp)
++		    struct folio **foliop, enum sgp_type sgp)
+ {
+ 	return shmem_get_folio_gfp(inode, index, write_end, foliop, sgp,
+ 			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-contig_alloc-support-__gfp_comp-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix.patch
+selftests-mm-add-more-mseal-traversal-tests-fix-fix.patch
+mm-remove-pageactive-fix.patch
+documentation-cgroup-v2-clarify-that-zswapwriteback-is-ignored-if-zswap-is-disabled-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+mm-memory-failure-add-unmap_poisoned_folio-fix.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
+
