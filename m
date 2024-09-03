@@ -1,411 +1,114 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6899C1DC73A
-	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 20:17:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D2B18E77D
+	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 20:18:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725394644; cv=none; b=Mq+2+Rr37/pgnIVx0m/yAwgYq48wq+3x5JbhugBWVzmfIHOWLY1KpKxBAx5jQiZoAK+HkVbdnJzSCf1xPKacIxc21VFaQcMZnF+fojhGJ5lIvD0DhSPhAi55HdIE41xUa767hLcr4KYfEVdy9ZnuxTrYnlw25x9D82zBuHsBNEw=
+	t=1725394714; cv=none; b=ZVLmqtvCwtQjqcbkHzKhMsTHZ7eSTfmFVwZUA+lwy4Qn35Uwt9vbKV2bZDsaP7XbpVuC3FOglrPVk/UEfo0p3dCUtbTt7121a0Cm6hmUXv5pAbhO9X0ej3IPRCxZkbQRDWUl1lnq8jSKAmpx+TfmNmdF+nemPRhmyhQsdyrFeDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725394644; c=relaxed/simple;
-	bh=tkiLF6FxugV48g13I4kTFuMevTF3XZpUtmhJGlwZOJI=;
-	h=Date:To:From:Subject:Message-Id; b=Wfny34oI5obipTJU2yXI6KSjar1pxcM5nbbO5PdIcZT0tGBiNVP8A5gSwv6Quun1p85yyeqXtJE9jH3h0pVC8WJTSdhsdbbLtfulf5MqQ71E3wqrw4UZaoZN0CIEhbLaDupWPG1zaXbdO7v/pQrGXMUYbd0TsNe8gHaPEm8ra2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H4HOICyS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725394714; c=relaxed/simple;
+	bh=hzAqGd3F7AgPkCeGGqromJaKIJXJKAOln3vKkvXFg18=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hxnBBo5nBT2uKKmYHWP988ceEXiG5f7Jkef82Vslgw+pL9udgxe+KSAEHhCPUyDOg6Z21JqKujZnOPJh0czIgmCHGbsDOdhBC17BZvlwKh1igL+gAa8VJLqbVCir0oWFtIND2cNGT7CIO/dvzg+4IjqL2tJQLSlKK9x+zfts+Qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=dKHr6GCS; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H4HOICyS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B5DC4CEC4;
-	Tue,  3 Sep 2024 20:17:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725394643;
-	bh=tkiLF6FxugV48g13I4kTFuMevTF3XZpUtmhJGlwZOJI=;
-	h=Date:To:From:Subject:From;
-	b=H4HOICyS/SDBXELEpXeDM4tox+40kQ/Pmkn4i4LGfGI+Y99YEF4OJmo+XkM7sISZl
-	 VtIT5tBJ1AKelq07UhPooAR9dCbgMN0JPyMhk/VXIW/gKeFhwrTRDLnCZRmfJt4Kkm
-	 CCNPtqtg0+G8FEchOn0V29ttlHhd6rxrOR9zx+rc=
-Date: Tue, 03 Sep 2024 13:17:23 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,hughd@google.com,djwong@kernel.org,baolin.wang@linux.alibaba.com,riel@surriel.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch added to mm-unstable branch
-Message-Id: <20240903201723.D6B5DC4CEC4@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="dKHr6GCS"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a8696e9bd24so686383566b.0
+        for <mm-commits@vger.kernel.org>; Tue, 03 Sep 2024 13:18:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1725394711; x=1725999511; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oWbMfvcljod0JpxC0uK+HPRl2MlFSfhObh8ySh6Wf0c=;
+        b=dKHr6GCSu1E9dNajNUGM0Ptso8C9KH3okxYNy/PRq31DIH+W5xkRJcZtW9nWI8FMMa
+         ac4vifZuqMFzxV5ZET2InYh3QHaDCKr/hU5apSu9kx3/G45ReIXLcznxCr8ITIh0XTtu
+         bS+oskDCQeTyGGwrTrM8yY79wNftAuweWMeYyczawGnDfs/6W6PhMaJaBUDVLRQiXRzb
+         GwQP1bKf2lsR9WTBOMorz5vWqZbV1uk4M8Ex44/aKBM+iuHj5pLeyllcbDPYYCHhAFhL
+         MGROiuGJjF8iTDHsm+PtTZ2HOMGfnjH9iIU2Aj9Og3Gt9bNwYu6hvoRhAEboKtnauURN
+         LvTA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725394711; x=1725999511;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=oWbMfvcljod0JpxC0uK+HPRl2MlFSfhObh8ySh6Wf0c=;
+        b=ine2JHAwejIwWb9p8LsNCnzrCYyhgwH4lSqRBUvxCixapx2XLgcqmowFf7xc0kUSTq
+         tAvMD5UDDK8Je7+BH4MtfkFj+JEag4PjrUHoDthJel/19criUKcyWBtqrveSvcWw+nUK
+         ccl1xKUbt0npHsamzeVHxB9v+jodjTdTmkMCPLXA2TmFJpB4Fw3R/UQBEjKKe6LI6M9G
+         ZIO9X177k/cgkPhEErXG6yAHFmOfuAO3FY1eLM34MaYdhU5hYmopPKUj92GtAnyTfPNB
+         0SNMqQMIeE+zSMyhKvzQRu2mnQAYT4E5ItF8cDgqOBa5cGGMFKdmEOiVvkJdD8wZVEFu
+         yVBQ==
+X-Gm-Message-State: AOJu0YyZ4pRslVgq2hwsQ4cvvSPqAvMuiWc/qWVGU9Y6DWR7GfYDNdjb
+	dDjqRinexhnrqNFida4ihWyLjZ551ib+U1xRfoU5ZYKggfXkJ3j012sb9sSn6RhkBDsaQmgxTFL
+	qcZnm7UzqvYatUPg2xYVnhrOoxLO3QUY6l+E5aLjmgGl6BSytdw==
+X-Google-Smtp-Source: AGHT+IFYUH/hVNuhhP40aPgAS7zEvNZTSTwvvuFNeAMEV+ZwBawVLkqTESoQZXwhziKheUUQ5XgC8wxLk0fxSFgcBAI=
+X-Received: by 2002:a17:907:9485:b0:a86:a41c:29b with SMTP id
+ a640c23a62f3a-a897f78cc4emr1417395766b.8.1725394710002; Tue, 03 Sep 2024
+ 13:18:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240902005945.34B0FC4CEC3@smtp.kernel.org> <CAJD7tkYtM8gQDX8RrT1cnkfDQ0dRv4woNY4jrwjc1oUuavbuTg@mail.gmail.com>
+ <20240903125329.726489169d81399a954f7787@linux-foundation.org>
+In-Reply-To: <20240903125329.726489169d81399a954f7787@linux-foundation.org>
+From: Yosry Ahmed <yosryahmed@google.com>
+Date: Tue, 3 Sep 2024 13:17:52 -0700
+Message-ID: <CAJD7tkZ9PQXKkt=74dGHZgfCLs+jRz8KPPv5UZ2z9NScwOdT1w@mail.gmail.com>
+Subject: Re: [merged mm-hotfixes-stable] mm-memcontrol-respect-zswapwriteback-setting-from-parent-cg-too.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, shakeel.butt@linux.dev, 
+	roman.gushchin@linux.dev, nphamcs@gmail.com, muchun.song@linux.dev, 
+	mkoutny@suse.com, mhocko@kernel.org, hannes@cmpxchg.org, me@yhndnzj.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Sep 3, 2024 at 12:53=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+> On Tue, 3 Sep 2024 10:53:21 -0700 Yosry Ahmed <yosryahmed@google.com> wro=
+te:
+>
+> > > The inconsistency became more noticeable after I introduced the
+> > > MemoryZSwapWriteback=3D systemd unit setting [2] for controlling the =
+knob.
+> > > The patch assumed that the kernel would enforce the value of parent
+> > > cgroups.  It could probably be workarounded from systemd's side, by g=
+oing
+> > > up the slice unit tree and inheriting the value.  Yet I think it's mo=
+re
+> > > sensible to make it behave consistently with zswap.max and friends.
+> > >
+> > > [1] https://wiki.archlinux.org/title/Power_management/Suspend_and_hib=
+ernate#Disable_zswap_writeback_to_use_the_swap_space_only_for_hibernation
+> > > [2] https://github.com/systemd/systemd/pull/31734
+> > >
+> > > Link: https://lkml.kernel.org/r/20240823162506.12117-1-me@yhndnzj.com
+> > > Fixes: 501a06fe8e4c ("zswap: memcontrol: implement zswap writeback di=
+sabling")
+> > > Signed-off-by: Mike Yuan <me@yhndnzj.com>
+> > > Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+> > > Acked-by: Yosry Ahmed <yosryahmed@google.com>
+> >
+> > We wanted to CC stable here, it's too late at this point, right?
+>
+> It has cc:stable?
+>
+> > > Cc: Johannes Weiner <hannes@cmpxchg.org>
+> > > Cc: Michal Hocko <mhocko@kernel.org>
+> > > Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
+> > > Cc: Muchun Song <muchun.song@linux.dev>
+> > > Cc: Roman Gushchin <roman.gushchin@linux.dev>
+> > > Cc: Shakeel Butt <shakeel.butt@linux.dev>
+> > > Cc: <stable@vger.kernel.org>
+>
+> ^^ here
 
-The patch titled
-     Subject: mm,tmpfs: consider end of file write in shmem_is_huge
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,tmpfs: consider end of file write in shmem_is_huge
-Date: Tue, 3 Sep 2024 11:19:28 -0400
-
-Take the end of a file write into consideration when deciding whether or
-not to use huge pages for tmpfs files when the tmpfs filesystem is mounted
-with huge=within_size
-
-This allows large writes that append to the end of a file to automatically
-use large pages.
-
-Doing 4MB sequential writes without fallocate to a 16GB tmpfs file with
-fio.  The numbers without THP or with huge=always stay the same, but the
-performance with huge=within_size now matches that of huge=always.
-
-huge		before		after
-4kB pages	1560 MB/s	1560 MB/s
-within_size	1560 MB/s	4720 MB/s
-always:		4720 MB/s	4720 MB/s
-
-Link: https://lkml.kernel.org/r/20240903111928.7171e60c@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/xfs/scrub/xfile.c     |    6 +--
- fs/xfs/xfs_buf_mem.c     |    2 -
- include/linux/shmem_fs.h |    8 ++---
- mm/huge_memory.c         |    2 -
- mm/khugepaged.c          |    2 -
- mm/shmem.c               |   59 +++++++++++++++++++------------------
- mm/userfaultfd.c         |    2 -
- 7 files changed, 42 insertions(+), 39 deletions(-)
-
---- a/fs/xfs/scrub/xfile.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/fs/xfs/scrub/xfile.c
-@@ -126,7 +126,7 @@ xfile_load(
- 		unsigned int	len;
- 		unsigned int	offset;
- 
--		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
-+		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
- 				SGP_READ) < 0)
- 			break;
- 		if (!folio) {
-@@ -196,7 +196,7 @@ xfile_store(
- 		unsigned int	len;
- 		unsigned int	offset;
- 
--		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
-+		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
- 				SGP_CACHE) < 0)
- 			break;
- 		if (filemap_check_wb_err(inode->i_mapping, 0)) {
-@@ -267,7 +267,7 @@ xfile_get_folio(
- 		i_size_write(inode, pos + len);
- 
- 	pflags = memalloc_nofs_save();
--	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
-+	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
- 			(flags & XFILE_ALLOC) ? SGP_CACHE : SGP_READ);
- 	memalloc_nofs_restore(pflags);
- 	if (error)
---- a/fs/xfs/xfs_buf_mem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/fs/xfs/xfs_buf_mem.c
-@@ -149,7 +149,7 @@ xmbuf_map_page(
- 		return -ENOMEM;
- 	}
- 
--	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio, SGP_CACHE);
-+	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio, SGP_CACHE);
- 	if (error)
- 		return error;
- 
---- a/include/linux/shmem_fs.h~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/include/linux/shmem_fs.h
-@@ -113,11 +113,11 @@ int shmem_unuse(unsigned int type);
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- unsigned long shmem_allowable_huge_orders(struct inode *inode,
- 				struct vm_area_struct *vma, pgoff_t index,
--				bool shmem_huge_force);
-+				loff_t write_end, bool shmem_huge_force);
- #else
- static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
- 				struct vm_area_struct *vma, pgoff_t index,
--				bool shmem_huge_force)
-+				loff_t write_end, bool shmem_huge_force)
- {
- 	return 0;
- }
-@@ -143,8 +143,8 @@ enum sgp_type {
- 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
- };
- 
--int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
--		enum sgp_type sgp);
-+int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
-+		struct folio **foliop, enum sgp_type sgp);
- struct folio *shmem_read_folio_gfp(struct address_space *mapping,
- 		pgoff_t index, gfp_t gfp);
- 
---- a/mm/huge_memory.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/mm/huge_memory.c
-@@ -164,7 +164,7 @@ unsigned long __thp_vma_allowable_orders
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
- 		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
--						   vma, vma->vm_pgoff,
-+						   vma, vma->vm_pgoff, 0,
- 						   !enforce_sysfs);
- 
- 	if (!vma_is_anonymous(vma)) {
---- a/mm/khugepaged.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/mm/khugepaged.c
-@@ -1870,7 +1870,7 @@ static int collapse_file(struct mm_struc
- 			if (xa_is_value(folio) || !folio_test_uptodate(folio)) {
- 				xas_unlock_irq(&xas);
- 				/* swap in or instantiate fallocated page */
--				if (shmem_get_folio(mapping->host, index,
-+				if (shmem_get_folio(mapping->host, index, 0,
- 						&folio, SGP_NOALLOC)) {
- 					result = SCAN_FAIL;
- 					goto xa_unlocked;
---- a/mm/shmem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/mm/shmem.c
-@@ -549,7 +549,8 @@ static bool shmem_confirm_swap(struct ad
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
- 
- static bool __shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
--					bool shmem_huge_force, struct vm_area_struct *vma,
-+					loff_t write_end, bool shmem_huge_force,
-+					struct vm_area_struct *vma,
- 					unsigned long vm_flags)
- {
- 	struct mm_struct *mm = vma ? vma->vm_mm : NULL;
-@@ -569,7 +570,8 @@ static bool __shmem_huge_global_enabled(
- 		return true;
- 	case SHMEM_HUGE_WITHIN_SIZE:
- 		index = round_up(index + 1, HPAGE_PMD_NR);
--		i_size = round_up(i_size_read(inode), PAGE_SIZE);
-+		i_size = max(write_end, i_size_read(inode));
-+		i_size = round_up(i_size, PAGE_SIZE);
- 		if (i_size >> PAGE_SHIFT >= index)
- 			return true;
- 		fallthrough;
-@@ -583,14 +585,14 @@ static bool __shmem_huge_global_enabled(
- }
- 
- static bool shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
--		   bool shmem_huge_force, struct vm_area_struct *vma,
--		   unsigned long vm_flags)
-+		   loff_t write_end, bool shmem_huge_force,
-+		   struct vm_area_struct *vma, unsigned long vm_flags)
- {
- 	if (HPAGE_PMD_ORDER > MAX_PAGECACHE_ORDER)
- 		return false;
- 
--	return __shmem_huge_global_enabled(inode, index, shmem_huge_force,
--					   vma, vm_flags);
-+	return __shmem_huge_global_enabled(inode, index, write_end,
-+					   shmem_huge_force, vma, vm_flags);
- }
- 
- #if defined(CONFIG_SYSFS)
-@@ -770,8 +772,8 @@ static unsigned long shmem_unused_huge_s
- }
- 
- static bool shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
--		bool shmem_huge_force, struct vm_area_struct *vma,
--		unsigned long vm_flags)
-+		loff_t write_end, bool shmem_huge_force,
-+		struct vm_area_struct *vma, unsigned long vm_flags)
- {
- 	return false;
- }
-@@ -978,7 +980,7 @@ static struct folio *shmem_get_partial_f
- 	 * (although in some cases this is just a waste of time).
- 	 */
- 	folio = NULL;
--	shmem_get_folio(inode, index, &folio, SGP_READ);
-+	shmem_get_folio(inode, index, 0, &folio, SGP_READ);
- 	return folio;
- }
- 
-@@ -1166,7 +1168,7 @@ static int shmem_getattr(struct mnt_idma
- 			STATX_ATTR_NODUMP);
- 	generic_fillattr(idmap, request_mask, inode, stat);
- 
--	if (shmem_huge_global_enabled(inode, 0, false, NULL, 0))
-+	if (shmem_huge_global_enabled(inode, 0, 0, false, NULL, 0))
- 		stat->blksize = HPAGE_PMD_SIZE;
- 
- 	if (request_mask & STATX_BTIME) {
-@@ -1653,7 +1655,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- unsigned long shmem_allowable_huge_orders(struct inode *inode,
- 				struct vm_area_struct *vma, pgoff_t index,
--				bool shmem_huge_force)
-+				loff_t write_end, bool shmem_huge_force)
- {
- 	unsigned long mask = READ_ONCE(huge_shmem_orders_always);
- 	unsigned long within_size_orders = READ_ONCE(huge_shmem_orders_within_size);
-@@ -1670,8 +1672,8 @@ unsigned long shmem_allowable_huge_order
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
- 		return 0;
- 
--	global_huge = shmem_huge_global_enabled(inode, index, shmem_huge_force,
--						vma, vm_flags);
-+	global_huge = shmem_huge_global_enabled(inode, index, write_end,
-+		       				shmem_huge_force, vma, vm_flags);
- 	if (!vma || !vma_is_anon_shmem(vma)) {
- 		/*
- 		 * For tmpfs, we now only support PMD sized THP if huge page
-@@ -2231,8 +2233,8 @@ unlock:
-  * vmf and fault_type are only supplied by shmem_fault: otherwise they are NULL.
-  */
- static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
--		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
--		struct vm_fault *vmf, vm_fault_t *fault_type)
-+		loff_t write_end, struct folio **foliop, enum sgp_type sgp,
-+		gfp_t gfp, struct vm_fault *vmf, vm_fault_t *fault_type)
- {
- 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
- 	struct mm_struct *fault_mm;
-@@ -2312,7 +2314,7 @@ repeat:
- 	}
- 
- 	/* Find hugepage orders that are allowed for anonymous shmem and tmpfs. */
--	orders = shmem_allowable_huge_orders(inode, vma, index, false);
-+	orders = shmem_allowable_huge_orders(inode, vma, index, write_end, false);
- 	if (orders > 0) {
- 		gfp_t huge_gfp;
- 
-@@ -2413,6 +2415,7 @@ unlock:
-  * shmem_get_folio - find, and lock a shmem folio.
-  * @inode:	inode to search
-  * @index:	the page index.
-+ * @write_end:	end of a write, could extend inode size
-  * @foliop:	pointer to the folio if found
-  * @sgp:	SGP_* flags to control behavior
-  *
-@@ -2432,10 +2435,10 @@ unlock:
-  * Context: May sleep.
-  * Return: 0 if successful, else a negative error code.
-  */
--int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
--		enum sgp_type sgp)
-+int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
-+	       	struct folio **foliop, enum sgp_type sgp)
- {
--	return shmem_get_folio_gfp(inode, index, foliop, sgp,
-+	return shmem_get_folio_gfp(inode, index, write_end, foliop, sgp,
- 			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(shmem_get_folio);
-@@ -2530,7 +2533,7 @@ static vm_fault_t shmem_fault(struct vm_
- 	}
- 
- 	WARN_ON_ONCE(vmf->page != NULL);
--	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
-+	err = shmem_get_folio_gfp(inode, vmf->pgoff, 0, &folio, SGP_CACHE,
- 				  gfp, vmf, &ret);
- 	if (err)
- 		return vmf_error(err);
-@@ -3040,7 +3043,7 @@ shmem_write_begin(struct file *file, str
- 			return -EPERM;
- 	}
- 
--	ret = shmem_get_folio(inode, index, &folio, SGP_WRITE);
-+	ret = shmem_get_folio(inode, index, pos + len, &folio, SGP_WRITE);
- 	if (ret)
- 		return ret;
- 
-@@ -3111,7 +3114,7 @@ static ssize_t shmem_file_read_iter(stru
- 				break;
- 		}
- 
--		error = shmem_get_folio(inode, index, &folio, SGP_READ);
-+		error = shmem_get_folio(inode, index, 0, &folio, SGP_READ);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -3287,7 +3290,7 @@ static ssize_t shmem_file_splice_read(st
- 		if (*ppos >= i_size_read(inode))
- 			break;
- 
--		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio,
-+		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, 0, &folio,
- 					SGP_READ);
- 		if (error) {
- 			if (error == -EINVAL)
-@@ -3477,8 +3480,8 @@ static long shmem_fallocate(struct file
- 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
- 			error = -ENOMEM;
- 		else
--			error = shmem_get_folio(inode, index, &folio,
--						SGP_FALLOC);
-+			error = shmem_get_folio(inode, index, offset + len,
-+						&folio, SGP_FALLOC);
- 		if (error) {
- 			info->fallocend = undo_fallocend;
- 			/* Remove the !uptodate folios we added */
-@@ -3829,7 +3832,7 @@ static int shmem_symlink(struct mnt_idma
- 	} else {
- 		inode_nohighmem(inode);
- 		inode->i_mapping->a_ops = &shmem_aops;
--		error = shmem_get_folio(inode, 0, &folio, SGP_WRITE);
-+		error = shmem_get_folio(inode, 0, 0, &folio, SGP_WRITE);
- 		if (error)
- 			goto out_remove_offset;
- 		inode->i_op = &shmem_symlink_inode_operations;
-@@ -3875,7 +3878,7 @@ static const char *shmem_get_link(struct
- 			return ERR_PTR(-ECHILD);
- 		}
- 	} else {
--		error = shmem_get_folio(inode, 0, &folio, SGP_READ);
-+		error = shmem_get_folio(inode, 0, 0, &folio, SGP_READ);
- 		if (error)
- 			return ERR_PTR(error);
- 		if (!folio)
-@@ -5343,7 +5346,7 @@ struct folio *shmem_read_folio_gfp(struc
- 	struct folio *folio;
- 	int error;
- 
--	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
-+	error = shmem_get_folio_gfp(inode, index, 0, &folio, SGP_CACHE,
- 				    gfp, NULL, NULL);
- 	if (error)
- 		return ERR_PTR(error);
---- a/mm/userfaultfd.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
-+++ a/mm/userfaultfd.c
-@@ -391,7 +391,7 @@ static int mfill_atomic_pte_continue(pmd
- 	struct page *page;
- 	int ret;
- 
--	ret = shmem_get_folio(inode, pgoff, &folio, SGP_NOALLOC);
-+	ret = shmem_get_folio(inode, pgoff, 0, &folio, SGP_NOALLOC);
- 	/* Our caller expects us to return -EFAULT if we failed to find folio */
- 	if (ret == -ENOENT)
- 		ret = -EFAULT;
-_
-
-Patches currently in -mm which might be from riel@surriel.com are
-
-mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
-
+Sorry for the noise, I'll go find an eye doctor.
