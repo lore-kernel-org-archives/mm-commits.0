@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 389601865FB
-	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 21:28:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3AC1EBFE5
+	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 21:31:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725398931; cv=none; b=BtycAzU8HNLUcCAKeh7fGiGVZNQ9lnCW6og443Q2EItmU5BVm4l2ZPtEPH7lWIxPR9GM0YjDBhrrcxRiios1Bm25PBI1SrDeaAdXlhKo7E8BnoCSsEHjPqTTPuBkxx2WNNjqh46oT2th7XZzhzV/wNFRaHRvifeJBa1gslN9JYM=
+	t=1725399088; cv=none; b=ujx1817Yt9oN9Zz1eyw0H7WYdS63gZbRvPmtfeTELBbrfzVgQURaDqSPPJLLM5yHctMCmwywocB4mvLCQ0grQQiEpkfXvftrc+2IXXmDJug17aqsAVYD7CK0dBL0/wSCNCFupYUPB4uwRGrbkiQC6y4Lw6AC1H2xmiUXW7cixgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725398931; c=relaxed/simple;
-	bh=YQPIrNpBMODBIVoKA/BaxlF425o3Mj1BvTpDKiPqXrg=;
-	h=Date:To:From:Subject:Message-Id; b=OiEEJwRLppTnUbqUA8hcdkFCI6xJvjOVt3o0tKrTijtsPtcq+99lj15pwnTTB9+t0z6LtLTRMLJz/Aj4VX5sbWEPTRzzGtlakAvjg/lV8zsNxYEXxjMvgNtGmTR3cARi1HTIPdFPs3tOpDi4PrnzhERCQ+wy05+C/sKGyXbkgLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x05Xt8xO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725399088; c=relaxed/simple;
+	bh=C5+vPM/ARktsxo8/ibSdP1IA+EYsDUMoUpOhjyp75IY=;
+	h=Date:To:From:Subject:Message-Id; b=XDG/Shbo75DdjE4kYTumItLG7U6+TvvNQVMzYa6S0U7aFolaId8AACwkK+YhqUXIOEiTqAa6P5w45Fillzpg8DS2+OP+AG9KcogsoUhJ7EJrm2O62ycTA47q2aV+cTn22AXDICD8AnJqojcAHiKtDWiEJNvX809Fl/3DNH2InAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rl1BDWXV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x05Xt8xO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BB99C4CEC5;
-	Tue,  3 Sep 2024 21:28:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rl1BDWXV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1432C4CEC4;
+	Tue,  3 Sep 2024 21:31:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725398930;
-	bh=YQPIrNpBMODBIVoKA/BaxlF425o3Mj1BvTpDKiPqXrg=;
+	s=korg; t=1725399088;
+	bh=C5+vPM/ARktsxo8/ibSdP1IA+EYsDUMoUpOhjyp75IY=;
 	h=Date:To:From:Subject:From;
-	b=x05Xt8xOu71aVQVgz/hHniZLBBcvscb2s3pJJ6veiW/BYRMRUDwC51QvL/wHrnqik
-	 qOnmimIDoqwSArJPvMdk0EwGF0SMOhTYMf4bsy5kwJGZKaZUSdQL4RWqVVTMEzdeW8
-	 oEI+EXZdy1nB0+s3/QooOXEALj7pjODKvNXrHSTc=
-Date: Tue, 03 Sep 2024 14:28:50 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,hannes@cmpxchg.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=Rl1BDWXVX5/yLg8VnaCPrtyR4LxXHXelPxvrWMgr0NL959WeZ0KVtJCaLrir1gio5
+	 L0eGmdO6te47tAqV1O25uHerOEtnD7DLQF470n5weVuojN8A2pPndzh8hr3K6AKf4Z
+	 LWJPoABbLHofwCCzqQcF16WlHPX9ZTV8XjV4flaE=
+Date: Tue, 03 Sep 2024 14:31:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,pengfei.xu@intel.com,paulmck@kernel.org,olsajiri@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kconfig-fixup-zsmalloc-configuration.patch added to mm-unstable branch
-Message-Id: <20240903212850.9BB99C4CEC5@smtp.kernel.org>
+Subject: + mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch added to mm-unstable branch
+Message-Id: <20240903213127.E1432C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: Kconfig: fixup zsmalloc configuration
+     Subject: mm: fix off-by-one error in vms_abort_munmap_vmas()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kconfig-fixup-zsmalloc-configuration.patch
+     mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kconfig-fixup-zsmalloc-configuration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,68 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: mm: Kconfig: fixup zsmalloc configuration
-Date: Tue, 3 Sep 2024 13:00:22 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: fix off-by-one error in vms_abort_munmap_vmas()
+Date: Tue, 3 Sep 2024 13:20:34 +0100
 
-zsmalloc is not exclusive to zswap.  Commit b3fbd58fcbb1 ("mm: Kconfig:
-simplify zswap configuration") made CONFIG_ZSMALLOC only visible when
-CONFIG_ZSWAP is selected, which makes it impossible to menuconfig
-zsmalloc-specific features (stats, chain-size, etc.) on systems that use
-ZRAM but don't have ZSWAP enabled.
+Maple tree ranges have an inclusive end, VMAs do not, so we must subtract
+one from the VMA-specific end value when using a mas_...() function.
 
-Make zsmalloc depend on both ZRAM and ZSWAP.
+We failed to do so in vms_abort_munmap_vmas() which resulted in a store
+overlapping the intended range by one byte, and thus corrupting the maple
+tree.
 
-Link: https://lkml.kernel.org/r/20240903040143.1580705-1-senozhatsky@chromium.org
-Fixes: b3fbd58fcbb1 ("mm: Kconfig: simplify zswap configuration") 
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Fix this by subtracting one from vms->end() passed into mas_set_range().
+
+Link: https://lkml.kernel.org/r/52ee7eb3-955c-4ade-b5f0-28fed8ba3d0b@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+Closes: https://lkml.kernel.org/r/ZtZ9euGTU9T0PWDA@xpf.sh.intel.com
+Cc: Bert Karwatzki <spasswolf@web.de>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Jiri Olsa <olsajiri@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Pengfei Xu <pengfei.xu@intel.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
+ mm/vma.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-kconfig-fixup-zsmalloc-configuration
-+++ a/mm/Kconfig
-@@ -188,7 +188,7 @@ config Z3FOLD
- 
- config ZSMALLOC
- 	tristate
--	prompt "N:1 compression allocator (zsmalloc)" if ZSWAP
-+	prompt "N:1 compression allocator (zsmalloc)" if (ZSWAP || ZRAM)
- 	depends on MMU
- 	help
- 	  zsmalloc is a slab-based memory allocator designed to store
+--- a/mm/vma.h~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix
++++ a/mm/vma.h
+@@ -187,7 +187,7 @@ static inline void vms_abort_munmap_vmas
+ 	 * not symmetrical and state data has been lost.  Resort to the old
+ 	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
+ 	 */
+-	mas_set_range(mas, vms->start, vms->end);
++	mas_set_range(mas, vms->start, vms->end - 1);
+ 	if (unlikely(mas_store_gfp(mas, NULL, GFP_KERNEL))) {
+ 		pr_warn_once("%s: (%d) Unable to abort munmap() operation\n",
+ 			     current->comm, current->pid);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-lib-zstd-export-api-needed-for-dictionary-support.patch
-lib-lz4hc-export-lz4_resetstreamhc-symbol.patch
-lib-zstd-fix-null-deref-in-zstd_createcdict_advanced2.patch
-zram-introduce-custom-comp-backends-api.patch
-zram-add-lzo-and-lzorle-compression-backends-support.patch
-zram-add-lz4-compression-backend-support.patch
-zram-add-lz4hc-compression-backend-support.patch
-zram-add-zstd-compression-backend-support.patch
-zram-pass-estimated-src-size-hint-to-zstd.patch
-zram-add-zlib-compression-backend-support.patch
-zram-add-842-compression-backend-support.patch
-zram-check-that-backends-array-has-at-least-one-backend.patch
-zram-introduce-zcomp_params-structure.patch
-zram-recalculate-zstd-compression-params-once.patch
-zram-introduce-algorithm_params-device-attribute.patch
-zram-add-support-for-dict-comp-config.patch
-zram-introduce-zcomp_req-structure.patch
-zram-introduce-zcomp_ctx-structure.patch
-zram-move-immutable-comp-params-away-from-per-cpu-context.patch
-zram-add-dictionary-support-to-lz4.patch
-zram-add-dictionary-support-to-lz4hc.patch
-zram-add-dictionary-support-to-zstd-backend.patch
-documentation-zram-add-documentation-for-algorithm-parameters.patch
-documentation-zram-add-documentation-for-algorithm-parameters-fix.patch
-zram-support-priority-parameter-in-recompression.patch
-mm-kconfig-fixup-zsmalloc-configuration.patch
+mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
+tools-improve-vma-test-makefile.patch
+tools-add-vma-merge-tests.patch
+mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
+mm-remove-duplicated-open-coded-vma-policy-check.patch
+mm-abstract-vma_expand-to-use-vma_merge_struct.patch
+mm-avoid-using-vma_merge-for-new-vmas.patch
+mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
+mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
+mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
+mm-rework-vm_ops-close-handling-on-vma-merge.patch
 
