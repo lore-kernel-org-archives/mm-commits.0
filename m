@@ -1,103 +1,87 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BB291AD262
-	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 10:21:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9D91AD26D
+	for <mm-commits@vger.kernel.org>; Tue,  3 Sep 2024 10:26:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725358868; cv=none; b=ZdNImnJJuHpxyx22hIttQ6nQP4oJ0fmsAxSMiWsQvo6ncUXe2g8PCB+9yiSYMfxq6kajR6vlHAzN52wqgqgJd2m1Bzhx8LQqgOSV6kYy3/xmvzjAGnysttWuF3o9SOsvpo81LGstGLpfTEOxq9B26HCiXc80X2aa3UpzFKt8Wug=
+	t=1725359164; cv=none; b=CzAfTrtI070VnEb38V7pPI3+4XidycFvsMqngoheMTWsQRR79xCDjC9J4Mzxe7m+UPLHE3chEYU+099UG9/8545TdOItAO1O9O1ARREqB2OgZqVX+1d3ymSLKTY6KkLs70XXZdY0R0MYTkHW3yRTBPY5WClqhOPqCyH1jA75SYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725358868; c=relaxed/simple;
-	bh=90q+s0sqBta5N9yYCsdrpxFLs68aqpy0QWdEo3/i7KU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IeWGDIx4H7J5S8BIvF/bywcWDluK/63ur6X8jIZlHh+GhaOMTGvoZq3Xc81Q2b/0PNpuHE5gWulqt+A9OnLiTJY3BYodSKpi7VGxL0cscgDfzX4xVpBOuohQ2EOTjiXfuhb+36i+yJDbxRrCrVdzHN3FxDZ/oyoMgAO6Jhu6mF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=fpDCT6Xi; arc=none smtp.client-ip=209.85.210.179
+	s=arc-20240116; t=1725359164; c=relaxed/simple;
+	bh=uOrSVQbonqd2i3HCZPCOYcWsoQ3ZoCPEDaE/y1AAMhE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rh8mCSHj1522i3xGUCMW1lRVyj+Y8aIUYkZDzqIudI3ed3VHVTHNlNY4nMfwbmx1QH9LX5QBBs7hxskIaV6N79zr11VfNYR6OCAcoLBbz2eFoRsjFcptnb0CVX4nUMjOaPjCW1TeZUn3ata/qKPhVGlarlZ1oS9B6bNI8Hkrwxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=IQEJBQSK; arc=none smtp.client-ip=209.85.208.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="fpDCT6Xi"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-7141d7b270dso3988339b3a.2
-        for <mm-commits@vger.kernel.org>; Tue, 03 Sep 2024 03:21:06 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="IQEJBQSK"
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-2f43de7ad5eso65485361fa.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Sep 2024 03:26:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1725358865; x=1725963665; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=chromium.org; s=google; t=1725359161; x=1725963961; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fVqsz3SmhEEppmDAu57Eic/0gAwgUnSCIdY0e9Rjewo=;
-        b=fpDCT6Xi5SZZvOLcp3xK9UpVR/u31POCzWeUoAoiw/FDT8XZgTi5fcrepsbS8xdzyO
-         SPVOLA3YWIlNjwbOVtF5YeJwW6shKxhzF1yOYZG0B4G2zqsj4Tgwy12KOwlWVC/dyGVS
-         azUdqZEQv43a3Bs26/t7tXiWaZpgygwZ85w5U=
+        bh=uOrSVQbonqd2i3HCZPCOYcWsoQ3ZoCPEDaE/y1AAMhE=;
+        b=IQEJBQSKtM0wl0Cu6nRUFlFx+TZI268zcsKxNGIlH5AaihOjvYR5ZJ/Cl4T6di0E93
+         PagR4Tad2XfHav3dI4ZiHzhOZmHRMDGJSvWmydpfVEOA2eLSEbVQbqvnJ1NZiF70pRz5
+         DQpw1fLQmMz31vmXZIqRhUlbHyI1WWIDMjNpE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725358865; x=1725963665;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1725359161; x=1725963961;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=fVqsz3SmhEEppmDAu57Eic/0gAwgUnSCIdY0e9Rjewo=;
-        b=CM2LNM0JkrK6Z5WSjVtrX8qT6usIL7HkHd4MNO/72EgjesK91ELgR0Ef+Pqz5JjDPo
-         ZbEhw2guMm8FPWRv1kfMOScfFK00T4xE7UoJXm7VH+OBX3oB1o8BOVRfMJgJoW5gHs7B
-         ql/0wyPF1qaeCogQAopGiV7ft83t1mQdREIi23FZvtQMuByyDipWgNENAl4fTHDwCAGN
-         YCo0qTDsw+ajzETphjEoZzL2G10p3AWjQ1d8ppKor+SnLeMCLjH/TMqZGtWQFfTweJ3+
-         ywqqnaOfNMJxW+WVibIjgdHG0xSmUvBrpZuDf+qsvZVBVN2gtKcnH0uwukM2/hP4lRFN
-         murw==
-X-Forwarded-Encrypted: i=1; AJvYcCV1yYFE9axmQ7hotpvaBm2b4WdVpEk1WK3XNpT9IwI62F+3++pHFEwyzXL2XsG7iJCsqB0MmxLYqMii@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+dn0CQREv2GEcUbnOwyu+9LN8ntarM7OxA9nojNjgZmNn18M5
-	FN4XKpk6BrIm4pAdTGJLd8KW7vxPPpytRZ41X61bS92HDD49WMgtvmbxk3SVtuk2yQ8oXcBq+w=
-	=
-X-Google-Smtp-Source: AGHT+IFhhz5ECGbJsz+m7VCW1TA++nfbQcROFMuIA6WKQidJVbXg4fP3LNhjndcxAj6JmGHXpzhOFg==
-X-Received: by 2002:a05:6a20:d487:b0:1c4:98f8:9ccb with SMTP id adf61e73a8af0-1ced62de8famr7315589637.34.1725358865533;
-        Tue, 03 Sep 2024 03:21:05 -0700 (PDT)
-Received: from localhost (21.160.199.104.bc.googleusercontent.com. [104.199.160.21])
-        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-715e56d8851sm8461356b3a.145.2024.09.03.03.21.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 03 Sep 2024 03:21:05 -0700 (PDT)
-From: Takaya Saeki <takayas@chromium.org>
-To: akpm@linux-foundation.org
-Cc: mathieu.desnoyers@efficios.com,
-	mhiramat@kernel.org,
-	mm-commits@vger.kernel.org,
-	rostedt@goodmis.org,
-	takayas@chromium.org,
-	uekawa@chromium.org,
-	willy@infradead.org
-Subject: [PATCH] filemap: fix the last_index of mm_filemap_get_pages
-Date: Tue,  3 Sep 2024 10:21:00 +0000
-Message-ID: <20240903102100.70405-1-takayas@chromium.org>
-X-Mailer: git-send-email 2.46.0.469.g59c65b2a67-goog
-In-Reply-To: <20240902123526.37112a46daff0fd59061a955@linux-foundation.org>
-References: <20240902123526.37112a46daff0fd59061a955@linux-foundation.org>
+        bh=uOrSVQbonqd2i3HCZPCOYcWsoQ3ZoCPEDaE/y1AAMhE=;
+        b=q33JCCCbaLBga4neM/fGoBMyUOlnTHDT5EsiuTPkyzRXGtQgCpI9/UmqbtCUoAQ6zG
+         C/c/2ZZegVUopXhEsxvmkTyyENAVu6CVPzDakgexmtTAr5XO9th3X0BJ3XOE4hXLccPV
+         xMNsHzte7q7Z/LaTGYlmz/eB8WBM2rhrEddhdgTJCxYfDf3QQcqMpciNdrxR3AOB9s5w
+         evUJ5qTOmDp5C5w7Q/k2l9cwDzG1yH33Za8qXLq8LgtKIDkSAlihWVYXC+N20BaAhKpd
+         ufMol682Kj1T0UHqNWBo295h0jxmCZo6SbYM7qjlrDOc2F2GllCBa4/ONESBivKbLcTx
+         mX5A==
+X-Gm-Message-State: AOJu0YzrCagcSdi97j9+XDVmWPHWlPkeSomBkenEsEgBlZbNNlQvBkuf
+	TnnwCguZOfyAJowSajV5Q2IEI0cSYgDgpt1YTndWN2q9FkdEv7y6AX9xn+DFXAUMTDSXP+dfI9c
+	2UMTmLAZPXYREblPyKorbJ6R7Jy/k/enrVw5Y+Zngvtk1lQ==
+X-Google-Smtp-Source: AGHT+IEOSPCTsPWgSWq9oTTWe19dFeTmGpQjRQapS/2QXn6Mn+IyKIqZVmgvHgGJ++5ll9bDcl06JN0vdV0A2y20x80=
+X-Received: by 2002:a2e:4602:0:b0:2ee:80b2:1e99 with SMTP id
+ 38308e7fff4ca-2f6265ea66cmr62878111fa.44.1725359160430; Tue, 03 Sep 2024
+ 03:26:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240902033004.5128EC4CEC2@smtp.kernel.org> <CAH9xa6eWt4nDE-1a4ZHsz9Z2e5muAYwEZ1+dJRSeKxzowhkYfA@mail.gmail.com>
+ <20240902123526.37112a46daff0fd59061a955@linux-foundation.org>
+In-Reply-To: <20240902123526.37112a46daff0fd59061a955@linux-foundation.org>
+From: Takaya Saeki <takayas@chromium.org>
+Date: Tue, 3 Sep 2024 19:25:48 +0900
+Message-ID: <CAH9xa6cr1HExqRdAEyBSpLq0WW_2B=pdRK3Ck335BMG1Pz9G7g@mail.gmail.com>
+Subject: Re: [merged mm-stable] filemap-add-trace-events-for-get_pages-map_pages-and-fault.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, willy@infradead.org, uekawa@chromium.org, 
+	rostedt@goodmis.org, mhiramat@kernel.org, mathieu.desnoyers@efficios.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-In commit b6273b55d885 ("filemap: add trace events for get_pages,
-map_pages, and fault"), mm_filemap_get_pages was added to trace page
-cache access. However, it tracks an extra page beyond the end of the
-accessed range. This patch fixes it by replacing last_index with
-last_index - 1.
+On Tue, Sep 3, 2024 at 4:35=E2=80=AFAM Andrew Morton <akpm@linux-foundation=
+.org> wrote:
+>
+> On Mon, 2 Sep 2024 18:44:45 +0900 Takaya Saeki <takayas@chromium.org> wro=
+te:
+>
+> > Hello Andrew, there is a newer v4 version for this patch.
+> > https://lore.kernel.org/lkml/20240816211029.903842-1-takayas@chromium.o=
+rg/T/
+> > Do you mind letting me know how to correct the patch being merged to
+> > the latest version?
+>
+> Send a patch against the earlier code, be sure to include
+>
+> Fixes: b6273b55d885 ("filemap: add trace events for get_pages, map_pages,=
+ and fault")
+>
 
-Fixes: b6273b55d885 ("filemap: add trace events for get_pages, map_pages, and fault")
-Signed-off-by: Takaya Saeki <takayas@chromium.org>
----
- mm/filemap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/mm/filemap.c b/mm/filemap.c
-index fcfec2a78a30..d725d84b1947 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -2548,7 +2548,7 @@ static int filemap_get_pages(struct kiocb *iocb, size_t count,
- 			goto err;
- 	}
- 
--	trace_mm_filemap_get_pages(mapping, index, last_index);
-+	trace_mm_filemap_get_pages(mapping, index, last_index - 1);
- 	return 0;
- err:
- 	if (err < 0)
--- 
-2.46.0.469.g59c65b2a67-goog
-
+Thank you so much for the guidance. I've sent a patch to this thread.
