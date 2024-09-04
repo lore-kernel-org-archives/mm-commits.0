@@ -1,96 +1,125 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BB223C17
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 01:53:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F086D4776E;
+	Wed,  4 Sep 2024 03:26:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725414782; cv=none; b=LxqIEt+7G4JvD5YzIjN5AKmQVbYWZr9H5hpWO6QQmgrWGljpvt29ITBmIcP+rws2fowJ02GpcoJCT+N3XMF5MOY3y0h2x+znjvAZ6o89gkEbnGGidOQTdxOtiY6bMbHfTQPddM2K0vWbme1dW+/WgVsdp8yzAzzuT2bJzOz+KpQ=
+	t=1725420413; cv=none; b=NF6F41AKCPA7brLCWxE0i9+s+JzocVRVeSaRgbH2t0Cq8RWUGvWLlj0obO4eTdHFAJR7XnH6wgqspPc0nNAJZq650snfIR0byUBtrt5LmPXbkxE/YZZbCKjim4kvEaHY+KLcq8wSc/GHen8v5zvoOd6NG+q9pVDrxK/DOZ1tG84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725414782; c=relaxed/simple;
-	bh=cvrEeC7ZxBFqb7Ih/z5b29N8fmAze3MM1ca0rXPdRZo=;
-	h=Date:To:From:Subject:Message-Id; b=jPalQGOTYpwtMKLshowHGXFnvxkm0Nh/9d3Vj6lTbHymXjPnPePS5zfOQmzsBONnd59A/NjW8IwVyVfEYCFpuZWolRNDhtXpWBjb6+stKZjUgsnLAvto0VL0m1+wJqknR8xEIIaa2yp796IrAmwsBB4jXU4G95IUmqBUHrwpt8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uu3aZHMv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725420413; c=relaxed/simple;
+	bh=Gb9HgOw6SwMHu+m6RoFCLfrFFn7egZTm/+TNsO2o4WQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=GbjM+WrPCmCZouS0UybHVUMQGH+qj6Eo1yrjSccg4yh+4Yu8tmU5mbeEsQbcqtJ7nX9WVTKHDbYpT5sK/UA7PT3tYG6tYJbiuDhFd1iytzpRoM7vzJy1zQvSR4gwIEDNv+ANGbrLY7I/fzvpGNjk6HMyQYv7zAZBjtn/QIn828M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yHJJwlLb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uu3aZHMv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0561C4CEC4;
-	Wed,  4 Sep 2024 01:53:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yHJJwlLb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EDD2C4CEC2;
+	Wed,  4 Sep 2024 03:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725414781;
-	bh=cvrEeC7ZxBFqb7Ih/z5b29N8fmAze3MM1ca0rXPdRZo=;
-	h=Date:To:From:Subject:From;
-	b=Uu3aZHMvNVMR22SLy74kw49w94MgZlNXP2G6+1bGWPa3GV6R7TBTgJDB0FJZv9wvJ
-	 7cIlGNoAWfe65c3qQiyoU8kSARl8Etp7ALljokb86kO4DN4MXOFkzef9CHH4Knlmb6
-	 klRPJAsCVXiMJftFQ12ztt2N0ASvgiLVhpj5D1pk=
-Date: Tue, 03 Sep 2024 18:53:01 -0700
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1725420412;
+	bh=Gb9HgOw6SwMHu+m6RoFCLfrFFn7egZTm/+TNsO2o4WQ=;
+	h=Date:From:To:Cc:Subject:From;
+	b=yHJJwlLbT55mciZh8f0oDoniKaNmUXIP03ZznNj31Z64sCxHf2L4t6A69tz/1crDm
+	 Xv257ILyUlotOqQSGXcwzdCmXUq1KNg2T/ipFy8Pls3VzhGZOx1bBmxlnMArhwrzHy
+	 Nl/ht4ZA9oeYLGozwQ//iiZoIdKcUYC+BhcB5ccU=
+Date: Tue, 3 Sep 2024 20:26:51 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] maple_tree-local-variable-count-is-not-necessary.patch removed from -mm tree
-Message-Id: <20240904015301.D0561C4CEC4@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.11-rc7
+Message-Id: <20240903202651.f258324d271b4813dfa8de7a@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: maple_tree: local variable 'count' is not necessary
-has been removed from the -mm tree.  Its filename was
-     maple_tree-local-variable-count-is-not-necessary.patch
+Linus, please pull this batch of hotfixes, thanks.
 
-This patch was dropped because it was nacked
 
-------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: local variable 'count' is not necessary
-Date: Sat, 31 Aug 2024 00:10:53 +0000
+The following changes since commit 431c1646e1f86b949fa3685efc50b660a364c2b6:
 
-'count' is never changed after assignment and it looks a little
-more direct to use mas->end to locate the offset.
+  Linux 6.11-rc6 (2024-09-01 19:46:02 +1200)
 
-Also ma_data_end() returns slot index instead of count.
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20240831001053.4751-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-03-20-19
 
- lib/maple_tree.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+for you to fetch changes up to 052a45c1cb1b32f05dd63a295d65496d8b403283:
 
---- a/lib/maple_tree.c~maple_tree-local-variable-count-is-not-necessary
-+++ a/lib/maple_tree.c
-@@ -2203,7 +2203,7 @@ static inline void mas_node_or_none(stru
- static inline void mas_wr_node_walk(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
--	unsigned char count, offset;
-+	unsigned char offset;
- 
- 	if (unlikely(ma_is_dense(wr_mas->type))) {
- 		wr_mas->r_max = wr_mas->r_min = mas->index;
-@@ -2213,11 +2213,11 @@ static inline void mas_wr_node_walk(stru
- 
- 	wr_mas->node = mas_mn(wr_mas->mas);
- 	wr_mas->pivots = ma_pivots(wr_mas->node, wr_mas->type);
--	count = mas->end = ma_data_end(wr_mas->node, wr_mas->type,
-+	mas->end = ma_data_end(wr_mas->node, wr_mas->type,
- 				       wr_mas->pivots, mas->max);
- 	offset = mas->offset;
- 
--	while (offset < count && mas->index > wr_mas->pivots[offset])
-+	while (offset < mas->end && mas->index > wr_mas->pivots[offset])
- 		offset++;
- 
- 	wr_mas->r_max = mas_safe_pivot(mas, wr_mas->pivots, offset, wr_mas->type);
-_
+  alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n (2024-09-01 17:59:03 -0700)
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+----------------------------------------------------------------
+17 hotfixes, 15 of which are cc:stable.
 
-maple_tree-arange64-node-is-not-a-leaf-node.patch
-maple_tree-dump-error-message-based-on-format.patch
-maple_tree-cleanup-function-descriptions.patch
-maple_tree-fix-comment-typo-on-ma_flag-of-allocation-tree.patch
+Mostly MM, no identifiable theme.  And a few nilfs2 fixups.
+
+----------------------------------------------------------------
+Adrian Huang (1):
+      mm: vmalloc: optimize vmap_lazy_nr arithmetic when purging each vmap_area
+
+Hao Ge (2):
+      mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
+      codetag: debug: mark codetags for poisoned page as empty
+
+Jan Kuliga (1):
+      mailmap: update entry for Jan Kuliga
+
+Jann Horn (2):
+      userfaultfd: fix checks for huge PMDs
+      userfaultfd: don't BUG_ON() if khugepaged yanks our page table
+
+Liam R. Howlett (1):
+      maple_tree: remove rcu_read_lock() from mt_validate()
+
+Marc Zyngier (1):
+      scripts: fix gfp-translate after ___GFP_*_BITS conversion to an enum
+
+Mike Yuan (1):
+      mm/memcontrol: respect zswap.writeback setting from parent cg too
+
+Muhammad Usama Anjum (1):
+      selftests: mm: fix build errors on armhf
+
+Petr Tesarik (1):
+      kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
+
+Ryusuke Konishi (3):
+      nilfs2: protect references to superblock parameters exposed in sysfs
+      nilfs2: fix missing cleanup on rollforward recovery error
+      nilfs2: fix state management in error path of log writing function
+
+Suren Baghdasaryan (1):
+      alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n
+
+Usama Arif (1):
+      Revert "mm: skip CMA pages when they are not available"
+
+Will Deacon (1):
+      mm: vmalloc: ensure vmap_block is initialised before adding to queue
+
+ .mailmap                                |  1 +
+ Documentation/admin-guide/cgroup-v2.rst |  7 ++--
+ fs/nilfs2/recovery.c                    | 35 ++++++++++++++++-
+ fs/nilfs2/segment.c                     | 10 +++--
+ fs/nilfs2/sysfs.c                       | 43 ++++++++++++++++-----
+ kernel/kexec_file.c                     |  2 +-
+ lib/codetag.c                           | 17 ++++++---
+ lib/maple_tree.c                        |  7 +---
+ mm/memcontrol.c                         | 12 ++++--
+ mm/page_alloc.c                         |  7 ++++
+ mm/slub.c                               |  4 ++
+ mm/userfaultfd.c                        | 29 ++++++++-------
+ mm/vmalloc.c                            |  7 +++-
+ mm/vmscan.c                             | 24 +-----------
+ scripts/gfp-translate                   | 66 ++++++++++++++++++++++++---------
+ tools/testing/selftests/mm/mseal_test.c | 37 +++++++-----------
+ tools/testing/selftests/mm/seal_elf.c   | 13 +------
+ 17 files changed, 197 insertions(+), 124 deletions(-)
 
