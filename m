@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC22E2F34
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:47:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C4552F34
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:48:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421668; cv=none; b=aVnBNWTctDoWViLQQMJQ4BakTrZ6MJMOjbeWEbTJKJX4gQSdxlHwWWbgmlsndq+9AIOvfRcp2ywefTx89GqFVPb/+ax7KUIcbw44LHoNJh0ULCeIptLpfdTw21O04hnXB/2I62vTFloO/7N6jaAQYyYcTnctGGYluchl8uogsII=
+	t=1725421702; cv=none; b=B1KtUSC4mrF+rXI1GWNGgUMoNvcSQAxvgIC0aBn9oZqK8Fpr4zxldWDXKAdNg8npgfYKvFH9pRUqvSfJ1AudvyCPBSpP2Abef1hcT+w2HzRE3+GrGP7jLCfYA/KOxVtEwaBcWYvfU5N2nNkcxE5pj6Y+juxeFUbWcyuADaTaTHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421668; c=relaxed/simple;
-	bh=utECewbLHHVdbjY9/SFRllJ1Q55zll3Nnj0s9KH4hKU=;
-	h=Date:To:From:Subject:Message-Id; b=THS3dgAz7AFDCTnMWbP+ShK8EJO2UNrbS5EdWd+OkE2VHF+qyCcdvcrgO+w/U5tdwfg/dr+3Cs64j6Txt4hUTldR4cHUoqXeVOn4AHX+f8YgbHago2Y6FokeeP/1I+rzBaNNHY6eOxjhOpy+zjYCXtDfIv2cUzthTVkMidFW8Dk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kWg6E5XE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421702; c=relaxed/simple;
+	bh=yY1A1SOxY5Ex3GGwSMzC/fP3jBSnTfmBif2bsUCEEVY=;
+	h=Date:To:From:Subject:Message-Id; b=WAIyyaZOQpLFVFpnTI7AWfO6KVroAyWKevcjuQiCBO0fyh5OzHQ8KVELSBpPTVMQ0ky5qfsOoW1gPk3Vjo+2kfw0G0NK+t0iTPX5XF0UsX63upjfPcN++BBzf2bMc6JZy0//mA0lD75o7JfXoUwmiEKrSeUy0M5i9yCA7TXoLeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kxMrU8mP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kWg6E5XE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3857DC4CEC2;
-	Wed,  4 Sep 2024 03:47:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kxMrU8mP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4B4AC4CEC2;
+	Wed,  4 Sep 2024 03:48:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421666;
-	bh=utECewbLHHVdbjY9/SFRllJ1Q55zll3Nnj0s9KH4hKU=;
+	s=korg; t=1725421701;
+	bh=yY1A1SOxY5Ex3GGwSMzC/fP3jBSnTfmBif2bsUCEEVY=;
 	h=Date:To:From:Subject:From;
-	b=kWg6E5XExUU0+zpjyqX+D/brHcutL1HQBI9B2Jsp2qCs2A0qMT7uo5fdrbSKhTZFx
-	 4jFRx0T53fVwVEkg9CISSOmOsZ2D48H3/ZxGhbv1ARQitw8+zC2fZA4SjEQLkHAK3V
-	 FfJk/68M7BO+xmnetNMXuWQQAZuSNYJVkRVWC4Xg=
-Date: Tue, 03 Sep 2024 20:47:45 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,ryncsn@gmail.com,akpm@linux-foundation.org
+	b=kxMrU8mPRiVNLj/VtyZRKD9KsiHvNAj+4jgN3L3LfM96xz6Ul1FvlhzLJTMunqZ1M
+	 0cg2pT86zcuP6fPO5aLwpvXZPA3T5kgHVuP6yuU4knvdWifh+QqMFNASL0k9eV/ux4
+	 R1VtYKn0D569NclXNvm41QSSWs4Nmw1YLcoiXbmg=
+Date: Tue, 03 Sep 2024 20:48:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix.patch removed from -mm tree
-Message-Id: <20240904034746.3857DC4CEC2@smtp.kernel.org>
+Subject: [folded-merged] arch_numa-switch-over-to-numa_memblks-fix.patch removed from -mm tree
+Message-Id: <20240904034821.A4B4AC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix
+     Subject: arch_numa-switch-over-to-numa_memblks-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix.patch
+     arch_numa-switch-over-to-numa_memblks-fix.patch
 
-This patch was dropped because it was folded into mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+This patch was dropped because it was folded into arch_numa-switch-over-to-numa_memblks.patch
 
 ------------------------------------------------------
-From: Kairui Song <ryncsn@gmail.com>
-Subject: mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix
-Date: Thu, 1 Aug 2024 17:59:17 +0800
+From: Mike Rapoport <rppt@kernel.org>
+Subject: arch_numa-switch-over-to-numa_memblks-fix
+Date: Wed, 7 Aug 2024 21:18:24 +0300
 
-fix discard of full cluster
+fix section mismatch
 
-Link: https://lkml.kernel.org/r/CAMgjq7CWwK75_2Zi5P40K08pk9iqOcuWKL6khu=x4Yg_nXaQag@mail.gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: David Hildenbrand <david@redhat.com>
-Closes: https://lkml.kernel.org/r/3c79021a-e9a0-4669-a4e7-7060edf12d58@redhat.com
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/ZrO6cExVz1He_yPn@kernel.org
+Signed-off-by: Mike Rapoport <rppt@kernel.org>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Rob Herring (Arm) <robh@kernel.org>
+Cc: Samuel Holland <samuel.holland@sifive.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/swapfile.c        |    8 +++++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ include/asm-generic/numa.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix
-+++ a/include/linux/swap.h
-@@ -260,6 +260,7 @@ struct swap_cluster_info {
- #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
- #define CLUSTER_FLAG_NONFULL 2 /* This cluster is on nonfull list */
- #define CLUSTER_FLAG_FRAG 4 /* This cluster is on nonfull list */
-+#define CLUSTER_FLAG_FULL 8 /* This cluster is on full list */
- 
- /*
-  * The first page in the swap file is the swap header, which is always marked
---- a/mm/swapfile.c~mm-swap-add-a-adaptive-full-cluster-cache-reclaim-fix
-+++ a/mm/swapfile.c
-@@ -450,7 +450,10 @@ static void __free_cluster(struct swap_i
- 	lockdep_assert_held(&si->lock);
- 	lockdep_assert_held(&ci->lock);
- 
--	list_move_tail(&ci->list, &si->free_clusters);
-+	if (ci->flags)
-+		list_move_tail(&ci->list, &si->free_clusters);
-+	else
-+		list_add_tail(&ci->list, &si->free_clusters);
- 	ci->flags = CLUSTER_FLAG_FREE;
- 	ci->order = 0;
- }
-@@ -474,7 +477,6 @@ static void swap_do_scheduled_discard(st
- 				SWAPFILE_CLUSTER);
- 
- 		spin_lock(&si->lock);
--
- 		spin_lock(&ci->lock);
- 		__free_cluster(si, ci);
- 		memset(si->swap_map + idx * SWAPFILE_CLUSTER,
-@@ -666,7 +668,7 @@ static void cluster_alloc_range(struct s
- 		if (ci->flags & CLUSTER_FLAG_FRAG)
- 			si->frag_cluster_nr[ci->order]--;
- 		list_move_tail(&ci->list, &si->full_clusters);
--		ci->flags = 0;
-+		ci->flags = CLUSTER_FLAG_FULL;
- 	}
- }
- 
+--- a/include/asm-generic/numa.h~arch_numa-switch-over-to-numa_memblks-fix
++++ a/include/asm-generic/numa.h
+@@ -33,7 +33,7 @@ static inline const struct cpumask *cpum
+ void __init arch_numa_init(void);
+ int __init numa_add_memblk(int nodeid, u64 start, u64 end);
+ void __init early_map_cpu_to_node(unsigned int cpu, int nid);
+-int __init early_cpu_to_node(int cpu);
++int early_cpu_to_node(int cpu);
+ void numa_store_cpu_info(unsigned int cpu);
+ void numa_add_cpu(unsigned int cpu);
+ void numa_remove_cpu(unsigned int cpu);
 _
 
-Patches currently in -mm which might be from ryncsn@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+mm-move-kernel-numac-to-mm.patch
+mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
+mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
+mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
+mips-loongson64-rename-__node_data-to-node_data.patch
+mips-loongson64-drop-have_arch_nodedata_extension.patch
+arch-mm-move-definition-of-node_data-to-generic-code.patch
+mm-drop-config_have_arch_nodedata_extension.patch
+arch-mm-pull-out-allocation-of-node_data-to-generic-code.patch
+x86-numa-simplify-numa_distance-allocation.patch
+x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
+x86-numa-move-fake_node_-defines-to-numa_emu.patch
+x86-numa_emu-simplify-allocation-of-phys_dist.patch
+x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
+x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
+x86-numa-numa_addremove_cpu-make-cpu-parameter-unsigned.patch
+mm-introduce-numa_memblks.patch
+mm-move-numa_distance-and-related-code-from-x86-to-numa_memblks.patch
+mm-introduce-numa_emulation.patch
+mm-numa_memblks-introduce-numa_memblks_init.patch
+mm-numa_memblks-make-several-functions-and-variables-static.patch
+mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
+of-numa-return-einval-when-no-numa-node-id-is-found.patch
+arch_numa-switch-over-to-numa_memblks.patch
+arch_numa-switch-over-to-numa_memblks-fix-2.patch
+mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
+mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch
+docs-move-numa=fake-description-to-kernel-parameterstxt.patch
 
