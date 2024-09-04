@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FCE6AFAE
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70CF974E26
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423535; cv=none; b=CusMpysaxNKWzenT3QJ0FXlolMbMf7hijK988dNs4sAAJe/sCgorBfjUk60iAlZOAZipAIq3doNAD91gCGn6rHR6oC5ZjLGrDaV0fQj0R6GneWOLypqx7GTvqUlrfDc4tvBpiB/DNrlKeStwVgaLEsPyQeo56Hgv1ZfQig0LiQE=
+	t=1725423537; cv=none; b=ZqSx8fF0lcPhMrTuo4y1crgxLwaXWKfo5RKh+wW514c+1qi85kFx1fZ92pRL69nm+LYxRT7Ht8T5zNeiJy0aQwL+Toe+iVBtq/8fSV7buQDdIz4jpGAdjCz/XCX9ihsRdldscddwM1GeK7+jIkAO6iG5q1yAQOaCIFAQwZodeEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423535; c=relaxed/simple;
-	bh=sJW//xxwtSmmOtj3qR4gU7o2n3SLy5tdCVJaqN7lgJ4=;
-	h=Date:To:From:Subject:Message-Id; b=tZvELX8W60VxbqG6aEIwvjblPa6MEojRihNnL5gKvvF+LaiJLmlOg9lmWWg2yigc97D4mBehfTM4OPomTrhzk3DOxRJBILoUEgVAUptrTSsnVWUEctJCo0atgvfQQtxh7+nrjbHJ3pnlwMhHxFg57TyKIQLPsEsbu+MCJRWLXKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfkrK/su; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423537; c=relaxed/simple;
+	bh=Ze6es5pFM3NL47uHHRCr3NegMdiJIxyY0Q7hzMZ2XeY=;
+	h=Date:To:From:Subject:Message-Id; b=iuBY/P2cmcd/RqEnX1ISx0p5PUzs347IlbFyoOhJhQAjiuUbARRVzMMWEBvrBAU7n7QBE0Qiz32qwOv+dCJGidOQbNOtSvYjp5UZb5uaZJvWsZU9WW09zgtOJ5z7+r03e4h8XS0LhRwMRG+TBnkEsc7Onbvzt50EEVnhztAxM18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SGkVeu8g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfkrK/su"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C367C4CEC3;
-	Wed,  4 Sep 2024 04:18:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SGkVeu8g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468E4C4CEC2;
+	Wed,  4 Sep 2024 04:18:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423535;
-	bh=sJW//xxwtSmmOtj3qR4gU7o2n3SLy5tdCVJaqN7lgJ4=;
+	s=korg; t=1725423537;
+	bh=Ze6es5pFM3NL47uHHRCr3NegMdiJIxyY0Q7hzMZ2XeY=;
 	h=Date:To:From:Subject:From;
-	b=BfkrK/suwUnjBbVWmuBt+ZFW+n1sIqfnzHgrHJsSZYSUFGJvxjeS9MutCjaW81Xyp
-	 RQtGPL6npEisFetUKUM/enU+M+sdnetsn7Ck5dzRpepL8FUFwO12qVfRCe0GeP52Yy
-	 X4DISgvzrrxVP7RPa2k3ojzR4BWfbZb9Qyiku9V4=
-Date: Tue, 03 Sep 2024 21:18:55 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=SGkVeu8gXlz82EhJRawTeG5xtIc9HutBozU6rehVBO+DyBfC7oxEA7V7n148F2wL7
+	 OeXd/Ye2YBS+rQyW0pEYqJ1AgYwVXbwbjCBoMzfLfSgMLAUtZie7iloxQkB8Cw9EPZ
+	 Glc2P9ub5yBEiSe0SgA78j8vNmOgR2Bug5SNbcrY=
+Date: Tue, 03 Sep 2024 21:18:56 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,muchun.song@linux.dev,mcasquer@redhat.com,almasrymina@google.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-remove-pg_uncached.patch removed from -mm tree
-Message-Id: <20240904041855.8C367C4CEC3@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-charge_reserved_hugetlbsh-test.patch removed from -mm tree
+Message-Id: <20240904041857.468E4C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,307 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86: remove PG_uncached
+     Subject: selftests/mm: fix charge_reserved_hugetlb.sh test
 has been removed from the -mm tree.  Its filename was
-     x86-remove-pg_uncached.patch
+     selftests-mm-fix-charge_reserved_hugetlbsh-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: x86: remove PG_uncached
-Date: Wed, 21 Aug 2024 20:34:43 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: fix charge_reserved_hugetlb.sh test
+Date: Wed, 21 Aug 2024 14:31:15 +0200
 
-Convert x86 to use PG_arch_2 instead of PG_uncached and remove
-PG_uncached.
+Currently, running the charge_reserved_hugetlb.sh selftest we can
+sometimes observe something like:
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-11-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+  $ ./charge_reserved_hugetlb.sh -cgroup-v2
+  ...
+  write_result is 0
+  After write:
+  hugetlb_usage=0
+  reserved_usage=10485760
+  killing write_to_hugetlbfs
+  Received 2.
+  Deleting the memory
+  Detach failure: Invalid argument
+  umount: /mnt/huge: target is busy.
+
+Both cases are issues in the test.
+
+While the unmount error seems to be racy, it will make the test fail:
+	$ ./run_vmtests.sh -t hugetlb
+	...
+	# [FAIL]
+	not ok 10 charge_reserved_hugetlb.sh -cgroup-v2 # exit=32
+
+The issue is that we are not waiting for the write_to_hugetlbfs process to
+quit.  So it might still have a hugetlbfs file open, about which umount is
+not happy.  Fix that by making "killall" wait for the process to quit.
+
+The other error ("Detach failure: Invalid argument") does not seem to
+result in a test error, but is misleading.  Turns out write_to_hugetlbfs.c
+unconditionally tries to cleanup using shmdt(), even when we only
+mmap()'ed a hugetlb file.  Even worse, shmaddr is never even set for the
+SHM case.  Fix that as well.
+
+With this change it seems to work as expected.
+
+Link: https://lkml.kernel.org/r/20240821123115.2068812-1-david@redhat.com
+Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Mario Casquero <mcasquer@redhat.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Tested-by: Mario Casquero <mcasquer@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/vm/PG_uncached/arch-support.txt |   30 ----------
- arch/arm64/Kconfig                                     |    3 -
- arch/x86/Kconfig                                       |    5 -
- arch/x86/mm/pat/memtype.c                              |    8 +-
- fs/proc/page.c                                         |    8 +-
- include/linux/kernel-page-flags.h                      |    1 
- include/linux/page-flags.h                             |   13 +---
- include/trace/events/mmflags.h                         |   23 +++----
- mm/Kconfig                                             |    9 +--
- mm/huge_memory.c                                       |    4 +
- tools/mm/page-types.c                                  |    3 -
- 11 files changed, 31 insertions(+), 76 deletions(-)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh |    2 
+ tools/testing/selftests/mm/write_to_hugetlbfs.c       |   21 +++++-----
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
---- a/arch/arm64/Kconfig~x86-remove-pg_uncached
-+++ a/arch/arm64/Kconfig
-@@ -2100,7 +2100,8 @@ config ARM64_MTE
- 	depends on ARM64_PAN
- 	select ARCH_HAS_SUBPAGE_FAULTS
- 	select ARCH_USES_HIGH_VMA_FLAGS
--	select ARCH_USES_PG_ARCH_X
-+	select ARCH_USES_PG_ARCH_2
-+	select ARCH_USES_PG_ARCH_3
- 	help
- 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
- 	  architectural support for run-time, always-on detection of
---- a/arch/x86/Kconfig~x86-remove-pg_uncached
-+++ a/arch/x86/Kconfig
-@@ -1799,6 +1799,7 @@ config X86_PAT
- 	def_bool y
- 	prompt "x86 PAT support" if EXPERT
- 	depends on MTRR
-+	select ARCH_USES_PG_ARCH_2
- 	help
- 	  Use PAT attributes to setup page level cache control.
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-fix-charge_reserved_hugetlbsh-test
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -254,7 +254,7 @@ function cleanup_hugetlb_memory() {
+   local cgroup="$1"
+   if [[ "$(pgrep -f write_to_hugetlbfs)" != "" ]]; then
+     echo killing write_to_hugetlbfs
+-    killall -2 write_to_hugetlbfs
++    killall -2 --wait write_to_hugetlbfs
+     wait_for_hugetlb_memory_to_get_depleted $cgroup
+   fi
+   set -e
+--- a/tools/testing/selftests/mm/write_to_hugetlbfs.c~selftests-mm-fix-charge_reserved_hugetlbsh-test
++++ a/tools/testing/selftests/mm/write_to_hugetlbfs.c
+@@ -28,7 +28,7 @@ enum method {
  
-@@ -1810,10 +1811,6 @@ config X86_PAT
+ /* Global variables. */
+ static const char *self;
+-static char *shmaddr;
++static int *shmaddr;
+ static int shmid;
  
- 	  If unsure, say Y.
- 
--config ARCH_USES_PG_UNCACHED
--	def_bool y
--	depends on X86_PAT
--
- config X86_UMIP
- 	def_bool y
- 	prompt "User Mode Instruction Prevention" if EXPERT
---- a/arch/x86/mm/pat/memtype.c~x86-remove-pg_uncached
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -104,7 +104,7 @@ __setup("debugpat", pat_debug_setup);
- 
- #ifdef CONFIG_X86_PAT
  /*
-- * X86 PAT uses page flags arch_1 and uncached together to keep track of
-+ * X86 PAT uses page flags arch_1 and arch_2 together to keep track of
-  * memory type of pages that have backing page struct.
-  *
-  * X86 PAT supports 4 different memory types:
-@@ -118,9 +118,9 @@ __setup("debugpat", pat_debug_setup);
- 
- #define _PGMT_WB		0
- #define _PGMT_WC		(1UL << PG_arch_1)
--#define _PGMT_UC_MINUS		(1UL << PG_uncached)
--#define _PGMT_WT		(1UL << PG_uncached | 1UL << PG_arch_1)
--#define _PGMT_MASK		(1UL << PG_uncached | 1UL << PG_arch_1)
-+#define _PGMT_UC_MINUS		(1UL << PG_arch_2)
-+#define _PGMT_WT		(1UL << PG_arch_2 | 1UL << PG_arch_1)
-+#define _PGMT_MASK		(1UL << PG_arch_2 | 1UL << PG_arch_1)
- #define _PGMT_CLEAR_MASK	(~_PGMT_MASK)
- 
- static inline enum page_cache_mode get_page_memtype(struct page *pg)
-diff --git a/Documentation/features/vm/PG_uncached/arch-support.txt a/Documentation/features/vm/PG_uncached/arch-support.txt
-deleted file mode 100644
---- a/Documentation/features/vm/PG_uncached/arch-support.txt
-+++ /dev/null
-@@ -1,30 +0,0 @@
--#
--# Feature name:          PG_uncached
--#         Kconfig:       ARCH_USES_PG_UNCACHED
--#         description:   arch supports the PG_uncached page flag
--#
--    -----------------------
--    |         arch |status|
--    -----------------------
--    |       alpha: | TODO |
--    |         arc: | TODO |
--    |         arm: | TODO |
--    |       arm64: | TODO |
--    |        csky: | TODO |
--    |     hexagon: | TODO |
--    |   loongarch: | TODO |
--    |        m68k: | TODO |
--    |  microblaze: | TODO |
--    |        mips: | TODO |
--    |       nios2: | TODO |
--    |    openrisc: | TODO |
--    |      parisc: | TODO |
--    |     powerpc: | TODO |
--    |       riscv: | TODO |
--    |        s390: | TODO |
--    |          sh: | TODO |
--    |       sparc: | TODO |
--    |          um: | TODO |
--    |         x86: |  ok  |
--    |      xtensa: | TODO |
--    -----------------------
---- a/fs/proc/page.c~x86-remove-pg_uncached
-+++ a/fs/proc/page.c
-@@ -206,18 +206,16 @@ u64 stable_page_flags(const struct page
- 		u |= kpf_copy_bit(page->flags, KPF_HWPOISON,	PG_hwpoison);
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--	u |= kpf_copy_bit(k, KPF_UNCACHED,	PG_uncached);
--#endif
--
- 	u |= kpf_copy_bit(k, KPF_RESERVED,	PG_reserved);
- 	u |= kpf_copy_bit(k, KPF_OWNER_2,	PG_owner_2);
- 	u |= kpf_copy_bit(k, KPF_PRIVATE,	PG_private);
- 	u |= kpf_copy_bit(k, KPF_PRIVATE_2,	PG_private_2);
- 	u |= kpf_copy_bit(k, KPF_OWNER_PRIVATE,	PG_owner_priv_1);
- 	u |= kpf_copy_bit(k, KPF_ARCH,		PG_arch_1);
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 	u |= kpf_copy_bit(k, KPF_ARCH_2,	PG_arch_2);
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 	u |= kpf_copy_bit(k, KPF_ARCH_3,	PG_arch_3);
- #endif
- 
---- a/include/linux/kernel-page-flags.h~x86-remove-pg_uncached
-+++ a/include/linux/kernel-page-flags.h
-@@ -15,7 +15,6 @@
- #define KPF_PRIVATE_2		36
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
--#define KPF_UNCACHED		39
- #define KPF_SOFTDIRTY		40
- #define KPF_ARCH_2		41
- #define KPF_ARCH_3		42
---- a/include/linux/page-flags.h~x86-remove-pg_uncached
-+++ a/include/linux/page-flags.h
-@@ -113,9 +113,6 @@ enum pageflags {
- #ifdef CONFIG_MMU
- 	PG_mlocked,		/* Page is vma mlocked */
- #endif
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--	PG_uncached,		/* Page has been mapped as uncached */
--#endif
- #ifdef CONFIG_MEMORY_FAILURE
- 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
- #endif
-@@ -123,8 +120,10 @@ enum pageflags {
- 	PG_young,
- 	PG_idle,
- #endif
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 	PG_arch_2,
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 	PG_arch_3,
- #endif
- 	__NR_PAGEFLAGS,
-@@ -602,12 +601,6 @@ FOLIO_FLAG_FALSE(mlocked)
- 	FOLIO_TEST_SET_FLAG_FALSE(mlocked)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--PAGEFLAG(Uncached, uncached, PF_NO_COMPOUND)
--#else
--PAGEFLAG_FALSE(Uncached, uncached)
--#endif
--
- #ifdef CONFIG_MEMORY_FAILURE
- PAGEFLAG(HWPoison, hwpoison, PF_ANY)
- TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
---- a/include/trace/events/mmflags.h~x86-remove-pg_uncached
-+++ a/include/trace/events/mmflags.h
-@@ -71,12 +71,6 @@
- #define IF_HAVE_PG_MLOCK(_name)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_UNCACHED
--#define IF_HAVE_PG_UNCACHED(_name) ,{1UL << PG_##_name, __stringify(_name)}
--#else
--#define IF_HAVE_PG_UNCACHED(_name)
--#endif
--
- #ifdef CONFIG_MEMORY_FAILURE
- #define IF_HAVE_PG_HWPOISON(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
-@@ -89,10 +83,16 @@
- #define IF_HAVE_PG_IDLE(_name)
- #endif
- 
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
--#define IF_HAVE_PG_ARCH_X(_name) ,{1UL << PG_##_name, __stringify(_name)}
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
-+#define IF_HAVE_PG_ARCH_2(_name) ,{1UL << PG_##_name, __stringify(_name)}
-+#else
-+#define IF_HAVE_PG_ARCH_2(_name)
-+#endif
+@@ -47,15 +47,17 @@ void sig_handler(int signo)
+ {
+ 	printf("Received %d.\n", signo);
+ 	if (signo == SIGINT) {
+-		printf("Deleting the memory\n");
+-		if (shmdt((const void *)shmaddr) != 0) {
+-			perror("Detach failure");
++		if (shmaddr) {
++			printf("Deleting the memory\n");
++			if (shmdt((const void *)shmaddr) != 0) {
++				perror("Detach failure");
++				shmctl(shmid, IPC_RMID, NULL);
++				exit(4);
++			}
 +
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
-+#define IF_HAVE_PG_ARCH_3(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_ARCH_X(_name)
-+#define IF_HAVE_PG_ARCH_3(_name)
- #endif
+ 			shmctl(shmid, IPC_RMID, NULL);
+-			exit(4);
++			printf("Done deleting the memory\n");
+ 		}
+-
+-		shmctl(shmid, IPC_RMID, NULL);
+-		printf("Done deleting the memory\n");
+ 	}
+ 	exit(2);
+ }
+@@ -211,7 +213,8 @@ int main(int argc, char **argv)
+ 			shmctl(shmid, IPC_RMID, NULL);
+ 			exit(2);
+ 		}
+-		printf("shmaddr: %p\n", ptr);
++		shmaddr = ptr;
++		printf("shmaddr: %p\n", shmaddr);
  
- #define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
-@@ -118,12 +118,11 @@
- 	DEF_PAGEFLAG_NAME(swapbacked),					\
- 	DEF_PAGEFLAG_NAME(unevictable)					\
- IF_HAVE_PG_MLOCK(mlocked)						\
--IF_HAVE_PG_UNCACHED(uncached)						\
- IF_HAVE_PG_HWPOISON(hwpoison)						\
- IF_HAVE_PG_IDLE(idle)							\
- IF_HAVE_PG_IDLE(young)							\
--IF_HAVE_PG_ARCH_X(arch_2)						\
--IF_HAVE_PG_ARCH_X(arch_3)
-+IF_HAVE_PG_ARCH_2(arch_2)						\
-+IF_HAVE_PG_ARCH_3(arch_3)
- 
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
---- a/mm/huge_memory.c~x86-remove-pg_uncached
-+++ a/mm/huge_memory.c
-@@ -2993,8 +2993,10 @@ static void __split_huge_page_tail(struc
- 			 (1L << PG_workingset) |
- 			 (1L << PG_locked) |
- 			 (1L << PG_unevictable) |
--#ifdef CONFIG_ARCH_USES_PG_ARCH_X
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_2
- 			 (1L << PG_arch_2) |
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_ARCH_3
- 			 (1L << PG_arch_3) |
- #endif
- 			 (1L << PG_dirty) |
---- a/mm/Kconfig~x86-remove-pg_uncached
-+++ a/mm/Kconfig
-@@ -1079,13 +1079,10 @@ config ARCH_USES_HIGH_VMA_FLAGS
- config ARCH_HAS_PKEYS
- 	bool
- 
--config ARCH_USES_PG_ARCH_X
-+config ARCH_USES_PG_ARCH_2
-+	bool
-+config ARCH_USES_PG_ARCH_3
- 	bool
--	help
--	  Enable the definition of PG_arch_x page flags with x > 1. Only
--	  suitable for 64-bit architectures with CONFIG_FLATMEM or
--	  CONFIG_SPARSEMEM_VMEMMAP enabled, otherwise there may not be
--	  enough room for additional bits in page->flags.
- 
- config VM_EVENT_COUNTERS
- 	default y
---- a/tools/mm/page-types.c~x86-remove-pg_uncached
-+++ a/tools/mm/page-types.c
-@@ -76,7 +76,7 @@
- #define KPF_PRIVATE_2		36
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
--#define KPF_UNCACHED		39
-+#define KPF_UNCACHED		39	/* unused */
- #define KPF_SOFTDIRTY		40
- #define KPF_ARCH_2		41
- 
-@@ -134,7 +134,6 @@ static const char * const page_flag_name
- 	[KPF_PRIVATE_2]		= "p:private_2",
- 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
- 	[KPF_ARCH]		= "h:arch",
--	[KPF_UNCACHED]		= "c:uncached",
- 	[KPF_SOFTDIRTY]		= "f:softdirty",
- 	[KPF_ARCH_2]		= "H:arch_2",
- 
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-swap-convert-swapon-to-use-a-folio.patch
 
