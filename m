@@ -1,129 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB7A1E6DDE
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 19:58:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3559913A276
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 20:03:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725479925; cv=none; b=I6ARbXOcfcxEMmtu6vjlUnvYFsKSsEBE+4ZS1BkTykUpOmm6aHHbXJ1G3qdmmTzdThl3/3Hpqml8bvDChvefu+O8gCOBPFeEcCOVT+SN7Wq0McKZeJYM3NpKyq//n6xOn6We/alAXf8GLcXs0xihqh3WbjYWr9psQLQwz0Psl2c=
+	t=1725480207; cv=none; b=JXvrzqISOTq2KdiBhTdC5W0jpwAuh0GuMZKHYE7NdRwpWttGhbQInypPT3nK/NpLVhJUAPpWYklFtYiP8TLAs6JusMZpqby1E4nNVW7gkizFzw3rGGehYYo8+fao7yB2eVd/UVBjzw8635dWHMXFGrH+lQ7lHE/w9MJ7xskM0Ug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725479925; c=relaxed/simple;
-	bh=7uQ0erOPAokHpE118CqRUaQVgaozW6BGXVsl9Zc3lQI=;
-	h=Date:To:From:Subject:Message-Id; b=jHzP5i9dCEogmQrxZdyt0rZCAx9v2RM7SLz7LetGKcAzv1fv3d765gW00xErFfHZGt724ODqQGf4siJlLrOX//UB5mGrruKFInv/ci7a0bAPBuZ900bC4EZpKMAYp92g8/5GM3TKrqwKZGEbFwnad3IA4Fl/yfUdXoYsADbT+L0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s+ZKofA7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725480207; c=relaxed/simple;
+	bh=o8kPf531yu7uUdhdqYpdOs8G/XO4n/aBDxXB5WtwyVM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=tLoAQC7q0k1f9W3mohIloeYdBSCiTUSt25XvnEvFgnYqG2xivR4sJBqw254k+d3c7R3Nxe3QOrpPRSLZYpW8rfT35pV4u1GhgH8hTrw6n4vNfv8vtWEVSv4LiVgf3K43Y/yeG1oa1iA4NuzL9wGacwBzP2IgosPVRsFi7P5h0Fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V1gVjWeo; arc=none smtp.client-ip=209.85.215.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s+ZKofA7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99242C4CEC2;
-	Wed,  4 Sep 2024 19:58:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725479924;
-	bh=7uQ0erOPAokHpE118CqRUaQVgaozW6BGXVsl9Zc3lQI=;
-	h=Date:To:From:Subject:From;
-	b=s+ZKofA7Y62BcZ/80PVdvl0AGoM3/pO8VmJMnpDX3woq3xO/Jx35nGYCh9uN8AiIF
-	 7sHQQ026eH+1TUO6CH8JVs7eE6nB2+2cFdscn+4kAUxdq6R4Xon59lmTmY022Ou7Fk
-	 PgsIuhWu4ip4hcVK6UO3jeHdp2l3lFQw0WlMXzw0=
-Date: Wed, 04 Sep 2024 12:58:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,peterx@redhat.com,muchun.song@linux.dev,jgg@nvidia.com,david@redhat.com,steven.sistare@oracle.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-simplify-refs-in-memfd_alloc_folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240904195844.99242C4CEC2@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V1gVjWeo"
+Received: by mail-pg1-f174.google.com with SMTP id 41be03b00d2f7-7d4fd79f8ceso2036a12.0
+        for <mm-commits@vger.kernel.org>; Wed, 04 Sep 2024 13:03:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725480205; x=1726085005; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=R2le6N8+yHUjLL3is4NzN0v5//OV6jZco75vt35t/b0=;
+        b=V1gVjWeo3vSWYKLik6WbcET3M8FQufE4XLPqBP6QFFrU3/KEnNnPnvEZ3MibepLkYb
+         6OHyLLcg+eSacTdeFg0i0DbBlv5kXrElc0j9igWcRg/rwLDw7175IioZ4F7Xyd4zeVxw
+         sx4PUSgn/OFaun3UCH22Wmgot72QIxglp5lXnWq2c3rLUb5mahiYJGB19KwWMkNk+w2s
+         depEMQgD5CMCJrmOij+HC7xb6lIEeXyyiqczAP4plWr9KnEoaFDZmx1fhh8wsDJWYGQe
+         HD8g3yZbFY+EVeC5354cKPXYCkSV3XYW34pT306V1r8RgYw8nRBZC8jXB14yUofZQ3ou
+         sFwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725480205; x=1726085005;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=R2le6N8+yHUjLL3is4NzN0v5//OV6jZco75vt35t/b0=;
+        b=jo8q4nnAKyYfhAIAp/4ZuhjvJCVJyTcEKJhLvgw0ZG+90dwZRLvxhAYKdZEsA4stB+
+         iC06UZQa8bYFA3wkA/qKijnfsb0s6EMW1Hyj4zIMmAvx3aAU8bO9wOgEd0mEovQFjL2c
+         RnK6pkFaNyFIbOUFCxoeD+NJskJgye5gEzmpNIk/jVda4RW5PK9DppI16Nivq2LH3pb8
+         TowPX0BsqJ9dcccui7fKfLcqzHaiw89ZkYx10uciJ0kiP/elvkCa3ervipQT+D0QiW6Z
+         gDMvqbkmE2j8UZqSprAKzPhpmD9Dl99L5v5A4hNH6nNwMXOqjCMuw4PTnmuX1ZGWOpjh
+         oxhA==
+X-Gm-Message-State: AOJu0Yw/nUlmTiff+ZJW1tU0yYym2kxCsxaFcJLOBWJ9uSVVHLS2QgsO
+	mRpkbOBb5jOXlHJn8YXm2dTr3hGRz+NCaCQZA9rxSDvQ2+V34bm/v8HYgblD8gU8+P29zmYhPpB
+	C8c0y6xGZeJ46GEEC6zs9T68MnMo=
+X-Google-Smtp-Source: AGHT+IEcmVgzsTW6+P/Wy/5zGGFsT3A5himWQmIFDXpYjZ+K1O7m07MaAxxKvyywlR4FGJ6j3NHjm1LidxFNo2ouQTY=
+X-Received: by 2002:a17:903:1103:b0:202:18d7:7ffb with SMTP id
+ d9443c01a7336-20528847f02mr109391825ad.11.1725480205298; Wed, 04 Sep 2024
+ 13:03:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240904041800.486C6C4CEC2@smtp.kernel.org> <CANiq72k=mzebBFfAW2iJ-cWYTVYBDoR5XzYWZ+Crn-tq2YfnLQ@mail.gmail.com>
+ <20240904121847.45c0977db4c0c97b6b06120d@linux-foundation.org>
+In-Reply-To: <20240904121847.45c0977db4c0c97b6b06120d@linux-foundation.org>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Wed, 4 Sep 2024 22:03:12 +0200
+Message-ID: <CANiq72mr+4HeuPFVp7cK8-EA9k4NOPDxfdHcoKj0+_Yu9k68QQ@mail.gmail.com>
+Subject: Re: [merged mm-stable] kasan-simplify-and-clarify-makefile.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, ojeda@kernel.org, 
+	mmaurer@google.com, glider@google.com, elver@google.com, dvyukov@google.com, 
+	andreyknvl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Sep 4, 2024 at 9:18=E2=80=AFPM Andrew Morton <akpm@linux-foundation=
+.org> wrote:
+>
+> That's what I thought but after more than two weeks it still wasn't in
+> linux-next so I assumed it had been forgotten, or that plans changed.
 
-The patch titled
-     Subject: mm/hugetlb: simplify refs in memfd_alloc_folio
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-simplify-refs-in-memfd_alloc_folio.patch
+Yeah, sorry, I wanted to pick it up together with the Rust KASAN one,
+and ideally that would go after the RUSTC_VERSION one that I am
+applying now.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-simplify-refs-in-memfd_alloc_folio.patch
+> OK thanks.  I expect Stephen will notify us when there's a duplicate
+> patch.  As long as the two patches are identical code changes, git will
+> sort it out when we merge with Linus.  Otherwise I'll drop the mm.git
+> copy.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Sounds good. Thanks!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Steve Sistare <steven.sistare@oracle.com>
-Subject: mm/hugetlb: simplify refs in memfd_alloc_folio
-Date: Wed, 4 Sep 2024 12:41:08 -0700
-
-The folio_try_get in memfd_alloc_folio is not necessary.  Delete it, and
-delete the matching folio_put in memfd_pin_folios.  This also avoids
-leaking a ref if the memfd_alloc_folio call to hugetlb_add_to_page_cache
-fails, which would otherwise need an additional folio_put.  This is a
-continuation of the fix
-  "mm/hugetlb: fix memfd_pin_folios free_huge_pages leak"
-
-Link: https://lkml.kernel.org/r/1725478868-61732-1-git-send-email-steven.sistare@oracle.com
-Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
-Signed-off-by: Steve Sistare <steven.sistare@oracle.com>
-Suggested-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/gup.c   |    4 +---
- mm/memfd.c |    2 +-
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
---- a/mm/gup.c~mm-hugetlb-simplify-refs-in-memfd_alloc_folio
-+++ a/mm/gup.c
-@@ -3618,7 +3618,7 @@ long memfd_pin_folios(struct file *memfd
- 	pgoff_t start_idx, end_idx, next_idx;
- 	struct folio *folio = NULL;
- 	struct folio_batch fbatch;
--	struct hstate *h = NULL;
-+	struct hstate *h;
- 	long ret = -EINVAL;
- 
- 	if (start < 0 || start > end || !max_folios)
-@@ -3662,8 +3662,6 @@ long memfd_pin_folios(struct file *memfd
- 							     &fbatch);
- 			if (folio) {
- 				folio_put(folio);
--				if (h)
--					folio_put(folio);
- 				folio = NULL;
- 			}
- 
---- a/mm/memfd.c~mm-hugetlb-simplify-refs-in-memfd_alloc_folio
-+++ a/mm/memfd.c
-@@ -89,7 +89,7 @@ struct folio *memfd_alloc_folio(struct f
- 						    numa_node_id(),
- 						    NULL,
- 						    gfp_mask);
--		if (folio && folio_try_get(folio)) {
-+		if (folio) {
- 			err = hugetlb_add_to_page_cache(folio,
- 							memfd->f_mapping,
- 							idx);
-_
-
-Patches currently in -mm which might be from steven.sistare@oracle.com are
-
-mm-filemap-fix-filemap_get_folios_contig-thp-panic.patch
-mm-hugetlb-fix-memfd_pin_folios-free_huge_pages-leak.patch
-mm-hugetlb-fix-memfd_pin_folios-resv_huge_pages-leak.patch
-mm-gup-fix-memfd_pin_folios-hugetlb-page-allocation.patch
-mm-gup-fix-memfd_pin_folios-alloc-race-panic.patch
-mm-hugetlb-simplify-refs-in-memfd_alloc_folio.patch
-
+Cheers,
+Miguel
