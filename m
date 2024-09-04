@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45F0E6F2EB
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516667406F
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423495; cv=none; b=OtK8az9DjxZuyKtGX/+c5RyJgwYFhl+GesXppmhCW4ySJHfN6yoh2VygrThex/tJRi383ZX0erX2pmnH5GxI65EW7W3PD4yaTNNGXwCwzfwdWfQ1ybMHSbEXBxcCyYITD2Rr3hXv1MhQ2HCT16hH771fQ++FfS39zRK4Ln+v2Ro=
+	t=1725423496; cv=none; b=gjkAXBAuvqa51VnLZ7w8+JJViX2x0dNd0sL8d27bs6cttPjJ+b4xkAnLSacanhY/Kfkpy79J0rX4fR9uwCwZ6kgyGoyBnnhZlvogI97HRWzJlKcD1M/hlAA223sNUhxIt+2a4h8WjnHqsQ01Nwb/K4pKNImz/0Fh0xdgVib1skI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423495; c=relaxed/simple;
-	bh=g+6CZ2XIVnnioyHgiDhP/8viqUzahE5NNRojm6cwkZg=;
-	h=Date:To:From:Subject:Message-Id; b=iI4sO7pd+dXEqWXritFINs4i1fOh0GPQVTbQ3SXMnvL+2wTSfPLGtX+pZiAWDOlT2CV3dUTgiR4fgGwrKFQkkBEAiyMz531Bh5kbo8FOsKYyMyjHOopCmmgFzbn+/cjiRqiQGmIwzSF6N+3nBElxMVtpERaMnAjlkmCa7BYm58M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FRK0BYvK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423496; c=relaxed/simple;
+	bh=K7u1FqbPcJewoyHtPBzNXArFAy1uvTWvArL38+5jmOQ=;
+	h=Date:To:From:Subject:Message-Id; b=FjEDMAThrmS5YZxtrCL39iAkiFsiz0LsjoWWYgSJxBM4wOKSyzlF84v+2T70wD4XssXOUyphyMuQJyfOwwsVNHiw0w8gZkRwZ3PFM8QjFpLlM6iMWaEJd1V7qlc2MYGJiuCz7FXoRmRj9TSjzu3Ssq25IpjbtM5q5L1dscu5ac8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kApy2dlu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FRK0BYvK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14579C4CEC2;
-	Wed,  4 Sep 2024 04:18:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kApy2dlu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E7AC4CEC3;
+	Wed,  4 Sep 2024 04:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423495;
-	bh=g+6CZ2XIVnnioyHgiDhP/8viqUzahE5NNRojm6cwkZg=;
+	s=korg; t=1725423496;
+	bh=K7u1FqbPcJewoyHtPBzNXArFAy1uvTWvArL38+5jmOQ=;
 	h=Date:To:From:Subject:From;
-	b=FRK0BYvKkO+6sgkBlsmsHEQyYZ6G61RtB2B9ffzqtAxJX9z1pvjnOASK4sSE7VRTM
-	 THCSa+gug+ZPlhArIFoGWO3DrPBWfoo26PYZ7dPMBVNpoPHEJoOwVUI/6OaB7hcAmn
-	 R3RxIZbw+/R0ID6B1RVpy/0QZST3Q2E2aykshIdE=
-Date: Tue, 03 Sep 2024 21:18:14 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,rppt@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=kApy2dluxjh2dOihYn3Z7AKilACJcLMcN3qzbyOm1irrrZXzYH1+QW86twxjkagA7
+	 nBLRMAw3GjNSrcFvqvvF8eq5F19Gv9xE98MJ/uO/uY2KiKM9vATIAdX4VkzAUr0EjX
+	 K3mn1R4mgP5BD2Ex08ZzayhgyFbpNPt5sA+QZinA=
+Date: Tue, 03 Sep 2024 21:18:15 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-remove-unnecessary-ia64-code-and-comment.patch removed from -mm tree
-Message-Id: <20240904041815.14579C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch removed from -mm tree
+Message-Id: <20240904041816.25E7AC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,225 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: remove unnecessary ia64 code and comment
+     Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-remove-unnecessary-ia64-code-and-comment.patch
+     errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: selftests/mm: remove unnecessary ia64 code and comment
-Date: Mon, 19 Aug 2024 21:06:09 +0800
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: err.h: add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
+Date: Sun, 18 Aug 2024 23:01:51 +0200
 
-IA64 has gone with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
-architecture"), so remove unnecessary ia64 special mm code and comment in
-selftests too.
+Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros that operate
+on pointers in the percpu address space.
 
-Link: https://lkml.kernel.org/r/20240819130609.3386195-1-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+These macros remove the need for (__force void *) function argument casts
+(to avoid sparse -Wcast-from-as warnings).
+
+The patch will also avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
+
+Link: https://lkml.kernel.org/r/20240818210235.33481-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile           |    2 -
- tools/testing/selftests/mm/hugepage-mmap.c    |   18 ----------------
- tools/testing/selftests/mm/hugepage-shm.c     |   18 ----------------
- tools/testing/selftests/mm/hugepage-vmemmap.c |   17 +--------------
- tools/testing/selftests/mm/map_hugetlb.c      |   18 +---------------
- tools/testing/selftests/mm/run_vmtests.sh     |    2 -
- 6 files changed, 8 insertions(+), 67 deletions(-)
+ include/linux/err.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/tools/testing/selftests/mm/hugepage-mmap.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-mmap.c
-@@ -8,13 +8,6 @@
-  * like /mnt) using the command mount -t hugetlbfs nodev /mnt. In this
-  * example, the app is requesting memory of size 256MB that is backed by
-  * huge pages.
-- *
-- * For the ia64 architecture, the Linux kernel reserves Region number 4 for
-- * huge pages.  That means that if one requires a fixed address, a huge page
-- * aligned address starting with 0x800000... will be required.  If a fixed
-- * address is not required, the kernel will select an address in the proper
-- * range.
-- * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-  */
- #define _GNU_SOURCE
- #include <stdlib.h>
-@@ -27,15 +20,6 @@
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
+--- a/include/linux/err.h~errh-add-err_ptr_pcpu-ptr_err_pcpu-and-is_err_pcpu-macros
++++ a/include/linux/err.h
+@@ -41,6 +41,9 @@ static inline void * __must_check ERR_PT
+ 	return (void *) error;
+ }
  
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define FLAGS (MAP_SHARED | MAP_FIXED)
--#else
--#define ADDR (void *)(0x0UL)
--#define FLAGS (MAP_SHARED)
--#endif
--
- static void check_bytes(char *addr)
- {
- 	ksft_print_msg("First hex is %x\n", *((unsigned int *)addr));
-@@ -74,7 +58,7 @@ int main(void)
- 	if (fd < 0)
- 		ksft_exit_fail_msg("memfd_create() failed: %s\n", strerror(errno));
++/* Return the pointer in the percpu address space. */
++#define ERR_PTR_PCPU(error) ((void __percpu *)(unsigned long)ERR_PTR(error))
++
+ /**
+  * PTR_ERR - Extract the error code from an error pointer.
+  * @ptr: An error pointer.
+@@ -51,6 +54,9 @@ static inline long __must_check PTR_ERR(
+ 	return (long) ptr;
+ }
  
--	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, fd, 0);
-+	addr = mmap(NULL, LENGTH, PROTECTION, MAP_SHARED, fd, 0);
- 	if (addr == MAP_FAILED) {
- 		close(fd);
- 		ksft_exit_fail_msg("mmap(): %s\n", strerror(errno));
---- a/tools/testing/selftests/mm/hugepage-shm.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-shm.c
-@@ -8,13 +8,6 @@
-  * SHM_HUGETLB in the shmget system call to inform the kernel that it is
-  * requesting huge pages.
-  *
-- * For the ia64 architecture, the Linux kernel reserves Region number 4 for
-- * huge pages.  That means that if one requires a fixed address, a huge page
-- * aligned address starting with 0x800000... will be required.  If a fixed
-- * address is not required, the kernel will select an address in the proper
-- * range.
-- * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-- *
-  * Note: The default shared memory limit is quite low on many kernels,
-  * you may need to increase it via:
-  *
-@@ -39,15 +32,6 @@
++/* Read an error pointer from the percpu address space. */
++#define PTR_ERR_PCPU(ptr) (PTR_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR - Detect an error pointer.
+  * @ptr: The pointer to check.
+@@ -61,6 +67,9 @@ static inline bool __must_check IS_ERR(_
+ 	return IS_ERR_VALUE((unsigned long)ptr);
+ }
  
- #define dprintf(x)  printf(x)
- 
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define SHMAT_FLAGS (SHM_RND)
--#else
--#define ADDR (void *)(0x0UL)
--#define SHMAT_FLAGS (0)
--#endif
--
- int main(void)
- {
- 	int shmid;
-@@ -61,7 +45,7 @@ int main(void)
- 	}
- 	printf("shmid: 0x%x\n", shmid);
- 
--	shmaddr = shmat(shmid, ADDR, SHMAT_FLAGS);
-+	shmaddr = shmat(shmid, NULL, 0);
- 	if (shmaddr == (char *)-1) {
- 		perror("Shared memory attach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
---- a/tools/testing/selftests/mm/hugepage-vmemmap.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/hugepage-vmemmap.c
-@@ -22,20 +22,6 @@
- #define PM_PFRAME_BITS		55
- #define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
- 
--/*
-- * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
-- * That means the addresses starting with 0x800000... will need to be
-- * specified.  Specifying a fixed address is not required on ppc64, i386
-- * or x86_64.
-- */
--#ifdef __ia64__
--#define MAP_ADDR		(void *)(0x8000000000000000UL)
--#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
--#else
--#define MAP_ADDR		NULL
--#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
--#endif
--
- static size_t pagesize;
- static size_t maplength;
- 
-@@ -113,7 +99,8 @@ int main(int argc, char **argv)
- 		exit(1);
- 	}
- 
--	addr = mmap(MAP_ADDR, maplength, PROT_READ | PROT_WRITE, MAP_FLAGS, -1, 0);
-+	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
- 	if (addr == MAP_FAILED) {
- 		perror("mmap");
- 		exit(1);
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -112,7 +112,7 @@ endif
- 
- endif
- 
--ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
-+ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
- TEST_GEN_FILES += va_high_addr_switch
- TEST_GEN_FILES += virtual_address_range
- TEST_GEN_FILES += write_to_hugetlbfs
---- a/tools/testing/selftests/mm/map_hugetlb.c~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/map_hugetlb.c
-@@ -4,11 +4,6 @@
-  * system call with MAP_HUGETLB flag.  Before running this program make
-  * sure the administrator has allocated enough default sized huge pages
-  * to cover the 256 MB allocation.
-- *
-- * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
-- * That means the addresses starting with 0x800000... will need to be
-- * specified.  Specifying a fixed address is not required on ppc64, i386
-- * or x86_64.
-  */
- #include <stdlib.h>
- #include <stdio.h>
-@@ -21,15 +16,6 @@
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
- 
--/* Only ia64 requires this */
--#ifdef __ia64__
--#define ADDR (void *)(0x8000000000000000UL)
--#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
--#else
--#define ADDR (void *)(0x0UL)
--#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
--#endif
--
- static void check_bytes(char *addr)
- {
- 	ksft_print_msg("First hex is %x\n", *((unsigned int *)addr));
-@@ -60,7 +46,7 @@ int main(int argc, char **argv)
- 	void *addr;
- 	size_t hugepage_size;
- 	size_t length = LENGTH;
--	int flags = FLAGS;
-+	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
- 	int shift = 0;
- 
- 	hugepage_size = default_huge_page_size();
-@@ -85,7 +71,7 @@ int main(int argc, char **argv)
- 		ksft_print_msg("Default size hugepages\n");
- 	ksft_print_msg("Mapping %lu Mbytes\n", (unsigned long)length >> 20);
- 
--	addr = mmap(ADDR, length, PROTECTION, flags, -1, 0);
-+	addr = mmap(NULL, length, PROTECTION, flags, -1, 0);
- 	if (addr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-unnecessary-ia64-code-and-comment
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -189,7 +189,7 @@ else
- fi
- 
- # filter 64bit architectures
--ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
-+ARCH64STR="arm64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
- if [ -z "$ARCH" ]; then
- 	ARCH=$(uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/')
- fi
++/* Read an error pointer from the percpu address space. */
++#define IS_ERR_PCPU(ptr) (IS_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR_OR_NULL - Detect an error pointer or a null pointer.
+  * @ptr: The pointer to check.
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
+squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
 
