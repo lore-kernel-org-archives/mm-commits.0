@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B4B713D28F
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 21:16:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7B7B1714C8
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 21:26:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725484583; cv=none; b=cyaXZ+C1+7q9ZnPLnjQP3SGtsWQn5xfRMMLXVi4fnCdeMR8WbG9c96aCuwgKEHENo62EgdomAdzdxHJdEKw3cYTvX7bghZeDpl3QgtMiSsZyjkY27lXMBvOdWmTh0LfvAKBRL68oAGmZSX3ng3ZA8fPrLdRmXexUSS4p4TK7Akc=
+	t=1725485194; cv=none; b=TZ6UznhhC2ygkr0Z/w3h6plfTDCbDrQam/bqYiJeekKcZ1Ah21NtcS+9pFph3vu4Ish6uAu32GK3XXaNiBaQrl5gvWlBolpZ1vQbbxmk0QgNl/vNGY34gI91nBF7n5Ch7rzHfcSAC4cx8t33oZJOAFnhOTYR4FoiR5Vb4aRMEHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725484583; c=relaxed/simple;
-	bh=PPLq4OzQkA+QheCt2DUVDuYGnT5Wd9ZH61WgZK+YBmU=;
-	h=Date:To:From:Subject:Message-Id; b=O5p8NTtxBq7YUhHqE4i6dadslJ3an1j4cotPr5Dwogvl2G533pcqujmHFaJt1ObiL1wRDIfjct859kndXcByX/Vmg5x9z6SoljS7tXEGyayAupFwfoJ8GdNWq7xuLSYjAARyYEHyKF5dPZshCI3i+6Jk9sYok+1oCo1+Dwr/y+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=znEbyby1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725485194; c=relaxed/simple;
+	bh=VOM+xpvBd+J8QmmaJZoTJn99m0mMJ0Q1Om0vQnYgWQk=;
+	h=Date:To:From:Subject:Message-Id; b=K2hOUpy/bMVbCfjWpzZzkez4EAAZZbsnR+YIMxZEFoS2blNsIqMNVT2xVzJlJbcrBCfEnNVJJH3d2Gnir+eB7D09SnZkGr7xd1b4LFghGSNIsCWkCqR9fEDULUV2maQk5EZGo5lG2P2dyvGo3ghh2cyYY1r6BJSsu3T1NuM87y4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0nd3QRaH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="znEbyby1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CD05C4CEC2;
-	Wed,  4 Sep 2024 21:16:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0nd3QRaH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2603CC4CEC2;
+	Wed,  4 Sep 2024 21:26:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725484583;
-	bh=PPLq4OzQkA+QheCt2DUVDuYGnT5Wd9ZH61WgZK+YBmU=;
+	s=korg; t=1725485194;
+	bh=VOM+xpvBd+J8QmmaJZoTJn99m0mMJ0Q1Om0vQnYgWQk=;
 	h=Date:To:From:Subject:From;
-	b=znEbyby145ZtrSlFsZ0ilS4nnN28uvp23fZ/hlFZ0/aTpp7nwL8Zgnf8jPE7PmbgP
-	 /OxnpY+33asYggUbXBt3mvAywnlkZnhhK+XHbMELU8kLHPJ2CqqQ6DMWxG1d9ojjWq
-	 d0sbxsbxXs13A9i0QvitmePRjGD21wy9wZjrgK2Y=
-Date: Wed, 04 Sep 2024 14:16:22 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=0nd3QRaHoZzDGXJ+zdGFURdrkALZYdwQ8us6kdtYIItl5YfV2fTpyrj/HKdO04IgM
+	 IWQcGPCW+6KDhZYYBBDsDhwpZe9oZjsFiVzWVIu8b+w6+Vm4ppLdXS9p6O4a3h7TTq
+	 wr0Z+ywWve4XRaAOH0Yrb1WAM/hNWtaKf3h2+gI4=
+Date: Wed, 04 Sep 2024 14:26:33 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,svens@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch added to mm-nonmm-unstable branch
-Message-Id: <20240904211623.0CD05C4CEC2@smtp.kernel.org>
+Subject: + uprobes-use-vm_special_mapping-close-functionality.patch added to mm-unstable branch
+Message-Id: <20240904212634.2603CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: cleanup return value and mlog in ocfs2_global_read_info()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch
+     Subject: uprobes: use vm_special_mapping close() functionality
+has been added to the -mm mm-unstable branch.  Its filename is
+     uprobes-use-vm_special_mapping-close-functionality.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-vm_special_mapping-close-functionality.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,195 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cleanup return value and mlog in ocfs2_global_read_info()
-Date: Wed, 4 Sep 2024 15:10:04 +0800
+From: Sven Schnelle <svens@linux.ibm.com>
+Subject: uprobes: use vm_special_mapping close() functionality
+Date: Tue, 3 Sep 2024 09:36:28 +0200
 
-Return 0 instead of sizeof(ocfs2_global_disk_dqinfo) that .quota_read
-returns in normal case.  Also cleanup mlog to make code more readable.
+The following KASAN splat was shown:
 
-Link: https://lkml.kernel.org/r/20240904071004.2067695-2-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+[   44.505448] ==================================================================                                                                      20:37:27 [3421/145075]
+[   44.505455] BUG: KASAN: slab-use-after-free in special_mapping_close+0x9c/0xc8
+[   44.505471] Read of size 8 at addr 00000000868dac48 by task sh/1384
+[   44.505479]
+[   44.505486] CPU: 51 UID: 0 PID: 1384 Comm: sh Not tainted 6.11.0-rc6-next-20240902-dirty #1496
+[   44.505503] Hardware name: IBM 3931 A01 704 (z/VM 7.3.0)
+[   44.505508] Call Trace:
+[   44.505511]  [<000b0324d2f78080>] dump_stack_lvl+0xd0/0x108
+[   44.505521]  [<000b0324d2f5435c>] print_address_description.constprop.0+0x34/0x2e0
+[   44.505529]  [<000b0324d2f5464c>] print_report+0x44/0x138
+[   44.505536]  [<000b0324d1383192>] kasan_report+0xc2/0x140
+[   44.505543]  [<000b0324d2f52904>] special_mapping_close+0x9c/0xc8
+[   44.505550]  [<000b0324d12c7978>] remove_vma+0x78/0x120
+[   44.505557]  [<000b0324d128a2c6>] exit_mmap+0x326/0x750
+[   44.505563]  [<000b0324d0ba655a>] __mmput+0x9a/0x370
+[   44.505570]  [<000b0324d0bbfbe0>] exit_mm+0x240/0x340
+[   44.505575]  [<000b0324d0bc0228>] do_exit+0x548/0xd70
+[   44.505580]  [<000b0324d0bc1102>] do_group_exit+0x132/0x390
+[   44.505586]  [<000b0324d0bc13b6>] __s390x_sys_exit_group+0x56/0x60
+[   44.505592]  [<000b0324d0adcbd6>] do_syscall+0x2f6/0x430
+[   44.505599]  [<000b0324d2f78434>] __do_syscall+0xa4/0x170
+[   44.505606]  [<000b0324d2f9454c>] system_call+0x74/0x98
+[   44.505614]
+[   44.505616] Allocated by task 1384:
+[   44.505621]  kasan_save_stack+0x40/0x70
+[   44.505630]  kasan_save_track+0x28/0x40
+[   44.505636]  __kasan_kmalloc+0xa0/0xc0
+[   44.505642]  __create_xol_area+0xfa/0x410
+[   44.505648]  get_xol_area+0xb0/0xf0
+[   44.505652]  uprobe_notify_resume+0x27a/0x470
+[   44.505657]  irqentry_exit_to_user_mode+0x15e/0x1d0
+[   44.505664]  pgm_check_handler+0x122/0x170
+[   44.505670]
+[   44.505672] Freed by task 1384:
+[   44.505676]  kasan_save_stack+0x40/0x70
+[   44.505682]  kasan_save_track+0x28/0x40
+[   44.505687]  kasan_save_free_info+0x4a/0x70
+[   44.505693]  __kasan_slab_free+0x5a/0x70
+[   44.505698]  kfree+0xe8/0x3f0
+[   44.505704]  __mmput+0x20/0x370
+[   44.505709]  exit_mm+0x240/0x340
+[   44.505713]  do_exit+0x548/0xd70
+[   44.505718]  do_group_exit+0x132/0x390
+[   44.505722]  __s390x_sys_exit_group+0x56/0x60
+[   44.505727]  do_syscall+0x2f6/0x430
+[   44.505732]  __do_syscall+0xa4/0x170
+[   44.505738]  system_call+0x74/0x98
+
+The problem is that uprobe_clear_state() kfree's struct xol_area, which
+contains struct vm_special_mapping *xol_mapping. This one is passed to
+_install_special_mapping() in xol_add_vma().
+__mput reads:
+
+static inline void __mmput(struct mm_struct *mm)
+{
+        VM_BUG_ON(atomic_read(&mm->mm_users));
+
+        uprobe_clear_state(mm);
+        exit_aio(mm);
+        ksm_exit(mm);
+        khugepaged_exit(mm); /* must run before exit_mmap */
+        exit_mmap(mm);
+        ...
+}
+
+So uprobe_clear_state() in the beginning free's the memory area
+containing the vm_special_mapping data, but exit_mmap() uses this
+address later via vma->vm_private_data (which was set in
+_install_special_mapping().
+
+Fix this by moving uprobe_clear_state() to uprobes.c and use it as
+close() callback.
+
+Link: https://lkml.kernel.org/r/20240903073629.2442754-1-svens@linux.ibm.com
+Fixes: 223febc6e557 ("mm: add optional close() to struct vm_special_mapping")
+Signed-off-by: Sven Schnelle <svens@linux.ibm.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/uprobes.h |    1 
+ kernel/events/uprobes.c |   39 +++++++++++++++++++-------------------
+ kernel/fork.c           |    1 
+ 3 files changed, 20 insertions(+), 21 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info
-+++ a/fs/ocfs2/quota_global.c
-@@ -371,12 +371,16 @@ int ocfs2_global_read_info(struct super_
- 
- 	status = ocfs2_extent_map_get_blocks(oinfo->dqi_gqinode, 0, &oinfo->dqi_giblk,
- 					     &pcount, NULL);
--	if (status < 0)
-+	if (status < 0) {
-+		mlog_errno(status);
- 		goto out_unlock;
-+	}
- 
- 	status = ocfs2_qinfo_lock(oinfo, 0);
--	if (status < 0)
-+	if (status < 0) {
-+		mlog_errno(status);
- 		goto out_unlock;
-+	}
- 	status = sb->s_op->quota_read(sb, type, (char *)&dinfo,
- 				      sizeof(struct ocfs2_global_disk_dqinfo),
- 				      OCFS2_GLOBAL_INFO_OFF);
-@@ -404,12 +408,11 @@ int ocfs2_global_read_info(struct super_
- 	schedule_delayed_work(&oinfo->dqi_sync_work,
- 			      msecs_to_jiffies(oinfo->dqi_syncms));
- 
--out_err:
--	return status;
-+	return 0;
- out_unlock:
- 	ocfs2_unlock_global_qf(oinfo, 0);
--	mlog_errno(status);
--	goto out_err;
-+out_err:
-+	return status;
+--- a/include/linux/uprobes.h~uprobes-use-vm_special_mapping-close-functionality
++++ a/include/linux/uprobes.h
+@@ -126,7 +126,6 @@ extern int uprobe_pre_sstep_notifier(str
+ extern void uprobe_notify_resume(struct pt_regs *regs);
+ extern bool uprobe_deny_signal(void);
+ extern bool arch_uprobe_skip_sstep(struct arch_uprobe *aup, struct pt_regs *regs);
+-extern void uprobe_clear_state(struct mm_struct *mm);
+ extern int  arch_uprobe_analyze_insn(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long addr);
+ extern int  arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+ extern int  arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+--- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/events/uprobes.c
+@@ -1482,6 +1482,25 @@ void * __weak arch_uprobe_trampoline(uns
+ 	return &insn;
  }
  
- /* Write information to global quota file. Expects exclusive lock on quota
++/*
++ * uprobe_clear_state - Free the area allocated for slots.
++ */
++static void uprobe_clear_state(const struct vm_special_mapping *sm, struct vm_area_struct *vma)
++{
++	struct xol_area *area = container_of(vma->vm_private_data, struct xol_area, xol_mapping);
++
++	mutex_lock(&delayed_uprobe_lock);
++	delayed_uprobe_remove(NULL, vma->vm_mm);
++	mutex_unlock(&delayed_uprobe_lock);
++
++	if (!area)
++		return;
++
++	put_page(area->pages[0]);
++	kfree(area->bitmap);
++	kfree(area);
++}
++
+ static struct xol_area *__create_xol_area(unsigned long vaddr)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -1500,6 +1519,7 @@ static struct xol_area *__create_xol_are
+ 
+ 	area->xol_mapping.name = "[uprobes]";
+ 	area->xol_mapping.fault = NULL;
++	area->xol_mapping.close = uprobe_clear_state;
+ 	area->xol_mapping.pages = area->pages;
+ 	area->pages[0] = alloc_page(GFP_HIGHUSER);
+ 	if (!area->pages[0])
+@@ -1545,25 +1565,6 @@ static struct xol_area *get_xol_area(voi
+ 	return area;
+ }
+ 
+-/*
+- * uprobe_clear_state - Free the area allocated for slots.
+- */
+-void uprobe_clear_state(struct mm_struct *mm)
+-{
+-	struct xol_area *area = mm->uprobes_state.xol_area;
+-
+-	mutex_lock(&delayed_uprobe_lock);
+-	delayed_uprobe_remove(NULL, mm);
+-	mutex_unlock(&delayed_uprobe_lock);
+-
+-	if (!area)
+-		return;
+-
+-	put_page(area->pages[0]);
+-	kfree(area->bitmap);
+-	kfree(area);
+-}
+-
+ void uprobe_start_dup_mmap(void)
+ {
+ 	percpu_down_read(&dup_mmap_sem);
+--- a/kernel/fork.c~uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/fork.c
+@@ -1338,7 +1338,6 @@ static inline void __mmput(struct mm_str
+ {
+ 	VM_BUG_ON(atomic_read(&mm->mm_users));
+ 
+-	uprobe_clear_state(mm);
+ 	exit_aio(mm);
+ 	ksm_exit(mm);
+ 	khugepaged_exit(mm); /* must run before exit_mmap */
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from svens@linux.ibm.com are
 
-ocfs2-cancel-dqi_sync_work-before-freeing-oinfo.patch
-ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch
+uprobes-use-vm_special_mapping-close-functionality.patch
 
