@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07736AFAE
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:20:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A836AFAE
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:20:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423600; cv=none; b=IBjNWPAYQVmz89y/Co7ChUJr+IpKzG5P4K8tepnAMEGpTrtFdlO2FDq/Ey43745JaKPe9chGCJ30RXMXskHRj2h0nEtbZkLSaiVNMSKSBBofehw1Wvxd0hhQvUnT87YskJ3Ufr2P3j3xvknKSWJxZwp6nzKVqSSsUzz4viSZvPA=
+	t=1725423601; cv=none; b=PXptHD2lAYrfkkcgtfg5NTzZAP1lTvh8auCOhgn6WzSQJUkZZ+AwOhm0I0YowsIpp3Az+2hrzY03Rs/nmMUAaYNAPt0nkyZV8Bx097Xqj2vUbLk1vGU6ZfAqTylpRkKCg9i7A7363K53mlMtd5KHGD8JvUUrj9ULPNRUmc5Qh2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423600; c=relaxed/simple;
-	bh=BD8XVO6zFqap81xrooho3mYnUNyWtEH3X1T/nAPt4uw=;
-	h=Date:To:From:Subject:Message-Id; b=jA7731Fyw3jgtLOag9ixcUxvLSEpz0SparirJTucF3NoWgM7rTims8UaZdDkrpAnY/rw9yqr8mhssxfRBDKCLx1wflD/vZSmuqJFJab2TmHg/Bxkws/hgG85Vgu1RJA3fUPtgDlTY7eoq6KAZn37/eZy9CFYq3hAdy74m8H5GVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PgCRoNrn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423601; c=relaxed/simple;
+	bh=bP/aRXkBltsNzgsFY+LNmEpk4m8Oyr/LTTU7TY2FMuE=;
+	h=Date:To:From:Subject:Message-Id; b=GCrvdsGIiYFo91bv4uxVCDoCalzeT9RbfTB+usLyOK1Q3PKv0VnUk0+I+m23rCgNeNI0JpxO+6+vOqtrsN5UMXVkxYozspcz9QZhHs0dthh6lEWbv+l9RmRelcRo9+5kI/jSNpkKw9wK4rbvYW7FkWWGOZam9EvwaY8fZ4fKixc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PWUrJ+7t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PgCRoNrn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD9BC4CEC2;
-	Wed,  4 Sep 2024 04:20:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PWUrJ+7t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A953EC4CEC2;
+	Wed,  4 Sep 2024 04:20:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423600;
-	bh=BD8XVO6zFqap81xrooho3mYnUNyWtEH3X1T/nAPt4uw=;
+	s=korg; t=1725423601;
+	bh=bP/aRXkBltsNzgsFY+LNmEpk4m8Oyr/LTTU7TY2FMuE=;
 	h=Date:To:From:Subject:From;
-	b=PgCRoNrnQl24Be6TeqW9oLtqAMj7HQZPTr4A63sM2mnzXDE33mdsnc1/OJba45Llj
-	 426DSD/v/YcLh6/bc0Pbn4D47/i5G18rwFM3F4Qy4J8QuWftx85K9jtfG878abI2Gh
-	 yo+Ykoa4KKHLMK0VtIeHkUyaUoHrLfVWAb4zIpRQ=
-Date: Tue, 03 Sep 2024 21:20:00 -0700
+	b=PWUrJ+7tZtJ2iTZfh6E+NKNuFdfhwBPOfEK1B8lGgCgqlCb5DycNR6P4ZmCMsMTu/
+	 d62uUFa7RxIuaAlgh9RytTI8jdxaGD8hlTGGISPoXZCcu06ORekSxCeWqn6K27xcYx
+	 4E76+Za2vEq2/GXO1yrBYVu8exsAw31j0J5/QSW4=
+Date: Tue, 03 Sep 2024 21:20:01 -0700
 To: mm-commits@vger.kernel.org,davidgow@google.com,brendanhiggins@google.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-cleanup-__pycache__-with-make-clean.patch removed from -mm tree
-Message-Id: <20240904042000.9BD9BC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-add-execute-permissions-to-test-scripts.patch removed from -mm tree
+Message-Id: <20240904042001.A953EC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: cleanup __pycache__/ with 'make clean'
+     Subject: selftests/damon: add execute permissions to test scripts
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-cleanup-__pycache__-with-make-clean.patch
+     selftests-damon-add-execute-permissions-to-test-scripts.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: cleanup __pycache__/ with 'make clean'
-Date: Mon, 26 Aug 2024 20:03:29 -0700
+Subject: selftests/damon: add execute permissions to test scripts
+Date: Mon, 26 Aug 2024 20:03:30 -0700
 
-Python-based tests creates __pycache__/ directory.  Remove it with 'make
-clean' by defining it as EXTRA_CLEAN.
+Some test scripts are missing executable permissions.  It causes warnings
+that make the test output unnecessarily verbose.  Add executable
+permissions.
 
-Link: https://lkml.kernel.org/r/20240827030336.7930-3-sj@kernel.org
-Fixes: b5906f5f7359 ("selftests/damon: add a test for update_schemes_tried_regions sysfs command")
+Link: https://lkml.kernel.org/r/20240827030336.7930-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ 0 files changed
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-cleanup-__pycache__-with-make-clean
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -25,4 +25,6 @@ TEST_PROGS += debugfs_target_ids_pid_lea
- TEST_PROGS += sysfs_update_removed_scheme_dir.sh
- TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
- 
-+EXTRA_CLEAN = __pycache__
-+
- include ../lib.mk
+diff --git a/tools/testing/selftests/damon/damon_nr_regions.py a/tools/testing/selftests/damon/damon_nr_regions.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/damos_apply_interval.py a/tools/testing/selftests/damon/damos_apply_interval.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/damos_quota_goal.py a/tools/testing/selftests/damon/damos_quota_goal.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/damos_quota.py a/tools/testing/selftests/damon/damos_quota.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/damos_tried_regions.py a/tools/testing/selftests/damon/damos_tried_regions.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/debugfs_target_ids_pid_leak.sh a/tools/testing/selftests/damon/debugfs_target_ids_pid_leak.sh
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/debugfs_target_ids_read_before_terminate_race.sh a/tools/testing/selftests/damon/debugfs_target_ids_read_before_terminate_race.sh
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py
+old mode 100664
+new mode 100755
+diff --git a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
+old mode 100664
+new mode 100755
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
