@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4F5770FD
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B482F77F13
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423533; cv=none; b=D0X/5z2VGfqN6BdlPBjKicNSURzNmDLRcnGKf5BOdIibeHRDsLrJbTdNnR1QxgEpi0zU1xQ01Lwe4n5hAIQyslfgwYMuBRAf5GWXxxJq+K40z/dxc3skuEcgIMp92k9jAP600yEC/a2ogiCkZD6+10eA5VFvZHnKaMf8uxALQLs=
+	t=1725423534; cv=none; b=G08ShN3snsY/rXcEqr+Zgds4lVd6/iuRWigrdtehHXAu/ubQT9vOuWAdRNG+bVa6qZ4fmxoOWI17x3zAhnzoGBuJyqSMVjsIm8a10aTlhmkHBv6jHqbcMHfY3aYuxfRmpB75ZpP7XwVGP9P2bFYJOw0xu4wWS8q3n+i13WP2pug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423533; c=relaxed/simple;
-	bh=VWVFG9BTofnJJk34YQ2xjQWJO9tCNShM66yP0Vg9MM4=;
-	h=Date:To:From:Subject:Message-Id; b=B7dyD5yaoLBbB1rqZhi1xnN1CCUg+Ufznsaard3dD65VvdNOVnjnHmgHREGKS6EEjcZJySR+P6WAETQohtHZAtmwQsLQFNspNaXpNg65ZR17+FzbhAC8CQh6tXhvsZi7nhkCnTd4P/wUM+fszqYk21Yq540Bn/0Owr+a2mpa58g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lxjPuwap; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423534; c=relaxed/simple;
+	bh=ao/MUQ2tKSLU/EMwtS9EgXLyd9ZzRCXzlk2vKLlgKnU=;
+	h=Date:To:From:Subject:Message-Id; b=CBqPSUiZRccg5RrRbjS0JGTe0she2BqsOj4DkXbCXmrYPlR707rir+M+5YUDeurZ6WgxVQyVD/2xXFMPbxBa8v++iaX1XLyC43oQkEOYLdMquTWg4+TL1aAR00ScxhOE02rJmDhm+No2drYlEAOsKMlY7ybQRA/xXtL0EkRlAMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zqaPGJgB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lxjPuwap"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867CCC4CEC2;
-	Wed,  4 Sep 2024 04:18:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zqaPGJgB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BF0CC4CEC2;
+	Wed,  4 Sep 2024 04:18:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423533;
-	bh=VWVFG9BTofnJJk34YQ2xjQWJO9tCNShM66yP0Vg9MM4=;
+	s=korg; t=1725423534;
+	bh=ao/MUQ2tKSLU/EMwtS9EgXLyd9ZzRCXzlk2vKLlgKnU=;
 	h=Date:To:From:Subject:From;
-	b=lxjPuwap0ZuKJJq9rGPTinHHrbCqrfOenDuo40gqEaO7WFjBBW3eVVMEiqDeGkDLd
-	 NHozkB0MT1xeu24wLYdTKfMImLwdf8AEUHkKXGSrad2/TdOrs6MwBk2ZNhyyxYXm3x
-	 8pdg3TpR/jbeu+3gDMlI0xHQQDNomWN7xYYvindM=
-Date: Tue, 03 Sep 2024 21:18:53 -0700
+	b=zqaPGJgBcW6mESIYvr5JtE0rIhaw2gwcRnsV5vfBRjc0HxN4GJLlkNrAHM8Vzgt63
+	 FwmPPPSJ95i7Rl6kPOVOPp45DkCEmEAWvQfjhjLI7e5NcGIMqUB71J68HbWaOn5jsn
+	 bSBpGsPxs5cHbs3vEmLDDiRH3y+irJAUIk+Y8bCI=
+Date: Tue, 03 Sep 2024 21:18:54 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-page_has_private.patch removed from -mm tree
-Message-Id: <20240904041853.867CCC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-pg_mappedtodisk-to-pg_owner_2.patch removed from -mm tree
+Message-Id: <20240904041854.8BF0CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,167 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove page_has_private()
+     Subject: mm: rename PG_mappedtodisk to PG_owner_2
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_has_private.patch
+     mm-rename-pg_mappedtodisk-to-pg_owner_2.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page_has_private()
-Date: Wed, 21 Aug 2024 20:34:41 +0100
+Subject: mm: rename PG_mappedtodisk to PG_owner_2
+Date: Wed, 21 Aug 2024 20:34:42 +0100
 
-This function has no more callers, except folio_has_private().  Combine
-the two functions.
+This flag has similar constraints to PG_owner_priv_1 -- it is ignored by
+core code, and is entirely for the use of the code which allocated the
+folio.  Since the pagecache does not use it, individual filesystems can
+use it.  The bufferhead code does use it, so filesystems which use the
+buffer cache must not use it for another purpose.
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821193445.2294269-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ fs/proc/page.c                    |    2 +-
+ include/linux/kernel-page-flags.h |    2 +-
+ include/linux/page-flags.h        |   24 ++++++++++++++++--------
+ include/trace/events/mmflags.h    |    2 +-
+ tools/mm/page-types.c             |   10 +++++-----
+ 5 files changed, 24 insertions(+), 16 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-page_has_private
-+++ a/include/linux/page-flags.h
-@@ -1175,20 +1175,15 @@ static __always_inline void __ClearPageA
- #define PAGE_FLAGS_PRIVATE				\
- 	(1UL << PG_private | 1UL << PG_private_2)
- /**
-- * page_has_private - Determine if page has private stuff
-- * @page: The page to be checked
-+ * folio_has_private - Determine if folio has private stuff
-+ * @folio: The folio to be checked
-  *
-- * Determine if a page has private stuff, indicating that release routines
-+ * Determine if a folio has private stuff, indicating that release routines
-  * should be invoked upon it.
-  */
--static inline int page_has_private(const struct page *page)
-+static inline int folio_has_private(const struct folio *folio)
- {
--	return !!(page->flags & PAGE_FLAGS_PRIVATE);
--}
--
--static inline bool folio_has_private(const struct folio *folio)
--{
--	return page_has_private(&folio->page);
-+	return !!(folio->flags & PAGE_FLAGS_PRIVATE);
- }
+--- a/fs/proc/page.c~mm-rename-pg_mappedtodisk-to-pg_owner_2
++++ a/fs/proc/page.c
+@@ -211,7 +211,7 @@ u64 stable_page_flags(const struct page
+ #endif
  
- #undef PF_ANY
+ 	u |= kpf_copy_bit(k, KPF_RESERVED,	PG_reserved);
+-	u |= kpf_copy_bit(k, KPF_MAPPEDTODISK,	PG_mappedtodisk);
++	u |= kpf_copy_bit(k, KPF_OWNER_2,	PG_owner_2);
+ 	u |= kpf_copy_bit(k, KPF_PRIVATE,	PG_private);
+ 	u |= kpf_copy_bit(k, KPF_PRIVATE_2,	PG_private_2);
+ 	u |= kpf_copy_bit(k, KPF_OWNER_PRIVATE,	PG_owner_priv_1);
+--- a/include/linux/kernel-page-flags.h~mm-rename-pg_mappedtodisk-to-pg_owner_2
++++ a/include/linux/kernel-page-flags.h
+@@ -10,7 +10,7 @@
+  */
+ #define KPF_RESERVED		32
+ #define KPF_MLOCKED		33
+-#define KPF_MAPPEDTODISK	34
++#define KPF_OWNER_2		34
+ #define KPF_PRIVATE		35
+ #define KPF_PRIVATE_2		36
+ #define KPF_OWNER_PRIVATE	37
+--- a/include/linux/page-flags.h~mm-rename-pg_mappedtodisk-to-pg_owner_2
++++ a/include/linux/page-flags.h
+@@ -101,12 +101,12 @@ enum pageflags {
+ 	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_active,
+ 	PG_workingset,
+-	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
++	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use */
++	PG_owner_2,		/* Owner use. If pagecache, fs may use */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+ 	PG_private_2,		/* If pagecache, has fs aux data */
+-	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ 	PG_unevictable,		/* Page is "unevictable"  */
+@@ -131,6 +131,11 @@ enum pageflags {
+ 
+ 	PG_readahead = PG_reclaim,
+ 
++	/* Anonymous memory (and shmem) */
++	PG_swapcache = PG_owner_priv_1, /* Swap page: swp_entry_t in private */
++	/* Some filesystems */
++	PG_checked = PG_owner_priv_1,
++
+ 	/*
+ 	 * Depending on the way an anonymous folio can be mapped into a page
+ 	 * table (e.g., single PMD/PUD/CONT of the head page vs. PTE-mapped
+@@ -138,13 +143,13 @@ enum pageflags {
+ 	 * tail pages of an anonymous folio. For now, we only expect it to be
+ 	 * set on tail pages for PTE-mapped THP.
+ 	 */
+-	PG_anon_exclusive = PG_mappedtodisk,
+-
+-	/* Filesystems */
+-	PG_checked = PG_owner_priv_1,
++	PG_anon_exclusive = PG_owner_2,
+ 
+-	/* SwapBacked */
+-	PG_swapcache = PG_owner_priv_1,	/* Swap page: swp_entry_t in private */
++	/*
++	 * Set if all buffer heads in the folio are mapped.
++	 * Filesystems which do not use BHs can use it for their own purpose.
++	 */
++	PG_mappedtodisk = PG_owner_2,
+ 
+ 	/* Two page bits are conscripted by FS-Cache to maintain local caching
+ 	 * state.  These bits are set on pages belonging to the netfs's inodes
+@@ -540,6 +545,9 @@ FOLIO_FLAG(swapbacked, FOLIO_HEAD_PAGE)
+ PAGEFLAG(Private, private, PF_ANY)
+ PAGEFLAG(Private2, private_2, PF_ANY) TESTSCFLAG(Private2, private_2, PF_ANY)
+ 
++/* owner_2 can be set on tail pages for anon memory */
++FOLIO_FLAG(owner_2, FOLIO_HEAD_PAGE)
++
+ /*
+  * Only test-and-set exist for PG_writeback.  The unconditional operators are
+  * risky: they bypass page accounting.
+--- a/include/trace/events/mmflags.h~mm-rename-pg_mappedtodisk-to-pg_owner_2
++++ a/include/trace/events/mmflags.h
+@@ -107,13 +107,13 @@
+ 	DEF_PAGEFLAG_NAME(active),					\
+ 	DEF_PAGEFLAG_NAME(workingset),					\
+ 	DEF_PAGEFLAG_NAME(owner_priv_1),				\
++	DEF_PAGEFLAG_NAME(owner_2),					\
+ 	DEF_PAGEFLAG_NAME(arch_1),					\
+ 	DEF_PAGEFLAG_NAME(reserved),					\
+ 	DEF_PAGEFLAG_NAME(private),					\
+ 	DEF_PAGEFLAG_NAME(private_2),					\
+ 	DEF_PAGEFLAG_NAME(writeback),					\
+ 	DEF_PAGEFLAG_NAME(head),					\
+-	DEF_PAGEFLAG_NAME(mappedtodisk),				\
+ 	DEF_PAGEFLAG_NAME(reclaim),					\
+ 	DEF_PAGEFLAG_NAME(swapbacked),					\
+ 	DEF_PAGEFLAG_NAME(unevictable)					\
+--- a/tools/mm/page-types.c~mm-rename-pg_mappedtodisk-to-pg_owner_2
++++ a/tools/mm/page-types.c
+@@ -71,7 +71,7 @@
+ /* [32-] kernel hacking assistances */
+ #define KPF_RESERVED		32
+ #define KPF_MLOCKED		33
+-#define KPF_MAPPEDTODISK	34
++#define KPF_OWNER_2		34
+ #define KPF_PRIVATE		35
+ #define KPF_PRIVATE_2		36
+ #define KPF_OWNER_PRIVATE	37
+@@ -129,7 +129,7 @@ static const char * const page_flag_name
+ 
+ 	[KPF_RESERVED]		= "r:reserved",
+ 	[KPF_MLOCKED]		= "m:mlocked",
+-	[KPF_MAPPEDTODISK]	= "d:mappedtodisk",
++	[KPF_OWNER_2]		= "d:owner_2",
+ 	[KPF_PRIVATE]		= "P:private",
+ 	[KPF_PRIVATE_2]		= "p:private_2",
+ 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
+@@ -472,9 +472,9 @@ static int bit_mask_ok(uint64_t flags)
+ 
+ static uint64_t expand_overloaded_flags(uint64_t flags, uint64_t pme)
+ {
+-	/* Anonymous pages overload PG_mappedtodisk */
+-	if ((flags & BIT(ANON)) && (flags & BIT(MAPPEDTODISK)))
+-		flags ^= BIT(MAPPEDTODISK) | BIT(ANON_EXCLUSIVE);
++	/* Anonymous pages use PG_owner_2 for anon_exclusive */
++	if ((flags & BIT(ANON)) && (flags & BIT(OWNER_2)))
++		flags ^= BIT(OWNER_2) | BIT(ANON_EXCLUSIVE);
+ 
+ 	/* SLUB overloads several page flags */
+ 	if (flags & BIT(SLAB)) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
