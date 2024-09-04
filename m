@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FA761E515
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:51:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9AEE1E515
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:52:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421918; cv=none; b=Z/RBiAkx2VN7o32612xvTAVHREBA3KxnVCL+eUcWbtmjVroSO/tA+etlkvMfQb33w4paVMeFTi3zkyK0gxB1aruOkk16Oo+/0vG6taYRTWzjZevGF4XcFLdAql8Zy/wa4bItPjlXhI9erZUV3BD/X4pR3jvcWyCPJ/jF4G88KEA=
+	t=1725421964; cv=none; b=GTIG93FsLFyi4DRJ8oU5yVAMNu7sY1NRp5aBojG1HybpOL0AHEx6FOdwjrOFsR7B8wT9rq+bQ90DxogPGI/RjAI7ifQCbz5dNvlHwv47Pn0Yt9fBN++JjhGkBpX591JlxJESLEY0ry/GxptD9GCZc7ZWIoiv4uw93EbTlpkUVFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421918; c=relaxed/simple;
-	bh=L/nuPUU/4C7D9v+WugQm16KmsLQgqwqcfpaidWR9DVs=;
-	h=Date:To:From:Subject:Message-Id; b=YSNECgzWcYe+sidyzphiklBDnwGWjZU2Q71wFQmN6Abh10qUheIDR0KMAj/Y9fyzwCpoFh2iFA4Gm8Ka41MBU3cqFcEZT5IfgVeHD4ss7ps+XUt+sin/6CoKHvckoAeCBkO5ahb+FoQ+HHkkXLewAuDX0YZxIFrHzI0ZojwMLEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=REracVlC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421964; c=relaxed/simple;
+	bh=vPnqq0EKmJS8+S6vteXNi1swDQa/kc3wsTY1AwSKLrY=;
+	h=Date:To:From:Subject:Message-Id; b=apR8bx8p/JgOsqx/FdUQPJATjkmcnrH0Lp9SfNLqK7E46GUSQVu45oh1jKgQM5C6YTcCux/xiBg/i8FvNLyVaWrfdFvhWbLvkfWq5xSjZsp1m1GuUqNxi3gbR9e7XV0VJQkLA+Nb5P1tOdJRUyxvKmMZMREh7aP8/4aGQ6+mflg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rrCqK3YC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="REracVlC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63CFC4CEC2;
-	Wed,  4 Sep 2024 03:51:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rrCqK3YC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 423E5C4CEC2;
+	Wed,  4 Sep 2024 03:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421917;
-	bh=L/nuPUU/4C7D9v+WugQm16KmsLQgqwqcfpaidWR9DVs=;
+	s=korg; t=1725421964;
+	bh=vPnqq0EKmJS8+S6vteXNi1swDQa/kc3wsTY1AwSKLrY=;
 	h=Date:To:From:Subject:From;
-	b=REracVlCNC8fic4xToQ6FsEY5ZyLwg4LW2vMuiUSianH5WSr78xryd216DWc1iJ7y
-	 PXrD0+kxas8OKJSu1iCbgt3lHPQaUGFYS8BGygYfVSLJ/Kl1gIdceop3vDG1IAHr36
-	 A/oEGqUnXUnFvxnr4MsdWWqSiBNpofgwPvSGwvUo=
-Date: Tue, 03 Sep 2024 20:51:57 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=rrCqK3YC6csA4fUo5CtpUt8BRkx52auAFKUBKVloaA1TEHC9H9nkEJQrU4RzxzRnG
+	 gXwVubCsSRm4uV1ppTg8UfL3Snh0kJvptPbRceNxH0liCfJMK7iaKHqsZsPyfpuOWk
+	 R9rRzB9+SJF+6fU8Fh1yx3/0vz2CgHNcO1srcm8k=
+Date: Tue, 03 Sep 2024 20:52:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,ryan.roberts@arm.com,p.raghav@samsung.com,ioworker0@gmail.com,david@redhat.com,da.gomez@samsung.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix.patch removed from -mm tree
-Message-Id: <20240904035157.D63CFC4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix.patch removed from -mm tree
+Message-Id: <20240904035244.423E5C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix
+     Subject: mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix.patch
+     mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix.patch
 
-This patch was dropped because it was folded into mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
+This patch was dropped because it was folded into mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix
-Date: Wed, 28 Aug 2024 18:17:18 +0800
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix
+Date: Sun, 25 Aug 2024 15:31:21 -0700 (PDT)
 
-fix build without CONFIG_TRANSPARENT_HUGEPAGE
+Fix all the
+Unexpected gfp: 0x2 (__GFP_HIGHMEM). Fixing up to gfp: 0x1120d0
+(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_HARDWALL|__GFP_RECLAIMABLE).
+Fix your code!
+warnings from kmalloc_fix_flags() from xas_split_alloc() from
+shmem_split_large_entry().
 
-ERROR:root:/usr/bin/ld: mm/shmem.o: in function `shmem_swapin_folio':
-shmem.c:(.text+0x12d9): undefined reference to `vma_thp_gfp_mask'
-collect2: error: ld returned 1 exit status
-
-Link: https://lkml.kernel.org/r/8c03467c-63b2-43b4-9851-222d4188725c@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: SeongJae Park <sj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/e2a2ba5d-864c-50aa-7579-97cba1c7dd0c@google.com
+Fixes: a960844d5ac9 ("mm: shmem: split large entry if the swapin folio is not large")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/shmem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-support-large-folio-allocation-for-shmem_replace_folio-fix-fix
+--- a/mm/shmem.c~mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix
 +++ a/mm/shmem.c
-@@ -1899,11 +1899,13 @@ static int shmem_replace_folio(struct fo
- 	 * limit chance of success by further cpuset and node constraints.
- 	 */
- 	gfp &= ~GFP_CONSTRAINT_MASK;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (nr_pages > 1) {
- 		gfp_t huge_gfp = vma_thp_gfp_mask(vma);
+@@ -2003,6 +2003,9 @@ static int shmem_split_large_entry(struc
+ 	void *alloced_shadow = NULL;
+ 	int alloced_order = 0, i;
  
- 		gfp = limit_gfp_mask(huge_gfp, gfp);
- 	}
-+#endif
- 
- 	new = shmem_alloc_folio(gfp, folio_order(old), info, index);
- 	if (!new)
++	/* Convert user data gfp flags to xarray node gfp flags */
++	gfp &= GFP_RECLAIM_MASK;
++
+ 	for (;;) {
+ 		int order = -1, split_order = 0;
+ 		void *old = NULL;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-swap-extend-swap_shmem_alloc-to-support-batch-swap_map_shmem-flag-setting.patch
-mm-shmem-extend-shmem_partial_swap_usage-to-support-large-folio-swap.patch
-mm-filemap-use-xa_get_order-to-get-the-swap-entry-order.patch
-mm-shmem-use-swap_free_nr-to-free-shmem-swap-entries.patch
-mm-shmem-support-large-folio-allocation-for-shmem_replace_folio.patch
-mm-shmem-drop-folio-reference-count-using-nr_pages-in-shmem_delete_from_page_cache.patch
 mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large.patch
-mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix-2.patch
-mm-shmem-support-large-folio-swap-out.patch
-mm-shmem-support-large-folio-swap-out-fix-2.patch
-mm-khugepaged-expand-the-is_refcount_suitable-to-support-file-folios.patch
-mm-khugepaged-use-the-number-of-pages-in-the-folio-to-check-the-reference-count.patch
-mm-khugepaged-support-shmem-mthp-copy.patch
-mm-khugepaged-support-shmem-mthp-collapse.patch
-selftests-mm-support-shmem-mthp-collapse-testing.patch
+mm-shmem-support-large-folio-swap-out-fix.patch
+mm-restart-if-multiple-traversals-raced-fix.patch
+mm-shmem-fix-minor-off-by-one-in-shrinkable-calculation.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes.patch
 
