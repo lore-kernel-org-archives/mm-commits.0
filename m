@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 590E478C9C
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E550678C89
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423578; cv=none; b=lLw7i2SjfyIgudUT/eziMqGDOcRhf4Fd2OPuPSEuT//GINjTDNV9NflMNaIVTBHNp+M9pZ5qr3Tl0+PjpoTbkiOVObO2fz62lFXLcZW35hFBXnGbzur+ojaehJJ4aR0XcdTRSp1l9w6tcR5GAd4UfVKrZEAtsqEQ7w1HbcRpwbQ=
+	t=1725423580; cv=none; b=REs5rALe3/6L215+4PIMmSxfDG/z9gnd52mZ4YD2CaT7Ii71eIsVb+bm04rmhkmKPpaLy0gL20fB+vBidoV42/1nd0K54UUrohblQPdnXNC55myO+WHw0tq2pfvgSNQ3nadmtzlcJC6upwtNMnSRbO5PomGB79qZ+vaAk7BrZCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423578; c=relaxed/simple;
-	bh=XsdWSJKNMPQKOxgSs1hhxgcDDGKe8kWUsBnNGsoI9NY=;
-	h=Date:To:From:Subject:Message-Id; b=o66ze/IG64x2GkP8l5VZAUoOryWI3L6hJJGiSYeAFst9dMS+9tzTFtfkqszdCad2pf1J1BfAxSYSnGrWMN7NeBZVWtUN4bnS+4p/DFzuROry8kGr+4JqL2IS8k3gDSXm01uys4OZRGG8OLVQe4uz8rMJ/S6IDyBnNHV2dcwECBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y+00U94C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423580; c=relaxed/simple;
+	bh=PzHRbKzcGZHJV8KoayEKjRPyR3jrIR846syvfm1VOII=;
+	h=Date:To:From:Subject:Message-Id; b=RelJoOLHFsBcDcAJEe2445n9QGVKfvvHFgcGb3KSsSWyk349ChE7tpl7BkYXhEo9QvB/c3PCRDqtOXekv3gOkFD82ReV2hrVd5f9Z23FHhice2AB41E5kdirSUv6STPBOnpcxCyoOCtoIk4fHzkCUKDbJd9y7yi5FYvXx4jczdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s3IFl3VF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y+00U94C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E68AC4CEC2;
-	Wed,  4 Sep 2024 04:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s3IFl3VF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC293C4CEC2;
+	Wed,  4 Sep 2024 04:19:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423578;
-	bh=XsdWSJKNMPQKOxgSs1hhxgcDDGKe8kWUsBnNGsoI9NY=;
+	s=korg; t=1725423579;
+	bh=PzHRbKzcGZHJV8KoayEKjRPyR3jrIR846syvfm1VOII=;
 	h=Date:To:From:Subject:From;
-	b=Y+00U94CBXB/4ZhLJJaoxw+V4tU+yXb7YLABTChFhvf6Ukfd0Gs50uqEolPSIuK4s
-	 JdtKHzUEBXaW6JVSCz58wCzg+ZvTv3rFjHdkQIcjoUhgaAPWURcJ0xlOJ4Npjqyann
-	 pdJs+WEQdZT8UkdIZF0h0kRql8mDd9S2/EQPLPVM=
-Date: Tue, 03 Sep 2024 21:19:37 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,lorenzo.stoakes@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=s3IFl3VF5f8f16MCehqrsLl6dpXLD8eKPMARir8TWSF6rWg5k1mF1b9hVk0ah81uG
+	 4XlUF/7GVpxzPDnCqNs3Z0i1cb98mzVharGh30Arq42QeV4ul5S/9AwEErwc2x8wtf
+	 fT7zmH2PXd38zzpAfzc7HtitlHhVCOlrn9Dkqguo=
+Date: Tue, 03 Sep 2024 21:19:39 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,paul@paul-moore.com,paulmck@kernel.org,olsajiri@gmail.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmah-optimise-vma_munmap_struct.patch removed from -mm tree
-Message-Id: <20240904041938.2E68AC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] tools-improve-vma-test-makefile.patch removed from -mm tree
+Message-Id: <20240904041939.BC293C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma.h: optimise vma_munmap_struct
+     Subject: tools: improve vma test Makefile
 has been removed from the -mm tree.  Its filename was
-     mm-vmah-optimise-vma_munmap_struct.patch
+     tools-improve-vma-test-makefile.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/vma.h: optimise vma_munmap_struct
-Date: Fri, 30 Aug 2024 00:01:01 -0400
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: tools: improve vma test Makefile
+Date: Fri, 30 Aug 2024 19:10:13 +0100
 
-The vma_munmap_struct has a hole of 4 bytes and pushes the struct to three
-cachelines.  Relocating the three booleans upwards allows for the struct
-to only use two cachelines (as reported by pahole on amd64).
+Patch series "mm: remove vma_merge()", v3.
 
-Before:
-struct vma_munmap_struct {
-        struct vma_iterator *      vmi;                  /*     0     8 */
-        struct vm_area_struct *    vma;                  /*     8     8 */
-        struct vm_area_struct *    prev;                 /*    16     8 */
-        struct vm_area_struct *    next;                 /*    24     8 */
-        struct list_head *         uf;                   /*    32     8 */
-        long unsigned int          start;                /*    40     8 */
-        long unsigned int          end;                  /*    48     8 */
-        long unsigned int          unmap_start;          /*    56     8 */
-        /* --- cacheline 1 boundary (64 bytes) --- */
-        long unsigned int          unmap_end;            /*    64     8 */
-        int                        vma_count;            /*    72     4 */
+The infamous vma_merge() function has been the cause of a great deal of
+pain, bugs and confusion for a very long time.
 
-        /* XXX 4 bytes hole, try to pack */
+It is subtle, contains many corner cases, tries to do far too much and is
+as a result very fragile.
 
-        long unsigned int          nr_pages;             /*    80     8 */
-        long unsigned int          locked_vm;            /*    88     8 */
-        long unsigned int          nr_accounted;         /*    96     8 */
-        long unsigned int          exec_vm;              /*   104     8 */
-        long unsigned int          stack_vm;             /*   112     8 */
-        long unsigned int          data_vm;              /*   120     8 */
-        /* --- cacheline 2 boundary (128 bytes) --- */
-        bool                       unlock;               /*   128     1 */
-        bool                       clear_ptes;           /*   129     1 */
-        bool                       closed_vm_ops;        /*   130     1 */
+The fact that the function requires there to be a numbering system to
+cover each possible eventuality with references to each in the many
+branches of its implementation as to which case you are looking at speaks
+to all this.
 
-        /* size: 136, cachelines: 3, members: 19 */
-        /* sum members: 127, holes: 1, sum holes: 4 */
-        /* padding: 5 */
-        /* last cacheline: 8 bytes */
-};
+Some of this complexity is inherent - unfortunately there is no getting
+away from the need to figure out precisely how to execute the merge,
+whether we need to remove VMAs, whether it is safe to do so, what
+constitutes a mergeable VMA and so on.
 
-After:
-struct vma_munmap_struct {
-        struct vma_iterator *      vmi;                  /*     0     8 */
-        struct vm_area_struct *    vma;                  /*     8     8 */
-        struct vm_area_struct *    prev;                 /*    16     8 */
-        struct vm_area_struct *    next;                 /*    24     8 */
-        struct list_head *         uf;                   /*    32     8 */
-        long unsigned int          start;                /*    40     8 */
-        long unsigned int          end;                  /*    48     8 */
-        long unsigned int          unmap_start;          /*    56     8 */
-        /* --- cacheline 1 boundary (64 bytes) --- */
-        long unsigned int          unmap_end;            /*    64     8 */
-        int                        vma_count;            /*    72     4 */
-        bool                       unlock;               /*    76     1 */
-        bool                       clear_ptes;           /*    77     1 */
-        bool                       closed_vm_ops;        /*    78     1 */
+However, a lot of the complexity is not inherent but instead a product of
+the function's 'organic' development.
 
-        /* XXX 1 byte hole, try to pack */
+Liam has gone to great lengths to improve the situation as a part of his
+maple tree implementation, greatly improving the readability of the code,
+and Vlastimil and myself have additionally gone to lengths to try to
+improve things further.
 
-        long unsigned int          nr_pages;             /*    80     8 */
-        long unsigned int          locked_vm;            /*    88     8 */
-        long unsigned int          nr_accounted;         /*    96     8 */
-        long unsigned int          exec_vm;              /*   104     8 */
-        long unsigned int          stack_vm;             /*   112     8 */
-        long unsigned int          data_vm;              /*   120     8 */
+However, with the availability of userland VMA testing, it now becomes
+possible to perform a rather more significant refactoring while
+maintaining confidence in its correct operation.
 
-        /* size: 128, cachelines: 2, members: 19 */
-        /* sum members: 127, holes: 1, sum holes: 1 */
-};
+An attempt was previously made by Vlastimil [0] to eliminate vma_merge(),
+however it was rather - brutal - and an astute reader might refer to the
+date of that patch for insight as to its intent.
 
-Link: https://lkml.kernel.org/r/20240830040101.822209-22-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+This series instead divides merge operations into two natural kinds -
+merges which occur when a NEW vma is being added to the address space, and
+merges which occur when a vma is being MODIFIED.
+
+Happily, the vma_expand() function introduced by Liam, which has the
+capacity for also deleting a subsequent VMA, covers each of the NEW vma
+cases.
+
+By abstracting the actual final commit of changes to a VMA to its own
+function, commit_merge() and writing a wrapper around vma_expand() for new
+VMA cases vma_merge_new_range(), we can avoid having to use vma_merge()
+for these instances altogether.
+
+By doing so we are also able to then de-duplicate all existing merge logic
+in mmap_region() and do_brk_flags() and have everything invoke this new
+function, so we universally take the same approach to merging new VMAs.
+
+Having done so, we can then completely rework vma_merge() into
+vma_merge_existing_range() and use this for the instances where a merge is
+proposed for a region of an existing VMA.
+
+This eliminates vma_merge() and its numbered cases and instead divides
+things into logical cases - merge both, merge left, merge right (the
+latter 2 being either partial or full merges).
+
+The code is heavily annotated with ASCII diagrams and greatly simplified
+in comparison to the existing vma_merge() function.
+
+Having made this change, we take the opportunity to address an issue with
+merging VMAs possessing a vm_ops->close() hook - commit 714965ca8252
+("mm/mmap: start distinguishing if vma can be removed in mergeability
+test") and commit fc0c8f9089c2 ("mm, mmap: fix vma_merge() case 7 with
+vma_ops->close") make efforts to relax how we handle these, making
+assumptions about which VMAs might end up deleted (and thus, if possessing
+a vm_ops->close() hook, cannot be).
+
+This refactor means we do not need to guess, so instead explicitly only
+disallow merge in instances where a VMA with a vm_ops->close() hook would
+be deleted (and try a smaller merge in cases where this is possible).
+
+In addition to these changes, we introduce a new vma_merge_struct
+abstraction to allow VMA merge state to be threaded through the operation
+neatly.
+
+There is heavy unit testing provided for all merge functionality, added
+prior to the refactoring, allowing for before/after testing.
+
+The vm_ops->close() change also introduces exhaustive testing to
+demonstrate that this functions as expected, and in addition to this the
+reproduction code from commit fc0c8f9089c2 ("mm, mmap: fix vma_merge()
+case 7 with vma_ops->close") was tested and confirmed passing.
+
+[0]:https://lore.kernel.org/linux-mm/20240401192623.18575-2-vbabka@suse.cz/
+
+
+This patch (of 10):
+
+Have vma.o depend on its source dependencies explicitly, as previously
+these were simply being ignored as existing object files were up to date.
+
+This now correctly re-triggers the build if mm/ source is changed as well
+as local source code.
+
+Also set clean as a phony rule.
+
+Link: https://lkml.kernel.org/r/cover.1725040657.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/e3ea58f08364ae5432c9a074de0195a7c7e0b04a.1725040657.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Bert Karwatzki <spasswolf@web.de>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Jiri Olsa <olsajiri@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Cc: Paul Moore <paul@paul-moore.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ tools/testing/vma/Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/vma.h~mm-vmah-optimise-vma_munmap_struct
-+++ a/mm/vma.h
-@@ -40,15 +40,16 @@ struct vma_munmap_struct {
- 	unsigned long unmap_start;      /* Unmap PTE start */
- 	unsigned long unmap_end;        /* Unmap PTE end */
- 	int vma_count;                  /* Number of vmas that will be removed */
-+	bool unlock;                    /* Unlock after the munmap */
-+	bool clear_ptes;                /* If there are outstanding PTE to be cleared */
-+	bool closed_vm_ops;		/* call_mmap() was encountered, so vmas may be closed */
-+	/* 1 byte hole */
- 	unsigned long nr_pages;         /* Number of pages being removed */
- 	unsigned long locked_vm;        /* Number of locked pages */
- 	unsigned long nr_accounted;     /* Number of VM_ACCOUNT pages */
- 	unsigned long exec_vm;
- 	unsigned long stack_vm;
- 	unsigned long data_vm;
--	bool unlock;                    /* Unlock after the munmap */
--	bool clear_ptes;                /* If there are outstanding PTE to be cleared */
--	bool closed_vm_ops;		/* call_mmap() was encountered, so vmas may be closed */
- };
+--- a/tools/testing/vma/Makefile~tools-improve-vma-test-makefile
++++ a/tools/testing/vma/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-or-later
  
- #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+-.PHONY: default
++.PHONY: default clean
+ 
+ default: vma
+ 
+@@ -9,7 +9,9 @@ include ../shared/shared.mk
+ OFILES = $(SHARED_OFILES) vma.o maple-shim.o
+ TARGETS = vma
+ 
+-vma:	$(OFILES) vma_internal.h ../../../mm/vma.c ../../../mm/vma.h
++vma.o: vma.c vma_internal.h ../../../mm/vma.c ../../../mm/vma.h
++
++vma:	$(OFILES)
+ 	$(CC) $(CFLAGS) -o $@ $(OFILES) $(LDLIBS)
+ 
+ clean:
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
 
