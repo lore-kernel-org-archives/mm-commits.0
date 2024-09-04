@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E9FC7E0FF
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3835A7DA95
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423594; cv=none; b=mcg0Vi1/0SdX2mHdMq1I4Zo/pwynnv3hR8hUp7id8P1FpFk5ZA2ct8pcuqx183Wx9Fw0LJcKT2BDhn4QaWVWccv9BxRQihSfufYHTMCtZPbYTu+9VwmHdzgwdGt+yWEK6BfBrU3fgyAfLE6yEJM0AcqKxzSgXTHHTRIfxx95vGQ=
+	t=1725423596; cv=none; b=S+Cb7Ykc9N7XnRvvgEyEjrvEl9lY7Rw6Y7zHxdFmZPRDaAx4+nBhrctbgqkgod9R7LfcA8eYcYXs1HUZIa863sggjxKmWvRs4tTAQSbQOu2ktq8GRdVyplNapWOEuFEGkwJOePide/BxlKRKYhzjgSBikghSkNnSSAwQF1KlUyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423594; c=relaxed/simple;
-	bh=jU6y4DFJQyeJ2v1vza12MuCpwX4KVfe0riSSnjSB4gg=;
-	h=Date:To:From:Subject:Message-Id; b=dehIfRKCd34yfiwTLbO9CcgW+j6jkDLPhIPLBvIJFhVtpogFHwy4W3AaYLkA4A67WZL3/kQSKGLkhgwcxsEMhSVr3bBsBJKEOhGHw0RlOKSRZXSckXgouhbjLQB/EEiud+Q84gwbzYhedyOffWVNkMjGQ14C7BcZCcJH+hr5tjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n6PMdU7o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423596; c=relaxed/simple;
+	bh=i7cCUlWCPv+L0hdu4yG/tY14Bf6ZP+xZaPL9LXcMiBQ=;
+	h=Date:To:From:Subject:Message-Id; b=mILGCssUgFLOOHHaydGD5Xa+Wfj2K0QUi3C/LY1HfAS8oPxD6rXrEsjAcc++DZFF9goiLUUtLWlLYc1AnWviEGk0PsZXmgEVBZxsETnINSclRYio8uK3pusZbt6ckKQY8Vo8t+QtBV/y5iEtK0466TQ54iHjKNL0g6rH5yec320=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2HAfAUg6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n6PMdU7o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 043CFC4CEC2;
-	Wed,  4 Sep 2024 04:19:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2HAfAUg6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D385C4CEC2;
+	Wed,  4 Sep 2024 04:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423594;
-	bh=jU6y4DFJQyeJ2v1vza12MuCpwX4KVfe0riSSnjSB4gg=;
+	s=korg; t=1725423596;
+	bh=i7cCUlWCPv+L0hdu4yG/tY14Bf6ZP+xZaPL9LXcMiBQ=;
 	h=Date:To:From:Subject:From;
-	b=n6PMdU7ohS+QMqY+8wRznNMIv9DZLvE3GsUU56eaLsjNNL6yy+H6Xv27aIDzN240X
-	 RDSiJmVoxGcFLWEnTUSuxPT/UZaUw9QFtLsijiwJRj+xoWi8x6RxZrQSDForJ21YMu
-	 YbW+KSHKdzSob7Ih26GYXNOSQOLTZhOYpV9Ff1rU=
-Date: Tue, 03 Sep 2024 21:19:53 -0700
-To: mm-commits@vger.kernel.org,oleksiy.avramchenko@sony.com,mhocko@suse.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=2HAfAUg6jTH6Srmi2fxbzrGuyv7UMDLDHTboEScX/oTpcBM9lQ7fWYbWirP3Wo1a5
+	 apdCWpl0XSYOQ39Hb4NubkyWsG2CrNPzNIpP629/cwd3sE1pL+q8ebdBh5S8PrIOXl
+	 ctbXH4JCDK9mPeTKgbuh4J+CipftJ4KNPwbIWywc=
+Date: Tue, 03 Sep 2024 21:19:55 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,Jonathan.Cameron@huawei.com,horen.chuang@linux.dev,yanfei.xu@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-refactor-vm_area_alloc_pages-function.patch removed from -mm tree
-Message-Id: <20240904041954.043CFC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] memory-tier-fix-deadlock-warning-while-onlining-pages.patch removed from -mm tree
+Message-Id: <20240904041956.0D385C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,267 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: refactor vm_area_alloc_pages() function
+     Subject: memory tier: fix deadlock warning while onlining pages
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-refactor-vm_area_alloc_pages-function.patch
+     memory-tier-fix-deadlock-warning-while-onlining-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: refactor vm_area_alloc_pages() function
-Date: Tue, 27 Aug 2024 21:09:16 +0200
+From: Yanfei Xu <yanfei.xu@intel.com>
+Subject: memory tier: fix deadlock warning while onlining pages
+Date: Tue, 27 Aug 2024 19:36:14 +0800
 
-The aim is to simplify and making the vm_area_alloc_pages()
-function less confusing as it became more clogged nowadays:
+commit 823430c8e9d9 ("memory tier: consolidate the initialization of
+memory tiers") introduces a locking change that use guard(mutex) to
+instead of mutex_lock/unlock() for memory_tier_lock.  It unexpectedly
+expanded the locked region to include the hotplug_memory_notifier(), as a
+result, it triggers an locking dependency detected of ABBA deadlock. 
+Exclude hotplug_memory_notifier() from the locked region to fixing it.
 
-- eliminate a "bulk_gfp" variable and do not overwrite a gfp
-  flag for bulk allocator;
-- drop __GFP_NOFAIL flag for high-order-page requests on upper
-  layer. It becomes less spread between levels when it comes to
-  __GFP_NOFAIL allocations;
-- add a comment about a fallback path if high-order attempt is
-  unsuccessful because for such cases __GFP_NOFAIL is dropped;
-- fix a typo in a commit message.
+The deadlock scenario is that when a memory online event occurs, the
+execution of memory notifier will access the read lock of the
+memory_chain.rwsem, then the reigistration of the memory notifier in
+memory_tier_init() acquires the write lock of the memory_chain.rwsem while
+holding memory_tier_lock.  Then the memory online event continues to
+invoke the memory hotplug callback registered by memory_tier_init(). 
+Since this callback tries to acquire the memory_tier_lock, a deadlock
+occurs.
 
-Link: https://lkml.kernel.org/r/20240827190916.34242-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+In fact, this deadlock can't happen because memory_tier_init() always
+executes before memory online events happen due to the subsys_initcall()
+has an higher priority than module_init().
+
+[  133.491106] WARNING: possible circular locking dependency detected
+[  133.493656] 6.11.0-rc2+ #146 Tainted: G           O     N
+[  133.504290] ------------------------------------------------------
+[  133.515194] (udev-worker)/1133 is trying to acquire lock:
+[  133.525715] ffffffff87044e28 (memory_tier_lock){+.+.}-{3:3}, at: memtier_hotplug_callback+0x383/0x4b0
+[  133.536449]
+[  133.536449] but task is already holding lock:
+[  133.549847] ffffffff875d3310 ((memory_chain).rwsem){++++}-{3:3}, at: blocking_notifier_call_chain+0x60/0xb0
+[  133.556781]
+[  133.556781] which lock already depends on the new lock.
+[  133.556781]
+[  133.569957]
+[  133.569957] the existing dependency chain (in reverse order) is:
+[  133.577618]
+[  133.577618] -> #1 ((memory_chain).rwsem){++++}-{3:3}:
+[  133.584997]        down_write+0x97/0x210
+[  133.588647]        blocking_notifier_chain_register+0x71/0xd0
+[  133.592537]        register_memory_notifier+0x26/0x30
+[  133.596314]        memory_tier_init+0x187/0x300
+[  133.599864]        do_one_initcall+0x117/0x5d0
+[  133.603399]        kernel_init_freeable+0xab0/0xeb0
+[  133.606986]        kernel_init+0x28/0x2f0
+[  133.610312]        ret_from_fork+0x59/0x90
+[  133.613652]        ret_from_fork_asm+0x1a/0x30
+[  133.617012]
+[  133.617012] -> #0 (memory_tier_lock){+.+.}-{3:3}:
+[  133.623390]        __lock_acquire+0x2efd/0x5c60
+[  133.626730]        lock_acquire+0x1ce/0x580
+[  133.629757]        __mutex_lock+0x15c/0x1490
+[  133.632731]        mutex_lock_nested+0x1f/0x30
+[  133.635717]        memtier_hotplug_callback+0x383/0x4b0
+[  133.638748]        notifier_call_chain+0xbf/0x370
+[  133.641647]        blocking_notifier_call_chain+0x76/0xb0
+[  133.644636]        memory_notify+0x2e/0x40
+[  133.647427]        online_pages+0x597/0x720
+[  133.650246]        memory_subsys_online+0x4f6/0x7f0
+[  133.653107]        device_online+0x141/0x1d0
+[  133.655831]        online_memory_block+0x4d/0x60
+[  133.658616]        walk_memory_blocks+0xc0/0x120
+[  133.661419]        add_memory_resource+0x51d/0x6c0
+[  133.664202]        add_memory_driver_managed+0xf5/0x180
+[  133.667060]        dev_dax_kmem_probe+0x7f7/0xb40 [kmem]
+[  133.669949]        dax_bus_probe+0x147/0x230
+[  133.672687]        really_probe+0x27f/0xac0
+[  133.675463]        __driver_probe_device+0x1f3/0x460
+[  133.678493]        driver_probe_device+0x56/0x1b0
+[  133.681366]        __driver_attach+0x277/0x570
+[  133.684149]        bus_for_each_dev+0x145/0x1e0
+[  133.686937]        driver_attach+0x49/0x60
+[  133.689673]        bus_add_driver+0x2f3/0x6b0
+[  133.692421]        driver_register+0x170/0x4b0
+[  133.695118]        __dax_driver_register+0x141/0x1b0
+[  133.697910]        dax_kmem_init+0x54/0xff0 [kmem]
+[  133.700794]        do_one_initcall+0x117/0x5d0
+[  133.703455]        do_init_module+0x277/0x750
+[  133.706054]        load_module+0x5d1d/0x74f0
+[  133.708602]        init_module_from_file+0x12c/0x1a0
+[  133.711234]        idempotent_init_module+0x3f1/0x690
+[  133.713937]        __x64_sys_finit_module+0x10e/0x1a0
+[  133.716492]        x64_sys_call+0x184d/0x20d0
+[  133.719053]        do_syscall_64+0x6d/0x140
+[  133.721537]        entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[  133.724239]
+[  133.724239] other info that might help us debug this:
+[  133.724239]
+[  133.730832]  Possible unsafe locking scenario:
+[  133.730832]
+[  133.735298]        CPU0                    CPU1
+[  133.737759]        ----                    ----
+[  133.740165]   rlock((memory_chain).rwsem);
+[  133.742623]                                lock(memory_tier_lock);
+[  133.745357]                                lock((memory_chain).rwsem);
+[  133.748141]   lock(memory_tier_lock);
+[  133.750489]
+[  133.750489]  *** DEADLOCK ***
+[  133.750489]
+[  133.756742] 6 locks held by (udev-worker)/1133:
+[  133.759179]  #0: ffff888207be6158 (&dev->mutex){....}-{3:3}, at: __driver_attach+0x26c/0x570
+[  133.762299]  #1: ffffffff875b5868 (device_hotplug_lock){+.+.}-{3:3}, at: lock_device_hotplug+0x20/0x30
+[  133.765565]  #2: ffff88820cf6a108 (&dev->mutex){....}-{3:3}, at: device_online+0x2f/0x1d0
+[  133.768978]  #3: ffffffff86d08ff0 (cpu_hotplug_lock){++++}-{0:0}, at: mem_hotplug_begin+0x17/0x30
+[  133.772312]  #4: ffffffff8702dfb0 (mem_hotplug_lock){++++}-{0:0}, at: mem_hotplug_begin+0x23/0x30
+[  133.775544]  #5: ffffffff875d3310 ((memory_chain).rwsem){++++}-{3:3}, at: blocking_notifier_call_chain+0x60/0xb0
+[  133.779113]
+[  133.779113] stack backtrace:
+[  133.783728] CPU: 5 UID: 0 PID: 1133 Comm: (udev-worker) Tainted: G           O     N 6.11.0-rc2+ #146
+[  133.787220] Tainted: [O]=OOT_MODULE, [N]=TEST
+[  133.789948] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
+[  133.793291] Call Trace:
+[  133.795826]  <TASK>
+[  133.798284]  dump_stack_lvl+0xea/0x150
+[  133.801025]  dump_stack+0x19/0x20
+[  133.803609]  print_circular_bug+0x477/0x740
+[  133.806341]  check_noncircular+0x2f4/0x3e0
+[  133.809056]  ? __pfx_check_noncircular+0x10/0x10
+[  133.811866]  ? __pfx_lockdep_lock+0x10/0x10
+[  133.814670]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
+[  133.817610]  __lock_acquire+0x2efd/0x5c60
+[  133.820339]  ? __pfx___lock_acquire+0x10/0x10
+[  133.823128]  ? __dax_driver_register+0x141/0x1b0
+[  133.825926]  ? do_one_initcall+0x117/0x5d0
+[  133.828648]  lock_acquire+0x1ce/0x580
+[  133.831349]  ? memtier_hotplug_callback+0x383/0x4b0
+[  133.834293]  ? __pfx_lock_acquire+0x10/0x10
+[  133.837134]  __mutex_lock+0x15c/0x1490
+[  133.839829]  ? memtier_hotplug_callback+0x383/0x4b0
+[  133.842753]  ? memtier_hotplug_callback+0x383/0x4b0
+[  133.845602]  ? __this_cpu_preempt_check+0x21/0x30
+[  133.848438]  ? __pfx___mutex_lock+0x10/0x10
+[  133.851200]  ? __pfx_lock_acquire+0x10/0x10
+[  133.853935]  ? global_dirty_limits+0xc0/0x160
+[  133.856699]  ? __sanitizer_cov_trace_switch+0x58/0xa0
+[  133.859564]  mutex_lock_nested+0x1f/0x30
+[  133.862251]  ? mutex_lock_nested+0x1f/0x30
+[  133.864964]  memtier_hotplug_callback+0x383/0x4b0
+[  133.867752]  notifier_call_chain+0xbf/0x370
+[  133.870550]  ? writeback_set_ratelimit+0xe8/0x160
+[  133.873372]  blocking_notifier_call_chain+0x76/0xb0
+[  133.876311]  memory_notify+0x2e/0x40
+[  133.879013]  online_pages+0x597/0x720
+[  133.881686]  ? irqentry_exit+0x3e/0xa0
+[  133.884397]  ? __pfx_online_pages+0x10/0x10
+[  133.887244]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
+[  133.890299]  ? mhp_init_memmap_on_memory+0x7a/0x1c0
+[  133.893203]  memory_subsys_online+0x4f6/0x7f0
+[  133.896099]  ? __pfx_memory_subsys_online+0x10/0x10
+[  133.899039]  ? xa_load+0x16d/0x2e0
+[  133.901667]  ? __pfx_xa_load+0x10/0x10
+[  133.904366]  ? __pfx_memory_subsys_online+0x10/0x10
+[  133.907218]  device_online+0x141/0x1d0
+[  133.909845]  online_memory_block+0x4d/0x60
+[  133.912494]  walk_memory_blocks+0xc0/0x120
+[  133.915104]  ? __pfx_online_memory_block+0x10/0x10
+[  133.917776]  add_memory_resource+0x51d/0x6c0
+[  133.920404]  ? __pfx_add_memory_resource+0x10/0x10
+[  133.923104]  ? _raw_write_unlock+0x31/0x60
+[  133.925781]  ? register_memory_resource+0x119/0x180
+[  133.928450]  add_memory_driver_managed+0xf5/0x180
+[  133.931036]  dev_dax_kmem_probe+0x7f7/0xb40 [kmem]
+[  133.933665]  ? __pfx_dev_dax_kmem_probe+0x10/0x10 [kmem]
+[  133.936332]  ? __pfx___up_read+0x10/0x10
+[  133.938878]  dax_bus_probe+0x147/0x230
+[  133.941332]  ? __pfx_dax_bus_probe+0x10/0x10
+[  133.943954]  really_probe+0x27f/0xac0
+[  133.946387]  ? __sanitizer_cov_trace_const_cmp1+0x1e/0x30
+[  133.949106]  __driver_probe_device+0x1f3/0x460
+[  133.951704]  ? parse_option_str+0x149/0x190
+[  133.954241]  driver_probe_device+0x56/0x1b0
+[  133.956749]  __driver_attach+0x277/0x570
+[  133.959228]  ? __pfx___driver_attach+0x10/0x10
+[  133.961776]  bus_for_each_dev+0x145/0x1e0
+[  133.964367]  ? __pfx_bus_for_each_dev+0x10/0x10
+[  133.967019]  ? __kasan_check_read+0x15/0x20
+[  133.969543]  ? _raw_spin_unlock+0x31/0x60
+[  133.972132]  driver_attach+0x49/0x60
+[  133.974536]  bus_add_driver+0x2f3/0x6b0
+[  133.977044]  driver_register+0x170/0x4b0
+[  133.979480]  __dax_driver_register+0x141/0x1b0
+[  133.982126]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
+[  133.984724]  dax_kmem_init+0x54/0xff0 [kmem]
+[  133.987284]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
+[  133.989965]  do_one_initcall+0x117/0x5d0
+[  133.992506]  ? __pfx_do_one_initcall+0x10/0x10
+[  133.995185]  ? __kasan_kmalloc+0x88/0xa0
+[  133.997748]  ? kasan_poison+0x3e/0x60
+[  134.000288]  ? kasan_unpoison+0x2c/0x60
+[  134.002762]  ? kasan_poison+0x3e/0x60
+[  134.005202]  ? __asan_register_globals+0x62/0x80
+[  134.007753]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
+[  134.010439]  do_init_module+0x277/0x750
+[  134.012953]  load_module+0x5d1d/0x74f0
+[  134.015406]  ? __pfx_load_module+0x10/0x10
+[  134.017887]  ? __pfx_ima_post_read_file+0x10/0x10
+[  134.020470]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
+[  134.023127]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
+[  134.025767]  ? security_kernel_post_read_file+0xa2/0xd0
+[  134.028429]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
+[  134.031162]  ? kernel_read_file+0x503/0x820
+[  134.033645]  ? __pfx_kernel_read_file+0x10/0x10
+[  134.036232]  ? __pfx___lock_acquire+0x10/0x10
+[  134.038766]  init_module_from_file+0x12c/0x1a0
+[  134.041291]  ? init_module_from_file+0x12c/0x1a0
+[  134.043936]  ? __pfx_init_module_from_file+0x10/0x10
+[  134.046516]  ? __this_cpu_preempt_check+0x21/0x30
+[  134.049091]  ? __kasan_check_read+0x15/0x20
+[  134.051551]  ? do_raw_spin_unlock+0x60/0x210
+[  134.054077]  idempotent_init_module+0x3f1/0x690
+[  134.056643]  ? __pfx_idempotent_init_module+0x10/0x10
+[  134.059318]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
+[  134.061995]  ? __fget_light+0x17d/0x210
+[  134.064428]  __x64_sys_finit_module+0x10e/0x1a0
+[  134.066976]  x64_sys_call+0x184d/0x20d0
+[  134.069405]  do_syscall_64+0x6d/0x140
+[  134.071926]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+[yanfei.xu@intel.com: add mutex_lock/unlock() pair back]
+  Link: https://lkml.kernel.org/r/20240830102447.1445296-1-yanfei.xu@intel.com
+Link: https://lkml.kernel.org/r/20240827113614.1343049-1-yanfei.xu@intel.com
+Fixes: 823430c8e9d9 ("memory tier: consolidate the initialization of memory tiers")
+Signed-off-by: Yanfei Xu <yanfei.xu@intel.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Ho-Ren (Jack) Chuang <horen.chuang@linux.dev>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   37 +++++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+ mm/memory-tiers.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-refactor-vm_area_alloc_pages-function
-+++ a/mm/vmalloc.c
-@@ -3515,8 +3515,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
- {
- 	unsigned int nr_allocated = 0;
--	gfp_t alloc_gfp = gfp;
--	bool nofail = gfp & __GFP_NOFAIL;
- 	struct page *page;
- 	int i;
+--- a/mm/memory-tiers.c~memory-tier-fix-deadlock-warning-while-onlining-pages
++++ a/mm/memory-tiers.c
+@@ -914,13 +914,14 @@ static int __init memory_tier_init(void)
+ 	WARN_ON(!node_demotion);
+ #endif
  
-@@ -3527,9 +3525,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	 * more permissive.
+-	guard(mutex)(&memory_tier_lock);
++	mutex_lock(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
  	 */
- 	if (!order) {
--		/* bulk allocator doesn't support nofail req. officially */
--		gfp_t bulk_gfp = gfp & ~__GFP_NOFAIL;
--
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
+ 	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
+ 						      &default_memory_types);
++	mutex_unlock(&memory_tier_lock);
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
  
-@@ -3547,12 +3542,11 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			 * but mempolicy wants to alloc memory by interleaving.
- 			 */
- 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
--				nr = alloc_pages_bulk_array_mempolicy_noprof(bulk_gfp,
-+				nr = alloc_pages_bulk_array_mempolicy_noprof(gfp,
- 							nr_pages_request,
- 							pages + nr_allocated);
--
- 			else
--				nr = alloc_pages_bulk_array_node_noprof(bulk_gfp, nid,
-+				nr = alloc_pages_bulk_array_node_noprof(gfp, nid,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 
-@@ -3566,30 +3560,24 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			if (nr != nr_pages_request)
- 				break;
- 		}
--	} else if (gfp & __GFP_NOFAIL) {
--		/*
--		 * Higher order nofail allocations are really expensive and
--		 * potentially dangerous (pre-mature OOM, disruptive reclaim
--		 * and compaction etc.
--		 */
--		alloc_gfp &= ~__GFP_NOFAIL;
- 	}
- 
- 	/* High-order pages or fallback path if "bulk" fails. */
- 	while (nr_allocated < nr_pages) {
--		if (!nofail && fatal_signal_pending(current))
-+		if (!(gfp & __GFP_NOFAIL) && fatal_signal_pending(current))
- 			break;
- 
- 		if (nid == NUMA_NO_NODE)
--			page = alloc_pages_noprof(alloc_gfp, order);
-+			page = alloc_pages_noprof(gfp, order);
- 		else
--			page = alloc_pages_node_noprof(nid, alloc_gfp, order);
-+			page = alloc_pages_node_noprof(nid, gfp, order);
-+
- 		if (unlikely(!page))
- 			break;
- 
- 		/*
- 		 * Higher order allocations must be able to be treated as
--		 * indepdenent small pages by callers (as they can with
-+		 * independent small pages by callers (as they can with
- 		 * small-page vmallocs). Some drivers do their own refcounting
- 		 * on vmalloc_to_page() pages, some use page->mapping,
- 		 * page->lru, etc.
-@@ -3650,7 +3638,16 @@ static void *__vmalloc_area_node(struct
- 	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
- 	page_order = vm_area_page_order(area);
- 
--	area->nr_pages = vm_area_alloc_pages(gfp_mask | __GFP_NOWARN,
-+	/*
-+	 * Higher order nofail allocations are really expensive and
-+	 * potentially dangerous (pre-mature OOM, disruptive reclaim
-+	 * and compaction etc.
-+	 *
-+	 * Please note, the __vmalloc_node_range_noprof() falls-back
-+	 * to order-0 pages if high-order attempt is unsuccessful.
-+	 */
-+	area->nr_pages = vm_area_alloc_pages((page_order ?
-+		gfp_mask & ~__GFP_NOFAIL : gfp_mask) | __GFP_NOWARN,
- 		node, page_order, nr_small_pages, area->pages);
- 
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from yanfei.xu@intel.com are
 
 
