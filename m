@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7712477101
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84CA577101
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423538; cv=none; b=MaFc24khDCAWFNY3V6wU5WzKYfmZweP0cVIu+BnafQpxLvTocEJxZ4mu6tnqhgKb2y5AJHsFAjGYZwTXiXM98M5kUIShdlhMt1vff4XPRLVUOvIIjBnHYTOkW7Bwiu/CJNVFpxO1cEfXD/2cvcvmHZHe/X4cOx3HfNFt+wOBrAY=
+	t=1725423539; cv=none; b=VIWIGieRIecldSLU0Mc7E9Yx8GTlSvLM+l676G7ZI2lHwwmQA1xCFdkrbGHof86LOayJB8CGSMJxowPUyPYSojzYQH/KIWo3zwvea5BC1MSBvNhV2AojtbPrgk91NERMUREvuFgy4sAB0E/nSJNbCfc1px9pY9v4cwyNmBb/xNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423538; c=relaxed/simple;
-	bh=Iv6ZgcMSqkPoyewvPudzD7UO3uWYQ7LbwQ5D1B5PReg=;
-	h=Date:To:From:Subject:Message-Id; b=lGaMvLvqPEqGR8K6GNjnzKzRcOOO1HBmyuIZE6IZ780qgIfURGcw6l6y//JSZJkTj8t1R59pDrHqouCtOZLvJ1GF8AULDt007e2HlimuWyGYSnRwYbck31786emGiO2sUvt+aBeF5dK/F72vDNuN6n8QXAADnqKsJV9QhQ0oMuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f6rk4t7b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423539; c=relaxed/simple;
+	bh=l0E3KhLI/iPkSbafcqcqjuVmZO5pjw58aMosgtsKPKs=;
+	h=Date:To:From:Subject:Message-Id; b=c/C+LAUMxvCzLDX5o6tqgsMN715lzXsNl1frTlX7RgL96RYvNSLa1mmCxQlhabuRv0hyq9ojOXpgujSHWJY/IwB8xul9eJnVE2RTIoUhdgbCqnL/j6NTcab86FoIMu8ijMG6RZInjGFlSl0R7yKlZzxJvKAvbeYWrvkjzEP//gM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ri0xZEac; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f6rk4t7b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DED3C4CEC2;
-	Wed,  4 Sep 2024 04:18:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ri0xZEac"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB96C4CEC2;
+	Wed,  4 Sep 2024 04:18:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423538;
-	bh=Iv6ZgcMSqkPoyewvPudzD7UO3uWYQ7LbwQ5D1B5PReg=;
+	s=korg; t=1725423539;
+	bh=l0E3KhLI/iPkSbafcqcqjuVmZO5pjw58aMosgtsKPKs=;
 	h=Date:To:From:Subject:From;
-	b=f6rk4t7bsCZTPTsGnqc4z2NA/+MInvtljQ6aGRcBuyQ6CDL4hyKemQXSgFZYmzXl2
-	 foEh26bvThc3bq4oYGCPjeJvzJflgGN6EsbAfz8PlqdDhB5icbwrtQP+ORuV31E2q/
-	 AdykSo88HzHlPM1MzOqjhhITFVWom3OWM3RjwWV4=
-Date: Tue, 03 Sep 2024 21:18:57 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,liyuesong@vivo.com,akpm@linux-foundation.org
+	b=ri0xZEacmijL3fWBgmXqq1EdmLOGq1wEpRvan8teolKbNoZpx74rtRuQUghFlCAbJ
+	 rf4MCGH/O8M2l8wwcjn6V8dHBX6yomf/AiNRg2R7IlPzcNtWWaNUvhND5iV6otwU7g
+	 xiMXBbmRWmOm5We8fXyAi1t06Vmddot6VAN6fdhg=
+Date: Tue, 03 Sep 2024 21:18:58 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,hughd@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch removed from -mm tree
-Message-Id: <20240904041858.4DED3C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swapfile-fix-ssd-detection-with-swapfile-on-btrfs.patch removed from -mm tree
+Message-Id: <20240904041859.5CB96C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,280 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm:page-writeback: use folio_next_index() helper in writeback_iter()
+     Subject: mm: swapfile: fix SSD detection with swapfile on btrfs
 has been removed from the -mm tree.  Its filename was
-     mm-page-writeback-use-folio_next_index-helper-in-writeback_iter.patch
+     mm-swapfile-fix-ssd-detection-with-swapfile-on-btrfs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yuesong Li <liyuesong@vivo.com>
-Subject: mm:page-writeback: use folio_next_index() helper in writeback_iter()
-Date: Wed, 21 Aug 2024 14:31:12 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: swapfile: fix SSD detection with swapfile on btrfs
+Date: Thu, 22 Aug 2024 13:24:58 +0200
 
-Simplify code pattern of 'folio->index + folio_nr_pages(folio)' by using
-the existing helper folio_next_index().
+We've been noticing a trend of significant lock contention in the swap
+subsystem as core counts have been increasing in our fleet.  It turns out
+that our swapfiles on btrfs on flash were in fact using the old swap code
+for rotational storage.
 
-Link: https://lkml.kernel.org/r/20240821063112.4053157-1-liyuesong@vivo.com
-Signed-off-by: Yuesong Li <liyuesong@vivo.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+This turns out to be a detection issue in the swapon sequence: btrfs sets
+si->bdev during swap activation, which currently happens *after* swapon's
+SSD detection and cluster setup.  Thus, none of the SSD optimizations and
+cluster lock splitting are enabled for btrfs swap.
+
+Rearrange the swapon sequence so that filesystem activation happens
+*before* determining swap behavior based on the backing device.
+
+Afterwards, the nonrotational drive is detected correctly:
+
+- Adding 2097148k swap on /mnt/swapfile.  Priority:-3 extents:1 across:2097148k
++ Adding 2097148k swap on /mnt/swapfile.  Priority:-3 extents:1 across:2097148k SS
+
+Link: https://lkml.kernel.org/r/20240822112707.351844-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |  165 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 86 insertions(+), 79 deletions(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-use-folio_next_index-helper-in-writeback_iter
-+++ a/mm/page-writeback.c
-@@ -2612,7 +2612,7 @@ struct folio *writeback_iter(struct addr
+--- a/mm/swapfile.c~mm-swapfile-fix-ssd-detection-with-swapfile-on-btrfs
++++ a/mm/swapfile.c
+@@ -3198,29 +3198,15 @@ static unsigned long read_swap_header(st
+ static int setup_swap_map_and_extents(struct swap_info_struct *si,
+ 					union swap_header *swap_header,
+ 					unsigned char *swap_map,
+-					struct swap_cluster_info *cluster_info,
+ 					unsigned long maxpages,
+ 					sector_t *span)
+ {
+-	unsigned int j, k;
+ 	unsigned int nr_good_pages;
++	unsigned long i;
+ 	int nr_extents;
+-	unsigned long nr_clusters = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+-	unsigned long col = si->cluster_next / SWAPFILE_CLUSTER % SWAP_CLUSTER_COLS;
+-	unsigned long i, idx;
  
- done:
- 	if (wbc->range_cyclic)
--		mapping->writeback_index = folio->index + folio_nr_pages(folio);
-+		mapping->writeback_index = folio_next_index(folio);
- 	folio_batch_release(&wbc->fbatch);
- 	return NULL;
+ 	nr_good_pages = maxpages - 1;	/* omit header page */
+ 
+-	INIT_LIST_HEAD(&si->free_clusters);
+-	INIT_LIST_HEAD(&si->full_clusters);
+-	INIT_LIST_HEAD(&si->discard_clusters);
+-
+-	for (i = 0; i < SWAP_NR_ORDERS; i++) {
+-		INIT_LIST_HEAD(&si->nonfull_clusters[i]);
+-		INIT_LIST_HEAD(&si->frag_clusters[i]);
+-		si->frag_cluster_nr[i] = 0;
+-	}
+-
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+ 		unsigned int page_nr = swap_header->info.badpages[i];
+ 		if (page_nr == 0 || page_nr > swap_header->info.last_page)
+@@ -3228,25 +3214,11 @@ static int setup_swap_map_and_extents(st
+ 		if (page_nr < maxpages) {
+ 			swap_map[page_nr] = SWAP_MAP_BAD;
+ 			nr_good_pages--;
+-			/*
+-			 * Haven't marked the cluster free yet, no list
+-			 * operation involved
+-			 */
+-			inc_cluster_info_page(si, cluster_info, page_nr);
+ 		}
+ 	}
+ 
+-	/* Haven't marked the cluster free yet, no list operation involved */
+-	for (i = maxpages; i < round_up(maxpages, SWAPFILE_CLUSTER); i++)
+-		inc_cluster_info_page(si, cluster_info, i);
+-
+ 	if (nr_good_pages) {
+ 		swap_map[0] = SWAP_MAP_BAD;
+-		/*
+-		 * Not mark the cluster free yet, no list
+-		 * operation involved
+-		 */
+-		inc_cluster_info_page(si, cluster_info, 0);
+ 		si->max = maxpages;
+ 		si->pages = nr_good_pages;
+ 		nr_extents = setup_swap_extents(si, span);
+@@ -3259,8 +3231,70 @@ static int setup_swap_map_and_extents(st
+ 		return -EINVAL;
+ 	}
+ 
++	return nr_extents;
++}
++
++static struct swap_cluster_info *setup_clusters(struct swap_info_struct *si,
++						union swap_header *swap_header,
++						unsigned long maxpages)
++{
++	unsigned long nr_clusters = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
++	unsigned long col = si->cluster_next / SWAPFILE_CLUSTER % SWAP_CLUSTER_COLS;
++	struct swap_cluster_info *cluster_info;
++	unsigned long i, j, k, idx;
++	int cpu, err = -ENOMEM;
++
++	cluster_info = kvcalloc(nr_clusters, sizeof(*cluster_info), GFP_KERNEL);
+ 	if (!cluster_info)
+-		return nr_extents;
++		goto err;
++
++	for (i = 0; i < nr_clusters; i++)
++		spin_lock_init(&cluster_info[i].lock);
++
++	si->cluster_next_cpu = alloc_percpu(unsigned int);
++	if (!si->cluster_next_cpu)
++		goto err_free;
++
++	/* Random start position to help with wear leveling */
++	for_each_possible_cpu(cpu)
++		per_cpu(*si->cluster_next_cpu, cpu) =
++		get_random_u32_inclusive(1, si->highest_bit);
++
++	si->percpu_cluster = alloc_percpu(struct percpu_cluster);
++	if (!si->percpu_cluster)
++		goto err_free;
++
++	for_each_possible_cpu(cpu) {
++		struct percpu_cluster *cluster;
++
++		cluster = per_cpu_ptr(si->percpu_cluster, cpu);
++		for (i = 0; i < SWAP_NR_ORDERS; i++)
++			cluster->next[i] = SWAP_NEXT_INVALID;
++	}
++
++	/*
++	 * Mark unusable pages as unavailable. The clusters aren't
++	 * marked free yet, so no list operations are involved yet.
++	 *
++	 * See setup_swap_map_and_extents(): header page, bad pages,
++	 * and the EOF part of the last cluster.
++	 */
++	inc_cluster_info_page(si, cluster_info, 0);
++	for (i = 0; i < swap_header->info.nr_badpages; i++)
++		inc_cluster_info_page(si, cluster_info,
++				      swap_header->info.badpages[i]);
++	for (i = maxpages; i < round_up(maxpages, SWAPFILE_CLUSTER); i++)
++		inc_cluster_info_page(si, cluster_info, i);
++
++	INIT_LIST_HEAD(&si->free_clusters);
++	INIT_LIST_HEAD(&si->full_clusters);
++	INIT_LIST_HEAD(&si->discard_clusters);
++
++	for (i = 0; i < SWAP_NR_ORDERS; i++) {
++		INIT_LIST_HEAD(&si->nonfull_clusters[i]);
++		INIT_LIST_HEAD(&si->frag_clusters[i]);
++		si->frag_cluster_nr[i] = 0;
++	}
+ 
+ 	/*
+ 	 * Reduce false cache line sharing between cluster_info and
+@@ -3283,7 +3317,13 @@ static int setup_swap_map_and_extents(st
+ 			list_add_tail(&ci->list, &si->free_clusters);
+ 		}
+ 	}
+-	return nr_extents;
++
++	return cluster_info;
++
++err_free:
++	kvfree(cluster_info);
++err:
++	return ERR_PTR(err);
  }
+ 
+ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
+@@ -3379,6 +3419,17 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap_unlock_inode;
+ 	}
+ 
++	error = swap_cgroup_swapon(si->type, maxpages);
++	if (error)
++		goto bad_swap_unlock_inode;
++
++	nr_extents = setup_swap_map_and_extents(si, swap_header, swap_map,
++						maxpages, &span);
++	if (unlikely(nr_extents < 0)) {
++		error = nr_extents;
++		goto bad_swap_unlock_inode;
++	}
++
+ 	if (si->bdev && bdev_stable_writes(si->bdev))
+ 		si->flags |= SWP_STABLE_WRITES;
+ 
+@@ -3386,63 +3437,19 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		si->flags |= SWP_SYNCHRONOUS_IO;
+ 
+ 	if (si->bdev && bdev_nonrot(si->bdev)) {
+-		int cpu, i;
+-		unsigned long ci, nr_cluster;
+-
+ 		si->flags |= SWP_SOLIDSTATE;
+-		si->cluster_next_cpu = alloc_percpu(unsigned int);
+-		if (!si->cluster_next_cpu) {
+-			error = -ENOMEM;
+-			goto bad_swap_unlock_inode;
+-		}
+-		/*
+-		 * select a random position to start with to help wear leveling
+-		 * SSD
+-		 */
+-		for_each_possible_cpu(cpu) {
+-			per_cpu(*si->cluster_next_cpu, cpu) =
+-				get_random_u32_inclusive(1, si->highest_bit);
+-		}
+-		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+ 
+-		cluster_info = kvcalloc(nr_cluster, sizeof(*cluster_info),
+-					GFP_KERNEL);
+-		if (!cluster_info) {
+-			error = -ENOMEM;
++		cluster_info = setup_clusters(si, swap_header, maxpages);
++		if (IS_ERR(cluster_info)) {
++			error = PTR_ERR(cluster_info);
++			cluster_info = NULL;
+ 			goto bad_swap_unlock_inode;
+ 		}
+-
+-		for (ci = 0; ci < nr_cluster; ci++)
+-			spin_lock_init(&((cluster_info + ci)->lock));
+-
+-		si->percpu_cluster = alloc_percpu(struct percpu_cluster);
+-		if (!si->percpu_cluster) {
+-			error = -ENOMEM;
+-			goto bad_swap_unlock_inode;
+-		}
+-		for_each_possible_cpu(cpu) {
+-			struct percpu_cluster *cluster;
+-
+-			cluster = per_cpu_ptr(si->percpu_cluster, cpu);
+-			for (i = 0; i < SWAP_NR_ORDERS; i++)
+-				cluster->next[i] = SWAP_NEXT_INVALID;
+-		}
+ 	} else {
+ 		atomic_inc(&nr_rotate_swap);
+ 		inced_nr_rotate_swap = true;
+ 	}
+ 
+-	error = swap_cgroup_swapon(si->type, maxpages);
+-	if (error)
+-		goto bad_swap_unlock_inode;
+-
+-	nr_extents = setup_swap_map_and_extents(si, swap_header, swap_map,
+-		cluster_info, maxpages, &span);
+-	if (unlikely(nr_extents < 0)) {
+-		error = nr_extents;
+-		goto bad_swap_unlock_inode;
+-	}
+-
+ 	if ((swap_flags & SWAP_FLAG_DISCARD) &&
+ 	    si->bdev && bdev_max_discard_sectors(si->bdev)) {
+ 		/*
 _
 
-Patches currently in -mm which might be from liyuesong@vivo.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
