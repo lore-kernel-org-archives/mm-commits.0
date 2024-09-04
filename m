@@ -1,95 +1,63 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B511CCEE3
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 09:59:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A13351DCB12;
+	Wed,  4 Sep 2024 16:25:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725443962; cv=none; b=oiK4Uux3146mi9BEMO5magxumZ8naTep+ci9+FClJ0lRP39TzK+xWR37rUdTy18za+xQ0g5TcxwYTKx5IpojRszxl8GnJZJWoACjt0+JuKHMZKchHjc64kNhiIGpyiiu7NPlCXZellY8IN4WiBmIKimpMWMi3p848KQz1BDa5uI=
+	t=1725467138; cv=none; b=tX0HrFa7HQZ8c5sHYwFZe2OSn7gB9ZsawNdlqvx3t/bHWl2gHOzTFxlJozwmo1/WwHlvZo72j9JxMlFtuJrKMwCB3AAPEePb1nerYlnfxNpsjnp8cHHyUQIRsQjhDGLlX24+JTZhYaPBUt8WtiEBbRqShkuafnCTbesnwRJS47A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725443962; c=relaxed/simple;
-	bh=l00P4U04a/qfEK+1kbEu9oW6uMf3ehpKzsIBLWTCdoA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KIkxGDImuWoE9GJpUUHdL0I6p8JjACda0CSGk4eN6cvB7r0vYI7zeoV+fpKLQkDFtBovXAEHyOeJOj8tUWFXcgD4wneerJU/hnheSaKI6c+ooF3RKTbtuD+y0n05oVEoqv2CRCRm/F/yH7FWSuWY+4xM/F3RlgLGoBnkWjCF1KE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SKiOtHQp; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1725467138; c=relaxed/simple;
+	bh=rX+EMbJ9r5XE/UFerJ7KLd9U2AC6c7FMJ5q5hACvXrQ=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=SAHDTRmtZIl4kWgv1bpbJcqdb0rN5vy23/Escd5txCNogB5XSuXTDTjyUa/tp8N7YW7lwqoV2+3ALZjCW/bJiFPW7t1Sia0ddffBgW0A+Sxiy5qcmXhkRfMJDnnzjp8Hy27JCFiR6rY9jkFMPBI+jWtwZztYMmyOtULZGhVR9xs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QpmIgp2f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SKiOtHQp"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-7174a3baf92so318703b3a.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Sep 2024 02:59:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725443960; x=1726048760; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2Uukx7lUVPuVqzEiSwY9mpZMO4ysB73zzns2z1j6Hjg=;
-        b=SKiOtHQpl6UI7fYN1pzjdx9scmqn26k86SrDttWlq4yDy9nZhsJZT5kngqtU11qYJa
-         nztV4bR9LnD0epRzIKH1Vj4ReKbZKGcW4oQzzse4WLY+xRxSOZokcAqMAjY4JvTJVC8F
-         fwtJ1WFdq4QK0dUHqzt9eKonG4FdRWOU42rKhxONVnEasNNfVtvOwyZSdsfWCI+XJFVC
-         5IDMGnXXakLS1Kw+p8kBqxL8HNNkgOxYoSo0v8mPUj5g+YKf3Zpm85tYD5dWiDK0OGAm
-         wCZiiMzt4JWUErjdhPTRECr45s9oUM74ukh5LWDnynjRGdo7+SgQ5+EWQR0OMX3aDc0O
-         4pcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725443960; x=1726048760;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2Uukx7lUVPuVqzEiSwY9mpZMO4ysB73zzns2z1j6Hjg=;
-        b=w+lUlVoGeRRastMFCLb8+rz3QkYAAmkQ5YxaHvki8UIWwVR6V7n0++kG0WyKg1Cw0Z
-         zwBAWrrMPyTu4drcYxvfbpVkq/w6VyvWld1T9Q/nkE/bMNa1UXRjMh316IMUxOvJs/u/
-         EzimHG7gjGxBDdJlARPd7g0CsP6jMLTwPdvTlHZN+FeJKd9k5rZFmebiYQf9AEBZmk57
-         sTLxwdHuwF/yP5WytySWmEYX0Uvb49co4LSvGfHI2KLNhDXwDQxUp5jsYP7/xrHfYtWB
-         ErBHPAmyFITXV0k3hRtjfIPC2SYVVE/hxTb6hUU0fgFLXTnwWrP//ufCmVaYZEckPtdl
-         dhZg==
-X-Gm-Message-State: AOJu0Yw6RIdWHRB92xPJu2DeQl0v5A0YKsOsmjVgw3moniOMCbIPrM3g
-	kgFlXDV2c7Cr8PE71HKnuqE+ruzSt6dt9PrF2CteyUoAwPb8DByR0eovqWCtodyP9UMbk9BblzJ
-	GsPQA6AlLnCtLBTagPqbMDBuAeyo=
-X-Google-Smtp-Source: AGHT+IEFua6UNIfZQji2p32drBwSb/C3sFUEftMhcQpj6mws2riTESDOKf0gto/jghDIJV1eT3YePQ4/HUo2AipsZp8=
-X-Received: by 2002:a05:6a00:1950:b0:714:1bcf:adbe with SMTP id
- d2e1a72fcca58-717304591e4mr9789330b3a.0.1725443960169; Wed, 04 Sep 2024
- 02:59:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QpmIgp2f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28973C4CEC2;
+	Wed,  4 Sep 2024 16:25:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1725467138;
+	bh=rX+EMbJ9r5XE/UFerJ7KLd9U2AC6c7FMJ5q5hACvXrQ=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=QpmIgp2fxAufn0sVVZFN3NoIJ+v32yB4TzH3UNuemo8We8Yv+P+Ue2hk1PgAjXEWX
+	 AF/7XJIvlm6CBWCZZedW5DGJwy/z48NzdrzKV+m2oUDOGmN3Of6+AhXLZwL/d80+Fi
+	 5T/fF6gyXJRlFMJbEj0FZgLI6yme9IFfiYo1NoEMJ6DVpKxuEMDYQayC/UgPesHgVK
+	 SiGZuKb2mZ3z6+J71PYI2BkdbOcROex8gjkZJB5wYy51gdT3OJLeYgW/jiy9Mgeh4d
+	 pSHWdB36KxHEx+caxQU1rMfv5UrVd31s+hK1iUykD4XCaZtk5NHAmF6ByeTIjqGrFG
+	 FXhJASAvNi76Q==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3472D3822D30;
+	Wed,  4 Sep 2024 16:25:40 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.11-rc7
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20240903202651.f258324d271b4813dfa8de7a@linux-foundation.org>
+References: <20240903202651.f258324d271b4813dfa8de7a@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20240903202651.f258324d271b4813dfa8de7a@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-03-20-19
+X-PR-Tracked-Commit-Id: 052a45c1cb1b32f05dd63a295d65496d8b403283
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 76c0f27d063079ce2c6e7fa971a185a38905d844
+Message-Id: <172546713885.1088236.2704685090526522328.pr-tracker-bot@kernel.org>
+Date: Wed, 04 Sep 2024 16:25:38 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240904041800.486C6C4CEC2@smtp.kernel.org>
-In-Reply-To: <20240904041800.486C6C4CEC2@smtp.kernel.org>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Wed, 4 Sep 2024 11:59:06 +0200
-Message-ID: <CANiq72k=mzebBFfAW2iJ-cWYTVYBDoR5XzYWZ+Crn-tq2YfnLQ@mail.gmail.com>
-Subject: Re: [merged mm-stable] kasan-simplify-and-clarify-makefile.patch
- removed from -mm tree
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, ojeda@kernel.org, 
-	mmaurer@google.com, glider@google.com, elver@google.com, dvyukov@google.com, 
-	andreyknvl@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The pull request you sent on Tue, 3 Sep 2024 20:26:51 -0700:
 
-On Wed, Sep 4, 2024 at 6:18=E2=80=AFAM Andrew Morton <akpm@linux-foundation=
-.org> wrote:
->
-> The quilt patch titled
->      Subject: kasan: simplify and clarify Makefile
-> has been removed from the -mm tree.  Its filename was
->      kasan-simplify-and-clarify-makefile.patch
->
-> This patch was dropped because it was merged into the mm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-03-20-19
 
-I think we were taking this one through the Rust tree so that we could
-merge the Rust KASAN support through there (and handle the other
-interdependencies we have this cycle), right?
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/76c0f27d063079ce2c6e7fa971a185a38905d844
 
-I will apply those very soon (in case you moved it into mm-stable
-because you didn't see it in linux-next).
+Thank you!
 
-Thanks!
-
-Cheers,
-Miguel
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
