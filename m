@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA33B6F2E3
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACB46F2F9
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423457; cv=none; b=kl86XBK5PBmSI/9p8MYe87kAufc9c4gG+9MVjm5ZGewJ2Haj62dsN1m9DJk2m0496XpEmsY9VBk+FyCA9u3eeHLyAVI7BFsEsj71SwUmwc4QtfGlKx6J6GtvloA7Lyi9Tnxx5UpeHe+T/8/2vcWWVsuLCmg7MAfMcrzZ9O1QtBY=
+	t=1725423458; cv=none; b=YobnCA4U+eSC3MeQYBoK0rC+2BCyqXFl29VT8DIbJWVmJmlmu5aEI7MqGa9i7bG0+/pmCsCtQrj5UMuHjKDUEh5NI9Ua3yFa3l3NKH6tCufB23ucgpc0aAELQvby8qt5RJaKEqRPXbeqxMS45aUlksFF6S/re/h5ug7ByGYrQWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423457; c=relaxed/simple;
-	bh=v4FZayIv+lqrfTBom0dt3WPv6zTVCIrud71P6drrH9g=;
-	h=Date:To:From:Subject:Message-Id; b=i4Pm1UbfjR54RpJLbCMjW0cYPbdRTVnYRvMgUicLrxTYzL/f2VUmClcWNfqxKsp2L3EPSevFNR9BO0RyufIledT0Up5Z34waX22VMLCs3vreMUTxn3Xy1lPjYcrkG/ka2UQNtwmicvqbE+n7wGvMVVXBQVknm5Dt4Q0xPRYv4L4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xr33GIM6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423458; c=relaxed/simple;
+	bh=3n5SU6l63QCN7iz0XgOS/e7gmVrScSmunEPxy7KRyhY=;
+	h=Date:To:From:Subject:Message-Id; b=LTv1ytUhLhyTg8ysBpG54OLo4BFnqMB+9cleSAGLOHScjh/u7DZEMqEmRBoe0rMW4yxgrC34Noe0CAqccCWY3pmmRnhumBEi4iOCvYRp0yTI2vtRJBJXDOBhsnR5RzVDk13pfaJBEivYY5gXFYdMLhTWnquluPEsVfwdp6ne5pM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iTRjapIV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xr33GIM6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7CF0C4CEC2;
-	Wed,  4 Sep 2024 04:17:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iTRjapIV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2794DC4CEC2;
+	Wed,  4 Sep 2024 04:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423456;
-	bh=v4FZayIv+lqrfTBom0dt3WPv6zTVCIrud71P6drrH9g=;
+	s=korg; t=1725423458;
+	bh=3n5SU6l63QCN7iz0XgOS/e7gmVrScSmunEPxy7KRyhY=;
 	h=Date:To:From:Subject:From;
-	b=xr33GIM6c+Burh84KfY4B7y80gJMmB9lSNe5Sojg9Rp1WeISUK29L2NqXiQn8liaG
-	 9Yb4EeoeV/SsQBoveaog2KSnj8XCb3lvDfRbCC8b+LGbey/86WuZ1bT66govlgzvWX
-	 YjpoADCOx9bHQF72r5IjSloLRFSyYHSXqLtmd3yA=
-Date: Tue, 03 Sep 2024 21:17:36 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=iTRjapIVT1LZzLxf3x2b8pdn4+Z+7uBB7bTk0V3QEoZ1WoOE5qsY0rfif5xzD5/Ex
+	 PPyHc/LPcqA4YVDDYG8Jbvb6aAvtcgqgwp/kWiRRWOsendIj5JhK20QKGwALksghig
+	 k6aFcmYsq2X903Y7JoK9x52tXscAHthwtU/9Iocg=
+Date: Tue, 03 Sep 2024 21:17:37 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,justinjiang@vivo.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-move-numa=fake-description-to-kernel-parameterstxt.patch removed from -mm tree
-Message-Id: <20240904041736.B7CF0C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch removed from -mm tree
+Message-Id: <20240904041738.2794DC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,898 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: move numa=fake description to kernel-parameters.txt
+     Subject: mm: rename instances of swap_info_struct to meaningful 'si'
 has been removed from the -mm tree.  Its filename was
-     docs-move-numa=fake-description-to-kernel-parameterstxt.patch
+     mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: docs: move numa=fake description to kernel-parameters.txt
-Date: Wed, 7 Aug 2024 09:41:10 +0300
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: rename instances of swap_info_struct to meaningful 'si'
+Date: Thu, 8 Aug 2024 09:58:58 +1200
 
-NUMA emulation can be now enabled on arm64 and riscv in addition to x86.
+Patch series "mm: batch free swaps for zap_pte_range()", v3.
 
-Move description of numa=fake parameters from x86 documentation of
-admin-guide/kernel-parameters.txt
+Batch free swap slots for zap_pte_range(), making munmap three times
+faster when the page table entries are filled with swap entries to
+be freed. This is likely another advantage of using mTHP.
 
-Link: https://lkml.kernel.org/r/20240807064110.1003856-27-rppt@kernel.org
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+
+This patch (of 3):
+
+"p" means "pointer to something", rename it to a more meaningful
+identifier - "si".  We also have a case with the name "sis", rename it to
+"si" as well.
+
+Link: https://lkml.kernel.org/r/20240807215859.57491-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240807215859.57491-2-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Rob Herring (Arm) <robh@kernel.org>
-Cc: Samuel Holland <samuel.holland@sifive.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zhiguo Jiang <justinjiang@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   15 ++++++++++++++
- Documentation/arch/x86/x86_64/boot-options.rst  |   12 -----------
- 2 files changed, 15 insertions(+), 12 deletions(-)
+ mm/swapfile.c |  334 ++++++++++++++++++++++++------------------------
+ 1 file changed, 167 insertions(+), 167 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~docs-move-numa=fake-description-to-kernel-parameterstxt
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4123,6 +4123,21 @@
- 			Disable NUMA, Only set up a single NUMA node
- 			spanning all memory.
+--- a/mm/swapfile.c~mm-rename-instances-of-swap_info_struct-to-meaningful-si
++++ a/mm/swapfile.c
+@@ -532,7 +532,7 @@ static void free_cluster(struct swap_inf
+  * added to free cluster list and its usage counter will be increased by 1.
+  * Only used for initialization.
+  */
+-static void inc_cluster_info_page(struct swap_info_struct *p,
++static void inc_cluster_info_page(struct swap_info_struct *si,
+ 	struct swap_cluster_info *cluster_info, unsigned long page_nr)
+ {
+ 	unsigned long idx = page_nr / SWAPFILE_CLUSTER;
+@@ -553,28 +553,28 @@ static void inc_cluster_info_page(struct
+  * which means no page in the cluster is in use, we can optionally discard
+  * the cluster and add it to free cluster list.
+  */
+-static void dec_cluster_info_page(struct swap_info_struct *p,
++static void dec_cluster_info_page(struct swap_info_struct *si,
+ 				  struct swap_cluster_info *ci, int nr_pages)
+ {
+-	if (!p->cluster_info)
++	if (!si->cluster_info)
+ 		return;
  
-+	numa=fake=<size>[MG]
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as a memory unit, fills all system RAM with
-+			nodes of size interleaved over physical nodes.
-+
-+	numa=fake=<N>
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as an integer, fills all system RAM with N
-+			fake nodes interleaved over physical nodes.
-+
-+	numa=fake=<N>U
-+			[KNL, ARM64, RISCV, X86, EARLY]
-+			If given as an integer followed by 'U', it will
-+			divide each physical node into N emulated nodes.
-+
- 	numa_balancing=	[KNL,ARM64,PPC,RISCV,S390,X86] Enable or disable automatic
- 			NUMA balancing.
- 			Allowed values are enable and disable
---- a/Documentation/arch/x86/x86_64/boot-options.rst~docs-move-numa=fake-description-to-kernel-parameterstxt
-+++ a/Documentation/arch/x86/x86_64/boot-options.rst
-@@ -170,18 +170,6 @@ NUMA
-     Don't parse the HMAT table for NUMA setup, or soft-reserved memory
-     partitioning.
+ 	VM_BUG_ON(ci->count < nr_pages);
+ 	VM_BUG_ON(cluster_is_free(ci));
+-	lockdep_assert_held(&p->lock);
++	lockdep_assert_held(&si->lock);
+ 	lockdep_assert_held(&ci->lock);
+ 	ci->count -= nr_pages;
  
--  numa=fake=<size>[MG]
--    If given as a memory unit, fills all system RAM with nodes of
--    size interleaved over physical nodes.
--
--  numa=fake=<N>
--    If given as an integer, fills all system RAM with N fake nodes
--    interleaved over physical nodes.
--
--  numa=fake=<N>U
--    If given as an integer followed by 'U', it will divide each
--    physical node into N emulated nodes.
--
- ACPI
- ====
+ 	if (!ci->count) {
+-		free_cluster(p, ci);
++		free_cluster(si, ci);
+ 		return;
+ 	}
+ 
+ 	if (!(ci->flags & CLUSTER_FLAG_NONFULL)) {
+ 		VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
+ 		if (ci->flags & CLUSTER_FLAG_FRAG)
+-			p->frag_cluster_nr[ci->order]--;
+-		list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
++			si->frag_cluster_nr[ci->order]--;
++		list_move_tail(&ci->list, &si->nonfull_clusters[ci->order]);
+ 		ci->flags = CLUSTER_FLAG_NONFULL;
+ 	}
+ }
+@@ -872,19 +872,19 @@ done:
+ 	return found;
+ }
+ 
+-static void __del_from_avail_list(struct swap_info_struct *p)
++static void __del_from_avail_list(struct swap_info_struct *si)
+ {
+ 	int nid;
+ 
+-	assert_spin_locked(&p->lock);
++	assert_spin_locked(&si->lock);
+ 	for_each_node(nid)
+-		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
++		plist_del(&si->avail_lists[nid], &swap_avail_heads[nid]);
+ }
+ 
+-static void del_from_avail_list(struct swap_info_struct *p)
++static void del_from_avail_list(struct swap_info_struct *si)
+ {
+ 	spin_lock(&swap_avail_lock);
+-	__del_from_avail_list(p);
++	__del_from_avail_list(si);
+ 	spin_unlock(&swap_avail_lock);
+ }
+ 
+@@ -905,13 +905,13 @@ static void swap_range_alloc(struct swap
+ 	}
+ }
+ 
+-static void add_to_avail_list(struct swap_info_struct *p)
++static void add_to_avail_list(struct swap_info_struct *si)
+ {
+ 	int nid;
+ 
+ 	spin_lock(&swap_avail_lock);
+ 	for_each_node(nid)
+-		plist_add(&p->avail_lists[nid], &swap_avail_heads[nid]);
++		plist_add(&si->avail_lists[nid], &swap_avail_heads[nid]);
+ 	spin_unlock(&swap_avail_lock);
+ }
+ 
+@@ -1291,22 +1291,22 @@ noswap:
+ 
+ static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
+ {
+-	struct swap_info_struct *p;
++	struct swap_info_struct *si;
+ 	unsigned long offset;
+ 
+ 	if (!entry.val)
+ 		goto out;
+-	p = swp_swap_info(entry);
+-	if (!p)
++	si = swp_swap_info(entry);
++	if (!si)
+ 		goto bad_nofile;
+-	if (data_race(!(p->flags & SWP_USED)))
++	if (data_race(!(si->flags & SWP_USED)))
+ 		goto bad_device;
+ 	offset = swp_offset(entry);
+-	if (offset >= p->max)
++	if (offset >= si->max)
+ 		goto bad_offset;
+-	if (data_race(!p->swap_map[swp_offset(entry)]))
++	if (data_race(!si->swap_map[swp_offset(entry)]))
+ 		goto bad_free;
+-	return p;
++	return si;
+ 
+ bad_free:
+ 	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
+@@ -1339,14 +1339,14 @@ static struct swap_info_struct *swap_inf
+ 	return p;
+ }
+ 
+-static unsigned char __swap_entry_free_locked(struct swap_info_struct *p,
++static unsigned char __swap_entry_free_locked(struct swap_info_struct *si,
+ 					      unsigned long offset,
+ 					      unsigned char usage)
+ {
+ 	unsigned char count;
+ 	unsigned char has_cache;
+ 
+-	count = p->swap_map[offset];
++	count = si->swap_map[offset];
+ 
+ 	has_cache = count & SWAP_HAS_CACHE;
+ 	count &= ~SWAP_HAS_CACHE;
+@@ -1362,7 +1362,7 @@ static unsigned char __swap_entry_free_l
+ 		count = 0;
+ 	} else if ((count & ~COUNT_CONTINUED) <= SWAP_MAP_MAX) {
+ 		if (count == COUNT_CONTINUED) {
+-			if (swap_count_continued(p, offset, count))
++			if (swap_count_continued(si, offset, count))
+ 				count = SWAP_MAP_MAX | COUNT_CONTINUED;
+ 			else
+ 				count = SWAP_MAP_MAX;
+@@ -1372,9 +1372,9 @@ static unsigned char __swap_entry_free_l
+ 
+ 	usage = count | has_cache;
+ 	if (usage)
+-		WRITE_ONCE(p->swap_map[offset], usage);
++		WRITE_ONCE(si->swap_map[offset], usage);
+ 	else
+-		WRITE_ONCE(p->swap_map[offset], SWAP_HAS_CACHE);
++		WRITE_ONCE(si->swap_map[offset], SWAP_HAS_CACHE);
+ 
+ 	return usage;
+ }
+@@ -1453,16 +1453,16 @@ put_out:
+ 	return NULL;
+ }
+ 
+-static unsigned char __swap_entry_free(struct swap_info_struct *p,
++static unsigned char __swap_entry_free(struct swap_info_struct *si,
+ 				       swp_entry_t entry)
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned char usage;
+ 
+-	ci = lock_cluster_or_swap_info(p, offset);
+-	usage = __swap_entry_free_locked(p, offset, 1);
+-	unlock_cluster_or_swap_info(p, ci);
++	ci = lock_cluster_or_swap_info(si, offset);
++	usage = __swap_entry_free_locked(si, offset, 1);
++	unlock_cluster_or_swap_info(si, ci);
+ 	if (!usage)
+ 		free_swap_slot(entry);
+ 
+@@ -1473,27 +1473,27 @@ static unsigned char __swap_entry_free(s
+  * Drop the last HAS_CACHE flag of swap entries, caller have to
+  * ensure all entries belong to the same cgroup.
+  */
+-static void swap_entry_range_free(struct swap_info_struct *p, swp_entry_t entry,
++static void swap_entry_range_free(struct swap_info_struct *si, swp_entry_t entry,
+ 				  unsigned int nr_pages)
+ {
+ 	unsigned long offset = swp_offset(entry);
+-	unsigned char *map = p->swap_map + offset;
++	unsigned char *map = si->swap_map + offset;
+ 	unsigned char *map_end = map + nr_pages;
+ 	struct swap_cluster_info *ci;
+ 
+-	ci = lock_cluster(p, offset);
++	ci = lock_cluster(si, offset);
+ 	do {
+ 		VM_BUG_ON(*map != SWAP_HAS_CACHE);
+ 		*map = 0;
+ 	} while (++map < map_end);
+-	dec_cluster_info_page(p, ci, nr_pages);
++	dec_cluster_info_page(si, ci, nr_pages);
+ 	unlock_cluster(ci);
+ 
+ 	mem_cgroup_uncharge_swap(entry, nr_pages);
+-	swap_range_free(p, offset, nr_pages);
++	swap_range_free(si, offset, nr_pages);
+ }
+ 
+-static void cluster_swap_free_nr(struct swap_info_struct *sis,
++static void cluster_swap_free_nr(struct swap_info_struct *si,
+ 		unsigned long offset, int nr_pages,
+ 		unsigned char usage)
+ {
+@@ -1501,26 +1501,26 @@ static void cluster_swap_free_nr(struct
+ 	DECLARE_BITMAP(to_free, BITS_PER_LONG) = { 0 };
+ 	int i, nr;
+ 
+-	ci = lock_cluster_or_swap_info(sis, offset);
++	ci = lock_cluster_or_swap_info(si, offset);
+ 	while (nr_pages) {
+ 		nr = min(BITS_PER_LONG, nr_pages);
+ 		for (i = 0; i < nr; i++) {
+-			if (!__swap_entry_free_locked(sis, offset + i, usage))
++			if (!__swap_entry_free_locked(si, offset + i, usage))
+ 				bitmap_set(to_free, i, 1);
+ 		}
+ 		if (!bitmap_empty(to_free, BITS_PER_LONG)) {
+-			unlock_cluster_or_swap_info(sis, ci);
++			unlock_cluster_or_swap_info(si, ci);
+ 			for_each_set_bit(i, to_free, BITS_PER_LONG)
+-				free_swap_slot(swp_entry(sis->type, offset + i));
++				free_swap_slot(swp_entry(si->type, offset + i));
+ 			if (nr == nr_pages)
+ 				return;
+ 			bitmap_clear(to_free, 0, BITS_PER_LONG);
+-			ci = lock_cluster_or_swap_info(sis, offset);
++			ci = lock_cluster_or_swap_info(si, offset);
+ 		}
+ 		offset += nr;
+ 		nr_pages -= nr;
+ 	}
+-	unlock_cluster_or_swap_info(sis, ci);
++	unlock_cluster_or_swap_info(si, ci);
+ }
+ 
+ /*
+@@ -1646,28 +1646,28 @@ int swap_swapcount(struct swap_info_stru
+ int swp_swapcount(swp_entry_t entry)
+ {
+ 	int count, tmp_count, n;
+-	struct swap_info_struct *p;
++	struct swap_info_struct *si;
+ 	struct swap_cluster_info *ci;
+ 	struct page *page;
+ 	pgoff_t offset;
+ 	unsigned char *map;
+ 
+-	p = _swap_info_get(entry);
+-	if (!p)
++	si = _swap_info_get(entry);
++	if (!si)
+ 		return 0;
+ 
+ 	offset = swp_offset(entry);
+ 
+-	ci = lock_cluster_or_swap_info(p, offset);
++	ci = lock_cluster_or_swap_info(si, offset);
+ 
+-	count = swap_count(p->swap_map[offset]);
++	count = swap_count(si->swap_map[offset]);
+ 	if (!(count & COUNT_CONTINUED))
+ 		goto out;
+ 
+ 	count &= ~COUNT_CONTINUED;
+ 	n = SWAP_MAP_MAX + 1;
+ 
+-	page = vmalloc_to_page(p->swap_map + offset);
++	page = vmalloc_to_page(si->swap_map + offset);
+ 	offset &= ~PAGE_MASK;
+ 	VM_BUG_ON(page_private(page) != SWP_CONTINUED);
+ 
+@@ -1681,7 +1681,7 @@ int swp_swapcount(swp_entry_t entry)
+ 		n *= (SWAP_CONT_MAX + 1);
+ 	} while (tmp_count & COUNT_CONTINUED);
+ out:
+-	unlock_cluster_or_swap_info(p, ci);
++	unlock_cluster_or_swap_info(si, ci);
+ 	return count;
+ }
+ 
+@@ -2539,52 +2539,52 @@ static int setup_swap_extents(struct swa
+ 	return generic_swapfile_activate(sis, swap_file, span);
+ }
+ 
+-static int swap_node(struct swap_info_struct *p)
++static int swap_node(struct swap_info_struct *si)
+ {
+ 	struct block_device *bdev;
+ 
+-	if (p->bdev)
+-		bdev = p->bdev;
++	if (si->bdev)
++		bdev = si->bdev;
+ 	else
+-		bdev = p->swap_file->f_inode->i_sb->s_bdev;
++		bdev = si->swap_file->f_inode->i_sb->s_bdev;
+ 
+ 	return bdev ? bdev->bd_disk->node_id : NUMA_NO_NODE;
+ }
+ 
+-static void setup_swap_info(struct swap_info_struct *p, int prio,
++static void setup_swap_info(struct swap_info_struct *si, int prio,
+ 			    unsigned char *swap_map,
+ 			    struct swap_cluster_info *cluster_info)
+ {
+ 	int i;
+ 
+ 	if (prio >= 0)
+-		p->prio = prio;
++		si->prio = prio;
+ 	else
+-		p->prio = --least_priority;
++		si->prio = --least_priority;
+ 	/*
+ 	 * the plist prio is negated because plist ordering is
+ 	 * low-to-high, while swap ordering is high-to-low
+ 	 */
+-	p->list.prio = -p->prio;
++	si->list.prio = -si->prio;
+ 	for_each_node(i) {
+-		if (p->prio >= 0)
+-			p->avail_lists[i].prio = -p->prio;
++		if (si->prio >= 0)
++			si->avail_lists[i].prio = -si->prio;
+ 		else {
+-			if (swap_node(p) == i)
+-				p->avail_lists[i].prio = 1;
++			if (swap_node(si) == i)
++				si->avail_lists[i].prio = 1;
+ 			else
+-				p->avail_lists[i].prio = -p->prio;
++				si->avail_lists[i].prio = -si->prio;
+ 		}
+ 	}
+-	p->swap_map = swap_map;
+-	p->cluster_info = cluster_info;
++	si->swap_map = swap_map;
++	si->cluster_info = cluster_info;
+ }
+ 
+-static void _enable_swap_info(struct swap_info_struct *p)
++static void _enable_swap_info(struct swap_info_struct *si)
+ {
+-	p->flags |= SWP_WRITEOK;
+-	atomic_long_add(p->pages, &nr_swap_pages);
+-	total_swap_pages += p->pages;
++	si->flags |= SWP_WRITEOK;
++	atomic_long_add(si->pages, &nr_swap_pages);
++	total_swap_pages += si->pages;
+ 
+ 	assert_spin_locked(&swap_lock);
+ 	/*
+@@ -2597,40 +2597,40 @@ static void _enable_swap_info(struct swa
+ 	 * which allocates swap pages from the highest available priority
+ 	 * swap_info_struct.
+ 	 */
+-	plist_add(&p->list, &swap_active_head);
++	plist_add(&si->list, &swap_active_head);
+ 
+ 	/* add to available list iff swap device is not full */
+-	if (p->highest_bit)
+-		add_to_avail_list(p);
++	if (si->highest_bit)
++		add_to_avail_list(si);
+ }
+ 
+-static void enable_swap_info(struct swap_info_struct *p, int prio,
++static void enable_swap_info(struct swap_info_struct *si, int prio,
+ 				unsigned char *swap_map,
+ 				struct swap_cluster_info *cluster_info)
+ {
+ 	spin_lock(&swap_lock);
+-	spin_lock(&p->lock);
+-	setup_swap_info(p, prio, swap_map, cluster_info);
+-	spin_unlock(&p->lock);
++	spin_lock(&si->lock);
++	setup_swap_info(si, prio, swap_map, cluster_info);
++	spin_unlock(&si->lock);
+ 	spin_unlock(&swap_lock);
+ 	/*
+ 	 * Finished initializing swap device, now it's safe to reference it.
+ 	 */
+-	percpu_ref_resurrect(&p->users);
++	percpu_ref_resurrect(&si->users);
+ 	spin_lock(&swap_lock);
+-	spin_lock(&p->lock);
+-	_enable_swap_info(p);
+-	spin_unlock(&p->lock);
++	spin_lock(&si->lock);
++	_enable_swap_info(si);
++	spin_unlock(&si->lock);
+ 	spin_unlock(&swap_lock);
+ }
+ 
+-static void reinsert_swap_info(struct swap_info_struct *p)
++static void reinsert_swap_info(struct swap_info_struct *si)
+ {
+ 	spin_lock(&swap_lock);
+-	spin_lock(&p->lock);
+-	setup_swap_info(p, p->prio, p->swap_map, p->cluster_info);
+-	_enable_swap_info(p);
+-	spin_unlock(&p->lock);
++	spin_lock(&si->lock);
++	setup_swap_info(si, si->prio, si->swap_map, si->cluster_info);
++	_enable_swap_info(si);
++	spin_unlock(&si->lock);
+ 	spin_unlock(&swap_lock);
+ }
+ 
+@@ -3016,20 +3016,20 @@ static struct swap_info_struct *alloc_sw
+ 	return p;
+ }
+ 
+-static int claim_swapfile(struct swap_info_struct *p, struct inode *inode)
++static int claim_swapfile(struct swap_info_struct *si, struct inode *inode)
+ {
+ 	if (S_ISBLK(inode->i_mode)) {
+-		p->bdev = I_BDEV(inode);
++		si->bdev = I_BDEV(inode);
+ 		/*
+ 		 * Zoned block devices contain zones that have a sequential
+ 		 * write only restriction.  Hence zoned block devices are not
+ 		 * suitable for swapping.  Disallow them here.
+ 		 */
+-		if (bdev_is_zoned(p->bdev))
++		if (bdev_is_zoned(si->bdev))
+ 			return -EINVAL;
+-		p->flags |= SWP_BLKDEV;
++		si->flags |= SWP_BLKDEV;
+ 	} else if (S_ISREG(inode->i_mode)) {
+-		p->bdev = inode->i_sb->s_bdev;
++		si->bdev = inode->i_sb->s_bdev;
+ 	}
+ 
+ 	return 0;
+@@ -3064,7 +3064,7 @@ __weak unsigned long arch_max_swapfile_s
+ 	return generic_max_swapfile_size();
+ }
+ 
+-static unsigned long read_swap_header(struct swap_info_struct *p,
++static unsigned long read_swap_header(struct swap_info_struct *si,
+ 					union swap_header *swap_header,
+ 					struct inode *inode)
+ {
+@@ -3095,9 +3095,9 @@ static unsigned long read_swap_header(st
+ 		return 0;
+ 	}
+ 
+-	p->lowest_bit  = 1;
+-	p->cluster_next = 1;
+-	p->cluster_nr = 0;
++	si->lowest_bit  = 1;
++	si->cluster_next = 1;
++	si->cluster_nr = 0;
+ 
+ 	maxpages = swapfile_maximum_size;
+ 	last_page = swap_header->info.last_page;
+@@ -3115,7 +3115,7 @@ static unsigned long read_swap_header(st
+ 		if ((unsigned int)maxpages == 0)
+ 			maxpages = UINT_MAX;
+ 	}
+-	p->highest_bit = maxpages - 1;
++	si->highest_bit = maxpages - 1;
+ 
+ 	if (!maxpages)
+ 		return 0;
+@@ -3139,7 +3139,7 @@ static unsigned long read_swap_header(st
+ #define SWAP_CLUSTER_COLS						\
+ 	max_t(unsigned int, SWAP_CLUSTER_INFO_COLS, SWAP_CLUSTER_SPACE_COLS)
+ 
+-static int setup_swap_map_and_extents(struct swap_info_struct *p,
++static int setup_swap_map_and_extents(struct swap_info_struct *si,
+ 					union swap_header *swap_header,
+ 					unsigned char *swap_map,
+ 					struct swap_cluster_info *cluster_info,
+@@ -3150,19 +3150,19 @@ static int setup_swap_map_and_extents(st
+ 	unsigned int nr_good_pages;
+ 	int nr_extents;
+ 	unsigned long nr_clusters = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+-	unsigned long col = p->cluster_next / SWAPFILE_CLUSTER % SWAP_CLUSTER_COLS;
++	unsigned long col = si->cluster_next / SWAPFILE_CLUSTER % SWAP_CLUSTER_COLS;
+ 	unsigned long i, idx;
+ 
+ 	nr_good_pages = maxpages - 1;	/* omit header page */
+ 
+-	INIT_LIST_HEAD(&p->free_clusters);
+-	INIT_LIST_HEAD(&p->full_clusters);
+-	INIT_LIST_HEAD(&p->discard_clusters);
++	INIT_LIST_HEAD(&si->free_clusters);
++	INIT_LIST_HEAD(&si->full_clusters);
++	INIT_LIST_HEAD(&si->discard_clusters);
+ 
+ 	for (i = 0; i < SWAP_NR_ORDERS; i++) {
+-		INIT_LIST_HEAD(&p->nonfull_clusters[i]);
+-		INIT_LIST_HEAD(&p->frag_clusters[i]);
+-		p->frag_cluster_nr[i] = 0;
++		INIT_LIST_HEAD(&si->nonfull_clusters[i]);
++		INIT_LIST_HEAD(&si->frag_clusters[i]);
++		si->frag_cluster_nr[i] = 0;
+ 	}
+ 
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+@@ -3176,13 +3176,13 @@ static int setup_swap_map_and_extents(st
+ 			 * Haven't marked the cluster free yet, no list
+ 			 * operation involved
+ 			 */
+-			inc_cluster_info_page(p, cluster_info, page_nr);
++			inc_cluster_info_page(si, cluster_info, page_nr);
+ 		}
+ 	}
+ 
+ 	/* Haven't marked the cluster free yet, no list operation involved */
+ 	for (i = maxpages; i < round_up(maxpages, SWAPFILE_CLUSTER); i++)
+-		inc_cluster_info_page(p, cluster_info, i);
++		inc_cluster_info_page(si, cluster_info, i);
+ 
+ 	if (nr_good_pages) {
+ 		swap_map[0] = SWAP_MAP_BAD;
+@@ -3190,13 +3190,13 @@ static int setup_swap_map_and_extents(st
+ 		 * Not mark the cluster free yet, no list
+ 		 * operation involved
+ 		 */
+-		inc_cluster_info_page(p, cluster_info, 0);
+-		p->max = maxpages;
+-		p->pages = nr_good_pages;
+-		nr_extents = setup_swap_extents(p, span);
++		inc_cluster_info_page(si, cluster_info, 0);
++		si->max = maxpages;
++		si->pages = nr_good_pages;
++		nr_extents = setup_swap_extents(si, span);
+ 		if (nr_extents < 0)
+ 			return nr_extents;
+-		nr_good_pages = p->pages;
++		nr_good_pages = si->pages;
+ 	}
+ 	if (!nr_good_pages) {
+ 		pr_warn("Empty swap-file\n");
+@@ -3220,11 +3220,11 @@ static int setup_swap_map_and_extents(st
+ 				continue;
+ 			if (ci->count) {
+ 				ci->flags = CLUSTER_FLAG_NONFULL;
+-				list_add_tail(&ci->list, &p->nonfull_clusters[0]);
++				list_add_tail(&ci->list, &si->nonfull_clusters[0]);
+ 				continue;
+ 			}
+ 			ci->flags = CLUSTER_FLAG_FREE;
+-			list_add_tail(&ci->list, &p->free_clusters);
++			list_add_tail(&ci->list, &si->free_clusters);
+ 		}
+ 	}
+ 	return nr_extents;
+@@ -3232,7 +3232,7 @@ static int setup_swap_map_and_extents(st
+ 
+ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
+ {
+-	struct swap_info_struct *p;
++	struct swap_info_struct *si;
+ 	struct filename *name;
+ 	struct file *swap_file = NULL;
+ 	struct address_space *mapping;
+@@ -3258,11 +3258,11 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (!swap_avail_heads)
+ 		return -ENOMEM;
+ 
+-	p = alloc_swap_info();
+-	if (IS_ERR(p))
+-		return PTR_ERR(p);
++	si = alloc_swap_info();
++	if (IS_ERR(si))
++		return PTR_ERR(si);
+ 
+-	INIT_WORK(&p->discard_work, swap_discard_work);
++	INIT_WORK(&si->discard_work, swap_discard_work);
+ 
+ 	name = getname(specialfile);
+ 	if (IS_ERR(name)) {
+@@ -3277,12 +3277,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
+ 	}
+ 
+-	p->swap_file = swap_file;
++	si->swap_file = swap_file;
+ 	mapping = swap_file->f_mapping;
+ 	dentry = swap_file->f_path.dentry;
+ 	inode = mapping->host;
+ 
+-	error = claim_swapfile(p, inode);
++	error = claim_swapfile(si, inode);
+ 	if (unlikely(error))
+ 		goto bad_swap;
+ 
+@@ -3310,7 +3310,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 	swap_header = kmap(page);
+ 
+-	maxpages = read_swap_header(p, swap_header, inode);
++	maxpages = read_swap_header(si, swap_header, inode);
+ 	if (unlikely(!maxpages)) {
+ 		error = -EINVAL;
+ 		goto bad_swap_unlock_inode;
+@@ -3323,19 +3323,19 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap_unlock_inode;
+ 	}
+ 
+-	if (p->bdev && bdev_stable_writes(p->bdev))
+-		p->flags |= SWP_STABLE_WRITES;
++	if (si->bdev && bdev_stable_writes(si->bdev))
++		si->flags |= SWP_STABLE_WRITES;
+ 
+-	if (p->bdev && bdev_synchronous(p->bdev))
+-		p->flags |= SWP_SYNCHRONOUS_IO;
++	if (si->bdev && bdev_synchronous(si->bdev))
++		si->flags |= SWP_SYNCHRONOUS_IO;
+ 
+-	if (p->bdev && bdev_nonrot(p->bdev)) {
++	if (si->bdev && bdev_nonrot(si->bdev)) {
+ 		int cpu, i;
+ 		unsigned long ci, nr_cluster;
+ 
+-		p->flags |= SWP_SOLIDSTATE;
+-		p->cluster_next_cpu = alloc_percpu(unsigned int);
+-		if (!p->cluster_next_cpu) {
++		si->flags |= SWP_SOLIDSTATE;
++		si->cluster_next_cpu = alloc_percpu(unsigned int);
++		if (!si->cluster_next_cpu) {
+ 			error = -ENOMEM;
+ 			goto bad_swap_unlock_inode;
+ 		}
+@@ -3344,8 +3344,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		 * SSD
+ 		 */
+ 		for_each_possible_cpu(cpu) {
+-			per_cpu(*p->cluster_next_cpu, cpu) =
+-				get_random_u32_inclusive(1, p->highest_bit);
++			per_cpu(*si->cluster_next_cpu, cpu) =
++				get_random_u32_inclusive(1, si->highest_bit);
+ 		}
+ 		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+ 
+@@ -3359,15 +3359,15 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		for (ci = 0; ci < nr_cluster; ci++)
+ 			spin_lock_init(&((cluster_info + ci)->lock));
+ 
+-		p->percpu_cluster = alloc_percpu(struct percpu_cluster);
+-		if (!p->percpu_cluster) {
++		si->percpu_cluster = alloc_percpu(struct percpu_cluster);
++		if (!si->percpu_cluster) {
+ 			error = -ENOMEM;
+ 			goto bad_swap_unlock_inode;
+ 		}
+ 		for_each_possible_cpu(cpu) {
+ 			struct percpu_cluster *cluster;
+ 
+-			cluster = per_cpu_ptr(p->percpu_cluster, cpu);
++			cluster = per_cpu_ptr(si->percpu_cluster, cpu);
+ 			for (i = 0; i < SWAP_NR_ORDERS; i++)
+ 				cluster->next[i] = SWAP_NEXT_INVALID;
+ 		}
+@@ -3376,11 +3376,11 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		inced_nr_rotate_swap = true;
+ 	}
+ 
+-	error = swap_cgroup_swapon(p->type, maxpages);
++	error = swap_cgroup_swapon(si->type, maxpages);
+ 	if (error)
+ 		goto bad_swap_unlock_inode;
+ 
+-	nr_extents = setup_swap_map_and_extents(p, swap_header, swap_map,
++	nr_extents = setup_swap_map_and_extents(si, swap_header, swap_map,
+ 		cluster_info, maxpages, &span);
+ 	if (unlikely(nr_extents < 0)) {
+ 		error = nr_extents;
+@@ -3388,14 +3388,14 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 
+ 	if ((swap_flags & SWAP_FLAG_DISCARD) &&
+-	    p->bdev && bdev_max_discard_sectors(p->bdev)) {
++	    si->bdev && bdev_max_discard_sectors(si->bdev)) {
+ 		/*
+ 		 * When discard is enabled for swap with no particular
+ 		 * policy flagged, we set all swap discard flags here in
+ 		 * order to sustain backward compatibility with older
+ 		 * swapon(8) releases.
+ 		 */
+-		p->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
++		si->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
+ 			     SWP_PAGE_DISCARD);
+ 
+ 		/*
+@@ -3405,24 +3405,24 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		 * Now it's time to adjust the p->flags accordingly.
+ 		 */
+ 		if (swap_flags & SWAP_FLAG_DISCARD_ONCE)
+-			p->flags &= ~SWP_PAGE_DISCARD;
++			si->flags &= ~SWP_PAGE_DISCARD;
+ 		else if (swap_flags & SWAP_FLAG_DISCARD_PAGES)
+-			p->flags &= ~SWP_AREA_DISCARD;
++			si->flags &= ~SWP_AREA_DISCARD;
+ 
+ 		/* issue a swapon-time discard if it's still required */
+-		if (p->flags & SWP_AREA_DISCARD) {
+-			int err = discard_swap(p);
++		if (si->flags & SWP_AREA_DISCARD) {
++			int err = discard_swap(si);
+ 			if (unlikely(err))
+ 				pr_err("swapon: discard_swap(%p): %d\n",
+-					p, err);
++					si, err);
+ 		}
+ 	}
+ 
+-	error = init_swap_address_space(p->type, maxpages);
++	error = init_swap_address_space(si->type, maxpages);
+ 	if (error)
+ 		goto bad_swap_unlock_inode;
+ 
+-	error = zswap_swapon(p->type, maxpages);
++	error = zswap_swapon(si->type, maxpages);
+ 	if (error)
+ 		goto free_swap_address_space;
+ 
+@@ -3442,15 +3442,15 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+ 		prio =
+ 		  (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
+-	enable_swap_info(p, prio, swap_map, cluster_info);
++	enable_swap_info(si, prio, swap_map, cluster_info);
+ 
+ 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
+-		K(p->pages), name->name, p->prio, nr_extents,
++		K(si->pages), name->name, si->prio, nr_extents,
+ 		K((unsigned long long)span),
+-		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+-		(p->flags & SWP_DISCARDABLE) ? "D" : "",
+-		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
+-		(p->flags & SWP_PAGE_DISCARD) ? "c" : "");
++		(si->flags & SWP_SOLIDSTATE) ? "SS" : "",
++		(si->flags & SWP_DISCARDABLE) ? "D" : "",
++		(si->flags & SWP_AREA_DISCARD) ? "s" : "",
++		(si->flags & SWP_PAGE_DISCARD) ? "c" : "");
+ 
+ 	mutex_unlock(&swapon_mutex);
+ 	atomic_inc(&proc_poll_event);
+@@ -3459,22 +3459,22 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = 0;
+ 	goto out;
+ free_swap_zswap:
+-	zswap_swapoff(p->type);
++	zswap_swapoff(si->type);
+ free_swap_address_space:
+-	exit_swap_address_space(p->type);
++	exit_swap_address_space(si->type);
+ bad_swap_unlock_inode:
+ 	inode_unlock(inode);
+ bad_swap:
+-	free_percpu(p->percpu_cluster);
+-	p->percpu_cluster = NULL;
+-	free_percpu(p->cluster_next_cpu);
+-	p->cluster_next_cpu = NULL;
++	free_percpu(si->percpu_cluster);
++	si->percpu_cluster = NULL;
++	free_percpu(si->cluster_next_cpu);
++	si->cluster_next_cpu = NULL;
+ 	inode = NULL;
+-	destroy_swap_extents(p);
+-	swap_cgroup_swapoff(p->type);
++	destroy_swap_extents(si);
++	swap_cgroup_swapoff(si->type);
+ 	spin_lock(&swap_lock);
+-	p->swap_file = NULL;
+-	p->flags = 0;
++	si->swap_file = NULL;
++	si->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+ 	kvfree(cluster_info);
+@@ -3526,23 +3526,23 @@ void si_swapinfo(struct sysinfo *val)
+  */
+ static int __swap_duplicate(swp_entry_t entry, unsigned char usage, int nr)
+ {
+-	struct swap_info_struct *p;
++	struct swap_info_struct *si;
+ 	struct swap_cluster_info *ci;
+ 	unsigned long offset;
+ 	unsigned char count;
+ 	unsigned char has_cache;
+ 	int err, i;
+ 
+-	p = swp_swap_info(entry);
++	si = swp_swap_info(entry);
+ 
+ 	offset = swp_offset(entry);
+ 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
+ 	VM_WARN_ON(usage == 1 && nr > 1);
+-	ci = lock_cluster_or_swap_info(p, offset);
++	ci = lock_cluster_or_swap_info(si, offset);
+ 
+ 	err = 0;
+ 	for (i = 0; i < nr; i++) {
+-		count = p->swap_map[offset + i];
++		count = si->swap_map[offset + i];
+ 
+ 		/*
+ 		 * swapin_readahead() doesn't check if a swap entry is valid, so the
+@@ -3570,7 +3570,7 @@ static int __swap_duplicate(swp_entry_t
+ 	}
+ 
+ 	for (i = 0; i < nr; i++) {
+-		count = p->swap_map[offset + i];
++		count = si->swap_map[offset + i];
+ 		has_cache = count & SWAP_HAS_CACHE;
+ 		count &= ~SWAP_HAS_CACHE;
+ 
+@@ -3578,7 +3578,7 @@ static int __swap_duplicate(swp_entry_t
+ 			has_cache = SWAP_HAS_CACHE;
+ 		else if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
+ 			count += usage;
+-		else if (swap_count_continued(p, offset + i, count))
++		else if (swap_count_continued(si, offset + i, count))
+ 			count = COUNT_CONTINUED;
+ 		else {
+ 			/*
+@@ -3589,11 +3589,11 @@ static int __swap_duplicate(swp_entry_t
+ 			goto unlock_out;
+ 		}
+ 
+-		WRITE_ONCE(p->swap_map[offset + i], count | has_cache);
++		WRITE_ONCE(si->swap_map[offset + i], count | has_cache);
+ 	}
+ 
+ unlock_out:
+-	unlock_cluster_or_swap_info(p, ci);
++	unlock_cluster_or_swap_info(si, ci);
+ 	return err;
+ }
  
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
+mm-count-the-number-of-anonymous-thps-per-size.patch
+mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix.patch
 
