@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196274776E
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:49:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A12147796
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:49:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421745; cv=none; b=g8HjIiRyOZjXScJVewPdMBGLYU/5HEIpf5ILULU0De9HCYdKhTo16Frajv9XrsMdPGupQ1g/Ghn41GpzdLIcZ/gFFOCxclvju3oDV6XkUN1M2xdhPfsnTepUeTyniQB7xpZZYzEyg4qlwciiSaeMkaAYeLqCsQSgkUqKb2iddZg=
+	t=1725421772; cv=none; b=RUP84t5m5duLgWnb5qIiY3g9oX2weNNYQy6OgnEDaIbDFuGPufdcKtue+vUwC8z6W70eGouk3qoWwQA7e+kiBJP6VgSOlqyK5l/j1fxHMlZR2V9FKvXCGZiNIuTZPCAi3yTj6jDhUBNhzC9oqYj/UpnKI176nY/bRleLsQvC7SU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421745; c=relaxed/simple;
-	bh=ja3KowlOUaixQR53W43MlsBUUGSyHpP1LUF2WKG3YRk=;
-	h=Date:To:From:Subject:Message-Id; b=TspqSV0yZ+VonuK0ddAcGFeeRWfk2fR5TFa6YB9d74IokocQWYMAd4kxeeKPqBRAhO9A9fMbhAI9TEy31hkPWbfi3Pwn9xJdnRVSLxF+WfFb1SQZBZ82kY7pDBmzGKC4gNDYouamBMpU5Js5B8tZcz5zzu+2ci9ghhki7gSZ9QE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mkZqAYT+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421772; c=relaxed/simple;
+	bh=PpN5JwrY4cxgdA9mt5t6pUgqDbJ3BsLGBjFSt1ZtVg4=;
+	h=Date:To:From:Subject:Message-Id; b=aR6qEhSw4czw0N2z0TKuVjkJpY5ED/TQZKHGOjw+7Lz0CFh2vVFLSBcnXmBMOOP483ptNVNxV0ayZfYR0TsjeHHrWiEUIMYuSRi5PuBqupROeCzSnCQyGJk5LQosn0nRggae27FXTo/KsUntaIQDsJYRzQZlTfIR5Lm4bTMR+G8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zbeuIF6v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mkZqAYT+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7664C4CEC2;
-	Wed,  4 Sep 2024 03:49:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zbeuIF6v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6830C4CEC2;
+	Wed,  4 Sep 2024 03:49:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421744;
-	bh=ja3KowlOUaixQR53W43MlsBUUGSyHpP1LUF2WKG3YRk=;
+	s=korg; t=1725421771;
+	bh=PpN5JwrY4cxgdA9mt5t6pUgqDbJ3BsLGBjFSt1ZtVg4=;
 	h=Date:To:From:Subject:From;
-	b=mkZqAYT+PU0PNOKVvzQaxrLaq+FmNI8RRmXRLJP5qch86xSHVfK3labEtJoJ3R9Y/
-	 SrOAXskPSd/W6yOgaiYzU+d+jl6NXZJabhglg01BbO+6WOakIALaWTvfM1etO2jWBI
-	 9+HT3txztoCrZjLVyjwT9WChWLUSciqeSqLBgWxc=
-Date: Tue, 03 Sep 2024 20:49:04 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=zbeuIF6vHLJQgK6h5n6GqzgzpVJBa7ru5gSyryEm3cs68e8pT+axWs2ApYbU1EnTa
+	 KwWn3D8Gwbq6AJ5w6ncEftME81KZNZ5dnwkpwdgZqx9Gy7OLFXB4FGV/GwfyX5KaYy
+	 MbYmAvsyCUc8baLkjhd8waKf0jEqjB31qy4plNr0=
+Date: Tue, 03 Sep 2024 20:49:31 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch removed from -mm tree
-Message-Id: <20240904034904.D7664C4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch removed from -mm tree
+Message-Id: <20240904034931.D6830C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
+     Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
 has been removed from the -mm tree.  Its filename was
-     mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch
+     mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
 
-This patch was dropped because it was folded into mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
+This patch was dropped because it was folded into mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
-Date: Mon, 2 Sep 2024 09:46:34 +0300
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
+Date: Fri, 16 Aug 2024 09:36:23 +1200
 
-fix build
+Right now, it is possible two folios are contiguous in swap slots but they
+don't belong to one memcg.  In this case, even we return a large nr, we
+can't really batch free all slots.
 
-Link: https://lkml.kernel.org/r/ZtVfSt_zloPdDqVB@kernel.org
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202409020920.5S9U7dww-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20240815215308.55233-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Chris Li <chrisl@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/numa_memblks.h |    2 +-
- mm/numa_memblks.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/numa_memblks.h~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
-+++ a/include/linux/numa_memblks.h
-@@ -47,7 +47,7 @@ static inline int numa_emu_cmdline(char
- #endif /* CONFIG_NUMA_EMU */
+--- a/mm/internal.h~mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix
++++ a/mm/internal.h
+@@ -15,6 +15,7 @@
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/swap_cgroup.h>
+ #include <linux/tracepoint-defs.h>
  
- #ifdef CONFIG_NUMA_KEEP_MEMINFO
--extern int phys_to_target_node(phys_addr_t start);
-+extern int phys_to_target_node(u64 start);
- #define phys_to_target_node phys_to_target_node
- extern int memory_add_physaddr_to_nid(u64 start);
- #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
---- a/mm/numa_memblks.c~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
-+++ a/mm/numa_memblks.c
-@@ -543,7 +543,7 @@ static int meminfo_to_nid(struct numa_me
- 	return NUMA_NO_NODE;
- }
- 
--int phys_to_target_node(phys_addr_t start)
-+int phys_to_target_node(u64 start)
+ /* Internal core VMA manipulation functions. */
+@@ -275,18 +276,22 @@ static inline int swap_pte_batch(pte_t *
  {
- 	int nid = meminfo_to_nid(&numa_meminfo, start);
+ 	pte_t expected_pte = pte_next_swp_offset(pte);
+ 	const pte_t *end_ptep = start_ptep + max_nr;
++	swp_entry_t entry = pte_to_swp_entry(pte);
+ 	pte_t *ptep = start_ptep + 1;
++	unsigned short cgroup_id;
  
+ 	VM_WARN_ON(max_nr < 1);
+ 	VM_WARN_ON(!is_swap_pte(pte));
+-	VM_WARN_ON(non_swap_entry(pte_to_swp_entry(pte)));
++	VM_WARN_ON(non_swap_entry(entry));
+ 
++	cgroup_id = lookup_swap_cgroup_id(entry);
+ 	while (ptep < end_ptep) {
+ 		pte = ptep_get(ptep);
+ 
+ 		if (!pte_same(pte, expected_pte))
+ 			break;
+-
++		if (lookup_swap_cgroup_id(pte_to_swp_entry(pte)) != cgroup_id)
++			break;
+ 		expected_pte = pte_next_swp_offset(expected_pte);
+ 		ptep++;
+ 	}
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-move-kernel-numac-to-mm.patch
-mips-sgi-ip27-make-node_data-the-same-as-on-all-other-architectures.patch
-mips-sgi-ip27-ensure-node_possible_map-only-contains-valid-nodes.patch
-mips-sgi-ip27-drop-have_arch_nodedata_extension.patch
-mips-loongson64-rename-__node_data-to-node_data.patch
-mips-loongson64-drop-have_arch_nodedata_extension.patch
-arch-mm-move-definition-of-node_data-to-generic-code.patch
-mm-drop-config_have_arch_nodedata_extension.patch
-arch-mm-pull-out-allocation-of-node_data-to-generic-code.patch
-x86-numa-simplify-numa_distance-allocation.patch
-x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
-x86-numa-move-fake_node_-defines-to-numa_emu.patch
-x86-numa_emu-simplify-allocation-of-phys_dist.patch
-x86-numa_emu-split-__apicid_to_node-update-to-a-helper-function.patch
-x86-numa_emu-use-a-helper-function-to-get-max_dma32_pfn.patch
-x86-numa-numa_addremove_cpu-make-cpu-parameter-unsigned.patch
-mm-introduce-numa_memblks.patch
-mm-move-numa_distance-and-related-code-from-x86-to-numa_memblks.patch
-mm-introduce-numa_emulation.patch
-mm-numa_memblks-introduce-numa_memblks_init.patch
-mm-numa_memblks-make-several-functions-and-variables-static.patch
-mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
-of-numa-return-einval-when-no-numa-node-id-is-found.patch
-arch_numa-switch-over-to-numa_memblks.patch
-mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
-docs-move-numa=fake-description-to-kernel-parameterstxt.patch
+mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
+mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
+mm-count-the-number-of-anonymous-thps-per-size.patch
+mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
+mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix.patch
 
