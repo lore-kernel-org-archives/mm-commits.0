@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2272F34
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:48:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196274776E
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:49:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421703; cv=none; b=lDplZ2u1CzsCYVk69HTksyUN/5XId+hKQxwc6ZFykrBdgjFvQ66YlAiUub6FO1k/A7a7q3o9OYQZ2prubaPd+7QeIREwbWn2asnxDEHcmhfR18uTH4QmxUIXPReH+WqvfTFvs56lJX8HsvmkaBQNIG5Cb3jUU/hjEtj0KJUpJgk=
+	t=1725421745; cv=none; b=g8HjIiRyOZjXScJVewPdMBGLYU/5HEIpf5ILULU0De9HCYdKhTo16Frajv9XrsMdPGupQ1g/Ghn41GpzdLIcZ/gFFOCxclvju3oDV6XkUN1M2xdhPfsnTepUeTyniQB7xpZZYzEyg4qlwciiSaeMkaAYeLqCsQSgkUqKb2iddZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421703; c=relaxed/simple;
-	bh=M+7tO7A504SdPovkJhCUhRMVIx8iAucTYvrQ7PF8CgQ=;
-	h=Date:To:From:Subject:Message-Id; b=WONRHTwvNO0dEdLn2MsBQbmkEMnL0rY716kPeo9qBSat/VlYcj4TWv9gxBIrrvXMEBMz3rGLHPMXgWONYtEcij7A0nTZHI+SPlQHq4lVye9iHPnJq0CK4p3Pvw7GKsWhikM+cSQC0v4vlGQ/hXJM3zT9r7QS7dBDeN+oNkGTa/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KhkQ8/7H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421745; c=relaxed/simple;
+	bh=ja3KowlOUaixQR53W43MlsBUUGSyHpP1LUF2WKG3YRk=;
+	h=Date:To:From:Subject:Message-Id; b=TspqSV0yZ+VonuK0ddAcGFeeRWfk2fR5TFa6YB9d74IokocQWYMAd4kxeeKPqBRAhO9A9fMbhAI9TEy31hkPWbfi3Pwn9xJdnRVSLxF+WfFb1SQZBZ82kY7pDBmzGKC4gNDYouamBMpU5Js5B8tZcz5zzu+2ci9ghhki7gSZ9QE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mkZqAYT+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KhkQ8/7H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F096CC4CEC2;
-	Wed,  4 Sep 2024 03:48:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mkZqAYT+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7664C4CEC2;
+	Wed,  4 Sep 2024 03:49:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421703;
-	bh=M+7tO7A504SdPovkJhCUhRMVIx8iAucTYvrQ7PF8CgQ=;
+	s=korg; t=1725421744;
+	bh=ja3KowlOUaixQR53W43MlsBUUGSyHpP1LUF2WKG3YRk=;
 	h=Date:To:From:Subject:From;
-	b=KhkQ8/7HxVos0HahCQeJ2SjlgW3WtzRKqifPyDphhibCh3UT8fqh0yg3csBo/2ePU
-	 J9uWBa0LKrj7miKFhXsq9OfzaUAfAfuZEck2oI0utfDDf3NXns7+wj4ZpXzH4TEy0l
-	 i5Qtyo+SFZ5ddLsxBHXwscKXWtk1QpuaTevz602o=
-Date: Tue, 03 Sep 2024 20:48:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,Jonathan.Cameron@huawei.com,david@redhat.com,dan.j.williams@intel.com,bfaccini@nvidia.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=mkZqAYT+PU0PNOKVvzQaxrLaq+FmNI8RRmXRLJP5qch86xSHVfK3labEtJoJ3R9Y/
+	 SrOAXskPSd/W6yOgaiYzU+d+jl6NXZJabhglg01BbO+6WOakIALaWTvfM1etO2jWBI
+	 9+HT3txztoCrZjLVyjwT9WChWLUSciqeSqLBgWxc=
+Date: Tue, 03 Sep 2024 20:49:04 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] arch_numa-switch-over-to-numa_memblks-fix-2.patch removed from -mm tree
-Message-Id: <20240904034822.F096CC4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch removed from -mm tree
+Message-Id: <20240904034904.D7664C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch_numa-switch-over-to-numa_memblks-fix-2
+     Subject: mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
 has been removed from the -mm tree.  Its filename was
-     arch_numa-switch-over-to-numa_memblks-fix-2.patch
+     mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch
 
-This patch was dropped because it was folded into arch_numa-switch-over-to-numa_memblks.patch
+This patch was dropped because it was folded into mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@kernel.org>
-Subject: arch_numa-switch-over-to-numa_memblks-fix-2
-Date: Tue, 27 Aug 2024 11:52:55 +0300
+Subject: mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
+Date: Mon, 2 Sep 2024 09:46:34 +0300
 
-PFN_PHYS() translation is unnecessary here, as memblock_start_of_DRAM() +
-SZ_4G is already a memory size.
+fix build
 
-Link: https://lkml.kernel.org/r/Zs2T5wkSYO9MGcab@kernel.org
+Link: https://lkml.kernel.org/r/ZtVfSt_zloPdDqVB@kernel.org
 Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Bruno Faccini <bfaccini@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202409020920.5S9U7dww-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/arch_numa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/numa_memblks.h |    2 +-
+ mm/numa_memblks.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/base/arch_numa.c~arch_numa-switch-over-to-numa_memblks-fix-2
-+++ a/drivers/base/arch_numa.c
-@@ -346,7 +346,7 @@ void __init numa_emu_update_cpu_to_node(
+--- a/include/linux/numa_memblks.h~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
++++ a/include/linux/numa_memblks.h
+@@ -47,7 +47,7 @@ static inline int numa_emu_cmdline(char
+ #endif /* CONFIG_NUMA_EMU */
  
- u64 __init numa_emu_dma_end(void)
- {
--	return PFN_PHYS(memblock_start_of_DRAM() + SZ_4G);
-+	return memblock_start_of_DRAM() + SZ_4G;
+ #ifdef CONFIG_NUMA_KEEP_MEMINFO
+-extern int phys_to_target_node(phys_addr_t start);
++extern int phys_to_target_node(u64 start);
+ #define phys_to_target_node phys_to_target_node
+ extern int memory_add_physaddr_to_nid(u64 start);
+ #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+--- a/mm/numa_memblks.c~mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix
++++ a/mm/numa_memblks.c
+@@ -543,7 +543,7 @@ static int meminfo_to_nid(struct numa_me
+ 	return NUMA_NO_NODE;
  }
  
- void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
+-int phys_to_target_node(phys_addr_t start)
++int phys_to_target_node(u64 start)
+ {
+ 	int nid = meminfo_to_nid(&numa_meminfo, start);
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
@@ -102,6 +110,5 @@ mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
 of-numa-return-einval-when-no-numa-node-id-is-found.patch
 arch_numa-switch-over-to-numa_memblks.patch
 mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
-mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch
 docs-move-numa=fake-description-to-kernel-parameterstxt.patch
 
