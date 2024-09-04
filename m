@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7899E75804
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9741274402
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423516; cv=none; b=jkg5kgc6PulxhAT66VI5EfhVOJuWwY8hZTfv29xe0YyiSPED0hmJjw0ovy9er6J062rVTscxI9NLY9+4pBjm426j03ZN/frbTeLFxDU7zQQckrPALSiRPhE+ztPBRdd+3DfbvHatnF5mBOXrmvZzRjRvLls0/N8TzURh1zef3Tc=
+	t=1725423518; cv=none; b=O8PsaNAuPPGf71l8iWomemUOepUA0YDn8VBgSQzL1HZLI8fcR9dEALXOfxH7XNTvMmfQK8Tetck6NCovwnktdl5HN+61fOMe9g9JxP2SBNINLLYhXwKo8XMZqaNVmC6GI4TeGYRrRYztPOctZ4+cfTHuW3QVJDXeirOpui8X+/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423516; c=relaxed/simple;
-	bh=wX3VTjjm8QqlaGa4WvV8acTITDyjdOCRiVxNzhdGZko=;
-	h=Date:To:From:Subject:Message-Id; b=LynBycp37cbQqKcWAN3PQ+UEBA25yRigyTe6VhniBJprJiwut6jzvY/9HTSs51McnHfqOsS+goVRCWNmnKh0Y1b9YQw4puKjLoIDXGK2XuRQSkhAbE882Cp6VSFreQtBq6rORK6hurkj87ef7QHWKnP3PF130deSumEWR5RbYM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A1gFlauX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423518; c=relaxed/simple;
+	bh=URc17i7agy7+xpbfnf9Xv+29a3scr7kIU7OdF0Mbr0c=;
+	h=Date:To:From:Subject:Message-Id; b=umP6cTYiCalLRkV5qoFp5TlTYeBzksejCe/xUB+evcKGgHgIqaK9zGVMa/UTuOJlVKXc94WXkNPMQ/fwuDtyjNX60u3xyvqSB4mN1AyE0iNs2qdcpswpcGbdpPtTM0HrfLRQm6+EmZTQf4QOQAR62H9uA1DxbMYQY5iX1Wre3ZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jCUrPH3s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A1gFlauX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DD4DC4CEC2;
-	Wed,  4 Sep 2024 04:18:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jCUrPH3s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D573C4CEC2;
+	Wed,  4 Sep 2024 04:18:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423516;
-	bh=wX3VTjjm8QqlaGa4WvV8acTITDyjdOCRiVxNzhdGZko=;
+	s=korg; t=1725423518;
+	bh=URc17i7agy7+xpbfnf9Xv+29a3scr7kIU7OdF0Mbr0c=;
 	h=Date:To:From:Subject:From;
-	b=A1gFlauXj4Z1iVG+hIeUDmYbmuzyPpFpuZpPneswsiTUZrhLEULpMg3QZI6ePXL20
-	 Xu0ALO92YdopEc0EL8kqv2YFAQycdpWMCk8eLpFW3MuQqi/aIGe6KXGj2FHJQIS7AL
-	 w3lhnn0K3NzMf/7QQvTGzwtDzMZbcoTTni6fYnm0=
-Date: Tue, 03 Sep 2024 21:18:35 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
+	b=jCUrPH3sOxPqqy/S/plBQ+jE1Il/yU8hXjd0J+Ro6khXFZAdsmSWGhU6Q2V2iyg0c
+	 IDwblMP0naD3OY7XtgGMdTwoIj5Vn8liiz+gRz2ne9e/dkD7UKCX+ZJzo8PAP7g/bI
+	 pfb8mmOSC7ABRT/0EF7zhVdGnkuJussB976lhS40=
+Date: Tue, 03 Sep 2024 21:18:37 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,david@redhat.com,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-more-mseal-traversal-tests.patch removed from -mm tree
-Message-Id: <20240904041836.4DD4DC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] printf-remove-%pgt-support.patch removed from -mm tree
+Message-Id: <20240904041838.6D573C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,201 +35,202 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add more mseal traversal tests
+     Subject: printf: remove %pGt support
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-more-mseal-traversal-tests.patch
+     printf-remove-%pgt-support.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pedro.falcato@gmail.com>
-Subject: selftests/mm: add more mseal traversal tests
-Date: Sat, 17 Aug 2024 01:18:34 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: printf: remove %pGt support
+Date: Wed, 21 Aug 2024 18:39:09 +0100
 
-Add more mseal traversal tests across VMAs, where we could possibly screw
-up sealing checks.  These test more across-vma traversal for mprotect,
-munmap and madvise.  Particularly, we test for the case where a regular
-VMA is followed by a sealed VMA.
+Patch series "Increase the number of bits available in page_type".
 
-[akpm@linux-foundation.org: remove incorrect comment, per review]
-[akpm@linux-foundation.org: remove the correct comment, per Pedro]
-[pedro.falcato@gmail.com: fix mseal's length]
-  Link: https://lkml.kernel.org/r/vc4czyuemmu3kylqb4ctaga6y5yvondlyabimx6jvljlw2fkea@djawlllf45xa
-Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-7-d8d2e037df30@gmail.com
-Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Kent wants more than 16 bits in page_type, so I resurrected this old patch
+and expanded it a bit.  It's a bit more efficient than our current scheme
+(1 4-byte insn vs 3 insns of 13 bytes total) to test a single page type.
+
+
+This patch (of 4):
+
+An upcoming patch will convert page type from being a bitfield to a
+single byte, so we will not be able to use %pG to print the page type
+any more.  The printing of the symbolic name will be restored in that
+patch.
+
+Link: https://lkml.kernel.org/r/20240821173914.2270383-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821173914.2270383-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |  106 +++++++++++++++++++++-
- 1 file changed, 105 insertions(+), 1 deletion(-)
+ Documentation/core-api/printk-formats.rst |    4 ---
+ include/trace/events/mmflags.h            |   10 -------
+ lib/test_printf.c                         |   26 --------------------
+ lib/vsprintf.c                            |   21 ----------------
+ mm/debug.c                                |    2 -
+ mm/internal.h                             |    1 
+ 6 files changed, 2 insertions(+), 62 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-add-more-mseal-traversal-tests
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -777,6 +777,42 @@ static void test_seal_mprotect_partial_m
- 	REPORT_TEST_PASS();
+--- a/Documentation/core-api/printk-formats.rst~printf-remove-%pgt-support
++++ a/Documentation/core-api/printk-formats.rst
+@@ -576,13 +576,12 @@ The field width is passed by value, the
+ Helper macros cpumask_pr_args() and nodemask_pr_args() are available to ease
+ printing cpumask and nodemask.
+ 
+-Flags bitfields such as page flags, page_type, gfp_flags
++Flags bitfields such as page flags and gfp_flags
+ --------------------------------------------------------
+ 
+ ::
+ 
+ 	%pGp	0x17ffffc0002036(referenced|uptodate|lru|active|private|node=0|zone=2|lastcpupid=0x1fffff)
+-	%pGt	0xffffff7f(buddy)
+ 	%pGg	GFP_USER|GFP_DMA32|GFP_NOWARN
+ 	%pGv	read|exec|mayread|maywrite|mayexec|denywrite
+ 
+@@ -591,7 +590,6 @@ would construct the value. The type of f
+ character. Currently supported are:
+ 
+         - p - [p]age flags, expects value of type (``unsigned long *``)
+-        - t - page [t]ype, expects value of type (``unsigned int *``)
+         - v - [v]ma_flags, expects value of type (``unsigned long *``)
+         - g - [g]fp_flags, expects value of type (``gfp_t *``)
+ 
+--- a/include/trace/events/mmflags.h~printf-remove-%pgt-support
++++ a/include/trace/events/mmflags.h
+@@ -130,16 +130,6 @@ IF_HAVE_PG_ARCH_X(arch_3)
+ 	__def_pageflag_names						\
+ 	) : "none"
+ 
+-#define DEF_PAGETYPE_NAME(_name) { PG_##_name, __stringify(_name) }
+-
+-#define __def_pagetype_names						\
+-	DEF_PAGETYPE_NAME(slab),					\
+-	DEF_PAGETYPE_NAME(hugetlb),					\
+-	DEF_PAGETYPE_NAME(offline),					\
+-	DEF_PAGETYPE_NAME(guard),					\
+-	DEF_PAGETYPE_NAME(table),					\
+-	DEF_PAGETYPE_NAME(buddy)
+-
+ #if defined(CONFIG_X86)
+ #define __VM_ARCH_SPECIFIC_1 {VM_PAT,     "pat"           }
+ #elif defined(CONFIG_PPC)
+--- a/lib/test_printf.c~printf-remove-%pgt-support
++++ a/lib/test_printf.c
+@@ -641,26 +641,12 @@ page_flags_test(int section, int node, i
+ 	test(cmp_buf, "%pGp", &flags);
  }
  
-+static void test_seal_mprotect_partial_mprotect_tail(bool seal)
-+{
-+	void *ptr;
-+	unsigned long page_size = getpagesize();
-+	unsigned long size = 2 * page_size;
-+	int ret;
-+	int prot;
-+
-+	/*
-+	 * Check if a partial mseal (that results in two vmas) works correctly.
-+	 * It might mprotect the first, but it'll never touch the second (msealed) vma.
-+	 */
-+
-+	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+
-+	if (seal) {
-+		ret = sys_mseal(ptr + page_size, page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
-+
-+	ret = sys_mprotect(ptr, size, PROT_EXEC);
-+	if (seal)
-+		FAIL_TEST_IF_FALSE(ret < 0);
-+	else
-+		FAIL_TEST_IF_FALSE(!ret);
-+
-+	if (seal) {
-+		FAIL_TEST_IF_FALSE(get_vma_size(ptr + page_size, &prot) > 0);
-+		FAIL_TEST_IF_FALSE(prot == 0x4);
-+	}
-+
-+	REPORT_TEST_PASS();
-+}
-+
-+
- static void test_seal_mprotect_two_vma_with_gap(bool seal)
+-static void __init page_type_test(unsigned int page_type, const char *name,
+-				  char *cmp_buf)
+-{
+-	unsigned long size;
+-
+-	size = scnprintf(cmp_buf, BUF_SIZE, "%#x(", page_type);
+-	if (page_type_has_type(page_type))
+-		size += scnprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
+-
+-	snprintf(cmp_buf + size, BUF_SIZE - size, ")");
+-	test(cmp_buf, "%pGt", &page_type);
+-}
+-
+ static void __init
+ flags(void)
  {
- 	void *ptr;
-@@ -994,6 +1030,36 @@ static void test_seal_munmap_vma_with_ga
- 	REPORT_TEST_PASS();
+ 	unsigned long flags;
+ 	char *cmp_buffer;
+ 	gfp_t gfp;
+-	unsigned int page_type;
+ 
+ 	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+ 	if (!cmp_buffer)
+@@ -700,18 +686,6 @@ flags(void)
+ 	gfp |= __GFP_HIGH;
+ 	test(cmp_buffer, "%pGg", &gfp);
+ 
+-	page_type = ~0;
+-	page_type_test(page_type, "", cmp_buffer);
+-
+-	page_type = 10;
+-	page_type_test(page_type, "", cmp_buffer);
+-
+-	page_type = ~PG_buddy;
+-	page_type_test(page_type, "buddy", cmp_buffer);
+-
+-	page_type = ~(PG_table | PG_buddy);
+-	page_type_test(page_type, "table|buddy", cmp_buffer);
+-
+ 	kfree(cmp_buffer);
  }
  
-+static void test_seal_munmap_partial_across_vmas(bool seal)
-+{
-+	void *ptr;
-+	unsigned long page_size = getpagesize();
-+	unsigned long size = 2 * page_size;
-+	int ret;
-+	int prot;
-+
-+	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+
-+	if (seal) {
-+		ret = sys_mseal(ptr + page_size, page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
-+
-+	ret = sys_munmap(ptr, size);
-+	if (seal)
-+		FAIL_TEST_IF_FALSE(ret < 0);
-+	else
-+		FAIL_TEST_IF_FALSE(!ret);
-+
-+	if (seal) {
-+		FAIL_TEST_IF_FALSE(get_vma_size(ptr + page_size, &prot) > 0);
-+		FAIL_TEST_IF_FALSE(prot == 0x4);
-+	}
-+
-+	REPORT_TEST_PASS();
-+}
-+
- static void test_munmap_start_freed(bool seal)
- {
- 	void *ptr;
-@@ -1746,6 +1812,37 @@ static void test_seal_discard_ro_anon(bo
- 	REPORT_TEST_PASS();
+--- a/lib/vsprintf.c~printf-remove-%pgt-support
++++ a/lib/vsprintf.c
+@@ -2054,25 +2054,6 @@ char *format_page_flags(char *buf, char
+ 	return buf;
  }
  
-+static void test_seal_discard_across_vmas(bool seal)
-+{
-+	void *ptr;
-+	unsigned long page_size = getpagesize();
-+	unsigned long size = 2 * page_size;
-+	int ret;
-+
-+	setup_single_address(size, &ptr);
-+	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+
-+	if (seal) {
-+		ret = seal_single_address(ptr + page_size, page_size);
-+		FAIL_TEST_IF_FALSE(!ret);
-+	}
-+
-+	ret = sys_madvise(ptr, size, MADV_DONTNEED);
-+	if (seal)
-+		FAIL_TEST_IF_FALSE(ret < 0);
-+	else
-+		FAIL_TEST_IF_FALSE(!ret);
-+
-+	ret = sys_munmap(ptr, size);
-+	if (seal)
-+		FAIL_TEST_IF_FALSE(ret < 0);
-+	else
-+		FAIL_TEST_IF_FALSE(!ret);
-+
-+	REPORT_TEST_PASS();
-+}
-+
-+
- static void test_seal_madvise_nodiscard(bool seal)
- {
- 	void *ptr;
-@@ -1790,7 +1887,7 @@ int main(int argc, char **argv)
- 	if (!pkey_supported())
- 		ksft_print_msg("PKEY not supported\n");
+-static
+-char *format_page_type(char *buf, char *end, unsigned int page_type)
+-{
+-	buf = number(buf, end, page_type, default_flag_spec);
+-
+-	if (buf < end)
+-		*buf = '(';
+-	buf++;
+-
+-	if (page_type_has_type(page_type))
+-		buf = format_flags(buf, end, ~page_type, pagetype_names);
+-
+-	if (buf < end)
+-		*buf = ')';
+-	buf++;
+-
+-	return buf;
+-}
+-
+ static noinline_for_stack
+ char *flags_string(char *buf, char *end, void *flags_ptr,
+ 		   struct printf_spec spec, const char *fmt)
+@@ -2086,8 +2067,6 @@ char *flags_string(char *buf, char *end,
+ 	switch (fmt[1]) {
+ 	case 'p':
+ 		return format_page_flags(buf, end, *(unsigned long *)flags_ptr);
+-	case 't':
+-		return format_page_type(buf, end, *(unsigned int *)flags_ptr);
+ 	case 'v':
+ 		flags = *(unsigned long *)flags_ptr;
+ 		names = vmaflag_names;
+--- a/mm/debug.c~printf-remove-%pgt-support
++++ a/mm/debug.c
+@@ -92,7 +92,7 @@ static void __dump_folio(struct folio *f
+ 	pr_warn("%sflags: %pGp%s\n", type, &folio->flags,
+ 		is_migrate_cma_folio(folio, pfn) ? " CMA" : "");
+ 	if (page_has_type(&folio->page))
+-		pr_warn("page_type: %pGt\n", &folio->page.page_type);
++		pr_warn("page_type: %x\n", folio->page.page_type);
  
--	ksft_set_plan(82);
-+	ksft_set_plan(88);
+ 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
+ 			sizeof(unsigned long), page,
+--- a/mm/internal.h~printf-remove-%pgt-support
++++ a/mm/internal.h
+@@ -1144,7 +1144,6 @@ static inline void flush_tlb_batched_pen
+ #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
  
- 	test_seal_addseal();
- 	test_seal_unmapped_start();
-@@ -1836,12 +1933,17 @@ int main(int argc, char **argv)
- 	test_seal_mprotect_split(false);
- 	test_seal_mprotect_split(true);
+ extern const struct trace_print_flags pageflag_names[];
+-extern const struct trace_print_flags pagetype_names[];
+ extern const struct trace_print_flags vmaflag_names[];
+ extern const struct trace_print_flags gfpflag_names[];
  
-+	test_seal_mprotect_partial_mprotect_tail(false);
-+	test_seal_mprotect_partial_mprotect_tail(true);
-+
- 	test_seal_munmap(false);
- 	test_seal_munmap(true);
- 	test_seal_munmap_two_vma(false);
- 	test_seal_munmap_two_vma(true);
- 	test_seal_munmap_vma_with_gap(false);
- 	test_seal_munmap_vma_with_gap(true);
-+	test_seal_munmap_partial_across_vmas(false);
-+	test_seal_munmap_partial_across_vmas(true);
- 
- 	test_munmap_start_freed(false);
- 	test_munmap_start_freed(true);
-@@ -1873,6 +1975,8 @@ int main(int argc, char **argv)
- 	test_seal_madvise_nodiscard(true);
- 	test_seal_discard_ro_anon(false);
- 	test_seal_discard_ro_anon(true);
-+	test_seal_discard_across_vmas(false);
-+	test_seal_discard_across_vmas(true);
- 	test_seal_discard_ro_anon_on_rw(false);
- 	test_seal_discard_ro_anon_on_rw(true);
- 	test_seal_discard_ro_anon_on_shared(false);
 _
 
-Patches currently in -mm which might be from pedro.falcato@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+swap-convert-swapon-to-use-a-folio.patch
 
