@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80A667406F
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13FE66AFAE
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423528; cv=none; b=iUgMmCPV+vqajCnn03O0keDq4ImSifcjuY0379K7GHH2YLpOLr4Yq2HNAmr1iuWOtOPbn9acOvnFuJ3ChzlZ8LW5Ubz9Ljn4jVryhY18ZeiRGVoKuQAdLI8kk/fPfydaAjUz74Tj09cUtm+aFi9LAt1oykpaLdg2KFZMhSSaZyU=
+	t=1725423530; cv=none; b=g1QDFsAuJ+NIC+IAZx+gLYrviFfdRzcFZ/2NZSkcazF3kdpkrGPHKMjXIXnyoPFsq9oT8DlwiRaZ2VH4tZ5e8A8bzDLoOXp/ikg/+S71nant+PwZ2X63xgP+VLMwEqi9ZuXakHjoEqlhSR8bs5ui+WAFWRfiXlP63DqZlmIgGLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423528; c=relaxed/simple;
-	bh=T/byVcJ826nC/mS1/ybJX0BPoPkzC13zFQQr2gXcXAo=;
-	h=Date:To:From:Subject:Message-Id; b=RGBgqOmwpl35ADpVLslz+M2kZ6vODl2QbOZ/ouHSRmHN1BiXSvtOtA+OUMm7rU1m8lehiH7Fv1x6tnEYYntGGfiURaD818nXfkFeDwTKDUJeypOiv6ylafrDHcjLSSCsfruMPaW42S4ltKwnAKYqGWbbUfImSR4TaTgeEu1g++Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kuZVR/xz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423530; c=relaxed/simple;
+	bh=KZNJmkXqdpTStXfgqdm8KF/RfbR4lRk25ZA6rkKExk8=;
+	h=Date:To:From:Subject:Message-Id; b=RgEo9AsaOGdM9qdzA8JSlZcVgoSPMwYQzm0SXkeB8JlE+IDOZNkIOYX+rPuTkoJ10FmuJqnDTQD/hR+N3Fp41zw/YiNDzRjqtaGQTWrX6wK0rpboEQYr0J59c0RsmjZbKh0rngrrQNz+Id9tbf7gUmX3+Jj1mFd9CMHUHZ84VD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hRZA7j5a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kuZVR/xz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EC38C4CEC2;
-	Wed,  4 Sep 2024 04:18:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hRZA7j5a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC9FCC4CEC2;
+	Wed,  4 Sep 2024 04:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423528;
-	bh=T/byVcJ826nC/mS1/ybJX0BPoPkzC13zFQQr2gXcXAo=;
+	s=korg; t=1725423529;
+	bh=KZNJmkXqdpTStXfgqdm8KF/RfbR4lRk25ZA6rkKExk8=;
 	h=Date:To:From:Subject:From;
-	b=kuZVR/xzjiTSq943VdaSX37f06bYlWIl+tXBWb7iZ1uLIIxyrg91+DHu0/pYsOGIg
-	 JNEZwFezuM2rZ2r0ebASgoYAMBU8fb0+ZMHvIzJEkMthnUgeStgPlMIFIDkYcrqX0N
-	 FMIf3QskObZ4/mBSraeQisiArFpH/wyzMno07IIU=
-Date: Tue, 03 Sep 2024 21:18:47 -0700
+	b=hRZA7j5aYPzEoKbabLcWKaE8h/HHCaSFWnbRmWn47hpG6tJApRgMqZODtAva6qtW5
+	 oE+6RhKMUQKYUpOiSy/gsKHzO2pqmHDT5abKYogXwurLaKzVfv2x6KOahwfwNhE8t7
+	 dR3IHXbe0TWIHhZIzOkdHP5we8da/7Ll+O8wkPYQ=
+Date: Tue, 03 Sep 2024 21:18:49 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pageswapcache.patch removed from -mm tree
-Message-Id: <20240904041848.4EC38C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-pageunevictable.patch removed from -mm tree
+Message-Id: <20240904041849.DC9FCC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,153 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PageSwapCache
+     Subject: mm: remove PageUnevictable
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pageswapcache.patch
+     mm-remove-pageunevictable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageSwapCache
-Date: Wed, 21 Aug 2024 20:34:37 +0100
+Subject: mm: remove PageUnevictable
+Date: Wed, 21 Aug 2024 20:34:38 +0100
 
-This flag is now only used on folios, so we can remove all the page
-accessors and reword the comments that refer to them.
+There is only one caller of PageUnevictable() left; convert it to call
+folio_test_unevictable() and remove all the page accessors.
 
-Link: https://lkml.kernel.org/r/20240821193445.2294269-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821193445.2294269-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h   |    2 +-
- include/linux/page-flags.h |   11 +++--------
- mm/ksm.c                   |   19 ++++++++++---------
- mm/migrate.c               |    3 ++-
- mm/shmem.c                 |   11 ++++++-----
- 5 files changed, 22 insertions(+), 24 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ mm/huge_memory.c           |   16 ++++++++--------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/mm_types.h~mm-remove-pageswapcache
-+++ a/include/linux/mm_types.h
-@@ -109,7 +109,7 @@ struct page {
- 			/**
- 			 * @private: Mapping-private opaque data.
- 			 * Usually used for buffer_heads if PagePrivate.
--			 * Used for swp_entry_t if PageSwapCache.
-+			 * Used for swp_entry_t if swapcache flag set.
- 			 * Indicates order in the buddy system if PageBuddy.
- 			 */
- 			unsigned long private;
---- a/include/linux/page-flags.h~mm-remove-pageswapcache
+--- a/include/linux/page-flags.h~mm-remove-pageunevictable
 +++ a/include/linux/page-flags.h
-@@ -574,15 +574,10 @@ static __always_inline bool folio_test_s
- 			test_bit(PG_swapcache, const_folio_flags(folio, 0));
- }
- 
--static __always_inline bool PageSwapCache(const struct page *page)
--{
--	return folio_test_swapcache(page_folio(page));
--}
--
--SETPAGEFLAG(SwapCache, swapcache, PF_NO_TAIL)
--CLEARPAGEFLAG(SwapCache, swapcache, PF_NO_TAIL)
-+FOLIO_SET_FLAG(swapcache, FOLIO_HEAD_PAGE)
-+FOLIO_CLEAR_FLAG(swapcache, FOLIO_HEAD_PAGE)
- #else
--PAGEFLAG_FALSE(SwapCache, swapcache)
-+FOLIO_FLAG_FALSE(swapcache)
+@@ -580,9 +580,9 @@ FOLIO_CLEAR_FLAG(swapcache, FOLIO_HEAD_P
+ FOLIO_FLAG_FALSE(swapcache)
  #endif
  
- PAGEFLAG(Unevictable, unevictable, PF_HEAD)
---- a/mm/ksm.c~mm-remove-pageswapcache
-+++ a/mm/ksm.c
-@@ -909,12 +909,13 @@ again:
- 	 */
- 	while (!folio_try_get(folio)) {
- 		/*
--		 * Another check for page->mapping != expected_mapping would
--		 * work here too.  We have chosen the !PageSwapCache test to
--		 * optimize the common case, when the page is or is about to
--		 * be freed: PageSwapCache is cleared (under spin_lock_irq)
--		 * in the ref_freeze section of __remove_mapping(); but Anon
--		 * folio->mapping reset to NULL later, in free_pages_prepare().
-+		 * Another check for folio->mapping != expected_mapping
-+		 * would work here too.  We have chosen to test the
-+		 * swapcache flag to optimize the common case, when the
-+		 * folio is or is about to be freed: the swapcache flag
-+		 * is cleared (under spin_lock_irq) in the ref_freeze
-+		 * section of __remove_mapping(); but anon folio->mapping
-+		 * is reset to NULL later, in free_pages_prepare().
- 		 */
- 		if (!folio_test_swapcache(folio))
- 			goto stale;
-@@ -945,7 +946,7 @@ again:
+-PAGEFLAG(Unevictable, unevictable, PF_HEAD)
+-	__CLEARPAGEFLAG(Unevictable, unevictable, PF_HEAD)
+-	TESTCLEARFLAG(Unevictable, unevictable, PF_HEAD)
++FOLIO_FLAG(unevictable, FOLIO_HEAD_PAGE)
++	__FOLIO_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
++	FOLIO_TEST_CLEAR_FLAG(unevictable, FOLIO_HEAD_PAGE)
  
- stale:
- 	/*
--	 * We come here from above when page->mapping or !PageSwapCache
-+	 * We come here from above when folio->mapping or the swapcache flag
- 	 * suggests that the node is stale; but it might be under migration.
- 	 * We need smp_rmb(), matching the smp_wmb() in folio_migrate_ksm(),
- 	 * before checking whether node->kpfn has been changed.
-@@ -1452,7 +1453,7 @@ static int try_to_merge_one_page(struct
- 		goto out;
+ #ifdef CONFIG_MMU
+ PAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
+--- a/mm/huge_memory.c~mm-remove-pageunevictable
++++ a/mm/huge_memory.c
+@@ -2932,25 +2932,25 @@ static void remap_page(struct folio *fol
+ 	}
+ }
  
- 	/*
--	 * We need the page lock to read a stable PageSwapCache in
-+	 * We need the folio lock to read a stable swapcache flag in
- 	 * write_protect_page().  We use trylock_page() instead of
- 	 * lock_page() because we don't want to wait here - we
- 	 * prefer to continue scanning and merging different pages,
-@@ -3123,7 +3124,7 @@ void folio_migrate_ksm(struct folio *new
- 		 * newfolio->mapping was set in advance; now we need smp_wmb()
- 		 * to make sure that the new stable_node->kpfn is visible
- 		 * to ksm_get_folio() before it can see that folio->mapping
--		 * has gone stale (or that folio_test_swapcache has been cleared).
-+		 * has gone stale (or that the swapcache flag has been cleared).
- 		 */
- 		smp_wmb();
- 		folio_set_stable_node(folio, NULL);
---- a/mm/migrate.c~mm-remove-pageswapcache
-+++ a/mm/migrate.c
-@@ -639,7 +639,8 @@ void folio_migrate_flags(struct folio *n
- 	folio_migrate_ksm(newfolio, folio);
- 	/*
- 	 * Please do not reorder this without considering how mm/ksm.c's
--	 * ksm_get_folio() depends upon ksm_migrate_page() and PageSwapCache().
-+	 * ksm_get_folio() depends upon ksm_migrate_page() and the
-+	 * swapcache flag.
- 	 */
- 	if (folio_test_swapcache(folio))
- 		folio_clear_swapcache(folio);
---- a/mm/shmem.c~mm-remove-pageswapcache
-+++ a/mm/shmem.c
-@@ -502,8 +502,8 @@ static int shmem_replace_entry(struct ad
-  * Sometimes, before we decide whether to proceed or to fail, we must check
-  * that an entry was not already brought back from swap by a racing thread.
-  *
-- * Checking page is not enough: by the time a SwapCache page is locked, it
-- * might be reused, and again be SwapCache, using the same swap as before.
-+ * Checking folio is not enough: by the time a swapcache folio is locked, it
-+ * might be reused, and again be swapcache, using the same swap as before.
-  */
- static bool shmem_confirm_swap(struct address_space *mapping,
- 			       pgoff_t index, swp_entry_t swap)
-@@ -1965,9 +1965,10 @@ static int shmem_replace_folio(struct fo
+-static void lru_add_page_tail(struct page *head, struct page *tail,
++static void lru_add_page_tail(struct folio *folio, struct page *tail,
+ 		struct lruvec *lruvec, struct list_head *list)
+ {
+-	VM_BUG_ON_PAGE(!PageHead(head), head);
+-	VM_BUG_ON_PAGE(PageLRU(tail), head);
++	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
++	VM_BUG_ON_FOLIO(PageLRU(tail), folio);
+ 	lockdep_assert_held(&lruvec->lru_lock);
  
- 	if (unlikely(error)) {
- 		/*
--		 * Is this possible?  I think not, now that our callers check
--		 * both PageSwapCache and page_private after getting page lock;
--		 * but be defensive.  Reverse old to newpage for clear and free.
-+		 * Is this possible?  I think not, now that our callers
-+		 * check both the swapcache flag and folio->private
-+		 * after getting the folio lock; but be defensive.
-+		 * Reverse old to newpage for clear and free.
- 		 */
- 		old = new;
+ 	if (list) {
+ 		/* page reclaim is reclaiming a huge page */
+-		VM_WARN_ON(PageLRU(head));
++		VM_WARN_ON(folio_test_lru(folio));
+ 		get_page(tail);
+ 		list_add_tail(&tail->lru, list);
  	} else {
+ 		/* head is still on lru (and we have it frozen) */
+-		VM_WARN_ON(!PageLRU(head));
+-		if (PageUnevictable(tail))
++		VM_WARN_ON(!folio_test_lru(folio));
++		if (folio_test_unevictable(folio))
+ 			tail->mlock_count = 0;
+ 		else
+-			list_add_tail(&tail->lru, &head->lru);
++			list_add_tail(&tail->lru, &folio->lru);
+ 		SetPageLRU(tail);
+ 	}
+ }
+@@ -3049,7 +3049,7 @@ static void __split_huge_page_tail(struc
+ 	 * pages to show after the currently processed elements - e.g.
+ 	 * migrate_pages
+ 	 */
+-	lru_add_page_tail(head, page_tail, lruvec, list);
++	lru_add_page_tail(folio, page_tail, lruvec, list);
+ }
+ 
+ static void __split_huge_page(struct page *page, struct list_head *list,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
