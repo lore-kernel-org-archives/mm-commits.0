@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE88874402
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C48D74402
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423523; cv=none; b=QH7oO+E+DSwGWyARDlX5VJ1u4ZP5zK3ZLlxAQQ+MFLH/l16gPW3r4jEooA+pWl2IJ8WutC8Qc05087m8gccu2f4obQjjetVQJSSNfqEdHa9Z8oq8P1F6H+y0YQuvz3XyF9ZW9tvJEwTsTB3PQObZEYfCarecA1aqMOwziv3UrtQ=
+	t=1725423526; cv=none; b=PZXtRcaIhRFDdo3+qBoYg7aRzQXyMBFSZESXNEn+lZrxhuTjXmA/gROJjZxhOYriW6V4f3naiAX/HHq+TG7Msi5aSN9DbWbTcFXby84f/qv/82YIS17tpaiViHbMooTmZH6sUu5xGajWTw7W0Gu6gaCQHalD1NgVHb6cxJpVwgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423523; c=relaxed/simple;
-	bh=8sDIGMjLbkxeHWcWoks7mUrwSd6zwmPFKkIzH83S/1s=;
-	h=Date:To:From:Subject:Message-Id; b=QA1q/h6adiOOiuDEaBkA4Qy7WIORhn8WrBH9OS2ET+WRaWu5vwA4m9+9ljuzJSPahnRAyl2j9JnQqAZpBhkjF1T9zV/u9keG/JWbsdA2obXeNVa3Q8fkZjr61SjgygjBoIJhnT4tDrVHQNHpEnrWd9QJoR7j9u/OSKHrv5Hz7Hk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wavONI54; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423526; c=relaxed/simple;
+	bh=+kSmluhgiTSERNZazZ8PIZ/DhifQsN/6xCzy4k3bIOQ=;
+	h=Date:To:From:Subject:Message-Id; b=aUepg6KS7SChN5UIXHgGvj4cAupbdx4B26WPP5YsCLQ+SbFPQF0BHMXbAbi+8ffgG+yJx2ddDjnejI06sEUHxV0hkpqSjh/6Cn1NqOHugBohqoWeXNvdH2CAElo6xT28IAd2ZY8jJwEHWq1vd52mlVbdWcfwqlg6Z5bN7jzCl7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rDb+MH1U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wavONI54"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B78CEC4CEC2;
-	Wed,  4 Sep 2024 04:18:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rDb+MH1U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52BC3C4CEC2;
+	Wed,  4 Sep 2024 04:18:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423523;
-	bh=8sDIGMjLbkxeHWcWoks7mUrwSd6zwmPFKkIzH83S/1s=;
+	s=korg; t=1725423526;
+	bh=+kSmluhgiTSERNZazZ8PIZ/DhifQsN/6xCzy4k3bIOQ=;
 	h=Date:To:From:Subject:From;
-	b=wavONI54L4/HLa8TeDAaTEhhQb9gLiNtbRRv/QptZYS3ycQ9fw8KrdaT7m5dBfA8x
-	 0A9TgNgCs6qGfr3gJIrZLdsLYqkU41B3exw071SlXOIYwC3DgCmjnsetH0LbMrkIBg
-	 E6T0jvDPlKCfMHPNv60Sk4XdtQfc3MeSOcral3Yo=
-Date: Tue, 03 Sep 2024 21:18:43 -0700
+	b=rDb+MH1UMGPLTokGZS3I7MZTxmOYUwkHyiPnlwSxNTjzYTInUD765M1fEBR1QOM+Z
+	 pbNBuNJ7B64UEgLl+gOMwsoepwSrbNqnF+m90Uhr0QbBqvtiSegiYA40xTvlIsv1vu
+	 UaseVFxS2ZXpph9iiXn5tV+HLlGf5M1FnunX38HI=
+Date: Tue, 03 Sep 2024 21:18:45 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pageactive.patch removed from -mm tree
-Message-Id: <20240904041843.B78CEC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-pageswapbacked.patch removed from -mm tree
+Message-Id: <20240904041846.52BC3C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PageActive
+     Subject: mm: remove PageSwapBacked
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pageactive.patch
+     mm-remove-pageswapbacked.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageActive
-Date: Wed, 21 Aug 2024 20:34:34 +0100
-
-Patch series "Simplify the page flags a little".
-
-In the course of our folio conversions, we have made many page flags only
-used on folios, so we can now remove the page-based accessors.  This
-should cut down compile time a little, and prevent new users from cropping
-up.
-
-There is more that could be done in this area, but it would produce merge
-conflicts, so I'll sit on those patches until next merge window.  We now
-have line of sight to removing PG_private_2 and PG_private.
-
-
-This patch (of 10):
+Subject: mm: remove PageSwapBacked
+Date: Wed, 21 Aug 2024 20:34:35 +0100
 
 This flag is now only used on folios, so we can remove all the page
 accessors.
 
-[akpm@linux-foundation.org: fix arch/powerpc/mm/pgtable-frag.c]
-Link: https://lkml.kernel.org/r/20240821193445.2294269-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20240821193445.2294269-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240821193445.2294269-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable-frag.c |    6 +++---
- include/linux/page-flags.h     |    5 +++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/mm/pgtable-frag.c~mm-remove-pageactive
-+++ a/arch/powerpc/mm/pgtable-frag.c
-@@ -136,10 +136,10 @@ void pte_fragment_free(unsigned long *ta
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
- {
--	struct page *page;
-+	struct folio *folio;
- 
--	page = virt_to_page(pgtable);
--	SetPageActive(page);
-+	folio = virt_to_folio(pgtable);
-+	folio_set_active(folio);
- 	pte_fragment_free((unsigned long *)pgtable, 0);
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
---- a/include/linux/page-flags.h~mm-remove-pageactive
+--- a/include/linux/page-flags.h~mm-remove-pageswapbacked
 +++ a/include/linux/page-flags.h
-@@ -510,8 +510,9 @@ PAGEFLAG(Dirty, dirty, PF_HEAD) TESTSCFL
- 	__CLEARPAGEFLAG(Dirty, dirty, PF_HEAD)
- PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEFLAG(LRU, lru, PF_HEAD)
- 	TESTCLEARFLAG(LRU, lru, PF_HEAD)
--PAGEFLAG(Active, active, PF_HEAD) __CLEARPAGEFLAG(Active, active, PF_HEAD)
--	TESTCLEARFLAG(Active, active, PF_HEAD)
-+FOLIO_FLAG(active, FOLIO_HEAD_PAGE)
-+	__FOLIO_CLEAR_FLAG(active, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_CLEAR_FLAG(active, FOLIO_HEAD_PAGE)
- PAGEFLAG(Workingset, workingset, PF_HEAD)
- 	TESTCLEARFLAG(Workingset, workingset, PF_HEAD)
- PAGEFLAG(Checked, checked, PF_NO_COMPOUND)	   /* Used by some filesystems */
+@@ -528,9 +528,9 @@ PAGEFLAG(XenRemapped, xen_remapped, PF_N
+ PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+ 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+ 	__SETPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+-PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
+-	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
+-	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
++FOLIO_FLAG(swapbacked, FOLIO_HEAD_PAGE)
++	__FOLIO_CLEAR_FLAG(swapbacked, FOLIO_HEAD_PAGE)
++	__FOLIO_SET_FLAG(swapbacked, FOLIO_HEAD_PAGE)
+ 
+ /*
+  * Private page markings that may be used by the filesystem that owns the page
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
