@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DEC56BB4B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:16:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 878F4BA37
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:16:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423411; cv=none; b=gBQs4tpHTtvWXFnTULzYUBfz4OEB9DXBQtv8LFuPkwKtJ9mANsgQ3CnxbiWqjTnLfVuKRYUyd/6NcndmIuE4T2gFWBsLiBihVUkYdojCFf3TqoSVnCHs89tJfzIAU0MCSdaEOyV8TUp5AjkUMP6rasQaJlscBB8J+0fC1LVaKKc=
+	t=1725423413; cv=none; b=IQOZvqgQ6ckp32mreqQCu3JSXW4JZQwem4hn4botBY79MVw4mAmuY+s3W0trMn4Hk/GWs7+mVD7Yt+1y5FHm4hXfJi0fDcuIUGNe1im/8xfrOL09rsH9hs7uTutJ27tQ/BwWNYVyTwbisDInDIfKSeYRvqfdgY+cwB+RrCNycKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423411; c=relaxed/simple;
-	bh=EPEvXvJmVduDTa3lQKg7XGHSbppHUOAa1m0KFPVJ+eQ=;
-	h=Date:To:From:Subject:Message-Id; b=nEk0TJ/GfhM38Ya+ThD79u3tgsVVl4AUymmwhoVG72+oTXUxo3naPS2iHkJTpmA6rBR6BvHoeudTsqB5t++5ZMx1d1tPkbXVjihs5jbV5w6JHdON7ck5s57FGhbdd0RG0Zes43xirZf/IU4q/ZsrWMCBsAMxJzjoZf37/qqY0GI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lFM+oyEW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423413; c=relaxed/simple;
+	bh=q+rtZGpC1KnO4V47rxvyvWg1X+YKrg1t/utwQHkPDsY=;
+	h=Date:To:From:Subject:Message-Id; b=uUyMC3At1j8rqdtHuP/q3gjnG4ANqCbQuKaErmsmaD+z39Pt0tjRsauWVZO3EUaDswZK2vu2i7t2zUiel00ShLLThmllYaZ+R558QMQbfsOdggAs2qf/aetkD+GQb17tFXH1tzf3TZSkf5TxCNggYabjrAGKsrTVCiY1iK1Hq2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVYVSbpg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lFM+oyEW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D12F8C4CEC2;
-	Wed,  4 Sep 2024 04:16:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVYVSbpg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53F59C4CEC2;
+	Wed,  4 Sep 2024 04:16:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423410;
-	bh=EPEvXvJmVduDTa3lQKg7XGHSbppHUOAa1m0KFPVJ+eQ=;
+	s=korg; t=1725423413;
+	bh=q+rtZGpC1KnO4V47rxvyvWg1X+YKrg1t/utwQHkPDsY=;
 	h=Date:To:From:Subject:From;
-	b=lFM+oyEWeW7W+8uVo7Sowcd+J+XJrwuJMASnMF3XC5mlHNTM9KR5sH8vFnbbGPaD1
-	 8CVm3ouph89K5yBZ5Z6aqBMvY9da1nQU0FM6neuH962UhdKaCOuXT+9uV6AptQbgJd
-	 vFYMC7wrtseVOWenDCB8sdGDRfMUzZHbDignTes8=
-Date: Tue, 03 Sep 2024 21:16:50 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryncsn@gmail.com,ryan.roberts@arm.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=HVYVSbpg+LdV9NCwejMOhSM3IQ9Bp4VTeGitizLZHs3Iq6mOvuie8gILqoq3JwYBL
+	 YWQI0o/WCgjlYtRLh2Fx45dkVmKcZeBdkVTzC7IbC0pRfqJ4xVNTZsSg3uUeXA5/5K
+	 Kloz3svs0shwq7OBoSEyUyHpS4ukyBr/Wm1sQbF4=
+Date: Tue, 03 Sep 2024 21:16:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch removed from -mm tree
-Message-Id: <20240904041650.D12F8C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-kernel-numac-to-mm.patch removed from -mm tree
+Message-Id: <20240904041653.53F59C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,206 +35,184 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: add a adaptive full cluster cache reclaim
+     Subject: mm: move kernel/numa.c to mm/
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-a-adaptive-full-cluster-cache-reclaim.patch
+     mm-move-kernel-numac-to-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm: swap: add a adaptive full cluster cache reclaim
-Date: Tue, 30 Jul 2024 23:49:21 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm: move kernel/numa.c to mm/
+Date: Wed, 7 Aug 2024 09:40:45 +0300
 
-Link all full cluster with one full list, and reclaim from it when the
-allocation have ran out of all usable clusters.
+Patch series "mm: introduce numa_memblks", v4.
 
-There are many reason a folio can end up being in the swap cache while
-having no swap count reference.  So the best way to search for such slots
-is still by iterating the swap clusters.
+Following the discussion about handling of CXL fixed memory windows on
+arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
+the generic code so they will be available on arm64/riscv and maybe on
+loongarch sometime later.
 
-With the list as an LRU, iterating from the oldest cluster and keep them
-rotating is a very doable and clean way to free up potentially not inuse
-clusters.
+While it could be possible to use memblock to describe CXL memory windows,
+it currently lacks notion of unpopulated memory ranges and numa_memblks
+does implement this.
 
-When any allocation failure, try reclaim and rotate only one cluster. 
-This is adaptive for high order allocations they can tolerate fallback. 
-So this avoids latency, and give the full cluster list an fair chance to
-get reclaimed.  It release the usage stress for the fallback order 0
-allocation or following up high order allocation.
+Another reason to make numa_memblks generic is that both arch_numa (arm64
+and riscv) and loongarch use trimmed copy of x86 code although there is no
+fundamental reason why the same code cannot be used on all these
+platforms.  Having numa_memblks in mm/ will make it's interaction with
+ACPI and FDT more consistent and I believe will reduce maintenance burden.
 
-If the swap device is getting very full, reclaim more aggresively to
-ensure no OOM will happen.  This ensures order 0 heavy workload won't go
-OOM as order 0 won't fail if any cluster still have any space.
+And with generic numa_memblks it is (almost) straightforward to enable
+NUMA emulation on arm64 and riscv.
 
-[ryncsn@gmail.com: fix discard of full cluster]
-  Link: https://lkml.kernel.org/r/CAMgjq7CWwK75_2Zi5P40K08pk9iqOcuWKL6khu=x4Yg_nXaQag@mail.gmail.com
-Link: https://lkml.kernel.org/r/20240730-swap-allocator-v5-9-cb9c148b9297@kernel.org
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: Barry Song <21cnbao@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <ryncsn@gmail.com>
+The first 9 commits in this series are cleanups that are not strictly
+related to numa_memblks.
+Commits 10-16 slightly reorder code in x86 to allow extracting numa_memblks
+and NUMA emulation to the generic code.
+Commits 17-19 actually move the code from arch/x86/ to mm/ and commits 20-22
+does some aftermath cleanups.
+Commit 23 updates of_numa_init() to return error of no NUMA nodes were
+found in the device tree.
+Commit 24 switches arch_numa to numa_memblks.
+Commit 25 enables usage of phys_to_target_node() and
+memory_add_physaddr_to_nid() with numa_memblks.
+Commit 26 moves the description for numa=fake from x86 to admin-guide.
+
+[1] https://lore.kernel.org/all/20240529171236.32002-1-Jonathan.Cameron@huawei.com/
+
+
+This patch (of 26):
+
+The stub functions in kernel/numa.c belong to mm/ rather than to kernel/
+
+Link: https://lkml.kernel.org/r/20240807064110.1003856-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Rob Herring (Arm) <robh@kernel.org>
+Cc: Samuel Holland <samuel.holland@sifive.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +
- mm/swapfile.c        |   68 +++++++++++++++++++++++++++++++++--------
- 2 files changed, 57 insertions(+), 13 deletions(-)
+ kernel/Makefile |    1 -
+ kernel/numa.c   |   26 --------------------------
+ mm/Makefile     |    1 +
+ mm/numa.c       |   26 ++++++++++++++++++++++++++
+ 4 files changed, 27 insertions(+), 27 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-add-a-adaptive-full-cluster-cache-reclaim
-+++ a/include/linux/swap.h
-@@ -260,6 +260,7 @@ struct swap_cluster_info {
- #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
- #define CLUSTER_FLAG_NONFULL 2 /* This cluster is on nonfull list */
- #define CLUSTER_FLAG_FRAG 4 /* This cluster is on nonfull list */
-+#define CLUSTER_FLAG_FULL 8 /* This cluster is on full list */
+--- a/kernel/Makefile~mm-move-kernel-numac-to-mm
++++ a/kernel/Makefile
+@@ -116,7 +116,6 @@ obj-$(CONFIG_SHADOW_CALL_STACK) += scs.o
+ obj-$(CONFIG_HAVE_STATIC_CALL) += static_call.o
+ obj-$(CONFIG_HAVE_STATIC_CALL_INLINE) += static_call_inline.o
+ obj-$(CONFIG_CFI_CLANG) += cfi.o
+-obj-$(CONFIG_NUMA) += numa.o
  
- /*
-  * The first page in the swap file is the swap header, which is always marked
-@@ -297,6 +298,7 @@ struct swap_info_struct {
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
- 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
- 	struct list_head free_clusters; /* free clusters list */
-+	struct list_head full_clusters; /* full clusters list */
- 	struct list_head nonfull_clusters[SWAP_NR_ORDERS];
- 					/* list of cluster that contains at least one free slot */
- 	struct list_head frag_clusters[SWAP_NR_ORDERS];
---- a/mm/swapfile.c~mm-swap-add-a-adaptive-full-cluster-cache-reclaim
-+++ a/mm/swapfile.c
-@@ -440,10 +440,7 @@ static void swap_cluster_schedule_discar
- 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
+ obj-$(CONFIG_PERF_EVENTS) += events/
  
- 	VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
--	if (ci->flags & CLUSTER_FLAG_NONFULL)
--		list_move_tail(&ci->list, &si->discard_clusters);
--	else
--		list_add_tail(&ci->list, &si->discard_clusters);
-+	list_move_tail(&ci->list, &si->discard_clusters);
- 	ci->flags = 0;
- 	schedule_work(&si->discard_work);
- }
-@@ -453,7 +450,7 @@ static void __free_cluster(struct swap_i
- 	lockdep_assert_held(&si->lock);
- 	lockdep_assert_held(&ci->lock);
- 
--	if (ci->flags & CLUSTER_FLAG_NONFULL)
-+	if (ci->flags)
- 		list_move_tail(&ci->list, &si->free_clusters);
- 	else
- 		list_add_tail(&ci->list, &si->free_clusters);
-@@ -480,7 +477,6 @@ static void swap_do_scheduled_discard(st
- 				SWAPFILE_CLUSTER);
- 
- 		spin_lock(&si->lock);
+diff --git a/kernel/numa.c a/kernel/numa.c
+deleted file mode 100644
+--- a/kernel/numa.c
++++ /dev/null
+@@ -1,26 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
 -
- 		spin_lock(&ci->lock);
- 		__free_cluster(si, ci);
- 		memset(si->swap_map + idx * SWAPFILE_CLUSTER,
-@@ -576,12 +572,9 @@ static void dec_cluster_info_page(struct
- 
- 	if (!(ci->flags & CLUSTER_FLAG_NONFULL)) {
- 		VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
--		if (ci->flags & CLUSTER_FLAG_FRAG) {
-+		if (ci->flags & CLUSTER_FLAG_FRAG)
- 			p->frag_cluster_nr[ci->order]--;
--			list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
--		} else {
--			list_add_tail(&ci->list, &p->nonfull_clusters[ci->order]);
--		}
-+		list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
- 		ci->flags = CLUSTER_FLAG_NONFULL;
- 	}
- }
-@@ -674,8 +667,8 @@ static void cluster_alloc_range(struct s
- 			  (CLUSTER_FLAG_FREE | CLUSTER_FLAG_NONFULL | CLUSTER_FLAG_FRAG)));
- 		if (ci->flags & CLUSTER_FLAG_FRAG)
- 			si->frag_cluster_nr[ci->order]--;
--		list_del(&ci->list);
--		ci->flags = 0;
-+		list_move_tail(&ci->list, &si->full_clusters);
-+		ci->flags = CLUSTER_FLAG_FULL;
- 	}
- }
- 
-@@ -718,6 +711,46 @@ done:
- 	return offset;
- }
- 
-+static void swap_reclaim_full_clusters(struct swap_info_struct *si)
+-#include <linux/printk.h>
+-#include <linux/numa.h>
+-
+-/* Stub functions: */
+-
+-#ifndef memory_add_physaddr_to_nid
+-int memory_add_physaddr_to_nid(u64 start)
+-{
+-	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+-#endif
+-
+-#ifndef phys_to_target_node
+-int phys_to_target_node(u64 start)
+-{
+-	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(phys_to_target_node);
+-#endif
+--- a/mm/Makefile~mm-move-kernel-numac-to-mm
++++ a/mm/Makefile
+@@ -117,6 +117,7 @@ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
+ obj-$(CONFIG_Z3FOLD)	+= z3fold.o
+ obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
+ obj-$(CONFIG_CMA)	+= cma.o
++obj-$(CONFIG_NUMA) += numa.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
+diff --git a/mm/numa.c a/mm/numa.c
+new file mode 100644
+--- /dev/null
++++ a/mm/numa.c
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include <linux/printk.h>
++#include <linux/numa.h>
++
++/* Stub functions: */
++
++#ifndef memory_add_physaddr_to_nid
++int memory_add_physaddr_to_nid(u64 start)
 +{
-+	long to_scan = 1;
-+	unsigned long offset, end;
-+	struct swap_cluster_info *ci;
-+	unsigned char *map = si->swap_map;
-+	int nr_reclaim, total_reclaimed = 0;
-+
-+	if (atomic_long_read(&nr_swap_pages) <= SWAPFILE_CLUSTER)
-+		to_scan = si->inuse_pages / SWAPFILE_CLUSTER;
-+
-+	while (!list_empty(&si->full_clusters)) {
-+		ci = list_first_entry(&si->full_clusters, struct swap_cluster_info, list);
-+		list_move_tail(&ci->list, &si->full_clusters);
-+		offset = cluster_offset(si, ci);
-+		end = min(si->max, offset + SWAPFILE_CLUSTER);
-+		to_scan--;
-+
-+		while (offset < end) {
-+			if (READ_ONCE(map[offset]) == SWAP_HAS_CACHE) {
-+				spin_unlock(&si->lock);
-+				nr_reclaim = __try_to_reclaim_swap(si, offset,
-+								   TTRS_ANYWAY | TTRS_DIRECT);
-+				spin_lock(&si->lock);
-+				if (nr_reclaim > 0) {
-+					offset += nr_reclaim;
-+					total_reclaimed += nr_reclaim;
-+					continue;
-+				} else if (nr_reclaim < 0) {
-+					offset += -nr_reclaim;
-+					continue;
-+				}
-+			}
-+			offset++;
-+		}
-+		if (to_scan <= 0 || total_reclaimed)
-+			break;
-+	}
++	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
 +}
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
++#endif
 +
- /*
-  * Try to get swap entries with specified order from current cpu's swap entry
-  * pool (a cluster). This might involve allocating a new cluster for current CPU
-@@ -826,7 +859,15 @@ new_cluster:
- 				goto done;
- 		}
- 	}
-+
- done:
-+	/* Try reclaim from full clusters if device is nearfull */
-+	if (vm_swap_full() && (!found || (si->pages - si->inuse_pages) < SWAPFILE_CLUSTER)) {
-+		swap_reclaim_full_clusters(si);
-+		if (!found && !order && si->pages != si->inuse_pages)
-+			goto new_cluster;
-+	}
-+
- 	cluster->next[order] = offset;
- 	return found;
- }
-@@ -3115,6 +3156,7 @@ static int setup_swap_map_and_extents(st
- 	nr_good_pages = maxpages - 1;	/* omit header page */
- 
- 	INIT_LIST_HEAD(&p->free_clusters);
-+	INIT_LIST_HEAD(&p->full_clusters);
- 	INIT_LIST_HEAD(&p->discard_clusters);
- 
- 	for (i = 0; i < SWAP_NR_ORDERS; i++) {
++#ifndef phys_to_target_node
++int phys_to_target_node(u64 start)
++{
++	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(phys_to_target_node);
++#endif
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
 
