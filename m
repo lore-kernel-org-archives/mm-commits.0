@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9697C757F8
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D4474070
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:18:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423507; cv=none; b=dqWtF/ijwS5TLX3dO3LYp+OnXXssX0UIxWjtHDb0nytT9xhkIhJ1P3Qb+8NFwNywtuJnkmPbLWkFfyb7vrVK8BRfUm3ZdzdLJimZNhjAQuE/85wXksFo+VcBS6uGNB1qt+Q7aYm6dtfsPR3ww3EMnhz4q93eqaF2PpP57ZIZuJQ=
+	t=1725423509; cv=none; b=UQnr5jWR8cfFqe/A6O5V5CyPaeRPJmTPNh5qfKEzhI+q7iB+zoRY7Z5JjSPAfqZ/bbulC7veFBIQJxNLlXwpPFhPyvw95rCQlebVBDDRr2CAiUSLUsz3Li6rWl/2tAYyCAI6u7UAhwG23eCh2rNxus6AXZ+5LlTpvreX3flJ/LU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423507; c=relaxed/simple;
-	bh=9rKYW+46WkCXARHnbpwAMEbBPTstg79u2xmG+ktL1aw=;
-	h=Date:To:From:Subject:Message-Id; b=eGjsCiFxS4DXqmFPbIK9XEI8tpScw1UbLScrnbCs659SfxRmsNBThk3bK59tUpHTmHF6EpQJGl/IJYEZN6LNvbkWgOh8KjBW6gS93SM+/j62P+xQcz/ewheS8gd16WFnvpcc7rCV0UrzMIluhLhU7NZNxng9kwpfqJakhiHykP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zf5jNRsb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423509; c=relaxed/simple;
+	bh=fY/KEwye2ywyfLTyZFNXUvSaFlDh9HK7iSSPyqdgK0A=;
+	h=Date:To:From:Subject:Message-Id; b=ncd0d7amYF9R3w9kUQD51wtnO8JtrSinGGnUirG0NzJexgMOHPs824AfeyRNvAHGV/rALsu7qvp2ykXaq2SQ05vXd4HBW+rrA7utc54BcAAjMSMFUnOAZ8MCuXJ6/PWS2t1JDH6vkn/mRBghxA3k6P4dvIxM3v90iBdYv0PhAfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1I+uprCl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zf5jNRsb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C5F2C4CEC2;
-	Wed,  4 Sep 2024 04:18:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1I+uprCl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C390C4CEC2;
+	Wed,  4 Sep 2024 04:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423507;
-	bh=9rKYW+46WkCXARHnbpwAMEbBPTstg79u2xmG+ktL1aw=;
+	s=korg; t=1725423509;
+	bh=fY/KEwye2ywyfLTyZFNXUvSaFlDh9HK7iSSPyqdgK0A=;
 	h=Date:To:From:Subject:From;
-	b=Zf5jNRsb1UjB8HMt1l8aW4TJvDolwuhb/MU4uwmCnpBN1kQgTpcFhcOfp5GTiFAtJ
-	 k2ljvXeitnOfr1MrcIhLVKnjhaoNhWop4cc+YHJVxJsz/8ua2uJ7amugVV7gmYp9DG
-	 8REOTu9ru6EF6bcFRT/Qxde72Khebd37/l4JYygY=
-Date: Tue, 03 Sep 2024 21:18:26 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,david@fromorbit.com,brauner@kernel.org,axboe@kernel.dk,laoar.shao@gmail.com,akpm@linux-foundation.org
+	b=1I+uprClrc3LBOz72nuYAG4zj8tjeel8dzbMvYW11KxctoraTwPsQWqrIVNeu360u
+	 Vxdoel/XWuRygiwNmDutNG1YU5SvxhydXw5w8dPDuMsJ18mE36c+B31S+HhZJS4Kpd
+	 uYCD6HaW1opFpz7aCVMyrFVikumzusyxGmPQhfss=
+Date: Tue, 03 Sep 2024 21:18:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shuah@kernel.org,mpe@ellerman.id.au,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,kees@kernel.org,jeffxu@chromium.org,pedro.falcato@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-read-ahead-with-iocb_nowait-set.patch removed from -mm tree
-Message-Id: <20240904041827.6C5F2C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-can_modify_vma-to-mm-vmah.patch removed from -mm tree
+Message-Id: <20240904041829.7C390C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,177 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow read-ahead with IOCB_NOWAIT set
+     Subject: mm: move can_modify_vma to mm/vma.h
 has been removed from the -mm tree.  Its filename was
-     mm-allow-read-ahead-with-iocb_nowait-set.patch
+     mm-move-can_modify_vma-to-mm-vmah.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm: allow read-ahead with IOCB_NOWAIT set
-Date: Tue, 20 Aug 2024 10:26:39 +0800
+From: Pedro Falcato <pedro.falcato@gmail.com>
+Subject: mm: move can_modify_vma to mm/vma.h
+Date: Sat, 17 Aug 2024 01:18:28 +0100
 
-Readahead support for IOCB_NOWAIT was introduced in commit 2e85abf053b9
-("mm: allow read-ahead with IOCB_NOWAIT set").  However, this
-implementation broke the semantics of IOCB_NOWAIT by potentially causing
-it to wait on I/O during memory reclamation.  This behavior was later
-modified in commit efa8480a8316 ("fs: RWF_NOWAIT should imply IOCB_NOIO").
+Patch series "mm: Optimize mseal checks", v3.
 
-To resolve the blocking issue during memory reclamation, we can use
-memalloc_noio_{save,restore} to ensure non-blocking behavior.  This change
-restores the original functionality, allowing preadv2(IOCB_NOWAIT) to
-trigger readahead if the file content is not present in the page cache.
+Optimize mseal checks by removing the separate can_modify_mm() step, and
+just doing checks on the individual vmas, when various operations are
+themselves iterating through the tree.  This provides a nice speedup and
+restores performance parity with pre-mseal[3].
 
-While this process may trigger direct memory reclamation, the
-__GFP_NORETRY flag is set in the readahead GFP flags, ensuring it won't
-block.
+will-it-scale mmap1_process[1] -t 1 results:
 
-A use case for this change is when we want to trigger readahead in the
-preadv2(2) syscall if the file cache is absent, but without waiting for
-certain filesystem locks, like xfs_ilock.  A simple example is as follows:
+commit 3450fe2b574b4345e4296ccae395149e1a357fee:
 
-retry:
-    if (preadv2(fd, iovec, cnt, offset, RWF_NOWAIT) < 0) {
-        do_other_work();
-        goto retry;
-    }
+min:277605 max:277605 total:277605
+min:281784 max:281784 total:281784
+min:277238 max:277238 total:277238
+min:281761 max:281761 total:281761
+min:274279 max:274279 total:274279
+min:254854 max:254854 total:254854
+measurement
+min:269143 max:269143 total:269143
+min:270454 max:270454 total:270454
+min:243523 max:243523 total:243523
+min:251148 max:251148 total:251148
+min:209669 max:209669 total:209669
+min:190426 max:190426 total:190426
+min:231219 max:231219 total:231219
+min:275364 max:275364 total:275364
+min:266540 max:266540 total:266540
+min:242572 max:242572 total:242572
+min:284469 max:284469 total:284469
+min:278882 max:278882 total:278882
+min:283269 max:283269 total:283269
+min:281204 max:281204 total:281204
 
-Link: https://lore.gnuweeb.org/io-uring/20200624164127.GP21350@casper.infradead.org/
-Link: https://lkml.kernel.org/r/20240820022639.89562-1-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christian Brauner <brauner@kernel.org>
+After this patch set:
+
+min:280580 max:280580 total:280580
+min:290514 max:290514 total:290514
+min:291006 max:291006 total:291006
+min:290352 max:290352 total:290352
+min:294582 max:294582 total:294582
+min:293075 max:293075 total:293075
+measurement
+min:295613 max:295613 total:295613
+min:294070 max:294070 total:294070
+min:293193 max:293193 total:293193
+min:291631 max:291631 total:291631
+min:295278 max:295278 total:295278
+min:293782 max:293782 total:293782
+min:290361 max:290361 total:290361
+min:294517 max:294517 total:294517
+min:293750 max:293750 total:293750
+min:293572 max:293572 total:293572
+min:295239 max:295239 total:295239
+min:292932 max:292932 total:292932
+min:293319 max:293319 total:293319
+min:294954 max:294954 total:294954
+
+This was a Completely Unscientific test but seems to show there were
+around 5-10% gains on ops per second.
+
+Oliver performed his own tests and showed[3] a similar ~5% gain in them.
+
+[1]: mmap1_process does mmap and munmap in a loop. I didn't bother testing multithreading cases.
+[2]: https://lore.kernel.org/all/20240807124103.85644-1-mpe@ellerman.id.au/
+[3]: https://lore.kernel.org/all/ZrMMJfe9aXSWxJz6@xsang-OptiPlex-9020/
+Link: https://lore.kernel.org/all/202408041602.caa0372-oliver.sang@intel.com/
+
+
+This patch (of 7):
+
+Move can_modify_vma to vma.h so it can be inlined properly (with the
+intent to remove can_modify_mm callsites).
+
+Link: https://lkml.kernel.org/r/20240817-mseal-depessimize-v3-1-d8d2e037df30@gmail.com
+Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    1 -
- mm/filemap.c       |    6 ++++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/mseal.c |   17 -----------------
+ mm/vma.h   |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 17 deletions(-)
 
---- a/include/linux/fs.h~mm-allow-read-ahead-with-iocb_nowait-set
-+++ a/include/linux/fs.h
-@@ -3461,7 +3461,6 @@ static inline int kiocb_set_rw_flags(str
- 	if (flags & RWF_NOWAIT) {
- 		if (!(ki->ki_filp->f_mode & FMODE_NOWAIT))
- 			return -EOPNOTSUPP;
--		kiocb_flags |= IOCB_NOIO;
- 	}
- 	if (flags & RWF_ATOMIC) {
- 		if (rw_type != WRITE)
---- a/mm/filemap.c~mm-allow-read-ahead-with-iocb_nowait-set
-+++ a/mm/filemap.c
-@@ -46,6 +46,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/splice.h>
- #include <linux/rcupdate_wait.h>
-+#include <linux/sched/mm.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
+--- a/mm/mseal.c~mm-move-can_modify_vma-to-mm-vmah
++++ a/mm/mseal.c
+@@ -16,28 +16,11 @@
+ #include <linux/sched.h>
  #include "internal.h"
-@@ -2519,6 +2520,7 @@ static int filemap_get_pages(struct kioc
- 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
- 	pgoff_t last_index;
- 	struct folio *folio;
-+	unsigned int flags;
- 	int err = 0;
  
- 	/* "last_index" is the index of the page beyond the end of the read */
-@@ -2531,8 +2533,12 @@ retry:
- 	if (!folio_batch_count(fbatch)) {
- 		if (iocb->ki_flags & IOCB_NOIO)
- 			return -EAGAIN;
-+		if (iocb->ki_flags & IOCB_NOWAIT)
-+			flags = memalloc_noio_save();
- 		page_cache_sync_readahead(mapping, ra, filp, index,
- 				last_index - index);
-+		if (iocb->ki_flags & IOCB_NOWAIT)
-+			memalloc_noio_restore(flags);
- 		filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
- 	}
- 	if (!folio_batch_count(fbatch)) {
+-static inline bool vma_is_sealed(struct vm_area_struct *vma)
+-{
+-	return (vma->vm_flags & VM_SEALED);
+-}
+-
+ static inline void set_vma_sealed(struct vm_area_struct *vma)
+ {
+ 	vm_flags_set(vma, VM_SEALED);
+ }
+ 
+-/*
+- * check if a vma is sealed for modification.
+- * return true, if modification is allowed.
+- */
+-static bool can_modify_vma(struct vm_area_struct *vma)
+-{
+-	if (unlikely(vma_is_sealed(vma)))
+-		return false;
+-
+-	return true;
+-}
+-
+ static bool is_madv_discard(int behavior)
+ {
+ 	switch (behavior) {
+--- a/mm/vma.h~mm-move-can_modify_vma-to-mm-vmah
++++ a/mm/vma.h
+@@ -361,4 +361,32 @@ struct vm_area_struct *vma_iter_prev_ran
+ 	return mas_prev_range(&vmi->mas, 0);
+ }
+ 
++#ifdef CONFIG_64BIT
++
++static inline bool vma_is_sealed(struct vm_area_struct *vma)
++{
++	return (vma->vm_flags & VM_SEALED);
++}
++
++/*
++ * check if a vma is sealed for modification.
++ * return true, if modification is allowed.
++ */
++static inline bool can_modify_vma(struct vm_area_struct *vma)
++{
++	if (unlikely(vma_is_sealed(vma)))
++		return false;
++
++	return true;
++}
++
++#else
++
++static inline bool can_modify_vma(struct vm_area_struct *vma)
++{
++	return true;
++}
++
++#endif
++
+ #endif	/* __MM_VMA_H */
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from pedro.falcato@gmail.com are
 
 
