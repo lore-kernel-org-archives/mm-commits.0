@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B974859155
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:16:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072EC59155
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:16:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423406; cv=none; b=Sv9aTujxDvqLBv1r5yMquWfs//Q/Y/JUqG41UkWLCs/42FIjGeJ+iRCXsRLNPxyfDjZSSAuZedv5HueluYDa8fGXF7tUNZsXpDwYeODMGHkcfJkSpDLfQT9CjSBjfiI6h84EcMJcy+XoMKr9m6dmKz6BfW0uupj+auvuqvMf6c0=
+	t=1725423409; cv=none; b=WcV9NDoOfvTttY+lZMWLlD+aA/XKjmF0uEZJBw8HOKBg8s+U9jLC3FFl90XTKU9DAlUnxL17/AkErqWmEIccVJ2BoYewfdkjW372L/8Nu01wjvvZt5/6RMgt947DYkNS2Mbyl4iVhQt4aUU/fiMJ/nKawN+LTQEbzV/yAcI/vaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423406; c=relaxed/simple;
-	bh=XTv/mkWt62UH7MPyE0ZqyzVYE5iizpCniw6kaEq43M8=;
-	h=Date:To:From:Subject:Message-Id; b=LoSyVpm6D8bb8BlbAfmdktzivSs3NCDJoBEildXzGQn+lA1E5FLqKVd1RPHp3M12SkLozaI/oiQ37FU17B7iN6c7spXH/vwP4VKhtUsOO+n6DmHk0pFBQLjVEVwKU1l4zgsVcMjrYTKpd06XTyWs+b+Eo8I3JqO+GOtAobFgRSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8lNzNSL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423409; c=relaxed/simple;
+	bh=ySZRBcRsK2cNXA1MKbp7uB2QDz1lD82QycxWOmigm4w=;
+	h=Date:To:From:Subject:Message-Id; b=f83zgpbGcj1CyxMDmi3gVJOiz0wXzwkc2fYGVrgBTYFJcqifx9lla2XzQXy8UEhBQ6jSC0pPOX45ySgYmcpcmF3x9DxkuaWnr3SPFHIkyvohPt4GJcp6UrwZVllWH9YFLNDjw14VqE1dbU5POtOGYb91OW3TqQZEhykLX5IvfS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yyz4t4LC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8lNzNSL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3BBC4CEC2;
-	Wed,  4 Sep 2024 04:16:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yyz4t4LC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E0EBC4CEC2;
+	Wed,  4 Sep 2024 04:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423405;
-	bh=XTv/mkWt62UH7MPyE0ZqyzVYE5iizpCniw6kaEq43M8=;
+	s=korg; t=1725423408;
+	bh=ySZRBcRsK2cNXA1MKbp7uB2QDz1lD82QycxWOmigm4w=;
 	h=Date:To:From:Subject:From;
-	b=h8lNzNSLKqfrn7wrxqb+EJv4y71jdzfJ7DL3KBWjv4gOGzgjEkR+Uj12bt4kSv0DN
-	 pW7fi5eD0B2+heHBQaxRb6NmrKnlm5Sz/SHDXHqbvgujTXYdfOcMqP+oLGy8KBugNI
-	 gZCcAyPgTMpQCTm4784SN5NxRD4R9ryI7Baa3NFE=
-Date: Tue, 03 Sep 2024 21:16:44 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kaleshsingh@google.com,hughd@google.com,chrisl@kernel.org,baohua@kernel.org,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=Yyz4t4LC8vGWT60TiYYDEmc9KfS5d6WmT2eQt3KbG23ld3SiBXQYqVchCQGtNP4w0
+	 oeSmb8vuyk0mTpA4qke70O+iKpIJlwW4fob/mkMiXOUF7HnNQEyOisRRjw7yhtHPKY
+	 ZKwiVgewcYH1NdMeiPiSJdhHJJploYo/d0ZMeGhE=
+Date: Tue, 03 Sep 2024 21:16:48 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,ryan.roberts@arm.com,kaleshsingh@google.com,hughd@google.com,chrisl@kernel.org,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-skip-slot-cache-on-freeing-for-mthp.patch removed from -mm tree
-Message-Id: <20240904041645.3B3BBC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-add-a-fragment-cluster-list.patch removed from -mm tree
+Message-Id: <20240904041648.7E0EBC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: skip slot cache on freeing for mTHP
+     Subject: mm: swap: add a fragment cluster list
 has been removed from the -mm tree.  Its filename was
-     mm-swap-skip-slot-cache-on-freeing-for-mthp.patch
+     mm-swap-add-a-fragment-cluster-list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm: swap: skip slot cache on freeing for mTHP
-Date: Tue, 30 Jul 2024 23:49:17 -0700
+Subject: mm: swap: add a fragment cluster list
+Date: Tue, 30 Jul 2024 23:49:19 -0700
 
-Currently when we are freeing mTHP folios from swap cache, we free then
-one by one and put each entry into swap slot cache.  Slot cache is
-designed to reduce the overhead by batching the freeing, but mTHP swap
-entries are already continuous so they can be batch freed without it
-already, it saves litle overhead, or even increase overhead for larger
-mTHP.
+Now swap cluster allocator arranges the clusters in LRU style, so the
+"cold" cluster stay at the head of nonfull lists are the ones that were
+used for allocation long time ago and still partially occupied.  So if
+allocator can't find enough contiguous slots to satisfy an high order
+allocation, it's unlikely there will be slot being free on them to satisfy
+the allocation, at least in a short period.
 
-What's more, mTHP entries could stay in swap cache for a while. 
-Contiguous swap entry is an rather rare resource so releasing them
-directly can help improve mTHP allocation success rate when under
-pressure.
+As a result, nonfull cluster scanning will waste time repeatly scanning
+the unusable head of the list.
 
-Link: https://lkml.kernel.org/r/20240730-swap-allocator-v5-5-cb9c148b9297@kernel.org
+Also, multiple CPUs could content on the same head cluster of nonfull
+list.  Unlike free clusters which are removed from the list when any CPU
+starts using it, nonfull cluster stays on the head.
+
+So introduce a new list frag list, all scanned nonfull clusters will be
+moved to this list.  Both for avoiding repeated scanning and contention.
+
+Frag list is still used as fallback for allocations, so if one CPU failed
+to allocate one order of slots, it can still steal other CPU's clusters. 
+And order 0 will favor the fragmented clusters to better protect nonfull
+clusters
+
+If any slots on a fragment list are being freed, move the fragment list
+back to nonfull list indicating it worth another scan on the cluster. 
+Compared to scan upon freeing a slot, this keep the scanning lazy and save
+some CPU if there are still other clusters to use.
+
+It may seems unneccessay to keep the fragmented cluster on list at all if
+they can't be used for specific order allocation.  But this will start to
+make sense once reclaim dring scanning is ready.
+
+Link: https://lkml.kernel.org/r/20240730-swap-allocator-v5-7-cb9c148b9297@kernel.org
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reported-by: Barry Song <21cnbao@gmail.com>
-Acked-by: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -71,136 +89,122 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   59 +++++++++++++++++++++---------------------------
- 1 file changed, 26 insertions(+), 33 deletions(-)
+ include/linux/swap.h |    3 +++
+ mm/swapfile.c        |   41 +++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 40 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-skip-slot-cache-on-freeing-for-mthp
-+++ a/mm/swapfile.c
-@@ -479,20 +479,21 @@ static void inc_cluster_info_page(struct
- }
+--- a/include/linux/swap.h~mm-swap-add-a-fragment-cluster-list
++++ a/include/linux/swap.h
+@@ -259,6 +259,7 @@ struct swap_cluster_info {
+ };
+ #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+ #define CLUSTER_FLAG_NONFULL 2 /* This cluster is on nonfull list */
++#define CLUSTER_FLAG_FRAG 4 /* This cluster is on nonfull list */
  
  /*
-- * The cluster ci decreases one usage. If the usage counter becomes 0,
-+ * The cluster ci decreases @nr_pages usage. If the usage counter becomes 0,
-  * which means no page in the cluster is in use, we can optionally discard
-  * the cluster and add it to free cluster list.
-  */
--static void dec_cluster_info_page(struct swap_info_struct *p, struct swap_cluster_info *ci)
-+static void dec_cluster_info_page(struct swap_info_struct *p,
-+				  struct swap_cluster_info *ci, int nr_pages)
- {
- 	if (!p->cluster_info)
- 		return;
+  * The first page in the swap file is the swap header, which is always marked
+@@ -298,6 +299,8 @@ struct swap_info_struct {
+ 	struct list_head free_clusters; /* free clusters list */
+ 	struct list_head nonfull_clusters[SWAP_NR_ORDERS];
+ 					/* list of cluster that contains at least one free slot */
++	struct list_head frag_clusters[SWAP_NR_ORDERS];
++					/* list of cluster that are fragmented or contented */
+ 	unsigned int lowest_bit;	/* index of first free in swap_map */
+ 	unsigned int highest_bit;	/* index of last free in swap_map */
+ 	unsigned int pages;		/* total of usable pages of swap */
+--- a/mm/swapfile.c~mm-swap-add-a-fragment-cluster-list
++++ a/mm/swapfile.c
+@@ -572,7 +572,10 @@ static void dec_cluster_info_page(struct
  
--	VM_BUG_ON(ci->count == 0);
-+	VM_BUG_ON(ci->count < nr_pages);
- 	VM_BUG_ON(cluster_is_free(ci));
- 	lockdep_assert_held(&p->lock);
- 	lockdep_assert_held(&ci->lock);
--	ci->count--;
-+	ci->count -= nr_pages;
- 
- 	if (!ci->count) {
- 		free_cluster(p, ci);
-@@ -990,19 +991,6 @@ no_page:
- 	return n_ret;
- }
- 
--static void swap_free_cluster(struct swap_info_struct *si, unsigned long idx)
--{
--	unsigned long offset = idx * SWAPFILE_CLUSTER;
--	struct swap_cluster_info *ci;
--
--	ci = lock_cluster(si, offset);
--	memset(si->swap_map + offset, 0, SWAPFILE_CLUSTER);
--	ci->count = 0;
--	free_cluster(si, ci);
--	unlock_cluster(ci);
--	swap_range_free(si, offset, SWAPFILE_CLUSTER);
--}
--
- int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_order)
- {
- 	int order = swap_entry_order(entry_order);
-@@ -1261,21 +1249,28 @@ static unsigned char __swap_entry_free(s
- 	return usage;
- }
- 
--static void swap_entry_free(struct swap_info_struct *p, swp_entry_t entry)
-+/*
-+ * Drop the last HAS_CACHE flag of swap entries, caller have to
-+ * ensure all entries belong to the same cgroup.
-+ */
-+static void swap_entry_range_free(struct swap_info_struct *p, swp_entry_t entry,
-+				  unsigned int nr_pages)
- {
--	struct swap_cluster_info *ci;
- 	unsigned long offset = swp_offset(entry);
--	unsigned char count;
-+	unsigned char *map = p->swap_map + offset;
-+	unsigned char *map_end = map + nr_pages;
-+	struct swap_cluster_info *ci;
- 
- 	ci = lock_cluster(p, offset);
--	count = p->swap_map[offset];
--	VM_BUG_ON(count != SWAP_HAS_CACHE);
--	p->swap_map[offset] = 0;
--	dec_cluster_info_page(p, ci);
-+	do {
-+		VM_BUG_ON(*map != SWAP_HAS_CACHE);
-+		*map = 0;
-+	} while (++map < map_end);
-+	dec_cluster_info_page(p, ci, nr_pages);
- 	unlock_cluster(ci);
- 
--	mem_cgroup_uncharge_swap(entry, 1);
--	swap_range_free(p, offset, 1);
-+	mem_cgroup_uncharge_swap(entry, nr_pages);
-+	swap_range_free(p, offset, nr_pages);
- }
- 
- static void cluster_swap_free_nr(struct swap_info_struct *sis,
-@@ -1336,7 +1331,6 @@ void swap_free_nr(swp_entry_t entry, int
- void put_swap_folio(struct folio *folio, swp_entry_t entry)
- {
- 	unsigned long offset = swp_offset(entry);
--	unsigned long idx = offset / SWAPFILE_CLUSTER;
- 	struct swap_cluster_info *ci;
- 	struct swap_info_struct *si;
- 	unsigned char *map;
-@@ -1349,19 +1343,18 @@ void put_swap_folio(struct folio *folio,
- 		return;
- 
- 	ci = lock_cluster_or_swap_info(si, offset);
--	if (size == SWAPFILE_CLUSTER) {
-+	if (size > 1) {
- 		map = si->swap_map + offset;
--		for (i = 0; i < SWAPFILE_CLUSTER; i++) {
-+		for (i = 0; i < size; i++) {
- 			val = map[i];
- 			VM_BUG_ON(!(val & SWAP_HAS_CACHE));
- 			if (val == SWAP_HAS_CACHE)
- 				free_entries++;
- 		}
--		if (free_entries == SWAPFILE_CLUSTER) {
-+		if (free_entries == size) {
- 			unlock_cluster_or_swap_info(si, ci);
- 			spin_lock(&si->lock);
--			mem_cgroup_uncharge_swap(entry, SWAPFILE_CLUSTER);
--			swap_free_cluster(si, idx);
-+			swap_entry_range_free(si, entry, size);
- 			spin_unlock(&si->lock);
- 			return;
- 		}
-@@ -1406,7 +1399,7 @@ void swapcache_free_entries(swp_entry_t
- 	for (i = 0; i < n; ++i) {
- 		p = swap_info_get_cont(entries[i], prev);
- 		if (p)
--			swap_entry_free(p, entries[i]);
-+			swap_entry_range_free(p, entries[i], 1);
- 		prev = p;
+ 	if (!(ci->flags & CLUSTER_FLAG_NONFULL)) {
+ 		VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
+-		list_add_tail(&ci->list, &p->nonfull_clusters[ci->order]);
++		if (ci->flags & CLUSTER_FLAG_FRAG)
++			list_move_tail(&ci->list, &p->nonfull_clusters[ci->order]);
++		else
++			list_add_tail(&ci->list, &p->nonfull_clusters[ci->order]);
+ 		ci->flags = CLUSTER_FLAG_NONFULL;
  	}
- 	if (p)
+ }
+@@ -610,7 +613,8 @@ static inline void cluster_alloc_range(s
+ 	ci->count += nr_pages;
+ 
+ 	if (ci->count == SWAPFILE_CLUSTER) {
+-		VM_BUG_ON(!(ci->flags & (CLUSTER_FLAG_FREE | CLUSTER_FLAG_NONFULL)));
++		VM_BUG_ON(!(ci->flags &
++			  (CLUSTER_FLAG_FREE | CLUSTER_FLAG_NONFULL | CLUSTER_FLAG_FRAG)));
+ 		list_del(&ci->list);
+ 		ci->flags = 0;
+ 	}
+@@ -666,6 +670,7 @@ static unsigned long cluster_alloc_swap_
+ 	struct percpu_cluster *cluster;
+ 	struct swap_cluster_info *ci, *n;
+ 	unsigned int offset, found = 0;
++	LIST_HEAD(fraged);
+ 
+ new_cluster:
+ 	lockdep_assert_held(&si->lock);
+@@ -686,13 +691,29 @@ new_cluster:
+ 
+ 	if (order < PMD_ORDER) {
+ 		list_for_each_entry_safe(ci, n, &si->nonfull_clusters[order], list) {
++			list_move_tail(&ci->list, &fraged);
++			ci->flags = CLUSTER_FLAG_FRAG;
+ 			offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
+ 							 &found, order, usage);
+ 			if (found)
+-				goto done;
++				break;
+ 		}
++
++		if (!found) {
++			list_for_each_entry_safe(ci, n, &si->frag_clusters[order], list) {
++				offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
++								 &found, order, usage);
++				if (found)
++					break;
++			}
++		}
++
++		list_splice_tail(&fraged, &si->frag_clusters[order]);
+ 	}
+ 
++	if (found)
++		goto done;
++
+ 	if (!list_empty(&si->discard_clusters)) {
+ 		/*
+ 		 * we don't have free cluster but have some clusters in
+@@ -706,7 +727,17 @@ new_cluster:
+ 	if (order)
+ 		goto done;
+ 
++	/* Order 0 stealing from higher order */
+ 	for (int o = 1; o < SWAP_NR_ORDERS; o++) {
++		if (!list_empty(&si->frag_clusters[o])) {
++			ci = list_first_entry(&si->frag_clusters[o],
++					      struct swap_cluster_info, list);
++			offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci), &found,
++							 0, usage);
++			VM_BUG_ON(!found);
++			goto done;
++		}
++
+ 		if (!list_empty(&si->nonfull_clusters[o])) {
+ 			ci = list_first_entry(&si->nonfull_clusters[o], struct swap_cluster_info,
+ 					      list);
+@@ -3008,8 +3039,10 @@ static int setup_swap_map_and_extents(st
+ 	INIT_LIST_HEAD(&p->free_clusters);
+ 	INIT_LIST_HEAD(&p->discard_clusters);
+ 
+-	for (i = 0; i < SWAP_NR_ORDERS; i++)
++	for (i = 0; i < SWAP_NR_ORDERS; i++) {
+ 		INIT_LIST_HEAD(&p->nonfull_clusters[i]);
++		INIT_LIST_HEAD(&p->frag_clusters[i]);
++	}
+ 
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+ 		unsigned int page_nr = swap_header->info.badpages[i];
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
