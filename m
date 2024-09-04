@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7D02629C
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:00:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7452F3D6B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:00:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725422403; cv=none; b=nW9oMGn5oKLZhsBuEeyZFiAjj8/15Fw5Evm9Gp4a/x8JDucMB5i9Sq1/ECrKX9/p7d9hgWuf3e4+s/y01Qq62MwnDPIFYUoB1EZcYb2GW8H5AX90p9DSbX8nJLyliDWWtMXtxwW4CZ5DumIWXofTz5xppBlF4MPhboAR2Zv6o1o=
+	t=1725422449; cv=none; b=ZzaYR5qd8RjTowJrjDCYm1rFcQL3yHsHOwjJRuvhSt14YpjGK142T00f/lWr4VmyQa5UYrJ6SAtQ+aC4EVZFOiWJEp3yJvQUIF8UpgYKjB/Kl0o7gyrrUZRnfpd3lijN25SG+/KuHd05kdQNIhxSPVXJqBEqGXp/O0mfA/oukqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725422403; c=relaxed/simple;
-	bh=ux4V6TH+ekeiIH78MYfNLZUB8ZFdgveLO2Zcmiy0Zt4=;
-	h=Date:To:From:Subject:Message-Id; b=POeXzgIJFcOisHFIoVOEjDlxaG0UQk1MTuir+I1e6vv8LiMhN1pyQZ3luDEEpgKp/kSAhOzPS42jCFkPu7UrjTn9VZn86DUG3cgFrFEkymowS806TQvWLsN7Pz3XgPxxCjZDkkOjYrkWc5AEUDabmhtfzccLi2xV0u59RtNUGzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t6s0Lw7b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725422449; c=relaxed/simple;
+	bh=KGkxq6ZSjUxYcJdGIiwj+bxPt2Vt62T8d8fx9KMxYXY=;
+	h=Date:To:From:Subject:Message-Id; b=WjRiaSmX57HRhhWfmadqG0BatTbeIPygvQ3DsbxNckWWgAwPTDO3HWafEGd46/a3iK3gHG2+kOkN1X0xlPyiQhBwFqGROum2xIizLbSbzLJSJP3xNVyahneoGjYPsDC+KuVshn4A0L8f16kv8D+A/aFKpRm7cPKHa8NG3TtY4iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jJ9r4ByB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t6s0Lw7b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 971F9C4CEC2;
-	Wed,  4 Sep 2024 04:00:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jJ9r4ByB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5A40C4CEC2;
+	Wed,  4 Sep 2024 04:00:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725422403;
-	bh=ux4V6TH+ekeiIH78MYfNLZUB8ZFdgveLO2Zcmiy0Zt4=;
+	s=korg; t=1725422449;
+	bh=KGkxq6ZSjUxYcJdGIiwj+bxPt2Vt62T8d8fx9KMxYXY=;
 	h=Date:To:From:Subject:From;
-	b=t6s0Lw7bgTcQUOHOrCZ0ss1RAK+vpQDReDEgT9G2pxacJpwbTXvWkXTp9U7WY2rgO
-	 QdWAifPwTj4Rvfn8w1SGggZQqqvFX2BMCXsuoxSydk/eTaAAt1w4oGhF/RSDg9mkNQ
-	 TIraxRDV41pxKs1c72kalDMJvf1kaBOZCbz/SjMc=
-Date: Tue, 03 Sep 2024 21:00:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,spasswolf@web.de,sidhartha.kumar@oracle.com,pengfei.xu@intel.com,paulmck@kernel.org,olsajiri@gmail.com,Liam.Howlett@oracle.com,kees@kernel.org,jeffxu@chromium.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=jJ9r4ByB7i4diUzBh90tMCdS44CK4e1KLWtBsbxi3u1XiB+wMLJhnAFtmf6yGE17v
+	 PYJaHz8E3fYrDPz57sE83JlU66IYS5F+kJqg2J4QU6SvDbA+RfrIL3hmw27hDgdFeX
+	 I0RhZIPt5DfuMdvhIkcvrs83ND8DQkRo5gCegth0=
+Date: Tue, 03 Sep 2024 21:00:48 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,Jonathan.Cameron@huawei.com,horen.chuang@linux.dev,yanfei.xu@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch removed from -mm tree
-Message-Id: <20240904040003.971F9C4CEC2@smtp.kernel.org>
+Subject: [folded-merged] memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch removed from -mm tree
+Message-Id: <20240904040048.E5A40C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix off-by-one error in vms_abort_munmap_vmas()
+     Subject: memory tier: fix deadlock warning while onlining pages
 has been removed from the -mm tree.  Its filename was
-     mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix.patch
+     memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch
 
-This patch was dropped because it was folded into mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
+This patch was dropped because it was folded into memory-tier-fix-deadlock-warning-while-onlining-pages.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: fix off-by-one error in vms_abort_munmap_vmas()
-Date: Tue, 3 Sep 2024 13:20:34 +0100
+From: Yanfei Xu <yanfei.xu@intel.com>
+Subject: memory tier: fix deadlock warning while onlining pages
+Date: Fri, 30 Aug 2024 18:24:47 +0800
 
-Maple tree ranges have an inclusive end, VMAs do not, so we must subtract
-one from the VMA-specific end value when using a mas_...() function.
+Add the mutex_lock/unlock() pair back and exclude the
+hotplug_memory_notifier() from the locked region, per Ying Huang.
 
-We failed to do so in vms_abort_munmap_vmas() which resulted in a store
-overlapping the intended range by one byte, and thus corrupting the maple
-tree.
-
-Fix this by subtracting one from vms->end() passed into mas_set_range().
-
-Link: https://lkml.kernel.org/r/52ee7eb3-955c-4ade-b5f0-28fed8ba3d0b@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: Pengfei Xu <pengfei.xu@intel.com>
-Closes: https://lkml.kernel.org/r/ZtZ9euGTU9T0PWDA@xpf.sh.intel.com
-Cc: Bert Karwatzki <spasswolf@web.de>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Jiri Olsa <olsajiri@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Pengfei Xu <pengfei.xu@intel.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240830102447.1445296-1-yanfei.xu@intel.com
+Fixes: 823430c8e9d9 ("memory tier: consolidate the initialization of memory tiers")
+Signed-off-by: Yanfei Xu <yanfei.xu@intel.com>
+Cc: Ho-Ren (Jack) Chuang <horen.chuang@linux.dev>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-tiers.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vma.h~mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure-fix
-+++ a/mm/vma.h
-@@ -187,7 +187,7 @@ static inline void vms_abort_munmap_vmas
- 	 * not symmetrical and state data has been lost.  Resort to the old
- 	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
+--- a/mm/memory-tiers.c~memory-tier-fix-deadlock-warning-while-onlining-pages-v2
++++ a/mm/memory-tiers.c
+@@ -914,12 +914,14 @@ static int __init memory_tier_init(void)
+ 	WARN_ON(!node_demotion);
+ #endif
+ 
++	mutex_lock(&memory_tier_lock);
+ 	/*
+ 	 * For now we can have 4 faster memory tiers with smaller adistance
+ 	 * than default DRAM tier.
  	 */
--	mas_set_range(mas, vms->start, vms->end);
-+	mas_set_range(mas, vms->start, vms->end - 1);
- 	if (unlikely(mas_store_gfp(mas, NULL, GFP_KERNEL))) {
- 		pr_warn_once("%s: (%d) Unable to abort munmap() operation\n",
- 			     current->comm, current->pid);
+ 	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
+ 						      &default_memory_types);
++	mutex_unlock(&memory_tier_lock);
+ 	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
+ 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from yanfei.xu@intel.com are
 
-mm-change-failure-of-map_fixed-to-restoring-the-gap-on-failure.patch
-tools-improve-vma-test-makefile.patch
-tools-add-vma-merge-tests.patch
-mm-introduce-vma_merge_struct-and-abstract-vma_mergevma_modify.patch
-mm-remove-duplicated-open-coded-vma-policy-check.patch
-mm-abstract-vma_expand-to-use-vma_merge_struct.patch
-mm-avoid-using-vma_merge-for-new-vmas.patch
-mm-make-vma_prepare-and-friends-static-and-internal-to-vmac.patch
-mm-introduce-commit_merge-abstracting-final-commit-of-merge.patch
-mm-refactor-vma_merge-into-modify-only-vma_merge_existing_range.patch
-mm-rework-vm_ops-close-handling-on-vma-merge.patch
+memory-tier-fix-deadlock-warning-while-onlining-pages.patch
 
