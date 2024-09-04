@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A12147796
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:49:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7E4947796
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:49:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421772; cv=none; b=RUP84t5m5duLgWnb5qIiY3g9oX2weNNYQy6OgnEDaIbDFuGPufdcKtue+vUwC8z6W70eGouk3qoWwQA7e+kiBJP6VgSOlqyK5l/j1fxHMlZR2V9FKvXCGZiNIuTZPCAi3yTj6jDhUBNhzC9oqYj/UpnKI176nY/bRleLsQvC7SU=
+	t=1725421773; cv=none; b=Hdj9ILNqRn4MsMcLXJCczQ9r5q9JgcjC+3gLEU4LWA50CzQ1/AmxiJHT1hjonzIozz0k75FAd8a42OUnLt3ZYoPyVtjalK/2ohRAwg44TVuxp5OV5+SPlnwB4Mfjj7bWGlt51ESMA3gP1g6SIAIFSnkvbSCX3SQwg883f7BqDt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421772; c=relaxed/simple;
-	bh=PpN5JwrY4cxgdA9mt5t6pUgqDbJ3BsLGBjFSt1ZtVg4=;
-	h=Date:To:From:Subject:Message-Id; b=aR6qEhSw4czw0N2z0TKuVjkJpY5ED/TQZKHGOjw+7Lz0CFh2vVFLSBcnXmBMOOP483ptNVNxV0ayZfYR0TsjeHHrWiEUIMYuSRi5PuBqupROeCzSnCQyGJk5LQosn0nRggae27FXTo/KsUntaIQDsJYRzQZlTfIR5Lm4bTMR+G8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zbeuIF6v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421773; c=relaxed/simple;
+	bh=0f20+GSnv8/bxtJ+m5dvlVbrxPt3SjgMMB15pWUupCA=;
+	h=Date:To:From:Subject:Message-Id; b=BQx26yN4Rl3SI6sOfZGoJk4dSK6nqj8Rh7hUyKZAXzSjjexx7ZPoDwp+vBbxbc049IIYa2jmH1bl7GJSfh/dVJ9GDSQO+13ZnfkY3/VD9pIKhP6Bywpm/B4A+7cQdNsvBnFe9mPrb56eHMDhso3ZJqJpOXKH2eYclji9p+LmYaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1quuZRxJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zbeuIF6v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6830C4CEC2;
-	Wed,  4 Sep 2024 03:49:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1quuZRxJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E4EEC4CEC2;
+	Wed,  4 Sep 2024 03:49:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421771;
-	bh=PpN5JwrY4cxgdA9mt5t6pUgqDbJ3BsLGBjFSt1ZtVg4=;
+	s=korg; t=1725421773;
+	bh=0f20+GSnv8/bxtJ+m5dvlVbrxPt3SjgMMB15pWUupCA=;
 	h=Date:To:From:Subject:From;
-	b=zbeuIF6vHLJQgK6h5n6GqzgzpVJBa7ru5gSyryEm3cs68e8pT+axWs2ApYbU1EnTa
-	 KwWn3D8Gwbq6AJ5w6ncEftME81KZNZ5dnwkpwdgZqx9Gy7OLFXB4FGV/GwfyX5KaYy
-	 MbYmAvsyCUc8baLkjhd8waKf0jEqjB31qy4plNr0=
-Date: Tue, 03 Sep 2024 20:49:31 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=1quuZRxJFufHhfLQ+0zDbMKdY9KmBM63XgX9bzVV5AkU0MTzGDZO2iW1eCsgSMxRW
+	 7NXMgeN5mcZGYmunzPpZnydi1gdwtSzJQKcz0sgYqL68UaEdHoHHS3X3ObD2ilVfAZ
+	 U3qxEEb81u9hlEX6qoPL2wTXZE5W0wwRFw900uzc=
+Date: Tue, 03 Sep 2024 20:49:32 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,david@redhat.com,chrisl@kernel.org,baohua@kernel.org,21cnbao@gmail.com,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch removed from -mm tree
-Message-Id: <20240904034931.D6830C4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-2.patch removed from -mm tree
+Message-Id: <20240904034933.2E4EEC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
+     Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch() fix
 has been removed from the -mm tree.  Its filename was
-     mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix.patch
+     mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-2.patch
 
 This patch was dropped because it was folded into mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch()
-Date: Fri, 16 Aug 2024 09:36:23 +1200
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: check all swaps belong to same swap_cgroup in swap_pte_batch() fix
+Date: Sun, 25 Aug 2024 13:09:46 -0700 (PDT)
 
-Right now, it is possible two folios are contiguous in swap slots but they
-don't belong to one memcg.  In this case, even we return a large nr, we
-can't really batch free all slots.
+mm-unstable swap_pte_batch() adds a new usage of lookup_swap_cgroup_id(),
+which crashes if CONFIG_MEMCG kernel booted with "cgroup_disable=memory":
+it now needs a mem_cgroup_disabled() check.
 
-Link: https://lkml.kernel.org/r/20240815215308.55233-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reported-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Chris Li <chrisl@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
+Link: https://lkml.kernel.org/r/33f34a88-0130-5444-9b84-93198eeb50e7@google.com
+Fixes: 92b50df44566 ("mm: check all swaps belong to same swap_cgroup in swap_pte_batch()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Barry Song <21cnbao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/swap_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/internal.h~mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix
-+++ a/mm/internal.h
-@@ -15,6 +15,7 @@
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/swap_cgroup.h>
- #include <linux/tracepoint-defs.h>
- 
- /* Internal core VMA manipulation functions. */
-@@ -275,18 +276,22 @@ static inline int swap_pte_batch(pte_t *
+--- a/mm/swap_cgroup.c~mm-attempt-to-batch-free-swap-entries-for-zap_pte_range-fix-2
++++ a/mm/swap_cgroup.c
+@@ -161,6 +161,8 @@ unsigned short swap_cgroup_record(swp_en
+  */
+ unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
  {
- 	pte_t expected_pte = pte_next_swp_offset(pte);
- 	const pte_t *end_ptep = start_ptep + max_nr;
-+	swp_entry_t entry = pte_to_swp_entry(pte);
- 	pte_t *ptep = start_ptep + 1;
-+	unsigned short cgroup_id;
++	if (mem_cgroup_disabled())
++		return 0;
+ 	return lookup_swap_cgroup(ent, NULL)->id;
+ }
  
- 	VM_WARN_ON(max_nr < 1);
- 	VM_WARN_ON(!is_swap_pte(pte));
--	VM_WARN_ON(non_swap_entry(pte_to_swp_entry(pte)));
-+	VM_WARN_ON(non_swap_entry(entry));
- 
-+	cgroup_id = lookup_swap_cgroup_id(entry);
- 	while (ptep < end_ptep) {
- 		pte = ptep_get(ptep);
- 
- 		if (!pte_same(pte, expected_pte))
- 			break;
--
-+		if (lookup_swap_cgroup_id(pte_to_swp_entry(pte)) != cgroup_id)
-+			break;
- 		expected_pte = pte_next_swp_offset(expected_pte);
- 		ptep++;
- 	}
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-rename-instances-of-swap_info_struct-to-meaningful-si.patch
 mm-attempt-to-batch-free-swap-entries-for-zap_pte_range.patch
-mm-count-the-number-of-anonymous-thps-per-size.patch
-mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
-mm-document-__gfp_nofail-must-be-blockable.patch
-mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
-mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix.patch
+mm-filemap-use-xa_get_order-to-get-the-swap-entry-order-fix.patch
+mm-shmem-split-large-entry-if-the-swapin-folio-is-not-large-fix.patch
+mm-shmem-support-large-folio-swap-out-fix.patch
+mm-restart-if-multiple-traversals-raced-fix.patch
+mm-shmem-fix-minor-off-by-one-in-shrinkable-calculation.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes.patch
 
