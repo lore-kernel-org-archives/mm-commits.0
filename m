@@ -1,126 +1,76 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DAB01E5018
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 19:15:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176AC1E501E
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 19:18:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725477307; cv=none; b=ucJ2Wg74nehL9Sa+Z3owYavVru4VXBVWA7kFphMkYiAQmb5klYz4JIXQnBKrsn9OK9JB0y0qN8I6Z2YSFZGiAEeWmi5uC8/qJSFABhFxdpyMe858CmZSSzcNxR2QXoDL5eR8qENvQSHPuIvY55UKsC+KUUPYUPl7Pe2be/p42hk=
+	t=1725477528; cv=none; b=r3DxTjNsiY85FvX9J4ozSjaxJStJcYsvK41RFdW7frmkeQbGU6VmDlMs/XUHXRgYZJIR5ndj7K3iwIfYlmE0ZrvJ4mSabpbHPKl38oglXj3uaaYneDSTocxZdB/rU/jnkOV+QJ1KGfxsowxily3TcZMjzY0s0dmtfVYAjNrbIso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725477307; c=relaxed/simple;
-	bh=3higvrydggSFD/UHsUsobD8BKw0ORL7wQjnd0Pegwzo=;
-	h=Date:To:From:Subject:Message-Id; b=iHYQk+VTjaHj1sLUphrKqfsUoWBKNJVW9+Mwj2y8RxLeanNY6mMeSSgYqlSvhq2gwC5QsXL1mWw1KLwbJFTK2xhgNTBCrXIN7HVCdfBxSjPHoGzXLzq396BlkNY/vLM0bg068Aj/kAkVqGcdyX48XmbW7SxZcxUE2SvtG+jmPig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=06kYjv4A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725477528; c=relaxed/simple;
+	bh=/CeTxrvjHjB7BwL+rHU35QH+SScvpNdgUTJ9w/o/yN4=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=nyiweVfrPuZjGKqjx6w7TBUqAP1FG1C+jhelmCqVMH3mRLDgLomJPmpSbU36N5d8xzCLy8Z0GDSrc24afUy0/JPo3CxCxWlsE5E+r1mxEBAi2zujh1QZXKdXvSPbSGv58FzSYbV7PkteEL9b1jJ1r6J4lCZnRQtkJGjZBtecxhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=znIlzd7j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="06kYjv4A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7AAFC4CEC6;
-	Wed,  4 Sep 2024 19:15:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="znIlzd7j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59089C4CEC8;
+	Wed,  4 Sep 2024 19:18:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725477306;
-	bh=3higvrydggSFD/UHsUsobD8BKw0ORL7wQjnd0Pegwzo=;
-	h=Date:To:From:Subject:From;
-	b=06kYjv4At5jdoBcFFdQIdKK9COgsGYnzSgJgNG+p0V9AATukCGDehopiOaOaUip4h
-	 Dc/wLRW5RWPhgq+b2mHy50JYoEk8Y5WIUYZnu3pl6kSxM9h2LhseZ5lrEBQXo/mm9p
-	 OqA0Ic3tJdEt+ffcdULxpTJzridj1dCSUjFgmEMY=
-Date: Wed, 04 Sep 2024 12:15:06 -0700
-To: mm-commits@vger.kernel.org,lizhi.xu@windriver.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1725477527;
+	bh=/CeTxrvjHjB7BwL+rHU35QH+SScvpNdgUTJ9w/o/yN4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=znIlzd7jd1nvdHBWL+TNNBFn/qF3+KZaC+cWgDSTM95Zs9XH+lOAhTON5LDuJ43JQ
+	 zmAYQIqxKDMmYX49qhlVr38yzvnfsKPx1kg85+nXhw+Qh16XQ6ninrueMPdw67+Hju
+	 H5gs9LXzXgW9Fi7wZd5AbwJrL36RDEXQsJLyBwW0=
+Date: Wed, 4 Sep 2024 12:18:47 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-potential-oob-read-in-nilfs_btree_check_delete.patch added to mm-nonmm-unstable branch
-Message-Id: <20240904191506.B7AAFC4CEC6@smtp.kernel.org>
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, ojeda@kernel.org,
+ mmaurer@google.com, glider@google.com, elver@google.com,
+ dvyukov@google.com, andreyknvl@gmail.com
+Subject: Re: [merged mm-stable] kasan-simplify-and-clarify-makefile.patch
+ removed from -mm tree
+Message-Id: <20240904121847.45c0977db4c0c97b6b06120d@linux-foundation.org>
+In-Reply-To: <CANiq72k=mzebBFfAW2iJ-cWYTVYBDoR5XzYWZ+Crn-tq2YfnLQ@mail.gmail.com>
+References: <20240904041800.486C6C4CEC2@smtp.kernel.org>
+	<CANiq72k=mzebBFfAW2iJ-cWYTVYBDoR5XzYWZ+Crn-tq2YfnLQ@mail.gmail.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+On Wed, 4 Sep 2024 11:59:06 +0200 Miguel Ojeda <miguel.ojeda.sandonis@gmail.com> wrote:
 
-The patch titled
-     Subject: nilfs2: fix potential oob read in nilfs_btree_check_delete()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-fix-potential-oob-read-in-nilfs_btree_check_delete.patch
+> Hi Andrew,
+> 
+> On Wed, Sep 4, 2024 at 6:18 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+> >
+> > The quilt patch titled
+> >      Subject: kasan: simplify and clarify Makefile
+> > has been removed from the -mm tree.  Its filename was
+> >      kasan-simplify-and-clarify-makefile.patch
+> >
+> > This patch was dropped because it was merged into the mm-stable branch
+> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> I think we were taking this one through the Rust tree so that we could
+> merge the Rust KASAN support through there (and handle the other
+> interdependencies we have this cycle), right?
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-oob-read-in-nilfs_btree_check_delete.patch
+That's what I thought but after more than two weeks it still wasn't in
+linux-next so I assumed it had been forgotten, or that plans changed.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> I will apply those very soon (in case you moved it into mm-stable
+> because you didn't see it in linux-next).
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix potential oob read in nilfs_btree_check_delete()
-Date: Wed, 4 Sep 2024 17:13:09 +0900
-
-The function nilfs_btree_check_delete(), which checks whether degeneration
-to direct mapping occurs before deleting a b-tree entry, causes memory
-access outside the block buffer when retrieving the maximum key if the
-root node has no entries.
-
-This does not usually happen because b-tree mappings with 0 child nodes
-are never created by mkfs.nilfs2 or nilfs2 itself.  However, it can happen
-if the b-tree root node read from a device is configured that way, so fix
-this potential issue by adding a check for that case.
-
-Link: https://lkml.kernel.org/r/20240904081401.16682-4-konishi.ryusuke@gmail.com
-Fixes: 17c76b0104e4 ("nilfs2: B-tree based block mapping")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Lizhi Xu <lizhi.xu@windriver.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/nilfs2/btree.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
---- a/fs/nilfs2/btree.c~nilfs2-fix-potential-oob-read-in-nilfs_btree_check_delete
-+++ a/fs/nilfs2/btree.c
-@@ -1659,13 +1659,16 @@ static int nilfs_btree_check_delete(stru
- 	int nchildren, ret;
- 
- 	root = nilfs_btree_get_root(btree);
-+	nchildren = nilfs_btree_node_get_nchildren(root);
-+	if (unlikely(nchildren == 0))
-+		return 0;
-+
- 	switch (nilfs_btree_height(btree)) {
- 	case 2:
- 		bh = NULL;
- 		node = root;
- 		break;
- 	case 3:
--		nchildren = nilfs_btree_node_get_nchildren(root);
- 		if (nchildren > 1)
- 			return 0;
- 		ptr = nilfs_btree_node_get_ptr(root, nchildren - 1,
-@@ -1674,12 +1677,12 @@ static int nilfs_btree_check_delete(stru
- 		if (ret < 0)
- 			return ret;
- 		node = (struct nilfs_btree_node *)bh->b_data;
-+		nchildren = nilfs_btree_node_get_nchildren(node);
- 		break;
- 	default:
- 		return 0;
- 	}
- 
--	nchildren = nilfs_btree_node_get_nchildren(node);
- 	maxkey = nilfs_btree_node_get_key(node, nchildren - 1);
- 	nextmaxkey = (nchildren > 1) ?
- 		nilfs_btree_node_get_key(node, nchildren - 2) : 0;
-_
-
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
-
-nilfs2-fix-potential-null-ptr-deref-in-nilfs_btree_insert.patch
-nilfs2-determine-empty-node-blocks-as-corrupted.patch
-nilfs2-fix-potential-oob-read-in-nilfs_btree_check_delete.patch
+OK thanks.  I expect Stephen will notify us when there's a duplicate
+patch.  As long as the two patches are identical code changes, git will
+sort it out when we merge with Linus.  Otherwise I'll drop the mm.git
+copy.
 
