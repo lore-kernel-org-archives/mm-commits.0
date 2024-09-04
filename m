@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB0C78276
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD04978276
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423542; cv=none; b=A6y/dof3oXJ/Oz0j3tE8E9iY2LDGdk6eKGk9xZS0wDQcMR2pzB6D56KUJqeXOzPkY0kgXUumL3/T0xcIvc8bhr741b/XNiebDV7NKh+5aeypu4SUqBnsgBgGgLzhfRJ1ydf3vX81ieADKRQZCjoeRiqHd9Yb1EtomK8QLOuQuKY=
+	t=1725423543; cv=none; b=qITCeBHr2qvOBDnK1T7vMDBYsrYsegS8kbbfzCrJyONzfCRc1FDebdRIuw5IIKMa7N/TZVxaYMqjCbjhvUpXIjug39gFh4+Gg0Lho0rzofw81mRTRbHbU6H53FByh0ozmO7DXLoYlH2z++cUBq9KTOJKlerjM6JkrvT1n1mdOjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423542; c=relaxed/simple;
-	bh=EPRFo0k7eIHJHk8H9kc7ALYXFn7Xp7o5yld1mL5gOrM=;
-	h=Date:To:From:Subject:Message-Id; b=h6CvLx9tTf9x47hmGXVmU3jFrnT4CB1oM7GVC4qHRxuKfzhJfXURmz6879BqYpvmQ/cXrzw2gZG9iR7mvUjiynuWhWxqnx9IE0swa8uYVS2PRjRj+HKjkzExPZg/bge3To5B7IfT30+NV/liplIN4KGgjf/xu/xQs+yG8o0YwMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iwCLgYtt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423543; c=relaxed/simple;
+	bh=vbfqqLZ5oWmz+/vyaNcxASiQyx5nzQi0njwMwhKb5M0=;
+	h=Date:To:From:Subject:Message-Id; b=Lp+N/a/vP5IZCzYqQyXQtRTIOwNvXud5MJpzslhkmGlWTJmswsMJ4YGX19vmE8+hFPX0+hm/6vER6MNuM0U3OmZyR1aYE4E3lPl4FViwO2z+RuX3n09Rk2VlbjwinBL35NDKezYkWjjaKn9nY1BroQhdpp+JYOifaTZVt/4aIZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EREa2pec; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iwCLgYtt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5773AC4CEC2;
-	Wed,  4 Sep 2024 04:19:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EREa2pec"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B23EDC4CEC2;
+	Wed,  4 Sep 2024 04:19:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423542;
-	bh=EPRFo0k7eIHJHk8H9kc7ALYXFn7Xp7o5yld1mL5gOrM=;
+	s=korg; t=1725423543;
+	bh=vbfqqLZ5oWmz+/vyaNcxASiQyx5nzQi0njwMwhKb5M0=;
 	h=Date:To:From:Subject:From;
-	b=iwCLgYttquhCbCQ1bv86K3ScvxmTfx6MIJe0XzrJuLf7cbvQbpZiEHBwBs4Vy8+3Q
-	 yW7GXgPFuah+YnuOc7Akoh4AE5eBnRKdAJgcruQfGK4I1w1qMdxsgCB6OgdwxCpzNh
-	 bCc7J0aP5ewJaWWXa0m5qm7vdzzxyA6h4CEHBkSQ=
-Date: Tue, 03 Sep 2024 21:19:01 -0700
+	b=EREa2pecqKv+vf1qE1t9DhqicVLeAez/evzWvWkFXfuP2gCzAcMLvAjiCPfAXDuR4
+	 HjgwZi5WHO8x7S14d+dHd7irXR69+v9zG8xB2gX6Snn9qQ24loupQBwKix/GRACYIR
+	 YwCgQE7TNFN0CnT8w4txPH5ObE5SaYoM8+Oy7b8g=
+Date: Tue, 03 Sep 2024 21:19:03 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,shakeel.butt@linux.dev,nphamcs@gmail.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chengming.zhou@linux.dev,ak@linux.intel.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-store-zero-pages-to-be-swapped-out-in-a-bitmap.patch removed from -mm tree
-Message-Id: <20240904041902.5773AC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-code-to-handle-same-filled-pages.patch removed from -mm tree
+Message-Id: <20240904041903.B23EDC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,363 +35,212 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: store zero pages to be swapped out in a bitmap
+     Subject: mm: remove code to handle same filled pages
 has been removed from the -mm tree.  Its filename was
-     mm-store-zero-pages-to-be-swapped-out-in-a-bitmap.patch
+     mm-remove-code-to-handle-same-filled-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm: store zero pages to be swapped out in a bitmap
-Date: Fri, 23 Aug 2024 20:04:39 +0100
+Subject: mm: remove code to handle same filled pages
+Date: Fri, 23 Aug 2024 20:04:40 +0100
 
-Patch series "mm: store zero pages to be swapped out in a bitmap", v8.
+With an earlier commit to handle zero-filled pages in swap directly, and
+with only 1% of the same-filled pages being non-zero, zswap no longer
+needs to handle same-filled pages and can just work on compressed pages.
 
-As shown in the patch series that introduced the zswap same-filled
-optimization [1], 10-20% of the pages stored in zswap are same-filled. 
-This is also observed across Meta's server fleet.  By using VM counters in
-swap_writepage (not included in this patchseries) it was found that less
-than 1% of the same-filled pages to be swapped out are non-zero pages.
-
-For conventional swap setup (without zswap), rather than reading/writing
-these pages to flash resulting in increased I/O and flash wear, a bitmap
-can be used to mark these pages as zero at write time, and the pages can
-be filled at read time if the bit corresponding to the page is set.
-
-When using zswap with swap, this also means that a zswap_entry does not
-need to be allocated for zero filled pages resulting in memory savings
-which would offset the memory used for the bitmap.
-
-A similar attempt was made earlier in [2] where zswap would only track
-zero-filled pages instead of same-filled.  This patchseries adds
-zero-filled pages optimization to swap (hence it can be used even if zswap
-is disabled) and removes the same-filled code from zswap (as only 1% of
-the same-filled pages are non-zero), simplifying code.
-
-[1] https://lore.kernel.org/all/20171018104832epcms5p1b2232e2236258de3d03d1344dde9fce0@epcms5p1/
-[2] https://lore.kernel.org/lkml/20240325235018.2028408-1-yosryahmed@google.com/
-
-
-This patch (of 2):
-
-Approximately 10-20% of pages to be swapped out are zero pages [1].
-Rather than reading/writing these pages to flash resulting
-in increased I/O and flash wear, a bitmap can be used to mark these
-pages as zero at write time, and the pages can be filled at
-read time if the bit corresponding to the page is set.
-With this patch, NVMe writes in Meta server fleet decreased
-by almost 10% with conventional swap setup (zswap disabled).
-
-[1] https://lore.kernel.org/all/20171018104832epcms5p1b2232e2236258de3d03d1344dde9fce0@epcms5p1/
-
-Link: https://lkml.kernel.org/r/20240823190545.979059-1-usamaarif642@gmail.com
-Link: https://lkml.kernel.org/r/20240823190545.979059-2-usamaarif642@gmail.com
+Link: https://lkml.kernel.org/r/20240823190545.979059-3-usamaarif642@gmail.com
 Signed-off-by: Usama Arif <usamaarif642@gmail.com>
 Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/page_io.c         |  118 ++++++++++++++++++++++++++++++++++++++++-
- mm/swapfile.c        |   38 +++++++++++--
- 3 files changed, 151 insertions(+), 6 deletions(-)
+ mm/zswap.c |   85 ++++-----------------------------------------------
+ 1 file changed, 8 insertions(+), 77 deletions(-)
 
---- a/include/linux/swap.h~mm-store-zero-pages-to-be-swapped-out-in-a-bitmap
-+++ a/include/linux/swap.h
-@@ -296,6 +296,7 @@ struct swap_info_struct {
- 	signed char	type;		/* strange name for an index */
- 	unsigned int	max;		/* extent of the swap_map */
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
-+	unsigned long *zeromap;		/* kvmalloc'ed bitmap to track zero pages */
- 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
- 	struct list_head free_clusters; /* free clusters list */
- 	struct list_head full_clusters; /* full clusters list */
---- a/mm/page_io.c~mm-store-zero-pages-to-be-swapped-out-in-a-bitmap
-+++ a/mm/page_io.c
-@@ -172,6 +172,80 @@ bad_bmap:
- 	goto out;
- }
+--- a/mm/zswap.c~mm-remove-code-to-handle-same-filled-pages
++++ a/mm/zswap.c
+@@ -44,8 +44,6 @@
+ **********************************/
+ /* The number of compressed pages currently stored in zswap */
+ atomic_t zswap_stored_pages = ATOMIC_INIT(0);
+-/* The number of same-value filled pages currently stored in zswap */
+-static atomic_t zswap_same_filled_pages = ATOMIC_INIT(0);
  
-+static bool is_folio_zero_filled(struct folio *folio)
-+{
-+	unsigned int pos, last_pos;
-+	unsigned long *data;
-+	unsigned int i;
-+
-+	last_pos = PAGE_SIZE / sizeof(*data) - 1;
-+	for (i = 0; i < folio_nr_pages(folio); i++) {
-+		data = kmap_local_folio(folio, i * PAGE_SIZE);
-+		/*
-+		 * Check last word first, incase the page is zero-filled at
-+		 * the start and has non-zero data at the end, which is common
-+		 * in real-world workloads.
-+		 */
-+		if (data[last_pos]) {
-+			kunmap_local(data);
-+			return false;
-+		}
-+		for (pos = 0; pos < last_pos; pos++) {
-+			if (data[pos]) {
-+				kunmap_local(data);
-+				return false;
-+			}
-+		}
-+		kunmap_local(data);
-+	}
-+
-+	return true;
-+}
-+
-+static void swap_zeromap_folio_set(struct folio *folio)
-+{
-+	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	swp_entry_t entry;
-+	unsigned int i;
-+
-+	for (i = 0; i < folio_nr_pages(folio); i++) {
-+		entry = page_swap_entry(folio_page(folio, i));
-+		set_bit(swp_offset(entry), sis->zeromap);
-+	}
-+}
-+
-+static void swap_zeromap_folio_clear(struct folio *folio)
-+{
-+	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	swp_entry_t entry;
-+	unsigned int i;
-+
-+	for (i = 0; i < folio_nr_pages(folio); i++) {
-+		entry = page_swap_entry(folio_page(folio, i));
-+		clear_bit(swp_offset(entry), sis->zeromap);
-+	}
-+}
-+
-+/*
-+ * Return the index of the first subpage which is not zero-filled
-+ * according to swap_info_struct->zeromap.
-+ * If all pages are zero-filled according to zeromap, it will return
-+ * folio_nr_pages(folio).
-+ */
-+static unsigned int swap_zeromap_folio_test(struct folio *folio)
-+{
-+	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	swp_entry_t entry;
-+	unsigned int i;
-+
-+	for (i = 0; i < folio_nr_pages(folio); i++) {
-+		entry = page_swap_entry(folio_page(folio, i));
-+		if (!test_bit(swp_offset(entry), sis->zeromap))
-+			return i;
-+	}
-+	return i;
-+}
-+
  /*
-  * We may have stale swap cache pages in memory: notice
-  * them here and get rid of the unnecessary final write.
-@@ -195,6 +269,25 @@ int swap_writepage(struct page *page, st
- 		folio_unlock(folio);
- 		return ret;
- 	}
-+
-+	/*
-+	 * Use a bitmap (zeromap) to avoid doing IO for zero-filled pages.
-+	 * The bits in zeromap are protected by the locked swapcache folio
-+	 * and atomic updates are used to protect against read-modify-write
-+	 * corruption due to other zero swap entries seeing concurrent updates.
-+	 */
-+	if (is_folio_zero_filled(folio)) {
-+		swap_zeromap_folio_set(folio);
-+		folio_unlock(folio);
-+		return 0;
-+	} else {
-+		/*
-+		 * Clear bits this folio occupies in the zeromap to prevent
-+		 * zero data being read in from any previous zero writes that
-+		 * occupied the same swap entries.
-+		 */
-+		swap_zeromap_folio_clear(folio);
-+	}
- 	if (zswap_store(folio)) {
- 		folio_unlock(folio);
- 		return 0;
-@@ -427,6 +520,26 @@ static void sio_read_complete(struct kio
- 	mempool_free(sio, sio_pool);
+  * The statistics below are not protected from concurrent access for
+@@ -185,8 +183,7 @@ static struct shrinker *zswap_shrinker;
+  *
+  * swpentry - associated swap entry, the offset indexes into the red-black tree
+  * length - the length in bytes of the compressed page data.  Needed during
+- *          decompression. For a same value filled page length is 0, and both
+- *          pool and lru are invalid and must be ignored.
++ *          decompression.
+  * referenced - true if the entry recently entered the zswap pool. Unset by the
+  *              writeback logic. The entry is only reclaimed by the writeback
+  *              logic if referenced is unset. See comments in the shrinker
+@@ -202,10 +199,7 @@ struct zswap_entry {
+ 	unsigned int length;
+ 	bool referenced;
+ 	struct zswap_pool *pool;
+-	union {
+-		unsigned long handle;
+-		unsigned long value;
+-	};
++	unsigned long handle;
+ 	struct obj_cgroup *objcg;
+ 	struct list_head lru;
+ };
+@@ -801,13 +795,9 @@ static void zswap_entry_cache_free(struc
+  */
+ static void zswap_entry_free(struct zswap_entry *entry)
+ {
+-	if (!entry->length)
+-		atomic_dec(&zswap_same_filled_pages);
+-	else {
+-		zswap_lru_del(&zswap_list_lru, entry);
+-		zpool_free(entry->pool->zpool, entry->handle);
+-		zswap_pool_put(entry->pool);
+-	}
++	zswap_lru_del(&zswap_list_lru, entry);
++	zpool_free(entry->pool->zpool, entry->handle);
++	zswap_pool_put(entry->pool);
+ 	if (entry->objcg) {
+ 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
+ 		obj_cgroup_put(entry->objcg);
+@@ -1277,11 +1267,6 @@ static unsigned long zswap_shrinker_coun
+ 	 * This ensures that the better zswap compresses memory, the fewer
+ 	 * pages we will evict to swap (as it will otherwise incur IO for
+ 	 * relatively small memory saving).
+-	 *
+-	 * The memory saving factor calculated here takes same-filled pages into
+-	 * account, but those are not freeable since they almost occupy no
+-	 * space. Hence, we may scale nr_freeable down a little bit more than we
+-	 * should if we have a lot of same-filled pages.
+ 	 */
+ 	return mult_frac(nr_freeable, nr_backing, nr_stored);
+ }
+@@ -1417,42 +1402,6 @@ resched:
  }
  
-+static bool swap_read_folio_zeromap(struct folio *folio)
-+{
-+	unsigned int idx = swap_zeromap_folio_test(folio);
-+
-+	if (idx == 0)
-+		return false;
-+
-+	/*
-+	 * Swapping in a large folio that is partially in the zeromap is not
-+	 * currently handled. Return true without marking the folio uptodate so
-+	 * that an IO error is emitted (e.g. do_swap_page() will sigbus).
-+	 */
-+	if (WARN_ON_ONCE(idx < folio_nr_pages(folio)))
-+		return true;
-+
-+	folio_zero_range(folio, 0, folio_size(folio));
-+	folio_mark_uptodate(folio);
-+	return true;
-+}
-+
- static void swap_read_folio_fs(struct folio *folio, struct swap_iocb **plug)
- {
- 	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-@@ -517,7 +630,10 @@ void swap_read_folio(struct folio *folio
+ /*********************************
+-* same-filled functions
+-**********************************/
+-static bool zswap_is_folio_same_filled(struct folio *folio, unsigned long *value)
+-{
+-	unsigned long *data;
+-	unsigned long val;
+-	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*data) - 1;
+-	bool ret = false;
+-
+-	data = kmap_local_folio(folio, 0);
+-	val = data[0];
+-
+-	if (val != data[last_pos])
+-		goto out;
+-
+-	for (pos = 1; pos < last_pos; pos++) {
+-		if (val != data[pos])
+-			goto out;
+-	}
+-
+-	*value = val;
+-	ret = true;
+-out:
+-	kunmap_local(data);
+-	return ret;
+-}
+-
+-static void zswap_fill_folio(struct folio *folio, unsigned long value)
+-{
+-	unsigned long *data = kmap_local_folio(folio, 0);
+-
+-	memset_l(data, value, PAGE_SIZE / sizeof(unsigned long));
+-	kunmap_local(data);
+-}
+-
+-/*********************************
+ * main API
+ **********************************/
+ bool zswap_store(struct folio *folio)
+@@ -1463,7 +1412,6 @@ bool zswap_store(struct folio *folio)
+ 	struct zswap_entry *entry, *old;
+ 	struct obj_cgroup *objcg = NULL;
+ 	struct mem_cgroup *memcg = NULL;
+-	unsigned long value;
+ 
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+@@ -1496,13 +1444,6 @@ bool zswap_store(struct folio *folio)
+ 		goto reject;
  	}
- 	delayacct_swapin_start();
  
--	if (zswap_load(folio)) {
-+	if (swap_read_folio_zeromap(folio)) {
-+		folio_unlock(folio);
-+		goto finish;
-+	} else if (zswap_load(folio)) {
- 		folio_unlock(folio);
- 		goto finish;
- 	}
---- a/mm/swapfile.c~mm-store-zero-pages-to-be-swapped-out-in-a-bitmap
-+++ a/mm/swapfile.c
-@@ -940,6 +940,14 @@ static void swap_range_free(struct swap_
- 	unsigned long begin = offset;
- 	unsigned long end = offset + nr_entries - 1;
- 	void (*swap_slot_free_notify)(struct block_device *, unsigned long);
-+	unsigned int i;
-+
-+	/*
-+	 * Use atomic clear_bit operations only on zeromap instead of non-atomic
-+	 * bitmap_clear to prevent adjacent bits corruption due to simultaneous writes.
-+	 */
-+	for (i = 0; i < nr_entries; i++)
-+		clear_bit(offset + i, si->zeromap);
+-	if (zswap_is_folio_same_filled(folio, &value)) {
+-		entry->length = 0;
+-		entry->value = value;
+-		atomic_inc(&zswap_same_filled_pages);
+-		goto store_entry;
+-	}
+-
+ 	/* if entry is successfully added, it keeps the reference */
+ 	entry->pool = zswap_pool_current_get();
+ 	if (!entry->pool)
+@@ -1520,7 +1461,6 @@ bool zswap_store(struct folio *folio)
+ 	if (!zswap_compress(folio, entry))
+ 		goto put_pool;
  
- 	if (offset < si->lowest_bit)
- 		si->lowest_bit = offset;
-@@ -2609,7 +2617,8 @@ static int swap_node(struct swap_info_st
+-store_entry:
+ 	entry->swpentry = swp;
+ 	entry->objcg = objcg;
+ 	entry->referenced = true;
+@@ -1569,13 +1509,9 @@ store_entry:
+ 	return true;
  
- static void setup_swap_info(struct swap_info_struct *si, int prio,
- 			    unsigned char *swap_map,
--			    struct swap_cluster_info *cluster_info)
-+			    struct swap_cluster_info *cluster_info,
-+			    unsigned long *zeromap)
- {
- 	int i;
+ store_failed:
+-	if (!entry->length)
+-		atomic_dec(&zswap_same_filled_pages);
+-	else {
+-		zpool_free(entry->pool->zpool, entry->handle);
++	zpool_free(entry->pool->zpool, entry->handle);
+ put_pool:
+-		zswap_pool_put(entry->pool);
+-	}
++	zswap_pool_put(entry->pool);
+ freepage:
+ 	zswap_entry_cache_free(entry);
+ reject:
+@@ -1638,10 +1574,7 @@ bool zswap_load(struct folio *folio)
+ 	if (!entry)
+ 		return false;
  
-@@ -2634,6 +2643,7 @@ static void setup_swap_info(struct swap_
- 	}
- 	si->swap_map = swap_map;
- 	si->cluster_info = cluster_info;
-+	si->zeromap = zeromap;
+-	if (entry->length)
+-		zswap_decompress(entry, folio);
+-	else
+-		zswap_fill_folio(folio, entry->value);
++	zswap_decompress(entry, folio);
+ 
+ 	count_vm_event(ZSWPIN);
+ 	if (entry->objcg)
+@@ -1744,8 +1677,6 @@ static int zswap_debugfs_init(void)
+ 			    zswap_debugfs_root, NULL, &total_size_fops);
+ 	debugfs_create_atomic_t("stored_pages", 0444,
+ 				zswap_debugfs_root, &zswap_stored_pages);
+-	debugfs_create_atomic_t("same_filled_pages", 0444,
+-				zswap_debugfs_root, &zswap_same_filled_pages);
+ 
+ 	return 0;
  }
- 
- static void _enable_swap_info(struct swap_info_struct *si)
-@@ -2662,11 +2672,12 @@ static void _enable_swap_info(struct swa
- 
- static void enable_swap_info(struct swap_info_struct *si, int prio,
- 				unsigned char *swap_map,
--				struct swap_cluster_info *cluster_info)
-+				struct swap_cluster_info *cluster_info,
-+				unsigned long *zeromap)
- {
- 	spin_lock(&swap_lock);
- 	spin_lock(&si->lock);
--	setup_swap_info(si, prio, swap_map, cluster_info);
-+	setup_swap_info(si, prio, swap_map, cluster_info, zeromap);
- 	spin_unlock(&si->lock);
- 	spin_unlock(&swap_lock);
- 	/*
-@@ -2684,7 +2695,7 @@ static void reinsert_swap_info(struct sw
- {
- 	spin_lock(&swap_lock);
- 	spin_lock(&si->lock);
--	setup_swap_info(si, si->prio, si->swap_map, si->cluster_info);
-+	setup_swap_info(si, si->prio, si->swap_map, si->cluster_info, si->zeromap);
- 	_enable_swap_info(si);
- 	spin_unlock(&si->lock);
- 	spin_unlock(&swap_lock);
-@@ -2709,6 +2720,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- {
- 	struct swap_info_struct *p = NULL;
- 	unsigned char *swap_map;
-+	unsigned long *zeromap;
- 	struct swap_cluster_info *cluster_info;
- 	struct file *swap_file, *victim;
- 	struct address_space *mapping;
-@@ -2831,6 +2843,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	p->max = 0;
- 	swap_map = p->swap_map;
- 	p->swap_map = NULL;
-+	zeromap = p->zeromap;
-+	p->zeromap = NULL;
- 	cluster_info = p->cluster_info;
- 	p->cluster_info = NULL;
- 	spin_unlock(&p->lock);
-@@ -2843,6 +2857,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	free_percpu(p->cluster_next_cpu);
- 	p->cluster_next_cpu = NULL;
- 	vfree(swap_map);
-+	kvfree(zeromap);
- 	kvfree(cluster_info);
- 	/* Destroy swap account information */
- 	swap_cgroup_swapoff(p->type);
-@@ -3340,6 +3355,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	sector_t span;
- 	unsigned long maxpages;
- 	unsigned char *swap_map = NULL;
-+	unsigned long *zeromap = NULL;
- 	struct swap_cluster_info *cluster_info = NULL;
- 	struct page *page = NULL;
- 	struct inode *inode = NULL;
-@@ -3430,6 +3446,17 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		goto bad_swap_unlock_inode;
- 	}
- 
-+	/*
-+	 * Use kvmalloc_array instead of bitmap_zalloc as the allocation order might
-+	 * be above MAX_PAGE_ORDER incase of a large swap file.
-+	 */
-+	zeromap = kvmalloc_array(BITS_TO_LONGS(maxpages), sizeof(long),
-+				    GFP_KERNEL | __GFP_ZERO);
-+	if (!zeromap) {
-+		error = -ENOMEM;
-+		goto bad_swap_unlock_inode;
-+	}
-+
- 	if (si->bdev && bdev_stable_writes(si->bdev))
- 		si->flags |= SWP_STABLE_WRITES;
- 
-@@ -3505,7 +3532,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (swap_flags & SWAP_FLAG_PREFER)
- 		prio =
- 		  (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
--	enable_swap_info(si, prio, swap_map, cluster_info);
-+	enable_swap_info(si, prio, swap_map, cluster_info, zeromap);
- 
- 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
- 		K(si->pages), name->name, si->prio, nr_extents,
-@@ -3540,6 +3567,7 @@ bad_swap:
- 	si->flags = 0;
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
-+	kvfree(zeromap);
- 	kvfree(cluster_info);
- 	if (inced_nr_rotate_swap)
- 		atomic_dec(&nr_rotate_swap);
 _
 
 Patches currently in -mm which might be from usamaarif642@gmail.com are
