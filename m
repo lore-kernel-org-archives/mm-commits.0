@@ -1,125 +1,100 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F086D4776E;
-	Wed,  4 Sep 2024 03:26:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 986523211
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:41:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725420413; cv=none; b=NF6F41AKCPA7brLCWxE0i9+s+JzocVRVeSaRgbH2t0Cq8RWUGvWLlj0obO4eTdHFAJR7XnH6wgqspPc0nNAJZq650snfIR0byUBtrt5LmPXbkxE/YZZbCKjim4kvEaHY+KLcq8wSc/GHen8v5zvoOd6NG+q9pVDrxK/DOZ1tG84=
+	t=1725421274; cv=none; b=pHVlh8ev65ft3qQYfm4doe1YPhqFcf3XXMygX7fI4N+0k1vbQR+QejQmIXpblhjF66KZNKVwX0M2Qma6XM5DMWtQVKAhNJOg9xrM6ctlJYTs3osAOWkK1ryoDHbfCqtcsQveEcypTnkbbGRds3P6pBCV9o/F3lcVX8YYCMK+jzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725420413; c=relaxed/simple;
-	bh=Gb9HgOw6SwMHu+m6RoFCLfrFFn7egZTm/+TNsO2o4WQ=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=GbjM+WrPCmCZouS0UybHVUMQGH+qj6Eo1yrjSccg4yh+4Yu8tmU5mbeEsQbcqtJ7nX9WVTKHDbYpT5sK/UA7PT3tYG6tYJbiuDhFd1iytzpRoM7vzJy1zQvSR4gwIEDNv+ANGbrLY7I/fzvpGNjk6HMyQYv7zAZBjtn/QIn828M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yHJJwlLb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421274; c=relaxed/simple;
+	bh=bC3f95aMzFgGO03YmGNi4cGeEhb3pnLeiH8/heXasyg=;
+	h=Date:To:From:Subject:Message-Id; b=C4HiOEJV4XjOuDEf5+wTdIAYxYYULqzYmp9rYeH4+OErm2n/OUa576XWn7F2pbgIVGIU3eJv6UBWO8oxi4Y8Cjw88HE5HZMlfAjAkM9P07TGYNhSHtmkMlOJ3SxSDV+DpSj9HpejjdRMLQs9ohDujLneiVRSlqyFvGZa8+bUg5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nPBcMfyG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yHJJwlLb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EDD2C4CEC2;
-	Wed,  4 Sep 2024 03:26:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nPBcMfyG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4977FC4CEC2;
+	Wed,  4 Sep 2024 03:41:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725420412;
-	bh=Gb9HgOw6SwMHu+m6RoFCLfrFFn7egZTm/+TNsO2o4WQ=;
-	h=Date:From:To:Cc:Subject:From;
-	b=yHJJwlLbT55mciZh8f0oDoniKaNmUXIP03ZznNj31Z64sCxHf2L4t6A69tz/1crDm
-	 Xv257ILyUlotOqQSGXcwzdCmXUq1KNg2T/ipFy8Pls3VzhGZOx1bBmxlnMArhwrzHy
-	 Nl/ht4ZA9oeYLGozwQ//iiZoIdKcUYC+BhcB5ccU=
-Date: Tue, 3 Sep 2024 20:26:51 -0700
+	s=korg; t=1725421274;
+	bh=bC3f95aMzFgGO03YmGNi4cGeEhb3pnLeiH8/heXasyg=;
+	h=Date:To:From:Subject:From;
+	b=nPBcMfyGlBlF+KGllS/0+b9+eqqIt2YN7ftTmjb6wT4FLGfq+41BCLJFMuBu7Rm+q
+	 AlRB7eRPxB4h+b5QbjO4A7YgD3RyELbYezq2NcCJilYXVgyPwF8+2RQUCXjzGHxjBi
+	 PwFvo4vtZ0DIlzZFmHTXIfeoDzrxFdpkF4IHk2j8=
+Date: Tue, 03 Sep 2024 20:41:13 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,11162571@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.11-rc7
-Message-Id: <20240903202651.f258324d271b4813dfa8de7a@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [to-be-updated] tools-mm-check-mmap-based-on-return-values.patch removed from -mm tree
+Message-Id: <20240904034114.4977FC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please pull this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: tools:mm: check mmap based on return values
+has been removed from the -mm tree.  Its filename was
+     tools-mm-check-mmap-based-on-return-values.patch
 
+This patch was dropped because an updated version will be issued
 
-The following changes since commit 431c1646e1f86b949fa3685efc50b660a364c2b6:
+------------------------------------------------------
+From: Yang Ruibin <11162571@vivo.com>
+Subject: tools:mm: check mmap based on return values
+Date: Tue, 20 Aug 2024 23:50:03 -0400
 
-  Linux 6.11-rc6 (2024-09-01 19:46:02 +1200)
+To correctly detect whether mmap is successful, must use if (map_ptr ==
+MAP_FAILED)to avoid incorrectly handling a valid mapping.
 
-are available in the Git repository at:
+Link: https://lkml.kernel.org/r/20240821035005.4423-1-11162571@vivo.com
+Signed-off-by: Yang Ruibin <11162571@vivo.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-03-20-19
+ tools/testing/selftests/mm/ksm_tests.c     |    2 +-
+ tools/testing/selftests/mm/madv_populate.c |    2 +-
+ tools/testing/selftests/mm/soft-dirty.c    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-for you to fetch changes up to 052a45c1cb1b32f05dd63a295d65496d8b403283:
+--- a/tools/testing/selftests/mm/ksm_tests.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -201,7 +201,7 @@ static void  *allocate_memory(void *ptr,
+ {
+ 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
+ 
+-	if (!map_ptr) {
++	if (map_ptr == MAP_FAILED) {
+ 		perror("mmap");
+ 		return NULL;
+ 	}
+--- a/tools/testing/selftests/mm/madv_populate.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/madv_populate.c
+@@ -34,7 +34,7 @@ static void sense_support(void)
+ 
+ 	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
+ 		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+-	if (!addr)
++	if (addr == MAP_FAILED)
+ 		ksft_exit_fail_msg("mmap failed\n");
+ 
+ 	ret = madvise(addr, pagesize, MADV_POPULATE_READ);
+--- a/tools/testing/selftests/mm/soft-dirty.c~tools-mm-check-mmap-based-on-return-values
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -134,7 +134,7 @@ static void test_mprotect(int pagemap_fd
+ 	if (anon) {
+ 		map = mmap(NULL, pagesize, PROT_READ|PROT_WRITE,
+ 			   MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+-		if (!map)
++		if (map == MAP_FAILED)
+ 			ksft_exit_fail_msg("anon mmap failed\n");
+ 	} else {
+ 		test_fd = open(fname, O_RDWR | O_CREAT, 0664);
+_
 
-  alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n (2024-09-01 17:59:03 -0700)
+Patches currently in -mm which might be from 11162571@vivo.com are
 
-----------------------------------------------------------------
-17 hotfixes, 15 of which are cc:stable.
-
-Mostly MM, no identifiable theme.  And a few nilfs2 fixups.
-
-----------------------------------------------------------------
-Adrian Huang (1):
-      mm: vmalloc: optimize vmap_lazy_nr arithmetic when purging each vmap_area
-
-Hao Ge (2):
-      mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
-      codetag: debug: mark codetags for poisoned page as empty
-
-Jan Kuliga (1):
-      mailmap: update entry for Jan Kuliga
-
-Jann Horn (2):
-      userfaultfd: fix checks for huge PMDs
-      userfaultfd: don't BUG_ON() if khugepaged yanks our page table
-
-Liam R. Howlett (1):
-      maple_tree: remove rcu_read_lock() from mt_validate()
-
-Marc Zyngier (1):
-      scripts: fix gfp-translate after ___GFP_*_BITS conversion to an enum
-
-Mike Yuan (1):
-      mm/memcontrol: respect zswap.writeback setting from parent cg too
-
-Muhammad Usama Anjum (1):
-      selftests: mm: fix build errors on armhf
-
-Petr Tesarik (1):
-      kexec_file: fix elfcorehdr digest exclusion when CONFIG_CRASH_HOTPLUG=y
-
-Ryusuke Konishi (3):
-      nilfs2: protect references to superblock parameters exposed in sysfs
-      nilfs2: fix missing cleanup on rollforward recovery error
-      nilfs2: fix state management in error path of log writing function
-
-Suren Baghdasaryan (1):
-      alloc_tag: fix allocation tag reporting when CONFIG_MODULES=n
-
-Usama Arif (1):
-      Revert "mm: skip CMA pages when they are not available"
-
-Will Deacon (1):
-      mm: vmalloc: ensure vmap_block is initialised before adding to queue
-
- .mailmap                                |  1 +
- Documentation/admin-guide/cgroup-v2.rst |  7 ++--
- fs/nilfs2/recovery.c                    | 35 ++++++++++++++++-
- fs/nilfs2/segment.c                     | 10 +++--
- fs/nilfs2/sysfs.c                       | 43 ++++++++++++++++-----
- kernel/kexec_file.c                     |  2 +-
- lib/codetag.c                           | 17 ++++++---
- lib/maple_tree.c                        |  7 +---
- mm/memcontrol.c                         | 12 ++++--
- mm/page_alloc.c                         |  7 ++++
- mm/slub.c                               |  4 ++
- mm/userfaultfd.c                        | 29 ++++++++-------
- mm/vmalloc.c                            |  7 +++-
- mm/vmscan.c                             | 24 +-----------
- scripts/gfp-translate                   | 66 ++++++++++++++++++++++++---------
- tools/testing/selftests/mm/mseal_test.c | 37 +++++++-----------
- tools/testing/selftests/mm/seal_elf.c   | 13 +------
- 17 files changed, 197 insertions(+), 124 deletions(-)
 
