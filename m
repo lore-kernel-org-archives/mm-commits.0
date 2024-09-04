@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72908BA37
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1923A6E61B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423423; cv=none; b=L34bR10zc4e+Xfvt0wzcHbA01hu9bJ0Uektsyckim70dGGNkBEE01dRiMyG/q77E/jiPliTOf/Uf+WzxKOnRshxMkXE0mzW41lfGZ8FLZHzkcwcFGP+Ute6oyN0LBZOkz3N2IwXxrOKsn3I2jjmbr+71PPhOsjckylHD2LtxQUE=
+	t=1725423425; cv=none; b=GQcE+60tq1sXH09HbB0DQNKUoXh0yZHTzJMzHf9lJtdF7yj6hFo5m1A0aTt644YM1N0K1ZvuxPR4T2LMAkQT46XJUx+3wCncP4H3JWr51qyrJ/yM9BKK9kNvIz/Bu+iNWgG4UqBGw5mEWW7wzpkW6lXz9JiQPlK1yBGAL2OiAP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423423; c=relaxed/simple;
-	bh=WU2e69wk0HSvK0LzMvdYs9F7XPY8M1sxCkzsrt80z5c=;
-	h=Date:To:From:Subject:Message-Id; b=btahZhTFFMQBjphef8sxi3K0OQVUwUKeex6OxHIEDk40YMFCJLpm1VKJtNFVAmmWJD6qJNAd5A/lodilTS972q+Hnaqn6N78ez9dmw7//GPAU6gd2WSbTBxz7tEi548ukU9J4Vjkax+H3Ur5vF9J5Zmj2Y4MlpLyzTtb/mtmvIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j2Oy/HlN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423425; c=relaxed/simple;
+	bh=cKxp4jDjXJweJzVR8TZNcifKz3IG9Lljev0iePxpBlw=;
+	h=Date:To:From:Subject:Message-Id; b=CmJpgIyxhGEGAfkcyiFYb0Lx3jLrFCx6PQrlLUIzVYSbMl6sO8hk4OSmo/Awe/X1aDZJ6xKWdUt+7MzkdQrfviBTzgDN9k1/nAjSq7Ppb6XaJrIkbuCEuB2NUhOIR0gP8W0NB9XJz4pwRkyot+eFkdH0v2uO3ph5WYuISzDUJ5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ItAIjCJX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j2Oy/HlN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40F2EC4CEC2;
-	Wed,  4 Sep 2024 04:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ItAIjCJX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA75FC4CEC2;
+	Wed,  4 Sep 2024 04:17:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423423;
-	bh=WU2e69wk0HSvK0LzMvdYs9F7XPY8M1sxCkzsrt80z5c=;
+	s=korg; t=1725423425;
+	bh=cKxp4jDjXJweJzVR8TZNcifKz3IG9Lljev0iePxpBlw=;
 	h=Date:To:From:Subject:From;
-	b=j2Oy/HlNF1Oob50C8NtZjN7IMHqCI0z3nykw55usv3O2kK+Y5Urx5txqJ4CE1L9Vg
-	 7wzP+Mb5KNYh3X+krYKgoJ807jYqffX5G1rE7aLRSJUZz5PFVRIyk0PQePwynSOblD
-	 FYBMWpXsZrPhjszLK1PnYyWQtRbx4eUYRwVJfXn4=
-Date: Tue, 03 Sep 2024 21:17:02 -0700
+	b=ItAIjCJX1rVN7zkWIZtXmwH2S7Lws85/bFQ3wYP5T3s87c+1CcMOOOYzDy9i6jTHJ
+	 yx7UBfdbHRf8dw3ueONG0kjyftfruVWtcQpruYTWZZRWV56pQj8sjXOQQNcliqIyMx
+	 UH5CwnArXijsaO9Boz4QulfvwuI4JVd0G2QM+00E=
+Date: Tue, 03 Sep 2024 21:17:04 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arch-mm-move-definition-of-node_data-to-generic-code.patch removed from -mm tree
-Message-Id: <20240904041703.40F2EC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-drop-config_have_arch_nodedata_extension.patch removed from -mm tree
+Message-Id: <20240904041704.DA75FC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch, mm: move definition of node_data to generic code
+     Subject: mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
 has been removed from the -mm tree.  Its filename was
-     arch-mm-move-definition-of-node_data-to-generic-code.patch
+     mm-drop-config_have_arch_nodedata_extension.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: arch, mm: move definition of node_data to generic code
-Date: Wed, 7 Aug 2024 09:40:51 +0300
+Subject: mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+Date: Wed, 7 Aug 2024 09:40:52 +0300
 
-Every architecture that supports NUMA defines node_data in the same way:
+There are no users of HAVE_ARCH_NODEDATA_EXTENSION left, so
+arch_alloc_nodedata() and arch_refresh_nodedata() are not needed anymore.
 
-	struct pglist_data *node_data[MAX_NUMNODES];
+Replace the call to arch_alloc_nodedata() in free_area_init() with a new
+helper alloc_offline_node_data(), remove arch_refresh_nodedata() and
+cleanup include/linux/memory_hotplug.h from the associated ifdefery.
 
-No reason to keep multiple copies of this definition and its forward
-declarations, especially when such forward declaration is the only thing
-in include/asm/mmzone.h for many architectures.
-
-Add definition and declaration of node_data to generic code and drop
-architecture-specific versions.
-
-Link: https://lkml.kernel.org/r/20240807064110.1003856-8-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via QEMU]
 Acked-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -73,6 +65,8 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
@@ -80,6 +74,7 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
@@ -93,456 +88,125 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/Kbuild                  |    1 
- arch/arm64/include/asm/mmzone.h                |   13 ----------
- arch/arm64/include/asm/topology.h              |    1 
- arch/loongarch/include/asm/Kbuild              |    1 
- arch/loongarch/include/asm/mmzone.h            |   16 -------------
- arch/loongarch/include/asm/topology.h          |    1 
- arch/loongarch/kernel/numa.c                   |    3 --
- arch/mips/include/asm/mach-ip27/mmzone.h       |    4 ---
- arch/mips/include/asm/mach-loongson64/mmzone.h |    4 ---
- arch/mips/loongson64/numa.c                    |    2 -
- arch/mips/sgi-ip27/ip27-memory.c               |    3 --
- arch/powerpc/include/asm/mmzone.h              |    6 -----
- arch/powerpc/mm/numa.c                         |    2 -
- arch/riscv/include/asm/Kbuild                  |    1 
- arch/riscv/include/asm/mmzone.h                |   13 ----------
- arch/riscv/include/asm/topology.h              |    4 +++
- arch/s390/include/asm/Kbuild                   |    1 
- arch/s390/include/asm/mmzone.h                 |   17 --------------
- arch/s390/kernel/numa.c                        |    3 --
- arch/sh/include/asm/mmzone.h                   |    3 --
- arch/sh/mm/numa.c                              |    3 --
- arch/sparc/include/asm/mmzone.h                |    4 ---
- arch/sparc/mm/init_64.c                        |    2 -
- arch/x86/include/asm/Kbuild                    |    1 
- arch/x86/include/asm/mmzone.h                  |    6 -----
- arch/x86/include/asm/mmzone_32.h               |   17 --------------
- arch/x86/include/asm/mmzone_64.h               |   18 ---------------
- arch/x86/mm/numa.c                             |    3 --
- drivers/base/arch_numa.c                       |    2 -
- include/asm-generic/mmzone.h                   |    5 ++++
- include/linux/numa.h                           |    3 ++
- mm/numa.c                                      |    3 ++
- 32 files changed, 22 insertions(+), 144 deletions(-)
+ include/linux/memory_hotplug.h |   48 -------------------------------
+ include/linux/numa.h           |    4 ++
+ mm/mm_init.c                   |   10 +-----
+ mm/numa.c                      |   12 +++++++
+ 4 files changed, 18 insertions(+), 56 deletions(-)
 
---- a/arch/arm64/include/asm/Kbuild~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/arm64/include/asm/Kbuild
-@@ -9,6 +9,7 @@ syscall-y += unistd_compat_32.h
+--- a/include/linux/memory_hotplug.h~mm-drop-config_have_arch_nodedata_extension
++++ a/include/linux/memory_hotplug.h
+@@ -16,54 +16,6 @@ struct resource;
+ struct vmem_altmap;
+ struct dev_pagemap;
  
- generic-y += early_ioremap.h
- generic-y += mcs_spinlock.h
-+generic-y += mmzone.h
- generic-y += qrwlock.h
- generic-y += qspinlock.h
- generic-y += parport.h
-diff --git a/arch/arm64/include/asm/mmzone.h a/arch/arm64/include/asm/mmzone.h
-deleted file mode 100644
---- a/arch/arm64/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_MMZONE_H
--#define __ASM_MMZONE_H
--
--#ifdef CONFIG_NUMA
--
--#include <asm/numa.h>
--
--extern struct pglist_data *node_data[];
--#define NODE_DATA(nid)		(node_data[(nid)])
--
--#endif /* CONFIG_NUMA */
--#endif /* __ASM_MMZONE_H */
---- a/arch/arm64/include/asm/topology.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/arm64/include/asm/topology.h
-@@ -5,6 +5,7 @@
- #include <linux/cpumask.h>
- 
- #ifdef CONFIG_NUMA
-+#include <asm/numa.h>
- 
- struct pci_bus;
- int pcibus_to_node(struct pci_bus *bus);
---- a/arch/loongarch/include/asm/Kbuild~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/loongarch/include/asm/Kbuild
-@@ -9,5 +9,6 @@ generic-y += qrwlock.h
- generic-y += qspinlock.h
- generic-y += user.h
- generic-y += ioctl.h
-+generic-y += mmzone.h
- generic-y += statfs.h
- generic-y += param.h
-diff --git a/arch/loongarch/include/asm/mmzone.h a/arch/loongarch/include/asm/mmzone.h
-deleted file mode 100644
---- a/arch/loongarch/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
+-#ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
 -/*
-- * Author: Huacai Chen (chenhuacai@loongson.cn)
-- * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
-- */
--#ifndef _ASM_MMZONE_H_
--#define _ASM_MMZONE_H_
--
--#include <asm/page.h>
--#include <asm/numa.h>
--
--extern struct pglist_data *node_data[];
--
--#define NODE_DATA(nid)	(node_data[(nid)])
--
--#endif /* _ASM_MMZONE_H_ */
---- a/arch/loongarch/include/asm/topology.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/loongarch/include/asm/topology.h
-@@ -8,6 +8,7 @@
- #include <linux/smp.h>
- 
- #ifdef CONFIG_NUMA
-+#include <asm/numa.h>
- 
- extern cpumask_t cpus_on_node[];
- 
---- a/arch/loongarch/kernel/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/loongarch/kernel/numa.c
-@@ -27,10 +27,7 @@
- #include <asm/time.h>
- 
- int numa_off;
--struct pglist_data *node_data[MAX_NUMNODES];
- unsigned char node_distances[MAX_NUMNODES][MAX_NUMNODES];
--
--EXPORT_SYMBOL(node_data);
- EXPORT_SYMBOL(node_distances);
- 
- static struct numa_meminfo numa_meminfo;
---- a/arch/mips/include/asm/mach-ip27/mmzone.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/mips/include/asm/mach-ip27/mmzone.h
-@@ -24,8 +24,4 @@ extern struct node_data *__node_data[];
- 
- #define hub_data(n)		(&__node_data[(n)]->hub)
- 
--extern struct pglist_data *node_data[];
--
--#define NODE_DATA(nid)		(node_data[nid])
--
- #endif /* _ASM_MACH_MMZONE_H */
---- a/arch/mips/include/asm/mach-loongson64/mmzone.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/mips/include/asm/mach-loongson64/mmzone.h
-@@ -14,10 +14,6 @@
- #define pa_to_nid(addr)  (((addr) & 0xf00000000000) >> NODE_ADDRSPACE_SHIFT)
- #define nid_to_addrbase(nid) ((unsigned long)(nid) << NODE_ADDRSPACE_SHIFT)
- 
--extern struct pglist_data *node_data[];
--
--#define NODE_DATA(n)		(node_data[n])
--
- extern void __init prom_init_numa_memory(void);
- 
- #endif /* _ASM_MACH_MMZONE_H */
---- a/arch/mips/loongson64/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/mips/loongson64/numa.c
-@@ -29,8 +29,6 @@
- 
- unsigned char __node_distances[MAX_NUMNODES][MAX_NUMNODES];
- EXPORT_SYMBOL(__node_distances);
--struct pglist_data *node_data[MAX_NUMNODES];
--EXPORT_SYMBOL(node_data);
- 
- cpumask_t __node_cpumask[MAX_NUMNODES];
- EXPORT_SYMBOL(__node_cpumask);
---- a/arch/mips/sgi-ip27/ip27-memory.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/mips/sgi-ip27/ip27-memory.c
-@@ -34,9 +34,6 @@
- #define SLOT_PFNSHIFT		(SLOT_SHIFT - PAGE_SHIFT)
- #define PFN_NASIDSHFT		(NASID_SHFT - PAGE_SHIFT)
- 
--struct pglist_data *node_data[MAX_NUMNODES];
--EXPORT_SYMBOL(node_data);
--
- struct node_data *__node_data[MAX_NUMNODES];
- EXPORT_SYMBOL(__node_data);
- 
---- a/arch/powerpc/include/asm/mmzone.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -20,12 +20,6 @@
- 
- #ifdef CONFIG_NUMA
- 
--extern struct pglist_data *node_data[];
--/*
-- * Return a pointer to the node data for node n.
-- */
--#define NODE_DATA(nid)		(node_data[nid])
--
- /*
-  * Following are specific to this numa platform.
-  */
---- a/arch/powerpc/mm/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/powerpc/mm/numa.c
-@@ -43,11 +43,9 @@ static char *cmdline __initdata;
- 
- int numa_cpu_lookup_table[NR_CPUS];
- cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
--struct pglist_data *node_data[MAX_NUMNODES];
- 
- EXPORT_SYMBOL(numa_cpu_lookup_table);
- EXPORT_SYMBOL(node_to_cpumask_map);
--EXPORT_SYMBOL(node_data);
- 
- static int primary_domain_index;
- static int n_mem_addr_cells, n_mem_size_cells;
---- a/arch/riscv/include/asm/Kbuild~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/riscv/include/asm/Kbuild
-@@ -5,6 +5,7 @@ syscall-y += syscall_table_64.h
- generic-y += early_ioremap.h
- generic-y += flat.h
- generic-y += kvm_para.h
-+generic-y += mmzone.h
- generic-y += parport.h
- generic-y += spinlock.h
- generic-y += spinlock_types.h
-diff --git a/arch/riscv/include/asm/mmzone.h a/arch/riscv/include/asm/mmzone.h
-deleted file mode 100644
---- a/arch/riscv/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ASM_MMZONE_H
--#define __ASM_MMZONE_H
--
--#ifdef CONFIG_NUMA
--
--#include <asm/numa.h>
--
--extern struct pglist_data *node_data[];
--#define NODE_DATA(nid)		(node_data[(nid)])
--
--#endif /* CONFIG_NUMA */
--#endif /* __ASM_MMZONE_H */
---- a/arch/riscv/include/asm/topology.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/riscv/include/asm/topology.h
-@@ -4,6 +4,10 @@
- 
- #include <linux/arch_topology.h>
- 
-+#ifdef CONFIG_NUMA
-+#include <asm/numa.h>
-+#endif
-+
- /* Replace task scheduler's default frequency-invariant accounting */
- #define arch_scale_freq_tick		topology_scale_freq_tick
- #define arch_set_freq_scale		topology_set_freq_scale
---- a/arch/s390/include/asm/Kbuild~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/s390/include/asm/Kbuild
-@@ -7,3 +7,4 @@ generated-y += unistd_nr.h
- generic-y += asm-offsets.h
- generic-y += kvm_types.h
- generic-y += mcs_spinlock.h
-+generic-y += mmzone.h
-diff --git a/arch/s390/include/asm/mmzone.h a/arch/s390/include/asm/mmzone.h
-deleted file mode 100644
---- a/arch/s390/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * NUMA support for s390
+- * For supporting node-hotadd, we have to allocate a new pgdat.
 - *
-- * Copyright IBM Corp. 2015
-- */
--
--#ifndef _ASM_S390_MMZONE_H
--#define _ASM_S390_MMZONE_H
--
--#ifdef CONFIG_NUMA
--
--extern struct pglist_data *node_data[];
--#define NODE_DATA(nid) (node_data[nid])
--
--#endif /* CONFIG_NUMA */
--#endif /* _ASM_S390_MMZONE_H */
---- a/arch/s390/kernel/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/s390/kernel/numa.c
-@@ -14,9 +14,6 @@
- #include <linux/node.h>
- #include <asm/numa.h>
- 
--struct pglist_data *node_data[MAX_NUMNODES];
--EXPORT_SYMBOL(node_data);
--
- void __init numa_setup(void)
- {
- 	int nid;
---- a/arch/sh/include/asm/mmzone.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/sh/include/asm/mmzone.h
-@@ -5,9 +5,6 @@
- #ifdef CONFIG_NUMA
- #include <linux/numa.h>
- 
--extern struct pglist_data *node_data[];
--#define NODE_DATA(nid)		(node_data[nid])
--
- static inline int pfn_to_nid(unsigned long pfn)
- {
- 	int nid;
---- a/arch/sh/mm/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/sh/mm/numa.c
-@@ -14,9 +14,6 @@
- #include <linux/pfn.h>
- #include <asm/sections.h>
- 
--struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
--EXPORT_SYMBOL_GPL(node_data);
--
- /*
-  * On SH machines the conventional approach is to stash system RAM
-  * in node 0, and other memory blocks in to node 1 and up, ordered by
---- a/arch/sparc/include/asm/mmzone.h~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/sparc/include/asm/mmzone.h
-@@ -6,10 +6,6 @@
- 
- #include <linux/cpumask.h>
- 
--extern struct pglist_data *node_data[];
--
--#define NODE_DATA(nid)		(node_data[nid])
--
- extern int numa_cpu_lookup_table[];
- extern cpumask_t numa_cpumask_lookup_table[];
- 
---- a/arch/sparc/mm/init_64.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/sparc/mm/init_64.c
-@@ -1115,11 +1115,9 @@ static void init_node_masks_nonnuma(void
- }
- 
- #ifdef CONFIG_NUMA
--struct pglist_data *node_data[MAX_NUMNODES];
- 
- EXPORT_SYMBOL(numa_cpu_lookup_table);
- EXPORT_SYMBOL(numa_cpumask_lookup_table);
--EXPORT_SYMBOL(node_data);
- 
- static int scan_pio_for_cfg_handle(struct mdesc_handle *md, u64 pio,
- 				   u32 cfg_handle)
---- a/arch/x86/include/asm/Kbuild~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/x86/include/asm/Kbuild
-@@ -11,3 +11,4 @@ generated-y += xen-hypercalls.h
- 
- generic-y += early_ioremap.h
- generic-y += mcs_spinlock.h
-+generic-y += mmzone.h
-diff --git a/arch/x86/include/asm/mmzone_32.h a/arch/x86/include/asm/mmzone_32.h
-deleted file mode 100644
---- a/arch/x86/include/asm/mmzone_32.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * Written by Pat Gaughen (gone@us.ibm.com) Mar 2002
+- * If an arch has generic style NODE_DATA(),
+- * node_data[nid] = kzalloc() works well. But it depends on the architecture.
+- *
+- * In general, generic_alloc_nodedata() is used.
 - *
 - */
+-extern pg_data_t *arch_alloc_nodedata(int nid);
+-extern void arch_refresh_nodedata(int nid, pg_data_t *pgdat);
 -
--#ifndef _ASM_X86_MMZONE_32_H
--#define _ASM_X86_MMZONE_32_H
+-#else /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
 -
--#include <asm/smp.h>
+-#define arch_alloc_nodedata(nid)	generic_alloc_nodedata(nid)
 -
 -#ifdef CONFIG_NUMA
--extern struct pglist_data *node_data[];
--#define NODE_DATA(nid)	(node_data[nid])
+-/*
+- * XXX: node aware allocation can't work well to get new node's memory at this time.
+- *	Because, pgdat for the new node is not allocated/initialized yet itself.
+- *	To use new node's memory, more consideration will be necessary.
+- */
+-#define generic_alloc_nodedata(nid)				\
+-({								\
+-	memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);	\
+-})
+-
+-extern pg_data_t *node_data[];
+-static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-{
+-	node_data[nid] = pgdat;
+-}
+-
+-#else /* !CONFIG_NUMA */
+-
+-/* never called */
+-static inline pg_data_t *generic_alloc_nodedata(int nid)
+-{
+-	BUG();
+-	return NULL;
+-}
+-static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-{
+-}
 -#endif /* CONFIG_NUMA */
+-#endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
 -
--#endif /* _ASM_X86_MMZONE_32_H */
-diff --git a/arch/x86/include/asm/mmzone_64.h a/arch/x86/include/asm/mmzone_64.h
-deleted file mode 100644
---- a/arch/x86/include/asm/mmzone_64.h
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* K8 NUMA support */
--/* Copyright 2002,2003 by Andi Kleen, SuSE Labs */
--/* 2.5 Version loosely based on the NUMAQ Code by Pat Gaughen. */
--#ifndef _ASM_X86_MMZONE_64_H
--#define _ASM_X86_MMZONE_64_H
--
--#ifdef CONFIG_NUMA
--
--#include <linux/mmdebug.h>
--#include <asm/smp.h>
--
--extern struct pglist_data *node_data[];
--
--#define NODE_DATA(nid)		(node_data[nid])
--
--#endif
--#endif /* _ASM_X86_MMZONE_64_H */
-diff --git a/arch/x86/include/asm/mmzone.h a/arch/x86/include/asm/mmzone.h
-deleted file mode 100644
---- a/arch/x86/include/asm/mmzone.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifdef CONFIG_X86_32
--# include <asm/mmzone_32.h>
--#else
--# include <asm/mmzone_64.h>
--#endif
---- a/arch/x86/mm/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/arch/x86/mm/numa.c
-@@ -24,9 +24,6 @@
- int numa_off;
- nodemask_t numa_nodes_parsed __initdata;
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ struct page *pfn_to_online_page(unsigned long pfn);
  
--struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
--EXPORT_SYMBOL(node_data);
--
- static struct numa_meminfo numa_meminfo __initdata_or_meminfo;
- static struct numa_meminfo numa_reserved_meminfo __initdata_or_meminfo;
- 
---- a/drivers/base/arch_numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/drivers/base/arch_numa.c
-@@ -15,8 +15,6 @@
- 
- #include <asm/sections.h>
- 
--struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
--EXPORT_SYMBOL(node_data);
- nodemask_t numa_nodes_parsed __initdata;
- static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
- 
-diff --git a/include/asm-generic/mmzone.h a/include/asm-generic/mmzone.h
-new file mode 100644
---- /dev/null
-+++ a/include/asm-generic/mmzone.h
-@@ -0,0 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_GENERIC_MMZONE_H
-+#define _ASM_GENERIC_MMZONE_H
-+
-+#endif
---- a/include/linux/numa.h~arch-mm-move-definition-of-node_data-to-generic-code
+--- a/include/linux/numa.h~mm-drop-config_have_arch_nodedata_extension
 +++ a/include/linux/numa.h
-@@ -30,6 +30,9 @@ static inline bool numa_valid_node(int n
- #ifdef CONFIG_NUMA
- #include <asm/sparsemem.h>
+@@ -33,6 +33,8 @@ static inline bool numa_valid_node(int n
+ extern struct pglist_data *node_data[];
+ #define NODE_DATA(nid)	(node_data[nid])
  
-+extern struct pglist_data *node_data[];
-+#define NODE_DATA(nid)	(node_data[nid])
++void __init alloc_offline_node_data(int nid);
 +
  /* Generic implementation available */
  int numa_nearest_node(int node, unsigned int state);
  
---- a/mm/numa.c~arch-mm-move-definition-of-node_data-to-generic-code
-+++ a/mm/numa.c
-@@ -3,6 +3,9 @@
- #include <linux/printk.h>
- #include <linux/numa.h>
+@@ -60,6 +62,8 @@ static inline int phys_to_target_node(u6
+ {
+ 	return 0;
+ }
++
++static inline void alloc_offline_node_data(int nid) {}
+ #endif
  
-+struct pglist_data *node_data[MAX_NUMNODES];
-+EXPORT_SYMBOL(node_data);
+ #define numa_map_to_online_node(node) numa_nearest_node(node, N_ONLINE)
+--- a/mm/mm_init.c~mm-drop-config_have_arch_nodedata_extension
++++ a/mm/mm_init.c
+@@ -1835,14 +1835,8 @@ void __init free_area_init(unsigned long
+ 	for_each_node(nid) {
+ 		pg_data_t *pgdat;
+ 
+-		if (!node_online(nid)) {
+-			/* Allocator not initialized yet */
+-			pgdat = arch_alloc_nodedata(nid);
+-			if (!pgdat)
+-				panic("Cannot allocate %zuB for node %d.\n",
+-				       sizeof(*pgdat), nid);
+-			arch_refresh_nodedata(nid, pgdat);
+-		}
++		if (!node_online(nid))
++			alloc_offline_node_data(nid);
+ 
+ 		pgdat = NODE_DATA(nid);
+ 		free_area_init_node(nid);
+--- a/mm/numa.c~mm-drop-config_have_arch_nodedata_extension
++++ a/mm/numa.c
+@@ -6,6 +6,18 @@
+ struct pglist_data *node_data[MAX_NUMNODES];
+ EXPORT_SYMBOL(node_data);
+ 
++void __init alloc_offline_node_data(int nid)
++{
++	pg_data_t *pgdat;
++
++	pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
++	if (!pgdat)
++		panic("Cannot allocate %zuB for node %d.\n",
++		      sizeof(*pgdat), nid);
++
++	node_data[nid] = pgdat;
++}
 +
  /* Stub functions: */
  
