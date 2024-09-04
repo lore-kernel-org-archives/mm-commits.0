@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3835A7DA95
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2636AFAE
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:19:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423596; cv=none; b=S+Cb7Ykc9N7XnRvvgEyEjrvEl9lY7Rw6Y7zHxdFmZPRDaAx4+nBhrctbgqkgod9R7LfcA8eYcYXs1HUZIa863sggjxKmWvRs4tTAQSbQOu2ktq8GRdVyplNapWOEuFEGkwJOePide/BxlKRKYhzjgSBikghSkNnSSAwQF1KlUyc=
+	t=1725423598; cv=none; b=kWy2frrc1ltYQkJE3QiSs4s/v9KIKUlv7XZbvIjaG/CHBbQPBFdwV1Q339aefHRtAN7Efrx/RS51Ge7zaJDN2g4f00rubm/hiMk0b3UDm2+V7WpuTCGRB6dWw/Ve8+pvFfvP4LNA8FIMijNZGui6y+JzmF6Rjk1t+MNbdIcHJF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423596; c=relaxed/simple;
-	bh=i7cCUlWCPv+L0hdu4yG/tY14Bf6ZP+xZaPL9LXcMiBQ=;
-	h=Date:To:From:Subject:Message-Id; b=mILGCssUgFLOOHHaydGD5Xa+Wfj2K0QUi3C/LY1HfAS8oPxD6rXrEsjAcc++DZFF9goiLUUtLWlLYc1AnWviEGk0PsZXmgEVBZxsETnINSclRYio8uK3pusZbt6ckKQY8Vo8t+QtBV/y5iEtK0466TQ54iHjKNL0g6rH5yec320=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2HAfAUg6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423598; c=relaxed/simple;
+	bh=Yxba8BS0vu02EAx0MPrcP1/uC8bz2gua6sxJjjE5tJk=;
+	h=Date:To:From:Subject:Message-Id; b=alLkrVUgOdwt63755d7jwwgNr1LXF+fTtLEBx7n6JIp+x0+0/frbPNDR67dd64p5dAhyrRUL84USPlHReiiNDhId7bDmiEwRYFR6o6pBubtKdhhW0sJKyZZoO/ktARgVEZiV4V50Xzf25HxWmY+mAWxE9OXksKtu1Ha5bl/0LVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lFkqYd/D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2HAfAUg6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D385C4CEC2;
-	Wed,  4 Sep 2024 04:19:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lFkqYd/D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74744C4CEC2;
+	Wed,  4 Sep 2024 04:19:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423596;
-	bh=i7cCUlWCPv+L0hdu4yG/tY14Bf6ZP+xZaPL9LXcMiBQ=;
+	s=korg; t=1725423598;
+	bh=Yxba8BS0vu02EAx0MPrcP1/uC8bz2gua6sxJjjE5tJk=;
 	h=Date:To:From:Subject:From;
-	b=2HAfAUg6jTH6Srmi2fxbzrGuyv7UMDLDHTboEScX/oTpcBM9lQ7fWYbWirP3Wo1a5
-	 apdCWpl0XSYOQ39Hb4NubkyWsG2CrNPzNIpP629/cwd3sE1pL+q8ebdBh5S8PrIOXl
-	 ctbXH4JCDK9mPeTKgbuh4J+CipftJ4KNPwbIWywc=
-Date: Tue, 03 Sep 2024 21:19:55 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,Jonathan.Cameron@huawei.com,horen.chuang@linux.dev,yanfei.xu@intel.com,akpm@linux-foundation.org
+	b=lFkqYd/DVd2IQ+roBHD/Xfd+VpbC20GJZmkzBh4sqpkqBUZUn5I7pA4/8tz+M0CGg
+	 iw1xCnAecKuTKaPWhQplPl4dx4HN4R/+SYBfX5pcKSgjZOjJ0J536C+Sn8xoKG17aI
+	 FXM88UnfXYuCBrpHawkvsR6BVrqkrk+ACm9bzyR0=
+Date: Tue, 03 Sep 2024 21:19:57 -0700
+To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,xiaoping.zhou@intel.com,vincent.guittot@linaro.org,tim.c.chen@intel.com,raghavendra.kt@amd.com,peterz@infradead.org,mingo@redhat.com,mgorman@techsingularity.net,juri.lelli@redhat.com,yujie.liu@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tier-fix-deadlock-warning-while-onlining-pages.patch removed from -mm tree
-Message-Id: <20240904041956.0D385C4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-fix-the-vma-scan-starving-issue.patch removed from -mm tree
+Message-Id: <20240904041958.74744C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,267 +35,146 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory tier: fix deadlock warning while onlining pages
+     Subject: sched/numa: Fix the vma scan starving issue
 has been removed from the -mm tree.  Its filename was
-     memory-tier-fix-deadlock-warning-while-onlining-pages.patch
+     sched-numa-fix-the-vma-scan-starving-issue.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@intel.com>
-Subject: memory tier: fix deadlock warning while onlining pages
-Date: Tue, 27 Aug 2024 19:36:14 +0800
+From: Yujie Liu <yujie.liu@intel.com>
+Subject: sched/numa: Fix the vma scan starving issue
+Date: Tue, 27 Aug 2024 19:29:58 +0800
 
-commit 823430c8e9d9 ("memory tier: consolidate the initialization of
-memory tiers") introduces a locking change that use guard(mutex) to
-instead of mutex_lock/unlock() for memory_tier_lock.  It unexpectedly
-expanded the locked region to include the hotplug_memory_notifier(), as a
-result, it triggers an locking dependency detected of ABBA deadlock. 
-Exclude hotplug_memory_notifier() from the locked region to fixing it.
+Problem statement:
+Since commit fc137c0ddab2 ("sched/numa: enhance vma scanning logic"), the
+Numa vma scan overhead has been reduced a lot.  Meanwhile, the reducing of
+the vma scan might create less Numa page fault information.  The
+insufficient information makes it harder for the Numa balancer to make
+decision.  Later, commit b7a5b537c55c08 ("sched/numa: Complete scanning of
+partial VMAs regardless of PID activity") and commit 84db47ca7146d7
+("sched/numa: Fix mm numa_scan_seq based unconditional scan") are found to
+bring back part of the performance.
 
-The deadlock scenario is that when a memory online event occurs, the
-execution of memory notifier will access the read lock of the
-memory_chain.rwsem, then the reigistration of the memory notifier in
-memory_tier_init() acquires the write lock of the memory_chain.rwsem while
-holding memory_tier_lock.  Then the memory online event continues to
-invoke the memory hotplug callback registered by memory_tier_init(). 
-Since this callback tries to acquire the memory_tier_lock, a deadlock
-occurs.
+Recently when running SPECcpu omnetpp_r on a 320 CPUs/2 Sockets system, a
+long duration of remote Numa node read was observed by PMU events: A few
+cores having ~500MB/s remote memory access for ~20 seconds.  It causes
+high core-to-core variance and performance penalty.  After the
+investigation, it is found that many vmas are skipped due to the active
+PID check.  According to the trace events, in most cases,
+vma_is_accessed() returns false because the history access info stored in
+pids_active array has been cleared.
 
-In fact, this deadlock can't happen because memory_tier_init() always
-executes before memory online events happen due to the subsys_initcall()
-has an higher priority than module_init().
+Proposal:
+The main idea is to adjust vma_is_accessed() to let it return true easier.
+Thus compare the diff between mm->numa_scan_seq and
+vma->numab_state->prev_scan_seq.  If the diff has exceeded the threshold,
+scan the vma.
 
-[  133.491106] WARNING: possible circular locking dependency detected
-[  133.493656] 6.11.0-rc2+ #146 Tainted: G           O     N
-[  133.504290] ------------------------------------------------------
-[  133.515194] (udev-worker)/1133 is trying to acquire lock:
-[  133.525715] ffffffff87044e28 (memory_tier_lock){+.+.}-{3:3}, at: memtier_hotplug_callback+0x383/0x4b0
-[  133.536449]
-[  133.536449] but task is already holding lock:
-[  133.549847] ffffffff875d3310 ((memory_chain).rwsem){++++}-{3:3}, at: blocking_notifier_call_chain+0x60/0xb0
-[  133.556781]
-[  133.556781] which lock already depends on the new lock.
-[  133.556781]
-[  133.569957]
-[  133.569957] the existing dependency chain (in reverse order) is:
-[  133.577618]
-[  133.577618] -> #1 ((memory_chain).rwsem){++++}-{3:3}:
-[  133.584997]        down_write+0x97/0x210
-[  133.588647]        blocking_notifier_chain_register+0x71/0xd0
-[  133.592537]        register_memory_notifier+0x26/0x30
-[  133.596314]        memory_tier_init+0x187/0x300
-[  133.599864]        do_one_initcall+0x117/0x5d0
-[  133.603399]        kernel_init_freeable+0xab0/0xeb0
-[  133.606986]        kernel_init+0x28/0x2f0
-[  133.610312]        ret_from_fork+0x59/0x90
-[  133.613652]        ret_from_fork_asm+0x1a/0x30
-[  133.617012]
-[  133.617012] -> #0 (memory_tier_lock){+.+.}-{3:3}:
-[  133.623390]        __lock_acquire+0x2efd/0x5c60
-[  133.626730]        lock_acquire+0x1ce/0x580
-[  133.629757]        __mutex_lock+0x15c/0x1490
-[  133.632731]        mutex_lock_nested+0x1f/0x30
-[  133.635717]        memtier_hotplug_callback+0x383/0x4b0
-[  133.638748]        notifier_call_chain+0xbf/0x370
-[  133.641647]        blocking_notifier_call_chain+0x76/0xb0
-[  133.644636]        memory_notify+0x2e/0x40
-[  133.647427]        online_pages+0x597/0x720
-[  133.650246]        memory_subsys_online+0x4f6/0x7f0
-[  133.653107]        device_online+0x141/0x1d0
-[  133.655831]        online_memory_block+0x4d/0x60
-[  133.658616]        walk_memory_blocks+0xc0/0x120
-[  133.661419]        add_memory_resource+0x51d/0x6c0
-[  133.664202]        add_memory_driver_managed+0xf5/0x180
-[  133.667060]        dev_dax_kmem_probe+0x7f7/0xb40 [kmem]
-[  133.669949]        dax_bus_probe+0x147/0x230
-[  133.672687]        really_probe+0x27f/0xac0
-[  133.675463]        __driver_probe_device+0x1f3/0x460
-[  133.678493]        driver_probe_device+0x56/0x1b0
-[  133.681366]        __driver_attach+0x277/0x570
-[  133.684149]        bus_for_each_dev+0x145/0x1e0
-[  133.686937]        driver_attach+0x49/0x60
-[  133.689673]        bus_add_driver+0x2f3/0x6b0
-[  133.692421]        driver_register+0x170/0x4b0
-[  133.695118]        __dax_driver_register+0x141/0x1b0
-[  133.697910]        dax_kmem_init+0x54/0xff0 [kmem]
-[  133.700794]        do_one_initcall+0x117/0x5d0
-[  133.703455]        do_init_module+0x277/0x750
-[  133.706054]        load_module+0x5d1d/0x74f0
-[  133.708602]        init_module_from_file+0x12c/0x1a0
-[  133.711234]        idempotent_init_module+0x3f1/0x690
-[  133.713937]        __x64_sys_finit_module+0x10e/0x1a0
-[  133.716492]        x64_sys_call+0x184d/0x20d0
-[  133.719053]        do_syscall_64+0x6d/0x140
-[  133.721537]        entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[  133.724239]
-[  133.724239] other info that might help us debug this:
-[  133.724239]
-[  133.730832]  Possible unsafe locking scenario:
-[  133.730832]
-[  133.735298]        CPU0                    CPU1
-[  133.737759]        ----                    ----
-[  133.740165]   rlock((memory_chain).rwsem);
-[  133.742623]                                lock(memory_tier_lock);
-[  133.745357]                                lock((memory_chain).rwsem);
-[  133.748141]   lock(memory_tier_lock);
-[  133.750489]
-[  133.750489]  *** DEADLOCK ***
-[  133.750489]
-[  133.756742] 6 locks held by (udev-worker)/1133:
-[  133.759179]  #0: ffff888207be6158 (&dev->mutex){....}-{3:3}, at: __driver_attach+0x26c/0x570
-[  133.762299]  #1: ffffffff875b5868 (device_hotplug_lock){+.+.}-{3:3}, at: lock_device_hotplug+0x20/0x30
-[  133.765565]  #2: ffff88820cf6a108 (&dev->mutex){....}-{3:3}, at: device_online+0x2f/0x1d0
-[  133.768978]  #3: ffffffff86d08ff0 (cpu_hotplug_lock){++++}-{0:0}, at: mem_hotplug_begin+0x17/0x30
-[  133.772312]  #4: ffffffff8702dfb0 (mem_hotplug_lock){++++}-{0:0}, at: mem_hotplug_begin+0x23/0x30
-[  133.775544]  #5: ffffffff875d3310 ((memory_chain).rwsem){++++}-{3:3}, at: blocking_notifier_call_chain+0x60/0xb0
-[  133.779113]
-[  133.779113] stack backtrace:
-[  133.783728] CPU: 5 UID: 0 PID: 1133 Comm: (udev-worker) Tainted: G           O     N 6.11.0-rc2+ #146
-[  133.787220] Tainted: [O]=OOT_MODULE, [N]=TEST
-[  133.789948] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
-[  133.793291] Call Trace:
-[  133.795826]  <TASK>
-[  133.798284]  dump_stack_lvl+0xea/0x150
-[  133.801025]  dump_stack+0x19/0x20
-[  133.803609]  print_circular_bug+0x477/0x740
-[  133.806341]  check_noncircular+0x2f4/0x3e0
-[  133.809056]  ? __pfx_check_noncircular+0x10/0x10
-[  133.811866]  ? __pfx_lockdep_lock+0x10/0x10
-[  133.814670]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
-[  133.817610]  __lock_acquire+0x2efd/0x5c60
-[  133.820339]  ? __pfx___lock_acquire+0x10/0x10
-[  133.823128]  ? __dax_driver_register+0x141/0x1b0
-[  133.825926]  ? do_one_initcall+0x117/0x5d0
-[  133.828648]  lock_acquire+0x1ce/0x580
-[  133.831349]  ? memtier_hotplug_callback+0x383/0x4b0
-[  133.834293]  ? __pfx_lock_acquire+0x10/0x10
-[  133.837134]  __mutex_lock+0x15c/0x1490
-[  133.839829]  ? memtier_hotplug_callback+0x383/0x4b0
-[  133.842753]  ? memtier_hotplug_callback+0x383/0x4b0
-[  133.845602]  ? __this_cpu_preempt_check+0x21/0x30
-[  133.848438]  ? __pfx___mutex_lock+0x10/0x10
-[  133.851200]  ? __pfx_lock_acquire+0x10/0x10
-[  133.853935]  ? global_dirty_limits+0xc0/0x160
-[  133.856699]  ? __sanitizer_cov_trace_switch+0x58/0xa0
-[  133.859564]  mutex_lock_nested+0x1f/0x30
-[  133.862251]  ? mutex_lock_nested+0x1f/0x30
-[  133.864964]  memtier_hotplug_callback+0x383/0x4b0
-[  133.867752]  notifier_call_chain+0xbf/0x370
-[  133.870550]  ? writeback_set_ratelimit+0xe8/0x160
-[  133.873372]  blocking_notifier_call_chain+0x76/0xb0
-[  133.876311]  memory_notify+0x2e/0x40
-[  133.879013]  online_pages+0x597/0x720
-[  133.881686]  ? irqentry_exit+0x3e/0xa0
-[  133.884397]  ? __pfx_online_pages+0x10/0x10
-[  133.887244]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
-[  133.890299]  ? mhp_init_memmap_on_memory+0x7a/0x1c0
-[  133.893203]  memory_subsys_online+0x4f6/0x7f0
-[  133.896099]  ? __pfx_memory_subsys_online+0x10/0x10
-[  133.899039]  ? xa_load+0x16d/0x2e0
-[  133.901667]  ? __pfx_xa_load+0x10/0x10
-[  133.904366]  ? __pfx_memory_subsys_online+0x10/0x10
-[  133.907218]  device_online+0x141/0x1d0
-[  133.909845]  online_memory_block+0x4d/0x60
-[  133.912494]  walk_memory_blocks+0xc0/0x120
-[  133.915104]  ? __pfx_online_memory_block+0x10/0x10
-[  133.917776]  add_memory_resource+0x51d/0x6c0
-[  133.920404]  ? __pfx_add_memory_resource+0x10/0x10
-[  133.923104]  ? _raw_write_unlock+0x31/0x60
-[  133.925781]  ? register_memory_resource+0x119/0x180
-[  133.928450]  add_memory_driver_managed+0xf5/0x180
-[  133.931036]  dev_dax_kmem_probe+0x7f7/0xb40 [kmem]
-[  133.933665]  ? __pfx_dev_dax_kmem_probe+0x10/0x10 [kmem]
-[  133.936332]  ? __pfx___up_read+0x10/0x10
-[  133.938878]  dax_bus_probe+0x147/0x230
-[  133.941332]  ? __pfx_dax_bus_probe+0x10/0x10
-[  133.943954]  really_probe+0x27f/0xac0
-[  133.946387]  ? __sanitizer_cov_trace_const_cmp1+0x1e/0x30
-[  133.949106]  __driver_probe_device+0x1f3/0x460
-[  133.951704]  ? parse_option_str+0x149/0x190
-[  133.954241]  driver_probe_device+0x56/0x1b0
-[  133.956749]  __driver_attach+0x277/0x570
-[  133.959228]  ? __pfx___driver_attach+0x10/0x10
-[  133.961776]  bus_for_each_dev+0x145/0x1e0
-[  133.964367]  ? __pfx_bus_for_each_dev+0x10/0x10
-[  133.967019]  ? __kasan_check_read+0x15/0x20
-[  133.969543]  ? _raw_spin_unlock+0x31/0x60
-[  133.972132]  driver_attach+0x49/0x60
-[  133.974536]  bus_add_driver+0x2f3/0x6b0
-[  133.977044]  driver_register+0x170/0x4b0
-[  133.979480]  __dax_driver_register+0x141/0x1b0
-[  133.982126]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
-[  133.984724]  dax_kmem_init+0x54/0xff0 [kmem]
-[  133.987284]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
-[  133.989965]  do_one_initcall+0x117/0x5d0
-[  133.992506]  ? __pfx_do_one_initcall+0x10/0x10
-[  133.995185]  ? __kasan_kmalloc+0x88/0xa0
-[  133.997748]  ? kasan_poison+0x3e/0x60
-[  134.000288]  ? kasan_unpoison+0x2c/0x60
-[  134.002762]  ? kasan_poison+0x3e/0x60
-[  134.005202]  ? __asan_register_globals+0x62/0x80
-[  134.007753]  ? __pfx_dax_kmem_init+0x10/0x10 [kmem]
-[  134.010439]  do_init_module+0x277/0x750
-[  134.012953]  load_module+0x5d1d/0x74f0
-[  134.015406]  ? __pfx_load_module+0x10/0x10
-[  134.017887]  ? __pfx_ima_post_read_file+0x10/0x10
-[  134.020470]  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
-[  134.023127]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
-[  134.025767]  ? security_kernel_post_read_file+0xa2/0xd0
-[  134.028429]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
-[  134.031162]  ? kernel_read_file+0x503/0x820
-[  134.033645]  ? __pfx_kernel_read_file+0x10/0x10
-[  134.036232]  ? __pfx___lock_acquire+0x10/0x10
-[  134.038766]  init_module_from_file+0x12c/0x1a0
-[  134.041291]  ? init_module_from_file+0x12c/0x1a0
-[  134.043936]  ? __pfx_init_module_from_file+0x10/0x10
-[  134.046516]  ? __this_cpu_preempt_check+0x21/0x30
-[  134.049091]  ? __kasan_check_read+0x15/0x20
-[  134.051551]  ? do_raw_spin_unlock+0x60/0x210
-[  134.054077]  idempotent_init_module+0x3f1/0x690
-[  134.056643]  ? __pfx_idempotent_init_module+0x10/0x10
-[  134.059318]  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
-[  134.061995]  ? __fget_light+0x17d/0x210
-[  134.064428]  __x64_sys_finit_module+0x10e/0x1a0
-[  134.066976]  x64_sys_call+0x184d/0x20d0
-[  134.069405]  do_syscall_64+0x6d/0x140
-[  134.071926]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+This patch especially helps the cases where there are small number of
+threads, like the process-based SPECcpu.  Without this patch, if the
+SPECcpu process access the vma at the beginning, then sleeps for a long
+time, the pid_active array will be cleared.  A a result, if this process
+is woken up again, it never has a chance to set prot_none anymore. 
+Because only the first 2 times of access is granted for vma scan:
+(current->mm->numa_scan_seq) - vma->numab_state->start_scan_seq) < 2 to be
+worse, no other threads within the task can help set the prot_none.  This
+causes information lost.
 
-[yanfei.xu@intel.com: add mutex_lock/unlock() pair back]
-  Link: https://lkml.kernel.org/r/20240830102447.1445296-1-yanfei.xu@intel.com
-Link: https://lkml.kernel.org/r/20240827113614.1343049-1-yanfei.xu@intel.com
-Fixes: 823430c8e9d9 ("memory tier: consolidate the initialization of memory tiers")
-Signed-off-by: Yanfei Xu <yanfei.xu@intel.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Ho-Ren (Jack) Chuang <horen.chuang@linux.dev>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Raghavendra helped test current patch and got the positive result
+on the AMD platform:
+
+autonumabench NUMA01
+                            base                  patched
+Amean     syst-NUMA01      194.05 (   0.00%)      165.11 *  14.92%*
+Amean     elsp-NUMA01      324.86 (   0.00%)      315.58 *   2.86%*
+
+Duration User      380345.36   368252.04
+Duration System      1358.89     1156.23
+Duration Elapsed     2277.45     2213.25
+
+autonumabench NUMA02
+
+Amean     syst-NUMA02        1.12 (   0.00%)        1.09 *   2.93%*
+Amean     elsp-NUMA02        3.50 (   0.00%)        3.56 *  -1.84%*
+
+Duration User        1513.23     1575.48
+Duration System         8.33        8.13
+Duration Elapsed       28.59       29.71
+
+kernbench
+
+Amean     user-256    22935.42 (   0.00%)    22535.19 *   1.75%*
+Amean     syst-256     7284.16 (   0.00%)     7608.72 *  -4.46%*
+Amean     elsp-256      159.01 (   0.00%)      158.17 *   0.53%*
+
+Duration User       68816.41    67615.74
+Duration System     21873.94    22848.08
+Duration Elapsed      506.66      504.55
+
+Intel 256 CPUs/2 Sockets:
+autonuma benchmark also shows improvements:
+
+                                               v6.10-rc5              v6.10-rc5
+                                                                         +patch
+Amean     syst-NUMA01                  245.85 (   0.00%)      230.84 *   6.11%*
+Amean     syst-NUMA01_THREADLOCAL      205.27 (   0.00%)      191.86 *   6.53%*
+Amean     syst-NUMA02                   18.57 (   0.00%)       18.09 *   2.58%*
+Amean     syst-NUMA02_SMT                2.63 (   0.00%)        2.54 *   3.47%*
+Amean     elsp-NUMA01                  517.17 (   0.00%)      526.34 *  -1.77%*
+Amean     elsp-NUMA01_THREADLOCAL       99.92 (   0.00%)      100.59 *  -0.67%*
+Amean     elsp-NUMA02                   15.81 (   0.00%)       15.72 *   0.59%*
+Amean     elsp-NUMA02_SMT               13.23 (   0.00%)       12.89 *   2.53%*
+
+                   v6.10-rc5   v6.10-rc5
+                                  +patch
+Duration User     1064010.16  1075416.23
+Duration System      3307.64     3104.66
+Duration Elapsed     4537.54     4604.73
+
+The SPECcpu remote node access issue disappears with the patch applied.
+
+Link: https://lkml.kernel.org/r/20240827112958.181388-1-yu.c.chen@intel.com
+Fixes: fc137c0ddab2 ("sched/numa: enhance vma scanning logic")
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Co-developed-by: Chen Yu <yu.c.chen@intel.com>
+Signed-off-by: Yujie Liu <yujie.liu@intel.com>
+Reported-by: Xiaoping Zhou <xiaoping.zhou@intel.com>
+Reviewed-and-tested-by: Raghavendra K T <raghavendra.kt@amd.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched/fair.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/memory-tiers.c~memory-tier-fix-deadlock-warning-while-onlining-pages
-+++ a/mm/memory-tiers.c
-@@ -914,13 +914,14 @@ static int __init memory_tier_init(void)
- 	WARN_ON(!node_demotion);
- #endif
+--- a/kernel/sched/fair.c~sched-numa-fix-the-vma-scan-starving-issue
++++ a/kernel/sched/fair.c
+@@ -3187,6 +3187,15 @@ static bool vma_is_accessed(struct mm_st
+ 		return true;
+ 	}
  
--	guard(mutex)(&memory_tier_lock);
-+	mutex_lock(&memory_tier_lock);
- 	/*
- 	 * For now we can have 4 faster memory tiers with smaller adistance
- 	 * than default DRAM tier.
- 	 */
- 	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
- 						      &default_memory_types);
-+	mutex_unlock(&memory_tier_lock);
- 	if (IS_ERR(default_dram_type))
- 		panic("%s() failed to allocate default DRAM tier\n", __func__);
++	/*
++	 * This vma has not been accessed for a while, and if the number
++	 * the threads in the same process is low, which means no other
++	 * threads can help scan this vma, force a vma scan.
++	 */
++	if (READ_ONCE(mm->numa_scan_seq) >
++	   (vma->numab_state->prev_scan_seq + get_nr_threads(current)))
++		return true;
++
+ 	return false;
+ }
  
 _
 
-Patches currently in -mm which might be from yanfei.xu@intel.com are
+Patches currently in -mm which might be from yujie.liu@intel.com are
 
 
