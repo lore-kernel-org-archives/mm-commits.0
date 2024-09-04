@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C4552F34
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2272F34
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 03:48:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725421702; cv=none; b=B1KtUSC4mrF+rXI1GWNGgUMoNvcSQAxvgIC0aBn9oZqK8Fpr4zxldWDXKAdNg8npgfYKvFH9pRUqvSfJ1AudvyCPBSpP2Abef1hcT+w2HzRE3+GrGP7jLCfYA/KOxVtEwaBcWYvfU5N2nNkcxE5pj6Y+juxeFUbWcyuADaTaTHs=
+	t=1725421703; cv=none; b=lDplZ2u1CzsCYVk69HTksyUN/5XId+hKQxwc6ZFykrBdgjFvQ66YlAiUub6FO1k/A7a7q3o9OYQZ2prubaPd+7QeIREwbWn2asnxDEHcmhfR18uTH4QmxUIXPReH+WqvfTFvs56lJX8HsvmkaBQNIG5Cb3jUU/hjEtj0KJUpJgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725421702; c=relaxed/simple;
-	bh=yY1A1SOxY5Ex3GGwSMzC/fP3jBSnTfmBif2bsUCEEVY=;
-	h=Date:To:From:Subject:Message-Id; b=WAIyyaZOQpLFVFpnTI7AWfO6KVroAyWKevcjuQiCBO0fyh5OzHQ8KVELSBpPTVMQ0ky5qfsOoW1gPk3Vjo+2kfw0G0NK+t0iTPX5XF0UsX63upjfPcN++BBzf2bMc6JZy0//mA0lD75o7JfXoUwmiEKrSeUy0M5i9yCA7TXoLeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kxMrU8mP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725421703; c=relaxed/simple;
+	bh=M+7tO7A504SdPovkJhCUhRMVIx8iAucTYvrQ7PF8CgQ=;
+	h=Date:To:From:Subject:Message-Id; b=WONRHTwvNO0dEdLn2MsBQbmkEMnL0rY716kPeo9qBSat/VlYcj4TWv9gxBIrrvXMEBMz3rGLHPMXgWONYtEcij7A0nTZHI+SPlQHq4lVye9iHPnJq0CK4p3Pvw7GKsWhikM+cSQC0v4vlGQ/hXJM3zT9r7QS7dBDeN+oNkGTa/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KhkQ8/7H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kxMrU8mP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4B4AC4CEC2;
-	Wed,  4 Sep 2024 03:48:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KhkQ8/7H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F096CC4CEC2;
+	Wed,  4 Sep 2024 03:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725421701;
-	bh=yY1A1SOxY5Ex3GGwSMzC/fP3jBSnTfmBif2bsUCEEVY=;
+	s=korg; t=1725421703;
+	bh=M+7tO7A504SdPovkJhCUhRMVIx8iAucTYvrQ7PF8CgQ=;
 	h=Date:To:From:Subject:From;
-	b=kxMrU8mPRiVNLj/VtyZRKD9KsiHvNAj+4jgN3L3LfM96xz6Ul1FvlhzLJTMunqZ1M
-	 0cg2pT86zcuP6fPO5aLwpvXZPA3T5kgHVuP6yuU4knvdWifh+QqMFNASL0k9eV/ux4
-	 R1VtYKn0D569NclXNvm41QSSWs4Nmw1YLcoiXbmg=
-Date: Tue, 03 Sep 2024 20:48:21 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=KhkQ8/7HxVos0HahCQeJ2SjlgW3WtzRKqifPyDphhibCh3UT8fqh0yg3csBo/2ePU
+	 J9uWBa0LKrj7miKFhXsq9OfzaUAfAfuZEck2oI0utfDDf3NXns7+wj4ZpXzH4TEy0l
+	 i5Qtyo+SFZ5ddLsxBHXwscKXWtk1QpuaTevz602o=
+Date: Tue, 03 Sep 2024 20:48:22 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,Jonathan.Cameron@huawei.com,david@redhat.com,dan.j.williams@intel.com,bfaccini@nvidia.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] arch_numa-switch-over-to-numa_memblks-fix.patch removed from -mm tree
-Message-Id: <20240904034821.A4B4AC4CEC2@smtp.kernel.org>
+Subject: [folded-merged] arch_numa-switch-over-to-numa_memblks-fix-2.patch removed from -mm tree
+Message-Id: <20240904034822.F096CC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch_numa-switch-over-to-numa_memblks-fix
+     Subject: arch_numa-switch-over-to-numa_memblks-fix-2
 has been removed from the -mm tree.  Its filename was
-     arch_numa-switch-over-to-numa_memblks-fix.patch
+     arch_numa-switch-over-to-numa_memblks-fix-2.patch
 
 This patch was dropped because it was folded into arch_numa-switch-over-to-numa_memblks.patch
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@kernel.org>
-Subject: arch_numa-switch-over-to-numa_memblks-fix
-Date: Wed, 7 Aug 2024 21:18:24 +0300
+Subject: arch_numa-switch-over-to-numa_memblks-fix-2
+Date: Tue, 27 Aug 2024 11:52:55 +0300
 
-fix section mismatch
+PFN_PHYS() translation is unnecessary here, as memblock_start_of_DRAM() +
+SZ_4G is already a memory size.
 
-Link: https://lkml.kernel.org/r/ZrO6cExVz1He_yPn@kernel.org
+Link: https://lkml.kernel.org/r/Zs2T5wkSYO9MGcab@kernel.org
 Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Rob Herring (Arm) <robh@kernel.org>
-Cc: Samuel Holland <samuel.holland@sifive.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Bruno Faccini <bfaccini@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/numa.h |    2 +-
+ drivers/base/arch_numa.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/numa.h~arch_numa-switch-over-to-numa_memblks-fix
-+++ a/include/asm-generic/numa.h
-@@ -33,7 +33,7 @@ static inline const struct cpumask *cpum
- void __init arch_numa_init(void);
- int __init numa_add_memblk(int nodeid, u64 start, u64 end);
- void __init early_map_cpu_to_node(unsigned int cpu, int nid);
--int __init early_cpu_to_node(int cpu);
-+int early_cpu_to_node(int cpu);
- void numa_store_cpu_info(unsigned int cpu);
- void numa_add_cpu(unsigned int cpu);
- void numa_remove_cpu(unsigned int cpu);
+--- a/drivers/base/arch_numa.c~arch_numa-switch-over-to-numa_memblks-fix-2
++++ a/drivers/base/arch_numa.c
+@@ -346,7 +346,7 @@ void __init numa_emu_update_cpu_to_node(
+ 
+ u64 __init numa_emu_dma_end(void)
+ {
+-	return PFN_PHYS(memblock_start_of_DRAM() + SZ_4G);
++	return memblock_start_of_DRAM() + SZ_4G;
+ }
+ 
+ void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
@@ -124,7 +101,6 @@ mm-numa_memblks-make-several-functions-and-variables-static.patch
 mm-numa_memblks-use-memblock_startend_of_dram-when-sanitizing-meminfo.patch
 of-numa-return-einval-when-no-numa-node-id-is-found.patch
 arch_numa-switch-over-to-numa_memblks.patch
-arch_numa-switch-over-to-numa_memblks-fix-2.patch
 mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks.patch
 mm-make-range-to-target_node-lookup-facility-a-part-of-numa_memblks-fix.patch
 docs-move-numa=fake-description-to-kernel-parameterstxt.patch
