@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7452F3D6B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:00:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B78F85A0F5
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:11:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725422449; cv=none; b=ZzaYR5qd8RjTowJrjDCYm1rFcQL3yHsHOwjJRuvhSt14YpjGK142T00f/lWr4VmyQa5UYrJ6SAtQ+aC4EVZFOiWJEp3yJvQUIF8UpgYKjB/Kl0o7gyrrUZRnfpd3lijN25SG+/KuHd05kdQNIhxSPVXJqBEqGXp/O0mfA/oukqc=
+	t=1725423077; cv=none; b=e1m9MH5adBbFcTNFzm5puq8qZ34cPRlgHbhr+qG5ayXemmIqF0YHMVhT1ZK0zIKjO/gDdrKRpYJ17rYBftz07UDZe0vLBoqdaYwFaObykq/vikQPnfMAS0ECxulPXoTwesyKhTLJGhrOuZ8z1kstGTElHLmBVvecP0UgQOaq5iY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725422449; c=relaxed/simple;
-	bh=KGkxq6ZSjUxYcJdGIiwj+bxPt2Vt62T8d8fx9KMxYXY=;
-	h=Date:To:From:Subject:Message-Id; b=WjRiaSmX57HRhhWfmadqG0BatTbeIPygvQ3DsbxNckWWgAwPTDO3HWafEGd46/a3iK3gHG2+kOkN1X0xlPyiQhBwFqGROum2xIizLbSbzLJSJP3xNVyahneoGjYPsDC+KuVshn4A0L8f16kv8D+A/aFKpRm7cPKHa8NG3TtY4iE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jJ9r4ByB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423077; c=relaxed/simple;
+	bh=13Dt+xhOOtUpDt7x/cT4ZN9mZ4B2xHEsYoTZ83tC8OU=;
+	h=Date:To:From:Subject:Message-Id; b=ePhlxpSXmCorKrjnFGLhqQbR8ZczD+aSTHcrUhhZfA8nh3u1dfwviUp5Vesuw/OvtZRk1jF+L5yQjjhvPsdFaldxap0KM2jZXkxlBtVSRkNrScBCKHh+8rhp+enJED0OXZPrNy/ThCR+EpiEcNMxZIraniqDlVoQrF/eL/uvDHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aRB9/qjo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jJ9r4ByB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5A40C4CEC2;
-	Wed,  4 Sep 2024 04:00:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aRB9/qjo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28125C4CEC2;
+	Wed,  4 Sep 2024 04:11:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725422449;
-	bh=KGkxq6ZSjUxYcJdGIiwj+bxPt2Vt62T8d8fx9KMxYXY=;
+	s=korg; t=1725423077;
+	bh=13Dt+xhOOtUpDt7x/cT4ZN9mZ4B2xHEsYoTZ83tC8OU=;
 	h=Date:To:From:Subject:From;
-	b=jJ9r4ByB7i4diUzBh90tMCdS44CK4e1KLWtBsbxi3u1XiB+wMLJhnAFtmf6yGE17v
-	 PYJaHz8E3fYrDPz57sE83JlU66IYS5F+kJqg2J4QU6SvDbA+RfrIL3hmw27hDgdFeX
-	 I0RhZIPt5DfuMdvhIkcvrs83ND8DQkRo5gCegth0=
-Date: Tue, 03 Sep 2024 21:00:48 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,Jonathan.Cameron@huawei.com,horen.chuang@linux.dev,yanfei.xu@intel.com,akpm@linux-foundation.org
+	b=aRB9/qjoo1GD6pXsLuWxykvK6Ah7/VhaRUFHimdbWNyI6hJUjip6c4rFGE32Jj7Xv
+	 UImbSQvuXbBQzM9kSqHFKClwRA9e3dSnfPBxpJG/7mAztutQu07j5aDcu0sgCstmaX
+	 lzTiM0cmFhH2dKeqoySipzI8pBrf8m+ZpFVEZkAo=
+Date: Tue, 03 Sep 2024 21:11:16 -0700
+To: mm-commits@vger.kernel.org,linmiaohe@huawei.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch removed from -mm tree
-Message-Id: <20240904040048.E5A40C4CEC2@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-failure-add-unmap_poisoned_folio-fix.patch removed from -mm tree
+Message-Id: <20240904041117.28125C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory tier: fix deadlock warning while onlining pages
+     Subject: mm-memory-failure-add-unmap_poisoned_folio-fix
 has been removed from the -mm tree.  Its filename was
-     memory-tier-fix-deadlock-warning-while-onlining-pages-v2.patch
+     mm-memory-failure-add-unmap_poisoned_folio-fix.patch
 
-This patch was dropped because it was folded into memory-tier-fix-deadlock-warning-while-onlining-pages.patch
+This patch was dropped because it was folded into mm-memory-failure-add-unmap_poisoned_folio.patch
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@intel.com>
-Subject: memory tier: fix deadlock warning while onlining pages
-Date: Fri, 30 Aug 2024 18:24:47 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failure-add-unmap_poisoned_folio-fix
+Date: Sun Sep  1 04:48:53 PM PDT 2024
 
-Add the mutex_lock/unlock() pair back and exclude the
-hotplug_memory_notifier() from the locked region, per Ying Huang.
+whitespace tweak, per Miaohe Lin
 
-Link: https://lkml.kernel.org/r/20240830102447.1445296-1-yanfei.xu@intel.com
-Fixes: 823430c8e9d9 ("memory tier: consolidate the initialization of memory tiers")
-Signed-off-by: Yanfei Xu <yanfei.xu@intel.com>
-Cc: Ho-Ren (Jack) Chuang <horen.chuang@linux.dev>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Link: https://lkml.kernel.org/r/1f80c7e3-c30d-1ac1-6a36-d1a5f5907f7c@huawei.com
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory-failure.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-tiers.c~memory-tier-fix-deadlock-warning-while-onlining-pages-v2
-+++ a/mm/memory-tiers.c
-@@ -914,12 +914,14 @@ static int __init memory_tier_init(void)
- 	WARN_ON(!node_demotion);
- #endif
- 
-+	mutex_lock(&memory_tier_lock);
- 	/*
- 	 * For now we can have 4 faster memory tiers with smaller adistance
- 	 * than default DRAM tier.
- 	 */
- 	default_dram_type = mt_find_alloc_memory_type(MEMTIER_ADISTANCE_DRAM,
- 						      &default_memory_types);
-+	mutex_unlock(&memory_tier_lock);
- 	if (IS_ERR(default_dram_type))
- 		panic("%s() failed to allocate default DRAM tier\n", __func__);
- 
+--- a/mm/memory-failure.c~mm-memory-failure-add-unmap_poisoned_folio-fix
++++ a/mm/memory-failure.c
+@@ -1558,6 +1558,7 @@ void unmap_poisoned_folio(struct folio *
+ {
+ 	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+ 		struct address_space *mapping;
++
+ 		/*
+ 		 * For hugetlb folios in shared mappings, try_to_unmap
+ 		 * could potentially call huge_pmd_unshare.  Because of
 _
 
-Patches currently in -mm which might be from yanfei.xu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-tier-fix-deadlock-warning-while-onlining-pages.patch
+mm-memory-failure-add-unmap_poisoned_folio.patch
+mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
 
