@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD25D5FBBA
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6754C38F91
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:17:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423428; cv=none; b=anKzYEE5HYDxd4noFX2vSJe5NZzw9TD+H5bFuGse4ftbMRkAFe/nbzYlXYwJlNC0nRJL1WjrIb3fp/6VFcrBxVxphGqK4FyUpEwQbnB6f10O0U6ibfmlYdpboYrgJiJnzLDEQshF1cWQcp6Sbub9JhcanrfK7znEUYbe4knYRkY=
+	t=1725423430; cv=none; b=Yl2Sm8r0q7c7JR5yTRt/Q8ViuO43fLRdq3vLDTS+G0Jv/gerstJua1I9sFuaaJzxfyoWxKZjqGT7pZOjlhGUZ9nJbrYoc1WUe6C/6Qqff/hdcS8HiH+ECOQ18V0MYTT+nfbz9KvVUCuIbysTlVmt02SCyR4cUJO0XMbo1HPQhjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423428; c=relaxed/simple;
-	bh=vPdfus5SLnmCB3XSFsO5Q+LvOFuUwlctC0EvFc6isA4=;
-	h=Date:To:From:Subject:Message-Id; b=eM3PnpZY8zlpBcIWmASCkmdWUVB2EqzpLPqomTaa/BOFu7lLQHa90e4COYKXpIT0XdrgierOUHE0Amn4SidqeI3hSgLa3XKa+g37vdqXrXuALGbo/lQ1DzkSbLkQp8JyCAmUjxW65Xj/baHrbnD9pSRVLiHOZ/gCTQtsRbP6geg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0u3P73EU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725423430; c=relaxed/simple;
+	bh=0unXby4I7YlDR82IhnuSYWfuZYyfl6mBjZ34EugK+dk=;
+	h=Date:To:From:Subject:Message-Id; b=mOFbkASj9eyP0q9F1gfxsw+svesWXrWUcQ/qmkxQBBkIDmhqCEolPvQBS+vdQ0/1/gWJYR6NgQrnIxrcyT5N1il/rWEYE08cQbm0xQ68yCmMNt8fb+D1vvSDYg8r//3QmzKsUAz1TAzB8qPH4cXFHp9JABUZ0MLz/BrkWjsQv1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qa3lCxu8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0u3P73EU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A44FC4CEC2;
-	Wed,  4 Sep 2024 04:17:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qa3lCxu8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C57D2C4CEC2;
+	Wed,  4 Sep 2024 04:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423428;
-	bh=vPdfus5SLnmCB3XSFsO5Q+LvOFuUwlctC0EvFc6isA4=;
+	s=korg; t=1725423429;
+	bh=0unXby4I7YlDR82IhnuSYWfuZYyfl6mBjZ34EugK+dk=;
 	h=Date:To:From:Subject:From;
-	b=0u3P73EUgwwVikw/3LThFXb75yzAFlaNDRAe8OZ3XNAB1W+/xAb6gDPCwbNFV2hE0
-	 NY2t445/1RZSaecMAdyv6fSCWjuRGm0FVqzhpa9zX8iEcZUC7VO/cdMO9z8OgISaUb
-	 OIdHo/36aLGx2s4AfgJn44ZsXGET49SHnDrlG9co=
-Date: Tue, 03 Sep 2024 21:17:07 -0700
+	b=qa3lCxu8tMVfVd/5HbUpFeAOCJUsrJfQk6rFM30LN47Tk6hjtrg4L4yOYVRKPRsdg
+	 zF0DOb8+kGbDQ5bEhu7p7xRNVscmh8/inGOKzURmW3mqKhVmjVa89x1xIaiQ1xv4j2
+	 MbOXCHDFZlmGAZMGmmXfSBD/4tA6EIyAswxBvFu0=
+Date: Tue, 03 Sep 2024 21:17:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,samuel.holland@sifive.com,robh@kernel.org,rafael@kernel.org,palmer@dabbelt.com,mpe@ellerman.id.au,mingo@redhat.com,Jonathan.Cameron@huawei.com,jiaxun.yang@flygoat.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,david@redhat.com,dave@stgolabs.net,davem@davemloft.net,dave.hansen@linux.intel.com,dan.j.williams@intel.com,corbet@lwn.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,arnd@arndb.de,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-numa-simplify-numa_distance-allocation.patch removed from -mm tree
-Message-Id: <20240904041708.2A44FC4CEC2@smtp.kernel.org>
+Subject: [merged mm-stable] x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch removed from -mm tree
+Message-Id: <20240904041709.C57D2C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/numa: simplify numa_distance allocation
+     Subject: x86/numa: use get_pfn_range_for_nid to verify that node spans memory
 has been removed from the -mm tree.  Its filename was
-     x86-numa-simplify-numa_distance-allocation.patch
+     x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/numa: simplify numa_distance allocation
-Date: Wed, 7 Aug 2024 09:40:54 +0300
+Subject: x86/numa: use get_pfn_range_for_nid to verify that node spans memory
+Date: Wed, 7 Aug 2024 09:40:55 +0300
 
-Allocation of numa_distance uses memblock_phys_alloc_range() to limit
-allocation to be below the last mapped page.
+Instead of looping over numa_meminfo array to detect node's start and
+end addresses use get_pfn_range_for_init().
 
-But NUMA initializaition runs after the direct map is populated and there
-is also code in setup_arch() that adjusts memblock limit to reflect how
-much memory is already mapped in the direct map.
+This is shorter and make it easier to lift numa_memblks to generic code.
 
-Simplify the allocation of numa_distance and use plain memblock_alloc().
-
-Link: https://lkml.kernel.org/r/20240807064110.1003856-11-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20240807064110.1003856-12-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
@@ -91,38 +87,36 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/x86/mm/numa.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/arch/x86/mm/numa.c~x86-numa-simplify-numa_distance-allocation
+--- a/arch/x86/mm/numa.c~x86-numa-use-get_pfn_range_for_nid-to-verify-that-node-spans-memory
 +++ a/arch/x86/mm/numa.c
-@@ -331,7 +331,6 @@ static int __init numa_alloc_distance(vo
- 	nodemask_t nodes_parsed;
- 	size_t size;
- 	int i, j, cnt = 0;
--	u64 phys;
+@@ -521,17 +521,14 @@ static int __init numa_register_memblks(
  
- 	/* size the new table and allocate it */
- 	nodes_parsed = numa_nodes_parsed;
-@@ -342,16 +341,14 @@ static int __init numa_alloc_distance(vo
- 	cnt++;
- 	size = cnt * cnt * sizeof(numa_distance[0]);
+ 	/* Finally register nodes. */
+ 	for_each_node_mask(nid, node_possible_map) {
+-		u64 start = PFN_PHYS(max_pfn);
+-		u64 end = 0;
++		unsigned long start_pfn, end_pfn;
  
--	phys = memblock_phys_alloc_range(size, PAGE_SIZE, 0,
--					 PFN_PHYS(max_pfn_mapped));
--	if (!phys) {
-+	numa_distance = memblock_alloc(size, PAGE_SIZE);
-+	if (!numa_distance) {
- 		pr_warn("Warning: can't allocate distance table!\n");
- 		/* don't retry until explicitly reset */
- 		numa_distance = (void *)1LU;
- 		return -ENOMEM;
- 	}
+-		for (i = 0; i < mi->nr_blks; i++) {
+-			if (nid != mi->blk[i].nid)
+-				continue;
+-			start = min(mi->blk[i].start, start);
+-			end = max(mi->blk[i].end, end);
+-		}
+-
+-		if (start >= end)
++		/*
++		 * Note, get_pfn_range_for_nid() depends on
++		 * memblock_set_node() having already happened
++		 */
++		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
++		if (start_pfn >= end_pfn)
+ 			continue;
  
--	numa_distance = __va(phys);
- 	numa_distance_cnt = cnt;
- 
- 	/* fill with the default distances */
+ 		alloc_node_data(nid);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
