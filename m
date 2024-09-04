@@ -1,169 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BD480638
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 04:20:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B511CCEE3
+	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 09:59:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725423615; cv=none; b=tJ3yp4J7Ka7PLdv134/sUkJOlJY/70QdNwU+Pal2muiPUsLw5fUGuF1+qUFW9j5dxGu/cQMHPMu6vivOiKCRHStdk8FNiblJGKa0eyF58qVcPs+CqRdtQtOna5owtrucYXQTQKwd8eWUVuESk79VjxcYYiHdrtxg6gfVQZ61wDI=
+	t=1725443962; cv=none; b=oiK4Uux3146mi9BEMO5magxumZ8naTep+ci9+FClJ0lRP39TzK+xWR37rUdTy18za+xQ0g5TcxwYTKx5IpojRszxl8GnJZJWoACjt0+JuKHMZKchHjc64kNhiIGpyiiu7NPlCXZellY8IN4WiBmIKimpMWMi3p848KQz1BDa5uI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725423615; c=relaxed/simple;
-	bh=AoaAZCzPqm2xdMh3XlXEoj1G2hfGU3FIjrOxcLHBZko=;
-	h=Date:To:From:Subject:Message-Id; b=WvsaX4x0hfHPA7y61gHBqArIOscxT+V7ZBV9Opw0xfW/Ovk8ZfJUbwVQTc7seLA3iXki+/sm8lSfJ3cJA6TXtdSYfaRfBzGGfZ3oIcx3jHpwz5ch4nhx0UvracS0DPR/wqejWSWBFcvD8qkV4K77aj6Q+iqgMf2WddL5OeERQt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tIvUKji/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725443962; c=relaxed/simple;
+	bh=l00P4U04a/qfEK+1kbEu9oW6uMf3ehpKzsIBLWTCdoA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KIkxGDImuWoE9GJpUUHdL0I6p8JjACda0CSGk4eN6cvB7r0vYI7zeoV+fpKLQkDFtBovXAEHyOeJOj8tUWFXcgD4wneerJU/hnheSaKI6c+ooF3RKTbtuD+y0n05oVEoqv2CRCRm/F/yH7FWSuWY+4xM/F3RlgLGoBnkWjCF1KE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SKiOtHQp; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tIvUKji/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69F93C4CEC2;
-	Wed,  4 Sep 2024 04:20:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725423615;
-	bh=AoaAZCzPqm2xdMh3XlXEoj1G2hfGU3FIjrOxcLHBZko=;
-	h=Date:To:From:Subject:From;
-	b=tIvUKji/ae877GYX296D2ALRhEvJos0zRyR17u/kYPmNAChdQg7oVTtkAjNBT+Xsz
-	 eClKCLd16+dv7/q/PXPGTk2pb40GLXPx0WsmJV+YrdWW1xytUAFBNkuMGrk5P7jeVb
-	 AKjZbUybT/sqR63EyIlLKZRGpamo4TtdCOUhek3U=
-Date: Tue, 03 Sep 2024 21:20:14 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,Jonathan.Cameron@huawei.com,david@redhat.com,dan.carpenter@linaro.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch removed from -mm tree
-Message-Id: <20240904042015.69F93C4CEC2@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SKiOtHQp"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-7174a3baf92so318703b3a.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Sep 2024 02:59:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725443960; x=1726048760; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2Uukx7lUVPuVqzEiSwY9mpZMO4ysB73zzns2z1j6Hjg=;
+        b=SKiOtHQpl6UI7fYN1pzjdx9scmqn26k86SrDttWlq4yDy9nZhsJZT5kngqtU11qYJa
+         nztV4bR9LnD0epRzIKH1Vj4ReKbZKGcW4oQzzse4WLY+xRxSOZokcAqMAjY4JvTJVC8F
+         fwtJ1WFdq4QK0dUHqzt9eKonG4FdRWOU42rKhxONVnEasNNfVtvOwyZSdsfWCI+XJFVC
+         5IDMGnXXakLS1Kw+p8kBqxL8HNNkgOxYoSo0v8mPUj5g+YKf3Zpm85tYD5dWiDK0OGAm
+         wCZiiMzt4JWUErjdhPTRECr45s9oUM74ukh5LWDnynjRGdo7+SgQ5+EWQR0OMX3aDc0O
+         4pcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725443960; x=1726048760;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=2Uukx7lUVPuVqzEiSwY9mpZMO4ysB73zzns2z1j6Hjg=;
+        b=w+lUlVoGeRRastMFCLb8+rz3QkYAAmkQ5YxaHvki8UIWwVR6V7n0++kG0WyKg1Cw0Z
+         zwBAWrrMPyTu4drcYxvfbpVkq/w6VyvWld1T9Q/nkE/bMNa1UXRjMh316IMUxOvJs/u/
+         EzimHG7gjGxBDdJlARPd7g0CsP6jMLTwPdvTlHZN+FeJKd9k5rZFmebiYQf9AEBZmk57
+         sTLxwdHuwF/yP5WytySWmEYX0Uvb49co4LSvGfHI2KLNhDXwDQxUp5jsYP7/xrHfYtWB
+         ErBHPAmyFITXV0k3hRtjfIPC2SYVVE/hxTb6hUU0fgFLXTnwWrP//ufCmVaYZEckPtdl
+         dhZg==
+X-Gm-Message-State: AOJu0Yw6RIdWHRB92xPJu2DeQl0v5A0YKsOsmjVgw3moniOMCbIPrM3g
+	kgFlXDV2c7Cr8PE71HKnuqE+ruzSt6dt9PrF2CteyUoAwPb8DByR0eovqWCtodyP9UMbk9BblzJ
+	GsPQA6AlLnCtLBTagPqbMDBuAeyo=
+X-Google-Smtp-Source: AGHT+IEFua6UNIfZQji2p32drBwSb/C3sFUEftMhcQpj6mws2riTESDOKf0gto/jghDIJV1eT3YePQ4/HUo2AipsZp8=
+X-Received: by 2002:a05:6a00:1950:b0:714:1bcf:adbe with SMTP id
+ d2e1a72fcca58-717304591e4mr9789330b3a.0.1725443960169; Wed, 04 Sep 2024
+ 02:59:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240904041800.486C6C4CEC2@smtp.kernel.org>
+In-Reply-To: <20240904041800.486C6C4CEC2@smtp.kernel.org>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Wed, 4 Sep 2024 11:59:06 +0200
+Message-ID: <CANiq72k=mzebBFfAW2iJ-cWYTVYBDoR5XzYWZ+Crn-tq2YfnLQ@mail.gmail.com>
+Subject: Re: [merged mm-stable] kasan-simplify-and-clarify-makefile.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, ojeda@kernel.org, 
+	mmaurer@google.com, glider@google.com, elver@google.com, dvyukov@google.com, 
+	andreyknvl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi Andrew,
 
-The quilt patch titled
-     Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
-has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation.patch
+On Wed, Sep 4, 2024 at 6:18=E2=80=AFAM Andrew Morton <akpm@linux-foundation=
+.org> wrote:
+>
+> The quilt patch titled
+>      Subject: kasan: simplify and clarify Makefile
+> has been removed from the -mm tree.  Its filename was
+>      kasan-simplify-and-clarify-makefile.patch
+>
+> This patch was dropped because it was merged into the mm-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I think we were taking this one through the Rust tree so that we could
+merge the Rust KASAN support through there (and handle the other
+interdependencies we have this cycle), right?
 
-------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory_hotplug: unify Huge/LRU/non-LRU movable folio isolation
-Date: Tue, 27 Aug 2024 19:47:28 +0800
+I will apply those very soon (in case you moved it into mm-stable
+because you didn't see it in linux-next).
 
-Use the isolate_folio_to_list() to unify hugetlb/LRU/non-LRU folio
-isolation, which cleanup code a bit and save a few calls to
-compound_head().
+Thanks!
 
-[wangkefeng.wang@huawei.com: various fixes]
-  Link: https://lkml.kernel.org/r/20240829150500.2599549-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240827114728.3212578-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memory_hotplug.c |   43 ++++++++++++++----------------------------
- 1 file changed, 15 insertions(+), 28 deletions(-)
-
---- a/mm/memory_hotplug.c~mm-memory_hotplug-unify-huge-lru-non-lru-movable-folio-isolation
-+++ a/mm/memory_hotplug.c
-@@ -1772,15 +1772,14 @@ found:
- 
- static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
- {
-+	struct folio *folio;
- 	unsigned long pfn;
--	struct page *page;
- 	LIST_HEAD(source);
- 	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
--		struct folio *folio;
--		bool isolated;
-+		struct page *page;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -1811,34 +1810,21 @@ static void do_migrate_range(unsigned lo
- 			continue;
- 		}
- 
--		if (folio_test_hugetlb(folio)) {
--			isolate_hugetlb(folio, &source);
-+		if (!folio_try_get(folio))
- 			continue;
--		}
- 
--		if (!get_page_unless_zero(page))
--			continue;
--		/*
--		 * We can skip free pages. And we can deal with pages on
--		 * LRU and non-lru movable pages.
--		 */
--		if (PageLRU(page))
--			isolated = isolate_lru_page(page);
--		else
--			isolated = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
--		if (isolated) {
--			list_add_tail(&page->lru, &source);
--			if (!__PageMovable(page))
--				inc_node_page_state(page, NR_ISOLATED_ANON +
--						    page_is_file_lru(page));
-+		if (unlikely(page_folio(page) != folio))
-+			goto put_folio;
- 
--		} else {
-+		if (!isolate_folio_to_list(folio, &source)) {
- 			if (__ratelimit(&migrate_rs)) {
--				pr_warn("failed to isolate pfn %lx\n", pfn);
-+				pr_warn("failed to isolate pfn %lx\n",
-+					page_to_pfn(page));
- 				dump_page(page, "isolation failed");
- 			}
- 		}
--		put_page(page);
-+put_folio:
-+		folio_put(folio);
- 	}
- 	if (!list_empty(&source)) {
- 		nodemask_t nmask = node_states[N_MEMORY];
-@@ -1853,7 +1839,7 @@ static void do_migrate_range(unsigned lo
- 		 * We have checked that migration range is on a single zone so
- 		 * we can use the nid of the first page to all the others.
- 		 */
--		mtc.nid = page_to_nid(list_first_entry(&source, struct page, lru));
-+		mtc.nid = folio_nid(list_first_entry(&source, struct folio, lru));
- 
- 		/*
- 		 * try to allocate from a different node but reuse this node
-@@ -1866,11 +1852,12 @@ static void do_migrate_range(unsigned lo
- 		ret = migrate_pages(&source, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG, NULL);
- 		if (ret) {
--			list_for_each_entry(page, &source, lru) {
-+			list_for_each_entry(folio, &source, lru) {
- 				if (__ratelimit(&migrate_rs)) {
- 					pr_warn("migrating pfn %lx failed ret:%d\n",
--						page_to_pfn(page), ret);
--					dump_page(page, "migration failure");
-+						folio_pfn(folio), ret);
-+					dump_page(&folio->page,
-+						  "migration failure");
- 				}
- 			}
- 			putback_movable_pages(&source);
-_
-
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
-
-mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
-mm-migrate_device-use-a-folio-in-migrate_device_range.patch
-mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
-mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
-mm-remove-isolate_lru_page.patch
-mm-remove-isolate_lru_page-fix.patch
-mm-remove-putback_lru_page.patch
-
+Cheers,
+Miguel
