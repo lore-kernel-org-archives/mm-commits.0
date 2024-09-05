@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C80BD19414A
-	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:40:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A65919409A
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:42:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725572404; cv=none; b=skD3hCpF4k/A7eg6l2hN/Pj/dq9hR9nIh8SbF8O5XBgtT4Q1sYCtg/Dalo88tzF7GuHg5FkBkXpVogmSIWxGAOKaezB7tpI7tzL8Vo2UaFZjIlsgFsqE2jeDXBTX212Sk6FB6ILM2igULSTwkcseSxmSu/RRicgiPa3SC0ublSM=
+	t=1725572536; cv=none; b=iHImV61cSh5z1xa0IBF3plGZNlW+tnklTObSEoMolKtwgcGv397Og6Or4xwGh3VJCADzlXA4GCbPFoSz6kRH2tARXkN1aSC5uYQWHXP8soSjy2JALavbulak5zgaDRreXrNc3Be6LUMTjEHT8tIMDPe2jEvOX97CQJwhMo4ot5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725572404; c=relaxed/simple;
-	bh=xN6cyImPg5pVR8XgqIsnWnl6uUPRB+NJpGd0qAZfXgc=;
-	h=Date:To:From:Subject:Message-Id; b=NXvEp9jVDSX/j5twHxfUVbj5WUVZQNEwTqT89Xi4lXzRoXt5y7bx+DwrbQTDtVFXKguZVSAGpKxq3ydivyybNN5m2axOj8JVywi9ckmL2RY7lOCv1LixsRKRKhP2zQvbOwVmYnqpyvzx2EjSwlNaS8pBAY1ntuk1f7jfnr5PjQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KrXtyhwa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725572536; c=relaxed/simple;
+	bh=j6gFdH7+eBpfQZ3eltgpPvtjcUSzKmHENwztqTEz1pk=;
+	h=Date:To:From:Subject:Message-Id; b=U7oQ+8R6bnMqYqgLfLVInYelEOF75sZ6xcKA4Y66XMYtl9/8yIzKO88huhkqaQky2hyBoffAzW1UBPxYQtERmjQCGLCAlGC62y2Pd/VyhxjnXqQ91YxwpS0k6bGJKfxgpjx7PU8ER8UZC/fiEUl2GAbyp7HIGNJQKHGr77h6GOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ViyLcVd6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KrXtyhwa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44AB7C4CEC3;
-	Thu,  5 Sep 2024 21:40:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ViyLcVd6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2703BC4CEC3;
+	Thu,  5 Sep 2024 21:42:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725572404;
-	bh=xN6cyImPg5pVR8XgqIsnWnl6uUPRB+NJpGd0qAZfXgc=;
+	s=korg; t=1725572536;
+	bh=j6gFdH7+eBpfQZ3eltgpPvtjcUSzKmHENwztqTEz1pk=;
 	h=Date:To:From:Subject:From;
-	b=KrXtyhwaeyWn2eGXG6s8jyw6QoCcIZ/E6vET6Ob9Lv2v7qS6g/X1YADjW3QPXCsHn
-	 TZIHzToPwYoPgx6vVBVTQINTHkpXwzutd0Q5qmBL5ek9lnyfBSsV8qg9njFO6kfOQq
-	 meJFckJFNuW46CdCN++6wDCKGpsPiKhwVDQDrAtc=
-Date: Thu, 05 Sep 2024 14:40:03 -0700
-To: mm-commits@vger.kernel.org,zhais@google.com,willy@infradead.org,usamaarif642@gmail.com,szhai2@cs.rochester.edu,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,npache@redhat.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,alexlzhu@fb.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=ViyLcVd6EqmAsZ/+Df9ovPDcmAjcCy6KXNj+3lv3ytnGcAoRaugFyflEJ5OHXz1Dg
+	 00bDFSR4/7hYJWNg79RPb/FDIpYpr92ZE6jtnaOAV/LpOQD/AZ5405WA7zaRh6tg1h
+	 nc9dJWj+5xoqwEdmWnWieGppgbmfXXenqqZD7Kes=
+Date: Thu, 05 Sep 2024 14:42:15 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,hughd@google.com,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch removed from -mm tree
-Message-Id: <20240905214004.44AB7C4CEC3@smtp.kernel.org>
+Subject: + mm-vmscanc-fix-oom-on-swap-stress-test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240905214216.2703BC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,169 +34,73 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: free zapped tail pages when splitting isolated thp
-has been removed from the -mm tree.  Its filename was
-     mm-free-zapped-tail-pages-when-splitting-isolated-thp.patch
+The patch titled
+     Subject: mm: vmscan.c: fix OOM on swap stress test
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmscanc-fix-oom-on-swap-stress-test.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscanc-fix-oom-on-swap-stress-test.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: free zapped tail pages when splitting isolated thp
-Date: Fri, 30 Aug 2024 11:03:35 +0100
+From: Chris Li <chrisl@kernel.org>
+Subject: mm: vmscan.c: fix OOM on swap stress test
+Date: Thu, 05 Sep 2024 01:08:17 -0700
 
-Patch series "mm: split underused THPs", v5.
+I found a regression on mm-unstable during my swap stress test, using
+tmpfs to compile linux.  The test OOM very soon after the make spawns many
+cc processes.
 
-The current upstream default policy for THP is always.  However, Meta uses
-madvise in production as the current THP=always policy vastly
-overprovisions THPs in sparsely accessed memory areas, resulting in
-excessive memory pressure and premature OOM killing.  Using madvise +
-relying on khugepaged has certain drawbacks over THP=always.  Using
-madvise hints mean THPs aren't "transparent" and require userspace
-changes.  Waiting for khugepaged to scan memory and collapse pages into
-THP can be slow and unpredictable in terms of performance (i.e.  you dont
-know when the collapse will happen), while production environments require
-predictable performance.  If there is enough memory available, its better
-for both performance and predictability to have a THP from fault time,
-i.e.  THP=always rather than wait for khugepaged to collapse it, and deal
-with sparsely populated THPs when the system is running out of memory.
+It bisects down to this change: 33dfe9204f29b415bbc0abb1a50642d1ba94f5e9
+(mm/gup: clear the LRU flag of a page before adding to LRU batch)
 
-This patch series is an attempt to mitigate the issue of running out of
-memory when THP is always enabled.  During runtime whenever a THP is being
-faulted in or collapsed by khugepaged, the THP is added to a list. 
-Whenever memory reclaim happens, the kernel runs the deferred_split
-shrinker which goes through the list and checks if the THP was underused,
-i.e.  how many of the base 4K pages of the entire THP were zero-filled. 
-If this number goes above a certain threshold, the shrinker will attempt
-to split that THP.  Then at remap time, the pages that were zero-filled
-are mapped to the shared zeropage, hence saving memory.  This method
-avoids the downside of wasting memory in areas where THP is sparsely
-filled when THP is always enabled, while still providing the upside THPs
-like reduced TLB misses without having to use madvise.
+Yu Zhao propose the fix: "I think this is one of the potential side
+effects -- Huge mentioned earlier about isolate_lru_folios():"
 
-Meta production workloads that were CPU bound (>99% CPU utilzation) were
-tested with THP shrinker.  The results after 2 hours are as follows:
+I test that with it the swap stress test no longer OOM.
 
-                            | THP=madvise |  THP=always   | THP=always
-                            |             |               | + shrinker series
-                            |             |               | + max_ptes_none=409
------------------------------------------------------------------------------
-Performance improvement     |      -      |    +1.8%      |     +1.7%
-(over THP=madvise)          |             |               |
------------------------------------------------------------------------------
-Memory usage                |    54.6G    | 58.8G (+7.7%) |   55.9G (+2.4%)
------------------------------------------------------------------------------
-max_ptes_none=409 means that any THP that has more than 409 out of 512
-(80%) zero filled filled pages will be split.
-
-To test out the patches, the below commands without the shrinker will
-invoke OOM killer immediately and kill stress, but will not fail with the
-shrinker:
-
-echo 450 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none
-mkdir /sys/fs/cgroup/test
-echo $$ > /sys/fs/cgroup/test/cgroup.procs
-echo 20M > /sys/fs/cgroup/test/memory.max
-echo 0 > /sys/fs/cgroup/test/memory.swap.max
-# allocate twice memory.max for each stress worker and touch 40/512 of
-# each THP, i.e. vm-stride 50K.
-# With the shrinker, max_ptes_none of 470 and below won't invoke OOM
-# killer.
-# Without the shrinker, OOM killer is invoked immediately irrespective
-# of max_ptes_none value and kills stress.
-stress --vm 1 --vm-bytes 40M --vm-stride 50K
-
-
-This patch (of 6):
-
-If a tail page has only two references left, one inherited from the
-isolation of its head and the other from lru_add_page_tail() which we are
-about to drop, it means this tail page was concurrently zapped.  Then we
-can safely free it and save page reclaim or migration the trouble of
-trying it.
-
-Link: https://lkml.kernel.org/r/20240830100438.3623486-1-usamaarif642@gmail.com
-Link: https://lkml.kernel.org/r/20240830100438.3623486-2-usamaarif642@gmail.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Tested-by: Shuang Zhai <zhais@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Alexander Zhu <alexlzhu@fb.com>
-Cc: Shuang Zhai <szhai2@cs.rochester.edu>
+Link: https://lore.kernel.org/r/CAOUHufYi9h0kz5uW3LHHS3ZrVwEq-kKp8S6N-MZUmErNAXoXmw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20240905-lru-flag-v2-1-8a2d9046c594@kernel.org
+Fixes: 33dfe9204f29 ("mm/gup: clear the LRU flag of a page before adding to LRU batch")
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
+Closes: https://lore.kernel.org/all/CAF8kJuNP5iTj2p07QgHSGOJsiUfYpJ2f4R1Q5-3BN9JiD9W_KA@mail.gmail.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-free-zapped-tail-pages-when-splitting-isolated-thp
-+++ a/mm/huge_memory.c
-@@ -3170,7 +3170,9 @@ static void __split_huge_page(struct pag
- 	unsigned int new_nr = 1 << new_order;
- 	int order = folio_order(folio);
- 	unsigned int nr = 1 << order;
-+	struct folio_batch free_folios;
- 
-+	folio_batch_init(&free_folios);
- 	/* complete memcg works before add pages to LRU */
- 	split_page_memcg(head, order, new_order);
- 
-@@ -3254,6 +3256,27 @@ static void __split_huge_page(struct pag
- 		if (subpage == page)
- 			continue;
- 		folio_unlock(new_folio);
-+		/*
-+		 * If a folio has only two references left, one inherited
-+		 * from the isolation of its head and the other from
-+		 * lru_add_page_tail() which we are about to drop, it means this
-+		 * folio was concurrently zapped. Then we can safely free it
-+		 * and save page reclaim or migration the trouble of trying it.
-+		 */
-+		if (list && folio_ref_freeze(new_folio, 2)) {
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_lru(new_folio), new_folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_large(new_folio), new_folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_mapped(new_folio), new_folio);
-+
-+			folio_clear_active(new_folio);
-+			folio_clear_unevictable(new_folio);
-+			list_del(&new_folio->lru);
-+			if (!folio_batch_add(&free_folios, new_folio)) {
-+				mem_cgroup_uncharge_folios(&free_folios);
-+				free_unref_folios(&free_folios);
-+			}
-+			continue;
-+		}
- 
- 		/*
- 		 * Subpages may be freed if there wasn't any mapping
-@@ -3264,6 +3287,11 @@ static void __split_huge_page(struct pag
- 		 */
- 		free_page_and_swap_cache(subpage);
+--- a/mm/vmscan.c~mm-vmscanc-fix-oom-on-swap-stress-test
++++ a/mm/vmscan.c
+@@ -4300,7 +4300,7 @@ static bool sort_folio(struct lruvec *lr
  	}
-+
-+	if (free_folios.nr) {
-+		mem_cgroup_uncharge_folios(&free_folios);
-+		free_unref_folios(&free_folios);
-+	}
- }
  
- /* Racy check whether the huge page can be split */
+ 	/* ineligible */
+-	if (zone > sc->reclaim_idx) {
++	if (!folio_test_lru(folio) || zone > sc->reclaim_idx) {
+ 		gen = folio_inc_gen(lruvec, folio, false);
+ 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 		return true;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
+mm-vmscanc-fix-oom-on-swap-stress-test.patch
 
