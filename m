@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB3B15687C
-	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:30:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47FD15687C
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:30:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725571814; cv=none; b=Nk55yqaFk9fpflu+qhg+5YzMkxoYTBjL3hQZygSojDANjmT50pTmEpl34/JX+hEFR9bZmWmvEAtAz5f/K1XMu3uWdpUc5A4Tgw3QFOoBBfTM2A2rTAs/20QfuTna2GCtmPmddbqrm5bLGt6afPOXouI+RcDEYurlbnUD8Xrwi+s=
+	t=1725571844; cv=none; b=O5YaRQ8tmazb7OkC/xfhJIQTShqhgsIsXz1ZQFryjwkN7jSq0SZW2HivIc6UrtHPutfdNa1OxkMIBfJkWuQl86xRm4aTKcVB7NBnhSATSmoHF7VUvTROzN/oiK9JGm9Yl3SreYq+j9DKiYLdkrMFHyVU0xm79QCgWGKm9x51Yow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725571814; c=relaxed/simple;
-	bh=f8srotTYggUd1JFfLwwkBA03hELCwJZOsAzBLGLN/8g=;
-	h=Date:To:From:Subject:Message-Id; b=ZLtau2UVK0wh7EdELKuHcX+Wqv9PNR7yWmI2SCsXWJIvHohvkA+IriFZ2jXpD/nqd5v9PwwUI0wG0w3BALsq5NxNFNQQ8NB4jhwgZspRwm+Ng7xXZkfvKrHBAYbcNUFulIUapareHKAIMQJlhrjnvsmgnxtPIPQ0STOdff+ol4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GEQHPo4s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725571844; c=relaxed/simple;
+	bh=kR2pfvHbjvg/2NyZtzSKZbjfkMnAYCTw/tTyLjEE2Ow=;
+	h=Date:To:From:Subject:Message-Id; b=fL81U+jMyiNLiHPQACzyUUKDbtsTxdQboUO8lTv7VizJYSedFkKAHY+4VefxxvBrSC4LXLSPqllFlYiiTjEr5L5pwc7c081TpYqlb9LeOMBGyB2JEUYWVFPeF3Vstmbnvd53VfZTJ2N7W1ZpBFytZ6o3Asb5RXTKVWr0Cxd2AS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aYbbxsn6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GEQHPo4s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B02C4CEC3;
-	Thu,  5 Sep 2024 21:30:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aYbbxsn6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D4FEC4CEC3;
+	Thu,  5 Sep 2024 21:30:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725571813;
-	bh=f8srotTYggUd1JFfLwwkBA03hELCwJZOsAzBLGLN/8g=;
+	s=korg; t=1725571844;
+	bh=kR2pfvHbjvg/2NyZtzSKZbjfkMnAYCTw/tTyLjEE2Ow=;
 	h=Date:To:From:Subject:From;
-	b=GEQHPo4skRG9EwB29OQzoT2F6t3vK5GHrIw8cRLx0K6TeTrmgTXgbm3nTL2ds4LaA
-	 GN98j4FPzDeI1q8eEvTnr+Tl4uqJoH575030tE8SaIwSYqZnwTooj6F9esdrpgvjag
-	 T+D2bc7zn5PoUn7r8ErtyJZzW2UWNb372KfOq3O0=
-Date: Thu, 05 Sep 2024 14:30:13 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,akpm@linux-foundation.org
+	b=aYbbxsn61CTs+n2iT8004QQDqQbpriqhS+k2t5WdjRQeHH7ZpHtYuReAmdhHFogUW
+	 0kp1Sgd1g3GQc2X2qQbICeOJuI2XDtKicRoBAH7sUVMAejPiKnnQoIixmb6J7tY7oz
+	 d1zYxk+cwPgisNeB5xtAiTHsi2QarPTrs8QOGha4=
+Date: Thu, 05 Sep 2024 14:30:43 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-simplify-split_huge_pages_pid.patch added to mm-unstable branch
-Message-Id: <20240905213013.C4B02C4CEC3@smtp.kernel.org>
+Subject: + mm-migrate-remove-unused-includes.patch added to mm-unstable branch
+Message-Id: <20240905213044.3D4FEC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: thp: simplify split_huge_pages_pid()
+     Subject: mm: migrate: remove unused includes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-simplify-split_huge_pages_pid.patch
+     mm-migrate-remove-unused-includes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-simplify-split_huge_pages_pid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-unused-includes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: mm: thp: simplify split_huge_pages_pid()
-Date: Thu, 5 Sep 2024 23:30:28 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: migrate: remove unused includes
+Date: Thu, 5 Sep 2024 23:24:32 +0800
 
-The helper find_get_task_by_vpid() can totally replace the task_struct
-find logic in split_huge_pages_pid(), so use it to simplify the code. 
-Also delete the needless comments for the helper function name already
-explains what it's doing here.
+random.h is not needed since commit 6c542ab75714 ("mm/demotion: build
+demotion targets based on explicit memory tiers"), all functions moved
+into memory-tiers.
 
-Link: https://lkml.kernel.org/r/20240905153028.1205128-1-sunnanyong@huawei.com
-Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+nsproxy.h is not needed since commit 228ebcbe634a ("Uninline
+find_task_by_xxx set of functions"), no nsproxy, we only call
+find_task_by_vpid() now.
+
+hugetlb_cgroup.h is not needed since commit ab5ac90aecf5 ("mm, hugetlb: do
+not rely on overcommit limit during migration"), move_hugetlb_state() is
+called and it belongs to hugetlb.h, which is already included.
+
+balloon_compaction.h, we have more general movable_operations for non-lru
+movable page migration, so it could be dropped.
+
+memremap.h, userfaultfd_k.h and oom.h are introduced for zone device page
+migration, but all functions are moved into migrate_device.c, so no needed
+anymore too.
+
+Link: https://lkml.kernel.org/r/20240905152432.626877-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/migrate.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-simplify-split_huge_pages_pid
-+++ a/mm/huge_memory.c
-@@ -3863,16 +3863,11 @@ static int split_huge_pages_pid(int pid,
- 	vaddr_start &= PAGE_MASK;
- 	vaddr_end &= PAGE_MASK;
- 
--	/* Find the task_struct from pid */
--	rcu_read_lock();
--	task = find_task_by_vpid(pid);
-+	task = find_get_task_by_vpid(pid);
- 	if (!task) {
--		rcu_read_unlock();
- 		ret = -ESRCH;
- 		goto out;
- 	}
--	get_task_struct(task);
--	rcu_read_unlock();
- 
- 	/* Find the mm_struct */
- 	mm = get_task_mm(task);
+--- a/mm/migrate.c~mm-migrate-remove-unused-includes
++++ a/mm/migrate.c
+@@ -20,7 +20,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mm_inline.h>
+-#include <linux/nsproxy.h>
+ #include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/topology.h>
+@@ -35,19 +34,13 @@
+ #include <linux/syscalls.h>
+ #include <linux/compat.h>
+ #include <linux/hugetlb.h>
+-#include <linux/hugetlb_cgroup.h>
+ #include <linux/gfp.h>
+ #include <linux/pfn_t.h>
+-#include <linux/memremap.h>
+-#include <linux/userfaultfd_k.h>
+-#include <linux/balloon_compaction.h>
+ #include <linux/page_idle.h>
+ #include <linux/page_owner.h>
+ #include <linux/sched/mm.h>
+ #include <linux/ptrace.h>
+-#include <linux/oom.h>
+ #include <linux/memory.h>
+-#include <linux/random.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/memory-tiers.h>
+ #include <linux/pagewalk.h>
 _
 
-Patches currently in -mm which might be from sunnanyong@huawei.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-migrate-simplify-find_mm_struct.patch
-mm-thp-simplify-split_huge_pages_pid.patch
+mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
+mm-migrate_device-use-a-folio-in-migrate_device_range.patch
+mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
+mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
+mm-remove-isolate_lru_page.patch
+mm-remove-isolate_lru_page-fix.patch
+mm-remove-putback_lru_page.patch
+mm-migrate-remove-unused-includes.patch
 
