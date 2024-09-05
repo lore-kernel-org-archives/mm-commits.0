@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7B7B1714C8
-	for <mm-commits@vger.kernel.org>; Wed,  4 Sep 2024 21:26:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B7B1A4E6F
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:27:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725485194; cv=none; b=TZ6UznhhC2ygkr0Z/w3h6plfTDCbDrQam/bqYiJeekKcZ1Ah21NtcS+9pFph3vu4Ish6uAu32GK3XXaNiBaQrl5gvWlBolpZ1vQbbxmk0QgNl/vNGY34gI91nBF7n5Ch7rzHfcSAC4cx8t33oZJOAFnhOTYR4FoiR5Vb4aRMEHc=
+	t=1725571644; cv=none; b=u7/RD/AG+8EGCJnwnomCxLYxQlLvduXCyLmXBUZCVihPdp9cK1Dqh1YxRE+K/ta3gGGq5W+I2L2grqnSnIvHI6odGWLyL8prj2UiKqkFwM2Cmb14JqyH/xKnEuLctvSsbcji9vtdXlYrHBPSQRUEfYKeLwgNqQTN2fG3BNNPyJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725485194; c=relaxed/simple;
-	bh=VOM+xpvBd+J8QmmaJZoTJn99m0mMJ0Q1Om0vQnYgWQk=;
-	h=Date:To:From:Subject:Message-Id; b=K2hOUpy/bMVbCfjWpzZzkez4EAAZZbsnR+YIMxZEFoS2blNsIqMNVT2xVzJlJbcrBCfEnNVJJH3d2Gnir+eB7D09SnZkGr7xd1b4LFghGSNIsCWkCqR9fEDULUV2maQk5EZGo5lG2P2dyvGo3ghh2cyYY1r6BJSsu3T1NuM87y4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0nd3QRaH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725571644; c=relaxed/simple;
+	bh=HXVZOxuGepgwRA56ixNJNc6icXeMbS3MKSJjrlHS8RU=;
+	h=Date:To:From:Subject:Message-Id; b=oxOYBtjvpkqPn60irCdvZgyj0h2vjCzujC27poWBWnU7P6rP8VVDq+h4UOKWrq4rp5/0di1l4KlDsvTCwDUbn6UQCZSYHjgUnFi/q7EAobwzHQUe3bvOkkSp2XlAq4VLfSNNeJ1ySNke2SSM1Hvd9wb4Sxr0qQRiPKG5kOvKhOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SHxdQnhr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0nd3QRaH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2603CC4CEC2;
-	Wed,  4 Sep 2024 21:26:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SHxdQnhr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48746C4CEC3;
+	Thu,  5 Sep 2024 21:27:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725485194;
-	bh=VOM+xpvBd+J8QmmaJZoTJn99m0mMJ0Q1Om0vQnYgWQk=;
+	s=korg; t=1725571644;
+	bh=HXVZOxuGepgwRA56ixNJNc6icXeMbS3MKSJjrlHS8RU=;
 	h=Date:To:From:Subject:From;
-	b=0nd3QRaHoZzDGXJ+zdGFURdrkALZYdwQ8us6kdtYIItl5YfV2fTpyrj/HKdO04IgM
-	 IWQcGPCW+6KDhZYYBBDsDhwpZe9oZjsFiVzWVIu8b+w6+Vm4ppLdXS9p6O4a3h7TTq
-	 wr0Z+ywWve4XRaAOH0Yrb1WAM/hNWtaKf3h2+gI4=
-Date: Wed, 04 Sep 2024 14:26:33 -0700
-To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,svens@linux.ibm.com,akpm@linux-foundation.org
+	b=SHxdQnhrY2PATPT0uu4x44qdXygkaHyWmE7rIzgCfSX8YfzYuv6rtOSGDnnos8w/Z
+	 EfuLdoy/e6OJBPE9Ujae5Oaalux67wrv/V/bFh9OzCkgnojNbYMWrgCC0WIIijYW8z
+	 oZ2d2WeXinEZBot2ydqTtLLTb/wBTjRL7bAn2YBc=
+Date: Thu, 05 Sep 2024 14:27:23 -0700
+To: mm-commits@vger.kernel.org,linux@roeck-us.net,davidgow@google.com,brendanhiggins@google.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uprobes-use-vm_special_mapping-close-functionality.patch added to mm-unstable branch
-Message-Id: <20240904212634.2603CC4CEC2@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero.patch added to mm-unstable branch
+Message-Id: <20240905212724.48746C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: uprobes: use vm_special_mapping close() functionality
+     Subject: mm/damon/tests/core-kunit: skip damon_test_nr_accesses_to_accesses_bp() if aggr_interval is zero
 has been added to the -mm mm-unstable branch.  Its filename is
-     uprobes-use-vm_special_mapping-close-functionality.patch
+     mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-vm_special_mapping-close-functionality.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,195 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sven Schnelle <svens@linux.ibm.com>
-Subject: uprobes: use vm_special_mapping close() functionality
-Date: Tue, 3 Sep 2024 09:36:28 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/tests/core-kunit: skip damon_test_nr_accesses_to_accesses_bp() if aggr_interval is zero
+Date: Thu, 5 Sep 2024 09:24:23 -0700
 
-The following KASAN splat was shown:
+The aggregation interval of test purpose damon_attrs for
+damon_test_nr_accesses_to_accesses_bp() becomes zero on 32 bit
+architecture, since size of int and long types are same.  As a result,
+damon_nr_accesses_to_accesses_bp() call with the test data triggers
+divide-by-zero exception.  damon_nr_accesses_to_accesses_bp() shouldn't
+be called with such data, and the non-test code avoids that by checking
+the case on damon_update_monitoring_results().  Skip the test code in
+the case, and add an explicit caution of the case on the comment for the
+test target function.
 
-[   44.505448] ==================================================================                                                                      20:37:27 [3421/145075]
-[   44.505455] BUG: KASAN: slab-use-after-free in special_mapping_close+0x9c/0xc8
-[   44.505471] Read of size 8 at addr 00000000868dac48 by task sh/1384
-[   44.505479]
-[   44.505486] CPU: 51 UID: 0 PID: 1384 Comm: sh Not tainted 6.11.0-rc6-next-20240902-dirty #1496
-[   44.505503] Hardware name: IBM 3931 A01 704 (z/VM 7.3.0)
-[   44.505508] Call Trace:
-[   44.505511]  [<000b0324d2f78080>] dump_stack_lvl+0xd0/0x108
-[   44.505521]  [<000b0324d2f5435c>] print_address_description.constprop.0+0x34/0x2e0
-[   44.505529]  [<000b0324d2f5464c>] print_report+0x44/0x138
-[   44.505536]  [<000b0324d1383192>] kasan_report+0xc2/0x140
-[   44.505543]  [<000b0324d2f52904>] special_mapping_close+0x9c/0xc8
-[   44.505550]  [<000b0324d12c7978>] remove_vma+0x78/0x120
-[   44.505557]  [<000b0324d128a2c6>] exit_mmap+0x326/0x750
-[   44.505563]  [<000b0324d0ba655a>] __mmput+0x9a/0x370
-[   44.505570]  [<000b0324d0bbfbe0>] exit_mm+0x240/0x340
-[   44.505575]  [<000b0324d0bc0228>] do_exit+0x548/0xd70
-[   44.505580]  [<000b0324d0bc1102>] do_group_exit+0x132/0x390
-[   44.505586]  [<000b0324d0bc13b6>] __s390x_sys_exit_group+0x56/0x60
-[   44.505592]  [<000b0324d0adcbd6>] do_syscall+0x2f6/0x430
-[   44.505599]  [<000b0324d2f78434>] __do_syscall+0xa4/0x170
-[   44.505606]  [<000b0324d2f9454c>] system_call+0x74/0x98
-[   44.505614]
-[   44.505616] Allocated by task 1384:
-[   44.505621]  kasan_save_stack+0x40/0x70
-[   44.505630]  kasan_save_track+0x28/0x40
-[   44.505636]  __kasan_kmalloc+0xa0/0xc0
-[   44.505642]  __create_xol_area+0xfa/0x410
-[   44.505648]  get_xol_area+0xb0/0xf0
-[   44.505652]  uprobe_notify_resume+0x27a/0x470
-[   44.505657]  irqentry_exit_to_user_mode+0x15e/0x1d0
-[   44.505664]  pgm_check_handler+0x122/0x170
-[   44.505670]
-[   44.505672] Freed by task 1384:
-[   44.505676]  kasan_save_stack+0x40/0x70
-[   44.505682]  kasan_save_track+0x28/0x40
-[   44.505687]  kasan_save_free_info+0x4a/0x70
-[   44.505693]  __kasan_slab_free+0x5a/0x70
-[   44.505698]  kfree+0xe8/0x3f0
-[   44.505704]  __mmput+0x20/0x370
-[   44.505709]  exit_mm+0x240/0x340
-[   44.505713]  do_exit+0x548/0xd70
-[   44.505718]  do_group_exit+0x132/0x390
-[   44.505722]  __s390x_sys_exit_group+0x56/0x60
-[   44.505727]  do_syscall+0x2f6/0x430
-[   44.505732]  __do_syscall+0xa4/0x170
-[   44.505738]  system_call+0x74/0x98
-
-The problem is that uprobe_clear_state() kfree's struct xol_area, which
-contains struct vm_special_mapping *xol_mapping. This one is passed to
-_install_special_mapping() in xol_add_vma().
-__mput reads:
-
-static inline void __mmput(struct mm_struct *mm)
-{
-        VM_BUG_ON(atomic_read(&mm->mm_users));
-
-        uprobe_clear_state(mm);
-        exit_aio(mm);
-        ksm_exit(mm);
-        khugepaged_exit(mm); /* must run before exit_mmap */
-        exit_mmap(mm);
-        ...
-}
-
-So uprobe_clear_state() in the beginning free's the memory area
-containing the vm_special_mapping data, but exit_mmap() uses this
-address later via vma->vm_private_data (which was set in
-_install_special_mapping().
-
-Fix this by moving uprobe_clear_state() to uprobes.c and use it as
-close() callback.
-
-Link: https://lkml.kernel.org/r/20240903073629.2442754-1-svens@linux.ibm.com
-Fixes: 223febc6e557 ("mm: add optional close() to struct vm_special_mapping")
-Signed-off-by: Sven Schnelle <svens@linux.ibm.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20240905162423.74053-1-sj@kernel.org
+Fixes: 5e06ad590096 ("mm/damon/core-test: test max_nr_accesses overflow caused divide-by-zero")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Closes: https://lore.kernel.org/c771b962-a58f-435b-89e4-1211a9323181@roeck-us.net
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uprobes.h |    1 
- kernel/events/uprobes.c |   39 +++++++++++++++++++-------------------
- kernel/fork.c           |    1 
- 3 files changed, 20 insertions(+), 21 deletions(-)
+ mm/damon/core.c             |    8 +++++++-
+ mm/damon/tests/core-kunit.h |   12 ++++++++++++
+ 2 files changed, 19 insertions(+), 1 deletion(-)
 
---- a/include/linux/uprobes.h~uprobes-use-vm_special_mapping-close-functionality
-+++ a/include/linux/uprobes.h
-@@ -126,7 +126,6 @@ extern int uprobe_pre_sstep_notifier(str
- extern void uprobe_notify_resume(struct pt_regs *regs);
- extern bool uprobe_deny_signal(void);
- extern bool arch_uprobe_skip_sstep(struct arch_uprobe *aup, struct pt_regs *regs);
--extern void uprobe_clear_state(struct mm_struct *mm);
- extern int  arch_uprobe_analyze_insn(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long addr);
- extern int  arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
- extern int  arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
---- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality
-+++ a/kernel/events/uprobes.c
-@@ -1482,6 +1482,25 @@ void * __weak arch_uprobe_trampoline(uns
- 	return &insn;
+--- a/mm/damon/core.c~mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero
++++ a/mm/damon/core.c
+@@ -552,7 +552,13 @@ static unsigned int damon_accesses_bp_to
+ 	return accesses_bp * damon_max_nr_accesses(attrs) / 10000;
  }
  
+-/* convert nr_accesses to access ratio in bp (per 10,000) */
 +/*
-+ * uprobe_clear_state - Free the area allocated for slots.
++ * Convert nr_accesses to access ratio in bp (per 10,000).
++ *
++ * Callers should ensure attrs.aggr_interval is not zero, like
++ * damon_update_monitoring_results() does .  Otherwise, divide-by-zero would
++ * happen.
 + */
-+static void uprobe_clear_state(const struct vm_special_mapping *sm, struct vm_area_struct *vma)
-+{
-+	struct xol_area *area = container_of(vma->vm_private_data, struct xol_area, xol_mapping);
-+
-+	mutex_lock(&delayed_uprobe_lock);
-+	delayed_uprobe_remove(NULL, vma->vm_mm);
-+	mutex_unlock(&delayed_uprobe_lock);
-+
-+	if (!area)
-+		return;
-+
-+	put_page(area->pages[0]);
-+	kfree(area->bitmap);
-+	kfree(area);
-+}
-+
- static struct xol_area *__create_xol_area(unsigned long vaddr)
+ static unsigned int damon_nr_accesses_to_accesses_bp(
+ 		unsigned int nr_accesses, struct damon_attrs *attrs)
  {
- 	struct mm_struct *mm = current->mm;
-@@ -1500,6 +1519,7 @@ static struct xol_area *__create_xol_are
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero
++++ a/mm/damon/tests/core-kunit.h
+@@ -320,6 +320,18 @@ static void damon_test_nr_accesses_to_ac
+ 		.aggr_interval = ((unsigned long)UINT_MAX + 1) * 10
+ 	};
  
- 	area->xol_mapping.name = "[uprobes]";
- 	area->xol_mapping.fault = NULL;
-+	area->xol_mapping.close = uprobe_clear_state;
- 	area->xol_mapping.pages = area->pages;
- 	area->pages[0] = alloc_page(GFP_HIGHUSER);
- 	if (!area->pages[0])
-@@ -1545,25 +1565,6 @@ static struct xol_area *get_xol_area(voi
- 	return area;
++	/*
++	 * In some cases such as 32bit architectures where UINT_MAX is
++	 * ULONG_MAX, attrs.aggr_interval becomes zero.  Calling
++	 * damon_nr_accesses_to_accesses_bp() in the case will cause
++	 * divide-by-zero.  Such case is prohibited in normal execution since
++	 * the caution is documented on the comment for the function, and
++	 * damon_update_monitoring_results() does the check.  Skip the test in
++	 * the case.
++	 */
++	if (!attrs.aggr_interval)
++		kunit_skip(test, "aggr_interval is zero.");
++
+ 	KUNIT_EXPECT_EQ(test, damon_nr_accesses_to_accesses_bp(123, &attrs), 0);
  }
  
--/*
-- * uprobe_clear_state - Free the area allocated for slots.
-- */
--void uprobe_clear_state(struct mm_struct *mm)
--{
--	struct xol_area *area = mm->uprobes_state.xol_area;
--
--	mutex_lock(&delayed_uprobe_lock);
--	delayed_uprobe_remove(NULL, mm);
--	mutex_unlock(&delayed_uprobe_lock);
--
--	if (!area)
--		return;
--
--	put_page(area->pages[0]);
--	kfree(area->bitmap);
--	kfree(area);
--}
--
- void uprobe_start_dup_mmap(void)
- {
- 	percpu_down_read(&dup_mmap_sem);
---- a/kernel/fork.c~uprobes-use-vm_special_mapping-close-functionality
-+++ a/kernel/fork.c
-@@ -1338,7 +1338,6 @@ static inline void __mmput(struct mm_str
- {
- 	VM_BUG_ON(atomic_read(&mm->mm_users));
- 
--	uprobe_clear_state(mm);
- 	exit_aio(mm);
- 	ksm_exit(mm);
- 	khugepaged_exit(mm); /* must run before exit_mmap */
 _
 
-Patches currently in -mm which might be from svens@linux.ibm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-uprobes-use-vm_special_mapping-close-functionality.patch
+mm-damon-core-intorduce-per-context-region-priorities-histogram-buffer.patch
+mm-damon-core-replace-per-quota-regions-priority-histogram-buffer-usage-with-per-context-one.patch
+mm-damon-core-remove-per-scheme-region-priority-histogram-buffer.patch
+revert-mm-damon-lru_sort-adjust-local-variable-to-dynamic-allocation.patch
+docs-damon-use-damonitor-github-organization-instead-of-awslabs.patch
+docs-damon-maintainer-profile-add-links-in-place.patch
+docs-damon-maintainer-profile-document-google-calendar-for-bi-weekly-meetups.patch
+mm-damon-tests-vaddr-kunit-init-maple-tree-without-mt_flags_lock_extern.patch
+mm-damon-tests-core-kunit-skip-damon_test_nr_accesses_to_accesses_bp-if-aggr_interval-is-zero.patch
 
