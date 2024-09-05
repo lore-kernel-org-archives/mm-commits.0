@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB90F1AB514
-	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 22:53:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18B4918EFF8
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 23:04:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725576826; cv=none; b=PUauZ9m2gsmZsOzeWo/LfNw6XpXUJOrJfa22nUB7ORXOhM1Mop5vMNPWocTvbOBLdmxDmb+CUfufPHqcdl3D3kKAtWPJpkGF8Yf2SKgwZ5HfZ08WMnEHeN2mW+yCj2jVUD/K+oMUt26kqYYCl7F1sCu4nefGmTZ5ZAy5jrj6aP8=
+	t=1725577488; cv=none; b=qVvv1Z4vYEl/ETjsIji3/y1SIgWF6MQxilRwMs4PoXYrR4eB15VL+X8vldZEfa7Yg2YMnZpX9e8k+kR4GHOdJErUQ+lx60CYC7YNxMKRr/c3fB3tuuLBBTxtxXdpfJB2KA9Bgs5D0lSmtHzs2vN3iGCRe7cC2QbgOVWAnE0DFgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725576826; c=relaxed/simple;
-	bh=Sq0bfJ8WB2YyzqbV11c+Sp2rpty7BUqSydos1w3OuJ8=;
-	h=Date:To:From:Subject:Message-Id; b=YxbKyeYmRre0MmnGQfuKnZf71ecQoqqLSGn7jY0s5xR4TQsz68FUxeJ3pWgLzDfVX1NPl3DEeJ7ofLsuZXKMASA5BwHDEWAYIJfaIKBsKVMYWucBcTAT4EiZsIWlr1XvAOPV0JU67MhAicPD5Dyjm4FAANlVPzbHWGOefF7FJA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qm3qaDJY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725577488; c=relaxed/simple;
+	bh=hp9MSJiLer8wQLdC/Vn8AjuV9lTY4yUMcU0O6zaNNE8=;
+	h=Date:To:From:Subject:Message-Id; b=rOcvFOEaZHywFEN7GUUor9Pkg6Ck/fWuXVFV5XGqITAtByJM3b5ydP78ihzsDg5InBhGmIhQB0xbRT3UmmDGVKf/GdiJDiCN5HeUJd+q1Om20vg5Vkt3YVrAmomH0o4wmdmBIrh7B9D/gAcjL06N7UdWWpNrTdTLE8LjmA5y4mI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLGeQDtx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qm3qaDJY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48C28C4CEC3;
-	Thu,  5 Sep 2024 22:53:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLGeQDtx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F5DDC4CEC3;
+	Thu,  5 Sep 2024 23:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725576825;
-	bh=Sq0bfJ8WB2YyzqbV11c+Sp2rpty7BUqSydos1w3OuJ8=;
+	s=korg; t=1725577487;
+	bh=hp9MSJiLer8wQLdC/Vn8AjuV9lTY4yUMcU0O6zaNNE8=;
 	h=Date:To:From:Subject:From;
-	b=qm3qaDJYvgN17lrMaMPAUg01S2PXH+hj4bEiP5ourEyB2l+GmJvmncwLlF8HbN84E
-	 OWbsB1xT/DLMliao26s2RBUmcINm4tlUlR+12gOzTDeajtEXfypayrbXFTuqVApEDH
-	 SvFHhr3evxWlnWCN+8PeGiapwnTiwnmHV2KukF0s=
-Date: Thu, 05 Sep 2024 15:53:44 -0700
-To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=HLGeQDtx/gEXkPmmE93qMU3F3eBpBUqTzZRNQ3pKlzRrGN5BUOQfKPQ578g/xOdDp
+	 dzwR/4gOYsyoKpI68uUeEKVni597Dvn+mD7tRgzQmy/MFm1xXMRC6ylSV6S92pIwqo
+	 GdXNMrmeU95W4Mmjg2Rf/U/hCxVCVT/jmjeBHvlY=
+Date: Thu, 05 Sep 2024 16:04:46 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,tjmercier@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch added to mm-unstable branch
-Message-Id: <20240905225345.48C28C4CEC3@smtp.kernel.org>
+Subject: + cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch added to mm-unstable branch
+Message-Id: <20240905230447.5F5DDC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: fix build with CONFIG_UNACCEPTED_MEMORY=n
+     Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
+     cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,82 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_alloc: fix build with CONFIG_UNACCEPTED_MEMORY=n
-Date: Thu, 5 Sep 2024 14:22:20 -0700
+From: Kinsey Ho <kinseyho@google.com>
+Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
+Date: Thu, 5 Sep 2024 00:30:50 +0000
 
-When has_unaccepted_memory() is unused, it prevents kernel builds
-with clang, `make W=1` and CONFIG_WERROR=y:
+Patch series "Improve mem_cgroup_iter()", v4.
 
-mm/page_alloc.c:7036:20: error: unused function 'has_unaccepted_memory' [-Werror,-Wunused-function]
-7036 | static inline bool has_unaccepted_memory(void)
-|                    ^~~~~~~~~~~~~~~~~~~~~
+Incremental cgroup iteration is being used again [1]. This patchset
+improves the reliability of mem_cgroup_iter(). It also improves
+simplicity and code readability.
 
-Fix it by removeing the CONFIG_UNACCEPTED_MEMORY=n stub.
+[1] https://lore.kernel.org/20240514202641.2821494-1-hannes@cmpxchg.org/
 
-Link: https://lkml.kernel.org/r/20240905142220.49d93337a0abce5690e515d9@linux-foundation.org
-Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Closes: https://lkml.kernel.org/r/20240905171553.275054-1-andriy.shevchenko@linux.intel.com
+
+This patch (of 5):
+
+Explicitly document that css sibling/descendant linkage is protected by
+cgroup_mutex or RCU.  Also, document in css_next_descendant_pre() and
+similar functions that it isn't necessary to hold a ref on @pos.
+
+The following changes in this patchset rely on this clarification for
+simplification in memcg iteration code.
+
+Link: https://lkml.kernel.org/r/20240905003058.1859929-1-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20240905003058.1859929-2-kinseyho@google.com
+Suggested-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Signed-off-by: Kinsey Ho <kinseyho@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ include/linux/cgroup-defs.h |    6 +++++-
+ kernel/cgroup/cgroup.c      |   16 +++++++++-------
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-build-with-config_unaccepted_memory=n
-+++ a/mm/page_alloc.c
-@@ -287,7 +287,6 @@ EXPORT_SYMBOL(nr_online_nodes);
+--- a/include/linux/cgroup-defs.h~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
++++ a/include/linux/cgroup-defs.h
+@@ -172,7 +172,11 @@ struct cgroup_subsys_state {
+ 	/* reference count - access via css_[try]get() and css_put() */
+ 	struct percpu_ref refcnt;
  
- static bool page_contains_unaccepted(struct page *page, unsigned int order);
- static bool cond_accept_memory(struct zone *zone, unsigned int order);
--static inline bool has_unaccepted_memory(void);
- static bool __free_unaccepted(struct page *page);
+-	/* siblings list anchored at the parent's ->children */
++	/*
++	 * siblings list anchored at the parent's ->children
++	 *
++	 * linkage is protected by cgroup_mutex or RCU
++	 */
+ 	struct list_head sibling;
+ 	struct list_head children;
  
- int page_group_by_mobility_disabled __read_mostly;
-@@ -7068,6 +7067,11 @@ static bool try_to_accept_memory_one(str
- 	return true;
- }
- 
-+static inline bool has_unaccepted_memory(void)
-+{
-+	return static_branch_unlikely(&zones_with_unaccepted_pages);
-+}
-+
- static bool cond_accept_memory(struct zone *zone, unsigned int order)
- {
- 	long to_accept;
-@@ -7095,11 +7099,6 @@ static bool cond_accept_memory(struct zo
- 	return ret;
- }
- 
--static inline bool has_unaccepted_memory(void)
--{
--	return static_branch_unlikely(&zones_with_unaccepted_pages);
--}
--
- static bool __free_unaccepted(struct page *page)
- {
- 	struct zone *zone = page_zone(page);
-@@ -7134,11 +7133,6 @@ static bool cond_accept_memory(struct zo
- {
- 	return false;
- }
--
--static inline bool has_unaccepted_memory(void)
--{
--	return false;
--}
- 
- static bool __free_unaccepted(struct page *page)
- {
+--- a/kernel/cgroup/cgroup.c~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
++++ a/kernel/cgroup/cgroup.c
+@@ -4602,8 +4602,9 @@ struct cgroup_subsys_state *css_next_chi
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct next descendant as long
+- * as both @pos and @root are accessible and @pos is a descendant of @root.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct next descendant as long as both @pos
++ * and @root are accessible and @pos is a descendant of @root.
+  *
+  * If a subsystem synchronizes ->css_online() and the start of iteration, a
+  * css which finished ->css_online() is guaranteed to be visible in the
+@@ -4651,8 +4652,9 @@ EXPORT_SYMBOL_GPL(css_next_descendant_pr
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct rightmost descendant as
+- * long as @pos is accessible.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct rightmost descendant as long as @pos
++ * is accessible.
+  */
+ struct cgroup_subsys_state *
+ css_rightmost_descendant(struct cgroup_subsys_state *pos)
+@@ -4696,9 +4698,9 @@ css_leftmost_descendant(struct cgroup_su
+  *
+  * While this function requires cgroup_mutex or RCU read locking, it
+  * doesn't require the whole traversal to be contained in a single critical
+- * section.  This function will return the correct next descendant as long
+- * as both @pos and @cgroup are accessible and @pos is a descendant of
+- * @cgroup.
++ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
++ * This function will return the correct next descendant as long as both @pos
++ * and @cgroup are accessible and @pos is a descendant of @cgroup.
+  *
+  * If a subsystem synchronizes ->css_online() and the start of iteration, a
+  * css which finished ->css_online() is guaranteed to be visible in the
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kinseyho@google.com are
 
-mm-count-the-number-of-anonymous-thps-per-size-fix.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
-mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
+cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
+mm-dont-hold-css-refcnt-during-traversal.patch
+mm-increment-gen-before-restarting-traversal.patch
+mm-restart-if-multiple-traversals-raced.patch
+mm-clean-up-mem_cgroup_iter.patch
 
