@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18B4918EFF8
-	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 23:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A1318EFF8
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 23:04:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725577488; cv=none; b=qVvv1Z4vYEl/ETjsIji3/y1SIgWF6MQxilRwMs4PoXYrR4eB15VL+X8vldZEfa7Yg2YMnZpX9e8k+kR4GHOdJErUQ+lx60CYC7YNxMKRr/c3fB3tuuLBBTxtxXdpfJB2KA9Bgs5D0lSmtHzs2vN3iGCRe7cC2QbgOVWAnE0DFgA=
+	t=1725577490; cv=none; b=uGKZy+81T8qjCyPT1wX3SjOhbX6MzuMxH3Hj76/d2b6JpxIog2N1GQ/ogRDlxOd2Pa09tKlZJ3EKWbK22zDavWHZri+veUyq7RAxhSi3JdQSc3NnMCfY5BprIaGNBWQO+IvfI8cSRhOW7OrEwWuUqTEn7VIQWPRYwGsbdbqUbn4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725577488; c=relaxed/simple;
-	bh=hp9MSJiLer8wQLdC/Vn8AjuV9lTY4yUMcU0O6zaNNE8=;
-	h=Date:To:From:Subject:Message-Id; b=rOcvFOEaZHywFEN7GUUor9Pkg6Ck/fWuXVFV5XGqITAtByJM3b5ydP78ihzsDg5InBhGmIhQB0xbRT3UmmDGVKf/GdiJDiCN5HeUJd+q1Om20vg5Vkt3YVrAmomH0o4wmdmBIrh7B9D/gAcjL06N7UdWWpNrTdTLE8LjmA5y4mI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLGeQDtx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725577490; c=relaxed/simple;
+	bh=tovqW4HkgmGgWj0vdTpABAdBksQrY6fPujfPkjJav6M=;
+	h=Date:To:From:Subject:Message-Id; b=jzm6/UDpetDGwBMwquFJce9F/dNeSrW5QZZ2mOlVHe7AJRyauHn6fWZ+Vo3I2SyxnjF9tMuMo9CFCA1cQOXOkjfavrKbZcLKoJQcoc92eHq7vnqNAL0VIO99S9ry15ZesT+ulUADQPraO6LQhyumUQcsuBs8qqKKl7mYY4kBkeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pGgD7nBJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLGeQDtx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F5DDC4CEC3;
-	Thu,  5 Sep 2024 23:04:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pGgD7nBJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B772BC4CEC3;
+	Thu,  5 Sep 2024 23:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725577487;
-	bh=hp9MSJiLer8wQLdC/Vn8AjuV9lTY4yUMcU0O6zaNNE8=;
+	s=korg; t=1725577489;
+	bh=tovqW4HkgmGgWj0vdTpABAdBksQrY6fPujfPkjJav6M=;
 	h=Date:To:From:Subject:From;
-	b=HLGeQDtx/gEXkPmmE93qMU3F3eBpBUqTzZRNQ3pKlzRrGN5BUOQfKPQ578g/xOdDp
-	 dzwR/4gOYsyoKpI68uUeEKVni597Dvn+mD7tRgzQmy/MFm1xXMRC6ylSV6S92pIwqo
-	 GdXNMrmeU95W4Mmjg2Rf/U/hCxVCVT/jmjeBHvlY=
-Date: Thu, 05 Sep 2024 16:04:46 -0700
+	b=pGgD7nBJ3YWGBGzDm8FckihHlhDwsJo3c6tosaq2S7pAyMYROpSnazJbAIr9AoJgU
+	 JbsMSoxdvulrWL7khwZfPLVZGA1UJj6JNKvZ0T7bsr3G276xhZU5qIhYT33wpODfsU
+	 MeDjcAQAUjBoL+Ffaig7p0TG7rxTVGi/Mj1SR4ng=
+Date: Thu, 05 Sep 2024 16:04:49 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,tjmercier@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch added to mm-unstable branch
-Message-Id: <20240905230447.5F5DDC4CEC3@smtp.kernel.org>
+Subject: + mm-dont-hold-css-refcnt-during-traversal.patch added to mm-unstable branch
+Message-Id: <20240905230449.B772BC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
+     Subject: mm: don't hold css->refcnt during traversal
 has been added to the -mm mm-unstable branch.  Its filename is
-     cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
+     mm-dont-hold-css-refcnt-during-traversal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-hold-css-refcnt-during-traversal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,102 +59,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: cgroup: clarify css sibling linkage is protected by cgroup_mutex or RCU
-Date: Thu, 5 Sep 2024 00:30:50 +0000
+Subject: mm: don't hold css->refcnt during traversal
+Date: Thu, 5 Sep 2024 00:30:51 +0000
 
-Patch series "Improve mem_cgroup_iter()", v4.
+To obtain the pointer to the next memcg position, mem_cgroup_iter()
+currently holds css->refcnt during memcg traversal only to put css->refcnt
+at the end of the routine.  This isn't necessary as an rcu_read_lock is
+already held throughout the function.  The use of the RCU read lock with
+css_next_descendant_pre() guarantees that sibling linkage is safe without
+holding a ref on the passed-in @css.
 
-Incremental cgroup iteration is being used again [1]. This patchset
-improves the reliability of mem_cgroup_iter(). It also improves
-simplicity and code readability.
+Remove css->refcnt usage during traversal by leveraging RCU.
 
-[1] https://lore.kernel.org/20240514202641.2821494-1-hannes@cmpxchg.org/
-
-
-This patch (of 5):
-
-Explicitly document that css sibling/descendant linkage is protected by
-cgroup_mutex or RCU.  Also, document in css_next_descendant_pre() and
-similar functions that it isn't necessary to hold a ref on @pos.
-
-The following changes in this patchset rely on this clarification for
-simplification in memcg iteration code.
-
-Link: https://lkml.kernel.org/r/20240905003058.1859929-1-kinseyho@google.com
-Link: https://lkml.kernel.org/r/20240905003058.1859929-2-kinseyho@google.com
-Suggested-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Link: https://lkml.kernel.org/r/20240905003058.1859929-3-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
+Reviewed-by: T.J. Mercier <tjmercier@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Zefan Li <lizefan.x@bytedance.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup-defs.h |    6 +++++-
- kernel/cgroup/cgroup.c      |   16 +++++++++-------
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
---- a/include/linux/cgroup-defs.h~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
-+++ a/include/linux/cgroup-defs.h
-@@ -172,7 +172,11 @@ struct cgroup_subsys_state {
- 	/* reference count - access via css_[try]get() and css_put() */
- 	struct percpu_ref refcnt;
+--- a/mm/memcontrol.c~mm-dont-hold-css-refcnt-during-traversal
++++ a/mm/memcontrol.c
+@@ -1015,20 +1015,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		else if (reclaim->generation != iter->generation)
+ 			goto out_unlock;
  
--	/* siblings list anchored at the parent's ->children */
-+	/*
-+	 * siblings list anchored at the parent's ->children
-+	 *
-+	 * linkage is protected by cgroup_mutex or RCU
-+	 */
- 	struct list_head sibling;
- 	struct list_head children;
+-		while (1) {
+-			pos = READ_ONCE(iter->position);
+-			if (!pos || css_tryget(&pos->css))
+-				break;
+-			/*
+-			 * css reference reached zero, so iter->position will
+-			 * be cleared by ->css_released. However, we should not
+-			 * rely on this happening soon, because ->css_released
+-			 * is called from a work queue, and by busy-waiting we
+-			 * might block it. So we clear iter->position right
+-			 * away.
+-			 */
+-			(void)cmpxchg(&iter->position, pos, NULL);
+-		}
++		pos = READ_ONCE(iter->position);
+ 	} else if (prev) {
+ 		pos = prev;
+ 	}
+@@ -1069,9 +1056,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		 */
+ 		(void)cmpxchg(&iter->position, pos, memcg);
  
---- a/kernel/cgroup/cgroup.c~cgroup-clarify-css-sibling-linkage-is-protected-by-cgroup_mutex-or-rcu
-+++ a/kernel/cgroup/cgroup.c
-@@ -4602,8 +4602,9 @@ struct cgroup_subsys_state *css_next_chi
-  *
-  * While this function requires cgroup_mutex or RCU read locking, it
-  * doesn't require the whole traversal to be contained in a single critical
-- * section.  This function will return the correct next descendant as long
-- * as both @pos and @root are accessible and @pos is a descendant of @root.
-+ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
-+ * This function will return the correct next descendant as long as both @pos
-+ * and @root are accessible and @pos is a descendant of @root.
-  *
-  * If a subsystem synchronizes ->css_online() and the start of iteration, a
-  * css which finished ->css_online() is guaranteed to be visible in the
-@@ -4651,8 +4652,9 @@ EXPORT_SYMBOL_GPL(css_next_descendant_pr
-  *
-  * While this function requires cgroup_mutex or RCU read locking, it
-  * doesn't require the whole traversal to be contained in a single critical
-- * section.  This function will return the correct rightmost descendant as
-- * long as @pos is accessible.
-+ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
-+ * This function will return the correct rightmost descendant as long as @pos
-+ * is accessible.
-  */
- struct cgroup_subsys_state *
- css_rightmost_descendant(struct cgroup_subsys_state *pos)
-@@ -4696,9 +4698,9 @@ css_leftmost_descendant(struct cgroup_su
-  *
-  * While this function requires cgroup_mutex or RCU read locking, it
-  * doesn't require the whole traversal to be contained in a single critical
-- * section.  This function will return the correct next descendant as long
-- * as both @pos and @cgroup are accessible and @pos is a descendant of
-- * @cgroup.
-+ * section. Additionally, it isn't necessary to hold onto a reference to @pos.
-+ * This function will return the correct next descendant as long as both @pos
-+ * and @cgroup are accessible and @pos is a descendant of @cgroup.
-  *
-  * If a subsystem synchronizes ->css_online() and the start of iteration, a
-  * css which finished ->css_online() is guaranteed to be visible in the
+-		if (pos)
+-			css_put(&pos->css);
+-
+ 		if (!memcg)
+ 			iter->generation++;
+ 	}
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
