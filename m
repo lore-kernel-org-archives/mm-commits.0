@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A22E1A3026
-	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB3B15687C
+	for <mm-commits@vger.kernel.org>; Thu,  5 Sep 2024 21:30:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725571771; cv=none; b=E30SfjTNsGk7EG7g6ImxNlnHi8jIJGLNsisFzwxcygj1FtrC7xo6meTs8iOz+s6neujOBJsOBWFdc76fpA59GSDQ4Ycq1OoB9F3gHgb0DWGaR9/jKEXI2kNDt5/VvmMwwfgCAaBIUYkaq+NsUuLI9p2eRCeUqLywWWgs0Hpld4g=
+	t=1725571814; cv=none; b=Nk55yqaFk9fpflu+qhg+5YzMkxoYTBjL3hQZygSojDANjmT50pTmEpl34/JX+hEFR9bZmWmvEAtAz5f/K1XMu3uWdpUc5A4Tgw3QFOoBBfTM2A2rTAs/20QfuTna2GCtmPmddbqrm5bLGt6afPOXouI+RcDEYurlbnUD8Xrwi+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725571771; c=relaxed/simple;
-	bh=FPUH7ea6iMBXTg50od3Dek6U0ZXtkKDHgXKPZUsMZw8=;
-	h=Date:To:From:Subject:Message-Id; b=lZcQj8HJ1QapPZkfxPrK3h68PKINjtZzsXRwgcw1zevDZbLOWjYqINPSr4jBXS7ttB5yr5zIobJ1oauwdQiHO/r+9UE+82oS+hpFmnN9nSTjaZa5jLORAXQ9JuIEyb1KFF6SrTPvG0rKhnq9fopDO9M2UrhkihQdr5ZmCS3IPI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y+0Nkdju; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725571814; c=relaxed/simple;
+	bh=f8srotTYggUd1JFfLwwkBA03hELCwJZOsAzBLGLN/8g=;
+	h=Date:To:From:Subject:Message-Id; b=ZLtau2UVK0wh7EdELKuHcX+Wqv9PNR7yWmI2SCsXWJIvHohvkA+IriFZ2jXpD/nqd5v9PwwUI0wG0w3BALsq5NxNFNQQ8NB4jhwgZspRwm+Ng7xXZkfvKrHBAYbcNUFulIUapareHKAIMQJlhrjnvsmgnxtPIPQ0STOdff+ol4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GEQHPo4s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y+0Nkdju"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9B4FC4CEC4;
-	Thu,  5 Sep 2024 21:29:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GEQHPo4s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B02C4CEC3;
+	Thu,  5 Sep 2024 21:30:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725571770;
-	bh=FPUH7ea6iMBXTg50od3Dek6U0ZXtkKDHgXKPZUsMZw8=;
+	s=korg; t=1725571813;
+	bh=f8srotTYggUd1JFfLwwkBA03hELCwJZOsAzBLGLN/8g=;
 	h=Date:To:From:Subject:From;
-	b=Y+0NkdjuQ/8UrAdWpVq4VM9QG14FVRYVviXPejOvfQO19S1rPwcfM4oZo45WY6w63
-	 IMnNsGD5e+tofZ42ScGYYEC+Yu2fXW21dnfvpnh71bYyHkUCOHN5CJCPAyx4iYS7gH
-	 jC9GA2FKygNpff/zfv0tltoucbQZp7XvThA+ZXiA=
-Date: Thu, 05 Sep 2024 14:29:29 -0700
+	b=GEQHPo4skRG9EwB29OQzoT2F6t3vK5GHrIw8cRLx0K6TeTrmgTXgbm3nTL2ds4LaA
+	 GN98j4FPzDeI1q8eEvTnr+Tl4uqJoH575030tE8SaIwSYqZnwTooj6F9esdrpgvjag
+	 T+D2bc7zn5PoUn7r8ErtyJZzW2UWNb372KfOq3O0=
+Date: Thu, 05 Sep 2024 14:30:13 -0700
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-simplify-find_mm_struct.patch added to mm-unstable branch
-Message-Id: <20240905212930.A9B4FC4CEC4@smtp.kernel.org>
+Subject: + mm-thp-simplify-split_huge_pages_pid.patch added to mm-unstable branch
+Message-Id: <20240905213013.C4B02C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: migrate: simplify find_mm_struct()
+     Subject: mm: thp: simplify split_huge_pages_pid()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-simplify-find_mm_struct.patch
+     mm-thp-simplify-split_huge_pages_pid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-simplify-find_mm_struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-simplify-split_huge_pages_pid.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: mm: migrate: simplify find_mm_struct()
-Date: Thu, 5 Sep 2024 23:31:18 +0800
+Subject: mm: thp: simplify split_huge_pages_pid()
+Date: Thu, 5 Sep 2024 23:30:28 +0800
 
-Use find_get_task_by_vpid() to replace the task_struct find logic in
-find_mm_struct(), note that this patch move the ptrace_may_access() call
-out from rcu_read_lock() scope, this is ok because it actually does not
-need it, find_get_task_by_vpid() already get the pid and task safely,
-ptrace_may_access() can use the task safely, like what
-sched_core_share_pid() similarly do.
+The helper find_get_task_by_vpid() can totally replace the task_struct
+find logic in split_huge_pages_pid(), so use it to simplify the code. 
+Also delete the needless comments for the helper function name already
+explains what it's doing here.
 
-Link: https://lkml.kernel.org/r/20240905153118.1205173-1-sunnanyong@huawei.com
+Link: https://lkml.kernel.org/r/20240905153028.1205128-1-sunnanyong@huawei.com
 Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/huge_memory.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-simplify-find_mm_struct
-+++ a/mm/migrate.c
-@@ -2505,25 +2505,19 @@ static struct mm_struct *find_mm_struct(
- 		return current->mm;
- 	}
+--- a/mm/huge_memory.c~mm-thp-simplify-split_huge_pages_pid
++++ a/mm/huge_memory.c
+@@ -3863,16 +3863,11 @@ static int split_huge_pages_pid(int pid,
+ 	vaddr_start &= PAGE_MASK;
+ 	vaddr_end &= PAGE_MASK;
  
--	/* Find the mm_struct */
+-	/* Find the task_struct from pid */
 -	rcu_read_lock();
 -	task = find_task_by_vpid(pid);
 +	task = find_get_task_by_vpid(pid);
  	if (!task) {
 -		rcu_read_unlock();
- 		return ERR_PTR(-ESRCH);
- 	}
--	get_task_struct(task);
- 
- 	/*
- 	 * Check if this process has the right to modify the specified
- 	 * process. Use the regular "ptrace_may_access()" checks.
- 	 */
- 	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
--		rcu_read_unlock();
- 		mm = ERR_PTR(-EPERM);
+ 		ret = -ESRCH;
  		goto out;
  	}
+-	get_task_struct(task);
 -	rcu_read_unlock();
  
- 	mm = ERR_PTR(security_task_movememory(task));
- 	if (IS_ERR(mm))
+ 	/* Find the mm_struct */
+ 	mm = get_task_mm(task);
 _
 
 Patches currently in -mm which might be from sunnanyong@huawei.com are
 
 mm-migrate-simplify-find_mm_struct.patch
+mm-thp-simplify-split_huge_pages_pid.patch
 
