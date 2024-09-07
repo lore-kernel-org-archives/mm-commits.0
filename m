@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FBD71B85DC
-	for <mm-commits@vger.kernel.org>; Sat,  7 Sep 2024 03:15:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63DA1B85DC
+	for <mm-commits@vger.kernel.org>; Sat,  7 Sep 2024 03:16:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725678927; cv=none; b=T2HA5QFj1Ly6zMfOzsP0QUsX/n9s/4O0n/wOzJwMp5k+SZTG+11RpiL4iSfr8dx7ZrT4wbPM2KJTE0bFORluXSo9vZ4mnsC+WjrUe/f9+q8XObVB7T/Dg4WiZPOYcIrxVNYZoQD04b9C7VsRtko4J4ziNibAB8nNKVTl0sc1LdU=
+	t=1725679008; cv=none; b=F09u6N//ekaV3i3wozy5GEhlgWu3vDZMJzWIWIsroPfwCixxVSYLWLxDuf3lLKNfloPDM89fvQMkokcu3RGzRolqejPovblHP3dTPSa3xwcH7MvAkubf56E4AIvndH5thGKsDnPtAL1vGBaIfv6C+kRJXpDsSPSgDlmjkYtIGAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725678927; c=relaxed/simple;
-	bh=veHyp4GLwYBwYHt9mIKikq/Nyb4TvxZ0fEyhZwxV8tI=;
-	h=Date:To:From:Subject:Message-Id; b=n7q1RTrUlBpNt5/GrqVjTCDjK5knyjTXteMPYR09xN7fExQPhB1psNUFp1NuMpnDGr1ZYDx2Hppj6gt5atzr1/OUkyZcJpHKHYBNcuFVm85l7nwZKkMHRAoRa/VjAApvf5J0Cu57bwuQAJCmBA/HSp/3KdE/s2WileVYlImxxhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HlcPxq72; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725679008; c=relaxed/simple;
+	bh=M4WjYKDusLS+bIxVqtPExMXhW7pj+I3Db6ea8HeGoFQ=;
+	h=Date:To:From:Subject:Message-Id; b=cC/Coz/eFUrsKqA7zNOtksIsCWIG6QOhuwPeEjqSTnxBRh5KtU2r4uncg8mdcL03nq8iVd44n8mZTMsfrV1KL2kGey3uO8ygoQ2rzdhiJiGi8WC83pa/1roy+ZNr6Im6iTRlWSopWZX74HHfetCQNtUBkfxBKysizTe74bRjY+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lkUorw5y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HlcPxq72"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E187C4CEC2;
-	Sat,  7 Sep 2024 03:15:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lkUorw5y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AB15C4CEC2;
+	Sat,  7 Sep 2024 03:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725678927;
-	bh=veHyp4GLwYBwYHt9mIKikq/Nyb4TvxZ0fEyhZwxV8tI=;
+	s=korg; t=1725679008;
+	bh=M4WjYKDusLS+bIxVqtPExMXhW7pj+I3Db6ea8HeGoFQ=;
 	h=Date:To:From:Subject:From;
-	b=HlcPxq725ulI272PGzRH0Y5D4pkpzMzx4uB/ojLFd4I0LAnwvQYGWKueSMwxzQHye
-	 pFB+oruKPoJo1P1ONPPjTAbTVS/ho1NBUoyukhMC4aaeCCv+mfMyjZ0Y5WQ9WrtDeg
-	 QxttzJUhU/KIIyMAKnAWhdYjsDuhvbUusUIBIwNA=
-Date: Fri, 06 Sep 2024 20:15:26 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,zhangpeng362@huawei.com,akpm@linux-foundation.org
+	b=lkUorw5ySXTuzpP3AMoTqMYl9D5ce5g8LA7L2/P7JB5ZL8FxU9AgR3n1rrJvYtRMc
+	 MxucktqI2pZHhNmxxoGw2ou94HtbIQ1gJoK7EwVkk7p+gTv3EBAxJHYgRpJgpCo6wj
+	 R4RQiUL7AoSRgV5/+2YXjP7f1bUND0fx9Qzc1HMw=
+Date: Fri, 06 Sep 2024 20:16:47 -0700
+To: mm-commits@vger.kernel.org,svens@linux.ibm.com,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmallocc-use-helper-function-va_size.patch added to mm-unstable branch
-Message-Id: <20240907031527.0E187C4CEC2@smtp.kernel.org>
+Subject: + uprobes-use-vm_special_mapping-close-functionality-fix.patch added to mm-unstable branch
+Message-Id: <20240907031648.1AB15C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc.c: use helper function va_size()
+     Subject: uprobes: remove unneeded condition
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmallocc-use-helper-function-va_size.patch
+     uprobes-use-vm_special_mapping-close-functionality-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-use-helper-function-va_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-vm_special_mapping-close-functionality-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,94 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/vmalloc.c: use helper function va_size()
-Date: Fri, 6 Sep 2024 18:25:39 +0800
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: uprobes: remove unneeded condition
+Date: Fri, 6 Sep 2024 15:18:25 +0500
 
-Use helper function va_size() to improve code readability. No functional
-modification involved.
+The area cannot be NULL as we are getting it through container_of(). 
+Hence there is no need to check its validity.  Remove the if condition and
+return statement.
 
-Link: https://lkml.kernel.org/r/20240906102539.3537207-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Link: https://lkml.kernel.org/r/20240906101825.177490-1-usama.anjum@collabora.com
+Fixes: ("uprobes: use vm_special_mapping close() functionality")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ kernel/events/uprobes.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-use-helper-function-va_size
-+++ a/mm/vmalloc.c
-@@ -1940,7 +1940,7 @@ static inline void setup_vmalloc_vm(stru
- {
- 	vm->flags = flags;
- 	vm->addr = (void *)va->va_start;
--	vm->size = va->va_end - va->va_start;
-+	vm->size = va_size(va);
- 	vm->caller = caller;
- 	va->vm = vm;
- }
-@@ -2018,7 +2018,7 @@ retry:
+--- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality-fix
++++ a/kernel/events/uprobes.c
+@@ -1493,9 +1493,6 @@ static void uprobe_clear_state(const str
+ 	delayed_uprobe_remove(NULL, vma->vm_mm);
+ 	mutex_unlock(&delayed_uprobe_lock);
  
- 	if (vm) {
- 		vm->addr = (void *)va->va_start;
--		vm->size = va->va_end - va->va_start;
-+		vm->size = va_size(va);
- 		va->vm = vm;
- 	}
- 
-@@ -2215,7 +2215,7 @@ static void purge_vmap_node(struct work_
- 	vn->nr_purged = 0;
- 
- 	list_for_each_entry_safe(va, n_va, &vn->purge_list, list) {
--		unsigned long nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
-+		unsigned long nr = va_size(va) >> PAGE_SHIFT;
- 		unsigned int vn_id = decode_vn_id(va->flags);
- 
- 		list_del_init(&va->list);
-@@ -2355,8 +2355,8 @@ static void free_vmap_area_noflush(struc
- 	if (WARN_ON_ONCE(!list_empty(&va->list)))
- 		return;
- 
--	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
--				PAGE_SHIFT, &vmap_lazy_nr);
-+	nr_lazy = atomic_long_add_return(va_size(va) >> PAGE_SHIFT,
-+					 &vmap_lazy_nr);
- 
- 	/*
- 	 * If it was request by a certain node we would like to
-@@ -2952,8 +2952,7 @@ void vm_unmap_ram(const void *mem, unsig
- 	if (WARN_ON_ONCE(!va))
- 		return;
- 
--	debug_check_no_locks_freed((void *)va->va_start,
--				    (va->va_end - va->va_start));
-+	debug_check_no_locks_freed((void *)va->va_start, va_size(va));
- 	free_unmap_vmap_area(va);
- }
- EXPORT_SYMBOL(vm_unmap_ram);
-@@ -4953,7 +4952,7 @@ static void show_purge_info(struct seq_f
- 		list_for_each_entry(va, &vn->lazy.head, list) {
- 			seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
- 				(void *)va->va_start, (void *)va->va_end,
--				va->va_end - va->va_start);
-+				va_size(va));
- 		}
- 		spin_unlock(&vn->lazy.lock);
- 	}
-@@ -4975,7 +4974,7 @@ static int vmalloc_info_show(struct seq_
- 				if (va->flags & VMAP_RAM)
- 					seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
- 						(void *)va->va_start, (void *)va->va_end,
--						va->va_end - va->va_start);
-+						va_size(va));
- 
- 				continue;
- 			}
+-	if (!area)
+-		return;
+-
+ 	put_page(area->pages[0]);
+ 	kfree(area->bitmap);
+ 	kfree(area);
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-vmallocc-use-helper-function-va_size.patch
+uprobes-use-vm_special_mapping-close-functionality-fix.patch
 
