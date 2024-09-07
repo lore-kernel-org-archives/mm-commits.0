@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B24712B73
-	for <mm-commits@vger.kernel.org>; Sat,  7 Sep 2024 02:58:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 035E910A24
+	for <mm-commits@vger.kernel.org>; Sat,  7 Sep 2024 03:13:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725677932; cv=none; b=MDixOXUSUtZXnOvPQ8YQDKoj95b4RKskMbYpsm4HFjhmtivBO9qAZCJTiHjXwP+++LboBl4VyaqDnl8Xg4CAnFsK+FnY27Mn0q4/CrCtM6MXQ+34DJEOQMjDM+J1CCZvYRI9Gpo3OIoxL+aIIv7bH83qApGjDye5/a6nVWFEwNw=
+	t=1725678837; cv=none; b=lwjTTYiDH8CiDyb+2mQPApQm+69UpT1hOeYSbyP+1XdCj8wvD6fi1tLlrUCzzxDoIRCpHYTUBjhVWF0gdp17kPfByPkgOLxKQxIBUmChpN0q+ls34gPuwUQLk6FuB5t/fgf5tp8dX/H2NS4qvIDqlbmRj6Az53PjnxZU84EaPZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725677932; c=relaxed/simple;
-	bh=omjs6TRHl6DBwj23ekLQA7jajtm1SyPAcNu3zo3ulaE=;
-	h=Date:To:From:Subject:Message-Id; b=WyxAizMmq0fX+I37TBwOtXMPqQgafFnoC5xH7gHZW90xqPHc2+zrWlF+g4Wt1TNGoXIy2el4MKQ5VgWsRoqp+eJAKn/Hawm7o7QqzhjT8gpjjmbXEhgfxTZtGT3nqzbOnb2+oLksN5XkRhiFpNvdlBVD9Hq3rxIGKyfT+UIXnys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HWGgCljk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725678837; c=relaxed/simple;
+	bh=cp21SUWcDLZckCVFPFUuTgokE4JE/UWjRolN057QcK8=;
+	h=Date:To:From:Subject:Message-Id; b=AfKc18xnePSCrYOgcSl1orVlU8gzjbfXgWMyDEoJZ4NgYxdUQARmrggrxIxNDAzYsFnRJX640/Y1byb6//nFU+Yf7zy2m4VPBeyZ0JQ0lBObdJvCdLj4uz0ERXBwmgpXbiBM2u1SgUXlIQso3C7OfR7BVrMaE8AQpd4LE9Gfva0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRU3sGsZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HWGgCljk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ADFEC4CEC4;
-	Sat,  7 Sep 2024 02:58:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRU3sGsZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68708C4CEC4;
+	Sat,  7 Sep 2024 03:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725677932;
-	bh=omjs6TRHl6DBwj23ekLQA7jajtm1SyPAcNu3zo3ulaE=;
+	s=korg; t=1725678836;
+	bh=cp21SUWcDLZckCVFPFUuTgokE4JE/UWjRolN057QcK8=;
 	h=Date:To:From:Subject:From;
-	b=HWGgCljkl+G/pMUPvfFFYNWBh4apRMzjzLoBBqqRY0n3lazWk7O3gmgi0O2q0pAH2
-	 CPajNNnvrlt9mM+knpgH74lBDAin4wB7FJ1Vz6xKP/WdEuPZmwv5SuSoAGyGiasKOX
-	 fhTNx3NACRloivX0K03OREx17ccl8UT7PGuWJ7Go=
-Date: Fri, 06 Sep 2024 19:58:51 -0700
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=NRU3sGsZDvMhmsH+el7OMsh6PeEqplGahtqfkBWfeVwZnop8/i+Rw9TNebq0a9zLq
+	 eTe/h2zOlQEhjTZ8tD44/P2cmR3yyjdpykblCAXWjKHGaA99Y2CISfY6YWaIHudskD
+	 9yVLmcCRZSsJFJRR98e96BiXKbvrDZYB5LQiSt5w=
+Date: Fri, 06 Sep 2024 20:13:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,nphamcs@gmail.com,liam.howlett@oracle.com,hughd@google.com,baolin.wang@linux.alibaba.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-mark-three-functions-as-__maybe_unused.patch added to mm-unstable branch
-Message-Id: <20240907025852.1ADFEC4CEC4@smtp.kernel.org>
+Subject: + mm-replace-xa_get_order-with-xas_get_order-where-appropriate.patch added to mm-unstable branch
+Message-Id: <20240907031356.68708C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: mark three functions as __maybe_unused
+     Subject: mm: replace xa_get_order with xas_get_order where appropriate
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-mark-three-functions-as-__maybe_unused.patch
+     mm-replace-xa_get_order-with-xas_get_order-where-appropriate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-mark-three-functions-as-__maybe_unused.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-xa_get_order-with-xas_get_order-where-appropriate.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,56 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: mark three functions as __maybe_unused
-Date: Fri, 6 Sep 2024 22:15:06 -0400
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm: replace xa_get_order with xas_get_order where appropriate
+Date: Fri, 6 Sep 2024 16:05:12 -0700
 
-People keep trying to remove three functions that are going to be used in
-a feature that is being developed.  Dropping the functions entirely may
-end up with people trying to use the bit for other uses, as people have
-tried in the past.
+The tracing of invalidation and truncation operations on large files
+showed that xa_get_order() is among the top functions where kernel spends
+a lot of CPUs.  xa_get_order() needs to traverse the tree to reach the
+right node for a given index and then extract the order of the entry. 
+However it seems like at many places it is being called within an already
+happening tree traversal where there is no need to do another traversal. 
+Just use xas_get_order() at those places.
 
-Adding __maybe_unused stops compilers complaining about the unused
-functions so they can be silently optimised out of the compiled code and
-people won't try to claim the bit for another use.
-
-Link: https://lore.kernel.org/all/20230726080916.17454-2-zhangpeng.00@bytedance.com/
-Link: https://lore.kernel.org/all/202408310728.S7EE59BN-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20240907021506.4018676-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20240906230512.124643-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/filemap.c |    6 +++---
+ mm/shmem.c   |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-mark-three-functions-as-__maybe_unused
-+++ a/lib/maple_tree.c
-@@ -348,17 +348,17 @@ static inline void *mte_safe_root(const
- 	return (void *)((unsigned long)node & ~MAPLE_ROOT_NODE);
+--- a/mm/filemap.c~mm-replace-xa_get_order-with-xas_get_order-where-appropriate
++++ a/mm/filemap.c
+@@ -2112,7 +2112,7 @@ unsigned find_lock_entries(struct addres
+ 			VM_BUG_ON_FOLIO(!folio_contains(folio, xas.xa_index),
+ 					folio);
+ 		} else {
+-			nr = 1 << xa_get_order(&mapping->i_pages, xas.xa_index);
++			nr = 1 << xas_get_order(&xas);
+ 			base = xas.xa_index & ~(nr - 1);
+ 			/* Omit order>0 value which begins before the start */
+ 			if (base < *start)
+@@ -3005,7 +3005,7 @@ unlock:
+ static inline size_t seek_folio_size(struct xa_state *xas, struct folio *folio)
+ {
+ 	if (xa_is_value(folio))
+-		return PAGE_SIZE << xa_get_order(xas->xa, xas->xa_index);
++		return PAGE_SIZE << xas_get_order(xas);
+ 	return folio_size(folio);
  }
  
--static inline void *mte_set_full(const struct maple_enode *node)
-+static inline void __maybe_unused *mte_set_full(const struct maple_enode *node)
- {
- 	return (void *)((unsigned long)node & ~MAPLE_ENODE_NULL);
- }
+@@ -4301,7 +4301,7 @@ static void filemap_cachestat(struct add
+ 		if (xas_retry(&xas, folio))
+ 			continue;
  
--static inline void *mte_clear_full(const struct maple_enode *node)
-+static inline void __maybe_unused *mte_clear_full(const struct maple_enode *node)
- {
- 	return (void *)((unsigned long)node | MAPLE_ENODE_NULL);
- }
- 
--static inline bool mte_has_null(const struct maple_enode *node)
-+static inline bool __maybe_unused mte_has_null(const struct maple_enode *node)
- {
- 	return (unsigned long)node & MAPLE_ENODE_NULL;
- }
+-		order = xa_get_order(xas.xa, xas.xa_index);
++		order = xas_get_order(&xas);
+ 		nr_pages = 1 << order;
+ 		folio_first_index = round_down(xas.xa_index, 1 << order);
+ 		folio_last_index = folio_first_index + nr_pages - 1;
+--- a/mm/shmem.c~mm-replace-xa_get_order-with-xas_get_order-where-appropriate
++++ a/mm/shmem.c
+@@ -890,7 +890,7 @@ unsigned long shmem_partial_swap_usage(s
+ 		if (xas_retry(&xas, page))
+ 			continue;
+ 		if (xa_is_value(page))
+-			swapped += 1 << xa_get_order(xas.xa, xas.xa_index);
++			swapped += 1 << xas_get_order(&xas);
+ 		if (xas.xa_index == max)
+ 			break;
+ 		if (need_resched()) {
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock.patch
-maple_tree-mark-three-functions-as-__maybe_unused.patch
+mm-replace-xa_get_order-with-xas_get_order-where-appropriate.patch
 
