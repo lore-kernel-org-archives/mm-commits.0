@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D30F81B7E9
-	for <mm-commits@vger.kernel.org>; Sat,  7 Sep 2024 03:22:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B03431B813;
+	Sun,  8 Sep 2024 03:18:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725679338; cv=none; b=tK/MxAQnnDzHQh6tKRjt8B8HiHapd/u6qyOXlwe7pqGZwV8xJOlVcTItC6SgEPMab36qmL0H9g7590r1OC6HdR0jAOmu3oB9M+AtTA3jogRBlXGtvJ96GgDlsbhOF7k+x+ygWNqSUlpVpmIn9sKQD0jI+TwiXlWd9SmOOLb2aws=
+	t=1725765519; cv=none; b=VUc2LltbLlJT65gj7Wyawdgt2U+hxtiLYPHJrQPyh2WFubOCUG6P7EFNQNHmvWxm6bgMwrs+iAmNyZb5ps9d7NwhKnIybGxyfQHznlKkfO4Iy04nXpJBtGY4jsptWylnsmpGDI/gFsbrFGfZLwuSTFkJMyd4FVYQW+zPwo/bYAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725679338; c=relaxed/simple;
-	bh=uGLnSbpBMqzP26SJDkhPLJCy1qXWS79HpSWc7aS1JSw=;
-	h=Date:To:From:Subject:Message-Id; b=hkt/cFjN1eOY5nAkXJtW+TeMwOo9mAL46fi5SewCV6ygpGChRYcls3Y7c7qyBkz6+AL01tHdqCDLiWua7KBr07dMtl/Nb9wxBON2H1Wpcxsr6dPbvhNty1pzAhudSJTf+oCIwKOx/H5UTSMCRPveTaNQyShL7ixqeNN4JgCEc1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JDqOwucr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725765519; c=relaxed/simple;
+	bh=iEdRwVarYvvWd/IqB67Bhti1Tdv/iFdcnwfQu76hpOI=;
+	h=Date:To:From:Subject:Message-Id; b=SiwJy0thRyZNEi7/v2Fbe8+97vt0EXDaLO39iVBlgMy63cFpzU+rzXnJcxm93IJkYFgkjryCylLvrMDTzJFb2ErxF2jGuhJBcbssebwOe7RTT4izSye3z/tjmG3mfYWp9w4ZP6fU98Z9A+nteSxu8eOa7v397MxkhSg9kNSF4Kw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1J7Chgsq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JDqOwucr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E207C4CEC4;
-	Sat,  7 Sep 2024 03:22:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1J7Chgsq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12546C4CEC4;
+	Sun,  8 Sep 2024 03:18:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725679338;
-	bh=uGLnSbpBMqzP26SJDkhPLJCy1qXWS79HpSWc7aS1JSw=;
+	s=korg; t=1725765519;
+	bh=iEdRwVarYvvWd/IqB67Bhti1Tdv/iFdcnwfQu76hpOI=;
 	h=Date:To:From:Subject:From;
-	b=JDqOwucrfWX78FJIbK1YBX3v7u/M6sDslOrcXcDmgTkSz1Mmtrtf+vs+JkPs2X/rY
-	 QM1FsWjerMyszTLKwZ03pdOIixd/+g3ZAqQUe6aFVZSz2toZ41DSN43mU6Wrj7ecUq
-	 LsDfw5CImn2Sgju7HFugNIDQzh5zlVTxwoH7V6JU=
-Date: Fri, 06 Sep 2024 20:22:17 -0700
-To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=1J7ChgsqhQl0xC0v6WVYvhlzFr7aR7bXNl7VGnNcarce7YSWTWltC5H2c5laMCk3W
+	 eGkMeHyCMrK9WzwdD/SUUTHzFkPNJ57HVEpZZ15Z1PPtfRneoaLtNjNVITKrWC70vq
+	 VN0VmZwa1H4YHZ8zDEQ9Zfxx36RMSBYTdAMdLi/c=
+Date: Sat, 07 Sep 2024 20:18:38 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,muchun.song@linux.dev,kent.overstreet@linux.dev,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-correct-the-typo-retun.patch added to mm-nonmm-unstable branch
-Message-Id: <20240907032218.3E207C4CEC4@smtp.kernel.org>
+Subject: + mm-codetag-fix-pgalloc_tag_split.patch added to mm-unstable branch
+Message-Id: <20240908031839.12546C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: correct the typo 'retun'
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     treewide-correct-the-typo-retun.patch
+     Subject: mm/codetag: fix pgalloc_tag_split()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-codetag-fix-pgalloc_tag_split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-correct-the-typo-retun.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-fix-pgalloc_tag_split.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,107 +58,192 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: treewide: correct the typo 'retun'
-Date: Fri, 6 Sep 2024 13:40:08 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/codetag: fix pgalloc_tag_split()
+Date: Thu, 5 Sep 2024 22:21:07 -0600
 
-There are some spelling mistakes of 'retun' in comments which
-should be instead of 'return'.
+The current assumption is that a large folio can only be split into
+order-0 folios.  That is not the case for hugeTLB demotion, nor for THP
+split: see commit c010d47f107f ("mm: thp: split huge page to any lower
+order pages").
 
-Link: https://lkml.kernel.org/r/63D0F870EE8E87A0+20240906054008.390188-1-wangyuli@uniontech.com
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
+When a large folio is split into ones of a lower non-zero order, only the
+new head pages should be tagged.  Tagging tail pages can cause imbalanced
+"calls" counters, since only head pages are untagged by pgalloc_tag_sub()
+and the "calls" counts on tail pages are leaked, e.g.,
+
+  # echo 2048kB >/sys/kernel/mm/hugepages/hugepages-1048576kB/demote_size
+  # echo 700 >/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+  # time echo 700 >/sys/kernel/mm/hugepages/hugepages-1048576kB/demote
+  # echo 0 >/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+  # grep alloc_gigantic_folio /proc/allocinfo
+
+Before this patch:
+  0  549427200  mm/hugetlb.c:1549 func:alloc_gigantic_folio
+
+  real  0m2.057s
+  user  0m0.000s
+  sys   0m2.051s
+
+After this patch:
+  0          0  mm/hugetlb.c:1549 func:alloc_gigantic_folio
+
+  real  0m1.711s
+  user  0m0.000s
+  sys   0m1.704s
+
+Not tagging tail pages also improves the splitting time, e.g., by about
+15% when demoting 1GB hugeTLB folios to 2MB ones, as shown above.
+
+Link: https://lkml.kernel.org/r/20240906042108.1150526-2-yuzhao@google.com
+Fixes: be25d1d4e822 ("mm: create new codetag references during page splitting")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 +-
- drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h  |    2 +-
- drivers/infiniband/core/sa_query.c        |    2 +-
- drivers/input/misc/wistron_btns.c         |    2 +-
- drivers/mtd/nand/raw/nandsim.c            |    2 +-
- drivers/scsi/bfa/bfa_fcs.c                |    2 +-
- drivers/scsi/pmcraid.c                    |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/mm.h          |   30 ++++++++++++++++++++++++++++++
+ include/linux/pgalloc_tag.h |   31 -------------------------------
+ mm/huge_memory.c            |    2 +-
+ mm/hugetlb.c                |    2 +-
+ mm/page_alloc.c             |    4 ++--
+ 5 files changed, 34 insertions(+), 35 deletions(-)
 
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c~treewide-correct-the-typo-retun
-+++ a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -333,7 +333,7 @@ int omap4_hotplug_cpu(unsigned int cpu,
- 	omap_pm_ops.scu_prepare(cpu, power_state);
+--- a/include/linux/mm.h~mm-codetag-fix-pgalloc_tag_split
++++ a/include/linux/mm.h
+@@ -4137,4 +4137,34 @@ void vma_pgtable_walk_end(struct vm_area
  
- 	/*
--	 * CPU never retuns back if targeted power state is OFF mode.
-+	 * CPU never returns back if targeted power state is OFF mode.
- 	 * CPU ONLINE follows normal CPU ONLINE ptah via
- 	 * omap4_secondary_startup().
- 	 */
---- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h~treewide-correct-the-typo-retun
-+++ a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
-@@ -231,7 +231,7 @@ struct dpu_crtc_state {
- 	container_of(x, struct dpu_crtc_state, base)
+ int reserve_mem_find_by_name(const char *name, phys_addr_t *start, phys_addr_t *size);
  
- /**
-- * dpu_crtc_frame_pending - retun the number of pending frames
-+ * dpu_crtc_frame_pending - return the number of pending frames
-  * @crtc: Pointer to drm crtc object
-  */
- static inline int dpu_crtc_frame_pending(struct drm_crtc *crtc)
---- a/drivers/infiniband/core/sa_query.c~treewide-correct-the-typo-retun
-+++ a/drivers/infiniband/core/sa_query.c
-@@ -1420,7 +1420,7 @@ enum opa_pr_supported {
- /*
-  * opa_pr_query_possible - Check if current PR query can be an OPA query.
-  *
-- * Retuns PR_NOT_SUPPORTED if a path record query is not
-+ * Returns PR_NOT_SUPPORTED if a path record query is not
-  * possible, PR_OPA_SUPPORTED if an OPA path record query
-  * is possible and PR_IB_SUPPORTED if an IB path record
-  * query is possible.
---- a/drivers/input/misc/wistron_btns.c~treewide-correct-the-typo-retun
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -1075,7 +1075,7 @@ static void wistron_led_init(struct devi
++#ifdef CONFIG_MEM_ALLOC_PROFILING
++static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
++{
++	int i;
++	struct alloc_tag *tag;
++	unsigned int nr_pages = 1 << new_order;
++
++	if (!mem_alloc_profiling_enabled())
++		return;
++
++	tag = pgalloc_tag_get(&folio->page);
++	if (!tag)
++		return;
++
++	for (i = nr_pages; i < (1 << old_order); i += nr_pages) {
++		union codetag_ref *ref = get_page_tag_ref(folio_page(folio, i));
++
++		if (ref) {
++			/* Set new reference to point to the original tag */
++			alloc_tag_ref_set(ref, tag);
++			put_page_tag_ref(ref);
++		}
++	}
++}
++#else /* !CONFIG_MEM_ALLOC_PROFILING */
++static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
++{
++}
++#endif /* CONFIG_MEM_ALLOC_PROFILING */
++
+ #endif /* _LINUX_MM_H */
+--- a/include/linux/pgalloc_tag.h~mm-codetag-fix-pgalloc_tag_split
++++ a/include/linux/pgalloc_tag.h
+@@ -80,36 +80,6 @@ static inline void pgalloc_tag_sub(struc
  	}
- 
- 	if (leds_present & FE_MAIL_LED) {
--		/* bios_get_default_setting(MAIL) always retuns 0, so just turn the led off */
-+		/* bios_get_default_setting(MAIL) always returns 0, so just turn the led off */
- 		wistron_mail_led.brightness = LED_OFF;
- 		if (led_classdev_register(parent, &wistron_mail_led))
- 			leds_present &= ~FE_MAIL_LED;
---- a/drivers/mtd/nand/raw/nandsim.c~treewide-correct-the-typo-retun
-+++ a/drivers/mtd/nand/raw/nandsim.c
-@@ -1381,7 +1381,7 @@ static inline union ns_mem *NS_GET_PAGE(
  }
  
- /*
-- * Retuns a pointer to the current byte, within the current page.
-+ * Returns a pointer to the current byte, within the current page.
-  */
- static inline u_char *NS_PAGE_BYTE_OFF(struct nandsim *ns)
+-static inline void pgalloc_tag_split(struct page *page, unsigned int nr)
+-{
+-	int i;
+-	struct page_ext *first_page_ext;
+-	struct page_ext *page_ext;
+-	union codetag_ref *ref;
+-	struct alloc_tag *tag;
+-
+-	if (!mem_alloc_profiling_enabled())
+-		return;
+-
+-	first_page_ext = page_ext = page_ext_get(page);
+-	if (unlikely(!page_ext))
+-		return;
+-
+-	ref = codetag_ref_from_page_ext(page_ext);
+-	if (!ref->ct)
+-		goto out;
+-
+-	tag = ct_to_alloc_tag(ref->ct);
+-	page_ext = page_ext_next(page_ext);
+-	for (i = 1; i < nr; i++) {
+-		/* Set new reference to point to the original tag */
+-		alloc_tag_ref_set(codetag_ref_from_page_ext(page_ext), tag);
+-		page_ext = page_ext_next(page_ext);
+-	}
+-out:
+-	page_ext_put(first_page_ext);
+-}
+-
+ static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
  {
---- a/drivers/scsi/bfa/bfa_fcs.c~treewide-correct-the-typo-retun
-+++ a/drivers/scsi/bfa/bfa_fcs.c
-@@ -1431,7 +1431,7 @@ bfa_cb_lps_flogo_comp(void *bfad, void *
-  *	param[in]	vf_id - VF_ID
-  *
-  *	return
-- *	If lookup succeeds, retuns fcs vf object, otherwise returns NULL
-+ *	If lookup succeeds, returns fcs vf object, otherwise returns NULL
-  */
- bfa_fcs_vf_t   *
- bfa_fcs_vf_lookup(struct bfa_fcs_s *fcs, u16 vf_id)
---- a/drivers/scsi/pmcraid.c~treewide-correct-the-typo-retun
-+++ a/drivers/scsi/pmcraid.c
-@@ -4009,7 +4009,7 @@ static void pmcraid_tasklet_function(uns
-  * This routine un-registers registered interrupt handler and
-  * also frees irqs/vectors.
-  *
-- * Retun Value
-+ * Return Value
-  *	None
-  */
- static
+ 	struct alloc_tag *tag = NULL;
+@@ -142,7 +112,6 @@ static inline void clear_page_tag_ref(st
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
+-static inline void pgalloc_tag_split(struct page *page, unsigned int nr) {}
+ static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
+ static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
+ 
+--- a/mm/huge_memory.c~mm-codetag-fix-pgalloc_tag_split
++++ a/mm/huge_memory.c
+@@ -3242,7 +3242,7 @@ static void __split_huge_page(struct pag
+ 	/* Caller disabled irqs, so they are still disabled here */
+ 
+ 	split_page_owner(head, order, new_order);
+-	pgalloc_tag_split(head, 1 << order);
++	pgalloc_tag_split(folio, order, new_order);
+ 
+ 	/* See comment in __split_huge_page_tail() */
+ 	if (folio_test_anon(folio)) {
+--- a/mm/hugetlb.c~mm-codetag-fix-pgalloc_tag_split
++++ a/mm/hugetlb.c
+@@ -3795,7 +3795,7 @@ static long demote_free_hugetlb_folios(s
+ 		list_del(&folio->lru);
+ 
+ 		split_page_owner(&folio->page, huge_page_order(src), huge_page_order(dst));
+-		pgalloc_tag_split(&folio->page, 1 <<  huge_page_order(src));
++		pgalloc_tag_split(folio, huge_page_order(src), huge_page_order(dst));
+ 
+ 		for (i = 0; i < pages_per_huge_page(src); i += pages_per_huge_page(dst)) {
+ 			struct page *page = folio_page(folio, i);
+--- a/mm/page_alloc.c~mm-codetag-fix-pgalloc_tag_split
++++ a/mm/page_alloc.c
+@@ -2783,7 +2783,7 @@ void split_page(struct page *page, unsig
+ 	for (i = 1; i < (1 << order); i++)
+ 		set_page_refcounted(page + i);
+ 	split_page_owner(page, order, 0);
+-	pgalloc_tag_split(page, 1 << order);
++	pgalloc_tag_split(page_folio(page), order, 0);
+ 	split_page_memcg(page, order, 0);
+ }
+ EXPORT_SYMBOL_GPL(split_page);
+@@ -4981,7 +4981,7 @@ static void *make_alloc_exact(unsigned l
+ 		struct page *last = page + nr;
+ 
+ 		split_page_owner(page, order, 0);
+-		pgalloc_tag_split(page, 1 << order);
++		pgalloc_tag_split(page_folio(page), order, 0);
+ 		split_page_memcg(page, order, 0);
+ 		while (page < --last)
+ 			set_page_refcounted(last);
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-treewide-correct-the-typo-retun.patch
+mm-remap-unused-subpages-to-shared-zeropage-when-splitting-isolated-thp.patch
+mm-codetag-fix-a-typo.patch
+mm-codetag-fix-pgalloc_tag_split.patch
+mm-codetag-add-pgalloc_tag_copy.patch
 
