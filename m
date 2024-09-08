@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 365D3A31
-	for <mm-commits@vger.kernel.org>; Sun,  8 Sep 2024 04:21:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24D59A31
+	for <mm-commits@vger.kernel.org>; Sun,  8 Sep 2024 04:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725769281; cv=none; b=B95mA3nyTmRWv+QiCEi3ftUiy6B3dzGFcrRfIV4fk5YiOr6l7fcBa9Au7MXXEXKBTNUEGAvMBzgSFGiG/qB9CUkHrN8YJ6LtTONdPXye+vivncwmmlh5HgduGha7/aOplyEZcptt8PB9X1Ge+DrBOhPOYh4u7GhMgjqw++tXwNo=
+	t=1725769283; cv=none; b=JkGtZK0tWe8MqIhhcikBsEnMErb1AogPe6yljTM48KS95bNHmedyHpG0KKRluzjiL36uxEIF20XeAT+tgu5snL48O2deGNjMl0kRTTZ+iaA/xz3G5t3X3Y3FdOfmqahYSabaX8PERS/wq7/3XnkcD79Dk8OfcPhhuoxy2zRTCXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725769281; c=relaxed/simple;
-	bh=dXnw4y24yM3u0I8O8CMCcTNHiukMAOpwYGh1gKhjMRU=;
-	h=Date:To:From:Subject:Message-Id; b=LoHTCJUVhRpD009isjco2lC6twsbPmf71XpCPXO7fnWZyvgeYYk/i0TJ1eoN8XhDNOyK/cc2Wnl1oMP+7mmxR0RrPkFX9dcWQBLaZoG2GtWznzuVay/h+Jccezy96sChYcu/FTPS4mzApR6Jt206q1KkrG4hVm5wId26e90sakQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xfOgW11B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725769283; c=relaxed/simple;
+	bh=Y642D2n3PthR+/V+bpkpt8S3eSOoTwlpxsl6CgI+HEU=;
+	h=Date:To:From:Subject:Message-Id; b=cGnQY/ux0Hw0c9v5E4Yhme82A+/sybzvA45e9I25wEk0hhOwiU+0n/vInvh8OPrY4dT4H2jyzUEGtsBnNOvhsEAmXtkZnhIqq5Yw8ZW72E0kUQng2rhvtkA407yG8F/34nsJS5OwjDxF+u5RabSpbEh3AL9L/rGYGwKNBMt1ujQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fwXsJo10; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xfOgW11B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9980DC4CEC3;
-	Sun,  8 Sep 2024 04:21:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fwXsJo10"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88058C4CEC3;
+	Sun,  8 Sep 2024 04:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725769280;
-	bh=dXnw4y24yM3u0I8O8CMCcTNHiukMAOpwYGh1gKhjMRU=;
+	s=korg; t=1725769282;
+	bh=Y642D2n3PthR+/V+bpkpt8S3eSOoTwlpxsl6CgI+HEU=;
 	h=Date:To:From:Subject:From;
-	b=xfOgW11BTKlEcxJsFj/ovCM2FTfSJ2VMVl//pQAk6ISY1x18t3NfS2GgQUg+tAZMI
-	 IqbtymeZE217z+Z3j7Ir7mjcK8MNyEi9qBmFDYL48mxANct7xrCAergiIsUfd4nsV7
-	 TOxOlunW7n4R9NlaMrqVKOZveBS/qL/Xd68N9RwI=
-Date: Sat, 07 Sep 2024 21:21:20 -0700
+	b=fwXsJo10cZfPuBKiWJEU+dHbDtoPKpNZp+qN5e0jmVI200tl06GtNbbYBuLjqI5QI
+	 K9v1gJyNtRxKav60fuLlhZV2NfZHaGrVqslQ/+cluGVjNma3PYWP4DMXfibp6DKrm4
+	 5onmp4TgfRPCrAHCMznDVMTyyJN7BXH/yNEWXiOU=
+Date: Sat, 07 Sep 2024 21:21:21 -0700
 To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,jane.chu@oracle.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-poison-recovery-from-do_cow_fault.patch added to mm-unstable branch
-Message-Id: <20240908042120.9980DC4CEC3@smtp.kernel.org>
+Subject: + mm-support-poison-recovery-from-copy_present_page.patch added to mm-unstable branch
+Message-Id: <20240908042122.88058C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: support poison recovery from do_cow_fault()
+     Subject: mm: support poison recovery from copy_present_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-support-poison-recovery-from-do_cow_fault.patch
+     mm-support-poison-recovery-from-copy_present_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-poison-recovery-from-do_cow_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-poison-recovery-from-copy_present_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: support poison recovery from do_cow_fault()
-Date: Fri, 6 Sep 2024 10:42:00 +0800
+Subject: mm: support poison recovery from copy_present_page()
+Date: Fri, 6 Sep 2024 10:42:01 +0800
 
-Patch series "mm: hwpoison: two more poison recovery".
+Similar to other poison recovery, use copy_mc_user_highpage() to avoid
+potentially kernel panic during copy page in copy_present_page() from
+fork, once copy failed due to hwpoison in source page, we need to break
+out of copy in copy_pte_range() and release prealloc folio, so
+copy_mc_user_highpage() is moved ahead before set *prealloc to NULL.
 
-One more CoW path to support poison recorvery in do_cow_fault(), and the
-last copy_user_highpage() user is replaced to copy_mc_user_highpage() from
-copy_present_page() during fork to support poison recorvery too.
-
-
-This patch (of 2):
-
-Like commit a873dfe1032a ("mm, hwpoison: try to recover from copy-on
-write faults"), there is another path which could crash because it does
-not have recovery code where poison is consumed by the kernel in
-do_cow_fault(), a crash calltrace shown below on old kernel, but it
-could be happened in the lastest mainline code,
-
-  CPU: 7 PID: 3248 Comm: mpi Kdump: loaded Tainted: G           OE     5.10.0 #1
-  pc : copy_page+0xc/0xbc
-  lr : copy_user_highpage+0x50/0x9c
-  Call trace:
-    copy_page+0xc/0xbc
-    do_cow_fault+0x118/0x2bc
-    do_fault+0x40/0x1a4
-    handle_pte_fault+0x154/0x230
-    __handle_mm_fault+0x1a8/0x38c
-    handle_mm_fault+0xf0/0x250
-    do_page_fault+0x184/0x454
-    do_translation_fault+0xac/0xd4
-    do_mem_abort+0x44/0xbc
-
-Fix it by using copy_mc_user_highpage() to handle this case and return
-VM_FAULT_HWPOISON for cow fault.
-
-Link: https://lkml.kernel.org/r/20240906024201.1214712-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20240906024201.1214712-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240906024201.1214712-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -106,23 +79,44 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memory.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-support-poison-recovery-from-do_cow_fault
+--- a/mm/memory.c~mm-support-poison-recovery-from-copy_present_page
 +++ a/mm/memory.c
-@@ -5089,7 +5089,10 @@ static vm_fault_t do_cow_fault(struct vm
- 	if (ret & VM_FAULT_DONE_COW)
- 		return ret;
- 
--	copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
-+	if (copy_mc_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma)) {
-+		ret = VM_FAULT_HWPOISON;
-+		goto uncharge_out;
-+	}
- 	__folio_mark_uptodate(folio);
- 
- 	ret |= finish_fault(vmf);
+@@ -926,8 +926,11 @@ copy_present_page(struct vm_area_struct
+ 	 * We have a prealloc page, all good!  Take it
+ 	 * over and copy the page & arm it.
+ 	 */
++
++	if (copy_mc_user_highpage(&new_folio->page, page, addr, src_vma))
++		return -EHWPOISON;
++
+ 	*prealloc = NULL;
+-	copy_user_highpage(&new_folio->page, page, addr, src_vma);
+ 	__folio_mark_uptodate(new_folio);
+ 	folio_add_new_anon_rmap(new_folio, dst_vma, addr, RMAP_EXCLUSIVE);
+ 	folio_add_lru_vma(new_folio, dst_vma);
+@@ -1166,8 +1169,9 @@ again:
+ 		/*
+ 		 * If we need a pre-allocated page for this pte, drop the
+ 		 * locks, allocate, and try again.
++		 * If copy failed due to hwpoison in source page, break out.
+ 		 */
+-		if (unlikely(ret == -EAGAIN))
++		if (unlikely(ret == -EAGAIN || ret == -EHWPOISON))
+ 			break;
+ 		if (unlikely(prealloc)) {
+ 			/*
+@@ -1197,7 +1201,7 @@ again:
+ 			goto out;
+ 		}
+ 		entry.val = 0;
+-	} else if (ret == -EBUSY) {
++	} else if (ret == -EBUSY || unlikely(ret == -EHWPOISON)) {
+ 		goto out;
+ 	} else if (ret ==  -EAGAIN) {
+ 		prealloc = folio_prealloc(src_mm, src_vma, addr, false);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
