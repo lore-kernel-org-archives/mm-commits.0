@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FADE18E345
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9E918E345
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925274; cv=none; b=kGTFGytpkoddlSLzbpNAHT16aABNWvi5+mSsYd19wM2AzMz0kbhQ1a3STQrmq3r/d72hRbOmF3kqRz8/fhtCJmHr+RKv6p8HPcl7HpCT3S9NYBn4l773vbWr/LiTa7lNKCpMpy1/+YeRd99xCrYXMS68c2F4PQL2cEaeKfvkFb8=
+	t=1725925275; cv=none; b=ChEjvon2iPTNwytzGbFAa6VQccLtYmwb9TMCRUOIYHW6my/YelHkcVu/+bsgoJq7RRmclTtHUwhg5zP+QYwYBEsk86c7ELCQdH/ddOW/TSmwKLpgx3ILIeO1MlmcBSG033C7bv54RvFNYeKz33VHTs/SGyf2fuwCIl4pLzLldAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925274; c=relaxed/simple;
-	bh=6gS60h0qK+PPnRqbvo0l10NiZT1BDlDHw8jOQPeXnCs=;
-	h=Date:To:From:Subject:Message-Id; b=RJ1Vacw26tCuxWuMGDgwZm/QG00DTuI+FF1b5G9lYRbgnKj6wLDg9kgPQgkPxeNFCTdw9tiSdkLiZBXh5fyEgY5Fb7dE1IKFpoybggt/MIRfFBUhj8u1m1sEGaXJVTvaLlIkUgdkRvcnNG1GBmJe7hRa3aACshff0AFKvuJCcfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tn3kfz8t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925275; c=relaxed/simple;
+	bh=Nmiu+uvNnzUlORaZVn53v4J30FBsIb3Q1L1avmzorT0=;
+	h=Date:To:From:Subject:Message-Id; b=XGWzuADiK1ioUiC4xiDkWg+7gePycR6wCK7PTpzuc4mO5l3/jxFg7sO7oF5eQy8DvFDtvnk7fhiEisXxU/xbJKu9m4FA3kLlSCohC9j9pued8oVtnqJykrhiEz42wtniJu1r+pVazjlllC/V5xP/YVJqZ8hZdMsnwJ1p1DMp+vM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OyMffVDY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tn3kfz8t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19451C4CEC5;
-	Mon,  9 Sep 2024 23:41:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OyMffVDY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63B90C4CEC5;
+	Mon,  9 Sep 2024 23:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925274;
-	bh=6gS60h0qK+PPnRqbvo0l10NiZT1BDlDHw8jOQPeXnCs=;
+	s=korg; t=1725925275;
+	bh=Nmiu+uvNnzUlORaZVn53v4J30FBsIb3Q1L1avmzorT0=;
 	h=Date:To:From:Subject:From;
-	b=Tn3kfz8togmSLKQokV1fsqvgbScvqMUwhoPB7MPCsC4Aj7o2X12wd2Vggd478Np0S
-	 jmExwZga1sdsuvZXpRejLazDOh+nhjOtntn1j0W/oMLxwsvkpRU4xpeBx589iJLl60
-	 dsq+XpQJdcey+1LsW37Cd5aINBYaRbDIer3jB0Uo=
-Date: Mon, 09 Sep 2024 16:41:13 -0700
+	b=OyMffVDYu802ivDjSJgm214dLXMzz0yDLOYMtI+Om8eXDcJCFzohBveRrOVO2PULx
+	 rfBGcji/wKh7EIwOlckCgSHNaB8+M5Ge5Bw6qCW2ySrvfsUhLg9Y+h7GpcKbQLSGXv
+	 5LtnavGec5ReDK9/IPvd/rxzRjyS6/H/p54FtrU8=
+Date: Mon, 09 Sep 2024 16:41:14 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-introduce-zcomp_params-structure.patch removed from -mm tree
-Message-Id: <20240909234114.19451C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] zram-recalculate-zstd-compression-params-once.patch removed from -mm tree
+Message-Id: <20240909234115.63B90C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,328 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: introduce zcomp_params structure
+     Subject: zram: recalculate zstd compression params once
 has been removed from the -mm tree.  Its filename was
-     zram-introduce-zcomp_params-structure.patch
+     zram-recalculate-zstd-compression-params-once.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: introduce zcomp_params structure
-Date: Mon, 2 Sep 2024 19:56:01 +0900
+Subject: zram: recalculate zstd compression params once
+Date: Mon, 2 Sep 2024 19:56:02 +0900
 
-We will store a per-algorithm parameters there (compression level,
-dictionary, dictionary size, etc.).
+zstd compression params depends on level, but are constant for a given
+instance of zstd compression backend.  Calculate once (during ctx
+creation).
 
-Link: https://lkml.kernel.org/r/20240902105656.1383858-14-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240902105656.1383858-15-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_842.c     |    2 +-
- drivers/block/zram/backend_deflate.c |    9 ++++++---
- drivers/block/zram/backend_lz4.c     |    9 ++++++---
- drivers/block/zram/backend_lz4hc.c   |    9 ++++++---
- drivers/block/zram/backend_lzo.c     |    2 +-
- drivers/block/zram/backend_lzorle.c  |    2 +-
- drivers/block/zram/backend_zstd.c    |   18 +++++++++++-------
- drivers/block/zram/zcomp.c           |    5 +++--
- drivers/block/zram/zcomp.h           |   14 ++++++++++++--
- drivers/block/zram/zram_drv.c        |   20 +++++++++++++++++++-
- drivers/block/zram/zram_drv.h        |    1 +
- 11 files changed, 67 insertions(+), 24 deletions(-)
+ drivers/block/zram/backend_zstd.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/backend_842.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_842.c
-@@ -19,7 +19,7 @@ static void destroy_842(void *ctx)
- 	kfree(zctx);
- }
- 
--static void *create_842(void)
-+static void *create_842(struct zcomp_params *params)
- {
- 	struct sw842_ctx *ctx;
- 
---- a/drivers/block/zram/backend_deflate.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_deflate.c
-@@ -32,7 +32,7 @@ static void deflate_destroy(void *ctx)
- 	kfree(zctx);
- }
- 
--static void *deflate_create(void)
-+static void *deflate_create(struct zcomp_params *params)
- {
- 	struct deflate_ctx *ctx;
- 	size_t sz;
-@@ -42,8 +42,11 @@ static void *deflate_create(void)
- 	if (!ctx)
- 		return NULL;
- 
--	/* @FIXME: using a hardcoded Z_DEFAULT_COMPRESSION for now */
--	ctx->level = Z_DEFAULT_COMPRESSION;
-+	if (params->level != ZCOMP_PARAM_NO_LEVEL)
-+		ctx->level = params->level;
-+	else
-+		ctx->level = Z_DEFAULT_COMPRESSION;
-+
- 	sz = zlib_deflate_workspacesize(-DEFLATE_DEF_WINBITS, MAX_MEM_LEVEL);
- 	ctx->cctx.workspace = vzalloc(sz);
- 	if (!ctx->cctx.workspace)
---- a/drivers/block/zram/backend_lz4.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_lz4.c
-@@ -18,7 +18,7 @@ static void lz4_destroy(void *ctx)
- 	kfree(zctx);
- }
- 
--static void *lz4_create(void)
-+static void *lz4_create(struct zcomp_params *params)
- {
- 	struct lz4_ctx *ctx;
- 
-@@ -26,8 +26,11 @@ static void *lz4_create(void)
- 	if (!ctx)
- 		return NULL;
- 
--	/* @FIXME: using a hardcoded LZ4_ACCELERATION_DEFAULT for now */
--	ctx->level = LZ4_ACCELERATION_DEFAULT;
-+	if (params->level != ZCOMP_PARAM_NO_LEVEL)
-+		ctx->level = params->level;
-+	else
-+		ctx->level = LZ4_ACCELERATION_DEFAULT;
-+
- 	ctx->mem = vmalloc(LZ4_MEM_COMPRESS);
- 	if (!ctx->mem)
- 		goto error;
---- a/drivers/block/zram/backend_lz4hc.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -18,7 +18,7 @@ static void lz4hc_destroy(void *ctx)
- 	kfree(zctx);
- }
- 
--static void *lz4hc_create(void)
-+static void *lz4hc_create(struct zcomp_params *params)
- {
- 	struct lz4hc_ctx *ctx;
- 
-@@ -26,8 +26,11 @@ static void *lz4hc_create(void)
- 	if (!ctx)
- 		return NULL;
- 
--	/* @FIXME: using a hardcoded LZ4HC_DEFAULT_CLEVEL for now */
--	ctx->level = LZ4HC_DEFAULT_CLEVEL;
-+	if (params->level != ZCOMP_PARAM_NO_LEVEL)
-+		ctx->level = params->level;
-+	else
-+		ctx->level = LZ4HC_DEFAULT_CLEVEL;
-+
- 	ctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
- 	if (!ctx->mem)
- 		goto error;
---- a/drivers/block/zram/backend_lzo.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_lzo.c
-@@ -6,7 +6,7 @@
- 
- #include "backend_lzo.h"
- 
--static void *lzo_create(void)
-+static void *lzo_create(struct zcomp_params *params)
- {
- 	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
- }
---- a/drivers/block/zram/backend_lzorle.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/backend_lzorle.c
-@@ -6,7 +6,7 @@
- 
- #include "backend_lzorle.h"
- 
--static void *lzorle_create(void)
-+static void *lzorle_create(struct zcomp_params *params)
- {
- 	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
- }
---- a/drivers/block/zram/backend_zstd.c~zram-introduce-zcomp_params-structure
+--- a/drivers/block/zram/backend_zstd.c~zram-recalculate-zstd-compression-params-once
 +++ a/drivers/block/zram/backend_zstd.c
-@@ -24,9 +24,9 @@ static void zstd_destroy(void *ctx)
- 	kfree(zctx);
- }
+@@ -10,6 +10,7 @@
+ struct zstd_ctx {
+ 	zstd_cctx *cctx;
+ 	zstd_dctx *dctx;
++	zstd_parameters cprm;
+ 	void *cctx_mem;
+ 	void *dctx_mem;
+ 	s32 level;
+@@ -40,6 +41,7 @@ static void *zstd_create(struct zcomp_pa
+ 		ctx->level = zstd_default_clevel();
  
--static void *zstd_create(void)
-+static void *zstd_create(struct zcomp_params *params)
- {
--	zstd_parameters params;
-+	zstd_parameters prm;
- 	struct zstd_ctx *ctx;
- 	size_t sz;
- 
-@@ -34,9 +34,13 @@ static void *zstd_create(void)
- 	if (!ctx)
- 		return NULL;
- 
--	ctx->level = zstd_default_clevel();
--	params = zstd_get_params(ctx->level, PAGE_SIZE);
--	sz = zstd_cctx_workspace_bound(&params.cParams);
-+	if (params->level != ZCOMP_PARAM_NO_LEVEL)
-+		ctx->level = params->level;
-+	else
-+		ctx->level = zstd_default_clevel();
-+
-+	prm = zstd_get_params(ctx->level, PAGE_SIZE);
-+	sz = zstd_cctx_workspace_bound(&prm.cParams);
+ 	prm = zstd_get_params(ctx->level, PAGE_SIZE);
++	ctx->cprm = zstd_get_params(ctx->level, PAGE_SIZE);
+ 	sz = zstd_cctx_workspace_bound(&prm.cParams);
  	ctx->cctx_mem = vzalloc(sz);
  	if (!ctx->cctx_mem)
- 		goto error;
-@@ -65,11 +69,11 @@ static int zstd_compress(void *ctx, cons
+@@ -69,11 +71,10 @@ static int zstd_compress(void *ctx, cons
  			 unsigned char *dst, size_t *dst_len)
  {
  	struct zstd_ctx *zctx = ctx;
--	const zstd_parameters params = zstd_get_params(zctx->level, PAGE_SIZE);
-+	const zstd_parameters prm = zstd_get_params(zctx->level, PAGE_SIZE);
+-	const zstd_parameters prm = zstd_get_params(zctx->level, PAGE_SIZE);
  	size_t ret;
  
  	ret = zstd_compress_cctx(zctx->cctx, dst, *dst_len,
--				 src, src_len, &params);
-+				 src, src_len, &prm);
+-				 src, src_len, &prm);
++				 src, src_len, &zctx->cprm);
  	if (zstd_is_error(ret))
  		return -EINVAL;
  	*dst_len = ret;
---- a/drivers/block/zram/zcomp.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/zcomp.c
-@@ -54,7 +54,7 @@ static void zcomp_strm_free(struct zcomp
- 
- static int zcomp_strm_init(struct zcomp *comp, struct zcomp_strm *zstrm)
- {
--	zstrm->ctx = comp->ops->create_ctx();
-+	zstrm->ctx = comp->ops->create_ctx(comp->params);
- 
- 	/*
- 	 * allocate 2 pages. 1 for compressed data, plus 1 extra for the
-@@ -187,7 +187,7 @@ void zcomp_destroy(struct zcomp *comp)
- 	kfree(comp);
- }
- 
--struct zcomp *zcomp_create(const char *alg)
-+struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params)
- {
- 	struct zcomp *comp;
- 	int error;
-@@ -204,6 +204,7 @@ struct zcomp *zcomp_create(const char *a
- 	if (!comp)
- 		return ERR_PTR(-ENOMEM);
- 
-+	comp->params = params;
- 	comp->ops = lookup_backend_ops(alg);
- 	if (!comp->ops) {
- 		kfree(comp);
---- a/drivers/block/zram/zcomp.h~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/zcomp.h
-@@ -2,8 +2,17 @@
- 
- #ifndef _ZCOMP_H_
- #define _ZCOMP_H_
-+
- #include <linux/local_lock.h>
- 
-+#define ZCOMP_PARAM_NO_LEVEL	INT_MIN
-+
-+struct zcomp_params {
-+	void *dict;
-+	size_t dict_sz;
-+	s32 level;
-+};
-+
- struct zcomp_strm {
- 	/* The members ->buffer and ->tfm are protected by ->lock. */
- 	local_lock_t lock;
-@@ -19,7 +28,7 @@ struct zcomp_ops {
- 	int (*decompress)(void *ctx, const unsigned char *src, size_t src_len,
- 			  unsigned char *dst, size_t dst_len);
- 
--	void *(*create_ctx)(void);
-+	void *(*create_ctx)(struct zcomp_params *params);
- 	void (*destroy_ctx)(void *ctx);
- 
- 	const char *name;
-@@ -29,6 +38,7 @@ struct zcomp_ops {
- struct zcomp {
- 	struct zcomp_strm __percpu *stream;
- 	const struct zcomp_ops *ops;
-+	struct zcomp_params *params;
- 	struct hlist_node node;
- };
- 
-@@ -37,7 +47,7 @@ int zcomp_cpu_dead(unsigned int cpu, str
- ssize_t zcomp_available_show(const char *comp, char *buf);
- bool zcomp_available_algorithm(const char *comp);
- 
--struct zcomp *zcomp_create(const char *alg);
-+struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params);
- void zcomp_destroy(struct zcomp *comp);
- 
- struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
---- a/drivers/block/zram/zram_drv.c~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1979,6 +1979,20 @@ static void zram_slot_free_notify(struct
- 	zram_slot_unlock(zram, index);
- }
- 
-+static void zram_comp_params_reset(struct zram *zram)
-+{
-+	u32 prio;
-+
-+	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
-+		struct zcomp_params *params = &zram->params[prio];
-+
-+		vfree(params->dict);
-+		params->level = ZCOMP_PARAM_NO_LEVEL;
-+		params->dict_sz = 0;
-+		params->dict = NULL;
-+	}
-+}
-+
- static void zram_destroy_comps(struct zram *zram)
- {
- 	u32 prio;
-@@ -1992,6 +2006,8 @@ static void zram_destroy_comps(struct zr
- 		zcomp_destroy(comp);
- 		zram->num_active_comps--;
- 	}
-+
-+	zram_comp_params_reset(zram);
- }
- 
- static void zram_reset_device(struct zram *zram)
-@@ -2049,7 +2065,8 @@ static ssize_t disksize_store(struct dev
- 		if (!zram->comp_algs[prio])
- 			continue;
- 
--		comp = zcomp_create(zram->comp_algs[prio]);
-+		comp = zcomp_create(zram->comp_algs[prio],
-+				    &zram->params[prio]);
- 		if (IS_ERR(comp)) {
- 			pr_err("Cannot initialise %s compressing backend\n",
- 			       zram->comp_algs[prio]);
-@@ -2254,6 +2271,7 @@ static int zram_add(void)
- 	if (ret)
- 		goto out_cleanup_disk;
- 
-+	zram_comp_params_reset(zram);
- 	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
- 
- 	zram_debugfs_register(zram);
---- a/drivers/block/zram/zram_drv.h~zram-introduce-zcomp_params-structure
-+++ a/drivers/block/zram/zram_drv.h
-@@ -107,6 +107,7 @@ struct zram {
- 	struct zram_table_entry *table;
- 	struct zs_pool *mem_pool;
- 	struct zcomp *comps[ZRAM_MAX_COMPS];
-+	struct zcomp_params params[ZRAM_MAX_COMPS];
- 	struct gendisk *disk;
- 	/* Prevent concurrent execution of device init */
- 	struct rw_semaphore init_lock;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
