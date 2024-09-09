@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47A5118E375
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0066E18E375
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:42:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925323; cv=none; b=agD4a0vtslsBcHm5FPPMTfCaG61/VPQ/ZD/wdKKRheJk2krL8elXjYdEnM5lBI4gJkVPReREs66JxylVjW1b6YPnq167GNpLsGf2/Pas/4ZbH8dKGWN9gQSjZqpYMek7VAX4tWL7Ae+Q89lNkBlJwqsNqUDZtd/ueGV2HH4fu+Y=
+	t=1725925325; cv=none; b=tRlXpZbepOea6/b0gom5uuS3RPGnIliEeGl0HBhnHea5wCbl8l1bjQ3EIOnY6pKmFG09/rxBWZzulO1Xy7zyiCT0LnnPhIJUqySpEAGZm237iBk3sLbh/LX+oqSjLUqAs/bXOG0FDdS/m0r+DYFWW+p34LYuVz6y07lpE/NAr9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925323; c=relaxed/simple;
-	bh=ha6xcoDV4cSBYBAOwq8bjWTVXvwid/CUZ68CdOcDfG8=;
-	h=Date:To:From:Subject:Message-Id; b=BbNubUdgZjtMfb3djFde/7Ssvfu50bPSKuezlmOngE+6fIQrTbWXJuN6RzQPDbT840a25zdM33tkZddk/h/fP7ONrtWXx02Fbuv/cCZNS1/6msgIdilO9T2Q+VRNDfSLj/o4QvYPG7RmM4TztIf3AKVoT2SMGJ+n6W9fw/t2ZUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=03Hu/sIg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925325; c=relaxed/simple;
+	bh=PGIcbQiv+FbsBcOLflFsW83KPSRIdJekuvHL17zroI4=;
+	h=Date:To:From:Subject:Message-Id; b=jxWc6vNAcRNSh4RVb7wJY14rGNW4qrEHOU6eI82ybMh7q6ruqGL8EnbOmLjiOpNnMWLE8fQ7mIF0XpPvBoaLFNXLUKvLgfZivMk5bLiCWs25EjcF/TXc6XIx/AWxvre8NExhXCz3RHuaog1d08GkAwJyB8mz8eWrtm1TPUnF9oM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0xtGIJnE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="03Hu/sIg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB5BC4CEC6;
-	Mon,  9 Sep 2024 23:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0xtGIJnE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF26C4CEC5;
+	Mon,  9 Sep 2024 23:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925323;
-	bh=ha6xcoDV4cSBYBAOwq8bjWTVXvwid/CUZ68CdOcDfG8=;
+	s=korg; t=1725925324;
+	bh=PGIcbQiv+FbsBcOLflFsW83KPSRIdJekuvHL17zroI4=;
 	h=Date:To:From:Subject:From;
-	b=03Hu/sIgU4m+J2nufEDQRcMBjNBafx7m9FlBWR8PfEQDK0IXC0E1oE55aeYOppAIq
-	 veUN4TIy4L62XuNCA/thH0DFVHaZZcolu847+RXRcHhPlQAyQ1gy/g7asRFy/xn47h
-	 gi3ABAex56su9hWgr8EfDZE0W8I21sh5AeLItLJ0=
-Date: Mon, 09 Sep 2024 16:42:02 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,zhangpeng362@huawei.com,akpm@linux-foundation.org
+	b=0xtGIJnEWWwsuM5gVqahQ1/z9PzgQ7/BxXpy4DQOZXquxkAPR5rw9ZxuS63Nt+2vz
+	 SOTPbirKtz84k56768pW46Kk7X4dlTIVKZFUrKe3HwB6sbmmWO8FVclA/xETHAZB98
+	 1Cm332DFJM3MZb31lEB/rh5nYX1eKTp63Eh76c0s=
+Date: Mon, 09 Sep 2024 16:42:04 -0700
+To: mm-commits@vger.kernel.org,oleksiy.avramchenko@sony.com,mhocko@suse.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmallocc-use-helper-function-va_size.patch removed from -mm tree
-Message-Id: <20240909234203.1DB5BC4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmallocc-use-high-order-in-description-non-0-order-pages.patch removed from -mm tree
+Message-Id: <20240909234204.CAF26C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc.c: use helper function va_size()
+     Subject: mm/vmalloc.c: use "high-order" in description non 0-order pages
 has been removed from the -mm tree.  Its filename was
-     mm-vmallocc-use-helper-function-va_size.patch
+     mm-vmallocc-use-high-order-in-description-non-0-order-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/vmalloc.c: use helper function va_size()
-Date: Fri, 6 Sep 2024 18:25:39 +0800
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc.c: use "high-order" in description non 0-order pages
+Date: Fri, 6 Sep 2024 11:50:49 +0200
 
-Use helper function va_size() to improve code readability. No functional
-modification involved.
+In many places, in the comments, we use both "higher-order" and
+"high-order" to describe the non 0-order pages.  That is confusing,
+because a "higher-order" statement does not reflect what it is compared
+with.
 
-Link: https://lkml.kernel.org/r/20240906102539.3537207-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20240906095049.3486-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Suggested-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-use-helper-function-va_size
+--- a/mm/vmalloc.c~mm-vmallocc-use-high-order-in-description-non-0-order-pages
 +++ a/mm/vmalloc.c
-@@ -1940,7 +1940,7 @@ static inline void setup_vmalloc_vm(stru
- {
- 	vm->flags = flags;
- 	vm->addr = (void *)va->va_start;
--	vm->size = va->va_end - va->va_start;
-+	vm->size = va_size(va);
- 	vm->caller = caller;
- 	va->vm = vm;
- }
-@@ -2018,7 +2018,7 @@ retry:
+@@ -3570,7 +3570,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			break;
  
- 	if (vm) {
- 		vm->addr = (void *)va->va_start;
--		vm->size = va->va_end - va->va_start;
-+		vm->size = va_size(va);
- 		va->vm = vm;
- 	}
- 
-@@ -2192,7 +2192,7 @@ static void purge_vmap_node(struct work_
- 	vn->nr_purged = 0;
- 
- 	list_for_each_entry_safe(va, n_va, &vn->purge_list, list) {
--		unsigned long nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
-+		unsigned long nr = va_size(va) >> PAGE_SHIFT;
- 		unsigned long orig_start = va->va_start;
- 		unsigned long orig_end = va->va_end;
- 		unsigned int vn_id = decode_vn_id(va->flags);
-@@ -2336,8 +2336,8 @@ static void free_vmap_area_noflush(struc
- 	if (WARN_ON_ONCE(!list_empty(&va->list)))
- 		return;
- 
--	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
--				PAGE_SHIFT, &vmap_lazy_nr);
-+	nr_lazy = atomic_long_add_return(va_size(va) >> PAGE_SHIFT,
-+					 &vmap_lazy_nr);
+ 		/*
+-		 * Higher order allocations must be able to be treated as
++		 * High-order allocations must be able to be treated as
+ 		 * independent small pages by callers (as they can with
+ 		 * small-page vmallocs). Some drivers do their own refcounting
+ 		 * on vmalloc_to_page() pages, some use page->mapping,
+@@ -3633,7 +3633,7 @@ static void *__vmalloc_area_node(struct
+ 	page_order = vm_area_page_order(area);
  
  	/*
- 	 * If it was request by a certain node we would like to
-@@ -2933,8 +2933,7 @@ void vm_unmap_ram(const void *mem, unsig
- 	if (WARN_ON_ONCE(!va))
- 		return;
- 
--	debug_check_no_locks_freed((void *)va->va_start,
--				    (va->va_end - va->va_start));
-+	debug_check_no_locks_freed((void *)va->va_start, va_size(va));
- 	free_unmap_vmap_area(va);
- }
- EXPORT_SYMBOL(vm_unmap_ram);
-@@ -4932,7 +4931,7 @@ static void show_purge_info(struct seq_f
- 		list_for_each_entry(va, &vn->lazy.head, list) {
- 			seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
- 				(void *)va->va_start, (void *)va->va_end,
--				va->va_end - va->va_start);
-+				va_size(va));
- 		}
- 		spin_unlock(&vn->lazy.lock);
- 	}
-@@ -4954,7 +4953,7 @@ static int vmalloc_info_show(struct seq_
- 				if (va->flags & VMAP_RAM)
- 					seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
- 						(void *)va->va_start, (void *)va->va_end,
--						va->va_end - va->va_start);
-+						va_size(va));
- 
- 				continue;
- 			}
+-	 * Higher order nofail allocations are really expensive and
++	 * High-order nofail allocations are really expensive and
+ 	 * potentially dangerous (pre-mature OOM, disruptive reclaim
+ 	 * and compaction etc.
+ 	 *
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
 
