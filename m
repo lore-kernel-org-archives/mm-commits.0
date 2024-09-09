@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D2C130495
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:33:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2C02130495
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:34:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725924815; cv=none; b=Udv4Ye5e8Osmo54r/NiU2/J5xGC9AXNzPN5zwj92vvzv680kGWbBMGY4aOCwxV2J2MWvWe2yHT0M3amPD+b0n0c7CXC9joCf11Wx6Z8SMEm4DJarrKPb7t3u3G9INQSrGulhkOlVYQkCB8Ch8dupG8rUMdHkcmlcy95EaLI09qo=
+	t=1725924850; cv=none; b=O5Omrq0xOmSlys3PhwfxixvnVrM+pXwAV8aF1Ihip+98GcwY1KTReOTbqLBGus/PbYp+ersci3RqpaV3yZKV+ibrEkCeuqPXI0Sa17S2fp6u/LdYSEv5tAn3LJZ7uB+x+vOkaeQllYhcnu8jSGbw6WzMA2eo9+ldedi1wpDfYYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725924815; c=relaxed/simple;
-	bh=1BRcZ2z1wt7N/gcIycZ2KScqRqOeOLA9EWVe9R5z9V4=;
-	h=Date:To:From:Subject:Message-Id; b=uzgakfXoNcO73JzvR5SbRusqQZbHq+LPBVIqm7flGr7ozavgGRMpdCjHiEtUKUQeto2ouuEVkxJ44cbGbawODWva6eUsJjkFn3iivB1tU4BYbed/LRUagFdLXPsN7eqNGABey3Lmm4PCZ4pRJLTmOIKgh6vmKbWUlfkkofc3XXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ur5BRyKO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725924850; c=relaxed/simple;
+	bh=1Gtw3epo1o7aoMJL5HqYXNNqyLkFBbCkgb8ByOihYA0=;
+	h=Date:To:From:Subject:Message-Id; b=JjiXT/o96cpTgDz7qAVbTinaMwoY43Y6f03eSTAoWcmwvbwkOWCpkDn1ItzZiQVEtSY8uBIHp8h6w8OyzDt6e5194sRQirSe3GiNefz5vwZdz7JKwoGYwlreRrK+sSqWU12XHGCbNLm/lh3vT8fzTKME6KeI5syKZiaXur3c6HI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TK4TvplK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ur5BRyKO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35EA9C4CEC6;
-	Mon,  9 Sep 2024 23:33:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TK4TvplK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B46CC4CEC5;
+	Mon,  9 Sep 2024 23:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725924815;
-	bh=1BRcZ2z1wt7N/gcIycZ2KScqRqOeOLA9EWVe9R5z9V4=;
+	s=korg; t=1725924850;
+	bh=1Gtw3epo1o7aoMJL5HqYXNNqyLkFBbCkgb8ByOihYA0=;
 	h=Date:To:From:Subject:From;
-	b=Ur5BRyKOh54ikQeGeq63Ct3rDmxY0OmC795LiKpuOT6pBLJuUYH2GTWHs7eewyAq8
-	 o2JWs2THoMD9YQWpQOU5ZWnHICQaZHCsJI/JctttQJwgZXcZo6LRiCznjprVZ2DXid
-	 HNZSZd7cY1sj9hy8JxZBGbD7EBZwp3bBcsjFBsds=
-Date: Mon, 09 Sep 2024 16:33:34 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,mjguzik@gmail.com,dave@stgolabs.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=TK4TvplK+Dagaq51UY2ZGscnqZTOcipkl/tr/LrC4y0+3JzafbOslMqfQgB4gmFMn
+	 ziYYFMbiImnfiLCJrlMSWSyFES7v5G9OcPkyWS17rzpuGGQ3uvz4oHfECMYAZuQnwL
+	 E9wjcJ2YO6FXzlBePrDVw2AR5CC2DbONGhmPIT2M=
+Date: Mon, 09 Sep 2024 16:34:09 -0700
+To: mm-commits@vger.kernel.org,mhocko@suse.com,david@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch removed from -mm tree
-Message-Id: <20240909233335.35EA9C4CEC6@smtp.kernel.org>
+Subject: [folded-merged] mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix.patch removed from -mm tree
+Message-Id: <20240909233410.1B46CC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-hugetlb-sort-out-global-lock-annotations-fix-fix
+     Subject: mm: also update the doc for __GFP_NOFAIL with order > 1
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+     mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-sort-out-global-lock-annotations.patch
+This patch was dropped because it was folded into mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-sort-out-global-lock-annotations-fix-fix
-Date: Wed Aug 28 01:40:09 PM PDT 2024
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: also update the doc for __GFP_NOFAIL with order > 1
+Date: Wed, 4 Sep 2024 10:26:19 +1200
 
-DEFINE_SPINLOCK doesn't permit section modifiers at end-of-definition
+Obviously we only support order <= 1 __GFP_NOFAIL allocation and if
+someone wants larger memory, they should consider using kvmalloc()
+instead.
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240903223935.1697-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp_types.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-sort-out-global-lock-annotations-fix-fix
-+++ a/mm/hugetlb.c
-@@ -72,7 +72,7 @@ static unsigned int default_hugepages_in
-  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
-  * free_huge_pages, and surplus_huge_pages.
+--- a/include/linux/gfp_types.h~mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner-fix
++++ a/include/linux/gfp_types.h
+@@ -253,7 +253,8 @@ enum {
+  * used only when there is no reasonable failure policy) but it is
+  * definitely preferable to use the flag rather than opencode endless
+  * loop around allocator.
+- * Using this flag for costly allocations is _highly_ discouraged.
++ * Allocating pages from the buddy with __GFP_NOFAIL and order > 1 is
++ * not supported. Please consider using kvmalloc() instead.
   */
--DEFINE_SPINLOCK(hugetlb_lock) __cacheline_aligned_in_smp;
-+__cacheline_aligned_in_smp DEFINE_SPINLOCK(hugetlb_lock);
- 
- /*
-  * Serializes faults on the same logical page.  This is used to
+ #define __GFP_IO	((__force gfp_t)___GFP_IO)
+ #define __GFP_FS	((__force gfp_t)___GFP_FS)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-hugetlb-sort-out-global-lock-annotations.patch
-mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
-mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
-mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch
+mm-count-the-number-of-anonymous-thps-per-size.patch
+mm-count-the-number-of-partially-mapped-anonymous-thps-per-size.patch
+mm-document-__gfp_nofail-must-be-blockable.patch
+mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
 
