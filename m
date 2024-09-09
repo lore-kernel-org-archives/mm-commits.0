@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDB773440
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:48:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55EA73440
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:48:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925700; cv=none; b=NlgokoU+77I6dO81U5PTT4tBrQetgHRuxcXYdhhBt+sBy/VGbYpyKC9RdkxnE8GRYLzynAU+odclBzH2c88V9c9N9N25LpCxBq4s72SeAQ7VSwYoo6Kb0iCQqvmvc9J42LGVISchI75S0IPsw7B8OjTy5fr6aeqTEsjryvdumnM=
+	t=1725925702; cv=none; b=RiOXfhF2mdasRU/lj+j4frvI2gO8QgzC98k9K7ZZVnlp9LAP6kVoYsaI6qAJDf/uYnhCbT+e5N8hQ+nqNBoJSlHqbdATDA28aoe53kRTi/jgmS+0v9F4l2Mju9yfZuCM4Qzvr76uDRf+RMSPVKIeOzehzJOTPcMPzvHHwXsv5vI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925700; c=relaxed/simple;
-	bh=biah86QP7jzBujq6LLgHFkA4VG9dz2U9vLTTvMuYf/k=;
-	h=Date:To:From:Subject:Message-Id; b=aX0LgC7Gs38JF45PnB5hMca8X8l7X1zkQlDP4JrKcvqpdryaBuRmj3kthTvS/hjOnmPf08Y0glY9KZADK4QOeQZRgETWHISw8wHSrvD9WndrcRDthX9gFXqA8AQcsVNewOB+H9+nUBLDM1G2Sx8IYlr2dwbevL7fI5Eb2ieBrF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qol11AjY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925702; c=relaxed/simple;
+	bh=cF4ODNpWZlS3lVkQg5WGbEni9aYRdSAOOXIb5leOUXk=;
+	h=Date:To:From:Subject:Message-Id; b=fifLgA2gSUiIAwhXripxNB69zntCghxx7/KIQOd5SgJIItIFBzNpXWDj5fZ+atUgtX7J2A1KT9S7r5u7LVhDMDWgWq7jfWngktykJP9tfcpFYHZqOw3WLMukzCjrQRSQfif9eDVBqwt9VQ8sHlDooqI4MY2Pu2cmDQv3GqeHCaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ItrcEPj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qol11AjY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A1DC4CEC5;
-	Mon,  9 Sep 2024 23:48:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ItrcEPj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75747C4CEC5;
+	Mon,  9 Sep 2024 23:48:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925700;
-	bh=biah86QP7jzBujq6LLgHFkA4VG9dz2U9vLTTvMuYf/k=;
+	s=korg; t=1725925701;
+	bh=cF4ODNpWZlS3lVkQg5WGbEni9aYRdSAOOXIb5leOUXk=;
 	h=Date:To:From:Subject:From;
-	b=Qol11AjYQ+kBFX0vyw5P09CUpq0rPNB0D7YRulaTNU2wo7zHLTMEkmS7B21KHZg40
-	 reAG4kFJFt9S4sE3Ep9adVpsBAkNrrUFo9a5D6abXeKKJQGfs3d9TtPGxOJeGH/fjR
-	 3XEqq5m7N4iMxe6bf3PEjd+WwjEMk4AafcQ27dIY=
-Date: Mon, 09 Sep 2024 16:48:19 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,ghe@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=1ItrcEPjRVoCn0VlCegzemjYBnjpLVTWUpDJoFVZs+8uztBinW0iGNIKBtmqlc5af
+	 s+7XRP1xd+U1ZVpKOsnjMAP+b9yjcZd+AiLWZKE0zU/N1BW37xk8Pv2oDVU2FHx3n2
+	 QXXYBOMm4bYXz1pgtBXM2LC+Iz/LMt9uqXoBBd3c=
+Date: Mon, 09 Sep 2024 16:48:20 -0700
+To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch removed from -mm tree
-Message-Id: <20240909234820.68A1DC4CEC5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] treewide-correct-the-typo-retun.patch removed from -mm tree
+Message-Id: <20240909234821.75747C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: cleanup return value and mlog in ocfs2_global_read_info()
+     Subject: treewide: correct the typo 'retun'
 has been removed from the -mm tree.  Its filename was
-     ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info.patch
+     treewide-correct-the-typo-retun.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cleanup return value and mlog in ocfs2_global_read_info()
-Date: Wed, 4 Sep 2024 15:10:04 +0800
+From: WangYuli <wangyuli@uniontech.com>
+Subject: treewide: correct the typo 'retun'
+Date: Fri, 6 Sep 2024 13:40:08 +0800
 
-Return 0 instead of sizeof(ocfs2_global_disk_dqinfo) that .quota_read
-returns in normal case.  Also cleanup mlog to make code more readable.
+There are some spelling mistakes of 'retun' in comments which
+should be instead of 'return'.
 
-Link: https://lkml.kernel.org/r/20240904071004.2067695-2-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/63D0F870EE8E87A0+20240906054008.390188-1-wangyuli@uniontech.com
+Signed-off-by: WangYuli <wangyuli@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 +-
+ drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h  |    2 +-
+ drivers/infiniband/core/sa_query.c        |    2 +-
+ drivers/input/misc/wistron_btns.c         |    2 +-
+ drivers/mtd/nand/raw/nandsim.c            |    2 +-
+ drivers/scsi/bfa/bfa_fcs.c                |    2 +-
+ drivers/scsi/pmcraid.c                    |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-cleanup-return-value-and-mlog-in-ocfs2_global_read_info
-+++ a/fs/ocfs2/quota_global.c
-@@ -371,12 +371,16 @@ int ocfs2_global_read_info(struct super_
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c~treewide-correct-the-typo-retun
++++ a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -333,7 +333,7 @@ int omap4_hotplug_cpu(unsigned int cpu,
+ 	omap_pm_ops.scu_prepare(cpu, power_state);
  
- 	status = ocfs2_extent_map_get_blocks(oinfo->dqi_gqinode, 0, &oinfo->dqi_giblk,
- 					     &pcount, NULL);
--	if (status < 0)
-+	if (status < 0) {
-+		mlog_errno(status);
- 		goto out_unlock;
-+	}
+ 	/*
+-	 * CPU never retuns back if targeted power state is OFF mode.
++	 * CPU never returns back if targeted power state is OFF mode.
+ 	 * CPU ONLINE follows normal CPU ONLINE ptah via
+ 	 * omap4_secondary_startup().
+ 	 */
+--- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h~treewide-correct-the-typo-retun
++++ a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
+@@ -231,7 +231,7 @@ struct dpu_crtc_state {
+ 	container_of(x, struct dpu_crtc_state, base)
  
- 	status = ocfs2_qinfo_lock(oinfo, 0);
--	if (status < 0)
-+	if (status < 0) {
-+		mlog_errno(status);
- 		goto out_unlock;
-+	}
- 	status = sb->s_op->quota_read(sb, type, (char *)&dinfo,
- 				      sizeof(struct ocfs2_global_disk_dqinfo),
- 				      OCFS2_GLOBAL_INFO_OFF);
-@@ -404,12 +408,11 @@ int ocfs2_global_read_info(struct super_
- 	schedule_delayed_work(&oinfo->dqi_sync_work,
- 			      msecs_to_jiffies(oinfo->dqi_syncms));
+ /**
+- * dpu_crtc_frame_pending - retun the number of pending frames
++ * dpu_crtc_frame_pending - return the number of pending frames
+  * @crtc: Pointer to drm crtc object
+  */
+ static inline int dpu_crtc_frame_pending(struct drm_crtc *crtc)
+--- a/drivers/infiniband/core/sa_query.c~treewide-correct-the-typo-retun
++++ a/drivers/infiniband/core/sa_query.c
+@@ -1420,7 +1420,7 @@ enum opa_pr_supported {
+ /*
+  * opa_pr_query_possible - Check if current PR query can be an OPA query.
+  *
+- * Retuns PR_NOT_SUPPORTED if a path record query is not
++ * Returns PR_NOT_SUPPORTED if a path record query is not
+  * possible, PR_OPA_SUPPORTED if an OPA path record query
+  * is possible and PR_IB_SUPPORTED if an IB path record
+  * query is possible.
+--- a/drivers/input/misc/wistron_btns.c~treewide-correct-the-typo-retun
++++ a/drivers/input/misc/wistron_btns.c
+@@ -1075,7 +1075,7 @@ static void wistron_led_init(struct devi
+ 	}
  
--out_err:
--	return status;
-+	return 0;
- out_unlock:
- 	ocfs2_unlock_global_qf(oinfo, 0);
--	mlog_errno(status);
--	goto out_err;
-+out_err:
-+	return status;
+ 	if (leds_present & FE_MAIL_LED) {
+-		/* bios_get_default_setting(MAIL) always retuns 0, so just turn the led off */
++		/* bios_get_default_setting(MAIL) always returns 0, so just turn the led off */
+ 		wistron_mail_led.brightness = LED_OFF;
+ 		if (led_classdev_register(parent, &wistron_mail_led))
+ 			leds_present &= ~FE_MAIL_LED;
+--- a/drivers/mtd/nand/raw/nandsim.c~treewide-correct-the-typo-retun
++++ a/drivers/mtd/nand/raw/nandsim.c
+@@ -1381,7 +1381,7 @@ static inline union ns_mem *NS_GET_PAGE(
  }
  
- /* Write information to global quota file. Expects exclusive lock on quota
+ /*
+- * Retuns a pointer to the current byte, within the current page.
++ * Returns a pointer to the current byte, within the current page.
+  */
+ static inline u_char *NS_PAGE_BYTE_OFF(struct nandsim *ns)
+ {
+--- a/drivers/scsi/bfa/bfa_fcs.c~treewide-correct-the-typo-retun
++++ a/drivers/scsi/bfa/bfa_fcs.c
+@@ -1431,7 +1431,7 @@ bfa_cb_lps_flogo_comp(void *bfad, void *
+  *	param[in]	vf_id - VF_ID
+  *
+  *	return
+- *	If lookup succeeds, retuns fcs vf object, otherwise returns NULL
++ *	If lookup succeeds, returns fcs vf object, otherwise returns NULL
+  */
+ bfa_fcs_vf_t   *
+ bfa_fcs_vf_lookup(struct bfa_fcs_s *fcs, u16 vf_id)
+--- a/drivers/scsi/pmcraid.c~treewide-correct-the-typo-retun
++++ a/drivers/scsi/pmcraid.c
+@@ -4009,7 +4009,7 @@ static void pmcraid_tasklet_function(uns
+  * This routine un-registers registered interrupt handler and
+  * also frees irqs/vectors.
+  *
+- * Retun Value
++ * Return Value
+  *	None
+  */
+ static
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from wangyuli@uniontech.com are
 
 
