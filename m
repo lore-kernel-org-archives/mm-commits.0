@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732C218DF66
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ACB818A925
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925207; cv=none; b=HAANbdx/JwO1NLRe13CUjRrD9J9lVsOdRctjLi5avIXBbUs+g1XwYu2J2f5/OdfTq49dxuABuP3cjirV6NnmhpBmi6WrxT4pFvoWr/ErCiLc55t2TddaGg5fRS3Z1vBaA6NH9lENM2hiElVSS2XD/lbZTACwdV6D3Wk8AGxQnw0=
+	t=1725925208; cv=none; b=gWaw3YMn1omCpVc2pmHGcgn9CpjBhS57xP+rar130gCbiVH0Rzgb1xO+tGQlf0Hk0B61Co6euKlqYUno8sZ2Ul8Sj+3lpiNSjZyiYrGBc6eGHmo1wtwlXMQ79o54Bt4JtjBrgibEjecNf0r+UHhpTQg2JYFvmayG2XwyqxeHcXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925207; c=relaxed/simple;
-	bh=uahGRWynL1lbFl32v2iVJaKjsj7duYUHlKt2C7qwMQU=;
-	h=Date:To:From:Subject:Message-Id; b=utEFWEffleLf/2v896UOlZsxioIv6GV1ZwBDk1SoffZkf7P/GynkzRC8b4czuIgGWalwdm/LSTsLWd4wZd4XYYvonAqRN+mHCE0tqJk756O3uMwXv4eHwv2eRO878qOOYGfK/prjYb2q32YBeFishHZRr4ILcl4QjKyj5Cp3BCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oi8GOuk4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925208; c=relaxed/simple;
+	bh=RJRhATHnIwYca/R8RrGXGQQYKCi7jvwxmn2lmc43Yes=;
+	h=Date:To:From:Subject:Message-Id; b=IJdYkvvGbC8T2tate5qq/FiLlcO6b7EXu1rpavMeu3biNrMQ3xY9xoWGeXYXJLTe4Q1OtT1WfCAbPn4RU1B/s0MSrtVK43y4DLeOESzmN5MNg7Z4gWCsM4q6skRRiKoZDnb4dBoBQWD8/aRNggjISVHFyiZu8Ro+owGWg6fhVRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h1J7xH3O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oi8GOuk4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D26C4CEC5;
-	Mon,  9 Sep 2024 23:40:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h1J7xH3O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16AA4C4CEC5;
+	Mon,  9 Sep 2024 23:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925206;
-	bh=uahGRWynL1lbFl32v2iVJaKjsj7duYUHlKt2C7qwMQU=;
+	s=korg; t=1725925208;
+	bh=RJRhATHnIwYca/R8RrGXGQQYKCi7jvwxmn2lmc43Yes=;
 	h=Date:To:From:Subject:From;
-	b=Oi8GOuk4jEJ9BXSWq30mJl23fAoMtM7K0chaQmHG8c+f0P/MXICvsqMKXVmMZve/D
-	 18FHU5JfaRxOdDTMNOxO86/RsPKDqHVkLqb5Bdggb3eIJmycZHz7cfxRn7eafZ+ySQ
-	 8tmgwVMOCI330JkmPLK2i93lBfc1MYCnahy7rKQs=
-Date: Mon, 09 Sep 2024 16:40:06 -0700
+	b=h1J7xH3OBK0vu8tMgL+f5AdF99Y1Tch9I4SCRc1NRm1zxTndjyRI0pa792rNLSjq/
+	 C/zV3auPPEFFtrYhE6Kkd7FG03455zhSqi1pc6YSVI+49KoSMaxJ4uOq1LBZ4kH9dU
+	 nSIG2/8ZusXctyktRR0IzXr2BHpJkK7eE+mSvN/U=
+Date: Mon, 09 Sep 2024 16:40:07 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-cleanup-count_mthp_stat-definition.patch removed from -mm tree
-Message-Id: <20240909234006.C7D26C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-tidy-up-shmem-mthp-controls-and-stats.patch removed from -mm tree
+Message-Id: <20240909234008.16AA4C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,185 +35,286 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: cleanup count_mthp_stat() definition
+     Subject: mm: tidy up shmem mTHP controls and stats
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-count_mthp_stat-definition.patch
+     mm-tidy-up-shmem-mthp-controls-and-stats.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: cleanup count_mthp_stat() definition
-Date: Thu, 8 Aug 2024 12:18:46 +0100
+Subject: mm: tidy up shmem mTHP controls and stats
+Date: Thu, 8 Aug 2024 12:18:47 +0100
 
-Patch series "Shmem mTHP controls and stats improvements", v3.
+Previously we had a situation where shmem mTHP controls and stats were not
+exposed for some supported sizes and were exposed for some unsupported
+sizes.  So let's clean that up.
 
-This is a small series to tidy up the way the shmem controls and stats are
-exposed.  These patches were previously part of the series at [2], but I
-decided to split them out since they can go in independently.
+Anon mTHP can support all large orders [2, PMD_ORDER].  But shmem can
+support all large orders [1, MAX_PAGECACHE_ORDER].  However, per-size
+shmem controls and stats were previously being exposed for all the anon
+mTHP orders, meaning order-1 was not present, and for arm64 64K base
+pages, orders 12 and 13 were exposed but were not supported internally.
 
+Tidy this all up by defining ctrl and stats attribute groups for anon and
+file separately.  Anon ctrl and stats groups are populated for all orders
+in THP_ORDERS_ALL_ANON and file ctrl and stats groups are populated for
+all orders in THP_ORDERS_ALL_FILE_DEFAULT.
 
-This patch (of 2):
+Additionally, create "any" ctrl and stats attribute groups which are
+populated for all orders in (THP_ORDERS_ALL_ANON |
+THP_ORDERS_ALL_FILE_DEFAULT).  swpout stats use this since they apply to
+anon and shmem.
 
-Let's move count_mthp_stat() so that it's always defined, even when THP is
-disabled.  Previously uses of the function in files such as shmem.c, which
-are compiled even when THP is disabled, required ugly THP ifdeferry.  With
-this cleanup, we can remove those ifdefs and the function resolves to a
-nop when THP is disabled.
+The side-effect of all this is that different hugepage-*kB directories
+contain different sets of controls and stats, depending on which memory
+types support that size.  This approach is preferred over the alternative,
+which is to populate dummy controls and stats for memory types that do not
+support a given size.
 
-I shortly plan to call count_mthp_stat() from more THP-invariant source
-files.
-
-Link: https://lkml.kernel.org/r/20240808111849.651867-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20240808111849.651867-2-ryan.roberts@arm.com
+[ryan.roberts@arm.com: file pages and shmem can also be split]
+  Link: https://lkml.kernel.org/r/f7ced14c-8bc5-405f-bee7-94f63980f525@arm.comLink: https://lkml.kernel.org/r/20240808111849.651867-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Barry Song <baohua@kernel.org>
+Tested-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Gavin Shan <gshan@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   70 +++++++++++++++++++-------------------
- mm/memory.c             |    2 -
- mm/shmem.c              |    6 ---
- 3 files changed, 35 insertions(+), 43 deletions(-)
+ mm/huge_memory.c |  140 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 112 insertions(+), 28 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-cleanup-count_mthp_stat-definition
-+++ a/include/linux/huge_mm.h
-@@ -114,6 +114,41 @@ extern struct kobj_attribute thpsize_shm
- #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
- #define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
+--- a/mm/huge_memory.c~mm-tidy-up-shmem-mthp-controls-and-stats
++++ a/mm/huge_memory.c
+@@ -460,8 +460,8 @@ static void thpsize_release(struct kobje
+ static DEFINE_SPINLOCK(huge_anon_orders_lock);
+ static LIST_HEAD(thpsize_list);
  
-+enum mthp_stat_item {
-+	MTHP_STAT_ANON_FAULT_ALLOC,
-+	MTHP_STAT_ANON_FAULT_FALLBACK,
-+	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
-+	MTHP_STAT_SWPOUT,
-+	MTHP_STAT_SWPOUT_FALLBACK,
-+	MTHP_STAT_SHMEM_ALLOC,
-+	MTHP_STAT_SHMEM_FALLBACK,
-+	MTHP_STAT_SHMEM_FALLBACK_CHARGE,
-+	MTHP_STAT_SPLIT,
-+	MTHP_STAT_SPLIT_FAILED,
-+	MTHP_STAT_SPLIT_DEFERRED,
-+	__MTHP_STAT_COUNT
+-static ssize_t thpsize_enabled_show(struct kobject *kobj,
+-				    struct kobj_attribute *attr, char *buf)
++static ssize_t anon_enabled_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
+ {
+ 	int order = to_thpsize(kobj)->order;
+ 	const char *output;
+@@ -478,9 +478,9 @@ static ssize_t thpsize_enabled_show(stru
+ 	return sysfs_emit(buf, "%s\n", output);
+ }
+ 
+-static ssize_t thpsize_enabled_store(struct kobject *kobj,
+-				     struct kobj_attribute *attr,
+-				     const char *buf, size_t count)
++static ssize_t anon_enabled_store(struct kobject *kobj,
++				  struct kobj_attribute *attr,
++				  const char *buf, size_t count)
+ {
+ 	int order = to_thpsize(kobj)->order;
+ 	ssize_t ret = count;
+@@ -522,19 +522,35 @@ static ssize_t thpsize_enabled_store(str
+ 	return ret;
+ }
+ 
+-static struct kobj_attribute thpsize_enabled_attr =
+-	__ATTR(enabled, 0644, thpsize_enabled_show, thpsize_enabled_store);
++static struct kobj_attribute anon_enabled_attr =
++	__ATTR(enabled, 0644, anon_enabled_show, anon_enabled_store);
+ 
+-static struct attribute *thpsize_attrs[] = {
+-	&thpsize_enabled_attr.attr,
++static struct attribute *anon_ctrl_attrs[] = {
++	&anon_enabled_attr.attr,
++	NULL,
 +};
 +
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
-+struct mthp_stat {
-+	unsigned long stats[ilog2(MAX_PTRS_PER_PTE) + 1][__MTHP_STAT_COUNT];
++static const struct attribute_group anon_ctrl_attr_grp = {
++	.attrs = anon_ctrl_attrs,
 +};
 +
-+DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
++static struct attribute *file_ctrl_attrs[] = {
+ #ifdef CONFIG_SHMEM
+ 	&thpsize_shmem_enabled_attr.attr,
+ #endif
+ 	NULL,
+ };
+ 
+-static const struct attribute_group thpsize_attr_group = {
+-	.attrs = thpsize_attrs,
++static const struct attribute_group file_ctrl_attr_grp = {
++	.attrs = file_ctrl_attrs,
++};
 +
-+static inline void count_mthp_stat(int order, enum mthp_stat_item item)
-+{
-+	if (order <= 0 || order > PMD_ORDER)
-+		return;
++static struct attribute *any_ctrl_attrs[] = {
++	NULL,
++};
 +
-+	this_cpu_inc(mthp_stats.stats[order][item]);
-+}
-+#else
-+static inline void count_mthp_stat(int order, enum mthp_stat_item item)
-+{
-+}
++static const struct attribute_group any_ctrl_attr_grp = {
++	.attrs = any_ctrl_attrs,
+ };
+ 
+ static const struct kobj_type thpsize_ktype = {
+@@ -573,64 +589,132 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
+ DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
++#ifdef CONFIG_SHMEM
+ DEFINE_MTHP_STAT_ATTR(shmem_alloc, MTHP_STAT_SHMEM_ALLOC);
+ DEFINE_MTHP_STAT_ATTR(shmem_fallback, MTHP_STAT_SHMEM_FALLBACK);
+ DEFINE_MTHP_STAT_ATTR(shmem_fallback_charge, MTHP_STAT_SHMEM_FALLBACK_CHARGE);
 +#endif
+ DEFINE_MTHP_STAT_ATTR(split, MTHP_STAT_SPLIT);
+ DEFINE_MTHP_STAT_ATTR(split_failed, MTHP_STAT_SPLIT_FAILED);
+ DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
+ 
+-static struct attribute *stats_attrs[] = {
++static struct attribute *anon_stats_attrs[] = {
+ 	&anon_fault_alloc_attr.attr,
+ 	&anon_fault_fallback_attr.attr,
+ 	&anon_fault_fallback_charge_attr.attr,
++#ifndef CONFIG_SHMEM
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
++#endif
++	&split_deferred_attr.attr,
++	NULL,
++};
 +
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static struct attribute_group anon_stats_attr_grp = {
++	.name = "stats",
++	.attrs = anon_stats_attrs,
++};
++
++static struct attribute *file_stats_attrs[] = {
++#ifdef CONFIG_SHMEM
+ 	&shmem_alloc_attr.attr,
+ 	&shmem_fallback_attr.attr,
+ 	&shmem_fallback_charge_attr.attr,
++#endif
++	NULL,
++};
++
++static struct attribute_group file_stats_attr_grp = {
++	.name = "stats",
++	.attrs = file_stats_attrs,
++};
++
++static struct attribute *any_stats_attrs[] = {
++#ifdef CONFIG_SHMEM
++	&swpout_attr.attr,
++	&swpout_fallback_attr.attr,
++#endif
+ 	&split_attr.attr,
+ 	&split_failed_attr.attr,
+-	&split_deferred_attr.attr,
+ 	NULL,
+ };
  
- extern unsigned long transparent_hugepage_flags;
-@@ -269,41 +304,6 @@ struct thpsize {
+-static struct attribute_group stats_attr_group = {
++static struct attribute_group any_stats_attr_grp = {
+ 	.name = "stats",
+-	.attrs = stats_attrs,
++	.attrs = any_stats_attrs,
+ };
  
- #define to_thpsize(kobj) container_of(kobj, struct thpsize, kobj)
++static int sysfs_add_group(struct kobject *kobj,
++			   const struct attribute_group *grp)
++{
++	int ret = -ENOENT;
++
++	/*
++	 * If the group is named, try to merge first, assuming the subdirectory
++	 * was already created. This avoids the warning emitted by
++	 * sysfs_create_group() if the directory already exists.
++	 */
++	if (grp->name)
++		ret = sysfs_merge_group(kobj, grp);
++	if (ret)
++		ret = sysfs_create_group(kobj, grp);
++
++	return ret;
++}
++
+ static struct thpsize *thpsize_create(int order, struct kobject *parent)
+ {
+ 	unsigned long size = (PAGE_SIZE << order) / SZ_1K;
+ 	struct thpsize *thpsize;
+-	int ret;
++	int ret = -ENOMEM;
  
--enum mthp_stat_item {
--	MTHP_STAT_ANON_FAULT_ALLOC,
--	MTHP_STAT_ANON_FAULT_FALLBACK,
--	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
--	MTHP_STAT_SWPOUT,
--	MTHP_STAT_SWPOUT_FALLBACK,
--	MTHP_STAT_SHMEM_ALLOC,
--	MTHP_STAT_SHMEM_FALLBACK,
--	MTHP_STAT_SHMEM_FALLBACK_CHARGE,
--	MTHP_STAT_SPLIT,
--	MTHP_STAT_SPLIT_FAILED,
--	MTHP_STAT_SPLIT_DEFERRED,
--	__MTHP_STAT_COUNT
--};
--
--struct mthp_stat {
--	unsigned long stats[ilog2(MAX_PTRS_PER_PTE) + 1][__MTHP_STAT_COUNT];
--};
--
--#ifdef CONFIG_SYSFS
--DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
--
--static inline void count_mthp_stat(int order, enum mthp_stat_item item)
--{
--	if (order <= 0 || order > PMD_ORDER)
--		return;
--
--	this_cpu_inc(mthp_stats.stats[order][item]);
--}
--#else
--static inline void count_mthp_stat(int order, enum mthp_stat_item item)
--{
--}
--#endif
--
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
- 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
---- a/mm/memory.c~mm-cleanup-count_mthp_stat-definition
-+++ a/mm/memory.c
-@@ -4595,9 +4595,7 @@ static vm_fault_t do_anonymous_page(stru
+ 	thpsize = kzalloc(sizeof(*thpsize), GFP_KERNEL);
+ 	if (!thpsize)
+-		return ERR_PTR(-ENOMEM);
++		goto err;
++
++	thpsize->order = order;
  
- 	folio_ref_add(folio, nr_pages - 1);
- 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_FAULT_ALLOC);
--#endif
- 	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
- 	folio_add_lru_vma(folio, vma);
- setpte:
---- a/mm/shmem.c~mm-cleanup-count_mthp_stat-definition
-+++ a/mm/shmem.c
-@@ -1808,9 +1808,7 @@ static struct folio *shmem_alloc_and_add
- 
- 			if (pages == HPAGE_PMD_NR)
- 				count_vm_event(THP_FILE_FALLBACK);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			count_mthp_stat(order, MTHP_STAT_SHMEM_FALLBACK);
--#endif
- 			order = next_order(&suitable_orders, order);
- 		}
- 	} else {
-@@ -1835,10 +1833,8 @@ allocated:
- 				count_vm_event(THP_FILE_FALLBACK);
- 				count_vm_event(THP_FILE_FALLBACK_CHARGE);
- 			}
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK);
- 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK_CHARGE);
--#endif
- 		}
- 		goto unlock;
+ 	ret = kobject_init_and_add(&thpsize->kobj, &thpsize_ktype, parent,
+ 				   "hugepages-%lukB", size);
+ 	if (ret) {
+ 		kfree(thpsize);
+-		return ERR_PTR(ret);
++		goto err;
  	}
-@@ -2332,9 +2328,7 @@ repeat:
- 		if (!IS_ERR(folio)) {
- 			if (folio_test_pmd_mappable(folio))
- 				count_vm_event(THP_FILE_ALLOC);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_ALLOC);
--#endif
- 			goto alloced;
- 		}
- 		if (PTR_ERR(folio) == -EEXIST)
+ 
+-	ret = sysfs_create_group(&thpsize->kobj, &thpsize_attr_group);
+-	if (ret) {
+-		kobject_put(&thpsize->kobj);
+-		return ERR_PTR(ret);
++
++	ret = sysfs_add_group(&thpsize->kobj, &any_ctrl_attr_grp);
++	if (ret)
++		goto err_put;
++
++	ret = sysfs_add_group(&thpsize->kobj, &any_stats_attr_grp);
++	if (ret)
++		goto err_put;
++
++	if (BIT(order) & THP_ORDERS_ALL_ANON) {
++		ret = sysfs_add_group(&thpsize->kobj, &anon_ctrl_attr_grp);
++		if (ret)
++			goto err_put;
++
++		ret = sysfs_add_group(&thpsize->kobj, &anon_stats_attr_grp);
++		if (ret)
++			goto err_put;
+ 	}
+ 
+-	ret = sysfs_create_group(&thpsize->kobj, &stats_attr_group);
+-	if (ret) {
+-		kobject_put(&thpsize->kobj);
+-		return ERR_PTR(ret);
++	if (BIT(order) & THP_ORDERS_ALL_FILE_DEFAULT) {
++		ret = sysfs_add_group(&thpsize->kobj, &file_ctrl_attr_grp);
++		if (ret)
++			goto err_put;
++
++		ret = sysfs_add_group(&thpsize->kobj, &file_stats_attr_grp);
++		if (ret)
++			goto err_put;
+ 	}
+ 
+-	thpsize->order = order;
+ 	return thpsize;
++err_put:
++	kobject_put(&thpsize->kobj);
++err:
++	return ERR_PTR(ret);
+ }
+ 
+ static void thpsize_release(struct kobject *kobj)
+@@ -671,7 +755,7 @@ static int __init hugepage_init_sysfs(st
+ 		goto remove_hp_group;
+ 	}
+ 
+-	orders = THP_ORDERS_ALL_ANON;
++	orders = THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE_DEFAULT;
+ 	order = highest_order(orders);
+ 	while (orders) {
+ 		thpsize = thpsize_create(order, *hugepage_kobj);
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
