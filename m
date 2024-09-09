@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CD818E35E
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727CF18E35E
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925289; cv=none; b=QgZH70G1HuPBVx9QcWhDfaAwqGxm4Qf7C1Vmzda5FevD8B6Ob8yzA29UcAnR3SnmmrDM4siZ6VoWPQrr78UieZYPlLmGqtgmRFVi34VysdNlkDAjbBei9XOSyIDnVkPilN0OlSR+rEMkhb4YN47HpO4F7vPUP0T30JKvcKqnLXk=
+	t=1725925290; cv=none; b=oD91A/xv1gMjtmzHh9FE7VMRXCzT8INu2SLIkRtha6p/A4aK9QL9QIxFxs3JHXXYVXa2AeIGn8HfQG/I8hj9xCY5Im4Klq2ZCg5JWRHAkeb1MUYJ5o0miASNcDWkddV2g1Mi5XvYqicXJw0bQcut6rEkBUprq43ZaFGyawaItzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925289; c=relaxed/simple;
-	bh=xUy3tNDR5NHbR/hbf4o+hPrm72RXZy7bISKw1R4XerA=;
-	h=Date:To:From:Subject:Message-Id; b=Lwam1LQwkgTTj2H5vi+Gr4ayWkWzrHzhawDWh5LVjkUIrOdXNIpPJKjl05XT4jUL60FRWX15jQCGCXD+scR+8OPI91QXV/RgMSAFJGbOAkF+z9XReLmBVbxPP9pwpjUQHkzIVx6bKEO3UqnSOFdLLmpNJC1SLWIUo1MH/ly5v4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IAL0B2gP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925290; c=relaxed/simple;
+	bh=i79p9qsmmQFo0WbHSU8Be9kLRvlhjydKHoopt5HYX/4=;
+	h=Date:To:From:Subject:Message-Id; b=k9eeq3+bKqWhopdECj37Loi4Clt6rba7RLAuzZK0bQFcpWAIkouxYhyNo2r2USTvfDb4EkvZNWcRYYvGEH5Dl5pbtV9vMBiKKunODAdKoyh0nT6OC17Ace9lojWcJpXJEtsbp2a992t7S94DLFsJIKGvTad8Pmfm0jzMpljF8VU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdNF/Nvn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IAL0B2gP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2699DC4CEC5;
-	Mon,  9 Sep 2024 23:41:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdNF/Nvn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49FBAC4CEC5;
+	Mon,  9 Sep 2024 23:41:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925289;
-	bh=xUy3tNDR5NHbR/hbf4o+hPrm72RXZy7bISKw1R4XerA=;
+	s=korg; t=1725925290;
+	bh=i79p9qsmmQFo0WbHSU8Be9kLRvlhjydKHoopt5HYX/4=;
 	h=Date:To:From:Subject:From;
-	b=IAL0B2gPeWURP31xxQsJkL0Tl/bTI1ZQeeBsebDTO6+SKJfXdP5CGmwKzCzW7oDUE
-	 3gKhP5w9CQoYYqGhSZdcZRpm+TD9IQ+zht34ORPkFVUO0m80n3yElEAotR9ZBwYFJx
-	 jouwmh1qM9Fgm47OsT1voKVYf1d95AgPn5O5wgQg=
-Date: Mon, 09 Sep 2024 16:41:28 -0700
-To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=IdNF/NvnwpcebXUGlxRTRlRhuyeOvPhymF7ciGb3AUacACA4IXx7lrnEIUGriCN7q
+	 ajfO/EYq8YyaMWydq1ncF51ompFHjPFb4KmLJZlEdWoRgpPjWd9zVzwRHAL32U6ZRO
+	 C/SQwBQ6omiQtWweWNFhsdlJ6rXbSudiB/++ZCEc=
+Date: Mon, 09 Sep 2024 16:41:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,hughd@google.com,djwong@kernel.org,baolin.wang@linux.alibaba.com,riel@surriel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-support-priority-parameter-in-recompression.patch removed from -mm tree
-Message-Id: <20240909234129.2699DC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch removed from -mm tree
+Message-Id: <20240909234130.49FBAC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,363 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: support priority parameter in recompression
+     Subject: mm,tmpfs: consider end of file write in shmem_is_huge
 has been removed from the -mm tree.  Its filename was
-     zram-support-priority-parameter-in-recompression.patch
+     mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: support priority parameter in recompression
-Date: Mon, 2 Sep 2024 19:56:12 +0900
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,tmpfs: consider end of file write in shmem_is_huge
+Date: Tue, 3 Sep 2024 11:19:28 -0400
 
-recompress device attribute supports alg=NAME parameter so that we can
-specify only one particular algorithm we want to perform recompression
-with.  However, with algo params we now can have several exactly same
-secondary algorithms but each with its own params tuning (e.g.  priority 1
-configured to use more aggressive level, and priority 2 configured to use
-a pre-trained dictionary).  Support priority=NUM parameter so that we can
-correctly determine which secondary algorithm we want to use.
+Take the end of a file write into consideration when deciding whether or
+not to use huge pages for tmpfs files when the tmpfs filesystem is mounted
+with huge=within_size
 
-Link: https://lkml.kernel.org/r/20240902105656.1383858-25-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nick Terrell <terrelln@fb.com>
+This allows large writes that append to the end of a file to automatically
+use large pages.
+
+Doing 4MB sequential writes without fallocate to a 16GB tmpfs file with
+fio.  The numbers without THP or with huge=always stay the same, but the
+performance with huge=within_size now matches that of huge=always.
+
+huge		before		after
+4kB pages	1560 MB/s	1560 MB/s
+within_size	1560 MB/s	4720 MB/s
+always:		4720 MB/s	4720 MB/s
+
+[akpm@linux-foundation.org: coding-style cleanups]
+Link: https://lkml.kernel.org/r/20240903111928.7171e60c@imladris.surriel.com
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    5 ++++-
- drivers/block/zram/zram_drv.c               |   12 ++++++++++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ fs/xfs/scrub/xfile.c     |    6 +--
+ fs/xfs/xfs_buf_mem.c     |    2 -
+ include/linux/shmem_fs.h |    8 ++---
+ mm/huge_memory.c         |    2 -
+ mm/khugepaged.c          |    2 -
+ mm/shmem.c               |   59 +++++++++++++++++++------------------
+ mm/userfaultfd.c         |    2 -
+ 7 files changed, 42 insertions(+), 39 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-support-priority-parameter-in-recompression
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -512,11 +512,14 @@ registered compression algorithms, incre
- algorithm that successfully compresses a particular page. Sometimes, however,
- it is convenient (and sometimes even necessary) to limit recompression to
- only one particular algorithm so that it will not try any other algorithms.
--This can be achieved by providing a algo=NAME parameter:::
-+This can be achieved by providing a `algo` or `priority` parameter:::
+--- a/fs/xfs/scrub/xfile.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/fs/xfs/scrub/xfile.c
+@@ -126,7 +126,7 @@ xfile_load(
+ 		unsigned int	len;
+ 		unsigned int	offset;
  
- 	#use zstd algorithm only (if registered)
- 	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
+-		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
++		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
+ 				SGP_READ) < 0)
+ 			break;
+ 		if (!folio) {
+@@ -196,7 +196,7 @@ xfile_store(
+ 		unsigned int	len;
+ 		unsigned int	offset;
  
-+	#use zstd algorithm only (if zstd was registered under priority 1)
-+	echo "type=huge priority=1" > /sys/block/zramX/recompress
-+
- memory tracking
- ===============
+-		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
++		if (shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
+ 				SGP_CACHE) < 0)
+ 			break;
+ 		if (filemap_check_wb_err(inode->i_mapping, 0)) {
+@@ -267,7 +267,7 @@ xfile_get_folio(
+ 		i_size_write(inode, pos + len);
  
---- a/drivers/block/zram/zram_drv.c~zram-support-priority-parameter-in-recompression
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1855,6 +1855,18 @@ static ssize_t recompress_store(struct d
- 			algo = val;
- 			continue;
- 		}
-+
-+		if (!strcmp(param, "priority")) {
-+			ret = kstrtouint(val, 10, &prio);
-+			if (ret)
-+				return ret;
-+
-+			if (prio == ZRAM_PRIMARY_COMP)
-+				prio = ZRAM_SECONDARY_COMP;
-+
-+			prio_max = min(prio + 1, ZRAM_MAX_COMPS);
-+			continue;
-+		}
+ 	pflags = memalloc_nofs_save();
+-	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio,
++	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio,
+ 			(flags & XFILE_ALLOC) ? SGP_CACHE : SGP_READ);
+ 	memalloc_nofs_restore(pflags);
+ 	if (error)
+--- a/fs/xfs/xfs_buf_mem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/fs/xfs/xfs_buf_mem.c
+@@ -149,7 +149,7 @@ xmbuf_map_page(
+ 		return -ENOMEM;
  	}
  
- 	if (threshold >= huge_class_size)
+-	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, &folio, SGP_CACHE);
++	error = shmem_get_folio(inode, pos >> PAGE_SHIFT, 0, &folio, SGP_CACHE);
+ 	if (error)
+ 		return error;
+ 
+--- a/include/linux/shmem_fs.h~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/include/linux/shmem_fs.h
+@@ -113,11 +113,11 @@ int shmem_unuse(unsigned int type);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+-				bool shmem_huge_force);
++				loff_t write_end, bool shmem_huge_force);
+ #else
+ static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+-				bool shmem_huge_force)
++				loff_t write_end, bool shmem_huge_force)
+ {
+ 	return 0;
+ }
+@@ -143,8 +143,8 @@ enum sgp_type {
+ 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
+ };
+ 
+-int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
+-		enum sgp_type sgp);
++int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
++		struct folio **foliop, enum sgp_type sgp);
+ struct folio *shmem_read_folio_gfp(struct address_space *mapping,
+ 		pgoff_t index, gfp_t gfp);
+ 
+--- a/mm/huge_memory.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/mm/huge_memory.c
+@@ -164,7 +164,7 @@ unsigned long __thp_vma_allowable_orders
+ 	 */
+ 	if (!in_pf && shmem_file(vma->vm_file))
+ 		return shmem_allowable_huge_orders(file_inode(vma->vm_file),
+-						   vma, vma->vm_pgoff,
++						   vma, vma->vm_pgoff, 0,
+ 						   !enforce_sysfs);
+ 
+ 	if (!vma_is_anonymous(vma)) {
+--- a/mm/khugepaged.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/mm/khugepaged.c
+@@ -1870,7 +1870,7 @@ static int collapse_file(struct mm_struc
+ 			if (xa_is_value(folio) || !folio_test_uptodate(folio)) {
+ 				xas_unlock_irq(&xas);
+ 				/* swap in or instantiate fallocated page */
+-				if (shmem_get_folio(mapping->host, index,
++				if (shmem_get_folio(mapping->host, index, 0,
+ 						&folio, SGP_NOALLOC)) {
+ 					result = SCAN_FAIL;
+ 					goto xa_unlocked;
+--- a/mm/shmem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/mm/shmem.c
+@@ -549,7 +549,8 @@ static bool shmem_confirm_swap(struct ad
+ static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
+ 
+ static bool __shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
+-					bool shmem_huge_force, struct vm_area_struct *vma,
++					loff_t write_end, bool shmem_huge_force,
++					struct vm_area_struct *vma,
+ 					unsigned long vm_flags)
+ {
+ 	struct mm_struct *mm = vma ? vma->vm_mm : NULL;
+@@ -569,7 +570,8 @@ static bool __shmem_huge_global_enabled(
+ 		return true;
+ 	case SHMEM_HUGE_WITHIN_SIZE:
+ 		index = round_up(index + 1, HPAGE_PMD_NR);
+-		i_size = round_up(i_size_read(inode), PAGE_SIZE);
++		i_size = max(write_end, i_size_read(inode));
++		i_size = round_up(i_size, PAGE_SIZE);
+ 		if (i_size >> PAGE_SHIFT >= index)
+ 			return true;
+ 		fallthrough;
+@@ -583,14 +585,14 @@ static bool __shmem_huge_global_enabled(
+ }
+ 
+ static bool shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
+-		   bool shmem_huge_force, struct vm_area_struct *vma,
+-		   unsigned long vm_flags)
++		   loff_t write_end, bool shmem_huge_force,
++		   struct vm_area_struct *vma, unsigned long vm_flags)
+ {
+ 	if (HPAGE_PMD_ORDER > MAX_PAGECACHE_ORDER)
+ 		return false;
+ 
+-	return __shmem_huge_global_enabled(inode, index, shmem_huge_force,
+-					   vma, vm_flags);
++	return __shmem_huge_global_enabled(inode, index, write_end,
++					   shmem_huge_force, vma, vm_flags);
+ }
+ 
+ #if defined(CONFIG_SYSFS)
+@@ -770,8 +772,8 @@ static unsigned long shmem_unused_huge_s
+ }
+ 
+ static bool shmem_huge_global_enabled(struct inode *inode, pgoff_t index,
+-		bool shmem_huge_force, struct vm_area_struct *vma,
+-		unsigned long vm_flags)
++		loff_t write_end, bool shmem_huge_force,
++		struct vm_area_struct *vma, unsigned long vm_flags)
+ {
+ 	return false;
+ }
+@@ -978,7 +980,7 @@ static struct folio *shmem_get_partial_f
+ 	 * (although in some cases this is just a waste of time).
+ 	 */
+ 	folio = NULL;
+-	shmem_get_folio(inode, index, &folio, SGP_READ);
++	shmem_get_folio(inode, index, 0, &folio, SGP_READ);
+ 	return folio;
+ }
+ 
+@@ -1166,7 +1168,7 @@ static int shmem_getattr(struct mnt_idma
+ 			STATX_ATTR_NODUMP);
+ 	generic_fillattr(idmap, request_mask, inode, stat);
+ 
+-	if (shmem_huge_global_enabled(inode, 0, false, NULL, 0))
++	if (shmem_huge_global_enabled(inode, 0, 0, false, NULL, 0))
+ 		stat->blksize = HPAGE_PMD_SIZE;
+ 
+ 	if (request_mask & STATX_BTIME) {
+@@ -1653,7 +1655,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+-				bool shmem_huge_force)
++				loff_t write_end, bool shmem_huge_force)
+ {
+ 	unsigned long mask = READ_ONCE(huge_shmem_orders_always);
+ 	unsigned long within_size_orders = READ_ONCE(huge_shmem_orders_within_size);
+@@ -1670,8 +1672,8 @@ unsigned long shmem_allowable_huge_order
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
+ 		return 0;
+ 
+-	global_huge = shmem_huge_global_enabled(inode, index, shmem_huge_force,
+-						vma, vm_flags);
++	global_huge = shmem_huge_global_enabled(inode, index, write_end,
++					shmem_huge_force, vma, vm_flags);
+ 	if (!vma || !vma_is_anon_shmem(vma)) {
+ 		/*
+ 		 * For tmpfs, we now only support PMD sized THP if huge page
+@@ -2231,8 +2233,8 @@ unlock:
+  * vmf and fault_type are only supplied by shmem_fault: otherwise they are NULL.
+  */
+ static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
+-		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
+-		struct vm_fault *vmf, vm_fault_t *fault_type)
++		loff_t write_end, struct folio **foliop, enum sgp_type sgp,
++		gfp_t gfp, struct vm_fault *vmf, vm_fault_t *fault_type)
+ {
+ 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	struct mm_struct *fault_mm;
+@@ -2312,7 +2314,7 @@ repeat:
+ 	}
+ 
+ 	/* Find hugepage orders that are allowed for anonymous shmem and tmpfs. */
+-	orders = shmem_allowable_huge_orders(inode, vma, index, false);
++	orders = shmem_allowable_huge_orders(inode, vma, index, write_end, false);
+ 	if (orders > 0) {
+ 		gfp_t huge_gfp;
+ 
+@@ -2413,6 +2415,7 @@ unlock:
+  * shmem_get_folio - find, and lock a shmem folio.
+  * @inode:	inode to search
+  * @index:	the page index.
++ * @write_end:	end of a write, could extend inode size
+  * @foliop:	pointer to the folio if found
+  * @sgp:	SGP_* flags to control behavior
+  *
+@@ -2432,10 +2435,10 @@ unlock:
+  * Context: May sleep.
+  * Return: 0 if successful, else a negative error code.
+  */
+-int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
+-		enum sgp_type sgp)
++int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
++		    struct folio **foliop, enum sgp_type sgp)
+ {
+-	return shmem_get_folio_gfp(inode, index, foliop, sgp,
++	return shmem_get_folio_gfp(inode, index, write_end, foliop, sgp,
+ 			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ }
+ EXPORT_SYMBOL_GPL(shmem_get_folio);
+@@ -2530,7 +2533,7 @@ static vm_fault_t shmem_fault(struct vm_
+ 	}
+ 
+ 	WARN_ON_ONCE(vmf->page != NULL);
+-	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
++	err = shmem_get_folio_gfp(inode, vmf->pgoff, 0, &folio, SGP_CACHE,
+ 				  gfp, vmf, &ret);
+ 	if (err)
+ 		return vmf_error(err);
+@@ -3040,7 +3043,7 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
+ 
+-	ret = shmem_get_folio(inode, index, &folio, SGP_WRITE);
++	ret = shmem_get_folio(inode, index, pos + len, &folio, SGP_WRITE);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -3111,7 +3114,7 @@ static ssize_t shmem_file_read_iter(stru
+ 				break;
+ 		}
+ 
+-		error = shmem_get_folio(inode, index, &folio, SGP_READ);
++		error = shmem_get_folio(inode, index, 0, &folio, SGP_READ);
+ 		if (error) {
+ 			if (error == -EINVAL)
+ 				error = 0;
+@@ -3287,7 +3290,7 @@ static ssize_t shmem_file_splice_read(st
+ 		if (*ppos >= i_size_read(inode))
+ 			break;
+ 
+-		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio,
++		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, 0, &folio,
+ 					SGP_READ);
+ 		if (error) {
+ 			if (error == -EINVAL)
+@@ -3477,8 +3480,8 @@ static long shmem_fallocate(struct file
+ 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
+ 			error = -ENOMEM;
+ 		else
+-			error = shmem_get_folio(inode, index, &folio,
+-						SGP_FALLOC);
++			error = shmem_get_folio(inode, index, offset + len,
++						&folio, SGP_FALLOC);
+ 		if (error) {
+ 			info->fallocend = undo_fallocend;
+ 			/* Remove the !uptodate folios we added */
+@@ -3829,7 +3832,7 @@ static int shmem_symlink(struct mnt_idma
+ 	} else {
+ 		inode_nohighmem(inode);
+ 		inode->i_mapping->a_ops = &shmem_aops;
+-		error = shmem_get_folio(inode, 0, &folio, SGP_WRITE);
++		error = shmem_get_folio(inode, 0, 0, &folio, SGP_WRITE);
+ 		if (error)
+ 			goto out_remove_offset;
+ 		inode->i_op = &shmem_symlink_inode_operations;
+@@ -3875,7 +3878,7 @@ static const char *shmem_get_link(struct
+ 			return ERR_PTR(-ECHILD);
+ 		}
+ 	} else {
+-		error = shmem_get_folio(inode, 0, &folio, SGP_READ);
++		error = shmem_get_folio(inode, 0, 0, &folio, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
+ 		if (!folio)
+@@ -5343,7 +5346,7 @@ struct folio *shmem_read_folio_gfp(struc
+ 	struct folio *folio;
+ 	int error;
+ 
+-	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
++	error = shmem_get_folio_gfp(inode, index, 0, &folio, SGP_CACHE,
+ 				    gfp, NULL, NULL);
+ 	if (error)
+ 		return ERR_PTR(error);
+--- a/mm/userfaultfd.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge
++++ a/mm/userfaultfd.c
+@@ -391,7 +391,7 @@ static int mfill_atomic_pte_continue(pmd
+ 	struct page *page;
+ 	int ret;
+ 
+-	ret = shmem_get_folio(inode, pgoff, &folio, SGP_NOALLOC);
++	ret = shmem_get_folio(inode, pgoff, 0, &folio, SGP_NOALLOC);
+ 	/* Our caller expects us to return -EFAULT if we failed to find folio */
+ 	if (ret == -ENOENT)
+ 		ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from riel@surriel.com are
 
-zsmalloc-use-unique-zsmalloc-caches-names.patch
 
