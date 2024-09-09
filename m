@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C9018A925
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B9618E04D
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925239; cv=none; b=NduzGrZmL+qFUJgr7ZfJQoks9mmV+WIDa+uEaUr0M9Sg5S8ZLmzIq3GNagoBjE9ovCiAPu5MOMh5fRKHiInSxwRSK8QOD7mwmS1RCHymWAkO4yac8nbihKJwcILSLloxhJce2JOeB9kWEFLao0LltbR2qtGw6k7IFA4/LdqlYeE=
+	t=1725925240; cv=none; b=sHf4sL2X8ze3FhQl48IvjXGFIW/wt5XdoYCzd49pJRPtT9UcGRtzSIu4xAUhxB9FcdgHD2fjrtNBNR3sNziQQ4xR6zi3w5mP0TVBzBM+hO8OiiB425sIcsQS7TZrNNziC6MK0/H3BMiWE1LpjoWMjhKPe0ykhGDaC/fnzfxU4C8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925239; c=relaxed/simple;
-	bh=/4L3dnCtl9anEfqltWxCwi63eAUeuHGetPHM1YFHgjo=;
-	h=Date:To:From:Subject:Message-Id; b=GgEU9mZKBFqX1h+MUiQXwciZKzqOcg9S/XPnob/NT8yRC06S+j9pLC8GryA/pqC77ZxK7tJSE1TCScbVWD3CLkr8VUYIDYch8cK3Ak4kqA4YfbACJM+X672K+XHFf+AgRRgqJ5iITQxjTp2pqRUHuwdEIhfQ/k75AnJ3tc8Lp28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wlYqaJKQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925240; c=relaxed/simple;
+	bh=277B6+hUxN+wvd34hdHqc8feTdPW7946nQjEPgD+v9g=;
+	h=Date:To:From:Subject:Message-Id; b=m86mNj3fLzmfcOfqiFauyONp7wdkzL1ESUOjee2HPMNSw7S9bf5n0QuB0dLUQ0jCzvrpXZ8wkPN4jUq/ZqkOPD+uApvumqJgUymL3ydirJ7WwBXq5JfwaNjDE1tI6jkdyaWj9v81no2xx+QIti5kkFdPQy7Di2HU6sOFyu6jxsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nMRrxi2C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wlYqaJKQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E057AC4CEC5;
-	Mon,  9 Sep 2024 23:40:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nMRrxi2C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EF9BC4CEC5;
+	Mon,  9 Sep 2024 23:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925239;
-	bh=/4L3dnCtl9anEfqltWxCwi63eAUeuHGetPHM1YFHgjo=;
+	s=korg; t=1725925240;
+	bh=277B6+hUxN+wvd34hdHqc8feTdPW7946nQjEPgD+v9g=;
 	h=Date:To:From:Subject:From;
-	b=wlYqaJKQ3cUtEP+RS8o24Wb6Oictqc1ljKtwCAHcVLFXmq81hRDtmjtnWhW2VI3kv
-	 +BD1sshPtdDKt9aGyMGrAHxJ8u6iUuOiE8GKFckUp0vX1TwJZF2nIEmTt0BTE2aJaX
-	 tdYtV/BJgNFnQVGt6e4xAcUiKxVqpj31Ua/lXt4s=
-Date: Mon, 09 Sep 2024 16:40:38 -0700
-To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,xieyongji@bytedance.com,vbabka@suse.cz,urezki@gmail.com,torvalds@linux-foundation.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mst@redhat.com,mhocko@suse.com,maxime.coquelin@redhat.com,lorenzo.stoakes@oracle.com,laoar.shao@gmail.com,kees@kernel.org,jasowang@redhat.com,iamjoonsoo.kim@lge.com,hch@lst.de,hch@infradead.org,hailong.liu@oppo.com,eperezma@redhat.com,david@redhat.com,dave@stgolabs.net,cl@linux.com,42.hyeyoo@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=nMRrxi2CSk0P9gxi33OEX37GRbnV2CMCJQbQVBXGSVQu5rGJocT3kGKDWSdj+cbdj
+	 Bmvr+zwwm9wcRe8iVOR0EwT1cmn1XwFsrT96L6kmzsUITJBoOzYwDsSYChZAddTwp0
+	 6z8N+tMmaIxtM0zzNvGPIAwq0y/yp0HlkOOol+OI=
+Date: Mon, 09 Sep 2024 16:40:39 -0700
+To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,xieyongji@bytedance.com,vbabka@suse.cz,urezki@gmail.com,torvalds@linux-foundation.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mst@redhat.com,mhocko@suse.com,maxime.coquelin@redhat.com,lorenzo.stoakes@oracle.com,laoar.shao@gmail.com,kees@kernel.org,jasowang@redhat.com,iamjoonsoo.kim@lge.com,hch@lst.de,hailong.liu@oppo.com,eperezma@redhat.com,david@redhat.com,dave@stgolabs.net,cl@linux.com,42.hyeyoo@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-document-__gfp_nofail-must-be-blockable.patch removed from -mm tree
-Message-Id: <20240909234038.E057AC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch removed from -mm tree
+Message-Id: <20240909234040.7EF9BC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: document __GFP_NOFAIL must be blockable
+     Subject: mm: warn about illegal __GFP_NOFAIL usage in a more appropriate location and manner
 has been removed from the -mm tree.  Its filename was
-     mm-document-__gfp_nofail-must-be-blockable.patch
+     mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: document __GFP_NOFAIL must be blockable
-Date: Sat, 31 Aug 2024 08:28:22 +1200
+Subject: mm: warn about illegal __GFP_NOFAIL usage in a more appropriate location and manner
+Date: Sat, 31 Aug 2024 08:28:23 +1200
 
-Non-blocking allocation with __GFP_NOFAIL is not supported and may still
-result in NULL pointers (if we don't return NULL, we result in busy-loop
-within non-sleepable contexts):
+Three points for this change:
 
-static inline struct page *
-__alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
-						struct alloc_context *ac)
-{
-	...
-	/*
-	 * Make sure that __GFP_NOFAIL request doesn't leak out and make sure
-	 * we always retry
-	 */
-	if (gfp_mask & __GFP_NOFAIL) {
-		/*
-		 * All existing users of the __GFP_NOFAIL are blockable, so warn
-		 * of any new users that actually require GFP_NOWAIT
-		 */
-		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
-			goto fail;
-		...
-	}
-	...
-fail:
-	warn_alloc(gfp_mask, ac->nodemask,
-			"page allocation failure: order:%u", order);
-got_pg:
-	return page;
-}
+1. We should consolidate all warnings in one place. Currently, the
+   order > 1 warning is in the hotpath, while others are in less
+   likely scenarios. Moving all warnings to the slowpath will reduce
+   the overhead for order > 1 and increase the visibility of other
+   warnings.
 
-Highlight this in the documentation of __GFP_NOFAIL so that non-mm
-subsystems can reject any illegal usage of __GFP_NOFAIL with GFP_ATOMIC,
-GFP_NOWAIT, etc.
+2. We currently have two warnings for order: one for order > 1 in
+   the hotpath and another for order > costly_order in the laziest
+   path. I suggest standardizing on order > 1 since it's been in
+   use for a long time.
 
-Link: https://lkml.kernel.org/r/20240830202823.21478-3-21cnbao@gmail.com
+3. We don't need to check for __GFP_NOWARN in this case. __GFP_NOWARN
+   is meant to suppress allocation failure reports, but here we're
+   dealing with bug detection, not allocation failures. So replace
+   WARN_ON_ONCE_GFP by WARN_ON_ONCE.
+
+[v-songbaohua@oppo.com: also update the doc for __GFP_NOFAIL with order > 1]
+  Link: https://lkml.kernel.org/r/20240903223935.1697-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240830202823.21478-4-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David Rientjes <rientjes@google.com>
 Cc: "Eugenio Pérez" <eperezma@redhat.com>
 Cc: Hailong.Liu <hailong.liu@oppo.com>
@@ -103,37 +90,113 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Xie Yongji <xieyongji@bytedance.com>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/gfp_types.h |    3 +-
+ mm/page_alloc.c           |   50 ++++++++++++++++++------------------
+ 2 files changed, 27 insertions(+), 26 deletions(-)
 
---- a/include/linux/gfp_types.h~mm-document-__gfp_nofail-must-be-blockable
+--- a/include/linux/gfp_types.h~mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner
 +++ a/include/linux/gfp_types.h
-@@ -215,7 +215,8 @@ enum {
-  * the caller still has to check for failures) while costly requests try to be
-  * not disruptive and back off even without invoking the OOM killer.
-  * The following three modifiers might be used to override some of these
-- * implicit rules.
-+ * implicit rules. Please note that all of them must be used along with
-+ * %__GFP_DIRECT_RECLAIM flag.
-  *
-  * %__GFP_NORETRY: The VM implementation will try only very lightweight
-  * memory direct reclaim to get some memory under memory pressure (thus
-@@ -246,6 +247,8 @@ enum {
-  * cannot handle allocation failures. The allocation could block
-  * indefinitely but will never return with failure. Testing for
-  * failure is pointless.
-+ * It _must_ be blockable and used together with __GFP_DIRECT_RECLAIM.
-+ * It should _never_ be used in non-sleepable contexts.
-  * New users should be evaluated carefully (and the flag should be
+@@ -253,7 +253,8 @@ enum {
   * used only when there is no reasonable failure policy) but it is
   * definitely preferable to use the flag rather than opencode endless
+  * loop around allocator.
+- * Using this flag for costly allocations is _highly_ discouraged.
++ * Allocating pages from the buddy with __GFP_NOFAIL and order > 1 is
++ * not supported. Please consider using kvmalloc() instead.
+  */
+ #define __GFP_IO	((__force gfp_t)___GFP_IO)
+ #define __GFP_FS	((__force gfp_t)___GFP_FS)
+--- a/mm/page_alloc.c~mm-warn-about-illegal-__gfp_nofail-usage-in-a-more-appropriate-location-and-manner
++++ a/mm/page_alloc.c
+@@ -3032,12 +3032,6 @@ struct page *rmqueue(struct zone *prefer
+ {
+ 	struct page *page;
+ 
+-	/*
+-	 * We most definitely don't want callers attempting to
+-	 * allocate greater than order-1 page units with __GFP_NOFAIL.
+-	 */
+-	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
+-
+ 	if (likely(pcp_allowed_order(order))) {
+ 		page = rmqueue_pcplist(preferred_zone, zone, order,
+ 				       migratetype, alloc_flags);
+@@ -4175,6 +4169,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ {
+ 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+ 	bool can_compact = gfp_compaction_allowed(gfp_mask);
++	bool nofail = gfp_mask & __GFP_NOFAIL;
+ 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+@@ -4187,6 +4182,25 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	unsigned int zonelist_iter_cookie;
+ 	int reserve_flags;
+ 
++	if (unlikely(nofail)) {
++		/*
++		 * We most definitely don't want callers attempting to
++		 * allocate greater than order-1 page units with __GFP_NOFAIL.
++		 */
++		WARN_ON_ONCE(order > 1);
++		/*
++		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
++		 * otherwise, we may result in lockup.
++		 */
++		WARN_ON_ONCE(!can_direct_reclaim);
++		/*
++		 * PF_MEMALLOC request from this context is rather bizarre
++		 * because we cannot reclaim anything and only can loop waiting
++		 * for somebody to do a work for us.
++		 */
++		WARN_ON_ONCE(current->flags & PF_MEMALLOC);
++	}
++
+ restart:
+ 	compaction_retries = 0;
+ 	no_progress_loops = 0;
+@@ -4404,30 +4418,16 @@ nopage:
+ 	 * Make sure that __GFP_NOFAIL request doesn't leak out and make sure
+ 	 * we always retry
+ 	 */
+-	if (gfp_mask & __GFP_NOFAIL) {
++	if (unlikely(nofail)) {
+ 		/*
+-		 * All existing users of the __GFP_NOFAIL are blockable, so warn
+-		 * of any new users that actually require GFP_NOWAIT
++		 * Lacking direct_reclaim we can't do anything to reclaim memory,
++		 * we disregard these unreasonable nofail requests and still
++		 * return NULL
+ 		 */
+-		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
++		if (!can_direct_reclaim)
+ 			goto fail;
+ 
+ 		/*
+-		 * PF_MEMALLOC request from this context is rather bizarre
+-		 * because we cannot reclaim anything and only can loop waiting
+-		 * for somebody to do a work for us
+-		 */
+-		WARN_ON_ONCE_GFP(current->flags & PF_MEMALLOC, gfp_mask);
+-
+-		/*
+-		 * non failing costly orders are a hard requirement which we
+-		 * are not prepared for much so let's warn about these users
+-		 * so that we can identify them and convert them to something
+-		 * else.
+-		 */
+-		WARN_ON_ONCE_GFP(costly_order, gfp_mask);
+-
+-		/*
+ 		 * Help non-failing allocations by giving some access to memory
+ 		 * reserves normally used for high priority non-blocking
+ 		 * allocations but do not use ALLOC_NO_WATERMARKS because this
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
