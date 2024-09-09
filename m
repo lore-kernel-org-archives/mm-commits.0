@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32842262B
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 19:02:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39BB188CC8
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 19:02:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725908560; cv=none; b=mYyV249qSQwQpgV4XmuoNtIoO1JXxAC9xuyXS8PTyrrxqJg8+l4chiEmYTED7uN5dFQivNwCdtJrRayPCzkzB71PWrGTuj9Y89ko1V6l3YdxJddKsNeBvfzdzfOB3jBF0kh1A2zt/A+I7n4NWLoRvNDJFr/CdIKJdcyKIzoISZg=
+	t=1725908563; cv=none; b=VOKEoXH/xfyMLEGnHFtBe6m74GETfWvDexo9mYeNMAZZZCz7qdOE79xD+fAVPnX9U8U4uohnvQpR09RdOYafJI+aHIglFbWDyjr/8r2P+nuL6tO59vx2+9PWEy4S8h2L5eEievgq0t8v8SdWUJCppOc3CucbgkI9s3tUbalhYIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725908560; c=relaxed/simple;
-	bh=YgwwlMmq6kf3knQ5WdzZr5OgUIBA80VW9S63sUvaxgI=;
-	h=Date:To:From:Subject:Message-Id; b=EjPkQQ+rjcCxkb2I476pUYlBSbejjEWm9sBcLSqVy/s1YuJ3qxI9Zb7UbKs3DfqLrDzW6bbafRx9pwYOTq2aq9Eyp+wM9Cfue+wwuS6MrBBioVb9lYyHMFRvwoT+MsqVa3YgwDPBcFop6OZBT7ZhNxht8qK9+JwCC5zcrmXbi/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CUja3mxg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725908563; c=relaxed/simple;
+	bh=PUXTeHBKBQv6u8+ASxwMcKfeR2mlfWZQqYnJDdK0fPw=;
+	h=Date:To:From:Subject:Message-Id; b=dRBt4WIyJd8IeUV8Myf5HK3kFkwDpX6/ec4/D+yv9A0fmg/x4hlEtcSSCTFfjIgD9BBRDdSiNI5SHjjGMckgXyignXkzIB1Tq0c2+PCNUwSvXk9Mutcfnqu378Rdw4XzgSBVUcmW/CtnA6MUNmflvKuXSd6rdaFw5/khONNpGDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v2WdoeP0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CUja3mxg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAE8C4CEC5;
-	Mon,  9 Sep 2024 19:02:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v2WdoeP0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 496DCC4CEC5;
+	Mon,  9 Sep 2024 19:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725908560;
-	bh=YgwwlMmq6kf3knQ5WdzZr5OgUIBA80VW9S63sUvaxgI=;
+	s=korg; t=1725908562;
+	bh=PUXTeHBKBQv6u8+ASxwMcKfeR2mlfWZQqYnJDdK0fPw=;
 	h=Date:To:From:Subject:From;
-	b=CUja3mxgetoYq+Lx5qbwfJCtJbdNAYrJFquglO05ImqynkmWSRpWbQaNiKty7Evtx
-	 2Z6RiurXdpx+0MQIsoAh+FPKXj25uB1bNZi/LZWgrpsIUs41mBpxA1WaUTI+JpF1PR
-	 Iy3HNX6oq6ktlKDpfcHVnABRGTtCrzQ8Aew4Q60c=
-Date: Mon, 09 Sep 2024 12:02:39 -0700
+	b=v2WdoeP0hgDhR8bNN9NFyOzw7/RT1StIRxCnrK1/qMharTLvpq+lz1lIQkcNRYXWJ
+	 zPGo5XJ2XpApIwDFXCb6Gw175PX4F2rIkzhBP61TaPGT/IqJLR6VuJrbpKNHj2Kkeh
+	 XwFZrthwoI1krSimIij4Y7DbI8TV9JTutixZ72P8=
+Date: Mon, 09 Sep 2024 12:02:41 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,chenridong@huawei.com,mkoutny@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-cleanup-with-config_memcg_v1.patch added to mm-unstable branch
-Message-Id: <20240909190240.3BAE8C4CEC5@smtp.kernel.org>
+Subject: + cgroup-cpuset-expose-cpuset-filesystem-with-cpuset-v1-only.patch added to mm-unstable branch
+Message-Id: <20240909190242.496DCC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: cleanup with !CONFIG_MEMCG_V1
+     Subject: cgroup/cpuset: expose cpuset filesystem with cpuset v1 only
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-cleanup-with-config_memcg_v1.patch
+     cgroup-cpuset-expose-cpuset-filesystem-with-cpuset-v1-only.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-cleanup-with-config_memcg_v1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-cpuset-expose-cpuset-filesystem-with-cpuset-v1-only.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Michal Koutný <mkoutny@suse.com>
-Subject: memcg: cleanup with !CONFIG_MEMCG_V1
-Date: Mon, 9 Sep 2024 18:32:20 +0200
+Subject: cgroup/cpuset: expose cpuset filesystem with cpuset v1 only
+Date: Mon, 9 Sep 2024 18:32:21 +0200
 
-Patch series "Followups to controllers' v1 compilation".
+The cpuset filesystem is a legacy interface to cpuset controller with
+(pre-)v1 features. It makes little sense to co-mount it on systems
+without cpuset v1, so do no build it when cpuset v1 is not built
+neither.
 
-The group of patches builds upon recent dissection of memory and cpuset
-controller v1 code to under a separate configuration option.  The goal of
-them patches is to produce behavior that appears to v1 controlelr users
-same like if the controller wasn't compiled at all (and no change to v2
-users).  Plus there are two preceding patches with cleanups I came across
-when looking at the new code.
-
-
-This patch (of 4):
-
-Extern declarations have no definitions with !CONFIG_MEMCG_V1 and no
-users, drop them altogether.
-
-Link: https://lkml.kernel.org/r/20240909163223.3693529-1-mkoutny@suse.com
-Link: https://lkml.kernel.org/r/20240909163223.3693529-2-mkoutny@suse.com
+Link: https://lkml.kernel.org/r/20240909163223.3693529-3-mkoutny@suse.com
 Signed-off-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Waiman Long <longman@redhat.com>
 Cc: Chen Ridong <chenridong@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Zefan Li <lizefan.x@bytedance.com>
-Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.h |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/cgroup/cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol-v1.h~memcg-cleanup-with-config_memcg_v1
-+++ a/mm/memcontrol-v1.h
-@@ -154,8 +154,6 @@ static inline bool memcg1_charge_skmem(s
- 				       gfp_t gfp_mask) { return true; }
- static inline void memcg1_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages) {}
+--- a/kernel/cgroup/cgroup.c~cgroup-cpuset-expose-cpuset-filesystem-with-cpuset-v1-only
++++ a/kernel/cgroup/cgroup.c
+@@ -2338,7 +2338,7 @@ static struct file_system_type cgroup2_f
+ 	.fs_flags		= FS_USERNS_MOUNT,
+ };
  
--extern struct cftype memsw_files[];
--extern struct cftype mem_cgroup_legacy_files[];
- #endif	/* CONFIG_MEMCG_V1 */
+-#ifdef CONFIG_CPUSETS
++#ifdef CONFIG_CPUSETS_V1
+ static const struct fs_context_operations cpuset_fs_context_ops = {
+ 	.get_tree	= cgroup1_get_tree,
+ 	.free		= cgroup_fs_context_free,
+@@ -6187,7 +6187,7 @@ int __init cgroup_init(void)
+ 	WARN_ON(register_filesystem(&cgroup_fs_type));
+ 	WARN_ON(register_filesystem(&cgroup2_fs_type));
+ 	WARN_ON(!proc_create_single("cgroups", 0, NULL, proc_cgroupstats_show));
+-#ifdef CONFIG_CPUSETS
++#ifdef CONFIG_CPUSETS_V1
+ 	WARN_ON(register_filesystem(&cpuset_fs_type));
+ #endif
  
- #endif	/* __MM_MEMCONTROL_V1_H */
 _
 
 Patches currently in -mm which might be from mkoutny@suse.com are
