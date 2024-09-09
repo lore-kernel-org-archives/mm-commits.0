@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 246B918E356
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296DF18D647
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925253; cv=none; b=Ot7tZAemeEOuDyFRCLQdARqCUYwrhLyzO9bsJOlNOneEJXlVpHE48n3H9mKyWdrhyE4wO8WEotSGYbjSWGcB5AfC/g94jye49NojFFyw5b9gqrFl1ASF0kXukypSj7EDQ8CY5KIoC2bSHXOLZy4t8QkS/aFhEfDS1ce/VnRQrd8=
+	t=1725925254; cv=none; b=Em28Q50fPDbCRnznRIUN0oMcs6bVnBAbcej5jawvm4qNKfzsivybi5Mb5KsCqg/hH69yTx6TAA2AiW0a+1QUHVXpKk7nAxpNz2++dBkD0xk/BhGdPVd2LAiakEKDFlZ/Q0LLZX8dYFntTvwYZDjikPxNnpXCeLsQzRV7KhRcgiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925253; c=relaxed/simple;
-	bh=cyN3KCduIaclwOG48jabpfc5sYCMP1wGiroFqKoQq+k=;
-	h=Date:To:From:Subject:Message-Id; b=HgP5/aCutfh1V4Cw1eHsuNxSBTFfN3Zxx8e2FYBpU8D1bSOcHsaqZqwYMneRoLwFzGpEOTz6IYh3HfoF9/0a+trYZmtW8b3OHkgtM8hlIq5C4k5bSI8SAxaXti3jskgXhuXaO1ibWVZUNvlGI3SbfUJSMOIdzdFf/Nu8fL2JIbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XA3ySEsm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925254; c=relaxed/simple;
+	bh=TQyGsVDdgUIFDfuzJzg8NwUArKVZNeniPX4hwqVs/8k=;
+	h=Date:To:From:Subject:Message-Id; b=cpZTvs1N1mRmD5uUTdEJMh9DcrtCJmv6XBQPJK4sTnhfqFmvZnSBzW+gMNEgZdSH3mgQUWtSn0/sDTMOqHzNbxrfBF6lmlp36e1jinrozplPYT5bjlDwAs0iPGouTpQ7+h8nvrN+k3Lb//dnHkStXnh7735yzIfeVaWY9HdVf5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g54CfujB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XA3ySEsm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9C64C4CEC5;
-	Mon,  9 Sep 2024 23:40:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g54CfujB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3568C4CEC5;
+	Mon,  9 Sep 2024 23:40:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925253;
-	bh=cyN3KCduIaclwOG48jabpfc5sYCMP1wGiroFqKoQq+k=;
+	s=korg; t=1725925254;
+	bh=TQyGsVDdgUIFDfuzJzg8NwUArKVZNeniPX4hwqVs/8k=;
 	h=Date:To:From:Subject:From;
-	b=XA3ySEsmwDTm87OR76X3mmwvlcI5gIUmDYn139AiKgJS5JaBqNw5A5mgW0eWuPFEZ
-	 ZXqtDzqyp4b/izymuZCZ5a2oxJzf0nJIH3Mc8ybKV3oIGkzndI7neXh3Em6p2IU7MB
-	 UzBU2qB1rg872iYjsc5CeCgzN6rnLlGrRn9pCbfE=
-Date: Mon, 09 Sep 2024 16:40:52 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,shuah@kernel.org,ryan.roberts@arm.com,osalvador@suse.de,mhocko@suse.com,mgorman@techsingularity.net,mark.rutland@arm.com,kirill.shutemov@linux.intel.com,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,dave.hansen@linux.intel.com,cl@gentwo.org,catalin.marinas@arm.com,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,aneesh.kumar@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
+	b=g54CfujBfgE+sxxXS79IDO0ztBDzuMF3ElWxqLUjIrVkU30oZgABJgLXcXP41aeVD
+	 eWLaajmyB0JK6lC3h0LipHQlMxQNylzyCHxn3QmW7Dm7UcWj+z08Z+0HLVEDA+cwqg
+	 Vzgaudf/2PTwf/5Ua4WeL0yvw4R+z9v9yqXQzb2Q=
+Date: Mon, 09 Sep 2024 16:40:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,link@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-relax-test-to-fail-after-100-migration-failures.patch removed from -mm tree
-Message-Id: <20240909234052.D9C64C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-simpify-page-del-and-expand.patch removed from -mm tree
+Message-Id: <20240909234053.F3568C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: relax test to fail after 100 migration failures
+     Subject: mm: page_alloc: simpify page del and expand
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-relax-test-to-fail-after-100-migration-failures.patch
+     mm-page_alloc-simpify-page-del-and-expand.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: relax test to fail after 100 migration failures
-Date: Fri, 30 Aug 2024 10:46:09 +0530
+From: Huan Yang <link@vivo.com>
+Subject: mm: page_alloc: simpify page del and expand
+Date: Mon, 26 Aug 2024 14:40:48 +0800
 
-It was recently observed at [1] that during the folio unmapping stage of
-migration, when the PTEs are cleared, a racing thread faulting on that
-folio may increase the refcount of the folio, sleep on the folio lock (the
-migration path has the lock), and migration ultimately fails when
-asserting the actual refcount against the expected.  Thereby, the
-migration selftest fails on shared-anon mappings.  The above enforces the
-fact that migration is a best-effort service, therefore, it is wrong to
-fail the test for just a single failure; hence, fail the test after 100
-consecutive failures (where 100 is still a subjective choice).  Note that,
-this has no effect on the execution time of the test since that is
-controlled by a timeout.
+When page del from buddy and need expand, it will account free_pages in
+zone's migratetype.
 
-[1] https://lore.kernel.org/all/20240801081657.1386743-1-dev.jain@arm.com/
+The current way is to subtract the page number of the current order when
+deleting, and then add it back when expanding.
 
-Link: https://lkml.kernel.org/r/20240830051609.4037834-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
+This is unnecessary, as when migrating the same type, we can directly
+record the difference between the high-order pages and the expand added,
+and then subtract it directly.
+
+This patch merge that, only when del and expand done, then account
+free_pages.
+
+Link: https://lkml.kernel.org/r/20240826064048.187790-1-link@vivo.com
+Signed-off-by: Huan Yang <link@vivo.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/migration.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-relax-test-to-fail-after-100-migration-failures
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -15,10 +15,10 @@
- #include <signal.h>
- #include <time.h>
- 
--#define TWOMEG (2<<20)
--#define RUNTIME (20)
--
--#define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
-+#define TWOMEG		(2<<20)
-+#define RUNTIME		(20)
-+#define MAX_RETRIES	100
-+#define ALIGN(x, a)	(((x) + (a - 1)) & (~((a) - 1)))
- 
- FIXTURE(migration)
+--- a/mm/page_alloc.c~mm-page_alloc-simpify-page-del-and-expand
++++ a/mm/page_alloc.c
+@@ -1367,11 +1367,11 @@ struct page *__pageblock_pfn_to_page(uns
+  *
+  * -- nyc
+  */
+-static inline void expand(struct zone *zone, struct page *page,
+-	int low, int high, int migratetype)
++static inline unsigned int expand(struct zone *zone, struct page *page, int low,
++				  int high, int migratetype)
  {
-@@ -65,6 +65,7 @@ int migrate(uint64_t *ptr, int n1, int n
- 	int ret, tmp;
- 	int status = 0;
- 	struct timespec ts1, ts2;
-+	int failures = 0;
+-	unsigned long size = 1 << high;
+-	unsigned long nr_added = 0;
++	unsigned int size = 1 << high;
++	unsigned int nr_added = 0;
  
- 	if (clock_gettime(CLOCK_MONOTONIC, &ts1))
- 		return -1;
-@@ -79,13 +80,17 @@ int migrate(uint64_t *ptr, int n1, int n
- 		ret = move_pages(0, 1, (void **) &ptr, &n2, &status,
- 				MPOL_MF_MOVE_ALL);
- 		if (ret) {
--			if (ret > 0)
-+			if (ret > 0) {
-+				/* Migration is best effort; try again */
-+				if (++failures < MAX_RETRIES)
-+					continue;
- 				printf("Didn't migrate %d pages\n", ret);
-+			}
- 			else
- 				perror("Couldn't migrate pages");
- 			return -2;
- 		}
--
-+		failures = 0;
- 		tmp = n2;
- 		n2 = n1;
- 		n1 = tmp;
+ 	while (high > low) {
+ 		high--;
+@@ -1391,7 +1391,19 @@ static inline void expand(struct zone *z
+ 		set_buddy_order(&page[size], high);
+ 		nr_added += size;
+ 	}
+-	account_freepages(zone, nr_added, migratetype);
++
++	return nr_added;
++}
++
++static __always_inline void page_del_and_expand(struct zone *zone,
++						struct page *page, int low,
++						int high, int migratetype)
++{
++	int nr_pages = 1 << high;
++
++	__del_page_from_free_list(page, zone, high, migratetype);
++	nr_pages -= expand(zone, page, low, high, migratetype);
++	account_freepages(zone, -nr_pages, migratetype);
+ }
+ 
+ static void check_new_page_bad(struct page *page)
+@@ -1561,8 +1573,9 @@ struct page *__rmqueue_smallest(struct z
+ 		page = get_page_from_free_area(area, migratetype);
+ 		if (!page)
+ 			continue;
+-		del_page_from_free_list(page, zone, current_order, migratetype);
+-		expand(zone, page, order, current_order, migratetype);
++
++		page_del_and_expand(zone, page, order, current_order,
++				    migratetype);
+ 		trace_mm_page_alloc_zone_locked(page, order, migratetype,
+ 				pcp_allowed_order(order) &&
+ 				migratetype < MIGRATE_PCPTYPES);
+@@ -1892,9 +1905,12 @@ steal_suitable_fallback(struct zone *zon
+ 
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
++		unsigned int nr_added;
++
+ 		del_page_from_free_list(page, zone, current_order, block_type);
+ 		change_pageblock_range(page, current_order, start_type);
+-		expand(zone, page, order, current_order, start_type);
++		nr_added = expand(zone, page, order, current_order, start_type);
++		account_freepages(zone, nr_added, start_type);
+ 		return page;
+ 	}
+ 
+@@ -1947,8 +1963,7 @@ steal_suitable_fallback(struct zone *zon
+ 	}
+ 
+ single_page:
+-	del_page_from_free_list(page, zone, current_order, block_type);
+-	expand(zone, page, order, current_order, block_type);
++	page_del_and_expand(zone, page, order, current_order, block_type);
+ 	return page;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from link@vivo.com are
 
 
