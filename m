@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B5D18C901
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 22:22:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC29F18E02A
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:30:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725920548; cv=none; b=H+x2bb0ZzQ1/SCGj+TGi3F6udDUsYL4I56RXa2Qr2NEiR0B59n4rdoUznx1Iq7a3uCbUdcexqDMezhqskVRBavLidnxKU/RpAapCpChP76NfB85nDDAi9ML8ZrqFIw1nzLBM6zzA14BWTQvBwBaSXI4IdL1iC/J/LGVwrZ4FH5E=
+	t=1725924646; cv=none; b=FMvLPgjnWlwyzNOL/Q5gxxYLpEVSTrwz1am3U7aqFls6buROFVrzBjsIT3U/q7mjquOv3NUu1nPIMsA03rp2p0N5tLoNnxpAfJomY8YUXm80oHGnhKcH2oTVufSDMZj8MLcR0QHYKR4WVGqpiLb0BfrKrYjWpyTN4EtTOhe7V8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725920548; c=relaxed/simple;
-	bh=0CiJeqbnWJC4ZbGDI696MFZZ0F5w4wiMx0MVy1IEjFU=;
-	h=Date:To:From:Subject:Message-Id; b=AnFMTjddS9VaCVnaG+DkfB3c8D9hvljPb5lSIgWwT9GWjCMHP6cHeKCS8aqV9KzFAmDjM3JvcgeBVVyxaz2vyqq++MijDsItjJLHqh4dUmpBxfCF3AMV0Kc39Ffps7XAstinB4E0yD7w51Us4+MEmaVmwtC+w4tiC2UPAM6BbEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qXxsuyMu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725924646; c=relaxed/simple;
+	bh=n4Y7hheqAAaISmD8bzmK3LPJrKRuv2vPgqCLfQaPgDA=;
+	h=Date:To:From:Subject:Message-Id; b=ZxhlhXgeB8IF3jNZiHkyO3oCEx1ER+DeceqBA8YVBR6f013KlKKuNd7e082x/5ecya4GWOXQzqdMAHuaMMhcGcZ2APxZU7w0Ra1ASU2ogTs5rPE9QBAFlFnm8w37Rvl6mdi8yf2AYRlI6UBvPR4IrPbg33k1w3weDWTJPXHZOhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqvTER6c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qXxsuyMu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529FEC4CEC5;
-	Mon,  9 Sep 2024 22:22:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqvTER6c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68E59C4CEC6;
+	Mon,  9 Sep 2024 23:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725920548;
-	bh=0CiJeqbnWJC4ZbGDI696MFZZ0F5w4wiMx0MVy1IEjFU=;
+	s=korg; t=1725924645;
+	bh=n4Y7hheqAAaISmD8bzmK3LPJrKRuv2vPgqCLfQaPgDA=;
 	h=Date:To:From:Subject:From;
-	b=qXxsuyMuBVDAuHQEkOdmuzqxLLkPWd+NrEWTP0d0tAza2q/TRDreAwRB2dKhsfRFu
-	 Wza7xx/gDIh6DGzvgortS7WB+38IoocYY+4b9kON8rOcdzcQGKFcl1e4qCtx+fNUkR
-	 oT5INJd6NzrxIKMiHeq3XqMTlSggBA9sQa0ZnXbo=
-Date: Mon, 09 Sep 2024 15:22:27 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,shli@fb.com,lokeshgidra@google.com,kaleshsingh@google.com,david@redhat.com,gaoxu2@honor.com,akpm@linux-foundation.org
+	b=YqvTER6cxe/KQ1U0PnYSSSDr92OTox6z2OLwLLcLhmNcME55HwiyhS+8YuQiKYmyc
+	 yO7U75wmP2q1bLUuDV/2wuCrobZvaumRS+15uZab+dNQpv2OZyFhWJtnNIXFOgWQRL
+	 BPtgUcDnwn2qgpp5S4dMIwv+SSznLsRBykc9rVXQ=
+Date: Mon, 09 Sep 2024 16:30:44 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-add-lazyfree-folio-to-lru-tail.patch removed from -mm tree
-Message-Id: <20240909222228.529FEC4CEC5@smtp.kernel.org>
+Subject: [folded-merged] mm-tidy-up-shmem-mthp-controls-and-stats-fix.patch removed from -mm tree
+Message-Id: <20240909233045.68E59C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add lazyfree folio to lru tail
+     Subject: mm-tidy-up-shmem-mthp-controls-and-stats-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-lazyfree-folio-to-lru-tail.patch
+     mm-tidy-up-shmem-mthp-controls-and-stats-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was folded into mm-tidy-up-shmem-mthp-controls-and-stats.patch
 
 ------------------------------------------------------
-From: gaoxu <gaoxu2@honor.com>
-Subject: mm: add lazyfree folio to lru tail
-Date: Fri, 16 Aug 2024 07:48:01 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm-tidy-up-shmem-mthp-controls-and-stats-fix
+Date: Wed, 4 Sep 2024 11:47:29 +0100
 
-Replace lruvec_add_folio with lruvec_add_folio_tail in the lru_lazyfree_fn:
-
-1. The lazy-free folio is added to the LRU_INACTIVE_FILE list.  If
-   it's moved to the LRU tail, it allows for faster release lazy-free
-   folio and reduces the impact on file refault.
-
-2. When mglru is enabled, the lazy-free folio is reclaimabled and
-   should be added using lru_gen_add_folio(lruvec, folio, true) instead of
-   lru_gen_add_folio(lruvec, folio, false) for adding to gen.
-
-With the change in place, workingset_refault_file is reduced by 33% in the
-continuous startup testing of the applications in the Android system.
-
-Link: https://lkml.kernel.org/r/f29f64e29c08427b95e3df30a5770056@honor.com
-Signed-off-by: gaoxu <gaoxu2@honor.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/f7ced14c-8bc5-405f-bee7-94f63980f525@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-add-lazyfree-folio-to-lru-tail
-+++ a/mm/swap.c
-@@ -641,7 +641,7 @@ static void lru_lazyfree(struct lruvec *
- 	 * anonymous folios
- 	 */
- 	folio_clear_swapbacked(folio);
--	lruvec_add_folio(lruvec, folio);
-+	lruvec_add_folio_tail(lruvec, folio);
+--- a/mm/huge_memory.c~mm-tidy-up-shmem-mthp-controls-and-stats-fix
++++ a/mm/huge_memory.c
+@@ -606,8 +606,6 @@ static struct attribute *anon_stats_attr
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
+ #endif
+-	&split_attr.attr,
+-	&split_failed_attr.attr,
+ 	&split_deferred_attr.attr,
+ 	NULL,
+ };
+@@ -636,6 +634,8 @@ static struct attribute *any_stats_attrs
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
+ #endif
++	&split_attr.attr,
++	&split_failed_attr.attr,
+ 	NULL,
+ };
  
- 	__count_vm_events(PGLAZYFREE, nr_pages);
- 	__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
 _
 
-Patches currently in -mm which might be from gaoxu2@honor.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
+mm-cleanup-count_mthp_stat-definition.patch
+mm-tidy-up-shmem-mthp-controls-and-stats.patch
 
