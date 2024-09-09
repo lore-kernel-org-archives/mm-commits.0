@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F36B134C4
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 19:02:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB46617DFFF
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 19:02:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725908564; cv=none; b=tY0uoYro1Gq2Ef+cYN4VCdQz38YGn6BYJncC521plJdTUOVXQCdoEyBE4Q7zZOeyfBXSpU/dDdNZ6c7v35iZn0y/VlNjAFa3Cmam3ruI5IzUEo159OgBvYLfnAmzmiH2QY+9/9eT41NY2/hoekDuA2W0PRNGfGq6dSkk55TMUVI=
+	t=1725908566; cv=none; b=uqK46r6RsO9pLwbEnk4BjuXiVwhojk4XaUcVJGaXSYEJn2xNRPF6wRS2niW8kgNkYLY05zKtjTAqCvJ9b8AWgGYM9Be0qNeT75pRrJfK4NXbJ8og73ipY5yFRfAhixVBm1F7Tas4nUuVn79W3JNL4PEtwuukQzmttG9EhUpcczw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725908564; c=relaxed/simple;
-	bh=MbkMsd5M3P2HtMU7bAe2GYGYt6j4Yc6v3O4SzgUzDyg=;
-	h=Date:To:From:Subject:Message-Id; b=kJYYKvQ1f+OpWbKLgejzOEjeB/CeSVNTYexWC0AiVQfRHZ7yIflCW8MTh2ZDZiqTWAMm2e6xpeIc/jJgBlv4+ut4G8tFEfzdKG3rC9Cx/TQS84r5HdZFVKCnqXFVB/laXQnffHVq7Gm858NMDytzV2uIqrn6fErpMJiZNF1xsFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b8ELVvM8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725908566; c=relaxed/simple;
+	bh=Q+K1dqWofEQUkvicrHMs77PXP/tmJ8pRb9QszOeItW4=;
+	h=Date:To:From:Subject:Message-Id; b=WN9ElBwdvy2wHQbEqRKv87Xxf9hW/7udN1go/JcHm4NOOePPk06QVdwOP1Pt+lkcdyrheo3AYNChr8vSSx5Ojn/6rthBZ0LQYvI+XPAJQ/utzJqRuk6if+gszAPB2bcTUmeRc1+hpUYZb8ct3pIOoOL4H1d54DV6HHMlPkfdM+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Be4/aKPh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b8ELVvM8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FD84C4CEC5;
-	Mon,  9 Sep 2024 19:02:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Be4/aKPh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A6C9C4CEC5;
+	Mon,  9 Sep 2024 19:02:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725908564;
-	bh=MbkMsd5M3P2HtMU7bAe2GYGYt6j4Yc6v3O4SzgUzDyg=;
+	s=korg; t=1725908566;
+	bh=Q+K1dqWofEQUkvicrHMs77PXP/tmJ8pRb9QszOeItW4=;
 	h=Date:To:From:Subject:From;
-	b=b8ELVvM8JgTh/6ZdOPLyVy0kWvjVQ4Sw0LHJbFmixs9egpDcKQhu0ZLsPILEFV79Z
-	 j6za+GjLj8Bpdl4wqAutC5f9DahEknkJIuFO4BUpdRF7Bal5dmZNzRKlWE/7rMjlT3
-	 gLe2s3u+2cHwa4vVJDO4YipmU76PDeaWYXGiQbxc=
-Date: Mon, 09 Sep 2024 12:02:43 -0700
+	b=Be4/aKPh8kIlxYkYkR6s1flppjzGO/zKV+/DGRbqa60oxZewKiQcs+f1lmuAZfK2Y
+	 Q56S/B5FfKkjB8fdg52kY3PDpplE3mW6y9bO7eSbU3e9P7nKhhwpvhZqMYkQKaHoep
+	 sWe3aAKiffgt0NlGID3UPwY7JBr0ElFkLEioLO4o=
+Date: Mon, 09 Sep 2024 12:02:45 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,chenridong@huawei.com,mkoutny@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-disallow-mounting-v1-hierarchies-without-controller-implementation.patch added to mm-unstable branch
-Message-Id: <20240909190244.3FD84C4CEC5@smtp.kernel.org>
+Subject: + cgroup-do-not-report-unavailable-v1-controllers-in-proc-cgroups.patch added to mm-unstable branch
+Message-Id: <20240909190246.5A6C9C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup: disallow mounting v1 hierarchies without controller implementation
+     Subject: cgroup: do not report unavailable v1 controllers in /proc/cgroups
 has been added to the -mm mm-unstable branch.  Its filename is
-     cgroup-disallow-mounting-v1-hierarchies-without-controller-implementation.patch
+     cgroup-do-not-report-unavailable-v1-controllers-in-proc-cgroups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-disallow-mounting-v1-hierarchies-without-controller-implementation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-do-not-report-unavailable-v1-controllers-in-proc-cgroups.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Michal Koutný <mkoutny@suse.com>
-Subject: cgroup: disallow mounting v1 hierarchies without controller implementation
-Date: Mon, 9 Sep 2024 18:32:22 +0200
+Subject: cgroup: do not report unavailable v1 controllers in /proc/cgroups
+Date: Mon, 9 Sep 2024 18:32:23 +0200
 
-The configs that disable some v1 controllers would still allow mounting
-them but with no controller-specific files. (Making such hierarchies
-equivalent to named v1 hierarchies.) To achieve behavior consistent with
-actual out-compilation of a whole controller, the mounts should treat
-respective controllers as non-existent.
+This is a followup to CONFIG-urability of cpuset and memory controllers
+for v1 hierarchies.  Make the output in /proc/cgroups reflect that
+!CONFIG_CPUSETS_V1 is like !CONFIG_CPUSETS and !CONFIG_MEMCG_V1 is like
+!CONFIG_MEMCG.
 
-Wrap implementation into a helper function, leverage legacy_files to
-detect compiled out controllers. The effect is that mounts on v1 would
-fail and produce a message like:
-  [ 1543.999081] cgroup: Unknown subsys name 'memory'
+The intended effect is that hiding the unavailable controllers will hint
+users not to try mounting them on v1.
 
-Link: https://lkml.kernel.org/r/20240909163223.3693529-4-mkoutny@suse.com
+Link: https://lkml.kernel.org/r/20240909163223.3693529-5-mkoutny@suse.com
 Signed-off-by: Michal Koutný <mkoutny@suse.com>
+Reviewed-by: Waiman Long <longman@redhat.com>
 Cc: Chen Ridong <chenridong@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -82,49 +80,31 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
 Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cgroup-v1.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ kernel/cgroup/cgroup-v1.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/kernel/cgroup/cgroup-v1.c~cgroup-disallow-mounting-v1-hierarchies-without-controller-implementation
+--- a/kernel/cgroup/cgroup-v1.c~cgroup-do-not-report-unavailable-v1-controllers-in-proc-cgroups
 +++ a/kernel/cgroup/cgroup-v1.c
-@@ -46,6 +46,12 @@ bool cgroup1_ssid_disabled(int ssid)
- 	return cgroup_no_v1_mask & (1 << ssid);
+@@ -681,11 +681,14 @@ int proc_cgroupstats_show(struct seq_fil
+ 	 * cgroup_mutex contention.
+ 	 */
+ 
+-	for_each_subsys(ss, i)
++	for_each_subsys(ss, i) {
++		if (cgroup1_subsys_absent(ss))
++			continue;
+ 		seq_printf(m, "%s\t%d\t%d\t%d\n",
+ 			   ss->legacy_name, ss->root->hierarchy_id,
+ 			   atomic_read(&ss->root->nr_cgrps),
+ 			   cgroup_ssid_enabled(i));
++	}
+ 
+ 	return 0;
  }
- 
-+static bool cgroup1_subsys_absent(struct cgroup_subsys *ss)
-+{
-+	/* Check also dfl_cftypes for file-less controllers, i.e. perf_event */
-+	return ss->legacy_cftypes == NULL && ss->dfl_cftypes;
-+}
-+
- /**
-  * cgroup_attach_task_all - attach task 'tsk' to all cgroups of task 'from'
-  * @from: attach to all cgroups of a given task
-@@ -932,7 +938,8 @@ int cgroup1_parse_param(struct fs_contex
- 		if (ret != -ENOPARAM)
- 			return ret;
- 		for_each_subsys(ss, i) {
--			if (strcmp(param->key, ss->legacy_name))
-+			if (strcmp(param->key, ss->legacy_name) ||
-+			    cgroup1_subsys_absent(ss))
- 				continue;
- 			if (!cgroup_ssid_enabled(i) || cgroup1_ssid_disabled(i))
- 				return invalfc(fc, "Disabled controller '%s'",
-@@ -1024,7 +1031,8 @@ static int check_cgroupfs_options(struct
- 	mask = ~((u16)1 << cpuset_cgrp_id);
- #endif
- 	for_each_subsys(ss, i)
--		if (cgroup_ssid_enabled(i) && !cgroup1_ssid_disabled(i))
-+		if (cgroup_ssid_enabled(i) && !cgroup1_ssid_disabled(i) &&
-+		    !cgroup1_subsys_absent(ss))
- 			enabled |= 1 << i;
- 
- 	ctx->subsys_mask &= enabled;
 _
 
 Patches currently in -mm which might be from mkoutny@suse.com are
