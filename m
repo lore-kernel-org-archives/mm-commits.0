@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB32C18D647
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C174018D647
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925312; cv=none; b=Vzu3RnxAz7/ZiZotd3pbRi2CyImYFxPn9EqWnlz+7Ywe6mQB6gaiQFtI6for2/X6ZPDMB44k4kI6HmyrIktdqUaA0QhT45pDrNdlQUx1IOwBoRGOFr1pIcuNSdRnLquCpGZGG+6zDQdvNSVuAO9LGMpqD5eNRRPZCmPNCwgJFoo=
+	t=1725925314; cv=none; b=hlp5hh3wKHrLRGXjeEeiWpkj0LgB39DnupcmeaAzp4zBDHOIOD8od8tjQClG/ZjnuEJHamgOP0TSH6Yru+n0HGAtgnfPcr+qusVdRfQeM5I395j6dBk0FLhEfIgG7ZvHTicaB7ha1BD7PHUnPd2NPkPs9DPFAtDSu4fnQkeIYRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925312; c=relaxed/simple;
-	bh=M4NrMdvl/wBlzhhVIjuce1+ckH4rW7zbd3uPHoRr774=;
-	h=Date:To:From:Subject:Message-Id; b=nAUJUpNnNrnmOG9tHD9AXl7LcmVuTetdZTfgkBqzGDCd00ttbNMBD3RJkUH1s/KTzC2je3oJrcyvMDGvKtiSxCjIVP3HoLjbAYA7LxpeZEDpjSmT6cEgQ15DmjZ252meLZCbqN2+5jE7ahcJOK0x1osMnNumVB2WJJkj+vgcXhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hwZBbwG5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925314; c=relaxed/simple;
+	bh=qTtcP5w0v41EWGW7VmprWXEUJxr144B6XVa9M5CKAbU=;
+	h=Date:To:From:Subject:Message-Id; b=hTQKdEckUVImuYKW9pHFH8YmChzdAWGArcDMAiKy4dBhTEukNo0B+02ONrvtTbh4iLGMOO1fLZYUWp/BAbbowxAlYzAarOstBHazdKlg7feS8RFvWWosno1MHFJapSnANEk5GmcHtu5mLR5k33NvYfzQYhczaubv1R2CxnzqnTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hgTiMQKR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hwZBbwG5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A228CC4CEC5;
-	Mon,  9 Sep 2024 23:41:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hgTiMQKR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967DFC4CEC5;
+	Mon,  9 Sep 2024 23:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925312;
-	bh=M4NrMdvl/wBlzhhVIjuce1+ckH4rW7zbd3uPHoRr774=;
+	s=korg; t=1725925314;
+	bh=qTtcP5w0v41EWGW7VmprWXEUJxr144B6XVa9M5CKAbU=;
 	h=Date:To:From:Subject:From;
-	b=hwZBbwG5O302giiT0eXyGyHspTc9Xed5/XO8PBlAmYqPDrQG5ScVxh9EIbf/uUM4L
-	 f2vt0i65j8d8cztxB8PhVli4YxXlPpKRaJXEUK2/J3p4Q45B7LIVop2gFDtJ965G57
-	 hn8XXbXDXRJpLUyKnJ2FUYxHfVjvz2uRxtnl0j/Y=
-Date: Mon, 09 Sep 2024 16:41:52 -0700
+	b=hgTiMQKRPs/C9bnHSS5fuWnG49/Faa/gyxHPsa0/N6btgHdVhIo0hkyLlQJan1nle
+	 zFqKshAcpW5SlxvJeV8TKKLHiHK8yUtYu0B2g8d0edbJQf7NQUj6tzs0NjApA7tfXD
+	 Zn8AQ7vP4eKeUgjYQ5aczqZAvFLf4tyR63r2tex4=
+Date: Mon, 09 Sep 2024 16:41:54 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,tjmercier@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-dont-hold-css-refcnt-during-traversal.patch removed from -mm tree
-Message-Id: <20240909234152.A228CC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-increment-gen-before-restarting-traversal.patch removed from -mm tree
+Message-Id: <20240909234154.967DFC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: don't hold css->refcnt during traversal
+     Subject: mm: increment gen # before restarting traversal
 has been removed from the -mm tree.  Its filename was
-     mm-dont-hold-css-refcnt-during-traversal.patch
+     mm-increment-gen-before-restarting-traversal.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm: don't hold css->refcnt during traversal
-Date: Thu, 5 Sep 2024 00:30:51 +0000
+Subject: mm: increment gen # before restarting traversal
+Date: Thu, 5 Sep 2024 00:30:52 +0000
 
-To obtain the pointer to the next memcg position, mem_cgroup_iter()
-currently holds css->refcnt during memcg traversal only to put css->refcnt
-at the end of the routine.  This isn't necessary as an rcu_read_lock is
-already held throughout the function.  The use of the RCU read lock with
-css_next_descendant_pre() guarantees that sibling linkage is safe without
-holding a ref on the passed-in @css.
+The generation number in struct mem_cgroup_reclaim_iter should be
+incremented on every round-trip.  Currently, it is possible for a
+concurrent reclaimer to jump in at the end of the hierarchy, causing a
+traversal restart (resetting the iteration position) without incrementing
+the generation number.
 
-Remove css->refcnt usage during traversal by leveraging RCU.
+By resetting the position without incrementing the generation, it's
+possible for another ongoing mem_cgroup_iter() thread to walk the tree
+twice.
 
-Link: https://lkml.kernel.org/r/20240905003058.1859929-3-kinseyho@google.com
+Move the traversal restart such that the generation number is
+incremented before the restart.
+
+Link: https://lkml.kernel.org/r/20240905003058.1859929-4-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
 Reviewed-by: T.J. Mercier <tjmercier@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -72,43 +76,55 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ mm/memcontrol.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/memcontrol.c~mm-dont-hold-css-refcnt-during-traversal
+--- a/mm/memcontrol.c~mm-increment-gen-before-restarting-traversal
 +++ a/mm/memcontrol.c
-@@ -1013,20 +1013,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		else if (reclaim->generation != iter->generation)
- 			goto out_unlock;
+@@ -997,7 +997,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		root = root_mem_cgroup;
  
--		while (1) {
--			pos = READ_ONCE(iter->position);
--			if (!pos || css_tryget(&pos->css))
--				break;
+ 	rcu_read_lock();
+-
++restart:
+ 	if (reclaim) {
+ 		struct mem_cgroup_per_node *mz;
+ 
+@@ -1024,14 +1024,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 	for (;;) {
+ 		css = css_next_descendant_pre(css, &root->css);
+ 		if (!css) {
 -			/*
--			 * css reference reached zero, so iter->position will
--			 * be cleared by ->css_released. However, we should not
--			 * rely on this happening soon, because ->css_released
--			 * is called from a work queue, and by busy-waiting we
--			 * might block it. So we clear iter->position right
--			 * away.
+-			 * Reclaimers share the hierarchy walk, and a
+-			 * new one might jump in right at the end of
+-			 * the hierarchy - make sure they see at least
+-			 * one group and restart from the beginning.
 -			 */
--			(void)cmpxchg(&iter->position, pos, NULL);
--		}
-+		pos = READ_ONCE(iter->position);
- 	} else if (prev) {
- 		pos = prev;
- 	}
-@@ -1067,9 +1054,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
+-			if (!prev)
+-				continue;
+ 			break;
+ 		}
+ 
+@@ -1054,8 +1046,18 @@ struct mem_cgroup *mem_cgroup_iter(struc
  		 */
  		(void)cmpxchg(&iter->position, pos, memcg);
  
--		if (pos)
--			css_put(&pos->css);
--
- 		if (!memcg)
+-		if (!memcg)
++		if (!memcg) {
  			iter->generation++;
++
++			/*
++			 * Reclaimers share the hierarchy walk, and a
++			 * new one might jump in right at the end of
++			 * the hierarchy - make sure they see at least
++			 * one group and restart from the beginning.
++			 */
++			if (!prev)
++				goto restart;
++		}
  	}
+ 
+ out_unlock:
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
