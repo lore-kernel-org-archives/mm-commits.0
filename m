@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D730018E35C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E589018E35E
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925286; cv=none; b=d5pcWhrHB8Fco+81QkADbOJtLBfDSsowgPawS58HjPW3h1sQmygZabHBgs47jAVTX+q6n4MKHCyEd3RRaFEfaSYE0Dczs7bu2smEf9/IxWcsfkBGAhOt7daumAY/oMXy6z3lp7+SwpiZPL9pmlehVTuZT4ho52DLqVOH4rJ/E6w=
+	t=1725925287; cv=none; b=eP1Os5yqOYGGmiua19J7lbZkBseJsQU6GhW94MDPZMY4/BEO0zjeKK6nUP4KfEGTr8rcQtkpgCSgYFJI7abZPstuSO6Z5ZmM4raK38dEsEiauIJ/gNzHP0JxW6d9RB4Ke2f1cPUmTkTvq4YKjP2D9l4qYwUi+QGwNKgUUu/9nE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925286; c=relaxed/simple;
-	bh=ps7epDRg2suGg5BfCaeTV+Tz/pLQfCZ79R1znZqBnSU=;
-	h=Date:To:From:Subject:Message-Id; b=EokfkTNs7EkkUwiws/kTAteiKEGWtrypje68DtVljc4FRN7YrnJq8wzWYdfxArEcK72+k87FRqKO29AoUvXC4/eEAwhx4ucr7Z06pDPQJ6K3wXF5y7LEmKgrujO9ChGCXZ5QId7Lc+VukRiq0ZCdpjR1fFZe7uhpPK2c7n37U6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l9nX96V9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925287; c=relaxed/simple;
+	bh=wsyS/LuJmRjGhRU9U9yPLp0N89jYJTXfeR4qGS1r55Q=;
+	h=Date:To:From:Subject:Message-Id; b=J6aKIW1FiqWSZfXRNmgg2gPfZZrTLGY1TAX/L4RJWMBI8v3Nl/zzPeEAI8MkRtMdZQqR3/99sEIKnPOe9tjsP1rwe2GBM1uh62hzZFQcgl5+Z5CaNHkTcqCw2TJ/nnWtscPVnkjrvbIGDkD4Xhn9ZdBVk8DxB906APpdkOVK/LU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0+839iXn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l9nX96V9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77F7CC4CEC5;
-	Mon,  9 Sep 2024 23:41:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+839iXn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC238C4CEC6;
+	Mon,  9 Sep 2024 23:41:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925285;
-	bh=ps7epDRg2suGg5BfCaeTV+Tz/pLQfCZ79R1znZqBnSU=;
+	s=korg; t=1725925286;
+	bh=wsyS/LuJmRjGhRU9U9yPLp0N89jYJTXfeR4qGS1r55Q=;
 	h=Date:To:From:Subject:From;
-	b=l9nX96V9cZoEHb+1I3zTr5BaZtRB3IMg+KkWL94UKuEi1TUQT+5St/YT6J5h78d6g
-	 roMHdc2xopkoO6mVZtGLIlmz29fQ1t/EMMbDt74B1i9/CN7IEMRMZX05OqOOUFlmbE
-	 booM0YktXG0y2GOlj08GAJ/xv38IBmL4zVLJxcyU=
-Date: Mon, 09 Sep 2024 16:41:24 -0700
+	b=0+839iXnj0V+1H7QwTmKRV+x9GOyzt6vighAhAp+yQBUXFRdQ6An8z6T8V5j08C29
+	 1Ft93WsamwXmMeipkbENWAeUQjYaw8rzLaZ5JB8jYpc5vbZZp1SvlpkG0lZvSvN4Am
+	 u4hhw7lPGeUvlPhzOTN7XCq4pRYuyE1i71UF8IGg=
+Date: Mon, 09 Sep 2024 16:41:26 -0700
 To: mm-commits@vger.kernel.org,terrelln@fb.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-add-dictionary-support-to-zstd-backend.patch removed from -mm tree
-Message-Id: <20240909234125.77F7CC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-zram-add-documentation-for-algorithm-parameters.patch removed from -mm tree
+Message-Id: <20240909234126.BC238C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,264 +35,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: add dictionary support to zstd backend
+     Subject: Documentation/zram: add documentation for algorithm parameters
 has been removed from the -mm tree.  Its filename was
-     zram-add-dictionary-support-to-zstd-backend.patch
+     documentation-zram-add-documentation-for-algorithm-parameters.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add dictionary support to zstd backend
-Date: Mon, 2 Sep 2024 19:56:10 +0900
+Subject: Documentation/zram: add documentation for algorithm parameters
+Date: Mon, 2 Sep 2024 19:56:11 +0900
 
-This adds support for pre-trained zstd dictionaries [1] Dictionary is
-setup in params once (per-comp) and loaded to Cctx and Dctx by reference,
-so we don't allocate extra memory.
+Document brief description of compression algorithms' parameters:
+compression level and pre-trained dictionary.
 
-TEST
-====
-
-*** zstd
-/sys/block/zram0/mm_stat
-1750654976 504565092 514203648        0 514203648        1        0    34204    34204
-
-*** zstd dict=/etc/zstd-dict-amd64
-/sys/block/zram0/mm_stat
-1750638592 465851259 475373568        0 475373568        1        0    34185    34185
-
-*** zstd level=8 dict=/etc/zstd-dict-amd64
-/sys/block/zram0/mm_stat
-1750642688 430765171 439955456        0 439955456        1        0    34185    34185
-
-[1] https://github.com/facebook/zstd/blob/dev/programs/zstd.1.md#dictionary-builder
-
-Link: https://lkml.kernel.org/r/20240902105656.1383858-23-senozhatsky@chromium.org
+[senozhatsky@chromium.org: trivial fixup]
+  Link: https://lkml.kernel.org/r/20240903063722.1603592-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240902105656.1383858-24-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_zstd.c |  150 +++++++++++++++++++++++-----
- 1 file changed, 124 insertions(+), 26 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   47 ++++++++++++++----
+ 1 file changed, 39 insertions(+), 8 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-add-dictionary-support-to-zstd-backend
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -15,29 +15,87 @@ struct zstd_ctx {
- };
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-add-documentation-for-algorithm-parameters
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -105,7 +105,38 @@ Examples::
+ For the time being, the `comp_algorithm` content shows only compression
+ algorithms that are supported by zram.
  
- struct zstd_params {
-+	zstd_custom_mem custom_mem;
-+	zstd_cdict *cdict;
-+	zstd_ddict *ddict;
- 	zstd_parameters cprm;
- };
+-4) Set Disksize
++4) Set compression algorithm parameters: Optional
++=================================================
++
++Compression algorithms may support specific parameters which can be
++tweaked for particular dataset. ZRAM has an `algorithm_params` device
++attribute which provides a per-algorithm params configuration.
++
++For example, several compression algorithms support `level` parameter.
++In addition, certain compression algorithms support pre-trained dictionaries,
++which significantly change algorithms' characteristics. In order to configure
++compression algorithm to use external pre-trained dictionary, pass full
++path to the `dict` along with other parameters::
++
++	#pass path to pre-trained zstd dictionary
++	echo "algo=zstd dict=/etc/dictioary" > /sys/block/zram0/algorithm_params
++
++	#same, but using algorithm priority
++	echo "priority=1 dict=/etc/dictioary" > \
++		/sys/block/zram0/algorithm_params
++
++	#pass path to pre-trained zstd dictionary and compression level
++	echo "algo=zstd level=8 dict=/etc/dictioary" > \
++		/sys/block/zram0/algorithm_params
++
++Parameters are algorithm specific: not all algorithms support pre-trained
++dictionaries, not all algorithms support `level`. Furthermore, for certain
++algorithms `level` controls the compression level (the higher the value the
++better the compression ratio, it even can take negatives values for some
++algorithms), for other algorithms `level` is acceleration level (the higher
++the value the lower the compression ratio).
++
++5) Set Disksize
+ ===============
  
-+/*
-+ * For C/D dictionaries we need to provide zstd with zstd_custom_mem,
-+ * which zstd uses internally to allocate/free memory when needed.
-+ *
-+ * This means that allocator.customAlloc() can be called from zcomp_compress()
-+ * under local-lock (per-CPU compression stream), in which case we must use
-+ * GFP_ATOMIC.
-+ *
-+ * Another complication here is that we can be configured as a swap device.
-+ */
-+static void *zstd_custom_alloc(void *opaque, size_t size)
-+{
-+	if (!preemptible())
-+		return kvzalloc(size, GFP_ATOMIC);
-+
-+	return kvzalloc(size, __GFP_KSWAPD_RECLAIM | __GFP_NOWARN);
-+}
-+
-+static void zstd_custom_free(void *opaque, void *address)
-+{
-+	kvfree(address);
-+}
-+
- static void zstd_release_params(struct zcomp_params *params)
- {
--	kfree(params->drv_data);
-+	struct zstd_params *zp = params->drv_data;
-+
-+	params->drv_data = NULL;
-+	if (!zp)
-+		return;
-+
-+	zstd_free_cdict(zp->cdict);
-+	zstd_free_ddict(zp->ddict);
-+	kfree(zp);
- }
+ Set disk size by writing the value to sysfs node 'disksize'.
+@@ -125,7 +156,7 @@ There is little point creating a zram of
+ since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
+ size of the disk when not in use so a huge zram is wasteful.
  
- static int zstd_setup_params(struct zcomp_params *params)
- {
-+	zstd_compression_parameters prm;
- 	struct zstd_params *zp;
+-5) Set memory limit: Optional
++6) Set memory limit: Optional
+ =============================
  
- 	zp = kzalloc(sizeof(*zp), GFP_KERNEL);
- 	if (!zp)
- 		return -ENOMEM;
+ Set memory limit by writing the value to sysfs node 'mem_limit'.
+@@ -144,7 +175,7 @@ Examples::
+ 	# To disable memory limit
+ 	echo 0 > /sys/block/zram0/mem_limit
  
-+	params->drv_data = zp;
- 	if (params->level == ZCOMP_PARAM_NO_LEVEL)
- 		params->level = zstd_default_clevel();
+-6) Activate
++7) Activate
+ ===========
  
- 	zp->cprm = zstd_get_params(params->level, PAGE_SIZE);
--	params->drv_data = zp;
-+
-+	zp->custom_mem.customAlloc = zstd_custom_alloc;
-+	zp->custom_mem.customFree = zstd_custom_free;
-+
-+	prm = zstd_get_cparams(params->level, PAGE_SIZE,
-+			       params->dict_sz);
-+
-+	zp->cdict = zstd_create_cdict_byreference(params->dict,
-+						  params->dict_sz,
-+						  prm,
-+						  zp->custom_mem);
-+	if (!zp->cdict)
-+		goto error;
-+
-+	zp->ddict = zstd_create_ddict_byreference(params->dict,
-+						  params->dict_sz,
-+						  zp->custom_mem);
-+	if (!zp->ddict)
-+		goto error;
+ ::
+@@ -155,7 +186,7 @@ Examples::
+ 	mkfs.ext4 /dev/zram1
+ 	mount /dev/zram1 /tmp
  
- 	return 0;
-+
-+error:
-+	zstd_release_params(params);
-+	return -EINVAL;
- }
+-7) Add/remove zram devices
++8) Add/remove zram devices
+ ==========================
  
- static void zstd_destroy(struct zcomp_ctx *ctx)
-@@ -47,8 +105,23 @@ static void zstd_destroy(struct zcomp_ct
- 	if (!zctx)
- 		return;
+ zram provides a control interface, which enables dynamic (on-demand) device
+@@ -175,7 +206,7 @@ execute::
  
--	vfree(zctx->cctx_mem);
--	vfree(zctx->dctx_mem);
-+	/*
-+	 * If ->cctx_mem and ->dctx_mem were allocated then we didn't use
-+	 * C/D dictionary and ->cctx / ->dctx were "embedded" into these
-+	 * buffers.
-+	 *
-+	 * If otherwise then we need to explicitly release ->cctx / ->dctx.
-+	 */
-+	if (zctx->cctx_mem)
-+		vfree(zctx->cctx_mem);
-+	else
-+		zstd_free_cctx(zctx->cctx);
-+
-+	if (zctx->dctx_mem)
-+		vfree(zctx->dctx_mem);
-+	else
-+		zstd_free_dctx(zctx->dctx);
-+
- 	kfree(zctx);
- }
+ 	echo X > /sys/class/zram-control/hot_remove
  
-@@ -63,28 +136,41 @@ static int zstd_create(struct zcomp_para
- 		return -ENOMEM;
+-8) Stats
++9) Stats
+ ========
  
- 	ctx->context = zctx;
--	prm = zstd_get_params(params->level, PAGE_SIZE);
--	sz = zstd_cctx_workspace_bound(&prm.cParams);
--	zctx->cctx_mem = vzalloc(sz);
--	if (!zctx->cctx_mem)
--		goto error;
--
--	zctx->cctx = zstd_init_cctx(zctx->cctx_mem, sz);
--	if (!zctx->cctx)
--		goto error;
--
--	sz = zstd_dctx_workspace_bound();
--	zctx->dctx_mem = vzalloc(sz);
--	if (!zctx->dctx_mem)
--		goto error;
--
--	zctx->dctx = zstd_init_dctx(zctx->dctx_mem, sz);
--	if (!zctx->dctx)
--		goto error;
-+	if (params->dict_sz == 0) {
-+		prm = zstd_get_params(params->level, PAGE_SIZE);
-+		sz = zstd_cctx_workspace_bound(&prm.cParams);
-+		zctx->cctx_mem = vzalloc(sz);
-+		if (!zctx->cctx_mem)
-+			goto error;
-+
-+		zctx->cctx = zstd_init_cctx(zctx->cctx_mem, sz);
-+		if (!zctx->cctx)
-+			goto error;
-+
-+		sz = zstd_dctx_workspace_bound();
-+		zctx->dctx_mem = vzalloc(sz);
-+		if (!zctx->dctx_mem)
-+			goto error;
-+
-+		zctx->dctx = zstd_init_dctx(zctx->dctx_mem, sz);
-+		if (!zctx->dctx)
-+			goto error;
-+	} else {
-+		struct zstd_params *zp = params->drv_data;
-+
-+		zctx->cctx = zstd_create_cctx_advanced(zp->custom_mem);
-+		if (!zctx->cctx)
-+			goto error;
-+
-+		zctx->dctx = zstd_create_dctx_advanced(zp->custom_mem);
-+		if (!zctx->dctx)
-+			goto error;
-+	}
+ Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+@@ -277,15 +308,15 @@ a single line of text and contains the f
+ 		Unit: 4K bytes
+  ============== =============================================================
  
- 	return 0;
+-9) Deactivate
+-=============
++10) Deactivate
++==============
  
- error:
-+	zstd_release_params(params);
- 	zstd_destroy(ctx);
- 	return -EINVAL;
- }
-@@ -96,8 +182,14 @@ static int zstd_compress(struct zcomp_pa
- 	struct zstd_ctx *zctx = ctx->context;
- 	size_t ret;
+ ::
  
--	ret = zstd_compress_cctx(zctx->cctx, req->dst, req->dst_len,
--				 req->src, req->src_len, &zp->cprm);
-+	if (params->dict_sz == 0)
-+		ret = zstd_compress_cctx(zctx->cctx, req->dst, req->dst_len,
-+					 req->src, req->src_len, &zp->cprm);
-+	else
-+		ret = zstd_compress_using_cdict(zctx->cctx, req->dst,
-+						req->dst_len, req->src,
-+						req->src_len,
-+						zp->cdict);
- 	if (zstd_is_error(ret))
- 		return -EINVAL;
- 	req->dst_len = ret;
-@@ -107,11 +199,17 @@ static int zstd_compress(struct zcomp_pa
- static int zstd_decompress(struct zcomp_params *params, struct zcomp_ctx *ctx,
- 			   struct zcomp_req *req)
- {
-+	struct zstd_params *zp = params->drv_data;
- 	struct zstd_ctx *zctx = ctx->context;
- 	size_t ret;
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
  
--	ret = zstd_decompress_dctx(zctx->dctx, req->dst, req->dst_len,
--				   req->src, req->src_len);
-+	if (params->dict_sz == 0)
-+		ret = zstd_decompress_dctx(zctx->dctx, req->dst, req->dst_len,
-+					   req->src, req->src_len);
-+	else
-+		ret = zstd_decompress_using_ddict(zctx->dctx, req->dst,
-+						  req->dst_len, req->src,
-+						  req->src_len, zp->ddict);
- 	if (zstd_is_error(ret))
- 		return -EINVAL;
- 	return 0;
+-10) Reset
++11) Reset
+ =========
+ 
+ 	Write any positive value to 'reset' sysfs node::
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
