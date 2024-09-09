@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3145618C02A
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 22:16:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F5F118C02A;
+	Mon,  9 Sep 2024 22:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725920196; cv=none; b=QzMynstNykPLmAXhceRQVIihWYZKEoz+5shjXV/3Z3xqI9N/Noc19jVOWhOOipT7suwFnQ2KuPMMsphb+nQdeASvcBJNJ9lOjBhh7dH0qKFkcLg0CSqUectyeYEUhgvCOffcKRbh1OWQ6RQDGrbR2HpcUVAw6TU0sPNHKp0Qltg=
+	t=1725920197; cv=none; b=dj/I4Fo/mkPYpZgDrXWe68HpSRMC+163+Ej/MIL7GCkipe1wQGWVtFAVBSI+ze+7Bv6i5iqiq4CDqEPERdfsPNjb9vV5W+54nbwiyU2tez0sVyiNZw1to0pCxOhAqrS2z9jiS7kohg3w/mniPYV+RWHSZyuqVjcQkQuv3cRc+Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725920196; c=relaxed/simple;
-	bh=6wEETWelK/vguK7mkzsyqfLCY8JcAUWfEvbSLT4MWSY=;
-	h=Date:To:From:Subject:Message-Id; b=h7904fspGdYQX6lA3g4ucvb4CHJxQaAEIK7/eK9rPRILzjcVw2lRl26IuyPr3pSixipx6fetwQvH57cGftEAkPsYFIP/j/K2fBqqIRjjT2Qy/ShhClTyIrkIjibCXVRxNYCqhb0judZrFBy6luJoNDaLQSsAR/PppzdX1PaHXWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YjNMgSgt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725920197; c=relaxed/simple;
+	bh=vCqGNHESZNZjXTAC1cttMwThZyJazwIykjd2ClBg9GQ=;
+	h=Date:To:From:Subject:Message-Id; b=pjljYPgxGMNvhJKQ5pkPYLfloDJ8fYOZ5dKHJz3KVwb4eeHJKaa3olM4465fghroMJF9JMj7V4aO3r+71gKsw02ZnHrBr5a9SpExLWGEwq/cvLqT56oHF9g9N7qhsk7a2Z/qziQbhZzGtXHGSOwlEMpEW3AdGGwwxwLeXYRH8ZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ONP+l99f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YjNMgSgt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F9CAC4CEC5;
-	Mon,  9 Sep 2024 22:16:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ONP+l99f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7193C4CEC5;
+	Mon,  9 Sep 2024 22:16:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725920195;
-	bh=6wEETWelK/vguK7mkzsyqfLCY8JcAUWfEvbSLT4MWSY=;
+	s=korg; t=1725920196;
+	bh=vCqGNHESZNZjXTAC1cttMwThZyJazwIykjd2ClBg9GQ=;
 	h=Date:To:From:Subject:From;
-	b=YjNMgSgtGryiCNRzSigLLTYWTKtp1ncDm+uuchAtA2gn0QGrNFgp5ZBPTCKQ1wABC
-	 L6n/rRhQHWQ3zR0piNiOfxVm4HiI4fQ8DsWpzVmOFQG9cJZJUWfAzTdFdwMVwQxSJ4
-	 qje1eTNnTCno7h+eW/6s3BY8Svl9jUQq+HNT0ymE=
-Date: Mon, 09 Sep 2024 15:16:35 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,hughd@google.com,chrisl@kernel.org,akpm@linux-foundation.org
+	b=ONP+l99f/E1sk0wgXBM86oa9tm898nfRyLLwKORQO+lQBK2HV9IIAnvHWjWbCz/qI
+	 O5vbagh5IqNq9Q0zQRQ15zef1xoRUVsdGX5azTENBYwleu2qXYWMmG/Te0y1GXcS5H
+	 I22KghZwCGtHMqhjv5aINUzYw2zvjDGSeHOZE/+c=
+Date: Mon, 09 Sep 2024 15:16:36 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,sj@kernel.org,linux@roeck-us.net,david@redhat.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmscanc-fix-oom-on-swap-stress-test.patch removed from -mm tree
-Message-Id: <20240909221635.9F9CAC4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock.patch removed from -mm tree
+Message-Id: <20240909221636.D7193C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan.c: fix OOM on swap stress test
+     Subject: mm/damon/vaddr: protect vma traversal in __damon_va_thre_regions() with rcu read lock
 has been removed from the -mm tree.  Its filename was
-     mm-vmscanc-fix-oom-on-swap-stress-test.patch
+     mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chris Li <chrisl@kernel.org>
-Subject: mm: vmscan.c: fix OOM on swap stress test
-Date: Thu, 05 Sep 2024 01:08:17 -0700
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/damon/vaddr: protect vma traversal in __damon_va_thre_regions() with rcu read lock
+Date: Wed, 4 Sep 2024 17:12:04 -0700
 
-I found a regression on mm-unstable during my swap stress test, using
-tmpfs to compile linux.  The test OOM very soon after the make spawns many
-cc processes.
+Traversing VMAs of a given maple tree should be protected by rcu read
+lock.  However, __damon_va_three_regions() is not doing the protection. 
+Hold the lock.
 
-It bisects down to this change: 33dfe9204f29b415bbc0abb1a50642d1ba94f5e9
-(mm/gup: clear the LRU flag of a page before adding to LRU batch)
-
-Yu Zhao propose the fix: "I think this is one of the potential side
-effects -- Huge mentioned earlier about isolate_lru_folios():"
-
-I test that with it the swap stress test no longer OOM.
-
-Link: https://lore.kernel.org/r/CAOUHufYi9h0kz5uW3LHHS3ZrVwEq-kKp8S6N-MZUmErNAXoXmw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20240905-lru-flag-v2-1-8a2d9046c594@kernel.org
-Fixes: 33dfe9204f29 ("mm/gup: clear the LRU flag of a page before adding to LRU batch")
-Signed-off-by: Chris Li <chrisl@kernel.org>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Closes: https://lore.kernel.org/all/CAF8kJuNP5iTj2p07QgHSGOJsiUfYpJ2f4R1Q5-3BN9JiD9W_KA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20240905001204.1481-1-sj@kernel.org
+Fixes: d0cf3dd47f0d ("damon: convert __damon_va_three_regions to use the VMA iterator")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Closes: https://lore.kernel.org/b83651a0-5b24-4206-b860-cb54ffdf209b@roeck-us.net
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/vaddr.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscanc-fix-oom-on-swap-stress-test
-+++ a/mm/vmscan.c
-@@ -4300,7 +4300,7 @@ static bool sort_folio(struct lruvec *lr
- 	}
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock
++++ a/mm/damon/vaddr.c
+@@ -126,6 +126,7 @@ static int __damon_va_three_regions(stru
+ 	 * If this is too slow, it can be optimised to examine the maple
+ 	 * tree gaps.
+ 	 */
++	rcu_read_lock();
+ 	for_each_vma(vmi, vma) {
+ 		unsigned long gap;
  
- 	/* ineligible */
--	if (zone > sc->reclaim_idx) {
-+	if (!folio_test_lru(folio) || zone > sc->reclaim_idx) {
- 		gen = folio_inc_gen(lruvec, folio, false);
- 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
+@@ -146,6 +147,7 @@ static int __damon_va_three_regions(stru
+ next:
+ 		prev = vma;
+ 	}
++	rcu_read_unlock();
+ 
+ 	if (!sz_range(&second_gap) || !sz_range(&first_gap))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from chrisl@kernel.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-mark-three-functions-as-__maybe_unused.patch
 
