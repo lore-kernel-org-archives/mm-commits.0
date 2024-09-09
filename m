@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F5F118C02A;
-	Mon,  9 Sep 2024 22:16:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B5D18C901
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 22:22:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725920197; cv=none; b=dj/I4Fo/mkPYpZgDrXWe68HpSRMC+163+Ej/MIL7GCkipe1wQGWVtFAVBSI+ze+7Bv6i5iqiq4CDqEPERdfsPNjb9vV5W+54nbwiyU2tez0sVyiNZw1to0pCxOhAqrS2z9jiS7kohg3w/mniPYV+RWHSZyuqVjcQkQuv3cRc+Dg=
+	t=1725920548; cv=none; b=H+x2bb0ZzQ1/SCGj+TGi3F6udDUsYL4I56RXa2Qr2NEiR0B59n4rdoUznx1Iq7a3uCbUdcexqDMezhqskVRBavLidnxKU/RpAapCpChP76NfB85nDDAi9ML8ZrqFIw1nzLBM6zzA14BWTQvBwBaSXI4IdL1iC/J/LGVwrZ4FH5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725920197; c=relaxed/simple;
-	bh=vCqGNHESZNZjXTAC1cttMwThZyJazwIykjd2ClBg9GQ=;
-	h=Date:To:From:Subject:Message-Id; b=pjljYPgxGMNvhJKQ5pkPYLfloDJ8fYOZ5dKHJz3KVwb4eeHJKaa3olM4465fghroMJF9JMj7V4aO3r+71gKsw02ZnHrBr5a9SpExLWGEwq/cvLqT56oHF9g9N7qhsk7a2Z/qziQbhZzGtXHGSOwlEMpEW3AdGGwwxwLeXYRH8ZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ONP+l99f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725920548; c=relaxed/simple;
+	bh=0CiJeqbnWJC4ZbGDI696MFZZ0F5w4wiMx0MVy1IEjFU=;
+	h=Date:To:From:Subject:Message-Id; b=AnFMTjddS9VaCVnaG+DkfB3c8D9hvljPb5lSIgWwT9GWjCMHP6cHeKCS8aqV9KzFAmDjM3JvcgeBVVyxaz2vyqq++MijDsItjJLHqh4dUmpBxfCF3AMV0Kc39Ffps7XAstinB4E0yD7w51Us4+MEmaVmwtC+w4tiC2UPAM6BbEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qXxsuyMu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ONP+l99f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7193C4CEC5;
-	Mon,  9 Sep 2024 22:16:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qXxsuyMu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529FEC4CEC5;
+	Mon,  9 Sep 2024 22:22:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725920196;
-	bh=vCqGNHESZNZjXTAC1cttMwThZyJazwIykjd2ClBg9GQ=;
+	s=korg; t=1725920548;
+	bh=0CiJeqbnWJC4ZbGDI696MFZZ0F5w4wiMx0MVy1IEjFU=;
 	h=Date:To:From:Subject:From;
-	b=ONP+l99f/E1sk0wgXBM86oa9tm898nfRyLLwKORQO+lQBK2HV9IIAnvHWjWbCz/qI
-	 O5vbagh5IqNq9Q0zQRQ15zef1xoRUVsdGX5azTENBYwleu2qXYWMmG/Te0y1GXcS5H
-	 I22KghZwCGtHMqhjv5aINUzYw2zvjDGSeHOZE/+c=
-Date: Mon, 09 Sep 2024 15:16:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,sj@kernel.org,linux@roeck-us.net,david@redhat.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=qXxsuyMuBVDAuHQEkOdmuzqxLLkPWd+NrEWTP0d0tAza2q/TRDreAwRB2dKhsfRFu
+	 Wza7xx/gDIh6DGzvgortS7WB+38IoocYY+4b9kON8rOcdzcQGKFcl1e4qCtx+fNUkR
+	 oT5INJd6NzrxIKMiHeq3XqMTlSggBA9sQa0ZnXbo=
+Date: Mon, 09 Sep 2024 15:22:27 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,shli@fb.com,lokeshgidra@google.com,kaleshsingh@google.com,david@redhat.com,gaoxu2@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock.patch removed from -mm tree
-Message-Id: <20240909221636.D7193C4CEC5@smtp.kernel.org>
+Subject: [to-be-updated] mm-add-lazyfree-folio-to-lru-tail.patch removed from -mm tree
+Message-Id: <20240909222228.529FEC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: protect vma traversal in __damon_va_thre_regions() with rcu read lock
+     Subject: mm: add lazyfree folio to lru tail
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock.patch
+     mm-add-lazyfree-folio-to-lru-tail.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/damon/vaddr: protect vma traversal in __damon_va_thre_regions() with rcu read lock
-Date: Wed, 4 Sep 2024 17:12:04 -0700
+From: gaoxu <gaoxu2@honor.com>
+Subject: mm: add lazyfree folio to lru tail
+Date: Fri, 16 Aug 2024 07:48:01 +0000
 
-Traversing VMAs of a given maple tree should be protected by rcu read
-lock.  However, __damon_va_three_regions() is not doing the protection. 
-Hold the lock.
+Replace lruvec_add_folio with lruvec_add_folio_tail in the lru_lazyfree_fn:
 
-Link: https://lkml.kernel.org/r/20240905001204.1481-1-sj@kernel.org
-Fixes: d0cf3dd47f0d ("damon: convert __damon_va_three_regions to use the VMA iterator")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Closes: https://lore.kernel.org/b83651a0-5b24-4206-b860-cb54ffdf209b@roeck-us.net
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+1. The lazy-free folio is added to the LRU_INACTIVE_FILE list.  If
+   it's moved to the LRU tail, it allows for faster release lazy-free
+   folio and reduces the impact on file refault.
+
+2. When mglru is enabled, the lazy-free folio is reclaimabled and
+   should be added using lru_gen_add_folio(lruvec, folio, true) instead of
+   lru_gen_add_folio(lruvec, folio, false) for adding to gen.
+
+With the change in place, workingset_refault_file is reduced by 33% in the
+continuous startup testing of the applications in the Android system.
+
+Link: https://lkml.kernel.org/r/f29f64e29c08427b95e3df30a5770056@honor.com
+Signed-off-by: gaoxu <gaoxu2@honor.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-protect-vma-traversal-in-__damon_va_thre_regions-with-rcu-read-lock
-+++ a/mm/damon/vaddr.c
-@@ -126,6 +126,7 @@ static int __damon_va_three_regions(stru
- 	 * If this is too slow, it can be optimised to examine the maple
- 	 * tree gaps.
+--- a/mm/swap.c~mm-add-lazyfree-folio-to-lru-tail
++++ a/mm/swap.c
+@@ -641,7 +641,7 @@ static void lru_lazyfree(struct lruvec *
+ 	 * anonymous folios
  	 */
-+	rcu_read_lock();
- 	for_each_vma(vmi, vma) {
- 		unsigned long gap;
+ 	folio_clear_swapbacked(folio);
+-	lruvec_add_folio(lruvec, folio);
++	lruvec_add_folio_tail(lruvec, folio);
  
-@@ -146,6 +147,7 @@ static int __damon_va_three_regions(stru
- next:
- 		prev = vma;
- 	}
-+	rcu_read_unlock();
- 
- 	if (!sz_range(&second_gap) || !sz_range(&first_gap))
- 		return -EINVAL;
+ 	__count_vm_events(PGLAZYFREE, nr_pages);
+ 	__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from gaoxu2@honor.com are
 
-maple_tree-mark-three-functions-as-__maybe_unused.patch
 
