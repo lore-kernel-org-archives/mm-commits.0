@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D18D218A925
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB72C18A925
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925227; cv=none; b=XHRv+GPuUY8RxXfur2xXEGeb7ENsYExAkPuxy+cDW0s4mSm9WHlzl0vzZrKmvJtEHfKFqQ+/iJ8D/aqdQqQ5uN74+sKuX7RPMqqdhNx8JEGPMUWuxsrlbhSHAsuKnQbwB/7Skq7Q8WsxiftEbiW3fLqFUvhdji/9WPqaO+xH7/Q=
+	t=1725925228; cv=none; b=IlQwhlDDTsPYPpfbu/YPFlBE7GS2LzvyygYTug95WdGPwbz1EiZdQgVMInBrbwctFsYD4ib2co6/Avd6jpZkaUfAmrVVwzpBoiDotfhTOgTv1pD3oCtH8WggmVf8G1C5aypvPfc3KBtJ+e2lwIKbPWW7F8ngfz56eKDqNomJoaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925227; c=relaxed/simple;
-	bh=k5i8fU1hq2vrYtM8MheugPVHwR7FSvXLVem3pnXSfLQ=;
-	h=Date:To:From:Subject:Message-Id; b=UNsKi+boo6qDLNuNKYoaHMPJuSaId+E2T1Pjiq+toHkkEgGcLuUr+xcsDuuQr5myKNmVzFACu+DLEF7L1tlbeuYjTdr0JRkL2MG8+SK/JznyoD6RLGpnads3EuYgl657BsGDPoPXyu1/1AlE/05GgGpirmxFBX+oPesa7PVpJhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tWTDiYA2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925228; c=relaxed/simple;
+	bh=Q/F0s3uZ2J0kEsfwEgeCaJwJ3qHkMoIXnuuRs9W9BYY=;
+	h=Date:To:From:Subject:Message-Id; b=tyikd7X27noE/t+uroFjxg41bmeloulZL84Yh6YhI6Ydn20wbLpCkEF6Sx9lgrP7OBsYz0MwFVKE/AZraUAi6Xm+lhk3q8GewbCmRoZCsGU10yJvQeH50HuruwFaMwArw04cjjLswYUBsu7emOFvrzGUxH7ofSAUPwLy41B2F+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BLD96aC8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tWTDiYA2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2626C4CEC5;
-	Mon,  9 Sep 2024 23:40:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BLD96aC8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B027AC4CEC5;
+	Mon,  9 Sep 2024 23:40:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925227;
-	bh=k5i8fU1hq2vrYtM8MheugPVHwR7FSvXLVem3pnXSfLQ=;
+	s=korg; t=1725925228;
+	bh=Q/F0s3uZ2J0kEsfwEgeCaJwJ3qHkMoIXnuuRs9W9BYY=;
 	h=Date:To:From:Subject:From;
-	b=tWTDiYA2mPeguXRrJ3mZNO7G8PbvP2apZewGQAtYcjdofGK+cm8gf+Gt61p9yZxq4
-	 u0Yi9ZWiTkwGjrld8qCaxDBC7cym6KRg7KXpi1SGCvjzeRVDbLrTIuspk5Pv/09Ewq
-	 W3KHi0+zN7LS6cwrzlua2jpShD8xk1QLvMw3psuo=
-Date: Mon, 09 Sep 2024 16:40:27 -0700
+	b=BLD96aC8fY86Y6mNSsKmL4+HVE+NYe8G7TRRXoOdMz0qx+Pq2iaV6Pg8sXjCBmszy
+	 Pfo+a8jT1uMRmaeAiRDlGKFFC6XQdIULBWsz2kK+950eTyP8QGTKVN3w9FbYS80C9W
+	 FF4bU4xHZnEOm56UhkO2QZFHOz/YZ3nWfh0m3lng=
+Date: Mon, 09 Sep 2024 16:40:28 -0700
 To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-damon-maintainer-profile-add-links-in-place.patch removed from -mm tree
-Message-Id: <20240909234027.A2626C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] docs-damon-maintainer-profile-document-google-calendar-for-bi-weekly-meetups.patch removed from -mm tree
+Message-Id: <20240909234028.B027AC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/damon/maintainer-profile: add links in place
+     Subject: Docs/damon/maintainer-profile: document Google calendar for bi-weekly meetups
 has been removed from the -mm tree.  Its filename was
-     docs-damon-maintainer-profile-add-links-in-place.patch
+     docs-damon-maintainer-profile-document-google-calendar-for-bi-weekly-meetups.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/damon/maintainer-profile: add links in place
-Date: Sun, 25 Aug 2024 18:57:40 -0700
+Subject: Docs/damon/maintainer-profile: document Google calendar for bi-weekly meetups
+Date: Sun, 25 Aug 2024 18:57:41 -0700
 
-maintainer-profile.rst for DAMON separates the links and target
-definitions.  It is not really necessary, and only makes the readability
-worse.  At least the definitions need the section title (say,
-"References").  Just add the links in place on the doc.
+We added a public Google calendar for easy sharing of DAMON bi-weekly
+meetups[1].  Add it to the official document for a better visibility.
 
-Link: https://lkml.kernel.org/r/20240826015741.80707-3-sj@kernel.org
+[1] https://lore.kernel.org/all/20240717235812.53087-1-sj@kernel.org/
+
+Link: https://lkml.kernel.org/r/20240826015741.80707-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
@@ -61,132 +61,21 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |   82 ++++++++--------
- 1 file changed, 43 insertions(+), 39 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-damon-maintainer-profile-add-links-in-place
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-damon-maintainer-profile-document-google-calendar-for-bi-weekly-meetups
 +++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -7,23 +7,27 @@ The DAMON subsystem covers the files tha
- section of 'MAINTAINERS' file.
+@@ -99,5 +99,7 @@ time slot, by reaching out to the mainta
  
- The mailing lists for the subsystem are damon@lists.linux.dev and
--linux-mm@kvack.org.  Patches should be made against the mm-unstable tree [1]_
--whenever possible and posted to the mailing lists.
-+linux-mm@kvack.org.  Patches should be made against the mm-unstable `tree
-+<https://git.kernel.org/akpm/mm/h/mm-unstable>` whenever possible and posted to
-+the mailing lists.
- 
- SCM Trees
- ---------
- 
- There are multiple Linux trees for DAMON development.  Patches under
--development or testing are queued in damon/next [2]_ by the DAMON maintainer.
--Sufficiently reviewed patches will be queued in mm-unstable [1]_ by the memory
--management subsystem maintainer.  After more sufficient tests, the patches will
--be queued in mm-stable [3]_ , and finally pull-requested to the mainline by the
--memory management subsystem maintainer.
-+development or testing are queued in `damon/next
-+<https://git.kernel.org/sj/h/damon/next>` by the DAMON maintainer.
-+Sufficiently reviewed patches will be queued in `mm-unstable
-+<https://git.kernel.org/akpm/mm/h/mm-unstable>` by the memory management
-+subsystem maintainer.  After more sufficient tests, the patches will be queued
-+in `mm-stable <https://git.kernel.org/akpm/mm/h/mm-stable>` , and finally
-+pull-requested to the mainline by the memory management subsystem maintainer.
- 
--Note again the patches for mm-unstable tree [1]_ are queued by the memory
-+Note again the patches for mm-unstable `tree
-+<https://git.kernel.org/akpm/mm/h/mm-unstable>` are queued by the memory
- management subsystem maintainer.  If the patches requires some patches in
--damon/next tree [2]_ which not yet merged in mm-unstable, please make sure the
--requirement is clearly specified.
-+damon/next `tree <https://git.kernel.org/sj/h/damon/next>` which not yet merged
-+in mm-unstable, please make sure the requirement is clearly specified.
- 
- Submit checklist addendum
- -------------------------
-@@ -32,18 +36,27 @@ When making DAMON changes, you should do
- 
- - Build changes related outputs including kernel and documents.
- - Ensure the builds introduce no new errors or warnings.
--- Run and ensure no new failures for DAMON selftests [4]_ and kunittests [5]_ .
-+- Run and ensure no new failures for DAMON `selftests
-+  <https://github.com/awslabs/damon-tests/blob/master/corr/run.sh#L49>` and
-+  `kunittests
-+  <https://github.com/awslabs/damon-tests/blob/master/corr/tests/kunit.sh>`.
- 
- Further doing below and putting the results will be helpful.
- 
--- Run damon-tests/corr [6]_ for normal changes.
--- Run damon-tests/perf [7]_ for performance changes.
-+- Run `damon-tests/corr
-+  <https://github.com/awslabs/damon-tests/tree/master/corr>` for normal
-+  changes.
-+- Run `damon-tests/perf
-+  <https://github.com/awslabs/damon-tests/tree/master/perf>` for performance
-+  changes.
- 
- Key cycle dates
- ---------------
- 
--Patches can be sent anytime.  Key cycle dates of the mm-unstable [1]_ and
--mm-stable [3]_ trees depend on the memory management subsystem maintainer.
-+Patches can be sent anytime.  Key cycle dates of the `mm-unstable
-+<https://git.kernel.org/akpm/mm/h/mm-unstable>` and `mm-stable
-+<https://git.kernel.org/akpm/mm/h/mm-stable>` trees depend on the memory
-+management subsystem maintainer.
- 
- Review cadence
- --------------
-@@ -58,16 +71,17 @@ Mailing tool
- 
- Like many other Linux kernel subsystems, DAMON uses the mailing lists
- (damon@lists.linux.dev and linux-mm@kvack.org) as the major communication
--channel.  There is a simple tool called HacKerMaiL (``hkml``) [8]_ , which is
--for people who are not very familiar with the mailing lists based
--communication.  The tool could be particularly helpful for DAMON community
--members since it is developed and maintained by DAMON maintainer.  The tool is
--also officially announced to support DAMON and general Linux kernel development
--workflow.
--
--In other words, ``hkml`` [8]_ is a mailing tool for DAMON community, which
--DAMON maintainer is committed to support.  Please feel free to try and report
--issues or feature requests for the tool to the maintainer.
-+channel.  There is a simple tool called `HacKerMaiL
-+<https://github.com/damonitor/hackermail>` (``hkml``), which is for people who
-+are not very familiar with the mailing lists based communication.  The tool
-+could be particularly helpful for DAMON community members since it is developed
-+and maintained by DAMON maintainer.  The tool is also officially announced to
-+support DAMON and general Linux kernel development workflow.
-+
-+In other words, `hkml <https://github.com/damonitor/hackermail>` is a mailing
-+tool for DAMON community, which DAMON maintainer is committed to support.
-+Please feel free to try and report issues or feature requests for the tool to
-+the maintainer.
- 
- Community meetup
- ----------------
-@@ -83,17 +97,7 @@ members including the maintainer.  The m
- slots, and attendees should reserve one of those at least 24 hours before the
- time slot, by reaching out to the maintainer.
- 
--Schedules and available reservation time slots are available at the Google doc
--[9]_ .  DAMON maintainer will also provide periodic reminder to the mailing
--list (damon@lists.linux.dev).
--
--
--.. [1] https://git.kernel.org/akpm/mm/h/mm-unstable
--.. [2] https://git.kernel.org/sj/h/damon/next
--.. [3] https://git.kernel.org/akpm/mm/h/mm-stable
--.. [4] https://github.com/damonitor/damon-tests/blob/master/corr/run.sh#L49
--.. [5] https://github.com/damonitor/damon-tests/blob/master/corr/tests/kunit.sh
--.. [6] https://github.com/damonitor/damon-tests/tree/master/corr
--.. [7] https://github.com/damonitor/damon-tests/tree/master/perf
--.. [8] https://github.com/damonitor/hackermail
--.. [9] https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing
-+Schedules and available reservation time slots are available at the Google `doc
-+<https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`.
-+DAMON maintainer will also provide periodic reminder to the mailing list
-+(damon@lists.linux.dev).
+ Schedules and available reservation time slots are available at the Google `doc
+ <https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`.
+-DAMON maintainer will also provide periodic reminder to the mailing list
+-(damon@lists.linux.dev).
++There is also a public Google `calendar
++<https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`
++that has the events.  Anyone can subscribe it.  DAMON maintainer will also
++provide periodic reminder to the mailing list (damon@lists.linux.dev).
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
