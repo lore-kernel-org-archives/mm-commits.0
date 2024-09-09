@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3507E130495
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:32:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2FA2130495
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:33:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725924757; cv=none; b=B31Ld6hWTVTHlKRr5zivsZFq+q3xiFZRbtnrmYHox0rFg4xXZyHJYO1QWL2eVIbK8gmTA2uneOY0NBBTkElydpRfaXeEe3DQzd2jDABKHY+5L41nW2M0SnHihSufU0GhKoBt7iyAB7uDsvdAmAT7LDlXd/id4P4bpXIkoTWtR/Y=
+	t=1725924787; cv=none; b=uVePnICryHVLIuS4AAG2HfFaXughyHJXFQjuziDxrL0aMrDzzbzgCBPHjKUokxViCuJjpO8pL6lUAcA1gvyD27QlUbanA5AeFticoUb+NuHHNNDVNRq1LuQRPk5DiO/zHU45/XF8ZObBndaQtoFKu+q/5/e73FOLrRERqsfKBXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725924757; c=relaxed/simple;
-	bh=/oZYiTwv/8u57Fop3/CiZZYgyq5KogOu174k05E3KHw=;
-	h=Date:To:From:Subject:Message-Id; b=PtiGSVcdM1VSZ20YxK8L7/BsjlxN8yjLYbVcVALqQSJSXjkICatfl31ylYxjFzc7PQn5dMqZ9rGSQMWqqvE628xPTxxc8wqszqI7TXOF9yxbc0sHnF7ia1EAw1MAaF9f6Zj8DHJ+AkliDncNgGu2n+RF5bCiewVRJ90GBQuBbU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wdo0bLmc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725924787; c=relaxed/simple;
+	bh=9gbI0BVekaCddbKMwXSSIUjA9e4mm/7Bl5JnuuYEmqc=;
+	h=Date:To:From:Subject:Message-Id; b=GlhygjIS8537oBYDJ0pra5KM9Cewsyfno6XIDv7D5OeLuJRub6JPbv1DpFNYxkKO1I/W1gc/BMJKpQd/u4FUwOLIOqt8vk2cEbP1RZrEP+4eJiBfypIsw7C1wpNrlCuFuxO5vTL+U55/bkM5Aa9sbv6uhC6FJaIRvExLGGht6q8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+Q/+LYJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wdo0bLmc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23E0C4CEC5;
-	Mon,  9 Sep 2024 23:32:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+Q/+LYJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E42DC4CEC5;
+	Mon,  9 Sep 2024 23:33:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725924756;
-	bh=/oZYiTwv/8u57Fop3/CiZZYgyq5KogOu174k05E3KHw=;
+	s=korg; t=1725924787;
+	bh=9gbI0BVekaCddbKMwXSSIUjA9e4mm/7Bl5JnuuYEmqc=;
 	h=Date:To:From:Subject:From;
-	b=wdo0bLmcUccdZi/Sx7eof3SuSkdSQZTupz39ytUt0pUjEbzcRa5whjCvmhSdi6QEY
-	 DKJAkl6Ah5UBwR1mBN8K3tMq5rnEi/PFx1Mckh+qCvcnnmE+Ut6zk7/JmqyKbl5jnU
-	 a+zere7dhPqWtnFM8WoRfmM9KVgymGwoQrfIQWWA=
-Date: Mon, 09 Sep 2024 16:32:36 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=C+Q/+LYJFJ/YIIWbp9k1XY0vdQymx3zDf8vRXvmypa7EO1ZVtmfuzwNFwt8QTj4gH
+	 urhdWlp3vxZz+jGq8+3GlGUJ6ZYQoNvDa7zV5yV5ie6vs1CNIlckHwrJtHsPmd3gde
+	 /wvgjNsLF+X1QXK8u6Cdt40a16Nk6WlNhbDrp8us=
+Date: Mon, 09 Sep 2024 16:33:06 -0700
+To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-remove-isolate_lru_page-fix.patch removed from -mm tree
-Message-Id: <20240909233236.D23E0C4CEC5@smtp.kernel.org>
+Subject: [folded-merged] mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch removed from -mm tree
+Message-Id: <20240909233307.4E42DC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,135 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove isolate_lru_page() fix
+     Subject: mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix
 has been removed from the -mm tree.  Its filename was
-     mm-remove-isolate_lru_page-fix.patch
+     mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
 
-This patch was dropped because it was folded into mm-remove-isolate_lru_page.patch
+This patch was dropped because it was folded into mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes.patch
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove isolate_lru_page() fix
-Date: Mon, 26 Aug 2024 22:41:14 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix
+Date: Tue Aug 27 07:16:26 PM PDT 2024
 
-convert page to folio in comment and document, per Matthew
+comment tweak, per David
 
-Link: https://lkml.kernel.org/r/20240826144114.1928071-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_migration.rst  |   18 +++++++++---------
- Documentation/mm/unevictable-lru.rst |    2 +-
- mm/khugepaged.c                      |    2 +-
- mm/migrate_device.c                  |    4 ++--
- mm/swap.c                            |    4 ++--
- 5 files changed, 15 insertions(+), 15 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/page_migration.rst~mm-remove-isolate_lru_page-fix
-+++ a/Documentation/mm/page_migration.rst
-@@ -63,15 +63,15 @@ and then a low level description of how
- In kernel use of migrate_pages()
- ================================
+--- a/mm/shmem.c~mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix
++++ a/mm/shmem.c
+@@ -685,7 +685,7 @@ next:
+ 		if (!folio || xa_is_value(folio))
+ 			goto drop;
  
--1. Remove pages from the LRU.
-+1. Remove folios from the LRU.
- 
--   Lists of pages to be migrated are generated by scanning over
--   pages and moving them into lists. This is done by
-+   Lists of folios to be migrated are generated by scanning over
-+   folios and moving them into lists. This is done by
-    calling folio_isolate_lru().
--   Calling folio_isolate_lru() increases the references to the page
--   so that it cannot vanish while the page migration occurs.
-+   Calling folio_isolate_lru() increases the references to the folio
-+   so that it cannot vanish while the folio migration occurs.
-    It also prevents the swapper or other scans from encountering
--   the page.
-+   the folio.
- 
- 2. We need to have a function of type new_folio_t that can be
-    passed to migrate_pages(). This function should figure out
-@@ -84,10 +84,10 @@ In kernel use of migrate_pages()
- How migrate_pages() works
- =========================
- 
--migrate_pages() does several passes over its list of pages. A page is moved
--if all references to a page are removable at the time. The page has
-+migrate_pages() does several passes over its list of folios. A folio is moved
-+if all references to a folio are removable at the time. The folio has
- already been removed from the LRU via folio_isolate_lru() and the refcount
--is increased so that the page cannot be freed while page migration occurs.
-+is increased so that the folio cannot be freed while folio migration occurs.
- 
- Steps:
- 
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-isolate_lru_page-fix
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -80,7 +80,7 @@ on an additional LRU list for a few reas
-  (2) We want to be able to migrate unevictable folios between nodes for memory
-      defragmentation, workload management and memory hotplug.  The Linux kernel
-      can only migrate folios that it can successfully isolate from the LRU
--     lists (or "Movable" pages: outside of consideration here).  If we were to
-+     lists (or "Movable" folios: outside of consideration here).  If we were to
-      maintain folios elsewhere than on an LRU-like list, where they can be
-      detected by folio_isolate_lru(), we would prevent their migration.
- 
---- a/mm/khugepaged.c~mm-remove-isolate_lru_page-fix
-+++ a/mm/khugepaged.c
-@@ -628,7 +628,7 @@ static int __collapse_huge_page_isolate(
- 
- 		/*
- 		 * We can do it before folio_isolate_lru because the
--		 * page can't be freed from under us. NOTE: PG_lock
-+		 * folio can't be freed from under us. NOTE: PG_lock
- 		 * is needed to serialize against split_huge_page
- 		 * when invoked from the VM.
- 		 */
---- a/mm/migrate_device.c~mm-remove-isolate_lru_page-fix
-+++ a/mm/migrate_device.c
-@@ -328,8 +328,8 @@ static bool migrate_vma_check_page(struc
- 
- 	/*
- 	 * One extra ref because caller holds an extra reference, either from
--	 * folio_isolate_lru() for a regular page, or migrate_vma_collect() for
--	 * a device page.
-+	 * folio_isolate_lru() for a regular folio, or migrate_vma_collect() for
-+	 * a device folio.
- 	 */
- 	int extra = 1 + (page == fault_page);
- 
---- a/mm/swap.c~mm-remove-isolate_lru_page-fix
-+++ a/mm/swap.c
-@@ -906,8 +906,8 @@ atomic_t lru_disable_count = ATOMIC_INIT
- 
- /*
-  * lru_cache_disable() needs to be called before we start compiling
-- * a list of pages to be migrated using folio_isolate_lru().
-- * It drains pages on LRU cache and then disable on all cpus until
-+ * a list of folios to be migrated using folio_isolate_lru().
-+ * It drains folios on LRU cache and then disable on all cpus until
-  * lru_cache_enable is called.
-  *
-  * Must be paired with a call to lru_cache_enable().
+-		/* No large page at the end of the file: nothing to split */
++		/* No large folio at the end of the file: nothing to split */
+ 		if (!folio_test_large(folio)) {
+ 			folio_put(folio);
+ 			goto drop;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
-mm-migrate_device-use-a-folio-in-migrate_device_range.patch
-mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
-mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
-mm-remove-isolate_lru_page.patch
-mm-remove-putback_lru_page.patch
-mm-migrate-remove-unused-includes.patch
-mm-support-poison-recovery-from-do_cow_fault.patch
-mm-support-poison-recovery-from-copy_present_page.patch
+mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix.patch
+mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
+mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
+mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
+mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch
 
