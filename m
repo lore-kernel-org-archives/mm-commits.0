@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0932418DF76
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:48:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 201CF18DF76
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:48:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925692; cv=none; b=fiuuJXnfOk53KoDEehLL3h4C82wshX8Fa0Rdr5dTmIAHn3i9WvNPgN/JT9IaTIJFAf1hSXvyeh9SL+UlkOCc7Ms5b5CrBXQZfC4baVcki8w2GZhPCKwbuAHdD9zs3xiwuapLn3kFiy2vqZ3MUQpsJ8qD2why13BxDp37jbp1bTc=
+	t=1725925693; cv=none; b=VSquWRMCcbL5DsI37ucutkVGQdaW2w73EbbD4TzX4rQGhsIH/dnhSxxdpRDOb8/t4JvFFhUpZZx6RFI+UIKOWeyXZtq1XQrJPuHhynv08e0of51pM5TepmjIRoiEZnUYyZN8Zw+aeSq9tnwUv4dmrGyTtz3wjGKgkUGkEDhggeA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925692; c=relaxed/simple;
-	bh=hzvho3dI40wOTuzYObC1OZ0OpqOzF6cTMpCql0C2r2g=;
-	h=Date:To:From:Subject:Message-Id; b=pUcuNi0BOFlmN69/FWOsyGINf72LDSJ0rgLOyUShsPYsqnTor1cYPtU9dIEpBZJtXiZZRIDwQCwJgo64Xp+Wmn6KRHOMr4SSW0yhsJC4mh++TDrKPOpRPDo2KXN7KzAPZvOpD4GxbFTY48WKVR/KvPpYhSkRE2aqXQMRXVRW/aQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x+fQxMAJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925693; c=relaxed/simple;
+	bh=yS5d89hxLk+aKqQVfee49pMCc14hpctBfS4yPzT2HK8=;
+	h=Date:To:From:Subject:Message-Id; b=CoaPU3KRcKcQjbiQPBqbNSiHMLXwo9CFM3qGnfrjWXfBSWqn0Rsjp6exk5QtTo7iVs/WjxTSzBGrh0Z6RgD1GTcW0onT4g1zfcyfbVujGt082Hbd9bbj8AuVUZND8iu08sb9miE7yS2DttIFxC6jKuVM5zRQdUBWF6ZakiNH89I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AfxIJCSK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x+fQxMAJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66D58C4CEC5;
-	Mon,  9 Sep 2024 23:48:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AfxIJCSK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B0D4C4CECA;
+	Mon,  9 Sep 2024 23:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925691;
-	bh=hzvho3dI40wOTuzYObC1OZ0OpqOzF6cTMpCql0C2r2g=;
+	s=korg; t=1725925692;
+	bh=yS5d89hxLk+aKqQVfee49pMCc14hpctBfS4yPzT2HK8=;
 	h=Date:To:From:Subject:From;
-	b=x+fQxMAJFkqwWcgflrg8UdWb1+51D+Ys0Tyv6GyWUTePpNJlRTBok2xtaeZ2eJreb
-	 iRRFACh5El2OEXECoAqsaP6kHCDD84DxHdniUEbY2H9CXlOkxzbgpBXqGKPlROqgQi
-	 8zFpx7cOhpPwk2I3KLIEQ8KGvKyp12xrlCykvKa4=
-Date: Mon, 09 Sep 2024 16:48:10 -0700
-To: mm-commits@vger.kernel.org,swaminathanalok@gmail.com,akpm@linux-foundation.org
+	b=AfxIJCSKz3Qzhteyr2HIG6TnOtGQmr+e9Rznltvp3bcYxHMKlpanTyIR7iWlDvZnj
+	 YAyj0W6g39/yJ1zgYfEKKBm/EI9koGjog7FtSxk1oQ1IfbrTJUlfkDenpnEh7iv8W3
+	 kxVBCrleuyVuQVH36ngbmvAjeL/EMlRcQqVYLqPY=
+Date: Mon, 09 Sep 2024 16:48:12 -0700
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-globc-added-null-check-for-character-class.patch removed from -mm tree
-Message-Id: <20240909234811.66D58C4CEC5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch removed from -mm tree
+Message-Id: <20240909234812.8B0D4C4CECA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: glob.c: added null check for character class
+     Subject: squashfs: fix percpu address space issues in decompressor_multi_percpu.c
 has been removed from the -mm tree.  Its filename was
-     lib-globc-added-null-check-for-character-class.patch
+     squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alok Swaminathan <swaminathanalok@gmail.com>
-Subject: lib: glob.c: added null check for character class
-Date: Mon, 26 Aug 2024 11:57:09 -0400
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: squashfs: fix percpu address space issues in decompressor_multi_percpu.c
+Date: Fri, 30 Aug 2024 11:10:50 +0200
 
-Add null check for character class.  Previously, an inverted character
-class could result in a nul byte being matched and lead to the function
-reading past the end of the inputted string.
+When strict percpu address space checks are enabled, then current direct
+casts between the percpu address space and the generic address space fail
+the compilation on x86_64 with:
 
-Link: https://lkml.kernel.org/r/20240826155709.12383-1-swaminathanalok@gmail.com
-Signed-off-by: Alok Swaminathan <swaminathanalok@gmail.com>
+decompressor_multi_percpu.c: In function `squashfs_decompressor_create':
+decompressor_multi_percpu.c:49:16: error: cast to generic address space pointer from disjoint `__seg_gs' address space pointer
+
+decompressor_multi_percpu.c: In function `squashfs_decompressor_destroy':
+decompressor_multi_percpu.c:64:25: error: cast to `__seg_gs' address space pointer from disjoint generic address space pointer
+
+decompressor_multi_percpu.c: In function `squashfs_decompress':
+decompressor_multi_percpu.c:82:25: error: cast to `__seg_gs' address space pointer from disjoint generic address space pointer
+
+Add intermediate casts to unsigned long, as advised in [1] and [2].
+
+Side note: sparse still requires __force when casting from the percpu
+address space, although the documentation [2] allows casts to unsigned
+long without __force attribute.
+
+Found by GCC's named address space checks.
+
+There were no changes in the resulting object file.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Named-Address-Spaces.html#x86-Named-Address-Spaces
+[2] https://sparse.docs.kernel.org/en/latest/annotations.html#address-space-name
+
+Link: https://lkml.kernel.org/r/20240830091104.13049-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/glob.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/squashfs/decompressor_multi_percpu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/glob.c~lib-globc-added-null-check-for-character-class
-+++ a/lib/glob.c
-@@ -68,6 +68,8 @@ bool __pure glob_match(char const *pat,
- 			back_str = --str;	/* Allow zero-length match */
- 			break;
- 		case '[': {	/* Character class */
-+			if (c == '\0')	/* No possible match */
-+				return false;
- 			bool match = false, inverted = (*pat == '!');
- 			char const *class = pat + inverted;
- 			unsigned char a = *class++;
+--- a/fs/squashfs/decompressor_multi_percpu.c~squashfs-fix-percpu-address-space-issues-in-decompressor_multi_percpuc
++++ a/fs/squashfs/decompressor_multi_percpu.c
+@@ -46,7 +46,7 @@ static void *squashfs_decompressor_creat
+ 	}
+ 
+ 	kfree(comp_opts);
+-	return (__force void *) percpu;
++	return (void *)(__force unsigned long) percpu;
+ 
+ out:
+ 	for_each_possible_cpu(cpu) {
+@@ -61,7 +61,7 @@ out:
+ static void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
+ {
+ 	struct squashfs_stream __percpu *percpu =
+-			(struct squashfs_stream __percpu *) msblk->stream;
++			(void __percpu *)(unsigned long) msblk->stream;
+ 	struct squashfs_stream *stream;
+ 	int cpu;
+ 
+@@ -79,7 +79,7 @@ static int squashfs_decompress(struct sq
+ {
+ 	struct squashfs_stream *stream;
+ 	struct squashfs_stream __percpu *percpu =
+-			(struct squashfs_stream __percpu *) msblk->stream;
++			(void __percpu *)(unsigned long) msblk->stream;
+ 	int res;
+ 
+ 	local_lock(&percpu->lock);
 _
 
-Patches currently in -mm which might be from swaminathanalok@gmail.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
 
