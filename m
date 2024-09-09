@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B136F130495
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:35:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732C218DF66
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725924950; cv=none; b=rqdTyo03EdCZoS4asDHQ18g78hunFgwBVHmjBsOqTaE/TR3XkaqxMHFCpuz3IqTdvJyg2Ms9TX6Zlmq7uQqOB1eDMjHL0jeN1HL11XMZllHbq54rWsbX15q4ob6aKjOJOlKvl/heWGKEH8HXUJEB1px6edEdu8xTUT5FjEfci4k=
+	t=1725925207; cv=none; b=HAANbdx/JwO1NLRe13CUjRrD9J9lVsOdRctjLi5avIXBbUs+g1XwYu2J2f5/OdfTq49dxuABuP3cjirV6NnmhpBmi6WrxT4pFvoWr/ErCiLc55t2TddaGg5fRS3Z1vBaA6NH9lENM2hiElVSS2XD/lbZTACwdV6D3Wk8AGxQnw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725924950; c=relaxed/simple;
-	bh=gOzC3CGY6NEQ3GX/26J/9cbE6VJjfHTqr+WeT7Zbn50=;
-	h=Date:To:From:Subject:Message-Id; b=BQvIlc8LHft8w6Ep4JrZTQpA/I+yrAAGG10rI1D6GqXEzAYeXDbGYsqm924aIaKw/YO3O9Ry2pR7F1a2rpc2crqqPqzNavIk7ufBZdkGhbCVjIcVAOjPH9rAgyhJUCiceTjKNlc6QB5yq5H+WEzP7r45onxzBwm4XOTSwOshd04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nZyGbitI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925207; c=relaxed/simple;
+	bh=uahGRWynL1lbFl32v2iVJaKjsj7duYUHlKt2C7qwMQU=;
+	h=Date:To:From:Subject:Message-Id; b=utEFWEffleLf/2v896UOlZsxioIv6GV1ZwBDk1SoffZkf7P/GynkzRC8b4czuIgGWalwdm/LSTsLWd4wZd4XYYvonAqRN+mHCE0tqJk756O3uMwXv4eHwv2eRO878qOOYGfK/prjYb2q32YBeFishHZRr4ILcl4QjKyj5Cp3BCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oi8GOuk4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nZyGbitI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0A3C4CEC5;
-	Mon,  9 Sep 2024 23:35:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oi8GOuk4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D26C4CEC5;
+	Mon,  9 Sep 2024 23:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725924950;
-	bh=gOzC3CGY6NEQ3GX/26J/9cbE6VJjfHTqr+WeT7Zbn50=;
+	s=korg; t=1725925206;
+	bh=uahGRWynL1lbFl32v2iVJaKjsj7duYUHlKt2C7qwMQU=;
 	h=Date:To:From:Subject:From;
-	b=nZyGbitII8DGlr6jh0mr0/1M040+uhkfHEVZqvhGjvTrodE0fyg2h2ULOzJgwBBze
-	 03PBeAmlDsYSuihUXFITT8HHycMK7MFa05wb+v7Ml4jWl1hMBGvqPIplMf+8qqNXJ/
-	 O2/qFw01ky7A+8oB4lcZyXZfwhiPwzOxcn3JlV/Y=
-Date: Mon, 09 Sep 2024 16:35:49 -0700
-To: mm-commits@vger.kernel.org,svens@linux.ibm.com,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=Oi8GOuk4jEJ9BXSWq30mJl23fAoMtM7K0chaQmHG8c+f0P/MXICvsqMKXVmMZve/D
+	 18FHU5JfaRxOdDTMNOxO86/RsPKDqHVkLqb5Bdggb3eIJmycZHz7cfxRn7eafZ+ySQ
+	 8tmgwVMOCI330JkmPLK2i93lBfc1MYCnahy7rKQs=
+Date: Mon, 09 Sep 2024 16:40:06 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ioworker0@gmail.com,hughd@google.com,gshan@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] uprobes-use-vm_special_mapping-close-functionality-fix.patch removed from -mm tree
-Message-Id: <20240909233550.0B0A3C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-cleanup-count_mthp_stat-definition.patch removed from -mm tree
+Message-Id: <20240909234006.C7D26C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,187 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: uprobes: remove unneeded condition
+     Subject: mm: cleanup count_mthp_stat() definition
 has been removed from the -mm tree.  Its filename was
-     uprobes-use-vm_special_mapping-close-functionality-fix.patch
+     mm-cleanup-count_mthp_stat-definition.patch
 
-This patch was dropped because it was folded into uprobes-use-vm_special_mapping-close-functionality.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: uprobes: remove unneeded condition
-Date: Fri, 6 Sep 2024 15:18:25 +0500
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: cleanup count_mthp_stat() definition
+Date: Thu, 8 Aug 2024 12:18:46 +0100
 
-The area cannot be NULL as we are getting it through container_of(). 
-Hence there is no need to check its validity.  Remove the if condition and
-return statement.
+Patch series "Shmem mTHP controls and stats improvements", v3.
 
-Link: https://lkml.kernel.org/r/20240906101825.177490-1-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
+This is a small series to tidy up the way the shmem controls and stats are
+exposed.  These patches were previously part of the series at [2], but I
+decided to split them out since they can go in independently.
+
+
+This patch (of 2):
+
+Let's move count_mthp_stat() so that it's always defined, even when THP is
+disabled.  Previously uses of the function in files such as shmem.c, which
+are compiled even when THP is disabled, required ugly THP ifdeferry.  With
+this cleanup, we can remove those ifdefs and the function resolves to a
+nop when THP is disabled.
+
+I shortly plan to call count_mthp_stat() from more THP-invariant source
+files.
+
+Link: https://lkml.kernel.org/r/20240808111849.651867-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240808111849.651867-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/huge_mm.h |   70 +++++++++++++++++++-------------------
+ mm/memory.c             |    2 -
+ mm/shmem.c              |    6 ---
+ 3 files changed, 35 insertions(+), 43 deletions(-)
 
---- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality-fix
-+++ a/kernel/events/uprobes.c
-@@ -1493,9 +1493,6 @@ static void uprobe_clear_state(const str
- 	delayed_uprobe_remove(NULL, vma->vm_mm);
- 	mutex_unlock(&delayed_uprobe_lock);
+--- a/include/linux/huge_mm.h~mm-cleanup-count_mthp_stat-definition
++++ a/include/linux/huge_mm.h
+@@ -114,6 +114,41 @@ extern struct kobj_attribute thpsize_shm
+ #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
+ #define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
  
--	if (!area)
++enum mthp_stat_item {
++	MTHP_STAT_ANON_FAULT_ALLOC,
++	MTHP_STAT_ANON_FAULT_FALLBACK,
++	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
++	MTHP_STAT_SWPOUT,
++	MTHP_STAT_SWPOUT_FALLBACK,
++	MTHP_STAT_SHMEM_ALLOC,
++	MTHP_STAT_SHMEM_FALLBACK,
++	MTHP_STAT_SHMEM_FALLBACK_CHARGE,
++	MTHP_STAT_SPLIT,
++	MTHP_STAT_SPLIT_FAILED,
++	MTHP_STAT_SPLIT_DEFERRED,
++	__MTHP_STAT_COUNT
++};
++
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
++struct mthp_stat {
++	unsigned long stats[ilog2(MAX_PTRS_PER_PTE) + 1][__MTHP_STAT_COUNT];
++};
++
++DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
++
++static inline void count_mthp_stat(int order, enum mthp_stat_item item)
++{
++	if (order <= 0 || order > PMD_ORDER)
++		return;
++
++	this_cpu_inc(mthp_stats.stats[order][item]);
++}
++#else
++static inline void count_mthp_stat(int order, enum mthp_stat_item item)
++{
++}
++#endif
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 
+ extern unsigned long transparent_hugepage_flags;
+@@ -269,41 +304,6 @@ struct thpsize {
+ 
+ #define to_thpsize(kobj) container_of(kobj, struct thpsize, kobj)
+ 
+-enum mthp_stat_item {
+-	MTHP_STAT_ANON_FAULT_ALLOC,
+-	MTHP_STAT_ANON_FAULT_FALLBACK,
+-	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
+-	MTHP_STAT_SWPOUT,
+-	MTHP_STAT_SWPOUT_FALLBACK,
+-	MTHP_STAT_SHMEM_ALLOC,
+-	MTHP_STAT_SHMEM_FALLBACK,
+-	MTHP_STAT_SHMEM_FALLBACK_CHARGE,
+-	MTHP_STAT_SPLIT,
+-	MTHP_STAT_SPLIT_FAILED,
+-	MTHP_STAT_SPLIT_DEFERRED,
+-	__MTHP_STAT_COUNT
+-};
+-
+-struct mthp_stat {
+-	unsigned long stats[ilog2(MAX_PTRS_PER_PTE) + 1][__MTHP_STAT_COUNT];
+-};
+-
+-#ifdef CONFIG_SYSFS
+-DECLARE_PER_CPU(struct mthp_stat, mthp_stats);
+-
+-static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+-{
+-	if (order <= 0 || order > PMD_ORDER)
 -		return;
 -
- 	put_page(area->pages[0]);
- 	kfree(area->bitmap);
- 	kfree(area);
+-	this_cpu_inc(mthp_stats.stats[order][item]);
+-}
+-#else
+-static inline void count_mthp_stat(int order, enum mthp_stat_item item)
+-{
+-}
+-#endif
+-
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
+ 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
+--- a/mm/memory.c~mm-cleanup-count_mthp_stat-definition
++++ a/mm/memory.c
+@@ -4595,9 +4595,7 @@ static vm_fault_t do_anonymous_page(stru
+ 
+ 	folio_ref_add(folio, nr_pages - 1);
+ 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	count_mthp_stat(folio_order(folio), MTHP_STAT_ANON_FAULT_ALLOC);
+-#endif
+ 	folio_add_new_anon_rmap(folio, vma, addr, RMAP_EXCLUSIVE);
+ 	folio_add_lru_vma(folio, vma);
+ setpte:
+--- a/mm/shmem.c~mm-cleanup-count_mthp_stat-definition
++++ a/mm/shmem.c
+@@ -1808,9 +1808,7 @@ static struct folio *shmem_alloc_and_add
+ 
+ 			if (pages == HPAGE_PMD_NR)
+ 				count_vm_event(THP_FILE_FALLBACK);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			count_mthp_stat(order, MTHP_STAT_SHMEM_FALLBACK);
+-#endif
+ 			order = next_order(&suitable_orders, order);
+ 		}
+ 	} else {
+@@ -1835,10 +1833,8 @@ allocated:
+ 				count_vm_event(THP_FILE_FALLBACK);
+ 				count_vm_event(THP_FILE_FALLBACK_CHARGE);
+ 			}
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK);
+ 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_FALLBACK_CHARGE);
+-#endif
+ 		}
+ 		goto unlock;
+ 	}
+@@ -2332,9 +2328,7 @@ repeat:
+ 		if (!IS_ERR(folio)) {
+ 			if (folio_test_pmd_mappable(folio))
+ 				count_vm_event(THP_FILE_ALLOC);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			count_mthp_stat(folio_order(folio), MTHP_STAT_SHMEM_ALLOC);
+-#endif
+ 			goto alloced;
+ 		}
+ 		if (PTR_ERR(folio) == -EEXIST)
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-uprobes-use-vm_special_mapping-close-functionality.patch
 
