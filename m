@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ABD818E377
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDEDF18E05C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925301; cv=none; b=McCam5wVVH5JPZu6GNHWjC/lf1MHSrPU6bk0F74ECWiElS5iTm2VVF69oCN0I0ZRuXVER+WAOXLJk8CZ5qyFhRPVrR9kMkmM4a34zLWoAZMYTyh26FvGaA36TNEtj92/UCZG0pHGi+MrR4yAiWTur7MnxD6cfG3T5n20VNltLbY=
+	t=1725925302; cv=none; b=EVRCwd4fztXlYeePQe1ANJcz6Y1CfWpQyNqkjHp9Snu1NfG1E+fjE9AKqN9F3t7hzxliL53YsF7F1CjNWj0NnvBp+c6YmAqW4wWUkiY+KSefX6zUY1U6YWmlJofaaS0Fk45zVi9hydn8+0E4c9pL14IY1LQiGLaLJeXjArvCTgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925301; c=relaxed/simple;
-	bh=iGdeEvJHlH3h6mlOcTo0Dw1SCF1dgtDBOdPIZTNBSHM=;
-	h=Date:To:From:Subject:Message-Id; b=ezbD3BWx7SPGNo9pxNZQVieIfblpn0LjNnvLdjHc5qFIrMSb0HCcwzhWZ66fHSEI6N6mdGRBnpjOSGStsEcXp8WUqRNIlScSTa187sDIhW5HPZ2GI3cqSXPa9mkuf8646VHJ3t6RlhIq5gr1f6FzbAhWXc7lkHF63VTWW+y+Q9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=crnX5VoJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925302; c=relaxed/simple;
+	bh=rhqI/4YmrUAMAmco5ewZEFdAlBraWwIgCgFw8hL5+BE=;
+	h=Date:To:From:Subject:Message-Id; b=kG1Vq/QdwN1X2s6fHkR4UDq5cw/HMkxzWG3AjbmPS+X0S/S8UAZ2FcI2wJR0knrIiQFroDaAAJ+Nf3BTPrwb7aDOE0yfLOwmFEWyY3a2LCUsA4Hb3+5w172QFBgFUsx+34YFXPevY5dmQtuSUt6AsdFRQDHFAieHE3JjSVy8b8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XpjXoSbS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="crnX5VoJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D287EC4CEC5;
-	Mon,  9 Sep 2024 23:41:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XpjXoSbS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1FAEC4CEC5;
+	Mon,  9 Sep 2024 23:41:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925300;
-	bh=iGdeEvJHlH3h6mlOcTo0Dw1SCF1dgtDBOdPIZTNBSHM=;
+	s=korg; t=1725925302;
+	bh=rhqI/4YmrUAMAmco5ewZEFdAlBraWwIgCgFw8hL5+BE=;
 	h=Date:To:From:Subject:From;
-	b=crnX5VoJ/3MPAzQwST0XgPIL6ynvCMRie8gkGCoFUwSJfkEmbI7xtCRYkqYOSh4dX
-	 BZ4JTYuj6Pc2XTcBwtQ9HME3OzCaRVzys8HAAvZgqRNxk22+RPIPqKkPSFzq5MdUdK
-	 DVaPAvgeSxTxITepsXT3BDEqAvr9wxsMpu+QrvrI=
-Date: Mon, 09 Sep 2024 16:41:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterz@infradead.org,mgorman@techsingularity.net,jackmanb@google.com,yosryahmed@google.com,akpm@linux-foundation.org
+	b=XpjXoSbSbskAYPS6EMd/pFU8m4/RdqHFr1TrnHWzi/JD5pTQ4ca+SW6gRufnNRr/Y
+	 Iey2MHaNLJ5bzXVri1lbodbOKUn9btxQ9DfnPw6HDfe+oJRCiw00fVHEZmq3LPAEmZ
+	 pHjyDB/4nOnDmGnDJXPEX+xu9KXtUivgAZ+6TTgs=
+Date: Mon, 09 Sep 2024 16:41:42 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,svens@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios.patch removed from -mm tree
-Message-Id: <20240909234140.D287EC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] uprobes-use-vm_special_mapping-close-functionality.patch removed from -mm tree
+Message-Id: <20240909234142.B1FAEC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,201 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: fix missed updates of PGFREE in free_unref_{page/folios}
+     Subject: uprobes: use vm_special_mapping close() functionality
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios.patch
+     uprobes-use-vm_special_mapping-close-functionality.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: page_alloc: fix missed updates of PGFREE in free_unref_{page/folios}
-Date: Wed, 4 Sep 2024 20:54:19 +0000
+From: Sven Schnelle <svens@linux.ibm.com>
+Subject: uprobes: use vm_special_mapping close() functionality
+Date: Tue, 3 Sep 2024 09:36:28 +0200
 
-PGFREE is currently updated in two code paths:
+The following KASAN splat was shown:
 
-- __free_pages_ok(): for pages freed to the buddy allocator.
-- free_unref_page_commit(): for pages freed to the pcplists.
+[   44.505448] ==================================================================                                                                      20:37:27 [3421/145075]
+[   44.505455] BUG: KASAN: slab-use-after-free in special_mapping_close+0x9c/0xc8
+[   44.505471] Read of size 8 at addr 00000000868dac48 by task sh/1384
+[   44.505479]
+[   44.505486] CPU: 51 UID: 0 PID: 1384 Comm: sh Not tainted 6.11.0-rc6-next-20240902-dirty #1496
+[   44.505503] Hardware name: IBM 3931 A01 704 (z/VM 7.3.0)
+[   44.505508] Call Trace:
+[   44.505511]  [<000b0324d2f78080>] dump_stack_lvl+0xd0/0x108
+[   44.505521]  [<000b0324d2f5435c>] print_address_description.constprop.0+0x34/0x2e0
+[   44.505529]  [<000b0324d2f5464c>] print_report+0x44/0x138
+[   44.505536]  [<000b0324d1383192>] kasan_report+0xc2/0x140
+[   44.505543]  [<000b0324d2f52904>] special_mapping_close+0x9c/0xc8
+[   44.505550]  [<000b0324d12c7978>] remove_vma+0x78/0x120
+[   44.505557]  [<000b0324d128a2c6>] exit_mmap+0x326/0x750
+[   44.505563]  [<000b0324d0ba655a>] __mmput+0x9a/0x370
+[   44.505570]  [<000b0324d0bbfbe0>] exit_mm+0x240/0x340
+[   44.505575]  [<000b0324d0bc0228>] do_exit+0x548/0xd70
+[   44.505580]  [<000b0324d0bc1102>] do_group_exit+0x132/0x390
+[   44.505586]  [<000b0324d0bc13b6>] __s390x_sys_exit_group+0x56/0x60
+[   44.505592]  [<000b0324d0adcbd6>] do_syscall+0x2f6/0x430
+[   44.505599]  [<000b0324d2f78434>] __do_syscall+0xa4/0x170
+[   44.505606]  [<000b0324d2f9454c>] system_call+0x74/0x98
+[   44.505614]
+[   44.505616] Allocated by task 1384:
+[   44.505621]  kasan_save_stack+0x40/0x70
+[   44.505630]  kasan_save_track+0x28/0x40
+[   44.505636]  __kasan_kmalloc+0xa0/0xc0
+[   44.505642]  __create_xol_area+0xfa/0x410
+[   44.505648]  get_xol_area+0xb0/0xf0
+[   44.505652]  uprobe_notify_resume+0x27a/0x470
+[   44.505657]  irqentry_exit_to_user_mode+0x15e/0x1d0
+[   44.505664]  pgm_check_handler+0x122/0x170
+[   44.505670]
+[   44.505672] Freed by task 1384:
+[   44.505676]  kasan_save_stack+0x40/0x70
+[   44.505682]  kasan_save_track+0x28/0x40
+[   44.505687]  kasan_save_free_info+0x4a/0x70
+[   44.505693]  __kasan_slab_free+0x5a/0x70
+[   44.505698]  kfree+0xe8/0x3f0
+[   44.505704]  __mmput+0x20/0x370
+[   44.505709]  exit_mm+0x240/0x340
+[   44.505713]  do_exit+0x548/0xd70
+[   44.505718]  do_group_exit+0x132/0x390
+[   44.505722]  __s390x_sys_exit_group+0x56/0x60
+[   44.505727]  do_syscall+0x2f6/0x430
+[   44.505732]  __do_syscall+0xa4/0x170
+[   44.505738]  system_call+0x74/0x98
 
-Before commit df1acc856923 ("mm/page_alloc: avoid conflating IRQs disabled
-with zone->lock"), free_unref_page_commit() used to fallback to freeing
-isolated pages directly to the buddy allocator through free_one_page(). 
-This was done _after_ updating PGFREE, so the counter was correctly
-updated.
+The problem is that uprobe_clear_state() kfree's struct xol_area, which
+contains struct vm_special_mapping *xol_mapping. This one is passed to
+_install_special_mapping() in xol_add_vma().
+__mput reads:
 
-However, that commit moved the fallback logic to its callers (now called
-free_unref_page() and free_unref_folios()), so PGFREE was no longer
-updated in this fallback case.
+static inline void __mmput(struct mm_struct *mm)
+{
+        VM_BUG_ON(atomic_read(&mm->mm_users));
 
-Now that the code has developed, there are more cases in free_unref_page()
-and free_unref_folios() where we fallback to calling free_one_page() (e.g.
-!pcp_allowed_order(), pcp_spin_trylock() fails).  These cases also miss
-updating PGFREE.
+        uprobe_clear_state(mm);
+        exit_aio(mm);
+        ksm_exit(mm);
+        khugepaged_exit(mm); /* must run before exit_mmap */
+        exit_mmap(mm);
+        ...
+}
 
-To make sure PGFREE is updated in all cases where pages are freed to the
-buddy allocator, move the update down the stack to free_one_page().
+So uprobe_clear_state() in the beginning free's the memory area
+containing the vm_special_mapping data, but exit_mmap() uses this
+address later via vma->vm_private_data (which was set in
+_install_special_mapping().
 
-This was noticed through code inspection, although it should be noticeable
-at runtime (at least with some workloads).
+Fix this by moving uprobe_clear_state() to uprobes.c and use it as
+close() callback.
 
-Link: https://lkml.kernel.org/r/20240904205419.821776-1-yosryahmed@google.com
-Fixes: df1acc856923 ("mm/page_alloc: avoid conflating IRQs disabled with zone->lock")
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[usama.anjum@collabora.com: remove unneeded condition]
+  Link: https://lkml.kernel.org/r/20240906101825.177490-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240903073629.2442754-1-svens@linux.ibm.com
+Fixes: 223febc6e557 ("mm: add optional close() to struct vm_special_mapping")
+Signed-off-by: Sven Schnelle <svens@linux.ibm.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/uprobes.h |    1 -
+ kernel/events/uprobes.c |   36 +++++++++++++++++-------------------
+ kernel/fork.c           |    1 -
+ 3 files changed, 17 insertions(+), 21 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios
-+++ a/mm/page_alloc.c
-@@ -1231,6 +1231,8 @@ static void free_one_page(struct zone *z
- 	spin_lock_irqsave(&zone->lock, flags);
- 	split_large_buddy(zone, page, pfn, order, fpi_flags);
- 	spin_unlock_irqrestore(&zone->lock, flags);
-+
-+	__count_vm_events(PGFREE, 1 << order);
+--- a/include/linux/uprobes.h~uprobes-use-vm_special_mapping-close-functionality
++++ a/include/linux/uprobes.h
+@@ -126,7 +126,6 @@ extern int uprobe_pre_sstep_notifier(str
+ extern void uprobe_notify_resume(struct pt_regs *regs);
+ extern bool uprobe_deny_signal(void);
+ extern bool arch_uprobe_skip_sstep(struct arch_uprobe *aup, struct pt_regs *regs);
+-extern void uprobe_clear_state(struct mm_struct *mm);
+ extern int  arch_uprobe_analyze_insn(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long addr);
+ extern int  arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+ extern int  arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+--- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/events/uprobes.c
+@@ -1482,6 +1482,22 @@ void * __weak arch_uprobe_trampoline(uns
+ 	return &insn;
  }
  
- static void __free_pages_ok(struct page *page, unsigned int order,
-@@ -1239,12 +1241,8 @@ static void __free_pages_ok(struct page
- 	unsigned long pfn = page_to_pfn(page);
- 	struct zone *zone = page_zone(page);
++/*
++ * uprobe_clear_state - Free the area allocated for slots.
++ */
++static void uprobe_clear_state(const struct vm_special_mapping *sm, struct vm_area_struct *vma)
++{
++	struct xol_area *area = container_of(vma->vm_private_data, struct xol_area, xol_mapping);
++
++	mutex_lock(&delayed_uprobe_lock);
++	delayed_uprobe_remove(NULL, vma->vm_mm);
++	mutex_unlock(&delayed_uprobe_lock);
++
++	put_page(area->pages[0]);
++	kfree(area->bitmap);
++	kfree(area);
++}
++
+ static struct xol_area *__create_xol_area(unsigned long vaddr)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -1500,6 +1516,7 @@ static struct xol_area *__create_xol_are
  
--	if (!free_pages_prepare(page, order))
+ 	area->xol_mapping.name = "[uprobes]";
+ 	area->xol_mapping.fault = NULL;
++	area->xol_mapping.close = uprobe_clear_state;
+ 	area->xol_mapping.pages = area->pages;
+ 	area->pages[0] = alloc_page(GFP_HIGHUSER);
+ 	if (!area->pages[0])
+@@ -1545,25 +1562,6 @@ static struct xol_area *get_xol_area(voi
+ 	return area;
+ }
+ 
+-/*
+- * uprobe_clear_state - Free the area allocated for slots.
+- */
+-void uprobe_clear_state(struct mm_struct *mm)
+-{
+-	struct xol_area *area = mm->uprobes_state.xol_area;
+-
+-	mutex_lock(&delayed_uprobe_lock);
+-	delayed_uprobe_remove(NULL, mm);
+-	mutex_unlock(&delayed_uprobe_lock);
+-
+-	if (!area)
 -		return;
 -
--	free_one_page(zone, page, pfn, order, fpi_flags);
+-	put_page(area->pages[0]);
+-	kfree(area->bitmap);
+-	kfree(area);
+-}
 -
--	__count_vm_events(PGFREE, 1 << order);
-+	if (free_pages_prepare(page, order))
-+		free_one_page(zone, page, pfn, order, fpi_flags);
- }
+ void uprobe_start_dup_mmap(void)
+ {
+ 	percpu_down_read(&dup_mmap_sem);
+--- a/kernel/fork.c~uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/fork.c
+@@ -1338,7 +1338,6 @@ static inline void __mmput(struct mm_str
+ {
+ 	VM_BUG_ON(atomic_read(&mm->mm_users));
  
- void __meminit __free_pages_core(struct page *page, unsigned int order,
+-	uprobe_clear_state(mm);
+ 	exit_aio(mm);
+ 	ksm_exit(mm);
+ 	khugepaged_exit(mm); /* must run before exit_mmap */
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from svens@linux.ibm.com are
 
-mm-z3fold-deprecate-config_z3fold.patch
 
