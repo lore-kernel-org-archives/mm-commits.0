@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA61F130495
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:35:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B136F130495
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:35:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725924927; cv=none; b=J8rJgiS+735dZQN71YF9dGrdQgALoA8x0+PTjqQEM3SPdfzsjtVfQ3r7hf4jzBcKV3QOLeQBCN4hCX/VxYXMLu0WhIlv5WeboGsS/1Tk+HpFgl5Mp5/gNtMnYM4db7vNLh5GzXVFFX8pQZMQlDgu0YhrRrVUi/J2Y8B4rp6IOvg=
+	t=1725924950; cv=none; b=rqdTyo03EdCZoS4asDHQ18g78hunFgwBVHmjBsOqTaE/TR3XkaqxMHFCpuz3IqTdvJyg2Ms9TX6Zlmq7uQqOB1eDMjHL0jeN1HL11XMZllHbq54rWsbX15q4ob6aKjOJOlKvl/heWGKEH8HXUJEB1px6edEdu8xTUT5FjEfci4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725924927; c=relaxed/simple;
-	bh=p9V+y1u3DeDcabA69z6NWDZKGs/2wxP63QlWY6/hzGQ=;
-	h=Date:To:From:Subject:Message-Id; b=R9a0JLmTuQGJFSFM1Wzoia1Olix7eIm11dB5Cgf5SihusmBFBbuA/xrMiT4BFLMuZ4STwX6gw9ueBvIQHaNgcBNWJ11I2Uj76oUEoCbtWbLGdJ20voziVkUGowxZcvMZTpWeVf+GdlFfu4sG3osDdOA+W/8eh7KcaVWQ32HBsXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jO2Jhoox; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725924950; c=relaxed/simple;
+	bh=gOzC3CGY6NEQ3GX/26J/9cbE6VJjfHTqr+WeT7Zbn50=;
+	h=Date:To:From:Subject:Message-Id; b=BQvIlc8LHft8w6Ep4JrZTQpA/I+yrAAGG10rI1D6GqXEzAYeXDbGYsqm924aIaKw/YO3O9Ry2pR7F1a2rpc2crqqPqzNavIk7ufBZdkGhbCVjIcVAOjPH9rAgyhJUCiceTjKNlc6QB5yq5H+WEzP7r45onxzBwm4XOTSwOshd04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nZyGbitI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jO2Jhoox"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACC2AC4CEC5;
-	Mon,  9 Sep 2024 23:35:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nZyGbitI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0A3C4CEC5;
+	Mon,  9 Sep 2024 23:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725924927;
-	bh=p9V+y1u3DeDcabA69z6NWDZKGs/2wxP63QlWY6/hzGQ=;
+	s=korg; t=1725924950;
+	bh=gOzC3CGY6NEQ3GX/26J/9cbE6VJjfHTqr+WeT7Zbn50=;
 	h=Date:To:From:Subject:From;
-	b=jO2JhooxmBESJ8JvWcJ2BEjN8XUxTRiETTHppJodYG0izLQcgRiDZPcHULzO3MDdg
-	 /YO0tiJOMeorUdHDegzZ3r0r4ezH/ltjf4Y6iWsIR1G2KTqZOmpbmEet7PfCjjlPRU
-	 hRyg1j4SUuc1921kxVNW8wvNNH4qGZPQw+AJqMbE=
-Date: Mon, 09 Sep 2024 16:35:27 -0700
-To: mm-commits@vger.kernel.org,riel@surriel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=nZyGbitII8DGlr6jh0mr0/1M040+uhkfHEVZqvhGjvTrodE0fyg2h2ULOzJgwBBze
+	 03PBeAmlDsYSuihUXFITT8HHycMK7MFa05wb+v7Ml4jWl1hMBGvqPIplMf+8qqNXJ/
+	 O2/qFw01ky7A+8oB4lcZyXZfwhiPwzOxcn3JlV/Y=
+Date: Mon, 09 Sep 2024 16:35:49 -0700
+To: mm-commits@vger.kernel.org,svens@linux.ibm.com,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20240909233527.ACC2AC4CEC5@smtp.kernel.org>
+Subject: [folded-merged] uprobes-use-vm_special_mapping-close-functionality-fix.patch removed from -mm tree
+Message-Id: <20240909233550.0B0A3C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
+     Subject: uprobes: remove unneeded condition
 has been removed from the -mm tree.  Its filename was
-     mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
+     uprobes-use-vm_special_mapping-close-functionality-fix.patch
 
-This patch was dropped because it was folded into mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
+This patch was dropped because it was folded into uprobes-use-vm_special_mapping-close-functionality.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
-Date: Tue Sep  3 01:17:51 PM PDT 2024
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: uprobes: remove unneeded condition
+Date: Fri, 6 Sep 2024 15:18:25 +0500
 
-ERROR: code indent should use tabs where possible
-#215: FILE: mm/shmem.c:1676:
-+^I^I       ^I^I^I^Ishmem_huge_force, vma, vm_flags);$
+The area cannot be NULL as we are getting it through container_of(). 
+Hence there is no need to check its validity.  Remove the if condition and
+return statement.
 
-WARNING: please, no space before tabs
-#215: FILE: mm/shmem.c:1676:
-+^I^I       ^I^I^I^Ishmem_huge_force, vma, vm_flags);$
-
-ERROR: code indent should use tabs where possible
-#254: FILE: mm/shmem.c:2439:
-+^I       ^Istruct folio **foliop, enum sgp_type sgp)$
-
-WARNING: please, no space before tabs
-#254: FILE: mm/shmem.c:2439:
-+^I       ^Istruct folio **foliop, enum sgp_type sgp)$
-
-total: 2 errors, 2 warnings, 263 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/20240906101825.177490-1-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/events/uprobes.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/shmem.c~mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes
-+++ a/mm/shmem.c
-@@ -1673,7 +1673,7 @@ unsigned long shmem_allowable_huge_order
- 		return 0;
+--- a/kernel/events/uprobes.c~uprobes-use-vm_special_mapping-close-functionality-fix
++++ a/kernel/events/uprobes.c
+@@ -1493,9 +1493,6 @@ static void uprobe_clear_state(const str
+ 	delayed_uprobe_remove(NULL, vma->vm_mm);
+ 	mutex_unlock(&delayed_uprobe_lock);
  
- 	global_huge = shmem_huge_global_enabled(inode, index, write_end,
--		       				shmem_huge_force, vma, vm_flags);
-+					shmem_huge_force, vma, vm_flags);
- 	if (!vma || !vma_is_anon_shmem(vma)) {
- 		/*
- 		 * For tmpfs, we now only support PMD sized THP if huge page
-@@ -2436,7 +2436,7 @@ unlock:
-  * Return: 0 if successful, else a negative error code.
-  */
- int shmem_get_folio(struct inode *inode, pgoff_t index, loff_t write_end,
--	       	struct folio **foliop, enum sgp_type sgp)
-+		    struct folio **foliop, enum sgp_type sgp)
- {
- 	return shmem_get_folio_gfp(inode, index, write_end, foliop, sgp,
- 			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+-	if (!area)
+-		return;
+-
+ 	put_page(area->pages[0]);
+ 	kfree(area->bitmap);
+ 	kfree(area);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mmtmpfs-consider-end-of-file-write-in-shmem_is_huge.patch
-mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
-mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch
+uprobes-use-vm_special_mapping-close-functionality.patch
 
