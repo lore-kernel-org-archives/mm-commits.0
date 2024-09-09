@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1C03130495
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:32:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3507E130495
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:32:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725924728; cv=none; b=mLePJgqDp7JcfW0/nzm30UsOQuuwnhM2oT3shq3jZT0xaRX8Pb+lrrcGJPhYaVyLiBHDZIVgHteBENvSGBZhjUWHgkQOTXVzldHRXqotT4fcrTnPz/5sAfV07WbiKwrzfZ2QxV2KBU8tMw8vNFJzbdhRuxb6klt8WPRfHhKfgWQ=
+	t=1725924757; cv=none; b=B31Ld6hWTVTHlKRr5zivsZFq+q3xiFZRbtnrmYHox0rFg4xXZyHJYO1QWL2eVIbK8gmTA2uneOY0NBBTkElydpRfaXeEe3DQzd2jDABKHY+5L41nW2M0SnHihSufU0GhKoBt7iyAB7uDsvdAmAT7LDlXd/id4P4bpXIkoTWtR/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725924728; c=relaxed/simple;
-	bh=N/0YXrpdtq7TCjjGjC0vP8WpiHOc/5ANb09CqLVUUpY=;
-	h=Date:To:From:Subject:Message-Id; b=HeAagBuVXyLtV2T9KZUDvijPVaVR6gRMRTVgeTMcoIQk+em+e7YQnDer67LQll5nWgrVRFvXdyzSpnt89pLB3/lgU26a6rXf65MqwWGcjwTRZlrUQyjqkhj3nslAVeRI6xKqWEd9qKG+BFIsE/p2oP6nu1tfUF3fVMhqFTBfaRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wquQMUVx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725924757; c=relaxed/simple;
+	bh=/oZYiTwv/8u57Fop3/CiZZYgyq5KogOu174k05E3KHw=;
+	h=Date:To:From:Subject:Message-Id; b=PtiGSVcdM1VSZ20YxK8L7/BsjlxN8yjLYbVcVALqQSJSXjkICatfl31ylYxjFzc7PQn5dMqZ9rGSQMWqqvE628xPTxxc8wqszqI7TXOF9yxbc0sHnF7ia1EAw1MAaF9f6Zj8DHJ+AkliDncNgGu2n+RF5bCiewVRJ90GBQuBbU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wdo0bLmc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wquQMUVx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33233C4CEC5;
-	Mon,  9 Sep 2024 23:32:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wdo0bLmc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23E0C4CEC5;
+	Mon,  9 Sep 2024 23:32:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725924728;
-	bh=N/0YXrpdtq7TCjjGjC0vP8WpiHOc/5ANb09CqLVUUpY=;
+	s=korg; t=1725924756;
+	bh=/oZYiTwv/8u57Fop3/CiZZYgyq5KogOu174k05E3KHw=;
 	h=Date:To:From:Subject:From;
-	b=wquQMUVxxVu4LInH04KUEntxxz5bl21AlQZJxKFRB0dqBnBqgWbj/aN1rkGS3TKan
-	 4NIOytXPs62gY4NYdf2JFe0MhJr+txt3cNdjge9QzmOAs+x1DBz/GXkAGmwPCV8x2o
-	 zNMYUDyS2BpYMFAEHQvST1qCGoMB4EvBaZtJT9P8=
-Date: Mon, 09 Sep 2024 16:32:07 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanshuai@oppo.com,v-songbaohua@oppo.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kaleshsingh@google.com,ioworker0@gmail.com,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=wdo0bLmcUccdZi/Sx7eof3SuSkdSQZTupz39ytUt0pUjEbzcRa5whjCvmhSdi6QEY
+	 DKJAkl6Ah5UBwR1mBN8K3tMq5rnEi/PFx1Mckh+qCvcnnmE+Ut6zk7/JmqyKbl5jnU
+	 a+zere7dhPqWtnFM8WoRfmM9KVgymGwoQrfIQWWA=
+Date: Mon, 09 Sep 2024 16:32:36 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vishal.moola@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-count-the-number-of-anonymous-thps-per-size-fix.patch removed from -mm tree
-Message-Id: <20240909233208.33233C4CEC5@smtp.kernel.org>
+Subject: [folded-merged] mm-remove-isolate_lru_page-fix.patch removed from -mm tree
+Message-Id: <20240909233236.D23E0C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-count-the-number-of-anonymous-thps-per-size-fix
+     Subject: mm: remove isolate_lru_page() fix
 has been removed from the -mm tree.  Its filename was
-     mm-count-the-number-of-anonymous-thps-per-size-fix.patch
+     mm-remove-isolate_lru_page-fix.patch
 
-This patch was dropped because it was folded into mm-count-the-number-of-anonymous-thps-per-size.patch
+This patch was dropped because it was folded into mm-remove-isolate_lru_page.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-count-the-number-of-anonymous-thps-per-size-fix
-Date: Tue Aug 27 06:00:44 PM PDT 2024
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: remove isolate_lru_page() fix
+Date: Mon, 26 Aug 2024 22:41:14 +0800
 
-documentation fixups, per David
+convert page to folio in comment and document, per Matthew
 
-Link: https://lkml.kernel.org/r/3e8add35-e26b-443b-8a04-1078f4bc78f6@redhat.com
+Link: https://lkml.kernel.org/r/20240826144114.1928071-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuai Yuan <yuanshuai@oppo.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/mm/page_migration.rst  |   18 +++++++++---------
+ Documentation/mm/unevictable-lru.rst |    2 +-
+ mm/khugepaged.c                      |    2 +-
+ mm/migrate_device.c                  |    4 ++--
+ mm/swap.c                            |    4 ++--
+ 5 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-count-the-number-of-anonymous-thps-per-size-fix
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -552,9 +552,9 @@ split_deferred
-         be split under memory pressure, if splitting is possible.
+--- a/Documentation/mm/page_migration.rst~mm-remove-isolate_lru_page-fix
++++ a/Documentation/mm/page_migration.rst
+@@ -63,15 +63,15 @@ and then a low level description of how
+ In kernel use of migrate_pages()
+ ================================
  
- nr_anon
--       the number of transparent anon huge pages we have in the whole system.
--       These huge pages could be entirely mapped or have partially
--       unmapped/unused subpages.
-+       the number of anonymous THP we have in the whole system. These THPs
-+       might be currently entirely mapped or have partially unmapped/unused
-+       subpages.
+-1. Remove pages from the LRU.
++1. Remove folios from the LRU.
  
- As the system ages, allocating huge pages may be expensive as the
- system uses memory compaction to copy data around memory to free a
+-   Lists of pages to be migrated are generated by scanning over
+-   pages and moving them into lists. This is done by
++   Lists of folios to be migrated are generated by scanning over
++   folios and moving them into lists. This is done by
+    calling folio_isolate_lru().
+-   Calling folio_isolate_lru() increases the references to the page
+-   so that it cannot vanish while the page migration occurs.
++   Calling folio_isolate_lru() increases the references to the folio
++   so that it cannot vanish while the folio migration occurs.
+    It also prevents the swapper or other scans from encountering
+-   the page.
++   the folio.
+ 
+ 2. We need to have a function of type new_folio_t that can be
+    passed to migrate_pages(). This function should figure out
+@@ -84,10 +84,10 @@ In kernel use of migrate_pages()
+ How migrate_pages() works
+ =========================
+ 
+-migrate_pages() does several passes over its list of pages. A page is moved
+-if all references to a page are removable at the time. The page has
++migrate_pages() does several passes over its list of folios. A folio is moved
++if all references to a folio are removable at the time. The folio has
+ already been removed from the LRU via folio_isolate_lru() and the refcount
+-is increased so that the page cannot be freed while page migration occurs.
++is increased so that the folio cannot be freed while folio migration occurs.
+ 
+ Steps:
+ 
+--- a/Documentation/mm/unevictable-lru.rst~mm-remove-isolate_lru_page-fix
++++ a/Documentation/mm/unevictable-lru.rst
+@@ -80,7 +80,7 @@ on an additional LRU list for a few reas
+  (2) We want to be able to migrate unevictable folios between nodes for memory
+      defragmentation, workload management and memory hotplug.  The Linux kernel
+      can only migrate folios that it can successfully isolate from the LRU
+-     lists (or "Movable" pages: outside of consideration here).  If we were to
++     lists (or "Movable" folios: outside of consideration here).  If we were to
+      maintain folios elsewhere than on an LRU-like list, where they can be
+      detected by folio_isolate_lru(), we would prevent their migration.
+ 
+--- a/mm/khugepaged.c~mm-remove-isolate_lru_page-fix
++++ a/mm/khugepaged.c
+@@ -628,7 +628,7 @@ static int __collapse_huge_page_isolate(
+ 
+ 		/*
+ 		 * We can do it before folio_isolate_lru because the
+-		 * page can't be freed from under us. NOTE: PG_lock
++		 * folio can't be freed from under us. NOTE: PG_lock
+ 		 * is needed to serialize against split_huge_page
+ 		 * when invoked from the VM.
+ 		 */
+--- a/mm/migrate_device.c~mm-remove-isolate_lru_page-fix
++++ a/mm/migrate_device.c
+@@ -328,8 +328,8 @@ static bool migrate_vma_check_page(struc
+ 
+ 	/*
+ 	 * One extra ref because caller holds an extra reference, either from
+-	 * folio_isolate_lru() for a regular page, or migrate_vma_collect() for
+-	 * a device page.
++	 * folio_isolate_lru() for a regular folio, or migrate_vma_collect() for
++	 * a device folio.
+ 	 */
+ 	int extra = 1 + (page == fault_page);
+ 
+--- a/mm/swap.c~mm-remove-isolate_lru_page-fix
++++ a/mm/swap.c
+@@ -906,8 +906,8 @@ atomic_t lru_disable_count = ATOMIC_INIT
+ 
+ /*
+  * lru_cache_disable() needs to be called before we start compiling
+- * a list of pages to be migrated using folio_isolate_lru().
+- * It drains pages on LRU cache and then disable on all cpus until
++ * a list of folios to be migrated using folio_isolate_lru().
++ * It drains folios on LRU cache and then disable on all cpus until
+  * lru_cache_enable is called.
+  *
+  * Must be paired with a call to lru_cache_enable().
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-count-the-number-of-anonymous-thps-per-size.patch
-mm-shmem-extend-shmem_unused_huge_shrink-to-all-sizes-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix.patch
-mm-hugetlb-sort-out-global-lock-annotations-fix-fix.patch
-mmtmpfs-consider-end-of-file-write-in-shmem_is_huge-checkpatch-fixes.patch
-mm-page_alloc-fix-build-with-config_unaccepted_memory=n.patch
-mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch
+mm-migrate_device-convert-to-migrate_device_coherent_folio.patch
+mm-migrate_device-use-a-folio-in-migrate_device_range.patch
+mm-migrate_device-use-more-folio-in-migrate_device_unmap.patch
+mm-migrate_device-use-more-folio-in-migrate_device_finalize.patch
+mm-remove-isolate_lru_page.patch
+mm-remove-putback_lru_page.patch
+mm-migrate-remove-unused-includes.patch
+mm-support-poison-recovery-from-do_cow_fault.patch
+mm-support-poison-recovery-from-copy_present_page.patch
 
