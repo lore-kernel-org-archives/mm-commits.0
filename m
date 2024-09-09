@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5326118E749
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2716018E05D
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:40:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925248; cv=none; b=a43grGx2FfcK4vrBhXL2s8AWr0PurIXSqLhLJsXIHzSS/hIRZ9YM/MTBTmDcrA8vnoXjxcKZjyH4sPASLMVMYYGgHmbO7FPhOegWo8FO7d8p4ehs+Y6B50eGC/+5V4wVgAau/CIykoSN8UbPrIkxFSDbB54bHtjFdWmKKWFAh6Q=
+	t=1725925250; cv=none; b=dVKCibpTtE2HcaH8fYfAwcbLp6Jja3riPlxk4UKhX5fYOCoAG7KKKzCUZi7bqiBM5BnE3xdydOf42XTe/QaEwRV8PrGhcmxLrLXcBktxdrhuMgM0ZjI0xyxOIYKtccmvFbMCT+CbTAPPOAuHD/01EfwjIBVIdqDsQEmF7j7oFKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925248; c=relaxed/simple;
-	bh=gb8JcPZmNJHxHmzOn7WzfHdiqf1T+oCiIsCvGtCs6uM=;
-	h=Date:To:From:Subject:Message-Id; b=uhrPiphz55awuFGvxnCWDkF95XRe6awjbIfgry7b/1x84AJwotYd+6LBUeEdUVQ23Z/VN9Q7wgTR68/MTIlIVzjdMa13I6wveeAY1uC7GzURhZmKKWqTNddE0E7V5tx2tnYQKWjanTlz3DrVemmrk1TrAn6zgzLfwvJNzjM3WHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FtRd9gWF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925250; c=relaxed/simple;
+	bh=2ceAZw79pGyBFtoDZMBxmuzVch/vXbJg2QyVdkZrjyY=;
+	h=Date:To:From:Subject:Message-Id; b=FhjORNUQx8QSg/rM40fxZh4vHFmTxnJr3R0PvQUnh05YYQmAQ/+j5Z0Amm9FbM3eCvvGPQ7Tpk/gHpK2UE3IznzwDoOFf35luaoxfImN2eRHS3ltvuuUEDSWhhvP63rovzbBtbBGNxjFHYNYPlp+HJ5XfY12Ekwal4reuN/VdlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQqaAjmd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FtRd9gWF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29403C4CEC5;
-	Mon,  9 Sep 2024 23:40:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQqaAjmd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5E95C4CEC5;
+	Mon,  9 Sep 2024 23:40:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925248;
-	bh=gb8JcPZmNJHxHmzOn7WzfHdiqf1T+oCiIsCvGtCs6uM=;
+	s=korg; t=1725925250;
+	bh=2ceAZw79pGyBFtoDZMBxmuzVch/vXbJg2QyVdkZrjyY=;
 	h=Date:To:From:Subject:From;
-	b=FtRd9gWFTPdgOzxBTg4sRodG44E+B2ds67WIr3rsZF+ql+4JXLL9Arf5X1fOchYuc
-	 6aMb5Qz3Hk6N6wujVPGJK40bPcKSS/Co5R1F5kcnDt32PjmFO6tQIY/Ax4ztFUNn4x
-	 N1orCH6aHwlikFSWkveSy0nPnJz+1Gz07O9sVkUs=
-Date: Mon, 09 Sep 2024 16:40:47 -0700
+	b=ZQqaAjmdOeP7/rGUXCqv+bSwVi3C2HXkh3E1+Jzhc5zIcTAIwAjV9S7JVjCvLUAS6
+	 AlXnkWXM6C1tedlH+V1jvJJiUUyEVpbHjg6ro7d/WWBaI4OCgqtEO37mgS1h8ZDf3q
+	 T7pWfSh/9JcylVWdbQyRQwjvfvbX99/ydWarSaXA=
+Date: Mon, 09 Sep 2024 16:40:49 -0700
 To: mm-commits@vger.kernel.org,zhais@google.com,yuzhao@google.com,willy@infradead.org,szhai2@cs.rochester.edu,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,npache@redhat.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,alexlzhu@fb.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-split-underused-thps.patch removed from -mm tree
-Message-Id: <20240909234048.29403C4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-sysfs-entry-to-disable-splitting-underused-thps.patch removed from -mm tree
+Message-Id: <20240909234049.E5E95C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,217 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: split underused THPs
+     Subject: mm: add sysfs entry to disable splitting underused THPs
 has been removed from the -mm tree.  Its filename was
-     mm-split-underused-thps.patch
+     mm-add-sysfs-entry-to-disable-splitting-underused-thps.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm: split underused THPs
-Date: Fri, 30 Aug 2024 11:03:39 +0100
+Subject: mm: add sysfs entry to disable splitting underused THPs
+Date: Fri, 30 Aug 2024 11:03:40 +0100
 
-This is an attempt to mitigate the issue of running out of memory when THP
-is always enabled.  During runtime whenever a THP is being faulted in
-(__do_huge_pmd_anonymous_page) or collapsed by khugepaged
-(collapse_huge_page), the THP is added to _deferred_list.  Whenever memory
-reclaim happens in linux, the kernel runs the deferred_split shrinker
-which goes through the _deferred_list.
+If disabled, THPs faulted in or collapsed will not be added to
+_deferred_list, and therefore won't be considered for splitting under
+memory pressure if underused.
 
-If the folio was partially mapped, the shrinker attempts to split it.  If
-the folio is not partially mapped, the shrinker checks if the THP was
-underused, i.e.  how many of the base 4K pages of the entire THP were
-zero-filled.  If this number goes above a certain threshold (decided by
-/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none), the
-shrinker will attempt to split that THP.  Then at remap time, the pages
-that were zero-filled are mapped to the shared zeropage, hence saving
-memory.
-
-Link: https://lkml.kernel.org/r/20240830100438.3623486-6-usamaarif642@gmail.com
+Link: https://lkml.kernel.org/r/20240830100438.3623486-7-usamaarif642@gmail.com
 Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Suggested-by: Rik van Riel <riel@surriel.com>
-Co-authored-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexander Zhu <alexlzhu@fb.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Shuang Zhai <zhais@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Cc: Shuang Zhai <szhai2@cs.rochester.edu>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 +
- include/linux/khugepaged.h                 |    1 
- include/linux/vm_event_item.h              |    1 
- mm/huge_memory.c                           |   60 ++++++++++++++++++-
- mm/khugepaged.c                            |    3 
- mm/vmstat.c                                |    1 
- 6 files changed, 69 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   10 +++++++
+ mm/huge_memory.c                           |   26 +++++++++++++++++++
+ 2 files changed, 36 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-split-underused-thps
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-sysfs-entry-to-disable-splitting-underused-thps
 +++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -471,6 +471,12 @@ thp_deferred_split_page
- 	splitting it would free up some memory. Pages on split queue are
- 	going to be split under memory pressure.
+@@ -202,6 +202,16 @@ PMD-mappable transparent hugepage::
  
-+thp_underused_split_page
-+	is incremented when a huge page on the split queue was split
-+	because it was underused. A THP is underused if the number of
-+	zero pages in the THP is above a certain threshold
-+	(/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none).
+ 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+ 
++All THPs at fault and collapse time will be added to _deferred_list,
++and will therefore be split under memory presure if they are considered
++"underused". A THP is underused if the number of zero-filled pages in
++the THP is above max_ptes_none (see below). It is possible to disable
++this behaviour by writing 0 to shrink_underused, and enable it by writing
++1 to it::
 +
- thp_split_pmd
- 	is incremented every time a PMD split into table of PTEs.
- 	This can happen, for instance, when application calls mprotect() or
---- a/include/linux/khugepaged.h~mm-split-underused-thps
-+++ a/include/linux/khugepaged.h
-@@ -4,6 +4,7 @@
- 
- #include <linux/sched/coredump.h> /* MMF_VM_HUGEPAGE */
- 
-+extern unsigned int khugepaged_max_ptes_none __read_mostly;
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- extern struct attribute_group khugepaged_attr_group;
- 
---- a/include/linux/vm_event_item.h~mm-split-underused-thps
-+++ a/include/linux/vm_event_item.h
-@@ -105,6 +105,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_SPLIT_PAGE,
- 		THP_SPLIT_PAGE_FAILED,
- 		THP_DEFERRED_SPLIT_PAGE,
-+		THP_UNDERUSED_SPLIT_PAGE,
- 		THP_SPLIT_PMD,
- 		THP_SCAN_EXCEED_NONE_PTE,
- 		THP_SCAN_EXCEED_SWAP_PTE,
---- a/mm/huge_memory.c~mm-split-underused-thps
++	echo 0 > /sys/kernel/mm/transparent_hugepage/shrink_underused
++	echo 1 > /sys/kernel/mm/transparent_hugepage/shrink_underused
++
+ khugepaged will be automatically started when PMD-sized THP is enabled
+ (either of the per-size anon control or the top-level control are set
+ to "always" or "madvise"), and it'll be automatically shutdown when
+--- a/mm/huge_memory.c~mm-add-sysfs-entry-to-disable-splitting-underused-thps
 +++ a/mm/huge_memory.c
-@@ -1187,6 +1187,7 @@ static vm_fault_t __do_huge_pmd_anonymou
- 		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 		add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
- 		mm_inc_nr_ptes(vma->vm_mm);
-+		deferred_split_folio(folio, false);
- 		spin_unlock(vmf->ptl);
- 		count_vm_event(THP_FAULT_ALLOC);
- 		count_mthp_stat(HPAGE_PMD_ORDER, MTHP_STAT_ANON_FAULT_ALLOC);
-@@ -3608,6 +3609,39 @@ static unsigned long deferred_split_coun
- 	return READ_ONCE(ds_queue->split_queue_len);
- }
+@@ -74,6 +74,7 @@ static unsigned long deferred_split_coun
+ 					  struct shrink_control *sc);
+ static unsigned long deferred_split_scan(struct shrinker *shrink,
+ 					 struct shrink_control *sc);
++static bool split_underused_thp = true;
  
-+static bool thp_underused(struct folio *folio)
+ static atomic_t huge_zero_refcount;
+ struct folio *huge_zero_folio __read_mostly;
+@@ -440,6 +441,27 @@ static ssize_t hpage_pmd_size_show(struc
+ static struct kobj_attribute hpage_pmd_size_attr =
+ 	__ATTR_RO(hpage_pmd_size);
+ 
++static ssize_t split_underused_thp_show(struct kobject *kobj,
++			    struct kobj_attribute *attr, char *buf)
 +{
-+	int num_zero_pages = 0, num_filled_pages = 0;
-+	void *kaddr;
-+	int i;
-+
-+	if (khugepaged_max_ptes_none == HPAGE_PMD_NR - 1)
-+		return false;
-+
-+	for (i = 0; i < folio_nr_pages(folio); i++) {
-+		kaddr = kmap_local_folio(folio, i * PAGE_SIZE);
-+		if (!memchr_inv(kaddr, 0, PAGE_SIZE)) {
-+			num_zero_pages++;
-+			if (num_zero_pages > khugepaged_max_ptes_none) {
-+				kunmap_local(kaddr);
-+				return true;
-+			}
-+		} else {
-+			/*
-+			 * Another path for early exit once the number
-+			 * of non-zero filled pages exceeds threshold.
-+			 */
-+			num_filled_pages++;
-+			if (num_filled_pages >= HPAGE_PMD_NR - khugepaged_max_ptes_none) {
-+				kunmap_local(kaddr);
-+				return false;
-+			}
-+		}
-+		kunmap_local(kaddr);
-+	}
-+	return false;
++	return sysfs_emit(buf, "%d\n", split_underused_thp);
 +}
 +
- static unsigned long deferred_split_scan(struct shrinker *shrink,
- 		struct shrink_control *sc)
- {
-@@ -3645,13 +3679,35 @@ static unsigned long deferred_split_scan
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- 
- 	list_for_each_entry_safe(folio, next, &list, _deferred_list) {
-+		bool did_split = false;
-+		bool underused = false;
++static ssize_t split_underused_thp_store(struct kobject *kobj,
++			     struct kobj_attribute *attr,
++			     const char *buf, size_t count)
++{
++	int err = kstrtobool(buf, &split_underused_thp);
 +
-+		if (!folio_test_partially_mapped(folio)) {
-+			underused = thp_underused(folio);
-+			if (!underused)
-+				goto next;
-+		}
- 		if (!folio_trylock(folio))
- 			goto next;
--		/* split_huge_page() removes page from list on success */
--		if (!split_folio(folio))
-+		if (!split_folio(folio)) {
-+			did_split = true;
-+			if (underused)
-+				count_vm_event(THP_UNDERUSED_SPLIT_PAGE);
- 			split++;
-+		}
- 		folio_unlock(folio);
- next:
-+		/*
-+		 * split_folio() removes folio from list on success.
-+		 * Only add back to the queue if folio is partially mapped.
-+		 * If thp_underused returns false, or if split_folio fails
-+		 * in the case it was underused, then consider it used and
-+		 * don't add it back to split_queue.
-+		 */
-+		if (!did_split && !folio_test_partially_mapped(folio)) {
-+			list_del_init(&folio->_deferred_list);
-+			ds_queue->split_queue_len--;
-+		}
- 		folio_put(folio);
- 	}
++	if (err < 0)
++		return err;
++
++	return count;
++}
++
++static struct kobj_attribute split_underused_thp_attr = __ATTR(
++	shrink_underused, 0644, split_underused_thp_show, split_underused_thp_store);
++
+ static struct attribute *hugepage_attr[] = {
+ 	&enabled_attr.attr,
+ 	&defrag_attr.attr,
+@@ -448,6 +470,7 @@ static struct attribute *hugepage_attr[]
+ #ifdef CONFIG_SHMEM
+ 	&shmem_enabled_attr.attr,
+ #endif
++	&split_underused_thp_attr.attr,
+ 	NULL,
+ };
  
---- a/mm/khugepaged.c~mm-split-underused-thps
-+++ a/mm/khugepaged.c
-@@ -85,7 +85,7 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
-  *
-  * Note that these are only respected if collapse was initiated by khugepaged.
-  */
--static unsigned int khugepaged_max_ptes_none __read_mostly;
-+unsigned int khugepaged_max_ptes_none __read_mostly;
- static unsigned int khugepaged_max_ptes_swap __read_mostly;
- static unsigned int khugepaged_max_ptes_shared __read_mostly;
+@@ -3557,6 +3580,9 @@ void deferred_split_folio(struct folio *
+ 	if (folio_order(folio) <= 1)
+ 		return;
  
-@@ -1237,6 +1237,7 @@ static int collapse_huge_page(struct mm_
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, address, pmd, _pmd);
- 	update_mmu_cache_pmd(vma, address, pmd);
-+	deferred_split_folio(folio, false);
- 	spin_unlock(pmd_ptl);
- 
- 	folio = NULL;
---- a/mm/vmstat.c~mm-split-underused-thps
-+++ a/mm/vmstat.c
-@@ -1385,6 +1385,7 @@ const char * const vmstat_text[] = {
- 	"thp_split_page",
- 	"thp_split_page_failed",
- 	"thp_deferred_split_page",
-+	"thp_underused_split_page",
- 	"thp_split_pmd",
- 	"thp_scan_exceed_none_pte",
- 	"thp_scan_exceed_swap_pte",
++	if (!partially_mapped && !split_underused_thp)
++		return;
++
+ 	/*
+ 	 * The try_to_unmap() in page reclaim path might reach here too,
+ 	 * this may cause a race condition to corrupt deferred split queue.
 _
 
 Patches currently in -mm which might be from usamaarif642@gmail.com are
