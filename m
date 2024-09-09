@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3632F18E377
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ABD818E377
+	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:41:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925300; cv=none; b=YflepHG9Nek9HcqP8C3bMv1VK6n4n/RaeNQWj4mNpyAb1eEo6+40HlGPJ7NL778azibF6d6fJxFe1OSfmfLafatvdxd1RmgIW9od5yHzXW361NYADO2EomGXVbXEIm6YVWfkz2bwdQV/RQpXIVGlTw4ga0nJ/oNFNZQcz//kP/M=
+	t=1725925301; cv=none; b=McCam5wVVH5JPZu6GNHWjC/lf1MHSrPU6bk0F74ECWiElS5iTm2VVF69oCN0I0ZRuXVER+WAOXLJk8CZ5qyFhRPVrR9kMkmM4a34zLWoAZMYTyh26FvGaA36TNEtj92/UCZG0pHGi+MrR4yAiWTur7MnxD6cfG3T5n20VNltLbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925300; c=relaxed/simple;
-	bh=isYVjHHdMIc5UoilUbizOUGepy5JiopTBtceVFGsGKQ=;
-	h=Date:To:From:Subject:Message-Id; b=gbMYorH5e1HSmad7KmqX0m8X2wTZWruUWyRPj0YQMCNwRk7SeVPls83bfd9OMlxGxgJFwN68wh6wyb4qr0p0goAVeREt0bp5zWd2tKMnVY8A5VwJ0NZMTkMpgJySfFchV7lrYF+Rr1cfZNCR3n0nLu8mHluT0/k3roVICYWP7yg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=om1BiZuK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725925301; c=relaxed/simple;
+	bh=iGdeEvJHlH3h6mlOcTo0Dw1SCF1dgtDBOdPIZTNBSHM=;
+	h=Date:To:From:Subject:Message-Id; b=ezbD3BWx7SPGNo9pxNZQVieIfblpn0LjNnvLdjHc5qFIrMSb0HCcwzhWZ66fHSEI6N6mdGRBnpjOSGStsEcXp8WUqRNIlScSTa187sDIhW5HPZ2GI3cqSXPa9mkuf8646VHJ3t6RlhIq5gr1f6FzbAhWXc7lkHF63VTWW+y+Q9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=crnX5VoJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="om1BiZuK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B012CC4CEC5;
-	Mon,  9 Sep 2024 23:41:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="crnX5VoJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D287EC4CEC5;
+	Mon,  9 Sep 2024 23:41:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925299;
-	bh=isYVjHHdMIc5UoilUbizOUGepy5JiopTBtceVFGsGKQ=;
+	s=korg; t=1725925300;
+	bh=iGdeEvJHlH3h6mlOcTo0Dw1SCF1dgtDBOdPIZTNBSHM=;
 	h=Date:To:From:Subject:From;
-	b=om1BiZuKQiY+e77D6mK+NBbO9UqrZJCPBrYIDLgKPYWyE/u+sbBskYsfJvVUr5Qcj
-	 uGASICjYFK5wBMNXW2trDrWT1GZzbV8XTK41Ym/EOQ4RtWnkurGV/rVEFCNeXnOC/D
-	 6HugigttXTH5HRJroP9KJLj2EM/vuopXZldpfY/I=
-Date: Mon, 09 Sep 2024 16:41:39 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,vgupta@kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,svens@linux.ibm.com,rick.p.edgecombe@intel.com,richard.henderson@linaro.org,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mattst88@gmail.com,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,Liam.Howlett@Oracle.com,kernel@xen0n.name,jcmvbkbc@gmail.com,James.Bottomley@HansenPartnership.com,ink@jurassic.park.msu.ru,hpa@zytor.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,andreas@gaisler.com,agordeev@linux.ibm.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=crnX5VoJ/3MPAzQwST0XgPIL6ynvCMRie8gkGCoFUwSJfkEmbI7xtCRYkqYOSh4dX
+	 BZ4JTYuj6Pc2XTcBwtQ9HME3OzCaRVzys8HAAvZgqRNxk22+RPIPqKkPSFzq5MdUdK
+	 DVaPAvgeSxTxITepsXT3BDEqAvr9wxsMpu+QrvrI=
+Date: Mon, 09 Sep 2024 16:41:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterz@infradead.org,mgorman@techsingularity.net,jackmanb@google.com,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-care-about-shadow-stack-guard-gap-when-getting-an-unmapped-area.patch removed from -mm tree
-Message-Id: <20240909234139.B012CC4CEC5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios.patch removed from -mm tree
+Message-Id: <20240909234140.D287EC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,122 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: care about shadow stack guard gap when getting an unmapped area
+     Subject: mm: page_alloc: fix missed updates of PGFREE in free_unref_{page/folios}
 has been removed from the -mm tree.  Its filename was
-     mm-care-about-shadow-stack-guard-gap-when-getting-an-unmapped-area.patch
+     mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: mm: care about shadow stack guard gap when getting an unmapped area
-Date: Wed, 04 Sep 2024 17:58:01 +0100
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: page_alloc: fix missed updates of PGFREE in free_unref_{page/folios}
+Date: Wed, 4 Sep 2024 20:54:19 +0000
 
-As covered in the commit log for c44357c2e76b ("x86/mm: care about shadow
-stack guard gap during placement") our current mmap() implementation does
-not take care to ensure that a new mapping isn't placed with existing
-mappings inside it's own guard gaps.  This is particularly important for
-shadow stacks since if two shadow stacks end up getting placed adjacent to
-each other then they can overflow into each other which weakens the
-protection offered by the feature.
+PGFREE is currently updated in two code paths:
 
-On x86 there is a custom arch_get_unmapped_area() which was updated by the
-above commit to cover this case by specifying a start_gap for allocations
-with VM_SHADOW_STACK.  Both arm64 and RISC-V have equivalent features and
-use the generic implementation of arch_get_unmapped_area() so let's make
-the equivalent change there so they also don't get shadow stack pages
-placed without guard pages.  x86 uses a single page guard, this is also
-sufficient for arm64 where we either do single word pops and pushes or
-unconstrained writes.
+- __free_pages_ok(): for pages freed to the buddy allocator.
+- free_unref_page_commit(): for pages freed to the pcplists.
 
-Architectures which do not have this feature will define VM_SHADOW_STACK
-to VM_NONE and hence be unaffected.
+Before commit df1acc856923 ("mm/page_alloc: avoid conflating IRQs disabled
+with zone->lock"), free_unref_page_commit() used to fallback to freeing
+isolated pages directly to the buddy allocator through free_one_page(). 
+This was done _after_ updating PGFREE, so the counter was correctly
+updated.
 
-Link: https://lkml.kernel.org/r/20240904-mm-generic-shadow-stack-guard-v2-3-a46b8b6dc0ed@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Suggested-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Naveen N Rao <naveen@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@kernel.org>
+However, that commit moved the fallback logic to its callers (now called
+free_unref_page() and free_unref_folios()), so PGFREE was no longer
+updated in this fallback case.
+
+Now that the code has developed, there are more cases in free_unref_page()
+and free_unref_folios() where we fallback to calling free_one_page() (e.g.
+!pcp_allowed_order(), pcp_spin_trylock() fails).  These cases also miss
+updating PGFREE.
+
+To make sure PGFREE is updated in all cases where pages are freed to the
+buddy allocator, move the update down the stack to free_one_page().
+
+This was noticed through code inspection, although it should be noticeable
+at runtime (at least with some workloads).
+
+Link: https://lkml.kernel.org/r/20240904205419.821776-1-yosryahmed@google.com
+Fixes: df1acc856923 ("mm/page_alloc: avoid conflating IRQs disabled with zone->lock")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/page_alloc.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/mmap.c~mm-care-about-shadow-stack-guard-gap-when-getting-an-unmapped-area
-+++ a/mm/mmap.c
-@@ -703,6 +703,18 @@ retry:
+--- a/mm/page_alloc.c~mm-page_alloc-fix-missed-updates-of-pgfree-in-free_unref_page-folios
++++ a/mm/page_alloc.c
+@@ -1231,6 +1231,8 @@ static void free_one_page(struct zone *z
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	split_large_buddy(zone, page, pfn, order, fpi_flags);
+ 	spin_unlock_irqrestore(&zone->lock, flags);
++
++	__count_vm_events(PGFREE, 1 << order);
  }
  
- /*
-+ * Determine if the allocation needs to ensure that there is no
-+ * existing mapping within it's guard gaps, for use as start_gap.
-+ */
-+static inline unsigned long stack_guard_placement(vm_flags_t vm_flags)
-+{
-+	if (vm_flags & VM_SHADOW_STACK)
-+		return PAGE_SIZE;
-+
-+	return 0;
-+}
-+
-+/*
-  * Search for an unmapped address range.
-  *
-  * We are looking for a range that:
-@@ -763,6 +775,7 @@ generic_get_unmapped_area(struct file *f
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = mmap_end;
-+	info.start_gap = stack_guard_placement(vm_flags);
- 	return vm_unmapped_area(&info);
+ static void __free_pages_ok(struct page *page, unsigned int order,
+@@ -1239,12 +1241,8 @@ static void __free_pages_ok(struct page
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct zone *zone = page_zone(page);
+ 
+-	if (!free_pages_prepare(page, order))
+-		return;
+-
+-	free_one_page(zone, page, pfn, order, fpi_flags);
+-
+-	__count_vm_events(PGFREE, 1 << order);
++	if (free_pages_prepare(page, order))
++		free_one_page(zone, page, pfn, order, fpi_flags);
  }
  
-@@ -812,6 +825,7 @@ generic_get_unmapped_area_topdown(struct
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
-+	info.start_gap = stack_guard_placement(vm_flags);
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
+ void __meminit __free_pages_core(struct page *page, unsigned int order,
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
+mm-z3fold-deprecate-config_z3fold.patch
 
