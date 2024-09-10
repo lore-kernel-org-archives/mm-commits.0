@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55EA73440
-	for <mm-commits@vger.kernel.org>; Mon,  9 Sep 2024 23:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A29F2E40B
+	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 18:45:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725925702; cv=none; b=RiOXfhF2mdasRU/lj+j4frvI2gO8QgzC98k9K7ZZVnlp9LAP6kVoYsaI6qAJDf/uYnhCbT+e5N8hQ+nqNBoJSlHqbdATDA28aoe53kRTi/jgmS+0v9F4l2Mju9yfZuCM4Qzvr76uDRf+RMSPVKIeOzehzJOTPcMPzvHHwXsv5vI=
+	t=1725993927; cv=none; b=Wz4XJTVTQS0DG0bExbpH0wxdmE8PflQF/ehQ6aG+a7/SslQW0RWZzcKREPjQFL3cAbDgFC79fxlFVG9EuufaVIW+l/L71jCjcYr1udVyHzY7GbIS9KqGjfhFzr4YtXFWRpxqPGw70L42UEotvd07WWJXtfFmrC9snC4Ilu0g00Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725925702; c=relaxed/simple;
-	bh=cF4ODNpWZlS3lVkQg5WGbEni9aYRdSAOOXIb5leOUXk=;
-	h=Date:To:From:Subject:Message-Id; b=fifLgA2gSUiIAwhXripxNB69zntCghxx7/KIQOd5SgJIItIFBzNpXWDj5fZ+atUgtX7J2A1KT9S7r5u7LVhDMDWgWq7jfWngktykJP9tfcpFYHZqOw3WLMukzCjrQRSQfif9eDVBqwt9VQ8sHlDooqI4MY2Pu2cmDQv3GqeHCaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ItrcEPj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725993927; c=relaxed/simple;
+	bh=cBUw65hkRJrcexuvv/CVuQ03xlj56ZA8YJmGCsNpJng=;
+	h=Date:To:From:Subject:Message-Id; b=ZBFVm9xwY2iQcJgByBj0FYMazagmNijL+xQMV6MjIjS+tupbimt9qrTEEe8zrQrMVOBgxzcv0Ivc/wB7hLvA1tVO0YVPIgIuKdd7ii+nDU6JtIZhQZzea8U0RB94CLkbRwkSll8pSxDmBA/R4u2DGnKGVYcM1+ecHBggXrmmdLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gYJPElCn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ItrcEPj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75747C4CEC5;
-	Mon,  9 Sep 2024 23:48:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gYJPElCn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E4AC4CEC3;
+	Tue, 10 Sep 2024 18:45:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725925701;
-	bh=cF4ODNpWZlS3lVkQg5WGbEni9aYRdSAOOXIb5leOUXk=;
+	s=korg; t=1725993926;
+	bh=cBUw65hkRJrcexuvv/CVuQ03xlj56ZA8YJmGCsNpJng=;
 	h=Date:To:From:Subject:From;
-	b=1ItrcEPjRVoCn0VlCegzemjYBnjpLVTWUpDJoFVZs+8uztBinW0iGNIKBtmqlc5af
-	 s+7XRP1xd+U1ZVpKOsnjMAP+b9yjcZd+AiLWZKE0zU/N1BW37xk8Pv2oDVU2FHx3n2
-	 QXXYBOMm4bYXz1pgtBXM2LC+Iz/LMt9uqXoBBd3c=
-Date: Mon, 09 Sep 2024 16:48:20 -0700
-To: mm-commits@vger.kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=gYJPElCnGa0Io2yflLPXPEOi7TDFgUa7tqHPRVENdAHt3Rm+CtBp7ArfK/BCr0/c9
+	 t/Bg4vZV86U311UEdBRVxNQ2TDsSPWqBse4ukuEvM3DTecTA7TvjGuwBfMnAu6y2bc
+	 NfEilpTrYmDKJs3BrjKdVJH++Z2Ltyjz+kdLsD2I=
+Date: Tue, 10 Sep 2024 11:45:26 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] treewide-correct-the-typo-retun.patch removed from -mm tree
-Message-Id: <20240909234821.75747C4CEC5@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch added to mm-unstable branch
+Message-Id: <20240910184526.B2E4AC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,115 +34,259 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: treewide: correct the typo 'retun'
-has been removed from the -mm tree.  Its filename was
-     treewide-correct-the-typo-retun.patch
+The patch titled
+     Subject: mm/debug_vm_pgtable: Use pxdp_get() for accessing page table entries
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: treewide: correct the typo 'retun'
-Date: Fri, 6 Sep 2024 13:40:08 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/debug_vm_pgtable: Use pxdp_get() for accessing page table entries
+Date: Tue, 10 Sep 2024 17:27:46 +0530
 
-There are some spelling mistakes of 'retun' in comments which
-should be instead of 'return'.
+This replaces all the existing READ_ONCE() based page table accesses with
+respective pxdp_get() helpers. Although these helpers might also fallback
+to READ_ONCE() as default, but they do provide an opportunity for various
+platforms to override when required. This change is a step in direction to
+replace all page table entry accesses with respective pxdp_get() helpers.
 
-Link: https://lkml.kernel.org/r/63D0F870EE8E87A0+20240906054008.390188-1-wangyuli@uniontech.com
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Link: https://lkml.kernel.org/r/20240910115746.514454-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 +-
- drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h  |    2 +-
- drivers/infiniband/core/sa_query.c        |    2 +-
- drivers/input/misc/wistron_btns.c         |    2 +-
- drivers/mtd/nand/raw/nandsim.c            |    2 +-
- drivers/scsi/bfa/bfa_fcs.c                |    2 +-
- drivers/scsi/pmcraid.c                    |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ mm/debug_vm_pgtable.c |   50 ++++++++++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c~treewide-correct-the-typo-retun
-+++ a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -333,7 +333,7 @@ int omap4_hotplug_cpu(unsigned int cpu,
- 	omap_pm_ops.scu_prepare(cpu, power_state);
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries
++++ a/mm/debug_vm_pgtable.c
+@@ -231,10 +231,10 @@ static void __init pmd_advanced_tests(st
+ 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
+ 	flush_dcache_page(page);
+ 	pmdp_set_wrprotect(args->mm, vaddr, args->pmdp);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(pmd_write(pmd));
+ 	pmdp_huge_get_and_clear(args->mm, vaddr, args->pmdp);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(!pmd_none(pmd));
  
- 	/*
--	 * CPU never retuns back if targeted power state is OFF mode.
-+	 * CPU never returns back if targeted power state is OFF mode.
- 	 * CPU ONLINE follows normal CPU ONLINE ptah via
- 	 * omap4_secondary_startup().
- 	 */
---- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h~treewide-correct-the-typo-retun
-+++ a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
-@@ -231,7 +231,7 @@ struct dpu_crtc_state {
- 	container_of(x, struct dpu_crtc_state, base)
+ 	pmd = pfn_pmd(args->pmd_pfn, args->page_prot);
+@@ -245,10 +245,10 @@ static void __init pmd_advanced_tests(st
+ 	pmd = pmd_mkwrite(pmd, args->vma);
+ 	pmd = pmd_mkdirty(pmd);
+ 	pmdp_set_access_flags(args->vma, vaddr, args->pmdp, pmd, 1);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(!(pmd_write(pmd) && pmd_dirty(pmd)));
+ 	pmdp_huge_get_and_clear_full(args->vma, vaddr, args->pmdp, 1);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(!pmd_none(pmd));
  
- /**
-- * dpu_crtc_frame_pending - retun the number of pending frames
-+ * dpu_crtc_frame_pending - return the number of pending frames
-  * @crtc: Pointer to drm crtc object
-  */
- static inline int dpu_crtc_frame_pending(struct drm_crtc *crtc)
---- a/drivers/infiniband/core/sa_query.c~treewide-correct-the-typo-retun
-+++ a/drivers/infiniband/core/sa_query.c
-@@ -1420,7 +1420,7 @@ enum opa_pr_supported {
- /*
-  * opa_pr_query_possible - Check if current PR query can be an OPA query.
-  *
-- * Retuns PR_NOT_SUPPORTED if a path record query is not
-+ * Returns PR_NOT_SUPPORTED if a path record query is not
-  * possible, PR_OPA_SUPPORTED if an OPA path record query
-  * is possible and PR_IB_SUPPORTED if an IB path record
-  * query is possible.
---- a/drivers/input/misc/wistron_btns.c~treewide-correct-the-typo-retun
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -1075,7 +1075,7 @@ static void wistron_led_init(struct devi
- 	}
+ 	pmd = pmd_mkhuge(pfn_pmd(args->pmd_pfn, args->page_prot));
+@@ -256,7 +256,7 @@ static void __init pmd_advanced_tests(st
+ 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
+ 	flush_dcache_page(page);
+ 	pmdp_test_and_clear_young(args->vma, vaddr, args->pmdp);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(pmd_young(pmd));
  
- 	if (leds_present & FE_MAIL_LED) {
--		/* bios_get_default_setting(MAIL) always retuns 0, so just turn the led off */
-+		/* bios_get_default_setting(MAIL) always returns 0, so just turn the led off */
- 		wistron_mail_led.brightness = LED_OFF;
- 		if (led_classdev_register(parent, &wistron_mail_led))
- 			leds_present &= ~FE_MAIL_LED;
---- a/drivers/mtd/nand/raw/nandsim.c~treewide-correct-the-typo-retun
-+++ a/drivers/mtd/nand/raw/nandsim.c
-@@ -1381,7 +1381,7 @@ static inline union ns_mem *NS_GET_PAGE(
+ 	/*  Clear the pte entries  */
+@@ -357,12 +357,12 @@ static void __init pud_advanced_tests(st
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
+ 	flush_dcache_page(page);
+ 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(pud_write(pud));
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 	pudp_huge_get_and_clear(args->mm, vaddr, args->pudp);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(!pud_none(pud));
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
+@@ -374,12 +374,12 @@ static void __init pud_advanced_tests(st
+ 	pud = pud_mkwrite(pud);
+ 	pud = pud_mkdirty(pud);
+ 	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(!(pud_write(pud) && pud_dirty(pud)));
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 	pudp_huge_get_and_clear_full(args->vma, vaddr, args->pudp, 1);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(!pud_none(pud));
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+@@ -389,7 +389,7 @@ static void __init pud_advanced_tests(st
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
+ 	flush_dcache_page(page);
+ 	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(pud_young(pud));
+ 
+ 	pudp_huge_get_and_clear(args->mm, vaddr, args->pudp);
+@@ -441,7 +441,7 @@ static void __init pmd_huge_tests(struct
+ 	WRITE_ONCE(*args->pmdp, __pmd(0));
+ 	WARN_ON(!pmd_set_huge(args->pmdp, __pfn_to_phys(args->fixed_pmd_pfn), args->page_prot));
+ 	WARN_ON(!pmd_clear_huge(args->pmdp));
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(!pmd_none(pmd));
  }
  
- /*
-- * Retuns a pointer to the current byte, within the current page.
-+ * Returns a pointer to the current byte, within the current page.
-  */
- static inline u_char *NS_PAGE_BYTE_OFF(struct nandsim *ns)
+@@ -461,7 +461,7 @@ static void __init pud_huge_tests(struct
+ 	WRITE_ONCE(*args->pudp, __pud(0));
+ 	WARN_ON(!pud_set_huge(args->pudp, __pfn_to_phys(args->fixed_pud_pfn), args->page_prot));
+ 	WARN_ON(!pud_clear_huge(args->pudp));
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(!pud_none(pud));
+ }
+ #else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+@@ -490,7 +490,7 @@ static void __init pgd_basic_tests(struc
+ #ifndef __PAGETABLE_PUD_FOLDED
+ static void __init pud_clear_tests(struct pgtable_debug_args *args)
  {
---- a/drivers/scsi/bfa/bfa_fcs.c~treewide-correct-the-typo-retun
-+++ a/drivers/scsi/bfa/bfa_fcs.c
-@@ -1431,7 +1431,7 @@ bfa_cb_lps_flogo_comp(void *bfad, void *
-  *	param[in]	vf_id - VF_ID
-  *
-  *	return
-- *	If lookup succeeds, retuns fcs vf object, otherwise returns NULL
-+ *	If lookup succeeds, returns fcs vf object, otherwise returns NULL
-  */
- bfa_fcs_vf_t   *
- bfa_fcs_vf_lookup(struct bfa_fcs_s *fcs, u16 vf_id)
---- a/drivers/scsi/pmcraid.c~treewide-correct-the-typo-retun
-+++ a/drivers/scsi/pmcraid.c
-@@ -4009,7 +4009,7 @@ static void pmcraid_tasklet_function(uns
-  * This routine un-registers registered interrupt handler and
-  * also frees irqs/vectors.
-  *
-- * Retun Value
-+ * Return Value
-  *	None
-  */
- static
+-	pud_t pud = READ_ONCE(*args->pudp);
++	pud_t pud = pudp_get(args->pudp);
+ 
+ 	if (mm_pmd_folded(args->mm))
+ 		return;
+@@ -498,7 +498,7 @@ static void __init pud_clear_tests(struc
+ 	pr_debug("Validating PUD clear\n");
+ 	WARN_ON(pud_none(pud));
+ 	pud_clear(args->pudp);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(!pud_none(pud));
+ }
+ 
+@@ -515,7 +515,7 @@ static void __init pud_populate_tests(st
+ 	 * Hence this must not qualify as pud_bad().
+ 	 */
+ 	pud_populate(args->mm, args->pudp, args->start_pmdp);
+-	pud = READ_ONCE(*args->pudp);
++	pud = pudp_get(args->pudp);
+ 	WARN_ON(pud_bad(pud));
+ }
+ #else  /* !__PAGETABLE_PUD_FOLDED */
+@@ -526,7 +526,7 @@ static void __init pud_populate_tests(st
+ #ifndef __PAGETABLE_P4D_FOLDED
+ static void __init p4d_clear_tests(struct pgtable_debug_args *args)
+ {
+-	p4d_t p4d = READ_ONCE(*args->p4dp);
++	p4d_t p4d = p4dp_get(args->p4dp);
+ 
+ 	if (mm_pud_folded(args->mm))
+ 		return;
+@@ -534,7 +534,7 @@ static void __init p4d_clear_tests(struc
+ 	pr_debug("Validating P4D clear\n");
+ 	WARN_ON(p4d_none(p4d));
+ 	p4d_clear(args->p4dp);
+-	p4d = READ_ONCE(*args->p4dp);
++	p4d = p4dp_get(args->p4dp);
+ 	WARN_ON(!p4d_none(p4d));
+ }
+ 
+@@ -553,13 +553,13 @@ static void __init p4d_populate_tests(st
+ 	pud_clear(args->pudp);
+ 	p4d_clear(args->p4dp);
+ 	p4d_populate(args->mm, args->p4dp, args->start_pudp);
+-	p4d = READ_ONCE(*args->p4dp);
++	p4d = p4dp_get(args->p4dp);
+ 	WARN_ON(p4d_bad(p4d));
+ }
+ 
+ static void __init pgd_clear_tests(struct pgtable_debug_args *args)
+ {
+-	pgd_t pgd = READ_ONCE(*(args->pgdp));
++	pgd_t pgd = pgdp_get(args->pgdp);
+ 
+ 	if (mm_p4d_folded(args->mm))
+ 		return;
+@@ -567,7 +567,7 @@ static void __init pgd_clear_tests(struc
+ 	pr_debug("Validating PGD clear\n");
+ 	WARN_ON(pgd_none(pgd));
+ 	pgd_clear(args->pgdp);
+-	pgd = READ_ONCE(*args->pgdp);
++	pgd = pgdp_get(args->pgdp);
+ 	WARN_ON(!pgd_none(pgd));
+ }
+ 
+@@ -586,7 +586,7 @@ static void __init pgd_populate_tests(st
+ 	p4d_clear(args->p4dp);
+ 	pgd_clear(args->pgdp);
+ 	pgd_populate(args->mm, args->pgdp, args->start_p4dp);
+-	pgd = READ_ONCE(*args->pgdp);
++	pgd = pgdp_get(args->pgdp);
+ 	WARN_ON(pgd_bad(pgd));
+ }
+ #else  /* !__PAGETABLE_P4D_FOLDED */
+@@ -627,12 +627,12 @@ static void __init pte_clear_tests(struc
+ 
+ static void __init pmd_clear_tests(struct pgtable_debug_args *args)
+ {
+-	pmd_t pmd = READ_ONCE(*args->pmdp);
++	pmd_t pmd = pmdp_get(args->pmdp);
+ 
+ 	pr_debug("Validating PMD clear\n");
+ 	WARN_ON(pmd_none(pmd));
+ 	pmd_clear(args->pmdp);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(!pmd_none(pmd));
+ }
+ 
+@@ -646,7 +646,7 @@ static void __init pmd_populate_tests(st
+ 	 * Hence this must not qualify as pmd_bad().
+ 	 */
+ 	pmd_populate(args->mm, args->pmdp, args->start_ptep);
+-	pmd = READ_ONCE(*args->pmdp);
++	pmd = pmdp_get(args->pmdp);
+ 	WARN_ON(pmd_bad(pmd));
+ }
+ 
+@@ -1251,7 +1251,7 @@ static int __init init_args(struct pgtab
+ 		ret = -ENOMEM;
+ 		goto error;
+ 	}
+-	args->start_ptep = pmd_pgtable(READ_ONCE(*args->pmdp));
++	args->start_ptep = pmd_pgtable(pmdp_get(args->pmdp));
+ 	WARN_ON(!args->start_ptep);
+ 
+ 	init_fixed_pfns(args);
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
+mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch
 
