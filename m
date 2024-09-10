@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778221A3BCA
-	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 19:08:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D721A76B2
+	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 19:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725995331; cv=none; b=XvmN3kmnJB0lloE0Syuu+42pz6p9osi0aNzrAGOplqO5Pofk7nYzFlA7Cm213QuDjATMxvLzTRHqTfhpcuMrfSIJn9hx/BT/chhmiHF2NR1T4SavSSLBPNJDOnAw2ip+H9p1ptn4TjXh7xoRT0Q+RCwR3Q0esZcQvYNK+2SMJ7Q=
+	t=1725995334; cv=none; b=Jw7blaQ5Cm+gq1CxOth0VmdN5C+/G3JrEhZkWM6s36VhOVDrOu7DDbuaQaWu20KCdcjCG3W/oWwAeT9HHwR22aMSmi5/fXqE0Rs9tR0WHjK8AmIVRWRyLRNCHxBuJTzuY+V00o6ydmVl3SYYRt7zaTWxc2x//lgE4YJPvv65nhE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725995331; c=relaxed/simple;
-	bh=JsDXEvai5MubCMkmpXe9GkelS8LQEfU5xRB0aa9Fd+M=;
-	h=Date:To:From:Subject:Message-Id; b=QN9nt1r8TNyuvhrprBuwzVYPltYeZHRLhKawWALEisMiYd02A6cENGtEmkdADGnQo6wFqecWFVh0U4GUnr14UBhx/tMt6wAx+iArMe131mZmkTfXhxs2D1R7ef3CsB/4nnrHY+9isZ9hGA4mePzc6mHxVzqkNlKkD/i5oDOlJs0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n3iIEpQ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725995334; c=relaxed/simple;
+	bh=88HW+c/yGZd/8IHTphyiyUeTDN1T9DwjzrEpAtE9XG8=;
+	h=Date:To:From:Subject:Message-Id; b=DpCa9YQON1R0pegPjCqWCuANP7AtMlphxxytZ/hotHmZ3CW63Gb5QA95DwHnRroKprwiiDnitThOVdMp2m5Bo7FPaa92/7+LGTyIcvYyO2TiS2MzFsHRAFL4KfXwpDxR1tK+azDgXWnrdCFurT1xCaNJDXQkL2CWyEQf+pOlY+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfCnDpld; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n3iIEpQ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4D93C4CEC4;
-	Tue, 10 Sep 2024 19:08:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfCnDpld"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A8D5C4CEC4;
+	Tue, 10 Sep 2024 19:08:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725995330;
-	bh=JsDXEvai5MubCMkmpXe9GkelS8LQEfU5xRB0aa9Fd+M=;
+	s=korg; t=1725995334;
+	bh=88HW+c/yGZd/8IHTphyiyUeTDN1T9DwjzrEpAtE9XG8=;
 	h=Date:To:From:Subject:From;
-	b=n3iIEpQ07MxBLKsiPfFSQM0h3sQPEGaUorY18VTMZMyJ8TI6c1qg5dQHIvcxgE3vn
-	 MBLSm7JGgMG8xocTnT9sOTeJPbVyd+r0L3bc2vBCZvfzql/NKTfz01/vkeUmUHZqPB
-	 A88zi+jlAjKgvgOe+5TVMQ9m0hkFW4zeUBqznp3M=
-Date: Tue, 10 Sep 2024 12:08:50 -0700
+	b=rfCnDpld+LoT72X/xnAUgHL9BDKtjWRDB2+XrCEXUwpcIvy4wJ/SMBldFF47S4+YR
+	 nZB/U73AWZGDU1Z0YObLNgl4dFYWyQ+Wml5XiSKzIomVVYu4iRz/hNTNnK/rqhkLqJ
+	 oU1KPAJ2ErWq9ROHeHqfknPP2yC9n7TKm0ZqImXE=
+Date: Tue, 10 Sep 2024 12:08:53 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,usamaarif642@gmail.com,surenb@google.com,shy828301@gmail.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,ryncsn@gmail.com,ryan.roberts@arm.com,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,kaleshsingh@google.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch added to mm-unstable branch
-Message-Id: <20240910190850.D4D93C4CEC4@smtp.kernel.org>
+Subject: + mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch added to mm-unstable branch
+Message-Id: <20240910190854.8A8D5C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix swap_read_folio_zeromap() for large folios with partial zeromap
+     Subject: mm: add nr argument in mem_cgroup_swapin_uncharge_swap() helper to support large folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch
+     mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,182 +59,121 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: fix swap_read_folio_zeromap() for large folios with partial zeromap
-Date: Mon, 9 Sep 2024 11:21:17 +1200
+Subject: mm: add nr argument in mem_cgroup_swapin_uncharge_swap() helper to support large folios
+Date: Mon, 9 Sep 2024 11:21:18 +1200
 
-Patch series "mm: enable large folios swap-in support", v9.
+With large folios swap-in, we might need to uncharge multiple entries all
+together, add nr argument in mem_cgroup_swapin_uncharge_swap().
 
-Currently, we support mTHP swapout but not swapin.  This means that once
-mTHP is swapped out, it will come back as small folios when swapped in. 
-This is particularly detrimental for devices like Android, where more than
-half of the memory is in swap.
+For the existing two users, just pass nr=1.
 
-The lack of mTHP swapin functionality makes mTHP a showstopper in
-scenarios that heavily rely on swap.  This patchset introduces mTHP
-swap-in support.  It starts with synchronous devices similar to zRAM,
-aiming to benefit as many users as possible with minimal changes.
-
-
-This patch (of 3):
-
-There could be a corner case where the first entry is non-zeromap, but a
-subsequent entry is zeromap.  In this case, we should not let
-swap_read_folio_zeromap() return false since we will still read corrupted
-data.
-
-Additionally, the iteration of test_bit() is unnecessary and can be
-replaced with bitmap operations, which are more efficient.
-
-We can adopt the style of swap_pte_batch() and folio_pte_batch() to
-introduce swap_zeromap_batch() which seems to provide the greatest
-flexibility for the caller.  This approach allows the caller to either
-check if the zeromap status of all entries is consistent or determine the
-number of contiguous entries with the same status.
-
-Since swap_read_folio() can't handle reading a large folio that's
-partially zeromap and partially non-zeromap, we've moved the code to
-mm/swap.h so that others, like those working on swap-in, can access it.
-
-Link: https://lkml.kernel.org/r/20240908232119.2157-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20240908232119.2157-2-21cnbao@gmail.com
-Fixes: 0ca0c24e3211 ("mm: store zero pages to be swapped out in a bitmap")
+Link: https://lkml.kernel.org/r/20240908232119.2157-3-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: Chris Li <chrisl@kernel.org>
 Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Usama Arif <usamaarif642@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Gao Xiang <xiang@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   32 +++++++-------------------------
- mm/swap.h    |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 25 deletions(-)
+ include/linux/memcontrol.h |    5 +++--
+ mm/memcontrol.c            |    7 ++++---
+ mm/memory.c                |    2 +-
+ mm/swap_state.c            |    2 +-
+ 4 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/page_io.c~mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap
-+++ a/mm/page_io.c
-@@ -227,26 +227,6 @@ static void swap_zeromap_folio_clear(str
- }
+--- a/include/linux/memcontrol.h~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/include/linux/memcontrol.h
+@@ -699,7 +699,8 @@ int mem_cgroup_hugetlb_try_charge(struct
  
- /*
-- * Return the index of the first subpage which is not zero-filled
-- * according to swap_info_struct->zeromap.
-- * If all pages are zero-filled according to zeromap, it will return
-- * folio_nr_pages(folio).
-- */
--static unsigned int swap_zeromap_folio_test(struct folio *folio)
--{
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
--	swp_entry_t entry;
--	unsigned int i;
--
--	for (i = 0; i < folio_nr_pages(folio); i++) {
--		entry = page_swap_entry(folio_page(folio, i));
--		if (!test_bit(swp_offset(entry), sis->zeromap))
--			return i;
--	}
--	return i;
--}
--
--/*
-  * We may have stale swap cache pages in memory: notice
-  * them here and get rid of the unnecessary final write.
-  */
-@@ -524,19 +504,21 @@ static void sio_read_complete(struct kio
+ int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
+ 				  gfp_t gfp, swp_entry_t entry);
+-void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
++
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
  
- static bool swap_read_folio_zeromap(struct folio *folio)
- {
--	unsigned int idx = swap_zeromap_folio_test(folio);
--
--	if (idx == 0)
--		return false;
-+	int nr_pages = folio_nr_pages(folio);
-+	bool is_zeromap;
+ void __mem_cgroup_uncharge(struct folio *folio);
  
- 	/*
- 	 * Swapping in a large folio that is partially in the zeromap is not
- 	 * currently handled. Return true without marking the folio uptodate so
- 	 * that an IO error is emitted (e.g. do_swap_page() will sigbus).
- 	 */
--	if (WARN_ON_ONCE(idx < folio_nr_pages(folio)))
-+	if (WARN_ON_ONCE(swap_zeromap_batch(folio->swap, nr_pages,
-+			&is_zeromap) != nr_pages))
- 		return true;
- 
-+	if (!is_zeromap)
-+		return false;
-+
- 	folio_zero_range(folio, 0, folio_size(folio));
- 	folio_mark_uptodate(folio);
- 	return true;
---- a/mm/swap.h~mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap
-+++ a/mm/swap.h
-@@ -80,6 +80,32 @@ static inline unsigned int folio_swap_fl
- {
- 	return swp_swap_info(folio->swap)->flags;
- }
-+
-+/*
-+ * Return the count of contiguous swap entries that share the same
-+ * zeromap status as the starting entry. If is_zeromap is not NULL,
-+ * it will return the zeromap status of the starting entry.
-+ */
-+static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
-+		bool *is_zeromap)
-+{
-+	struct swap_info_struct *sis = swp_swap_info(entry);
-+	unsigned long start = swp_offset(entry);
-+	unsigned long end = start + max_nr;
-+	bool first_bit;
-+
-+	first_bit = test_bit(start, sis->zeromap);
-+	if (is_zeromap)
-+		*is_zeromap = first_bit;
-+
-+	if (max_nr <= 1)
-+		return max_nr;
-+	if (first_bit)
-+		return find_next_zero_bit(sis->zeromap, end, start) - start;
-+	else
-+		return find_next_bit(sis->zeromap, end, start) - start;
-+}
-+
- #else /* CONFIG_SWAP */
- struct swap_iocb;
- static inline void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
-@@ -171,6 +197,13 @@ static inline unsigned int folio_swap_fl
- {
+@@ -1206,7 +1207,7 @@ static inline int mem_cgroup_swapin_char
  	return 0;
  }
-+
-+static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
-+		bool *has_zeromap)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_SWAP */
  
- #endif /* _MM_SWAP_H */
+-static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++static inline void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr)
+ {
+ }
+ 
+--- a/mm/memcontrol.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/memcontrol.c
+@@ -4560,14 +4560,15 @@ int mem_cgroup_swapin_charge_folio(struc
+ 
+ /*
+  * mem_cgroup_swapin_uncharge_swap - uncharge swap slot
+- * @entry: swap entry for which the page is charged
++ * @entry: the first swap entry for which the pages are charged
++ * @nr_pages: number of pages which will be uncharged
+  *
+  * Call this function after successfully adding the charged page to swapcache.
+  *
+  * Note: This function assumes the page for which swap slot is being uncharged
+  * is order 0 page.
+  */
+-void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry)
++void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
+ {
+ 	/*
+ 	 * Cgroup1's unified memory+swap counter has been charged with the
+@@ -4587,7 +4588,7 @@ void mem_cgroup_swapin_uncharge_swap(swp
+ 		 * let's not wait for it.  The page already received a
+ 		 * memory+swap charge, drop the swap entry duplicate.
+ 		 */
+-		mem_cgroup_uncharge_swap(entry, 1);
++		mem_cgroup_uncharge_swap(entry, nr_pages);
+ 	}
+ }
+ 
+--- a/mm/memory.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/memory.c
+@@ -4104,7 +4104,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 					ret = VM_FAULT_OOM;
+ 					goto out_page;
+ 				}
+-				mem_cgroup_swapin_uncharge_swap(entry);
++				mem_cgroup_swapin_uncharge_swap(entry, 1);
+ 
+ 				shadow = get_shadow_from_swap_cache(entry);
+ 				if (shadow)
+--- a/mm/swap_state.c~mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios
++++ a/mm/swap_state.c
+@@ -522,7 +522,7 @@ struct folio *__read_swap_cache_async(sw
+ 	if (add_to_swap_cache(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
+ 		goto fail_unlock;
+ 
+-	mem_cgroup_swapin_uncharge_swap(entry);
++	mem_cgroup_swapin_uncharge_swap(entry, 1);
+ 
+ 	if (shadow)
+ 		workingset_refault(new_folio, shadow);
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
