@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DE671A7048
-	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 18:46:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D00C1A2574
+	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 18:48:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725993967; cv=none; b=U4njE4nN3WVJBYD7CMJeu62QYUT00sl1JUEEJqysq3+pJte5mHAAv0c2SH8wRREVaSd05anBRPPI4CP9uunZTL1LRD8/bVDprEku0dcomMK8R0iM6PME/ntEh+sRCwoiYs2XXG9BhMyyqAm7YbnqqE0+jXYUE1Dkz/UpqyWHsB0=
+	t=1725994108; cv=none; b=ArRKhdDJczDhYCGPz8juQdlLPGlDioT/e0awg85ancFbqWSPS/Qi/Q8pPgtHEnPvOs3A0i6xWvOjeU+lLkjtwb5gPPGMhihtMZV9C0NA3MJ1DxkABTVIHKn7Sj18qjFD9YoJYLvhGO7X31Sx9q3sxiMcEkiIVHyXUXWPxl7GSiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725993967; c=relaxed/simple;
-	bh=X/ol8fWygI7vn9b0a1H5Ve5KzVwHN+G2tEVPwHQRPWM=;
-	h=Date:To:From:Subject:Message-Id; b=QvIklwRrlTj+CS+EEYZXvH/yzhpHXMmpRA+IEALW0F/rSb+zAh8jhDBjhSZDnJi/g4sSSZqelaqvglvMqMgrk8h04qmIkj3Nh/IGk5YAS+eIoEu5ZscHWMREkscCDSqSjqXs9YLIfkCynRV3Lh6S1fovec1fV8dqKT25T1n7iM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vZ7G7Op2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725994108; c=relaxed/simple;
+	bh=ZHSbInzBfdrSf/uOdrNXS++PlAYm7gIXSu8kJp/PIss=;
+	h=Date:To:From:Subject:Message-Id; b=bDowjhbhpLZ5cMby+P8F9fSBiArxJ8243H/VTANhiof9IwY+i3Bd3kjNN3JAoiXHPXSghjlBdWV07zIvDLh7btabIxLC8Q0W3r3wGl9qGnoUUMwJOjVLbxrBOm6QWriIGkObCgbvmLb6MiyI9zhbFnXcXF/QtaiV35GeEgz+7tI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xq0r9Rdt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZ7G7Op2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2116C4CEC4;
-	Tue, 10 Sep 2024 18:46:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xq0r9Rdt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7C5EC4CEC3;
+	Tue, 10 Sep 2024 18:48:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725993966;
-	bh=X/ol8fWygI7vn9b0a1H5Ve5KzVwHN+G2tEVPwHQRPWM=;
+	s=korg; t=1725994107;
+	bh=ZHSbInzBfdrSf/uOdrNXS++PlAYm7gIXSu8kJp/PIss=;
 	h=Date:To:From:Subject:From;
-	b=vZ7G7Op24TNCfmLluASmhkcMjAtVxQJIiNWBDJzp1fXwre46JyqY6OVDKmUxewcfX
-	 81UQnf/DOBb+USSi0jXKqP0fUIeJwr3E/kAtJL7pUtEcMZehv6FDFwSNr99O3EjrjK
-	 e4EMEiVOw3rEqRUFuoOTS13QTxHnO1zZ4l/bHENs=
-Date: Tue, 10 Sep 2024 11:46:06 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=xq0r9RdtWCq/EEDEqGYgdlkmOEzSZ+5a70CCyYA4M7oJX03xv/WDEfgUu2tFCAH3w
+	 zf1kzCTiZylalNv5V26sHHP+vO78VApPv2jvWLQlUCqznqurQbUFvUAsdOarzeSHUP
+	 Cwmm6OfG2XYEPaHJA+ozVGotOArWYsnPG6vQJxVw=
+Date: Tue, 10 Sep 2024 11:48:27 -0700
+To: mm-commits@vger.kernel.org,davidgow@google.com,richard120310@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-unused-set_pte_safe.patch added to mm-unstable branch
-Message-Id: <20240910184606.C2116C4CEC4@smtp.kernel.org>
+Subject: + list-test-mending-tests-for-list_cut_position.patch added to mm-nonmm-unstable branch
+Message-Id: <20240910184827.A7C5EC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop unused set_pte_safe()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-drop-unused-set_pte_safe.patch
+     Subject: list: test: fix tests for list_cut_position()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     list-test-mending-tests-for-list_cut_position.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-unused-set_pte_safe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list-test-mending-tests-for-list_cut_position.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: drop unused set_pte_safe()
-Date: Tue, 10 Sep 2024 15:40:26 +0530
+From: I Hsin Cheng <richard120310@gmail.com>
+Subject: list: test: fix tests for list_cut_position()
+Date: Tue, 10 Sep 2024 12:35:31 +0800
 
-All set_pte_safe() usage have been dropped after the commit eccd906484d1
-("x86/mm: Do not use set_{pud, pmd}_safe() when splitting a large page")
-This just drops now unused helper set_pte_safe().
+Fix test for list_cut_position*() for the missing check of integer "i"
+after the second loop.  The variable should be checked for second time to
+make sure both lists after the cut operation are formed as expected.
 
-Besides this macro was buggy due to doing direct dereferencing of the pte,
-and if it were to be kept, it should have been updated to use a single
-call to ptep_get().
-
-Link: https://lkml.kernel.org/r/20240910101026.428808-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20240910043531.71343-1-richard120310@gmail.com
+Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
+Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    6 ------
- 1 file changed, 6 deletions(-)
+ lib/list-test.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/pgtable.h~mm-drop-unused-set_pte_safe
-+++ a/include/linux/pgtable.h
-@@ -1064,12 +1064,6 @@ static inline int pgd_same(pgd_t pgd_a,
-  * same value. Otherwise, use the typical "set" helpers and flush the
-  * TLB.
-  */
--#define set_pte_safe(ptep, pte) \
--({ \
--	WARN_ON_ONCE(pte_present(*ptep) && !pte_same(*ptep, pte)); \
--	set_pte(ptep, pte); \
--})
--
- #define set_pmd_safe(pmdp, pmd) \
- ({ \
- 	WARN_ON_ONCE(pmd_present(*pmdp) && !pmd_same(*pmdp, pmd)); \
+--- a/lib/list-test.c~list-test-mending-tests-for-list_cut_position
++++ a/lib/list-test.c
+@@ -404,10 +404,13 @@ static void list_test_list_cut_position(
+ 
+ 	KUNIT_EXPECT_EQ(test, i, 2);
+ 
++	i = 0;
+ 	list_for_each(cur, &list1) {
+ 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+ 		i++;
+ 	}
++
++	KUNIT_EXPECT_EQ(test, i, 1);
+ }
+ 
+ static void list_test_list_cut_before(struct kunit *test)
+@@ -432,10 +435,13 @@ static void list_test_list_cut_before(st
+ 
+ 	KUNIT_EXPECT_EQ(test, i, 1);
+ 
++	i = 0;
+ 	list_for_each(cur, &list1) {
+ 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+ 		i++;
+ 	}
++
++	KUNIT_EXPECT_EQ(test, i, 2);
+ }
+ 
+ static void list_test_list_splice(struct kunit *test)
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from richard120310@gmail.com are
 
-mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch
-mm-drop-unused-set_pte_safe.patch
+list-test-mending-tests-for-list_cut_position.patch
 
