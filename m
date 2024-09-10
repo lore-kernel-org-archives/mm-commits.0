@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0811C69D
-	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 18:49:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B6C8195B1A
+	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 19:04:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725994167; cv=none; b=AmARJiHgtMKUIiPA3gk/1ql3B1CQ0rSgD2JB/uZ3TQL58Dau4dL6+lMSFarUYYerl6qSg67zqnHJOCIP2luuJe8gZ149RMSwVTGMBtgmOzto+5sAyAwjjwYnDBzRk0tUOxiGUX5N11VAPHq8HkwI2SwWYLkfarksGdvQhkhGsKs=
+	t=1725995099; cv=none; b=uHmDNBSsL7SxdqlRou28JasB3DmWyGFUha4V+EQtbKtHVF2nbHGIcBtIB8aK/EVsxxXcP4WZcT0WIPBfj2xkLpPnDl2moodz9gperXmRuVMY/cheThZgfCbecyqYVBKAjMnF5siC9E1xCVie+hb8k8uBp8UQdrNdhx3dYswBxrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725994167; c=relaxed/simple;
-	bh=B/xO8CFT8j0mFNbBs/vsybfb7hXH5Pb61YISzfEfkPg=;
-	h=Date:To:From:Subject:Message-Id; b=ATcjxpF6U58ZD9Syyga3Ximp3UjujPos7fE9wJDX6BYs1KdvYo0ToU5wMU/T7158L+Nhxq1701XWi/uSJvuOeZ1TRHSCM1B37N2Y2uzH/cAFfUcKzHaHEtGA1ftm/nbo7gICRu2zuy7CPgTz/O5z7/ZLm/9upAB2dwIoqFTkCU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R0Kp92p3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725995099; c=relaxed/simple;
+	bh=1JF3wWlsGe+HGqqjiXCdhBHutusjybjC/vTSQHUth2Q=;
+	h=Date:To:From:Subject:Message-Id; b=Vc+atsSe7fajPhHJvONFsbmV9hLte//FY6hOUhSBsfFuoMEOo5j5N+9GgvaKxs88DBIuKmLqaejT0m8qwNtg83gFxl+DTrN9ZzF1uX74uje4/iC/HrMxVsG4/RQ1WFi4C4Rl+j7TeNjEItW8f6P21F6cmHDQKD8608xTZU9s+IM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHKzQ7EI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R0Kp92p3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6894C4CEC3;
-	Tue, 10 Sep 2024 18:49:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHKzQ7EI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDFD5C4CECD;
+	Tue, 10 Sep 2024 19:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725994165;
-	bh=B/xO8CFT8j0mFNbBs/vsybfb7hXH5Pb61YISzfEfkPg=;
+	s=korg; t=1725995098;
+	bh=1JF3wWlsGe+HGqqjiXCdhBHutusjybjC/vTSQHUth2Q=;
 	h=Date:To:From:Subject:From;
-	b=R0Kp92p3+4MD1U6gBzG+gaSuBGC89S4aetfS6ZoITnJZjOzLVXeZVSSm4OiH0Tbh3
-	 3v8kRj9Ir9mgLPU44BRPkJnMnGCYaew/CPy/sEXJGazCh97GhGkXMFOX574fsXOPYO
-	 3s2HjgS53QQXqdQ4lxzg+0tOUQKIfEVY+hX4kcrY=
-Date: Tue, 10 Sep 2024 11:49:25 -0700
-To: mm-commits@vger.kernel.org,davidgow@google.com,richard120310@gmail.com,akpm@linux-foundation.org
+	b=jHKzQ7EIn2yHxadHCcw8pGJrTcFPrhulCxlYEz8HwG1amOd5yKLWS72D1t2/Ohg7m
+	 logsxz/VMQPdEh3/UzAUVITVwHngfCtMe9A2/jOp/Gtyn56+fpw5BEyrl+7I38LejV
+	 TZhdAJQngghf1fwqMeL/HjOt+1YrOG48B8ee09kI=
+Date: Tue, 10 Sep 2024 12:04:58 -0700
+To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,jane.chu@oracle.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + list-test-increasing-coverage-of-list_test_list_replace.patch added to mm-nonmm-unstable branch
-Message-Id: <20240910184925.C6894C4CEC3@smtp.kernel.org>
+Subject: + mm-support-poison-recovery-from-do_cow_fault-fix.patch added to mm-unstable branch
+Message-Id: <20240910190458.BDFD5C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: list: test: increase coverage of list_test_list_replace*()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     list-test-increasing-coverage-of-list_test_list_replace.patch
+     Subject: mm: support poison recovery from do_cow_fault() fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-support-poison-recovery-from-do_cow_fault-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list-test-increasing-coverage-of-list_test_list_replace.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-poison-recovery-from-do_cow_fault-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: I Hsin Cheng <richard120310@gmail.com>
-Subject: list: test: increase coverage of list_test_list_replace*()
-Date: Tue, 10 Sep 2024 12:08:18 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: support poison recovery from do_cow_fault() fix
+Date: Tue, 10 Sep 2024 10:15:41 +0800
 
-Increase the test coverage of list_test_list_replace*() by adding the
-checks to compare the pointer of "a_new.next" and "a_new.prev" to make
-sure a perfect circular doubly linked list is formed after the
-replacement.
+unlock/put vmf->page, per Miaohe
 
-Link: https://lkml.kernel.org/r/20240910040818.65723-1-richard120310@gmail.com
-Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
-Cc: David Gow <davidgow@google.com>
+Link: https://lkml.kernel.org/r/20240910021541.234300-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list-test.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/list-test.c~list-test-increasing-coverage-of-list_test_list_replace
-+++ a/lib/list-test.c
-@@ -102,6 +102,8 @@ static void list_test_list_replace(struc
- 	/* now: [list] -> a_new -> b */
- 	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
- 	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
-+	KUNIT_EXPECT_PTR_EQ(test, a_new.next, &b);
-+	KUNIT_EXPECT_PTR_EQ(test, a_new.prev, &list);
- }
+--- a/mm/memory.c~mm-support-poison-recovery-from-do_cow_fault-fix
++++ a/mm/memory.c
+@@ -5091,11 +5091,12 @@ static vm_fault_t do_cow_fault(struct vm
  
- static void list_test_list_replace_init(struct kunit *test)
-@@ -118,6 +120,8 @@ static void list_test_list_replace_init(
- 	/* now: [list] -> a_new -> b */
- 	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
- 	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
-+	KUNIT_EXPECT_PTR_EQ(test, a_new.next, &b);
-+	KUNIT_EXPECT_PTR_EQ(test, a_new.prev, &list);
+ 	if (copy_mc_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma)) {
+ 		ret = VM_FAULT_HWPOISON;
+-		goto uncharge_out;
++		goto unlock;
+ 	}
+ 	__folio_mark_uptodate(folio);
  
- 	/* check a_old is empty (initialized) */
- 	KUNIT_EXPECT_TRUE(test, list_empty_careful(&a_old));
+ 	ret |= finish_fault(vmf);
++unlock:
+ 	unlock_page(vmf->page);
+ 	put_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 _
 
-Patches currently in -mm which might be from richard120310@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-list-test-mending-tests-for-list_cut_position.patch
-list-test-increasing-coverage-of-list_test_list_replace.patch
+mm-support-poison-recovery-from-do_cow_fault.patch
+mm-support-poison-recovery-from-do_cow_fault-fix.patch
+mm-support-poison-recovery-from-copy_present_page.patch
 
