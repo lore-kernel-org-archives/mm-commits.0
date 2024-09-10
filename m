@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B6C8195B1A
-	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 19:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778221A3BCA
+	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 19:08:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725995099; cv=none; b=uHmDNBSsL7SxdqlRou28JasB3DmWyGFUha4V+EQtbKtHVF2nbHGIcBtIB8aK/EVsxxXcP4WZcT0WIPBfj2xkLpPnDl2moodz9gperXmRuVMY/cheThZgfCbecyqYVBKAjMnF5siC9E1xCVie+hb8k8uBp8UQdrNdhx3dYswBxrE=
+	t=1725995331; cv=none; b=XvmN3kmnJB0lloE0Syuu+42pz6p9osi0aNzrAGOplqO5Pofk7nYzFlA7Cm213QuDjATMxvLzTRHqTfhpcuMrfSIJn9hx/BT/chhmiHF2NR1T4SavSSLBPNJDOnAw2ip+H9p1ptn4TjXh7xoRT0Q+RCwR3Q0esZcQvYNK+2SMJ7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725995099; c=relaxed/simple;
-	bh=1JF3wWlsGe+HGqqjiXCdhBHutusjybjC/vTSQHUth2Q=;
-	h=Date:To:From:Subject:Message-Id; b=Vc+atsSe7fajPhHJvONFsbmV9hLte//FY6hOUhSBsfFuoMEOo5j5N+9GgvaKxs88DBIuKmLqaejT0m8qwNtg83gFxl+DTrN9ZzF1uX74uje4/iC/HrMxVsG4/RQ1WFi4C4Rl+j7TeNjEItW8f6P21F6cmHDQKD8608xTZU9s+IM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHKzQ7EI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725995331; c=relaxed/simple;
+	bh=JsDXEvai5MubCMkmpXe9GkelS8LQEfU5xRB0aa9Fd+M=;
+	h=Date:To:From:Subject:Message-Id; b=QN9nt1r8TNyuvhrprBuwzVYPltYeZHRLhKawWALEisMiYd02A6cENGtEmkdADGnQo6wFqecWFVh0U4GUnr14UBhx/tMt6wAx+iArMe131mZmkTfXhxs2D1R7ef3CsB/4nnrHY+9isZ9hGA4mePzc6mHxVzqkNlKkD/i5oDOlJs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n3iIEpQ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHKzQ7EI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDFD5C4CECD;
-	Tue, 10 Sep 2024 19:04:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n3iIEpQ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4D93C4CEC4;
+	Tue, 10 Sep 2024 19:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725995098;
-	bh=1JF3wWlsGe+HGqqjiXCdhBHutusjybjC/vTSQHUth2Q=;
+	s=korg; t=1725995330;
+	bh=JsDXEvai5MubCMkmpXe9GkelS8LQEfU5xRB0aa9Fd+M=;
 	h=Date:To:From:Subject:From;
-	b=jHKzQ7EIn2yHxadHCcw8pGJrTcFPrhulCxlYEz8HwG1amOd5yKLWS72D1t2/Ohg7m
-	 logsxz/VMQPdEh3/UzAUVITVwHngfCtMe9A2/jOp/Gtyn56+fpw5BEyrl+7I38LejV
-	 TZhdAJQngghf1fwqMeL/HjOt+1YrOG48B8ee09kI=
-Date: Tue, 10 Sep 2024 12:04:58 -0700
-To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,jane.chu@oracle.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=n3iIEpQ07MxBLKsiPfFSQM0h3sQPEGaUorY18VTMZMyJ8TI6c1qg5dQHIvcxgE3vn
+	 MBLSm7JGgMG8xocTnT9sOTeJPbVyd+r0L3bc2vBCZvfzql/NKTfz01/vkeUmUHZqPB
+	 A88zi+jlAjKgvgOe+5TVMQ9m0hkFW4zeUBqznp3M=
+Date: Tue, 10 Sep 2024 12:08:50 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,xiang@kernel.org,willy@infradead.org,usamaarif642@gmail.com,surenb@google.com,shy828301@gmail.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,ryncsn@gmail.com,ryan.roberts@arm.com,nphamcs@gmail.com,minchan@kernel.org,mhocko@suse.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,kaleshsingh@google.com,hughd@google.com,hch@infradead.org,hannes@cmpxchg.org,hanchuanhua@oppo.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-poison-recovery-from-do_cow_fault-fix.patch added to mm-unstable branch
-Message-Id: <20240910190458.BDFD5C4CECD@smtp.kernel.org>
+Subject: + mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch added to mm-unstable branch
+Message-Id: <20240910190850.D4D93C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: support poison recovery from do_cow_fault() fix
+     Subject: mm: fix swap_read_folio_zeromap() for large folios with partial zeromap
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-support-poison-recovery-from-do_cow_fault-fix.patch
+     mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-poison-recovery-from-do_cow_fault-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,187 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: support poison recovery from do_cow_fault() fix
-Date: Tue, 10 Sep 2024 10:15:41 +0800
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: fix swap_read_folio_zeromap() for large folios with partial zeromap
+Date: Mon, 9 Sep 2024 11:21:17 +1200
 
-unlock/put vmf->page, per Miaohe
+Patch series "mm: enable large folios swap-in support", v9.
 
-Link: https://lkml.kernel.org/r/20240910021541.234300-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Currently, we support mTHP swapout but not swapin.  This means that once
+mTHP is swapped out, it will come back as small folios when swapped in. 
+This is particularly detrimental for devices like Android, where more than
+half of the memory is in swap.
+
+The lack of mTHP swapin functionality makes mTHP a showstopper in
+scenarios that heavily rely on swap.  This patchset introduces mTHP
+swap-in support.  It starts with synchronous devices similar to zRAM,
+aiming to benefit as many users as possible with minimal changes.
+
+
+This patch (of 3):
+
+There could be a corner case where the first entry is non-zeromap, but a
+subsequent entry is zeromap.  In this case, we should not let
+swap_read_folio_zeromap() return false since we will still read corrupted
+data.
+
+Additionally, the iteration of test_bit() is unnecessary and can be
+replaced with bitmap operations, which are more efficient.
+
+We can adopt the style of swap_pte_batch() and folio_pte_batch() to
+introduce swap_zeromap_batch() which seems to provide the greatest
+flexibility for the caller.  This approach allows the caller to either
+check if the zeromap status of all entries is consistent or determine the
+number of contiguous entries with the same status.
+
+Since swap_read_folio() can't handle reading a large folio that's
+partially zeromap and partially non-zeromap, we've moved the code to
+mm/swap.h so that others, like those working on swap-in, can access it.
+
+Link: https://lkml.kernel.org/r/20240908232119.2157-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240908232119.2157-2-21cnbao@gmail.com
+Fixes: 0ca0c24e3211 ("mm: store zero pages to be swapped out in a bitmap")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Usama Arif <usamaarif642@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_io.c |   32 +++++++-------------------------
+ mm/swap.h    |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 25 deletions(-)
 
---- a/mm/memory.c~mm-support-poison-recovery-from-do_cow_fault-fix
-+++ a/mm/memory.c
-@@ -5091,11 +5091,12 @@ static vm_fault_t do_cow_fault(struct vm
+--- a/mm/page_io.c~mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap
++++ a/mm/page_io.c
+@@ -227,26 +227,6 @@ static void swap_zeromap_folio_clear(str
+ }
  
- 	if (copy_mc_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma)) {
- 		ret = VM_FAULT_HWPOISON;
--		goto uncharge_out;
-+		goto unlock;
- 	}
- 	__folio_mark_uptodate(folio);
+ /*
+- * Return the index of the first subpage which is not zero-filled
+- * according to swap_info_struct->zeromap.
+- * If all pages are zero-filled according to zeromap, it will return
+- * folio_nr_pages(folio).
+- */
+-static unsigned int swap_zeromap_folio_test(struct folio *folio)
+-{
+-	struct swap_info_struct *sis = swp_swap_info(folio->swap);
+-	swp_entry_t entry;
+-	unsigned int i;
+-
+-	for (i = 0; i < folio_nr_pages(folio); i++) {
+-		entry = page_swap_entry(folio_page(folio, i));
+-		if (!test_bit(swp_offset(entry), sis->zeromap))
+-			return i;
+-	}
+-	return i;
+-}
+-
+-/*
+  * We may have stale swap cache pages in memory: notice
+  * them here and get rid of the unnecessary final write.
+  */
+@@ -524,19 +504,21 @@ static void sio_read_complete(struct kio
  
- 	ret |= finish_fault(vmf);
-+unlock:
- 	unlock_page(vmf->page);
- 	put_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ static bool swap_read_folio_zeromap(struct folio *folio)
+ {
+-	unsigned int idx = swap_zeromap_folio_test(folio);
+-
+-	if (idx == 0)
+-		return false;
++	int nr_pages = folio_nr_pages(folio);
++	bool is_zeromap;
+ 
+ 	/*
+ 	 * Swapping in a large folio that is partially in the zeromap is not
+ 	 * currently handled. Return true without marking the folio uptodate so
+ 	 * that an IO error is emitted (e.g. do_swap_page() will sigbus).
+ 	 */
+-	if (WARN_ON_ONCE(idx < folio_nr_pages(folio)))
++	if (WARN_ON_ONCE(swap_zeromap_batch(folio->swap, nr_pages,
++			&is_zeromap) != nr_pages))
+ 		return true;
+ 
++	if (!is_zeromap)
++		return false;
++
+ 	folio_zero_range(folio, 0, folio_size(folio));
+ 	folio_mark_uptodate(folio);
+ 	return true;
+--- a/mm/swap.h~mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap
++++ a/mm/swap.h
+@@ -80,6 +80,32 @@ static inline unsigned int folio_swap_fl
+ {
+ 	return swp_swap_info(folio->swap)->flags;
+ }
++
++/*
++ * Return the count of contiguous swap entries that share the same
++ * zeromap status as the starting entry. If is_zeromap is not NULL,
++ * it will return the zeromap status of the starting entry.
++ */
++static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
++		bool *is_zeromap)
++{
++	struct swap_info_struct *sis = swp_swap_info(entry);
++	unsigned long start = swp_offset(entry);
++	unsigned long end = start + max_nr;
++	bool first_bit;
++
++	first_bit = test_bit(start, sis->zeromap);
++	if (is_zeromap)
++		*is_zeromap = first_bit;
++
++	if (max_nr <= 1)
++		return max_nr;
++	if (first_bit)
++		return find_next_zero_bit(sis->zeromap, end, start) - start;
++	else
++		return find_next_bit(sis->zeromap, end, start) - start;
++}
++
+ #else /* CONFIG_SWAP */
+ struct swap_iocb;
+ static inline void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
+@@ -171,6 +197,13 @@ static inline unsigned int folio_swap_fl
+ {
+ 	return 0;
+ }
++
++static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
++		bool *has_zeromap)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_SWAP */
+ 
+ #endif /* _MM_SWAP_H */
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-support-poison-recovery-from-do_cow_fault.patch
-mm-support-poison-recovery-from-do_cow_fault-fix.patch
-mm-support-poison-recovery-from-copy_present_page.patch
+mm-fix-swap_read_folio_zeromap-for-large-folios-with-partial-zeromap.patch
+mm-add-nr-argument-in-mem_cgroup_swapin_uncharge_swap-helper-to-support-large-folios.patch
 
