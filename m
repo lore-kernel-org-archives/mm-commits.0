@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEBED1A2574
-	for <mm-commits@vger.kernel.org>; Tue, 10 Sep 2024 20:14:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED29185B7B
+	for <mm-commits@vger.kernel.org>; Wed, 11 Sep 2024 18:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725999252; cv=none; b=dZP3ZtOMG94qSlSXIj0mqYGys4hgLEenPgJFB9/2wdGiZnxs/2QHKeyflICN9yyQr+HziOPMI+/qK6bpHQyROOXoyLmokpz3TG2ja63H5sehG8YF9W5eutVxZ/yZJkb6sVNuGxrJwVcXwXZGiGY/HwJMnR9w47S/0nD2bXBifWw=
+	t=1726080749; cv=none; b=I0Sff905ecLduwoIgSy5ArKzVhhYUszonmhXyx7qUK/C+u3ptIhLSJ7iBHbrHUfnfzOTlFsKF2UFW5GGHQoRiN6ZGBG1eG95G2T6savA+3eJ6DUdQg9fYmYMBwg8HVOTqsn0CP7jD4X6g3eZ3F00oTdunqcGA5RJhGy2lC89gV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725999252; c=relaxed/simple;
-	bh=dI62mk2HIo+8QnO8RurlaPOrmZWfwqZfKzHa7jjYSrQ=;
-	h=Date:To:From:Subject:Message-Id; b=k9i228m+crDZkxv8cDs5cy79euW689afBm4EE6ZAs5E31Z5kCdRwZbi/79keTPXOH90NDSOy5icXk3skhhZre1Euirsxz8+ImD5Km9AwtRC8azdxIMpbfMh7aMyg7H3U2AKzAiWB+AVNnA9fLBGfJxGguNzTHYAlmYF3BcFCqM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MVMRNw4P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726080749; c=relaxed/simple;
+	bh=R9lQ2fBpEP1O2Edn9E1K/36kfoFForr3vHpIKWtS+jo=;
+	h=Date:To:From:Subject:Message-Id; b=S7twCCCsAfMrZuJodIewwZPAQagsRT+KmHZYOOPoO/g5nUrnWWBazA6krvnz29ClSKcMSvYpeg+PUIZb45znrfBoQ8JstTFv6Ks+FaNr4sy4JM2Y1FB/otDlo5HYEKWjA6/DNYNcIBIbYecKXV0AF1AT/1+3iP1UPfBMkLi9ZxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dkKnegvO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MVMRNw4P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 213FAC4CEC3;
-	Tue, 10 Sep 2024 20:14:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dkKnegvO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3B3C4CECC;
+	Wed, 11 Sep 2024 18:52:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1725999252;
-	bh=dI62mk2HIo+8QnO8RurlaPOrmZWfwqZfKzHa7jjYSrQ=;
+	s=korg; t=1726080749;
+	bh=R9lQ2fBpEP1O2Edn9E1K/36kfoFForr3vHpIKWtS+jo=;
 	h=Date:To:From:Subject:From;
-	b=MVMRNw4POiKI0fohLY5kzSDeuE4PtxNYlD4Ka3ZLqLS+pSlPPb2Y872mUArmOxFLp
-	 kM4+IiYyBQeCKTtxTj2eJDQTVoDvaNkuv1Ov1tDq2hCVnnT7M/4EKiYomqYh41/hSy
-	 3QrA2IXmX7cfldgN+6ag12zZAXBdmzrMqGU/S13Q=
-Date: Tue, 10 Sep 2024 13:14:11 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=dkKnegvOboocuKLAKcXimByPZXRMcZ+qYCux+jKbIaq1+LWAI58kAlj4qVgVQznmn
+	 jVIiVHIwfBXKzXxWFgIrZVmTRALgXu6+2iIdikM/Rzu6OTXwDYLYKqkBwTKULrO74o
+	 gNDBxDr0mqiRAjYdpW78kv6qYkC28tIeGvcFAb1c=
+Date: Wed, 11 Sep 2024 11:52:21 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,chenridong@huawei.com,mkoutny@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-drop-unused-set_pte_safe.patch removed from -mm tree
-Message-Id: <20240910201412.213FAC4CEC3@smtp.kernel.org>
+Subject: + memcg-cleanup-with-config_memcg_v1.patch added to mm-unstable branch
+Message-Id: <20240911185227.3B3B3C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,55 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: drop unused set_pte_safe()
-has been removed from the -mm tree.  Its filename was
-     mm-drop-unused-set_pte_safe.patch
+The patch titled
+     Subject: memcg: cleanup with !CONFIG_MEMCG_V1
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-cleanup-with-config_memcg_v1.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-cleanup-with-config_memcg_v1.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: drop unused set_pte_safe()
-Date: Tue, 10 Sep 2024 15:40:26 +0530
+From: Michal Koutný <mkoutny@suse.com>
+Subject: memcg: cleanup with !CONFIG_MEMCG_V1
+Date: Mon, 9 Sep 2024 18:32:20 +0200
 
-All set_pte_safe() usage have been dropped after the commit eccd906484d1
-("x86/mm: Do not use set_{pud, pmd}_safe() when splitting a large page")
-This just drops now unused helper set_pte_safe().
+Extern declarations have no definitions with !CONFIG_MEMCG_V1 and no
+users, drop them altogether.
 
-Besides this macro was buggy due to doing direct dereferencing of the pte,
-and if it were to be kept, it should have been updated to use a single
-call to ptep_get().
-
-Link: https://lkml.kernel.org/r/20240910101026.428808-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20240909163223.3693529-1-mkoutny@suse.com
+Link: https://lkml.kernel.org/r/20240909163223.3693529-2-mkoutny@suse.com
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Chen Ridong <chenridong@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/memcontrol-v1.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/pgtable.h~mm-drop-unused-set_pte_safe
-+++ a/include/linux/pgtable.h
-@@ -1064,12 +1064,6 @@ static inline int pgd_same(pgd_t pgd_a,
-  * same value. Otherwise, use the typical "set" helpers and flush the
-  * TLB.
-  */
--#define set_pte_safe(ptep, pte) \
--({ \
--	WARN_ON_ONCE(pte_present(*ptep) && !pte_same(*ptep, pte)); \
--	set_pte(ptep, pte); \
--})
--
- #define set_pmd_safe(pmdp, pmd) \
- ({ \
- 	WARN_ON_ONCE(pmd_present(*pmdp) && !pmd_same(*pmdp, pmd)); \
+--- a/mm/memcontrol-v1.h~memcg-cleanup-with-config_memcg_v1
++++ a/mm/memcontrol-v1.h
+@@ -154,8 +154,6 @@ static inline bool memcg1_charge_skmem(s
+ 				       gfp_t gfp_mask) { return true; }
+ static inline void memcg1_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages) {}
+ 
+-extern struct cftype memsw_files[];
+-extern struct cftype mem_cgroup_legacy_files[];
+ #endif	/* CONFIG_MEMCG_V1 */
+ 
+ #endif	/* __MM_MEMCONTROL_V1_H */
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from mkoutny@suse.com are
 
-mm-debug_vm_pgtable-use-pxdp_get-for-accessing-page-table-entries.patch
+memcg-cleanup-with-config_memcg_v1.patch
 
