@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED29185B7B
-	for <mm-commits@vger.kernel.org>; Wed, 11 Sep 2024 18:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E993185B7B
+	for <mm-commits@vger.kernel.org>; Wed, 11 Sep 2024 18:52:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726080749; cv=none; b=I0Sff905ecLduwoIgSy5ArKzVhhYUszonmhXyx7qUK/C+u3ptIhLSJ7iBHbrHUfnfzOTlFsKF2UFW5GGHQoRiN6ZGBG1eG95G2T6savA+3eJ6DUdQg9fYmYMBwg8HVOTqsn0CP7jD4X6g3eZ3F00oTdunqcGA5RJhGy2lC89gV8=
+	t=1726080758; cv=none; b=QXZZRrL1fExd7AKuR6emMXVVBq3Yb4bzTKwq4NMk2mHoRKrqB9QvliOVYlRJNMvlzQ8Z4KCBOTT5y8GoltpSNEUEdfks4j83vND1fuqAgZrjhpcOulXh6n4rujOhppICJdRnuWlMzxkzT/goyxMPMk2kV0Wd6HrdGHHwIGMMS4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726080749; c=relaxed/simple;
-	bh=R9lQ2fBpEP1O2Edn9E1K/36kfoFForr3vHpIKWtS+jo=;
-	h=Date:To:From:Subject:Message-Id; b=S7twCCCsAfMrZuJodIewwZPAQagsRT+KmHZYOOPoO/g5nUrnWWBazA6krvnz29ClSKcMSvYpeg+PUIZb45znrfBoQ8JstTFv6Ks+FaNr4sy4JM2Y1FB/otDlo5HYEKWjA6/DNYNcIBIbYecKXV0AF1AT/1+3iP1UPfBMkLi9ZxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dkKnegvO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726080758; c=relaxed/simple;
+	bh=rxirT+dgBYzP68ya8n/FyCnXjP8fciWYrBlUPTxkc54=;
+	h=Date:To:From:Subject:Message-Id; b=AYXvHARwEd4lYzMWrLnC3C8UOLc0rDsmbFmfz6kr1qSohkNWdvPKKoyaeh0Qv//DFPRDh4PiTuyWxh68xy5qHydAusOC86Y8qDuPONBpf4G+BfMMb+r7XYf2/083pYiXdmlXUuj/ouTw5MQsCsp4Gn7Po+XZAgCJOwd1Mxhlq1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T0FSCCUr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dkKnegvO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3B3C4CECC;
-	Wed, 11 Sep 2024 18:52:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T0FSCCUr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25888C4CEC0;
+	Wed, 11 Sep 2024 18:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726080749;
-	bh=R9lQ2fBpEP1O2Edn9E1K/36kfoFForr3vHpIKWtS+jo=;
+	s=korg; t=1726080758;
+	bh=rxirT+dgBYzP68ya8n/FyCnXjP8fciWYrBlUPTxkc54=;
 	h=Date:To:From:Subject:From;
-	b=dkKnegvOboocuKLAKcXimByPZXRMcZ+qYCux+jKbIaq1+LWAI58kAlj4qVgVQznmn
-	 jVIiVHIwfBXKzXxWFgIrZVmTRALgXu6+2iIdikM/Rzu6OTXwDYLYKqkBwTKULrO74o
-	 gNDBxDr0mqiRAjYdpW78kv6qYkC28tIeGvcFAb1c=
-Date: Wed, 11 Sep 2024 11:52:21 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,longman@redhat.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,chenridong@huawei.com,mkoutny@suse.com,akpm@linux-foundation.org
+	b=T0FSCCUrOw+3XPkWEja88HOc9SjfNivMMxHPR0VeGR/MO7mGf3s2Osf4fLeeZfdFr
+	 ppHiOZJsChqwpTH2bRcrYyabJkC4mNxYyEczsYIgeembzWQX6VQRoyIdeN9lyBSQSZ
+	 OLAIBDWcIkQM2iluNb4BowdmIaCuG+RMIYXsq44c=
+Date: Wed, 11 Sep 2024 11:52:30 -0700
+To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,svens@linux.ibm.com,peterz@infradead.org,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,andrii@kernel.org,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-cleanup-with-config_memcg_v1.patch added to mm-unstable branch
-Message-Id: <20240911185227.3B3B3C4CECC@smtp.kernel.org>
+Subject: + revert-uprobes-use-vm_special_mapping-close-functionality.patch added to mm-unstable branch
+Message-Id: <20240911185237.25888C4CEC0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: cleanup with !CONFIG_MEMCG_V1
+     Subject: Revert "uprobes: use vm_special_mapping close() functionality"
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-cleanup-with-config_memcg_v1.patch
+     revert-uprobes-use-vm_special_mapping-close-functionality.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-cleanup-with-config_memcg_v1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-uprobes-use-vm_special_mapping-close-functionality.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Koutný <mkoutny@suse.com>
-Subject: memcg: cleanup with !CONFIG_MEMCG_V1
-Date: Mon, 9 Sep 2024 18:32:20 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Revert "uprobes: use vm_special_mapping close() functionality"
+Date: Wed, 11 Sep 2024 15:13:20 +0200
 
-Extern declarations have no definitions with !CONFIG_MEMCG_V1 and no
-users, drop them altogether.
+This reverts commit 08e28de1160a712724268fd33d77b32f1bc84d1c.
 
-Link: https://lkml.kernel.org/r/20240909163223.3693529-1-mkoutny@suse.com
-Link: https://lkml.kernel.org/r/20240909163223.3693529-2-mkoutny@suse.com
-Signed-off-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Zefan Li <lizefan.x@bytedance.com>
-Cc: Waiman Long <longman@redhat.com>
+A malicious application can munmap() its "[uprobes]" vma and in this case
+xol_mapping.close == uprobe_clear_state() will free the memory which can
+be used by another thread, or the same thread when it hits the uprobe bp
+afterwards.
+
+Link: https://lkml.kernel.org/r/20240911131320.GA3448@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/uprobes.h |    1 +
+ kernel/events/uprobes.c |   36 +++++++++++++++++++-----------------
+ kernel/fork.c           |    1 +
+ 3 files changed, 21 insertions(+), 17 deletions(-)
 
---- a/mm/memcontrol-v1.h~memcg-cleanup-with-config_memcg_v1
-+++ a/mm/memcontrol-v1.h
-@@ -154,8 +154,6 @@ static inline bool memcg1_charge_skmem(s
- 				       gfp_t gfp_mask) { return true; }
- static inline void memcg1_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages) {}
+--- a/include/linux/uprobes.h~revert-uprobes-use-vm_special_mapping-close-functionality
++++ a/include/linux/uprobes.h
+@@ -126,6 +126,7 @@ extern int uprobe_pre_sstep_notifier(str
+ extern void uprobe_notify_resume(struct pt_regs *regs);
+ extern bool uprobe_deny_signal(void);
+ extern bool arch_uprobe_skip_sstep(struct arch_uprobe *aup, struct pt_regs *regs);
++extern void uprobe_clear_state(struct mm_struct *mm);
+ extern int  arch_uprobe_analyze_insn(struct arch_uprobe *aup, struct mm_struct *mm, unsigned long addr);
+ extern int  arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+ extern int  arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+--- a/kernel/events/uprobes.c~revert-uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/events/uprobes.c
+@@ -1482,22 +1482,6 @@ void * __weak arch_uprobe_trampoline(uns
+ 	return &insn;
+ }
  
--extern struct cftype memsw_files[];
--extern struct cftype mem_cgroup_legacy_files[];
- #endif	/* CONFIG_MEMCG_V1 */
+-/*
+- * uprobe_clear_state - Free the area allocated for slots.
+- */
+-static void uprobe_clear_state(const struct vm_special_mapping *sm, struct vm_area_struct *vma)
+-{
+-	struct xol_area *area = container_of(vma->vm_private_data, struct xol_area, xol_mapping);
+-
+-	mutex_lock(&delayed_uprobe_lock);
+-	delayed_uprobe_remove(NULL, vma->vm_mm);
+-	mutex_unlock(&delayed_uprobe_lock);
+-
+-	put_page(area->pages[0]);
+-	kfree(area->bitmap);
+-	kfree(area);
+-}
+-
+ static struct xol_area *__create_xol_area(unsigned long vaddr)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -1516,7 +1500,6 @@ static struct xol_area *__create_xol_are
  
- #endif	/* __MM_MEMCONTROL_V1_H */
+ 	area->xol_mapping.name = "[uprobes]";
+ 	area->xol_mapping.fault = NULL;
+-	area->xol_mapping.close = uprobe_clear_state;
+ 	area->xol_mapping.pages = area->pages;
+ 	area->pages[0] = alloc_page(GFP_HIGHUSER);
+ 	if (!area->pages[0])
+@@ -1562,6 +1545,25 @@ static struct xol_area *get_xol_area(voi
+ 	return area;
+ }
+ 
++/*
++ * uprobe_clear_state - Free the area allocated for slots.
++ */
++void uprobe_clear_state(struct mm_struct *mm)
++{
++	struct xol_area *area = mm->uprobes_state.xol_area;
++
++	mutex_lock(&delayed_uprobe_lock);
++	delayed_uprobe_remove(NULL, mm);
++	mutex_unlock(&delayed_uprobe_lock);
++
++	if (!area)
++		return;
++
++	put_page(area->pages[0]);
++	kfree(area->bitmap);
++	kfree(area);
++}
++
+ void uprobe_start_dup_mmap(void)
+ {
+ 	percpu_down_read(&dup_mmap_sem);
+--- a/kernel/fork.c~revert-uprobes-use-vm_special_mapping-close-functionality
++++ a/kernel/fork.c
+@@ -1338,6 +1338,7 @@ static inline void __mmput(struct mm_str
+ {
+ 	VM_BUG_ON(atomic_read(&mm->mm_users));
+ 
++	uprobe_clear_state(mm);
+ 	exit_aio(mm);
+ 	ksm_exit(mm);
+ 	khugepaged_exit(mm); /* must run before exit_mmap */
 _
 
-Patches currently in -mm which might be from mkoutny@suse.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-memcg-cleanup-with-config_memcg_v1.patch
+revert-uprobes-use-vm_special_mapping-close-functionality.patch
+uprobes-introduce-the-global-struct-vm_special_mapping-xol_mapping.patch
+uprobes-turn-xol_area-pages-into-xol_area-page.patch
 
