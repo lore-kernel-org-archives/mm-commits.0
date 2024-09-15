@@ -1,164 +1,106 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34F581B29BA
-	for <mm-commits@vger.kernel.org>; Wed, 11 Sep 2024 18:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5474F347B4
+	for <mm-commits@vger.kernel.org>; Sun, 15 Sep 2024 17:25:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726080774; cv=none; b=arIwcLb6eGgMZSn7iQ05YqZS3FI8EiU2CAVvVMw1kvoUmLEklIvCCH2yd1XzG+iDqiM2GvVz3ZeL8lbe3T/+ZS/YK0O4+9tD53GNaT4ZWRhKJt4osKjKZxbhR9kN4Jb4kFuoCI9mbst1j48sPZFxDDsKKO0lOzDe+oURRaoALVg=
+	t=1726421106; cv=none; b=E8JhqZf9JLIksEZF94niaGeKIWNvPs0s1cqVuiaXqvtm1XUhApWELm9qVplgKFO937sMG2m5+1f0Qi7iOKIC8eyTYwdcF5vKkxu+6ZJEUuF+uFDoudfzXJ9wAgXqcMJSWh0Yp7WueAPZK/kAD0vuK9SSD++YNWtIleEaCs4UtyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726080774; c=relaxed/simple;
-	bh=+kTZ9N7v27UhayFuoBAGWEqtYwz43M3e2nJBc0WH6lI=;
-	h=Date:To:From:Subject:Message-Id; b=VefJcNpDnqCD8gLWbIEmxdQJ5G9h2ZviXqHE5+njtG9dKJrNS7Nqjy3O0u+RcRi70UwnnQyTYzLrXZ2d0OvNPKq+SvTccyK2rSgqdX7hL8KZ8GiLUcOOpsqKNac+BfXZq6isAsA+H9uZXNCvWLU0P6P1frIkmxNICdDEUi3saEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ge5hRb4i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726421106; c=relaxed/simple;
+	bh=BuxJfh/DOgfi9fdn7BR53KIea+LBSa8oZOk89Iaijjk=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=P4+KWGuG0yu14f+RsFV5Z4hRV8TShQV8CT23YX7O6i71Qq2xnV7TacpuaTmdvdsUmAbRboRS7SrgF4SlrmbU0pKZDWVG9FRygyC9tHm1Q9yQX87gs8inZOK7UFuupYRHcsYL0Z78PiYeEEJYvQ1S36inL38wVwO6NPhg1vDEDk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=QjxP4UrV; arc=none smtp.client-ip=185.70.43.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ge5hRb4i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F6CBC4CEC0;
-	Wed, 11 Sep 2024 18:52:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726080774;
-	bh=+kTZ9N7v27UhayFuoBAGWEqtYwz43M3e2nJBc0WH6lI=;
-	h=Date:To:From:Subject:From;
-	b=Ge5hRb4irJYnjn1y448Q7IO622lpErQXNZY2yUXkiKf384bayL7V71Vp4WadVgIBv
-	 e9M2wBhhhq9Mq1jiC1+jw7XdKsvq3PQUdXZXWc54aBJsJWczvcuj/YJuFvR/5rpV6Y
-	 jLKm4q8iNoX1+AxkgDCDBU9JSMrhKYUAtPd+FU4E=
-Date: Wed, 11 Sep 2024 11:52:47 -0700
-To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,svens@linux.ibm.com,peterz@infradead.org,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,andrii@kernel.org,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uprobes-turn-xol_area-pages-into-xol_area-page.patch added to mm-unstable branch
-Message-Id: <20240911185253.2F6CBC4CEC0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="QjxP4UrV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1726421102; x=1726680302;
+	bh=BuxJfh/DOgfi9fdn7BR53KIea+LBSa8oZOk89Iaijjk=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=QjxP4UrVdTFPfF79+IH46j37ZLJWIbX6I/QLdawziRvxNz0S56SSGpqHBxUJfRqg5
+	 3rQmVwQc8ubfsFgY9tz6v0xKGam6eHtsSv3hmNQ+cvPa56uspph47D1s8gbGJ9tjR5
+	 7mxV/M6/9tRiN7KdcdM2r/T4EjJ17Y9ts4+Xp2iy8wTZNZOHMV49oDRof8xp2z//xH
+	 EBMVVEBOfnizh+nJtrUt7dnW/PcevYRrfpGApz9faqIyrqgeNlZHg/CA0/mENOipHv
+	 15uMlT3AabE9Xx2qMp+rDTwERfmJXIaWpvrrWJVwS3UQl5tN0J11k9qyaQcyZ6BFiF
+	 O8qW22JR8kHkw==
+Date: Sun, 15 Sep 2024 17:24:58 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+From: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
+Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org, keescook@chromium.org, jorgelo@chromium.org, jeffxu@google.com, hughd@google.com, dverkamp@chromium.org, dmitry.torokhov@gmail.com, david@readahead.eu
+Subject: Re: [nacked] memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch removed from -mm tree
+Message-ID: <t9Q-3_9rKhw6FSGhPgovLCtpDeyrjsLA0E_kwtEjAepE-SLtHww-UtAJDrLYSVBhOmliBCX7wEyHCSIT1mjAeJOqg3a2cTnOCbdL44QP2Vs=@protonmail.com>
+In-Reply-To: <4uxF8XTlNc9OXtl00MySnr78ZXcxec_W9IbWt-4R8lG-LWsTC_Z571pCrqnz8TKrWiq16NJuTSiwW8JhVMzdMgvwbB2aXTtX3DP2SZyUDzk=@protonmail.com>
+References: <20240614182715.12694C2BD10@smtp.kernel.org> <qdcD-qU2Jfk6ImGOIaV4sWrbTZcHj44hNr454b2pd_SV8t4Bu1mnjsWXfYgW-c7tFW7bQowMRaKysMVcmWvGvUW3O20py_2H1jd7kNGT62Y=@protonmail.com> <20240614165242.f9d89f9a5711cffc5e0b0f77@linux-foundation.org> <4uxF8XTlNc9OXtl00MySnr78ZXcxec_W9IbWt-4R8lG-LWsTC_Z571pCrqnz8TKrWiq16NJuTSiwW8JhVMzdMgvwbB2aXTtX3DP2SZyUDzk=@protonmail.com>
+Feedback-ID: 20568564:user:proton
+X-Pm-Message-ID: a9cff8acaad0e34805dd894aef35f54ab10280c1
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+2024. j=C3=BAnius 30., vas=C3=A1rnap 20:53 keltez=C3=A9ssel, Barnab=C3=
+=A1s P=C5=91cze <pobrn@protonmail.com> =C3=ADrta:
+
+> 2024. j=C3=BAnius 15., szombat 1:52 keltez=C3=A9ssel, Andrew Morton <akpm=
+@linux-foundation.org> =C3=ADrta:
+>=20
+> > On Fri, 14 Jun 2024 20:00:02 +0000 Barnab=C3=A1s P=C5=91cze pobrn@proto=
+nmail.com wrote:
+> >
+> > > 2024. j=C3=BAnius 14., p=C3=A9ntek 20:27 keltez=C3=A9ssel, Andrew Mor=
+ton akpm@linux-foundation.org =C3=ADrta:
+> > >
+> > > > The quilt patch titled
+> > > > Subject: memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALI=
+NG`
+> > > > has been removed from the -mm tree. Its filename was
+> > > > memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch
+> > > >
+> > > > This patch was dropped because it was nacked
+> > >
+> > > Hi Andrew,
+> > >
+> > > do I gather it correctly that this is the final decision, and there i=
+s not much
+> > > willingness to try to remove this quirk of the `memfd_create()`? As f=
+ar as I can tell,
+> > > the change was in linux-next for some time, did that uncover any prob=
+lems? (If so,
+> > > I haven't been notified.)
+> > >
+> > > Anyways, I believe I have laid out my arguments already, so I won't r=
+epeat them here,
+> > > and if this is final, then I will stop wasting everyone's time with f=
+urther emails. :-)
+> >
+> >
+> > We do appear to be stuck.
+> >
+> > Please feel free to pursue this. Reissue the patch with an updated
+> > changelog which addresses the various issues which have been raised
+> > thus far and let's reexamine.
+>=20
+> Done: https://lore.kernel.org/linux-mm/20240630184912.37335-1-pobrn@proto=
+nmail.com/
+> I believe the commit message now adequately captures my thinking regardin=
+g
+> backwards compatibility; additionally I have carried out a smoke test by
+> booting into an Arch Linux system with the patch.
+> [...]
+
+Hi Andrew,
+
+what do you think?
 
 
-The patch titled
-     Subject: uprobes: turn xol_area->pages[2] into xol_area->page
-has been added to the -mm mm-unstable branch.  Its filename is
-     uprobes-turn-xol_area-pages-into-xol_area-page.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-turn-xol_area-pages-into-xol_area-page.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: uprobes: turn xol_area->pages[2] into xol_area->page
-Date: Wed, 11 Sep 2024 15:14:37 +0200
-
-Now that xol_mapping has its own ->fault() method we no longer need
-xol_area->pages[1] == NULL, we need a single page.
-
-Link: https://lkml.kernel.org/r/20240911131437.GC3448@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/events/uprobes.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
-
---- a/kernel/events/uprobes.c~uprobes-turn-xol_area-pages-into-xol_area-page
-+++ a/kernel/events/uprobes.c
-@@ -99,7 +99,7 @@ struct xol_area {
- 	atomic_t 			slot_count;	/* number of in-use slots */
- 	unsigned long 			*bitmap;	/* 0 = free slot */
- 
--	struct page 			*pages[2];
-+	struct page			*page;
- 	/*
- 	 * We keep the vma's vm_start rather than a pointer to the vma
- 	 * itself.  The probed process or a naughty kernel module could make
-@@ -1437,7 +1437,7 @@ static vm_fault_t xol_fault(const struct
- {
- 	struct xol_area *area = vma->vm_mm->uprobes_state.xol_area;
- 
--	vmf->page = area->pages[0];
-+	vmf->page = area->page;
- 	get_page(vmf->page);
- 	return 0;
- }
-@@ -1512,10 +1512,9 @@ static struct xol_area *__create_xol_are
- 	if (!area->bitmap)
- 		goto free_area;
- 
--	area->pages[0] = alloc_page(GFP_HIGHUSER);
--	if (!area->pages[0])
-+	area->page = alloc_page(GFP_HIGHUSER);
-+	if (!area->page)
- 		goto free_bitmap;
--	area->pages[1] = NULL;
- 
- 	area->vaddr = vaddr;
- 	init_waitqueue_head(&area->wq);
-@@ -1523,12 +1522,12 @@ static struct xol_area *__create_xol_are
- 	set_bit(0, area->bitmap);
- 	atomic_set(&area->slot_count, 1);
- 	insns = arch_uprobe_trampoline(&insns_size);
--	arch_uprobe_copy_ixol(area->pages[0], 0, insns, insns_size);
-+	arch_uprobe_copy_ixol(area->page, 0, insns, insns_size);
- 
- 	if (!xol_add_vma(mm, area))
- 		return area;
- 
--	__free_page(area->pages[0]);
-+	__free_page(area->page);
-  free_bitmap:
- 	kfree(area->bitmap);
-  free_area:
-@@ -1570,7 +1569,7 @@ void uprobe_clear_state(struct mm_struct
- 	if (!area)
- 		return;
- 
--	put_page(area->pages[0]);
-+	put_page(area->page);
- 	kfree(area->bitmap);
- 	kfree(area);
- }
-@@ -1637,7 +1636,7 @@ static unsigned long xol_get_insn_slot(s
- 	if (unlikely(!xol_vaddr))
- 		return 0;
- 
--	arch_uprobe_copy_ixol(area->pages[0], xol_vaddr,
-+	arch_uprobe_copy_ixol(area->page, xol_vaddr,
- 			      &uprobe->arch.ixol, sizeof(uprobe->arch.ixol));
- 
- 	return xol_vaddr;
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-revert-uprobes-use-vm_special_mapping-close-functionality.patch
-uprobes-introduce-the-global-struct-vm_special_mapping-xol_mapping.patch
-uprobes-turn-xol_area-pages-into-xol_area-page.patch
-
+Regards,
+Barnab=C3=A1s P=C5=91cze
