@@ -1,106 +1,147 @@
-Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5474F347B4
-	for <mm-commits@vger.kernel.org>; Sun, 15 Sep 2024 17:25:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A71381B1;
+	Mon, 16 Sep 2024 06:03:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726421106; cv=none; b=E8JhqZf9JLIksEZF94niaGeKIWNvPs0s1cqVuiaXqvtm1XUhApWELm9qVplgKFO937sMG2m5+1f0Qi7iOKIC8eyTYwdcF5vKkxu+6ZJEUuF+uFDoudfzXJ9wAgXqcMJSWh0Yp7WueAPZK/kAD0vuK9SSD++YNWtIleEaCs4UtyI=
+	t=1726466619; cv=none; b=WEY8lDYdEEj52yQBzQ4K/o0LVw/GWIXfW4pBdXuJebtkAsnhdPU01Bni7/WxMnptxE+1TeCfjnZg9wdVX8fr3NtXIvsyeKGAg0KlCphX2jYeYqFPOXfASY3gWEK8PyFqWbW3jDkYonnLtMe55QHx/xK84izIem1SrdR5WyxHAqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726421106; c=relaxed/simple;
-	bh=BuxJfh/DOgfi9fdn7BR53KIea+LBSa8oZOk89Iaijjk=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=P4+KWGuG0yu14f+RsFV5Z4hRV8TShQV8CT23YX7O6i71Qq2xnV7TacpuaTmdvdsUmAbRboRS7SrgF4SlrmbU0pKZDWVG9FRygyC9tHm1Q9yQX87gs8inZOK7UFuupYRHcsYL0Z78PiYeEEJYvQ1S36inL38wVwO6NPhg1vDEDk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=QjxP4UrV; arc=none smtp.client-ip=185.70.43.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	s=arc-20240116; t=1726466619; c=relaxed/simple;
+	bh=kFfemlrgGPHheGJTZlz78t+8wj1zHnLP2V7jvzR6HPM=;
+	h=Date:To:From:Subject:Message-Id; b=OdXgPmHKPdhS6YY5sytQdaLYZq3rxc+nfECeah2EPkPpb/Ok3aXtbmI3zf/5+Ok+JLne/xMpMvL0lfwNEj+JHeoei3kQ13MzOcu76RACf1a3cSutaXWfC90QET+vdryVomCUV/W43z8LGvPzUQdJ6YBN1TUvHE14h/3cLXHUh+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kW1hKyjF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="QjxP4UrV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1726421102; x=1726680302;
-	bh=BuxJfh/DOgfi9fdn7BR53KIea+LBSa8oZOk89Iaijjk=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=QjxP4UrVdTFPfF79+IH46j37ZLJWIbX6I/QLdawziRvxNz0S56SSGpqHBxUJfRqg5
-	 3rQmVwQc8ubfsFgY9tz6v0xKGam6eHtsSv3hmNQ+cvPa56uspph47D1s8gbGJ9tjR5
-	 7mxV/M6/9tRiN7KdcdM2r/T4EjJ17Y9ts4+Xp2iy8wTZNZOHMV49oDRof8xp2z//xH
-	 EBMVVEBOfnizh+nJtrUt7dnW/PcevYRrfpGApz9faqIyrqgeNlZHg/CA0/mENOipHv
-	 15uMlT3AabE9Xx2qMp+rDTwERfmJXIaWpvrrWJVwS3UQl5tN0J11k9qyaQcyZ6BFiF
-	 O8qW22JR8kHkw==
-Date: Sun, 15 Sep 2024 17:24:58 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-From: =?utf-8?Q?Barnab=C3=A1s_P=C5=91cze?= <pobrn@protonmail.com>
-Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org, keescook@chromium.org, jorgelo@chromium.org, jeffxu@google.com, hughd@google.com, dverkamp@chromium.org, dmitry.torokhov@gmail.com, david@readahead.eu
-Subject: Re: [nacked] memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch removed from -mm tree
-Message-ID: <t9Q-3_9rKhw6FSGhPgovLCtpDeyrjsLA0E_kwtEjAepE-SLtHww-UtAJDrLYSVBhOmliBCX7wEyHCSIT1mjAeJOqg3a2cTnOCbdL44QP2Vs=@protonmail.com>
-In-Reply-To: <4uxF8XTlNc9OXtl00MySnr78ZXcxec_W9IbWt-4R8lG-LWsTC_Z571pCrqnz8TKrWiq16NJuTSiwW8JhVMzdMgvwbB2aXTtX3DP2SZyUDzk=@protonmail.com>
-References: <20240614182715.12694C2BD10@smtp.kernel.org> <qdcD-qU2Jfk6ImGOIaV4sWrbTZcHj44hNr454b2pd_SV8t4Bu1mnjsWXfYgW-c7tFW7bQowMRaKysMVcmWvGvUW3O20py_2H1jd7kNGT62Y=@protonmail.com> <20240614165242.f9d89f9a5711cffc5e0b0f77@linux-foundation.org> <4uxF8XTlNc9OXtl00MySnr78ZXcxec_W9IbWt-4R8lG-LWsTC_Z571pCrqnz8TKrWiq16NJuTSiwW8JhVMzdMgvwbB2aXTtX3DP2SZyUDzk=@protonmail.com>
-Feedback-ID: 20568564:user:proton
-X-Pm-Message-ID: a9cff8acaad0e34805dd894aef35f54ab10280c1
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kW1hKyjF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24411C4CEC4;
+	Mon, 16 Sep 2024 06:03:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1726466618;
+	bh=kFfemlrgGPHheGJTZlz78t+8wj1zHnLP2V7jvzR6HPM=;
+	h=Date:To:From:Subject:From;
+	b=kW1hKyjF2tshJoMTVnLZjf+QKQ7TWuEgHHC3LPlrB1byBRNVvKM0c8E6Wb+aQOn/r
+	 +Eh+j+FI+RDqV1982pOx9YJ5S7a99LQOg/BLLa4igSk2DrMFUJevZrZUw1d94agVlT
+	 wzkbipCUOnrrF01PDS2wXtasic1aw66JceBjhuNY=
+Date: Sun, 15 Sep 2024 23:03:35 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240916060338.24411C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-2024. j=C3=BAnius 30., vas=C3=A1rnap 20:53 keltez=C3=A9ssel, Barnab=C3=
-=A1s P=C5=91cze <pobrn@protonmail.com> =C3=ADrta:
-
-> 2024. j=C3=BAnius 15., szombat 1:52 keltez=C3=A9ssel, Andrew Morton <akpm=
-@linux-foundation.org> =C3=ADrta:
->=20
-> > On Fri, 14 Jun 2024 20:00:02 +0000 Barnab=C3=A1s P=C5=91cze pobrn@proto=
-nmail.com wrote:
-> >
-> > > 2024. j=C3=BAnius 14., p=C3=A9ntek 20:27 keltez=C3=A9ssel, Andrew Mor=
-ton akpm@linux-foundation.org =C3=ADrta:
-> > >
-> > > > The quilt patch titled
-> > > > Subject: memfd: `MFD_NOEXEC_SEAL` should not imply `MFD_ALLOW_SEALI=
-NG`
-> > > > has been removed from the -mm tree. Its filename was
-> > > > memfd-mfd_noexec_seal-should-not-imply-mfd_allow_sealing.patch
-> > > >
-> > > > This patch was dropped because it was nacked
-> > >
-> > > Hi Andrew,
-> > >
-> > > do I gather it correctly that this is the final decision, and there i=
-s not much
-> > > willingness to try to remove this quirk of the `memfd_create()`? As f=
-ar as I can tell,
-> > > the change was in linux-next for some time, did that uncover any prob=
-lems? (If so,
-> > > I haven't been notified.)
-> > >
-> > > Anyways, I believe I have laid out my arguments already, so I won't r=
-epeat them here,
-> > > and if this is final, then I will stop wasting everyone's time with f=
-urther emails. :-)
-> >
-> >
-> > We do appear to be stuck.
-> >
-> > Please feel free to pursue this. Reissue the patch with an updated
-> > changelog which addresses the various issues which have been raised
-> > thus far and let's reexamine.
->=20
-> Done: https://lore.kernel.org/linux-mm/20240630184912.37335-1-pobrn@proto=
-nmail.com/
-> I believe the commit message now adequately captures my thinking regardin=
-g
-> backwards compatibility; additionally I have carried out a smoke test by
-> booting into an Arch Linux system with the patch.
-> [...]
-
-Hi Andrew,
-
-what do you think?
 
 
-Regards,
-Barnab=C3=A1s P=C5=91cze
+The patch titled
+     Subject: mm: change vmf_anon_prepare() to __vmf_anon_prepare()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm: change vmf_anon_prepare() to __vmf_anon_prepare()
+Date: Sat, 14 Sep 2024 12:41:18 -0700
+
+Some callers of vmf_anon_prepare() may not want us to release the per-VMA
+lock ourselves.  Rename vmf_anon_prepare() to __vmf_anon_prepare() and let
+the callers drop the lock when desired.
+
+Also, make vmf_anon_prepare() a wrapper that releases the per-VMA lock
+itself for any callers that don't care.
+
+This is in preparation to fix this bug reported by syzbot:
+https://lore.kernel.org/linux-mm/00000000000067c20b06219fbc26@google.com/
+
+Link: https://lkml.kernel.org/r/20240914194243.245-1-vishal.moola@gmail.com
+Fixes: 9acad7ba3e25 ("hugetlb: use vmf_anon_prepare() instead of anon_vma_prepare()")
+Reported-by: syzbot+2dab93857ee95f2eeb08@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/00000000000067c20b06219fbc26@google.com/
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/internal.h |   11 ++++++++++-
+ mm/memory.c   |    8 +++-----
+ 2 files changed, 13 insertions(+), 6 deletions(-)
+
+--- a/mm/internal.h~mm-change-vmf_anon_prepare-to-__vmf_anon_prepare
++++ a/mm/internal.h
+@@ -310,7 +310,16 @@ static inline void wake_throttle_isolate
+ 		wake_up(wqh);
+ }
+ 
+-vm_fault_t vmf_anon_prepare(struct vm_fault *vmf);
++vm_fault_t __vmf_anon_prepare(struct vm_fault *vmf);
++static inline vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
++{
++	vm_fault_t ret = __vmf_anon_prepare(vmf);
++
++	if (unlikely(ret & VM_FAULT_RETRY))
++		vma_end_read(vmf->vma);
++	return ret;
++}
++
+ vm_fault_t do_swap_page(struct vm_fault *vmf);
+ void folio_rotate_reclaimable(struct folio *folio);
+ bool __folio_end_writeback(struct folio *folio);
+--- a/mm/memory.c~mm-change-vmf_anon_prepare-to-__vmf_anon_prepare
++++ a/mm/memory.c
+@@ -3259,7 +3259,7 @@ static inline vm_fault_t vmf_can_call_fa
+ }
+ 
+ /**
+- * vmf_anon_prepare - Prepare to handle an anonymous fault.
++ * __vmf_anon_prepare - Prepare to handle an anonymous fault.
+  * @vmf: The vm_fault descriptor passed from the fault handler.
+  *
+  * When preparing to insert an anonymous page into a VMA from a
+@@ -3273,7 +3273,7 @@ static inline vm_fault_t vmf_can_call_fa
+  * Return: 0 if fault handling can proceed.  Any other value should be
+  * returned to the caller.
+  */
+-vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
++vm_fault_t __vmf_anon_prepare(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	vm_fault_t ret = 0;
+@@ -3281,10 +3281,8 @@ vm_fault_t vmf_anon_prepare(struct vm_fa
+ 	if (likely(vma->anon_vma))
+ 		return 0;
+ 	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
+-		if (!mmap_read_trylock(vma->vm_mm)) {
+-			vma_end_read(vma);
++		if (!mmap_read_trylock(vma->vm_mm))
+ 			return VM_FAULT_RETRY;
+-		}
+ 	}
+ 	if (__anon_vma_prepare(vma))
+ 		ret = VM_FAULT_OOM;
+_
+
+Patches currently in -mm which might be from vishal.moola@gmail.com are
+
+mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch
+mm-hugetlbc-fix-uaf-of-vma-in-hugetlb-fault-pathway.patch
+
