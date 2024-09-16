@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C603C13C3F2
-	for <mm-commits@vger.kernel.org>; Mon, 16 Sep 2024 06:12:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DFB84D8C6
+	for <mm-commits@vger.kernel.org>; Mon, 16 Sep 2024 06:13:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726467139; cv=none; b=sFXDRkmPWYFCPzx1WEaL96Gu2Vmmo9WpSxuMzpAoopNU7o45xG12gBZVQwvPr54pUfD6YBx6NiHIohc7JzthfsNc3lKIpWgnIZIW9hGgd5ub1y5IHIBZox0BC0B2LjaLFZacMYoKU8FspaR1PtPjwHbmYkL8INhgxFdQqlPP/ug=
+	t=1726467203; cv=none; b=BGPOogk26ao1L5IMmrmo8JZTyOGTNXy/2t2jpn+PWwQsZ1wEC5r5/YofcZjCzwbcvw0ldyw97k/VxyER/RIWe4ANYrn6a1Dj302qHOrXVdz3SkZ2RRGyoljZgLoShS5hWya3u6P9vRZVn6vjQI+0JPtCf1hBfgwnPCIXMp7f/NA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726467139; c=relaxed/simple;
-	bh=W6+aSnUoHzhWbg8YyvrOb4OYPxFaxscAQMJ6SNbzXTM=;
-	h=Date:To:From:Subject:Message-Id; b=GAMG2sStyG5OvRjhhPR1B1SOIK2mrRgBBxO0Hu68d0iHM3jazD3/euc2fllIZXhhKRQIucz5Fsy5Mgak+iNDZerjEmW2t4L6/egfPyHm2V8zqCsy0zSGZXVrNoAkhouXTQou5YsZqynK19YplpSwq4keaBLOcnYr6zixXDPcmcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZsiX8F7i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726467203; c=relaxed/simple;
+	bh=JYZRODKgdxkes/IfTkXRwXFObLdiiDR9HqWImMNHNJY=;
+	h=Date:To:From:Subject:Message-Id; b=eK+B5wrVL210lGmpFvklst4HlCZmpWvSxbk1axsFEfgJhzVW3DVV5LpMDBrzbWkN6j6GFOyrop2VP8FXt20hfeU+iHd/vcDVBAcfINylJk4xI0X972ss/ClZOGauJ8NLRKGgSAdmMJ14k4FVi5CY84YaVMio34W64I6AObHboSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KeVlsv5S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZsiX8F7i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75A59C4CECD;
-	Mon, 16 Sep 2024 06:12:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KeVlsv5S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4347FC4CEC4;
+	Mon, 16 Sep 2024 06:13:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726467138;
-	bh=W6+aSnUoHzhWbg8YyvrOb4OYPxFaxscAQMJ6SNbzXTM=;
+	s=korg; t=1726467202;
+	bh=JYZRODKgdxkes/IfTkXRwXFObLdiiDR9HqWImMNHNJY=;
 	h=Date:To:From:Subject:From;
-	b=ZsiX8F7iOChMm/ue5gO8IU/dBAa6HmmzdbxtHfejODon6tLvzC0agmd+M2pBfUcgM
-	 0ifXSsxeT1Kg0CFPlJwkfOmnMvPNMv5QO+jmosCxyVxEt4S1rd0sO9BzhmGmCkQ4BF
-	 0DSuERw+WhFdjZkgCiuR14z1cQ48b5qAlslr5A/w=
-Date: Sun, 15 Sep 2024 23:12:15 -0700
+	b=KeVlsv5SPrQ8sMNSS+B2oXgeEGuxBNczx0tSZ7TtwfBinDRwfyAAypDIXWJgL/N9q
+	 bdaJkv1nrzOaw+l+9Fx51BBCNi0vEY4nexwEwjWVGQJw16pgTz08Kk7Z+5x2S/ZIDT
+	 1aqgmpojIAWazC6QJ2QypmminR7bOEgEv8E7AzDo=
+Date: Sun, 15 Sep 2024 23:13:19 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,tjmercier@google.com,kasong@tencent.com,linuszeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch removed from -mm tree
-Message-Id: <20240916061218.75A59C4CECD@smtp.kernel.org>
+Subject: + mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch added to mm-unstable branch
+Message-Id: <20240916061322.4347FC4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zeng Jingxiang <linuszeng@tencent.com>
 Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-Date: Thu, 29 Aug 2024 18:25:43 +0800
+Date: Fri, 13 Sep 2024 16:45:06 +0800
 
 Commit 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
 removed the opportunity to wake up flushers during the MGLRU page
@@ -102,10 +118,11 @@ oom_score_adj:0
 
 The flusher wake up was removed to decrease SSD wearing, but if we are
 seeing all dirty folios at the tail of an LRU, not waking up the flusher
-could lead to thrashing easily. So wake it up when a mem cgroups is
-about to OOM due to dirty caches.
+could lead to thrashing easily.  So wake it up when a mem cgroups is about
+to OOM due to dirty caches.
 
 Link: https://lkml.kernel.org/r/20240829102543.189453-1-jingxiangzeng.cas@gmail.com
+Link: https://lkml.kernel.org/r/20240913084506.3606292-1-jingxiangzeng.cas@gmail.com
 Fixes: 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
 Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
 Signed-off-by: Kairui Song <kasong@tencent.com>
@@ -115,12 +132,30 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/vmscan.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 --- a/mm/vmscan.c~mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom
 +++ a/mm/vmscan.c
-@@ -4448,6 +4448,7 @@ static int scan_folios(struct lruvec *lr
+@@ -4284,6 +4284,7 @@ static bool sort_folio(struct lruvec *lr
+ 		       int tier_idx)
+ {
+ 	bool success;
++	bool dirty, writeback;
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
+@@ -4332,6 +4333,9 @@ static bool sort_folio(struct lruvec *lr
+ 	/* waiting for writeback */
+ 	if (folio_test_locked(folio) || folio_test_writeback(folio) ||
+ 	    (type == LRU_GEN_FILE && folio_test_dirty(folio))) {
++		folio_check_dirty_writeback(folio, &dirty, &writeback);
++		if (dirty && !writeback)
++			sc->nr.unqueued_dirty += delta;
+ 		gen = folio_inc_gen(lruvec, folio, true);
+ 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 		return true;
+@@ -4448,6 +4452,7 @@ static int scan_folios(struct lruvec *lr
  				scanned, skipped, isolated,
  				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
  
@@ -128,7 +163,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	/*
  	 * There might not be eligible folios due to reclaim_idx. Check the
  	 * remaining to prevent livelock if it's not making progress.
-@@ -4920,6 +4921,14 @@ static void lru_gen_shrink_lruvec(struct
+@@ -4920,6 +4925,14 @@ static void lru_gen_shrink_lruvec(struct
  	if (try_to_shrink_lruvec(lruvec, sc))
  		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_YOUNG);
  
@@ -137,7 +172,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	 * memory pressure have pushed dirty pages to oldest gen,
 +	 * wake up flusher.
 +	 */
-+	if (sc->nr.unqueued_dirty >= sc->nr.taken)
++	if (sc->nr.unqueued_dirty > sc->nr.taken)
 +		wakeup_flusher_threads(WB_REASON_VMSCAN);
 +
  	clear_mm_walk();
@@ -148,4 +183,5 @@ _
 Patches currently in -mm which might be from linuszeng@tencent.com are
 
 mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
+mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
