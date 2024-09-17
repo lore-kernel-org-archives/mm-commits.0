@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8416152176
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CED6E152E0C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560532; cv=none; b=JDMT1BzvqouSh9Uumcpml46Yn4IcWn/wTFdox/hY7vr6RvZUSkjhZTs3Q3mpdSkado3hkgtrpQ8nzk9VJCVElovIOXAOQ4H/DG6X7K7nKLda2gnbw2XOdaFv7LtYsTA8VI9Hms1RjQvC6YRUjzDj+kiXsWaorUOhjVK5TLDJNgA=
+	t=1726560536; cv=none; b=LQu39pe/K7mQ5HNT6DGEyfa/K9tfHnZ+D9ylND/r+W7RUMxwNVU7lrbV++bq8CXU5RPxXAMCZSO9rnn+UbersCW0m9tBjUD8m7mjGKBCBNbNncG7Kzs8kwQ48Y5+p1XrqnY89kMOmZSBdMlqbLO405QllkOOZzNp+GvqqxgAP14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560532; c=relaxed/simple;
-	bh=SOX6UNub4p3waM5zuMtjpdj7uEBT9bFLIbaRqEyaZfs=;
-	h=Date:To:From:Subject:Message-Id; b=t5zR3n3I7qZf3YXKVHcn5TkgUXZQGAFvQo88P1PdxgUc9PEtm63yK5/1XQK4oWYjSw4CNX2hKi+Mwhfa+lTQAhGaUPp76XM+e8oRoM10IHf4NwtuCpe/b6jw1F96GzyZvaSFwBzFaDb5E6fvn3H9WobxmFxXzIbvKjW2wzq4A+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wd7mreZN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560536; c=relaxed/simple;
+	bh=jSlIiPp7ECndcOcHodyg/1CBSCGO4H7P0qfXT5WI+fc=;
+	h=Date:To:From:Subject:Message-Id; b=AUjaRz18Bt7DTL5sTcnV7DIzDtVLcN0sbgJ52Z0Fuqw8juLHprLrIaA5StLRJU+huJAM2cW2CLt62qfDCJC5H21LZv0FfRmAZ9Hh1lPsC2h1PENL8OhCeyvpfrMkQFPuaSmZhSn//vlOni5viLn3P+7LJbwAWqILDJQbU/ZsTwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jp6WA3Wp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wd7mreZN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0199FC4CEC6;
-	Tue, 17 Sep 2024 08:08:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jp6WA3Wp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 434D9C4CEC6;
+	Tue, 17 Sep 2024 08:08:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560532;
-	bh=SOX6UNub4p3waM5zuMtjpdj7uEBT9bFLIbaRqEyaZfs=;
+	s=korg; t=1726560536;
+	bh=jSlIiPp7ECndcOcHodyg/1CBSCGO4H7P0qfXT5WI+fc=;
 	h=Date:To:From:Subject:From;
-	b=wd7mreZNzyfE6qp0X6OyVyQ6aPpBKvybiScMpoEWpPXASwmhMpmYLOkM7MI4BpDKT
-	 Hi/vTg9KQs6oKmXWEoFWxM8DXcljFXVybTK9m4/PPoIrhlWe75yAa2szUZiRwWik15
-	 O96WfIcpZ3qpvbf0yYy+3IxuwJpmEF1lj8U3Mg8s=
-Date: Tue, 17 Sep 2024 01:08:49 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,ira.weiny@intel.com,david@redhat.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
+	b=Jp6WA3WpjNA0qRphTJ3eLgLmFkaquTo+N3xhH2lMGhtiaEIwVDIkyiN0T0IQP+asl
+	 H5yVGDTFx/JUO0YI+2HlPIxKooSlt89x+rizHKqesgLzzqZAmJsa+M/oEF5L7OU6oH
+	 FEJ0QKkZmlLL5KvFbgBLsWD9sGiMKa5FLQbmUiF8=
+Date: Tue, 17 Sep 2024 01:08:53 -0700
+To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,jane.chu@oracle.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] resource-kunit-add-test-case-for-region_intersects.patch removed from -mm tree
-Message-Id: <20240917080852.0199FC4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-support-poison-recovery-from-do_cow_fault.patch removed from -mm tree
+Message-Id: <20240917080856.434D9C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,280 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: resource, kunit: add test case for region_intersects()
+     Subject: mm: support poison recovery from do_cow_fault()
 has been removed from the -mm tree.  Its filename was
-     resource-kunit-add-test-case-for-region_intersects.patch
+     mm-support-poison-recovery-from-do_cow_fault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: resource, kunit: add test case for region_intersects()
-Date: Fri, 6 Sep 2024 11:07:13 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: support poison recovery from do_cow_fault()
+Date: Fri, 6 Sep 2024 10:42:00 +0800
 
-Patch series "resource: Fix region_intersects() vs
-add_memory_driver_managed()", v3.
+Patch series "mm: hwpoison: two more poison recovery".
 
-The patchset fixes a bug of region_intersects() for systems with CXL
-memory.  The details of the bug can be found in [1/3].  To avoid similar
-bugs in the future.  A kunit test case for region_intersects() is added in
-[3/3].  [2/3] is a preparation patch for [3/3].
+One more CoW path to support poison recorvery in do_cow_fault(), and the
+last copy_user_highpage() user is replaced to copy_mc_user_highpage() from
+copy_present_page() during fork to support poison recorvery too.
 
 
-This patch (of 3):
+This patch (of 2):
 
-region_intersects() is important because it's used for /dev/mem permission
-checking.  To avoid possible bug of region_intersects() in the future, a
-kunit test case for region_intersects() is added.
+Like commit a873dfe1032a ("mm, hwpoison: try to recover from copy-on
+write faults"), there is another path which could crash because it does
+not have recovery code where poison is consumed by the kernel in
+do_cow_fault(), a crash calltrace shown below on old kernel, but it
+could be happened in the lastest mainline code,
 
-Link: https://lkml.kernel.org/r/20240906030713.204292-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20240906030713.204292-4-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+  CPU: 7 PID: 3248 Comm: mpi Kdump: loaded Tainted: G           OE     5.10.0 #1
+  pc : copy_page+0xc/0xbc
+  lr : copy_user_highpage+0x50/0x9c
+  Call trace:
+    copy_page+0xc/0xbc
+    do_cow_fault+0x118/0x2bc
+    do_fault+0x40/0x1a4
+    handle_pte_fault+0x154/0x230
+    __handle_mm_fault+0x1a8/0x38c
+    handle_mm_fault+0xf0/0x250
+    do_page_fault+0x184/0x454
+    do_translation_fault+0xac/0xd4
+    do_mem_abort+0x44/0xbc
+
+Fix it by using copy_mc_user_highpage() to handle this case and return
+VM_FAULT_HWPOISON for cow fault.
+
+[wangkefeng.wang@huawei.com: unlock/put vmf->page, per Miaohe]
+  Link: https://lkml.kernel.org/r/20240910021541.234300-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240906024201.1214712-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240906024201.1214712-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c       |   20 +++--
- kernel/resource_kunit.c |  143 ++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug       |    1 
- 3 files changed, 158 insertions(+), 6 deletions(-)
+ mm/memory.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/kernel/resource.c~resource-kunit-add-test-case-for-region_intersects
-+++ a/kernel/resource.c
-@@ -1817,7 +1817,17 @@ EXPORT_SYMBOL(resource_list_free);
- #ifdef CONFIG_GET_FREE_REGION
- #define GFR_DESCENDING		(1UL << 0)
- #define GFR_REQUEST_REGION	(1UL << 1)
--#define GFR_DEFAULT_ALIGN (1UL << PA_SECTION_SHIFT)
-+#ifdef PA_SECTION_SHIFT
-+#define GFR_DEFAULT_ALIGN	(1UL << PA_SECTION_SHIFT)
-+#else
-+#define GFR_DEFAULT_ALIGN	PAGE_SIZE
-+#endif
-+
-+#ifdef MAX_PHYSMEM_BITS
-+#define MAX_PHYS_ADDR		((1ULL << MAX_PHYSMEM_BITS) - 1)
-+#else
-+#define MAX_PHYS_ADDR		(-1ULL)
-+#endif
+--- a/mm/memory.c~mm-support-poison-recovery-from-do_cow_fault
++++ a/mm/memory.c
+@@ -5089,10 +5089,14 @@ static vm_fault_t do_cow_fault(struct vm
+ 	if (ret & VM_FAULT_DONE_COW)
+ 		return ret;
  
- static resource_size_t gfr_start(struct resource *base, resource_size_t size,
- 				 resource_size_t align, unsigned long flags)
-@@ -1825,8 +1835,7 @@ static resource_size_t gfr_start(struct
- 	if (flags & GFR_DESCENDING) {
- 		resource_size_t end;
- 
--		end = min_t(resource_size_t, base->end,
--			    (1ULL << MAX_PHYSMEM_BITS) - 1);
-+		end = min_t(resource_size_t, base->end, MAX_PHYS_ADDR);
- 		return end - size + 1;
- 	}
- 
-@@ -1843,8 +1852,7 @@ static bool gfr_continue(struct resource
- 	 * @size did not wrap 0.
- 	 */
- 	return addr > addr - size &&
--	       addr <= min_t(resource_size_t, base->end,
--			     (1ULL << MAX_PHYSMEM_BITS) - 1);
-+		addr <= min_t(resource_size_t, base->end, MAX_PHYS_ADDR);
- }
- 
- static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
-@@ -2005,7 +2013,7 @@ struct resource *alloc_free_mem_region(s
- 	return get_free_mem_region(NULL, base, size, align, name,
- 				   IORES_DESC_NONE, flags);
- }
--EXPORT_SYMBOL_NS_GPL(alloc_free_mem_region, CXL);
-+EXPORT_SYMBOL_GPL(alloc_free_mem_region);
- #endif /* CONFIG_GET_FREE_REGION */
- 
- static int __init strict_iomem(char *str)
---- a/kernel/resource_kunit.c~resource-kunit-add-test-case-for-region_intersects
-+++ a/kernel/resource_kunit.c
-@@ -7,6 +7,8 @@
- #include <linux/ioport.h>
- #include <linux/kernel.h>
- #include <linux/string.h>
-+#include <linux/sizes.h>
-+#include <linux/mm.h>
- 
- #define R0_START	0x0000
- #define R0_END		0xffff
-@@ -137,9 +139,150 @@ static void resource_test_intersection(s
- 	} while (++i < ARRAY_SIZE(results_for_intersection));
- }
- 
-+/*
-+ * The test resource tree for region_intersects() test:
-+ *
-+ * BASE-BASE+1M-1 : Test System RAM 0
-+ *		  # hole 0 (BASE+1M-BASE+2M)
-+ * BASE+2M-BASE+3M-1 : Test CXL Window 0
-+ * BASE+3M-BASE+4M-1 : Test System RAM 1
-+ * BASE+4M-BASE+7M-1 : Test CXL Window 1
-+ *   BASE+4M-BASE+5M-1 : Test System RAM 2
-+ *     BASE+4M+128K-BASE+4M+256K-1: Test Code
-+ *   BASE+5M-BASE+6M-1 : Test System RAM 3
-+ */
-+#define RES_TEST_RAM0_OFFSET	0
-+#define RES_TEST_RAM0_SIZE	SZ_1M
-+#define RES_TEST_HOLE0_OFFSET	(RES_TEST_RAM0_OFFSET + RES_TEST_RAM0_SIZE)
-+#define RES_TEST_HOLE0_SIZE	SZ_1M
-+#define RES_TEST_WIN0_OFFSET	(RES_TEST_HOLE0_OFFSET + RES_TEST_HOLE0_SIZE)
-+#define RES_TEST_WIN0_SIZE	SZ_1M
-+#define RES_TEST_RAM1_OFFSET	(RES_TEST_WIN0_OFFSET + RES_TEST_WIN0_SIZE)
-+#define RES_TEST_RAM1_SIZE	SZ_1M
-+#define RES_TEST_WIN1_OFFSET	(RES_TEST_RAM1_OFFSET + RES_TEST_RAM1_SIZE)
-+#define RES_TEST_WIN1_SIZE	(SZ_1M * 3)
-+#define RES_TEST_RAM2_OFFSET	RES_TEST_WIN1_OFFSET
-+#define RES_TEST_RAM2_SIZE	SZ_1M
-+#define RES_TEST_CODE_OFFSET	(RES_TEST_RAM2_OFFSET + SZ_128K)
-+#define RES_TEST_CODE_SIZE	SZ_128K
-+#define RES_TEST_RAM3_OFFSET	(RES_TEST_RAM2_OFFSET + RES_TEST_RAM2_SIZE)
-+#define RES_TEST_RAM3_SIZE	SZ_1M
-+#define RES_TEST_TOTAL_SIZE	((RES_TEST_WIN1_OFFSET + RES_TEST_WIN1_SIZE))
-+
-+static void remove_free_resource(void *ctx)
-+{
-+	struct resource *res = (struct resource *)ctx;
-+
-+	remove_resource(res);
-+	kfree(res);
-+}
-+
-+static void resource_test_request_region(struct kunit *test, struct resource *parent,
-+					 resource_size_t start, resource_size_t size,
-+					 const char *name, unsigned long flags)
-+{
-+	struct resource *res;
-+
-+	res = __request_region(parent, start, size, name, flags);
-+	KUNIT_ASSERT_NOT_NULL(test, res);
-+	kunit_add_action_or_reset(test, remove_free_resource, res);
-+}
-+
-+static void resource_test_insert_resource(struct kunit *test, struct resource *parent,
-+					  resource_size_t start, resource_size_t size,
-+					  const char *name, unsigned long flags)
-+{
-+	struct resource *res;
-+
-+	res = kzalloc(sizeof(*res), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_NULL(test, res);
-+
-+	res->name = name;
-+	res->start = start;
-+	res->end = start + size - 1;
-+	res->flags = flags;
-+	if (insert_resource(parent, res)) {
-+		kfree(res);
-+		KUNIT_FAIL_AND_ABORT(test, "Fail to insert resource %pR\n", res);
+-	copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
++	if (copy_mc_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma)) {
++		ret = VM_FAULT_HWPOISON;
++		goto unlock;
 +	}
-+
-+	kunit_add_action_or_reset(test, remove_free_resource, res);
-+}
-+
-+static void resource_test_region_intersects(struct kunit *test)
-+{
-+	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-+	struct resource *parent;
-+	resource_size_t start;
-+
-+	/* Find an iomem_resource hole to hold test resources */
-+	parent = alloc_free_mem_region(&iomem_resource, RES_TEST_TOTAL_SIZE, SZ_1M,
-+				       "test resources");
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, parent);
-+	start = parent->start;
-+	kunit_add_action_or_reset(test, remove_free_resource, parent);
-+
-+	resource_test_request_region(test, parent, start + RES_TEST_RAM0_OFFSET,
-+				     RES_TEST_RAM0_SIZE, "Test System RAM 0", flags);
-+	resource_test_insert_resource(test, parent, start + RES_TEST_WIN0_OFFSET,
-+				      RES_TEST_WIN0_SIZE, "Test CXL Window 0",
-+				      IORESOURCE_MEM);
-+	resource_test_request_region(test, parent, start + RES_TEST_RAM1_OFFSET,
-+				     RES_TEST_RAM1_SIZE, "Test System RAM 1", flags);
-+	resource_test_insert_resource(test, parent, start + RES_TEST_WIN1_OFFSET,
-+				      RES_TEST_WIN1_SIZE, "Test CXL Window 1",
-+				      IORESOURCE_MEM);
-+	resource_test_request_region(test, parent, start + RES_TEST_RAM2_OFFSET,
-+				     RES_TEST_RAM2_SIZE, "Test System RAM 2", flags);
-+	resource_test_insert_resource(test, parent, start + RES_TEST_CODE_OFFSET,
-+				      RES_TEST_CODE_SIZE, "Test Code", flags);
-+	resource_test_request_region(test, parent, start + RES_TEST_RAM3_OFFSET,
-+				     RES_TEST_RAM3_SIZE, "Test System RAM 3", flags);
-+	kunit_release_action(test, remove_free_resource, parent);
-+
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_RAM0_OFFSET, PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_RAM0_OFFSET +
-+					  RES_TEST_RAM0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_DISJOINT,
-+			region_intersects(start + RES_TEST_HOLE0_OFFSET, PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_DISJOINT,
-+			region_intersects(start + RES_TEST_HOLE0_OFFSET +
-+					  RES_TEST_HOLE0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_MIXED,
-+			region_intersects(start + RES_TEST_WIN0_OFFSET +
-+					  RES_TEST_WIN0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_RAM1_OFFSET +
-+					  RES_TEST_RAM1_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_RAM2_OFFSET +
-+					  RES_TEST_RAM2_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_CODE_OFFSET, PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
-+			region_intersects(start + RES_TEST_RAM2_OFFSET,
-+					  RES_TEST_RAM2_SIZE + PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+	KUNIT_EXPECT_EQ(test, REGION_MIXED,
-+			region_intersects(start + RES_TEST_RAM3_OFFSET,
-+					  RES_TEST_RAM3_SIZE + PAGE_SIZE,
-+					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
-+}
-+
- static struct kunit_case resource_test_cases[] = {
- 	KUNIT_CASE(resource_test_union),
- 	KUNIT_CASE(resource_test_intersection),
-+	KUNIT_CASE(resource_test_region_intersects),
- 	{}
- };
+ 	__folio_mark_uptodate(folio);
  
---- a/lib/Kconfig.debug~resource-kunit-add-test-case-for-region_intersects
-+++ a/lib/Kconfig.debug
-@@ -2616,6 +2616,7 @@ config RESOURCE_KUNIT_TEST
- 	tristate "KUnit test for resource API" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
- 	default KUNIT_ALL_TESTS
-+	select GET_FREE_REGION
- 	help
- 	  This builds the resource API unit test.
- 	  Tests the logic of API provided by resource.c and ioport.h.
+ 	ret |= finish_fault(vmf);
++unlock:
+ 	unlock_page(vmf->page);
+ 	put_page(vmf->page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
