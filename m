@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C894114B948
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:09:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379D314B948
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:09:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560577; cv=none; b=JpQVNAMZWVCSidOTsuBilskaz+zSQCEocoExv9YU9HlyQmtKeqiYIwUt6EajoyOWGxskP2jtY8cUW7u4OHGUlkUKyRKMUhZk44WeUH0mhjdg0ttJLVvrw42XyBw9eOxH4cqxv3DnxGf8AoDTVZRGqyu46Vk/UMJyS0cL1jQ9LtI=
+	t=1726560581; cv=none; b=VNu2Ab+LjgaDdJ9XbS9PTGvJeavGgal6YOLgfVaR3c8oyuvTiWnWGkoritt6XRZYWAHfAWJfJ8p16O1P9Tv6RMUnMBgMqyEhqAyufWvG3SjT4NXDC72Rgt/wveTp+bNETij3xMZrY3i1hSHlAeBSl3FdRerDRF4uOhnxxSMJn8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560577; c=relaxed/simple;
-	bh=hQAS5+5SvBPmtfBTL9q6eQuLnGxLpRdQeL1a+v4Wcgc=;
-	h=Date:To:From:Subject:Message-Id; b=UZSXdoDiG9aLfi07jwTDHIMbe2ip1ZLB+rzD/dHmd9YRZ8Q/QgsURtSOUd87Hi2pymUOpy8garr+/giATr0x9GqpxEfeh7d1TK8a9wIlX19Jq3pIk82w06DrXOA1NiNZQsyRwa0k70XTV9Hduf8uOfWd51340AkM/XBcF2ZNkTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1tOJalr9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560581; c=relaxed/simple;
+	bh=sqpnM+0JuJ+aGewYsKtvfA1ooHD5mDmynJU97tGCbJs=;
+	h=Date:To:From:Subject:Message-Id; b=YUCD6Z5mBUvWDCOBs+HY2sxD7uFAISLgZCz3xx41V1y42W3e/n+al7TBaYEjZ8kM4pf94Sed2QeF9qDy1ZUWBvjhmXParpljxdFI9F4HL82QQpvrNxQ2O/RmrBFKxF5sOHXJx4wzBP6NWfrvAPm4kZjFxuyC1zRO7d4b8V5GqZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ltJOn4HH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1tOJalr9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55090C4CEC6;
-	Tue, 17 Sep 2024 08:09:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ltJOn4HH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BE8DC4CEC7;
+	Tue, 17 Sep 2024 08:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560577;
-	bh=hQAS5+5SvBPmtfBTL9q6eQuLnGxLpRdQeL1a+v4Wcgc=;
+	s=korg; t=1726560581;
+	bh=sqpnM+0JuJ+aGewYsKtvfA1ooHD5mDmynJU97tGCbJs=;
 	h=Date:To:From:Subject:From;
-	b=1tOJalr9DIKw6BDcti8exoCg4t73lsX37exd4zRMFhMrJddQqSbuXPLX+u6Rb3+wV
-	 4WVu4XiFkG0eSiYb72WWCn0eCL8+G2ll+dh7awJuQ+xn9ycY3a2DjKcX3wsSONC4x3
-	 +j5oqrYy7y1Urc2H+Gb67BKJZISLfQ872aRd35b8=
-Date: Tue, 17 Sep 2024 01:09:34 -0700
+	b=ltJOn4HHmh/0ud0GzeEAvr2WVYjELYQZDf12HFAheHn0R9Y6/kX/eAeJlbp4zZ9GC
+	 3OJ9BNsKe0snDZGJ8wjjFasz9PEG/NIuoYQ+Dnw0YK+idOYFJW1Jp0/sdLK+p+Vnc3
+	 468GvIavl9r743SbMCfq8An567UFL5kPdh7/CId8=
+Date: Tue, 17 Sep 2024 01:09:38 -0700
 To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,svens@linux.ibm.com,peterz@infradead.org,namhyung@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,andrii@kernel.org,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] uprobes-introduce-the-global-struct-vm_special_mapping-xol_mapping.patch removed from -mm tree
-Message-Id: <20240917080937.55090C4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] uprobes-turn-xol_area-pages-into-xol_area-page.patch removed from -mm tree
+Message-Id: <20240917080940.8BE8DC4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: uprobes: introduce the global struct vm_special_mapping xol_mapping
+     Subject: uprobes: turn xol_area->pages[2] into xol_area->page
 has been removed from the -mm tree.  Its filename was
-     uprobes-introduce-the-global-struct-vm_special_mapping-xol_mapping.patch
+     uprobes-turn-xol_area-pages-into-xol_area-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: uprobes: introduce the global struct vm_special_mapping xol_mapping
-Date: Wed, 11 Sep 2024 15:14:07 +0200
+Subject: uprobes: turn xol_area->pages[2] into xol_area->page
+Date: Wed, 11 Sep 2024 15:14:37 +0200
 
-Currently each xol_area has its own instance of vm_special_mapping, this
-is suboptimal and ugly.  Kill xol_area->xol_mapping and add a single
-global instance of vm_special_mapping, the ->fault() method can use
-area->pages rather than xol_mapping->pages.
+Now that xol_mapping has its own ->fault() method we no longer need
+xol_area->pages[1] == NULL, we need a single page.
 
-As a side effect this fixes the problem introduced by the recent commit
-223febc6e557 ("mm: add optional close() to struct vm_special_mapping"), if
-special_mapping_close() is called from the __mmput() paths, it will use
-vma->vm_private_data = &area->xol_mapping freed by uprobe_clear_state().
-
-Link: https://lkml.kernel.org/r/20240911131407.GB3448@redhat.com
-Fixes: 223febc6e557 ("mm: add optional close() to struct vm_special_mapping")
+Link: https://lkml.kernel.org/r/20240911131437.GC3448@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Sven Schnelle <svens@linux.ibm.com>
-Closes: https://lore.kernel.org/all/yt9dy149vprr.fsf@linux.ibm.com/
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Andrii Nakryiko <andrii@kernel.org>
@@ -76,63 +66,79 @@ Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Namhyung Kim <namhyung@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ kernel/events/uprobes.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/kernel/events/uprobes.c~uprobes-introduce-the-global-struct-vm_special_mapping-xol_mapping
+--- a/kernel/events/uprobes.c~uprobes-turn-xol_area-pages-into-xol_area-page
 +++ a/kernel/events/uprobes.c
-@@ -99,7 +99,6 @@ struct xol_area {
+@@ -99,7 +99,7 @@ struct xol_area {
  	atomic_t 			slot_count;	/* number of in-use slots */
  	unsigned long 			*bitmap;	/* 0 = free slot */
  
--	struct vm_special_mapping	xol_mapping;
- 	struct page 			*pages[2];
+-	struct page 			*pages[2];
++	struct page			*page;
  	/*
  	 * We keep the vma's vm_start rather than a pointer to the vma
-@@ -1433,6 +1432,21 @@ void uprobe_munmap(struct vm_area_struct
- 		set_bit(MMF_RECALC_UPROBES, &vma->vm_mm->flags);
- }
- 
-+static vm_fault_t xol_fault(const struct vm_special_mapping *sm,
-+			    struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct xol_area *area = vma->vm_mm->uprobes_state.xol_area;
-+
-+	vmf->page = area->pages[0];
-+	get_page(vmf->page);
-+	return 0;
-+}
-+
-+static const struct vm_special_mapping xol_mapping = {
-+	.name = "[uprobes]",
-+	.fault = xol_fault,
-+};
-+
- /* Slot allocation for XOL */
- static int xol_add_vma(struct mm_struct *mm, struct xol_area *area)
+ 	 * itself.  The probed process or a naughty kernel module could make
+@@ -1437,7 +1437,7 @@ static vm_fault_t xol_fault(const struct
  {
-@@ -1459,7 +1473,7 @@ static int xol_add_vma(struct mm_struct
+ 	struct xol_area *area = vma->vm_mm->uprobes_state.xol_area;
  
- 	vma = _install_special_mapping(mm, area->vaddr, PAGE_SIZE,
- 				VM_EXEC|VM_MAYEXEC|VM_DONTCOPY|VM_IO,
--				&area->xol_mapping);
-+				&xol_mapping);
- 	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
- 		goto fail;
-@@ -1498,9 +1512,6 @@ static struct xol_area *__create_xol_are
+-	vmf->page = area->pages[0];
++	vmf->page = area->page;
+ 	get_page(vmf->page);
+ 	return 0;
+ }
+@@ -1512,10 +1512,9 @@ static struct xol_area *__create_xol_are
  	if (!area->bitmap)
  		goto free_area;
  
--	area->xol_mapping.name = "[uprobes]";
--	area->xol_mapping.fault = NULL;
--	area->xol_mapping.pages = area->pages;
- 	area->pages[0] = alloc_page(GFP_HIGHUSER);
- 	if (!area->pages[0])
+-	area->pages[0] = alloc_page(GFP_HIGHUSER);
+-	if (!area->pages[0])
++	area->page = alloc_page(GFP_HIGHUSER);
++	if (!area->page)
  		goto free_bitmap;
+-	area->pages[1] = NULL;
+ 
+ 	area->vaddr = vaddr;
+ 	init_waitqueue_head(&area->wq);
+@@ -1523,12 +1522,12 @@ static struct xol_area *__create_xol_are
+ 	set_bit(0, area->bitmap);
+ 	atomic_set(&area->slot_count, 1);
+ 	insns = arch_uprobe_trampoline(&insns_size);
+-	arch_uprobe_copy_ixol(area->pages[0], 0, insns, insns_size);
++	arch_uprobe_copy_ixol(area->page, 0, insns, insns_size);
+ 
+ 	if (!xol_add_vma(mm, area))
+ 		return area;
+ 
+-	__free_page(area->pages[0]);
++	__free_page(area->page);
+  free_bitmap:
+ 	kfree(area->bitmap);
+  free_area:
+@@ -1570,7 +1569,7 @@ void uprobe_clear_state(struct mm_struct
+ 	if (!area)
+ 		return;
+ 
+-	put_page(area->pages[0]);
++	put_page(area->page);
+ 	kfree(area->bitmap);
+ 	kfree(area);
+ }
+@@ -1637,7 +1636,7 @@ static unsigned long xol_get_insn_slot(s
+ 	if (unlikely(!xol_vaddr))
+ 		return 0;
+ 
+-	arch_uprobe_copy_ixol(area->pages[0], xol_vaddr,
++	arch_uprobe_copy_ixol(area->page, xol_vaddr,
+ 			      &uprobe->arch.ixol, sizeof(uprobe->arch.ixol));
+ 
+ 	return xol_vaddr;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
