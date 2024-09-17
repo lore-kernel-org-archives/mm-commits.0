@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AFE717C9
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 07:58:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1758B10F4
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:02:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726559935; cv=none; b=oGcBymwjeLa3tes75rJHUhei+IRoAO9Jbzqe8lEF89boz3MnW20KJo71ivjPwv24aD/SGePjlrz+lzF6KTrn3vwZpcwpPN8EwOugSy/A5PUNqgJY6YSQlcLpXdI+6qzp+4TLP7z/xBpsCP1miOEY+/t24Mnh33ojrWSdiO4D2p4=
+	t=1726560168; cv=none; b=sbtrlkdgOq51D8OGggAKQP2Dn1Vtf4uDbpK4rhKP8Rl9TvQoBfAr1AFqa3OCSrUvNoYf0fpHc10DmaXUQI94eo4z7TJO/lyFGhWqXHD3G9X3UJVUivLpsWBe8SP72rVMl+DTwDmEiWsiqw+E6RZr43zKLae6bU534USACqMv/T8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726559935; c=relaxed/simple;
-	bh=RS0ItbKJ6x0n/BCgcVoQQAqXOsB3J09xoGXcjXyOvJE=;
-	h=Date:To:From:Subject:Message-Id; b=M43+Ln8y7o1KIXLW5zHjbliQtIksz0YTiivU0rNksRQD6cg6KV5tu2Rc3d+MTDLd98pyMuit9TUZxr/Kftwp+tPHZnP7XlbS208r8YUB9sQBcaPAatGPjYb0VwrdY3PGspMncG3kWPAc0WiqQrI3fVyxmxyXE49uWt2Y7w3SiR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQVOZppf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560168; c=relaxed/simple;
+	bh=yPoh7eZAlSpKw9NsmPAZBouBhXQOLHAFNVa+df6jh34=;
+	h=Date:To:From:Subject:Message-Id; b=BxeuE3AEUJz7UsFNpSDqfdRthWgvU+4mnYtX1mptrBkcwg+6yUluM4UV0CJtjOHSMhQDatMtWGacpOivRWc4XSFlgyX6vV8G9BXjPikKgldIGAbFysSXM7DBQQUqdhfKFjPplMhnOPvH/KCj8gzZjXs0VbKTEK0f6yF09kMSDxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=owxzHquT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQVOZppf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45069C4CEC6;
-	Tue, 17 Sep 2024 07:58:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="owxzHquT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E97FC4CEC6;
+	Tue, 17 Sep 2024 08:02:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726559934;
-	bh=RS0ItbKJ6x0n/BCgcVoQQAqXOsB3J09xoGXcjXyOvJE=;
+	s=korg; t=1726560167;
+	bh=yPoh7eZAlSpKw9NsmPAZBouBhXQOLHAFNVa+df6jh34=;
 	h=Date:To:From:Subject:From;
-	b=BQVOZppfgsfrnuM0EzlxRgbh/zr2v6fFrKVYMOjwlRxE0N/GtqhltC5RBxvarRCsh
-	 1hKraNmBiAZhOVF0ZHPfJ0cyJs4tFYfSso9kq4tkR13vIUH69YgaNmuOvdGBJn3VGZ
-	 tXkp6eiO/9nkjpvqGc255f6MfKUexDLXuZSCBUD8=
-Date: Tue, 17 Sep 2024 00:58:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,minchan@kernel.org,Liam.Howlett@Oracle.com,keescook@chromium.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=owxzHquTA+kpz3KE4spvqEUVO0tI+pRZ3JBDPkH0ZhFw+efWi4dPexNFmfoxgrLfL
+	 YLIurHSbmHKEtILfzhqng1UvvKQx2k4eH5o3YuSNR7QYxP7Xezv3wMdrzcH5p7bvRv
+	 MLr4sKDHfcR8Q6CF5f1XOcewMKnO7HIifafMC4MU=
+Date: Tue, 17 Sep 2024 01:02:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-madvise-process_madvise-drop-capability-check-if-same-mm.patch removed from -mm tree
-Message-Id: <20240917075854.45069C4CEC6@smtp.kernel.org>
+Subject: [folded-merged] mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch removed from -mm tree
+Message-Id: <20240917080247.2E97FC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: process_madvise() drop capability check if same mm
+     Subject: fixup! mm/pagewalk: check pfnmap for folio_walk_start()
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-process_madvise-drop-capability-check-if-same-mm.patch
+     mm-pagewalk-check-pfnmap-for-folio_walk_start-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: process_madvise() drop capability check if same mm
-Date: Fri, 13 Sep 2024 15:06:28 +0100
+From: Peter Xu <peterx@redhat.com>
+Subject: fixup! mm/pagewalk: check pfnmap for folio_walk_start()
+Date: Thu, 29 Aug 2024 16:22:37 -0400
 
-In commit 96cfe2c0fd23 ("mm/madvise: replace ptrace attach requirement for
-process_madvise") process_madvise() was updated to require the caller to
-possess the CAP_SYS_NICE capability to perform the operation, in addition
-to a check against PTRACE_MODE_READ performed by mm_access().
+Per David's suggestion, remove some stale comment in vm_normal_page_pmd()
+as we start to have special bit in pmd too.  Meanwhile move the
+pmd_special() check here from folio_walk_start().
 
-The mm_access() function explicitly checks to see if the address space of
-the process being referenced is the current one, in which case no check is
-performed.
-
-We, however, do not do this when checking the CAP_SYS_NICE capability. This
-means that we insist on the caller possessing this capability in order to
-perform madvise() operations on its own address space, which seems
-nonsensical.
-
-Simply add a check to allow for an invocation of this function with pidfd
-set to the current process without elevation.
-
-Link: https://lkml.kernel.org/r/20240913140628.77047-1-lorenzo.stoakes@oracle.com
-Fixes: 96cfe2c0fd23 ("mm/madvise: replace ptrace attach requirement for process_madvise")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240829202237.2640288-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c   |    9 ++++-----
+ mm/pagewalk.c |    2 +-
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-process_madvise-drop-capability-check-if-same-mm
-+++ a/mm/madvise.c
-@@ -1527,7 +1527,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	 * Require CAP_SYS_NICE for influencing process performance. Note that
- 	 * only non-destructive hints are currently supported.
- 	 */
--	if (!capable(CAP_SYS_NICE)) {
-+	if (mm != current->mm && !capable(CAP_SYS_NICE)) {
- 		ret = -EPERM;
- 		goto release_mm;
- 	}
+--- a/mm/memory.c~mm-pagewalk-check-pfnmap-for-folio_walk_start-fix
++++ a/mm/memory.c
+@@ -672,11 +672,10 @@ struct page *vm_normal_page_pmd(struct v
+ {
+ 	unsigned long pfn = pmd_pfn(pmd);
+ 
+-	/*
+-	 * There is no pmd_special() but there may be special pmds, e.g.
+-	 * in a direct-access (dax) mapping, so let's just replicate the
+-	 * !CONFIG_ARCH_HAS_PTE_SPECIAL case from vm_normal_page() here.
+-	 */
++	/* Currently it's only used for huge pfnmaps */
++	if (unlikely(pmd_special(pmd)))
++		return NULL;
++
+ 	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
+ 		if (vma->vm_flags & VM_MIXEDMAP) {
+ 			if (!pfn_valid(pfn))
+--- a/mm/pagewalk.c~mm-pagewalk-check-pfnmap-for-folio_walk_start-fix
++++ a/mm/pagewalk.c
+@@ -783,7 +783,7 @@ pmd_table:
+ 		fw->pmdp = pmdp;
+ 		fw->pmd = pmd;
+ 
+-		if (pmd_none(pmd) || pmd_special(pmd)) {
++		if (pmd_none(pmd)) {
+ 			spin_unlock(ptl);
+ 			goto not_found;
+ 		} else if (!pmd_leaf(pmd)) {
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
+mm-introduce-arch_supports_huge_pfnmap-and-special-bits-to-pmd-pud.patch
+mm-drop-is_huge_zero_pud.patch
+mm-mark-special-bits-for-huge-pfn-mappings-when-inject.patch
+mm-allow-thp-orders-for-pfnmaps.patch
+mm-gup-detect-huge-pfnmap-entries-in-gup-fast.patch
+mm-pagewalk-check-pfnmap-for-folio_walk_start.patch
+mm-fork-accept-huge-pfnmap-entries.patch
+mm-always-define-pxx_pgprot.patch
+mm-new-follow_pfnmap-api.patch
+kvm-use-follow_pfnmap-api.patch
+s390-pci_mmio-use-follow_pfnmap-api.patch
+mm-x86-pat-use-the-new-follow_pfnmap-api.patch
+vfio-use-the-new-follow_pfnmap-api.patch
+acrn-use-the-new-follow_pfnmap-api.patch
+mm-access_process_vm-use-the-new-follow_pfnmap-api.patch
+mm-remove-follow_pte.patch
+mm-x86-support-large-pfn-mappings.patch
+mm-arm64-support-large-pfn-mappings.patch
 
