@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B30C214A62E
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 07:30:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52F74156880
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 07:32:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726558232; cv=none; b=c8TgnyRewjen4tMfks9iZVw5xALFfuZkTOPb/QvZeaBIPfl2GJlB6RcZqP8TQTGXwksYSVPAxa7IwAot9KnxGbggrb7Jnb3I+ALudY686t21qvTZKNejDbV83GhAvxtGf3Io3AeYqd5Bx1OYONBE6NjVCHjPzujRKyY1xsZdwgc=
+	t=1726558330; cv=none; b=FhP3Q6kssQLcgjKmHWO5c9bGAr8N6OTKPSFFEXhj6TxUj5lukTg9G93wBKrVz1mGrN9EYIHPCRKZMYTHeJEy5PKs4veL/+Jb+zvDTWJx3k365l0yCBIDI8LoILk5Vvqm2xw3ggn8UiWYZl5q1ISaXCqzwDhMIMHYQZiE7HXy68M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726558232; c=relaxed/simple;
-	bh=tLIbFWO+0r4EVA66gXqnQWJ2S+kgQyWGnG5FhliY5yE=;
-	h=Date:To:From:Subject:Message-Id; b=dGdiKXw4x9pXxYl1G7YNZGnhithy43aKbZDiaGn++IFcVzdBaR713+Hls4Ozfrd+/Qk1+JWajJF4OvsGKq4yUWIsHGQ2mw/CDLRK6Un8VXf8DtycgepoywNPiLrDj0ES+Zl6lCNAFfTue0F08DoArzq68XmX5GmYhRQg+FkPf14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CMnL0H+0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726558330; c=relaxed/simple;
+	bh=Q4+M6jVgUuWCSgBBQUEKV/k8tUPROLNMOsbgcwrcxNc=;
+	h=Date:To:From:Subject:Message-Id; b=OAZS+qNI6DtU8ZXuvmwjW1MTXca6g8N9qLRV8FsUPk710AX66pAjhVcOo3b2BxdaVgTbVzN59q4crYC7MTyRxibhj7K6K8HsMdZHrA36efpOczDmD7pflv2yVG91edEKFZPQF3jJoF/jkG0LIYORzXCqYkUp8WO5o61dfy9p4Zk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YfiKLLHR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CMnL0H+0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1492C4CEC6;
-	Tue, 17 Sep 2024 07:30:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YfiKLLHR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CCF2C4CECE;
+	Tue, 17 Sep 2024 07:32:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726558232;
-	bh=tLIbFWO+0r4EVA66gXqnQWJ2S+kgQyWGnG5FhliY5yE=;
+	s=korg; t=1726558329;
+	bh=Q4+M6jVgUuWCSgBBQUEKV/k8tUPROLNMOsbgcwrcxNc=;
 	h=Date:To:From:Subject:From;
-	b=CMnL0H+0cMv/8XlIuoeL0FN2LQisB/19sP1PLYr/g6ENzpECetSGbsqO7c0gzHVNW
-	 1TZI+GpovB6Zm3iuQHNyNjrPPJOGuE/75FlBK3iSnK0FTod5pif2VYO5VbAa83Obzl
-	 jNa40FI4+kRZmBS2ZB5z4IT7BEUbW+1E09Hjjeo8=
-Date: Tue, 17 Sep 2024 00:30:28 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,peterz@infradead.org,jiangshanlai@gmail.com,bhe@redhat.com,akpm@linux-foundation.org
+	b=YfiKLLHRP+Zhufc9Njzs4pVlHx7lpfc6agAfby+FvTb256hfmmtQD4OPcN4YkoFV0
+	 ECocPVatOlntFe3r6d00tcHPvyAuMHi+r6Dn76ugnqktVudXXMvbTi5qNyyYmviSfu
+	 8/1xmecUnSLP66FVpU8f25LOIztsRQvRaI4LYIqg=
+Date: Tue, 17 Sep 2024 00:32:07 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kernel-workqueuec-fix-define_per_cpu_shared_aligned-expansion.patch removed from -mm tree
-Message-Id: <20240917073031.C1492C4CEC6@smtp.kernel.org>
+Subject: + zram-free-secondary-algorithms-names-v2.patch added to mm-unstable branch
+Message-Id: <20240917073209.7CCF2C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,61 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: kernel/workqueue.c: fix DEFINE_PER_CPU_SHARED_ALIGNED expansion
-has been removed from the -mm tree.  Its filename was
-     kernel-workqueuec-fix-define_per_cpu_shared_aligned-expansion.patch
+The patch titled
+     Subject: zram-free-secondary-algorithms-names-v2
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-free-secondary-algorithms-names-v2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-free-secondary-algorithms-names-v2.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kernel/workqueue.c: fix DEFINE_PER_CPU_SHARED_ALIGNED expansion
-Date: Wed, 11 Sep 2024 13:07:28 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram-free-secondary-algorithms-names-v2
+Date: Tue, 17 Sep 2024 10:30:05 +0900
 
-Make tags always produces below annoying warnings:
+kfree(NULL) is legal
 
-ctags: Warning: kernel/workqueue.c:470: null expansion of name pattern "\1"
-ctags: Warning: kernel/workqueue.c:474: null expansion of name pattern "\1"
-ctags: Warning: kernel/workqueue.c:478: null expansion of name pattern "\1"
-
-In commit 25528213fe9f ("tags: Fix DEFINE_PER_CPU expansions"), codes in
-places have been adjusted including cpu_worker_pools definition. I noticed
-in commit 4cb1ef64609f ("workqueue: Implement BH workqueues to eventually
-replace tasklets"), cpu_worker_pools definition was unfolded back. Not
-sure if it was intentionally done or ignored carelessly.
-
-Makes change to mute them specifically.
-
-Link: https://lkml.kernel.org/r/20240911050728.258817-1-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20240917013021.868769-1-senozhatsky@chromium.org
+Fixes: 001d92735701 ("zram: add recompression algorithm sysfs knob")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/kernel/workqueue.c~kernel-workqueuec-fix-define_per_cpu_shared_aligned-expansion
-+++ a/kernel/workqueue.c
-@@ -476,16 +476,13 @@ static bool wq_debug_force_rr_cpu = fals
- module_param_named(debug_force_rr_cpu, wq_debug_force_rr_cpu, bool, 0644);
+--- a/drivers/block/zram/zram_drv.c~zram-free-secondary-algorithms-names-v2
++++ a/drivers/block/zram/zram_drv.c
+@@ -2113,8 +2113,6 @@ static void zram_destroy_comps(struct zr
+ 	}
  
- /* to raise softirq for the BH worker pools on other CPUs */
--static DEFINE_PER_CPU_SHARED_ALIGNED(struct irq_work [NR_STD_WORKER_POOLS],
--				     bh_pool_irq_works);
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct irq_work [NR_STD_WORKER_POOLS], bh_pool_irq_works);
- 
- /* the BH worker pools */
--static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS],
--				     bh_worker_pools);
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], bh_worker_pools);
- 
- /* the per-cpu worker pools */
--static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS],
--				     cpu_worker_pools);
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], cpu_worker_pools);
- 
- static DEFINE_IDR(worker_pool_idr);	/* PR: idr of all pools */
- 
+ 	for (prio = ZRAM_SECONDARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
+-		if (!zram->comp_algs[prio])
+-			continue;
+ 		kfree(zram->comp_algs[prio]);
+ 		zram->comp_algs[prio] = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
+zsmalloc-use-unique-zsmalloc-caches-names.patch
+zram-free-secondary-algorithms-names.patch
+zram-free-secondary-algorithms-names-v2.patch
 
