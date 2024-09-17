@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07B9152E0C
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8416152176
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560528; cv=none; b=pVmTmaZCLKJgNbqGqq3AiRi/fXpUtnjZUy21weuUrrclUiu6zYk2NjZjl3Mp/qNyguQPYtfxVJEiWdhN4gZkg1t1RylrWcl07YP/DFoJ140LlAa4j+9MrUftqkaVtWEUAOZ9xutH19SHSmHOsk1T0P8txbiTVXznfdjn9ZBX7Io=
+	t=1726560532; cv=none; b=JDMT1BzvqouSh9Uumcpml46Yn4IcWn/wTFdox/hY7vr6RvZUSkjhZTs3Q3mpdSkado3hkgtrpQ8nzk9VJCVElovIOXAOQ4H/DG6X7K7nKLda2gnbw2XOdaFv7LtYsTA8VI9Hms1RjQvC6YRUjzDj+kiXsWaorUOhjVK5TLDJNgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560528; c=relaxed/simple;
-	bh=G8wvP4AL6kM36HYs1JK8GXHmFKYSvcUuE59rH8kUhM4=;
-	h=Date:To:From:Subject:Message-Id; b=Pdu8U9DsPFwQDLuRMidsGNk7rnVVOOsgtpYBox2GYSYNazKaoPC+z1S4v+6UaQSNRbuQ3kl/OK82WEQuz04OTNDWxEWB+FVgw9GD2qWiRPV+DQPOhclRjiW7vqAHGk6lXzpKl9uTcRBYjeOPoVNtBIRYrgFv1UObH0uqU4aJf08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjpWd7Kv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560532; c=relaxed/simple;
+	bh=SOX6UNub4p3waM5zuMtjpdj7uEBT9bFLIbaRqEyaZfs=;
+	h=Date:To:From:Subject:Message-Id; b=t5zR3n3I7qZf3YXKVHcn5TkgUXZQGAFvQo88P1PdxgUc9PEtm63yK5/1XQK4oWYjSw4CNX2hKi+Mwhfa+lTQAhGaUPp76XM+e8oRoM10IHf4NwtuCpe/b6jw1F96GzyZvaSFwBzFaDb5E6fvn3H9WobxmFxXzIbvKjW2wzq4A+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wd7mreZN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjpWd7Kv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23059C4CECE;
-	Tue, 17 Sep 2024 08:08:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wd7mreZN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0199FC4CEC6;
+	Tue, 17 Sep 2024 08:08:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560528;
-	bh=G8wvP4AL6kM36HYs1JK8GXHmFKYSvcUuE59rH8kUhM4=;
+	s=korg; t=1726560532;
+	bh=SOX6UNub4p3waM5zuMtjpdj7uEBT9bFLIbaRqEyaZfs=;
 	h=Date:To:From:Subject:From;
-	b=WjpWd7KvUX9VyJZ+usi1f9gK6GxR8rmuFPkApTyJi5GjtdbQ+vSezvkwR/ef/JrTE
-	 D47wzGwWDsKVCAAbDu4O0BrqsX6uoL4lRVp5rAEKnxDXiFJX1Ryh4q7KntwojbHCzJ
-	 Ge5hE/lHIvcnDEDhAN48qgDR+BU2ZCJozBomcmUM=
-Date: Tue, 17 Sep 2024 01:08:45 -0700
+	b=wd7mreZNzyfE6qp0X6OyVyQ6aPpBKvybiScMpoEWpPXASwmhMpmYLOkM7MI4BpDKT
+	 Hi/vTg9KQs6oKmXWEoFWxM8DXcljFXVybTK9m4/PPoIrhlWe75yAa2szUZiRwWik15
+	 O96WfIcpZ3qpvbf0yYy+3IxuwJpmEF1lj8U3Mg8s=
+Date: Tue, 17 Sep 2024 01:08:49 -0700
 To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,ira.weiny@intel.com,david@redhat.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] resource-make-alloc_free_mem_region-works-for-iomem_resource.patch removed from -mm tree
-Message-Id: <20240917080848.23059C4CECE@smtp.kernel.org>
+Subject: [merged mm-stable] resource-kunit-add-test-case-for-region_intersects.patch removed from -mm tree
+Message-Id: <20240917080852.0199FC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: resource: make alloc_free_mem_region() works for iomem_resource
+     Subject: resource, kunit: add test case for region_intersects()
 has been removed from the -mm tree.  Its filename was
-     resource-make-alloc_free_mem_region-works-for-iomem_resource.patch
+     resource-kunit-add-test-case-for-region_intersects.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: resource: make alloc_free_mem_region() works for iomem_resource
-Date: Fri, 6 Sep 2024 11:07:12 +0800
+Subject: resource, kunit: add test case for region_intersects()
+Date: Fri, 6 Sep 2024 11:07:13 +0800
 
-During developing a kunit test case for region_intersects(), some fake
-resources need to be inserted into iomem_resource.  To do that, a resource
-hole needs to be found first in iomem_resource.
+Patch series "resource: Fix region_intersects() vs
+add_memory_driver_managed()", v3.
 
-However, alloc_free_mem_region() cannot work for iomem_resource now. 
-Because the start address to check cannot be 0 to detect address wrapping
-0 in gfr_continue(), while iomem_resource.start == 0.  To make
-alloc_free_mem_region() works for iomem_resource, gfr_start() is changed
-to avoid to return 0 even if base->start == 0.  We don't need to check 0
-as start address.
+The patchset fixes a bug of region_intersects() for systems with CXL
+memory.  The details of the bug can be found in [1/3].  To avoid similar
+bugs in the future.  A kunit test case for region_intersects() is added in
+[3/3].  [2/3] is a preparation patch for [3/3].
 
-Link: https://lkml.kernel.org/r/20240906030713.204292-3-ying.huang@intel.com
+
+This patch (of 3):
+
+region_intersects() is important because it's used for /dev/mem permission
+checking.  To avoid possible bug of region_intersects() in the future, a
+kunit test case for region_intersects() is added.
+
+Link: https://lkml.kernel.org/r/20240906030713.204292-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20240906030713.204292-4-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -75,20 +80,233 @@ Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/resource.c       |   20 +++--
+ kernel/resource_kunit.c |  143 ++++++++++++++++++++++++++++++++++++++
+ lib/Kconfig.debug       |    1 
+ 3 files changed, 158 insertions(+), 6 deletions(-)
 
---- a/kernel/resource.c~resource-make-alloc_free_mem_region-works-for-iomem_resource
+--- a/kernel/resource.c~resource-kunit-add-test-case-for-region_intersects
 +++ a/kernel/resource.c
-@@ -1830,7 +1830,7 @@ static resource_size_t gfr_start(struct
+@@ -1817,7 +1817,17 @@ EXPORT_SYMBOL(resource_list_free);
+ #ifdef CONFIG_GET_FREE_REGION
+ #define GFR_DESCENDING		(1UL << 0)
+ #define GFR_REQUEST_REGION	(1UL << 1)
+-#define GFR_DEFAULT_ALIGN (1UL << PA_SECTION_SHIFT)
++#ifdef PA_SECTION_SHIFT
++#define GFR_DEFAULT_ALIGN	(1UL << PA_SECTION_SHIFT)
++#else
++#define GFR_DEFAULT_ALIGN	PAGE_SIZE
++#endif
++
++#ifdef MAX_PHYSMEM_BITS
++#define MAX_PHYS_ADDR		((1ULL << MAX_PHYSMEM_BITS) - 1)
++#else
++#define MAX_PHYS_ADDR		(-1ULL)
++#endif
+ 
+ static resource_size_t gfr_start(struct resource *base, resource_size_t size,
+ 				 resource_size_t align, unsigned long flags)
+@@ -1825,8 +1835,7 @@ static resource_size_t gfr_start(struct
+ 	if (flags & GFR_DESCENDING) {
+ 		resource_size_t end;
+ 
+-		end = min_t(resource_size_t, base->end,
+-			    (1ULL << MAX_PHYSMEM_BITS) - 1);
++		end = min_t(resource_size_t, base->end, MAX_PHYS_ADDR);
  		return end - size + 1;
  	}
  
--	return ALIGN(base->start, align);
-+	return ALIGN(max(base->start, align), align);
+@@ -1843,8 +1852,7 @@ static bool gfr_continue(struct resource
+ 	 * @size did not wrap 0.
+ 	 */
+ 	return addr > addr - size &&
+-	       addr <= min_t(resource_size_t, base->end,
+-			     (1ULL << MAX_PHYSMEM_BITS) - 1);
++		addr <= min_t(resource_size_t, base->end, MAX_PHYS_ADDR);
  }
  
- static bool gfr_continue(struct resource *base, resource_size_t addr,
+ static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
+@@ -2005,7 +2013,7 @@ struct resource *alloc_free_mem_region(s
+ 	return get_free_mem_region(NULL, base, size, align, name,
+ 				   IORES_DESC_NONE, flags);
+ }
+-EXPORT_SYMBOL_NS_GPL(alloc_free_mem_region, CXL);
++EXPORT_SYMBOL_GPL(alloc_free_mem_region);
+ #endif /* CONFIG_GET_FREE_REGION */
+ 
+ static int __init strict_iomem(char *str)
+--- a/kernel/resource_kunit.c~resource-kunit-add-test-case-for-region_intersects
++++ a/kernel/resource_kunit.c
+@@ -7,6 +7,8 @@
+ #include <linux/ioport.h>
+ #include <linux/kernel.h>
+ #include <linux/string.h>
++#include <linux/sizes.h>
++#include <linux/mm.h>
+ 
+ #define R0_START	0x0000
+ #define R0_END		0xffff
+@@ -137,9 +139,150 @@ static void resource_test_intersection(s
+ 	} while (++i < ARRAY_SIZE(results_for_intersection));
+ }
+ 
++/*
++ * The test resource tree for region_intersects() test:
++ *
++ * BASE-BASE+1M-1 : Test System RAM 0
++ *		  # hole 0 (BASE+1M-BASE+2M)
++ * BASE+2M-BASE+3M-1 : Test CXL Window 0
++ * BASE+3M-BASE+4M-1 : Test System RAM 1
++ * BASE+4M-BASE+7M-1 : Test CXL Window 1
++ *   BASE+4M-BASE+5M-1 : Test System RAM 2
++ *     BASE+4M+128K-BASE+4M+256K-1: Test Code
++ *   BASE+5M-BASE+6M-1 : Test System RAM 3
++ */
++#define RES_TEST_RAM0_OFFSET	0
++#define RES_TEST_RAM0_SIZE	SZ_1M
++#define RES_TEST_HOLE0_OFFSET	(RES_TEST_RAM0_OFFSET + RES_TEST_RAM0_SIZE)
++#define RES_TEST_HOLE0_SIZE	SZ_1M
++#define RES_TEST_WIN0_OFFSET	(RES_TEST_HOLE0_OFFSET + RES_TEST_HOLE0_SIZE)
++#define RES_TEST_WIN0_SIZE	SZ_1M
++#define RES_TEST_RAM1_OFFSET	(RES_TEST_WIN0_OFFSET + RES_TEST_WIN0_SIZE)
++#define RES_TEST_RAM1_SIZE	SZ_1M
++#define RES_TEST_WIN1_OFFSET	(RES_TEST_RAM1_OFFSET + RES_TEST_RAM1_SIZE)
++#define RES_TEST_WIN1_SIZE	(SZ_1M * 3)
++#define RES_TEST_RAM2_OFFSET	RES_TEST_WIN1_OFFSET
++#define RES_TEST_RAM2_SIZE	SZ_1M
++#define RES_TEST_CODE_OFFSET	(RES_TEST_RAM2_OFFSET + SZ_128K)
++#define RES_TEST_CODE_SIZE	SZ_128K
++#define RES_TEST_RAM3_OFFSET	(RES_TEST_RAM2_OFFSET + RES_TEST_RAM2_SIZE)
++#define RES_TEST_RAM3_SIZE	SZ_1M
++#define RES_TEST_TOTAL_SIZE	((RES_TEST_WIN1_OFFSET + RES_TEST_WIN1_SIZE))
++
++static void remove_free_resource(void *ctx)
++{
++	struct resource *res = (struct resource *)ctx;
++
++	remove_resource(res);
++	kfree(res);
++}
++
++static void resource_test_request_region(struct kunit *test, struct resource *parent,
++					 resource_size_t start, resource_size_t size,
++					 const char *name, unsigned long flags)
++{
++	struct resource *res;
++
++	res = __request_region(parent, start, size, name, flags);
++	KUNIT_ASSERT_NOT_NULL(test, res);
++	kunit_add_action_or_reset(test, remove_free_resource, res);
++}
++
++static void resource_test_insert_resource(struct kunit *test, struct resource *parent,
++					  resource_size_t start, resource_size_t size,
++					  const char *name, unsigned long flags)
++{
++	struct resource *res;
++
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_NULL(test, res);
++
++	res->name = name;
++	res->start = start;
++	res->end = start + size - 1;
++	res->flags = flags;
++	if (insert_resource(parent, res)) {
++		kfree(res);
++		KUNIT_FAIL_AND_ABORT(test, "Fail to insert resource %pR\n", res);
++	}
++
++	kunit_add_action_or_reset(test, remove_free_resource, res);
++}
++
++static void resource_test_region_intersects(struct kunit *test)
++{
++	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
++	struct resource *parent;
++	resource_size_t start;
++
++	/* Find an iomem_resource hole to hold test resources */
++	parent = alloc_free_mem_region(&iomem_resource, RES_TEST_TOTAL_SIZE, SZ_1M,
++				       "test resources");
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, parent);
++	start = parent->start;
++	kunit_add_action_or_reset(test, remove_free_resource, parent);
++
++	resource_test_request_region(test, parent, start + RES_TEST_RAM0_OFFSET,
++				     RES_TEST_RAM0_SIZE, "Test System RAM 0", flags);
++	resource_test_insert_resource(test, parent, start + RES_TEST_WIN0_OFFSET,
++				      RES_TEST_WIN0_SIZE, "Test CXL Window 0",
++				      IORESOURCE_MEM);
++	resource_test_request_region(test, parent, start + RES_TEST_RAM1_OFFSET,
++				     RES_TEST_RAM1_SIZE, "Test System RAM 1", flags);
++	resource_test_insert_resource(test, parent, start + RES_TEST_WIN1_OFFSET,
++				      RES_TEST_WIN1_SIZE, "Test CXL Window 1",
++				      IORESOURCE_MEM);
++	resource_test_request_region(test, parent, start + RES_TEST_RAM2_OFFSET,
++				     RES_TEST_RAM2_SIZE, "Test System RAM 2", flags);
++	resource_test_insert_resource(test, parent, start + RES_TEST_CODE_OFFSET,
++				      RES_TEST_CODE_SIZE, "Test Code", flags);
++	resource_test_request_region(test, parent, start + RES_TEST_RAM3_OFFSET,
++				     RES_TEST_RAM3_SIZE, "Test System RAM 3", flags);
++	kunit_release_action(test, remove_free_resource, parent);
++
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_RAM0_OFFSET, PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_RAM0_OFFSET +
++					  RES_TEST_RAM0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_DISJOINT,
++			region_intersects(start + RES_TEST_HOLE0_OFFSET, PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_DISJOINT,
++			region_intersects(start + RES_TEST_HOLE0_OFFSET +
++					  RES_TEST_HOLE0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_MIXED,
++			region_intersects(start + RES_TEST_WIN0_OFFSET +
++					  RES_TEST_WIN0_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_RAM1_OFFSET +
++					  RES_TEST_RAM1_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_RAM2_OFFSET +
++					  RES_TEST_RAM2_SIZE - PAGE_SIZE, 2 * PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_CODE_OFFSET, PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_INTERSECTS,
++			region_intersects(start + RES_TEST_RAM2_OFFSET,
++					  RES_TEST_RAM2_SIZE + PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++	KUNIT_EXPECT_EQ(test, REGION_MIXED,
++			region_intersects(start + RES_TEST_RAM3_OFFSET,
++					  RES_TEST_RAM3_SIZE + PAGE_SIZE,
++					  IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE));
++}
++
+ static struct kunit_case resource_test_cases[] = {
+ 	KUNIT_CASE(resource_test_union),
+ 	KUNIT_CASE(resource_test_intersection),
++	KUNIT_CASE(resource_test_region_intersects),
+ 	{}
+ };
+ 
+--- a/lib/Kconfig.debug~resource-kunit-add-test-case-for-region_intersects
++++ a/lib/Kconfig.debug
+@@ -2616,6 +2616,7 @@ config RESOURCE_KUNIT_TEST
+ 	tristate "KUnit test for resource API" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+ 	default KUNIT_ALL_TESTS
++	select GET_FREE_REGION
+ 	help
+ 	  This builds the resource API unit test.
+ 	  Tests the logic of API provided by resource.c and ioport.h.
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
