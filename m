@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CABDF153808
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:09:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14CDF154C0A
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:09:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560550; cv=none; b=BisDZt75ZiNg2DarMhh6Xn9oNHVYoJgr5E4W4uyLond5r0uTbspvoQ1Y403lapyVMPuztVfNZZ+ANCUxzt1StbD9nSM9jvSON6koJbUs7Fto8POVYksHMkezKZTMSvnZmPPS4l89faMzg57b3DnOCep9zN++iHu3655LOxjusDA=
+	t=1726560555; cv=none; b=FYEOpGJGWVgwJLD0HF6oGFsUxAeM5ByGriP61QVdNQXi7JZApz88YleuIOva7S65bcHYtO9YwRDdy82GUQ5+y8dNUANW/oBxvhT3TCVzXxTiDLmhBxgw2S0yEjiPdniDRuCylewZ4zqpmwQLe72Tp/E1Td2q6OvNRWIykdp/n/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560550; c=relaxed/simple;
-	bh=52jeh0zHT+lPLWkxX16fHWSKA2A4/y4LdclTJdAh180=;
-	h=Date:To:From:Subject:Message-Id; b=iSranqFsXpveB1Tt8Pa6JoV7dEIOvPl2d6tnJeu5yTZSoZScIhphZ2eqozBdSscy9ktmwIBMjoY4RCIpPeOTGJ3cnZTgKT0/5C209wo7xiFBQiOP9X3aW4oRrTcYTh8mXjrpYp8cgnncmA+H/KU93b0urlsTqv/EWiWf3O8YJC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sotcmAq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560555; c=relaxed/simple;
+	bh=e+ROcYSVhhuEJcwIXJEb1m2LWIeTp77Njqkkf3JIsHU=;
+	h=Date:To:From:Subject:Message-Id; b=sE+b10+u5dAx6SGkJVuyNg9VEGBGf36wMO4EaIvSpt2fHDpXuleNdJbhv6qGvfUZ++2xGm5C7nVPjdSOHC5ADOMA9qz7f7AeHXSBvPEyaZZeBvyAJnFXlQWXjCunHRmzOtTMTHj8anabrrmKu8loA1VB0TWcsvcmi4Fq+9S6OBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LgpSkPaV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sotcmAq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DE63C4CEC6;
-	Tue, 17 Sep 2024 08:09:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LgpSkPaV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EF8FC4CEC7;
+	Tue, 17 Sep 2024 08:09:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560550;
-	bh=52jeh0zHT+lPLWkxX16fHWSKA2A4/y4LdclTJdAh180=;
+	s=korg; t=1726560554;
+	bh=e+ROcYSVhhuEJcwIXJEb1m2LWIeTp77Njqkkf3JIsHU=;
 	h=Date:To:From:Subject:From;
-	b=sotcmAq4c1YWyXflfI2dFaODzT21oxJQUj+9U9qsqa6CSjMcmQwzfFvIRimNCZZ3v
-	 c/keEE34q8AuvbAN9XfQa5FWSZjhIZYQCr5LqphJJWuIKadwfAPulHJ+L+/jd/NyXb
-	 wlmB5hl/ICs/bM/DUFm9Yc9EYk7ibz0iDAExZp3Q=
-Date: Tue, 17 Sep 2024 01:09:08 -0700
-To: mm-commits@vger.kernel.org,oliver.sang@intel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,ice_yangxiao@163.com,akpm@linux-foundation.org
+	b=LgpSkPaVU/Y9R2IHLq5wvSjrsLqHn54fSNf7rY8AmIBVJlphYESusjjqEiGwyl5QJ
+	 DZEJpJgqOzhncaplegbCkRzz8RRLzvA8jYQ+mAC0R/cbxIdQwJGksscyLvU+WvOI4B
+	 xOHS8svgcuJSrU60H4VD00w6xge5yQpFKpQG/T3k=
+Date: Tue, 17 Sep 2024 01:09:11 -0700
+To: mm-commits@vger.kernel.org,kees@kernel.org,arnd@arndb.de,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas.patch removed from -mm tree
-Message-Id: <20240917080910.4DE63C4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] set_memory-add-__must_check-to-generic-stubs.patch removed from -mm tree
+Message-Id: <20240917080914.2EF8FC4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: return the exact errno in vms_gather_munmap_vmas()
+     Subject: set_memory: add __must_check to generic stubs
 has been removed from the -mm tree.  Its filename was
-     mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas.patch
+     set_memory-add-__must_check-to-generic-stubs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xiao Yang <ice_yangxiao@163.com>
-Subject: mm/vma: return the exact errno in vms_gather_munmap_vmas()
-Date: Mon, 9 Sep 2024 21:56:21 +0900
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: set_memory: add __must_check to generic stubs
+Date: Sat, 7 Sep 2024 17:40:42 +0200
 
-__split_vma() and mas_store_gfp() returns several types of errno on
-failure so don't ignore them in vms_gather_munmap_vmas().  For example,
-__split_vma() returns -EINVAL when an unaligned huge page is unmapped. 
-This issue is reproduced by ltp memfd_create03 test.
+Following query shows that architectures that don't provide
+asm/set_memory.h don't use set_memory_...() functions.
 
-Don't initialise the error variable and assign it when a failure actually
-occurs.
+  $ git grep set_memory_ alpha arc csky hexagon loongarch m68k microblaze mips nios2 openrisc parisc sh sparc um xtensa
 
-[akpm@linux-foundation.org: fix whitespace, per Liam]
-Link: https://lkml.kernel.org/r/20240909125621.1994-1-ice_yangxiao@163.com
-Fixes: 6898c9039bc8 ("mm/vma: extract the gathering of vmas from do_vmi_align_munmap()")
-Signed-off-by: Xiao Yang <ice_yangxiao@163.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202409081536.d283a0fb-oliver.sang@intel.com
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Following query shows that all core users of set_memory_...()
+functions always take returned value into account:
+
+  $ git grep -w -e set_memory_ro -e set_memory_rw -e set_memory_x -e set_memory_nx -e set_memory_rox `find . -maxdepth 1 -type d | grep -v arch | grep /`
+
+set_memory_...() functions can fail, leaving the memory attributes
+unchanged. Make sure all callers check the returned code.
+
+Link: https://github.com/KSPP/linux/issues/7
+Link: https://lkml.kernel.org/r/6a89ffc69666de84721216947c6b6c7dcca39d7d.1725723347.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ include/linux/set_memory.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/vma.c~mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas
-+++ a/mm/vma.c
-@@ -1171,13 +1171,13 @@ void vms_complete_munmap_vmas(struct vma
-  * @vms: The vma munmap struct
-  * @mas_detach: The maple state tracking the detached tree
-  *
-- * Return: 0 on success, -EPERM on mseal vmas, -ENOMEM otherwise
-+ * Return: 0 on success, error otherwise
-  */
- int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
- 		struct ma_state *mas_detach)
- {
- 	struct vm_area_struct *next = NULL;
--	int error = -ENOMEM;
-+	int error;
+--- a/include/linux/set_memory.h~set_memory-add-__must_check-to-generic-stubs
++++ a/include/linux/set_memory.h
+@@ -8,10 +8,10 @@
+ #ifdef CONFIG_ARCH_HAS_SET_MEMORY
+ #include <asm/set_memory.h>
+ #else
+-static inline int set_memory_ro(unsigned long addr, int numpages) { return 0; }
+-static inline int set_memory_rw(unsigned long addr, int numpages) { return 0; }
+-static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
+-static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
++static inline int __must_check set_memory_ro(unsigned long addr, int numpages) { return 0; }
++static inline int __must_check set_memory_rw(unsigned long addr, int numpages) { return 0; }
++static inline int __must_check set_memory_x(unsigned long addr,  int numpages) { return 0; }
++static inline int __must_check set_memory_nx(unsigned long addr, int numpages) { return 0; }
+ #endif
  
- 	/*
- 	 * If we need to split any vma, do it now to save pain later.
-@@ -1191,8 +1191,10 @@ int vms_gather_munmap_vmas(struct vma_mu
- 		 * its limit temporarily, to help free resources as expected.
- 		 */
- 		if (vms->end < vms->vma->vm_end &&
--		    vms->vma->vm_mm->map_count >= sysctl_max_map_count)
-+		    vms->vma->vm_mm->map_count >= sysctl_max_map_count) {
-+			error = -ENOMEM;
- 			goto map_count_exceeded;
-+		}
- 
- 		/* Don't bother splitting the VMA if we can't unmap it anyway */
- 		if (!can_modify_vma(vms->vma)) {
-@@ -1200,7 +1202,8 @@ int vms_gather_munmap_vmas(struct vma_mu
- 			goto start_split_failed;
- 		}
- 
--		if (__split_vma(vms->vmi, vms->vma, vms->start, 1))
-+		error = __split_vma(vms->vmi, vms->vma, vms->start, 1);
-+		if (error)
- 			goto start_split_failed;
- 	}
- 	vms->prev = vma_prev(vms->vmi);
-@@ -1220,12 +1223,14 @@ int vms_gather_munmap_vmas(struct vma_mu
- 		}
- 		/* Does it split the end? */
- 		if (next->vm_end > vms->end) {
--			if (__split_vma(vms->vmi, next, vms->end, 0))
-+			error = __split_vma(vms->vmi, next, vms->end, 0);
-+			if (error)
- 				goto end_split_failed;
- 		}
- 		vma_start_write(next);
- 		mas_set(mas_detach, vms->vma_count++);
--		if (mas_store_gfp(mas_detach, next, GFP_KERNEL))
-+		error = mas_store_gfp(mas_detach, next, GFP_KERNEL);
-+		if (error)
- 			goto munmap_gather_failed;
- 
- 		vma_mark_detached(next, true);
-@@ -1255,8 +1260,9 @@ int vms_gather_munmap_vmas(struct vma_mu
- 			 * split, despite we could. This is unlikely enough
- 			 * failure that it's not worth optimizing it for.
- 			 */
--			if (userfaultfd_unmap_prep(next, vms->start, vms->end,
--						   vms->uf))
-+			error = userfaultfd_unmap_prep(next, vms->start,
-+						       vms->end, vms->uf);
-+			if (error)
- 				goto userfaultfd_error;
- 		}
- #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+ #ifndef set_memory_rox
 _
 
-Patches currently in -mm which might be from ice_yangxiao@163.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
 
