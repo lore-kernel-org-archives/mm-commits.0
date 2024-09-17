@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8596136337
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:04:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5040F130E27
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:04:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560263; cv=none; b=liMYqX/rL0D8IVKg+ErtiqnbGymUuwxc68p6j8J3BjVJd7qgtaByjKWmL/IdlpS7Lo1bECAed81jLZq3q5v55eTU1t5vC4CsVf05Ov7GGKx4JCADEGU95bu/1ekdofmSsG80JfWeDAy0PCsFMXdaCv3+TBtZHThNjHudPbwZZ/4=
+	t=1726560296; cv=none; b=jBxMk1tW6rP/Sv/Y0H3qA08M89QCFhcmnvpK/how1E5RWv1NdOvtJZL6z3f3zzeSnQjq5kCiqI7aOkjyJBblH+ZERUbiNsDzfB5hH+5fAz8BdhRCIC8u9p3+IGXRkhVhZWAn/RD7zq4iQuGBV4AjqEBFw9J393e88mg2tegTJAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560263; c=relaxed/simple;
-	bh=ZvbxQTZxEWJOf+blPfpwnAcyvIlzj5e1VX4c9JOiUxA=;
-	h=Date:To:From:Subject:Message-Id; b=tQeSN6fRamFi9dPmCHMt0D9z6n4exPEQv/u7OxwDQKoz6LlAAKgZNsCl4A9cTMRwQqfvcMurfgIvjFNM47ZJ/IbIkq4TzqN3fNVAol/KuHPma/jjNO/j5VYjZ1DT8khJx21SG4nY6YpJkXvBM3OSSA2NyLz5rr5pV5ECr09KcPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eP8Oc3u3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560296; c=relaxed/simple;
+	bh=exEwIxB7lk/Ge2R0d91u2QuYlp1bkDprkvRa5g8TuVs=;
+	h=Date:To:From:Subject:Message-Id; b=svszZVOVd2chL9YQiEwpQNfgS4Vk5ixanZyR78MaHgYpi6kURq9wdOkwjA8Rbmc9S6JhPsY6vyruJRcYPPFnWlGnkaJUsr+ncTrzIn06VlgZqjoIFWnB0Ob0dg0JcYTeJwK/tD3wjZj++fdm6hUDVsDl2hZPvJUuk0MreGLwy/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OiN8j2Kl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eP8Oc3u3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C232EC4CEC6;
-	Tue, 17 Sep 2024 08:04:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OiN8j2Kl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738E4C4CEC6;
+	Tue, 17 Sep 2024 08:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560263;
-	bh=ZvbxQTZxEWJOf+blPfpwnAcyvIlzj5e1VX4c9JOiUxA=;
+	s=korg; t=1726560295;
+	bh=exEwIxB7lk/Ge2R0d91u2QuYlp1bkDprkvRa5g8TuVs=;
 	h=Date:To:From:Subject:From;
-	b=eP8Oc3u3Ki53T5vw0bb6sJC1vYY4OCatmRWtFLNgxKUq4JKtGSvw6zD7f6hncHFWx
-	 8CsukTIc/0ewnySmxLWq2kZp2Ur/1NMSxwFFIp6l+4Wn+jI1V55CSmuCH7H/iH3OXI
-	 7Z85nLxTTM1rNhBDLpKdM/LuX/pwhtNakPZSfzC4=
-Date: Tue, 17 Sep 2024 01:04:20 -0700
-To: mm-commits@vger.kernel.org,tony.luck@intel.com,nao.horiguchi@gmail.com,linmiaohe@huawei.com,jiaqiyan@google.com,jane.chu@oracle.com,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=OiN8j2KlVfnLF9w036prAJx+VEx/n9TwjWSp7UHomJtHhVrHUV45Np5RV3B7PwfoU
+	 ztgMhmh3QNIHrplsojzfGtp7E4r4K/2GKA9/4tORlA/3f97cDefbKpSB1zDZZhbEDL
+	 G/6xgnGuhfcEYbgzbOIh9wtV1h+4brM2+vNDN9bk=
+Date: Tue, 17 Sep 2024 01:04:52 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,ice_yangxiao@163.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-support-poison-recovery-from-do_cow_fault-fix.patch removed from -mm tree
-Message-Id: <20240917080422.C232EC4CEC6@smtp.kernel.org>
+Subject: [folded-merged] mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch removed from -mm tree
+Message-Id: <20240917080455.738E4C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: support poison recovery from do_cow_fault() fix
+     Subject: mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix
 has been removed from the -mm tree.  Its filename was
-     mm-support-poison-recovery-from-do_cow_fault-fix.patch
+     mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix.patch
 
-This patch was dropped because it was folded into mm-support-poison-recovery-from-do_cow_fault.patch
+This patch was dropped because it was folded into mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas.patch
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: support poison recovery from do_cow_fault() fix
-Date: Tue, 10 Sep 2024 10:15:41 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix
+Date: Mon Sep  9 12:04:14 PM PDT 2024
 
-unlock/put vmf->page, per Miaohe
+fix whitespace, per Liam
 
-Link: https://lkml.kernel.org/r/20240910021541.234300-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Xiao Yang <ice_yangxiao@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
+ mm/vma.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-support-poison-recovery-from-do_cow_fault-fix
-+++ a/mm/memory.c
-@@ -5089,11 +5089,12 @@ static vm_fault_t do_cow_fault(struct vm
- 
- 	if (copy_mc_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma)) {
- 		ret = VM_FAULT_HWPOISON;
--		goto uncharge_out;
-+		goto unlock;
- 	}
- 	__folio_mark_uptodate(folio);
- 
- 	ret |= finish_fault(vmf);
-+unlock:
- 	unlock_page(vmf->page);
- 	put_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+--- a/mm/vma.c~mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas-fix
++++ a/mm/vma.c
+@@ -1260,7 +1260,8 @@ int vms_gather_munmap_vmas(struct vma_mu
+ 			 * split, despite we could. This is unlikely enough
+ 			 * failure that it's not worth optimizing it for.
+ 			 */
+-			error = userfaultfd_unmap_prep(next, vms->start, vms->end, vms->uf);
++			error = userfaultfd_unmap_prep(next, vms->start,
++						       vms->end, vms->uf);
+ 			if (error)
+ 				goto userfaultfd_error;
+ 		}
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-support-poison-recovery-from-do_cow_fault.patch
-mm-support-poison-recovery-from-copy_present_page.patch
+mm-vma-return-the-exact-errno-in-vms_gather_munmap_vmas.patch
 
