@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F236152176
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8947153808
+	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560517; cv=none; b=aKQaZT6R+zJ+/MlJv+pMSRBv8xSDE4QzplSHmfkIyhGgyk7WgzF0A302ikCY8uQu4YdyqbE8oHrrUzk8EwC1/bORsX8o0/vio6Fho92o7gkxkWCkid+i3X6+Dp+tuZVOo1TFDuZFa5I4rfDSpvKDUAeiQqNipTLcPHaA1PqEjSs=
+	t=1726560520; cv=none; b=A9TT2u/qM2zWMouvsQlj4i2Vwv21/wZ3KErqJYm1Dg6GYIG92K05CSZCAJdhM/Xhs1ygYzZ+Uf/7ndUxOSDkEwN7B+OWJa75zKK3wK9HqJ3G4ZiA17keEJFTYU3Ra/dvngZPmfnXOxd3Sz3JKXIMrHdO2Y1VSg4MaHkYBw3Ya5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560517; c=relaxed/simple;
-	bh=YXxhUwZbbDYroekc9F/HeWUBUCVj93EG2VwVF+HHSrQ=;
-	h=Date:To:From:Subject:Message-Id; b=kdy2f6wNBENH9UkHb9Zrnc5Uvxzu3TpEiCVeXwQzRcQkva9P82ftasVCdW4zluLeqRJHoRr6prIhpz0qL2f4Vze3wMPCwy9BMJB4XYW6x7fvjghvYpgi1uedvphTsKjX4mWZrGvbeMMuDdS0u1rsdaS2sQaybKnPxp57acofSjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R6j8NoHY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560520; c=relaxed/simple;
+	bh=w4pWPTX5MpNTlsukJpd0d/vWHZloF4adZIMYc41+aq0=;
+	h=Date:To:From:Subject:Message-Id; b=vEN4+llxq4Z+p8B5TY+dJFTPe/rpML6qf7OcFSGsReBGlZ8Nm/RM4AK02xTP8m5ePciV+btHDdHsPS5CqljgoB2NpcMXrRZo+5K6q1txLCMqbwso4/oe3NBvhgC36C9GXsY8eJxbLt84G5xOsDRo1xvwIlSd6IpvbPu4jX5lGng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjQhTwHY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R6j8NoHY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90E02C4CEC6;
-	Tue, 17 Sep 2024 08:08:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjQhTwHY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 345CCC4CEC6;
+	Tue, 17 Sep 2024 08:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560517;
-	bh=YXxhUwZbbDYroekc9F/HeWUBUCVj93EG2VwVF+HHSrQ=;
+	s=korg; t=1726560520;
+	bh=w4pWPTX5MpNTlsukJpd0d/vWHZloF4adZIMYc41+aq0=;
 	h=Date:To:From:Subject:From;
-	b=R6j8NoHYcopnYbZi5+8J3Bfeni4Ow6k0YCEWaHc7PdgL5OFa/HClo4Jee4yDmuSZE
-	 i66xrDfPm+k/nqyUNiSOprdwWx8R+zP/tZJ78ymlzSrDIRda7jfF762S8K0rjDu45/
-	 RfKZttcgfE3NxGhkkoknKUJ6l7akucj678dfYqzE=
-Date: Tue, 17 Sep 2024 01:08:34 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,alex.williamson@redhat.com,agordeev@linux.ibm.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=VjQhTwHYXxoaFv7kT4zxY9B41rkmwd7AjU8kmFVJSXx1bL14vmUVKXsRt3k+cu7Wi
+	 1EyjQVO80c18+rdL86Y6W0GS2fy1/oZSdWFq9RsnKgarETnzYl1ei0mO5UvUYtRtlS
+	 d+lwAbaDUfPSyUShW6y+eWVo5uYZ1MNjNJoxQ/jI=
+Date: Tue, 17 Sep 2024 01:08:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,peterx@redhat.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,alex.williamson@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-arm64-support-large-pfn-mappings.patch removed from -mm tree
-Message-Id: <20240917080836.90E02C4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] vfio-pci-implement-huge_fault-support.patch removed from -mm tree
+Message-Id: <20240917080840.345CCC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/arm64: support large pfn mappings
+     Subject: vfio/pci: implement huge_fault support
 has been removed from the -mm tree.  Its filename was
-     mm-arm64-support-large-pfn-mappings.patch
+     vfio-pci-implement-huge_fault-support.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/arm64: support large pfn mappings
-Date: Mon, 26 Aug 2024 16:43:52 -0400
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: vfio/pci: implement huge_fault support
+Date: Mon, 26 Aug 2024 16:43:53 -0400
 
-Support huge pfnmaps by using bit 56 (PTE_SPECIAL) for "special" on
-pmds/puds.  Provide the pmd/pud helpers to set/get special bit.
+With the addition of pfnmap support in vmf_insert_pfn_{pmd,pud}() we can
+take advantage of PMD and PUD faults to PCI BAR mmaps and create more
+efficient mappings.  PCI BARs are always a power of two and will typically
+get at least PMD alignment without userspace even trying.  Userspace
+alignment for PUD mappings is also not too difficult.
 
-There's one more thing missing for arm64 which is the pxx_pgprot() for
-pmd/pud.  Add them too, which is mostly the same as the pte version by
-dropping the pfn field.  These helpers are essential to be used in the new
-follow_pfnmap*() API to report valid pgprot_t results.
+Consolidate faults through a single handler with a new wrapper for
+standard single page faults.  The pre-faulting behavior of commit
+d71a989cf5d9 ("vfio/pci: Insert full vma on mmap'd MMIO fault") is removed
+in this refactoring since huge_fault will cover the bulk of the faults and
+results in more efficient page table usage.  We also want to avoid that
+pre-faulted single page mappings preempt huge page mappings.
 
-Note that arm64 doesn't yet support huge PUD yet, but it's still
-straightforward to provide the pud helpers that we need altogether.  Only
-PMD helpers will make an immediate benefit until arm64 will support huge
-PUDs first in general (e.g.  in THPs).
-
-Link: https://lkml.kernel.org/r/20240826204353.2228736-19-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20240826204353.2228736-20-peterx@redhat.com
+Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -84,71 +83,114 @@ Cc: Sean Christopherson <seanjc@google.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    1 +
- arch/arm64/include/asm/pgtable.h |   29 +++++++++++++++++++++++++++++
- 2 files changed, 30 insertions(+)
+ drivers/vfio/pci/vfio_pci_core.c |   60 ++++++++++++++++++++---------
+ 1 file changed, 43 insertions(+), 17 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-arm64-support-large-pfn-mappings
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -578,6 +578,14 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
- 	return pte_pmd(set_pte_bit(pmd_pte(pmd), __pgprot(PTE_DEVMAP)));
+--- a/drivers/vfio/pci/vfio_pci_core.c~vfio-pci-implement-huge_fault-support
++++ a/drivers/vfio/pci/vfio_pci_core.c
+@@ -20,6 +20,7 @@
+ #include <linux/mutex.h>
+ #include <linux/notifier.h>
+ #include <linux/pci.h>
++#include <linux/pfn_t.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -1657,14 +1658,20 @@ static unsigned long vma_to_pfn(struct v
+ 	return (pci_resource_start(vdev->pdev, index) >> PAGE_SHIFT) + pgoff;
  }
  
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
-+#define pmd_special(pte)	(!!((pmd_val(pte) & PTE_SPECIAL)))
-+static inline pmd_t pmd_mkspecial(pmd_t pmd)
-+{
-+	return set_pmd_bit(pmd, __pgprot(PTE_SPECIAL));
-+}
-+#endif
-+
- #define __pmd_to_phys(pmd)	__pte_to_phys(pmd_pte(pmd))
- #define __phys_to_pmd_val(phys)	__phys_to_pte_val(phys)
- #define pmd_pfn(pmd)		((__pmd_to_phys(pmd) & PMD_MASK) >> PAGE_SHIFT)
-@@ -595,6 +603,27 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
- #define pud_pfn(pud)		((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT)
- #define pfn_pud(pfn,prot)	__pud(__phys_to_pud_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+-static vm_fault_t vfio_pci_mmap_fault(struct vm_fault *vmf)
++static vm_fault_t vfio_pci_mmap_huge_fault(struct vm_fault *vmf,
++					   unsigned int order)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct vfio_pci_core_device *vdev = vma->vm_private_data;
+ 	unsigned long pfn, pgoff = vmf->pgoff - vma->vm_pgoff;
+-	unsigned long addr = vma->vm_start;
+ 	vm_fault_t ret = VM_FAULT_SIGBUS;
  
-+#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
-+#define pud_special(pte)	pte_special(pud_pte(pud))
-+#define pud_mkspecial(pte)	pte_pud(pte_mkspecial(pud_pte(pud)))
++	if (order && (vmf->address & ((PAGE_SIZE << order) - 1) ||
++		      vmf->address + (PAGE_SIZE << order) > vma->vm_end)) {
++		ret = VM_FAULT_FALLBACK;
++		goto out;
++	}
++
+ 	pfn = vma_to_pfn(vma);
+ 
+ 	down_read(&vdev->memory_lock);
+@@ -1672,30 +1679,49 @@ static vm_fault_t vfio_pci_mmap_fault(st
+ 	if (vdev->pm_runtime_engaged || !__vfio_pci_memory_enabled(vdev))
+ 		goto out_unlock;
+ 
+-	ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
+-	if (ret & VM_FAULT_ERROR)
+-		goto out_unlock;
+-
+-	/*
+-	 * Pre-fault the remainder of the vma, abort further insertions and
+-	 * supress error if fault is encountered during pre-fault.
+-	 */
+-	for (; addr < vma->vm_end; addr += PAGE_SIZE, pfn++) {
+-		if (addr == vmf->address)
+-			continue;
+-
+-		if (vmf_insert_pfn(vma, addr, pfn) & VM_FAULT_ERROR)
+-			break;
++	switch (order) {
++	case 0:
++		ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
++		break;
++#ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
++	case PMD_ORDER:
++		ret = vmf_insert_pfn_pmd(vmf, __pfn_to_pfn_t(pfn + pgoff,
++							     PFN_DEV), false);
++		break;
 +#endif
-+
-+#define pmd_pgprot pmd_pgprot
-+static inline pgprot_t pmd_pgprot(pmd_t pmd)
++#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
++	case PUD_ORDER:
++		ret = vmf_insert_pfn_pud(vmf, __pfn_to_pfn_t(pfn + pgoff,
++							     PFN_DEV), false);
++		break;
++#endif
++	default:
++		ret = VM_FAULT_FALLBACK;
+ 	}
+ 
+ out_unlock:
+ 	up_read(&vdev->memory_lock);
++out:
++	dev_dbg_ratelimited(&vdev->pdev->dev,
++			   "%s(,order = %d) BAR %ld page offset 0x%lx: 0x%x\n",
++			    __func__, order,
++			    vma->vm_pgoff >>
++				(VFIO_PCI_OFFSET_SHIFT - PAGE_SHIFT),
++			    pgoff, (unsigned int)ret);
+ 
+ 	return ret;
+ }
+ 
++static vm_fault_t vfio_pci_mmap_page_fault(struct vm_fault *vmf)
 +{
-+	unsigned long pfn = pmd_pfn(pmd);
-+
-+	return __pgprot(pmd_val(pfn_pmd(pfn, __pgprot(0))) ^ pmd_val(pmd));
++	return vfio_pci_mmap_huge_fault(vmf, 0);
 +}
 +
-+#define pud_pgprot pud_pgprot
-+static inline pgprot_t pud_pgprot(pud_t pud)
-+{
-+	unsigned long pfn = pud_pfn(pud);
-+
-+	return __pgprot(pud_val(pfn_pud(pfn, __pgprot(0))) ^ pud_val(pud));
-+}
-+
- static inline void __set_pte_at(struct mm_struct *mm,
- 				unsigned long __always_unused addr,
- 				pte_t *ptep, pte_t pte, unsigned int nr)
---- a/arch/arm64/Kconfig~mm-arm64-support-large-pfn-mappings
-+++ a/arch/arm64/Kconfig
-@@ -99,6 +99,7 @@ config ARM64
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_SUPPORTS_PER_VMA_LOCK
-+	select ARCH_SUPPORTS_HUGE_PFNMAP if TRANSPARENT_HUGEPAGE
- 	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION if COMPAT
- 	select ARCH_WANT_DEFAULT_BPF_JIT
+ static const struct vm_operations_struct vfio_pci_mmap_ops = {
+-	.fault = vfio_pci_mmap_fault,
++	.fault = vfio_pci_mmap_page_fault,
++#ifdef CONFIG_ARCH_SUPPORTS_HUGE_PFNMAP
++	.huge_fault = vfio_pci_mmap_huge_fault,
++#endif
+ };
+ 
+ int vfio_pci_core_mmap(struct vfio_device *core_vdev, struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from alex.williamson@redhat.com are
 
 
