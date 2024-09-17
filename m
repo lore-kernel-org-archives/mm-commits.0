@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C13043AA8;
-	Tue, 17 Sep 2024 07:58:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E9317C9;
+	Tue, 17 Sep 2024 07:58:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726559922; cv=none; b=llNQQPN6Ry4JnkMs8kHlK+2/DpqIrgssn1Rq/hLJ/RrPi9NOHS4XBEnWwKn2BMLeQaVMJh1NAZKyahbcAHHNVZ70jdKflQtmTccO8H2HtbewZ4/HDmvS+Su/7B3Gn9fvt4LQqSslHBrIaMhZOL21h0TVey67pGRdGkOPQ1YROnQ=
+	t=1726559926; cv=none; b=ZZHf1Otcn1UFeTfJRPP+E6Ym2sq2G1N1Bwiy+Qixd0Pu/1PXmnqyxMP/1CO9IS2ytmU59dYG4dDnCsvpAU/cLNeetLddolN4ta7ni1y3XNXerueO8eVo38wvnOKYNsXuQiSfEqn8ZTiQF0HjVWCePqA1c49e/ujD0vDSN8X7wXs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726559922; c=relaxed/simple;
-	bh=T6gObr8sR1HSn74g3pttCWYFQ6mvZ5m0ww/sFYU+hdM=;
-	h=Date:To:From:Subject:Message-Id; b=k6PuvOVSf1PVIoyYVOWQTHaPe3ia0yjWeHdvflVL9x5lv+V68CTgF4nO+TvB3DYtRK4ddUF85xeUw8XLg231kM0jv7mrhjYwLR2tHjOHLuQ9uhh/mAqnczthpX3OUlHYow1KKATYVivtHTxba6M/uCMRpuVevtOCLWa76zakaQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0UWk3ZeG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726559926; c=relaxed/simple;
+	bh=orsHV9E0EGGP6gcVrHvZUzHixcctY1Aw7voz/ReaRRg=;
+	h=Date:To:From:Subject:Message-Id; b=CZZGK0bF/CwZE0fGIory2nNfhPE4W/8kLhjkPyRx1ObKmk4vkWRgt4w6tUzzeGWC2iL4CcVBxLMuaRmNEhalt/LUIk15PW59suyzG9xurY/FZZvac+Gpzz6lp3ZmNtXNYqxd+YB6nRWdPKKZIGsaDQL0NwgJK7P5F8vhORGgm8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rK5gfBot; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0UWk3ZeG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75F65C4CEC6;
-	Tue, 17 Sep 2024 07:58:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rK5gfBot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BD14C4CEC6;
+	Tue, 17 Sep 2024 07:58:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726559921;
-	bh=T6gObr8sR1HSn74g3pttCWYFQ6mvZ5m0ww/sFYU+hdM=;
+	s=korg; t=1726559926;
+	bh=orsHV9E0EGGP6gcVrHvZUzHixcctY1Aw7voz/ReaRRg=;
 	h=Date:To:From:Subject:From;
-	b=0UWk3ZeGxcSyU/fXJqgFlwkRLfjg5Q4KnmKDT018aNixoygwjWtO/uQTl8+G54BkB
-	 GS5jurVrb1eEyvacZskdZiWvG3EOzFlZZ5SFzjjGc0jLhHuDVS1+vyOV2Kra4gCSTa
-	 vMaFLPXHsItMCIFCP3hbB33f7F9LXLRs8mVkGJFY=
-Date: Tue, 17 Sep 2024 00:58:38 -0700
+	b=rK5gfBotARCkl0LVUJ+KIyvbJJxYIhp5Ns678Smy3Xx1KNVd0yNINVKj06U2528sA
+	 fLQ7meI6JB/AW0jeAC8Hc76+MA8QT5KDaNv8dU+FbbNIOn93lDyszkxB+fIqXI+HaM
+	 dkcEz6f93+2yRPOXwy1EMIihImvBZiAeK1GplhxA=
+Date: Tue, 17 Sep 2024 00:58:42 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch removed from -mm tree
-Message-Id: <20240917075841.75F65C4CEC6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlbc-fix-uaf-of-vma-in-hugetlb-fault-pathway.patch removed from -mm tree
+Message-Id: <20240917075845.8BD14C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: change vmf_anon_prepare() to __vmf_anon_prepare()
+     Subject: mm/hugetlb.c: fix UAF of vma in hugetlb fault pathway
 has been removed from the -mm tree.  Its filename was
-     mm-change-vmf_anon_prepare-to-__vmf_anon_prepare.patch
+     mm-hugetlbc-fix-uaf-of-vma-in-hugetlb-fault-pathway.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: change vmf_anon_prepare() to __vmf_anon_prepare()
-Date: Sat, 14 Sep 2024 12:41:18 -0700
+Subject: mm/hugetlb.c: fix UAF of vma in hugetlb fault pathway
+Date: Sat, 14 Sep 2024 12:41:19 -0700
 
-Some callers of vmf_anon_prepare() may not want us to release the per-VMA
-lock ourselves.  Rename vmf_anon_prepare() to __vmf_anon_prepare() and let
-the callers drop the lock when desired.
+Syzbot reports a UAF in hugetlb_fault().  This happens because
+vmf_anon_prepare() could drop the per-VMA lock and allow the current VMA
+to be freed before hugetlb_vma_unlock_read() is called.
 
-Also, make vmf_anon_prepare() a wrapper that releases the per-VMA lock
-itself for any callers that don't care.
+We can fix this by using a modified version of vmf_anon_prepare() that
+doesn't release the VMA lock on failure, and then release it ourselves
+after hugetlb_vma_unlock_read().
 
-This is in preparation to fix this bug reported by syzbot:
-https://lore.kernel.org/linux-mm/00000000000067c20b06219fbc26@google.com/
-
-Link: https://lkml.kernel.org/r/20240914194243.245-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20240914194243.245-2-vishal.moola@gmail.com
 Fixes: 9acad7ba3e25 ("hugetlb: use vmf_anon_prepare() instead of anon_vma_prepare()")
 Reported-by: syzbot+2dab93857ee95f2eeb08@syzkaller.appspotmail.com
 Closes: https://lore.kernel.org/linux-mm/00000000000067c20b06219fbc26@google.com/
@@ -67,62 +65,59 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   11 ++++++++++-
- mm/memory.c   |    8 +++-----
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-change-vmf_anon_prepare-to-__vmf_anon_prepare
-+++ a/mm/internal.h
-@@ -310,7 +310,16 @@ static inline void wake_throttle_isolate
- 		wake_up(wqh);
- }
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-uaf-of-vma-in-hugetlb-fault-pathway
++++ a/mm/hugetlb.c
+@@ -6048,7 +6048,7 @@ retry_avoidcopy:
+ 	 * When the original hugepage is shared one, it does not have
+ 	 * anon_vma prepared.
+ 	 */
+-	ret = vmf_anon_prepare(vmf);
++	ret = __vmf_anon_prepare(vmf);
+ 	if (unlikely(ret))
+ 		goto out_release_all;
  
--vm_fault_t vmf_anon_prepare(struct vm_fault *vmf);
-+vm_fault_t __vmf_anon_prepare(struct vm_fault *vmf);
-+static inline vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
-+{
-+	vm_fault_t ret = __vmf_anon_prepare(vmf);
+@@ -6247,7 +6247,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 		}
+ 
+ 		if (!(vma->vm_flags & VM_MAYSHARE)) {
+-			ret = vmf_anon_prepare(vmf);
++			ret = __vmf_anon_prepare(vmf);
+ 			if (unlikely(ret))
+ 				goto out;
+ 		}
+@@ -6378,6 +6378,14 @@ static vm_fault_t hugetlb_no_page(struct
+ 	folio_unlock(folio);
+ out:
+ 	hugetlb_vma_unlock_read(vma);
 +
++	/*
++	 * We must check to release the per-VMA lock. __vmf_anon_prepare() is
++	 * the only way ret can be set to VM_FAULT_RETRY.
++	 */
 +	if (unlikely(ret & VM_FAULT_RETRY))
-+		vma_end_read(vmf->vma);
-+	return ret;
-+}
++		vma_end_read(vma);
 +
- vm_fault_t do_swap_page(struct vm_fault *vmf);
- void folio_rotate_reclaimable(struct folio *folio);
- bool __folio_end_writeback(struct folio *folio);
---- a/mm/memory.c~mm-change-vmf_anon_prepare-to-__vmf_anon_prepare
-+++ a/mm/memory.c
-@@ -3259,7 +3259,7 @@ static inline vm_fault_t vmf_can_call_fa
- }
+ 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 	return ret;
  
- /**
-- * vmf_anon_prepare - Prepare to handle an anonymous fault.
-+ * __vmf_anon_prepare - Prepare to handle an anonymous fault.
-  * @vmf: The vm_fault descriptor passed from the fault handler.
-  *
-  * When preparing to insert an anonymous page into a VMA from a
-@@ -3273,7 +3273,7 @@ static inline vm_fault_t vmf_can_call_fa
-  * Return: 0 if fault handling can proceed.  Any other value should be
-  * returned to the caller.
-  */
--vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
-+vm_fault_t __vmf_anon_prepare(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	vm_fault_t ret = 0;
-@@ -3281,10 +3281,8 @@ vm_fault_t vmf_anon_prepare(struct vm_fa
- 	if (likely(vma->anon_vma))
- 		return 0;
- 	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--		if (!mmap_read_trylock(vma->vm_mm)) {
--			vma_end_read(vma);
-+		if (!mmap_read_trylock(vma->vm_mm))
- 			return VM_FAULT_RETRY;
--		}
+@@ -6599,6 +6607,14 @@ out_ptl:
  	}
- 	if (__anon_vma_prepare(vma))
- 		ret = VM_FAULT_OOM;
+ out_mutex:
+ 	hugetlb_vma_unlock_read(vma);
++
++	/*
++	 * We must check to release the per-VMA lock. __vmf_anon_prepare() in
++	 * hugetlb_wp() is the only way ret can be set to VM_FAULT_RETRY.
++	 */
++	if (unlikely(ret & VM_FAULT_RETRY))
++		vma_end_read(vma);
++
+ 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 	/*
+ 	 * Generally it's safe to hold refcount during waiting page lock. But
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
