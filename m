@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8947153808
-	for <mm-commits@vger.kernel.org>; Tue, 17 Sep 2024 08:08:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B76156C62;
+	Tue, 17 Sep 2024 08:08:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726560520; cv=none; b=A9TT2u/qM2zWMouvsQlj4i2Vwv21/wZ3KErqJYm1Dg6GYIG92K05CSZCAJdhM/Xhs1ygYzZ+Uf/7ndUxOSDkEwN7B+OWJa75zKK3wK9HqJ3G4ZiA17keEJFTYU3Ra/dvngZPmfnXOxd3Sz3JKXIMrHdO2Y1VSg4MaHkYBw3Ya5I=
+	t=1726560525; cv=none; b=LPJIVmlYXFmVFwe5OCP3oPK9YNebjm1uXp3o49KYBjey5gkXa3PBnhNtQsyHbd79uNInZoUjXk+5n0mVR7Xk04vDTzzylVrf0oxDYUUgmTuuUYujwtxlMuffs7IGlqdB2vu3ISOpD+MC1RXo2J2mfKP0Ufv2GAdOU50Knoj5EFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726560520; c=relaxed/simple;
-	bh=w4pWPTX5MpNTlsukJpd0d/vWHZloF4adZIMYc41+aq0=;
-	h=Date:To:From:Subject:Message-Id; b=vEN4+llxq4Z+p8B5TY+dJFTPe/rpML6qf7OcFSGsReBGlZ8Nm/RM4AK02xTP8m5ePciV+btHDdHsPS5CqljgoB2NpcMXrRZo+5K6q1txLCMqbwso4/oe3NBvhgC36C9GXsY8eJxbLt84G5xOsDRo1xvwIlSd6IpvbPu4jX5lGng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VjQhTwHY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726560525; c=relaxed/simple;
+	bh=sh6ABWqGcsje+n2ZIJeDC3rHfUArvndyQmY2qM1izOs=;
+	h=Date:To:From:Subject:Message-Id; b=uoL/WFi6qpb+2O8O7c8LMXNZqSX5G+CJ+rqrHzTXm6C3fyKpOfY9PnlDMRfyeu54GYb4wuJusp1pF/4NuWJ4YuGZwyVTNgRTYAHfB17miE8hHmOAgLQ6NyGBiGJpsNahQ2wgSY2+xZmGiefEWv3MmhnVTEAldLHb6xDkxcUyQPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n8KqBYfR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VjQhTwHY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 345CCC4CEC6;
-	Tue, 17 Sep 2024 08:08:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n8KqBYfR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C39EC4CECE;
+	Tue, 17 Sep 2024 08:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1726560520;
-	bh=w4pWPTX5MpNTlsukJpd0d/vWHZloF4adZIMYc41+aq0=;
+	s=korg; t=1726560524;
+	bh=sh6ABWqGcsje+n2ZIJeDC3rHfUArvndyQmY2qM1izOs=;
 	h=Date:To:From:Subject:From;
-	b=VjQhTwHYXxoaFv7kT4zxY9B41rkmwd7AjU8kmFVJSXx1bL14vmUVKXsRt3k+cu7Wi
-	 1EyjQVO80c18+rdL86Y6W0GS2fy1/oZSdWFq9RsnKgarETnzYl1ei0mO5UvUYtRtlS
-	 d+lwAbaDUfPSyUShW6y+eWVo5uYZ1MNjNJoxQ/jI=
-Date: Tue, 17 Sep 2024 01:08:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,seanjc@google.com,schnelle@linux.ibm.com,ryan.roberts@arm.com,peterx@redhat.com,pbonzini@redhat.com,mingo@redhat.com,jgg@nvidia.com,hca@linux.ibm.com,gshan@redhat.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,alex.williamson@redhat.com,akpm@linux-foundation.org
+	b=n8KqBYfRaSOE8MF8suTthtvoZrqw79Fh8PXz79mS5BmYtEjcxahHFCDyyXkVY9Cf3
+	 AsJf7yCP61Jqu8tCGYuIvtSJaN+fbLRgaBLC0IiiqWI573O1tikiFlPwvD+tsLDnQ7
+	 N9eaoZcXWTZ/F67y2Lf/r5q7rivSQuD42XTPTTUc=
+Date: Tue, 17 Sep 2024 01:08:41 -0700
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,stable@vger.kernel.org,senozhatsky@chromium.org,npiggin@gmail.com,nphamcs@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linmiaohe@huawei.com,kernel@xen0n.name,hch@lst.de,hannes@cmpxchg.org,christophe.leroy@csgroup.eu,chris@chrisdown.name,chenhuacai@kernel.org,arnd@arndb.de,aneesh.kumar@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vfio-pci-implement-huge_fault-support.patch removed from -mm tree
-Message-Id: <20240917080840.345CCC4CEC6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-z3fold-deprecate-config_z3fold.patch removed from -mm tree
+Message-Id: <20240917080844.4C39EC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,162 +35,166 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vfio/pci: implement huge_fault support
+     Subject: mm: z3fold: deprecate CONFIG_Z3FOLD
 has been removed from the -mm tree.  Its filename was
-     vfio-pci-implement-huge_fault-support.patch
+     mm-z3fold-deprecate-config_z3fold.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: vfio/pci: implement huge_fault support
-Date: Mon, 26 Aug 2024 16:43:53 -0400
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: z3fold: deprecate CONFIG_Z3FOLD
+Date: Wed, 4 Sep 2024 23:33:43 +0000
 
-With the addition of pfnmap support in vmf_insert_pfn_{pmd,pud}() we can
-take advantage of PMD and PUD faults to PCI BAR mmaps and create more
-efficient mappings.  PCI BARs are always a power of two and will typically
-get at least PMD alignment without userspace even trying.  Userspace
-alignment for PUD mappings is also not too difficult.
+The z3fold compressed pages allocator is rarely used, most users use
+zsmalloc.  The only disadvantage of zsmalloc in comparison is the
+dependency on MMU, and zbud is a more common option for !MMU as it was the
+default zswap allocator for a long time.
 
-Consolidate faults through a single handler with a new wrapper for
-standard single page faults.  The pre-faulting behavior of commit
-d71a989cf5d9 ("vfio/pci: Insert full vma on mmap'd MMIO fault") is removed
-in this refactoring since huge_fault will cover the bulk of the faults and
-results in more efficient page table usage.  We also want to avoid that
-pre-faulted single page mappings preempt huge page mappings.
+Historically, zsmalloc had worse latency than zbud and z3fold but offered
+better memory savings.  This is no longer the case as shown by a simple
+recent analysis [1].  That analysis showed that z3fold does not have any
+advantage over zsmalloc or zbud considering both performance and memory
+usage.  In a kernel build test on tmpfs in a limited cgroup, z3fold took
+3% more time and used 1.8% more memory.  The latency of zswap_load() was
+7% higher, and that of zswap_store() was 10% higher.  Zsmalloc is better
+in all metrics.
 
-Link: https://lkml.kernel.org/r/20240826204353.2228736-20-peterx@redhat.com
-Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Moreover, z3fold apparently has latent bugs, which was made noticeable by
+a recent soft lockup bug report with z3fold [2].  Switching to zsmalloc
+not only fixed the problem, but also reduced the swap usage from 6~8G to
+1~2G.  Other users have also reported being bitten by mistakenly enabling
+z3fold.
+
+Other than hurting users, z3fold is repeatedly causing wasted engineering
+effort.  Apart from investigating the above bug, it came up in multiple
+development discussions (e.g.  [3]) as something we need to handle, when
+there aren't any legit users (at least not intentionally).
+
+The natural course of action is to deprecate z3fold, and remove in a few
+cycles if no objections are raised from active users.  Next on the list
+should be zbud, as it offers marginal latency gains at the cost of huge
+memory waste when compared to zsmalloc.  That one will need to wait until
+zsmalloc does not depend on MMU.
+
+Rename the user-visible config option from CONFIG_Z3FOLD to
+CONFIG_Z3FOLD_DEPRECATED so that users with CONFIG_Z3FOLD=y get a new
+prompt with explanation during make oldconfig.  Also, remove
+CONFIG_Z3FOLD=y from defconfigs.
+
+[1]https://lore.kernel.org/lkml/CAJD7tkbRF6od-2x_L8-A1QL3=2Ww13sCj4S3i4bNndqF+3+_Vg@mail.gmail.com/
+[2]https://lore.kernel.org/lkml/EF0ABD3E-A239-4111-A8AB-5C442E759CF3@gmail.com/
+[3]https://lore.kernel.org/lkml/CAJD7tkbnmeVugfunffSovJf9FAgy9rhBVt_tx=nxUveLUfqVsA@mail.gmail.com/
+
+[arnd@arndb.de: deprecate ZSWAP_ZPOOL_DEFAULT_Z3FOLD as well]
+  Link: https://lkml.kernel.org/r/20240909202625.1054880-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20240904233343.933462-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/pci/vfio_pci_core.c |   60 ++++++++++++++++++++---------
- 1 file changed, 43 insertions(+), 17 deletions(-)
+ arch/loongarch/configs/loongson3_defconfig |    1 
+ arch/powerpc/configs/ppc64_defconfig       |    1 
+ mm/Kconfig                                 |   25 ++++++++++++++-----
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
---- a/drivers/vfio/pci/vfio_pci_core.c~vfio-pci-implement-huge_fault-support
-+++ a/drivers/vfio/pci/vfio_pci_core.c
-@@ -20,6 +20,7 @@
- #include <linux/mutex.h>
- #include <linux/notifier.h>
- #include <linux/pci.h>
-+#include <linux/pfn_t.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -1657,14 +1658,20 @@ static unsigned long vma_to_pfn(struct v
- 	return (pci_resource_start(vdev->pdev, index) >> PAGE_SHIFT) + pgoff;
- }
+--- a/arch/loongarch/configs/loongson3_defconfig~mm-z3fold-deprecate-config_z3fold
++++ a/arch/loongarch/configs/loongson3_defconfig
+@@ -96,7 +96,6 @@ CONFIG_ZPOOL=y
+ CONFIG_ZSWAP=y
+ CONFIG_ZSWAP_COMPRESSOR_DEFAULT_ZSTD=y
+ CONFIG_ZBUD=y
+-CONFIG_Z3FOLD=y
+ CONFIG_ZSMALLOC=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MEMORY_HOTPLUG=y
+--- a/arch/powerpc/configs/ppc64_defconfig~mm-z3fold-deprecate-config_z3fold
++++ a/arch/powerpc/configs/ppc64_defconfig
+@@ -81,7 +81,6 @@ CONFIG_MODULE_SIG_SHA512=y
+ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_BINFMT_MISC=m
+ CONFIG_ZSWAP=y
+-CONFIG_Z3FOLD=y
+ CONFIG_ZSMALLOC=y
+ # CONFIG_SLAB_MERGE_DEFAULT is not set
+ CONFIG_SLAB_FREELIST_RANDOM=y
+--- a/mm/Kconfig~mm-z3fold-deprecate-config_z3fold
++++ a/mm/Kconfig
+@@ -146,12 +146,15 @@ config ZSWAP_ZPOOL_DEFAULT_ZBUD
+ 	help
+ 	  Use the zbud allocator as the default allocator.
  
--static vm_fault_t vfio_pci_mmap_fault(struct vm_fault *vmf)
-+static vm_fault_t vfio_pci_mmap_huge_fault(struct vm_fault *vmf,
-+					   unsigned int order)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct vfio_pci_core_device *vdev = vma->vm_private_data;
- 	unsigned long pfn, pgoff = vmf->pgoff - vma->vm_pgoff;
--	unsigned long addr = vma->vm_start;
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
+-config ZSWAP_ZPOOL_DEFAULT_Z3FOLD
+-	bool "z3fold"
+-	select Z3FOLD
++config ZSWAP_ZPOOL_DEFAULT_Z3FOLD_DEPRECATED
++	bool "z3foldi (DEPRECATED)"
++	select Z3FOLD_DEPRECATED
+ 	help
+ 	  Use the z3fold allocator as the default allocator.
  
-+	if (order && (vmf->address & ((PAGE_SIZE << order) - 1) ||
-+		      vmf->address + (PAGE_SIZE << order) > vma->vm_end)) {
-+		ret = VM_FAULT_FALLBACK;
-+		goto out;
-+	}
++	  Deprecated and scheduled for removal in a few cycles,
++	  see CONFIG_Z3FOLD_DEPRECATED.
 +
- 	pfn = vma_to_pfn(vma);
+ config ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
+ 	bool "zsmalloc"
+ 	select ZSMALLOC
+@@ -163,7 +166,7 @@ config ZSWAP_ZPOOL_DEFAULT
+        string
+        depends on ZSWAP
+        default "zbud" if ZSWAP_ZPOOL_DEFAULT_ZBUD
+-       default "z3fold" if ZSWAP_ZPOOL_DEFAULT_Z3FOLD
++       default "z3fold" if ZSWAP_ZPOOL_DEFAULT_Z3FOLD_DEPRECATED
+        default "zsmalloc" if ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
+        default ""
  
- 	down_read(&vdev->memory_lock);
-@@ -1672,30 +1679,49 @@ static vm_fault_t vfio_pci_mmap_fault(st
- 	if (vdev->pm_runtime_engaged || !__vfio_pci_memory_enabled(vdev))
- 		goto out_unlock;
+@@ -177,15 +180,25 @@ config ZBUD
+ 	  deterministic reclaim properties that make it preferable to a higher
+ 	  density approach when reclaim will be used.
  
--	ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
--	if (ret & VM_FAULT_ERROR)
--		goto out_unlock;
--
--	/*
--	 * Pre-fault the remainder of the vma, abort further insertions and
--	 * supress error if fault is encountered during pre-fault.
--	 */
--	for (; addr < vma->vm_end; addr += PAGE_SIZE, pfn++) {
--		if (addr == vmf->address)
--			continue;
--
--		if (vmf_insert_pfn(vma, addr, pfn) & VM_FAULT_ERROR)
--			break;
-+	switch (order) {
-+	case 0:
-+		ret = vmf_insert_pfn(vma, vmf->address, pfn + pgoff);
-+		break;
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
-+	case PMD_ORDER:
-+		ret = vmf_insert_pfn_pmd(vmf, __pfn_to_pfn_t(pfn + pgoff,
-+							     PFN_DEV), false);
-+		break;
-+#endif
-+#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
-+	case PUD_ORDER:
-+		ret = vmf_insert_pfn_pud(vmf, __pfn_to_pfn_t(pfn + pgoff,
-+							     PFN_DEV), false);
-+		break;
-+#endif
-+	default:
-+		ret = VM_FAULT_FALLBACK;
- 	}
- 
- out_unlock:
- 	up_read(&vdev->memory_lock);
-+out:
-+	dev_dbg_ratelimited(&vdev->pdev->dev,
-+			   "%s(,order = %d) BAR %ld page offset 0x%lx: 0x%x\n",
-+			    __func__, order,
-+			    vma->vm_pgoff >>
-+				(VFIO_PCI_OFFSET_SHIFT - PAGE_SHIFT),
-+			    pgoff, (unsigned int)ret);
- 
- 	return ret;
- }
- 
-+static vm_fault_t vfio_pci_mmap_page_fault(struct vm_fault *vmf)
-+{
-+	return vfio_pci_mmap_huge_fault(vmf, 0);
-+}
+-config Z3FOLD
+-	tristate "3:1 compression allocator (z3fold)"
++config Z3FOLD_DEPRECATED
++	tristate "3:1 compression allocator (z3fold) (DEPRECATED)"
+ 	depends on ZSWAP
+ 	help
++	  Deprecated and scheduled for removal in a few cycles. If you have
++	  a good reason for using Z3FOLD over ZSMALLOC, please contact
++	  linux-mm@kvack.org and the zswap maintainers.
 +
- static const struct vm_operations_struct vfio_pci_mmap_ops = {
--	.fault = vfio_pci_mmap_fault,
-+	.fault = vfio_pci_mmap_page_fault,
-+#ifdef CONFIG_ARCH_SUPPORTS_HUGE_PFNMAP
-+	.huge_fault = vfio_pci_mmap_huge_fault,
-+#endif
- };
+ 	  A special purpose allocator for storing compressed pages.
+ 	  It is designed to store up to three compressed pages per physical
+ 	  page. It is a ZBUD derivative so the simplicity and determinism are
+ 	  still there.
  
- int vfio_pci_core_mmap(struct vfio_device *core_vdev, struct vm_area_struct *vma)
++config Z3FOLD
++	tristate
++	default y if Z3FOLD_DEPRECATED=y
++	default m if Z3FOLD_DEPRECATED=m
++	depends on Z3FOLD_DEPRECATED
++
+ config ZSMALLOC
+ 	tristate
+ 	prompt "N:1 compression allocator (zsmalloc)" if (ZSWAP || ZRAM)
 _
 
-Patches currently in -mm which might be from alex.williamson@redhat.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
