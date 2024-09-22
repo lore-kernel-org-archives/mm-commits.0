@@ -1,134 +1,109 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 389511C36;
-	Sun, 22 Sep 2024 09:32:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16CF2581
+	for <mm-commits@vger.kernel.org>; Sun, 22 Sep 2024 16:35:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726997573; cv=none; b=fBunyWrakAskA0GXMpdNQRIcDHECzUsSC6mmjTR2ljS+a9PaU2BVG0Z2JBBoFgOIOwY0kUWCHB1rzhLyelb7kSYsv9V/JPgJtc1yvZrCP6qPbwM2d0r7Xg4E4zRQvFq3tXnFk5pDf/ujMDLK7DXlittBwFb2tRvQKUljbn5O3c8=
+	t=1727022904; cv=none; b=I5POpDqYT2pnPwf8oVCgwkwq/gV4HcevjXfGHJJh7cdQjwOqnsVkeNoDhVxIBb65LdBzhz8nGXOemZzj/LvF9Suh/M+k8ZAuyOP1APQvjEmdEjni5KmPoVg5XiAmzjp9VrSv+fHynFG2Rm0a6q631OOch9b24bqPygvdrQmGd3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726997573; c=relaxed/simple;
-	bh=FwM5SLYTSi9zZ21MKeWYUErueYlIE1NAdEhm4NtmbZw=;
+	s=arc-20240116; t=1727022904; c=relaxed/simple;
+	bh=1YPOfHesH5RVdRJUP5Wt8b62Owi5WSCj403l9mws6B0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ray5UcfsKnY3efwO5+v+/GFiGoyBkLiNfBxXWzfkS942bQkYW1hJpDBm2j/X54tc281YdTPdB/FaaCnLC8786wLyT4I6W8bkO/iSjWh6KN1bV42uXYU4CLqUturgB+7ViHUDC4Sv1woxG4ofQhdwKpcgoi5/Hs5/hHX8MZtmaY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.128.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-6ddccc408e1so24905997b3.3;
-        Sun, 22 Sep 2024 02:32:50 -0700 (PDT)
+	 To:Cc:Content-Type; b=RoT+VGeAwY7B6SEl0tJ7dlOgamem8jJ60ML8gLzoXkYc7WAL1rZvW/BzPwzaHN8315/CLmfvPShJTVjFMHALtTHeF9lIOKpWm6FQQ50PfTf0ec/YrCETcdYZPqiNTpc46zMEmR0uyG0B9LVNjT2KwaW6xMSTZd3IfWrr7vu+pW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LBIRjcZM; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LBIRjcZM"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5c42f406e29so5262015a12.2
+        for <mm-commits@vger.kernel.org>; Sun, 22 Sep 2024 09:35:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1727022901; x=1727627701; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PYdVIYLjBwZlAOZe7nqVykViMDFKAIlIkbyf3hUinq0=;
+        b=LBIRjcZMWKXxO/lHPEI2VtAXjR2bTflL64qD6mToW5C77xzbyXz7cfQh5m8dT5GkKf
+         bHj4SkAqnGpdsKx/DjEMjW9+xlkTM0LHIHZFgS5X+5dfAugftDY3LLb603ceKbQmRRVD
+         pPnbMUAKcsa/vNXtXGqUuwY96/qYtVk4r7M9A=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726997570; x=1727602370;
+        d=1e100.net; s=20230601; t=1727022901; x=1727627701;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=4U4EZ4JLzi68rbsVMoW06gkG9VmyNL5CYaj+GPKCLP4=;
-        b=sluUSlGa1Kl5WK9L+H7+mCXCWt+/LtzMw4hAO3akxOj4/ZE2gHjPkGclllbEa8SFKh
-         Gms/Oa/PF02BL3LINhjDEcBN3/WP0GWIDqFKKtcGEdniWXEArNMk/xnt5weQ2n8ozCUm
-         5gTH5OA3Smz3FrL8uphkulBDoE0tJXxe2giJ8JKJfAkyOETWvfV3ezHfz1EyNWTNw6Ea
-         ZvR8rL2ygZBNfHO5K4VDbtLUSDdOJhRY2aN5JCcGZEtx1lDGNoS9Fgty9BgoWY3MZ65C
-         aJxcZoTGFMIEZOP8g6wc/OWpjD6PncZ1zoxl8T7/Qs3RjOWOG0cNXszS2GwmVlvh94aV
-         PRqg==
-X-Forwarded-Encrypted: i=1; AJvYcCVVAz03aSMUR8YTiMmp8IaHj0XsPeKmydpDKdc6M46Qhz8glKsrDuCDbKDYy6kYNAZpvWVgzkMBIpEiN04=@vger.kernel.org, AJvYcCXZd4HNdK+taegcS8aOuA+1JWl38ryA/yjo87XjU9LN5dwdGxMwlCK/8tDCcwLkFNYIzIwGgmPjfFRjkw==@vger.kernel.org
-X-Gm-Message-State: AOJu0YyJR7/VZXC8SwmTL232EiCsQ86/svlt5xuPF/M26D2k42pDqyDk
-	l5lCc+Ut+BMgQFnmvk6yDriut/mKPoD0klyvvaHCgCWDX9QEFEXksOylx9dZCs4=
-X-Google-Smtp-Source: AGHT+IHwJzeiaSvG9R/690lywFaral/yf37tFSfPBYdGnzU/gDGlbqqgRyPBEDrJkgPiIOmziO4Kew==
-X-Received: by 2002:a05:690c:490f:b0:6db:de34:8049 with SMTP id 00721157ae682-6dfeed31d6emr76452597b3.16.1726997569775;
-        Sun, 22 Sep 2024 02:32:49 -0700 (PDT)
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com. [209.85.128.182])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-6ddfa73bccesm15479647b3.72.2024.09.22.02.32.48
+        bh=PYdVIYLjBwZlAOZe7nqVykViMDFKAIlIkbyf3hUinq0=;
+        b=DS1qGW0YNJqrAHILY2qNzHmZiyE9xOYKp5eROAB3GCNAvVkoOpXlgUMJqXdONDrdOC
+         +A9wUSR2O+blJqd3hMYfVuf9yOBIbOuFmrIsneDcKGDQUP9xXF0kjPAHPuwlFP2MajgS
+         AHgrTDNSdfEF0xQVE7etSfRaEBdLUBgbMyooG6ZBmB0Z06aXszvuW5OKWnVwF793qjNA
+         cGNbRJ9ZPhduGk34Nl8UGAdv9ybSHIbQYNq9KWiq0JF9UjgwuELP1xAQfnEuHkB9bSQx
+         41dk56dbk4+tOlViBtsBXvVeamuf5XtXlkliCfd5slKl6Mg/2fL1dAGiTzKq4Ca44lxH
+         R89w==
+X-Forwarded-Encrypted: i=1; AJvYcCURtsqsrqHnDt6jMki5ZG07cstl8Ag0UjBjBnP0i8UBoh4Da2vg4Agbe2ODxRzy3YnadfaC8b4GId1H@vger.kernel.org
+X-Gm-Message-State: AOJu0YxZJVmNI6396k8Zb21fHWg/52QUd3o5VM48X7OoplvKsPPiXfUD
+	naa2PHOifGozfnJLUyk5RoV8+TcKlT7RKo1PUuVUt969u31/Esou7dGeGqEhgmNprUCRaw1AKDr
+	P5/4=
+X-Google-Smtp-Source: AGHT+IHm1Wh5ewWK56FmorJmpvCPVhR34q/mF0EG9+FYfrtdiL+D1IN6zg92IIu8aG+G5z+Wr5s4kQ==
+X-Received: by 2002:a05:6402:1ec5:b0:5be:cdaf:1c09 with SMTP id 4fb4d7f45d1cf-5c464a5acbemr7239394a12.28.1727022900769;
+        Sun, 22 Sep 2024 09:35:00 -0700 (PDT)
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com. [209.85.218.48])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c42bc8952esm9301966a12.96.2024.09.22.09.34.59
+        for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 22 Sep 2024 02:32:48 -0700 (PDT)
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-68518bc1407so30226277b3.2;
-        Sun, 22 Sep 2024 02:32:48 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUS/UdA9VbFUUr68HalrWZaAU9BzTCo7BMXfeYdez4WnhFb9h6S5v0lQLbDVMl1d5wc8KebPTH9yBb9hw==@vger.kernel.org, AJvYcCViSFw+xsXw0Bqn3psuESzjAkJHSKlutWFI+PtmpzzhY5Bol+J7USinFJZ1nZ72/XS8WdI55Ko61KJQwXI=@vger.kernel.org
-X-Received: by 2002:a05:690c:39a:b0:683:37a8:cd77 with SMTP id
- 00721157ae682-6dfeeed10aemr64671227b3.29.1726997568516; Sun, 22 Sep 2024
- 02:32:48 -0700 (PDT)
+        Sun, 22 Sep 2024 09:35:00 -0700 (PDT)
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a8d0d0aea3cso488895866b.3
+        for <mm-commits@vger.kernel.org>; Sun, 22 Sep 2024 09:34:59 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWtdOlJs0moqR9fngLlT77wO2LldpK0aZNhosJLKxy5vfkVtqpqO/hMSQA02x2Mpa4OQDdnjVMMugAY@vger.kernel.org
+X-Received: by 2002:a17:907:9444:b0:a8d:29b7:ecf3 with SMTP id
+ a640c23a62f3a-a90d4fdec7dmr1048951666b.13.1727022899627; Sun, 22 Sep 2024
+ 09:34:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240920023317.f20c9ecbb2a2f4bf382d831c@linux-foundation.org>
-In-Reply-To: <20240920023317.f20c9ecbb2a2f4bf382d831c@linux-foundation.org>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Sun, 22 Sep 2024 11:32:35 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdW-4_WvazciLPedP6R6XnEnHqsEh+3s7M5159zcmHit9w@mail.gmail.com>
-Message-ID: <CAMuHMdW-4_WvazciLPedP6R6XnEnHqsEh+3s7M5159zcmHit9w@mail.gmail.com>
+References: <20240920023317.f20c9ecbb2a2f4bf382d831c@linux-foundation.org> <CAMuHMdW-4_WvazciLPedP6R6XnEnHqsEh+3s7M5159zcmHit9w@mail.gmail.com>
+In-Reply-To: <CAMuHMdW-4_WvazciLPedP6R6XnEnHqsEh+3s7M5159zcmHit9w@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 22 Sep 2024 09:34:42 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjUiO3qUVR6ydhGjby3yf_KQO5+m7Hfb4H09kXXPogZ7g@mail.gmail.com>
+Message-ID: <CAHk-=wjUiO3qUVR6ydhGjby3yf_KQO5+m7Hfb4H09kXXPogZ7g@mail.gmail.com>
 Subject: Re: [GIT PULL] MM updates for 6.12-rc1
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, 
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
 	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	Huang Ying <ying.huang@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
-
-On Fri, Sep 20, 2024 at 11:34=E2=80=AFAM Andrew Morton
-<akpm@linux-foundation.org> wrote:
-> Linus, please merge this cycle's batch of MM updates, thanks.
+On Sun, 22 Sept 2024 at 02:32, Geert Uytterhoeven <geert@linux-m68k.org> wr=
+ote:
 >
-> Conflicts which I'm seeing, along with their linux-next resolutions are
-> as follows:
+>     kernel/resource.c: In function =E2=80=98gfr_start=E2=80=99:
+>     ./include/linux/minmax.h:93:30: error: conversion from =E2=80=98long =
+long
+> unsigned int=E2=80=99 to =E2=80=98resource_size_t=E2=80=99 {aka =E2=80=98=
+unsigned int=E2=80=99} changes value
+> from =E2=80=9818446744073709551615=E2=80=99 to =E2=80=984294967295=E2=80=
+=99 [-Werror=3Doverflow]
+>
+> Due to
+>
+>     #define PHYSMEM_END  (-1ULL)
+>
+> not being correct on 32-bit without LPAE.
 
-[...]
+Hmm. Can you check if making it be
 
-> kernel/resource.c, vs ea72ce5da228 ("x86/kaslr: Expose and use the end
-> of the physical memory address space"):
-> https://lkml.kernel.org/r/20240909100043.60668995@canb.auug.org.au
+      #define PHYSMEM_END  ((phys_addr_t)-1)
 
-[...]
+fixes things for you?
 
-> A build fix for m68k is needed, vs ea72ce5da228 ("x86/kaslr: Expose and
-> use the end of the physical memory address space").  See
-> https://lkml.kernel.org/r/87ttenvw0i.fsf@yhuang6-desk2.ccr.corp.intel.com
+That said, it would probably be even better if we got rid of these
+games entirely, and m68k just defined MAX_PHYSMEM_BITS instead. Maybe
+as a config option, since I assume it's going to be either 24 or 32
+depending on CPU (or are there other choices? I used to know the old
+m68k, but...)
 
-Which is not sufficient, as kisskb reports for m68k:
-
-    kernel/resource.c: In function =E2=80=98gfr_start=E2=80=99:
-    ./include/linux/minmax.h:93:30: error: conversion from =E2=80=98long lo=
-ng
-unsigned int=E2=80=99 to =E2=80=98resource_size_t=E2=80=99 {aka =E2=80=98un=
-signed int=E2=80=99} changes value
-from =E2=80=9818446744073709551615=E2=80=99 to =E2=80=984294967295=E2=80=99=
- [-Werror=3Doverflow]
-
-Due to
-
-    #define PHYSMEM_END  (-1ULL)
-
-not being correct on 32-bit without LPAE.
-Presumably this should just take into account the actual size of
-phys_addr_t. My head is too hazy after Vienna to send a patch now ;-)
-
-I bisected this to 99185c10d5d9214d ("resource, kunit: add test case
-for region_intersects()"),  but apparently the offending definition
-was modified later in commits ea72ce5da22806d5 ("x86/kaslr:
-Expose and use the end of the physical memory address space")
-and 617a814f14b89142 ("Merge tag 'mm-stable-2024-09-20-02-31' of
-git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm").
-
-> The following changes since commit 431c1646e1f86b949fa3685efc50b660a364c2=
-b6:
-
-[...]
-
-> "resource: Fix region_intersects() vs add_memory_driver_managed()" from
-> Huang Ying.  Fix a bug in region_intersects() for systems with CXL memory=
-.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+                Linus
