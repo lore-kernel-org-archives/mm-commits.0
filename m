@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F961865E6
-	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 23:10:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5CD1C32
+	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 23:15:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727219417; cv=none; b=UxV0lXEj4EtFbIXjgMj806aVfYKwHrXRDjvgVw3VZWLfrhN8nOSr1/tPDPy38xYDvGXsiF+1CoVqOYl+GttjK1eekOQ/ckK2p9YGYg36k6QKyvsx+MAJ7DOLjYyZ6zDpEXKiuKkjzrzxcpl3nHn+zhW5WMORkRUOkoX9MfkJ3Y4=
+	t=1727219751; cv=none; b=gpkmjfduNCYGycOG6rRr5p4GfZxgNx8Xua515ACjKV37shSs6TUKTYqqC9l/9wiLHF4GeeFVBdzePAFBgPAYCbj7tWKby+b6ustSMRrz5prV4x4pCIJ7M6WmIhX4R4JXcacS53FiWisxFLrstgn//QqK5TPI8owIveZhxlgDrpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727219417; c=relaxed/simple;
-	bh=mYu4Fqi/GvuY1qLrFZmTfNEiH1f2LytVLHs5SI98ty4=;
-	h=Date:To:From:Subject:Message-Id; b=VknzXElhJg6FzuAvN6tnIsC/SkKmfsXrQSPWOtgglPx6nWjmBLqDmBJrbXnVFyKeTbqYgbzqnwD0OPG4RVnCOIzYcdsqv5WqUuQSP3xf0NwsLBCOgNKi+5usgIEiwMFWzg4YqMxdpM7OsN2ZZOVcnv8V9BWoq7j2GYfsEcya6Bo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KoJ1RV0O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727219751; c=relaxed/simple;
+	bh=R/AUDZ2Mp6WCHBjlLpI5QEhFhm1tvP2jYEtun0D34YA=;
+	h=Date:To:From:Subject:Message-Id; b=grMuNClJ69B7+EXGfD3v2sHQDFOn3hkR4Vo7kNyEDl+BqiNXH+nfFFAuGa5muNaZsSl0xTL9r54ib4srLht1DrHXiWMHfqVp54o01Pk6jrghULXYNv/QAN6XfWSgleFe+OXaiFQ5a3MiX853bKgEYyx9HEN8JqRuj48UTxDVR7c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MVbBw0j6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KoJ1RV0O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31E70C4CEC4;
-	Tue, 24 Sep 2024 23:10:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MVbBw0j6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B966AC4CEC4;
+	Tue, 24 Sep 2024 23:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727219417;
-	bh=mYu4Fqi/GvuY1qLrFZmTfNEiH1f2LytVLHs5SI98ty4=;
+	s=korg; t=1727219750;
+	bh=R/AUDZ2Mp6WCHBjlLpI5QEhFhm1tvP2jYEtun0D34YA=;
 	h=Date:To:From:Subject:From;
-	b=KoJ1RV0OUIqTmVJcG51ultloXH2tcITRmIfNDy3F6+gfG8izuSlrrJLFDsuLdjEv0
-	 KWr/vkNjfIka+Av6IxpCvjg4YnYZFXcd3aVbZzOohCIMHpwq4gpD4aUb/CbTYfNP0h
-	 ZTdj6boHGg+Bd7ns6YP8vvbO1EiMgZ7rIz78wp2g=
-Date: Tue, 24 Sep 2024 16:10:16 -0700
-To: mm-commits@vger.kernel.org,richard120310@gmail.com,davidgow@google.com,linux@roeck-us.net,akpm@linux-foundation.org
+	b=MVbBw0j6rikJsIoQkhDv47++W6fpdCqmcdNBEcGpyGpsSg7ZM1YlLjEW7yiF4fJE5
+	 JBdBWsHY/L5AIB0Ykz1q7ROjHRAyNPCUNmJRXvVHdRVkdX+5Vw0tFZKLQ5w3YnMMk3
+	 +aj6zWWm69NmhR7ryiSxzbKKGimb2jnAeHxN3HhE=
+Date: Tue, 24 Sep 2024 16:15:50 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-list-test-fix-tests-for-list_cut_position.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240924231017.31E70C4CEC4@smtp.kernel.org>
+Subject: + mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch added to mm-unstable branch
+Message-Id: <20240924231550.B966AC4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "list: test: fix tests for list_cut_position()"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-list-test-fix-tests-for-list_cut_position.patch
+     Subject: mm: shmem: fix khugepaged activation policy for shmem
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-list-test-fix-tests-for-list_cut_position.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,75 +58,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Revert "list: test: fix tests for list_cut_position()"
-Date: Sun, 22 Sep 2024 08:05:07 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fix khugepaged activation policy for shmem
+Date: Sun, 22 Sep 2024 12:32:13 +0800
 
-This reverts commit e620799c414a035dea1208bcb51c869744931dbb.
+Shmem has a separate interface (different from anonymous pages) to control
+huge page allocation, that means shmem THP can be enabled while anonymous
+THP is disabled.  However, in this case, khugepaged will not start to
+collapse shmem THP, which is unreasonable.
 
-The commit introduces unit test failures.
+To fix this issue, we should call start_stop_khugepaged() to activate or
+deactivate the khugepaged thread when setting shmem mTHP interfaces. 
+Moreover, add a new helper shmem_hpage_pmd_enabled() to help to check
+whether shmem THP is enabled, which will determine if khugepaged should be
+activated.
 
-     Expected cur == &entries[i], but
-         cur == 0000037fffadfd80
-         &entries[i] == 0000037fffadfd60
-     # list_test_list_cut_position: pass:0 fail:1 skip:0 total:1
-     not ok 21 list_test_list_cut_position
-     # list_test_list_cut_before: EXPECTATION FAILED at lib/list-test.c:444
-     Expected cur == &entries[i], but
-         cur == 0000037fffa9fd70
-         &entries[i] == 0000037fffa9fd60
-     # list_test_list_cut_before: EXPECTATION FAILED at lib/list-test.c:444
-     Expected cur == &entries[i], but
-         cur == 0000037fffa9fd80
-         &entries[i] == 0000037fffa9fd70
-
-Revert it.
-
-Link: https://lkml.kernel.org/r/20240922150507.553814-1-linux@roeck-us.net
-Fixes: e620799c414a ("list: test: fix tests for list_cut_position()")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: I Hsin Cheng <richard120310@gmail.com>
-Cc: David Gow <davidgow@google.com>
+Link: https://lkml.kernel.org/r/9b9c6cbc4499bf44c6455367fd9e0f6036525680.1726978977.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list-test.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/shmem_fs.h |    6 ++++++
+ mm/khugepaged.c          |    6 +++++-
+ mm/shmem.c               |   29 +++++++++++++++++++++++++++--
+ 3 files changed, 38 insertions(+), 3 deletions(-)
 
---- a/lib/list-test.c~revert-list-test-fix-tests-for-list_cut_position
-+++ a/lib/list-test.c
-@@ -408,13 +408,10 @@ static void list_test_list_cut_position(
+--- a/include/linux/shmem_fs.h~mm-shmem-fix-khugepaged-activation-policy-for-shmem
++++ a/include/linux/shmem_fs.h
+@@ -114,6 +114,7 @@ int shmem_unuse(unsigned int type);
+ unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+ 				loff_t write_end, bool shmem_huge_force);
++bool shmem_hpage_pmd_enabled(void);
+ #else
+ static inline unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+@@ -121,6 +122,11 @@ static inline unsigned long shmem_allowa
+ {
+ 	return 0;
+ }
++
++static inline bool shmem_hpage_pmd_enabled(void)
++{
++	return false;
++}
+ #endif
  
- 	KUNIT_EXPECT_EQ(test, i, 2);
- 
--	i = 0;
- 	list_for_each(cur, &list1) {
- 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
- 		i++;
- 	}
--
--	KUNIT_EXPECT_EQ(test, i, 1);
+ #ifdef CONFIG_SHMEM
+--- a/mm/khugepaged.c~mm-shmem-fix-khugepaged-activation-policy-for-shmem
++++ a/mm/khugepaged.c
+@@ -416,9 +416,11 @@ static inline int hpage_collapse_test_ex
+ static bool hugepage_pmd_enabled(void)
+ {
+ 	/*
+-	 * We cover both the anon and the file-backed case here; file-backed
++	 * We cover the anon, shmem and the file-backed case here; file-backed
+ 	 * hugepages, when configured in, are determined by the global control.
+ 	 * Anon pmd-sized hugepages are determined by the pmd-size control.
++	 * Shmem pmd-sized hugepages are also determined by its pmd-size control,
++	 * except when the global shmem_huge is set to SHMEM_HUGE_DENY.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+ 	    hugepage_global_enabled())
+@@ -430,6 +432,8 @@ static bool hugepage_pmd_enabled(void)
+ 	if (test_bit(PMD_ORDER, &huge_anon_orders_inherit) &&
+ 	    hugepage_global_enabled())
+ 		return true;
++	if (IS_ENABLED(CONFIG_SHMEM) && shmem_hpage_pmd_enabled())
++		return true;
+ 	return false;
  }
  
- static void list_test_list_cut_before(struct kunit *test)
-@@ -439,13 +436,10 @@ static void list_test_list_cut_before(st
- 
- 	KUNIT_EXPECT_EQ(test, i, 1);
- 
--	i = 0;
- 	list_for_each(cur, &list1) {
- 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
- 		i++;
- 	}
--
--	KUNIT_EXPECT_EQ(test, i, 2);
+--- a/mm/shmem.c~mm-shmem-fix-khugepaged-activation-policy-for-shmem
++++ a/mm/shmem.c
+@@ -1653,6 +1653,23 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
  }
  
- static void list_test_list_splice(struct kunit *test)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++bool shmem_hpage_pmd_enabled(void)
++{
++	if (shmem_huge == SHMEM_HUGE_DENY)
++		return false;
++	if (test_bit(HPAGE_PMD_ORDER, &huge_shmem_orders_always))
++		return true;
++	if (test_bit(HPAGE_PMD_ORDER, &huge_shmem_orders_madvise))
++		return true;
++	if (test_bit(HPAGE_PMD_ORDER, &huge_shmem_orders_within_size))
++		return true;
++	if (test_bit(HPAGE_PMD_ORDER, &huge_shmem_orders_inherit) &&
++	    shmem_huge != SHMEM_HUGE_NEVER)
++		return true;
++
++	return false;
++}
++
+ unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+ 				loff_t write_end, bool shmem_huge_force)
+@@ -5030,7 +5047,7 @@ static ssize_t shmem_enabled_store(struc
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+ 	char tmp[16];
+-	int huge;
++	int huge, err;
+ 
+ 	if (count + 1 > sizeof(tmp))
+ 		return -EINVAL;
+@@ -5054,7 +5071,9 @@ static ssize_t shmem_enabled_store(struc
+ 	shmem_huge = huge;
+ 	if (shmem_huge > SHMEM_HUGE_DENY)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+-	return count;
++
++	err = start_stop_khugepaged();
++	return err ? err : count;
+ }
+ 
+ struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
+@@ -5131,6 +5150,12 @@ static ssize_t thpsize_shmem_enabled_sto
+ 		ret = -EINVAL;
+ 	}
+ 
++	if (ret > 0) {
++		int err = start_stop_khugepaged();
++
++		if (err)
++			ret = err;
++	}
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-make-split_pte_ptlocks-depend-on-smp.patch
-revert-list-test-fix-tests-for-list_cut_position.patch
+mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
 
