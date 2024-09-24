@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD48A42A8F
-	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 22:07:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E87E9155733
+	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 22:08:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727215641; cv=none; b=VBq5HwIOrA/oxVNq8ZlICI1F2HtbWEjMzzsMhFIcloUtu25El726wFLmxcU2YnQzJNYPiMu1CTbsfrdr3qrGpdq250m+BNnwv7ZB9W3uX3HOl4yRYLl6HEYJWM3O9cH4uQYgYfvChJLr9yxi8mXujJI9tmTbdl5mbIP4blfz2Os=
+	t=1727215728; cv=none; b=ToAm5TngIG0wM28VKyj1Ghlbvs11XTb4nyT+tmH3LzzPQGFoWz2NnyZI9K6+z13Wthq80uthgDomThUPO1QF5YHFLfNBfoKkUxRtvZymQ7HayrDiOe/Opw4cZBRBk5dxo2o5xmCQ+7i7xsuzw5EehlDGGDVdT4iuiucx86zOo1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727215641; c=relaxed/simple;
-	bh=yNhOFsizQUtKB1vpWJ44er4bSkOwXWie7jkrsjrkfl0=;
-	h=Date:To:From:Subject:Message-Id; b=qdBtnuqEBPPnR8Od5EC+Fxk6/0o3plZgmJV0NsbMKDdnaggBlNMl6cvuEcc5Ar1+1jI9+/YrOvEO1j7GGR7hJXY6CfyMbvr+CLP8dCV4MjZBcrSDbOUvA6KQKQssSMizv0t2huOUM0BoZf7jfQuvO0EQNPz9GhTZURf2kw4hiPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3MApt3f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727215728; c=relaxed/simple;
+	bh=7krdNyWD8gOoadxXKHD3eng325gJTlBs25FsU5HlnYs=;
+	h=Date:To:From:Subject:Message-Id; b=FUyKYiXLkFRf3pb3BKkRWu2lpxhmBBm4r8L6c6anu3yrdvTsgwDaH0J6veshZVLURPwUCYmXGyDAgNDpY0GhT4W2ApJ0AGRaMK2al2jTEoF4v8Np8VJz6LgU8WhmrYtujw8zClN52PIlTCqJ9mC9IRzmpgScplVLrGKPNRBbgMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ojQHtMxs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3MApt3f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 573D1C4CEC4;
-	Tue, 24 Sep 2024 22:07:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ojQHtMxs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67B8BC4CEC6;
+	Tue, 24 Sep 2024 22:08:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727215641;
-	bh=yNhOFsizQUtKB1vpWJ44er4bSkOwXWie7jkrsjrkfl0=;
+	s=korg; t=1727215727;
+	bh=7krdNyWD8gOoadxXKHD3eng325gJTlBs25FsU5HlnYs=;
 	h=Date:To:From:Subject:From;
-	b=C3MApt3f/qvd38Ur+Ya2QhO9uE3E0zlzjCC7uOuzjGeHgFDra0RDvvZno5q2frNxN
-	 aW9NbTek7wjdJ32eApZ9skmnMaqrfL9Dgp/9xvXpj/LXXSpmVQZYAmMbdDHd3+U/qJ
-	 JMOFIP4bjSPxrjcgmdvdr6cWFg/1qZWiq0BOI5KM=
-Date: Tue, 24 Sep 2024 15:07:20 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,ghe@suse.com,gechangwei@live.cn,zhangzekun11@huawei.com,akpm@linux-foundation.org
+	b=ojQHtMxs9NNuQ2BmYb4ZMKh7nwzjKCl32TMY6cpmZ3cUC5owatpNzyk90v0FbMAaX
+	 rOJSW2FuItEqCcYTif5tXC2P0TbWzQdKI/pcT4r1PFbcH01me8m9XoRV+vEtLxph9H
+	 UoqxCB6rcpVpuI9lDh8q+gLGQ4QCjbMlMXIYB/f4=
+Date: Tue, 24 Sep 2024 15:08:46 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,ghe@suse.com,gechangwei@live.cn,pvmohammedanees2003@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-remove-unused-declartion-in-header-file.patch added to mm-nonmm-unstable branch
-Message-Id: <20240924220721.573D1C4CEC4@smtp.kernel.org>
+Subject: + ocfs2-fix-typo-in-comment.patch added to mm-nonmm-unstable branch
+Message-Id: <20240924220847.67B8BC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: remove unused declartion in header file
+     Subject: ocfs2: Fix typo in comment
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-remove-unused-declartion-in-header-file.patch
+     ocfs2-fix-typo-in-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unused-declartion-in-header-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-typo-in-comment.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,16 +58,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhang Zekun <zhangzekun11@huawei.com>
-Subject: ocfs2: remove unused declartion in header file
-Date: Fri, 6 Sep 2024 13:57:42 +0800
+From: Mohammed Anees <pvmohammedanees2003@gmail.com>
+Subject: ocfs2: Fix typo in comment
+Date: Tue, 17 Sep 2024 18:51:56 +0000
 
-The definition of ocfs2_global_read_dquot() has been removed since commit
-fb8dd8d78014 ("ocfs2: Fix quota locking").  Let's remove the empty
-declartion
+Fix "Allcate" -> "Allocate"
 
-Link: https://lkml.kernel.org/r/20240906055742.105024-1-zhangzekun11@huawei.com
-Signed-off-by: Zhang Zekun <zhangzekun11@huawei.com>
+Link: https://lkml.kernel.org/r/20240917185156.10580-1-pvmohammedanees2003@gmail.com
+Signed-off-by: Mohammed Anees <pvmohammedanees2003@gmail.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -78,22 +76,23 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota.h |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/quota.h~ocfs2-remove-unused-declartion-in-header-file
-+++ a/fs/ocfs2/quota.h
-@@ -97,7 +97,6 @@ ssize_t ocfs2_quota_write(struct super_b
- 			  const char *data, size_t len, loff_t off);
- int ocfs2_global_read_info(struct super_block *sb, int type);
- int ocfs2_global_write_info(struct super_block *sb, int type);
--int ocfs2_global_read_dquot(struct dquot *dquot);
- int __ocfs2_sync_dquot(struct dquot *dquot, int freeing);
- static inline int ocfs2_sync_dquot(struct dquot *dquot)
- {
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-typo-in-comment
++++ a/fs/ocfs2/alloc.c
+@@ -4767,7 +4767,7 @@ bail:
+ }
+ 
+ /*
+- * Allcate and add clusters into the extent b-tree.
++ * Allocate and add clusters into the extent b-tree.
+  * The new clusters(clusters_to_add) will be inserted at logical_offset.
+  * The extent b-tree's root is specified by et, and
+  * it is not limited to the file storage. Any extent tree can use this
 _
 
-Patches currently in -mm which might be from zhangzekun11@huawei.com are
+Patches currently in -mm which might be from pvmohammedanees2003@gmail.com are
 
-ocfs2-remove-unused-declartion-in-header-file.patch
+ocfs2-fix-typo-in-comment.patch
 
