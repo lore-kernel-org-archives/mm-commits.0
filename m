@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C951450EE;
-	Tue, 24 Sep 2024 16:40:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574FA335C7
+	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 20:01:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727196009; cv=none; b=OMtNXUgu4h/ssxGaCA/x5JNF3v9m8/yCsrb0+xehHT+AxNh/zAZTLHQ8pFBrYRsA1G08cijDFR6lsh0vn2iqgJIaHnon9F+sSmsdTieQT+iFZRqfl7I3TI1KS4p8VzbAqNoGlljXoHoxt9y7wmfy3415ZSirhOvz93tclz4sMOE=
+	t=1727208092; cv=none; b=NkQ4WiA7ltyc5skKgVLWHaZzPHbdy4adbXPRSZOHaKYBEkafeGQZfKvnfd+a5ljq3Avi8v3XrQzf2PWShII7J9GgOwJBe3ywWCVaBEUjlz+gvuVI3wphtJot0NMmZLJyt1gcEoNZnEa4HOJ0nvxOoxVh1OdLhRZumexqA+GDtSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727196009; c=relaxed/simple;
-	bh=xj6w9URrBWds9umEiqeHVQAcJUYo6SBiWT/Uq+bRy48=;
-	h=Date:To:From:Subject:Message-Id; b=aQ2FKgsQyg6w7Owo/kzsJrVehel9DHO3gEZU8O8SHl/Tv/u8d+pbqZcHBMHTanRB0kcUPm2vpjnc3G1UnF1GItX6aH4bLnD6/bzai4sx1n2MeTicRTcruEtDu2hjIzb0eDP0QPCQegqnrtUeo5aEsXQx/9VgvIgl/E3434DIIsA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jC8Rlx9s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727208092; c=relaxed/simple;
+	bh=yY02gx9HlfVSLx6AkTE01kkmaboVN3A4CdSTPpQJJ5A=;
+	h=Date:To:From:Subject:Message-Id; b=Fgbh2hplJVPzWc8BkphXQIq2U+RGuAIr6CmG2roGiAk0t7uWaT2+hup1yuH3NeF6oj4q0eobNXvoeYVkViv+dPMASJ3FGfcQw9ik1RJR/30OUhGIQLmsnyDEtD8pSSRkD9reV0dyOcydX/65UR1EB9v8MWGW14gFVaubmd+iIr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SALtg59o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jC8Rlx9s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BD08C4CEC4;
-	Tue, 24 Sep 2024 16:40:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SALtg59o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE9E5C4CEC4;
+	Tue, 24 Sep 2024 20:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727196009;
-	bh=xj6w9URrBWds9umEiqeHVQAcJUYo6SBiWT/Uq+bRy48=;
+	s=korg; t=1727208091;
+	bh=yY02gx9HlfVSLx6AkTE01kkmaboVN3A4CdSTPpQJJ5A=;
 	h=Date:To:From:Subject:From;
-	b=jC8Rlx9sT1aSLxzdOekwHIxV62aWbR84MSMcICFdVzLMyivp/RoYTzLedvNTuqbmf
-	 rd1Zd+Qs51aZgl5EV13WEFYGk2WM3a/W85/jFd5OCeRtteKGkiAftyG3GCC8bhV6Dq
-	 WYiiURbdYHvUQUTDmiZxqtqfx/pJM5ZtPZQmW/9Y=
-Date: Tue, 24 Sep 2024 09:40:08 -0700
-To: mm-commits@vger.kernel.org,steffen.klassert@secunet.com,stable@vger.kernel.org,longman@redhat.com,herbert@gondor.apana.org.au,daniel.m.jordan@oracle.com,kamlesh@ti.com,akpm@linux-foundation.org
+	b=SALtg59ojB2h1K1MImCkdNjcvcZfAftjaQkwsukritcK+B6i1+oNeLTk0ii/Gx/AI
+	 VBE3H5BGt2YOmapaUJgdkItUZAeaoSCGEyv+BTunYSwsKtzE/RbUCJXp8ovrKRzMyr
+	 NWufcWHUbpa4lX5egdJTUxxcmGwOhpphdc/U5R8M=
+Date: Tue, 24 Sep 2024 13:01:30 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,keith.lucas@oracle.com,donettom@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch removed from -mm tree
-Message-Id: <20240924164009.0BD08C4CEC4@smtp.kernel.org>
+Subject: + selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch added to mm-unstable branch
+Message-Id: <20240924200131.BE9E5C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,71 +34,63 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: padata: honor the caller's alignment in case of chunk_size 0
-has been removed from the -mm tree.  Its filename was
-     padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
+The patch titled
+     Subject: selftests/mm: add pkey_sighandler_xx, hugetlb_dio to .gitignore
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kamlesh Gurudasani <kamlesh@ti.com>
-Subject: padata: honor the caller's alignment in case of chunk_size 0
-Date: Thu, 22 Aug 2024 02:32:52 +0530
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: selftests/mm: add pkey_sighandler_xx, hugetlb_dio to .gitignore
+Date: Tue, 24 Sep 2024 19:59:11 +0100
 
-In the case where we are forcing the ps.chunk_size to be at least 1, we
-are ignoring the caller's alignment.
+Commit 6998a73efbb8 ("selftests/mm: Add new testcases for pkeys") and
+commit 3a103b5315b7 ("selftest: mm: Test if hugepage does not get leaked
+during __bio_release_pages()") generate test binaries hugetlb_dio,
+pkey_sighandler_tests_32 and pkey_sighandler_tests_64 but did not add
+these to .gitignore.  Correct this.
 
-Move the forcing of ps.chunk_size to be at least 1 before rounding it up
-to caller's alignment, so that caller's alignment is honored.
-
-While at it, use max() to force the ps.chunk_size to be at least 1 to
-improve readability.
-
-Link: https://lkml.kernel.org/r/20240822-max-v1-1-cb4bc5b1c101@ti.com
-Fixes: 6d45e1c948a8 ("padata: Fix possible divide-by-0 panic in padata_mt_helper()")
-Signed-off-by: Kamlesh Gurudasani <kamlesh@ti.com>
-Acked-by: Waiman Long <longman@redhat.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240924185911.117937-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Keith Lucas <keith.lucas@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/.gitignore |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/padata.c~padata-honor-the-callers-alignment-in-case-of-chunk_size-0
-+++ a/kernel/padata.c
-@@ -509,21 +509,17 @@ void __init padata_do_multithreaded(stru
- 
- 	/*
- 	 * Chunk size is the amount of work a helper does per call to the
--	 * thread function.  Load balance large jobs between threads by
-+	 * thread function. Load balance large jobs between threads by
- 	 * increasing the number of chunks, guarantee at least the minimum
- 	 * chunk size from the caller, and honor the caller's alignment.
-+	 * Ensure chunk_size is at least 1 to prevent divide-by-0
-+	 * panic in padata_mt_helper().
- 	 */
- 	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
- 	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
-+	ps.chunk_size = max(ps.chunk_size, 1ul);
- 	ps.chunk_size = roundup(ps.chunk_size, job->align);
- 
--	/*
--	 * chunk_size can be 0 if the caller sets min_chunk to 0. So force it
--	 * to at least 1 to prevent divide-by-0 panic in padata_mt_helper().`
--	 */
--	if (!ps.chunk_size)
--		ps.chunk_size = 1U;
--
- 	list_for_each_entry(pw, &works, pw_list)
- 		if (job->numa_aware) {
- 			int old_node = atomic_read(&last_used_nid);
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -51,3 +51,6 @@ hugetlb_madv_vs_map
+ mseal_test
+ seal_elf
+ droppable
++hugetlb_dio
++pkey_sighandler_tests_32
++pkey_sighandler_tests_64
 _
 
-Patches currently in -mm which might be from kamlesh@ti.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
 
