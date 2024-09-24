@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 906EC13D25E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 21:59:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8467713D25E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 21:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727215173; cv=none; b=GPwST3hbjnQzvTTgR+zA1Bgc9sv2ek6L55RwrY1gu9JjlDbd0q46uWg7CkDSBzlfEvef4dOTrMtYA+hRolFV60cHr0zAjZ3bLp2/LzYdOppjjawz8pFnu2RS0dVwhEQ7AKHLtMtRYiMOozjt2V42xLuP/7T5giKcSYXzFKomrQs=
+	t=1727215177; cv=none; b=czzc+uLNblbIIV5U62F4k3ZlKCoM5lkwO/8msU37LBT9UffJyUnZpUYrxxhQ10ALptWyUfC14pukZoalUrjIYtgGtXVjwpFZGgjqR1dnvz3Ws2MBxsP4jMiVpiqgiepFrmz+4rCY4i6umCIe7x9wR/VrCtTBfLvlv5t3CwI0hvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727215173; c=relaxed/simple;
-	bh=HXO9BnQ9dhrvVsC/EU4gB03uy8IvK0G2QNoOxkiL2rM=;
-	h=Date:To:From:Subject:Message-Id; b=aFN0/fljEgGoXjWRDuhy2jf3UNCbw7bdB462XsyI2mRL9fOrwvnkMvU1Z7VTaszn73y6G8TxIUfjIOQMPCDB0lWGwLMQUk5pWsDvsguDAaG8vGqEKQ6WjG2MF30Ggw936vS+wAMHQUDwSczHzOProENEvMZTX9xYgM+Z1h423IQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Q/0VQVM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727215177; c=relaxed/simple;
+	bh=gsqPjJ1Dz3wX7TMgKBiBPEhZ62Q2VR6j0F/She6W2d0=;
+	h=Date:To:From:Subject:Message-Id; b=SKiNlKDlsf46z2Mxw9215ODfYy+Sq6kfZsPbU7nnFezljNTNrITIjZ9/rgrkE302wceCVWD1jm1hkKL5KBhY3AGV6tSr/XFLA2LN4Vtwds6szvxsmXXXQVewbeAabl9t9rY6EzjEWqJt8QgNIzQmq6Tnunn2QwOU0sc9W8PXEhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BX7lG3Zv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Q/0VQVM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D6ADC4CEC4;
-	Tue, 24 Sep 2024 21:59:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BX7lG3Zv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE88C4CEC4;
+	Tue, 24 Sep 2024 21:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727215173;
-	bh=HXO9BnQ9dhrvVsC/EU4gB03uy8IvK0G2QNoOxkiL2rM=;
+	s=korg; t=1727215177;
+	bh=gsqPjJ1Dz3wX7TMgKBiBPEhZ62Q2VR6j0F/She6W2d0=;
 	h=Date:To:From:Subject:From;
-	b=1Q/0VQVMaezJ/HXM3yikCYKz0Ed6lmSh3H+vPOjdJGbA+4VA1IeBxzK93e8mb+qJT
-	 jKd5e8CK2vzUe+ouEt1iqFX0iEn9I6cs/OtwORGp0XhBdi2ur0sOGCcVBR7vgJF7wl
-	 vVWCeBqgHp/O3XMjfi0rpVhKxwKabsBmUvZ+Z/es=
-Date: Tue, 24 Sep 2024 14:59:32 -0700
+	b=BX7lG3ZvCGJy6kGXayCuIE4hjOsFU0L9ffXmgiE8a90i6plV9zdM5W2h4FysFc4/K
+	 D95mkVK4eLVEIz1/nIJvhKCCG5ITk2X/vi6S5OdTWsNYFQfKvfx8onM0y0QyqxUVVv
+	 pTCrE/Fj2i1TV7iLg9jHVlF0lClFG76cQjS/Kb8Y=
+Date: Tue, 24 Sep 2024 14:59:36 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,shakeel.butt@linux.dev,richard.henderson@linaro.org,minchan@kernel.org,mattst88@gmail.com,Liam.Howlett@oracle.com,jcmvbkbc@gmail.com,James.Bottomley@HansenPartnership.com,ink@jurassic.park.msu.ru,deller@gmx.de,chris@zankel.net,arnd@arndb.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-introduce-pr_madv_self-flag-to-process_madvise.patch added to mm-unstable branch
-Message-Id: <20240924215933.0D6ADC4CEC4@smtp.kernel.org>
+Subject: + selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use.patch added to mm-unstable branch
+Message-Id: <20240924215937.0DE88C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: introduce PR_MADV_SELF flag to process_madvise()
+     Subject: selftests/mm: add test for process_madvise PR_MADV_SELF flag use
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-introduce-pr_madv_self-flag-to-process_madvise.patch
+     selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-pr_madv_self-flag-to-process_madvise.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,74 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: introduce PR_MADV_SELF flag to process_madvise()
-Date: Tue, 24 Sep 2024 12:16:27 +0100
+Subject: selftests/mm: add test for process_madvise PR_MADV_SELF flag use
+Date: Tue, 24 Sep 2024 12:16:28 +0100
 
-Patch series "unrestrict process_madvise() for current process", v2.
+Add a new process_madvise() selftest, and add a test for the newly
+introduced PR_MADV_SELF flag.
 
-The process_madvise() call was introduced in commit ecb8ac8b1f14
-("mm/madvise: introduce process_madvise() syscall: an external memory
-hinting API") as a means of performing madvise() operations on another
-process.
+Assert that we can perform a vector operation of an operation that would
+not be permitted on a remote mm (MADV_DONTNEED in this instance) on ones
+in our own mm and that the operation is correctly peformed.
 
-However, as it provides the means by which to perform multiple madvise()
-operations in a batch via an iovec, it is useful to utilise the same
-interface for performing operations on the current process rather than a
-remote one.
-
-Using this interface targeting the current process is cumbersome - a pidfd
-needs to be setup for the current pid, and we are limited to only a subset
-of madvise() operations, a limitation sensible for manipulating remote
-processes but not meaningful when manipulating the current one.
-
-Commit 22af8caff7d1 ("mm/madvise: process_madvise() drop capability check
-if same mm") removed the need for a caller invoking process_madvise() on
-its own pidfd to possess the CAP_SYS_NICE capability, however this leaves
-the restrictions on operation in place and the cumbersome need for a 'self
-pidfd'.
-
-This patch series eliminates both limitations:
-
-1. The restriction on permitted operations is removed when operating
-   on the current process.
-
-2. A new flag is introduced - PR_MADV_SELF - which eliminates the need for
-   a pidfd - if this flag is set, the pidfd argument is ignored and the
-   operation is simply applied to the current process.
-
-Therefore a user can simply invoke:
-
-	process_madvise(0, iovec, n, MADV_..., PR_MADV_SELF);
-
-And perform any madvise() operation they like on the n ranges specified by
-the iovec parameter.
-
-This series also introduces a series of self-tests for this feature
-asserting that the flag functions as expected.
-
-
-This patch (of 2):
-
-process_madvise() was conceived as a useful means for performing a vector
-of madvise() operations on a remote process's address space.
-
-However it's useful to be able to do so on the current process also.  It
-is currently rather clunky to do this (requiring a pidfd to be opened for
-the current process) and introduces unnecessary overhead in incrementing
-reference counts for the task and mm.
-
-Avoid all of this by providing a PR_MADV_SELF flag, which causes
-process_madvise() to simply ignore the pidfd parameter and instead apply
-the operation to the current process.
-
-Since we are operating on our own process, no restrictions need be applied
-on behaviors we can perform, so do not limit these in that case.
-
-Also extend the case of a user specifying the current process via pidfd to
-not be restricted on behaviors which can be performed.
-
-Link: https://lkml.kernel.org/r/cover.1727176176.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/1ecf2692b3bcdd693ad61d510ce0437abb43a1bd.1727176176.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/c155cc65f732705f6bd8436a00a1821b3f2a80c5.1727176176.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Chris Zankel <chris@zankel.net>
@@ -145,177 +88,151 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/uapi/asm/mman.h     |    2 
- arch/mips/include/uapi/asm/mman.h      |    2 
- arch/parisc/include/uapi/asm/mman.h    |    2 
- arch/xtensa/include/uapi/asm/mman.h    |    2 
- include/uapi/asm-generic/mman-common.h |    2 
- mm/madvise.c                           |   66 ++++++++++++++++-------
- 6 files changed, 56 insertions(+), 20 deletions(-)
+ tools/testing/selftests/mm/.gitignore        |    1 
+ tools/testing/selftests/mm/Makefile          |    1 
+ tools/testing/selftests/mm/process_madvise.c |  115 +++++++++++++++++
+ 3 files changed, 117 insertions(+)
 
---- a/arch/alpha/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/arch/alpha/include/uapi/asm/mman.h
-@@ -86,4 +86,6 @@
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
- 				 PKEY_DISABLE_WRITE)
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -34,6 +34,7 @@ gup_test
+ va_128TBswitch
+ map_fixed_noreplace
+ write_to_hugetlbfs
++process_madvise
+ hmm-tests
+ memfd_secret
+ soft-dirty
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use
++++ a/tools/testing/selftests/mm/Makefile
+@@ -79,6 +79,7 @@ TEST_GEN_FILES += hugetlb_fault_after_ma
+ TEST_GEN_FILES += hugetlb_madv_vs_map
+ TEST_GEN_FILES += hugetlb_dio
+ TEST_GEN_FILES += droppable
++TEST_GEN_FILES += process_madvise
  
-+#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
+diff --git a/tools/testing/selftests/mm/process_madvise.c a/tools/testing/selftests/mm/process_madvise.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/process_madvise.c
+@@ -0,0 +1,115 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
 +
- #endif /* __ALPHA_MMAN_H__ */
---- a/arch/mips/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -113,4 +113,6 @@
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
- 				 PKEY_DISABLE_WRITE)
- 
-+#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++#define _GNU_SOURCE
++#include "../kselftest_harness.h"
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/uio.h>
 +
- #endif /* _ASM_MMAN_H */
---- a/arch/parisc/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -83,4 +83,6 @@
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
- 				 PKEY_DISABLE_WRITE)
- 
-+#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++/* May not be available in host system yet. */
++#ifndef PR_MADV_SELF
++#define PR_MADV_SELF	(1<<0)
++#endif
 +
- #endif /* __PARISC_MMAN_H__ */
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -121,4 +121,6 @@
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
- 				 PKEY_DISABLE_WRITE)
- 
-+#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
-+
- #endif /* _XTENSA_MMAN_H */
---- a/include/uapi/asm-generic/mman-common.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -87,4 +87,6 @@
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
- 				 PKEY_DISABLE_WRITE)
- 
-+#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
-+
- #endif /* __ASM_GENERIC_MMAN_COMMON_H */
---- a/mm/madvise.c~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
-+++ a/mm/madvise.c
-@@ -1208,7 +1208,8 @@ madvise_behavior_valid(int behavior)
- 	}
- }
- 
--static bool process_madvise_behavior_valid(int behavior)
-+/* Can we invoke process_madvise() on a remote mm for the specified behavior? */
-+static bool process_madvise_remote_valid(int behavior)
- {
- 	switch (behavior) {
- 	case MADV_COLD:
-@@ -1477,6 +1478,28 @@ SYSCALL_DEFINE3(madvise, unsigned long,
- 	return do_madvise(current->mm, start, len_in, behavior);
- }
- 
-+/* Perform an madvise operation over a vector of addresses and lengths. */
-+static ssize_t vector_madvise(struct mm_struct *mm, struct iov_iter *iter,
-+			      int behavior)
++FIXTURE(process_madvise)
 +{
-+	ssize_t ret = 0;
-+	size_t total_len;
++	unsigned long page_size;
++};
 +
-+	total_len = iov_iter_count(iter);
++FIXTURE_SETUP(process_madvise)
++{
++	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
++};
 +
-+	while (iov_iter_count(iter)) {
-+		ret = do_madvise(mm, (unsigned long)iter_iov_addr(iter),
-+				 iter_iov_len(iter), behavior);
-+		if (ret < 0)
-+			break;
-+		iov_iter_advance(iter, iter_iov_len(iter));
-+	}
-+
-+	ret = (total_len - iov_iter_count(iter)) ? : ret;
-+
-+	return ret;
++FIXTURE_TEARDOWN(process_madvise)
++{
 +}
 +
- SYSCALL_DEFINE5(process_madvise, int, pidfd, const struct iovec __user *, vec,
- 		size_t, vlen, int, behavior, unsigned int, flags)
- {
-@@ -1486,10 +1509,9 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	struct iov_iter iter;
- 	struct task_struct *task;
- 	struct mm_struct *mm;
--	size_t total_len;
- 	unsigned int f_flags;
- 
--	if (flags != 0) {
-+	if (flags & ~PR_MADV_SELF) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-@@ -1498,17 +1520,21 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	if (ret < 0)
- 		goto out;
- 
-+	/*
-+	 * Perform an madvise operation on the current process. No restrictions
-+	 * need be applied, nor do we need to pin the task or mm_struct.
-+	 */
-+	if (flags & PR_MADV_SELF) {
-+		ret = vector_madvise(current->mm, &iter, behavior);
-+		goto free_iov;
++static void populate_range(char *ptr, size_t len)
++{
++	memset(ptr, 'x', len);
++}
++
++static bool is_range_zeroed(char *ptr, size_t len)
++{
++	size_t i;
++
++	for (i = 0; i < len; i++) {
++		if (ptr[i] != '\0')
++			return false;
 +	}
 +
- 	task = pidfd_get_task(pidfd, &f_flags);
- 	if (IS_ERR(task)) {
- 		ret = PTR_ERR(task);
- 		goto free_iov;
- 	}
- 
--	if (!process_madvise_behavior_valid(behavior)) {
--		ret = -EINVAL;
--		goto release_task;
--	}
--
- 	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
- 	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
- 	if (IS_ERR_OR_NULL(mm)) {
-@@ -1517,25 +1543,25 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 	}
- 
- 	/*
-+	 * We need only perform this check if we are attempting to manipulate a
-+	 * remote process's address space.
-+	 */
-+	if (mm != current->mm && !process_madvise_remote_valid(behavior)) {
-+		ret = -EINVAL;
-+		goto release_mm;
-+	}
++	return true;
++}
++
++TEST_F(process_madvise, pr_madv_self)
++{
++	const unsigned long page_size = self->page_size;
++	struct iovec vec[3];
++	char *ptr_region, *ptr, *ptr2, *ptr3;
++
++	/* Establish a region in which to place VMAs. */
++	ptr_region = mmap(NULL, 100 * page_size, PROT_NONE,
++			  MAP_PRIVATE | MAP_ANON, -1, 0);
++	ASSERT_NE(ptr_region, MAP_FAILED);
++
++	/* Place a 5 page mapping offset by one page into the region. */
++	ptr = mmap(&ptr_region[page_size], 5 * page_size,
++		   PROT_READ | PROT_WRITE,
++		   MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	populate_range(ptr, 5 * page_size);
++	vec[0].iov_base = ptr;
++	vec[0].iov_len = 5 * page_size;
++	/* Free the PROT_NONE region before this region. */
++	ASSERT_EQ(munmap(ptr_region, page_size), 0);
++
++	/* Place a 10 page mapping in the middle of the region. */
++	ptr2 = mmap(&ptr_region[50 * page_size], 10 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++	populate_range(ptr2, 10 * page_size);
++	vec[1].iov_base = ptr2;
++	vec[1].iov_len = 10 * page_size;
++	/* Free the PROT_NONE region before this region. */
++	ASSERT_EQ(munmap(&ptr_region[6 * page_size], 44 * page_size), 0);
++
++	/* Place a 3 page mapping at the end of the region, offset by 1. */
++	ptr3 = mmap(&ptr_region[96 * page_size], 3 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr3, MAP_FAILED);
++	populate_range(ptr3, 3 * page_size);
++	vec[2].iov_base = ptr3;
++	vec[2].iov_len = 3 * page_size;
++	/* Free the PROT_NONE region before this region. */
++	ASSERT_EQ(munmap(&ptr_region[60 * page_size], 36 * page_size), 0);
++	/* Free the PROT_NONE region after this region. */
++	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
 +
 +	/*
- 	 * Require CAP_SYS_NICE for influencing process performance. Note that
--	 * only non-destructive hints are currently supported.
-+	 * only non-destructive hints are currently supported for remote
-+	 * processes.
- 	 */
- 	if (mm != current->mm && !capable(CAP_SYS_NICE)) {
- 		ret = -EPERM;
- 		goto release_mm;
- 	}
- 
--	total_len = iov_iter_count(&iter);
--
--	while (iov_iter_count(&iter)) {
--		ret = do_madvise(mm, (unsigned long)iter_iov_addr(&iter),
--					iter_iov_len(&iter), behavior);
--		if (ret < 0)
--			break;
--		iov_iter_advance(&iter, iter_iov_len(&iter));
--	}
--
--	ret = (total_len - iov_iter_count(&iter)) ? : ret;
-+	ret = vector_madvise(mm, &iter, behavior);
- 
- release_mm:
- 	mmput(mm);
++	 * OK now we should have three distinct regions of memory. Zap
++	 * them with MADV_DONTNEED. This should clear the populated ranges and
++	 * we can then assert on them being zeroed.
++	 *
++	 * The function returns the number of bytes advised, so assert this is
++	 * equal to the total size of the three regions.
++	 */
++	ASSERT_EQ(process_madvise(0, vec, 3, MADV_DONTNEED, PR_MADV_SELF),
++		  (5 + 10 + 3) * page_size);
++
++	/* Make sure these ranges are now zeroed. */
++	ASSERT_TRUE(is_range_zeroed(ptr, 5 * page_size));
++	ASSERT_TRUE(is_range_zeroed(ptr2, 10 * page_size));
++	ASSERT_TRUE(is_range_zeroed(ptr2, 3 * page_size));
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 5 * page_size), 0);
++	ASSERT_EQ(munmap(ptr2, 10 * page_size), 0);
++	ASSERT_EQ(munmap(ptr3, 3 * page_size), 0);
++}
++
++TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
