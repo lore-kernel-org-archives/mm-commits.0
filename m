@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD51E146D45
-	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 22:54:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64B9A146A73;
+	Tue, 24 Sep 2024 23:07:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727218495; cv=none; b=mDVV4Ql0JoQIHyOe7W7m+zCGGSgRFl8AetWighQWJpOBkriOqPDjz0wNFROLUsz/+kL9nN+LNskh6zG89y4SR2Syn5a9geellvTL8M8KiFTBRJ8yB+5Uq0viglpHuU4X0qwE0JXG3E+ECCmVPZBOxb6EX+JqAVOGnF5zro+Hs/0=
+	t=1727219247; cv=none; b=W9o0VMEQGjz+LioM0Pou3hH5lsVePdVlaN9xI7LHC9vNFa8kIcO/5xiSmlZbUmzCjyk1qJooZPMGQyjrB8lAN56iijAeFcgFbByNXhjJW55SdES9aM+1bwRwDYGmxfuvTtF2BCzMURcWXrnZmA1O4XzbDCbKx6r3pNfYx0Vsf4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727218495; c=relaxed/simple;
-	bh=1qc+9JqCMbSehUeKjGEmY16hqAyPA5IcotrctNKQ9u8=;
-	h=Date:To:From:Subject:Message-Id; b=MU/GQkBQm5ks06OVdgQ5Jf9YrZ5CbREa/ncycfwNpl0/jU4KoPaaH5gMQkLBZQ+hnDvucaLCSHfSmB/uZeKvOoyLvvz2qmBe33Mb+oWYWz/xfTK0xENAKjMH++/SgmzqyGWDFJrdIjrzJ+ng6r+7kHsUoFPaXVPmS1RMz95qu1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tg62mJJG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727219247; c=relaxed/simple;
+	bh=vC6aDKJ6N8lOC042IhCs5Tj7l+oGTa2aNH48qAZSDno=;
+	h=Date:To:From:Subject:Message-Id; b=AQSo2exixArP6NjERVYU9K9tAwSUgiL5kyIYIus1yoBhDsyzYTcfzlWAF5N4xw8rB2+WcgvWbo9Xgisn9PXFp2WAZe5kxGCnwX059FPguPulUGj9RaTw2U5TAhcrWkbweaS6yDBb7sFvTsgq7k46a3mZbozOhHqYhK8GnuyapAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UXxwi6tl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tg62mJJG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95F81C4CEC4;
-	Tue, 24 Sep 2024 22:54:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UXxwi6tl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE988C4CEC4;
+	Tue, 24 Sep 2024 23:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727218494;
-	bh=1qc+9JqCMbSehUeKjGEmY16hqAyPA5IcotrctNKQ9u8=;
+	s=korg; t=1727219245;
+	bh=vC6aDKJ6N8lOC042IhCs5Tj7l+oGTa2aNH48qAZSDno=;
 	h=Date:To:From:Subject:From;
-	b=Tg62mJJGW2ArKQr6RKc8i8/M2Yc9IHuPB4MVunvDI7POzl6eEVYn0OgkxejDYP/Wg
-	 eeAASD4f7r8facurgrAtD0q+00cd6gzSyQWS7t1IraUAiZa1XJgV9BG47Hzdg11xrI
-	 1iLShJtOPPbLYC0LfcMpMqOt+6i85PL7RCT94e1M=
-Date: Tue, 24 Sep 2024 15:54:54 -0700
-To: mm-commits@vger.kernel.org,brunofrancadevsec@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=UXxwi6tl/K+15yQJzdrlFzWAGMjTuajAq91wNMwNh2Mjjhidm6XKyL7u3ZzhLJzsE
+	 IEuWIYsG0Td+mZNd+82Cu3MsR1I/7QxH9CozXxPaqaEkwX/Ncnf0ef7ayRr3qwV2WY
+	 gXXz1WCrpwDdeRXWa/DH7LbGgo9zdPY9QjDYClKs=
+Date: Tue, 24 Sep 2024 16:07:25 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,skhan@linuxfoundation.org,jhubbard@nvidia.com,david@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-add-int_log-test-suite-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20240924225454.95F81C4CEC4@smtp.kernel.org>
+Subject: + kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240924230725.CE988C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-math-add-int_log-test-suite-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-add-int_log-test-suite-checkpatch-fixes.patch
+     Subject: kselftests: mm: fix wrong __NR_userfaultfd value
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_log-test-suite-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,120 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-math-add-int_log-test-suite-checkpatch-fixes
-Date: Tue Sep 24 03:52:27 PM PDT 2024
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: kselftests: mm: fix wrong __NR_userfaultfd value
+Date: Mon, 23 Sep 2024 10:38:36 +0500
 
+grep -rnIF "#define __NR_userfaultfd"
+tools/include/uapi/asm-generic/unistd.h:681:#define __NR_userfaultfd 282
+arch/x86/include/generated/uapi/asm/unistd_32.h:374:#define
+__NR_userfaultfd 374
+arch/x86/include/generated/uapi/asm/unistd_64.h:327:#define
+__NR_userfaultfd 323
+arch/x86/include/generated/uapi/asm/unistd_x32.h:282:#define
+__NR_userfaultfd (__X32_SYSCALL_BIT + 323)
+arch/arm/include/generated/uapi/asm/unistd-eabi.h:347:#define
+__NR_userfaultfd (__NR_SYSCALL_BASE + 388)
+arch/arm/include/generated/uapi/asm/unistd-oabi.h:359:#define
+__NR_userfaultfd (__NR_SYSCALL_BASE + 388)
+include/uapi/asm-generic/unistd.h:681:#define __NR_userfaultfd 282
 
-ERROR: trailing whitespace
-#36: FILE: lib/Kconfig.debug:3098:
-+^I  This option enables the KUnit test suite for the int_log library, which $
+The number is dependent on the architecture. The above data shows that:
+x86	374
+x86_64	323
 
-ERROR: trailing whitespace
-#37: FILE: lib/Kconfig.debug:3099:
-+^I  provides two functions to compute the integer logarithm in base 2 and $
+The value of __NR_userfaultfd was changed to 282 when asm-generic/unistd.h
+was included.  It makes the test to fail every time as the correct number
+of this syscall on x86_64 is 323.  Fix the header to asm/unistd.h.
 
-WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
-#54: 
-new file mode 100644
-
-ERROR: code indent should use tabs where possible
-#77: FILE: lib/math/tests/int_log_kunit.c:20:
-+       ^I{16, 67108864, "Log base 2 of 16"},$
-
-WARNING: please, no space before tabs
-#77: FILE: lib/math/tests/int_log_kunit.c:20:
-+       ^I{16, 67108864, "Log base 2 of 16"},$
-
-WARNING: please, no spaces at the start of a line
-#77: FILE: lib/math/tests/int_log_kunit.c:20:
-+       ^I{16, 67108864, "Log base 2 of 16"},$
-
-ERROR: trailing whitespace
-#78: FILE: lib/math/tests/int_log_kunit.c:21:
-+^I{32, 83886080, "Log base 2 of 32"},^I$
-
-ERROR: trailing whitespace
-#95: FILE: lib/math/tests/int_log_kunit.c:38:
-+^Istrscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE); $
-
-ERROR: trailing whitespace
-#99: FILE: lib/math/tests/int_log_kunit.c:42:
-+KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc); $
-
-ERROR: trailing whitespace
-#103: FILE: lib/math/tests/int_log_kunit.c:46:
-+^Iconst struct test_case_params *tc = (const struct test_case_params *)test->param_value;^I^I$
-
-WARNING: line length of 104 exceeds 100 columns
-#103: FILE: lib/math/tests/int_log_kunit.c:46:
-+	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;		
-
-ERROR: trailing whitespace
-#104: FILE: lib/math/tests/int_log_kunit.c:47:
-+^I$
-
-total: 8 errors, 4 warnings, 102 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/lib-math-add-int_log-test-suite.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bruno Sobreira França <brunofrancadevsec@gmail.com>
+Link: https://lkml.kernel.org/r/20240923053836.3270393-1-usama.anjum@collabora.com
+Fixes: a5c6bc590094 ("selftests/mm: remove local __NR_* definitions")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/tests/int_log_kunit.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/math/tests/int_log_kunit.c~lib-math-add-int_log-test-suite-checkpatch-fixes
-+++ a/lib/math/tests/int_log_kunit.c
-@@ -17,8 +17,8 @@ static const struct test_case_params int
- 	{3, 26591232, "Log base 2 of 3"},
- 	{4, 33554432, "Log base 2 of 4"},
- 	{8, 50331648, "Log base 2 of 8"},
--       	{16, 67108864, "Log base 2 of 16"},
--	{32, 83886080, "Log base 2 of 32"},	
-+	{16, 67108864, "Log base 2 of 16"},
-+	{32, 83886080, "Log base 2 of 32"},
- 	{U32_MAX, 536870911, "Log base 2 of MAX"},
- };
- 
-@@ -35,16 +35,18 @@ static const struct test_case_params int
- 
- static void get_desc(const struct test_case_params *tc, char *desc)
- {
--	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE); 
-+	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
- }
- 
- 
--KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc); 
-+KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc);
- 
- static void intlog2_test(struct kunit *test)
- {
--	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;		
--	
-+	const struct test_case_params *tc;
-+
-+	tc = (const struct test_case_params *)test->param_value;
-+
- 	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog2(tc->value));
- }
- 
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~kselftests-mm-fix-wrong-__nr_userfaultfd-value
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -15,7 +15,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <math.h>
+-#include <asm-generic/unistd.h>
++#include <asm/unistd.h>
+ #include <pthread.h>
+ #include <sys/resource.h>
+ #include <assert.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-lib-math-add-int_log-test-suite-checkpatch-fixes.patch
+kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch
 
