@@ -1,115 +1,104 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB35619E802
-	for <mm-commits@vger.kernel.org>; Mon, 23 Sep 2024 16:14:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C951450EE;
+	Tue, 24 Sep 2024 16:40:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727108046; cv=none; b=pbj6pFIAIoelwG35tcZEsMAOcmbQrlk1U5PeWyx1i7V1idWTLjpWlmLW4CGakjECFmVD+lPzHVqh4A4kmJLagNASJSMy3ejt+cFNusq2th3Y65JBqS7kntAvL0akM/73sm1PV1E/GcE30itulynp/PWJ+3oUmmL86VvmKEUkLus=
+	t=1727196009; cv=none; b=OMtNXUgu4h/ssxGaCA/x5JNF3v9m8/yCsrb0+xehHT+AxNh/zAZTLHQ8pFBrYRsA1G08cijDFR6lsh0vn2iqgJIaHnon9F+sSmsdTieQT+iFZRqfl7I3TI1KS4p8VzbAqNoGlljXoHoxt9y7wmfy3415ZSirhOvz93tclz4sMOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727108046; c=relaxed/simple;
-	bh=/6RBTd3w7D71uF6wj6oQf+CvB5eOPq14lNcQDd8J2rs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=C7aUHSRSZWjNhuLZheBIUNOiAq46BScZHkAeRXLNJ8vAcfBTw/hEuRGzNnxguynLTB4NH5q6fJtTk3iJyYWyFIYEKHfzp6QgUHbKGqA6kiNb9G+SJPgXem19+zRB8Qf/tm/7RHjjDqvsrXgSkpWih2SW+Q8OPIxTalUjN4pWRzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJjI4ca2; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1727196009; c=relaxed/simple;
+	bh=xj6w9URrBWds9umEiqeHVQAcJUYo6SBiWT/Uq+bRy48=;
+	h=Date:To:From:Subject:Message-Id; b=aQ2FKgsQyg6w7Owo/kzsJrVehel9DHO3gEZU8O8SHl/Tv/u8d+pbqZcHBMHTanRB0kcUPm2vpjnc3G1UnF1GItX6aH4bLnD6/bzai4sx1n2MeTicRTcruEtDu2hjIzb0eDP0QPCQegqnrtUeo5aEsXQx/9VgvIgl/E3434DIIsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jC8Rlx9s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJjI4ca2"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-a8d24f98215so613623466b.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Sep 2024 09:14:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1727108042; x=1727712842; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=KhxyB4gnJFPivYVDIfICHwK2k4/8oKwPbaN8LTyNmkY=;
-        b=VJjI4ca2w3IuZxeFk6VJdHCU7BLoIRYxiWfyYKmxACyQNoP01dMtugM05kdM0ktlaA
-         oPYKIJxZ0AnoAD4SPPiiMkuxeokru6VqCfsyEIL+/yCdndUErDFdXlnHR+7snIWN+bKx
-         LK5qkFjtEHyOambr4VNRnwRnY/1iBav1+iho4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727108042; x=1727712842;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=KhxyB4gnJFPivYVDIfICHwK2k4/8oKwPbaN8LTyNmkY=;
-        b=VZqDGJcdu50O7VbM1JhHCPkieHmADieqVlKlSUqLJXYoXDKthE+Zcc7guGYw94Mbcu
-         Tne87gGBWypbS4m+ZyK80oaMzBqtJ120I8TLO2rVAIc57uUt67QWR7FR3ldgNmOP/MVb
-         wYI9tLUw1xw48YvvdI3eWdhdyqBQoAb93xd5vYnqyAonj0ZdJ5TQl/wTzijVGG8SoJ7u
-         0RtPJb4iqVtiZ3R9TCBQ+5lmNnU6UedT9jsAD9hP+4PVd8L1m/4XFCqzjWvbafzf7A8E
-         1lluYMYupiRrOt8bYWuhDfPu2cethzq/WLFGUMgFAt3RbJ0dTHEAdmvoGTSoH/mtmbDk
-         hOEg==
-X-Forwarded-Encrypted: i=1; AJvYcCX3JVgEeHGkjG2+YLqiCkTPAqJbzZWS+xsQs5wsCUHNqm9M8jYf9bPulDQHT8mJKSskMIkRYa09XDjb@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx73oFC7yhF2iMGSF0BUhkDfpJwT4gFeVfPbo3mAowErQR1PjG3
-	84UyQrsNxmc5xDZxoQOpFBA58vql4APw9PVjaaFDD2H3i6jGyk1S8wSHkjoTZhMzj59q4Ewk12L
-	wyoI=
-X-Google-Smtp-Source: AGHT+IEM4MWMTgqOQ4Jl/voya9FlAbQFiM7MgyaEHni/sROKG85X1cCjHkEv9kahPsd5fZsrXH1Giw==
-X-Received: by 2002:a17:907:3f25:b0:a8a:ead3:8515 with SMTP id a640c23a62f3a-a90d514a83fmr1224969166b.65.1727108042069;
-        Mon, 23 Sep 2024 09:14:02 -0700 (PDT)
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com. [209.85.218.51])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a9061096694sm1264428066b.19.2024.09.23.09.14.01
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Sep 2024 09:14:01 -0700 (PDT)
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a8d24f98215so613619966b.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Sep 2024 09:14:01 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXUAM1TueVvbJ0rTlRdfASFZaMf70SUg4ST7O5u7WXkGCvbkTYmap10QTDEQz8h6GFgafxW16g/3K1I@vger.kernel.org
-X-Received: by 2002:a17:907:36c8:b0:a8a:91f4:fd30 with SMTP id
- a640c23a62f3a-a90d51098dcmr1410438466b.56.1727108040711; Mon, 23 Sep 2024
- 09:14:00 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jC8Rlx9s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BD08C4CEC4;
+	Tue, 24 Sep 2024 16:40:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1727196009;
+	bh=xj6w9URrBWds9umEiqeHVQAcJUYo6SBiWT/Uq+bRy48=;
+	h=Date:To:From:Subject:From;
+	b=jC8Rlx9sT1aSLxzdOekwHIxV62aWbR84MSMcICFdVzLMyivp/RoYTzLedvNTuqbmf
+	 rd1Zd+Qs51aZgl5EV13WEFYGk2WM3a/W85/jFd5OCeRtteKGkiAftyG3GCC8bhV6Dq
+	 WYiiURbdYHvUQUTDmiZxqtqfx/pJM5ZtPZQmW/9Y=
+Date: Tue, 24 Sep 2024 09:40:08 -0700
+To: mm-commits@vger.kernel.org,steffen.klassert@secunet.com,stable@vger.kernel.org,longman@redhat.com,herbert@gondor.apana.org.au,daniel.m.jordan@oracle.com,kamlesh@ti.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [alternative-merged] padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch removed from -mm tree
+Message-Id: <20240924164009.0BD08C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240920023317.f20c9ecbb2a2f4bf382d831c@linux-foundation.org>
- <CAMuHMdW-4_WvazciLPedP6R6XnEnHqsEh+3s7M5159zcmHit9w@mail.gmail.com>
- <CAHk-=wjUiO3qUVR6ydhGjby3yf_KQO5+m7Hfb4H09kXXPogZ7g@mail.gmail.com> <CAMuHMdU3mfA_SuPqw8ZjkECnP456R=K49fg2yHdOznrSzvTjAg@mail.gmail.com>
-In-Reply-To: <CAMuHMdU3mfA_SuPqw8ZjkECnP456R=K49fg2yHdOznrSzvTjAg@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 23 Sep 2024 09:13:44 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wh1ZaVh2Tsc9tyXM7O1sL0eArxWHiqszZLj+MWe+f3Pwg@mail.gmail.com>
-Message-ID: <CAHk-=wh1ZaVh2Tsc9tyXM7O1sL0eArxWHiqszZLj+MWe+f3Pwg@mail.gmail.com>
-Subject: Re: [GIT PULL] MM updates for 6.12-rc1
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
-	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Huang Ying <ying.huang@intel.com>, Thomas Gleixner <tglx@linutronix.de>
-Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 23 Sept 2024 at 01:09, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->
-> BTW2, the following may not work with the default PHYSMEM_END due
-> to integer overflow, on both 32-bit and 64-bit:
->
-> mm/sparse.c:    unsigned long max_sparsemem_pfn = (PHYSMEM_END + 1) >>
-> PAGE_SHIFT;
 
-Good point.
+The quilt patch titled
+     Subject: padata: honor the caller's alignment in case of chunk_size 0
+has been removed from the -mm tree.  Its filename was
+     padata-honor-the-callers-alignment-in-case-of-chunk_size-0.patch
 
-I've committed a truly disgusting hack, which makes the default
-PHYSMEM_END in the absence of a MAX_PHYSMEM_BITS value be
+This patch was dropped because an alternative patch was or shall be merged
 
- (a) always a 64-bit type (ie unsigned long long)
+------------------------------------------------------
+From: Kamlesh Gurudasani <kamlesh@ti.com>
+Subject: padata: honor the caller's alignment in case of chunk_size 0
+Date: Thu, 22 Aug 2024 02:32:52 +0530
 
- (b) be the maximum value to fit in 'phys_addr_t'
+In the case where we are forcing the ps.chunk_size to be at least 1, we
+are ignoring the caller's alignment.
 
- (c) _but_ with the high bit always clear in 64 bits
+Move the forcing of ps.chunk_size to be at least 1 before rounding it up
+to caller's alignment, so that caller's alignment is honored.
 
-so it's basically either 0xffff_ffff or 0x7fff_ffff_ffff_ffff.
+While at it, use max() to force the ps.chunk_size to be at least 1 to
+improve readability.
 
-The disgusting macro I came up for this for this is
+Link: https://lkml.kernel.org/r/20240822-max-v1-1-cb4bc5b1c101@ti.com
+Fixes: 6d45e1c948a8 ("padata: Fix possible divide-by-0 panic in padata_mt_helper()")
+Signed-off-by: Kamlesh Gurudasani <kamlesh@ti.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
- # define PHYSMEM_END   (((phys_addr_t)-1)&~(1ULL<<63))
+ kernel/padata.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-and no, I'm not proud of it. This is all horrendous.
+--- a/kernel/padata.c~padata-honor-the-callers-alignment-in-case-of-chunk_size-0
++++ a/kernel/padata.c
+@@ -509,21 +509,17 @@ void __init padata_do_multithreaded(stru
+ 
+ 	/*
+ 	 * Chunk size is the amount of work a helper does per call to the
+-	 * thread function.  Load balance large jobs between threads by
++	 * thread function. Load balance large jobs between threads by
+ 	 * increasing the number of chunks, guarantee at least the minimum
+ 	 * chunk size from the caller, and honor the caller's alignment.
++	 * Ensure chunk_size is at least 1 to prevent divide-by-0
++	 * panic in padata_mt_helper().
+ 	 */
+ 	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
+ 	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
++	ps.chunk_size = max(ps.chunk_size, 1ul);
+ 	ps.chunk_size = roundup(ps.chunk_size, job->align);
+ 
+-	/*
+-	 * chunk_size can be 0 if the caller sets min_chunk to 0. So force it
+-	 * to at least 1 to prevent divide-by-0 panic in padata_mt_helper().`
+-	 */
+-	if (!ps.chunk_size)
+-		ps.chunk_size = 1U;
+-
+ 	list_for_each_entry(pw, &works, pw_list)
+ 		if (job->numa_aware) {
+ 			int old_node = atomic_read(&last_used_nid);
+_
 
-We need to fix it properly, with the proper fix probably being to
-always have a valid value for MAX_PHYSMEM_BITS (and no, 64 is not a
-valid value due to the overflow issue) but the quick hack hopefully
-gets the build going.
+Patches currently in -mm which might be from kamlesh@ti.com are
 
-Of course, I don't have the m68k cross-environment set up, thus the
-"hopefully". Let's see if this works.
 
-               Linus
