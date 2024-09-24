@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83BB914431B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 22:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22DBF13C9D9
+	for <mm-commits@vger.kernel.org>; Tue, 24 Sep 2024 22:18:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727216303; cv=none; b=LeJp8zXgzFWETWLNVG+xwFw5gMhBz4PSRYWONyaxVpXiYfnenyYgILAnfuojKP4cQ9QnRcdt5l+B9Vt1+/MGPMtpf0REw1yp1XNidY1dYNwimX96X80Tk5UoqVhnxtBP1KXvRKhAU26yF2f++D7d7eoKfBEaM8XAIQoRQOh8nqw=
+	t=1727216334; cv=none; b=gJMkJ9F1aNN0RALWSQ/ovelEFblmlSmNNBHGTsqq4q9XrSQ4gGGbcajTfdzyll5r65u0kr8xF5DVaofq6Zqpg597d++b6DjERdN7F9w/mmO5LcaZy2poam5Zq2GKIeCQ7UgbutNpEqCptVgVvHUndjvzkWo+n45C1wLf8WmWAbg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727216303; c=relaxed/simple;
-	bh=lJfifDxb5GrribuGxZVC8WEwp1IFIPJ6mzJ2WKxpGVY=;
-	h=Date:To:From:Subject:Message-Id; b=AWiWoA118tOccmH7ImmqQQROAILT2CdF/Mc4H5H6qJ8hmapcb5dMfeW/ceJZk80+R4H/2uqyjssLEOvDYNUZ0LXYK+36pLm7HR3dvlHTRw4aS+2xnY4aQjkhsVc1HqjYN0QlrDS+3ibflhUYmYWlMZ9nNAy4h/0ljFRMu1MAUHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hB6CJ/zZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727216334; c=relaxed/simple;
+	bh=xHrkUqTwFfKDui+QPaVC3McpJk6qS8oPCtiOZDOCxws=;
+	h=Date:To:From:Subject:Message-Id; b=A/VuTJWzpmHtkdZ7Y4BBbJX7pzXv+E7y5JZGafMaFeKzklZGrDPewOWfzvIbkIwKbJtYRlAgR1FsMqpyX8MBcWQpbqHIVdC4SUZtIlZyFrQJZRj6IwGxtTdFhFnBxb/sYaS11Vr1DgHtCigtdyhXaWtNwM8PloiGnbt79g+FcWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=osV+4qaF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hB6CJ/zZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF9CC4CEC6;
-	Tue, 24 Sep 2024 22:18:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="osV+4qaF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD7F8C4CEC4;
+	Tue, 24 Sep 2024 22:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727216303;
-	bh=lJfifDxb5GrribuGxZVC8WEwp1IFIPJ6mzJ2WKxpGVY=;
+	s=korg; t=1727216333;
+	bh=xHrkUqTwFfKDui+QPaVC3McpJk6qS8oPCtiOZDOCxws=;
 	h=Date:To:From:Subject:From;
-	b=hB6CJ/zZRkZufPA7Z+ZzohoLpDM55ZMBOBEfTePRKNunCS6hVw/iQQ15sGGF2RNmj
-	 Tf7bs+FgLUGfLuNrfTJ88QQM1vCMZ3fCfjSzwuzFpX2g7mqS+N1W0L/AZ8hNM7/ru3
-	 QNMdtAA0ougbMraVjDBJy62875JhxDxj90hPvwFg=
-Date: Tue, 24 Sep 2024 15:18:22 -0700
-To: mm-commits@vger.kernel.org,qiwu.chen@transsion.com,glider@google.com,elver@google.com,dvyukov@google.com,qiwuchen55@gmail.com,akpm@linux-foundation.org
+	b=osV+4qaFKdOLioASKwSYNpBVuidhmb4zAuXHiIC1J1YlF7hfxTcxrSoxMBtajopd3
+	 NnKtzXJDa2ndd/o2fhewh9i/00lk3+hIi3iPvQgCJ+QSY8uptclMdTlIFasg3J2gJ/
+	 bu5PdJlyMuyt9CGkPYhFiwzb2Qodo9UImGNmcUXo=
+Date: Tue, 24 Sep 2024 15:18:53 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,didi.debian@cknow.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-fix-elapsed-time-for-allocated-freed-track.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240924221823.0EF9CC4CEC6@smtp.kernel.org>
+Subject: + mm-damon-kconfig-update-damon-doc-url.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240924221853.CD7F8C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kfence: fix elapsed time for allocated/freed track
+     Subject: mm/damon/Kconfig: update DAMON doc URL
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kfence-fix-elapsed-time-for-allocated-freed-track.patch
+     mm-damon-kconfig-update-damon-doc-url.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-fix-elapsed-time-for-allocated-freed-track.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-kconfig-update-damon-doc-url.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,39 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "qiwu.chen" <qiwuchen55@gmail.com>
-Subject: mm: kfence: fix elapsed time for allocated/freed track
-Date: Tue, 24 Sep 2024 16:50:04 +0800
+From: Diederik de Haas <didi.debian@cknow.org>
+Subject: mm/damon/Kconfig: update DAMON doc URL
+Date: Tue, 24 Sep 2024 10:21:46 +0200
 
-Fix elapsed time for the allocated/freed track introduced by commit
-62e73fd85d7bf.
+The old URL doesn't really work anymore and as the documentation has been
+integrated in the main kernel documentation site, change the URL to point
+to that.
 
-Link: https://lkml.kernel.org/r/20240924085004.75401-1-qiwu.chen@transsion.com
-Fixes: 62e73fd85d7bf ("mm: kfence: print the elapsed time for allocated/freed track")
-Signed-off-by: qiwu.chen <qiwu.chen@transsion.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20240924082331.11499-1-didi.debian@cknow.org
+Signed-off-by: Diederik de Haas <didi.debian@cknow.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/report.c |    2 +-
+ mm/damon/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kfence/report.c~mm-kfence-fix-elapsed-time-for-allocated-freed-track
-+++ a/mm/kfence/report.c
-@@ -109,7 +109,7 @@ static void kfence_print_stack(struct se
- 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
- 	u64 ts_sec = track->ts_nsec;
- 	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
--	u64 interval_nsec = local_clock() - meta->alloc_track.ts_nsec;
-+	u64 interval_nsec = local_clock() - track->ts_nsec;
- 	unsigned long rem_interval_nsec = do_div(interval_nsec, NSEC_PER_SEC);
+--- a/mm/damon/Kconfig~mm-damon-kconfig-update-damon-doc-url
++++ a/mm/damon/Kconfig
+@@ -9,7 +9,7 @@ config DAMON
+ 	  access frequency of each memory region. The information can be useful
+ 	  for performance-centric DRAM level memory management.
  
- 	/* Timestamp matches printk timestamp format. */
+-	  See https://damonitor.github.io/doc/html/latest-damon/index.html for
++	  See https://www.kernel.org/doc/html/latest/mm/damon/index.html for
+ 	  more information.
+ 
+ config DAMON_KUNIT_TEST
 _
 
-Patches currently in -mm which might be from qiwuchen55@gmail.com are
+Patches currently in -mm which might be from didi.debian@cknow.org are
 
-mm-kfence-fix-elapsed-time-for-allocated-freed-track.patch
+mm-damon-kconfig-update-damon-doc-url.patch
 
