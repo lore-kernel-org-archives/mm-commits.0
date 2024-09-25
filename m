@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAEAD158557
-	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 10:12:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FDFF15C131
+	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 10:12:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727259136; cv=none; b=LUNSID7m7LT+SOLPZ2Agwdmfs/iSm1/AG1fg0S1qOMEkAdQt6PUDrMQ8CKYub880GS5zohG+ex2V4x1GfqLiMuXM0yMT+G6TGheQwBP4FXOD6aOyjJR2Bhp+bBMpxLfwCpNCf7BBz3WkxNIRbsGrocZHhAPeUiiVWAPlYvt8JN8=
+	t=1727259138; cv=none; b=qpWhXsW7sEzXUo+0iXcLBx92h8kUvi+9QKTlqzETQoDdTtOh8WXqf+OOoEQVWNBfAbT0TfwXXXfz1Xwn/n4MrACjyhrlCRyQdDCPsMb7zoWMmSA7SXs3+/et0UoKhhCaIocb6eq9f8oAY3mMNRF0ToKwJGrtdgaMq/tvEjgxqwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727259136; c=relaxed/simple;
-	bh=WHAF+ZrvZVKmLCUKbLkNlv9ELrdw8TeZR21G2DCnfhw=;
-	h=Date:To:From:Subject:Message-Id; b=SiIoJDUnw3r77Kqpvoh8ELLYxmMkMU2RB0c+ehnOHwkkEHHbXNX09i0xT2+pgDjd2tQrKiSeeBTSquZbwSlWToXCJZG4/q198M5Sytx7N8wEyXGvIrse5rJkEqyLPGjT/q6rs6dhF8xqmJJdBwm/71uZXhw/MCquneSgGR0uwvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E/ZEhO16; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727259138; c=relaxed/simple;
+	bh=7bhx9D52JHafJKXD9IOlL6eYKi9gYYK4mEdssxpI6mI=;
+	h=Date:To:From:Subject:Message-Id; b=OTn2DD5n2Nk8yKoBM3bbUntakt7WwzyAQMb3pQ5cjQe1iEGA4hLU1Hs8aR8lUBfDtrJoBvjaIg+fdGAwMXKFmd5z+VdcpJChThwWqQd32Ox+1a5kQZ0BXbEcn/BiethMZRG12t2aI+U5KzjZ8n5KtVQjusZ25jq0exgRazyKZwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0PTDtAAp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E/ZEhO16"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 318FAC4CEC3;
-	Wed, 25 Sep 2024 10:12:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0PTDtAAp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECFDEC4CEC3;
+	Wed, 25 Sep 2024 10:12:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727259136;
-	bh=WHAF+ZrvZVKmLCUKbLkNlv9ELrdw8TeZR21G2DCnfhw=;
+	s=korg; t=1727259138;
+	bh=7bhx9D52JHafJKXD9IOlL6eYKi9gYYK4mEdssxpI6mI=;
 	h=Date:To:From:Subject:From;
-	b=E/ZEhO16yh6jtzDb71tws1Ta/wFXLJ/R3nCKC6KO9wnD9/lx5mjCAEBTHsfVE7hQD
-	 /7neLiw+PnMg1hPU0aL61mvbBEmtR/hpmwhgYvIbTRe5eKU//sp6rqdAERZ5AWX2J0
-	 eIWx52rT+6hBiqUGsOxHu7ethJvq7GKDUofwdJhU=
-Date: Wed, 25 Sep 2024 03:12:15 -0700
+	b=0PTDtAApZuNSgIOpplCzebAvQDpDyTIAEMfggWLP1V+VPGmWsAuCN0jISwRgZ7gzQ
+	 8UxGET3udJHBnegzYyXpTd/f1ooe7rlqk+coWj7vgxDqmYMRFMynRk1LkuwMQZEyHr
+	 qTua9M9nb58VPCy5zmZNBKAYbGS5iIj/Ayv2xngI=
+Date: Wed, 25 Sep 2024 03:12:17 -0700
 To: mm-commits@vger.kernel.org,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-maple_big_nodeparent.patch added to mm-unstable branch
-Message-Id: <20240925101216.318FAC4CEC3@smtp.kernel.org>
+Subject: + maple_tree-memset-maple_big_node-as-a-whole.patch added to mm-unstable branch
+Message-Id: <20240925101217.ECFDEC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: remove maple_big_node.parent
+     Subject: maple_tree: memset maple_big_node as a whole
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-remove-maple_big_nodeparent.patch
+     maple_tree-memset-maple_big_node-as-a-whole.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-maple_big_nodeparent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-memset-maple_big_node-as-a-whole.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: remove maple_big_node.parent
-Date: Sun, 8 Sep 2024 14:05:53 +0000
+Subject: maple_tree: memset maple_big_node as a whole
+Date: Sun, 8 Sep 2024 14:05:54 +0000
 
-Patch series "Reduce the space to be cleared for maple_big_node", v2.
+In mast_fill_bnode(), we first clear some fields of maple_big_node and set
+the 'type' unconditionally before return.  This means we won't leverage
+any information in maple_big_node and it is safe to clear the whole
+structure.
 
-Found current code may clear maple_big_node redundantly.
+In maple_big_node, we define slot and padding/gap in a union.  And based
+on current definition of MAPLE_BIG_NODE_SLOTS/GAPS, padding is always less
+than slot and part of the gap is overlapped by slot.
 
-First we define a field parent, which is never used.  After removing this,
-we reduce the size of memory to be cleared by memset.
+For example on 64bit system:
 
-Then mast_fill_bnode() clears part of the structure twice, since slot and
-gap share some space.  By clearing the whole structure, we can avoid this.
+  MAPLE_BIG_NODE_SLOT is 34
+  MAPLE_BIG_NODE_GAP  is 21
 
+With this knowledge, current code may clear some space by twice. And
+this could be avoid by clearing the structure as a whole.
 
-This patch (of 2):
-
-The member parent of maple_big_node is never used.
-
-Let's remove it which could reduce the number of space to be cleared on
-memset.
-
-Link: https://lkml.kernel.org/r/20240908140554.20378-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20240908140554.20378-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20240908140554.20378-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/maple_tree.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-maple_big_nodeparent
+--- a/lib/maple_tree.c~maple_tree-memset-maple_big_node-as-a-whole
 +++ a/lib/maple_tree.c
-@@ -120,7 +120,6 @@ static const unsigned char mt_min_slots[
- #define MAPLE_BIG_NODE_GAPS	(MAPLE_ARANGE64_SLOTS * 2 + 1)
+@@ -3155,10 +3155,7 @@ static inline void mast_fill_bnode(struc
+ 	bool cp = true;
+ 	unsigned char split;
  
- struct maple_big_node {
--	struct maple_pnode *parent;
- 	unsigned long pivot[MAPLE_BIG_NODE_SLOTS - 1];
- 	union {
- 		struct maple_enode *slot[MAPLE_BIG_NODE_SLOTS];
+-	memset(mast->bn->gap, 0, sizeof(unsigned long) * ARRAY_SIZE(mast->bn->gap));
+-	memset(mast->bn->slot, 0, sizeof(unsigned long) * ARRAY_SIZE(mast->bn->slot));
+-	memset(mast->bn->pivot, 0, sizeof(unsigned long) * ARRAY_SIZE(mast->bn->pivot));
+-	mast->bn->b_end = 0;
++	memset(mast->bn, 0, sizeof(struct maple_big_node));
+ 
+ 	if (mte_is_root(mas->node)) {
+ 		cp = false;
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
