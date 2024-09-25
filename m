@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF9A8130499
-	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 00:47:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 230591849
+	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 00:53:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727225250; cv=none; b=UL3rvxHV6XOIm32tbDFCFi3ir9kLD9Wn6d7K5e9iHkfoLPirapuWGVlVN8lxA4genlTCqPMIBcDqpB/NJmJeSvTQzeKAI7l5HEiDlF8KHB6Jml9xursPweuEmh/Cetlytbcv6fjNaT7PBpa9jTPBknB9VivXy71RQfzNyMG3L2o=
+	t=1727225591; cv=none; b=XqHvPa/h9vt+e49JoiIG3OHO9/RiCBIGBTplK05+B0CWlb9z/m7J2Wfmv78K/KLztZyX7c+t7n469EdHggKCtQABpDczoAkuFq8HMBoJearTrYXeSluEuDkJMRSYvFk8IhRCRUwFt/SKAdI09pEtjCi87VbI5mqMAH/MqDfWH0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727225250; c=relaxed/simple;
-	bh=y4fv2BhC28ShOpVrtl+cCHspwcLnVnlGIbYaOafBQis=;
-	h=Date:To:From:Subject:Message-Id; b=tdYQdZUoMcPX6k2gIiOZ5ffHtx2pftkFtbfxH5VBZ2QSpW43XXhKeIGXgNIennW6/Yqq4Eu59TPOeo1qOLFubSviffSyq1g87hLuTprqU3CehD5wvEvTFUdFXjahTZYK47M6MhMaWGVKOeVdk9JnujZtWY/MrfXETkS985eiajM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=umYwgJZx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727225591; c=relaxed/simple;
+	bh=aO3/CUv8dfp24Sp9acpxb1i6osgxXl/nZ8OBc9DMngQ=;
+	h=Date:To:From:Subject:Message-Id; b=chF9Cw/I1HGmFwWu/Fr9Pta0uUcVTD+Ei/OGfTNx2VDgLldtLGvkptAZP46x+4pOCbEauNTrKqykUkJSF7PoCaH73sBWH4aYzzNUTZOYWJQj+4mstStnXCzzPjE+wkFrwGu3trOdITS2ZR6ksPZrYyix7YykQXYWMdDjZb1Qih4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sj69k9wn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="umYwgJZx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77636C4CEC4;
-	Wed, 25 Sep 2024 00:47:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sj69k9wn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 768EFC4CEC4;
+	Wed, 25 Sep 2024 00:53:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727225249;
-	bh=y4fv2BhC28ShOpVrtl+cCHspwcLnVnlGIbYaOafBQis=;
+	s=korg; t=1727225590;
+	bh=aO3/CUv8dfp24Sp9acpxb1i6osgxXl/nZ8OBc9DMngQ=;
 	h=Date:To:From:Subject:From;
-	b=umYwgJZxQJvZvcgR91umvaqe+WAgJxrAiStK3vsvPmtRMUMiB276RJbqeDl5ww762
-	 S36VRzr1cO5Z65XFg878t7uRAjZBTtJdhZnguEDM8QM2CN3N/syarmXzIqTrkbMnsN
-	 YU4vsYQhaLiqtLMXi4p/xUSHVQycNKlBFCgSy2vc=
-Date: Tue, 24 Sep 2024 17:47:28 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,tjmercier@google.com,kasong@tencent.com,chrisl@kernel.org,linuszeng@tencent.com,akpm@linux-foundation.org
+	b=Sj69k9wn7CHtOVfs2IGMbiJoQb4LMVsrMOr0qBRmk9+2snINSSPFPJdloVylbtzj9
+	 QSPUs3JfO5pAT4VJ4BokqHBtZv5OjCm+XM+/MYj8RaVWIcrRdoIM2DWOfaXaIbpoy2
+	 bsuk946FT2l4oWpG6QDeEHrC0dosMxq74pLSEZ7Q=
+Date: Tue, 24 Sep 2024 17:53:09 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch removed from -mm tree
-Message-Id: <20240925004729.77636C4CEC4@smtp.kernel.org>
+Subject: + zram-introduce-zram_pp_slot-flag.patch added to mm-unstable branch
+Message-Id: <20240925005310.768EFC4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,139 +34,128 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+The patch titled
+     Subject: zram: introduce ZRAM_PP_SLOT flag
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-introduce-zram_pp_slot-flag.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-zram_pp_slot-flag.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zeng Jingxiang <linuszeng@tencent.com>
-Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-Date: Fri, 13 Sep 2024 16:45:06 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: introduce ZRAM_PP_SLOT flag
+Date: Tue, 17 Sep 2024 11:09:06 +0900
 
-Commit 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-removed the opportunity to wake up flushers during the MGLRU page
-reclamation process can lead to an increased likelihood of triggering OOM
-when encountering many dirty pages during reclamation on MGLRU.
+Patch series "zram: optimal post-processing target selection", v5.
 
-This leads to premature OOM if there are too many dirty pages in cgroup:
-Killed
+Problem:
+--------
+Both recompression and writeback perform a very simple linear scan of all
+zram slots in search for post-processing (writeback or recompress)
+candidate slots.  This often means that we pick the worst candidate for pp
+(post-processing), e.g.  a 48 bytes object for writeback, which is nearly
+useless, because it only releases 48 bytes from zsmalloc pool, but
+consumes an entire 4K slot in the backing device.  Similarly,
+recompression of an 48 bytes objects is unlikely to save more memory that
+recompression of a 3000 bytes object.  Both recompression and writeback
+consume constrained resources (CPU time, batter, backing device storage
+space) and quite often have a (daily) limit on the number of items they
+post-process, so we should utilize those constrained resources in the most
+optimal way.
 
-dd invoked oom-killer: gfp_mask=0x101cca(GFP_HIGHUSER_MOVABLE|__GFP_WRITE),
-order=0, oom_score_adj=0
+Solution:
+---------
+This patch reworks the way we select pp targets.  We, quite clearly, want
+to sort all the candidates and always pick the largest, be it
+recompression or writeback.  Especially for writeback, because the larger
+object we writeback the more memory we release.  This series introduces
+concept of pp buckets and pp scan/selection.
 
-Call Trace:
-  <TASK>
-  dump_stack_lvl+0x5f/0x80
-  dump_stack+0x14/0x20
-  dump_header+0x46/0x1b0
-  oom_kill_process+0x104/0x220
-  out_of_memory+0x112/0x5a0
-  mem_cgroup_out_of_memory+0x13b/0x150
-  try_charge_memcg+0x44f/0x5c0
-  charge_memcg+0x34/0x50
-  __mem_cgroup_charge+0x31/0x90
-  filemap_add_folio+0x4b/0xf0
-  __filemap_get_folio+0x1a4/0x5b0
-  ? srso_return_thunk+0x5/0x5f
-  ? __block_commit_write+0x82/0xb0
-  ext4_da_write_begin+0xe5/0x270
-  generic_perform_write+0x134/0x2b0
-  ext4_buffered_write_iter+0x57/0xd0
-  ext4_file_write_iter+0x76/0x7d0
-  ? selinux_file_permission+0x119/0x150
-  ? srso_return_thunk+0x5/0x5f
-  ? srso_return_thunk+0x5/0x5f
-  vfs_write+0x30c/0x440
-  ksys_write+0x65/0xe0
-  __x64_sys_write+0x1e/0x30
-  x64_sys_call+0x11c2/0x1d50
-  do_syscall_64+0x47/0x110
-  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+The scan step is a simple iteration over all zram->table entries, just
+like what we currently do, but we don't post-process a candidate slot
+immediately.  Instead we assign it to a PP (post-processing) bucket.  PP
+bucket is, basically, a list which holds pp candidate slots that belong to
+the same size class.  PP buckets are 64 bytes apart, slots are not
+strictly sorted within a bucket there is a 64 bytes variance.
 
- memory: usage 308224kB, limit 308224kB, failcnt 2589
- swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+The select step simply iterates over pp buckets from highest to lowest and
+picks all candidate slots a particular buckets contains.  So this gives us
+sorted candidates (in linear time) and allows us to select most optimal
+(largest) candidates for post-processing first.
 
-  ...
-  file_dirty 303247360
-  file_writeback 0
-  ...
 
-oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=test,
-mems_allowed=0,oom_memcg=/test,task_memcg=/test,task=dd,pid=4404,uid=0
-Memory cgroup out of memory: Killed process 4404 (dd) total-vm:10512kB,
-anon-rss:1152kB, file-rss:1824kB, shmem-rss:0kB, UID:0 pgtables:76kB
-oom_score_adj:0
+This patch (of 7):
 
-The flusher wake up was removed to decrease SSD wearing, but if we are
-seeing all dirty folios at the tail of an LRU, not waking up the flusher
-could lead to thrashing easily.  So wake it up when a mem cgroups is about
-to OOM due to dirty caches.
+This flag indicates that the slot was selected as a candidate slot for
+post-processing (pp) and was assigned to a pp bucket.  It does not
+necessarily mean that the slot is currently under post-processing, but may
+mean so.  The slot can loose its PP_SLOT flag, while still being in the
+pp-bucket, if it's accessed or slot_free-ed.
 
-Link: https://lkml.kernel.org/r/20240829102543.189453-1-jingxiangzeng.cas@gmail.com
-Link: https://lkml.kernel.org/r/20240913084506.3606292-1-jingxiangzeng.cas@gmail.com
-Fixes: 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/20240917021020.883356-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240917021020.883356-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/block/zram/zram_drv.c |    2 ++
+ drivers/block/zram/zram_drv.h |    1 +
+ 2 files changed, 3 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom
-+++ a/mm/vmscan.c
-@@ -4285,6 +4285,7 @@ static bool sort_folio(struct lruvec *lr
- 		       int tier_idx)
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-zram_pp_slot-flag
++++ a/drivers/block/zram/zram_drv.c
+@@ -178,6 +178,7 @@ static inline u32 zram_get_priority(stru
+ static void zram_accessed(struct zram *zram, u32 index)
  {
- 	bool success;
-+	bool dirty, writeback;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -4333,6 +4334,9 @@ static bool sort_folio(struct lruvec *lr
- 	/* waiting for writeback */
- 	if (folio_test_locked(folio) || folio_test_writeback(folio) ||
- 	    (type == LRU_GEN_FILE && folio_test_dirty(folio))) {
-+		folio_check_dirty_writeback(folio, &dirty, &writeback);
-+		if (dirty && !writeback)
-+			sc->nr.unqueued_dirty += delta;
- 		gen = folio_inc_gen(lruvec, folio, true);
- 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
-@@ -4449,6 +4453,7 @@ static int scan_folios(struct lruvec *lr
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 	zram_clear_flag(zram, index, ZRAM_IDLE);
++	zram_clear_flag(zram, index, ZRAM_PP_SLOT);
+ #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
+ 	zram->table[index].ac_time = ktime_get_boottime();
+ #endif
+@@ -1354,6 +1355,7 @@ static void zram_free_page(struct zram *
+ 		zram_clear_flag(zram, index, ZRAM_INCOMPRESSIBLE);
  
-+	sc->nr.taken += isolated;
- 	/*
- 	 * There might not be eligible folios due to reclaim_idx. Check the
- 	 * remaining to prevent livelock if it's not making progress.
-@@ -4921,6 +4926,14 @@ static void lru_gen_shrink_lruvec(struct
- 	if (try_to_shrink_lruvec(lruvec, sc))
- 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_YOUNG);
+ 	zram_set_priority(zram, index, 0);
++	zram_clear_flag(zram, index, ZRAM_PP_SLOT);
  
-+	/*
-+	 * If too many pages failed to evict due to page being dirty,
-+	 * memory pressure have pushed dirty pages to oldest gen,
-+	 * wake up flusher.
-+	 */
-+	if (sc->nr.unqueued_dirty > sc->nr.taken)
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+
- 	clear_mm_walk();
- 
- 	blk_finish_plug(&plug);
+ 	if (zram_test_flag(zram, index, ZRAM_WB)) {
+ 		zram_clear_flag(zram, index, ZRAM_WB);
+--- a/drivers/block/zram/zram_drv.h~zram-introduce-zram_pp_slot-flag
++++ a/drivers/block/zram/zram_drv.h
+@@ -48,6 +48,7 @@ enum zram_pageflags {
+ 	ZRAM_SAME = ZRAM_FLAG_SHIFT,	/* Page consists the same element */
+ 	ZRAM_WB,	/* page is stored on backing_device */
+ 	ZRAM_UNDER_WB,	/* page is under writeback */
++	ZRAM_PP_SLOT,	/* Selected for post-processing */
+ 	ZRAM_HUGE,	/* Incompressible page */
+ 	ZRAM_IDLE,	/* not accessed page since last idle marking */
+ 	ZRAM_INCOMPRESSIBLE, /* none of the algorithms could compress it */
 _
 
-Patches currently in -mm which might be from linuszeng@tencent.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
-mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2.patch
+zram-introduce-zram_pp_slot-flag.patch
+zram-permit-only-one-post-processing-operation-at-a-time.patch
+zram-rework-recompress-target-selection-strategy.patch
+zram-rework-writeback-target-selection-strategy.patch
+zram-do-not-mark-idle-slots-that-cannot-be-idle.patch
+zram-reshuffle-zram_free_page-flags-operations.patch
+zram-remove-under_wb-and-simplify-writeback.patch
 
