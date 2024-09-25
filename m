@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C141C6F2F2
-	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 09:59:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA5141EB36
+	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 10:02:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727258380; cv=none; b=hpaCc+3l6uFhpQztat79qJEvnbQ6VUav1M1rJiv2wbfHxm1/ddfPeYUHMDvk0LqMG6IrQzPy4iYUXebtJWlYfYb1vR5pZiZH4cv98R5ZIds1mv3dZza3dKkXb/c7ZYPKFv+MkqVr1ZZMTag8GjtSYcFt5/U+wIwZ0JZ9xtBFkAg=
+	t=1727258563; cv=none; b=gTocZdHEo9t9jNAtOP0Mysj+p1px6p9+DviwaAgh9BJH72TbmnXjzKGZuEXEzEYo0hmpNi1q40b5UyBGmBcqwoglQ/CHTb+hHJjXJ+4m0pnFw4+P2Hq3TvAnsf4AQlwBWcdDMfK/xO98sxJQKa5hCQoln3EAYlCw2jRZdlUr75g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727258380; c=relaxed/simple;
-	bh=WcHHb0M2PXjD3YvbdXOt2F8h6UsfkdYhb7jWWwV3+MU=;
-	h=Date:To:From:Subject:Message-Id; b=FuIFhGEGUAxinhUtqylozJuJRSIj31Ik/WkeUJYPFdH6uQexCs9XX1vTuTWTO37X+0QvK3AR4wS683D8zagujfk+SRHMqMgEI6sDyZ/cie4MpD6TDV3vmHYgjqe+DbjgPWegVpZRAc+uW+vShDU02R1xaIySra3aC4Apt/wwZPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0mJzoYx0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727258563; c=relaxed/simple;
+	bh=m41ClxIqRYjsfKg0RcVL6Lh14U3/GraobjIECFfk4E8=;
+	h=Date:To:From:Subject:Message-Id; b=DrEl6cA4iLQh0DqFDE+G4wFFIXL9wGuE/CptNQsKSM0c+olegKxCRwzTJ/Og0xNnY58dLjdTB/91flosd0fA2cGxhgRvkxR0gMKHZMPfO0oltsiTvDRnP6WL8CLeIXrxFuFFyU5NOC73/YZCDddOX9MeyTaZZFZdap8FOksU4mc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WE953Fva; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0mJzoYx0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 387C9C4CEC3;
-	Wed, 25 Sep 2024 09:59:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WE953Fva"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25C5CC4CEC3;
+	Wed, 25 Sep 2024 10:02:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727258380;
-	bh=WcHHb0M2PXjD3YvbdXOt2F8h6UsfkdYhb7jWWwV3+MU=;
+	s=korg; t=1727258563;
+	bh=m41ClxIqRYjsfKg0RcVL6Lh14U3/GraobjIECFfk4E8=;
 	h=Date:To:From:Subject:From;
-	b=0mJzoYx0dy2q0h2H/kw2goDq2D2uOgobI//kxRV/352uozeRlR6pQLiFdFEZNcSAZ
-	 iQwpno9b3Q0ccbCmwsrSuFj/3svocUEQUgbEVz6BrXz2fIju3SHPALt2T/4tp6QXF5
-	 tK8sGbQnJCdi6sfAS5B7/zlrqRdCE+6ZKDc0SCdc=
-Date: Wed, 25 Sep 2024 02:59:39 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,tglx@linutronix.de,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,mcgrof@kernel.org,lizhe.67@bytedance.com,linux@weissschuh.net,kjlx@templeofstupid.com,juri.lelli@redhat.com,john.ogness@linutronix.de,dietmar.eggemann@arm.com,dianders@chromium.org,bsegall@google.com,bristot@redhat.com,tiozhang@didiglobal.com,akpm@linux-foundation.org
+	b=WE953FvaYKIFiwc6rOMI62z8cz2mq3mRz5wDioIsIk+lRm/NYcKdu0Rr6NY08P0Nz
+	 XFVDqKnszpzk54LwI4qnIw4WxnnNfOvO2FiW3KPjltWeIydSmQoxEeJ6CTqFnNJER/
+	 m4q4sZVItLXf2n6hqe9E20IJtko2oOA407+6Acys=
+Date: Wed, 25 Sep 2024 03:02:42 -0700
+To: mm-commits@vger.kernel.org,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch added to mm-nonmm-unstable branch
-Message-Id: <20240925095940.387C9C4CEC3@smtp.kernel.org>
+Subject: + maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch added to mm-unstable branch
+Message-Id: <20240925100243.25C5CC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
+     Subject: maple_tree: i is always less than or equal to mas_end
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,162 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tio Zhang <tiozhang@didiglobal.com>
-Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
-Date: Fri, 6 Sep 2024 17:47:00 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: maple_tree: i is always less than or equal to mas_end
+Date: Wed, 11 Sep 2024 14:27:58 +0000
 
-Otherwise when watchdog_enabled becomes 0,
-watchdog_softlockup(,hardlockup)_user_enabled will changes to 0 after proc
-show.
+Patch series "refine mas_mab_cp()".
 
-Steps to reproduce:
+By analysis of the code, one condition check can be removed and one case
+would hit a redundant assignment.
 
-  step 1:
-  # cat /proc/sys/kernel/*watchdog
-  1
-  1
-  1
 
-  | name                             | value
-  |----------------------------------|--------------------------
-  | watchdog_enabled                 | 1
-  |----------------------------------|--------------------------
-  | watchdog_hardlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_softlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_user_enabled            | 1
-  |----------------------------------|--------------------------
+This patch (of 2):
 
-  step 2:
-  # echo 0 > /proc/sys/kernel/watchdog
+mas_mab_cp() copy range [mas_start, mas_end] inclusively from a
+maple_node to maple_big_node. This implies mas_start <= mas_end.
 
-  | name                             | value
-  |----------------------------------|--------------------------
-  | watchdog_enabled                 | 0
-  |----------------------------------|--------------------------
-  | watchdog_hardlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_softlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_user_enabled            | 0
-  |----------------------------------|--------------------------
+Based on the relationship of mas_start and mas_end, we can have the
+following four cases:
 
-  step 3:
-  # cat /proc/sys/kernel/*watchdog
-  0
-  0
-  0
+                 | mas_start == mas_end |  mas_start < mas_end
+  ---------------+----------------------+----------------------
+  mas_start == 0 |         1            |          2
+  ---------------+----------------------+----------------------
+  mas_start != 0 |         3            |          4
 
-  | name                             | value
-  |----------------------------------|--------------------------
-  | watchdog_enabled                 | 0
-  |----------------------------------|--------------------------
-  | watchdog_hardlockup_user_enabled | 0
-  |----------------------------------|--------------------------
-  | watchdog_softlockup_user_enabled | 0
-  |----------------------------------|--------------------------
-  | watchdog_user_enabled            | 0
-  |----------------------------------|--------------------------
+We can see in all these four cases, i is always less than or equal to
+mas_end after finish the loop:
 
-  step 4:
-  # echo 1 > /proc/sys/kernel/watchdog
+  Case 1: After assign pivot 0, i is set to 1, which is bigger than
+          mas_end 0. So it jumps to complete and skip the check.
+  Case 2: After assign pivot 0, i is set to 1.
+          ∵ (mas_start < mas_end) && (mas_start == 0)
+             ==>  (1 <= mas_end)
+          ∵ (i == 1) && (1 <= mas_end)
+             ==>  (i <= mas_end)
+          ∴ Before loop, we have (i <= mas_end). And we still hold this
+             if it skips the loop. For example, (i == mas_end).
 
-  | name                             | value
-  |----------------------------------|--------------------------
-  | watchdog_enabled                 | 0
-  |----------------------------------|--------------------------
-  | watchdog_hardlockup_user_enabled | 0
-  |----------------------------------|--------------------------
-  | watchdog_softlockup_user_enabled | 0
-  |----------------------------------|--------------------------
-  | watchdog_user_enabled            | 0
-  |----------------------------------|--------------------------
+          Now let's see what happens in the loop:
+          ∵ piv_end = min(mas_end, mt_pivots[mt])
+             ==>  (piv_end <= mas_end)
+	  ∵ loop condition is (i < piv_end)
+	     ==>  (i <= piv_end) on finish the loop both normally or break
+          ∵ (i <= piv_end) && (piv_end <= mas_end)
+             ==>  (i <= mas_end)
+          ∴ After loop, we still get (i <= mas_end) in this case
+  Case 3: This case would skip both if clause and loop. So when it comes
+          to the check, i is still mas_start which equals to mas_end.
+  Case 4: This case would skip the if clause.
+          ∵ (mas_start < mas_end) && (i == mas_start)
+             ==>  (i < mas_end)
+          ∴ Before loop, we have (i < mas_end).
+          The loop process is similar with Case 2, so we get the same
+	  result.
 
-  step 5:
-  # cat /proc/sys/kernel/*watchdog
-  0
-  0
-  0
+Now we can conclude in all cases, we get (i <= mas_end) when doing
+check. Then it is not necessary to do the check.
 
-If we dont do "step 3", do "step 4" right after "step 2", it will be
-
-  | name                             | value
-  |----------------------------------|--------------------------
-  | watchdog_enabled                 | 1
-  |----------------------------------|--------------------------
-  | watchdog_hardlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_softlockup_user_enabled | 1
-  |----------------------------------|--------------------------
-  | watchdog_user_enabled            | 1
-  |----------------------------------|--------------------------
-
-then everything works correctly.
-
-So this patch fix "step 3"'s value into
-
-| name                             | value
-|----------------------------------|--------------------------
-| watchdog_enabled                 | 0
-|----------------------------------|--------------------------
-| watchdog_hardlockup_user_enabled | 1
-|----------------------------------|--------------------------
-| watchdog_softlockup_user_enabled | 1
-|----------------------------------|--------------------------
-| watchdog_user_enabled            | 0
-|----------------------------------|--------------------------
-
-And still print 0 as before.
-
-Link: https://lkml.kernel.org/r/20240906094700.GA30052@didi-ThinkCentre-M930t-N000
-Signed-off-by: Tio Zhang <tiozhang@didiglobal.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Krister Johansen <kjlx@templeofstupid.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Link: https://lkml.kernel.org/r/20240911142759.20989-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20240911142759.20989-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/watchdog.c~kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show
-+++ a/kernel/watchdog.c
-@@ -990,6 +990,7 @@ static int proc_watchdog_common(int whic
+--- a/lib/maple_tree.c~maple_tree-i-is-always-less-than-or-equal-to-mas_end
++++ a/lib/maple_tree.c
+@@ -1949,8 +1949,7 @@ static inline void mas_mab_cp(struct ma_
+ 			goto complete;
+ 	}
  
- 	mutex_lock(&watchdog_mutex);
+-	if (likely(i <= mas_end))
+-		b_node->pivot[j] = mas_safe_pivot(mas, pivots, i, mt);
++	b_node->pivot[j] = mas_safe_pivot(mas, pivots, i, mt);
  
-+	old = *param;
- 	if (!write) {
- 		/*
- 		 * On read synchronize the userspace interface. This is a
-@@ -997,8 +998,8 @@ static int proc_watchdog_common(int whic
- 		 */
- 		*param = (watchdog_enabled & which) != 0;
- 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+		*param = old;
- 	} else {
--		old = READ_ONCE(*param);
- 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
- 		if (!err && old != READ_ONCE(*param))
- 			proc_watchdog_update();
+ complete:
+ 	b_node->b_end = ++j;
 _
 
-Patches currently in -mm which might be from tiozhang@didiglobal.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
+maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch
+maple_tree-goto-complete-directly-on-a-pivot-of-0.patch
 
