@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE36215C131
-	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 09:44:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C141C6F2F2
+	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 09:59:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727257467; cv=none; b=VFdpg+01H46EfFs+1OH/mG4TNqUkVIIikyVvwN+IvFPFRo/zDvMR3jUHubmvQkZ3uGznnQf7P4IBhXHj8VFLiFRZqheTgbUNny4HJVnu9yrgoCuFDSMDyyV9ONysFK2Cj1a3O1Jcza3lNkE6GbtaTHBIAbnkpefgZI1yJ6hIbJI=
+	t=1727258380; cv=none; b=hpaCc+3l6uFhpQztat79qJEvnbQ6VUav1M1rJiv2wbfHxm1/ddfPeYUHMDvk0LqMG6IrQzPy4iYUXebtJWlYfYb1vR5pZiZH4cv98R5ZIds1mv3dZza3dKkXb/c7ZYPKFv+MkqVr1ZZMTag8GjtSYcFt5/U+wIwZ0JZ9xtBFkAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727257467; c=relaxed/simple;
-	bh=TcB7jlem8k9JQ/Pdqsk5OL4TfEDfy5qeR7Xintf/flo=;
-	h=Date:To:From:Subject:Message-Id; b=qWafbtDrmLRcpnxN1124L8sAdFnI3jWlmyFot8+TVVn81XccgkaoWJL0q1s5RxNAenBoXNGe01EwCAY/wluAgxx1un221Ze/wW2qyG4tZtV0SAtfDs9BcSBMvMCO2/yiGr3f2rtQZuW6y14uN5ygYIAdDDgYlI9bD2x25VN0X3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T2LrmEV2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727258380; c=relaxed/simple;
+	bh=WcHHb0M2PXjD3YvbdXOt2F8h6UsfkdYhb7jWWwV3+MU=;
+	h=Date:To:From:Subject:Message-Id; b=FuIFhGEGUAxinhUtqylozJuJRSIj31Ik/WkeUJYPFdH6uQexCs9XX1vTuTWTO37X+0QvK3AR4wS683D8zagujfk+SRHMqMgEI6sDyZ/cie4MpD6TDV3vmHYgjqe+DbjgPWegVpZRAc+uW+vShDU02R1xaIySra3aC4Apt/wwZPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0mJzoYx0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T2LrmEV2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34EBDC4CEC3;
-	Wed, 25 Sep 2024 09:44:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0mJzoYx0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 387C9C4CEC3;
+	Wed, 25 Sep 2024 09:59:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727257467;
-	bh=TcB7jlem8k9JQ/Pdqsk5OL4TfEDfy5qeR7Xintf/flo=;
+	s=korg; t=1727258380;
+	bh=WcHHb0M2PXjD3YvbdXOt2F8h6UsfkdYhb7jWWwV3+MU=;
 	h=Date:To:From:Subject:From;
-	b=T2LrmEV2FHBhBRwiEYQnH+Buwt6Cr0aMeau9bewFUQvuIjEG28O8x35YJgitZw0nD
-	 IL20PnjmrAazl+dWPSnihs1YBmBzF2hdFtZNK5vcH8ulA35D9DzuhjGoa2UuozpZne
-	 jclFYKI6zrEcyAPbxOW2tZDs3cNA7etnyzoVwP0k=
-Date: Wed, 25 Sep 2024 02:44:26 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rmoar@google.com,davidgow@google.com,brunofrancadevsec@gmail.com,akpm@linux-foundation.org
+	b=0mJzoYx0dy2q0h2H/kw2goDq2D2uOgobI//kxRV/352uozeRlR6pQLiFdFEZNcSAZ
+	 iQwpno9b3Q0ccbCmwsrSuFj/3svocUEQUgbEVz6BrXz2fIju3SHPALt2T/4tp6QXF5
+	 tK8sGbQnJCdi6sfAS5B7/zlrqRdCE+6ZKDc0SCdc=
+Date: Wed, 25 Sep 2024 02:59:39 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,tglx@linutronix.de,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,mcgrof@kernel.org,lizhe.67@bytedance.com,linux@weissschuh.net,kjlx@templeofstupid.com,juri.lelli@redhat.com,john.ogness@linutronix.de,dietmar.eggemann@arm.com,dianders@chromium.org,bsegall@google.com,bristot@redhat.com,tiozhang@didiglobal.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-add-int_log-test-suite.patch added to mm-nonmm-unstable branch
-Message-Id: <20240925094427.34EBDC4CEC3@smtp.kernel.org>
+Subject: + kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch added to mm-nonmm-unstable branch
+Message-Id: <20240925095940.387C9C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/math: Add int_log test suite
+     Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-add-int_log-test-suite.patch
+     kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_log-test-suite.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,148 +58,162 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bruno Sobreira França <brunofrancadevsec@gmail.com>
-Subject: lib/math: Add int_log test suite
-Date: Wed, 25 Sep 2024 02:56:06 +0000
+From: Tio Zhang <tiozhang@didiglobal.com>
+Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
+Date: Fri, 6 Sep 2024 17:47:00 +0800
 
-Introduce KUnit tests for the intlog2 and intlog10 functions, which
-compute logarithms in base 2 and base 10, respectively.  The tests cover a
-range of inputs to ensure the correctness of these functions across common
-and edge cases.
+Otherwise when watchdog_enabled becomes 0,
+watchdog_softlockup(,hardlockup)_user_enabled will changes to 0 after proc
+show.
 
-Link: https://lkml.kernel.org/r/20240925025606.1714-1-brunofrancadevsec@gmail.com
-Signed-off-by: Bruno Sobreira França <brunofrancadevsec@gmail.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Rae Moar <rmoar@google.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Steps to reproduce:
+
+  step 1:
+  # cat /proc/sys/kernel/*watchdog
+  1
+  1
+  1
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 1
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 1
+  |----------------------------------|--------------------------
+
+  step 2:
+  # echo 0 > /proc/sys/kernel/watchdog
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 3:
+  # cat /proc/sys/kernel/*watchdog
+  0
+  0
+  0
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 4:
+  # echo 1 > /proc/sys/kernel/watchdog
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 5:
+  # cat /proc/sys/kernel/*watchdog
+  0
+  0
+  0
+
+If we dont do "step 3", do "step 4" right after "step 2", it will be
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 1
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 1
+  |----------------------------------|--------------------------
+
+then everything works correctly.
+
+So this patch fix "step 3"'s value into
+
+| name                             | value
+|----------------------------------|--------------------------
+| watchdog_enabled                 | 0
+|----------------------------------|--------------------------
+| watchdog_hardlockup_user_enabled | 1
+|----------------------------------|--------------------------
+| watchdog_softlockup_user_enabled | 1
+|----------------------------------|--------------------------
+| watchdog_user_enabled            | 0
+|----------------------------------|--------------------------
+
+And still print 0 as before.
+
+Link: https://lkml.kernel.org/r/20240906094700.GA30052@didi-ThinkCentre-M930t-N000
+Signed-off-by: Tio Zhang <tiozhang@didiglobal.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Krister Johansen <kjlx@templeofstupid.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug              |   11 ++++
- lib/math/Makefile              |    3 -
- lib/math/tests/Makefile        |    1 
- lib/math/tests/int_log_kunit.c |   75 +++++++++++++++++++++++++++++++
- 4 files changed, 89 insertions(+), 1 deletion(-)
+ kernel/watchdog.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~lib-math-add-int_log-test-suite
-+++ a/lib/Kconfig.debug
-@@ -3089,3 +3089,14 @@ config INT_POW_TEST
- 	  function.
+--- a/kernel/watchdog.c~kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show
++++ a/kernel/watchdog.c
+@@ -990,6 +990,7 @@ static int proc_watchdog_common(int whic
  
- 	  If unsure, say N
-+
-+config INT_LOG_TEST
-+	tristate "Integer log (int_log) test" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option enables the KUnit test suite for the int_log library, which
-+	  provides two functions to compute the integer logarithm in base 2 and
-+	  base 10, called respectively as intlog2 and intlog10.
-+
-+	  If unsure, say N
---- a/lib/math/Makefile~lib-math-add-int_log-test-suite
-+++ a/lib/math/Makefile
-@@ -5,7 +5,8 @@ obj-$(CONFIG_CORDIC)		+= cordic.o
- obj-$(CONFIG_PRIME_NUMBERS)	+= prime_numbers.o
- obj-$(CONFIG_RATIONAL)		+= rational.o
+ 	mutex_lock(&watchdog_mutex);
  
--obj-$(CONFIG_INT_POW_TEST)  += tests/int_pow_kunit.o
-+obj-$(CONFIG_INT_POW_TEST)  	+= tests/int_pow_kunit.o
-+obj-$(CONFIG_INT_LOG_TEST) 	+= tests/int_log_kunit.o
- obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
- obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
- obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
-diff --git a/lib/math/tests/int_log_kunit.c a/lib/math/tests/int_log_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/math/tests/int_log_kunit.c
-@@ -0,0 +1,75 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <kunit/test.h>
-+#include <linux/int_log.h>
-+
-+struct test_case_params {
-+	u32 value;
-+	unsigned int expected_result;
-+	const char *name;
-+};
-+
-+
-+/* The expected result takes into account the log error */
-+static const struct test_case_params intlog2_params[] = {
-+	{0, 0, "Log base 2 of 0"},
-+	{1, 0, "Log base 2 of 1"},
-+	{2, 16777216, "Log base 2 of 2"},
-+	{3, 26591232, "Log base 2 of 3"},
-+	{4, 33554432, "Log base 2 of 4"},
-+	{8, 50331648, "Log base 2 of 8"},
-+	{16, 67108864, "Log base 2 of 16"},
-+	{32, 83886080, "Log base 2 of 32"},
-+	{U32_MAX, 536870911, "Log base 2 of MAX"},
-+};
-+
-+static const struct test_case_params intlog10_params[] = {
-+	{0, 0, "Log base 10 of 0"},
-+	{1, 0, "Log bsae 10 of 1"},
-+	{6, 13055203, "Log base 10 of 6"},
-+	{10, 16777225, "Log base 10 of 10"},
-+	{100, 33554450, "Log base 10 of 100"},
-+	{1000, 50331675, "Log base 10 of 1000"},
-+	{10000, 67108862, "Log base 10 of 10000"},
-+	{U32_MAX, 161614247, "Log base 10 of MAX"}
-+};
-+
-+static void get_desc(const struct test_case_params *tc, char *desc)
-+{
-+	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+
-+KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc);
-+
-+static void intlog2_test(struct kunit *test)
-+{
-+	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog2(tc->value));
-+}
-+
-+KUNIT_ARRAY_PARAM(intlog10, intlog10_params, get_desc);
-+
-+static void intlog10_test(struct kunit *test)
-+{
-+	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog10(tc->value));
-+}
-+
-+static struct kunit_case math_int_log_test_cases[] = {
-+	KUNIT_CASE_PARAM(intlog2_test, intlog2_gen_params),
-+	KUNIT_CASE_PARAM(intlog10_test, intlog10_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite int_log_test_suite = {
-+	.name = "math-int_log",
-+	.test_cases =  math_int_log_test_cases,
-+};
-+
-+kunit_test_suites(&int_log_test_suite);
-+
-+MODULE_DESCRIPTION("math.int_log KUnit test suite");
-+MODULE_LICENSE("GPL");
-+
---- a/lib/math/tests/Makefile~lib-math-add-int_log-test-suite
-+++ a/lib/math/tests/Makefile
-@@ -1,3 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
- 
- obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
-+obj-$(CONFIG_INT_LOG_TEST) += int_log_kunit.o
++	old = *param;
+ 	if (!write) {
+ 		/*
+ 		 * On read synchronize the userspace interface. This is a
+@@ -997,8 +998,8 @@ static int proc_watchdog_common(int whic
+ 		 */
+ 		*param = (watchdog_enabled & which) != 0;
+ 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++		*param = old;
+ 	} else {
+-		old = READ_ONCE(*param);
+ 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 		if (!err && old != READ_ONCE(*param))
+ 			proc_watchdog_update();
 _
 
-Patches currently in -mm which might be from brunofrancadevsec@gmail.com are
+Patches currently in -mm which might be from tiozhang@didiglobal.com are
 
-lib-math-add-int_log-test-suite.patch
+kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
 
