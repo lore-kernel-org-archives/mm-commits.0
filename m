@@ -1,80 +1,380 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98CC922D753
-	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 12:18:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78ADF3E49D
+	for <mm-commits@vger.kernel.org>; Wed, 25 Sep 2024 13:16:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727266700; cv=none; b=JIFqjx4o/siJU7FfxoneH+HadGygtNeKwbshc/KgYo6boykTZ+YK7B3hWNLTy/ZHkPMyW/1c4w60aTPcG5RKu30aHVqw63Vp1mvipjsmT2iV8moMF7ZUdkRzv2ImCZ6GvhpBJImOFEEIr4RYU00KTFeKkin9VmBSc6OqInHxs14=
+	t=1727270173; cv=none; b=iXxJOvPSz/LOMdjxuoJ8f9kVbkW8DF7LjQis/atcG+cu30egkCPLpiptZezEgfMl2aI+1SxjrR5qceDpgVZapRL8spJ6EWK18+qbrGrd+94TfUoZJcH4NsgAx20C2f58KgO0rz5Ps1GO7+Bm9IeFCW2w7PMqvzU3I9nEu+R8un4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727266700; c=relaxed/simple;
-	bh=t1zXb2trRwQJO17AbvRrDE44Lm7b8psf1spv/ibhgXE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HPCsoz/yMf5+lE4hypNjoyb36T3dL7ShvnlVNO84hzJOHO/5uQiULdRqFL4J6NLrVnSjUeEgUXT0Ub43Otoy+0j7Bg7Q6z1IMZmsB4sqQD3bPDv50Tmcj55seVSUfFYC/MAxadQWmdCIQNg/HZH8RYBlRi0gIfD6ZrRQTPkvIF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Tqu8rH70; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1727270173; c=relaxed/simple;
+	bh=+3FaZmAb061G5RAoukZk0+vtiuZRFOKYw7sqv2yQ+Ac=;
+	h=Date:To:From:Subject:Message-Id; b=NE1eIcowYuEZjltXt2ezNUUjv4ls6+a6bliK2De1yqhMTsX0T9fK8sfUV6/LjgqK+5Ach9ThQNE8tWwVTnb19XKkGwTBmbJvP9lzl1s/9lBb+q0Xobm0WaXZ/DSRh+Cigk0Bh8rd4nRwmD4JoQAXIO54vFfclduqQHxTLrk/mFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vJguyAKJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Tqu8rH70"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=O9zRMg73MApQbDqMkq3ZvbscKAG9NVNy3ItN7Fzip6k=; b=Tqu8rH70rJphS667J3t89pNoNI
-	dPHqGu1/HiqTbLq+J/brCxWLBUhEEmtt+Zd93D7xizqSqE+SwoqVl351/FvHcz/kKDdvgTh++HlEn
-	ytiF3RPZXNph4qV83AAkt9ZBovPS2eLqtZkBSIJo4aXDCF4ikoPF1W9lckMC6Z/Bg160jzeM8E2LO
-	4BhAKToaDzJRAcICsQ9+BELPT0DgYvz95jF6aKL5hXAZNr8PEHQBjZEfM77fNSPl2umPFTCDcXuLP
-	4KI8x2mtkvOmxJ8tAF3YPG05B5Z8uzQaC5Hr1rPVJjhKCqvno1XlTNOGE+y05yj9qnILt7pZ02X22
-	Vk5aHjPQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1stQyC-00000003wxO-0EJP;
-	Wed, 25 Sep 2024 12:18:12 +0000
-Date: Wed, 25 Sep 2024 13:18:11 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-	peterz@infradead.org, oleg@redhat.com, mhiramat@kernel.org,
-	sunnanyong@huawei.com
-Subject: Re: + mm-move-mm-flags-to-mm_typesh.patch added to mm-unstable branch
-Message-ID: <ZvP_g757PkAb6thl@casper.infradead.org>
-References: <20240925100517.DFC29C4CEC3@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJguyAKJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BDC8C4CEC3;
+	Wed, 25 Sep 2024 13:16:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1727270173;
+	bh=+3FaZmAb061G5RAoukZk0+vtiuZRFOKYw7sqv2yQ+Ac=;
+	h=Date:To:From:Subject:From;
+	b=vJguyAKJZhHWBmTyffs1Ssc5mXy1ecxHzevnL1V3qo006Bs2Od1MbPXKm+V2q9B7g
+	 CK27FapmjNzPTfs7/yUrMGdbNsPawyYofq3D7xUULXC2hq0OR08QmJxkvbcVEz+Zff
+	 /1zzY/AzfHxYv0j2T8tFJ+A6q1SXQxRpboAKxYTY=
+Date: Wed, 25 Sep 2024 06:16:12 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,sunnanyong@huawei.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-move-mm-flags-to-mm_typesh.patch removed from -mm tree
+Message-Id: <20240925131613.0BDC8C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240925100517.DFC29C4CEC3@smtp.kernel.org>
 
-On Wed, Sep 25, 2024 at 03:05:17AM -0700, Andrew Morton wrote:
-> +++ a/include/linux/mm_types.h
-> @@ -1499,4 +1499,85 @@ enum {
->  	/* See also internal only FOLL flags in mm/internal.h */
->  };
->  
-> +/* mm flags */
-> +
-> +/* core dumpable occupy bit0 and bit1 */
 
-... but why is that important?
+The quilt patch titled
+     Subject: mm: move mm flags to mm_types.h
+has been removed from the -mm tree.  Its filename was
+     mm-move-mm-flags-to-mm_typesh.patch
 
-> +#define MMF_DUMPABLE_BITS 2
-> +#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+This patch was dropped because an updated version will be issued
 
-> +++ a/include/linux/sched/coredump.h
-> @@ -8,12 +8,6 @@
->  #define SUID_DUMP_USER		1	/* Dump as user of process */
->  #define SUID_DUMP_ROOT		2	/* Dump as root */
->  
-> -/* mm flags */
-> -
-> -/* for SUID_DUMP_* above */
+------------------------------------------------------
+From: Nanyong Sun <sunnanyong@huawei.com>
+Subject: mm: move mm flags to mm_types.h
+Date: Wed, 11 Sep 2024 15:44:33 +0800
 
-the old comment told us why!
+The types of mm flags are now far beyond the core dump related features. 
+This patch moves mm flags from linux/sched/coredump.h to linux/mm_types.h.
+The linux/sched/coredump.h has include the mm_types.h, so the C files
+related to coredump does not need to change head file inclusion.  In
+addition, the inclusion of sched/coredump.h now can be deleted from the C
+files that irrelevant to core dump.
 
-> -#define MMF_DUMPABLE_BITS 2
-> -#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+Link: https://lkml.kernel.org/r/20240911074433.6830-1-sunnanyong@huawei.com
+Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-NAK this patch.
+ include/linux/huge_mm.h        |    1 
+ include/linux/khugepaged.h     |    2 
+ include/linux/ksm.h            |    1 
+ include/linux/mm_types.h       |   81 ++++++++++++++++++++++++++++++
+ include/linux/oom.h            |    1 
+ include/linux/sched/coredump.h |   82 -------------------------------
+ kernel/events/uprobes.c        |    1 
+ kernel/fork.c                  |    1 
+ mm/huge_memory.c               |    1 
+ mm/khugepaged.c                |    1 
+ mm/ksm.c                       |    1 
+ mm/memory.c                    |    1 
+ mm/oom_kill.c                  |    1 
+ 13 files changed, 81 insertions(+), 94 deletions(-)
+
+--- a/include/linux/huge_mm.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/huge_mm.h
+@@ -2,7 +2,6 @@
+ #ifndef _LINUX_HUGE_MM_H
+ #define _LINUX_HUGE_MM_H
+ 
+-#include <linux/sched/coredump.h>
+ #include <linux/mm_types.h>
+ 
+ #include <linux/fs.h> /* only for vma_is_dax() */
+--- a/include/linux/khugepaged.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/khugepaged.h
+@@ -2,8 +2,6 @@
+ #ifndef _LINUX_KHUGEPAGED_H
+ #define _LINUX_KHUGEPAGED_H
+ 
+-#include <linux/sched/coredump.h> /* MMF_VM_HUGEPAGE */
+-
+ extern unsigned int khugepaged_max_ptes_none __read_mostly;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern struct attribute_group khugepaged_attr_group;
+--- a/include/linux/ksm.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/ksm.h
+@@ -13,7 +13,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/rmap.h>
+ #include <linux/sched.h>
+-#include <linux/sched/coredump.h>
+ 
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+--- a/include/linux/mm_types.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -1499,4 +1499,85 @@ enum {
+ 	/* See also internal only FOLL flags in mm/internal.h */
+ };
+ 
++/* mm flags */
++
++/* core dumpable occupy bit0 and bit1 */
++#define MMF_DUMPABLE_BITS 2
++#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
++/* coredump filter bits */
++#define MMF_DUMP_ANON_PRIVATE	2
++#define MMF_DUMP_ANON_SHARED	3
++#define MMF_DUMP_MAPPED_PRIVATE	4
++#define MMF_DUMP_MAPPED_SHARED	5
++#define MMF_DUMP_ELF_HEADERS	6
++#define MMF_DUMP_HUGETLB_PRIVATE 7
++#define MMF_DUMP_HUGETLB_SHARED  8
++#define MMF_DUMP_DAX_PRIVATE	9
++#define MMF_DUMP_DAX_SHARED	10
++
++#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
++#define MMF_DUMP_FILTER_BITS	9
++#define MMF_DUMP_FILTER_MASK \
++	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
++#define MMF_DUMP_FILTER_DEFAULT \
++	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
++	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
++
++#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
++# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
++#else
++# define MMF_DUMP_MASK_DEFAULT_ELF	0
++#endif
++					/* leave room for more dump flags */
++#define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
++#define MMF_VM_HUGEPAGE		17	/* set when mm is available for khugepaged */
++
++/*
++ * This one-shot flag is dropped due to necessity of changing exe once again
++ * on NFS restore
++ */
++//#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
++
++#define MMF_HAS_UPROBES		19	/* has uprobes */
++#define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
++#define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
++#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
++#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
++#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
++#define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
++#define MMF_MULTIPROCESS	26	/* mm is shared between processes */
++/*
++ * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
++ * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
++ * a counter on its own. We're aggresive on this bit for now: even if the
++ * pinned pages were unpinned later on, we'll still keep this bit set for the
++ * lifecycle of this mm, just for simplicity.
++ */
++#define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
++
++#define MMF_HAS_MDWE		28
++#define MMF_HAS_MDWE_MASK	(1 << MMF_HAS_MDWE)
++
++
++#define MMF_HAS_MDWE_NO_INHERIT	29
++
++#define MMF_VM_MERGE_ANY	30
++#define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
++
++#define MMF_TOPDOWN		31	/* mm searches top down by default */
++#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
++
++#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
++				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
++				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
++
++static inline unsigned long mmf_init_flags(unsigned long flags)
++{
++	if (flags & (1UL << MMF_HAS_MDWE_NO_INHERIT))
++		flags &= ~((1UL << MMF_HAS_MDWE) |
++			   (1UL << MMF_HAS_MDWE_NO_INHERIT));
++	return flags & MMF_INIT_MASK;
++}
++
+ #endif /* _LINUX_MM_TYPES_H */
+--- a/include/linux/oom.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/oom.h
+@@ -7,7 +7,6 @@
+ #include <linux/types.h>
+ #include <linux/nodemask.h>
+ #include <uapi/linux/oom.h>
+-#include <linux/sched/coredump.h> /* MMF_* */
+ #include <linux/mm.h> /* VM_FAULT* */
+ 
+ struct zonelist;
+--- a/include/linux/sched/coredump.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/sched/coredump.h
+@@ -8,12 +8,6 @@
+ #define SUID_DUMP_USER		1	/* Dump as user of process */
+ #define SUID_DUMP_ROOT		2	/* Dump as root */
+ 
+-/* mm flags */
+-
+-/* for SUID_DUMP_* above */
+-#define MMF_DUMPABLE_BITS 2
+-#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+-
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ /*
+  * This returns the actual value of the suid_dumpable flag. For things
+@@ -31,80 +25,4 @@ static inline int get_dumpable(struct mm
+ 	return __get_dumpable(mm->flags);
+ }
+ 
+-/* coredump filter bits */
+-#define MMF_DUMP_ANON_PRIVATE	2
+-#define MMF_DUMP_ANON_SHARED	3
+-#define MMF_DUMP_MAPPED_PRIVATE	4
+-#define MMF_DUMP_MAPPED_SHARED	5
+-#define MMF_DUMP_ELF_HEADERS	6
+-#define MMF_DUMP_HUGETLB_PRIVATE 7
+-#define MMF_DUMP_HUGETLB_SHARED  8
+-#define MMF_DUMP_DAX_PRIVATE	9
+-#define MMF_DUMP_DAX_SHARED	10
+-
+-#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+-#define MMF_DUMP_FILTER_BITS	9
+-#define MMF_DUMP_FILTER_MASK \
+-	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+-#define MMF_DUMP_FILTER_DEFAULT \
+-	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
+-	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
+-
+-#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
+-# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
+-#else
+-# define MMF_DUMP_MASK_DEFAULT_ELF	0
+-#endif
+-					/* leave room for more dump flags */
+-#define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
+-#define MMF_VM_HUGEPAGE		17	/* set when mm is available for
+-					   khugepaged */
+-/*
+- * This one-shot flag is dropped due to necessity of changing exe once again
+- * on NFS restore
+- */
+-//#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
+-
+-#define MMF_HAS_UPROBES		19	/* has uprobes */
+-#define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+-#define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+-#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+-#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+-#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+-#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+-#define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
+-#define MMF_MULTIPROCESS	26	/* mm is shared between processes */
+-/*
+- * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
+- * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
+- * a counter on its own. We're aggresive on this bit for now: even if the
+- * pinned pages were unpinned later on, we'll still keep this bit set for the
+- * lifecycle of this mm, just for simplicity.
+- */
+-#define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
+-
+-#define MMF_HAS_MDWE		28
+-#define MMF_HAS_MDWE_MASK	(1 << MMF_HAS_MDWE)
+-
+-
+-#define MMF_HAS_MDWE_NO_INHERIT	29
+-
+-#define MMF_VM_MERGE_ANY	30
+-#define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
+-
+-#define MMF_TOPDOWN		31	/* mm searches top down by default */
+-#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
+-
+-#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+-				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
+-				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
+-
+-static inline unsigned long mmf_init_flags(unsigned long flags)
+-{
+-	if (flags & (1UL << MMF_HAS_MDWE_NO_INHERIT))
+-		flags &= ~((1UL << MMF_HAS_MDWE) |
+-			   (1UL << MMF_HAS_MDWE_NO_INHERIT));
+-	return flags & MMF_INIT_MASK;
+-}
+-
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+--- a/kernel/events/uprobes.c~mm-move-mm-flags-to-mm_typesh
++++ a/kernel/events/uprobes.c
+@@ -15,7 +15,6 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/export.h>
+ #include <linux/rmap.h>		/* anon_vma_prepare */
+ #include <linux/mmu_notifier.h>
+--- a/kernel/fork.c~mm-move-mm-flags-to-mm_typesh
++++ a/kernel/fork.c
+@@ -16,7 +16,6 @@
+ #include <linux/slab.h>
+ #include <linux/sched/autogroup.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/user.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/sched/stat.h>
+--- a/mm/huge_memory.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/huge_memory.c
+@@ -8,7 +8,6 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/highmem.h>
+ #include <linux/hugetlb.h>
+--- a/mm/khugepaged.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/khugepaged.c
+@@ -4,7 +4,6 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+--- a/mm/ksm.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/ksm.c
+@@ -20,7 +20,6 @@
+ #include <linux/mman.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/cputime.h>
+ #include <linux/rwsem.h>
+ #include <linux/pagemap.h>
+--- a/mm/memory.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/memory.c
+@@ -44,7 +44,6 @@
+ #include <linux/mm.h>
+ #include <linux/mm_inline.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/sched/task.h>
+ #include <linux/hugetlb.h>
+--- a/mm/oom_kill.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/oom_kill.c
+@@ -24,7 +24,6 @@
+ #include <linux/gfp.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/task.h>
+ #include <linux/sched/debug.h>
+ #include <linux/swap.h>
+_
+
+Patches currently in -mm which might be from sunnanyong@huawei.com are
+
+
