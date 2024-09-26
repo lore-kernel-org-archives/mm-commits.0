@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 405E1184544;
-	Thu, 26 Sep 2024 21:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8896F12F59C
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 21:04:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727384662; cv=none; b=XIRGKxEJW7Yjm8YbbIe7zYeqt0gsjsS+Fxf2gRE4eiUpkE6+A0lhyEh+AWlqVUlHzAFZdj020WNHKoNWWdahvluxK15qhyY/b+KiPmlrnxdEQfZ7RpKpfxOMIbF66KpeqgMEHEInc6rqsPbMM1IPFjxyu4m6SvzUu6s/Vaqdy5k=
+	t=1727384663; cv=none; b=oUfDf9Y35tN1dOiiEhVfVbhO/affZ0UEKEDEj8d0385L41Th5G9DdjV40JOsCOrzkfXlj/UEj+JOYOi+XRRYdQlR8dS4t9/df2/+zCDP5nJjfKL/hif6ANb2jrqHfA3Oj5x6xGv7S5XeYafDIpwl3aHjV0/luc8MyVfnQac8CDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727384662; c=relaxed/simple;
-	bh=oZ77fK3WLlMadIj9uxk5jsRHxUznuNrYBD5aryV2Z8s=;
-	h=Date:To:From:Subject:Message-Id; b=OWKDwhh9Ptdkmr7DGYzHtTpnuFqRjCndYB/dfTznZ8nGNUQNlsPR97Hu5uSz9lRur7Nad1eAIcsDjUCheRGE/Xtp2ksoPAp1SohuUk0wXREi4KXbKfj1aldluaTFYB8OkX+UDtykvqzeWYeLoLI7TgeyQWtOp4upr9jSFGW+3WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VEU+ZBYr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727384663; c=relaxed/simple;
+	bh=jmRhdUxSIxipad3MBXKH/i1bT/BjE/Qg0dAdihyLHf8=;
+	h=Date:To:From:Subject:Message-Id; b=NeySpOQbV/7QnJz5mdhtHc7tfe6ONHOVt/HukdESePmkb8ZmgoEUzNHsAkXWfaey2e/rZNi89N+zCfuBrnG5lMmfLsC8DicmPTecRhAm0lg831Ew9hl2KokTt0Zivwur2iPNZZASabWGxFHRznip25J2S/tIPyjzQyIV78GA9rM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ycrleroU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VEU+ZBYr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10343C4CEC5;
-	Thu, 26 Sep 2024 21:04:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ycrleroU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 140DDC4CEC7;
+	Thu, 26 Sep 2024 21:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727384662;
-	bh=oZ77fK3WLlMadIj9uxk5jsRHxUznuNrYBD5aryV2Z8s=;
+	s=korg; t=1727384663;
+	bh=jmRhdUxSIxipad3MBXKH/i1bT/BjE/Qg0dAdihyLHf8=;
 	h=Date:To:From:Subject:From;
-	b=VEU+ZBYrgUxx9qHhIll8P9BXqO6aEuhvnrjwawtZgQMx21sXL5rG6vNEjLKo/emkX
-	 9F8TUdk7uahB0P9CeNCSYqC3HWMwycbOxFPu8ylUFSX1T7XsVNlHBYcEIoSGtDO22U
-	 lVMGvfFgXlC81g4rxndusvtWxKncF+SqUzOxmgFE=
-Date: Thu, 26 Sep 2024 14:04:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,skhan@linuxfoundation.org,jhubbard@nvidia.com,david@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=ycrleroUdPnqMHUMoI2heRGbjG7s4mf7q0Oq2zBLU3ef8mLsKTOFfzSWwkSyfRVqM
+	 IaRZ3LvtfvkQd2rRaDW50vuNGHFmC2eUX1uwNTc9Kg8lh0CzTnwo+WoWaUAyP3f4TS
+	 +w4tBjpEtOMDJAa/PcqXpe7OTxiVw9wBDGx9LYX4=
+Date: Thu, 26 Sep 2024 14:04:22 -0700
+To: mm-commits@vger.kernel.org,richard120310@gmail.com,davidgow@google.com,linux@roeck-us.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch removed from -mm tree
-Message-Id: <20240926210422.10343C4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] revert-list-test-fix-tests-for-list_cut_position.patch removed from -mm tree
+Message-Id: <20240926210423.140DDC4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kselftests: mm: fix wrong __NR_userfaultfd value
+     Subject: Revert "list: test: fix tests for list_cut_position()"
 has been removed from the -mm tree.  Its filename was
-     kselftests-mm-fix-wrong-__nr_userfaultfd-value.patch
+     revert-list-test-fix-tests-for-list_cut_position.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: kselftests: mm: fix wrong __NR_userfaultfd value
-Date: Mon, 23 Sep 2024 10:38:36 +0500
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Revert "list: test: fix tests for list_cut_position()"
+Date: Sun, 22 Sep 2024 08:05:07 -0700
 
-grep -rnIF "#define __NR_userfaultfd"
-tools/include/uapi/asm-generic/unistd.h:681:#define __NR_userfaultfd 282
-arch/x86/include/generated/uapi/asm/unistd_32.h:374:#define
-__NR_userfaultfd 374
-arch/x86/include/generated/uapi/asm/unistd_64.h:327:#define
-__NR_userfaultfd 323
-arch/x86/include/generated/uapi/asm/unistd_x32.h:282:#define
-__NR_userfaultfd (__X32_SYSCALL_BIT + 323)
-arch/arm/include/generated/uapi/asm/unistd-eabi.h:347:#define
-__NR_userfaultfd (__NR_SYSCALL_BASE + 388)
-arch/arm/include/generated/uapi/asm/unistd-oabi.h:359:#define
-__NR_userfaultfd (__NR_SYSCALL_BASE + 388)
-include/uapi/asm-generic/unistd.h:681:#define __NR_userfaultfd 282
+This reverts commit e620799c414a035dea1208bcb51c869744931dbb.
 
-The number is dependent on the architecture. The above data shows that:
-x86	374
-x86_64	323
+The commit introduces unit test failures.
 
-The value of __NR_userfaultfd was changed to 282 when asm-generic/unistd.h
-was included.  It makes the test to fail every time as the correct number
-of this syscall on x86_64 is 323.  Fix the header to asm/unistd.h.
+     Expected cur == &entries[i], but
+         cur == 0000037fffadfd80
+         &entries[i] == 0000037fffadfd60
+     # list_test_list_cut_position: pass:0 fail:1 skip:0 total:1
+     not ok 21 list_test_list_cut_position
+     # list_test_list_cut_before: EXPECTATION FAILED at lib/list-test.c:444
+     Expected cur == &entries[i], but
+         cur == 0000037fffa9fd70
+         &entries[i] == 0000037fffa9fd60
+     # list_test_list_cut_before: EXPECTATION FAILED at lib/list-test.c:444
+     Expected cur == &entries[i], but
+         cur == 0000037fffa9fd80
+         &entries[i] == 0000037fffa9fd70
 
-Link: https://lkml.kernel.org/r/20240923053836.3270393-1-usama.anjum@collabora.com
-Fixes: a5c6bc590094 ("selftests/mm: remove local __NR_* definitions")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Revert it.
+
+Link: https://lkml.kernel.org/r/20240922150507.553814-1-linux@roeck-us.net
+Fixes: e620799c414a ("list: test: fix tests for list_cut_position()")
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: I Hsin Cheng <richard120310@gmail.com>
+Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/list-test.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~kselftests-mm-fix-wrong-__nr_userfaultfd-value
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -15,7 +15,7 @@
- #include <sys/ioctl.h>
- #include <sys/stat.h>
- #include <math.h>
--#include <asm-generic/unistd.h>
-+#include <asm/unistd.h>
- #include <pthread.h>
- #include <sys/resource.h>
- #include <assert.h>
+--- a/lib/list-test.c~revert-list-test-fix-tests-for-list_cut_position
++++ a/lib/list-test.c
+@@ -408,13 +408,10 @@ static void list_test_list_cut_position(
+ 
+ 	KUNIT_EXPECT_EQ(test, i, 2);
+ 
+-	i = 0;
+ 	list_for_each(cur, &list1) {
+ 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+ 		i++;
+ 	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 1);
+ }
+ 
+ static void list_test_list_cut_before(struct kunit *test)
+@@ -439,13 +436,10 @@ static void list_test_list_cut_before(st
+ 
+ 	KUNIT_EXPECT_EQ(test, i, 1);
+ 
+-	i = 0;
+ 	list_for_each(cur, &list1) {
+ 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+ 		i++;
+ 	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 2);
+ }
+ 
+ static void list_test_list_splice(struct kunit *test)
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
 
