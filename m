@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C281BC58
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:06:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06D1717F397
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:08:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727381167; cv=none; b=XAWX5NOUfQGPVOETq75TKi+4+NflsvJhxlIfyNJsJPVssITTmiWDVUOS4834LF0hS1XKCcvAFdKJ/A2HicoyqjpDThPHj/dAU4Wz/C/Q4MpulIFE5OKnPhucH72Zw+ReA9ckBIWxNQ1hv3LwbOQYjc4+EwUeCvwGE/Hyh2jGPmU=
+	t=1727381318; cv=none; b=aUR3kndhv2lfMkyaYdollyKgcsmR5n0rHhodYJgJXaDCoNmJGm+9nwYzddsSEP4KRtTOrAUwb9JytZyzHmbEI6CcpWa8Yoqy9fm8qfkOE0NUGVFSUpVf2WuGbcl97aQpe26t8EzDDqufyCFwEYkgM0RGN3pjI/WiwfQEBiSUyDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727381167; c=relaxed/simple;
-	bh=LnFdKt4L+ZN/rLGU+bB+J3JTPVYIkBVRXYtslH5R9fs=;
-	h=Date:To:From:Subject:Message-Id; b=TSwYEte7CGvFdItgBOkbTkKr0Hiztniq2jdb3pRZZypWKnDf3rbdO3w2xJax0Rvn93nP95NgOcWNy72VY/4UVDw9jFBxr5C97T/0yica/R1YDj7vzMS3o5et+fEq7SIwXQHqJrvhwUl/ZRK8DavektoXH0tQNEDYGqAomQKRBj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tZxzpRCT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727381318; c=relaxed/simple;
+	bh=GfEqSq7XZkRcx2xROQ6c3N+I0wXsfNgziVjY/0aC1zY=;
+	h=Date:To:From:Subject:Message-Id; b=lLWo2bP5aBf3OAk2TCtLbGqo+hEbrFj2mg/4rfANvJG3dKZF23w3yv4aZjpjyx7nkJxtzikwLykjJByLlmPoxoGfaShug8ui8NRsZ+Wkjn4WgU5rqMpUo6EBzaVqrrG8FGMOMFSXTGveqYnCGMRxdV3iBahH9xfBjqP2y5Pu5+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BigJ0Gj4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tZxzpRCT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04DD8C4CEC5;
-	Thu, 26 Sep 2024 20:06:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BigJ0Gj4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F18FC4CEC5;
+	Thu, 26 Sep 2024 20:08:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727381167;
-	bh=LnFdKt4L+ZN/rLGU+bB+J3JTPVYIkBVRXYtslH5R9fs=;
+	s=korg; t=1727381317;
+	bh=GfEqSq7XZkRcx2xROQ6c3N+I0wXsfNgziVjY/0aC1zY=;
 	h=Date:To:From:Subject:From;
-	b=tZxzpRCTqhTOa3crLjQPnmETyn2CX//DpDN0BN33ZNTB1szyiQnamh2WgmNjYHaY1
-	 nXnbTmZleBqVEs29W+xduSToyqPaHEcmAgYkrdydRvvgV6jiQl3BmgURscCnZ1lOpt
-	 CJ7xsNpQCnAqFZcar+njmFX4EkJ6LWzAvC/6ZlzI=
-Date: Thu, 26 Sep 2024 13:06:05 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,anupnewsmail@gmail.com,tanyaagarwal25699@gmail.com,akpm@linux-foundation.org
+	b=BigJ0Gj4kXUNEb6eF1XsmyW57zxFgW71CeBBVBfliZJZSCe80yGOyA2MiNGA8kJnt
+	 cJMClCA3GaK9Se9Yb8nu0qnCdVlcfaNfWqJGFaGte6NM/aRA5f/wXwkb34Wwsc90VT
+	 CZKSqTIJDSOGl4fDj8L9nl22depLNnIgNg6OMzU0=
+Date: Thu, 26 Sep 2024 13:08:36 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,serge@hallyn.com,paul@paul-moore.com,laoar.shao@gmail.com,kent.overstreet@linux.dev,jmorris@namei.org,jack@suse.cz,hch@lst.de,dchinner@redhat.com,brauner@kernel.org,mhocko@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-comments-for-better-documentation.patch added to mm-unstable branch
-Message-Id: <20240926200607.04DD8C4CEC5@smtp.kernel.org>
+Subject: + bcachefs-do-not-use-pf_memalloc_noreclaim.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240926200837.5F18FC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix comments for better documentation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-fix-comments-for-better-documentation.patch
+     Subject: bcachefs: do not use PF_MEMALLOC_NORECLAIM
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     bcachefs-do-not-use-pf_memalloc_noreclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-comments-for-better-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcachefs-do-not-use-pf_memalloc_noreclaim.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,219 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tanya Agarwal <tanyaagarwal25699@gmail.com>
-Subject: mm/mempolicy: fix comments for better documentation
-Date: Fri, 27 Sep 2024 00:05:16 +0530
+From: Michal Hocko <mhocko@suse.com>
+Subject: bcachefs: do not use PF_MEMALLOC_NORECLAIM
+Date: Thu, 26 Sep 2024 19:11:50 +0200
 
-Fix typo in mempolicy.h and Correct the number of allowed memory policy
+Patch series "remove PF_MEMALLOC_NORECLAIM" v3.
 
-Link: https://lkml.kernel.org/r/20240926183516.4034-2-tanyaagarwal25699@gmail.com
-Signed-off-by: Tanya Agarwal <tanyaagarwal25699@gmail.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Anup Sharma <anupnewsmail@gmail.com>
+
+This patch (of 2):
+
+bch2_new_inode relies on PF_MEMALLOC_NORECLAIM to try to allocate a new
+inode to achieve GFP_NOWAIT semantic while holding locks. If this
+allocation fails it will drop locks and use GFP_NOFS allocation context.
+
+We would like to drop PF_MEMALLOC_NORECLAIM because it is really
+dangerous to use if the caller doesn't control the full call chain with
+this flag set. E.g. if any of the function down the chain needed
+GFP_NOFAIL request the PF_MEMALLOC_NORECLAIM would override this and
+cause unexpected failure.
+
+While this is not the case in this particular case using the scoped gfp
+semantic is not really needed bacause we can easily pus the allocation
+context down the chain without too much clutter.
+
+Link: https://lkml.kernel.org/r/20240926172940.167084-1-mhocko@kernel.org
+Link: https://lkml.kernel.org/r/20240926172940.167084-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz> # For vfs changes
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    2 +-
- mm/mempolicy.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/bcachefs/fs.c         |   14 ++++++--------
+ fs/inode.c               |   10 ++++++----
+ include/linux/fs.h       |    7 ++++++-
+ include/linux/security.h |    4 ++--
+ security/security.c      |    9 +++++----
+ 5 files changed, 25 insertions(+), 19 deletions(-)
 
---- a/include/linux/mempolicy.h~mm-mempolicy-fix-comments-for-better-documentation
-+++ a/include/linux/mempolicy.h
-@@ -47,7 +47,7 @@ struct mempolicy {
- 	atomic_t refcnt;
- 	unsigned short mode; 	/* See MPOL_* above */
- 	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
--	nodemask_t nodes;	/* interleave/bind/perfer */
-+	nodemask_t nodes;	/* interleave/bind/preferred/etc */
- 	int home_node;		/* Home node to use for MPOL_BIND and MPOL_PREFERRED_MANY */
+--- a/fs/bcachefs/fs.c~bcachefs-do-not-use-pf_memalloc_noreclaim
++++ a/fs/bcachefs/fs.c
+@@ -291,10 +291,10 @@ static struct inode *bch2_alloc_inode(st
+ 	BUG();
+ }
  
- 	union {
---- a/mm/mempolicy.c~mm-mempolicy-fix-comments-for-better-documentation
-+++ a/mm/mempolicy.c
-@@ -8,7 +8,7 @@
-  * NUMA policy allows the user to give hints in which node(s) memory should
-  * be allocated.
+-static struct bch_inode_info *__bch2_new_inode(struct bch_fs *c)
++static struct bch_inode_info *__bch2_new_inode(struct bch_fs *c, gfp_t gfp)
+ {
+ 	struct bch_inode_info *inode = alloc_inode_sb(c->vfs_sb,
+-						bch2_inode_cache, GFP_NOFS);
++						bch2_inode_cache, gfp);
+ 	if (!inode)
+ 		return NULL;
+ 
+@@ -306,7 +306,7 @@ static struct bch_inode_info *__bch2_new
+ 	mutex_init(&inode->ei_quota_lock);
+ 	memset(&inode->ei_devs_need_flush, 0, sizeof(inode->ei_devs_need_flush));
+ 
+-	if (unlikely(inode_init_always(c->vfs_sb, &inode->v))) {
++	if (unlikely(inode_init_always_gfp(c->vfs_sb, &inode->v, gfp))) {
+ 		kmem_cache_free(bch2_inode_cache, inode);
+ 		return NULL;
+ 	}
+@@ -319,12 +319,10 @@ static struct bch_inode_info *__bch2_new
+  */
+ static struct bch_inode_info *bch2_new_inode(struct btree_trans *trans)
+ {
+-	struct bch_inode_info *inode =
+-		memalloc_flags_do(PF_MEMALLOC_NORECLAIM|PF_MEMALLOC_NOWARN,
+-				  __bch2_new_inode(trans->c));
++	struct bch_inode_info *inode = __bch2_new_inode(trans->c, GFP_NOWAIT);
+ 
+ 	if (unlikely(!inode)) {
+-		int ret = drop_locks_do(trans, (inode = __bch2_new_inode(trans->c)) ? 0 : -ENOMEM);
++		int ret = drop_locks_do(trans, (inode = __bch2_new_inode(trans->c, GFP_NOFS)) ? 0 : -ENOMEM);
+ 		if (ret && inode) {
+ 			__destroy_inode(&inode->v);
+ 			kmem_cache_free(bch2_inode_cache, inode);
+@@ -398,7 +396,7 @@ __bch2_create(struct mnt_idmap *idmap,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ #endif
+-	inode = __bch2_new_inode(c);
++	inode = __bch2_new_inode(c, GFP_NOFS);
+ 	if (unlikely(!inode)) {
+ 		inode = ERR_PTR(-ENOMEM);
+ 		goto err;
+--- a/fs/inode.c~bcachefs-do-not-use-pf_memalloc_noreclaim
++++ a/fs/inode.c
+@@ -146,14 +146,16 @@ static int no_open(struct inode *inode,
+ }
+ 
+ /**
+- * inode_init_always - perform inode structure initialisation
++ * inode_init_always_gfp - perform inode structure initialisation
+  * @sb: superblock inode belongs to
+  * @inode: inode to initialise
++ * @gfp: allocation flags
   *
-- * Support four policies per VMA and per process:
-+ * Support six policies per VMA and per process:
+  * These are initializations that need to be done on every inode
+  * allocation as the fields are not initialised by slab allocation.
++ * If there are additional allocations required @gfp is used.
+  */
+-int inode_init_always(struct super_block *sb, struct inode *inode)
++int inode_init_always_gfp(struct super_block *sb, struct inode *inode, gfp_t gfp)
+ {
+ 	static const struct inode_operations empty_iops;
+ 	static const struct file_operations no_open_fops = {.open = no_open};
+@@ -230,14 +232,14 @@ int inode_init_always(struct super_block
+ #endif
+ 	inode->i_flctx = NULL;
+ 
+-	if (unlikely(security_inode_alloc(inode)))
++	if (unlikely(security_inode_alloc(inode, gfp)))
+ 		return -ENOMEM;
+ 
+ 	this_cpu_inc(nr_inodes);
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(inode_init_always);
++EXPORT_SYMBOL(inode_init_always_gfp);
+ 
+ void free_inode_nonrcu(struct inode *inode)
+ {
+--- a/include/linux/fs.h~bcachefs-do-not-use-pf_memalloc_noreclaim
++++ a/include/linux/fs.h
+@@ -3081,7 +3081,12 @@ extern loff_t default_llseek(struct file
+ 
+ extern loff_t vfs_llseek(struct file *file, loff_t offset, int whence);
+ 
+-extern int inode_init_always(struct super_block *, struct inode *);
++extern int inode_init_always_gfp(struct super_block *, struct inode *, gfp_t);
++static inline int inode_init_always(struct super_block *sb, struct inode *inode)
++{
++	return inode_init_always_gfp(sb, inode, GFP_NOFS);
++}
++
+ extern void inode_init_once(struct inode *);
+ extern void address_space_init_once(struct address_space *mapping);
+ extern struct inode * igrab(struct inode *);
+--- a/include/linux/security.h~bcachefs-do-not-use-pf_memalloc_noreclaim
++++ a/include/linux/security.h
+@@ -348,7 +348,7 @@ int security_dentry_create_files_as(stru
+ 					struct cred *new);
+ int security_path_notify(const struct path *path, u64 mask,
+ 					unsigned int obj_type);
+-int security_inode_alloc(struct inode *inode);
++int security_inode_alloc(struct inode *inode, gfp_t gfp);
+ void security_inode_free(struct inode *inode);
+ int security_inode_init_security(struct inode *inode, struct inode *dir,
+ 				 const struct qstr *qstr,
+@@ -789,7 +789,7 @@ static inline int security_path_notify(c
+ 	return 0;
+ }
+ 
+-static inline int security_inode_alloc(struct inode *inode)
++static inline int security_inode_alloc(struct inode *inode, gfp_t gfp)
+ {
+ 	return 0;
+ }
+--- a/security/security.c~bcachefs-do-not-use-pf_memalloc_noreclaim
++++ a/security/security.c
+@@ -745,14 +745,14 @@ static int lsm_file_alloc(struct file *f
   *
-  * The VMA policy has priority over the process policy for a page fault.
+  * Returns 0, or -ENOMEM if memory can't be allocated.
+  */
+-static int lsm_inode_alloc(struct inode *inode)
++static int lsm_inode_alloc(struct inode *inode, gfp_t gfp)
+ {
+ 	if (!lsm_inode_cache) {
+ 		inode->i_security = NULL;
+ 		return 0;
+ 	}
+ 
+-	inode->i_security = kmem_cache_zalloc(lsm_inode_cache, GFP_NOFS);
++	inode->i_security = kmem_cache_zalloc(lsm_inode_cache, gfp);
+ 	if (inode->i_security == NULL)
+ 		return -ENOMEM;
+ 	return 0;
+@@ -1678,6 +1678,7 @@ int security_path_notify(const struct pa
+ /**
+  * security_inode_alloc() - Allocate an inode LSM blob
+  * @inode: the inode
++ * #gfp: allocation flags
   *
+  * Allocate and attach a security structure to @inode->i_security.  The
+  * i_security field is initialized to NULL when the inode structure is
+@@ -1685,9 +1686,9 @@ int security_path_notify(const struct pa
+  *
+  * Return: Return 0 if operation was successful.
+  */
+-int security_inode_alloc(struct inode *inode)
++int security_inode_alloc(struct inode *inode, gfp_t gfp)
+ {
+-	int rc = lsm_inode_alloc(inode);
++	int rc = lsm_inode_alloc(inode, gfp);
+ 
+ 	if (unlikely(rc))
+ 		return rc;
 _
 
-Patches currently in -mm which might be from tanyaagarwal25699@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-mempolicy-fix-comments-for-better-documentation.patch
+bcachefs-do-not-use-pf_memalloc_noreclaim.patch
+revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch
 
