@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB72E13CABC
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB88613CABC
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727382761; cv=none; b=Fq8MsM2OLaU83Yv7T1BGF/fUMqEdm7eqDCylXBrN4fcy4s/jj0hoJ1vFwI23lEkNGQvRKYH9zVzbJr/HYjm/9YTygtQfoVZtztBcDbpsIFB+pXDYjtsb8jSfb2ALAEXASpl/q2sxWQWKb2MaRTT4oSD4ISHftOgpKYgtgycDC/I=
+	t=1727382763; cv=none; b=FPnEP3l9SbEfy3FuvLirUbbajPXSQ7No62lRLetRh0bYvwNzwYzXfsqgRIpbTCkgUm+C5csHu8wck0C1lo5Pja9rZqlq389HyiCK1aUKm/lZYW1v+ivEEsr/Ue0NeROULWPvu4R4JK0y1FTJPcqTH0BBpO76YtnNzrQLvLzYSUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727382761; c=relaxed/simple;
-	bh=tjmgk/KBKEFEWZuu2qiarwUYtZlgEjioY2lMjd35D6s=;
-	h=Date:To:From:Subject:Message-Id; b=fcVuwV+ulMh2YAj9X9a2B5/VkmmJhzv+7M3eugOfif3tlQ+YTShjn1EdmeZ43HYI8PV80daabusqF1G+iTrZzIlhMMlXhxbla2IV/kK6Hbj2EMLIv+Vx2DypXiLstGKPSzNMEzslGrAeQT6B4a1mf2R2bw8y1kknt7S36uqjN1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J/QpAO7n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727382763; c=relaxed/simple;
+	bh=lJOuqc9HzmNqUh7kZo3uTelbg09+ypdBNm+WgrQAvvM=;
+	h=Date:To:From:Subject:Message-Id; b=jq9Wuc20OrxpL1iXrA6mm6PfiaUu3Cq/bdGFVECc5vYkxmkRgcuwF9Pp8eNnbbEjJMpt0H+N6jt/a0R0GFu86Np04Urt6a76Jl2Qw85H+EgxFBKz5zi9IB6GqDFzipWiZnjt3MMH2XfDg5ru/M8UAmlEszyMhIMqHnPPXyEZHTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xyqBufXD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J/QpAO7n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CD12C4CEC7;
-	Thu, 26 Sep 2024 20:32:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xyqBufXD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF339C4CEC5;
+	Thu, 26 Sep 2024 20:32:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727382761;
-	bh=tjmgk/KBKEFEWZuu2qiarwUYtZlgEjioY2lMjd35D6s=;
+	s=korg; t=1727382762;
+	bh=lJOuqc9HzmNqUh7kZo3uTelbg09+ypdBNm+WgrQAvvM=;
 	h=Date:To:From:Subject:From;
-	b=J/QpAO7np82vBQbsslUazRzeh/GezIaSPRu+62AVxbHNCISF9+Jps+UrpSjBg8qDp
-	 Uu6TFd6iV1EvhxZ+oOG4cBx2kEL+vSzE1ueu5EvfXBbxwP+Kukscm1HH34UX3eTAqH
-	 uu+Fc5MRf3dQ1KQWTmJ6ehvuMmCbND0XurIRnkz0=
-Date: Thu, 26 Sep 2024 13:32:40 -0700
+	b=xyqBufXDkm4YySVqrLRmwJ6BzQ+D3AFVmqdafrW8uRmt5uKlc4cXfINYWLaZMG3S+
+	 4E3E/NpHTZcQy00IgY1Mjw7ktJoHDTW4PUUPFkmlbAkVeJQcar3fiPsbyLHA+nnect
+	 kvmKWmBQBBCvOsGegwAWOYjalckguxXwf6LvUcPY=
+Date: Thu, 26 Sep 2024 13:32:42 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-copy_pte_range-use-pte_offset_map_rw_nolock.patch added to mm-unstable branch
-Message-Id: <20240926203241.7CD12C4CEC7@smtp.kernel.org>
+Subject: + mm-mremap-move_ptes-use-pte_offset_map_rw_nolock.patch added to mm-unstable branch
+Message-Id: <20240926203242.BF339C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: copy_pte_range() use pte_offset_map_rw_nolock()
+     Subject: mm: mremap: move_ptes() use pte_offset_map_rw_nolock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-copy_pte_range-use-pte_offset_map_rw_nolock.patch
+     mm-mremap-move_ptes-use-pte_offset_map_rw_nolock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-copy_pte_range-use-pte_offset_map_rw_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-move_ptes-use-pte_offset_map_rw_nolock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: copy_pte_range() use pte_offset_map_rw_nolock()
-Date: Thu, 26 Sep 2024 14:46:21 +0800
+Subject: mm: mremap: move_ptes() use pte_offset_map_rw_nolock()
+Date: Thu, 26 Sep 2024 14:46:22 +0800
 
-In copy_pte_range(), we may modify the src_pte entry after holding the
-src_ptl, so convert it to using pte_offset_map_rw_nolock().  Since we
-already hold the exclusive mmap_lock, and the copy_pte_range() and
-retract_page_tables() are using vma->anon_vma to be exclusive, so the PTE
-page is stable, there is no need to get pmdval and do pmd_same() check.
+In move_ptes(), we may modify the new_pte after acquiring the new_ptl, so
+convert it to using pte_offset_map_rw_nolock().  Now new_pte is none, so
+hpage_collapse_scan_file() path can not find this by traversing
+file->f_mapping, so there is no concurrency with retract_page_tables(). 
+In addition, we already hold the exclusive mmap_lock, so this new_pte page
+is stable, so there is no need to get pmdval and do pmd_same() check.
 
-Link: https://lkml.kernel.org/r/9166f6fad806efbca72e318ab6f0f8af458056a9.1727332572.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/9d582a09dbcf12e562ac5fe0ba05e9248a58f5e0.1727332572.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
@@ -81,36 +82,36 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 ++++++++++-
+ mm/mremap.c |   11 ++++++++++-
  1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-copy_pte_range-use-pte_offset_map_rw_nolock
-+++ a/mm/memory.c
-@@ -1084,6 +1084,7 @@ copy_pte_range(struct vm_area_struct *ds
- 	struct mm_struct *src_mm = src_vma->vm_mm;
- 	pte_t *orig_src_pte, *orig_dst_pte;
- 	pte_t *src_pte, *dst_pte;
+--- a/mm/mremap.c~mm-mremap-move_ptes-use-pte_offset_map_rw_nolock
++++ a/mm/mremap.c
+@@ -143,6 +143,7 @@ static int move_ptes(struct vm_area_stru
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	bool force_flush = false;
+ 	unsigned long len = old_end - old_addr;
 +	pmd_t dummy_pmdval;
- 	pte_t ptent;
- 	spinlock_t *src_ptl, *dst_ptl;
- 	int progress, max_nr, ret = 0;
-@@ -1109,7 +1110,15 @@ again:
- 		ret = -ENOMEM;
+ 	int err = 0;
+ 
+ 	/*
+@@ -175,7 +176,15 @@ static int move_ptes(struct vm_area_stru
+ 		err = -EAGAIN;
  		goto out;
  	}
--	src_pte = pte_offset_map_nolock(src_mm, src_pmd, addr, &src_ptl);
-+
+-	new_pte = pte_offset_map_nolock(mm, new_pmd, new_addr, &new_ptl);
 +	/*
-+	 * We already hold the exclusive mmap_lock, the copy_pte_range() and
-+	 * retract_page_tables() are using vma->anon_vma to be exclusive, so
-+	 * the PTE page is stable, and there is no need to get pmdval and do
-+	 * pmd_same() check.
++	 * Now new_pte is none, so hpage_collapse_scan_file() path can not find
++	 * this by traversing file->f_mapping, so there is no concurrency with
++	 * retract_page_tables(). In addition, we already hold the exclusive
++	 * mmap_lock, so this new_pte page is stable, so there is no need to get
++	 * pmdval and do pmd_same() check.
 +	 */
-+	src_pte = pte_offset_map_rw_nolock(src_mm, src_pmd, addr, &dummy_pmdval,
-+					   &src_ptl);
- 	if (!src_pte) {
- 		pte_unmap_unlock(dst_pte, dst_ptl);
- 		/* ret == 0 */
++	new_pte = pte_offset_map_rw_nolock(mm, new_pmd, new_addr, &dummy_pmdval,
++					   &new_ptl);
+ 	if (!new_pte) {
+ 		pte_unmap_unlock(old_pte, old_ptl);
+ 		err = -EAGAIN;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
