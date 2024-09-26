@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1FD17F397
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:08:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0410F17D344
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:11:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727381319; cv=none; b=hypLRCBqU4DVPHmwfZJup/7tx4rwJpJlgsVqy/rHiulz19dJpwdpoHeE2cGFKzLmkAaV+g0XGxyczzSjWh946gKzR5KvGmuBRGQWovRhRbSMCcqVF5rw3bIqu3Nhu1WE5F9Oga5A4OsIuPV0FEzXMpe7f2OLT2tj/jsDgbX7j9c=
+	t=1727381491; cv=none; b=sg6199nqaODFZsb3CtiwDCj2qJcKpqYU7tuoAKij4840r7NhYoo47QyyOgzYVMcNRnSZ6UKEMDIgL89zaSc2U2sQSMg5IAONaTSQF3kB+YlgZS5+A8YX2cPh2xVkYmf9JBjrpT4qcBSPVJftHQu1tei3907ybHfI+jYnza5iKZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727381319; c=relaxed/simple;
-	bh=S78cbMWFrLECDZwIhsjX1xnfwzTBxzvbIOtuX3nSGj8=;
-	h=Date:To:From:Subject:Message-Id; b=hsAsHRiB5ed1r9qdJNIpwJPZh64iypOcTiQ+lhz7bSaVLrN5t+YDGyOgwOD7tMwzuxX1x1KL2FUoCrOsb31Y490++dgu+17GhHN0o3Rl9xq/z9iOrBjF+b61V823+1cnw5XF1lhyy6OzzdL2HFd8XK5hsAOUnMNj2+qSrsgbEV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQYoeF1X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727381491; c=relaxed/simple;
+	bh=ROgmGvRDwDvxqeJJ88P23J9VbwfrFl1SW5b6CT63OQQ=;
+	h=Date:To:From:Subject:Message-Id; b=A9JRcncFtHccX8uGpPDfGw3bnmsMHrK85xeOr2xNk5GxWXh7IhplkNRLHwzfG7UaIOxMyl4V/a7FYlIdMFoiXPMyx4XhE/ylKmRIGfF6/IrFF0nui7llEAWbGB4S1K8lIXO9DIq5wG8MMu5mIfO+kjqt5ir82Feakp+EFQRCTQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ATsh879c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQYoeF1X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C83C4CEC5;
-	Thu, 26 Sep 2024 20:08:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ATsh879c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56D5C4CEC5;
+	Thu, 26 Sep 2024 20:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727381319;
-	bh=S78cbMWFrLECDZwIhsjX1xnfwzTBxzvbIOtuX3nSGj8=;
+	s=korg; t=1727381490;
+	bh=ROgmGvRDwDvxqeJJ88P23J9VbwfrFl1SW5b6CT63OQQ=;
 	h=Date:To:From:Subject:From;
-	b=ZQYoeF1Xg977WH4ELZnT+PVg3ZmzjPD8UvJsLcBcIP5fRB3LqJTbEBLjnQQEQseeK
-	 c0qokmVQ+zmlLU0u5TDF0bxZLmNrHL1l4fKRImBDJ0uIyVDrJQmsz8GcZuiTauc4qn
-	 GsrPXElw/VUyOqWmSPIEmA01gnJ8eegf6ZJ7pNX0=
-Date: Thu, 26 Sep 2024 13:08:37 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,serge@hallyn.com,paul@paul-moore.com,laoar.shao@gmail.com,kent.overstreet@linux.dev,jmorris@namei.org,jack@suse.cz,hch@lst.de,dchinner@redhat.com,brauner@kernel.org,mhocko@suse.com,akpm@linux-foundation.org
+	b=ATsh879cAx/Nb5N3W6AaeBOrSKsPyz3UrH/2mhO46k2LnPtvJ6H7J2GZqxtgtxXRt
+	 zq9roloyMJaJliBtpd5lYLLrIyfmtV2Cl5UG51X8ciZUhx5ojIX/2KL0ZVFvjEjehg
+	 f/SHkJn94zlHC0ed03k9C0xmV1o7YD/tuPhcapZY=
+Date: Thu, 26 Sep 2024 13:11:29 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,shuah@kernel.org,mcasquer@redhat.com,leitao@debian.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240926200839.45C83C4CEC5@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch added to mm-unstable branch
+Message-Id: <20240926201130.B56D5C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm: introduce PF_MEMALLOC_NORECLAIM, PF_MEMALLOC_NOWARN"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch
+     Subject: selftests/mm: hugetlb_fault_after_madv: use default hugetlb page size
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,97 +58,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm: introduce PF_MEMALLOC_NORECLAIM, PF_MEMALLOC_NOWARN"
-Date: Thu, 26 Sep 2024 19:11:51 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: hugetlb_fault_after_madv: use default hugetlb page size
+Date: Thu, 26 Sep 2024 17:20:43 +0200
 
-This reverts commit eab0af905bfc3e9c05da2ca163d76a1513159aa4.
+Patch series "selftests/mm: hugetlb_fault_after_madv improvements".
 
-There is no existing user of those flags.  PF_MEMALLOC_NOWARN is dangerous
-because a nested allocation context can use GFP_NOFAIL which could cause
-unexpected failure.  Such a code would be hard to maintain because it
-could be deeper in the call chain.
+Mario brought to my attention that the hugetlb_fault_after_madv test is
+currently always skipped on s390x.  Let's adjust the test to be
+independent of the default hugetlb page size and while at it, also improve
+the test output.
 
-PF_MEMALLOC_NORECLAIM has been added even when it was pointed out [1] that
-such a allocation contex is inherently unsafe if the context doesn't fully
-control all allocations called from this context.
 
-While PF_MEMALLOC_NOWARN is not dangerous the way PF_MEMALLOC_NORECLAIM is
-it doesn't have any user and as Matthew has pointed out we are running out
-of those flags so better reclaim it without any real users.
+This patch (of 2):
 
-[1] https://lore.kernel.org/all/ZcM0xtlKbAOFjv5n@tiehlicka/
+We currently assume that the hugetlb page size is 2 MiB, which is why we
+mmap() a 2 MiB range.
 
-Link: https://lkml.kernel.org/r/20240926172940.167084-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Serge E. Hallyn <serge@hallyn.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Is the default hugetlb size is larger, mmap() will fail because the range
+is not suitable.  If the default hugetlb size is smaller (e.g., s390x),
+mmap() will fail because we would need more than one hugetlb page, but
+just asserted that we have exactly one.
+
+So let's simply use the default hugetlb page size instead of hard-coded 2
+MiB, so the test isn't unconditionally skipped on architectures like
+s390x.
+
+Before this patch on s390x:
+$ ./hugetlb_fault_after_madv
+	1..0 # SKIP Failed to allocated huge page
+
+With this change on s390x:
+	$ ./hugetlb_fault_after_madv
+
+While at it, make "huge_ptr" static.
+
+Link: https://lkml.kernel.org/r/20240926152044.2205129-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20240926152044.2205129-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Mario Casquero <mcasquer@redhat.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h    |    4 ++--
- include/linux/sched/mm.h |   17 ++++-------------
- 2 files changed, 6 insertions(+), 15 deletions(-)
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |   14 ++++++----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/include/linux/sched.h~revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn
-+++ a/include/linux/sched.h
-@@ -1681,8 +1681,8 @@ extern struct pid *cad_pid;
- 						 * I am cleaning dirty pages from some other bdi. */
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
--#define PF_MEMALLOC_NORECLAIM	0x00800000	/* All allocation requests will clear __GFP_DIRECT_RECLAIM */
--#define PF_MEMALLOC_NOWARN	0x01000000	/* All allocation requests will inherit __GFP_NOWARN */
-+#define PF__HOLE__00800000	0x00800000
-+#define PF__HOLE__01000000	0x01000000
- #define PF__HOLE__02000000	0x02000000
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
---- a/include/linux/sched/mm.h~revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn
-+++ a/include/linux/sched/mm.h
-@@ -251,25 +251,16 @@ static inline gfp_t current_gfp_context(
- {
- 	unsigned int pflags = READ_ONCE(current->flags);
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size
++++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
+@@ -9,10 +9,10 @@
+ #include "vm_util.h"
+ #include "../kselftest.h"
  
--	if (unlikely(pflags & (PF_MEMALLOC_NOIO |
--			       PF_MEMALLOC_NOFS |
--			       PF_MEMALLOC_NORECLAIM |
--			       PF_MEMALLOC_NOWARN |
--			       PF_MEMALLOC_PIN))) {
-+	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_PIN))) {
- 		/*
--		 * Stronger flags before weaker flags:
--		 * NORECLAIM implies NOIO, which in turn implies NOFS
-+		 * NOIO implies both NOIO and NOFS and it is a weaker context
-+		 * so always make sure it makes precedence
- 		 */
--		if (pflags & PF_MEMALLOC_NORECLAIM)
--			flags &= ~__GFP_DIRECT_RECLAIM;
--		else if (pflags & PF_MEMALLOC_NOIO)
-+		if (pflags & PF_MEMALLOC_NOIO)
- 			flags &= ~(__GFP_IO | __GFP_FS);
- 		else if (pflags & PF_MEMALLOC_NOFS)
- 			flags &= ~__GFP_FS;
+-#define MMAP_SIZE (1 << 21)
+ #define INLOOP_ITER 100
  
--		if (pflags & PF_MEMALLOC_NOWARN)
--			flags |= __GFP_NOWARN;
--
- 		if (pflags & PF_MEMALLOC_PIN)
- 			flags &= ~__GFP_MOVABLE;
+-char *huge_ptr;
++static char *huge_ptr;
++static size_t huge_page_size;
+ 
+ /* Touch the memory while it is being madvised() */
+ void *touch(void *unused)
+@@ -30,7 +30,7 @@ void *madv(void *unused)
+ 	usleep(rand() % 10);
+ 
+ 	for (int i = 0; i < INLOOP_ITER; i++)
+-		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
++		madvise(huge_ptr, huge_page_size, MADV_DONTNEED);
+ 
+ 	return NULL;
+ }
+@@ -47,6 +47,10 @@ int main(void)
+ 
+ 	srand(getpid());
+ 
++	huge_page_size = default_huge_page_size();
++	if (!huge_page_size)
++		ksft_exit_skip("Could not detect default hugetlb page size.");
++
+ 	free_hugepages = get_free_hugepages();
+ 	if (free_hugepages != 1) {
+ 		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
+@@ -54,7 +58,7 @@ int main(void)
  	}
+ 
+ 	while (max--) {
+-		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
++		huge_ptr = mmap(NULL, huge_page_size, PROT_READ | PROT_WRITE,
+ 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+ 				-1, 0);
+ 
+@@ -66,7 +70,7 @@ int main(void)
+ 
+ 		pthread_join(thread1, NULL);
+ 		pthread_join(thread2, NULL);
+-		munmap(huge_ptr, MMAP_SIZE);
++		munmap(huge_ptr, huge_page_size);
+ 	}
+ 
+ 	return KSFT_PASS;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-bcachefs-do-not-use-pf_memalloc_noreclaim.patch
-revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch
+selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch
+selftests-mm-hugetlb_fault_after_madv-improve-test-output.patch
 
