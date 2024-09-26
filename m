@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ACC028371
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 21:04:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EB8C28371;
+	Thu, 26 Sep 2024 21:04:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727384648; cv=none; b=q1gRtGMomsVZveWHteYBdragKoIf+WhLK/fcHeeE64qiE0ChDIc0GLYy73m/asT/S7+w8+A85+v12ckHbsK8UQZKlWDksWr5Pwi8S0RyNdybheyic712xKMNZKaAQct9AK/rmWu4teg8DVWmouw+c4QMdZoBfrWtERskcNer1Zo=
+	t=1727384649; cv=none; b=mFMZwMZIeXtrqpM3JsoINkmCdQJAtOv4gQFijFYDiO26J6Jssd4nBMJPrcjDLHOHblkmC3UNv8b2TEg3HvNoJLRy0x8CJ6aAWAULa4yMinLID1Sx0bpbg+yCoSwasAMFR3J9IYksIooV7MYSMc3TNO/j8XG8APaWMkoXLOpM9+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727384648; c=relaxed/simple;
-	bh=l5jHMeeLcXlqfhvyPIgR+rBCmqoHB/9jv+AW4MqaiZM=;
-	h=Date:To:From:Subject:Message-Id; b=d0qt8uwWBoTENms+/WDtXpFSiRLSBIBVOvexFwPlVOLyCJ0dkYnej0+2qW+3i24/u02L9/FPqnMuC42R2TXCOCvTGIRbonQPdmF52UgYdPRGJTxMqBCE8UddxwqnnXZSlcL5hsS43Wykkb6H/Zwh+OLq+SxjZwade0rPBUfrOkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U8Q1DyfA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727384649; c=relaxed/simple;
+	bh=VvBdKj+W2U5/Yt/pOj/u0EVQCdwIdQoRAskCLA2c6hI=;
+	h=Date:To:From:Subject:Message-Id; b=lFvnMWUhz2OuNGehbmA4S2ZFkXDwTx1KZRB81ZEfefz2C6FGF+iSYxx6lInYA+IF1tBGBjEHYcO78l0NHLix2zy7MJhWXPj46RM0TUQYQGSPp0/Pgx10nrdFzMb3FQu3CEU8Ls5jT/r/F3/RQ2P8L7fxK6BlnXob5rCNLqvfZ6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNYjgQjZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U8Q1DyfA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADFE2C4AF09;
-	Thu, 26 Sep 2024 21:04:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNYjgQjZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA507C4CEC7;
+	Thu, 26 Sep 2024 21:04:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727384647;
-	bh=l5jHMeeLcXlqfhvyPIgR+rBCmqoHB/9jv+AW4MqaiZM=;
+	s=korg; t=1727384648;
+	bh=VvBdKj+W2U5/Yt/pOj/u0EVQCdwIdQoRAskCLA2c6hI=;
 	h=Date:To:From:Subject:From;
-	b=U8Q1DyfALPticvJsyVN2pA0/PeeH9pOa8dNKJU/RdH10PdYE0I1xrHm2sr9m1QPcz
-	 EScuY4JXfkBJ8AY5wR/mVrsEzLzAll5BhzpAdh+8cEASMIkI4lWf5BZaTqM+ddygeQ
-	 atk6Wdm0dbUxnJJeSqt6fdl6Kl3tBjkeQU5BQ4FI=
-Date: Thu, 26 Sep 2024 14:04:07 -0700
-To: mm-commits@vger.kernel.org,geert@linux-m68k.org,david@redhat.com,linux@roeck-us.net,akpm@linux-foundation.org
+	b=LNYjgQjZnpfWjPjOSs/HWbBuSxDuBaAHz3voi1FFc+kbI01KgzpWyp07tzdNhA4/V
+	 4XY7NX3louEvO8pXU80ubkkcx/LRTAVi+5R/4/HY5xV7OyOHARlm3AaJg11q0lvh+Y
+	 HrGPAAsz5xgtIyOPO8cqt5nY1GSgwzk760iLcClc=
+Date: Thu, 26 Sep 2024 14:04:08 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,jgg@nvidia.com,david@redhat.com,steven.sistare@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-make-split_pte_ptlocks-depend-on-smp.patch removed from -mm tree
-Message-Id: <20240926210407.ADFE2C4AF09@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-filemap-fix-filemap_get_folios_contig-thp-panic.patch removed from -mm tree
+Message-Id: <20240926210408.CA507C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make SPLIT_PTE_PTLOCKS depend on SMP
+     Subject: mm/filemap: fix filemap_get_folios_contig THP panic
 has been removed from the -mm tree.  Its filename was
-     mm-make-split_pte_ptlocks-depend-on-smp.patch
+     mm-filemap-fix-filemap_get_folios_contig-thp-panic.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: mm: make SPLIT_PTE_PTLOCKS depend on SMP
-Date: Tue, 24 Sep 2024 08:42:05 -0700
+From: Steve Sistare <steven.sistare@oracle.com>
+Subject: mm/filemap: fix filemap_get_folios_contig THP panic
+Date: Tue, 3 Sep 2024 07:25:17 -0700
 
-SPLIT_PTE_PTLOCKS depends on "NR_CPUS >= 4".  Unfortunately, that
-evaluates to true if there is no NR_CPUS configuration option.  This
-results in CONFIG_SPLIT_PTE_PTLOCKS=y for mac_defconfig.  This in turn
-causes the m68k "q800" and "virt" machines to crash in qemu if debugging
-options are enabled.
+Patch series "memfd-pin huge page fixes".
 
-Making CONFIG_SPLIT_PTE_PTLOCKS dependent on the existence of NR_CPUS does
-not work since a dependency on the existence of a numeric Kconfig entry
-always evaluates to false.  Example:
+Fix multiple bugs that occur when using memfd_pin_folios with hugetlb
+pages and THP.  The hugetlb bugs only bite when the page is not yet
+faulted in when memfd_pin_folios is called.  The THP bug bites when the
+starting offset passed to memfd_pin_folios is not huge page aligned.  See
+the commit messages for details.
 
-config HAVE_NO_NR_CPUS
-       def_bool y
-       depends on !NR_CPUS
 
-After adding this to a Kconfig file, "make defconfig" includes:
-$ grep NR_CPUS .config
-CONFIG_NR_CPUS=64
-CONFIG_HAVE_NO_NR_CPUS=y
+This patch (of 5):
 
-Defining NR_CPUS for m68k does not help either since many architectures
-define NR_CPUS only for SMP configurations.
+memfd_pin_folios on memory backed by THP panics if the requested start
+offset is not huge page aligned:
 
-Make SPLIT_PTE_PTLOCKS depend on SMP instead to solve the problem.
+BUG: kernel NULL pointer dereference, address: 0000000000000036
+RIP: 0010:filemap_get_folios_contig+0xdf/0x290
+RSP: 0018:ffffc9002092fbe8 EFLAGS: 00010202
+RAX: 0000000000000002 RBX: 0000000000000002 RCX: 0000000000000002
 
-Link: https://lkml.kernel.org/r/20240924154205.1491376-1-linux@roeck-us.net
-Fixes: 394290cba966 ("mm: turn USE_SPLIT_PTE_PTLOCKS / USE_SPLIT_PTE_PTLOCKS into Kconfig options")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+The fault occurs here, because xas_load returns a folio with value 2:
+
+    filemap_get_folios_contig()
+        for (folio = xas_load(&xas); folio && xas.xa_index <= end;
+                        folio = xas_next(&xas)) {
+                ...
+                if (!folio_try_get(folio))   <-- BOOM
+
+"2" is an xarray sibling entry.  We get it because memfd_pin_folios does
+not round the indices passed to filemap_get_folios_contig to huge page
+boundaries for THP, so we load from the middle of a huge page range see a
+sibling.  (It does round for hugetlbfs, at the is_file_hugepages test).
+
+To fix, if the folio is a sibling, then return the next index as the
+starting point for the next call to filemap_get_folios_contig.
+
+Link: https://lkml.kernel.org/r/1725373521-451395-1-git-send-email-steven.sistare@oracle.com
+Link: https://lkml.kernel.org/r/1725373521-451395-2-git-send-email-steven.sistare@oracle.com
+Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
+Signed-off-by: Steve Sistare <steven.sistare@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/Kconfig~mm-make-split_pte_ptlocks-depend-on-smp
-+++ a/mm/Kconfig
-@@ -595,6 +595,7 @@ config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- config SPLIT_PTE_PTLOCKS
- 	def_bool y
- 	depends on MMU
-+	depends on SMP
- 	depends on NR_CPUS >= 4
- 	depends on !ARM || CPU_CACHE_VIPT
- 	depends on !PARISC || PA20
+--- a/mm/filemap.c~mm-filemap-fix-filemap_get_folios_contig-thp-panic
++++ a/mm/filemap.c
+@@ -2196,6 +2196,10 @@ unsigned filemap_get_folios_contig(struc
+ 		if (xa_is_value(folio))
+ 			goto update_start;
+ 
++		/* If we landed in the middle of a THP, continue at its end. */
++		if (xa_is_sibling(folio))
++			goto update_start;
++
+ 		if (!folio_try_get(folio))
+ 			goto retry;
+ 
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from steven.sistare@oracle.com are
 
 
