@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2268C27473
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C7D17C9E7
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727382461; cv=none; b=f4JCojSXcWYdqYrp8L582t3RHuTCi2b45crowiW+bu7Za4u6kaYfLd8fb3Hz1ib9fNU/OyDQk2WgSpV05jvuEr/n41hbIdEjTnC/l0AtTK9IufXidZSfHSE3BVyRgGj2VfP1rS6t5pHttXZC7/l6/Q2pMg9qfMMdhxErDVcRVPI=
+	t=1727382506; cv=none; b=R3Rl6pnUfarixS2jJVgJ4UhTsBJWHRcwi71GPki2SPavbWL5o88cvrhZoQi9dmZsQdNxbbXJxbDBu4UoCknqA9AIRJTPe5iExUve/gUmAgUg77rOgoyvwSNnKQkigy49RTSphGRV8iqN2H/oJr5Q5YLTHKdvhhDoRcRxM8Cn8a4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727382461; c=relaxed/simple;
-	bh=d3J/QspdTZDOx2ka4vnjQRKsXJMR5BZSRro7AP5iUeo=;
-	h=Date:To:From:Subject:Message-Id; b=mQmafodnTJduo5HY5gPnOItgZaAW04vCGysYWTiVWYojuBXdQX3JPjZddaipvaWDiPYhuW5Uas4upmSuyQBEvk3bt5XiKbSJO7BOBP94b1D8L+xYiaaVl8+jCbyNBS7Rap+H4I1SWg1e78tW9RqK0I0hNCl2Ep0MZdJLM2z9oTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=coWd8SbJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727382506; c=relaxed/simple;
+	bh=FuAbxS9OGCgx5FmV9TfE2vQQ81ExXyG63oEGx5Quru4=;
+	h=Date:To:From:Subject:Message-Id; b=CypQFBim+ZPHgzJ0v3AWT8uXZh1TH0neW8JSqxbRCBl+Jnpgax45xSaEllnEj5FoYl9f/X0P9YaXO2raPOQmjZXKYeBXwY7qp3IFBx/ZCIPaGsf8T2CERj4c9rlx3yj9rIUC1Z6dpMmcibjZH2k27hXDAChERQMiY4RTLOo0iDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cRnoTkT2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="coWd8SbJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66061C4CEC5;
-	Thu, 26 Sep 2024 20:27:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cRnoTkT2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79D8C4CEC5;
+	Thu, 26 Sep 2024 20:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727382460;
-	bh=d3J/QspdTZDOx2ka4vnjQRKsXJMR5BZSRro7AP5iUeo=;
+	s=korg; t=1727382505;
+	bh=FuAbxS9OGCgx5FmV9TfE2vQQ81ExXyG63oEGx5Quru4=;
 	h=Date:To:From:Subject:From;
-	b=coWd8SbJhmoIxxH1ZDFgzslWx/59lGyityqlWrMdkXu29GgaorstrzbuXybfDZtlj
-	 QlPD92JbV/53lZbC10Tyfv7Yqr5W5FrWReKbJSfCn4DrpzZEOK+1Ddm5D5JY6gmXzK
-	 ruTs3+DYCAzE7uJJAJxrhI/6E81o750dpuEALioY=
-Date: Thu, 26 Sep 2024 13:27:39 -0700
-To: mm-commits@vger.kernel.org,yanzhen@vivo.com,shenlichuan@vivo.com,jesse.brandeburg@intel.com,colin.i.king@gmail.com,yujiaoliang@vivo.com,akpm@linux-foundation.org
+	b=cRnoTkT2O7TsA7NGxZIKTi6KAN/ZUhpMf+c5J3dnD5GMYCxQFdfYu0GT5ZljjgSJE
+	 55LAVOgWb3ikwmMIixBJgSMgXJpM0A59aK/y2K2buUfOAhBTGYeDvjNA2qVpzcaKMR
+	 7L7cvfAPapiP9jOIZiEzAylVmPcn0gEVq+kMD114=
+Date: Thu, 26 Sep 2024 13:28:24 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,peterz@infradead.org,oleg@redhat.com,mhiramat@kernel.org,sunnanyong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-spellingtxt-add-more-spellings-corrections.patch added to mm-nonmm-unstable branch
-Message-Id: <20240926202740.66061C4CEC5@smtp.kernel.org>
+Subject: + mm-move-mm-flags-to-mm_typesh.patch added to mm-unstable branch
+Message-Id: <20240926202825.B79D8C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings corrections
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-spellingtxt-add-more-spellings-corrections.patch
+     Subject: mm: move mm flags to mm_types.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-mm-flags-to-mm_typesh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-spellingtxt-add-more-spellings-corrections.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mm-flags-to-mm_typesh.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,266 +58,343 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Jiaoliang <yujiaoliang@vivo.com>
-Subject: scripts/spelling.txt: add more spellings corrections
-Date: Thu, 26 Sep 2024 18:16:15 +0800
+From: Nanyong Sun <sunnanyong@huawei.com>
+Subject: mm: move mm flags to mm_types.h
+Date: Thu, 26 Sep 2024 15:49:22 +0800
 
-Add several common typo patterns to the scripts/spelling.txt file to
-ensure checkpatch.pl can detect and prevent these typos in the future.
+The types of mm flags are now far beyond the core dump related features. 
+This patch moves mm flags from linux/sched/coredump.h to linux/mm_types.h.
+The linux/sched/coredump.h has include the mm_types.h, so the C files
+related to coredump does not need to change head file inclusion.  In
+addition, the inclusion of sched/coredump.h now can be deleted from the C
+files that irrelevant to core dump.
 
-This update helps improve code quality by preventing recurring typos.
-
-Link: https://lkml.kernel.org/r/20240926101617.3988613-1-yujiaoliang@vivo.com
-Signed-off-by: Yu Jiaoliang <yujiaoliang@vivo.com>
-Signed-off-by: Shen Lichuan <shenlichuan@vivo.com>
-Signed-off-by: Yan Zhen <yanzhen@vivo.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Link: https://lkml.kernel.org/r/20240926074922.2721274-1-sunnanyong@huawei.com
+Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ include/linux/huge_mm.h        |    1 
+ include/linux/khugepaged.h     |    2 
+ include/linux/ksm.h            |    1 
+ include/linux/mm_types.h       |   84 +++++++++++++++++++++++++++++++
+ include/linux/oom.h            |    1 
+ include/linux/sched/coredump.h |   82 ------------------------------
+ kernel/events/uprobes.c        |    1 
+ kernel/fork.c                  |    1 
+ mm/huge_memory.c               |    1 
+ mm/khugepaged.c                |    1 
+ mm/ksm.c                       |    1 
+ mm/memory.c                    |    1 
+ mm/oom_kill.c                  |    1 
+ 13 files changed, 84 insertions(+), 94 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-corrections
-+++ a/scripts/spelling.txt
-@@ -141,6 +141,7 @@ anomoly||anomaly
- anonynous||anonymous
- anway||anyway
- aplication||application
-+apeared||appeared
- appearence||appearance
- applicaion||application
- appliction||application
-@@ -155,6 +156,7 @@ apropriate||appropriate
- aquainted||acquainted
- aquired||acquired
- aquisition||acquisition
-+aquires||acquires
- arbitary||arbitrary
- architechture||architecture
- archtecture||architecture
-@@ -185,10 +187,12 @@ assotiated||associated
- asssert||assert
- assum||assume
- assumtpion||assumption
-+asume||assume
- asuming||assuming
- asycronous||asynchronous
- asychronous||asynchronous
- asynchnous||asynchronous
-+asynchrnous||asynchronous
- asynchronus||asynchronous
- asynchromous||asynchronous
- asymetric||asymmetric
-@@ -269,6 +273,7 @@ caculate||calculate
- caculation||calculation
- cadidate||candidate
- cahces||caches
-+calcluate||calculate
- calender||calendar
- calescing||coalescing
- calibraiton||calibration
-@@ -331,6 +336,7 @@ chouse||chose
- circumvernt||circumvent
- claread||cleared
- clared||cleared
-+clearify||clarify
- closeing||closing
- clustred||clustered
- cnfiguration||configuration
-@@ -379,12 +385,14 @@ comsumed||consumed
- comunicate||communicate
- comunication||communication
- conbination||combination
-+concurent||concurrent
- conditionaly||conditionally
- conditon||condition
- condtion||condition
- condtional||conditional
- conected||connected
- conector||connector
-+configed||configured
- configration||configuration
- configred||configured
- configuartion||configuration
-@@ -394,6 +402,7 @@ configuratoin||configuration
- configuraton||configuration
- configuretion||configuration
- configutation||configuration
-+congiuration||configuration
- conider||consider
- conjuction||conjunction
- connecetd||connected
-@@ -403,6 +412,7 @@ connnection||connection
- connnections||connections
- consistancy||consistency
- consistant||consistent
-+consits||consists
- containes||contains
- containts||contains
- contaisn||contains
-@@ -452,6 +462,7 @@ decendants||descendants
- decompres||decompress
- decsribed||described
- decription||description
-+detault||default
- dectected||detected
- defailt||default
- deferal||deferral
-@@ -487,6 +498,7 @@ depreacte||deprecate
- desactivate||deactivate
- desciptor||descriptor
- desciptors||descriptors
-+descritpor||descriptor
- descripto||descriptor
- descripton||description
- descrition||description
-@@ -601,6 +613,7 @@ enchanced||enhanced
- encorporating||incorporating
- encrupted||encrypted
- encrypiton||encryption
-+encryped||encrypted
- encryptio||encryption
- endianess||endianness
- enpoint||endpoint
-@@ -630,6 +643,7 @@ etsbalishment||establishment
- evalute||evaluate
- evalutes||evaluates
- evalution||evaluation
-+evaulated||evaluated
- excecutable||executable
- excceed||exceed
- exceded||exceeded
-@@ -650,6 +664,7 @@ exlcude||exclude
- exlcuding||excluding
- exlcusive||exclusive
- exlusive||exclusive
-+exlicitly||explicitly
- exmaple||example
- expecially||especially
- experies||expires
-@@ -834,6 +849,7 @@ informations||information
- informtion||information
- infromation||information
- ingore||ignore
-+inheritence||inheritance
- inital||initial
- initalized||initialized
- initalised||initialized
-@@ -878,6 +894,7 @@ interoprability||interoperability
- interuupt||interrupt
- interupt||interrupt
- interupts||interrupts
-+interurpt||interrupt
- interrface||interface
- interrrupt||interrupt
- interrup||interrupt
-@@ -925,6 +942,7 @@ jumpimng||jumping
- juse||just
- jus||just
- kown||known
-+lable||label
- langage||language
- langauage||language
- langauge||language
-@@ -995,6 +1013,7 @@ metdata||metadata
- micropone||microphone
- microprocesspr||microprocessor
- migrateable||migratable
-+miliseconds||milliseconds
- millenium||millennium
- milliseonds||milliseconds
- minimim||minimum
-@@ -1132,6 +1151,7 @@ palne||plane
- paramameters||parameters
- paramaters||parameters
- paramater||parameter
-+paramenters||parameters
- parametes||parameters
- parametised||parametrised
- paramter||parameter
-@@ -1177,9 +1197,11 @@ poiter||pointer
- posible||possible
- positon||position
- possibilites||possibilities
-+postion||position
- potocol||protocol
- powerfull||powerful
- pramater||parameter
-+preambule||preamble
- preamle||preamble
- preample||preamble
- preapre||prepare
-@@ -1269,6 +1291,7 @@ raoming||roaming
- reasearcher||researcher
- reasearchers||researchers
- reasearch||research
-+recalcualte||recalculate
- receieve||receive
- recepient||recipient
- recevied||received
-@@ -1291,6 +1314,7 @@ refcounf||refcount
- refence||reference
- refered||referred
- referenace||reference
-+refererence||reference
- refering||referring
- refernces||references
- refernnce||reference
-@@ -1315,12 +1339,14 @@ reloade||reload
- remoote||remote
- remore||remote
- removeable||removable
-+repective||respective
- repectively||respectively
- replacable||replaceable
- replacments||replacements
- replys||replies
- reponse||response
- representaion||representation
-+repsonse||response
- reqeust||request
- reqister||register
- requed||requeued
-@@ -1444,6 +1470,7 @@ soluation||solution
- souce||source
- speach||speech
- specfic||specific
-+specfication||specification
- specfield||specified
- speciefied||specified
- specifc||specific
-@@ -1544,6 +1571,7 @@ syncronus||synchronous
- syste||system
- sytem||system
- sythesis||synthesis
-+tagert||target
- taht||that
- tained||tainted
- tarffic||traffic
-@@ -1574,6 +1602,7 @@ tiggers||triggers
- tiggered||triggered
- tipically||typically
- timeing||timing
-+timming||timing
- timout||timeout
- tmis||this
- toogle||toggle
-@@ -1597,8 +1626,10 @@ transision||transition
- transistioned||transitioned
- transmittd||transmitted
- transormed||transformed
-+trasaction||transaction
- trasfer||transfer
- trasmission||transmission
-+trasmitter||transmitter
- treshold||threshold
- triggerd||triggered
- trigerred||triggered
+--- a/include/linux/huge_mm.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/huge_mm.h
+@@ -2,7 +2,6 @@
+ #ifndef _LINUX_HUGE_MM_H
+ #define _LINUX_HUGE_MM_H
+ 
+-#include <linux/sched/coredump.h>
+ #include <linux/mm_types.h>
+ 
+ #include <linux/fs.h> /* only for vma_is_dax() */
+--- a/include/linux/khugepaged.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/khugepaged.h
+@@ -2,8 +2,6 @@
+ #ifndef _LINUX_KHUGEPAGED_H
+ #define _LINUX_KHUGEPAGED_H
+ 
+-#include <linux/sched/coredump.h> /* MMF_VM_HUGEPAGE */
+-
+ extern unsigned int khugepaged_max_ptes_none __read_mostly;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern struct attribute_group khugepaged_attr_group;
+--- a/include/linux/ksm.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/ksm.h
+@@ -13,7 +13,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/rmap.h>
+ #include <linux/sched.h>
+-#include <linux/sched/coredump.h>
+ 
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+--- a/include/linux/mm_types.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -1499,4 +1499,88 @@ enum {
+ 	/* See also internal only FOLL flags in mm/internal.h */
+ };
+ 
++/* mm flags */
++
++/*
++ * The first two bits represent core dump modes for set-user-ID,
++ * the modes are SUID_DUMP_* defined in linux/sched/coredump.h
++ */
++#define MMF_DUMPABLE_BITS 2
++#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
++/* coredump filter bits */
++#define MMF_DUMP_ANON_PRIVATE	2
++#define MMF_DUMP_ANON_SHARED	3
++#define MMF_DUMP_MAPPED_PRIVATE	4
++#define MMF_DUMP_MAPPED_SHARED	5
++#define MMF_DUMP_ELF_HEADERS	6
++#define MMF_DUMP_HUGETLB_PRIVATE 7
++#define MMF_DUMP_HUGETLB_SHARED  8
++#define MMF_DUMP_DAX_PRIVATE	9
++#define MMF_DUMP_DAX_SHARED	10
++
++#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
++#define MMF_DUMP_FILTER_BITS	9
++#define MMF_DUMP_FILTER_MASK \
++	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
++#define MMF_DUMP_FILTER_DEFAULT \
++	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
++	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
++
++#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
++# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
++#else
++# define MMF_DUMP_MASK_DEFAULT_ELF	0
++#endif
++					/* leave room for more dump flags */
++#define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
++#define MMF_VM_HUGEPAGE		17	/* set when mm is available for khugepaged */
++
++/*
++ * This one-shot flag is dropped due to necessity of changing exe once again
++ * on NFS restore
++ */
++//#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
++
++#define MMF_HAS_UPROBES		19	/* has uprobes */
++#define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
++#define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
++#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
++#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
++#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
++#define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
++#define MMF_MULTIPROCESS	26	/* mm is shared between processes */
++/*
++ * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
++ * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
++ * a counter on its own. We're aggresive on this bit for now: even if the
++ * pinned pages were unpinned later on, we'll still keep this bit set for the
++ * lifecycle of this mm, just for simplicity.
++ */
++#define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
++
++#define MMF_HAS_MDWE		28
++#define MMF_HAS_MDWE_MASK	(1 << MMF_HAS_MDWE)
++
++
++#define MMF_HAS_MDWE_NO_INHERIT	29
++
++#define MMF_VM_MERGE_ANY	30
++#define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
++
++#define MMF_TOPDOWN		31	/* mm searches top down by default */
++#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
++
++#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
++				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
++				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
++
++static inline unsigned long mmf_init_flags(unsigned long flags)
++{
++	if (flags & (1UL << MMF_HAS_MDWE_NO_INHERIT))
++		flags &= ~((1UL << MMF_HAS_MDWE) |
++			   (1UL << MMF_HAS_MDWE_NO_INHERIT));
++	return flags & MMF_INIT_MASK;
++}
++
+ #endif /* _LINUX_MM_TYPES_H */
+--- a/include/linux/oom.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/oom.h
+@@ -7,7 +7,6 @@
+ #include <linux/types.h>
+ #include <linux/nodemask.h>
+ #include <uapi/linux/oom.h>
+-#include <linux/sched/coredump.h> /* MMF_* */
+ #include <linux/mm.h> /* VM_FAULT* */
+ 
+ struct zonelist;
+--- a/include/linux/sched/coredump.h~mm-move-mm-flags-to-mm_typesh
++++ a/include/linux/sched/coredump.h
+@@ -8,12 +8,6 @@
+ #define SUID_DUMP_USER		1	/* Dump as user of process */
+ #define SUID_DUMP_ROOT		2	/* Dump as root */
+ 
+-/* mm flags */
+-
+-/* for SUID_DUMP_* above */
+-#define MMF_DUMPABLE_BITS 2
+-#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+-
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ /*
+  * This returns the actual value of the suid_dumpable flag. For things
+@@ -31,80 +25,4 @@ static inline int get_dumpable(struct mm
+ 	return __get_dumpable(mm->flags);
+ }
+ 
+-/* coredump filter bits */
+-#define MMF_DUMP_ANON_PRIVATE	2
+-#define MMF_DUMP_ANON_SHARED	3
+-#define MMF_DUMP_MAPPED_PRIVATE	4
+-#define MMF_DUMP_MAPPED_SHARED	5
+-#define MMF_DUMP_ELF_HEADERS	6
+-#define MMF_DUMP_HUGETLB_PRIVATE 7
+-#define MMF_DUMP_HUGETLB_SHARED  8
+-#define MMF_DUMP_DAX_PRIVATE	9
+-#define MMF_DUMP_DAX_SHARED	10
+-
+-#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+-#define MMF_DUMP_FILTER_BITS	9
+-#define MMF_DUMP_FILTER_MASK \
+-	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+-#define MMF_DUMP_FILTER_DEFAULT \
+-	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
+-	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
+-
+-#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
+-# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
+-#else
+-# define MMF_DUMP_MASK_DEFAULT_ELF	0
+-#endif
+-					/* leave room for more dump flags */
+-#define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
+-#define MMF_VM_HUGEPAGE		17	/* set when mm is available for
+-					   khugepaged */
+-/*
+- * This one-shot flag is dropped due to necessity of changing exe once again
+- * on NFS restore
+- */
+-//#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
+-
+-#define MMF_HAS_UPROBES		19	/* has uprobes */
+-#define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+-#define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+-#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+-#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+-#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+-#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+-#define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
+-#define MMF_MULTIPROCESS	26	/* mm is shared between processes */
+-/*
+- * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
+- * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
+- * a counter on its own. We're aggresive on this bit for now: even if the
+- * pinned pages were unpinned later on, we'll still keep this bit set for the
+- * lifecycle of this mm, just for simplicity.
+- */
+-#define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
+-
+-#define MMF_HAS_MDWE		28
+-#define MMF_HAS_MDWE_MASK	(1 << MMF_HAS_MDWE)
+-
+-
+-#define MMF_HAS_MDWE_NO_INHERIT	29
+-
+-#define MMF_VM_MERGE_ANY	30
+-#define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
+-
+-#define MMF_TOPDOWN		31	/* mm searches top down by default */
+-#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
+-
+-#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+-				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
+-				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
+-
+-static inline unsigned long mmf_init_flags(unsigned long flags)
+-{
+-	if (flags & (1UL << MMF_HAS_MDWE_NO_INHERIT))
+-		flags &= ~((1UL << MMF_HAS_MDWE) |
+-			   (1UL << MMF_HAS_MDWE_NO_INHERIT));
+-	return flags & MMF_INIT_MASK;
+-}
+-
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+--- a/kernel/events/uprobes.c~mm-move-mm-flags-to-mm_typesh
++++ a/kernel/events/uprobes.c
+@@ -15,7 +15,6 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/export.h>
+ #include <linux/rmap.h>		/* anon_vma_prepare */
+ #include <linux/mmu_notifier.h>
+--- a/kernel/fork.c~mm-move-mm-flags-to-mm_typesh
++++ a/kernel/fork.c
+@@ -16,7 +16,6 @@
+ #include <linux/slab.h>
+ #include <linux/sched/autogroup.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/user.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/sched/stat.h>
+--- a/mm/huge_memory.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/huge_memory.c
+@@ -8,7 +8,6 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/highmem.h>
+ #include <linux/hugetlb.h>
+--- a/mm/khugepaged.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/khugepaged.c
+@@ -4,7 +4,6 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+--- a/mm/ksm.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/ksm.c
+@@ -20,7 +20,6 @@
+ #include <linux/mman.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/cputime.h>
+ #include <linux/rwsem.h>
+ #include <linux/pagemap.h>
+--- a/mm/memory.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/memory.c
+@@ -44,7 +44,6 @@
+ #include <linux/mm.h>
+ #include <linux/mm_inline.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/sched/task.h>
+ #include <linux/hugetlb.h>
+--- a/mm/oom_kill.c~mm-move-mm-flags-to-mm_typesh
++++ a/mm/oom_kill.c
+@@ -24,7 +24,6 @@
+ #include <linux/gfp.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
+-#include <linux/sched/coredump.h>
+ #include <linux/sched/task.h>
+ #include <linux/sched/debug.h>
+ #include <linux/swap.h>
 _
 
-Patches currently in -mm which might be from yujiaoliang@vivo.com are
+Patches currently in -mm which might be from sunnanyong@huawei.com are
 
-scripts-spellingtxt-add-more-spellings-corrections.patch
+mm-move-mm-flags-to-mm_typesh.patch
 
