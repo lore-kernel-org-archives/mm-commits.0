@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F42D13CABC
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 397FE13CABC
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727382759; cv=none; b=L5VKLzmiMIsLO/uYnB/7eQFC4XeABOEESrUWrGgCDOELt1m3+wMA5toZpmxWqA60u6IlvCjhHveXpcKIh/x2gDFDqt/9tKXWNYXBJIUZobtDbNTG45ulfJyddnACZIlRqdABFOUiiPrL7eUtQgu/2MEQ8M+N2LFM1A0e1g66N/o=
+	t=1727382760; cv=none; b=BnlsauBEDN+OzdtnKm7dOBw4NoADEoPJAz7zlpSsCJwKg/d+XjhB7aM6dSEEaUv2fJ5PJrFryN01+Doh3jmXkZEbT7o75n12rrVHIaCzqMfN2t5KuPOSubtOSIYbWn5maQs/FyKmaMM7pTY6bY3NGlnI9LzN2DeUypWT0IqVGDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727382759; c=relaxed/simple;
-	bh=6vhVfiRKvUJHSZK5ZP6frwJ7/IwV99yey6+HKneubec=;
-	h=Date:To:From:Subject:Message-Id; b=DVnp3e1XSHmAC74ymQnoGlDs9OmpT8/756Etpv3MpGaif4UMr1dKXfa62C6O/dimEMDLnm+QFeCmS9/QHq0GsCy+3hkWIFju3KcFcjgW7fiGzCj4cd9KPAQ8csigkumacnpCIVf50o522njmzVqS4WM4AbISyPbBEiwEAVkehQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KfJ5NW8U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727382760; c=relaxed/simple;
+	bh=RYbEFE28Y3HtumUVrlMK4DnT4gPdfoHg9pF1SOAwbeM=;
+	h=Date:To:From:Subject:Message-Id; b=GcllNb1BdleRrWbGKPr7HeKbTGye0yD7igQLbAHa0UfBiMtZgYE14+PoqaP8T0Erv8pl022jCYCAH7dXqW5jYD5pBwVGm9OmND8ev0J8V4ZnBnz5j9M5oWV/PLaBdXU6RqUM9u/odg+ydll9DlL5O5AmGP9nA+daIb85fuouVIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I10Zr8GC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KfJ5NW8U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D515FC4CEC5;
-	Thu, 26 Sep 2024 20:32:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I10Zr8GC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F3BFC4CEC5;
+	Thu, 26 Sep 2024 20:32:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727382758;
-	bh=6vhVfiRKvUJHSZK5ZP6frwJ7/IwV99yey6+HKneubec=;
+	s=korg; t=1727382760;
+	bh=RYbEFE28Y3HtumUVrlMK4DnT4gPdfoHg9pF1SOAwbeM=;
 	h=Date:To:From:Subject:From;
-	b=KfJ5NW8UzApJ4iD34zJZWFJ10txthr/Tqr3k3ALsm/aIXKZlI3Qm1WxhuIInRDLyc
-	 2ljt++DRZz2ricfdbrl5LABzkd5sx/sZtAAD5uTh7WPt+UjrlIMluopVqNM9fttRx6
-	 KlJU26TOFHCvY9iwHTzWzw+CIHbB7voZqCTgru+c=
-Date: Thu, 26 Sep 2024 13:32:38 -0700
+	b=I10Zr8GC3fOLFT4ngrze23+A05wWomRNaI+p4mJHcfJ5tu/qs7qHDhoPsIiH2b1IE
+	 /Poe8gdaw9RQDoobYE8+y4k1M40ds/xELkbvl82mJRbSkms+Vn5TA3wAB+4Tx1ohMV
+	 gSFEy7avYpO4Uz8L/tGiiwwIMX6QeT30SAjvhWpc=
+Date: Thu, 26 Sep 2024 13:32:39 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle_pte_fault-use-pte_offset_map_rw_nolock.patch added to mm-unstable branch
-Message-Id: <20240926203238.D515FC4CEC5@smtp.kernel.org>
+Subject: + mm-khugepaged-collapse_pte_mapped_thp-use-pte_offset_map_rw_nolock.patch added to mm-unstable branch
+Message-Id: <20240926203240.0F3BFC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: handle_pte_fault() use pte_offset_map_rw_nolock()
+     Subject: mm: khugepaged: collapse_pte_mapped_thp() use pte_offset_map_rw_nolock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle_pte_fault-use-pte_offset_map_rw_nolock.patch
+     mm-khugepaged-collapse_pte_mapped_thp-use-pte_offset_map_rw_nolock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle_pte_fault-use-pte_offset_map_rw_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-collapse_pte_mapped_thp-use-pte_offset_map_rw_nolock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: handle_pte_fault() use pte_offset_map_rw_nolock()
-Date: Thu, 26 Sep 2024 14:46:19 +0800
+Subject: mm: khugepaged: collapse_pte_mapped_thp() use pte_offset_map_rw_nolock()
+Date: Thu, 26 Sep 2024 14:46:20 +0800
 
-In handle_pte_fault(), we may modify the vmf->pte after acquiring the
-vmf->ptl, so convert it to using pte_offset_map_rw_nolock().  But since we
-will do the pte_same() check, so there is no need to get pmdval to do
-pmd_same() check, just pass a dummy variable to it.
+In collapse_pte_mapped_thp(), we may modify the pte and pmd entry after
+acquiring the ptl, so convert it to using pte_offset_map_rw_nolock().  At
+this time, the pte_same() check is not performed after the PTL held.  So
+we should get pgt_pmd and do pmd_same() check after the ptl held.
 
-Link: https://lkml.kernel.org/r/af8d694853b44c5a6018403ae435440e275854c7.1727332572.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/055e42db68da00ac8ecab94bd2633c7cd965eb1c.1727332572.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -80,38 +80,69 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~mm-handle_pte_fault-use-pte_offset_map_rw_nolock
-+++ a/mm/memory.c
-@@ -5727,14 +5727,24 @@ static vm_fault_t handle_pte_fault(struc
- 		vmf->pte = NULL;
- 		vmf->flags &= ~FAULT_FLAG_ORIG_PTE_VALID;
- 	} else {
-+		pmd_t dummy_pmdval;
+--- a/mm/khugepaged.c~mm-khugepaged-collapse_pte_mapped_thp-use-pte_offset_map_rw_nolock
++++ a/mm/khugepaged.c
+@@ -1608,7 +1608,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
+ 		pml = pmd_lock(mm, pmd);
+ 
+-	start_pte = pte_offset_map_nolock(mm, pmd, haddr, &ptl);
++	start_pte = pte_offset_map_rw_nolock(mm, pmd, haddr, &pgt_pmd, &ptl);
+ 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
+ 		goto abort;
+ 	if (!pml)
+@@ -1616,6 +1616,9 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	else if (ptl != pml)
+ 		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+ 
++	if (unlikely(!pmd_same(pgt_pmd, pmdp_get_lockless(pmd))))
++		goto abort;
 +
- 		/*
- 		 * A regular pmd is established and it can't morph into a huge
- 		 * pmd by anon khugepaged, since that takes mmap_lock in write
- 		 * mode; but shmem or file collapse to THP could still morph
- 		 * it into a huge pmd: just retry later if so.
-+		 *
-+		 * Use the maywrite version to indicate that vmf->pte may be
-+		 * modified, but since we will use pte_same() to detect the
-+		 * change of the !pte_none() entry, there is no need to recheck
-+		 * the pmdval. Here we chooes to pass a dummy variable instead
-+		 * of NULL, which helps new user think about why this place is
-+		 * special.
- 		 */
--		vmf->pte = pte_offset_map_nolock(vmf->vma->vm_mm, vmf->pmd,
--						 vmf->address, &vmf->ptl);
-+		vmf->pte = pte_offset_map_rw_nolock(vmf->vma->vm_mm, vmf->pmd,
-+						    vmf->address, &dummy_pmdval,
-+						    &vmf->ptl);
- 		if (unlikely(!vmf->pte))
- 			return 0;
- 		vmf->orig_pte = ptep_get_lockless(vmf->pte);
+ 	/* step 2: clear page table and adjust rmap */
+ 	for (i = 0, addr = haddr, pte = start_pte;
+ 	     i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE, pte++) {
+@@ -1648,7 +1651,6 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		nr_ptes++;
+ 	}
+ 
+-	pte_unmap(start_pte);
+ 	if (!pml)
+ 		spin_unlock(ptl);
+ 
+@@ -1661,14 +1663,19 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	/* step 4: remove empty page table */
+ 	if (!pml) {
+ 		pml = pmd_lock(mm, pmd);
+-		if (ptl != pml)
++		if (ptl != pml) {
+ 			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++			if (unlikely(!pmd_same(pgt_pmd, pmdp_get_lockless(pmd)))) {
++				flush_tlb_mm(mm);
++				goto unlock;
++			}
++		}
+ 	}
+ 	pgt_pmd = pmdp_collapse_flush(vma, haddr, pmd);
+ 	pmdp_get_lockless_sync();
++	pte_unmap_unlock(start_pte, ptl);
+ 	if (ptl != pml)
+-		spin_unlock(ptl);
+-	spin_unlock(pml);
++		spin_unlock(pml);
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
+ 
+@@ -1688,6 +1695,7 @@ abort:
+ 		folio_ref_sub(folio, nr_ptes);
+ 		add_mm_counter(mm, mm_counter_file(folio), -nr_ptes);
+ 	}
++unlock:
+ 	if (start_pte)
+ 		pte_unmap_unlock(start_pte, ptl);
+ 	if (pml && pml != ptl)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
