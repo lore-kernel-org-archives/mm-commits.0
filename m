@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F6127473
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:22:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA2A27473
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:25:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727382130; cv=none; b=vCqyZy9wHYS9TNvQ8XbWgBReTV2GTFs73WXl9+OTXYsOY7yAzdLiPob7ASra65P8NrKBS+0/KN1OhhXqg4giy4WEU3R2O07Pss46+XPeapS9u4G+FGODO+tuYMx0g8a9hjfhMq+b3L/tvRec8m8cpewkmrfbijksTAGToivorS4=
+	t=1727382341; cv=none; b=NR7bWWwtcdIUTfV7PsrVpQsezbsNTmvhm8AZHOeOlglA3eNZN22+68j/KJpHWSLj1NNfW55bMYZOyHH75XMmLbKgMwo7nBs/NweU+wh9eLdGHjOIXwPyZVm/fdWlpM9taewiJEpzTD2iZHQ2dWRoCk9h3eulhsyfa4497mi2LTA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727382130; c=relaxed/simple;
-	bh=lNy42HRZ+KRLT2zSdSeA2A3thOFIkdWZHpdzPS21wUk=;
-	h=Date:To:From:Subject:Message-Id; b=OsNE7z6HPKyyEEWdt1VVacXWwfye2C4yXRBIi0Q9fwBYkUEnPAxqYVp35U9vQ0jWlU6J22gd4gNliVldQ5Run/Rr2QaZACdSbr62bALzvy920ipAw2DAUC2VRJqVYWJW2/hTULtc/pJ17R74N/sZWwLZm40RA0u5VuLk95TilBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aAJ6XpSP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727382341; c=relaxed/simple;
+	bh=xdOnx4FW+hocr5YRkR2rA0VBPX0boVfKnAG7uswrDok=;
+	h=Date:To:From:Subject:Message-Id; b=jnpy0vAhm041AOodEeieAbwpgnEtWh9zUM1DY0XWXBEf9IwrElRkVaQXm2Dd6LpUyDDpOeTtNBHyb3U5tx5mJmaKY/KiiEuGdHIChRObnUoZpyVM543dcMN8ZRw7bxoZJMH0v80y9FQwM8/Ebs6l1F9rkVioSkbQGiSWwJM3ZWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M9WAw62C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aAJ6XpSP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 319ECC4CEC5;
-	Thu, 26 Sep 2024 20:22:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M9WAw62C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47E3C4CEC7;
+	Thu, 26 Sep 2024 20:25:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727382130;
-	bh=lNy42HRZ+KRLT2zSdSeA2A3thOFIkdWZHpdzPS21wUk=;
+	s=korg; t=1727382341;
+	bh=xdOnx4FW+hocr5YRkR2rA0VBPX0boVfKnAG7uswrDok=;
 	h=Date:To:From:Subject:From;
-	b=aAJ6XpSP7lEvOCVaWSs0yPwpCceqMCCenXG8PPyy4ybhPFb9JZ8BXK7NP9nCpWvX6
-	 jxp1Hh80+7kEJeY0AmTuMmTA0HyyFOOsBI6xyFG4HXIlFAQaPc8diY5nBQLQn4KnyR
-	 JxadnLk1HOOjqhxJQFLLly18USzbWXQ6rhrbyEAs=
-Date: Thu, 26 Sep 2024 13:22:08 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,hdanton@sina.com,frederic@kernel.org,akpm@linux-foundation.org
+	b=M9WAw62CmTBgeheJQZbsH18WmiuGHd7qCuJAkjKKpGZdlhnS+ZxMzP4ZRiykeGA+t
+	 J+hJ4gbJjZ7tWVoeTFHs1Un5VuCRG1YtaqAzJ5wlbj3Qf1G3i455GI91OFQoh/+JNW
+	 rs62C/Y0cJhw42OUffJ5cEPjfD7JUgLWG/5tWNkM=
+Date: Thu, 26 Sep 2024 13:25:39 -0700
+To: mm-commits@vger.kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kthread-unpark-only-parked-kthread.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240926202210.319ECC4CEC5@smtp.kernel.org>
+Subject: + mm-cma-print-total-and-used-count-in-cma_alloc.patch added to mm-unstable branch
+Message-Id: <20240926202540.E47E3C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kthread: Unpark only parked kthread
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kthread-unpark-only-parked-kthread.patch
+     Subject: mm/cma: print total and used count in cma_alloc()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-cma-print-total-and-used-count-in-cma_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-unpark-only-parked-kthread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-print-total-and-used-count-in-cma_alloc.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,66 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Frederic Weisbecker <frederic@kernel.org>
-Subject: kthread: Unpark only parked kthread
-Date: Fri, 13 Sep 2024 23:46:34 +0200
+From: gaoxiang17 <gaoxiang17@xiaomi.com>
+Subject: mm/cma: print total and used count in cma_alloc()
+Date: Thu, 26 Sep 2024 20:00:49 +0800
 
-Calling into kthread unparking unconditionally is mostly harmless when
-the kthread is already unparked. The wake up is then simply ignored
-because the target is not in TASK_PARKED state.
+To better understand cma area during debugging.
 
-However if the kthread is per CPU, the wake up is preceded by a call
-to kthread_bind() which expects the task to be inactive and in
-TASK_PARKED state, which obviously isn't the case if it is unparked.
+before:
+[   24.407814] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+[   24.413397] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
+[   24.415886] cma: cma_alloc(cma (____ptrval____), name: reserved, count 1, align 0)
 
-As a result, calling kthread_stop() on an unparked per-cpu kthread
-triggers such a warning:
+after:
+[   24.097989] cma: cma_alloc(cma (____ptrval____), name: reserved, total count 16384, used count: 64, request count 1, align 0)
+[   24.104260] cma: cma_alloc(cma (____ptrval____), name: reserved, total count 16384, used count: 65, request count 1, align 0)
+[   24.107504] cma: cma_alloc(cma (____ptrval____), name: reserved, total count 16384, used count: 66, request count 1, align 0)
 
-	WARNING: CPU: 0 PID: 11 at kernel/kthread.c:525 __kthread_bind_mask kernel/kthread.c:525
-	 <TASK>
-	 kthread_stop+0x17a/0x630 kernel/kthread.c:707
-	 destroy_workqueue+0x136/0xc40 kernel/workqueue.c:5810
-	 wg_destruct+0x1e2/0x2e0 drivers/net/wireguard/device.c:257
-	 netdev_run_todo+0xe1a/0x1000 net/core/dev.c:10693
-	 default_device_exit_batch+0xa14/0xa90 net/core/dev.c:11769
-	 ops_exit_list net/core/net_namespace.c:178 [inline]
-	 cleanup_net+0x89d/0xcc0 net/core/net_namespace.c:640
-	 process_one_work kernel/workqueue.c:3231 [inline]
-	 process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3312
-	 worker_thread+0x86d/0xd70 kernel/workqueue.c:3393
-	 kthread+0x2f0/0x390 kernel/kthread.c:389
-	 ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
-	 ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
-	 </TASK>
-
-Fix this with skipping unecessary unparking while stopping a kthread.
-
-Reported-and-tested-by: syzbot+943d34fa3cf2191e3068@syzkaller.appspotmail.com
-Link: https://lkml.kernel.org/r/20240913214634.12557-1-frederic@kernel.org
-Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20240926120049.321514-1-gxxa03070307@gmail.com
+Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/cma.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- a/kernel/kthread.c~kthread-unpark-only-parked-kthread
-+++ a/kernel/kthread.c
-@@ -623,6 +623,8 @@ void kthread_unpark(struct task_struct *
- {
- 	struct kthread *kthread = to_kthread(k);
+--- a/mm/cma.c~mm-cma-print-total-and-used-count-in-cma_alloc
++++ a/mm/cma.c
+@@ -403,6 +403,17 @@ static void cma_debug_show_areas(struct
+ 	spin_unlock_irq(&cma->lock);
+ }
  
-+	if (!test_bit(KTHREAD_SHOULD_PARK, &kthread->flags))
-+		return;
- 	/*
- 	 * Newly created kthread was parked when the CPU was offline.
- 	 * The binding was lost and we need to set it again.
++static unsigned long cma_get_used(struct cma *cma)
++{
++	unsigned long used;
++
++	spin_lock_irq(&cma->lock);
++	used = bitmap_weight(cma->bitmap, (int)cma_bitmap_maxno(cma));
++	spin_unlock_irq(&cma->lock);
++
++	return used << cma->order_per_bit;
++}
++
+ static struct page *__cma_alloc(struct cma *cma, unsigned long count,
+ 				unsigned int align, gfp_t gfp)
+ {
+@@ -420,8 +431,8 @@ static struct page *__cma_alloc(struct c
+ 	if (!cma || !cma->count || !cma->bitmap)
+ 		return page;
+ 
+-	pr_debug("%s(cma %p, name: %s, count %lu, align %d)\n", __func__,
+-		(void *)cma, cma->name, count, align);
++	pr_debug("%s(cma %p, name: %s, total count %lu, used count: %lu, request count %lu, align %d)\n", __func__,
++		(void *)cma, cma->name, cma->count, cma_get_used(cma), count, align);
+ 
+ 	if (!count)
+ 		return page;
 _
 
-Patches currently in -mm which might be from frederic@kernel.org are
+Patches currently in -mm which might be from gaoxiang17@xiaomi.com are
 
-kthread-unpark-only-parked-kthread.patch
+mm-cma-print-total-and-used-count-in-cma_alloc.patch
 
