@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49D41184544
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 21:04:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4861B184544;
+	Thu, 26 Sep 2024 21:04:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727384660; cv=none; b=TxmXWF2frq98cLvOz69qz8TtPMtS7LdYvNezIa+10ibZJwiaHlxsQawOa9GpnXSy4xJWyW5biU5Hj85ZzP551RBEaGzqw61KgsGnfbBEi1D3PzEnlXXab0qkmJRSKfinI9yBI1ttGq/Lo65zHOQtI0yRgSuK1GVpM2WEXjPR6Zg=
+	t=1727384661; cv=none; b=PF/Y+ZtdvEvoqcHQGNKKIsc2VLwhrfN7b8EU//SeuykCa8aCxtkAPTZYI1OLOnyPdzfNZPvnBcp6iR6pEQ5XhvOs4MvFMvqUPzOooilox7TZZ5N8sabt+F91qcl52leoToVHxAdTamAB5kbWynNXllEVnqjjbEIMBkMCbde62a8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727384660; c=relaxed/simple;
-	bh=KVZCNQfw8W69pLGsNJmF6KOTbI8d0wQ0YVtq+tWcMRs=;
-	h=Date:To:From:Subject:Message-Id; b=A9hKOJe7JoF97vODLe8K/wS5ENIpQy+u8A1Rzy8RNy0aOOeSBZuTgcp5XIBzqJHx27dprcAGrCC42qhgDkkuzwss/SIlkk9FkOXzPbj1cd2YQeYdrB7XutsdBb7EvhJ4hxX/h2HYtDo+XCFOl4959ZOEchNAMyqU0jkajUKFdJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1tuuc/90; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727384661; c=relaxed/simple;
+	bh=2QiXmwATO2PQRl8qp/YEt04Lq/XRjvzs4kEBezlAi+Y=;
+	h=Date:To:From:Subject:Message-Id; b=AZxzCXYaLmoth5jn2XTMcMnKFtg2tLWYbJQdYE9GrggS2QxBMXaZofTy2XLBGVIH3LmKKpGQ71/MGxm/1YiPzfIsUnwVCFJC341ZSIRjtrd468a7RLtkobuTZQLK7xmwSg4QvnOeThtB8tBA1uTJvbMN0LVhBE2azUoBcW1ZDBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CeaFFzZ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1tuuc/90"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F43EC4CECE;
-	Thu, 26 Sep 2024 21:04:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CeaFFzZ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C4D1C4CEC5;
+	Thu, 26 Sep 2024 21:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727384660;
-	bh=KVZCNQfw8W69pLGsNJmF6KOTbI8d0wQ0YVtq+tWcMRs=;
+	s=korg; t=1727384661;
+	bh=2QiXmwATO2PQRl8qp/YEt04Lq/XRjvzs4kEBezlAi+Y=;
 	h=Date:To:From:Subject:From;
-	b=1tuuc/90qiizzKBJYewTI6RiQJ9yqmr5fUeuRvPyHKYxfS7oaI7pVIlens1HqlJcV
-	 ArqepFptjMxGoNGrYcW5RImzd+L5ewmXcQ2+gTZ7OrkmjdaMkYsvaHbRCAWl/XXoji
-	 ycnNNcxOa44KLzMP1EvG0gE6ZuGBfimpLNMhzEQI=
-Date: Thu, 26 Sep 2024 14:04:19 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,didi.debian@cknow.org,akpm@linux-foundation.org
+	b=CeaFFzZ07K/QpYxOcHstbPHS0cxUELGu26jJxl2F1VadGClCZlEJcs43xQ2YCjPK+
+	 9SPiPfCrsHNef4fY6yfA3FsUBqhXB+1T3umM3gyVH0xkMwt1vDyB3cuJj1n7KcZlIw
+	 o0AD/+ezcYBguEgj51nuSVZWlhgBEHOt986RXy2M=
+Date: Thu, 26 Sep 2024 14:04:20 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterz@infradead.org,jpoimboe@kernel.org,yangtiezhu@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-kconfig-update-damon-doc-url.patch removed from -mm tree
-Message-Id: <20240926210420.1F43EC4CECE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] compilerh-specify-correct-attribute-for-rodatac_jump_table.patch removed from -mm tree
+Message-Id: <20240926210421.1C4D1C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/Kconfig: update DAMON doc URL
+     Subject: compiler.h: specify correct attribute for .rodata..c_jump_table
 has been removed from the -mm tree.  Its filename was
-     mm-damon-kconfig-update-damon-doc-url.patch
+     compilerh-specify-correct-attribute-for-rodatac_jump_table.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Diederik de Haas <didi.debian@cknow.org>
-Subject: mm/damon/Kconfig: update DAMON doc URL
-Date: Tue, 24 Sep 2024 10:21:46 +0200
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: compiler.h: specify correct attribute for .rodata..c_jump_table
+Date: Tue, 24 Sep 2024 14:27:10 +0800
 
-The old URL doesn't really work anymore and as the documentation has been
-integrated in the main kernel documentation site, change the URL to point
-to that.
+Currently, there is an assembler message when generating kernel/bpf/core.o
+under CONFIG_OBJTOOL with LoongArch compiler toolchain:
 
-Link: https://lkml.kernel.org/r/20240924082331.11499-1-didi.debian@cknow.org
-Signed-off-by: Diederik de Haas <didi.debian@cknow.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+  Warning: setting incorrect section attributes for .rodata..c_jump_table
+
+This is because the section ".rodata..c_jump_table" should be readonly,
+but there is a "W" (writable) part of the flags:
+
+  $ readelf -S kernel/bpf/core.o | grep -A 1 "rodata..c"
+  [34] .rodata..c_j[...] PROGBITS         0000000000000000  0000d2e0
+       0000000000000800  0000000000000000  WA       0     0     8
+
+There is no above issue on x86 due to the generated section flag is only
+"A" (allocatable). In order to silence the warning on LoongArch, specify
+the attribute like ".rodata..c_jump_table,\"a\",@progbits #" explicitly,
+then the section attribute of ".rodata..c_jump_table" must be readonly
+in the kernel/bpf/core.o file.
+
+Before:
+
+  $ objdump -h kernel/bpf/core.o | grep -A 1 "rodata..c"
+   21 .rodata..c_jump_table 00000800  0000000000000000  0000000000000000  0000d2e0  2**3
+                  CONTENTS, ALLOC, LOAD, RELOC, DATA
+
+After:
+
+  $ objdump -h kernel/bpf/core.o | grep -A 1 "rodata..c"
+   21 .rodata..c_jump_table 00000800  0000000000000000  0000000000000000  0000d2e0  2**3
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, DATA
+
+By the way, AFAICT, maybe the root cause is related with the different
+compiler behavior of various archs, so to some extent this change is a
+workaround for LoongArch, and also there is no effect for x86 which is the
+only port supported by objtool before LoongArch with this patch.
+
+Link: https://lkml.kernel.org/r/20240924062710.1243-1-yangtiezhu@loongson.cn
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>	[6.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Kconfig |    2 +-
+ include/linux/compiler.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/Kconfig~mm-damon-kconfig-update-damon-doc-url
-+++ a/mm/damon/Kconfig
-@@ -9,7 +9,7 @@ config DAMON
- 	  access frequency of each memory region. The information can be useful
- 	  for performance-centric DRAM level memory management.
+--- a/include/linux/compiler.h~compilerh-specify-correct-attribute-for-rodatac_jump_table
++++ a/include/linux/compiler.h
+@@ -133,7 +133,7 @@ void ftrace_likely_update(struct ftrace_
+ #define annotate_unreachable() __annotate_unreachable(__COUNTER__)
  
--	  See https://damonitor.github.io/doc/html/latest-damon/index.html for
-+	  See https://www.kernel.org/doc/html/latest/mm/damon/index.html for
- 	  more information.
+ /* Annotate a C jump table to allow objtool to follow the code flow */
+-#define __annotate_jump_table __section(".rodata..c_jump_table")
++#define __annotate_jump_table __section(".rodata..c_jump_table,\"a\",@progbits #")
  
- config DAMON_KUNIT_TEST
+ #else /* !CONFIG_OBJTOOL */
+ #define annotate_reachable()
 _
 
-Patches currently in -mm which might be from didi.debian@cknow.org are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
 
