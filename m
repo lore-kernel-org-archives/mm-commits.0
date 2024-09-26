@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8E31411EB
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160CB1411EB
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:32:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727382756; cv=none; b=rUAyiJJqYaiTzVOXq+4Pffw0PWhh3Kt7oOysqkupuT+VkYFe8BM8k3HCuvGK9RGme+x8ZfTxvlpnEdEHZH8PEVSgX6SobCQ7UIt+7JhRPA0FG9MHvkQnh3e5Tkyq8FBehujUbT9YTCn8nTRkZFHwRnqBb3pao2uKC9bXzxPbGRY=
+	t=1727382758; cv=none; b=qjVJ3eiaR3OOfU2I2myQHlnLfQxq0HalIl473j6Y7L9dzDa2qdZHsSzx27NJraSzivjTYZX5UgjTamddcedZq+FkyqSaXjXgESzczU1eFVcHwnJiOGmORZEbMdSeYmoeKQ1/e3/QVo9KfHNxGvCIUIufG7qVC3C8L3CeNuTAZ3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727382756; c=relaxed/simple;
-	bh=6q7/eQIiC0D6r8J0JpoawdaNp2JncjObsptK229gbTg=;
-	h=Date:To:From:Subject:Message-Id; b=hlpizx96t89SIuVNFWS+qNa/+tTsdBVZahaT51E3C7Qw9GvQB+fHN035joTf3XgUhlH66TOmKUDEp+5PDEPNvAICCUnsuyE0FWVg2CqM17z1MT5UL5WzSUeZI+TZO6ImZHKzofX9tUc1sP3Kv3NsHTcBuYILZbZy+GimM12d+xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=toLCYA6B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727382758; c=relaxed/simple;
+	bh=e4z1TxR7/zmKRs+MBNCYlpbIZe0+UqJ/fYTxibtvvYI=;
+	h=Date:To:From:Subject:Message-Id; b=f8J2g8BfRa96WaNEKYCt3+4e7vCHl22ns/7V29tk0K3KUnbzv68yYZaQWJI8opsjrl5MLCZZPPtoRsYe9hbRnLodqxZTec1bfeF54IkNqB+ai5WAJ0fpP12S9OWA8QrlQVrSfLqtlU1sxUGM8e2wY11Uw4fzVz2fPNcWDidOyFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEATq9hP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="toLCYA6B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50DF4C4CEC5;
-	Thu, 26 Sep 2024 20:32:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEATq9hP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91BE0C4CEC5;
+	Thu, 26 Sep 2024 20:32:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727382756;
-	bh=6q7/eQIiC0D6r8J0JpoawdaNp2JncjObsptK229gbTg=;
+	s=korg; t=1727382757;
+	bh=e4z1TxR7/zmKRs+MBNCYlpbIZe0+UqJ/fYTxibtvvYI=;
 	h=Date:To:From:Subject:From;
-	b=toLCYA6Bz5sTNJW24gjqkahM7UP4KgWuZJZ5ckRQIspRgGPMcT51pCUazkIc5Wf3u
-	 L02712ImyQojcotPN0DJCLRjVQh7e47QpVvpe4Wqf4MVnuXt5o6lNnl6tLSbXfzPR3
-	 2fDy3zir9Uznf97mJ8Ikg0DxOpl+oFDqUv5HcQqA=
-Date: Thu, 26 Sep 2024 13:32:35 -0700
+	b=AEATq9hPDss5mPYGduBtJeXGwnahCreRxpvkGo5qbAUd+tAvHCsZ+mNhtIUfNTgDe
+	 8+Q6/qJyYh+bO5zd2Isv6H6Wkn93UEFFTqq5v7A0GcXE+lWykza6hcxGfFtZlrduUR
+	 xxJ8I6O0V1SV7hIy0IX9wf0KcRp2VhHGCoL4KP3o=
+Date: Thu, 26 Sep 2024 13:32:36 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-__collapse_huge_page_swapin-use-pte_offset_map_ro_nolock.patch added to mm-unstable branch
-Message-Id: <20240926203236.50DF4C4CEC5@smtp.kernel.org>
+Subject: + arm-adjust_pte-use-pte_offset_map_rw_nolock.patch added to mm-unstable branch
+Message-Id: <20240926203237.91BE0C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: khugepaged: __collapse_huge_page_swapin() use pte_offset_map_ro_nolock()
+     Subject: arm: adjust_pte() use pte_offset_map_rw_nolock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-__collapse_huge_page_swapin-use-pte_offset_map_ro_nolock.patch
+     arm-adjust_pte-use-pte_offset_map_rw_nolock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-__collapse_huge_page_swapin-use-pte_offset_map_ro_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-adjust_pte-use-pte_offset_map_rw_nolock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: khugepaged: __collapse_huge_page_swapin() use pte_offset_map_ro_nolock()
-Date: Thu, 26 Sep 2024 14:46:17 +0800
+Subject: arm: adjust_pte() use pte_offset_map_rw_nolock()
+Date: Thu, 26 Sep 2024 14:46:18 +0800
 
-In __collapse_huge_page_swapin(), we just use the ptl for pte_same() check
-in do_swap_page().  In other places, we directly use
-pte_offset_map_lock(), so convert it to using pte_offset_map_ro_nolock().
+In do_adjust_pte(), we may modify the pte entry.  The corresponding pmd
+entry may have been modified concurrently.  Therefore, in order to ensure
+the stability if pmd entry, use pte_offset_map_rw_nolock() to replace
+pte_offset_map_nolock(), and do pmd_same() check after holding the PTL.
 
-Link: https://lkml.kernel.org/r/dc97a6c3cb9ea80cab30c5626eeea79959d93258.1727332572.git.zhengqi.arch@bytedance.com
+All callers of update_mmu_cache_range() hold the vmf->ptl, so we can
+determined whether split PTE locks is being used by doing the following,
+just as we do elsewhere in the kernel.
+
+	ptl != vmf->ptl
+
+And then we can delete the do_pte_lock() and do_pte_unlock().
+
+Link: https://lkml.kernel.org/r/0eaf6b69aeb2fe35092a633fed12537efe645303.1727332572.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
@@ -79,24 +88,118 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/mm/fault-armv.c |   53 +++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 31 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-__collapse_huge_page_swapin-use-pte_offset_map_ro_nolock
-+++ a/mm/khugepaged.c
-@@ -1014,7 +1014,11 @@ static int __collapse_huge_page_swapin(s
- 		};
+--- a/arch/arm/mm/fault-armv.c~arm-adjust_pte-use-pte_offset_map_rw_nolock
++++ a/arch/arm/mm/fault-armv.c
+@@ -61,32 +61,8 @@ static int do_adjust_pte(struct vm_area_
+ 	return ret;
+ }
  
- 		if (!pte++) {
--			pte = pte_offset_map_nolock(mm, pmd, address, &ptl);
-+			/*
-+			 * Here the ptl is only used to check pte_same() in
-+			 * do_swap_page(), so readonly version is enough.
-+			 */
-+			pte = pte_offset_map_ro_nolock(mm, pmd, address, &ptl);
- 			if (!pte) {
- 				mmap_read_unlock(mm);
- 				result = SCAN_PMD_NULL;
+-#if defined(CONFIG_SPLIT_PTE_PTLOCKS)
+-/*
+- * If we are using split PTE locks, then we need to take the page
+- * lock here.  Otherwise we are using shared mm->page_table_lock
+- * which is already locked, thus cannot take it.
+- */
+-static inline void do_pte_lock(spinlock_t *ptl)
+-{
+-	/*
+-	 * Use nested version here to indicate that we are already
+-	 * holding one similar spinlock.
+-	 */
+-	spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+-}
+-
+-static inline void do_pte_unlock(spinlock_t *ptl)
+-{
+-	spin_unlock(ptl);
+-}
+-#else /* !defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+-static inline void do_pte_lock(spinlock_t *ptl) {}
+-static inline void do_pte_unlock(spinlock_t *ptl) {}
+-#endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+-
+ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
+-	unsigned long pfn)
++		      unsigned long pfn, struct vm_fault *vmf)
+ {
+ 	spinlock_t *ptl;
+ 	pgd_t *pgd;
+@@ -94,6 +70,7 @@ static int adjust_pte(struct vm_area_str
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
++	pmd_t pmdval;
+ 	int ret;
+ 
+ 	pgd = pgd_offset(vma->vm_mm, address);
+@@ -112,20 +89,33 @@ static int adjust_pte(struct vm_area_str
+ 	if (pmd_none_or_clear_bad(pmd))
+ 		return 0;
+ 
++again:
+ 	/*
+ 	 * This is called while another page table is mapped, so we
+ 	 * must use the nested version.  This also means we need to
+ 	 * open-code the spin-locking.
+ 	 */
+-	pte = pte_offset_map_nolock(vma->vm_mm, pmd, address, &ptl);
++	pte = pte_offset_map_rw_nolock(vma->vm_mm, pmd, address, &pmdval, &ptl);
+ 	if (!pte)
+ 		return 0;
+ 
+-	do_pte_lock(ptl);
++	/*
++	 * If we are using split PTE locks, then we need to take the page
++	 * lock here.  Otherwise we are using shared mm->page_table_lock
++	 * which is already locked, thus cannot take it.
++	 */
++	if (ptl != vmf->ptl) {
++		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++		if (unlikely(!pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
++			pte_unmap_unlock(pte, ptl);
++			goto again;
++		}
++	}
+ 
+ 	ret = do_adjust_pte(vma, address, pfn, pte);
+ 
+-	do_pte_unlock(ptl);
++	if (ptl != vmf->ptl)
++		spin_unlock(ptl);
+ 	pte_unmap(pte);
+ 
+ 	return ret;
+@@ -133,7 +123,8 @@ static int adjust_pte(struct vm_area_str
+ 
+ static void
+ make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
+-	unsigned long addr, pte_t *ptep, unsigned long pfn)
++	      unsigned long addr, pte_t *ptep, unsigned long pfn,
++	      struct vm_fault *vmf)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *mpnt;
+@@ -160,7 +151,7 @@ make_coherent(struct address_space *mapp
+ 		if (!(mpnt->vm_flags & VM_MAYSHARE))
+ 			continue;
+ 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
+-		aliases += adjust_pte(mpnt, mpnt->vm_start + offset, pfn);
++		aliases += adjust_pte(mpnt, mpnt->vm_start + offset, pfn, vmf);
+ 	}
+ 	flush_dcache_mmap_unlock(mapping);
+ 	if (aliases)
+@@ -203,7 +194,7 @@ void update_mmu_cache_range(struct vm_fa
+ 		__flush_dcache_folio(mapping, folio);
+ 	if (mapping) {
+ 		if (cache_is_vivt())
+-			make_coherent(mapping, vma, addr, ptep, pfn);
++			make_coherent(mapping, vma, addr, ptep, pfn, vmf);
+ 		else if (vma->vm_flags & VM_EXEC)
+ 			__flush_icache_all();
+ 	}
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
