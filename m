@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0410F17D344
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:11:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 811D617C9E7
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 20:11:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727381491; cv=none; b=sg6199nqaODFZsb3CtiwDCj2qJcKpqYU7tuoAKij4840r7NhYoo47QyyOgzYVMcNRnSZ6UKEMDIgL89zaSc2U2sQSMg5IAONaTSQF3kB+YlgZS5+A8YX2cPh2xVkYmf9JBjrpT4qcBSPVJftHQu1tei3907ybHfI+jYnza5iKZs=
+	t=1727381492; cv=none; b=rBf7NApT/ELtZdaPBwUbAMOSQH5Gm8/qi4KJw+qphX1rJdEYJDJ5gGM0gtZAEJClvONX9l+lW5GNBkgtDqdjLCz3+f/Dy6fOLwp+qqja6KjQk/drtfHLKYT9JuhIqeW21xLPQqqfWxjQ4y8kFmn5JAAZEASzNkXc/Kp9xUOn3iA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727381491; c=relaxed/simple;
-	bh=ROgmGvRDwDvxqeJJ88P23J9VbwfrFl1SW5b6CT63OQQ=;
-	h=Date:To:From:Subject:Message-Id; b=A9JRcncFtHccX8uGpPDfGw3bnmsMHrK85xeOr2xNk5GxWXh7IhplkNRLHwzfG7UaIOxMyl4V/a7FYlIdMFoiXPMyx4XhE/ylKmRIGfF6/IrFF0nui7llEAWbGB4S1K8lIXO9DIq5wG8MMu5mIfO+kjqt5ir82Feakp+EFQRCTQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ATsh879c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727381492; c=relaxed/simple;
+	bh=dQPewiDXIXPcLKXqmXmpnkCN8CkS/X8bny40wW2oZ54=;
+	h=Date:To:From:Subject:Message-Id; b=ODvE0OTEuxbik20336DW2LL52Wk7tlswWilP/1ge40g/4qbRLcMHiJnJ46Smhb5rztwDtShq5h1GSTntt0tKJWAesJMJDVodFSxCkGwDfyVkmSHBJ7bDZluJd3CLL0qAwPQ3wsjrn4whE52ZgmBHOqM892KeRKxxffO2oYTeFZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gI4lVFUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ATsh879c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56D5C4CEC5;
-	Thu, 26 Sep 2024 20:11:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gI4lVFUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1694C4CEC5;
+	Thu, 26 Sep 2024 20:11:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727381490;
-	bh=ROgmGvRDwDvxqeJJ88P23J9VbwfrFl1SW5b6CT63OQQ=;
+	s=korg; t=1727381492;
+	bh=dQPewiDXIXPcLKXqmXmpnkCN8CkS/X8bny40wW2oZ54=;
 	h=Date:To:From:Subject:From;
-	b=ATsh879cAx/Nb5N3W6AaeBOrSKsPyz3UrH/2mhO46k2LnPtvJ6H7J2GZqxtgtxXRt
-	 zq9roloyMJaJliBtpd5lYLLrIyfmtV2Cl5UG51X8ciZUhx5ojIX/2KL0ZVFvjEjehg
-	 f/SHkJn94zlHC0ed03k9C0xmV1o7YD/tuPhcapZY=
-Date: Thu, 26 Sep 2024 13:11:29 -0700
+	b=gI4lVFUbgBRqDkglnwwu7QSiLEWT/uGWMbmhOaJUGbFYVOd74asMqH8NPOUUe2iOp
+	 U5HG2KPYy3icPwMRG2XakZWIF6mb1G+tTqfO0rZcscAEwklI0iyaxblQ1lBFLMVprR
+	 w5x1TQMhFyjJldNhqwsSHdiAbr/GNvhFXv+LH1M0=
+Date: Thu, 26 Sep 2024 13:11:30 -0700
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,shuah@kernel.org,mcasquer@redhat.com,leitao@debian.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch added to mm-unstable branch
-Message-Id: <20240926201130.B56D5C4CEC5@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb_fault_after_madv-improve-test-output.patch added to mm-unstable branch
+Message-Id: <20240926201131.F1694C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugetlb_fault_after_madv: use default hugetlb page size
+     Subject: selftests/mm: hugetlb_fault_after_madv: improve test output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch
+     selftests-mm-hugetlb_fault_after_madv-improve-test-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb_fault_after_madv-improve-test-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,106 +59,122 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: hugetlb_fault_after_madv: use default hugetlb page size
-Date: Thu, 26 Sep 2024 17:20:43 +0200
+Subject: selftests/mm: hugetlb_fault_after_madv: improve test output
+Date: Thu, 26 Sep 2024 17:20:44 +0200
 
-Patch series "selftests/mm: hugetlb_fault_after_madv improvements".
+Let's improve the test output.  For example, print the proper test result.
+Install a SIGBUS handler to catch any SIGBUS instead of crashing the test
+on failure.
 
-Mario brought to my attention that the hugetlb_fault_after_madv test is
-currently always skipped on s390x.  Let's adjust the test to be
-independent of the default hugetlb page size and while at it, also improve
-the test output.
+With unsuitable hugetlb page count:
+  $ ./hugetlb_fault_after_madv
+  TAP version 13
+  1..1
+  # [INFO] detected default hugetlb page size: 2048 KiB
+  ok 2 # SKIP This test needs one and only one page to execute. Got 0
+  # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
 
+On a failure:
+  $ ./hugetlb_fault_after_madv
+  TAP version 13
+  1..1
+  not ok 1 SIGBUS behavior
+  Bail out! 1 out of 1 tests failed
 
-This patch (of 2):
+On success:
+  $ ./hugetlb_fault_after_madv
+  TAP version 13
+  1..1
+  # [INFO] detected default hugetlb page size: 2048 KiB
+  ok 1 SIGBUS behavior
+  # Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
 
-We currently assume that the hugetlb page size is 2 MiB, which is why we
-mmap() a 2 MiB range.
-
-Is the default hugetlb size is larger, mmap() will fail because the range
-is not suitable.  If the default hugetlb size is smaller (e.g., s390x),
-mmap() will fail because we would need more than one hugetlb page, but
-just asserted that we have exactly one.
-
-So let's simply use the default hugetlb page size instead of hard-coded 2
-MiB, so the test isn't unconditionally skipped on architectures like
-s390x.
-
-Before this patch on s390x:
-$ ./hugetlb_fault_after_madv
-	1..0 # SKIP Failed to allocated huge page
-
-With this change on s390x:
-	$ ./hugetlb_fault_after_madv
-
-While at it, make "huge_ptr" static.
-
-Link: https://lkml.kernel.org/r/20240926152044.2205129-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20240926152044.2205129-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20240926152044.2205129-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: Mario Casquero <mcasquer@redhat.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Breno Leitao <leitao@debian.org>
+Cc: Mario Casquero <mcasquer@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_fault_after_madv.c |   14 ++++++----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |   34 +++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-hugetlb_fault_after_madv-use-default-hguetlb-page-size
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-hugetlb_fault_after_madv-improve-test-output
 +++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
-@@ -9,10 +9,10 @@
+@@ -5,6 +5,8 @@
+ #include <sys/mman.h>
+ #include <sys/types.h>
+ #include <unistd.h>
++#include <setjmp.h>
++#include <signal.h>
+ 
  #include "vm_util.h"
  #include "../kselftest.h"
+@@ -14,11 +16,25 @@
+ static char *huge_ptr;
+ static size_t huge_page_size;
  
--#define MMAP_SIZE (1 << 21)
- #define INLOOP_ITER 100
- 
--char *huge_ptr;
-+static char *huge_ptr;
-+static size_t huge_page_size;
- 
++static sigjmp_buf sigbuf;
++static bool sigbus_triggered;
++
++static void signal_handler(int signal)
++{
++	if (signal == SIGBUS) {
++		sigbus_triggered = true;
++		siglongjmp(sigbuf, 1);
++	}
++}
++
  /* Touch the memory while it is being madvised() */
  void *touch(void *unused)
-@@ -30,7 +30,7 @@ void *madv(void *unused)
- 	usleep(rand() % 10);
+ {
+ 	char *ptr = (char *)huge_ptr;
  
++	if (sigsetjmp(sigbuf, 1))
++		return NULL;
++
  	for (int i = 0; i < INLOOP_ITER; i++)
--		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
-+		madvise(huge_ptr, huge_page_size, MADV_DONTNEED);
+ 		ptr[0] = '.';
  
- 	return NULL;
- }
-@@ -47,6 +47,10 @@ int main(void)
+@@ -44,13 +60,23 @@ int main(void)
+ 	 * interactions
+ 	 */
+ 	int max = 10000;
++	int err;
++
++	ksft_print_header();
++	ksft_set_plan(1);
  
  	srand(getpid());
  
-+	huge_page_size = default_huge_page_size();
-+	if (!huge_page_size)
-+		ksft_exit_skip("Could not detect default hugetlb page size.");
++	if (signal(SIGBUS, signal_handler) == SIG_ERR)
++		ksft_exit_skip("Could not register signal handler.");
++
+ 	huge_page_size = default_huge_page_size();
+ 	if (!huge_page_size)
+ 		ksft_exit_skip("Could not detect default hugetlb page size.");
+ 
++	ksft_print_msg("[INFO] detected default hugetlb page size: %zu KiB\n",
++		       huge_page_size / 1024);
 +
  	free_hugepages = get_free_hugepages();
  	if (free_hugepages != 1) {
  		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
-@@ -54,7 +58,7 @@ int main(void)
+@@ -73,5 +99,11 @@ int main(void)
+ 		munmap(huge_ptr, huge_page_size);
  	}
  
- 	while (max--) {
--		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
-+		huge_ptr = mmap(NULL, huge_page_size, PROT_READ | PROT_WRITE,
- 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
- 				-1, 0);
- 
-@@ -66,7 +70,7 @@ int main(void)
- 
- 		pthread_join(thread1, NULL);
- 		pthread_join(thread2, NULL);
--		munmap(huge_ptr, MMAP_SIZE);
-+		munmap(huge_ptr, huge_page_size);
- 	}
- 
- 	return KSFT_PASS;
+-	return KSFT_PASS;
++	ksft_test_result(!sigbus_triggered, "SIGBUS behavior\n");
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   err, ksft_test_num());
++	ksft_exit_pass();
+ }
 _
 
 Patches currently in -mm which might be from david@redhat.com are
