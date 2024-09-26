@@ -1,79 +1,313 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048C215921D
-	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 03:46:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E783FF1
+	for <mm-commits@vger.kernel.org>; Thu, 26 Sep 2024 12:38:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727322369; cv=none; b=lfcuvwM1QMuY4+fTv3eylCHpa4qBZLtT7g7OPZCQ5ygNC+59JI37sjhM/4Nl5HZJ0a9bgdJNjGFt8sgZGfwbfDOtcfF5K1NzK3aG3nyGD9fF3EKl82rCfrJ4VdBDAeGSF+PNGAWfBTUgsMT8eMkFNTAvCDOUjYMGkxj6gX0ocxk=
+	t=1727354291; cv=none; b=t0FG0exfIoa2stmPo2zhtuvdcIrpDk/npCcFyjJo2X75W6JPm9L7jS88lsih3K8ClDHICU5exl82VYUSzz6KgfkINW+GZ7Zv1kBJ3J8ZlwPrds6Jz5lW0k1D2+RfZUBOBbsesyLpMKISiDVwRstkA0aW7om6WKIvA6PkOHe/f5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727322369; c=relaxed/simple;
-	bh=5IfVD6xH0WWvTRiXvN/JQBquP4Hm2H/F4ZcasbYnSaw=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=UM+pMCYNkRJQUYmT/fFgj9WTxMUQzm7mhNl2sEs3lZbYVcdApO5w05iorek7bCMxeD1qZJTpeJj+dgU7aUYJnj+zPFy11TQzOXVA+ayw6BCQ6UMi5sklpYMdRtXxnD5HO/0Yz4ksZzjs/DNN9KkvaHfxOONwEtzOfki6lU3CwdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.194])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4XDfcZ1vLKzySKK;
-	Thu, 26 Sep 2024 11:45:02 +0800 (CST)
-Received: from kwepemm600003.china.huawei.com (unknown [7.193.23.202])
-	by mail.maildlp.com (Postfix) with ESMTPS id 1A59B1402CD;
-	Thu, 26 Sep 2024 11:46:04 +0800 (CST)
-Received: from [10.174.179.79] (10.174.179.79) by
- kwepemm600003.china.huawei.com (7.193.23.202) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Thu, 26 Sep 2024 11:46:03 +0800
-Subject: Re: + mm-move-mm-flags-to-mm_typesh.patch added to mm-unstable branch
-To: Matthew Wilcox <willy@infradead.org>
-CC: Andrew Morton <akpm@linux-foundation.org>, <mm-commits@vger.kernel.org>,
-	<wangkefeng.wang@huawei.com>, <peterz@infradead.org>, <oleg@redhat.com>,
-	<mhiramat@kernel.org>
-References: <20240925100517.DFC29C4CEC3@smtp.kernel.org>
- <ZvP_g757PkAb6thl@casper.infradead.org>
- <42755d5d-f554-15d1-e0a7-2239f6d6bf1a@huawei.com>
- <ZvQUIXxkVmbdTkZG@casper.infradead.org>
-From: Nanyong Sun <sunnanyong@huawei.com>
-Message-ID: <ae7a3c74-5bea-45a9-56d0-beaa514c4d1f@huawei.com>
-Date: Thu, 26 Sep 2024 11:46:02 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
+	s=arc-20240116; t=1727354291; c=relaxed/simple;
+	bh=nvRPsTLdwyg1++O7oFLTJXtLxdOEFdZKGahsQHuEB0A=;
+	h=Date:To:From:Subject:Message-Id; b=ZG27PA+NDJ0WBk469okY6GrffkcLB472TAjpso2b20CMHgIhTz55Yfq46Nrj798LHuM+d32RRTS8KcZVA4tHQvyLbCV7DEvptNCxdMw1qbZkUtNVBXUsJBLwlvYe0pkkKnNVlcc44yW33qLuMlTi2zmxvIlg4CcXdPlyGQLmLTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/6DCS3C; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/6DCS3C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DEA5C4CEC5;
+	Thu, 26 Sep 2024 12:38:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1727354291;
+	bh=nvRPsTLdwyg1++O7oFLTJXtLxdOEFdZKGahsQHuEB0A=;
+	h=Date:To:From:Subject:From;
+	b=P/6DCS3CyO7gHTa3m6VrTAkDfPhVKbOSEWtpsnS7EUlnZX8fvtKoRUw/bJ7yxy0Zk
+	 0A3/HW0YLpdYiAvvXRPaR3hhnr2OEqrvJXucnans77J0JPQc4Gy61RgNgWTWDwzUj0
+	 WiGcMIS+qGNOhIoO+TzvRt5YraEn1jSxCR1QPx1k=
+Date: Thu, 26 Sep 2024 05:38:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,shakeel.butt@linux.dev,richard.henderson@linaro.org,pedro.falcato@gmail.com,minchan@kernel.org,mattst88@gmail.com,Liam.Howlett@oracle.com,jcmvbkbc@gmail.com,James.Bottomley@HansenPartnership.com,ink@jurassic.park.msu.ru,deller@gmx.de,chris@zankel.net,arnd@arndb.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-madvise-introduce-pr_madv_self-flag-to-process_madvise.patch removed from -mm tree
+Message-Id: <20240926123811.2DEA5C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <ZvQUIXxkVmbdTkZG@casper.infradead.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- kwepemm600003.china.huawei.com (7.193.23.202)
 
-On 2024/9/25 21:46, Matthew Wilcox wrote:
 
-> On Wed, Sep 25, 2024 at 09:40:31PM +0800, Nanyong Sun wrote:
->> On 2024/9/25 20:18, Matthew Wilcox wrote:
->>
->>> On Wed, Sep 25, 2024 at 03:05:17AM -0700, Andrew Morton wrote:
->>>> +++ a/include/linux/mm_types.h
->>>> @@ -1499,4 +1499,85 @@ enum {
->>>>    	/* See also internal only FOLL flags in mm/internal.h */
->>>>    };
->>>> +/* mm flags */
->>>> +
->>>> +/* core dumpable occupy bit0 and bit1 */
->>> ... but why is that important?
->> /*
->>   * The first two bits represent core dump modes for set-user-ID,
->>   * the modes are SUID_DUMP_* defined in linux/sched/coredump.h
->>   */
->> Do you think if change it to this will be OK?
-> That seems reasonable.
->
-> .
+The quilt patch titled
+     Subject: mm/madvise: introduce PR_MADV_SELF flag to process_madvise()
+has been removed from the -mm tree.  Its filename was
+     mm-madvise-introduce-pr_madv_self-flag-to-process_madvise.patch
 
-OK, I will send v3 later.
+This patch was dropped because an updated version will be issued
 
-Thanks a lot for your review and suggestion.
+------------------------------------------------------
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/madvise: introduce PR_MADV_SELF flag to process_madvise()
+Date: Tue, 24 Sep 2024 12:16:27 +0100
+
+Patch series "unrestrict process_madvise() for current process", v2.
+
+The process_madvise() call was introduced in commit ecb8ac8b1f14
+("mm/madvise: introduce process_madvise() syscall: an external memory
+hinting API") as a means of performing madvise() operations on another
+process.
+
+However, as it provides the means by which to perform multiple madvise()
+operations in a batch via an iovec, it is useful to utilise the same
+interface for performing operations on the current process rather than a
+remote one.
+
+Using this interface targeting the current process is cumbersome - a pidfd
+needs to be setup for the current pid, and we are limited to only a subset
+of madvise() operations, a limitation sensible for manipulating remote
+processes but not meaningful when manipulating the current one.
+
+Commit 22af8caff7d1 ("mm/madvise: process_madvise() drop capability check
+if same mm") removed the need for a caller invoking process_madvise() on
+its own pidfd to possess the CAP_SYS_NICE capability, however this leaves
+the restrictions on operation in place and the cumbersome need for a 'self
+pidfd'.
+
+This patch series eliminates both limitations:
+
+1. The restriction on permitted operations is removed when operating
+   on the current process.
+
+2. A new flag is introduced - PR_MADV_SELF - which eliminates the need for
+   a pidfd - if this flag is set, the pidfd argument is ignored and the
+   operation is simply applied to the current process.
+
+Therefore a user can simply invoke:
+
+	process_madvise(0, iovec, n, MADV_..., PR_MADV_SELF);
+
+And perform any madvise() operation they like on the n ranges specified by
+the iovec parameter.
+
+This series also introduces a series of self-tests for this feature
+asserting that the flag functions as expected.
+
+
+This patch (of 2):
+
+process_madvise() was conceived as a useful means for performing a vector
+of madvise() operations on a remote process's address space.
+
+However it's useful to be able to do so on the current process also.  It
+is currently rather clunky to do this (requiring a pidfd to be opened for
+the current process) and introduces unnecessary overhead in incrementing
+reference counts for the task and mm.
+
+Avoid all of this by providing a PR_MADV_SELF flag, which causes
+process_madvise() to simply ignore the pidfd parameter and instead apply
+the operation to the current process.
+
+Since we are operating on our own process, no restrictions need be applied
+on behaviors we can perform, so do not limit these in that case.
+
+Also extend the case of a user specifying the current process via pidfd to
+not be restricted on behaviors which can be performed.
+
+Link: https://lkml.kernel.org/r/cover.1727176176.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1ecf2692b3bcdd693ad61d510ce0437abb43a1bd.1727176176.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/alpha/include/uapi/asm/mman.h     |    2 
+ arch/mips/include/uapi/asm/mman.h      |    2 
+ arch/parisc/include/uapi/asm/mman.h    |    2 
+ arch/xtensa/include/uapi/asm/mman.h    |    2 
+ include/uapi/asm-generic/mman-common.h |    2 
+ mm/madvise.c                           |   66 ++++++++++++++++-------
+ 6 files changed, 56 insertions(+), 20 deletions(-)
+
+--- a/arch/alpha/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -86,4 +86,6 @@
+ #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
+ 				 PKEY_DISABLE_WRITE)
+ 
++#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++
+ #endif /* __ALPHA_MMAN_H__ */
+--- a/arch/mips/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -113,4 +113,6 @@
+ #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
+ 				 PKEY_DISABLE_WRITE)
+ 
++#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++
+ #endif /* _ASM_MMAN_H */
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -83,4 +83,6 @@
+ #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
+ 				 PKEY_DISABLE_WRITE)
+ 
++#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++
+ #endif /* __PARISC_MMAN_H__ */
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -121,4 +121,6 @@
+ #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
+ 				 PKEY_DISABLE_WRITE)
+ 
++#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++
+ #endif /* _XTENSA_MMAN_H */
+--- a/include/uapi/asm-generic/mman-common.h~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -87,4 +87,6 @@
+ #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
+ 				 PKEY_DISABLE_WRITE)
+ 
++#define PR_MADV_SELF	(1<<0)		/* process_madvise() flag - apply to self */
++
+ #endif /* __ASM_GENERIC_MMAN_COMMON_H */
+--- a/mm/madvise.c~mm-madvise-introduce-pr_madv_self-flag-to-process_madvise
++++ a/mm/madvise.c
+@@ -1208,7 +1208,8 @@ madvise_behavior_valid(int behavior)
+ 	}
+ }
+ 
+-static bool process_madvise_behavior_valid(int behavior)
++/* Can we invoke process_madvise() on a remote mm for the specified behavior? */
++static bool process_madvise_remote_valid(int behavior)
+ {
+ 	switch (behavior) {
+ 	case MADV_COLD:
+@@ -1477,6 +1478,28 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	return do_madvise(current->mm, start, len_in, behavior);
+ }
+ 
++/* Perform an madvise operation over a vector of addresses and lengths. */
++static ssize_t vector_madvise(struct mm_struct *mm, struct iov_iter *iter,
++			      int behavior)
++{
++	ssize_t ret = 0;
++	size_t total_len;
++
++	total_len = iov_iter_count(iter);
++
++	while (iov_iter_count(iter)) {
++		ret = do_madvise(mm, (unsigned long)iter_iov_addr(iter),
++				 iter_iov_len(iter), behavior);
++		if (ret < 0)
++			break;
++		iov_iter_advance(iter, iter_iov_len(iter));
++	}
++
++	ret = (total_len - iov_iter_count(iter)) ? : ret;
++
++	return ret;
++}
++
+ SYSCALL_DEFINE5(process_madvise, int, pidfd, const struct iovec __user *, vec,
+ 		size_t, vlen, int, behavior, unsigned int, flags)
+ {
+@@ -1486,10 +1509,9 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	struct iov_iter iter;
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+-	size_t total_len;
+ 	unsigned int f_flags;
+ 
+-	if (flags != 0) {
++	if (flags & ~PR_MADV_SELF) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -1498,17 +1520,21 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	if (ret < 0)
+ 		goto out;
+ 
++	/*
++	 * Perform an madvise operation on the current process. No restrictions
++	 * need be applied, nor do we need to pin the task or mm_struct.
++	 */
++	if (flags & PR_MADV_SELF) {
++		ret = vector_madvise(current->mm, &iter, behavior);
++		goto free_iov;
++	}
++
+ 	task = pidfd_get_task(pidfd, &f_flags);
+ 	if (IS_ERR(task)) {
+ 		ret = PTR_ERR(task);
+ 		goto free_iov;
+ 	}
+ 
+-	if (!process_madvise_behavior_valid(behavior)) {
+-		ret = -EINVAL;
+-		goto release_task;
+-	}
+-
+ 	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
+ 	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
+ 	if (IS_ERR_OR_NULL(mm)) {
+@@ -1517,25 +1543,25 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	}
+ 
+ 	/*
++	 * We need only perform this check if we are attempting to manipulate a
++	 * remote process's address space.
++	 */
++	if (mm != current->mm && !process_madvise_remote_valid(behavior)) {
++		ret = -EINVAL;
++		goto release_mm;
++	}
++
++	/*
+ 	 * Require CAP_SYS_NICE for influencing process performance. Note that
+-	 * only non-destructive hints are currently supported.
++	 * only non-destructive hints are currently supported for remote
++	 * processes.
+ 	 */
+ 	if (mm != current->mm && !capable(CAP_SYS_NICE)) {
+ 		ret = -EPERM;
+ 		goto release_mm;
+ 	}
+ 
+-	total_len = iov_iter_count(&iter);
+-
+-	while (iov_iter_count(&iter)) {
+-		ret = do_madvise(mm, (unsigned long)iter_iov_addr(&iter),
+-					iter_iov_len(&iter), behavior);
+-		if (ret < 0)
+-			break;
+-		iov_iter_advance(&iter, iter_iov_len(&iter));
+-	}
+-
+-	ret = (total_len - iov_iter_count(&iter)) ? : ret;
++	ret = vector_madvise(mm, &iter, behavior);
+ 
+ release_mm:
+ 	mmput(mm);
+_
+
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+
+tools-fix-shared-radix-tree-build.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+selftests-mm-add-test-for-process_madvise-pr_madv_self-flag-use.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-refactor-mm_access-to-not-return-null-fix.patch
 
