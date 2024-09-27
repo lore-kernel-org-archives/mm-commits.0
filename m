@@ -1,101 +1,132 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D12EC1E4AE
-	for <mm-commits@vger.kernel.org>; Fri, 27 Sep 2024 15:40:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B346B139587;
+	Fri, 27 Sep 2024 16:47:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727451616; cv=none; b=sAA9tiJjBED6mubRmP3hG4RfzJEJv7DV4hL8joGbxTVZbnc3wMxxpOF8J2Q6n5l/DB8zMwFB2MuiiwmepzRknPG3Ge3fbF/hQbcqI4e19UyCVxJBb5vaAG/ZQCBN/8CJsHh+SH9Vw26V7B5DXCkh4qep6UClyCgtAi2S4JiHtaI=
+	t=1727455662; cv=none; b=tHM557a24jsfqxpToQ5dXJA2H5zWF2XYIToMUM3wf2A0EHIkyYS9HKJPDAwNUiF6aTQ+UfZEH6fdTQ3pkFRw0agQdjBv16YB8vbijltdF1wS/KRtFiWcrXW0VmVsoh9Eyc2xaHpFLj2vpjjgeNW4m/WwaKqU5BaDxKdHVQJvk2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727451616; c=relaxed/simple;
-	bh=dieEWxiI/LkU2WrxqzavGzXSDBDEXjeJu4NLC9VHxLs=;
-	h=Date:To:From:Subject:Message-Id; b=i0v29QX9C5Jo1crvbfaYhI/5VN+bcTSocHllzSBgkdmBp8wotDtXZ4PWCAukH1jeN6eOxT4bCZQKNs57UupKCIRGho75/0COoPMgNtzx5RsogAhRSK9keI0oBdcBqCfxKhr4KopphgYW4zcBJyQnPrgsEMbwSNWXWvSbFKU5qeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BKkFBcVb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727455662; c=relaxed/simple;
+	bh=YiIlX3DiMKQ7D0i0kaflLjAuElpI3TBRCPxZ5j8B+FI=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=PnHo8RnWGWPDLDecou4Wl+tSjipARMq6HbBJRFOST+pMHJ2zkqPn/Rbi5pIpnmfVwKRf/JtovTDKVIq4PKL8EoGer7IEujruclala5pazeALnXoujEjJZtP6lm3Zjv7txNqMHOq9yhRHnmNmlWA5S1mnDq1Ubo5jhWFfA7il6iM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Atw1ajzL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BKkFBcVb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38018C4CEC6;
-	Fri, 27 Sep 2024 15:40:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Atw1ajzL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 012F2C4CEC4;
+	Fri, 27 Sep 2024 16:47:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727451616;
-	bh=dieEWxiI/LkU2WrxqzavGzXSDBDEXjeJu4NLC9VHxLs=;
-	h=Date:To:From:Subject:From;
-	b=BKkFBcVb8mK1UpJJJ+rvjZM2nRKcPZmeQ/35TNZbp/1awxP8hFGZWMEz1JTGU59/g
-	 bmygDmJeowbF3cXfYcWTdYbfbcEymxeJ/42pQY4iz4HbOw3lU/47uv16kHxyUp4jZ2
-	 ySNhvk5sGO7BXorGQ+Tx5wFVvsbZ3y0Fkj6nXQyM=
-Date: Fri, 27 Sep 2024 08:40:15 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,mhocko@suse.com,kent.overstreet@linux.dev,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1727455661;
+	bh=YiIlX3DiMKQ7D0i0kaflLjAuElpI3TBRCPxZ5j8B+FI=;
+	h=Date:From:To:Cc:Subject:From;
+	b=Atw1ajzL+k+4JaRM381/iMJTRT70Zn3wbDpU0r8/Xzl/pQ7Rr+fcV8r5Vo/OX0wYJ
+	 n0lVxokIAmuTqA2MioV9y7U43npiEVSKPgBt55QkoW4k4wmy2cICOsSFimaffkHTkB
+	 nt5x+Ij8HEUq9524uchIWp56cFcgOkU6eEwuAATo=
+Date: Fri, 27 Sep 2024 09:47:40 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240927154016.38018C4CEC6@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.12-rc1
+Message-Id: <20240927094740.1a82b77b071feb9027621bed@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: bcachefs-do-not-use-pf_memalloc_noreclaim-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch
+The following changes since commit abf2050f51fdca0fd146388f83cddd95a57a008d:
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Merge tag 'media/v6.12-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2024-09-23 15:27:58 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-27-09-45
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to 2af148ef8549a12f8025286b8825c2833ee6bcb8:
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bcachefs-do-not-use-pf_memalloc_noreclaim-fix
-Date: Fri Sep 27 08:38:06 AM PDT 2024
+  ocfs2: fix uninit-value in ocfs2_get_block() (2024-09-26 14:01:45 -0700)
 
-fix kerneldoc warnings
+----------------------------------------------------------------
+19 hotfixes.  13 are cc:stable.
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lkml.kernel.org/r/20240927133041.0b54641d@canb.auug.org.au
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+There's a focus on fixes for the memfd_pin_folios() work which was added
+into 6.11.  Apart from that, the usual shower of singleton fixes.
 
- security/security.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+----------------------------------------------------------------
+Andrey Skvortsov (1):
+      zram: don't free statically defined names
 
---- a/security/security.c~bcachefs-do-not-use-pf_memalloc_noreclaim-fix
-+++ a/security/security.c
-@@ -740,6 +740,7 @@ static int lsm_file_alloc(struct file *f
- /**
-  * lsm_inode_alloc - allocate a composite inode blob
-  * @inode: the inode that needs a blob
-+ * @gfp: allocation flags
-  *
-  * Allocate the inode blob for all the modules
-  *
-@@ -1678,7 +1679,7 @@ int security_path_notify(const struct pa
- /**
-  * security_inode_alloc() - Allocate an inode LSM blob
-  * @inode: the inode
-- * #gfp: allocation flags
-+ * @gfp: allocation flags
-  *
-  * Allocate and attach a security structure to @inode->i_security.  The
-  * i_security field is initialized to NULL when the inode structure is
-_
+Diederik de Haas (1):
+      mm/damon/Kconfig: update DAMON doc URL
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Gautham Ananthakrishna (1):
+      ocfs2: reserve space for inline xattr before attaching reflink tree
 
-bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch
+Guenter Roeck (2):
+      mm: make SPLIT_PTE_PTLOCKS depend on SMP
+      Revert "list: test: fix tests for list_cut_position()"
+
+Huang Ying (1):
+      memory tiers: use default_dram_perf_ref_source in log message
+
+Jeongjun Park (1):
+      mm: migrate: annotate data-race in migrate_folio_unmap()
+
+Joseph Qi (1):
+      ocfs2: fix uninit-value in ocfs2_get_block()
+
+Lorenzo Stoakes (1):
+      tools: fix shared radix-tree build
+
+Mohammed Anees (1):
+      ocfs2: fix deadlock in ocfs2_get_system_file_inode
+
+Muhammad Usama Anjum (1):
+      kselftests: mm: fix wrong __NR_userfaultfd value
+
+Steve Sistare (6):
+      mm/filemap: fix filemap_get_folios_contig THP panic
+      mm/hugetlb: fix memfd_pin_folios free_huge_pages leak
+      mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak
+      mm/gup: fix memfd_pin_folios hugetlb page allocation
+      mm/gup: fix memfd_pin_folios alloc race panic
+      mm/hugetlb: simplify refs in memfd_alloc_folio
+
+Tiezhu Yang (1):
+      compiler.h: specify correct attribute for .rodata..c_jump_table
+
+qiwu.chen (1):
+      mm: kfence: fix elapsed time for allocated/freed track
+
+ drivers/block/zram/zram_drv.c              |  6 ++++--
+ fs/ocfs2/aops.c                            |  5 ++---
+ fs/ocfs2/extent_map.c                      |  8 +++++++-
+ fs/ocfs2/refcounttree.c                    | 26 ++++++++++++++++++++++++--
+ fs/ocfs2/xattr.c                           | 11 +----------
+ include/linux/compiler.h                   |  2 +-
+ include/linux/hugetlb.h                    | 10 ++++++++++
+ lib/list-test.c                            |  6 ------
+ mm/Kconfig                                 |  1 +
+ mm/damon/Kconfig                           |  2 +-
+ mm/filemap.c                               |  4 ++++
+ mm/gup.c                                   |  1 +
+ mm/hugetlb.c                               | 17 +++++++++++++++++
+ mm/kfence/report.c                         |  2 +-
+ mm/memfd.c                                 | 18 ++++++++++--------
+ mm/memory-tiers.c                          |  6 +++---
+ mm/migrate.c                               |  2 +-
+ tools/testing/selftests/mm/pagemap_ioctl.c |  2 +-
+ tools/testing/shared/maple-shared.h        |  4 ++++
+ tools/testing/shared/shared.h              |  4 ++++
+ tools/testing/shared/shared.mk             |  4 +++-
+ tools/testing/shared/xarray-shared.h       |  4 ++++
+ 22 files changed, 104 insertions(+), 41 deletions(-)
 
