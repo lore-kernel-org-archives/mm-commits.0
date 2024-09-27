@@ -1,132 +1,192 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B346B139587;
-	Fri, 27 Sep 2024 16:47:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6205517556C
+	for <mm-commits@vger.kernel.org>; Fri, 27 Sep 2024 17:17:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727455662; cv=none; b=tHM557a24jsfqxpToQ5dXJA2H5zWF2XYIToMUM3wf2A0EHIkyYS9HKJPDAwNUiF6aTQ+UfZEH6fdTQ3pkFRw0agQdjBv16YB8vbijltdF1wS/KRtFiWcrXW0VmVsoh9Eyc2xaHpFLj2vpjjgeNW4m/WwaKqU5BaDxKdHVQJvk2w=
+	t=1727457472; cv=none; b=LjBy7Xf5oUObyr0ontJMAWH4vuvPZmkFfu1DEzieyIEfV4VLlBKj8mlgFNqutFYpe7j8rg7aS9c37Rv62vbmJoDWwl8gxVCzY+BNICCcdCA1Jc1665Xt/a3NEZdPQiLTvC2eb4TmKaJ+ZiQAyBkM39q6m8NdYj0HUUXPYTUzcGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727455662; c=relaxed/simple;
-	bh=YiIlX3DiMKQ7D0i0kaflLjAuElpI3TBRCPxZ5j8B+FI=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=PnHo8RnWGWPDLDecou4Wl+tSjipARMq6HbBJRFOST+pMHJ2zkqPn/Rbi5pIpnmfVwKRf/JtovTDKVIq4PKL8EoGer7IEujruclala5pazeALnXoujEjJZtP6lm3Zjv7txNqMHOq9yhRHnmNmlWA5S1mnDq1Ubo5jhWFfA7il6iM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Atw1ajzL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727457472; c=relaxed/simple;
+	bh=IF5pfMCX6XvNG+xYnbvjbLFPhJ8Xi8LfoXJxuYILm8E=;
+	h=Date:To:From:Subject:Message-Id; b=TV5TJ4qloJsMf486DmG69J0AVUvFWjwC053QInGXJeHINKtJPkFksR6r2A/2d4lgbboUu2NmRfhNW9TnJVxvmor3VOAhD+l9NQYerbNtdKTfa5+oo/b5ADRAOlrHSfyFjhJ4zscO/37YONKm1ICS+i6G0jEclwYvfkbh1/k+9MM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nfu+QL61; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Atw1ajzL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 012F2C4CEC4;
-	Fri, 27 Sep 2024 16:47:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nfu+QL61"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1BD9C4CEC4;
+	Fri, 27 Sep 2024 17:17:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727455661;
-	bh=YiIlX3DiMKQ7D0i0kaflLjAuElpI3TBRCPxZ5j8B+FI=;
-	h=Date:From:To:Cc:Subject:From;
-	b=Atw1ajzL+k+4JaRM381/iMJTRT70Zn3wbDpU0r8/Xzl/pQ7Rr+fcV8r5Vo/OX0wYJ
-	 n0lVxokIAmuTqA2MioV9y7U43npiEVSKPgBt55QkoW4k4wmy2cICOsSFimaffkHTkB
-	 nt5x+Ij8HEUq9524uchIWp56cFcgOkU6eEwuAATo=
-Date: Fri, 27 Sep 2024 09:47:40 -0700
+	s=korg; t=1727457471;
+	bh=IF5pfMCX6XvNG+xYnbvjbLFPhJ8Xi8LfoXJxuYILm8E=;
+	h=Date:To:From:Subject:From;
+	b=nfu+QL61D/RlmzLP94YwPET+6AC+XRTZdcld5l88B0kRSVo/yeSt1B01U7x4Kr4bv
+	 exQn1nbisclnjeN7ViII5quiRmTPFEysBRwXXvqGsgzehNHW23PWTU+CvVkqjTCpML
+	 N0uUy5hxCyOeSdRjLCDog0eZ9xoewtZnU0v1GBDk=
+Date: Fri, 27 Sep 2024 10:17:51 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.12-rc1
-Message-Id: <20240927094740.1a82b77b071feb9027621bed@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-instrument-copy_from-to_kernel_nofault.patch added to mm-unstable branch
+Message-Id: <20240927171751.D1BD9C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: mm, kasan: instrument copy_from/to_kernel_nofault
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-instrument-copy_from-to_kernel_nofault.patch
 
-The following changes since commit abf2050f51fdca0fd146388f83cddd95a57a008d:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-instrument-copy_from-to_kernel_nofault.patch
 
-  Merge tag 'media/v6.12-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2024-09-23 15:27:58 -0700)
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-are available in the Git repository at:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-09-27-09-45
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-for you to fetch changes up to 2af148ef8549a12f8025286b8825c2833ee6bcb8:
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-  ocfs2: fix uninit-value in ocfs2_get_block() (2024-09-26 14:01:45 -0700)
+------------------------------------------------------
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm, kasan: instrument copy_from/to_kernel_nofault
+Date: Fri, 27 Sep 2024 20:14:38 +0500
 
-----------------------------------------------------------------
-19 hotfixes.  13 are cc:stable.
+Instrument copy_from_kernel_nofault(), copy_to_kernel_nofault() with
+instrument_memcpy_before() for KASAN, KCSAN checks and
+instrument_memcpy_after() for KMSAN.
 
-There's a focus on fixes for the memfd_pin_folios() work which was added
-into 6.11.  Apart from that, the usual shower of singleton fixes.
+Tested on x86_64 and arm64 with CONFIG_KASAN_SW_TAGS.  On arm64 with
+CONFIG_KASAN_HW_TAGS, kunit test currently fails.  Need more clarification
+on it - currently, disabled in kunit test.
 
-----------------------------------------------------------------
-Andrey Skvortsov (1):
-      zram: don't free statically defined names
+Link: https://lkml.kernel.org/r/20240927151438.2143936-1-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Diederik de Haas (1):
-      mm/damon/Kconfig: update DAMON doc URL
+ mm/kasan/kasan_test.c |   31 +++++++++++++++++++++++++++++++
+ mm/maccess.c          |    8 ++++++--
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
-Gautham Ananthakrishna (1):
-      ocfs2: reserve space for inline xattr before attaching reflink tree
+--- a/mm/kasan/kasan_test.c~mm-instrument-copy_from-to_kernel_nofault
++++ a/mm/kasan/kasan_test.c
+@@ -1944,6 +1944,36 @@ static void match_all_mem_tag(struct kun
+ 	kfree(ptr);
+ }
+ 
++static void copy_from_to_kernel_nofault_oob(struct kunit *test)
++{
++	char *ptr;
++	char buf[128];
++	size_t size = sizeof(buf);
++
++	/* Not detecting fails currently with HW_TAGS */
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_HW_TAGS);
++
++	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++	OPTIMIZER_HIDE_VAR(ptr);
++
++	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS)) {
++		/* Check that the returned pointer is tagged. */
++		KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
++		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
++	}
++
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_from_kernel_nofault(&buf[0], ptr, size));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_from_kernel_nofault(ptr, &buf[0], size));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(&buf[0], ptr, size));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(ptr, &buf[0], size));
++	kfree(ptr);
++}
++
+ static struct kunit_case kasan_kunit_test_cases[] = {
+ 	KUNIT_CASE(kmalloc_oob_right),
+ 	KUNIT_CASE(kmalloc_oob_left),
+@@ -2017,6 +2047,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(match_all_not_assigned),
+ 	KUNIT_CASE(match_all_ptr_tag),
+ 	KUNIT_CASE(match_all_mem_tag),
++	KUNIT_CASE(copy_from_to_kernel_nofault_oob),
+ 	{}
+ };
+ 
+--- a/mm/maccess.c~mm-instrument-copy_from-to_kernel_nofault
++++ a/mm/maccess.c
+@@ -15,7 +15,7 @@ bool __weak copy_from_kernel_nofault_all
+ 
+ #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__get_kernel_nofault(dst, src, type, err_label);		\
++		__get_kernel_nofault(dst, src, type, err_label);	\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -32,6 +32,7 @@ long copy_from_kernel_nofault(void *dst,
+ 		return -ERANGE;
+ 
+ 	pagefault_disable();
++	instrument_memcpy_before(dst, src, size);
+ 	if (!(align & 7))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u64, Efault);
+ 	if (!(align & 3))
+@@ -39,6 +40,7 @@ long copy_from_kernel_nofault(void *dst,
+ 	if (!(align & 1))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u16, Efault);
+ 	copy_from_kernel_nofault_loop(dst, src, size, u8, Efault);
++	instrument_memcpy_after(dst, src, size, 0);
+ 	pagefault_enable();
+ 	return 0;
+ Efault:
+@@ -49,7 +51,7 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
+ 
+ #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__put_kernel_nofault(dst, src, type, err_label);		\
++		__put_kernel_nofault(dst, src, type, err_label);	\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -63,6 +65,7 @@ long copy_to_kernel_nofault(void *dst, c
+ 		align = (unsigned long)dst | (unsigned long)src;
+ 
+ 	pagefault_disable();
++	instrument_memcpy_before(dst, src, size);
+ 	if (!(align & 7))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u64, Efault);
+ 	if (!(align & 3))
+@@ -70,6 +73,7 @@ long copy_to_kernel_nofault(void *dst, c
+ 	if (!(align & 1))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u16, Efault);
+ 	copy_to_kernel_nofault_loop(dst, src, size, u8, Efault);
++	instrument_memcpy_after(dst, src, size, 0);
+ 	pagefault_enable();
+ 	return 0;
+ Efault:
+_
 
-Guenter Roeck (2):
-      mm: make SPLIT_PTE_PTLOCKS depend on SMP
-      Revert "list: test: fix tests for list_cut_position()"
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-Huang Ying (1):
-      memory tiers: use default_dram_perf_ref_source in log message
-
-Jeongjun Park (1):
-      mm: migrate: annotate data-race in migrate_folio_unmap()
-
-Joseph Qi (1):
-      ocfs2: fix uninit-value in ocfs2_get_block()
-
-Lorenzo Stoakes (1):
-      tools: fix shared radix-tree build
-
-Mohammed Anees (1):
-      ocfs2: fix deadlock in ocfs2_get_system_file_inode
-
-Muhammad Usama Anjum (1):
-      kselftests: mm: fix wrong __NR_userfaultfd value
-
-Steve Sistare (6):
-      mm/filemap: fix filemap_get_folios_contig THP panic
-      mm/hugetlb: fix memfd_pin_folios free_huge_pages leak
-      mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak
-      mm/gup: fix memfd_pin_folios hugetlb page allocation
-      mm/gup: fix memfd_pin_folios alloc race panic
-      mm/hugetlb: simplify refs in memfd_alloc_folio
-
-Tiezhu Yang (1):
-      compiler.h: specify correct attribute for .rodata..c_jump_table
-
-qiwu.chen (1):
-      mm: kfence: fix elapsed time for allocated/freed track
-
- drivers/block/zram/zram_drv.c              |  6 ++++--
- fs/ocfs2/aops.c                            |  5 ++---
- fs/ocfs2/extent_map.c                      |  8 +++++++-
- fs/ocfs2/refcounttree.c                    | 26 ++++++++++++++++++++++++--
- fs/ocfs2/xattr.c                           | 11 +----------
- include/linux/compiler.h                   |  2 +-
- include/linux/hugetlb.h                    | 10 ++++++++++
- lib/list-test.c                            |  6 ------
- mm/Kconfig                                 |  1 +
- mm/damon/Kconfig                           |  2 +-
- mm/filemap.c                               |  4 ++++
- mm/gup.c                                   |  1 +
- mm/hugetlb.c                               | 17 +++++++++++++++++
- mm/kfence/report.c                         |  2 +-
- mm/memfd.c                                 | 18 ++++++++++--------
- mm/memory-tiers.c                          |  6 +++---
- mm/migrate.c                               |  2 +-
- tools/testing/selftests/mm/pagemap_ioctl.c |  2 +-
- tools/testing/shared/maple-shared.h        |  4 ++++
- tools/testing/shared/shared.h              |  4 ++++
- tools/testing/shared/shared.mk             |  4 +++-
- tools/testing/shared/xarray-shared.h       |  4 ++++
- 22 files changed, 104 insertions(+), 41 deletions(-)
+mm-instrument-copy_from-to_kernel_nofault.patch
 
