@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D141C1AD1;
-	Fri, 27 Sep 2024 18:07:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1BF524B0;
+	Fri, 27 Sep 2024 18:23:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727460449; cv=none; b=Lmkvt22LOhYHffjBWdi++3VkS02sSI4RWYZXeWEQvJ6AZKFNRnt0+mVY/Vw3MgqaBIFK1vY/eDTugzchXymIZgTQb42QyU8a6lZZBpBBLRto4F0jGqXyW0v7PuIAINxSpXLoHskj8iagM5aEbXiPDlDKhkbepBHa1EYe0Xj/Cns=
+	t=1727461390; cv=none; b=lc6INFfETYWvoT7Npv4p96PGBMg3ZH6ylSTf1mkOmRF/aAl5Qallwjc+2N4SBSl+8olFWveijUvrGfo+dDzjVgWYmqllmnFB0gMYSllKxAjxiz+D0dZvnh2d/edXv3x6XLXGF4yCZcJTgxQbsVf4pMWkejFc+WrjWg90xEteEFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727460449; c=relaxed/simple;
-	bh=36ZwAxe9BvZG5ueesbdD3W4C1xaXJY5vy7rDAwY19bI=;
-	h=Date:To:From:Subject:Message-Id; b=aB7/jhijh9pl8HJba5lieh/SKMP1tLfmoqbza4SQA0eTnLv0V9WshjLXd9raAF25PlnoPqKBOIAnBQHkpHq8hDneHqn/LnpPHCpSQya8BLg2Ioh25gSfIwUD5NrcDsZO/XJtLeK4VfgYHhiOqzs+c1kNsaNKUlx9uxhequzssSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OYR46klB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727461390; c=relaxed/simple;
+	bh=nYfhe1qyLkVxhTGavQXlFl3mIst3+pK1yM6ZZ6AGcnM=;
+	h=Date:To:From:Subject:Message-Id; b=ZvzpirMnQP59UTXsxHid5uUSff8OOsy9/SMCZdqPrD0eQhmW5KKm4eWm537avCHF5drAJvZmnKHlyfSNmThmHoQ1PUmHPvmxgNBwg7rRa0mEEWrQoIms5oE7VnKx+1z92BdaVZAVx7HS4hwmqaWfzkb/ZGbRDv4ECi8XhmUvAP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=he9+Knjz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OYR46klB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BECE2C4CEC4;
-	Fri, 27 Sep 2024 18:07:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="he9+Knjz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AEE2C4CEC4;
+	Fri, 27 Sep 2024 18:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727460448;
-	bh=36ZwAxe9BvZG5ueesbdD3W4C1xaXJY5vy7rDAwY19bI=;
+	s=korg; t=1727461390;
+	bh=nYfhe1qyLkVxhTGavQXlFl3mIst3+pK1yM6ZZ6AGcnM=;
 	h=Date:To:From:Subject:From;
-	b=OYR46klBZhGPEJogvfd8S90Vsk0St05BCQKlWEml9775Obui8y+m0D7IzglmolwCT
-	 YiF30m5MqqCjd+fV0wLuqP3lm+JdmqTMlC7vZ7uy2npQ7ApMMALeySpK3a1oork+lj
-	 soD3Vta9ARxANAeRyx5P8bnroljXh6xMWFZIHv5o=
-Date: Fri, 27 Sep 2024 11:07:28 -0700
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,shuah@kernel.org,ritesh.list@gmail.com,rcampbell@nvidia.com,przemyslaw.kitszel@intel.com,keescook@chromium.org,jglisse@redhat.com,jgg@mellanox.com,broonie@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=he9+Knjz5PUXrvI7xmn1az5SgD6a4mJISNCjBo4jGOgaSp9oIzV2gtXbCschQ5ki4
+	 eQ4T+8n48tRjwT//seMx/5woaAulRLvSWoDXwHQdSur6MJAyAjF/VHsB7d2pyjiGoW
+	 TLold/0zCe5nuK3i/SY+1CeqW0bjOKUrShOPprPo=
+Date: Fri, 27 Sep 2024 11:23:09 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,liyangouwen1@oppo.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fixed-incorrect-buffer-mirror-size-in-hmm2-double_map-test.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240927180728.BECE2C4CEC4@smtp.kernel.org>
+Subject: + mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240927182310.0AEE2C4CEC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix incorrect buffer->mirror size in hmm2 double_map test
+     Subject: mm: avoid unconditional one-tick sleep when swapcache_prepare fails
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fixed-incorrect-buffer-mirror-size-in-hmm2-double_map-test.patch
+     mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fixed-incorrect-buffer-mirror-size-in-hmm2-double_map-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,65 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftests/mm: fix incorrect buffer->mirror size in hmm2 double_map test
-Date: Fri, 27 Sep 2024 00:07:52 -0500
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: avoid unconditional one-tick sleep when swapcache_prepare fails
+Date: Fri, 27 Sep 2024 09:19:36 +1200
 
-The hmm2 double_map test was failing due to an incorrect buffer->mirror
-size.  The buffer->mirror size was 6, while buffer->ptr size was 6 *
-PAGE_SIZE.  The test failed because the kernel's copy_to_user function was
-attempting to copy a 6 * PAGE_SIZE buffer to buffer->mirror.  Since the
-size of buffer->mirror was incorrect, copy_to_user failed.
+Commit 13ddaf26be32 ("mm/swap: fix race when skipping swapcache")
+introduced an unconditional one-tick sleep when `swapcache_prepare()`
+fails, which has led to reports of UI stuttering on latency-sensitive
+Android devices.  To address this, we can use a waitqueue to wake up tasks
+that fail `swapcache_prepare()` sooner, instead of always sleeping for a
+full tick.  While tasks may occasionally be woken by an unrelated
+`do_swap_page()`, this method is preferable to two scenarios: rapid
+re-entry into page faults, which can cause livelocks, and multiple
+millisecond sleeps, which visibly degrade user experience.
 
-This patch corrects the buffer->mirror size to 6 * PAGE_SIZE.
+Oven's testing shows that a single waitqueue resolves the UI stuttering
+issue.  If a 'thundering herd' problem becomes apparent later, a waitqueue
+hash similar to `folio_wait_table[PAGE_WAIT_TABLE_SIZE]` for page bit
+locks can be introduced.
 
-Test Result without this patch
-==============================
- #  RUN           hmm2.hmm2_device_private.double_map ...
- # hmm-tests.c:1680:double_map:Expected ret (-14) == 0 (0)
- # double_map: Test terminated by assertion
- #          FAIL  hmm2.hmm2_device_private.double_map
- not ok 53 hmm2.hmm2_device_private.double_map
-
-Test Result with this patch
-===========================
- #  RUN           hmm2.hmm2_device_private.double_map ...
- #            OK  hmm2.hmm2_device_private.double_map
- ok 53 hmm2.hmm2_device_private.double_map
-
-Link: https://lkml.kernel.org/r/20240927050752.51066-1-donettom@linux.ibm.com
-Fixes: fee9f6d1b8df ("mm/hmm/test: add selftests for HMM")
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
+Link: https://lkml.kernel.org/r/20240926211936.75373-1-21cnbao@gmail.com
+Fixes: 13ddaf26be32 ("mm/swap: fix race when skipping swapcache")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reported-by: Oven Liyang <liyangouwen1@oppo.com>
+Tested-by: Oven Liyang <liyangouwen1@oppo.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hmm-tests.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-fixed-incorrect-buffer-mirror-size-in-hmm2-double_map-test
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -1657,7 +1657,7 @@ TEST_F(hmm2, double_map)
+--- a/mm/memory.c~mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails
++++ a/mm/memory.c
+@@ -4192,6 +4192,8 @@ static struct folio *alloc_swap_folio(st
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	buffer->fd = -1;
- 	buffer->size = size;
--	buffer->mirror = malloc(npages);
-+	buffer->mirror = malloc(size);
- 	ASSERT_NE(buffer->mirror, NULL);
- 
- 	/* Reserve a range of addresses. */
++static DECLARE_WAIT_QUEUE_HEAD(swapcache_wq);
++
+ /*
+  * We enter with non-exclusive mmap_lock (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+@@ -4204,6 +4206,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct folio *swapcache, *folio = NULL;
++	DECLARE_WAITQUEUE(wait, current);
+ 	struct page *page;
+ 	struct swap_info_struct *si = NULL;
+ 	rmap_t rmap_flags = RMAP_NONE;
+@@ -4302,7 +4305,9 @@ vm_fault_t do_swap_page(struct vm_fault
+ 					 * Relax a bit to prevent rapid
+ 					 * repeated page faults.
+ 					 */
++					add_wait_queue(&swapcache_wq, &wait);
+ 					schedule_timeout_uninterruptible(1);
++					remove_wait_queue(&swapcache_wq, &wait);
+ 					goto out_page;
+ 				}
+ 				need_clear_cache = true;
+@@ -4609,8 +4614,10 @@ unlock:
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ out:
+ 	/* Clear the swap cache pin for direct swapin after PTL unlock */
+-	if (need_clear_cache)
++	if (need_clear_cache) {
+ 		swapcache_clear(si, entry, nr_pages);
++		wake_up(&swapcache_wq);
++	}
+ 	if (si)
+ 		put_swap_device(si);
+ 	return ret;
+@@ -4625,8 +4632,10 @@ out_release:
+ 		folio_unlock(swapcache);
+ 		folio_put(swapcache);
+ 	}
+-	if (need_clear_cache)
++	if (need_clear_cache) {
+ 		swapcache_clear(si, entry, nr_pages);
++		wake_up(&swapcache_wq);
++	}
+ 	if (si)
+ 		put_swap_device(si);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-selftests-mm-fixed-incorrect-buffer-mirror-size-in-hmm2-double_map-test.patch
+mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
 
