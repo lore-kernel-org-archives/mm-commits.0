@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECAD113F43A;
-	Mon, 30 Sep 2024 15:54:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE76194A61
+	for <mm-commits@vger.kernel.org>; Mon, 30 Sep 2024 16:24:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727711699; cv=none; b=A8ORl5XarFYbQ2+8ejHT5m5tkoEY2CP976NVS7qPCeYUOcUvx7o6FbbU2uqh+X3EMSffTZ0EdXCwJXvy3bpJdzgGB7dy4Rmc829Bw5lEISwjEy7ZMq0yfebDJVdDaaXwWaV0QqY29VEf+C2TcWUjVJJSTFzYKaCk+2sdZ4Amvvs=
+	t=1727713476; cv=none; b=s6PQ20YhRmhnIkG0t9vdknrwe8i44VLKm023zsiNth5tWBW2bwd1Y5wHlJjIcBLzZfflzVZvyCt/XYvAypJ1bc1WmdLb/jgHULZ0mzMymGuV6X7Udp01LnZayI7xI6SI/VZHZS6smT4l8bMam8OVgSgwJastYLh+ubUGsw4iMis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727711699; c=relaxed/simple;
-	bh=XC9hjTVJHIV+dp43jaSoxZZ1QtVfhBf+eCq64TvF24U=;
-	h=Date:To:From:Subject:Message-Id; b=kUdgeB1+qskjlK3Uu1HUe1x8Hvx2VfFzbiP8QIMbAAUg0EzGwBLwUGmHoiQQeZEA55xIugqVpFND4L7DQk2sc3gW/bwyGLILoMlmsA3o6zSqttUNRIW11c4PjH+7XXnZBborOPve+f7RAKBBGL7nvT+u34QyG6W7XyDCuhI2z+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F/Js1UnQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727713476; c=relaxed/simple;
+	bh=vnJhOuGvJyYlh9vYeDV1ssS1UcVJCwvdeXbEAQhTpMU=;
+	h=Date:To:From:Subject:Message-Id; b=OlP2zL3fDr10MWXwJScL+2ZuTSbznDrq+sGaNVV2ftvVCqox+NaDxZCtCx18aNiLDrQodHJYvNOlUKvY2MDE5yORhQyJekTCJQxiYsgqgzOhf99RaTW1qhsSZzYFit/TyabFw28ksQIHTBt0+C8Una9RUJr9kqiBlajeZ4wBFc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wgOhsjt6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F/Js1UnQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CABC4CEC7;
-	Mon, 30 Sep 2024 15:54:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wgOhsjt6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B6CBC4CED0;
+	Mon, 30 Sep 2024 16:24:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727711697;
-	bh=XC9hjTVJHIV+dp43jaSoxZZ1QtVfhBf+eCq64TvF24U=;
+	s=korg; t=1727713475;
+	bh=vnJhOuGvJyYlh9vYeDV1ssS1UcVJCwvdeXbEAQhTpMU=;
 	h=Date:To:From:Subject:From;
-	b=F/Js1UnQbk2sZTgZmxS8ibAwRlgG3AAV/5ptAwR8HUKdedz+iS4aomoZthHpm4/8d
-	 OpTQ6IorLnlainFmIdRNLEdqQyYonZDFlW1DOCsvnXQI6maGdOcw0QRfqaeRBbnmqu
-	 qA/b7EpdGAtPRmlIeYxlwI2EnOxU7jWCTr/JLCjA=
-Date: Mon, 30 Sep 2024 08:54:56 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=wgOhsjt6vt25pCaF4shTs7bqCxme5Qzld5SLB+2I8P1L3tUvcQ+XBSNRNpP2KeA6H
+	 KBQVpkojZVVcB+cwMSaUZ+U5fpIpbZRkbL2YyjKne1tCcgkdF1cFy2UfKvF0rx3Bc4
+	 iQnIbckE79gdSWRRuZXOzLO0+jS+UXul335s01IU=
+Date: Mon, 30 Sep 2024 09:24:35 -0700
+To: mm-commits@vger.kernel.org,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240930155457.68CABC4CEC7@smtp.kernel.org>
+Subject: + mm-instrument-copy_from-to_kernel_nofault-fix.patch added to mm-unstable branch
+Message-Id: <20240930162435.9B6CBC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: allow translation of physical memory addresses
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch
+     Subject: mm, kasan: proper instrument _kernel_nofault
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-instrument-copy_from-to_kernel_nofault-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-instrument-copy_from-to_kernel_nofault-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,126 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: fs/proc/kcore.c: allow translation of physical memory addresses
-Date: Mon, 30 Sep 2024 14:21:19 +0200
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm, kasan: proper instrument _kernel_nofault
+Date: Mon, 30 Sep 2024 15:24:05 +0500
 
-When /proc/kcore is read an attempt to read the first two pages results in
-HW-specific page swap on s390 and another (so called prefix) pages are
-accessed instead.  That leads to a wrong read.
+In commit 88ad9dc30bbf("mm, kasan: instrument
+copy_from/to_kernel_nofault"), both src and dst were checked which might
+lead to the false-positive reports.
 
-Allow architecture-specific translation of memory addresses using
-kc_xlate_dev_mem_ptr() and kc_unxlate_dev_mem_ptr() callbacks similarily
-to /dev/mem xlate_dev_mem_ptr() and unxlate_dev_mem_ptr() callbacks.  That
-way an architecture can deal with specific physical memory ranges.
+Regular instrument_read() for copy_from and instrument_write() for copy_to
+triggers KASAN reports in mm/kasan_test_c.c
+copy_from_to_kernel_nofault_oob() kunit test.
 
-Re-use the existing /dev/mem callback implementation on s390, which
-handles the described prefix pages swapping correctly.
+Tested on x86_64, arm64 with CONFIG_KASAN_SW_TAGS using the latest
+linux-next tree, where this commit has been merged today.
 
-For other architectures the default callback is basically NOP.  It is
-expected the condition (vaddr == __va(__pa(vaddr))) always holds true for
-KCORE_RAM memory type.
-
-Link: https://lkml.kernel.org/r/20240930122119.1651546-1-agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240930102405.2227124-1-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/io.h |    2 +
- fs/proc/kcore.c            |   36 +++++++++++++++++++++++++++++++++--
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ mm/maccess.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/arch/s390/include/asm/io.h~fs-proc-kcorec-allow-translation-of-physical-memory-addresses
-+++ a/arch/s390/include/asm/io.h
-@@ -16,8 +16,10 @@
- #include <asm/pci_io.h>
+--- a/mm/maccess.c~mm-instrument-copy_from-to_kernel_nofault-fix
++++ a/mm/maccess.c
+@@ -32,7 +32,7 @@ long copy_from_kernel_nofault(void *dst,
+ 		return -ERANGE;
  
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
-+#define kc_xlate_dev_mem_ptr xlate_dev_mem_ptr
- void *xlate_dev_mem_ptr(phys_addr_t phys);
- #define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
-+#define kc_unxlate_dev_mem_ptr unxlate_dev_mem_ptr
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ 	pagefault_disable();
+-	instrument_memcpy_before(dst, src, size);
++	instrument_read(src, size);
+ 	if (!(align & 7))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u64, Efault);
+ 	if (!(align & 3))
+@@ -40,7 +40,6 @@ long copy_from_kernel_nofault(void *dst,
+ 	if (!(align & 1))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u16, Efault);
+ 	copy_from_kernel_nofault_loop(dst, src, size, u8, Efault);
+-	instrument_memcpy_after(dst, src, size, 0);
+ 	pagefault_enable();
+ 	return 0;
+ Efault:
+@@ -65,7 +64,7 @@ long copy_to_kernel_nofault(void *dst, c
+ 		align = (unsigned long)dst | (unsigned long)src;
  
- #define IO_SPACE_LIMIT 0
---- a/fs/proc/kcore.c~fs-proc-kcorec-allow-translation-of-physical-memory-addresses
-+++ a/fs/proc/kcore.c
-@@ -50,6 +50,20 @@ static struct proc_dir_entry *proc_root_
- #define	kc_offset_to_vaddr(o) ((o) + PAGE_OFFSET)
- #endif
- 
-+#ifndef kc_xlate_dev_mem_ptr
-+#define kc_xlate_dev_mem_ptr kc_xlate_dev_mem_ptr
-+static inline void *kc_xlate_dev_mem_ptr(phys_addr_t phys)
-+{
-+	return __va(phys);
-+}
-+#endif
-+#ifndef kc_unxlate_dev_mem_ptr
-+#define kc_unxlate_dev_mem_ptr kc_unxlate_dev_mem_ptr
-+static inline void kc_unxlate_dev_mem_ptr(phys_addr_t phys, void *virt)
-+{
-+}
-+#endif
-+
- static LIST_HEAD(kclist_head);
- static DECLARE_RWSEM(kclist_lock);
- static int kcore_need_update = 1;
-@@ -471,6 +485,8 @@ static ssize_t read_kcore_iter(struct ki
- 	while (buflen) {
- 		struct page *page;
- 		unsigned long pfn;
-+		phys_addr_t phys;
-+		void *__start;
- 
- 		/*
- 		 * If this is the first iteration or the address is not within
-@@ -537,7 +553,8 @@ static ssize_t read_kcore_iter(struct ki
- 			}
- 			break;
- 		case KCORE_RAM:
--			pfn = __pa(start) >> PAGE_SHIFT;
-+			phys = __pa(start);
-+			pfn =  phys >> PAGE_SHIFT;
- 			page = pfn_to_online_page(pfn);
- 
- 			/*
-@@ -557,13 +574,28 @@ static ssize_t read_kcore_iter(struct ki
- 			fallthrough;
- 		case KCORE_VMEMMAP:
- 		case KCORE_TEXT:
-+			if (m->type == KCORE_RAM) {
-+				__start = kc_xlate_dev_mem_ptr(phys);
-+				if (!__start) {
-+					ret = -ENOMEM;
-+					if (iov_iter_zero(tsz, iter) != tsz)
-+						ret = -EFAULT;
-+					goto out;
-+				}
-+			} else {
-+				__start = (void *)start;
-+			}
-+
- 			/*
- 			 * Sadly we must use a bounce buffer here to be able to
- 			 * make use of copy_from_kernel_nofault(), as these
- 			 * memory regions might not always be mapped on all
- 			 * architectures.
- 			 */
--			if (copy_from_kernel_nofault(buf, (void *)start, tsz)) {
-+			ret = copy_from_kernel_nofault(buf, __start, tsz);
-+			if (m->type == KCORE_RAM)
-+				kc_unxlate_dev_mem_ptr(phys, __start);
-+			if (ret) {
- 				if (iov_iter_zero(tsz, iter) != tsz) {
- 					ret = -EFAULT;
- 					goto out;
+ 	pagefault_disable();
+-	instrument_memcpy_before(dst, src, size);
++	instrument_write(dst, size);
+ 	if (!(align & 7))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u64, Efault);
+ 	if (!(align & 3))
+@@ -73,7 +72,6 @@ long copy_to_kernel_nofault(void *dst, c
+ 	if (!(align & 1))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u16, Efault);
+ 	copy_to_kernel_nofault_loop(dst, src, size, u8, Efault);
+-	instrument_memcpy_after(dst, src, size, 0);
+ 	pagefault_enable();
+ 	return 0;
+ Efault:
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch
+mm-instrument-copy_from-to_kernel_nofault.patch
+mm-instrument-copy_from-to_kernel_nofault-fix.patch
 
