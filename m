@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7B773BB24
-	for <mm-commits@vger.kernel.org>; Mon, 30 Sep 2024 16:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBBE21946AA
+	for <mm-commits@vger.kernel.org>; Mon, 30 Sep 2024 17:03:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727713996; cv=none; b=P6Nz9XjgKYVI5eTCd6r0UYjAzzOjpqf/aWGRdH4vLDJ32eRgj9XBZAZvcGFm+/naprN5tzC1xGPSCmvKvtSkVTNH+itMRR56FwhR2MmC78mTI13zpbnm5dWzBrRMOP8hMizlRq8PHM9dbNQz9B/FNBEml6FA7U50cuVVJ0carqU=
+	t=1727715833; cv=none; b=Dqny4JI9OsuMlWOLR/Zcmako5JQhdAHUgNRKmcZd3kR51xu2jGPpfDiajVM7r7DxsINFNsN2RYRlIZQa0E5brTpXs0eeuL/5Altcsdvd5gvxD57tNcSPEOVk+Zp94LhHbLVwlifbG9WfBiK+CDBbAki737BM6HVjH8dz7VXHrg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727713996; c=relaxed/simple;
-	bh=P2wzK19AeFRkoAUR+BJW9PD6KGDTEqHxy9epEDpNRrc=;
-	h=Date:To:From:Subject:Message-Id; b=LrxI7Jld03r3PxFV4XPeKEjoFDhYlpx824uY1qnobmUIGR1ebhNFMM3iet9rTtFQUMKkkCU02bM5HAt358cVIuP+yqA5eIR2K0zdRQfupDSYPo66LKd4tdn4YVhpBM0VKDLaIUZhe8UEghXGTvrJbGP+gvPInBqt0i08yUdHfXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e5shuzNM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727715833; c=relaxed/simple;
+	bh=SQaK2rzgMfz6jLJspzIGyu94bJKgIWVPJQJtVDu6VS8=;
+	h=Date:To:From:Subject:Message-Id; b=cLmjywd/10NWAeM013QHjDdl6+bkTtJYHXDoEVih3OrKgkRJ+ohT6oh9U1Q8ffDHqQyV7PqZR9glT7j+zb29GoK83HqU0Go9QGkJ/0yKM8y9l6ooUdDqkmxiR7U7FzO3NiX0iA0gTB11WgzPlZ0HMtZlP+6STrdP4YRr54nOdwg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EhFlZvLw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e5shuzNM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38407C4CEC7;
-	Mon, 30 Sep 2024 16:33:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EhFlZvLw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 450A2C4CEC7;
+	Mon, 30 Sep 2024 17:03:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727713996;
-	bh=P2wzK19AeFRkoAUR+BJW9PD6KGDTEqHxy9epEDpNRrc=;
+	s=korg; t=1727715833;
+	bh=SQaK2rzgMfz6jLJspzIGyu94bJKgIWVPJQJtVDu6VS8=;
 	h=Date:To:From:Subject:From;
-	b=e5shuzNM9lRLTgtAdxTfeGaR0ueunkCd/+3PCVfKO2bfLjEBdk1iunwUulZZxVr17
-	 CYij0TwV0Ss9vnRy3JJjsYR7fz1h5rZ7dM+jz7B9sNM45oqg/E0ULbYBZS4ftXT2Eh
-	 a9nap97bOJljGwaT0AoKSBU237i7pQahO5bMJg98=
-Date: Mon, 30 Sep 2024 09:33:15 -0700
-To: mm-commits@vger.kernel.org,kees@ijzerbout.nl,david@redhat.com,dan.j.williams@intel.com,bhelgaas@google.com,ying.huang@intel.com,akpm@linux-foundation.org
+	b=EhFlZvLwSACH99GvgSKQrNYUw/5SmvJtBT4QopnhlGPvtYdVGyNYSU5sPJR6kxPP2
+	 mXjwBAV+iRokVuRyCHZDRkCERp1MrKrLxjnbqFESf2ViuDdUz0C8GdGXs2Fyc84tE6
+	 EWLkwav8WJBvpmLJO5/BIHVr76y2iEyy5CwdjfRM=
+Date: Mon, 30 Sep 2024 10:03:52 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,bajing@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240930163316.38407C4CEC7@smtp.kernel.org>
+Subject: + selftests-damon-access_memory_even-remove-unused-variables.patch added to mm-unstable branch
+Message-Id: <20240930170353.450A2C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource, kunit: fix user-after-free in resource_test_region_intersects()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch
+     Subject: selftests/damon/access_memory_even: remove unused variables
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-damon-access_memory_even-remove-unused-variables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-access_memory_even-remove-unused-variables.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: resource, kunit: fix user-after-free in resource_test_region_intersects()
-Date: Mon, 30 Sep 2024 15:06:11 +0800
+From: Ba Jing <bajing@cmss.chinamobile.com>
+Subject: selftests/damon/access_memory_even: remove unused variables
+Date: Tue, 24 Sep 2024 10:14:26 +0800
 
-In resource_test_insert_resource(), the pointer is used in error message
-after kfree().  This is user-after-free.  To fix this, we need to call
-kunit_add_action_or_reset() to schedule memory freeing after usage.  But
-kunit_add_action_or_reset() itself may fail and free the memory.  So, its
-return value should be checked and abort the test for failure.  Then, we
-found that other usage of kunit_add_action_or_reset() in
-resource_test_region_intersects() needs to be fixed too.  We fix all these
-user-after-free bugs in this patch.
+By reading the code, I found these variables are never referenced in the
+code.  Just remove them.
 
-Link: https://lkml.kernel.org/r/20240930070611.353338-1-ying.huang@intel.com
-Fixes: 99185c10d5d9 ("resource, kunit: add test case for region_intersects()")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Kees Bakker <kees@ijzerbout.nl>
-Closes: https://lore.kernel.org/lkml/87ldzaotcg.fsf@yhuang6-desk2.ccr.corp.intel.com/
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
+Link: https://lkml.kernel.org/r/20240924021426.1980-1-bajing@cmss.chinamobile.com
+Signed-off-by: Ba Jing <bajing@cmss.chinamobile.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource_kunit.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ tools/testing/selftests/damon/access_memory_even.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/kernel/resource_kunit.c~resource-kunit-fix-user-after-free-in-resource_test_region_intersects
-+++ a/kernel/resource_kunit.c
-@@ -169,6 +169,8 @@ static void resource_test_intersection(s
- #define RES_TEST_RAM3_SIZE	SZ_1M
- #define RES_TEST_TOTAL_SIZE	((RES_TEST_WIN1_OFFSET + RES_TEST_WIN1_SIZE))
- 
-+KUNIT_DEFINE_ACTION_WRAPPER(kfree_wrapper, kfree, const void *);
-+
- static void remove_free_resource(void *ctx)
+--- a/tools/testing/selftests/damon/access_memory_even.c~selftests-damon-access_memory_even-remove-unused-variables
++++ a/tools/testing/selftests/damon/access_memory_even.c
+@@ -14,10 +14,8 @@
+ int main(int argc, char *argv[])
  {
- 	struct resource *res = (struct resource *)ctx;
-@@ -177,6 +179,14 @@ static void remove_free_resource(void *c
- 	kfree(res);
- }
+ 	char **regions;
+-	clock_t start_clock;
+ 	int nr_regions;
+ 	int sz_region;
+-	int access_time_ms;
+ 	int i;
  
-+static void resource_test_add_action_or_abort(
-+	struct kunit *test, void (*action)(void *), void *ctx)
-+{
-+	KUNIT_ASSERT_EQ_MSG(test, 0,
-+			    kunit_add_action_or_reset(test, action, ctx),
-+			    "Fail to add action");
-+}
-+
- static void resource_test_request_region(struct kunit *test, struct resource *parent,
- 					 resource_size_t start, resource_size_t size,
- 					 const char *name, unsigned long flags)
-@@ -185,7 +195,7 @@ static void resource_test_request_region
- 
- 	res = __request_region(parent, start, size, name, flags);
- 	KUNIT_ASSERT_NOT_NULL(test, res);
--	kunit_add_action_or_reset(test, remove_free_resource, res);
-+	resource_test_add_action_or_abort(test, remove_free_resource, res);
- }
- 
- static void resource_test_insert_resource(struct kunit *test, struct resource *parent,
-@@ -202,11 +212,11 @@ static void resource_test_insert_resourc
- 	res->end = start + size - 1;
- 	res->flags = flags;
- 	if (insert_resource(parent, res)) {
--		kfree(res);
-+		resource_test_add_action_or_abort(test, kfree_wrapper, res);
- 		KUNIT_FAIL_AND_ABORT(test, "Fail to insert resource %pR\n", res);
- 	}
- 
--	kunit_add_action_or_reset(test, remove_free_resource, res);
-+	resource_test_add_action_or_abort(test, remove_free_resource, res);
- }
- 
- static void resource_test_region_intersects(struct kunit *test)
-@@ -220,7 +230,7 @@ static void resource_test_region_interse
- 				       "test resources");
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, parent);
- 	start = parent->start;
--	kunit_add_action_or_reset(test, remove_free_resource, parent);
-+	resource_test_add_action_or_abort(test, remove_free_resource, parent);
- 
- 	resource_test_request_region(test, parent, start + RES_TEST_RAM0_OFFSET,
- 				     RES_TEST_RAM0_SIZE, "Test System RAM 0", flags);
+ 	if (argc != 3) {
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from bajing@cmss.chinamobile.com are
 
-resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch
+selftests-damon-access_memory_even-remove-unused-variables.patch
 
