@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B83C199FCE
-	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 21:57:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E7019D8A2
+	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 22:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727819868; cv=none; b=OjyheuYVrdc01UMoS8ogKYo0m0mzw9A5JwPUeqeMGrRdh/WDRmFlo24eHd/qOD3E9KxxROWOCxgruj9G3Mpz9Y6ukZiLNJ4LizhG+/QwvQ0CkmnngTUKuEYvefywiY0S6IShHjF0vVU4rerLqoAdEgCqH2ORlvLz3AUEHYylbqk=
+	t=1727820327; cv=none; b=WRNCzlBpSK+QoWGX7pdwotgdascVySgX0Q51aBJLXMZXoTNmxENSyRZPlXqJpQN38bjDaUSi6dVUriupTX06tp3lIGX+8uQ68Ae8VrarJG4P0eMa8IgZBDAzet8a3KovRyEWamuAzp0ju7McUELx7nLApkSOm+tve7wzQY4Ez/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727819868; c=relaxed/simple;
-	bh=jRGoRdwQe8UIN6ObyW0YiRcbtc75WfA/PA/XjL7hWxQ=;
-	h=Date:To:From:Subject:Message-Id; b=ptd/FAowP1zxgygstIVSdIxN5pcNNe48VlykY0jbXu+ENF0AQIjRj1QjKotV43pVirEbYV+RFfsW3tEYH06Qtbc/RZHp0CKGVImlLbYzLofp0CarPemI7YtxDmOsxYeSkI+eqni0U30mOY3sKmoKGd2fXP7jU1iIB5YzkTND4GI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SxLx809S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727820327; c=relaxed/simple;
+	bh=rTsr2FFRtnFfkWHMErcb6FkXzINyBusTuHgA8dBPRbc=;
+	h=Date:To:From:Subject:Message-Id; b=i/RCtt8vf4aRfCoa2SZX2NjIZjXJiT2p1Tn+w2uMr+OL3RIwdyf5lR5jEAGLt1wX2KI1hlW34tb4P0j8dH2koebWLR0Z2ksh7/EoCr62wg7mNoWPku4IY53OjQxUywI2RZDMAJOPn7beDFJlza7645z7tgLNsDbMTzzDJaSHaLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RmrZMht4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SxLx809S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADAEEC4CEC6;
-	Tue,  1 Oct 2024 21:57:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RmrZMht4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09FE7C4CEC6;
+	Tue,  1 Oct 2024 22:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727819867;
-	bh=jRGoRdwQe8UIN6ObyW0YiRcbtc75WfA/PA/XjL7hWxQ=;
+	s=korg; t=1727820327;
+	bh=rTsr2FFRtnFfkWHMErcb6FkXzINyBusTuHgA8dBPRbc=;
 	h=Date:To:From:Subject:From;
-	b=SxLx809Sgctz+sMXaoNeVuKovIkttZEk8d8v+QE8vsUqFXSF3dtDnilJ3J7uqk8u3
-	 anm6AIdegYzAG+/HRmpQPvHBQ16eItKxSKquqY5xLLYjdmqmfIQbafelVLMom67q+9
-	 ePPYuvMStQoQ3uU0hLKj5AF1U9hHh8fVR63Lqf7Q=
-Date: Tue, 01 Oct 2024 14:57:47 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,dan.carpenter@linaro.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=RmrZMht48pj0k7xX86mCC3kA720hemsK+AplJm/xiYHzgp8AVT3/DXlHtsZOTnCYW
+	 f/WH06Pq36kfgkxIcinnApljdhT682FuDLPeIP3yfoVMA3oZq0DNNNkZ+M29NaQXp8
+	 zzL28h5onzbtxks2Kku8FcDt0OCE3wpKY1h8X9yQ=
+Date: Tue, 01 Oct 2024 15:05:26 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,jgowans@amazon.com,graf@amazon.com,david@redhat.com,roypat@amazon.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-rework-recompress-target-selection-strategy-fix.patch added to mm-unstable branch
-Message-Id: <20241001215747.ADAEEC4CEC6@smtp.kernel.org>
+Subject: + secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241001220527.09FE7C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not skip the first bucket
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-rework-recompress-target-selection-strategy-fix.patch
+     Subject: secretmem: disable memfd_secret() if arch cannot set direct map
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rework-recompress-target-selection-strategy-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not skip the first bucket
-Date: Tue, 1 Oct 2024 17:55:56 +0900
+From: Patrick Roy <roypat@amazon.co.uk>
+Subject: secretmem: disable memfd_secret() if arch cannot set direct map
+Date: Tue, 1 Oct 2024 09:00:41 +0100
 
-A small fixup.
+Return -ENOSYS from memfd_secret() syscall if !can_set_direct_map().  This
+is the case for example on some arm64 configurations, where marking 4k
+PTEs in the direct map not present can only be done if the direct map is
+set up at 4k granularity in the first place (as ARM's break-before-make
+semantics do not easily allow breaking apart large/gigantic pages).
 
-Link: https://lkml.kernel.org/r/20241001085634.1948384-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Minchan Kim <minchan@kernel.org>
+More precisely, on arm64 systems with !can_set_direct_map(),
+set_direct_map_invalid_noflush() is a no-op, however it returns success
+(0) instead of an error.  This means that memfd_secret will seemingly
+"work" (e.g.  syscall succeeds, you can mmap the fd and fault in pages),
+but it does not actually achieve its goal of removing its memory from the
+direct map.
+
+Note that with this patch, memfd_secret() will start erroring on systems
+where can_set_direct_map() returns false (arm64 with
+CONFIG_RODATA_FULL_DEFAULT_ENABLED=n, CONFIG_DEBUG_PAGEALLOC=n and
+CONFIG_KFENCE=n), but that still seems better than the current silent
+failure.  Since CONFIG_RODATA_FULL_DEFAULT_ENABLED defaults to 'y', most
+arm64 systems actually have a working memfd_secret() and aren't be
+affected.
+
+From going through the iterations of the original memfd_secret patch
+series, it seems that disabling the syscall in these scenarios was the
+intended behavior [1] (preferred over having
+set_direct_map_invalid_noflush return an error as that would result in
+SIGBUSes at page-fault time), however the check for it got dropped between
+v16 [2] and v17 [3], when secretmem moved away from CMA allocations.
+
+[1]: https://lore.kernel.org/lkml/20201124164930.GK8537@kernel.org/
+[2]: https://lore.kernel.org/lkml/20210121122723.3446-11-rppt@kernel.org/#t
+[3]: https://lore.kernel.org/lkml/20201125092208.12544-10-rppt@kernel.org/
+
+Link: https://lkml.kernel.org/r/20241001080056.784735-1-roypat@amazon.co.uk
+Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
+Signed-off-by: Patrick Roy <roypat@amazon.co.uk>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: James Gowans <jgowans@amazon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/secretmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-rework-recompress-target-selection-strategy-fix
-+++ a/drivers/block/zram/zram_drv.c
-@@ -264,7 +264,7 @@ static struct zram_pp_slot *select_pp_sl
- 	s32 idx = NUM_PP_BUCKETS - 1;
+--- a/mm/secretmem.c~secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map
++++ a/mm/secretmem.c
+@@ -238,7 +238,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
+ 	/* make sure local flags do not confict with global fcntl.h */
+ 	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
  
- 	/* The higher the bucket id the more optimal slot post-processing is */
--	while (idx > 0) {
-+	while (idx >= 0) {
- 		pps = list_first_entry_or_null(&ctl->pp_buckets[idx],
- 					       struct zram_pp_slot,
- 					       entry);
+-	if (!secretmem_enable)
++	if (!secretmem_enable || !can_set_direct_map())
+ 		return -ENOSYS;
+ 
+ 	if (flags & ~(SECRETMEM_FLAGS_MASK | O_CLOEXEC))
+@@ -280,7 +280,7 @@ static struct file_system_type secretmem
+ 
+ static int __init secretmem_init(void)
+ {
+-	if (!secretmem_enable)
++	if (!secretmem_enable || !can_set_direct_map())
+ 		return 0;
+ 
+ 	secretmem_mnt = kern_mount(&secretmem_fs);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from roypat@amazon.co.uk are
 
-zram-introduce-zram_pp_slot-flag.patch
-zram-permit-only-one-post-processing-operation-at-a-time.patch
-zram-rework-recompress-target-selection-strategy.patch
-zram-rework-recompress-target-selection-strategy-fix.patch
-zram-rework-writeback-target-selection-strategy.patch
-zram-do-not-mark-idle-slots-that-cannot-be-idle.patch
-zram-reshuffle-zram_free_page-flags-operations.patch
-zram-remove-under_wb-and-simplify-writeback.patch
+secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
 
