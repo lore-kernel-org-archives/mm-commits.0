@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E7019D8A2
-	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 22:05:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DD81CEABE
+	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 22:13:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727820327; cv=none; b=WRNCzlBpSK+QoWGX7pdwotgdascVySgX0Q51aBJLXMZXoTNmxENSyRZPlXqJpQN38bjDaUSi6dVUriupTX06tp3lIGX+8uQ68Ae8VrarJG4P0eMa8IgZBDAzet8a3KovRyEWamuAzp0ju7McUELx7nLApkSOm+tve7wzQY4Ez/8=
+	t=1727820794; cv=none; b=B7vsBoscXY91oPSFM2UgvKbm9N/y68jCfleoUJsPCRULXAO1BiWl4e/nom6y6heIXOqWIxIDlMUmxGQCOLJO29CDq6xudUWTHGUMgRiNA3vW1cekrbyLcVb+X8XuxURBz3ujIaOm6I+oYD82ng4i0vt9HSJVMF1raEfel1Zon1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727820327; c=relaxed/simple;
-	bh=rTsr2FFRtnFfkWHMErcb6FkXzINyBusTuHgA8dBPRbc=;
-	h=Date:To:From:Subject:Message-Id; b=i/RCtt8vf4aRfCoa2SZX2NjIZjXJiT2p1Tn+w2uMr+OL3RIwdyf5lR5jEAGLt1wX2KI1hlW34tb4P0j8dH2koebWLR0Z2ksh7/EoCr62wg7mNoWPku4IY53OjQxUywI2RZDMAJOPn7beDFJlza7645z7tgLNsDbMTzzDJaSHaLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RmrZMht4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727820794; c=relaxed/simple;
+	bh=UxcUgnfuAQmZ+8stdP8Y8D83wWZK+BflwnamU5t3VNA=;
+	h=Date:To:From:Subject:Message-Id; b=m2meb5ko9a3iMz6lAz892AdScOwCZ7m4cUIHy4BWB01IjKQi8hBHXQkIeJ+44XPrmtQnlooCoq1kxkwrOsSddxjBUl8wvYqYyNAXNGW28KmogEKosUun8xLbyK9V2dIDT9F8b7neRnvzOoQG4NOk3JUkSXiJM5d9tV/2uTpTziQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EbLCn5qf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RmrZMht4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09FE7C4CEC6;
-	Tue,  1 Oct 2024 22:05:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EbLCn5qf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0045C4CEC6;
+	Tue,  1 Oct 2024 22:13:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727820327;
-	bh=rTsr2FFRtnFfkWHMErcb6FkXzINyBusTuHgA8dBPRbc=;
+	s=korg; t=1727820793;
+	bh=UxcUgnfuAQmZ+8stdP8Y8D83wWZK+BflwnamU5t3VNA=;
 	h=Date:To:From:Subject:From;
-	b=RmrZMht48pj0k7xX86mCC3kA720hemsK+AplJm/xiYHzgp8AVT3/DXlHtsZOTnCYW
-	 f/WH06Pq36kfgkxIcinnApljdhT682FuDLPeIP3yfoVMA3oZq0DNNNkZ+M29NaQXp8
-	 zzL28h5onzbtxks2Kku8FcDt0OCE3wpKY1h8X9yQ=
-Date: Tue, 01 Oct 2024 15:05:26 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,jgowans@amazon.com,graf@amazon.com,david@redhat.com,roypat@amazon.co.uk,akpm@linux-foundation.org
+	b=EbLCn5qfVm2sGFVgdrIFCMIFKLxCgjZWmVaqVPZP1tRrPpSopi7Tx6HRkQl8gOLDz
+	 sVmvHLm+u8dkB3i8oHMFQ9fD/w5pQepCQN08hAJA8F4uXBybR9NPHGkdRQnZphheyE
+	 B+4/oyjY7lhSGQMfspU5iSiPXGh7o4G9Ahjs+ToU=
+Date: Tue, 01 Oct 2024 15:13:13 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,nanhai.zou@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241001220527.09FE7C4CEC6@smtp.kernel.org>
+Subject: + mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch added to mm-unstable branch
+Message-Id: <20241001221313.E0045C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: secretmem: disable memfd_secret() if arch cannot set direct map
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
+     Subject: mm: define obj_cgroup_get() if CONFIG_MEMCG is not defined.
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,78 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Patrick Roy <roypat@amazon.co.uk>
-Subject: secretmem: disable memfd_secret() if arch cannot set direct map
-Date: Tue, 1 Oct 2024 09:00:41 +0100
+From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Subject: mm: define obj_cgroup_get() if CONFIG_MEMCG is not defined.
+Date: Mon, 30 Sep 2024 22:32:16 -0700
 
-Return -ENOSYS from memfd_secret() syscall if !can_set_direct_map().  This
-is the case for example on some arm64 configurations, where marking 4k
-PTEs in the direct map not present can only be done if the direct map is
-set up at 4k granularity in the first place (as ARM's break-before-make
-semantics do not easily allow breaking apart large/gigantic pages).
+This resolves an issue with obj_cgroup_get() not being defined if
+CONFIG_MEMCG is not defined.
 
-More precisely, on arm64 systems with !can_set_direct_map(),
-set_direct_map_invalid_noflush() is a no-op, however it returns success
-(0) instead of an error.  This means that memfd_secret will seemingly
-"work" (e.g.  syscall succeeds, you can mmap the fd and fault in pages),
-but it does not actually achieve its goal of removing its memory from the
-direct map.
+Before this patch, we would see build errors if obj_cgroup_get() is called
+from code that is agnostic of CONFIG_MEMCG.
 
-Note that with this patch, memfd_secret() will start erroring on systems
-where can_set_direct_map() returns false (arm64 with
-CONFIG_RODATA_FULL_DEFAULT_ENABLED=n, CONFIG_DEBUG_PAGEALLOC=n and
-CONFIG_KFENCE=n), but that still seems better than the current silent
-failure.  Since CONFIG_RODATA_FULL_DEFAULT_ENABLED defaults to 'y', most
-arm64 systems actually have a working memfd_secret() and aren't be
-affected.
+The zswap_store() changes for large folios in subsequent commits will
+require the use of obj_cgroup_get() in zswap code that falls into this
+category.
 
-From going through the iterations of the original memfd_secret patch
-series, it seems that disabling the syscall in these scenarios was the
-intended behavior [1] (preferred over having
-set_direct_map_invalid_noflush return an error as that would result in
-SIGBUSes at page-fault time), however the check for it got dropped between
-v16 [2] and v17 [3], when secretmem moved away from CMA allocations.
-
-[1]: https://lore.kernel.org/lkml/20201124164930.GK8537@kernel.org/
-[2]: https://lore.kernel.org/lkml/20210121122723.3446-11-rppt@kernel.org/#t
-[3]: https://lore.kernel.org/lkml/20201125092208.12544-10-rppt@kernel.org/
-
-Link: https://lkml.kernel.org/r/20241001080056.784735-1-roypat@amazon.co.uk
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: Patrick Roy <roypat@amazon.co.uk>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Gowans <jgowans@amazon.com>
+Link: https://lkml.kernel.org/r/20241001053222.6944-2-kanchana.p.sridhar@intel.com
+Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
+Cc: "Zou, Nanhai" <nanhai.zou@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/secretmem.c~secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map
-+++ a/mm/secretmem.c
-@@ -238,7 +238,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	/* make sure local flags do not confict with global fcntl.h */
- 	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
+--- a/include/linux/memcontrol.h~mm-define-obj_cgroup_get-if-config_memcg-is-not-defined
++++ a/include/linux/memcontrol.h
+@@ -1282,6 +1282,10 @@ struct mem_cgroup *mem_cgroup_from_css(s
+ 	return NULL;
+ }
  
--	if (!secretmem_enable)
-+	if (!secretmem_enable || !can_set_direct_map())
- 		return -ENOSYS;
- 
- 	if (flags & ~(SECRETMEM_FLAGS_MASK | O_CLOEXEC))
-@@ -280,7 +280,7 @@ static struct file_system_type secretmem
- 
- static int __init secretmem_init(void)
++static inline void obj_cgroup_get(struct obj_cgroup *objcg)
++{
++}
++
+ static inline void obj_cgroup_put(struct obj_cgroup *objcg)
  {
--	if (!secretmem_enable)
-+	if (!secretmem_enable || !can_set_direct_map())
- 		return 0;
- 
- 	secretmem_mnt = kern_mount(&secretmem_fs);
+ }
 _
 
-Patches currently in -mm which might be from roypat@amazon.co.uk are
+Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
 
-secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
+mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
+mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch
+mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch
+mm-change-count_objcg_event-to-count_objcg_events-for-batch-event-updates.patch
+mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
+mm-zswap-support-large-folios-in-zswap_store.patch
+mm-swap-count-successful-large-folio-zswap-stores-in-hugepage-zswpout-stats.patch
 
