@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915301CDA29
-	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 22:13:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ECB51CCEE5
+	for <mm-commits@vger.kernel.org>; Tue,  1 Oct 2024 22:13:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727820802; cv=none; b=Rl3hasN3MNehH7NqzYioI29sK6YYZWSEy0JVbTs5YsiEM8iFLDqXRzCH8Y8k1yrnjpEWZgQSLnw7jn1YirxXmpQM2fnIryA1UvvHAtAqMU/EDSLFrfQndfz9pIhmM1rTHLJ8B23/X3pAjah3Krp61WFDKVAjEvTk0h9ac34v56M=
+	t=1727820806; cv=none; b=T4048yNP8eXiBEtyGuQsGHp6S7F3a3AH4G2pPcYu6GipOXdgyagZiU6HxLc40CzZ8KxrGkw3LT4zMa+ajv03nQBt3/H3sKDr++cU4wWp1Yccp1LfvYRSWR0+b0Zvdc0ZAofXTQ+K0FT2+AjEiMm6a16Qdgz1o7O1adzmz/ISoXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727820802; c=relaxed/simple;
-	bh=IDstN8G6yz9M1nVvXe23IhUIeBnXGiSJROlbVhINeng=;
-	h=Date:To:From:Subject:Message-Id; b=llUfAbWfwYPBtt1CKsdjoPIF4/d4/r/YKg0JBGPu5HG+J6TBuRQERvaaeG9HyT9KF8Shp8ntpA2uIFcHBEiz8/fxLOjH5x1DWnWYkkv+chyyxNm+bOF1X4Tv/bgT0z8cznDBatgZqSMzQkHM9icZWMZIVCKEdzN1mxT1k/i0hA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XAFHOt3y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727820806; c=relaxed/simple;
+	bh=a6W/2uJD+XIbz1Tk+VWIUFJZ4mUHN+mAksxZCwzMcF8=;
+	h=Date:To:From:Subject:Message-Id; b=NVDbvY5Jclevsn63XMiIepAQbH3SbHwEGeZiha2lwFWRpEvuY1hMmexqBeJyA2wuwvCjYZs35vwBWzy2yJUEEr7fPKh8cdOl55RC5CnUUEhl3BaPt3msLlH0j1mRigfSHtwk69noB9OVjtHzkay80C2kL/+IPGEa/oJGHPrTlI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VdDSSm6o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XAFHOt3y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6CAC4CEC6;
-	Tue,  1 Oct 2024 22:13:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VdDSSm6o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4A4BC4CEC6;
+	Tue,  1 Oct 2024 22:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727820802;
-	bh=IDstN8G6yz9M1nVvXe23IhUIeBnXGiSJROlbVhINeng=;
+	s=korg; t=1727820805;
+	bh=a6W/2uJD+XIbz1Tk+VWIUFJZ4mUHN+mAksxZCwzMcF8=;
 	h=Date:To:From:Subject:From;
-	b=XAFHOt3yK+zDNF94uR+Q+as/djXY95q2qd+hyUXzCLMek6k0TW/Khs2y6A5A7BBmC
-	 d4XtjKc0K5Qp8NvI1UeftEXIyF8f9xTwtG8LM+zCuNq3ok5lc1mM3OI0BZ39w+coBx
-	 l+Dv2Mg856UE4e60QBH2L4G3JXdwGSHoISYIr59E=
-Date: Tue, 01 Oct 2024 15:13:21 -0700
+	b=VdDSSm6oxa1akUrdn9LbN3t/+h6aw3ahNU8kDXtAAPWSRbgWWJmLPhp52EADhByrH
+	 6gJXzVL4+4HVQhYaodmSeC8L0GZqWoEoofJPKc41nCVyaJhaS5cvygA7txqFIA4yrs
+	 Pp6A0gbKjayl7fStLXg4N/MAPqAGQqS5VDtoIxzE=
+Date: Tue, 01 Oct 2024 15:13:25 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,nanhai.zou@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch added to mm-unstable branch
-Message-Id: <20241001221322.3A6CAC4CEC6@smtp.kernel.org>
+Subject: + mm-zswap-support-large-folios-in-zswap_store.patch added to mm-unstable branch
+Message-Id: <20241001221325.B4A4BC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: modify zswap_stored_pages to be atomic_long_t.
+     Subject: mm: zswap: support large folios in zswap_store().
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
+     mm-zswap-support-large-folios-in-zswap_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-support-large-folios-in-zswap_store.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,427 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: zswap: modify zswap_stored_pages to be atomic_long_t.
-Date: Mon, 30 Sep 2024 22:32:20 -0700
+Subject: mm: zswap: support large folios in zswap_store().
+Date: Mon, 30 Sep 2024 22:32:21 -0700
 
-For zswap_store() to support large folios, we need to be able to do a
-batch update of zswap_stored_pages upon successful store of all pages in
-the folio.  For this, we need to add folio_nr_pages(), which returns a
-long, to zswap_stored_pages.
+This series enables zswap_store() to accept and store large folios.  The
+most significant contribution in this series is from the earlier RFC
+submitted by Ryan Roberts [1].  Ryan's original RFC has been migrated to
+mm-unstable as of 9-30-2024 in patch 6 of this series, and adapted based
+on code review comments received for the current patch-series.
 
-Link: https://lkml.kernel.org/r/20241001053222.6944-6-kanchana.p.sridhar@intel.com
+[1]: [RFC PATCH v1] mm: zswap: Store large folios without splitting
+     https://lore.kernel.org/linux-mm/20231019110543.3284654-1-ryan.roberts@arm.com/T/#u
+
+The first few patches do the prep work for supporting large folios in
+zswap_store.  Patch 6 provides the main functionality to swap-out large
+folios in zswap.  Patch 7 adds sysfs per-order hugepages "zswpout"
+counters that get incremented upon successful zswap_store of large folios,
+and also updates the documentation for this:
+
+/sys/kernel/mm/transparent_hugepage/hugepages-*kB/stats/zswpout
+
+This series is a pre-requisite for zswap compress batching of large folio
+swap-out and decompress batching of swap-ins based on swapin_readahead(),
+using Intel IAA hardware acceleration, which we would like to submit in
+subsequent patch-series, with performance improvement data.
+
+Thanks to Ying Huang for pre-posting review feedback and suggestions!
+
+Thanks also to Nhat, Yosry, Johannes, Barry, Chengming, Usama, Ying and
+Matthew for their helpful feedback, code/data reviews and suggestions!
+
+I would like to thank Ryan Roberts for his original RFC [1].
+
+
+System setup for testing:
+=========================
+
+Testing of this series was done with mm-unstable as of 9-27-2024, commit
+de2fbaa6d9c3576ec7133ed02a370ec9376bf000 (without this patch-series) and
+mm-unstable 9-30-2024 commit c121617e3606be6575cdacfdb63cc8d67b46a568
+(with this patch-series).  Data was gathered on an Intel Sapphire Rapids
+server, dual-socket 56 cores per socket, 4 IAA devices per socket, 503 GiB
+RAM and 525G SSD disk partition swap.  Core frequency was fixed at
+2500MHz.
+
+The vm-scalability "usemem" test was run in a cgroup whose memory.high was
+fixed at 150G.  The is no swap limit set for the cgroup.  30 usemem
+processes were run, each allocating and writing 10G of memory, and
+sleeping for 10 sec before exiting:
+
+usemem --init-time -w -O -s 10 -n 30 10g
+
+Other kernel configuration parameters:
+
+    zswap compressors : zstd, deflate-iaa
+    zswap allocator   : zsmalloc
+    vm.page-cluster   : 2
+
+In the experiments where "deflate-iaa" is used as the zswap compressor,
+IAA "compression verification" is enabled by default (cat
+/sys/bus/dsa/drivers/crypto/verify_compress).  Hence each IAA compression
+will be decompressed internally by the "iaa_crypto" driver, the crc-s
+returned by the hardware will be compared and errors reported in case of
+mismatches.  Thus "deflate-iaa" helps ensure better data integrity as
+compared to the software compressors, and the experimental data listed
+below is with verify_compress set to "1".
+
+Metrics reporting methodology:
+==============================
+Total and average throughput are derived from the individual 30 processes'
+throughputs reported by usemem.  elapsed/sys times are measured with perf.
+
+All percentage changes are "new" vs.  "old"; hence a positive value
+denotes an increase in the metric, whether it is throughput or latency,
+and a negative value denotes a reduction in the metric.  Positive
+throughput change percentages and negative latency change percentages
+denote improvements.
+
+The vm stats and sysfs hugepages stats included with the performance data
+provide details on the swapout activity to zswap/swap device.
+
+
+Testing labels used in data summaries:
+======================================
+The data refers to these test configurations and the before/after
+comparisons that they do:
+
+ before-case1:
+ -------------
+ mm-unstable 9-27-2024, CONFIG_THP_SWAP=N (compares zswap 4K vs. zswap 64K)
+
+ In this scenario, CONFIG_THP_SWAP=N results in 64K/2M folios to be split
+ into 4K folios that get processed by zswap.
+
+ before-case2:
+ -------------
+ mm-unstable 9-27-2024, CONFIG_THP_SWAP=Y (compares SSD swap large folios vs. zswap large folios)
+
+ In this scenario, CONFIG_THP_SWAP=Y results in zswap rejecting large
+ folios, which will then be stored by the SSD swap device.
+
+ after:
+ ------
+ v10 of this patch-series, CONFIG_THP_SWAP=Y
+
+ The "after" is CONFIG_THP_SWAP=Y and v10 of this patch-series, that results
+ in 64K/2M folios to not be split, and to be processed by zswap_store.
+
+
+Regression Testing:
+===================
+I ran vm-scalability usemem without large folios, i.e., only 4K folios with
+mm-unstable and this patch-series. The main goal was to make sure that
+there is no functional or performance regression wrt the earlier zswap
+behavior for 4K folios, now that 4K folios will be processed by the new
+zswap_store() code.
+
+The data indicates there is no significant regression.
+
+ -------------------------------------------------------------------------------
+ 4K folios:
+ ==========
+
+ zswap compressor                zstd          zstd        zstd       zstd v10
+                         before-case1  before-case2       after      vs.     vs.
+                                                                   case1   case2
+ -------------------------------------------------------------------------------
+ Total throughput (KB/s)    4,793,363     4,880,978   4,853,074       1%     -1%
+ Average throughput (KB/s)    159,778       162,699     161,769       1%     -1%
+ elapsed time (sec)            130.14        123.17      126.29      -3%      3%
+ sys time (sec)              3,135.53      2,985.64    3,083.18      -2%      3%
+ memcg_high                   446,826       444,626     452,930        
+ memcg_swap_fail                    0             0           0              
+ zswpout                   48,932,107    48,931,971  48,931,820             
+ zswpin                           383           386         397            
+ pswpout                            0             0           0              
+ pswpin                             0             0           0              
+ thp_swpout                         0             0           0              
+ thp_swpout_fallback                0             0           0              
+ 64kB-mthp_swpout_fallback          0             0           0              
+ pgmajfault                     3,063         3,077       3,479          
+ swap_ra                           93            94          96             
+ swap_ra_hit                       47            47          50             
+ ZSWPOUT-64kB                     n/a           n/a           0              
+ SWPOUT-64kB                        0             0           0
+ -------------------------------------------------------------------------------
+
+
+Performance Testing:
+====================
+
+We list the data for 64K folios with before/after data per-compressor,
+followed by the same for 2M pmd-mappable folios.
+
+
+ -------------------------------------------------------------------------------
+ 64K folios: zstd:
+ =================
+
+ zswap compressor                zstd          zstd         zstd      zstd v10
+                         before-case1  before-case2        after     vs.    vs.
+                                                                    case1  case2
+ -------------------------------------------------------------------------------
+ Total throughput (KB/s)    5,222,213     1,076,611    6,159,776      18%   472% 
+ Average throughput (KB/s)    174,073        35,887      205,325      18%   472%
+ elapsed time (sec)            120.50        347.16       108.33     -10%   -69%
+ sys time (sec)              2,930.33        248.16     2,549.65     -13%   927%
+ memcg_high                   416,773       552,200      465,874                   
+ memcg_swap_fail            3,192,906         1,293        1,012                   
+ zswpout                   48,931,583        20,903   48,931,218                  
+ zswpin                           384           363          410                   
+ pswpout                            0    40,778,448            0                   
+ pswpin                             0            16            0                   
+ thp_swpout                         0             0            0                   
+ thp_swpout_fallback                0             0            0                   
+ 64kB-mthp_swpout_fallback  3,192,906         1,293        1,012                   
+ pgmajfault                     3,452         3,072        3,061                   
+ swap_ra                           90            87          107                   
+ swap_ra_hit                       42            43           57                   
+ ZSWPOUT-64kB                     n/a           n/a    3,057,173                   
+ SWPOUT-64kB                        0     2,548,653            0                   
+ -------------------------------------------------------------------------------
+
+
+ -------------------------------------------------------------------------------
+ 64K folios: deflate-iaa:
+ ========================
+
+ zswap compressor         deflate-iaa   deflate-iaa  deflate-iaa deflate-iaa v10
+                         before-case1  before-case2        after     vs.     vs.
+                                                                   case1   case2
+ -------------------------------------------------------------------------------
+ Total throughput (KB/s)    5,652,608     1,089,180    7,189,778     27%    560% 
+ Average throughput (KB/s)    188,420        36,306      239,659     27%    560%
+ elapsed time (sec)            102.90        343.35        87.05    -15%    -75%
+ sys time (sec)              2,246.86        213.53     1,864.16    -17%    773%
+ memcg_high                   576,104       502,907      642,083                    
+ memcg_swap_fail            4,016,117         1,407        1,478                    
+ zswpout                   61,163,423        22,444   57,798,716                    
+ zswpin                           401           368          454                    
+ pswpout                            0    40,862,080            0                    
+ pswpin                             0            20            0                    
+ thp_swpout                         0             0            0                    
+ thp_swpout_fallback                0             0            0                    
+ 64kB-mthp_swpout_fallback  4,016,117         1,407        1,478                    
+ pgmajfault                     3,063         3,153        3,122                    
+ swap_ra                           96            93          156                    
+ swap_ra_hit                       46            45           83                    
+ ZSWPOUT-64kB                     n/a           n/a    3,611,032                    
+ SWPOUT-64kB                        0     2,553,880            0                  
+ -------------------------------------------------------------------------------
+
+
+ -------------------------------------------------------------------------------
+ 2M folios: zstd:
+ ================
+
+ zswap compressor                zstd          zstd         zstd      zstd v10
+                         before-case1  before-case2        after     vs.    vs.
+                                                                   case1  case2
+ -------------------------------------------------------------------------------
+ Total throughput (KB/s)    5,895,500     1,109,694    6,484,224     10%    484%
+ Average throughput (KB/s)    196,516        36,989      216,140     10%    484%
+ elapsed time (sec)            108.77        334.28       106.33     -2%    -68%
+ sys time (sec)              2,657.14         94.88     2,376.13    -11%   2404%
+ memcg_high                    64,200        66,316       56,898                  
+ memcg_swap_fail              101,182            70           27                  
+ zswpout                   48,931,499        36,507   48,890,640                  
+ zswpin                           380           379          377                  
+ pswpout                            0    40,166,400            0                  
+ pswpin                             0             0            0                  
+ thp_swpout                         0        78,450            0                  
+ thp_swpout_fallback          101,182            70           27                  
+ 2MB-mthp_swpout_fallback           0             0           27                  
+ pgmajfault                     3,067         3,417        3,311                  
+ swap_ra                           91            90          854                  
+ swap_ra_hit                       45            45          810                  
+ ZSWPOUT-2MB                      n/a           n/a       95,459                  
+ SWPOUT-2MB                         0        78,450            0                 
+ -------------------------------------------------------------------------------
+
+
+ -------------------------------------------------------------------------------
+ 2M folios: deflate-iaa:
+ =======================
+
+ zswap compressor         deflate-iaa   deflate-iaa  deflate-iaa deflate-iaa v10
+                         before-case1  before-case2        after     vs.     vs.
+                                                                   case1   case2
+ -------------------------------------------------------------------------------
+ Total throughput (KB/s)   6,286,587      1,126,785    7,073,464     13%    528%
+ Average throughput (KB/s)   209,552         37,559      235,782     13%    528%
+ elapsed time (sec)            96.19         333.03        85.79    -11%    -74%
+ sys time (sec)             2,141.44          99.96     1,826.67    -15%   1727%
+ memcg_high                   99,253         64,666       79,718                    
+ memcg_swap_fail             129,074             53          165                    
+ zswpout                  61,312,794         28,321   56,045,120                    
+ zswpin                          383            406          403                    
+ pswpout                           0     40,048,128            0                    
+ pswpin                            0              0            0                    
+ thp_swpout                        0         78,219            0                    
+ thp_swpout_fallback         129,074             53          165                    
+ 2MB-mthp_swpout_fallback          0              0          165                    
+ pgmajfault                    3,430          3,077       31,468                    
+ swap_ra                          91            103       84,373                    
+ swap_ra_hit                      47             46       84,317                    
+ ZSWPOUT-2MB                     n/a            n/a      109,229                    
+ SWPOUT-2MB                        0         78,219            0                
+ -------------------------------------------------------------------------------
+
+
+And finally, this is a comparison of deflate-iaa vs. zstd with v10 of this
+patch-series:
+
+ ---------------------------------------------
+                  zswap_store large folios v10
+                  Impr w/ deflate-iaa vs. zstd
+
+                       64K folios    2M folios
+ ---------------------------------------------
+ Throughput (KB/s)            17%           9%
+ elapsed time (sec)          -20%         -19%
+ sys time (sec)              -27%         -23%
+ ---------------------------------------------
+
+
+Conclusions based on the performance results:
+=============================================
+
+ v10 wrt before-case1:
+ ---------------------
+ We see significant improvements in throughput, elapsed and sys time for
+ zstd and deflate-iaa, when comparing before-case1 (THP_SWAP=N) vs. after
+ (THP_SWAP=Y) with zswap_store large folios.
+
+ v10 wrt before-case2:
+ ---------------------
+ We see even more significant improvements in throughput and elapsed time
+ for zstd and deflate-iaa, when comparing before-case2 (large-folio-SSD)
+ vs. after (large-folio-zswap). The sys time increases with
+ large-folio-zswap as expected, due to the CPU compression time
+ vs. asynchronous disk write times, as pointed out by Ying and Yosry.
+ 
+ In before-case2, when zswap does not store large folios, only allocations
+ and cgroup charging due to 4K folio zswap stores count towards the cgroup
+ memory limit. However, in the after scenario, with the introduction of
+ zswap_store() of large folios, there is an added component of the zswap
+ compressed pool usage from large folio stores from potentially all 30
+ processes, that gets counted towards the memory limit. As a result, we see
+ higher swapout activity in the "after" data.
+
+
+Summary:
+========
+The v10 data presented above shows that zswap_store of large folios
+demonstrates good throughput/performance improvements compared to
+conventional SSD swap of large folios with a sufficiently large 525G SSD
+swap device. Hence, it seems reasonable for zswap_store to support large
+folios, so that further performance improvements can be implemented.
+
+In the experimental setup used in this patchset, we have enabled IAA
+compress verification to ensure additional hardware data integrity CRC
+checks not currently done by the software compressors. We see good
+throughput/latency improvements with deflate-iaa vs. zstd with zswap_store
+of large folios.
+
+Some of the ideas for further reducing latency that have shown promise in
+our experiments, are:
+
+1) IAA compress/decompress batching.
+2) Distributing compress jobs across all IAA devices on the socket.
+
+The tests run for this patchset are using only 1 IAA device per core, that
+avails of 2 compress engines on the device. In our experiments with IAA
+batching, we distribute compress jobs from all cores to the 8 compress
+engines available per socket. We further compress the pages in each folio
+in parallel in the accelerator. As a result, we improve compress latency
+and reclaim throughput.
+
+In decompress batching, we use swapin_readahead to generate a prefetch
+batch of 4K folios that we decompress in parallel in IAA.
+
+ ------------------------------------------------------------------------------
+                          IAA compress/decompress batching
+              Further improvements wrt v10 zswap_store Sequential
+                          subpage store using "deflate-iaa":
+                       
+                      "deflate-iaa" Batching  "deflate-iaa-canned" [2] Batching
+                          Additional Impr               Additional Impr   
+                     64K folios    2M folios     64K folios    2M folios
+ ------------------------------------------------------------------------------
+ Throughput (KB/s)          19%          43%           26%           55%
+ elapsed time (sec)         -5%         -14%          -10%          -21%
+ sys time (sec)              4%          -7%           -4%          -18%
+ ------------------------------------------------------------------------------
+
+
+With zswap IAA compress/decompress batching, we are able to demonstrate
+significant performance improvements and memory savings in server
+scalability experiments in highly contended system scenarios under
+significant memory pressure; as compared to software compressors.  We hope
+to submit this work in subsequent patch series.  The current patch-series
+is a prequisite for these future submissions.
+
+
+This patch (of 10):
+
+zswap_store() will store large folios by compressing them page by page.
+
+This patch provides a sequential implementation of storing a large folio
+in zswap_store() by iterating through each page in the folio to compress
+and store it in the zswap zpool.
+
+zswap_store() calls the newly added zswap_store_page() function for each
+page in the folio.  zswap_store_page() handles compressing and storing
+each page.
+
+We check the global and per-cgroup limits once at the beginning of
+zswap_store(), and only check that the limit is not reached yet.  This is
+racy and inaccurate, but it should be sufficient for now.  We also obtain
+initial references to the relevant objcg and pool to guarantee that
+subsequent references can be acquired by zswap_store_page().  A new
+function zswap_pool_get() is added to facilitate this.
+
+If these one-time checks pass, we compress the pages of the folio, while
+maintaining a running count of compressed bytes for all the folio's pages.
+If all pages are successfully compressed and stored, we do the cgroup
+zswap charging with the total compressed bytes, and batch update the
+zswap_stored_pages atomic/zswpout event stats with folio_nr_pages() once,
+before returning from zswap_store().
+
+If an error is encountered during the store of any page in the folio, all
+pages in that folio currently stored in zswap will be invalidated.  Thus,
+a folio is either entirely stored in zswap, or entirely not stored in
+zswap.
+
+The most important value provided by this patch is it enables swapping out
+large folios to zswap without splitting them.  Furthermore, it batches
+some operations while doing so (cgroup charging, stats updates).
+
+This patch also forms the basis for building compress batching of pages in
+a large folio in zswap_store() by compressing up to say, 8 pages of the
+folio in parallel in hardware using the Intel In-Memory Analytics
+Accelerator (Intel IAA).
+
+This change reuses and adapts the functionality in Ryan Roberts' RFC
+patch [1]:
+
+  "[RFC,v1] mm: zswap: Store large folios without splitting"
+
+  [1] https://lore.kernel.org/linux-mm/20231019110543.3284654-1-ryan.roberts@arm.com/T/#u
+
+Link: https://lkml.kernel.org/r/20241001053222.6944-1-kanchana.p.sridhar@intel.com
+Link: https://lkml.kernel.org/r/20241001053222.6944-7-kanchana.p.sridhar@intel.com
 Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Originally-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
@@ -83,96 +487,254 @@ Cc: "Zou, Nanhai" <nanhai.zou@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c     |    2 +-
- include/linux/zswap.h |    2 +-
- mm/zswap.c            |   19 +++++++++++++------
- 3 files changed, 15 insertions(+), 8 deletions(-)
+ mm/zswap.c |  191 ++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 122 insertions(+), 69 deletions(-)
 
---- a/fs/proc/meminfo.c~mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t
-+++ a/fs/proc/meminfo.c
-@@ -91,7 +91,7 @@ static int meminfo_proc_show(struct seq_
- #ifdef CONFIG_ZSWAP
- 	show_val_kb(m, "Zswap:          ", zswap_total_pages());
- 	seq_printf(m,  "Zswapped:       %8lu kB\n",
--		   (unsigned long)atomic_read(&zswap_stored_pages) <<
-+		   (unsigned long)atomic_long_read(&zswap_stored_pages) <<
- 		   (PAGE_SHIFT - 10));
- #endif
- 	show_val_kb(m, "Dirty:          ",
---- a/include/linux/zswap.h~mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t
-+++ a/include/linux/zswap.h
-@@ -7,7 +7,7 @@
- 
- struct lruvec;
- 
--extern atomic_t zswap_stored_pages;
-+extern atomic_long_t zswap_stored_pages;
- 
- #ifdef CONFIG_ZSWAP
- 
---- a/mm/zswap.c~mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t
+--- a/mm/zswap.c~mm-zswap-support-large-folios-in-zswap_store
 +++ a/mm/zswap.c
-@@ -43,7 +43,7 @@
- * statistics
- **********************************/
- /* The number of compressed pages currently stored in zswap */
--atomic_t zswap_stored_pages = ATOMIC_INIT(0);
-+atomic_long_t zswap_stored_pages = ATOMIC_INIT(0);
- 
- /*
-  * The statistics below are not protected from concurrent access for
-@@ -802,7 +802,7 @@ static void zswap_entry_free(struct zswa
- 		obj_cgroup_put(entry->objcg);
- 	}
- 	zswap_entry_cache_free(entry);
--	atomic_dec(&zswap_stored_pages);
-+	atomic_long_dec(&zswap_stored_pages);
+@@ -411,6 +411,12 @@ static int __must_check zswap_pool_tryge
+ 	return percpu_ref_tryget(&pool->ref);
  }
  
- /*********************************
-@@ -1232,7 +1232,7 @@ static unsigned long zswap_shrinker_coun
- 		nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
- 	} else {
- 		nr_backing = zswap_total_pages();
--		nr_stored = atomic_read(&zswap_stored_pages);
-+		nr_stored = atomic_long_read(&zswap_stored_pages);
- 	}
- 
- 	if (!nr_stored)
-@@ -1501,7 +1501,7 @@ bool zswap_store(struct folio *folio)
- 	}
- 
- 	/* update stats */
--	atomic_inc(&zswap_stored_pages);
-+	atomic_long_inc(&zswap_stored_pages);
- 	count_vm_event(ZSWPOUT);
- 
- 	return true;
-@@ -1650,6 +1650,13 @@ static int debugfs_get_total_size(void *
- }
- DEFINE_DEBUGFS_ATTRIBUTE(total_size_fops, debugfs_get_total_size, NULL, "%llu\n");
- 
-+static int debugfs_get_stored_pages(void *data, u64 *val)
++/* The caller must already have a reference. */
++static void zswap_pool_get(struct zswap_pool *pool)
 +{
-+	*val = atomic_long_read(&zswap_stored_pages);
-+	return 0;
++	percpu_ref_get(&pool->ref);
 +}
-+DEFINE_DEBUGFS_ATTRIBUTE(stored_pages_fops, debugfs_get_stored_pages, NULL, "%llu\n");
 +
- static int zswap_debugfs_init(void)
+ static void zswap_pool_put(struct zswap_pool *pool)
  {
- 	if (!debugfs_initialized())
-@@ -1673,8 +1680,8 @@ static int zswap_debugfs_init(void)
- 			   zswap_debugfs_root, &zswap_written_back_pages);
- 	debugfs_create_file("pool_total_size", 0444,
- 			    zswap_debugfs_root, NULL, &total_size_fops);
--	debugfs_create_atomic_t("stored_pages", 0444,
--				zswap_debugfs_root, &zswap_stored_pages);
-+	debugfs_create_file("stored_pages", 0444,
-+			    zswap_debugfs_root, NULL, &stored_pages_fops);
+ 	percpu_ref_put(&pool->ref);
+@@ -1402,68 +1408,38 @@ resched:
+ /*********************************
+ * main API
+ **********************************/
+-bool zswap_store(struct folio *folio)
++
++static ssize_t zswap_store_page(struct page *page,
++				struct obj_cgroup *objcg,
++				struct zswap_pool *pool)
+ {
+-	swp_entry_t swp = folio->swap;
+-	pgoff_t offset = swp_offset(swp);
+-	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry, *old;
+-	struct obj_cgroup *objcg = NULL;
+-	struct mem_cgroup *memcg = NULL;
+-
+-	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+-	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+-
+-	/* Large folios aren't supported */
+-	if (folio_test_large(folio))
+-		return false;
+-
+-	if (!zswap_enabled)
+-		goto check_old;
+-
+-	/* Check cgroup limits */
+-	objcg = get_obj_cgroup_from_folio(folio);
+-	if (objcg && !obj_cgroup_may_zswap(objcg)) {
+-		memcg = get_mem_cgroup_from_objcg(objcg);
+-		if (shrink_memcg(memcg)) {
+-			mem_cgroup_put(memcg);
+-			goto reject;
+-		}
+-		mem_cgroup_put(memcg);
+-	}
+-
+-	if (zswap_check_limits())
+-		goto reject;
  
- 	return 0;
+ 	/* allocate entry */
+-	entry = zswap_entry_cache_alloc(GFP_KERNEL, folio_nid(folio));
++	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
+ 	if (!entry) {
+ 		zswap_reject_kmemcache_fail++;
+ 		goto reject;
+ 	}
+ 
+-	/* if entry is successfully added, it keeps the reference */
+-	entry->pool = zswap_pool_current_get();
+-	if (!entry->pool)
+-		goto freepage;
++	/* zswap_store() already holds a ref on 'objcg' and 'pool' */
++	if (objcg)
++		obj_cgroup_get(objcg);
++	zswap_pool_get(pool);
+ 
+-	if (objcg) {
+-		memcg = get_mem_cgroup_from_objcg(objcg);
+-		if (memcg_list_lru_alloc(memcg, &zswap_list_lru, GFP_KERNEL)) {
+-			mem_cgroup_put(memcg);
+-			goto put_pool;
+-		}
+-		mem_cgroup_put(memcg);
+-	}
++	/* if entry is successfully added, it keeps the reference */
++	entry->pool = pool;
+ 
+-	if (!zswap_compress(&folio->page, entry))
+-		goto put_pool;
++	if (!zswap_compress(page, entry))
++		goto put_pool_objcg;
+ 
+-	entry->swpentry = swp;
++	entry->swpentry = page_swap_entry(page);
+ 	entry->objcg = objcg;
+ 	entry->referenced = true;
+ 
+-	old = xa_store(tree, offset, entry, GFP_KERNEL);
++	old = xa_store(swap_zswap_tree(entry->swpentry),
++		       swp_offset(entry->swpentry),
++		       entry, GFP_KERNEL);
+ 	if (xa_is_err(old)) {
+ 		int err = xa_err(old);
+ 
+@@ -1480,11 +1456,6 @@ bool zswap_store(struct folio *folio)
+ 	if (old)
+ 		zswap_entry_free(old);
+ 
+-	if (objcg) {
+-		obj_cgroup_charge_zswap(objcg, entry->length);
+-		count_objcg_events(objcg, ZSWPOUT, 1);
+-	}
+-
+ 	/*
+ 	 * We finish initializing the entry while it's already in xarray.
+ 	 * This is safe because:
+@@ -1500,32 +1471,114 @@ bool zswap_store(struct folio *folio)
+ 		zswap_lru_add(&zswap_list_lru, entry);
+ 	}
+ 
+-	/* update stats */
+-	atomic_long_inc(&zswap_stored_pages);
+-	count_vm_event(ZSWPOUT);
+-
+-	return true;
++	/*
++	 * We shouldn't have any possibility of failure after the entry is
++	 * added in the xarray. The pool/objcg refs obtained here will only
++	 * be dropped if/when zswap_entry_free() gets called.
++	 */
++	return entry->length;
+ 
+ store_failed:
+ 	zpool_free(entry->pool->zpool, entry->handle);
+-put_pool:
+-	zswap_pool_put(entry->pool);
+-freepage:
++put_pool_objcg:
++	zswap_pool_put(pool);
++	obj_cgroup_put(objcg);
+ 	zswap_entry_cache_free(entry);
+ reject:
++	return -EINVAL;
++}
++
++bool zswap_store(struct folio *folio)
++{
++	long nr_pages = folio_nr_pages(folio);
++	swp_entry_t swp = folio->swap;
++	struct obj_cgroup *objcg = NULL;
++	struct mem_cgroup *memcg = NULL;
++	struct zswap_pool *pool;
++	size_t compressed_bytes = 0;
++	bool ret = false;
++	long index;
++
++	VM_WARN_ON_ONCE(!folio_test_locked(folio));
++	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
++
++	if (!zswap_enabled)
++		goto check_old;
++
++	objcg = get_obj_cgroup_from_folio(folio);
++	if (objcg && !obj_cgroup_may_zswap(objcg)) {
++		memcg = get_mem_cgroup_from_objcg(objcg);
++		if (shrink_memcg(memcg)) {
++			mem_cgroup_put(memcg);
++			goto put_objcg;
++		}
++		mem_cgroup_put(memcg);
++	}
++
++	if (zswap_check_limits())
++		goto put_objcg;
++
++	pool = zswap_pool_current_get();
++	if (!pool)
++		goto put_objcg;
++
++	if (objcg) {
++		memcg = get_mem_cgroup_from_objcg(objcg);
++		if (memcg_list_lru_alloc(memcg, &zswap_list_lru, GFP_KERNEL)) {
++			mem_cgroup_put(memcg);
++			goto put_pool;
++		}
++		mem_cgroup_put(memcg);
++	}
++
++	for (index = 0; index < nr_pages; ++index) {
++		struct page *page = folio_page(folio, index);
++		ssize_t bytes;
++
++		bytes = zswap_store_page(page, objcg, pool);
++		if (bytes < 0)
++			goto put_pool;
++		compressed_bytes += bytes;
++	}
++
++	if (objcg) {
++		obj_cgroup_charge_zswap(objcg, compressed_bytes);
++		count_objcg_events(objcg, ZSWPOUT, nr_pages);
++	}
++
++	atomic_long_add(nr_pages, &zswap_stored_pages);
++	count_vm_events(ZSWPOUT, nr_pages);
++
++	ret = true;
++
++put_pool:
++	zswap_pool_put(pool);
++put_objcg:
+ 	obj_cgroup_put(objcg);
+-	if (zswap_pool_reached_full)
++	if (!ret && zswap_pool_reached_full)
+ 		queue_work(shrink_wq, &zswap_shrink_work);
+ check_old:
+ 	/*
+-	 * If the zswap store fails or zswap is disabled, we must invalidate the
+-	 * possibly stale entry which was previously stored at this offset.
+-	 * Otherwise, writeback could overwrite the new data in the swapfile.
+-	 */
+-	entry = xa_erase(tree, offset);
+-	if (entry)
+-		zswap_entry_free(entry);
+-	return false;
++	 * If the zswap store fails or zswap is disabled, we must invalidate
++	 * the possibly stale entries which were previously stored at the
++	 * offsets corresponding to each page of the folio. Otherwise,
++	 * writeback could overwrite the new data in the swapfile.
++	 */
++	if (!ret) {
++		unsigned type = swp_type(swp);
++		pgoff_t offset = swp_offset(swp);
++		struct zswap_entry *entry;
++		struct xarray *tree;
++
++		for (index = 0; index < nr_pages; ++index) {
++			tree = swap_zswap_tree(swp_entry(type, offset + index));
++			entry = xa_erase(tree, offset + index);
++			if (entry)
++				zswap_entry_free(entry);
++		}
++	}
++
++	return ret;
  }
+ 
+ bool zswap_load(struct folio *folio)
 _
 
 Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
