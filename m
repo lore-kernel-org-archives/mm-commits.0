@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B238F40
-	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 22:25:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC975197545;
+	Wed,  2 Oct 2024 22:44:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727907907; cv=none; b=V160lCkEfMyBQiVvJsVp2hRBcgUQ7DdGxDsmZ7P2JYp2lQQEBT0+yIIxx8yzX2WRWBqlgH3ox6p9fwBsn3DRzowVPQAJU3Fi6yLcQY2bDwSFRgwNfSKl7rHfAQEaX9si4TM6b3NFrA0Nm8bO7ho9SXp8xU9VnA2cGkfh+RDjhdk=
+	t=1727909056; cv=none; b=mpoB+rdRJkoTR2hUD9G1UCZQORVKCyPDWEQaHPwceU1JCEZxgSEUagl+6lb4uxoqDQ7RbY3g9dvOozUubhJwmPzHZ17+9m6CjUn+tFz1JdxFY33B5T50tDRwJnwS59pQTq/a3a94u2gTyX4OY0Qra4wC+IC9IA4NWkYYtuxrz1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727907907; c=relaxed/simple;
-	bh=cD9cvOMLaiXNdZIc8+qAyUbSFgWoZBslhE/F8pLi/D0=;
-	h=Date:To:From:Subject:Message-Id; b=fGqK7n/UKkjd9JSD+P8rrf2bgvvCjEFdhkDpGwbdvKYqN5u1hhF774UBzNSkTgUdQTZh26cmMRaHN/SPvx1+/PWfofiXp8dCdDWbvuX8mYzBzjrUuWMjObJZNy3vlYoo7+VrfrWfFYVqCrqwTJ8l6GZ0gSUocwYMYK3cvx+ZVX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XYejNivq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727909056; c=relaxed/simple;
+	bh=pToLLVV8W99znYBfp6X9vCzQHNB2pTAPAYeI+hQal1E=;
+	h=Date:To:From:Subject:Message-Id; b=iZVngi6M0jm4xlbidCoKEh9nw0NGCG1c5j0PO8vlEjW4Tn2r7/wkX8bGajJyrZABf+iGopuyb4yIMzdwOvKrfZkpd56QxYx61bIEe6Uo24cyyPYRSpoKNsP7hA0Z6wBJ2xFSv1WqN7bujgZeqXhu/7Jtomeio2oViPZv+sIbEgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N6cNK/x8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XYejNivq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9E50C4CEC2;
-	Wed,  2 Oct 2024 22:25:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N6cNK/x8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42F20C4CEC2;
+	Wed,  2 Oct 2024 22:44:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727907906;
-	bh=cD9cvOMLaiXNdZIc8+qAyUbSFgWoZBslhE/F8pLi/D0=;
+	s=korg; t=1727909056;
+	bh=pToLLVV8W99znYBfp6X9vCzQHNB2pTAPAYeI+hQal1E=;
 	h=Date:To:From:Subject:From;
-	b=XYejNivqLogLxOHnIj3GSorNDEpZuMqG7PvFHST6bN1Rqh04H5YBL3LLL4/MCoLw1
-	 w0DvuHMxcXXAMpoaK+JWIm9NexLVUPouXlDN8oAOTudRl8vbJATE2OFMCa9JUd/wJH
-	 Ef/VngWi7RzRe24XpkhZ+ioITa+7v329EDl9vEzc=
-Date: Wed, 02 Oct 2024 15:25:06 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,rdunlap@infradead.org,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,enh@google.com,corbet@lwn.net,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=N6cNK/x8Hnf2adS7ixvJADbUP7WGI1eptkwRrtubsTJGcF11EgiDhIdkcqYkKREwh
+	 v4butk8zNFFxc3jnrmB/JGiEGKy12MEqJigiDvvz14sZCf7pTlVXW/ED33f8Af324G
+	 WZ/EBQumEeAuQM0BrzjCHXHE03L+MJjNZhZdpoJY=
+Date: Wed, 02 Oct 2024 15:44:15 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hughd@google.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mseal-update-msealrst-v2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241002222506.B9E50C4CEC2@smtp.kernel.org>
+Subject: + mm-mremap-prevent-racing-change-of-old-pmd-type.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241002224416.42F20C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mseal: update mseal.rst
+     Subject: mm/mremap: prevent racing change of old pmd type
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mseal-update-msealrst-v2.patch
+     mm-mremap-prevent-racing-change-of-old-pmd-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-update-msealrst-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-prevent-racing-change-of-old-pmd-type.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,158 +58,221 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: mseal: update mseal.rst
-Date: Tue, 1 Oct 2024 00:26:27 +0000
+From: Jann Horn <jannh@google.com>
+Subject: mm/mremap: prevent racing change of old pmd type
+Date: Wed, 02 Oct 2024 23:07:06 +0200
 
-update according to Randy Dunlap's comments
+Prevent move_normal_pmd() in mremap() from racing with
+retract_page_tables() in MADVISE_COLLAPSE such that
 
-Link: https://lkml.kernel.org/r/20241001002628.2239032-2-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Cc: Elliott Hughes <enh@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Röttger <sroettger@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+    pmd_populate(mm, new_pmd, pmd_pgtable(pmd))
+
+operates on an empty source pmd, causing creation of a new pmd which maps
+physical address 0 as a page table.
+
+This bug is only reachable if either CONFIG_READ_ONLY_THP_FOR_FS is set or
+THP shmem is usable.  (Unprivileged namespaces can be used to set up a
+tmpfs that can contain THP shmem pages with "huge=advise".)
+
+If userspace triggers this bug *in multiple processes*, this could likely
+be used to create stale TLB entries pointing to freed pages or cause
+kernel UAF by breaking an invariant the rmap code relies on.
+
+Fix it by moving the rmap locking up so that it covers the span from
+reading the PMD entry to moving the page table.
+
+Link: https://lkml.kernel.org/r/20241002-move_normal_pmd-vs-collapse-fix-v1-1-78290e5dece6@google.com
+Fixes: 1d65b771bc08 ("mm/khugepaged: retract_page_tables() without mmap or vma lock")
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/userspace-api/mseal.rst |   44 ++++++++++++------------
- 1 file changed, 23 insertions(+), 21 deletions(-)
+ mm/mremap.c |   68 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 38 insertions(+), 30 deletions(-)
 
---- a/Documentation/userspace-api/mseal.rst~mseal-update-msealrst-v2
-+++ a/Documentation/userspace-api/mseal.rst
-@@ -27,7 +27,7 @@ SYSCALL
- =======
- mseal syscall signature
- -----------------------
--   **int** mseal(**void \*** addr, **size_t** len, **unsigned long** flags)
-+   ``int mseal(void \* addr, size_t len, unsigned long flags)``
+--- a/mm/mremap.c~mm-mremap-prevent-racing-change-of-old-pmd-type
++++ a/mm/mremap.c
+@@ -136,17 +136,17 @@ static pte_t move_soft_dirty_pte(pte_t p
+ static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
+ 		unsigned long old_addr, unsigned long old_end,
+ 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+-		unsigned long new_addr, bool need_rmap_locks)
++		unsigned long new_addr)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	bool force_flush = false;
+ 	unsigned long len = old_end - old_addr;
+-	int err = 0;
  
-    **addr**/**len**: virtual memory address range.
-       The address range set by **addr**/**len** must meet:
-@@ -62,10 +62,10 @@ mseal syscall signature
-         memory range could happen. However, those cases should be rare.
+ 	/*
+-	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
++	 * When need_rmap_locks is true in the caller, we are holding the
++	 * i_mmap_rwsem and anon_vma
+ 	 * locks to ensure that rmap will always observe either the old or the
+ 	 * new ptes. This is the easiest way to avoid races with
+ 	 * truncate_pagecache(), page migration, etc...
+@@ -163,23 +163,18 @@ static int move_ptes(struct vm_area_stru
+ 	 *   serialize access to individual ptes, but only rmap traversal
+ 	 *   order guarantees that we won't miss both the old and new ptes).
+ 	 */
+-	if (need_rmap_locks)
+-		take_rmap_locks(vma);
  
-    **Architecture support**:
--      mseal only works on 64-bit CPUs, not 32-bit CPU.
-+      mseal only works on 64-bit CPUs, not 32-bit CPUs.
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * pte locks because exclusive mmap_lock prevents deadlock.
+ 	 */
+ 	old_pte = pte_offset_map_lock(mm, old_pmd, old_addr, &old_ptl);
+-	if (!old_pte) {
+-		err = -EAGAIN;
+-		goto out;
+-	}
++	if (!old_pte)
++		return -EAGAIN;
+ 	new_pte = pte_offset_map_nolock(mm, new_pmd, new_addr, &new_ptl);
+ 	if (!new_pte) {
+ 		pte_unmap_unlock(old_pte, old_ptl);
+-		err = -EAGAIN;
+-		goto out;
++		return -EAGAIN;
+ 	}
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+@@ -217,10 +212,7 @@ static int move_ptes(struct vm_area_stru
+ 		spin_unlock(new_ptl);
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+-out:
+-	if (need_rmap_locks)
+-		drop_rmap_locks(vma);
+-	return err;
++	return 0;
+ }
  
-    **Idempotent**:
--      users can call mseal multiple times, mseal on an already sealed memory
-+      users can call mseal multiple times. mseal on an already sealed memory
-       is a no-action (not error).
+ #ifndef arch_supports_page_table_move
+@@ -447,17 +439,14 @@ static __always_inline unsigned long get
+ /*
+  * Attempts to speedup the move by moving entry at the level corresponding to
+  * pgt_entry. Returns true if the move was successful, else false.
++ * rmap locks are held by the caller.
+  */
+ static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
+ 			unsigned long old_addr, unsigned long new_addr,
+-			void *old_entry, void *new_entry, bool need_rmap_locks)
++			void *old_entry, void *new_entry)
+ {
+ 	bool moved = false;
  
-    **no munseal**
-@@ -75,8 +75,8 @@ mseal syscall signature
+-	/* See comment in move_ptes() */
+-	if (need_rmap_locks)
+-		take_rmap_locks(vma);
+-
+ 	switch (entry) {
+ 	case NORMAL_PMD:
+ 		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
+@@ -483,9 +472,6 @@ static bool move_pgt_entry(enum pgt_entr
+ 		break;
+ 	}
  
- Blocked mm syscall for sealed mapping
- -------------------------------------
--   It might be imporant to note: **once the mapping is sealed, it will
--   stay in the process's memory till the process terminates**.
-+   It might be important to note: **once the mapping is sealed, it will
-+   stay in the process's memory until the process terminates**.
+-	if (need_rmap_locks)
+-		drop_rmap_locks(vma);
+-
+ 	return moved;
+ }
  
-    Example::
+@@ -550,6 +536,7 @@ unsigned long move_page_tables(struct vm
+ 	struct mmu_notifier_range range;
+ 	pmd_t *old_pmd, *new_pmd;
+ 	pud_t *old_pud, *new_pud;
++	int move_res;
  
-@@ -100,9 +100,9 @@ Blocked mm syscall for sealed mapping
-    overwrite the existing mapping with another mapping.
+ 	if (!len)
+ 		return 0;
+@@ -573,6 +560,12 @@ unsigned long move_page_tables(struct vm
+ 				old_addr, old_end);
+ 	mmu_notifier_invalidate_range_start(&range);
  
-    mprotect and pkey_mprotect are blocked because they changes the
--   protection bits (rwx) of the mapping.
-+   protection bits (RWX) of the mapping.
- 
--   Some destructive madvice behaviors (MADV_DONTNEED, MADV_FREE,
-+   Some destructive madvise behaviors (MADV_DONTNEED, MADV_FREE,
-    MADV_DONTNEED_LOCKED, MADV_FREE, MADV_DONTFORK, MADV_WIPEONFORK)
-    for anonymous memory, when users don't have write permission to the
-    memory. Those behaviors can alter region contents by discarding pages,
-@@ -118,25 +118,25 @@ Blocked mm syscall for sealed mapping
-         VMAs before reaching the sealed VMA and return -EPERM.
-       - mmap and mremap: undefined behavior.
- 
--Use cases:
--==========
-+Use cases
-+=========
- - glibc:
-   The dynamic linker, during loading ELF executables, can apply sealing to
-   mapping segments.
- 
--- Chrome browser: protect some security sensitive data-structures.
-+- Chrome browser: protect some security sensitive data structures.
- 
--Don't use mseal on:
--===================
-+When not to use mseal
-+=====================
- Applications can apply sealing to any virtual memory region from userspace,
- but it is *crucial to thoroughly analyze the mapping's lifetime* prior to
- apply the sealing. This is because the sealed mapping *won’t be unmapped*
--till the process terminates or the exec system call is invoked.
-+until the process terminates or the exec system call is invoked.
- 
- For example:
-    - aio/shm
-      aio/shm can call mmap and  munmap on behalf of userspace, e.g.
--     ksys_shmdt() in shm.c. The lifetime of those mapping are not tied to
-+     ksys_shmdt() in shm.c. The lifetimes of those mapping are not tied to
-      the lifetime of the process. If those memories are sealed from userspace,
-      then munmap will fail, causing leaks in VMA address space during the
-      lifetime of the process.
-@@ -145,8 +145,10 @@ For example:
-      Don't use mseal on the memory ptr return from malloc().
-      malloc() is implemented by allocator, e.g. by glibc. Heap manager might
-      allocate a ptr from brk or mapping created by mmap.
--     If app calls mseal on ptr returned from malloc(), this can affect the heap
--     manager's ability to manage the mappings, the outcome is non-deterministic.
-+     If an app calls mseal on a ptr returned from malloc(), this can affect
-+     the heap manager's ability to manage the mappings; the outcome is
-+     non-deterministic.
++	/*
++	 * Hold rmap locks to ensure the type of the old PUD/PMD entry doesn't
++	 * change under us due to khugepaged or folio splitting.
++	 */
++	take_rmap_locks(vma);
 +
-      Example::
+ 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
+ 		cond_resched();
+ 		/*
+@@ -590,14 +583,14 @@ unsigned long move_page_tables(struct vm
+ 		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
+ 			if (extent == HPAGE_PUD_SIZE) {
+ 				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
+-					       old_pud, new_pud, need_rmap_locks);
++					       old_pud, new_pud);
+ 				/* We ignore and continue on error? */
+ 				continue;
+ 			}
+ 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
  
-         ptr = malloc(size);
-@@ -155,10 +157,10 @@ For example:
-         /* free will success, allocator can't shrink heap lower than ptr */
-         free(ptr);
+ 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
+-					   old_pud, new_pud, true))
++					   old_pud, new_pud))
+ 				continue;
+ 		}
  
--mseal doesn't block:
--====================
-+mseal doesn't block
-+===================
- In a nutshell, mseal blocks certain mm syscall from modifying some of VMA's
--attributes, such as protection bits (rwx). Sealed mappings doesn't mean the
-+attributes, such as protection bits (RWX). Sealed mappings doesn't mean the
- memory is immutable.
+@@ -613,7 +606,7 @@ again:
+ 		    pmd_devmap(*old_pmd)) {
+ 			if (extent == HPAGE_PMD_SIZE &&
+ 			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, need_rmap_locks))
++					   old_pmd, new_pmd))
+ 				continue;
+ 			split_huge_pmd(vma, old_pmd, old_addr);
+ 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
+@@ -623,17 +616,32 @@ again:
+ 			 * moving at the PMD level if possible.
+ 			 */
+ 			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, true))
++					   old_pmd, new_pmd))
+ 				continue;
+ 		}
+ 		if (pmd_none(*old_pmd))
+ 			continue;
+-		if (pte_alloc(new_vma->vm_mm, new_pmd))
++
++		/*
++		 * Temporarily drop the rmap locks while we do a potentially
++		 * slow move_ptes() operation, unless move_ptes() wants them
++		 * held (see comment inside there).
++		 */
++		if (!need_rmap_locks)
++			drop_rmap_locks(vma);
++		if (pte_alloc(new_vma->vm_mm, new_pmd)) {
++			if (!need_rmap_locks)
++				take_rmap_locks(vma);
+ 			break;
+-		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
+-			      new_vma, new_pmd, new_addr, need_rmap_locks) < 0)
++		}
++		move_res = move_ptes(vma, old_pmd, old_addr, old_addr + extent,
++				     new_vma, new_pmd, new_addr);
++		if (!need_rmap_locks)
++			take_rmap_locks(vma);
++		if (move_res < 0)
+ 			goto again;
+ 	}
++	drop_rmap_locks(vma);
  
- As Jann Horn pointed out in [3], there are still a few ways to write
-@@ -173,8 +175,8 @@ Those cases are:
- The idea that inspired this patch comes from Stephen Röttger’s work in V8
- CFI [4]. Chrome browser in ChromeOS will be the first user of this API.
+ 	mmu_notifier_invalidate_range_end(&range);
  
--Reference:
--==========
-+Reference
-+=========
- - [1] https://github.com/apple-oss-distributions/xnu/blob/1031c584a5e37aff177559b9f69dbd3c8c3fd30a/osfmk/mach/vm_statistics.h#L274
- - [2] https://man.openbsd.org/mimmutable.2
- - [3] https://lore.kernel.org/lkml/CAG48ez3ShUYey+ZAFsU2i1RpQn0a5eOs2hzQ426FkcgnfUGLvA@mail.gmail.com
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from jannh@google.com are
 
-mseal-update-msealrst.patch
-mseal-update-msealrst-v2.patch
+mm-mremap-prevent-racing-change-of-old-pmd-type.patch
 
