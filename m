@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00AFC8F5B
-	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 20:49:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0052215F7B
+	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 20:55:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727902157; cv=none; b=az/q53f2fJtzDtTeUgpfzSDoT3V5pFeQQFlY9qdIpzpdLnFHCCBsghw0jawAdIdv4wH7QnQKEJPWLWafGozUtNVORcuRIHpnH3t783Sex48D6UWPGHrYIGeI2ptW+g3imVp0khzLfg5wQkCDosPGZ3SKoQ/hsTa4NOH4NqOcjW0=
+	t=1727902521; cv=none; b=DVA5YaCHgrDUWYS31tJ/u5RKXpu8314YWVq4qOBk823acBYQbZP7izd+Y43CvhAbIZwyiWUcYu8rBP9EnAMFAkHWPZZLNVkXICg1b8zSCknzc4MITOMLgkyNISBHC9ctvpUovWM//KSdEHdQvIeDawhzL5oD78OpznKsZ4grC00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727902157; c=relaxed/simple;
-	bh=y4yHOaX26fBqsn1rAO6dZkDHGy2/Dc57inhulnUjjtA=;
-	h=Date:To:From:Subject:Message-Id; b=CvQb7Oqf/hZZs1q684MbAFLld/4Ygs8g5oV7wfmKwu/zwwsGicgTtMPBf6amnc052ViRnxi3SnPEIzut/th9fH4oke+6XSpf+CTx6lfpbStGzmXGqxBMFykMezzSnCj7je9oDBJtGRg6yjmrkWdcO+x0PfveXl92TZofXGvHTqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lLxhioC9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727902521; c=relaxed/simple;
+	bh=shDsyZuB/khyBNaBpr3s/ipleP0iUDKGaBxkljsDAIk=;
+	h=Date:To:From:Subject:Message-Id; b=KFV6TQcNPCiD0gBD1q5vha2M8LZGmjML6XaZkDtsi/imKm9i2fCN9VtR5LEUOxybLEcsNIjkzYNfoRLM/VVmBA4HWotkV5h+vRRJuzprxU5ywh+njUqjbbqPBG3jiPpOHZke+6iXOVlMpvPPdO8bjDtusLmzo8fBVcOEg8x9FHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nR644pT4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lLxhioC9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 667B3C4CEC2;
-	Wed,  2 Oct 2024 20:49:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nR644pT4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EFBDC4CEC2;
+	Wed,  2 Oct 2024 20:55:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727902156;
-	bh=y4yHOaX26fBqsn1rAO6dZkDHGy2/Dc57inhulnUjjtA=;
+	s=korg; t=1727902520;
+	bh=shDsyZuB/khyBNaBpr3s/ipleP0iUDKGaBxkljsDAIk=;
 	h=Date:To:From:Subject:From;
-	b=lLxhioC9QV6inrOAyEFczo+Mkz7P7PdNs6hBI5W5oG4zwYM69CE6M21dGiC0yERK4
-	 0tQTrFsAaiwvKdVjIj/+QlS+fpvfUQZM2vC+vd/ZDYa1IQKQyU9Pl9+y/aNsko14yn
-	 Oxv34DNI+PS99sbWw8X7NZfvxYr4hfSdvZlvghzQ=
-Date: Wed, 02 Oct 2024 13:49:15 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
+	b=nR644pT41KPVu4ABY+z+J+ej49ranwY3kHw4Tx3A7ID8GhG503Ok18TSPy4wES6RL
+	 wWZd15PoVZBQ4wnWnL10HyK3Py3n/kTuFEdIQQEilVDvRiIhyGJUWDdz1TAHxB1F6i
+	 aK1He6n4YfycfIiypCAjVix1A8I3ulIDSU9x9OGU=
+Date: Wed, 02 Oct 2024 13:55:19 -0700
+To: mm-commits@vger.kernel.org,alexs@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241002204916.667B3C4CEC2@smtp.kernel.org>
+Subject: + ksm-use-a-folio-in-try_to_merge_one_page.patch added to mm-unstable branch
+Message-Id: <20241002205520.8EFBDC4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: delete comments for "value" member of 'struct zswap_entry'.
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch
+     Subject: ksm: use a folio in try_to_merge_one_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     ksm-use-a-folio-in-try_to_merge_one_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-use-a-folio-in-try_to_merge_one_page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,53 +58,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: zswap: delete comments for "value" member of 'struct zswap_entry'.
-Date: Wed, 2 Oct 2024 12:42:13 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ksm: use a folio in try_to_merge_one_page()
+Date: Wed, 2 Oct 2024 16:25:27 +0100
 
-Made a minor edit in the comments for 'struct zswap_entry' to delete the
-description of the 'value' member that was deleted in commit 20a5532ffa53
-("mm: remove code to handle same filled pages").
+Patch series "Remove PageKsm()".
 
-Link: https://lkml.kernel.org/r/20241002194213.30041-1-kanchana.p.sridhar@intel.com
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Fixes: 20a5532ffa53 ("mm: remove code to handle same filled pages")
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Usama Arif <usamaarif642@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
+The KSM flag is almost always tested on the folio rather than on the page.
+This series removes the final users of PageKsm() and makes the flag only
+
+
+This patch (of 5):
+
+It is safe to use a folio here because all callers took a refcount on this
+page.  The one wrinkle is that we have to recalculate the value of folio
+after splitting the page, since it has probably changed.  Replaces nine
+calls to compound_head() with one.
+
+Link: https://lkml.kernel.org/r/20241002152533.1350629-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241002152533.1350629-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Shi <alexs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/ksm.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry
-+++ a/mm/zswap.c
-@@ -190,7 +190,6 @@ static struct shrinker *zswap_shrinker;
-  *              section for context.
-  * pool - the zswap_pool the entry's data is in
-  * handle - zpool allocation handle that stores the compressed page data
-- * value - value of the same-value filled pages which have same content
-  * objcg - the obj_cgroup that the compressed memory is charged to
-  * lru - handle to the pool's lru used to evict pages.
-  */
+--- a/mm/ksm.c~ksm-use-a-folio-in-try_to_merge_one_page
++++ a/mm/ksm.c
+@@ -1442,28 +1442,29 @@ out:
+ static int try_to_merge_one_page(struct vm_area_struct *vma,
+ 				 struct page *page, struct page *kpage)
+ {
++	struct folio *folio = page_folio(page);
+ 	pte_t orig_pte = __pte(0);
+ 	int err = -EFAULT;
+ 
+ 	if (page == kpage)			/* ksm page forked */
+ 		return 0;
+ 
+-	if (!PageAnon(page))
++	if (!folio_test_anon(folio))
+ 		goto out;
+ 
+ 	/*
+ 	 * We need the folio lock to read a stable swapcache flag in
+-	 * write_protect_page().  We use trylock_page() instead of
+-	 * lock_page() because we don't want to wait here - we
+-	 * prefer to continue scanning and merging different pages,
+-	 * then come back to this page when it is unlocked.
++	 * write_protect_page().  We trylock because we don't want to wait
++	 * here - we prefer to continue scanning and merging different
++	 * pages, then come back to this page when it is unlocked.
+ 	 */
+-	if (!trylock_page(page))
++	if (!folio_trylock(folio))
+ 		goto out;
+ 
+-	if (PageTransCompound(page)) {
++	if (folio_test_large(folio)) {
+ 		if (split_huge_page(page))
+ 			goto out_unlock;
++		folio = page_folio(page);
+ 	}
+ 
+ 	/*
+@@ -1472,28 +1473,28 @@ static int try_to_merge_one_page(struct
+ 	 * ptes are necessarily already write-protected.  But in either
+ 	 * case, we need to lock and check page_count is not raised.
+ 	 */
+-	if (write_protect_page(vma, page_folio(page), &orig_pte) == 0) {
++	if (write_protect_page(vma, folio, &orig_pte) == 0) {
+ 		if (!kpage) {
+ 			/*
+-			 * While we hold page lock, upgrade page from
+-			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
++			 * While we hold folio lock, upgrade folio from
++			 * anon to a NULL stable_node with the KSM flag set:
+ 			 * stable_tree_insert() will update stable_node.
+ 			 */
+-			folio_set_stable_node(page_folio(page), NULL);
+-			mark_page_accessed(page);
++			folio_set_stable_node(folio, NULL);
++			folio_mark_accessed(folio);
+ 			/*
+-			 * Page reclaim just frees a clean page with no dirty
++			 * Page reclaim just frees a clean folio with no dirty
+ 			 * ptes: make sure that the ksm page would be swapped.
+ 			 */
+-			if (!PageDirty(page))
+-				SetPageDirty(page);
++			if (!folio_test_dirty(folio))
++				folio_mark_dirty(folio);
+ 			err = 0;
+ 		} else if (pages_identical(page, kpage))
+ 			err = replace_page(vma, page, kpage, orig_pte);
+ 	}
+ 
+ out_unlock:
+-	unlock_page(page);
++	folio_unlock(folio);
+ out:
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch
-mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
-mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch
-mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch
-mm-change-count_objcg_event-to-count_objcg_events-for-batch-event-updates.patch
-mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
-mm-zswap-support-large-folios-in-zswap_store.patch
-mm-swap-count-successful-large-folio-zswap-stores-in-hugepage-zswpout-stats.patch
-mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch
+ksm-use-a-folio-in-try_to_merge_one_page.patch
+ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
+ksm-convert-should_skip_rmap_item-to-take-a-folio.patch
+mm-add-pageanonnotksm.patch
+mm-remove-pageksm.patch
 
