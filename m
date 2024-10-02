@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7010D199945
-	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 21:52:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B238F40
+	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 22:25:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727905944; cv=none; b=JhPTeYaeqbmPaZJrtNwYK39JHf0CyzwCGE2mxBzD+9hJoHBsL4UlWn8kjHNsIg/zbf114gYUp9USqwK0b1WBP90RDX2o0ZN97zLmJ+a+AWIplaY5lCx5mcbQmlqazJEXK5O6cyZLwMp8P74yHPUXmKQ+9WFft5zfX5SsfSYdYJ4=
+	t=1727907907; cv=none; b=V160lCkEfMyBQiVvJsVp2hRBcgUQ7DdGxDsmZ7P2JYp2lQQEBT0+yIIxx8yzX2WRWBqlgH3ox6p9fwBsn3DRzowVPQAJU3Fi6yLcQY2bDwSFRgwNfSKl7rHfAQEaX9si4TM6b3NFrA0Nm8bO7ho9SXp8xU9VnA2cGkfh+RDjhdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727905944; c=relaxed/simple;
-	bh=gM+apDATA61Q+rJRhlb10h0FMWxlX8hhvpLxpCdhL+4=;
-	h=Date:To:From:Subject:Message-Id; b=HyN5N+b50y/hpTU5G4Ii/33TX3CzpfPt+//oXejTF5WHrwCj2qG9RgooD8jgQlnKL67lAWSenOqAIfyDDpGxq4IP1pN+0RlMpGMG5H0QsiCXxWyWfoJlehNu+2OT1V7bGgh1X2k9CiQhaHIaYe9httZvWmMgWkCFM/T+SAisnJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIsW3MzC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727907907; c=relaxed/simple;
+	bh=cD9cvOMLaiXNdZIc8+qAyUbSFgWoZBslhE/F8pLi/D0=;
+	h=Date:To:From:Subject:Message-Id; b=fGqK7n/UKkjd9JSD+P8rrf2bgvvCjEFdhkDpGwbdvKYqN5u1hhF774UBzNSkTgUdQTZh26cmMRaHN/SPvx1+/PWfofiXp8dCdDWbvuX8mYzBzjrUuWMjObJZNy3vlYoo7+VrfrWfFYVqCrqwTJ8l6GZ0gSUocwYMYK3cvx+ZVX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XYejNivq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIsW3MzC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6AE2C4CEC2;
-	Wed,  2 Oct 2024 21:52:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XYejNivq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9E50C4CEC2;
+	Wed,  2 Oct 2024 22:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727905943;
-	bh=gM+apDATA61Q+rJRhlb10h0FMWxlX8hhvpLxpCdhL+4=;
+	s=korg; t=1727907906;
+	bh=cD9cvOMLaiXNdZIc8+qAyUbSFgWoZBslhE/F8pLi/D0=;
 	h=Date:To:From:Subject:From;
-	b=RIsW3MzCZzjd32cSXMbZ++QiliOKOjLOJQWo2mZg9ONLMad0+TSgQ6aztxI93+b5X
-	 /LQpF0n8ePptMIBgJ2rkkHUwdBs5Mqv8La1siNV2+FSStV+hIQhyLKrY4OGApIUU4R
-	 qRyxts2b0RhXI1jiQ5C3Rg0G1MvUguUdfm7DmWo4=
-Date: Wed, 02 Oct 2024 14:52:22 -0700
-To: mm-commits@vger.kernel.org,vegard.nossum@oracle.com,vbabka@suse.cz,Liam.Howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=XYejNivqLogLxOHnIj3GSorNDEpZuMqG7PvFHST6bN1Rqh04H5YBL3LLL4/MCoLw1
+	 w0DvuHMxcXXAMpoaK+JWIm9NexLVUPouXlDN8oAOTudRl8vbJATE2OFMCa9JUd/wJH
+	 Ef/VngWi7RzRe24XpkhZ+ioITa+7v329EDl9vEzc=
+Date: Wed, 02 Oct 2024 15:25:06 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,rdunlap@infradead.org,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,enh@google.com,corbet@lwn.net,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-correct-error-handling-in-mmap_region.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241002215223.D6AE2C4CEC2@smtp.kernel.org>
+Subject: + mseal-update-msealrst-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241002222506.B9E50C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: correct error handling in mmap_region()
+     Subject: mseal: update mseal.rst
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmap-correct-error-handling-in-mmap_region.patch
+     mseal-update-msealrst-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-correct-error-handling-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-update-msealrst-v2.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,137 +58,158 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mmap: correct error handling in mmap_region()
-Date: Wed, 2 Oct 2024 08:39:32 +0100
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: update mseal.rst
+Date: Tue, 1 Oct 2024 00:26:27 +0000
 
-Commit f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
-changed how error handling is performed in mmap_region().
+update according to Randy Dunlap's comments
 
-The error value defaults to -ENOMEM, but then gets reassigned immediately
-to the result of vms_gather_munmap_vmas() if we are performing a MAP_FIXED
-mapping over existing VMAs (and thus unmapping them).
-
-This overwrites the error value, potentially clearing it.
-
-After this, we invoke may_expand_vm() and possibly vm_area_alloc(), and
-check to see if they failed. If they do so, then we perform error-handling
-logic, but importantly, we do NOT update the error code.
-
-This means that, if vms_gather_munmap_vmas() succeeds, but one of these
-calls does not, the function will return indicating no error, but rather an
-address value of zero, which is entirely incorrect.
-
-Correct this and avoid future confusion by strictly setting error on each
-and every occasion we jump to the error handling logic, and set the error
-code immediately prior to doing so.
-
-This way we can see at a glance that the error code is always correct.
-
-Many thanks to Vegard Nossum who spotted this issue in discussion around
-this problem.
-
-Link: https://lkml.kernel.org/r/20241002073932.13482-1-lorenzo.stoakes@oracle.com
-Fixes: f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: Vegard Nossum <vegard.nossum@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20241001002628.2239032-2-jeffxu@chromium.org
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Cc: Elliott Hughes <enh@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ Documentation/userspace-api/mseal.rst |   44 ++++++++++++------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-correct-error-handling-in-mmap_region
-+++ a/mm/mmap.c
-@@ -1371,7 +1371,7 @@ unsigned long mmap_region(struct file *f
- 	struct maple_tree mt_detach;
- 	unsigned long end = addr + len;
- 	bool writable_file_mapping = false;
--	int error = -ENOMEM;
-+	int error;
- 	VMA_ITERATOR(vmi, mm, addr);
- 	VMG_STATE(vmg, mm, &vmi, addr, end, vm_flags, pgoff);
+--- a/Documentation/userspace-api/mseal.rst~mseal-update-msealrst-v2
++++ a/Documentation/userspace-api/mseal.rst
+@@ -27,7 +27,7 @@ SYSCALL
+ =======
+ mseal syscall signature
+ -----------------------
+-   **int** mseal(**void \*** addr, **size_t** len, **unsigned long** flags)
++   ``int mseal(void \* addr, size_t len, unsigned long flags)``
  
-@@ -1396,8 +1396,10 @@ unsigned long mmap_region(struct file *f
- 	}
+    **addr**/**len**: virtual memory address range.
+       The address range set by **addr**/**len** must meet:
+@@ -62,10 +62,10 @@ mseal syscall signature
+         memory range could happen. However, those cases should be rare.
  
- 	/* Check against address space limit. */
--	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages))
-+	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages)) {
-+		error = -ENOMEM;
- 		goto abort_munmap;
-+	}
+    **Architecture support**:
+-      mseal only works on 64-bit CPUs, not 32-bit CPU.
++      mseal only works on 64-bit CPUs, not 32-bit CPUs.
  
- 	/*
- 	 * Private writable mapping: check memory availability
-@@ -1405,8 +1407,11 @@ unsigned long mmap_region(struct file *f
- 	if (accountable_mapping(file, vm_flags)) {
- 		charged = pglen;
- 		charged -= vms.nr_accounted;
--		if (charged && security_vm_enough_memory_mm(mm, charged))
--			goto abort_munmap;
-+		if (charged) {
-+			error = security_vm_enough_memory_mm(mm, charged);
-+			if (error)
-+				goto abort_munmap;
-+		}
+    **Idempotent**:
+-      users can call mseal multiple times, mseal on an already sealed memory
++      users can call mseal multiple times. mseal on an already sealed memory
+       is a no-action (not error).
  
- 		vms.nr_accounted = 0;
- 		vm_flags |= VM_ACCOUNT;
-@@ -1422,8 +1427,10 @@ unsigned long mmap_region(struct file *f
- 	 * not unmapped, but the maps are removed from the list.
- 	 */
- 	vma = vm_area_alloc(mm);
--	if (!vma)
-+	if (!vma) {
-+		error = -ENOMEM;
- 		goto unacct_error;
-+	}
+    **no munseal**
+@@ -75,8 +75,8 @@ mseal syscall signature
  
- 	vma_iter_config(&vmi, addr, end);
- 	vma_set_range(vma, addr, end, pgoff);
-@@ -1453,9 +1460,10 @@ unsigned long mmap_region(struct file *f
- 		 * Expansion is handled above, merging is handled below.
- 		 * Drivers should not alter the address of the VMA.
- 		 */
--		error = -EINVAL;
--		if (WARN_ON((addr != vma->vm_start)))
-+		if (WARN_ON((addr != vma->vm_start))) {
-+			error = -EINVAL;
- 			goto close_and_free_vma;
-+		}
+ Blocked mm syscall for sealed mapping
+ -------------------------------------
+-   It might be imporant to note: **once the mapping is sealed, it will
+-   stay in the process's memory till the process terminates**.
++   It might be important to note: **once the mapping is sealed, it will
++   stay in the process's memory until the process terminates**.
  
- 		vma_iter_config(&vmi, addr, end);
- 		/*
-@@ -1500,13 +1508,15 @@ unsigned long mmap_region(struct file *f
- 	}
+    Example::
  
- 	/* Allow architectures to sanity-check the vm_flags */
--	error = -EINVAL;
--	if (!arch_validate_flags(vma->vm_flags))
-+	if (!arch_validate_flags(vma->vm_flags)) {
-+		error = -EINVAL;
- 		goto close_and_free_vma;
-+	}
+@@ -100,9 +100,9 @@ Blocked mm syscall for sealed mapping
+    overwrite the existing mapping with another mapping.
  
--	error = -ENOMEM;
--	if (vma_iter_prealloc(&vmi, vma))
-+	if (vma_iter_prealloc(&vmi, vma)) {
-+		error = -ENOMEM;
- 		goto close_and_free_vma;
-+	}
+    mprotect and pkey_mprotect are blocked because they changes the
+-   protection bits (rwx) of the mapping.
++   protection bits (RWX) of the mapping.
  
- 	/* Lock the VMA since it is modified after insertion into VMA tree */
- 	vma_start_write(vma);
+-   Some destructive madvice behaviors (MADV_DONTNEED, MADV_FREE,
++   Some destructive madvise behaviors (MADV_DONTNEED, MADV_FREE,
+    MADV_DONTNEED_LOCKED, MADV_FREE, MADV_DONTFORK, MADV_WIPEONFORK)
+    for anonymous memory, when users don't have write permission to the
+    memory. Those behaviors can alter region contents by discarding pages,
+@@ -118,25 +118,25 @@ Blocked mm syscall for sealed mapping
+         VMAs before reaching the sealed VMA and return -EPERM.
+       - mmap and mremap: undefined behavior.
+ 
+-Use cases:
+-==========
++Use cases
++=========
+ - glibc:
+   The dynamic linker, during loading ELF executables, can apply sealing to
+   mapping segments.
+ 
+-- Chrome browser: protect some security sensitive data-structures.
++- Chrome browser: protect some security sensitive data structures.
+ 
+-Don't use mseal on:
+-===================
++When not to use mseal
++=====================
+ Applications can apply sealing to any virtual memory region from userspace,
+ but it is *crucial to thoroughly analyze the mapping's lifetime* prior to
+ apply the sealing. This is because the sealed mapping *won’t be unmapped*
+-till the process terminates or the exec system call is invoked.
++until the process terminates or the exec system call is invoked.
+ 
+ For example:
+    - aio/shm
+      aio/shm can call mmap and  munmap on behalf of userspace, e.g.
+-     ksys_shmdt() in shm.c. The lifetime of those mapping are not tied to
++     ksys_shmdt() in shm.c. The lifetimes of those mapping are not tied to
+      the lifetime of the process. If those memories are sealed from userspace,
+      then munmap will fail, causing leaks in VMA address space during the
+      lifetime of the process.
+@@ -145,8 +145,10 @@ For example:
+      Don't use mseal on the memory ptr return from malloc().
+      malloc() is implemented by allocator, e.g. by glibc. Heap manager might
+      allocate a ptr from brk or mapping created by mmap.
+-     If app calls mseal on ptr returned from malloc(), this can affect the heap
+-     manager's ability to manage the mappings, the outcome is non-deterministic.
++     If an app calls mseal on a ptr returned from malloc(), this can affect
++     the heap manager's ability to manage the mappings; the outcome is
++     non-deterministic.
++
+      Example::
+ 
+         ptr = malloc(size);
+@@ -155,10 +157,10 @@ For example:
+         /* free will success, allocator can't shrink heap lower than ptr */
+         free(ptr);
+ 
+-mseal doesn't block:
+-====================
++mseal doesn't block
++===================
+ In a nutshell, mseal blocks certain mm syscall from modifying some of VMA's
+-attributes, such as protection bits (rwx). Sealed mappings doesn't mean the
++attributes, such as protection bits (RWX). Sealed mappings doesn't mean the
+ memory is immutable.
+ 
+ As Jann Horn pointed out in [3], there are still a few ways to write
+@@ -173,8 +175,8 @@ Those cases are:
+ The idea that inspired this patch comes from Stephen Röttger’s work in V8
+ CFI [4]. Chrome browser in ChromeOS will be the first user of this API.
+ 
+-Reference:
+-==========
++Reference
++=========
+ - [1] https://github.com/apple-oss-distributions/xnu/blob/1031c584a5e37aff177559b9f69dbd3c8c3fd30a/osfmk/mach/vm_statistics.h#L274
+ - [2] https://man.openbsd.org/mimmutable.2
+ - [3] https://lore.kernel.org/lkml/CAG48ez3ShUYey+ZAFsU2i1RpQn0a5eOs2hzQ426FkcgnfUGLvA@mail.gmail.com
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mm-mmap-correct-error-handling-in-mmap_region.patch
-selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
-mm-refactor-mm_access-to-not-return-null.patch
-mm-refactor-mm_access-to-not-return-null-fix.patch
-mm-madvise-unrestrict-process_madvise-for-current-process.patch
+mseal-update-msealrst.patch
+mseal-update-msealrst-v2.patch
 
