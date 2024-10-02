@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0052215F7B
-	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 20:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E73215F7B
+	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 20:55:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727902521; cv=none; b=DVA5YaCHgrDUWYS31tJ/u5RKXpu8314YWVq4qOBk823acBYQbZP7izd+Y43CvhAbIZwyiWUcYu8rBP9EnAMFAkHWPZZLNVkXICg1b8zSCknzc4MITOMLgkyNISBHC9ctvpUovWM//KSdEHdQvIeDawhzL5oD78OpznKsZ4grC00=
+	t=1727902531; cv=none; b=gnpdbm3/4rRxhZSwSbnn/zmSRuQ5x6QlH4aQIkrRnr6GylwjbwhmBqVM6aE6FvVNpbZuAJnBSPP9iKXZWPr52EVAQE3JiuQSSPh/z6VXKxfFyVcsmFpiD7+kCMQ2/xlk/9oclxT4keu5pTxgEJ7Xf3KtdfWToVVreycRyqRK0vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727902521; c=relaxed/simple;
-	bh=shDsyZuB/khyBNaBpr3s/ipleP0iUDKGaBxkljsDAIk=;
-	h=Date:To:From:Subject:Message-Id; b=KFV6TQcNPCiD0gBD1q5vha2M8LZGmjML6XaZkDtsi/imKm9i2fCN9VtR5LEUOxybLEcsNIjkzYNfoRLM/VVmBA4HWotkV5h+vRRJuzprxU5ywh+njUqjbbqPBG3jiPpOHZke+6iXOVlMpvPPdO8bjDtusLmzo8fBVcOEg8x9FHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nR644pT4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727902531; c=relaxed/simple;
+	bh=VF3O2i+Niugh3A/xfEoyqJaMUK/7R+CBTy1BSMBeFaA=;
+	h=Date:To:From:Subject:Message-Id; b=NJZhoE/7QE1I/Ox5EkgVu7DFhqFqklwQ4ZnSUJ4iWbT9tT+fpX1/7njHZ7iAUo6U4zQJByu5EMk7V+dEmIFbG2X0lsaXiWVvwJgyLEDTSgBAA9ayiU3r+rV1DbfDEYMCtRbKkY0JbFNDn5RhqF417wsi/RLD8UozfnpeRtAVepE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jDCf1VS7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nR644pT4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EFBDC4CEC2;
-	Wed,  2 Oct 2024 20:55:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jDCf1VS7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3A71C4CEC2;
+	Wed,  2 Oct 2024 20:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727902520;
-	bh=shDsyZuB/khyBNaBpr3s/ipleP0iUDKGaBxkljsDAIk=;
+	s=korg; t=1727902531;
+	bh=VF3O2i+Niugh3A/xfEoyqJaMUK/7R+CBTy1BSMBeFaA=;
 	h=Date:To:From:Subject:From;
-	b=nR644pT41KPVu4ABY+z+J+ej49ranwY3kHw4Tx3A7ID8GhG503Ok18TSPy4wES6RL
-	 wWZd15PoVZBQ4wnWnL10HyK3Py3n/kTuFEdIQQEilVDvRiIhyGJUWDdz1TAHxB1F6i
-	 aK1He6n4YfycfIiypCAjVix1A8I3ulIDSU9x9OGU=
-Date: Wed, 02 Oct 2024 13:55:19 -0700
+	b=jDCf1VS7Xes9qe0HF0Jpm1JMvoXSnakAMukgqXhncX54HbsJ0OYkQAV2Rb3VTHXZU
+	 kZkyE6JEWkt5y5CS3sZoSbiQRZDma1kCwkBRIm8XMbB5FwuQEj1X4mYIjDJdDztMBe
+	 1Uov2/SRjTbax4E1YyK+oK0cHvaZYUwRZ284mDFk=
+Date: Wed, 02 Oct 2024 13:55:30 -0700
 To: mm-commits@vger.kernel.org,alexs@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-use-a-folio-in-try_to_merge_one_page.patch added to mm-unstable branch
-Message-Id: <20241002205520.8EFBDC4CEC2@smtp.kernel.org>
+Subject: + ksm-convert-cmp_and_merge_page-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20241002205530.E3A71C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ksm: use a folio in try_to_merge_one_page()
+     Subject: ksm: convert cmp_and_merge_page() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     ksm-use-a-folio-in-try_to_merge_one_page.patch
+     ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-use-a-folio-in-try_to_merge_one_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,109 +59,173 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ksm: use a folio in try_to_merge_one_page()
-Date: Wed, 2 Oct 2024 16:25:27 +0100
+Subject: ksm: convert cmp_and_merge_page() to use a folio
+Date: Wed, 2 Oct 2024 16:25:28 +0100
 
-Patch series "Remove PageKsm()".
+By making try_to_merge_two_pages() and stable_tree_search() return a
+folio, we can replace kpage with kfolio.  This replaces 7 calls to
+compound_head() with one.
 
-The KSM flag is almost always tested on the folio rather than on the page.
-This series removes the final users of PageKsm() and makes the flag only
-
-
-This patch (of 5):
-
-It is safe to use a folio here because all callers took a refcount on this
-page.  The one wrinkle is that we have to recalculate the value of folio
-after splitting the page, since it has probably changed.  Replaces nine
-calls to compound_head() with one.
-
-Link: https://lkml.kernel.org/r/20241002152533.1350629-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20241002152533.1350629-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241002152533.1350629-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Alex Shi <alexs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ mm/ksm.c |   48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
---- a/mm/ksm.c~ksm-use-a-folio-in-try_to_merge_one_page
+--- a/mm/ksm.c~ksm-convert-cmp_and_merge_page-to-use-a-folio
 +++ a/mm/ksm.c
-@@ -1442,28 +1442,29 @@ out:
- static int try_to_merge_one_page(struct vm_area_struct *vma,
- 				 struct page *page, struct page *kpage)
- {
-+	struct folio *folio = page_folio(page);
- 	pte_t orig_pte = __pte(0);
- 	int err = -EFAULT;
- 
- 	if (page == kpage)			/* ksm page forked */
- 		return 0;
- 
--	if (!PageAnon(page))
-+	if (!folio_test_anon(folio))
- 		goto out;
- 
- 	/*
- 	 * We need the folio lock to read a stable swapcache flag in
--	 * write_protect_page().  We use trylock_page() instead of
--	 * lock_page() because we don't want to wait here - we
--	 * prefer to continue scanning and merging different pages,
--	 * then come back to this page when it is unlocked.
-+	 * write_protect_page().  We trylock because we don't want to wait
-+	 * here - we prefer to continue scanning and merging different
-+	 * pages, then come back to this page when it is unlocked.
- 	 */
--	if (!trylock_page(page))
-+	if (!folio_trylock(folio))
- 		goto out;
- 
--	if (PageTransCompound(page)) {
-+	if (folio_test_large(folio)) {
- 		if (split_huge_page(page))
- 			goto out_unlock;
-+		folio = page_folio(page);
+@@ -1582,7 +1582,7 @@ out:
+  * Note that this function upgrades page to ksm page: if one of the pages
+  * is already a ksm page, try_to_merge_with_ksm_page should be used.
+  */
+-static struct page *try_to_merge_two_pages(struct ksm_rmap_item *rmap_item,
++static struct folio *try_to_merge_two_pages(struct ksm_rmap_item *rmap_item,
+ 					   struct page *page,
+ 					   struct ksm_rmap_item *tree_rmap_item,
+ 					   struct page *tree_page)
+@@ -1600,7 +1600,7 @@ static struct page *try_to_merge_two_pag
+ 		if (err)
+ 			break_cow(rmap_item);
  	}
- 
- 	/*
-@@ -1472,28 +1473,28 @@ static int try_to_merge_one_page(struct
- 	 * ptes are necessarily already write-protected.  But in either
- 	 * case, we need to lock and check page_count is not raised.
- 	 */
--	if (write_protect_page(vma, page_folio(page), &orig_pte) == 0) {
-+	if (write_protect_page(vma, folio, &orig_pte) == 0) {
- 		if (!kpage) {
- 			/*
--			 * While we hold page lock, upgrade page from
--			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
-+			 * While we hold folio lock, upgrade folio from
-+			 * anon to a NULL stable_node with the KSM flag set:
- 			 * stable_tree_insert() will update stable_node.
- 			 */
--			folio_set_stable_node(page_folio(page), NULL);
--			mark_page_accessed(page);
-+			folio_set_stable_node(folio, NULL);
-+			folio_mark_accessed(folio);
- 			/*
--			 * Page reclaim just frees a clean page with no dirty
-+			 * Page reclaim just frees a clean folio with no dirty
- 			 * ptes: make sure that the ksm page would be swapped.
- 			 */
--			if (!PageDirty(page))
--				SetPageDirty(page);
-+			if (!folio_test_dirty(folio))
-+				folio_mark_dirty(folio);
- 			err = 0;
- 		} else if (pages_identical(page, kpage))
- 			err = replace_page(vma, page, kpage, orig_pte);
- 	}
- 
- out_unlock:
--	unlock_page(page);
-+	folio_unlock(folio);
- out:
- 	return err;
+-	return err ? NULL : page;
++	return err ? NULL : page_folio(page);
  }
+ 
+ static __always_inline
+@@ -1789,7 +1789,7 @@ static __always_inline struct folio *cha
+  * This function returns the stable tree node of identical content if found,
+  * NULL otherwise.
+  */
+-static struct page *stable_tree_search(struct page *page)
++static struct folio *stable_tree_search(struct page *page)
+ {
+ 	int nid;
+ 	struct rb_root *root;
+@@ -1804,7 +1804,7 @@ static struct page *stable_tree_search(s
+ 	if (page_node && page_node->head != &migrate_nodes) {
+ 		/* ksm page forked */
+ 		folio_get(folio);
+-		return &folio->page;
++		return folio;
+ 	}
+ 
+ 	nid = get_kpfn_nid(folio_pfn(folio));
+@@ -1899,7 +1899,7 @@ again:
+ 				folio_put(tree_folio);
+ 				goto replace;
+ 			}
+-			return &tree_folio->page;
++			return tree_folio;
+ 		}
+ 	}
+ 
+@@ -1913,7 +1913,7 @@ again:
+ out:
+ 	if (is_page_sharing_candidate(page_node)) {
+ 		folio_get(folio);
+-		return &folio->page;
++		return folio;
+ 	} else
+ 		return NULL;
+ 
+@@ -1963,7 +1963,7 @@ replace:
+ 	}
+ 	stable_node_dup->head = &migrate_nodes;
+ 	list_add(&stable_node_dup->list, stable_node_dup->head);
+-	return &folio->page;
++	return folio;
+ 
+ chain_append:
+ 	/*
+@@ -2217,7 +2217,7 @@ static void cmp_and_merge_page(struct pa
+ 	struct ksm_rmap_item *tree_rmap_item;
+ 	struct page *tree_page = NULL;
+ 	struct ksm_stable_node *stable_node;
+-	struct page *kpage;
++	struct folio *kfolio;
+ 	unsigned int checksum;
+ 	int err;
+ 	bool max_page_sharing_bypass = false;
+@@ -2259,31 +2259,31 @@ static void cmp_and_merge_page(struct pa
+ 			return;
+ 	}
+ 
+-	/* We first start with searching the page inside the stable tree */
+-	kpage = stable_tree_search(page);
+-	if (kpage == page && rmap_item->head == stable_node) {
+-		put_page(kpage);
++	/* Start by searching for the folio in the stable tree */
++	kfolio = stable_tree_search(page);
++	if (&kfolio->page == page && rmap_item->head == stable_node) {
++		folio_put(kfolio);
+ 		return;
+ 	}
+ 
+ 	remove_rmap_item_from_tree(rmap_item);
+ 
+-	if (kpage) {
+-		if (PTR_ERR(kpage) == -EBUSY)
++	if (kfolio) {
++		if (kfolio == ERR_PTR(-EBUSY))
+ 			return;
+ 
+-		err = try_to_merge_with_ksm_page(rmap_item, page, kpage);
++		err = try_to_merge_with_ksm_page(rmap_item, page, &kfolio->page);
+ 		if (!err) {
+ 			/*
+ 			 * The page was successfully merged:
+ 			 * add its rmap_item to the stable tree.
+ 			 */
+-			lock_page(kpage);
+-			stable_tree_append(rmap_item, page_stable_node(kpage),
++			folio_lock(kfolio);
++			stable_tree_append(rmap_item, folio_stable_node(kfolio),
+ 					   max_page_sharing_bypass);
+-			unlock_page(kpage);
++			folio_unlock(kfolio);
+ 		}
+-		put_page(kpage);
++		folio_put(kfolio);
+ 		return;
+ 	}
+ 
+@@ -2292,7 +2292,7 @@ static void cmp_and_merge_page(struct pa
+ 	if (tree_rmap_item) {
+ 		bool split;
+ 
+-		kpage = try_to_merge_two_pages(rmap_item, page,
++		kfolio = try_to_merge_two_pages(rmap_item, page,
+ 						tree_rmap_item, tree_page);
+ 		/*
+ 		 * If both pages we tried to merge belong to the same compound
+@@ -2307,20 +2307,20 @@ static void cmp_and_merge_page(struct pa
+ 		split = PageTransCompound(page)
+ 			&& compound_head(page) == compound_head(tree_page);
+ 		put_page(tree_page);
+-		if (kpage) {
++		if (kfolio) {
+ 			/*
+ 			 * The pages were successfully merged: insert new
+ 			 * node in the stable tree and add both rmap_items.
+ 			 */
+-			lock_page(kpage);
+-			stable_node = stable_tree_insert(page_folio(kpage));
++			folio_lock(kfolio);
++			stable_node = stable_tree_insert(kfolio);
+ 			if (stable_node) {
+ 				stable_tree_append(tree_rmap_item, stable_node,
+ 						   false);
+ 				stable_tree_append(rmap_item, stable_node,
+ 						   false);
+ 			}
+-			unlock_page(kpage);
++			folio_unlock(kfolio);
+ 
+ 			/*
+ 			 * If we fail to insert the page into the stable tree,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
