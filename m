@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F94E1D1E60
-	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 21:06:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7010D199945
+	for <mm-commits@vger.kernel.org>; Wed,  2 Oct 2024 21:52:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727903186; cv=none; b=csOPbcZ6lUvc5x3kOaQUnQab6qwf54xg+t6XpHkLcwWPoUnZXVS3jOurOUm9zIietgmQL/KjhBWpuwIgdIKkZhN4g8kaXR5HZVcCPrW4q6T/JM6l9mV0hkXhGiscGfQrLhsKggrNUXLIQ8NfKD0i4Qtu3Ip6kWk3Z3SYjtbHoBo=
+	t=1727905944; cv=none; b=JhPTeYaeqbmPaZJrtNwYK39JHf0CyzwCGE2mxBzD+9hJoHBsL4UlWn8kjHNsIg/zbf114gYUp9USqwK0b1WBP90RDX2o0ZN97zLmJ+a+AWIplaY5lCx5mcbQmlqazJEXK5O6cyZLwMp8P74yHPUXmKQ+9WFft5zfX5SsfSYdYJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727903186; c=relaxed/simple;
-	bh=Gtr8voSTo9c39nTU8mFd+55BmV6thhZHryzrFhx6/kk=;
-	h=Date:To:From:Subject:Message-Id; b=ZcSfZKbT5nQBsU+CLB/iYf4cdjUdoNoEEX94QaCPTacRE5iqNXrHlMib3k341Ui9nBu3YzEh/YR6xZ9vLYT2fq3bUUkoKF9TGl7fOsifn3ej4QZ5w5mE01rmyxqhrXhjAOMYPPp6aqJnPwRqlP8S8vl4Ms8NrU0qgpvPhH0DgL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MblA2c64; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727905944; c=relaxed/simple;
+	bh=gM+apDATA61Q+rJRhlb10h0FMWxlX8hhvpLxpCdhL+4=;
+	h=Date:To:From:Subject:Message-Id; b=HyN5N+b50y/hpTU5G4Ii/33TX3CzpfPt+//oXejTF5WHrwCj2qG9RgooD8jgQlnKL67lAWSenOqAIfyDDpGxq4IP1pN+0RlMpGMG5H0QsiCXxWyWfoJlehNu+2OT1V7bGgh1X2k9CiQhaHIaYe9httZvWmMgWkCFM/T+SAisnJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIsW3MzC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MblA2c64"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5683C4CEC2;
-	Wed,  2 Oct 2024 21:06:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIsW3MzC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6AE2C4CEC2;
+	Wed,  2 Oct 2024 21:52:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727903185;
-	bh=Gtr8voSTo9c39nTU8mFd+55BmV6thhZHryzrFhx6/kk=;
+	s=korg; t=1727905943;
+	bh=gM+apDATA61Q+rJRhlb10h0FMWxlX8hhvpLxpCdhL+4=;
 	h=Date:To:From:Subject:From;
-	b=MblA2c646i+nwNj9kR0q4ibBo7MuGP2ajTdoFIPf2DeJr0T3OHdu5ek34AVXegjjZ
-	 O1+jZ9US2dfClhS1jkLPqSeH4IBxUGemCORQUjDSAEGuEZ1WnPpcTRWj2+67DgiAhA
-	 tuBViVAwpUltEy/zxEs5L0PFVJ8mz7f5CWKHv4ZQ=
-Date: Wed, 02 Oct 2024 14:06:25 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=RIsW3MzCZzjd32cSXMbZ++QiliOKOjLOJQWo2mZg9ONLMad0+TSgQ6aztxI93+b5X
+	 /LQpF0n8ePptMIBgJ2rkkHUwdBs5Mqv8La1siNV2+FSStV+hIQhyLKrY4OGApIUU4R
+	 qRyxts2b0RhXI1jiQ5C3Rg0G1MvUguUdfm7DmWo4=
+Date: Wed, 02 Oct 2024 14:52:22 -0700
+To: mm-commits@vger.kernel.org,vegard.nossum@oracle.com,vbabka@suse.cz,Liam.Howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch added to mm-unstable branch
-Message-Id: <20241002210625.C5683C4CEC2@smtp.kernel.org>
+Subject: + mm-mmap-correct-error-handling-in-mmap_region.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241002215223.D6AE2C4CEC2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: gup: convert FOLL_TOUCH case in follow_page_pte() to folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
+     Subject: mm/mmap: correct error handling in mmap_region()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mmap-correct-error-handling-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-correct-error-handling-in-mmap_region.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,50 +58,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gup: convert FOLL_TOUCH case in follow_page_pte() to folio
-Date: Wed, 2 Oct 2024 16:13:27 +0100
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mmap: correct error handling in mmap_region()
+Date: Wed, 2 Oct 2024 08:39:32 +0100
 
-We already have the folio here, so just use it, removing three hidden
-calls to compound_head().
+Commit f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
+changed how error handling is performed in mmap_region().
 
-Link: https://lkml.kernel.org/r/20241002151403.1345296-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+The error value defaults to -ENOMEM, but then gets reassigned immediately
+to the result of vms_gather_munmap_vmas() if we are performing a MAP_FIXED
+mapping over existing VMAs (and thus unmapping them).
+
+This overwrites the error value, potentially clearing it.
+
+After this, we invoke may_expand_vm() and possibly vm_area_alloc(), and
+check to see if they failed. If they do so, then we perform error-handling
+logic, but importantly, we do NOT update the error code.
+
+This means that, if vms_gather_munmap_vmas() succeeds, but one of these
+calls does not, the function will return indicating no error, but rather an
+address value of zero, which is entirely incorrect.
+
+Correct this and avoid future confusion by strictly setting error on each
+and every occasion we jump to the error handling logic, and set the error
+code immediately prior to doing so.
+
+This way we can see at a glance that the error code is always correct.
+
+Many thanks to Vegard Nossum who spotted this issue in discussion around
+this problem.
+
+Link: https://lkml.kernel.org/r/20241002073932.13482-1-lorenzo.stoakes@oracle.com
+Fixes: f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: Vegard Nossum <vegard.nossum@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/mmap.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
---- a/mm/gup.c~gup-convert-foll_touch-case-in-follow_page_pte-to-folio
-+++ a/mm/gup.c
-@@ -922,14 +922,14 @@ static struct page *follow_page_pte(stru
+--- a/mm/mmap.c~mm-mmap-correct-error-handling-in-mmap_region
++++ a/mm/mmap.c
+@@ -1371,7 +1371,7 @@ unsigned long mmap_region(struct file *f
+ 	struct maple_tree mt_detach;
+ 	unsigned long end = addr + len;
+ 	bool writable_file_mapping = false;
+-	int error = -ENOMEM;
++	int error;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	VMG_STATE(vmg, mm, &vmi, addr, end, vm_flags, pgoff);
+ 
+@@ -1396,8 +1396,10 @@ unsigned long mmap_region(struct file *f
  	}
- 	if (flags & FOLL_TOUCH) {
- 		if ((flags & FOLL_WRITE) &&
--		    !pte_dirty(pte) && !PageDirty(page))
--			set_page_dirty(page);
-+		    !pte_dirty(pte) && !folio_test_dirty(folio))
-+			folio_mark_dirty(folio);
- 		/*
- 		 * pte_mkyoung() would be more correct here, but atomic care
- 		 * is needed to avoid losing the dirty bit: it is easier to use
--		 * mark_page_accessed().
-+		 * folio_mark_accessed().
+ 
+ 	/* Check against address space limit. */
+-	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages))
++	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages)) {
++		error = -ENOMEM;
+ 		goto abort_munmap;
++	}
+ 
+ 	/*
+ 	 * Private writable mapping: check memory availability
+@@ -1405,8 +1407,11 @@ unsigned long mmap_region(struct file *f
+ 	if (accountable_mapping(file, vm_flags)) {
+ 		charged = pglen;
+ 		charged -= vms.nr_accounted;
+-		if (charged && security_vm_enough_memory_mm(mm, charged))
+-			goto abort_munmap;
++		if (charged) {
++			error = security_vm_enough_memory_mm(mm, charged);
++			if (error)
++				goto abort_munmap;
++		}
+ 
+ 		vms.nr_accounted = 0;
+ 		vm_flags |= VM_ACCOUNT;
+@@ -1422,8 +1427,10 @@ unsigned long mmap_region(struct file *f
+ 	 * not unmapped, but the maps are removed from the list.
+ 	 */
+ 	vma = vm_area_alloc(mm);
+-	if (!vma)
++	if (!vma) {
++		error = -ENOMEM;
+ 		goto unacct_error;
++	}
+ 
+ 	vma_iter_config(&vmi, addr, end);
+ 	vma_set_range(vma, addr, end, pgoff);
+@@ -1453,9 +1460,10 @@ unsigned long mmap_region(struct file *f
+ 		 * Expansion is handled above, merging is handled below.
+ 		 * Drivers should not alter the address of the VMA.
  		 */
--		mark_page_accessed(page);
-+		folio_mark_accessed(folio);
+-		error = -EINVAL;
+-		if (WARN_ON((addr != vma->vm_start)))
++		if (WARN_ON((addr != vma->vm_start))) {
++			error = -EINVAL;
+ 			goto close_and_free_vma;
++		}
+ 
+ 		vma_iter_config(&vmi, addr, end);
+ 		/*
+@@ -1500,13 +1508,15 @@ unsigned long mmap_region(struct file *f
  	}
- out:
- 	pte_unmap_unlock(ptep, ptl);
+ 
+ 	/* Allow architectures to sanity-check the vm_flags */
+-	error = -EINVAL;
+-	if (!arch_validate_flags(vma->vm_flags))
++	if (!arch_validate_flags(vma->vm_flags)) {
++		error = -EINVAL;
+ 		goto close_and_free_vma;
++	}
+ 
+-	error = -ENOMEM;
+-	if (vma_iter_prealloc(&vmi, vma))
++	if (vma_iter_prealloc(&vmi, vma)) {
++		error = -ENOMEM;
+ 		goto close_and_free_vma;
++	}
+ 
+ 	/* Lock the VMA since it is modified after insertion into VMA tree */
+ 	vma_start_write(vma);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-ksm-use-a-folio-in-try_to_merge_one_page.patch
-ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
-ksm-convert-should_skip_rmap_item-to-take-a-folio.patch
-mm-add-pageanonnotksm.patch
-mm-remove-pageksm.patch
-gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
+mm-mmap-correct-error-handling-in-mmap_region.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-refactor-mm_access-to-not-return-null-fix.patch
+mm-madvise-unrestrict-process_madvise-for-current-process.patch
 
