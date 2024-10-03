@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C22A1A4F36
-	for <mm-commits@vger.kernel.org>; Thu,  3 Oct 2024 19:06:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 506BE1A7AF6
+	for <mm-commits@vger.kernel.org>; Thu,  3 Oct 2024 19:28:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727982394; cv=none; b=ViCzDpyvj9TX1YILk270c+hpQKjn2D2Op2gT5MDd7+yGqiJjA0ELQCSuXGzXIWJ3xJX6siHMe6XSqg/CW9b/aXTJy+K/ryEVsCZhih7H084plpx6BbMTqEyuKy4mv1dQ4buUwgsAsKhqOkn8dp/0A8ZMw9X8+63PT1Rz137k2A8=
+	t=1727983719; cv=none; b=kfirpz2RAltLOqgHcm7GeM1zRPVgEK0ku09J3luqSrM2p9xdG94iNgRaCf4rRDHSMOtxwZOm4J13CsQhS0p3i391uF1VBYWRkg/ZLc2pNT+XvqWSa7ARnSrktZHOBW55jM9bp7pPJqvGU+RoN8WqFUHXCKXFQCtk9e6OhfwIU8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727982394; c=relaxed/simple;
-	bh=IL0fj9apA8SvNEd5z2nCN2lmpzwWgMIerGfbtv0fBaQ=;
-	h=Date:To:From:Subject:Message-Id; b=JFdwhcCfIT9lKg3bUv/qgmG6wwxcqfg0bXZeORS2Vs5akYD90OnLGxJMsTTQPm47I/DVmplBQMhCTVfcqhSCQY/upxNpThXQzc2ktOBy8p/yDfepsovKpzdyubWFq6D8dcE0DCY4K9VrkR0wvdnhTXGUH3r8UIvumQYpPcxJxA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hxYhJ/Pe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727983719; c=relaxed/simple;
+	bh=zBQEYAcIGUCif6vrKbvrIly8C1PeBNwv7GryL7auwEU=;
+	h=Date:To:From:Subject:Message-Id; b=H2bJsDJvfmT/YU/Qmx31UiYiXpMju0/BAyB7SKGnFs2dCAcWAd8tVlbiPkog18jlUMECtRwkvo6yal1heW+Gm0ndr7oVzy6RjmBIdFxwAZHvDesrGBItQa8yxM6a8moATphMXhJQw4OJBejSVmrC3cvPNgi+q8SERexYPxyKN/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z1igF6vD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hxYhJ/Pe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ECECC4CEC5;
-	Thu,  3 Oct 2024 19:06:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z1igF6vD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 790ABC4CEC5;
+	Thu,  3 Oct 2024 19:28:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727982393;
-	bh=IL0fj9apA8SvNEd5z2nCN2lmpzwWgMIerGfbtv0fBaQ=;
+	s=korg; t=1727983718;
+	bh=zBQEYAcIGUCif6vrKbvrIly8C1PeBNwv7GryL7auwEU=;
 	h=Date:To:From:Subject:From;
-	b=hxYhJ/PeK830rYFEXao1k4xKDzcSLKNDZcHfv+gw/3rn9ShbfX6jiSpQynKf4r8xq
-	 6KupqAcZbvMSQCjtzPja2/PvR1PebMT302kYnkoixZXeFnIQOvEycaGxnnlVNXRJuU
-	 VugSFkym1+HqCRE8B3TAkUWIjpKiFepouzNmJ6JA=
-Date: Thu, 03 Oct 2024 12:06:33 -0700
-To: mm-commits@vger.kernel.org,xndchn@gmail.com,swboyd@chromium.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,luca.ceresoli@bootlin.com,kent.overstreet@linux.dev,cmllamas@google.com,leitao@debian.org,akpm@linux-foundation.org
+	b=Z1igF6vD07t6Ay0GHW/g8/LzQcBvnptYotzhCSa2fQk96Vvj8agoIukbXWdwOVJ2R
+	 fatPGi33rIn4XUQ5YsNy2agwZKVScFNO/x3r3SRFqHv3aKi7o7IopPJSEgpVtAlQLC
+	 TyPm+pHprgZMIhjhQwkkr4O3DqnZfO+fFMHJ0lN0=
+Date: Thu, 03 Oct 2024 12:28:37 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,aha310510@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-remove-trailing-space.patch added to mm-nonmm-unstable branch
-Message-Id: <20241003190633.9ECECC4CEC5@smtp.kernel.org>
+Subject: [failures] mm-percpu-fix-typo-to-pcpu_alloc_noprof-description.patch removed from -mm tree
+Message-Id: <20241003192838.790ABC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,48 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: scripts/decode_stacktrace.sh: remove trailing space
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-remove-trailing-space.patch
+The quilt patch titled
+     Subject: mm: percpu: fix typo to pcpu_alloc_noprof() description
+has been removed from the -mm tree.  Its filename was
+     mm-percpu-fix-typo-to-pcpu_alloc_noprof-description.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-remove-trailing-space.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: scripts/decode_stacktrace.sh: remove trailing space
-Date: Thu, 3 Oct 2024 03:30:05 -0700
+From: Jeongjun Park <aha310510@gmail.com>
+Subject: mm: percpu: fix typo to pcpu_alloc_noprof() description
+Date: Wed, 25 Sep 2024 00:24:12 +0900
 
-decode_stacktrace.sh adds a trailing space at the end of the decoded stack
-if the module is not set (in most of the lines), which makes the some
-lines of the stack having trailing space and some others not.
+In the previous commit, the function name was changed from pcpu_alloc to
+pcpu_alloc_noprof , but the function description was not changed
+accordingly.  The function name should be changed to pcpu_alloc_noprof in
+the description as well.
 
-Do not add an extra space at the end of the line if module is not set,
-adding consistency in output formatting.
-
-Link: https://lkml.kernel.org/r/20241003103009.2635627-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Elliot Berman <quic_eberman@quicinc.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
-Cc: Stephen Boyd <swboyd@chromium.org>
-Cc: Xiong Nandi <xndchn@gmail.com>
+Link: https://lkml.kernel.org/r/20240924152412.118487-1-aha310510@gmail.com
+Signed-off-by: Jeongjun Park <aha310510@gmail.com>
+Cc: Christoph Lameter (Ampere) <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/percpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-remove-trailing-space
-+++ a/scripts/decode_stacktrace.sh
-@@ -311,7 +311,12 @@ handle_line() {
- 	parse_symbol # modifies $symbol
+--- a/mm/percpu.c~mm-percpu-fix-typo-to-pcpu_alloc_noprof-description
++++ a/mm/percpu.c
+@@ -1726,7 +1726,7 @@ static void pcpu_alloc_tag_free_hook(str
+ #endif
  
- 	# Add up the line number to the symbol
--	echo "${words[@]}" "$symbol $module"
-+	if [ -z ${module} ]
-+	then
-+		echo "${words[@]}" "$symbol"
-+	else
-+		echo "${words[@]}" "$symbol $module"
-+	fi
- }
- 
- while read line; do
+ /**
+- * pcpu_alloc - the percpu allocator
++ * pcpu_alloc_noprof - the percpu allocator
+  * @size: size of area to allocate in bytes
+  * @align: alignment of area (max PAGE_SIZE)
+  * @reserved: allocate from the reserved chunk if available
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from aha310510@gmail.com are
 
-scripts-decode_stacktracesh-remove-trailing-space.patch
+mm-shmem-fix-data-race-in-shmem_getattr.patch
 
