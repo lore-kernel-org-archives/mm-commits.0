@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C9BF1ABEB4
-	for <mm-commits@vger.kernel.org>; Thu,  3 Oct 2024 19:58:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736B51ABEDF
+	for <mm-commits@vger.kernel.org>; Thu,  3 Oct 2024 20:00:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727985492; cv=none; b=MJFNYrUdH2NEfdWWLJVnRfbu73joUuPZjxsg0L+ZCkhy7ecDSXgOshYrtPX867zlVUsANTJgAgaI43new9SUTtVfXTZTLHVG+z7S/C0Nml3LT/d0g3SNVaSPeY7aed8J4JiJApGp9rkmMZ94jR03tUWpEd+abChJb2HifmkyLx0=
+	t=1727985607; cv=none; b=nJlJogpayvZv544poJsvw1bNDmarvDzn0U8Ayg1cI75wluvtT1EDU+nuCxDO96kNOZtFt20sPzDTelSx9RXmEzaWo0JzSgiSzwLPhNlO/wCJ0pi2Ea9k4B6XLoR7SkR7h0cBBNB0KstjzZx9cwNh/ldix0CAQ/5cEIhUHodT+2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727985492; c=relaxed/simple;
-	bh=IsHytjxizsZ9vIAF7Ee40snQsyTxaxsCBV4PWsJ0ieg=;
-	h=Date:To:From:Subject:Message-Id; b=LiZ8+caemay7y/6PgXGbjtGIPkRZEZxIRwqlpV3iplbOWvDEad5+Vyj+7sV4UdxQPnDWD4vRU3t8n+Eu+cLcwA3GBym2c8A7AdusgrQM7bKeFRyREMuO+eDTVdAwZTYaLvoJDRaX1X+jDkZ5XKbV+Eymyvd5pCDIbRRLuxl5APQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ybS0V9Yw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727985607; c=relaxed/simple;
+	bh=WEYY3WspARQ0G/D9Wi2nURLA7GZGGKBGMaoo5f735cg=;
+	h=Date:To:From:Subject:Message-Id; b=UgrcNp54xFptj8fgdqS62AJHpOYsTm/Pp2At/2hyiHjuH4ACwoKTvTT75mkREIjrDuY9qCqF4ChWXUSAPsM8/WP6ALqQbwue7Gq2Ic8kSET7EZiSFZ8PjRUsUxc1nHqcmXXSaqxGcq3ENx9V/YPRmLvYRDh5E/7OritB4MGLyOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=avEhaX09; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ybS0V9Yw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E070BC4CEC5;
-	Thu,  3 Oct 2024 19:58:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="avEhaX09"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC4A1C4CEC5;
+	Thu,  3 Oct 2024 20:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1727985492;
-	bh=IsHytjxizsZ9vIAF7Ee40snQsyTxaxsCBV4PWsJ0ieg=;
+	s=korg; t=1727985606;
+	bh=WEYY3WspARQ0G/D9Wi2nURLA7GZGGKBGMaoo5f735cg=;
 	h=Date:To:From:Subject:From;
-	b=ybS0V9YwTn9tNR0y+sVg00AMX/cyxgL1doUXeKoUWt+DQ2p0Ew0vSW+Gs5fMWN4VE
-	 7CPN9fLpVAp9VC+Y6NBdWdKgfZshIG7lWPOLZQ1oUB7IzDq1ZokbHjMvlUviNMT2Kc
-	 CwfuoVRI/sZxJtgMTa6SuhTFa8CpjWgmQSY1vwes=
-Date: Thu, 03 Oct 2024 12:58:11 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wajdi.k.feghali@intel.com,ryan.roberts@arm.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
+	b=avEhaX09zGAvr5PYIMB9gZisxMgWcdv8TR/1JxXE/C6/uu1YD1TBgMtv3ibY2x8j2
+	 14P8mFqDHOebNXyLZ+iRrxwRhNm4hFzbyZLxDuc8Sd60zy74+j48DloIjSn/ohqkH3
+	 vbmhMN9tK1CoiYR9m/47u7al3CcnQUDQj2jijczM=
+Date: Thu, 03 Oct 2024 13:00:06 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic.patch added to mm-unstable branch
-Message-Id: <20241003195811.E070BC4CEC5@smtp.kernel.org>
+Subject: + mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch added to mm-unstable branch
+Message-Id: <20241003200006.BC4A1C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: make some count_mthp_stat() call-sites be THP-agnostic.
+     Subject: mm/truncate: reset xa_has_values flag on each iteration
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic.patch
+     mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,77 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: swap: make some count_mthp_stat() call-sites be THP-agnostic.
-Date: Wed, 2 Oct 2024 15:58:22 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm/truncate: reset xa_has_values flag on each iteration
+Date: Wed, 2 Oct 2024 15:51:50 -0700
 
-In commit 246d3aa3e531 ("mm: cleanup count_mthp_stat() definition"), Ryan
-Roberts has pointed out the merits of mm code that does not require THP,
-to be compile-able without requiring THP ifdefs.  As a step in that
-direction, he has moved count_mthp_stat() to be always defined, resolving
-to a no-op if THP is not defined.
+Currently mapping_try_invalidate() and invalidate_inode_pages2_range()
+traverses the xarray in batches and then for each batch, maintains and
+sets the flag named xa_has_values if the batch has a shadow entry to clear
+the entries at the end of the iteration.
 
-Barry Song referred me to Ryan's commit when I was working on the "mm:
-zswap swap-out of large folios" patch-series [1].
+However they forgot to reset the flag at the end of the iteration which
+causes them to always try to clear the shadow entries in the subsequent
+iterations where there might not be any shadow entries.
 
-This patch propagates the benefits of the above change to page_io.c and
-vmscan.c.  As a result, there is one less reason to have the ifdef THP in
-these code sections.
+Fix this inefficiency.
 
-[1]: https://patchwork.kernel.org/project/linux-mm/list/?series=894347
-
-Link: https://lkml.kernel.org/r/20241002225822.9006-1-kanchana.p.sridhar@intel.com
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Link: https://lkml.kernel.org/r/20241002225150.2334504-1-shakeel.butt@linux.dev
+Fixes: 61c663e020d2 ("mm/truncate: batch-clear shadow entries")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
- mm/vmscan.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/truncate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_io.c~mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic
-+++ a/mm/page_io.c
-@@ -289,8 +289,8 @@ static inline void count_swpout_vm_event
- 		count_memcg_folio_events(folio, THP_SWPOUT, 1);
- 		count_vm_event(THP_SWPOUT);
- 	}
--	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
- #endif
-+	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
- 	count_memcg_folio_events(folio, PSWPOUT, folio_nr_pages(folio));
- 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
- }
---- a/mm/vmscan.c~mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic
-+++ a/mm/vmscan.c
-@@ -1257,8 +1257,8 @@ retry:
- 							THP_SWPOUT_FALLBACK, 1);
- 						count_vm_event(THP_SWPOUT_FALLBACK);
- 					}
--					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
- #endif
-+					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
- 					if (!add_to_swap(folio))
- 						goto activate_locked_split;
- 				}
+--- a/mm/truncate.c~mm-truncate-reset-xa_has_values-flag-on-each-iteration
++++ a/mm/truncate.c
+@@ -463,10 +463,10 @@ unsigned long mapping_try_invalidate(str
+ 	unsigned long ret;
+ 	unsigned long count = 0;
+ 	int i;
+-	bool xa_has_values = false;
+ 
+ 	folio_batch_init(&fbatch);
+ 	while (find_lock_entries(mapping, &index, end, &fbatch, indices)) {
++		bool xa_has_values = false;
+ 		int nr = folio_batch_count(&fbatch);
+ 
+ 		for (i = 0; i < nr; i++) {
+@@ -592,7 +592,6 @@ int invalidate_inode_pages2_range(struct
+ 	int ret = 0;
+ 	int ret2 = 0;
+ 	int did_range_unmap = 0;
+-	bool xa_has_values = false;
+ 
+ 	if (mapping_empty(mapping))
+ 		return 0;
+@@ -600,6 +599,7 @@ int invalidate_inode_pages2_range(struct
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+ 	while (find_get_entries(mapping, &index, end, &fbatch, indices)) {
++		bool xa_has_values = false;
+ 		int nr = folio_batch_count(&fbatch);
+ 
+ 		for (i = 0; i < nr; i++) {
 _
 
-Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch
-mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
-mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch
-mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch
-mm-change-count_objcg_event-to-count_objcg_events-for-batch-event-updates.patch
-mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
-mm-zswap-support-large-folios-in-zswap_store.patch
-mm-swap-count-successful-large-folio-zswap-stores-in-hugepage-zswpout-stats.patch
-mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch
-mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic.patch
+mm-optimize-truncation-of-shadow-entries.patch
+mm-optimize-invalidation-of-shadow-entries.patch
+mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
 
