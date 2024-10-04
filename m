@@ -1,61 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D508D512
-	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:05:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73271DDA1
+	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:24:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728007559; cv=none; b=Pvisnp1KEtnNkINjz4rv6NoFF5DuyjXd8Wx3StFdSC59MuWa8Gfg/eoIs4Bwgw82a102wOLYMA2osT9EZNOaHL2o9Yof0Ngog1CfFCdnugDdsTXLRyl4VJGMytr6ECF6OxLTfwQ2mme0WYRRnpcniBlYBoIMyY5ASQP7cvxHyGQ=
+	t=1728008672; cv=none; b=kXGyo92xJy71oYK3YrZayA0cYKk8QYlEzpvku0/F8oUOBuPYsctrAWJrZ0IPh6+E2/Cg4T4qn3h1ZWZJileHcQr0kIqOuifVhGlmf7adYb/+j5O7qDyusI0tgsvlMClErC/V8CAdGSxRWCLXBaw0kVcYUyzm9YlG/bpUfUCSQWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728007559; c=relaxed/simple;
-	bh=u3YiS9q/wlyxu7D+oFGKPz/cpwLR3lIorUClZJAZgw0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=QgSwlD5pnK9wCiDT0//lGBuj07b0qoRIKdI5p+5IqHEIx+4lWddB9S3bXnt1lPUuimx4rb99OEN9KBb+vMsdtrzmedU5vSKNDUoQ8cgh08q7r2BzMoPExLnr4LCSvHrhtIAcWbrimbONYrL4k+9nf+vwjDk02Shh4kPfj8vQIpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WeTS+CJf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728008672; c=relaxed/simple;
+	bh=EG+8PTcholiv63XgjDijK3E/CxGELjGJRroecxsO1cU=;
+	h=Date:To:From:Subject:Message-Id; b=HFOsdgBgRAZoghUF0drUIN7NWSSn5574oSQcGuj72T0E9pofos9JoUizt1dMp23Y//TJhI1Gjv32RdeXOMzBsAVwZRu6oUMlPAZ/ES86g3Fl4DkF9F4J4qXM+VJ/Quhv7rMepIBjg8PmzmUjcc2eBpqw3/zmtMT0tz69y+jfDpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CVW1EvS6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WeTS+CJf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC8DFC4CEC5;
-	Fri,  4 Oct 2024 02:05:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CVW1EvS6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0903C4CEC5;
+	Fri,  4 Oct 2024 02:24:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728007559;
-	bh=u3YiS9q/wlyxu7D+oFGKPz/cpwLR3lIorUClZJAZgw0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=WeTS+CJf0Exb2LYGwYc8EdPc8hdhVkJVNUdvlwnPEa+Sh3OvSNOAzC3miwTLcy/Qn
-	 b5W6L9POkb2TFFfSkH7vnbJvGgxov1Xlp3rLIjWVU1IEKYZwTPLw/Heh02OuBeu5al
-	 ldEs4xp02idU9SJzKeAmPNWluKCYyv092hfxOIi0=
-Date: Thu, 3 Oct 2024 19:05:58 -0700
+	s=korg; t=1728008670;
+	bh=EG+8PTcholiv63XgjDijK3E/CxGELjGJRroecxsO1cU=;
+	h=Date:To:From:Subject:From;
+	b=CVW1EvS6KvwE2flh1QpA1uJ8kzEKpnvcFMH0qX40KbN4tk3tCOLF+v4XNop9tOEgY
+	 bYrTQo+AN3PvOiMZhB2iY8kTe99qXL8EL9XvF0NzLesNENSWbNRjS8PM6DxHQlZDq0
+	 39YCiBuHrTsNd6GbGc2jAmCAIMxjTW0tDmX7NUNE=
+Date: Thu, 03 Oct 2024 19:24:30 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,mhocko@suse.com,kent.overstreet@linux.dev,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: "Christoph Lameter (Ampere)" <cl@gentwo.org>
-Cc: mm-commits@vger.kernel.org, tj@kernel.org, dennis@kernel.org,
- aha310510@gmail.com
-Subject: Re: [failures]
- mm-percpu-fix-typo-to-pcpu_alloc_noprof-description.patch removed from -mm
- tree
-Message-Id: <20241003190558.59cd6d6db9cf0a5549e1e7e0@linux-foundation.org>
-In-Reply-To: <e91916d5-b712-0920-9b18-0a643cc46c74@gentwo.org>
-References: <20241003192838.790ABC4CEC5@smtp.kernel.org>
-	<e91916d5-b712-0920-9b18-0a643cc46c74@gentwo.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch removed from -mm tree
+Message-Id: <20241004022430.C0903C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Thu, 3 Oct 2024 16:15:38 -0700 (PDT) "Christoph Lameter (Ampere)" <cl@gentwo.org> wrote:
 
-> On Thu, 3 Oct 2024, Andrew Morton wrote:
-> 
-> > This patch was dropped because it had testing failures
-> 
-> A change to a comment causes testing failures? Really?
+The quilt patch titled
+     Subject: bcachefs-do-not-use-pf_memalloc_noreclaim-fix
+has been removed from the -mm tree.  Its filename was
+     bcachefs-do-not-use-pf_memalloc_noreclaim-fix.patch
 
-yup,
-https://lkml.kernel.org/r/202409250728.jWiBpk6e-lkp@intel.com
+This patch was dropped because it was folded into bcachefs-do-not-use-pf_memalloc_noreclaim.patch
 
-also
-https://lkml.kernel.org/r/3cbe26aa-1f6c-48c3-ad5e-203c98333dab@suse.cz
-which I didn't 100% understand, but makes me suspect a new patch is needed.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bcachefs-do-not-use-pf_memalloc_noreclaim-fix
+Date: Fri Sep 27 08:38:06 AM PDT 2024
+
+fix kerneldoc warnings
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lkml.kernel.org/r/20240927133041.0b54641d@canb.auug.org.au
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ security/security.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/security/security.c~bcachefs-do-not-use-pf_memalloc_noreclaim-fix
++++ a/security/security.c
+@@ -740,6 +740,7 @@ static int lsm_file_alloc(struct file *f
+ /**
+  * lsm_inode_alloc - allocate a composite inode blob
+  * @inode: the inode that needs a blob
++ * @gfp: allocation flags
+  *
+  * Allocate the inode blob for all the modules
+  *
+@@ -1678,7 +1679,7 @@ int security_path_notify(const struct pa
+ /**
+  * security_inode_alloc() - Allocate an inode LSM blob
+  * @inode: the inode
+- * #gfp: allocation flags
++ * @gfp: allocation flags
+  *
+  * Allocate and attach a security structure to @inode->i_security.  The
+  * i_security field is initialized to NULL when the inode structure is
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+bcachefs-do-not-use-pf_memalloc_noreclaim.patch
+
