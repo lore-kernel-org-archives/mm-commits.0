@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D1732AE7C;
-	Fri,  4 Oct 2024 02:26:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7A02AE7C
+	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:26:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728008782; cv=none; b=p3ILRc3edfHxTuTfXEE8Qs3JE0nyx3PEIWLHAs8oXHJ6SGEHcckmXkR2K6IASMPD2QFmILs0wHlmvoh+n5AkFfHnvirUcFl6ypd/A2yRS10PtzP9jEQHxjgyht3mnGWB8x/WMOqZSWj+xnO0yaTGJ0RcTMmUaR3Xgweq59vIHi8=
+	t=1728008783; cv=none; b=uMGiA7bdOQVfRQn1l4Z1euhhPN1Hbt+l7LJ5hyZA9Dfe+IHplXue/PttGvzuChrNWs7k/lisvEm1axFrAyvWHFaFiDP5Htj9GiJePqULdXluyrUWbHbsWkEBlQS+xawb42HhAiHW5yFFUCrLOF/yriIOQZckaiJlk4O3/K5mAaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728008782; c=relaxed/simple;
-	bh=AwKApM6o/00x4NXG3oCQjiqWaTaq5Qpm+qHSF0mPtHY=;
-	h=Date:To:From:Subject:Message-Id; b=Xi+nnp4AOCTDiyY8YLOT5PlY0AdiAQr2proD+65xLnYDm7Yf+jQ5clZ1mgYomjnwR75cH1Yaph9l0hXqkM16jepUxYNbImCfovEXcRVh+vnIr5pdPUA9wR7eWfjd6vHLwtb/IVzw/20NWm/JBe3n4lyfOxW0ULBVDP0PnxgwjsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cO5fKDjH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728008783; c=relaxed/simple;
+	bh=7ZrI7upR7M5I4YCs+q1f+fDnh2y7wykz29Dx1Tl4UKk=;
+	h=Date:To:From:Subject:Message-Id; b=dxIinvpEFSGS6YoJucxFxIyQKEyie8Gtj7GqLNfsk6rJKOxX+BSFXRzE3A2Y/hx/brbNeEOLsV3SJMxHaU/RHxtofTadVOrQsgK/YSfvUfW1SXd1wg8wEKiS5ngkMsd9GEz/Ei2IoF03VnaPjWgWvijFtf0TnqI96O+yub9XFmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I8OPF6b7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cO5fKDjH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287DEC4CEC7;
-	Fri,  4 Oct 2024 02:26:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I8OPF6b7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39998C4CEC5;
+	Fri,  4 Oct 2024 02:26:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728008782;
-	bh=AwKApM6o/00x4NXG3oCQjiqWaTaq5Qpm+qHSF0mPtHY=;
+	s=korg; t=1728008783;
+	bh=7ZrI7upR7M5I4YCs+q1f+fDnh2y7wykz29Dx1Tl4UKk=;
 	h=Date:To:From:Subject:From;
-	b=cO5fKDjH6FM7ptq1QVuwKYtsVJiK3y468P5vjN8dtLLBgaLqt2KKxtyZf3bqRy2LD
-	 8ifRsY357UEgvkkK4XkjGTTpliL9ckr66H2Yz/4YPzXouLcrKciTi6o6LXbDiJDf05
-	 hEN5F4ZTr2TTC8vqblgLtiM3XPVN1wG30bwAt//M=
-Date: Thu, 03 Oct 2024 19:26:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,jgowans@amazon.com,graf@amazon.com,david@redhat.com,roypat@amazon.co.uk,akpm@linux-foundation.org
+	b=I8OPF6b7Z4dSCklD3rtXa8natXvyzPwl8gS8woUdlR7i1P5TkjFbuQuINrQgC65EY
+	 PQt/1pXH5wIpHfF17gP1Tzsc3xvxkVJfliyMp6GwXWuQfpBXankeAa8nxOcRRsRS0J
+	 /HvQHFBps5Znl6Vd6r74xBCVCWPTvR2GsjE+oToM=
+Date: Thu, 03 Oct 2024 19:26:22 -0700
+To: mm-commits@vger.kernel.org,arnd@arndb.de,krzysztof.kozlowski@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch removed from -mm tree
-Message-Id: <20241004022622.287DEC4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] credits-sort-alphabetically-by-name.patch removed from -mm tree
+Message-Id: <20241004022623.39998C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,157 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: secretmem: disable memfd_secret() if arch cannot set direct map
+     Subject: CREDITS: sort alphabetically by name
 has been removed from the -mm tree.  Its filename was
-     secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map.patch
+     credits-sort-alphabetically-by-name.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Patrick Roy <roypat@amazon.co.uk>
-Subject: secretmem: disable memfd_secret() if arch cannot set direct map
-Date: Tue, 1 Oct 2024 09:00:41 +0100
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: CREDITS: sort alphabetically by name
+Date: Wed, 2 Oct 2024 13:19:32 +0200
 
-Return -ENOSYS from memfd_secret() syscall if !can_set_direct_map().  This
-is the case for example on some arm64 configurations, where marking 4k
-PTEs in the direct map not present can only be done if the direct map is
-set up at 4k granularity in the first place (as ARM's break-before-make
-semantics do not easily allow breaking apart large/gigantic pages).
+Re-sort few misplaced entries in the CREDITS file.
 
-More precisely, on arm64 systems with !can_set_direct_map(),
-set_direct_map_invalid_noflush() is a no-op, however it returns success
-(0) instead of an error.  This means that memfd_secret will seemingly
-"work" (e.g.  syscall succeeds, you can mmap the fd and fault in pages),
-but it does not actually achieve its goal of removing its memory from the
-direct map.
-
-Note that with this patch, memfd_secret() will start erroring on systems
-where can_set_direct_map() returns false (arm64 with
-CONFIG_RODATA_FULL_DEFAULT_ENABLED=n, CONFIG_DEBUG_PAGEALLOC=n and
-CONFIG_KFENCE=n), but that still seems better than the current silent
-failure.  Since CONFIG_RODATA_FULL_DEFAULT_ENABLED defaults to 'y', most
-arm64 systems actually have a working memfd_secret() and aren't be
-affected.
-
-From going through the iterations of the original memfd_secret patch
-series, it seems that disabling the syscall in these scenarios was the
-intended behavior [1] (preferred over having
-set_direct_map_invalid_noflush return an error as that would result in
-SIGBUSes at page-fault time), however the check for it got dropped between
-v16 [2] and v17 [3], when secretmem moved away from CMA allocations.
-
-[1]: https://lore.kernel.org/lkml/20201124164930.GK8537@kernel.org/
-[2]: https://lore.kernel.org/lkml/20210121122723.3446-11-rppt@kernel.org/#t
-[3]: https://lore.kernel.org/lkml/20201125092208.12544-10-rppt@kernel.org/
-
-Link: https://lkml.kernel.org/r/20241001080056.784735-1-roypat@amazon.co.uk
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: Patrick Roy <roypat@amazon.co.uk>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Gowans <jgowans@amazon.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241002111932.46012-1-krzysztof.kozlowski@linaro.org
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ CREDITS |   54 +++++++++++++++++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
---- a/mm/secretmem.c~secretmem-disable-memfd_secret-if-arch-cannot-set-direct-map
-+++ a/mm/secretmem.c
-@@ -238,7 +238,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	/* make sure local flags do not confict with global fcntl.h */
- 	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
+--- a/CREDITS~credits-sort-alphabetically-by-name
++++ a/CREDITS
+@@ -1358,10 +1358,6 @@ D: Major kbuild rework during the 2.5 cy
+ D: ISDN Maintainer
+ S: USA
  
--	if (!secretmem_enable)
-+	if (!secretmem_enable || !can_set_direct_map())
- 		return -ENOSYS;
+-N: Gerrit Renker
+-E: gerrit@erg.abdn.ac.uk
+-D: DCCP protocol support.
+-
+ N: Philip Gladstone
+ E: philip@gladstonefamily.net
+ D: Kernel / timekeeping stuff
+@@ -1677,11 +1673,6 @@ W: http://www.carumba.com/
+ D: bug toaster (A1 sauce makes all the difference)
+ D: Random linux hacker
  
- 	if (flags & ~(SECRETMEM_FLAGS_MASK | O_CLOEXEC))
-@@ -280,7 +280,7 @@ static struct file_system_type secretmem
+-N: James Hogan
+-E: jhogan@kernel.org
+-D: Metag architecture maintainer
+-D: TZ1090 SoC maintainer
+-
+ N: Tim Hockin
+ E: thockin@hockin.org
+ W: http://www.hockin.org/~thockin
+@@ -1697,6 +1688,11 @@ D: hwmon subsystem maintainer
+ D: i2c-sis96x and i2c-stub SMBus drivers
+ S: USA
  
- static int __init secretmem_init(void)
- {
--	if (!secretmem_enable)
-+	if (!secretmem_enable || !can_set_direct_map())
- 		return 0;
++N: James Hogan
++E: jhogan@kernel.org
++D: Metag architecture maintainer
++D: TZ1090 SoC maintainer
++
+ N: Dirk Hohndel
+ E: hohndel@suse.de
+ D: The XFree86[tm] Project
+@@ -1872,6 +1868,10 @@ S: K osmidomkum 723
+ S: 160 00 Praha 6
+ S: Czech Republic
  
- 	secretmem_mnt = kern_mount(&secretmem_fs);
++N: Seth Jennings
++E: sjenning@redhat.com
++D: Creation and maintenance of zswap
++
+ N: Jeremy Kerr
+ D: Maintainer of SPU File System
+ 
+@@ -2188,19 +2188,6 @@ N: Mike Kravetz
+ E: mike.kravetz@oracle.com
+ D: Maintenance and development of the hugetlb subsystem
+ 
+-N: Seth Jennings
+-E: sjenning@redhat.com
+-D: Creation and maintenance of zswap
+-
+-N: Dan Streetman
+-E: ddstreet@ieee.org
+-D: Maintenance and development of zswap
+-D: Creation and maintenance of the zpool API
+-
+-N: Vitaly Wool
+-E: vitaly.wool@konsulko.com
+-D: Maintenance and development of zswap
+-
+ N: Andreas S. Krebs
+ E: akrebs@altavista.net
+ D: CYPRESS CY82C693 chipset IDE, Digital's PC-Alpha 164SX boards
+@@ -3191,6 +3178,11 @@ N: Ken Pizzini
+ E: ken@halcyon.com
+ D: CDROM driver "sonycd535" (Sony CDU-535/531)
+ 
++N: Mathieu Poirier
++E: mathieu.poirier@linaro.org
++D: CoreSight kernel subsystem, Maintainer 2014-2022
++D: Perf tool support for CoreSight
++
+ N: Stelian Pop
+ E: stelian@popies.net
+ P: 1024D/EDBB6147 7B36 0E07 04BC 11DC A7A0  D3F7 7185 9E7A EDBB 6147
+@@ -3300,6 +3292,10 @@ S: Schlossbergring 9
+ S: 79098 Freiburg
+ S: Germany
+ 
++N: Gerrit Renker
++E: gerrit@erg.abdn.ac.uk
++D: DCCP protocol support.
++
+ N: Thomas Renninger
+ E: trenn@suse.de
+ D: cpupowerutils
+@@ -3576,11 +3572,6 @@ D: several improvements to system progra
+ S: Oldenburg
+ S: Germany
+ 
+-N: Mathieu Poirier
+-E: mathieu.poirier@linaro.org
+-D: CoreSight kernel subsystem, Maintainer 2014-2022
+-D: Perf tool support for CoreSight
+-
+ N: Robert Schwebel
+ E: robert@schwebel.de
+ W: https://www.schwebel.de
+@@ -3771,6 +3762,11 @@ S: Chr. Winthersvej 1 B, st.th.
+ S: DK-1860 Frederiksberg C
+ S: Denmark
+ 
++N: Dan Streetman
++E: ddstreet@ieee.org
++D: Maintenance and development of zswap
++D: Creation and maintenance of the zpool API
++
+ N: Drew Sullivan
+ E: drew@ss.org
+ W: http://www.ss.org/
+@@ -4286,6 +4282,10 @@ S: Pipers Way
+ S: Swindon. SN3 1RJ
+ S: England
+ 
++N: Vitaly Wool
++E: vitaly.wool@konsulko.com
++D: Maintenance and development of zswap
++
+ N: Chris Wright
+ E: chrisw@sous-sol.org
+ D: hacking on LSM framework and security modules.
 _
 
-Patches currently in -mm which might be from roypat@amazon.co.uk are
+Patches currently in -mm which might be from krzysztof.kozlowski@linaro.org are
 
 
