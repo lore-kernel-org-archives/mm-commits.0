@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7E0D21A1C;
-	Fri,  4 Oct 2024 02:26:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE33F21A1C
+	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:26:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728008778; cv=none; b=uC6VmhJbmxvKgVSlb9n0+A75SdCuyqoQTBRvDVc0CT0Cs0W+BacM/93x15EVJSKsXIJlGv9sOn+EoMfNZr9tyQEOiG74WS+wg6oY7InhZldYEknf0+1tDlcTePF381bUwDmxgmJ4pfaQA9UEdcjhUQGes2DEuwyy4ZwoQSQPjYc=
+	t=1728008779; cv=none; b=E4U7fpbkGnpdXlqYd0BvEbEa2TkCqIN2JVXp034tbxNZmNUdJVkVkvML9QOkDQuEyCzeVGwaCVsUlrLu12rFb0a8MqkHMk0qoaeKQoSbZEciWZSiU26qSzjfOpxppYUXKMOPulaEzJa6mQ6hTgx+S6bEv36eY31S/tIx+Xrs+io=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728008778; c=relaxed/simple;
-	bh=g02fdDsNR33eWNgHvfG1kZf5xmlE+HGU4pUmMwVneV0=;
-	h=Date:To:From:Subject:Message-Id; b=acbFr1pHuJso0sjiKtoievUwuDKZfcWvk+MewMlsDIlTVMBwF1OOYwU0NDZXUE1ruRqI0XXJdZi/+mxGp425llkYWbUGfRlmhHxLINfi9t/FLdZcVOcBnZsHdsXwLrnWapZnYnLzUwgebVBKRl9ijw1xfAsU0aKI1eJq0pgXC/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eri9gN7g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728008779; c=relaxed/simple;
+	bh=273K+Xh68vv1Gsr5Ynv9Uw8w26kmLYpHsSEuYwjcCbM=;
+	h=Date:To:From:Subject:Message-Id; b=BdCgEmEGdK/M8dNDfnvpxMT/2SE+sQlymH+JZ2BMhn/ZO/Fbwzpq7hfpJakPjP8jAjBZnphiEgHn3rC7P5XmDQgXPwW+bmphMZJR5m/75tFS517F1BZtuC/Jr/o63Lb+cFWkmUhNc5cqN6YXe+6p2M2RKJvjEvXApEtZQ/RNAC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bm7IR8u6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eri9gN7g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4CFBC4CEC5;
-	Fri,  4 Oct 2024 02:26:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bm7IR8u6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1A53C4CECC;
+	Fri,  4 Oct 2024 02:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728008777;
-	bh=g02fdDsNR33eWNgHvfG1kZf5xmlE+HGU4pUmMwVneV0=;
+	s=korg; t=1728008778;
+	bh=273K+Xh68vv1Gsr5Ynv9Uw8w26kmLYpHsSEuYwjcCbM=;
 	h=Date:To:From:Subject:From;
-	b=Eri9gN7gk+UUSdvPa8Uj0ojxf2KmyA7mKr3o+mUl9Ss7HHvmtm1hjxtlQ4AC1P+qI
-	 rSe3c/BPgHs9rPpxeFE1dK4iSFcSa58qVZ6Tcw9kyBSG4x34g75ZXPmkpmizqor31M
-	 BpoxY6uU9DtCuJK41PGY6uu2DoIYMiW/6LEoYcms=
-Date: Thu, 03 Oct 2024 19:26:17 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=Bm7IR8u6v7eUHR7MRqIhsaWqp+3b0lSqa9UPkzCxwqagDdSD7T5x0UPmCf2EHtI/n
+	 zKJMO7HhRvrowzSc1bQnjS+waLdlR0y0kwWfk0nYRcN7i8K98vRJ84SW1LhZ1J97Be
+	 vCrPQrTJjJMyY/aEWKdx68nmPU/cu+9/PoJFBSGo=
+Date: Thu, 03 Oct 2024 19:26:18 -0700
+To: mm-commits@vger.kernel.org,kees@ijzerbout.nl,david@redhat.com,dan.j.williams@intel.com,bhelgaas@google.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch removed from -mm tree
-Message-Id: <20241004022617.A4CFBC4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch removed from -mm tree
+Message-Id: <20241004022618.C1A53C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,133 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/proc/kcore.c: allow translation of physical memory addresses
+     Subject: resource, kunit: fix user-after-free in resource_test_region_intersects()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcorec-allow-translation-of-physical-memory-addresses.patch
+     resource-kunit-fix-user-after-free-in-resource_test_region_intersects.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: fs/proc/kcore.c: allow translation of physical memory addresses
-Date: Mon, 30 Sep 2024 14:21:19 +0200
+From: Huang Ying <ying.huang@intel.com>
+Subject: resource, kunit: fix user-after-free in resource_test_region_intersects()
+Date: Mon, 30 Sep 2024 15:06:11 +0800
 
-When /proc/kcore is read an attempt to read the first two pages results in
-HW-specific page swap on s390 and another (so called prefix) pages are
-accessed instead.  That leads to a wrong read.
+In resource_test_insert_resource(), the pointer is used in error message
+after kfree().  This is user-after-free.  To fix this, we need to call
+kunit_add_action_or_reset() to schedule memory freeing after usage.  But
+kunit_add_action_or_reset() itself may fail and free the memory.  So, its
+return value should be checked and abort the test for failure.  Then, we
+found that other usage of kunit_add_action_or_reset() in
+resource_test_region_intersects() needs to be fixed too.  We fix all these
+user-after-free bugs in this patch.
 
-Allow architecture-specific translation of memory addresses using
-kc_xlate_dev_mem_ptr() and kc_unxlate_dev_mem_ptr() callbacks similarily
-to /dev/mem xlate_dev_mem_ptr() and unxlate_dev_mem_ptr() callbacks.  That
-way an architecture can deal with specific physical memory ranges.
-
-Re-use the existing /dev/mem callback implementation on s390, which
-handles the described prefix pages swapping correctly.
-
-For other architectures the default callback is basically NOP.  It is
-expected the condition (vaddr == __va(__pa(vaddr))) always holds true for
-KCORE_RAM memory type.
-
-Link: https://lkml.kernel.org/r/20240930122119.1651546-1-agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240930070611.353338-1-ying.huang@intel.com
+Fixes: 99185c10d5d9 ("resource, kunit: add test case for region_intersects()")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Kees Bakker <kees@ijzerbout.nl>
+Closes: https://lore.kernel.org/lkml/87ldzaotcg.fsf@yhuang6-desk2.ccr.corp.intel.com/
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/io.h |    2 +
- fs/proc/kcore.c            |   36 +++++++++++++++++++++++++++++++++--
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ kernel/resource_kunit.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
---- a/arch/s390/include/asm/io.h~fs-proc-kcorec-allow-translation-of-physical-memory-addresses
-+++ a/arch/s390/include/asm/io.h
-@@ -16,8 +16,10 @@
- #include <asm/pci_io.h>
+--- a/kernel/resource_kunit.c~resource-kunit-fix-user-after-free-in-resource_test_region_intersects
++++ a/kernel/resource_kunit.c
+@@ -169,6 +169,8 @@ static void resource_test_intersection(s
+ #define RES_TEST_RAM3_SIZE	SZ_1M
+ #define RES_TEST_TOTAL_SIZE	((RES_TEST_WIN1_OFFSET + RES_TEST_WIN1_SIZE))
  
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
-+#define kc_xlate_dev_mem_ptr xlate_dev_mem_ptr
- void *xlate_dev_mem_ptr(phys_addr_t phys);
- #define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
-+#define kc_unxlate_dev_mem_ptr unxlate_dev_mem_ptr
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- 
- #define IO_SPACE_LIMIT 0
---- a/fs/proc/kcore.c~fs-proc-kcorec-allow-translation-of-physical-memory-addresses
-+++ a/fs/proc/kcore.c
-@@ -50,6 +50,20 @@ static struct proc_dir_entry *proc_root_
- #define	kc_offset_to_vaddr(o) ((o) + PAGE_OFFSET)
- #endif
- 
-+#ifndef kc_xlate_dev_mem_ptr
-+#define kc_xlate_dev_mem_ptr kc_xlate_dev_mem_ptr
-+static inline void *kc_xlate_dev_mem_ptr(phys_addr_t phys)
-+{
-+	return __va(phys);
-+}
-+#endif
-+#ifndef kc_unxlate_dev_mem_ptr
-+#define kc_unxlate_dev_mem_ptr kc_unxlate_dev_mem_ptr
-+static inline void kc_unxlate_dev_mem_ptr(phys_addr_t phys, void *virt)
-+{
-+}
-+#endif
++KUNIT_DEFINE_ACTION_WRAPPER(kfree_wrapper, kfree, const void *);
 +
- static LIST_HEAD(kclist_head);
- static DECLARE_RWSEM(kclist_lock);
- static int kcore_need_update = 1;
-@@ -471,6 +485,8 @@ static ssize_t read_kcore_iter(struct ki
- 	while (buflen) {
- 		struct page *page;
- 		unsigned long pfn;
-+		phys_addr_t phys;
-+		void *__start;
+ static void remove_free_resource(void *ctx)
+ {
+ 	struct resource *res = (struct resource *)ctx;
+@@ -177,6 +179,14 @@ static void remove_free_resource(void *c
+ 	kfree(res);
+ }
  
- 		/*
- 		 * If this is the first iteration or the address is not within
-@@ -537,7 +553,8 @@ static ssize_t read_kcore_iter(struct ki
- 			}
- 			break;
- 		case KCORE_RAM:
--			pfn = __pa(start) >> PAGE_SHIFT;
-+			phys = __pa(start);
-+			pfn =  phys >> PAGE_SHIFT;
- 			page = pfn_to_online_page(pfn);
- 
- 			/*
-@@ -557,13 +574,28 @@ static ssize_t read_kcore_iter(struct ki
- 			fallthrough;
- 		case KCORE_VMEMMAP:
- 		case KCORE_TEXT:
-+			if (m->type == KCORE_RAM) {
-+				__start = kc_xlate_dev_mem_ptr(phys);
-+				if (!__start) {
-+					ret = -ENOMEM;
-+					if (iov_iter_zero(tsz, iter) != tsz)
-+						ret = -EFAULT;
-+					goto out;
-+				}
-+			} else {
-+				__start = (void *)start;
-+			}
++static void resource_test_add_action_or_abort(
++	struct kunit *test, void (*action)(void *), void *ctx)
++{
++	KUNIT_ASSERT_EQ_MSG(test, 0,
++			    kunit_add_action_or_reset(test, action, ctx),
++			    "Fail to add action");
++}
 +
- 			/*
- 			 * Sadly we must use a bounce buffer here to be able to
- 			 * make use of copy_from_kernel_nofault(), as these
- 			 * memory regions might not always be mapped on all
- 			 * architectures.
- 			 */
--			if (copy_from_kernel_nofault(buf, (void *)start, tsz)) {
-+			ret = copy_from_kernel_nofault(buf, __start, tsz);
-+			if (m->type == KCORE_RAM)
-+				kc_unxlate_dev_mem_ptr(phys, __start);
-+			if (ret) {
- 				if (iov_iter_zero(tsz, iter) != tsz) {
- 					ret = -EFAULT;
- 					goto out;
+ static void resource_test_request_region(struct kunit *test, struct resource *parent,
+ 					 resource_size_t start, resource_size_t size,
+ 					 const char *name, unsigned long flags)
+@@ -185,7 +195,7 @@ static void resource_test_request_region
+ 
+ 	res = __request_region(parent, start, size, name, flags);
+ 	KUNIT_ASSERT_NOT_NULL(test, res);
+-	kunit_add_action_or_reset(test, remove_free_resource, res);
++	resource_test_add_action_or_abort(test, remove_free_resource, res);
+ }
+ 
+ static void resource_test_insert_resource(struct kunit *test, struct resource *parent,
+@@ -202,11 +212,11 @@ static void resource_test_insert_resourc
+ 	res->end = start + size - 1;
+ 	res->flags = flags;
+ 	if (insert_resource(parent, res)) {
+-		kfree(res);
++		resource_test_add_action_or_abort(test, kfree_wrapper, res);
+ 		KUNIT_FAIL_AND_ABORT(test, "Fail to insert resource %pR\n", res);
+ 	}
+ 
+-	kunit_add_action_or_reset(test, remove_free_resource, res);
++	resource_test_add_action_or_abort(test, remove_free_resource, res);
+ }
+ 
+ static void resource_test_region_intersects(struct kunit *test)
+@@ -220,7 +230,7 @@ static void resource_test_region_interse
+ 				       "test resources");
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, parent);
+ 	start = parent->start;
+-	kunit_add_action_or_reset(test, remove_free_resource, parent);
++	resource_test_add_action_or_abort(test, remove_free_resource, parent);
+ 
+ 	resource_test_request_region(test, parent, start + RES_TEST_RAM0_OFFSET,
+ 				     RES_TEST_RAM0_SIZE, "Test System RAM 0", flags);
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
