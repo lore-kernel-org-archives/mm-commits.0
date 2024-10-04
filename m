@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7A02AE7C
-	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:26:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78EE736130
+	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:26:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728008783; cv=none; b=uMGiA7bdOQVfRQn1l4Z1euhhPN1Hbt+l7LJ5hyZA9Dfe+IHplXue/PttGvzuChrNWs7k/lisvEm1axFrAyvWHFaFiDP5Htj9GiJePqULdXluyrUWbHbsWkEBlQS+xawb42HhAiHW5yFFUCrLOF/yriIOQZckaiJlk4O3/K5mAaI=
+	t=1728008784; cv=none; b=rxZP1QzbN3mqfbuvTvIo4kIUlv8uxfXRzwDmHse6gdS+tiAhOFLQqCo59q+UAlsdUCFZv/LgoMTUedroBT0pWB3MFqTn5QpTD1fqWvHL5mv3NJXL5F9yU6YCymtQ6pHvtgEYr5bdUh3MQNk1ri0rgg7h6DCyW5a7Blse0u4S9lo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728008783; c=relaxed/simple;
-	bh=7ZrI7upR7M5I4YCs+q1f+fDnh2y7wykz29Dx1Tl4UKk=;
-	h=Date:To:From:Subject:Message-Id; b=dxIinvpEFSGS6YoJucxFxIyQKEyie8Gtj7GqLNfsk6rJKOxX+BSFXRzE3A2Y/hx/brbNeEOLsV3SJMxHaU/RHxtofTadVOrQsgK/YSfvUfW1SXd1wg8wEKiS5ngkMsd9GEz/Ei2IoF03VnaPjWgWvijFtf0TnqI96O+yub9XFmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I8OPF6b7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728008784; c=relaxed/simple;
+	bh=/9/dENof3FV+wo1y9AbGOlrUWtjoxtrfGh/fIeVTFxc=;
+	h=Date:To:From:Subject:Message-Id; b=fuIis7/+gV3DjXCWBLUCGAKXTsMfZLJg2tRUYkGHwBC7S3oaMKJwdFMAyxlTA73R4l5zBb/bRVi1MH9mgQlSCxE3d4GtoopMe7oIieg+6KzNeMLyN/Qwm+mOs1wkGM32t1clvAFCJ/Ke+hCX1MhPIDOOjvKoNR2W5tuh/5sHX1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AhIGEEU0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I8OPF6b7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39998C4CEC5;
-	Fri,  4 Oct 2024 02:26:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AhIGEEU0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F374C4CEC5;
+	Fri,  4 Oct 2024 02:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728008783;
-	bh=7ZrI7upR7M5I4YCs+q1f+fDnh2y7wykz29Dx1Tl4UKk=;
+	s=korg; t=1728008784;
+	bh=/9/dENof3FV+wo1y9AbGOlrUWtjoxtrfGh/fIeVTFxc=;
 	h=Date:To:From:Subject:From;
-	b=I8OPF6b7Z4dSCklD3rtXa8natXvyzPwl8gS8woUdlR7i1P5TkjFbuQuINrQgC65EY
-	 PQt/1pXH5wIpHfF17gP1Tzsc3xvxkVJfliyMp6GwXWuQfpBXankeAa8nxOcRRsRS0J
-	 /HvQHFBps5Znl6Vd6r74xBCVCWPTvR2GsjE+oToM=
-Date: Thu, 03 Oct 2024 19:26:22 -0700
-To: mm-commits@vger.kernel.org,arnd@arndb.de,krzysztof.kozlowski@linaro.org,akpm@linux-foundation.org
+	b=AhIGEEU0B97VeuJkweHDEvoM1MKWEsAvkKk+7ChEBWGimnpnSKx5Wpu1V8Fe8ys2M
+	 cdiMHGMYwijIqnunOk/Vhx9y56iQ/Ia87dmdvohzaIxEeqaDJYT/zkw1mzG3PvGfWS
+	 HLkBeCXCvKUjlYNH7gzpV0epfN+lhpYaVkDj95eU=
+Date: Thu, 03 Oct 2024 19:26:23 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] credits-sort-alphabetically-by-name.patch removed from -mm tree
-Message-Id: <20241004022623.39998C4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch removed from -mm tree
+Message-Id: <20241004022624.4F374C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,157 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: CREDITS: sort alphabetically by name
+     Subject: mm: zswap: delete comments for "value" member of 'struct zswap_entry'.
 has been removed from the -mm tree.  Its filename was
-     credits-sort-alphabetically-by-name.patch
+     mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: CREDITS: sort alphabetically by name
-Date: Wed, 2 Oct 2024 13:19:32 +0200
+From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Subject: mm: zswap: delete comments for "value" member of 'struct zswap_entry'.
+Date: Wed, 2 Oct 2024 12:42:13 -0700
 
-Re-sort few misplaced entries in the CREDITS file.
+Made a minor edit in the comments for 'struct zswap_entry' to delete the
+description of the 'value' member that was deleted in commit 20a5532ffa53
+("mm: remove code to handle same filled pages").
 
-Link: https://lkml.kernel.org/r/20241002111932.46012-1-krzysztof.kozlowski@linaro.org
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20241002194213.30041-1-kanchana.p.sridhar@intel.com
+Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Fixes: 20a5532ffa53 ("mm: remove code to handle same filled pages")
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Usama Arif <usamaarif642@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |   54 +++++++++++++++++++++++++++---------------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ mm/zswap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/CREDITS~credits-sort-alphabetically-by-name
-+++ a/CREDITS
-@@ -1358,10 +1358,6 @@ D: Major kbuild rework during the 2.5 cy
- D: ISDN Maintainer
- S: USA
- 
--N: Gerrit Renker
--E: gerrit@erg.abdn.ac.uk
--D: DCCP protocol support.
--
- N: Philip Gladstone
- E: philip@gladstonefamily.net
- D: Kernel / timekeeping stuff
-@@ -1677,11 +1673,6 @@ W: http://www.carumba.com/
- D: bug toaster (A1 sauce makes all the difference)
- D: Random linux hacker
- 
--N: James Hogan
--E: jhogan@kernel.org
--D: Metag architecture maintainer
--D: TZ1090 SoC maintainer
--
- N: Tim Hockin
- E: thockin@hockin.org
- W: http://www.hockin.org/~thockin
-@@ -1697,6 +1688,11 @@ D: hwmon subsystem maintainer
- D: i2c-sis96x and i2c-stub SMBus drivers
- S: USA
- 
-+N: James Hogan
-+E: jhogan@kernel.org
-+D: Metag architecture maintainer
-+D: TZ1090 SoC maintainer
-+
- N: Dirk Hohndel
- E: hohndel@suse.de
- D: The XFree86[tm] Project
-@@ -1872,6 +1868,10 @@ S: K osmidomkum 723
- S: 160 00 Praha 6
- S: Czech Republic
- 
-+N: Seth Jennings
-+E: sjenning@redhat.com
-+D: Creation and maintenance of zswap
-+
- N: Jeremy Kerr
- D: Maintainer of SPU File System
- 
-@@ -2188,19 +2188,6 @@ N: Mike Kravetz
- E: mike.kravetz@oracle.com
- D: Maintenance and development of the hugetlb subsystem
- 
--N: Seth Jennings
--E: sjenning@redhat.com
--D: Creation and maintenance of zswap
--
--N: Dan Streetman
--E: ddstreet@ieee.org
--D: Maintenance and development of zswap
--D: Creation and maintenance of the zpool API
--
--N: Vitaly Wool
--E: vitaly.wool@konsulko.com
--D: Maintenance and development of zswap
--
- N: Andreas S. Krebs
- E: akrebs@altavista.net
- D: CYPRESS CY82C693 chipset IDE, Digital's PC-Alpha 164SX boards
-@@ -3191,6 +3178,11 @@ N: Ken Pizzini
- E: ken@halcyon.com
- D: CDROM driver "sonycd535" (Sony CDU-535/531)
- 
-+N: Mathieu Poirier
-+E: mathieu.poirier@linaro.org
-+D: CoreSight kernel subsystem, Maintainer 2014-2022
-+D: Perf tool support for CoreSight
-+
- N: Stelian Pop
- E: stelian@popies.net
- P: 1024D/EDBB6147 7B36 0E07 04BC 11DC A7A0  D3F7 7185 9E7A EDBB 6147
-@@ -3300,6 +3292,10 @@ S: Schlossbergring 9
- S: 79098 Freiburg
- S: Germany
- 
-+N: Gerrit Renker
-+E: gerrit@erg.abdn.ac.uk
-+D: DCCP protocol support.
-+
- N: Thomas Renninger
- E: trenn@suse.de
- D: cpupowerutils
-@@ -3576,11 +3572,6 @@ D: several improvements to system progra
- S: Oldenburg
- S: Germany
- 
--N: Mathieu Poirier
--E: mathieu.poirier@linaro.org
--D: CoreSight kernel subsystem, Maintainer 2014-2022
--D: Perf tool support for CoreSight
--
- N: Robert Schwebel
- E: robert@schwebel.de
- W: https://www.schwebel.de
-@@ -3771,6 +3762,11 @@ S: Chr. Winthersvej 1 B, st.th.
- S: DK-1860 Frederiksberg C
- S: Denmark
- 
-+N: Dan Streetman
-+E: ddstreet@ieee.org
-+D: Maintenance and development of zswap
-+D: Creation and maintenance of the zpool API
-+
- N: Drew Sullivan
- E: drew@ss.org
- W: http://www.ss.org/
-@@ -4286,6 +4282,10 @@ S: Pipers Way
- S: Swindon. SN3 1RJ
- S: England
- 
-+N: Vitaly Wool
-+E: vitaly.wool@konsulko.com
-+D: Maintenance and development of zswap
-+
- N: Chris Wright
- E: chrisw@sous-sol.org
- D: hacking on LSM framework and security modules.
+--- a/mm/zswap.c~mm-zswap-delete-comments-for-value-member-of-struct-zswap_entry
++++ a/mm/zswap.c
+@@ -190,7 +190,6 @@ static struct shrinker *zswap_shrinker;
+  *              section for context.
+  * pool - the zswap_pool the entry's data is in
+  * handle - zpool allocation handle that stores the compressed page data
+- * value - value of the same-value filled pages which have same content
+  * objcg - the obj_cgroup that the compressed memory is charged to
+  * lru - handle to the pool's lru used to evict pages.
+  */
 _
 
-Patches currently in -mm which might be from krzysztof.kozlowski@linaro.org are
+Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
 
+mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
+mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch
+mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch
+mm-change-count_objcg_event-to-count_objcg_events-for-batch-event-updates.patch
+mm-zswap-modify-zswap_stored_pages-to-be-atomic_long_t.patch
+mm-zswap-support-large-folios-in-zswap_store.patch
+mm-swap-count-successful-large-folio-zswap-stores-in-hugepage-zswpout-stats.patch
+mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch
+mm-swap-make-some-count_mthp_stat-call-sites-be-thp-agnostic.patch
 
