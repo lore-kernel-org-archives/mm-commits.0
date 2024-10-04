@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 947CD1E378C
-	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 17:57:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CFD7140E34
+	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 22:26:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728064665; cv=none; b=UcN7pZHLiFOr2bPnVfHAR0/lvPhfJj2le/5eciSkZdHfGXIefqjftr+y/X1lKB5W2OwWa8KLciH2FAE720jmPb3NMJ3PFvNnEYyRl+GlGcQqR5BJICb/NJL6/pbRXYey+f0s42V6bt/7LOm0aRL1KD/ASoPY/0SPZ+VMEmvIdYE=
+	t=1728080762; cv=none; b=cJ3vBQQFauu1WNNoYv5EHn6ZOMXYDAp5GRizK1P6KBCn+hPvtf+PoJWC/iiah7LJDNqD7cWB0OqBKefh3mEVy8jNaJcFBj/XCQin7oLmWPtbVGdU5ax4mn98dgNT40XRWhi7xBiJdgM6KZrCrQEkqo8CPswkNEP+o6aFj7uqCCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728064665; c=relaxed/simple;
-	bh=E9gzK4a9Bs9bYwkySiDakSthSzKbL+NhBRmz+buk658=;
-	h=Date:To:From:Subject:Message-Id; b=Dxg9d619jh1kQI8NSpdJiokkHWX00x3XJ/NTQjF3dgop8gpq0IpAhCHTW2V0R0WIP4pMvsaZR/rZ7bZRKNNDI/8HR7nOA4qeP83GBZUZ2T1v8Xf5pESRFBozFyYrYZ+O/spALr2pTsjBI6/gOyDjI4lbfaZIngFlyoBLIRo+Gmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HIBtLylp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728080762; c=relaxed/simple;
+	bh=OIiiIWkvkRH4uU1zoMwgHl+yU9w2DFpgsbIVvA+qe9E=;
+	h=Date:To:From:Subject:Message-Id; b=H2G0tIl6GAP5x+SUtuWu/Anady16crCkPWvRpmRyPrES81AuIcMbsso8oQ+OlmVwVkIZXD+py4DhMSKuunGgbsjscNYE88Mjf3gYu+wpZo65qcgCR/df6QMHhht6bTgHusiTTpBHCFDLSAOEU+GIiEzewGWypjFx2gNVrUGqOjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MvBN/rOL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HIBtLylp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03CF6C4CEC6;
-	Fri,  4 Oct 2024 17:57:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MvBN/rOL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B57C4CEC6;
+	Fri,  4 Oct 2024 22:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728064665;
-	bh=E9gzK4a9Bs9bYwkySiDakSthSzKbL+NhBRmz+buk658=;
+	s=korg; t=1728080761;
+	bh=OIiiIWkvkRH4uU1zoMwgHl+yU9w2DFpgsbIVvA+qe9E=;
 	h=Date:To:From:Subject:From;
-	b=HIBtLylp5lWzmFqj+sirFTLNWLQLt/CP/5Ir8Y6MwbotpHgpCu+4kUWJSeDuwJBDw
-	 uFSYTtOh49GyCrDMuE5uK6mLqL+1oNnXc25KlNZjoWQaBjLWT1Uzd6ptNJyxUm5/N5
-	 Az1sIUtGeAbkG5WkTLOQ+HhNtc0azZ8MmhG/2hOM=
-Date: Fri, 04 Oct 2024 10:57:44 -0700
-To: mm-commits@vger.kernel.org,m.szyprowski@samsung.com,alexs@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=MvBN/rOLDsXUEyJ4EMEqiNT8hsSRy82Oob6SZlJSpW9v/EAtkZVsfblXA3A2QY6sH
+	 Cqv424MoZE+lXiqfU3S786uBHyBisgpcckIwLxawSCP277U/ewn2NM/gpQKUWvzLpR
+	 Z742DBfvzlBEOJL6DxW5fIKGgFX2aPOsY5AgMJnU=
+Date: Fri, 04 Oct 2024 15:26:00 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rmoar@google.com,davidgow@google.com,brunofrancadevsec@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-pageanonnotksm-fix.patch added to mm-unstable branch
-Message-Id: <20241004175745.03CF6C4CEC6@smtp.kernel.org>
+Subject: [to-be-updated] lib-math-add-int_log-test-suite.patch removed from -mm tree
+Message-Id: <20241004222601.84B57C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,74 +34,155 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-add-pageanonnotksm-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-pageanonnotksm-fix.patch
+The quilt patch titled
+     Subject: lib/math: add int_log test suite
+has been removed from the -mm tree.  Its filename was
+     lib-math-add-int_log-test-suite.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pageanonnotksm-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-add-pageanonnotksm-fix
-Date: Fri, 4 Oct 2024 18:43:52 +0100
+From: Bruno Sobreira França <brunofrancadevsec@gmail.com>
+Subject: lib/math: add int_log test suite
+Date: Wed, 25 Sep 2024 02:56:06 +0000
 
-fix assertions
+Introduce KUnit tests for the intlog2 and intlog10 functions, which
+compute logarithms in base 2 and base 10, respectively.  The tests cover a
+range of inputs to ensure the correctness of these functions across common
+and edge cases.
 
-Link: https://lkml.kernel.org/r/ZwApWPER7caIA_N3@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: https://lkml.kernel.org/r/20240925025606.1714-1-brunofrancadevsec@gmail.com
+Signed-off-by: Bruno Sobreira França <brunofrancadevsec@gmail.com>
+Reviewed-by: David Gow <davidgow@google.com>
+Cc: Rae Moar <rmoar@google.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug              |   11 ++++
+ lib/math/Makefile              |    3 -
+ lib/math/tests/Makefile        |    1 
+ lib/math/tests/int_log_kunit.c |   75 +++++++++++++++++++++++++++++++
+ 4 files changed, 89 insertions(+), 1 deletion(-)
 
---- a/include/linux/page-flags.h~mm-add-pageanonnotksm-fix
-+++ a/include/linux/page-flags.h
-@@ -1136,14 +1136,14 @@ static __always_inline int PageAnonExclu
+--- a/lib/Kconfig.debug~lib-math-add-int_log-test-suite
++++ a/lib/Kconfig.debug
+@@ -3104,3 +3104,14 @@ config INT_POW_TEST
+ 	  function.
  
- static __always_inline void SetPageAnonExclusive(struct page *page)
- {
--	VM_BUG_ON_PGFLAGS(PageAnonNotKsm(page), page);
-+	VM_BUG_ON_PGFLAGS(!PageAnonNotKsm(page), page);
- 	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
- 	set_bit(PG_anon_exclusive, &PF_ANY(page, 1)->flags);
- }
+ 	  If unsure, say N
++
++config INT_LOG_TEST
++	tristate "Integer log (int_log) test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the int_log library, which
++	  provides two functions to compute the integer logarithm in base 2 and
++	  base 10, called respectively as intlog2 and intlog10.
++
++	  If unsure, say N
+--- a/lib/math/Makefile~lib-math-add-int_log-test-suite
++++ a/lib/math/Makefile
+@@ -5,7 +5,8 @@ obj-$(CONFIG_CORDIC)		+= cordic.o
+ obj-$(CONFIG_PRIME_NUMBERS)	+= prime_numbers.o
+ obj-$(CONFIG_RATIONAL)		+= rational.o
  
- static __always_inline void ClearPageAnonExclusive(struct page *page)
- {
--	VM_BUG_ON_PGFLAGS(PageAnonNotKsm(page), page);
-+	VM_BUG_ON_PGFLAGS(!PageAnonNotKsm(page), page);
- 	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
- 	clear_bit(PG_anon_exclusive, &PF_ANY(page, 1)->flags);
- }
+-obj-$(CONFIG_INT_POW_TEST)  += tests/int_pow_kunit.o
++obj-$(CONFIG_INT_POW_TEST)  	+= tests/int_pow_kunit.o
++obj-$(CONFIG_INT_LOG_TEST) 	+= tests/int_log_kunit.o
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
+diff --git a/lib/math/tests/int_log_kunit.c a/lib/math/tests/int_log_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/int_log_kunit.c
+@@ -0,0 +1,75 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <kunit/test.h>
++#include <linux/int_log.h>
++
++struct test_case_params {
++	u32 value;
++	unsigned int expected_result;
++	const char *name;
++};
++
++
++/* The expected result takes into account the log error */
++static const struct test_case_params intlog2_params[] = {
++	{0, 0, "Log base 2 of 0"},
++	{1, 0, "Log base 2 of 1"},
++	{2, 16777216, "Log base 2 of 2"},
++	{3, 26591232, "Log base 2 of 3"},
++	{4, 33554432, "Log base 2 of 4"},
++	{8, 50331648, "Log base 2 of 8"},
++	{16, 67108864, "Log base 2 of 16"},
++	{32, 83886080, "Log base 2 of 32"},
++	{U32_MAX, 536870911, "Log base 2 of MAX"},
++};
++
++static const struct test_case_params intlog10_params[] = {
++	{0, 0, "Log base 10 of 0"},
++	{1, 0, "Log bsae 10 of 1"},
++	{6, 13055203, "Log base 10 of 6"},
++	{10, 16777225, "Log base 10 of 10"},
++	{100, 33554450, "Log base 10 of 100"},
++	{1000, 50331675, "Log base 10 of 1000"},
++	{10000, 67108862, "Log base 10 of 10000"},
++	{U32_MAX, 161614247, "Log base 10 of MAX"}
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
++{
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++
++KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc);
++
++static void intlog2_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog2(tc->value));
++}
++
++KUNIT_ARRAY_PARAM(intlog10, intlog10_params, get_desc);
++
++static void intlog10_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog10(tc->value));
++}
++
++static struct kunit_case math_int_log_test_cases[] = {
++	KUNIT_CASE_PARAM(intlog2_test, intlog2_gen_params),
++	KUNIT_CASE_PARAM(intlog10_test, intlog10_gen_params),
++	{}
++};
++
++static struct kunit_suite int_log_test_suite = {
++	.name = "math-int_log",
++	.test_cases =  math_int_log_test_cases,
++};
++
++kunit_test_suites(&int_log_test_suite);
++
++MODULE_DESCRIPTION("math.int_log KUnit test suite");
++MODULE_LICENSE("GPL");
++
+--- a/lib/math/tests/Makefile~lib-math-add-int_log-test-suite
++++ a/lib/math/tests/Makefile
+@@ -1,3 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ 
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
++obj-$(CONFIG_INT_LOG_TEST) += int_log_kunit.o
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from brunofrancadevsec@gmail.com are
 
-ksm-use-a-folio-in-try_to_merge_one_page.patch
-ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
-ksm-convert-should_skip_rmap_item-to-take-a-folio.patch
-mm-add-pageanonnotksm.patch
-mm-add-pageanonnotksm-fix.patch
-mm-remove-pageksm.patch
-gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
 
