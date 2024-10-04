@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633EA1CF83
-	for <mm-commits@vger.kernel.org>; Fri,  4 Oct 2024 02:26:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABDD51CF83;
+	Fri,  4 Oct 2024 02:26:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728008772; cv=none; b=VtVkUevOo9Ddjql44mCwZQhAuFHVERUk26R4voPPF/J5dt9woRUn8zFNukOXIJ7MnfuYfquA9es3/qtMJASDAyxCQwG7+fYEc+gRyYmjALm7Lt4LfW83ZYHUO71eGXm5TErYK2gAvJwdVeFOp4MEpStsIr7SHfaBO7dTPiVheck=
+	t=1728008773; cv=none; b=OzgNRfctmcQejhAD7jC76lFSVcOeUgpzVbECUsnNz60r2wC7nZ6Pkum1iUpm07G3Bk571+0XfP1U7tJj6aSZdZ7ZtbfuN9WdHfYv81iUMBa0oSerjEd6qJyq9/INT6ORA+uosNtvfZ+/gcQItaJfhDLnhtm6nlYv3Vimu70yqTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728008772; c=relaxed/simple;
-	bh=DgQ7bFKIvZwGDkMZK9MfuR/Myhx/9LiH62Qmgy5Ga/0=;
-	h=Date:To:From:Subject:Message-Id; b=chMI7Ni0OK3sEAwoGR0326Nx6fPfFNVkpsTcJKaiVRbVw+iTJ2me7gU/idvCJJcT8nsMLr71kJs+Idp5mPAR7BlYejoBUtYA90sG7QNzTXkr43Uh2onS8ZR/s7mw5sEFJdIUeof/+4LUdZPiglWC6Dw9m7nV8v9h+ZLAlOrMYhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f/nf7UKL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728008773; c=relaxed/simple;
+	bh=GMnrujM0zm0apvAexcF+JfloyXlRp3m9jTg8SqyfaCQ=;
+	h=Date:To:From:Subject:Message-Id; b=WC/WGdFvELIVc/8YyMA/euQZvwjrQSXpQ4jAQaHLZnCScXexAWJmtTYcJowprtcAseji0jgWPNqNqNnZJgAAkiLkFOKNpAlZJdh5tfzsUedAV+BXlT5EnGsLGOxmAP8xzYrNk9eCa0blbvEI1Sh2/X6cUfVekN/w9i3xRQ7DKx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eLjsAud7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f/nf7UKL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCA50C4CEC5;
-	Fri,  4 Oct 2024 02:26:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eLjsAud7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BD5BC4CEC5;
+	Fri,  4 Oct 2024 02:26:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728008771;
-	bh=DgQ7bFKIvZwGDkMZK9MfuR/Myhx/9LiH62Qmgy5Ga/0=;
+	s=korg; t=1728008773;
+	bh=GMnrujM0zm0apvAexcF+JfloyXlRp3m9jTg8SqyfaCQ=;
 	h=Date:To:From:Subject:From;
-	b=f/nf7UKLTf9vUTvvyy/oRp7nN1Q5bNFVhp/kVmO+I2vHed7f3oIYSQv+O08DglO90
-	 DQGPd/peBc5kgmUcXEAP55qXwyJQbqf32wP4Dpp4QUEZlACFT6Yv43i2oJ/sKggiMH
-	 JdNxSSK+kAVm3HYKsuoqpy4w2+15j1XCZ6I+Kjlg=
-Date: Thu, 03 Oct 2024 19:26:11 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,serge@hallyn.com,paul@paul-moore.com,laoar.shao@gmail.com,kent.overstreet@linux.dev,jmorris@namei.org,jack@suse.cz,hch@lst.de,dchinner@redhat.com,brauner@kernel.org,mhocko@suse.com,akpm@linux-foundation.org
+	b=eLjsAud7iiQy1n8Dnlpr+3HEsYybuz64roNPhdIjgEWjXCjOQBGTYKPnKWZoa6a4L
+	 63TLjx95ip8dV/uyYoXy1NlWByCH+BFvt+/H94mNIR7Rr6KqJon0BhHyi/dImjLwtt
+	 5Ab2bYOUqn7HGW5qSsUrKf/rL+KuVpzHcW6rBdNU=
+Date: Thu, 03 Oct 2024 19:26:12 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,stable@vger.kernel.org,hdanton@sina.com,frederic@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch removed from -mm tree
-Message-Id: <20241004022611.BCA50C4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kthread-unpark-only-parked-kthread.patch removed from -mm tree
+Message-Id: <20241004022613.2BD5BC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Revert "mm: introduce PF_MEMALLOC_NORECLAIM, PF_MEMALLOC_NOWARN"
+     Subject: kthread: unpark only parked kthread
 has been removed from the -mm tree.  Its filename was
-     revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn.patch
+     kthread-unpark-only-parked-kthread.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm: introduce PF_MEMALLOC_NORECLAIM, PF_MEMALLOC_NOWARN"
-Date: Thu, 26 Sep 2024 19:11:51 +0200
+From: Frederic Weisbecker <frederic@kernel.org>
+Subject: kthread: unpark only parked kthread
+Date: Fri, 13 Sep 2024 23:46:34 +0200
 
-This reverts commit eab0af905bfc3e9c05da2ca163d76a1513159aa4.
+Calling into kthread unparking unconditionally is mostly harmless when
+the kthread is already unparked. The wake up is then simply ignored
+because the target is not in TASK_PARKED state.
 
-There is no existing user of those flags.  PF_MEMALLOC_NOWARN is dangerous
-because a nested allocation context can use GFP_NOFAIL which could cause
-unexpected failure.  Such a code would be hard to maintain because it
-could be deeper in the call chain.
+However if the kthread is per CPU, the wake up is preceded by a call
+to kthread_bind() which expects the task to be inactive and in
+TASK_PARKED state, which obviously isn't the case if it is unparked.
 
-PF_MEMALLOC_NORECLAIM has been added even when it was pointed out [1] that
-such a allocation contex is inherently unsafe if the context doesn't fully
-control all allocations called from this context.
+As a result, calling kthread_stop() on an unparked per-cpu kthread
+triggers such a warning:
 
-While PF_MEMALLOC_NOWARN is not dangerous the way PF_MEMALLOC_NORECLAIM is
-it doesn't have any user and as Matthew has pointed out we are running out
-of those flags so better reclaim it without any real users.
+	WARNING: CPU: 0 PID: 11 at kernel/kthread.c:525 __kthread_bind_mask kernel/kthread.c:525
+	 <TASK>
+	 kthread_stop+0x17a/0x630 kernel/kthread.c:707
+	 destroy_workqueue+0x136/0xc40 kernel/workqueue.c:5810
+	 wg_destruct+0x1e2/0x2e0 drivers/net/wireguard/device.c:257
+	 netdev_run_todo+0xe1a/0x1000 net/core/dev.c:10693
+	 default_device_exit_batch+0xa14/0xa90 net/core/dev.c:11769
+	 ops_exit_list net/core/net_namespace.c:178 [inline]
+	 cleanup_net+0x89d/0xcc0 net/core/net_namespace.c:640
+	 process_one_work kernel/workqueue.c:3231 [inline]
+	 process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3312
+	 worker_thread+0x86d/0xd70 kernel/workqueue.c:3393
+	 kthread+0x2f0/0x390 kernel/kthread.c:389
+	 ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+	 ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+	 </TASK>
 
-[1] https://lore.kernel.org/all/ZcM0xtlKbAOFjv5n@tiehlicka/
+Fix this with skipping unecessary unparking while stopping a kthread.
 
-Link: https://lkml.kernel.org/r/20240926172940.167084-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Serge E. Hallyn <serge@hallyn.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Link: https://lkml.kernel.org/r/20240913214634.12557-1-frederic@kernel.org
+Fixes: 5c25b5ff89f0 ("workqueue: Tag bound workers with KTHREAD_IS_PER_CPU")
+Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
+Reported-by: syzbot+943d34fa3cf2191e3068@syzkaller.appspotmail.com
+Tested-by: syzbot+943d34fa3cf2191e3068@syzkaller.appspotmail.com
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h    |    4 ++--
- include/linux/sched/mm.h |   17 ++++-------------
- 2 files changed, 6 insertions(+), 15 deletions(-)
+ kernel/kthread.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/sched.h~revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn
-+++ a/include/linux/sched.h
-@@ -1681,8 +1681,8 @@ extern struct pid *cad_pid;
- 						 * I am cleaning dirty pages from some other bdi. */
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
--#define PF_MEMALLOC_NORECLAIM	0x00800000	/* All allocation requests will clear __GFP_DIRECT_RECLAIM */
--#define PF_MEMALLOC_NOWARN	0x01000000	/* All allocation requests will inherit __GFP_NOWARN */
-+#define PF__HOLE__00800000	0x00800000
-+#define PF__HOLE__01000000	0x01000000
- #define PF__HOLE__02000000	0x02000000
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
---- a/include/linux/sched/mm.h~revert-mm-introduce-pf_memalloc_noreclaim-pf_memalloc_nowarn
-+++ a/include/linux/sched/mm.h
-@@ -251,25 +251,16 @@ static inline gfp_t current_gfp_context(
+--- a/kernel/kthread.c~kthread-unpark-only-parked-kthread
++++ a/kernel/kthread.c
+@@ -623,6 +623,8 @@ void kthread_unpark(struct task_struct *
  {
- 	unsigned int pflags = READ_ONCE(current->flags);
+ 	struct kthread *kthread = to_kthread(k);
  
--	if (unlikely(pflags & (PF_MEMALLOC_NOIO |
--			       PF_MEMALLOC_NOFS |
--			       PF_MEMALLOC_NORECLAIM |
--			       PF_MEMALLOC_NOWARN |
--			       PF_MEMALLOC_PIN))) {
-+	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_PIN))) {
- 		/*
--		 * Stronger flags before weaker flags:
--		 * NORECLAIM implies NOIO, which in turn implies NOFS
-+		 * NOIO implies both NOIO and NOFS and it is a weaker context
-+		 * so always make sure it makes precedence
- 		 */
--		if (pflags & PF_MEMALLOC_NORECLAIM)
--			flags &= ~__GFP_DIRECT_RECLAIM;
--		else if (pflags & PF_MEMALLOC_NOIO)
-+		if (pflags & PF_MEMALLOC_NOIO)
- 			flags &= ~(__GFP_IO | __GFP_FS);
- 		else if (pflags & PF_MEMALLOC_NOFS)
- 			flags &= ~__GFP_FS;
- 
--		if (pflags & PF_MEMALLOC_NOWARN)
--			flags |= __GFP_NOWARN;
--
- 		if (pflags & PF_MEMALLOC_PIN)
- 			flags &= ~__GFP_MOVABLE;
- 	}
++	if (!test_bit(KTHREAD_SHOULD_PARK, &kthread->flags))
++		return;
+ 	/*
+ 	 * Newly created kthread was parked when the CPU was offline.
+ 	 * The binding was lost and we need to set it again.
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from frederic@kernel.org are
 
 
