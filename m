@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51DDB1DE4E4
-	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 18:51:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8306A1DE4E4
+	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 18:51:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728327077; cv=none; b=Un5CfzmxBu/9b8swGjsbm69b6A8BWufwzVYSOB809M8r1ogfNrRxbWEdQLNVBWILCzLph8nXOoApJpGgdxh/zXnZeUsizZ8+fzT9jJeVYe790FcqBykk/OZ90cxw8D4VSzg2qeJ4S2vlywVkPVIkIqJ3X8GgMFHuwYrwLKj+bns=
+	t=1728327079; cv=none; b=kGErqzwWkddu0nTSGao9EfjQ+zECPBS4Kkem6OqqaF3uTgXAGc8bP2uB5scgT5ovwqfA5FhrIuLlU675dSxCFvx5Ai1YUx3sMzjH2HsEnA4LveOcz7iDlCl4X30TtBAQ78tbwfB03GD33u/HXNcFLeiZ6MdJw5Lip3KAcewVnkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728327077; c=relaxed/simple;
-	bh=cAk/FGSX7p2I2e93Stp8oYfXQJIwcDru29sQq+F9MjM=;
-	h=Date:To:From:Subject:Message-Id; b=EOsUWvAQ/lHlKKnSkOvmLFZaaloSM39aHdzgCEnennRgWu8qWqHpx6ERLO333Wr5RNxeoN8CajQdIIoah+MzuVvcOhqAbvssvRsoq2nyN87B3woziOdZJL2njkOINu7M7olZCT/69aOR+R7i9eXqaZVEe2XPt/bb7aP9OuMTYyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y9/9BNd5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728327079; c=relaxed/simple;
+	bh=PkplZxW2mF5QZnFuaTvMgqwvo6qzYQi5BAmrExvjPu4=;
+	h=Date:To:From:Subject:Message-Id; b=lSZze5+ah+rIifjz9t9q3kgfSU0F9CGn8tjbsV1Uhv/2rR6ahJwsWB9ZwDLZZqYSzPYi0GbaANQd7erS5tr0DdLbWjqu22ht8BWaiuLC35QPBd8QLlRMyfFfW+fBCS5uNwq/xyfPlPP+0wtLsw6gxPSntTxSEDp8brCyl2/Iylk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b7dgK9Ht; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y9/9BNd5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5463C4CEC6;
-	Mon,  7 Oct 2024 18:51:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b7dgK9Ht"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24C34C4CEC6;
+	Mon,  7 Oct 2024 18:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728327076;
-	bh=cAk/FGSX7p2I2e93Stp8oYfXQJIwcDru29sQq+F9MjM=;
+	s=korg; t=1728327079;
+	bh=PkplZxW2mF5QZnFuaTvMgqwvo6qzYQi5BAmrExvjPu4=;
 	h=Date:To:From:Subject:From;
-	b=y9/9BNd5oHn0uKY3YFLjwtiL1+/57DcI6z9elCxTXpPgKkh+e6sPb6a6CwscclXhz
-	 tRqFw1ei67k0j110of4yptp1AAahKTAHfMC/F4tho4Ggs0hozuLWvVIO6tmGfnE3WH
-	 E3lNl5ZY5FdLwVlFUbnflL98lIR18thD9iePjgUg=
-Date: Mon, 07 Oct 2024 11:51:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,tzimmermann@suse.de,torvalds@linux-foundation.org,stephen.smalley.work@gmail.com,serge@hallyn.com,rostedt@goodmis.org,qmo@kernel.org,penguin-kernel@I-love.SAKURA.ne.jp,paul@paul-moore.com,omosnace@redhat.com,mripard@kernel.org,matus.jokay@stuba.sk,maarten.lankhorst@linux.intel.com,keescook@chromium.org,justinstitt@google.com,jmorris@namei.org,jack@suse.cz,horms@kernel.org,eparis@redhat.com,ebiederm@xmission.com,daniel.vetter@ffwll.ch,catalin.marinas@arm.com,brauner@kernel.org,andy.shevchenko@gmail.com,alx@kernel.org,alexei.starovoitov@gmail.com,airlied@gmail.com,laoar.shao@gmail.com,akpm@linux-foundation.org
+	b=b7dgK9Htl/fBygfgDFM1qRjwXswLUXza6MW9c9iraG2BtnkXNKPsbHd99TgON2zZ/
+	 7LDiq923U9Zao2oad3ah5v/tXitGeBJe4gUILHy22j6kMWh6iNup9EZq2CRpA2vz5w
+	 QdXVqQ/RQ77pXJGbzugDh6IuajTzNuczIY9FbHAI=
+Date: Mon, 07 Oct 2024 11:51:18 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,tzimmermann@suse.de,torvalds@linux-foundation.org,stephen.smalley.work@gmail.com,serge@hallyn.com,rostedt@goodmis.org,qmo@kernel.org,penguin-kernel@I-love.SAKURA.ne.jp,paul@paul-moore.com,omosnace@redhat.com,mripard@kernel.org,matus.jokay@stuba.sk,maarten.lankhorst@linux.intel.com,keescook@chromium.org,justinstitt@google.com,jmorris@namei.org,jack@suse.cz,horms@kernel.org,eparis@redhat.com,ebiederm@xmission.com,daniel.vetter@ffwll.ch,catalin.marinas@arm.com,brauner@kernel.org,andy.shevchenko@gmail.com,alx@kernel.org,alexei.starovoitov@gmail.com,akpm@linux-foundation.org,airlied@gmail.com,laoar.shao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-util-fix-possible-race-condition-in-kstrdup.patch added to mm-nonmm-unstable branch
-Message-Id: <20241007185116.D5463C4CEC6@smtp.kernel.org>
+Subject: + mm-util-deduplicate-code-in-kstrdupkstrndupkmemdup_nul.patch added to mm-nonmm-unstable branch
+Message-Id: <20241007185119.24C34C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/util: fix possible race condition in kstrdup()
+     Subject: mm/util: deduplicate code in {kstrdup,kstrndup,kmemdup_nul}
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-util-fix-possible-race-condition-in-kstrdup.patch
+     mm-util-deduplicate-code-in-kstrdupkstrndupkmemdup_nul.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-fix-possible-race-condition-in-kstrdup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-deduplicate-code-in-kstrdupkstrndupkmemdup_nul.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/util: fix possible race condition in kstrdup()
-Date: Mon, 7 Oct 2024 22:49:09 +0800
+Subject: mm/util: deduplicate code in {kstrdup,kstrndup,kmemdup_nul}
+Date: Mon, 7 Oct 2024 22:49:10 +0800
 
-In kstrdup(), it is critical to ensure that the dest string is always
-NUL-terminated.  However, potential race condition can occur between a
-writer and a reader.
+These three functions follow the same pattern.  To deduplicate the code,
+let's introduce a common helper __kmemdup_nul().
 
-Consider the following scenario involving task->comm:
-
-    reader                    writer
-
-  len = strlen(s) + 1;
-                             strlcpy(tsk->comm, buf, sizeof(tsk->comm));
-  memcpy(buf, s, len);
-
-In this case, there is a race condition between the reader and the writer.
-The reader calculates the length of the string `s` based on the old value
-of task->comm.  However, during the memcpy(), the string `s` might be
-updated by the writer to a new value of task->comm.
-
-If the new task->comm is larger than the old one, the `buf` might not be
-NUL-terminated.  This can lead to undefined behavior and potential
-security vulnerabilities.
-
-Let's fix it by explicitly adding a NUL terminator after the memcpy.  It
-is worth noting that memcpy() is not atomic, so the new string can be
-shorter when memcpy() already copied past the new NUL.
-
-Link: https://lkml.kernel.org/r/20241007144911.27693-6-laoar.shao@gmail.com
+Link: https://lkml.kernel.org/r/20241007144911.27693-7-laoar.shao@gmail.com
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Alejandro Colomar <alx@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
@@ -105,14 +86,12 @@ Cc: Justin Stitt <justinstitt@google.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Matus Jokay <matus.jokay@stuba.sk>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Ondrej Mosnacek <omosnace@redhat.com>
 Cc: Paul Moore <paul@paul-moore.com>
 Cc: Quentin Monnet <qmo@kernel.org>
 Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Simon Horman <horms@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -120,28 +99,111 @@ Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/util.c |   69 ++++++++++++++++++++--------------------------------
+ 1 file changed, 27 insertions(+), 42 deletions(-)
 
---- a/mm/util.c~mm-util-fix-possible-race-condition-in-kstrdup
+--- a/mm/util.c~mm-util-deduplicate-code-in-kstrdupkstrndupkmemdup_nul
 +++ a/mm/util.c
-@@ -62,8 +62,15 @@ char *kstrdup(const char *s, gfp_t gfp)
+@@ -45,34 +45,41 @@ void kfree_const(const void *x)
+ EXPORT_SYMBOL(kfree_const);
  
- 	len = strlen(s) + 1;
- 	buf = kmalloc_track_caller(len, gfp);
--	if (buf)
-+	if (buf) {
- 		memcpy(buf, s, len);
-+		/*
-+		 * During memcpy(), the string might be updated to a new value,
-+		 * which could be longer than the string when strlen() is
-+		 * called. Therefore, we need to add a NUL terminator.
-+		 */
-+		buf[len - 1] = '\0';
-+	}
+ /**
+- * kstrdup - allocate space for and copy an existing string
+- * @s: the string to duplicate
++ * __kmemdup_nul - Create a NUL-terminated string from @s, which might be unterminated.
++ * @s: The data to copy
++ * @len: The size of the data, not including the NUL terminator
+  * @gfp: the GFP mask used in the kmalloc() call when allocating memory
+  *
+- * Return: newly allocated copy of @s or %NULL in case of error
++ * Return: newly allocated copy of @s with NUL-termination or %NULL in
++ * case of error
+  */
+-noinline
+-char *kstrdup(const char *s, gfp_t gfp)
++static __always_inline char *__kmemdup_nul(const char *s, size_t len, gfp_t gfp)
+ {
+-	size_t len;
+ 	char *buf;
+ 
+-	if (!s)
++	/* '+1' for the NUL terminator */
++	buf = kmalloc_track_caller(len + 1, gfp);
++	if (!buf)
+ 		return NULL;
+ 
+-	len = strlen(s) + 1;
+-	buf = kmalloc_track_caller(len, gfp);
+-	if (buf) {
+-		memcpy(buf, s, len);
+-		/*
+-		 * During memcpy(), the string might be updated to a new value,
+-		 * which could be longer than the string when strlen() is
+-		 * called. Therefore, we need to add a NUL terminator.
+-		 */
+-		buf[len - 1] = '\0';
+-	}
++	memcpy(buf, s, len);
++	/* Ensure the buf is always NUL-terminated, regardless of @s. */
++	buf[len] = '\0';
  	return buf;
  }
++
++/**
++ * kstrdup - allocate space for and copy an existing string
++ * @s: the string to duplicate
++ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
++ *
++ * Return: newly allocated copy of @s or %NULL in case of error
++ */
++noinline
++char *kstrdup(const char *s, gfp_t gfp)
++{
++	return s ? __kmemdup_nul(s, strlen(s), gfp) : NULL;
++}
  EXPORT_SYMBOL(kstrdup);
+ 
+ /**
+@@ -107,19 +114,7 @@ EXPORT_SYMBOL(kstrdup_const);
+  */
+ char *kstrndup(const char *s, size_t max, gfp_t gfp)
+ {
+-	size_t len;
+-	char *buf;
+-
+-	if (!s)
+-		return NULL;
+-
+-	len = strnlen(s, max);
+-	buf = kmalloc_track_caller(len+1, gfp);
+-	if (buf) {
+-		memcpy(buf, s, len);
+-		buf[len] = '\0';
+-	}
+-	return buf;
++	return s ? __kmemdup_nul(s, strnlen(s, max), gfp) : NULL;
+ }
+ EXPORT_SYMBOL(kstrndup);
+ 
+@@ -193,17 +188,7 @@ EXPORT_SYMBOL(kvmemdup);
+  */
+ char *kmemdup_nul(const char *s, size_t len, gfp_t gfp)
+ {
+-	char *buf;
+-
+-	if (!s)
+-		return NULL;
+-
+-	buf = kmalloc_track_caller(len + 1, gfp);
+-	if (buf) {
+-		memcpy(buf, s, len);
+-		buf[len] = '\0';
+-	}
+-	return buf;
++	return s ? __kmemdup_nul(s, len, gfp) : NULL;
+ }
+ EXPORT_SYMBOL(kmemdup_nul);
+ 
 _
 
 Patches currently in -mm which might be from laoar.shao@gmail.com are
