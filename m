@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B692189BBD
-	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 21:07:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76A54189BBD
+	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 21:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728335258; cv=none; b=YuTk9bB24kEfcjjWjGt3LosROaT9lBOa3hudzslotp8CYzh8iqHPAToRuGdGwWBXBYt7zJEpUShUP/BkfJjSnRMWVLB0HMqapquxQLJo+m1xgzM1GZz+dgIgIJs+OS9SFNbsD6MfVH2zTMjOpDbG5TDDcmz4v19knpj++zURRIY=
+	t=1728335260; cv=none; b=r+xUDKRqD/8HREoezMcHDCjlqMhMfhVn06huylbBpJdNa7BxM1G6jujBcODb1hzktsQplfOKkNhUz1oxSzsAkse+sYwMIWBfUh+Vgds/lbtW66HwYGGJ8hF4lq3VILNbhhbAkC7l3+kzGA60S6bleM8eKSqFTWeueH84GywlP9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728335258; c=relaxed/simple;
-	bh=+zJKZAkWtyB0oCtdb5XxEun0cdg2Mz6QLTsxxuytlc4=;
-	h=Date:To:From:Subject:Message-Id; b=EUUYypN08ORPY75MRgQvR+gpyfA/qRcs2SgCQUtLEXM0LztEl/6o+BMuPjAx3uzmZh/n7w1a44uJZFIz4pt4K1XjWHCeSLg74Hg3XtPMAHsl3Iq+NlxqDl0Vn/ELpzbfWyf+lYPYl2v618YQWFhXrrrexQXYVbMYGD8E3Bojgyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ppTf8TAe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728335260; c=relaxed/simple;
+	bh=RsWZ6xEjCfqMmoCym+89U34mop36ZawCr1Y5FZp1VjY=;
+	h=Date:To:From:Subject:Message-Id; b=CXDLw5uQEtjsepMKTLYMTHRQ+YIeZb2CEl3c8LDbIYr1WKIYyPvMKRslJ32/MAso53r/6a6pKr4UOjVyGWaQXHFKTU9CIBbmkW9vkufIsclMJz2/J3k6mr4DJvNL91k32aRh+MKM/X6/E52Mdrvc/SPBpuHCDZC3bvx7v6uQ/yA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JmD9aB72; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ppTf8TAe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4572C4CEC6;
-	Mon,  7 Oct 2024 21:07:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JmD9aB72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C81C4CEC6;
+	Mon,  7 Oct 2024 21:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728335257;
-	bh=+zJKZAkWtyB0oCtdb5XxEun0cdg2Mz6QLTsxxuytlc4=;
+	s=korg; t=1728335260;
+	bh=RsWZ6xEjCfqMmoCym+89U34mop36ZawCr1Y5FZp1VjY=;
 	h=Date:To:From:Subject:From;
-	b=ppTf8TAeWKo7di7d2/Mfj1Fbbdds9Cd861FsQ6m7yVQI7GAdCeNCqdt/OFBqxCmZ+
-	 XRPjIBeRuJc9gNvcCdJ8Hbps3IAoMEPw/cK6VT0TLP9RljdZUfq8k2b2yaSKY4YIhJ
-	 HkU16uW0TCd6DPcoPDDM8l2xLcSZ26opUCBwcv4U=
-Date: Mon, 07 Oct 2024 14:07:37 -0700
+	b=JmD9aB72D2bkYBcZARyUuhUQQVKLSIXNIP92z+6fS5ICDBhemDKJx3q3K+2yNUzIV
+	 x+9obBbRJRKSy7rcKpD7zCs+bB6VdX8gs6708yo8iOWUxsGJPNm1+TZVbiv2TJDRf2
+	 a2/s28m2jhbLLWTDvsrXo65ZeKKVKrW5vkjpoU60=
+Date: Mon, 07 Oct 2024 14:07:39 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterx@redhat.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,donettom@linux.ibm.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-sparc-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch added to mm-unstable branch
-Message-Id: <20241007210737.D4572C4CEC6@smtp.kernel.org>
+Subject: + arch-powerpc-teach-book3s64-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch added to mm-unstable branch
+Message-Id: <20241007210740.45C81C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/sparc: teach arch_get_unmapped_area{_topdown} to handle hugetlb mappings
+     Subject: arch/powerpc: teach book3s64 arch_get_unmapped_area{_topdown} to handle hugetlb mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch-sparc-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
+     arch-powerpc-teach-book3s64-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-sparc-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-powerpc-teach-book3s64-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: arch/sparc: teach arch_get_unmapped_area{_topdown} to handle hugetlb mappings
-Date: Mon, 7 Oct 2024 09:50:32 +0200
+Subject: arch/powerpc: teach book3s64 arch_get_unmapped_area{_topdown} to handle hugetlb mappings
+Date: Mon, 7 Oct 2024 09:50:33 +0200
 
 We want to stop special casing hugetlb mappings and make them go through
 generic channels, so teach arch_get_unmapped_area{_topdown} to handle
 those.
 
-sparc specific hugetlb function does not set info.align_offset, and does
-not care about adjusting the align_mask for MAP_SHARED cases, so the same
-here for compatibility.
+Reshuffle file_to_psize() definition so arch_get_unmapped_area{_topdown}
+can make use of it.
 
-Link: https://lkml.kernel.org/r/20241007075037.267650-5-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20241007075037.267650-6-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Donet Tom <donettom@linux.ibm.com>
@@ -82,163 +81,85 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_32.c |   17 ++++++++++---
- arch/sparc/kernel/sys_sparc_64.c |   37 ++++++++++++++++++++++-------
- 2 files changed, 42 insertions(+), 12 deletions(-)
+ arch/powerpc/mm/book3s64/slice.c |   40 +++++++++++++++++++++--------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
---- a/arch/sparc/kernel/sys_sparc_32.c~arch-sparc-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings
-+++ a/arch/sparc/kernel/sys_sparc_32.c
-@@ -23,6 +23,7 @@
- #include <linux/utsname.h>
- #include <linux/smp.h>
- #include <linux/ipc.h>
-+#include <linux/hugetlb.h>
- 
- #include <linux/uaccess.h>
- #include <asm/unistd.h>
-@@ -42,12 +43,16 @@ SYSCALL_DEFINE0(getpagesize)
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
- {
- 	struct vm_unmapped_area_info info = {};
-+	bool file_hugepage = false;
-+
-+	if (filp && is_file_hugepages(filp))
-+		file_hugepage = true;
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
- 		 * cache aliasing constraints.
- 		 */
--		if ((flags & MAP_SHARED) &&
-+		if (!file_hugepage && (flags & MAP_SHARED) &&
- 		    ((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
- 			return -EINVAL;
- 		return addr;
-@@ -62,9 +67,13 @@ unsigned long arch_get_unmapped_area(str
- 	info.length = len;
- 	info.low_limit = addr;
- 	info.high_limit = TASK_SIZE;
--	info.align_mask = (flags & MAP_SHARED) ?
--		(PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
-+	if (!file_hugepage) {
-+		info.align_mask = (flags & MAP_SHARED) ?
-+			(PAGE_MASK & (SHMLBA - 1)) : 0;
-+		info.align_offset = pgoff << PAGE_SHIFT;
-+	} else {
-+		info.align_mask = huge_page_mask_align(filp);
-+	}
- 	return vm_unmapped_area(&info);
+--- a/arch/powerpc/mm/book3s64/slice.c~arch-powerpc-teach-book3s64-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings
++++ a/arch/powerpc/mm/book3s64/slice.c
+@@ -633,6 +633,20 @@ return_addr:
  }
+ EXPORT_SYMBOL_GPL(slice_get_unmapped_area);
  
---- a/arch/sparc/kernel/sys_sparc_64.c~arch-sparc-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -30,6 +30,7 @@
- #include <linux/context_tracking.h>
- #include <linux/timex.h>
- #include <linux/uaccess.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/utrap.h>
- #include <asm/unistd.h>
-@@ -87,6 +88,16 @@ static inline unsigned long COLOR_ALIGN(
- 	return base + off;
- }
- 
-+static unsigned long get_align_mask(struct file *filp, unsigned long flags)
++#ifdef CONFIG_HUGETLB_PAGE
++static int file_to_psize(struct file *file)
 +{
-+	if (filp && is_file_hugepages(filp))
-+		return huge_page_mask_align(filp);
-+	if (filp || (flags & MAP_SHARED))
-+		return PAGE_MASK & (SHMLBA - 1);
++	struct hstate *hstate = hstate_file(file);
 +
++	return shift_to_mmu_psize(huge_page_shift(hstate));
++}
++#else
++static int file_to_psize(struct file *file)
++{
 +	return 0;
 +}
++#endif
 +
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
+ unsigned long arch_get_unmapped_area(struct file *filp,
+ 				     unsigned long addr,
+ 				     unsigned long len,
+@@ -640,11 +654,17 @@ unsigned long arch_get_unmapped_area(str
+ 				     unsigned long flags,
+ 				     vm_flags_t vm_flags)
  {
- 	struct mm_struct *mm = current->mm;
-@@ -94,12 +105,16 @@ unsigned long arch_get_unmapped_area(str
- 	unsigned long task_size = TASK_SIZE;
- 	int do_color_align;
- 	struct vm_unmapped_area_info info = {};
-+	bool file_hugepage = false;
++	unsigned int psize;
 +
+ 	if (radix_enabled())
+ 		return generic_get_unmapped_area(filp, addr, len, pgoff, flags, vm_flags);
+ 
+-	return slice_get_unmapped_area(addr, len, flags,
+-				       mm_ctx_user_psize(&current->mm->context), 0);
 +	if (filp && is_file_hugepages(filp))
-+		file_hugepage = true;
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
- 		 * cache aliasing constraints.
- 		 */
--		if ((flags & MAP_SHARED) &&
-+		if (!file_hugepage && (flags & MAP_SHARED) &&
- 		    ((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
- 			return -EINVAL;
- 		return addr;
-@@ -111,7 +126,7 @@ unsigned long arch_get_unmapped_area(str
- 		return -ENOMEM;
- 
- 	do_color_align = 0;
--	if (filp || (flags & MAP_SHARED))
-+	if ((filp || (flags & MAP_SHARED)) && !file_hugepage)
- 		do_color_align = 1;
- 
- 	if (addr) {
-@@ -129,8 +144,9 @@ unsigned long arch_get_unmapped_area(str
- 	info.length = len;
- 	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = min(task_size, VA_EXCLUDE_START);
--	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
-+	info.align_mask = get_align_mask(filp, flags);
-+	if (!file_hugepage)
-+		info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
- 
- 	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-@@ -154,15 +170,19 @@ arch_get_unmapped_area_topdown(struct fi
- 	unsigned long addr = addr0;
- 	int do_color_align;
- 	struct vm_unmapped_area_info info = {};
-+	bool file_hugepage = false;
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
- 
-+	if (filp && is_file_hugepages(filp))
-+		file_hugepage = true;
++		psize = file_to_psize(filp);
++	else
++		psize = mm_ctx_user_psize(&current->mm->context);
 +
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
- 		 * cache aliasing constraints.
- 		 */
--		if ((flags & MAP_SHARED) &&
-+		if (!file_hugepage && (flags & MAP_SHARED) &&
- 		    ((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
- 			return -EINVAL;
- 		return addr;
-@@ -172,7 +192,7 @@ arch_get_unmapped_area_topdown(struct fi
- 		return -ENOMEM;
++	return slice_get_unmapped_area(addr, len, flags, psize, 0);
+ }
  
- 	do_color_align = 0;
--	if (filp || (flags & MAP_SHARED))
-+	if ((filp || (flags & MAP_SHARED)) && !file_hugepage)
- 		do_color_align = 1;
+ unsigned long arch_get_unmapped_area_topdown(struct file *filp,
+@@ -654,11 +674,17 @@ unsigned long arch_get_unmapped_area_top
+ 					     const unsigned long flags,
+ 					     vm_flags_t vm_flags)
+ {
++	unsigned int psize;
++
+ 	if (radix_enabled())
+ 		return generic_get_unmapped_area_topdown(filp, addr0, len, pgoff, flags, vm_flags);
  
- 	/* requesting a specific address */
-@@ -192,8 +212,9 @@ arch_get_unmapped_area_topdown(struct fi
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = mm->mmap_base;
--	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
-+	info.align_mask = get_align_mask(filp, flags);
-+	if (!file_hugepage)
-+		info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
+-	return slice_get_unmapped_area(addr0, len, flags,
+-				       mm_ctx_user_psize(&current->mm->context), 1);
++	if (filp && is_file_hugepages(filp))
++		psize = file_to_psize(filp);
++	else
++		psize = mm_ctx_user_psize(&current->mm->context);
++
++	return slice_get_unmapped_area(addr0, len, flags, psize, 1);
+ }
  
- 	/*
+ unsigned int notrace get_slice_psize(struct mm_struct *mm, unsigned long addr)
+@@ -789,12 +815,6 @@ unsigned long vma_mmu_pagesize(struct vm
+ 	return 1UL << mmu_psize_to_shift(get_slice_psize(vma->vm_mm, vma->vm_start));
+ }
+ 
+-static int file_to_psize(struct file *file)
+-{
+-	struct hstate *hstate = hstate_file(file);
+-	return shift_to_mmu_psize(huge_page_shift(hstate));
+-}
+-
+ unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 					unsigned long len, unsigned long pgoff,
+ 					unsigned long flags)
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
