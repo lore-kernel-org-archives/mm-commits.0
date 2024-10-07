@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8F9E189BBD
-	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 21:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C58189BBD
+	for <mm-commits@vger.kernel.org>; Mon,  7 Oct 2024 21:07:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728335252; cv=none; b=K1FPnU8CnhYEY4U1i4vByd+WHG4Z68SYsxLc8VO2uLsAWhVbJzPA39SFCxFSyFlhGAuIghLyZIDjnm/2u43fo9bHnWkiuBNgRAI0pAX2ltCQuTDumGimHyLMXoTKkxDWs6AuBbsWdl2rtGhWFrRp8e9s2o8HyjWYtWN5ot5Bb2I=
+	t=1728335254; cv=none; b=ekeXWrx3Vi9W+NO12j3Bd8Qi+2gpeFlqbsmoZJmb2ySzuFO3BfUwj5cC4eAS1ZM5Co2GyYu74rhdSgot2/uPdfmedjn0Pr7EYQomKK6Iq8CUCx6vLvILwi6P3KIZp2dXaj4vtyjtzn76nByaNDP0MjoPbyHng1tXRkDeAzaH6DQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728335252; c=relaxed/simple;
-	bh=NC/eyf6i+K141Xj2qsCtG9YrjT8cnDV2/Z4k86E/XfU=;
-	h=Date:To:From:Subject:Message-Id; b=mFIC/RU97rPQ7T08JxBcN35oAbqaCYvfdqqr0dQfUe1Qa3y27nOAraV+oIDc+oyLqACBQi1wHPmxibQP0pO8rDEXAExVMKM95b1qlZS4OLxbvveQ/28P+xs3jAZYN405jwqJ0OGPLDbxBYNQXX/KSLtsvewxjwT7E9k1VruixJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tw5N0DFI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728335254; c=relaxed/simple;
+	bh=mHL5ZTVFKbQcJt9a0vB2vq2LxyqLHm1u+pS1aP+9wkg=;
+	h=Date:To:From:Subject:Message-Id; b=LNUGlBtOsxSvNyT/eYwcXphpzohnVWtyfEC7Bk2fYR2KftE0Ti+OHjYkUEW3esisAn8foui3IBLUvCOIg7mooVh3DP9Uv7h9D+yhEKREYlvkW/jq7ARxqMxWpPdKgmXcLIHeLXK5HB0kfodVHUv93uVSJswo2f2uXSFEs2fCA4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ey6CQFKH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tw5N0DFI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FD51C4CEC6;
-	Mon,  7 Oct 2024 21:07:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ey6CQFKH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D51FEC4CEC6;
+	Mon,  7 Oct 2024 21:07:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728335251;
-	bh=NC/eyf6i+K141Xj2qsCtG9YrjT8cnDV2/Z4k86E/XfU=;
+	s=korg; t=1728335253;
+	bh=mHL5ZTVFKbQcJt9a0vB2vq2LxyqLHm1u+pS1aP+9wkg=;
 	h=Date:To:From:Subject:From;
-	b=Tw5N0DFI4KfLxfZ9FJ8p3DLd9vAIYncgkeA+Dxz63rSibh2NZrVvXsfwLi3wlAjOA
-	 moFGj0gHNlfspSpFyhRdIRObZLbK36shcYpyefFJPFA9Rh0j6r8qaM3k6aANB41pv+
-	 zyz0hHnyRG3Rg3CYaDA+JxXxIO0gyGVXhfr9NYIg=
-Date: Mon, 07 Oct 2024 14:07:30 -0700
+	b=Ey6CQFKHW5jg5TBSDBy/bxJgHCCLQqoxV5iLq0A0FQ5mB/1uPX5xa8REpSsf3On4J
+	 IEB8ADtaEe4zFR9jQZcBW7k+n5SlOHPLZESdMSZXBTTuHO2eWdcBhbPILRT+zQSm3I
+	 s5d8BXIT8EuNyAq3taaOoDuIwAELAoguJ3F6IaVk=
+Date: Mon, 07 Oct 2024 14:07:33 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterx@redhat.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,donettom@linux.ibm.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-teach-generic_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch added to mm-unstable branch
-Message-Id: <20241007210731.6FD51C4CEC6@smtp.kernel.org>
+Subject: + arch-s390-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch added to mm-unstable branch
+Message-Id: <20241007210733.D51FEC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: teach generic_get_unmapped_area{_topdown} to handle hugetlb mappings
+     Subject: arch/s390: teach arch_get_unmapped_area{_topdown} to handle hugetlb mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-teach-generic_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
+     arch-s390-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-teach-generic_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-s390-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/mmap: teach generic_get_unmapped_area{_topdown} to handle hugetlb mappings
-Date: Mon, 7 Oct 2024 09:50:29 +0200
-
-Patch series "Unify hugetlb into arch_get_unmapped_area functions", v4.
-
-This is an attempt to get rid of a fair amount of duplicated code wrt. 
-hugetlb and *get_unmapped_area* functions.
-
-HugeTLB registers a .get_unmapped_area function which gets called from
-__get_unmapped_area().
-hugetlb_get_unmapped_area() is defined by a bunch of architectures and
-it also has a generic definition for those that do not define it.
-Short-long story is that there is a ton of duplicated code between
-specific hugetlb *_get_unmapped_area_* functions and mm-core functions,
-so we can do better by teaching arch_get_unmapped_area* functions how
-to deal with hugetlb mappings.
-
-Note that not a lot of things need to be taught though. 
-hugetlb_get_unmapped_area, that gets called for hugetlb mappings, runs
-some sanity checks prior to calling mm_get_unmapped_area_vmflags(), so we
-do not need to that down the road in the respective
-{generic,arch}_get_unmapped_area* functions.
-
-More information can be found in the respective patches.
-
-LTP mmapstress hugetlb selftests were ran succesfully on:
-
-
-This patch (of 9):
+Subject: arch/s390: teach arch_get_unmapped_area{_topdown} to handle hugetlb mappings
+Date: Mon, 7 Oct 2024 09:50:30 +0200
 
 We want to stop special casing hugetlb mappings and make them go through
-generic channels, so teach generic_get_unmapped_area{_topdown} to handle
-those.  The main difference is that we set info.align_mask for huge
-mappings.
+generic channels, so teach arch_get_unmapped_area{_topdown} to handle
+those.
 
-Link: https://lkml.kernel.org/r/20241007075037.267650-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20241007075037.267650-2-osalvador@suse.de
+s390 specific hugetlb function does not set info.align_offset, so do the
+same here for compatibility.
+
+Link: https://lkml.kernel.org/r/20241007075037.267650-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Donet Tom <donettom@linux.ibm.com>
@@ -107,49 +81,45 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 ++++++++++
- mm/mmap.c               |    4 ++++
- 2 files changed, 14 insertions(+)
+ arch/s390/mm/mmap.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-mmap-teach-generic_get_unmapped_area_topdown-to-handle-hugetlb-mappings
-+++ a/include/linux/hugetlb.h
-@@ -1035,9 +1035,19 @@ void hugetlb_unregister_node(struct node
-  */
- bool is_raw_hwpoison_page_in_hugepage(struct page *page);
+--- a/arch/s390/mm/mmap.c~arch-s390-teach-arch_get_unmapped_area_topdown-to-handle-hugetlb-mappings
++++ a/arch/s390/mm/mmap.c
+@@ -17,6 +17,7 @@
+ #include <linux/random.h>
+ #include <linux/compat.h>
+ #include <linux/security.h>
++#include <linux/hugetlb.h>
+ #include <asm/elf.h>
  
-+static inline unsigned long huge_page_mask_align(struct file *file)
-+{
-+	return PAGE_MASK & ~huge_page_mask(hstate_file(file));
-+}
-+
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
+ static unsigned long stack_maxrandom_size(void)
+@@ -73,6 +74,8 @@ static inline unsigned long mmap_base(un
  
-+static inline unsigned long huge_page_mask_align(struct file *file)
-+{
-+	return 0;
-+}
-+
- static inline struct hugepage_subpool *hugetlb_folio_subpool(struct folio *folio)
+ static int get_align_mask(struct file *filp, unsigned long flags)
  {
- 	return NULL;
---- a/mm/mmap.c~mm-mmap-teach-generic_get_unmapped_area_topdown-to-handle-hugetlb-mappings
-+++ a/mm/mmap.c
-@@ -776,6 +776,8 @@ generic_get_unmapped_area(struct file *f
++	if (filp && is_file_hugepages(filp))
++		return huge_page_mask_align(filp);
+ 	if (!(current->flags & PF_RANDOMIZE))
+ 		return 0;
+ 	if (filp || (flags & MAP_SHARED))
+@@ -106,7 +109,8 @@ unsigned long arch_get_unmapped_area(str
  	info.low_limit = mm->mmap_base;
- 	info.high_limit = mmap_end;
- 	info.start_gap = stack_guard_placement(vm_flags);
-+	if (filp && is_file_hugepages(filp))
-+		info.align_mask = huge_page_mask_align(filp);
- 	return vm_unmapped_area(&info);
- }
- 
-@@ -826,6 +828,8 @@ generic_get_unmapped_area_topdown(struct
+ 	info.high_limit = TASK_SIZE;
+ 	info.align_mask = get_align_mask(filp, flags);
+-	info.align_offset = pgoff << PAGE_SHIFT;
++	if (!(filp && is_file_hugepages(filp)))
++		info.align_offset = pgoff << PAGE_SHIFT;
+ 	addr = vm_unmapped_area(&info);
+ 	if (offset_in_page(addr))
+ 		return addr;
+@@ -144,7 +148,8 @@ unsigned long arch_get_unmapped_area_top
  	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
- 	info.start_gap = stack_guard_placement(vm_flags);
-+	if (filp && is_file_hugepages(filp))
-+		info.align_mask = huge_page_mask_align(filp);
+ 	info.high_limit = mm->mmap_base;
+ 	info.align_mask = get_align_mask(filp, flags);
+-	info.align_offset = pgoff << PAGE_SHIFT;
++	if (!(filp && is_file_hugepages(filp)))
++		info.align_offset = pgoff << PAGE_SHIFT;
  	addr = vm_unmapped_area(&info);
  
  	/*
