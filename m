@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96431FA254
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 17:57:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B9B52940F
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 18:13:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728410248; cv=none; b=MDzqL971503ZeIuGqeHznj3tcRgXmcGluVWmFforuvbJ/LEx511HqxGwgCBZ2x+rGEzAvCEOGvgTZ21ZFTVaTeeloz9QFMreJT9ZFZ9AMoSy+2rJTNpJWesXaF32yMKQoxf1vadGimksTsME/dqIolKYVzCldYmgAMg1VOWdV0s=
+	t=1728411198; cv=none; b=PwRYZF1FwZ3AVaTnywwZPoWEg310dPHBZXQb0HBcaCsimadC4brMd1E+YYAAQzE1wl52PRvWivrxOOtboYrWVj/f4tu0ylpwMlHGgquNtHPhrNLbCWs9RabGs9M2Tnns3BYDHOiza3th1TmElC+erLfaeJSACD6bsAIpBqDzJbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728410248; c=relaxed/simple;
-	bh=s7l43JlcVncniOQUBsV88sV7WWeWaxV7Jlkol4NEjyg=;
-	h=Date:To:From:Subject:Message-Id; b=b7CdjEAjl8bstfdeSbMWzk3ng3jswT2jZYHekqA0T4/mhV8mgy1K1ETgUqB1R721Pu9ARUEDy6TbSVMIfb+8mDqtoWoupwq/+R3kgIDY8PzKRUwIKaS02ATpsbYY/VjxTBQSpGHssAgMCZM/3+nonMKuh3iUzWibqceKjlH7nCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1BzvWSNE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728411198; c=relaxed/simple;
+	bh=6fgNBKsZ2YTZ0IP9kJkrBZjqGqPElrCBYDyrjOPshrc=;
+	h=Date:To:From:Subject:Message-Id; b=a/v8li8eyXJXtv9SW90SGOhUKdELuh35WSI+U7xLg76vTZMbUYsRw6IAFDCpRrFsinxnjnV4VtkNqRstPZvYfB4z/mIwYLeKO7+xdKB4DkoW8WumqzhyHGrOJoNRgFO9UgHqhSW3mfgaTbmxgvmGizbQYazYHRH9purOpAnKVVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCDsSn9T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1BzvWSNE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B34BC4CEC7;
-	Tue,  8 Oct 2024 17:57:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCDsSn9T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F800C4CEC7;
+	Tue,  8 Oct 2024 18:13:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728410248;
-	bh=s7l43JlcVncniOQUBsV88sV7WWeWaxV7Jlkol4NEjyg=;
+	s=korg; t=1728411197;
+	bh=6fgNBKsZ2YTZ0IP9kJkrBZjqGqPElrCBYDyrjOPshrc=;
 	h=Date:To:From:Subject:From;
-	b=1BzvWSNEkr+9wXs1CXIJVNhZ2tzj1tmt3eG0AgdSTCMxgJrX+MxNgzx2PMP41IIgm
-	 6tH8NwQKh8sNBv7pjTKrqBLdcjygBFxJ/9GM9VXVtd9gz6xvmV2nqY4L57VY4rxI1p
-	 XET6Gi2jJFvkw57DVIjAQsWQ64z5O5mqixO79lqA=
-Date: Tue, 08 Oct 2024 10:57:27 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,liyangouwen1@oppo.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=yCDsSn9TuOO34rcdTbwFe4IauxhIG0SxDzEGAGUfrUDaBnBuOKsOLuhhB0uu9VHV0
+	 RJYv6qmJxL/wP1MLXwnpxxHPBURMk2pVIFGpcw1fTFQEo8sVYb+CAzrxDanipwfQqY
+	 gM2YxosF937A74mwbF+pN6Z41vayPi0JPmDx8ORY=
+Date: Tue, 08 Oct 2024 11:13:16 -0700
+To: mm-commits@vger.kernel.org,elver@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241008175728.4B34BC4CEC7@smtp.kernel.org>
+Subject: + mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch added to mm-unstable branch
+Message-Id: <20241008181317.6F800C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: wake_up only when swapcache_wq waitqueue is active
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
+     Subject: mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: wake_up only when swapcache_wq waitqueue is active
-Date: Tue, 8 Oct 2024 20:18:27 +0800
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
+Date: Tue, 8 Oct 2024 15:15:26 +0500
 
-wake_up() will acquire spinlock even waitqueue is empty. This might
-involve cache sync overhead. Let's only call wake_up() when waitqueue
-is active.
+v2:
+- squashed previous submitted in -mm tree 2 patches based on Linus tree
+v3:
+- moved checks to *_nofault_loop macros per Marco's comments
+- edited the commit message
 
-Link: https://lkml.kernel.org/r/20241008130807.40833-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oven Liyang <liyangouwen1@oppo.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241008101526.2591147-1-snovitoll@gmail.com
+Suggested-by: Marco Elver <elver@google.com>
+Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/maccess.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix
-+++ a/mm/memory.c
-@@ -4616,7 +4616,8 @@ out:
- 	/* Clear the swap cache pin for direct swapin after PTL unlock */
- 	if (need_clear_cache) {
- 		swapcache_clear(si, entry, nr_pages);
--		wake_up(&swapcache_wq);
-+		if (waitqueue_active(&swapcache_wq))
-+			wake_up(&swapcache_wq);
- 	}
- 	if (si)
- 		put_swap_device(si);
-@@ -4634,7 +4635,8 @@ out_release:
- 	}
- 	if (need_clear_cache) {
- 		swapcache_clear(si, entry, nr_pages);
--		wake_up(&swapcache_wq);
-+		if (waitqueue_active(&swapcache_wq))
-+			wake_up(&swapcache_wq);
- 	}
- 	if (si)
- 		put_swap_device(si);
+--- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
++++ a/mm/maccess.c
+@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
+ 	return true;
+ }
+ 
++/*
++ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
++ * memory isn't leaked.
++ */
+ #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+ 		__get_kernel_nofault(dst, src, type, err_label);	\
++		kmsan_check_memory(src, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -31,8 +36,6 @@ long copy_from_kernel_nofault(void *dst,
+ 	if (!copy_from_kernel_nofault_allowed(src, size))
+ 		return -ERANGE;
+ 
+-	/* Make sure uninitialized kernel memory isn't copied. */
+-	kmsan_check_memory(src, size);
+ 	pagefault_disable();
+ 	if (!(align & 7))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u64, Efault);
+@@ -52,6 +55,7 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
+ #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+ 		__put_kernel_nofault(dst, src, type, err_label);	\
++		instrument_write(dst, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -64,7 +68,6 @@ long copy_to_kernel_nofault(void *dst, c
+ 	if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
+ 		align = (unsigned long)dst | (unsigned long)src;
+ 
+-	instrument_write(dst, size);
+ 	pagefault_disable();
+ 	if (!(align & 7))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u64, Efault);
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
-mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch
 
