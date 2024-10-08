@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E804EC4;
-	Tue,  8 Oct 2024 00:30:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D11A94A;
+	Tue,  8 Oct 2024 00:58:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728347418; cv=none; b=auj86ZjoUBs0YYyP4bN7im1wLqxsbm7KSVoHVcFWSATlsUiWWSUTbsM3pOKlMsVNfqQ5uTln/riwjDzZPSeJ9LWQXG/510WaVs8OTSbtTC/9jL6nmQPzgxh7TGAJ9J5sa4fut4iTbcGD94rBUUFkcJE4HsgiFGOvk1UmPi1RVj0=
+	t=1728349082; cv=none; b=XwetLdvTev7NYlZA5RmsTkmRVhp9A2m/j08h/1HzvFTErkkm6XYyK4nm18PUWgtVDIaH9qCRiWKHn593Tj42T+J9djRa6m5OBGZPd9S4JGjWWaYxfYbz7vFmcbvf4iA3OqYf+n6Ses21IjnQcfQ74bCJZJyv+3bjK/gPKHokn08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728347418; c=relaxed/simple;
-	bh=0kLb0bq4Rj/Dx9UVhwpykR/7kCxf0Ra4uInKApu8MVA=;
-	h=Date:To:From:Subject:Message-Id; b=hotgxJFdjmPtGtpVhGfNT5aVpyhX4FGuzoA8G9yp2mNBq7GjOJTfUXowK6LWITAj7+3wjgpl+oYvuA/7P8M2Ch7QAWX1wTQ6A1/LcecWhk6AvLWBtB9I/y8D0vEs47Tk/mHP5Rg8H73OfQGidPTyA9tM65vIqbdWeVCp4GT6XkE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FemlL7VG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728349082; c=relaxed/simple;
+	bh=whOBxWUZeejzqVwgL0Qi6ziLWsmjGZ7iVx0r3FA7/kE=;
+	h=Date:To:From:Subject:Message-Id; b=FKrS8HM2LAuvDzY/4YqOcqqacpAvvNB3YPtZbkxgAREwGZW9oBOkb+brH4uTxEEyHeQKmn7eunCn9efIRkV9mMYBVbvBhh/HNZPZ94Ptr/eBOscUKLBJqkxMJNubw30M/cRwQw7IZyIpP1ZksC36c9XyfXEMbdUCvbJNNeuH/o8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vbKvIAGr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FemlL7VG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12574C4CEC6;
-	Tue,  8 Oct 2024 00:30:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vbKvIAGr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59789C4CEC6;
+	Tue,  8 Oct 2024 00:58:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728347418;
-	bh=0kLb0bq4Rj/Dx9UVhwpykR/7kCxf0Ra4uInKApu8MVA=;
+	s=korg; t=1728349081;
+	bh=whOBxWUZeejzqVwgL0Qi6ziLWsmjGZ7iVx0r3FA7/kE=;
 	h=Date:To:From:Subject:From;
-	b=FemlL7VG179nJRYRKRJRfCscJ0+KEpVq3rS2awQ9QAqnySodH9mDPCRQkdNGF2mnB
-	 1K9MSs6g17eUgl6ZoJ8ad765N2uKBZqWfvSzwnMiVHAYOKDPgKb14eYtvLNSFOnwLp
-	 Y6pAELvma7tukL2k/WAjntu2oz1HsPiWuI2WNAF4=
-Date: Mon, 07 Oct 2024 17:30:17 -0700
-To: mm-commits@vger.kernel.org,w@1wt.eu,vbabka@suse.cz,stable@vger.kernel.org,riel@redhat.com,oleg@redhat.com,mhocko@suse.com,hughd@google.com,deller@gmx.de,ben@decadent.org.uk,jannh@google.com,akpm@linux-foundation.org
+	b=vbKvIAGrarwNmjbqGCgKivyqdEj3uWzp9YdYofWodXOGVTolo7RmTp+CStgXgVLey
+	 wP3t+yKI4qVSfR4mnXy1uOBocgGUIyEfvwmpX1gi575Up2kDmPqD7gd5nXbX0WqP5g
+	 snWuYfXq7sd4bws1Hbf+gTktzZs5RzL35+dRx2AA=
+Date: Mon, 07 Oct 2024 17:58:00 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hughd@google.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enforce-a-minimal-stack-gap-even-against-inaccessible-vmas.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241008003018.12574C4CEC6@smtp.kernel.org>
+Subject: [to-be-updated] mm-mremap-prevent-racing-change-of-old-pmd-type.patch removed from -mm tree
+Message-Id: <20241008005801.59789C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,146 +34,230 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: enforce a minimal stack gap even against inaccessible VMAs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-enforce-a-minimal-stack-gap-even-against-inaccessible-vmas.patch
+The quilt patch titled
+     Subject: mm/mremap: prevent racing change of old pmd type
+has been removed from the -mm tree.  Its filename was
+     mm-mremap-prevent-racing-change-of-old-pmd-type.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enforce-a-minimal-stack-gap-even-against-inaccessible-vmas.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Jann Horn <jannh@google.com>
-Subject: mm: enforce a minimal stack gap even against inaccessible VMAs
-Date: Tue, 08 Oct 2024 00:55:39 +0200
+Subject: mm/mremap: prevent racing change of old pmd type
+Date: Wed, 02 Oct 2024 23:07:06 +0200
 
-As explained in the comment block this change adds, we can't tell what
-userspace's intent is when the stack grows towards an inaccessible VMA.
+Prevent move_normal_pmd() in mremap() from racing with
+retract_page_tables() in MADVISE_COLLAPSE such that
 
-I have a (highly contrived) C testcase for 32-bit x86 userspace with glibc
-that mixes malloc(), pthread creation, and recursion in just the right way
-such that the main stack overflows into malloc() arena memory.
+    pmd_populate(mm, new_pmd, pmd_pgtable(pmd))
 
-I don't know of any specific scenario where this is actually exploitable,
-but it seems like it could be a security problem for sufficiently unlucky
-userspace.
+operates on an empty source pmd, causing creation of a new pmd which maps
+physical address 0 as a page table.
 
-I believe we should ensure that, as long as code is compiled with
-something like -fstack-check, a stack overflow in it can never cause the
-main stack to overflow into adjacent heap memory.
+This bug is only reachable if either CONFIG_READ_ONLY_THP_FOR_FS is set or
+THP shmem is usable.  (Unprivileged namespaces can be used to set up a
+tmpfs that can contain THP shmem pages with "huge=advise".)
 
-My fix effectively reverts the behavior for !vma_is_accessible() VMAs to
-the behavior before commit 1be7107fbe18 ("mm: larger stack guard gap,
-between vmas"), so I think it should be a fairly safe change even in case
-A.
+If userspace triggers this bug *in multiple processes*, this could likely
+be used to create stale TLB entries pointing to freed pages or cause
+kernel UAF by breaking an invariant the rmap code relies on.
 
-Link: https://lkml.kernel.org/r/20241008-stack-gap-inaccessible-v1-1-848d4d891f21@google.com
-Fixes: 561b5e0709e4 ("mm/mmap.c: do not blow on PROT_NONE MAP_FIXED holes in the stack")
+Fix it by moving the rmap locking up so that it covers the span from
+reading the PMD entry to moving the page table.
+
+Link: https://lkml.kernel.org/r/20241002-move_normal_pmd-vs-collapse-fix-v1-1-78290e5dece6@google.com
+Fixes: 1d65b771bc08 ("mm/khugepaged: retract_page_tables() without mmap or vma lock")
 Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Helge Deller <deller@gmx.de>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Willy Tarreau <w@1wt.eu>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   53 +++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 46 insertions(+), 7 deletions(-)
+ mm/mremap.c |   68 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 38 insertions(+), 30 deletions(-)
 
---- a/mm/mmap.c~mm-enforce-a-minimal-stack-gap-even-against-inaccessible-vmas
-+++ a/mm/mmap.c
-@@ -1064,10 +1064,12 @@ static int expand_upwards(struct vm_area
- 		gap_addr = TASK_SIZE;
+--- a/mm/mremap.c~mm-mremap-prevent-racing-change-of-old-pmd-type
++++ a/mm/mremap.c
+@@ -136,17 +136,17 @@ static pte_t move_soft_dirty_pte(pte_t p
+ static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
+ 		unsigned long old_addr, unsigned long old_end,
+ 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+-		unsigned long new_addr, bool need_rmap_locks)
++		unsigned long new_addr)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	bool force_flush = false;
+ 	unsigned long len = old_end - old_addr;
+-	int err = 0;
  
- 	next = find_vma_intersection(mm, vma->vm_end, gap_addr);
--	if (next && vma_is_accessible(next)) {
--		if (!(next->vm_flags & VM_GROWSUP))
-+	if (next && !(next->vm_flags & VM_GROWSUP)) {
-+		/* see comments in expand_downwards() */
-+		if (vma_is_accessible(prev))
-+			return -ENOMEM;
-+		if (address == next->vm_start)
- 			return -ENOMEM;
--		/* Check that both stack segments have the same anon_vma? */
+ 	/*
+-	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
++	 * When need_rmap_locks is true in the caller, we are holding the
++	 * i_mmap_rwsem and anon_vma
+ 	 * locks to ensure that rmap will always observe either the old or the
+ 	 * new ptes. This is the easiest way to avoid races with
+ 	 * truncate_pagecache(), page migration, etc...
+@@ -163,23 +163,18 @@ static int move_ptes(struct vm_area_stru
+ 	 *   serialize access to individual ptes, but only rmap traversal
+ 	 *   order guarantees that we won't miss both the old and new ptes).
+ 	 */
+-	if (need_rmap_locks)
+-		take_rmap_locks(vma);
+ 
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * pte locks because exclusive mmap_lock prevents deadlock.
+ 	 */
+ 	old_pte = pte_offset_map_lock(mm, old_pmd, old_addr, &old_ptl);
+-	if (!old_pte) {
+-		err = -EAGAIN;
+-		goto out;
+-	}
++	if (!old_pte)
++		return -EAGAIN;
+ 	new_pte = pte_offset_map_nolock(mm, new_pmd, new_addr, &new_ptl);
+ 	if (!new_pte) {
+ 		pte_unmap_unlock(old_pte, old_ptl);
+-		err = -EAGAIN;
+-		goto out;
++		return -EAGAIN;
+ 	}
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+@@ -217,10 +212,7 @@ static int move_ptes(struct vm_area_stru
+ 		spin_unlock(new_ptl);
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+-out:
+-	if (need_rmap_locks)
+-		drop_rmap_locks(vma);
+-	return err;
++	return 0;
+ }
+ 
+ #ifndef arch_supports_page_table_move
+@@ -447,17 +439,14 @@ static __always_inline unsigned long get
+ /*
+  * Attempts to speedup the move by moving entry at the level corresponding to
+  * pgt_entry. Returns true if the move was successful, else false.
++ * rmap locks are held by the caller.
+  */
+ static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
+ 			unsigned long old_addr, unsigned long new_addr,
+-			void *old_entry, void *new_entry, bool need_rmap_locks)
++			void *old_entry, void *new_entry)
+ {
+ 	bool moved = false;
+ 
+-	/* See comment in move_ptes() */
+-	if (need_rmap_locks)
+-		take_rmap_locks(vma);
+-
+ 	switch (entry) {
+ 	case NORMAL_PMD:
+ 		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
+@@ -483,9 +472,6 @@ static bool move_pgt_entry(enum pgt_entr
+ 		break;
  	}
  
- 	if (next)
-@@ -1155,10 +1157,47 @@ int expand_downwards(struct vm_area_stru
- 	/* Enforce stack_guard_gap */
- 	prev = vma_prev(&vmi);
- 	/* Check that both stack segments have the same anon_vma? */
--	if (prev) {
--		if (!(prev->vm_flags & VM_GROWSDOWN) &&
--		    vma_is_accessible(prev) &&
--		    (address - prev->vm_end < stack_guard_gap))
-+	if (prev && !(prev->vm_flags & VM_GROWSDOWN) &&
-+	    (address - prev->vm_end < stack_guard_gap)) {
-+		/*
-+		 * If the previous VMA is accessible, this is the normal case
-+		 * where the main stack is growing down towards some unrelated
-+		 * VMA. Enforce the full stack guard gap.
-+		 */
-+		if (vma_is_accessible(prev))
-+			return -ENOMEM;
+-	if (need_rmap_locks)
+-		drop_rmap_locks(vma);
+-
+ 	return moved;
+ }
+ 
+@@ -550,6 +536,7 @@ unsigned long move_page_tables(struct vm
+ 	struct mmu_notifier_range range;
+ 	pmd_t *old_pmd, *new_pmd;
+ 	pud_t *old_pud, *new_pud;
++	int move_res;
+ 
+ 	if (!len)
+ 		return 0;
+@@ -573,6 +560,12 @@ unsigned long move_page_tables(struct vm
+ 				old_addr, old_end);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
++	/*
++	 * Hold rmap locks to ensure the type of the old PUD/PMD entry doesn't
++	 * change under us due to khugepaged or folio splitting.
++	 */
++	take_rmap_locks(vma);
++
+ 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
+ 		cond_resched();
+ 		/*
+@@ -590,14 +583,14 @@ unsigned long move_page_tables(struct vm
+ 		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
+ 			if (extent == HPAGE_PUD_SIZE) {
+ 				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
+-					       old_pud, new_pud, need_rmap_locks);
++					       old_pud, new_pud);
+ 				/* We ignore and continue on error? */
+ 				continue;
+ 			}
+ 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
+ 
+ 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
+-					   old_pud, new_pud, true))
++					   old_pud, new_pud))
+ 				continue;
+ 		}
+ 
+@@ -613,7 +606,7 @@ again:
+ 		    pmd_devmap(*old_pmd)) {
+ 			if (extent == HPAGE_PMD_SIZE &&
+ 			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, need_rmap_locks))
++					   old_pmd, new_pmd))
+ 				continue;
+ 			split_huge_pmd(vma, old_pmd, old_addr);
+ 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
+@@ -623,17 +616,32 @@ again:
+ 			 * moving at the PMD level if possible.
+ 			 */
+ 			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, true))
++					   old_pmd, new_pmd))
+ 				continue;
+ 		}
+ 		if (pmd_none(*old_pmd))
+ 			continue;
+-		if (pte_alloc(new_vma->vm_mm, new_pmd))
 +
 +		/*
-+		 * If the previous VMA is not accessible, we have a problem:
-+		 * We can't tell what userspace's intent is.
-+		 *
-+		 * Case A:
-+		 * Maybe userspace wants to use the previous VMA as a
-+		 * "guard region" at the bottom of the main stack, in which case
-+		 * userspace wants us to grow the stack until it is adjacent to
-+		 * the guard region. Apparently some Java runtime environments
-+		 * and Rust do that?
-+		 * That is kind of ugly, and in that case userspace really ought
-+		 * to ensure that the stack is fully expanded immediately, but
-+		 * we have to handle this case.
-+		 *
-+		 * Case B:
-+		 * But maybe the previous VMA is entirely unrelated to the stack
-+		 * and is only *temporarily* PROT_NONE. For example, glibc
-+		 * malloc arenas create a big PROT_NONE region and then
-+		 * progressively mark parts of it as writable.
-+		 * In that case, we must not let the stack become adjacent to
-+		 * the previous VMA. Otherwise, after the region later becomes
-+		 * writable, a stack overflow will cause the stack to grow into
-+		 * the previous VMA, and we won't have any stack gap to protect
-+		 * against this.
-+		 *
-+		 * As an ugly tradeoff, enforce a single-page gap.
-+		 * A single page will hopefully be small enough to not be
-+		 * noticed in case A, while providing the same level of
-+		 * protection in case B that normal userspace threads get.
++		 * Temporarily drop the rmap locks while we do a potentially
++		 * slow move_ptes() operation, unless move_ptes() wants them
++		 * held (see comment inside there).
 +		 */
-+		if (address == prev->vm_end)
- 			return -ENOMEM;
++		if (!need_rmap_locks)
++			drop_rmap_locks(vma);
++		if (pte_alloc(new_vma->vm_mm, new_pmd)) {
++			if (!need_rmap_locks)
++				take_rmap_locks(vma);
+ 			break;
+-		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
+-			      new_vma, new_pmd, new_addr, need_rmap_locks) < 0)
++		}
++		move_res = move_ptes(vma, old_pmd, old_addr, old_addr + extent,
++				     new_vma, new_pmd, new_addr);
++		if (!need_rmap_locks)
++			take_rmap_locks(vma);
++		if (move_res < 0)
+ 			goto again;
  	}
++	drop_rmap_locks(vma);
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
  
 _
 
 Patches currently in -mm which might be from jannh@google.com are
 
-mm-mremap-prevent-racing-change-of-old-pmd-type.patch
 mm-enforce-a-minimal-stack-gap-even-against-inaccessible-vmas.patch
+mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch
 
