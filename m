@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CC81EC4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36942EC4
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728352563; cv=none; b=iMpXLfrO/fSCLej0Z6AUEC1Z3ffPeAv7YCwQqcPmLOVHGP2/7mV7C2kkYFVqOJrwjjPkAMJWcOAiUaRkNRleTPOM4Nc5mPsFfTbk0h9lwYX/Kr/eJzPjR7E31JloGkQUHG2M4V0B5ee8YwN3Jw26aFPzPw7pAj/IpxWnbJgSp3k=
+	t=1728352567; cv=none; b=hJughjDRuOOdq0Bjzn8E8l7VnsX3rCoc0DMFYaGiQ7rjdj4Rj/hiAIybJd73JDmwsnNur5lfbSBEgXzKoREv0O0KotTlYcL+di/HpNqEcFLiknMwhsbsn1E8QGpPltJcaSf/2TH/+2vDb3TLEoRJWmn8aF8ZkA9is8ptuzjKzD4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728352563; c=relaxed/simple;
-	bh=UfH1g6Oyffv4GYj1UL10c7tKG985T24/S2Jsl1wKCGs=;
-	h=Date:To:From:Subject:Message-Id; b=T7IJp6Z10Ry/ZLe2zW1NVK8iKBoUkLrywEBPaTZeF70zsOk6Mfh6AjtSBJhd8/kOzHRgBnuOO0sm41OUaa1IIx2unv9sgsVRQxVibdOdfgJ+Ck+PEl0dhVfZMcPqqsBRZ87QoTp9tUuvCUR+5+jKBMyrLgw1HnaMUL5/RGMv+KM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VldDUYuE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728352567; c=relaxed/simple;
+	bh=k7dfYHJznbrei86Jk+jvofVwTWx3hsD976ERBczoBkk=;
+	h=Date:To:From:Subject:Message-Id; b=lu5EeLqbxzji9dTGg+ZAq76Jz5KWgposTA2IY/YvweWYljqwc0MxqgsNA07Gb3DMB6wdmUSzm6jVlmONaQrAr1bCxcaIAJKVY4YUwAowD7Lk48PFPK5N7/sOgTCmuoa6aBm74rk/cQMjAY5yrDDcEKt9jPS/cTlFYBA3poYp00c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dKRkAirF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VldDUYuE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9904C4CEC6;
-	Tue,  8 Oct 2024 01:56:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dKRkAirF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC06C4CEC6;
+	Tue,  8 Oct 2024 01:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728352562;
-	bh=UfH1g6Oyffv4GYj1UL10c7tKG985T24/S2Jsl1wKCGs=;
+	s=korg; t=1728352566;
+	bh=k7dfYHJznbrei86Jk+jvofVwTWx3hsD976ERBczoBkk=;
 	h=Date:To:From:Subject:From;
-	b=VldDUYuE0bi/gHDbmobkj5OWTQzGMNpkJjxmIqb8Ump3EJh6zL8WhkKBpYUU89Gaw
-	 rPt5KAJz/KGyIpA5XPNgcMKxz4AYM15h1RfRPXI1M64+1FtHpZCINx9ZMPZIImiKv1
-	 3Yucj0OZbdtxl1oQ6iACGcm0uervGXQilB20TB1g=
-Date: Mon, 07 Oct 2024 18:56:02 -0700
+	b=dKRkAirFrGnyh9yTHu1HTQXi7Vw6zu0jsVB8b6xpDM10VJHdBTsvGweH0SZtoVmzn
+	 xd4K4Ib3CmqYJZQpC3O/wYsjDg2Y0rdO8+FbvMSzbQn91xyxGbwRK0O8S07B9G72rf
+	 e2ZrKt1s6OSH7544bXUWXVpaeZX/UM226F7Y6HZo=
+Date: Mon, 07 Oct 2024 18:56:06 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-renovate-page_address_in_vma.patch added to mm-unstable branch
-Message-Id: <20241008015602.A9904C4CEC6@smtp.kernel.org>
+Subject: + mm-mass-constification-of-folio-page-pointers.patch added to mm-unstable branch
+Message-Id: <20241008015606.BFC06C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: renovate page_address_in_vma()
+     Subject: mm: mass constification of folio/page pointers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-renovate-page_address_in_vma.patch
+     mm-mass-constification-of-folio-page-pointers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-renovate-page_address_in_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mass-constification-of-folio-page-pointers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,180 +59,270 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: renovate page_address_in_vma()
-Date: Sat, 5 Oct 2024 21:01:14 +0100
+Subject: mm: mass constification of folio/page pointers
+Date: Sat, 5 Oct 2024 21:01:15 +0100
 
-This function doesn't modify any of its arguments, so if we make a few
-other functions take const pointers, we can make page_address_in_vma()
-take const pointers too.  All of its callers have the containing folio
-already, so pass that in as an argument instead of recalculating it.  Also
-add kernel-doc
+Now that page_pgoff() takes const pointers, we can constify the pointers
+to a lot of functions.
 
-Link: https://lkml.kernel.org/r/20241005200121.3231142-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241005200121.3231142-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    7 ++-----
- mm/internal.h        |    4 ++--
- mm/ksm.c             |    7 +++----
- mm/memory-failure.c  |    2 +-
- mm/mempolicy.c       |    2 +-
- mm/rmap.c            |   27 ++++++++++++++++++++-------
- mm/util.c            |    2 +-
- 7 files changed, 30 insertions(+), 21 deletions(-)
+ include/linux/ksm.h  |    7 ++++---
+ include/linux/rmap.h |   10 +++++-----
+ mm/internal.h        |    5 +++--
+ mm/ksm.c             |    5 +++--
+ mm/memory-failure.c  |   24 +++++++++++++-----------
+ mm/page_vma_mapped.c |    5 +++--
+ mm/rmap.c            |   11 ++++++-----
+ 7 files changed, 37 insertions(+), 30 deletions(-)
 
---- a/include/linux/rmap.h~mm-renovate-page_address_in_vma
+--- a/include/linux/ksm.h~mm-mass-constification-of-folio-page-pointers
++++ a/include/linux/ksm.h
+@@ -91,7 +91,7 @@ struct folio *ksm_might_need_to_copy(str
+ 
+ void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
+ void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
+-void collect_procs_ksm(struct folio *folio, struct page *page,
++void collect_procs_ksm(const struct folio *folio, const struct page *page,
+ 		struct list_head *to_kill, int force_early);
+ long ksm_process_profit(struct mm_struct *);
+ 
+@@ -124,8 +124,9 @@ static inline void ksm_might_unmap_zero_
+ {
+ }
+ 
+-static inline void collect_procs_ksm(struct folio *folio, struct page *page,
+-				     struct list_head *to_kill, int force_early)
++static inline void collect_procs_ksm(const struct folio *folio,
++		const struct page *page, struct list_head *to_kill,
++		int force_early)
+ {
+ }
+ 
+--- a/include/linux/rmap.h~mm-mass-constification-of-folio-page-pointers
 +++ a/include/linux/rmap.h
-@@ -728,11 +728,8 @@ page_vma_mapped_walk_restart(struct page
+@@ -171,7 +171,7 @@ static inline void anon_vma_merge(struct
+ 	unlink_anon_vmas(next);
  }
  
- bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
--
--/*
-- * Used by swapoff to help locate where page is expected in vma.
-- */
--unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
-+unsigned long page_address_in_vma(const struct folio *folio,
-+		const struct page *, const struct vm_area_struct *);
+-struct anon_vma *folio_get_anon_vma(struct folio *folio);
++struct anon_vma *folio_get_anon_vma(const struct folio *folio);
  
- /*
-  * Cleans the PTEs of shared mappings.
---- a/mm/internal.h~mm-renovate-page_address_in_vma
+ /* RMAP flags, currently only relevant for some anon rmap operations. */
+ typedef int __bitwise rmap_t;
+@@ -194,8 +194,8 @@ enum rmap_level {
+ 	RMAP_LEVEL_PMD,
+ };
+ 
+-static inline void __folio_rmap_sanity_checks(struct folio *folio,
+-		struct page *page, int nr_pages, enum rmap_level level)
++static inline void __folio_rmap_sanity_checks(const struct folio *folio,
++		const struct page *page, int nr_pages, enum rmap_level level)
+ {
+ 	/* hugetlb folios are handled separately. */
+ 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+@@ -771,14 +771,14 @@ struct rmap_walk_control {
+ 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
+ 					unsigned long addr, void *arg);
+ 	int (*done)(struct folio *folio);
+-	struct anon_vma *(*anon_lock)(struct folio *folio,
++	struct anon_vma *(*anon_lock)(const struct folio *folio,
+ 				      struct rmap_walk_control *rwc);
+ 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
+ };
+ 
+ void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
+ void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
+-struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
++struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
+ 					  struct rmap_walk_control *rwc);
+ 
+ #else	/* !CONFIG_MMU */
+--- a/mm/internal.h~mm-mass-constification-of-folio-page-pointers
 +++ a/mm/internal.h
-@@ -796,7 +796,7 @@ static inline bool free_area_empty(struc
- }
+@@ -1072,10 +1072,11 @@ void ClearPageHWPoisonTakenOff(struct pa
+ bool take_page_off_buddy(struct page *page);
+ bool put_page_back_buddy(struct page *page);
+ struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
+-void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
++void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
+ 		     struct vm_area_struct *vma, struct list_head *to_kill,
+ 		     unsigned long ksm_addr);
+-unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
++unsigned long page_mapped_in_vma(const struct page *page,
++		struct vm_area_struct *vma);
  
- /* mm/util.c */
--struct anon_vma *folio_anon_vma(struct folio *folio);
-+struct anon_vma *folio_anon_vma(const struct folio *folio);
- 
- #ifdef CONFIG_MMU
- void unmap_mapping_folio(struct folio *folio);
-@@ -914,7 +914,7 @@ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd
-  * If any page in this range is mapped by this VMA, return the first address
-  * where any of these pages appear.  Otherwise, return -EFAULT.
-  */
--static inline unsigned long vma_address(struct vm_area_struct *vma,
-+static inline unsigned long vma_address(const struct vm_area_struct *vma,
- 		pgoff_t pgoff, unsigned long nr_pages)
- {
- 	unsigned long address;
---- a/mm/ksm.c~mm-renovate-page_address_in_vma
+ #else
+ static inline void unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
+--- a/mm/ksm.c~mm-mass-constification-of-folio-page-pointers
 +++ a/mm/ksm.c
-@@ -1256,7 +1256,7 @@ static int write_protect_page(struct vm_
- 	if (WARN_ON_ONCE(folio_test_large(folio)))
- 		return err;
- 
--	pvmw.address = page_address_in_vma(&folio->page, vma);
-+	pvmw.address = page_address_in_vma(folio, folio_page(folio, 0), vma);
- 	if (pvmw.address == -EFAULT)
- 		goto out;
- 
-@@ -1340,7 +1340,7 @@ static int replace_page(struct vm_area_s
- {
- 	struct folio *kfolio = page_folio(kpage);
- 	struct mm_struct *mm = vma->vm_mm;
--	struct folio *folio;
-+	struct folio *folio = page_folio(page);
- 	pmd_t *pmd;
- 	pmd_t pmde;
- 	pte_t *ptep;
-@@ -1350,7 +1350,7 @@ static int replace_page(struct vm_area_s
- 	int err = -EFAULT;
- 	struct mmu_notifier_range range;
- 
--	addr = page_address_in_vma(page, vma);
-+	addr = page_address_in_vma(folio, page, vma);
- 	if (addr == -EFAULT)
- 		goto out;
- 
-@@ -1416,7 +1416,6 @@ static int replace_page(struct vm_area_s
- 	ptep_clear_flush(vma, addr, ptep);
- 	set_pte_at(mm, addr, ptep, newpte);
- 
--	folio = page_folio(page);
- 	folio_remove_rmap_pte(folio, page, vma);
- 	if (!folio_mapped(folio))
- 		folio_free_swap(folio);
---- a/mm/memory-failure.c~mm-renovate-page_address_in_vma
-+++ a/mm/memory-failure.c
-@@ -671,7 +671,7 @@ static void collect_procs_file(struct fo
- 			 */
- 			if (vma->vm_mm != t->mm)
- 				continue;
--			addr = page_address_in_vma(page, vma);
-+			addr = page_address_in_vma(folio, page, vma);
- 			add_to_kill_anon_file(t, page, vma, to_kill, addr);
- 		}
- 	}
---- a/mm/mempolicy.c~mm-renovate-page_address_in_vma
-+++ a/mm/mempolicy.c
-@@ -1367,7 +1367,7 @@ static long do_mbind(unsigned long start
- 			if (!list_entry_is_head(folio, &pagelist, lru)) {
- 				vma_iter_init(&vmi, mm, start);
- 				for_each_vma_range(vmi, vma, end) {
--					addr = page_address_in_vma(
-+					addr = page_address_in_vma(folio,
- 						folio_page(folio, 0), vma);
- 					if (addr != -EFAULT)
- 						break;
---- a/mm/rmap.c~mm-renovate-page_address_in_vma
-+++ a/mm/rmap.c
-@@ -768,14 +768,27 @@ static bool should_defer_flush(struct mm
+@@ -1051,7 +1051,8 @@ static int unmerge_ksm_pages(struct vm_a
+ 	return err;
  }
- #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
  
--/*
-- * At what user virtual address is page expected in vma?
-- * Caller should check the page is actually part of the vma.
-+/**
-+ * page_address_in_vma - The virtual address of a page in this VMA.
-+ * @folio: The folio containing the page.
-+ * @page: The page within the folio.
-+ * @vma: The VMA we need to know the address in.
-+ *
-+ * Calculates the user virtual address of this page in the specified VMA.
-+ * It is the caller's responsibililty to check the page is actually
-+ * within the VMA.  There may not currently be a PTE pointing at this
-+ * page, but if a page fault occurs at this address, this is the page
-+ * which will be accessed.
-+ *
-+ * Context: Caller should hold a reference to the folio.  Caller should
-+ * hold a lock (eg the i_mmap_lock or the mmap_lock) which keeps the
-+ * VMA from being altered.
-+ *
-+ * Return: The virtual address corresponding to this page in the VMA.
+-static inline struct ksm_stable_node *folio_stable_node(struct folio *folio)
++static inline
++struct ksm_stable_node *folio_stable_node(const struct folio *folio)
+ {
+ 	return folio_test_ksm(folio) ? folio_raw_mapping(folio) : NULL;
+ }
+@@ -3066,7 +3067,7 @@ again:
+ /*
+  * Collect processes when the error hit an ksm page.
   */
--unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
-+unsigned long page_address_in_vma(const struct folio *folio,
-+		const struct page *page, const struct vm_area_struct *vma)
+-void collect_procs_ksm(struct folio *folio, struct page *page,
++void collect_procs_ksm(const struct folio *folio, const struct page *page,
+ 		struct list_head *to_kill, int force_early)
+ {
+ 	struct ksm_stable_node *stable_node;
+--- a/mm/memory-failure.c~mm-mass-constification-of-folio-page-pointers
++++ a/mm/memory-failure.c
+@@ -445,7 +445,7 @@ static unsigned long dev_pagemap_mapping
+  * Schedule a process for later kill.
+  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
+  */
+-static void __add_to_kill(struct task_struct *tsk, struct page *p,
++static void __add_to_kill(struct task_struct *tsk, const struct page *p,
+ 			  struct vm_area_struct *vma, struct list_head *to_kill,
+ 			  unsigned long addr)
+ {
+@@ -461,7 +461,7 @@ static void __add_to_kill(struct task_st
+ 	if (is_zone_device_page(p))
+ 		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
+ 	else
+-		tk->size_shift = page_shift(compound_head(p));
++		tk->size_shift = folio_shift(page_folio(p));
+ 
+ 	/*
+ 	 * Send SIGKILL if "tk->addr == -EFAULT". Also, as
+@@ -486,7 +486,7 @@ static void __add_to_kill(struct task_st
+ 	list_add_tail(&tk->nd, to_kill);
+ }
+ 
+-static void add_to_kill_anon_file(struct task_struct *tsk, struct page *p,
++static void add_to_kill_anon_file(struct task_struct *tsk, const struct page *p,
+ 		struct vm_area_struct *vma, struct list_head *to_kill,
+ 		unsigned long addr)
+ {
+@@ -509,7 +509,7 @@ static bool task_in_to_kill_list(struct
+ 	return false;
+ }
+ 
+-void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
++void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
+ 		     struct vm_area_struct *vma, struct list_head *to_kill,
+ 		     unsigned long addr)
+ {
+@@ -606,8 +606,9 @@ struct task_struct *task_early_kill(stru
+ /*
+  * Collect processes when the error hit an anonymous page.
+  */
+-static void collect_procs_anon(struct folio *folio, struct page *page,
+-		struct list_head *to_kill, int force_early)
++static void collect_procs_anon(const struct folio *folio,
++		const struct page *page, struct list_head *to_kill,
++		int force_early)
+ {
+ 	struct task_struct *tsk;
+ 	struct anon_vma *av;
+@@ -643,8 +644,9 @@ static void collect_procs_anon(struct fo
+ /*
+  * Collect processes when the error hit a file mapped page.
+  */
+-static void collect_procs_file(struct folio *folio, struct page *page,
+-		struct list_head *to_kill, int force_early)
++static void collect_procs_file(const struct folio *folio,
++		const struct page *page, struct list_head *to_kill,
++		int force_early)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+@@ -680,7 +682,7 @@ static void collect_procs_file(struct fo
+ }
+ 
+ #ifdef CONFIG_FS_DAX
+-static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
++static void add_to_kill_fsdax(struct task_struct *tsk, const struct page *p,
+ 			      struct vm_area_struct *vma,
+ 			      struct list_head *to_kill, pgoff_t pgoff)
+ {
+@@ -691,7 +693,7 @@ static void add_to_kill_fsdax(struct tas
+ /*
+  * Collect processes when the error hit a fsdax page.
+  */
+-static void collect_procs_fsdax(struct page *page,
++static void collect_procs_fsdax(const struct page *page,
+ 		struct address_space *mapping, pgoff_t pgoff,
+ 		struct list_head *to_kill, bool pre_remove)
+ {
+@@ -725,7 +727,7 @@ static void collect_procs_fsdax(struct p
+ /*
+  * Collect the processes who have the corrupted page mapped to kill.
+  */
+-static void collect_procs(struct folio *folio, struct page *page,
++static void collect_procs(const struct folio *folio, const struct page *page,
+ 		struct list_head *tokill, int force_early)
+ {
+ 	if (!folio->mapping)
+--- a/mm/page_vma_mapped.c~mm-mass-constification-of-folio-page-pointers
++++ a/mm/page_vma_mapped.c
+@@ -337,9 +337,10 @@ next_pte:
+  * outside the VMA or not present, returns -EFAULT.
+  * Only valid for normal file or anonymous VMAs.
+  */
+-unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma)
++unsigned long page_mapped_in_vma(const struct page *page,
++		struct vm_area_struct *vma)
  {
 -	struct folio *folio = page_folio(page);
--
- 	if (folio_test_anon(folio)) {
- 		struct anon_vma *page__anon_vma = folio_anon_vma(folio);
- 		/*
-@@ -791,7 +804,7 @@ unsigned long page_address_in_vma(struct
- 		return -EFAULT;
- 	}
- 
--	/* The !page__anon_vma above handles KSM folios */
-+	/* KSM folios don't reach here because of the !page__anon_vma check */
- 	return vma_address(vma, page_pgoff(folio, page), 1);
- }
- 
---- a/mm/util.c~mm-renovate-page_address_in_vma
-+++ a/mm/util.c
-@@ -820,7 +820,7 @@ void *vcalloc_noprof(size_t n, size_t si
- }
- EXPORT_SYMBOL(vcalloc_noprof);
- 
--struct anon_vma *folio_anon_vma(struct folio *folio)
-+struct anon_vma *folio_anon_vma(const struct folio *folio)
++	const struct folio *folio = page_folio(page);
+ 	struct page_vma_mapped_walk pvmw = {
+ 		.pfn = page_to_pfn(page),
+ 		.nr_pages = 1,
+--- a/mm/rmap.c~mm-mass-constification-of-folio-page-pointers
++++ a/mm/rmap.c
+@@ -497,7 +497,7 @@ void __init anon_vma_init(void)
+  * concurrently without folio lock protection). See folio_lock_anon_vma_read()
+  * which has already covered that, and comment above remap_pages().
+  */
+-struct anon_vma *folio_get_anon_vma(struct folio *folio)
++struct anon_vma *folio_get_anon_vma(const struct folio *folio)
  {
- 	unsigned long mapping = (unsigned long)folio->mapping;
+ 	struct anon_vma *anon_vma = NULL;
+ 	unsigned long anon_mapping;
+@@ -541,7 +541,7 @@ out:
+  * reference like with folio_get_anon_vma() and then block on the mutex
+  * on !rwc->try_lock case.
+  */
+-struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
++struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
+ 					  struct rmap_walk_control *rwc)
+ {
+ 	struct anon_vma *anon_vma = NULL;
+@@ -1275,8 +1275,9 @@ static void __folio_set_anon(struct foli
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
+  */
+-static void __page_check_anon_rmap(struct folio *folio, struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++static void __page_check_anon_rmap(const struct folio *folio,
++		const struct page *page, struct vm_area_struct *vma,
++		unsigned long address)
+ {
+ 	/*
+ 	 * The page's anon-rmap details (mapping and index) are guaranteed to
+@@ -2573,7 +2574,7 @@ void __put_anon_vma(struct anon_vma *ano
+ 		anon_vma_free(root);
+ }
  
+-static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
++static struct anon_vma *rmap_walk_anon_lock(const struct folio *folio,
+ 					    struct rmap_walk_control *rwc)
+ {
+ 	struct anon_vma *anon_vma;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
