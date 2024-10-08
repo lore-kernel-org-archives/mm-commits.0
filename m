@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E4C2EC4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07340EC4
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728352574; cv=none; b=kyuLkCI/aZmcOEspnmPaUQNLK+dKtjaMxLCX6HLGK2Rvg04r2iqSYvTf5SAavAHts0a6FCHkV0e2/5cnVrPKq6IU9HC77yNplONjbnEy+v51KJboubsoqRZMlY6LOqcWd5hTbbK8lJM4jYl5UKiq2KiEkX3trV323mLOLJ8jhoM=
+	t=1728352576; cv=none; b=MPH/EcT79+XCH4NrPBWQ6AexSajQDszHPVW4PZzH51V2zAdWC2BGW/LQtT4L8k211ybrgKZi/Z/EvsXh2z9mKwCnE0wJlczmWNWHwnNsuAjWkt8gjAXLRJ1nWtiXDmPISAJQ/CN7ZB6K59KYEpWSUbWelAz/jyUMZwtDNl1KTVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728352574; c=relaxed/simple;
-	bh=2PHs0eQDq3VOvpQGTww58GkF9bMXnznP0/EsLQV6tyQ=;
-	h=Date:To:From:Subject:Message-Id; b=Eo8RbRVNzB0ErDDit7U9fMKE+X4DlPTQmHuL/R6OzNrKbx/1oFIzNkbYJvkDjKxGZqd0ywNvQx1luFj5z+UtLe/qtjqYm6ipLmv8qlYRICb1iE9/t2kLK2wgAGTbu2Y7x54qryRZAJzllKz2yGIv0znz3OmF/i4HorKzcoOnVck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ncOzO8tL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728352576; c=relaxed/simple;
+	bh=01qBuw2sboWJpmr7EfMvPFGYl+Q2yXh29jZEMbz3C/4=;
+	h=Date:To:From:Subject:Message-Id; b=YkxHdAZu8lO6W7+lLJbquKKRJVOeX/2YdjHe6BMxVOsuwUHaX+NTMDPFisrbbRuTsZR7UJOR8erE37zKCbpvSEq5NmHtzo3TdGa/qRfvRWtYqlpWAnBoPg50MCb85Mm/xUVOjBx2gT3DlP+jab6BqjnLwOPYcJTHO7/pWDdCT4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a/I0Vw2i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ncOzO8tL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEBCEC4CEC6;
-	Tue,  8 Oct 2024 01:56:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a/I0Vw2i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB003C4CEC6;
+	Tue,  8 Oct 2024 01:56:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728352574;
-	bh=2PHs0eQDq3VOvpQGTww58GkF9bMXnznP0/EsLQV6tyQ=;
+	s=korg; t=1728352575;
+	bh=01qBuw2sboWJpmr7EfMvPFGYl+Q2yXh29jZEMbz3C/4=;
 	h=Date:To:From:Subject:From;
-	b=ncOzO8tLE7Wbu1ST8MSxhDfeisJMM0xgewlnFTZn95Hm6LyvzdK2CwV801Iq3AjDZ
-	 MktYqqIjFxhU9HOegSVUD1n/4UM/9G6ZkNZ1i3x6JPoLJFVskP0hJxLvULdvGqkoEy
-	 qngFlJ1byZDV/tD3tkeOga/sFoSmrM7oMij2wVr0=
-Date: Mon, 07 Oct 2024 18:56:13 -0700
+	b=a/I0Vw2ipssy3RWrbgwYu3JqJGqY8veqbKJN1aIN26fGcewj1IYkMgHQKGRJXx7yY
+	 XA9EdVqrRhHObv8qLtvZebmh5crayKw8jyGvPU1xn3NPr5HhL4NnEArtsUJS5gPc1I
+	 mY6q11jQho6VGIMy836duN1u5QllsOntrcWOC9K4=
+Date: Mon, 07 Oct 2024 18:56:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-references-to-page-index-in-huge_memoryc.patch added to mm-unstable branch
-Message-Id: <20241008015613.EEBCEC4CEC6@smtp.kernel.org>
+Subject: + mm-use-page-private-instead-of-page-index-in-percpu.patch added to mm-unstable branch
+Message-Id: <20241008015615.CB003C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove references to page->index in huge_memory.c
+     Subject: mm: use page->private instead of page->index in percpu
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-references-to-page-index-in-huge_memoryc.patch
+     mm-use-page-private-instead-of-page-index-in-percpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-references-to-page-index-in-huge_memoryc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-page-private-instead-of-page-index-in-percpu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove references to page->index in huge_memory.c
-Date: Sat, 5 Oct 2024 21:01:17 +0100
+Subject: mm: use page->private instead of page->index in percpu
+Date: Sat, 5 Oct 2024 21:01:18 +0100
 
-We already have folios in all these places; it's just a matter of using
-them instead of the pages.
+The percpu allocator only uses one field in struct page, just change it
+from page->index to page->private.
 
-Link: https://lkml.kernel.org/r/20241005200121.3231142-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241005200121.3231142-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/percpu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-remove-references-to-page-index-in-huge_memoryc
-+++ a/mm/huge_memory.c
-@@ -3137,8 +3137,8 @@ static void __split_huge_page_tail(struc
- 	/* ->mapping in first and second tail page is replaced by other uses */
- 	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
- 			page_tail);
--	page_tail->mapping = head->mapping;
--	page_tail->index = head->index + tail;
-+	new_folio->mapping = folio->mapping;
-+	new_folio->index = folio->index + tail;
+--- a/mm/percpu.c~mm-use-page-private-instead-of-page-index-in-percpu
++++ a/mm/percpu.c
+@@ -253,13 +253,13 @@ static int pcpu_chunk_slot(const struct
+ /* set the pointer to a chunk in a page struct */
+ static void pcpu_set_page_chunk(struct page *page, struct pcpu_chunk *pcpu)
+ {
+-	page->index = (unsigned long)pcpu;
++	page->private = (unsigned long)pcpu;
+ }
  
- 	/*
- 	 * page->private should not be set in tail pages. Fix up and warn once
-@@ -3214,11 +3214,11 @@ static void __split_huge_page(struct pag
- 	ClearPageHasHWPoisoned(head);
+ /* obtain pointer to a chunk from a page struct */
+ static struct pcpu_chunk *pcpu_get_page_chunk(struct page *page)
+ {
+-	return (struct pcpu_chunk *)page->index;
++	return (struct pcpu_chunk *)page->private;
+ }
  
- 	for (i = nr - new_nr; i >= new_nr; i -= new_nr) {
-+		struct folio *tail;
- 		__split_huge_page_tail(folio, i, lruvec, list, new_order);
-+		tail = page_folio(head + i);
- 		/* Some pages can be beyond EOF: drop them from page cache */
--		if (head[i].index >= end) {
--			struct folio *tail = page_folio(head + i);
--
-+		if (tail->index >= end) {
- 			if (shmem_mapping(folio->mapping))
- 				nr_dropped++;
- 			else if (folio_test_clear_dirty(tail))
-@@ -3226,12 +3226,12 @@ static void __split_huge_page(struct pag
- 					inode_to_wb(folio->mapping->host));
- 			__filemap_remove_folio(tail, NULL);
- 			folio_put(tail);
--		} else if (!PageAnon(page)) {
--			__xa_store(&folio->mapping->i_pages, head[i].index,
--					head + i, 0);
-+		} else if (!folio_test_anon(folio)) {
-+			__xa_store(&folio->mapping->i_pages, tail->index,
-+					tail, 0);
- 		} else if (swap_cache) {
- 			__xa_store(&swap_cache->i_pages, offset + i,
--					head + i, 0);
-+					tail, 0);
- 		}
- 	}
- 
+ static int __maybe_unused pcpu_page_idx(unsigned int cpu, int page_idx)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
