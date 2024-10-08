@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36942EC4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 220B9EC4
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:56:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728352567; cv=none; b=hJughjDRuOOdq0Bjzn8E8l7VnsX3rCoc0DMFYaGiQ7rjdj4Rj/hiAIybJd73JDmwsnNur5lfbSBEgXzKoREv0O0KotTlYcL+di/HpNqEcFLiknMwhsbsn1E8QGpPltJcaSf/2TH/+2vDb3TLEoRJWmn8aF8ZkA9is8ptuzjKzD4=
+	t=1728352571; cv=none; b=Z+lmV1/Pi/HpF6i7FERJM2EfZeX3yV9Hhq84slx7ksMb3UbC3VvLaPe3PH5cP0L1fHluaYLUepoErJvI31XKHmvmva4epMTlEzrT7XzpxJkCwC9JdXNqHLtR95AmznvcJ81y9SGUBwKEC+z105JJsEedczIRnf7VqCewAQGQ12c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728352567; c=relaxed/simple;
-	bh=k7dfYHJznbrei86Jk+jvofVwTWx3hsD976ERBczoBkk=;
-	h=Date:To:From:Subject:Message-Id; b=lu5EeLqbxzji9dTGg+ZAq76Jz5KWgposTA2IY/YvweWYljqwc0MxqgsNA07Gb3DMB6wdmUSzm6jVlmONaQrAr1bCxcaIAJKVY4YUwAowD7Lk48PFPK5N7/sOgTCmuoa6aBm74rk/cQMjAY5yrDDcEKt9jPS/cTlFYBA3poYp00c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dKRkAirF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728352571; c=relaxed/simple;
+	bh=RqKAPUE8ZVeY238Xj5sOkSg0ov1cumKofmegQn5giAo=;
+	h=Date:To:From:Subject:Message-Id; b=rt2b3XHADwccQHS6szE5R5welb9XITBhhJV+aCylK53gnZxZMQ/BP2yaCyTGkBUiymsBToO3TQ3jAKxzj0opKtEZ1VGqBuLmH9zWBAFje+tUDNnM1l2OxESVNzHpm7tSEtYKyCA7+Nk9aaoB69MeQHoMtmF/98anJuYmqWVs1b0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=toUJV0uN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dKRkAirF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC06C4CEC6;
-	Tue,  8 Oct 2024 01:56:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="toUJV0uN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9E89C4CEC6;
+	Tue,  8 Oct 2024 01:56:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728352566;
-	bh=k7dfYHJznbrei86Jk+jvofVwTWx3hsD976ERBczoBkk=;
+	s=korg; t=1728352571;
+	bh=RqKAPUE8ZVeY238Xj5sOkSg0ov1cumKofmegQn5giAo=;
 	h=Date:To:From:Subject:From;
-	b=dKRkAirFrGnyh9yTHu1HTQXi7Vw6zu0jsVB8b6xpDM10VJHdBTsvGweH0SZtoVmzn
-	 xd4K4Ib3CmqYJZQpC3O/wYsjDg2Y0rdO8+FbvMSzbQn91xyxGbwRK0O8S07B9G72rf
-	 e2ZrKt1s6OSH7544bXUWXVpaeZX/UM226F7Y6HZo=
-Date: Mon, 07 Oct 2024 18:56:06 -0700
+	b=toUJV0uNfMJUE/qiSCLLexO6ABtAulwzF1HqQkfocQJ1LTNqnf0ZmgkXF28rc/XN+
+	 Odv86bO60LDuRto516VDUp8gHDEb4P1PH2k6HyQLCXBM7IoYaNQyaoMLREkc97cA8h
+	 mjkZ20M1JvdOB/oYoNpZCkoQgzDomTdk8u8VrjQw=
+Date: Mon, 07 Oct 2024 18:56:10 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mass-constification-of-folio-page-pointers.patch added to mm-unstable branch
-Message-Id: <20241008015606.BFC06C4CEC6@smtp.kernel.org>
+Subject: + bootmem-stop-using-page-index.patch added to mm-unstable branch
+Message-Id: <20241008015610.E9E89C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mass constification of folio/page pointers
+     Subject: bootmem: stop using page->index
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mass-constification-of-folio-page-pointers.patch
+     bootmem-stop-using-page-index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mass-constification-of-folio-page-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootmem-stop-using-page-index.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,270 +59,166 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: mass constification of folio/page pointers
-Date: Sat, 5 Oct 2024 21:01:15 +0100
+Subject: bootmem: stop using page->index
+Date: Sat, 5 Oct 2024 21:01:16 +0100
 
-Now that page_pgoff() takes const pointers, we can constify the pointers
-to a lot of functions.
+Encode the type into the bottom four bits of page->private and the info
+into the remaining bits.  Also turn the bootmem type into a named enum.
 
-Link: https://lkml.kernel.org/r/20241005200121.3231142-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241005200121.3231142-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h  |    7 ++++---
- include/linux/rmap.h |   10 +++++-----
- mm/internal.h        |    5 +++--
- mm/ksm.c             |    5 +++--
- mm/memory-failure.c  |   24 +++++++++++++-----------
- mm/page_vma_mapped.c |    5 +++--
- mm/rmap.c            |   11 ++++++-----
- 7 files changed, 37 insertions(+), 30 deletions(-)
+ arch/x86/mm/init_64.c        |    9 ++++-----
+ include/linux/bootmem_info.h |   25 +++++++++++++++++--------
+ mm/bootmem_info.c            |   11 ++++++-----
+ mm/sparse.c                  |    8 ++++----
+ 4 files changed, 31 insertions(+), 22 deletions(-)
 
---- a/include/linux/ksm.h~mm-mass-constification-of-folio-page-pointers
-+++ a/include/linux/ksm.h
-@@ -91,7 +91,7 @@ struct folio *ksm_might_need_to_copy(str
+--- a/arch/x86/mm/init_64.c~bootmem-stop-using-page-index
++++ a/arch/x86/mm/init_64.c
+@@ -987,13 +987,12 @@ int arch_add_memory(int nid, u64 start,
  
- void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
--void collect_procs_ksm(struct folio *folio, struct page *page,
-+void collect_procs_ksm(const struct folio *folio, const struct page *page,
- 		struct list_head *to_kill, int force_early);
- long ksm_process_profit(struct mm_struct *);
- 
-@@ -124,8 +124,9 @@ static inline void ksm_might_unmap_zero_
+ static void __meminit free_pagetable(struct page *page, int order)
  {
- }
+-	unsigned long magic;
+-	unsigned int nr_pages = 1 << order;
+-
+ 	/* bootmem page has reserved flag */
+ 	if (PageReserved(page)) {
+-		magic = page->index;
+-		if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
++		enum bootmem_type type = bootmem_type(page);
++		unsigned long nr_pages = 1 << order;
++
++		if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
+ 			while (nr_pages--)
+ 				put_page_bootmem(page++);
+ 		} else
+--- a/include/linux/bootmem_info.h~bootmem-stop-using-page-index
++++ a/include/linux/bootmem_info.h
+@@ -6,11 +6,10 @@
+ #include <linux/kmemleak.h>
  
--static inline void collect_procs_ksm(struct folio *folio, struct page *page,
--				     struct list_head *to_kill, int force_early)
-+static inline void collect_procs_ksm(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- }
- 
---- a/include/linux/rmap.h~mm-mass-constification-of-folio-page-pointers
-+++ a/include/linux/rmap.h
-@@ -171,7 +171,7 @@ static inline void anon_vma_merge(struct
- 	unlink_anon_vmas(next);
- }
- 
--struct anon_vma *folio_get_anon_vma(struct folio *folio);
-+struct anon_vma *folio_get_anon_vma(const struct folio *folio);
- 
- /* RMAP flags, currently only relevant for some anon rmap operations. */
- typedef int __bitwise rmap_t;
-@@ -194,8 +194,8 @@ enum rmap_level {
- 	RMAP_LEVEL_PMD,
- };
- 
--static inline void __folio_rmap_sanity_checks(struct folio *folio,
--		struct page *page, int nr_pages, enum rmap_level level)
-+static inline void __folio_rmap_sanity_checks(const struct folio *folio,
-+		const struct page *page, int nr_pages, enum rmap_level level)
- {
- 	/* hugetlb folios are handled separately. */
- 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
-@@ -771,14 +771,14 @@ struct rmap_walk_control {
- 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
- 					unsigned long addr, void *arg);
- 	int (*done)(struct folio *folio);
--	struct anon_vma *(*anon_lock)(struct folio *folio,
-+	struct anon_vma *(*anon_lock)(const struct folio *folio,
- 				      struct rmap_walk_control *rwc);
- 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
- };
- 
- void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
- void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
- 					  struct rmap_walk_control *rwc);
- 
- #else	/* !CONFIG_MMU */
---- a/mm/internal.h~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/internal.h
-@@ -1072,10 +1072,11 @@ void ClearPageHWPoisonTakenOff(struct pa
- bool take_page_off_buddy(struct page *page);
- bool put_page_back_buddy(struct page *page);
- struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
--void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
- 		     struct vm_area_struct *vma, struct list_head *to_kill,
- 		     unsigned long ksm_addr);
--unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
-+unsigned long page_mapped_in_vma(const struct page *page,
-+		struct vm_area_struct *vma);
- 
- #else
- static inline void unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
---- a/mm/ksm.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/ksm.c
-@@ -1051,7 +1051,8 @@ static int unmerge_ksm_pages(struct vm_a
- 	return err;
- }
- 
--static inline struct ksm_stable_node *folio_stable_node(struct folio *folio)
-+static inline
-+struct ksm_stable_node *folio_stable_node(const struct folio *folio)
- {
- 	return folio_test_ksm(folio) ? folio_raw_mapping(folio) : NULL;
- }
-@@ -3066,7 +3067,7 @@ again:
  /*
-  * Collect processes when the error hit an ksm page.
+- * Types for free bootmem stored in page->lru.next. These have to be in
+- * some random range in unsigned long space for debugging purposes.
++ * Types for free bootmem stored in the low bits of page->private.
   */
--void collect_procs_ksm(struct folio *folio, struct page *page,
-+void collect_procs_ksm(const struct folio *folio, const struct page *page,
- 		struct list_head *to_kill, int force_early)
- {
- 	struct ksm_stable_node *stable_node;
---- a/mm/memory-failure.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/memory-failure.c
-@@ -445,7 +445,7 @@ static unsigned long dev_pagemap_mapping
-  * Schedule a process for later kill.
-  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
+-enum {
+-	MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE = 12,
++enum bootmem_type {
++	MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE = 1,
+ 	SECTION_INFO = MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE,
+ 	MIX_SECTION_INFO,
+ 	NODE_INFO,
+@@ -21,9 +20,19 @@ enum {
+ void __init register_page_bootmem_info_node(struct pglist_data *pgdat);
+ 
+ void get_page_bootmem(unsigned long info, struct page *page,
+-		      unsigned long type);
++		enum bootmem_type type);
+ void put_page_bootmem(struct page *page);
+ 
++static inline enum bootmem_type bootmem_type(const struct page *page)
++{
++	return (unsigned long)page->private & 0xf;
++}
++
++static inline unsigned long bootmem_info(const struct page *page)
++{
++	return (unsigned long)page->private >> 4;
++}
++
+ /*
+  * Any memory allocated via the memblock allocator and not via the
+  * buddy will be marked reserved already in the memmap. For those
+@@ -31,7 +40,7 @@ void put_page_bootmem(struct page *page)
   */
--static void __add_to_kill(struct task_struct *tsk, struct page *p,
-+static void __add_to_kill(struct task_struct *tsk, const struct page *p,
- 			  struct vm_area_struct *vma, struct list_head *to_kill,
- 			  unsigned long addr)
+ static inline void free_bootmem_page(struct page *page)
  {
-@@ -461,7 +461,7 @@ static void __add_to_kill(struct task_st
- 	if (is_zone_device_page(p))
- 		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
+-	unsigned long magic = page->index;
++	enum bootmem_type type = bootmem_type(page);
+ 
+ 	/*
+ 	 * The reserve_bootmem_region sets the reserved flag on bootmem
+@@ -39,7 +48,7 @@ static inline void free_bootmem_page(str
+ 	 */
+ 	VM_BUG_ON_PAGE(page_ref_count(page) != 2, page);
+ 
+-	if (magic == SECTION_INFO || magic == MIX_SECTION_INFO)
++	if (type == SECTION_INFO || type == MIX_SECTION_INFO)
+ 		put_page_bootmem(page);
  	else
--		tk->size_shift = page_shift(compound_head(p));
-+		tk->size_shift = folio_shift(page_folio(p));
- 
- 	/*
- 	 * Send SIGKILL if "tk->addr == -EFAULT". Also, as
-@@ -486,7 +486,7 @@ static void __add_to_kill(struct task_st
- 	list_add_tail(&tk->nd, to_kill);
+ 		VM_BUG_ON_PAGE(1, page);
+@@ -54,7 +63,7 @@ static inline void put_page_bootmem(stru
  }
  
--static void add_to_kill_anon_file(struct task_struct *tsk, struct page *p,
-+static void add_to_kill_anon_file(struct task_struct *tsk, const struct page *p,
- 		struct vm_area_struct *vma, struct list_head *to_kill,
- 		unsigned long addr)
+ static inline void get_page_bootmem(unsigned long info, struct page *page,
+-				    unsigned long type)
++				    enum bootmem_type type)
  {
-@@ -509,7 +509,7 @@ static bool task_in_to_kill_list(struct
- 	return false;
  }
  
--void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+void add_to_kill_ksm(struct task_struct *tsk, const struct page *p,
- 		     struct vm_area_struct *vma, struct list_head *to_kill,
- 		     unsigned long addr)
+--- a/mm/bootmem_info.c~bootmem-stop-using-page-index
++++ a/mm/bootmem_info.c
+@@ -14,23 +14,24 @@
+ #include <linux/memory_hotplug.h>
+ #include <linux/kmemleak.h>
+ 
+-void get_page_bootmem(unsigned long info, struct page *page, unsigned long type)
++void get_page_bootmem(unsigned long info, struct page *page,
++		enum bootmem_type type)
  {
-@@ -606,8 +606,9 @@ struct task_struct *task_early_kill(stru
- /*
-  * Collect processes when the error hit an anonymous page.
-  */
--static void collect_procs_anon(struct folio *folio, struct page *page,
--		struct list_head *to_kill, int force_early)
-+static void collect_procs_anon(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
-@@ -643,8 +644,9 @@ static void collect_procs_anon(struct fo
- /*
-  * Collect processes when the error hit a file mapped page.
-  */
--static void collect_procs_file(struct folio *folio, struct page *page,
--		struct list_head *to_kill, int force_early)
-+static void collect_procs_file(const struct folio *folio,
-+		const struct page *page, struct list_head *to_kill,
-+		int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -680,7 +682,7 @@ static void collect_procs_file(struct fo
+-	page->index = type;
++	BUG_ON(type > 0xf);
++	BUG_ON(info > (ULONG_MAX >> 4));
+ 	SetPagePrivate(page);
+-	set_page_private(page, info);
++	set_page_private(page, info << 4 | type);
+ 	page_ref_inc(page);
  }
  
- #ifdef CONFIG_FS_DAX
--static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
-+static void add_to_kill_fsdax(struct task_struct *tsk, const struct page *p,
- 			      struct vm_area_struct *vma,
- 			      struct list_head *to_kill, pgoff_t pgoff)
+ void put_page_bootmem(struct page *page)
  {
-@@ -691,7 +693,7 @@ static void add_to_kill_fsdax(struct tas
- /*
-  * Collect processes when the error hit a fsdax page.
-  */
--static void collect_procs_fsdax(struct page *page,
-+static void collect_procs_fsdax(const struct page *page,
- 		struct address_space *mapping, pgoff_t pgoff,
- 		struct list_head *to_kill, bool pre_remove)
- {
-@@ -725,7 +727,7 @@ static void collect_procs_fsdax(struct p
- /*
-  * Collect the processes who have the corrupted page mapped to kill.
-  */
--static void collect_procs(struct folio *folio, struct page *page,
-+static void collect_procs(const struct folio *folio, const struct page *page,
- 		struct list_head *tokill, int force_early)
- {
- 	if (!folio->mapping)
---- a/mm/page_vma_mapped.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/page_vma_mapped.c
-@@ -337,9 +337,10 @@ next_pte:
-  * outside the VMA or not present, returns -EFAULT.
-  * Only valid for normal file or anonymous VMAs.
-  */
--unsigned long page_mapped_in_vma(struct page *page, struct vm_area_struct *vma)
-+unsigned long page_mapped_in_vma(const struct page *page,
-+		struct vm_area_struct *vma)
- {
--	struct folio *folio = page_folio(page);
-+	const struct folio *folio = page_folio(page);
- 	struct page_vma_mapped_walk pvmw = {
- 		.pfn = page_to_pfn(page),
- 		.nr_pages = 1,
---- a/mm/rmap.c~mm-mass-constification-of-folio-page-pointers
-+++ a/mm/rmap.c
-@@ -497,7 +497,7 @@ void __init anon_vma_init(void)
-  * concurrently without folio lock protection). See folio_lock_anon_vma_read()
-  * which has already covered that, and comment above remap_pages().
-  */
--struct anon_vma *folio_get_anon_vma(struct folio *folio)
-+struct anon_vma *folio_get_anon_vma(const struct folio *folio)
- {
- 	struct anon_vma *anon_vma = NULL;
- 	unsigned long anon_mapping;
-@@ -541,7 +541,7 @@ out:
-  * reference like with folio_get_anon_vma() and then block on the mutex
-  * on !rwc->try_lock case.
-  */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+struct anon_vma *folio_lock_anon_vma_read(const struct folio *folio,
- 					  struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma = NULL;
-@@ -1275,8 +1275,9 @@ static void __folio_set_anon(struct foli
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-  */
--static void __page_check_anon_rmap(struct folio *folio, struct page *page,
--	struct vm_area_struct *vma, unsigned long address)
-+static void __page_check_anon_rmap(const struct folio *folio,
-+		const struct page *page, struct vm_area_struct *vma,
-+		unsigned long address)
- {
- 	/*
- 	 * The page's anon-rmap details (mapping and index) are guaranteed to
-@@ -2573,7 +2574,7 @@ void __put_anon_vma(struct anon_vma *ano
- 		anon_vma_free(root);
- }
+-	unsigned long type = page->index;
++	enum bootmem_type type = bootmem_type(page);
  
--static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
-+static struct anon_vma *rmap_walk_anon_lock(const struct folio *folio,
- 					    struct rmap_walk_control *rwc)
+ 	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+ 	       type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE);
+ 
+ 	if (page_ref_dec_return(page) == 1) {
+-		page->index = 0;
+ 		ClearPagePrivate(page);
+ 		set_page_private(page, 0);
+ 		INIT_LIST_HEAD(&page->lru);
+--- a/mm/sparse.c~bootmem-stop-using-page-index
++++ a/mm/sparse.c
+@@ -720,19 +720,19 @@ static void depopulate_section_memmap(un
+ static void free_map_bootmem(struct page *memmap)
  {
- 	struct anon_vma *anon_vma;
+ 	unsigned long maps_section_nr, removing_section_nr, i;
+-	unsigned long magic, nr_pages;
++	unsigned long type, nr_pages;
+ 	struct page *page = virt_to_page(memmap);
+ 
+ 	nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
+ 		>> PAGE_SHIFT;
+ 
+ 	for (i = 0; i < nr_pages; i++, page++) {
+-		magic = page->index;
++		type = bootmem_type(page);
+ 
+-		BUG_ON(magic == NODE_INFO);
++		BUG_ON(type == NODE_INFO);
+ 
+ 		maps_section_nr = pfn_to_section_nr(page_to_pfn(page));
+-		removing_section_nr = page_private(page);
++		removing_section_nr = bootmem_info(page);
+ 
+ 		/*
+ 		 * When this function is called, the removing section is
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
