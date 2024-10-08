@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1A921FA254
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 17:55:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96431FA254
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 17:57:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728410160; cv=none; b=b1lK2zyPszKhtqsnjQRKlX+qnFiFqyDpdBCLkkc+ZVm8WEURo4hk6nsDzhgCVhk6k68z09G9+VzKTzW19rkGdvUjjzB700kv7zG8yiFpem27YdHdz6PqYfW2EMpBSI1YOkXey9crbiY1NVFlRB0JyrdUDqGLrubGDGEGbxjTTVE=
+	t=1728410248; cv=none; b=MDzqL971503ZeIuGqeHznj3tcRgXmcGluVWmFforuvbJ/LEx511HqxGwgCBZ2x+rGEzAvCEOGvgTZ21ZFTVaTeeloz9QFMreJT9ZFZ9AMoSy+2rJTNpJWesXaF32yMKQoxf1vadGimksTsME/dqIolKYVzCldYmgAMg1VOWdV0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728410160; c=relaxed/simple;
-	bh=s93WvzZao9Pag2QndP0jzxJtocme/f53T+a5BWDMlN0=;
-	h=Date:To:From:Subject:Message-Id; b=SUw/2UGavl2Gq4tC/t+hK1oeRaXLxsL2E+uBZj6A8JBKviV+6C8Hg0rd9W0niRTYzjSHzBRyAexcRdjAZfd3S1n2eILscJe7TcYssMs6wc7xfBv/p+n+rqNbEro+M5MWFmNnXdFFK8ia386tH6txae/VkptaIj5WowrASnSGtok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0LbL00Nz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728410248; c=relaxed/simple;
+	bh=s7l43JlcVncniOQUBsV88sV7WWeWaxV7Jlkol4NEjyg=;
+	h=Date:To:From:Subject:Message-Id; b=b7CdjEAjl8bstfdeSbMWzk3ng3jswT2jZYHekqA0T4/mhV8mgy1K1ETgUqB1R721Pu9ARUEDy6TbSVMIfb+8mDqtoWoupwq/+R3kgIDY8PzKRUwIKaS02ATpsbYY/VjxTBQSpGHssAgMCZM/3+nonMKuh3iUzWibqceKjlH7nCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1BzvWSNE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0LbL00Nz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BDA4C4CEC7;
-	Tue,  8 Oct 2024 17:55:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1BzvWSNE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B34BC4CEC7;
+	Tue,  8 Oct 2024 17:57:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728410159;
-	bh=s93WvzZao9Pag2QndP0jzxJtocme/f53T+a5BWDMlN0=;
+	s=korg; t=1728410248;
+	bh=s7l43JlcVncniOQUBsV88sV7WWeWaxV7Jlkol4NEjyg=;
 	h=Date:To:From:Subject:From;
-	b=0LbL00Nz0Yo5Mzikto2IirUYYT1Y5CKh8qOrru6pzY/EcRsMCtnq8qkUD4X4FuFYA
-	 eaZl2W6okh9dqzfyMU2njhcd7N3ohVnr19KBu917nBPkwzlCKWXoUVWILNXOmWhWay
-	 tt99bfAb98W8m4GuV6XK9EIZY4tuqXpwTStWwwJw=
-Date: Tue, 08 Oct 2024 10:55:58 -0700
-To: mm-commits@vger.kernel.org,srinivas.kandagatla@linaro.org,alexey.klimov@linaro.org,akpm@linux-foundation.org
+	b=1BzvWSNEkr+9wXs1CXIJVNhZ2tzj1tmt3eG0AgdSTCMxgJrX+MxNgzx2PMP41IIgm
+	 6tH8NwQKh8sNBv7pjTKrqBLdcjygBFxJ/9GM9VXVtd9gz6xvmV2nqY4L57VY4rxI1p
+	 XET6Gi2jJFvkw57DVIjAQsWQ64z5O5mqixO79lqA=
+Date: Tue, 08 Oct 2024 10:57:27 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,surenb@google.com,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,liyangouwen1@oppo.com,kasong@tencent.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-mailmap-update-alexey-klimovs-email-address.patch added to mm-unstable branch
-Message-Id: <20241008175559.7BDA4C4CEC7@smtp.kernel.org>
+Subject: + mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241008175728.4B34BC4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: mailmap: update Alexey Klimov's email address
-has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-mailmap-update-alexey-klimovs-email-address.patch
+     Subject: mm: wake_up only when swapcache_wq waitqueue is active
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mailmap-update-alexey-klimovs-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Klimov <alexey.klimov@linaro.org>
-Subject: MAINTAINERS: mailmap: update Alexey Klimov's email address
-Date: Tue, 8 Oct 2024 14:23:53 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: wake_up only when swapcache_wq waitqueue is active
+Date: Tue, 8 Oct 2024 20:18:27 +0800
 
-My new address is alexey.klimov@linaro.org
+wake_up() will acquire spinlock even waitqueue is empty. This might
+involve cache sync overhead. Let's only call wake_up() when waitqueue
+is active.
 
-Link: https://lkml.kernel.org/r/20241008132353.68767-1-alexey.klimov@linaro.org
-Signed-off-by: Alexey Klimov <alexey.klimov@linaro.org>
-Cc: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Link: https://lkml.kernel.org/r/20241008130807.40833-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Oven Liyang <liyangouwen1@oppo.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    6 +++---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/.mailmap~maintainers-mailmap-update-alexey-klimovs-email-address
-+++ a/.mailmap
-@@ -37,6 +37,7 @@ Alexei Avshalom Lazar <quic_ailizaro@qui
- Alexei Starovoitov <ast@kernel.org> <alexei.starovoitov@gmail.com>
- Alexei Starovoitov <ast@kernel.org> <ast@fb.com>
- Alexei Starovoitov <ast@kernel.org> <ast@plumgrid.com>
-+Alexey Klimov <alexey.klimov@linaro.org> <klimov.linux@gmail.com>
- Alexey Makhalov <alexey.amakhalov@broadcom.com> <amakhalov@vmware.com>
- Alex Elder <elder@kernel.org>
- Alex Elder <elder@kernel.org> <aelder@sgi.com>
---- a/MAINTAINERS~maintainers-mailmap-update-alexey-klimovs-email-address
-+++ a/MAINTAINERS
-@@ -7877,7 +7877,7 @@ F:	Documentation/gpu/automated_testing.r
- F:	drivers/gpu/drm/ci/
- 
- DSBR100 USB FM RADIO DRIVER
--M:	Alexey Klimov <klimov.linux@gmail.com>
-+M:	Alexey Klimov <alexey.klimov@linaro.org>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- T:	git git://linuxtv.org/media_tree.git
-@@ -13605,7 +13605,7 @@ Q:	http://patchwork.linuxtv.org/project/
- F:	drivers/media/dvb-frontends/m88rs2000*
- 
- MA901 MASTERKIT USB FM RADIO DRIVER
--M:	Alexey Klimov <klimov.linux@gmail.com>
-+M:	Alexey Klimov <alexey.klimov@linaro.org>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- T:	git git://linuxtv.org/media_tree.git
-@@ -15762,7 +15762,7 @@ F:	Documentation/hwmon/mp9941.rst
- F:	drivers/hwmon/pmbus/mp9941.c
- 
- MR800 AVERMEDIA USB FM RADIO DRIVER
--M:	Alexey Klimov <klimov.linux@gmail.com>
-+M:	Alexey Klimov <alexey.klimov@linaro.org>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- T:	git git://linuxtv.org/media_tree.git
+--- a/mm/memory.c~mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix
++++ a/mm/memory.c
+@@ -4616,7 +4616,8 @@ out:
+ 	/* Clear the swap cache pin for direct swapin after PTL unlock */
+ 	if (need_clear_cache) {
+ 		swapcache_clear(si, entry, nr_pages);
+-		wake_up(&swapcache_wq);
++		if (waitqueue_active(&swapcache_wq))
++			wake_up(&swapcache_wq);
+ 	}
+ 	if (si)
+ 		put_swap_device(si);
+@@ -4634,7 +4635,8 @@ out_release:
+ 	}
+ 	if (need_clear_cache) {
+ 		swapcache_clear(si, entry, nr_pages);
+-		wake_up(&swapcache_wq);
++		if (waitqueue_active(&swapcache_wq))
++			wake_up(&swapcache_wq);
+ 	}
+ 	if (si)
+ 		put_swap_device(si);
 _
 
-Patches currently in -mm which might be from alexey.klimov@linaro.org are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-maintainers-mailmap-update-alexey-klimovs-email-address.patch
+mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
+mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
 
