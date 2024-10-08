@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7F31862A
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:16:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9771862A
+	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 01:25:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728350168; cv=none; b=V8RLCNJcPEAAR89dYzqHd1XZzyi4CewLJV6yCRLCJGusxmB9KEwgLFgCnuJQnR5bMjjv60QvMr2y72X7tUs7LK3NXEi7IPana2z0pIseezo6//FWhq4qH98RAf8mxD/PhvD2/789/19+oze25VNySuZmGcwDw3vQrl9z5pm71Wg=
+	t=1728350750; cv=none; b=JSN2kTOkJJjhnvLIohWZ6Qsi/Jl4aMhr3W156f4G1klwVCwi49t6nAsQWId4JJ4S3POhTttrCqoNPbXcndz0hVpS1oaIbqPAxamlfj5ux+p0YpYDz3T/0VnewDLs8YDP5ToxEN8098GtM6aBj0qusKbNUMxjE1vQ8sLpcavURHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728350168; c=relaxed/simple;
-	bh=7ZkuDI9dIE4Zog+0/vDzQfBA+g7duB1Tw21AL9bBaZE=;
-	h=Date:To:From:Subject:Message-Id; b=tPbI0pNSsabdD0khFtsH0TxOUFBsWXYCKIlvbgoWdLTXP3NmntHNXyFto5VFtBYSePrb03jA9U1F4p7lyIZ8487RVSURTexVp8Y8I655q+SlsXRAPx/K42iZYi2uHj4UcN+EclqcEhXkHKG0jgKGSImyhyL2tjIF/qZiVATSP5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bmJi69uP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728350750; c=relaxed/simple;
+	bh=UeEgPDBLiMP34ZXls2feDEUMe4lFWKKpw5BBmIXqDkw=;
+	h=Date:To:From:Subject:Message-Id; b=b+3tFoMFWEtuoXBHqGzetxc0l2L6c3OKcO+SKb76SMHRvnvkjgIF/RaSz3dqp6nzp1zWpQHAlH5brw0aS5fukwM9gRhGjl9U+Y7E+DiMmm8lGR6qmaiesutYWKDcPwI6XI2nc2WO4Phie6K7TqhpA/kif7Hjq3xvNYRZ6vunw6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Phz4lK4l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bmJi69uP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E4E1C4CECD;
-	Tue,  8 Oct 2024 01:16:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Phz4lK4l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB728C4CED5;
+	Tue,  8 Oct 2024 01:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728350167;
-	bh=7ZkuDI9dIE4Zog+0/vDzQfBA+g7duB1Tw21AL9bBaZE=;
+	s=korg; t=1728350749;
+	bh=UeEgPDBLiMP34ZXls2feDEUMe4lFWKKpw5BBmIXqDkw=;
 	h=Date:To:From:Subject:From;
-	b=bmJi69uPmjMhKp0tSXNXUUnhBHfh+ABjY6qKbn5/z7sXTUmJ6wetR/uXyB654Ttw7
-	 qa330FDGJ3N8WBc3KQ8hLVllS4yBXQUiTc+SoORXG+59/Rv+3tyCMNjjdXeCyRjnoa
-	 Mv9bh9X11qIT+mvoqfCLl9RW2RJaxsfdAEODb168=
-Date: Mon, 07 Oct 2024 18:16:07 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,kent.overstreet@linux.dev,greearb@candelatech.com,fw@strlen.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Phz4lK4lJYpJ/yWkA63EjjbuCRirXjUgttBgrRIVsftcNijhbofdlQAttyMfEjt4e
+	 vI01qBJl4tahSqB5XJfRNfETJ1FEPhHir1N+mvqZHDrjPg/aAGnKPyUVNs24dMl5ps
+	 lnrcGKPYfEr417u8rE1l8BkEApgkjxaObQOB0XlA=
+Date: Mon, 07 Oct 2024 18:25:49 -0700
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,peterx@redhat.com,gregkh@linuxfoundation.org,aha310510@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241008011607.9E4E1C4CECD@smtp.kernel.org>
+Subject: + mm-memoryc-remove-stray-newline-at-top-of-file.patch added to mm-unstable branch
+Message-Id: <20241008012549.BB728C4CED5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix.patch
+     Subject: mm/memory.c: remove stray newline at top of file
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memoryc-remove-stray-newline-at-top-of-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memoryc-remove-stray-newline-at-top-of-file.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,34 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix
-Date: Mon Oct  7 06:06:19 PM PDT 2024
+Subject: mm/memory.c: remove stray newline at top of file
+Date: Mon Oct  7 06:20:09 PM PDT 2024
 
-Cc: Ben Greear <greearb@candelatech.com>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Fixes: d61ea1cb0095 ("userfaultfd: UFFD_FEATURE_WP_ASYNC")
+Reported-by: Jeongjun Park <aha310510@gmail.com>
+Closes: https://lkml.kernel.org/r/20241007065307.4158-1-aha310510@gmail.com
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/codetag.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/lib/codetag.c~lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix
-+++ a/lib/codetag.c
-@@ -228,6 +228,7 @@ bool codetag_unload_module(struct module
- 	if (!mod)
- 		return true;
- 
-+	/* await any module's kfree_rcu() operations to complete */
- 	kvfree_rcu_barrier();
- 
- 	mutex_lock(&codetag_lock);
+--- a/mm/memory.c~mm-memoryc-remove-stray-newline-at-top-of-file
++++ a/mm/memory.c
+@@ -1,4 +1,3 @@
+-
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  *  linux/mm/memory.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls-fix.patch
+mm-memoryc-remove-stray-newline-at-top-of-file.patch
 
