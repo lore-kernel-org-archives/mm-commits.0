@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D11A94A;
-	Tue,  8 Oct 2024 00:58:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B5A5C147;
+	Tue,  8 Oct 2024 00:58:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728349082; cv=none; b=XwetLdvTev7NYlZA5RmsTkmRVhp9A2m/j08h/1HzvFTErkkm6XYyK4nm18PUWgtVDIaH9qCRiWKHn593Tj42T+J9djRa6m5OBGZPd9S4JGjWWaYxfYbz7vFmcbvf4iA3OqYf+n6Ses21IjnQcfQ74bCJZJyv+3bjK/gPKHokn08=
+	t=1728349092; cv=none; b=ucS4DLMI1VX5QMUO/UdZKjYUUi5ZQJQ10Hs31VHqZp3fA9tFb4xd2c1zANYqS/r+HKmc+7/U5CGH1cr62IEvsNagEM1E0dX1/7J6Mhotn5cBUa+YhMHegmhFQPhHXIOplYdr3nsO/XuXHfdV6Q6eNnpAcbjAa6EB8gVEzNzmvhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728349082; c=relaxed/simple;
-	bh=whOBxWUZeejzqVwgL0Qi6ziLWsmjGZ7iVx0r3FA7/kE=;
-	h=Date:To:From:Subject:Message-Id; b=FKrS8HM2LAuvDzY/4YqOcqqacpAvvNB3YPtZbkxgAREwGZW9oBOkb+brH4uTxEEyHeQKmn7eunCn9efIRkV9mMYBVbvBhh/HNZPZ94Ptr/eBOscUKLBJqkxMJNubw30M/cRwQw7IZyIpP1ZksC36c9XyfXEMbdUCvbJNNeuH/o8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vbKvIAGr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728349092; c=relaxed/simple;
+	bh=rx9BM2UYOVo0Bc1y2nKz/FkHUdDTyt0emuvJ2NNUWw0=;
+	h=Date:To:From:Subject:Message-Id; b=uXio7xSukxfoyjgwcytUQjiE3E7W0HuHLtZ5VMXLOE3ormTz9YdZppGpBNBrn6P+mYcvR++ll0vLiloUFFJyiJB5U3LqtdCTeJDqYdK9DgXD4vznKZAEc7GYoINfxqEHglFUni5Fl4AFU3VeThAlIeFIozRxdL7tdqrntDOqoDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R6Pw60rF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vbKvIAGr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59789C4CEC6;
-	Tue,  8 Oct 2024 00:58:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R6Pw60rF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5762C4CEC6;
+	Tue,  8 Oct 2024 00:58:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728349081;
-	bh=whOBxWUZeejzqVwgL0Qi6ziLWsmjGZ7iVx0r3FA7/kE=;
+	s=korg; t=1728349091;
+	bh=rx9BM2UYOVo0Bc1y2nKz/FkHUdDTyt0emuvJ2NNUWw0=;
 	h=Date:To:From:Subject:From;
-	b=vbKvIAGrarwNmjbqGCgKivyqdEj3uWzp9YdYofWodXOGVTolo7RmTp+CStgXgVLey
-	 wP3t+yKI4qVSfR4mnXy1uOBocgGUIyEfvwmpX1gi575Up2kDmPqD7gd5nXbX0WqP5g
-	 snWuYfXq7sd4bws1Hbf+gTktzZs5RzL35+dRx2AA=
-Date: Mon, 07 Oct 2024 17:58:00 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hughd@google.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
+	b=R6Pw60rF8cSNr4nW+u0C9yIFP7EWN/nTR7YRPuP3H30MUaLl06gKOfXOLKElssuL6
+	 VcmACU76O0CaoNw0hF/JYkFRWlPjbAqqb6HKQXLFHMbREH9LiwBXu9u/bwRrJzS/ho
+	 s2sqIr0sDUQSiSlWT17tyXKrB8OwVvPIQ8bGgny4=
+Date: Mon, 07 Oct 2024 17:58:11 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,joel@joelfernandes.org,hughd@google.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mremap-prevent-racing-change-of-old-pmd-type.patch removed from -mm tree
-Message-Id: <20241008005801.59789C4CEC6@smtp.kernel.org>
+Subject: + mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241008005811.C5762C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,226 +34,157 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mremap: prevent racing change of old pmd type
-has been removed from the -mm tree.  Its filename was
-     mm-mremap-prevent-racing-change-of-old-pmd-type.patch
+The patch titled
+     Subject: mm/mremap: fix move_normal_pmd/retract_page_tables race
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jann Horn <jannh@google.com>
-Subject: mm/mremap: prevent racing change of old pmd type
-Date: Wed, 02 Oct 2024 23:07:06 +0200
+Subject: mm/mremap: fix move_normal_pmd/retract_page_tables race
+Date: Mon, 07 Oct 2024 23:42:04 +0200
 
-Prevent move_normal_pmd() in mremap() from racing with
-retract_page_tables() in MADVISE_COLLAPSE such that
+In mremap(), move_page_tables() looks at the type of the PMD entry and the
+specified address range to figure out by which method the next chunk of
+page table entries should be moved.
 
-    pmd_populate(mm, new_pmd, pmd_pgtable(pmd))
+At that point, the mmap_lock is held in write mode, but no rmap locks are
+held yet.  For PMD entries that point to page tables and are fully covered
+by the source address range, move_pgt_entry(NORMAL_PMD, ...) is called,
+which first takes rmap locks, then does move_normal_pmd(). 
+move_normal_pmd() takes the necessary page table locks at source and
+destination, then moves an entire page table from the source to the
+destination.
 
-operates on an empty source pmd, causing creation of a new pmd which maps
-physical address 0 as a page table.
+The problem is: The rmap locks, which protect against concurrent page
+table removal by retract_page_tables() in the THP code, are only taken
+after the PMD entry has been read and it has been decided how to move it. 
+So we can race as follows (with two processes that have mappings of the
+same tmpfs file that is stored on a tmpfs mount with huge=advise); note
+that process A accesses page tables through the MM while process B does it
+through the file rmap:
 
-This bug is only reachable if either CONFIG_READ_ONLY_THP_FOR_FS is set or
-THP shmem is usable.  (Unprivileged namespaces can be used to set up a
-tmpfs that can contain THP shmem pages with "huge=advise".)
+process A                      process B
+=========                      =========
+mremap
+  mremap_to
+    move_vma
+      move_page_tables
+        get_old_pmd
+        alloc_new_pmd
+                      *** PREEMPT ***
+                               madvise(MADV_COLLAPSE)
+                                 do_madvise
+                                   madvise_walk_vmas
+                                     madvise_vma_behavior
+                                       madvise_collapse
+                                         hpage_collapse_scan_file
+                                           collapse_file
+                                             retract_page_tables
+                                               i_mmap_lock_read(mapping)
+                                               pmdp_collapse_flush
+                                               i_mmap_unlock_read(mapping)
+        move_pgt_entry(NORMAL_PMD, ...)
+          take_rmap_locks
+          move_normal_pmd
+          drop_rmap_locks
 
-If userspace triggers this bug *in multiple processes*, this could likely
-be used to create stale TLB entries pointing to freed pages or cause
-kernel UAF by breaking an invariant the rmap code relies on.
+When this happens, move_normal_pmd() can end up creating bogus PMD entries
+in the line `pmd_populate(mm, new_pmd, pmd_pgtable(pmd))`.  The effect
+depends on arch-specific and machine-specific details; on x86, you can end
+up with physical page 0 mapped as a page table, which is likely
+exploitable for user->kernel privilege escalation.
 
-Fix it by moving the rmap locking up so that it covers the span from
-reading the PMD entry to moving the page table.
+Fix the race by letting process B recheck that the PMD still points to a
+page table after the rmap locks have been taken.  Otherwise, we bail and
+let the caller fall back to the PTE-level copying path, which will then
+bail immediately at the pmd_none() check.
 
-Link: https://lkml.kernel.org/r/20241002-move_normal_pmd-vs-collapse-fix-v1-1-78290e5dece6@google.com
+Bug reachability: Reaching this bug requires that you can create
+shmem/file THP mappings - anonymous THP uses different code that doesn't
+zap stuff under rmap locks.  File THP is gated on an experimental config
+flag (CONFIG_READ_ONLY_THP_FOR_FS), so on normal distro kernels you need
+shmem THP to hit this bug.  As far as I know, getting shmem THP normally
+requires that you can mount your own tmpfs with the right mount flags,
+which would require creating your own user+mount namespace; though I don't
+know if some distros maybe enable shmem THP by default or something like
+that.
+
+Bug impact: This issue can likely be used for user->kernel privilege
+escalation when it is reachable.
+
+Link: https://lkml.kernel.org/r/20241007-move_normal_pmd-vs-collapse-fix-2-v1-1-5ead9631f2ea@google.com
 Fixes: 1d65b771bc08 ("mm/khugepaged: retract_page_tables() without mmap or vma lock")
+Closes: https://project-zero.issues.chromium.org/371047675
+Co-developed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Jann Horn <jannh@google.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   68 +++++++++++++++++++++++++++-----------------------
- 1 file changed, 38 insertions(+), 30 deletions(-)
+ mm/mremap.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-prevent-racing-change-of-old-pmd-type
+--- a/mm/mremap.c~mm-mremap-fix-move_normal_pmd-retract_page_tables-race
 +++ a/mm/mremap.c
-@@ -136,17 +136,17 @@ static pte_t move_soft_dirty_pte(pte_t p
- static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
- 		unsigned long old_addr, unsigned long old_end,
- 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
--		unsigned long new_addr, bool need_rmap_locks)
-+		unsigned long new_addr)
+@@ -238,6 +238,7 @@ static bool move_normal_pmd(struct vm_ar
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
  	spinlock_t *old_ptl, *new_ptl;
- 	bool force_flush = false;
- 	unsigned long len = old_end - old_addr;
--	int err = 0;
+ 	struct mm_struct *mm = vma->vm_mm;
++	bool res = false;
+ 	pmd_t pmd;
  
- 	/*
--	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
-+	 * When need_rmap_locks is true in the caller, we are holding the
-+	 * i_mmap_rwsem and anon_vma
- 	 * locks to ensure that rmap will always observe either the old or the
- 	 * new ptes. This is the easiest way to avoid races with
- 	 * truncate_pagecache(), page migration, etc...
-@@ -163,23 +163,18 @@ static int move_ptes(struct vm_area_stru
- 	 *   serialize access to individual ptes, but only rmap traversal
- 	 *   order guarantees that we won't miss both the old and new ptes).
- 	 */
--	if (need_rmap_locks)
--		take_rmap_locks(vma);
- 
- 	/*
- 	 * We don't have to worry about the ordering of src and dst
- 	 * pte locks because exclusive mmap_lock prevents deadlock.
- 	 */
- 	old_pte = pte_offset_map_lock(mm, old_pmd, old_addr, &old_ptl);
--	if (!old_pte) {
--		err = -EAGAIN;
--		goto out;
--	}
-+	if (!old_pte)
-+		return -EAGAIN;
- 	new_pte = pte_offset_map_nolock(mm, new_pmd, new_addr, &new_ptl);
- 	if (!new_pte) {
- 		pte_unmap_unlock(old_pte, old_ptl);
--		err = -EAGAIN;
--		goto out;
-+		return -EAGAIN;
- 	}
+ 	if (!arch_supports_page_table_move())
+@@ -277,19 +278,25 @@ static bool move_normal_pmd(struct vm_ar
  	if (new_ptl != old_ptl)
  		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -217,10 +212,7 @@ static int move_ptes(struct vm_area_stru
+ 
+-	/* Clear the pmd */
+ 	pmd = *old_pmd;
++
++	/* Racing with collapse? */
++	if (unlikely(!pmd_present(pmd) || pmd_leaf(pmd)))
++		goto out_unlock;
++	/* Clear the pmd */
+ 	pmd_clear(old_pmd);
++	res = true;
+ 
+ 	VM_BUG_ON(!pmd_none(*new_pmd));
+ 
+ 	pmd_populate(mm, new_pmd, pmd_pgtable(pmd));
+ 	flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
++out_unlock:
+ 	if (new_ptl != old_ptl)
  		spin_unlock(new_ptl);
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
--out:
--	if (need_rmap_locks)
--		drop_rmap_locks(vma);
--	return err;
-+	return 0;
+ 	spin_unlock(old_ptl);
+ 
+-	return true;
++	return res;
  }
- 
- #ifndef arch_supports_page_table_move
-@@ -447,17 +439,14 @@ static __always_inline unsigned long get
- /*
-  * Attempts to speedup the move by moving entry at the level corresponding to
-  * pgt_entry. Returns true if the move was successful, else false.
-+ * rmap locks are held by the caller.
-  */
- static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
- 			unsigned long old_addr, unsigned long new_addr,
--			void *old_entry, void *new_entry, bool need_rmap_locks)
-+			void *old_entry, void *new_entry)
- {
- 	bool moved = false;
- 
--	/* See comment in move_ptes() */
--	if (need_rmap_locks)
--		take_rmap_locks(vma);
--
- 	switch (entry) {
- 	case NORMAL_PMD:
- 		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
-@@ -483,9 +472,6 @@ static bool move_pgt_entry(enum pgt_entr
- 		break;
- 	}
- 
--	if (need_rmap_locks)
--		drop_rmap_locks(vma);
--
- 	return moved;
- }
- 
-@@ -550,6 +536,7 @@ unsigned long move_page_tables(struct vm
- 	struct mmu_notifier_range range;
- 	pmd_t *old_pmd, *new_pmd;
- 	pud_t *old_pud, *new_pud;
-+	int move_res;
- 
- 	if (!len)
- 		return 0;
-@@ -573,6 +560,12 @@ unsigned long move_page_tables(struct vm
- 				old_addr, old_end);
- 	mmu_notifier_invalidate_range_start(&range);
- 
-+	/*
-+	 * Hold rmap locks to ensure the type of the old PUD/PMD entry doesn't
-+	 * change under us due to khugepaged or folio splitting.
-+	 */
-+	take_rmap_locks(vma);
-+
- 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
- 		cond_resched();
- 		/*
-@@ -590,14 +583,14 @@ unsigned long move_page_tables(struct vm
- 		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
- 			if (extent == HPAGE_PUD_SIZE) {
- 				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
--					       old_pud, new_pud, need_rmap_locks);
-+					       old_pud, new_pud);
- 				/* We ignore and continue on error? */
- 				continue;
- 			}
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
- 
- 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
--					   old_pud, new_pud, true))
-+					   old_pud, new_pud))
- 				continue;
- 		}
- 
-@@ -613,7 +606,7 @@ again:
- 		    pmd_devmap(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
- 			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, need_rmap_locks))
-+					   old_pmd, new_pmd))
- 				continue;
- 			split_huge_pmd(vma, old_pmd, old_addr);
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
-@@ -623,17 +616,32 @@ again:
- 			 * moving at the PMD level if possible.
- 			 */
- 			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, true))
-+					   old_pmd, new_pmd))
- 				continue;
- 		}
- 		if (pmd_none(*old_pmd))
- 			continue;
--		if (pte_alloc(new_vma->vm_mm, new_pmd))
-+
-+		/*
-+		 * Temporarily drop the rmap locks while we do a potentially
-+		 * slow move_ptes() operation, unless move_ptes() wants them
-+		 * held (see comment inside there).
-+		 */
-+		if (!need_rmap_locks)
-+			drop_rmap_locks(vma);
-+		if (pte_alloc(new_vma->vm_mm, new_pmd)) {
-+			if (!need_rmap_locks)
-+				take_rmap_locks(vma);
- 			break;
--		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--			      new_vma, new_pmd, new_addr, need_rmap_locks) < 0)
-+		}
-+		move_res = move_ptes(vma, old_pmd, old_addr, old_addr + extent,
-+				     new_vma, new_pmd, new_addr);
-+		if (!need_rmap_locks)
-+			take_rmap_locks(vma);
-+		if (move_res < 0)
- 			goto again;
- 	}
-+	drop_rmap_locks(vma);
- 
- 	mmu_notifier_invalidate_range_end(&range);
- 
+ #else
+ static inline bool move_normal_pmd(struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from jannh@google.com are
