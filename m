@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 005CA1E25E9
-	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 21:00:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D9B14A0AB
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 21:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728507650; cv=none; b=WHraCADHRJEK7DOBOFJgFaxM6KTa7qMKl9Cn73vJgQASO3xOUHZ4huVbWFB4VzufSmTGmC/qgLxXFl195nyrZMRpG2zuAbj5RjlzV1TDjfqHzgvtqmAiHxzzr9b4popuaHBuzuGEr8J6KdfEFxz1OTkEDzeAuOJgZCEHhZJ9tHg=
+	t=1728507692; cv=none; b=rgewBEGnjpccZDF7ikhm2xAMv0f6diXI9CeWXQQUV3GwvKDBLzJNqvDXQH63q2917A2ja8hzN5tSAB9tTMfVsucV/tioMT6S+0cBq81cVzNS85itQu9l8W4+SvL+KC+FMX0DKXI5ob7ON32oCqUjIH8aA7ys3mbv/LAIanJmiR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728507650; c=relaxed/simple;
-	bh=5ZOwGlUsRWwMP7m/90xmOTKsCLKMV6Pr2CDFHRnC0Ss=;
-	h=Date:To:From:Subject:Message-Id; b=HsaQ4oQoJu+WGK5h1wYLaj3uq5v4gBclhdZehSZNxMQkplUUf+lwlbVj6Da7/JR8bLPcRMr46WToeY9Dv0LDTIDX86oAs6pO7E/dfbBfeJfU+7ZzuHg9C0/6469Ivpy30I6p9gMDZgfxqZ4P3yDDr1IfqX59k7IQFnXzDIzcudo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d7QLTYOv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728507692; c=relaxed/simple;
+	bh=fbixoP8lakL0nHb4diqyW7CQWkiCUgP/HkgqDA2kLrU=;
+	h=Date:To:From:Subject:Message-Id; b=ckavTcu84EbSFvLqnOTecIPO7VeG1VuSYvjwzrpv5aNEkQ1oJ+a85JGG4kzKILkQxHdWaqb3+qhj2ru+OBXtKAlpZ+dvwAu+L3tGzFrOuyZrCzQGiROom9lRqGALEX5zEl0ZI7VkvpTBlu6FuN/U4GB9KJ9uoI+ZaB+o3hIgOeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ex8GvJHD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d7QLTYOv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5053BC4CEC3;
-	Wed,  9 Oct 2024 21:00:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ex8GvJHD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A814C4CEC3;
+	Wed,  9 Oct 2024 21:01:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728507649;
-	bh=5ZOwGlUsRWwMP7m/90xmOTKsCLKMV6Pr2CDFHRnC0Ss=;
+	s=korg; t=1728507692;
+	bh=fbixoP8lakL0nHb4diqyW7CQWkiCUgP/HkgqDA2kLrU=;
 	h=Date:To:From:Subject:From;
-	b=d7QLTYOvrGG/aff1E8Rhfby+8+LSVkRIS74uL8GovfyY5AXyyqphjibTWBMWLgCm9
-	 VgSMPaiPxWa6B947xzkdz9w8asRSd9cYyr2jHEVC7yY0N73eva/5GMt+IiO8Cmz2WG
-	 2+PUSMRzQfL60Fupe1mwg5f+BvaGZ+akqR4vZk8k=
-Date: Wed, 09 Oct 2024 14:00:48 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=ex8GvJHDNfnPWaWPzfT26v0ub4Axw+g1HsG+YclevuVsQKIoNWt7Sqjdrs7dW69Sk
+	 CH49Vn7Kh0PhirK3qeyrrRCC94LbfC+IhWdnRnczmqy/hXVhZ1sOUHX1fwaR1iMxE+
+	 vmv+IE8kFkdn3vYqSBPfxA6Dh5tprkDyVBLVf+oc=
+Date: Wed, 09 Oct 2024 14:01:31 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,jniethe@nvidia.com,david@redhat.com,apopple@nvidia.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-open-code-comp-priority-0.patch added to mm-unstable branch
-Message-Id: <20241009210049.5053BC4CEC3@smtp.kernel.org>
+Subject: + kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch added to mm-unstable branch
+Message-Id: <20241009210132.0A814C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not open-code comp priority 0
+     Subject: kaslr: rename physmem_end and PHYSMEM_END to direct_map_physmem_end
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-do-not-open-code-comp-priority-0.patch
+     kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-open-code-comp-priority-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,193 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not open-code comp priority 0
-Date: Wed, 9 Oct 2024 13:28:00 +0900
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: kaslr: rename physmem_end and PHYSMEM_END to direct_map_physmem_end
+Date: Tue, 8 Oct 2024 19:50:24 -0700
 
-A cosmetic change: do not open-code compression priority 0, use
-ZRAM_PRIMARY_COMP instead.
+For clarity.  It's increasingly hard to reason about the code, when KASLR
+is moving around the boundaries.  In this case where KASLR is randomizing
+the location of the kernel image within physical memory, the maximum
+number of address bits for physical memory has not changed.
 
-Link: https://lkml.kernel.org/r/20241009042908.750260-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+What has changed is the ending address of memory that is allowed to be
+directly mapped by the kernel.
+
+Let's name the variable, and the associated macro accordingly.
+
+Also, enhance the comment above the direct_map_physmem_end definition,
+to further clarify how this all works.
+
+Link: https://lkml.kernel.org/r/20241009025024.89813-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jordan Niethe <jniethe@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/memory.h         |    2 +-
+ arch/x86/include/asm/page_64.h          |    2 +-
+ arch/x86/include/asm/pgtable_64_types.h |    2 +-
+ arch/x86/mm/init_64.c                   |    2 +-
+ arch/x86/mm/kaslr.c                     |   14 +++++++++-----
+ include/linux/mm.h                      |    6 +++---
+ kernel/resource.c                       |    4 ++--
+ mm/memory_hotplug.c                     |    2 +-
+ mm/sparse.c                             |    2 +-
+ 9 files changed, 20 insertions(+), 16 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-open-code-comp-priority-0
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2285,7 +2285,7 @@ static void zram_destroy_comps(struct zr
+--- a/arch/arm64/include/asm/memory.h~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/arch/arm64/include/asm/memory.h
+@@ -110,7 +110,7 @@
+ #define PAGE_END		(_PAGE_END(VA_BITS_MIN))
+ #endif /* CONFIG_KASAN */
+ 
+-#define PHYSMEM_END		__pa(PAGE_END - 1)
++#define DIRECT_MAP_PHYSMEM_END	__pa(PAGE_END - 1)
+ 
+ #define MIN_THREAD_SHIFT	(14 + KASAN_THREAD_SHIFT)
+ 
+--- a/arch/x86/include/asm/page_64.h~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/arch/x86/include/asm/page_64.h
+@@ -17,7 +17,7 @@ extern unsigned long phys_base;
+ extern unsigned long page_offset_base;
+ extern unsigned long vmalloc_base;
+ extern unsigned long vmemmap_base;
+-extern unsigned long physmem_end;
++extern unsigned long direct_map_physmem_end;
+ 
+ static __always_inline unsigned long __phys_addr_nodebug(unsigned long x)
  {
- 	u32 prio;
+--- a/arch/x86/include/asm/pgtable_64_types.h~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/arch/x86/include/asm/pgtable_64_types.h
+@@ -141,7 +141,7 @@ extern unsigned int ptrs_per_p4d;
+ #endif /* CONFIG_DYNAMIC_MEMORY_LAYOUT */
  
--	for (prio = 0; prio < ZRAM_MAX_COMPS; prio++) {
-+	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
- 		struct zcomp *comp = zram->comps[prio];
+ #ifdef CONFIG_RANDOMIZE_MEMORY
+-# define PHYSMEM_END		physmem_end
++# define DIRECT_MAP_PHYSMEM_END	direct_map_physmem_end
+ #endif
  
- 		zram->comps[prio] = NULL;
-@@ -2357,7 +2357,7 @@ static ssize_t disksize_store(struct dev
- 		goto out_unlock;
+ /*
+--- a/arch/x86/mm/init_64.c~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/arch/x86/mm/init_64.c
+@@ -961,7 +961,7 @@ int add_pages(int nid, unsigned long sta
+ 	unsigned long end = ((start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+ 	int ret;
+ 
+-	if (WARN_ON_ONCE(end > PHYSMEM_END))
++	if (WARN_ON_ONCE(end > DIRECT_MAP_PHYSMEM_END))
+ 		return -ERANGE;
+ 
+ 	ret = __add_pages(nid, start_pfn, nr_pages, params);
+--- a/arch/x86/mm/kaslr.c~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/arch/x86/mm/kaslr.c
+@@ -52,7 +52,7 @@ static __initdata struct kaslr_memory_re
+ } kaslr_regions[] = {
+ 	{
+ 		.base	= &page_offset_base,
+-		.end	= &physmem_end,
++		.end	= &direct_map_physmem_end,
+ 	},
+ 	{
+ 		.base	= &vmalloc_base,
+@@ -62,8 +62,12 @@ static __initdata struct kaslr_memory_re
+ 	},
+ };
+ 
+-/* The end of the possible address space for physical memory */
+-unsigned long physmem_end __ro_after_init;
++/*
++ * The end of the physical address space that can be mapped directly by the
++ * kernel. This starts out at (1<<MAX_PHYSMEM_BITS) - 1), but KASLR may reduce
++ * that in order to increase the available entropy for mapping other regions.
++ */
++unsigned long direct_map_physmem_end __ro_after_init;
+ 
+ /* Get size in bytes used by the memory region */
+ static inline unsigned long get_padding(struct kaslr_memory_region *region)
+@@ -94,7 +98,7 @@ void __init kernel_randomize_memory(void
+ 	BUILD_BUG_ON(vaddr_end > __START_KERNEL_map);
+ 
+ 	/* Preset the end of the possible address space for physical memory */
+-	physmem_end = ((1ULL << MAX_PHYSMEM_BITS) - 1);
++	direct_map_physmem_end = ((1ULL << MAX_PHYSMEM_BITS) - 1);
+ 	if (!kaslr_memory_enabled())
+ 		return;
+ 
+@@ -145,7 +149,7 @@ void __init kernel_randomize_memory(void
+ 		vaddr += get_padding(&kaslr_regions[i]);
+ 		/*
+ 		 * KASLR trims the maximum possible size of the
+-		 * direct-map. Update the physmem_end boundary.
++		 * direct-map. Update the direct_map_physmem_end boundary.
+ 		 * No rounding required as the region starts
+ 		 * PUD aligned and size is in units of TB.
+ 		 */
+--- a/include/linux/mm.h~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/include/linux/mm.h
+@@ -97,11 +97,11 @@ extern const int mmap_rnd_compat_bits_ma
+ extern int mmap_rnd_compat_bits __read_mostly;
+ #endif
+ 
+-#ifndef PHYSMEM_END
++#ifndef DIRECT_MAP_PHYSMEM_END
+ # ifdef MAX_PHYSMEM_BITS
+-# define PHYSMEM_END	((1ULL << MAX_PHYSMEM_BITS) - 1)
++# define DIRECT_MAP_PHYSMEM_END	((1ULL << MAX_PHYSMEM_BITS) - 1)
+ # else
+-# define PHYSMEM_END	(((phys_addr_t)-1)&~(1ULL<<63))
++# define DIRECT_MAP_PHYSMEM_END	(((phys_addr_t)-1)&~(1ULL<<63))
+ # endif
+ #endif
+ 
+--- a/kernel/resource.c~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/kernel/resource.c
+@@ -1871,7 +1871,7 @@ static resource_size_t gfr_start(struct
+ 	if (flags & GFR_DESCENDING) {
+ 		resource_size_t end;
+ 
+-		end = min_t(resource_size_t, base->end, PHYSMEM_END);
++		end = min_t(resource_size_t, base->end, DIRECT_MAP_PHYSMEM_END);
+ 		return end - size + 1;
  	}
  
--	for (prio = 0; prio < ZRAM_MAX_COMPS; prio++) {
-+	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
- 		if (!zram->comp_algs[prio])
- 			continue;
+@@ -1888,7 +1888,7 @@ static bool gfr_continue(struct resource
+ 	 * @size did not wrap 0.
+ 	 */
+ 	return addr > addr - size &&
+-	       addr <= min_t(resource_size_t, base->end, PHYSMEM_END);
++	       addr <= min_t(resource_size_t, base->end, DIRECT_MAP_PHYSMEM_END);
+ }
  
+ static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
+--- a/mm/memory_hotplug.c~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/mm/memory_hotplug.c
+@@ -1681,7 +1681,7 @@ struct range __weak arch_get_mappable_ra
+ 
+ struct range mhp_get_pluggable_range(bool need_mapping)
+ {
+-	const u64 max_phys = PHYSMEM_END;
++	const u64 max_phys = DIRECT_MAP_PHYSMEM_END;
+ 	struct range mhp_range;
+ 
+ 	if (need_mapping) {
+--- a/mm/sparse.c~kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end
++++ a/mm/sparse.c
+@@ -129,7 +129,7 @@ static inline int sparse_early_nid(struc
+ static void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
+ 						unsigned long *end_pfn)
+ {
+-	unsigned long max_sparsemem_pfn = (PHYSMEM_END + 1) >> PAGE_SHIFT;
++	unsigned long max_sparsemem_pfn = (DIRECT_MAP_PHYSMEM_END + 1) >> PAGE_SHIFT;
+ 
+ 	/*
+ 	 * Sanity checks - do not allow an architecture to pass
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-zram-introduce-zram_pp_slot-flag.patch
-zram-permit-only-one-post-processing-operation-at-a-time.patch
-zram-rework-recompress-target-selection-strategy.patch
-zram-rework-recompress-target-selection-strategy-fix.patch
-zram-rework-writeback-target-selection-strategy.patch
-zram-do-not-mark-idle-slots-that-cannot-be-idle.patch
-zram-reshuffle-zram_free_page-flags-operations.patch
-zram-remove-under_wb-and-simplify-writeback.patch
-zram-do-not-open-code-comp-priority-0.patch
+kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
 
