@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6FD13E3EF
-	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55211E22E6
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:44:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728505996; cv=none; b=f/S6SamGmoFMDizdLu6gdR+EIJpbugsZ7xlYp1R6Uz5Jsyos+pACvcf4nfpCj67OwM5wfXOolEPIj8OTvP7qcUb81BjdhPqsSKPflM+GHJ+XvHIjiHGSjs5dPQotu+hkI3s+jmhPeooYkTEXAXyzvEAXYSk9qtDWRiwlk7g07oM=
+	t=1728506662; cv=none; b=b7fL04AdUGahwNRC+toozRTx8aYKAoCZWG9HiX7FFJqCvrX5FtcpUMQabaIc/ofDbyhPKEpz+2y7GkcKb3gHyWlrjNgiR5lDgNBcfgPRvCCG4Js62YhMP1V8cdmC1EABX8sSIMeSb+nczBLYeFiQgQjaEvieJOQKvw055VSKRqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728505996; c=relaxed/simple;
-	bh=lizZDbKZuX+njjU/qYkI/QFb1NYm2zMZVkucRNqj1uE=;
-	h=Date:To:From:Subject:Message-Id; b=q2cvOgauiCZVG3K8MmJnE8e99KQuXe4A3ZRyYcI5v/fguRDLoXqBTjU5SKvmCQeT39sUK3lLQkYzBoqEoK7E9JBjtIIX5K9Kd2JlVwPUGYjAVZme74OuQGOhZULpx2QKl8bWzSRC/WPHPuOvzl7aqA7LN4VTwi4bbYx6snx/MRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JvZqI58Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728506662; c=relaxed/simple;
+	bh=4QG8+EjoMdAnt2g0kq/HsZDrhXMjcnOQCvuWTK9m+v0=;
+	h=Date:To:From:Subject:Message-Id; b=JExWl9gPj+C9VsKyTVlWF5xdBlXHbiTfojEY73apZm8oC0gfOYwRsoKjuCj8tmyIbk7E9Yj5C02Dm11RJ4YQnbGhzQerIhgTxT+F6EzpPp59nXxlrYzhvYy/URUfCXjdmHI/Z2VDkxlNs0xkyXa4TSsxq9ateggH43dzz3KlLto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bigezp8j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JvZqI58Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 065E7C4CEC3;
-	Wed,  9 Oct 2024 20:33:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bigezp8j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B448C4CEC3;
+	Wed,  9 Oct 2024 20:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728505996;
-	bh=lizZDbKZuX+njjU/qYkI/QFb1NYm2zMZVkucRNqj1uE=;
+	s=korg; t=1728506662;
+	bh=4QG8+EjoMdAnt2g0kq/HsZDrhXMjcnOQCvuWTK9m+v0=;
 	h=Date:To:From:Subject:From;
-	b=JvZqI58Q0vQTZljarvtCBi89aQq601xr88wiynIdqMPAtsqIsZYOW888/u65wKy14
-	 xkoQPsaYd1WjyFNDBesJcKQA8E3IWMbmTq1YXdP+SrdkJIWAfXCyfMYu8+utk9dfSP
-	 EitALLXpPQrvlD8rdiJoGa8PBhDRJpLRGSKi746Q=
-Date: Wed, 09 Oct 2024 13:33:15 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=Bigezp8jl+GsZsMNvAEJkD9u78Aum2dkPPDDPsj87ni9WOOq0s51QR1THm8Y0Elsc
+	 mDoHkpsjsktNcTbMM1HXrgq5U1IU6aBB3ce0cyPcISKqGbYJ3RNvyHp4cSOgMqDapF
+	 sROSf6CbrcLtu8RyAb42YIiEhgSVbDWGdva6KFqA=
+Date: Wed, 09 Oct 2024 13:44:21 -0700
+To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,leonchien@synology.com,greentime.hu@sifive.com,andybnac@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-conditionals-to-detect-wr_node_store.patch added to mm-unstable branch
-Message-Id: <20241009203316.065E7C4CEC3@smtp.kernel.org>
+Subject: + mailmap-add-an-entry-for-andy-chiu.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241009204422.0B448C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: remove conditionals to detect wr_node_store
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-remove-conditionals-to-detect-wr_node_store.patch
+     Subject: mailmap: add an entry for Andy Chiu
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-add-an-entry-for-andy-chiu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-conditionals-to-detect-wr_node_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-entry-for-andy-chiu.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha <sidhartha.kumar@oracle.com>
-Subject: maple_tree: remove conditionals to detect wr_node_store
-Date: Wed, 9 Oct 2024 11:20:07 -0400
+From: Andy Chiu <andybnac@gmail.com>
+Subject: mailmap: add an entry for Andy Chiu
+Date: Wed, 9 Oct 2024 22:49:34 +0800
 
-In mas_wr_store_type(), we check if new_end < mt_slots[wr_mas->type].  If
-this check fails, we know that ,after this, new_end is >= mt_min_slots. 
-Checking this again when we detect a wr_node_store later in the function
-is reduntant.  Because this check is part of an OR statement, the
-statement will always evaluate to true, therefore we can just get rid of
-it.
+Map my outdated addresses within mailmap.
 
-Link: https://lkml.kernel.org/r/20241009152007.2096-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Suggested-by; Wei Yang <richard.weiyang@gmail.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20241009144934.43027-1-andybnac@gmail.com
+Signed-off-by: Andy Chiu <andybnac@gmail.com>
+Cc: Greentime Hu <greentime.hu@sifive.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Leon Chien <leonchien@synology.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-remove-conditionals-to-detect-wr_node_store
-+++ a/lib/maple_tree.c
-@@ -4252,14 +4252,7 @@ static inline void mas_wr_store_type(str
- 		return;
- 	}
- 
--	if (mte_is_root(mas->node) || (new_end >= mt_min_slots[wr_mas->type]) ||
--		(mas->mas_flags & MA_STATE_BULK)) {
--		mas->store_type = wr_node_store;
--		return;
--	}
--
--	mas->store_type = wr_invalid;
--	MAS_WARN_ON(mas, 1);
-+	mas->store_type = wr_node_store;
- }
- 
- /**
+--- a/.mailmap~mailmap-add-an-entry-for-andy-chiu
++++ a/.mailmap
+@@ -73,6 +73,8 @@ Andrey Ryabinin <ryabinin.a.a@gmail.com>
+ Andrzej Hajda <andrzej.hajda@intel.com> <a.hajda@samsung.com>
+ André Almeida <andrealmeid@igalia.com> <andrealmeid@collabora.com>
+ Andy Adamson <andros@citi.umich.edu>
++Andy Chiu <andybnac@gmail.com> <andy.chiu@sifive.com>
++Andy Chiu <andybnac@gmail.com> <taochiu@synology.com>
+ Andy Shevchenko <andy@kernel.org> <andy@smile.org.ua>
+ Andy Shevchenko <andy@kernel.org> <ext-andriy.shevchenko@nokia.com>
+ Anilkumar Kolli <quic_akolli@quicinc.com> <akolli@codeaurora.org>
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from andybnac@gmail.com are
 
-maple_tree-remove-conditionals-to-detect-wr_node_store.patch
+mailmap-add-an-entry-for-andy-chiu.patch
 
