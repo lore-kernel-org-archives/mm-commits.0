@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55211E22E6
-	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7DC236D
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:45:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728506662; cv=none; b=b7fL04AdUGahwNRC+toozRTx8aYKAoCZWG9HiX7FFJqCvrX5FtcpUMQabaIc/ofDbyhPKEpz+2y7GkcKb3gHyWlrjNgiR5lDgNBcfgPRvCCG4Js62YhMP1V8cdmC1EABX8sSIMeSb+nczBLYeFiQgQjaEvieJOQKvw055VSKRqk=
+	t=1728506741; cv=none; b=AqJAi77hgkwaukzjYVfzepoKd5ZDP3/IshyxxbDaXUnxYAQ+4VixGcyt5HcUH/CrnEb7ZnuHVGbyH3I+fbkGtVupJspugwReU2R8MDrUEktnMXEP1g/4Se7qw27FzEeMaqRhkf9BEwVXnrnwPOA5WNg7NKZFCQIdzFarDiky6nA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728506662; c=relaxed/simple;
-	bh=4QG8+EjoMdAnt2g0kq/HsZDrhXMjcnOQCvuWTK9m+v0=;
-	h=Date:To:From:Subject:Message-Id; b=JExWl9gPj+C9VsKyTVlWF5xdBlXHbiTfojEY73apZm8oC0gfOYwRsoKjuCj8tmyIbk7E9Yj5C02Dm11RJ4YQnbGhzQerIhgTxT+F6EzpPp59nXxlrYzhvYy/URUfCXjdmHI/Z2VDkxlNs0xkyXa4TSsxq9ateggH43dzz3KlLto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bigezp8j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728506741; c=relaxed/simple;
+	bh=kiczniQsM1qIQbgLoIDGLhFhz2ivKWghjVKIyVHIkIs=;
+	h=Date:To:From:Subject:Message-Id; b=g266KDiCgLOOm+hJm1ClN1Gf16vId5omsnb4NHPVAym8kvYVZFlVzuV5W8kSA2YbeIQ+stsVWvRrTME4Yw4wKM9Mi1PkSRFwlIbdo1/aGZxNuOID7ByAWQpN/FerjdhUkPvtMkaWq41/2nEJgKYgfdJlysuAHyWqkVrGLxbFk0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFqj4WY5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bigezp8j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B448C4CEC3;
-	Wed,  9 Oct 2024 20:44:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFqj4WY5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23F78C4CEC3;
+	Wed,  9 Oct 2024 20:45:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728506662;
-	bh=4QG8+EjoMdAnt2g0kq/HsZDrhXMjcnOQCvuWTK9m+v0=;
+	s=korg; t=1728506741;
+	bh=kiczniQsM1qIQbgLoIDGLhFhz2ivKWghjVKIyVHIkIs=;
 	h=Date:To:From:Subject:From;
-	b=Bigezp8jl+GsZsMNvAEJkD9u78Aum2dkPPDDPsj87ni9WOOq0s51QR1THm8Y0Elsc
-	 mDoHkpsjsktNcTbMM1HXrgq5U1IU6aBB3ce0cyPcISKqGbYJ3RNvyHp4cSOgMqDapF
-	 sROSf6CbrcLtu8RyAb42YIiEhgSVbDWGdva6KFqA=
-Date: Wed, 09 Oct 2024 13:44:21 -0700
-To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,leonchien@synology.com,greentime.hu@sifive.com,andybnac@gmail.com,akpm@linux-foundation.org
+	b=CFqj4WY5necAqtdejbATRc3UrRTKfqlH+SQEjiTGJc2qAGAqL5t4N5+Mi8Vo7ERq8
+	 1acIoaGQPR49mDKzO4DTaKv4ofqrAX0Y/RtX0jyxckvPWtb29GcCTuYEYyCBh8bQO1
+	 jm4cJKHI5hJl9aBYYSQE7pyLN6n63LbUoXrH3Rdg=
+Date: Wed, 09 Oct 2024 13:45:40 -0700
+To: mm-commits@vger.kernel.org,ilpo.jarvinen@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-an-entry-for-andy-chiu.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241009204422.0B448C4CEC3@smtp.kernel.org>
+Subject: + resource-correct-reallocate_resource-documentation.patch added to mm-nonmm-unstable branch
+Message-Id: <20241009204541.23F78C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add an entry for Andy Chiu
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-an-entry-for-andy-chiu.patch
+     Subject: resource: correct reallocate_resource() documentation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     resource-correct-reallocate_resource-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-entry-for-andy-chiu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-correct-reallocate_resource-documentation.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Chiu <andybnac@gmail.com>
-Subject: mailmap: add an entry for Andy Chiu
-Date: Wed, 9 Oct 2024 22:49:34 +0800
+From: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Subject: resource: correct reallocate_resource() documentation
+Date: Wed, 9 Oct 2024 15:57:51 +0300
 
-Map my outdated addresses within mailmap.
+reallocate_resource() documentation claims constraint is about "the size
+and alignment" but the size is provided in another parameter.  Instead of
+size, constraint has the allowed memory range (min, max) so change the
+wording to reflect that.
 
-Link: https://lkml.kernel.org/r/20241009144934.43027-1-andybnac@gmail.com
-Signed-off-by: Andy Chiu <andybnac@gmail.com>
-Cc: Greentime Hu <greentime.hu@sifive.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Leon Chien <leonchien@synology.com>
+Link: https://lkml.kernel.org/r/20241009125751.8090-1-ilpo.jarvinen@linux.intel.com
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-an-entry-for-andy-chiu
-+++ a/.mailmap
-@@ -73,6 +73,8 @@ Andrey Ryabinin <ryabinin.a.a@gmail.com>
- Andrzej Hajda <andrzej.hajda@intel.com> <a.hajda@samsung.com>
- André Almeida <andrealmeid@igalia.com> <andrealmeid@collabora.com>
- Andy Adamson <andros@citi.umich.edu>
-+Andy Chiu <andybnac@gmail.com> <andy.chiu@sifive.com>
-+Andy Chiu <andybnac@gmail.com> <taochiu@synology.com>
- Andy Shevchenko <andy@kernel.org> <andy@smile.org.ua>
- Andy Shevchenko <andy@kernel.org> <ext-andriy.shevchenko@nokia.com>
- Anilkumar Kolli <quic_akolli@quicinc.com> <akolli@codeaurora.org>
+--- a/kernel/resource.c~resource-correct-reallocate_resource-documentation
++++ a/kernel/resource.c
+@@ -740,7 +740,7 @@ EXPORT_SYMBOL_GPL(find_resource_space);
+  * @root: root resource descriptor
+  * @old:  resource descriptor desired by caller
+  * @newsize: new size of the resource descriptor
+- * @constraint: the size and alignment constraints to be met.
++ * @constraint: the memory range and alignment constraints to be met.
+  */
+ static int reallocate_resource(struct resource *root, struct resource *old,
+ 			       resource_size_t newsize,
 _
 
-Patches currently in -mm which might be from andybnac@gmail.com are
+Patches currently in -mm which might be from ilpo.jarvinen@linux.intel.com are
 
-mailmap-add-an-entry-for-andy-chiu.patch
+resource-correct-reallocate_resource-documentation.patch
 
