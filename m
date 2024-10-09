@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C3E537FF
-	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:28:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12EEB1A2544
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:28:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728505713; cv=none; b=gDSnQAbfTxlaesk6pmQOxH5xMKRLUnBhswI2arHQM+EocJETLDes4gTEhtuE+Kc0Zyk44Lu75ykGzxPmrmhP++vj+Z/ZxMKkaLS+8eQg0ulQjMRtPHej7kR/6GMsnIe7E0HfX7+JlL+yyiG2uTlHyBppbBTQoNT5tjLpcNsRhPY=
+	t=1728505716; cv=none; b=odIBlzz1FmL8ifL5LGr6YM/LRliAMdefvj/xeWhiBYgzC2TvQEdAeh4vjDuNKVq/lHWEgSZ6cWotKMwE6U5T3r+kqFfeTlfe58vMgJZhzWyoVIOKb6CgAzXdTQitOlUhI0Mh20K5wy8n8GWwIzDIYCtj9S9kzUE6wU32byuhiQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728505713; c=relaxed/simple;
-	bh=zRUwz9bIjg7iEZDNqU8b+G33iIaGh9scI8aBJqGQbaA=;
-	h=Date:To:From:Subject:Message-Id; b=WaY/aeqq2qj+rGx/8/BpiQsCYuvGLrUA2fnhBseINPtXr2t9igNR/LJDw9Fgbbfi8LpSr3hesd7Vwo/i7rxScgJHHAGItH3x/+N0W4cTvqexk65xHANO9HElhl662F6RHBmvrzkdd3hpCrDMqEo7gPnCeYhuiHpldCmF2Z71pqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PUMTL7Y2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728505716; c=relaxed/simple;
+	bh=LznZIdfarJxhVBIveKDwdBz91Lw1kb5sMTbxvhfvq2g=;
+	h=Date:To:From:Subject:Message-Id; b=S7sUKp9LG/DUWr+x39YrHUfIeqOuBhQDz7f0WNgxPUdNNpbb617z+wQbM7s6KLalCRXIdYq8gp8HiHyykgj5y8YlVcIpN/bcZD6UvL+gO7zR7KFrIZby8DQm94Wtl3pLqu5qPvgMhPNfTuDBkPFxhj3QGZhWrx7N8KViczXzp9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIRVKh8x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PUMTL7Y2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B28ABC4CEC3;
-	Wed,  9 Oct 2024 20:28:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIRVKh8x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9F55C4CEC3;
+	Wed,  9 Oct 2024 20:28:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728505712;
-	bh=zRUwz9bIjg7iEZDNqU8b+G33iIaGh9scI8aBJqGQbaA=;
+	s=korg; t=1728505715;
+	bh=LznZIdfarJxhVBIveKDwdBz91Lw1kb5sMTbxvhfvq2g=;
 	h=Date:To:From:Subject:From;
-	b=PUMTL7Y2GhoqnXTyun4Mc9jgAVObfQaavtFfFBSm9xNIECaR+4aNnkEB7fsEeeBuA
-	 9a906t9Q5xfxaORmfw0Qv82T59sKKpsvd9S5lxlRlfxujn2GhN+03LUlrquXE3JpnH
-	 48VPvb6o+Er5SUab6F37dqxMzGZmYT266UvCOIpI=
-Date: Wed, 09 Oct 2024 13:28:32 -0700
+	b=zIRVKh8x1HSKxu/GQ8K2+iALnV1T1XGjj3pNCt0XVMTggXyQl8RZbjodqy5kjzXEj
+	 eUrhHKnOghNLBC5Pe6qRDl5XxWOuPHAuoODERt/RQZTm6ZTPKicKVM4aHoXWX6VIL9
+	 8hOQO+ra2pTEFkLAK2OfBK0y2act63I7duWug+/8=
+Date: Wed, 09 Oct 2024 13:28:35 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,urezki@gmail.com,tsbogend@alpha.franken.de,tglx@linutronix.de,song@kernel.org,shorne@gmail.com,rostedt@goodmis.org,richard@nod.at,peterz@infradead.org,palmer@dabbelt.com,oleg@redhat.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mattst88@gmail.com,mark.rutland@arm.com,luto@kernel.org,linux@armlinux.org.uk,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hch@infradead.org,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,bcain@quicinc.com,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + module-prepare-to-handle-rox-allocations-for-text.patch added to mm-unstable branch
-Message-Id: <20241009202832.B28ABC4CEC3@smtp.kernel.org>
+Subject: + arch-introduce-set_direct_map_valid_noflush.patch added to mm-unstable branch
+Message-Id: <20241009202835.C9F55C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: module: prepare to handle ROX allocations for text
+     Subject: arch: introduce set_direct_map_valid_noflush()
 has been added to the -mm mm-unstable branch.  Its filename is
-     module-prepare-to-handle-rox-allocations-for-text.patch
+     arch-introduce-set_direct_map_valid_noflush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/module-prepare-to-handle-rox-allocations-for-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-introduce-set_direct_map_valid_noflush.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: module: prepare to handle ROX allocations for text
-Date: Wed, 9 Oct 2024 21:08:12 +0300
+Subject: arch: introduce set_direct_map_valid_noflush()
+Date: Wed, 9 Oct 2024 21:08:13 +0300
 
-In order to support ROX allocations for module text, it is necessary to
-handle modifications to the code, such as relocations and alternatives
-patching, without write access to that memory.
+Add an API that will allow updates of the direct/linear map for a set of
+physically contiguous pages.
 
-One option is to use text patching, but this would make module loading
-extremely slow and will expose executable code that is not finally formed.
+It will be used in the following patches.
 
-A better way is to have memory allocated with ROX permissions contain
-invalid instructions and keep a writable, but not executable copy of the
-module text.  The relocations and alternative patches would be done on the
-writable copy using the addresses of the ROX memory.  Once the module is
-completely ready, the updated text will be copied to ROX memory using text
-patching in one go and the writable copy will be freed.
-
-Add support for that to module initialization code and provide necessary
-interfaces in execmem.
-
-Link: https://lkml.kernel.org/r/20241009180816.83591-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20241009180816.83591-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -124,282 +112,187 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/execmem.h      |   23 +++++++++
- include/linux/module.h       |   11 ++++
- include/linux/moduleloader.h |    4 +
- kernel/module/main.c         |   77 ++++++++++++++++++++++++++++++---
- kernel/module/strict_rwx.c   |    3 +
- mm/execmem.c                 |   11 ++++
- 6 files changed, 122 insertions(+), 7 deletions(-)
+ arch/arm64/include/asm/set_memory.h     |    1 +
+ arch/arm64/mm/pageattr.c                |   10 ++++++++++
+ arch/loongarch/include/asm/set_memory.h |    1 +
+ arch/loongarch/mm/pageattr.c            |   19 +++++++++++++++++++
+ arch/riscv/include/asm/set_memory.h     |    1 +
+ arch/riscv/mm/pageattr.c                |   15 +++++++++++++++
+ arch/s390/include/asm/set_memory.h      |    1 +
+ arch/s390/mm/pageattr.c                 |   11 +++++++++++
+ arch/x86/include/asm/set_memory.h       |    1 +
+ arch/x86/mm/pat/set_memory.c            |    8 ++++++++
+ include/linux/set_memory.h              |    6 ++++++
+ 11 files changed, 74 insertions(+)
 
---- a/include/linux/execmem.h~module-prepare-to-handle-rox-allocations-for-text
-+++ a/include/linux/execmem.h
-@@ -46,9 +46,11 @@ enum execmem_type {
- /**
-  * enum execmem_range_flags - options for executable memory allocations
-  * @EXECMEM_KASAN_SHADOW:	allocate kasan shadow
-+ * @EXECMEM_ROX_CACHE:		allocations should use ROX cache of huge pages
-  */
- enum execmem_range_flags {
- 	EXECMEM_KASAN_SHADOW	= (1 << 0),
-+	EXECMEM_ROX_CACHE	= (1 << 1),
- };
+--- a/arch/arm64/include/asm/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/arm64/include/asm/set_memory.h
+@@ -13,6 +13,7 @@ int set_memory_valid(unsigned long addr,
  
- /**
-@@ -123,6 +125,27 @@ void *execmem_alloc(enum execmem_type ty
-  */
- void execmem_free(void *ptr);
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
  
-+/**
-+ * execmem_update_copy - copy an update to executable memory
-+ * @dst:  destination address to update
-+ * @src:  source address containing the data
-+ * @size: how many bytes of memory shold be copied
-+ *
-+ * Copy @size bytes from @src to @dst using text poking if the memory at
-+ * @dst is read-only.
-+ *
-+ * Return: a pointer to @dst or NULL on error
-+ */
-+void *execmem_update_copy(void *dst, const void *src, size_t size);
-+
-+/**
-+ * execmem_is_rox - check if execmem is read-only
-+ * @type - the execmem type to check
-+ *
-+ * Return: %true if the @type is read-only, %false if it's writable
-+ */
-+bool execmem_is_rox(enum execmem_type type);
-+
- #if defined(CONFIG_EXECMEM) && !defined(CONFIG_ARCH_WANTS_EXECMEM_LATE)
- void execmem_init(void);
- #else
---- a/include/linux/module.h~module-prepare-to-handle-rox-allocations-for-text
-+++ a/include/linux/module.h
-@@ -367,6 +367,8 @@ enum mod_mem_type {
- 
- struct module_memory {
- 	void *base;
-+	void *rw_copy;
-+	bool is_rox;
- 	unsigned int size;
- 
- #ifdef CONFIG_MODULES_TREE_LOOKUP
-@@ -374,6 +376,15 @@ struct module_memory {
- #endif
- };
- 
-+#ifdef CONFIG_MODULES
-+void *module_writable_address(struct module *mod, void *loc);
-+#else
-+static inline void *module_writable_address(struct module *mod, void *loc)
-+{
-+	return loc;
-+}
-+#endif
-+
- #ifdef CONFIG_MODULES_TREE_LOOKUP
- /* Only touch one cacheline for common rbtree-for-core-layout case. */
- #define __module_memory_align ____cacheline_aligned
---- a/include/linux/moduleloader.h~module-prepare-to-handle-rox-allocations-for-text
-+++ a/include/linux/moduleloader.h
-@@ -108,6 +108,10 @@ int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
- 		    struct module *mod);
- 
-+int module_post_finalize(const Elf_Ehdr *hdr,
-+			 const Elf_Shdr *sechdrs,
-+			 struct module *mod);
-+
- #ifdef CONFIG_MODULES
- void flush_module_init_free_work(void);
- #else
---- a/kernel/module/main.c~module-prepare-to-handle-rox-allocations-for-text
-+++ a/kernel/module/main.c
-@@ -1189,6 +1189,21 @@ void __weak module_arch_freeing_init(str
- {
+ #endif /* _ASM_ARM64_SET_MEMORY_H */
+--- a/arch/arm64/mm/pageattr.c~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/arm64/mm/pageattr.c
+@@ -192,6 +192,16 @@ int set_direct_map_default_noflush(struc
+ 				   PAGE_SIZE, change_page_range, &data);
  }
  
-+void *module_writable_address(struct module *mod, void *loc)
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
 +{
-+	if (!mod)
-+		return loc;
++	unsigned long addr = (unsigned long)page_address(page);
 +
-+	for_class_mod_mem_type(type, text) {
-+		struct module_memory *mem = &mod->mem[type];
++	if (!can_set_direct_map())
++		return 0;
 +
-+		if (loc >= mem->base && loc < mem->base + mem->size)
-+			return loc + (mem->rw_copy - mem->base);
-+	}
-+
-+	return loc;
++	return set_memory_valid(addr, nr, valid);
 +}
 +
- static int module_memory_alloc(struct module *mod, enum mod_mem_type type)
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
  {
- 	unsigned int size = PAGE_ALIGN(mod->mem[type].size);
-@@ -1206,6 +1221,23 @@ static int module_memory_alloc(struct mo
- 	if (!ptr)
- 		return -ENOMEM;
+--- a/arch/loongarch/include/asm/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/loongarch/include/asm/set_memory.h
+@@ -17,5 +17,6 @@ int set_memory_rw(unsigned long addr, in
+ bool kernel_page_present(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
+ int set_direct_map_invalid_noflush(struct page *page);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
  
-+	mod->mem[type].base = ptr;
+ #endif /* _ASM_LOONGARCH_SET_MEMORY_H */
+--- a/arch/loongarch/mm/pageattr.c~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/loongarch/mm/pageattr.c
+@@ -216,3 +216,22 @@ int set_direct_map_invalid_noflush(struc
+ 
+ 	return __set_memory(addr, 1, __pgprot(0), __pgprot(_PAGE_PRESENT | _PAGE_VALID));
+ }
 +
-+	if (execmem_is_rox(execmem_type)) {
-+		ptr = vzalloc(size);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
++{
++	unsigned long addr = (unsigned long)page_address(page);
++	pgprot_t set, clear;
 +
-+		if (!ptr) {
-+			execmem_free(mod->mem[type].base);
-+			return -ENOMEM;
-+		}
++	if (addr < vm_map_base)
++		return 0;
 +
-+		mod->mem[type].rw_copy = ptr;
-+		mod->mem[type].is_rox = true;
++	if (valid) {
++		set = PAGE_KERNEL;
++		clear = __pgprot(0);
 +	} else {
-+		mod->mem[type].rw_copy = mod->mem[type].base;
-+		memset(mod->mem[type].base, 0, size);
++		set = __pgprot(0);
++		clear = __pgprot(_PAGE_PRESENT | _PAGE_VALID);
 +	}
 +
- 	/*
- 	 * The pointer to these blocks of memory are stored on the module
- 	 * structure and we keep that around so long as the module is
-@@ -1219,16 +1251,17 @@ static int module_memory_alloc(struct mo
- 	 */
- 	kmemleak_not_leak(ptr);
++	return __set_memory(addr, 1, set, clear);
++}
+--- a/arch/riscv/include/asm/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/riscv/include/asm/set_memory.h
+@@ -42,6 +42,7 @@ static inline int set_kernel_memory(char
  
--	memset(ptr, 0, size);
--	mod->mem[type].base = ptr;
--
- 	return 0;
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
+ 
+ #endif /* __ASSEMBLY__ */
+--- a/arch/riscv/mm/pageattr.c~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/riscv/mm/pageattr.c
+@@ -386,6 +386,21 @@ int set_direct_map_default_noflush(struc
+ 			    PAGE_KERNEL, __pgprot(_PAGE_EXEC));
  }
  
- static void module_memory_free(struct module *mod, enum mod_mem_type type,
- 			       bool unload_codetags)
- {
--	void *ptr = mod->mem[type].base;
-+	struct module_memory *mem = &mod->mem[type];
-+	void *ptr = mem->base;
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
++{
++	pgprot_t set, clear;
 +
-+	if (mem->is_rox)
-+		vfree(mem->rw_copy);
++	if (valid) {
++		set = PAGE_KERNEL;
++		clear = __pgprot(_PAGE_EXEC);
++	} else {
++		set = __pgprot(0);
++		clear = __pgprot(_PAGE_PRESENT);
++	}
++
++	return __set_memory((unsigned long)page_address(page), nr, set, clear);
++}
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ static int debug_pagealloc_set_page(pte_t *pte, unsigned long addr, void *data)
+ {
+--- a/arch/s390/include/asm/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/s390/include/asm/set_memory.h
+@@ -62,5 +62,6 @@ __SET_MEMORY_FUNC(set_memory_4k, SET_MEM
  
- 	if (!unload_codetags && mod_mem_type_is_core_data(type))
- 		return;
-@@ -2251,6 +2284,7 @@ static int move_module(struct module *mo
- 	for_each_mod_mem_type(type) {
- 		if (!mod->mem[type].size) {
- 			mod->mem[type].base = NULL;
-+			mod->mem[type].rw_copy = NULL;
- 			continue;
- 		}
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
  
-@@ -2267,11 +2301,14 @@ static int move_module(struct module *mo
- 		void *dest;
- 		Elf_Shdr *shdr = &info->sechdrs[i];
- 		enum mod_mem_type type = shdr->sh_entsize >> SH_ENTSIZE_TYPE_SHIFT;
-+		unsigned long offset = shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK;
-+		unsigned long addr;
+ #endif
+--- a/arch/s390/mm/pageattr.c~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/s390/mm/pageattr.c
+@@ -406,6 +406,17 @@ int set_direct_map_default_noflush(struc
+ 	return __set_memory((unsigned long)page_to_virt(page), 1, SET_MEMORY_DEF);
+ }
  
- 		if (!(shdr->sh_flags & SHF_ALLOC))
- 			continue;
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
++{
++	unsigned long flags;
++
++	if (valid)
++		flags = SET_MEMORY_DEF;
++	else
++		flags = SET_MEMORY_INV;
++
++	return __set_memory((unsigned long)page_to_virt(page), nr, flags);
++}
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_KFENCE)
  
--		dest = mod->mem[type].base + (shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK);
-+		addr = (unsigned long)mod->mem[type].base + offset;
-+		dest = mod->mem[type].rw_copy + offset;
+ static void ipte_range(pte_t *pte, unsigned long address, int nr)
+--- a/arch/x86/include/asm/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/x86/include/asm/set_memory.h
+@@ -89,6 +89,7 @@ int set_pages_rw(struct page *page, int
  
- 		if (shdr->sh_type != SHT_NOBITS) {
- 			/*
-@@ -2293,7 +2330,7 @@ static int move_module(struct module *mo
- 		 * users of info can keep taking advantage and using the newly
- 		 * minted official memory area.
- 		 */
--		shdr->sh_addr = (unsigned long)dest;
-+		shdr->sh_addr = addr;
- 		pr_debug("\t0x%lx 0x%.8lx %s\n", (long)shdr->sh_addr,
- 			 (long)shdr->sh_size, info->secstrings + shdr->sh_name);
- 	}
-@@ -2441,8 +2478,17 @@ int __weak module_finalize(const Elf_Ehd
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
+ 
+ extern int kernel_set_to_readonly;
+--- a/arch/x86/mm/pat/set_memory.c~arch-introduce-set_direct_map_valid_noflush
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -2444,6 +2444,14 @@ int set_direct_map_default_noflush(struc
+ 	return __set_pages_p(page, 1);
+ }
+ 
++int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
++{
++	if (valid)
++		return __set_pages_p(page, nr);
++
++	return __set_pages_np(page, nr);
++}
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+--- a/include/linux/set_memory.h~arch-introduce-set_direct_map_valid_noflush
++++ a/include/linux/set_memory.h
+@@ -34,6 +34,12 @@ static inline int set_direct_map_default
  	return 0;
  }
  
-+int __weak module_post_finalize(const Elf_Ehdr *hdr,
-+				const Elf_Shdr *sechdrs,
-+				struct module *me)
++static inline int set_direct_map_valid_noflush(struct page *page,
++					       unsigned nr, bool valid)
 +{
 +	return 0;
 +}
 +
- static int post_relocation(struct module *mod, const struct load_info *info)
+ static inline bool kernel_page_present(struct page *page)
  {
-+	int ret;
-+
- 	/* Sort exception table now relocations are done. */
- 	sort_extable(mod->extable, mod->extable + mod->num_exentries);
- 
-@@ -2454,7 +2500,24 @@ static int post_relocation(struct module
- 	add_kallsyms(mod, info);
- 
- 	/* Arch-specific module finalizing. */
--	return module_finalize(info->hdr, info->sechdrs, mod);
-+	ret = module_finalize(info->hdr, info->sechdrs, mod);
-+	if (ret)
-+		return ret;
-+
-+	for_each_mod_mem_type(type) {
-+		struct module_memory *mem = &mod->mem[type];
-+
-+		if (mem->is_rox) {
-+			if (!execmem_update_copy(mem->base, mem->rw_copy,
-+						 mem->size))
-+				return -ENOMEM;
-+
-+			vfree(mem->rw_copy);
-+			mem->rw_copy = NULL;
-+		}
-+	}
-+
-+	return module_post_finalize(info->hdr, info->sechdrs, mod);
- }
- 
- /* Call module constructors. */
---- a/kernel/module/strict_rwx.c~module-prepare-to-handle-rox-allocations-for-text
-+++ a/kernel/module/strict_rwx.c
-@@ -34,6 +34,9 @@ int module_enable_text_rox(const struct
- 	for_class_mod_mem_type(type, text) {
- 		int ret;
- 
-+		if (mod->mem[type].is_rox)
-+			continue;
-+
- 		if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
- 			ret = module_set_memory(mod, type, set_memory_rox);
- 		else
---- a/mm/execmem.c~module-prepare-to-handle-rox-allocations-for-text
-+++ a/mm/execmem.c
-@@ -10,6 +10,7 @@
- #include <linux/vmalloc.h>
- #include <linux/execmem.h>
- #include <linux/moduleloader.h>
-+#include <linux/text-patching.h>
- 
- static struct execmem_info *execmem_info __ro_after_init;
- static struct execmem_info default_execmem_info __ro_after_init;
-@@ -69,6 +70,16 @@ void execmem_free(void *ptr)
- 	vfree(ptr);
- }
- 
-+void *execmem_update_copy(void *dst, const void *src, size_t size)
-+{
-+	return text_poke_copy(dst, src, size);
-+}
-+
-+bool execmem_is_rox(enum execmem_type type)
-+{
-+	return !!(execmem_info->ranges[type].flags & EXECMEM_ROX_CACHE);
-+}
-+
- static bool execmem_validate(struct execmem_info *info)
- {
- 	struct execmem_range *r = &info->ranges[EXECMEM_DEFAULT];
+ 	return true;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
