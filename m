@@ -1,95 +1,118 @@
-Received: from cvs.openbsd.org (cvs.openbsd.org [199.185.137.3])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6C5A18C922
-	for <mm-commits@vger.kernel.org>; Tue,  8 Oct 2024 19:02:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.185.137.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C402B161313
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:19:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728414124; cv=none; b=kVPnwrQd04tWXqN0RuY/Bbew1W2JDKqVOdRWu5a8uL+0argKNawkNsNoJmE334Gy2gz7vClFLtrHtettFr0jQ2NfypE6LWy+x5H+8Kzs4Vyraeu4g5TPi8y6E0daV0eWR+HiDVpkHZu0wxQIZDnDOOeIPK74lb8V27fyFswyHcg=
+	t=1728505183; cv=none; b=d/xexWqdT6iLJxg7ZBUoo0zChn+bGzroU9nPA3sXSaiIGM400NtvnD+g+mVGRjZqzaQV59U0lsJuqbJoEdET0szQi4wFmorGEbrzRjSLbWxhnBY1VZ3B0Dj789YU8ByCTHA/xhDpyen9rMdWspzDT1bo6suHVStK8PdlMpSoY6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728414124; c=relaxed/simple;
-	bh=VqTJu6nBJJ/x6+p0lAUlNwzdQ46rpyqDXHAPpE2hk+c=;
-	h=From:Date:To:Subject:Message-ID; b=niHkZbbFD/amzYK7Sc7+nqH/OiZpol11H+88cBPwqmt+tgFuE/ykDU3BMt0IRUIi22VbzA6zeG3JreeAIeXlJWTdDxjXtNM6pWuLWNe1ZDWHl/q9BhGHyZeGWr4o29M6fbHBUdZmiYaIAcAWYtRMmhOlOm9GIi4YMKshhno3Mk0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=cvs.openbsd.org; spf=pass smtp.mailfrom=openbsd.org; dkim=pass (2048-bit key) header.d=openbsd.org header.i=@openbsd.org header.b=L4rOTmHJ; arc=none smtp.client-ip=199.185.137.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=cvs.openbsd.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=openbsd.org
+	s=arc-20240116; t=1728505183; c=relaxed/simple;
+	bh=Lh8d+z+bH0e2qQTf9hARTXhD87X5SV2wF8v/RO3nsKY=;
+	h=Date:To:From:Subject:Message-Id; b=jLobmx2OipLCHU2fgo23LUWcHkO2iZBrYZ9wwsm5ZPFs8S+ld40DHy14DA6SyiWA4ri8tN9Y0HTqly/b8bm6dUUYxg4C236siORotHTsN9MBGTG9X9X+hMlHKKZvi7wpDVwEcJGvvwvYSTDAcgzLHUma1Vj0vxT2gW/lVxscmQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QePqy/kE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=openbsd.org header.i=@openbsd.org header.b="L4rOTmHJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; s=selector1; bh=VqTJu6nBJJ
-	/x6+p0lAUlNwzdQ46rpyqDXHAPpE2hk+c=; h=subject:to:date:from;
-	d=openbsd.org; b=L4rOTmHJK9dKvLN6FXLrOtqKIKFk+Y7G52zPt1jmvq+JigsmBd4WK
-	J9tKp5FSYuGwe3tRAVlHjVtF7OM/TN977nvkZpv6++T6LrwHY/8pb3ByqJ4RF3jVj8/LST
-	/oPEjh8x1amemTZf8wOXjyDVX/FQOxyKK8Sn7rRmi2rgN2QeVsmbaAwx31zYMCopLCrqnK
-	GPIXpBd00A1uf20qlGrWdi9nleGY9Wx/6Zw1+QNnKMd16GqAbyzp38JAzrcjJTJr1Su8Rz
-	qxJLM5XIjEONCZsy+28Q6AJGoehkGQlqVH1UpX8mdndnDdUW2s8DpGanQDimDXof8z4ocS
-	aFIRb9cQA==
-Received: from localhost (cvs.openbsd.org [local])
-	by cvs.openbsd.org (OpenSMTPD) with ESMTPA id e9ee96de;
-	Tue, 8 Oct 2024 13:01:54 -0600 (MDT)
-From: Theo de Raadt <deraadt@cvs.openbsd.org>
-Date: Tue, 8 Oct 2024 13:01:54 -0600 (MDT)
-To: akpm@linux-foundation.org, corbet@lwn.net, deraadt@openbsd.org,
-    enh@google.com, gregkh@linuxfoundation.org, groeck@chromium.org,
-    jannh@google.com, jeffxu@chromium.org, jorgelo@chromium.org,
-    keescook@chromium.org, Liam.Howlett@oracle.com,
-    lorenzo.stoakes@oracle.com, mm-commits@vger.kernel.org,
-    pedro.falcato@gmail.com, rdunlap@infradead.org,
-    sroettger@google.com, surenb@google.com,
-    torvalds@linux-foundation.org, usama.anjum@collabora.com,
-    willy@infradead.org
-Subject: Re: + mseal-update-msealrst.patch added to mm-hotfixes-unstable branch
-Message-ID: <f3c123e0624a07e0@cvs.openbsd.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QePqy/kE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AF4C4CEC3;
+	Wed,  9 Oct 2024 20:19:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1728505183;
+	bh=Lh8d+z+bH0e2qQTf9hARTXhD87X5SV2wF8v/RO3nsKY=;
+	h=Date:To:From:Subject:From;
+	b=QePqy/kEd9pCJ10fcDHt1YgkjPdgaLtudBsT2ulOgaV8Ianrjy4HJholHj1EzlnNG
+	 4bXuG8Tin+UkXjleYVgItmU+nUe1cRkPCJsiNxOSsddpV00eDNQS9xH93P6OIlAZhP
+	 EmQssZcPH7OnqqvOPz/ze2w+SwuMwtIg7/uU4fps=
+Date: Wed, 09 Oct 2024 13:19:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + maintainers-add-memory-mapping-vma-co-maintainers.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241009201943.46AF4C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
->-Additional notes:
->-=================
-> As Jann Horn pointed out in [3], there are still a few ways to write
->-to RO memory, which is, in a way, by design. Those cases are not covered
->-by mseal(). If applications want to block such cases, sandbox tools (such as
->-seccomp, LSM, etc) might be considered.
->+to RO memory, which is, in a way, by design. And those could be blocked
->+by different security measures.
-> 
-> Those cases are:
-> 
->-- Write to read-only memory through /proc/self/mem interface.
->-- Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
->-- userfaultfd.
->+   - Write to read-only memory through /proc/self/mem interface (FOLL_FORCE).
->+   - Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
->+   - userfaultfd.
 
-This block of notes keeps bothering me, because I've encountered a bunch
-of people who walk away with "oh but what's the purpose of this thing then
-it is useless".
+The patch titled
+     Subject: MAINTAINERS: add memory mapping/VMA co-maintainers
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-memory-mapping-vma-co-maintainers.patch
 
-mimmutable and mseal are about restricting playing with the permission of
-the *MAPPING* of memory, not about restricting the memory itself.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-memory-mapping-vma-co-maintainers.patch
 
-If it is going to remain, should it also say?
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-   - Write to a non-readonly mapping of the same memory object shared
-     by a a different process, or shared to a different address in the
-     same process, which is not read-only  (and this is a thing many
-     older JIT do)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-To wit, this is not because of mseal.  It is not because of the mapping
-of the memory.  It is not because of the mapping of the memory.  It is
-because a different interface to reach the same memory can always act.
-It is because the permissions on one mapping obviously do not apply to
-another mapping or access method.  Permissions apply to mappings, not to
-memory.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-A note: many decades ago, the Sun / CSRG named these calls mmap, munmap,
-and mprotect.  The word "map" in mmap suggests the leading "m" is "memory".
-With mprotect this gets confusing, because with shared mappings on the
-same memory, it does not protect the memory, only the access via the
-mapping region. "mseal" and "mimmutable" fall into the same catagory
-where "m" refers to "mapping", not to "memory"; memory is actual bits
-and bytes which may be mapped twice or more in circumstances.
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
+------------------------------------------------------
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add memory mapping/VMA co-maintainers
+Date: Wed, 9 Oct 2024 21:10:32 +0100
+
+Add myself and Liam as co-maintainers of the memory mapping and VMA code
+alongside Andrew as we are heavily involved in its implementation and
+maintenance.
+
+Link: https://lkml.kernel.org/r/20241009201032.6130-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/MAINTAINERS~maintainers-add-memory-mapping-vma-co-maintainers
++++ a/MAINTAINERS
+@@ -14913,9 +14913,9 @@ N:	include/linux/page[-_]*
+ 
+ MEMORY MAPPING
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++M:	Liam R. Howlett <Liam.Howlett@oracle.com>
++M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+-R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+@@ -24728,9 +24728,9 @@ F:	tools/testing/vsock/
+ 
+ VMA
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++M:	Liam R. Howlett <Liam.Howlett@oracle.com>
++M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+-R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	https://www.linux-mm.org
+_
+
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+
+mm-mmap-correct-error-handling-in-mmap_region.patch
+maple_tree-correct-tree-corruption-on-spanning-store.patch
+maple_tree-add-regression-test-for-spanning-store-bug.patch
+maintainers-add-memory-mapping-vma-co-maintainers.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-refactor-mm_access-to-not-return-null-fix.patch
+mm-madvise-unrestrict-process_madvise-for-current-process.patch
+maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
 
