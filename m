@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7DC236D
-	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:45:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1B31E32B1
+	for <mm-commits@vger.kernel.org>; Wed,  9 Oct 2024 20:53:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728506741; cv=none; b=AqJAi77hgkwaukzjYVfzepoKd5ZDP3/IshyxxbDaXUnxYAQ+4VixGcyt5HcUH/CrnEb7ZnuHVGbyH3I+fbkGtVupJspugwReU2R8MDrUEktnMXEP1g/4Se7qw27FzEeMaqRhkf9BEwVXnrnwPOA5WNg7NKZFCQIdzFarDiky6nA=
+	t=1728507209; cv=none; b=Z66RIPLNI4fLoXPfJ1VTQxTEUPOrz+OcapHpQZyFF8wsSGQ+ANALGA/bbfhHpHVyOhuA2tILR9oORghnOai6HZL2fw8QSx5JyX8B4+dFILO3hqJJjzQSR/BluyClrtx3rARMay/0YXadf3Q9sy0mMgAfN/fgdxbiCY/PZXoIrEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728506741; c=relaxed/simple;
-	bh=kiczniQsM1qIQbgLoIDGLhFhz2ivKWghjVKIyVHIkIs=;
-	h=Date:To:From:Subject:Message-Id; b=g266KDiCgLOOm+hJm1ClN1Gf16vId5omsnb4NHPVAym8kvYVZFlVzuV5W8kSA2YbeIQ+stsVWvRrTME4Yw4wKM9Mi1PkSRFwlIbdo1/aGZxNuOID7ByAWQpN/FerjdhUkPvtMkaWq41/2nEJgKYgfdJlysuAHyWqkVrGLxbFk0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFqj4WY5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728507209; c=relaxed/simple;
+	bh=5/X4pyBLmfWvedUFiS0Lg7zuyfT9EH8ORZkO2LAjSeY=;
+	h=Date:To:From:Subject:Message-Id; b=o2FvwbdskSBcmHaRpRpFQ6VC/f+eOEOjm/qBB5N8BTvi9BWuL28o35bT48ys5KTo1ja6g8LPgntJt566eMPFQcIxT55BqJCZ4cOQX7SCduGyNMbhkBAox/xNf5OjUnUaLqwQmuyJtA15unnKezcX8pjX4RvaXCJ0EBXyOww4jzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U37ZeHTm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFqj4WY5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23F78C4CEC3;
-	Wed,  9 Oct 2024 20:45:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U37ZeHTm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE6F1C4CECE;
+	Wed,  9 Oct 2024 20:53:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728506741;
-	bh=kiczniQsM1qIQbgLoIDGLhFhz2ivKWghjVKIyVHIkIs=;
+	s=korg; t=1728507208;
+	bh=5/X4pyBLmfWvedUFiS0Lg7zuyfT9EH8ORZkO2LAjSeY=;
 	h=Date:To:From:Subject:From;
-	b=CFqj4WY5necAqtdejbATRc3UrRTKfqlH+SQEjiTGJc2qAGAqL5t4N5+Mi8Vo7ERq8
-	 1acIoaGQPR49mDKzO4DTaKv4ofqrAX0Y/RtX0jyxckvPWtb29GcCTuYEYyCBh8bQO1
-	 jm4cJKHI5hJl9aBYYSQE7pyLN6n63LbUoXrH3Rdg=
-Date: Wed, 09 Oct 2024 13:45:40 -0700
-To: mm-commits@vger.kernel.org,ilpo.jarvinen@linux.intel.com,akpm@linux-foundation.org
+	b=U37ZeHTmHBBjs/sfE0noesBWLGLRLUl4i1DXbfchdCa2cMzD0YfjXp/OY6RcX+Mtg
+	 G4w0eyGa1Q2yB52WtIlKoW6ab0e1qqj5RqnwBTy5EYneYuY2TP/iSJ1ZN0ZcZ334J3
+	 2+yZGsLnOnr4pFcbDHBRrbVlPdnhZk1MUf9LVsng=
+Date: Wed, 09 Oct 2024 13:53:28 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,zhaoyang.huang@unisoc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-correct-reallocate_resource-documentation.patch added to mm-nonmm-unstable branch
-Message-Id: <20241009204541.23F78C4CEC3@smtp.kernel.org>
+Subject: + mm-throttle-and-inc-min_seq-when-both-page-types-reach-min_nr_gens.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241009205328.BE6F1C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: correct reallocate_resource() documentation
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-correct-reallocate_resource-documentation.patch
+     Subject: mm: throttle and inc min_seq when both page types reach MIN_NR_GENS
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-throttle-and-inc-min_seq-when-both-page-types-reach-min_nr_gens.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-correct-reallocate_resource-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-throttle-and-inc-min_seq-when-both-page-types-reach-min_nr_gens.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Subject: resource: correct reallocate_resource() documentation
-Date: Wed, 9 Oct 2024 15:57:51 +0300
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: throttle and inc min_seq when both page types reach MIN_NR_GENS
+Date: Wed, 9 Oct 2024 15:49:53 +0800
 
-reallocate_resource() documentation claims constraint is about "the size
-and alignment" but the size is provided in another parameter.  Instead of
-size, constraint has the allowed memory range (min, max) so change the
-wording to reflect that.
+The test case of [1] leads to system hang which caused by a local watchdog
+thread starved over 20s on a 5.5GB RAM ANDROID15(v6.6) system.  This
+commit solve the issue by have the reclaimer be throttled and increase
+min_seq if both page types reach MIN_NR_GENS, which may introduce a
+livelock of switching type with holding lruvec->lru_lock.
 
-Link: https://lkml.kernel.org/r/20241009125751.8090-1-ilpo.jarvinen@linux.intel.com
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+[1]
+launch below script 8 times simutanously which allocates 1GB virtual
+memory and access it from user space by each thread.
+$ costmem -c1024000 -b12800 -o0 &
+
+Link: https://lkml.kernel.org/r/20241009074953.608591-1-zhaoyang.huang@unisoc.com
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/kernel/resource.c~resource-correct-reallocate_resource-documentation
-+++ a/kernel/resource.c
-@@ -740,7 +740,7 @@ EXPORT_SYMBOL_GPL(find_resource_space);
-  * @root: root resource descriptor
-  * @old:  resource descriptor desired by caller
-  * @newsize: new size of the resource descriptor
-- * @constraint: the size and alignment constraints to be met.
-+ * @constraint: the memory range and alignment constraints to be met.
-  */
- static int reallocate_resource(struct resource *root, struct resource *old,
- 			       resource_size_t newsize,
+--- a/mm/vmscan.c~mm-throttle-and-inc-min_seq-when-both-page-types-reach-min_nr_gens
++++ a/mm/vmscan.c
+@@ -4387,11 +4387,23 @@ static int scan_folios(struct lruvec *lr
+ 	int remaining = MAX_LRU_BATCH;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!list_empty(list));
+ 
+-	if (get_nr_gens(lruvec, type) == MIN_NR_GENS)
+-		return 0;
++	if (get_nr_gens(lruvec, type) == MIN_NR_GENS) {
++		/*
++		 * throttle for a while and then increase the min_seq since
++		 * both page types reach the limit.
++		 */
++		if (get_nr_gens(lruvec, !type) == MIN_NR_GENS) {
++			spin_unlock_irq(&lruvec->lru_lock);
++			reclaim_throttle(pgdat, VMSCAN_THROTTLE_ISOLATED);
++			spin_lock_irq(&lruvec->lru_lock);
++			try_to_inc_min_seq(lruvec, get_swappiness(lruvec, sc));
++		} else
++			return 0;
++	}
+ 
+ 	gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 
 _
 
-Patches currently in -mm which might be from ilpo.jarvinen@linux.intel.com are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
-resource-correct-reallocate_resource-documentation.patch
+mm-throttle-and-inc-min_seq-when-both-page-types-reach-min_nr_gens.patch
+mm-migrate-lru_refs_mask-bits-in-folio_migrate_flags.patch
+mm-optimization-on-page-allocation-when-cma-enabled.patch
 
