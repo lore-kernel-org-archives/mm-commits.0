@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5657619A2A3
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:46:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 671EB19A2A3
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:49:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728596776; cv=none; b=J5PBXTELeSvJbVvv9DWtM7u6tgEOsXNh/FTwyL3R5dDhPXwUlqbqDWZp/otaiTUGby1KPTbhe8Rglwjz3cPy908+UVF3JAgJUgqboju9PCbzf696eGjHqlq3wWSqpGBwxEYCEBoAUpLEiNkag4Ju3WAoeJzNnQnCdnYTZ20DIQc=
+	t=1728596996; cv=none; b=rYKTzPA/HHyyD3XEGC9KozLzgi5gyryGm6YMnknmSuMiXbqpe5l33+Yw7jV38P39pTkfoIiV+NOJwEzWehBQynC+41p4AnkNqonYvc686Uqkh0G29TSYskMnuCVa4EQQWSB75Pnu54JZVDyiznURWEW3z9/J7gEVYSOrAJKOhW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728596776; c=relaxed/simple;
-	bh=pFgcXliqxHkJi0hwcbSeLi+45hK212qk3AaG0YJghco=;
-	h=Date:To:From:Subject:Message-Id; b=BcpBz9IWI0F6cbJQLQdU7P0tO752mlK5upMW8JlOZB6mD+8+EyCi0ZsgG3gL6pe5fq68WIlRdOrN9nB2YzjQnQ76WiRA/2HHLSJtPQWv2+0ooLpaO3tZS370QwD1wLFU9mmgnQOUh7m+OoYRtbsXF+m+l+6AwO9Rsw5oWbxICLs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yyWAREdC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728596996; c=relaxed/simple;
+	bh=UVfmvLAaXMW3qIM+zvZGsQOO+tiFaj74L6S9ZNolY2w=;
+	h=Date:To:From:Subject:Message-Id; b=qs+tQLdfb3HUFJ8pSqLgPouqrutiUW8cpf1LknZDf2gqQY4EPUY4KA1CG7O10tStOgtThWKqAp+d2BqiUfdIaGs88wjg/CwAwmKmU4dH58RXKhP9XgFuP3s6o3z5v6TbQB8kKY2qqn2xbyilJ+DrOUyuRzmn7mG1CQ4AXzqXlTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k7RjYgpO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yyWAREdC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15E6C4CEC5;
-	Thu, 10 Oct 2024 21:46:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k7RjYgpO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBEB7C4CEC5;
+	Thu, 10 Oct 2024 21:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728596775;
-	bh=pFgcXliqxHkJi0hwcbSeLi+45hK212qk3AaG0YJghco=;
+	s=korg; t=1728596995;
+	bh=UVfmvLAaXMW3qIM+zvZGsQOO+tiFaj74L6S9ZNolY2w=;
 	h=Date:To:From:Subject:From;
-	b=yyWAREdCfr+RoOgCTeNr2phLbpayPrkRGRgF0rYnQDip+BpSTEA4euIk+qLl1iq9r
-	 Ems5e/reWe8IucRtUSDLEiXY0mg163FUfEekD+vLNaGW8TQo84wex5ajV0Yr4dMfQw
-	 k/86pc0QL5DxV+naYyudVFcuidj6gYu5Y9lEEK7s=
-Date: Thu, 10 Oct 2024 14:46:15 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,songmuchun@bytedance.com,rostedt@goodmis.org,roman.gushchin@linux.dev,mhocko@suse.com,inwardvessel@gmail.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=k7RjYgpOkFOlBiv6xpB72geb1klrK88p1kmQKEORFZrvDFb7M1R3+2Ko47r1/XJzT
+	 cg+2/kkK74Qao448+XY/dDqbLemcCAj80xOKR7FjbD1iSPc2CD1LTOxEPcsCJGFtqi
+	 21N0qUBQCoKaDkgIW8SsPoPvjNyYRxWx9WQtHmLc=
+Date: Thu, 10 Oct 2024 14:49:55 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-add-tracing-for-memcg-stat-updates.patch added to mm-unstable branch
-Message-Id: <20241010214615.C15E6C4CEC5@smtp.kernel.org>
+Subject: [to-be-updated] mm-kasan-kmsan-copy_from-to_kernel_nofault.patch removed from -mm tree
+Message-Id: <20241010214955.DBEB7C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,175 +34,172 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: memcg: add tracing for memcg stat updates
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-add-tracing-for-memcg-stat-updates.patch
+The quilt patch titled
+     Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
+has been removed from the -mm tree.  Its filename was
+     mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-add-tracing-for-memcg-stat-updates.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: add tracing for memcg stat updates
-Date: Wed, 9 Oct 2024 17:35:50 -0700
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
+Date: Thu, 10 Oct 2024 18:11:30 +0500
 
-The memcg stats are maintained in rstat infrastructure which provides very
-fast updates side and reasonable read side.  However memcg added plethora
-of stats and made the read side, which is cgroup rstat flush, very slow. 
-To solve that, threshold was added in the memcg stats read side i.e.  no
-need to flush the stats if updates are within the threshold.
+Instrument copy_from_kernel_nofault() with KMSAN for uninitialized kernel
+memory check and copy_to_kernel_nofault() with KASAN, KCSAN to detect the
+memory corruption.
 
-This threshold based improvement worked for sometime but more stats were
-added to memcg and also the read codepath was getting triggered in the
-performance sensitive paths which made threshold based ratelimiting
-ineffective.  We need more visibility into the hot and cold stats i.e. 
-stats with a lot of updates.  Let's add trace to get that visibility.
+syzbot reported that bpf_probe_read_kernel() kernel helper triggered KASAN
+report via kasan_check_range() which is not the expected behaviour as
+copy_from_kernel_nofault() is meant to be a non-faulting helper.
 
-Link: https://lkml.kernel.org/r/20241010003550.3695245-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: JP Kobryn <inwardvessel@gmail.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Solution is, suggested by Marco Elver, to replace KASAN, KCSAN check in
+copy_from_kernel_nofault() with KMSAN detection of copying uninitilaized
+kernel memory.  In copy_to_kernel_nofault() we can retain
+instrument_write() explicitly for the memory corruption instrumentation.
+
+copy_to_kernel_nofault() is tested on x86_64 and arm64 with
+CONFIG_KASAN_SW_TAGS.  On arm64 with CONFIG_KASAN_HW_TAGS, kunit test
+currently fails.  Need more clarification on it.
+
+Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241010131130.2903601-1-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/memcg.h |   59 +++++++++++++++++++++++++++++++++
- mm/memcontrol.c              |   13 ++++++-
- 2 files changed, 70 insertions(+), 2 deletions(-)
+ mm/kasan/kasan_test_c.c |   37 +++++++++++++++++++++++++++++++++++++
+ mm/kmsan/kmsan_test.c   |   17 +++++++++++++++++
+ mm/maccess.c            |   10 ++++++++--
+ 3 files changed, 62 insertions(+), 2 deletions(-)
 
-diff --git a/include/trace/events/memcg.h a/include/trace/events/memcg.h
-new file mode 100644
---- /dev/null
-+++ a/include/trace/events/memcg.h
-@@ -0,0 +1,59 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM memcg
-+
-+#if !defined(_TRACE_MEMCG_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_MEMCG_H
-+
-+#include <linux/memcontrol.h>
-+#include <linux/tracepoint.h>
-+
-+
-+DECLARE_EVENT_CLASS(memcg_rstat,
-+
-+	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+
-+	TP_ARGS(memcg, item, val),
-+
-+	TP_STRUCT__entry(
-+		__field(u64, id)
-+		__field(int, item)
-+		__field(int, val)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->id = cgroup_id(memcg->css.cgroup);
-+		__entry->item = item;
-+		__entry->val = val;
-+	),
-+
-+	TP_printk("memcg_id=%llu item=%d val=%d",
-+		  __entry->id, __entry->item, __entry->val)
-+);
-+
-+DEFINE_EVENT(memcg_rstat, mod_memcg_state,
-+
-+	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+
-+	TP_ARGS(memcg, item, val)
-+);
-+
-+DEFINE_EVENT(memcg_rstat, mod_memcg_lruvec_state,
-+
-+	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+
-+	TP_ARGS(memcg, item, val)
-+);
-+
-+DEFINE_EVENT(memcg_rstat, count_memcg_events,
-+
-+	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+
-+	TP_ARGS(memcg, item, val)
-+);
-+
-+
-+#endif /* _TRACE_MEMCG_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- a/mm/memcontrol.c~memcg-add-tracing-for-memcg-stat-updates
-+++ a/mm/memcontrol.c
-@@ -71,6 +71,10 @@
- 
- #include <linux/uaccess.h>
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/memcg.h>
-+#undef CREATE_TRACE_POINTS
-+
- #include <trace/events/vmscan.h>
- 
- struct cgroup_subsys memory_cgrp_subsys __read_mostly;
-@@ -682,7 +686,9 @@ void __mod_memcg_state(struct mem_cgroup
- 		return;
- 
- 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
--	memcg_rstat_updated(memcg, memcg_state_val_in_pages(idx, val));
-+	val = memcg_state_val_in_pages(idx, val);
-+	memcg_rstat_updated(memcg, val);
-+	trace_mod_memcg_state(memcg, idx, val);
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/kasan/kasan_test_c.c
+@@ -1954,6 +1954,42 @@ static void rust_uaf(struct kunit *test)
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
  }
  
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
-@@ -741,7 +747,9 @@ static void __mod_memcg_lruvec_state(str
- 	/* Update lruvec */
- 	__this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
- 
--	memcg_rstat_updated(memcg, memcg_state_val_in_pages(idx, val));
-+	val = memcg_state_val_in_pages(idx, val);
-+	memcg_rstat_updated(memcg, val);
-+	trace_mod_memcg_lruvec_state(memcg, idx, val);
- 	memcg_stats_unlock();
++static void copy_to_kernel_nofault_oob(struct kunit *test)
++{
++	char *ptr;
++	char buf[128];
++	size_t size = sizeof(buf);
++
++	/* This test currently fails with the HW_TAGS mode.
++	 * The reason is unknown and needs to be investigated. */
++	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++	OPTIMIZER_HIDE_VAR(ptr);
++
++	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS)) {
++		/* Check that the returned pointer is tagged. */
++		KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
++		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
++	}
++
++	/*
++	* We test copy_to_kernel_nofault() to detect corrupted memory that is
++	* being written into the kernel. In contrast, copy_from_kernel_nofault()
++	* is primarily used in kernel helper functions where the source address
++	* might be random or uninitialized. Applying KASAN instrumentation to
++	* copy_from_kernel_nofault() could lead to false positives.
++	* By focusing KASAN checks only on copy_to_kernel_nofault(),
++	* we ensure that only valid memory is written to the kernel,
++	* minimizing the risk of kernel corruption while avoiding
++	* false positives in the reverse case.
++	*/
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(&buf[0], ptr, size));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(ptr, &buf[0], size));
++	kfree(ptr);
++}
++
+ static struct kunit_case kasan_kunit_test_cases[] = {
+ 	KUNIT_CASE(kmalloc_oob_right),
+ 	KUNIT_CASE(kmalloc_oob_left),
+@@ -2027,6 +2063,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(match_all_not_assigned),
+ 	KUNIT_CASE(match_all_ptr_tag),
+ 	KUNIT_CASE(match_all_mem_tag),
++	KUNIT_CASE(copy_to_kernel_nofault_oob),
+ 	KUNIT_CASE(rust_uaf),
+ 	{}
+ };
+--- a/mm/kmsan/kmsan_test.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/kmsan/kmsan_test.c
+@@ -640,6 +640,22 @@ static void test_unpoison_memory(struct
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
  }
  
-@@ -832,6 +840,7 @@ void __count_memcg_events(struct mem_cgr
- 	memcg_stats_lock();
- 	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
- 	memcg_rstat_updated(memcg, count);
-+	trace_count_memcg_events(memcg, idx, count);
- 	memcg_stats_unlock();
++static void test_copy_from_kernel_nofault(struct kunit *test)
++{
++	long ret;
++	char buf[4], src[4];
++	size_t size = sizeof(buf);
++
++	EXPECTATION_UNINIT_VALUE_FN(expect, "copy_from_kernel_nofault");
++	kunit_info(
++		test,
++		"testing copy_from_kernel_nofault with uninitialized memory\n");
++
++	ret = copy_from_kernel_nofault((char *)&buf[0], (char *)&src[0], size);
++	USE(ret);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ static struct kunit_case kmsan_test_cases[] = {
+ 	KUNIT_CASE(test_uninit_kmalloc),
+ 	KUNIT_CASE(test_init_kmalloc),
+@@ -664,6 +680,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_long_origin_chain),
+ 	KUNIT_CASE(test_stackdepot_roundtrip),
+ 	KUNIT_CASE(test_unpoison_memory),
++	KUNIT_CASE(test_copy_from_kernel_nofault),
+ 	{},
+ };
+ 
+--- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/maccess.c
+@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
+ 	return true;
  }
  
++/*
++ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
++ * memory isn't leaked.
++ */
+ #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__get_kernel_nofault(dst, src, type, err_label);		\
++		__get_kernel_nofault(dst, src, type, err_label);	\
++		kmsan_check_memory(src, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -49,7 +54,8 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
+ 
+ #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__put_kernel_nofault(dst, src, type, err_label);		\
++		__put_kernel_nofault(dst, src, type, err_label);	\
++		instrument_write(dst, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-mm-optimize-truncation-of-shadow-entries.patch
-mm-optimize-invalidation-of-shadow-entries.patch
-mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
-memcg-add-tracing-for-memcg-stat-updates.patch
 
