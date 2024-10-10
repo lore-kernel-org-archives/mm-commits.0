@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25EE918C03D;
-	Thu, 10 Oct 2024 20:24:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E26E31CEE8D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 20:41:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728591890; cv=none; b=QDtWiVhm94A+7F3WM86bv6XIJiFNQuQwKlgBtJ/5gkCU+wlAZrNI6VgHU2kNQtUCS8EgMuy7SSqlQX6B7JTImRVJmSGmwHiJxj243vUzcriGFcyJ6yK1jBzc0lfxu8R5W//XdQ0hHzR4haArjixHSj0/6GPxZi0YV9RCOZLymvI=
+	t=1728592906; cv=none; b=eYvzboP3NCHl8PVWwfELt7Ba0/mXhZXFevIaTQH/H9uEKjRuJyjV2H9vrvr/b6jc3L+nLBzkpawRnsfPJbhRafkfHfs89CfM4bu7mF6MDwIC2SjNRadp6SotLM4H9nwrxESUhFLF3haofyAjd+nAwqzIuSPgJnbbeZxjJfOonek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728591890; c=relaxed/simple;
-	bh=IWTNq7fFQedN+BbHAiMQNfXDmX3BvP2UTXL28YTkH5I=;
-	h=Date:To:From:Subject:Message-Id; b=hYucW2MtIOaL+q1dj7N8za0UMIuBEVjp8/9w84nrFOuF4n6cjSOeHLeKmigW8MU7PKX46p2vKoLUbQv8vTrJze7PTs5aXMjEexXvHV3z/L6gBJgHNkq7SK+EHNVp10LRylwdcSBfM0aGbnye9Xs4l82BgjLWKITqWz3RtRjv29Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRgXUFyr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728592906; c=relaxed/simple;
+	bh=rmGh2u0pi6t66/D1rNtbpZJI1z8cELAw8Wq0PibtCXs=;
+	h=Date:To:From:Subject:Message-Id; b=YOT638L91tGk3tWhu6FrLymhvQwKJi0bN5EEUztoOzq2NOG5w5sbx2bAzeZkYiS04hv0O+ovKyNtJ2X+5K9nP08+3kJR9xtw7mpRJNo6yZTzQeB31Ak7//kRAe9DufXnysiaUJcf7RCQhGWsNAjg8xygMeZpkmJAMkSNxy8kcnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ug21vDpP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRgXUFyr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14A8C4CEC5;
-	Thu, 10 Oct 2024 20:24:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ug21vDpP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86124C4CEC5;
+	Thu, 10 Oct 2024 20:41:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728591889;
-	bh=IWTNq7fFQedN+BbHAiMQNfXDmX3BvP2UTXL28YTkH5I=;
+	s=korg; t=1728592905;
+	bh=rmGh2u0pi6t66/D1rNtbpZJI1z8cELAw8Wq0PibtCXs=;
 	h=Date:To:From:Subject:From;
-	b=QRgXUFyrHX24Fquav0YKWSMJaiy9I6IQ9MNcuc3rRYR0XnSAqlP/R1Upm/5nV81BJ
-	 BAFyxNpW6V6CoMfsHVKtut7wn3sQyEOSng0280R8jdYT2uxII0gHnPv4dgTK37jlHa
-	 oG60a4SGnKMwmU0pZzj+KbAG5GXRa2YN7uEZ8z+U=
-Date: Thu, 10 Oct 2024 13:24:48 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=Ug21vDpPvUwNCwxg1U5mUG5sfCZruphtS0AhIrAGxiHFLpl2HmcQLCk6n8hx7JYxd
+	 aY73ZIm/udfrO2e3SN3bFUnXmBscTWiY6GPW/NcD1QmcCfPdhGX7IKynaxkhMdG87W
+	 O4HHP341L6y7sfmZsafmxtpkgBnhkpVy57KtCKnM=
+Date: Thu, 10 Oct 2024 13:41:44 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,kees@ijzerbout.nl,everestkc@everestkc.com.np,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241010202449.A14A8C4CEC5@smtp.kernel.org>
+Subject: + execmem-add-support-for-cache-of-large-rox-pages-fix.patch added to mm-unstable branch
+Message-Id: <20241010204145.86124C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch
+     Subject: mm/execmem: remove logically deadcode in execmem.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     execmem-add-support-for-cache-of-large-rox-pages-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/execmem-add-support-for-cache-of-large-rox-pages-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,52 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
-Date: Thu, 10 Oct 2024 20:53:23 +0800
+From: "Everest K.C." <everestkc@everestkc.com.np>
+Subject: mm/execmem: remove logically deadcode in execmem.c
+Date: Thu, 10 Oct 2024 12:10:58 -0600
 
-The sysfs_target->regions allocated in damon_sysfs_regions_alloc() is not
-freed in damon_sysfs_test_add_targets(), which cause the following memory
-leak, free it to fix it.
+NULL check of variable `area` within the `mas_for_each` loop is
+unnecessary, as the varialbe `area` can never be NULL.  So, the `continue`
+statement inside the if block is never reached.
 
-	unreferenced object 0xffffff80c2a8db80 (size 96):
-	  comm "kunit_try_catch", pid 187, jiffies 4294894363
-	  hex dump (first 32 bytes):
-	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	  backtrace (crc 0):
-	    [<0000000001e3714d>] kmemleak_alloc+0x34/0x40
-	    [<000000008e6835c1>] __kmalloc_cache_noprof+0x26c/0x2f4
-	    [<000000001286d9f8>] damon_sysfs_test_add_targets+0x1cc/0x738
-	    [<0000000032ef8f77>] kunit_try_run_case+0x13c/0x3ac
-	    [<00000000f3edea23>] kunit_generic_run_threadfn_adapter+0x80/0xec
-	    [<00000000adf936cf>] kthread+0x2e8/0x374
-	    [<0000000041bb1628>] ret_from_fork+0x10/0x20
+Remove the if block that performs the NULL check.
 
-Link: https://lkml.kernel.org/r/20241010125323.3127187-1-ruanjinjie@huawei.com
-Fixes: b8ee5575f763 ("mm/damon/sysfs-test: add a unit test for damon_sysfs_set_targets()")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+This was reported by Coverity Scan:
+https://scan7.scan.coverity.com/#/project-view/51525/11354?selectedIssue=1600362
+
+Link: https://lkml.kernel.org/r/20241010181102.5522-1-everestkc@everestkc.com.np
+Fixes: d44c3485820e ("execmem: add support for cache of large ROX pages")
+Signed-off-by: Everest K.C. <everestkc@everestkc.com.np>
+Cc: Kees Bakker <kees@ijzerbout.nl>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/sysfs-kunit.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/execmem.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/damon/tests/sysfs-kunit.h~mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets
-+++ a/mm/damon/tests/sysfs-kunit.h
-@@ -67,6 +67,7 @@ static void damon_sysfs_test_add_targets
- 	damon_destroy_ctx(ctx);
- 	kfree(sysfs_targets->targets_arr);
- 	kfree(sysfs_targets);
-+	kfree(sysfs_target->regions);
- 	kfree(sysfs_target);
- }
+--- a/mm/execmem.c~execmem-add-support-for-cache-of-large-rox-pages-fix
++++ a/mm/execmem.c
+@@ -75,9 +75,6 @@ static void execmem_cache_clean(struct w
+ 	mas_for_each(&mas, area, ULONG_MAX) {
+ 		size_t size;
  
+-		if (!area)
+-			continue;
+-
+ 		size = mas_range_len(&mas);
+ 
+ 		if (IS_ALIGNED(size, PMD_SIZE) &&
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from everestkc@everestkc.com.np are
 
-mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch
+execmem-add-support-for-cache-of-large-rox-pages-fix.patch
 
