@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90E0D8F6A
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:41:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5657619A2A3
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:46:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728596492; cv=none; b=mLvdcRn+q1ColLqQRbrJcRhisyI1qEsdVjP0icRZBcxvohxutCOSmVhZOkwe7WGmcnsYAaCQ+5dI5NEMD3ZQd3pcwFMhHEdvr8caQMeOPrGlp7i6WyvwJxjiJesn893D+rSxGoWjXD7bXf8jj1QzM738TPTFtX1awGeF+AW+Kik=
+	t=1728596776; cv=none; b=J5PBXTELeSvJbVvv9DWtM7u6tgEOsXNh/FTwyL3R5dDhPXwUlqbqDWZp/otaiTUGby1KPTbhe8Rglwjz3cPy908+UVF3JAgJUgqboju9PCbzf696eGjHqlq3wWSqpGBwxEYCEBoAUpLEiNkag4Ju3WAoeJzNnQnCdnYTZ20DIQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728596492; c=relaxed/simple;
-	bh=PRv8OzTqiO6qu+YPeZNoUXPcPyqPggpnS2t6F5Rk//Y=;
-	h=Date:To:From:Subject:Message-Id; b=ubeo6+8J+T0HM0XusTvvYE0o6OBpbPN+/0Y6Pq/T/9VtKa23WCvuVsYhNtTNTXM/ZDERahwLP7fo0uXeXifZ5RzgjSq2CMiHt7h5dsipK8c6f1uR/lbIVxaQVyaHnnMaIY3A/I8caiAffVPw45fECRNJbJM2kumga9DMKZ/CM7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QXaS3l3d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728596776; c=relaxed/simple;
+	bh=pFgcXliqxHkJi0hwcbSeLi+45hK212qk3AaG0YJghco=;
+	h=Date:To:From:Subject:Message-Id; b=BcpBz9IWI0F6cbJQLQdU7P0tO752mlK5upMW8JlOZB6mD+8+EyCi0ZsgG3gL6pe5fq68WIlRdOrN9nB2YzjQnQ76WiRA/2HHLSJtPQWv2+0ooLpaO3tZS370QwD1wLFU9mmgnQOUh7m+OoYRtbsXF+m+l+6AwO9Rsw5oWbxICLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yyWAREdC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QXaS3l3d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A75EC4CEC5;
-	Thu, 10 Oct 2024 21:41:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yyWAREdC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15E6C4CEC5;
+	Thu, 10 Oct 2024 21:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728596492;
-	bh=PRv8OzTqiO6qu+YPeZNoUXPcPyqPggpnS2t6F5Rk//Y=;
+	s=korg; t=1728596775;
+	bh=pFgcXliqxHkJi0hwcbSeLi+45hK212qk3AaG0YJghco=;
 	h=Date:To:From:Subject:From;
-	b=QXaS3l3dOvcAMrLBqdBh8Tp9ggjNaPB6awW9rOPRxwWNFeKOJbzbh5RbnuGrkknCc
-	 mqWlL2z2tNY4KH7Y8zxqkn/rDZZNTTR8psch3ckGL0U6vXfF9B/aGuTZ8vOeOHW8mF
-	 WMjgLyh46wZ2X8UbjfSG2RdNhC4HA9VE5vMcmFDs=
-Date: Thu, 10 Oct 2024 14:41:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=yyWAREdCfr+RoOgCTeNr2phLbpayPrkRGRgF0rYnQDip+BpSTEA4euIk+qLl1iq9r
+	 Ems5e/reWe8IucRtUSDLEiXY0mg163FUfEekD+vLNaGW8TQo84wex5ajV0Yr4dMfQw
+	 k/86pc0QL5DxV+naYyudVFcuidj6gYu5Y9lEEK7s=
+Date: Thu, 10 Oct 2024 14:46:15 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,songmuchun@bytedance.com,rostedt@goodmis.org,roman.gushchin@linux.dev,mhocko@suse.com,inwardvessel@gmail.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unused-hugepage-for-vma_alloc_folio.patch added to mm-unstable branch
-Message-Id: <20241010214132.2A75EC4CEC5@smtp.kernel.org>
+Subject: + memcg-add-tracing-for-memcg-stat-updates.patch added to mm-unstable branch
+Message-Id: <20241010214615.C15E6C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove unused hugepage for vma_alloc_folio()
+     Subject: memcg: add tracing for memcg stat updates
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unused-hugepage-for-vma_alloc_folio.patch
+     memcg-add-tracing-for-memcg-stat-updates.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-hugepage-for-vma_alloc_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-add-tracing-for-memcg-stat-updates.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,230 +58,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove unused hugepage for vma_alloc_folio()
-Date: Thu, 10 Oct 2024 14:15:56 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: add tracing for memcg stat updates
+Date: Wed, 9 Oct 2024 17:35:50 -0700
 
-The hugepage parameter was deprecated since commit ddc1a5cbc05d
-("mempolicy: alloc_pages_mpol() for NUMA policy without vma"), for
-PMD-sized THP, it still tries only preferred node if possible in
-vma_alloc_folio() by checking the order of the folio allocation.
+The memcg stats are maintained in rstat infrastructure which provides very
+fast updates side and reasonable read side.  However memcg added plethora
+of stats and made the read side, which is cgroup rstat flush, very slow. 
+To solve that, threshold was added in the memcg stats read side i.e.  no
+need to flush the stats if updates are within the threshold.
 
-Link: https://lkml.kernel.org/r/20241010061556.1846751-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+This threshold based improvement worked for sometime but more stats were
+added to memcg and also the read codepath was getting triggered in the
+performance sensitive paths which made threshold based ratelimiting
+ineffective.  We need more visibility into the hot and cold stats i.e. 
+stats with a lot of updates.  Let's add trace to get that visibility.
+
+Link: https://lkml.kernel.org/r/20241010003550.3695245-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: JP Kobryn <inwardvessel@gmail.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/page.h   |    2 +-
- arch/arm64/mm/fault.c           |    2 +-
- arch/m68k/include/asm/page_no.h |    2 +-
- arch/s390/include/asm/page.h    |    2 +-
- arch/x86/include/asm/page.h     |    2 +-
- include/linux/gfp.h             |    6 +++---
- include/linux/highmem.h         |    2 +-
- mm/huge_memory.c                |    2 +-
- mm/ksm.c                        |    2 +-
- mm/memory.c                     |   10 ++++------
- mm/mempolicy.c                  |    3 +--
- mm/userfaultfd.c                |    2 +-
- 12 files changed, 17 insertions(+), 20 deletions(-)
+ include/trace/events/memcg.h |   59 +++++++++++++++++++++++++++++++++
+ mm/memcontrol.c              |   13 ++++++-
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
---- a/arch/alpha/include/asm/page.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/arch/alpha/include/asm/page.h
-@@ -18,7 +18,7 @@ extern void clear_page(void *page);
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
+diff --git a/include/trace/events/memcg.h a/include/trace/events/memcg.h
+new file mode 100644
+--- /dev/null
++++ a/include/trace/events/memcg.h
+@@ -0,0 +1,59 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM memcg
++
++#if !defined(_TRACE_MEMCG_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_MEMCG_H
++
++#include <linux/memcontrol.h>
++#include <linux/tracepoint.h>
++
++
++DECLARE_EVENT_CLASS(memcg_rstat,
++
++	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
++
++	TP_ARGS(memcg, item, val),
++
++	TP_STRUCT__entry(
++		__field(u64, id)
++		__field(int, item)
++		__field(int, val)
++	),
++
++	TP_fast_assign(
++		__entry->id = cgroup_id(memcg->css.cgroup);
++		__entry->item = item;
++		__entry->val = val;
++	),
++
++	TP_printk("memcg_id=%llu item=%d val=%d",
++		  __entry->id, __entry->item, __entry->val)
++);
++
++DEFINE_EVENT(memcg_rstat, mod_memcg_state,
++
++	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
++
++	TP_ARGS(memcg, item, val)
++);
++
++DEFINE_EVENT(memcg_rstat, mod_memcg_lruvec_state,
++
++	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
++
++	TP_ARGS(memcg, item, val)
++);
++
++DEFINE_EVENT(memcg_rstat, count_memcg_events,
++
++	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
++
++	TP_ARGS(memcg, item, val)
++);
++
++
++#endif /* _TRACE_MEMCG_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+--- a/mm/memcontrol.c~memcg-add-tracing-for-memcg-stat-updates
++++ a/mm/memcontrol.c
+@@ -71,6 +71,10 @@
  
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
--	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
-+	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr)
+ #include <linux/uaccess.h>
  
- extern void copy_page(void * _to, void * _from);
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
---- a/arch/arm64/mm/fault.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/arch/arm64/mm/fault.c
-@@ -983,7 +983,7 @@ struct folio *vma_alloc_zeroed_movable_f
- 	if (vma->vm_flags & VM_MTE)
- 		flags |= __GFP_ZEROTAGS;
++#define CREATE_TRACE_POINTS
++#include <trace/events/memcg.h>
++#undef CREATE_TRACE_POINTS
++
+ #include <trace/events/vmscan.h>
  
--	return vma_alloc_folio(flags, 0, vma, vaddr, false);
-+	return vma_alloc_folio(flags, 0, vma, vaddr);
+ struct cgroup_subsys memory_cgrp_subsys __read_mostly;
+@@ -682,7 +686,9 @@ void __mod_memcg_state(struct mem_cgroup
+ 		return;
+ 
+ 	__this_cpu_add(memcg->vmstats_percpu->state[i], val);
+-	memcg_rstat_updated(memcg, memcg_state_val_in_pages(idx, val));
++	val = memcg_state_val_in_pages(idx, val);
++	memcg_rstat_updated(memcg, val);
++	trace_mod_memcg_state(memcg, idx, val);
  }
  
- void tag_clear_highpage(struct page *page)
---- a/arch/m68k/include/asm/page_no.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/arch/m68k/include/asm/page_no.h
-@@ -14,7 +14,7 @@ extern unsigned long memory_end;
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ /* idx can be of type enum memcg_stat_item or node_stat_item. */
+@@ -741,7 +747,9 @@ static void __mod_memcg_lruvec_state(str
+ 	/* Update lruvec */
+ 	__this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
  
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
--	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
-+	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr)
- 
- #define __pa(vaddr)		((unsigned long)(vaddr))
- #define __va(paddr)		((void *)((unsigned long)(paddr)))
---- a/arch/s390/include/asm/page.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/arch/s390/include/asm/page.h
-@@ -74,7 +74,7 @@ static inline void copy_page(void *to, v
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
--	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
-+	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr)
- 
- /*
-  * These are used to make use of C type-checking..
---- a/arch/x86/include/asm/page.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/arch/x86/include/asm/page.h
-@@ -35,7 +35,7 @@ static inline void copy_user_page(void *
+-	memcg_rstat_updated(memcg, memcg_state_val_in_pages(idx, val));
++	val = memcg_state_val_in_pages(idx, val);
++	memcg_rstat_updated(memcg, val);
++	trace_mod_memcg_lruvec_state(memcg, idx, val);
+ 	memcg_stats_unlock();
  }
  
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
--	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
-+	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr)
- 
- #ifndef __pa
- #define __pa(x)		__phys_addr((unsigned long)(x))
---- a/include/linux/gfp.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/include/linux/gfp.h
-@@ -306,7 +306,7 @@ struct folio *folio_alloc_noprof(gfp_t g
- struct folio *folio_alloc_mpol_noprof(gfp_t gfp, unsigned int order,
- 		struct mempolicy *mpol, pgoff_t ilx, int nid);
- struct folio *vma_alloc_folio_noprof(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, bool hugepage);
-+		unsigned long addr);
- #else
- static inline struct page *alloc_pages_noprof(gfp_t gfp_mask, unsigned int order)
- {
-@@ -326,7 +326,7 @@ static inline struct folio *folio_alloc_
- {
- 	return folio_alloc_noprof(gfp, order);
+@@ -832,6 +840,7 @@ void __count_memcg_events(struct mem_cgr
+ 	memcg_stats_lock();
+ 	__this_cpu_add(memcg->vmstats_percpu->events[i], count);
+ 	memcg_rstat_updated(memcg, count);
++	trace_count_memcg_events(memcg, idx, count);
+ 	memcg_stats_unlock();
  }
--#define vma_alloc_folio_noprof(gfp, order, vma, addr, hugepage)		\
-+#define vma_alloc_folio_noprof(gfp, order, vma, addr)		\
- 	folio_alloc_noprof(gfp, order)
- #endif
- 
-@@ -341,7 +341,7 @@ static inline struct folio *folio_alloc_
- static inline struct page *alloc_page_vma_noprof(gfp_t gfp,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
--	struct folio *folio = vma_alloc_folio_noprof(gfp, 0, vma, addr, false);
-+	struct folio *folio = vma_alloc_folio_noprof(gfp, 0, vma, addr);
- 
- 	return &folio->page;
- }
---- a/include/linux/highmem.h~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/include/linux/highmem.h
-@@ -226,7 +226,7 @@ struct folio *vma_alloc_zeroed_movable_f
- {
- 	struct folio *folio;
- 
--	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vaddr, false);
-+	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vaddr);
- 	if (folio)
- 		clear_user_highpage(&folio->page, vaddr);
- 
---- a/mm/huge_memory.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/mm/huge_memory.c
-@@ -1157,7 +1157,7 @@ static struct folio *vma_alloc_anon_foli
- 	const int order = HPAGE_PMD_ORDER;
- 	struct folio *folio;
- 
--	folio = vma_alloc_folio(gfp, order, vma, addr & HPAGE_PMD_MASK, true);
-+	folio = vma_alloc_folio(gfp, order, vma, addr & HPAGE_PMD_MASK);
- 
- 	if (unlikely(!folio)) {
- 		count_vm_event(THP_FAULT_FALLBACK);
---- a/mm/ksm.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/mm/ksm.c
-@@ -2970,7 +2970,7 @@ struct folio *ksm_might_need_to_copy(str
- 	if (!folio_test_uptodate(folio))
- 		return folio;		/* let do_swap_page report the error */
- 
--	new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, addr, false);
-+	new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, addr);
- 	if (new_folio &&
- 	    mem_cgroup_charge(new_folio, vma->vm_mm, GFP_KERNEL)) {
- 		folio_put(new_folio);
---- a/mm/memory.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/mm/memory.c
-@@ -1059,8 +1059,7 @@ static inline struct folio *folio_preall
- 	if (need_zero)
- 		new_folio = vma_alloc_zeroed_movable_folio(vma, addr);
- 	else
--		new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma,
--					    addr, false);
-+		new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, addr);
- 
- 	if (!new_folio)
- 		return NULL;
-@@ -4017,8 +4016,7 @@ static struct folio *__alloc_swap_folio(
- 	struct folio *folio;
- 	swp_entry_t entry;
- 
--	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma,
--				vmf->address, false);
-+	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vmf->address);
- 	if (!folio)
- 		return NULL;
- 
-@@ -4174,7 +4172,7 @@ static struct folio *alloc_swap_folio(st
- 	gfp = vma_thp_gfp_mask(vma);
- 	while (orders) {
- 		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
--		folio = vma_alloc_folio(gfp, order, vma, addr, true);
-+		folio = vma_alloc_folio(gfp, order, vma, addr);
- 		if (folio) {
- 			if (!mem_cgroup_swapin_charge_folio(folio, vma->vm_mm,
- 							    gfp, entry))
-@@ -4713,7 +4711,7 @@ static struct folio *alloc_anon_folio(st
- 	gfp = vma_thp_gfp_mask(vma);
- 	while (orders) {
- 		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
--		folio = vma_alloc_folio(gfp, order, vma, addr, true);
-+		folio = vma_alloc_folio(gfp, order, vma, addr);
- 		if (folio) {
- 			if (mem_cgroup_charge(folio, vma->vm_mm, gfp)) {
- 				count_mthp_stat(order, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
---- a/mm/mempolicy.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/mm/mempolicy.c
-@@ -2290,7 +2290,6 @@ struct folio *folio_alloc_mpol_noprof(gf
-  * @order: Order of the folio.
-  * @vma: Pointer to VMA.
-  * @addr: Virtual address of the allocation.  Must be inside @vma.
-- * @hugepage: Unused (was: For hugepages try only preferred node if possible).
-  *
-  * Allocate a folio for a specific address in @vma, using the appropriate
-  * NUMA policy.  The caller must hold the mmap_lock of the mm_struct of the
-@@ -2301,7 +2300,7 @@ struct folio *folio_alloc_mpol_noprof(gf
-  * Return: The folio on success or NULL if allocation fails.
-  */
- struct folio *vma_alloc_folio_noprof(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, bool hugepage)
-+		unsigned long addr)
- {
- 	struct mempolicy *pol;
- 	pgoff_t ilx;
---- a/mm/userfaultfd.c~mm-remove-unused-hugepage-for-vma_alloc_folio
-+++ a/mm/userfaultfd.c
-@@ -251,7 +251,7 @@ static int mfill_atomic_pte_copy(pmd_t *
- 	if (!*foliop) {
- 		ret = -ENOMEM;
- 		folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, dst_vma,
--					dst_addr, false);
-+					dst_addr);
- 		if (!folio)
- 			goto out;
  
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-remove-unused-hugepage-for-vma_alloc_folio.patch
+mm-optimize-truncation-of-shadow-entries.patch
+mm-optimize-invalidation-of-shadow-entries.patch
+mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
+memcg-add-tracing-for-memcg-stat-updates.patch
 
