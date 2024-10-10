@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92BAB1E230A
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 20:59:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D73D18DF9E
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:00:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728593970; cv=none; b=Q7ywY7fdSz6UgsoerK1HwGv5Y5VpcdZKSXLGkg4ovdISmavmjMBoNErXzVcAGhBOELsUE0S5vZHxAvNqqBxRt4XcJxvUQTaFSXErbOZbwQycLMyzlBITy6I/uE9slXAaoI04f4O5aTGcv8a0U3kQM4NnNEaec1naJ3U1OJLz6os=
+	t=1728594035; cv=none; b=ulsoj5ptEEgDMUDIueTwXuNW26ps/wic2NOxolLI3M42Z9ELRMcv5EsVT42rUdEaRSVwaCAUPfKuSID/xgedEcAzf1b7l1isFmWTD3j2yg6oFAHKjFLArYW5lLyCQEFIdF5oPhKLWcwpOPh8lc+pCdAedG9/qOULKuktyXV8q5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728593970; c=relaxed/simple;
-	bh=CcPubNBqhSPwtCySVoqOd0C2KNhIQpY6uCxwApFdYYA=;
-	h=Date:To:From:Subject:Message-Id; b=Kfd9WD+owdEs7y2LRc/ZbiNtm+gSsAM5ZyN47IfmP8oReGnzpGbqErhnyhzjrdSyfY8YwesqTcW8RJUD/4lIUBr+88eA3cw9nMz7RtuKNZCe/eBGwmNe7ujGjvZG8n61aeSmUSlkRnz3lJr7P89G0lG36Fc7y1BOMJhrQWTJXjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9cQMXY9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728594035; c=relaxed/simple;
+	bh=UwrbvSlK0z8I1oU1VLKqVUBNeh9KwYuHsRKPRlnW628=;
+	h=Date:To:From:Subject:Message-Id; b=n94H9tlWGgZ35gnv1pSGE0e64HbeG0N3VdrQsIY0HKdL00CSTNHfYgVGntRgF+uLSfhTia+COGK0vrCMqgu4iU0kS+VVjYhIr8BKhdPHNkylSwGIpE3LWkZrnf4DKp6rRS0bPY2iBF/zvnic/YxasSsQT6f1SEC7LkXHdx2h6VA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uihUm8pb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9cQMXY9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 040B9C4CEC5;
-	Thu, 10 Oct 2024 20:59:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uihUm8pb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E03BC4CEC5;
+	Thu, 10 Oct 2024 21:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728593970;
-	bh=CcPubNBqhSPwtCySVoqOd0C2KNhIQpY6uCxwApFdYYA=;
+	s=korg; t=1728594034;
+	bh=UwrbvSlK0z8I1oU1VLKqVUBNeh9KwYuHsRKPRlnW628=;
 	h=Date:To:From:Subject:From;
-	b=a9cQMXY9Esv04VsIM8PKYT/BlvCMSli02C6oXm7mUrfYPXz2L0x82VK5fWj96omgq
-	 ELVKwAizVoiBmh//uluEt9MyoB7UPMJZbESOfAXjkpVK9+kkRaIG6LNsU87jncPmo9
-	 /+pVQ2t/U03K5DXyGt2C75RFNp+vf+pBxcBUOTL0=
-Date: Thu, 10 Oct 2024 13:59:29 -0700
+	b=uihUm8pbPPAW8rYos3mVzCKoh/nlE7rtF5pm7m1x3DgwgS/a3b0dSl3gxlZ0SUVMC
+	 kHYkPrLTgiPze7fJjdohWuh7IVi6tlWpM/U37hlmb6VrmYC0nYEAoOpK4vc9ItJJbQ
+	 dpy99Re0zvBAM6MHF6yK1bI3wBOkIpgAOOnSC22g=
+Date: Thu, 10 Oct 2024 14:00:34 -0700
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-kasan-kmsan-copy_from-to_kernel_nofault.patch removed from -mm tree
-Message-Id: <20241010205930.040B9C4CEC5@smtp.kernel.org>
+Subject: + mm-kasan-kmsan-copy_from-to_kernel_nofault.patch added to mm-unstable branch
+Message-Id: <20241010210034.9E03BC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
-Date: Sat, 5 Oct 2024 21:48:13 +0500
+Date: Thu, 10 Oct 2024 18:11:30 +0500
 
 Instrument copy_from_kernel_nofault() with KMSAN for uninitialized kernel
 memory check and copy_to_kernel_nofault() with KASAN, KCSAN to detect the
@@ -61,20 +77,17 @@ instrument_write() explicitly for the memory corruption instrumentation.
 
 copy_to_kernel_nofault() is tested on x86_64 and arm64 with
 CONFIG_KASAN_SW_TAGS.  On arm64 with CONFIG_KASAN_HW_TAGS, kunit test
-currently fails.  Need more clarification on it - currently, disabled in
-kunit test.
+currently fails.  Need more clarification on it.
 
-[snovitoll@gmail.com: v3]
-  Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
 Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241010131130.2903601-1-snovitoll@gmail.com
 Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Link: https://lkml.kernel.org/r/20241008101526.2591147-1-snovitoll@gmail.com
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
 Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
 Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
 Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -82,14 +95,14 @@ Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |   27 +++++++++++++++++++++++++++
+ mm/kasan/kasan_test_c.c |   37 +++++++++++++++++++++++++++++++++++++
  mm/kmsan/kmsan_test.c   |   17 +++++++++++++++++
  mm/maccess.c            |   10 ++++++++--
- 3 files changed, 52 insertions(+), 2 deletions(-)
+ 3 files changed, 62 insertions(+), 2 deletions(-)
 
 --- a/mm/kasan/kasan_test_c.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
 +++ a/mm/kasan/kasan_test_c.c
-@@ -1954,6 +1954,32 @@ static void rust_uaf(struct kunit *test)
+@@ -1954,6 +1954,42 @@ static void rust_uaf(struct kunit *test)
  	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
  }
  
@@ -99,9 +112,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	char buf[128];
 +	size_t size = sizeof(buf);
 +
-+	/* Not detecting fails currently with HW_TAGS */
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_HW_TAGS);
-+
++	/* This test currently fails with the HW_TAGS mode.
++	 * The reason is unknown and needs to be investigated. */
 +	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
 +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
 +	OPTIMIZER_HIDE_VAR(ptr);
@@ -112,6 +124,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
 +	}
 +
++	/*
++	* We test copy_to_kernel_nofault() to detect corrupted memory that is
++	* being written into the kernel. In contrast, copy_from_kernel_nofault()
++	* is primarily used in kernel helper functions where the source address
++	* might be random or uninitialized. Applying KASAN instrumentation to
++	* copy_from_kernel_nofault() could lead to false positives.
++	* By focusing KASAN checks only on copy_to_kernel_nofault(),
++	* we ensure that only valid memory is written to the kernel,
++	* minimizing the risk of kernel corruption while avoiding
++	* false positives in the reverse case.
++	*/
 +	KUNIT_EXPECT_KASAN_FAIL(test,
 +		copy_to_kernel_nofault(&buf[0], ptr, size));
 +	KUNIT_EXPECT_KASAN_FAIL(test,
@@ -122,7 +145,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  static struct kunit_case kasan_kunit_test_cases[] = {
  	KUNIT_CASE(kmalloc_oob_right),
  	KUNIT_CASE(kmalloc_oob_left),
-@@ -2027,6 +2053,7 @@ static struct kunit_case kasan_kunit_tes
+@@ -2027,6 +2063,7 @@ static struct kunit_case kasan_kunit_tes
  	KUNIT_CASE(match_all_not_assigned),
  	KUNIT_CASE(match_all_ptr_tag),
  	KUNIT_CASE(match_all_mem_tag),
@@ -195,4 +218,5 @@ _
 
 Patches currently in -mm which might be from snovitoll@gmail.com are
 
+mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
