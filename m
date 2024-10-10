@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D73D18DF9E
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:00:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E3F18DF9E
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:05:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728594035; cv=none; b=ulsoj5ptEEgDMUDIueTwXuNW26ps/wic2NOxolLI3M42Z9ELRMcv5EsVT42rUdEaRSVwaCAUPfKuSID/xgedEcAzf1b7l1isFmWTD3j2yg6oFAHKjFLArYW5lLyCQEFIdF5oPhKLWcwpOPh8lc+pCdAedG9/qOULKuktyXV8q5o=
+	t=1728594356; cv=none; b=FtYgVjDDdKnYgHDm+1YoeROUppvK1xQV52E9Qu2zttzs71GZrCDeim4/r7SNnNGJXscfo4eaeC3TUxXcYmM2/sywyhZrcvB/RBgSTixRVTrx40dyGN8AbM+vMVMFquNOkBUdAOGStfYn44Yr7yQjxVrOWudsD8+LtH7ITBgLVNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728594035; c=relaxed/simple;
-	bh=UwrbvSlK0z8I1oU1VLKqVUBNeh9KwYuHsRKPRlnW628=;
-	h=Date:To:From:Subject:Message-Id; b=n94H9tlWGgZ35gnv1pSGE0e64HbeG0N3VdrQsIY0HKdL00CSTNHfYgVGntRgF+uLSfhTia+COGK0vrCMqgu4iU0kS+VVjYhIr8BKhdPHNkylSwGIpE3LWkZrnf4DKp6rRS0bPY2iBF/zvnic/YxasSsQT6f1SEC7LkXHdx2h6VA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uihUm8pb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728594356; c=relaxed/simple;
+	bh=KtBCVSCYHL7O4SHjwkf/g1bDOWwo/n4MiU+foEeD2Y0=;
+	h=Date:To:From:Subject:Message-Id; b=afHjCJwl3EKbww9NoozY+SC72XHBgIA5lBIdk7q7495/+GO+hYNcamu/bkeZ+S2YGuEhqD7z7EVukenyNVGOE7WS75wrE0l6NUlEek3kl+MHYDBE5VJdNXj5LklO5ic5HR3SriMmr4SBQko22YFBm7zqzpNFZ4jYvDKfhrEg6NA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wawZ1XCx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uihUm8pb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E03BC4CEC5;
-	Thu, 10 Oct 2024 21:00:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wawZ1XCx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36FABC4CECC;
+	Thu, 10 Oct 2024 21:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728594034;
-	bh=UwrbvSlK0z8I1oU1VLKqVUBNeh9KwYuHsRKPRlnW628=;
+	s=korg; t=1728594356;
+	bh=KtBCVSCYHL7O4SHjwkf/g1bDOWwo/n4MiU+foEeD2Y0=;
 	h=Date:To:From:Subject:From;
-	b=uihUm8pbPPAW8rYos3mVzCKoh/nlE7rtF5pm7m1x3DgwgS/a3b0dSl3gxlZ0SUVMC
-	 kHYkPrLTgiPze7fJjdohWuh7IVi6tlWpM/U37hlmb6VrmYC0nYEAoOpK4vc9ItJJbQ
-	 dpy99Re0zvBAM6MHF6yK1bI3wBOkIpgAOOnSC22g=
-Date: Thu, 10 Oct 2024 14:00:34 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=wawZ1XCx7fVzT7sHVt4rtp0h3cA3ihYfyaxH7mb83OG0w75R0LuDzed5nHp76REim
+	 +QiPVLAA7NYYAB9k7EkABEt690QJ8J5zHiT0Eyv2lYxU+0YgglgnBWLcqVk38h2dBU
+	 7Woc/703aKoH29mgZhHzxZejgCyRczrSYbfMNOBw=
+Date: Thu, 10 Oct 2024 14:05:54 -0700
+To: mm-commits@vger.kernel.org,alexjlzheng@tencent.com,mengensun@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kasan-kmsan-copy_from-to_kernel_nofault.patch added to mm-unstable branch
-Message-Id: <20241010210034.9E03BC4CEC5@smtp.kernel.org>
+Subject: + mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch added to mm-unstable branch
+Message-Id: <20241010210556.36FABC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
+     Subject: mm: add pcp high_min high_max to proc zoneinfo
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+     mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,165 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
-Date: Thu, 10 Oct 2024 18:11:30 +0500
+From: MengEn Sun <mengensun@tencent.com>
+Subject: mm: add pcp high_min high_max to proc zoneinfo
+Date: Thu, 10 Oct 2024 20:09:36 +0800
 
-Instrument copy_from_kernel_nofault() with KMSAN for uninitialized kernel
-memory check and copy_to_kernel_nofault() with KASAN, KCSAN to detect the
-memory corruption.
+When we do not set percpu_pagelist_high_fraction the kernel will compute
+the pcp high_min/max by itself, which makes it hard to determine the
+current high_min/max values.
 
-syzbot reported that bpf_probe_read_kernel() kernel helper triggered KASAN
-report via kasan_check_range() which is not the expected behaviour as
-copy_from_kernel_nofault() is meant to be a non-faulting helper.
+So output the pcp high_min/max values to /proc/zoneinfo.
 
-Solution is, suggested by Marco Elver, to replace KASAN, KCSAN check in
-copy_from_kernel_nofault() with KMSAN detection of copying uninitilaized
-kernel memory.  In copy_to_kernel_nofault() we can retain
-instrument_write() explicitly for the memory corruption instrumentation.
-
-copy_to_kernel_nofault() is tested on x86_64 and arm64 with
-CONFIG_KASAN_SW_TAGS.  On arm64 with CONFIG_KASAN_HW_TAGS, kunit test
-currently fails.  Need more clarification on it.
-
-Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20241010131130.2903601-1-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
-Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20241010120935.656619-1-mengensun@tencent.com
+Signed-off-by: MengEn Sun <mengensun@tencent.com>
+Reviewed-by: Jinliang Zheng <alexjlzheng@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |   37 +++++++++++++++++++++++++++++++++++++
- mm/kmsan/kmsan_test.c   |   17 +++++++++++++++++
- mm/maccess.c            |   10 ++++++++--
- 3 files changed, 62 insertions(+), 2 deletions(-)
+ mm/vmstat.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1954,6 +1954,42 @@ static void rust_uaf(struct kunit *test)
- 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
- }
- 
-+static void copy_to_kernel_nofault_oob(struct kunit *test)
-+{
-+	char *ptr;
-+	char buf[128];
-+	size_t size = sizeof(buf);
-+
-+	/* This test currently fails with the HW_TAGS mode.
-+	 * The reason is unknown and needs to be investigated. */
-+	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+	OPTIMIZER_HIDE_VAR(ptr);
-+
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS)) {
-+		/* Check that the returned pointer is tagged. */
-+		KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
-+		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
-+	}
-+
-+	/*
-+	* We test copy_to_kernel_nofault() to detect corrupted memory that is
-+	* being written into the kernel. In contrast, copy_from_kernel_nofault()
-+	* is primarily used in kernel helper functions where the source address
-+	* might be random or uninitialized. Applying KASAN instrumentation to
-+	* copy_from_kernel_nofault() could lead to false positives.
-+	* By focusing KASAN checks only on copy_to_kernel_nofault(),
-+	* we ensure that only valid memory is written to the kernel,
-+	* minimizing the risk of kernel corruption while avoiding
-+	* false positives in the reverse case.
-+	*/
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		copy_to_kernel_nofault(&buf[0], ptr, size));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		copy_to_kernel_nofault(ptr, &buf[0], size));
-+	kfree(ptr);
-+}
-+
- static struct kunit_case kasan_kunit_test_cases[] = {
- 	KUNIT_CASE(kmalloc_oob_right),
- 	KUNIT_CASE(kmalloc_oob_left),
-@@ -2027,6 +2063,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(match_all_not_assigned),
- 	KUNIT_CASE(match_all_ptr_tag),
- 	KUNIT_CASE(match_all_mem_tag),
-+	KUNIT_CASE(copy_to_kernel_nofault_oob),
- 	KUNIT_CASE(rust_uaf),
- 	{}
- };
---- a/mm/kmsan/kmsan_test.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/kmsan/kmsan_test.c
-@@ -640,6 +640,22 @@ static void test_unpoison_memory(struct
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
- 
-+static void test_copy_from_kernel_nofault(struct kunit *test)
-+{
-+	long ret;
-+	char buf[4], src[4];
-+	size_t size = sizeof(buf);
-+
-+	EXPECTATION_UNINIT_VALUE_FN(expect, "copy_from_kernel_nofault");
-+	kunit_info(
-+		test,
-+		"testing copy_from_kernel_nofault with uninitialized memory\n");
-+
-+	ret = copy_from_kernel_nofault((char *)&buf[0], (char *)&src[0], size);
-+	USE(ret);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
-+}
-+
- static struct kunit_case kmsan_test_cases[] = {
- 	KUNIT_CASE(test_uninit_kmalloc),
- 	KUNIT_CASE(test_init_kmalloc),
-@@ -664,6 +680,7 @@ static struct kunit_case kmsan_test_case
- 	KUNIT_CASE(test_long_origin_chain),
- 	KUNIT_CASE(test_stackdepot_roundtrip),
- 	KUNIT_CASE(test_unpoison_memory),
-+	KUNIT_CASE(test_copy_from_kernel_nofault),
- 	{},
- };
- 
---- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/maccess.c
-@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
- 	return true;
- }
- 
-+/*
-+ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
-+ * memory isn't leaked.
-+ */
- #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
- 	while (len >= sizeof(type)) {					\
--		__get_kernel_nofault(dst, src, type, err_label);		\
-+		__get_kernel_nofault(dst, src, type, err_label);	\
-+		kmsan_check_memory(src, sizeof(type));			\
- 		dst += sizeof(type);					\
- 		src += sizeof(type);					\
- 		len -= sizeof(type);					\
-@@ -49,7 +54,8 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
- 
- #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
- 	while (len >= sizeof(type)) {					\
--		__put_kernel_nofault(dst, src, type, err_label);		\
-+		__put_kernel_nofault(dst, src, type, err_label);	\
-+		instrument_write(dst, sizeof(type));			\
- 		dst += sizeof(type);					\
- 		src += sizeof(type);					\
- 		len -= sizeof(type);					\
+--- a/mm/vmstat.c~mm-add-pcp-high_min-high_max-to-proc-zoneinfo
++++ a/mm/vmstat.c
+@@ -1791,13 +1791,17 @@ static void zoneinfo_show_print(struct s
+ 		pcp = per_cpu_ptr(zone->per_cpu_pageset, i);
+ 		seq_printf(m,
+ 			   "\n    cpu: %i"
+-			   "\n              count: %i"
+-			   "\n              high:  %i"
+-			   "\n              batch: %i",
++			   "\n              count:    %i"
++			   "\n              high:     %i"
++			   "\n              batch:    %i"
++			   "\n              high_min: %i"
++			   "\n              high_max: %i",
+ 			   i,
+ 			   pcp->count,
+ 			   pcp->high,
+-			   pcp->batch);
++			   pcp->batch,
++			   pcp->high_min,
++			   pcp->high_max);
+ #ifdef CONFIG_SMP
+ 		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, i);
+ 		seq_printf(m, "\n  vm stats threshold: %d",
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from mengensun@tencent.com are
 
-mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch
 
