@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B84901A01B9
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 20:57:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C77E91CEABC
+	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 20:58:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728593832; cv=none; b=bMM3LaQUAZ6wX++jGxphI7sPYKEhCJQggvg0e7LhJbC5UKPnB5nnw1XAvvIJVzPr160Naw7mDjVwAeO+TmOKvtmyv/u3MNFhKgy26a4iIBH1WRXgOpsFU66RfvWDqxBRyGULCsCbTKht10VdK8n0EDFdWn3D72gW1OSyun81GMU=
+	t=1728593936; cv=none; b=FtYy1uLpd1sxy6NteFeVQYg/pltyFzluBVrJCk6yzU4igMuCfv7/aGDaw3FmcM2BE9Xnlder+sAFopz58RStVjSulmxvrCVxg6hhbxhB4p29J7n50OZLu1d8V4yqqfY1dXsC4DY39TGl439XDYjFsNCOOADWTDEJL9gvw2EIWgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728593832; c=relaxed/simple;
-	bh=RdnnVeDJhz+4l2Am60DdCkwg0pKVxtclVMyLmW8y/0Y=;
-	h=Date:To:From:Subject:Message-Id; b=hPA+tknM5fbiFVVbPjw7fESJ8rK1Rd2D1VzYK4Odik8WidZqsoIUUvz0vvnNmZqUXP80zMXzmLvnL8xlHxSiNJxF4HJPwdKfU9YeqhfUTy6NZEWSPyNDog6OiuNagwbCnXCkB1auNRuYxnJvrJ93sG6/1YeH/wwWzdaqm22WMV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NaTMlmD2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728593936; c=relaxed/simple;
+	bh=8mkCCQyPsQZbK/K6Rd+KiAhQrMc3tgJ/a/A0ohTndrg=;
+	h=Date:To:From:Subject:Message-Id; b=rzX3e52UCng3CC7vuFDYRl/5WDhupNZsScp2furUR1ITxdy1yA06rAKd1NB6Xdsx9cAJHLcs2Dqss41h+Q7UKrY2rieY4fqZb1J6W6FJ5HPP+7oHjj0TYMQsLbLVzawxEnE92RDnAjiRxTKeYv1q8OVoZizcliPaGrcS6eYklTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZKhpxAZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NaTMlmD2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AC34C4CEC5;
-	Thu, 10 Oct 2024 20:57:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZKhpxAZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40106C4CEC5;
+	Thu, 10 Oct 2024 20:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728593832;
-	bh=RdnnVeDJhz+4l2Am60DdCkwg0pKVxtclVMyLmW8y/0Y=;
+	s=korg; t=1728593936;
+	bh=8mkCCQyPsQZbK/K6Rd+KiAhQrMc3tgJ/a/A0ohTndrg=;
 	h=Date:To:From:Subject:From;
-	b=NaTMlmD2ZBzqxq/sTTflXSL924vdGJIFpEWXwK3iw8i+xvV05KoDGVDKJyX1QT2Tz
-	 ndXaRTqNUPf2PC0rA3/neCD6j8qrYajJErMMDUahda1+6gfluOVeS891WOf054HqZw
-	 Jl8v0n1sqAypomDCprThTIAwmPZKwd4h6TQhmmVg=
-Date: Thu, 10 Oct 2024 13:57:11 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=oZKhpxAZGJmBkXPCKqvfF5n6ssJ8JfG/LupPBCiTN9MQ6bjSNiYPbymuXZ6roHvi8
+	 nOaxG/FHeRyRb/ajYcMXKX5qf9oSZicolbFsIiTgPC/JpcwgwQfcMykJWrdwyoKjPN
+	 kWdvkvNyh/e8jytB+Lgf3rWzv3E/jjRRkh7j1AhU=
+Date: Thu, 10 Oct 2024 13:58:55 -0700
+To: mm-commits@vger.kernel.org,elver@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-fix-typo-in-object_no_scan-comment.patch added to mm-unstable branch
-Message-Id: <20241010205712.3AC34C4CEC5@smtp.kernel.org>
+Subject: [folded-merged] mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch removed from -mm tree
+Message-Id: <20241010205856.40106C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,66 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     fix typo in object_no_scan() comment Date: Thu, 10 Oct 2024 18:54:39 +0300
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-fix-typo-in-object_no_scan-comment.patch
+The quilt patch titled
+     Subject: mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
+has been removed from the -mm tree.  Its filename was
+     mm-kasan-kmsan-copy_from-to_kernel_nofault-v3.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-fix-typo-in-object_no_scan-comment.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org> Subject: mm/kmemleak:
-fix typo in object_no_scan() comment Date: Thu, 10 Oct 2024 18:54:39 +0300
-Replace "corresponding to the give pointer" with "corresponding to the
-given pointer"
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
+Date: Tue, 8 Oct 2024 15:15:26 +0500
 
-Link: https://lkml.kernel.org/r/20241010155439.554416-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+v2:
+- squashed previous submitted in -mm tree 2 patches based on Linus tree
+v3:
+- moved checks to *_nofault_loop macros per Marco's comments
+- edited the commit message
+
+Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241008101526.2591147-1-snovitoll@gmail.com
+Suggested-by: Marco Elver <elver@google.com>
+Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/maccess.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-typo-in-object_no_scan-comment
-+++ a/mm/kmemleak.c
-@@ -1011,7 +1011,7 @@ static void object_set_excess_ref(unsign
+--- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault-v3
++++ a/mm/maccess.c
+@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
+ 	return true;
  }
  
- /*
-- * Set the OBJECT_NO_SCAN flag for the object corresponding to the give
-+ * Set the OBJECT_NO_SCAN flag for the object corresponding to the given
-  * pointer. Such object will not be scanned by kmemleak but references to it
-  * are searched.
-  */
++/*
++ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
++ * memory isn't leaked.
++ */
+ #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+ 		__get_kernel_nofault(dst, src, type, err_label);	\
++		kmsan_check_memory(src, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -31,8 +36,6 @@ long copy_from_kernel_nofault(void *dst,
+ 	if (!copy_from_kernel_nofault_allowed(src, size))
+ 		return -ERANGE;
+ 
+-	/* Make sure uninitialized kernel memory isn't copied. */
+-	kmsan_check_memory(src, size);
+ 	pagefault_disable();
+ 	if (!(align & 7))
+ 		copy_from_kernel_nofault_loop(dst, src, size, u64, Efault);
+@@ -52,6 +55,7 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
+ #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+ 		__put_kernel_nofault(dst, src, type, err_label);	\
++		instrument_write(dst, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -64,7 +68,6 @@ long copy_to_kernel_nofault(void *dst, c
+ 	if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
+ 		align = (unsigned long)dst | (unsigned long)src;
+ 
+-	instrument_write(dst, size);
+ 	pagefault_disable();
+ 	if (!(align & 7))
+ 		copy_to_kernel_nofault_loop(dst, src, size, u64, Efault);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-mm-vmalloc-group-declarations-depending-on-config_mmu-together.patch
-mm-vmalloc-dont-account-for-number-of-nodes-for-huge_vmap-allocations.patch
-asm-generic-introduce-text-patchingh.patch
-module-prepare-to-handle-rox-allocations-for-text.patch
-arch-introduce-set_direct_map_valid_noflush.patch
-x86-module-perpare-module-loading-for-rox-allocations-of-text.patch
-execmem-add-support-for-cache-of-large-rox-pages.patch
-x86-module-enable-rox-caches-for-module-text.patch
-mm-kmemleak-fix-typo-in-object_no_scan-comment.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
