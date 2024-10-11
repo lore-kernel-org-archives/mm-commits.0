@@ -1,205 +1,124 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 671EB19A2A3
-	for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 21:49:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A308F58
+	for <mm-commits@vger.kernel.org>; Fri, 11 Oct 2024 00:47:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728596996; cv=none; b=rYKTzPA/HHyyD3XEGC9KozLzgi5gyryGm6YMnknmSuMiXbqpe5l33+Yw7jV38P39pTkfoIiV+NOJwEzWehBQynC+41p4AnkNqonYvc686Uqkh0G29TSYskMnuCVa4EQQWSB75Pnu54JZVDyiznURWEW3z9/J7gEVYSOrAJKOhW0=
+	t=1728607674; cv=none; b=Bb48TSw9JRBMtJakyzsJM6bb2P/BnI8WNu01BB/pLi6jNyVPMXnOC8itRcY3quBOP5ezVYz4W8fsyQLrPA8R2jNoS7fMMx1GwaR9x+ezr3VYtBtynek5D9jRKsLfMWbY8Sk0l2cdfoAClDTbPUgQTEMJKoN78eQIa2bwBg4xMco=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728596996; c=relaxed/simple;
-	bh=UVfmvLAaXMW3qIM+zvZGsQOO+tiFaj74L6S9ZNolY2w=;
-	h=Date:To:From:Subject:Message-Id; b=qs+tQLdfb3HUFJ8pSqLgPouqrutiUW8cpf1LknZDf2gqQY4EPUY4KA1CG7O10tStOgtThWKqAp+d2BqiUfdIaGs88wjg/CwAwmKmU4dH58RXKhP9XgFuP3s6o3z5v6TbQB8kKY2qqn2xbyilJ+DrOUyuRzmn7mG1CQ4AXzqXlTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k7RjYgpO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728607674; c=relaxed/simple;
+	bh=YXZC/xILfqEZt5HVALsKvNoWNiGPKuExqB9dXzySfJE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ERIIKxubr2OH+YXvPkG1774BE2xpzcBKIOSezNRUVEy4YRzoNVeWX75fUIohwL0Qbhgd1GOx7uc2zRAEtehAJmJJJkw1V4uIToJD5qacNdBhmsmFx94Mm7I5QUfUbH7rYxbiiNQe8JaZoczNqtm9YXXgW8+JBfnwWZfadNe2vaQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=k1JN5rQg; arc=none smtp.client-ip=209.85.160.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k7RjYgpO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBEB7C4CEC5;
-	Thu, 10 Oct 2024 21:49:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728596995;
-	bh=UVfmvLAaXMW3qIM+zvZGsQOO+tiFaj74L6S9ZNolY2w=;
-	h=Date:To:From:Subject:From;
-	b=k7RjYgpOkFOlBiv6xpB72geb1klrK88p1kmQKEORFZrvDFb7M1R3+2Ko47r1/XJzT
-	 cg+2/kkK74Qao448+XY/dDqbLemcCAj80xOKR7FjbD1iSPc2CD1LTOxEPcsCJGFtqi
-	 21N0qUBQCoKaDkgIW8SsPoPvjNyYRxWx9WQtHmLc=
-Date: Thu, 10 Oct 2024 14:49:55 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-kasan-kmsan-copy_from-to_kernel_nofault.patch removed from -mm tree
-Message-Id: <20241010214955.DBEB7C4CEC5@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="k1JN5rQg"
+Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-2886681064dso48756fac.0
+        for <mm-commits@vger.kernel.org>; Thu, 10 Oct 2024 17:47:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1728607672; x=1729212472; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Bn1a3vfGprQ6jHE2fCMpsiG1q1d5rCJ/EvaBpPewgco=;
+        b=k1JN5rQg60yFn5d9L0bMVRMK1Bfdm9NPGZxuo398267QwBbfSI1DVMKDRmCT3ezcIj
+         cvfAWbkEIizssslSKa9nowgkdcnACDARZsEs5JjYb7qZ0HVC/EVORFQqlLTapl+r6rld
+         brIMeEm9bHUljHnZQ+mxA+jpZFC10tYtn3Uc4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728607672; x=1729212472;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Bn1a3vfGprQ6jHE2fCMpsiG1q1d5rCJ/EvaBpPewgco=;
+        b=Q2G0ymsGPVrYPbTPSbj07z2sIPlLgHFzuEmHLcZQauBPMBBFS1iO8aMGzmpW97PtxC
+         1W/BrTrCgoyIyjnFBtynhLA/jIv3H717Nn2QnDk7buedZ1eEHTmfqR3rJifeCkeaZVGj
+         Mx+g1JZT0pz8Fy1/iOUa0+Xotnwzu91BIASe7FZ4PqF4F/7aNn0fXtuAaF9EQK9+KbOB
+         DrblkJrS1m8Ywzmm366SIALYdv4UdINNGPC+cueg3Mp9/MSpK9EV293F+rZzWI1fe4Im
+         V5IJheWGrxj6KRTYl+u8zzbZgyyaGddKnLYsm2bfKyQtGBpJgkNKUu28jY7JwFVAeAx7
+         dQQA==
+X-Forwarded-Encrypted: i=1; AJvYcCW7YVOL1zD+ht7qxtcYndjAGtTlInLGBJ2qIIhttJyL5UWf9SdZkpK1cYgVNvLCtyEQ7S79jlNeqgHL@vger.kernel.org
+X-Gm-Message-State: AOJu0YzUqtnwhg9qYGoUvGz50eF9MZNkHmk2eRqm83VXcz5kg9QUH+bO
+	8PI9YoMGz2ZL9mQKzMshpJvzXj7PkcHcorkWdKIArfgl4rj0JAiGIqgzwuuF6mVzt8UUuslTF3G
+	7AUSAcvVusFDRuf0dsW7sKMQd9Xx0FODG7/E3
+X-Google-Smtp-Source: AGHT+IHU7+cZVcoaaSzV/HAXMhboZzCx/5kzNDi13fk6fM5x2j8qZn/lKU1dezetbrm8KEIxncCLOYVqZU3FThROGU8=
+X-Received: by 2002:a05:6870:a10b:b0:27b:9f8b:7e49 with SMTP id
+ 586e51a60fabf-2886dffb190mr227880fac.11.1728607672281; Thu, 10 Oct 2024
+ 17:47:52 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <f3c123e0624a07e0@cvs.openbsd.org>
+In-Reply-To: <f3c123e0624a07e0@cvs.openbsd.org>
+From: Jeff Xu <jeffxu@chromium.org>
+Date: Thu, 10 Oct 2024 17:47:40 -0700
+Message-ID: <CABi2SkWb91FZYrVgcT5j9BzkrEYvPZQS3LjKdAXgMxeqGwh-aw@mail.gmail.com>
+Subject: Re: + mseal-update-msealrst.patch added to mm-hotfixes-unstable branch
+To: Theo de Raadt <deraadt@cvs.openbsd.org>
+Cc: akpm@linux-foundation.org, corbet@lwn.net, deraadt@openbsd.org, 
+	enh@google.com, gregkh@linuxfoundation.org, groeck@chromium.org, 
+	jannh@google.com, jorgelo@chromium.org, keescook@chromium.org, 
+	Liam.Howlett@oracle.com, lorenzo.stoakes@oracle.com, 
+	mm-commits@vger.kernel.org, pedro.falcato@gmail.com, rdunlap@infradead.org, 
+	sroettger@google.com, surenb@google.com, torvalds@linux-foundation.org, 
+	usama.anjum@collabora.com, willy@infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi Theo
 
-The quilt patch titled
-     Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
-has been removed from the -mm tree.  Its filename was
-     mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+On Tue, Oct 8, 2024 at 12:01=E2=80=AFPM Theo de Raadt <deraadt@cvs.openbsd.=
+org> wrote:
+>
+> >-Additional notes:
+> >-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > As Jann Horn pointed out in [3], there are still a few ways to write
+> >-to RO memory, which is, in a way, by design. Those cases are not covere=
+d
+> >-by mseal(). If applications want to block such cases, sandbox tools (su=
+ch as
+> >-seccomp, LSM, etc) might be considered.
+> >+to RO memory, which is, in a way, by design. And those could be blocked
+> >+by different security measures.
+> >
+> > Those cases are:
+> >
+> >-- Write to read-only memory through /proc/self/mem interface.
+> >-- Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
+> >-- userfaultfd.
+> >+   - Write to read-only memory through /proc/self/mem interface (FOLL_F=
+ORCE).
+> >+   - Write to read-only memory through ptrace (such as PTRACE_POKETEXT)=
+.
+> >+   - userfaultfd.
+>
+> This block of notes keeps bothering me, because I've encountered a bunch
+> of people who walk away with "oh but what's the purpose of this thing the=
+n
+> it is useless".
 
-This patch was dropped because an updated version will be issued
+Maybe if it will help if I  add "Can be blocked by" as below:
 
-------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: mm, kasan, kmsan: copy_from/to_kernel_nofault
-Date: Thu, 10 Oct 2024 18:11:30 +0500
+   - Write to read-only memory through /proc/self/mem interface (FOLL_FORCE=
+).
+      Can be blocked by CONFIG_PROC_MEM_RESTRICT_WRITE_ALL, Landlock, etc.
+   - Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
+      Can be blocked by LSM such as Yama, Landlock, etc.
+   - userfaultfd
+      Can be blocked by seccomp.
 
-Instrument copy_from_kernel_nofault() with KMSAN for uninitialized kernel
-memory check and copy_to_kernel_nofault() with KASAN, KCSAN to detect the
-memory corruption.
+Anyway, mseal is a syscall that I don't expect to be widely used by
+applications, only a few places will actually need it,  and I'm
+expecting those devs will do necessary work in understanding what
+mseal is and if it fits their threat-model.
 
-syzbot reported that bpf_probe_read_kernel() kernel helper triggered KASAN
-report via kasan_check_range() which is not the expected behaviour as
-copy_from_kernel_nofault() is meant to be a non-faulting helper.
+To this extent, I welcome dev to extend the syscall (there is a
+"flags" reserved for such purpose), if they deem it is necessary to
+enhance mseal  for their user-cases.
 
-Solution is, suggested by Marco Elver, to replace KASAN, KCSAN check in
-copy_from_kernel_nofault() with KMSAN detection of copying uninitilaized
-kernel memory.  In copy_to_kernel_nofault() we can retain
-instrument_write() explicitly for the memory corruption instrumentation.
-
-copy_to_kernel_nofault() is tested on x86_64 and arm64 with
-CONFIG_KASAN_SW_TAGS.  On arm64 with CONFIG_KASAN_HW_TAGS, kunit test
-currently fails.  Need more clarification on it.
-
-Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20241010131130.2903601-1-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
-Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/kasan/kasan_test_c.c |   37 +++++++++++++++++++++++++++++++++++++
- mm/kmsan/kmsan_test.c   |   17 +++++++++++++++++
- mm/maccess.c            |   10 ++++++++--
- 3 files changed, 62 insertions(+), 2 deletions(-)
-
---- a/mm/kasan/kasan_test_c.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1954,6 +1954,42 @@ static void rust_uaf(struct kunit *test)
- 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
- }
- 
-+static void copy_to_kernel_nofault_oob(struct kunit *test)
-+{
-+	char *ptr;
-+	char buf[128];
-+	size_t size = sizeof(buf);
-+
-+	/* This test currently fails with the HW_TAGS mode.
-+	 * The reason is unknown and needs to be investigated. */
-+	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+	OPTIMIZER_HIDE_VAR(ptr);
-+
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS)) {
-+		/* Check that the returned pointer is tagged. */
-+		KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
-+		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
-+	}
-+
-+	/*
-+	* We test copy_to_kernel_nofault() to detect corrupted memory that is
-+	* being written into the kernel. In contrast, copy_from_kernel_nofault()
-+	* is primarily used in kernel helper functions where the source address
-+	* might be random or uninitialized. Applying KASAN instrumentation to
-+	* copy_from_kernel_nofault() could lead to false positives.
-+	* By focusing KASAN checks only on copy_to_kernel_nofault(),
-+	* we ensure that only valid memory is written to the kernel,
-+	* minimizing the risk of kernel corruption while avoiding
-+	* false positives in the reverse case.
-+	*/
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		copy_to_kernel_nofault(&buf[0], ptr, size));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		copy_to_kernel_nofault(ptr, &buf[0], size));
-+	kfree(ptr);
-+}
-+
- static struct kunit_case kasan_kunit_test_cases[] = {
- 	KUNIT_CASE(kmalloc_oob_right),
- 	KUNIT_CASE(kmalloc_oob_left),
-@@ -2027,6 +2063,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(match_all_not_assigned),
- 	KUNIT_CASE(match_all_ptr_tag),
- 	KUNIT_CASE(match_all_mem_tag),
-+	KUNIT_CASE(copy_to_kernel_nofault_oob),
- 	KUNIT_CASE(rust_uaf),
- 	{}
- };
---- a/mm/kmsan/kmsan_test.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/kmsan/kmsan_test.c
-@@ -640,6 +640,22 @@ static void test_unpoison_memory(struct
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
- 
-+static void test_copy_from_kernel_nofault(struct kunit *test)
-+{
-+	long ret;
-+	char buf[4], src[4];
-+	size_t size = sizeof(buf);
-+
-+	EXPECTATION_UNINIT_VALUE_FN(expect, "copy_from_kernel_nofault");
-+	kunit_info(
-+		test,
-+		"testing copy_from_kernel_nofault with uninitialized memory\n");
-+
-+	ret = copy_from_kernel_nofault((char *)&buf[0], (char *)&src[0], size);
-+	USE(ret);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
-+}
-+
- static struct kunit_case kmsan_test_cases[] = {
- 	KUNIT_CASE(test_uninit_kmalloc),
- 	KUNIT_CASE(test_init_kmalloc),
-@@ -664,6 +680,7 @@ static struct kunit_case kmsan_test_case
- 	KUNIT_CASE(test_long_origin_chain),
- 	KUNIT_CASE(test_stackdepot_roundtrip),
- 	KUNIT_CASE(test_unpoison_memory),
-+	KUNIT_CASE(test_copy_from_kernel_nofault),
- 	{},
- };
- 
---- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
-+++ a/mm/maccess.c
-@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
- 	return true;
- }
- 
-+/*
-+ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
-+ * memory isn't leaked.
-+ */
- #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
- 	while (len >= sizeof(type)) {					\
--		__get_kernel_nofault(dst, src, type, err_label);		\
-+		__get_kernel_nofault(dst, src, type, err_label);	\
-+		kmsan_check_memory(src, sizeof(type));			\
- 		dst += sizeof(type);					\
- 		src += sizeof(type);					\
- 		len -= sizeof(type);					\
-@@ -49,7 +54,8 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
- 
- #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
- 	while (len >= sizeof(type)) {					\
--		__put_kernel_nofault(dst, src, type, err_label);		\
-+		__put_kernel_nofault(dst, src, type, err_label);	\
-+		instrument_write(dst, sizeof(type));			\
- 		dst += sizeof(type);					\
- 		src += sizeof(type);					\
- 		len -= sizeof(type);					\
-_
-
-Patches currently in -mm which might be from snovitoll@gmail.com are
-
-
+-Jeff
