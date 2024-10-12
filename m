@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33B1335C7
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:05:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB0BA14A084;
+	Sat, 12 Oct 2024 22:07:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728770738; cv=none; b=ogi8D4yZnBswOdy9aZ8mNpt7ESGvJNedJy0XopPXVlZPzqwI+vPhQlynWYKARKiaE+6j8Wlc1azR0/9xNXCcyEewTAY8lHWPhR3yjTzHF267/7IrXEkvIpn8kF5NVkrHGAA51EYkrD5zotjGm1v4kPmCfCGiNefDjRQAVm9nyTY=
+	t=1728770866; cv=none; b=UIeVF4z2kODpWMlTttSirkotb7JjsFohCq96NdVN5/ehg9PfbHvuJociWupYV7Bt+vBwCupRt3rDSupVQcIpJEu6b2HPl1uAc0zlX656PbhjKJibpS81Kw19dqwDkuOGu0SpIbC8pTq5+nGU6AKaNKg99Uu9xp88xwZX4U+dRm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728770738; c=relaxed/simple;
-	bh=APm0oF4BU9lQurzDGzAicZaKGoIZz6KEbf3q1vu9bSs=;
-	h=Date:To:From:Subject:Message-Id; b=txZDlifg5YDnnjlTDp7nlvLWlNMEZysi9lx3KR+lLOuxRb39sB3gH4LYkGeZT+bkiT1LdrGVUxdFel7n42cRAHDQJAzUz9e7gbqpg7yyfUMWRbWem96C25cuSv+ijEu1ji7o1bRt3PEKjDXQ2Y6R4P4EB+c1cawVs/WE/6sSLUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDSpLhg/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728770866; c=relaxed/simple;
+	bh=WQ7cCSetNTK8Bv6LabJK95KV/KzXItZmvMXmXKrnbjM=;
+	h=Date:To:From:Subject:Message-Id; b=XZR/BwrH9+Q4uQJQr7b5BIAY0r6oQllMgonE95ccq0KJoBhPpTaoM4WAe1/wnFlM88gqxCS7KE2nuHVr/X0zx9cud6ZeT6khdOpOPJOO1jVkA50bGmHLT0eO2pupPD3fxhiSw2RCETDEX6kimQM+rEwrRFau+jy/h8B6dVlphBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rkbM9+AM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDSpLhg/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27E31C4CEC6;
-	Sat, 12 Oct 2024 22:05:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkbM9+AM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6372EC4CEC6;
+	Sat, 12 Oct 2024 22:07:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728770738;
-	bh=APm0oF4BU9lQurzDGzAicZaKGoIZz6KEbf3q1vu9bSs=;
+	s=korg; t=1728770865;
+	bh=WQ7cCSetNTK8Bv6LabJK95KV/KzXItZmvMXmXKrnbjM=;
 	h=Date:To:From:Subject:From;
-	b=RDSpLhg/ErOOxr+SuqEpx5FOjjFzX9nDVnJAkwaS8B7vY8WeaVj7zlSPQ1NSGandx
-	 XIrFZb9/OIjTxL50yNHGrWsnIv1I10blDTJ2/x/niUS+EO9B62DIEQneYvXWmFjN/S
-	 1feLbNNKg99iz82YpoRtW0cM4mMKjhqOvEQh9SAU=
-Date: Sat, 12 Oct 2024 15:05:37 -0700
-To: mm-commits@vger.kernel.org,suhua1@kingsoft.com,muchun.song@linux.dev,suhua.tanke@gmail.com,akpm@linux-foundation.org
+	b=rkbM9+AMhOPEG8z6DyD2Ebuj+ivTJMm9L5hXpJtUYnjjbmufvU2ij+c5xH9Y7aWHu
+	 LVen0bbF/qBvul/W4FmnPSXph+px4/t5W80iom87MKov9n0cRh1aZ2LISbSMhYg716
+	 sTLqFG5BXLQeA4hbmLd5O/mzapMVfy0t2sU/Kh5k=
+Date: Sat, 12 Oct 2024 15:07:44 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rostedt@goodmis.org,gautammenghani201@gmail.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch added to mm-unstable branch
-Message-Id: <20241012220538.27E31C4CEC6@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241012220745.6372EC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
+     Subject: mm: khugepaged: fix the arguments order in khugepaged_collapse_file trace point
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,102 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: suhua <suhua.tanke@gmail.com>
-Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
-Date: Sat, 12 Oct 2024 15:08:02 +0800
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: khugepaged: fix the arguments order in khugepaged_collapse_file trace point
+Date: Fri, 11 Oct 2024 18:17:02 -0700
 
-When HVO is enabled and huge page memory allocs are made, the freed memory
-can be aggregated into higher order memory in the following paths, which
-facilitates further allocs for higher order memory.
+The "addr" and "is_shmem" arguments have different order in TP_PROTO and
+TP_ARGS.  This resulted in the incorrect trace result:
 
-echo 200000 > /proc/sys/vm/nr_hugepages
-echo 200000 > /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages
-grub： default_hugepagesz=2M hugepagesz=2M hugepages=200000
+text-hugepage-644429 [276] 392092.878683: mm_khugepaged_collapse_file:
+mm=0xffff20025d52c440, hpage_pfn=0x200678c00, index=512, addr=1, is_shmem=0,
+filename=text-hugepage, nr=512, result=failed
 
-Currently not support for releasing aggregations to higher order in the
-following way, which will releasing to lower order.
+The value of "addr" is wrong because it was treated as bool value, the
+type of is_shmem.
 
-grub: default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
+Fix the order in TP_PROTO to keep "addr" is before "is_shmem" since the
+original patch review suggested this order to achieve best packing.
 
-This patch supports the release of huge page optimizations aggregates to
-higher order memory.
+And use "lx" for "addr" instead of "ld" in TP_printk because address is
+typically shown in hex.
 
-eg:
-cat /proc/cmdline
-BOOT_IMAGE=/boot/vmlinuz-xxx ... default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
+After the fix, the trace result looks correct:
 
-Before:
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-...
-Node    0, zone   Normal, type    Unmovable  55282  97039  99307      0      1      1      0      1      1      1      0
-Node    0, zone   Normal, type      Movable     25     11    345     87     48     21      2     20      9      3  75061
-Node    0, zone   Normal, type  Reclaimable      4      2      2      4      3      0      2      1      1      1      0
-Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-...
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-Node    1, zone   Normal, type    Unmovable  98888  99650  99679      2      3      1      2      2      2      0      0
-Node    1, zone   Normal, type      Movable      1      1      0      1      1      0      1      0      1      1  75937
-Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
-Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
+text-hugepage-7291  [004]   128.627251: mm_khugepaged_collapse_file:
+mm=0xffff0001328f9500, hpage_pfn=0x20016ea00, index=512, addr=0x400000,
+is_shmem=0, filename=text-hugepage, nr=512, result=failed
 
-After:
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-...
-Node    0, zone   Normal, type    Unmovable    152    158     37      2      2      0      3      4      2      6    717
-Node    0, zone   Normal, type      Movable      1     37     53      3     55     49     16      6      2      1  75000
-Node    0, zone   Normal, type  Reclaimable      1      4      3      1      2      1      1      1      1      1      0
-Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-...
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-Node    1, zone   Normal, type    Unmovable      5      3      2      1      3      4      2      2      2      0    779
-Node    1, zone   Normal, type      Movable      1      0      1      1      1      0      1      0      1      1  75849
-Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
-Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-
-Link: https://lkml.kernel.org/r/20241012070802.1876-1-suhua1@kingsoft.com
-Signed-off-by: suhua <suhua1@kingsoft.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20241012011702.1084846-1-yang@os.amperecomputing.com
+Fixes: 4c9473e87e75 ("mm/khugepaged: add tracepoint to collapse_file()")
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Cc: Gautam Menghani <gautammenghani201@gmail.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>    [6.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/trace/events/huge_memory.h |    4 ++--
+ mm/khugepaged.c                    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation
-+++ a/mm/hugetlb.c
-@@ -3301,6 +3301,7 @@ static void __init hugetlb_hstate_alloc_
- {
- 	unsigned long i;
- 	char buf[32];
-+	LIST_HEAD(folio_list);
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point
++++ a/include/trace/events/huge_memory.h
+@@ -208,7 +208,7 @@ TRACE_EVENT(mm_khugepaged_scan_file,
  
- 	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
- 		if (hstate_is_gigantic(h)) {
-@@ -3310,14 +3311,18 @@ static void __init hugetlb_hstate_alloc_
- 			struct folio *folio;
- 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ TRACE_EVENT(mm_khugepaged_collapse_file,
+ 	TP_PROTO(struct mm_struct *mm, struct folio *new_folio, pgoff_t index,
+-			bool is_shmem, unsigned long addr, struct file *file,
++			unsigned long addr, bool is_shmem, struct file *file,
+ 			int nr, int result),
+ 	TP_ARGS(mm, new_folio, index, addr, is_shmem, file, nr, result),
+ 	TP_STRUCT__entry(
+@@ -233,7 +233,7 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
+ 		__entry->result = result;
+ 	),
  
--			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
--					&node_states[N_MEMORY]);
-+			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
-+					&node_states[N_MEMORY], NULL);
- 			if (!folio)
- 				break;
--			free_huge_folio(folio); /* free it into the hugepage allocator */
-+			list_add(&folio->lru, &folio_list);
- 		}
- 		cond_resched();
- 	}
-+
-+	if (!list_empty(&folio_list))
-+		prep_and_add_allocated_folios(h, &folio_list);
-+
- 	if (i == h->max_huge_pages_node[nid])
- 		return;
+-	TP_printk("mm=%p, hpage_pfn=0x%lx, index=%ld, addr=%ld, is_shmem=%d, filename=%s, nr=%d, result=%s",
++	TP_printk("mm=%p, hpage_pfn=0x%lx, index=%ld, addr=%lx, is_shmem=%d, filename=%s, nr=%d, result=%s",
+ 		__entry->mm,
+ 		__entry->hpfn,
+ 		__entry->index,
+--- a/mm/khugepaged.c~mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point
++++ a/mm/khugepaged.c
+@@ -2227,7 +2227,7 @@ rollback:
+ 	folio_put(new_folio);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	trace_mm_khugepaged_collapse_file(mm, new_folio, index, is_shmem, addr, file, HPAGE_PMD_NR, result);
++	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
+ 	return result;
+ }
  
 _
 
-Patches currently in -mm which might be from suhua.tanke@gmail.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
-mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
+mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch
 
