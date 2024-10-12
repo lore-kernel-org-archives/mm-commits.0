@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF933610D
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:16:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A144610D
+	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:18:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728771376; cv=none; b=IZgvsc0Z7TXnesriw7Stf0vi7cJwcz5otQeWQUHNG7/zE7e5dmpP4jXLjFnfxdh7jU2UAT1yz6nEe1FuBp4/kkv4v3spZFrLA6qb+2US8TVh859ueeLfqsOMt217nnpzTUuqDPOimHUSUrMzZ6jsMC4uj6j865xa1Y5UK0NYFZg=
+	t=1728771497; cv=none; b=PFv4NfLOZ3+xsTbeBRe3IBWYbp0FvF1VB62H1mWhgyS+irv2txFdg06HL/+CLtSqIg+rL2oSywnmaYvnaPv2NhlOUGao5Kz9vgDhIXm6AKRM1JeawUqRN1SFudZlgxwA9C+zb9OIgdmcAwEWM0K1198V65wLbOQ0TsPkZaDNckc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728771376; c=relaxed/simple;
-	bh=lO2M06REcATaK4FgRsRD0fKakz6M34LmNCI0WqE7jL8=;
-	h=Date:To:From:Subject:Message-Id; b=RwnXb3gkxh4cosuXlUGD39tnaQBit4Xy2IazJH1lmjNWKmweV1Ru3HcQ5DMqJ0YUFWsU4Deic1y3Mq4Jt7zAhtrdqpV1nXXupWVQkPuWEhOXIy8+1hAMh4TldluOBYy41se5jsb84iLwd59bFLfobKqBRXeCyMnSkIoyDBnazkk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2CM0a6ba; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728771497; c=relaxed/simple;
+	bh=864tPMgioMGnBEaa7z4WunCWL1IuLVKO+5HayZZfQTc=;
+	h=Date:To:From:Subject:Message-Id; b=OQlljZLDD1f1VPyvqA0tDMcCqBCDZxls8OKhYr0VJ33AkIUm1ICVuIUnY2gy6Xpa9Vscgf4sRzPJ+Yt+l0qZQqo9A9Pnsx0ZFK+yLde+yGKN6vO4wlT0tboFPBbR8wLwVOFymG4lp6feL1Vw5mj2b8P/0Qj4VxIfbX6bE4JyNPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sUjUTJid; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2CM0a6ba"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754D8C4CEC6;
-	Sat, 12 Oct 2024 22:16:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sUjUTJid"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDA4AC4CECD;
+	Sat, 12 Oct 2024 22:18:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728771375;
-	bh=lO2M06REcATaK4FgRsRD0fKakz6M34LmNCI0WqE7jL8=;
+	s=korg; t=1728771495;
+	bh=864tPMgioMGnBEaa7z4WunCWL1IuLVKO+5HayZZfQTc=;
 	h=Date:To:From:Subject:From;
-	b=2CM0a6babfJaLNLY2k2/koL6iR79iAWTwHcVECX5EPmv9T0fFpBUftgRUMAJTDdRU
-	 zkkfzdQ+rzfz9FATQMF6OkKDM2sEetBldETisvDmGcAeb/iEwsCb0Ul7qrE1b9ZeDa
-	 2MNXcgYKr6u7brdVUWxfquR1Xp+aUm4TTrpNqa4Y=
-Date: Sat, 12 Oct 2024 15:16:14 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,v-songbaohua@oppo.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,kasong@tencent.com,akpm@linux-foundation.org
+	b=sUjUTJid+uHWBrVkf5D5hcieFaQF4htBIyhEEqKFwJMEzi+Wn5DIgitO58GTFdd5U
+	 OC9P6mMKJqjem+2aWXZ1eH4BwDkl/fvdxPR0ia1ytQjTEmQzK2DhxiC7iNHAzLVK0+
+	 WbL9IzPC2DTD8jjMfR+T+frNJya7gt3PdRo5Pbkw=
+Date: Sat, 12 Oct 2024 15:18:15 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch added to mm-unstable branch
-Message-Id: <20241012221615.754D8C4CEC6@smtp.kernel.org>
+Subject: + docs-damon-maintainer-profile-add-missing-_-suffixes-for-external-web-links.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241012221815.CDA4AC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
+     Subject: Docs/damon/maintainer-profile: add missing '_' suffixes for external web links
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     docs-damon-maintainer-profile-add-missing-_-suffixes-for-external-web-links.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-damon-maintainer-profile-add-missing-_-suffixes-for-external-web-links.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,141 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
-Date: Sat, 12 Oct 2024 01:19:50 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/damon/maintainer-profile: add missing '_' suffixes for external web links
+Date: Fri, 11 Oct 2024 10:01:53 -0700
 
-zswap_invalidation simply calls xa_erase, which acquires the Xarray lock
-first, then does a look up.  This has a higher overhead even if zswap is
-not used or the tree is empty.
+Patch series "Docs/damon/maintainer-profile: a couple of minor hotfixes".
 
-So instead, do a very lightweight xa_empty check first, if there is
-nothing to erase, don't touch the lock or the tree.
+DAMON maintainer-profile.rst file patches[1] that were merged into the
+v6.12-rc1 have a couple of minor mistakes.  Fix those.
 
-Using xa_empty rather than zswap_never_enabled is more helpful as it cover
-both case where zswap wes never used or the particular range doesn't have
-any zswap entry.  And it's safe as the swap slot should be currently
-pinned by caller with HAS_CACHE.
+[1] https://lore.kernel.org/20240826015741.80707-1-sj@kernel.org
 
-Sequential SWAP in/out tests with zswap disabled showed a minor
-performance gain, SWAP in of zero page with zswap enabled also showed a
-performance gain.  (swapout is basically unchanged so only test one case):
 
-Swapout of 2G zero page using brd as SWAP, zswap disabled
-(total time, 4 testrun, +0.1%):
-Before: 1705013 us 1703119 us 1704335 us 1705848 us.
-After:  1703579 us 1710640 us 1703625 us 1708699 us.
+This patch (of 2):
 
-Swapin of 2G zero page using brd as SWAP, zswap disabled
-(total time, 4 testrun, -3.5%):
-Before: 1912312 us 1915692 us 1905837 us 1912706 us.
-After:  1845354 us 1849691 us 1845868 us 1841828 us.
+Links to external web pages on DAMON's maintainer-profile.rst are missing
+'_' suffixes.  As a result, rendered document is having only verbose URLs
+that cannot be clicked.  Fix those.
 
-Swapin of 2G zero page using brd as SWAP, zswap enabled
-(total time, 4 testrun, -3.3%):
-Before: 1897994 us 1894681 us 1899982 us 1898333 us
-After:  1835894 us 1834113 us 1832047 us 1833125 us
+Also, update the link texts for git trees to contain the names of the
+trees, for better readability and avoiding below Sphinx warning.
 
-Swapin of 2G random page using brd as SWAP, zswap enabled
-(total time, 4 testrun, -0.1%):
-Before: 4519747 us 4431078 us 4430185 us 4439999 us
-After:  4492176 us 4437796 us 4434612 us 4434289 us
+    maintainer-profile.rst:4: WARNING: Duplicate explicit target name: "tree".
 
-And the performance is very slightly better or unchanged for
-build kernel test with zswap enabled or disabled.
-
-Build Linux Kernel with defconfig and -j32 in 1G memory cgroup,
-using brd SWAP, zswap disabled (sys time in seconds, 6 testrun, -0.1%):
-Before: 1648.83 1653.52 1666.34 1665.95 1663.06 1656.67
-After:  1651.36 1661.89 1645.70 1657.45 1662.07 1652.83
-
-Build Linux Kernel with defconfig and -j32 in 2G memory cgroup,
-using brd SWAP zswap enabled (sys time in seconds, 6 testrun, -0.3%):
-Before: 1240.25 1254.06 1246.77 1265.92 1244.23 1227.74
-After:  1226.41 1218.21 1249.12 1249.13 1244.39 1233.01
-
-Link: https://lkml.kernel.org/r/20241011171950.62684-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20241011170154.70651-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241011170154.70651-2-sj@kernel.org
+Fixes: 2e9b3d6e2e59 ("Docs/damon/maintainer-profile: add links in place")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/mm/damon/maintainer-profile.rst |   38 ++++++++--------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation
-+++ a/mm/zswap.c
-@@ -1641,6 +1641,9 @@ void zswap_invalidate(swp_entry_t swp)
- 	struct xarray *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry;
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-damon-maintainer-profile-add-missing-_-suffixes-for-external-web-links
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -7,26 +7,26 @@ The DAMON subsystem covers the files tha
+ section of 'MAINTAINERS' file.
  
-+	if (xa_empty(tree))
-+		return;
-+
- 	entry = xa_erase(tree, offset);
- 	if (entry)
- 		zswap_entry_free(entry);
+ The mailing lists for the subsystem are damon@lists.linux.dev and
+-linux-mm@kvack.org.  Patches should be made against the mm-unstable `tree
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>` whenever possible and posted to
+-the mailing lists.
++linux-mm@kvack.org.  Patches should be made against the `mm-unstable tree
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ whenever possible and posted
++to the mailing lists.
+ 
+ SCM Trees
+ ---------
+ 
+ There are multiple Linux trees for DAMON development.  Patches under
+ development or testing are queued in `damon/next
+-<https://git.kernel.org/sj/h/damon/next>` by the DAMON maintainer.
++<https://git.kernel.org/sj/h/damon/next>`_ by the DAMON maintainer.
+ Sufficiently reviewed patches will be queued in `mm-unstable
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>` by the memory management
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ by the memory management
+ subsystem maintainer.  After more sufficient tests, the patches will be queued
+-in `mm-stable <https://git.kernel.org/akpm/mm/h/mm-stable>` , and finally
++in `mm-stable <https://git.kernel.org/akpm/mm/h/mm-stable>`_, and finally
+ pull-requested to the mainline by the memory management subsystem maintainer.
+ 
+-Note again the patches for mm-unstable `tree
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>` are queued by the memory
++Note again the patches for `mm-unstable tree
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ are queued by the memory
+ management subsystem maintainer.  If the patches requires some patches in
+-damon/next `tree <https://git.kernel.org/sj/h/damon/next>` which not yet merged
++`damon/next tree <https://git.kernel.org/sj/h/damon/next>`_ which not yet merged
+ in mm-unstable, please make sure the requirement is clearly specified.
+ 
+ Submit checklist addendum
+@@ -37,25 +37,25 @@ When making DAMON changes, you should do
+ - Build changes related outputs including kernel and documents.
+ - Ensure the builds introduce no new errors or warnings.
+ - Run and ensure no new failures for DAMON `selftests
+-  <https://github.com/awslabs/damon-tests/blob/master/corr/run.sh#L49>` and
++  <https://github.com/awslabs/damon-tests/blob/master/corr/run.sh#L49>`_ and
+   `kunittests
+-  <https://github.com/awslabs/damon-tests/blob/master/corr/tests/kunit.sh>`.
++  <https://github.com/awslabs/damon-tests/blob/master/corr/tests/kunit.sh>`_.
+ 
+ Further doing below and putting the results will be helpful.
+ 
+ - Run `damon-tests/corr
+-  <https://github.com/awslabs/damon-tests/tree/master/corr>` for normal
++  <https://github.com/awslabs/damon-tests/tree/master/corr>`_ for normal
+   changes.
+ - Run `damon-tests/perf
+-  <https://github.com/awslabs/damon-tests/tree/master/perf>` for performance
++  <https://github.com/awslabs/damon-tests/tree/master/perf>`_ for performance
+   changes.
+ 
+ Key cycle dates
+ ---------------
+ 
+ Patches can be sent anytime.  Key cycle dates of the `mm-unstable
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>` and `mm-stable
+-<https://git.kernel.org/akpm/mm/h/mm-stable>` trees depend on the memory
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ and `mm-stable
++<https://git.kernel.org/akpm/mm/h/mm-stable>`_ trees depend on the memory
+ management subsystem maintainer.
+ 
+ Review cadence
+@@ -72,13 +72,13 @@ Mailing tool
+ Like many other Linux kernel subsystems, DAMON uses the mailing lists
+ (damon@lists.linux.dev and linux-mm@kvack.org) as the major communication
+ channel.  There is a simple tool called `HacKerMaiL
+-<https://github.com/damonitor/hackermail>` (``hkml``), which is for people who
++<https://github.com/damonitor/hackermail>`_ (``hkml``), which is for people who
+ are not very familiar with the mailing lists based communication.  The tool
+ could be particularly helpful for DAMON community members since it is developed
+ and maintained by DAMON maintainer.  The tool is also officially announced to
+ support DAMON and general Linux kernel development workflow.
+ 
+-In other words, `hkml <https://github.com/damonitor/hackermail>` is a mailing
++In other words, `hkml <https://github.com/damonitor/hackermail>`_ is a mailing
+ tool for DAMON community, which DAMON maintainer is committed to support.
+ Please feel free to try and report issues or feature requests for the tool to
+ the maintainer.
+@@ -98,8 +98,8 @@ slots, and attendees should reserve one
+ time slot, by reaching out to the maintainer.
+ 
+ Schedules and available reservation time slots are available at the Google `doc
+-<https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`.
++<https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`_.
+ There is also a public Google `calendar
+-<https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`
++<https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`_
+ that has the events.  Anyone can subscribe it.  DAMON maintainer will also
+ provide periodic reminder to the mailing list (damon@lists.linux.dev).
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-list_lru-dont-pass-unnecessary-key-parameters.patch
-mm-list_lru-dont-export-list_lru_add.patch
-mm-list_lru-code-clean-up-for-reparenting.patch
-mm-list_lru-simplify-reparenting-and-initial-allocation.patch
-mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
-mm-list_lru-simplify-the-list_lru-walk-callback-function.patch
-mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
+docs-damon-maintainer-profile-add-missing-_-suffixes-for-external-web-links.patch
+docs-damon-maintainer-profile-update-deprecated-awslabs-github-urls.patch
 
