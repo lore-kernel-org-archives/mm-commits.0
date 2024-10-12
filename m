@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C4513D897
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:22:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C01717BCE
+	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:31:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728771724; cv=none; b=Gz+vMdiZWW9YWL8p52srMOU8HcRZxkxqk5DZd4fD1OksayeK6XD2O+fAbSgO+zttiVvUt9OR5aTUd6rBclBImA+jZWPnOCeKz1+BEZEKztYPjNvq75XmM1VQ4mh5/rSD/qLBtfJTALYBQw1WjWGSaKSZGWvHGsJ7J1iG6dTkAnA=
+	t=1728772277; cv=none; b=GeDFC1UxU18nnln4fX4PnBPdmuk+hzszB+w1qRzFpwWxaSQTN5Sbp9MiGl/HgOLTBbtydKKGjwlKc5op/vL3g+mHnpkcWUFpxguJ+0IgvEKkYlY2RdAL2wVeScXphjTWii02qKepy5an43Y+bpgpW2rVOrdW+biMz9zEfuG0VgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728771724; c=relaxed/simple;
-	bh=fjilsVe1a80tPGSkZ0rRLQBzDDXbagw4rDtkt3pi2j4=;
-	h=Date:To:From:Subject:Message-Id; b=E2AvW6sSOxh96i0U7bZOAv7oFztrI1DCpcd04HKvNNsHcOEw1obd8MjRDVaUMqYBIYxKk1MYnvtPe5z3GDAeOWQt83azuC5oaQMhm5F7GdQ+Up+zIqvE9xpbsK2/f8kgljYutc6cqkRMjPA6hDJ/nLi7rcEmUGVx7UAMJ9OJIRs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EDvZocM2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728772277; c=relaxed/simple;
+	bh=RmjUMCVHMyPmgUDlsFhAVVz5meklGXPBFK06ARyREB0=;
+	h=Date:To:From:Subject:Message-Id; b=mf5mgr4Q8rAjJmu8xS9eVDGBiZ6qlbgeXGOQ1/LeqdIEYGLNz8YqkWpKigMjntf9mBMJEb/1DY3Iw+YGkddDUv5Urpbp5yt7jAhJRTEvqhjfRMboEl34aqrwSanElaWPjEyPLlsCnvFysoOFH/4BYfSRzkaNhZHz/lXjdNQi4u4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N/WbL1LX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EDvZocM2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2DF8C4CEC6;
-	Sat, 12 Oct 2024 22:22:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N/WbL1LX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D41CCC4CEC6;
+	Sat, 12 Oct 2024 22:31:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728771723;
-	bh=fjilsVe1a80tPGSkZ0rRLQBzDDXbagw4rDtkt3pi2j4=;
+	s=korg; t=1728772276;
+	bh=RmjUMCVHMyPmgUDlsFhAVVz5meklGXPBFK06ARyREB0=;
 	h=Date:To:From:Subject:From;
-	b=EDvZocM2kMn55kW7s3tf75SGqOw57rqOPcaDd7n/t6HRaDJfXjNN3C4Qmt9DC5eg8
-	 XEH1WNaLntw3Q03DSaFIKGHgAcfgTrC/Ca9EUOdr3PxaADzXjhyr1uBBeYeOYeqi2I
-	 fkUb45Mdiy2Tz1IJFm6YEKVaGFkXKoIV6dt4MXO8=
-Date: Sat, 12 Oct 2024 15:22:03 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,keescook@chromium.org,jhubbard@nvidia.com,glider@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=N/WbL1LX/fipkVs9d68V/zu0oigOrOWLupbpDjiHqKxtNa7PL+nAAha7UjeQUIVUE
+	 /GDOh2fNqiOaATkdfFSYnYXUIMNBTrDzRtqr4q/m5ynYDP4Vya2Cms3j30heza7Gk8
+	 z7P+3O2zqI8FG7NhdNSxTxiOdioiZ9Aw5a7LYoZ4=
+Date: Sat, 12 Oct 2024 15:31:16 -0700
+To: mm-commits@vger.kernel.org,xavier_qy@163.com,tj@kernel.org,mkoutny@suse.com,longman@redhat.com,llong@redhat.com,lizefan.x@bytedance.com,jserv@ccns.ncku.edu.tw,hch@infradead.org,hannes@cmpxchg.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch added to mm-unstable branch
-Message-Id: <20241012222203.C2DF8C4CEC6@smtp.kernel.org>
+Subject: + lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch added to mm-nonmm-unstable branch
+Message-Id: <20241012223116.D41CCC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: avoid zeroing user movable page twice with init_on_alloc=1
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+     Subject: lib/Makefile: make union-find compilation conditional on CONFIG_CPUSETS
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,106 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: avoid zeroing user movable page twice with init_on_alloc=1
-Date: Fri, 11 Oct 2024 11:03:04 -0400
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib/Makefile: make union-find compilation conditional on CONFIG_CPUSETS
+Date: Fri, 11 Oct 2024 22:12:14 +0800
 
-Commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
-init_on_free=1 boot options") forces allocated page to be zeroed in
-post_alloc_hook() when init_on_alloc=1.
+Currently, cpuset is the only user of the union-find implementation. 
+Compiling union-find in all configurations unnecessarily increases the
+code size when building the kernel without cgroup support.  Modify the
+build system to compile union-find only when CONFIG_CPUSETS is enabled.
 
-For order-0 folios, if arch does not define
-vma_alloc_zeroed_movable_folio(), the default implementation again zeros
-the page return from the buddy allocator.  So the page is zeroed twice. 
-Fix it by passing __GFP_ZERO instead to avoid double page zeroing.  At the
-moment, s390,arm64,x86,alpha,m68k are not impacted since they define their
-own vma_alloc_zeroed_movable_folio().
-
-For >0 order folios (mTHP and PMD THP), folio_zero_user() is called to
-zero the folio again.  Fix it by calling folio_zero_user() only if
-init_on_alloc is set.  All arch are impacted.
-
-Add alloc_zeroed() helper to encapsulate the init_on_alloc check.
-
-Link: https://lkml.kernel.org/r/20241011150304.709590-1-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lore.kernel.org/lkml/1ccd6411-5002-4574-bb8e-3e64bba6a757@redhat.com/
+Link: https://lkml.kernel.org/r/20241011141214.87096-1-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Suggested-by: Waiman Long <llong@redhat.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Xavier <xavier_qy@163.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    8 +-------
- mm/huge_memory.c        |    3 ++-
- mm/internal.h           |    6 ++++++
- mm/memory.c             |    3 ++-
- 4 files changed, 11 insertions(+), 9 deletions(-)
+ init/Kconfig |    1 +
+ lib/Kconfig  |    3 +++
+ lib/Makefile |    3 ++-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/highmem.h~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
-+++ a/include/linux/highmem.h
-@@ -224,13 +224,7 @@ static inline
- struct folio *vma_alloc_zeroed_movable_folio(struct vm_area_struct *vma,
- 				   unsigned long vaddr)
- {
--	struct folio *folio;
--
--	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vaddr);
--	if (folio)
--		clear_user_highpage(&folio->page, vaddr);
--
--	return folio;
-+	return vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr);
- }
- #endif
+--- a/init/Kconfig~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
++++ a/init/Kconfig
+@@ -1153,6 +1153,7 @@ config CGROUP_HUGETLB
+ config CPUSETS
+ 	bool "Cpuset controller"
+ 	depends on SMP
++	select UNION_FIND
+ 	help
+ 	  This option will let you create and manage CPUSETs which
+ 	  allow dynamically partitioning a system into sets of CPUs and
+--- a/lib/Kconfig~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
++++ a/lib/Kconfig
+@@ -777,3 +777,6 @@ config POLYNOMIAL
  
---- a/mm/huge_memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
-+++ a/mm/huge_memory.c
-@@ -1176,7 +1176,8 @@ static struct folio *vma_alloc_anon_foli
- 	}
- 	folio_throttle_swaprate(folio, gfp);
- 
--	folio_zero_user(folio, addr);
-+	if (!alloc_zeroed())
-+		folio_zero_user(folio, addr);
- 	/*
- 	 * The memory barrier inside __folio_mark_uptodate makes sure that
- 	 * folio_zero_user writes become visible before the set_pmd_at()
---- a/mm/internal.h~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
-+++ a/mm/internal.h
-@@ -1233,6 +1233,12 @@ void touch_pud(struct vm_area_struct *vm
- void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	       pmd_t *pmd, bool write);
- 
-+static inline bool alloc_zeroed(void)
-+{
-+	return static_branch_maybe(CONFIG_INIT_ON_ALLOC_DEFAULT_ON,
-+			&init_on_alloc);
-+}
+ config FIRMWARE_TABLE
+ 	bool
 +
- enum {
- 	/* mark page accessed */
- 	FOLL_TOUCH = 1 << 16,
---- a/mm/memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
-+++ a/mm/memory.c
-@@ -4719,7 +4719,8 @@ static struct folio *alloc_anon_folio(st
- 				goto next;
- 			}
- 			folio_throttle_swaprate(folio, gfp);
--			folio_zero_user(folio, vmf->address);
-+			if (!alloc_zeroed())
-+				folio_zero_user(folio, vmf->address);
- 			return folio;
- 		}
- next:
++config UNION_FIND
++	bool
+--- a/lib/Makefile~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
++++ a/lib/Makefile
+@@ -35,8 +35,9 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+ 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
+ 	 nmi_backtrace.o win_minmax.o memcat_p.o \
+-	 buildid.o objpool.o union_find.o
++	 buildid.o objpool.o
+ 
++lib-$(CONFIG_UNION_FIND) += union_find.o
+ lib-$(CONFIG_PRINTK) += dump_stack.o
+ lib-$(CONFIG_SMP) += cpumask.o
+ 
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+lib-kconfigdebug-move-int_pow-test-option-to-runtime-testing-section.patch
+lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
 
