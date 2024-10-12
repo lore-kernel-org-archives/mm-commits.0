@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3115F19B3FF
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:09:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2432D14EC46
+	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:11:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728770988; cv=none; b=h3lQq36FgqkNqaErbrkHx4k+XNNGpFCX5d2NSgSncWUIi93JE870pSAtc/G2QfmMXvcSrnISbWmfCgEm7+5iTUPKKWF14sHJaKi+GG8p9hxP9PNbIIQyMeNTZ3FfkxR6dzMcboP0BXW5579ovpUqsK4SrMZbEaI3gz4SeW2/DKw=
+	t=1728771097; cv=none; b=AB3u5uAc/313uQ8gX6Frvdy/K2ZYmQ2sTzyJtA1t+bCAuGB2tWbgM5q3u3T80HU/35zXRBkQQwUBePN68e5dHGgr50QWYJ3MMuJsybZxnH7YUwIIOrUCIaqmRt4AtsUvdpMN489DauGKI8Be1E2CoOnmhbm4Z6/tymydAyKCJHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728770988; c=relaxed/simple;
-	bh=cV9Fo6T2gln3QpmqYWxWJqFjwtw9G8dUq9f+kXsLEXM=;
-	h=Date:To:From:Subject:Message-Id; b=YoTy+ADW70d16tfBPG9pXhuZMcClnnfvODvoumCLhz/nMVl+6CxUVg7GSjWNEOmoak1VMRwp69iBLz6NOZHR6v0Menh3yvxkBshb7KSJ/H57jCNqAmGU7gQPg0fcWVv1BeOVtrKbHqFRl66nhoRw9Ar9b5pyaOpyBJgfP1H5C7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fOyXn+8O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728771097; c=relaxed/simple;
+	bh=KQVtfoqAN+wdftVfCxVi6EToKyxAf5NFTriI63pnAVw=;
+	h=Date:To:From:Subject:Message-Id; b=TosGZ4MoIjFZEW5nzg1xF57cD6lIax5Gf6fUQZecVryfN1Emv90dILQsvdmYpvO4uX8RtK80tmwkoBHk3M1w+61/imIH7DuFM2JtEXlPZks9EEfPxDfFTacpb1RzLelMpq/HPpaBZACUtb6ZFKX/tq6d2J9v3j4uvcsMWFXjhpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c/Q6BcYb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fOyXn+8O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7348C4CEC6;
-	Sat, 12 Oct 2024 22:09:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c/Q6BcYb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C174C4CEC6;
+	Sat, 12 Oct 2024 22:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728770987;
-	bh=cV9Fo6T2gln3QpmqYWxWJqFjwtw9G8dUq9f+kXsLEXM=;
+	s=korg; t=1728771096;
+	bh=KQVtfoqAN+wdftVfCxVi6EToKyxAf5NFTriI63pnAVw=;
 	h=Date:To:From:Subject:From;
-	b=fOyXn+8OaRg/X6L20dNvfSMcpMSkcvN93BRMfiDo08t7oevz7+jm1qL5TrnPi8rci
-	 T5rOfeS4OlBFWa7XZOxKcTEcR+GQ76nL/hRcvM+RVTl3v/3wCeUSe50+QrD0/Th+PT
-	 5PsRKkgDsadZ4LjJ7daY7A9mPaf50tbVo58aYfm8=
-Date: Sat, 12 Oct 2024 15:09:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,skhan@linuxfoundation.org,akpm@linux-foundation.org
+	b=c/Q6BcYb5QNDOza621eyD+XwXHmVJixeVyrYCjKbggW9bLQhal0zMOPZ4BPBFAVvJ
+	 2OofvWg/H7ML5lq6FebcV7HUOghwe+TjBdoJfel2MIoILlLOL2h34hPzDWyRmRk0tw
+	 5x5CYVyOjMqcSCfTMUW3IyITOiLsNKy4QWQedkDc=
+Date: Sat, 12 Oct 2024 15:11:35 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,richard.weiyang@gmail.com,liam.howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-fix-wunused-result-in-linuxc.patch added to mm-nonmm-unstable branch
-Message-Id: <20241012220947.B7348C4CEC6@smtp.kernel.org>
+Subject: + maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241012221136.8C174C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools: fix -Wunused-result in linux.c
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-fix-wunused-result-in-linuxc.patch
+     Subject: maple_tree: check for MA_STATE_BULK on setting wr_rebalance
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-fix-wunused-result-in-linuxc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shuah Khan <skhan@linuxfoundation.org>
-Subject: tools: fix -Wunused-result in linux.c
-Date: Fri, 11 Oct 2024 16:51:55 -0600
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: maple_tree: check for MA_STATE_BULK on setting wr_rebalance
+Date: Fri, 11 Oct 2024 17:44:50 -0400
 
-Fix the following -Wunused-result warnings on posix_memalign()
-return values and add error handling.
+It is possible for a bulk operation (MA_STATE_BULK is set) to enter the
+new_end < mt_min_slots[type] case and set wr_rebalance as a store type. 
+This is incorrect as bulk stores do not rebalance per write, but rather
+after the all of the writes are done through the mas_bulk_rebalance()
+path.  Therefore, add a check to make sure MA_STATE_BULK is not set before
+we return wr_rebalance as the store type.
 
-./shared/linux.c:100:25: warning: ignoring return value of `posix_memalign' declared with attribute `warn_unused_result' [-Wunused-result]
-  100 |          posix_memalign(&p, cachep->align, cachep->size);
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../shared/linux.c: In function `kmem_cache_alloc_bulk':
-../shared/linux.c:198:33: warning: ignoring return value of `posix_memalign' declared with attribute `warn_unused_result' [-Wunused-result]
-  198 |          posix_memalign(&p[i], cachep->align,
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  199 |                                cachep->size);
-      |                                ~~~~~~~~~~~~~
+Also add a test to make sure wr_rebalance is never the store type when
+doing bulk operations via mas_expected_entries()
 
-Link: https://lkml.kernel.org/r/20241011225155.27607-1-skhan@linuxfoundation.org
-Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This is a hotfix for this rc however it has no userspace effects as there
+are no users of the bulk insertion mode.
+
+Link: https://lkml.kernel.org/r/20241011214451.7286-1-sidhartha.kumar@oracle.com
+Fixes: 5d659bbb52a2 ("maple_tree: introduce mas_wr_store_type()")
+Suggested-by: Liam Howlett <liam.howlett@oracle.com>
+Signed-off-by: Sidhartha <sidhartha.kumar@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/shared/linux.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ lib/maple_tree.c                 |    2 +-
+ tools/testing/radix-tree/maple.c |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
---- a/tools/testing/shared/linux.c~tools-fix-wunused-result-in-linuxc
-+++ a/tools/testing/shared/linux.c
-@@ -96,10 +96,13 @@ void *kmem_cache_alloc_lru(struct kmem_c
- 		p = node;
- 	} else {
- 		pthread_mutex_unlock(&cachep->lock);
--		if (cachep->align)
--			posix_memalign(&p, cachep->align, cachep->size);
--		else
-+		if (cachep->align) {
-+			if (posix_memalign(&p, cachep->align, cachep->size) < 0)
-+				return NULL;
-+		} else {
- 			p = malloc(cachep->size);
-+		}
-+
- 		if (cachep->ctor)
- 			cachep->ctor(p);
- 		else if (gfp & __GFP_ZERO)
-@@ -195,8 +198,9 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			}
+--- a/lib/maple_tree.c~maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance
++++ a/lib/maple_tree.c
+@@ -4218,7 +4218,7 @@ static inline void mas_wr_store_type(str
  
- 			if (cachep->align) {
--				posix_memalign(&p[i], cachep->align,
--					       cachep->size);
-+				if (posix_memalign(&p[i], cachep->align,
-+					       cachep->size) < 0)
-+					break;
- 			} else {
- 				p[i] = malloc(cachep->size);
- 				if (!p[i])
+ 	/* Potential spanning rebalance collapsing a node */
+ 	if (new_end < mt_min_slots[wr_mas->type]) {
+-		if (!mte_is_root(mas->node)) {
++		if (!mte_is_root(mas->node) && !(mas->mas_flags & MA_STATE_BULK)) {
+ 			mas->store_type = wr_rebalance;
+ 			return;
+ 		}
+--- a/tools/testing/radix-tree/maple.c~maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance
++++ a/tools/testing/radix-tree/maple.c
+@@ -36317,6 +36317,28 @@ static inline int check_vma_modification
+ 	return 0;
+ }
+ 
++/*
++ * test to check that bulk stores do not use wr_rebalance as the store
++ * type.
++ */
++static inline void check_bulk_rebalance(struct maple_tree *mt)
++{
++	MA_STATE(mas, mt, ULONG_MAX, ULONG_MAX);
++	int max = 10;
++
++	build_full_tree(mt, 0, 2);
++
++	/* erase every entry in the tree */
++	do {
++		/* set up bulk store mode */
++		mas_expected_entries(&mas, max);
++		mas_erase(&mas);
++		MT_BUG_ON(mt, mas.store_type == wr_rebalance);
++	} while (mas_prev(&mas, 0) != NULL);
++
++	mas_destroy(&mas);
++}
++
+ void farmer_tests(void)
+ {
+ 	struct maple_node *node;
+@@ -36328,6 +36350,10 @@ void farmer_tests(void)
+ 	check_vma_modification(&tree);
+ 	mtree_destroy(&tree);
+ 
++	mt_init(&tree);
++	check_bulk_rebalance(&tree);
++	mtree_destroy(&tree);
++
+ 	tree.ma_root = xa_mk_value(0);
+ 	mt_dump(&tree, mt_dump_dec);
+ 
 _
 
-Patches currently in -mm which might be from skhan@linuxfoundation.org are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-tools-fix-wunused-result-in-linuxc.patch
+maple_tree-check-for-ma_state_bulk-on-setting-wr_rebalance.patch
+maple_tree-remove-conditionals-to-detect-wr_node_store.patch
 
