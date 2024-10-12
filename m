@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E0C02564
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 21:59:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB6D12C489
+	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:00:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728770379; cv=none; b=GAKHGSHFVJm74be4MjbgKZjTmkmNDTSobK1/gOEbIFpF7Zns4Nmh4aCtx5HUTggPZMtER6dR48SHspK0HOxvJeEMKrdk8rfzqxIKxWJWNNMwHHqNLBfslTSH41+1TwuVmSLHAFJBqAd7ekrqBwCQqKzV82xtJ0y2iWIWFsTrFKI=
+	t=1728770443; cv=none; b=jY1CRU6VwS7UTvBFmibstEr247FWvrHA6/k1cr2kKCEw+edPWhtBmpvunYTURMJv35b2QOgd7A9CG5mxp30DnRhsebSGmW651pOoejGS8xIW7F2ldR38du9fpWipWCEBqdMSNtn/z54zRZfrV+XtY8UxjX9VBNgVU7Mb0zBpscw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728770379; c=relaxed/simple;
-	bh=+fTRvmXey0QchNuuuXMNvPuRkWXE/hjAWfkm3BFz2mM=;
-	h=Date:To:From:Subject:Message-Id; b=kmsZZMPRXA21bD2Y203ZCSHoGitrMLxa3e0o7FppmuePgo+Lz189qf98Ek+M30Pyb9bNdeIJx1Bic6SGk2kPhnbB/TQhlzqaU5G7IgfTnlFqioAI5SY3JV+MTxOjVuQmJKnl7u+szxJbfTjcssUCPZYtdwLGQxyiNugUunrdLOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ThZD979f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728770443; c=relaxed/simple;
+	bh=dTcbQf0mJl4WlyZPQvHzzNrlWirSxRHW8r5RSyE00fk=;
+	h=Date:To:From:Subject:Message-Id; b=VrkzKRjwFu6N7DggNGT27XKs9g6MQQqQr7++QwlteaYJrWYz/BBj11Ktns079F7CMbGelNLpGhFTe0TNSdxceStqHAUNLDBf/ih3GN6cD1ygOaKv2EmlFaHzftR+YJiTIqhGsTTIdnZpsXNea1lT4OPTkVtHoyYLPmPGUdO8raM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XvLN49UC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ThZD979f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849D0C4CEC6;
-	Sat, 12 Oct 2024 21:59:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XvLN49UC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 603B5C4CEC6;
+	Sat, 12 Oct 2024 22:00:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728770378;
-	bh=+fTRvmXey0QchNuuuXMNvPuRkWXE/hjAWfkm3BFz2mM=;
+	s=korg; t=1728770443;
+	bh=dTcbQf0mJl4WlyZPQvHzzNrlWirSxRHW8r5RSyE00fk=;
 	h=Date:To:From:Subject:From;
-	b=ThZD979fd7ZC5Iuvlpj84P2pkL7Ihg4TChmrc7aBoYi9d+N95kyHLQJKliftf3huf
-	 QjTgJWq6dAvAPPbFdVx9kimrLBzN3FfVT2sn6xAaHNK5OAQ8jjx3657WmNXF5JO5wh
-	 0CX+GCZjl+chnvgK78png5gKOAaMCog1Kwoaa2qg=
-Date: Sat, 12 Oct 2024 14:59:37 -0700
-To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,linux@weissschuh.net,akpm@linux-foundation.org
+	b=XvLN49UCbRzMGor9XdVKF9/Ow7ab+NKi4QdwbC2fO0Npxuhc5GE4EYrz8R7CfDUVI
+	 lcR2ZnrgyX/3u11BtO0+/OgexeO6pUaerse67tAdvF3r5JNBH9zxDa0WAoumcYkOT5
+	 J6UrWT9P1iyhEZeuKos5pKZAauiqQ17OZxkT9lX4=
+Date: Sat, 12 Oct 2024 15:00:42 -0700
+To: mm-commits@vger.kernel.org,robin.murphy@arm.com,petr@tesarici.cz,mhklinux@outlook.com,catalin.marinas@arm.com,sui.jingfeng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + reboot-move-reboot_notifier_list-to-kernel-rebootc.patch added to mm-nonmm-unstable branch
-Message-Id: <20241012215938.849D0C4CEC6@smtp.kernel.org>
+Subject: + scatterlist-fix-a-typo.patch added to mm-nonmm-unstable branch
+Message-Id: <20241012220043.603B5C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: reboot: move reboot_notifier_list to kernel/reboot.c
+     Subject: scatterlist: fix a typo
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     reboot-move-reboot_notifier_list-to-kernel-rebootc.patch
+     scatterlist-fix-a-typo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-move-reboot_notifier_list-to-kernel-rebootc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scatterlist-fix-a-typo.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,76 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <linux@weissschuh.net>
-Subject: reboot: move reboot_notifier_list to kernel/reboot.c
-Date: Sat, 12 Oct 2024 19:52:53 +0200
+From: Sui Jingfeng <sui.jingfeng@linux.dev>
+Subject: scatterlist: fix a typo
+Date: Sat, 12 Oct 2024 18:08:17 +0800
 
-All the functions related to the reboot notifier list are in
-kernel/reboot.c.  Move the list itself, too.  As there are no direct users
-anymore, make the declaration static.
+Replace the 'One' with 'On'.
 
-Link: https://lkml.kernel.org/r/20241012-reboot_notifier_list-v1-1-6093bb9455ce@weissschuh.net
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20241012100817.323007-1-sui.jingfeng@linux.dev
+Fixes: af2880ec4402 ("scatterlist: add dedicated config for DMA flags")
+Signed-off-by: Sui Jingfeng <sui.jingfeng@linux.dev>
+Reviewed-by: Petr Tesarik <petr@tesarici.cz>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Michael Kelley <mhklinux@outlook.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/notifier.h |    2 --
- kernel/notifier.c        |    8 --------
- kernel/reboot.c          |    7 +++++++
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ include/linux/scatterlist.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/notifier.h~reboot-move-reboot_notifier_list-to-kernel-rebootc
-+++ a/include/linux/notifier.h
-@@ -237,7 +237,5 @@ static inline int notifier_to_errno(int
- #define KBD_KEYSYM		0x0004 /* Keyboard keysym */
- #define KBD_POST_KEYSYM		0x0005 /* Called after keyboard keysym interpretation */
- 
--extern struct blocking_notifier_head reboot_notifier_list;
--
- #endif /* __KERNEL__ */
- #endif /* _LINUX_NOTIFIER_H */
---- a/kernel/notifier.c~reboot-move-reboot_notifier_list-to-kernel-rebootc
-+++ a/kernel/notifier.c
-@@ -5,19 +5,11 @@
- #include <linux/notifier.h>
- #include <linux/rcupdate.h>
- #include <linux/vmalloc.h>
--#include <linux/reboot.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/notifier.h>
+--- a/include/linux/scatterlist.h~scatterlist-fix-a-typo
++++ a/include/linux/scatterlist.h
+@@ -273,7 +273,7 @@ static inline void sg_unmark_end(struct
+ }
  
  /*
-- *	Notifier list for kernel code which wants to be called
-- *	at shutdown. This is used to stop any idling DMA operations
-- *	and the like.
-- */
--BLOCKING_NOTIFIER_HEAD(reboot_notifier_list);
--
--/*
-  *	Notifier chain core routines.  The exported routines below
-  *	are layered on top of these, with appropriate locking added.
-  */
---- a/kernel/reboot.c~reboot-move-reboot_notifier_list-to-kernel-rebootc
-+++ a/kernel/reboot.c
-@@ -72,6 +72,13 @@ static bool poweroff_fallback_to_halt;
-  */
- void __weak (*pm_power_off)(void);
- 
-+/*
-+ *	Notifier list for kernel code which wants to be called
-+ *	at shutdown. This is used to stop any idling DMA operations
-+ *	and the like.
-+ */
-+static BLOCKING_NOTIFIER_HEAD(reboot_notifier_list);
-+
- /**
-  *	emergency_restart - reboot the system
-  *
+- * One 64-bit architectures there is a 4-byte padding in struct scatterlist
++ * On 64-bit architectures there is a 4-byte padding in struct scatterlist
+  * (assuming also CONFIG_NEED_SG_DMA_LENGTH is set). Use this padding for DMA
+  * flags bits to indicate when a specific dma address is a bus address or the
+  * buffer may have been bounced via SWIOTLB.
 _
 
-Patches currently in -mm which might be from linux@weissschuh.net are
+Patches currently in -mm which might be from sui.jingfeng@linux.dev are
 
-reboot-move-reboot_notifier_list-to-kernel-rebootc.patch
+scatterlist-fix-a-typo.patch
 
