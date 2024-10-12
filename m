@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54EDA335C7
-	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:04:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33B1335C7
+	for <mm-commits@vger.kernel.org>; Sat, 12 Oct 2024 22:05:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728770672; cv=none; b=lXnnnXEup5s4JlKAQsQla2amrkMx/qpKAnN65tWCKnA5VPLVDVa+u4+FkxE8FLxaKlKRqZoah7L/ybPDXJKYTnUayTTnKX7YaBi5o6hSSE940Wbxo+04wHXBUFZRUWA8Z/9+pHZ7c1a6j6grSSPO1Uyf1ZFzD2XamaGjO2enYtM=
+	t=1728770738; cv=none; b=ogi8D4yZnBswOdy9aZ8mNpt7ESGvJNedJy0XopPXVlZPzqwI+vPhQlynWYKARKiaE+6j8Wlc1azR0/9xNXCcyEewTAY8lHWPhR3yjTzHF267/7IrXEkvIpn8kF5NVkrHGAA51EYkrD5zotjGm1v4kPmCfCGiNefDjRQAVm9nyTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728770672; c=relaxed/simple;
-	bh=dVR0qfoWYw0R1V6DdOEiJOa/xb67VijAQ16+y3sGVgE=;
-	h=Date:To:From:Subject:Message-Id; b=apOyXH6H3HW8/WDEGTvXDnADw63+a/QPApGahtn/XL/p2oLph4C8GrH/lTYYYCoBfyTaBDxJ/JkfU+DEh+tu9m7ThVtVhI50/9rJaXD8e25iEAncEy1y9NnigNM7l1hze6PbL52tLKS8r0sMz1B7RmSEjdyyDVk1TfMk9TC63Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CE/Ui2zH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728770738; c=relaxed/simple;
+	bh=APm0oF4BU9lQurzDGzAicZaKGoIZz6KEbf3q1vu9bSs=;
+	h=Date:To:From:Subject:Message-Id; b=txZDlifg5YDnnjlTDp7nlvLWlNMEZysi9lx3KR+lLOuxRb39sB3gH4LYkGeZT+bkiT1LdrGVUxdFel7n42cRAHDQJAzUz9e7gbqpg7yyfUMWRbWem96C25cuSv+ijEu1ji7o1bRt3PEKjDXQ2Y6R4P4EB+c1cawVs/WE/6sSLUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDSpLhg/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CE/Ui2zH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E54FEC4CEC6;
-	Sat, 12 Oct 2024 22:04:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDSpLhg/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27E31C4CEC6;
+	Sat, 12 Oct 2024 22:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728770671;
-	bh=dVR0qfoWYw0R1V6DdOEiJOa/xb67VijAQ16+y3sGVgE=;
+	s=korg; t=1728770738;
+	bh=APm0oF4BU9lQurzDGzAicZaKGoIZz6KEbf3q1vu9bSs=;
 	h=Date:To:From:Subject:From;
-	b=CE/Ui2zHKbf9d8zoc7+kQKkoRCo1173xXkG/+q+/iUahBQvmLvkLByO24yeI7Uals
-	 1+KDb+MMZvELfucxxs0Hk1vVoTW3UA2UR4qIaD4C3YQmeTt66lP7ao4DL9C7+uEN2c
-	 S9gGKn0xk3mrEywE5/1P7OwN9yjkISbR5LS5O5So=
-Date: Sat, 12 Oct 2024 15:04:30 -0700
-To: mm-commits@vger.kernel.org,rmoar@google.com,fgasperin@lkcamp.dev,ebertoloti@lkcamp.dev,David.Laight@ACULAB.COM,davidgow@google.com,brendan.higgins@linux.dev,vpeixoto@lkcamp.dev,akpm@linux-foundation.org
+	b=RDSpLhg/ErOOxr+SuqEpx5FOjjFzX9nDVnJAkwaS8B7vY8WeaVj7zlSPQ1NSGandx
+	 XIrFZb9/OIjTxL50yNHGrWsnIv1I10blDTJ2/x/niUS+EO9B62DIEQneYvXWmFjN/S
+	 1feLbNNKg99iz82YpoRtW0cM4mMKjhqOvEQh9SAU=
+Date: Sat, 12 Oct 2024 15:05:37 -0700
+To: mm-commits@vger.kernel.org,suhua1@kingsoft.com,muchun.song@linux.dev,suhua.tanke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-crc16_kunitc-add-kunit-tests-for-crc16.patch added to mm-nonmm-unstable branch
-Message-Id: <20241012220430.E54FEC4CEC6@smtp.kernel.org>
+Subject: + mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch added to mm-unstable branch
+Message-Id: <20241012220538.27E31C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/crc16_kunit.c: add KUnit tests for crc16
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-crc16_kunitc-add-kunit-tests-for-crc16.patch
+     Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-crc16_kunitc-add-kunit-tests-for-crc16.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,227 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vinicius Peixoto <vpeixoto@lkcamp.dev>
-Subject: lib/crc16_kunit.c: add KUnit tests for crc16
-Date: Sat, 12 Oct 2024 04:43:49 -0300
+From: suhua <suhua.tanke@gmail.com>
+Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
+Date: Sat, 12 Oct 2024 15:08:02 +0800
 
-Add Kunit tests for the kernel's implementation of the standard CRC-16
-algorithm (<linux/crc16.h>).  The test data consists of 100
-randomly-generated test cases, validated against a naive CRC-16
-implementation.
+When HVO is enabled and huge page memory allocs are made, the freed memory
+can be aggregated into higher order memory in the following paths, which
+facilitates further allocs for higher order memory.
 
-This test follows roughly the same logic as lib/crc32test.c, but without
-the performance measurements.
+echo 200000 > /proc/sys/vm/nr_hugepages
+echo 200000 > /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages
+grub： default_hugepagesz=2M hugepagesz=2M hugepages=200000
 
-Link: https://lkml.kernel.org/r/20241012-crc16-kunit-v3-1-0ca75cb58ca9@lkcamp.dev
-Signed-off-by: Vinicius Peixoto <vpeixoto@lkcamp.dev>
-Co-developed-by: Enzo Bertoloti <ebertoloti@lkcamp.dev>
-Signed-off-by: Enzo Bertoloti <ebertoloti@lkcamp.dev>
-Co-developed-by: Fabricio Gasperin <fgasperin@lkcamp.dev>
-Signed-off-by: Fabricio Gasperin <fgasperin@lkcamp.dev>
-Suggested-by: David Laight <David.Laight@ACULAB.COM>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: Rae Moar <rmoar@google.com>
+Currently not support for releasing aggregations to higher order in the
+following way, which will releasing to lower order.
+
+grub: default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
+
+This patch supports the release of huge page optimizations aggregates to
+higher order memory.
+
+eg:
+cat /proc/cmdline
+BOOT_IMAGE=/boot/vmlinuz-xxx ... default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
+
+Before:
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
+...
+Node    0, zone   Normal, type    Unmovable  55282  97039  99307      0      1      1      0      1      1      1      0
+Node    0, zone   Normal, type      Movable     25     11    345     87     48     21      2     20      9      3  75061
+Node    0, zone   Normal, type  Reclaimable      4      2      2      4      3      0      2      1      1      1      0
+Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
+...
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
+Node    1, zone   Normal, type    Unmovable  98888  99650  99679      2      3      1      2      2      2      0      0
+Node    1, zone   Normal, type      Movable      1      1      0      1      1      0      1      0      1      1  75937
+Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
+Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
+
+After:
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
+...
+Node    0, zone   Normal, type    Unmovable    152    158     37      2      2      0      3      4      2      6    717
+Node    0, zone   Normal, type      Movable      1     37     53      3     55     49     16      6      2      1  75000
+Node    0, zone   Normal, type  Reclaimable      1      4      3      1      2      1      1      1      1      1      0
+Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
+...
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
+Node    1, zone   Normal, type    Unmovable      5      3      2      1      3      4      2      2      2      0    779
+Node    1, zone   Normal, type      Movable      1      0      1      1      1      0      1      0      1      1  75849
+Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
+Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
+
+Link: https://lkml.kernel.org/r/20241012070802.1876-1-suhua1@kingsoft.com
+Signed-off-by: suhua <suhua1@kingsoft.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    9 ++
- lib/Makefile      |    1 
- lib/crc16_kunit.c |  155 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 165 insertions(+)
+ mm/hugetlb.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/lib/crc16_kunit.c a/lib/crc16_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/crc16_kunit.c
-@@ -0,0 +1,155 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnits tests for CRC16.
-+ *
-+ * Copyright (C) 2024, LKCAMP
-+ * Author: Vinicius Peixoto <vpeixoto@lkcamp.dev>
-+ * Author: Fabricio Gasperin <fgasperin@lkcamp.dev>
-+ * Author: Enzo Bertoloti <ebertoloti@lkcamp.dev>
-+ */
-+#include <kunit/test.h>
-+#include <linux/crc16.h>
-+#include <linux/prandom.h>
-+
-+#define CRC16_KUNIT_DATA_SIZE 4096
-+#define CRC16_KUNIT_TEST_SIZE 100
-+#define CRC16_KUNIT_SEED 0x12345678
-+
-+/**
-+ * struct crc16_test - CRC16 test data
-+ * @crc: initial input value to CRC16
-+ * @start: Start index within the data buffer
-+ * @length: Length of the data
-+ */
-+static struct crc16_test {
-+	u16 crc;
-+	u16 start;
-+	u16 length;
-+} tests[CRC16_KUNIT_TEST_SIZE];
-+
-+u8 data[CRC16_KUNIT_DATA_SIZE];
-+
-+
-+/* Naive implementation of CRC16 for validation purposes */
-+static inline u16 _crc16_naive_byte(u16 crc, u8 data)
-+{
-+	u8 i = 0;
-+
-+	crc ^= (u16) data;
-+	for (i = 0; i < 8; i++) {
-+		if (crc & 0x01)
-+			crc = (crc >> 1) ^ 0xa001;
-+		else
-+			crc = crc >> 1;
-+	}
-+
-+	return crc;
-+}
-+
-+
-+static inline u16 _crc16_naive(u16 crc, u8 *buffer, size_t len)
-+{
-+	while (len--)
-+		crc = _crc16_naive_byte(crc, *buffer++);
-+	return crc;
-+}
-+
-+
-+/* Small helper for generating pseudorandom 16-bit data */
-+static inline u16 _rand16(void)
-+{
-+	static u32 rand = CRC16_KUNIT_SEED;
-+
-+	rand = next_pseudo_random32(rand);
-+	return rand & 0xFFFF;
-+}
-+
-+
-+static int crc16_init_test_data(struct kunit_suite *suite)
-+{
-+	size_t i;
-+
-+	/* Fill the data buffer with random bytes */
-+	for (i = 0; i < CRC16_KUNIT_DATA_SIZE; i++)
-+		data[i] = _rand16() & 0xFF;
-+
-+	/* Generate random test data while ensuring the random
-+	 * start + length values won't overflow the 4096-byte
-+	 * buffer (0x7FF * 2 = 0xFFE < 0x1000)
-+	 */
-+	for (size_t i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
-+		tests[i].crc = _rand16();
-+		tests[i].start = _rand16() & 0x7FF;
-+		tests[i].length = _rand16() & 0x7FF;
-+	}
-+
-+	return 0;
-+}
-+
-+static void crc16_test_empty(struct kunit *test)
-+{
-+	u16 crc;
-+
-+	/* The result for empty data should be the same as the
-+	 * initial crc
-+	 */
-+	crc = crc16(0x00, data, 0);
-+	KUNIT_EXPECT_EQ(test, crc, 0);
-+	crc = crc16(0xFF, data, 0);
-+	KUNIT_EXPECT_EQ(test, crc, 0xFF);
-+}
-+
-+static void crc16_test_correctness(struct kunit *test)
-+{
-+	size_t i;
-+	u16 crc, crc_naive;
-+
-+	for (i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
-+		/* Compare results with the naive crc16 implementation */
-+		crc = crc16(tests[i].crc, data + tests[i].start,
-+			    tests[i].length);
-+		crc_naive = _crc16_naive(tests[i].crc, data + tests[i].start,
-+					 tests[i].length);
-+		KUNIT_EXPECT_EQ(test, crc, crc_naive);
-+	}
-+}
-+
-+
-+static void crc16_test_combine(struct kunit *test)
-+{
-+	size_t i, j;
-+	u16 crc, crc_naive;
-+
-+	/* Make sure that combining two consecutive crc16 calculations
-+	 * yields the same result as calculating the crc16 for the whole thing
-+	 */
-+	for (i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
-+		crc_naive = crc16(tests[i].crc, data + tests[i].start, tests[i].length);
-+		for (j = 0; j < tests[i].length; j++) {
-+			crc = crc16(tests[i].crc, data + tests[i].start, j);
-+			crc = crc16(crc, data + tests[i].start + j, tests[i].length - j);
-+			KUNIT_EXPECT_EQ(test, crc, crc_naive);
-+		}
-+	}
-+}
-+
-+
-+static struct kunit_case crc16_test_cases[] = {
-+	KUNIT_CASE(crc16_test_empty),
-+	KUNIT_CASE(crc16_test_combine),
-+	KUNIT_CASE(crc16_test_correctness),
-+	{},
-+};
-+
-+static struct kunit_suite crc16_test_suite = {
-+	.name = "crc16",
-+	.test_cases = crc16_test_cases,
-+	.suite_init = crc16_init_test_data,
-+};
-+kunit_test_suite(crc16_test_suite);
-+
-+MODULE_AUTHOR("Fabricio Gasperin <fgasperin@lkcamp.dev>");
-+MODULE_AUTHOR("Vinicius Peixoto <vpeixoto@lkcamp.dev>");
-+MODULE_AUTHOR("Enzo Bertoloti <ebertoloti@lkcamp.dev>");
-+MODULE_DESCRIPTION("Unit tests for crc16");
-+MODULE_LICENSE("GPL");
---- a/lib/Kconfig.debug~lib-crc16_kunitc-add-kunit-tests-for-crc16
-+++ a/lib/Kconfig.debug
-@@ -2850,6 +2850,15 @@ config USERCOPY_KUNIT_TEST
- 	  on the copy_to/from_user infrastructure, making sure basic
- 	  user/kernel boundary testing is working.
+--- a/mm/hugetlb.c~mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation
++++ a/mm/hugetlb.c
+@@ -3301,6 +3301,7 @@ static void __init hugetlb_hstate_alloc_
+ {
+ 	unsigned long i;
+ 	char buf[32];
++	LIST_HEAD(folio_list);
  
-+config CRC16_KUNIT_TEST
-+	tristate "KUnit tests for CRC16"
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	select CRC16
-+	help
-+	  Enable this option to run unit tests for the kernel's CRC16
-+	  implementation (<linux/crc16.h>).
-+
- config TEST_UDELAY
- 	tristate "udelay test driver"
- 	help
---- a/lib/Makefile~lib-crc16_kunitc-add-kunit-tests-for-crc16
-+++ a/lib/Makefile
-@@ -390,6 +390,7 @@ CFLAGS_fortify_kunit.o += $(DISABLE_STRU
- obj-$(CONFIG_FORTIFY_KUNIT_TEST) += fortify_kunit.o
- obj-$(CONFIG_SIPHASH_KUNIT_TEST) += siphash_kunit.o
- obj-$(CONFIG_USERCOPY_KUNIT_TEST) += usercopy_kunit.o
-+obj-$(CONFIG_CRC16_KUNIT_TEST) += crc16_kunit.o
+ 	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
+ 		if (hstate_is_gigantic(h)) {
+@@ -3310,14 +3311,18 @@ static void __init hugetlb_hstate_alloc_
+ 			struct folio *folio;
+ 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
  
- obj-$(CONFIG_GENERIC_LIB_DEVMEM_IS_ALLOWED) += devmem_is_allowed.o
+-			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
+-					&node_states[N_MEMORY]);
++			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
++					&node_states[N_MEMORY], NULL);
+ 			if (!folio)
+ 				break;
+-			free_huge_folio(folio); /* free it into the hugepage allocator */
++			list_add(&folio->lru, &folio_list);
+ 		}
+ 		cond_resched();
+ 	}
++
++	if (!list_empty(&folio_list))
++		prep_and_add_allocated_folios(h, &folio_list);
++
+ 	if (i == h->max_huge_pages_node[nid])
+ 		return;
  
 _
 
-Patches currently in -mm which might be from vpeixoto@lkcamp.dev are
+Patches currently in -mm which might be from suhua.tanke@gmail.com are
 
-lib-crc16_kunitc-add-kunit-tests-for-crc16.patch
+mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
 
