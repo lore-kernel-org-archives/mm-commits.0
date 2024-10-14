@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9695F1CB330
-	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 19:44:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8967513C690
+	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 19:46:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728935082; cv=none; b=Zm0InX1HyUFP3A81VHiSIlje3c3I98aH73IT2Fvs+n66LKVEGcAzOjc52wRVy7p81d244zR1Ah0doXql+rT6jYal1znI4v7er0n4PzTVc2GNuAZSQeALw6/Ig7HM1X/hzVeIpCgQ/jGKTjILgs/Y1ZnVqNegoS2RQspl3Y1/l+I=
+	t=1728935164; cv=none; b=EKD4/oETj1W/OUWM0zH9/XV3fny2KwdiqsNt9iX3kJ1TT3FZbe2O3b0Uorcpby8HVRje3AppjXscHe6MU656BqkWMnHhTkf+FvT4Yiw+nGzPAAcm6mHEY3YAHowwJngm1x+nkkrQTs94nEM6gPhmc3JIHGCaH6hB7EoHnAQuTJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728935082; c=relaxed/simple;
-	bh=fqSYR/UJ+ebDkp2whGntl0aOtbYGH2r3cwA1E3YH6rg=;
-	h=Date:To:From:Subject:Message-Id; b=kM/A0aZCuA6KKk+BwOtiylAXvw6VM2Gd+ghPTd0E8oe9eEpy8vrmWU8Q8x/PiztVXHPaDU/5fwiNhNPYw3QVVg7Tm+d3db1Qb11z9p+BzR6zRg1vk0sLEj9TGiyxkIww5gjEpvWPtHULkcFtjFCAmAliWjEWWkBY2ZZgp43wJLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wG3LlZxF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728935164; c=relaxed/simple;
+	bh=P6zRylZTzygSxwBQGV4WeRS+avoPJRhiF/CpCLW3K1Q=;
+	h=Date:To:From:Subject:Message-Id; b=Wl8ve5wYlbijMWBARRnicW4mgJzQ3h9EhLzZlx8WNhebXXBkPM3QIoWrkuhNoa88xZ0iBPHcWXqKaFrXLRALz+Hp5Ev/HvT0x6c7jDWC0izFRYh6Df0G5pCTqzbdmtZ+fHtff6cf9iSIqcB+E09BGNHuC5jpqfmnM2XT9zhLYTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DTzgUu3N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wG3LlZxF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEBFEC4CEC3;
-	Mon, 14 Oct 2024 19:44:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DTzgUu3N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C5D4C4CEC3;
+	Mon, 14 Oct 2024 19:46:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728935082;
-	bh=fqSYR/UJ+ebDkp2whGntl0aOtbYGH2r3cwA1E3YH6rg=;
+	s=korg; t=1728935164;
+	bh=P6zRylZTzygSxwBQGV4WeRS+avoPJRhiF/CpCLW3K1Q=;
 	h=Date:To:From:Subject:From;
-	b=wG3LlZxFPzn92Jlluh1JWrmOpqV3Q1+8Zut4tjRy06YSWPqjiCqXmAdLIet6HfGcl
-	 3z9FFNkkzqS/ttMyPUjJhEKVwb4ziyhzEe+kmvi+e8uXW72/Kt1JQiJTKkmc3eJGOa
-	 jpknAb9hUIy6ILgr/U1La2IbczTpojmQDWRXgkWY=
-Date: Mon, 14 Oct 2024 12:44:41 -0700
-To: mm-commits@vger.kernel.org,xndchn@gmail.com,swboyd@chromium.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,luca.ceresoli@bootlin.com,cmllamas@google.com,leitao@debian.org,akpm@linux-foundation.org
+	b=DTzgUu3NHPsL1x3FcumnzqOrLFypumy1iwLbJbKMdeHNphiSvPtv4YkJ1i1+0MdjA
+	 gR7PAuH4M3CiOKwitEZFRf+Jjj06+wJmczk7NOVnaOOGHFFwaP69OWXYTANJl8L+d4
+	 sajlLtYqyZ7qYsp0eUu4+jr0WeELL94IBvgjFSs4=
+Date: Mon, 14 Oct 2024 12:46:03 -0700
+To: mm-commits@vger.kernel.org,mtodorovac69@gmail.com,ssengar@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-remove-trailing-space.patch added to mm-nonmm-unstable branch
-Message-Id: <20241014194441.EEBFEC4CEC3@smtp.kernel.org>
+Subject: [folded-merged] mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch removed from -mm tree
+Message-Id: <20241014194604.3C5D4C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,51 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: scripts/decode_stacktrace.sh: remove trailing space
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-remove-trailing-space.patch
+The quilt patch titled
+     Subject: mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
+has been removed from the -mm tree.  Its filename was
+     mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-remove-trailing-space.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: scripts/decode_stacktrace.sh: remove trailing space
-Date: Mon, 14 Oct 2024 03:02:10 -0700
+From: Saurabh Sengar <ssengar@linux.microsoft.com>
+Subject: mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
+Date: Sun, 11 Aug 2024 23:13:40 -0700
 
-decode_stacktrace.sh adds a trailing space at the end of the decoded stack
-if the module is not set (in most of the lines), which makes the some
-lines of the stack having trailing space and some others not.
+move vmstat_late_init_done under CONFIG_SMP to fix variable 'defined but
+not used' warning
 
-Do not add an extra space at the end of the line if module is not set,
-adding consistency in output formatting.
-
-Link: https://lkml.kernel.org/r/20241014100213.1873611-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Elliot Berman <quic_eberman@quicinc.com>
-Reviewed-by: Carlos Llamas <cmllamas@google.com>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
-Cc: Xiong Nandi <xndchn@gmail.com>
+Link: https://lkml.kernel.org/r/1723443220-20623-1-git-send-email-ssengar@linux.microsoft.com
+Signed-off-by: Saurabh Sengar <ssengar@linux.microsoft.com>
+Cc: Mirsad Todorovac <mtodorovac69@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-remove-trailing-space
-+++ a/scripts/decode_stacktrace.sh
-@@ -311,7 +311,12 @@ handle_line() {
- 	parse_symbol # modifies $symbol
+--- a/mm/vmstat.c~mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup-fix
++++ a/mm/vmstat.c
+@@ -31,7 +31,6 @@
  
- 	# Add up the line number to the symbol
--	echo "${words[@]}" "$symbol $module"
-+	if [[ -z ${module} ]]
-+	then
-+		echo "${words[@]}" "$symbol"
-+	else
-+		echo "${words[@]}" "$symbol $module"
-+	fi
- }
+ #include "internal.h"
  
- while read line; do
+-static int vmstat_late_init_done;
+ #ifdef CONFIG_NUMA
+ int sysctl_vm_numa_stat = ENABLE_NUMA_STAT;
+ 
+@@ -1930,6 +1929,7 @@ static const struct seq_operations vmsta
+ #ifdef CONFIG_SMP
+ static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
+ int sysctl_stat_interval __read_mostly = HZ;
++static int vmstat_late_init_done;
+ 
+ #ifdef CONFIG_PROC_FS
+ static void refresh_vm_stats(struct work_struct *work)
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ssengar@linux.microsoft.com are
 
-mm-remove-misleading-unlikely-hint-in-vms_gather_munmap_vmas.patch
-scripts-decode_stacktracesh-remove-trailing-space.patch
+mm-vmstat-defer-the-refresh_zone_stat_thresholds-after-all-cpus-bringup.patch
 
