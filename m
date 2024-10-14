@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6464B17BD3
-	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 23:28:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 681491D9A46
+	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 23:39:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728948514; cv=none; b=Ir6KlcXAky8b254KkLr9WFbIeb708yKEPn2b0wMRPTcFP1/Dx1bYNP9g2MOTzVYDVtZEJWyo91ShPOaZsPoJuSthhBp3MkmrDdOqdX/whiWd95aRzXjDnaSoUIkQjHG7MG8JvQCCOL3bb9OXb/mKkvMy+j/1fMqUHMA/nPJvGZs=
+	t=1728949150; cv=none; b=fxOtUtA0ixQqAdu6CXeavCnT5BdRQpOYE8CbLiUUYRyt9Z1LotTdt+g+cbGth9zKYx9V6fOZueFBsWKS8Hp6ERkBsoM7mqrQVyo5lGRFSH96/F8G+MGl2q/OFbUh7TmWv7auBewZ6v9rbsUWMIzoJzbXscUrDJ8DJJkp9G8Zek0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728948514; c=relaxed/simple;
-	bh=1ZdjRRmj8fOE2ESuiJ/qUmyfe691JzOCI2iYHG6CwqU=;
-	h=Date:To:From:Subject:Message-Id; b=avvYUYqlbM1xtAGGVhGuITkWWzNaomBPxnDr4YUI4rW8KxhIKCw0/dHy2EOmKqIq/XKUQzFUS/lpuIFKFLZ4T6NvRPc8qnIgDloQcbe6MN5GOhB5WUPXDxEongvz4ee1otty4B/57WhS8yRlmn6OZo4UdW4tS4CRJv+4ElGyY7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jQFg9HoT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728949150; c=relaxed/simple;
+	bh=kzovRS7ZrJEsBt8wli056WSYlXd0Ojya9tiYhk3dt3E=;
+	h=Date:To:From:Subject:Message-Id; b=OrO810jxEUWFdqg/jVSrnQ+tD53xi4RdYRIYTcb35yrs1zaGTWqOWnvgjLsv7OkyJRptVRBzfIofvo+BMGu2CjPn6cqCFZZK568xiAVEYTY9BH2PgKA5b90YIrB5PoQjwfJE2Uyv/cigDfZAKFmQyexdZqpdTRmmPmIywcn6zWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eDLAu6HN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jQFg9HoT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D8AC4CEC6;
-	Mon, 14 Oct 2024 23:28:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eDLAu6HN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9222C4CEC3;
+	Mon, 14 Oct 2024 23:39:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728948514;
-	bh=1ZdjRRmj8fOE2ESuiJ/qUmyfe691JzOCI2iYHG6CwqU=;
+	s=korg; t=1728949150;
+	bh=kzovRS7ZrJEsBt8wli056WSYlXd0Ojya9tiYhk3dt3E=;
 	h=Date:To:From:Subject:From;
-	b=jQFg9HoTZ5qLfHAJgHTgMI50jmGkXwe6UyHksCYno+rySUCkIEBSfPyUCuQkR8ci4
-	 XcEYG91tXVtTdeWS7M3P9V3mDDo3L+MedbJGp4Z/JDyYofw0bCk+jUnbHhu11bFDdq
-	 2xRn9K6OvKB5ArFtdECvQTh19JKGj9XHqLDA0t60=
-Date: Mon, 14 Oct 2024 16:28:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,akpm@linux-foundation.org
+	b=eDLAu6HNVLlIkZ1X2S4CEca8kAdBHGpA9fD7ObLWWBJl59y3ewce9hP0JSoGZbN6+
+	 tfodq2w9CVKODUY86fvF7KlI8h6MeWQ1uMF9JKvBpLpLW+PTvHIJWybUkRZ8+XOo6p
+	 IMqzXCtcdBwQUmFZk31Ckhy62MkyzhrnNnb094tk=
+Date: Mon, 14 Oct 2024 16:39:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-myself-as-memory-mapping-vma-reviewer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241014232834.35D8AC4CEC6@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241014233909.E9222C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add Jann as memory mapping/VMA reviewer
+     Subject: mm: khugepaged: fix the incorrect statistics when collapsing large file folios
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-myself-as-memory-mapping-vma-reviewer.patch
+     mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-myself-as-memory-mapping-vma-reviewer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: MAINTAINERS: add Jann as memory mapping/VMA reviewer
-Date: Mon, 14 Oct 2024 22:50:57 +0200
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: khugepaged: fix the incorrect statistics when collapsing large file folios
+Date: Mon, 14 Oct 2024 18:24:44 +0800
 
-Add myself as a reviewer for memory mapping / VMA code.  I will probably
-only reply to patches sporadically, but hopefully this will help me keep
-up with changes that look interesting security-wise.
+Khugepaged already supports collapsing file large folios (including shmem
+mTHP) by commit 7de856ffd007 ("mm: khugepaged: support shmem mTHP
+collapse"), and the control parameters in khugepaged:
+'khugepaged_max_ptes_swap' and 'khugepaged_max_ptes_none', still compare
+based on PTE granularity to determine whether a file collapse is needed. 
+However, the statistics for 'present' and 'swap' in
+hpage_collapse_scan_file() do not take into account the large folios,
+which may lead to incorrect judgments regarding the
+khugepaged_max_ptes_swap/none parameters, resulting in unnecessary file
+collapses.
 
-Link: https://lkml.kernel.org/r/20241014-maintainers-mmap-reviewer-v1-1-50dce0514752@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+To fix this issue, take into account the large folios' statistics for
+'present' and 'swap' variables in the hpage_collapse_scan_file().
+
+Link: https://lkml.kernel.org/r/c76305d96d12d030a1a346b50503d148364246d2.1728901391.git.baolin.wang@linux.alibaba.com
+Fixes: 7de856ffd007 ("mm: khugepaged: support shmem mTHP collapse")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-myself-as-memory-mapping-vma-reviewer
-+++ a/MAINTAINERS
-@@ -14918,6 +14918,7 @@ M:	Andrew Morton <akpm@linux-foundation.
- M:	Liam R. Howlett <Liam.Howlett@oracle.com>
- M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
- R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Jann Horn <jannh@google.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
-@@ -24733,6 +24734,7 @@ M:	Andrew Morton <akpm@linux-foundation.
- M:	Liam R. Howlett <Liam.Howlett@oracle.com>
- M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
- R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Jann Horn <jannh@google.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	https://www.linux-mm.org
+--- a/mm/khugepaged.c~mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios
++++ a/mm/khugepaged.c
+@@ -2252,7 +2252,7 @@ static int hpage_collapse_scan_file(stru
+ 			continue;
+ 
+ 		if (xa_is_value(folio)) {
+-			++swap;
++			swap += 1 << xas_get_order(&xas);
+ 			if (cc->is_khugepaged &&
+ 			    swap > khugepaged_max_ptes_swap) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+@@ -2299,7 +2299,7 @@ static int hpage_collapse_scan_file(stru
+ 		 * is just too costly...
+ 		 */
+ 
+-		present++;
++		present += folio_nr_pages(folio);
+ 
+ 		if (need_resched()) {
+ 			xas_pause(&xas);
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch
-maintainers-add-myself-as-memory-mapping-vma-reviewer.patch
+mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch
+mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
 
