@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51DAA1CEAC4
-	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 20:08:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1AA1CF5D8
+	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 20:09:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728936539; cv=none; b=LklcyAhekEI5kFz+xW9tfVpr8RhucWTQrC3a641ptn/yWJg8oyXxtwnXhG/SqnWCsyfWvznvhqldRgCzJ1vlLtVqFYIre/X4XL93XbnKbzmo1dAhLQT57Lp2aR+3nxGJ4M3aPkK4p4w7CkKPq2af+L1BYx3mDJuWb1Gq/d1bq3g=
+	t=1728936542; cv=none; b=OrHIpP/sCJrtAtI+2IEgq9CX89tMcuOp+AWAWr73apDA/aO20nnYxPCttgV9cfsRDThY3pjNmlRI5O5IsRLHWfKHGut1ka+eV2sFZRf5BKm2TKkKpB0dltVnbScEjbH34JCvPkzE8NjGoveD/TeoMiPzvscrxg+XGsq1dROZqVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728936539; c=relaxed/simple;
-	bh=a4n1PMA52wSopn66sVjfqNhRVf2hduWyAKHBvAG0llE=;
-	h=Date:To:From:Subject:Message-Id; b=eEbGu/CQMMqaxbg9/vbteKTdO+tDZI7TncTAB/C5Vj/DZGcwz5hQ5PuCIOBVXpXAfBDLnUoBJI+PYYjMz9mjN9jm+7fEdWL9ThNq8M7juzNoFe/hTM6Vbm/jyMeli1fZXWlUFCXgj6NO2oKG/+5Xr6SW65KMjKoi/KBK4JGEvc8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VOseNSRw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728936542; c=relaxed/simple;
+	bh=oyofwppQrrcSv9sKSu5OOQOwsSln3hEbhxn8b/B2mZI=;
+	h=Date:To:From:Subject:Message-Id; b=D1eCznYwTdHOp9D9itY70vBLR9o0MExNEoGGD8eBbFtArJeAgzh0/Uq0a7F83RSFp5DRB7Se2XQBd79Xpevtf5nWeREsP7IPEH2ZZZgVu275P4yqYpu7fFjDg3aVDedMkNViTkCoyfuJvlKHp+TqevcMsNOAGB8cdIV03jDObdM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FgRwd/Ti; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VOseNSRw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00CEEC4CEC3;
-	Mon, 14 Oct 2024 20:08:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FgRwd/Ti"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEF77C4CEC3;
+	Mon, 14 Oct 2024 20:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728936539;
-	bh=a4n1PMA52wSopn66sVjfqNhRVf2hduWyAKHBvAG0llE=;
+	s=korg; t=1728936542;
+	bh=oyofwppQrrcSv9sKSu5OOQOwsSln3hEbhxn8b/B2mZI=;
 	h=Date:To:From:Subject:From;
-	b=VOseNSRwspNRhuWuAYGN5NkL2ZPFx9kTJPgm5W7D4AuaoQYP/+oxTzcNlRI5AGgY3
-	 2safHx2gkpT5MbnB/fagX4cLAB4pQkvrRyNhVXvpG0bwXwr+E0R7pVC47JWivvf3iF
-	 B2kBPpGt6GOjJVG8XOdb9JmdWRSG/GxIewqPBq8s=
-Date: Mon, 14 Oct 2024 13:08:58 -0700
+	b=FgRwd/Tila/DpZi6fTyCVPbULEAJN+aptu0FQCbmWLbPZTQQLubN5X+TlZrFPxE8b
+	 ISpM4eA83qqopcHy40EFNWFwv3It0VJyCeVBTd1iXnSitP3XN/UKXNklCqx4JSWN1F
+	 mRT/nOUTvWltQQXEyAtD0ZTLNdxQsxjWU9w0Is0g=
+Date: Mon, 14 Oct 2024 13:09:01 -0700
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,siyanteng@loongson.cn,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,andreyknvl@gmail.com,alexs@kernel.org,2023002089@link.tyut.edu.cn,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-migrate-copy_user_test-to-kunit.patch added to mm-unstable branch
-Message-Id: <20241014200859.00CEEC4CEC3@smtp.kernel.org>
+Subject: + kasan-delete-config_kasan_module_test.patch added to mm-unstable branch
+Message-Id: <20241014200901.EEF77C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: migrate copy_user_test to kunit
+     Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-migrate-copy_user_test-to-kunit.patch
+     kasan-delete-config_kasan_module_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-migrate-copy_user_test-to-kunit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-delete-config_kasan_module_test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: migrate copy_user_test to kunit
-Date: Mon, 14 Oct 2024 07:57:00 +0500
+Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
+Date: Mon, 14 Oct 2024 07:57:01 +0500
 
-Migrate the copy_user_test to the KUnit framework to verify out-of-bound
-detection via KASAN reports in copy_from_user(), copy_to_user() and their
-static functions.
+Since we've migrated all tests to the KUnit framework, we can delete
+CONFIG_KASAN_MODULE_TEST and mentioning of it in the documentation as
+well.
 
-This is the last migrated test in kasan_test_module.c, therefore delete
-the file.
+I've used the online translator to modify the non-English documentation.
 
-Link: https://lkml.kernel.org/r/20241014025701.3096253-3-snovitoll@gmail.com
+Link: https://lkml.kernel.org/r/20241014025701.3096253-4-snovitoll@gmail.com
 Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -84,175 +83,189 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/Makefile            |    2 
- mm/kasan/kasan_test_c.c      |   47 +++++++++++++++++++
- mm/kasan/kasan_test_module.c |   81 ---------------------------------
- 3 files changed, 47 insertions(+), 83 deletions(-)
+ Documentation/dev-tools/kasan.rst                    |   23 +++-------
+ Documentation/translations/zh_CN/dev-tools/kasan.rst |   20 +++-----
+ Documentation/translations/zh_TW/dev-tools/kasan.rst |   21 +++------
+ lib/Kconfig.kasan                                    |    7 ---
+ mm/kasan/kasan.h                                     |    2 
+ mm/kasan/report.c                                    |    2 
+ 6 files changed, 28 insertions(+), 47 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~kasan-migrate-copy_user_test-to-kunit
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1954,6 +1954,52 @@ static void rust_uaf(struct kunit *test)
- 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
+--- a/Documentation/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
++++ a/Documentation/dev-tools/kasan.rst
+@@ -511,19 +511,14 @@ Tests
+ ~~~~~
+ 
+ There are KASAN tests that allow verifying that KASAN works and can detect
+-certain types of memory corruptions. The tests consist of two parts:
++certain types of memory corruptions.
+ 
+-1. Tests that are integrated with the KUnit Test Framework. Enabled with
+-``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
++All KASAN tests are integrated with the KUnit Test Framework and can be enabled
++via ``CONFIG_KASAN_KUNIT_TEST``. The tests can be run and partially verified
+ automatically in a few different ways; see the instructions below.
+ 
+-2. Tests that are currently incompatible with KUnit. Enabled with
+-``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
+-only be verified manually by loading the kernel module and inspecting the
+-kernel log for KASAN reports.
+-
+-Each KUnit-compatible KASAN test prints one of multiple KASAN reports if an
+-error is detected. Then the test prints its number and status.
++Each KASAN test prints one of multiple KASAN reports if an error is detected.
++Then the test prints its number and status.
+ 
+ When a test passes::
+ 
+@@ -550,16 +545,16 @@ Or, if one of the tests failed::
+ 
+         not ok 1 - kasan
+ 
+-There are a few ways to run KUnit-compatible KASAN tests.
++There are a few ways to run the KASAN tests.
+ 
+ 1. Loadable module
+ 
+-   With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
+-   module and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
++   With ``CONFIG_KUNIT`` enabled, the tests can be built as a loadable module
++   and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
+ 
+ 2. Built-In
+ 
+-   With ``CONFIG_KUNIT`` built-in, KASAN-KUnit tests can be built-in as well.
++   With ``CONFIG_KUNIT`` built-in, the tests can be built-in as well.
+    In this case, the tests will run at boot as a late-init call.
+ 
+ 3. Using kunit_tool
+--- a/Documentation/translations/zh_CN/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
++++ a/Documentation/translations/zh_CN/dev-tools/kasan.rst
+@@ -422,16 +422,12 @@ 测试
+ ~~~~
+ 
+ 有一些KASAN测试可以验证KASAN是否正常工作并可以检测某些类型的内存损坏。
+-测试由两部分组成:
+ 
+-1. 与KUnit测试框架集成的测试。使用 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
+-这些测试可以通过几种不同的方式自动运行和部分验证；请参阅下面的说明。
++所有 KASAN 测试都与 KUnit 测试框架集成，可通过 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
++测试可以通过几种不同的方式自动运行和部分验证；请参阅以下说明。
+ 
+-2. 与KUnit不兼容的测试。使用 ``CONFIG_KASAN_MODULE_TEST`` 启用并且只能作为模块
+-运行。这些测试只能通过加载内核模块并检查内核日志以获取KASAN报告来手动验证。
+-
+-如果检测到错误，每个KUnit兼容的KASAN测试都会打印多个KASAN报告之一，然后测试打印
+-其编号和状态。
++如果检测到错误，每个 KASAN 测试都会打印多份 KASAN 报告中的一份。
++然后测试会打印其编号和状态。
+ 
+ 当测试通过::
+ 
+@@ -458,16 +454,16 @@ 或者，如果其中一项测试失败:
+ 
+         not ok 1 - kasan
+ 
+-有几种方法可以运行与KUnit兼容的KASAN测试。
++有几种方法可以运行 KASAN 测试。
+ 
+ 1. 可加载模块
+ 
+-   启用 ``CONFIG_KUNIT`` 后，KASAN-KUnit测试可以构建为可加载模块，并通过使用
+-   ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
++   启用 ``CONFIG_KUNIT`` 后，可以将测试构建为可加载模块
++   并通过使用 ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
+ 
+ 2. 内置
+ 
+-   通过内置 ``CONFIG_KUNIT`` ，也可以内置KASAN-KUnit测试。在这种情况下，
++   通过内置 ``CONFIG_KUNIT``，测试也可以内置。
+    测试将在启动时作为后期初始化调用运行。
+ 
+ 3. 使用kunit_tool
+--- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
++++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
+@@ -404,16 +404,13 @@ 測試
+ ~~~~
+ 
+ 有一些KASAN測試可以驗證KASAN是否正常工作並可以檢測某些類型的內存損壞。
+-測試由兩部分組成:
+ 
+-1. 與KUnit測試框架集成的測試。使用 ``CONFIG_KASAN_KUNIT_TEST`` 啓用。
+-這些測試可以通過幾種不同的方式自動運行和部分驗證；請參閱下面的說明。
++所有 KASAN 測試均與 KUnit 測試框架集成，並且可以啟用
++透過 ``CONFIG_KASAN_KUNIT_TEST``。可以運行測試並進行部分驗證
++ 以幾種不同的方式自動進行；請參閱下面的說明。
+ 
+-2. 與KUnit不兼容的測試。使用 ``CONFIG_KASAN_MODULE_TEST`` 啓用並且只能作爲模塊
+-運行。這些測試只能通過加載內核模塊並檢查內核日誌以獲取KASAN報告來手動驗證。
+-
+-如果檢測到錯誤，每個KUnit兼容的KASAN測試都會打印多個KASAN報告之一，然後測試打印
+-其編號和狀態。
++如果偵測到錯誤，每個 KASAN 測試都會列印多個 KASAN 報告之一。
++然後測試列印其編號和狀態。
+ 
+ 當測試通過::
+ 
+@@ -440,16 +437,16 @@ 或者，如果其中一項測試失敗:
+ 
+         not ok 1 - kasan
+ 
+-有幾種方法可以運行與KUnit兼容的KASAN測試。
++有幾種方法可以執行 KASAN 測試。
+ 
+ 1. 可加載模塊
+ 
+-   啓用 ``CONFIG_KUNIT`` 後，KASAN-KUnit測試可以構建爲可加載模塊，並通過使用
+-   ``insmod`` 或 ``modprobe`` 加載 ``kasan_test.ko`` 來運行。
++   啟用 ``CONFIG_KUNIT`` 後，測試可以建置為可載入模組
++   並且透過使用 ``insmod`` 或 ``modprobe`` 來載入 ``kasan_test.ko`` 來運作。
+ 
+ 2. 內置
+ 
+-   通過內置 ``CONFIG_KUNIT`` ，也可以內置KASAN-KUnit測試。在這種情況下，
++   透過內建 ``CONFIG_KUNIT``，測試也可以內建。
+    測試將在啓動時作爲後期初始化調用運行。
+ 
+ 3. 使用kunit_tool
+--- a/lib/Kconfig.kasan~kasan-delete-config_kasan_module_test
++++ a/lib/Kconfig.kasan
+@@ -195,13 +195,6 @@ config KASAN_KUNIT_TEST
+ 	  For more information on KUnit and unit tests in general, please refer
+ 	  to the KUnit documentation in Documentation/dev-tools/kunit/.
+ 
+-config KASAN_MODULE_TEST
+-	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
+-	depends on m && KASAN && !KASAN_HW_TAGS
+-	help
+-	  A part of the KASAN test suite that is not integrated with KUnit.
+-	  Incompatible with Hardware Tag-Based KASAN.
+-
+ config KASAN_EXTRA_INFO
+ 	bool "Record and report more information"
+ 	depends on KASAN
+--- a/mm/kasan/kasan.h~kasan-delete-config_kasan_module_test
++++ a/mm/kasan/kasan.h
+@@ -568,7 +568,7 @@ static inline void kasan_kunit_test_suit
+ 
+ #endif /* CONFIG_KASAN_KUNIT_TEST */
+ 
+-#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ bool kasan_save_enable_multi_shot(void);
+ void kasan_restore_multi_shot(bool enabled);
+--- a/mm/kasan/report.c~kasan-delete-config_kasan_module_test
++++ a/mm/kasan/report.c
+@@ -132,7 +132,7 @@ static bool report_enabled(void)
+ 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
  }
  
-+static void copy_user_test_oob(struct kunit *test)
-+{
-+	char *kmem;
-+	char __user *usermem;
-+	unsigned long useraddr;
-+	size_t size = 128 - KASAN_GRANULE_SIZE;
-+	int __maybe_unused unused;
-+
-+	kmem = kunit_kmalloc(test, size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, kmem);
-+
-+	useraddr = kunit_vm_mmap(test, NULL, 0, PAGE_SIZE,
-+					PROT_READ | PROT_WRITE | PROT_EXEC,
-+					MAP_ANONYMOUS | MAP_PRIVATE, 0);
-+	KUNIT_ASSERT_NE_MSG(test, useraddr, 0,
-+		"Could not create userspace mm");
-+	KUNIT_ASSERT_LT_MSG(test, useraddr, (unsigned long)TASK_SIZE,
-+		"Failed to allocate user memory");
-+
-+	OPTIMIZER_HIDE_VAR(size);
-+	usermem = (char __user *)useraddr;
-+
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = copy_from_user(kmem, usermem, size + 1));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = copy_to_user(usermem, kmem, size + 1));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = __copy_from_user(kmem, usermem, size + 1));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = __copy_to_user(usermem, kmem, size + 1));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = __copy_from_user_inatomic(kmem, usermem, size + 1));
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = __copy_to_user_inatomic(usermem, kmem, size + 1));
-+
-+	/*
-+	* Prepare a long string in usermem to avoid the strncpy_from_user test
-+	* bailing out on '\0' before it reaches out-of-bounds.
-+	*/
-+	memset(kmem, 'a', size);
-+	KUNIT_EXPECT_EQ(test, copy_to_user(usermem, kmem, size), 0);
-+
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		unused = strncpy_from_user(kmem, usermem, size + 1));
-+}
-+
- static struct kunit_case kasan_kunit_test_cases[] = {
- 	KUNIT_CASE(kmalloc_oob_right),
- 	KUNIT_CASE(kmalloc_oob_left),
-@@ -2028,6 +2074,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(match_all_ptr_tag),
- 	KUNIT_CASE(match_all_mem_tag),
- 	KUNIT_CASE(rust_uaf),
-+	KUNIT_CASE(copy_user_test_oob),
- 	{}
- };
+-#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
  
-diff --git a/mm/kasan/kasan_test_module.c a/mm/kasan/kasan_test_module.c
-deleted file mode 100644
---- a/mm/kasan/kasan_test_module.c
-+++ /dev/null
-@@ -1,81 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- *
-- * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-- * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
-- */
--
--#define pr_fmt(fmt) "kasan: test: " fmt
--
--#include <linux/mman.h>
--#include <linux/module.h>
--#include <linux/printk.h>
--#include <linux/slab.h>
--#include <linux/uaccess.h>
--
--#include "kasan.h"
--
--static noinline void __init copy_user_test(void)
--{
--	char *kmem;
--	char __user *usermem;
--	size_t size = 128 - KASAN_GRANULE_SIZE;
--	int __maybe_unused unused;
--
--	kmem = kmalloc(size, GFP_KERNEL);
--	if (!kmem)
--		return;
--
--	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
--			    PROT_READ | PROT_WRITE | PROT_EXEC,
--			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
--	if (IS_ERR(usermem)) {
--		pr_err("Failed to allocate user memory\n");
--		kfree(kmem);
--		return;
--	}
--
--	OPTIMIZER_HIDE_VAR(size);
--
--	pr_info("out-of-bounds in copy_from_user()\n");
--	unused = copy_from_user(kmem, usermem, size + 1);
--
--	pr_info("out-of-bounds in copy_to_user()\n");
--	unused = copy_to_user(usermem, kmem, size + 1);
--
--	pr_info("out-of-bounds in __copy_from_user()\n");
--	unused = __copy_from_user(kmem, usermem, size + 1);
--
--	pr_info("out-of-bounds in __copy_to_user()\n");
--	unused = __copy_to_user(usermem, kmem, size + 1);
--
--	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
--	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
--
--	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
--	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
--
--	pr_info("out-of-bounds in strncpy_from_user()\n");
--	unused = strncpy_from_user(kmem, usermem, size + 1);
--
--	vm_munmap((unsigned long)usermem, PAGE_SIZE);
--	kfree(kmem);
--}
--
--static int __init kasan_test_module_init(void)
--{
--	/*
--	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
--	 * report the first detected bug and panic the kernel if panic_on_warn
--	 * is enabled.
--	 */
--	bool multishot = kasan_save_enable_multi_shot();
--
--	copy_user_test();
--
--	kasan_restore_multi_shot(multishot);
--	return -EAGAIN;
--}
--
--module_init(kasan_test_module_init);
--MODULE_LICENSE("GPL");
---- a/mm/kasan/Makefile~kasan-migrate-copy_user_test-to-kunit
-+++ a/mm/kasan/Makefile
-@@ -46,7 +46,6 @@ endif
- 
- CFLAGS_kasan_test_c.o := $(CFLAGS_KASAN_TEST)
- RUSTFLAGS_kasan_test_rust.o := $(RUSTFLAGS_KASAN)
--CFLAGS_kasan_test_module.o := $(CFLAGS_KASAN_TEST)
- 
- obj-y := common.o report.o
- obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
-@@ -59,4 +58,3 @@ ifdef CONFIG_RUST
- endif
- 
- obj-$(CONFIG_KASAN_KUNIT_TEST) += kasan_test.o
--obj-$(CONFIG_KASAN_MODULE_TEST) += kasan_test_module.o
+ bool kasan_save_enable_multi_shot(void)
+ {
 _
 
 Patches currently in -mm which might be from snovitoll@gmail.com are
