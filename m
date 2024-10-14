@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1AA1CF5D8
-	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 20:09:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72CA81D0797
+	for <mm-commits@vger.kernel.org>; Mon, 14 Oct 2024 20:12:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728936542; cv=none; b=OrHIpP/sCJrtAtI+2IEgq9CX89tMcuOp+AWAWr73apDA/aO20nnYxPCttgV9cfsRDThY3pjNmlRI5O5IsRLHWfKHGut1ka+eV2sFZRf5BKm2TKkKpB0dltVnbScEjbH34JCvPkzE8NjGoveD/TeoMiPzvscrxg+XGsq1dROZqVo=
+	t=1728936762; cv=none; b=Pwl3YJlUyXTiGvxPeUSJwwKj63SNyOjcJ620yFv2x1XGj+/tK54QRbJwAVoEXqrgLxRoFU38uPQRpzcL3TNV9p5jqMCRc4hic3zWvK6H1Fds3LgyONnEx58ujT9Gp7J5Nr2NWwFP/hKBjTg1Sn8YkxtJZGp4UkqTW/X8t6BSf1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728936542; c=relaxed/simple;
-	bh=oyofwppQrrcSv9sKSu5OOQOwsSln3hEbhxn8b/B2mZI=;
-	h=Date:To:From:Subject:Message-Id; b=D1eCznYwTdHOp9D9itY70vBLR9o0MExNEoGGD8eBbFtArJeAgzh0/Uq0a7F83RSFp5DRB7Se2XQBd79Xpevtf5nWeREsP7IPEH2ZZZgVu275P4yqYpu7fFjDg3aVDedMkNViTkCoyfuJvlKHp+TqevcMsNOAGB8cdIV03jDObdM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FgRwd/Ti; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728936762; c=relaxed/simple;
+	bh=i/oPxkmdTq+b26+K4kR1Kx1eY4gL9AkjVWJzDqy3lks=;
+	h=Date:To:From:Subject:Message-Id; b=jEOV4NN2poBnvMXYWt+vpCbsTfTj6G/JyI70cbJctX4oEjZxnhNMkZYVebS7ShNGcrqj8+Cc4MIcxdvajnlU6SUbnFO2NLQ3draGhxZMFDQBkWTtCR7svG4aYkii8a6LdG38tYGvrJvDBVI5/Tepzu3/kGC/m6t/RdIgO+xCgUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ldjcpXU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FgRwd/Ti"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEF77C4CEC3;
-	Mon, 14 Oct 2024 20:09:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ldjcpXU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6F4C4CEC3;
+	Mon, 14 Oct 2024 20:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728936542;
-	bh=oyofwppQrrcSv9sKSu5OOQOwsSln3hEbhxn8b/B2mZI=;
+	s=korg; t=1728936761;
+	bh=i/oPxkmdTq+b26+K4kR1Kx1eY4gL9AkjVWJzDqy3lks=;
 	h=Date:To:From:Subject:From;
-	b=FgRwd/Tila/DpZi6fTyCVPbULEAJN+aptu0FQCbmWLbPZTQQLubN5X+TlZrFPxE8b
-	 ISpM4eA83qqopcHy40EFNWFwv3It0VJyCeVBTd1iXnSitP3XN/UKXNklCqx4JSWN1F
-	 mRT/nOUTvWltQQXEyAtD0ZTLNdxQsxjWU9w0Is0g=
-Date: Mon, 14 Oct 2024 13:09:01 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,siyanteng@loongson.cn,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,andreyknvl@gmail.com,alexs@kernel.org,2023002089@link.tyut.edu.cn,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=0ldjcpXUgEgUPHl2xg2c/gZ9QMVdFWXEHmFQGjpH10MevYOa076UVFu9o+dRs1+/3
+	 jrQD0FwcV/Y9rkN47RmiB8QHiqu0AlkcbAFvMuj8bpJj3nNL7R70ZeXfKG5EmR8gbF
+	 4XkFn8+bCHmgfeFHLAbN0zkgs/HX8yJjXAS8tyKw=
+Date: Mon, 14 Oct 2024 13:12:40 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,tsbogend@alpha.franken.de,ryabinin.a.a@gmail.com,kernel@xen0n.name,glider@google.com,dvyukov@google.com,chenhuacai@kernel.org,andreyknvl@gmail.com,maobibo@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-delete-config_kasan_module_test.patch added to mm-unstable branch
-Message-Id: <20241014200901.EEF77C4CEC3@smtp.kernel.org>
+Subject: + mm-define-general-function-pxd_init.patch added to mm-unstable branch
+Message-Id: <20241014201240.DF6F4C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
+     Subject: mm: define general function pXd_init()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-delete-config_kasan_module_test.patch
+     mm-define-general-function-pxd_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-delete-config_kasan_module_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-define-general-function-pxd_init.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,219 +58,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
-Date: Mon, 14 Oct 2024 07:57:01 +0500
+From: Bibo Mao <maobibo@loongson.cn>
+Subject: mm: define general function pXd_init()
+Date: Fri, 11 Oct 2024 17:33:18 +0800
 
-Since we've migrated all tests to the KUnit framework, we can delete
-CONFIG_KASAN_MODULE_TEST and mentioning of it in the documentation as
-well.
+pmd_init() and pud_init() are duplicated defined in file kasan.c and
+sparse-vmemmap.c as weak functions.  Move them to generic header file
+pgtable.h, architecture can redefine them.
 
-I've used the online translator to modify the non-English documentation.
-
-Link: https://lkml.kernel.org/r/20241014025701.3096253-4-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Link: https://lkml.kernel.org/r/20241011093318.519432-1-maobibo@loongson.cn
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Alex Shi <alexs@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marco Elver <elver@google.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Yanteng Si <siyanteng@loongson.cn>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst                    |   23 +++-------
- Documentation/translations/zh_CN/dev-tools/kasan.rst |   20 +++-----
- Documentation/translations/zh_TW/dev-tools/kasan.rst |   21 +++------
- lib/Kconfig.kasan                                    |    7 ---
- mm/kasan/kasan.h                                     |    2 
- mm/kasan/report.c                                    |    2 
- 6 files changed, 28 insertions(+), 47 deletions(-)
+ arch/loongarch/include/asm/pgtable.h |    2 ++
+ arch/mips/include/asm/pgtable-64.h   |    2 ++
+ include/linux/mm.h                   |    2 --
+ include/linux/pgtable.h              |   14 ++++++++++++++
+ mm/kasan/init.c                      |    8 --------
+ mm/sparse-vmemmap.c                  |    8 --------
+ 6 files changed, 18 insertions(+), 18 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -511,19 +511,14 @@ Tests
- ~~~~~
+--- a/arch/loongarch/include/asm/pgtable.h~mm-define-general-function-pxd_init
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -267,7 +267,9 @@ extern void set_pmd_at(struct mm_struct
+  * Initialize a new pgd / pud / pmd table with invalid pointers.
+  */
+ extern void pgd_init(void *addr);
++#define pud_init pud_init
+ extern void pud_init(void *addr);
++#define pmd_init pmd_init
+ extern void pmd_init(void *addr);
  
- There are KASAN tests that allow verifying that KASAN works and can detect
--certain types of memory corruptions. The tests consist of two parts:
-+certain types of memory corruptions.
+ /*
+--- a/arch/mips/include/asm/pgtable-64.h~mm-define-general-function-pxd_init
++++ a/arch/mips/include/asm/pgtable-64.h
+@@ -316,7 +316,9 @@ static inline pmd_t *pud_pgtable(pud_t p
+  * Initialize a new pgd / pud / pmd table with invalid pointers.
+  */
+ extern void pgd_init(void *addr);
++#define pud_init pud_init
+ extern void pud_init(void *addr);
++#define pmd_init pmd_init
+ extern void pmd_init(void *addr);
  
--1. Tests that are integrated with the KUnit Test Framework. Enabled with
--``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
-+All KASAN tests are integrated with the KUnit Test Framework and can be enabled
-+via ``CONFIG_KASAN_KUNIT_TEST``. The tests can be run and partially verified
- automatically in a few different ways; see the instructions below.
+ /*
+--- a/include/linux/mm.h~mm-define-general-function-pxd_init
++++ a/include/linux/mm.h
+@@ -3821,8 +3821,6 @@ void *sparse_buffer_alloc(unsigned long
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+-void pmd_init(void *addr);
+-void pud_init(void *addr);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+--- a/include/linux/pgtable.h~mm-define-general-function-pxd_init
++++ a/include/linux/pgtable.h
+@@ -90,6 +90,20 @@ static inline unsigned long pud_index(un
+ #define pgd_index(a)  (((a) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+ #endif
  
--2. Tests that are currently incompatible with KUnit. Enabled with
--``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
--only be verified manually by loading the kernel module and inspecting the
--kernel log for KASAN reports.
--
--Each KUnit-compatible KASAN test prints one of multiple KASAN reports if an
--error is detected. Then the test prints its number and status.
-+Each KASAN test prints one of multiple KASAN reports if an error is detected.
-+Then the test prints its number and status.
- 
- When a test passes::
- 
-@@ -550,16 +545,16 @@ Or, if one of the tests failed::
- 
-         not ok 1 - kasan
- 
--There are a few ways to run KUnit-compatible KASAN tests.
-+There are a few ways to run the KASAN tests.
- 
- 1. Loadable module
- 
--   With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
--   module and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
-+   With ``CONFIG_KUNIT`` enabled, the tests can be built as a loadable module
-+   and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
- 
- 2. Built-In
- 
--   With ``CONFIG_KUNIT`` built-in, KASAN-KUnit tests can be built-in as well.
-+   With ``CONFIG_KUNIT`` built-in, the tests can be built-in as well.
-    In this case, the tests will run at boot as a late-init call.
- 
- 3. Using kunit_tool
---- a/Documentation/translations/zh_CN/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/translations/zh_CN/dev-tools/kasan.rst
-@@ -422,16 +422,12 @@ 测试
- ~~~~
- 
- 有一些KASAN测试可以验证KASAN是否正常工作并可以检测某些类型的内存损坏。
--测试由两部分组成:
- 
--1. 与KUnit测试框架集成的测试。使用 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
--这些测试可以通过几种不同的方式自动运行和部分验证；请参阅下面的说明。
-+所有 KASAN 测试都与 KUnit 测试框架集成，可通过 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
-+测试可以通过几种不同的方式自动运行和部分验证；请参阅以下说明。
- 
--2. 与KUnit不兼容的测试。使用 ``CONFIG_KASAN_MODULE_TEST`` 启用并且只能作为模块
--运行。这些测试只能通过加载内核模块并检查内核日志以获取KASAN报告来手动验证。
--
--如果检测到错误，每个KUnit兼容的KASAN测试都会打印多个KASAN报告之一，然后测试打印
--其编号和状态。
-+如果检测到错误，每个 KASAN 测试都会打印多份 KASAN 报告中的一份。
-+然后测试会打印其编号和状态。
- 
- 当测试通过::
- 
-@@ -458,16 +454,16 @@ 或者，如果其中一项测试失败:
- 
-         not ok 1 - kasan
- 
--有几种方法可以运行与KUnit兼容的KASAN测试。
-+有几种方法可以运行 KASAN 测试。
- 
- 1. 可加载模块
- 
--   启用 ``CONFIG_KUNIT`` 后，KASAN-KUnit测试可以构建为可加载模块，并通过使用
--   ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
-+   启用 ``CONFIG_KUNIT`` 后，可以将测试构建为可加载模块
-+   并通过使用 ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
- 
- 2. 内置
- 
--   通过内置 ``CONFIG_KUNIT`` ，也可以内置KASAN-KUnit测试。在这种情况下，
-+   通过内置 ``CONFIG_KUNIT``，测试也可以内置。
-    测试将在启动时作为后期初始化调用运行。
- 
- 3. 使用kunit_tool
---- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
-@@ -404,16 +404,13 @@ 測試
- ~~~~
- 
- 有一些KASAN測試可以驗證KASAN是否正常工作並可以檢測某些類型的內存損壞。
--測試由兩部分組成:
- 
--1. 與KUnit測試框架集成的測試。使用 ``CONFIG_KASAN_KUNIT_TEST`` 啓用。
--這些測試可以通過幾種不同的方式自動運行和部分驗證；請參閱下面的說明。
-+所有 KASAN 測試均與 KUnit 測試框架集成，並且可以啟用
-+透過 ``CONFIG_KASAN_KUNIT_TEST``。可以運行測試並進行部分驗證
-+ 以幾種不同的方式自動進行；請參閱下面的說明。
- 
--2. 與KUnit不兼容的測試。使用 ``CONFIG_KASAN_MODULE_TEST`` 啓用並且只能作爲模塊
--運行。這些測試只能通過加載內核模塊並檢查內核日誌以獲取KASAN報告來手動驗證。
--
--如果檢測到錯誤，每個KUnit兼容的KASAN測試都會打印多個KASAN報告之一，然後測試打印
--其編號和狀態。
-+如果偵測到錯誤，每個 KASAN 測試都會列印多個 KASAN 報告之一。
-+然後測試列印其編號和狀態。
- 
- 當測試通過::
- 
-@@ -440,16 +437,16 @@ 或者，如果其中一項測試失敗:
- 
-         not ok 1 - kasan
- 
--有幾種方法可以運行與KUnit兼容的KASAN測試。
-+有幾種方法可以執行 KASAN 測試。
- 
- 1. 可加載模塊
- 
--   啓用 ``CONFIG_KUNIT`` 後，KASAN-KUnit測試可以構建爲可加載模塊，並通過使用
--   ``insmod`` 或 ``modprobe`` 加載 ``kasan_test.ko`` 來運行。
-+   啟用 ``CONFIG_KUNIT`` 後，測試可以建置為可載入模組
-+   並且透過使用 ``insmod`` 或 ``modprobe`` 來載入 ``kasan_test.ko`` 來運作。
- 
- 2. 內置
- 
--   通過內置 ``CONFIG_KUNIT`` ，也可以內置KASAN-KUnit測試。在這種情況下，
-+   透過內建 ``CONFIG_KUNIT``，測試也可以內建。
-    測試將在啓動時作爲後期初始化調用運行。
- 
- 3. 使用kunit_tool
---- a/lib/Kconfig.kasan~kasan-delete-config_kasan_module_test
-+++ a/lib/Kconfig.kasan
-@@ -195,13 +195,6 @@ config KASAN_KUNIT_TEST
- 	  For more information on KUnit and unit tests in general, please refer
- 	  to the KUnit documentation in Documentation/dev-tools/kunit/.
- 
--config KASAN_MODULE_TEST
--	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
--	depends on m && KASAN && !KASAN_HW_TAGS
--	help
--	  A part of the KASAN test suite that is not integrated with KUnit.
--	  Incompatible with Hardware Tag-Based KASAN.
--
- config KASAN_EXTRA_INFO
- 	bool "Record and report more information"
- 	depends on KASAN
---- a/mm/kasan/kasan.h~kasan-delete-config_kasan_module_test
-+++ a/mm/kasan/kasan.h
-@@ -568,7 +568,7 @@ static inline void kasan_kunit_test_suit
- 
- #endif /* CONFIG_KASAN_KUNIT_TEST */
- 
--#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- bool kasan_save_enable_multi_shot(void);
- void kasan_restore_multi_shot(bool enabled);
---- a/mm/kasan/report.c~kasan-delete-config_kasan_module_test
-+++ a/mm/kasan/report.c
-@@ -132,7 +132,7 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
++#ifndef pmd_init
++static inline void pmd_init(void *addr)
++{
++}
++#define pmd_init pmd_init
++#endif
++
++#ifndef pud_init
++static inline void pud_init(void *addr)
++{
++}
++#define pud_init pud_init
++#endif
++
+ #ifndef pte_offset_kernel
+ static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
+ {
+--- a/mm/kasan/init.c~mm-define-general-function-pxd_init
++++ a/mm/kasan/init.c
+@@ -139,10 +139,6 @@ static int __ref zero_pmd_populate(pud_t
+ 	return 0;
  }
  
--#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- bool kasan_save_enable_multi_shot(void)
+-void __weak __meminit pmd_init(void *addr)
+-{
+-}
+-
+ static int __ref zero_pud_populate(p4d_t *p4d, unsigned long addr,
+ 				unsigned long end)
  {
+@@ -181,10 +177,6 @@ static int __ref zero_pud_populate(p4d_t
+ 	return 0;
+ }
+ 
+-void __weak __meminit pud_init(void *addr)
+-{
+-}
+-
+ static int __ref zero_p4d_populate(pgd_t *pgd, unsigned long addr,
+ 				unsigned long end)
+ {
+--- a/mm/sparse-vmemmap.c~mm-define-general-function-pxd_init
++++ a/mm/sparse-vmemmap.c
+@@ -196,10 +196,6 @@ pmd_t * __meminit vmemmap_pmd_populate(p
+ 	return pmd;
+ }
+ 
+-void __weak __meminit pmd_init(void *addr)
+-{
+-}
+-
+ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+@@ -213,10 +209,6 @@ pud_t * __meminit vmemmap_pud_populate(p
+ 	return pud;
+ }
+ 
+-void __weak __meminit pud_init(void *addr)
+-{
+-}
+-
+ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from maobibo@loongson.cn are
 
-kasan-move-checks-to-do_strncpy_from_user.patch
-kasan-migrate-copy_user_test-to-kunit.patch
-kasan-delete-config_kasan_module_test.patch
+mm-define-general-function-pxd_init.patch
 
