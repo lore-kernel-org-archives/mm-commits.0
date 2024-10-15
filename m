@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29E0191
-	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 00:13:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51460A29
+	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 00:14:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728951234; cv=none; b=KzJ9nruNx9HNki40wHQSSMYQBcmNAvgQ7S0shhSgEItXMRufXFdz7kC+gS5CyQwz3uKlVCLAYptsdXWof8Uo+pux1Hf1J+R9yIQN8bEhTiISl14WrEAdLjJ9YXWHv3H+Vbhyz6olYLeF4/QwT5qCZzVuh7dsmiJ8S82JYdAfONc=
+	t=1728951246; cv=none; b=A+l7OBw89IqcrFzICDU4n548LM7X1ikxa4eo+gRo/PxtI/lI++nESV1j5Z8u8ykoCxY+Ugip2ZJGl2hfKTqUQBvuNmM3hDn570I32Eh7jbRF6uGFFZqnBTLOs9iyfrafoA50w89XGZESEb+p4K0WbKCJUS4XE/AWweZhdz2qlFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728951234; c=relaxed/simple;
-	bh=qro82YsUW0vCLCALAw3w8I6jtfVAvmSIbct0m9RGEvg=;
-	h=Date:To:From:Subject:Message-Id; b=rhydN4NjeiUqFUZPJC4HCmejM5DR0FgZkrupvmpPYf4Eq0rxrTAklSvf4dpXc3w/wOe5lwP4gZG78qobQHNOYH3CIBQsBiecmxLC+9DcCHv7YM0VQiBOMB6U4lYW/SHKnA67SvCf2LzS2zrpRRn5cV7T07KcgjiW+u26hbNm1PE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=poC1y3/B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728951246; c=relaxed/simple;
+	bh=AT9Q9AAiYezNUNkEQKLlP85wMbrUJxEKmDZDImvCaNI=;
+	h=Date:To:From:Subject:Message-Id; b=OSH1S18AWoK3TMCdOIzDC847UZlmjDCE81u4nLMROwsu43j60B8F7U4mxVs3FH4SyN5XPHwspolKALJVwiuJvDSEueeYYHvAJAgcFzNZFZ58yhIIZvosxhN3zsj+jcVMM6Y461g2aSR8kxWN2glvkdy0SPLrX6BE8GOPi7R5EhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aKZjOKbN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="poC1y3/B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06710C4CEC3;
-	Tue, 15 Oct 2024 00:13:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aKZjOKbN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8024C4CEC3;
+	Tue, 15 Oct 2024 00:14:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728951233;
-	bh=qro82YsUW0vCLCALAw3w8I6jtfVAvmSIbct0m9RGEvg=;
+	s=korg; t=1728951245;
+	bh=AT9Q9AAiYezNUNkEQKLlP85wMbrUJxEKmDZDImvCaNI=;
 	h=Date:To:From:Subject:From;
-	b=poC1y3/Bimhb3PQd6jcH2H9hEg+ZcNyhzjHpHwVECDEKy7rgHbeH0rwStmkJLzoIa
-	 t1LZqAovhGZ8nlNOw+YLOxLxsNnFB79mu+29NNCO1A/Aj2y8TnxP/Xva0TDUFE7yxE
-	 ERRfLDQGOmGldH1JPP/X3hHuoe7oREhulgMVsUFI=
-Date: Mon, 14 Oct 2024 17:13:51 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,vbabka@suse.cz,skhan@linuxfoundation.org,sfr@canb.auug.org.au,rostedt@goodmis.org,rmoar@google.com,porlando@lkcamp.dev,palmer@rivosinc.com,npitre@baylibre.com,naveen.n.rao@linux.ibm.com,nathan@kernel.org,mic@digikod.net,mhiramat@kernel.org,maskray@google.com,mark.rutland@arm.com,linux@roeck-us.net,linux@rasmusvillemoes.dk,kuba@kernel.org,kees@kernel.org,Jason@zx2c4.com,horms@kernel.org,gustavoars@kernel.org,geert@linux-m68k.org,gbittencourt@lkcamp.dev,elver@google.com,dpereira@lkcamp.dev,dlatypov@google.com,diego.daniel.professional@gmail.com,dhowells@redhat.com,davidgow@google.com,davem@davemloft.net,christophe.leroy@csgroup.eu,charlie@rivosinc.com,brunofrancadevsec@gmail.com,broonie@kernel.org,brendanhiggins@google.com,arnd@arndb.de,anil.s.keshavamurthy@intel.com,andy@kernel.org,luis.hernandez093@gmail.com,akpm@linux-foundation.org
+	b=aKZjOKbNxDkz4pK5VXCLpiEDmSqBt1LOyNMiyx3cJMc3IrzKIQ4ZB9YQX6veZqL02
+	 jEFUMtOTfAdiDKLYVw71Exg/hi7SgcPD+Ru7zbFKmHmP3ZlkANjMIS4aAlAaUmFPE0
+	 38e3WqiYjSijQojkJ+3VvCUFZEstu2oOm6VGOg5o=
+Date: Mon, 14 Oct 2024 17:14:05 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,vbabka@suse.cz,skhan@linuxfoundation.org,sfr@canb.auug.org.au,rostedt@goodmis.org,rmoar@google.com,porlando@lkcamp.dev,palmer@rivosinc.com,npitre@baylibre.com,naveen.n.rao@linux.ibm.com,nathan@kernel.org,mic@digikod.net,mhiramat@kernel.org,maskray@google.com,mark.rutland@arm.com,luis.hernandez093@gmail.com,linux@roeck-us.net,linux@rasmusvillemoes.dk,kuba@kernel.org,kees@kernel.org,Jason@zx2c4.com,horms@kernel.org,gustavoars@kernel.org,geert@linux-m68k.org,gbittencourt@lkcamp.dev,elver@google.com,dpereira@lkcamp.dev,dlatypov@google.com,diego.daniel.professional@gmail.com,dhowells@redhat.com,davidgow@google.com,davem@davemloft.net,christophe.leroy@csgroup.eu,charlie@rivosinc.com,broonie@kernel.org,brendanhiggins@google.com,arnd@arndb.de,anil.s.keshavamurthy@intel.com,andy@kernel.org,brunofrancadevsec@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-move-kunit-tests-into-tests-subdir.patch added to mm-nonmm-unstable branch
-Message-Id: <20241015001353.06710C4CEC3@smtp.kernel.org>
+Subject: + lib-math-add-int_log-test-suite.patch added to mm-nonmm-unstable branch
+Message-Id: <20241015001405.A8024C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: math: move kunit tests into tests/ subdir
+     Subject: lib/math: add int_log test suite
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-move-kunit-tests-into-tests-subdir.patch
+     lib-math-add-int_log-test-suite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-move-kunit-tests-into-tests-subdir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_log-test-suite.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,20 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
-Subject: lib: math: move kunit tests into tests/ subdir
-Date: Fri, 11 Oct 2024 15:25:05 +0800
+From: Bruno Sobreira Fran=C3=A7a <brunofrancadevsec@gmail.com>
+Subject: lib/math: add int_log test suite
+Date: Fri, 11 Oct 2024 15:25:06 +0800
 
-Patch series "KUnit test moves / renames".
-
-As discussed in [1], the KUnit test naming scheme has changed to avoid
-name conflicts (and tab-completion woes) with the files being tested. 
-These renames and moves have caused a nasty set of merge conflicts, so
-this series collates and rebases them all to be applied via
-mm-nonmm-unstable alongside any lib/ changes[2].
-
-Link: https://lore.kernel.org/lkml/20240720165441.it.320-kees@kernel.org/ [=
-1]
-Link: https://lore.kernel.org/lkml/CABVgOSmbSzcGUi=3DE4piSojh3A4_0GjE0fAYbq=
-KjtYGbE9beYRQ@mail.gmail.com/ [2]
-
-
-This patch (of 6):
-
-This patch is a follow-up task from a discussion stemming from point 3 in
-a recent patch introducing the int_pow kunit test [1] and documentation
-regarding kunit test style and nomenclature [2].
-
-Colocate all kunit test suites in lib/math/tests/ and follow recommended
-naming convention for files <suite>_kunit.c and kconfig entries
-CONFIG_<name>_KUNIT_TEST.
-
-Link: https://lore.kernel.org/all/CABVgOS=-vh5TqHFCq_jo=ffq8v_nGgr6JsPnOZag3e6+19ysxQ@mail.gmail.com/ [1]
-Link: https://docs.kernel.org/dev-tools/kunit/style.html [2]
+Introduce KUnit tests for the intlog2 and intlog10 functions, which
+compute logarithms in base 2 and base 10, respectively.  The tests cover a
+range of inputs to ensure the correctness of these functions across common
+and edge cases.
 
 [davidgow@google.com: rebased on top of mm-nonmm-unstable]
-Link: https://lkml.kernel.org/r/20241011072509.3068328-2-davidgow@google.com
-Link: https://lkml.kernel.org/r/20241011072509.3068328-3-davidgow@google.com
-Signed-off-by: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Link: https://lkml.kernel.org/r/20241011072509.3068328-4-davidgow@google.com
+Signed-off-by: Bruno Sobreira Fran=C3=A7a <brunofrancadevsec@gmail.com>
 Signed-off-by: David Gow <davidgow@google.com>
-Acked-by: Nicolas Pitre <npitre@baylibre.com>
+Reviewed-by: David Gow <davidgow@google.com>
 Acked-by: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Andy Shevchenko <andy@kernel.org>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
@@ -103,1098 +80,156 @@ Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Danilo Pereira <dpereira@lkcamp.dev>
 Cc: David Howells <dhowells@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Diego Vieira <diego.daniel.professional@gmail.com>
 Cc: Fangrui Song <maskray@google.com>
+Cc: Gabriela Bittencourt <gbittencourt@lkcamp.dev>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Jason A. Donenfeld <Jason@zx2c4.com>
 Cc: Kees Cook <kees@kernel.org>
+Cc: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mickaël Salaün <mic@digikod.net>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+Cc: Nicolas Pitre <npitre@baylibre.com>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
+Cc: Pedro Orlando <porlando@lkcamp.dev>
 Cc: Rae Moar <rmoar@google.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Simon Horman <horms@kernel.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: "Steven Rostedt (Google)" <rostedt@goodmis.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yury Norov <yury.norov@gmail.com>b
-Cc: Bruno Sobreira Fran=C3=A7a <brunofrancadevsec@gmail.com>
-Cc: Danilo Pereira <dpereira@lkcamp.dev>
-Cc: Diego Vieira <diego.daniel.professional@gmail.com>
-Cc: Gabriela Bittencourt <gbittencourt@lkcamp.dev>
-Cc: Pedro Orlando <porlando@lkcamp.dev>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/configs/amiga_defconfig          |    2 
- arch/m68k/configs/apollo_defconfig         |    2 
- arch/m68k/configs/atari_defconfig          |    2 
- arch/m68k/configs/bvme6000_defconfig       |    2 
- arch/m68k/configs/hp300_defconfig          |    2 
- arch/m68k/configs/mac_defconfig            |    2 
- arch/m68k/configs/multi_defconfig          |    2 
- arch/m68k/configs/mvme147_defconfig        |    2 
- arch/m68k/configs/mvme16x_defconfig        |    2 
- arch/m68k/configs/q40_defconfig            |    2 
- arch/m68k/configs/sun3_defconfig           |    2 
- arch/m68k/configs/sun3x_defconfig          |    2 
- arch/powerpc/configs/ppc64_defconfig       |    2 
- lib/Kconfig.debug                          |    6 
- lib/math/Makefile                          |    5 
- lib/math/rational-test.c                   |   57 ----
- lib/math/test_div64.c                      |  249 -------------------
- lib/math/test_mul_u64_u64_div_u64.c        |   99 -------
- lib/math/tests/Makefile                    |    5 
- lib/math/tests/div64_kunit.c               |  249 +++++++++++++++++++
- lib/math/tests/mul_u64_u64_div_u64_kunit.c |   99 +++++++
- lib/math/tests/rational_kunit.c            |   57 ++++
- 22 files changed, 426 insertions(+), 426 deletions(-)
+ lib/Kconfig.debug              |   11 ++++
+ lib/math/tests/Makefile        |    1 
+ lib/math/tests/int_log_kunit.c |   75 +++++++++++++++++++++++++++++++
+ 3 files changed, 87 insertions(+)
 
---- a/arch/m68k/configs/amiga_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/amiga_defconfig
-@@ -619,7 +619,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/apollo_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/apollo_defconfig
-@@ -576,7 +576,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/atari_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/atari_defconfig
-@@ -596,7 +596,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/bvme6000_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/bvme6000_defconfig
-@@ -568,7 +568,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/hp300_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/hp300_defconfig
-@@ -578,7 +578,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/mac_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/mac_defconfig
-@@ -595,7 +595,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/multi_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/multi_defconfig
-@@ -681,7 +681,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/mvme147_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/mvme147_defconfig
-@@ -567,7 +567,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/mvme16x_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/mvme16x_defconfig
-@@ -568,7 +568,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/q40_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/q40_defconfig
-@@ -585,7 +585,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/sun3_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/sun3_defconfig
-@@ -565,7 +565,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/m68k/configs/sun3x_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/m68k/configs/sun3x_defconfig
-@@ -566,7 +566,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_REED_SOLOMON_TEST=m
- CONFIG_ATOMIC64_SELFTEST=m
- CONFIG_ASYNC_RAID6_TEST=m
---- a/arch/powerpc/configs/ppc64_defconfig~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -435,7 +435,7 @@ CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_LKDTM=m
- CONFIG_TEST_MIN_HEAP=m
--CONFIG_TEST_DIV64=m
-+CONFIG_DIV64_KUNIT_TEST=m
- CONFIG_BACKTRACE_SELF_TEST=m
- CONFIG_TEST_REF_TRACKER=m
- CONFIG_RBTREE_TEST=m
---- a/lib/Kconfig.debug~lib-math-move-kunit-tests-into-tests-subdir
+--- a/lib/Kconfig.debug~lib-math-add-int_log-test-suite
 +++ a/lib/Kconfig.debug
-@@ -2296,7 +2296,7 @@ config TEST_SORT
+@@ -3018,6 +3018,17 @@ config INT_POW_KUNIT_TEST
  
- 	  If unsure, say N.
+ 	  If unsure, say N
  
--config TEST_DIV64
-+config DIV64_KUNIT_TEST
- 	tristate "64bit/32bit division and modulo test"
- 	depends on DEBUG_KERNEL || m
- 	help
-@@ -2306,7 +2306,7 @@ config TEST_DIV64
++config INT_LOG_KUNIT_TEST
++        tristate "Integer log (int_log) test" if !KUNIT_ALL_TESTS
++        depends on KUNIT
++        default KUNIT_ALL_TESTS
++        help
++          This option enables the KUnit test suite for the int_log library, which
++          provides two functions to compute the integer logarithm in base 2 and
++          base 10, called respectively as intlog2 and intlog10.
++
++          If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
  
- 	  If unsure, say N.
- 
--config TEST_MULDIV64
-+config MULDIV64_KUNIT_TEST
- 	tristate "mul_u64_u64_div_u64() test"
- 	depends on DEBUG_KERNEL || m
- 	help
-@@ -3002,7 +3002,7 @@ config TEST_OBJPOOL
- 
- 	  If unsure, say N.
- 
--config INT_POW_TEST
-+config INT_POW_KUNIT_TEST
- 	tristate "Integer exponentiation (int_pow) test" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
- 	default KUNIT_ALL_TESTS
---- a/lib/math/Makefile~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/lib/math/Makefile
-@@ -5,7 +5,4 @@ obj-$(CONFIG_CORDIC)		+= cordic.o
- obj-$(CONFIG_PRIME_NUMBERS)	+= prime_numbers.o
- obj-$(CONFIG_RATIONAL)		+= rational.o
- 
--obj-$(CONFIG_INT_POW_TEST)  += tests/int_pow_kunit.o
--obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
--obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
--obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
-+obj-y  += tests/
-diff --git a/lib/math/rational-test.c a/lib/math/rational-test.c
-deleted file mode 100644
---- a/lib/math/rational-test.c
-+++ /dev/null
-@@ -1,57 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--
--#include <kunit/test.h>
--
--#include <linux/rational.h>
--
--struct rational_test_param {
--	unsigned long num, den;
--	unsigned long max_num, max_den;
--	unsigned long exp_num, exp_den;
--
--	const char *name;
--};
--
--static const struct rational_test_param test_parameters[] = {
--	{ 1230,	10,	100, 20,	100, 1,    "Exceeds bounds, semi-convergent term > 1/2 last term" },
--	{ 34567,100, 	120, 20,	120, 1,    "Exceeds bounds, semi-convergent term < 1/2 last term" },
--	{ 1, 30,	100, 10,	0, 1,	   "Closest to zero" },
--	{ 1, 19,	100, 10,	1, 10,     "Closest to smallest non-zero" },
--	{ 27,32,	16, 16,		11, 13,    "Use convergent" },
--	{ 1155, 7735,	255, 255,	33, 221,   "Exact answer" },
--	{ 87, 32,	70, 32,		68, 25,    "Semiconvergent, numerator limit" },
--	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, denominator limit" },
--};
--
--static void get_desc(const struct rational_test_param *param, char *desc)
--{
--	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
--}
--
--/* Creates function rational_gen_params */
--KUNIT_ARRAY_PARAM(rational, test_parameters, get_desc);
--
--static void rational_test(struct kunit *test)
--{
--	const struct rational_test_param *param = (const struct rational_test_param *)test->param_value;
--	unsigned long n = 0, d = 0;
--
--	rational_best_approximation(param->num, param->den, param->max_num, param->max_den, &n, &d);
--	KUNIT_EXPECT_EQ(test, n, param->exp_num);
--	KUNIT_EXPECT_EQ(test, d, param->exp_den);
--}
--
--static struct kunit_case rational_test_cases[] = {
--	KUNIT_CASE_PARAM(rational_test, rational_gen_params),
--	{}
--};
--
--static struct kunit_suite rational_test_suite = {
--	.name = "rational",
--	.test_cases = rational_test_cases,
--};
--
--kunit_test_suites(&rational_test_suite);
--
--MODULE_DESCRIPTION("Rational fractions unit test");
--MODULE_LICENSE("GPL v2");
-diff --git a/lib/math/test_div64.c a/lib/math/test_div64.c
-deleted file mode 100644
---- a/lib/math/test_div64.c
-+++ /dev/null
-@@ -1,249 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Copyright (C) 2021  Maciej W. Rozycki
-- */
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/init.h>
--#include <linux/ktime.h>
--#include <linux/module.h>
--#include <linux/printk.h>
--#include <linux/time64.h>
--#include <linux/types.h>
--
--#include <asm/div64.h>
--
--#define TEST_DIV64_N_ITER 1024
--
--static const u64 test_div64_dividends[] = {
--	0x00000000ab275080,
--	0x0000000fe73c1959,
--	0x000000e54c0a74b1,
--	0x00000d4398ff1ef9,
--	0x0000a18c2ee1c097,
--	0x00079fb80b072e4a,
--	0x0072db27380dd689,
--	0x0842f488162e2284,
--	0xf66745411d8ab063,
--};
--#define SIZE_DIV64_DIVIDENDS ARRAY_SIZE(test_div64_dividends)
--
--#define TEST_DIV64_DIVISOR_0 0x00000009
--#define TEST_DIV64_DIVISOR_1 0x0000007c
--#define TEST_DIV64_DIVISOR_2 0x00000204
--#define TEST_DIV64_DIVISOR_3 0x0000cb5b
--#define TEST_DIV64_DIVISOR_4 0x00010000
--#define TEST_DIV64_DIVISOR_5 0x0008a880
--#define TEST_DIV64_DIVISOR_6 0x003fd3ae
--#define TEST_DIV64_DIVISOR_7 0x0b658fac
--#define TEST_DIV64_DIVISOR_8 0xdc08b349
--
--static const u32 test_div64_divisors[] = {
--	TEST_DIV64_DIVISOR_0,
--	TEST_DIV64_DIVISOR_1,
--	TEST_DIV64_DIVISOR_2,
--	TEST_DIV64_DIVISOR_3,
--	TEST_DIV64_DIVISOR_4,
--	TEST_DIV64_DIVISOR_5,
--	TEST_DIV64_DIVISOR_6,
--	TEST_DIV64_DIVISOR_7,
--	TEST_DIV64_DIVISOR_8,
--};
--#define SIZE_DIV64_DIVISORS ARRAY_SIZE(test_div64_divisors)
--
--static const struct {
--	u64 quotient;
--	u32 remainder;
--} test_div64_results[SIZE_DIV64_DIVISORS][SIZE_DIV64_DIVIDENDS] = {
--	{
--		{ 0x0000000013045e47, 0x00000001 },
--		{ 0x000000000161596c, 0x00000030 },
--		{ 0x000000000054e9d4, 0x00000130 },
--		{ 0x000000000000d776, 0x0000278e },
--		{ 0x000000000000ab27, 0x00005080 },
--		{ 0x00000000000013c4, 0x0004ce80 },
--		{ 0x00000000000002ae, 0x001e143c },
--		{ 0x000000000000000f, 0x0033e56c },
--		{ 0x0000000000000000, 0xab275080 },
--	}, {
--		{ 0x00000001c45c02d1, 0x00000000 },
--		{ 0x0000000020d5213c, 0x00000049 },
--		{ 0x0000000007e3d65f, 0x000001dd },
--		{ 0x0000000000140531, 0x000065ee },
--		{ 0x00000000000fe73c, 0x00001959 },
--		{ 0x000000000001d637, 0x0004e5d9 },
--		{ 0x0000000000003fc9, 0x000713bb },
--		{ 0x0000000000000165, 0x029abe7d },
--		{ 0x0000000000000012, 0x6e9f7e37 },
--	}, {
--		{ 0x000000197a3a0cf7, 0x00000002 },
--		{ 0x00000001d9632e5c, 0x00000021 },
--		{ 0x0000000071c28039, 0x000001cd },
--		{ 0x000000000120a844, 0x0000b885 },
--		{ 0x0000000000e54c0a, 0x000074b1 },
--		{ 0x00000000001a7bb3, 0x00072331 },
--		{ 0x00000000000397ad, 0x0002c61b },
--		{ 0x000000000000141e, 0x06ea2e89 },
--		{ 0x000000000000010a, 0xab002ad7 },
--	}, {
--		{ 0x0000017949e37538, 0x00000001 },
--		{ 0x0000001b62441f37, 0x00000055 },
--		{ 0x0000000694a3391d, 0x00000085 },
--		{ 0x0000000010b2a5d2, 0x0000a753 },
--		{ 0x000000000d4398ff, 0x00001ef9 },
--		{ 0x0000000001882ec6, 0x0005cbf9 },
--		{ 0x000000000035333b, 0x0017abdf },
--		{ 0x00000000000129f1, 0x0ab4520d },
--		{ 0x0000000000000f6e, 0x8ac0ce9b },
--	}, {
--		{ 0x000011f321a74e49, 0x00000006 },
--		{ 0x0000014d8481d211, 0x0000005b },
--		{ 0x0000005025cbd92d, 0x000001e3 },
--		{ 0x00000000cb5e71e3, 0x000043e6 },
--		{ 0x00000000a18c2ee1, 0x0000c097 },
--		{ 0x0000000012a88828, 0x00036c97 },
--		{ 0x000000000287f16f, 0x002c2a25 },
--		{ 0x00000000000e2cc7, 0x02d581e3 },
--		{ 0x000000000000bbf4, 0x1ba08c03 },
--	}, {
--		{ 0x0000d8db8f72935d, 0x00000005 },
--		{ 0x00000fbd5aed7a2e, 0x00000002 },
--		{ 0x000003c84b6ea64a, 0x00000122 },
--		{ 0x0000000998fa8829, 0x000044b7 },
--		{ 0x000000079fb80b07, 0x00002e4a },
--		{ 0x00000000e16b20fa, 0x0002a14a },
--		{ 0x000000001e940d22, 0x00353b2e },
--		{ 0x0000000000ab40ac, 0x06fba6ba },
--		{ 0x000000000008debd, 0x72d98365 },
--	}, {
--		{ 0x000cc3045b8fc281, 0x00000000 },
--		{ 0x0000ed1f48b5c9fc, 0x00000079 },
--		{ 0x000038fb9c63406a, 0x000000e1 },
--		{ 0x000000909705b825, 0x00000a62 },
--		{ 0x00000072db27380d, 0x0000d689 },
--		{ 0x0000000d43fce827, 0x00082b09 },
--		{ 0x00000001ccaba11a, 0x0037e8dd },
--		{ 0x000000000a13f729, 0x0566dffd },
--		{ 0x000000000085a14b, 0x23d36726 },
--	}, {
--		{ 0x00eafeb9c993592b, 0x00000001 },
--		{ 0x00110e5befa9a991, 0x00000048 },
--		{ 0x00041947b4a1d36a, 0x000000dc },
--		{ 0x00000a6679327311, 0x0000c079 },
--		{ 0x00000842f488162e, 0x00002284 },
--		{ 0x000000f4459740fc, 0x00084484 },
--		{ 0x0000002122c47bf9, 0x002ca446 },
--		{ 0x00000000b9936290, 0x004979c4 },
--		{ 0x00000000099ca89d, 0x9db446bf },
--	}, {
--		{ 0x1b60cece589da1d2, 0x00000001 },
--		{ 0x01fcb42be1453f5b, 0x0000004f },
--		{ 0x007a3f2457df0749, 0x0000013f },
--		{ 0x0001363130e3ec7b, 0x000017aa },
--		{ 0x0000f66745411d8a, 0x0000b063 },
--		{ 0x00001c757dfab350, 0x00048863 },
--		{ 0x000003dc4979c652, 0x00224ea7 },
--		{ 0x000000159edc3144, 0x06409ab3 },
--		{ 0x000000011eadfee3, 0xa99c48a8 },
--	},
--};
--
--static inline bool test_div64_verify(u64 quotient, u32 remainder, int i, int j)
--{
--	return (quotient == test_div64_results[i][j].quotient &&
--		remainder == test_div64_results[i][j].remainder);
--}
--
--/*
-- * This needs to be a macro, because we don't want to rely on the compiler
-- * to do constant propagation, and `do_div' may take a different path for
-- * constants, so we do want to verify that as well.
-- */
--#define test_div64_one(dividend, divisor, i, j) ({			\
--	bool result = true;						\
--	u64 quotient;							\
--	u32 remainder;							\
--									\
--	quotient = dividend;						\
--	remainder = do_div(quotient, divisor);				\
--	if (!test_div64_verify(quotient, remainder, i, j)) {		\
--		pr_err("ERROR: %016llx / %08x => %016llx,%08x\n",	\
--		       dividend, divisor, quotient, remainder);		\
--		pr_err("ERROR: expected value              => %016llx,%08x\n",\
--		       test_div64_results[i][j].quotient,		\
--		       test_div64_results[i][j].remainder);		\
--		result = false;						\
--	}								\
--	result;								\
--})
--
--/*
-- * Run calculation for the same divisor value expressed as a constant
-- * and as a variable, so as to verify the implementation for both cases
-- * should they be handled by different code execution paths.
-- */
--static bool __init test_div64(void)
--{
--	u64 dividend;
--	int i, j;
--
--	for (i = 0; i < SIZE_DIV64_DIVIDENDS; i++) {
--		dividend = test_div64_dividends[i];
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_0, i, 0))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_1, i, 1))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_2, i, 2))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_3, i, 3))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_4, i, 4))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_5, i, 5))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_6, i, 6))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_7, i, 7))
--			return false;
--		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_8, i, 8))
--			return false;
--		for (j = 0; j < SIZE_DIV64_DIVISORS; j++) {
--			if (!test_div64_one(dividend, test_div64_divisors[j],
--					    i, j))
--				return false;
--		}
--	}
--	return true;
--}
--
--static int __init test_div64_init(void)
--{
--	struct timespec64 ts, ts0, ts1;
--	int i;
--
--	pr_info("Starting 64bit/32bit division and modulo test\n");
--	ktime_get_ts64(&ts0);
--
--	for (i = 0; i < TEST_DIV64_N_ITER; i++)
--		if (!test_div64())
--			break;
--
--	ktime_get_ts64(&ts1);
--	ts = timespec64_sub(ts1, ts0);
--	pr_info("Completed 64bit/32bit division and modulo test, "
--		"%llu.%09lus elapsed\n", ts.tv_sec, ts.tv_nsec);
--
--	return 0;
--}
--
--static void __exit test_div64_exit(void)
--{
--}
--
--module_init(test_div64_init);
--module_exit(test_div64_exit);
--
--MODULE_AUTHOR("Maciej W. Rozycki <macro@orcam.me.uk>");
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("64bit/32bit division and modulo test module");
-diff --git a/lib/math/test_mul_u64_u64_div_u64.c a/lib/math/test_mul_u64_u64_div_u64.c
-deleted file mode 100644
---- a/lib/math/test_mul_u64_u64_div_u64.c
-+++ /dev/null
-@@ -1,99 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Copyright (C) 2024 BayLibre SAS
-- */
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/printk.h>
--#include <linux/math64.h>
--
--typedef struct { u64 a; u64 b; u64 c; u64 result; } test_params;
--
--static test_params test_values[] = {
--/* this contains many edge values followed by a couple random values */
--{                0xb,                0x7,                0x3,               0x19 },
--{         0xffff0000,         0xffff0000,                0xf, 0x1110eeef00000000 },
--{         0xffffffff,         0xffffffff,                0x1, 0xfffffffe00000001 },
--{         0xffffffff,         0xffffffff,                0x2, 0x7fffffff00000000 },
--{        0x1ffffffff,         0xffffffff,                0x2, 0xfffffffe80000000 },
--{        0x1ffffffff,         0xffffffff,                0x3, 0xaaaaaaa9aaaaaaab },
--{        0x1ffffffff,        0x1ffffffff,                0x4, 0xffffffff00000000 },
--{ 0xffff000000000000, 0xffff000000000000, 0xffff000000000001, 0xfffeffffffffffff },
--{ 0x3333333333333333, 0x3333333333333333, 0x5555555555555555, 0x1eb851eb851eb851 },
--{ 0x7fffffffffffffff,                0x2,                0x3, 0x5555555555555554 },
--{ 0xffffffffffffffff,                0x2, 0x8000000000000000,                0x3 },
--{ 0xffffffffffffffff,                0x2, 0xc000000000000000,                0x2 },
--{ 0xffffffffffffffff, 0x4000000000000004, 0x8000000000000000, 0x8000000000000007 },
--{ 0xffffffffffffffff, 0x4000000000000001, 0x8000000000000000, 0x8000000000000001 },
--{ 0xffffffffffffffff, 0x8000000000000001, 0xffffffffffffffff, 0x8000000000000001 },
--{ 0xfffffffffffffffe, 0x8000000000000001, 0xffffffffffffffff, 0x8000000000000000 },
--{ 0xffffffffffffffff, 0x8000000000000001, 0xfffffffffffffffe, 0x8000000000000001 },
--{ 0xffffffffffffffff, 0x8000000000000001, 0xfffffffffffffffd, 0x8000000000000002 },
--{ 0x7fffffffffffffff, 0xffffffffffffffff, 0xc000000000000000, 0xaaaaaaaaaaaaaaa8 },
--{ 0xffffffffffffffff, 0x7fffffffffffffff, 0xa000000000000000, 0xccccccccccccccca },
--{ 0xffffffffffffffff, 0x7fffffffffffffff, 0x9000000000000000, 0xe38e38e38e38e38b },
--{ 0x7fffffffffffffff, 0x7fffffffffffffff, 0x5000000000000000, 0xccccccccccccccc9 },
--{ 0xffffffffffffffff, 0xfffffffffffffffe, 0xffffffffffffffff, 0xfffffffffffffffe },
--{ 0xe6102d256d7ea3ae, 0x70a77d0be4c31201, 0xd63ec35ab3220357, 0x78f8bf8cc86c6e18 },
--{ 0xf53bae05cb86c6e1, 0x3847b32d2f8d32e0, 0xcfd4f55a647f403c, 0x42687f79d8998d35 },
--{ 0x9951c5498f941092, 0x1f8c8bfdf287a251, 0xa3c8dc5f81ea3fe2, 0x1d887cb25900091f },
--{ 0x374fee9daa1bb2bb, 0x0d0bfbff7b8ae3ef, 0xc169337bd42d5179, 0x03bb2dbaffcbb961 },
--{ 0xeac0d03ac10eeaf0, 0x89be05dfa162ed9b, 0x92bb1679a41f0e4b, 0xdc5f5cc9e270d216 },
--};
--
--/*
-- * The above table can be verified with the following shell script:
-- *
-- * #!/bin/sh
-- * sed -ne 's/^{ \+\(.*\), \+\(.*\), \+\(.*\), \+\(.*\) },$/\1 \2 \3 \4/p' \
-- *     lib/math/test_mul_u64_u64_div_u64.c |
-- * while read a b c r; do
-- *   expected=$( printf "obase=16; ibase=16; %X * %X / %X\n" $a $b $c | bc )
-- *   given=$( printf "%X\n" $r )
-- *   if [ "$expected" = "$given" ]; then
-- *     echo "$a * $b / $c = $r OK"
-- *   else
-- *     echo "$a * $b / $c = $r is wrong" >&2
-- *     echo "should be equivalent to 0x$expected" >&2
-- *     exit 1
-- *   fi
-- * done
-- */
--
--static int __init test_init(void)
--{
--	int i;
--
--	pr_info("Starting mul_u64_u64_div_u64() test\n");
--
--	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
--		u64 a = test_values[i].a;
--		u64 b = test_values[i].b;
--		u64 c = test_values[i].c;
--		u64 expected_result = test_values[i].result;
--		u64 result = mul_u64_u64_div_u64(a, b, c);
--
--		if (result != expected_result) {
--			pr_err("ERROR: 0x%016llx * 0x%016llx / 0x%016llx\n", a, b, c);
--			pr_err("ERROR: expected result: %016llx\n", expected_result);
--			pr_err("ERROR: obtained result: %016llx\n", result);
--		}
--	}
--
--	pr_info("Completed mul_u64_u64_div_u64() test\n");
--	return 0;
--}
--
--static void __exit test_exit(void)
--{
--}
--
--module_init(test_init);
--module_exit(test_exit);
--
--MODULE_AUTHOR("Nicolas Pitre");
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("mul_u64_u64_div_u64() test module");
-diff --git a/lib/math/tests/div64_kunit.c a/lib/math/tests/div64_kunit.c
-new file mode 100664
+ config ARCH_USE_MEMTEST
+diff --git a/lib/math/tests/int_log_kunit.c a/lib/math/tests/int_log_kunit.c
+new file mode 100644
 --- /dev/null
-+++ a/lib/math/tests/div64_kunit.c
-@@ -0,0 +1,249 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2021  Maciej W. Rozycki
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/ktime.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/time64.h>
-+#include <linux/types.h>
-+
-+#include <asm/div64.h>
-+
-+#define TEST_DIV64_N_ITER 1024
-+
-+static const u64 test_div64_dividends[] = {
-+	0x00000000ab275080,
-+	0x0000000fe73c1959,
-+	0x000000e54c0a74b1,
-+	0x00000d4398ff1ef9,
-+	0x0000a18c2ee1c097,
-+	0x00079fb80b072e4a,
-+	0x0072db27380dd689,
-+	0x0842f488162e2284,
-+	0xf66745411d8ab063,
-+};
-+#define SIZE_DIV64_DIVIDENDS ARRAY_SIZE(test_div64_dividends)
-+
-+#define TEST_DIV64_DIVISOR_0 0x00000009
-+#define TEST_DIV64_DIVISOR_1 0x0000007c
-+#define TEST_DIV64_DIVISOR_2 0x00000204
-+#define TEST_DIV64_DIVISOR_3 0x0000cb5b
-+#define TEST_DIV64_DIVISOR_4 0x00010000
-+#define TEST_DIV64_DIVISOR_5 0x0008a880
-+#define TEST_DIV64_DIVISOR_6 0x003fd3ae
-+#define TEST_DIV64_DIVISOR_7 0x0b658fac
-+#define TEST_DIV64_DIVISOR_8 0xdc08b349
-+
-+static const u32 test_div64_divisors[] = {
-+	TEST_DIV64_DIVISOR_0,
-+	TEST_DIV64_DIVISOR_1,
-+	TEST_DIV64_DIVISOR_2,
-+	TEST_DIV64_DIVISOR_3,
-+	TEST_DIV64_DIVISOR_4,
-+	TEST_DIV64_DIVISOR_5,
-+	TEST_DIV64_DIVISOR_6,
-+	TEST_DIV64_DIVISOR_7,
-+	TEST_DIV64_DIVISOR_8,
-+};
-+#define SIZE_DIV64_DIVISORS ARRAY_SIZE(test_div64_divisors)
-+
-+static const struct {
-+	u64 quotient;
-+	u32 remainder;
-+} test_div64_results[SIZE_DIV64_DIVISORS][SIZE_DIV64_DIVIDENDS] = {
-+	{
-+		{ 0x0000000013045e47, 0x00000001 },
-+		{ 0x000000000161596c, 0x00000030 },
-+		{ 0x000000000054e9d4, 0x00000130 },
-+		{ 0x000000000000d776, 0x0000278e },
-+		{ 0x000000000000ab27, 0x00005080 },
-+		{ 0x00000000000013c4, 0x0004ce80 },
-+		{ 0x00000000000002ae, 0x001e143c },
-+		{ 0x000000000000000f, 0x0033e56c },
-+		{ 0x0000000000000000, 0xab275080 },
-+	}, {
-+		{ 0x00000001c45c02d1, 0x00000000 },
-+		{ 0x0000000020d5213c, 0x00000049 },
-+		{ 0x0000000007e3d65f, 0x000001dd },
-+		{ 0x0000000000140531, 0x000065ee },
-+		{ 0x00000000000fe73c, 0x00001959 },
-+		{ 0x000000000001d637, 0x0004e5d9 },
-+		{ 0x0000000000003fc9, 0x000713bb },
-+		{ 0x0000000000000165, 0x029abe7d },
-+		{ 0x0000000000000012, 0x6e9f7e37 },
-+	}, {
-+		{ 0x000000197a3a0cf7, 0x00000002 },
-+		{ 0x00000001d9632e5c, 0x00000021 },
-+		{ 0x0000000071c28039, 0x000001cd },
-+		{ 0x000000000120a844, 0x0000b885 },
-+		{ 0x0000000000e54c0a, 0x000074b1 },
-+		{ 0x00000000001a7bb3, 0x00072331 },
-+		{ 0x00000000000397ad, 0x0002c61b },
-+		{ 0x000000000000141e, 0x06ea2e89 },
-+		{ 0x000000000000010a, 0xab002ad7 },
-+	}, {
-+		{ 0x0000017949e37538, 0x00000001 },
-+		{ 0x0000001b62441f37, 0x00000055 },
-+		{ 0x0000000694a3391d, 0x00000085 },
-+		{ 0x0000000010b2a5d2, 0x0000a753 },
-+		{ 0x000000000d4398ff, 0x00001ef9 },
-+		{ 0x0000000001882ec6, 0x0005cbf9 },
-+		{ 0x000000000035333b, 0x0017abdf },
-+		{ 0x00000000000129f1, 0x0ab4520d },
-+		{ 0x0000000000000f6e, 0x8ac0ce9b },
-+	}, {
-+		{ 0x000011f321a74e49, 0x00000006 },
-+		{ 0x0000014d8481d211, 0x0000005b },
-+		{ 0x0000005025cbd92d, 0x000001e3 },
-+		{ 0x00000000cb5e71e3, 0x000043e6 },
-+		{ 0x00000000a18c2ee1, 0x0000c097 },
-+		{ 0x0000000012a88828, 0x00036c97 },
-+		{ 0x000000000287f16f, 0x002c2a25 },
-+		{ 0x00000000000e2cc7, 0x02d581e3 },
-+		{ 0x000000000000bbf4, 0x1ba08c03 },
-+	}, {
-+		{ 0x0000d8db8f72935d, 0x00000005 },
-+		{ 0x00000fbd5aed7a2e, 0x00000002 },
-+		{ 0x000003c84b6ea64a, 0x00000122 },
-+		{ 0x0000000998fa8829, 0x000044b7 },
-+		{ 0x000000079fb80b07, 0x00002e4a },
-+		{ 0x00000000e16b20fa, 0x0002a14a },
-+		{ 0x000000001e940d22, 0x00353b2e },
-+		{ 0x0000000000ab40ac, 0x06fba6ba },
-+		{ 0x000000000008debd, 0x72d98365 },
-+	}, {
-+		{ 0x000cc3045b8fc281, 0x00000000 },
-+		{ 0x0000ed1f48b5c9fc, 0x00000079 },
-+		{ 0x000038fb9c63406a, 0x000000e1 },
-+		{ 0x000000909705b825, 0x00000a62 },
-+		{ 0x00000072db27380d, 0x0000d689 },
-+		{ 0x0000000d43fce827, 0x00082b09 },
-+		{ 0x00000001ccaba11a, 0x0037e8dd },
-+		{ 0x000000000a13f729, 0x0566dffd },
-+		{ 0x000000000085a14b, 0x23d36726 },
-+	}, {
-+		{ 0x00eafeb9c993592b, 0x00000001 },
-+		{ 0x00110e5befa9a991, 0x00000048 },
-+		{ 0x00041947b4a1d36a, 0x000000dc },
-+		{ 0x00000a6679327311, 0x0000c079 },
-+		{ 0x00000842f488162e, 0x00002284 },
-+		{ 0x000000f4459740fc, 0x00084484 },
-+		{ 0x0000002122c47bf9, 0x002ca446 },
-+		{ 0x00000000b9936290, 0x004979c4 },
-+		{ 0x00000000099ca89d, 0x9db446bf },
-+	}, {
-+		{ 0x1b60cece589da1d2, 0x00000001 },
-+		{ 0x01fcb42be1453f5b, 0x0000004f },
-+		{ 0x007a3f2457df0749, 0x0000013f },
-+		{ 0x0001363130e3ec7b, 0x000017aa },
-+		{ 0x0000f66745411d8a, 0x0000b063 },
-+		{ 0x00001c757dfab350, 0x00048863 },
-+		{ 0x000003dc4979c652, 0x00224ea7 },
-+		{ 0x000000159edc3144, 0x06409ab3 },
-+		{ 0x000000011eadfee3, 0xa99c48a8 },
-+	},
-+};
-+
-+static inline bool test_div64_verify(u64 quotient, u32 remainder, int i, int j)
-+{
-+	return (quotient == test_div64_results[i][j].quotient &&
-+		remainder == test_div64_results[i][j].remainder);
-+}
-+
-+/*
-+ * This needs to be a macro, because we don't want to rely on the compiler
-+ * to do constant propagation, and `do_div' may take a different path for
-+ * constants, so we do want to verify that as well.
-+ */
-+#define test_div64_one(dividend, divisor, i, j) ({			\
-+	bool result = true;						\
-+	u64 quotient;							\
-+	u32 remainder;							\
-+									\
-+	quotient = dividend;						\
-+	remainder = do_div(quotient, divisor);				\
-+	if (!test_div64_verify(quotient, remainder, i, j)) {		\
-+		pr_err("ERROR: %016llx / %08x => %016llx,%08x\n",	\
-+		       dividend, divisor, quotient, remainder);		\
-+		pr_err("ERROR: expected value              => %016llx,%08x\n",\
-+		       test_div64_results[i][j].quotient,		\
-+		       test_div64_results[i][j].remainder);		\
-+		result = false;						\
-+	}								\
-+	result;								\
-+})
-+
-+/*
-+ * Run calculation for the same divisor value expressed as a constant
-+ * and as a variable, so as to verify the implementation for both cases
-+ * should they be handled by different code execution paths.
-+ */
-+static bool __init test_div64(void)
-+{
-+	u64 dividend;
-+	int i, j;
-+
-+	for (i = 0; i < SIZE_DIV64_DIVIDENDS; i++) {
-+		dividend = test_div64_dividends[i];
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_0, i, 0))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_1, i, 1))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_2, i, 2))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_3, i, 3))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_4, i, 4))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_5, i, 5))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_6, i, 6))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_7, i, 7))
-+			return false;
-+		if (!test_div64_one(dividend, TEST_DIV64_DIVISOR_8, i, 8))
-+			return false;
-+		for (j = 0; j < SIZE_DIV64_DIVISORS; j++) {
-+			if (!test_div64_one(dividend, test_div64_divisors[j],
-+					    i, j))
-+				return false;
-+		}
-+	}
-+	return true;
-+}
-+
-+static int __init test_div64_init(void)
-+{
-+	struct timespec64 ts, ts0, ts1;
-+	int i;
-+
-+	pr_info("Starting 64bit/32bit division and modulo test\n");
-+	ktime_get_ts64(&ts0);
-+
-+	for (i = 0; i < TEST_DIV64_N_ITER; i++)
-+		if (!test_div64())
-+			break;
-+
-+	ktime_get_ts64(&ts1);
-+	ts = timespec64_sub(ts1, ts0);
-+	pr_info("Completed 64bit/32bit division and modulo test, "
-+		"%llu.%09lus elapsed\n", ts.tv_sec, ts.tv_nsec);
-+
-+	return 0;
-+}
-+
-+static void __exit test_div64_exit(void)
-+{
-+}
-+
-+module_init(test_div64_init);
-+module_exit(test_div64_exit);
-+
-+MODULE_AUTHOR("Maciej W. Rozycki <macro@orcam.me.uk>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("64bit/32bit division and modulo test module");
---- a/lib/math/tests/Makefile~lib-math-move-kunit-tests-into-tests-subdir
-+++ a/lib/math/tests/Makefile
-@@ -1,3 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- 
--obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
-+obj-$(CONFIG_DIV64_KUNIT_TEST)    += div64_kunit.o
-+obj-$(CONFIG_INT_POW_KUNIT_TEST)  += int_pow_kunit.o
-+obj-$(CONFIG_MULDIV64_KUNIT_TEST) += mul_u64_u64_div_u64_kunit.o
-+obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational_kunit.o
-diff --git a/lib/math/tests/mul_u64_u64_div_u64_kunit.c a/lib/math/tests/mul_u64_u64_div_u64_kunit.c
-new file mode 100664
---- /dev/null
-+++ a/lib/math/tests/mul_u64_u64_div_u64_kunit.c
-@@ -0,0 +1,99 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2024 BayLibre SAS
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/math64.h>
-+
-+typedef struct { u64 a; u64 b; u64 c; u64 result; } test_params;
-+
-+static test_params test_values[] = {
-+/* this contains many edge values followed by a couple random values */
-+{                0xb,                0x7,                0x3,               0x19 },
-+{         0xffff0000,         0xffff0000,                0xf, 0x1110eeef00000000 },
-+{         0xffffffff,         0xffffffff,                0x1, 0xfffffffe00000001 },
-+{         0xffffffff,         0xffffffff,                0x2, 0x7fffffff00000000 },
-+{        0x1ffffffff,         0xffffffff,                0x2, 0xfffffffe80000000 },
-+{        0x1ffffffff,         0xffffffff,                0x3, 0xaaaaaaa9aaaaaaab },
-+{        0x1ffffffff,        0x1ffffffff,                0x4, 0xffffffff00000000 },
-+{ 0xffff000000000000, 0xffff000000000000, 0xffff000000000001, 0xfffeffffffffffff },
-+{ 0x3333333333333333, 0x3333333333333333, 0x5555555555555555, 0x1eb851eb851eb851 },
-+{ 0x7fffffffffffffff,                0x2,                0x3, 0x5555555555555554 },
-+{ 0xffffffffffffffff,                0x2, 0x8000000000000000,                0x3 },
-+{ 0xffffffffffffffff,                0x2, 0xc000000000000000,                0x2 },
-+{ 0xffffffffffffffff, 0x4000000000000004, 0x8000000000000000, 0x8000000000000007 },
-+{ 0xffffffffffffffff, 0x4000000000000001, 0x8000000000000000, 0x8000000000000001 },
-+{ 0xffffffffffffffff, 0x8000000000000001, 0xffffffffffffffff, 0x8000000000000001 },
-+{ 0xfffffffffffffffe, 0x8000000000000001, 0xffffffffffffffff, 0x8000000000000000 },
-+{ 0xffffffffffffffff, 0x8000000000000001, 0xfffffffffffffffe, 0x8000000000000001 },
-+{ 0xffffffffffffffff, 0x8000000000000001, 0xfffffffffffffffd, 0x8000000000000002 },
-+{ 0x7fffffffffffffff, 0xffffffffffffffff, 0xc000000000000000, 0xaaaaaaaaaaaaaaa8 },
-+{ 0xffffffffffffffff, 0x7fffffffffffffff, 0xa000000000000000, 0xccccccccccccccca },
-+{ 0xffffffffffffffff, 0x7fffffffffffffff, 0x9000000000000000, 0xe38e38e38e38e38b },
-+{ 0x7fffffffffffffff, 0x7fffffffffffffff, 0x5000000000000000, 0xccccccccccccccc9 },
-+{ 0xffffffffffffffff, 0xfffffffffffffffe, 0xffffffffffffffff, 0xfffffffffffffffe },
-+{ 0xe6102d256d7ea3ae, 0x70a77d0be4c31201, 0xd63ec35ab3220357, 0x78f8bf8cc86c6e18 },
-+{ 0xf53bae05cb86c6e1, 0x3847b32d2f8d32e0, 0xcfd4f55a647f403c, 0x42687f79d8998d35 },
-+{ 0x9951c5498f941092, 0x1f8c8bfdf287a251, 0xa3c8dc5f81ea3fe2, 0x1d887cb25900091f },
-+{ 0x374fee9daa1bb2bb, 0x0d0bfbff7b8ae3ef, 0xc169337bd42d5179, 0x03bb2dbaffcbb961 },
-+{ 0xeac0d03ac10eeaf0, 0x89be05dfa162ed9b, 0x92bb1679a41f0e4b, 0xdc5f5cc9e270d216 },
-+};
-+
-+/*
-+ * The above table can be verified with the following shell script:
-+ *
-+ * #!/bin/sh
-+ * sed -ne 's/^{ \+\(.*\), \+\(.*\), \+\(.*\), \+\(.*\) },$/\1 \2 \3 \4/p' \
-+ *     lib/math/tests/mul_u64_u64_div_u64_kunit.c |
-+ * while read a b c r; do
-+ *   expected=$( printf "obase=16; ibase=16; %X * %X / %X\n" $a $b $c | bc )
-+ *   given=$( printf "%X\n" $r )
-+ *   if [ "$expected" = "$given" ]; then
-+ *     echo "$a * $b / $c = $r OK"
-+ *   else
-+ *     echo "$a * $b / $c = $r is wrong" >&2
-+ *     echo "should be equivalent to 0x$expected" >&2
-+ *     exit 1
-+ *   fi
-+ * done
-+ */
-+
-+static int __init test_init(void)
-+{
-+	int i;
-+
-+	pr_info("Starting mul_u64_u64_div_u64() test\n");
-+
-+	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
-+		u64 a = test_values[i].a;
-+		u64 b = test_values[i].b;
-+		u64 c = test_values[i].c;
-+		u64 expected_result = test_values[i].result;
-+		u64 result = mul_u64_u64_div_u64(a, b, c);
-+
-+		if (result != expected_result) {
-+			pr_err("ERROR: 0x%016llx * 0x%016llx / 0x%016llx\n", a, b, c);
-+			pr_err("ERROR: expected result: %016llx\n", expected_result);
-+			pr_err("ERROR: obtained result: %016llx\n", result);
-+		}
-+	}
-+
-+	pr_info("Completed mul_u64_u64_div_u64() test\n");
-+	return 0;
-+}
-+
-+static void __exit test_exit(void)
-+{
-+}
-+
-+module_init(test_init);
-+module_exit(test_exit);
-+
-+MODULE_AUTHOR("Nicolas Pitre");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("mul_u64_u64_div_u64() test module");
-diff --git a/lib/math/tests/rational_kunit.c a/lib/math/tests/rational_kunit.c
-new file mode 100664
---- /dev/null
-+++ a/lib/math/tests/rational_kunit.c
-@@ -0,0 +1,57 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
++++ a/lib/math/tests/int_log_kunit.c
+@@ -0,0 +1,75 @@
++// SPDX-License-Identifier: GPL-2.0-only
 +#include <kunit/test.h>
++#include <linux/int_log.h>
 +
-+#include <linux/rational.h>
-+
-+struct rational_test_param {
-+	unsigned long num, den;
-+	unsigned long max_num, max_den;
-+	unsigned long exp_num, exp_den;
-+
++struct test_case_params {
++	u32 value;
++	unsigned int expected_result;
 +	const char *name;
 +};
 +
-+static const struct rational_test_param test_parameters[] = {
-+	{ 1230,	10,	100, 20,	100, 1,    "Exceeds bounds, semi-convergent term > 1/2 last term" },
-+	{ 34567,100, 	120, 20,	120, 1,    "Exceeds bounds, semi-convergent term < 1/2 last term" },
-+	{ 1, 30,	100, 10,	0, 1,	   "Closest to zero" },
-+	{ 1, 19,	100, 10,	1, 10,     "Closest to smallest non-zero" },
-+	{ 27,32,	16, 16,		11, 13,    "Use convergent" },
-+	{ 1155, 7735,	255, 255,	33, 221,   "Exact answer" },
-+	{ 87, 32,	70, 32,		68, 25,    "Semiconvergent, numerator limit" },
-+	{ 14533, 4626,	15000, 2400,	7433, 2366, "Semiconvergent, denominator limit" },
++
++/* The expected result takes into account the log error */
++static const struct test_case_params intlog2_params[] = {
++	{0, 0, "Log base 2 of 0"},
++	{1, 0, "Log base 2 of 1"},
++	{2, 16777216, "Log base 2 of 2"},
++	{3, 26591232, "Log base 2 of 3"},
++	{4, 33554432, "Log base 2 of 4"},
++	{8, 50331648, "Log base 2 of 8"},
++	{16, 67108864, "Log base 2 of 16"},
++	{32, 83886080, "Log base 2 of 32"},
++	{U32_MAX, 536870911, "Log base 2 of MAX"},
 +};
 +
-+static void get_desc(const struct rational_test_param *param, char *desc)
++static const struct test_case_params intlog10_params[] = {
++	{0, 0, "Log base 10 of 0"},
++	{1, 0, "Log base 10 of 1"},
++	{6, 13055203, "Log base 10 of 6"},
++	{10, 16777225, "Log base 10 of 10"},
++	{100, 33554450, "Log base 10 of 100"},
++	{1000, 50331675, "Log base 10 of 1000"},
++	{10000, 67108862, "Log base 10 of 10000"},
++	{U32_MAX, 161614247, "Log base 10 of MAX"}
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
 +{
-+	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
 +}
 +
-+/* Creates function rational_gen_params */
-+KUNIT_ARRAY_PARAM(rational, test_parameters, get_desc);
 +
-+static void rational_test(struct kunit *test)
++KUNIT_ARRAY_PARAM(intlog2, intlog2_params, get_desc);
++
++static void intlog2_test(struct kunit *test)
 +{
-+	const struct rational_test_param *param = (const struct rational_test_param *)test->param_value;
-+	unsigned long n = 0, d = 0;
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
 +
-+	rational_best_approximation(param->num, param->den, param->max_num, param->max_den, &n, &d);
-+	KUNIT_EXPECT_EQ(test, n, param->exp_num);
-+	KUNIT_EXPECT_EQ(test, d, param->exp_den);
++	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog2(tc->value));
 +}
 +
-+static struct kunit_case rational_test_cases[] = {
-+	KUNIT_CASE_PARAM(rational_test, rational_gen_params),
++KUNIT_ARRAY_PARAM(intlog10, intlog10_params, get_desc);
++
++static void intlog10_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, intlog10(tc->value));
++}
++
++static struct kunit_case math_int_log_test_cases[] = {
++	KUNIT_CASE_PARAM(intlog2_test, intlog2_gen_params),
++	KUNIT_CASE_PARAM(intlog10_test, intlog10_gen_params),
 +	{}
 +};
 +
-+static struct kunit_suite rational_test_suite = {
-+	.name = "rational",
-+	.test_cases = rational_test_cases,
++static struct kunit_suite int_log_test_suite = {
++	.name = "math-int_log",
++	.test_cases =  math_int_log_test_cases,
 +};
 +
-+kunit_test_suites(&rational_test_suite);
++kunit_test_suites(&int_log_test_suite);
 +
-+MODULE_DESCRIPTION("Rational fractions unit test");
-+MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("math.int_log KUnit test suite");
++MODULE_LICENSE("GPL");
++
+--- a/lib/math/tests/Makefile~lib-math-add-int_log-test-suite
++++ a/lib/math/tests/Makefile
+@@ -2,5 +2,6 @@
+ 
+ obj-$(CONFIG_DIV64_KUNIT_TEST)    += div64_kunit.o
+ obj-$(CONFIG_INT_POW_KUNIT_TEST)  += int_pow_kunit.o
++obj-$(CONFIG_INT_LOG_KUNIT_TEST)  += int_log_kunit.o
+ obj-$(CONFIG_MULDIV64_KUNIT_TEST) += mul_u64_u64_div_u64_kunit.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational_kunit.o
 _
 
-Patches currently in -mm which might be from luis.hernandez093@gmail.com are
+Patches currently in -mm which might be from brunofrancadevsec@gmail.com are
 
-lib-math-move-kunit-tests-into-tests-subdir.patch
+lib-math-add-int_log-test-suite.patch
 
