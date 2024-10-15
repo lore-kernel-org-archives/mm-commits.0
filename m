@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2196E43ACB
-	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 04:38:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 108D943ACB
+	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 04:40:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728967097; cv=none; b=Ylvlf4TxTPQK42USmDp8+vFqWuBwVhRFoOAmkTOng5+A/wiJndI+ga/AJtQWUoofdMkwML+8Pq/LWGljVCWsT2vVmDkhnj+LW2PXK0d9T7pdvrpnDcolBvoCtACw3zKxRVujy5qJAmQnizmnrkbDDjSA5NNw6QKC03sXrr/vVxU=
+	t=1728967252; cv=none; b=YwNDUQLFjMd6EP937z+j0D+9TGGSnF0xplObMl8KM7wCZZU2L+zRZt+m7u07RAC/9Yf7niOjyXEniODnG2z7wNo0dG/V8e9k6uxZ36EuvL7JArlr5Mh0T7D5S8X6i5z131SrcGXaSZCDcjt0Ngp1lBCvjDPkaHsyRfrz9LvdsXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728967097; c=relaxed/simple;
-	bh=mJyUqUF4o3H6xSfNp+ULj3aXlHrnarQ600NlFgsSirk=;
-	h=Date:To:From:Subject:Message-Id; b=CMX0XWxmMSKRwOgHFWbJS/jAcLxRsFXq7jak0y1AbMPIA81IqUdgnsnnBKgpb31OnQNON9SN8W6hGH3tvHOouhXyxAovPpYCcMiXblmy/625JWwex8PCnKZT9jRe5LThWKa6sicmr7jBlqCT3ctCdVlur52sryDtc/yjf7TIA7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JZCaBL9y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728967252; c=relaxed/simple;
+	bh=vA4VLOOTgtbXl2pk12BSvZDMscQieK3tozO7Dz6RImU=;
+	h=Date:To:From:Subject:Message-Id; b=AyqsgCzmcEUVH4Z5KttR0zoMdBk+yIQROP5nUOYuEVWRjFhmlDC6nM52C4lHoSacREtHblANS99ZbPUPhX0EHRmPEJp37Hg+A5jTQEXMbUNA0eru+/kOE6oJjHmEZ22ImdAgIk48DAd4dxBd86PMmdynZ+izDlJAJwSuurZz5es=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L9XPeGbx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JZCaBL9y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE389C4CEC7;
-	Tue, 15 Oct 2024 04:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L9XPeGbx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85A72C4CEC7;
+	Tue, 15 Oct 2024 04:40:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728967096;
-	bh=mJyUqUF4o3H6xSfNp+ULj3aXlHrnarQ600NlFgsSirk=;
+	s=korg; t=1728967251;
+	bh=vA4VLOOTgtbXl2pk12BSvZDMscQieK3tozO7Dz6RImU=;
 	h=Date:To:From:Subject:From;
-	b=JZCaBL9yK1yBdmjlKJirerPUooRXl743OVr1cRYFHTLaTNRUOiQVMKlVwNmvchxto
-	 JPJEj99Dh7kxxPlD1xlLGHsu6xAeXnZLXbO9ED0ZaXms59Pmo8IqoZiM2hpLrv4A61
-	 sp33QP/mkF+VFyeZoxdn0fgqggSNZ1rayiFOFAek=
-Date: Mon, 14 Oct 2024 21:38:16 -0700
-To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,Liam.Howlett@oracle.com,jqqlijiazi@gmail.com,akpm@linux-foundation.org
+	b=L9XPeGbxQSvMMsTuhVVdPrzWzQzCsnsvNJKj+JCXbM3VNxa35NUfWrkbvkjxkHCBQ
+	 u9Ywy77JXW223c57OwZxFjatuCBzDQCCLzpxrPpxYyUHq5iL08kan0qfqiykVOj6x+
+	 rqk2X+VzJ8Jdf+KLJpEdVNJyDYuH5uyJCCEyHjQY=
+Date: Mon, 14 Oct 2024 21:40:50 -0700
+To: mm-commits@vger.kernel.org,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-some-alloc-node-test-case.patch added to mm-unstable branch
-Message-Id: <20241015043816.AE389C4CEC7@smtp.kernel.org>
+Subject: + maple_tree-root-node-could-be-handled-by-p_slot-too.patch added to mm-unstable branch
+Message-Id: <20241015044051.85A72C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: Add some alloc node test case
+     Subject: maple_tree: root node could be handled by !p_slot too
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-some-alloc-node-test-case.patch
+     maple_tree-root-node-could-be-handled-by-p_slot-too.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-some-alloc-node-test-case.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-root-node-could-be-handled-by-p_slot-too.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiazi Li <jqqlijiazi@gmail.com>
-Subject: maple_tree: Add some alloc node test case
-Date: Wed, 26 Jun 2024 12:06:31 -0400
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: maple_tree: root node could be handled by !p_slot too
+Date: Fri, 13 Sep 2024 06:31:28 +0000
 
-Add some maple_tree alloc node tese case.
+For a root node, mte_parent_slot() return 0, this exactly fits the
+following !p_slot check.
 
-Link: https://lkml.kernel.org/r/20240626160631.3636515-2-Liam.Howlett@oracle.com
-Signed-off-by: Jiazi Li <jqqlijiazi@gmail.com>
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Suggested-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+So we can remove the special handling for root node.
+
+Link: https://lkml.kernel.org/r/20240913063128.27391-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ lib/maple_tree.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-add-some-alloc-node-test-case
-+++ a/tools/testing/radix-tree/maple.c
-@@ -462,6 +462,28 @@ static noinline void __init check_new_no
- 	MT_BUG_ON(mt, mas_allocated(&mas) != 10 + MAPLE_ALLOC_SLOTS - 1);
- 	mas_destroy(&mas);
+--- a/lib/maple_tree.c~maple_tree-root-node-could-be-handled-by-p_slot-too
++++ a/lib/maple_tree.c
+@@ -2155,9 +2155,7 @@ static inline bool mas_prev_sibling(stru
+ {
+ 	unsigned int p_slot = mte_parent_slot(mas->node);
  
-+	mas.node = MA_ERROR(-ENOMEM);
-+	mas_node_count(&mas, MAPLE_ALLOC_SLOTS + 1); /* Request */
-+	mas_nomem(&mas, GFP_KERNEL); /* Fill request */
-+	MT_BUG_ON(mt, mas_allocated(&mas) != MAPLE_ALLOC_SLOTS + 1);
-+	mas.node = MA_ERROR(-ENOMEM);
-+	mas_node_count(&mas, MAPLE_ALLOC_SLOTS * 2 + 2); /* Request */
-+	mas_nomem(&mas, GFP_KERNEL); /* Fill request */
-+	mas.status = ma_start;
-+	MT_BUG_ON(mt, mas_allocated(&mas) != MAPLE_ALLOC_SLOTS * 2 + 2);
-+	mas_destroy(&mas);
-+
-+	mas.node = MA_ERROR(-ENOMEM);
-+	mas_node_count(&mas, MAPLE_ALLOC_SLOTS * 2 + 1); /* Request */
-+	mas_nomem(&mas, GFP_KERNEL); /* Fill request */
-+	MT_BUG_ON(mt, mas_allocated(&mas) != MAPLE_ALLOC_SLOTS * 2 + 1);
-+	mas.node = MA_ERROR(-ENOMEM);
-+	mas_node_count(&mas, MAPLE_ALLOC_SLOTS * 3 + 2); /* Request */
-+	mas_nomem(&mas, GFP_KERNEL); /* Fill request */
-+	mas.status = ma_start;
-+	MT_BUG_ON(mt, mas_allocated(&mas) != MAPLE_ALLOC_SLOTS * 3 + 2);
-+	mas_destroy(&mas);
-+
- 	mtree_unlock(mt);
- }
+-	if (mte_is_root(mas->node))
+-		return false;
+-
++	/* For root node, p_slot is set to 0 by mte_parent_slot(). */
+ 	if (!p_slot)
+ 		return false;
  
 _
 
-Patches currently in -mm which might be from jqqlijiazi@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-maple_tree-fix-alloc-node-fail-issue.patch
-maple_tree-add-some-alloc-node-test-case.patch
+maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch
+maple_tree-goto-complete-directly-on-a-pivot-of-0.patch
+maple_tree-remove-maple_big_nodeparent.patch
+maple_tree-memset-maple_big_node-as-a-whole.patch
+maple_tree-root-node-could-be-handled-by-p_slot-too.patch
 
