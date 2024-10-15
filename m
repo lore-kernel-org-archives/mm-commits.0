@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA6F1B0F0D;
-	Tue, 15 Oct 2024 22:56:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 929451B0F0D;
+	Tue, 15 Oct 2024 22:59:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729032993; cv=none; b=EFeXWTWTPvVdgO/7IhY/9TY98Ha0B30UWk6mspOiKXF1Ztb+hSxwGDh3lUZ9TTKUo7LKpHMIoTX0sW2mdXXUDdGca5mdWJM+2ofIBfKVc8OCi21LEwO0Lqcjnl8BuXVKCUdBzA7ANCMkd5aNdflgTWu8XaBOOkpFjfS+ST1lBxI=
+	t=1729033189; cv=none; b=euI1TxKVHC/VcULSWKy4EUxllTQDGSVGh1FShpe8RxmDTBedhtGxdSvQ8iXqlULMfHDy+3CW6/gXjHHBgXVk6qyVjsLn1Ficr6pmjNU5jMT9fMpkBGEz5lJ53w5OKCyKmLbSc1nVqt6w+FqPToRCpDfQCgtCjxCZ7qenNNoK4pE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729032993; c=relaxed/simple;
-	bh=Tbm2lt1As9uf2UJmjSpP0CI8Xo0A9EX+7llaG9AopAI=;
-	h=Date:To:From:Subject:Message-Id; b=iVbLTPRPZhlFfb1bwAVUCRe/aBSfRswsJC/xDXH5K4UGqiRkqHJtKt2qtY9l1WRggLhX5zbbWQb6/LwnAxUadMaoJ8D64bUPH0b9iBTrRKfYdYGB0ja2Y92jdbPZ4L0n6vL9/Dwqtw2rNrpZewgg+iNLExLCs+JZ7VNwJQhViPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JFIzTOpi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729033189; c=relaxed/simple;
+	bh=aWrAW6XA7gkLdQOfRr3T9asp3a+HqzNI+CTDB8yhGYQ=;
+	h=Date:To:From:Subject:Message-Id; b=leX+q1mca1BP3J3kjAcvhuXVsQlMg2rZ7kViyvT3XEy2P1Rk7D5fHN1oh7c5f+8Chr9z+LWK1AKQfn/LTvvfD7Y9R2r/Qin+dvdl1v2UokJG+t9avP5TOlxoyHMzwLmbbfSieEugc952LxhNyp07S+G1gz8RPzmQC4jISMtBg3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ifoouVx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JFIzTOpi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D2F2C4CEC6;
-	Tue, 15 Oct 2024 22:56:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ifoouVx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8888C4CEC6;
+	Tue, 15 Oct 2024 22:59:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729032992;
-	bh=Tbm2lt1As9uf2UJmjSpP0CI8Xo0A9EX+7llaG9AopAI=;
+	s=korg; t=1729033189;
+	bh=aWrAW6XA7gkLdQOfRr3T9asp3a+HqzNI+CTDB8yhGYQ=;
 	h=Date:To:From:Subject:From;
-	b=JFIzTOpiJ2bR7aduDg/UcWX80W12i/tr2QoWqEHJTcAoZgmJC/31qv0h3GvQeqdU7
-	 +G28V0lDbLZ9W/Yf0l53RuR3Wa6MPFAJA6NLJHTIFi9f1LuzUVSTHK4QBmXmGsbvcJ
-	 j0aomKjdpcyo4qVes7Eo2cc6gt4KygrHCsXLsBLU=
-Date: Tue, 15 Oct 2024 15:56:31 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=0ifoouVxt22vzdFdvgWo1evkjiwp7YBbRlkZ0VPaYrqKvyVstQP4c0MXG8a6Ak6tF
+	 e9hHRnQwipBFRuKf+i8tAmdMpJSFP4YqXq9j5mh3g3dhJ9NBemupTax2Qc0iLT6pZ/
+	 RsO4Q0DONgS5PHBeDzobOq/52BVzha5cyMq1coxQ=
+Date: Tue, 15 Oct 2024 15:59:48 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,torvalds@linuxfoundation.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241015225632.6D2F2C4CEC6@smtp.kernel.org>
+Subject: + fork-do-not-invoke-uffd-on-fork-if-error-occurs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241015225948.E8888C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: fix kernel bug due to missing clearing of buffer delay flag
+     Subject: fork: do not invoke uffd on fork if error occurs
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch
+     fork-do-not-invoke-uffd-on-fork-if-error-occurs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-do-not-invoke-uffd-on-fork-if-error-occurs.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix kernel bug due to missing clearing of buffer delay flag
-Date: Wed, 16 Oct 2024 06:32:07 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: fork: do not invoke uffd on fork if error occurs
+Date: Tue, 15 Oct 2024 18:56:05 +0100
 
-Syzbot reported that after nilfs2 reads a corrupted file system image and
-degrades to read-only, the BUG_ON check for the buffer delay flag in
-submit_bh_wbc() may fail, causing a kernel bug.
+Patch series "fork: do not expose incomplete mm on fork".
 
-This is because the buffer delay flag is not cleared when clearing the
-buffer state flags to discard a page/folio or a buffer head.  So, fix
-this.
+During fork we may place the virtual memory address space into an
+inconsistent state before the fork operation is complete.
 
-This became necessary when the use of nilfs2's own page clear routine was
-expanded.  This state inconsistency does not occur if the buffer is
-written normally by log writing.
+In addition, we may encounter an error during the fork operation that
+indicates that the virtual memory address space is invalidated.
 
-Link: https://lkml.kernel.org/r/20241015213300.7114-1-konishi.ryusuke@gmail.com
-Fixes: 8c26c4e2694a ("nilfs2: fix issue with flush kernel thread after remount in RO mode because of driver's internal error or metadata corruption")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+985ada84bf055a575c07@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=985ada84bf055a575c07
+As a result, we should not be exposing it in any way to external machinery
+that might interact with the mm or VMAs, machinery that is not designed to
+deal with incomplete state.
+
+We specifically update the fork logic to defer khugepaged and ksm to the
+end of the operation and only to be invoked if no error arose, and
+disallow uffd from observing fork events should an error have occurred.
+
+
+This patch (of 2):
+
+Currently on fork we expose the virtual address space of a process to
+userland unconditionally if uffd is registered in VMAs, regardless of
+whether an error arose in the fork.
+
+This is performed in dup_userfaultfd_complete() which is invoked
+unconditionally, and performs two duties - invoking registered handlers
+for the UFFD_EVENT_FORK event via dup_fctx(), and clearing down
+userfaultfd_fork_ctx objects established in dup_userfaultfd().
+
+This is problematic, because the virtual address space may not yet be
+correctly initialised if an error arose.
+
+The change in commit d24062914837 ("fork: use __mt_dup() to duplicate
+maple tree in dup_mmap()") makes this more pertinent as we may be in a
+state where entries in the maple tree are not yet consistent.
+
+We address this by, on fork error, ensuring that we roll back state that
+we would otherwise expect to clean up through the event being handled by
+userland and perform the memory freeing duty otherwise performed by
+dup_userfaultfd_complete().
+
+We do this by implementing a new function, dup_userfaultfd_fail(), which
+performs the same loop, only decrementing reference counts.
+
+Note that we perform mmgrab() on the parent and child mm's, however
+userfaultfd_ctx_put() will mmdrop() this once the reference count drops to
+zero, so we will avoid memory leaks correctly here.
+
+Link: https://lkml.kernel.org/r/cover.1729014377.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/d3691d58bb58712b6fb3df2be441d175bd3cdf07.1729014377.git.lorenzo.stoakes@oracle.com
+Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Jann Horn <jannh@google.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c              |   28 ++++++++++++++++++++++++++++
+ include/linux/userfaultfd_k.h |    5 +++++
+ kernel/fork.c                 |    5 ++++-
+ 3 files changed, 37 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/page.c~nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag
-+++ a/fs/nilfs2/page.c
-@@ -77,7 +77,8 @@ void nilfs_forget_buffer(struct buffer_h
- 	const unsigned long clear_bits =
- 		(BIT(BH_Uptodate) | BIT(BH_Dirty) | BIT(BH_Mapped) |
- 		 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
--		 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected));
-+		 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected) |
-+		 BIT(BH_Delay));
+--- a/fs/userfaultfd.c~fork-do-not-invoke-uffd-on-fork-if-error-occurs
++++ a/fs/userfaultfd.c
+@@ -692,6 +692,34 @@ void dup_userfaultfd_complete(struct lis
+ 	}
+ }
  
- 	lock_buffer(bh);
- 	set_mask_bits(&bh->b_state, clear_bits, 0);
-@@ -406,7 +407,8 @@ void nilfs_clear_folio_dirty(struct foli
- 		const unsigned long clear_bits =
- 			(BIT(BH_Uptodate) | BIT(BH_Dirty) | BIT(BH_Mapped) |
- 			 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
--			 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected));
-+			 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected) |
-+			 BIT(BH_Delay));
++void dup_userfaultfd_fail(struct list_head *fcs)
++{
++	struct userfaultfd_fork_ctx *fctx, *n;
++
++	/*
++	 * An error has occurred on fork, we will tear memory down, but have
++	 * allocated memory for fctx's and raised reference counts for both the
++	 * original and child contexts (and on the mm for each as a result).
++	 *
++	 * These would ordinarily be taken care of by a user handling the event,
++	 * but we are no longer doing so, so manually clean up here.
++	 *
++	 * mm tear down will take care of cleaning up VMA contexts.
++	 */
++	list_for_each_entry_safe(fctx, n, fcs, list) {
++		struct userfaultfd_ctx *octx = fctx->orig;
++		struct userfaultfd_ctx *ctx = fctx->new;
++
++		atomic_dec(&octx->mmap_changing);
++		VM_BUG_ON(atomic_read(&octx->mmap_changing) < 0);
++		userfaultfd_ctx_put(octx);
++		userfaultfd_ctx_put(ctx);
++
++		list_del(&fctx->list);
++		kfree(fctx);
++	}
++}
++
+ void mremap_userfaultfd_prep(struct vm_area_struct *vma,
+ 			     struct vm_userfaultfd_ctx *vm_ctx)
+ {
+--- a/include/linux/userfaultfd_k.h~fork-do-not-invoke-uffd-on-fork-if-error-occurs
++++ a/include/linux/userfaultfd_k.h
+@@ -249,6 +249,7 @@ static inline bool vma_can_userfault(str
  
- 		bh = head;
- 		do {
+ extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
+ extern void dup_userfaultfd_complete(struct list_head *);
++void dup_userfaultfd_fail(struct list_head *);
+ 
+ extern void mremap_userfaultfd_prep(struct vm_area_struct *,
+ 				    struct vm_userfaultfd_ctx *);
+@@ -351,6 +352,10 @@ static inline void dup_userfaultfd_compl
+ {
+ }
+ 
++static inline void dup_userfaultfd_fail(struct list_head *l)
++{
++}
++
+ static inline void mremap_userfaultfd_prep(struct vm_area_struct *vma,
+ 					   struct vm_userfaultfd_ctx *ctx)
+ {
+--- a/kernel/fork.c~fork-do-not-invoke-uffd-on-fork-if-error-occurs
++++ a/kernel/fork.c
+@@ -775,7 +775,10 @@ out:
+ 	mmap_write_unlock(mm);
+ 	flush_tlb_mm(oldmm);
+ 	mmap_write_unlock(oldmm);
+-	dup_userfaultfd_complete(&uf);
++	if (!retval)
++		dup_userfaultfd_complete(&uf);
++	else
++		dup_userfaultfd_fail(&uf);
+ fail_uprobe_end:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-nilfs2-propagate-directory-read-errors-from-nilfs_find_entry.patch
-nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch
+mm-mmap-correct-error-handling-in-mmap_region.patch
+maple_tree-correct-tree-corruption-on-spanning-store.patch
+maple_tree-add-regression-test-for-spanning-store-bug.patch
+maintainers-add-memory-mapping-vma-co-maintainers.patch
+fork-do-not-invoke-uffd-on-fork-if-error-occurs.patch
+fork-only-invoke-khugepaged-ksm-hooks-if-no-error.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-refactor-mm_access-to-not-return-null-fix.patch
+mm-madvise-unrestrict-process_madvise-for-current-process.patch
+maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
 
