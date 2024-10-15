@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BAB7F6
-	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 00:14:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 825F44428
+	for <mm-commits@vger.kernel.org>; Tue, 15 Oct 2024 00:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728951295; cv=none; b=kC/ne4c+QgXCwH5w6OYvmEPW2U29GA4ErwuJaye2pgQHPVogAtGWCL5ZooqCCGmJvRTKQhNS0XwzsxkurZqAUSs4FsJFGSQJKNQ0j3wjbTE6lFMQmENB95iYCbQ21bgfqtgcOEzZ+uSwaddwxAWTue0VDnI4SjMaBss6Acb7Q98=
+	t=1728951299; cv=none; b=sFaQ5FrGNrsZodXL16P4REBCmqE1zE3YtWvOgveqkqGmVtqC76CDuzmWAJhJ9tePk+ZLBwyoH5rggoke5kG+REa0IUhA4Tolf73WD/Q5P23bgaJ/Ab1sCtJbNFrBr+Jih2BIqL8vBPhryebj/vo1PuIUamx0TKBKCazfFRfrFhw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728951295; c=relaxed/simple;
-	bh=DFw7zWdNkZdkJvwCL5wxKcMh8GvxXvk2AziARAauqKA=;
-	h=Date:To:From:Subject:Message-Id; b=Y9E6TIt3mG7yvGD1CSdqdnDimZZptyK6nQhFHHGLUkaYj26JbeeI4Bbl2oxKIjtK+Sg9UjAE1o1IGCi5rKsfFFkLSYeV5QemQa91GmnGDqt/XPKl+buUnjOBPuog/aS5vbvT8Fp9ccWd0m49QfUzY6prceAZXRCRtPLMTFznTZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cMW86eXN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728951299; c=relaxed/simple;
+	bh=PoNe7jQhOoxYqh3htpntF5VhRYdVcIymg2/VeCD2IWA=;
+	h=Date:To:From:Subject:Message-Id; b=pTJP2mkA6TZkLHUggSlFOwwvSJl+rG4LD7+OhoBAhB+QaohdE6ZjpbhSpnCFZNW00b2jlG3gT4YZ2w74FmoaldRejzdEHvY+AOUxKOGS4i2E9ORANR1KNk0qP87t6GY5+Cmx11eWFJIctRQ3/cC+FVS8O8WfVZQC4oMHorAOF1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oi6vb00u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cMW86eXN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417BAC4CEC3;
-	Tue, 15 Oct 2024 00:14:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oi6vb00u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 284D4C4CEC3;
+	Tue, 15 Oct 2024 00:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1728951295;
-	bh=DFw7zWdNkZdkJvwCL5wxKcMh8GvxXvk2AziARAauqKA=;
+	s=korg; t=1728951299;
+	bh=PoNe7jQhOoxYqh3htpntF5VhRYdVcIymg2/VeCD2IWA=;
 	h=Date:To:From:Subject:From;
-	b=cMW86eXNsqnySqlFXdFzDrNbDlLRw2y4rw8vBDjaaMv8eQy69eMMPhxAv7SL0wKG8
-	 QbjgVQVqRi/hsb50/xU/7FNJj8KwYDKpDIOAYKaUQFiHthRBkJuulDimmtKnkc3C6U
-	 9qbZmhaxZ1pwchk+2rTo6Vl25mvTW4MAoy7IDBZo=
-Date: Mon, 14 Oct 2024 17:14:54 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,vbabka@suse.cz,skhan@linuxfoundation.org,sfr@canb.auug.org.au,rostedt@goodmis.org,rmoar@google.com,porlando@lkcamp.dev,palmer@rivosinc.com,npitre@baylibre.com,naveen.n.rao@linux.ibm.com,nathan@kernel.org,mic@digikod.net,mhiramat@kernel.org,maskray@google.com,mark.rutland@arm.com,luis.hernandez093@gmail.com,linux@roeck-us.net,linux@rasmusvillemoes.dk,kuba@kernel.org,Jason@zx2c4.com,horms@kernel.org,gustavoars@kernel.org,geert@linux-m68k.org,gbittencourt@lkcamp.dev,elver@google.com,dpereira@lkcamp.dev,dlatypov@google.com,dhowells@redhat.com,davidgow@google.com,davem@davemloft.net,christophe.leroy@csgroup.eu,charlie@rivosinc.com,brunofrancadevsec@gmail.com,broonie@kernel.org,brendanhiggins@google.com,arnd@arndb.de,anil.s.keshavamurthy@intel.com,andy@kernel.org,diego.daniel.professional@gmail.com,akpm@linux-foundation.org
+	b=Oi6vb00uKScZ+FmBmVFfxbClaMpDlhCIBM/bVsIUy5WbMYXJI8A5ZnIJ5OVjOar3I
+	 5D9kb6+36S6xG2hql37WFa3Z/HuyTFaGKUPqYCC5BrgSrmMAdd3jFmckTj0u3JnVxf
+	 8n1ghKHkKovAJtb5BGG2YH1Jk/fLC/WLj2ZGqOj0=
+Date: Mon, 14 Oct 2024 17:14:58 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,vbabka@suse.cz,skhan@linuxfoundation.org,sfr@canb.auug.org.au,rostedt@goodmis.org,rmoar@google.com,porlando@lkcamp.dev,palmer@rivosinc.com,npitre@baylibre.com,naveen.n.rao@linux.ibm.com,nathan@kernel.org,mic@digikod.net,mhiramat@kernel.org,maskray@google.com,mark.rutland@arm.com,luis.hernandez093@gmail.com,linux@roeck-us.net,linux@rasmusvillemoes.dk,kuba@kernel.org,kees@kernel.org,Jason@zx2c4.com,horms@kernel.org,gustavoars@kernel.org,geert@linux-m68k.org,elver@google.com,dpereira@lkcamp.dev,dlatypov@google.com,diego.daniel.professional@gmail.com,dhowells@redhat.com,davidgow@google.com,davem@davemloft.net,christophe.leroy@csgroup.eu,charlie@rivosinc.com,brunofrancadevsec@gmail.com,broonie@kernel.org,brendanhiggins@google.com,arnd@arndb.de,anil.s.keshavamurthy@intel.com,andy@kernel.org,gbittencourt@lkcamp.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure.patch added to mm-nonmm-unstable branch
-Message-Id: <20241015001455.417BAC4CEC3@smtp.kernel.org>
+Subject: + unicode-kunit-refactor-selftest-to-kunit-tests.patch added to mm-nonmm-unstable branch
+Message-Id: <20241015001459.284D4C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/tests/kfifo_kunit.c: add tests for the kfifo structure
+     Subject: unicode: kunit: refactor selftest to kunit tests
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure.patch
+     unicode-kunit-refactor-selftest-to-kunit-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/unicode-kunit-refactor-selftest-to-kunit-tests.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,24 +58,28 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Diego Vieira <diego.daniel.professional@gmail.com>
-Subject: lib/tests/kfifo_kunit.c: add tests for the kfifo structure
-Date: Fri, 11 Oct 2024 15:25:08 +0800
+From: Gabriela Bittencourt <gbittencourt@lkcamp.dev>
+Subject: unicode: kunit: refactor selftest to kunit tests
+Date: Fri, 11 Oct 2024 15:25:09 +0800
 
-Add KUnit tests for the kfifo data structure.  They test the vast majority
-of macros defined in the kfifo header (include/linux/kfifo.h).
+Refactoring 'test' functions into kunit tests, to test utf-8 support in
+unicode subsystem.
 
-These are inspired by the existing tests for the doubly linked list in
-lib/tests/list-test.c (previously at lib/list-test.c) [1].
+This allows the utf8 tests to be run alongside the KUnit test suite
+using kunit-tool, quickly compiling and running all desired tests as
+part of the KUnit test suite, instead of compiling the selftest module
+and loading it.
 
-Note that this patch depends on the patch that moves the KUnit tests on
-lib/ into lib/tests/ [2].
+The refactoring kept the original testing logic intact, while adopting a
+testing pattern across different kernel modules and leveraging KUnit's
+benefits.
 
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/lib/list-test.c?h=v6.11-rc6
-[2] https://lore.kernel.org/all/20240720181025.work.002-kees@kernel.org/
-
-Link: https://lkml.kernel.org/r/20241011072509.3068328-6-davidgow@google.com
-Signed-off-by: Diego Vieira <diego.daniel.professional@gmail.com>
+Link: https://lkml.kernel.org/r/20241011072509.3068328-7-davidgow@google.com
+Co-developed-by: Pedro Orlando <porlando@lkcamp.dev>
+Signed-off-by: Pedro Orlando <porlando@lkcamp.dev>
+Co-developed-by: Danilo Pereira <dpereira@lkcamp.dev>
+Signed-off-by: Danilo Pereira <dpereira@lkcamp.dev>
+Signed-off-by: Gabriela Bittencourt <gbittencourt@lkcamp.dev>
 Signed-off-by: David Gow <davidgow@google.com>
 Reviewed-by: David Gow <davidgow@google.com>
 Acked-by: Shuah Khan <skhan@linuxfoundation.org>
@@ -87,16 +91,16 @@ Cc: Bruno Sobreira Fran=C3=A7a <brunofrancadevsec@gmail.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Daniel Latypov <dlatypov@google.com>
-Cc: Danilo Pereira <dpereira@lkcamp.dev>
 Cc: David Howells <dhowells@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Diego Vieira <diego.daniel.professional@gmail.com>
 Cc: Fangrui Song <maskray@google.com>
-Cc: Gabriela Bittencourt <gbittencourt@lkcamp.dev>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Mark Brown <broonie@kernel.org>
@@ -107,7 +111,6 @@ Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
 Cc: Nicolas Pitre <npitre@baylibre.com>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Pedro Orlando <porlando@lkcamp.dev>
 Cc: Rae Moar <rmoar@google.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Simon Horman <horms@kernel.org>
@@ -118,276 +121,312 @@ Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug       |   14 ++
- lib/tests/Makefile      |    1 
- lib/tests/kfifo_kunit.c |  224 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 239 insertions(+)
+ fs/unicode/.kunitconfig    |    3 
+ fs/unicode/Kconfig         |    5 -
+ fs/unicode/Makefile        |    2 
+ fs/unicode/utf8-norm.c     |    2 
+ fs/unicode/utf8-selftest.c |  151 ++++++++++++++++-------------------
+ 5 files changed, 78 insertions(+), 85 deletions(-)
 
---- a/lib/Kconfig.debug~lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure
-+++ a/lib/Kconfig.debug
-@@ -2673,6 +2673,20 @@ config SYSCTL_KUNIT_TEST
+--- a/fs/unicode/Kconfig~unicode-kunit-refactor-selftest-to-kunit-tests
++++ a/fs/unicode/Kconfig
+@@ -10,6 +10,7 @@ config UNICODE
+ 	  be a separate loadable module that gets requested only when a file
+ 	  system actually use it.
  
- 	  If unsure, say N.
- 
-+config KFIFO_KUNIT_TEST
-+	tristate "KUnit Test for the generic kernel FIFO implementation" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
+-config UNICODE_NORMALIZATION_SELFTEST
++config UNICODE_NORMALIZATION_KUNIT_TEST
+ 	tristate "Test UTF-8 normalization support"
+-	depends on UNICODE
++	depends on UNICODE && KUNIT
 +	default KUNIT_ALL_TESTS
-+	help
-+	  This builds the generic FIFO implementation KUnit test suite.
-+	  It tests that the API and basic functionality of the kfifo type
-+	  and associated macros.
-+
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config LIST_KUNIT_TEST
- 	tristate "KUnit Test for Kernel Linked-list structures" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
-diff --git a/lib/tests/kfifo_kunit.c a/lib/tests/kfifo_kunit.c
+diff --git a/fs/unicode/.kunitconfig a/fs/unicode/.kunitconfig
 new file mode 100644
 --- /dev/null
-+++ a/lib/tests/kfifo_kunit.c
-@@ -0,0 +1,224 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnit test for the generic kernel FIFO implementation.
-+ *
-+ * Copyright (C) 2024 Diego Vieira <diego.daniel.professional@gmail.com>
-+ */
++++ a/fs/unicode/.kunitconfig
+@@ -0,0 +1,3 @@
++CONFIG_KUNIT=y
++CONFIG_UNICODE=y
++CONFIG_UNICODE_NORMALIZATION_KUNIT_TEST=y
+--- a/fs/unicode/Makefile~unicode-kunit-refactor-selftest-to-kunit-tests
++++ a/fs/unicode/Makefile
+@@ -4,7 +4,7 @@ ifneq ($(CONFIG_UNICODE),)
+ obj-y			+= unicode.o
+ endif
+ obj-$(CONFIG_UNICODE)	+= utf8data.o
+-obj-$(CONFIG_UNICODE_NORMALIZATION_SELFTEST) += utf8-selftest.o
++obj-$(CONFIG_UNICODE_NORMALIZATION_KUNIT_TEST) += utf8-selftest.o
+ 
+ unicode-y := utf8-norm.o utf8-core.o
+ 
+--- a/fs/unicode/utf8-norm.c~unicode-kunit-refactor-selftest-to-kunit-tests
++++ a/fs/unicode/utf8-norm.c
+@@ -586,7 +586,7 @@ ccc_mismatch:
+ 	}
+ }
+ 
+-#ifdef CONFIG_UNICODE_NORMALIZATION_SELFTEST_MODULE
++#if IS_MODULE(CONFIG_UNICODE_NORMALIZATION_KUNIT_TEST)
+ EXPORT_SYMBOL_GPL(utf8version_is_supported);
+ EXPORT_SYMBOL_GPL(utf8nlen);
+ EXPORT_SYMBOL_GPL(utf8ncursor);
+--- a/fs/unicode/utf8-selftest.c~unicode-kunit-refactor-selftest-to-kunit-tests
++++ a/fs/unicode/utf8-selftest.c
+@@ -1,38 +1,18 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Kernel module for testing utf-8 support.
++ * KUnit tests for utf-8 support.
+  *
+  * Copyright 2017 Collabora Ltd.
+  */
+ 
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+-#include <linux/module.h>
+-#include <linux/printk.h>
+ #include <linux/unicode.h>
+-#include <linux/dcache.h>
 +#include <kunit/test.h>
+ 
+ #include "utf8n.h"
+ 
+-static unsigned int failed_tests;
+-static unsigned int total_tests;
+-
+ /* Tests will be based on this version. */
+ #define UTF8_LATEST	UNICODE_AGE(12, 1, 0)
+ 
+-#define _test(cond, func, line, fmt, ...) do {				\
+-		total_tests++;						\
+-		if (!cond) {						\
+-			failed_tests++;					\
+-			pr_err("test %s:%d Failed: %s%s",		\
+-			       func, line, #cond, (fmt?":":"."));	\
+-			if (fmt)					\
+-				pr_err(fmt, ##__VA_ARGS__);		\
+-		}							\
+-	} while (0)
+-#define test_f(cond, fmt, ...) _test(cond, __func__, __LINE__, fmt, ##__VA_ARGS__)
+-#define test(cond) _test(cond, __func__, __LINE__, "")
+-
+ static const struct {
+ 	/* UTF-8 strings in this vector _must_ be NULL-terminated. */
+ 	unsigned char str[10];
+@@ -170,69 +150,74 @@ static int utf8cursor(struct utf8cursor
+ 	return utf8ncursor(u8c, um, n, s, (unsigned int)-1);
+ }
+ 
+-static void check_utf8_nfdi(struct unicode_map *um)
++static void check_utf8_nfdi(struct kunit *test)
+ {
+ 	int i;
+ 	struct utf8cursor u8c;
++	struct unicode_map *um = test->priv;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(nfdi_test_data); i++) {
+ 		int len = strlen(nfdi_test_data[i].str);
+ 		int nlen = strlen(nfdi_test_data[i].dec);
+ 		int j = 0;
+ 		unsigned char c;
++		int ret;
+ 
+-		test((utf8len(um, UTF8_NFDI, nfdi_test_data[i].str) == nlen));
+-		test((utf8nlen(um, UTF8_NFDI, nfdi_test_data[i].str, len) ==
+-			nlen));
++		KUNIT_EXPECT_EQ(test, utf8len(um, UTF8_NFDI, nfdi_test_data[i].str), nlen);
++		KUNIT_EXPECT_EQ(test, utf8nlen(um, UTF8_NFDI, nfdi_test_data[i].str, len),
++				nlen);
+ 
+-		if (utf8cursor(&u8c, um, UTF8_NFDI, nfdi_test_data[i].str) < 0)
+-			pr_err("can't create cursor\n");
 +
-+#include <linux/kfifo.h>
++		ret = utf8cursor(&u8c, um, UTF8_NFDI, nfdi_test_data[i].str);
++		KUNIT_EXPECT_TRUE_MSG(test, ret >= 0, "Can't create cursor\n");
+ 
+ 		while ((c = utf8byte(&u8c)) > 0) {
+-			test_f((c == nfdi_test_data[i].dec[j]),
+-			       "Unexpected byte 0x%x should be 0x%x\n",
+-			       c, nfdi_test_data[i].dec[j]);
++			KUNIT_EXPECT_EQ_MSG(test, c, nfdi_test_data[i].dec[j],
++					    "Unexpected byte 0x%x should be 0x%x\n",
++					    c, nfdi_test_data[i].dec[j]);
+ 			j++;
+ 		}
+ 
+-		test((j == nlen));
++		KUNIT_EXPECT_EQ(test, j, nlen);
+ 	}
+ }
+ 
+-static void check_utf8_nfdicf(struct unicode_map *um)
++static void check_utf8_nfdicf(struct kunit *test)
+ {
+ 	int i;
+ 	struct utf8cursor u8c;
++	struct unicode_map *um = test->priv;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(nfdicf_test_data); i++) {
+ 		int len = strlen(nfdicf_test_data[i].str);
+ 		int nlen = strlen(nfdicf_test_data[i].ncf);
+ 		int j = 0;
++		int ret;
+ 		unsigned char c;
+ 
+-		test((utf8len(um, UTF8_NFDICF, nfdicf_test_data[i].str) ==
+-				nlen));
+-		test((utf8nlen(um, UTF8_NFDICF, nfdicf_test_data[i].str, len) ==
+-				nlen));
+-
+-		if (utf8cursor(&u8c, um, UTF8_NFDICF,
+-				nfdicf_test_data[i].str) < 0)
+-			pr_err("can't create cursor\n");
++		KUNIT_EXPECT_EQ(test, utf8len(um, UTF8_NFDICF, nfdicf_test_data[i].str),
++				nlen);
++		KUNIT_EXPECT_EQ(test, utf8nlen(um, UTF8_NFDICF, nfdicf_test_data[i].str, len),
++				nlen);
 +
-+#define KFIFO_SIZE 32
-+#define N_ELEMENTS 5
-+
-+static void kfifo_test_reset_should_clear_the_fifo(struct kunit *test)
-+{
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	kfifo_put(&my_fifo, 1);
-+	kfifo_put(&my_fifo, 2);
-+	kfifo_put(&my_fifo, 3);
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 3);
-+
-+	kfifo_reset(&my_fifo);
-+
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 0);
-+	KUNIT_EXPECT_TRUE(test, kfifo_is_empty(&my_fifo));
-+}
-+
-+static void kfifo_test_define_should_define_an_empty_fifo(struct kunit *test)
-+{
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	KUNIT_EXPECT_TRUE(test, kfifo_initialized(&my_fifo));
-+	KUNIT_EXPECT_TRUE(test, kfifo_is_empty(&my_fifo));
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 0);
-+}
-+
-+static void kfifo_test_len_should_ret_n_of_stored_elements(struct kunit *test)
-+{
-+	u8 buffer1[N_ELEMENTS];
-+
-+	for (int i = 0; i < N_ELEMENTS; i++)
-+		buffer1[i] = i + 1;
-+
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 0);
-+
-+	kfifo_in(&my_fifo, buffer1, N_ELEMENTS);
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), N_ELEMENTS);
-+
-+	kfifo_in(&my_fifo, buffer1, N_ELEMENTS);
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), N_ELEMENTS * 2);
-+
-+	kfifo_reset(&my_fifo);
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 0);
-+}
-+
-+static void kfifo_test_put_should_insert_and_get_should_pop(struct kunit *test)
-+{
-+	u8 out_data = 0;
-+	int processed_elements;
-+	u8 elements[] = { 3, 5, 11 };
-+
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	// If the fifo is empty, get returns 0
-+	processed_elements = kfifo_get(&my_fifo, &out_data);
-+	KUNIT_EXPECT_EQ(test, processed_elements, 0);
-+	KUNIT_EXPECT_EQ(test, out_data, 0);
-+
-+	for (int i = 0; i < 3; i++)
-+		kfifo_put(&my_fifo, elements[i]);
-+
-+	for (int i = 0; i < 3; i++) {
-+		processed_elements = kfifo_get(&my_fifo, &out_data);
-+		KUNIT_EXPECT_EQ(test, processed_elements, 1);
-+		KUNIT_EXPECT_EQ(test, out_data, elements[i]);
-+	}
-+}
-+
-+static void kfifo_test_in_should_insert_multiple_elements(struct kunit *test)
-+{
-+	u8 in_buffer[] = { 11, 25, 65 };
-+	u8 out_data;
-+	int processed_elements;
-+
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	kfifo_in(&my_fifo, in_buffer, 3);
-+
-+	for (int i = 0; i < 3; i++) {
-+		processed_elements = kfifo_get(&my_fifo, &out_data);
-+		KUNIT_EXPECT_EQ(test, processed_elements, 1);
-+		KUNIT_EXPECT_EQ(test, out_data, in_buffer[i]);
-+	}
-+}
-+
-+static void kfifo_test_out_should_pop_multiple_elements(struct kunit *test)
-+{
-+	u8 in_buffer[] = { 11, 25, 65 };
-+	u8 out_buffer[3];
-+	int copied_elements;
-+
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	for (int i = 0; i < 3; i++)
-+		kfifo_put(&my_fifo, in_buffer[i]);
-+
-+	copied_elements = kfifo_out(&my_fifo, out_buffer, 3);
-+	KUNIT_EXPECT_EQ(test, copied_elements, 3);
-+
-+	for (int i = 0; i < 3; i++)
-+		KUNIT_EXPECT_EQ(test, out_buffer[i], in_buffer[i]);
-+	KUNIT_EXPECT_TRUE(test, kfifo_is_empty(&my_fifo));
-+}
-+
-+static void kfifo_test_dec_init_should_define_an_empty_fifo(struct kunit *test)
-+{
-+	DECLARE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	INIT_KFIFO(my_fifo);
-+
-+	// my_fifo is a struct with an inplace buffer
-+	KUNIT_EXPECT_FALSE(test, __is_kfifo_ptr(&my_fifo));
-+
-+	KUNIT_EXPECT_TRUE(test, kfifo_initialized(&my_fifo));
-+}
-+
-+static void kfifo_test_define_should_equal_declare_init(struct kunit *test)
-+{
-+	// declare a variable my_fifo of type struct kfifo of u8
-+	DECLARE_KFIFO(my_fifo1, u8, KFIFO_SIZE);
-+	// initialize the my_fifo variable
-+	INIT_KFIFO(my_fifo1);
-+
-+	// DEFINE_KFIFO declares the variable with the initial value
-+	// essentially the same as calling DECLARE_KFIFO and INIT_KFIFO
-+	DEFINE_KFIFO(my_fifo2, u8, KFIFO_SIZE);
-+
-+	// my_fifo1 and my_fifo2 have the same size
-+	KUNIT_EXPECT_EQ(test, sizeof(my_fifo1), sizeof(my_fifo2));
-+	KUNIT_EXPECT_EQ(test, kfifo_initialized(&my_fifo1),
-+			kfifo_initialized(&my_fifo2));
-+	KUNIT_EXPECT_EQ(test, kfifo_is_empty(&my_fifo1),
-+			kfifo_is_empty(&my_fifo2));
-+}
-+
-+static void kfifo_test_alloc_should_initiliaze_a_ptr_fifo(struct kunit *test)
-+{
-+	int ret;
-+	DECLARE_KFIFO_PTR(my_fifo, u8);
-+
-+	INIT_KFIFO(my_fifo);
-+
-+	// kfifo_initialized returns false signaling the buffer pointer is NULL
-+	KUNIT_EXPECT_FALSE(test, kfifo_initialized(&my_fifo));
-+
-+	// kfifo_alloc allocates the buffer
-+	ret = kfifo_alloc(&my_fifo, KFIFO_SIZE, GFP_KERNEL);
-+	KUNIT_EXPECT_EQ_MSG(test, ret, 0, "Memory allocation should succeed");
-+	KUNIT_EXPECT_TRUE(test, kfifo_initialized(&my_fifo));
-+
-+	// kfifo_free frees the buffer
-+	kfifo_free(&my_fifo);
-+}
-+
-+static void kfifo_test_peek_should_not_remove_elements(struct kunit *test)
-+{
-+	u8 out_data;
-+	int processed_elements;
-+
-+	DEFINE_KFIFO(my_fifo, u8, KFIFO_SIZE);
-+
-+	// If the fifo is empty, peek returns 0
-+	processed_elements = kfifo_peek(&my_fifo, &out_data);
-+	KUNIT_EXPECT_EQ(test, processed_elements, 0);
-+
-+	kfifo_put(&my_fifo, 3);
-+	kfifo_put(&my_fifo, 5);
-+	kfifo_put(&my_fifo, 11);
-+
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 3);
-+
-+	processed_elements = kfifo_peek(&my_fifo, &out_data);
-+	KUNIT_EXPECT_EQ(test, processed_elements, 1);
-+	KUNIT_EXPECT_EQ(test, out_data, 3);
-+
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 3);
-+
-+	// Using peek doesn't remove the element
-+	// so the read element and the fifo length
-+	// remains the same
-+	processed_elements = kfifo_peek(&my_fifo, &out_data);
-+	KUNIT_EXPECT_EQ(test, processed_elements, 1);
-+	KUNIT_EXPECT_EQ(test, out_data, 3);
-+
-+	KUNIT_EXPECT_EQ(test, kfifo_len(&my_fifo), 3);
-+}
-+
-+static struct kunit_case kfifo_test_cases[] = {
-+	KUNIT_CASE(kfifo_test_reset_should_clear_the_fifo),
-+	KUNIT_CASE(kfifo_test_define_should_define_an_empty_fifo),
-+	KUNIT_CASE(kfifo_test_len_should_ret_n_of_stored_elements),
-+	KUNIT_CASE(kfifo_test_put_should_insert_and_get_should_pop),
-+	KUNIT_CASE(kfifo_test_in_should_insert_multiple_elements),
-+	KUNIT_CASE(kfifo_test_out_should_pop_multiple_elements),
-+	KUNIT_CASE(kfifo_test_dec_init_should_define_an_empty_fifo),
-+	KUNIT_CASE(kfifo_test_define_should_equal_declare_init),
-+	KUNIT_CASE(kfifo_test_alloc_should_initiliaze_a_ptr_fifo),
-+	KUNIT_CASE(kfifo_test_peek_should_not_remove_elements),
-+	{},
++		ret = utf8cursor(&u8c, um, UTF8_NFDICF, nfdicf_test_data[i].str);
++		KUNIT_EXPECT_TRUE_MSG(test, ret >= 0, "Can't create cursor\n");
+ 
+ 		while ((c = utf8byte(&u8c)) > 0) {
+-			test_f((c == nfdicf_test_data[i].ncf[j]),
+-			       "Unexpected byte 0x%x should be 0x%x\n",
+-			       c, nfdicf_test_data[i].ncf[j]);
++			KUNIT_EXPECT_EQ_MSG(test, c, nfdicf_test_data[i].ncf[j],
++					    "Unexpected byte 0x%x should be 0x%x\n",
++					    c, nfdicf_test_data[i].ncf[j]);
+ 			j++;
+ 		}
+ 
+-		test((j == nlen));
++		KUNIT_EXPECT_EQ(test, j, nlen);
+ 	}
+ }
+ 
+-static void check_utf8_comparisons(struct unicode_map *table)
++static void check_utf8_comparisons(struct kunit *test)
+ {
+ 	int i;
++	struct unicode_map *um = test->priv;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(nfdi_test_data); i++) {
+ 		const struct qstr s1 = {.name = nfdi_test_data[i].str,
+@@ -240,8 +225,9 @@ static void check_utf8_comparisons(struc
+ 		const struct qstr s2 = {.name = nfdi_test_data[i].dec,
+ 					.len = sizeof(nfdi_test_data[i].dec)};
+ 
+-		test_f(!utf8_strncmp(table, &s1, &s2),
+-		       "%s %s comparison mismatch\n", s1.name, s2.name);
++		/* strncmp returns 0 when strings are equal */
++		KUNIT_EXPECT_TRUE_MSG(test, utf8_strncmp(um, &s1, &s2) == 0,
++				    "%s %s comparison mismatch\n", s1.name, s2.name);
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(nfdicf_test_data); i++) {
+@@ -250,62 +236,65 @@ static void check_utf8_comparisons(struc
+ 		const struct qstr s2 = {.name = nfdicf_test_data[i].ncf,
+ 					.len = sizeof(nfdicf_test_data[i].ncf)};
+ 
+-		test_f(!utf8_strncasecmp(table, &s1, &s2),
+-		       "%s %s comparison mismatch\n", s1.name, s2.name);
++		/* strncasecmp returns 0 when strings are equal */
++		KUNIT_EXPECT_TRUE_MSG(test, utf8_strncasecmp(um, &s1, &s2) == 0,
++				    "%s %s comparison mismatch\n", s1.name, s2.name);
+ 	}
+ }
+ 
+-static void check_supported_versions(struct unicode_map *um)
++static void check_supported_versions(struct kunit *test)
+ {
++	struct unicode_map *um = test->priv;
+ 	/* Unicode 7.0.0 should be supported. */
+-	test(utf8version_is_supported(um, UNICODE_AGE(7, 0, 0)));
++	KUNIT_EXPECT_TRUE(test, utf8version_is_supported(um, UNICODE_AGE(7, 0, 0)));
+ 
+ 	/* Unicode 9.0.0 should be supported. */
+-	test(utf8version_is_supported(um, UNICODE_AGE(9, 0, 0)));
++	KUNIT_EXPECT_TRUE(test, utf8version_is_supported(um, UNICODE_AGE(9, 0, 0)));
+ 
+ 	/* Unicode 1x.0.0 (the latest version) should be supported. */
+-	test(utf8version_is_supported(um, UTF8_LATEST));
++	KUNIT_EXPECT_TRUE(test, utf8version_is_supported(um, UTF8_LATEST));
+ 
+ 	/* Next versions don't exist. */
+-	test(!utf8version_is_supported(um, UNICODE_AGE(13, 0, 0)));
+-	test(!utf8version_is_supported(um, UNICODE_AGE(0, 0, 0)));
+-	test(!utf8version_is_supported(um, UNICODE_AGE(-1, -1, -1)));
++	KUNIT_EXPECT_FALSE(test, utf8version_is_supported(um, UNICODE_AGE(13, 0, 0)));
++	KUNIT_EXPECT_FALSE(test, utf8version_is_supported(um, UNICODE_AGE(0, 0, 0)));
++	KUNIT_EXPECT_FALSE(test, utf8version_is_supported(um, UNICODE_AGE(-1, -1, -1)));
+ }
+ 
+-static int __init init_test_ucd(void)
++static struct kunit_case unicode_normalization_test_cases[] = {
++	KUNIT_CASE(check_supported_versions),
++	KUNIT_CASE(check_utf8_comparisons),
++	KUNIT_CASE(check_utf8_nfdicf),
++	KUNIT_CASE(check_utf8_nfdi),
++	{}
 +};
 +
-+static struct kunit_suite kfifo_test_module = {
-+	.name = "kfifo",
-+	.test_cases = kfifo_test_cases,
++static int init_test_ucd(struct kunit *test)
+ {
+-	struct unicode_map *um;
++	struct unicode_map *um = utf8_load(UTF8_LATEST);
+ 
+-	failed_tests = 0;
+-	total_tests = 0;
++	test->priv = um;
+ 
+-	um = utf8_load(UTF8_LATEST);
+-	if (IS_ERR(um)) {
+-		pr_err("%s: Unable to load utf8 table.\n", __func__);
+-		return PTR_ERR(um);
+-	}
++	KUNIT_EXPECT_EQ_MSG(test, IS_ERR(um), 0,
++			    "%s: Unable to load utf8 table.\n", __func__);
+ 
+-	check_supported_versions(um);
+-	check_utf8_nfdi(um);
+-	check_utf8_nfdicf(um);
+-	check_utf8_comparisons(um);
+-
+-	if (!failed_tests)
+-		pr_info("All %u tests passed\n", total_tests);
+-	else
+-		pr_err("%u out of %u tests failed\n", failed_tests,
+-		       total_tests);
+-	utf8_unload(um);
+ 	return 0;
+ }
+ 
+-static void __exit exit_test_ucd(void)
++static void exit_test_ucd(struct kunit *test)
+ {
++	utf8_unload(test->priv);
+ }
+ 
+-module_init(init_test_ucd);
+-module_exit(exit_test_ucd);
++static struct kunit_suite unicode_normalization_test_suite = {
++	.name = "unicode_normalization",
++	.test_cases = unicode_normalization_test_cases,
++	.init = init_test_ucd,
++	.exit = exit_test_ucd,
 +};
 +
-+kunit_test_suites(&kfifo_test_module);
++kunit_test_suite(unicode_normalization_test_suite);
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Diego Vieira <diego.daniel.professional@gmail.com>");
-+MODULE_DESCRIPTION("KUnit test for the kernel FIFO");
---- a/lib/tests/Makefile~lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure
-+++ a/lib/tests/Makefile
-@@ -7,6 +7,7 @@ CFLAGS_bitfield_kunit.o := $(DISABLE_STR
- obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
- obj-$(CONFIG_CHECKSUM_KUNIT) += checksum_kunit.o
- obj-$(CONFIG_LIST_KUNIT_TEST) += list-test.o
-+obj-$(CONFIG_KFIFO_KUNIT_TEST) += kfifo_kunit.o
- obj-$(CONFIG_HASHTABLE_KUNIT_TEST) += hashtable_test.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
- obj-$(CONFIG_BITS_TEST) += test_bits.o
+ 
+ MODULE_AUTHOR("Gabriel Krisman Bertazi <krisman@collabora.co.uk>");
+-MODULE_DESCRIPTION("Kernel module for testing utf-8 support");
++MODULE_DESCRIPTION("KUnit tests for utf-8 support.");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from diego.daniel.professional@gmail.com are
+Patches currently in -mm which might be from gbittencourt@lkcamp.dev are
 
-lib-tests-kfifo_kunitc-add-tests-for-the-kfifo-structure.patch
+unicode-kunit-refactor-selftest-to-kunit-tests.patch
+unicode-kunit-change-tests-filename-and-path.patch
 
