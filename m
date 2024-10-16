@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 691CF1D279F
-	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 22:36:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62E51D279F
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 22:36:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729118190; cv=none; b=kLl1JQ/UXOWqfkxblMB8FK+ujWfl17dfahlnbPn8XpzWudP/pLssaZ7SYc7ZVKWiZQUxHFSXjtwlBs/cSwZOh2WtFULjHcaivK5NBpp7+f8MskWAnlYxNoKDTpgPnPqSUwoyxvyhE/CuCiq+bKgnYLHEpUDhmbyMl1wbqhs/g1g=
+	t=1729118203; cv=none; b=EcWsBHYKELpxYZ+XR3IyQ24ETbjc+yQiRNswmfTVzKnFzZW2lhv7Mpk9bbftCTOkkBUQ7OzRyY/L20FJEWToaOYzJ6AjJBW9d5VPVRPRroSCVq5YBVrb6CNxkgCMfzcLpQ6Q/QBZ+xSEGwpVj5bIAwoHYm/RYWL2NF6/O14ojvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729118190; c=relaxed/simple;
-	bh=8eTrksw21C9juxixncOOUlgMXxX85hKY2kQ5rRgQz7A=;
-	h=Date:To:From:Subject:Message-Id; b=u28IqpeHRw3NXZJBpXW+XLG3kU+dyQkuY/HvXKKo9g6KXZIIh4GMxQF84586lsRHG6t4HHZrG8jZa7FhxvuF5IirRq+4MzI0NgdgkwQTW03oWCpu7ndgpUYkLHh+sE+mkm/ASrewpok+73FARUwdXP/wwtPiYP30NGFFVynlcfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TW495OzO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729118203; c=relaxed/simple;
+	bh=p63SRmPTzFHYNXFPn3hax0VBfmx91Lw9nt2Ni31CHdw=;
+	h=Date:To:From:Subject:Message-Id; b=Z+kiqQse7zn6nb5PvMldiVDfNfFuA5dgqbSZ1nBBLbOW2xn7QPKHRVCD33+CyJ3UHYY4wZ7YlkFClCNZQuGDiPetPuMVfytei4Uv13/irbQhciA3JtCWZAEODdLm5auy9GkYnTyLVLWpfZV6kyNS5rJjI9+wQ5nnhrAowSoRhH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m/yUXcEx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TW495OzO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A27F3C4CEC5;
-	Wed, 16 Oct 2024 22:36:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m/yUXcEx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A26AC4CEC5;
+	Wed, 16 Oct 2024 22:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729118189;
-	bh=8eTrksw21C9juxixncOOUlgMXxX85hKY2kQ5rRgQz7A=;
+	s=korg; t=1729118203;
+	bh=p63SRmPTzFHYNXFPn3hax0VBfmx91Lw9nt2Ni31CHdw=;
 	h=Date:To:From:Subject:From;
-	b=TW495OzO6xr7bh5CHA9SAlrneHlHZ6dU5IjnKmr5/M4xEq5BMn+oi1Xnh5Q/S04gv
-	 AZURrU11vlcuNMVuIWE1rdXPVrfogZMXzvMlIn4RLXPrEzvilAmkpGnKrUmGzIwqpe
-	 IXNjjOJMEnTqWVKgKIg6K9KSboG6j8hmWEKCYydw=
-Date: Wed, 16 Oct 2024 15:36:29 -0700
+	b=m/yUXcExInTYZdeCOPYpGnRleB+ow4SQPFIYw+OZSL21DQH2sY1wAhu2KBHz4f13L
+	 3gPuOYGy/eD9uN+p+J2b+wBX+IZ6sxmI70XWuccfV61r5eBMA14OqgZhMK2MtUzf1o
+	 XNvqnaGV9N76hsnjNngAQSX9xJ1yEmy3mzq82mRw=
+Date: Wed, 16 Oct 2024 15:36:43 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,urezki@gmail.com,tsbogend@alpha.franken.de,tglx@linutronix.de,surenb@google.com,song@kernel.org,shorne@gmail.com,rostedt@goodmis.org,richard@nod.at,peterz@infradead.org,palmer@dabbelt.com,oleg@redhat.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mattst88@gmail.com,mark.rutland@arm.com,luto@kernel.org,linux@armlinux.org.uk,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hch@lst.de,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,bcain@quicinc.com,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + asm-generic-introduce-text-patchingh.patch added to mm-unstable branch
-Message-Id: <20241016223629.A27F3C4CEC5@smtp.kernel.org>
+Subject: + module-prepare-to-handle-rox-allocations-for-text.patch added to mm-unstable branch
+Message-Id: <20241016223643.8A26AC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: asm-generic: introduce text-patching.h
+     Subject: module: prepare to handle ROX allocations for text
 has been added to the -mm mm-unstable branch.  Its filename is
-     asm-generic-introduce-text-patchingh.patch
+     module-prepare-to-handle-rox-allocations-for-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/asm-generic-introduce-text-patchingh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/module-prepare-to-handle-rox-allocations-for-text.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: asm-generic: introduce text-patching.h
-Date: Wed, 16 Oct 2024 15:24:19 +0300
+Subject: module: prepare to handle ROX allocations for text
+Date: Wed, 16 Oct 2024 15:24:20 +0300
 
-Several architectures support text patching, but they name the header
-files that declare patching functions differently.
+In order to support ROX allocations for module text, it is necessary to
+handle modifications to the code, such as relocations and alternatives
+patching, without write access to that memory.
 
-Make all such headers consistently named text-patching.h and add an empty
-header in asm-generic for architectures that do not support text patching.
+One option is to use text patching, but this would make module loading
+extremely slow and will expose executable code that is not finally formed.
 
-Link: https://lkml.kernel.org/r/20241016122424.1655560-4-rppt@kernel.org
+A better way is to have memory allocated with ROX permissions contain
+invalid instructions and keep a writable, but not executable copy of the
+module text.  The relocations and alternative patches would be done on the
+writable copy using the addresses of the ROX memory.  Once the module is
+completely ready, the updated text will be copied to ROX memory using text
+patching in one go and the writable copy will be freed.
+
+Add support for that to module initialization code and provide necessary
+interfaces in execmem.
+
+Link: https://lkml.kernel.org/r/20241016122424.1655560-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
@@ -114,1749 +125,295 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/Kbuild             |    1 
- arch/arc/include/asm/Kbuild               |    1 
- arch/arm/include/asm/patch.h              |   18 -
- arch/arm/include/asm/text-patching.h      |   18 +
- arch/arm/kernel/ftrace.c                  |    2 
- arch/arm/kernel/jump_label.c              |    2 
- arch/arm/kernel/kgdb.c                    |    2 
- arch/arm/kernel/patch.c                   |    2 
- arch/arm/probes/kprobes/core.c            |    2 
- arch/arm/probes/kprobes/opt-arm.c         |    2 
- arch/arm64/include/asm/patching.h         |   17 -
- arch/arm64/include/asm/text-patching.h    |   17 +
- arch/arm64/kernel/ftrace.c                |    2 
- arch/arm64/kernel/jump_label.c            |    2 
- arch/arm64/kernel/kgdb.c                  |    2 
- arch/arm64/kernel/patching.c              |    2 
- arch/arm64/kernel/probes/kprobes.c        |    2 
- arch/arm64/kernel/traps.c                 |    2 
- arch/arm64/net/bpf_jit_comp.c             |    2 
- arch/csky/include/asm/Kbuild              |    1 
- arch/hexagon/include/asm/Kbuild           |    1 
- arch/loongarch/include/asm/Kbuild         |    1 
- arch/m68k/include/asm/Kbuild              |    1 
- arch/microblaze/include/asm/Kbuild        |    1 
- arch/mips/include/asm/Kbuild              |    1 
- arch/nios2/include/asm/Kbuild             |    1 
- arch/openrisc/include/asm/Kbuild          |    1 
- arch/parisc/include/asm/patch.h           |   13 
- arch/parisc/include/asm/text-patching.h   |   13 
- arch/parisc/kernel/ftrace.c               |    2 
- arch/parisc/kernel/jump_label.c           |    2 
- arch/parisc/kernel/kgdb.c                 |    2 
- arch/parisc/kernel/kprobes.c              |    2 
- arch/parisc/kernel/patch.c                |    2 
- arch/powerpc/include/asm/code-patching.h  |  275 --------------------
- arch/powerpc/include/asm/kprobes.h        |    2 
- arch/powerpc/include/asm/text-patching.h  |  275 ++++++++++++++++++++
- arch/powerpc/kernel/crash_dump.c          |    2 
- arch/powerpc/kernel/epapr_paravirt.c      |    2 
- arch/powerpc/kernel/jump_label.c          |    2 
- arch/powerpc/kernel/kgdb.c                |    2 
- arch/powerpc/kernel/kprobes.c             |    2 
- arch/powerpc/kernel/module_32.c           |    2 
- arch/powerpc/kernel/module_64.c           |    2 
- arch/powerpc/kernel/optprobes.c           |    2 
- arch/powerpc/kernel/process.c             |    2 
- arch/powerpc/kernel/security.c            |    2 
- arch/powerpc/kernel/setup_32.c            |    2 
- arch/powerpc/kernel/setup_64.c            |    2 
- arch/powerpc/kernel/static_call.c         |    2 
- arch/powerpc/kernel/trace/ftrace.c        |    2 
- arch/powerpc/kernel/trace/ftrace_64_pg.c  |    2 
- arch/powerpc/lib/code-patching.c          |    2 
- arch/powerpc/lib/feature-fixups.c         |    2 
- arch/powerpc/lib/test-code-patching.c     |    2 
- arch/powerpc/lib/test_emulate_step.c      |    2 
- arch/powerpc/mm/book3s32/mmu.c            |    2 
- arch/powerpc/mm/book3s64/hash_utils.c     |    2 
- arch/powerpc/mm/book3s64/slb.c            |    2 
- arch/powerpc/mm/kasan/init_32.c           |    2 
- arch/powerpc/mm/mem.c                     |    2 
- arch/powerpc/mm/nohash/44x.c              |    2 
- arch/powerpc/mm/nohash/book3e_pgtable.c   |    2 
- arch/powerpc/mm/nohash/tlb.c              |    2 
- arch/powerpc/mm/nohash/tlb_64e.c          |    2 
- arch/powerpc/net/bpf_jit_comp.c           |    2 
- arch/powerpc/perf/8xx-pmu.c               |    2 
- arch/powerpc/perf/core-book3s.c           |    2 
- arch/powerpc/platforms/85xx/smp.c         |    2 
- arch/powerpc/platforms/86xx/mpc86xx_smp.c |    2 
- arch/powerpc/platforms/cell/smp.c         |    2 
- arch/powerpc/platforms/powermac/smp.c     |    2 
- arch/powerpc/platforms/powernv/idle.c     |    2 
- arch/powerpc/platforms/powernv/smp.c      |    2 
- arch/powerpc/platforms/pseries/smp.c      |    2 
- arch/powerpc/xmon/xmon.c                  |    2 
- arch/riscv/errata/andes/errata.c          |    2 
- arch/riscv/errata/sifive/errata.c         |    2 
- arch/riscv/errata/thead/errata.c          |    2 
- arch/riscv/include/asm/patch.h            |   16 -
- arch/riscv/include/asm/text-patching.h    |   16 +
- arch/riscv/include/asm/uprobes.h          |    2 
- arch/riscv/kernel/alternative.c           |    2 
- arch/riscv/kernel/cpufeature.c            |    3 
- arch/riscv/kernel/ftrace.c                |    2 
- arch/riscv/kernel/jump_label.c            |    2 
- arch/riscv/kernel/patch.c                 |    2 
- arch/riscv/kernel/probes/kprobes.c        |    2 
- arch/riscv/net/bpf_jit_comp64.c           |    2 
- arch/riscv/net/bpf_jit_core.c             |    2 
- arch/sh/include/asm/Kbuild                |    1 
- arch/sparc/include/asm/Kbuild             |    1 
- arch/um/kernel/um_arch.c                  |    5 
- arch/x86/include/asm/text-patching.h      |    1 
- arch/xtensa/include/asm/Kbuild            |    1 
- include/asm-generic/text-patching.h       |    5 
- include/linux/text-patching.h             |   15 +
- 97 files changed, 449 insertions(+), 409 deletions(-)
+ include/linux/execmem.h        |   23 +++++++++
+ include/linux/module.h         |   11 ++++
+ include/linux/moduleloader.h   |    4 +
+ kernel/module/debug_kmemleak.c |    3 -
+ kernel/module/main.c           |   77 ++++++++++++++++++++++++++++---
+ kernel/module/strict_rwx.c     |    3 +
+ mm/execmem.c                   |   11 ++++
+ 7 files changed, 124 insertions(+), 8 deletions(-)
 
---- a/arch/alpha/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/alpha/include/asm/Kbuild
-@@ -5,3 +5,4 @@ generic-y += agp.h
- generic-y += asm-offsets.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
-+generic-y += text-patching.h
---- a/arch/arc/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/arc/include/asm/Kbuild
-@@ -6,3 +6,4 @@ generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
- generic-y += user.h
-+generic-y += text-patching.h
-diff --git a/arch/arm64/include/asm/patching.h a/arch/arm64/include/asm/patching.h
-deleted file mode 100644
---- a/arch/arm64/include/asm/patching.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--#ifndef	__ASM_PATCHING_H
--#define	__ASM_PATCHING_H
--
--#include <linux/types.h>
--
--int aarch64_insn_read(void *addr, u32 *insnp);
--int aarch64_insn_write(void *addr, u32 insn);
--
--int aarch64_insn_write_literal_u64(void *addr, u64 val);
--void *aarch64_insn_set(void *dst, u32 insn, size_t len);
--void *aarch64_insn_copy(void *dst, void *src, size_t len);
--
--int aarch64_insn_patch_text_nosync(void *addr, u32 insn);
--int aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt);
--
--#endif	/* __ASM_PATCHING_H */
-diff --git a/arch/arm64/include/asm/text-patching.h a/arch/arm64/include/asm/text-patching.h
-new file mode 100664
---- /dev/null
-+++ a/arch/arm64/include/asm/text-patching.h
-@@ -0,0 +1,17 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef	__ASM_PATCHING_H
-+#define	__ASM_PATCHING_H
-+
-+#include <linux/types.h>
-+
-+int aarch64_insn_read(void *addr, u32 *insnp);
-+int aarch64_insn_write(void *addr, u32 insn);
-+
-+int aarch64_insn_write_literal_u64(void *addr, u64 val);
-+void *aarch64_insn_set(void *dst, u32 insn, size_t len);
-+void *aarch64_insn_copy(void *dst, void *src, size_t len);
-+
-+int aarch64_insn_patch_text_nosync(void *addr, u32 insn);
-+int aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt);
-+
-+#endif	/* __ASM_PATCHING_H */
---- a/arch/arm64/kernel/ftrace.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/ftrace.c
-@@ -15,7 +15,7 @@
- #include <asm/debug-monitors.h>
- #include <asm/ftrace.h>
- #include <asm/insn.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
+--- a/include/linux/execmem.h~module-prepare-to-handle-rox-allocations-for-text
++++ a/include/linux/execmem.h
+@@ -46,9 +46,11 @@ enum execmem_type {
+ /**
+  * enum execmem_range_flags - options for executable memory allocations
+  * @EXECMEM_KASAN_SHADOW:	allocate kasan shadow
++ * @EXECMEM_ROX_CACHE:		allocations should use ROX cache of huge pages
+  */
+ enum execmem_range_flags {
+ 	EXECMEM_KASAN_SHADOW	= (1 << 0),
++	EXECMEM_ROX_CACHE	= (1 << 1),
+ };
  
- #ifdef CONFIG_DYNAMIC_FTRACE_WITH_ARGS
- struct fregs_offset {
---- a/arch/arm64/kernel/jump_label.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/jump_label.c
-@@ -9,7 +9,7 @@
- #include <linux/jump_label.h>
- #include <linux/smp.h>
- #include <asm/insn.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
+ /**
+@@ -123,6 +125,27 @@ void *execmem_alloc(enum execmem_type ty
+  */
+ void execmem_free(void *ptr);
  
- bool arch_jump_label_transform_queue(struct jump_entry *entry,
- 				     enum jump_label_type type)
---- a/arch/arm64/kernel/kgdb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/kgdb.c
-@@ -17,7 +17,7 @@
- 
- #include <asm/debug-monitors.h>
- #include <asm/insn.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
- #include <asm/traps.h>
- 
- struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
---- a/arch/arm64/kernel/patching.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/patching.c
-@@ -10,7 +10,7 @@
- #include <asm/fixmap.h>
- #include <asm/insn.h>
- #include <asm/kprobes.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
- #include <asm/sections.h>
- 
- static DEFINE_RAW_SPINLOCK(patch_lock);
---- a/arch/arm64/kernel/probes/kprobes.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/probes/kprobes.c
-@@ -27,7 +27,7 @@
- #include <asm/debug-monitors.h>
- #include <asm/insn.h>
- #include <asm/irq.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
- #include <asm/ptrace.h>
- #include <asm/sections.h>
- #include <asm/system_misc.h>
---- a/arch/arm64/kernel/traps.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/kernel/traps.c
-@@ -41,7 +41,7 @@
- #include <asm/extable.h>
- #include <asm/insn.h>
- #include <asm/kprobes.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
- #include <asm/traps.h>
- #include <asm/smp.h>
- #include <asm/stack_pointer.h>
---- a/arch/arm64/net/bpf_jit_comp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm64/net/bpf_jit_comp.c
-@@ -19,7 +19,7 @@
- #include <asm/cacheflush.h>
- #include <asm/debug-monitors.h>
- #include <asm/insn.h>
--#include <asm/patching.h>
-+#include <asm/text-patching.h>
- #include <asm/set_memory.h>
- 
- #include "bpf_jit.h"
-diff --git a/arch/arm/include/asm/patch.h a/arch/arm/include/asm/patch.h
-deleted file mode 100644
---- a/arch/arm/include/asm/patch.h
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _ARM_KERNEL_PATCH_H
--#define _ARM_KERNEL_PATCH_H
--
--void patch_text(void *addr, unsigned int insn);
--void __patch_text_real(void *addr, unsigned int insn, bool remap);
--
--static inline void __patch_text(void *addr, unsigned int insn)
--{
--	__patch_text_real(addr, insn, true);
--}
--
--static inline void __patch_text_early(void *addr, unsigned int insn)
--{
--	__patch_text_real(addr, insn, false);
--}
--
--#endif
-diff --git a/arch/arm/include/asm/text-patching.h a/arch/arm/include/asm/text-patching.h
-new file mode 100664
---- /dev/null
-+++ a/arch/arm/include/asm/text-patching.h
-@@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ARM_KERNEL_PATCH_H
-+#define _ARM_KERNEL_PATCH_H
++/**
++ * execmem_update_copy - copy an update to executable memory
++ * @dst:  destination address to update
++ * @src:  source address containing the data
++ * @size: how many bytes of memory shold be copied
++ *
++ * Copy @size bytes from @src to @dst using text poking if the memory at
++ * @dst is read-only.
++ *
++ * Return: a pointer to @dst or NULL on error
++ */
++void *execmem_update_copy(void *dst, const void *src, size_t size);
 +
-+void patch_text(void *addr, unsigned int insn);
-+void __patch_text_real(void *addr, unsigned int insn, bool remap);
++/**
++ * execmem_is_rox - check if execmem is read-only
++ * @type - the execmem type to check
++ *
++ * Return: %true if the @type is read-only, %false if it's writable
++ */
++bool execmem_is_rox(enum execmem_type type);
 +
-+static inline void __patch_text(void *addr, unsigned int insn)
+ #if defined(CONFIG_EXECMEM) && !defined(CONFIG_ARCH_WANTS_EXECMEM_LATE)
+ void execmem_init(void);
+ #else
+--- a/include/linux/module.h~module-prepare-to-handle-rox-allocations-for-text
++++ a/include/linux/module.h
+@@ -367,6 +367,8 @@ enum mod_mem_type {
+ 
+ struct module_memory {
+ 	void *base;
++	void *rw_copy;
++	bool is_rox;
+ 	unsigned int size;
+ 
+ #ifdef CONFIG_MODULES_TREE_LOOKUP
+@@ -374,6 +376,15 @@ struct module_memory {
+ #endif
+ };
+ 
++#ifdef CONFIG_MODULES
++void *module_writable_address(struct module *mod, void *loc);
++#else
++static inline void *module_writable_address(struct module *mod, void *loc)
 +{
-+	__patch_text_real(addr, insn, true);
++	return loc;
 +}
-+
-+static inline void __patch_text_early(void *addr, unsigned int insn)
-+{
-+	__patch_text_real(addr, insn, false);
-+}
-+
 +#endif
---- a/arch/arm/kernel/ftrace.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/kernel/ftrace.c
-@@ -23,7 +23,7 @@
- #include <asm/insn.h>
- #include <asm/set_memory.h>
- #include <asm/stacktrace.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- /*
-  * The compiler emitted profiling hook consists of
---- a/arch/arm/kernel/jump_label.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/kernel/jump_label.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/kernel.h>
- #include <linux/jump_label.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/insn.h>
- 
- static void __arch_jump_label_transform(struct jump_entry *entry,
---- a/arch/arm/kernel/kgdb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/kernel/kgdb.c
-@@ -15,7 +15,7 @@
- #include <linux/kgdb.h>
- #include <linux/uaccess.h>
- 
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/traps.h>
- 
- struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
---- a/arch/arm/kernel/patch.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/kernel/patch.c
-@@ -9,7 +9,7 @@
- #include <asm/fixmap.h>
- #include <asm/smp_plat.h>
- #include <asm/opcodes.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- struct patch {
- 	void *addr;
---- a/arch/arm/probes/kprobes/core.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/probes/kprobes/core.c
-@@ -25,7 +25,7 @@
- #include <asm/cacheflush.h>
- #include <linux/percpu.h>
- #include <linux/bug.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/sections.h>
- 
- #include "../decode-arm.h"
---- a/arch/arm/probes/kprobes/opt-arm.c~asm-generic-introduce-text-patchingh
-+++ a/arch/arm/probes/kprobes/opt-arm.c
-@@ -14,7 +14,7 @@
- /* for arm_gen_branch */
- #include <asm/insn.h>
- /* for patch_text */
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- #include "core.h"
- 
---- a/arch/csky/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/csky/include/asm/Kbuild
-@@ -11,3 +11,4 @@ generic-y += qspinlock.h
- generic-y += parport.h
- generic-y += user.h
- generic-y += vmlinux.lds.h
-+generic-y += text-patching.h
---- a/arch/hexagon/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/hexagon/include/asm/Kbuild
-@@ -5,3 +5,4 @@ generic-y += extable.h
- generic-y += iomap.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
-+generic-y += text-patching.h
---- a/arch/loongarch/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/loongarch/include/asm/Kbuild
-@@ -11,3 +11,4 @@ generic-y += ioctl.h
- generic-y += mmzone.h
- generic-y += statfs.h
- generic-y += param.h
-+generic-y += text-patching.h
---- a/arch/m68k/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/m68k/include/asm/Kbuild
-@@ -4,3 +4,4 @@ generic-y += extable.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
- generic-y += spinlock.h
-+generic-y += text-patching.h
---- a/arch/microblaze/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/microblaze/include/asm/Kbuild
-@@ -8,3 +8,4 @@ generic-y += parport.h
- generic-y += syscalls.h
- generic-y += tlb.h
- generic-y += user.h
-+generic-y += text-patching.h
---- a/arch/mips/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/mips/include/asm/Kbuild
-@@ -13,3 +13,4 @@ generic-y += parport.h
- generic-y += qrwlock.h
- generic-y += qspinlock.h
- generic-y += user.h
-+generic-y += text-patching.h
---- a/arch/nios2/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/nios2/include/asm/Kbuild
-@@ -7,3 +7,4 @@ generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
- generic-y += spinlock.h
- generic-y += user.h
-+generic-y += text-patching.h
---- a/arch/openrisc/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/openrisc/include/asm/Kbuild
-@@ -9,3 +9,4 @@ generic-y += spinlock.h
- generic-y += qrwlock_types.h
- generic-y += qrwlock.h
- generic-y += user.h
-+generic-y += text-patching.h
-diff --git a/arch/parisc/include/asm/patch.h a/arch/parisc/include/asm/patch.h
-deleted file mode 100644
---- a/arch/parisc/include/asm/patch.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _PARISC_KERNEL_PATCH_H
--#define _PARISC_KERNEL_PATCH_H
--
--/* stop machine and patch kernel text */
--void patch_text(void *addr, unsigned int insn);
--void patch_text_multiple(void *addr, u32 *insn, unsigned int len);
--
--/* patch kernel text with machine already stopped (e.g. in kgdb) */
--void __patch_text(void *addr, u32 insn);
--void __patch_text_multiple(void *addr, u32 *insn, unsigned int len);
--
--#endif
-diff --git a/arch/parisc/include/asm/text-patching.h a/arch/parisc/include/asm/text-patching.h
-new file mode 100664
---- /dev/null
-+++ a/arch/parisc/include/asm/text-patching.h
-@@ -0,0 +1,13 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _PARISC_KERNEL_PATCH_H
-+#define _PARISC_KERNEL_PATCH_H
 +
-+/* stop machine and patch kernel text */
-+void patch_text(void *addr, unsigned int insn);
-+void patch_text_multiple(void *addr, u32 *insn, unsigned int len);
+ #ifdef CONFIG_MODULES_TREE_LOOKUP
+ /* Only touch one cacheline for common rbtree-for-core-layout case. */
+ #define __module_memory_align ____cacheline_aligned
+--- a/include/linux/moduleloader.h~module-prepare-to-handle-rox-allocations-for-text
++++ a/include/linux/moduleloader.h
+@@ -108,6 +108,10 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 		    const Elf_Shdr *sechdrs,
+ 		    struct module *mod);
+ 
++int module_post_finalize(const Elf_Ehdr *hdr,
++			 const Elf_Shdr *sechdrs,
++			 struct module *mod);
 +
-+/* patch kernel text with machine already stopped (e.g. in kgdb) */
-+void __patch_text(void *addr, u32 insn);
-+void __patch_text_multiple(void *addr, u32 *insn, unsigned int len);
-+
-+#endif
---- a/arch/parisc/kernel/ftrace.c~asm-generic-introduce-text-patchingh
-+++ a/arch/parisc/kernel/ftrace.c
-@@ -20,7 +20,7 @@
- #include <asm/assembly.h>
- #include <asm/sections.h>
- #include <asm/ftrace.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- #define __hot __section(".text.hot")
- 
---- a/arch/parisc/kernel/jump_label.c~asm-generic-introduce-text-patchingh
-+++ a/arch/parisc/kernel/jump_label.c
-@@ -8,7 +8,7 @@
- #include <linux/jump_label.h>
- #include <linux/bug.h>
- #include <asm/alternative.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- static inline int reassemble_17(int as17)
+ #ifdef CONFIG_MODULES
+ void flush_module_init_free_work(void);
+ #else
+--- a/kernel/module/debug_kmemleak.c~module-prepare-to-handle-rox-allocations-for-text
++++ a/kernel/module/debug_kmemleak.c
+@@ -14,7 +14,8 @@ void kmemleak_load_module(const struct m
  {
---- a/arch/parisc/kernel/kgdb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/parisc/kernel/kgdb.c
-@@ -16,7 +16,7 @@
- #include <asm/ptrace.h>
- #include <asm/traps.h>
- #include <asm/processor.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/cacheflush.h>
+ 	/* only scan writable, non-executable sections */
+ 	for_each_mod_mem_type(type) {
+-		if (type != MOD_DATA && type != MOD_INIT_DATA)
++		if (type != MOD_DATA && type != MOD_INIT_DATA &&
++		    !mod->mem[type].is_rox)
+ 			kmemleak_no_scan(mod->mem[type].base);
+ 	}
+ }
+--- a/kernel/module/main.c~module-prepare-to-handle-rox-allocations-for-text
++++ a/kernel/module/main.c
+@@ -1189,6 +1189,21 @@ void __weak module_arch_freeing_init(str
+ {
+ }
  
- const struct kgdb_arch arch_kgdb_ops = {
---- a/arch/parisc/kernel/kprobes.c~asm-generic-introduce-text-patchingh
-+++ a/arch/parisc/kernel/kprobes.c
-@@ -12,7 +12,7 @@
- #include <linux/kprobes.h>
- #include <linux/slab.h>
- #include <asm/cacheflush.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
---- a/arch/parisc/kernel/patch.c~asm-generic-introduce-text-patchingh
-+++ a/arch/parisc/kernel/patch.c
-@@ -13,7 +13,7 @@
- 
- #include <asm/cacheflush.h>
- #include <asm/fixmap.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- struct patch {
- 	void *addr;
-diff --git a/arch/powerpc/include/asm/code-patching.h a/arch/powerpc/include/asm/code-patching.h
-deleted file mode 100644
---- a/arch/powerpc/include/asm/code-patching.h
-+++ /dev/null
-@@ -1,275 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-or-later */
--#ifndef _ASM_POWERPC_CODE_PATCHING_H
--#define _ASM_POWERPC_CODE_PATCHING_H
--
--/*
-- * Copyright 2008, Michael Ellerman, IBM Corporation.
-- */
--
--#include <asm/types.h>
--#include <asm/ppc-opcode.h>
--#include <linux/string.h>
--#include <linux/kallsyms.h>
--#include <asm/asm-compat.h>
--#include <asm/inst.h>
--
--/* Flags for create_branch:
-- * "b"   == create_branch(addr, target, 0);
-- * "ba"  == create_branch(addr, target, BRANCH_ABSOLUTE);
-- * "bl"  == create_branch(addr, target, BRANCH_SET_LINK);
-- * "bla" == create_branch(addr, target, BRANCH_ABSOLUTE | BRANCH_SET_LINK);
-- */
--#define BRANCH_SET_LINK	0x1
--#define BRANCH_ABSOLUTE	0x2
--
--/*
-- * Powerpc branch instruction is :
-- *
-- *  0         6                 30   31
-- *  +---------+----------------+---+---+
-- *  | opcode  |     LI         |AA |LK |
-- *  +---------+----------------+---+---+
-- *  Where AA = 0 and LK = 0
-- *
-- * LI is a signed 24 bits integer. The real branch offset is computed
-- * by: imm32 = SignExtend(LI:'0b00', 32);
-- *
-- * So the maximum forward branch should be:
-- *   (0x007fffff << 2) = 0x01fffffc =  0x1fffffc
-- * The maximum backward branch should be:
-- *   (0xff800000 << 2) = 0xfe000000 = -0x2000000
-- */
--static inline bool is_offset_in_branch_range(long offset)
--{
--	return (offset >= -0x2000000 && offset <= 0x1fffffc && !(offset & 0x3));
--}
--
--static inline bool is_offset_in_cond_branch_range(long offset)
--{
--	return offset >= -0x8000 && offset <= 0x7fff && !(offset & 0x3);
--}
--
--static inline int create_branch(ppc_inst_t *instr, const u32 *addr,
--				unsigned long target, int flags)
--{
--	long offset;
--
--	*instr = ppc_inst(0);
--	offset = target;
--	if (! (flags & BRANCH_ABSOLUTE))
--		offset = offset - (unsigned long)addr;
--
--	/* Check we can represent the target in the instruction format */
--	if (!is_offset_in_branch_range(offset))
--		return 1;
--
--	/* Mask out the flags and target, so they don't step on each other. */
--	*instr = ppc_inst(0x48000000 | (flags & 0x3) | (offset & 0x03FFFFFC));
--
--	return 0;
--}
--
--int create_cond_branch(ppc_inst_t *instr, const u32 *addr,
--		       unsigned long target, int flags);
--int patch_branch(u32 *addr, unsigned long target, int flags);
--int patch_instruction(u32 *addr, ppc_inst_t instr);
--int raw_patch_instruction(u32 *addr, ppc_inst_t instr);
--int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr);
--
--/*
-- * The data patching functions patch_uint() and patch_ulong(), etc., must be
-- * called on aligned addresses.
-- *
-- * The instruction patching functions patch_instruction() and similar must be
-- * called on addresses satisfying instruction alignment requirements.
-- */
--
--#ifdef CONFIG_PPC64
--
--int patch_uint(void *addr, unsigned int val);
--int patch_ulong(void *addr, unsigned long val);
--
--#define patch_u64 patch_ulong
--
--#else
--
--static inline int patch_uint(void *addr, unsigned int val)
--{
--	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned int)))
--		return -EINVAL;
--
--	return patch_instruction(addr, ppc_inst(val));
--}
--
--static inline int patch_ulong(void *addr, unsigned long val)
--{
--	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned long)))
--		return -EINVAL;
--
--	return patch_instruction(addr, ppc_inst(val));
--}
--
--#endif
--
--#define patch_u32 patch_uint
--
--static inline unsigned long patch_site_addr(s32 *site)
--{
--	return (unsigned long)site + *site;
--}
--
--static inline int patch_instruction_site(s32 *site, ppc_inst_t instr)
--{
--	return patch_instruction((u32 *)patch_site_addr(site), instr);
--}
--
--static inline int patch_branch_site(s32 *site, unsigned long target, int flags)
--{
--	return patch_branch((u32 *)patch_site_addr(site), target, flags);
--}
--
--static inline int modify_instruction(unsigned int *addr, unsigned int clr,
--				     unsigned int set)
--{
--	return patch_instruction(addr, ppc_inst((*addr & ~clr) | set));
--}
--
--static inline int modify_instruction_site(s32 *site, unsigned int clr, unsigned int set)
--{
--	return modify_instruction((unsigned int *)patch_site_addr(site), clr, set);
--}
--
--static inline unsigned int branch_opcode(ppc_inst_t instr)
--{
--	return ppc_inst_primary_opcode(instr) & 0x3F;
--}
--
--static inline int instr_is_branch_iform(ppc_inst_t instr)
--{
--	return branch_opcode(instr) == 18;
--}
--
--static inline int instr_is_branch_bform(ppc_inst_t instr)
--{
--	return branch_opcode(instr) == 16;
--}
--
--int instr_is_relative_branch(ppc_inst_t instr);
--int instr_is_relative_link_branch(ppc_inst_t instr);
--unsigned long branch_target(const u32 *instr);
--int translate_branch(ppc_inst_t *instr, const u32 *dest, const u32 *src);
--bool is_conditional_branch(ppc_inst_t instr);
--
--#define OP_RT_RA_MASK	0xffff0000UL
--#define LIS_R2		(PPC_RAW_LIS(_R2, 0))
--#define ADDIS_R2_R12	(PPC_RAW_ADDIS(_R2, _R12, 0))
--#define ADDI_R2_R2	(PPC_RAW_ADDI(_R2, _R2, 0))
--
--
--static inline unsigned long ppc_function_entry(void *func)
--{
--#ifdef CONFIG_PPC64_ELF_ABI_V2
--	u32 *insn = func;
--
--	/*
--	 * A PPC64 ABIv2 function may have a local and a global entry
--	 * point. We need to use the local entry point when patching
--	 * functions, so identify and step over the global entry point
--	 * sequence.
--	 *
--	 * The global entry point sequence is always of the form:
--	 *
--	 * addis r2,r12,XXXX
--	 * addi  r2,r2,XXXX
--	 *
--	 * A linker optimisation may convert the addis to lis:
--	 *
--	 * lis   r2,XXXX
--	 * addi  r2,r2,XXXX
--	 */
--	if ((((*insn & OP_RT_RA_MASK) == ADDIS_R2_R12) ||
--	     ((*insn & OP_RT_RA_MASK) == LIS_R2)) &&
--	    ((*(insn+1) & OP_RT_RA_MASK) == ADDI_R2_R2))
--		return (unsigned long)(insn + 2);
--	else
--		return (unsigned long)func;
--#elif defined(CONFIG_PPC64_ELF_ABI_V1)
--	/*
--	 * On PPC64 ABIv1 the function pointer actually points to the
--	 * function's descriptor. The first entry in the descriptor is the
--	 * address of the function text.
--	 */
--	return ((struct func_desc *)func)->addr;
--#else
--	return (unsigned long)func;
--#endif
--}
--
--static inline unsigned long ppc_global_function_entry(void *func)
--{
--#ifdef CONFIG_PPC64_ELF_ABI_V2
--	/* PPC64 ABIv2 the global entry point is at the address */
--	return (unsigned long)func;
--#else
--	/* All other cases there is no change vs ppc_function_entry() */
--	return ppc_function_entry(func);
--#endif
--}
--
--/*
-- * Wrapper around kallsyms_lookup() to return function entry address:
-- * - For ABIv1, we lookup the dot variant.
-- * - For ABIv2, we return the local entry point.
-- */
--static inline unsigned long ppc_kallsyms_lookup_name(const char *name)
--{
--	unsigned long addr;
--#ifdef CONFIG_PPC64_ELF_ABI_V1
--	/* check for dot variant */
--	char dot_name[1 + KSYM_NAME_LEN];
--	bool dot_appended = false;
--
--	if (strnlen(name, KSYM_NAME_LEN) >= KSYM_NAME_LEN)
--		return 0;
--
--	if (name[0] != '.') {
--		dot_name[0] = '.';
--		dot_name[1] = '\0';
--		strlcat(dot_name, name, sizeof(dot_name));
--		dot_appended = true;
--	} else {
--		dot_name[0] = '\0';
--		strlcat(dot_name, name, sizeof(dot_name));
--	}
--	addr = kallsyms_lookup_name(dot_name);
--	if (!addr && dot_appended)
--		/* Let's try the original non-dot symbol lookup	*/
--		addr = kallsyms_lookup_name(name);
--#elif defined(CONFIG_PPC64_ELF_ABI_V2)
--	addr = kallsyms_lookup_name(name);
--	if (addr)
--		addr = ppc_function_entry((void *)addr);
--#else
--	addr = kallsyms_lookup_name(name);
--#endif
--	return addr;
--}
--
--/*
-- * Some instruction encodings commonly used in dynamic ftracing
-- * and function live patching.
-- */
--
--/* This must match the definition of STK_GOT in <asm/ppc_asm.h> */
--#ifdef CONFIG_PPC64_ELF_ABI_V2
--#define R2_STACK_OFFSET         24
--#else
--#define R2_STACK_OFFSET         40
--#endif
--
--#define PPC_INST_LD_TOC		PPC_RAW_LD(_R2, _R1, R2_STACK_OFFSET)
--
--/* usually preceded by a mflr r0 */
--#define PPC_INST_STD_LR		PPC_RAW_STD(_R0, _R1, PPC_LR_STKOFF)
--
--#endif /* _ASM_POWERPC_CODE_PATCHING_H */
---- a/arch/powerpc/include/asm/kprobes.h~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/include/asm/kprobes.h
-@@ -21,7 +21,7 @@
- #include <linux/percpu.h>
- #include <linux/module.h>
- #include <asm/probes.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- #ifdef CONFIG_KPROBES
- #define  __ARCH_WANT_KPROBES_INSN_SLOT
-diff --git a/arch/powerpc/include/asm/text-patching.h a/arch/powerpc/include/asm/text-patching.h
-new file mode 100664
---- /dev/null
-+++ a/arch/powerpc/include/asm/text-patching.h
-@@ -0,0 +1,275 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _ASM_POWERPC_CODE_PATCHING_H
-+#define _ASM_POWERPC_CODE_PATCHING_H
-+
-+/*
-+ * Copyright 2008, Michael Ellerman, IBM Corporation.
-+ */
-+
-+#include <asm/types.h>
-+#include <asm/ppc-opcode.h>
-+#include <linux/string.h>
-+#include <linux/kallsyms.h>
-+#include <asm/asm-compat.h>
-+#include <asm/inst.h>
-+
-+/* Flags for create_branch:
-+ * "b"   == create_branch(addr, target, 0);
-+ * "ba"  == create_branch(addr, target, BRANCH_ABSOLUTE);
-+ * "bl"  == create_branch(addr, target, BRANCH_SET_LINK);
-+ * "bla" == create_branch(addr, target, BRANCH_ABSOLUTE | BRANCH_SET_LINK);
-+ */
-+#define BRANCH_SET_LINK	0x1
-+#define BRANCH_ABSOLUTE	0x2
-+
-+/*
-+ * Powerpc branch instruction is :
-+ *
-+ *  0         6                 30   31
-+ *  +---------+----------------+---+---+
-+ *  | opcode  |     LI         |AA |LK |
-+ *  +---------+----------------+---+---+
-+ *  Where AA = 0 and LK = 0
-+ *
-+ * LI is a signed 24 bits integer. The real branch offset is computed
-+ * by: imm32 = SignExtend(LI:'0b00', 32);
-+ *
-+ * So the maximum forward branch should be:
-+ *   (0x007fffff << 2) = 0x01fffffc =  0x1fffffc
-+ * The maximum backward branch should be:
-+ *   (0xff800000 << 2) = 0xfe000000 = -0x2000000
-+ */
-+static inline bool is_offset_in_branch_range(long offset)
++void *module_writable_address(struct module *mod, void *loc)
 +{
-+	return (offset >= -0x2000000 && offset <= 0x1fffffc && !(offset & 0x3));
++	if (!mod)
++		return loc;
++
++	for_class_mod_mem_type(type, text) {
++		struct module_memory *mem = &mod->mem[type];
++
++		if (loc >= mem->base && loc < mem->base + mem->size)
++			return loc + (mem->rw_copy - mem->base);
++	}
++
++	return loc;
 +}
 +
-+static inline bool is_offset_in_cond_branch_range(long offset)
+ static int module_memory_alloc(struct module *mod, enum mod_mem_type type)
+ {
+ 	unsigned int size = PAGE_ALIGN(mod->mem[type].size);
+@@ -1206,6 +1221,23 @@ static int module_memory_alloc(struct mo
+ 	if (!ptr)
+ 		return -ENOMEM;
+ 
++	mod->mem[type].base = ptr;
++
++	if (execmem_is_rox(execmem_type)) {
++		ptr = vzalloc(size);
++
++		if (!ptr) {
++			execmem_free(mod->mem[type].base);
++			return -ENOMEM;
++		}
++
++		mod->mem[type].rw_copy = ptr;
++		mod->mem[type].is_rox = true;
++	} else {
++		mod->mem[type].rw_copy = mod->mem[type].base;
++		memset(mod->mem[type].base, 0, size);
++	}
++
+ 	/*
+ 	 * The pointer to these blocks of memory are stored on the module
+ 	 * structure and we keep that around so long as the module is
+@@ -1219,16 +1251,17 @@ static int module_memory_alloc(struct mo
+ 	 */
+ 	kmemleak_not_leak(ptr);
+ 
+-	memset(ptr, 0, size);
+-	mod->mem[type].base = ptr;
+-
+ 	return 0;
+ }
+ 
+ static void module_memory_free(struct module *mod, enum mod_mem_type type,
+ 			       bool unload_codetags)
+ {
+-	void *ptr = mod->mem[type].base;
++	struct module_memory *mem = &mod->mem[type];
++	void *ptr = mem->base;
++
++	if (mem->is_rox)
++		vfree(mem->rw_copy);
+ 
+ 	if (!unload_codetags && mod_mem_type_is_core_data(type))
+ 		return;
+@@ -2251,6 +2284,7 @@ static int move_module(struct module *mo
+ 	for_each_mod_mem_type(type) {
+ 		if (!mod->mem[type].size) {
+ 			mod->mem[type].base = NULL;
++			mod->mem[type].rw_copy = NULL;
+ 			continue;
+ 		}
+ 
+@@ -2267,11 +2301,14 @@ static int move_module(struct module *mo
+ 		void *dest;
+ 		Elf_Shdr *shdr = &info->sechdrs[i];
+ 		enum mod_mem_type type = shdr->sh_entsize >> SH_ENTSIZE_TYPE_SHIFT;
++		unsigned long offset = shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK;
++		unsigned long addr;
+ 
+ 		if (!(shdr->sh_flags & SHF_ALLOC))
+ 			continue;
+ 
+-		dest = mod->mem[type].base + (shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK);
++		addr = (unsigned long)mod->mem[type].base + offset;
++		dest = mod->mem[type].rw_copy + offset;
+ 
+ 		if (shdr->sh_type != SHT_NOBITS) {
+ 			/*
+@@ -2293,7 +2330,7 @@ static int move_module(struct module *mo
+ 		 * users of info can keep taking advantage and using the newly
+ 		 * minted official memory area.
+ 		 */
+-		shdr->sh_addr = (unsigned long)dest;
++		shdr->sh_addr = addr;
+ 		pr_debug("\t0x%lx 0x%.8lx %s\n", (long)shdr->sh_addr,
+ 			 (long)shdr->sh_size, info->secstrings + shdr->sh_name);
+ 	}
+@@ -2441,8 +2478,17 @@ int __weak module_finalize(const Elf_Ehd
+ 	return 0;
+ }
+ 
++int __weak module_post_finalize(const Elf_Ehdr *hdr,
++				const Elf_Shdr *sechdrs,
++				struct module *me)
 +{
-+	return offset >= -0x8000 && offset <= 0x7fff && !(offset & 0x3);
-+}
-+
-+static inline int create_branch(ppc_inst_t *instr, const u32 *addr,
-+				unsigned long target, int flags)
-+{
-+	long offset;
-+
-+	*instr = ppc_inst(0);
-+	offset = target;
-+	if (! (flags & BRANCH_ABSOLUTE))
-+		offset = offset - (unsigned long)addr;
-+
-+	/* Check we can represent the target in the instruction format */
-+	if (!is_offset_in_branch_range(offset))
-+		return 1;
-+
-+	/* Mask out the flags and target, so they don't step on each other. */
-+	*instr = ppc_inst(0x48000000 | (flags & 0x3) | (offset & 0x03FFFFFC));
-+
 +	return 0;
 +}
 +
-+int create_cond_branch(ppc_inst_t *instr, const u32 *addr,
-+		       unsigned long target, int flags);
-+int patch_branch(u32 *addr, unsigned long target, int flags);
-+int patch_instruction(u32 *addr, ppc_inst_t instr);
-+int raw_patch_instruction(u32 *addr, ppc_inst_t instr);
-+int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr);
+ static int post_relocation(struct module *mod, const struct load_info *info)
+ {
++	int ret;
 +
-+/*
-+ * The data patching functions patch_uint() and patch_ulong(), etc., must be
-+ * called on aligned addresses.
-+ *
-+ * The instruction patching functions patch_instruction() and similar must be
-+ * called on addresses satisfying instruction alignment requirements.
-+ */
+ 	/* Sort exception table now relocations are done. */
+ 	sort_extable(mod->extable, mod->extable + mod->num_exentries);
+ 
+@@ -2454,7 +2500,24 @@ static int post_relocation(struct module
+ 	add_kallsyms(mod, info);
+ 
+ 	/* Arch-specific module finalizing. */
+-	return module_finalize(info->hdr, info->sechdrs, mod);
++	ret = module_finalize(info->hdr, info->sechdrs, mod);
++	if (ret)
++		return ret;
 +
-+#ifdef CONFIG_PPC64
++	for_each_mod_mem_type(type) {
++		struct module_memory *mem = &mod->mem[type];
 +
-+int patch_uint(void *addr, unsigned int val);
-+int patch_ulong(void *addr, unsigned long val);
++		if (mem->is_rox) {
++			if (!execmem_update_copy(mem->base, mem->rw_copy,
++						 mem->size))
++				return -ENOMEM;
 +
-+#define patch_u64 patch_ulong
-+
-+#else
-+
-+static inline int patch_uint(void *addr, unsigned int val)
-+{
-+	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned int)))
-+		return -EINVAL;
-+
-+	return patch_instruction(addr, ppc_inst(val));
-+}
-+
-+static inline int patch_ulong(void *addr, unsigned long val)
-+{
-+	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned long)))
-+		return -EINVAL;
-+
-+	return patch_instruction(addr, ppc_inst(val));
-+}
-+
-+#endif
-+
-+#define patch_u32 patch_uint
-+
-+static inline unsigned long patch_site_addr(s32 *site)
-+{
-+	return (unsigned long)site + *site;
-+}
-+
-+static inline int patch_instruction_site(s32 *site, ppc_inst_t instr)
-+{
-+	return patch_instruction((u32 *)patch_site_addr(site), instr);
-+}
-+
-+static inline int patch_branch_site(s32 *site, unsigned long target, int flags)
-+{
-+	return patch_branch((u32 *)patch_site_addr(site), target, flags);
-+}
-+
-+static inline int modify_instruction(unsigned int *addr, unsigned int clr,
-+				     unsigned int set)
-+{
-+	return patch_instruction(addr, ppc_inst((*addr & ~clr) | set));
-+}
-+
-+static inline int modify_instruction_site(s32 *site, unsigned int clr, unsigned int set)
-+{
-+	return modify_instruction((unsigned int *)patch_site_addr(site), clr, set);
-+}
-+
-+static inline unsigned int branch_opcode(ppc_inst_t instr)
-+{
-+	return ppc_inst_primary_opcode(instr) & 0x3F;
-+}
-+
-+static inline int instr_is_branch_iform(ppc_inst_t instr)
-+{
-+	return branch_opcode(instr) == 18;
-+}
-+
-+static inline int instr_is_branch_bform(ppc_inst_t instr)
-+{
-+	return branch_opcode(instr) == 16;
-+}
-+
-+int instr_is_relative_branch(ppc_inst_t instr);
-+int instr_is_relative_link_branch(ppc_inst_t instr);
-+unsigned long branch_target(const u32 *instr);
-+int translate_branch(ppc_inst_t *instr, const u32 *dest, const u32 *src);
-+bool is_conditional_branch(ppc_inst_t instr);
-+
-+#define OP_RT_RA_MASK	0xffff0000UL
-+#define LIS_R2		(PPC_RAW_LIS(_R2, 0))
-+#define ADDIS_R2_R12	(PPC_RAW_ADDIS(_R2, _R12, 0))
-+#define ADDI_R2_R2	(PPC_RAW_ADDI(_R2, _R2, 0))
-+
-+
-+static inline unsigned long ppc_function_entry(void *func)
-+{
-+#ifdef CONFIG_PPC64_ELF_ABI_V2
-+	u32 *insn = func;
-+
-+	/*
-+	 * A PPC64 ABIv2 function may have a local and a global entry
-+	 * point. We need to use the local entry point when patching
-+	 * functions, so identify and step over the global entry point
-+	 * sequence.
-+	 *
-+	 * The global entry point sequence is always of the form:
-+	 *
-+	 * addis r2,r12,XXXX
-+	 * addi  r2,r2,XXXX
-+	 *
-+	 * A linker optimisation may convert the addis to lis:
-+	 *
-+	 * lis   r2,XXXX
-+	 * addi  r2,r2,XXXX
-+	 */
-+	if ((((*insn & OP_RT_RA_MASK) == ADDIS_R2_R12) ||
-+	     ((*insn & OP_RT_RA_MASK) == LIS_R2)) &&
-+	    ((*(insn+1) & OP_RT_RA_MASK) == ADDI_R2_R2))
-+		return (unsigned long)(insn + 2);
-+	else
-+		return (unsigned long)func;
-+#elif defined(CONFIG_PPC64_ELF_ABI_V1)
-+	/*
-+	 * On PPC64 ABIv1 the function pointer actually points to the
-+	 * function's descriptor. The first entry in the descriptor is the
-+	 * address of the function text.
-+	 */
-+	return ((struct func_desc *)func)->addr;
-+#else
-+	return (unsigned long)func;
-+#endif
-+}
-+
-+static inline unsigned long ppc_global_function_entry(void *func)
-+{
-+#ifdef CONFIG_PPC64_ELF_ABI_V2
-+	/* PPC64 ABIv2 the global entry point is at the address */
-+	return (unsigned long)func;
-+#else
-+	/* All other cases there is no change vs ppc_function_entry() */
-+	return ppc_function_entry(func);
-+#endif
-+}
-+
-+/*
-+ * Wrapper around kallsyms_lookup() to return function entry address:
-+ * - For ABIv1, we lookup the dot variant.
-+ * - For ABIv2, we return the local entry point.
-+ */
-+static inline unsigned long ppc_kallsyms_lookup_name(const char *name)
-+{
-+	unsigned long addr;
-+#ifdef CONFIG_PPC64_ELF_ABI_V1
-+	/* check for dot variant */
-+	char dot_name[1 + KSYM_NAME_LEN];
-+	bool dot_appended = false;
-+
-+	if (strnlen(name, KSYM_NAME_LEN) >= KSYM_NAME_LEN)
-+		return 0;
-+
-+	if (name[0] != '.') {
-+		dot_name[0] = '.';
-+		dot_name[1] = '\0';
-+		strlcat(dot_name, name, sizeof(dot_name));
-+		dot_appended = true;
-+	} else {
-+		dot_name[0] = '\0';
-+		strlcat(dot_name, name, sizeof(dot_name));
++			vfree(mem->rw_copy);
++			mem->rw_copy = NULL;
++		}
 +	}
-+	addr = kallsyms_lookup_name(dot_name);
-+	if (!addr && dot_appended)
-+		/* Let's try the original non-dot symbol lookup	*/
-+		addr = kallsyms_lookup_name(name);
-+#elif defined(CONFIG_PPC64_ELF_ABI_V2)
-+	addr = kallsyms_lookup_name(name);
-+	if (addr)
-+		addr = ppc_function_entry((void *)addr);
-+#else
-+	addr = kallsyms_lookup_name(name);
-+#endif
-+	return addr;
-+}
 +
-+/*
-+ * Some instruction encodings commonly used in dynamic ftracing
-+ * and function live patching.
-+ */
++	return module_post_finalize(info->hdr, info->sechdrs, mod);
+ }
+ 
+ /* Call module constructors. */
+--- a/kernel/module/strict_rwx.c~module-prepare-to-handle-rox-allocations-for-text
++++ a/kernel/module/strict_rwx.c
+@@ -34,6 +34,9 @@ int module_enable_text_rox(const struct
+ 	for_class_mod_mem_type(type, text) {
+ 		int ret;
+ 
++		if (mod->mem[type].is_rox)
++			continue;
 +
-+/* This must match the definition of STK_GOT in <asm/ppc_asm.h> */
-+#ifdef CONFIG_PPC64_ELF_ABI_V2
-+#define R2_STACK_OFFSET         24
-+#else
-+#define R2_STACK_OFFSET         40
-+#endif
-+
-+#define PPC_INST_LD_TOC		PPC_RAW_LD(_R2, _R1, R2_STACK_OFFSET)
-+
-+/* usually preceded by a mflr r0 */
-+#define PPC_INST_STD_LR		PPC_RAW_STD(_R0, _R1, PPC_LR_STKOFF)
-+
-+#endif /* _ASM_POWERPC_CODE_PATCHING_H */
---- a/arch/powerpc/kernel/crash_dump.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/crash_dump.c
-@@ -13,7 +13,7 @@
- #include <linux/io.h>
- #include <linux/memblock.h>
- #include <linux/of.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/kdump.h>
- #include <asm/firmware.h>
- #include <linux/uio.h>
---- a/arch/powerpc/kernel/epapr_paravirt.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/epapr_paravirt.c
-@@ -9,7 +9,7 @@
- #include <linux/of_fdt.h>
- #include <asm/epapr_hcalls.h>
- #include <asm/cacheflush.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/machdep.h>
- #include <asm/inst.h>
- 
---- a/arch/powerpc/kernel/jump_label.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/jump_label.c
-@@ -5,7 +5,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/jump_label.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/inst.h>
- 
- void arch_jump_label_transform(struct jump_entry *entry,
---- a/arch/powerpc/kernel/kgdb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/kgdb.c
-@@ -21,7 +21,7 @@
- #include <asm/processor.h>
- #include <asm/machdep.h>
- #include <asm/debug.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <linux/slab.h>
- #include <asm/inst.h>
- 
---- a/arch/powerpc/kernel/kprobes.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -21,7 +21,7 @@
- #include <linux/slab.h>
- #include <linux/set_memory.h>
- #include <linux/execmem.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/cacheflush.h>
- #include <asm/sstep.h>
- #include <asm/sections.h>
---- a/arch/powerpc/kernel/module_32.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/module_32.c
-@@ -18,7 +18,7 @@
- #include <linux/bug.h>
- #include <linux/sort.h>
- #include <asm/setup.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- /* Count how many different relocations (different symbol, different
-    addend) */
---- a/arch/powerpc/kernel/module_64.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/module_64.c
-@@ -17,7 +17,7 @@
- #include <linux/kernel.h>
- #include <asm/module.h>
- #include <asm/firmware.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <linux/sort.h>
- #include <asm/setup.h>
- #include <asm/sections.h>
---- a/arch/powerpc/kernel/optprobes.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/optprobes.c
-@@ -13,7 +13,7 @@
- #include <asm/kprobes.h>
- #include <asm/ptrace.h>
- #include <asm/cacheflush.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/sstep.h>
- #include <asm/ppc-opcode.h>
- #include <asm/inst.h>
---- a/arch/powerpc/kernel/process.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/process.c
-@@ -54,7 +54,7 @@
- #include <asm/firmware.h>
- #include <asm/hw_irq.h>
- #endif
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/exec.h>
- #include <asm/livepatch.h>
- #include <asm/cpu_has_feature.h>
---- a/arch/powerpc/kernel/security.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/security.c
-@@ -14,7 +14,7 @@
- #include <linux/debugfs.h>
- 
- #include <asm/asm-prototypes.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/security_features.h>
- #include <asm/sections.h>
- #include <asm/setup.h>
---- a/arch/powerpc/kernel/setup_32.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/setup_32.c
-@@ -40,7 +40,7 @@
- #include <asm/time.h>
- #include <asm/serial.h>
- #include <asm/udbg.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/cpu_has_feature.h>
- #include <asm/asm-prototypes.h>
- #include <asm/kdump.h>
---- a/arch/powerpc/kernel/setup_64.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -60,7 +60,7 @@
- #include <asm/xmon.h>
- #include <asm/udbg.h>
- #include <asm/kexec.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/ftrace.h>
- #include <asm/opal.h>
- #include <asm/cputhreads.h>
---- a/arch/powerpc/kernel/static_call.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/static_call.c
-@@ -2,7 +2,7 @@
- #include <linux/memory.h>
- #include <linux/static_call.h>
- 
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- void arch_static_call_transform(void *site, void *tramp, void *func, bool tail)
- {
---- a/arch/powerpc/kernel/trace/ftrace_64_pg.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/trace/ftrace_64_pg.c
-@@ -23,7 +23,7 @@
- #include <linux/list.h>
- 
- #include <asm/cacheflush.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/ftrace.h>
- #include <asm/syscall.h>
- #include <asm/inst.h>
---- a/arch/powerpc/kernel/trace/ftrace.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/kernel/trace/ftrace.c
-@@ -23,7 +23,7 @@
- #include <linux/list.h>
- 
- #include <asm/cacheflush.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/ftrace.h>
- #include <asm/syscall.h>
- #include <asm/inst.h>
---- a/arch/powerpc/lib/code-patching.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/lib/code-patching.c
-@@ -17,7 +17,7 @@
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include <asm/page.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/inst.h>
- 
- static int __patch_mem(void *exec_addr, unsigned long val, void *patch_addr, bool is_dword)
---- a/arch/powerpc/lib/feature-fixups.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/lib/feature-fixups.c
-@@ -16,7 +16,7 @@
- #include <linux/sched/mm.h>
- #include <linux/stop_machine.h>
- #include <asm/cputable.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/interrupt.h>
- #include <asm/page.h>
- #include <asm/sections.h>
---- a/arch/powerpc/lib/test-code-patching.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/lib/test-code-patching.c
-@@ -6,7 +6,7 @@
+ 		if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
+ 			ret = module_set_memory(mod, type, set_memory_rox);
+ 		else
+--- a/mm/execmem.c~module-prepare-to-handle-rox-allocations-for-text
++++ a/mm/execmem.c
+@@ -10,6 +10,7 @@
  #include <linux/vmalloc.h>
- #include <linux/init.h>
+ #include <linux/execmem.h>
+ #include <linux/moduleloader.h>
++#include <linux/text-patching.h>
  
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- static int __init instr_is_branch_to_addr(const u32 *instr, unsigned long addr)
- {
---- a/arch/powerpc/lib/test_emulate_step.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/lib/test_emulate_step.c
-@@ -11,7 +11,7 @@
- #include <asm/cpu_has_feature.h>
- #include <asm/sstep.h>
- #include <asm/ppc-opcode.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/inst.h>
- 
- #define MAX_SUBTESTS	16
---- a/arch/powerpc/mm/book3s32/mmu.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/book3s32/mmu.c
-@@ -25,7 +25,7 @@
- 
- #include <asm/mmu.h>
- #include <asm/machdep.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/sections.h>
- 
- #include <mm/mmu_decl.h>
---- a/arch/powerpc/mm/book3s64/hash_utils.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/book3s64/hash_utils.c
-@@ -57,7 +57,7 @@
- #include <asm/sections.h>
- #include <asm/copro.h>
- #include <asm/udbg.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/fadump.h>
- #include <asm/firmware.h>
- #include <asm/tm.h>
---- a/arch/powerpc/mm/book3s64/slb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/book3s64/slb.c
-@@ -24,7 +24,7 @@
- #include <linux/pgtable.h>
- 
- #include <asm/udbg.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- #include "internal.h"
- 
---- a/arch/powerpc/mm/kasan/init_32.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/kasan/init_32.c
-@@ -7,7 +7,7 @@
- #include <linux/memblock.h>
- #include <linux/sched/task.h>
- #include <asm/pgalloc.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <mm/mmu_decl.h>
- 
- static pgprot_t __init kasan_prot_ro(void)
---- a/arch/powerpc/mm/mem.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/mem.c
-@@ -26,7 +26,7 @@
- #include <asm/svm.h>
- #include <asm/mmzone.h>
- #include <asm/ftrace.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/setup.h>
- #include <asm/fixmap.h>
- 
---- a/arch/powerpc/mm/nohash/44x.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/nohash/44x.c
-@@ -24,7 +24,7 @@
- #include <asm/mmu.h>
- #include <asm/page.h>
- #include <asm/cacheflush.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/smp.h>
- 
- #include <mm/mmu_decl.h>
---- a/arch/powerpc/mm/nohash/book3e_pgtable.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/nohash/book3e_pgtable.c
-@@ -10,7 +10,7 @@
- #include <asm/pgalloc.h>
- #include <asm/tlb.h>
- #include <asm/dma.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- #include <mm/mmu_decl.h>
- 
---- a/arch/powerpc/mm/nohash/tlb_64e.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/nohash/tlb_64e.c
-@@ -24,7 +24,7 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/cputhreads.h>
- 
- #include <mm/mmu_decl.h>
---- a/arch/powerpc/mm/nohash/tlb.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/mm/nohash/tlb.c
-@@ -37,7 +37,7 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/cputhreads.h>
- #include <asm/hugetlb.h>
- #include <asm/paca.h>
---- a/arch/powerpc/net/bpf_jit_comp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/net/bpf_jit_comp.c
-@@ -18,7 +18,7 @@
- #include <linux/bpf.h>
- 
- #include <asm/kprobes.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- #include "bpf_jit.h"
- 
---- a/arch/powerpc/perf/8xx-pmu.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/perf/8xx-pmu.c
-@@ -14,7 +14,7 @@
- #include <asm/machdep.h>
- #include <asm/firmware.h>
- #include <asm/ptrace.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/inst.h>
- 
- #define PERF_8xx_ID_CPU_CYCLES		1
---- a/arch/powerpc/perf/core-book3s.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/perf/core-book3s.c
-@@ -16,7 +16,7 @@
- #include <asm/machdep.h>
- #include <asm/firmware.h>
- #include <asm/ptrace.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/hw_irq.h>
- #include <asm/interrupt.h>
- 
---- a/arch/powerpc/platforms/85xx/smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/85xx/smp.c
-@@ -23,7 +23,7 @@
- #include <asm/mpic.h>
- #include <asm/cacheflush.h>
- #include <asm/dbell.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/cputhreads.h>
- #include <asm/fsl_pm.h>
- 
---- a/arch/powerpc/platforms/86xx/mpc86xx_smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/86xx/mpc86xx_smp.c
-@@ -12,7 +12,7 @@
- #include <linux/delay.h>
- #include <linux/pgtable.h>
- 
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/page.h>
- #include <asm/pci-bridge.h>
- #include <asm/mpic.h>
---- a/arch/powerpc/platforms/cell/smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/cell/smp.c
-@@ -35,7 +35,7 @@
- #include <asm/firmware.h>
- #include <asm/rtas.h>
- #include <asm/cputhreads.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- 
- #include "interrupt.h"
- #include <asm/udbg.h>
---- a/arch/powerpc/platforms/powermac/smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/powermac/smp.c
-@@ -35,7 +35,7 @@
- 
- #include <asm/ptrace.h>
- #include <linux/atomic.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/irq.h>
- #include <asm/page.h>
- #include <asm/sections.h>
---- a/arch/powerpc/platforms/powernv/idle.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/powernv/idle.c
-@@ -18,7 +18,7 @@
- #include <asm/opal.h>
- #include <asm/cputhreads.h>
- #include <asm/cpuidle.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/smp.h>
- #include <asm/runlatch.h>
- #include <asm/dbell.h>
---- a/arch/powerpc/platforms/powernv/smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/powernv/smp.c
-@@ -28,7 +28,7 @@
- #include <asm/xive.h>
- #include <asm/opal.h>
- #include <asm/runlatch.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/dbell.h>
- #include <asm/kvm_ppc.h>
- #include <asm/ppc-opcode.h>
---- a/arch/powerpc/platforms/pseries/smp.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/platforms/pseries/smp.c
-@@ -39,7 +39,7 @@
- #include <asm/xive.h>
- #include <asm/dbell.h>
- #include <asm/plpar_wrappers.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/svm.h>
- #include <asm/kvm_guest.h>
- 
---- a/arch/powerpc/xmon/xmon.c~asm-generic-introduce-text-patchingh
-+++ a/arch/powerpc/xmon/xmon.c
-@@ -50,7 +50,7 @@
- #include <asm/xive.h>
- #include <asm/opal.h>
- #include <asm/firmware.h>
--#include <asm/code-patching.h>
-+#include <asm/text-patching.h>
- #include <asm/sections.h>
- #include <asm/inst.h>
- #include <asm/interrupt.h>
---- a/arch/riscv/errata/andes/errata.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/errata/andes/errata.c
-@@ -13,7 +13,7 @@
- #include <asm/alternative.h>
- #include <asm/cacheflush.h>
- #include <asm/errata_list.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/processor.h>
- #include <asm/sbi.h>
- #include <asm/vendorid_list.h>
---- a/arch/riscv/errata/sifive/errata.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/errata/sifive/errata.c
-@@ -8,7 +8,7 @@
- #include <linux/module.h>
- #include <linux/string.h>
- #include <linux/bug.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/alternative.h>
- #include <asm/vendorid_list.h>
- #include <asm/errata_list.h>
---- a/arch/riscv/errata/thead/errata.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/errata/thead/errata.c
-@@ -16,7 +16,7 @@
- #include <asm/errata_list.h>
- #include <asm/hwprobe.h>
- #include <asm/io.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/vendorid_list.h>
- #include <asm/vendor_extensions.h>
- 
-diff --git a/arch/riscv/include/asm/patch.h a/arch/riscv/include/asm/patch.h
-deleted file mode 100644
---- a/arch/riscv/include/asm/patch.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- * Copyright (C) 2020 SiFive
-- */
--
--#ifndef _ASM_RISCV_PATCH_H
--#define _ASM_RISCV_PATCH_H
--
--int patch_insn_write(void *addr, const void *insn, size_t len);
--int patch_text_nosync(void *addr, const void *insns, size_t len);
--int patch_text_set_nosync(void *addr, u8 c, size_t len);
--int patch_text(void *addr, u32 *insns, size_t len);
--
--extern int riscv_patch_in_stop_machine;
--
--#endif /* _ASM_RISCV_PATCH_H */
-diff --git a/arch/riscv/include/asm/text-patching.h a/arch/riscv/include/asm/text-patching.h
-new file mode 100664
---- /dev/null
-+++ a/arch/riscv/include/asm/text-patching.h
-@@ -0,0 +1,16 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (C) 2020 SiFive
-+ */
-+
-+#ifndef _ASM_RISCV_PATCH_H
-+#define _ASM_RISCV_PATCH_H
-+
-+int patch_insn_write(void *addr, const void *insn, size_t len);
-+int patch_text_nosync(void *addr, const void *insns, size_t len);
-+int patch_text_set_nosync(void *addr, u8 c, size_t len);
-+int patch_text(void *addr, u32 *insns, size_t len);
-+
-+extern int riscv_patch_in_stop_machine;
-+
-+#endif /* _ASM_RISCV_PATCH_H */
---- a/arch/riscv/include/asm/uprobes.h~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/include/asm/uprobes.h
-@@ -4,7 +4,7 @@
- #define _ASM_RISCV_UPROBES_H
- 
- #include <asm/probes.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/bug.h>
- 
- #define MAX_UINSN_BYTES		8
---- a/arch/riscv/kernel/alternative.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/alternative.c
-@@ -18,7 +18,7 @@
- #include <asm/sbi.h>
- #include <asm/csr.h>
- #include <asm/insn.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- struct cpu_manufacturer_info_t {
- 	unsigned long vendor_id;
---- a/arch/riscv/kernel/cpufeature.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/cpufeature.c
-@@ -20,7 +20,8 @@
- #include <asm/cacheflush.h>
- #include <asm/cpufeature.h>
- #include <asm/hwcap.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
-+#include <asm/hwprobe.h>
- #include <asm/processor.h>
- #include <asm/sbi.h>
- #include <asm/vector.h>
---- a/arch/riscv/kernel/ftrace.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/ftrace.c
-@@ -10,7 +10,7 @@
- #include <linux/memory.h>
- #include <linux/stop_machine.h>
- #include <asm/cacheflush.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- #ifdef CONFIG_DYNAMIC_FTRACE
- void ftrace_arch_code_modify_prepare(void) __acquires(&text_mutex)
---- a/arch/riscv/kernel/jump_label.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/jump_label.c
-@@ -10,7 +10,7 @@
- #include <linux/mutex.h>
- #include <asm/bug.h>
- #include <asm/cacheflush.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- #define RISCV_INSN_NOP 0x00000013U
- #define RISCV_INSN_JAL 0x0000006fU
---- a/arch/riscv/kernel/patch.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/patch.c
-@@ -13,7 +13,7 @@
- #include <asm/cacheflush.h>
- #include <asm/fixmap.h>
- #include <asm/ftrace.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/sections.h>
- 
- struct patch_insn {
---- a/arch/riscv/kernel/probes/kprobes.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/kernel/probes/kprobes.c
-@@ -12,7 +12,7 @@
- #include <asm/sections.h>
- #include <asm/cacheflush.h>
- #include <asm/bug.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- 
- #include "decode-insn.h"
- 
---- a/arch/riscv/net/bpf_jit_comp64.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/net/bpf_jit_comp64.c
-@@ -10,7 +10,7 @@
- #include <linux/filter.h>
- #include <linux/memory.h>
- #include <linux/stop_machine.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/cfi.h>
- #include <asm/percpu.h>
- #include "bpf_jit.h"
---- a/arch/riscv/net/bpf_jit_core.c~asm-generic-introduce-text-patchingh
-+++ a/arch/riscv/net/bpf_jit_core.c
-@@ -9,7 +9,7 @@
- #include <linux/bpf.h>
- #include <linux/filter.h>
- #include <linux/memory.h>
--#include <asm/patch.h>
-+#include <asm/text-patching.h>
- #include <asm/cfi.h>
- #include "bpf_jit.h"
- 
---- a/arch/sh/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/sh/include/asm/Kbuild
-@@ -3,3 +3,4 @@ generated-y += syscall_table.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
-+generic-y += text-patching.h
---- a/arch/sparc/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/sparc/include/asm/Kbuild
-@@ -4,3 +4,4 @@ generated-y += syscall_table_64.h
- generic-y += agp.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
-+generic-y += text-patching.h
---- a/arch/um/kernel/um_arch.c~asm-generic-introduce-text-patchingh
-+++ a/arch/um/kernel/um_arch.c
-@@ -468,6 +468,11 @@ void *text_poke(void *addr, const void *
- 	return memcpy(addr, opcode, len);
+ static struct execmem_info *execmem_info __ro_after_init;
+ static struct execmem_info default_execmem_info __ro_after_init;
+@@ -69,6 +70,16 @@ void execmem_free(void *ptr)
+ 	vfree(ptr);
  }
  
-+void *text_poke_copy(void *addr, const void *opcode, size_t len)
++void *execmem_update_copy(void *dst, const void *src, size_t size)
 +{
-+	return text_poke(addr, opcode, len);
++	return text_poke_copy(dst, src, size);
 +}
 +
- void text_poke_sync(void)
++bool execmem_is_rox(enum execmem_type type)
++{
++	return !!(execmem_info->ranges[type].flags & EXECMEM_ROX_CACHE);
++}
++
+ static bool execmem_validate(struct execmem_info *info)
  {
- }
---- a/arch/x86/include/asm/text-patching.h~asm-generic-introduce-text-patchingh
-+++ a/arch/x86/include/asm/text-patching.h
-@@ -35,6 +35,7 @@ extern void *text_poke(void *addr, const
- extern void text_poke_sync(void);
- extern void *text_poke_kgdb(void *addr, const void *opcode, size_t len);
- extern void *text_poke_copy(void *addr, const void *opcode, size_t len);
-+#define text_poke_copy text_poke_copy
- extern void *text_poke_copy_locked(void *addr, const void *opcode, size_t len, bool core_ok);
- extern void *text_poke_set(void *addr, int c, size_t len);
- extern int poke_int3_handler(struct pt_regs *regs);
---- a/arch/xtensa/include/asm/Kbuild~asm-generic-introduce-text-patchingh
-+++ a/arch/xtensa/include/asm/Kbuild
-@@ -8,3 +8,4 @@ generic-y += parport.h
- generic-y += qrwlock.h
- generic-y += qspinlock.h
- generic-y += user.h
-+generic-y += text-patching.h
-diff --git a/include/asm-generic/text-patching.h a/include/asm-generic/text-patching.h
-new file mode 100644
---- /dev/null
-+++ a/include/asm-generic/text-patching.h
-@@ -0,0 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_GENERIC_TEXT_PATCHING_H
-+#define _ASM_GENERIC_TEXT_PATCHING_H
-+
-+#endif /* _ASM_GENERIC_TEXT_PATCHING_H */
-diff --git a/include/linux/text-patching.h a/include/linux/text-patching.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/text-patching.h
-@@ -0,0 +1,15 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_TEXT_PATCHING_H
-+#define _LINUX_TEXT_PATCHING_H
-+
-+#include <asm/text-patching.h>
-+
-+#ifndef text_poke_copy
-+static inline void *text_poke_copy(void *dst, const void *src, size_t len)
-+{
-+	return memcpy(dst, src, len);
-+}
-+#define text_poke_copy text_poke_copy
-+#endif
-+
-+#endif /* _LINUX_TEXT_PATCHING_H */
+ 	struct execmem_range *r = &info->ranges[EXECMEM_DEFAULT];
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
