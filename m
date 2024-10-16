@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ECBE18732A
-	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 22:56:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E4101D54E5
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 23:13:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729119365; cv=none; b=PyWwMl6pK87DdKwUpd6b5Bai0xOoSUl173YAil6v38AaptVkLoDJ6WFTlV5sbxYm3eB0DBwPwz6k6ZEtcTDIgzD9vLN6lBxtOKsdj/xwKCl6SJMidE23ncBeqQEGbthiSZaXJEkjXEgvJrHBYjVmpD9pNBNg+/XWzMDbcKluWeM=
+	t=1729120421; cv=none; b=slSM55G/ZjznrWVU/fQVeLtkRFxoqJEFHWybGtgCJG7L7iKJZw3G+rgigZwWo31IP/3xGKKrBB/QeuJ/QZzW5F6EMPMGD+izmx/8osrmPgnauskfBT+KVc5xtFHm7qosYQhjiMsmYgFXQ2T9uIsIQ67DAGKT9GAybIDGcVTmrhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729119365; c=relaxed/simple;
-	bh=Z6ryGgJgB1tT8VNzA8aKCDdSwmapMAdm9cGbPzIXLco=;
-	h=Date:To:From:Subject:Message-Id; b=NVhHyj023X+7EKvuGQptiAps7gJwWAZIlPb92s52u+4/aZi2Br+WRXSFNx5Xp1IkhHwYa1H+Fxistr2EqW877GNVvSQLW9tcCkge9j6FIKJcGpoawqZVGIF7i9zGKUjN/HjMdr3/lMfO/px6J023kBv9+GsfIfZ/wOnsOjwPASc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2CXRcrks; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729120421; c=relaxed/simple;
+	bh=6z74bCGkZb8c2WWRdPcNSAAiERRauzTcT8PAM0sGatw=;
+	h=Date:To:From:Subject:Message-Id; b=H8u9AtGtoNS0Xd33+QXoxz22vjdlgDkMi/xRZiEv5iqmHvQrrVUMyThs6GE/mZmXg07G/jTYdAOMFRBHlWMh7uLIatXu1KBfdHylADqGyLNH6UROoL/3oTC8uIFYSJZGLahPzjxW4nuMIsoYi6wJJOLLTwkGzJEeqjyh+Wszp08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WmkA8ruf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2CXRcrks"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43DE8C4CEC5;
-	Wed, 16 Oct 2024 22:56:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WmkA8ruf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B42C4CEC5;
+	Wed, 16 Oct 2024 23:13:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729119365;
-	bh=Z6ryGgJgB1tT8VNzA8aKCDdSwmapMAdm9cGbPzIXLco=;
+	s=korg; t=1729120421;
+	bh=6z74bCGkZb8c2WWRdPcNSAAiERRauzTcT8PAM0sGatw=;
 	h=Date:To:From:Subject:From;
-	b=2CXRcrks/ALIYDMF0F2wDjRqemNcYRh6zfivM0W0WeL/Bw9ifQd/Fy6AghZtwnx1O
-	 uy2eSLnJBI0gp4VN9BCcIAvgvTbWtAdNW3pFvocO8sqXACF3zmwzFXZk9AJmykB1HT
-	 ACIthOzPm/V+mE8knWspy6Ll4v2LHcbYeQcBn6u0=
-Date: Wed, 16 Oct 2024 15:56:04 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,suleiman@google.com,heftig@archlinux.org,bgeffon@google.com,axelrasmussen@google.com,weixugc@google.com,akpm@linux-foundation.org
+	b=WmkA8rufrbhcs2Im3HMEKWDpxyuVx4XuoIO/OQLvSiTfbctrGVB1WCU1bjaYtapFe
+	 pvO02dnSbBzOznR6wEXcgWSord0IXD7hHP3ZuZZ0Pce+b1gCM6NlA5hsFIR9nyNOtl
+	 qW4wfvuRENMMoqXtY94NpQZojQhIi1A85sgM13Tw=
+Date: Wed, 16 Oct 2024 16:13:40 -0700
+To: mm-commits@vger.kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-reset-page-lru-tier-bits-when-activating.patch removed from -mm tree
-Message-Id: <20241016225605.43DE8C4CEC5@smtp.kernel.org>
+Subject: + perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch added to mm-nonmm-unstable branch
+Message-Id: <20241016231340.E7B42C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,86 +34,93 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mglru: reset page lru tier bits when activating
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-reset-page-lru-tier-bits-when-activating.patch
+The patch titled
+     Subject: perf/hw_breakpoint: use ERR_PTR_PCPU(), IS_ERR_PCPU() and PTR_ERR_PCPU() macros
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Xu <weixugc@google.com>
-Subject: mm/mglru: reset page lru tier bits when activating
-Date: Mon, 14 Oct 2024 22:12:31 +0000
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: perf/hw_breakpoint: use ERR_PTR_PCPU(), IS_ERR_PCPU() and PTR_ERR_PCPU() macros
+Date: Tue, 24 Sep 2024 11:07:13 +0200
 
-folio_activate() calls lru_gen_add_folio() to move the folio to the
-youngest generation.  But unlike folio_update_gen()/folio_inc_gen(),
-lru_gen_add_folio() doesn't reset the folio lru tier bits (LRU_REFS_MASK |
-LRU_REFS_FLAGS).  Fix this inconsistency in lru_gen_add_folio() when
-activating a folio.
+Use ERR_PTR_PCPU() when returning error pointer in the percpu address
+space.  Use IS_ERR_PCPU() and PTR_ERR_PCPU() when returning the error
+pointer from the percpu address space.  These macros add intermediate cast
+to unsigned long when switching named address spaces.
 
-Link: https://lkml.kernel.org/r/20241014221231.832959-1-weixugc@google.com
-Fixes: 018ee47f1489 ("mm: multi-gen LRU: exploit locality in rmap")
-Signed-off-by: Wei Xu <weixugc@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jan Alexander Steffens <heftig@archlinux.org>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+The patch will avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
+
+Link: https://lkml.kernel.org/r/20240924090813.1353586-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    5 ++++-
- include/linux/mmzone.h    |    2 ++
- mm/vmscan.c               |    2 --
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ kernel/events/hw_breakpoint.c           |    4 ++--
+ samples/hw_breakpoint/data_breakpoint.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-reset-page-lru-tier-bits-when-activating
-+++ a/include/linux/mm_inline.h
-@@ -222,6 +222,7 @@ static inline bool lru_gen_add_folio(str
- {
- 	unsigned long seq;
- 	unsigned long flags;
-+	unsigned long mask;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -257,7 +258,9 @@ static inline bool lru_gen_add_folio(str
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
- 	/* see the comment on MIN_NR_GENS about PG_active */
--	set_mask_bits(&folio->flags, LRU_GEN_MASK | BIT(PG_active), flags);
-+	mask = LRU_GEN_MASK | BIT(PG_active);
-+	mask |= folio_test_active(folio) ? (LRU_REFS_MASK | LRU_REFS_FLAGS) : 0;
-+	set_mask_bits(&folio->flags, mask, flags);
+--- a/kernel/events/hw_breakpoint.c~perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros
++++ a/kernel/events/hw_breakpoint.c
+@@ -849,7 +849,7 @@ register_wide_hw_breakpoint(struct perf_
  
- 	lru_gen_update_size(lruvec, folio, -1, gen);
- 	/* for folio_rotate_reclaimable() */
---- a/include/linux/mmzone.h~mm-mglru-reset-page-lru-tier-bits-when-activating
-+++ a/include/linux/mmzone.h
-@@ -403,6 +403,8 @@ enum {
- 	NR_LRU_GEN_CAPS
- };
+ 	cpu_events = alloc_percpu(typeof(*cpu_events));
+ 	if (!cpu_events)
+-		return (void __percpu __force *)ERR_PTR(-ENOMEM);
++		return ERR_PTR_PCPU(-ENOMEM);
  
-+#define LRU_REFS_FLAGS		(BIT(PG_referenced) | BIT(PG_workingset))
-+
- #define MIN_LRU_BATCH		BITS_PER_LONG
- #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 64)
+ 	cpus_read_lock();
+ 	for_each_online_cpu(cpu) {
+@@ -868,7 +868,7 @@ register_wide_hw_breakpoint(struct perf_
+ 		return cpu_events;
  
---- a/mm/vmscan.c~mm-mglru-reset-page-lru-tier-bits-when-activating
-+++ a/mm/vmscan.c
-@@ -2607,8 +2607,6 @@ static bool should_clear_pmd_young(void)
-  *                          shorthand helpers
-  ******************************************************************************/
+ 	unregister_wide_hw_breakpoint(cpu_events);
+-	return (void __percpu __force *)ERR_PTR(err);
++	return ERR_PTR_PCPU(err);
+ }
+ EXPORT_SYMBOL_GPL(register_wide_hw_breakpoint);
  
--#define LRU_REFS_FLAGS	(BIT(PG_referenced) | BIT(PG_workingset))
--
- #define DEFINE_MAX_SEQ(lruvec)						\
- 	unsigned long max_seq = READ_ONCE((lruvec)->lrugen.max_seq)
+--- a/samples/hw_breakpoint/data_breakpoint.c~perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros
++++ a/samples/hw_breakpoint/data_breakpoint.c
+@@ -52,8 +52,8 @@ static int __init hw_break_module_init(v
+ 	attr.bp_type = HW_BREAKPOINT_W;
+ 
+ 	sample_hbp = register_wide_hw_breakpoint(&attr, sample_hbp_handler, NULL);
+-	if (IS_ERR((void __force *)sample_hbp)) {
+-		ret = PTR_ERR((void __force *)sample_hbp);
++	if (IS_ERR_PCPU(sample_hbp)) {
++		ret = PTR_ERR_PCPU(sample_hbp);
+ 		goto fail;
+ 	}
  
 _
 
-Patches currently in -mm which might be from weixugc@google.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-mm-mglru-only-clear-kswapd_failures-if-reclaimable.patch
+perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch
 
