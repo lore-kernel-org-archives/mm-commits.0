@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A41E94409
-	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 20:58:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 790201D1E6A
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 21:02:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729112335; cv=none; b=dIjVg/g/aW3J+G8tlJ4LMaIF69IpxIkuFshfHor3M560o+tAW5rmhDiIbd1xpVBPKiSdmuOrY0kedGiEjYM8F6/Subh6VMngIxPt7/fuMO1z07OYzdcEW2LRHkhvNfLYHTWQm02/NtCYLB8qyPx/t7XxvM+sCs2afn1F6odBCL8=
+	t=1729112540; cv=none; b=cdkT8mQmxrfaVKY3pcjum1NwV6bGMmCXo2F/+UOnV9HizhocuA8CNFqPX4CaVIG7M0H9uSKXukdfR7yEb5BvUPbmBngW1ShKsIDHefuVLyI/I8jIAuHJ8AYFDM4XJTrsD4SC35jGknU14+E5F44ruTcAIIwYqk/530I0xhuQWnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729112335; c=relaxed/simple;
-	bh=8wiskyLRqynLiUmTThUdHX2KifWGIwiEB0oynjEdZHY=;
-	h=Date:To:From:Subject:Message-Id; b=LHZuFR8Q/HumV/1aH2Hksz2t+8RQN/vzdZxfFW/i+xa5M9QRdUTDYrqH0l9lMMAwT+E9UdDAgUBwe86owmPhsc5DMt/JDXC0XXTlt751meCp6uVG45HhZEQFaVg834FqCzKPO8Sq+/KRkrfkj5i5zH6NtinZJOVJSlX20xYhsZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eHAswQJO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729112540; c=relaxed/simple;
+	bh=vMUdM/oSaP6Sn47yQR5n6cJDLrwads8HkrMPK2g0GMk=;
+	h=Date:To:From:Subject:Message-Id; b=H/UL67bvorZI57ee7Q5Y5R5P7h15RvUMQBBNUi6kovUddx5pMRZGT/75jCzctKJY4hZm6SCoHiMcuq9XJDsznAhuc8kBWGpRCo64ZVHmoEtjy0uD5QWkwSd2ocbc/foeWIlfHS3kFOTexpk0IKS2m7vME5nWMg+hxtHYRM1bzG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1AyXSlAg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eHAswQJO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287F9C4CEC5;
-	Wed, 16 Oct 2024 20:58:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1AyXSlAg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE8DBC4CEC5;
+	Wed, 16 Oct 2024 21:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729112335;
-	bh=8wiskyLRqynLiUmTThUdHX2KifWGIwiEB0oynjEdZHY=;
+	s=korg; t=1729112540;
+	bh=vMUdM/oSaP6Sn47yQR5n6cJDLrwads8HkrMPK2g0GMk=;
 	h=Date:To:From:Subject:From;
-	b=eHAswQJOPwKGtMu967KDD8PBRFLSjiM2jDD84vOO+4oQxTZQjcWxL5wv8nTB0nl1R
-	 Nk5+q6S2rnarKoAG8Tv+KJ9Q97KUkxbSsjYxTzcuzkqk2wsNDciL3k9HmPSYGNmAP1
-	 8k2o5nLOcHZIaIaJrAQ8+vfDrx3WozDGnxUbwGbg=
-Date: Wed, 16 Oct 2024 13:58:54 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=1AyXSlAg4PLhyALCZMVkpW0/xVYrO6lMhOP44+KqxMpVI+tYd1Oyt2P1yz8a85Rja
+	 n+SCEhdDWvk6a8JaHn4veWEovs/XNMx/Ikuu/2YkkBBaLPO/+OdgJxgrevsDkbPVDj
+	 nAKHMaxoE/EzXw1WggCbx6tSkns75BZVMemc2LC8=
+Date: Wed, 16 Oct 2024 14:02:19 -0700
+To: mm-commits@vger.kernel.org,nathan@kernel.org,linux@roeck-us.net,jonathan.cameron@huawei.com,david@redhat.com,dan.j.williams@intel.com,arnd@arndb.de,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241016205855.287F9C4CEC5@smtp.kernel.org>
+Subject: + resource-remove-dependency-on-sparsemem-from-get_free_region.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241016210219.EE8DBC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: Fix race in mmap_region() with ftruncate()
+     Subject: resource: remove dependency on SPARSEMEM from GET_FREE_REGION
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+     resource-remove-dependency-on-sparsemem-from-get_free_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-remove-dependency-on-sparsemem-from-get_free_region.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,69 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: Fix race in mmap_region() with ftruncate()
-Date: Tue, 15 Oct 2024 21:34:55 -0400
+From: Huang Ying <ying.huang@intel.com>
+Subject: resource: remove dependency on SPARSEMEM from GET_FREE_REGION
+Date: Tue, 15 Oct 2024 13:15:54 +0800
 
-Avoiding the zeroing of the vma tree in mmap_region() introduced a race
-with truncate in the page table walk.  To avoid any races, create a hole
-in the rmap during the operation by clearing the pagetable entries earlier
-under the mmap write lock and (critically) before the new vma is installed
-into the vma tree.  The result is that the old vma(s) are left in the vma
-tree, but free_pgtables() removes them from the rmap and clears the ptes
-while holding the necessary locks.
+We want to use the functions (get_free_mem_region()) configured via
+GET_FREE_REGION in resource kunit tests.  However, GET_FREE_REGION
+depends on SPARSEMEM now.  This makes resource kunit tests cannot be
+built on some architectures lacking SPARSEMEM, or causes config warning
+as follows,
 
-This change extends the fix required for hugetblfs and the call_mmap()
-function by moving the cleanup higher in the function and running it
-unconditionally.
+  WARNING: unmet direct dependencies detected for GET_FREE_REGION
+  Depends on [n]: SPARSEMEM [=n]
+  Selected by [y]:
+  - RESOURCE_KUNIT_TEST [=y] && RUNTIME_TESTING_MENU [=y] && KUNIT [=y]
 
-Link: https://lkml.kernel.org/r/20241016013455.2241533-1-Liam.Howlett@oracle.com
-Fixes: f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/all/CAG48ez0ZpGzxi=-5O_uGQ0xKXOmbjeQ0LjZsRJ1Qtf2X5eOr1w@mail.gmail.com/
-Reviewed-by: Jann Horn <jannh@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+When get_free_mem_region() was introduced the only consumers were those
+looking to pass the address range to memremap_pages().  That address
+range needed to be mindful of the maximum addressable platform physical
+address which at the time only SPARSMEM defined via MAX_PHYSMEM_BITS.
+
+Given that memremap_pages() also depended on SPARSEMEM via ZONE_DEVICE,
+it was easier to just depend on that definition than invent a general
+MAX_PHYSMEM_BITS concept outside of SPARSEMEM.
+
+Turns out that decision was buggy and did not account for KASAN
+consumption of physical address space.  That problem was resolved
+recently with commit ea72ce5da228 ("x86/kaslr: Expose and use the end
+of the physical memory address space"), and GET_FREE_REGION dropped its
+MAX_PHYSMEM_BITS dependency.
+
+Then commit 99185c10d5d9 ("resource, kunit: add test case for
+region_intersects()"), went ahead and fixed up the only remaining
+dependency on SPARSEMEM which was usage of the PA_SECTION_SHIFT macro
+for setting the default alignment.  A PAGE_SIZE fallback is fine in the
+SPARSEMEM=n case.
+
+With those build dependencies gone GET_FREE_REGION no longer depends on
+SPARSEMEM.  So, the patch removes dependency on SPARSEMEM from
+GET_FREE_REGION to fix the build issues.
+
+Link: https://lkml.kernel.org/r/20241016014730.339369-1-ying.huang@intel.com
+Link: https://lore.kernel.org/lkml/20240922225041.603186-1-linux@roeck-us.net/
+Link: https://lkml.kernel.org/r/20241015051554.294734-1-ying.huang@intel.com
+Fixes: 99185c10d5d9 ("resource, kunit: add test case for region_intersects()")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Nathan Chancellor <nathan@kernel.org> # build
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-fix-race-in-mmap_region-with-ftrucate
-+++ a/mm/mmap.c
-@@ -1418,6 +1418,13 @@ unsigned long mmap_region(struct file *f
- 		vmg.flags = vm_flags;
- 	}
+--- a/mm/Kconfig~resource-remove-dependency-on-sparsemem-from-get_free_region
++++ a/mm/Kconfig
+@@ -1085,7 +1085,6 @@ config HMM_MIRROR
+ 	depends on MMU
  
-+	/*
-+	 * clear PTEs while the vma is still in the tree so that rmap
-+	 * cannot race with the freeing later in the truncate scenario.
-+	 * This is also needed for call_mmap(), which is why vm_ops
-+	 * close function is called.
-+	 */
-+	vms_clean_up_area(&vms, &mas_detach);
- 	vma = vma_merge_new_range(&vmg);
- 	if (vma)
- 		goto expanded;
-@@ -1439,11 +1446,6 @@ unsigned long mmap_region(struct file *f
+ config GET_FREE_REGION
+-	depends on SPARSEMEM
+ 	bool
  
- 	if (file) {
- 		vma->vm_file = get_file(file);
--		/*
--		 * call_mmap() may map PTE, so ensure there are no existing PTEs
--		 * and call the vm_ops close function if one exists.
--		 */
--		vms_clean_up_area(&vms, &mas_detach);
- 		error = call_mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
+ config DEVICE_PRIVATE
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+resource-remove-dependency-on-sparsemem-from-get_free_region.patch
 
