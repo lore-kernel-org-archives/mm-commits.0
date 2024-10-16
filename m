@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F261B2193;
-	Wed, 16 Oct 2024 21:56:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7E91D45F3
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 21:59:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729115817; cv=none; b=eWg8MkEMU8R9sWp7KK0PzHXlXW2PKJhbfCJdjyqE50Y1g3qelB4f1FlPmPd3glXBfu9lmhoMqUQ2eqKrdiikGJmJb95hwaCdYAuyPWHRDkuwQUPPFCJ6yNUIwbv95ktlyIAO159GvfBqQsrMniNDYi0zg0FnQufBh3xBhpSUw5o=
+	t=1729115984; cv=none; b=Fl7Wc5HUCxpM8LB3tuDPT/cQRUUdB+HKiqzEOkLwJzqbKmwpAviB+G+rog5b8Q5FkcsYwGDVS4RcdUyXz5FTHODhrjvS1mamCBrAQUK25lkpMOy1fRvjFAMlZpxLgbQlQ6ezVJYf/5gZlUs0C/yLEJ/UMnkIzv5PsMPBQ5jCraI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729115817; c=relaxed/simple;
-	bh=imJM00J/kQiyZJ1Q7WwvmA2krbMI5+jzDnCnq2xgjWw=;
-	h=Date:To:From:Subject:Message-Id; b=JsL5nhEVCVT5oSEIXDapKDnxBOAh257AKgFYeD784CtzGqKH6+gSh0lR5PQWSm5cfgAdB138Gf5OW87tIUw3F8cTyBKrnayLnuRYgLh36SKgiulPGu7/PrDvWzSZE/kYFCvrd9fpVtSo5IPI02DRgmdgsSErRRcJq3OESUuORcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QkOPXSi1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729115984; c=relaxed/simple;
+	bh=D+nXdU5HKlCKuKeD++ufTYI6Q9F6WWqSQ2QkfxGTesQ=;
+	h=Date:To:From:Subject:Message-Id; b=i8PC4KCGFrvSXVhonS9tDmgAjYYDYhaWBmXiKORmC4LSJ3QE5YAhiK/X7dGarDgjo/ilTqPM31sH/2VFDX4HCQxaLi1AMnDs0AlDEL3BI6I0Xh1NdebBYMEbTgEn08m3471d5OYE0+vfEJhoZgY2R73JgyVsfaQET4KAenoFBD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIaa5ES9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QkOPXSi1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EF61C4CEC7;
-	Wed, 16 Oct 2024 21:56:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIaa5ES9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8DE2C4CEC5;
+	Wed, 16 Oct 2024 21:59:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729115816;
-	bh=imJM00J/kQiyZJ1Q7WwvmA2krbMI5+jzDnCnq2xgjWw=;
+	s=korg; t=1729115983;
+	bh=D+nXdU5HKlCKuKeD++ufTYI6Q9F6WWqSQ2QkfxGTesQ=;
 	h=Date:To:From:Subject:From;
-	b=QkOPXSi1i4L9W4GgMsW7F9uUL+A6Wc6duwR2sPZeW/uunP5UrQsCWkQOx4fRar6wn
-	 zraxAUDzsVd1AhazYxT+8PgldQ9vHUJkesPshWG6WswCsbtkPdtehTt02gf5pzf0Ju
-	 TwpKZucGxDkEdCzIn6vHwOMr3ehg4eDKFDBbZfIo=
-Date: Wed, 16 Oct 2024 14:56:55 -0700
-To: mm-commits@vger.kernel.org,syoshida@redhat.com,stable@vger.kernel.org,pasha.tatashin@soleen.com,minchan@kernel.org,jgg@nvidia.com,david@redhat.com,apopple@nvidia.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=aIaa5ES9PpadhNGfKcTbN1gI0g+Ng+/JIWmDIULtsGKP00CkITAK4ErJWo3UE3o3I
+	 vEGiyAapE4hkc+s/NXAtF8+6DDOXmCisgDqimy4mPcMm2ofGk5TRymT1Ge9/pWOx3x
+	 B1QvW04JHalroohsi80SuoJPKidVoDXz7FNRseyU=
+Date: Wed, 16 Oct 2024 14:59:43 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,wangkefeng.wang@huawei.com,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241016215656.6EF61C4CEC7@smtp.kernel.org>
+Subject: + mm-mremap-clean-up-vma_to_resize.patch added to mm-unstable branch
+Message-Id: <20241016215943.B8DE2C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: stop leaking pinned pages in low memory conditions
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
+     Subject: mm/mremap: clean up vma_to_resize()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mremap-clean-up-vma_to_resize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-clean-up-vma_to_resize.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,148 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: stop leaking pinned pages in low memory conditions
-Date: Wed, 16 Oct 2024 13:22:42 -0700
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/mremap: clean up vma_to_resize()
+Date: Wed, 16 Oct 2024 16:17:17 -0400
 
-If a driver tries to call any of the pin_user_pages*(FOLL_LONGTERM) family
-of functions, and requests "too many" pages, then the call will
-erroneously leave pages pinned.  This is visible in user space as an
-actual memory leak.
+Patch series "mm/mremap: Remove extra vma tree walk".
 
-Repro is trivial: just make enough pin_user_pages(FOLL_LONGTERM) calls to
-exhaust memory.
+An extra vma tree walk was discovered in some mremap call paths during the
+discussion on mseal() changes.  This patchset removes the extra vma tree
+walk and further cleans up mremap_to().
 
-The root cause of the problem is this sequence, within
-__gup_longterm_locked():
 
-    __get_user_pages_locked()
-    rc = check_and_migrate_movable_pages()
+This patch (of 2):
 
-...which gets retried in a loop.  The loop error handling is incomplete,
-clearly due to a somewhat unusual and complicated tri-state error API. 
-But anyway, if -ENOMEM, or in fact, any unexpected error is returned from
-check_and_migrate_movable_pages(), then __gup_longterm_locked() happily
-returns the error, while leaving the pages pinned.
+vma_to_resize() is used in two locations to find and validate the vma
+for the mremap location.  One of the two locations already has the vma,
+which is then re-found to validate the same vma.
 
-In the failed case, which is an app that requests (via a device driver)
-30720000000 bytes to be pinned, and then exits, I see this:
+This code can be simplified by moving the vma_lookup() from
+vma_to_resize() to mremap_to() and changing the return type to an int
+error.
 
-    $ grep foll /proc/vmstat
-        nr_foll_pin_acquired 7502048
-        nr_foll_pin_released 2048
+Since the function now just validates the vma, the function is renamed to
+mremap_vma_check() to better reflect what it is doing.
 
-And after applying this patch, it returns to balanced pins:
-
-    $ grep foll /proc/vmstat
-        nr_foll_pin_acquired 7502048
-        nr_foll_pin_released 7502048
-
-Fix this by unpinning the pages that __get_user_pages_locked() has
-pinned, in such error cases.
-
-Link: https://lkml.kernel.org/r/20241016202242.456953-1-jhubbard@nvidia.com
-Fixes: 24a95998e9ba ("mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Shigeru Yoshida <syoshida@redhat.com>
+Link: https://lkml.kernel.org/r/20241016201719.2449143-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20241016201719.2449143-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: <stable@vger.kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/mremap.c |   39 +++++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
---- a/mm/gup.c~mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions
-+++ a/mm/gup.c
-@@ -2492,6 +2492,17 @@ static long __gup_longterm_locked(struct
+--- a/mm/mremap.c~mm-mremap-clean-up-vma_to_resize
++++ a/mm/mremap.c
+@@ -826,17 +826,12 @@ static unsigned long move_vma(struct vm_
+ 	return new_addr;
+ }
  
- 		/* FOLL_LONGTERM implies FOLL_PIN */
- 		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages);
+-static struct vm_area_struct *vma_to_resize(unsigned long addr,
++static int mremap_vma_check(struct vm_area_struct *vma, unsigned long addr,
+ 	unsigned long old_len, unsigned long new_len, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+ 	unsigned long pgoff;
+ 
+-	vma = vma_lookup(mm, addr);
+-	if (!vma)
+-		return ERR_PTR(-EFAULT);
+-
+ 	/*
+ 	 * !old_len is a special case where an attempt is made to 'duplicate'
+ 	 * a mapping.  This makes no sense for private mappings as it will
+@@ -847,37 +842,37 @@ static struct vm_area_struct *vma_to_res
+ 	 */
+ 	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
+ 		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n", current->comm, current->pid);
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	if ((flags & MREMAP_DONTUNMAP) &&
+ 			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+-		return ERR_PTR(-EFAULT);
++		return -EFAULT;
+ 
+ 	if (new_len == old_len)
+-		return vma;
++		return 0;
+ 
+ 	/* Need to be careful about a growing mapping */
+ 	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 	pgoff += vma->vm_pgoff;
+ 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+ 	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+-		return ERR_PTR(-EFAULT);
++		return -EFAULT;
+ 
+ 	if (!mlock_future_ok(mm, vma->vm_flags, new_len - old_len))
+-		return ERR_PTR(-EAGAIN);
++		return -EAGAIN;
+ 
+ 	if (!may_expand_vm(mm, vma->vm_flags,
+ 				(new_len - old_len) >> PAGE_SHIFT))
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 
+-	return vma;
++	return 0;
+ }
+ 
+ static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
+@@ -936,7 +931,13 @@ static unsigned long mremap_to(unsigned
+ 		old_len = new_len;
+ 	}
+ 
+-	vma = vma_to_resize(addr, old_len, new_len, flags);
++	vma = vma_lookup(mm, addr);
++	if (!vma) {
++		ret = -EFAULT;
++		goto out;
++	}
 +
-+		/*
-+		 * The __get_user_pages_locked() call happens before we know
-+		 * that whether it's possible to successfully complete the whole
-+		 * operation. To compensate for this, if we get an unexpected
-+		 * error (such as -ENOMEM) then we must unpin everything, before
-+		 * erroring out.
-+		 */
-+		if (rc != -EAGAIN && rc != 0)
-+			unpin_user_pages(pages, nr_pinned_pages);
-+
- 	} while (rc == -EAGAIN);
- 	memalloc_pin_restore(flags);
- 	return rc ? rc : nr_pinned_pages;
++	mremap_vma_check(vma, addr, old_len, new_len, flags);
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
+ 		goto out;
+@@ -1114,11 +1115,9 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	/*
+ 	 * Ok, we need to grow..
+ 	 */
+-	vma = vma_to_resize(addr, old_len, new_len, flags);
+-	if (IS_ERR(vma)) {
+-		ret = PTR_ERR(vma);
++	ret = mremap_vma_check(vma, addr, old_len, new_len, flags);
++	if (ret)
+ 		goto out;
+-	}
+ 
+ 	/* old_len exactly to the end of the area..
+ 	 */
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
-kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
+mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+mm-mremap-clean-up-vma_to_resize.patch
+mm-mremap-remove-goto-from-mremap_to.patch
 
