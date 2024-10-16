@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE9F1D45FE
-	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 21:59:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B630C1D2780
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 22:06:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729115985; cv=none; b=a8X/aW/yOVrYwcp+pe23z3uBADqeZ0UZvqfcDK29o/LSl8uqc17q/2Iy9Rfcjlmk07+1Yib5KJ+sozaO9cS5WIvBKQu0jk47Ge6j7Wf6Kupjfpjz/VtfR39H50uG20mnrGG7DrSLGIWnnesWxK/UTfQmHfimRfuT75DyI6Y7xvo=
+	t=1729116365; cv=none; b=fZlAW5GjOiaHzlQXtw1P082kqqTB9lGSByb7eaokfomD088fjNsnAkQ0ZPJaCBI4C8BXT3ARIUR3tBxQTF0Per05RqlZ2JsnN59hKWjHRt4s0tW0C+afFr2gL/uoAYaiFiB1Ba/BCwfEcsYOZxNjOTyIBKbobMdGiB1KtglF5AE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729115985; c=relaxed/simple;
-	bh=GP1ZT6Bg8e+RTRklWTfBl4Pug4P+07GGZUuaJdeQe5A=;
-	h=Date:To:From:Subject:Message-Id; b=PYs+Z/iUhgc+CgXHsE3jepRgSS9f1zg7CbHls4AXk6QWsqWUUoMIQgCEl7nIPU4n051gVELgHmG83e8cTwR3N5/Kr/dgWRuggeKSMgCA7PpZq+2NIxoczjrgECk8vy7lhszNrDUjcCGQGn2yyiF0pguCyiXj9/gQVdoXVzIZSC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=agMoy3JD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729116365; c=relaxed/simple;
+	bh=Pi8LqEU7h1vByMiES/7c+JW0MQeZ9SLecBSmCztzVwc=;
+	h=Date:To:From:Subject:Message-Id; b=kQPYUiClMQUrx4tsO4sngKftgn7edtAIBaNeOxAe8mOEAyVNpKxK5v7YLj20DWft+44VquiC/DxX82pbVY/L9Sc79si2V1e1S2ci4BBhxEvHz/Axt8PogDhCQH0xBFXSXVSzLooxCSZ/K7G6IdUjwAc/sgVOIko2+nOfmtf0Oqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z9comha8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="agMoy3JD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2875C4CEC5;
-	Wed, 16 Oct 2024 21:59:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z9comha8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B7DC4CEC5;
+	Wed, 16 Oct 2024 22:06:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729115985;
-	bh=GP1ZT6Bg8e+RTRklWTfBl4Pug4P+07GGZUuaJdeQe5A=;
+	s=korg; t=1729116365;
+	bh=Pi8LqEU7h1vByMiES/7c+JW0MQeZ9SLecBSmCztzVwc=;
 	h=Date:To:From:Subject:From;
-	b=agMoy3JDzK6Z35LXzUmMkNUImPm20pYJ3zmlMslhm+T9OAObTAwLkNhtEWXopla7s
-	 ud42yYIhfzdRTrYBGeQ2kLclk+1fOCLmvvhytpAjq/gN+NUXwlYZXtd0obNknFQUY6
-	 egAF4qYXVYlb4/M9zwbHtfJLI4VnFSFxe3EryR/w=
-Date: Wed, 16 Oct 2024 14:59:44 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,wangkefeng.wang@huawei.com,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=z9comha81A1WUwcFnpNq/IKoVdjTlTfG0eG/E3XHesDeNfb5Gsx0CtLCfFPofqA+K
+	 umzj4TeHrdDES0IJuz8v7ZrSPijBoY5mI5BCJlRh6dvdrrOrxVhikNfgnNMNMReFSh
+	 I8w+ZoZl7ev0CEhwj/MikKRq80PLRtDuFgG/w2Ok=
+Date: Wed, 16 Oct 2024 15:06:04 -0700
+To: mm-commits@vger.kernel.org,ubizjak@gmail.com,tj@kernel.org,tglx@linutronix.de,mingo@redhat.com,mingo@kernel.org,hpa@zytor.com,dennis@kernel.org,dave.hansen@linux.intel.com,cl@linux.com,bp@alien8.de,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-remove-goto-from-mremap_to.patch added to mm-unstable branch
-Message-Id: <20241016215944.F2875C4CEC5@smtp.kernel.org>
+Subject: + x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types.patch added to mm-unstable branch
+Message-Id: <20241016220605.18B7DC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: remove goto from mremap_to()
+     Subject: x86/percpu: fix clang warning when dealing with unsigned types
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-remove-goto-from-mremap_to.patch
+     x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-remove-goto-from-mremap_to.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,121 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mremap: remove goto from mremap_to()
-Date: Wed, 16 Oct 2024 16:17:18 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: x86/percpu: fix clang warning when dealing with unsigned types
+Date: Wed, 16 Oct 2024 21:23:51 +0300
 
-mremap_to() has a goto label at the end that doesn't unwind anything. 
-Removing the label makes the code cleaner.
+Patch series "percpu: Add a test case and fix for clang", v2.
 
-Link: https://lkml.kernel.org/r/20241016201719.2449143-3-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Add a test case to percpu to check a corner case with the specific 64-bit
+unsigned value.  This test case shows why the first patch is done in the
+way it's done.
+
+The before and after has been tested with binary comparison of the
+percpu_test module and runnig it on the real Intel system.
+
+
+This patch (of 2):
+
+When percpu_add_op() is used with an unsigned argument, it prevents kernel
+builds with clang, `make W=1` and CONFIG_WERROR=y:
+
+net/ipv4/tcp_output.c:187:3: error: result of comparison of constant -1 with expression of type 'u8' (aka 'unsigned char') is always false [-Werror,-Wtautological-constant-out-of-range-compare]
+  187 |                 NET_ADD_STATS(sock_net(sk), LINUX_MIB_TCPACKCOMPRESSED,
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                               tp->compressed_ack);
+      |                               ~~~~~~~~~~~~~~~~~~~
+...
+arch/x86/include/asm/percpu.h:238:31: note: expanded from macro 'percpu_add_op'
+  238 |                               ((val) == 1 || (val) == -1)) ?            \
+      |                                              ~~~~~ ^  ~~
+
+Fix this by casting -1 to the type of the parameter and then compare.
+
+Link: https://lkml.kernel.org/r/20241016182635.1156168-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20241016182635.1156168-2-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Uros Bizjak <ubizjak@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   38 +++++++++++++++-----------------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+ arch/x86/include/asm/percpu.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-remove-goto-from-mremap_to
-+++ a/mm/mremap.c
-@@ -883,18 +883,18 @@ static unsigned long mremap_to(unsigned
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long ret = -EINVAL;
-+	unsigned long ret;
- 	unsigned long map_flags = 0;
- 
- 	if (offset_in_page(new_addr))
--		goto out;
-+		return -EINVAL;
- 
- 	if (new_len > TASK_SIZE || new_addr > TASK_SIZE - new_len)
--		goto out;
-+		return -EINVAL;
- 
- 	/* Ensure the old/new locations do not overlap */
- 	if (addr + old_len > new_addr && new_addr + new_len > addr)
--		goto out;
-+		return -EINVAL;
- 
- 	/*
- 	 * move_vma() need us to stay 4 maps below the threshold, otherwise
-@@ -921,33 +921,28 @@ static unsigned long mremap_to(unsigned
- 		 */
- 		ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
- 		if (ret)
--			goto out;
-+			return ret;
- 	}
- 
- 	if (old_len > new_len) {
- 		ret = do_munmap(mm, addr+new_len, old_len - new_len, uf_unmap);
- 		if (ret)
--			goto out;
-+			return ret;
- 		old_len = new_len;
- 	}
- 
- 	vma = vma_lookup(mm, addr);
--	if (!vma) {
--		ret = -EFAULT;
--		goto out;
--	}
-+	if (!vma)
-+		return -EFAULT;
- 
--	mremap_vma_check(vma, addr, old_len, new_len, flags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
--		goto out;
--	}
-+	ret = mremap_vma_check(vma, addr, old_len, new_len, flags);
-+	if (ret)
-+		return ret;
- 
- 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
- 	if (flags & MREMAP_DONTUNMAP &&
- 		!may_expand_vm(mm, vma->vm_flags, old_len >> PAGE_SHIFT)) {
--		ret = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	if (flags & MREMAP_FIXED)
-@@ -960,17 +955,14 @@ static unsigned long mremap_to(unsigned
- 				((addr - vma->vm_start) >> PAGE_SHIFT),
- 				map_flags);
- 	if (IS_ERR_VALUE(ret))
--		goto out;
-+		return ret;
- 
- 	/* We got a new mapping */
- 	if (!(flags & MREMAP_FIXED))
- 		new_addr = ret;
- 
--	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked, flags, uf,
--		       uf_unmap);
--
--out:
--	return ret;
-+	return move_vma(vma, addr, old_len, new_len, new_addr, locked, flags,
-+			uf, uf_unmap);
- }
- 
- static int vma_expandable(struct vm_area_struct *vma, unsigned long delta)
+--- a/arch/x86/include/asm/percpu.h~x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types
++++ a/arch/x86/include/asm/percpu.h
+@@ -234,9 +234,10 @@ do {									\
+  */
+ #define percpu_add_op(size, qual, var, val)				\
+ do {									\
+-	const int pao_ID__ = (__builtin_constant_p(val) &&		\
+-			      ((val) == 1 || (val) == -1)) ?		\
+-				(int)(val) : 0;				\
++	const int pao_ID__ =						\
++		(__builtin_constant_p(val) &&				\
++			((val) == 1 ||					\
++			 (val) == (typeof(val))-1)) ? (int)(val) : 0;	\
+ 									\
+ 	if (0) {							\
+ 		typeof(var) pao_tmp__;					\
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
-mm-mremap-clean-up-vma_to_resize.patch
-mm-mremap-remove-goto-from-mremap_to.patch
+mm-remove-unused-stub-for-can_swapin_thp.patch
+x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types.patch
+percpu-add-a-test-case-for-the-specific-64-bit-value-addition.patch
+resource-replace-open-coded-resource_intersection.patch
+resource-introduce-is_type_match-helper-and-use-it.patch
 
