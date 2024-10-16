@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54AA11D279F;
-	Wed, 16 Oct 2024 22:39:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6008FF9C1
+	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 22:53:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729118376; cv=none; b=kGl5f68q6qRm49YmqMmi/KXErjR5BFKNPGd6KIfbrs1nNC31IyUQ4syWcUQcZphQ0y4D1tF2Owsh1eBoFvccKTEi9naBN2Jye0V8d0NnX7/kFWldONhmoFzbqDCUS0t+f8b94pRKgxa+0OVsdOQ1uLZWiT3gMb4pbuIlNvwe/k8=
+	t=1729119197; cv=none; b=QOoPp25hOf5Ia74PirbRsA4XUieged6nO4jlZ0sFGTXePOI//CJUy9p+3oR0IbNzXng4dFV9WMvPreLYzv0rd0reTTFRZdN21y7h2NGVtexXIE+2TJfQlnF2nNToY8fJ4wd0jK3Nwqzqk+lN8vB78TKpAMdQKwivVioig7aXg/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729118376; c=relaxed/simple;
-	bh=Iz8bVR4MDDpnjhsTXEpxJpT6/iH7sl2W0mOZIwRWqDk=;
-	h=Date:To:From:Subject:Message-Id; b=pCW8E65iYvqJnxx5v9w4sqnrpeyR0WR95w/Mb+ug4Ri5c9UV0y/E+qTzlZY3xLyprrdqq+16Xhi6CEXF5TvkGf3Dx+gUXTGkjQQdv7R7qLmyw9BztUVlCCakeYgMUe4ZPB3nuGL9043qyBUO0OaYO6hkG3FPUXagbw6/Cg7NnAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n/YKhbex; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729119197; c=relaxed/simple;
+	bh=huGLw2AXoARa4c3vazhaCtbrKB5bAcElzQY1WlKWbxo=;
+	h=Date:To:From:Subject:Message-Id; b=TprBRQX6e3PwSChObFAd2neF8iH6Ak2pdHsbWkmIrq4XHAV3YdVvT/xh+bSZbovoDebIfZK6Nb5p3VqtnQ8O3Vssm61bi08DvIacMPpH4mO7wE9ldLNFvjmM3cNozcOEvBBXjF5b/8o3QdEuIyTE5AfbaYRgC16poVh2RFslWZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=srIiP57Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n/YKhbex"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1B74C4CEC5;
-	Wed, 16 Oct 2024 22:39:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="srIiP57Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDA73C4CEC5;
+	Wed, 16 Oct 2024 22:53:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729118375;
-	bh=Iz8bVR4MDDpnjhsTXEpxJpT6/iH7sl2W0mOZIwRWqDk=;
+	s=korg; t=1729119197;
+	bh=huGLw2AXoARa4c3vazhaCtbrKB5bAcElzQY1WlKWbxo=;
 	h=Date:To:From:Subject:From;
-	b=n/YKhbexuAe1NS58VIR0zDSf9f7YszjcwUjYlJGl3GzKJlTLMBeW5wuA4zs7hVZre
-	 z6kZfwAYRVWx5E4cCe0ugzUkjHrSHJLclsdWMPa8wxtxYgXRazhWhJviwreVxvJ17n
-	 xsUI+a5H4vp67k5/DKBnitvkd17jiBqwdd2McrtU=
-Date: Wed, 16 Oct 2024 15:39:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,eadavis@qq.com,akpm@linux-foundation.org
+	b=srIiP57YebHOdQ8f5c5rtNb0rUI+GuO1yTqwMeOKkfGrZ5cfzMNdNwRvvY/5XB59p
+	 c1Dhp2Eiv+7bZ1UkXQtK159AajOkKbo2dFeUijCWznZ4oCaSvER9FbuX23x9OY0KrP
+	 CjSyWTYW+Xs1j/temMsaV+PPr+pq7DXAsSRHghIk=
+Date: Wed, 16 Oct 2024 15:53:16 -0700
+To: mm-commits@vger.kernel.org,yuji2.ishikawa@toshiba.co.jp,rppt@kernel.org,anshuman.khandual@arm.com,nobuhiro1.iwamatsu@toshiba.co.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241016223935.D1B74C4CEC5@smtp.kernel.org>
+Subject: + mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241016225316.DDA73C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
+     Subject: mm: numa_clear_kernel_node_hotplug: Add NUMA_NO_NODE check for node id
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch
+     mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
-Date: Wed, 16 Oct 2024 19:43:47 +0800
+From: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Subject: mm: numa_clear_kernel_node_hotplug: Add NUMA_NO_NODE check for node id
+Date: Wed, 16 Oct 2024 18:21:01 +0900
 
-Syzbot reported a kernel BUG in ocfs2_truncate_inline.  There are two
-reasons for this: first, the parameter value passed is greater than
-ocfs2_max_inline_data_with_xattr, second, the start and end parameters of
-ocfs2_truncate_inline are "unsigned int".
+The acquired memory blocks for reserved may include blocks outside of
+memory management.  In this case, the nid variable is set to NUMA_NO_NODE
+(-1), so an error occurs in node_set().  This adds a check using
+numa_valid_node() to numa_clear_kernel_node_hotplug() that skips
+node_set() when nid is set to NUMA_NO_NODE.
 
-So, we need to add a sanity check for byte_start and byte_len right before
-ocfs2_truncate_inline() in ocfs2_remove_inode_range(), if they are greater
-than ocfs2_max_inline_data_with_xattr return -EINVAL.
-
-Link: https://lkml.kernel.org/r/tencent_D48DB5122ADDAEDDD11918CFB68D93258C07@qq.com
-Fixes: 1afc32b95233 ("ocfs2: Write support for inline data")
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Reported-by: syzbot+81092778aac03460d6b7@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=81092778aac03460d6b7
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1729070461-13576-1-git-send-email-nobuhiro1.iwamatsu@toshiba.co.jp
+Fixes: 87482708210f ("mm: introduce numa_memblks")
+Signed-off-by: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: Yuji Ishikawa <yuji2.ishikawa@toshiba.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/numa_memblks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/file.c~ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow
-+++ a/fs/ocfs2/file.c
-@@ -1784,6 +1784,14 @@ int ocfs2_remove_inode_range(struct inod
- 		return 0;
+--- a/mm/numa_memblks.c~mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id
++++ a/mm/numa_memblks.c
+@@ -349,7 +349,7 @@ static void __init numa_clear_kernel_nod
+ 	for_each_reserved_mem_region(mb_region) {
+ 		int nid = memblock_get_region_node(mb_region);
  
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
-+		int id_count = ocfs2_max_inline_data_with_xattr(inode->i_sb, di);
-+
-+		if (byte_start > id_count || byte_start + byte_len > id_count) {
-+			ret = -EINVAL;
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
- 		ret = ocfs2_truncate_inline(inode, di_bh, byte_start,
- 					    byte_start + byte_len, 0);
- 		if (ret) {
+-		if (nid != MAX_NUMNODES)
++		if (numa_valid_node(nid))
+ 			node_set(nid, reserved_nodemask);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from nobuhiro1.iwamatsu@toshiba.co.jp are
 
-ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch
+mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch
 
