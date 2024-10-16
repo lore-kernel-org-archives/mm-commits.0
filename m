@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29521CBA16
-	for <mm-commits@vger.kernel.org>; Wed, 16 Oct 2024 21:11:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7651C07E1;
+	Wed, 16 Oct 2024 21:44:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729113104; cv=none; b=JV1QdQirUg900NPRGZuo9uCHspcobvnsCSkHRJQGhw+XPjwSa11zeUW+9l98sRiOpehi7zchrcGr5z/esM/gZaBNiAxIN8uCreU6h3I5Z9nT6MkMb8XGxzSme9AfFgwkFLPskYCUfrGGk8X0QVVtMtOwXEz5fn3JuUd5m5zUbJo=
+	t=1729115056; cv=none; b=sGy6t6T3Kss0dqoXVbbVLARXmD2Ko6recRbSU4UGCHAUMbAdRn52kOHVis58SxtXK6nTI44tAdppYQvZi7FKY1i2jTA4PQ8lIzoj3+mURM2IAsgWv9biLe34YuSlHmxjufNMByb2J48OBxIP3OnO0525ZdVUvqNj34Qj/sLmUlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729113104; c=relaxed/simple;
-	bh=FiTRlABw48c7Vn98lvww8Kn9WxAKr9SAOa9xEwO6VT4=;
-	h=Date:To:From:Subject:Message-Id; b=VKnQrg3p4tRLtBEgqgXDwo+8YM7k4WkhKwnyuMzPtrVL7r0QwCSLr6QFwbQFB1b3LxlkxFt/MjT2ZvuZWyPMnCPnNfTrvIB+09Fp3KgAS4bu3okwopR0wwTosS2Qq1i2jWkZv/3UFODdxi8dbe2YOzjlC7yhy9bbKfLT3zIo9G4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LC+OQo9p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729115056; c=relaxed/simple;
+	bh=4+lHm9ImuQE82ZpWm+YVKOxyojVXUWrhR6KsSBKQM/0=;
+	h=Date:To:From:Subject:Message-Id; b=QEvQ+ePTl8WHcBp9gy/Ozpcf+0cy5yC3VQKJkAUW88MEF0xunqHE8UkTFvu03VKd2oZ3ejXHBnMUBR1rtAVK2aAAJEZW/RmX2rY8UxwlhFGQmrjv3tqbElqbeMFtZ+8zeyueEsQge2hbh/NF+TgHXCSBQOEImRdv4ITKF9oPgXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i419QJnk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LC+OQo9p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A42BC4CECD;
-	Wed, 16 Oct 2024 21:11:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i419QJnk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1129C4CEC5;
+	Wed, 16 Oct 2024 21:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729113104;
-	bh=FiTRlABw48c7Vn98lvww8Kn9WxAKr9SAOa9xEwO6VT4=;
+	s=korg; t=1729115055;
+	bh=4+lHm9ImuQE82ZpWm+YVKOxyojVXUWrhR6KsSBKQM/0=;
 	h=Date:To:From:Subject:From;
-	b=LC+OQo9p904hboPyn5YdqjZvT6ZoG42PpHmgzJoRkwh3O8BZp5dyZtl3GMCKHoZwy
-	 cDGOGe1J4ShP+bCDm3NWo7mfJk5jzlCgpsk4VutvwewEI8HqrWm4Kg1ZRAMY2ESkgV
-	 KhmPVnCuGsxkpSRwkCYieaZh6yShWERcPu5gqAdU=
-Date: Wed, 16 Oct 2024 14:11:43 -0700
-To: mm-commits@vger.kernel.org,quic_zijuhu@quicinc.com,gregkh@linuxfoundation.org,zijun_hu@icloud.com,akpm@linux-foundation.org
+	b=i419QJnk7yhmN+Ohcmz5sefwXwE8X/b1diSs16AUCUf51lUWJ9Uswu7UhlauHeA2A
+	 pnGX8/UElV62l9ulnqwZ0LMFt2HNgKZQHVDnHn/F5DHkKnqwFq8u/Y88+jffKs+vOb
+	 WoUBjPf3tAmwpvXcsmwcPHD2eiutE8P6/ZFRI6JE=
+Date: Wed, 16 Oct 2024 14:44:15 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,glider@google.com,dave.hansen@linux.intel.com,bp@alien8.de,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-devres-simplify-api-devm_ioport_unmap-implementation.patch removed from -mm tree
-Message-Id: <20241016211144.2A42BC4CECD@smtp.kernel.org>
+Subject: + x86-traps-move-kmsan-check-after-instrumentation_begin.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241016214415.D1129C4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,53 +34,102 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: lib: devres: Simplify API devm_ioport_unmap() implementation
-has been removed from the -mm tree.  Its filename was
-     lib-devres-simplify-api-devm_ioport_unmap-implementation.patch
+The patch titled
+     Subject: x86/traps: move kmsan check after instrumentation_begin
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-traps-move-kmsan-check-after-instrumentation_begin.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-traps-move-kmsan-check-after-instrumentation_begin.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zijun Hu <zijun_hu@icloud.com>
-Subject: lib: devres: Simplify API devm_ioport_unmap() implementation
-Date: Wed, 18 Sep 2024 22:48:14 +0800
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: x86/traps: move kmsan check after instrumentation_begin
+Date: Wed, 16 Oct 2024 20:24:07 +0500
 
-From: Zijun Hu <quic_zijuhu@quicinc.com>
+During x86_64 kernel build with CONFIG_KMSAN, the objtool warns following:
 
-Simplify devm_ioport_unmap() implementation by dedicated API
-devres_release(), compared with current solution, namely
-ioport_unmap() + devres_destroy(), devres_release() has below advantages:
+  AR      built-in.a
+  AR      vmlinux.a
+  LD      vmlinux.o
+vmlinux.o: warning: objtool: handle_bug+0x4: call to
+    kmsan_unpoison_entry_regs() leaves .noinstr.text section
+  OBJCOPY modules.builtin.modinfo
+  GEN     modules.builtin
+  MODPOST Module.symvers
+  CC      .vmlinux.export.o
 
-- it is simpler if devm_ioport_unmap()'s parameter @addr was ever
-  returned by devm_ioport_map().
+Moving kmsan_unpoison_entry_regs() _after_ instrumentation_begin() fixes
+the warning.
 
-- it can avoid unnecessary ioport_unmap(@addr) if @addr was not
-  ever returned by devm_ioport_map().
+There is decode_bug(regs->ip, &imm) is left before KMSAN unpoisoining, but
+it has the return condition and if we include it after
+instrumentation_begin() it results the warning "return with
+instrumentation enabled", hence, I'm concerned that regs will not be KMSAN
+unpoisoned if `ud_type == BUG_NONE` is true.
 
-Link: https://lkml.kernel.org/r/20240918-fix_lib_devres-v1-2-e696ab5486e6@quicinc.com
-Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20241016152407.3149001-1-snovitoll@gmail.com
+Fixes: ba54d194f8da ("x86/traps: avoid KMSAN bugs originating from handle_bug()")
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/traps.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/devres.c~lib-devres-simplify-api-devm_ioport_unmap-implementation
-+++ a/lib/devres.c
-@@ -307,8 +307,7 @@ EXPORT_SYMBOL(devm_ioport_map);
-  */
- void devm_ioport_unmap(struct device *dev, void __iomem *addr)
- {
--	ioport_unmap(addr);
--	WARN_ON(devres_destroy(dev, devm_ioport_map_release,
-+	WARN_ON(devres_release(dev, devm_ioport_map_release,
- 			       devm_ioport_map_match, (__force void *)addr));
- }
- EXPORT_SYMBOL(devm_ioport_unmap);
+--- a/arch/x86/kernel/traps.c~x86-traps-move-kmsan-check-after-instrumentation_begin
++++ a/arch/x86/kernel/traps.c
+@@ -261,12 +261,6 @@ static noinstr bool handle_bug(struct pt
+ 	int ud_type;
+ 	u32 imm;
+ 
+-	/*
+-	 * Normally @regs are unpoisoned by irqentry_enter(), but handle_bug()
+-	 * is a rare case that uses @regs without passing them to
+-	 * irqentry_enter().
+-	 */
+-	kmsan_unpoison_entry_regs(regs);
+ 	ud_type = decode_bug(regs->ip, &imm);
+ 	if (ud_type == BUG_NONE)
+ 		return handled;
+@@ -276,6 +270,12 @@ static noinstr bool handle_bug(struct pt
+ 	 */
+ 	instrumentation_begin();
+ 	/*
++	 * Normally @regs are unpoisoned by irqentry_enter(), but handle_bug()
++	 * is a rare case that uses @regs without passing them to
++	 * irqentry_enter().
++	 */
++	kmsan_unpoison_entry_regs(regs);
++	/*
+ 	 * Since we're emulating a CALL with exceptions, restore the interrupt
+ 	 * state to what it was at the exception site.
+ 	 */
 _
 
-Patches currently in -mm which might be from zijun_hu@icloud.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
+x86-traps-move-kmsan-check-after-instrumentation_begin.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
