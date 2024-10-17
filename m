@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C67321CEAA3
-	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:29:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90D71C6F66
+	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:29:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150140; cv=none; b=LKME7YPI6nMLNqIy6frrusyj7azVvDQlSUYsG4ibdqOkdgUbv9JhkMZkZQF8VCTDCNpAkMS5nyuAatg09msjMogUFAKoGLpQfP47EZ5d4ytxWqis5FeWzKPusg5nEhu9qppOpUbw7QFqHJn/cDGE2NtTamPPLMPAtnQpXL2yaiE=
+	t=1729150142; cv=none; b=u/lVrIuX+OjYFc079CfjAwSwwuA9L7ujSX2SRZ16prlLBqdvuSsVyLxrPvmjCmtlbgqGIiCeoV8WiE+E1W1w7AO/0XkAnxB87ms8KM+Prblw434LC7HblbaAyw2RSZYhm9Q4w7UxFoC60xY5MraJvyJex1MdAV620v3m/TWTz6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150140; c=relaxed/simple;
-	bh=D8xyVDp9S5NUhVCckodRB5GRubVeNpmrtmTCt7SBenk=;
-	h=Date:To:From:Subject:Message-Id; b=r+TYsPuWmVInyRJwNB2NT49ann13c2J/vxm09CvalzAJU0NSgj8V4bjF8xClE5HOPbtzZlOMcRS185BknfqVwx+h90k70HiZYp5RcB+ZfmshME5/TETEcYWyqMk45PlHjwX4S8JsZrsVdeIs6np0q/6PHNDOEkQ/7BfZF5B3uxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fno1xkQ/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150142; c=relaxed/simple;
+	bh=hkZIWf1gFvdVhkykDj5QpA2LuuZ1G8qCYCZJVzeSMEU=;
+	h=Date:To:From:Subject:Message-Id; b=SPppH/YwVwF8gftY4yaud1YWPGs1qNjeiko/CgJrba6keen8M/XmEA5yOJjnu1C+OJZz4+5LnC8bahhbpyDkyR2U42FUiR3UQMCpZPdqktM5H5u/R7vlNOBKIKK5d9liLvndhh+9ZUrfYySa8HvrJbNE3BRKD87QC0XA74d168o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qghlz+xH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fno1xkQ/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B2FDC4CEC3;
-	Thu, 17 Oct 2024 07:29:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qghlz+xH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF2F4C4CEC3;
+	Thu, 17 Oct 2024 07:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150140;
-	bh=D8xyVDp9S5NUhVCckodRB5GRubVeNpmrtmTCt7SBenk=;
+	s=korg; t=1729150141;
+	bh=hkZIWf1gFvdVhkykDj5QpA2LuuZ1G8qCYCZJVzeSMEU=;
 	h=Date:To:From:Subject:From;
-	b=fno1xkQ/fR+0LUG9eLkoxg79CcYp2c3+2lJrvKXWkYTOqnRBtXzBA44TwNY7F/7eT
-	 O8l6U4u0zgc6OlWHG+rkNli6Q4ZgD6LxZGvKhj7vnpOirQHNM5lbKrlksO5ccO8sSw
-	 Rks+cX0nbAmVdXUupgBZoQvQGiqQIbKdDQSf9l+o=
-Date: Thu, 17 Oct 2024 00:29:00 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,chrisl@kernel.org,aha310510@gmail.com,akpm@linux-foundation.org
+	b=qghlz+xHPTGdr9VK2zF4EbdUqhtizFgxzIP6Rb7EUotDN5l990zyNvGu/iEE9EJPQ
+	 K1TD1JWC2QvS8m2LjRBAijclNKO/OOGSUfR3pru6w1uf+ZNyhjjRmyZ4WFID3u56tH
+	 WTcOrFAqjOvtFat+31Ab6ssOzu50wM+IZypsK0jI=
+Date: Thu, 17 Oct 2024 00:29:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap.patch removed from -mm tree
-Message-Id: <20241017072900.9B2FDC4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-myself-as-memory-mapping-vma-reviewer.patch removed from -mm tree
+Message-Id: <20241017072901.BF2F4C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,136 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: swap: prevent possible data-race in __try_to_reclaim_swap
+     Subject: MAINTAINERS: add Jann as memory mapping/VMA reviewer
 has been removed from the -mm tree.  Its filename was
-     mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap.patch
+     maintainers-add-myself-as-memory-mapping-vma-reviewer.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jeongjun Park <aha310510@gmail.com>
-Subject: mm: swap: prevent possible data-race in __try_to_reclaim_swap
-Date: Mon, 7 Oct 2024 16:06:23 +0900
+From: Jann Horn <jannh@google.com>
+Subject: MAINTAINERS: add Jann as memory mapping/VMA reviewer
+Date: Mon, 14 Oct 2024 22:50:57 +0200
 
-A report [1] was uploaded from syzbot.
+Add myself as a reviewer for memory mapping / VMA code.  I will probably
+only reply to patches sporadically, but hopefully this will help me keep
+up with changes that look interesting security-wise.
 
-In the previous commit 862590ac3708 ("mm: swap: allow cache reclaim to
-skip slot cache"), the __try_to_reclaim_swap() function reads offset and
-folio->entry from folio without folio_lock protection.
-
-In the currently reported KCSAN log, it is assumed that the actual
-data-race will not occur because the calltrace that does WRITE already
-obtains the folio_lock and then writes.
-
-However, the existing __try_to_reclaim_swap() function was already
-implemented to perform reads under folio_lock protection [1], and there is
-a risk of a data-race occurring through a function other than the one
-shown in the KCSAN log.
-
-Therefore, I think it is appropriate to change
-read operations for folio to be performed under folio_lock.
-
-[1]
-
-==================================================================
-BUG: KCSAN: data-race in __delete_from_swap_cache / __try_to_reclaim_swap
-
-write to 0xffffea0004c90328 of 8 bytes by task 5186 on cpu 0:
- __delete_from_swap_cache+0x1f0/0x290 mm/swap_state.c:163
- delete_from_swap_cache+0x72/0xe0 mm/swap_state.c:243
- folio_free_swap+0x1d8/0x1f0 mm/swapfile.c:1850
- free_swap_cache mm/swap_state.c:293 [inline]
- free_pages_and_swap_cache+0x1fc/0x410 mm/swap_state.c:325
- __tlb_batch_free_encoded_pages mm/mmu_gather.c:136 [inline]
- tlb_batch_pages_flush mm/mmu_gather.c:149 [inline]
- tlb_flush_mmu_free mm/mmu_gather.c:366 [inline]
- tlb_flush_mmu+0x2cf/0x440 mm/mmu_gather.c:373
- zap_pte_range mm/memory.c:1700 [inline]
- zap_pmd_range mm/memory.c:1739 [inline]
- zap_pud_range mm/memory.c:1768 [inline]
- zap_p4d_range mm/memory.c:1789 [inline]
- unmap_page_range+0x1f3c/0x22d0 mm/memory.c:1810
- unmap_single_vma+0x142/0x1d0 mm/memory.c:1856
- unmap_vmas+0x18d/0x2b0 mm/memory.c:1900
- exit_mmap+0x18a/0x690 mm/mmap.c:1864
- __mmput+0x28/0x1b0 kernel/fork.c:1347
- mmput+0x4c/0x60 kernel/fork.c:1369
- exit_mm+0xe4/0x190 kernel/exit.c:571
- do_exit+0x55e/0x17f0 kernel/exit.c:926
- do_group_exit+0x102/0x150 kernel/exit.c:1088
- get_signal+0xf2a/0x1070 kernel/signal.c:2917
- arch_do_signal_or_restart+0x95/0x4b0 arch/x86/kernel/signal.c:337
- exit_to_user_mode_loop kernel/entry/common.c:111 [inline]
- exit_to_user_mode_prepare include/linux/entry-common.h:328 [inline]
- __syscall_exit_to_user_mode_work kernel/entry/common.c:207 [inline]
- syscall_exit_to_user_mode+0x59/0x130 kernel/entry/common.c:218
- do_syscall_64+0xd6/0x1c0 arch/x86/entry/common.c:89
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-read to 0xffffea0004c90328 of 8 bytes by task 5189 on cpu 1:
- __try_to_reclaim_swap+0x9d/0x510 mm/swapfile.c:198
- free_swap_and_cache_nr+0x45d/0x8a0 mm/swapfile.c:1915
- zap_pte_range mm/memory.c:1656 [inline]
- zap_pmd_range mm/memory.c:1739 [inline]
- zap_pud_range mm/memory.c:1768 [inline]
- zap_p4d_range mm/memory.c:1789 [inline]
- unmap_page_range+0xcf8/0x22d0 mm/memory.c:1810
- unmap_single_vma+0x142/0x1d0 mm/memory.c:1856
- unmap_vmas+0x18d/0x2b0 mm/memory.c:1900
- exit_mmap+0x18a/0x690 mm/mmap.c:1864
- __mmput+0x28/0x1b0 kernel/fork.c:1347
- mmput+0x4c/0x60 kernel/fork.c:1369
- exit_mm+0xe4/0x190 kernel/exit.c:571
- do_exit+0x55e/0x17f0 kernel/exit.c:926
- __do_sys_exit kernel/exit.c:1055 [inline]
- __se_sys_exit kernel/exit.c:1053 [inline]
- __x64_sys_exit+0x1f/0x20 kernel/exit.c:1053
- x64_sys_call+0x2d46/0x2d60 arch/x86/include/generated/asm/syscalls_64.h:61
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xc9/0x1c0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-value changed: 0x0000000000000242 -> 0x0000000000000000
-
-Link: https://lkml.kernel.org/r/20241007070623.23340-1-aha310510@gmail.com
-Reported-by: syzbot+fa43f1b63e3aa6f66329@syzkaller.appspotmail.com
-Fixes: 862590ac3708 ("mm: swap: allow cache reclaim to skip slot cache")
-Signed-off-by: Jeongjun Park <aha310510@gmail.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Kairui Song <kasong@tencent.com>
+Link: https://lkml.kernel.org/r/20241014-maintainers-mmap-reviewer-v1-1-50dce0514752@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/swapfile.c~mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap
-+++ a/mm/swapfile.c
-@@ -194,9 +194,6 @@ static int __try_to_reclaim_swap(struct
- 	if (IS_ERR(folio))
- 		return 0;
- 
--	/* offset could point to the middle of a large folio */
--	entry = folio->swap;
--	offset = swp_offset(entry);
- 	nr_pages = folio_nr_pages(folio);
- 	ret = -nr_pages;
- 
-@@ -210,6 +207,10 @@ static int __try_to_reclaim_swap(struct
- 	if (!folio_trylock(folio))
- 		goto out;
- 
-+	/* offset could point to the middle of a large folio */
-+	entry = folio->swap;
-+	offset = swp_offset(entry);
-+
- 	need_reclaim = ((flags & TTRS_ANYWAY) ||
- 			((flags & TTRS_UNMAPPED) && !folio_mapped(folio)) ||
- 			((flags & TTRS_FULL) && mem_cgroup_swap_full(folio)));
+--- a/MAINTAINERS~maintainers-add-myself-as-memory-mapping-vma-reviewer
++++ a/MAINTAINERS
+@@ -14912,6 +14912,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+@@ -24742,6 +24743,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	https://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from aha310510@gmail.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-shmem-fix-data-race-in-shmem_getattr.patch
+mm-mark-mas-allocation-in-vms_abort_munmap_vmas-as-__gfp_nofail.patch
 
