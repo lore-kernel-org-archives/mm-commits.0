@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED13F1925B2
-	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9913C1925B2;
+	Thu, 17 Oct 2024 07:28:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150121; cv=none; b=J+mUgcR+Vm9CMxir/2zdp5k4izV5Kk5chUhEwFvFuaoz4yrldTyQyb3nQB08jqmN1GUAOAP9EvuA8O2beawrlYvGMpe3UFlSWGrZ9JKof03yNGOJFaCUgwPgBTS55YwWbG0ixvJ4HOx6nNaEL+FYOj9o2OXwwMcILoMGgY9Xt0M=
+	t=1729150122; cv=none; b=e4XUSoiztCtfnpbl9xYZ2lv+14DAsmCyHifRm83DbP8RzYmI2NgkE/kn1rGuSaQw8kKZMB3Vmy08GPItQJoLA6oW8ftVzAdnx8ta3lSlTYR3v5VW5z7S80azN2/jXTLhpegMU1jdltM0dv2qxMHtKtl1FJcF3myBUBwFQxQeQXs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150121; c=relaxed/simple;
-	bh=gCXRoCVg/7Lzvj4EedQS+uHk5TeFpIc4PACH+Z3fLkE=;
-	h=Date:To:From:Subject:Message-Id; b=S/7arFyUyLTS6+nGW8WowVd9XeXA/msoblf8zB7XJrOhsyxgFyjc9FrEzZ7q4aMTun9H22fUzFqbjuyMYE03n2fviaHxiyjIy6Mzo/fd048hoqYBRjKKFwTwLcOCDQhaDHh/Xz1r+/xVfm+Ho5dFuZgWNnGfPtJqw+RwGTpwHqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FceqkRdG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150122; c=relaxed/simple;
+	bh=VMZ9CJI8yOSlS52jHP7c+X1DYIm9JXvLStwJIC02zs0=;
+	h=Date:To:From:Subject:Message-Id; b=rW1MaVrsQsw/ZvlqlRGDvOoJ2p9TXbnuOlyrOGmpI48tyOW1tE6hYVsrwKI6a7ySy2qfPIbiaQdd9PJSynUlwSOScRIFSbK+h7rx4/vMeCT1/BKzvVdReNkevagQUKs3w9tRWUnLyTbZ6LsMng4DF9FVMfVhScTU0TlNdtLQM/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V9bh81Dc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FceqkRdG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C196CC4CEC3;
-	Thu, 17 Oct 2024 07:28:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V9bh81Dc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09E9CC4CEC3;
+	Thu, 17 Oct 2024 07:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150120;
-	bh=gCXRoCVg/7Lzvj4EedQS+uHk5TeFpIc4PACH+Z3fLkE=;
+	s=korg; t=1729150122;
+	bh=VMZ9CJI8yOSlS52jHP7c+X1DYIm9JXvLStwJIC02zs0=;
 	h=Date:To:From:Subject:From;
-	b=FceqkRdGk2RBRAiPAfz4INV02ligxw0Hk5i8oJWQpvvo7c/6Ptjuy24YNfEolU88T
-	 YIGdWPSoGGMaAqmSBs4in/1l4IQcD271Z5Tkw5fcbB1e8j6FhzjyLGX/Bn8/Q95uim
-	 HVL7TIXZCoPPOSwgvz0AI1ElL5j1nmDMGOK+a/F8=
-Date: Thu, 17 Oct 2024 00:28:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,lkp@intel.com,iamjoonsoo.kim@lge.com,dennis@kernel.org,cl@linux.com,arnd@kernel.org,arnd@arndb.de,42.hyeyoo@gmail.com,bigeasy@linutronix.de,akpm@linux-foundation.org
+	b=V9bh81DcT1GOv14W8xIhrJulYZ5lwitQiT0JgXwqjDJtBdZkRUq+uHZ50lk+klKP1
+	 Du/n0IWVK80qd/nxVzcOwk/ATcqVuKG3IEfXu9CN3iKNbQyu0gjjFnx9jLF6zOKbMJ
+	 lkyb/8fVZX/P4zCcLfk5LGQ2CEg8uzdwSxBqNgyc=
+Date: Thu, 17 Oct 2024 00:28:41 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,joel@joelfernandes.org,hughd@google.com,david@redhat.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds.patch removed from -mm tree
-Message-Id: <20241017072840.C196CC4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch removed from -mm tree
+Message-Id: <20241017072842.09E9CC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,146 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: percpu: increase PERCPU_DYNAMIC_SIZE_SHIFT on certain builds.
+     Subject: mm/mremap: fix move_normal_pmd/retract_page_tables race
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds.patch
+     mm-mremap-fix-move_normal_pmd-retract_page_tables-race.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm: percpu: increase PERCPU_DYNAMIC_SIZE_SHIFT on certain builds.
-Date: Mon, 7 Oct 2024 16:30:49 +0200
+From: Jann Horn <jannh@google.com>
+Subject: mm/mremap: fix move_normal_pmd/retract_page_tables race
+Date: Mon, 07 Oct 2024 23:42:04 +0200
 
-Arnd reported a build failure due to the BUILD_BUG_ON() statement in
-alloc_kmem_cache_cpus().  The test
+In mremap(), move_page_tables() looks at the type of the PMD entry and the
+specified address range to figure out by which method the next chunk of
+page table entries should be moved.
 
-  PERCPU_DYNAMIC_EARLY_SIZE < NR_KMALLOC_TYPES * KMALLOC_SHIFT_HIGH * sizeof(struct kmem_cache_cpu)
+At that point, the mmap_lock is held in write mode, but no rmap locks are
+held yet.  For PMD entries that point to page tables and are fully covered
+by the source address range, move_pgt_entry(NORMAL_PMD, ...) is called,
+which first takes rmap locks, then does move_normal_pmd(). 
+move_normal_pmd() takes the necessary page table locks at source and
+destination, then moves an entire page table from the source to the
+destination.
 
-The factors that increase the right side of the equation:
-- PAGE_SIZE > 4KiB increases KMALLOC_SHIFT_HIGH
-- For the local_lock_t in kmem_cache_cpu:
-  - PREEMPT_RT adds an actual lock.
-  - LOCKDEP increases the size of the lock.
-  - LOCK_STAT adds additional bytes plus padding to the lockdep
-    structure.
+The problem is: The rmap locks, which protect against concurrent page
+table removal by retract_page_tables() in the THP code, are only taken
+after the PMD entry has been read and it has been decided how to move it. 
+So we can race as follows (with two processes that have mappings of the
+same tmpfs file that is stored on a tmpfs mount with huge=advise); note
+that process A accesses page tables through the MM while process B does it
+through the file rmap:
 
-The net difference with and without PREEMPT_RT is 88 bytes for the
-lock_lock_t, 96 bytes for kmem_cache_cpu due to additional padding.  This
-is enough to exceed the 80KiB limit with 16KiB page size - the 8KiB page
-size is fine.
+process A                      process B
+=========                      =========
+mremap
+  mremap_to
+    move_vma
+      move_page_tables
+        get_old_pmd
+        alloc_new_pmd
+                      *** PREEMPT ***
+                               madvise(MADV_COLLAPSE)
+                                 do_madvise
+                                   madvise_walk_vmas
+                                     madvise_vma_behavior
+                                       madvise_collapse
+                                         hpage_collapse_scan_file
+                                           collapse_file
+                                             retract_page_tables
+                                               i_mmap_lock_read(mapping)
+                                               pmdp_collapse_flush
+                                               i_mmap_unlock_read(mapping)
+        move_pgt_entry(NORMAL_PMD, ...)
+          take_rmap_locks
+          move_normal_pmd
+          drop_rmap_locks
 
-Increase PERCPU_DYNAMIC_SIZE_SHIFT to 13 on configs with PAGE_SIZE larger
-than 4KiB and LOCKDEP enabled.
+When this happens, move_normal_pmd() can end up creating bogus PMD entries
+in the line `pmd_populate(mm, new_pmd, pmd_pgtable(pmd))`.  The effect
+depends on arch-specific and machine-specific details; on x86, you can end
+up with physical page 0 mapped as a page table, which is likely
+exploitable for user->kernel privilege escalation.
 
-Link: https://lkml.kernel.org/r/20241007143049.gyMpEu89@linutronix.de
-Fixes: d8fccd9ca5f9 ("arm64: Allow to enable PREEMPT_RT.")
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202410020326.iaZIteIx-lkp@intel.com/
-Reported-by: Arnd Bergmann <arnd@kernel.org>
-Closes: https://lore.kernel.org/20241004095702.637528-1-arnd@kernel.org
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Fix the race by letting process B recheck that the PMD still points to a
+page table after the rmap locks have been taken.  Otherwise, we bail and
+let the caller fall back to the PTE-level copying path, which will then
+bail immediately at the pmd_none() check.
+
+Bug reachability: Reaching this bug requires that you can create
+shmem/file THP mappings - anonymous THP uses different code that doesn't
+zap stuff under rmap locks.  File THP is gated on an experimental config
+flag (CONFIG_READ_ONLY_THP_FOR_FS), so on normal distro kernels you need
+shmem THP to hit this bug.  As far as I know, getting shmem THP normally
+requires that you can mount your own tmpfs with the right mount flags,
+which would require creating your own user+mount namespace; though I don't
+know if some distros maybe enable shmem THP by default or something like
+that.
+
+Bug impact: This issue can likely be used for user->kernel privilege
+escalation when it is reachable.
+
+Link: https://lkml.kernel.org/r/20241007-move_normal_pmd-vs-collapse-fix-2-v1-1-5ead9631f2ea@google.com
+Fixes: 1d65b771bc08 ("mm/khugepaged: retract_page_tables() without mmap or vma lock")
+Signed-off-by: Jann Horn <jannh@google.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Co-developed-by: David Hildenbrand <david@redhat.com>
+Closes: https://project-zero.issues.chromium.org/371047675
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/mremap.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/include/linux/percpu.h~mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds
-+++ a/include/linux/percpu.h
-@@ -41,7 +41,11 @@
- 					 PCPU_MIN_ALLOC_SHIFT)
+--- a/mm/mremap.c~mm-mremap-fix-move_normal_pmd-retract_page_tables-race
++++ a/mm/mremap.c
+@@ -238,6 +238,7 @@ static bool move_normal_pmd(struct vm_ar
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	struct mm_struct *mm = vma->vm_mm;
++	bool res = false;
+ 	pmd_t pmd;
  
- #ifdef CONFIG_RANDOM_KMALLOC_CACHES
--#define PERCPU_DYNAMIC_SIZE_SHIFT      12
-+# if defined(CONFIG_LOCKDEP) && !defined(CONFIG_PAGE_SIZE_4KB)
-+# define PERCPU_DYNAMIC_SIZE_SHIFT      13
-+# else
-+# define PERCPU_DYNAMIC_SIZE_SHIFT      12
-+#endif /* LOCKDEP and PAGE_SIZE > 4KiB */
+ 	if (!arch_supports_page_table_move())
+@@ -277,19 +278,25 @@ static bool move_normal_pmd(struct vm_ar
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+ 
+-	/* Clear the pmd */
+ 	pmd = *old_pmd;
++
++	/* Racing with collapse? */
++	if (unlikely(!pmd_present(pmd) || pmd_leaf(pmd)))
++		goto out_unlock;
++	/* Clear the pmd */
+ 	pmd_clear(old_pmd);
++	res = true;
+ 
+ 	VM_BUG_ON(!pmd_none(*new_pmd));
+ 
+ 	pmd_populate(mm, new_pmd, pmd_pgtable(pmd));
+ 	flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
++out_unlock:
+ 	if (new_ptl != old_ptl)
+ 		spin_unlock(new_ptl);
+ 	spin_unlock(old_ptl);
+ 
+-	return true;
++	return res;
+ }
  #else
- #define PERCPU_DYNAMIC_SIZE_SHIFT      10
- #endif
+ static inline bool move_normal_pmd(struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from jannh@google.com are
 
+mm-mark-mas-allocation-in-vms_abort_munmap_vmas-as-__gfp_nofail.patch
 
