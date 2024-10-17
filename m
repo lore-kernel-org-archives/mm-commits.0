@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32E11925B2;
-	Thu, 17 Oct 2024 07:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED13F1925B2
+	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150119; cv=none; b=TaWm7z9rPiqZZDnvdLF6W3NftCVeAbUsXj+15JACzY1LtJDO4khyjYfQxpOBlKw0N5svtDuC0ZV/k6+vi/eOQ1Ez16m8qVEAg3f7QUd0XbHVx+lnN624P/Z4rqLfp27W25A/UoskW1UWNudi+UcHDpJCJkFxAvWvTBM//hHc8N8=
+	t=1729150121; cv=none; b=J+mUgcR+Vm9CMxir/2zdp5k4izV5Kk5chUhEwFvFuaoz4yrldTyQyb3nQB08jqmN1GUAOAP9EvuA8O2beawrlYvGMpe3UFlSWGrZ9JKof03yNGOJFaCUgwPgBTS55YwWbG0ixvJ4HOx6nNaEL+FYOj9o2OXwwMcILoMGgY9Xt0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150119; c=relaxed/simple;
-	bh=1LTRaUlQaCmHMjebxf4riJToDxAIxvyEE1Su5aMn9gc=;
-	h=Date:To:From:Subject:Message-Id; b=A+2Q58JKF6F7VxfB1lUZX+4kp9VmJZjhfT8AhaqPatcZojFqRjF0P/8rx+1HMZK79F4GraiVv3rrGE/3DZEDE9c44C0qM7zEqGENdJg3XGFPYQW21SFVlWhWGyQu7puQt8nKz2lTMaH0FvBJLx8cBvckHTlsCmDJAA4668LTN6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZUD6RAIK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150121; c=relaxed/simple;
+	bh=gCXRoCVg/7Lzvj4EedQS+uHk5TeFpIc4PACH+Z3fLkE=;
+	h=Date:To:From:Subject:Message-Id; b=S/7arFyUyLTS6+nGW8WowVd9XeXA/msoblf8zB7XJrOhsyxgFyjc9FrEzZ7q4aMTun9H22fUzFqbjuyMYE03n2fviaHxiyjIy6Mzo/fd048hoqYBRjKKFwTwLcOCDQhaDHh/Xz1r+/xVfm+Ho5dFuZgWNnGfPtJqw+RwGTpwHqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FceqkRdG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUD6RAIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85953C4CEC5;
-	Thu, 17 Oct 2024 07:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FceqkRdG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C196CC4CEC3;
+	Thu, 17 Oct 2024 07:28:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150119;
-	bh=1LTRaUlQaCmHMjebxf4riJToDxAIxvyEE1Su5aMn9gc=;
+	s=korg; t=1729150120;
+	bh=gCXRoCVg/7Lzvj4EedQS+uHk5TeFpIc4PACH+Z3fLkE=;
 	h=Date:To:From:Subject:From;
-	b=ZUD6RAIKf9Wk5g+QB1a2gW9adx/oU1rsvdgrSj/r+LNYgF9nD1i7+5SLHgUDgt1NP
-	 AJr/fpXsERGfp6T7ZsWvBuMIGGkn4B/32D4YeTTKAixk87jZ6DLlSEwmcev43DiAsP
-	 pumK2hP8q+0//gYwjEqvnXze6zjCeqpADQ8utJ3A=
-Date: Thu, 17 Oct 2024 00:28:39 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,lokeshgidra@google.com,edliaw@google.com,akpm@linux-foundation.org
+	b=FceqkRdGk2RBRAiPAfz4INV02ligxw0Hk5i8oJWQpvvo7c/6Ptjuy24YNfEolU88T
+	 YIGdWPSoGGMaAqmSBs4in/1l4IQcD271Z5Tkw5fcbB1e8j6FhzjyLGX/Bn8/Q95uim
+	 HVL7TIXZCoPPOSwgvz0AI1ElL5j1nmDMGOK+a/F8=
+Date: Thu, 17 Oct 2024 00:28:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,lkp@intel.com,iamjoonsoo.kim@lge.com,dennis@kernel.org,cl@linux.com,arnd@kernel.org,arnd@arndb.de,42.hyeyoo@gmail.com,bigeasy@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch removed from -mm tree
-Message-Id: <20241017072839.85953C4CEC5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds.patch removed from -mm tree
+Message-Id: <20241017072840.C196CC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix deadlock for fork after pthread_create on ARM
+     Subject: mm: percpu: increase PERCPU_DYNAMIC_SIZE_SHIFT on certain builds.
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch
+     mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Liaw <edliaw@google.com>
-Subject: selftests/mm: fix deadlock for fork after pthread_create on ARM
-Date: Thu, 3 Oct 2024 21:17:11 +0000
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm: percpu: increase PERCPU_DYNAMIC_SIZE_SHIFT on certain builds.
+Date: Mon, 7 Oct 2024 16:30:49 +0200
 
-On Android with arm, there is some synchronization needed to avoid a
-deadlock when forking after pthread_create.
+Arnd reported a build failure due to the BUILD_BUG_ON() statement in
+alloc_kmem_cache_cpus().  The test
 
-Link: https://lkml.kernel.org/r/20241003211716.371786-3-edliaw@google.com
-Fixes: cff294582798 ("selftests/mm: extend and rename uffd pagemap test")
-Signed-off-by: Edward Liaw <edliaw@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+  PERCPU_DYNAMIC_EARLY_SIZE < NR_KMALLOC_TYPES * KMALLOC_SHIFT_HIGH * sizeof(struct kmem_cache_cpu)
+
+The factors that increase the right side of the equation:
+- PAGE_SIZE > 4KiB increases KMALLOC_SHIFT_HIGH
+- For the local_lock_t in kmem_cache_cpu:
+  - PREEMPT_RT adds an actual lock.
+  - LOCKDEP increases the size of the lock.
+  - LOCK_STAT adds additional bytes plus padding to the lockdep
+    structure.
+
+The net difference with and without PREEMPT_RT is 88 bytes for the
+lock_lock_t, 96 bytes for kmem_cache_cpu due to additional padding.  This
+is enough to exceed the 80KiB limit with 16KiB page size - the 8KiB page
+size is fine.
+
+Increase PERCPU_DYNAMIC_SIZE_SHIFT to 13 on configs with PAGE_SIZE larger
+than 4KiB and LOCKDEP enabled.
+
+Link: https://lkml.kernel.org/r/20241007143049.gyMpEu89@linutronix.de
+Fixes: d8fccd9ca5f9 ("arm64: Allow to enable PREEMPT_RT.")
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202410020326.iaZIteIx-lkp@intel.com/
+Reported-by: Arnd Bergmann <arnd@kernel.org>
+Closes: https://lore.kernel.org/20241004095702.637528-1-arnd@kernel.org
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/percpu.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -241,6 +241,9 @@ static void *fork_event_consumer(void *d
- 	fork_event_args *args = data;
- 	struct uffd_msg msg = { 0 };
+--- a/include/linux/percpu.h~mm-percpu-increase-percpu_dynamic_size_shift-on-certain-builds
++++ a/include/linux/percpu.h
+@@ -41,7 +41,11 @@
+ 					 PCPU_MIN_ALLOC_SHIFT)
  
-+	/* Ready for parent thread to fork */
-+	pthread_barrier_wait(&ready_for_fork);
-+
- 	/* Read until a full msg received */
- 	while (uffd_read_msg(args->parent_uffd, &msg));
- 
-@@ -308,8 +311,12 @@ static int pagemap_test_fork(int uffd, b
- 
- 	/* Prepare a thread to resolve EVENT_FORK */
- 	if (with_event) {
-+		pthread_barrier_init(&ready_for_fork, NULL, 2);
- 		if (pthread_create(&thread, NULL, fork_event_consumer, &args))
- 			err("pthread_create()");
-+		/* Wait for child thread to start before forking */
-+		pthread_barrier_wait(&ready_for_fork);
-+		pthread_barrier_destroy(&ready_for_fork);
- 	}
- 
- 	child = fork();
+ #ifdef CONFIG_RANDOM_KMALLOC_CACHES
+-#define PERCPU_DYNAMIC_SIZE_SHIFT      12
++# if defined(CONFIG_LOCKDEP) && !defined(CONFIG_PAGE_SIZE_4KB)
++# define PERCPU_DYNAMIC_SIZE_SHIFT      13
++# else
++# define PERCPU_DYNAMIC_SIZE_SHIFT      12
++#endif /* LOCKDEP and PAGE_SIZE > 4KiB */
+ #else
+ #define PERCPU_DYNAMIC_SIZE_SHIFT      10
+ #endif
 _
 
-Patches currently in -mm which might be from edliaw@google.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 
