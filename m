@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F308C1CC14B
-	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D471CC14B
+	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150128; cv=none; b=kjCbzbNVBjDmIEpdwBri0Jl3EmvFVOcK61duI+iJl8Y/1kkHvFPDSFtlivSXMJxaOWKE3YIKKJDKcghkwlXI792KFhexULinW0ECsd9J8NWYMP9LZY37dEb7yvOxDiS5kGGKUIj0UYPfJeUIf7NKvTWl2ixmshg5aQdu+hVE52k=
+	t=1729150128; cv=none; b=Cw8B72lM1krAx3UPYgn7NDsixI61xMzmnRmuWGSwUYCz9BoNCqX3JSg7foWf3VYoT0s85dtxEBelcikoVa+2y31qdGK98glec+yYKJNdFt0QcKmLLYecJ+st/DgDuQ32Y5UznkE2e49DrS4yxFaPZeJMPcJl4Foem4LjSxM0/YU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729150128; c=relaxed/simple;
-	bh=5phZddJM5iVtsAVewZPSskbq2OuV951q7Gi5RA0tzr8=;
-	h=Date:To:From:Subject:Message-Id; b=XiRjbUv/PSe6gti3a7OPUD6UKdY6gY39yZOy2EQ5yUMBbCCS79m7oPZ3RY0JZRQnaScbLZWbuQIrG69+ReNN0R9uidn8QvAkifRpvYk/lzilQezTRiXFIUw5sEZ/av+KTynSIUklZdCtJLayZfkotG7NBxHwZB1AT2nCgmv7cfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ANKnA8GV; arc=none smtp.client-ip=10.30.226.201
+	bh=F3volqvF5XfiV9TPtjl93WAMPYhXn+tekkHsWoH37o8=;
+	h=Date:To:From:Subject:Message-Id; b=WzYY3f4hfSMLfU3qVs3YD6kz6awJeJz5Rx8nmbaqHDINQrO1LosyYxQvZXayK2HAVkCRYNujr8dg7rMOQTwhT+IAhMNfNBheVp5hbjJqXNLFpQ4R6vEuSJcSJsHaa8E+6gCsPFcZ+tEiGEbzDpkB0X1QYe83yXiFEGlI+IFVsGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uV+hxyYu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ANKnA8GV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2E2C4CEC3;
-	Thu, 17 Oct 2024 07:28:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uV+hxyYu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9ABDC4CEC3;
+	Thu, 17 Oct 2024 07:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150127;
-	bh=5phZddJM5iVtsAVewZPSskbq2OuV951q7Gi5RA0tzr8=;
+	s=korg; t=1729150128;
+	bh=F3volqvF5XfiV9TPtjl93WAMPYhXn+tekkHsWoH37o8=;
 	h=Date:To:From:Subject:From;
-	b=ANKnA8GVSHioDK8uqX0TL8074uJM0DX0bbJvN/s7GSZ9BM6AjauKpb5p/dTyI/fDs
-	 YKqCtjMmezNeww9YT1ytGTcmmVVz46vj5OR1Vrk5X3XN1XGLiR1X6x/d9mGpRYLRO3
-	 Hos0S4v3h/T/HHZFh+8IYL/PP5m8bhxjhyRNf/Lw=
-Date: Thu, 17 Oct 2024 00:28:47 -0700
-To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,leonchien@synology.com,greentime.hu@sifive.com,andybnac@gmail.com,akpm@linux-foundation.org
+	b=uV+hxyYuCk3PbrWxVKDdiRJvnbkI+YMmeYDnM2qMpUYEVXTFbIV8Euyq4/AI07eA2
+	 0+rQHXrNefx/M2qYxmAW6oRg3ilHj4kCWCDUBJO8+nUUl8tosTE72gBxKxlQlgR96T
+	 m0bpZ0K3rX+/Vj7GENFxlCd/FObZQxkkmbMIkbEo=
+Date: Thu, 17 Oct 2024 00:28:48 -0700
+To: mm-commits@vger.kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,justinstitt@google.com,hanchuanhua@oppo.com,baohua@kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-an-entry-for-andy-chiu.patch removed from -mm tree
-Message-Id: <20241017072847.8D2E2C4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-remove-unused-stub-for-can_swapin_thp.patch removed from -mm tree
+Message-Id: <20241017072848.A9ABDC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: add an entry for Andy Chiu
+     Subject: mm: remove unused stub for can_swapin_thp()
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-an-entry-for-andy-chiu.patch
+     mm-remove-unused-stub-for-can_swapin_thp.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Chiu <andybnac@gmail.com>
-Subject: mailmap: add an entry for Andy Chiu
-Date: Wed, 9 Oct 2024 22:49:34 +0800
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: mm: remove unused stub for can_swapin_thp()
+Date: Tue, 8 Oct 2024 22:13:29 +0300
 
-Map my outdated addresses within mailmap.
+When can_swapin_thp() is unused, it prevents kernel builds with clang,
+`make W=1` and CONFIG_WERROR=y:
 
-Link: https://lkml.kernel.org/r/20241009144934.43027-1-andybnac@gmail.com
-Signed-off-by: Andy Chiu <andybnac@gmail.com>
-Cc: Greentime Hu <greentime.hu@sifive.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Leon Chien <leonchien@synology.com>
+mm/memory.c:4184:20: error: unused function 'can_swapin_thp' [-Werror,-Wunused-function]
+
+Fix this by removing the unused stub.
+
+See also commit 6863f5643dd7 ("kbuild: allow Clang to find unused static
+inline functions for W=1 build").
+
+Link: https://lkml.kernel.org/r/20241008191329.2332346-1-andriy.shevchenko@linux.intel.com
+Fixes: 242d12c98174 ("mm: support large folios swap-in for sync io devices")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/.mailmap~mailmap-add-an-entry-for-andy-chiu
-+++ a/.mailmap
-@@ -73,6 +73,8 @@ Andrey Ryabinin <ryabinin.a.a@gmail.com>
- Andrzej Hajda <andrzej.hajda@intel.com> <a.hajda@samsung.com>
- André Almeida <andrealmeid@igalia.com> <andrealmeid@collabora.com>
- Andy Adamson <andros@citi.umich.edu>
-+Andy Chiu <andybnac@gmail.com> <andy.chiu@sifive.com>
-+Andy Chiu <andybnac@gmail.com> <taochiu@synology.com>
- Andy Shevchenko <andy@kernel.org> <andy@smile.org.ua>
- Andy Shevchenko <andy@kernel.org> <ext-andriy.shevchenko@nokia.com>
- Anilkumar Kolli <quic_akolli@quicinc.com> <akolli@codeaurora.org>
+--- a/mm/memory.c~mm-remove-unused-stub-for-can_swapin_thp
++++ a/mm/memory.c
+@@ -4181,11 +4181,6 @@ fallback:
+ 	return __alloc_swap_folio(vmf);
+ }
+ #else /* !CONFIG_TRANSPARENT_HUGEPAGE */
+-static inline bool can_swapin_thp(struct vm_fault *vmf, pte_t *ptep, int nr_pages)
+-{
+-	return false;
+-}
+-
+ static struct folio *alloc_swap_folio(struct vm_fault *vmf)
+ {
+ 	return __alloc_swap_folio(vmf);
 _
 
-Patches currently in -mm which might be from andybnac@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+x86-percpu-fix-clang-warning-when-dealing-with-unsigned-types.patch
+percpu-add-a-test-case-for-the-specific-64-bit-value-addition.patch
+resource-replace-open-coded-resource_intersection.patch
+resource-introduce-is_type_match-helper-and-use-it.patch
 
