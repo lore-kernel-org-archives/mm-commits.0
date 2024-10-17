@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A351C32EB
-	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C67321CEAA3
+	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:29:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150139; cv=none; b=bxvUoDZQeRqOeBs1eut8ynUuC+0vlO1Q1UseN+iT3FvoOrIDQp46mz0aEEjMCd9oB1i7OBCHk1qvCLWiR5SyuVKxYakdbjK1q3FBg580EeFOYN8S1d+7KX8AabRiwAC2ny2wdt2HGO2nTLFpT1/eF/FwNt0B8AJsJid3KiCsyFQ=
+	t=1729150140; cv=none; b=LKME7YPI6nMLNqIy6frrusyj7azVvDQlSUYsG4ibdqOkdgUbv9JhkMZkZQF8VCTDCNpAkMS5nyuAatg09msjMogUFAKoGLpQfP47EZ5d4ytxWqis5FeWzKPusg5nEhu9qppOpUbw7QFqHJn/cDGE2NtTamPPLMPAtnQpXL2yaiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150139; c=relaxed/simple;
-	bh=aKjLnM6O/wTPeqfwWXr4Rk/TI2U5zXaQuhEkG1yVXgI=;
-	h=Date:To:From:Subject:Message-Id; b=ocry6du5Sg0o3ZYyX/RKdHBYIyzPEhaYguREo7TAuC5IQpq+D1C57f48BgQ4/G6Sc559G0VI1CJu4o3rPPy1OBXuBwJF/vfGDWk8BJoFtojua9VJY3xO7/BJeUis5FF/b3CrHojoct7S1gjJSO2bG6hwMsxRsZufwtRiKDNZtOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgRTqG+V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150140; c=relaxed/simple;
+	bh=D8xyVDp9S5NUhVCckodRB5GRubVeNpmrtmTCt7SBenk=;
+	h=Date:To:From:Subject:Message-Id; b=r+TYsPuWmVInyRJwNB2NT49ann13c2J/vxm09CvalzAJU0NSgj8V4bjF8xClE5HOPbtzZlOMcRS185BknfqVwx+h90k70HiZYp5RcB+ZfmshME5/TETEcYWyqMk45PlHjwX4S8JsZrsVdeIs6np0q/6PHNDOEkQ/7BfZF5B3uxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fno1xkQ/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgRTqG+V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63B8DC4CEC3;
-	Thu, 17 Oct 2024 07:28:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fno1xkQ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B2FDC4CEC3;
+	Thu, 17 Oct 2024 07:29:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150139;
-	bh=aKjLnM6O/wTPeqfwWXr4Rk/TI2U5zXaQuhEkG1yVXgI=;
+	s=korg; t=1729150140;
+	bh=D8xyVDp9S5NUhVCckodRB5GRubVeNpmrtmTCt7SBenk=;
 	h=Date:To:From:Subject:From;
-	b=vgRTqG+V4VTWbLN5nIbX3qi4neGzJq+VconswfLMrj0+Mz1B0GX3QtZwbODITD/0Z
-	 EAp4RtdPFk+l5bC1cWBnLx428sTGrzsRCxnj9OV+i3cG07fkpQHUeSFpI/VhBFGWQW
-	 dEucvV+m6ZQKViUHp0eOo+v+Gdd4I3F3G++Rswlg=
-Date: Thu, 17 Oct 2024 00:28:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=fno1xkQ/fR+0LUG9eLkoxg79CcYp2c3+2lJrvKXWkYTOqnRBtXzBA44TwNY7F/7eT
+	 O8l6U4u0zgc6OlWHG+rkNli6Q4ZgD6LxZGvKhj7vnpOirQHNM5lbKrlksO5ccO8sSw
+	 Rks+cX0nbAmVdXUupgBZoQvQGiqQIbKdDQSf9l+o=
+Date: Thu, 17 Oct 2024 00:29:00 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,chrisl@kernel.org,aha310510@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch removed from -mm tree
-Message-Id: <20241017072859.63B8DC4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap.patch removed from -mm tree
+Message-Id: <20241017072900.9B2FDC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,136 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: fix the incorrect statistics when collapsing large file folios
+     Subject: mm: swap: prevent possible data-race in __try_to_reclaim_swap
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios.patch
+     mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: khugepaged: fix the incorrect statistics when collapsing large file folios
-Date: Mon, 14 Oct 2024 18:24:44 +0800
+From: Jeongjun Park <aha310510@gmail.com>
+Subject: mm: swap: prevent possible data-race in __try_to_reclaim_swap
+Date: Mon, 7 Oct 2024 16:06:23 +0900
 
-Khugepaged already supports collapsing file large folios (including shmem
-mTHP) by commit 7de856ffd007 ("mm: khugepaged: support shmem mTHP
-collapse"), and the control parameters in khugepaged:
-'khugepaged_max_ptes_swap' and 'khugepaged_max_ptes_none', still compare
-based on PTE granularity to determine whether a file collapse is needed. 
-However, the statistics for 'present' and 'swap' in
-hpage_collapse_scan_file() do not take into account the large folios,
-which may lead to incorrect judgments regarding the
-khugepaged_max_ptes_swap/none parameters, resulting in unnecessary file
-collapses.
+A report [1] was uploaded from syzbot.
 
-To fix this issue, take into account the large folios' statistics for
-'present' and 'swap' variables in the hpage_collapse_scan_file().
+In the previous commit 862590ac3708 ("mm: swap: allow cache reclaim to
+skip slot cache"), the __try_to_reclaim_swap() function reads offset and
+folio->entry from folio without folio_lock protection.
 
-Link: https://lkml.kernel.org/r/c76305d96d12d030a1a346b50503d148364246d2.1728901391.git.baolin.wang@linux.alibaba.com
-Fixes: 7de856ffd007 ("mm: khugepaged: support shmem mTHP collapse")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+In the currently reported KCSAN log, it is assumed that the actual
+data-race will not occur because the calltrace that does WRITE already
+obtains the folio_lock and then writes.
+
+However, the existing __try_to_reclaim_swap() function was already
+implemented to perform reads under folio_lock protection [1], and there is
+a risk of a data-race occurring through a function other than the one
+shown in the KCSAN log.
+
+Therefore, I think it is appropriate to change
+read operations for folio to be performed under folio_lock.
+
+[1]
+
+==================================================================
+BUG: KCSAN: data-race in __delete_from_swap_cache / __try_to_reclaim_swap
+
+write to 0xffffea0004c90328 of 8 bytes by task 5186 on cpu 0:
+ __delete_from_swap_cache+0x1f0/0x290 mm/swap_state.c:163
+ delete_from_swap_cache+0x72/0xe0 mm/swap_state.c:243
+ folio_free_swap+0x1d8/0x1f0 mm/swapfile.c:1850
+ free_swap_cache mm/swap_state.c:293 [inline]
+ free_pages_and_swap_cache+0x1fc/0x410 mm/swap_state.c:325
+ __tlb_batch_free_encoded_pages mm/mmu_gather.c:136 [inline]
+ tlb_batch_pages_flush mm/mmu_gather.c:149 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:366 [inline]
+ tlb_flush_mmu+0x2cf/0x440 mm/mmu_gather.c:373
+ zap_pte_range mm/memory.c:1700 [inline]
+ zap_pmd_range mm/memory.c:1739 [inline]
+ zap_pud_range mm/memory.c:1768 [inline]
+ zap_p4d_range mm/memory.c:1789 [inline]
+ unmap_page_range+0x1f3c/0x22d0 mm/memory.c:1810
+ unmap_single_vma+0x142/0x1d0 mm/memory.c:1856
+ unmap_vmas+0x18d/0x2b0 mm/memory.c:1900
+ exit_mmap+0x18a/0x690 mm/mmap.c:1864
+ __mmput+0x28/0x1b0 kernel/fork.c:1347
+ mmput+0x4c/0x60 kernel/fork.c:1369
+ exit_mm+0xe4/0x190 kernel/exit.c:571
+ do_exit+0x55e/0x17f0 kernel/exit.c:926
+ do_group_exit+0x102/0x150 kernel/exit.c:1088
+ get_signal+0xf2a/0x1070 kernel/signal.c:2917
+ arch_do_signal_or_restart+0x95/0x4b0 arch/x86/kernel/signal.c:337
+ exit_to_user_mode_loop kernel/entry/common.c:111 [inline]
+ exit_to_user_mode_prepare include/linux/entry-common.h:328 [inline]
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:207 [inline]
+ syscall_exit_to_user_mode+0x59/0x130 kernel/entry/common.c:218
+ do_syscall_64+0xd6/0x1c0 arch/x86/entry/common.c:89
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+read to 0xffffea0004c90328 of 8 bytes by task 5189 on cpu 1:
+ __try_to_reclaim_swap+0x9d/0x510 mm/swapfile.c:198
+ free_swap_and_cache_nr+0x45d/0x8a0 mm/swapfile.c:1915
+ zap_pte_range mm/memory.c:1656 [inline]
+ zap_pmd_range mm/memory.c:1739 [inline]
+ zap_pud_range mm/memory.c:1768 [inline]
+ zap_p4d_range mm/memory.c:1789 [inline]
+ unmap_page_range+0xcf8/0x22d0 mm/memory.c:1810
+ unmap_single_vma+0x142/0x1d0 mm/memory.c:1856
+ unmap_vmas+0x18d/0x2b0 mm/memory.c:1900
+ exit_mmap+0x18a/0x690 mm/mmap.c:1864
+ __mmput+0x28/0x1b0 kernel/fork.c:1347
+ mmput+0x4c/0x60 kernel/fork.c:1369
+ exit_mm+0xe4/0x190 kernel/exit.c:571
+ do_exit+0x55e/0x17f0 kernel/exit.c:926
+ __do_sys_exit kernel/exit.c:1055 [inline]
+ __se_sys_exit kernel/exit.c:1053 [inline]
+ __x64_sys_exit+0x1f/0x20 kernel/exit.c:1053
+ x64_sys_call+0x2d46/0x2d60 arch/x86/include/generated/asm/syscalls_64.h:61
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xc9/0x1c0 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+value changed: 0x0000000000000242 -> 0x0000000000000000
+
+Link: https://lkml.kernel.org/r/20241007070623.23340-1-aha310510@gmail.com
+Reported-by: syzbot+fa43f1b63e3aa6f66329@syzkaller.appspotmail.com
+Fixes: 862590ac3708 ("mm: swap: allow cache reclaim to skip slot cache")
+Signed-off-by: Jeongjun Park <aha310510@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-the-incorrect-statistics-when-collapsing-large-file-folios
-+++ a/mm/khugepaged.c
-@@ -2252,7 +2252,7 @@ static int hpage_collapse_scan_file(stru
- 			continue;
+--- a/mm/swapfile.c~mm-swap-prevent-possible-data-race-in-__try_to_reclaim_swap
++++ a/mm/swapfile.c
+@@ -194,9 +194,6 @@ static int __try_to_reclaim_swap(struct
+ 	if (IS_ERR(folio))
+ 		return 0;
  
- 		if (xa_is_value(folio)) {
--			++swap;
-+			swap += 1 << xas_get_order(&xas);
- 			if (cc->is_khugepaged &&
- 			    swap > khugepaged_max_ptes_swap) {
- 				result = SCAN_EXCEED_SWAP_PTE;
-@@ -2299,7 +2299,7 @@ static int hpage_collapse_scan_file(stru
- 		 * is just too costly...
- 		 */
+-	/* offset could point to the middle of a large folio */
+-	entry = folio->swap;
+-	offset = swp_offset(entry);
+ 	nr_pages = folio_nr_pages(folio);
+ 	ret = -nr_pages;
  
--		present++;
-+		present += folio_nr_pages(folio);
+@@ -210,6 +207,10 @@ static int __try_to_reclaim_swap(struct
+ 	if (!folio_trylock(folio))
+ 		goto out;
  
- 		if (need_resched()) {
- 			xas_pause(&xas);
++	/* offset could point to the middle of a large folio */
++	entry = folio->swap;
++	offset = swp_offset(entry);
++
+ 	need_reclaim = ((flags & TTRS_ANYWAY) ||
+ 			((flags & TTRS_UNMAPPED) && !folio_mapped(folio)) ||
+ 			((flags & TTRS_FULL) && mem_cgroup_swap_full(folio)));
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from aha310510@gmail.com are
 
-mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
+mm-shmem-fix-data-race-in-shmem_getattr.patch
 
