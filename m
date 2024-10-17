@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F941925B2;
-	Thu, 17 Oct 2024 07:28:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E12871925B2;
+	Thu, 17 Oct 2024 07:28:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150117; cv=none; b=Lum2HfisDYtcXp/EAZ3BDMPsU8OePCZgQ2y8bLRaeZt2qTb8SaldfAqSyPHh48q5eftvxeibDQt1AJ9LKMu4ijSw6Zp0KCc8CuVHA0I6v67jVJP4SP5wqVk6zYkwnV/sJwWqetpKNeI5t5kt8EmWfqbw86v/P5oyaalPvBxX+sQ=
+	t=1729150119; cv=none; b=hn9BvJ26YmiN2JvUexcPxqHRUpzfIz9kb7L0t0CELYAbwITb7jvTC3ckX0MInrYlgUP+GGDECa4upTM85LPiblflDJOEyh1+fntVzDXf/tk6kU4NoEGQSMDL+WzB3/ERrXDEWYfauMoPiXP264its5NiA4rA6Ew4kzgzzXZigaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150117; c=relaxed/simple;
-	bh=o8+T4F58CdKwTJL09OXYNcOGv0HeBaaF2fe3UnlWZns=;
-	h=Date:To:From:Subject:Message-Id; b=o8ihhGdflbEkko7Oe+cd83AHHArBbzKqE+vuvbPFCHSTgIwCTpsEyJHB5d5EQVS2dD1/epbhiYyhTOr/smuSmlSejilEsC+nUqUV9Ld7oldeubDl9ckAPuuMXh2miGxHkFhy6TBmXo1KCAU6Qq08Bg9hov5gc2L4iI66+YUCJhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uEBL+IIQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150119; c=relaxed/simple;
+	bh=Lmo/r2JU8iT/p1WVabjuLWe1nXO1BLTUmLYTeV4PlC8=;
+	h=Date:To:From:Subject:Message-Id; b=jJ/WIfjbXyZSLslvNaGMFYNObElzqV8JIOgpBcINPaWfP6mIX/U5/yC3bFkukBuwMZIeCLaVYJ7DfROsJLQEqjjYc4r7+NvIeVtvLByPJWw8nbMe3BCfQ1AVQ6cpNoK/yy8DgJNggVOKN8hwsNbczZBYJihGFudyQdMvyBDMYjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TBp14FOP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uEBL+IIQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C5A8C4CEC3;
-	Thu, 17 Oct 2024 07:28:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TBp14FOP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D04C4CEC3;
+	Thu, 17 Oct 2024 07:28:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150117;
-	bh=o8+T4F58CdKwTJL09OXYNcOGv0HeBaaF2fe3UnlWZns=;
+	s=korg; t=1729150118;
+	bh=Lmo/r2JU8iT/p1WVabjuLWe1nXO1BLTUmLYTeV4PlC8=;
 	h=Date:To:From:Subject:From;
-	b=uEBL+IIQdCOhzg/eZeRe257TJ9R6kciYR0BpqL3/xFtjcsNlQunU/jLkC46RfVEp3
-	 taMPt4+Wv50Z/+Ob+cWJotAhuaKSZvSFAIrAzYR+tMvsWC68kT5uQ0G9CC84JVaR6S
-	 qgMNPI+mgEgZgmljSeARsuOWQE1Gtg5JKUyGsHFY=
-Date: Thu, 17 Oct 2024 00:28:36 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hirofumi@mail.parknet.co.jp,akpm@linux-foundation.org
+	b=TBp14FOPuzh4w4/LxMe5JJAVSr3SJX3sTetNdKr5qrbryoo9dAXVQx4qFSK15W3qu
+	 YByxyO3P7I90LKW6erYem9D0NSbmm8wOxGKRPaBhe5UAV9q76NRgT+O+sfVjoEKsDD
+	 cjr+B54GPKroyFWLJIS4DnEQ2IHSYtcUrrcXx+aI=
+Date: Thu, 17 Oct 2024 00:28:37 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,lokeshgidra@google.com,edliaw@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fat-fix-uninitialized-variable.patch removed from -mm tree
-Message-Id: <20241017072837.2C5A8C4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-replace-atomic_bool-with-pthread_barrier_t.patch removed from -mm tree
+Message-Id: <20241017072838.67D04C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,140 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fat: fix uninitialized variable
+     Subject: selftests/mm: replace atomic_bool with pthread_barrier_t
 has been removed from the -mm tree.  Its filename was
-     fat-fix-uninitialized-variable.patch
+     selftests-mm-replace-atomic_bool-with-pthread_barrier_t.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: fix uninitialized variable
-Date: Fri, 04 Oct 2024 15:03:49 +0900
+From: Edward Liaw <edliaw@google.com>
+Subject: selftests/mm: replace atomic_bool with pthread_barrier_t
+Date: Thu, 3 Oct 2024 21:17:10 +0000
 
-syszbot produced this with a corrupted fs image.  In theory, however an IO
-error would trigger this also.
+Patch series "selftests/mm: fix deadlock after pthread_create".
 
-This affects just an error report, so should not be a serious error.
+On Android arm, pthread_create followed by a fork caused a deadlock in the
+case where the fork required work to be completed by the created thread.
 
-Link: https://lkml.kernel.org/r/87r08wjsnh.fsf@mail.parknet.co.jp
-Link: https://lkml.kernel.org/r/66ff2c95.050a0220.49194.03e9.GAE@google.com
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Reported-by: syzbot+ef0d7bc412553291aa86@syzkaller.appspotmail.com
+Update the synchronization primitive to use pthread_barrier instead of
+atomic_bool.
+
+Apply the same fix to the wp-fork-with-event test.
+
+
+This patch (of 2):
+
+Swap synchronization primitive with pthread_barrier, so that stdatomic.h
+does not need to be included.
+
+The synchronization is needed on Android ARM64; we see a deadlock with
+pthread_create when the parent thread races forward before the child has a
+chance to start doing work.
+
+Link: https://lkml.kernel.org/r/20241003211716.371786-1-edliaw@google.com
+Link: https://lkml.kernel.org/r/20241003211716.371786-2-edliaw@google.com
+Fixes: cff294582798 ("selftests/mm: extend and rename uffd pagemap test")
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-common.c     |    5 +++--
+ tools/testing/selftests/mm/uffd-common.h     |    3 +--
+ tools/testing/selftests/mm/uffd-unit-tests.c |   14 ++++++++------
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
---- a/fs/fat/namei_vfat.c~fat-fix-uninitialized-variable
-+++ a/fs/fat/namei_vfat.c
-@@ -1037,7 +1037,7 @@ error_inode:
- 	if (corrupt < 0) {
- 		fat_fs_error(new_dir->i_sb,
- 			     "%s: Filesystem corrupted (i_pos %lld)",
--			     __func__, sinfo.i_pos);
-+			     __func__, new_i_pos);
- 	}
- 	goto out;
- }
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-replace-atomic_bool-with-pthread_barrier_t
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -18,7 +18,7 @@ bool test_uffdio_wp = true;
+ unsigned long long *count_verify;
+ uffd_test_ops_t *uffd_test_ops;
+ uffd_test_case_ops_t *uffd_test_case_ops;
+-atomic_bool ready_for_fork;
++pthread_barrier_t ready_for_fork;
+ 
+ static int uffd_mem_fd_create(off_t mem_size, bool hugetlb)
+ {
+@@ -519,7 +519,8 @@ void *uffd_poll_thread(void *arg)
+ 	pollfd[1].fd = pipefd[cpu*2];
+ 	pollfd[1].events = POLLIN;
+ 
+-	ready_for_fork = true;
++	/* Ready for parent thread to fork */
++	pthread_barrier_wait(&ready_for_fork);
+ 
+ 	for (;;) {
+ 		ret = poll(pollfd, 2, -1);
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-replace-atomic_bool-with-pthread_barrier_t
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -33,7 +33,6 @@
+ #include <inttypes.h>
+ #include <stdint.h>
+ #include <sys/random.h>
+-#include <stdatomic.h>
+ 
+ #include "../kselftest.h"
+ #include "vm_util.h"
+@@ -105,7 +104,7 @@ extern bool map_shared;
+ extern bool test_uffdio_wp;
+ extern unsigned long long *count_verify;
+ extern volatile bool test_uffdio_copy_eexist;
+-extern atomic_bool ready_for_fork;
++extern pthread_barrier_t ready_for_fork;
+ 
+ extern uffd_test_ops_t anon_uffd_test_ops;
+ extern uffd_test_ops_t shmem_uffd_test_ops;
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-replace-atomic_bool-with-pthread_barrier_t
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -774,7 +774,7 @@ static void uffd_sigbus_test_common(bool
+ 	char c;
+ 	struct uffd_args args = { 0 };
+ 
+-	ready_for_fork = false;
++	pthread_barrier_init(&ready_for_fork, NULL, 2);
+ 
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
+@@ -791,8 +791,9 @@ static void uffd_sigbus_test_common(bool
+ 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
+ 		err("uffd_poll_thread create");
+ 
+-	while (!ready_for_fork)
+-		; /* Wait for the poll_thread to start executing before forking */
++	/* Wait for child thread to start before forking */
++	pthread_barrier_wait(&ready_for_fork);
++	pthread_barrier_destroy(&ready_for_fork);
+ 
+ 	pid = fork();
+ 	if (pid < 0)
+@@ -833,7 +834,7 @@ static void uffd_events_test_common(bool
+ 	char c;
+ 	struct uffd_args args = { 0 };
+ 
+-	ready_for_fork = false;
++	pthread_barrier_init(&ready_for_fork, NULL, 2);
+ 
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 	if (uffd_register(uffd, area_dst, nr_pages * page_size,
+@@ -844,8 +845,9 @@ static void uffd_events_test_common(bool
+ 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
+ 		err("uffd_poll_thread create");
+ 
+-	while (!ready_for_fork)
+-		; /* Wait for the poll_thread to start executing before forking */
++	/* Wait for child thread to start before forking */
++	pthread_barrier_wait(&ready_for_fork);
++	pthread_barrier_destroy(&ready_for_fork);
+ 
+ 	pid = fork();
+ 	if (pid < 0)
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from edliaw@google.com are
 
 
