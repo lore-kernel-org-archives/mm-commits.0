@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B9B1C32EB;
-	Thu, 17 Oct 2024 07:28:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15E1F1C32EB;
+	Thu, 17 Oct 2024 07:28:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150130; cv=none; b=X0pmncwov7QO+/Z8pnwO9JR0+D126u/bpNg4tzmcB5ko3bgibBuP0IkfuujAsjxsIKNTJ9pmCWFOJMsgKwrR4OsYCW4Zh50vv6MewTl3Hsr2Hkvobnr7W75YTBUGV/kLR7/SaBmLUY6BoJnPvaqc+521PzccWDPq7g2ldAwMLHw=
+	t=1729150131; cv=none; b=nrss5QtXqmQnfKo6Hbp4ZIIqeNvkzyGFplt1Ejt0Rr2hh/iRdPeOy3MsgPySmyfvehPEF1Ay5ZuN6i1ACFVAgxESDAS9jBxAhzULRQTxP7GGHi86C6qLGBRtBBE0joURKW+lmYW6kRABZz9jKjiudlOvORtZ9Sd9aH+AdeeujQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150130; c=relaxed/simple;
-	bh=KXYKNEoyCR9y/8ZrswmZwno/cJ0KqVQHK1X2M9icTzk=;
-	h=Date:To:From:Subject:Message-Id; b=bi8PUZDjIVp4vn/bylbnvYIpiKT8XJeXa7OabWNdg0yobRQ1JyOxlz+3+HblHl3wMbs9EwP7rmF9r+yqN8T3lm6egPtmXZpye2MsYEJQGsUMteaU8S2mmGatePmZD9nLYngjzzc86ZiyWzaa/xt7kEOxohdlKLHoeYyjn9dE3d8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FpDj+NTP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150131; c=relaxed/simple;
+	bh=cn4PPHh6EHyfE0NKYV98rWcBuGUfWadVcw1jdEUAf0w=;
+	h=Date:To:From:Subject:Message-Id; b=K58Cm/vQBS1NqQPDCFk/396fpR4bz9aRPXR2n6BybgA0ESH/PEd31F5TyQtWvJ7XSSzhFLRkIs8gU7WiMtjHVvz68L6ElhkX3RzyPVmj3igscEOR/TZSZcCW0Eq7P7A6QMr1gRpS84xWVwpEoVTN1N7CucBMJ1eTBHV/nJC7u/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AVKY++n/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FpDj+NTP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5EE5C4CEC7;
-	Thu, 17 Oct 2024 07:28:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AVKY++n/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A7DC4CEC5;
+	Thu, 17 Oct 2024 07:28:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150129;
-	bh=KXYKNEoyCR9y/8ZrswmZwno/cJ0KqVQHK1X2M9icTzk=;
+	s=korg; t=1729150130;
+	bh=cn4PPHh6EHyfE0NKYV98rWcBuGUfWadVcw1jdEUAf0w=;
 	h=Date:To:From:Subject:From;
-	b=FpDj+NTPFt7PQv1nBhirMzcuNFqddw8XAJ6mPcqKybFrhYJZRgH6a9bBM6hx2P7Nd
-	 2Mm4qQmZkAkXeMJAxnPh7ObWpverQFcWlfYbu/tV2q1NyPs3qxRE+hTZ24hNv2atK/
-	 eqOtAczit1TZV/Xwe13d72K3iR5gYMe+PHhw2Ztw=
-Date: Thu, 17 Oct 2024 00:28:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ruanjinjie@huawei.com,akpm@linux-foundation.org
+	b=AVKY++n/60Kv/QbaJzZfLOkr0kZLRmCu2HVeKuRdAIzGG58wn/+Jg5jGobAU+RZ9/
+	 zaYpiF8Ni3Z7xTOlngQAL1KobxkUgb0x0YcZ/q52mLy/aLUua1X9R/hwWlwyiJd7Vn
+	 bJiIqNPqo2I9hMG5PQiyJvNRdjL7j/gVug5o+OmQ=
+Date: Thu, 17 Oct 2024 00:28:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rostedt@goodmis.org,gautammenghani201@gmail.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch removed from -mm tree
-Message-Id: <20241017072849.B5EE5C4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch removed from -mm tree
+Message-Id: <20241017072850.D5A7DC4CEC5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
+     Subject: mm: khugepaged: fix the arguments order in khugepaged_collapse_file trace point
 has been removed from the -mm tree.  Its filename was
-     mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets.patch
+     mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
-Date: Thu, 10 Oct 2024 20:53:23 +0800
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: khugepaged: fix the arguments order in khugepaged_collapse_file trace point
+Date: Fri, 11 Oct 2024 18:17:02 -0700
 
-The sysfs_target->regions allocated in damon_sysfs_regions_alloc() is not
-freed in damon_sysfs_test_add_targets(), which cause the following memory
-leak, free it to fix it.
+The "addr" and "is_shmem" arguments have different order in TP_PROTO and
+TP_ARGS.  This resulted in the incorrect trace result:
 
-	unreferenced object 0xffffff80c2a8db80 (size 96):
-	  comm "kunit_try_catch", pid 187, jiffies 4294894363
-	  hex dump (first 32 bytes):
-	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	  backtrace (crc 0):
-	    [<0000000001e3714d>] kmemleak_alloc+0x34/0x40
-	    [<000000008e6835c1>] __kmalloc_cache_noprof+0x26c/0x2f4
-	    [<000000001286d9f8>] damon_sysfs_test_add_targets+0x1cc/0x738
-	    [<0000000032ef8f77>] kunit_try_run_case+0x13c/0x3ac
-	    [<00000000f3edea23>] kunit_generic_run_threadfn_adapter+0x80/0xec
-	    [<00000000adf936cf>] kthread+0x2e8/0x374
-	    [<0000000041bb1628>] ret_from_fork+0x10/0x20
+text-hugepage-644429 [276] 392092.878683: mm_khugepaged_collapse_file:
+mm=0xffff20025d52c440, hpage_pfn=0x200678c00, index=512, addr=1, is_shmem=0,
+filename=text-hugepage, nr=512, result=failed
 
-Link: https://lkml.kernel.org/r/20241010125323.3127187-1-ruanjinjie@huawei.com
-Fixes: b8ee5575f763 ("mm/damon/sysfs-test: add a unit test for damon_sysfs_set_targets()")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+The value of "addr" is wrong because it was treated as bool value, the
+type of is_shmem.
+
+Fix the order in TP_PROTO to keep "addr" is before "is_shmem" since the
+original patch review suggested this order to achieve best packing.
+
+And use "lx" for "addr" instead of "ld" in TP_printk because address is
+typically shown in hex.
+
+After the fix, the trace result looks correct:
+
+text-hugepage-7291  [004]   128.627251: mm_khugepaged_collapse_file:
+mm=0xffff0001328f9500, hpage_pfn=0x20016ea00, index=512, addr=0x400000,
+is_shmem=0, filename=text-hugepage, nr=512, result=failed
+
+Link: https://lkml.kernel.org/r/20241012011702.1084846-1-yang@os.amperecomputing.com
+Fixes: 4c9473e87e75 ("mm/khugepaged: add tracepoint to collapse_file()")
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Cc: Gautam Menghani <gautammenghani201@gmail.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>    [6.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/sysfs-kunit.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/trace/events/huge_memory.h |    4 ++--
+ mm/khugepaged.c                    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/tests/sysfs-kunit.h~mm-damon-fix-memory-leak-in-damon_sysfs_test_add_targets
-+++ a/mm/damon/tests/sysfs-kunit.h
-@@ -67,6 +67,7 @@ static void damon_sysfs_test_add_targets
- 	damon_destroy_ctx(ctx);
- 	kfree(sysfs_targets->targets_arr);
- 	kfree(sysfs_targets);
-+	kfree(sysfs_target->regions);
- 	kfree(sysfs_target);
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point
++++ a/include/trace/events/huge_memory.h
+@@ -208,7 +208,7 @@ TRACE_EVENT(mm_khugepaged_scan_file,
+ 
+ TRACE_EVENT(mm_khugepaged_collapse_file,
+ 	TP_PROTO(struct mm_struct *mm, struct folio *new_folio, pgoff_t index,
+-			bool is_shmem, unsigned long addr, struct file *file,
++			unsigned long addr, bool is_shmem, struct file *file,
+ 			int nr, int result),
+ 	TP_ARGS(mm, new_folio, index, addr, is_shmem, file, nr, result),
+ 	TP_STRUCT__entry(
+@@ -233,7 +233,7 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
+ 		__entry->result = result;
+ 	),
+ 
+-	TP_printk("mm=%p, hpage_pfn=0x%lx, index=%ld, addr=%ld, is_shmem=%d, filename=%s, nr=%d, result=%s",
++	TP_printk("mm=%p, hpage_pfn=0x%lx, index=%ld, addr=%lx, is_shmem=%d, filename=%s, nr=%d, result=%s",
+ 		__entry->mm,
+ 		__entry->hpfn,
+ 		__entry->index,
+--- a/mm/khugepaged.c~mm-khugepaged-fix-the-arguments-order-in-khugepaged_collapse_file-trace-point
++++ a/mm/khugepaged.c
+@@ -2227,7 +2227,7 @@ rollback:
+ 	folio_put(new_folio);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	trace_mm_khugepaged_collapse_file(mm, new_folio, index, is_shmem, addr, file, HPAGE_PMD_NR, result);
++	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
+ 	return result;
  }
  
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
 
