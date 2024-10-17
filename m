@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0BB51925B2;
-	Thu, 17 Oct 2024 07:28:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDDA1925B2
+	for <mm-commits@vger.kernel.org>; Thu, 17 Oct 2024 07:28:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729150123; cv=none; b=TVYKawQwNtw7bnVQJctxcBRD3mqH6JN905t9j4loiT27Sl3ZOvhXEAHUJ+990KlQE3LKUIbnHdRwstWfgezhC7oiMsv6NkDL4BVBkNqex9Wumk8JDaNXfRo52aw0A7Z3xJSnn4ySZPWaUKumBpJpmz+a45rt1Vs/rvrZ4fsKDfE=
+	t=1729150125; cv=none; b=mW1nMBLVGjLpqINGClTWWCmFK1ap6fPJsvxEQClARyM9/aCTj21Uahg30i6KNI96L6lJ3q1ns/Fp8Y/x0sYbLx31n7065A/OPqEv3l5PpsaHQehCgEWQz/FrbqLYxpbsZXROP6MR6V0alzJPIkVV92Rb/2KWUYOMwoSR3No+l6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729150123; c=relaxed/simple;
-	bh=8EKO0Y82HvG1xz85HYxViHr0O7bvTke/J4Shz6cc4es=;
-	h=Date:To:From:Subject:Message-Id; b=ZXTli/mKWjYlXYBsEuk9LSvR7DxIjsOEJqjHi4xolZh8yq5WJXgo8kSWdjJ/C01HErpzhrPAldwkSz/+UiOJ/DMioYFPXHGRm04IE3K/+ca+OiP+/jQqCK4cP+es3ms4/PWUiacWw3jOoiB49Reuo/yG4McyDwtddJ+7vkpUPfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WbanNbVb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729150125; c=relaxed/simple;
+	bh=jN3MxFafYr7zmb43yNm8kMlRoi0n3mO5vu8K/tzhfK4=;
+	h=Date:To:From:Subject:Message-Id; b=hXmN8QcHrDGbBa9F0YZ7pyf6djUTUU/ReWWnx4UWAnvCeB4maY1qx1cS751obUTaImnek9rRD/EIvfk/KubNJeisr7vfZqGUhq4X4LK7c1h5FN/F/nIgsRRVpjZUqzn1bMSDMRaXvQ3IowbbevN8yR0ziTfOYIE4tBiH4hO3vz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b+Ha3ArP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WbanNbVb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C76EC4CEC7;
-	Thu, 17 Oct 2024 07:28:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b+Ha3ArP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68695C4CEC3;
+	Thu, 17 Oct 2024 07:28:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729150123;
-	bh=8EKO0Y82HvG1xz85HYxViHr0O7bvTke/J4Shz6cc4es=;
+	s=korg; t=1729150125;
+	bh=jN3MxFafYr7zmb43yNm8kMlRoi0n3mO5vu8K/tzhfK4=;
 	h=Date:To:From:Subject:From;
-	b=WbanNbVbjTzgroqwdbc0LIb1R2j31UfzCdC2j/SLpv1WzG/Vezi1fr5YFZJz5SbG0
-	 hxzLEQQDT+G2IAdAI55ekWXNEtgNaZaaEJI3pfDJySd0uPOsa+r5cBRutAkN0TzXia
-	 YwIEIh7UzVwkxEw7/+chSOlPF64tlwVkHsMOpVBQ=
-Date: Thu, 17 Oct 2024 00:28:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,stable@vger.kernel.org,kent.overstreet@linux.dev,greearb@candelatech.com,fw@strlen.de,akpm@linux-foundation.org
+	b=b+Ha3ArPqCGfW23Fz6CUTvmWAhmh8gTTZH0r/Jt7bDnTAJmjklAEc3hjNWgq8Bwhv
+	 hxNiogjwOX/Ug3/TcB3+NOPP7tPFlXAAnbd85DII5oWGfx5wa+srdbsVW983cORJrG
+	 KDV7UEdmELLvUzNKrN+oSmZpI7VG7FhGB44IaqrE=
+Date: Thu, 17 Oct 2024 00:28:44 -0700
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,gorcunov@openvz.org,david@redhat.com,brahmajit.xyz@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls.patch removed from -mm tree
-Message-Id: <20241017072843.3C76EC4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-fix-build-with-gcc-15-due-to-werror=unterminated-string-initialization.patch removed from -mm tree
+Message-Id: <20241017072845.68695C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: alloc_tag_module_unload must wait for pending kfree_rcu calls
+     Subject: fs/proc: fix build with GCC 15 due to -Werror=unterminated-string-initialization
 has been removed from the -mm tree.  Its filename was
-     lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls.patch
+     fs-proc-fix-build-with-gcc-15-due-to-werror=unterminated-string-initialization.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Florian Westphal <fw@strlen.de>
-Subject: lib: alloc_tag_module_unload must wait for pending kfree_rcu calls
-Date: Mon, 7 Oct 2024 22:52:24 +0200
+From: Brahmajit Das <brahmajit.xyz@gmail.com>
+Subject: fs/proc: fix build with GCC 15 due to -Werror=unterminated-string-initialization
+Date: Sat, 5 Oct 2024 12:07:00 +0530
 
-Ben Greear reports following splat:
- ------------[ cut here ]------------
- net/netfilter/nf_nat_core.c:1114 module nf_nat func:nf_nat_register_fn has 256 allocated at module unload
- WARNING: CPU: 1 PID: 10421 at lib/alloc_tag.c:168 alloc_tag_module_unload+0x22b/0x3f0
- Modules linked in: nf_nat(-) btrfs ufs qnx4 hfsplus hfs minix vfat msdos fat
+show show_smap_vma_flags() has been a using misspelled initializer in
+mnemonics[] - it needed to initialize 2 element array of char and it used
+NUL-padded 2 character string literals (i.e.  3-element initializer).
+
+This has been spotted by gcc-15[*]; prior to that gcc quietly dropped the
+3rd eleemnt of initializers.  To fix this we are increasing the size of
+mnemonics[] (from mnemonics[BITS_PER_LONG][2] to
+mnemonics[BITS_PER_LONG][3]) to accomodate the NUL-padded string literals.
+
+This also helps us in simplyfying the logic for printing of the flags as
+instead of printing each character from the mnemonics[], we can just print
+the mnemonics[] using seq_printf.
+
+[*]: fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
+  917 |                 [0 ... (BITS_PER_LONG-1)] = "??",
+      |                                                 ^~~~
+fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
+fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
+fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
+fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
+fs/proc/task_mmu.c:917:49: error: initializer-string for array of `char' is too long [-Werror=unterminate d-string-initialization]
 ...
- Hardware name: Default string Default string/SKYBAY, BIOS 5.12 08/04/2020
- RIP: 0010:alloc_tag_module_unload+0x22b/0x3f0
-  codetag_unload_module+0x19b/0x2a0
-  ? codetag_load_module+0x80/0x80
 
-nf_nat module exit calls kfree_rcu on those addresses, but the free
-operation is likely still pending by the time alloc_tag checks for leaks.
 
-Wait for outstanding kfree_rcu operations to complete before checking
-resolves this warning.
+Stephen pointed out:
 
-Reproducer:
-unshare -n iptables-nft -t nat -A PREROUTING -p tcp
-grep nf_nat /proc/allocinfo # will list 4 allocations
-rmmod nft_chain_nat
-rmmod nf_nat                # will WARN.
+: The C standard explicitly allows for a string initializer to be too long
+: due to the NUL byte at the end ...  so this warning may be overzealous.
 
-[akpm@linux-foundation.org: add comment]
-Link: https://lkml.kernel.org/r/20241007205236.11847-1-fw@strlen.de
-Fixes: a473573964e5 ("lib: code tagging module support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reported-by: Ben Greear <greearb@candelatech.com>
-Closes: https://lore.kernel.org/netdev/bdaaef9d-4364-4171-b82b-bcfc12e207eb@candelatech.com/
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: <stable@vger.kernel.org>
+but let's make the warning go away anwyay.
+
+Link: https://lkml.kernel.org/r/20241005063700.2241027-1-brahmajit.xyz@gmail.com
+Link: https://lkml.kernel.org/r/20241003093040.47c08382@canb.auug.org.au
+Signed-off-by: Brahmajit Das <brahmajit.xyz@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/codetag.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/task_mmu.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/lib/codetag.c~lib-alloc_tag_module_unload-must-wait-for-pending-kfree_rcu-calls
-+++ a/lib/codetag.c
-@@ -228,6 +228,9 @@ bool codetag_unload_module(struct module
- 	if (!mod)
- 		return true;
- 
-+	/* await any module's kfree_rcu() operations to complete */
-+	kvfree_rcu_barrier();
-+
- 	mutex_lock(&codetag_lock);
- 	list_for_each_entry(cttype, &codetag_types, link) {
- 		struct codetag_module *found = NULL;
+--- a/fs/proc/task_mmu.c~fs-proc-fix-build-with-gcc-15-due-to-werror=unterminated-string-initialization
++++ a/fs/proc/task_mmu.c
+@@ -909,8 +909,15 @@ static void show_smap_vma_flags(struct s
+ {
+ 	/*
+ 	 * Don't forget to update Documentation/ on changes.
++	 *
++	 * The length of the second argument of mnemonics[]
++	 * needs to be 3 instead of previously set 2
++	 * (i.e. from [BITS_PER_LONG][2] to [BITS_PER_LONG][3])
++	 * to avoid spurious
++	 * -Werror=unterminated-string-initialization warning
++	 *  with GCC 15
+ 	 */
+-	static const char mnemonics[BITS_PER_LONG][2] = {
++	static const char mnemonics[BITS_PER_LONG][3] = {
+ 		/*
+ 		 * In case if we meet a flag we don't know about.
+ 		 */
+@@ -987,11 +994,8 @@ static void show_smap_vma_flags(struct s
+ 	for (i = 0; i < BITS_PER_LONG; i++) {
+ 		if (!mnemonics[i][0])
+ 			continue;
+-		if (vma->vm_flags & (1UL << i)) {
+-			seq_putc(m, mnemonics[i][0]);
+-			seq_putc(m, mnemonics[i][1]);
+-			seq_putc(m, ' ');
+-		}
++		if (vma->vm_flags & (1UL << i))
++			seq_printf(m, "%s ", mnemonics[i]);
+ 	}
+ 	seq_putc(m, '\n');
+ }
 _
 
-Patches currently in -mm which might be from fw@strlen.de are
+Patches currently in -mm which might be from brahmajit.xyz@gmail.com are
 
 
