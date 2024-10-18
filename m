@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33188186616
-	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 22:14:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB13014900E
+	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 22:16:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729289671; cv=none; b=qJmApZ5w6crx20sPmwu0gGdoYbCdU5FLCw3oa9T1XwlDAN/j0GTLvL0sZ+w+9pTqb8rikqirPsBhr0ZAhZ3LXFmD8LA8NvK997o906OARBe3h5foO5EWESSCzcGgEfv02EL+59nGrdeOXiPbUrrDiNbW4FYZHipR4E3gKw/USaM=
+	t=1729289777; cv=none; b=JuHGgP/b1vWDDLhtTR79gzSHqcrD1xIBFUko3JMnVPe1nRJnnff4+OczbGpKMC8zRo2Y6y/cBdFk+O1fOFM3WhqADauol0B9L+hr7Z2odAO5hOrV7KVBSJNhtnqofAIqYM+MuoKwVKcUHY+m81o0mMylGDfSy3YgD8XMYf9Xl/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729289671; c=relaxed/simple;
-	bh=3niRU8lazFRUDgxrGvJvOjxQWNgBdVElKTOBH+XObkQ=;
-	h=Date:To:From:Subject:Message-Id; b=fbWHllf1Wj2m8I9hmXqPSEbHD6BMO83IaoIE6c5nRPan+xbtKtasLIlXHjwTJbIT77ISH+DkIkCcHKxvwRQNiGa7ZAo7wfp+Cn5Exdfdlw4MVspRhXwsKtIKYjMoOSFRLtJ2ufmjj+v7RifEXMkz9t1wLgxx6OPeydLIGwM6SQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HDRv1+zJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729289777; c=relaxed/simple;
+	bh=ntpQumse17g8S9qVHAzIhSQTQ5cOXnLcz+CJduZJJ44=;
+	h=Date:To:From:Subject:Message-Id; b=GuOYI2ZlpCdV6AfHkSVAhNeVjJoqa+PcckmLKq36onTEca8ahy6fTINLUN1KFE3g4+mQDCVY5abqOl+eGD8f2IXLjATjW+soSg4SJcq7kD1FawM1mR42qfFGr2xgCbcvBCxdTltAgUyoKpzFc1PEr/hp+FsfQmMhSBHLLi58Rgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YfL0SW8P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HDRv1+zJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B27A2C4CEC3;
-	Fri, 18 Oct 2024 22:14:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YfL0SW8P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625FAC4CEC3;
+	Fri, 18 Oct 2024 22:16:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729289670;
-	bh=3niRU8lazFRUDgxrGvJvOjxQWNgBdVElKTOBH+XObkQ=;
+	s=korg; t=1729289777;
+	bh=ntpQumse17g8S9qVHAzIhSQTQ5cOXnLcz+CJduZJJ44=;
 	h=Date:To:From:Subject:From;
-	b=HDRv1+zJ3TMNoQiYQnjB2Kr/IB7Eb6Xtd/5QGo1jOJU8sg3tFw7cp8h8NesUxFWuR
-	 ve7FmrYuz4yZDHHSHPP6BipttMiAtiYZVLVOxszDVeL1EbslpRF1EkqXR2TM3cJ3bp
-	 2opTyQHCuEVtkww6FggfxdYUK3TVzWubfKpmAt90=
-Date: Fri, 18 Oct 2024 15:14:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,syoshida@redhat.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,minchan@kernel.org,mike.kravetz@oracle.com,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@lst.de,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,apopple@nvidia.com,airlied@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=YfL0SW8PuDpHccqAPHqXfDWQ0lWwEjTtQfoSYHLgRKoH2dbk4QKdyvmDhw1STth8P
+	 Bm7fwjYvcz/wD3SGSHNIXqyp8lUcyWZWfg+hHT2GLwXJed49BcAHsA7jGR1W/PqLVN
+	 qGvetAqx1+0SP8Nb/bgnOoM+bx9UKJZq4nxAjk48=
+Date: Fri, 18 Oct 2024 15:16:16 -0700
+To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,Liam.Howlett@Oracle.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-memfd-stop-leaking-pinned-pages-in-low-memory-conditions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241018221430.B27A2C4CEC3@smtp.kernel.org>
+Subject: + maple_tree-fix-outdated-flag-name-in-comment.patch added to mm-unstable branch
+Message-Id: <20241018221617.625FAC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: memfd: stop leaking pinned pages in low memory conditions
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-gup-memfd-stop-leaking-pinned-pages-in-low-memory-conditions.patch
+     Subject: maple_tree: fix outdated flag name in comment
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-fix-outdated-flag-name-in-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-memfd-stop-leaking-pinned-pages-in-low-memory-conditions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-outdated-flag-name-in-comment.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: memfd: stop leaking pinned pages in low memory conditions
-Date: Thu, 17 Oct 2024 18:17:11 -0700
+From: Jann Horn <jannh@google.com>
+Subject: maple_tree: fix outdated flag name in comment
+Date: Mon, 07 Oct 2024 23:47:45 +0200
 
-If check_and_migrate_movable_pages() fails, typically with -ENOMEM, then
-memfd_pin_folios() will leave pages pinned. Those are leaked forever,
-and are visible to user space as a memory leak.
+MAPLE_USE_RCU was renamed to MT_FLAGS_USE_RCU at some point, fix up the
+comment.
 
-Fix this by unpinning the folios that try_grab_folio(FOLL_PIN) has
-pinned, in such error cases.
-
-Link: https://lkml.kernel.org/r/20241018011711.183642-3-jhubbard@nvidia.com
-Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Dongwon Kim <dongwon.kim@intel.com>
-Cc: Junxiao Chang <junxiao.chang@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Shigeru Yoshida <syoshida@redhat.com>
+Link: https://lkml.kernel.org/r/20241007-maple-tree-doc-fix-v1-1-6bbf89c1153d@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ include/linux/maple_tree.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-memfd-stop-leaking-pinned-pages-in-low-memory-conditions
-+++ a/mm/gup.c
-@@ -3719,12 +3719,10 @@ long memfd_pin_folios(struct file *memfd
- 		ret = check_and_migrate_movable_folios(nr_folios, folios);
- 	} while (ret == -EAGAIN);
- 
--	memalloc_pin_restore(flags);
--	return ret ? ret : nr_folios;
- err:
- 	memalloc_pin_restore(flags);
--	unpin_folios(folios, nr_folios);
--
--	return ret;
-+	if (ret)
-+		unpin_folios(folios, nr_folios);
-+	return ret ? ret : nr_folios;
- }
- EXPORT_SYMBOL_GPL(memfd_pin_folios);
+--- a/include/linux/maple_tree.h~maple_tree-fix-outdated-flag-name-in-comment
++++ a/include/linux/maple_tree.h
+@@ -224,7 +224,7 @@ typedef struct { /* nothing */ } lockdep
+  * (set at tree creation time) and dynamic information set under the spinlock.
+  *
+  * Another use of flags are to indicate global states of the tree.  This is the
+- * case with the MAPLE_USE_RCU flag, which indicates the tree is currently in
++ * case with the MT_FLAGS_USE_RCU flag, which indicates the tree is currently in
+  * RCU mode.  This mode was added to allow the tree to reuse nodes instead of
+  * re-allocating and RCU freeing nodes when there is a single user.
+  */
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
-mm-gup-memfd-stop-leaking-pinned-pages-in-low-memory-conditions.patch
-kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
+mm-mark-mas-allocation-in-vms_abort_munmap_vmas-as-__gfp_nofail.patch
+maple_tree-fix-outdated-flag-name-in-comment.patch
 
