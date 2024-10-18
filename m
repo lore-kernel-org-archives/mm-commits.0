@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E8CE18D65E
-	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 21:22:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4282204F7F
+	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 21:23:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729286564; cv=none; b=Gb7JEnupa+KR9wNwp6UgJS62L1gnfAWuKkVv7VetLdLd5wwKEOvD37oGRxn1A9ro673/meZXsVJeHhfRrFC6IcvKflOamOAmx9s+FS6B520NuHdoiDtRFMaPEURgIZEo//FkzBU8TkN+HIljFQ3+kc3AXrY7DxCixE5cufS4ces=
+	t=1729286631; cv=none; b=iH+H1tr9Fpa+Xo4TmS6dqzAzQrb0j3ZsIGdQiwhp21j6iEHSDAZDo0VX/H4b2LeStiO3+78fj/A2FZ8h1VTAan6ISH50fu/jCgtkpaSNDQ+3RmHT1woUIb2aST8JEAFeARG27bKoaFj0geMJUQMlfdzFKDl1yulKF9ZIcu7+55g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729286564; c=relaxed/simple;
-	bh=Wnci3Mq6zjKW2i9LcdoUATLrdS0rDmSMYEdVwWjZFp4=;
-	h=Date:To:From:Subject:Message-Id; b=ZlJ3zJ97pUlfturP0xdliXiMWxx8WtrDs2mL+UoZxys5+yyw4oSl76XtR2RSXhcC/cGUchcZHIMRIDHjuxiaIk/8c6lkornidPWgisq1GvPZlE7OpCGf8H8XS3VbMSFEfkBGvEqUHA7ZzhVDfRWXwXkHmcw0jGGESklzaMzDYPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vajw8uKi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729286631; c=relaxed/simple;
+	bh=pPls2VB1rOe29nvZycKiod62GCh8VxQ9L9X4KF89vi4=;
+	h=Date:To:From:Subject:Message-Id; b=lsKtmh4UKyGIrA0O8yl9PM+iu43JrFOUH0J394vRpCe4wSPoEHXhoDtDLsLJwUIGGdVtvzPRJVP5kwW+pmyds1sBgK0Q1S3VMwq6gngM86XpMwdLF0+JHBkvpx/GkP1lXIh9ePVW+efjqeED8FtgTFWwWseq95B1sSGNU9F7TLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MHIp72Xm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vajw8uKi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0C62C4CEC3;
-	Fri, 18 Oct 2024 21:22:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MHIp72Xm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 398F0C4CEC3;
+	Fri, 18 Oct 2024 21:23:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729286563;
-	bh=Wnci3Mq6zjKW2i9LcdoUATLrdS0rDmSMYEdVwWjZFp4=;
+	s=korg; t=1729286631;
+	bh=pPls2VB1rOe29nvZycKiod62GCh8VxQ9L9X4KF89vi4=;
 	h=Date:To:From:Subject:From;
-	b=vajw8uKiQMJkUAuQxs32oAvg62/2Gc0ZXyaa2ivm7j4cYPPw/1HOf7S5tTFSGTHsp
-	 DvSCyWLY7qNjOhMZf0jGvGfSbmirnPty0KMAzACilERaaQHhc9378hsBTU47qWFaC3
-	 LpSRtDIAdv2JfydOQr/FrMo55D2hLigZ+pVHxNwc=
-Date: Fri, 18 Oct 2024 14:22:43 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,willy@infradead.org,david@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=MHIp72XmRZMqJzP9wgCuT6hKMpyRIWB8RHtCIrdhiXiFVmJJJ6NyfS/HMDtFQtdxV
+	 TGrYtbfZk09SroEJi8PdtafxVCnz1p4ZGAZHn4/TcUUN3JkU1wCzTr2CSY+df+GVFw
+	 /Q52sCxziOF5sE3x+jtki2gWDo02qR/JjMxW/9AM=
+Date: Fri, 18 Oct 2024 14:23:50 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usama.anjum@collabora.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kaixa@kiloview.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-condition-for-thp-folio.patch added to mm-unstable branch
-Message-Id: <20241018212243.C0C62C4CEC3@smtp.kernel.org>
+Subject: + mm-remove-unused-has_isolate_pageblock.patch added to mm-unstable branch
+Message-Id: <20241018212351.398F0C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove redundant condition for THP folio
+     Subject: mm: remove unused has_isolate_pageblock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-redundant-condition-for-thp-folio.patch
+     mm-remove-unused-has_isolate_pageblock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-condition-for-thp-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-has_isolate_pageblock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,41 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm: remove redundant condition for THP folio
-Date: Fri, 18 Oct 2024 15:11:51 +0530
+From: Luoxi Li <kaixa@kiloview.com>
+Subject: mm: remove unused has_isolate_pageblock
+Date: Fri, 18 Oct 2024 17:22:35 +0800
 
-folio_test_pmd_mappable() implies folio_test_large(), therefore, simplify
-the expression for is_thp.
+has_isolate_pageblock() has been unused since commit 55612e80e722 ("mm:
+page_alloc: close migratetype race between freeing and stealing")
 
-Link: https://lkml.kernel.org/r/20241018094151.3458-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Remove it.
+
+Link: https://lkml.kernel.org/r/20241018092235.2764859-1-kaixa@kiloview.com
+Signed-off-by: Luoxi Li <kaixa@kiloview.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page-isolation.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/migrate.c~mm-remove-redundant-condition-for-thp-folio
-+++ a/mm/migrate.c
-@@ -1732,7 +1732,7 @@ static int migrate_pages_batch(struct li
+--- a/include/linux/page-isolation.h~mm-remove-unused-has_isolate_pageblock
++++ a/include/linux/page-isolation.h
+@@ -3,10 +3,6 @@
+ #define __LINUX_PAGEISOLATION_H
  
- 		list_for_each_entry_safe(folio, folio2, from, lru) {
- 			is_large = folio_test_large(folio);
--			is_thp = is_large && folio_test_pmd_mappable(folio);
-+			is_thp = folio_test_pmd_mappable(folio);
- 			nr_pages = folio_nr_pages(folio);
- 
- 			cond_resched();
+ #ifdef CONFIG_MEMORY_ISOLATION
+-static inline bool has_isolate_pageblock(struct zone *zone)
+-{
+-	return zone->nr_isolate_pageblock;
+-}
+ static inline bool is_migrate_isolate_page(struct page *page)
+ {
+ 	return get_pageblock_migratetype(page) == MIGRATE_ISOLATE;
+@@ -16,10 +12,6 @@ static inline bool is_migrate_isolate(in
+ 	return migratetype == MIGRATE_ISOLATE;
+ }
+ #else
+-static inline bool has_isolate_pageblock(struct zone *zone)
+-{
+-	return false;
+-}
+ static inline bool is_migrate_isolate_page(struct page *page)
+ {
+ 	return false;
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from kaixa@kiloview.com are
 
-mm-abstract-thp-allocation.patch
-mm-allocate-thp-on-hugezeropage-wp-fault.patch
-mm-remove-redundant-condition-for-thp-folio.patch
+mm-remove-unused-has_isolate_pageblock.patch
 
