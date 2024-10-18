@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4711013541B
-	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 21:02:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C80013A244;
+	Fri, 18 Oct 2024 21:14:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729285362; cv=none; b=RF/jw1iZajJ62UG9StGIhglOgyeoZmfAW7pATxYqxRfRZh5yON+5P0QhvmIKPfuefHNtUkvLqSN/YzTEjaPJbZyX1juV8zfRqfYKVVKx1ZamYgjcm/xKXcjj5kiWT/GDkClFEs2cRjoaMOGGiOxAI9UGvgzW/ZixPag8EJ61yBw=
+	t=1729286041; cv=none; b=igS7s6Pvdzm/qEE6btWD1yH6h3gF7vq0jkYpHySduAZwCml7aZH1uZw8MzbEwLa1vZwYmCnunx/n0QYkhYAlubfsK9zk5WgTKUFGWMQwoAT5I0fKqoB/P7IiGP2Zhh74TbzaTazsFLcZYnPY/SIpx0A9sF0+3jka0d9Wu2DuCvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729285362; c=relaxed/simple;
-	bh=zAQeo/Z/2S9Pr1MYbMNriqU9jvguTh6uuLgaoVhayKk=;
-	h=Date:To:From:Subject:Message-Id; b=SoCNKKaMkqam1W7sElET9ibNCU5bYqLuXcU8WZ96gbs7KehtOxBf4jmU5vJFh/u75x59QUmZOUuYCsUDoQZD5BJmSccymp5EWhbcgxocfJy4sI+OqXzd17vR0K0sAUWo08D61OVtKfS/cSdnPXnwAlDv5ENB3b/cdBfl9wYbhSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tX/JdaWh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729286041; c=relaxed/simple;
+	bh=aWPXU+4d/rnm3/zjnaXecxHLvLD/V6AXMrQS/7+y8io=;
+	h=Date:To:From:Subject:Message-Id; b=JW+xEXuzQnnWXyzNrmC7cX1BTKQE6EHsaGwoFeyNWl+gQcPm7pAgc1V8V+Bz1k8dRakz0kGOgCZkNWpysBnbLQfgZPHafCl1Zpx/OoeEp11wceKt8TUI2QMzvrNZoSmigqNZAr+1f/927BODAlCTzdzbA8wFEL1BTfS6HXuoBq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cqMVo8Cr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tX/JdaWh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC56C4CEC3;
-	Fri, 18 Oct 2024 21:02:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cqMVo8Cr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC0DAC4CEC3;
+	Fri, 18 Oct 2024 21:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729285361;
-	bh=zAQeo/Z/2S9Pr1MYbMNriqU9jvguTh6uuLgaoVhayKk=;
+	s=korg; t=1729286041;
+	bh=aWPXU+4d/rnm3/zjnaXecxHLvLD/V6AXMrQS/7+y8io=;
 	h=Date:To:From:Subject:From;
-	b=tX/JdaWhtxtQb33Qw/RPGjSV2ekcffuExwjJgmG7Ydn3Ix6NWem6ImSdTtRftAUfA
-	 tXFNZqiGD6mN7nkEUYdzipw7ROM/VcbjlN6SawZPBgulYgI8wYs5XRYdKdwQoIz3Jm
-	 N16sR3Iy9tw0aS7M7Yh8prneD5u+3ju+4K7JJVEA=
-Date: Fri, 18 Oct 2024 14:02:41 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,wangkefeng.wang@huawei.com,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=cqMVo8CrRqwivGkirnhinDyPo5jAMF24tKqRw4SamHlrud4qGb+OJc7FTo3VaKSQF
+	 lJfRTPAjMawrfmjewdPeRi0jcTlzXrm6hYf1TP9NSDrWkFXXbD6h/WVDmW/9Bd7RkJ
+	 qiTl7jFBRUTb+CV/ITvZVgnKT4DaGlPFTMpKIyvI=
+Date: Fri, 18 Oct 2024 14:14:00 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,peterx@redhat.com,edliaw@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-remove-goto-from-mremap_to.patch added to mm-unstable branch
-Message-Id: <20241018210241.CDC56C4CEC3@smtp.kernel.org>
+Subject: + revert-selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241018211400.EC0DAC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: remove goto from mremap_to()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-remove-goto-from-mremap_to.patch
+     Subject: Revert "selftests/mm: fix deadlock for fork after pthread_create on ARM"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-remove-goto-from-mremap_to.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,140 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mremap: remove goto from mremap_to()
-Date: Fri, 18 Oct 2024 13:41:14 -0400
+From: Edward Liaw <edliaw@google.com>
+Subject: Revert "selftests/mm: fix deadlock for fork after pthread_create on ARM"
+Date: Fri, 18 Oct 2024 17:17:22 +0000
 
-mremap_to() has a goto label at the end that doesn't unwind anything. 
-Removing the label makes the code cleaner.
+Patch series "selftests/mm: revert pthread_barrier change"
 
-This commit also adds documentation to the function.
+On Android arm, pthread_create followed by a fork caused a deadlock in
+the case where the fork required work to be completed by the created
+thread.
 
-Link: https://lkml.kernel.org/r/20241018174114.2871880-3-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+The previous patches incorrectly assumed that the parent would
+always initialize the pthread_barrier for the child thread.  This
+reverts the change and replaces the fix for wp-fork-with-event with the
+original use of atomic_bool.
+
+
+This patch (of 3):
+
+This reverts commit e142cc87ac4ec618f2ccf5f68aedcd6e28a59d9d.
+
+fork_event_consumer may be called by other tests that do not initialize
+the pthread_barrier, so this approach is not correct.  The subsequent
+patch will revert to using atomic_bool instead.
+
+Link: https://lkml.kernel.org/r/20241018171734.2315053-1-edliaw@google.com
+Link: https://lkml.kernel.org/r/20241018171734.2315053-2-edliaw@google.com
+Fixes: e142cc87ac4e ("fix deadlock for fork after pthread_create on ARM")
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-remove-goto-from-mremap_to
-+++ a/mm/mremap.c
-@@ -887,6 +887,20 @@ static int resize_is_valid(struct vm_are
- 	return 0;
- }
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~revert-selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -241,9 +241,6 @@ static void *fork_event_consumer(void *d
+ 	fork_event_args *args = data;
+ 	struct uffd_msg msg = { 0 };
  
-+/*
-+ * mremap_to() - remap a vma to a new location
-+ * @addr: The old address
-+ * @old_len: The old size
-+ * @new_addr: The target address
-+ * @new_len: The new size
-+ * @locked: If the returned vma is locked (VM_LOCKED)
-+ * @flags: the mremap flags
-+ * @uf: The mremap userfaultfd context
-+ * @uf_unmap_early: The userfaultfd unmap early context
-+ * @uf_unmap: The userfaultfd unmap context
-+ *
-+ * Returns: The new address of the vma or an error.
-+ */
- static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
- 		unsigned long new_addr, unsigned long new_len, bool *locked,
- 		unsigned long flags, struct vm_userfaultfd_ctx *uf,
-@@ -895,18 +909,18 @@ static unsigned long mremap_to(unsigned
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long ret = -EINVAL;
-+	unsigned long ret;
- 	unsigned long map_flags = 0;
- 
- 	if (offset_in_page(new_addr))
--		goto out;
-+		return -EINVAL;
- 
- 	if (new_len > TASK_SIZE || new_addr > TASK_SIZE - new_len)
--		goto out;
-+		return -EINVAL;
- 
- 	/* Ensure the old/new locations do not overlap */
- 	if (addr + old_len > new_addr && new_addr + new_len > addr)
--		goto out;
-+		return -EINVAL;
- 
- 	/*
- 	 * move_vma() need us to stay 4 maps below the threshold, otherwise
-@@ -933,31 +947,28 @@ static unsigned long mremap_to(unsigned
- 		 */
- 		ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
- 		if (ret)
--			goto out;
-+			return ret;
- 	}
- 
- 	if (old_len > new_len) {
- 		ret = do_munmap(mm, addr+new_len, old_len - new_len, uf_unmap);
- 		if (ret)
--			goto out;
-+			return ret;
- 		old_len = new_len;
- 	}
- 
- 	vma = vma_lookup(mm, addr);
--	if (!vma) {
--		ret = -EFAULT;
--		goto out;
--	}
-+	if (!vma)
-+		return -EFAULT;
- 
- 	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
- 	if (ret)
--		goto out;
-+		return ret;
- 
- 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
- 	if (flags & MREMAP_DONTUNMAP &&
- 		!may_expand_vm(mm, vma->vm_flags, old_len >> PAGE_SHIFT)) {
--		ret = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	if (flags & MREMAP_FIXED)
-@@ -970,17 +981,14 @@ static unsigned long mremap_to(unsigned
- 				((addr - vma->vm_start) >> PAGE_SHIFT),
- 				map_flags);
- 	if (IS_ERR_VALUE(ret))
--		goto out;
-+		return ret;
- 
- 	/* We got a new mapping */
- 	if (!(flags & MREMAP_FIXED))
- 		new_addr = ret;
- 
--	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked, flags, uf,
--		       uf_unmap);
+-	/* Ready for parent thread to fork */
+-	pthread_barrier_wait(&ready_for_fork);
 -
--out:
--	return ret;
-+	return move_vma(vma, addr, old_len, new_len, new_addr, locked, flags,
-+			uf, uf_unmap);
- }
+ 	/* Read until a full msg received */
+ 	while (uffd_read_msg(args->parent_uffd, &msg));
  
- static int vma_expandable(struct vm_area_struct *vma, unsigned long delta)
+@@ -311,12 +308,8 @@ static int pagemap_test_fork(int uffd, b
+ 
+ 	/* Prepare a thread to resolve EVENT_FORK */
+ 	if (with_event) {
+-		pthread_barrier_init(&ready_for_fork, NULL, 2);
+ 		if (pthread_create(&thread, NULL, fork_event_consumer, &args))
+ 			err("pthread_create()");
+-		/* Wait for child thread to start before forking */
+-		pthread_barrier_wait(&ready_for_fork);
+-		pthread_barrier_destroy(&ready_for_fork);
+ 	}
+ 
+ 	child = fork();
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from edliaw@google.com are
 
-mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
-mm-mremap-clean-up-vma_to_resize.patch
-mm-mremap-remove-goto-from-mremap_to.patch
+revert-selftests-mm-fix-deadlock-for-fork-after-pthread_create-on-arm.patch
+revert-selftests-mm-replace-atomic_bool-with-pthread_barrier_t.patch
+selftests-mm-fix-deadlock-for-fork-after-pthread_create-with-atomic_bool.patch
 
