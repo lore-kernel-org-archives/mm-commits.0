@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FA5120694D
-	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 20:35:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED46C13541B
+	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 21:02:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729283739; cv=none; b=DhHAC5DsipMfRr0LCXprBJZ4+s9n1EQyLzGdgEusaqzBR8CI2Sf0CoxQIJ9lmsxhIJBnaHt6Jayh9GUpRKXA7Kk1RAQoNUPrpf7sXweeqF/5uYlJapGOLBjlA+QIigyP4UWX5GGsd6UgRO74ubaZPyvVtcDd1F66Lnh+0LIggHo=
+	t=1729285361; cv=none; b=pztFaItrIr80wP3meHHffZSPDliDUUkgp1obsAmkIXQ1979y+IThuciemtQmA6fXqXNhWegYQj1v09DzvEQDKTJHIRKkATQ4Xlwgr6jMXUJkkHU2pKCUEhlLDQp5VHVXLEg7aNsUr/q/AuflVwlq4c6c+UYfY3YFyU8VElAZPic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729283739; c=relaxed/simple;
-	bh=BoKFJn1ELZov8cgPZ+LsR1WkAfwe0eCLxR7dKaAPyyI=;
-	h=Date:To:From:Subject:Message-Id; b=DKGROdIESpEShWPzkKdGf70yKhTM3ivnIfyoTubJGBFZcE/rHTouYuSyq60hxl7oFf8QMovH/0fGbYi3ZZeboGRvwCA1BA6XJV/bR4k7/hIbSNaqOSx6KxvAAJin+XQmyIyz8aa6LojHmZQxQRfrpqfLIpzRS//Sz78QEX1AM8c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vixV5T6s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729285361; c=relaxed/simple;
+	bh=dTFqlGB0QI0vVbkGewPZqLYUsPo2NjfEm50YhROJeF8=;
+	h=Date:To:From:Subject:Message-Id; b=n7O/uVp+J4HeVzV4Iwi0KgV6GEX4gNBPkA/UriaUwGIodfWzdE53I31kh95dmV3F8qxtLuQcnKTtmHewSHqaiIMw3C3XsO+6GGkYaM2tcuRsZrZGn+9kO2GpOpeXlSnwZkpKTe2MfSfQoJe+MdnN8H2U1fBPOE2nqi5Fl14L9W4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tqb4g7Cv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vixV5T6s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93C53C4CEC3;
-	Fri, 18 Oct 2024 20:35:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tqb4g7Cv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A4BCC4CEC3;
+	Fri, 18 Oct 2024 21:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729283738;
-	bh=BoKFJn1ELZov8cgPZ+LsR1WkAfwe0eCLxR7dKaAPyyI=;
+	s=korg; t=1729285360;
+	bh=dTFqlGB0QI0vVbkGewPZqLYUsPo2NjfEm50YhROJeF8=;
 	h=Date:To:From:Subject:From;
-	b=vixV5T6s/zDT02YTTpZEQdsELzgwnmf3H2tlz/xQbD5zEOAklzM2IEI/OQphu0J9m
-	 oPevd7Mj51saekz4cQ8PqeIQ+xuD6uJkgKmZRPdPAU75WSn6bXDSzoNJYec3zqc7F9
-	 sH0CM0DPexB9MdVOCZquNxUjOuF6DZwjYwi7ijN4=
-Date: Fri, 18 Oct 2024 13:35:37 -0700
-To: mm-commits@vger.kernel.org,david@redhat.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=Tqb4g7CvUczky90Q6JR+2DOYdf/0Au5BbqtV/63l/uqrFqecJzrUJoXJTkCGCB/b1
+	 BMU41Je9I2vTps6T7zdkN93ca4J/Pp16qeXny7x8BCNbIyPTG0ZCop2nNGDxl13KKM
+	 ZKaiBKSx7PLAsq2oKvOFdCBg6TXSttXvFUvqgRek=
+Date: Fri, 18 Oct 2024 14:02:39 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,wangkefeng.wang@huawei.com,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-migrate-copy_user_test-to-kunit-fix.patch added to mm-unstable branch
-Message-Id: <20241018203538.93C53C4CEC3@smtp.kernel.org>
+Subject: + mm-mremap-clean-up-vma_to_resize.patch added to mm-unstable branch
+Message-Id: <20241018210240.7A4BCC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: export copy_to_kernel_nofault
+     Subject: mm/mremap: cleanup vma_to_resize()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-migrate-copy_user_test-to-kunit-fix.patch
+     mm-mremap-clean-up-vma_to_resize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-migrate-copy_user_test-to-kunit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-clean-up-vma_to_resize.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,39 +58,167 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: export copy_to_kernel_nofault
-Date: Fri, 18 Oct 2024 15:11:09 +0000
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/mremap: cleanup vma_to_resize()
+Date: Fri, 18 Oct 2024 13:41:13 -0400
 
-This symbol is now used on the kasan test module, so it needs to be
-exported.
+Patch series "mm/mremap: Remove extra vma tree walk", v2.
 
-ERROR: modpost: "copy_to_kernel_nofault" [mm/kasan/kasan_test.ko] undefined!
+An extra vma tree walk was discovered in some mremap call paths during the
+discussion on mseal() changes.  This patch set removes the extra vma tree
+walk and further cleans up mremap_to().
 
-Link: https://lkml.kernel.org/r/20241018151112.3533820-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+
+This patch (of 2):
+
+vma_to_resize() is used in two locations to find and validate the vma for
+the mremap location.  One of the two locations already has the vma, which
+is then re-found to validate the same vma.
+
+This code can be simplified by moving the vma_lookup() from
+vma_to_resize() to mremap_to() and changing the return type to an int
+error.
+
+Since the function now just validates the vma, the function is renamed to
+resize_is_valid() to better reflect what it is doing.
+
+This commit also adds documentation about the function.
+
+Link: https://lkml.kernel.org/r/20241018174114.2871880-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20241018174114.2871880-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mremap.c |   53 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 31 insertions(+), 22 deletions(-)
 
---- a/mm/maccess.c~kasan-migrate-copy_user_test-to-kunit-fix
-+++ a/mm/maccess.c
-@@ -82,6 +82,7 @@ Efault:
- 	pagefault_enable();
- 	return -EFAULT;
+--- a/mm/mremap.c~mm-mremap-clean-up-vma_to_resize
++++ a/mm/mremap.c
+@@ -826,17 +826,24 @@ static unsigned long move_vma(struct vm_
+ 	return new_addr;
  }
-+EXPORT_SYMBOL_GPL(copy_to_kernel_nofault);
  
- long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
+-static struct vm_area_struct *vma_to_resize(unsigned long addr,
++/*
++ * resize_is_valid() - Ensure the vma can be resized to the new length at the give
++ * address.
++ *
++ * @vma: The vma to resize
++ * @addr: The old address
++ * @old_len: The current size
++ * @new_len: The desired size
++ * @flags: The vma flags
++ *
++ * Return 0 on success, error otherwise.
++ */
++static int resize_is_valid(struct vm_area_struct *vma, unsigned long addr,
+ 	unsigned long old_len, unsigned long new_len, unsigned long flags)
  {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+ 	unsigned long pgoff;
+ 
+-	vma = vma_lookup(mm, addr);
+-	if (!vma)
+-		return ERR_PTR(-EFAULT);
+-
+ 	/*
+ 	 * !old_len is a special case where an attempt is made to 'duplicate'
+ 	 * a mapping.  This makes no sense for private mappings as it will
+@@ -847,37 +854,37 @@ static struct vm_area_struct *vma_to_res
+ 	 */
+ 	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
+ 		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n", current->comm, current->pid);
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	if ((flags & MREMAP_DONTUNMAP) &&
+ 			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+-		return ERR_PTR(-EFAULT);
++		return -EFAULT;
+ 
+ 	if (new_len == old_len)
+-		return vma;
++		return 0;
+ 
+ 	/* Need to be careful about a growing mapping */
+ 	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 	pgoff += vma->vm_pgoff;
+ 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+ 	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+-		return ERR_PTR(-EFAULT);
++		return -EFAULT;
+ 
+ 	if (!mlock_future_ok(mm, vma->vm_flags, new_len - old_len))
+-		return ERR_PTR(-EAGAIN);
++		return -EAGAIN;
+ 
+ 	if (!may_expand_vm(mm, vma->vm_flags,
+ 				(new_len - old_len) >> PAGE_SHIFT))
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 
+-	return vma;
++	return 0;
+ }
+ 
+ static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
+@@ -936,12 +943,16 @@ static unsigned long mremap_to(unsigned
+ 		old_len = new_len;
+ 	}
+ 
+-	vma = vma_to_resize(addr, old_len, new_len, flags);
+-	if (IS_ERR(vma)) {
+-		ret = PTR_ERR(vma);
++	vma = vma_lookup(mm, addr);
++	if (!vma) {
++		ret = -EFAULT;
+ 		goto out;
+ 	}
+ 
++	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
++	if (ret)
++		goto out;
++
+ 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
+ 	if (flags & MREMAP_DONTUNMAP &&
+ 		!may_expand_vm(mm, vma->vm_flags, old_len >> PAGE_SHIFT)) {
+@@ -1114,11 +1125,9 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	/*
+ 	 * Ok, we need to grow..
+ 	 */
+-	vma = vma_to_resize(addr, old_len, new_len, flags);
+-	if (IS_ERR(vma)) {
+-		ret = PTR_ERR(vma);
++	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
++	if (ret)
+ 		goto out;
+-	}
+ 
+ 	/* old_len exactly to the end of the area..
+ 	 */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-bootmem-add-bootmem_type-stub-function-fix-2.patch
-kasan-migrate-copy_user_test-to-kunit-fix.patch
+mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+mm-mremap-clean-up-vma_to_resize.patch
+mm-mremap-remove-goto-from-mremap_to.patch
 
