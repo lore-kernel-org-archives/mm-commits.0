@@ -1,161 +1,184 @@
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2058.outbound.protection.outlook.com [40.107.223.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B17188010
-	for <mm-commits@vger.kernel.org>; Fri, 18 Oct 2024 23:10:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.58
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729293041; cv=fail; b=JhxBgTNDBwY9ntQTJHCXOfo/bjhIurFJ3rjGYRa9U2cGUmxoVwoQPcW4MC8DXOda3fNdav/VcIrm2SGfWraGsm00yy0sOdV2kMfzLhvJblBYyma7fp1ANRalxjgnDMjsnyiTACj3J7rEeISfx6n735ly5ktlndbI3uNY9Ih2Nyo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729293041; c=relaxed/simple;
-	bh=QnGqsoak1XgEIanqZuhanrI3nTHC4e0VeLgle7/Dwe0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=ZnPocMkSnQhE0hoMWA9+zlTIQhF7RwId9vg6srhzv3qaJPyLu6DzoTwPMT5IiTDDLsV5LX66U4IynE5lEMZFt1Y2upsYxAqTEfMzU3cer2/z/Ubgs/SUXDV829evJBdm2R1NNGTfOaPx7hi3uPB0E8kVreMrm65hf6RW5mfbz7A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=WBzHktEt; arc=fail smtp.client-ip=40.107.223.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F85A12E1CA
+	for <mm-commits@vger.kernel.org>; Tue, 22 Oct 2024 03:36:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1729568182; cv=none; b=AI14QbES7iyG38eqYgWLj2w/bJ6uE2t7SjKkxZ6sgmg3q6qV82lXOsKWGdOC3HdL7XBcWhmCKYzNN4WAFEGTyW5huuBPq0VKcSj5xN859AAoozH/sgfgNnTHmiObDnEr7uFA06AU3BCr9Ib16kVsI908j3Az0+Y8i9O6p2pEt/o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1729568182; c=relaxed/simple;
+	bh=32MUAG9YHTNVYb33jseEdGpvpSmrlhbyWJqr54mJZ0I=;
+	h=Date:To:From:Subject:Message-Id; b=YP73VR35gsyrQar3VvXG9TOTZpWoRZT7fq1hHiOL1JcS/TnAFwqWaajVc5HWRd2JdOT6YTUTecQx+imYi31Znqh5WM9xVPZGyNf8SuYJ7j5/K02bwKp/h37nNvPUuThIcn67Nh0vMAtfzySDvJYCQzH8nhLoGRbubdDU2nYku0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EQ2seOz1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WBzHktEt"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mUU4FhBmXuZcm+C6OKReCPZWyGOrpkOc3/GYEyXuQZrT3U6vCdLFeT3lPMWVH2wpNhxoKacr+UdZ9IEuW1tWyCUqlhJy82elj5tYG2KiuQFEG4cAQCNG0qVnnZOdTqvQeyZdF/VedYGkukUx8RnhDIxn5zT9joaHz8b07nQQLqyHnLmpFKTgkin3khJjgZSmqmi0j7yv2K4COFuC7YDhjw5yN31eCTAJkboqU4yQGLkymM2XguklBHImyfcuDQ40gfnwCHIu5ghdHXk2UH8CjFl2pNCLDW2RzsYBiYZhMqBdG1RcNTVhVmz3Y4IwWMDHC2bQi314QNmdZ1gmQEgJVg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=foOC4GguiSiRWlxA63Qq8N1NNnjv06PlJkOdv9fGWAk=;
- b=vUQo5tv9SZL9Lxl+s2j4TDmh0pLB/YVpf7z7/dSQ66oxQ6hk7iWBYTIeL1OGot9p6BoaJ+aXo6+2vE6CvAEDhRUXgGStQAIkXVbio2UteD6udYdGtD/qAWaTz0vlRqUpcjG4AfMGSwGg+IsucsrsIv4hlJPzvfC5lQnMVR2HGMHPB0Ggn5EmcTJf68xaF6blS8bQrXOQWKRpmoskZ77hDisJi4A3PaxQ+3z4AsmlUpg87XBMwQs7Rki3qc7E7Ia0w8gbkOSEDqJIu2dk/JMifn7F13s2iZ1sK0E7kv/ZcbAi9JTDZNk+LdPM0ZMrnCUd4GIhnLXf5EyzMAd0i43Zrg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=linux-foundation.org
- smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
- header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=foOC4GguiSiRWlxA63Qq8N1NNnjv06PlJkOdv9fGWAk=;
- b=WBzHktEtlWRX7F2C5RJI5XCmPEScMtdVs73EbEkmV3bt6SDnA7gzvsW7g7PryJhteZH0K0h/r2q47i25BrX7iaODg6PvKI/ixz8bmQScA0105EizLe0L7rw90yZHUbQxRlhcb3dqwC/Sh81ROUaxrZRaqk6f31lSBoc/pAQAMabW8vsulUGyP2NNjOBZDv3iPLL76XcGsBuWYT0smOMKrHNPhOB2QYG0tuNWj6QfbZfrX48Snz6+5AmQLxapX8LkGPPtV6sgArI5D2zzvICaalaBudq45YnPjqfIq6JIM3/uRb1mnoxP6AcLwzNHgSH3lKLorgVV7brhq2D8m+xuBA==
-Received: from BYAPR03CA0004.namprd03.prod.outlook.com (2603:10b6:a02:a8::17)
- by MN0PR12MB5834.namprd12.prod.outlook.com (2603:10b6:208:379::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8069.18; Fri, 18 Oct
- 2024 23:10:34 +0000
-Received: from SJ5PEPF000001CE.namprd05.prod.outlook.com
- (2603:10b6:a02:a8:cafe::3b) by BYAPR03CA0004.outlook.office365.com
- (2603:10b6:a02:a8::17) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8069.21 via Frontend
- Transport; Fri, 18 Oct 2024 23:10:33 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- SJ5PEPF000001CE.mail.protection.outlook.com (10.167.242.38) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8069.17 via Frontend Transport; Fri, 18 Oct 2024 23:10:33 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Fri, 18 Oct
- 2024 16:10:17 -0700
-Received: from [10.110.48.28] (10.126.230.35) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Fri, 18 Oct
- 2024 16:10:16 -0700
-Message-ID: <68a61b17-d59f-43f9-bf67-1824677b2e59@nvidia.com>
-Date: Fri, 18 Oct 2024 16:10:16 -0700
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EQ2seOz1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3727C4CEC7;
+	Tue, 22 Oct 2024 03:36:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1729568181;
+	bh=32MUAG9YHTNVYb33jseEdGpvpSmrlhbyWJqr54mJZ0I=;
+	h=Date:To:From:Subject:From;
+	b=EQ2seOz1ixKvX7jtCM8mz+CyZjWD6mw5A3hAp5u+/GGHLviytBAP8OKwNfMqJPlnS
+	 aXnZa3mA/xi2J+Ao4ZgFeB93Uq4thuLO3fss4QdFAa8CAbjUwkerSTSFYv5HEslRSS
+	 AIBEgG4KFFMnmy4pdbAvgfgwtlGPa/t3p5//KD6E=
+Date: Mon, 21 Oct 2024 20:36:21 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,kent.overstreet@linux.dev,gehao@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241022033621.A3727C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: +
- mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions-v3.patch added to
- mm-hotfixes-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: <mm-commits@vger.kernel.org>, <willy@infradead.org>,
-	<vivek.kasireddy@intel.com>, <syoshida@redhat.com>, <peterx@redhat.com>,
-	<pasha.tatashin@soleen.com>, <osalvador@suse.de>, <minchan@kernel.org>,
-	<mike.kravetz@oracle.com>, <kraxel@redhat.com>, <junxiao.chang@intel.com>,
-	<jgg@nvidia.com>, <hughd@google.com>, <hch@lst.de>, <hch@infradead.org>,
-	<dongwon.kim@intel.com>, <david@redhat.com>, <daniel.vetter@ffwll.ch>,
-	<arnd@arndb.de>, <apopple@nvidia.com>, <airlied@redhat.com>
-References: <20241018224747.DBC0BC4CEC3@smtp.kernel.org>
- <2d622109-11e5-4c5d-8f13-40e695dd2127@nvidia.com>
- <20241018160243.009bd38d3ab96bb05a751096@linux-foundation.org>
-Content-Language: en-US
-From: John Hubbard <jhubbard@nvidia.com>
-In-Reply-To: <20241018160243.009bd38d3ab96bb05a751096@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CE:EE_|MN0PR12MB5834:EE_
-X-MS-Office365-Filtering-Correlation-Id: e3208847-21c8-41d1-0448-08dcefca115e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|1800799024|36860700013|376014|82310400026;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Z2VRVkgwdEJ5S0t5OE04NjQ3dTdsMFNmNEt3aVl4VFEzWFhUOE9nckpsMjVL?=
- =?utf-8?B?bk5oQ2FuQURnVnNHTTkzR1YzSUErNVdyUkRuTXRQNXgzZFdqRmFNRit0cFVn?=
- =?utf-8?B?RGJ6Rnc0Skc5a29nY2szNnFPTHZqempnQTcwOERQcGt3dE9ONVQzbE9vUkR1?=
- =?utf-8?B?YmYzVWFydUJpbzFlM0x2eTUraEtjOWVBMkU5bFRFZzhVcjF2WEFtN3grdG04?=
- =?utf-8?B?ZmtQQWtIY3BQc0dnQkZWZFNVcDNYUm5QL3UwSjlWbEwrN21YQUhRZzBMWmlp?=
- =?utf-8?B?cHJReUlJK1JnNHRaLy9vNjdkMFZnZk1GYU5ESVJ1UENiK1BxWE5ma3lxbG9w?=
- =?utf-8?B?dGZ4VGRGOURaOE8zMWd4REcvdkt3YVpYcUs4UUxTMndjUDdtL2hieVVYRVhr?=
- =?utf-8?B?bnJlalhZL2ljb3ZFaElZQ3NkTXJFUjdHTWhNTTFhcFdua0J6UXdtbGlKOTl2?=
- =?utf-8?B?eVVLQXhCNDBWcmsvUk00TWR3TUwzUlJGZnV4WlRlSkd4dmx4NityTnhLbDVs?=
- =?utf-8?B?UEZMTEdTQnJoSlhjNTVvSU5rbmhvTUNOSkpiTGMvZnhaT0pzN1VlNWRlN283?=
- =?utf-8?B?SXhCV1g3dWIxRk1WK25QUlFqSjNRRTVYTjU4cHdyanFucXFzQVBxWkJsTUd3?=
- =?utf-8?B?SVQ2V1ZXOVR2Z3pvS1IzRlVtMlh0YnlJOGl1cnpRZHZYYjJzWnBvQUowaHNG?=
- =?utf-8?B?YjVZeUo3V1dJWkVqeDJ4bFd5RnFqNzlHZ3VIaGZ4NHBYTjVVVmRLQnBINTdB?=
- =?utf-8?B?K0JrYkdud1VBVzZMTnI4VDkzZk5UVk1oSEM4QlJQY0d3bzUydCtPR0NWSHd4?=
- =?utf-8?B?bTB2RmwxY0VUL3AreEdLNzRTbC9vN0hXWmQ3Yi83T3VuVUlISTFHVWZUWkxL?=
- =?utf-8?B?UUtCeGlkTnF5MFB5UzhOeWtweGN1WE5WdVJPMDQrSG04VENhL2xEelBjaCtx?=
- =?utf-8?B?UExRUGllWU1tbkUwRi9rUGI4c2pISHFKV3Y0ays0NjZJMHpiRmthVTlFck9B?=
- =?utf-8?B?VzhaMkNjUlR0bFlsSmVwazRNUUdFOWp5NnJpL1VXLzl1d3pycExFQkZ5SFo3?=
- =?utf-8?B?SllJYWZMQS9hSDNrc3E2Y1prV050cVpaeVkrTVhzVTNsRlk4R2o4ekR6dWpj?=
- =?utf-8?B?UlcyNm4wUktsRUVEM3YwTW0rZU8yNVJjaFYrNEtJMzVmbnFFVG42UmpsazNS?=
- =?utf-8?B?b1hncG5Vd2FQcmJZRHhDMjRXdWg0N0JHZTVTek9TU0tSblNLemhOR2pTOXVY?=
- =?utf-8?B?bnRiMHNqODk5Vm5DWEJYZVVJaGNlbzlMWTFYRHlETE85eFBPUGhtMWlBS0ZV?=
- =?utf-8?B?bTBOUEIzN0YvZ0NjNkJQS1dQY0E4WnhqcWVNOEYvVzFMbTIvRzVKT2hoaGJW?=
- =?utf-8?B?Z0tyNVFkOXgwckgvKy8zTSt0ZFJaK294bG9TMExMaE1sU2Z6MGdYTzJZSDY0?=
- =?utf-8?B?enNWSk1seUUxT1VSUk42WnJ0QmtSZ3ptUUpHWXRJeEw4ak5tTGs5QTZFa0hk?=
- =?utf-8?B?NkJURTFDbkJlRTQwSk84SzdIc3h2allMeGxrQjBkOTlDMlBoQlJWQnBuNHBT?=
- =?utf-8?B?UTkvVVBTcVVYeXA2STljUXZGby9PR0dnb0x2U1BkUUdONGdiMHF1aGZJcWNn?=
- =?utf-8?B?c1hqclZGSkhTV3dnWVcrc3pwQkxTeFhyU0tUdkNEWS9mVlRpa092ZnRaRzJN?=
- =?utf-8?B?bGNBQjN2bHFNWVRQcG5GK3lCMFdmVUFYSzRPNDhGcU0vWE5OMUR4YVpNN0ZS?=
- =?utf-8?B?dkhYcEFFL0QrT1FCTEh6d1lUYzJudER3aEF6UHJ0WFp2UmkzUFgxWU9yampq?=
- =?utf-8?B?TXhUWHZmOFBldFhZSUdDTXJ6Znk5ekI0Qm5WR2Zmd1NESkhjdmxnQzJoVDFr?=
- =?utf-8?B?T21PVXFsT2ZIdk0xUDdxamRGRzFWL0J2VkFPZmN0TitrQnc9PQ==?=
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(1800799024)(36860700013)(376014)(82310400026);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Oct 2024 23:10:33.2324
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e3208847-21c8-41d1-0448-08dcefca115e
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ5PEPF000001CE.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5834
 
-On 10/18/24 4:02 PM, Andrew Morton wrote:
-> On Fri, 18 Oct 2024 15:58:22 -0700 John Hubbard <jhubbard@nvidia.com> wrote:
-> 
->> The above is the mini-cover letter, rather than the v3 commit description,
->> is that normal for this phase of the patch flow?
-> 
-> Often.  I pasted the revised changelog into the to-be-squashed-into patch's.
 
-aha, thanks for explaining (again, I suspect)! :)
+The patch titled
+     Subject: mm/codetag: fix null pointer check logic for ref and tag
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
 
-thanks,
--- 
-John Hubbard
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/codetag: fix null pointer check logic for ref and tag
+Date: Sun, 20 Oct 2024 15:08:19 +0800
+
+When we compile and load lib/slub_kunit.c,it will cause a panic.
+
+The root cause is that __kmalloc_cache_noprof was directly called instead
+of kmem_cache_alloc,which resulted in no alloc_tag being allocated.This
+caused current->alloc_tag to be null,leading to a null pointer dereference
+in alloc_tag_ref_set.
+
+Despite the fact that my colleague Pei Xiao will later fix the code in
+slub_kunit.c,we still need fix null pointer check logic for ref and tag to
+avoid panic caused by a null pointer dereference.
+
+Here is the log for the panic:
+
+[   74.779373][ T2158] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
+[   74.780130][ T2158] Mem abort info:
+[   74.780406][ T2158]   ESR = 0x0000000096000004
+[   74.780756][ T2158]   EC = 0x25: DABT (current EL), IL = 32 bits
+[   74.781225][ T2158]   SET = 0, FnV = 0
+[   74.781529][ T2158]   EA = 0, S1PTW = 0
+[   74.781836][ T2158]   FSC = 0x04: level 0 translation fault
+[   74.782288][ T2158] Data abort info:
+[   74.782577][ T2158]   ISV = 0, ISS = 0x00000004, ISS2 = 0x00000000
+[   74.783068][ T2158]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[   74.783533][ T2158]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[   74.784010][ T2158] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000105f34000
+[   74.784586][ T2158] [0000000000000020] pgd=0000000000000000, p4d=0000000000000000
+[   74.785293][ T2158] Internal error: Oops: 0000000096000004 [#1] SMP
+[   74.785805][ T2158] Modules linked in: slub_kunit kunit ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute ip6table_nat ip6table_mangle 4
+[   74.790661][ T2158] CPU: 0 UID: 0 PID: 2158 Comm: kunit_try_catch Kdump: loaded Tainted: G        W        N 6.12.0-rc3+ #2
+[   74.791535][ T2158] Tainted: [W]=WARN, [N]=TEST
+[   74.791889][ T2158] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+[   74.792479][ T2158] pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[   74.793101][ T2158] pc : alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.793607][ T2158] lr : alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.794095][ T2158] sp : ffff800084d33cd0
+[   74.794418][ T2158] x29: ffff800084d33cd0 x28: 0000000000000000 x27: 0000000000000000
+[   74.795095][ T2158] x26: 0000000000000000 x25: 0000000000000012 x24: ffff80007b30e314
+[   74.795822][ T2158] x23: ffff000390ff6f10 x22: 0000000000000000 x21: 0000000000000088
+[   74.796555][ T2158] x20: ffff000390285840 x19: fffffd7fc3ef7830 x18: ffffffffffffffff
+[   74.797283][ T2158] x17: ffff8000800e63b4 x16: ffff80007b33afc4 x15: ffff800081654c00
+[   74.798011][ T2158] x14: 0000000000000000 x13: 205d383531325420 x12: 5b5d383734363537
+[   74.798744][ T2158] x11: ffff800084d337e0 x10: 000000000000005d x9 : 00000000ffffffd0
+[   74.799476][ T2158] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008219d188 x6 : c0000000ffff7fff
+[   74.800206][ T2158] x5 : ffff0003fdbc9208 x4 : ffff800081edd188 x3 : 0000000000000001
+[   74.800932][ T2158] x2 : 0beaa6dee1ac5a00 x1 : 0beaa6dee1ac5a00 x0 : ffff80037c2cb000
+[   74.801656][ T2158] Call trace:
+[   74.801954][ T2158]  alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.802494][ T2158]  __kmalloc_cache_noprof+0x148/0x33c
+[   74.802976][ T2158]  test_kmalloc_redzone_access+0x4c/0x104 [slub_kunit]
+[   74.803607][ T2158]  kunit_try_run_case+0x70/0x17c [kunit]
+[   74.804124][ T2158]  kunit_generic_run_threadfn_adapter+0x2c/0x4c [kunit]
+[   74.804768][ T2158]  kthread+0x10c/0x118
+[   74.805141][ T2158]  ret_from_fork+0x10/0x20
+[   74.805540][ T2158] Code: b9400a80 11000400 b9000a80 97ffd858 (f94012d3)
+[   74.806176][ T2158] SMP: stopping secondary CPUs
+[   74.808130][ T2158] Starting crashdump kernel...
+
+Link: https://lkml.kernel.org/r/20241020070819.307944-1-hao.ge@linux.dev
+Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/alloc_tag.h |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+--- a/include/linux/alloc_tag.h~mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag
++++ a/include/linux/alloc_tag.h
+@@ -135,18 +135,21 @@ static inline void alloc_tag_sub_check(u
+ #endif
+ 
+ /* Caller should verify both ref and tag to be valid */
+-static inline void __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
++static inline bool __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
+ {
+ 	alloc_tag_add_check(ref, tag);
+ 	if (!ref || !tag)
+-		return;
++		return false;
+ 
+ 	ref->ct = &tag->ct;
++	return true;
+ }
+ 
+-static inline void alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
++static inline bool alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
+ {
+-	__alloc_tag_ref_set(ref, tag);
++	if (unlikely(!__alloc_tag_ref_set(ref, tag)))
++		return false;
++
+ 	/*
+ 	 * We need in increment the call counter every time we have a new
+ 	 * allocation or when we split a large allocation into smaller ones.
+@@ -154,12 +157,13 @@ static inline void alloc_tag_ref_set(uni
+ 	 * counter because when we free each part the counter will be decremented.
+ 	 */
+ 	this_cpu_inc(tag->counters->calls);
++	return true;
+ }
+ 
+ static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag, size_t bytes)
+ {
+-	alloc_tag_ref_set(ref, tag);
+-	this_cpu_add(tag->counters->bytes, bytes);
++	if (likely(alloc_tag_ref_set(ref, tag)))
++		this_cpu_add(tag->counters->bytes, bytes);
+ }
+ 
+ static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes)
+_
+
+Patches currently in -mm which might be from gehao@kylinos.cn are
+
+mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
 
