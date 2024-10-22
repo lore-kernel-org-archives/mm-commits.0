@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F85A12E1CA
-	for <mm-commits@vger.kernel.org>; Tue, 22 Oct 2024 03:36:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682691CEAD2;
+	Tue, 22 Oct 2024 23:26:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729568182; cv=none; b=AI14QbES7iyG38eqYgWLj2w/bJ6uE2t7SjKkxZ6sgmg3q6qV82lXOsKWGdOC3HdL7XBcWhmCKYzNN4WAFEGTyW5huuBPq0VKcSj5xN859AAoozH/sgfgNnTHmiObDnEr7uFA06AU3BCr9Ib16kVsI908j3Az0+Y8i9O6p2pEt/o=
+	t=1729639572; cv=none; b=LfUM03bCmL3IH/NreY1zLRrm0AbNKFbU+IZXDY2Tn/Tkvky0WjlIEmm5MBy/Ke82suKQFlHRoxLgvc4o5VPppnfF1GU9v+djYXgeDuQ7rF0jcSv0T/oBNClt6NapyKN8mWDqmeyZ8+RsIeuJryisil5H9j7AlojAK2geVS1VdUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729568182; c=relaxed/simple;
-	bh=32MUAG9YHTNVYb33jseEdGpvpSmrlhbyWJqr54mJZ0I=;
-	h=Date:To:From:Subject:Message-Id; b=YP73VR35gsyrQar3VvXG9TOTZpWoRZT7fq1hHiOL1JcS/TnAFwqWaajVc5HWRd2JdOT6YTUTecQx+imYi31Znqh5WM9xVPZGyNf8SuYJ7j5/K02bwKp/h37nNvPUuThIcn67Nh0vMAtfzySDvJYCQzH8nhLoGRbubdDU2nYku0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EQ2seOz1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729639572; c=relaxed/simple;
+	bh=Q74S25P1VTOCvOa3o8RrdWMg8H+qhCnEJQ9U1yKa38E=;
+	h=Date:To:From:Subject:Message-Id; b=u6snJv2ZGtYyogP871VwLq9rkrR0E2i7UsBiEaMKc6KI4lp7OmIJxvXJXIU8j2LoKbHEGBi0r19qmWegcI+bbdKcslNZoYIiQjc81iCNdPfVKab8JUs+2QnAV5VeZZOk2CkXY3dd7FmkNSXg6hl4L0VbAH/QMySggJciXy3+1DI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ROH/QEaU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EQ2seOz1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3727C4CEC7;
-	Tue, 22 Oct 2024 03:36:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ROH/QEaU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDCDFC4CEC3;
+	Tue, 22 Oct 2024 23:26:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729568181;
-	bh=32MUAG9YHTNVYb33jseEdGpvpSmrlhbyWJqr54mJZ0I=;
+	s=korg; t=1729639572;
+	bh=Q74S25P1VTOCvOa3o8RrdWMg8H+qhCnEJQ9U1yKa38E=;
 	h=Date:To:From:Subject:From;
-	b=EQ2seOz1ixKvX7jtCM8mz+CyZjWD6mw5A3hAp5u+/GGHLviytBAP8OKwNfMqJPlnS
-	 aXnZa3mA/xi2J+Ao4ZgFeB93Uq4thuLO3fss4QdFAa8CAbjUwkerSTSFYv5HEslRSS
-	 AIBEgG4KFFMnmy4pdbAvgfgwtlGPa/t3p5//KD6E=
-Date: Mon, 21 Oct 2024 20:36:21 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,kent.overstreet@linux.dev,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=ROH/QEaUcYgrVktldutVVtsn7PGqMY+I3K1F+ls7mb4aKvhUnw6lrmkU4dVneyUT1
+	 sYwUIM9Fedk0xLdLeHq9szFQk3uWIt2F1rPa3CM4rPi6yW7E+UkayZZuXP6pkEOWSf
+	 Gw3dyG9EZeT8+99dAtls7ORFTTD1bBY3Dj2vjHso=
+Date: Tue, 22 Oct 2024 16:26:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241022033621.A3727C4CEC7@smtp.kernel.org>
+Subject: [merged] nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch removed from -mm tree
+Message-Id: <20241022232611.DDCDFC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,151 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/codetag: fix null pointer check logic for ref and tag
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
+The quilt patch titled
+     Subject: nilfs2: fix kernel bug due to missing clearing of buffer delay flag
+has been removed from the -mm tree.  Its filename was
+     nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/codetag: fix null pointer check logic for ref and tag
-Date: Sun, 20 Oct 2024 15:08:19 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix kernel bug due to missing clearing of buffer delay flag
+Date: Wed, 16 Oct 2024 06:32:07 +0900
 
-When we compile and load lib/slub_kunit.c,it will cause a panic.
+Syzbot reported that after nilfs2 reads a corrupted file system image and
+degrades to read-only, the BUG_ON check for the buffer delay flag in
+submit_bh_wbc() may fail, causing a kernel bug.
 
-The root cause is that __kmalloc_cache_noprof was directly called instead
-of kmem_cache_alloc,which resulted in no alloc_tag being allocated.This
-caused current->alloc_tag to be null,leading to a null pointer dereference
-in alloc_tag_ref_set.
+This is because the buffer delay flag is not cleared when clearing the
+buffer state flags to discard a page/folio or a buffer head.  So, fix
+this.
 
-Despite the fact that my colleague Pei Xiao will later fix the code in
-slub_kunit.c,we still need fix null pointer check logic for ref and tag to
-avoid panic caused by a null pointer dereference.
+This became necessary when the use of nilfs2's own page clear routine was
+expanded.  This state inconsistency does not occur if the buffer is
+written normally by log writing.
 
-Here is the log for the panic:
-
-[   74.779373][ T2158] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
-[   74.780130][ T2158] Mem abort info:
-[   74.780406][ T2158]   ESR = 0x0000000096000004
-[   74.780756][ T2158]   EC = 0x25: DABT (current EL), IL = 32 bits
-[   74.781225][ T2158]   SET = 0, FnV = 0
-[   74.781529][ T2158]   EA = 0, S1PTW = 0
-[   74.781836][ T2158]   FSC = 0x04: level 0 translation fault
-[   74.782288][ T2158] Data abort info:
-[   74.782577][ T2158]   ISV = 0, ISS = 0x00000004, ISS2 = 0x00000000
-[   74.783068][ T2158]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[   74.783533][ T2158]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[   74.784010][ T2158] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000105f34000
-[   74.784586][ T2158] [0000000000000020] pgd=0000000000000000, p4d=0000000000000000
-[   74.785293][ T2158] Internal error: Oops: 0000000096000004 [#1] SMP
-[   74.785805][ T2158] Modules linked in: slub_kunit kunit ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute ip6table_nat ip6table_mangle 4
-[   74.790661][ T2158] CPU: 0 UID: 0 PID: 2158 Comm: kunit_try_catch Kdump: loaded Tainted: G        W        N 6.12.0-rc3+ #2
-[   74.791535][ T2158] Tainted: [W]=WARN, [N]=TEST
-[   74.791889][ T2158] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
-[   74.792479][ T2158] pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[   74.793101][ T2158] pc : alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.793607][ T2158] lr : alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.794095][ T2158] sp : ffff800084d33cd0
-[   74.794418][ T2158] x29: ffff800084d33cd0 x28: 0000000000000000 x27: 0000000000000000
-[   74.795095][ T2158] x26: 0000000000000000 x25: 0000000000000012 x24: ffff80007b30e314
-[   74.795822][ T2158] x23: ffff000390ff6f10 x22: 0000000000000000 x21: 0000000000000088
-[   74.796555][ T2158] x20: ffff000390285840 x19: fffffd7fc3ef7830 x18: ffffffffffffffff
-[   74.797283][ T2158] x17: ffff8000800e63b4 x16: ffff80007b33afc4 x15: ffff800081654c00
-[   74.798011][ T2158] x14: 0000000000000000 x13: 205d383531325420 x12: 5b5d383734363537
-[   74.798744][ T2158] x11: ffff800084d337e0 x10: 000000000000005d x9 : 00000000ffffffd0
-[   74.799476][ T2158] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008219d188 x6 : c0000000ffff7fff
-[   74.800206][ T2158] x5 : ffff0003fdbc9208 x4 : ffff800081edd188 x3 : 0000000000000001
-[   74.800932][ T2158] x2 : 0beaa6dee1ac5a00 x1 : 0beaa6dee1ac5a00 x0 : ffff80037c2cb000
-[   74.801656][ T2158] Call trace:
-[   74.801954][ T2158]  alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.802494][ T2158]  __kmalloc_cache_noprof+0x148/0x33c
-[   74.802976][ T2158]  test_kmalloc_redzone_access+0x4c/0x104 [slub_kunit]
-[   74.803607][ T2158]  kunit_try_run_case+0x70/0x17c [kunit]
-[   74.804124][ T2158]  kunit_generic_run_threadfn_adapter+0x2c/0x4c [kunit]
-[   74.804768][ T2158]  kthread+0x10c/0x118
-[   74.805141][ T2158]  ret_from_fork+0x10/0x20
-[   74.805540][ T2158] Code: b9400a80 11000400 b9000a80 97ffd858 (f94012d3)
-[   74.806176][ T2158] SMP: stopping secondary CPUs
-[   74.808130][ T2158] Starting crashdump kernel...
-
-Link: https://lkml.kernel.org/r/20241020070819.307944-1-hao.ge@linux.dev
-Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20241015213300.7114-1-konishi.ryusuke@gmail.com
+Fixes: 8c26c4e2694a ("nilfs2: fix issue with flush kernel thread after remount in RO mode because of driver's internal error or metadata corruption")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+985ada84bf055a575c07@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=985ada84bf055a575c07
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ fs/nilfs2/page.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/alloc_tag.h~mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag
-+++ a/include/linux/alloc_tag.h
-@@ -135,18 +135,21 @@ static inline void alloc_tag_sub_check(u
- #endif
+--- a/fs/nilfs2/page.c~nilfs2-fix-kernel-bug-due-to-missing-clearing-of-buffer-delay-flag
++++ a/fs/nilfs2/page.c
+@@ -77,7 +77,8 @@ void nilfs_forget_buffer(struct buffer_h
+ 	const unsigned long clear_bits =
+ 		(BIT(BH_Uptodate) | BIT(BH_Dirty) | BIT(BH_Mapped) |
+ 		 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
+-		 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected));
++		 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected) |
++		 BIT(BH_Delay));
  
- /* Caller should verify both ref and tag to be valid */
--static inline void __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
-+static inline bool __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
- {
- 	alloc_tag_add_check(ref, tag);
- 	if (!ref || !tag)
--		return;
-+		return false;
+ 	lock_buffer(bh);
+ 	set_mask_bits(&bh->b_state, clear_bits, 0);
+@@ -406,7 +407,8 @@ void nilfs_clear_folio_dirty(struct foli
+ 		const unsigned long clear_bits =
+ 			(BIT(BH_Uptodate) | BIT(BH_Dirty) | BIT(BH_Mapped) |
+ 			 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
+-			 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected));
++			 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected) |
++			 BIT(BH_Delay));
  
- 	ref->ct = &tag->ct;
-+	return true;
- }
- 
--static inline void alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
-+static inline bool alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
- {
--	__alloc_tag_ref_set(ref, tag);
-+	if (unlikely(!__alloc_tag_ref_set(ref, tag)))
-+		return false;
-+
- 	/*
- 	 * We need in increment the call counter every time we have a new
- 	 * allocation or when we split a large allocation into smaller ones.
-@@ -154,12 +157,13 @@ static inline void alloc_tag_ref_set(uni
- 	 * counter because when we free each part the counter will be decremented.
- 	 */
- 	this_cpu_inc(tag->counters->calls);
-+	return true;
- }
- 
- static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag, size_t bytes)
- {
--	alloc_tag_ref_set(ref, tag);
--	this_cpu_add(tag->counters->bytes, bytes);
-+	if (likely(alloc_tag_ref_set(ref, tag)))
-+		this_cpu_add(tag->counters->bytes, bytes);
- }
- 
- static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes)
+ 		bh = head;
+ 		do {
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
+nilfs2-fix-kernel-bug-due-to-missing-clearing-of-checked-flag.patch
 
