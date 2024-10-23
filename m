@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E151E4A4
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 23:15:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59C1E1E4A4
+	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 23:15:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729725314; cv=none; b=lcvKNteN8gwJ16nyd5YZPWHcNb+8mUbe3Ug4aK0K9jgrIKP0CfEdHma6Y+aEsxn5iJDo5i9e/RASUV3KAw7WHBnBXon91GNbycxCrkYE0eaCE1TT7PmL8cmcfyu1pajs+w8KiNlQzmNuA29i6VVZmec41iYbxXQhHKgDvmewkPc=
+	t=1729725316; cv=none; b=LlI1e3c73MoocTbKOSsitf+UnqC2633c3hVsWIfatPhJdxMZMB/g5n2N+KX62vrVRpea10Vwo6Hs4DgVD9jC6yYkqVNWyByfL9jJzJg9hV0NcaVvuaca7A+O/MuETNaF5nr6QimiE+islgxcOD+XfQ2lgCeHpRM4yP5UZLUnjsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729725314; c=relaxed/simple;
-	bh=KJso3OD0a86QKLwxCm/rUl80HwEt/CrEKIxIv+sHSB4=;
-	h=Date:To:From:Subject:Message-Id; b=hGVxZQhh5AEa2qFVdBNVdepxm3QynPPanc8wupEhGOBc+zl4GNNYXc9lOLgKc92m4KfYAn1U1PAusFicPeWOZ0/MeAQ+/UWAat1XWLDkSafoYwe/q6q1k41hYL8OhR3cM8e3p1wzXZ9BVVhtroe6s1Ab/8GRbTky/gnGCteu3gs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dgqQZILn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729725316; c=relaxed/simple;
+	bh=Mw3HBDieQZ2aCxwpw9NNTAkByU2gAzm8ucEHGOCZnQk=;
+	h=Date:To:From:Subject:Message-Id; b=OYbEomSUJiRoyB6jJNL6BlTccel06h3msF6V2cvZyMDLGlYx+0p5wC/9ZjwpeEvaZHILtT6tdtgKkSxSE+DryJHWP+/hxSYSdOmcBLXGXPCfdALyRRw9k/jmlQXtJeBHDn/PDn0Z/W2lR0ktIZffxuosBlEff1HNgTgWCKLvh6g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krVibqRg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dgqQZILn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00927C4CEC6;
-	Wed, 23 Oct 2024 23:15:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krVibqRg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2514C4CEC6;
+	Wed, 23 Oct 2024 23:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729725314;
-	bh=KJso3OD0a86QKLwxCm/rUl80HwEt/CrEKIxIv+sHSB4=;
+	s=korg; t=1729725315;
+	bh=Mw3HBDieQZ2aCxwpw9NNTAkByU2gAzm8ucEHGOCZnQk=;
 	h=Date:To:From:Subject:From;
-	b=dgqQZILngRVVI6BnlPttkTocwUHgsgiWjR0U0NBB0mgnCQi2dlJb3Cxvr9i0Rmpf0
-	 qwTZcf+pF//n1JzdVm8/f1Cj2TPfyGLUWXlqVzqSI/HIJ8q0O9ZAcjjOShhyaRQXM0
-	 +wi5ZFHobnInLNhgk10PXO4XvdkvmmcSLCBUwxzo=
-Date: Wed, 23 Oct 2024 16:15:13 -0700
+	b=krVibqRgWYsxtIqF5SLhVe/ua0hKXv0uT6MOLcjCEEFsoyX+vXvn7apJIv3g6cUqW
+	 Rkw3f8UiVF+KY5RrDm1rROG2XtQzgj9JyAmRoIx85umm/B6ce/Nkm8VvpeUmHeAXbX
+	 uuvOGYZMoDlAlZu5xHuqH5LzNUB9aVkotjnx8l14=
+Date: Wed, 23 Oct 2024 16:15:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabkba@suse.cz,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,skhan@linuxfoundation.org,sidhartha.kumar@oracle.com,shuah@kernel.org,richard.henderson@linaro.org,paulmck@kernel.org,muchun.song@linux.dev,mattst88@gmail.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jeffxu@chromium.org,jcmvbkbc@gmail.com,jannh@google.com,James.Bottomley@HansenPartnership.com,hch@infradead.org,deller@gmx.de,david@redhat.com,chris@zankel.net,brauner@kernel.org,arnd@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-pte_marker_guard-pte-marker.patch added to mm-unstable branch
-Message-Id: <20241023231514.00927C4CEC6@smtp.kernel.org>
+Subject: + mm-madvise-implement-lightweight-guard-page-mechanism.patch added to mm-unstable branch
+Message-Id: <20241023231515.D2514C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add PTE_MARKER_GUARD PTE marker
+     Subject: mm: madvise: implement lightweight guard page mechanism
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-pte_marker_guard-pte-marker.patch
+     mm-madvise-implement-lightweight-guard-page-mechanism.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pte_marker_guard-pte-marker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-implement-lightweight-guard-page-mechanism.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add PTE_MARKER_GUARD PTE marker
-Date: Wed, 23 Oct 2024 17:24:39 +0100
+Subject: mm: madvise: implement lightweight guard page mechanism
+Date: Wed, 23 Oct 2024 17:24:40 +0100
 
-Add a new PTE marker that results in any access causing the accessing
-process to segfault.
+Implement a new lightweight guard page feature, that is regions of userland
+virtual memory that, when accessed, cause a fatal signal to arise.
 
-This is preferable to PTE_MARKER_POISONED, which results in the same
-handling as hardware poisoned memory, and is thus undesirable for cases
-where we simply wish to 'soft' poison a range.
+Currently users must establish PROT_NONE ranges to achieve this.
 
-This is in preparation for implementing the ability to specify guard pages
-at the page table level, i.e. ranges that, when accessed, should cause
-process termination.
+However this is very costly memory-wise - we need a VMA for each and every
+one of these regions AND they become unmergeable with surrounding VMAs.
 
-Additionally, rename zap_drop_file_uffd_wp() to zap_drop_markers() - the
-function checks the ZAP_FLAG_DROP_MARKER flag so naming it for this single
-purpose was simply incorrect.
+In addition repeated mmap() calls require repeated kernel context switches
+and contention of the mmap lock to install these ranges, potentially also
+having to unmap memory if installed over existing ranges.
 
-We then reuse the same logic to determine whether a zap should clear a
-guard entry - this should only be performed on teardown and never on
-MADV_DONTNEED or MADV_FREE.
+The lightweight guard approach eliminates the VMA cost altogether - rather
+than establishing a PROT_NONE VMA, it operates at the level of page table
+entries - establishing PTE markers such that accesses to them cause a fault
+followed by a SIGSGEV signal being raised.
 
-We additionally add a WARN_ON_ONCE() in hugetlb logic should a guard marker
-be encountered there, as we explicitly do not support this operation and
-this should not occur.
+This is achieved through the PTE marker mechanism, which we have already
+extended to provide PTE_MARKER_GUARD, which we installed via the generic
+page walking logic which we have extended for this purpose.
 
-Link: https://lkml.kernel.org/r/7f81287792eef318a7a711d358c00e2e48216f15.1729699916.git.lorenzo.stoakes@oracle.com
+These guard ranges are established with MADV_GUARD_INSTALL. If the range in
+which they are installed contain any existing mappings, they will be
+zapped, i.e. free the range and unmap memory (thus mimicking the behaviour
+of MADV_DONTNEED in this respect).
+
+Any existing guard entries will be left untouched. There is therefore no
+nesting of guarded pages.
+
+Guarded ranges are NOT cleared by MADV_DONTNEED nor MADV_FREE (in both
+instances the memory range may be reused at which point a user would expect
+guards to still be in place), but they are cleared via MADV_GUARD_REMOVE,
+process teardown or unmapping of memory ranges.
+
+The guard property can be removed from ranges via MADV_GUARD_REMOVE. The
+ranges over which this is applied, should they contain non-guard entries,
+will be untouched, with only guard entries being cleared.
+
+We permit this operation on anonymous memory only, and only VMAs which are
+non-special, non-huge and not mlock()'d (if we permitted this we'd have to
+drop locked pages which would be rather counterintuitive).
+
+Racing page faults can cause repeated attempts to install guard pages that
+are interrupted, result in a zap, and this process can end up being
+repeated. If this happens more than would be expected in normal operation,
+we rescind locks and retry the whole thing, which avoids lock contention in
+this scenario.
+
+Link: https://lkml.kernel.org/r/415da1e6c5828d96db3af480d243a7f68ccabf6d.1729699916.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabkba@suse.cz>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: Jann Horn <jannh@google.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Chris Zankel <chris@zankel.net>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
@@ -110,147 +135,367 @@ Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabkba@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    2 +-
- include/linux/swapops.h   |   24 +++++++++++++++++++++++-
- mm/hugetlb.c              |    4 ++++
- mm/memory.c               |   18 +++++++++++++++---
- mm/mprotect.c             |    6 ++++--
- 5 files changed, 47 insertions(+), 7 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h     |    3 
+ arch/mips/include/uapi/asm/mman.h      |    3 
+ arch/parisc/include/uapi/asm/mman.h    |    3 
+ arch/xtensa/include/uapi/asm/mman.h    |    3 
+ include/uapi/asm-generic/mman-common.h |    3 
+ mm/internal.h                          |    6 
+ mm/madvise.c                           |  225 +++++++++++++++++++++++
+ mm/mseal.c                             |    1 
+ 8 files changed, 247 insertions(+)
 
---- a/include/linux/mm_inline.h~mm-add-pte_marker_guard-pte-marker
-+++ a/include/linux/mm_inline.h
-@@ -544,7 +544,7 @@ static inline pte_marker copy_pte_marker
- {
- 	pte_marker srcm = pte_marker_get(entry);
- 	/* Always copy error entries. */
--	pte_marker dstm = srcm & PTE_MARKER_POISONED;
-+	pte_marker dstm = srcm & (PTE_MARKER_POISONED | PTE_MARKER_GUARD);
+--- a/arch/alpha/include/uapi/asm/mman.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -78,6 +78,9 @@
  
- 	/* Only copy PTE markers if UFFD register matches. */
- 	if ((srcm & PTE_MARKER_UFFD_WP) && userfaultfd_wp(dst_vma))
---- a/include/linux/swapops.h~mm-add-pte_marker_guard-pte-marker
-+++ a/include/linux/swapops.h
-@@ -426,9 +426,19 @@ typedef unsigned long pte_marker;
-  * "Poisoned" here is meant in the very general sense of "future accesses are
-  * invalid", instead of referring very specifically to hardware memory errors.
-  * This marker is meant to represent any of various different causes of this.
-+ *
-+ * Note that, when encountered by the faulting logic, PTEs with this marker will
-+ * result in VM_FAULT_HWPOISON and thus regardless trigger hardware memory error
-+ * logic.
-  */
- #define  PTE_MARKER_POISONED			BIT(1)
--#define  PTE_MARKER_MASK			(BIT(2) - 1)
-+/*
-+ * Indicates that, on fault, this PTE will case a SIGSEGV signal to be
-+ * sent. This means guard markers behave in effect as if the region were mapped
-+ * PROT_NONE, rather than if they were a memory hole or equivalent.
-+ */
-+#define  PTE_MARKER_GUARD			BIT(2)
-+#define  PTE_MARKER_MASK			(BIT(3) - 1)
+ #define MADV_COLLAPSE	25		/* Synchronous hugepage collapse */
  
- static inline swp_entry_t make_pte_marker_entry(pte_marker marker)
- {
-@@ -464,6 +474,18 @@ static inline int is_poisoned_swp_entry(
- {
- 	return is_pte_marker_entry(entry) &&
- 	    (pte_marker_get(entry) & PTE_MARKER_POISONED);
++#define MADV_GUARD_INSTALL 102		/* fatal signal on access to range */
++#define MADV_GUARD_REMOVE 103		/* unguard range */
 +
-+}
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/arch/mips/include/uapi/asm/mman.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -105,6 +105,9 @@
+ 
+ #define MADV_COLLAPSE	25		/* Synchronous hugepage collapse */
+ 
++#define MADV_GUARD_INSTALL 102		/* fatal signal on access to range */
++#define MADV_GUARD_REMOVE 103		/* unguard range */
 +
-+static inline swp_entry_t make_guard_swp_entry(void)
-+{
-+	return make_pte_marker_entry(PTE_MARKER_GUARD);
-+}
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -75,6 +75,9 @@
+ #define MADV_HWPOISON     100		/* poison a page for testing */
+ #define MADV_SOFT_OFFLINE 101		/* soft offline page for testing */
+ 
++#define MADV_GUARD_INSTALL 102		/* fatal signal on access to range */
++#define MADV_GUARD_REMOVE 103		/* unguard range */
 +
-+static inline int is_guard_swp_entry(swp_entry_t entry)
-+{
-+	return is_pte_marker_entry(entry) &&
-+		(pte_marker_get(entry) & PTE_MARKER_GUARD);
- }
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -113,6 +113,9 @@
+ 
+ #define MADV_COLLAPSE	25		/* Synchronous hugepage collapse */
+ 
++#define MADV_GUARD_INSTALL 102		/* fatal signal on access to range */
++#define MADV_GUARD_REMOVE 103		/* unguard range */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/include/uapi/asm-generic/mman-common.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -79,6 +79,9 @@
+ 
+ #define MADV_COLLAPSE	25		/* Synchronous hugepage collapse */
+ 
++#define MADV_GUARD_INSTALL 102		/* fatal signal on access to range */
++#define MADV_GUARD_REMOVE 103		/* unguard range */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/mm/internal.h~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/mm/internal.h
+@@ -469,6 +469,12 @@ extern unsigned long highest_memmap_pfn;
+ #define MAX_RECLAIM_RETRIES 16
  
  /*
---- a/mm/hugetlb.c~mm-add-pte_marker_guard-pte-marker
-+++ a/mm/hugetlb.c
-@@ -6353,6 +6353,10 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 				ret = VM_FAULT_HWPOISON_LARGE |
- 				      VM_FAULT_SET_HINDEX(hstate_index(h));
- 				goto out_mutex;
-+			} else if (WARN_ON_ONCE(marker & PTE_MARKER_GUARD)) {
-+				/* This isn't supported in hugetlb. */
-+				ret = VM_FAULT_SIGSEGV;
-+				goto out_mutex;
- 			}
- 		}
- 
---- a/mm/memory.c~mm-add-pte_marker_guard-pte-marker
-+++ a/mm/memory.c
-@@ -1455,7 +1455,7 @@ static inline bool should_zap_folio(stru
- 	return !folio_test_anon(folio);
++ * Maximum number of attempts we make to install guard pages before we give up
++ * and return -ERESTARTNOINTR to have userspace try again.
++ */
++#define MAX_MADVISE_GUARD_RETRIES 3
++
++/*
+  * in mm/vmscan.c:
+  */
+ bool folio_isolate_lru(struct folio *folio);
+--- a/mm/madvise.c~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/mm/madvise.c
+@@ -60,6 +60,8 @@ static int madvise_need_mmap_write(int b
+ 	case MADV_POPULATE_READ:
+ 	case MADV_POPULATE_WRITE:
+ 	case MADV_COLLAPSE:
++	case MADV_GUARD_INSTALL:
++	case MADV_GUARD_REMOVE:
+ 		return 0;
+ 	default:
+ 		/* be safe, default to 1. list exceptions explicitly */
+@@ -1017,6 +1019,214 @@ static long madvise_remove(struct vm_are
+ 	return error;
  }
  
--static inline bool zap_drop_file_uffd_wp(struct zap_details *details)
-+static inline bool zap_drop_markers(struct zap_details *details)
- {
- 	if (!details)
- 		return false;
-@@ -1476,7 +1476,7 @@ zap_install_uffd_wp_if_needed(struct vm_
- 	if (vma_is_anonymous(vma))
- 		return;
- 
--	if (zap_drop_file_uffd_wp(details))
-+	if (zap_drop_markers(details))
- 		return;
- 
- 	for (;;) {
-@@ -1671,7 +1671,15 @@ static unsigned long zap_pte_range(struc
- 			 * drop the marker if explicitly requested.
- 			 */
- 			if (!vma_is_anonymous(vma) &&
--			    !zap_drop_file_uffd_wp(details))
-+			    !zap_drop_markers(details))
-+				continue;
-+		} else if (is_guard_swp_entry(entry)) {
-+			/*
-+			 * Ordinary zapping should not remove guard PTE
-+			 * markers. Only do so if we should remove PTE markers
-+			 * in general.
-+			 */
-+			if (!zap_drop_markers(details))
- 				continue;
- 		} else if (is_hwpoison_entry(entry) ||
- 			   is_poisoned_swp_entry(entry)) {
-@@ -4003,6 +4011,10 @@ static vm_fault_t handle_pte_marker(stru
- 	if (marker & PTE_MARKER_POISONED)
- 		return VM_FAULT_HWPOISON;
- 
-+	/* Hitting a guard page is always a fatal condition. */
-+	if (marker & PTE_MARKER_GUARD)
-+		return VM_FAULT_SIGSEGV;
++static bool is_valid_guard_vma(struct vm_area_struct *vma, bool allow_locked)
++{
++	vm_flags_t disallowed = VM_SPECIAL | VM_HUGETLB;
 +
- 	if (pte_marker_entry_uffd_wp(entry))
- 		return pte_marker_handle_uffd_wp(vmf);
++	/*
++	 * A user could lock after setting a guard range but that's fine, as
++	 * they'd not be able to fault in. The issue arises when we try to zap
++	 * existing locked VMAs. We don't want to do that.
++	 */
++	if (!allow_locked)
++		disallowed |= VM_LOCKED;
++
++	if (!vma_is_anonymous(vma))
++		return false;
++
++	if ((vma->vm_flags & (VM_MAYWRITE | disallowed)) != VM_MAYWRITE)
++		return false;
++
++	return true;
++}
++
++static bool is_guard_pte_marker(pte_t ptent)
++{
++	return is_pte_marker(ptent) &&
++		is_guard_swp_entry(pte_to_swp_entry(ptent));
++}
++
++static int guard_install_pud_entry(pud_t *pud, unsigned long addr,
++				   unsigned long next, struct mm_walk *walk)
++{
++	pud_t pudval = pudp_get(pud);
++
++	/* If huge return >0 so we abort the operation + zap. */
++	return pud_trans_huge(pudval) || pud_devmap(pudval);
++}
++
++static int guard_install_pmd_entry(pmd_t *pmd, unsigned long addr,
++				   unsigned long next, struct mm_walk *walk)
++{
++	pmd_t pmdval = pmdp_get(pmd);
++
++	/* If huge return >0 so we abort the operation + zap. */
++	return pmd_trans_huge(pmdval) || pmd_devmap(pmdval);
++}
++
++static int guard_install_pte_entry(pte_t *pte, unsigned long addr,
++				   unsigned long next, struct mm_walk *walk)
++{
++	pte_t pteval = ptep_get(pte);
++	unsigned long *nr_pages = (unsigned long *)walk->private;
++
++	/* If there is already a guard page marker, we have nothing to do. */
++	if (is_guard_pte_marker(pteval)) {
++		(*nr_pages)++;
++
++		return 0;
++	}
++
++	/* If populated return >0 so we abort the operation + zap. */
++	return 1;
++}
++
++static int guard_install_set_pte(unsigned long addr, unsigned long next,
++				 pte_t *ptep, struct mm_walk *walk)
++{
++	unsigned long *nr_pages = (unsigned long *)walk->private;
++
++	/* Simply install a PTE marker, this causes segfault on access. */
++	*ptep = make_pte_marker(PTE_MARKER_GUARD);
++	(*nr_pages)++;
++
++	return 0;
++}
++
++static const struct mm_walk_ops guard_install_walk_ops = {
++	.pud_entry		= guard_install_pud_entry,
++	.pmd_entry		= guard_install_pmd_entry,
++	.pte_entry		= guard_install_pte_entry,
++	.install_pte		= guard_install_set_pte,
++	.walk_lock		= PGWALK_RDLOCK,
++};
++
++static long madvise_guard_install(struct vm_area_struct *vma,
++				 struct vm_area_struct **prev,
++				 unsigned long start, unsigned long end)
++{
++	long err;
++	int i;
++
++	*prev = vma;
++	if (!is_valid_guard_vma(vma, /* allow_locked = */false))
++		return -EINVAL;
++
++	/*
++	 * If we install guard markers, then the range is no longer
++	 * empty from a page table perspective and therefore it's
++	 * appropriate to have an anon_vma.
++	 *
++	 * This ensures that on fork, we copy page tables correctly.
++	 */
++	err = anon_vma_prepare(vma);
++	if (err)
++		return err;
++
++	/*
++	 * Optimistically try to install the guard marker pages first. If any
++	 * non-guard pages are encountered, give up and zap the range before
++	 * trying again.
++	 *
++	 * We try a few times before giving up and releasing back to userland to
++	 * loop around, releasing locks in the process to avoid contention. This
++	 * would only happen if there was a great many racing page faults.
++	 *
++	 * In most cases we should simply install the guard markers immediately
++	 * with no zap or looping.
++	 */
++	for (i = 0; i < MAX_MADVISE_GUARD_RETRIES; i++) {
++		unsigned long nr_pages = 0;
++
++		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
++		err = walk_page_range_mm(vma->vm_mm, start, end,
++					 &guard_install_walk_ops, &nr_pages);
++		if (err < 0)
++			return err;
++
++		if (err == 0) {
++			unsigned long nr_expected_pages = PHYS_PFN(end - start);
++
++			VM_WARN_ON(nr_pages != nr_expected_pages);
++			return 0;
++		}
++
++		/*
++		 * OK some of the range have non-guard pages mapped, zap
++		 * them. This leaves existing guard pages in place.
++		 */
++		zap_page_range_single(vma, start, end - start, NULL);
++	}
++
++	/*
++	 * We were unable to install the guard pages due to being raced by page
++	 * faults. This should not happen ordinarily. We return to userspace and
++	 * immediately retry, relieving lock contention.
++	 */
++	return -ERESTARTNOINTR;
++}
++
++static int guard_remove_pud_entry(pud_t *pud, unsigned long addr,
++				  unsigned long next, struct mm_walk *walk)
++{
++	pud_t pudval = pudp_get(pud);
++
++	/* If huge, cannot have guard pages present, so no-op - skip. */
++	if (pud_trans_huge(pudval) || pud_devmap(pudval))
++		walk->action = ACTION_CONTINUE;
++
++	return 0;
++}
++
++static int guard_remove_pmd_entry(pmd_t *pmd, unsigned long addr,
++				  unsigned long next, struct mm_walk *walk)
++{
++	pmd_t pmdval = pmdp_get(pmd);
++
++	/* If huge, cannot have guard pages present, so no-op - skip. */
++	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval))
++		walk->action = ACTION_CONTINUE;
++
++	return 0;
++}
++
++static int guard_remove_pte_entry(pte_t *pte, unsigned long addr,
++				  unsigned long next, struct mm_walk *walk)
++{
++	pte_t ptent = ptep_get(pte);
++
++	if (is_guard_pte_marker(ptent)) {
++		/* Simply clear the PTE marker. */
++		pte_clear_not_present_full(walk->mm, addr, pte, false);
++		update_mmu_cache(walk->vma, addr, pte);
++	}
++
++	return 0;
++}
++
++static const struct mm_walk_ops guard_remove_walk_ops = {
++	.pud_entry		= guard_remove_pud_entry,
++	.pmd_entry		= guard_remove_pmd_entry,
++	.pte_entry		= guard_remove_pte_entry,
++	.walk_lock		= PGWALK_RDLOCK,
++};
++
++static long madvise_guard_remove(struct vm_area_struct *vma,
++				 struct vm_area_struct **prev,
++				 unsigned long start, unsigned long end)
++{
++	*prev = vma;
++	/*
++	 * We're ok with removing guards in mlock()'d ranges, as this is a
++	 * non-destructive action.
++	 */
++	if (!is_valid_guard_vma(vma, /* allow_locked = */true))
++		return -EINVAL;
++
++	return walk_page_range(vma->vm_mm, start, end,
++			       &guard_remove_walk_ops, NULL);
++}
++
+ /*
+  * Apply an madvise behavior to a region of a vma.  madvise_update_vma
+  * will handle splitting a vm area into separate areas, each area with its own
+@@ -1098,6 +1308,10 @@ static int madvise_vma_behavior(struct v
+ 		break;
+ 	case MADV_COLLAPSE:
+ 		return madvise_collapse(vma, prev, start, end);
++	case MADV_GUARD_INSTALL:
++		return madvise_guard_install(vma, prev, start, end);
++	case MADV_GUARD_REMOVE:
++		return madvise_guard_remove(vma, prev, start, end);
+ 	}
  
---- a/mm/mprotect.c~mm-add-pte_marker_guard-pte-marker
-+++ a/mm/mprotect.c
-@@ -236,9 +236,11 @@ static long change_pte_range(struct mmu_
- 			} else if (is_pte_marker_entry(entry)) {
- 				/*
- 				 * Ignore error swap entries unconditionally,
--				 * because any access should sigbus anyway.
-+				 * because any access should sigbus/sigsegv
-+				 * anyway.
- 				 */
--				if (is_poisoned_swp_entry(entry))
-+				if (is_poisoned_swp_entry(entry) ||
-+				    is_guard_swp_entry(entry))
- 					continue;
- 				/*
- 				 * If this is uffd-wp pte marker and we'd like
+ 	anon_name = anon_vma_name(vma);
+@@ -1197,6 +1411,8 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_DODUMP:
+ 	case MADV_WIPEONFORK:
+ 	case MADV_KEEPONFORK:
++	case MADV_GUARD_INSTALL:
++	case MADV_GUARD_REMOVE:
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	case MADV_SOFT_OFFLINE:
+ 	case MADV_HWPOISON:
+@@ -1490,6 +1706,15 @@ static ssize_t vector_madvise(struct mm_
+ 	while (iov_iter_count(iter)) {
+ 		ret = do_madvise(mm, (unsigned long)iter_iov_addr(iter),
+ 				 iter_iov_len(iter), behavior);
++		/*
++		 * We cannot return this, as we instead return the number of
++		 * successful operations. Since all this would achieve in a
++		 * single madvise() invocation is to re-enter the syscall, and
++		 * we have already rescinded locks, it should be no problem to
++		 * simply try again.
++		 */
++		if (ret == -ERESTARTNOINTR)
++			continue;
+ 		if (ret < 0)
+ 			break;
+ 		iov_iter_advance(iter, iter_iov_len(iter));
+--- a/mm/mseal.c~mm-madvise-implement-lightweight-guard-page-mechanism
++++ a/mm/mseal.c
+@@ -30,6 +30,7 @@ static bool is_madv_discard(int behavior
+ 	case MADV_REMOVE:
+ 	case MADV_DONTFORK:
+ 	case MADV_WIPEONFORK:
++	case MADV_GUARD_INSTALL:
+ 		return true;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
