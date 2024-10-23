@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D0B155741
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 21:05:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 305351E2614
+	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 21:05:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729717536; cv=none; b=QIxiWG1AMvSNOatDkMme7VGCR81OmSwDxm4ftlVqwp+xdzSwMQp+Kioiy8BWGyBGANTcrmLNHgyaxcXLYe/T/hsgOA9eyHu5AsqxJeUAqpNujxuHZ3cV+gX46C/DYx/t0FL/TvcRIlNYMbNPntiNCAAuYGcYhuvvYvY8FXqvLvQ=
+	t=1729717542; cv=none; b=oDShlJ5sRx0X9jLtNFtV6zvK+tF7HxmMU3tushXbpGRz48KpTswlIhXZXRcnuZ12ZJMPX2bVE4JhRklZnoaE6lyTSsqNJoD9N/op+gqXP99oAB2EA9oFaRw6BX+cLXjqUg9e/m/ttEpWfWDpzZJPeSerpOcRaTC08SnYawLk2Jc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729717536; c=relaxed/simple;
-	bh=i0MqscIGM41rM1a7Gd96tmzS5GsbU1K3PNRXwEQ/CmA=;
-	h=Date:To:From:Subject:Message-Id; b=c4+OSM5n/GPlJZ7Uh4cdyUuJypeKKgB/uc/GsBO61GQmJB0Xq7QPEsvm5K20rIW9L6UCUYVZj5kLaSmMl39Hy5if6g5pQqbUbPXtKXHmWK7b/2myU+ROjgmKmsqX3ithIbARk+2zBLbKx+8XTMHtaFPwrpwBhH97Ne/Q041pvmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AZDxfBC/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729717542; c=relaxed/simple;
+	bh=LVdQ+qxAarkyzG6K8W3QtXVJtE2QOxIcKLUvgHs4FYI=;
+	h=Date:To:From:Subject:Message-Id; b=DqCzNcKZjeIh14qqTnFga8Q2hzvNgXfy8gyaYLDdXl7wy3tlVzPd/zNe1Ep0/dRbR68jjwey1zUb5f7rHIZBGUFYezUgfooKDblOy+Ksc/zETsTnWR8D8og6J+RhAQgrFQ/TZLsClLLUfGldIH5HdVGy19hk3InFfa5oZX4ki9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XvlB27C7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AZDxfBC/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4FD4C4CEC6;
-	Wed, 23 Oct 2024 21:05:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XvlB27C7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E64BC4CEC6;
+	Wed, 23 Oct 2024 21:05:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729717535;
-	bh=i0MqscIGM41rM1a7Gd96tmzS5GsbU1K3PNRXwEQ/CmA=;
+	s=korg; t=1729717541;
+	bh=LVdQ+qxAarkyzG6K8W3QtXVJtE2QOxIcKLUvgHs4FYI=;
 	h=Date:To:From:Subject:From;
-	b=AZDxfBC/6WNGvOS7OezXo1qf5ENiq1LPUr001g8MbpCQXBwlxAFp17e0deINwNQ/w
-	 fjeSOa2kZ5Lu+JK0pxzyWgO4Kv8wo8HXURbvYd2WQtCUmePpsbb5woRIZaf1a00a/I
-	 ttaQYr+qiZ2K7I2FalU5INwOKD3knHgDia/d62SQ=
-Date: Wed, 23 Oct 2024 14:05:23 -0700
+	b=XvlB27C7jhRmPTmV450eVW+FRYSpCJup+DNkBafK3hXl4kzhgB7nvGib59qtbl4Fb
+	 llGfW7cKHORW4G/7eoCHJirW2trBfpXsldBmPzLBDPrfbU/NoP5SG09w6S1NSjf7Yp
+	 6ozcDdahUVlGGmjDYkfVUX0leLetNNqsEkmlIk2s=
+Date: Wed, 23 Oct 2024 14:05:37 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,xiongwei.song@windriver.com,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,thuth@redhat.com,tglx@linutronix.de,souravpanda@google.com,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,petr.pavlu@suse.com,paulmck@kernel.org,pasha.tatashin@soleen.com,minchan@google.com,mhocko@suse.com,mcgrof@kernel.org,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,keescook@chromium.org,kaleshsingh@google.com,jhubbard@nvidia.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,dave@stgolabs.net,da.gomez@samsung.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-load-module-tags-into-separate-contiguous-memory.patch added to mm-unstable branch
-Message-Id: <20241023210533.A4FD4C4CEC6@smtp.kernel.org>
+Subject: + alloc_tag-populate-memory-for-module-tags-as-needed.patch added to mm-unstable branch
+Message-Id: <20241023210541.9E64BC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: load module tags into separate contiguous memory
+     Subject: alloc_tag: populate memory for module tags as needed
 has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
+     alloc_tag-populate-memory-for-module-tags-as-needed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-populate-memory-for-module-tags-as-needed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: load module tags into separate contiguous memory
-Date: Wed, 23 Oct 2024 10:07:56 -0700
+Subject: alloc_tag: populate memory for module tags as needed
+Date: Wed, 23 Oct 2024 10:07:57 -0700
 
-When a module gets unloaded there is a possibility that some of the
-allocations it made are still used and therefore the allocation tags
-corresponding to these allocations are still referenced.  As such, the
-memory for these tags can't be freed.  This is currently handled as an
-abnormal situation and module's data section is not being unloaded.  To
-handle this situation without keeping module's data in memory, allow
-codetags with longer lifespan than the module to be loaded into their own
-separate memory.  The in-use memory areas and gaps after module unloading
-in this separate memory are tracked using maple trees.  Allocation tags
-arrange their separate memory so that it is virtually contiguous and that
-will allow simple allocation tag indexing later on in this patchset.  The
-size of this virtually contiguous memory is set to store up to 100000
-allocation tags.
+The memory reserved for module tags does not need to be backed by physical
+pages until there are tags to store there.  Change the way we reserve this
+memory to allocate only virtual area for the tags and populate it with
+physical pages as needed when we load a module.
 
-Link: https://lkml.kernel.org/r/20241023170759.999909-4-surenb@google.com
+Link: https://lkml.kernel.org/r/20241023170759.999909-5-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -116,772 +107,239 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/codetag.lds.h |   19 ++
- include/linux/alloc_tag.h         |   13 +
- include/linux/codetag.h           |   37 +++-
- kernel/module/main.c              |   80 ++++++--
- lib/alloc_tag.c                   |  249 +++++++++++++++++++++++++---
- lib/codetag.c                     |  100 ++++++++++-
- scripts/module.lds.S              |    5 
- 7 files changed, 441 insertions(+), 62 deletions(-)
+ include/linux/execmem.h |   10 +++++
+ include/linux/vmalloc.h |    3 +
+ lib/alloc_tag.c         |   73 +++++++++++++++++++++++++++++++++-----
+ mm/execmem.c            |   16 ++++++++
+ mm/internal.h           |    6 +++
+ mm/vmalloc.c            |    4 +-
+ 6 files changed, 101 insertions(+), 11 deletions(-)
 
---- a/include/asm-generic/codetag.lds.h~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/include/asm-generic/codetag.lds.h
-@@ -11,4 +11,23 @@
- #define CODETAG_SECTIONS()		\
- 	SECTION_WITH_BOUNDARIES(alloc_tags)
+--- a/include/linux/execmem.h~alloc_tag-populate-memory-for-module-tags-as-needed
++++ a/include/linux/execmem.h
+@@ -140,6 +140,16 @@ void *execmem_alloc(enum execmem_type ty
+ void execmem_free(void *ptr);
  
-+/*
-+ * Module codetags which aren't used after module unload, therefore have the
-+ * same lifespan as the module and can be safely unloaded with the module.
+ /**
++ * execmem_vmap - create virtual mapping for EXECMEM_MODULE_DATA memory
++ * @size: size of the virtual mapping in bytes
++ *
++ * Maps virtually contiguous area in the range suitable for EXECMEM_MODULE_DATA.
++ *
++ * Return: the area descriptor on success or %NULL on failure.
 + */
-+#define MOD_CODETAG_SECTIONS()
++struct vm_struct *execmem_vmap(size_t size);
 +
-+#define MOD_SEPARATE_CODETAG_SECTION(_name)	\
-+	.codetag.##_name : {			\
-+		SECTION_WITH_BOUNDARIES(_name)	\
-+	}
++/**
+  * execmem_update_copy - copy an update to executable memory
+  * @dst:  destination address to update
+  * @src:  source address containing the data
+--- a/include/linux/vmalloc.h~alloc_tag-populate-memory-for-module-tags-as-needed
++++ a/include/linux/vmalloc.h
+@@ -202,6 +202,9 @@ extern int remap_vmalloc_range_partial(s
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
+ 
++int vmap_pages_range(unsigned long addr, unsigned long end, pgprot_t prot,
++		     struct page **pages, unsigned int page_shift);
 +
-+/*
-+ * For codetags which might be used after module unload, therefore might stay
-+ * longer in memory. Each such codetag type has its own section so that we can
-+ * unload them individually once unused.
-+ */
-+#define MOD_SEPARATE_CODETAG_SECTIONS()		\
-+	MOD_SEPARATE_CODETAG_SECTION(alloc_tags)
-+
- #endif /* __ASM_GENERIC_CODETAG_LDS_H */
---- a/include/linux/alloc_tag.h~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/include/linux/alloc_tag.h
-@@ -30,6 +30,13 @@ struct alloc_tag {
- 	struct alloc_tag_counters __percpu	*counters;
- } __aligned(8);
- 
-+struct alloc_tag_module_section {
-+	unsigned long start_addr;
-+	unsigned long end_addr;
-+	/* used size */
-+	unsigned long size;
-+};
-+
- #ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
- 
- #define CODETAG_EMPTY	((void *)1)
-@@ -54,6 +61,8 @@ static inline void set_codetag_empty(uni
- 
- #ifdef CONFIG_MEM_ALLOC_PROFILING
- 
-+#define ALLOC_TAG_SECTION_NAME	"alloc_tags"
-+
- struct codetag_bytes {
- 	struct codetag *ct;
- 	s64 bytes;
-@@ -76,7 +85,7 @@ DECLARE_PER_CPU(struct alloc_tag_counter
- 
- #define DEFINE_ALLOC_TAG(_alloc_tag)						\
- 	static struct alloc_tag _alloc_tag __used __aligned(8)			\
--	__section("alloc_tags") = {						\
-+	__section(ALLOC_TAG_SECTION_NAME) = {					\
- 		.ct = CODE_TAG_INIT,						\
- 		.counters = &_shared_alloc_tag };
- 
-@@ -85,7 +94,7 @@ DECLARE_PER_CPU(struct alloc_tag_counter
- #define DEFINE_ALLOC_TAG(_alloc_tag)						\
- 	static DEFINE_PER_CPU(struct alloc_tag_counters, _alloc_tag_cntr);	\
- 	static struct alloc_tag _alloc_tag __used __aligned(8)			\
--	__section("alloc_tags") = {						\
-+	__section(ALLOC_TAG_SECTION_NAME) = {					\
- 		.ct = CODE_TAG_INIT,						\
- 		.counters = &_alloc_tag_cntr };
- 
---- a/include/linux/codetag.h~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/include/linux/codetag.h
-@@ -35,8 +35,15 @@ struct codetag_type_desc {
- 	size_t tag_size;
- 	void (*module_load)(struct codetag_type *cttype,
- 			    struct codetag_module *cmod);
--	bool (*module_unload)(struct codetag_type *cttype,
-+	void (*module_unload)(struct codetag_type *cttype,
- 			      struct codetag_module *cmod);
-+#ifdef CONFIG_MODULES
-+	void (*module_replaced)(struct module *mod, struct module *new_mod);
-+	bool (*needs_section_mem)(struct module *mod, unsigned long size);
-+	void *(*alloc_section_mem)(struct module *mod, unsigned long size,
-+				   unsigned int prepend, unsigned long align);
-+	void (*free_section_mem)(struct module *mod, bool used);
-+#endif
- };
- 
- struct codetag_iterator {
-@@ -71,11 +78,31 @@ struct codetag_type *
- codetag_register_type(const struct codetag_type_desc *desc);
- 
- #if defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES)
-+
-+bool codetag_needs_module_section(struct module *mod, const char *name,
-+				  unsigned long size);
-+void *codetag_alloc_module_section(struct module *mod, const char *name,
-+				   unsigned long size, unsigned int prepend,
-+				   unsigned long align);
-+void codetag_free_module_sections(struct module *mod);
-+void codetag_module_replaced(struct module *mod, struct module *new_mod);
- void codetag_load_module(struct module *mod);
--bool codetag_unload_module(struct module *mod);
--#else
-+void codetag_unload_module(struct module *mod);
-+
-+#else /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
-+
-+static inline bool
-+codetag_needs_module_section(struct module *mod, const char *name,
-+			     unsigned long size) { return false; }
-+static inline void *
-+codetag_alloc_module_section(struct module *mod, const char *name,
-+			     unsigned long size, unsigned int prepend,
-+			     unsigned long align) { return NULL; }
-+static inline void codetag_free_module_sections(struct module *mod) {}
-+static inline void codetag_module_replaced(struct module *mod, struct module *new_mod) {}
- static inline void codetag_load_module(struct module *mod) {}
--static inline bool codetag_unload_module(struct module *mod) { return true; }
--#endif
-+static inline void codetag_unload_module(struct module *mod) {}
-+
-+#endif /* defined(CONFIG_CODE_TAGGING) && defined(CONFIG_MODULES) */
- 
- #endif /* _LINUX_CODETAG_H */
---- a/kernel/module/main.c~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/kernel/module/main.c
-@@ -1254,22 +1254,17 @@ static int module_memory_alloc(struct mo
- 	return 0;
- }
- 
--static void module_memory_free(struct module *mod, enum mod_mem_type type,
--			       bool unload_codetags)
-+static void module_memory_free(struct module *mod, enum mod_mem_type type)
- {
- 	struct module_memory *mem = &mod->mem[type];
--	void *ptr = mem->base;
- 
- 	if (mem->is_rox)
- 		vfree(mem->rw_copy);
- 
--	if (!unload_codetags && mod_mem_type_is_core_data(type))
--		return;
--
--	execmem_free(ptr);
-+	execmem_free(mem->base);
- }
- 
--static void free_mod_mem(struct module *mod, bool unload_codetags)
-+static void free_mod_mem(struct module *mod)
- {
- 	for_each_mod_mem_type(type) {
- 		struct module_memory *mod_mem = &mod->mem[type];
-@@ -1280,25 +1275,20 @@ static void free_mod_mem(struct module *
- 		/* Free lock-classes; relies on the preceding sync_rcu(). */
- 		lockdep_free_key_range(mod_mem->base, mod_mem->size);
- 		if (mod_mem->size)
--			module_memory_free(mod, type, unload_codetags);
-+			module_memory_free(mod, type);
- 	}
- 
- 	/* MOD_DATA hosts mod, so free it at last */
- 	lockdep_free_key_range(mod->mem[MOD_DATA].base, mod->mem[MOD_DATA].size);
--	module_memory_free(mod, MOD_DATA, unload_codetags);
-+	module_memory_free(mod, MOD_DATA);
- }
- 
- /* Free a module, remove from lists, etc. */
- static void free_module(struct module *mod)
- {
--	bool unload_codetags;
--
- 	trace_module_free(mod);
- 
--	unload_codetags = codetag_unload_module(mod);
--	if (!unload_codetags)
--		pr_warn("%s: memory allocation(s) from the module still alive, cannot unload cleanly\n",
--			mod->name);
-+	codetag_unload_module(mod);
- 
- 	mod_sysfs_teardown(mod);
- 
-@@ -1341,7 +1331,7 @@ static void free_module(struct module *m
- 	kfree(mod->args);
- 	percpu_modfree(mod);
- 
--	free_mod_mem(mod, unload_codetags);
-+	free_mod_mem(mod);
- }
- 
- void *__symbol_get(const char *symbol)
-@@ -1606,6 +1596,20 @@ static void __layout_sections(struct mod
- 			if (WARN_ON_ONCE(type == MOD_INVALID))
- 				continue;
- 
-+			/*
-+			 * Do not allocate codetag memory as we load it into
-+			 * preallocated contiguous memory.
-+			 */
-+			if (codetag_needs_module_section(mod, sname, s->sh_size)) {
-+				/*
-+				 * s->sh_entsize won't be used but populate the
-+				 * type field to avoid confusion.
-+				 */
-+				s->sh_entsize = ((unsigned long)(type) & SH_ENTSIZE_TYPE_MASK)
-+						<< SH_ENTSIZE_TYPE_SHIFT;
-+				continue;
-+			}
-+
- 			s->sh_entsize = module_get_offset_and_type(mod, type, s, i);
- 			pr_debug("\t%s\n", sname);
- 		}
-@@ -2280,6 +2284,7 @@ static int move_module(struct module *mo
- 	int i;
- 	enum mod_mem_type t = 0;
- 	int ret = -ENOMEM;
-+	bool codetag_section_found = false;
- 
- 	for_each_mod_mem_type(type) {
- 		if (!mod->mem[type].size) {
-@@ -2291,7 +2296,7 @@ static int move_module(struct module *mo
- 		ret = module_memory_alloc(mod, type);
- 		if (ret) {
- 			t = type;
--			goto out_enomem;
-+			goto out_err;
- 		}
- 	}
- 
-@@ -2300,15 +2305,33 @@ static int move_module(struct module *mo
- 	for (i = 0; i < info->hdr->e_shnum; i++) {
- 		void *dest;
- 		Elf_Shdr *shdr = &info->sechdrs[i];
--		enum mod_mem_type type = shdr->sh_entsize >> SH_ENTSIZE_TYPE_SHIFT;
--		unsigned long offset = shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK;
-+		const char *sname;
- 		unsigned long addr;
- 
- 		if (!(shdr->sh_flags & SHF_ALLOC))
- 			continue;
- 
--		addr = (unsigned long)mod->mem[type].base + offset;
--		dest = mod->mem[type].rw_copy + offset;
-+		sname = info->secstrings + shdr->sh_name;
-+		/*
-+		 * Load codetag sections separately as they might still be used
-+		 * after module unload.
-+		 */
-+		if (codetag_needs_module_section(mod, sname, shdr->sh_size)) {
-+			dest = codetag_alloc_module_section(mod, sname, shdr->sh_size,
-+					arch_mod_section_prepend(mod, i), shdr->sh_addralign);
-+			if (IS_ERR(dest)) {
-+				ret = PTR_ERR(dest);
-+				goto out_err;
-+			}
-+			addr = (unsigned long)dest;
-+			codetag_section_found = true;
-+		} else {
-+			enum mod_mem_type type = shdr->sh_entsize >> SH_ENTSIZE_TYPE_SHIFT;
-+			unsigned long offset = shdr->sh_entsize & SH_ENTSIZE_OFFSET_MASK;
-+
-+			addr = (unsigned long)mod->mem[type].base + offset;
-+			dest = mod->mem[type].rw_copy + offset;
-+		}
- 
- 		if (shdr->sh_type != SHT_NOBITS) {
- 			/*
-@@ -2320,7 +2343,7 @@ static int move_module(struct module *mo
- 			if (i == info->index.mod &&
- 			   (WARN_ON_ONCE(shdr->sh_size != sizeof(struct module)))) {
- 				ret = -ENOEXEC;
--				goto out_enomem;
-+				goto out_err;
- 			}
- 			memcpy(dest, (void *)shdr->sh_addr, shdr->sh_size);
- 		}
-@@ -2336,9 +2359,12 @@ static int move_module(struct module *mo
- 	}
- 
- 	return 0;
--out_enomem:
-+out_err:
- 	for (t--; t >= 0; t--)
--		module_memory_free(mod, t, true);
-+		module_memory_free(mod, t);
-+	if (codetag_section_found)
-+		codetag_free_module_sections(mod);
-+
- 	return ret;
- }
- 
-@@ -2459,6 +2485,8 @@ static struct module *layout_and_allocat
- 	/* Module has been copied to its final place now: return it. */
- 	mod = (void *)info->sechdrs[info->index.mod].sh_addr;
- 	kmemleak_load_module(mod, info);
-+	codetag_module_replaced(info->mod, mod);
-+
- 	return mod;
- }
- 
-@@ -2468,7 +2496,7 @@ static void module_deallocate(struct mod
- 	percpu_modfree(mod);
- 	module_arch_freeing_init(mod);
- 
--	free_mod_mem(mod, true);
-+	free_mod_mem(mod);
- }
- 
- int __weak module_finalize(const Elf_Ehdr *hdr,
---- a/lib/alloc_tag.c~alloc_tag-load-module-tags-into-separate-contiguous-memory
+ /*
+  * Architectures can set this mask to a combination of PGTBL_P?D_MODIFIED values
+  * and let generic vmalloc and ioremap code know when arch_sync_kernel_mappings()
+--- a/lib/alloc_tag.c~alloc_tag-populate-memory-for-module-tags-as-needed
 +++ a/lib/alloc_tag.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0-only
- #include <linux/alloc_tag.h>
-+#include <linux/execmem.h>
- #include <linux/fs.h>
- #include <linux/gfp.h>
- #include <linux/module.h>
-@@ -9,6 +10,7 @@
+@@ -8,14 +8,15 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_buf.h>
  #include <linux/seq_file.h>
++#include <linux/vmalloc.h>
  
  #define ALLOCINFO_FILE_NAME		"allocinfo"
-+#define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
+ #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
  
  #ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
- static bool mem_profiling_support __meminitdata = true;
-@@ -174,31 +176,226 @@ static void __init procfs_init(void)
- 	}
+-static bool mem_profiling_support __meminitdata = true;
++static bool mem_profiling_support = true;
+ #else
+-static bool mem_profiling_support __meminitdata;
++static bool mem_profiling_support;
+ #endif
+ 
+ static struct codetag_type *alloc_tag_cttype;
+@@ -154,7 +155,7 @@ size_t alloc_tag_top_users(struct codeta
+ 	return nr;
  }
  
--static bool alloc_tag_module_unload(struct codetag_type *cttype,
--				    struct codetag_module *cmod)
-+#ifdef CONFIG_MODULES
-+
-+static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
-+/* A dummy object used to indicate an unloaded module */
-+static struct module unloaded_mod;
-+/* A dummy object used to indicate a module prepended area */
-+static struct module prepend_mod;
-+
-+static struct alloc_tag_module_section module_tags;
-+
-+static bool needs_section_mem(struct module *mod, unsigned long size)
+-static void __init shutdown_mem_profiling(void)
++static void shutdown_mem_profiling(void)
  {
--	struct codetag_iterator iter = codetag_get_ct_iter(cttype);
--	struct alloc_tag_counters counter;
--	bool module_unused = true;
--	struct alloc_tag *tag;
--	struct codetag *ct;
-+	return size >= sizeof(struct alloc_tag);
-+}
-+
-+static struct alloc_tag *find_used_tag(struct alloc_tag *from, struct alloc_tag *to)
-+{
-+	while (from <= to) {
-+		struct alloc_tag_counters counter;
+ 	if (mem_alloc_profiling_enabled())
+ 		static_branch_disable(&mem_alloc_profiling_key);
+@@ -179,6 +180,7 @@ static void __init procfs_init(void)
+ #ifdef CONFIG_MODULES
  
--	for (ct = codetag_next_ct(&iter); ct; ct = codetag_next_ct(&iter)) {
--		if (iter.cmod != cmod)
-+		counter = alloc_tag_read(from);
-+		if (counter.bytes)
-+			return from;
-+		from++;
-+	}
-+
-+	return NULL;
-+}
-+
-+/* Called with mod_area_mt locked */
-+static void clean_unused_module_areas_locked(void)
-+{
-+	MA_STATE(mas, &mod_area_mt, 0, module_tags.size);
-+	struct module *val;
-+
-+	mas_for_each(&mas, val, module_tags.size) {
-+		if (val != &unloaded_mod)
- 			continue;
- 
--		tag = ct_to_alloc_tag(ct);
--		counter = alloc_tag_read(tag);
-+		/* Release area if all tags are unused */
-+		if (!find_used_tag((struct alloc_tag *)(module_tags.start_addr + mas.index),
-+				   (struct alloc_tag *)(module_tags.start_addr + mas.last)))
-+			mas_erase(&mas);
-+	}
-+}
-+
-+/* Called with mod_area_mt locked */
-+static bool find_aligned_area(struct ma_state *mas, unsigned long section_size,
-+			      unsigned long size, unsigned int prepend, unsigned long align)
-+{
-+	bool cleanup_done = false;
-+
-+repeat:
-+	/* Try finding exact size and hope the start is aligned */
-+	if (!mas_empty_area(mas, 0, section_size - 1, prepend + size)) {
-+		if (IS_ALIGNED(mas->index + prepend, align))
-+			return true;
-+
-+		/* Try finding larger area to align later */
-+		mas_reset(mas);
-+		if (!mas_empty_area(mas, 0, section_size - 1,
-+				    size + prepend + align - 1))
-+			return true;
-+	}
-+
-+	/* No free area, try cleanup stale data and repeat the search once */
-+	if (!cleanup_done) {
-+		clean_unused_module_areas_locked();
-+		cleanup_done = true;
-+		mas_reset(mas);
-+		goto repeat;
-+	}
-+
-+	return false;
-+}
-+
-+static void *reserve_module_tags(struct module *mod, unsigned long size,
-+				 unsigned int prepend, unsigned long align)
-+{
-+	unsigned long section_size = module_tags.end_addr - module_tags.start_addr;
-+	MA_STATE(mas, &mod_area_mt, 0, section_size - 1);
-+	unsigned long offset;
-+	void *ret = NULL;
-+
-+	/* If no tags return NULL */
-+	if (size < sizeof(struct alloc_tag))
-+		return NULL;
-+
-+	/*
-+	 * align is always power of 2, so we can use IS_ALIGNED and ALIGN.
-+	 * align 0 or 1 means no alignment, to simplify set to 1.
-+	 */
-+	if (!align)
-+		align = 1;
-+
-+	mas_lock(&mas);
-+	if (!find_aligned_area(&mas, section_size, size, prepend, align)) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto unlock;
-+	}
-+
-+	/* Mark found area as reserved */
-+	offset = mas.index;
-+	offset += prepend;
-+	offset = ALIGN(offset, align);
-+	if (offset != mas.index) {
-+		unsigned long pad_start = mas.index;
-+
-+		mas.last = offset - 1;
-+		mas_store(&mas, &prepend_mod);
-+		if (mas_is_err(&mas)) {
-+			ret = ERR_PTR(xa_err(mas.node));
-+			goto unlock;
-+		}
-+		mas.index = offset;
-+		mas.last = offset + size - 1;
-+		mas_store(&mas, mod);
-+		if (mas_is_err(&mas)) {
-+			mas.index = pad_start;
-+			mas_erase(&mas);
-+			ret = ERR_PTR(xa_err(mas.node));
-+		}
-+	} else {
-+		mas.last = offset + size - 1;
-+		mas_store(&mas, mod);
-+		if (mas_is_err(&mas))
-+			ret = ERR_PTR(xa_err(mas.node));
-+	}
-+unlock:
-+	mas_unlock(&mas);
-+
-+	if (IS_ERR(ret))
-+		return ret;
-+
-+	if (module_tags.size < offset + size)
-+		module_tags.size = offset + size;
-+
-+	return (struct alloc_tag *)(module_tags.start_addr + offset);
-+}
- 
--		if (WARN(counter.bytes,
--			 "%s:%u module %s func:%s has %llu allocated at module unload",
--			 ct->filename, ct->lineno, ct->modname, ct->function, counter.bytes))
--			module_unused = false;
-+static void release_module_tags(struct module *mod, bool used)
-+{
-+	MA_STATE(mas, &mod_area_mt, module_tags.size, module_tags.size);
-+	struct alloc_tag *tag;
-+	struct module *val;
-+
-+	mas_lock(&mas);
-+	mas_for_each_rev(&mas, val, 0)
-+		if (val == mod)
-+			break;
-+
-+	if (!val) /* module not found */
-+		goto out;
-+
-+	if (!used)
-+		goto release_area;
-+
-+	/* Find out if the area is used */
-+	tag = find_used_tag((struct alloc_tag *)(module_tags.start_addr + mas.index),
-+			    (struct alloc_tag *)(module_tags.start_addr + mas.last));
-+	if (tag) {
-+		struct alloc_tag_counters counter = alloc_tag_read(tag);
-+
-+		pr_info("%s:%u module %s func:%s has %llu allocated at module unload\n",
-+			tag->ct.filename, tag->ct.lineno, tag->ct.modname,
-+			tag->ct.function, counter.bytes);
-+	} else {
-+		used = false;
- 	}
-+release_area:
-+	mas_store(&mas, used ? &unloaded_mod : NULL);
-+	val = mas_prev_range(&mas, 0);
-+	if (val == &prepend_mod)
-+		mas_store(&mas, NULL);
-+out:
-+	mas_unlock(&mas);
-+}
-+
-+static void replace_module(struct module *mod, struct module *new_mod)
-+{
-+	MA_STATE(mas, &mod_area_mt, 0, module_tags.size);
-+	struct module *val;
-+
-+	mas_lock(&mas);
-+	mas_for_each(&mas, val, module_tags.size) {
-+		if (val != mod)
-+			continue;
- 
--	return module_unused;
-+		mas_store_gfp(&mas, new_mod, GFP_KERNEL);
-+		break;
-+	}
-+	mas_unlock(&mas);
+ static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
++static struct vm_struct *vm_module_tags;
+ /* A dummy object used to indicate an unloaded module */
+ static struct module unloaded_mod;
+ /* A dummy object used to indicate a module prepended area */
+@@ -252,6 +254,33 @@ repeat:
+ 	return false;
  }
  
-+static int __init alloc_mod_tags_mem(void)
++static int vm_module_tags_populate(void)
 +{
-+	/* Allocate space to copy allocation tags */
-+	module_tags.start_addr = (unsigned long)execmem_alloc(EXECMEM_MODULE_DATA,
-+							      MODULE_ALLOC_TAG_VMAP_SIZE);
-+	if (!module_tags.start_addr)
-+		return -ENOMEM;
++	unsigned long phys_size = vm_module_tags->nr_pages << PAGE_SHIFT;
 +
-+	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
++	if (phys_size < module_tags.size) {
++		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
++		unsigned long addr = module_tags.start_addr + phys_size;
++		unsigned long more_pages;
++		unsigned long nr;
++
++		more_pages = ALIGN(module_tags.size - phys_size, PAGE_SIZE) >> PAGE_SHIFT;
++		nr = alloc_pages_bulk_array_node(GFP_KERNEL | __GFP_NOWARN,
++						 NUMA_NO_NODE, more_pages, next_page);
++		if (nr < more_pages ||
++		    vmap_pages_range(addr, addr + (nr << PAGE_SHIFT), PAGE_KERNEL,
++				     next_page, PAGE_SHIFT) < 0) {
++			/* Clean up and error out */
++			for (int i = 0; i < nr; i++)
++				__free_page(next_page[i]);
++			return -ENOMEM;
++		}
++		vm_module_tags->nr_pages += nr;
++	}
 +
 +	return 0;
 +}
 +
-+static void __init free_mod_tags_mem(void)
-+{
-+	execmem_free((void *)module_tags.start_addr);
-+	module_tags.start_addr = 0;
-+}
-+
-+#else /* CONFIG_MODULES */
-+
-+static inline int alloc_mod_tags_mem(void) { return 0; }
-+static inline void free_mod_tags_mem(void) {}
-+
-+#endif /* CONFIG_MODULES */
-+
- static int __init setup_early_mem_profiling(char *str)
+ static void *reserve_module_tags(struct module *mod, unsigned long size,
+ 				 unsigned int prepend, unsigned long align)
  {
- 	bool enable;
-@@ -274,14 +471,26 @@ static inline void sysctl_init(void) {}
- static int __init alloc_tag_init(void)
- {
- 	const struct codetag_type_desc desc = {
--		.section	= "alloc_tags",
--		.tag_size	= sizeof(struct alloc_tag),
--		.module_unload	= alloc_tag_module_unload,
-+		.section		= ALLOC_TAG_SECTION_NAME,
-+		.tag_size		= sizeof(struct alloc_tag),
-+#ifdef CONFIG_MODULES
-+		.needs_section_mem	= needs_section_mem,
-+		.alloc_section_mem	= reserve_module_tags,
-+		.free_section_mem	= release_module_tags,
-+		.module_replaced	= replace_module,
-+#endif
- 	};
-+	int res;
-+
-+	res = alloc_mod_tags_mem();
-+	if (res)
-+		return res;
+@@ -310,8 +339,18 @@ unlock:
+ 	if (IS_ERR(ret))
+ 		return ret;
  
- 	alloc_tag_cttype = codetag_register_type(&desc);
--	if (IS_ERR(alloc_tag_cttype))
-+	if (IS_ERR(alloc_tag_cttype)) {
-+		free_mod_tags_mem();
- 		return PTR_ERR(alloc_tag_cttype);
-+	}
- 
- 	sysctl_init();
- 	procfs_init();
---- a/lib/codetag.c~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/lib/codetag.c
-@@ -207,6 +207,94 @@ static int codetag_module_init(struct co
- }
- 
- #ifdef CONFIG_MODULES
-+#define CODETAG_SECTION_PREFIX	".codetag."
+-	if (module_tags.size < offset + size)
++	if (module_tags.size < offset + size) {
++		int grow_res;
 +
-+/* Some codetag types need a separate module section */
-+bool codetag_needs_module_section(struct module *mod, const char *name,
-+				  unsigned long size)
-+{
-+	const char *type_name;
-+	struct codetag_type *cttype;
-+	bool ret = false;
-+
-+	if (strncmp(name, CODETAG_SECTION_PREFIX, strlen(CODETAG_SECTION_PREFIX)))
-+		return false;
-+
-+	type_name = name + strlen(CODETAG_SECTION_PREFIX);
-+	mutex_lock(&codetag_lock);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		if (strcmp(type_name, cttype->desc.section) == 0) {
-+			if (!cttype->desc.needs_section_mem)
-+				break;
-+
-+			down_write(&cttype->mod_lock);
-+			ret = cttype->desc.needs_section_mem(mod, size);
-+			up_write(&cttype->mod_lock);
-+			break;
+ 		module_tags.size = offset + size;
++		grow_res = vm_module_tags_populate();
++		if (grow_res) {
++			shutdown_mem_profiling();
++			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
++			       mod->name);
++			return ERR_PTR(grow_res);
 +		}
 +	}
-+	mutex_unlock(&codetag_lock);
-+
-+	return ret;
-+}
-+
-+void *codetag_alloc_module_section(struct module *mod, const char *name,
-+				   unsigned long size, unsigned int prepend,
-+				   unsigned long align)
-+{
-+	const char *type_name = name + strlen(CODETAG_SECTION_PREFIX);
-+	struct codetag_type *cttype;
-+	void *ret = NULL;
-+
-+	mutex_lock(&codetag_lock);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		if (strcmp(type_name, cttype->desc.section) == 0) {
-+			if (WARN_ON(!cttype->desc.alloc_section_mem))
-+				break;
-+
-+			down_write(&cttype->mod_lock);
-+			ret = cttype->desc.alloc_section_mem(mod, size, prepend, align);
-+			up_write(&cttype->mod_lock);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&codetag_lock);
-+
-+	return ret;
-+}
-+
-+void codetag_free_module_sections(struct module *mod)
-+{
-+	struct codetag_type *cttype;
-+
-+	mutex_lock(&codetag_lock);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		if (!cttype->desc.free_section_mem)
-+			continue;
-+
-+		down_write(&cttype->mod_lock);
-+		cttype->desc.free_section_mem(mod, false);
-+		up_write(&cttype->mod_lock);
-+	}
-+	mutex_unlock(&codetag_lock);
-+}
-+
-+void codetag_module_replaced(struct module *mod, struct module *new_mod)
-+{
-+	struct codetag_type *cttype;
-+
-+	mutex_lock(&codetag_lock);
-+	list_for_each_entry(cttype, &codetag_types, link) {
-+		if (!cttype->desc.module_replaced)
-+			continue;
-+
-+		down_write(&cttype->mod_lock);
-+		cttype->desc.module_replaced(mod, new_mod);
-+		up_write(&cttype->mod_lock);
-+	}
-+	mutex_unlock(&codetag_lock);
-+}
-+
- void codetag_load_module(struct module *mod)
+ 
+ 	return (struct alloc_tag *)(module_tags.start_addr + offset);
+ }
+@@ -372,12 +411,23 @@ static void replace_module(struct module
+ 
+ static int __init alloc_mod_tags_mem(void)
  {
- 	struct codetag_type *cttype;
-@@ -220,13 +308,12 @@ void codetag_load_module(struct module *
- 	mutex_unlock(&codetag_lock);
- }
+-	/* Allocate space to copy allocation tags */
+-	module_tags.start_addr = (unsigned long)execmem_alloc(EXECMEM_MODULE_DATA,
+-							      MODULE_ALLOC_TAG_VMAP_SIZE);
+-	if (!module_tags.start_addr)
++	/* Map space to copy allocation tags */
++	vm_module_tags = execmem_vmap(MODULE_ALLOC_TAG_VMAP_SIZE);
++	if (!vm_module_tags) {
++		pr_err("Failed to map %lu bytes for module allocation tags\n",
++			MODULE_ALLOC_TAG_VMAP_SIZE);
++		module_tags.start_addr = 0;
++		return -ENOMEM;
++	}
++
++	vm_module_tags->pages = kmalloc_array(get_vm_area_size(vm_module_tags) >> PAGE_SHIFT,
++					sizeof(struct page *), GFP_KERNEL | __GFP_ZERO);
++	if (!vm_module_tags->pages) {
++		free_vm_area(vm_module_tags);
+ 		return -ENOMEM;
++	}
  
--bool codetag_unload_module(struct module *mod)
-+void codetag_unload_module(struct module *mod)
++	module_tags.start_addr = (unsigned long)vm_module_tags->addr;
+ 	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
+ 
+ 	return 0;
+@@ -385,8 +435,13 @@ static int __init alloc_mod_tags_mem(voi
+ 
+ static void __init free_mod_tags_mem(void)
  {
- 	struct codetag_type *cttype;
--	bool unload_ok = true;
- 
- 	if (!mod)
--		return true;
-+		return;
- 
- 	/* await any module's kfree_rcu() operations to complete */
- 	kvfree_rcu_barrier();
-@@ -246,18 +333,17 @@ bool codetag_unload_module(struct module
- 		}
- 		if (found) {
- 			if (cttype->desc.module_unload)
--				if (!cttype->desc.module_unload(cttype, cmod))
--					unload_ok = false;
-+				cttype->desc.module_unload(cttype, cmod);
- 
- 			cttype->count -= range_size(cttype, &cmod->range);
- 			idr_remove(&cttype->mod_idr, mod_id);
- 			kfree(cmod);
- 		}
- 		up_write(&cttype->mod_lock);
-+		if (found && cttype->desc.free_section_mem)
-+			cttype->desc.free_section_mem(mod, true);
- 	}
- 	mutex_unlock(&codetag_lock);
--
--	return unload_ok;
- }
- #endif /* CONFIG_MODULES */
- 
---- a/scripts/module.lds.S~alloc_tag-load-module-tags-into-separate-contiguous-memory
-+++ a/scripts/module.lds.S
-@@ -50,7 +50,7 @@ SECTIONS {
- 	.data : {
- 		*(.data .data.[0-9a-zA-Z_]*)
- 		*(.data..L*)
--		CODETAG_SECTIONS()
-+		MOD_CODETAG_SECTIONS()
- 	}
- 
- 	.rodata : {
-@@ -59,9 +59,10 @@ SECTIONS {
- 	}
- #else
- 	.data : {
--		CODETAG_SECTIONS()
-+		MOD_CODETAG_SECTIONS()
- 	}
- #endif
-+	MOD_SEPARATE_CODETAG_SECTIONS()
+-	execmem_free((void *)module_tags.start_addr);
++	int i;
++
+ 	module_tags.start_addr = 0;
++	for (i = 0; i < vm_module_tags->nr_pages; i++)
++		__free_page(vm_module_tags->pages[i]);
++	kfree(vm_module_tags->pages);
++	free_vm_area(vm_module_tags);
  }
  
- /* bring in arch-specific sections */
+ #else /* CONFIG_MODULES */
+--- a/mm/execmem.c~alloc_tag-populate-memory-for-module-tags-as-needed
++++ a/mm/execmem.c
+@@ -368,6 +368,22 @@ void execmem_free(void *ptr)
+ 		vfree(ptr);
+ }
+ 
++struct vm_struct *execmem_vmap(size_t size)
++{
++	struct execmem_range *range = &execmem_info->ranges[EXECMEM_MODULE_DATA];
++	struct vm_struct *area;
++
++	area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
++				  range->start, range->end, NUMA_NO_NODE,
++				  GFP_KERNEL, __builtin_return_address(0));
++	if (!area && range->fallback_start)
++		area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
++					  range->fallback_start, range->fallback_end,
++					  NUMA_NO_NODE, GFP_KERNEL, __builtin_return_address(0));
++
++	return area;
++}
++
+ void *execmem_update_copy(void *dst, const void *src, size_t size)
+ {
+ 	return text_poke_copy(dst, src, size);
+--- a/mm/internal.h~alloc_tag-populate-memory-for-module-tags-as-needed
++++ a/mm/internal.h
+@@ -1263,6 +1263,12 @@ int numa_migrate_check(struct folio *fol
+ void free_zone_device_folio(struct folio *folio);
+ int migrate_device_coherent_folio(struct folio *folio);
+ 
++struct vm_struct *__get_vm_area_node(unsigned long size,
++				     unsigned long align, unsigned long shift,
++				     unsigned long flags, unsigned long start,
++				     unsigned long end, int node, gfp_t gfp_mask,
++				     const void *caller);
++
+ /*
+  * mm/gup.c
+  */
+--- a/mm/vmalloc.c~alloc_tag-populate-memory-for-module-tags-as-needed
++++ a/mm/vmalloc.c
+@@ -653,7 +653,7 @@ int vmap_pages_range_noflush(unsigned lo
+  * RETURNS:
+  * 0 on success, -errno on failure.
+  */
+-static int vmap_pages_range(unsigned long addr, unsigned long end,
++int vmap_pages_range(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
+ {
+ 	int err;
+@@ -3106,7 +3106,7 @@ static void clear_vm_uninitialized_flag(
+ 	vm->flags &= ~VM_UNINITIALIZED;
+ }
+ 
+-static struct vm_struct *__get_vm_area_node(unsigned long size,
++struct vm_struct *__get_vm_area_node(unsigned long size,
+ 		unsigned long align, unsigned long shift, unsigned long flags,
+ 		unsigned long start, unsigned long end, int node,
+ 		gfp_t gfp_mask, const void *caller)
 _
 
 Patches currently in -mm which might be from surenb@google.com are
