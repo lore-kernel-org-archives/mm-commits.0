@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34CAD19F11F
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 10:21:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 812B819F11F
+	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 10:21:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729678908; cv=none; b=X5t0wMWR5pggoyy94aI9igL3vYL3yF1OrCNBSDEX3VreXd3y9CUFEuSElFjpz8ZsQfYMkd9AVmvnIHuS09WQ7qr6fwcCgFlxdFGPwo0NwTEbFom9oCsSWKHk29BwYh5zht/EhLx8TCenEXk7r3wFlkyWk4w9+DJpCgCGCzU0fTE=
+	t=1729678911; cv=none; b=my8OjfARt2cubVRKRwH9NOJci/Bioulr+Y+T9msfEnQ2B0m6quA5lYHVBq2WlXIQAZ/BJ2zwHF4/8V80sTNyKVVvNsuM5gYYaS68i7O+oJuthtZJy6UB/MnlDTpU3O7gmfWWfd3VMMRntcSB7yX0CooIdxDd3UB+cGyFJwtvaUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729678908; c=relaxed/simple;
-	bh=SdzyYdzGC5mF9g+Opkbn+ogkVNBOZMPqtHPoMaKPuyg=;
-	h=Date:To:From:Subject:Message-Id; b=B2jLSZ1ARLfBsU08eSihAPVvc6pPN4g+0qlWCoK4NRdqqAQoleIv8PPyDbJqtqxMJg2SFXbcwGvKFqcuWwoYzrzlcMMV2aSaGcRi7K4OUmVvdPK1oE7DQVtdhFQi2QKF2ZtHQynvRUPAU9RbxtLDIbIbm6pr9ppw2lU7ciOShr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kZ5U0VK7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729678911; c=relaxed/simple;
+	bh=jJZl2hqe0EbkR4bcUoPn0FbA+IDqLXYc2UosnlLivP0=;
+	h=Date:To:From:Subject:Message-Id; b=KmnMXAG5lbzh/FildY91l3Z5ZudCy7xxsbTmGoJM7Jlb2WQzN/DjN8/xzge2ZOtV/e3grVpJEx4EQ5vtrVejWxeDDkE0c09XZQqfb6Z2CNzkxC8A4Bov8pLjkTDdKWQDGSFiO2buB1uUFMvqDFaPcpuFVxtqFAxZMJn4X/DaRZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uA5q86Cb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kZ5U0VK7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADC15C4CEC6;
-	Wed, 23 Oct 2024 10:21:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uA5q86Cb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44043C4CEC6;
+	Wed, 23 Oct 2024 10:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729678907;
-	bh=SdzyYdzGC5mF9g+Opkbn+ogkVNBOZMPqtHPoMaKPuyg=;
+	s=korg; t=1729678911;
+	bh=jJZl2hqe0EbkR4bcUoPn0FbA+IDqLXYc2UosnlLivP0=;
 	h=Date:To:From:Subject:From;
-	b=kZ5U0VK7IAXXun51/acFv9BHOBkWSkW+vuEiUbVHkIhXSupFT1HKhp7ojyvK+YjWk
-	 TlQe35EyZyE1WGAnhHbS/B+vjev0DcF2HTMS5Z3+jl39eVMuS4LFp/vupro1nVMD7O
-	 yC30rHUR3QA7PoBq6fzHy/a8KMsaqYzwgpR4T4Ow=
-Date: Wed, 23 Oct 2024 03:21:47 -0700
+	b=uA5q86Cb04W1UTNMcbgxO/R0gNWpE635F9gktvnAObr1fomj86MFNsgMXYO/QHuiD
+	 JbPjfI0xsZQywk0MKldOxqMOEv5i3+k3GFPvaQKM93XBKnV5wi+ps/9wNkPbxyVVoV
+	 thOBa/a+kwtK6jss6+R5W9ZcbhkauCqDULH0xyUg=
+Date: Wed, 23 Oct 2024 03:21:50 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,stable@kernel.org,peterx@redhat.com,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-unconditionally-close-vmas-on-error.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241023102147.ADC15C4CEC6@smtp.kernel.org>
+Subject: + mm-refactor-map_deny_write_exec.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241023102151.44043C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: unconditionally close VMAs on error
+     Subject: mm: refactor map_deny_write_exec()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-unconditionally-close-vmas-on-error.patch
+     mm-refactor-map_deny_write_exec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-unconditionally-close-vmas-on-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-map_deny_write_exec.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: unconditionally close VMAs on error
-Date: Tue, 22 Oct 2024 21:40:53 +0100
+Subject: mm: refactor map_deny_write_exec()
+Date: Tue, 22 Oct 2024 21:40:54 +0100
 
-Incorrect invocation of VMA callbacks when the VMA is no longer in a
-consistent state is bug prone and risky to perform.
+Refactor the map_deny_write_exec() to not unnecessarily require a VMA
+parameter but rather to accept VMA flags parameters, which allows us to
+use this function early in mmap_region() in a subsequent commit.
 
-With regards to the important vm_ops->close() callback We have gone to
-great lengths to try to track whether or not we ought to close VMAs.
+While we're here, we refactor the function to be more readable and add
+some additional documentation.
 
-Rather than doing so and risking making a mistake somewhere, instead
-unconditionally close and reset vma->vm_ops to an empty dummy operations
-set with a NULL .close operator.
-
-We introduce a new function to do so - vma_close() - and simplify existing
-vms logic which tracked whether we needed to close or not.
-
-This simplifies the logic, avoids incorrect double-calling of the .close()
-callback and allows us to update error paths to simply call vma_close()
-unconditionally - making VMA closure idempotent.
-
-Link: https://lkml.kernel.org/r/9a84bad9fdebbdb0adca2b5b43ed63afceb5bacc.1729628198.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/e67b7f6c682bddbea2fe8b2d87b8441e4d2ea6e6.1729628198.git.lorenzo.stoakes@oracle.com
 Fixes: deb0f6562884 ("mm/mmap: undo ->mmap() when arch_validate_flags() fails")
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reported-by: Jann Horn <jannh@google.com>
@@ -92,145 +82,70 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   17 +++++++++++++++++
- mm/mmap.c     |    5 ++---
- mm/nommu.c    |    3 +--
- mm/vma.c      |   14 +++++---------
- mm/vma.h      |    4 +---
- 5 files changed, 26 insertions(+), 17 deletions(-)
+ include/linux/mman.h |   21 ++++++++++++++++++---
+ mm/mmap.c            |    2 +-
+ mm/mprotect.c        |    2 +-
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
---- a/mm/internal.h~mm-unconditionally-close-vmas-on-error
-+++ a/mm/internal.h
-@@ -135,6 +135,23 @@ static inline int mmap_file(struct file
- 	return err;
- }
+--- a/include/linux/mman.h~mm-refactor-map_deny_write_exec
++++ a/include/linux/mman.h
+@@ -188,16 +188,31 @@ static inline bool arch_memory_deny_writ
+  *
+  *	d)	mmap(PROT_READ | PROT_EXEC)
+  *		mmap(PROT_READ | PROT_EXEC | PROT_BTI)
++ *
++ * This is only applicable if the user has set the Memory-Deny-Write-Execute
++ * (MDWE) protection mask for the current process.
++ *
++ * @old specifies the VMA flags the VMA originally possessed, and @new the ones
++ * we propose to set.
++ *
++ * Return: false if proposed change is OK, true if not ok and should be denied.
+  */
+-static inline bool map_deny_write_exec(struct vm_area_struct *vma,  unsigned long vm_flags)
++static inline bool map_deny_write_exec(unsigned long old, unsigned long new)
+ {
++	/* If MDWE is disabled, we have nothing to deny. */
+ 	if (!test_bit(MMF_HAS_MDWE, &current->mm->flags))
+ 		return false;
  
-+/*
-+ * Unconditionally close the VMA if it has a close hook and prevent hooks from
-+ * being invoked after close. VMA hooks are mutated.
-+ */
-+static inline void vma_close(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_ops && vma->vm_ops->close) {
-+		vma->vm_ops->close(vma);
+-	if ((vm_flags & VM_EXEC) && (vm_flags & VM_WRITE))
++	/* If the new VMA is not executable, we have nothing to deny. */
++	if (!(new & VM_EXEC))
++		return false;
 +
-+		/*
-+		 * The mapping is in an inconsistent state, and no further hooks
-+		 * may be invoked upon it.
-+		 */
-+		vma->vm_ops = &vma_dummy_vm_ops;
-+	}
-+}
-+
- #ifdef CONFIG_MMU
++	/* Under MDWE we absolutely do not accept writably executable... */
++	if (new & VM_WRITE)
+ 		return true;
  
- /* Flags for folio_pte_batch(). */
---- a/mm/mmap.c~mm-unconditionally-close-vmas-on-error
+-	if (!(vma->vm_flags & VM_EXEC) && (vm_flags & VM_EXEC))
++	/* ...nor newly executable VMAs. */
++	if (!(old & VM_EXEC))
+ 		return true;
+ 
+ 	return false;
+--- a/mm/mmap.c~mm-refactor-map_deny_write_exec
 +++ a/mm/mmap.c
-@@ -1572,8 +1572,7 @@ expanded:
- 	return addr;
+@@ -1504,7 +1504,7 @@ unsigned long mmap_region(struct file *f
+ 		vma_set_anonymous(vma);
+ 	}
  
- close_and_free_vma:
--	if (file && !vms.closed_vm_ops && vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
-+	vma_close(vma);
+-	if (map_deny_write_exec(vma, vma->vm_flags)) {
++	if (map_deny_write_exec(vma->vm_flags, vma->vm_flags)) {
+ 		error = -EACCES;
+ 		goto close_and_free_vma;
+ 	}
+--- a/mm/mprotect.c~mm-refactor-map_deny_write_exec
++++ a/mm/mprotect.c
+@@ -810,7 +810,7 @@ static int do_mprotect_pkey(unsigned lon
+ 			break;
+ 		}
  
- 	if (file || vma->vm_file) {
- unmap_and_free_vma:
-@@ -1933,7 +1932,7 @@ void exit_mmap(struct mm_struct *mm)
- 	do {
- 		if (vma->vm_flags & VM_ACCOUNT)
- 			nr_accounted += vma_pages(vma);
--		remove_vma(vma, /* unreachable = */ true, /* closed = */ false);
-+		remove_vma(vma, /* unreachable = */ true);
- 		count++;
- 		cond_resched();
- 		vma = vma_next(&vmi);
---- a/mm/nommu.c~mm-unconditionally-close-vmas-on-error
-+++ a/mm/nommu.c
-@@ -589,8 +589,7 @@ static int delete_vma_from_mm(struct vm_
-  */
- static void delete_vma(struct mm_struct *mm, struct vm_area_struct *vma)
- {
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
-+	vma_close(vma);
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	put_nommu_region(vma->vm_region);
---- a/mm/vma.c~mm-unconditionally-close-vmas-on-error
-+++ a/mm/vma.c
-@@ -323,11 +323,10 @@ static bool can_vma_merge_right(struct v
- /*
-  * Close a vm structure and free it.
-  */
--void remove_vma(struct vm_area_struct *vma, bool unreachable, bool closed)
-+void remove_vma(struct vm_area_struct *vma, bool unreachable)
- {
- 	might_sleep();
--	if (!closed && vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
-+	vma_close(vma);
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	mpol_put(vma_policy(vma));
-@@ -1115,9 +1114,7 @@ void vms_clean_up_area(struct vma_munmap
- 	vms_clear_ptes(vms, mas_detach, true);
- 	mas_set(mas_detach, 0);
- 	mas_for_each(mas_detach, vma, ULONG_MAX)
--		if (vma->vm_ops && vma->vm_ops->close)
--			vma->vm_ops->close(vma);
--	vms->closed_vm_ops = true;
-+		vma_close(vma);
- }
- 
- /*
-@@ -1160,7 +1157,7 @@ void vms_complete_munmap_vmas(struct vma
- 	/* Remove and clean up vmas */
- 	mas_set(mas_detach, 0);
- 	mas_for_each(mas_detach, vma, ULONG_MAX)
--		remove_vma(vma, /* = */ false, vms->closed_vm_ops);
-+		remove_vma(vma, /* unreachable = */ false);
- 
- 	vm_unacct_memory(vms->nr_accounted);
- 	validate_mm(mm);
-@@ -1684,8 +1681,7 @@ struct vm_area_struct *copy_vma(struct v
- 	return new_vma;
- 
- out_vma_link:
--	if (new_vma->vm_ops && new_vma->vm_ops->close)
--		new_vma->vm_ops->close(new_vma);
-+	vma_close(new_vma);
- 
- 	if (new_vma->vm_file)
- 		fput(new_vma->vm_file);
---- a/mm/vma.h~mm-unconditionally-close-vmas-on-error
-+++ a/mm/vma.h
-@@ -42,7 +42,6 @@ struct vma_munmap_struct {
- 	int vma_count;                  /* Number of vmas that will be removed */
- 	bool unlock;                    /* Unlock after the munmap */
- 	bool clear_ptes;                /* If there are outstanding PTE to be cleared */
--	bool closed_vm_ops;		/* call_mmap() was encountered, so vmas may be closed */
- 	/* 1 byte hole */
- 	unsigned long nr_pages;         /* Number of pages being removed */
- 	unsigned long locked_vm;        /* Number of locked pages */
-@@ -198,7 +197,6 @@ static inline void init_vma_munmap(struc
- 	vms->unmap_start = FIRST_USER_ADDRESS;
- 	vms->unmap_end = USER_PGTABLES_CEILING;
- 	vms->clear_ptes = false;
--	vms->closed_vm_ops = false;
- }
- #endif
- 
-@@ -269,7 +267,7 @@ int do_vmi_munmap(struct vma_iterator *v
- 		  unsigned long start, size_t len, struct list_head *uf,
- 		  bool unlock);
- 
--void remove_vma(struct vm_area_struct *vma, bool unreachable, bool closed);
-+void remove_vma(struct vm_area_struct *vma, bool unreachable);
- 
- void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
- 		struct vm_area_struct *prev, struct vm_area_struct *next);
+-		if (map_deny_write_exec(vma, newflags)) {
++		if (map_deny_write_exec(vma->vm_flags, newflags)) {
+ 			error = -EACCES;
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
