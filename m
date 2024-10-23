@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F4B1A0BC4;
-	Wed, 23 Oct 2024 22:58:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E2061A0BC4;
+	Wed, 23 Oct 2024 22:58:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729724301; cv=none; b=oK1JuZiqGGccmJ2mucodF9F4ps0Ug/Y4uSUCDJbQYQ1Amj1ZjEwPkBRDEs0TBox2+R6bzxQVwb9zGtn5gs5kNrHrlTA2gHCjStDaPBUqmrthZ6uwCN9v1M1uiLV4BOUMfNkQ1ZUkF7P6pEj370UqYoAaAmwEj2nB4FDlbhbjWDs=
+	t=1729724303; cv=none; b=l4F56CLjw2nuKZR4k0XenJnuOMKPuc2Nu3VVoZRAen0kOke6CbX5ez8A5uOvePfIUM6FtnD0z79aigyc5ErhAvqZ6QUHO8ZcqwuI7VQxipw/Vr4CvQCdJD5KUw+4SR8FA6JKq1elD/DE2qyJoTTG460W/M9A0TxN733v/XTKKqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729724301; c=relaxed/simple;
-	bh=+fmFvP7qKtn1sucrlz2mNEUMvUh0vfZVos9qI+c4BZI=;
-	h=Date:To:From:Subject:Message-Id; b=r6etnD8h0KUBKcAnt6YcWcAnZ9ZWotFE5OG77yMElSqUTpY7XVezevMP8TwLEzxcVxuhYoMDzgF6dLRCVw7ww+2bP4vG05zHhzQsF3H0A3XcCInINPHg7VkVXKWEQABYj02I708azH+KwCQxTWCSG1+tiix+a7N1OucPwQR5Kd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YEtevMgL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729724303; c=relaxed/simple;
+	bh=n5iVg4xcLZralDd9fKct6OZpxla/8DmR6rJ7umNXK7Y=;
+	h=Date:To:From:Subject:Message-Id; b=rJ61hJdOAif271thSRl7FohKwNsyfBsNbHhqs2uC7hLfNReNyFPEb7AqidIHSgw5A7pBvsQZqL2RT6u8eBn7NfyjviLwfAmFU7/XyYh0kB6ORdsRFln+hXdUeL7/wI1vOvDr8rf0WVvEMHneR0qO2XSdHaJR+b1axfYG+IJAclA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s7l3GxBA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YEtevMgL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA99DC4CEC6;
-	Wed, 23 Oct 2024 22:58:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s7l3GxBA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B55C7C4CECC;
+	Wed, 23 Oct 2024 22:58:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729724300;
-	bh=+fmFvP7qKtn1sucrlz2mNEUMvUh0vfZVos9qI+c4BZI=;
+	s=korg; t=1729724302;
+	bh=n5iVg4xcLZralDd9fKct6OZpxla/8DmR6rJ7umNXK7Y=;
 	h=Date:To:From:Subject:From;
-	b=YEtevMgL/7LfT3gKLCpfuw1YF6ORQgVJbX4G10CRkP3VOeDAm/6ptHX+YN7MtJj1t
-	 sFAGj5+bAcDu594aAIYe8FlAJc/yTvoZwT22xcfmAVPEsz3ZqjNVJNDkFm8BiTP2tZ
-	 BGpVqDGVercBz5sQcyzv+83Honjz9PKQOVFZmATc=
-Date: Wed, 23 Oct 2024 15:58:20 -0700
+	b=s7l3GxBAHN9vALar6S2mhkbf2upi5k+XUrHIJMWL4oLw+9Ela5zEY3t2phHa1khgX
+	 hRVr634sQ6mJzqPXoRoFbvGgf6l1BysZpjjot7dkLBRrWk0Wtx36ueCKrFamrenp2Y
+	 EbOCmqpFNg/MfmeLe3v6gnow+Wn8ML6obUNmuioQ=
+Date: Wed, 23 Oct 2024 15:58:22 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,urezki@gmail.com,tsbogend@alpha.franken.de,tglx@linutronix.de,surenb@google.com,song@kernel.org,shorne@gmail.com,rostedt@goodmis.org,richard@nod.at,peterz@infradead.org,palmer@dabbelt.com,oleg@redhat.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mattst88@gmail.com,mark.rutland@arm.com,luto@kernel.org,linux@armlinux.org.uk,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,kdevops@lists.linux.dev,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hch@lst.de,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,bcain@quicinc.com,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + execmem-add-support-for-cache-of-large-rox-pages.patch added to mm-unstable branch
-Message-Id: <20241023225820.AA99DC4CEC6@smtp.kernel.org>
+Subject: + x86-module-enable-rox-caches-for-module-text-on-64-bit.patch added to mm-unstable branch
+Message-Id: <20241023225822.B55C7C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: execmem: add support for cache of large ROX pages
+     Subject: x86/module: enable ROX caches for module text on 64 bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     execmem-add-support-for-cache-of-large-rox-pages.patch
+     x86-module-enable-rox-caches-for-module-text-on-64-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/execmem-add-support-for-cache-of-large-rox-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-module-enable-rox-caches-for-module-text-on-64-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,35 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: execmem: add support for cache of large ROX pages
-Date: Wed, 23 Oct 2024 19:27:10 +0300
+Subject: x86/module: enable ROX caches for module text on 64 bit
+Date: Wed, 23 Oct 2024 19:27:11 +0300
 
-Using large pages to map text areas reduces iTLB pressure and improves
-performance.
+Enable execmem's cache of PMD_SIZE'ed pages mapped as ROX for module text
+allocations on 64 bit.
 
-Extend execmem_alloc() with an ability to use huge pages with ROX
-permissions as a cache for smaller allocations.
-
-To populate the cache, a writable large page is allocated from vmalloc
-with VM_ALLOW_HUGE_VMAP, filled with invalid instructions and then
-remapped as ROX.
-
-The direct map alias of that large page is exculded from the direct map.
-
-Portions of that large page are handed out to execmem_alloc() callers
-without any changes to the permissions.
-
-When the memory is freed with execmem_free() it is invalidated again so
-that it won't contain stale instructions.
-
-An architecture has to implement execmem_fill_trapping_insns() callback
-and select ARCH_HAS_EXECMEM_ROX configuration option to be able to use the
-ROX cache.
-
-The cache is enabled on per-range basis when an architecture sets
-EXECMEM_ROX_CACHE flag in definition of an execmem_range.
-
-Link: https://lkml.kernel.org/r/20241023162711.2579610-8-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20241023162711.2579610-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
 Tested-by: kdevops <kdevops@lists.linux.dev>
@@ -134,464 +112,77 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig            |    8 
- include/linux/execmem.h |   14 +
- mm/execmem.c            |  325 +++++++++++++++++++++++++++++++++++++-
- mm/internal.h           |    1 
- mm/vmalloc.c            |    5 
- 5 files changed, 345 insertions(+), 8 deletions(-)
+ arch/x86/Kconfig   |    1 +
+ arch/x86/mm/init.c |   37 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
---- a/arch/Kconfig~execmem-add-support-for-cache-of-large-rox-pages
-+++ a/arch/Kconfig
-@@ -1024,6 +1024,14 @@ config ARCH_WANTS_EXECMEM_LATE
- 	  enough entropy for module space randomization, for instance
- 	  arm64.
- 
-+config ARCH_HAS_EXECMEM_ROX
-+	bool
-+	depends on MMU && !HIGHMEM
-+	help
-+	  For architectures that support allocations of executable memory
-+	  with read-only execute permissions. Architecture must implement
-+	  execmem_fill_trapping_insns() callback to enable this.
-+
- config HAVE_IRQ_EXIT_ON_IRQ_STACK
- 	bool
- 	help
---- a/include/linux/execmem.h~execmem-add-support-for-cache-of-large-rox-pages
-+++ a/include/linux/execmem.h
-@@ -53,6 +53,20 @@ enum execmem_range_flags {
- 	EXECMEM_ROX_CACHE	= (1 << 1),
- };
+--- a/arch/x86/Kconfig~x86-module-enable-rox-caches-for-module-text-on-64-bit
++++ a/arch/x86/Kconfig
+@@ -83,6 +83,7 @@ config X86
+ 	select ARCH_HAS_DMA_OPS			if GART_IOMMU || XEN
+ 	select ARCH_HAS_EARLY_DEBUG		if KGDB
+ 	select ARCH_HAS_ELF_RANDOMIZE
++	select ARCH_HAS_EXECMEM_ROX		if X86_64
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+--- a/arch/x86/mm/init.c~x86-module-enable-rox-caches-for-module-text-on-64-bit
++++ a/arch/x86/mm/init.c
+@@ -1053,18 +1053,53 @@ unsigned long arch_max_swapfile_size(voi
+ #ifdef CONFIG_EXECMEM
+ static struct execmem_info execmem_info __ro_after_init;
  
 +#ifdef CONFIG_ARCH_HAS_EXECMEM_ROX
-+/**
-+ * execmem_fill_trapping_insns - set memory to contain instructions that
-+ *				 will trap
-+ * @ptr:	pointer to memory to fill
-+ * @size:	size of the range to fill
-+ * @writable:	is the memory poited by @ptr is writable or ROX
-+ *
-+ * A hook for architecures to fill execmem ranges with invalid instructions.
-+ * Architectures that use EXECMEM_ROX_CACHE must implement this.
-+ */
-+void execmem_fill_trapping_insns(void *ptr, size_t size, bool writable);
++void execmem_fill_trapping_insns(void *ptr, size_t size, bool writeable)
++{
++	/* fill memory with INT3 instructions */
++	if (writeable)
++		memset(ptr, INT3_INSN_OPCODE, size);
++	else
++		text_poke_set(ptr, INT3_INSN_OPCODE, size);
++}
 +#endif
 +
- /**
-  * struct execmem_range - definition of an address space suitable for code and
-  *			  related data allocations
---- a/mm/execmem.c~execmem-add-support-for-cache-of-large-rox-pages
-+++ a/mm/execmem.c
-@@ -6,29 +6,41 @@
-  * Copyright (C) 2024 Mike Rapoport IBM.
-  */
- 
-+#define pr_fmt(fmt) "execmem: " fmt
-+
- #include <linux/mm.h>
-+#include <linux/mutex.h>
- #include <linux/vmalloc.h>
- #include <linux/execmem.h>
-+#include <linux/maple_tree.h>
-+#include <linux/set_memory.h>
- #include <linux/moduleloader.h>
- #include <linux/text-patching.h>
- 
-+#include <asm/tlbflush.h>
-+
-+#include "internal.h"
-+
- static struct execmem_info *execmem_info __ro_after_init;
- static struct execmem_info default_execmem_info __ro_after_init;
- 
--static void *__execmem_alloc(struct execmem_range *range, size_t size)
-+#ifdef CONFIG_MMU
-+static void *execmem_vmalloc(struct execmem_range *range, size_t size,
-+			     pgprot_t pgprot, unsigned long vm_flags)
+ struct execmem_info __init *execmem_arch_setup(void)
  {
- 	bool kasan = range->flags & EXECMEM_KASAN_SHADOW;
--	unsigned long vm_flags  = VM_FLUSH_RESET_PERMS;
- 	gfp_t gfp_flags = GFP_KERNEL | __GFP_NOWARN;
-+	unsigned int align = range->alignment;
- 	unsigned long start = range->start;
- 	unsigned long end = range->end;
--	unsigned int align = range->alignment;
--	pgprot_t pgprot = range->pgprot;
- 	void *p;
+ 	unsigned long start, offset = 0;
++	enum execmem_range_flags flags;
++	pgprot_t pgprot;
  
- 	if (kasan)
- 		vm_flags |= VM_DEFER_KMEMLEAK;
+ 	if (kaslr_enabled())
+ 		offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
  
-+	if (vm_flags & VM_ALLOW_HUGE_VMAP)
-+		align = PMD_SIZE;
-+
- 	p = __vmalloc_node_range(size, align, start, end, gfp_flags,
- 				 pgprot, vm_flags, NUMA_NO_NODE,
- 				 __builtin_return_address(0));
-@@ -41,7 +53,7 @@ static void *__execmem_alloc(struct exec
- 	}
+ 	start = MODULES_VADDR + offset;
  
- 	if (!p) {
--		pr_warn_ratelimited("execmem: unable to allocate memory\n");
-+		pr_warn_ratelimited("unable to allocate memory\n");
- 		return NULL;
- 	}
- 
-@@ -50,14 +62,298 @@ static void *__execmem_alloc(struct exec
- 		return NULL;
- 	}
- 
--	return kasan_reset_tag(p);
-+	return p;
-+}
-+#else
-+static void *execmem_vmalloc(struct execmem_range *range, size_t size,
-+			     pgprot_t pgprot, unsigned long vm_flags)
-+{
-+	return vmalloc(size);
-+}
-+#endif /* CONFIG_MMU */
-+
-+#ifdef CONFIG_ARCH_HAS_EXECMEM_ROX
-+struct execmem_cache {
-+	struct mutex mutex;
-+	struct maple_tree busy_areas;
-+	struct maple_tree free_areas;
-+};
-+
-+static struct execmem_cache execmem_cache = {
-+	.mutex = __MUTEX_INITIALIZER(execmem_cache.mutex),
-+	.busy_areas = MTREE_INIT_EXT(busy_areas, MT_FLAGS_LOCK_EXTERN,
-+				     execmem_cache.mutex),
-+	.free_areas = MTREE_INIT_EXT(free_areas, MT_FLAGS_LOCK_EXTERN,
-+				     execmem_cache.mutex),
-+};
-+
-+static inline unsigned long mas_range_len(struct ma_state *mas)
-+{
-+	return mas->last - mas->index + 1;
-+}
-+
-+static int execmem_set_direct_map_valid(struct vm_struct *vm, bool valid)
-+{
-+	unsigned int nr = (1 << get_vm_area_page_order(vm));
-+	unsigned int updated = 0;
-+	int err = 0;
-+
-+	for (int i = 0; i < vm->nr_pages; i += nr) {
-+		err = set_direct_map_valid_noflush(vm->pages[i], nr, valid);
-+		if (err)
-+			goto err_restore;
-+		updated += nr;
++	if (IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX)) {
++		pgprot = PAGE_KERNEL_ROX;
++		flags = EXECMEM_KASAN_SHADOW | EXECMEM_ROX_CACHE;
++	} else {
++		pgprot = PAGE_KERNEL;
++		flags = EXECMEM_KASAN_SHADOW;
 +	}
 +
-+	return 0;
-+
-+err_restore:
-+	for (int i = 0; i < updated; i += nr)
-+		set_direct_map_valid_noflush(vm->pages[i], nr, !valid);
-+
-+	return err;
-+}
-+
-+static void execmem_cache_clean(struct work_struct *work)
-+{
-+	struct maple_tree *free_areas = &execmem_cache.free_areas;
-+	struct mutex *mutex = &execmem_cache.mutex;
-+	MA_STATE(mas, free_areas, 0, ULONG_MAX);
-+	void *area;
-+
-+	mutex_lock(mutex);
-+	mas_for_each(&mas, area, ULONG_MAX) {
-+		size_t size = mas_range_len(&mas);
-+
-+		if (IS_ALIGNED(size, PMD_SIZE) &&
-+		    IS_ALIGNED(mas.index, PMD_SIZE)) {
-+			struct vm_struct *vm = find_vm_area(area);
-+
-+			execmem_set_direct_map_valid(vm, true);
-+			mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+			vfree(area);
-+		}
-+	}
-+	mutex_unlock(mutex);
-+}
-+
-+static DECLARE_WORK(execmem_cache_clean_work, execmem_cache_clean);
-+
-+static int execmem_cache_add(void *ptr, size_t size)
-+{
-+	struct maple_tree *free_areas = &execmem_cache.free_areas;
-+	struct mutex *mutex = &execmem_cache.mutex;
-+	unsigned long addr = (unsigned long)ptr;
-+	MA_STATE(mas, free_areas, addr - 1, addr + 1);
-+	unsigned long lower, upper;
-+	void *area = NULL;
-+	int err;
-+
-+	lower = addr;
-+	upper = addr + size - 1;
-+
-+	mutex_lock(mutex);
-+	area = mas_walk(&mas);
-+	if (area && mas.last == addr - 1)
-+		lower = mas.index;
-+
-+	area = mas_next(&mas, ULONG_MAX);
-+	if (area && mas.index == addr + size)
-+		upper = mas.last;
-+
-+	mas_set_range(&mas, lower, upper);
-+	err = mas_store_gfp(&mas, (void *)lower, GFP_KERNEL);
-+	mutex_unlock(mutex);
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static bool within_range(struct execmem_range *range, struct ma_state *mas,
-+			 size_t size)
-+{
-+	unsigned long addr = mas->index;
-+
-+	if (addr >= range->start && addr + size < range->end)
-+		return true;
-+
-+	if (range->fallback_start &&
-+	    addr >= range->fallback_start && addr + size < range->fallback_end)
-+		return true;
-+
-+	return false;
-+}
-+
-+static void *__execmem_cache_alloc(struct execmem_range *range, size_t size)
-+{
-+	struct maple_tree *free_areas = &execmem_cache.free_areas;
-+	struct maple_tree *busy_areas = &execmem_cache.busy_areas;
-+	MA_STATE(mas_free, free_areas, 0, ULONG_MAX);
-+	MA_STATE(mas_busy, busy_areas, 0, ULONG_MAX);
-+	struct mutex *mutex = &execmem_cache.mutex;
-+	unsigned long addr, last, area_size = 0;
-+	void *area, *ptr = NULL;
-+	int err;
-+
-+	mutex_lock(mutex);
-+	mas_for_each(&mas_free, area, ULONG_MAX) {
-+		area_size = mas_range_len(&mas_free);
-+
-+		if (area_size >= size && within_range(range, &mas_free, size))
-+			break;
-+	}
-+
-+	if (area_size < size)
-+		goto out_unlock;
-+
-+	addr = mas_free.index;
-+	last = mas_free.last;
-+
-+	/* insert allocated size to busy_areas at range [addr, addr + size) */
-+	mas_set_range(&mas_busy, addr, addr + size - 1);
-+	err = mas_store_gfp(&mas_busy, (void *)addr, GFP_KERNEL);
-+	if (err)
-+		goto out_unlock;
-+
-+	mas_store_gfp(&mas_free, NULL, GFP_KERNEL);
-+	if (area_size > size) {
-+		void *ptr = (void *)(addr + size);
-+
-+		/*
-+		 * re-insert remaining free size to free_areas at range
-+		 * [addr + size, last]
-+		 */
-+		mas_set_range(&mas_free, addr + size, last);
-+		err = mas_store_gfp(&mas_free, ptr, GFP_KERNEL);
-+		if (err) {
-+			mas_store_gfp(&mas_busy, NULL, GFP_KERNEL);
-+			goto out_unlock;
-+		}
-+	}
-+	ptr = (void *)addr;
-+
-+out_unlock:
-+	mutex_unlock(mutex);
-+	return ptr;
- }
- 
-+static int execmem_cache_populate(struct execmem_range *range, size_t size)
-+{
-+	unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
-+	unsigned long start, end;
-+	struct vm_struct *vm;
-+	size_t alloc_size;
-+	int err = -ENOMEM;
-+	void *p;
-+
-+	alloc_size = round_up(size, PMD_SIZE);
-+	p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
-+	if (!p)
-+		return err;
-+
-+	vm = find_vm_area(p);
-+	if (!vm)
-+		goto err_free_mem;
-+
-+	/* fill memory with instructions that will trap */
-+	execmem_fill_trapping_insns(p, alloc_size, /* writable = */ true);
-+
-+	start = (unsigned long)p;
-+	end = start + alloc_size;
-+
-+	vunmap_range(start, end);
-+
-+	err = execmem_set_direct_map_valid(vm, false);
-+	if (err)
-+		goto err_free_mem;
-+
-+	err = vmap_pages_range_noflush(start, end, range->pgprot, vm->pages,
-+				       PMD_SHIFT);
-+	if (err)
-+		goto err_free_mem;
-+
-+	err = execmem_cache_add(p, alloc_size);
-+	if (err)
-+		goto err_free_mem;
-+
-+	return 0;
-+
-+err_free_mem:
-+	vfree(p);
-+	return err;
-+}
-+
-+static void *execmem_cache_alloc(struct execmem_range *range, size_t size)
-+{
-+	void *p;
-+	int err;
-+
-+	p = __execmem_cache_alloc(range, size);
-+	if (p)
-+		return p;
-+
-+	err = execmem_cache_populate(range, size);
-+	if (err)
-+		return NULL;
-+
-+	return __execmem_cache_alloc(range, size);
-+}
-+
-+static bool execmem_cache_free(void *ptr)
-+{
-+	struct maple_tree *busy_areas = &execmem_cache.busy_areas;
-+	struct mutex *mutex = &execmem_cache.mutex;
-+	unsigned long addr = (unsigned long)ptr;
-+	MA_STATE(mas, busy_areas, addr, addr);
-+	size_t size;
-+	void *area;
-+
-+	mutex_lock(mutex);
-+	area = mas_walk(&mas);
-+	if (!area) {
-+		mutex_unlock(mutex);
-+		return false;
-+	}
-+	size = mas_range_len(&mas);
-+
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	mutex_unlock(mutex);
-+
-+	execmem_fill_trapping_insns(ptr, size, /* writable = */ false);
-+
-+	execmem_cache_add(ptr, size);
-+
-+	schedule_work(&execmem_cache_clean_work);
-+
-+	return true;
-+}
-+#else /* CONFIG_ARCH_HAS_EXECMEM_ROX */
-+static void *execmem_cache_alloc(struct execmem_range *range, size_t size)
-+{
-+	return NULL;
-+}
-+
-+static bool execmem_cache_free(void *ptr)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_ARCH_HAS_EXECMEM_ROX */
-+
- void *execmem_alloc(enum execmem_type type, size_t size)
- {
- 	struct execmem_range *range = &execmem_info->ranges[type];
-+	bool use_cache = range->flags & EXECMEM_ROX_CACHE;
-+	unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
-+	pgprot_t pgprot = range->pgprot;
-+	void *p;
- 
--	return __execmem_alloc(range, size);
-+	if (use_cache)
-+		p = execmem_cache_alloc(range, size);
-+	else
-+		p = execmem_vmalloc(range, size, pgprot, vm_flags);
-+
-+	return kasan_reset_tag(p);
- }
- 
- void execmem_free(void *ptr)
-@@ -67,7 +363,9 @@ void execmem_free(void *ptr)
- 	 * supported by vmalloc.
- 	 */
- 	WARN_ON(in_interrupt());
--	vfree(ptr);
-+
-+	if (!execmem_cache_free(ptr))
-+		vfree(ptr);
- }
- 
- void *execmem_update_copy(void *dst, const void *src, size_t size)
-@@ -89,6 +387,17 @@ static bool execmem_validate(struct exec
- 		return false;
- 	}
- 
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX)) {
-+		for (int i = EXECMEM_DEFAULT; i < EXECMEM_TYPE_MAX; i++) {
-+			r = &info->ranges[i];
-+
-+			if (r->flags & EXECMEM_ROX_CACHE) {
-+				pr_warn_once("ROX cache is not supported\n");
-+				r->flags &= ~EXECMEM_ROX_CACHE;
-+			}
-+		}
-+	}
-+
- 	return true;
- }
- 
---- a/mm/internal.h~execmem-add-support-for-cache-of-large-rox-pages
-+++ a/mm/internal.h
-@@ -1235,6 +1235,7 @@ size_t splice_folio_into_pipe(struct pip
- void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift);
-+unsigned int get_vm_area_page_order(struct vm_struct *vm);
- #else
- static inline void vmalloc_init(void)
- {
---- a/mm/vmalloc.c~execmem-add-support-for-cache-of-large-rox-pages
-+++ a/mm/vmalloc.c
-@@ -3023,6 +3023,11 @@ static inline unsigned int vm_area_page_
- #endif
- }
- 
-+unsigned int get_vm_area_page_order(struct vm_struct *vm)
-+{
-+	return vm_area_page_order(vm);
-+}
-+
- static inline void set_vm_area_page_order(struct vm_struct *vm, unsigned int order)
- {
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
+ 	execmem_info = (struct execmem_info){
+ 		.ranges = {
+-			[EXECMEM_DEFAULT] = {
++			[EXECMEM_MODULE_TEXT] = {
++				.flags	= flags,
++				.start	= start,
++				.end	= MODULES_END,
++				.pgprot	= pgprot,
++				.alignment = MODULE_ALIGN,
++			},
++			[EXECMEM_KPROBES ... EXECMEM_BPF] = {
++				.flags	= EXECMEM_KASAN_SHADOW,
++				.start	= start,
++				.end	= MODULES_END,
++				.pgprot	= PAGE_KERNEL,
++				.alignment = MODULE_ALIGN,
++			},
++			[EXECMEM_MODULE_DATA] = {
+ 				.flags	= EXECMEM_KASAN_SHADOW,
+ 				.start	= start,
+ 				.end	= MODULES_END,
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
