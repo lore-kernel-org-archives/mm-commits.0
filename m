@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 305351E2614
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 21:05:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C533155741
+	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 21:05:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729717542; cv=none; b=oDShlJ5sRx0X9jLtNFtV6zvK+tF7HxmMU3tushXbpGRz48KpTswlIhXZXRcnuZ12ZJMPX2bVE4JhRklZnoaE6lyTSsqNJoD9N/op+gqXP99oAB2EA9oFaRw6BX+cLXjqUg9e/m/ttEpWfWDpzZJPeSerpOcRaTC08SnYawLk2Jc=
+	t=1729717545; cv=none; b=MEi7dNUwN+rmRqRfsobmIXugQb5oEsiAo4Y7wl1yYHzO6Xx9+1d6WU7pMBjEj1pqd8T29Ax6MiIgfQY6Qb0kcXiCrlKpWwSTHXlcQcO0XgscuL5gvHWUAw57eu2eFkJUqHQs+4RvBozb/uoG0NfTRbrl3brloATxvEafP1NUqn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729717542; c=relaxed/simple;
-	bh=LVdQ+qxAarkyzG6K8W3QtXVJtE2QOxIcKLUvgHs4FYI=;
-	h=Date:To:From:Subject:Message-Id; b=DqCzNcKZjeIh14qqTnFga8Q2hzvNgXfy8gyaYLDdXl7wy3tlVzPd/zNe1Ep0/dRbR68jjwey1zUb5f7rHIZBGUFYezUgfooKDblOy+Ksc/zETsTnWR8D8og6J+RhAQgrFQ/TZLsClLLUfGldIH5HdVGy19hk3InFfa5oZX4ki9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XvlB27C7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729717545; c=relaxed/simple;
+	bh=7tDvOVzHA7MYBAqll70kZDrHjphzTyAc/T4WWfT2CFE=;
+	h=Date:To:From:Subject:Message-Id; b=EZso6vxEw402n/euJcoYS/HeP9FHv3uqs5oJQ9PlAl/+Kks4gc0h0DGjOMEuhYC1n89x7OntjKbJ0H2GbDgzxN07+M46fmGP2jNb6mLJmwH1ZteWgbwRlNgDBPAJWlIET4AaFhI4BoyvmQEPJ83I4aU9XIx8jD9DBXZOVVlxHjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FbD1oukO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XvlB27C7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E64BC4CEC6;
-	Wed, 23 Oct 2024 21:05:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FbD1oukO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 901A5C4CEC6;
+	Wed, 23 Oct 2024 21:05:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729717541;
-	bh=LVdQ+qxAarkyzG6K8W3QtXVJtE2QOxIcKLUvgHs4FYI=;
+	s=korg; t=1729717544;
+	bh=7tDvOVzHA7MYBAqll70kZDrHjphzTyAc/T4WWfT2CFE=;
 	h=Date:To:From:Subject:From;
-	b=XvlB27C7jhRmPTmV450eVW+FRYSpCJup+DNkBafK3hXl4kzhgB7nvGib59qtbl4Fb
-	 llGfW7cKHORW4G/7eoCHJirW2trBfpXsldBmPzLBDPrfbU/NoP5SG09w6S1NSjf7Yp
-	 6ozcDdahUVlGGmjDYkfVUX0leLetNNqsEkmlIk2s=
-Date: Wed, 23 Oct 2024 14:05:37 -0700
+	b=FbD1oukOO7zJZx63PM1FUkNCHlZU9O9gspDXcGKlikyUeotR0QoL9+WGrFct6f5/Y
+	 axjMwduVJUeZvk+kKR6QWhKpyuFuatb3yvvqI6x7i4ZT2SoD8cYfiUEb2HTs1OXh6B
+	 DqlFL+OPIA9qT5sJ4Wlb7LWe0UmtzYSpk6hamjgc=
+Date: Wed, 23 Oct 2024 14:05:44 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,xiongwei.song@windriver.com,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,thuth@redhat.com,tglx@linutronix.de,souravpanda@google.com,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,petr.pavlu@suse.com,paulmck@kernel.org,pasha.tatashin@soleen.com,minchan@google.com,mhocko@suse.com,mcgrof@kernel.org,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,keescook@chromium.org,kaleshsingh@google.com,jhubbard@nvidia.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,dave@stgolabs.net,da.gomez@samsung.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-populate-memory-for-module-tags-as-needed.patch added to mm-unstable branch
-Message-Id: <20241023210541.9E64BC4CEC6@smtp.kernel.org>
+Subject: + alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch added to mm-unstable branch
+Message-Id: <20241023210544.901A5C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: populate memory for module tags as needed
+     Subject: alloc_tag: introduce pgtag_ref_handle to abstract page tag references
 has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-populate-memory-for-module-tags-as-needed.patch
+     alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-populate-memory-for-module-tags-as-needed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: populate memory for module tags as needed
-Date: Wed, 23 Oct 2024 10:07:57 -0700
+Subject: alloc_tag: introduce pgtag_ref_handle to abstract page tag references
+Date: Wed, 23 Oct 2024 10:07:58 -0700
 
-The memory reserved for module tags does not need to be backed by physical
-pages until there are tags to store there.  Change the way we reserve this
-memory to allocate only virtual area for the tags and populate it with
-physical pages as needed when we load a module.
+To simplify later changes to page tag references, introduce new
+pgtag_ref_handle type.  This allows easy replacement of page_ext as a
+storage of page allocation tags.
 
-Link: https://lkml.kernel.org/r/20241023170759.999909-5-surenb@google.com
+Link: https://lkml.kernel.org/r/20241023170759.999909-6-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -107,239 +106,212 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/execmem.h |   10 +++++
- include/linux/vmalloc.h |    3 +
- lib/alloc_tag.c         |   73 +++++++++++++++++++++++++++++++++-----
- mm/execmem.c            |   16 ++++++++
- mm/internal.h           |    6 +++
- mm/vmalloc.c            |    4 +-
- 6 files changed, 101 insertions(+), 11 deletions(-)
+ include/linux/mm.h          |   25 ++++-----
+ include/linux/pgalloc_tag.h |   90 ++++++++++++++++++++--------------
+ 2 files changed, 66 insertions(+), 49 deletions(-)
 
---- a/include/linux/execmem.h~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/include/linux/execmem.h
-@@ -140,6 +140,16 @@ void *execmem_alloc(enum execmem_type ty
- void execmem_free(void *ptr);
+--- a/include/linux/mm.h~alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references
++++ a/include/linux/mm.h
+@@ -4180,37 +4180,38 @@ static inline void pgalloc_tag_split(str
+ 		return;
  
- /**
-+ * execmem_vmap - create virtual mapping for EXECMEM_MODULE_DATA memory
-+ * @size: size of the virtual mapping in bytes
-+ *
-+ * Maps virtually contiguous area in the range suitable for EXECMEM_MODULE_DATA.
-+ *
-+ * Return: the area descriptor on success or %NULL on failure.
-+ */
-+struct vm_struct *execmem_vmap(size_t size);
-+
-+/**
-  * execmem_update_copy - copy an update to executable memory
-  * @dst:  destination address to update
-  * @src:  source address containing the data
---- a/include/linux/vmalloc.h~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/include/linux/vmalloc.h
-@@ -202,6 +202,9 @@ extern int remap_vmalloc_range_partial(s
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
+ 	for (i = nr_pages; i < (1 << old_order); i += nr_pages) {
+-		union codetag_ref *ref = get_page_tag_ref(folio_page(folio, i));
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
  
-+int vmap_pages_range(unsigned long addr, unsigned long end, pgprot_t prot,
-+		     struct page **pages, unsigned int page_shift);
-+
- /*
-  * Architectures can set this mask to a combination of PGTBL_P?D_MODIFIED values
-  * and let generic vmalloc and ioremap code know when arch_sync_kernel_mappings()
---- a/lib/alloc_tag.c~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/lib/alloc_tag.c
-@@ -8,14 +8,15 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_buf.h>
- #include <linux/seq_file.h>
-+#include <linux/vmalloc.h>
- 
- #define ALLOCINFO_FILE_NAME		"allocinfo"
- #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
- 
- #ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
--static bool mem_profiling_support __meminitdata = true;
-+static bool mem_profiling_support = true;
- #else
--static bool mem_profiling_support __meminitdata;
-+static bool mem_profiling_support;
- #endif
- 
- static struct codetag_type *alloc_tag_cttype;
-@@ -154,7 +155,7 @@ size_t alloc_tag_top_users(struct codeta
- 	return nr;
+-		if (ref) {
++		if (get_page_tag_ref(folio_page(folio, i), &ref, &handle)) {
+ 			/* Set new reference to point to the original tag */
+-			alloc_tag_ref_set(ref, tag);
+-			put_page_tag_ref(ref);
++			alloc_tag_ref_set(&ref, tag);
++			update_page_tag_ref(handle, &ref);
++			put_page_tag_ref(handle);
+ 		}
+ 	}
  }
  
--static void __init shutdown_mem_profiling(void)
-+static void shutdown_mem_profiling(void)
+ static inline void pgalloc_tag_copy(struct folio *new, struct folio *old)
  {
- 	if (mem_alloc_profiling_enabled())
- 		static_branch_disable(&mem_alloc_profiling_key);
-@@ -179,6 +180,7 @@ static void __init procfs_init(void)
- #ifdef CONFIG_MODULES
++	union pgtag_ref_handle handle;
++	union codetag_ref ref;
+ 	struct alloc_tag *tag;
+-	union codetag_ref *ref;
  
- static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
-+static struct vm_struct *vm_module_tags;
- /* A dummy object used to indicate an unloaded module */
- static struct module unloaded_mod;
- /* A dummy object used to indicate a module prepended area */
-@@ -252,6 +254,33 @@ repeat:
- 	return false;
+ 	tag = pgalloc_tag_get(&old->page);
+ 	if (!tag)
+ 		return;
+ 
+-	ref = get_page_tag_ref(&new->page);
+-	if (!ref)
++	if (!get_page_tag_ref(&new->page, &ref, &handle))
+ 		return;
+ 
+ 	/* Clear the old ref to the original allocation tag. */
+ 	clear_page_tag_ref(&old->page);
+ 	/* Decrement the counters of the tag on get_new_folio. */
+-	alloc_tag_sub(ref, folio_size(new));
+-
+-	__alloc_tag_ref_set(ref, tag);
+-
+-	put_page_tag_ref(ref);
++	alloc_tag_sub(&ref, folio_size(new));
++	__alloc_tag_ref_set(&ref, tag);
++	update_page_tag_ref(handle, &ref);
++	put_page_tag_ref(handle);
+ }
+ #else /* !CONFIG_MEM_ALLOC_PROFILING */
+ static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
+--- a/include/linux/pgalloc_tag.h~alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references
++++ a/include/linux/pgalloc_tag.h
+@@ -11,46 +11,59 @@
+ 
+ #include <linux/page_ext.h>
+ 
++union pgtag_ref_handle {
++	union codetag_ref *ref;	/* reference in page extension */
++};
++
+ extern struct page_ext_operations page_alloc_tagging_ops;
+ 
+-static inline union codetag_ref *codetag_ref_from_page_ext(struct page_ext *page_ext)
++/* Should be called only if mem_alloc_profiling_enabled() */
++static inline bool get_page_tag_ref(struct page *page, union codetag_ref *ref,
++				    union pgtag_ref_handle *handle)
+ {
+-	return (union codetag_ref *)page_ext_data(page_ext, &page_alloc_tagging_ops);
+-}
++	struct page_ext *page_ext;
++	union codetag_ref *tmp;
+ 
+-static inline struct page_ext *page_ext_from_codetag_ref(union codetag_ref *ref)
+-{
+-	return (void *)ref - page_alloc_tagging_ops.offset;
++	if (!page)
++		return false;
++
++	page_ext = page_ext_get(page);
++	if (!page_ext)
++		return false;
++
++	tmp = (union codetag_ref *)page_ext_data(page_ext, &page_alloc_tagging_ops);
++	ref->ct = tmp->ct;
++	handle->ref = tmp;
++	return true;
  }
  
-+static int vm_module_tags_populate(void)
-+{
-+	unsigned long phys_size = vm_module_tags->nr_pages << PAGE_SHIFT;
-+
-+	if (phys_size < module_tags.size) {
-+		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
-+		unsigned long addr = module_tags.start_addr + phys_size;
-+		unsigned long more_pages;
-+		unsigned long nr;
-+
-+		more_pages = ALIGN(module_tags.size - phys_size, PAGE_SIZE) >> PAGE_SHIFT;
-+		nr = alloc_pages_bulk_array_node(GFP_KERNEL | __GFP_NOWARN,
-+						 NUMA_NO_NODE, more_pages, next_page);
-+		if (nr < more_pages ||
-+		    vmap_pages_range(addr, addr + (nr << PAGE_SHIFT), PAGE_KERNEL,
-+				     next_page, PAGE_SHIFT) < 0) {
-+			/* Clean up and error out */
-+			for (int i = 0; i < nr; i++)
-+				__free_page(next_page[i]);
-+			return -ENOMEM;
-+		}
-+		vm_module_tags->nr_pages += nr;
-+	}
-+
-+	return 0;
-+}
-+
- static void *reserve_module_tags(struct module *mod, unsigned long size,
- 				 unsigned int prepend, unsigned long align)
+-/* Should be called only if mem_alloc_profiling_enabled() */
+-static inline union codetag_ref *get_page_tag_ref(struct page *page)
++static inline void put_page_tag_ref(union pgtag_ref_handle handle)
  {
-@@ -310,8 +339,18 @@ unlock:
- 	if (IS_ERR(ret))
- 		return ret;
+-	if (page) {
+-		struct page_ext *page_ext = page_ext_get(page);
++	if (WARN_ON(!handle.ref))
++		return;
  
--	if (module_tags.size < offset + size)
-+	if (module_tags.size < offset + size) {
-+		int grow_res;
-+
- 		module_tags.size = offset + size;
-+		grow_res = vm_module_tags_populate();
-+		if (grow_res) {
-+			shutdown_mem_profiling();
-+			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
-+			       mod->name);
-+			return ERR_PTR(grow_res);
-+		}
-+	}
- 
- 	return (struct alloc_tag *)(module_tags.start_addr + offset);
- }
-@@ -372,12 +411,23 @@ static void replace_module(struct module
- 
- static int __init alloc_mod_tags_mem(void)
- {
--	/* Allocate space to copy allocation tags */
--	module_tags.start_addr = (unsigned long)execmem_alloc(EXECMEM_MODULE_DATA,
--							      MODULE_ALLOC_TAG_VMAP_SIZE);
--	if (!module_tags.start_addr)
-+	/* Map space to copy allocation tags */
-+	vm_module_tags = execmem_vmap(MODULE_ALLOC_TAG_VMAP_SIZE);
-+	if (!vm_module_tags) {
-+		pr_err("Failed to map %lu bytes for module allocation tags\n",
-+			MODULE_ALLOC_TAG_VMAP_SIZE);
-+		module_tags.start_addr = 0;
-+		return -ENOMEM;
-+	}
-+
-+	vm_module_tags->pages = kmalloc_array(get_vm_area_size(vm_module_tags) >> PAGE_SHIFT,
-+					sizeof(struct page *), GFP_KERNEL | __GFP_ZERO);
-+	if (!vm_module_tags->pages) {
-+		free_vm_area(vm_module_tags);
- 		return -ENOMEM;
-+	}
- 
-+	module_tags.start_addr = (unsigned long)vm_module_tags->addr;
- 	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
- 
- 	return 0;
-@@ -385,8 +435,13 @@ static int __init alloc_mod_tags_mem(voi
- 
- static void __init free_mod_tags_mem(void)
- {
--	execmem_free((void *)module_tags.start_addr);
-+	int i;
-+
- 	module_tags.start_addr = 0;
-+	for (i = 0; i < vm_module_tags->nr_pages; i++)
-+		__free_page(vm_module_tags->pages[i]);
-+	kfree(vm_module_tags->pages);
-+	free_vm_area(vm_module_tags);
+-		if (page_ext)
+-			return codetag_ref_from_page_ext(page_ext);
+-	}
+-	return NULL;
++	page_ext_put((void *)handle.ref - page_alloc_tagging_ops.offset);
  }
  
- #else /* CONFIG_MODULES */
---- a/mm/execmem.c~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/mm/execmem.c
-@@ -368,6 +368,22 @@ void execmem_free(void *ptr)
- 		vfree(ptr);
+-static inline void put_page_tag_ref(union codetag_ref *ref)
++static inline void update_page_tag_ref(union pgtag_ref_handle handle,
++				       union codetag_ref *ref)
+ {
+-	if (WARN_ON(!ref))
++	if (WARN_ON(!handle.ref || !ref))
+ 		return;
+ 
+-	page_ext_put(page_ext_from_codetag_ref(ref));
++	handle.ref->ct = ref->ct;
  }
  
-+struct vm_struct *execmem_vmap(size_t size)
-+{
-+	struct execmem_range *range = &execmem_info->ranges[EXECMEM_MODULE_DATA];
-+	struct vm_struct *area;
-+
-+	area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
-+				  range->start, range->end, NUMA_NO_NODE,
-+				  GFP_KERNEL, __builtin_return_address(0));
-+	if (!area && range->fallback_start)
-+		area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
-+					  range->fallback_start, range->fallback_end,
-+					  NUMA_NO_NODE, GFP_KERNEL, __builtin_return_address(0));
-+
-+	return area;
-+}
-+
- void *execmem_update_copy(void *dst, const void *src, size_t size)
+ static inline void clear_page_tag_ref(struct page *page)
  {
- 	return text_poke_copy(dst, src, size);
---- a/mm/internal.h~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/mm/internal.h
-@@ -1263,6 +1263,12 @@ int numa_migrate_check(struct folio *fol
- void free_zone_device_folio(struct folio *folio);
- int migrate_device_coherent_folio(struct folio *folio);
+ 	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
  
-+struct vm_struct *__get_vm_area_node(unsigned long size,
-+				     unsigned long align, unsigned long shift,
-+				     unsigned long flags, unsigned long start,
-+				     unsigned long end, int node, gfp_t gfp_mask,
-+				     const void *caller);
-+
- /*
-  * mm/gup.c
-  */
---- a/mm/vmalloc.c~alloc_tag-populate-memory-for-module-tags-as-needed
-+++ a/mm/vmalloc.c
-@@ -653,7 +653,7 @@ int vmap_pages_range_noflush(unsigned lo
-  * RETURNS:
-  * 0 on success, -errno on failure.
-  */
--static int vmap_pages_range(unsigned long addr, unsigned long end,
-+int vmap_pages_range(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages, unsigned int page_shift)
- {
- 	int err;
-@@ -3106,7 +3106,7 @@ static void clear_vm_uninitialized_flag(
- 	vm->flags &= ~VM_UNINITIALIZED;
+-		if (ref) {
+-			set_codetag_empty(ref);
+-			put_page_tag_ref(ref);
++		if (get_page_tag_ref(page, &ref, &handle)) {
++			set_codetag_empty(&ref);
++			update_page_tag_ref(handle, &ref);
++			put_page_tag_ref(handle);
+ 		}
+ 	}
  }
+@@ -59,11 +72,13 @@ static inline void pgalloc_tag_add(struc
+ 				   unsigned int nr)
+ {
+ 	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
  
--static struct vm_struct *__get_vm_area_node(unsigned long size,
-+struct vm_struct *__get_vm_area_node(unsigned long size,
- 		unsigned long align, unsigned long shift, unsigned long flags,
- 		unsigned long start, unsigned long end, int node,
- 		gfp_t gfp_mask, const void *caller)
+-		if (ref) {
+-			alloc_tag_add(ref, task->alloc_tag, PAGE_SIZE * nr);
+-			put_page_tag_ref(ref);
++		if (get_page_tag_ref(page, &ref, &handle)) {
++			alloc_tag_add(&ref, task->alloc_tag, PAGE_SIZE * nr);
++			update_page_tag_ref(handle, &ref);
++			put_page_tag_ref(handle);
+ 		}
+ 	}
+ }
+@@ -71,11 +86,13 @@ static inline void pgalloc_tag_add(struc
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr)
+ {
+ 	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
+ 
+-		if (ref) {
+-			alloc_tag_sub(ref, PAGE_SIZE * nr);
+-			put_page_tag_ref(ref);
++		if (get_page_tag_ref(page, &ref, &handle)) {
++			alloc_tag_sub(&ref, PAGE_SIZE * nr);
++			update_page_tag_ref(handle, &ref);
++			put_page_tag_ref(handle);
+ 		}
+ 	}
+ }
+@@ -85,13 +102,14 @@ static inline struct alloc_tag *pgalloc_
+ 	struct alloc_tag *tag = NULL;
+ 
+ 	if (mem_alloc_profiling_enabled()) {
+-		union codetag_ref *ref = get_page_tag_ref(page);
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
+ 
+-		alloc_tag_sub_check(ref);
+-		if (ref) {
+-			if (ref->ct)
+-				tag = ct_to_alloc_tag(ref->ct);
+-			put_page_tag_ref(ref);
++		if (get_page_tag_ref(page, &ref, &handle)) {
++			alloc_tag_sub_check(&ref);
++			if (ref.ct)
++				tag = ct_to_alloc_tag(ref.ct);
++			put_page_tag_ref(handle);
+ 		}
+ 	}
+ 
+@@ -106,8 +124,6 @@ static inline void pgalloc_tag_sub_pages
+ 
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+ 
+-static inline union codetag_ref *get_page_tag_ref(struct page *page) { return NULL; }
+-static inline void put_page_tag_ref(union codetag_ref *ref) {}
+ static inline void clear_page_tag_ref(struct page *page) {}
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr) {}
 _
 
 Patches currently in -mm which might be from surenb@google.com are
