@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AFDE22615
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 23:25:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76F1478C9C;
+	Wed, 23 Oct 2024 23:31:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729725931; cv=none; b=VGUEqK2PoWFXAOTZqXBReTnf6Uj/N6Usd/xo+hRvCs0lmrCj1veZBwu12tIVchd2C1LujU78fxv+UZvst/tW4F7b8uxU2lPoMt3TxgSMlf4ppZNgzGw1r2eYV/igC6Co6qmmm5OpC5QzZ6Q9LxIGsmfudOrS3U5tzSrpXOI/Qaw=
+	t=1729726308; cv=none; b=Sx2XqPvwHY6X1+RFILXg3b2FR1LFXm5gC8Dm79EP0aSd9MzTHbAkFu/ZpZuMRMgYNKIdG8kh3YrOvDNGtFiOfIIfePX7deODdKmpuU3tSnmnGX0SFanIUwCGeC59mjG3aPmOTKJMnnBRH1UrL2wYlSwZGpEFiHO9ykZ+DEmKKTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729725931; c=relaxed/simple;
-	bh=gaXsdKzkrEQiyhPQE6BMagI6jHzizFtjaJu5rWWm+Vk=;
-	h=Date:To:From:Subject:Message-Id; b=L/XiCMTogWt59oeizLn3M9k1Leheiy1a495nAPS+HXABMMK7KHHh37xRrpc8t2LDj+S/Jfnz9H3YDxs4baQe8qiODDIeYtCo+46qIlHOm6YyqxO0XRCWcPbZjZhFQRW24A8Fn3THbKwgVbpWLDXWiMJHnWQ4RVgdcDyqGpguSr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iwecUWSt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729726308; c=relaxed/simple;
+	bh=YbWYuKtDd+ETf6Zk2BpyeVmCMzdsoDkdQkPr92Yy/yU=;
+	h=Date:To:From:Subject:Message-Id; b=ejaqRKRXcDXPsDAwvZtsZq0N14T1fVCOW6IEyAwrAba0S/QBDWQZvsHXXw/SoeO1PxVQchALz7SDGbcR4S0jhGiwE1oBQV6ZB5TqH+XKu3jkHP92tRE8j8HXQSCGPz04QMZI4NaPYgiIVGwYzDMont6p3j3n0azIaOpLoxxQn4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ysLAswPS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iwecUWSt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D085C4CEC6;
-	Wed, 23 Oct 2024 23:25:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ysLAswPS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1964EC4CEC6;
+	Wed, 23 Oct 2024 23:31:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729725931;
-	bh=gaXsdKzkrEQiyhPQE6BMagI6jHzizFtjaJu5rWWm+Vk=;
+	s=korg; t=1729726308;
+	bh=YbWYuKtDd+ETf6Zk2BpyeVmCMzdsoDkdQkPr92Yy/yU=;
 	h=Date:To:From:Subject:From;
-	b=iwecUWStGoIIuLb17Xk/RJs/1y6uQywFp/On5ZMJXKJGmb1eASCOIdNpgIvNcCwC2
-	 MQ8SUyRJdCGjB6nRy4ZDfZ/AkDVanW3V1O4I8yREfpxDYavrVOmeC+81UCjNjZT7b9
-	 dnd6OSYOpBkt2mpK9Jo/5PGvOiSvQjlCxrQdnp3w=
-Date: Wed, 23 Oct 2024 16:25:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jimzhao.ai@gmail.com,akpm@linux-foundation.org
+	b=ysLAswPSFkv6+kdOiAIISSR6hfJwH9w7zHBorK5r/H2pu1/8ShTUGPp2DufxqhvAY
+	 Xnqpsubz5+n1tMGQcxpu+jAihOmC1JUw0GsY3pGlRipxhf7oTkuiDIe3bpJISTmakX
+	 1znirve9s46A9CW/4EyegfWCmC46UtbyrPEhgbz8=
+Date: Wed, 23 Oct 2024 16:31:47 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mawupeng1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page-writeback-raise-wb_thresh-to-prevent-write-blocking-with-strictlimit.patch added to mm-unstable branch
-Message-Id: <20241023232531.1D085C4CEC6@smtp.kernel.org>
+Subject: + ipc-fix-memleak-if-msg_init_ns-failed-in-create_ipc_ns.patch added to mm-nonmm-unstable branch
+Message-Id: <20241023233148.1964EC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page-writeback: raise wb_thresh to prevent write blocking with strictlimit
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page-writeback-raise-wb_thresh-to-prevent-write-blocking-with-strictlimit.patch
+     Subject: ipc: fix memleak if msg_init_ns failed in create_ipc_ns
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-fix-memleak-if-msg_init_ns-failed-in-create_ipc_ns.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page-writeback-raise-wb_thresh-to-prevent-write-blocking-with-strictlimit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-fix-memleak-if-msg_init_ns-failed-in-create_ipc_ns.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jim Zhao <jimzhao.ai@gmail.com>
-Subject: mm/page-writeback: raise wb_thresh to prevent write blocking with strictlimit
-Date: Wed, 23 Oct 2024 18:00:32 +0800
+From: Wupeng Ma <mawupeng1@huawei.com>
+Subject: ipc: fix memleak if msg_init_ns failed in create_ipc_ns
+Date: Wed, 23 Oct 2024 17:31:29 +0800
 
-With the strictlimit flag, wb_thresh acts as a hard limit in
-balance_dirty_pages() and wb_position_ratio().  When device write
-operations are inactive, wb_thresh can drop to 0, causing writes to be
-blocked.  The issue occasionally occurs in fuse fs, particularly with
-network backends, the write thread is blocked frequently during a period. 
-To address it, this patch raises the minimum wb_thresh to a controllable
-level, similar to the non-strictlimit case.
 
-Link: https://lkml.kernel.org/r/20241023100032.62952-1-jimzhao.ai@gmail.com
-Signed-off-by: Jim Zhao <jimzhao.ai@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Percpu memory allocation may failed during create_ipc_ns however this
+fail is not handled properly since ipc sysctls and mq sysctls is not
+released properly. Fix this by release these two resource when failure.
+
+Here is the kmemleak stack when percpu failed:
+
+unreferenced object 0xffff88819de2a600 (size 512):
+  comm "shmem_2nstest", pid 120711, jiffies 4300542254
+  hex dump (first 32 bytes):
+    60 aa 9d 84 ff ff ff ff fc 18 48 b2 84 88 ff ff  `.........H.....
+    04 00 00 00 a4 01 00 00 20 e4 56 81 ff ff ff ff  ........ .V.....
+  backtrace (crc be7cba35):
+    [<ffffffff81b43f83>] __kmalloc_node_track_caller_noprof+0x333/0x420
+    [<ffffffff81a52e56>] kmemdup_noprof+0x26/0x50
+    [<ffffffff821b2f37>] setup_mq_sysctls+0x57/0x1d0
+    [<ffffffff821b29cc>] copy_ipcs+0x29c/0x3b0
+    [<ffffffff815d6a10>] create_new_namespaces+0x1d0/0x920
+    [<ffffffff815d7449>] copy_namespaces+0x2e9/0x3e0
+    [<ffffffff815458f3>] copy_process+0x29f3/0x7ff0
+    [<ffffffff8154b080>] kernel_clone+0xc0/0x650
+    [<ffffffff8154b6b1>] __do_sys_clone+0xa1/0xe0
+    [<ffffffff843df8ff>] do_syscall_64+0xbf/0x1c0
+    [<ffffffff846000b0>] entry_SYSCALL_64_after_hwframe+0x4b/0x53
+
+Link: https://lkml.kernel.org/r/20241023093129.3074301-1-mawupeng1@huawei.com
+Fixes: 72d1e611082e ("ipc/msg: mitigate the lock contention with percpu counter")
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ ipc/namespace.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-raise-wb_thresh-to-prevent-write-blocking-with-strictlimit
-+++ a/mm/page-writeback.c
-@@ -917,7 +917,9 @@ static unsigned long __wb_calc_thresh(st
- 				      unsigned long thresh)
- {
- 	struct wb_domain *dom = dtc_dom(dtc);
-+	struct bdi_writeback *wb = dtc->wb;
- 	u64 wb_thresh;
-+	u64 wb_max_thresh;
- 	unsigned long numerator, denominator;
- 	unsigned long wb_min_ratio, wb_max_ratio;
+--- a/ipc/namespace.c~ipc-fix-memleak-if-msg_init_ns-failed-in-create_ipc_ns
++++ a/ipc/namespace.c
+@@ -83,13 +83,15 @@ static struct ipc_namespace *create_ipc_
  
-@@ -931,11 +933,28 @@ static unsigned long __wb_calc_thresh(st
- 	wb_thresh *= numerator;
- 	wb_thresh = div64_ul(wb_thresh, denominator);
+ 	err = msg_init_ns(ns);
+ 	if (err)
+-		goto fail_put;
++		goto fail_ipc;
  
--	wb_min_max_ratio(dtc->wb, &wb_min_ratio, &wb_max_ratio);
-+	wb_min_max_ratio(wb, &wb_min_ratio, &wb_max_ratio);
+ 	sem_init_ns(ns);
+ 	shm_init_ns(ns);
  
- 	wb_thresh += (thresh * wb_min_ratio) / (100 * BDI_RATIO_SCALE);
--	if (wb_thresh > (thresh * wb_max_ratio) / (100 * BDI_RATIO_SCALE))
--		wb_thresh = thresh * wb_max_ratio / (100 * BDI_RATIO_SCALE);
-+	wb_max_thresh = thresh * wb_max_ratio / (100 * BDI_RATIO_SCALE);
-+	if (wb_thresh > wb_max_thresh)
-+		wb_thresh = wb_max_thresh;
-+
-+	/*
-+	 * With strictlimit flag, the wb_thresh is treated as
-+	 * a hard limit in balance_dirty_pages() and wb_position_ratio().
-+	 * It's possible that wb_thresh is close to zero, not because
-+	 * the device is slow, but because it has been inactive.
-+	 * To prevent occasional writes from being blocked, we raise wb_thresh.
-+	 */
-+	if (unlikely(wb->bdi->capabilities & BDI_CAP_STRICTLIMIT)) {
-+		unsigned long limit = hard_dirty_limit(dom, dtc->thresh);
-+		u64 wb_scale_thresh = 0;
-+
-+		if (limit > dtc->dirty)
-+			wb_scale_thresh = (limit - dtc->dirty) / 100;
-+		wb_thresh = max(wb_thresh, min(wb_scale_thresh, wb_max_thresh / 4));
-+	}
+ 	return ns;
  
- 	return wb_thresh;
- }
++fail_ipc:
++	retire_ipc_sysctls(ns);
+ fail_mq:
+ 	retire_mq_sysctls(ns);
+ 
 _
 
-Patches currently in -mm which might be from jimzhao.ai@gmail.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-page-writeback-raise-wb_thresh-to-prevent-write-blocking-with-strictlimit.patch
+ipc-fix-memleak-if-msg_init_ns-failed-in-create_ipc_ns.patch
 
