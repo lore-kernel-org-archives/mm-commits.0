@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9FE3155741
-	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 21:05:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF1EC146A79
+	for <mm-commits@vger.kernel.org>; Wed, 23 Oct 2024 22:33:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729717547; cv=none; b=qCY4oO/kotoLefBQc6mqbuXgGqW2yi3IMm5VM+WoS8sdJExb0uXDGcUoYDA1HhYQRhVMnwSAjKJM7FKzuhgegWmP8mrMfZzzGiyUeQQTVXGsXeq6iK/Vgv8bUq4KKGDJoJDbgK6oa31B63C1ZnvM3mQwL+9UiGCNoxkZY1IRa/g=
+	t=1729722797; cv=none; b=V+z4BIpjl/RH1cjJyN3TdYbUZRFni3hGhrPTfG/ot+wDa9Pusrh2ZXLmUqoU4s+Z3LW7Matpir4zUzJnqzsNBLRFkVjsrRMMmIG9xsWUAGeGy1tWYJ7n2yTF+cQTkDq+UOMILYHuHclclVAnArR3wxKrQUk6j6SbsIXKblEa0PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729717547; c=relaxed/simple;
-	bh=qR3WvUKbIJVEPBU64XfmSScIKxI5cCn2xcB9KZt5BZo=;
-	h=Date:To:From:Subject:Message-Id; b=NX8aAoMtWmP5Dm833Ec8Uatz8icSKC+G2POAKibc1vWeYk36ZTU+wLFTptjRhN6ZQSK5bMieCTGlKf0So/CwMLrGKJZAe4XjvUY6FWh9huFoAM8/Xiq7vZNGE16li/rj+R7UG9PSuHtcnJG2U7tEIcXjwF+cfjg/67dWzg68fOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=irxTRNsW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729722797; c=relaxed/simple;
+	bh=weURYkNUEcuWEyCXeiFn1XoItkKhBO3ktWaW1esKlPk=;
+	h=Date:To:From:Subject:Message-Id; b=hoar2iFdjEnrOwY9wsZ9tpz2IDh/XME2YzJIHxiw/z2awachFsrlqPmFClo4FUkySCdjBDI6WrsmUFfLU7s/XVnRU7LuNHDeW2mH8RVHPb4nlGzxoXjFfaaSl3ZsPJBA7aVAVCarweEl67pw6c/5NBhMNSnP/+6kFo8KVit7jCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CnzMCqvv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="irxTRNsW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 692DEC4CEC6;
-	Wed, 23 Oct 2024 21:05:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CnzMCqvv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E121C4CEC6;
+	Wed, 23 Oct 2024 22:33:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729717546;
-	bh=qR3WvUKbIJVEPBU64XfmSScIKxI5cCn2xcB9KZt5BZo=;
+	s=korg; t=1729722796;
+	bh=weURYkNUEcuWEyCXeiFn1XoItkKhBO3ktWaW1esKlPk=;
 	h=Date:To:From:Subject:From;
-	b=irxTRNsWzNZFYhuF7fRb3kqzKwhSIzewYagyLzj4jh28DIH0/8hFvxmVcIMhnVlw1
-	 KXf6SkOIRk+MOTVWp6V5mFD/F9xdD9qkyRPRgSqXV54Kb25etA0HC/iXcpJa9PFOud
-	 rRze3pXvn0LchKjFHAh2cxTsrhxjTvqZalPPtpLM=
-Date: Wed, 23 Oct 2024 14:05:45 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,xiongwei.song@windriver.com,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,thuth@redhat.com,tglx@linutronix.de,souravpanda@google.com,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,petr.pavlu@suse.com,paulmck@kernel.org,pasha.tatashin@soleen.com,minchan@google.com,mhocko@suse.com,mcgrof@kernel.org,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,keescook@chromium.org,kaleshsingh@google.com,jhubbard@nvidia.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,dave@stgolabs.net,da.gomez@samsung.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=CnzMCqvv1Ycbnw4feICK5eBLwP8UldeSgzu0DE/SK2iSu4sG/suZxEzbH0JloN3sr
+	 RfeP8aIuw51D9Ge1kdB/Qa9/7/rl5JJCe95gIoXysGDhjc2EVVBNeLYPmpfUdEt0uI
+	 Xd2hAzyuMmmxpnV6NDV3RTzvZJ9OQulrqlON6684=
+Date: Wed, 23 Oct 2024 15:33:14 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-support-for-page-allocation-tag-compression.patch added to mm-unstable branch
-Message-Id: <20241023210546.692DEC4CEC6@smtp.kernel.org>
+Subject: + mm-fix-pswpin-counter-for-large-folios-swap-in.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241023223316.4E121C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: support for page allocation tag compression
-has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-support-for-page-allocation-tag-compression.patch
+     Subject: mm: Fix PSWPIN counter for large folios swap-in
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-pswpin-counter-for-large-folios-swap-in.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-support-for-page-allocation-tag-compression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-pswpin-counter-for-large-folios-swap-in.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,627 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: support for page allocation tag compression
-Date: Wed, 23 Oct 2024 10:07:59 -0700
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: Fix PSWPIN counter for large folios swap-in
+Date: Thu, 24 Oct 2024 10:02:01 +1300
 
-Implement support for storing page allocation tag references directly in
-the page flags instead of page extensions.  sysctl.vm.mem_profiling boot
-parameter it extended to provide a way for a user to request this mode. 
-Enabling compression eliminates memory overhead caused by page_ext and
-results in better performance for page allocations.  However this mode
-will not work if the number of available page flag bits is insufficient to
-address all kernel allocations.  Such condition can happen during boot or
-when loading a module.  If this condition is detected, memory allocation
-profiling gets disabled with an appropriate warning.  By default
-compression mode is disabled.
+Similar to PSWPOUT, we should count the number of base pages instead of
+large folios.
 
-Link: https://lkml.kernel.org/r/20241023170759.999909-7-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xiongwei Song <xiongwei.song@windriver.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20241023210201.2798-1-21cnbao@gmail.com
+Fixes: 242d12c98174 ("mm: support large folios swap-in for sync io devices")
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/allocation-profiling.rst |    7 
- include/linux/alloc_tag.h                 |   10 +
- include/linux/codetag.h                   |    3 
- include/linux/page-flags-layout.h         |    7 
- include/linux/pgalloc_tag.h               |  143 +++++++++++++++++---
- lib/alloc_tag.c                           |  142 ++++++++++++++++++-
- lib/codetag.c                             |    4 
- mm/mm_init.c                              |    5 
- 8 files changed, 289 insertions(+), 32 deletions(-)
+ mm/page_io.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/allocation-profiling.rst~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/Documentation/mm/allocation-profiling.rst
-@@ -18,12 +18,17 @@ kconfig options:
-   missing annotation
- 
- Boot parameter:
--  sysctl.vm.mem_profiling=0|1|never
-+  sysctl.vm.mem_profiling={0|1|never}[,compressed]
- 
-   When set to "never", memory allocation profiling overhead is minimized and it
-   cannot be enabled at runtime (sysctl becomes read-only).
-   When CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT=y, default value is "1".
-   When CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT=n, default value is "never".
-+  "compressed" optional parameter will try to store page tag references in a
-+  compact format, avoiding page extensions. This results in improved performance
-+  and memory consumption, however it might fail depending on system configuration.
-+  If compression fails, a warning is issued and memory allocation profiling gets
-+  disabled.
- 
- sysctl:
-   /proc/sys/vm/mem_profiling
---- a/include/linux/alloc_tag.h~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/include/linux/alloc_tag.h
-@@ -30,8 +30,16 @@ struct alloc_tag {
- 	struct alloc_tag_counters __percpu	*counters;
- } __aligned(8);
- 
-+struct alloc_tag_kernel_section {
-+	struct alloc_tag *first_tag;
-+	unsigned long count;
-+};
-+
- struct alloc_tag_module_section {
--	unsigned long start_addr;
-+	union {
-+		unsigned long start_addr;
-+		struct alloc_tag *first_tag;
-+	};
- 	unsigned long end_addr;
- 	/* used size */
- 	unsigned long size;
---- a/include/linux/codetag.h~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/include/linux/codetag.h
-@@ -13,6 +13,9 @@ struct codetag_module;
- struct seq_buf;
- struct module;
- 
-+#define CODETAG_SECTION_START_PREFIX	"__start_"
-+#define CODETAG_SECTION_STOP_PREFIX	"__stop_"
-+
- /*
-  * An instance of this structure is created in a special ELF section at every
-  * code location being tagged.  At runtime, the special section is treated as
---- a/include/linux/page-flags-layout.h~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/include/linux/page-flags-layout.h
-@@ -111,5 +111,12 @@
- 			    ZONES_WIDTH - LRU_GEN_WIDTH - SECTIONS_WIDTH - \
- 			    NODES_WIDTH - KASAN_TAG_WIDTH - LAST_CPUPID_WIDTH)
- 
-+#define NR_NON_PAGEFLAG_BITS	(SECTIONS_WIDTH + NODES_WIDTH + ZONES_WIDTH + \
-+				LAST_CPUPID_SHIFT + KASAN_TAG_WIDTH + \
-+				LRU_GEN_WIDTH + LRU_REFS_WIDTH)
-+
-+#define NR_UNUSED_PAGEFLAG_BITS	(BITS_PER_LONG - \
-+				(NR_NON_PAGEFLAG_BITS + NR_PAGEFLAGS))
-+
- #endif
- #endif /* _LINUX_PAGE_FLAGS_LAYOUT */
---- a/include/linux/pgalloc_tag.h~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/include/linux/pgalloc_tag.h
-@@ -11,29 +11,118 @@
- 
- #include <linux/page_ext.h>
- 
-+extern struct page_ext_operations page_alloc_tagging_ops;
-+extern unsigned long alloc_tag_ref_mask;
-+extern int alloc_tag_ref_offs;
-+extern struct alloc_tag_kernel_section kernel_tags;
-+
-+DECLARE_STATIC_KEY_FALSE(mem_profiling_compressed);
-+
-+typedef u16	pgalloc_tag_idx;
-+
- union pgtag_ref_handle {
- 	union codetag_ref *ref;	/* reference in page extension */
-+	struct page *page;	/* reference in page flags */
- };
- 
--extern struct page_ext_operations page_alloc_tagging_ops;
-+/* Reserved indexes */
-+#define CODETAG_ID_NULL		0
-+#define CODETAG_ID_EMPTY	1
-+#define CODETAG_ID_FIRST	2
-+
-+#ifdef CONFIG_MODULES
-+
-+extern struct alloc_tag_module_section module_tags;
-+
-+static inline struct alloc_tag *module_idx_to_tag(pgalloc_tag_idx idx)
-+{
-+	return &module_tags.first_tag[idx - kernel_tags.count];
-+}
-+
-+static inline pgalloc_tag_idx module_tag_to_idx(struct alloc_tag *tag)
-+{
-+	return CODETAG_ID_FIRST + kernel_tags.count + (tag - module_tags.first_tag);
-+}
-+
-+#else /* CONFIG_MODULES */
-+
-+static inline struct alloc_tag *module_idx_to_tag(pgalloc_tag_idx idx)
-+{
-+	pr_warn("invalid page tag reference %lu\n", (unsigned long)idx);
-+	return NULL;
-+}
-+
-+static inline pgalloc_tag_idx module_tag_to_idx(struct alloc_tag *tag)
-+{
-+	pr_warn("invalid page tag 0x%lx\n", (unsigned long)tag);
-+	return CODETAG_ID_NULL;
-+}
-+
-+#endif /* CONFIG_MODULES */
-+
-+static inline void idx_to_ref(pgalloc_tag_idx idx, union codetag_ref *ref)
-+{
-+	switch (idx) {
-+	case (CODETAG_ID_NULL):
-+		ref->ct = NULL;
-+		break;
-+	case (CODETAG_ID_EMPTY):
-+		set_codetag_empty(ref);
-+		break;
-+	default:
-+		idx -= CODETAG_ID_FIRST;
-+		ref->ct = idx < kernel_tags.count ?
-+			&kernel_tags.first_tag[idx].ct :
-+			&module_idx_to_tag(idx)->ct;
-+		break;
-+	}
-+}
-+
-+static inline pgalloc_tag_idx ref_to_idx(union codetag_ref *ref)
-+{
-+	struct alloc_tag *tag;
-+
-+	if (!ref->ct)
-+		return CODETAG_ID_NULL;
-+
-+	if (is_codetag_empty(ref))
-+		return CODETAG_ID_EMPTY;
-+
-+	tag = ct_to_alloc_tag(ref->ct);
-+	if (tag >= kernel_tags.first_tag && tag < kernel_tags.first_tag + kernel_tags.count)
-+		return CODETAG_ID_FIRST + (tag - kernel_tags.first_tag);
-+
-+	return module_tag_to_idx(tag);
-+}
-+
-+
- 
- /* Should be called only if mem_alloc_profiling_enabled() */
- static inline bool get_page_tag_ref(struct page *page, union codetag_ref *ref,
- 				    union pgtag_ref_handle *handle)
- {
--	struct page_ext *page_ext;
--	union codetag_ref *tmp;
--
- 	if (!page)
- 		return false;
- 
--	page_ext = page_ext_get(page);
--	if (!page_ext)
--		return false;
-+	if (static_key_enabled(&mem_profiling_compressed)) {
-+		pgalloc_tag_idx idx;
-+
-+		idx = (page->flags >> alloc_tag_ref_offs) & alloc_tag_ref_mask;
-+		idx_to_ref(idx, ref);
-+		handle->page = page;
-+	} else {
-+		struct page_ext *page_ext;
-+		union codetag_ref *tmp;
-+
-+		page_ext = page_ext_get(page);
-+		if (!page_ext)
-+			return false;
-+
-+		tmp = (union codetag_ref *)page_ext_data(page_ext, &page_alloc_tagging_ops);
-+		ref->ct = tmp->ct;
-+		handle->ref = tmp;
-+	}
- 
--	tmp = (union codetag_ref *)page_ext_data(page_ext, &page_alloc_tagging_ops);
--	ref->ct = tmp->ct;
--	handle->ref = tmp;
- 	return true;
+--- a/mm/page_io.c~mm-fix-pswpin-counter-for-large-folios-swap-in
++++ a/mm/page_io.c
+@@ -570,7 +570,7 @@ static void swap_read_folio_bdev_sync(st
+ 	 * attempt to access it in the page fault retry time check.
+ 	 */
+ 	get_task_struct(current);
+-	count_vm_event(PSWPIN);
++	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio_wait(&bio);
+ 	__end_swap_bio_read(&bio);
+ 	put_task_struct(current);
+@@ -585,7 +585,7 @@ static void swap_read_folio_bdev_async(s
+ 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio->bi_end_io = end_swap_bio_read;
+ 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
+-	count_vm_event(PSWPIN);
++	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio(bio);
  }
  
-@@ -42,16 +131,35 @@ static inline void put_page_tag_ref(unio
- 	if (WARN_ON(!handle.ref))
- 		return;
- 
--	page_ext_put((void *)handle.ref - page_alloc_tagging_ops.offset);
-+	if (!static_key_enabled(&mem_profiling_compressed))
-+		page_ext_put((void *)handle.ref - page_alloc_tagging_ops.offset);
- }
- 
--static inline void update_page_tag_ref(union pgtag_ref_handle handle,
--				       union codetag_ref *ref)
-+static inline void update_page_tag_ref(union pgtag_ref_handle handle, union codetag_ref *ref)
- {
--	if (WARN_ON(!handle.ref || !ref))
--		return;
-+	if (static_key_enabled(&mem_profiling_compressed)) {
-+		struct page *page = handle.page;
-+		unsigned long old_flags;
-+		unsigned long flags;
-+		unsigned long idx;
-+
-+		if (WARN_ON(!page || !ref))
-+			return;
-+
-+		idx = (unsigned long)ref_to_idx(ref);
-+		idx = (idx & alloc_tag_ref_mask) << alloc_tag_ref_offs;
-+		do {
-+			old_flags = READ_ONCE(page->flags);
-+			flags = old_flags;
-+			flags &= ~(alloc_tag_ref_mask << alloc_tag_ref_offs);
-+			flags |= idx;
-+		} while (unlikely(!try_cmpxchg(&page->flags, &old_flags, flags)));
-+	} else {
-+		if (WARN_ON(!handle.ref || !ref))
-+			return;
- 
--	handle.ref->ct = ref->ct;
-+		handle.ref->ct = ref->ct;
-+	}
- }
- 
- static inline void clear_page_tag_ref(struct page *page)
-@@ -122,6 +230,8 @@ static inline void pgalloc_tag_sub_pages
- 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
- }
- 
-+void __init alloc_tag_sec_init(void);
-+
- #else /* CONFIG_MEM_ALLOC_PROFILING */
- 
- static inline void clear_page_tag_ref(struct page *page) {}
-@@ -130,6 +240,7 @@ static inline void pgalloc_tag_add(struc
- static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
- static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
- static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
-+static inline void alloc_tag_sec_init(void) {}
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
- 
---- a/lib/alloc_tag.c~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/lib/alloc_tag.c
-@@ -3,6 +3,7 @@
- #include <linux/execmem.h>
- #include <linux/fs.h>
- #include <linux/gfp.h>
-+#include <linux/kallsyms.h>
- #include <linux/module.h>
- #include <linux/page_ext.h>
- #include <linux/proc_fs.h>
-@@ -12,6 +13,8 @@
- 
- #define ALLOCINFO_FILE_NAME		"allocinfo"
- #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
-+#define SECTION_START(NAME)		(CODETAG_SECTION_START_PREFIX NAME)
-+#define SECTION_STOP(NAME)		(CODETAG_SECTION_STOP_PREFIX NAME)
- 
- #ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
- static bool mem_profiling_support = true;
-@@ -26,6 +29,11 @@ EXPORT_SYMBOL(_shared_alloc_tag);
- 
- DEFINE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
- 			mem_alloc_profiling_key);
-+DEFINE_STATIC_KEY_FALSE(mem_profiling_compressed);
-+
-+struct alloc_tag_kernel_section kernel_tags = { NULL, 0 };
-+unsigned long alloc_tag_ref_mask;
-+int alloc_tag_ref_offs;
- 
- struct allocinfo_private {
- 	struct codetag_iterator iter;
-@@ -155,7 +163,7 @@ size_t alloc_tag_top_users(struct codeta
- 	return nr;
- }
- 
--static void shutdown_mem_profiling(void)
-+static void shutdown_mem_profiling(bool remove_file)
- {
- 	if (mem_alloc_profiling_enabled())
- 		static_branch_disable(&mem_alloc_profiling_key);
-@@ -163,6 +171,8 @@ static void shutdown_mem_profiling(void)
- 	if (!mem_profiling_support)
- 		return;
- 
-+	if (remove_file)
-+		remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
- 	mem_profiling_support = false;
- }
- 
-@@ -173,10 +183,40 @@ static void __init procfs_init(void)
- 
- 	if (!proc_create_seq(ALLOCINFO_FILE_NAME, 0400, NULL, &allocinfo_seq_op)) {
- 		pr_err("Failed to create %s file\n", ALLOCINFO_FILE_NAME);
--		shutdown_mem_profiling();
-+		shutdown_mem_profiling(false);
- 	}
- }
- 
-+void __init alloc_tag_sec_init(void)
-+{
-+	struct alloc_tag *last_codetag;
-+
-+	if (!mem_profiling_support)
-+		return;
-+
-+	if (!static_key_enabled(&mem_profiling_compressed))
-+		return;
-+
-+	kernel_tags.first_tag = (struct alloc_tag *)kallsyms_lookup_name(
-+					SECTION_START(ALLOC_TAG_SECTION_NAME));
-+	last_codetag = (struct alloc_tag *)kallsyms_lookup_name(
-+					SECTION_STOP(ALLOC_TAG_SECTION_NAME));
-+	kernel_tags.count = last_codetag - kernel_tags.first_tag;
-+
-+	/* Check if kernel tags fit into page flags */
-+	if (kernel_tags.count > (1UL << NR_UNUSED_PAGEFLAG_BITS)) {
-+		shutdown_mem_profiling(false); /* allocinfo file does not exist yet */
-+		pr_err("%lu allocation tags cannot be references using %d available page flag bits. Memory allocation profiling is disabled!\n",
-+			kernel_tags.count, NR_UNUSED_PAGEFLAG_BITS);
-+		return;
-+	}
-+
-+	alloc_tag_ref_offs = (LRU_REFS_PGOFF - NR_UNUSED_PAGEFLAG_BITS);
-+	alloc_tag_ref_mask = ((1UL << NR_UNUSED_PAGEFLAG_BITS) - 1);
-+	pr_debug("Memory allocation profiling compression is using %d page flag bits!\n",
-+		 NR_UNUSED_PAGEFLAG_BITS);
-+}
-+
- #ifdef CONFIG_MODULES
- 
- static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
-@@ -186,10 +226,59 @@ static struct module unloaded_mod;
- /* A dummy object used to indicate a module prepended area */
- static struct module prepend_mod;
- 
--static struct alloc_tag_module_section module_tags;
-+struct alloc_tag_module_section module_tags;
-+
-+static inline unsigned long alloc_tag_align(unsigned long val)
-+{
-+	if (!static_key_enabled(&mem_profiling_compressed)) {
-+		/* No alignment requirements when we are not indexing the tags */
-+		return val;
-+	}
-+
-+	if (val % sizeof(struct alloc_tag) == 0)
-+		return val;
-+	return ((val / sizeof(struct alloc_tag)) + 1) * sizeof(struct alloc_tag);
-+}
-+
-+static bool ensure_alignment(unsigned long align, unsigned int *prepend)
-+{
-+	if (!static_key_enabled(&mem_profiling_compressed)) {
-+		/* No alignment requirements when we are not indexing the tags */
-+		return true;
-+	}
-+
-+	/*
-+	 * If alloc_tag size is not a multiple of required alignment, tag
-+	 * indexing does not work.
-+	 */
-+	if (!IS_ALIGNED(sizeof(struct alloc_tag), align))
-+		return false;
-+
-+	/* Ensure prepend consumes multiple of alloc_tag-sized blocks */
-+	if (*prepend)
-+		*prepend = alloc_tag_align(*prepend);
-+
-+	return true;
-+}
-+
-+static inline bool tags_addressable(void)
-+{
-+	unsigned long tag_idx_count;
-+
-+	if (!static_key_enabled(&mem_profiling_compressed))
-+		return true; /* with page_ext tags are always addressable */
-+
-+	tag_idx_count = CODETAG_ID_FIRST + kernel_tags.count +
-+			module_tags.size / sizeof(struct alloc_tag);
-+
-+	return tag_idx_count < (1UL << NR_UNUSED_PAGEFLAG_BITS);
-+}
- 
- static bool needs_section_mem(struct module *mod, unsigned long size)
- {
-+	if (!mem_profiling_support)
-+		return false;
-+
- 	return size >= sizeof(struct alloc_tag);
- }
- 
-@@ -300,6 +389,13 @@ static void *reserve_module_tags(struct
- 	if (!align)
- 		align = 1;
- 
-+	if (!ensure_alignment(align, &prepend)) {
-+		shutdown_mem_profiling(true);
-+		pr_err("%s: alignment %lu is incompatible with allocation tag indexing. Memory allocation profiling is disabled!\n",
-+			mod->name, align);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	mas_lock(&mas);
- 	if (!find_aligned_area(&mas, section_size, size, prepend, align)) {
- 		ret = ERR_PTR(-ENOMEM);
-@@ -343,9 +439,15 @@ unlock:
- 		int grow_res;
- 
- 		module_tags.size = offset + size;
-+		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-+			shutdown_mem_profiling(true);
-+			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-+				mod->name, NR_UNUSED_PAGEFLAG_BITS);
-+		}
-+
- 		grow_res = vm_module_tags_populate();
- 		if (grow_res) {
--			shutdown_mem_profiling();
-+			shutdown_mem_profiling(true);
- 			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
- 			       mod->name);
- 			return ERR_PTR(grow_res);
-@@ -429,6 +531,8 @@ static int __init alloc_mod_tags_mem(voi
- 
- 	module_tags.start_addr = (unsigned long)vm_module_tags->addr;
- 	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
-+	/* Ensure the base is alloc_tag aligned when required for indexing */
-+	module_tags.start_addr = alloc_tag_align(module_tags.start_addr);
- 
- 	return 0;
- }
-@@ -451,8 +555,10 @@ static inline void free_mod_tags_mem(voi
- 
- #endif /* CONFIG_MODULES */
- 
-+/* See: Documentation/mm/allocation-profiling.rst */
- static int __init setup_early_mem_profiling(char *str)
- {
-+	bool compressed = false;
- 	bool enable;
- 
- 	if (!str || !str[0])
-@@ -461,22 +567,37 @@ static int __init setup_early_mem_profil
- 	if (!strncmp(str, "never", 5)) {
- 		enable = false;
- 		mem_profiling_support = false;
-+		pr_info("Memory allocation profiling is disabled!\n");
- 	} else {
--		int res;
-+		char *token = strsep(&str, ",");
-+
-+		if (kstrtobool(token, &enable))
-+			return -EINVAL;
- 
--		res = kstrtobool(str, &enable);
--		if (res)
--			return res;
-+		if (str) {
- 
-+			if (strcmp(str, "compressed"))
-+				return -EINVAL;
-+
-+			compressed = true;
-+		}
- 		mem_profiling_support = true;
-+		pr_info("Memory allocation profiling is enabled %s compression and is turned %s!\n",
-+			compressed ? "with" : "without", enable ? "on" : "off");
- 	}
- 
--	if (enable != static_key_enabled(&mem_alloc_profiling_key)) {
-+	if (enable != mem_alloc_profiling_enabled()) {
- 		if (enable)
- 			static_branch_enable(&mem_alloc_profiling_key);
- 		else
- 			static_branch_disable(&mem_alloc_profiling_key);
- 	}
-+	if (compressed != static_key_enabled(&mem_profiling_compressed)) {
-+		if (compressed)
-+			static_branch_enable(&mem_profiling_compressed);
-+		else
-+			static_branch_disable(&mem_profiling_compressed);
-+	}
- 
- 	return 0;
- }
-@@ -484,6 +605,9 @@ early_param("sysctl.vm.mem_profiling", s
- 
- static __init bool need_page_alloc_tagging(void)
- {
-+	if (static_key_enabled(&mem_profiling_compressed))
-+		return false;
-+
- 	return mem_profiling_support;
- }
- 
---- a/lib/codetag.c~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/lib/codetag.c
-@@ -149,8 +149,8 @@ static struct codetag_range get_section_
- 					      const char *section)
- {
- 	return (struct codetag_range) {
--		get_symbol(mod, "__start_", section),
--		get_symbol(mod, "__stop_", section),
-+		get_symbol(mod, CODETAG_SECTION_START_PREFIX, section),
-+		get_symbol(mod, CODETAG_SECTION_STOP_PREFIX, section),
- 	};
- }
- 
---- a/mm/mm_init.c~alloc_tag-support-for-page-allocation-tag-compression
-+++ a/mm/mm_init.c
-@@ -83,8 +83,7 @@ void __init mminit_verify_pageflags_layo
- 	unsigned long or_mask, add_mask;
- 
- 	shift = BITS_PER_LONG;
--	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH
--		- LAST_CPUPID_SHIFT - KASAN_TAG_WIDTH - LRU_GEN_WIDTH - LRU_REFS_WIDTH;
-+	width = shift - NR_NON_PAGEFLAG_BITS;
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
- 		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d Gen %d Tier %d Flags %d\n",
- 		SECTIONS_WIDTH,
-@@ -2639,7 +2638,7 @@ void __init mm_core_init(void)
- 	BUILD_BUG_ON(MAX_ZONELISTS > 2);
- 	build_all_zonelists(NULL);
- 	page_alloc_init_cpuhp();
--
-+	alloc_tag_sec_init();
- 	/*
- 	 * page_ext requires contiguous pages,
- 	 * bigger than MAX_PAGE_ORDER unless SPARSEMEM.
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-maple_tree-add-mas_for_each_rev-helper.patch
-alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch
-alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
-alloc_tag-populate-memory-for-module-tags-as-needed.patch
-alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
-alloc_tag-support-for-page-allocation-tag-compression.patch
+mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails.patch
+mm-avoid-unconditional-one-tick-sleep-when-swapcache_prepare-fails-fix.patch
+mm-fix-pswpin-counter-for-large-folios-swap-in.patch
 
