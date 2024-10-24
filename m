@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81A801CD3F
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:53:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2F7D376F1
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:55:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729738408; cv=none; b=PLuxCR/4IEDYVu4Ixf2WIb2is7Cbykio8uNQMt4aWyMqWIhYZ2koItyqVU9Fg3q4OSCauZmsvOlAkAyHvD+PSbUpoV8yGiU2h3zTfS+2bpl8vL3Ot6wMytF6LD64aUPLBgsDbN2ry4VwsiDuOct0YV/6OrXGdB5ahTp3MvY2Sys=
+	t=1729738539; cv=none; b=uGZZtEeGfJsRm0oVTOmY94r5KeGdppiyVx2ZP1pv7HyF0dHXXV5efxlvR0YsPtHG2s99+AhD/+M4Ns/bTXfs8y/5DOMfDdRl0ekDAAQy0kI6yNIpmwOK7UB7fHK1YVKeSgn16zS1jO7ANZgHPbl4/p5J7KXBjErv5kkIKG7U2wU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729738408; c=relaxed/simple;
-	bh=6FQ4Pm+nSyGdn1z/CGEsRKaoprmy8oMNr7USvnKiHNU=;
-	h=Date:To:From:Subject:Message-Id; b=S/5dWEq6S8aRMeLbhOq/ksCXF6eq58lcUVl+BFthWCAH/QD83/nCkcmiaNFvDpO8zYG0iIn2Eyp7yHubh79uvKWZdvx4aRI8bs5IfdIJp31w/sN46A8Wup2AxLhrbeNyYoOxxisbb4UCIlOId7fS77Z6IgMAfjATYqopUhkepyk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XTDdLcyH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729738539; c=relaxed/simple;
+	bh=O9JLygHQKteodKz5qb9H4CmF1gNLWL66S/nt9r6KjoQ=;
+	h=Date:To:From:Subject:Message-Id; b=KFaTHcK5uDkpZ7yrnDo6Mxa5WuPxA1AtzHBhoBqOm8I15zelZ1skbJWubgQ9vJjd32li9ZtUzj2fy0qSyUeYZILQfrxR2hQWN7RARzm/fx1t8bVZ6okaqHVWVZSympz6tYmL+ndC/5C/To28WAxyrzLSAsndCH9LT96Un3p8EHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OrFEFwyj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XTDdLcyH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFFE4C4CEC6;
-	Thu, 24 Oct 2024 02:53:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OrFEFwyj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73FCFC4CEC6;
+	Thu, 24 Oct 2024 02:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729738407;
-	bh=6FQ4Pm+nSyGdn1z/CGEsRKaoprmy8oMNr7USvnKiHNU=;
+	s=korg; t=1729738538;
+	bh=O9JLygHQKteodKz5qb9H4CmF1gNLWL66S/nt9r6KjoQ=;
 	h=Date:To:From:Subject:From;
-	b=XTDdLcyH/1YkLhuFom7b7qbfWGWjTzDrS3cZKkwSdaVF4s/kX0p+BLdMtL3VIZg6K
-	 hlzmv2Fy69Gu/eIEyF7BESHzTiXjooHdtvy7Kq3OSMdD4Nbx6v3Z/mK+nik7JfVJg4
-	 1zCtmByAGpjEbfLq07M5Gzp1L4mLGHmwnQ5HWlRw=
-Date: Wed, 23 Oct 2024 19:53:26 -0700
-To: mm-commits@vger.kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=OrFEFwyjLpGY8RJcy04VFAUBiQZZb7OD7iPB1jy0eZEGgxVNYHHor2OCM12VjJIIV
+	 /0CiluNPtP2jnMwhX0tSYHis4xLtHbS4NP5oh0KPcBL/iwTjFBD1DcUundWKbGZbSF
+	 x3goHgHdsntCoPbG+ZHHlhmLKHzQCGT73OfBv2JY=
+Date: Wed, 23 Oct 2024 19:55:36 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch added to mm-unstable branch
-Message-Id: <20241024025326.DFFE4C4CEC6@smtp.kernel.org>
+Subject: + percpu-merge-verify_percpu_ptr-into-its-only-user.patch added to mm-nonmm-unstable branch
+Message-Id: <20241024025538.73FCFC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: use str_off_on() helper in build_all_zonelists()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch
+     Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     percpu-merge-verify_percpu_ptr-into-its-only-user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-merge-verify_percpu_ptr-into-its-only-user.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,36 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mm/page_alloc: use str_off_on() helper in build_all_zonelists()
-Date: Mon, 21 Oct 2024 11:13:40 +0200
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
+Date: Mon, 21 Oct 2024 10:07:36 +0200
 
-Remove hard-coded strings by using the str_off_on() helper function.
+Merge VERIFY_PERCPU_PTR() into non-CONFIG_SMP per_cpu_ptr() to make macro
+similar to CONFIG_SMP per_cpu_ptr().  This will allow a follow-up patch to
+refactor common code to a macro.
 
-Link: https://lkml.kernel.org/r/20241021091340.5243-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+No functional changes, non-CONFIG_SMP per_cpu_ptr() was the only user of
+VERIFY_PERCPU_PTR().
+
+Link: https://lkml.kernel.org/r/20241021080856.48746-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/percpu-defs.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists
-+++ a/mm/page_alloc.c
-@@ -5497,7 +5497,7 @@ void __ref build_all_zonelists(pg_data_t
+--- a/include/linux/percpu-defs.h~percpu-merge-verify_percpu_ptr-into-its-only-user
++++ a/include/linux/percpu-defs.h
+@@ -254,13 +254,13 @@ do {									\
  
- 	pr_info("Built %u zonelists, mobility grouping %s.  Total pages: %ld\n",
- 		nr_online_nodes,
--		page_group_by_mobility_disabled ? "off" : "on",
-+		str_off_on(page_group_by_mobility_disabled),
- 		vm_total_pages);
- #ifdef CONFIG_NUMA
- 	pr_info("Policy zone: %s\n", zone_names[policy_zone]);
+ #else	/* CONFIG_SMP */
+ 
+-#define VERIFY_PERCPU_PTR(__p)						\
++#define per_cpu_ptr(ptr, cpu)						\
+ ({									\
+-	__verify_pcpu_ptr(__p);						\
+-	(typeof(*(__p)) __kernel __force *)(__p);			\
++	(void)(cpu);							\
++	__verify_pcpu_ptr(ptr);						\
++	(typeof(*(ptr)) __kernel __force *)(ptr);			\
+ })
+ 
+-#define per_cpu_ptr(ptr, cpu)	({ (void)(cpu); VERIFY_PERCPU_PTR(ptr); })
+ #define raw_cpu_ptr(ptr)	per_cpu_ptr(ptr, 0)
+ #define this_cpu_ptr(ptr)	raw_cpu_ptr(ptr)
+ 
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-mm-swap-use-str_true_false-helper-function.patch
-mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch
-ipc-msg-replace-one-element-array-with-flexible-array-member.patch
+perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch
+percpu-merge-verify_percpu_ptr-into-its-only-user.patch
+percpu-introduce-percpu_ptr-macro.patch
+percpu-cast-percpu-pointer-in-percpu_ptr-via-unsigned-long.patch
 
