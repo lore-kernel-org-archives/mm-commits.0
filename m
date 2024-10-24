@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A0A1FF7D7;
-	Wed, 23 Oct 2024 23:51:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ABD71BDDF;
+	Thu, 24 Oct 2024 01:50:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729727479; cv=none; b=ehIVETJVhf10pe2oPuQfk+0rEN4BA0BUQorEqc5UC+AU/LREnAVaRevMlO8DlGYDgDMnvPDi0ryjIqdPL4+ctSGfGdG4QnE0wIOWPxBsbCMUkGMXl4tsvfuQo/dW5rLgq710kry0dSepP9Be9lnbqVbwLf6B1TQyEpptEB5/LB4=
+	t=1729734611; cv=none; b=LIm9LBP+oK0P+yrnD6ZORBDiZFnIE4HPRWE6VV/y9JhzmgLKQX7gMqptDXcStCUzc6WZebJm/hN0FBijvh3h3nDNUlk7Q9SmiVx3BfWbHLDGi37lJhWtDfj2o/VVJ+GydtGxmt2VvR7beblGSLIhAJQy4Ux31CtdYsved+7VMj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729727479; c=relaxed/simple;
-	bh=h9eqOt0XALXQ1T+RGox89AQgIb+9cKJT71nHYHxnEfk=;
-	h=Date:To:From:Subject:Message-Id; b=Xi4MGFkmiVhOuc3sJaamQ9OoPmpI3fnYzGELFgOJljfoIY30hIsB3fpks8/hX8H8F7EUQPNMk3dqxdzQUNYBuJc+zkOBZrncLIyaYsKw3mEPf0hMAm0V29v/UuVWYYWeZNI7rOxgNfQNMmEBZnKs/YWQMoDYi1QfjDJVhP6rC9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhLep0eM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729734611; c=relaxed/simple;
+	bh=GWvQUdL+/PBw7dy05YLwa5cd5EhnJ0ucWLj2CT4WFUM=;
+	h=Date:To:From:Subject:Message-Id; b=awe8ClGPIgMLWesqfcPhLMx6hoB5IOaljvzurlH+xfwW+ByXFaHkI4C4KMf/8udiRHpaupsAPU/wQQ0inBvJnrLjGOcquPTR4SkKAJszRjdwD8/WWkxPxB9+8J8AYaBQ7j1KYvEFpNmCqd0Cjccj8l8M3gynuTbc8CWEueKkoZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sz+1BwoO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhLep0eM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73C9BC4CEE5;
-	Wed, 23 Oct 2024 23:51:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sz+1BwoO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAB0AC4CEC6;
+	Thu, 24 Oct 2024 01:50:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729727478;
-	bh=h9eqOt0XALXQ1T+RGox89AQgIb+9cKJT71nHYHxnEfk=;
+	s=korg; t=1729734610;
+	bh=GWvQUdL+/PBw7dy05YLwa5cd5EhnJ0ucWLj2CT4WFUM=;
 	h=Date:To:From:Subject:From;
-	b=yhLep0eME+7q35OXOklglLlSbbswQqTg7ciKkuHdgWOsSKfoQG+ouyF0bTpVylrvy
-	 qEZDboVL7ADXTINj89IAxD97gwXH5SzGVrjzm/mf2ZgkCo4vhdl++SG4OG+aYR6cZf
-	 prFuPqcCLaFYrrAGbYs08m8dTy5v7dYWaMitk+5s=
-Date: Wed, 23 Oct 2024 16:51:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,herton@redhat.com,wladislav.kw@gmail.com,akpm@linux-foundation.org
+	b=sz+1BwoOtaZKEqmTXofx6ezowoQFWrXZiSk7+YW3ei5ViudXdYNTvZ2S5fVvvO0ub
+	 6Vo6LMTN2/vJ1i+Xgbr0vYgMuPUXnCpezDZA3s1YYq+wnS8mLPhsooKBenDvRGuE/h
+	 vFQbdxXgEZnFA7FRCsxt5L0kLmFyg2DjVUx8+UJI=
+Date: Wed, 23 Oct 2024 18:50:10 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,snovitoll@gmail.com,samuel.holland@sifive.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-werror-fixes-in-page-types-slabinfo.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241023235118.73C9BC4CEE5@smtp.kernel.org>
+Subject: + kasan-remove-vmalloc_percpu-test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241024015010.BAB0AC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm: -Werror fixes in page-types/slabinfo
+     Subject: kasan: remove vmalloc_percpu test
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-mm-werror-fixes-in-page-types-slabinfo.patch
+     kasan-remove-vmalloc_percpu-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-werror-fixes-in-page-types-slabinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-vmalloc_percpu-test.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,91 +58,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wladislav Wiebe <wladislav.kw@gmail.com>
-Subject: tools/mm: -Werror fixes in page-types/slabinfo
-Date: Tue, 22 Oct 2024 19:21:13 +0200
+From: Andrey Konovalov <andreyknvl@gmail.com>
+Subject: kasan: remove vmalloc_percpu test
+Date: Tue, 22 Oct 2024 18:07:06 +0200
 
-Commit e6d2c436ff693 ("tools/mm: allow users to provide additional
-cflags/ldflags") passes now CFLAGS to Makefile.  With this, build systems
-with default -Werror enabled found:
+Commit 1a2473f0cbc0 ("kasan: improve vmalloc tests") added the
+vmalloc_percpu KASAN test with the assumption that __alloc_percpu always
+uses vmalloc internally, which is tagged by KASAN.
 
-slabinfo.c:1300:25: error: ignoring return value of 'chdir'
-declared with attribute 'warn_unused_result' [-Werror=unused-result]
-                         chdir("..");
-                         ^~~~~~~~~~~
-page-types.c:397:35: error: format '%lu' expects argument of type
-'long unsigned int', but argument 2 has type 'uint64_t'
-{aka 'long long unsigned int'} [-Werror=format=]
-                         printf("%lu\t", mapcnt0);
-                                 ~~^     ~~~~~~~
-..
+However, __alloc_percpu might allocate memory from the first per-CPU
+chunk, which is not allocated via vmalloc().  As a result, the test might
+fail.
 
-Fix page-types by using PRIu64 for uint64_t prints and check in slabinfo
-for return code on chdir("..").
+Remove the test until proper KASAN annotation for the per-CPU allocated
+are added; tracked in https://bugzilla.kernel.org/show_bug.cgi?id=215019.
 
-Link: https://lkml.kernel.org/r/c1ceb507-94bc-461c-934d-c19b77edd825@gmail.com
-Fixes: e6d2c436ff693 ("tools/mm: allow users to provide additional cflags/ldflags")
-Signed-off-by: Wladislav Wiebe <wladislav.kw@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Herton R. Krzesinski <herton@redhat.com>
+Link: https://lkml.kernel.org/r/20241022160706.38943-1-andrey.konovalov@linux.dev
+Fixes: 1a2473f0cbc0 ("kasan: improve vmalloc tests")
+Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
+Reported-by: Samuel Holland <samuel.holland@sifive.com>
+Link: https://lore.kernel.org/all/4a245fff-cc46-44d1-a5f9-fd2f1c3764ae@sifive.com/
+Reported-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Link: https://lore.kernel.org/all/CACzwLxiWzNqPBp4C1VkaXZ2wDwvY3yZeetCi1TLGFipKW77drA@mail.gmail.com/
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page-types.c |    9 +++++----
- tools/mm/slabinfo.c   |    4 +++-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ mm/kasan/kasan_test_c.c |   27 ---------------------------
+ 1 file changed, 27 deletions(-)
 
---- a/tools/mm/page-types.c~tools-mm-werror-fixes-in-page-types-slabinfo
-+++ a/tools/mm/page-types.c
-@@ -22,6 +22,7 @@
- #include <time.h>
- #include <setjmp.h>
- #include <signal.h>
-+#include <inttypes.h>
- #include <sys/types.h>
- #include <sys/errno.h>
- #include <sys/fcntl.h>
-@@ -391,9 +392,9 @@ static void show_page_range(unsigned lon
- 		if (opt_file)
- 			printf("%lx\t", voff);
- 		if (opt_list_cgroup)
--			printf("@%llu\t", (unsigned long long)cgroup0);
-+			printf("@%" PRIu64 "\t", cgroup0);
- 		if (opt_list_mapcnt)
--			printf("%lu\t", mapcnt0);
-+			printf("%" PRIu64 "\t", mapcnt0);
- 		printf("%lx\t%lx\t%s\n",
- 				index, count, page_flag_name(flags0));
- 	}
-@@ -419,9 +420,9 @@ static void show_page(unsigned long voff
- 	if (opt_file)
- 		printf("%lx\t", voffset);
- 	if (opt_list_cgroup)
--		printf("@%llu\t", (unsigned long long)cgroup);
-+		printf("@%" PRIu64 "\t", cgroup)
- 	if (opt_list_mapcnt)
--		printf("%lu\t", mapcnt);
-+		printf("%" PRIu64 "\t", mapcnt);
- 
- 	printf("%lx\t%s\n", offset, page_flag_name(flags));
+--- a/mm/kasan/kasan_test_c.c~kasan-remove-vmalloc_percpu-test
++++ a/mm/kasan/kasan_test_c.c
+@@ -1810,32 +1810,6 @@ static void vm_map_ram_tags(struct kunit
+ 	free_pages((unsigned long)p_ptr, 1);
  }
---- a/tools/mm/slabinfo.c~tools-mm-werror-fixes-in-page-types-slabinfo
-+++ a/tools/mm/slabinfo.c
-@@ -1297,7 +1297,9 @@ static void read_slab_dir(void)
- 			slab->cpu_partial_free = get_obj("cpu_partial_free");
- 			slab->alloc_node_mismatch = get_obj("alloc_node_mismatch");
- 			slab->deactivate_bypass = get_obj("deactivate_bypass");
--			chdir("..");
-+			if (chdir(".."))
-+				fatal("Unable to chdir from slab ../%s\n",
-+				      slab->name);
- 			if (slab->name[0] == ':')
- 				alias_targets++;
- 			slab++;
+ 
+-static void vmalloc_percpu(struct kunit *test)
+-{
+-	char __percpu *ptr;
+-	int cpu;
+-
+-	/*
+-	 * This test is specifically crafted for the software tag-based mode,
+-	 * the only tag-based mode that poisons percpu mappings.
+-	 */
+-	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
+-
+-	ptr = __alloc_percpu(PAGE_SIZE, PAGE_SIZE);
+-
+-	for_each_possible_cpu(cpu) {
+-		char *c_ptr = per_cpu_ptr(ptr, cpu);
+-
+-		KUNIT_EXPECT_GE(test, (u8)get_tag(c_ptr), (u8)KASAN_TAG_MIN);
+-		KUNIT_EXPECT_LT(test, (u8)get_tag(c_ptr), (u8)KASAN_TAG_KERNEL);
+-
+-		/* Make sure that in-bounds accesses don't crash the kernel. */
+-		*c_ptr = 0;
+-	}
+-
+-	free_percpu(ptr);
+-}
+-
+ /*
+  * Check that the assigned pointer tag falls within the [KASAN_TAG_MIN,
+  * KASAN_TAG_KERNEL) range (note: excluding the match-all tag) for tag-based
+@@ -2023,7 +1997,6 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(vmalloc_oob),
+ 	KUNIT_CASE(vmap_tags),
+ 	KUNIT_CASE(vm_map_ram_tags),
+-	KUNIT_CASE(vmalloc_percpu),
+ 	KUNIT_CASE(match_all_not_assigned),
+ 	KUNIT_CASE(match_all_ptr_tag),
+ 	KUNIT_CASE(match_all_mem_tag),
 _
 
-Patches currently in -mm which might be from wladislav.kw@gmail.com are
+Patches currently in -mm which might be from andreyknvl@gmail.com are
 
-tools-mm-werror-fixes-in-page-types-slabinfo.patch
+kasan-remove-vmalloc_percpu-test.patch
 
