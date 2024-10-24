@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36C8446A1
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:10:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379FA446A1
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:10:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729739441; cv=none; b=UsVponTe/BT7MC7G9k/GzxNH1xSUKoU3hWEW54kv7JPsI5hp303LAO4zwhTYFEl4rE/wt6kOYZ5OV68uexwxHltpLyG6xftM7L+L3iaPXfx7fj49D4TTtLNQqnvowGHK7e6IlBfTVdpQXCYhwxLq5E3q6yBX41Bu+vxmqRRPweA=
+	t=1729739444; cv=none; b=pDjdws7LDd7ac2u3KB823017xcGAc8Nrpow5qLFGNIbACD9VCiA/N1hohX2IKzNpIa3m1CK8AgWQzejXPL7Q1vAKp/WTT8G9K75RXdvfkWfeF5omT5XUQfKuNVjRboGHdK44DEQUn1XZFLlsT0zznLRxD8DMn25RRLkTdD8/hPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729739441; c=relaxed/simple;
-	bh=Kz1kDacPBYtan2opijll8XTEJuhmKPSQQxYgEZnKJ6s=;
-	h=Date:To:From:Subject:Message-Id; b=dmi80kV0cLkt+LV3pnfN4GiPtu3Uu1iBMQUSXxrk8e5nQWxBOVrPdneCPBKdUAjjxce/6cuoiqRIqBP/cNkeSgmWQSHB/zqKItk/w6G+kYVypfMmEcX8i1ib9e5WvKrIlM/Ki2nP5gWmGze/2UQIoaf91kk/d8sWxW8zrNxf8vs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nUQ7XAXj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729739444; c=relaxed/simple;
+	bh=G38F5jj0jhrw3YKl1IVXNTbbAU+CC7Qg7qahzHbrLak=;
+	h=Date:To:From:Subject:Message-Id; b=tlsiA5DkKth1dWFeartH5Pwo/EFSNh2sTJzgyqZrf6JY/JKkxnq/0t+NfFNLzfkfuZyDr5aU5WIJNwZOKEeJYzEDyG+5FpPJoVbkaBEiajmZNCMGWJcWeByV1KIhFe2cLAxrvazkEntThf4zW8wavVfYsiCZgBrhiYqH67/q1v8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sfk31Fgl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nUQ7XAXj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5658AC4CEC6;
-	Thu, 24 Oct 2024 03:10:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sfk31Fgl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA38CC4CEC6;
+	Thu, 24 Oct 2024 03:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729739441;
-	bh=Kz1kDacPBYtan2opijll8XTEJuhmKPSQQxYgEZnKJ6s=;
+	s=korg; t=1729739443;
+	bh=G38F5jj0jhrw3YKl1IVXNTbbAU+CC7Qg7qahzHbrLak=;
 	h=Date:To:From:Subject:From;
-	b=nUQ7XAXjgZRdXlcZG7Be8qlMV1kAOeuriS+sgULyyZIvwiusaNtCe7FdUxehRLBP6
-	 oMTfQlD86FEn/wFdoJCr3wwAgP1DQkNOcTmSW9HisfhnFkCw5txFqmMZ8HycE048bR
-	 yeCXk38UblcKApgKg/p3jUFtIuxCa8ICq/BdWICU=
-Date: Wed, 23 Oct 2024 20:10:40 -0700
+	b=Sfk31FglGM9CUFEum4qGLIwM77kASySQZ6yGjwia7BF2qoeVcJ+60hEo1z4Z50kOx
+	 hkYeurP41v4JXIJBuf5WVI5U1i8k1vMtwzLiFFOKw6AIBrGbDsqQkcMSTUT165ZlVX
+	 xtx6NTCxCSq8Y2oqjAKp00h65p6TPxxg9lObw/I8=
+Date: Wed, 23 Oct 2024 20:10:43 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,corbet@lwn.net,colyli@suse.de,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch added to mm-nonmm-unstable branch
-Message-Id: <20241024031041.5658AC4CEC6@smtp.kernel.org>
+Subject: + bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch added to mm-nonmm-unstable branch
+Message-Id: <20241024031043.BA38CC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bcachefs: clean up duplicate min_heap_callbacks declarations
+     Subject: bcachefs: update min_heap_callbacks to use default builtin swap
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch
+     bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: bcachefs: clean up duplicate min_heap_callbacks declarations
-Date: Sun, 20 Oct 2024 12:01:58 +0800
+Subject: bcachefs: update min_heap_callbacks to use default builtin swap
+Date: Sun, 20 Oct 2024 12:01:59 +0800
 
-Refactor the bcachefs code to remove multiple redundant declarations of
-min_heap_callbacks, ensuring that each unique declaration appears only
-once.
+Replace the swp function pointer in the min_heap_callbacks of bcachefs
+with NULL, allowing direct usage of the default builtin swap
+implementation.  This modification simplifies the code and improves
+performance by removing unnecessary function indirection.
 
-Link: https://lore.kernel.org/20241017095520.GV16066@noisy.programming.kicks-ass.net
-Link: https://lkml.kernel.org/r/20241020040200.939973-9-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20241020040200.939973-10-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
 Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
@@ -84,106 +83,34 @@ Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Sakai <msakai@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bcachefs/clock.c |   19 +++++--------------
- fs/bcachefs/ec.c    |   19 +++++--------------
- 2 files changed, 10 insertions(+), 28 deletions(-)
+ fs/bcachefs/clock.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
---- a/fs/bcachefs/clock.c~bcachefs-clean-up-duplicate-min_heap_callbacks-declarations
+--- a/fs/bcachefs/clock.c~bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap
 +++ a/fs/bcachefs/clock.c
-@@ -22,13 +22,13 @@ static inline void io_timer_swp(void *l,
- 	swap(*_l, *_r);
+@@ -14,17 +14,9 @@ static inline bool io_timer_cmp(const vo
+ 	return (*_l)->expire < (*_r)->expire;
  }
  
-+static const struct min_heap_callbacks callbacks = {
-+	.less = io_timer_cmp,
-+	.swp = io_timer_swp,
-+};
-+
+-static inline void io_timer_swp(void *l, void *r, void __always_unused *args)
+-{
+-	struct io_timer **_l = (struct io_timer **)l;
+-	struct io_timer **_r = (struct io_timer **)r;
+-
+-	swap(*_l, *_r);
+-}
+-
+ static const struct min_heap_callbacks callbacks = {
+ 	.less = io_timer_cmp,
+-	.swp = io_timer_swp,
++	.swp = NULL,
+ };
+ 
  void bch2_io_timer_add(struct io_clock *clock, struct io_timer *timer)
- {
--	const struct min_heap_callbacks callbacks = {
--		.less = io_timer_cmp,
--		.swp = io_timer_swp,
--	};
--
- 	spin_lock(&clock->timer_lock);
- 
- 	if (time_after_eq64((u64) atomic64_read(&clock->now), timer->expire)) {
-@@ -48,11 +48,6 @@ out:
- 
- void bch2_io_timer_del(struct io_clock *clock, struct io_timer *timer)
- {
--	const struct min_heap_callbacks callbacks = {
--		.less = io_timer_cmp,
--		.swp = io_timer_swp,
--	};
--
- 	spin_lock(&clock->timer_lock);
- 
- 	for (size_t i = 0; i < clock->timers.nr; i++)
-@@ -142,10 +137,6 @@ void bch2_kthread_io_clock_wait(struct i
- static struct io_timer *get_expired_timer(struct io_clock *clock, u64 now)
- {
- 	struct io_timer *ret = NULL;
--	const struct min_heap_callbacks callbacks = {
--		.less = io_timer_cmp,
--		.swp = io_timer_swp,
--	};
- 
- 	if (clock->timers.nr &&
- 	    time_after_eq64(now, clock->timers.data[0]->expire)) {
---- a/fs/bcachefs/ec.c~bcachefs-clean-up-duplicate-min_heap_callbacks-declarations
-+++ a/fs/bcachefs/ec.c
-@@ -1057,6 +1057,11 @@ static inline void ec_stripes_heap_swap(
- 	ec_stripes_heap_set_backpointer(_h, j);
- }
- 
-+static const struct min_heap_callbacks callbacks = {
-+	.less = ec_stripes_heap_cmp,
-+	.swp = ec_stripes_heap_swap,
-+};
-+
- static void heap_verify_backpointer(struct bch_fs *c, size_t idx)
- {
- 	ec_stripes_heap *h = &c->ec_stripes_heap;
-@@ -1069,11 +1074,6 @@ static void heap_verify_backpointer(stru
- void bch2_stripes_heap_del(struct bch_fs *c,
- 			   struct stripe *m, size_t idx)
- {
--	const struct min_heap_callbacks callbacks = {
--		.less = ec_stripes_heap_cmp,
--		.swp = ec_stripes_heap_swap,
--	};
--
- 	mutex_lock(&c->ec_stripes_heap_lock);
- 	heap_verify_backpointer(c, idx);
- 
-@@ -1084,11 +1084,6 @@ void bch2_stripes_heap_del(struct bch_fs
- void bch2_stripes_heap_insert(struct bch_fs *c,
- 			      struct stripe *m, size_t idx)
- {
--	const struct min_heap_callbacks callbacks = {
--		.less = ec_stripes_heap_cmp,
--		.swp = ec_stripes_heap_swap,
--	};
--
- 	mutex_lock(&c->ec_stripes_heap_lock);
- 	BUG_ON(min_heap_full(&c->ec_stripes_heap));
- 
-@@ -1107,10 +1102,6 @@ void bch2_stripes_heap_insert(struct bch
- void bch2_stripes_heap_update(struct bch_fs *c,
- 			      struct stripe *m, size_t idx)
- {
--	const struct min_heap_callbacks callbacks = {
--		.less = ec_stripes_heap_cmp,
--		.swp = ec_stripes_heap_swap,
--	};
- 	ec_stripes_heap *h = &c->ec_stripes_heap;
- 	bool do_deletes;
- 	size_t i;
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
