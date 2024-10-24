@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42807157A59
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:10:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08F34446A1
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:10:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729739432; cv=none; b=Df4PE+NENQXdfwFdaqrbstVkBAgRFjd+BTAl/eZQ84PcUvS4drI2KreQeDk8/yn1or6IWfGzAWlHd0Ia9o2xYf8MPGNjMdlQ6hzE0pnY9s9Wkx0q8BXJ/O6FKO8vcV6a9i38VgosbBMGIJFSG9SavTc7MRKuw7NViEVkyBHCT14=
+	t=1729739434; cv=none; b=Pa10+bvk++GbspGi0OzxH2XRQarTJHCVhP8cDURxSrO6jISGIpweJ3UDUC2f0y5g6AIcPdeuUw7OyPakcAj+N0UWJRtoWfA21RPemMXisbHdM1lalmByvqimQYNonBwYFAwaL2nqLijZiKahaAmLsZF3UZ8nqzryN2uTcziBfYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729739432; c=relaxed/simple;
-	bh=BK2k/Lm+X6mQImEEg6AoU0y91a/aYKKPpJVyITgVkB0=;
-	h=Date:To:From:Subject:Message-Id; b=nQ7P+/zwPKeH+EZyy7MJ5gjZrsz+RRhyet/mZF/TduXHoHjz4W7hr2TIyZG2fIx/D/TIbTnfhsRF69gU+hhKnDwYprrAZr/wRdLeeuv6RbM6ads2wGA/Or/TN2/iQMYFrIJvDnV6xOd65fvD+BfZKAC/Q2hTLJtKKqC2mgsCTwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XP7oU+Jh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729739434; c=relaxed/simple;
+	bh=hIdcpD5VcIDcWEzEOG4Gp8wrj/pQVBwr95yuQtnCv0U=;
+	h=Date:To:From:Subject:Message-Id; b=skYnZpOAlPwCKRAsgBVZJR9BM52I0CuWskEVhiN2sP3+8tV8pkNIBCoiCHVdvQ0T/zjj2WpC9+6B+4k44XFy3YbWqbtV+ZfYTRMlJ2vwrw7pe+YK0/+dadDZZ36S60mLcLCpkOGKN5xcQJkfITvaTiMXhaBjpljKpgCQDfZISZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kr+gdu9G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XP7oU+Jh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5675C4CEC6;
-	Thu, 24 Oct 2024 03:10:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kr+gdu9G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C97B4C4CEC6;
+	Thu, 24 Oct 2024 03:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729739431;
-	bh=BK2k/Lm+X6mQImEEg6AoU0y91a/aYKKPpJVyITgVkB0=;
+	s=korg; t=1729739433;
+	bh=hIdcpD5VcIDcWEzEOG4Gp8wrj/pQVBwr95yuQtnCv0U=;
 	h=Date:To:From:Subject:From;
-	b=XP7oU+JhClUbQCPdWaxvlMDBkw90BAuqeZxYAw5QalK6EgtFgnyA2KITryNWMcAtk
-	 F5EgT9x569JsK24JqfwUhh6FphfINuYTubhCic47vqJYzl+Fyj3kBN9H6XJgKlIQa3
-	 aiwuiRaS2mpzU7KxExdJBV3JfUBngsKCTELfMvxg=
-Date: Wed, 23 Oct 2024 20:10:31 -0700
+	b=Kr+gdu9GG+CKCJiEQqD3xWaL4X9nghmVrIlQC2ZsB67Q/UWvzcrZMkfPASc2qfYQ7
+	 ohAX/jna9fBmz+NGX8BZIAkKs2ql9jctB7m6VkpoUkfx1Aw/8+flsSqRIhRbRZ0y6c
+	 ccwqjbbXpen1UXbxSDLEvJaucdAVb+7K68W6iDAA=
+Date: Wed, 23 Oct 2024 20:10:33 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,corbet@lwn.net,colyli@suse.de,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch added to mm-nonmm-unstable branch
-Message-Id: <20241024031031.D5675C4CEC6@smtp.kernel.org>
+Subject: + perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch added to mm-nonmm-unstable branch
+Message-Id: <20241024031033.C97B4C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_min_heap: update min_heap_callbacks to use default builtin swap
+     Subject: perf/core: update min_heap_callbacks to use default builtin swap
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+     perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/test_min_heap: update min_heap_callbacks to use default builtin swap
-Date: Sun, 20 Oct 2024 12:01:54 +0800
+Subject: perf/core: update min_heap_callbacks to use default builtin swap
+Date: Sun, 20 Oct 2024 12:01:55 +0800
 
-Replace the swp function pointer in the min_heap_callbacks of
-test_min_heap with NULL, allowing direct usage of the default builtin swap
-implementation.  This modification simplifies the code and improves
-performance by removing unnecessary function indirection.
+After introducing the default builtin swap implementation, update the
+min_heap_callbacks to replace the swp function pointer with NULL.  This
+change allows the min heap to directly utilize the builtin swap,
+simplifying the code.
 
-Link: https://lkml.kernel.org/r/20241020040200.939973-5-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20241020040200.939973-6-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
@@ -87,62 +87,31 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_min_heap.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ kernel/events/core.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/lib/test_min_heap.c~lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap
-+++ a/lib/test_min_heap.c
-@@ -23,14 +23,6 @@ static __init bool greater_than(const vo
- 	return *(int *)lhs > *(int *)rhs;
+--- a/kernel/events/core.c~perf-core-update-min_heap_callbacks-to-use-default-builtin-swap
++++ a/kernel/events/core.c
+@@ -3778,18 +3778,11 @@ static bool perf_less_group_idx(const vo
+ 	return le->group_index < re->group_index;
  }
  
--static __init void swap_ints(void *lhs, void *rhs, void __always_unused *args)
+-static void swap_ptr(void *l, void *r, void __always_unused *args)
 -{
--	int temp = *(int *)lhs;
+-	void **lp = l, **rp = r;
 -
--	*(int *)lhs = *(int *)rhs;
--	*(int *)rhs = temp;
+-	swap(*lp, *rp);
 -}
 -
- static __init int pop_verify_heap(bool min_heap,
- 				struct min_heap_test *heap,
- 				const struct min_heap_callbacks *funcs)
-@@ -72,7 +64,7 @@ static __init int test_heapify_all(bool
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, err;
+ DEFINE_MIN_HEAP(struct perf_event *, perf_event_min_heap);
  
-@@ -104,7 +96,7 @@ static __init int test_heap_push(bool mi
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, temp, err;
+ static const struct min_heap_callbacks perf_min_heap = {
+ 	.less = perf_less_group_idx,
+-	.swp = swap_ptr,
++	.swp = NULL,
+ };
  
-@@ -136,7 +128,7 @@ static __init int test_heap_pop_push(boo
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, temp, err;
- 
-@@ -175,7 +167,7 @@ static __init int test_heap_del(bool min
- 	heap.nr = ARRAY_SIZE(values);
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, err;
- 
+ static void __heap_add(struct perf_event_min_heap *heap, struct perf_event *event)
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
