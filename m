@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2F7D376F1
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:55:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91588376F1
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:55:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729738539; cv=none; b=uGZZtEeGfJsRm0oVTOmY94r5KeGdppiyVx2ZP1pv7HyF0dHXXV5efxlvR0YsPtHG2s99+AhD/+M4Ns/bTXfs8y/5DOMfDdRl0ekDAAQy0kI6yNIpmwOK7UB7fHK1YVKeSgn16zS1jO7ANZgHPbl4/p5J7KXBjErv5kkIKG7U2wU=
+	t=1729738540; cv=none; b=b9jvcUQJ0HlnFWiyUhPe4OME+yV5K7GPFN1D/0R+OFzsIQ5kfu15tXuzeD3d14auKXuDQELmh1xi1rKms+e5vuY9/gkQhhVDw/EBQCuEWvWBLmOEuzIrMxrlnebcL4cIf2GLQFzZ5t2gMoSnRV6M9GsvarRX0WfCHwPSPPnxTf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729738539; c=relaxed/simple;
-	bh=O9JLygHQKteodKz5qb9H4CmF1gNLWL66S/nt9r6KjoQ=;
-	h=Date:To:From:Subject:Message-Id; b=KFaTHcK5uDkpZ7yrnDo6Mxa5WuPxA1AtzHBhoBqOm8I15zelZ1skbJWubgQ9vJjd32li9ZtUzj2fy0qSyUeYZILQfrxR2hQWN7RARzm/fx1t8bVZ6okaqHVWVZSympz6tYmL+ndC/5C/To28WAxyrzLSAsndCH9LT96Un3p8EHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OrFEFwyj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729738540; c=relaxed/simple;
+	bh=cosIiS7/0NWcqRjnZw6xcAY1bXEsV3oCK7icKfpIGw8=;
+	h=Date:To:From:Subject:Message-Id; b=JTpFTnJAjfXoELPrYhBLp65ECpGhIC+x6rWm3uJ14JccRO44bKO4Fb1PvM+pnel/1aKXUT5/WHyhu1zRqDDicH8B4RbDk5enlYOwPjmei9FpqluLGj6Jrqfj7rD5+Tfo+z+fDiPJucWsA33qc6fEbdpg/F/d+7bC1IQhGYQfq28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M1lEn5Si; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OrFEFwyj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73FCFC4CEC6;
-	Thu, 24 Oct 2024 02:55:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M1lEn5Si"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59A53C4CEC6;
+	Thu, 24 Oct 2024 02:55:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729738538;
-	bh=O9JLygHQKteodKz5qb9H4CmF1gNLWL66S/nt9r6KjoQ=;
+	s=korg; t=1729738540;
+	bh=cosIiS7/0NWcqRjnZw6xcAY1bXEsV3oCK7icKfpIGw8=;
 	h=Date:To:From:Subject:From;
-	b=OrFEFwyjLpGY8RJcy04VFAUBiQZZb7OD7iPB1jy0eZEGgxVNYHHor2OCM12VjJIIV
-	 /0CiluNPtP2jnMwhX0tSYHis4xLtHbS4NP5oh0KPcBL/iwTjFBD1DcUundWKbGZbSF
-	 x3goHgHdsntCoPbG+ZHHlhmLKHzQCGT73OfBv2JY=
-Date: Wed, 23 Oct 2024 19:55:36 -0700
+	b=M1lEn5SicS5FezjR9NunRSzeyOC6nZkn0D6qstG2S8kaLDYtBWDRKYWRP8uPbFN45
+	 fdGq3IlchCHcBhkhMynyWuLblZQPSugcQ8ppYGZFa53yUv6n+3U4q84qhpY+aPTWOS
+	 ZrOrHXo5WT631rrKLQWnctNf5NGm6cpGmuSGw9gA=
+Date: Wed, 23 Oct 2024 19:55:39 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-merge-verify_percpu_ptr-into-its-only-user.patch added to mm-nonmm-unstable branch
-Message-Id: <20241024025538.73FCFC4CEC6@smtp.kernel.org>
+Subject: + percpu-introduce-percpu_ptr-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20241024025540.59A53C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
+     Subject: percpu: introduce PERCPU_PTR() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     percpu-merge-verify_percpu_ptr-into-its-only-user.patch
+     percpu-introduce-percpu_ptr-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-merge-verify_percpu_ptr-into-its-only-user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-introduce-percpu_ptr-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
-Date: Mon, 21 Oct 2024 10:07:36 +0200
+Subject: percpu: introduce PERCPU_PTR() macro
+Date: Mon, 21 Oct 2024 10:07:37 +0200
 
-Merge VERIFY_PERCPU_PTR() into non-CONFIG_SMP per_cpu_ptr() to make macro
-similar to CONFIG_SMP per_cpu_ptr().  This will allow a follow-up patch to
-refactor common code to a macro.
+Introduce PERCPU_PTR() macro to cast the percpu pointer from the percpu
+address space to a generic (kernel) address space.  Use it in
+per_cpu_ptr() and related SHIFT_PERCPU_PTR() macros.
 
-No functional changes, non-CONFIG_SMP per_cpu_ptr() was the only user of
-VERIFY_PERCPU_PTR().
+Also remove common knowledge from SHIFT_PERCPU_PTR() comment, "weird cast"
+is just a standard way to inform sparse of a cast from the percpu address
+space to a generic address space.
 
-Link: https://lkml.kernel.org/r/20241021080856.48746-1-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20241021080856.48746-2-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
@@ -77,29 +78,42 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-defs.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/percpu-defs.h |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/percpu-defs.h~percpu-merge-verify_percpu_ptr-into-its-only-user
+--- a/include/linux/percpu-defs.h~percpu-introduce-percpu_ptr-macro
 +++ a/include/linux/percpu-defs.h
-@@ -254,13 +254,13 @@ do {									\
+@@ -220,15 +220,17 @@ do {									\
+ 	(void)__vpp_verify;						\
+ } while (0)
  
- #else	/* CONFIG_SMP */
++#define PERCPU_PTR(__p)							\
++	(typeof(*(__p)) __force __kernel *)(__p);
++
+ #ifdef CONFIG_SMP
  
--#define VERIFY_PERCPU_PTR(__p)						\
-+#define per_cpu_ptr(ptr, cpu)						\
+ /*
+- * Add an offset to a pointer but keep the pointer as-is.  Use RELOC_HIDE()
+- * to prevent the compiler from making incorrect assumptions about the
+- * pointer value.  The weird cast keeps both GCC and sparse happy.
++ * Add an offset to a pointer.  Use RELOC_HIDE() to prevent the compiler
++ * from making incorrect assumptions about the pointer value.
+  */
+ #define SHIFT_PERCPU_PTR(__p, __offset)					\
+-	RELOC_HIDE((typeof(*(__p)) __kernel __force *)(__p), (__offset))
++	RELOC_HIDE(PERCPU_PTR(__p), (__offset))
+ 
+ #define per_cpu_ptr(ptr, cpu)						\
  ({									\
--	__verify_pcpu_ptr(__p);						\
--	(typeof(*(__p)) __kernel __force *)(__p);			\
-+	(void)(cpu);							\
-+	__verify_pcpu_ptr(ptr);						\
-+	(typeof(*(ptr)) __kernel __force *)(ptr);			\
+@@ -258,7 +260,7 @@ do {									\
+ ({									\
+ 	(void)(cpu);							\
+ 	__verify_pcpu_ptr(ptr);						\
+-	(typeof(*(ptr)) __kernel __force *)(ptr);			\
++	PERCPU_PTR(ptr);						\
  })
  
--#define per_cpu_ptr(ptr, cpu)	({ (void)(cpu); VERIFY_PERCPU_PTR(ptr); })
  #define raw_cpu_ptr(ptr)	per_cpu_ptr(ptr, 0)
- #define this_cpu_ptr(ptr)	raw_cpu_ptr(ptr)
- 
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
