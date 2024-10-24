@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B42A16F287
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D261C175D47
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729750540; cv=none; b=f4WRYKpP7lcZE1v6/scVAKkwZZW/O0W+DHErG7fq3t6rCAxZD+lOfDKpfRXXatStnLi7xVMFZd/IuEsUndTCyZzJ01NRNCCR3JiNHdvyHTyV1krA2cL8g7a8QoyZ8r6FaOnAr1juMe8AMYBy7pb+fKdTVpKS/g1LFVXxA6TdeZU=
+	t=1729750541; cv=none; b=iUSPJbyk1BbwhZBosz8BfAz/dAlok4uokhWUBihuQtZ3DFuL4eLR1/vlFonaK4EUf4rFk/RSGXK7bwflYbCdMg5mA66u6KksNuao5QOm8IvPeH2eSNnrhQm2LhtK2ISx8QTu00O3ON6wdrUrdk2RDpawAd9A0eUyZ/GV0XDjy/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729750540; c=relaxed/simple;
-	bh=k3jAoU8RAOpAVeKtLtA2Tp5EUeEl/7ZF/KYP1rIeKls=;
-	h=Date:To:From:Subject:Message-Id; b=SRwZ0Y/MxDXRixbo8gsNIcNKCQ8lAr5wNaGve18FvHCUreVJKK6o2LDuallEXFtmDVb/nTDS1qENXvticzmgJ1+/jvNDFMP1MPkDXx4og896twhZ3asfEejqud9FMpJoYm7ovwJQBGCsaGrxudpQ4n1bL34DM9a9XEMNPLV+jMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cPa/ON+0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729750541; c=relaxed/simple;
+	bh=fytMmxJavIn5tN1CdM26NqKPOEKz2lwUgtj5C7/cxVU=;
+	h=Date:To:From:Subject:Message-Id; b=CLflJ84wgjezCfKKkaZuBSBdIK+kJN6bvGp4LsJsXL8e/IRwRsNZNAA8MxcdY1HZNSuB7cxmA8rXphrNarhrmfDCj1q/ujhGZC5RMykXZ9QIw8kYBF/tbWPCLrOHTvHk8veBmx0nUcJBwRTmrhk1HfSO4n7MsXoQu5D2wieeXAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N4+n4Bq9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cPa/ON+0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE37C4CEC7;
-	Thu, 24 Oct 2024 06:15:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N4+n4Bq9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FD80C4CECC;
+	Thu, 24 Oct 2024 06:15:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729750540;
-	bh=k3jAoU8RAOpAVeKtLtA2Tp5EUeEl/7ZF/KYP1rIeKls=;
+	s=korg; t=1729750541;
+	bh=fytMmxJavIn5tN1CdM26NqKPOEKz2lwUgtj5C7/cxVU=;
 	h=Date:To:From:Subject:From;
-	b=cPa/ON+0NFMzATIHd4Cm7Zdq41RUsB7fHMJH1gFvZcjs5tqe5dI28lazWjvRgEYoC
-	 rj49fG5lbnKxZN2yAxNx+3Uik1SM5BgTZZ4r/Q2BfP0r06KEvpklIKqgaSJM+QGeLw
-	 XdoORzxELRSbNujNurrR/RK25PrWGHwKvxxn9+wc=
-Date: Wed, 23 Oct 2024 23:15:39 -0700
-To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,vbabka@suse.cz,serge@hallyn.com,roberto.sassu@huawei.com,paul@paul-moore.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jmorris@namei.org,jarkko@kernel.org,jannh@google.com,eric.snowberg@oracle.com,ebpqwerty472123@gmail.com,dmitry.kasatkin@gmail.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=N4+n4Bq9pcU5TYbyvtufLDNgOCGMRvfgnapMFjcE8dUA6W2wN7szOFhAa41tGSMrt
+	 ULRUXKxPGqIbi+0d6WHgi/Il20sfmrvom+hJhdXuc7p6EJxyFGyZxrEp5aScp/rrrK
+	 0IpXw4bPLfsXU6idIVqRPgw6M3hTxnyh9LMhMooE=
+Date: Wed, 23 Oct 2024 23:15:40 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,syoshida@redhat.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,minchan@kernel.org,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@lst.de,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,apopple@nvidia.com,airlied@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-split-critical-region-in-remap_file_pages-and-invoke-lsms-in-between.patch removed from -mm tree
-Message-Id: <20241024061539.DEE37C4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch removed from -mm tree
+Message-Id: <20241024061541.4FD80C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,172 +35,191 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: split critical region in remap_file_pages() and invoke LSMs in between
+     Subject: mm/gup: stop leaking pinned pages in low memory conditions
 has been removed from the -mm tree.  Its filename was
-     mm-split-critical-region-in-remap_file_pages-and-invoke-lsms-in-between.patch
+     mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: split critical region in remap_file_pages() and invoke LSMs in between
-Date: Fri, 18 Oct 2024 18:14:15 +0200
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: stop leaking pinned pages in low memory conditions
+Date: Thu, 17 Oct 2024 18:17:10 -0700
 
-Commit ea7e2d5e49c0 ("mm: call the security_mmap_file() LSM hook in
-remap_file_pages()") fixed a security issue, it added an LSM check when
-trying to remap file pages, so that LSMs have the opportunity to evaluate
-such action like for other memory operations such as mmap() and
-mprotect().
+Patch series "mm/gup: stop leaking pinned pages in low memory conditions",
+v2.
 
-However, that commit called security_mmap_file() inside the mmap_lock
-lock, while the other calls do it before taking the lock, after commit
-8b3ec6814c83 ("take security_mmap_file() outside of ->mmap_sem").
 
-This caused lock inversion issue with IMA which was taking the mmap_lock
-and i_mutex lock in the opposite way when the remap_file_pages() system
-call was called.
+This patch (of 2):
 
-Solve the issue by splitting the critical region in remap_file_pages() in
-two regions: the first takes a read lock of mmap_lock, retrieves the VMA
-and the file descriptor associated, and calculates the 'prot' and 'flags'
-variables; the second takes a write lock on mmap_lock, checks that the VMA
-flags and the VMA file descriptor are the same as the ones obtained in the
-first critical region (otherwise the system call fails), and calls
-do_mmap().
+If a driver tries to call any of the pin_user_pages*(FOLL_LONGTERM) family
+of functions, and requests "too many" pages, then the call will
+erroneously leave pages pinned.  This is visible in user space as an
+actual memory leak.
 
-In between, after releasing the read lock and before taking the write
-lock, call security_mmap_file(), and solve the lock inversion issue.
+Repro is trivial: just make enough pin_user_pages(FOLL_LONGTERM) calls to
+exhaust memory.
 
-Link: https://lkml.kernel.org/r/20241018161415.3845146-1-roberto.sassu@huaweicloud.com
-Fixes: ea7e2d5e49c0 ("mm: call the security_mmap_file() LSM hook in remap_file_pages()")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
-Reported-by: syzbot+1cd571a672400ef3a930@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-security-module/66f7b10e.050a0220.46d20.0036.GAE@google.com/
-Tested-by: Roberto Sassu <roberto.sassu@huawei.com>
-Reviewed-by: Roberto Sassu <roberto.sassu@huawei.com>
-Reviewed-by: Jann Horn <jannh@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Paul Moore <paul@paul-moore.com>
-Tested-by: syzbot+1cd571a672400ef3a930@syzkaller.appspotmail.com
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
-Cc: Eric Snowberg <eric.snowberg@oracle.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Shu Han <ebpqwerty472123@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The root cause of the problem is this sequence, within
+__gup_longterm_locked():
+
+    __get_user_pages_locked()
+    rc = check_and_migrate_movable_pages()
+
+...which gets retried in a loop.  The loop error handling is incomplete,
+clearly due to a somewhat unusual and complicated tri-state error API. 
+But anyway, if -ENOMEM, or in fact, any unexpected error is returned from
+check_and_migrate_movable_pages(), then __gup_longterm_locked() happily
+returns the error, while leaving the pages pinned.
+
+In the failed case, which is an app that requests (via a device driver)
+30720000000 bytes to be pinned, and then exits, I see this:
+
+    $ grep foll /proc/vmstat
+        nr_foll_pin_acquired 7502048
+        nr_foll_pin_released 2048
+
+And after applying this patch, it returns to balanced pins:
+
+    $ grep foll /proc/vmstat
+        nr_foll_pin_acquired 7502048
+        nr_foll_pin_released 7502048
+
+Note that the child routine, check_and_migrate_movable_folios(), avoids
+this problem, by unpinning any folios in the **folios argument, before
+returning an error.
+
+Fix this by making check_and_migrate_movable_pages() behave in exactly
+the same way as check_and_migrate_movable_folios(): unpin all pages in
+**pages, before returning an error.
+
+Also, documentation was an aggravating factor, so:
+
+1) Consolidate the documentation for these two routines, now that they
+   have identical external behavior.
+
+2) Rewrite the consolidated documentation:
+
+    a) Clearly list the three return code cases, and what happens in
+    each case.
+
+    b) Mention that one of the cases unpins the pages or folios, before
+    returning an error code.
+
+[jhubbard@nvidia.com: updates per David]
+  Link: https://lkml.kernel.org/r/20241018223411.310331-1-jhubbard@nvidia.comLink: https://lkml.kernel.org/r/20241018011711.183642-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20241018011711.183642-2-jhubbard@nvidia.com
+Fixes: 24a95998e9ba ("mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Shigeru Yoshida <syoshida@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Dongwon Kim <dongwon.kim@intel.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Junxiao Chang <junxiao.chang@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   69 +++++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 52 insertions(+), 17 deletions(-)
+ mm/gup.c |   44 ++++++++++++++++++++++++++++++--------------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
---- a/mm/mmap.c~mm-split-critical-region-in-remap_file_pages-and-invoke-lsms-in-between
-+++ a/mm/mmap.c
-@@ -1642,6 +1642,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 	unsigned long populate = 0;
- 	unsigned long ret = -EINVAL;
- 	struct file *file;
-+	vm_flags_t vm_flags;
+--- a/mm/gup.c~mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions
++++ a/mm/gup.c
+@@ -2394,20 +2394,25 @@ err:
+ }
  
- 	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. See Documentation/mm/remap_file_pages.rst.\n",
- 		     current->comm, current->pid);
-@@ -1658,12 +1659,60 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 	if (pgoff + (size >> PAGE_SHIFT) < pgoff)
- 		return ret;
+ /*
+- * Check whether all folios are *allowed* to be pinned indefinitely (longterm).
++ * Check whether all folios are *allowed* to be pinned indefinitely (long term).
+  * Rather confusingly, all folios in the range are required to be pinned via
+  * FOLL_PIN, before calling this routine.
+  *
+- * If any folios in the range are not allowed to be pinned, then this routine
+- * will migrate those folios away, unpin all the folios in the range and return
+- * -EAGAIN. The caller should re-pin the entire range with FOLL_PIN and then
+- * call this routine again.
++ * Return values:
+  *
+- * If an error other than -EAGAIN occurs, this indicates a migration failure.
+- * The caller should give up, and propagate the error back up the call stack.
+- *
+- * If everything is OK and all folios in the range are allowed to be pinned,
++ * 0: if everything is OK and all folios in the range are allowed to be pinned,
+  * then this routine leaves all folios pinned and returns zero for success.
++ *
++ * -EAGAIN: if any folios in the range are not allowed to be pinned, then this
++ * routine will migrate those folios away, unpin all the folios in the range. If
++ * migration of the entire set of folios succeeds, then -EAGAIN is returned. The
++ * caller should re-pin the entire range with FOLL_PIN and then call this
++ * routine again.
++ *
++ * -ENOMEM, or any other -errno: if an error *other* than -EAGAIN occurs, this
++ * indicates a migration failure. The caller should give up, and propagate the
++ * error back up the call stack. The caller does not need to unpin any folios in
++ * that case, because this routine will do the unpinning.
+  */
+ static long check_and_migrate_movable_folios(unsigned long nr_folios,
+ 					     struct folio **folios)
+@@ -2425,10 +2430,8 @@ static long check_and_migrate_movable_fo
+ }
  
--	if (mmap_write_lock_killable(mm))
-+	if (mmap_read_lock_killable(mm))
- 		return -EINTR;
+ /*
+- * This routine just converts all the pages in the @pages array to folios and
+- * calls check_and_migrate_movable_folios() to do the heavy lifting.
+- *
+- * Please see the check_and_migrate_movable_folios() documentation for details.
++ * Return values and behavior are the same as those for
++ * check_and_migrate_movable_folios().
+  */
+ static long check_and_migrate_movable_pages(unsigned long nr_pages,
+ 					    struct page **pages)
+@@ -2437,8 +2440,10 @@ static long check_and_migrate_movable_pa
+ 	long i, ret;
  
-+	/*
-+	 * Look up VMA under read lock first so we can perform the security
-+	 * without holding locks (which can be problematic). We reacquire a
-+	 * write lock later and check nothing changed underneath us.
-+	 */
- 	vma = vma_lookup(mm, start);
- 
--	if (!vma || !(vma->vm_flags & VM_SHARED))
-+	if (!vma || !(vma->vm_flags & VM_SHARED)) {
-+		mmap_read_unlock(mm);
-+		return -EINVAL;
+ 	folios = kmalloc_array(nr_pages, sizeof(*folios), GFP_KERNEL);
+-	if (!folios)
++	if (!folios) {
++		unpin_user_pages(pages, nr_pages);
+ 		return -ENOMEM;
 +	}
-+
-+	prot |= vma->vm_flags & VM_READ ? PROT_READ : 0;
-+	prot |= vma->vm_flags & VM_WRITE ? PROT_WRITE : 0;
-+	prot |= vma->vm_flags & VM_EXEC ? PROT_EXEC : 0;
-+
-+	flags &= MAP_NONBLOCK;
-+	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
-+	if (vma->vm_flags & VM_LOCKED)
-+		flags |= MAP_LOCKED;
-+
-+	/* Save vm_flags used to calculate prot and flags, and recheck later. */
-+	vm_flags = vma->vm_flags;
-+	file = get_file(vma->vm_file);
-+
-+	mmap_read_unlock(mm);
-+
-+	/* Call outside mmap_lock to be consistent with other callers. */
-+	ret = security_mmap_file(file, prot, flags);
-+	if (ret) {
-+		fput(file);
-+		return ret;
-+	}
-+
-+	ret = -EINVAL;
-+
-+	/* OK security check passed, take write lock + let it rip. */
-+	if (mmap_write_lock_killable(mm)) {
-+		fput(file);
-+		return -EINTR;
-+	}
-+
-+	vma = vma_lookup(mm, start);
-+
-+	if (!vma)
-+		goto out;
-+
-+	/* Make sure things didn't change under us. */
-+	if (vma->vm_flags != vm_flags)
-+		goto out;
-+	if (vma->vm_file != file)
- 		goto out;
  
- 	if (start + size > vma->vm_end) {
-@@ -1691,25 +1740,11 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 			goto out;
- 	}
+ 	for (i = 0; i < nr_pages; i++)
+ 		folios[i] = page_folio(pages[i]);
+@@ -2492,6 +2497,17 @@ static long __gup_longterm_locked(struct
  
--	prot |= vma->vm_flags & VM_READ ? PROT_READ : 0;
--	prot |= vma->vm_flags & VM_WRITE ? PROT_WRITE : 0;
--	prot |= vma->vm_flags & VM_EXEC ? PROT_EXEC : 0;
--
--	flags &= MAP_NONBLOCK;
--	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
--	if (vma->vm_flags & VM_LOCKED)
--		flags |= MAP_LOCKED;
--
--	file = get_file(vma->vm_file);
--	ret = security_mmap_file(vma->vm_file, prot, flags);
--	if (ret)
--		goto out_fput;
- 	ret = do_mmap(vma->vm_file, start, size,
- 			prot, flags, 0, pgoff, &populate, NULL);
--out_fput:
--	fput(file);
- out:
- 	mmap_write_unlock(mm);
-+	fput(file);
- 	if (populate)
- 		mm_populate(ret, populate);
- 	if (!IS_ERR_VALUE(ret))
+ 		/* FOLL_LONGTERM implies FOLL_PIN */
+ 		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages);
++
++		/*
++		 * The __get_user_pages_locked() call happens before we know if
++		 * it's possible to successfully complete the whole operation.
++		 * To compensate for this, if we get an unexpected error (such
++		 * as -ENOMEM) then we must unpin everything, before erroring
++		 * out.
++		 */
++		if (rc != -EAGAIN && rc != 0)
++			unpin_user_pages(pages, nr_pinned_pages);
++
+ 	} while (rc == -EAGAIN);
+ 	memalloc_pin_restore(flags);
+ 	return rc ? rc : nr_pinned_pages;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
 
