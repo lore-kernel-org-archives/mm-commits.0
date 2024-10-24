@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A2D176AB9;
-	Thu, 24 Oct 2024 06:15:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55C8178362
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729750530; cv=none; b=Lq/LLeMLQhbTeHpnKUpCs0460L/BtGO/cFaZmt0yDtQAQTBHEO3dEXBVcvecc/IVEbT0jmjlCpHAXrh9OMi6yYVuD0WjL7yoTNY8cor5e8gZnW5MOZac/GN5FBga3CEj4rakn9n58j8SbGNT8YsIb9QTrNLVzb1wLwOFE62xuLs=
+	t=1729750530; cv=none; b=cwI8RiLawtdxxLFZ/g1LZQwrzSa+vhHdapw2nL1m4QT2E+0LUS3Spfl7dCGH6AB0lOyvo2/fBX//0+GvAhSJ/zgxeC+VzOri3cxzucaiDEgI3WVIteTOnC46y+xKZcjHhPY+CyWsBQNaU1qgSrqkImEYHTNvjF7IL+V1AXqqAno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729750530; c=relaxed/simple;
-	bh=mFcx4HuQIBNd2QxMGzin/o4vfwNfSuJprlh+eg1HnNA=;
-	h=Date:To:From:Subject:Message-Id; b=iS1pSBjSe9L1/Hj3Bx5TU3kdkgkCqfbme1lH9ETA/cZ+kMzqBF2KywaxYWw1LH6gbIIkPL6UnL/WtECRrpe7XkjKVk5OlB+UJZeuhmbKcxaUwVfuvZGOgMhnsYMrWT+CaVpA9Jd2Tg2/1qIDq7DRy7NhgUPHnuWS2wQtx+sornE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XrQlLlAB; arc=none smtp.client-ip=10.30.226.201
+	bh=2hFFnHaNQ+CxzFbM/rbODqK1fQKI0T1Ci8iPPiUQkgM=;
+	h=Date:To:From:Subject:Message-Id; b=se+4woONXtYascH+rCTx0ij3T37a0IwUeEdtkqUowFX3gQy/PU4sKVKrScyDBMnxif5xZMzz81gNJWZ1Pr7Ff4CkrAQfk1FL8NMrT6qfF2j3HJDRhrmWULPeicIiyu78SZntP4FsDEMXEpuC9FiCcLDPPfExu5cJptg8ZrZWiUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z2NPdoRu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XrQlLlAB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D57C4CECC;
-	Thu, 24 Oct 2024 06:15:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z2NPdoRu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9205AC4CEE7;
+	Thu, 24 Oct 2024 06:15:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729750529;
-	bh=mFcx4HuQIBNd2QxMGzin/o4vfwNfSuJprlh+eg1HnNA=;
+	s=korg; t=1729750530;
+	bh=2hFFnHaNQ+CxzFbM/rbODqK1fQKI0T1Ci8iPPiUQkgM=;
 	h=Date:To:From:Subject:From;
-	b=XrQlLlABq9i2giZpnVENhq/pJ7HAMivvPMEbYfszOkbrNjH3dSmqtK1Aup5s6LGmu
-	 nELE7ZT8GKI74IG2a1oo7/R1sJGHfYAsekFUs+joKmDY5Nq6F6fymRzctdLm74KnLb
-	 UEV8xdbge4adaCThkhNcXY6+OSjv8Imqlbv9hW0o=
-Date: Wed, 23 Oct 2024 23:15:28 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,eadavis@qq.com,akpm@linux-foundation.org
+	b=z2NPdoRug9kFyta+0uYKNQrVWkm/9EvKgpTsXVOvuWdoS9A526eRiEv4mtU/IoMWM
+	 bGVe+3RUsRbFmMRMjgl7yyAL2uvAjxAXdfLUz5zz7lsb9Vd8bgnVHj9ZFYzqVwwjAx
+	 mdwbS6amdAplErJdKjYYu+ueUaPBZn9VIdL+4ep4=
+Date: Wed, 23 Oct 2024 23:15:30 -0700
+To: mm-commits@vger.kernel.org,yuji2.ishikawa@toshiba.co.jp,rppt@kernel.org,anshuman.khandual@arm.com,nobuhiro1.iwamatsu@toshiba.co.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch removed from -mm tree
-Message-Id: <20241024061529.81D57C4CECC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch removed from -mm tree
+Message-Id: <20241024061530.9205AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
+     Subject: mm: numa_clear_kernel_node_hotplug: Add NUMA_NO_NODE check for node id
 has been removed from the -mm tree.  Its filename was
-     ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow.patch
+     mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
-Date: Wed, 16 Oct 2024 19:43:47 +0800
+From: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Subject: mm: numa_clear_kernel_node_hotplug: Add NUMA_NO_NODE check for node id
+Date: Wed, 16 Oct 2024 18:21:01 +0900
 
-Syzbot reported a kernel BUG in ocfs2_truncate_inline.  There are two
-reasons for this: first, the parameter value passed is greater than
-ocfs2_max_inline_data_with_xattr, second, the start and end parameters of
-ocfs2_truncate_inline are "unsigned int".
+The acquired memory blocks for reserved may include blocks outside of
+memory management.  In this case, the nid variable is set to NUMA_NO_NODE
+(-1), so an error occurs in node_set().  This adds a check using
+numa_valid_node() to numa_clear_kernel_node_hotplug() that skips
+node_set() when nid is set to NUMA_NO_NODE.
 
-So, we need to add a sanity check for byte_start and byte_len right before
-ocfs2_truncate_inline() in ocfs2_remove_inode_range(), if they are greater
-than ocfs2_max_inline_data_with_xattr return -EINVAL.
-
-Link: https://lkml.kernel.org/r/tencent_D48DB5122ADDAEDDD11918CFB68D93258C07@qq.com
-Fixes: 1afc32b95233 ("ocfs2: Write support for inline data")
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Reported-by: syzbot+81092778aac03460d6b7@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=81092778aac03460d6b7
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1729070461-13576-1-git-send-email-nobuhiro1.iwamatsu@toshiba.co.jp
+Fixes: 87482708210f ("mm: introduce numa_memblks")
+Signed-off-by: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: Yuji Ishikawa <yuji2.ishikawa@toshiba.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/numa_memblks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/file.c~ocfs2-pass-u64-to-ocfs2_truncate_inline-maybe-overflow
-+++ a/fs/ocfs2/file.c
-@@ -1784,6 +1784,14 @@ int ocfs2_remove_inode_range(struct inod
- 		return 0;
+--- a/mm/numa_memblks.c~mm-numa_clear_kernel_node_hotplug-add-numa_no_node-check-for-node-id
++++ a/mm/numa_memblks.c
+@@ -349,7 +349,7 @@ static void __init numa_clear_kernel_nod
+ 	for_each_reserved_mem_region(mb_region) {
+ 		int nid = memblock_get_region_node(mb_region);
  
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
-+		int id_count = ocfs2_max_inline_data_with_xattr(inode->i_sb, di);
-+
-+		if (byte_start > id_count || byte_start + byte_len > id_count) {
-+			ret = -EINVAL;
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
- 		ret = ocfs2_truncate_inline(inode, di_bh, byte_start,
- 					    byte_start + byte_len, 0);
- 		if (ret) {
+-		if (nid != MAX_NUMNODES)
++		if (numa_valid_node(nid))
+ 			node_set(nid, reserved_nodemask);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from nobuhiro1.iwamatsu@toshiba.co.jp are
 
 
