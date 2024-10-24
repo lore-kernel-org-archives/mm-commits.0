@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C09F170A0B
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5294D1662E8
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729750523; cv=none; b=qs6KHsUTIsezy8LEMlrO+iZfKN0VpFBWqxZtUmkMGuDMEO0D//MnVwLSoYWQyRX//R05Ab7V0d4KZGpdk9jXj99HoXTKVsGINO7GOrZYdreG1Py60+2y6nldH8b7NH15DyJuvkCBJayTxGWQrQDl5MubAhAkUKiYvibGgkfTke8=
+	t=1729750524; cv=none; b=WXialxHe07Rpy9WpFL78HUzqDrW9fMqvCbLafzc1DFLMOEBla1kidtVnegClCN+7wrByt0tK+gnkMDdKPeMpC7KjP5nBxn6V9Eu2+JAjPMdcMAWtC4k/mf4u8zL4mNS4S8OgHRF7ZVMR8c0RMFwtjYkVwacAwhQKK53xTr7gntU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729750523; c=relaxed/simple;
-	bh=X3U6CML1RnGTyJIxuebudmgHThz2zhRAzBu1G44Hc0Y=;
-	h=Date:To:From:Subject:Message-Id; b=cJ6xWMLX73fe29KDymebJaDTMfeXZq8XopS2mdPe70R6nV01EAgDivXHUiM584wPvSb9amWyq6sAAbeUOY/RqhAxJLXefspzHqSrBKO0t91fmlHX+HbkXVFGF7+F/pTs8YTRuCX9GyLu7HAlFkhHpmiKmSr8pSrpBHq9kbCkGes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uupY0YRE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729750524; c=relaxed/simple;
+	bh=NMrcGEPxI+c6LcVmTKIavZazg6hwR6SsqZsa2FsVw3M=;
+	h=Date:To:From:Subject:Message-Id; b=tfNCJ6yrLAPJRXcgJsfYvfs517MCLIiwQYaGatXZ2V5tD7IWAUYYIu/zR2ubOfEjQA/B/4+M2BHvZvXdOyGRkQQA74maUn7s99nDuZhOEMLQ3f7/dHbYuDnDlFGLLR4SZ3m5p9H9InNjXkXhas9uc84DfHqJ8vNg/uDGTtgN9xM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MfWNAolM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uupY0YRE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85952C4CEE6;
-	Thu, 24 Oct 2024 06:15:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MfWNAolM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1D3BC4CECC;
+	Thu, 24 Oct 2024 06:15:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729750522;
-	bh=X3U6CML1RnGTyJIxuebudmgHThz2zhRAzBu1G44Hc0Y=;
+	s=korg; t=1729750523;
+	bh=NMrcGEPxI+c6LcVmTKIavZazg6hwR6SsqZsa2FsVw3M=;
 	h=Date:To:From:Subject:From;
-	b=uupY0YRE2tCczr/80snhGvXUf0fXGrvyhWo0vaHhZqhVcfYcJ0zx6zDT/Usrbe5kT
-	 IsdAFRrREhlGeGo8jVQJknzw1Nsz2Qw5kPFa8ODqSh+bjZh+On3KveYyeCm1wBpfUB
-	 10h6NYa/+62XkfnolLxPax0xWi4CqwdJSPHl9poU=
-Date: Wed, 23 Oct 2024 23:15:22 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=MfWNAolMM5jyAwHJGhvCppi/4ZskiDWewy9zArnrJdmVxoCR4xw1C88vbrtFmmG8r
+	 2QOOraZV9U+EWcxcgjp2VWRSkkJlsLnT3qp44Xeb7gMA0gycPMZyNjau6l/DqUjYrP
+	 rdvOoAq4fhRbgojS9FSBTW0HShAMXw8fh7F0XYfo=
+Date: Wed, 23 Oct 2024 23:15:23 -0700
+To: mm-commits@vger.kernel.org,nathan@kernel.org,linux@roeck-us.net,jonathan.cameron@huawei.com,david@redhat.com,dan.j.williams@intel.com,arnd@arndb.de,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch removed from -mm tree
-Message-Id: <20241024061522.85952C4CEE6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] resource-remove-dependency-on-sparsemem-from-get_free_region.patch removed from -mm tree
+Message-Id: <20241024061523.C1D3BC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap: fix race in mmap_region() with ftruncate()
+     Subject: resource: remove dependency on SPARSEMEM from GET_FREE_REGION
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
+     resource-remove-dependency-on-sparsemem-from-get_free_region.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: fix race in mmap_region() with ftruncate()
-Date: Tue, 15 Oct 2024 21:34:55 -0400
+From: Huang Ying <ying.huang@intel.com>
+Subject: resource: remove dependency on SPARSEMEM from GET_FREE_REGION
+Date: Tue, 15 Oct 2024 13:15:54 +0800
 
-Avoiding the zeroing of the vma tree in mmap_region() introduced a race
-with truncate in the page table walk.  To avoid any races, create a hole
-in the rmap during the operation by clearing the pagetable entries earlier
-under the mmap write lock and (critically) before the new vma is installed
-into the vma tree.  The result is that the old vma(s) are left in the vma
-tree, but free_pgtables() removes them from the rmap and clears the ptes
-while holding the necessary locks.
+We want to use the functions (get_free_mem_region()) configured via
+GET_FREE_REGION in resource kunit tests.  However, GET_FREE_REGION
+depends on SPARSEMEM now.  This makes resource kunit tests cannot be
+built on some architectures lacking SPARSEMEM, or causes config warning
+as follows,
 
-This change extends the fix required for hugetblfs and the call_mmap()
-function by moving the cleanup higher in the function and running it
-unconditionally.
+  WARNING: unmet direct dependencies detected for GET_FREE_REGION
+  Depends on [n]: SPARSEMEM [=n]
+  Selected by [y]:
+  - RESOURCE_KUNIT_TEST [=y] && RUNTIME_TESTING_MENU [=y] && KUNIT [=y]
 
-Link: https://lkml.kernel.org/r/20241016013455.2241533-1-Liam.Howlett@oracle.com
-Fixes: f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/all/CAG48ez0ZpGzxi=-5O_uGQ0xKXOmbjeQ0LjZsRJ1Qtf2X5eOr1w@mail.gmail.com/
-Reviewed-by: Jann Horn <jannh@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+When get_free_mem_region() was introduced the only consumers were those
+looking to pass the address range to memremap_pages().  That address
+range needed to be mindful of the maximum addressable platform physical
+address which at the time only SPARSMEM defined via MAX_PHYSMEM_BITS.
+
+Given that memremap_pages() also depended on SPARSEMEM via ZONE_DEVICE,
+it was easier to just depend on that definition than invent a general
+MAX_PHYSMEM_BITS concept outside of SPARSEMEM.
+
+Turns out that decision was buggy and did not account for KASAN
+consumption of physical address space.  That problem was resolved
+recently with commit ea72ce5da228 ("x86/kaslr: Expose and use the end
+of the physical memory address space"), and GET_FREE_REGION dropped its
+MAX_PHYSMEM_BITS dependency.
+
+Then commit 99185c10d5d9 ("resource, kunit: add test case for
+region_intersects()"), went ahead and fixed up the only remaining
+dependency on SPARSEMEM which was usage of the PA_SECTION_SHIFT macro
+for setting the default alignment.  A PAGE_SIZE fallback is fine in the
+SPARSEMEM=n case.
+
+With those build dependencies gone GET_FREE_REGION no longer depends on
+SPARSEMEM.  So, the patch removes dependency on SPARSEMEM from
+GET_FREE_REGION to fix the build issues.
+
+Link: https://lkml.kernel.org/r/20241016014730.339369-1-ying.huang@intel.com
+Link: https://lore.kernel.org/lkml/20240922225041.603186-1-linux@roeck-us.net/
+Link: https://lkml.kernel.org/r/20241015051554.294734-1-ying.huang@intel.com
+Fixes: 99185c10d5d9 ("resource, kunit: add test case for region_intersects()")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Nathan Chancellor <nathan@kernel.org> # build
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-fix-race-in-mmap_region-with-ftrucate
-+++ a/mm/mmap.c
-@@ -1418,6 +1418,13 @@ unsigned long mmap_region(struct file *f
- 		vmg.flags = vm_flags;
- 	}
+--- a/mm/Kconfig~resource-remove-dependency-on-sparsemem-from-get_free_region
++++ a/mm/Kconfig
+@@ -1085,7 +1085,6 @@ config HMM_MIRROR
+ 	depends on MMU
  
-+	/*
-+	 * clear PTEs while the vma is still in the tree so that rmap
-+	 * cannot race with the freeing later in the truncate scenario.
-+	 * This is also needed for call_mmap(), which is why vm_ops
-+	 * close function is called.
-+	 */
-+	vms_clean_up_area(&vms, &mas_detach);
- 	vma = vma_merge_new_range(&vmg);
- 	if (vma)
- 		goto expanded;
-@@ -1439,11 +1446,6 @@ unsigned long mmap_region(struct file *f
+ config GET_FREE_REGION
+-	depends on SPARSEMEM
+ 	bool
  
- 	if (file) {
- 		vma->vm_file = get_file(file);
--		/*
--		 * call_mmap() may map PTE, so ensure there are no existing PTEs
--		 * and call the vm_ops close function if one exists.
--		 */
--		vms_clean_up_area(&vms, &mas_detach);
- 		error = call_mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
+ config DEVICE_PRIVATE
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-mremap-clean-up-vma_to_resize.patch
-mm-mremap-remove-goto-from-mremap_to.patch
+resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects.patch
 
