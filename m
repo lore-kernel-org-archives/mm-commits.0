@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F7B3C3C
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:01:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503593C3C;
+	Thu, 24 Oct 2024 03:03:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729738896; cv=none; b=ReGQ7Pu6KbpLWYVZuEGhK64S7yAmuJs4SPVIbsgvvA8wLyvnH3wF5dyR4q7MhpyNFhjhArS39A1+Zar0IhIG5o8Q4a7Qwub9KVUp6RnCT3Vuvipzzrr2ymB7iMK2t4NpmMSSZLGeIFtcvhKVsV2UUV7p4lsfSQAkx7oWjOfFSKM=
+	t=1729739029; cv=none; b=hafPnT+1jO75XeIWCwpljdFTRura6Z7Y7M9Bi3AsXDCC3grZ3zcKYrrrtU9OZ1D1XE54FiSipalgb/JqU10f+jgjW9ReSNH7BCvb7r9im6fG8LF1t0fBexGNTwbtMVRVuOaY3xDmyfpEts0Cmwt6G/61Nr00dypeKe/RdoFlPss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729738896; c=relaxed/simple;
-	bh=c1OYydnuFmQ3Q5I5yHsxFJApnJ2ddSNpnUQsE5V/ttE=;
-	h=Date:To:From:Subject:Message-Id; b=Zr2UgUJRPZ7w1hgSGs0EiX2Jb3coWiA0Fb+wg+SMJihlgnUEQBw/WNGaXdNbNzQsVgjTiJaEPzAWh/2RTDgL5A3K7VoKoXulLe/lBGFqThsJxQr5hdRsENDoOiphJe9kZTDBAxn+IkxraopHrSJkipbLDL7XPWD5wN1FaFw7cgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U23zROww; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729739029; c=relaxed/simple;
+	bh=ko+SpEJILyrR8OVQ+wNJ9ZAyrCCB+UJNtwb2QbMGWgA=;
+	h=Date:To:From:Subject:Message-Id; b=kr+1h/swcCszQ59bt/6/hLBk0XkxiIGD9VNh6CI5dB035Y8u9B5kLVTc8xawNpptZIAUTw+R1mRZmdTIXfegvdAxIVizasJ5+ucOaPBzVma1lX0ZiFZLL1nd33Ma9Bo8NqLMjx8DJuAepcaQDoGaw6DUL3xzxi37pj1Nb6+i1DY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xSgQMeIN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U23zROww"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CB08C4CEC6;
-	Thu, 24 Oct 2024 03:01:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xSgQMeIN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE30DC4CEC6;
+	Thu, 24 Oct 2024 03:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729738896;
-	bh=c1OYydnuFmQ3Q5I5yHsxFJApnJ2ddSNpnUQsE5V/ttE=;
+	s=korg; t=1729739028;
+	bh=ko+SpEJILyrR8OVQ+wNJ9ZAyrCCB+UJNtwb2QbMGWgA=;
 	h=Date:To:From:Subject:From;
-	b=U23zROwwzhwTrQjuolqXafEaaQt0EdhpO0cAGyRI5JMeJhU+QqQlvJjfOLirb8wYQ
-	 ZUMjI0m7JrAyukjge8pIU6gXYb7evrD8XULE2Ni6fcxexsL0QtVQC8O35/kTLaJ+EG
-	 3XaxA5P2HS/EJQ9nZutMjI2kkYr3Ne1VYvaOcLJs=
-Date: Wed, 23 Oct 2024 20:01:35 -0700
-To: mm-commits@vger.kernel.org,yi1.lai@linux.intel.com,phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=xSgQMeINL3vPIBcX3+44Tk5+DayR2ZjMI9ZE0NKhK9ukNT2mQjAX85ydJUypA5rpZ
+	 9Zoxz2X1BeB+MO3uEPoO0AAOaXPpcTHVBiRxnjcGVc6TADXDB82R7hqaNNz9c0EOnu
+	 SXzcAM11Y5z51RsquxiXVbqHnlzBjfQZ6Ub/FbIc=
+Date: Wed, 23 Oct 2024 20:03:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-variable-overflow-in-squashfs_readpage_block.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241024030136.0CB08C4CEC6@smtp.kernel.org>
+Subject: + nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241024030348.BE30DC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Squashfs: fix variable overflow in squashfs_readpage_block
+     Subject: nilfs2: fix potential deadlock with newly created symlinks
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     squashfs-fix-variable-overflow-in-squashfs_readpage_block.patch
+     nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-variable-overflow-in-squashfs_readpage_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix variable overflow in squashfs_readpage_block
-Date: Mon, 21 Oct 2024 00:22:00 +0100
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix potential deadlock with newly created symlinks
+Date: Sun, 20 Oct 2024 13:51:28 +0900
 
-Syzbot reports a slab out of bounds access in squashfs_readpage_block().
+Syzbot reported that page_symlink(), called by nilfs_symlink(), triggers
+memory reclamation involving the filesystem layer, which can result in
+circular lock dependencies among the reader/writer semaphore
+nilfs->ns_segctor_sem, s_writers percpu_rwsem (intwrite) and the
+fs_reclaim pseudo lock.
 
-This is caused by an attempt to read page index 0x2000000000.  This value
-(start_index) is stored in an integer loop variable which overflows
-producing a value of 0.  This causes a loop which iterates over pages
-start_index -> end_index to iterate over 0 -> end_index, which ultimately
-causes an out of bounds page array access.
+This is because after commit 21fc61c73c39 ("don't put symlink bodies in
+pagecache into highmem"), the gfp flags of the page cache for symbolic
+links are overwritten to GFP_KERNEL via inode_nohighmem().
 
-Fix by changing variable to a loff_t, and rename to index to make it
-clearer it is a page index, and not a loop count.
+This is not a problem for symlinks read from the backing device, because
+the __GFP_FS flag is dropped after inode_nohighmem() is called.  However,
+when a new symlink is created with nilfs_symlink(), the gfp flags remain
+overwritten to GFP_KERNEL.  Then, memory allocation called from
+page_symlink() etc.  triggers memory reclamation including the FS layer,
+which may call nilfs_evict_inode() or nilfs_dirty_inode().  And these can
+cause a deadlock if they are called while nilfs->ns_segctor_sem is held:
 
-Link: https://lkml.kernel.org/r/20241020232200.837231-1-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: "Lai, Yi" <yi1.lai@linux.intel.com>
-Closes: https://lore.kernel.org/all/ZwzcnCAosIPqQ9Ie@ly-workstation/
+Fix this issue by dropping the __GFP_FS flag from the page cache GFP flags
+of newly created symlinks in the same way that nilfs_new_inode() and
+__nilfs_read_inode() do, as a workaround until we adopt nofs allocation
+scope consistently or improve the locking constraints.
+
+Link: https://lkml.kernel.org/r/20241020050003.4308-1-konishi.ryusuke@gmail.com
+Fixes: 21fc61c73c39 ("don't put symlink bodies in pagecache into highmem")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+9ef37ac20608f4836256@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=9ef37ac20608f4836256
+Tested-by: syzbot+9ef37ac20608f4836256@syzkaller.appspotmail.com
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file_direct.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/nilfs2/namei.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/squashfs/file_direct.c~squashfs-fix-variable-overflow-in-squashfs_readpage_block
-+++ a/fs/squashfs/file_direct.c
-@@ -30,7 +30,8 @@ int squashfs_readpage_block(struct page
- 	int mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
- 	loff_t start_index = folio->index & ~mask;
- 	loff_t end_index = start_index | mask;
--	int i, n, pages, bytes, res = -ENOMEM;
-+	loff_t index;
-+	int i, pages, bytes, res = -ENOMEM;
- 	struct page **page, *last_page;
- 	struct squashfs_page_actor *actor;
- 	void *pageaddr;
-@@ -45,9 +46,9 @@ int squashfs_readpage_block(struct page
- 		return res;
- 
- 	/* Try to grab all the pages covered by the Squashfs block */
--	for (i = 0, n = start_index; n <= end_index; n++) {
--		page[i] = (n == folio->index) ? target_page :
--			grab_cache_page_nowait(target_page->mapping, n);
-+	for (i = 0, index = start_index; index <= end_index; index++) {
-+		page[i] = (index == folio->index) ? target_page :
-+			grab_cache_page_nowait(target_page->mapping, index);
- 
- 		if (page[i] == NULL)
- 			continue;
+--- a/fs/nilfs2/namei.c~nilfs2-fix-potential-deadlock-with-newly-created-symlinks
++++ a/fs/nilfs2/namei.c
+@@ -157,6 +157,9 @@ static int nilfs_symlink(struct mnt_idma
+ 	/* slow symlink */
+ 	inode->i_op = &nilfs_symlink_inode_operations;
+ 	inode_nohighmem(inode);
++	mapping_set_gfp_mask(inode->i_mapping,
++			     mapping_gfp_constraint(inode->i_mapping,
++						    ~__GFP_FS));
+ 	inode->i_mapping->a_ops = &nilfs_aops;
+ 	err = page_symlink(inode, symname, l);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-squashfs-fix-variable-overflow-in-squashfs_readpage_block.patch
+nilfs2-fix-kernel-bug-due-to-missing-clearing-of-checked-flag.patch
+nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch
 
