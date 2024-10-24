@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B3EC171E76;
-	Thu, 24 Oct 2024 06:15:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C09F170A0B
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:15:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729750520; cv=none; b=HU5U2NUElZ5KOKasuhusveMDYm3gN3ZdKHfseefCuO7eiAx1t3SQIYEqoeClI0iOKpV7L1XHA0FuX9qk9oC9J18EiV1csbt0F+2QnbxSm7A57Rnbuyescn6G9FV+lEyBhtpM11S0EBLh4lZeHiqcpfiDSwblS1b6b3IjQ7mcA5I=
+	t=1729750523; cv=none; b=qs6KHsUTIsezy8LEMlrO+iZfKN0VpFBWqxZtUmkMGuDMEO0D//MnVwLSoYWQyRX//R05Ab7V0d4KZGpdk9jXj99HoXTKVsGINO7GOrZYdreG1Py60+2y6nldH8b7NH15DyJuvkCBJayTxGWQrQDl5MubAhAkUKiYvibGgkfTke8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729750520; c=relaxed/simple;
-	bh=BwIMeHTaLRPxmdrQsFKwxeMiG0aGLP8hrg5vmWV1fcA=;
-	h=Date:To:From:Subject:Message-Id; b=STVbXhsfJtC6hQlpOv7qfCVepGAFGOs+ZR4iiB2LsqhrCgV3q8iRCLSj2GqK+PNJo2aa9SjQq5bnhcqsfnI+a9rzemXNBc7f+MOZhPh7U9zJlF1nQPu9X6FgHwpi6xV+OiM8ZqmW5/ZT8r6Xz/kapsYuWF5jzL2Tr/KZk5rnIHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aaQ7VSAW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729750523; c=relaxed/simple;
+	bh=X3U6CML1RnGTyJIxuebudmgHThz2zhRAzBu1G44Hc0Y=;
+	h=Date:To:From:Subject:Message-Id; b=cJ6xWMLX73fe29KDymebJaDTMfeXZq8XopS2mdPe70R6nV01EAgDivXHUiM584wPvSb9amWyq6sAAbeUOY/RqhAxJLXefspzHqSrBKO0t91fmlHX+HbkXVFGF7+F/pTs8YTRuCX9GyLu7HAlFkhHpmiKmSr8pSrpBHq9kbCkGes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uupY0YRE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aaQ7VSAW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57382C4CEC7;
-	Thu, 24 Oct 2024 06:15:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uupY0YRE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85952C4CEE6;
+	Thu, 24 Oct 2024 06:15:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729750520;
-	bh=BwIMeHTaLRPxmdrQsFKwxeMiG0aGLP8hrg5vmWV1fcA=;
+	s=korg; t=1729750522;
+	bh=X3U6CML1RnGTyJIxuebudmgHThz2zhRAzBu1G44Hc0Y=;
 	h=Date:To:From:Subject:From;
-	b=aaQ7VSAWE81OBZlmtaUAeOcw3gnqwHoygPn0nvo+LZk5i97SlxzNmcMd8S0zVFSLW
-	 DDbR9zk1m25FzUA0WiftCnFpLjet/atLpydBCE5EugfwQvi66Nwebh6uozSKqirAIq
-	 IBwu2TWJC62y2WG0wv5iuypUcCkTFlyj95lwGzsQ=
-Date: Wed, 23 Oct 2024 23:15:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,mhocko@kernel.org,mgorman@techsingularity.net,mfleming@cloudflare.com,akpm@linux-foundation.org
+	b=uupY0YRE2tCczr/80snhGvXUf0fXGrvyhWo0vaHhZqhVcfYcJ0zx6zDT/Usrbe5kT
+	 IsdAFRrREhlGeGo8jVQJknzw1Nsz2Qw5kPFa8ODqSh+bjZh+On3KveYyeCm1wBpfUB
+	 10h6NYa/+62XkfnolLxPax0xWi4CqwdJSPHl9poU=
+Date: Wed, 23 Oct 2024 23:15:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves.patch removed from -mm tree
-Message-Id: <20241024061520.57382C4CEC7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch removed from -mm tree
+Message-Id: <20241024061522.85952C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
+     Subject: mm/mmap: fix race in mmap_region() with ftruncate()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves.patch
+     mm-mmap-fix-race-in-mmap_region-with-ftrucate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matt Fleming <mfleming@cloudflare.com>
-Subject: mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
-Date: Fri, 11 Oct 2024 13:07:37 +0100
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/mmap: fix race in mmap_region() with ftruncate()
+Date: Tue, 15 Oct 2024 21:34:55 -0400
 
-Under memory pressure it's possible for GFP_ATOMIC order-0 allocations to
-fail even though free pages are available in the highatomic reserves. 
-GFP_ATOMIC allocations cannot trigger unreserve_highatomic_pageblock()
-since it's only run from reclaim.
+Avoiding the zeroing of the vma tree in mmap_region() introduced a race
+with truncate in the page table walk.  To avoid any races, create a hole
+in the rmap during the operation by clearing the pagetable entries earlier
+under the mmap write lock and (critically) before the new vma is installed
+into the vma tree.  The result is that the old vma(s) are left in the vma
+tree, but free_pgtables() removes them from the rmap and clears the ptes
+while holding the necessary locks.
 
-Given that such allocations will pass the watermarks in
-__zone_watermark_unusable_free(), it makes sense to fallback to highatomic
-reserves the same way that ALLOC_OOM can.
+This change extends the fix required for hugetblfs and the call_mmap()
+function by moving the cleanup higher in the function and running it
+unconditionally.
 
-This fixes order-0 page allocation failures observed on Cloudflare's fleet
-when handling network packets:
-
-  kswapd1: page allocation failure: order:0, mode:0x820(GFP_ATOMIC),
-  nodemask=(null),cpuset=/,mems_allowed=0-7
-  CPU: 10 PID: 696 Comm: kswapd1 Kdump: loaded Tainted: G           O 6.6.43-CUSTOM #1
-  Hardware name: MACHINE
-  Call Trace:
-   <IRQ>
-   dump_stack_lvl+0x3c/0x50
-   warn_alloc+0x13a/0x1c0
-   __alloc_pages_slowpath.constprop.0+0xc9d/0xd10
-   __alloc_pages+0x327/0x340
-   __napi_alloc_skb+0x16d/0x1f0
-   bnxt_rx_page_skb+0x96/0x1b0 [bnxt_en]
-   bnxt_rx_pkt+0x201/0x15e0 [bnxt_en]
-   __bnxt_poll_work+0x156/0x2b0 [bnxt_en]
-   bnxt_poll+0xd9/0x1c0 [bnxt_en]
-   __napi_poll+0x2b/0x1b0
-   bpf_trampoline_6442524138+0x7d/0x1000
-   __napi_poll+0x5/0x1b0
-   net_rx_action+0x342/0x740
-   handle_softirqs+0xcf/0x2b0
-   irq_exit_rcu+0x6c/0x90
-   sysvec_apic_timer_interrupt+0x72/0x90
-   </IRQ>
-
-[mfleming@cloudflare.com: update comment]
-  Link: https://lkml.kernel.org/r/20241015125158.3597702-1-matt@readmodwrite.com
-Link: https://lkml.kernel.org/r/20241011120737.3300370-1-matt@readmodwrite.com
-Link: https://lore.kernel.org/all/CAGis_TWzSu=P7QJmjD58WWiu3zjMTVKSzdOwWE8ORaGytzWJwQ@mail.gmail.com/
-Fixes: 1d91df85f399 ("mm/page_alloc: handle a missing case for memalloc_nocma_{save/restore} APIs")
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241016013455.2241533-1-Liam.Howlett@oracle.com
+Fixes: f8d112a4e657 ("mm/mmap: avoid zeroing vma tree in mmap_region()")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reported-by: Jann Horn <jannh@google.com>
+Closes: https://lore.kernel.org/all/CAG48ez0ZpGzxi=-5O_uGQ0xKXOmbjeQ0LjZsRJ1Qtf2X5eOr1w@mail.gmail.com/
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mmap.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves
-+++ a/mm/page_alloc.c
-@@ -2893,12 +2893,12 @@ struct page *rmqueue_buddy(struct zone *
- 			page = __rmqueue(zone, order, migratetype, alloc_flags);
+--- a/mm/mmap.c~mm-mmap-fix-race-in-mmap_region-with-ftrucate
++++ a/mm/mmap.c
+@@ -1418,6 +1418,13 @@ unsigned long mmap_region(struct file *f
+ 		vmg.flags = vm_flags;
+ 	}
  
- 			/*
--			 * If the allocation fails, allow OOM handling access
--			 * to HIGHATOMIC reserves as failing now is worse than
--			 * failing a high-order atomic allocation in the
--			 * future.
-+			 * If the allocation fails, allow OOM handling and
-+			 * order-0 (atomic) allocs access to HIGHATOMIC
-+			 * reserves as failing now is worse than failing a
-+			 * high-order atomic allocation in the future.
- 			 */
--			if (!page && (alloc_flags & ALLOC_OOM))
-+			if (!page && (alloc_flags & (ALLOC_OOM|ALLOC_NON_BLOCK)))
- 				page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
++	/*
++	 * clear PTEs while the vma is still in the tree so that rmap
++	 * cannot race with the freeing later in the truncate scenario.
++	 * This is also needed for call_mmap(), which is why vm_ops
++	 * close function is called.
++	 */
++	vms_clean_up_area(&vms, &mas_detach);
+ 	vma = vma_merge_new_range(&vmg);
+ 	if (vma)
+ 		goto expanded;
+@@ -1439,11 +1446,6 @@ unsigned long mmap_region(struct file *f
  
- 			if (!page) {
+ 	if (file) {
+ 		vma->vm_file = get_file(file);
+-		/*
+-		 * call_mmap() may map PTE, so ensure there are no existing PTEs
+-		 * and call the vm_ops close function if one exists.
+-		 */
+-		vms_clean_up_area(&vms, &mas_detach);
+ 		error = call_mmap(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
 _
 
-Patches currently in -mm which might be from mfleming@cloudflare.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
+mm-mremap-clean-up-vma_to_resize.patch
+mm-mremap-remove-goto-from-mremap_to.patch
 
