@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A706446A1
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 03:10:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3935815E5B5;
+	Thu, 24 Oct 2024 03:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729739446; cv=none; b=fnng0B3EGbsmazgesr+u7SvmDQrhKkNlsACTV6Rm8KaXtEo9WecGbX4drLbWSnZQQVG+4mkGB+Z/Cw/RQzQ8XSPVxiPuTlaCpJdiByTRjENRyZ7GboR5aI8587izMGbQx2qd1i7VcbtGbDeXEnGtrzy4rd8FroPJqup2wf2RKhk=
+	t=1729740390; cv=none; b=aJ+tzmyzdsIgomlvBLS4fySKsrK5BJGf//yeRoIGAqDdzJTB89PMdTza6kh5T84iyFoji1m4zh/kDMXBM2wxUWwQuvR++2A6xU9Wbx1xBUlfavSXVJ5NBNtzKiPpE+5eYd9msa1CwJ01bef8Buvp218hwSU6ClxJH2nLDexKRw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729739446; c=relaxed/simple;
-	bh=9wC3yCnz8rMdL4+4MmXGd2qgb5MJHkqqNWPcW8bVWo8=;
-	h=Date:To:From:Subject:Message-Id; b=VMp5kVEgOE3O7s46miTFhe2w2L9gBCIDlfzBPVsVZCLJK4jpqitoLa57pInVRodMbIpHrZpLZOqbIqEFCLbPy70RXkgx20HIYch6s5OlaUOTGx8OKn6jt7JJbtBhndHKPftXc2QjGmt/0Zb/mdU1tFK5rUzNnaL5jbHAvxNJxBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pi237OnY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729740390; c=relaxed/simple;
+	bh=sA7lsaxO2lYk5WCgaBlue5KkdPVvvonLjE89Ugp2G0g=;
+	h=Date:To:From:Subject:Message-Id; b=FVQI1qPcs2nKr5usUHFrz6Dre5laVjtXfTgw5tXupKo8K05dsWz+aAG8zhlTYgf3gfD7Awcm6pNUDF9/H+kekPTa0gB4Fh09dpWRFLlGXt/Pw0CG/KbLyrQAqaY3Hdrsbdm8G5CR9ERHZNCjtrj7pDqKg4S2fu0b+ILNGWV0O3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i7BukLEO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pi237OnY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2688C4CEC6;
-	Thu, 24 Oct 2024 03:10:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i7BukLEO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14BBC4CEC7;
+	Thu, 24 Oct 2024 03:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729739445;
-	bh=9wC3yCnz8rMdL4+4MmXGd2qgb5MJHkqqNWPcW8bVWo8=;
+	s=korg; t=1729740389;
+	bh=sA7lsaxO2lYk5WCgaBlue5KkdPVvvonLjE89Ugp2G0g=;
 	h=Date:To:From:Subject:From;
-	b=pi237OnYkBIwB0qTuPUSC3wk9613tvImCLSF7blg5HhkcX2JweIzzHh3V/XHUO5fS
-	 rOL28GsyRoNDdzNHpJEDT2m4aAYk0wBLXVgh0cW4+8YFloaGq4OK7nYCpZOWDzzWi8
-	 13ZPFsWRMx0HEmu7rK0mKlcfgUhxxC9jLZtrVFcQ=
-Date: Wed, 23 Oct 2024 20:10:45 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,corbet@lwn.net,colyli@suse.de,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=i7BukLEOj4UnKMxjwHswSF/KJltCr/7S1zqGVb2f2JD5lsbrSWKnAaHKEyR/+UQ5e
+	 xygGpSUGpdUmKm7ZdChkOl+CdzQux2U99SFmdJdmtdk+DYKWLJrY7FSdvMKhUo4hwh
+	 O5F0lbYC4GyoZZ4gfsaxfAGhEwcpChmj2WDcKWa4=
+Date: Wed, 23 Oct 2024 20:26:29 -0700
+To: mm-commits@vger.kernel.org,weixugc@google.com,stevensd@google.com,stable@vger.kernel.org,seanjc@google.com,rientjes@google.com,pbonzini@redhat.com,oliver.upton@linux.dev,jthoughton@google.com,dmatlack@google.com,axelrasmussen@google.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-core-api-add-min-heap-api-introduction.patch added to mm-nonmm-unstable branch
-Message-Id: <20241024031045.B2688C4CEC6@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241024032629.A14BBC4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/core-api: add min heap API introduction
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     documentation-core-api-add-min-heap-api-introduction.patch
+     Subject: mm: multi-gen LRU: remove MM_LEAF_OLD and MM_NONLEAF_TOTAL stats
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-core-api-add-min-heap-api-introduction.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,371 +58,153 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: Documentation/core-api: add min heap API introduction
-Date: Sun, 20 Oct 2024 12:02:00 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: remove MM_LEAF_OLD and MM_NONLEAF_TOTAL stats
+Date: Sat, 19 Oct 2024 01:29:38 +0000
 
-Introduce an overview of the min heap API, detailing its usage and
-functionality.  The documentation aims to provide developers with a clear
-understanding of how to implement and utilize min heaps within the Linux
-kernel, enhancing the overall accessibility of this data structure.
+Patch series "mm: multi-gen LRU: Have secondary MMUs participate in
+MM_WALK".
 
-Link: https://lkml.kernel.org/r/20241020040200.939973-11-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Coly Li <colyli@suse.de>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: "Liang, Kan" <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Sakai <msakai@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Today, the MM_WALK capability causes MGLRU to clear the young bit from
+PMDs and PTEs during the page table walk before eviction, but MGLRU does
+not call the clear_young() MMU notifier in this case.  By not calling this
+notifier, the MM walk takes less time/CPU, but it causes pages that are
+accessed mostly through KVM / secondary MMUs to appear younger than they
+should be.
+
+We do call the clear_young() notifier today, but only when attempting to
+evict the page, so we end up clearing young/accessed information less
+frequently for secondary MMUs than for mm PTEs, and therefore they appear
+younger and are less likely to be evicted.  Therefore, memory that is
+*not* being accessed mostly by KVM will be evicted *more* frequently,
+worsening performance.
+
+ChromeOS observed a tab-open latency regression when enabling MGLRU with a
+setup that involved running a VM:
+
+		Tab-open latency histogram (ms)
+Version		p50	mean	p95	p99	max
+base		1315	1198	2347	3454	10319
+mglru		2559	1311	7399	12060	43758
+fix		1119	926	2470	4211	6947
+
+This series replaces the final non-selftest patchs from this series[1],
+which introduced a similar change (and a new MMU notifier) with KVM
+optimizations.  I'll send a separate series (to Sean and Paolo) for the
+KVM optimizations.
+
+This series also makes proactive reclaim with MGLRU possible for KVM
+memory.  I have verified that this functions correctly with the selftest
+from [1], but given that that test is a KVM selftest, I'll send it with
+the rest of the KVM optimizations later.  Andrew, let me know if you'd
+like to take the test now anyway.
+
+[1]: https://lore.kernel.org/linux-mm/20240926013506.860253-18-jthoughton@google.com/
+
+
+This patch (of 2):
+
+The removed stats, MM_LEAF_OLD and MM_NONLEAF_TOTAL, are not very helpful
+and become more complicated to properly compute when adding
+test/clear_young() notifiers in MGLRU's mm walk.
+
+Link: https://lkml.kernel.org/r/20241019012940.3656292-1-jthoughton@google.com
+Link: https://lkml.kernel.org/r/20241019012940.3656292-2-jthoughton@google.com
+Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Signed-off-by: James Houghton <jthoughton@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Matlack <dmatlack@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Stevens <stevensd@google.com>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/index.rst    |    1 
- Documentation/core-api/min_heap.rst |  300 ++++++++++++++++++++++++++
- 2 files changed, 301 insertions(+)
+ include/linux/mmzone.h |    2 --
+ mm/vmscan.c            |   14 +++++---------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
---- a/Documentation/core-api/index.rst~documentation-core-api-add-min-heap-api-introduction
-+++ a/Documentation/core-api/index.rst
-@@ -52,6 +52,7 @@ Library functionality that is used throu
-    wrappers/atomic_bitops
-    floating-point
-    union_find
-+   min_heap
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats
++++ a/include/linux/mmzone.h
+@@ -458,9 +458,7 @@ struct lru_gen_folio {
  
- Low level entry and exit
- ========================
-diff --git a/Documentation/core-api/min_heap.rst a/Documentation/core-api/min_heap.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/core-api/min_heap.rst
-@@ -0,0 +1,300 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+============
-+Min Heap API
-+============
-+
-+Introduction
-+============
-+
-+The Min Heap API provides a set of functions and macros for managing min-heaps
-+in the Linux kernel. A min-heap is a binary tree structure where the value of
-+each node is less than or equal to the values of its children, ensuring that
-+the smallest element is always at the root.
-+
-+This document provides a guide to the Min Heap API, detailing how to define and
-+use min-heaps. Users should not directly call functions with **__min_heap_*()**
-+prefixes, but should instead use the provided macro wrappers.
-+
-+In addition to the standard version of the functions, the API also includes a
-+set of inline versions for performance-critical scenarios. These inline
-+functions have the same names as their non-inline counterparts but include an
-+**_inline** suffix. For example, **__min_heap_init_inline** and its
-+corresponding macro wrapper **min_heap_init_inline**. The inline versions allow
-+custom comparison and swap functions to be called directly, rather than through
-+indirect function calls. This can significantly reduce overhead, especially
-+when CONFIG_MITIGATION_RETPOLINE is enabled, as indirect function calls become
-+more expensive. As with the non-inline versions, it is important to use the
-+macro wrappers for inline functions instead of directly calling the functions
-+themselves.
-+
-+Data Structures
-+===============
-+
-+Min-Heap Definition
-+-------------------
-+
-+The core data structure for representing a min-heap is defined using the
-+**MIN_HEAP_PREALLOCATED** and **DEFINE_MIN_HEAP** macros. These macros allow
-+you to define a min-heap with a preallocated buffer or dynamically allocated
-+memory.
-+
-+Example:
-+
-+.. code-block:: c
-+
-+    #define MIN_HEAP_PREALLOCATED(_type, _name, _nr)
-+    struct _name {
-+        int nr;         /* Number of elements in the heap */
-+        int size;       /* Maximum number of elements that can be held */
-+        _type *data;    /* Pointer to the heap data */
-+        _type preallocated[_nr];  /* Static preallocated array */
-+    }
-+
-+    #define DEFINE_MIN_HEAP(_type, _name) MIN_HEAP_PREALLOCATED(_type, _name, 0)
-+
-+A typical heap structure will include a counter for the number of elements
-+(`nr`), the maximum capacity of the heap (`size`), and a pointer to an array of
-+elements (`data`). Optionally, you can specify a static array for preallocated
-+heap storage using **MIN_HEAP_PREALLOCATED**.
-+
-+Min Heap Callbacks
-+------------------
-+
-+The **struct min_heap_callbacks** provides customization options for ordering
-+elements in the heap and swapping them. It contains two function pointers:
-+
-+.. code-block:: c
-+
-+    struct min_heap_callbacks {
-+        bool (*less)(const void *lhs, const void *rhs, void *args);
-+        void (*swp)(void *lhs, void *rhs, void *args);
-+    };
-+
-+- **less** is the comparison function used to establish the order of elements.
-+- **swp** is a function for swapping elements in the heap. If swp is set to
-+  NULL, the default swap function will be used, which swaps the elements based on their size
-+
-+Macro Wrappers
-+==============
-+
-+The following macro wrappers are provided for interacting with the heap in a
-+user-friendly manner. Each macro corresponds to a function that operates on the
-+heap, and they abstract away direct calls to internal functions.
-+
-+Each macro accepts various parameters that are detailed below.
-+
-+Heap Initialization
-+--------------------
-+
-+.. code-block:: c
-+
-+    min_heap_init(heap, data, size);
-+
-+- **heap**: A pointer to the min-heap structure to be initialized.
-+- **data**: A pointer to the buffer where the heap elements will be stored. If
-+  `NULL`, the preallocated buffer within the heap structure will be used.
-+- **size**: The maximum number of elements the heap can hold.
-+
-+This macro initializes the heap, setting its initial state. If `data` is
-+`NULL`, the preallocated memory inside the heap structure will be used for
-+storage. Otherwise, the user-provided buffer is used. The operation is **O(1)**.
-+
-+**Inline Version:** min_heap_init_inline(heap, data, size)
-+
-+Accessing the Top Element
-+-------------------------
-+
-+.. code-block:: c
-+
-+    element = min_heap_peek(heap);
-+
-+- **heap**: A pointer to the min-heap from which to retrieve the smallest
-+  element.
-+
-+This macro returns a pointer to the smallest element (the root) of the heap, or
-+`NULL` if the heap is empty. The operation is **O(1)**.
-+
-+**Inline Version:** min_heap_peek_inline(heap)
-+
-+Heap Insertion
-+--------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_push(heap, element, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap into which the element should be inserted.
-+- **element**: A pointer to the element to be inserted into the heap.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro inserts an element into the heap. It returns `true` if the insertion
-+was successful and `false` if the heap is full. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_push_inline(heap, element, callbacks, args)
-+
-+Heap Removal
-+------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_pop(heap, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap from which to remove the smallest element.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro removes the smallest element (the root) from the heap. It returns
-+`true` if the element was successfully removed, or `false` if the heap is
-+empty. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_pop_inline(heap, callbacks, args)
-+
-+Heap Maintenance
-+----------------
-+
-+You can use the following macros to maintain the heap's structure:
-+
-+.. code-block:: c
-+
-+    min_heap_sift_down(heap, pos, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **pos**: The index from which to start sifting down.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro restores the heap property by moving the element at the specified
-+index (`pos`) down the heap until it is in the correct position. The operation
-+is **O(log n)**.
-+
-+**Inline Version:** min_heap_sift_down_inline(heap, pos, callbacks, args)
-+
-+.. code-block:: c
-+
-+    min_heap_sift_up(heap, idx, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **idx**: The index of the element to sift up.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro restores the heap property by moving the element at the specified
-+index (`idx`) up the heap. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_sift_up_inline(heap, idx, callbacks, args)
-+
-+.. code-block:: c
-+
-+    min_heapify_all(heap, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro ensures that the entire heap satisfies the heap property. It is
-+called when the heap is built from scratch or after many modifications. The
-+operation is **O(n)**.
-+
-+**Inline Version:** min_heapify_all_inline(heap, callbacks, args)
-+
-+Removing Specific Elements
-+--------------------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_del(heap, idx, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **idx**: The index of the element to delete.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro removes an element at the specified index (`idx`) from the heap and
-+restores the heap property. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_del_inline(heap, idx, callbacks, args)
-+
-+Other Utilities
-+===============
-+
-+- **min_heap_full(heap)**: Checks whether the heap is full.
-+  Complexity: **O(1)**.
-+
-+.. code-block:: c
-+
-+    bool full = min_heap_full(heap);
-+
-+- `heap`: A pointer to the min-heap to check.
-+
-+This macro returns `true` if the heap is full, otherwise `false`.
-+
-+**Inline Version:** min_heap_full_inline(heap)
-+
-+- **min_heap_empty(heap)**: Checks whether the heap is empty.
-+  Complexity: **O(1)**.
-+
-+.. code-block:: c
-+
-+    bool empty = min_heap_empty(heap);
-+
-+- `heap`: A pointer to the min-heap to check.
-+
-+This macro returns `true` if the heap is empty, otherwise `false`.
-+
-+**Inline Version:** min_heap_empty_inline(heap)
-+
-+Example Usage
-+=============
-+
-+An example usage of the min-heap API would involve defining a heap structure,
-+initializing it, and inserting and removing elements as needed.
-+
-+.. code-block:: c
-+
-+    #include <linux/min_heap.h>
-+
-+    int my_less_function(const void *lhs, const void *rhs, void *args) {
-+        return (*(int *)lhs < *(int *)rhs);
-+    }
-+
-+    struct min_heap_callbacks heap_cb = {
-+        .less = my_less_function,    /* Comparison function for heap order */
-+        .swp  = NULL,                /* Use default swap function */
-+    };
-+
-+    void example_usage(void) {
-+        /* Pre-populate the buffer with elements */
-+        int buffer[5] = {5, 2, 8, 1, 3};
-+        /* Declare a min-heap */
-+        DEFINE_MIN_HEAP(int, my_heap);
-+
-+        /* Initialize the heap with preallocated buffer and size */
-+        min_heap_init(&my_heap, buffer, 5);
-+
-+        /* Build the heap using min_heapify_all */
-+        my_heap.nr = 5;  /* Set the number of elements in the heap */
-+        min_heapify_all(&my_heap, &heap_cb, NULL);
-+
-+        /* Peek at the top element (should be 1 in this case) */
-+        int *top = min_heap_peek(&my_heap);
-+        pr_info("Top element: %d\n", *top);
-+
-+        /* Pop the top element (1) and get the new top (2) */
-+        min_heap_pop(&my_heap, &heap_cb, NULL);
-+        top = min_heap_peek(&my_heap);
-+        pr_info("New top element: %d\n", *top);
-+
-+        /* Insert a new element (0) and recheck the top */
-+        int new_element = 0;
-+        min_heap_push(&my_heap, &new_element, &heap_cb, NULL);
-+        top = min_heap_peek(&my_heap);
-+        pr_info("Top element after insertion: %d\n", *top);
-+    }
+ enum {
+ 	MM_LEAF_TOTAL,		/* total leaf entries */
+-	MM_LEAF_OLD,		/* old leaf entries */
+ 	MM_LEAF_YOUNG,		/* young leaf entries */
+-	MM_NONLEAF_TOTAL,	/* total non-leaf entries */
+ 	MM_NONLEAF_FOUND,	/* non-leaf entries found in Bloom filters */
+ 	MM_NONLEAF_ADDED,	/* non-leaf entries added to Bloom filters */
+ 	NR_MM_STATS
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats
++++ a/mm/vmscan.c
+@@ -3399,7 +3399,6 @@ restart:
+ 			continue;
+ 
+ 		if (!pte_young(ptent)) {
+-			walk->mm_stats[MM_LEAF_OLD]++;
+ 			continue;
+ 		}
+ 
+@@ -3552,7 +3551,6 @@ restart:
+ 			walk->mm_stats[MM_LEAF_TOTAL]++;
+ 
+ 			if (!pmd_young(val)) {
+-				walk->mm_stats[MM_LEAF_OLD]++;
+ 				continue;
+ 			}
+ 
+@@ -3564,8 +3562,6 @@ restart:
+ 			continue;
+ 		}
+ 
+-		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+-
+ 		if (!walk->force_scan && should_clear_pmd_young()) {
+ 			if (!pmd_young(val))
+ 				continue;
+@@ -5254,11 +5250,11 @@ static void lru_gen_seq_show_full(struct
+ 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
+ 		seq_printf(m, "            %10d", tier);
+ 		for (type = 0; type < ANON_AND_FILE; type++) {
+-			const char *s = "   ";
++			const char *s = "xxx";
+ 			unsigned long n[3] = {};
+ 
+ 			if (seq == max_seq) {
+-				s = "RT ";
++				s = "RTx";
+ 				n[0] = READ_ONCE(lrugen->avg_refaulted[type][tier]);
+ 				n[1] = READ_ONCE(lrugen->avg_total[type][tier]);
+ 			} else if (seq == min_seq[type] || NR_HIST_GENS > 1) {
+@@ -5280,14 +5276,14 @@ static void lru_gen_seq_show_full(struct
+ 
+ 	seq_puts(m, "                      ");
+ 	for (i = 0; i < NR_MM_STATS; i++) {
+-		const char *s = "      ";
++		const char *s = "xxxx";
+ 		unsigned long n = 0;
+ 
+ 		if (seq == max_seq && NR_HIST_GENS == 1) {
+-			s = "LOYNFA";
++			s = "TYFA";
+ 			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		} else if (seq != max_seq && NR_HIST_GENS > 1) {
+-			s = "loynfa";
++			s = "tyfa";
+ 			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-lib-kconfigdebug-move-int_pow-test-option-to-runtime-testing-section.patch
-lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
-lib-list_sort-remove-unnecessary-header-includes.patch
-tools-lib-list_sort-remove-unnecessary-header-includes.patch
-perf-tools-update-expected-diff-for-lib-list_sortc.patch
-lib-min_heap-introduce-non-inline-versions-of-min-heap-api-functions.patch
-lib-min_heap-optimize-min-heap-by-prescaling-counters-for-better-performance.patch
-lib-min_heap-avoid-indirect-function-call-by-providing-default-swap.patch
-lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-dm-vdo-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-bcache-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch
-bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-documentation-core-api-add-min-heap-api-introduction.patch
+mm-allow-set-clear-page_type-again.patch
+mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch
+mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
 
