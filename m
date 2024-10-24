@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CE725588F
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:39:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCF2136E28
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 02:40:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729737551; cv=none; b=LeAM0a55ozc2GUIA81ApeWlnhA5TpMziouN8I6quL5yuk11HI3MxVnINyH1qn4c+UGMtl+2oVZc09zJENPSKQTrrZAK74OTLZdj23BFJuBo9cw4/mY9NLnkxKZMS3piu3KOU6mxNid+eJ6mvqaCSjAdegvyxk3/dEAgbVvB3yFo=
+	t=1729737656; cv=none; b=EW7QhkmR+kav5rv/dC1gMrtsQ/rCdSphr9pZc+qKgoiILn0P2GwjimAm5XB+TEGdVonpCFdYpX2gtjR5f/Y2xOwHUbL32Rtj533OZczhCToSPl23P97iEIggDvmZPu2FTf5FBXM4TjgpR2W0N0+MtINxtHONSJAZtg61PeZ6Gr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729737551; c=relaxed/simple;
-	bh=NW96CbZxdY8hP0v91gYORZ3xQ3NnKe3WUiZvgUavXvc=;
-	h=Date:To:From:Subject:Message-Id; b=gr/OcIJRIvXk3l6jWe5Fo7i/qUEuqoqvXgHjnmRpQif4x863gdZiNSydapzBgC/Dt0tuxCu3UUl05GlihTMQcgNNelgY1p7NgW7J39kR6O7nGrSsBsWjhieX9PYR4qFP9IpAqJKhN9EArBaf3X/sEOVPjUFBmHwfz9Fb0U+GIZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BStkfKXX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729737656; c=relaxed/simple;
+	bh=0s2nQUx8evkF/Mwsmed2dgKIKpXhNLzcmO6euxiaZsw=;
+	h=Date:To:From:Subject:Message-Id; b=Pc6BulQHXhqlhO4STXZH8nyLK+ll/vrZjV+xrXnwkoXJCuWs3Tr4BBfqc3/Yjif9LJvfnOYd3dU6HoXSgfT0q4M94sa0YZkmJarGFCJR4KNxtvvKAWerWY6bn7FCZPPnodR5WDwhXxIu2VRr9QTUDht1qUnyGLoejxPQ7xBvHPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lUhLRAFI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BStkfKXX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6496C4CEC6;
-	Thu, 24 Oct 2024 02:39:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lUhLRAFI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B1FBC4CEC6;
+	Thu, 24 Oct 2024 02:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729737551;
-	bh=NW96CbZxdY8hP0v91gYORZ3xQ3NnKe3WUiZvgUavXvc=;
+	s=korg; t=1729737656;
+	bh=0s2nQUx8evkF/Mwsmed2dgKIKpXhNLzcmO6euxiaZsw=;
 	h=Date:To:From:Subject:From;
-	b=BStkfKXXbQg3CmiHh0pqkYhZW0JyfzG9TFcm4pF5SSoL1XFiyB4cqyQBGLWir0YSK
-	 jcy6oiuRgniFYNqRGKCXwJ0z+M8xS398nddaD9k5kdU//Y70msap7ha14iyg9gL6By
-	 PBrzypVL6NrMrGwq/bMQ2x93SFjHeyc/tfhu0+pQ=
-Date: Wed, 23 Oct 2024 19:39:10 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,jgg@nvidia.com,david@redhat.com,jthoughton@google.com,akpm@linux-foundation.org
+	b=lUhLRAFIPq69v8lWUtELafl7WRhHZJ6iFfa4kBHfHII1R/2dbSW4A83DabdPClHnA
+	 pqDPQGyHrbaByGUu4dx+zewWzEmJYYscdjp4B2lWWAlM1xykN86DGUBeUfLNxcvTVB
+	 Aii8dgZceNn8wHUVIAJILWG0L/tuKcQSWZwYa9Oo=
+Date: Wed, 23 Oct 2024 19:40:56 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch added to mm-unstable branch
-Message-Id: <20241024023910.E6496C4CEC6@smtp.kernel.org>
+Subject: + mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch added to mm-unstable branch
+Message-Id: <20241024024056.8B1FBC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add missing mmu_notifier_clear_young for !MMU_NOTIFIER
+     Subject: mm/memcontrol: fix seq_buf size to save memory when PAGE_SIZE is large
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch
+     mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: James Houghton <jthoughton@google.com>
-Subject: mm: add missing mmu_notifier_clear_young for !MMU_NOTIFIER
-Date: Mon, 21 Oct 2024 16:02:12 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm/memcontrol: fix seq_buf size to save memory when PAGE_SIZE is large
+Date: Mon, 21 Oct 2024 14:00:26 +0100
 
-Remove the now unnecessary ifdef in mm/damon/vaddr.c as well.
+Previously the seq_buf used for accumulating the memory.stat output was
+sized at PAGE_SIZE.  But the amount of output is invariant to PAGE_SIZE;
+If 4K is enough on a 4K page system, then it should also be enough on a
+64K page system, so we can save 60K on the static buffer used in
+mem_cgroup_print_oom_meminfo().  Let's make it so.
 
-Link: https://lkml.kernel.org/r/20241021160212.9935-1-jthoughton@google.com
-Signed-off-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+This also has the beneficial side effect of removing a place in the code
+that assumed PAGE_SIZE is a compile-time constant.  So this helps our
+quest towards supporting boot-time page size selection.
+
+Link: https://lkml.kernel.org/r/20241021130027.3615969-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    7 +++++++
- mm/damon/vaddr.c             |    2 --
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier
-+++ a/include/linux/mmu_notifier.h
-@@ -606,6 +606,13 @@ static inline int mmu_notifier_clear_flu
- 	return 0;
+--- a/mm/memcontrol.c~mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large
++++ a/mm/memcontrol.c
+@@ -118,6 +118,7 @@ struct mem_cgroup *vmpressure_to_memcg(s
+ 	return container_of(vmpr, struct mem_cgroup, vmpressure);
  }
  
-+static inline int mmu_notifier_clear_young(struct mm_struct *mm,
-+					   unsigned long start,
-+					   unsigned long end)
-+{
-+	return 0;
-+}
-+
- static inline int mmu_notifier_test_young(struct mm_struct *mm,
- 					  unsigned long address)
++#define SEQ_BUF_SIZE SZ_4K
+ #define CURRENT_OBJCG_UPDATE_BIT 0
+ #define CURRENT_OBJCG_UPDATE_FLAG (1UL << CURRENT_OBJCG_UPDATE_BIT)
+ 
+@@ -1527,7 +1528,7 @@ void mem_cgroup_print_oom_context(struct
+ void mem_cgroup_print_oom_meminfo(struct mem_cgroup *memcg)
  {
---- a/mm/damon/vaddr.c~mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier
-+++ a/mm/damon/vaddr.c
-@@ -353,11 +353,9 @@ static void damon_hugetlb_mkold(pte_t *p
- 		set_huge_pte_at(mm, addr, pte, entry, psize);
- 	}
+ 	/* Use static buffer, for the caller is holding oom_lock. */
+-	static char buf[PAGE_SIZE];
++	static char buf[SEQ_BUF_SIZE];
+ 	struct seq_buf s;
  
--#ifdef CONFIG_MMU_NOTIFIER
- 	if (mmu_notifier_clear_young(mm, addr,
- 				     addr + huge_page_size(hstate_vma(vma))))
- 		referenced = true;
--#endif /* CONFIG_MMU_NOTIFIER */
+ 	lockdep_assert_held(&oom_lock);
+@@ -1553,7 +1554,7 @@ void mem_cgroup_print_oom_meminfo(struct
+ 	pr_info("Memory cgroup stats for ");
+ 	pr_cont_cgroup_path(memcg->css.cgroup);
+ 	pr_cont(":");
+-	seq_buf_init(&s, buf, sizeof(buf));
++	seq_buf_init(&s, buf, SEQ_BUF_SIZE);
+ 	memory_stat_format(memcg, &s);
+ 	seq_buf_do_printk(&s, KERN_INFO);
+ }
+@@ -4194,12 +4195,12 @@ static int memory_events_local_show(stru
+ int memory_stat_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+-	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	char *buf = kmalloc(SEQ_BUF_SIZE, GFP_KERNEL);
+ 	struct seq_buf s;
  
- 	if (referenced)
- 		folio_set_young(folio);
+ 	if (!buf)
+ 		return -ENOMEM;
+-	seq_buf_init(&s, buf, PAGE_SIZE);
++	seq_buf_init(&s, buf, SEQ_BUF_SIZE);
+ 	memory_stat_format(memcg, &s);
+ 	seq_puts(m, buf);
+ 	kfree(buf);
 _
 
-Patches currently in -mm which might be from jthoughton@google.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch
+mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch
 
