@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD33C14A0A3
-	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 04:19:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C0617BD3
+	for <mm-commits@vger.kernel.org>; Thu, 24 Oct 2024 06:11:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729743574; cv=none; b=DeJNaC7vSJselkrm0b67QhLOIX6mNUOeIVNMhbrQAfpq58d8/zf4t9u/K9mQSqLCtlqX13u6njAnxGeRswsDoG/aMMp3LnFpJoQSg/zaewzNMf0xFNX+DXGNYIjYS2Eg7U8SHZmWKdQ0jjebVZs9XEwA4dvyZ4d8YKFeDsFFlow=
+	t=1729750261; cv=none; b=RkeIPRCZHudRQGAd0WBDx/ucljT1Uk+17weevC6PQdjK0//E7FGov78L6Kp1KcOPHH791lM3z5gfJTMxpB3ETp4WE7B5kfatXdGmVaTxqfBsXL9x1XB/M1mLjywywf7BcSyAMmnj1v0fcqsrNWvNux+uGVpyIIODhhlWZwb01is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729743574; c=relaxed/simple;
-	bh=X8/2DTS5iPdzRY9MrDlmPgjj52O1DK8+DvFYoXDrRF0=;
-	h=Date:To:From:Subject:Message-Id; b=KVT1A85/5Nqun6Mv1UoGAAo0XVCKA5PIonWyJAxfz96WFVkTPbMZ1VHAF6Rm2TnGp1auGxJc+vYEX2Ihvp8zRHilWuNsVmQ3dSZgk8Z07k6bsqMbfQjBfBq4IobmRa3cjjEw0xhXIbRigTs5WpRJaXiil81mMRMn4dL3Q4wARPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q/unXE14; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729750261; c=relaxed/simple;
+	bh=bnqsbHP5qzEsRFJnBuAAdlzg0dBALBLDKxkNopHUhQU=;
+	h=Date:To:From:Subject:Message-Id; b=cwEvN+8iJaxRUfUapWtN/aGdQP1rv922dVGDVPW26DaICtzrCdHcBbu4/jpTUJqRIL7dHas6i05y3jm3w/rqCpU0VfbN78Zcq5ehoSI/Bo+X+64nYJBzQPT+J13POYUO+ajJcXMKQDO8yQanEloorcItbiHI2R2kF+rJ60nIquY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iYVS8PdR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q/unXE14"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 565A6C4CEC7;
-	Thu, 24 Oct 2024 04:19:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iYVS8PdR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FCD5C4CEC7;
+	Thu, 24 Oct 2024 06:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729743574;
-	bh=X8/2DTS5iPdzRY9MrDlmPgjj52O1DK8+DvFYoXDrRF0=;
+	s=korg; t=1729750261;
+	bh=bnqsbHP5qzEsRFJnBuAAdlzg0dBALBLDKxkNopHUhQU=;
 	h=Date:To:From:Subject:From;
-	b=Q/unXE1458XZJkGPTP+psPGt/5j7mc8+yut8Wglqq1l4qsZMFiaEQ/5eIpMH28PEa
-	 FsUsTZgtrOyNJ7iisWj45R/LFTOWIn3i3QxcQovDR5sn9vOBHk7fMQDWWRGrTrUPDn
-	 eE48uiOS+iIWs3Kl0MCktROJXnmKNzORCIWf35FQ=
-Date: Wed, 23 Oct 2024 21:19:33 -0700
-To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,hbathini@linux.ibm.com,david@redhat.com,bhe@redhat.com,liad.per@gmail.com,akpm@linux-foundation.org
+	b=iYVS8PdRN4lUNZ+gfEzS88c9WQBUCa5ES8gBuMrdWkeQvE/Zy/X6XLAHoC9mEwJlJ
+	 mYVEGQmKecMZnohARw+IgDprWmhffqh0tTzeZcabX5M2j/3qudeD+01bmfc6wiUzN3
+	 pfCIaTli1jZABpdVy1FzFFInwXaEUtM81zi2VH8Y=
+Date: Wed, 23 Oct 2024 23:10:59 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@kernel.org,mgorman@techsingularity.net,mfleming@cloudflare.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] makefile-remove-unused-filechk_cat.patch removed from -mm tree
-Message-Id: <20241024041934.565A6C4CEC7@smtp.kernel.org>
+Subject: [folded-merged] mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves-v2.patch removed from -mm tree
+Message-Id: <20241024061101.1FCD5C4CEC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Makefile: remove unused filechk_cat
+     Subject: mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves-v2
 has been removed from the -mm tree.  Its filename was
-     makefile-remove-unused-filechk_cat.patch
+     mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves-v2.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was folded into mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves.patch
 
 ------------------------------------------------------
-From: Liad Peretz <liad.per@gmail.com>
-Subject: Makefile: remove unused filechk_cat
-Date: Wed, 23 Oct 2024 10:06:11 +0300
+From: Matt Fleming <mfleming@cloudflare.com>
+Subject: mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves-v2
+Date: Tue, 15 Oct 2024 13:51:58 +0100
 
-Link: https://lkml.kernel.org/r/20241023070611.67449-1-liad.per@gmail.com
-Signed-off-by: Liad Peretz <liad.per@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
+update comment
+
+Link: https://lkml.kernel.org/r/20241015125158.3597702-1-matt@readmodwrite.com
+Link: https://lore.kernel.org/all/CAGis_TWzSu=P7QJmjD58WWiu3zjMTVKSzdOwWE8ORaGytzWJwQ@mail.gmail.com/
+Fixes: 1d91df85f399 ("mm/page_alloc: handle a missing case for memalloc_nocma_{save/restore} APIs")
+Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/Makefile~makefile-remove-unused-filechk_cat
-+++ a/kernel/Makefile
-@@ -146,8 +146,6 @@ targets += config_data config_data.gz
- $(obj)/config_data.gz: $(obj)/config_data FORCE
- 	$(call if_changed,gzip)
+--- a/mm/page_alloc.c~mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves-v2
++++ a/mm/page_alloc.c
+@@ -2893,10 +2893,10 @@ struct page *rmqueue_buddy(struct zone *
+ 			page = __rmqueue(zone, order, migratetype, alloc_flags);
  
--filechk_cat = cat $<
--
- $(obj)/config_data: $(KCONFIG_CONFIG) FORCE
- 	$(call filechk,cat)
- 
+ 			/*
+-			 * If the allocation fails, allow OOM handling access
+-			 * to HIGHATOMIC reserves as failing now is worse than
+-			 * failing a high-order atomic allocation in the
+-			 * future.
++			 * If the allocation fails, allow OOM handling and
++			 * order-0 (atomic) allocs access to HIGHATOMIC
++			 * reserves as failing now is worse than failing a
++			 * high-order atomic allocation in the future.
+ 			 */
+ 			if (!page && (alloc_flags & (ALLOC_OOM|ALLOC_NON_BLOCK)))
+ 				page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
 _
 
-Patches currently in -mm which might be from liad.per@gmail.com are
+Patches currently in -mm which might be from mfleming@cloudflare.com are
 
+mm-page_alloc-let-gfp_atomic-order-0-allocs-access-highatomic-reserves.patch
 
