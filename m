@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB32D198856
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:37:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F4420EA4B
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:37:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729885070; cv=none; b=TWpXnr7Tg76DhFXJ1b3CScP8Phcs9n4P00on4yQhgiHuKZpTN5pY3B6K4DO+HwRjlbRuon9ouc+01khdpT2V75+ok82Hn4Ksu4/vRtkVaJ0g/dnif0e0jFbrS4QaZVC3cx/6smFsYpGBZzOwMa7BFuxB5CtBcoQsQAdP/U97utk=
+	t=1729885072; cv=none; b=PVCkI88SPJOVFZ6O4Xh1Uwc1yZn5SzsD/UPJH2ClEYBNvx4tpvTzDw6GKEmJTO+ITNTbqMOeIgOcjiBlz3T76XiwG7USLa0H01RMXmx+y9ixPDGwUzyNCiBOHhwZINrruP2iHjKS+YLOwa/5t0YxGQeihbccuvPQim7MpXaQr5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729885070; c=relaxed/simple;
-	bh=m6GDhQ+oqlQrVuOSGIRHeL+PXCVBDydbC1gkFndY3WE=;
-	h=Date:To:From:Subject:Message-Id; b=oREsm5q8IvDslX3lFhGVa1ayuWDTIp3sHneWMmw5zbIjjGkuhkNUQA5+KEydGEqLJ+620Dm2H7PzBW2Do7stMRMX+eJzPsbGo3lp0ceBzo/ESr75le8WThXUZ07j5THTnn7e6t5gw41m5E3/MZL3akyeJlJI7xNChq2AZgH3zdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LmCRq5wD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729885072; c=relaxed/simple;
+	bh=BafYFcMmq+Nn0SC4CEhc/fB/i39GoBgnJlnRHksfrxw=;
+	h=Date:To:From:Subject:Message-Id; b=YSe0ZgYBm1eah4twqHjRDQPnMnc6PM34A9EBj47o3ol44ioYmOsDqzwEks0Z4UXac468hgJSk8xNWtWxlb5kwH6o6A+xV4DOpu2HfgniViQyIVapLFb2lnfmejpWxY4Sl+euOK37X3EUJaUrCgsLJ3nCYEkHdTWZFldI838AdU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QTSs+C58; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LmCRq5wD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42CBEC4CEC3;
-	Fri, 25 Oct 2024 19:37:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QTSs+C58"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5D3BC4CECC;
+	Fri, 25 Oct 2024 19:37:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729885070;
-	bh=m6GDhQ+oqlQrVuOSGIRHeL+PXCVBDydbC1gkFndY3WE=;
+	s=korg; t=1729885071;
+	bh=BafYFcMmq+Nn0SC4CEhc/fB/i39GoBgnJlnRHksfrxw=;
 	h=Date:To:From:Subject:From;
-	b=LmCRq5wDJuVerI3jLXHo+7kOUHW9qfjxuDJQqM+gAbxkCn3ZDxfoPGzxoi3+bbi7X
-	 h98uR7WR8YaGhjRk/w0q6TrQiiNvHKbDSBtdinu9T0pJmdS32dt3dmJrv1BIfE2Hmu
-	 tErFFwr0g+fBtVl111FN/qRSTIQGoGBXrE3m3p9A=
-Date: Fri, 25 Oct 2024 12:37:49 -0700
+	b=QTSs+C58uWLVTGfYQw6hJ/fLJNgrzEvSg4TO37I20th5zM0HYgrp7vWWhkINF104R
+	 BkZENAhI1k37BanNDb46ew3w19D1Quq8onjVObd4i8fShagoAVS6nh4TUYVWLQhZ0v
+	 JrJZJYq3BpZMAL+SDQRtjAlbizEArrGWYnwcMtwI=
+Date: Fri, 25 Oct 2024 12:37:50 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-segment-usage-file-to-be-folio-based.patch added to mm-nonmm-unstable branch
-Message-Id: <20241025193750.42CBEC4CEC3@smtp.kernel.org>
+Subject: + nilfs2-convert-persistent-object-allocator-to-be-folio-based.patch added to mm-nonmm-unstable branch
+Message-Id: <20241025193751.B5D3BC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert segment usage file to be folio-based
+     Subject: nilfs2: convert persistent object allocator to be folio-based
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-segment-usage-file-to-be-folio-based.patch
+     nilfs2-convert-persistent-object-allocator-to-be-folio-based.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-segment-usage-file-to-be-folio-based.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-persistent-object-allocator-to-be-folio-based.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,483 +59,309 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert segment usage file to be folio-based
-Date: Thu, 24 Oct 2024 18:25:37 +0900
+Subject: nilfs2: convert persistent object allocator to be folio-based
+Date: Thu, 24 Oct 2024 18:25:38 +0900
 
-For the sufile, which is a metadata file that holds information about
-managing segments, convert the page-based implementation to a folio-based
-implementation.
+Regarding the persistent oject allocator, a common mechanism for
+allocating objects in metadata files such as inodes and DAT entries,
+convert the page-based implementation to a folio-based implementation.
 
-kmap_local_page() is changed to use kmap_local_folio(), and where offsets
-within a page are calculated using bh_offset(), are replaced with
-calculations using offset_in_folio() with an additional helper function
-nilfs_sufile_segment_usage_offset().
+In this conversion, helper functions nilfs_palloc_group_desc_offset() and
+nilfs_palloc_bitmap_offset() are added and used to calculate the byte
+offset within a folio of a group descriptor structure and bitmap,
+respectively, to replace kmap_local_page with kmap_local_folio.
 
-Link: https://lkml.kernel.org/r/20241024092602.13395-4-konishi.ryusuke@gmail.com
+In addition, a helper function called nilfs_palloc_entry_offset() is
+provided to facilitate common calculation of the byte offset within a
+folio of metadata file entries managed in the persistent object allocator
+format.
+
+Link: https://lkml.kernel.org/r/20241024092602.13395-5-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |  160 ++++++++++++++++++++++---------------------
- 1 file changed, 82 insertions(+), 78 deletions(-)
+ fs/nilfs2/alloc.c |  137 +++++++++++++++++++++++++++-----------------
+ fs/nilfs2/alloc.h |    2 
+ 2 files changed, 89 insertions(+), 50 deletions(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-convert-segment-usage-file-to-be-folio-based
-+++ a/fs/nilfs2/sufile.c
-@@ -70,11 +70,20 @@ nilfs_sufile_segment_usages_in_block(con
- 		     max - curr + 1);
+--- a/fs/nilfs2/alloc.c~nilfs2-convert-persistent-object-allocator-to-be-folio-based
++++ a/fs/nilfs2/alloc.c
+@@ -339,19 +339,55 @@ static int nilfs_palloc_delete_entry_blo
  }
  
--static struct nilfs_segment_usage *
--nilfs_sufile_block_get_segment_usage(const struct inode *sufile, __u64 segnum,
--				     struct buffer_head *bh, void *kaddr)
-+/**
-+ * nilfs_sufile_segment_usage_offset - calculate the byte offset of a segment
-+ *                                     usage entry in the folio containing it
-+ * @sufile: segment usage file inode
-+ * @segnum: number of segment usage
-+ * @bh:     buffer head of block containing segment usage indexed by @segnum
+ /**
+- * nilfs_palloc_block_get_group_desc - get kernel address of a group descriptor
++ * nilfs_palloc_group_desc_offset - calculate the byte offset of a group
++ *                                  descriptor in the folio containing it
+  * @inode: inode of metadata file using this allocator
+  * @group: group number
+- * @bh: buffer head of the buffer storing the group descriptor block
+- * @kaddr: kernel address mapped for the page including the buffer
++ * @bh:    buffer head of the group descriptor block
 + *
-+ * Return: Byte offset in the folio of the segment usage entry.
++ * Return: Byte offset in the folio of the group descriptor for @group.
 + */
-+static size_t nilfs_sufile_segment_usage_offset(const struct inode *sufile,
-+						__u64 segnum,
-+						struct buffer_head *bh)
- {
--	return kaddr + bh_offset(bh) +
++static size_t nilfs_palloc_group_desc_offset(const struct inode *inode,
++					     unsigned long group,
++					     const struct buffer_head *bh)
++{
 +	return offset_in_folio(bh->b_folio, bh->b_data) +
- 		nilfs_sufile_get_offset(sufile, segnum) *
- 		NILFS_MDT(sufile)->mi_entry_size;
- }
-@@ -112,13 +121,11 @@ static void nilfs_sufile_mod_counter(str
- 				     u64 ncleanadd, u64 ndirtyadd)
- {
- 	struct nilfs_sufile_header *header;
--	void *kaddr;
- 
--	kaddr = kmap_local_page(header_bh->b_page);
--	header = kaddr + bh_offset(header_bh);
-+	header = kmap_local_folio(header_bh->b_folio, 0);
- 	le64_add_cpu(&header->sh_ncleansegs, ncleanadd);
- 	le64_add_cpu(&header->sh_ndirtysegs, ndirtyadd);
--	kunmap_local(kaddr);
-+	kunmap_local(header);
- 
- 	mark_buffer_dirty(header_bh);
- }
-@@ -313,6 +320,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 	struct nilfs_sufile_info *sui = NILFS_SUI(sufile);
- 	size_t susz = NILFS_MDT(sufile)->mi_entry_size;
- 	__u64 segnum, maxsegnum, last_alloc;
-+	size_t offset;
- 	void *kaddr;
- 	unsigned long nsegments, nsus, cnt;
- 	int ret, j;
-@@ -322,10 +330,9 @@ int nilfs_sufile_alloc(struct inode *suf
- 	ret = nilfs_sufile_get_header_block(sufile, &header_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_local_page(header_bh->b_page);
--	header = kaddr + bh_offset(header_bh);
-+	header = kmap_local_folio(header_bh->b_folio, 0);
- 	last_alloc = le64_to_cpu(header->sh_last_alloc);
--	kunmap_local(kaddr);
-+	kunmap_local(header);
- 
- 	nsegments = nilfs_sufile_get_nsegments(sufile);
- 	maxsegnum = sui->allocmax;
-@@ -359,9 +366,10 @@ int nilfs_sufile_alloc(struct inode *suf
- 							   &su_bh);
- 		if (ret < 0)
- 			goto out_header;
--		kaddr = kmap_local_page(su_bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(
--			sufile, segnum, su_bh, kaddr);
++		sizeof(struct nilfs_palloc_group_desc) *
++		(group % nilfs_palloc_groups_per_desc_block(inode));
++}
 +
-+		offset = nilfs_sufile_segment_usage_offset(sufile, segnum,
-+							   su_bh);
-+		su = kaddr = kmap_local_folio(su_bh->b_folio, offset);
- 
- 		nsus = nilfs_sufile_segment_usages_in_block(
- 			sufile, segnum, maxsegnum);
-@@ -372,12 +380,11 @@ int nilfs_sufile_alloc(struct inode *suf
- 			nilfs_segment_usage_set_dirty(su);
- 			kunmap_local(kaddr);
- 
--			kaddr = kmap_local_page(header_bh->b_page);
--			header = kaddr + bh_offset(header_bh);
-+			header = kmap_local_folio(header_bh->b_folio, 0);
- 			le64_add_cpu(&header->sh_ncleansegs, -1);
- 			le64_add_cpu(&header->sh_ndirtysegs, 1);
- 			header->sh_last_alloc = cpu_to_le64(segnum);
--			kunmap_local(kaddr);
-+			kunmap_local(header);
- 
- 			sui->ncleansegs--;
- 			mark_buffer_dirty(header_bh);
-@@ -411,18 +418,18 @@ void nilfs_sufile_do_cancel_free(struct
- 				 struct buffer_head *su_bh)
++/**
++ * nilfs_palloc_bitmap_offset - calculate the byte offset of a bitmap block
++ *                              in the folio containing it
++ * @bh: buffer head of the bitmap block
++ *
++ * Return: Byte offset in the folio of the bitmap block for @bh.
+  */
+-static struct nilfs_palloc_group_desc *
+-nilfs_palloc_block_get_group_desc(const struct inode *inode,
+-				  unsigned long group,
+-				  const struct buffer_head *bh, void *kaddr)
++static size_t nilfs_palloc_bitmap_offset(const struct buffer_head *bh)
  {
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
+-	return (struct nilfs_palloc_group_desc *)(kaddr + bh_offset(bh)) +
+-		group % nilfs_palloc_groups_per_desc_block(inode);
++	return offset_in_folio(bh->b_folio, bh->b_data);
++}
++
++/**
++ * nilfs_palloc_entry_offset - calculate the byte offset of an entry in the
++ *                             folio containing it
++ * @inode: inode of metadata file using this allocator
++ * @nr:    serial number of the entry (e.g. inode number)
++ * @bh:    buffer head of the entry block
++ *
++ * Return: Byte offset in the folio of the entry @nr.
++ */
++size_t nilfs_palloc_entry_offset(const struct inode *inode, __u64 nr,
++				 const struct buffer_head *bh)
++{
++	unsigned long entry_index_in_group, entry_index_in_block;
++
++	nilfs_palloc_group(inode, nr, &entry_index_in_group);
++	entry_index_in_block = entry_index_in_group %
++		NILFS_MDT(inode)->mi_entries_per_block;
++
++	return offset_in_folio(bh->b_folio, bh->b_data) +
++		entry_index_in_block * NILFS_MDT(inode)->mi_entry_size;
+ }
  
--	kaddr = kmap_local_page(su_bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, su_bh);
-+	su = kmap_local_folio(su_bh->b_folio, offset);
- 	if (unlikely(!nilfs_segment_usage_clean(su))) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu must be clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		return;
- 	}
- 	nilfs_segment_usage_set_dirty(su);
--	kunmap_local(kaddr);
-+	kunmap_local(su);
- 
- 	nilfs_sufile_mod_counter(header_bh, -1, 1);
- 	NILFS_SUI(sufile)->ncleansegs--;
-@@ -436,14 +443,14 @@ void nilfs_sufile_do_scrap(struct inode
- 			   struct buffer_head *su_bh)
- {
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
- 	int clean, dirty;
- 
--	kaddr = kmap_local_page(su_bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, su_bh);
-+	su = kmap_local_folio(su_bh->b_folio, offset);
- 	if (su->su_flags == cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY)) &&
- 	    su->su_nblocks == cpu_to_le32(0)) {
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		return;
- 	}
- 	clean = nilfs_segment_usage_clean(su);
-@@ -453,7 +460,7 @@ void nilfs_sufile_do_scrap(struct inode
- 	su->su_lastmod = cpu_to_le64(0);
- 	su->su_nblocks = cpu_to_le32(0);
- 	su->su_flags = cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY));
--	kunmap_local(kaddr);
-+	kunmap_local(su);
- 
- 	nilfs_sufile_mod_counter(header_bh, clean ? (u64)-1 : 0, dirty ? 0 : 1);
- 	NILFS_SUI(sufile)->ncleansegs -= clean;
-@@ -467,15 +474,15 @@ void nilfs_sufile_do_free(struct inode *
- 			  struct buffer_head *su_bh)
- {
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
- 	int sudirty;
- 
--	kaddr = kmap_local_page(su_bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, su_bh);
-+	su = kmap_local_folio(su_bh->b_folio, offset);
- 	if (nilfs_segment_usage_clean(su)) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu is already clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		return;
- 	}
- 	if (unlikely(nilfs_segment_usage_error(su)))
-@@ -488,7 +495,7 @@ void nilfs_sufile_do_free(struct inode *
- 			   (unsigned long long)segnum);
- 
- 	nilfs_segment_usage_set_clean(su);
--	kunmap_local(kaddr);
-+	kunmap_local(su);
- 	mark_buffer_dirty(su_bh);
- 
- 	nilfs_sufile_mod_counter(header_bh, 1, sudirty ? (u64)-1 : 0);
-@@ -507,7 +514,7 @@ void nilfs_sufile_do_free(struct inode *
- int nilfs_sufile_mark_dirty(struct inode *sufile, __u64 segnum)
- {
- 	struct buffer_head *bh;
--	void *kaddr;
-+	size_t offset;
- 	struct nilfs_segment_usage *su;
- 	int ret;
- 
-@@ -523,12 +530,12 @@ int nilfs_sufile_mark_dirty(struct inode
- 		goto out_sem;
- 	}
- 
--	kaddr = kmap_local_page(bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, bh);
-+	su = kmap_local_folio(bh->b_folio, offset);
- 	if (unlikely(nilfs_segment_usage_error(su))) {
- 		struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
- 
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		brelse(bh);
- 		if (nilfs_segment_is_active(nilfs, segnum)) {
- 			nilfs_error(sufile->i_sb,
-@@ -546,7 +553,7 @@ int nilfs_sufile_mark_dirty(struct inode
- 		ret = -EIO;
- 	} else {
- 		nilfs_segment_usage_set_dirty(su);
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		mark_buffer_dirty(bh);
- 		nilfs_mdt_mark_dirty(sufile);
- 		brelse(bh);
-@@ -568,7 +575,7 @@ int nilfs_sufile_set_segment_usage(struc
- {
- 	struct buffer_head *bh;
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
- 	int ret;
- 
- 	down_write(&NILFS_MDT(sufile)->mi_sem);
-@@ -576,8 +583,8 @@ int nilfs_sufile_set_segment_usage(struc
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_local_page(bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, bh);
-+	su = kmap_local_folio(bh->b_folio, offset);
- 	if (modtime) {
- 		/*
- 		 * Check segusage error and set su_lastmod only when updating
-@@ -587,7 +594,7 @@ int nilfs_sufile_set_segment_usage(struc
- 		su->su_lastmod = cpu_to_le64(modtime);
- 	}
- 	su->su_nblocks = cpu_to_le32(nblocks);
--	kunmap_local(kaddr);
-+	kunmap_local(su);
- 
- 	mark_buffer_dirty(bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -619,7 +626,6 @@ int nilfs_sufile_get_stat(struct inode *
- 	struct buffer_head *header_bh;
- 	struct nilfs_sufile_header *header;
- 	struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
--	void *kaddr;
- 	int ret;
- 
- 	down_read(&NILFS_MDT(sufile)->mi_sem);
-@@ -628,8 +634,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_local_page(header_bh->b_page);
--	header = kaddr + bh_offset(header_bh);
-+	header = kmap_local_folio(header_bh->b_folio, 0);
- 	sustat->ss_nsegs = nilfs_sufile_get_nsegments(sufile);
- 	sustat->ss_ncleansegs = le64_to_cpu(header->sh_ncleansegs);
- 	sustat->ss_ndirtysegs = le64_to_cpu(header->sh_ndirtysegs);
-@@ -638,7 +643,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	spin_lock(&nilfs->ns_last_segment_lock);
- 	sustat->ss_prot_seq = nilfs->ns_prot_seq;
- 	spin_unlock(&nilfs->ns_last_segment_lock);
--	kunmap_local(kaddr);
-+	kunmap_local(header);
- 	brelse(header_bh);
- 
-  out_sem:
-@@ -651,18 +656,18 @@ void nilfs_sufile_do_set_error(struct in
- 			       struct buffer_head *su_bh)
- {
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
- 	int suclean;
- 
--	kaddr = kmap_local_page(su_bh->b_page);
--	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
-+	offset = nilfs_sufile_segment_usage_offset(sufile, segnum, su_bh);
-+	su = kmap_local_folio(su_bh->b_folio, offset);
- 	if (nilfs_segment_usage_error(su)) {
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 		return;
- 	}
- 	suclean = nilfs_segment_usage_clean(su);
- 	nilfs_segment_usage_set_error(su);
--	kunmap_local(kaddr);
-+	kunmap_local(su);
- 
- 	if (suclean) {
- 		nilfs_sufile_mod_counter(header_bh, -1, 0);
-@@ -700,7 +705,7 @@ static int nilfs_sufile_truncate_range(s
- 	unsigned long segusages_per_block;
- 	unsigned long nsegs, ncleaned;
- 	__u64 segnum;
--	void *kaddr;
-+	size_t offset;
- 	ssize_t n, nc;
- 	int ret;
- 	int j;
-@@ -731,16 +736,16 @@ static int nilfs_sufile_truncate_range(s
- 			/* hole */
- 			continue;
- 		}
--		kaddr = kmap_local_page(su_bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(
--			sufile, segnum, su_bh, kaddr);
-+		offset = nilfs_sufile_segment_usage_offset(sufile, segnum,
-+							   su_bh);
-+		su = kmap_local_folio(su_bh->b_folio, offset);
- 		su2 = su;
- 		for (j = 0; j < n; j++, su = (void *)su + susz) {
- 			if ((le32_to_cpu(su->su_flags) &
- 			     ~BIT(NILFS_SEGMENT_USAGE_ERROR)) ||
- 			    nilfs_segment_is_active(nilfs, segnum + j)) {
- 				ret = -EBUSY;
--				kunmap_local(kaddr);
-+				kunmap_local(su2);
- 				brelse(su_bh);
- 				goto out_header;
- 			}
-@@ -752,7 +757,7 @@ static int nilfs_sufile_truncate_range(s
- 				nc++;
- 			}
- 		}
--		kunmap_local(kaddr);
-+		kunmap_local(su2);
- 		if (nc > 0) {
- 			mark_buffer_dirty(su_bh);
- 			ncleaned += nc;
-@@ -799,7 +804,6 @@ int nilfs_sufile_resize(struct inode *su
- 	struct buffer_head *header_bh;
- 	struct nilfs_sufile_header *header;
- 	struct nilfs_sufile_info *sui = NILFS_SUI(sufile);
--	void *kaddr;
- 	unsigned long nsegs, nrsvsegs;
- 	int ret = 0;
- 
-@@ -837,10 +841,9 @@ int nilfs_sufile_resize(struct inode *su
- 		sui->allocmin = 0;
- 	}
- 
--	kaddr = kmap_local_page(header_bh->b_page);
--	header = kaddr + bh_offset(header_bh);
-+	header = kmap_local_folio(header_bh->b_folio, 0);
- 	header->sh_ncleansegs = cpu_to_le64(sui->ncleansegs);
--	kunmap_local(kaddr);
-+	kunmap_local(header);
- 
- 	mark_buffer_dirty(header_bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -874,6 +877,7 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 	struct nilfs_suinfo *si = buf;
- 	size_t susz = NILFS_MDT(sufile)->mi_entry_size;
- 	struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
-+	size_t offset;
- 	void *kaddr;
- 	unsigned long nsegs, segusages_per_block;
- 	ssize_t n;
-@@ -901,9 +905,9 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 			continue;
- 		}
- 
--		kaddr = kmap_local_page(su_bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(
--			sufile, segnum, su_bh, kaddr);
-+		offset = nilfs_sufile_segment_usage_offset(sufile, segnum,
-+							   su_bh);
-+		su = kaddr = kmap_local_folio(su_bh->b_folio, offset);
- 		for (j = 0; j < n;
- 		     j++, su = (void *)su + susz, si = (void *)si + sisz) {
- 			si->sui_lastmod = le64_to_cpu(su->su_lastmod);
-@@ -951,7 +955,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 	struct buffer_head *header_bh, *bh;
- 	struct nilfs_suinfo_update *sup, *supend = buf + supsz * nsup;
- 	struct nilfs_segment_usage *su;
--	void *kaddr;
-+	size_t offset;
- 	unsigned long blkoff, prev_blkoff;
- 	int cleansi, cleansu, dirtysi, dirtysu;
- 	long ncleaned = 0, ndirtied = 0;
-@@ -983,9 +987,9 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 		goto out_header;
- 
- 	for (;;) {
--		kaddr = kmap_local_page(bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(
--			sufile, sup->sup_segnum, bh, kaddr);
-+		offset = nilfs_sufile_segment_usage_offset(
-+			sufile, sup->sup_segnum, bh);
-+		su = kmap_local_folio(bh->b_folio, offset);
- 
- 		if (nilfs_suinfo_update_lastmod(sup))
- 			su->su_lastmod = cpu_to_le64(sup->sup_sui.sui_lastmod);
-@@ -1020,7 +1024,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 			su->su_flags = cpu_to_le32(sup->sup_sui.sui_flags);
- 		}
- 
--		kunmap_local(kaddr);
-+		kunmap_local(su);
- 
- 		sup = (void *)sup + supsz;
- 		if (sup >= supend)
-@@ -1076,6 +1080,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 	struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
- 	struct buffer_head *su_bh;
- 	struct nilfs_segment_usage *su;
-+	size_t offset;
- 	void *kaddr;
- 	size_t n, i, susz = NILFS_MDT(sufile)->mi_entry_size;
- 	sector_t seg_start, seg_end, start_block, end_block;
-@@ -1125,9 +1130,9 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			continue;
- 		}
- 
--		kaddr = kmap_local_page(su_bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(sufile, segnum,
--				su_bh, kaddr);
-+		offset = nilfs_sufile_segment_usage_offset(sufile, segnum,
-+							   su_bh);
-+		su = kaddr = kmap_local_folio(su_bh->b_folio, offset);
- 		for (i = 0; i < n; ++i, ++segnum, su = (void *)su + susz) {
- 			if (!nilfs_segment_usage_clean(su))
+ /**
+@@ -508,7 +544,7 @@ int nilfs_palloc_prepare_alloc_entry(str
+ 	struct buffer_head *desc_bh, *bitmap_bh;
+ 	struct nilfs_palloc_group_desc *desc;
+ 	unsigned char *bitmap;
+-	void *desc_kaddr, *bitmap_kaddr;
++	size_t doff, boff;
+ 	unsigned long group, maxgroup, ngroups;
+ 	unsigned long group_offset, maxgroup_offset;
+ 	unsigned long n, entries_per_group;
+@@ -531,17 +567,17 @@ int nilfs_palloc_prepare_alloc_entry(str
+ 		ret = nilfs_palloc_get_desc_block(inode, group, 1, &desc_bh);
+ 		if (ret < 0)
+ 			return ret;
+-		desc_kaddr = kmap_local_page(desc_bh->b_page);
+-		desc = nilfs_palloc_block_get_group_desc(
+-			inode, group, desc_bh, desc_kaddr);
++
++		doff = nilfs_palloc_group_desc_offset(inode, group, desc_bh);
++		desc = kmap_local_folio(desc_bh->b_folio, doff);
+ 		n = nilfs_palloc_rest_groups_in_desc_block(inode, group,
+ 							   maxgroup);
+-		for (j = 0; j < n; j++, desc++, group++, group_offset = 0) {
++		for (j = 0; j < n; j++, group++, group_offset = 0) {
+ 			lock = nilfs_mdt_bgl_lock(inode, group);
+-			if (nilfs_palloc_group_desc_nfrees(desc, lock) == 0)
++			if (nilfs_palloc_group_desc_nfrees(&desc[j], lock) == 0)
  				continue;
-@@ -1167,9 +1172,10 @@ int nilfs_sufile_trim_fs(struct inode *s
- 				}
  
- 				ndiscarded += nblocks;
--				kaddr = kmap_local_page(su_bh->b_page);
--				su = nilfs_sufile_block_get_segment_usage(
--					sufile, segnum, su_bh, kaddr);
-+				offset = nilfs_sufile_segment_usage_offset(
-+					sufile, segnum, su_bh);
-+				su = kaddr = kmap_local_folio(su_bh->b_folio,
-+							      offset);
+-			kunmap_local(desc_kaddr);
++			kunmap_local(desc);
+ 			ret = nilfs_palloc_get_bitmap_block(inode, group, 1,
+ 							    &bitmap_bh);
+ 			if (unlikely(ret < 0)) {
+@@ -549,12 +585,14 @@ int nilfs_palloc_prepare_alloc_entry(str
+ 				return ret;
  			}
  
- 			/* start new extent */
-@@ -1221,7 +1227,6 @@ int nilfs_sufile_read(struct super_block
- 	struct nilfs_sufile_info *sui;
- 	struct buffer_head *header_bh;
- 	struct nilfs_sufile_header *header;
--	void *kaddr;
- 	int err;
+-			desc_kaddr = kmap_local_page(desc_bh->b_page);
+-			desc = nilfs_palloc_block_get_group_desc(
+-				inode, group, desc_bh, desc_kaddr);
++			/*
++			 * Re-kmap the folio containing the first (and
++			 * subsequent) group descriptors.
++			 */
++			desc = kmap_local_folio(desc_bh->b_folio, doff);
  
- 	if (susize > sb->s_blocksize) {
-@@ -1262,10 +1267,9 @@ int nilfs_sufile_read(struct super_block
+-			bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
+-			bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
++			boff = nilfs_palloc_bitmap_offset(bitmap_bh);
++			bitmap = kmap_local_folio(bitmap_bh->b_folio, boff);
+ 			pos = nilfs_palloc_find_available_slot(
+ 				bitmap, group_offset, entries_per_group, lock,
+ 				wrap);
+@@ -564,14 +602,14 @@ int nilfs_palloc_prepare_alloc_entry(str
+ 			 * beginning, the wrap flag only has an effect on the
+ 			 * first search.
+ 			 */
+-			kunmap_local(bitmap_kaddr);
++			kunmap_local(bitmap);
+ 			if (pos >= 0)
+ 				goto found;
+ 
+ 			brelse(bitmap_bh);
+ 		}
+ 
+-		kunmap_local(desc_kaddr);
++		kunmap_local(desc);
+ 		brelse(desc_bh);
  	}
  
- 	sui = NILFS_SUI(sufile);
--	kaddr = kmap_local_page(header_bh->b_page);
--	header = kaddr + bh_offset(header_bh);
-+	header = kmap_local_folio(header_bh->b_folio, 0);
- 	sui->ncleansegs = le64_to_cpu(header->sh_ncleansegs);
--	kunmap_local(kaddr);
-+	kunmap_local(header);
- 	brelse(header_bh);
+@@ -580,9 +618,9 @@ int nilfs_palloc_prepare_alloc_entry(str
  
- 	sui->allocmax = nilfs_sufile_get_nsegments(sufile) - 1;
+ found:
+ 	/* found a free entry */
+-	nilfs_palloc_group_desc_add_entries(desc, lock, -1);
++	nilfs_palloc_group_desc_add_entries(&desc[j], lock, -1);
+ 	req->pr_entry_nr = entries_per_group * group + pos;
+-	kunmap_local(desc_kaddr);
++	kunmap_local(desc);
+ 
+ 	req->pr_desc_bh = desc_bh;
+ 	req->pr_bitmap_bh = bitmap_bh;
+@@ -613,18 +651,18 @@ void nilfs_palloc_commit_alloc_entry(str
+ void nilfs_palloc_commit_free_entry(struct inode *inode,
+ 				    struct nilfs_palloc_req *req)
+ {
+-	struct nilfs_palloc_group_desc *desc;
+ 	unsigned long group, group_offset;
++	size_t doff, boff;
++	struct nilfs_palloc_group_desc *desc;
+ 	unsigned char *bitmap;
+-	void *desc_kaddr, *bitmap_kaddr;
+ 	spinlock_t *lock;
+ 
+ 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
+-	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
+-	desc = nilfs_palloc_block_get_group_desc(inode, group,
+-						 req->pr_desc_bh, desc_kaddr);
+-	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
+-	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
++	doff = nilfs_palloc_group_desc_offset(inode, group, req->pr_desc_bh);
++	desc = kmap_local_folio(req->pr_desc_bh->b_folio, doff);
++
++	boff = nilfs_palloc_bitmap_offset(req->pr_bitmap_bh);
++	bitmap = kmap_local_folio(req->pr_bitmap_bh->b_folio, boff);
+ 	lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+ 	if (!nilfs_clear_bit_atomic(lock, group_offset, bitmap))
+@@ -635,8 +673,8 @@ void nilfs_palloc_commit_free_entry(stru
+ 	else
+ 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
+ 
+-	kunmap_local(bitmap_kaddr);
+-	kunmap_local(desc_kaddr);
++	kunmap_local(bitmap);
++	kunmap_local(desc);
+ 
+ 	mark_buffer_dirty(req->pr_desc_bh);
+ 	mark_buffer_dirty(req->pr_bitmap_bh);
+@@ -655,17 +693,17 @@ void nilfs_palloc_abort_alloc_entry(stru
+ 				    struct nilfs_palloc_req *req)
+ {
+ 	struct nilfs_palloc_group_desc *desc;
+-	void *desc_kaddr, *bitmap_kaddr;
++	size_t doff, boff;
+ 	unsigned char *bitmap;
+ 	unsigned long group, group_offset;
+ 	spinlock_t *lock;
+ 
+ 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
+-	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
+-	desc = nilfs_palloc_block_get_group_desc(inode, group,
+-						 req->pr_desc_bh, desc_kaddr);
+-	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
+-	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
++	doff = nilfs_palloc_group_desc_offset(inode, group, req->pr_desc_bh);
++	desc = kmap_local_folio(req->pr_desc_bh->b_folio, doff);
++
++	boff = nilfs_palloc_bitmap_offset(req->pr_bitmap_bh);
++	bitmap = kmap_local_folio(req->pr_bitmap_bh->b_folio, boff);
+ 	lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+ 	if (!nilfs_clear_bit_atomic(lock, group_offset, bitmap))
+@@ -676,8 +714,8 @@ void nilfs_palloc_abort_alloc_entry(stru
+ 	else
+ 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
+ 
+-	kunmap_local(bitmap_kaddr);
+-	kunmap_local(desc_kaddr);
++	kunmap_local(bitmap);
++	kunmap_local(desc);
+ 
+ 	brelse(req->pr_bitmap_bh);
+ 	brelse(req->pr_desc_bh);
+@@ -741,7 +779,7 @@ int nilfs_palloc_freev(struct inode *ino
+ 	struct buffer_head *desc_bh, *bitmap_bh;
+ 	struct nilfs_palloc_group_desc *desc;
+ 	unsigned char *bitmap;
+-	void *desc_kaddr, *bitmap_kaddr;
++	size_t doff, boff;
+ 	unsigned long group, group_offset;
+ 	__u64 group_min_nr, last_nrs[8];
+ 	const unsigned long epg = nilfs_palloc_entries_per_group(inode);
+@@ -769,8 +807,8 @@ int nilfs_palloc_freev(struct inode *ino
+ 		/* Get the first entry number of the group */
+ 		group_min_nr = (__u64)group * epg;
+ 
+-		bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
+-		bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
++		boff = nilfs_palloc_bitmap_offset(bitmap_bh);
++		bitmap = kmap_local_folio(bitmap_bh->b_folio, boff);
+ 		lock = nilfs_mdt_bgl_lock(inode, group);
+ 
+ 		j = i;
+@@ -815,7 +853,7 @@ int nilfs_palloc_freev(struct inode *ino
+ 			entry_start = rounddown(group_offset, epb);
+ 		} while (true);
+ 
+-		kunmap_local(bitmap_kaddr);
++		kunmap_local(bitmap);
+ 		mark_buffer_dirty(bitmap_bh);
+ 		brelse(bitmap_bh);
+ 
+@@ -829,11 +867,10 @@ int nilfs_palloc_freev(struct inode *ino
+ 					   inode->i_ino);
+ 		}
+ 
+-		desc_kaddr = kmap_local_page(desc_bh->b_page);
+-		desc = nilfs_palloc_block_get_group_desc(
+-			inode, group, desc_bh, desc_kaddr);
++		doff = nilfs_palloc_group_desc_offset(inode, group, desc_bh);
++		desc = kmap_local_folio(desc_bh->b_folio, doff);
+ 		nfree = nilfs_palloc_group_desc_add_entries(desc, lock, n);
+-		kunmap_local(desc_kaddr);
++		kunmap_local(desc);
+ 		mark_buffer_dirty(desc_bh);
+ 		nilfs_mdt_mark_dirty(inode);
+ 		brelse(desc_bh);
+--- a/fs/nilfs2/alloc.h~nilfs2-convert-persistent-object-allocator-to-be-folio-based
++++ a/fs/nilfs2/alloc.h
+@@ -33,6 +33,8 @@ int nilfs_palloc_get_entry_block(struct
+ 				 struct buffer_head **);
+ void *nilfs_palloc_block_get_entry(const struct inode *, __u64,
+ 				   const struct buffer_head *, void *);
++size_t nilfs_palloc_entry_offset(const struct inode *inode, __u64 nr,
++				 const struct buffer_head *bh);
+ 
+ int nilfs_palloc_count_max_entries(struct inode *, u64, u64 *);
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
