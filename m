@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 239A21925AB
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:38:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC8F17C9E8
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 20:18:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729885083; cv=none; b=E9LgSQnUGNj8ljYkhLDSM0Kx2LZcxY/46bOKfpmPe43SRSo/VbUwAHf7EMG64mw2bjZshrREI6TBwCzDEE8GI/75ifIFRaQuArTKnLq6Jucg0Zi7I/akh6wZQAyxaur3MjeMF/3DyrLrukxqScw+nTMIcGyrjwInCP4k4sLFCbs=
+	t=1729887516; cv=none; b=XQNs9krQRACpVxTKezZEc4mLYdMEl+QltgJlMaWc/Eje48xqjzyt4DbdSK2WETalGhnKITKWBGOLQJtErJ5+9+6fMphGsR3LsRkJV1H0/WJ9RFcCRcRRTy1P3okiYqAVdCY+3X3WI9XnTnzdr/jY2CoVxljA4X2NN0XCzkKmStU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729885083; c=relaxed/simple;
-	bh=vtKxyKgj1pPvP1yIoifr8pEAJhtYSFIo6FyNHUVY+Cs=;
-	h=Date:To:From:Subject:Message-Id; b=CQOpnp5dwBpjtE3k0GEorcN2bi/zGQMpIEXSDUoZ/jowlT+Uc1x7+9Nm8VWz1QOXtT7v+NDr32k3ekmJJbqip1KELr3mj4GIvfHGQpu1wxX844V6zpngOtO1GSJII5WKZYbv8qv38QlSmoFLsG62P3QCmOTIo2oSccivtlU0WG4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=js26ou8e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729887516; c=relaxed/simple;
+	bh=qhDn2izQBSLzHUVnNOfH1y3hpP9BQ4qwIj+Wso2HOOI=;
+	h=Date:To:From:Subject:Message-Id; b=WF+UubHvA3J/LVP6PdKdq2XioufhmLeNOAS/O9SfVu+WdaqC9MjtM9hMEj+T75nORsCREemlXhAJ5161kOGjwvKyZCco2rzEyHd4bW7fSIil8GZ8XzkQwh4105qavJNye6bWw3MzIoCenbfUqObxJEyXQwSbwY1AIicmrKPmSh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=llmbu+j2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="js26ou8e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8740C4CEC3;
-	Fri, 25 Oct 2024 19:38:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="llmbu+j2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0FECC4CECC;
+	Fri, 25 Oct 2024 20:18:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729885083;
-	bh=vtKxyKgj1pPvP1yIoifr8pEAJhtYSFIo6FyNHUVY+Cs=;
+	s=korg; t=1729887514;
+	bh=qhDn2izQBSLzHUVnNOfH1y3hpP9BQ4qwIj+Wso2HOOI=;
 	h=Date:To:From:Subject:From;
-	b=js26ou8ecLRYc3dhGcWKkbZLhmw2PLb1J0LXJaKDHWt9Mrt1uuPlLJXERvbhm41uW
-	 wLKBYV9DHS3MzEAX+Kz/u8rWfHSUguGWfAWH6YKLiNKHRxeLzPgG25ECw3ZRCd6d2M
-	 PIfQHRes0ftTVEV3XtcpC9t0UwbqJDytPoFPHmWE=
-Date: Fri, 25 Oct 2024 12:38:02 -0700
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=llmbu+j27EngncHZqpwrp+sbmSl78S4LUxksfC3NDOHWvwayZznTW0A/5DdrcaPqS
+	 Xs6f6QPFNUq92LEzOqQI+JjYkm5yz3V8EUw7e7TovVvOsLzoNAl2bmC7/sKpW0TNFE
+	 6IcspQ9sAjz/q/psNPoZusa6eBGu57XpIr4utlOc=
+Date: Fri, 25 Oct 2024 13:18:33 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch added to mm-nonmm-unstable branch
-Message-Id: <20241025193802.E8740C4CEC3@smtp.kernel.org>
+Subject: + memcg-v1-fully-deprecate-move_charge_at_immigrate.patch added to mm-unstable branch
+Message-Id: <20241025201833.E0FECC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert metadata aops from writepage to writepages
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
+     Subject: memcg-v1: fully deprecate move_charge_at_immigrate
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,85 +58,194 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert metadata aops from writepage to writepages
-Date: Thu, 24 Oct 2024 18:25:46 +0900
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg-v1: fully deprecate move_charge_at_immigrate
+Date: Thu, 24 Oct 2024 18:22:58 -0700
 
-By implementing ->writepages instead of ->writepage, we remove a layer of
-indirect function calls from the writeback path and the last use of struct
-page in nilfs2.
+Patch series "memcg-v1: fully deprecate charge moving".
 
-[konishi.ryusuke@gmail.com: fixed panic by using buffer_migrate_folio_norefs]
-Link: https://lkml.kernel.org/r/20241002150036.1339475-5-willy@infradead.org
-Link: https://lkml.kernel.org/r/20241024092602.13395-13-konishi.ryusuke@gmail.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+The memcg v1's charge moving feature has been deprecated for almost 2
+years and the kernel warns if someone try to use it.  This warning has
+been backported to all stable kernel and there have not been any report of
+the warning or the request to support this feature anymore.  Let's proceed
+to fully deprecate this feature.
+
+
+This patch (of 6):
+
+Proceed with the complete deprecation of memcg v1's charge moving feature.
+The deprecation warning has been in the kernel for almost two years and
+has been ported to all stable kernel since.  Now is the time to fully
+deprecate this feature.
+
+Link: https://lkml.kernel.org/r/20241025012304.2473312-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20241025012304.2473312-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |   82 ---------------
+ mm/memcontrol-v1.c                             |   14 --
+ 2 files changed, 5 insertions(+), 91 deletions(-)
 
---- a/fs/nilfs2/mdt.c~nilfs2-convert-metadata-aops-from-writepage-to-writepages
-+++ a/fs/nilfs2/mdt.c
-@@ -399,10 +399,9 @@ int nilfs_mdt_fetch_dirty(struct inode *
- 	return test_bit(NILFS_I_DIRTY, &ii->i_state);
- }
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-v1-fully-deprecate-move_charge_at_immigrate
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -90,9 +90,7 @@ Brief summary of control files.
+                                      used.
+  memory.swappiness		     set/show swappiness parameter of vmscan
+ 				     (See sysctl's vm.swappiness)
+- memory.move_charge_at_immigrate     set/show controls of moving charges
+-                                     This knob is deprecated and shouldn't be
+-                                     used.
++ memory.move_charge_at_immigrate     This knob is deprecated.
+  memory.oom_control		     set/show oom controls.
+                                      This knob is deprecated and shouldn't be
+                                      used.
+@@ -243,10 +241,6 @@ behind this approach is that a cgroup th
+ page will eventually get charged for it (once it is uncharged from
+ the cgroup that brought it in -- this will happen on memory pressure).
  
--static int
--nilfs_mdt_write_page(struct page *page, struct writeback_control *wbc)
-+static int nilfs_mdt_write_folio(struct folio *folio,
-+		struct writeback_control *wbc)
+-But see :ref:`section 8.2 <cgroup-v1-memory-movable-charges>` when moving a
+-task to another cgroup, its pages may be recharged to the new cgroup, if
+-move_charge_at_immigrate has been chosen.
+-
+ 2.4 Swap Extension
+ --------------------------------------
+ 
+@@ -756,78 +750,8 @@ If we want to change this to 1G, we can
+ 
+ THIS IS DEPRECATED!
+ 
+-It's expensive and unreliable! It's better practice to launch workload
+-tasks directly from inside their target cgroup. Use dedicated workload
+-cgroups to allow fine-grained policy adjustments without having to
+-move physical pages between control domains.
+-
+-Users can move charges associated with a task along with task migration, that
+-is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
+-This feature is not supported in !CONFIG_MMU environments because of lack of
+-page tables.
+-
+-8.1 Interface
+--------------
+-
+-This feature is disabled by default. It can be enabled (and disabled again) by
+-writing to memory.move_charge_at_immigrate of the destination cgroup.
+-
+-If you want to enable it::
+-
+-	# echo (some positive value) > memory.move_charge_at_immigrate
+-
+-.. note::
+-      Each bits of move_charge_at_immigrate has its own meaning about what type
+-      of charges should be moved. See :ref:`section 8.2
+-      <cgroup-v1-memory-movable-charges>` for details.
+-
+-.. note::
+-      Charges are moved only when you move mm->owner, in other words,
+-      a leader of a thread group.
+-
+-.. note::
+-      If we cannot find enough space for the task in the destination cgroup, we
+-      try to make space by reclaiming memory. Task migration may fail if we
+-      cannot make enough space.
+-
+-.. note::
+-      It can take several seconds if you move charges much.
+-
+-And if you want disable it again::
+-
+-	# echo 0 > memory.move_charge_at_immigrate
+-
+-.. _cgroup-v1-memory-movable-charges:
+-
+-8.2 Type of charges which can be moved
+---------------------------------------
+-
+-Each bit in move_charge_at_immigrate has its own meaning about what type of
+-charges should be moved. But in any case, it must be noted that an account of
+-a page or a swap can be moved only when it is charged to the task's current
+-(old) memory cgroup.
+-
+-+---+--------------------------------------------------------------------------+
+-|bit| what type of charges would be moved ?                                    |
+-+===+==========================================================================+
+-| 0 | A charge of an anonymous page (or swap of it) used by the target task.   |
+-|   | You must enable Swap Extension (see 2.4) to enable move of swap charges. |
+-+---+--------------------------------------------------------------------------+
+-| 1 | A charge of file pages (normal file, tmpfs file (e.g. ipc shared memory) |
+-|   | and swaps of tmpfs file) mmapped by the target task. Unlike the case of  |
+-|   | anonymous pages, file pages (and swaps) in the range mmapped by the task |
+-|   | will be moved even if the task hasn't done page fault, i.e. they might   |
+-|   | not be the task's "RSS", but other task's "RSS" that maps the same file. |
+-|   | The mapcount of the page is ignored (the page can be moved independent   |
+-|   | of the mapcount). You must enable Swap Extension (see 2.4) to            |
+-|   | enable move of swap charges.                                             |
+-+---+--------------------------------------------------------------------------+
+-
+-8.3 TODO
+---------
+-
+-- All of moving charge operations are done under cgroup_mutex. It's not good
+-  behavior to hold the mutex too long, so we may need some trick.
++Reading memory.move_charge_at_immigrate will always return 0 and writing
++to it will always return -EINVAL.
+ 
+ 9. Memory thresholds
+ ====================
+--- a/mm/memcontrol-v1.c~memcg-v1-fully-deprecate-move_charge_at_immigrate
++++ a/mm/memcontrol-v1.c
+@@ -593,29 +593,19 @@ static inline int mem_cgroup_move_swap_a
+ static u64 mem_cgroup_move_charge_read(struct cgroup_subsys_state *css,
+ 				struct cftype *cft)
  {
--	struct folio *folio = page_folio(page);
- 	struct inode *inode = folio->mapping->host;
- 	struct super_block *sb;
- 	int err = 0;
-@@ -435,11 +434,23 @@ nilfs_mdt_write_page(struct page *page,
- 	return err;
+-	return mem_cgroup_from_css(css)->move_charge_at_immigrate;
++	return 0;
  }
  
-+static int nilfs_mdt_writeback(struct address_space *mapping,
-+		struct writeback_control *wbc)
-+{
-+	struct folio *folio = NULL;
-+	int error;
-+
-+	while ((folio = writeback_iter(mapping, wbc, folio, &error)))
-+		error = nilfs_mdt_write_folio(folio, wbc);
-+
-+	return error;
-+}
+ #ifdef CONFIG_MMU
+ static int mem_cgroup_move_charge_write(struct cgroup_subsys_state *css,
+ 				 struct cftype *cft, u64 val)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+-
+ 	pr_warn_once("Cgroup memory moving (move_charge_at_immigrate) is deprecated. "
+ 		     "Please report your usecase to linux-mm@kvack.org if you "
+ 		     "depend on this functionality.\n");
  
- static const struct address_space_operations def_mdt_aops = {
- 	.dirty_folio		= block_dirty_folio,
- 	.invalidate_folio	= block_invalidate_folio,
--	.writepage		= nilfs_mdt_write_page,
-+	.writepages		= nilfs_mdt_writeback,
-+	.migrate_folio		= buffer_migrate_folio_norefs,
- };
- 
- static const struct inode_operations def_mdt_iops;
+-	if (val & ~MOVE_MASK)
++	if (val != 0)
+ 		return -EINVAL;
+-
+-	/*
+-	 * No kind of locking is needed in here, because ->can_attach() will
+-	 * check this value once in the beginning of the process, and then carry
+-	 * on with stale data. This means that changes to this value will only
+-	 * affect task migrations starting after the change.
+-	 */
+-	memcg->move_charge_at_immigrate = val;
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-ksm-use-a-folio-in-try_to_merge_one_page.patch
-ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
-ksm-convert-should_skip_rmap_item-to-take-a-folio.patch
-mm-add-pageanonnotksm.patch
-mm-add-pageanonnotksm-fix.patch
-mm-remove-pageksm.patch
-gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
-mm-convert-page_to_pgoff-to-page_pgoff.patch
-mm-use-page_pgoff-in-more-places.patch
-mm-renovate-page_address_in_vma.patch
-mm-mass-constification-of-folio-page-pointers.patch
-bootmem-stop-using-page-index.patch
-mm-remove-references-to-page-index-in-huge_memoryc.patch
-mm-use-page-private-instead-of-page-index-in-percpu.patch
-nilfs2-remove-nilfs_writepage.patch
-nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch
-nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
-nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
+mm-optimize-truncation-of-shadow-entries.patch
+mm-optimize-invalidation-of-shadow-entries.patch
+mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
+memcg-add-tracing-for-memcg-stat-updates.patch
+memcg-add-tracing-for-memcg-stat-updates-v2.patch
+memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
+memcg-v1-remove-charge-move-code.patch
+memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru.patch
+memcg-v1-remove-memcg-move-locking-code.patch
 
