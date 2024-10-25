@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA921F7566
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 20:18:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CC341925AB;
+	Fri, 25 Oct 2024 20:21:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729887522; cv=none; b=gq/iCH5UPMrRIho9adFVznrSwkCE6GnBjx1ZLEYjZUwuWfubWICSYsFQ+Gk8TGzk/1Aekr6PHeNP8HaUWNQvP4AUm9TwVAYeBKx4xcrFqKrcc8KUf5t2HtL1g4QjhD6xya4n2wzIK+YsJfvQhCcvZ8EJD1q733B6KILOzlkcmkQ=
+	t=1729887664; cv=none; b=HJFMMzQ5rcrSdFlnLNffMdmSlgmlytN78bJJr4FUWb0nAKJxPfLhZllTx3mpvZz9XIAZmrSPbz9p3nAU5bMY/HAgeWS49RY3oGTrC33KuMKQbQpN1SbJedhbLt8iox4EjlJhKqOchOatSAZ2ibhYIw5y33kmWF0ee0r68TbU+Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729887522; c=relaxed/simple;
-	bh=tf8Fd2xwiU72jw9X5oV9b5ngeMhb5LTcpr3RQl1sKBw=;
-	h=Date:To:From:Subject:Message-Id; b=Lq5Kf+J1rT8XjnW0XoOuUpFyURL0fWripBgIDvCiaZZXJV8SxEUevWc/eJ9EvuiRMLSpwEkvL3aNtV6X6r1+2Yh+uoHVHMBPepk1ucqtRZUIVT/MTFAK6MGDvcHo2JpvjKR2uwMXLwx8uU2r8DdDoVSF8mmWCCn+u/Jbt84Mz+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rI+g/bIV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729887664; c=relaxed/simple;
+	bh=GjpIo7MTiPjGsjg5q1U4fLMGs6FPJDaFFXhGTAHrM9g=;
+	h=Date:To:From:Subject:Message-Id; b=blkpfrJ8wr7JvBV7NHMqm+xw5lw6TrECkGIr2E38U392HkBbO+haWwI2VQXdmXSrvnJ+9gWGHn3bA0zrAm77qra73YsxUx3lBFFw2P0odlwaEwAlUUnfJULtLfRQQnZ/3O0GmTtVoCh+50rrOv0xTo6FX1UHrJR9nvHwGvlPNpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FVm/bEgG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rI+g/bIV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19AB9C4CECC;
-	Fri, 25 Oct 2024 20:18:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FVm/bEgG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFCECC4CEC3;
+	Fri, 25 Oct 2024 20:21:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729887522;
-	bh=tf8Fd2xwiU72jw9X5oV9b5ngeMhb5LTcpr3RQl1sKBw=;
+	s=korg; t=1729887663;
+	bh=GjpIo7MTiPjGsjg5q1U4fLMGs6FPJDaFFXhGTAHrM9g=;
 	h=Date:To:From:Subject:From;
-	b=rI+g/bIVDxpIbyjh/iIR9KsQbmX/5DCv1BYVh1t1i5Yln1Vfs1EizMGw7puzHJjQB
-	 uDN9A2BLulZBgBlxBDkfR8UWdxyJ7NGfIgG/TH4egjqItAQyfEA39eiiiheo9rLWz9
-	 8b9Cs4v2yV4CVQPyxfcyqUUxqixrwvLr6uj1wQho=
-Date: Fri, 25 Oct 2024 13:18:41 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=FVm/bEgGMM9zF4d0situ9yKBQfEL30j4wN2lPYmRTEpXo5B+lVAgVubqZZt3SPdkZ
+	 GC6y/lXCgB8jtutE25ZVq2GRd3ctf5ZvENbi/TGXjs3QbHM4qhPknhpCjtUyFRgdZZ
+	 S4ckVHyaZaWuc4kXoSGcuMu4XALY4/yCSejAPJ18=
+Date: Fri, 25 Oct 2024 13:21:03 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,stable@vger.kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,Liam.Howlett@oracle.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,bsegall@google.com,baolin.wang@linux.alibaba.com,shawnwang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-v1-remove-memcg-move-locking-code.patch added to mm-unstable branch
-Message-Id: <20241025201842.19AB9C4CECC@smtp.kernel.org>
+Subject: + sched-numa-fix-the-potential-null-pointer-dereference-in-task_numa_work.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241025202103.BFCECC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg-v1: remove memcg move locking code
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-v1-remove-memcg-move-locking-code.patch
+     Subject: sched/numa: fix the potential null pointer dereference in task_numa_work()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     sched-numa-fix-the-potential-null-pointer-dereference-in-task_numa_work.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-remove-memcg-move-locking-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-fix-the-potential-null-pointer-dereference-in-task_numa_work.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,297 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg-v1: remove memcg move locking code
-Date: Thu, 24 Oct 2024 18:23:03 -0700
+From: Shawn Wang <shawnwang@linux.alibaba.com>
+Subject: sched/numa: fix the potential null pointer dereference in task_numa_work()
+Date: Fri, 25 Oct 2024 10:22:08 +0800
 
-The memcg v1's charge move feature has been deprecated.  All the places
-using the memcg move lock, have stopped using it as they don't need the
-protection any more.  Let's proceed to remove all the locking code related
-to charge moving.
+When running stress-ng-vm-segv test, we found a null pointer dereference
+error in task_numa_work().  Here is the backtrace:
 
-Link: https://lkml.kernel.org/r/20241025012304.2473312-7-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+  [323676.066985] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
+  ......
+  [323676.067108] CPU: 35 PID: 2694524 Comm: stress-ng-vm-se
+  ......
+  [323676.067113] pstate: 23401009 (nzCv daif +PAN -UAO +TCO +DIT +SSBS BTYPE=--)
+  [323676.067115] pc : vma_migratable+0x1c/0xd0
+  [323676.067122] lr : task_numa_work+0x1ec/0x4e0
+  [323676.067127] sp : ffff8000ada73d20
+  [323676.067128] x29: ffff8000ada73d20 x28: 0000000000000000 x27: 000000003e89f010
+  [323676.067130] x26: 0000000000080000 x25: ffff800081b5c0d8 x24: ffff800081b27000
+  [323676.067133] x23: 0000000000010000 x22: 0000000104d18cc0 x21: ffff0009f7158000
+  [323676.067135] x20: 0000000000000000 x19: 0000000000000000 x18: ffff8000ada73db8
+  [323676.067138] x17: 0001400000000000 x16: ffff800080df40b0 x15: 0000000000000035
+  [323676.067140] x14: ffff8000ada73cc8 x13: 1fffe0017cc72001 x12: ffff8000ada73cc8
+  [323676.067142] x11: ffff80008001160c x10: ffff000be639000c x9 : ffff8000800f4ba4
+  [323676.067145] x8 : ffff000810375000 x7 : ffff8000ada73974 x6 : 0000000000000001
+  [323676.067147] x5 : 0068000b33e26707 x4 : 0000000000000001 x3 : ffff0009f7158000
+  [323676.067149] x2 : 0000000000000041 x1 : 0000000000004400 x0 : 0000000000000000
+  [323676.067152] Call trace:
+  [323676.067153]  vma_migratable+0x1c/0xd0
+  [323676.067155]  task_numa_work+0x1ec/0x4e0
+  [323676.067157]  task_work_run+0x78/0xd8
+  [323676.067161]  do_notify_resume+0x1ec/0x290
+  [323676.067163]  el0_svc+0x150/0x160
+  [323676.067167]  el0t_64_sync_handler+0xf8/0x128
+  [323676.067170]  el0t_64_sync+0x17c/0x180
+  [323676.067173] Code: d2888001 910003fd f9000bf3 aa0003f3 (f9401000)
+  [323676.067177] SMP: stopping secondary CPUs
+  [323676.070184] Starting crashdump kernel...
+
+stress-ng-vm-segv in stress-ng is used to stress test the SIGSEGV error
+handling function of the system, which tries to cause a SIGSEGV error on
+return from unmapping the whole address space of the child process.
+
+Normally this program will not cause kernel crashes.  But before the
+munmap system call returns to user mode, a potential task_numa_work() for
+numa balancing could be added and executed.  In this scenario, since the
+child process has no vma after munmap, the vma_next() in task_numa_work()
+will return a null pointer even if the vma iterator restarts from 0.
+
+Recheck the vma pointer before dereferencing it in task_numa_work().
+
+Link: https://lkml.kernel.org/r/20241025022208.125527-1-shawnwang@linux.alibaba.com
+Fixes: 214dbc428137 ("sched: convert to vma iterator")
+Signed-off-by: Shawn Wang <shawnwang@linux.alibaba.com>
+Reviewed-by:  Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: <stable@vger.kernel.org>	[6.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   54 -----------------------
- mm/filemap.c               |    1 
- mm/memcontrol-v1.c         |   82 -----------------------------------
- mm/memcontrol.c            |    5 --
- mm/rmap.c                  |    1 
- 5 files changed, 143 deletions(-)
+ kernel/sched/fair.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-v1-remove-memcg-move-locking-code
-+++ a/include/linux/memcontrol.h
-@@ -299,20 +299,10 @@ struct mem_cgroup {
- 	/* For oom notifier event fd */
- 	struct list_head oom_notify;
+--- a/kernel/sched/fair.c~sched-numa-fix-the-potential-null-pointer-dereference-in-task_numa_work
++++ a/kernel/sched/fair.c
+@@ -3369,7 +3369,7 @@ retry_pids:
+ 		vma = vma_next(&vmi);
+ 	}
  
--	/* taken only while moving_account > 0 */
--	spinlock_t move_lock;
--	unsigned long move_lock_flags;
--
- 	/* Legacy tcp memory accounting */
- 	bool tcpmem_active;
- 	int tcpmem_pressure;
+-	do {
++	for (; vma; vma = vma_next(&vmi)) {
+ 		if (!vma_migratable(vma) || !vma_policy_mof(vma) ||
+ 			is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_MIXEDMAP)) {
+ 			trace_sched_skip_vma_numa(mm, vma, NUMAB_SKIP_UNSUITABLE);
+@@ -3491,7 +3491,7 @@ retry_pids:
+ 		 */
+ 		if (vma_pids_forced)
+ 			break;
+-	} for_each_vma(vmi, vma);
++	}
  
--	/*
--	 * set > 0 if pages under this cgroup are moving to other cgroup.
--	 */
--	atomic_t moving_account;
--	struct task_struct *move_lock_task;
--
- 	/* List of events which userspace want to receive */
- 	struct list_head event_list;
- 	spinlock_t event_list_lock;
-@@ -428,9 +418,7 @@ static inline struct obj_cgroup *__folio
-  *
-  * - the folio lock
-  * - LRU isolation
-- * - folio_memcg_lock()
-  * - exclusive reference
-- * - mem_cgroup_trylock_pages()
-  *
-  * For a kmem folio a caller should hold an rcu read lock to protect memcg
-  * associated with a kmem folio from being released.
-@@ -499,9 +487,7 @@ static inline struct mem_cgroup *folio_m
-  *
-  * - the folio lock
-  * - LRU isolation
-- * - lock_folio_memcg()
-  * - exclusive reference
-- * - mem_cgroup_trylock_pages()
-  *
-  * For a kmem folio a caller should hold an rcu read lock to protect memcg
-  * associated with a kmem folio from being released.
-@@ -1873,26 +1859,6 @@ static inline bool task_in_memcg_oom(str
- 	return p->memcg_in_oom;
- }
- 
--void folio_memcg_lock(struct folio *folio);
--void folio_memcg_unlock(struct folio *folio);
--
--/* try to stablize folio_memcg() for all the pages in a memcg */
--static inline bool mem_cgroup_trylock_pages(struct mem_cgroup *memcg)
--{
--	rcu_read_lock();
--
--	if (mem_cgroup_disabled() || !atomic_read(&memcg->moving_account))
--		return true;
--
--	rcu_read_unlock();
--	return false;
--}
--
--static inline void mem_cgroup_unlock_pages(void)
--{
--	rcu_read_unlock();
--}
--
- static inline void mem_cgroup_enter_user_fault(void)
- {
- 	WARN_ON(current->in_user_fault);
-@@ -1914,26 +1880,6 @@ unsigned long memcg1_soft_limit_reclaim(
- 	return 0;
- }
- 
--static inline void folio_memcg_lock(struct folio *folio)
--{
--}
--
--static inline void folio_memcg_unlock(struct folio *folio)
--{
--}
--
--static inline bool mem_cgroup_trylock_pages(struct mem_cgroup *memcg)
--{
--	/* to match folio_memcg_rcu() */
--	rcu_read_lock();
--	return true;
--}
--
--static inline void mem_cgroup_unlock_pages(void)
--{
--	rcu_read_unlock();
--}
--
- static inline bool task_in_memcg_oom(struct task_struct *p)
- {
- 	return false;
---- a/mm/filemap.c~memcg-v1-remove-memcg-move-locking-code
-+++ a/mm/filemap.c
-@@ -119,7 +119,6 @@
-  *    ->i_pages lock		(folio_remove_rmap_pte->set_page_dirty)
-  *    bdi.wb->list_lock		(folio_remove_rmap_pte->set_page_dirty)
-  *    ->inode->i_lock		(folio_remove_rmap_pte->set_page_dirty)
-- *    ->memcg->move_lock	(folio_remove_rmap_pte->folio_memcg_lock)
-  *    bdi.wb->list_lock		(zap_pte_range->set_page_dirty)
-  *    ->inode->i_lock		(zap_pte_range->set_page_dirty)
-  *    ->private_lock		(zap_pte_range->block_dirty_folio)
---- a/mm/memcontrol.c~memcg-v1-remove-memcg-move-locking-code
-+++ a/mm/memcontrol.c
-@@ -1189,7 +1189,6 @@ void lruvec_memcg_debug(struct lruvec *l
-  * These functions are safe to use under any of the following conditions:
-  * - folio locked
-  * - folio_test_lru false
-- * - folio_memcg_lock()
-  * - folio frozen (refcount of 0)
-  *
-  * Return: The lruvec this folio is on with its lock held.
-@@ -1211,7 +1210,6 @@ struct lruvec *folio_lruvec_lock(struct
-  * These functions are safe to use under any of the following conditions:
-  * - folio locked
-  * - folio_test_lru false
-- * - folio_memcg_lock()
-  * - folio frozen (refcount of 0)
-  *
-  * Return: The lruvec this folio is on with its lock held and interrupts
-@@ -1235,7 +1233,6 @@ struct lruvec *folio_lruvec_lock_irq(str
-  * These functions are safe to use under any of the following conditions:
-  * - folio locked
-  * - folio_test_lru false
-- * - folio_memcg_lock()
-  * - folio frozen (refcount of 0)
-  *
-  * Return: The lruvec this folio is on with its lock held and interrupts
-@@ -2375,9 +2372,7 @@ static void commit_charge(struct folio *
- 	 *
- 	 * - the page lock
- 	 * - LRU isolation
--	 * - folio_memcg_lock()
- 	 * - exclusive reference
--	 * - mem_cgroup_trylock_pages()
- 	 */
- 	folio->memcg_data = (unsigned long)memcg;
- }
---- a/mm/memcontrol-v1.c~memcg-v1-remove-memcg-move-locking-code
-+++ a/mm/memcontrol-v1.c
-@@ -401,87 +401,6 @@ unsigned long memcg1_soft_limit_reclaim(
- 	return nr_reclaimed;
- }
- 
--/**
-- * folio_memcg_lock - Bind a folio to its memcg.
-- * @folio: The folio.
-- *
-- * This function prevents unlocked LRU folios from being moved to
-- * another cgroup.
-- *
-- * It ensures lifetime of the bound memcg.  The caller is responsible
-- * for the lifetime of the folio.
-- */
--void folio_memcg_lock(struct folio *folio)
--{
--	struct mem_cgroup *memcg;
--	unsigned long flags;
--
--	/*
--	 * The RCU lock is held throughout the transaction.  The fast
--	 * path can get away without acquiring the memcg->move_lock
--	 * because page moving starts with an RCU grace period.
--         */
--	rcu_read_lock();
--
--	if (mem_cgroup_disabled())
--		return;
--again:
--	memcg = folio_memcg(folio);
--	if (unlikely(!memcg))
--		return;
--
--#ifdef CONFIG_PROVE_LOCKING
--	local_irq_save(flags);
--	might_lock(&memcg->move_lock);
--	local_irq_restore(flags);
--#endif
--
--	if (atomic_read(&memcg->moving_account) <= 0)
--		return;
--
--	spin_lock_irqsave(&memcg->move_lock, flags);
--	if (memcg != folio_memcg(folio)) {
--		spin_unlock_irqrestore(&memcg->move_lock, flags);
--		goto again;
--	}
--
--	/*
--	 * When charge migration first begins, we can have multiple
--	 * critical sections holding the fast-path RCU lock and one
--	 * holding the slowpath move_lock. Track the task who has the
--	 * move_lock for folio_memcg_unlock().
--	 */
--	memcg->move_lock_task = current;
--	memcg->move_lock_flags = flags;
--}
--
--static void __folio_memcg_unlock(struct mem_cgroup *memcg)
--{
--	if (memcg && memcg->move_lock_task == current) {
--		unsigned long flags = memcg->move_lock_flags;
--
--		memcg->move_lock_task = NULL;
--		memcg->move_lock_flags = 0;
--
--		spin_unlock_irqrestore(&memcg->move_lock, flags);
--	}
--
--	rcu_read_unlock();
--}
--
--/**
-- * folio_memcg_unlock - Release the binding between a folio and its memcg.
-- * @folio: The folio.
-- *
-- * This releases the binding created by folio_memcg_lock().  This does
-- * not change the accounting of this folio to its memcg, but it does
-- * permit others to change it.
-- */
--void folio_memcg_unlock(struct folio *folio)
--{
--	__folio_memcg_unlock(folio_memcg(folio));
--}
--
- static u64 mem_cgroup_move_charge_read(struct cgroup_subsys_state *css,
- 				struct cftype *cft)
- {
-@@ -1189,7 +1108,6 @@ void memcg1_memcg_init(struct mem_cgroup
- {
- 	INIT_LIST_HEAD(&memcg->oom_notify);
- 	mutex_init(&memcg->thresholds_lock);
--	spin_lock_init(&memcg->move_lock);
- 	INIT_LIST_HEAD(&memcg->event_list);
- 	spin_lock_init(&memcg->event_list_lock);
- }
---- a/mm/rmap.c~memcg-v1-remove-memcg-move-locking-code
-+++ a/mm/rmap.c
-@@ -32,7 +32,6 @@
-  *                   swap_lock (in swap_duplicate, swap_info_get)
-  *                     mmlist_lock (in mmput, drain_mmlist and others)
-  *                     mapping->private_lock (in block_dirty_folio)
-- *                       folio_lock_memcg move_lock (in block_dirty_folio)
-  *                         i_pages lock (widely used)
-  *                           lruvec->lru_lock (in folio_lruvec_lock_irq)
-  *                     inode->i_lock (in set_page_dirty's __mark_inode_dirty)
+ 	/*
+ 	 * If no VMAs are remaining and VMAs were skipped due to the PID
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from shawnwang@linux.alibaba.com are
 
-mm-optimize-truncation-of-shadow-entries.patch
-mm-optimize-invalidation-of-shadow-entries.patch
-mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
-memcg-add-tracing-for-memcg-stat-updates.patch
-memcg-add-tracing-for-memcg-stat-updates-v2.patch
-memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
-memcg-v1-remove-charge-move-code.patch
-memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru.patch
-memcg-v1-remove-memcg-move-locking-code.patch
+sched-numa-fix-the-potential-null-pointer-dereference-in-task_numa_work.patch
 
