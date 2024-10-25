@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74101DD0C9;
-	Fri, 25 Oct 2024 23:39:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95C564436A
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 23:46:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729899541; cv=none; b=WF6y5UNJHfg7x6K/w8HhQ1vCTNN6+GzXRWmlwb2pDXIXy7oBx7syNLBqXjJa/0FWAMxAkIuic6N/rZMUpkI3Io7wWlESJlaoiG9kDTnG6hdEnKyyYPohIHakNdFLtPIxI6WECHBgLH+twQVZ3yhYi+MdTeTC3lXFfTVoBtUVvok=
+	t=1729900009; cv=none; b=NOiYtBJpxqYbAjAXn4di871eKIkmaeeboNd+4PpMUq+sgWiOnImV+nRDa5rSAG//Ddo2lTgVzKucQJweR4Je2CiHRPtIgznG7xkDtlE9z6erHBXk9bIW3EhxmHRlFYWbNr8m3Jc966K1QP61GME84uMgxx4RlRHfRl6dmWpN5MA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729899541; c=relaxed/simple;
-	bh=u9ACUQRhZbG23uyI+jfIQN0tCk/bmxxl/VQSY8/Yrtg=;
-	h=Date:To:From:Subject:Message-Id; b=jTiZn/K2/Lt98muDesk1317zR4cY6s2/FAv3ye9HOcKYeMsXh0XAB1XmKvLgWgo3ZyNlx3/UPKSfPKvt4e5x0e0OpkqJl2qEmNDc8L5WPu/oF+1s7zA35gxiMvLKNTK4agcYRGYVpkYwgn+2Gsjn+T5jUJ38B57x31W336AsNGE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1/4qwMUk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729900009; c=relaxed/simple;
+	bh=f65D9XAMGmq5JkJhSZkcI2zXHeJmipgAEGIEs80gJu0=;
+	h=Date:To:From:Subject:Message-Id; b=fNT0p4VV4vWDnWdRfQuGyooqzfEyB/1H1UvvJ9T1AH8X6wq8FrnFyalKLyPj4xUMymuvAtjNSQ7+wMCGu7fEaz7hzivO0CFOU2v0e2PZ/l+8A+iuluBazbCu1DNd0L/xM0Wa7j/vLrfSE+Uraf0g9qeFfORZQTy4vqsChwjizmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rqH8seg+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1/4qwMUk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F0FC4CEC3;
-	Fri, 25 Oct 2024 23:39:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rqH8seg+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FBC9C4CEC3;
+	Fri, 25 Oct 2024 23:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729899541;
-	bh=u9ACUQRhZbG23uyI+jfIQN0tCk/bmxxl/VQSY8/Yrtg=;
+	s=korg; t=1729900009;
+	bh=f65D9XAMGmq5JkJhSZkcI2zXHeJmipgAEGIEs80gJu0=;
 	h=Date:To:From:Subject:From;
-	b=1/4qwMUkssdhsGzFdyrYnHAYCmLLLTwzurQHDkYNwd7XLQeXqXGxIYSm86P8VdfJ0
-	 h4UsepuiI5NYlRuZa0WaT5d9xu2ijD06MjWYaclqAdxAkSQvgMvryFM3OFi+0y9MPf
-	 aG97WIExlizN5xJ+DksNcJUDhHQlWDNUE4nSl+TM=
-Date: Fri, 25 Oct 2024 16:39:00 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,stable@vger.kernel.org,riel@surriel.com,regressions@leemhuis.info,ptesarik@suse.com,matz@suse.de,matthias@bodenbinder.de,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,gabriel@krisman.be,vbabka@suse.cz,akpm@linux-foundation.org
+	b=rqH8seg+SFjw8atTKtf3OGh4c1+gN2WUR3MmKjJyKFCveqp3oJMQkvhRNsqjBegi4
+	 buX6boeGmE+ysKDCG1OYjeIBc/Dx9/LD7PHGe7QHr6oCgNKeoyl1jsrExIhS01hYB+
+	 20luJYy944Az15IvaxGSK34tu/MZ8+rbxh606KRg=
+Date: Fri, 25 Oct 2024 16:46:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241025233901.48F0FC4CEC3@smtp.kernel.org>
+Subject: + mm-vma-the-pgoff-is-correct-if-can_merge_right.patch added to mm-unstable branch
+Message-Id: <20241025234649.0FBC9C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, mmap: limit THP aligment of anonymous mappings to PMD-aligned sizes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch
+     Subject: mm/vma: the pgoff is correct if can_merge_right
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-the-pgoff-is-correct-if-can_merge_right.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-the-pgoff-is-correct-if-can_merge_right.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mmap: limit THP aligment of anonymous mappings to PMD-aligned sizes
-Date: Thu, 24 Oct 2024 17:12:29 +0200
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/vma: the pgoff is correct if can_merge_right
+Date: Thu, 24 Oct 2024 09:33:47 +0000
 
-Since commit efa7df3e3bb5 ("mm: align larger anonymous mappings on THP
-boundaries") a mmap() of anonymous memory without a specific address hint
-and of at least PMD_SIZE will be aligned to PMD so that it can benefit
-from a THP backing page.
+By this point can_vma_merge_right() must have returned true, which implies
+can_vma_merge_before() also returned true, which already asserts that the
+pgoff is as expected for a merge with the following VMA, thus this
+assignment is redundant.
 
-However this change has been shown to regress some workloads
-significantly.  [1] reports regressions in various spec benchmarks, with
-up to 600% slowdown of the cactusBSSN benchmark on some platforms.  The
-benchmark seems to create many mappings of 4632kB, which would have merged
-to a large THP-backed area before commit efa7df3e3bb5 and now they are
-fragmented to multiple areas each aligned to PMD boundary with gaps
-between.  The regression then seems to be caused mainly due to the
-benchmark's memory access pattern suffering from TLB or cache aliasing due
-to the aligned boundaries of the individual areas.
+Below is a more detail explanation.
 
-Another known regression bisected to commit efa7df3e3bb5 is darktable [2]
-[3] and early testing suggests this patch fixes the regression there as
-well.
+Current definition of can_vma_merge_right() is:
 
-To fix the regression but still try to benefit from THP-friendly anonymous
-mapping alignment, add a condition that the size of the mapping must be a
-multiple of PMD size instead of at least PMD size.  In case of many
-odd-sized mapping like the cactusBSSN creates, those will stop being
-aligned and with gaps between, and instead naturally merge again.
+	static bool can_vma_merge_right(struct vma_merge_struct *vmg,
+					bool can_merge_left)
+	{
+		if (!vmg->next || vmg->end != vmg->next->vm_start ||
+		    !can_vma_merge_before(vmg))
+			return false;
+		...
+	}
 
-Link: https://lkml.kernel.org/r/20241024151228.101841-2-vbabka@suse.cz
-Fixes: efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Michael Matz <matz@suse.de>
-Debugged-by: Gabriel Krisman Bertazi <gabriel@krisman.be>
-Closes: https://bugzilla.suse.com/show_bug.cgi?id=1229012 [1]
-Reported-by: Matthias Bodenbinder <matthias@bodenbinder.de>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=219366 [2]
-Closes: https://lore.kernel.org/all/2050f0d4-57b0-481d-bab8-05e8d48fed0c@leemhuis.info/ [3]
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
+And:
+
+	static bool can_vma_merge_before(struct vma_merge_struct *vmg)
+	{
+		pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
+	...
+			if (vmg->next->vm_pgoff == vmg->pgoff + pglen)
+				return true;
+	...
+	}
+
+Which implies vmg->pgoff == vmg->next->vm_pgoff - pglen.
+
+None of these values are changed between the check and prior assignment,
+so this was an entirely redundant assignment.
+
+[lorenzo: rephrase the change log]
+
+Link: https://lkml.kernel.org/r/20241024093347.18057-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Petr Tesarik <ptesarik@suse.com>
-Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: <stable@vger.kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vma.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes
-+++ a/mm/mmap.c
-@@ -900,7 +900,8 @@ __get_unmapped_area(struct file *file, u
+--- a/mm/vma.c~mm-vma-the-pgoff-is-correct-if-can_merge_right
++++ a/mm/vma.c
+@@ -964,7 +964,6 @@ struct vm_area_struct *vma_merge_new_ran
+ 	struct vm_area_struct *next = vmg->next;
+ 	unsigned long start = vmg->start;
+ 	unsigned long end = vmg->end;
+-	pgoff_t pglen = PHYS_PFN(end - start);
+ 	bool can_merge_left, can_merge_right;
+ 	bool just_expand = vmg->merge_flags & VMG_FLAG_JUST_EXPAND;
  
- 	if (get_area) {
- 		addr = get_area(file, addr, len, pgoff, flags);
--	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)
-+		   && IS_ALIGNED(len, PMD_SIZE)) {
- 		/* Ensures that larger anonymous mappings are THP aligned. */
- 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
- 						     pgoff, flags, vm_flags);
+@@ -986,7 +985,6 @@ struct vm_area_struct *vma_merge_new_ran
+ 	if (can_merge_right) {
+ 		vmg->end = next->vm_end;
+ 		vmg->vma = next;
+-		vmg->pgoff = next->vm_pgoff - pglen;
+ 	}
+ 
+ 	/* If we can merge with the previous VMA, adjust vmg accordingly. */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch
+maple_tree-i-is-always-less-than-or-equal-to-mas_end.patch
+maple_tree-goto-complete-directly-on-a-pivot-of-0.patch
+maple_tree-remove-maple_big_nodeparent.patch
+maple_tree-memset-maple_big_node-as-a-whole.patch
+maple_tree-root-node-could-be-handled-by-p_slot-too.patch
+maple_tree-clear-request_count-for-new-allocated-one.patch
+maple_tree-total-is-not-changed-for-nomem_one-case.patch
+maple_tree-simplify-mas_push_node.patch
+maple_tree-calculate-new_end-when-needed.patch
+maple_tree-remove-sanity-check-from-mas_wr_slot_store.patch
+mm-vma-the-pgoff-is-correct-if-can_merge_right.patch
 
