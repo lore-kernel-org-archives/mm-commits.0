@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA58B1CEE98
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 23:26:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2D071EC011
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 23:34:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729898818; cv=none; b=P9mjzLZxzgRuX1r41+L8+rcx4plf/7gTUORavAZJ/q+/nRzCGPEJGg7kpTLAtPn1o5V+vl5YOSIHm9gRcTr1GFdhIwFatSaN3eMY+qTXwc6h7inEavq4eQnGb7ogCOCzW69I6EJLsSFA7i5IW9ct8Q0WfVu3CXJXa79UJCaqbeI=
+	t=1729899280; cv=none; b=O0npRbm73Y6iCqymugoeXDkY2dx8DJIOsAoqvIcGykjgSmiTWelKqDbCfqz9tNPbP4SHNEAOUVgzA/kd6V7rrPwG4Qs5ORfjotM30T/6FMdSy5I9ta++VFY/BqLcuQcbgqc3OAHeZR7R+0ELcNF9f7ow6Y43f3GPByjhzGLAdaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729898818; c=relaxed/simple;
-	bh=vaE0SLAg8m1kVId/rJhGE3y169Ed8NEsdfNmRGE5Lkc=;
-	h=Date:To:From:Subject:Message-Id; b=iJUPkepoxvyoIwBvcT8UiGHKh2px/IwQH/onyFc65nxIz4WSgwdLcptu1cr8SB3M/cWFp5HRXg7MMCvjMFXFBKQsomQrend95MbEGvorkwgeNfAWTQGLcTC5467tGPRcTs4XwkF5aKmBrwiixK1bvgBcvmtLVrIBS3Zrx2AoTH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UGXCgS9H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729899280; c=relaxed/simple;
+	bh=RmWSqeSqGoKfWKpvVrRjhBVzZu6zo0RvubosV7HUgh8=;
+	h=Date:To:From:Subject:Message-Id; b=d/x5rPULRUhuNQZ4tRk/9yL6eBKKrmUJgxFPnH+zSiZYS9qo4xNdSmeN2eTlWeDmVlRzWaXoxWGy9A+5WI1mNiP/qCUKYHQAaDPScSX2NVvVaEyrN/HKlcJzk/8itcDh9MOrA6/CxCvZqV7hyBxNjV3B17b/ibLcnu/kPfX9Oyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fH9Lm8J6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UGXCgS9H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E09C4CEC3;
-	Fri, 25 Oct 2024 23:26:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fH9Lm8J6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52798C4CEC3;
+	Fri, 25 Oct 2024 23:34:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729898818;
-	bh=vaE0SLAg8m1kVId/rJhGE3y169Ed8NEsdfNmRGE5Lkc=;
+	s=korg; t=1729899280;
+	bh=RmWSqeSqGoKfWKpvVrRjhBVzZu6zo0RvubosV7HUgh8=;
 	h=Date:To:From:Subject:From;
-	b=UGXCgS9H2JZoPMT+H8f5AhKTUwqBJbD85whw0BhGXyhp2VsNCK+9vlKmab4Qq5qjt
-	 m1BNoOdEFWwKoH+cH21mEXsFwZJ/p9CPk5A1tjutl1uVcRFIDaC/RYThRRYyi7plSX
-	 lA3YL8Z7S6lB38M/XsdeEgkoybAajaOyRokqEMyw=
-Date: Fri, 25 Oct 2024 16:26:57 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,souravpanda@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,akpm@linux-foundation.org,surenb@google.com,akpm@linux-foundation.org
+	b=fH9Lm8J6kZjl4eoELxBMxM4z3QARDumlgxZgeJ64jsCnhI8aMmWy1GtWjhBMo+CHb
+	 fHxr0CAFfDkxqWHtRRt4/3M2izjWHXgcI0Mw+Kn/06wDUgZGY1n2o1NeeGhjVt8hiv
+	 4pLaPmEjjkKUtiOfzbcUZNicbsFXCulJXnkwCCjE=
+Date: Fri, 25 Oct 2024 16:34:39 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,torvalds@linux-foundation.org,surenb@google.com,sroettger@google.com,rdunlap@infradead.org,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,keescook@chromium.org,jorgelo@chromium.org,jannh@google.com,groeck@chromium.org,gregkh@linuxfoundation.org,enh@google.com,deraadt@openbsd.org,corbet@lwn.net,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch added to mm-unstable branch
-Message-Id: <20241025232658.40E09C4CEC3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mseal-update-msealrst.patch removed from -mm tree
+Message-Id: <20241025233440.52798C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,208 +34,392 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/codetag: uninline and move pgalloc_tag_copy and pgalloc_tag_split
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch
+The quilt patch titled
+     Subject: mseal: update mseal.rst
+has been removed from the -mm tree.  Its filename was
+     mseal-update-msealrst.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/codetag: uninline and move pgalloc_tag_copy and pgalloc_tag_split
-Date: Thu, 24 Oct 2024 09:23:18 -0700
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: update mseal.rst
+Date: Tue, 8 Oct 2024 04:09:41 +0000
 
-pgalloc_tag_copy() and pgalloc_tag_split() are sizable and outside of any
-performance-critical paths, so it should be fine to uninline them.  Also
-move their declarations into pgalloc_tag.h which seems like a more
-appropriate place for them.  No functional changes other than uninlining.
+Pedro Falcato's optimization [1] for checking sealed VMAs, which replaces
+the can_modify_mm() function with an in-loop check, necessitates an update
+to the mseal.rst documentation to reflect this change.
 
-Link: https://lkml.kernel.org/r/20241024162318.1640781-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Furthermore, the document has received offline comments regarding the code
+sample and suggestions for sentence clarification to enhance reader
+comprehension.
+
+[1] https://lore.kernel.org/linux-mm/20240817-mseal-depessimize-v3-0-d8d2e037df30@gmail.com/
+
+Update doc after in-loop change: mprotect/madvise can have
+partially updated and munmap is atomic.
+
+Fix indentation and clarify some sections to improve readability.
+
+Link: https://lkml.kernel.org/r/20241008040942.1478931-2-jeffxu@chromium.org
+Fixes: df2a7df9a9aa ("mm/munmap: replace can_modify_mm with can_modify_vma")
+Fixes: 4a2dd02b0916 ("mm/mprotect: replace can_modify_mm with can_modify_vma")
+Fixes: 38075679b5f1 ("mm/mremap: replace can_modify_mm with can_modify_vma")
+Fixes: 23c57d1fa2b9 ("mseal: replace can_modify_mm_madv with a vma variant")
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Elliott Hughes <enh@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Theo de Raadt" <deraadt@openbsd.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h          |   58 ----------------------------------
- include/linux/pgalloc_tag.h |    5 ++
- lib/alloc_tag.c             |   48 ++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 58 deletions(-)
+ Documentation/userspace-api/mseal.rst |  305 +++++++++++-------------
+ 1 file changed, 147 insertions(+), 158 deletions(-)
 
---- a/include/linux/mm.h~mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split
-+++ a/include/linux/mm.h
-@@ -4165,62 +4165,4 @@ static inline int do_mseal(unsigned long
- }
- #endif
+--- a/Documentation/userspace-api/mseal.rst~mseal-update-msealrst
++++ a/Documentation/userspace-api/mseal.rst
+@@ -23,177 +23,166 @@ applications can additionally seal secur
+ A similar feature already exists in the XNU kernel with the
+ VM_FLAGS_PERMANENT flag [1] and on OpenBSD with the mimmutable syscall [2].
  
--#ifdef CONFIG_MEM_ALLOC_PROFILING
--static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
--{
--	int i;
--	struct alloc_tag *tag;
--	unsigned int nr_pages = 1 << new_order;
--
--	if (!mem_alloc_profiling_enabled())
--		return;
--
--	tag = pgalloc_tag_get(&folio->page);
--	if (!tag)
--		return;
--
--	for (i = nr_pages; i < (1 << old_order); i += nr_pages) {
--		union pgtag_ref_handle handle;
--		union codetag_ref ref;
--
--		if (get_page_tag_ref(folio_page(folio, i), &ref, &handle)) {
--			/* Set new reference to point to the original tag */
--			alloc_tag_ref_set(&ref, tag);
--			update_page_tag_ref(handle, &ref);
--			put_page_tag_ref(handle);
--		}
--	}
--}
--
--static inline void pgalloc_tag_copy(struct folio *new, struct folio *old)
--{
--	union pgtag_ref_handle handle;
--	union codetag_ref ref;
--	struct alloc_tag *tag;
--
--	tag = pgalloc_tag_get(&old->page);
--	if (!tag)
--		return;
--
--	if (!get_page_tag_ref(&new->page, &ref, &handle))
--		return;
--
--	/* Clear the old ref to the original allocation tag. */
--	clear_page_tag_ref(&old->page);
--	/* Decrement the counters of the tag on get_new_folio. */
--	alloc_tag_sub(&ref, folio_size(new));
--	__alloc_tag_ref_set(&ref, tag);
--	update_page_tag_ref(handle, &ref);
--	put_page_tag_ref(handle);
--}
--#else /* !CONFIG_MEM_ALLOC_PROFILING */
--static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
--{
--}
--
--static inline void pgalloc_tag_copy(struct folio *new, struct folio *old)
--{
--}
--#endif /* CONFIG_MEM_ALLOC_PROFILING */
--
- #endif /* _LINUX_MM_H */
---- a/include/linux/pgalloc_tag.h~mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split
-+++ a/include/linux/pgalloc_tag.h
-@@ -230,6 +230,9 @@ static inline void pgalloc_tag_sub_pages
- 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
- }
+-User API
+-========
+-mseal()
+------------
+-The mseal() syscall has the following signature:
++SYSCALL
++=======
++mseal syscall signature
++-----------------------
++   ``int mseal(void \* addr, size_t len, unsigned long flags)``
++
++   **addr**/**len**: virtual memory address range.
++      The address range set by **addr**/**len** must meet:
++         - The start address must be in an allocated VMA.
++         - The start address must be page aligned.
++         - The end address (**addr** + **len**) must be in an allocated VMA.
++         - no gap (unallocated memory) between start and end address.
++
++      The ``len`` will be paged aligned implicitly by the kernel.
++
++   **flags**: reserved for future use.
++
++   **Return values**:
++      - **0**: Success.
++      - **-EINVAL**:
++         * Invalid input ``flags``.
++         * The start address (``addr``) is not page aligned.
++         * Address range (``addr`` + ``len``) overflow.
++      - **-ENOMEM**:
++         * The start address (``addr``) is not allocated.
++         * The end address (``addr`` + ``len``) is not allocated.
++         * A gap (unallocated memory) between start and end address.
++      - **-EPERM**:
++         * sealing is supported only on 64-bit CPUs, 32-bit is not supported.
++
++   **Note about error return**:
++      - For above error cases, users can expect the given memory range is
++        unmodified, i.e. no partial update.
++      - There might be other internal errors/cases not listed here, e.g.
++        error during merging/splitting VMAs, or the process reaching the maximum
++        number of supported VMAs. In those cases, partial updates to the given
++        memory range could happen. However, those cases should be rare.
++
++   **Architecture support**:
++      mseal only works on 64-bit CPUs, not 32-bit CPUs.
++
++   **Idempotent**:
++      users can call mseal multiple times. mseal on an already sealed memory
++      is a no-action (not error).
++
++   **no munseal**
++      Once mapping is sealed, it can't be unsealed. The kernel should never
++      have munseal, this is consistent with other sealing feature, e.g.
++      F_SEAL_SEAL for file.
++
++Blocked mm syscall for sealed mapping
++-------------------------------------
++   It might be important to note: **once the mapping is sealed, it will
++   stay in the process's memory until the process terminates**.
++
++   Example::
++
++         *ptr = mmap(0, 4096, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++         rc = mseal(ptr, 4096, 0);
++         /* munmap will fail */
++         rc = munmap(ptr, 4096);
++         assert(rc < 0);
++
++   Blocked mm syscall:
++      - munmap
++      - mmap
++      - mremap
++      - mprotect and pkey_mprotect
++      - some destructive madvise behaviors: MADV_DONTNEED, MADV_FREE,
++        MADV_DONTNEED_LOCKED, MADV_FREE, MADV_DONTFORK, MADV_WIPEONFORK
++
++   The first set of syscalls to block is munmap, mremap, mmap. They can
++   either leave an empty space in the address space, therefore allowing
++   replacement with a new mapping with new set of attributes, or can
++   overwrite the existing mapping with another mapping.
++
++   mprotect and pkey_mprotect are blocked because they changes the
++   protection bits (RWX) of the mapping.
++
++   Certain destructive madvise behaviors, specifically MADV_DONTNEED,
++   MADV_FREE, MADV_DONTNEED_LOCKED, and MADV_WIPEONFORK, can introduce
++   risks when applied to anonymous memory by threads lacking write
++   permissions. Consequently, these operations are prohibited under such
++   conditions. The aforementioned behaviors have the potential to modify
++   region contents by discarding pages, effectively performing a memset(0)
++   operation on the anonymous memory.
++
++   Kernel will return -EPERM for blocked syscalls.
++
++   When blocked syscall return -EPERM due to sealing, the memory regions may
++   or may not be changed, depends on the syscall being blocked:
++
++      - munmap: munmap is atomic. If one of VMAs in the given range is
++        sealed, none of VMAs are updated.
++      - mprotect, pkey_mprotect, madvise: partial update might happen, e.g.
++        when mprotect over multiple VMAs, mprotect might update the beginning
++        VMAs before reaching the sealed VMA and return -EPERM.
++      - mmap and mremap: undefined behavior.
  
-+void pgalloc_tag_split(struct folio *folio, int old_order, int new_order);
-+void pgalloc_tag_copy(struct folio *new, struct folio *old);
-+
- void __init alloc_tag_sec_init(void);
+-``int mseal(void addr, size_t len, unsigned long flags)``
+-
+-**addr/len**: virtual memory address range.
+-
+-The address range set by ``addr``/``len`` must meet:
+-   - The start address must be in an allocated VMA.
+-   - The start address must be page aligned.
+-   - The end address (``addr`` + ``len``) must be in an allocated VMA.
+-   - no gap (unallocated memory) between start and end address.
+-
+-The ``len`` will be paged aligned implicitly by the kernel.
+-
+-**flags**: reserved for future use.
+-
+-**return values**:
+-
+-- ``0``: Success.
+-
+-- ``-EINVAL``:
+-    - Invalid input ``flags``.
+-    - The start address (``addr``) is not page aligned.
+-    - Address range (``addr`` + ``len``) overflow.
+-
+-- ``-ENOMEM``:
+-    - The start address (``addr``) is not allocated.
+-    - The end address (``addr`` + ``len``) is not allocated.
+-    - A gap (unallocated memory) between start and end address.
+-
+-- ``-EPERM``:
+-    - sealing is supported only on 64-bit CPUs, 32-bit is not supported.
+-
+-- For above error cases, users can expect the given memory range is
+-  unmodified, i.e. no partial update.
+-
+-- There might be other internal errors/cases not listed here, e.g.
+-  error during merging/splitting VMAs, or the process reaching the max
+-  number of supported VMAs. In those cases, partial updates to the given
+-  memory range could happen. However, those cases should be rare.
+-
+-**Blocked operations after sealing**:
+-    Unmapping, moving to another location, and shrinking the size,
+-    via munmap() and mremap(), can leave an empty space, therefore
+-    can be replaced with a VMA with a new set of attributes.
+-
+-    Moving or expanding a different VMA into the current location,
+-    via mremap().
+-
+-    Modifying a VMA via mmap(MAP_FIXED).
+-
+-    Size expansion, via mremap(), does not appear to pose any
+-    specific risks to sealed VMAs. It is included anyway because
+-    the use case is unclear. In any case, users can rely on
+-    merging to expand a sealed VMA.
+-
+-    mprotect() and pkey_mprotect().
+-
+-    Some destructive madvice() behaviors (e.g. MADV_DONTNEED)
+-    for anonymous memory, when users don't have write permission to the
+-    memory. Those behaviors can alter region contents by discarding pages,
+-    effectively a memset(0) for anonymous memory.
+-
+-    Kernel will return -EPERM for blocked operations.
+-
+-    For blocked operations, one can expect the given address is unmodified,
+-    i.e. no partial update. Note, this is different from existing mm
+-    system call behaviors, where partial updates are made till an error is
+-    found and returned to userspace. To give an example:
+-
+-    Assume following code sequence:
+-
+-    - ptr = mmap(null, 8192, PROT_NONE);
+-    - munmap(ptr + 4096, 4096);
+-    - ret1 = mprotect(ptr, 8192, PROT_READ);
+-    - mseal(ptr, 4096);
+-    - ret2 = mprotect(ptr, 8192, PROT_NONE);
+-
+-    ret1 will be -ENOMEM, the page from ptr is updated to PROT_READ.
+-
+-    ret2 will be -EPERM, the page remains to be PROT_READ.
+-
+-**Note**:
+-
+-- mseal() only works on 64-bit CPUs, not 32-bit CPU.
+-
+-- users can call mseal() multiple times, mseal() on an already sealed memory
+-  is a no-action (not error).
+-
+-- munseal() is not supported.
+-
+-Use cases:
+-==========
++Use cases
++=========
+ - glibc:
+   The dynamic linker, during loading ELF executables, can apply sealing to
+-  non-writable memory segments.
+-
+-- Chrome browser: protect some security sensitive data-structures.
++  mapping segments.
  
- #else /* CONFIG_MEM_ALLOC_PROFILING */
-@@ -241,6 +244,8 @@ static inline void pgalloc_tag_sub(struc
- static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
- static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
- static inline void alloc_tag_sec_init(void) {}
-+static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
-+static inline void pgalloc_tag_copy(struct folio *new, struct folio *old) {}
+-Notes on which memory to seal:
+-==============================
++- Chrome browser: protect some security sensitive data structures.
  
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
+-It might be important to note that sealing changes the lifetime of a mapping,
+-i.e. the sealed mapping won’t be unmapped till the process terminates or the
+-exec system call is invoked. Applications can apply sealing to any virtual
+-memory region from userspace, but it is crucial to thoroughly analyze the
+-mapping's lifetime prior to apply the sealing.
++When not to use mseal
++=====================
++Applications can apply sealing to any virtual memory region from userspace,
++but it is *crucial to thoroughly analyze the mapping's lifetime* prior to
++apply the sealing. This is because the sealed mapping *won’t be unmapped*
++until the process terminates or the exec system call is invoked.
  
---- a/lib/alloc_tag.c~mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split
-+++ a/lib/alloc_tag.c
-@@ -163,6 +163,54 @@ size_t alloc_tag_top_users(struct codeta
- 	return nr;
- }
+ For example:
++   - aio/shm
++     aio/shm can call mmap and  munmap on behalf of userspace, e.g.
++     ksys_shmdt() in shm.c. The lifetimes of those mapping are not tied to
++     the lifetime of the process. If those memories are sealed from userspace,
++     then munmap will fail, causing leaks in VMA address space during the
++     lifetime of the process.
++
++   - ptr allocated by malloc (heap)
++     Don't use mseal on the memory ptr return from malloc().
++     malloc() is implemented by allocator, e.g. by glibc. Heap manager might
++     allocate a ptr from brk or mapping created by mmap.
++     If an app calls mseal on a ptr returned from malloc(), this can affect
++     the heap manager's ability to manage the mappings; the outcome is
++     non-deterministic.
++
++     Example::
++
++        ptr = malloc(size);
++        /* don't call mseal on ptr return from malloc. */
++        mseal(ptr, size);
++        /* free will success, allocator can't shrink heap lower than ptr */
++        free(ptr);
++
++mseal doesn't block
++===================
++In a nutshell, mseal blocks certain mm syscall from modifying some of VMA's
++attributes, such as protection bits (RWX). Sealed mappings doesn't mean the
++memory is immutable.
  
-+void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
-+{
-+	int i;
-+	struct alloc_tag *tag;
-+	unsigned int nr_pages = 1 << new_order;
-+
-+	if (!mem_alloc_profiling_enabled())
-+		return;
-+
-+	tag = pgalloc_tag_get(&folio->page);
-+	if (!tag)
-+		return;
-+
-+	for (i = nr_pages; i < (1 << old_order); i += nr_pages) {
-+		union pgtag_ref_handle handle;
-+		union codetag_ref ref;
-+
-+		if (get_page_tag_ref(folio_page(folio, i), &ref, &handle)) {
-+			/* Set new reference to point to the original tag */
-+			alloc_tag_ref_set(&ref, tag);
-+			update_page_tag_ref(handle, &ref);
-+			put_page_tag_ref(handle);
-+		}
-+	}
-+}
-+
-+void pgalloc_tag_copy(struct folio *new, struct folio *old)
-+{
-+	union pgtag_ref_handle handle;
-+	union codetag_ref ref;
-+	struct alloc_tag *tag;
-+
-+	tag = pgalloc_tag_get(&old->page);
-+	if (!tag)
-+		return;
-+
-+	if (!get_page_tag_ref(&new->page, &ref, &handle))
-+		return;
-+
-+	/* Clear the old ref to the original allocation tag. */
-+	clear_page_tag_ref(&old->page);
-+	/* Decrement the counters of the tag on get_new_folio. */
-+	alloc_tag_sub(&ref, folio_size(new));
-+	__alloc_tag_ref_set(&ref, tag);
-+	update_page_tag_ref(handle, &ref);
-+	put_page_tag_ref(handle);
-+}
-+
- static void shutdown_mem_profiling(bool remove_file)
- {
- 	if (mem_alloc_profiling_enabled())
+-- aio/shm
+-
+-  aio/shm can call mmap()/munmap() on behalf of userspace, e.g. ksys_shmdt() in
+-  shm.c. The lifetime of those mapping are not tied to the lifetime of the
+-  process. If those memories are sealed from userspace, then munmap() will fail,
+-  causing leaks in VMA address space during the lifetime of the process.
+-
+-- Brk (heap)
+-
+-  Currently, userspace applications can seal parts of the heap by calling
+-  malloc() and mseal().
+-  let's assume following calls from user space:
+-
+-  - ptr = malloc(size);
+-  - mprotect(ptr, size, RO);
+-  - mseal(ptr, size);
+-  - free(ptr);
+-
+-  Technically, before mseal() is added, the user can change the protection of
+-  the heap by calling mprotect(RO). As long as the user changes the protection
+-  back to RW before free(), the memory range can be reused.
+-
+-  Adding mseal() into the picture, however, the heap is then sealed partially,
+-  the user can still free it, but the memory remains to be RO. If the address
+-  is re-used by the heap manager for another malloc, the process might crash
+-  soon after. Therefore, it is important not to apply sealing to any memory
+-  that might get recycled.
+-
+-  Furthermore, even if the application never calls the free() for the ptr,
+-  the heap manager may invoke the brk system call to shrink the size of the
+-  heap. In the kernel, the brk-shrink will call munmap(). Consequently,
+-  depending on the location of the ptr, the outcome of brk-shrink is
+-  nondeterministic.
+-
+-
+-Additional notes:
+-=================
+ As Jann Horn pointed out in [3], there are still a few ways to write
+-to RO memory, which is, in a way, by design. Those cases are not covered
+-by mseal(). If applications want to block such cases, sandbox tools (such as
+-seccomp, LSM, etc) might be considered.
++to RO memory, which is, in a way, by design. And those could be blocked
++by different security measures.
+ 
+ Those cases are:
+ 
+-- Write to read-only memory through /proc/self/mem interface.
+-- Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
+-- userfaultfd.
++   - Write to read-only memory through /proc/self/mem interface (FOLL_FORCE).
++   - Write to read-only memory through ptrace (such as PTRACE_POKETEXT).
++   - userfaultfd.
+ 
+ The idea that inspired this patch comes from Stephen Röttger’s work in V8
+ CFI [4]. Chrome browser in ChromeOS will be the first user of this API.
+ 
+-Reference:
+-==========
+-[1] https://github.com/apple-oss-distributions/xnu/blob/1031c584a5e37aff177559b9f69dbd3c8c3fd30a/osfmk/mach/vm_statistics.h#L274
+-
+-[2] https://man.openbsd.org/mimmutable.2
+-
+-[3] https://lore.kernel.org/lkml/CAG48ez3ShUYey+ZAFsU2i1RpQn0a5eOs2hzQ426FkcgnfUGLvA@mail.gmail.com
+-
+-[4] https://docs.google.com/document/d/1O2jwK4dxI3nRcOJuPYkonhTkNQfbmwdvxQMyXgeaRHo/edit#heading=h.bvaojj9fu6hc
++Reference
++=========
++- [1] https://github.com/apple-oss-distributions/xnu/blob/1031c584a5e37aff177559b9f69dbd3c8c3fd30a/osfmk/mach/vm_statistics.h#L274
++- [2] https://man.openbsd.org/mimmutable.2
++- [3] https://lore.kernel.org/lkml/CAG48ez3ShUYey+ZAFsU2i1RpQn0a5eOs2hzQ426FkcgnfUGLvA@mail.gmail.com
++- [4] https://docs.google.com/document/d/1O2jwK4dxI3nRcOJuPYkonhTkNQfbmwdvxQMyXgeaRHo/edit#heading=h.bvaojj9fu6hc
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-maple_tree-add-mas_for_each_rev-helper.patch
-alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch
-alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
-alloc_tag-populate-memory-for-module-tags-as-needed.patch
-alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
-alloc_tag-support-for-page-allocation-tag-compression.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculation_beginend.patch
-mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch
 
