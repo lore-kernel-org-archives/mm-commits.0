@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296AB20F3E3
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 20:18:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FA8A20F3EB
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 20:18:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729887521; cv=none; b=e5uGajT1PqD1/YIXtI13Hp0zgfLcf6hlHe2XNDvWNR4CSyWINwT9zc+fjgazshzvhG62lYDcoItbfN9p23j1JTDrSdgf2zdURkzrJh3slAIAiiWBfFiC94qYaNQNIiE7ngDTQ+XFfs/Ii+Gc+v8h5y+zzdRuRl9Qkr7B07v3RAc=
+	t=1729887521; cv=none; b=NHYyXCD4k/1kuqTFiIREvO8yl9DEdW4UaivAASmczsRiyQZDZri5S0db0x8Sj8mlEcb8IL1JFqV3EZvQqp+9j8PrNcrBj5Odnk4bMVABwzsy2bjVLvXU4APtCE+lDzOERt69vIML6cIchv7cK4bPwZH+tSqc1L6DMFGb4DYzqSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729887521; c=relaxed/simple;
-	bh=XK2HCscZ4+wJSg5rQIgl5mIfQJl/z/Xew9tO4g+HRgI=;
-	h=Date:To:From:Subject:Message-Id; b=ZytG1z73zKXdOotqzSLJ8XOvxtOLdbkWtwdhA/SofbUwD5bp+oEaZoRiDe99mt+WY5o1gT+VdiIlt5SyZ2ZBXHcwb2UONKelh5dEcAy3jlOSRsNfL19ZBcPBw5nYU4IBrS6jNSybRnfLkLn1wMBWjzRGr+GYuH8WTXCPeWalbW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kz1T8Ix7; arc=none smtp.client-ip=10.30.226.201
+	bh=SD5zFR9KSL6kPb9PExmDQAd864zKGS0S/pmNt4sIJ/M=;
+	h=Date:To:From:Subject:Message-Id; b=q7JpVb7beWwxiDKThy0m28sQ9P6j4LIHaT/UDn1l3vdKlIrtPg1Km6zaBA981zcqoVQoRjgLSEoUF94tHcqyXouEo1KuN2tW4c29ya64G4KeQPQ+rMpF7LGKDb0GpB4qn/z9Ld4AxaE1iH6Wi2Bmh5hIhjhq44iQevb+cshkFlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rmyoicMe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kz1T8Ix7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97F80C4CEC3;
-	Fri, 25 Oct 2024 20:18:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rmyoicMe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8575C4CECC;
+	Fri, 25 Oct 2024 20:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729887519;
-	bh=XK2HCscZ4+wJSg5rQIgl5mIfQJl/z/Xew9tO4g+HRgI=;
+	s=korg; t=1729887520;
+	bh=SD5zFR9KSL6kPb9PExmDQAd864zKGS0S/pmNt4sIJ/M=;
 	h=Date:To:From:Subject:From;
-	b=kz1T8Ix7ni2jeZNgmQQgRw6/kiwBoIAXv6KYKmiLumPt3k9NV+UsZJbVzleRFgpT7
-	 ZGmjA42/DEbj/flS2BbT+Eqz9Uee3XDZCdJ/COnIhmFTd6iEEDoP51XbDHLL3WoMPF
-	 9ln5fhXH9srHQ9532PCfXMTwk9aaeVQ6KyzFiNhk=
-Date: Fri, 25 Oct 2024 13:18:38 -0700
+	b=rmyoicMewEiuHh1krxF608FBv17Hea+A091fHlN9F6P5J3Htq7JRI4ph1loXbAuRf
+	 2Yb7fOiYg96x/mRTzGcyw4gJ61LaqzVWGU1bKKpfqZj3D0KuqZrYyrEslYeO/4U3/a
+	 nnb/eeo2uT39UPX9qpJN+gfBvv+iIjRO5lBnOM0Y=
+Date: Fri, 25 Oct 2024 13:18:40 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch added to mm-unstable branch
-Message-Id: <20241025201839.97F80C4CEC3@smtp.kernel.org>
+Subject: + memcg-v1-no-need-for-memcg-locking-for-mglru.patch added to mm-unstable branch
+Message-Id: <20241025201840.C8575C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg-v1: no need for memcg locking for writeback tracking
+     Subject: memcg-v1: no need for memcg locking for MGLRU
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
+     memcg-v1-no-need-for-memcg-locking-for-mglru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-no-need-for-memcg-locking-for-mglru.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,63 +59,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg-v1: no need for memcg locking for writeback tracking
-Date: Thu, 24 Oct 2024 18:23:01 -0700
+Subject: memcg-v1: no need for memcg locking for MGLRU
+Date: Thu, 24 Oct 2024 18:23:02 -0700
 
-During the era of memcg charge migration, the kernel has to be make
-sure that the writeback stat updates do not race with the charge
-migration.  Otherwise it might update the writeback stats of the wrong
-memcg.  Now with the memcg charge migration gone, there is no more race
-for writeback stat updates and the previous locking can be removed.
+While updating the generation of the folios, MGLRU requires that the
+folio's memcg association remains stable.  With the charge migration
+deprecated, there is no need for MGLRU to acquire locks to keep the folio
+and memcg association stable.
 
-Link: https://lkml.kernel.org/r/20241025012304.2473312-5-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20241025012304.2473312-6-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/vmscan.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/mm/page-writeback.c~memcg-v1-no-need-for-memcg-locking-for-writeback-tracking
-+++ a/mm/page-writeback.c
-@@ -3083,7 +3083,6 @@ bool __folio_end_writeback(struct folio
- 	struct address_space *mapping = folio_mapping(folio);
- 	bool ret;
+--- a/mm/vmscan.c~memcg-v1-no-need-for-memcg-locking-for-mglru
++++ a/mm/vmscan.c
+@@ -3662,10 +3662,6 @@ static void walk_mm(struct mm_struct *mm
+ 		if (walk->seq != max_seq)
+ 			break;
  
--	folio_memcg_lock(folio);
- 	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
-@@ -3114,7 +3113,6 @@ bool __folio_end_writeback(struct folio
- 	lruvec_stat_mod_folio(folio, NR_WRITEBACK, -nr);
- 	zone_stat_mod_folio(folio, NR_ZONE_WRITE_PENDING, -nr);
- 	node_stat_mod_folio(folio, NR_WRITTEN, nr);
--	folio_memcg_unlock(folio);
+-		/* folio_update_gen() requires stable folio_memcg() */
+-		if (!mem_cgroup_trylock_pages(memcg))
+-			break;
+-
+ 		/* the caller might be holding the lock for write */
+ 		if (mmap_read_trylock(mm)) {
+ 			err = walk_page_range(mm, walk->next_addr, ULONG_MAX, &mm_walk_ops, walk);
+@@ -3673,8 +3669,6 @@ static void walk_mm(struct mm_struct *mm
+ 			mmap_read_unlock(mm);
+ 		}
  
- 	return ret;
- }
-@@ -3127,7 +3125,6 @@ void __folio_start_writeback(struct foli
+-		mem_cgroup_unlock_pages();
+-
+ 		if (walk->batched) {
+ 			spin_lock_irq(&lruvec->lru_lock);
+ 			reset_batch_size(walk);
+@@ -4096,10 +4090,6 @@ bool lru_gen_look_around(struct page_vma
+ 		}
+ 	}
  
- 	VM_BUG_ON_FOLIO(folio_test_writeback(folio), folio);
+-	/* folio_update_gen() requires stable folio_memcg() */
+-	if (!mem_cgroup_trylock_pages(memcg))
+-		return true;
+-
+ 	arch_enter_lazy_mmu_mode();
  
--	folio_memcg_lock(folio);
- 	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		XA_STATE(xas, &mapping->i_pages, folio_index(folio));
- 		struct inode *inode = mapping->host;
-@@ -3168,7 +3165,6 @@ void __folio_start_writeback(struct foli
+ 	pte -= (addr - start) / PAGE_SIZE;
+@@ -4144,7 +4134,6 @@ bool lru_gen_look_around(struct page_vma
+ 	}
  
- 	lruvec_stat_mod_folio(folio, NR_WRITEBACK, nr);
- 	zone_stat_mod_folio(folio, NR_ZONE_WRITE_PENDING, nr);
--	folio_memcg_unlock(folio);
+ 	arch_leave_lazy_mmu_mode();
+-	mem_cgroup_unlock_pages();
  
- 	access_ret = arch_make_folio_accessible(folio);
- 	/*
+ 	/* feedback from rmap walkers to page table walkers */
+ 	if (mm_state && suitable_to_scan(i, young))
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
