@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA77D1C878B
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 22:25:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C7D3217F30;
+	Fri, 25 Oct 2024 22:28:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729895146; cv=none; b=o0t2ZcnTOn/WfN/STFqC6yMRoUMqkywtnS3NJmI+4xH/hN9vEjSN+UOHv15NpNfuxA8UpwFFLc+y9IJooEQXlIVixpWNNAY90s3fF4FZCXhcRfDDZIvMv5k+fRKESZ94NIqyaFlelXxhL0tf2cV6qMcYPjAyFd+itclDkEeEFO4=
+	t=1729895281; cv=none; b=r8FNkZsy0nbCdmSdd8VgmUmJA2ZvdtVqQguWbEUBpWa7tY4Rd3e9sLNzqc1SJc5qi3cbG7HaI/JG9BvLQ0i6g+DbIWzquXwosybISfARD3oerSDB7ZYYUgNqf0Y2KLmjb6sMoTAgK8uw7etifghE0iIFDADzuwnRLtSr0JCIyYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729895146; c=relaxed/simple;
-	bh=U+ABjCKvccP7YKnv9yuD79C1aTYV0tCVyHdWKol9Ts0=;
-	h=Date:To:From:Subject:Message-Id; b=p6Zw4JRhodOcyH1gdKNYAygAWMGL93IJyPfFqkYdwzbLMaz2dh0++B5HiMW36EMU/nkmzBg7jbs9XFxLv8sB+5AYmHj2FUjEMTgxdOkPSr26SqoQpVJsCKxb6tak8C7U9bx1/7kw2ZXv2HQ1HuPb7QmHMMTHdDjUVTQL/4nC37c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cZWpStyC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729895281; c=relaxed/simple;
+	bh=zBhDOg2t3prhPH7OS87raS55yMOVGdtaa0G25RnYt3s=;
+	h=Date:To:From:Subject:Message-Id; b=UOkG9Li8fjkbcXPHPOhcG/Bu/4x7Zw+gg7leyAdWFdNltvlsm9mvLo39bHo9tWZCl5b0AoQukmCObpLBdWBysG3F4LE6gPLJfzJNuuAWBLvRkcNb7XA00RbLw6g/FB930kQD+0ULyzss+H9mEFJvCiditSCLRAvln327WQEbLqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=msaPJtRq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cZWpStyC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 444F6C4CEC3;
-	Fri, 25 Oct 2024 22:25:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="msaPJtRq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25727C4CEC3;
+	Fri, 25 Oct 2024 22:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729895146;
-	bh=U+ABjCKvccP7YKnv9yuD79C1aTYV0tCVyHdWKol9Ts0=;
+	s=korg; t=1729895281;
+	bh=zBhDOg2t3prhPH7OS87raS55yMOVGdtaa0G25RnYt3s=;
 	h=Date:To:From:Subject:From;
-	b=cZWpStyCTu2jqrSqpWcf8v6MsvsKYJ+p5nhENupMYScWRkgYkfU2UXjIAs3bGGtBu
-	 L+wi+Hv4tV/6GG0mTSrpxPyyyU8yA2fiE0Obr+vYd7LcuLRpH61tYxqZOe0ggb+LcV
-	 U/fXPkZOIO2dc962+dQDmXYwN/2orKusG72szluw=
-Date: Fri, 25 Oct 2024 15:25:45 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,skhan@linuxfoundation.org,sidhartha.kumar@oracle.com,shuah@kernel.org,richard.henderson@linaro.org,paulmck@kernel.org,muchun.song@linux.dev,mattst88@gmail.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jeffxu@chromium.org,jcmvbkbc@gmail.com,jannh@google.com,James.Bottomley@HansenPartnership.com,hch@infradead.org,deller@gmx.de,david@redhat.com,chris@zankel.net,brauner@kernel.org,arnd@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=msaPJtRqSpdg0vqfGw1qZQ1sf3G8U0Apm23qeerFhD7lQmPelIctwKUCoLHoaf29m
+	 rIzSwzOV60lE471mgmBHB7iYpAZtWNrfBMX+jGROh1rbdcAMlqXY+jqxxQRpzeGtRq
+	 SswkEjaYq2M3SGG6/15b7PCz3QNPjt0mFGK158zw=
+Date: Fri, 25 Oct 2024 15:28:00 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,weixugc@google.com,stable@vger.kernel.org,shy828301@gmail.com,osalvador@suse.de,dave.hansen@linux.intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-implement-lightweight-guard-page-mechanism-fix.patch added to mm-unstable branch
-Message-Id: <20241025222546.444F6C4CEC3@smtp.kernel.org>
+Subject: + vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241025222801.25727C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: yield on fatal signal/cond_sched() in vector_madvise()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-implement-lightweight-guard-page-mechanism-fix.patch
+     Subject: vmscan,migrate: fix double-decrement on node stats when demoting pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-implement-lightweight-guard-page-mechanism-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: yield on fatal signal/cond_sched() in vector_madvise()
-Date: Fri, 25 Oct 2024 18:05:48 +0100
+From: Gregory Price <gourry@gourry.net>
+Subject: vmscan,migrate: fix double-decrement on node stats when demoting pages
+Date: Fri, 25 Oct 2024 10:17:24 -0400
 
-While we have to treat -ERESTARTNOINTR specially here as we are looping
-through a vector of operations and can't simply restart the entire
-operation, we mustn't hold up fatal signals or RT kernels.
+When numa balancing is enabled with demotion, vmscan will call
+migrate_pages when shrinking LRUs.  Successful demotions will cause node
+vmstat numbers to double-decrement, leading to an imbalanced page count. 
+The result is dmesg output like such:
 
-Link: https://lkml.kernel.org/r/f09086cd-c49c-4eea-adff-d626c16083de@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Arnd Bergmann <arnd@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+$ cat /proc/sys/vm/stat_refresh
+
+[77383.088417] vmstat_refresh: nr_isolated_anon -103212
+[77383.088417] vmstat_refresh: nr_isolated_file -899642
+
+This negative value may impact compaction and reclaim throttling.
+
+The double-decrement occurs in the migrate_pages path:
+
+caller to shrink_folio_list decrements the count
+  shrink_folio_list
+    demote_folio_list
+      migrate_pages
+        migrate_pages_batch
+          migrate_folio_move
+            migrate_folio_done
+              mod_node_page_state(-ve) <- second decrement
+
+This path happens for SUCCESSFUL migrations, not failures.  Typically
+callers to migrate_pages are required to handle putback/accounting for
+failures, but this is already handled in the shrink code.
+
+When accounting for migrations, instead do not decrement the count when
+the migration reason is MR_DEMOTION.  As of v6.11, this demotion logic is
+the only source of MR_DEMOTION.
+
+Link: https://lkml.kernel.org/r/20241025141724.17927-1-gourry@gourry.net
+Fixes: 26aa2d199d6f2 ("mm/migrate: demote pages during reclaim")
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-implement-lightweight-guard-page-mechanism-fix
-+++ a/mm/madvise.c
-@@ -1713,8 +1713,14 @@ static ssize_t vector_madvise(struct mm_
- 		 * we have already rescinded locks, it should be no problem to
- 		 * simply try again.
- 		 */
--		if (ret == -ERESTARTNOINTR)
-+		if (ret == -ERESTARTNOINTR) {
-+			if (fatal_signal_pending(current)) {
-+				ret = -EINTR;
-+				break;
-+			}
-+			cond_resched();
- 			continue;
-+		}
- 		if (ret < 0)
- 			break;
- 		iov_iter_advance(iter, iter_iov_len(iter));
+--- a/mm/migrate.c~vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages
++++ a/mm/migrate.c
+@@ -1178,7 +1178,7 @@ static void migrate_folio_done(struct fo
+ 	 * not accounted to NR_ISOLATED_*. They can be recognized
+ 	 * as __folio_test_movable
+ 	 */
+-	if (likely(!__folio_test_movable(src)))
++	if (likely(!__folio_test_movable(src)) && reason != MR_DEMOTION)
+ 		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
+ 				    folio_is_file_lru(src), -folio_nr_pages(src));
+ 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch
-mm-unconditionally-close-vmas-on-error.patch
-mm-refactor-map_deny_write_exec.patch
-mm-resolve-faulty-mmap_region-error-path-behaviour.patch
-selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
-mm-refactor-mm_access-to-not-return-null.patch
-mm-refactor-mm_access-to-not-return-null-fix.patch
-mm-madvise-unrestrict-process_madvise-for-current-process.patch
-maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems-fix.patch
-tools-testing-add-additional-vma_internalh-stubs.patch
-mm-isolate-mmap-internal-logic-to-mm-vmac.patch
-mm-refactor-__mmap_region.patch
-mm-defer-second-attempt-at-merge-on-mmap.patch
-mm-pagewalk-add-the-ability-to-install-ptes.patch
-mm-add-pte_marker_guard-pte-marker.patch
-mm-madvise-implement-lightweight-guard-page-mechanism.patch
-mm-madvise-implement-lightweight-guard-page-mechanism-fix.patch
-tools-testing-update-tools-uapi-header-for-mman-commonh.patch
-selftests-mm-add-self-tests-for-guard-page-feature.patch
+vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
