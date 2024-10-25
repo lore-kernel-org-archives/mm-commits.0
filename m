@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 496261925AB
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:38:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E046B1925AB
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:38:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729885080; cv=none; b=pzHtP13MQmWUcVti8j6i5X4KYi0OFPVhvVmMPGkiBp/Ieg4ZmmtywuoRutkpwvbGRKX7I52S1rCA2eGk3XtQ3jG0tavzGB67/DX1ArobNiVjsvGPLpLUPpmVBpaylaEDUCZgit4/nwWJ4n859+XrGuTnz7xLdioLQM9M2Y8/uJs=
+	t=1729885082; cv=none; b=Hqiqy3vRYBzNv+YOduXiSdzwn67PIyVxvnalNBSnzFIBP+Y51AB4k6KlrQ6Ab8pngJhPQV9fNYZZFU5kY38gH86F4bypW/seq9WReH8RYBFzg7yfwvZ0F8lu0QjakqkTEBfPM7AHAt+HgNvEN9ZN8EELgfNquT/Hda5d474pXM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729885080; c=relaxed/simple;
-	bh=gbRVeVdoiYvCLdEqmfjbwJOsAaa9EY07Y5X/Ngs2cAU=;
-	h=Date:To:From:Subject:Message-Id; b=RnH/Alsk02D07nA4RNP+ENZPGAvjaZUOi4tWjv3zMO1IpZH7rX1Hvm5BckVvxSDr8gSbfyRtfCmK+BMi6xS8rpIPBJo0r5PiL9vZgKIz+05zZp++2xkGtA7e3tvjDUze5xs9hcMcZNfkNx8lwXdq7CJOyg4Ao3eA+dObuPUgODQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DACuxNO+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729885082; c=relaxed/simple;
+	bh=uOMMFgEErUrKmjLgzo8bq8QuZVIoqzwku0DjiaX867U=;
+	h=Date:To:From:Subject:Message-Id; b=OQkiV1/Wa4jOHWehMlYo2DB0tJvLEtwGhlerjIm9ijz/ZFdJeZ08xW5L95h51ee8Feo201p9AVs6gUaabiYKWzwr5RcKRiFEeq+0LiXbMH6P393rOl9X7g/dzjtaSoa3dtB10q4uoSO4Ok4d2quch+3KPy8wz5cJ+d6R28WH9MQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZSKwHTyK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DACuxNO+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 129CCC4CEC3;
-	Fri, 25 Oct 2024 19:38:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZSKwHTyK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB151C4CEC3;
+	Fri, 25 Oct 2024 19:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729885080;
-	bh=gbRVeVdoiYvCLdEqmfjbwJOsAaa9EY07Y5X/Ngs2cAU=;
+	s=korg; t=1729885081;
+	bh=uOMMFgEErUrKmjLgzo8bq8QuZVIoqzwku0DjiaX867U=;
 	h=Date:To:From:Subject:From;
-	b=DACuxNO+lk1bAwPtaMauFNBqJ6nqoErqkbliVvgvuVpzyw9gWRJifH3674N1OmXv8
-	 jud0mvxwHfZ9A0R4SqLZlsyv3bWARIL8/pJL4ZPXGJ94hYZr+FSS52esod+JduDOd5
-	 LSNThfZE5uYfYrUefz+QwOb0een+yNBMPC73kgh0=
-Date: Fri, 25 Oct 2024 12:37:59 -0700
+	b=ZSKwHTyK2c6yf3CTHHuZWT9vvhgh2KqrxUvCC9ijTw44o6aHClAJDWAYNa24KwIvL
+	 m7LQ/rRROq/aswcZyXzySlD3FzW/GdkI/c75d2GR80P/0j765d3XRXNsQ1E4NhKYJr
+	 FxNetXe0QSDxOCntxJ9GO4nffNcAws46UYuJ3n3g=
+Date: Fri, 25 Oct 2024 12:38:01 -0700
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20241025193800.129CCC4CEC3@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20241025193801.AB151C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_page_count_clean_buffers() to take a folio
+     Subject: nilfs2: convert nilfs_recovery_copy_block() to take a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch
+     nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,79 +59,74 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_page_count_clean_buffers() to take a folio
-Date: Thu, 24 Oct 2024 18:25:44 +0900
+Subject: nilfs2: convert nilfs_recovery_copy_block() to take a folio
+Date: Thu, 24 Oct 2024 18:25:45 +0900
 
-Both callers have a folio, so pass it in and use it directly.
+Use memcpy_to_folio() instead of open-coding it, and use offset_in_folio()
+in case anybody wants to use nilfs2 on a device with large blocks.
 
-[konishi.ryusuke@gmail.com: fixed a checkpatch warning about function declaration]
-Link: https://lkml.kernel.org/r/20241002150036.1339475-3-willy@infradead.org
-Link: https://lkml.kernel.org/r/20241024092602.13395-11-konishi.ryusuke@gmail.com
+[konishi.ryusuke@gmail.com: added label name change]
+Link: https://lkml.kernel.org/r/20241002150036.1339475-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241024092602.13395-12-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c   |    2 +-
- fs/nilfs2/inode.c |    2 +-
- fs/nilfs2/page.c  |    4 ++--
- fs/nilfs2/page.h  |    4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ fs/nilfs2/recovery.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio
-+++ a/fs/nilfs2/dir.c
-@@ -95,7 +95,7 @@ static void nilfs_commit_chunk(struct fo
- 	unsigned int nr_dirty;
- 	int err;
+--- a/fs/nilfs2/recovery.c~nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio
++++ a/fs/nilfs2/recovery.c
+@@ -481,19 +481,16 @@ static int nilfs_prepare_segment_for_rec
  
--	nr_dirty = nilfs_page_count_clean_buffers(&folio->page, from, to);
-+	nr_dirty = nilfs_page_count_clean_buffers(folio, from, to);
- 	copied = block_write_end(NULL, mapping, pos, len, len, folio, NULL);
- 	if (pos + copied > dir->i_size)
- 		i_size_write(dir, pos + copied);
---- a/fs/nilfs2/inode.c~nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio
-+++ a/fs/nilfs2/inode.c
-@@ -242,7 +242,7 @@ static int nilfs_write_end(struct file *
- 	unsigned int nr_dirty;
- 	int err;
- 
--	nr_dirty = nilfs_page_count_clean_buffers(&folio->page, start,
-+	nr_dirty = nilfs_page_count_clean_buffers(folio, start,
- 						  start + copied);
- 	copied = generic_write_end(file, mapping, pos, len, copied, folio,
- 				   fsdata);
---- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio
-+++ a/fs/nilfs2/page.c
-@@ -420,14 +420,14 @@ void nilfs_clear_folio_dirty(struct foli
- 	__nilfs_clear_folio_dirty(folio);
- }
- 
--unsigned int nilfs_page_count_clean_buffers(struct page *page,
-+unsigned int nilfs_page_count_clean_buffers(struct folio *folio,
- 					    unsigned int from, unsigned int to)
+ static int nilfs_recovery_copy_block(struct the_nilfs *nilfs,
+ 				     struct nilfs_recovery_block *rb,
+-				     loff_t pos, struct page *page)
++				     loff_t pos, struct folio *folio)
  {
- 	unsigned int block_start, block_end;
- 	struct buffer_head *bh, *head;
- 	unsigned int nc = 0;
+ 	struct buffer_head *bh_org;
+-	size_t from = pos & ~PAGE_MASK;
+-	void *kaddr;
++	size_t from = offset_in_folio(folio, pos);
  
--	for (bh = head = page_buffers(page), block_start = 0;
-+	for (bh = head = folio_buffers(folio), block_start = 0;
- 	     bh != head || !block_start;
- 	     block_start = block_end, bh = bh->b_this_page) {
- 		block_end = block_start + bh->b_size;
---- a/fs/nilfs2/page.h~nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio
-+++ a/fs/nilfs2/page.h
-@@ -43,8 +43,8 @@ int nilfs_copy_dirty_pages(struct addres
- void nilfs_copy_back_pages(struct address_space *, struct address_space *);
- void nilfs_clear_folio_dirty(struct folio *folio);
- void nilfs_clear_dirty_pages(struct address_space *mapping);
--unsigned int nilfs_page_count_clean_buffers(struct page *, unsigned int,
--					    unsigned int);
-+unsigned int nilfs_page_count_clean_buffers(struct folio *folio,
-+		unsigned int from, unsigned int to);
- unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
- 					    sector_t start_blk,
- 					    sector_t *blkoff);
+ 	bh_org = __bread(nilfs->ns_bdev, rb->blocknr, nilfs->ns_blocksize);
+ 	if (unlikely(!bh_org))
+ 		return -EIO;
+ 
+-	kaddr = kmap_local_page(page);
+-	memcpy(kaddr + from, bh_org->b_data, bh_org->b_size);
+-	kunmap_local(kaddr);
++	memcpy_to_folio(folio, from, bh_org->b_data, bh_org->b_size);
+ 	brelse(bh_org);
+ 	return 0;
+ }
+@@ -531,13 +528,13 @@ static int nilfs_recover_dsync_blocks(st
+ 			goto failed_inode;
+ 		}
+ 
+-		err = nilfs_recovery_copy_block(nilfs, rb, pos, &folio->page);
++		err = nilfs_recovery_copy_block(nilfs, rb, pos, folio);
+ 		if (unlikely(err))
+-			goto failed_page;
++			goto failed_folio;
+ 
+ 		err = nilfs_set_file_dirty(inode, 1);
+ 		if (unlikely(err))
+-			goto failed_page;
++			goto failed_folio;
+ 
+ 		block_write_end(NULL, inode->i_mapping, pos, blocksize,
+ 				blocksize, folio, NULL);
+@@ -548,7 +545,7 @@ static int nilfs_recover_dsync_blocks(st
+ 		(*nr_salvaged_blocks)++;
+ 		goto next;
+ 
+- failed_page:
++ failed_folio:
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
