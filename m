@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AEEF20EA30
-	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:37:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2885198856
+	for <mm-commits@vger.kernel.org>; Fri, 25 Oct 2024 19:37:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729885073; cv=none; b=MdHI/r9X6UFMSmR+AZA2L3jkXLvrED73Gov5GGMh33qBJVdMzElGDzPoa3CdeBTDYaWvNLwHAZy3Uc8bNfZrcs+AYR1xOeQUUybAiNUsmRnx6+cRWsDvUc4HKlfvlRMo1ID728VJ3Pa3mKs8H93gj04LzqeYxBA82oqbXrjYIjU=
+	t=1729885074; cv=none; b=SXfht4bORY8jzOlmY9QzbvjDGmc1+gdbdFmMZj2uU77dxAd1L5puCZBCtUymIAanBHN7eFaL+uOiVkZES/iMqxp8VKzM3NgLOTnlGC/kuV3VNDuPYn/9cADyOIxo5uUpt5NnLcQy5qZZ9Ncr4XcBp878qiyd+TT9KPFJtPFEuF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729885073; c=relaxed/simple;
-	bh=D5/x9TfiIp9D/HdpBiMAEwVKYMFT3behMFoGV8VfYGw=;
-	h=Date:To:From:Subject:Message-Id; b=YUl1A94thiSTVov4cVwrVKTgNTvVKmiNa5D/w/icYlRurTRTc2fMjBd0fNMX/Zg8sGDjmez9taqb1A22giLs+eom1ATbKZaAUxE1OO1mceB81pfJ+o5Ck/wd5kRkppYRqzvWQqXT3pBErrXiZeHY9chDvGHZfW1tzqQ2TWp4Z8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dmPgadnI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729885074; c=relaxed/simple;
+	bh=oo3O5J00PVmGLVEa4ItM4awfxgch/cotibaGnzBRv78=;
+	h=Date:To:From:Subject:Message-Id; b=SNqKNWFYUkCkJ1Q7jWB4H+0t/DuoTRd5f9zKZZuEIWsMUhJCQowebHLcKYLn/0qmVjokYeHmjnZIpb5VKX1YWoJoujZ/xtQJZri2MnMlaJdXCjkRYS2hQpwtMhr7Xu82NKCjpBkJITnxGCq4Tl46AY5RKNMpVZjdxjXNnaQ1tWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xF/A+9z8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dmPgadnI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CFFAC4CEC3;
-	Fri, 25 Oct 2024 19:37:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xF/A+9z8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D6D0C4CEC3;
+	Fri, 25 Oct 2024 19:37:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729885073;
-	bh=D5/x9TfiIp9D/HdpBiMAEwVKYMFT3behMFoGV8VfYGw=;
+	s=korg; t=1729885074;
+	bh=oo3O5J00PVmGLVEa4ItM4awfxgch/cotibaGnzBRv78=;
 	h=Date:To:From:Subject:From;
-	b=dmPgadnI83ZggALDoP6dDIyXA44DC4a+28pwUbjtbgqwsGoM1ytNJqGHrcYqVssyI
-	 8phkaO5fLBOWsdJJu93GZ6H+KNWAd9X0zH4wCdxRnB9m0AltbAMVGM9nEqjwViISTQ
-	 JewX9i8xdPxfX6iLU5ljac1f5IozPjtsTYAAbKRo=
-Date: Fri, 25 Oct 2024 12:37:52 -0700
+	b=xF/A+9z8sq4UD12J5/WzYPKm7ivbNy5Z57p+VYcR+grUfukw3op7fSUVwgEOS1Ku2
+	 TlRNUJ8tSwVUxui2ZHRFXRN9kPXpR/ultQp8nvUNE8/UnO6fARAq2gdzjS6fi9wxyD
+	 noQ7wrsalwd4d80w1bxV0etXU01V4vB/XjqpiZ4c=
+Date: Fri, 25 Oct 2024 12:37:53 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-inode-file-to-be-folio-based.patch added to mm-nonmm-unstable branch
-Message-Id: <20241025193753.2CFFAC4CEC3@smtp.kernel.org>
+Subject: + nilfs2-convert-dat-file-to-be-folio-based.patch added to mm-nonmm-unstable branch
+Message-Id: <20241025193754.9D6D0C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert inode file to be folio-based
+     Subject: nilfs2: convert DAT file to be folio-based
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-inode-file-to-be-folio-based.patch
+     nilfs2-convert-dat-file-to-be-folio-based.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-inode-file-to-be-folio-based.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-dat-file-to-be-folio-based.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,63 +59,268 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert inode file to be folio-based
-Date: Thu, 24 Oct 2024 18:25:39 +0900
+Subject: nilfs2: convert DAT file to be folio-based
+Date: Thu, 24 Oct 2024 18:25:40 +0900
 
-Convert the page-based implementation of ifile, a metadata file that
-manages inodes, to folio-based.
+Regarding the DAT, a metadata file that manages virtual block addresses,
+convert the page-based implementation to a folio-based implementation.
 
-Link: https://lkml.kernel.org/r/20241024092602.13395-6-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20241024092602.13395-7-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ifile.c |   10 +++++-----
- fs/nilfs2/ifile.h |    4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/nilfs2/dat.c |   98 ++++++++++++++++++++++++----------------------
+ 1 file changed, 52 insertions(+), 46 deletions(-)
 
---- a/fs/nilfs2/ifile.c~nilfs2-convert-inode-file-to-be-folio-based
-+++ a/fs/nilfs2/ifile.c
-@@ -98,7 +98,7 @@ int nilfs_ifile_delete_inode(struct inod
- 		.pr_entry_nr = ino, .pr_entry_bh = NULL
- 	};
- 	struct nilfs_inode *raw_inode;
+--- a/fs/nilfs2/dat.c~nilfs2-convert-dat-file-to-be-folio-based
++++ a/fs/nilfs2/dat.c
+@@ -89,15 +89,15 @@ int nilfs_dat_prepare_alloc(struct inode
+ void nilfs_dat_commit_alloc(struct inode *dat, struct nilfs_palloc_req *req)
+ {
+ 	struct nilfs_dat_entry *entry;
+-	void *kaddr;
++	size_t offset;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_end = cpu_to_le64(NILFS_CNO_MAX);
+ 	entry->de_blocknr = cpu_to_le64(0);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	nilfs_palloc_commit_alloc_entry(dat, req);
+ 	nilfs_dat_commit_entry(dat, req);
+@@ -113,15 +113,15 @@ static void nilfs_dat_commit_free(struct
+ 				  struct nilfs_palloc_req *req)
+ {
+ 	struct nilfs_dat_entry *entry;
+-	void *kaddr;
++	size_t offset;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_end = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_blocknr = cpu_to_le64(0);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	nilfs_dat_commit_entry(dat, req);
+ 
+@@ -143,14 +143,14 @@ void nilfs_dat_commit_start(struct inode
+ 			    sector_t blocknr)
+ {
+ 	struct nilfs_dat_entry *entry;
+-	void *kaddr;
++	size_t offset;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	entry->de_start = cpu_to_le64(nilfs_mdt_cno(dat));
+ 	entry->de_blocknr = cpu_to_le64(blocknr);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	nilfs_dat_commit_entry(dat, req);
+ }
+@@ -160,19 +160,19 @@ int nilfs_dat_prepare_end(struct inode *
+ 	struct nilfs_dat_entry *entry;
+ 	__u64 start;
+ 	sector_t blocknr;
 -	void *kaddr;
 +	size_t offset;
  	int ret;
  
- 	ret = nilfs_palloc_prepare_free_entry(ifile, &req);
-@@ -113,11 +113,11 @@ int nilfs_ifile_delete_inode(struct inod
+ 	ret = nilfs_dat_prepare_entry(dat, req, 0);
+ 	if (ret < 0)
  		return ret;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	start = le64_to_cpu(entry->de_start);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	if (blocknr == 0) {
+ 		ret = nilfs_palloc_prepare_free_entry(dat, req);
+@@ -200,11 +200,11 @@ void nilfs_dat_commit_end(struct inode *
+ 	struct nilfs_dat_entry *entry;
+ 	__u64 start, end;
+ 	sector_t blocknr;
+-	void *kaddr;
++	size_t offset;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	end = start = le64_to_cpu(entry->de_start);
+ 	if (!dead) {
+ 		end = nilfs_mdt_cno(dat);
+@@ -212,7 +212,7 @@ void nilfs_dat_commit_end(struct inode *
+ 	}
+ 	entry->de_end = cpu_to_le64(end);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	if (blocknr == 0)
+ 		nilfs_dat_commit_free(dat, req);
+@@ -225,14 +225,14 @@ void nilfs_dat_abort_end(struct inode *d
+ 	struct nilfs_dat_entry *entry;
+ 	__u64 start;
+ 	sector_t blocknr;
+-	void *kaddr;
++	size_t offset;
+ 
+-	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+-					     req->pr_entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, req->pr_entry_nr,
++					   req->pr_entry_bh);
++	entry = kmap_local_folio(req->pr_entry_bh->b_folio, offset);
+ 	start = le64_to_cpu(entry->de_start);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 
+ 	if (start == nilfs_mdt_cno(dat) && blocknr == 0)
+ 		nilfs_palloc_abort_free_entry(dat, req);
+@@ -336,7 +336,7 @@ int nilfs_dat_move(struct inode *dat, __
+ {
+ 	struct buffer_head *entry_bh;
+ 	struct nilfs_dat_entry *entry;
+-	void *kaddr;
++	size_t offset;
+ 	int ret;
+ 
+ 	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
+@@ -359,21 +359,21 @@ int nilfs_dat_move(struct inode *dat, __
+ 		}
  	}
  
--	kaddr = kmap_local_page(req.pr_entry_bh->b_page);
--	raw_inode = nilfs_palloc_block_get_entry(ifile, req.pr_entry_nr,
--						 req.pr_entry_bh, kaddr);
-+	offset = nilfs_palloc_entry_offset(ifile, req.pr_entry_nr,
-+					   req.pr_entry_bh);
-+	raw_inode = kmap_local_folio(req.pr_entry_bh->b_folio, offset);
- 	raw_inode->i_flags = 0;
+-	kaddr = kmap_local_page(entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, vblocknr, entry_bh);
++	entry = kmap_local_folio(entry_bh->b_folio, offset);
+ 	if (unlikely(entry->de_blocknr == cpu_to_le64(0))) {
+ 		nilfs_crit(dat->i_sb,
+ 			   "%s: invalid vblocknr = %llu, [%llu, %llu)",
+ 			   __func__, (unsigned long long)vblocknr,
+ 			   (unsigned long long)le64_to_cpu(entry->de_start),
+ 			   (unsigned long long)le64_to_cpu(entry->de_end));
+-		kunmap_local(kaddr);
++		kunmap_local(entry);
+ 		brelse(entry_bh);
+ 		return -EINVAL;
+ 	}
+ 	WARN_ON(blocknr == 0);
+ 	entry->de_blocknr = cpu_to_le64(blocknr);
 -	kunmap_local(kaddr);
-+	kunmap_local(raw_inode);
++	kunmap_local(entry);
  
- 	mark_buffer_dirty(req.pr_entry_bh);
- 	brelse(req.pr_entry_bh);
---- a/fs/nilfs2/ifile.h~nilfs2-convert-inode-file-to-be-folio-based
-+++ a/fs/nilfs2/ifile.h
-@@ -21,9 +21,9 @@
- static inline struct nilfs_inode *
- nilfs_ifile_map_inode(struct inode *ifile, ino_t ino, struct buffer_head *ibh)
- {
--	void *kaddr = kmap_local_page(ibh->b_page);
-+	size_t __offset_in_folio = nilfs_palloc_entry_offset(ifile, ino, ibh);
+ 	mark_buffer_dirty(entry_bh);
+ 	nilfs_mdt_mark_dirty(dat);
+@@ -407,7 +407,7 @@ int nilfs_dat_translate(struct inode *da
+ 	struct buffer_head *entry_bh, *bh;
+ 	struct nilfs_dat_entry *entry;
+ 	sector_t blocknr;
+-	void *kaddr;
++	size_t offset;
+ 	int ret;
  
--	return nilfs_palloc_block_get_entry(ifile, ino, ibh, kaddr);
-+	return kmap_local_folio(ibh->b_folio, __offset_in_folio);
+ 	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
+@@ -423,8 +423,8 @@ int nilfs_dat_translate(struct inode *da
+ 		}
+ 	}
+ 
+-	kaddr = kmap_local_page(entry_bh->b_page);
+-	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
++	offset = nilfs_palloc_entry_offset(dat, vblocknr, entry_bh);
++	entry = kmap_local_folio(entry_bh->b_folio, offset);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+ 	if (blocknr == 0) {
+ 		ret = -ENOENT;
+@@ -433,7 +433,7 @@ int nilfs_dat_translate(struct inode *da
+ 	*blocknrp = blocknr;
+ 
+  out:
+-	kunmap_local(kaddr);
++	kunmap_local(entry);
+ 	brelse(entry_bh);
+ 	return ret;
  }
+@@ -442,11 +442,12 @@ ssize_t nilfs_dat_get_vinfo(struct inode
+ 			    size_t nvi)
+ {
+ 	struct buffer_head *entry_bh;
+-	struct nilfs_dat_entry *entry;
++	struct nilfs_dat_entry *entry, *first_entry;
+ 	struct nilfs_vinfo *vinfo = buf;
+ 	__u64 first, last;
+-	void *kaddr;
++	size_t offset;
+ 	unsigned long entries_per_block = NILFS_MDT(dat)->mi_entries_per_block;
++	unsigned int entry_size = NILFS_MDT(dat)->mi_entry_size;
+ 	int i, j, n, ret;
  
- static inline void nilfs_ifile_unmap_inode(struct nilfs_inode *raw_inode)
+ 	for (i = 0; i < nvi; i += n) {
+@@ -454,23 +455,28 @@ ssize_t nilfs_dat_get_vinfo(struct inode
+ 						   0, &entry_bh);
+ 		if (ret < 0)
+ 			return ret;
+-		kaddr = kmap_local_page(entry_bh->b_page);
+-		/* last virtual block number in this block */
++
+ 		first = vinfo->vi_vblocknr;
+ 		first = div64_ul(first, entries_per_block);
+ 		first *= entries_per_block;
++		/* first virtual block number in this block */
++
+ 		last = first + entries_per_block - 1;
++		/* last virtual block number in this block */
++
++		offset = nilfs_palloc_entry_offset(dat, first, entry_bh);
++		first_entry = kmap_local_folio(entry_bh->b_folio, offset);
+ 		for (j = i, n = 0;
+ 		     j < nvi && vinfo->vi_vblocknr >= first &&
+ 			     vinfo->vi_vblocknr <= last;
+ 		     j++, n++, vinfo = (void *)vinfo + visz) {
+-			entry = nilfs_palloc_block_get_entry(
+-				dat, vinfo->vi_vblocknr, entry_bh, kaddr);
++			entry = (void *)first_entry +
++				(vinfo->vi_vblocknr - first) * entry_size;
+ 			vinfo->vi_start = le64_to_cpu(entry->de_start);
+ 			vinfo->vi_end = le64_to_cpu(entry->de_end);
+ 			vinfo->vi_blocknr = le64_to_cpu(entry->de_blocknr);
+ 		}
+-		kunmap_local(kaddr);
++		kunmap_local(first_entry);
+ 		brelse(entry_bh);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
