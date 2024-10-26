@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24CD170A1B
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:03:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7A3B170A1B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:07:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729983785; cv=none; b=aPnljJJ7swX8CWqzwblMO7pYkfEo0R9If2VG4j4teIvLaupZDrMjENDN/rktNWVHYKpq455/HYpEq75oXaAg8JDqjvwgjCd7Y1GblHjXiLLxu2uQVJGkVE5i99nMDUQLn40QDLC0Q1s63ZHZUqAXkN7pkgfqI3PxR1uneXpZzHY=
+	t=1729984038; cv=none; b=DrvOlm6u8yEGnayLH4crHdLKZQO2zSda5tySXJYhpVHCW4fwKtOmSoDTFecnNUkjT4AI671KDQVK46MM7qKBxqsvexEWIT8XYq5quTQDytX4oy+GsGE33iTT95EPkeWdpr7xNwUzoPhc7efdHZHLR9Xu9ghs68HF9Mram82pwtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729983785; c=relaxed/simple;
-	bh=twCXAKNy3ME8X5CCT+3C53fadCPI+DVDKUhB1qqGd2k=;
-	h=Date:To:From:Subject:Message-Id; b=QsqrTcrmzERSU+Cr+TjFgRl9HrKutnO7fa5T7v7++SOn6WkDsVJGWHXlPalu5RocTN6LibuFjAfK9fo46FmQWdEXVvrUTnSSkiNQqqo/BY08P5y2uJ0JWSXFf11lXjMKPBjidU8w8W+9tKSJQVDFs1M9xm9hHbAxp8dqNtLbXT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d94GhV+J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729984038; c=relaxed/simple;
+	bh=Qqaflu7b/nYAv6Tcqj5CYnRGE6k6+ewOhaBvPn4YW/o=;
+	h=Date:To:From:Subject:Message-Id; b=Qs+b7hla6kq69Xg0U6lhDBzdRTKX/r3Wyj3BI3n2ohm+Pnf7dPU3ORRcEtpxC1AHReDl50FH/2idrQdaT0qWyTS1S/5hT+x0TuZFdej6+j97nvAPBXYxVE/IF2ZTuFCcCcBk3B5fXW1/Pq/wc96STGOAfLpfsEPmKanD4x/NNu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KRFEvNHJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d94GhV+J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32360C4CEC6;
-	Sat, 26 Oct 2024 23:03:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KRFEvNHJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE574C4CEC6;
+	Sat, 26 Oct 2024 23:07:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729983785;
-	bh=twCXAKNy3ME8X5CCT+3C53fadCPI+DVDKUhB1qqGd2k=;
+	s=korg; t=1729984038;
+	bh=Qqaflu7b/nYAv6Tcqj5CYnRGE6k6+ewOhaBvPn4YW/o=;
 	h=Date:To:From:Subject:From;
-	b=d94GhV+JmCMHLtiAQRljgGmjfMI4kcEChz8ajZYrWekPFM9cNpdgHDd6vu0WFJB1v
-	 W9f7rrkpmeB8btH2/O7SgOGslKelzjUlPHd7lGw63Yco8yEPvzSh/Tlu5pi+XqALC+
-	 wUXoyFNuZcXH7tH757W1hZlTuCrf1YOe6x9+tbT8=
-Date: Sat, 26 Oct 2024 16:03:04 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=KRFEvNHJPMqdv9wW7nhNemo60nSAE5I0Lyckejr45E/rFHWY1zIWjJeK5jzU8GsUZ
+	 xn/iyjMGSjZlzNG2ueIPh/btantnGbmlpCRdymsEYVtZalL22rIPJqzEVS/1/SZs+Y
+	 LCN7Qw6p3eTDRDd4Vt2lWtI6ES4+LbCQByt0gTAw=
+Date: Sat, 26 Oct 2024 16:07:17 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,tjmercier@google.com,kasong@tencent.com,linuszeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch added to mm-unstable branch
-Message-Id: <20241026230305.32360C4CEC6@smtp.kernel.org>
+Subject: + mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch added to mm-unstable branch
+Message-Id: <20241026230717.DE574C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
+     Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
+     mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,117 +58,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
-Date: Sat, 26 Oct 2024 21:51:52 +0800
+From: Zeng Jingxiang <linuszeng@tencent.com>
+Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
+Date: Sat, 26 Oct 2024 19:57:14 +0800
 
-The tmpfs has already supported the PMD-sized large folios, and splice()
-can not read any pages if the large folio has a poisoned page, which is
-not good as Matthew pointed out in a previous email[1]:
+Commit 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
+removed the opportunity to wake up flushers during the MGLRU page
+reclamation process can lead to an increased likelihood of triggering OOM
+when encountering many dirty pages during reclamation on MGLRU.
 
-"so if we have hwpoison set on one page in a folio, we now can't read
-bytes from any page in the folio?  That seems like we've made a bad
-situation worse."
+This leads to premature OOM if there are too many dirty pages in cgroup:
+Killed
 
-Thus add a fallback to the PAGE_SIZE splice() still allows reading normal
-pages if the large folio has hwpoisoned pages.
+dd invoked oom-killer: gfp_mask=0x101cca(GFP_HIGHUSER_MOVABLE|__GFP_WRITE),
+order=0, oom_score_adj=0
 
-[1] https://lore.kernel.org/all/Zw_d0EVAJkpNJEbA@casper.infradead.org/
-Link: https://lkml.kernel.org/r/e3737fbd5366c4de4337bf5f2044817e77a5235b.1729915173.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
+Call Trace:
+  <TASK>
+  dump_stack_lvl+0x5f/0x80
+  dump_stack+0x14/0x20
+  dump_header+0x46/0x1b0
+  oom_kill_process+0x104/0x220
+  out_of_memory+0x112/0x5a0
+  mem_cgroup_out_of_memory+0x13b/0x150
+  try_charge_memcg+0x44f/0x5c0
+  charge_memcg+0x34/0x50
+  __mem_cgroup_charge+0x31/0x90
+  filemap_add_folio+0x4b/0xf0
+  __filemap_get_folio+0x1a4/0x5b0
+  ? srso_return_thunk+0x5/0x5f
+  ? __block_commit_write+0x82/0xb0
+  ext4_da_write_begin+0xe5/0x270
+  generic_perform_write+0x134/0x2b0
+  ext4_buffered_write_iter+0x57/0xd0
+  ext4_file_write_iter+0x76/0x7d0
+  ? selinux_file_permission+0x119/0x150
+  ? srso_return_thunk+0x5/0x5f
+  ? srso_return_thunk+0x5/0x5f
+  vfs_write+0x30c/0x440
+  ksys_write+0x65/0xe0
+  __x64_sys_write+0x1e/0x30
+  x64_sys_call+0x11c2/0x1d50
+  do_syscall_64+0x47/0x110
+  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+ memory: usage 308224kB, limit 308224kB, failcnt 2589
+ swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+
+  ...
+  file_dirty 303247360
+  file_writeback 0
+  ...
+
+oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=test,
+mems_allowed=0,oom_memcg=/test,task_memcg=/test,task=dd,pid=4404,uid=0
+Memory cgroup out of memory: Killed process 4404 (dd) total-vm:10512kB,
+anon-rss:1152kB, file-rss:1824kB, shmem-rss:0kB, UID:0 pgtables:76kB
+oom_score_adj:0
+
+The flusher wake up was removed to decrease SSD wearing, but if we are
+seeing all dirty folios at the tail of an LRU, not waking up the flusher
+could lead to thrashing easily.  So wake it up when a memcg is about to
+OOM due to dirty caches.
+
+I did run the build kernel test[1] on V6, with -j16 1G memcg on my local
+branch:
+
+Without the patch(10 times):
+user 1449.394
+system 368.78 372.58 363.03 362.31 360.84 372.70 368.72 364.94 373.51
+366.58 (avg 367.399)
+real 164.883
+
+With the V6 patch(10 times):
+user 1447.525
+system 360.87 360.63 372.39 364.09 368.49 365.15 359.93 362.04 359.72
+354.60 (avg 362.79)
+real 164.514
+
+Test results show that this patch has about 1% performance improvement,
+which should be caused by noise.
+
+Link: https://lkml.kernel.org/r/20241026115714.1437435-1-jingxiangzeng.cas@gmail.com
+Link: https://lore.kernel.org/all/CACePvbV4L-gRN9UKKuUnksfVJjOTq_5Sti2-e=pb_w51kucLKQ@mail.gmail.com/ [1]
+Fixes: 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
+Suggested-by: Wei Xu <weixugc@google.com>
+Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   39 +++++++++++++++++++++++++++++++--------
- 1 file changed, 31 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages
-+++ a/mm/shmem.c
-@@ -3291,11 +3291,16 @@ static ssize_t shmem_file_splice_read(st
- 	len = min_t(size_t, len, npages * PAGE_SIZE);
+--- a/mm/vmscan.c~mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom
++++ a/mm/vmscan.c
+@@ -4282,6 +4282,7 @@ static bool sort_folio(struct lruvec *lr
+ 		       int tier_idx)
+ {
+ 	bool success;
++	bool dirty, writeback;
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
+@@ -4327,9 +4328,17 @@ static bool sort_folio(struct lruvec *lr
+ 		return true;
+ 	}
  
- 	do {
-+		bool fallback_page_splice = false;
-+		struct page *page = NULL;
-+		pgoff_t index;
-+		size_t size;
++	dirty = folio_test_dirty(folio);
++	writeback = folio_test_writeback(folio);
++	if (type == LRU_GEN_FILE && dirty) {
++		sc->nr.file_taken += delta;
++		if (!writeback)
++			sc->nr.unqueued_dirty += delta;
++	}
 +
- 		if (*ppos >= i_size_read(inode))
- 			break;
+ 	/* waiting for writeback */
+-	if (folio_test_locked(folio) || folio_test_writeback(folio) ||
+-	    (type == LRU_GEN_FILE && folio_test_dirty(folio))) {
++	if (folio_test_locked(folio) || writeback ||
++	    (type == LRU_GEN_FILE && dirty)) {
+ 		gen = folio_inc_gen(lruvec, folio, true);
+ 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 		return true;
+@@ -4445,7 +4454,8 @@ static int scan_folios(struct lruvec *lr
+ 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
+ 				scanned, skipped, isolated,
+ 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+-
++	if (type == LRU_GEN_FILE)
++		sc->nr.file_taken += isolated;
+ 	/*
+ 	 * There might not be eligible folios due to reclaim_idx. Check the
+ 	 * remaining to prevent livelock if it's not making progress.
+@@ -4579,6 +4589,7 @@ static int evict_folios(struct lruvec *l
+ 		return scanned;
+ retry:
+ 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
++	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
+ 	sc->nr_reclaimed += reclaimed;
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+ 			scanned, reclaimed, &stat, sc->priority,
+@@ -4787,6 +4798,13 @@ static bool try_to_shrink_lruvec(struct
+ 		cond_resched();
+ 	}
  
--		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, 0, &folio,
--					SGP_READ);
-+		index = *ppos >> PAGE_SHIFT;
-+		error = shmem_get_folio(inode, index, 0, &folio, SGP_READ);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -3304,12 +3309,15 @@ static ssize_t shmem_file_splice_read(st
- 		if (folio) {
- 			folio_unlock(folio);
- 
--			if (folio_test_hwpoison(folio) ||
--			    (folio_test_large(folio) &&
--			     folio_test_has_hwpoisoned(folio))) {
-+			page = folio_file_page(folio, index);
-+			if (PageHWPoison(page)) {
- 				error = -EIO;
- 				break;
- 			}
++	/*
++	 * If too many file cache in the coldest generation can't be evicted
++	 * due to being dirty, wake up the flusher.
++	 */
++	if (sc->nr.unqueued_dirty && sc->nr.unqueued_dirty == sc->nr.file_taken)
++		wakeup_flusher_threads(WB_REASON_VMSCAN);
 +
-+			if (folio_test_large(folio) &&
-+			    folio_test_has_hwpoisoned(folio))
-+				fallback_page_splice = true;
- 		}
+ 	/* whether this lruvec should be rotated */
+ 	return nr_to_scan < 0;
+ }
+@@ -5932,6 +5950,7 @@ static void shrink_node(pg_data_t *pgdat
+ 	bool reclaimable = false;
  
- 		/*
-@@ -3323,7 +3331,18 @@ static ssize_t shmem_file_splice_read(st
- 		isize = i_size_read(inode);
- 		if (unlikely(*ppos >= isize))
- 			break;
--		part = min_t(loff_t, isize - *ppos, len);
-+		/*
-+		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
-+		 * pages.
-+		 */
-+		if (likely(!fallback_page_splice)) {
-+			size = len;
-+		} else {
-+			size_t offset = *ppos & ~PAGE_MASK;
-+
-+			size = min_t(loff_t, PAGE_SIZE - offset, len);
-+		}
-+		part = min_t(loff_t, isize - *ppos, size);
- 
- 		if (folio) {
- 			/*
-@@ -3331,8 +3350,12 @@ static ssize_t shmem_file_splice_read(st
- 			 * virtual addresses, take care about potential aliasing
- 			 * before reading the page on the kernel side.
- 			 */
--			if (mapping_writably_mapped(mapping))
--				flush_dcache_folio(folio);
-+			if (mapping_writably_mapped(mapping)) {
-+				if (likely(!fallback_page_splice))
-+					flush_dcache_folio(folio);
-+				else
-+					flush_dcache_page(page);
-+			}
- 			folio_mark_accessed(folio);
- 			/*
- 			 * Ok, we have the page, and it's up-to-date, so we can
+ 	if (lru_gen_enabled() && root_reclaim(sc)) {
++		memset(&sc->nr, 0, sizeof(sc->nr));
+ 		lru_gen_shrink_node(pgdat, sc);
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linuszeng@tencent.com are
 
-mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
-mm-shmem-update-iocb-ki_pos-directly-to-simplify-tmpfs-read-logic.patch
-mm-shmem-improve-the-tmpfs-large-folio-read-performance.patch
-mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
+mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
+mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2.patch
+mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
