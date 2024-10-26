@@ -1,131 +1,182 @@
-Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34E418562F
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 08:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1769E170A1B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:01:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729931348; cv=none; b=Kmm+R6ODdDCIdV1VHaQHiEzd7m6LsMB7vA9ZUYON+GudUZL3Y2LZrhQ3JHf8BhDDW4zvXcW+G21QbXvkQhjpNTwwT3yqqCm/uzVf83vEIwN2F2Gg97CdnLoHZ+ur6uyb0sJKTDEvPgbkPKQYcfWbvKYNYHI30B0WuQr661pnQlI=
+	t=1729983687; cv=none; b=VvrUr6A+mysXpq38pGKsehYU75iljcBAhD4PAme15MCCPr96N6tHPgjcluI0JNkTBdGI424dBQq960ux+m/GAvbOqzn9AUe4Py5U3kVF7kZZtQaW1m/tbg8tjWAHKNfG06giOUUMDaYuMslHjUWAEYCVN2Teomrp92Z28SQsVlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729931348; c=relaxed/simple;
-	bh=R9CztiA/e1YEonI5ToQTKX6T/wvDb9QQ8U1cd7I4lzg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g0/w7zoshuOrF0JnFuFh7646H4rYpuFMv0N/ld4m5AcdkRn7VeWLXqnN4jLJ8b6d4z49VcciFOCg7m4Ko7JtNdv2Ja/TK2fZWz9zhZKr8ODNc5lW8l0ye3zJKHQtHKloVVA36uU8y5PBuceT2GEHdb+4CbjdMG4Ib6DR78a0ihk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kryyNSTT; arc=none smtp.client-ip=209.85.218.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1729983687; c=relaxed/simple;
+	bh=EkN2C7aUQgcecKw+ulhT6SD2JaYiIFYCyxd2rd7biaI=;
+	h=Date:To:From:Subject:Message-Id; b=qJMLRLnHvAQJx7XQ5Ifcm9KzYYqUSQOOqHR3RDXluZ7jFWy5H2J1XaNFohgqGAICZ6w3YCJpIem09lTG+2bvfXc98quGbAqkPVdcbkTDMUQF3e6s4j0i8zc26p0aWE8Hwgz59oUGL7za8EaUxeIR2kYuLoMam6lMiZqU04Qyirg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iA/KFLTl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kryyNSTT"
-Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-a9a0f198d38so380063466b.1
-        for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 01:29:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1729931345; x=1730536145; darn=vger.kernel.org;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IFvxZF9q3RGpMKjT4R3jKie7THaDAWt9mGNmCSuAhl0=;
-        b=kryyNSTTniNKL356esvhiZPANTYgYrKO8jRFnosCQWORQPU7ch8l9eJ7wiqNJkE1d2
-         eBR9wNScOMORRPIQeJheGY/2yCEycKqjed/lvJjnS0bJiluyRCKrNDniB3U7GD28R7ht
-         AJdEzWhyZnhu5rZm30IlkYredNhnUCxi3QcJQd5++o+BrKMaLaiaU5n6MazreA+eBxaE
-         G+5A3TBRkfmR7Q0AR+WW1lLLLNn75kq8BY/dklqeCfz7fVQdeFVDRHbnze/2rZEzEPrf
-         k66NkX3IznR5gua4xDYHV8w9C4ykoy0d5lWm3OWwPVgsf9bXfVTVx4aqY5394P0ADHyC
-         mhnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729931345; x=1730536145;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=IFvxZF9q3RGpMKjT4R3jKie7THaDAWt9mGNmCSuAhl0=;
-        b=fjATpHDZs0GndyNm9VkIvspUaC1Exl1MfS5tnK+rCul3CdkM8GZrVbwlD2yJKpTmSy
-         X2S6WDGN7mlBA/nfTQknIvgkd9CqkAWz3C3fATdwFhia/HEgbaT2CuRTzp/IXTJnD4dd
-         dl3B+iMbHCyv0zc1E3LOzwsIKoEi+uwG95EamPn60+LbgZtPc5rwko2QrT55bnM6OQAN
-         r0afa5VyuD5g5yXw5/pFCmjTcYjnG0le8fnXRWUjPvptEi/VWZfHoGIKm/QJGdRJl8Kp
-         +Yg18zuRFdo3hAj6jN7aK2uFa834F+dRTqrJqkkifRQtDdVWpJfwv825C8S9SR0mVuHh
-         b+Ag==
-X-Forwarded-Encrypted: i=1; AJvYcCWAA/y8rPqeliS3FtnB2lKsR7fAnQnLbyste1kjLiiENsd1B62KTi3wbidYF2l1TZPNiuEi9KL/vT4M@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz2S6zGTnyJZVhPEn14adathA7ODjMuFvrpYHRtwoD9BibsTMDx
-	EnsCPSZAaADrVery0690Bwnq9pUZU8ccga5BusWelinMjAVyYxv0
-X-Google-Smtp-Source: AGHT+IFo0LMLcIljfY3Ge1hTV2/03Nio+DmOr8v+l5EhK1WUCxbH/eoY4ZhbKr+Bpmezw0tCmVyAZg==
-X-Received: by 2002:a17:907:31cb:b0:a99:5773:3612 with SMTP id a640c23a62f3a-a9de5f6653bmr159611666b.36.1729931344893;
-        Sat, 26 Oct 2024 01:29:04 -0700 (PDT)
-Received: from localhost ([185.92.221.13])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a9b1f0683edsm153169266b.93.2024.10.26.01.29.04
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Sat, 26 Oct 2024 01:29:04 -0700 (PDT)
-Date: Sat, 26 Oct 2024 08:29:03 +0000
-From: Wei Yang <richard.weiyang@gmail.com>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Wei Yang <richard.weiyang@gmail.com>, mm-commits@vger.kernel.org,
-	vbabka@suse.cz, Liam.Howlett@oracle.com, jannh@google.com
-Subject: Re: + mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch added
- to mm-unstable branch
-Message-ID: <20241026082903.ohcltnfcylrxdgib@master>
-Reply-To: Wei Yang <richard.weiyang@gmail.com>
-References: <20241026024123.B621BC4CEC3@smtp.kernel.org>
- <20241026033436.hfb73whfbeypxj5r@master>
- <20241025212224.c03b14a7d658edb9ca09aa07@linux-foundation.org>
- <58b091e1-bb4e-43c6-b049-c866441070bc@lucifer.local>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iA/KFLTl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B4AAC4CEC6;
+	Sat, 26 Oct 2024 23:01:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1729983686;
+	bh=EkN2C7aUQgcecKw+ulhT6SD2JaYiIFYCyxd2rd7biaI=;
+	h=Date:To:From:Subject:From;
+	b=iA/KFLTloOwTtWS4gPz0Bc3P2AkgHD0X0LQmMFPktr5cOEa4btYs3zusgbAAOHETB
+	 0J0vfezmNfh7KXwlFyWeywe0qUs8QgkGtVfd1LPLVERkp8jSleE41btZZsk7UUAMSs
+	 XDIkg4A9+p3m7vDoG+KVXbWCxj+dmfOrV99IaZs4=
+Date: Sat, 26 Oct 2024 16:01:25 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,songmuchun@bytedance.com,roman.gushchin@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + memcg-workingset-remove-folio_memcg_rcu-usage.patch added to mm-unstable branch
+Message-Id: <20241026230126.7B4AAC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <58b091e1-bb4e-43c6-b049-c866441070bc@lucifer.local>
-User-Agent: NeoMutt/20170113 (1.7.2)
 
-On Sat, Oct 26, 2024 at 07:01:57AM +0100, Lorenzo Stoakes wrote:
->On Fri, Oct 25, 2024 at 09:22:24PM -0700, Andrew Morton wrote:
->> On Sat, 26 Oct 2024 03:34:36 +0000 Wei Yang <richard.weiyang@gmail.com> wrote:
->>
->> > >------------------------------------------------------
->> > >From: Andrew Morton <akpm@linux-foundation.org>
->> > >Subject: mm-vma-the-pgoff-is-correct-if-can_merge_right-fix
->> > >Date: Fri Oct 25 07:39:41 PM PDT 2024
->> > >
->> > >remove now-unused local
->> > >
->> > >mm/vma.c: In function 'vma_merge_new_range':
->> > >mm/vma.c:965:23: error: unused variable 'start' [-Werror=unused-variable]
->> > >  965 |         unsigned long start = vmg->start;
->> > >      |                       ^~~~~
->> >
->> > Andrew
->> >
->> > The removal of start usage maybe come from another patch.
->> >
->> > If my understanding is correct, 'start' would be used to restore the state on
->> > expansion failure.
->>
->> I don't think so.  This patch did
->
->Yeah I removed the logic that would do this in a recent series. We can drop start.
->
 
-I see your latest change.
+The patch titled
+     Subject: memcg: workingset: remove folio_memcg_rcu usage
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-workingset-remove-folio_memcg_rcu-usage.patch
 
-Sounds there is some latency. When I looked at mm-unstable this morning, the
-change is not there.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-workingset-remove-folio_memcg_rcu-usage.patch
 
->>
->> > --- a/mm/vma.c
->> > +++ b/mm/vma.c
->> > @@ -915,7 +915,6 @@ struct vm_area_struct *vma_merge_new_range(struct vma_merge_struct *vmg)
->> >  	unsigned long start = vmg->start;
->> >  	unsigned long end = vmg->end;
->> >  	pgoff_t pgoff = vmg->pgoff;
->> > -	pgoff_t pglen = PHYS_PFN(end - start);
->> >  	bool can_merge_left, can_merge_right;
->> >
->> >  	mmap_assert_write_locked(vmg->mm);
->>
->> which was the only usage of `start' in vma_merge_new_range().
->
->Yes this is true now. We're good to drop it, thanks!
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Wei Yang
-Help you, Help me
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: workingset: remove folio_memcg_rcu usage
+Date: Sat, 26 Oct 2024 09:37:07 -0700
+
+The function workingset_activation() is called from folio_mark_accessed()
+with the guarantee that the given folio can not be freed under us in
+workingset_activation().  In addition, the association of the folio and
+its memcg can not be broken here because charge migration is no more. 
+There is no need to use folio_memcg_rcu.  Simply use folio_memcg_charged()
+because that is what this function cares about.
+
+Link: https://lkml.kernel.org/r/20241026163707.2479526-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/memcontrol.h |   35 -----------------------------------
+ mm/workingset.c            |   14 ++------------
+ 2 files changed, 2 insertions(+), 47 deletions(-)
+
+--- a/include/linux/memcontrol.h~memcg-workingset-remove-folio_memcg_rcu-usage
++++ a/include/linux/memcontrol.h
+@@ -443,35 +443,6 @@ static inline bool folio_memcg_charged(s
+ 	return __folio_memcg(folio) != NULL;
+ }
+ 
+-/**
+- * folio_memcg_rcu - Locklessly get the memory cgroup associated with a folio.
+- * @folio: Pointer to the folio.
+- *
+- * This function assumes that the folio is known to have a
+- * proper memory cgroup pointer. It's not safe to call this function
+- * against some type of folios, e.g. slab folios or ex-slab folios.
+- *
+- * Return: A pointer to the memory cgroup associated with the folio,
+- * or NULL.
+- */
+-static inline struct mem_cgroup *folio_memcg_rcu(struct folio *folio)
+-{
+-	unsigned long memcg_data = READ_ONCE(folio->memcg_data);
+-
+-	VM_BUG_ON_FOLIO(folio_test_slab(folio), folio);
+-
+-	if (memcg_data & MEMCG_DATA_KMEM) {
+-		struct obj_cgroup *objcg;
+-
+-		objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+-		return obj_cgroup_memcg(objcg);
+-	}
+-
+-	WARN_ON_ONCE(!rcu_read_lock_held());
+-
+-	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+-}
+-
+ /*
+  * folio_memcg_check - Get the memory cgroup associated with a folio.
+  * @folio: Pointer to the folio.
+@@ -1084,12 +1055,6 @@ static inline struct mem_cgroup *folio_m
+ 	return NULL;
+ }
+ 
+-static inline struct mem_cgroup *folio_memcg_rcu(struct folio *folio)
+-{
+-	WARN_ON_ONCE(!rcu_read_lock_held());
+-	return NULL;
+-}
+-
+ static inline struct mem_cgroup *folio_memcg_check(struct folio *folio)
+ {
+ 	return NULL;
+--- a/mm/workingset.c~memcg-workingset-remove-folio_memcg_rcu-usage
++++ a/mm/workingset.c
+@@ -591,22 +591,12 @@ void workingset_refault(struct folio *fo
+  */
+ void workingset_activation(struct folio *folio)
+ {
+-	struct mem_cgroup *memcg;
+-
+-	rcu_read_lock();
+ 	/*
+ 	 * Filter non-memcg pages here, e.g. unmap can call
+ 	 * mark_page_accessed() on VDSO pages.
+-	 *
+-	 * XXX: See workingset_refault() - this should return
+-	 * root_mem_cgroup even for !CONFIG_MEMCG.
+ 	 */
+-	memcg = folio_memcg_rcu(folio);
+-	if (!mem_cgroup_disabled() && !memcg)
+-		goto out;
+-	workingset_age_nonresident(folio_lruvec(folio), folio_nr_pages(folio));
+-out:
+-	rcu_read_unlock();
++	if (mem_cgroup_disabled() || folio_memcg_charged(folio))
++		workingset_age_nonresident(folio_lruvec(folio), folio_nr_pages(folio));
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
+
+mm-optimize-truncation-of-shadow-entries.patch
+mm-optimize-invalidation-of-shadow-entries.patch
+mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
+memcg-add-tracing-for-memcg-stat-updates.patch
+memcg-add-tracing-for-memcg-stat-updates-v2.patch
+memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
+memcg-v1-remove-charge-move-code.patch
+memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru.patch
+memcg-v1-remove-memcg-move-locking-code.patch
+memcg-workingset-remove-folio_memcg_rcu-usage.patch
+
