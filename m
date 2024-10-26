@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2BBC176FCE
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:27:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D7E1F9CF
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:31:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729985279; cv=none; b=d2IPcEimsWhrlz3/Um0Zw2nOFapCL50sltrESOOHfVuPw979s+yupYLtv8hZFMkha0f4LwMW7aWe1eeA8eiXRDrq90Vj+rwdHTiZF73+MdrKLNTLuIOr1KDwwEw+ayIFeFQL4l2ev9OuZ6jtt1AKF8Ixk8jldTI4HCtTdJk7cSg=
+	t=1729985485; cv=none; b=uDND/o9i/0oFIeJPkBCpPddJDQya5/FxRQSn3wWB9TMn/tXJ4AMQpos7l9iV7S4U6A19tLna9TqLU9KgdqVZC99j8mzTL0PWdV3qZNs36f3/GqKvqcY8nbdpQPU+SYBk4kuby6KkAvYlEplBFuW1xlnHbnozA8aKd/bMdozXUME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729985279; c=relaxed/simple;
-	bh=KbwqKA+w7hmFp3j76GRv5DScvenJPODX5vyoNuGtmcM=;
-	h=Date:To:From:Subject:Message-Id; b=khyfWtX5z9VKM4v4kNbZ5kU4gT2HmQ1U+TZfpPojeZbMMTpS3gdkMbQbwzvVha0CWMSLNey/jPHFM2oLCi8qd8BVNiCI770e0RCINH0IhXdoLTX1VhCpy6h2r6kN9BKfH6KYdBclA3J0p9enF4PJ1ccId3HL2maavpXKguCMcMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYreI8uc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729985485; c=relaxed/simple;
+	bh=T8ZWyCtTs5fef35XSmschRSUIUa3LlZ6a98g0ZZ6RCg=;
+	h=Date:To:From:Subject:Message-Id; b=XHawzzDjNNBiR19fepemkjlHNRHki7kuHN9ltkCWkpf4zVhFZCnWusBKE/1FOF7jj4my9lkEvZ1z0ynZw7irH7JFVuj31BFI/Ai0LASwhwNXyhwV7FPCMSgkLfk0gDSc+7SHY1AIKiaCwz8hH3qbFZEXO4NyCGtzkEKdfG4c71Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dEX1O1/C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYreI8uc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E10EC4CEC6;
-	Sat, 26 Oct 2024 23:27:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dEX1O1/C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD77C4CEC6;
+	Sat, 26 Oct 2024 23:31:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729985278;
-	bh=KbwqKA+w7hmFp3j76GRv5DScvenJPODX5vyoNuGtmcM=;
+	s=korg; t=1729985484;
+	bh=T8ZWyCtTs5fef35XSmschRSUIUa3LlZ6a98g0ZZ6RCg=;
 	h=Date:To:From:Subject:From;
-	b=dYreI8ucsng/0NXqwSZEugOnZN6bzXDvFJcbBKyePD+2+WS2kvloK9dKLV0d/xMV5
-	 x8hGBrlKryAqgTmwL4TgfF9pX+y/2Ci6HCOpF/vdDMo1zVC9vbgDweKVjZjkwAIXXR
-	 CC88vOLTCc05Q2lIdd8ctZ4J132FkKqgkndlwuL0=
-Date: Sat, 26 Oct 2024 16:27:57 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=dEX1O1/C8y7Rwpypbc4VEWyzKWrqZfW4uLlsEThT1kpsV9jlz88p6gZ7nZero/F0R
+	 zUGkv2LL08MWATCc23m1jvv8bi9Q6FwygGi9cPUZfp81ElOb07BJeK8fcUIDdlaVqM
+	 e2y9vLqKdwgoRyI8wpIPC1eE1LqBVkeDSx6Tom8g=
+Date: Sat, 26 Oct 2024 16:31:24 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch added to mm-unstable branch
-Message-Id: <20241026232758.5E10EC4CEC6@smtp.kernel.org>
+Subject: + mm-use-aligned-address-in-clear_gigantic_page.patch added to mm-unstable branch
+Message-Id: <20241026233124.ACD77C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
+     Subject: mm: use aligned address in clear_gigantic_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
+     mm-use-aligned-address-in-clear_gigantic_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-aligned-address-in-clear_gigantic_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
-Date: Fri, 25 Oct 2024 23:34:34 -0700
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: use aligned address in clear_gigantic_page()
+Date: Sat, 26 Oct 2024 13:43:06 +0800
 
-folio_rcu() fixup, per Yu Zhao
+When clearing gigantic page, it zeros page from the first page to the last
+page, if directly passing addr_hint which maybe not the address of the
+first page of folio, then some archs could flush the wrong cache if it
+does use the addr_hint as a hint.  For non-gigantic page, it calculates
+the base address inside, even passed the wrong addr_hint, it only has
+performance impact as the process_huge_page() wants to process target page
+last to keep its cache lines hot), no functional impact.
 
-Link: https://lkml.kernel.org/r/iwmabnye3nl4merealrawt3bdvfii2pwavwrddrqpraoveet7h@ezrsdhjwwej7
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Let's pass the real accessed address to folio_zero_user() and use the
+aligned address in clear_gigantic_page() to fix it.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20241026054307.3896926-1-wangkefeng.wang@huawei.com
+Fixes: 78fefd04c123 ("mm: memory: convert clear_huge_page() to folio_zero_user()")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ mm/memory.c          |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
-+++ a/mm/vmscan.c
-@@ -3353,7 +3353,7 @@ static struct folio *get_pfn_folio(unsig
- 	if (folio_nid(folio) != pgdat->node_id)
- 		return NULL;
+--- a/fs/hugetlbfs/inode.c~mm-use-aligned-address-in-clear_gigantic_page
++++ a/fs/hugetlbfs/inode.c
+@@ -819,7 +819,7 @@ static long hugetlbfs_fallocate(struct f
+ 			error = PTR_ERR(folio);
+ 			goto out;
+ 		}
+-		folio_zero_user(folio, ALIGN_DOWN(addr, hpage_size));
++		folio_zero_user(folio, addr);
+ 		__folio_mark_uptodate(folio);
+ 		error = hugetlb_add_to_page_cache(folio, mapping, index);
+ 		if (unlikely(error)) {
+--- a/mm/memory.c~mm-use-aligned-address-in-clear_gigantic_page
++++ a/mm/memory.c
+@@ -6810,6 +6810,7 @@ static void clear_gigantic_page(struct f
+ 	int i;
  
--	if (folio_memcg_rcu(folio) != memcg)
-+	if (folio_memcg(folio) != memcg)
- 		return NULL;
- 
- 	/* file VMAs can contain anon pages from COW */
+ 	might_sleep();
++	addr = ALIGN_DOWN(addr, folio_size(folio));
+ 	for (i = 0; i < nr_pages; i++) {
+ 		cond_resched();
+ 		clear_user_highpage(folio_page(folio, i), addr + i * PAGE_SIZE);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-optimize-truncation-of-shadow-entries.patch
-mm-optimize-invalidation-of-shadow-entries.patch
-mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
-memcg-add-tracing-for-memcg-stat-updates.patch
-memcg-add-tracing-for-memcg-stat-updates-v2.patch
-memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
-memcg-v1-remove-charge-move-code.patch
-memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
-memcg-v1-remove-memcg-move-locking-code.patch
-memcg-workingset-remove-folio_memcg_rcu-usage.patch
+mm-remove-unused-hugepage-for-vma_alloc_folio.patch
+tmpfs-dont-enable-large-folios-if-not-supported.patch
+mm-huge_memory-move-file_thp_enabled-into-huge_memoryc.patch
+mm-shmem-remove-__shmem_huge_global_enabled.patch
+mm-use-aligned-address-in-clear_gigantic_page.patch
+mm-use-aligned-address-in-copy_user_gigantic_page.patch
 
