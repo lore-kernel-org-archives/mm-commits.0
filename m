@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 637FFB67E
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:13:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2BBC176FCE
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:27:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729984429; cv=none; b=RkoPdr3NmbSs2Jto3d7n08iR35EM801ZeoedER5EwBJ/9is+QPpszsawe84TlnFTcRIw9k3n6qVyiYC8V2TeOCZcEpG21XC5ve6kt829ka7bfp1r4XLV+a0wG+kpxR70ZYMMhNoXXbsZOLlo1oEdlVTUaaOrfjB3ywnaTIMqIuM=
+	t=1729985279; cv=none; b=d2IPcEimsWhrlz3/Um0Zw2nOFapCL50sltrESOOHfVuPw979s+yupYLtv8hZFMkha0f4LwMW7aWe1eeA8eiXRDrq90Vj+rwdHTiZF73+MdrKLNTLuIOr1KDwwEw+ayIFeFQL4l2ev9OuZ6jtt1AKF8Ixk8jldTI4HCtTdJk7cSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729984429; c=relaxed/simple;
-	bh=Psm+MfT5j54Vz3zZR/Go9qoIezsE8LNcS/0lqP7lKEM=;
-	h=Date:To:From:Subject:Message-Id; b=Ilu7ySnTnCzyENio7VYviBweAq4k/RdcYoFs1yhdEdoMODvTfbphfrb2j3AalfgzpWWFXRCAPtfSCJFuSMPuT8WQnJThlN4LnkRXYuVxjTf2kZG5j8JLmsnEC2QhSPEObOZ2v5NfLcHEeN6GFWAgVydQDk3jksBTrhpJ5taX/us=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jE4FrxBN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729985279; c=relaxed/simple;
+	bh=KbwqKA+w7hmFp3j76GRv5DScvenJPODX5vyoNuGtmcM=;
+	h=Date:To:From:Subject:Message-Id; b=khyfWtX5z9VKM4v4kNbZ5kU4gT2HmQ1U+TZfpPojeZbMMTpS3gdkMbQbwzvVha0CWMSLNey/jPHFM2oLCi8qd8BVNiCI770e0RCINH0IhXdoLTX1VhCpy6h2r6kN9BKfH6KYdBclA3J0p9enF4PJ1ccId3HL2maavpXKguCMcMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYreI8uc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jE4FrxBN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D236AC4CEC6;
-	Sat, 26 Oct 2024 23:13:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYreI8uc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E10EC4CEC6;
+	Sat, 26 Oct 2024 23:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729984428;
-	bh=Psm+MfT5j54Vz3zZR/Go9qoIezsE8LNcS/0lqP7lKEM=;
+	s=korg; t=1729985278;
+	bh=KbwqKA+w7hmFp3j76GRv5DScvenJPODX5vyoNuGtmcM=;
 	h=Date:To:From:Subject:From;
-	b=jE4FrxBNSmrQQfx74xaZCyXY8oT5nyFuCQ10RObCKowhfLHNbADVS3QqlA9quJtrW
-	 yXLsHH++mBLPGm1kkxl9zKRjgLhqjikHruR8fc1E36HuYG7VPK9nBl0Z1ufeVQlcEF
-	 huXaY33SqqhsUa2AI0dq7hNWAGVhC+IFp2LzjdhQ=
-Date: Sat, 26 Oct 2024 16:13:48 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=dYreI8ucsng/0NXqwSZEugOnZN6bzXDvFJcbBKyePD+2+WS2kvloK9dKLV0d/xMV5
+	 x8hGBrlKryAqgTmwL4TgfF9pX+y/2Ci6HCOpF/vdDMo1zVC9vbgDweKVjZjkwAIXXR
+	 CC88vOLTCc05Q2lIdd8ctZ4J132FkKqgkndlwuL0=
+Date: Sat, 26 Oct 2024 16:27:57 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-per-order-mthp-swpin-counters.patch added to mm-unstable branch
-Message-Id: <20241026231348.D236AC4CEC6@smtp.kernel.org>
+Subject: + memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch added to mm-unstable branch
+Message-Id: <20241026232758.5E10EC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add per-order mTHP swpin counters
+     Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-per-order-mthp-swpin-counters.patch
+     memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-per-order-mthp-swpin-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,111 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: add per-order mTHP swpin counters
-Date: Sat, 26 Oct 2024 21:24:23 +1300
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
+Date: Fri, 25 Oct 2024 23:34:34 -0700
 
-This helps profile the sizes of folios being swapped in. Currently,
-only mTHP swap-out is being counted.
+folio_rcu() fixup, per Yu Zhao
 
-Link: https://lkml.kernel.org/r/20241026082423.26298-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/iwmabnye3nl4merealrawt3bdvfii2pwavwrddrqpraoveet7h@ezrsdhjwwej7
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    3 +++
- include/linux/huge_mm.h                    |    1 +
- mm/huge_memory.c                           |    3 +++
- mm/page_io.c                               |    3 +++
- 4 files changed, 10 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-per-order-mthp-swpin-counters
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -533,6 +533,9 @@ anon_fault_fallback_charge
- zswpout
- 	is incremented every time a huge page is swapped out to zswap in one
- 	piece without splitting.
-+swpin
-+	is incremented every time a huge page is swapped in from a non-zswap
-+	swap device in one piece.
+--- a/mm/vmscan.c~memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2
++++ a/mm/vmscan.c
+@@ -3353,7 +3353,7 @@ static struct folio *get_pfn_folio(unsig
+ 	if (folio_nid(folio) != pgdat->node_id)
+ 		return NULL;
  
- swpout
- 	is incremented every time a huge page is swapped out to a non-zswap
---- a/include/linux/huge_mm.h~mm-add-per-order-mthp-swpin-counters
-+++ a/include/linux/huge_mm.h
-@@ -120,6 +120,7 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_FALLBACK,
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
- 	MTHP_STAT_ZSWPOUT,
-+	MTHP_STAT_SWPIN,
- 	MTHP_STAT_SWPOUT,
- 	MTHP_STAT_SWPOUT_FALLBACK,
- 	MTHP_STAT_SHMEM_ALLOC,
---- a/mm/huge_memory.c~mm-add-per-order-mthp-swpin-counters
-+++ a/mm/huge_memory.c
-@@ -616,6 +616,7 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_alloc,
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
-+DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
- #ifdef CONFIG_SHMEM
-@@ -635,6 +636,7 @@ static struct attribute *anon_stats_attr
- 	&anon_fault_fallback_charge_attr.attr,
- #ifndef CONFIG_SHMEM
- 	&zswpout_attr.attr,
-+	&swpin_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
-@@ -666,6 +668,7 @@ static struct attribute_group file_stats
- static struct attribute *any_stats_attrs[] = {
- #ifdef CONFIG_SHMEM
- 	&zswpout_attr.attr,
-+	&swpin_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
---- a/mm/page_io.c~mm-add-per-order-mthp-swpin-counters
-+++ a/mm/page_io.c
-@@ -487,6 +487,7 @@ static void sio_read_complete(struct kio
- 		for (p = 0; p < sio->pages; p++) {
- 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
+-	if (folio_memcg_rcu(folio) != memcg)
++	if (folio_memcg(folio) != memcg)
+ 		return NULL;
  
-+			count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
- 			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
- 			folio_mark_uptodate(folio);
- 			folio_unlock(folio);
-@@ -573,6 +574,7 @@ static void swap_read_folio_bdev_sync(st
- 	 * attempt to access it in the page fault retry time check.
- 	 */
- 	get_task_struct(current);
-+	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
- 	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
- 	count_vm_events(PSWPIN, folio_nr_pages(folio));
- 	submit_bio_wait(&bio);
-@@ -589,6 +591,7 @@ static void swap_read_folio_bdev_async(s
- 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
- 	bio->bi_end_io = end_swap_bio_read;
- 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
-+	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
- 	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
- 	count_vm_events(PSWPIN, folio_nr_pages(folio));
- 	submit_bio(bio);
+ 	/* file VMAs can contain anon pages from COW */
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-fix-pswpin-counter-for-large-folios-swap-in.patch
-mm-add-per-order-mthp-swpin-counters.patch
+mm-optimize-truncation-of-shadow-entries.patch
+mm-optimize-invalidation-of-shadow-entries.patch
+mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
+memcg-add-tracing-for-memcg-stat-updates.patch
+memcg-add-tracing-for-memcg-stat-updates-v2.patch
+memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
+memcg-v1-remove-charge-move-code.patch
+memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru-fix-2.patch
+memcg-v1-remove-memcg-move-locking-code.patch
+memcg-workingset-remove-folio_memcg_rcu-usage.patch
 
