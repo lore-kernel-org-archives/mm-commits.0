@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1769E170A1B
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24CD170A1B
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:03:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729983687; cv=none; b=VvrUr6A+mysXpq38pGKsehYU75iljcBAhD4PAme15MCCPr96N6tHPgjcluI0JNkTBdGI424dBQq960ux+m/GAvbOqzn9AUe4Py5U3kVF7kZZtQaW1m/tbg8tjWAHKNfG06giOUUMDaYuMslHjUWAEYCVN2Teomrp92Z28SQsVlg=
+	t=1729983785; cv=none; b=aPnljJJ7swX8CWqzwblMO7pYkfEo0R9If2VG4j4teIvLaupZDrMjENDN/rktNWVHYKpq455/HYpEq75oXaAg8JDqjvwgjCd7Y1GblHjXiLLxu2uQVJGkVE5i99nMDUQLn40QDLC0Q1s63ZHZUqAXkN7pkgfqI3PxR1uneXpZzHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729983687; c=relaxed/simple;
-	bh=EkN2C7aUQgcecKw+ulhT6SD2JaYiIFYCyxd2rd7biaI=;
-	h=Date:To:From:Subject:Message-Id; b=qJMLRLnHvAQJx7XQ5Ifcm9KzYYqUSQOOqHR3RDXluZ7jFWy5H2J1XaNFohgqGAICZ6w3YCJpIem09lTG+2bvfXc98quGbAqkPVdcbkTDMUQF3e6s4j0i8zc26p0aWE8Hwgz59oUGL7za8EaUxeIR2kYuLoMam6lMiZqU04Qyirg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iA/KFLTl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729983785; c=relaxed/simple;
+	bh=twCXAKNy3ME8X5CCT+3C53fadCPI+DVDKUhB1qqGd2k=;
+	h=Date:To:From:Subject:Message-Id; b=QsqrTcrmzERSU+Cr+TjFgRl9HrKutnO7fa5T7v7++SOn6WkDsVJGWHXlPalu5RocTN6LibuFjAfK9fo46FmQWdEXVvrUTnSSkiNQqqo/BY08P5y2uJ0JWSXFf11lXjMKPBjidU8w8W+9tKSJQVDFs1M9xm9hHbAxp8dqNtLbXT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d94GhV+J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iA/KFLTl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B4AAC4CEC6;
-	Sat, 26 Oct 2024 23:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d94GhV+J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32360C4CEC6;
+	Sat, 26 Oct 2024 23:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729983686;
-	bh=EkN2C7aUQgcecKw+ulhT6SD2JaYiIFYCyxd2rd7biaI=;
+	s=korg; t=1729983785;
+	bh=twCXAKNy3ME8X5CCT+3C53fadCPI+DVDKUhB1qqGd2k=;
 	h=Date:To:From:Subject:From;
-	b=iA/KFLTloOwTtWS4gPz0Bc3P2AkgHD0X0LQmMFPktr5cOEa4btYs3zusgbAAOHETB
-	 0J0vfezmNfh7KXwlFyWeywe0qUs8QgkGtVfd1LPLVERkp8jSleE41btZZsk7UUAMSs
-	 XDIkg4A9+p3m7vDoG+KVXbWCxj+dmfOrV99IaZs4=
-Date: Sat, 26 Oct 2024 16:01:25 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,songmuchun@bytedance.com,roman.gushchin@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=d94GhV+JmCMHLtiAQRljgGmjfMI4kcEChz8ajZYrWekPFM9cNpdgHDd6vu0WFJB1v
+	 W9f7rrkpmeB8btH2/O7SgOGslKelzjUlPHd7lGw63Yco8yEPvzSh/Tlu5pi+XqALC+
+	 wUXoyFNuZcXH7tH757W1hZlTuCrf1YOe6x9+tbT8=
+Date: Sat, 26 Oct 2024 16:03:04 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-workingset-remove-folio_memcg_rcu-usage.patch added to mm-unstable branch
-Message-Id: <20241026230126.7B4AAC4CEC6@smtp.kernel.org>
+Subject: + mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch added to mm-unstable branch
+Message-Id: <20241026230305.32360C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: workingset: remove folio_memcg_rcu usage
+     Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-workingset-remove-folio_memcg_rcu-usage.patch
+     mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-workingset-remove-folio_memcg_rcu-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,125 +58,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: workingset: remove folio_memcg_rcu usage
-Date: Sat, 26 Oct 2024 09:37:07 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
+Date: Sat, 26 Oct 2024 21:51:52 +0800
 
-The function workingset_activation() is called from folio_mark_accessed()
-with the guarantee that the given folio can not be freed under us in
-workingset_activation().  In addition, the association of the folio and
-its memcg can not be broken here because charge migration is no more. 
-There is no need to use folio_memcg_rcu.  Simply use folio_memcg_charged()
-because that is what this function cares about.
+The tmpfs has already supported the PMD-sized large folios, and splice()
+can not read any pages if the large folio has a poisoned page, which is
+not good as Matthew pointed out in a previous email[1]:
 
-Link: https://lkml.kernel.org/r/20241026163707.2479526-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+"so if we have hwpoison set on one page in a folio, we now can't read
+bytes from any page in the folio?  That seems like we've made a bad
+situation worse."
+
+Thus add a fallback to the PAGE_SIZE splice() still allows reading normal
+pages if the large folio has hwpoisoned pages.
+
+[1] https://lore.kernel.org/all/Zw_d0EVAJkpNJEbA@casper.infradead.org/
+Link: https://lkml.kernel.org/r/e3737fbd5366c4de4337bf5f2044817e77a5235b.1729915173.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   35 -----------------------------------
- mm/workingset.c            |   14 ++------------
- 2 files changed, 2 insertions(+), 47 deletions(-)
+ mm/shmem.c |   39 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 31 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-workingset-remove-folio_memcg_rcu-usage
-+++ a/include/linux/memcontrol.h
-@@ -443,35 +443,6 @@ static inline bool folio_memcg_charged(s
- 	return __folio_memcg(folio) != NULL;
- }
+--- a/mm/shmem.c~mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages
++++ a/mm/shmem.c
+@@ -3291,11 +3291,16 @@ static ssize_t shmem_file_splice_read(st
+ 	len = min_t(size_t, len, npages * PAGE_SIZE);
  
--/**
-- * folio_memcg_rcu - Locklessly get the memory cgroup associated with a folio.
-- * @folio: Pointer to the folio.
-- *
-- * This function assumes that the folio is known to have a
-- * proper memory cgroup pointer. It's not safe to call this function
-- * against some type of folios, e.g. slab folios or ex-slab folios.
-- *
-- * Return: A pointer to the memory cgroup associated with the folio,
-- * or NULL.
-- */
--static inline struct mem_cgroup *folio_memcg_rcu(struct folio *folio)
--{
--	unsigned long memcg_data = READ_ONCE(folio->memcg_data);
--
--	VM_BUG_ON_FOLIO(folio_test_slab(folio), folio);
--
--	if (memcg_data & MEMCG_DATA_KMEM) {
--		struct obj_cgroup *objcg;
--
--		objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
--		return obj_cgroup_memcg(objcg);
--	}
--
--	WARN_ON_ONCE(!rcu_read_lock_held());
--
--	return (struct mem_cgroup *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
--}
--
- /*
-  * folio_memcg_check - Get the memory cgroup associated with a folio.
-  * @folio: Pointer to the folio.
-@@ -1084,12 +1055,6 @@ static inline struct mem_cgroup *folio_m
- 	return NULL;
- }
+ 	do {
++		bool fallback_page_splice = false;
++		struct page *page = NULL;
++		pgoff_t index;
++		size_t size;
++
+ 		if (*ppos >= i_size_read(inode))
+ 			break;
  
--static inline struct mem_cgroup *folio_memcg_rcu(struct folio *folio)
--{
--	WARN_ON_ONCE(!rcu_read_lock_held());
--	return NULL;
--}
--
- static inline struct mem_cgroup *folio_memcg_check(struct folio *folio)
- {
- 	return NULL;
---- a/mm/workingset.c~memcg-workingset-remove-folio_memcg_rcu-usage
-+++ a/mm/workingset.c
-@@ -591,22 +591,12 @@ void workingset_refault(struct folio *fo
-  */
- void workingset_activation(struct folio *folio)
- {
--	struct mem_cgroup *memcg;
--
--	rcu_read_lock();
- 	/*
- 	 * Filter non-memcg pages here, e.g. unmap can call
- 	 * mark_page_accessed() on VDSO pages.
--	 *
--	 * XXX: See workingset_refault() - this should return
--	 * root_mem_cgroup even for !CONFIG_MEMCG.
- 	 */
--	memcg = folio_memcg_rcu(folio);
--	if (!mem_cgroup_disabled() && !memcg)
--		goto out;
--	workingset_age_nonresident(folio_lruvec(folio), folio_nr_pages(folio));
--out:
--	rcu_read_unlock();
-+	if (mem_cgroup_disabled() || folio_memcg_charged(folio))
-+		workingset_age_nonresident(folio_lruvec(folio), folio_nr_pages(folio));
- }
+-		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, 0, &folio,
+-					SGP_READ);
++		index = *ppos >> PAGE_SHIFT;
++		error = shmem_get_folio(inode, index, 0, &folio, SGP_READ);
+ 		if (error) {
+ 			if (error == -EINVAL)
+ 				error = 0;
+@@ -3304,12 +3309,15 @@ static ssize_t shmem_file_splice_read(st
+ 		if (folio) {
+ 			folio_unlock(folio);
  
- /*
+-			if (folio_test_hwpoison(folio) ||
+-			    (folio_test_large(folio) &&
+-			     folio_test_has_hwpoisoned(folio))) {
++			page = folio_file_page(folio, index);
++			if (PageHWPoison(page)) {
+ 				error = -EIO;
+ 				break;
+ 			}
++
++			if (folio_test_large(folio) &&
++			    folio_test_has_hwpoisoned(folio))
++				fallback_page_splice = true;
+ 		}
+ 
+ 		/*
+@@ -3323,7 +3331,18 @@ static ssize_t shmem_file_splice_read(st
+ 		isize = i_size_read(inode);
+ 		if (unlikely(*ppos >= isize))
+ 			break;
+-		part = min_t(loff_t, isize - *ppos, len);
++		/*
++		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
++		 * pages.
++		 */
++		if (likely(!fallback_page_splice)) {
++			size = len;
++		} else {
++			size_t offset = *ppos & ~PAGE_MASK;
++
++			size = min_t(loff_t, PAGE_SIZE - offset, len);
++		}
++		part = min_t(loff_t, isize - *ppos, size);
+ 
+ 		if (folio) {
+ 			/*
+@@ -3331,8 +3350,12 @@ static ssize_t shmem_file_splice_read(st
+ 			 * virtual addresses, take care about potential aliasing
+ 			 * before reading the page on the kernel side.
+ 			 */
+-			if (mapping_writably_mapped(mapping))
+-				flush_dcache_folio(folio);
++			if (mapping_writably_mapped(mapping)) {
++				if (likely(!fallback_page_splice))
++					flush_dcache_folio(folio);
++				else
++					flush_dcache_page(page);
++			}
+ 			folio_mark_accessed(folio);
+ 			/*
+ 			 * Ok, we have the page, and it's up-to-date, so we can
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-optimize-truncation-of-shadow-entries.patch
-mm-optimize-invalidation-of-shadow-entries.patch
-mm-truncate-reset-xa_has_values-flag-on-each-iteration.patch
-memcg-add-tracing-for-memcg-stat-updates.patch
-memcg-add-tracing-for-memcg-stat-updates-v2.patch
-memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
-memcg-v1-remove-charge-move-code.patch
-memcg-v1-no-need-for-memcg-locking-for-dirty-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-writeback-tracking.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru.patch
-memcg-v1-remove-memcg-move-locking-code.patch
-memcg-workingset-remove-folio_memcg_rcu-usage.patch
+mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
+mm-shmem-update-iocb-ki_pos-directly-to-simplify-tmpfs-read-logic.patch
+mm-shmem-improve-the-tmpfs-large-folio-read-performance.patch
+mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
 
