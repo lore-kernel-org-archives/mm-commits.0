@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D7E1F9CF
-	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:31:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A711AF9CF
+	for <mm-commits@vger.kernel.org>; Sat, 26 Oct 2024 23:31:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729985485; cv=none; b=uDND/o9i/0oFIeJPkBCpPddJDQya5/FxRQSn3wWB9TMn/tXJ4AMQpos7l9iV7S4U6A19tLna9TqLU9KgdqVZC99j8mzTL0PWdV3qZNs36f3/GqKvqcY8nbdpQPU+SYBk4kuby6KkAvYlEplBFuW1xlnHbnozA8aKd/bMdozXUME=
+	t=1729985488; cv=none; b=iKVni/zWgjSUJc/gFBFm9stHJHKDZ3yMcQTKBsbgBGQoocDU4yQtbdaEKpCfWfWAiLWE1c2k76gRFzp/dQh1yThOB3qXC8PfEvxEuuEeUVaIO7n9cs2ZiSJQa1V11H9PRT75NNP4aeDncpSJlPW/YPHBfQ9CxA+DQH/30tZ6z/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729985485; c=relaxed/simple;
-	bh=T8ZWyCtTs5fef35XSmschRSUIUa3LlZ6a98g0ZZ6RCg=;
-	h=Date:To:From:Subject:Message-Id; b=XHawzzDjNNBiR19fepemkjlHNRHki7kuHN9ltkCWkpf4zVhFZCnWusBKE/1FOF7jj4my9lkEvZ1z0ynZw7irH7JFVuj31BFI/Ai0LASwhwNXyhwV7FPCMSgkLfk0gDSc+7SHY1AIKiaCwz8hH3qbFZEXO4NyCGtzkEKdfG4c71Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dEX1O1/C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729985488; c=relaxed/simple;
+	bh=plkNQuR57h+veSZboGf/T1GAinzVC2ZnEiIM29p89uw=;
+	h=Date:To:From:Subject:Message-Id; b=iOB+FdkHGiRP9gXq050Wh+3hCXliWUyqsM427S6x8qhrbuNHwjJj8+ib7LZGVEoCjcw/yBU+xsDaucXZZ0dFBp28f+HppjGS4OxQNOeMt5gpWiB4UzA+J3iywGDxW8MkT2VRoeFs3au9iyYfOB/zppa/BluvM8i/xIruMnUGWSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AypKsg7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dEX1O1/C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD77C4CEC6;
-	Sat, 26 Oct 2024 23:31:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AypKsg7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0956EC4CEC6;
+	Sat, 26 Oct 2024 23:31:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1729985484;
-	bh=T8ZWyCtTs5fef35XSmschRSUIUa3LlZ6a98g0ZZ6RCg=;
+	s=korg; t=1729985487;
+	bh=plkNQuR57h+veSZboGf/T1GAinzVC2ZnEiIM29p89uw=;
 	h=Date:To:From:Subject:From;
-	b=dEX1O1/C8y7Rwpypbc4VEWyzKWrqZfW4uLlsEThT1kpsV9jlz88p6gZ7nZero/F0R
-	 zUGkv2LL08MWATCc23m1jvv8bi9Q6FwygGi9cPUZfp81ElOb07BJeK8fcUIDdlaVqM
-	 e2y9vLqKdwgoRyI8wpIPC1eE1LqBVkeDSx6Tom8g=
-Date: Sat, 26 Oct 2024 16:31:24 -0700
+	b=AypKsg7sXAjhPjaYupQcTvyIXTv94eIwx1gDxtTpwjjmnemYEn9vyRq0qVVC5DeIt
+	 JPR8OTmev/pr2d+dpbvqmAjPNOpgIgn8csQndz+Xa+y4Y6aCdlFAYMTWGokBJr/JDU
+	 OqxrfHDZTWQGPLO4q1aLobPfYf8uqt6WbQUM1iLM=
+Date: Sat, 26 Oct 2024 16:31:26 -0700
 To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-aligned-address-in-clear_gigantic_page.patch added to mm-unstable branch
-Message-Id: <20241026233124.ACD77C4CEC6@smtp.kernel.org>
+Subject: + mm-use-aligned-address-in-copy_user_gigantic_page.patch added to mm-unstable branch
+Message-Id: <20241026233127.0956EC4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use aligned address in clear_gigantic_page()
+     Subject: mm: use aligned address in copy_user_gigantic_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-aligned-address-in-clear_gigantic_page.patch
+     mm-use-aligned-address-in-copy_user_gigantic_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-aligned-address-in-clear_gigantic_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-aligned-address-in-copy_user_gigantic_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,10 +59,10 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: use aligned address in clear_gigantic_page()
-Date: Sat, 26 Oct 2024 13:43:06 +0800
+Subject: mm: use aligned address in copy_user_gigantic_page()
+Date: Sat, 26 Oct 2024 13:43:07 +0800
 
-When clearing gigantic page, it zeros page from the first page to the last
+When copying gigantic page, it copies page from the first page to the last
 page, if directly passing addr_hint which maybe not the address of the
 first page of folio, then some archs could flush the wrong cache if it
 does use the addr_hint as a hint.  For non-gigantic page, it calculates
@@ -70,11 +70,11 @@ the base address inside, even passed the wrong addr_hint, it only has
 performance impact as the process_huge_page() wants to process target page
 last to keep its cache lines hot), no functional impact.
 
-Let's pass the real accessed address to folio_zero_user() and use the
-aligned address in clear_gigantic_page() to fix it.
+Let's pass the real accessed address to copy_user_large_folio() and use
+the aligned address in copy_user_gigantic_page() to fix it.
 
-Link: https://lkml.kernel.org/r/20241026054307.3896926-1-wangkefeng.wang@huawei.com
-Fixes: 78fefd04c123 ("mm: memory: convert clear_huge_page() to folio_zero_user()")
+Link: https://lkml.kernel.org/r/20241026054307.3896926-2-wangkefeng.wang@huawei.com
+Fixes: 530dd9926dc1 ("mm: memory: improve copy_user_large_folio()")
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -83,31 +83,41 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- mm/memory.c          |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    5 ++---
+ mm/memory.c  |    1 +
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-use-aligned-address-in-clear_gigantic_page
-+++ a/fs/hugetlbfs/inode.c
-@@ -819,7 +819,7 @@ static long hugetlbfs_fallocate(struct f
- 			error = PTR_ERR(folio);
+--- a/mm/hugetlb.c~mm-use-aligned-address-in-copy_user_gigantic_page
++++ a/mm/hugetlb.c
+@@ -5338,7 +5338,7 @@ again:
+ 					break;
+ 				}
+ 				ret = copy_user_large_folio(new_folio, pte_folio,
+-						ALIGN_DOWN(addr, sz), dst_vma);
++							    addr, dst_vma);
+ 				folio_put(pte_folio);
+ 				if (ret) {
+ 					folio_put(new_folio);
+@@ -6641,8 +6641,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			*foliop = NULL;
  			goto out;
  		}
--		folio_zero_user(folio, ALIGN_DOWN(addr, hpage_size));
-+		folio_zero_user(folio, addr);
- 		__folio_mark_uptodate(folio);
- 		error = hugetlb_add_to_page_cache(folio, mapping, index);
- 		if (unlikely(error)) {
---- a/mm/memory.c~mm-use-aligned-address-in-clear_gigantic_page
+-		ret = copy_user_large_folio(folio, *foliop,
+-					    ALIGN_DOWN(dst_addr, size), dst_vma);
++		ret = copy_user_large_folio(folio, *foliop, dst_addr, dst_vma);
+ 		folio_put(*foliop);
+ 		*foliop = NULL;
+ 		if (ret) {
+--- a/mm/memory.c~mm-use-aligned-address-in-copy_user_gigantic_page
 +++ a/mm/memory.c
-@@ -6810,6 +6810,7 @@ static void clear_gigantic_page(struct f
- 	int i;
+@@ -6849,6 +6849,7 @@ static int copy_user_gigantic_page(struc
+ 	struct page *dst_page;
+ 	struct page *src_page;
  
- 	might_sleep();
-+	addr = ALIGN_DOWN(addr, folio_size(folio));
++	addr = ALIGN_DOWN(addr, folio_size(dst));
  	for (i = 0; i < nr_pages; i++) {
- 		cond_resched();
- 		clear_user_highpage(folio_page(folio, i), addr + i * PAGE_SIZE);
+ 		dst_page = folio_page(dst, i);
+ 		src_page = folio_page(src, i);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
