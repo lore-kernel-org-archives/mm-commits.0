@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EEF91885B8
-	for <mm-commits@vger.kernel.org>; Mon, 28 Oct 2024 23:50:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E4B1D5171;
+	Mon, 28 Oct 2024 23:52:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730159407; cv=none; b=g2IYMIiYbjDxQQom7by8111+GS6RVBVmMn+UDMSNwFsC5o8YC7ylByUU0z9EmzWdsdbwK36DYM2FXzDgtcQbm6GhLl/Stn3YdscQ2zbEkcj11GDV2BY+IxeP+0wNuLZTAZgujWXpcun42eLzOAzCwYvXaVsj8gj+azA8cnQp0fE=
+	t=1730159533; cv=none; b=R6VM0qCeSjXU4Gq9QISAwAjBJS8+rQyVKJN+ZqC/P9/8oF1pbxrws1ampKRKvlCYeGb1lQwskEaaTYQoLYplvpRvhiITO7nCgsbskWTS05FDL4Q3ikRaGAR4/2XAgybqsDUC0/b8u45L1uoM2SsIhpOv7WajNRNQqYTuX3bYRE4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730159407; c=relaxed/simple;
-	bh=NsNCYBH5AUKgVNQIHO6l6eAlA0k15W1vvqV8Pgb81ec=;
-	h=Date:To:From:Subject:Message-Id; b=hCX7MKcoyGOWUVvWKxQsglnkQB/jekt/rxmcs3CCNLyChgmFIOoIugUW1xhmnP1ARtMzUnvx2OSAayVYtsfjkGr+SxL8FSxsmCPLh+PTeXvUE1+hVJRRZkWBlsEALhGuWV3si3IUbY2vQThRV3ULyyJY07DmX/3rnJ/hm8aZi/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vjlGqX3H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730159533; c=relaxed/simple;
+	bh=JQ/lrItjqcXm/4ktsrc19zrWcrH8BaO6JqbI7d3GTnQ=;
+	h=Date:To:From:Subject:Message-Id; b=Nl5meNuvXebNbrYOPo2yd0J6DQCrbamOd68ToC67uktVY1bZorVHTZWWlIjBZDxGNI9yuuH/0S1FucQP/Sy/H16jQKHRYdyWg/Xt0ESIDOzzmZOckbJCUHTg+57RgBJD6LfedZdIdwRPs2Q2X7S6Pd2ZUy96gH3Qt/XW4hBTcv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cfzYzDj1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vjlGqX3H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30746C4CEC3;
-	Mon, 28 Oct 2024 23:50:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cfzYzDj1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42146C4CEC3;
+	Mon, 28 Oct 2024 23:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730159407;
-	bh=NsNCYBH5AUKgVNQIHO6l6eAlA0k15W1vvqV8Pgb81ec=;
+	s=korg; t=1730159532;
+	bh=JQ/lrItjqcXm/4ktsrc19zrWcrH8BaO6JqbI7d3GTnQ=;
 	h=Date:To:From:Subject:From;
-	b=vjlGqX3HMBh2X/CWdthQCv9MkCy2huKdbqKj2ZafZrvjbiEu3rre+yOLwa8hO3qJK
-	 Ws9vfQK6Kcwo+CgVCjsEbgsSHupCorT8g/RA5WLRmyJgAilg4bSdBjc2bC27knzsqA
-	 m25MzHUTFL/FJlepLiE8C5tt35JbnQSJ7JQoQCCU=
-Date: Mon, 28 Oct 2024 16:50:06 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lizefan.x@bytedance.com,hannes@cmpxchg.org,corbet@lwn.net,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=cfzYzDj1taYm1kyUe7izTNFgapsvhMD7OuYgFrHmBt+fkk/Ke5bjbFkdkOAeDsvLY
+	 RgqwL2YmQenFXDTZp5DNcoCCJa9mSpNd0j1scP8bZwEb+TruJdmPdeXjaIFH4okXGM
+	 1xWZ1eX+S+MjKd6DqZ8wAHHFXkYLhOY3lJM5bXzY=
+Date: Mon, 28 Oct 2024 16:52:11 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,weixugc@google.com,stable@vger.kernel.org,shy828301@gmail.com,osalvador@suse.de,dave.hansen@linux.intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-hugetlb-adding-hugetlb-counters-to-memcg.patch added to mm-unstable branch
-Message-Id: <20241028235007.30746C4CEC3@smtp.kernel.org>
+Subject: + vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241028235212.42146C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg/hugetlb: adding hugeTLB counters to memcg
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-hugetlb-adding-hugetlb-counters-to-memcg.patch
+     Subject: vmscan,migrate: fix page count imbalance on node stats when demoting pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-hugetlb-adding-hugetlb-counters-to-memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,171 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: memcg/hugetlb: adding hugeTLB counters to memcg
-Date: Mon, 28 Oct 2024 14:05:05 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: vmscan,migrate: fix page count imbalance on node stats when demoting pages
+Date: Fri, 25 Oct 2024 10:17:24 -0400
 
-This patch introduces a new counter to memory.stat that tracks hugeTLB
-usage, only if hugeTLB accounting is done to memory.current.  This feature
-is enabled the same way hugeTLB accounting is enabled, via the
-memory_hugetlb_accounting mount flag for cgroupsv2.
+When numa balancing is enabled with demotion, vmscan will call
+migrate_pages when shrinking LRUs.  migrate_pages will decrement the
+the node's isolated page count, leading to an imbalanced count when
+invoked from (MG)LRU code.
 
-1. Why is this patch necessary?
-Currently, memcg hugeTLB accounting is an opt-in feature [1] that adds
-hugeTLB usage to memory.current.  However, the metric is not reported in
-memory.stat.  Given that users often interpret memory.stat as a breakdown
-of the value reported in memory.current, the disparity between the two
-reports can be confusing.  This patch solves this problem by including the
-metric in memory.stat as well, but only if it is also reported in
-memory.current (it would also be confusing if the value was reported in
-memory.stat, but not in memory.current)
+The result is dmesg output like such:
 
-Aside from the consistency between the two files, we also see benefits in
-observability.  Userspace might be interested in the hugeTLB footprint of
-cgroups for many reasons.  For instance, system admins might want to
-verify that hugeTLB usage is distributed as expected across tasks: i.e. 
-memory-intensive tasks are using more hugeTLB pages than tasks that don't
-consume a lot of memory, or are seen to fault frequently.  Note that this
-is separate from wanting to inspect the distribution for limiting purposes
-(in which case, hugeTLB controller makes more sense).
+$ cat /proc/sys/vm/stat_refresh
 
-2.  We already have a hugeTLB controller.  Why not use that?  It is true
-that hugeTLB tracks the exact value that we want.  In fact, by enabling
-the hugeTLB controller, we get all of the observability benefits that I
-mentioned above, and users can check the total hugeTLB usage, verify if it
-is distributed as expected, etc.
+[77383.088417] vmstat_refresh: nr_isolated_anon -103212
+[77383.088417] vmstat_refresh: nr_isolated_file -899642
 
-With this said, there are 2 problems:
-(a) They are still not reported in memory.stat, which means the
-    disparity between the memcg reports are still there.
-(b) We cannot reasonably expect users to enable the hugeTLB controller
-    just for the sake of hugeTLB usage reporting, especially since
-    they don't have any use for hugeTLB usage enforcing [2].
+This negative value may impact compaction and reclaim throttling.
 
-[1] https://lore.kernel.org/all/20231006184629.155543-1-nphamcs@gmail.com/
-[2] Of course, we can't make a new patch for every feature that can be
-    duplicated. However, since the existing solution of enabling the
-    hugeTLB controller is an imperfect solution that still leaves a
-    discrepancy between memory.stat and memory.curent, I think that it
-    is reasonable to isolate the feature in this case.
+The following path produces the decrement:
 
-Link: https://lkml.kernel.org/r/20241028210505.1950884-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Suggested-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+shrink_folio_list
+  demote_folio_list
+    migrate_pages
+      migrate_pages_batch
+        migrate_folio_move
+          migrate_folio_done
+            mod_node_page_state(-ve) <- decrement
+
+This path happens for SUCCESSFUL migrations, not failures.  Typically
+callers to migrate_pages are required to handle putback/accounting for
+failures, but this is already handled in the shrink code.
+
+When accounting for migrations, instead do not decrement the count when
+the migration reason is MR_DEMOTION.  As of v6.11, this demotion logic
+is the only source of MR_DEMOTION.
+
+Link: https://lkml.kernel.org/r/20241025141724.17927-1-gourry@gourry.net
+Fixes: 26aa2d199d6f ("mm/migrate: demote pages during reclaim")
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Wei Xu <weixugc@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    5 +++++
- include/linux/mmzone.h                  |    3 +++
- mm/hugetlb.c                            |    2 ++
- mm/memcontrol.c                         |   11 +++++++++++
- mm/vmstat.c                             |    3 +++
- 5 files changed, 24 insertions(+)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~memcg-hugetlb-adding-hugetlb-counters-to-memcg
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1646,6 +1646,11 @@ The following nested keys are defined.
- 	  pgdemote_khugepaged
- 		Number of pages demoted by khugepaged.
+--- a/mm/migrate.c~vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages
++++ a/mm/migrate.c
+@@ -1178,7 +1178,7 @@ static void migrate_folio_done(struct fo
+ 	 * not accounted to NR_ISOLATED_*. They can be recognized
+ 	 * as __folio_test_movable
+ 	 */
+-	if (likely(!__folio_test_movable(src)))
++	if (likely(!__folio_test_movable(src)) && reason != MR_DEMOTION)
+ 		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
+ 				    folio_is_file_lru(src), -folio_nr_pages(src));
  
-+	  hugetlb
-+		Amount of memory used by hugetlb pages. This metric only shows
-+		up if hugetlb usage is accounted for in memory.current (i.e.
-+		cgroup is mounted with the memory_hugetlb_accounting option).
-+
-   memory.numa_stat
- 	A read-only nested-keyed file which exists on non-root cgroups.
- 
---- a/include/linux/mmzone.h~memcg-hugetlb-adding-hugetlb-counters-to-memcg
-+++ a/include/linux/mmzone.h
-@@ -220,6 +220,9 @@ enum node_stat_item {
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
-+#ifdef CONFIG_HUGETLB_PAGE
-+	NR_HUGETLB,
-+#endif
- 	NR_VM_NODE_STAT_ITEMS
- };
- 
---- a/mm/hugetlb.c~memcg-hugetlb-adding-hugetlb-counters-to-memcg
-+++ a/mm/hugetlb.c
-@@ -1925,6 +1925,7 @@ void free_huge_folio(struct folio *folio
- 				     pages_per_huge_page(h), folio);
- 	hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
- 					  pages_per_huge_page(h), folio);
-+	lruvec_stat_mod_folio(folio, NR_HUGETLB, -pages_per_huge_page(h));
- 	mem_cgroup_uncharge(folio);
- 	if (restore_reserve)
- 		h->resv_huge_pages++;
-@@ -3093,6 +3094,7 @@ struct folio *alloc_hugetlb_folio(struct
- 
- 	if (!memcg_charge_ret)
- 		mem_cgroup_commit_charge(folio, memcg);
-+	lruvec_stat_mod_folio(folio, NR_HUGETLB, pages_per_huge_page(h));
- 	mem_cgroup_put(memcg);
- 
- 	return folio;
---- a/mm/memcontrol.c~memcg-hugetlb-adding-hugetlb-counters-to-memcg
-+++ a/mm/memcontrol.c
-@@ -315,6 +315,9 @@ static const unsigned int memcg_node_sta
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
-+#ifdef CONFIG_HUGETLB_PAGE
-+	NR_HUGETLB,
-+#endif
- };
- 
- static const unsigned int memcg_stat_items[] = {
-@@ -1355,6 +1358,9 @@ static const struct memory_stat memory_s
- 	{ "unevictable",		NR_UNEVICTABLE			},
- 	{ "slab_reclaimable",		NR_SLAB_RECLAIMABLE_B		},
- 	{ "slab_unreclaimable",		NR_SLAB_UNRECLAIMABLE_B		},
-+#ifdef CONFIG_HUGETLB_PAGE
-+	{ "hugetlb",			NR_HUGETLB			},
-+#endif
- 
- 	/* The memory events */
- 	{ "workingset_refault_anon",	WORKINGSET_REFAULT_ANON		},
-@@ -1450,6 +1456,11 @@ static void memcg_stat_format(struct mem
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		u64 size;
- 
-+#ifdef CONFIG_HUGETLB_PAGE
-+		if (unlikely(memory_stats[i].idx == NR_HUGETLB) &&
-+		    !(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_HUGETLB_ACCOUNTING))
-+			continue;
-+#endif
- 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
- 		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
- 
---- a/mm/vmstat.c~memcg-hugetlb-adding-hugetlb-counters-to-memcg
-+++ a/mm/vmstat.c
-@@ -1273,6 +1273,9 @@ const char * const vmstat_text[] = {
- 	"pgdemote_kswapd",
- 	"pgdemote_direct",
- 	"pgdemote_khugepaged",
-+#ifdef CONFIG_HUGETLB_PAGE
-+	"nr_hugetlb",
-+#endif
- 	/* system-wide enum vm_stat_item counters */
- 	"nr_dirty_threshold",
- 	"nr_dirty_background_threshold",
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-memcg-hugetlb-adding-hugetlb-counters-to-memcg.patch
+vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
 
