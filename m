@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADEE92119
-	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 00:03:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB21410A1F
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 00:54:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730160202; cv=none; b=jMY6sIDXz8k5qE8DLzrIK4Gei5ejd2GFvAUkNzexD8S+ijOFjPWk3brDg2hJmwP6+hbPoWGZ0AboMEmSlitiZZEXBHqG7CdhMAVHXP3Dpfta62PrZE2hHlq+L+Oa3AOeY/CGiu+PXYeyS1aV5T1YMNZIdM1LfFrvzI4trnEsZDo=
+	t=1730163254; cv=none; b=Aq1YBNCJ8BL4LASsNeLZtHC/D7FWSxcYNPJpqCmlAiETzeoy4ctPFmQiTk6CPYL1ZbA/3vLlFk8ercvfgQgW3hFk6fUC6QWzfXXuPQiVhIpm7KmDBAYyoiduZbn3iMJ3/agIqirHoYIHWTA+3ZJmJz4uOfOisrqiC3MX0MS0cO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730160202; c=relaxed/simple;
-	bh=gHHtzYC9w3wX4ur4wc+r55Rnn41YzgzT/PydTKwbENQ=;
-	h=Date:To:From:Subject:Message-Id; b=NRtBmxiD2/Rwyk+TdmNo2UGwY2qoLM38zm452iClA/4fbizbHbqOfHf5MY10lj5Q4zZlZ9jewsai3z6yA7hQToNSfbeya4egYtMqIazFxEZ+ut2Ei+lvtsT/agrVdc5IRuir+7iKyKoiaWZ9bwhM/+LZd4d1+PjF2aSRCfZYwNs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1f/L9wn5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730163254; c=relaxed/simple;
+	bh=oBR+NXYM4n40RKgx1TlL/g1GAfI93ZldEE6uLnlY8UY=;
+	h=Date:To:From:Subject:Message-Id; b=FfLdi2v8WpCfhIPRiqAJK5xt3l0JhOgrF9GnUnCNg7G1HF81IfOJbRyj/6QY7tGvCEKsZ6NUlDPFfs7326Mr9TXInT8zRE8OGlS0dIvrcMaU0fojvppU7MnWY6dDkTp63oQEP5ik3BzSeBHwb5lbpSrFpKkVSX+SduslewOvdKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bn1T7Tl0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1f/L9wn5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26B62C4CEC3;
-	Tue, 29 Oct 2024 00:03:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bn1T7Tl0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57B00C4CEC3;
+	Tue, 29 Oct 2024 00:54:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730160202;
-	bh=gHHtzYC9w3wX4ur4wc+r55Rnn41YzgzT/PydTKwbENQ=;
+	s=korg; t=1730163254;
+	bh=oBR+NXYM4n40RKgx1TlL/g1GAfI93ZldEE6uLnlY8UY=;
 	h=Date:To:From:Subject:From;
-	b=1f/L9wn52PyyNyZysBRfySeU0/EqUORr8YM1x0zntrKMxjOp/wpq9EljOvB+QQ9Jo
-	 lNd8C+trAqSDZBS2rhQErkoJ5nHiwN65IprP/vWr7gQN/TyTKh8KmlRbIBkYG0nJYD
-	 7OEUPVf5u3v7ccFobzBzfOg+Dep50u+zQfjVHyNw=
-Date: Mon, 28 Oct 2024 17:03:21 -0700
-To: mm-commits@vger.kernel.org,song@kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,mhiramat@kernel.org,mcgrof@kernel.org,lkp@intel.com,arnd@arndb.de,surenb@google.com,akpm@linux-foundation.org
+	b=bn1T7Tl0tLRWovEO0Qa847SIxvhZPteba1IQPQyZuF0BjxZbfTIIkAwnDXTmS+1eU
+	 qmGrD6jg7eyOEb8rD4ofC5s+Rv+98OTO+YvZ03ZlFKyyYmYrOBPWGZWaP5qxmaUNcZ
+	 89C0dvMD5Wigl70qpqlPcBtQ1eqfxEqaOiSfQ+Sc=
+Date: Mon, 28 Oct 2024 17:54:13 -0700
+To: mm-commits@vger.kernel.org,sui.jingfeng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-populate-memory-for-module-tags-as-needed-fix.patch added to mm-unstable branch
-Message-Id: <20241029000322.26B62C4CEC3@smtp.kernel.org>
+Subject: + lib-scatterlist-use-sg_phys-helper.patch added to mm-nonmm-unstable branch
+Message-Id: <20241029005414.57B00C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: avoid execmem_vmap() when !MMU
-has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-populate-memory-for-module-tags-as-needed-fix.patch
+     Subject: lib/scatterlist: use sg_phys() helper
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-scatterlist-use-sg_phys-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-populate-memory-for-module-tags-as-needed-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-scatterlist-use-sg_phys-helper.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,188 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: avoid execmem_vmap() when !MMU
-Date: Mon, 28 Oct 2024 13:29:35 -0700
+From: Sui Jingfeng <sui.jingfeng@linux.dev>
+Subject: lib/scatterlist: use sg_phys() helper
+Date: Tue, 29 Oct 2024 02:29:20 +0800
 
-With CONFIG_MMU=n __get_vm_area_node() is not available and memory for the
-allocation tags cannot be populated as needed.  For this case, populate
-the required memory at initialization time.
+This shorten the length of code in horizential direction, therefore is
+easier to read.
 
-Link: https://lkml.kernel.org/r/20241028202935.1047017-1-surenb@google.com
-Fixes: 57bc3834fb6f ("alloc_tag: populate memory for module tags as needed")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202410250808.dQGyYjlk-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-lkp/202410251525.9f85854d-oliver.sang@intel.com
-Closes: https://lore.kernel.org/oe-kbuild-all/202410261016.IO7C6Cml-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-kbuild-all/202410270919.LebQlmxD-lkp@intel.com/
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Song Liu <song@kernel.org>
+Link: https://lkml.kernel.org/r/20241028182920.1025819-1-sui.jingfeng@linux.dev
+Signed-off-by: Sui Jingfeng <sui.jingfeng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/execmem.h |    2 ++
- lib/alloc_tag.c         |   23 ++++++++++++++++++++++-
- mm/execmem.c            |   32 ++++++++++++++++----------------
- 3 files changed, 40 insertions(+), 17 deletions(-)
+ lib/scatterlist.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/execmem.h~alloc_tag-populate-memory-for-module-tags-as-needed-fix
-+++ a/include/linux/execmem.h
-@@ -139,6 +139,7 @@ void *execmem_alloc(enum execmem_type ty
-  */
- void execmem_free(void *ptr);
+--- a/lib/scatterlist.c~lib-scatterlist-use-sg_phys-helper
++++ a/lib/scatterlist.c
+@@ -474,14 +474,14 @@ int sg_alloc_append_table_from_pages(str
+ 		return -EOPNOTSUPP;
  
-+#ifdef CONFIG_MMU
- /**
-  * execmem_vmap - create virtual mapping for EXECMEM_MODULE_DATA memory
-  * @size: size of the virtual mapping in bytes
-@@ -148,6 +149,7 @@ void execmem_free(void *ptr);
-  * Return: the area descriptor on success or %NULL on failure.
-  */
- struct vm_struct *execmem_vmap(size_t size);
-+#endif
+ 	if (sgt_append->prv) {
+-		unsigned long next_pfn = (page_to_phys(sg_page(sgt_append->prv)) +
+-			sgt_append->prv->offset + sgt_append->prv->length) / PAGE_SIZE;
++		unsigned long next_pfn;
  
- /**
-  * execmem_update_copy - copy an update to executable memory
---- a/lib/alloc_tag.c~alloc_tag-populate-memory-for-module-tags-as-needed-fix
-+++ a/lib/alloc_tag.c
-@@ -180,7 +180,6 @@ static void __init procfs_init(void)
- #ifdef CONFIG_MODULES
+ 		if (WARN_ON(offset))
+ 			return -EINVAL;
  
- static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
--static struct vm_struct *vm_module_tags;
- /* A dummy object used to indicate an unloaded module */
- static struct module unloaded_mod;
- /* A dummy object used to indicate a module prepended area */
-@@ -254,6 +253,9 @@ repeat:
- 	return false;
- }
- 
-+#ifdef CONFIG_MMU
-+static struct vm_struct *vm_module_tags;
-+
- static int vm_module_tags_populate(void)
- {
- 	unsigned long phys_size = vm_module_tags->nr_pages << PAGE_SHIFT;
-@@ -280,6 +282,13 @@ static int vm_module_tags_populate(void)
- 
- 	return 0;
- }
-+#else
-+static int vm_module_tags_populate(void)
-+{
-+	/* Memory was already allocated */
-+	return 0;
-+}
-+#endif
- 
- static void *reserve_module_tags(struct module *mod, unsigned long size,
- 				 unsigned int prepend, unsigned long align)
-@@ -411,6 +420,7 @@ static void replace_module(struct module
- 
- static int __init alloc_mod_tags_mem(void)
- {
-+#ifdef CONFIG_MMU
- 	/* Map space to copy allocation tags */
- 	vm_module_tags = execmem_vmap(MODULE_ALLOC_TAG_VMAP_SIZE);
- 	if (!vm_module_tags) {
-@@ -428,6 +438,13 @@ static int __init alloc_mod_tags_mem(voi
- 	}
- 
- 	module_tags.start_addr = (unsigned long)vm_module_tags->addr;
-+#else
-+	/* Allocate space to copy allocation tags */
-+	module_tags.start_addr = (unsigned long)execmem_alloc(EXECMEM_MODULE_DATA,
-+							      MODULE_ALLOC_TAG_VMAP_SIZE);
-+	if (!module_tags.start_addr)
-+		return -ENOMEM;
-+#endif
- 	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
- 
- 	return 0;
-@@ -435,6 +452,7 @@ static int __init alloc_mod_tags_mem(voi
- 
- static void __init free_mod_tags_mem(void)
- {
-+#ifdef CONFIG_MMU
- 	int i;
- 
- 	module_tags.start_addr = 0;
-@@ -442,6 +460,9 @@ static void __init free_mod_tags_mem(voi
- 		__free_page(vm_module_tags->pages[i]);
- 	kfree(vm_module_tags->pages);
- 	free_vm_area(vm_module_tags);
-+#else
-+	execmem_free((void *)module_tags.start_addr);
-+#endif
- }
- 
- #else /* CONFIG_MODULES */
---- a/mm/execmem.c~alloc_tag-populate-memory-for-module-tags-as-needed-fix
-+++ a/mm/execmem.c
-@@ -64,6 +64,22 @@ static void *execmem_vmalloc(struct exec
- 
- 	return p;
- }
-+
-+struct vm_struct *execmem_vmap(size_t size)
-+{
-+	struct execmem_range *range = &execmem_info->ranges[EXECMEM_MODULE_DATA];
-+	struct vm_struct *area;
-+
-+	area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
-+				  range->start, range->end, NUMA_NO_NODE,
-+				  GFP_KERNEL, __builtin_return_address(0));
-+	if (!area && range->fallback_start)
-+		area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
-+					  range->fallback_start, range->fallback_end,
-+					  NUMA_NO_NODE, GFP_KERNEL, __builtin_return_address(0));
-+
-+	return area;
-+}
- #else
- static void *execmem_vmalloc(struct execmem_range *range, size_t size,
- 			     pgprot_t pgprot, unsigned long vm_flags)
-@@ -368,22 +384,6 @@ void execmem_free(void *ptr)
- 		vfree(ptr);
- }
- 
--struct vm_struct *execmem_vmap(size_t size)
--{
--	struct execmem_range *range = &execmem_info->ranges[EXECMEM_MODULE_DATA];
--	struct vm_struct *area;
--
--	area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
--				  range->start, range->end, NUMA_NO_NODE,
--				  GFP_KERNEL, __builtin_return_address(0));
--	if (!area && range->fallback_start)
--		area = __get_vm_area_node(size, range->alignment, PAGE_SHIFT, VM_ALLOC,
--					  range->fallback_start, range->fallback_end,
--					  NUMA_NO_NODE, GFP_KERNEL, __builtin_return_address(0));
--
--	return area;
--}
--
- void *execmem_update_copy(void *dst, const void *src, size_t size)
- {
- 	return text_poke_copy(dst, src, size);
+ 		/* Merge contiguous pages into the last SG */
+ 		prv_len = sgt_append->prv->length;
++		next_pfn = (sg_phys(sgt_append->prv) + prv_len) / PAGE_SIZE;
+ 		if (page_to_pfn(pages[0]) == next_pfn) {
+ 			last_pg = pfn_to_page(next_pfn - 1);
+ 			while (n_pages && pages_are_mergeable(pages[0], last_pg)) {
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from sui.jingfeng@linux.dev are
 
-maple_tree-add-mas_for_each_rev-helper.patch
-alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch
-alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
-alloc_tag-populate-memory-for-module-tags-as-needed.patch
-alloc_tag-populate-memory-for-module-tags-as-needed-fix.patch
-alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
-alloc_tag-support-for-page-allocation-tag-compression.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculation_beginend.patch
-mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch
+scatterlist-fix-a-typo.patch
+lib-scatterlist-use-sg_phys-helper.patch
 
