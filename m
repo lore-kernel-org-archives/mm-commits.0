@@ -1,164 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2080.outbound.protection.outlook.com [40.107.244.80])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81A681E0DA7
-	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 03:43:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730173425; cv=none; b=delX8d4iXArrTbT8RYMavv/827iyYnYIQSIZgjqGm/7rfclULB30GUd0z/nJq0fdeiej7RUmAsMbIZ8GfevYJPRl1DSu74mxjdUryMFhGrWh5nAjpWO/qSOuxc1V56kvlo7HzcX4ghXqonKeF8uJ3ztIWa63+dkiZwGzm7vFvts=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730173425; c=relaxed/simple;
-	bh=PDlTGjB4M/QTuyrbglGHcBWbcJIXQjcStoVlvD6G5u4=;
-	h=Date:To:From:Subject:Message-Id; b=cr+wz2mNCy/bVwze+8TyJE9st+fLwaj2LHRxu9Ja/1QvdvIhkZ/IAo087plSAfZbTnfLXVIXBObJwoe/k5A7KT2rs1i2wl+SF8mhb4oNbRpVyIuwdoFO5LKo2C6eS0G1gEPTyy9F/FJB1A0ebS2zXOYK4REHJWLQxgYa6dc5dRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jMktu72k; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A0CA1FCC46;
+	Tue, 29 Oct 2024 03:46:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.80
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730173579; cv=fail; b=WJqjB0eZFCt7MDyPHO7fhLKdnNqiVcU8LWRCQnApvqvAjAsquydAM17DMdTXnZHDaErHXEOi5cL2r7pn8UxMMYMk5em9Vag/21P1s1TYM/YQqLZXV6w/WpUQAu7CuU3w8X5TEK96b8iEgswIYg8Kc0nE+9mbTC6bVPO849DCSmA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730173579; c=relaxed/simple;
+	bh=mGTYFnEyrQFUs7UVTgpxQE063ifhFPQz1jemMfzC4Z8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=mcXvxLGHmHXE1A/hwgYuDKhr1OmfrIbxlvfKP2br3aqsTcbym8t2SR9sfpeIl5YH2tnwsepS4lva4FvCSduKUggQN7DgW3vaoolTca6G0RrYu5BZJXdmtKulwBBaAt8gQPVgAIc5WLyjeUb9ESV2e8nha+E6D09+zLvV9KPG9wo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qL8FWl2n; arc=fail smtp.client-ip=40.107.244.80
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jMktu72k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6790C4CECD;
-	Tue, 29 Oct 2024 03:43:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730173424;
-	bh=PDlTGjB4M/QTuyrbglGHcBWbcJIXQjcStoVlvD6G5u4=;
-	h=Date:To:From:Subject:From;
-	b=jMktu72k3IhH+PYyAfgSoS0507oUDXt7nENQEtyTpdAS7w4TVdDCYEoWd7hd8n/ic
-	 jiR/MGxgdaHxQjs61CVTHQtuWjMxOcdgJTAqsmIHsrl9hj3E5cwUSyBBBYKleU1any
-	 SHpvbG9BRRD/VWcr92u76j1tzb2bhU1ECwdPuOEQ=
-Date: Mon, 28 Oct 2024 20:43:44 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,linux@treblig.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-remove-unused-errmsg-function-and-table.patch added to mm-nonmm-unstable branch
-Message-Id: <20241029034344.D6790C4CECD@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qL8FWl2n"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ig2TPjUNGp+rhihiBJL4ND2LFfCvUMw/TO/PdMN7fLGSFKLesGCin3hWuqoVuw66HePi9qxou3Pxh74lXP01MThkmOr/7b4z2Hn8TevTbVxJkifKcSF686Aj686PjnlxCrzEDYw/+jFLpbP9vx6+kysd9Bi7kVpu3uVGX2EGVuZBUEVfEzWIPI7G1zRViMHIaOVyDUY/Q22xIKdvXYHIOr10QcfzJm9xIWdU153eWMI6M8GF0tyX9Cf+nj2h6pVyGrrSgY1fkbN//ndlEjUMR8OkFwU52K1ouMs0vE+Ru5I34MieBUf7eLosi7Rxv0tIWbhgqbbkphSpU3TAqct2GA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=OJ9rjKVNY5XYMf1Pstk8I2g5FcE3IstEdylOklMRlSA=;
+ b=e/WVcFpbvX937op01jChM6yrie3BzMx1J1JMJ3YmaSzqOuQCb32up/3TIPEy+lRgaLrH0pJfM48Hj+0MUWO06SnNTiJYE+Aq2Nc10zO28xFnzRLxlDaZgKSwdKq+HXsv+PE8/fxz7iLT4LI5mlnVL7zWPGa252LE7LU0cCU/1Yd1CMVT+SSMeQpqQmJtZaZ2JrFrJvW2eYvxrG4DoasN/urUJ+CcU8CAnsUyTdMAHP40CRWu8b08ZUxMlmlZWYjp498AxBguzSpFVvSPt/rAknuQpEjeH6MT/ysWeOkkEgW2cV/R+m+Acin3Vjid/ozRkdDikmz/FjsdmbLN529aYQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=linux-foundation.org
+ smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
+ header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OJ9rjKVNY5XYMf1Pstk8I2g5FcE3IstEdylOklMRlSA=;
+ b=qL8FWl2nzUBZLDiavx/f5k4FYT3GVBHsQp+29X6Fq44TbdnJ0t8/V5CKgPKpWmTPOdepWfgvncqtKCI1ayEfHHasgluojBDeaBbK5ELI7J2XEqqaEQyVsX1vfPfI/gIJeI3L6ufVAK5TkzfB5DZSzXnr17x+cxl6iG+c/3F9X++QXonU25RY+xc9SwykXdKWZqqpUibZj2YW4qekp0ChtmNG2huKcMfUnlzC+HN2pRYfB25RLPNgYF66WDo6zIgkSfGGiHwoYUpYlzrM6Mu9dREmu2zKmqnBKFqn3lBfhoaS3hZgGdRbtMD0kk+mQ+Tc+fVnmWtb6YW5uS1UnDtRyQ==
+Received: from SN4PR0501CA0056.namprd05.prod.outlook.com
+ (2603:10b6:803:41::33) by SN7PR12MB6815.namprd12.prod.outlook.com
+ (2603:10b6:806:265::13) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.23; Tue, 29 Oct
+ 2024 03:46:13 +0000
+Received: from SA2PEPF00003F64.namprd04.prod.outlook.com
+ (2603:10b6:803:41:cafe::7d) by SN4PR0501CA0056.outlook.office365.com
+ (2603:10b6:803:41::33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8114.13 via Frontend
+ Transport; Tue, 29 Oct 2024 03:46:13 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ SA2PEPF00003F64.mail.protection.outlook.com (10.167.248.39) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8114.16 via Frontend Transport; Tue, 29 Oct 2024 03:46:13 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Mon, 28 Oct
+ 2024 20:45:57 -0700
+Received: from [10.110.48.28] (10.126.231.35) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Mon, 28 Oct
+ 2024 20:45:56 -0700
+Message-ID: <6434b6fc-d3c7-4f1c-baa4-25215a185eec@nvidia.com>
+Date: Mon, 28 Oct 2024 20:45:56 -0700
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [GIT PULL] hotfixes for 6.12-rc6
+To: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds
+	<torvalds@linux-foundation.org>
+CC: <mm-commits@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20241028203743.3fe4d95463aaafe23a239b51@linux-foundation.org>
+Content-Language: en-US
+From: John Hubbard <jhubbard@nvidia.com>
+In-Reply-To: <20241028203743.3fe4d95463aaafe23a239b51@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003F64:EE_|SN7PR12MB6815:EE_
+X-MS-Office365-Filtering-Correlation-Id: fe755ec6-093b-40e1-1b06-08dcf7cc3c3e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|376014|36860700013|82310400026;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?V3VIdGhiRUZ4Vi91SExuYXBWdXd5YTFyQUlURWF6MEtrL0pkTkgxNVB1WlhO?=
+ =?utf-8?B?RUFjMXliTjhhNDFKdmZIckRqSEtSbHpHbTRONkYzUFJvbkU2VnJpRCttUURG?=
+ =?utf-8?B?YW5CWVo2emRhbXVFVUZmQytWOTgranhTNnhkdCtaSENpWitUQTE5K3d0UUxv?=
+ =?utf-8?B?Z1JSdDkzTnpOR2lYKzJVYXg5S2c4OVpHbnpidWxxTCtVbFZmdXFHQjVFVjlQ?=
+ =?utf-8?B?dklpb2hESDNkK3pnbkNpRGFKQUJRZENudlFyVTNhcTRrc3hkcTRHRDJCMm1Z?=
+ =?utf-8?B?Tm13c1oybnlhYjdjdmhkWDZiYlJOMit3TTdtY2lnUFg4Z3JwNTRVSi9jcTJx?=
+ =?utf-8?B?SU1VSjRFeW1KMXd2TUJlVitEK2REVVYrVDA5OGFsV2FOc1ZQdHBYMGUxOWMy?=
+ =?utf-8?B?WTNjWXhFZzhTYklwZU5McFRzYnhid2p4eEw1NnBOZklFR3VmV29MU2MxemJ1?=
+ =?utf-8?B?QWlqTXYwNkVDUjlKQ0xNSERxd1YyNEJNTGVMN2xHWno0SHNrNE1BaHE3MHFx?=
+ =?utf-8?B?SDI2SkFFUkNLeURacTFXajRBUXlQc2FFSjhKbHRnZURMU0xnVjNUb1RuVnlI?=
+ =?utf-8?B?Q2pVU3VhMXNhR1p3RTRCcGlzNW1HVWgwQi94VklUVklMWVVJSGxSQ2lmZEFK?=
+ =?utf-8?B?RVIxRTJhdzZ6TTRRVDQvejM3MjJXZlRRN3Uyc0ZsalRPUzZKbXhXbHRNSlc5?=
+ =?utf-8?B?Q1pkY28yRVNYTTQrNHgxTWhEOXJUT2FzUHpSN2svUzZYNnIyS3lKVkxFUjh5?=
+ =?utf-8?B?SjZsLy9lMThXZjBPbURUV3hKUVhOTDNPQ3g3VkpUTTJzZkpRbnpxeFJpY1lJ?=
+ =?utf-8?B?YnRRcld3MWVtRnF1NFBwVUs2WW9uYk54ZEV6bno2cC95cUN1R0NwTlBBVWJR?=
+ =?utf-8?B?Z1owT3NaWENuZ0NJeTlhQXZhTVhFd1hScFB3UE1SNjFaTkwwZG9yZm51dVhx?=
+ =?utf-8?B?SWhnUXpRUlFQSmh5VVRpNDIwWU11VU4zSEZpOG81eXpzWlBrdEdYLzVBUngv?=
+ =?utf-8?B?YzkwRzZJL2dsNFVvMTFIWFIwNU1DZ3dhdTQzbFY4NFhqREEzSW5yMy9MT1Nu?=
+ =?utf-8?B?cEZPL1cwUUduc0tHWXA2aXdRMGZWcUlaNGRwb1JMZk1ENUo2TXlpc2dLL2RL?=
+ =?utf-8?B?aTNrc3l3WjdYY1ZRazdyeTVmYkFrVU5WQW1iU1J3Z21YWldMeXBLcVJOUm1z?=
+ =?utf-8?B?Qmp4ZUV6UjdOdUJXTUZLQjZhdU9RT1VoMHBVUm91OFhJQlhxWWtzUjhKYnJo?=
+ =?utf-8?B?ZGQ3YWZ6YUxYYSthdXpGYXhrOVlHeVBta2dUalFLMGJIS2R3Y1RVVE12YnhB?=
+ =?utf-8?B?U2dXUldXdFZZeXZNVGMxdVFxalcvUXh5SldrYTU4RGhuTldJTGo5VEhkVm1p?=
+ =?utf-8?B?OWhobFM4Zk5DTTV6Zy9yZ2JMV1o1WEZDaHI4N240ekRTYnkwT3dtZjNPQldV?=
+ =?utf-8?B?TjA2TjBFOEtRbTJiTmNrbGREc2dvbG9Pc0g0Q2hKSzZCOUtQQWsrczFZaDlQ?=
+ =?utf-8?B?NnZmNVM2dGNndlYxM3lLcERyV2kxTE1Mc3FEL1N3RzdlQ0tXKzVqdHpyVkZG?=
+ =?utf-8?B?RmFZUXRueENqdUthMHZDazBTQ3IxTzgzUVAwaHBpRkJjWWU4V3l4dmJGbjgx?=
+ =?utf-8?B?NmpyN053Lzd6TlhXS1d5clo2WDMzdEZ6L1VaMit1RUhVZ21QeUhhTWtnbGZ2?=
+ =?utf-8?B?YWl4SDYvODBXY1pOenNxblJkMUplVTl6dnRIRnBHMnd1Q2NpM3BqaDVZWGEv?=
+ =?utf-8?B?UUg5ZW9pdllaakxweWJlVnpkelNiaWcvMEdnN2tRaXBzaU9YTHNSNnBFNEpu?=
+ =?utf-8?B?dEdVbllFd3c4eHpZUTErZi9hcnZEQVNHWlhDZWhRbkdkNFVGVm1kclV6Y2Fu?=
+ =?utf-8?B?TU9vdEpucGI5a0ZtMktsM2FCZnMxQ2s2ODdweDJRbkxqYmc9PQ==?=
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(36860700013)(82310400026);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Oct 2024 03:46:13.4297
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: fe755ec6-093b-40e1-1b06-08dcf7cc3c3e
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SA2PEPF00003F64.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6815
+
+On 10/28/24 8:37 PM, Andrew Morton wrote:
+> 
+> Linus, please merge this batch of hotfixes, thanks.
+> 
+...
+> John Hubbard (2):
+>        mm/gup: stop leaking pinned pages in low memory conditions
+>        mm/gup: memfd: stop leaking pinned pages in low memory conditions
+> 
+
+That's the v2 series, but after some more review, we settled on a single-patch solution,
+which is v3.
+
+v2: https://lore.kernel.org/linux-mm/fc42d9bf-3460-4d85-a09d-39b5634363d4@nvidia.com/T/
+
+v3: https://lore.kernel.org/all/20241018223411.310331-1-jhubbard@nvidia.com/
 
 
-The patch titled
-     Subject: ocfs2: remove unused errmsg function and table
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-remove-unused-errmsg-function-and-table.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unused-errmsg-function-and-table.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: ocfs2: remove unused errmsg function and table
-Date: Tue, 22 Oct 2024 01:25:43 +0100
-
-dlm_errmsg() has been unused since 2010's commit 0016eedc4185
-("ocfs2_dlmfs: Use the stackglue.")
-
-Remove dlm_errmsg() and the message table it indexes.
-
-Link: https://lkml.kernel.org/r/20241022002543.302606-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ocfs2/dlm/dlmapi.h   |    2 -
- fs/ocfs2/dlm/dlmdebug.c |   53 --------------------------------------
- 2 files changed, 55 deletions(-)
-
---- a/fs/ocfs2/dlm/dlmapi.h~ocfs2-remove-unused-errmsg-function-and-table
-+++ a/fs/ocfs2/dlm/dlmapi.h
-@@ -62,8 +62,6 @@ enum dlm_status {
- 	DLM_MAXSTATS,             /* 41: upper limit for return code validation */
- };
- 
--/* for pretty-printing dlm_status error messages */
--const char *dlm_errmsg(enum dlm_status err);
- /* for pretty-printing dlm_status error names */
- const char *dlm_errname(enum dlm_status err);
- 
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-remove-unused-errmsg-function-and-table
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -164,59 +164,6 @@ static const char *dlm_errnames[] = {
- 	[DLM_MAXSTATS] =		"DLM_MAXSTATS",
- };
- 
--static const char *dlm_errmsgs[] = {
--	[DLM_NORMAL] = 			"request in progress",
--	[DLM_GRANTED] = 		"request granted",
--	[DLM_DENIED] = 			"request denied",
--	[DLM_DENIED_NOLOCKS] = 		"request denied, out of system resources",
--	[DLM_WORKING] = 		"async request in progress",
--	[DLM_BLOCKED] = 		"lock request blocked",
--	[DLM_BLOCKED_ORPHAN] = 		"lock request blocked by a orphan lock",
--	[DLM_DENIED_GRACE_PERIOD] = 	"topological change in progress",
--	[DLM_SYSERR] = 			"system error",
--	[DLM_NOSUPPORT] = 		"unsupported",
--	[DLM_CANCELGRANT] = 		"can't cancel convert: already granted",
--	[DLM_IVLOCKID] = 		"bad lockid",
--	[DLM_SYNC] = 			"synchronous request granted",
--	[DLM_BADTYPE] = 		"bad resource type",
--	[DLM_BADRESOURCE] = 		"bad resource handle",
--	[DLM_MAXHANDLES] = 		"no more resource handles",
--	[DLM_NOCLINFO] = 		"can't contact cluster manager",
--	[DLM_NOLOCKMGR] = 		"can't contact lock manager",
--	[DLM_NOPURGED] = 		"can't contact purge daemon",
--	[DLM_BADARGS] = 		"bad api args",
--	[DLM_VOID] = 			"no status",
--	[DLM_NOTQUEUED] = 		"NOQUEUE was specified and request failed",
--	[DLM_IVBUFLEN] = 		"invalid resource name length",
--	[DLM_CVTUNGRANT] = 		"attempted to convert ungranted lock",
--	[DLM_BADPARAM] = 		"invalid lock mode specified",
--	[DLM_VALNOTVALID] = 		"value block has been invalidated",
--	[DLM_REJECTED] = 		"request rejected, unrecognized client",
--	[DLM_ABORT] = 			"blocked lock request cancelled",
--	[DLM_CANCEL] = 			"conversion request cancelled",
--	[DLM_IVRESHANDLE] = 		"invalid resource handle",
--	[DLM_DEADLOCK] = 		"deadlock recovery refused this request",
--	[DLM_DENIED_NOASTS] = 		"failed to allocate AST",
--	[DLM_FORWARD] = 		"request must wait for primary's response",
--	[DLM_TIMEOUT] = 		"timeout value for lock has expired",
--	[DLM_IVGROUPID] = 		"invalid group specification",
--	[DLM_VERS_CONFLICT] = 		"version conflicts prevent request handling",
--	[DLM_BAD_DEVICE_PATH] = 	"Locks device does not exist or path wrong",
--	[DLM_NO_DEVICE_PERMISSION] = 	"Client has insufficient perms for device",
--	[DLM_NO_CONTROL_DEVICE] = 	"Cannot set options on opened device ",
--	[DLM_RECOVERING] = 		"lock resource being recovered",
--	[DLM_MIGRATING] = 		"lock resource being migrated",
--	[DLM_MAXSTATS] = 		"invalid error number",
--};
--
--const char *dlm_errmsg(enum dlm_status err)
--{
--	if (err >= DLM_MAXSTATS || err < 0)
--		return dlm_errmsgs[DLM_MAXSTATS];
--	return dlm_errmsgs[err];
--}
--EXPORT_SYMBOL_GPL(dlm_errmsg);
--
- const char *dlm_errname(enum dlm_status err)
- {
- 	if (err >= DLM_MAXSTATS || err < 0)
-_
-
-Patches currently in -mm which might be from linux@treblig.org are
-
-ocfs2-remove-unused-errmsg-function-and-table.patch
+thanks,
+-- 
+John Hubbard
 
