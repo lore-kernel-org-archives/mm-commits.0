@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6292514900E
-	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 04:19:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9E841FF618
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 04:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730175568; cv=none; b=LytRZQm7PQ8agE7tm6qA4AtAa5jN8waV8HQueDEk2TnsiBiLwUfXRefcBdO/eCTs9rREK65HqEUf3exo4q1zs/Nl+f1jqZbfscASt8fCtRZwizL3OhmYjDjOpI8pbEPebNKovE7BJQW5fvpCnAtWUhwNjcq2JwDeqyX1BH6IuIM=
+	t=1730176017; cv=none; b=ohnFZ5ag+qYRppWKVkil9MkQA2w8Z4dqjrfI10o+NWrOhcE5SRgMgBgEn649UyX5742Rspbm3gw1yDhAR+q0s6dOmh4n4qTTiEt5W4MQsabkct6BGk3gEpkJQUdfXWEvWjVqhTL6AWRGqZUy9G4/FXlzpJ059tnryG4H1OFBo98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730175568; c=relaxed/simple;
-	bh=5wZ8wfNwxSfCllPsxnp6eL9fJqeHnNmvNZHDT05drmM=;
-	h=Date:To:From:Subject:Message-Id; b=AUIthBYUNtdrITMyS6rY36MJTe6af/VXl9ScY2YSCWt1VcjRFj1i90vH/RATtWojawVYL5sgZJMcxvJEiSrymxWLQXWoRojIFDo8L21uc7afhEvnEO7AMTH6WbmJisapca/W8SY1wxVG6fNQy9GDPwhCvlWe+vxxQgkvLKJdXgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfpEaipQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730176017; c=relaxed/simple;
+	bh=uD8Vi4mO80Cgq5YlfUc5YfDahkaaD/DfuptTtMvhoVM=;
+	h=Date:To:From:Subject:Message-Id; b=t2vGfMzUh7jQg49QdKnLpo9tHEQlnB1CPFwA67o/dvLxeEZ4q4JGxPd8UVk5DupZv5wxZSIIcPqrJ5kuNEBoTsYLDI7Q2wxSygNJs58xs8LwPhp3tcsJgkqA47s2lZ6SUyScBPhYzbCBkdTEbsBd+DDnLZMzImpqbVimi6gD/T4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hf4lr9V2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfpEaipQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 222F3C4CECD;
-	Tue, 29 Oct 2024 04:19:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hf4lr9V2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E321C4CECD;
+	Tue, 29 Oct 2024 04:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730175568;
-	bh=5wZ8wfNwxSfCllPsxnp6eL9fJqeHnNmvNZHDT05drmM=;
+	s=korg; t=1730176017;
+	bh=uD8Vi4mO80Cgq5YlfUc5YfDahkaaD/DfuptTtMvhoVM=;
 	h=Date:To:From:Subject:From;
-	b=dfpEaipQswbkWuCVVW3Y45ReIohfj7/+HTdQ/K5hovzeRYPqpxkyhS3/LkzD9PCNx
-	 Eq9DjZIcRnUTcg/qBbq0GyR7Pj2dXYSCDPpsVKktWkRtg/1W1jCoCCbhwZy+3zuVmh
-	 uFjH6Cg63dXvGgcUidM01DJabgmFJrE71BbCqSwI=
-Date: Mon, 28 Oct 2024 21:19:27 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=Hf4lr9V23TKPSefj2fkgvkRR/FjmjiNuYPsbKxKWWaB7BOKMGpte3tzuEDlKnm02z
+	 hAtBBtPOjlBHWAS+WrRd7WBhpMtq58QpoV6Cm9qMbuVgclIWap7HkdUAupSUmdbGzi
+	 T92TxvqMjPb6Hbs1Lv7CHJNNpvx4MXBlu6QrThWw=
+Date: Mon, 28 Oct 2024 21:26:56 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,hannes@cmpxchg.org,inwardvessel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-entry-for-min-heap-library-code.patch added to mm-nonmm-unstable branch
-Message-Id: <20241029041928.222F3C4CECD@smtp.kernel.org>
+Subject: + memcg-rename-do_flush_stats-and-add-force-flag.patch added to mm-unstable branch
+Message-Id: <20241029042657.2E321C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add entry for min heap library code
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-add-entry-for-min-heap-library-code.patch
+     Subject: memcg: rename do_flush_stats and add force flag
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-rename-do_flush_stats-and-add-force-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entry-for-min-heap-library-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-rename-do_flush_stats-and-add-force-flag.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: MAINTAINERS: add entry for min heap library code
-Date: Sun, 27 Oct 2024 08:40:03 +0800
+From: JP Kobryn <inwardvessel@gmail.com>
+Subject: memcg: rename do_flush_stats and add force flag
+Date: Mon, 28 Oct 2024 19:11:05 -0700
 
-Add a new entry in the MAINTAINERS file for the min heap library code,
-with myself as the maintainer.  I am pleased to take on the responsibility
-of maintaining and reviewing patches for this library, as I am
-well-acquainted with its details through recent contributions.
+Patch series "memcg: tracepoint for flushing stats", v3.
 
-Link: https://lkml.kernel.org/r/20241027004003.987934-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+This series adds new capability for understanding frequency and circumstances
+behind flushing memcg stats.
+
+
+This patch (of 2):
+
+Change the name to something more consistent with others in the file and
+use double unders to signify it is associated with the
+mem_cgroup_flush_stats() API call.  Additionally include a new flag that
+call sites use to indicate a forced flush; skipping checks and flushing
+unconditionally.  There are no changes in functionality.
+
+Link: https://lkml.kernel.org/r/20241029021106.25587-1-inwardvessel@gmail.com
+Link: https://lkml.kernel.org/r/20241029021106.25587-2-inwardvessel@gmail.com
+Signed-off-by: JP Kobryn <inwardvessel@gmail.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memcontrol.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-entry-for-min-heap-library-code
-+++ a/MAINTAINERS
-@@ -15403,6 +15403,15 @@ F:	arch/arm/boot/dts/marvell/armada-xp-c
- F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s-bit.dts
- F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s.dts
+--- a/mm/memcontrol.c~memcg-rename-do_flush_stats-and-add-force-flag
++++ a/mm/memcontrol.c
+@@ -594,8 +594,11 @@ static inline void memcg_rstat_updated(s
+ 	}
+ }
  
-+MIN HEAP
-+M:	Kuan-Wei Chiu <visitorckw@gmail.com>
-+L:	linux-kernel@vger.kernel.org
-+S:	Maintained
-+F:	Documentation/core-api/min_heap.rst
-+F:	include/linux/min_heap.h
-+F:	lib/min_heap.c
-+F:	lib/test_min_heap.c
+-static void do_flush_stats(struct mem_cgroup *memcg)
++static void __mem_cgroup_flush_stats(struct mem_cgroup *memcg, bool force)
+ {
++	if (!force && !memcg_vmstats_needs_flush(memcg->vmstats))
++		return;
 +
- MIPI CCS, SMIA AND SMIA++ IMAGE SENSOR DRIVER
- M:	Sakari Ailus <sakari.ailus@linux.intel.com>
- L:	linux-media@vger.kernel.org
+ 	if (mem_cgroup_is_root(memcg))
+ 		WRITE_ONCE(flush_last_time, jiffies_64);
+ 
+@@ -619,8 +622,7 @@ void mem_cgroup_flush_stats(struct mem_c
+ 	if (!memcg)
+ 		memcg = root_mem_cgroup;
+ 
+-	if (memcg_vmstats_needs_flush(memcg->vmstats))
+-		do_flush_stats(memcg);
++	__mem_cgroup_flush_stats(memcg, false);
+ }
+ 
+ void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
+@@ -636,7 +638,7 @@ static void flush_memcg_stats_dwork(stru
+ 	 * Deliberately ignore memcg_vmstats_needs_flush() here so that flushing
+ 	 * in latency-sensitive paths is as cheap as possible.
+ 	 */
+-	do_flush_stats(root_mem_cgroup);
++	__mem_cgroup_flush_stats(root_mem_cgroup, true);
+ 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+@@ -5291,11 +5293,8 @@ bool obj_cgroup_may_zswap(struct obj_cgr
+ 			break;
+ 		}
+ 
+-		/*
+-		 * mem_cgroup_flush_stats() ignores small changes. Use
+-		 * do_flush_stats() directly to get accurate stats for charging.
+-		 */
+-		do_flush_stats(memcg);
++		/* Force flush to get accurate stats for charging */
++		__mem_cgroup_flush_stats(memcg, true);
+ 		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
+ 		if (pages < max)
+ 			continue;
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from inwardvessel@gmail.com are
 
-lib-kconfigdebug-move-int_pow-test-option-to-runtime-testing-section.patch
-lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
-lib-list_sort-remove-unnecessary-header-includes.patch
-tools-lib-list_sort-remove-unnecessary-header-includes.patch
-perf-tools-update-expected-diff-for-lib-list_sortc.patch
-lib-min_heap-introduce-non-inline-versions-of-min-heap-api-functions.patch
-lib-min_heap-optimize-min-heap-by-prescaling-counters-for-better-performance.patch
-lib-min_heap-avoid-indirect-function-call-by-providing-default-swap.patch
-lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-dm-vdo-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-bcache-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch
-bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch
-documentation-core-api-add-min-heap-api-introduction.patch
-maintainers-add-entry-for-min-heap-library-code.patch
+memcg-rename-do_flush_stats-and-add-force-flag.patch
+memcg-add-flush-tracepoint.patch
 
