@@ -1,141 +1,104 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EA7528E7;
-	Tue, 29 Oct 2024 05:37:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE403202F97
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 08:07:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730180259; cv=none; b=jclbOZuX80Uyl7jRWguJXpkEFJzvb90JKBJQ9y+pIMHV/e6hrElLkk7tb9WCOoQYZhYWxv13y/R2riMJDe/LG9FluFCTHZN4R7Z6kAKFpKbPEGRMVRUEoeeWE+Q++RO7lIOB1EyU5SrB9F90jNEvJGIwR4WI9tHgk8jk2U4Ir0s=
+	t=1730189275; cv=none; b=MQGu0elP31gNppaTmbhKti9ssmcQ1zK893bVGNK6ARS9T9FZN2A/Tw0+VcQAqkdy2xT1G1uUkXz59zRPKb2q511pau1/ikKVwCtf49+QBwO+fAJmssTmTiWXZ2XaabcoRNTtrkKrRRnEpqppeH31f6ohfBw1/xtij1FwpcjG6iE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730180259; c=relaxed/simple;
-	bh=9olqVLoMvTGZUqCXXqNqiQq4o9I68NSlUNbLAjZFeiI=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=WKZnp1rvqWGVrBqA7c9et/JBPLLks1uG9oneLW8rf+GoszjJPgzoRzlgq0zfvITNiZxguGM+NmQl65ldZxq4XbXyyzh1SP8VU3XCdM6OHjXHgRLBnzZzAoqBCd0jL2hkeaxVskBTvYaJsdoWLOkjugETn7In0fbdgz/mN0sD1HY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1cp70fGU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730189275; c=relaxed/simple;
+	bh=KJfJcAH7hKsecAAc4oM8/h/DsOBBS2oqIaz1Unqv6NE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eE0tie4251sc7c/oPOK82XGITAt90VweVtih/zTqKWSAQLlxLQyP/MWXzpoQRsneFmxp+dodlIkSHCiw89ohnoNQXpWDP4hUgLXdOKp6APS/d0qrVguCYYHuw+UB0jDxP1JdZOrD3lvF4+36RjH6dVQ1h+RmPlAqBHX6/0kZeF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=LH3v+DuI; arc=none smtp.client-ip=209.85.161.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1cp70fGU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB5C1C4CECD;
-	Tue, 29 Oct 2024 05:37:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730180258;
-	bh=9olqVLoMvTGZUqCXXqNqiQq4o9I68NSlUNbLAjZFeiI=;
-	h=Date:From:To:Cc:Subject:From;
-	b=1cp70fGUVDTp42ha/Kg3lV86GDHc+82sK19N0SCeBYmd3/OaxelhpoF9AEb9qjg5Q
-	 F0olHnxOMqtoahWLwzQrp540EV2cHcQsfWIvOqsVce2PypCdSl+tRtRt+A3bD1ialP
-	 HbWDwBeBLr7SB48Jbr5R5K6h5ka/b+YiJi9IDCKI=
-Date: Mon, 28 Oct 2024 22:37:38 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL V2] hotfixes for 6.12-rc6
-Message-Id: <20241028223738.bb14a8723e947d40f3711007@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="LH3v+DuI"
+Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5e98bfea0ceso2517721eaf.0
+        for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 01:07:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1730189272; x=1730794072; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Lx1hVVZrhruV9WzE8vP+JOdmDoa9T2aOUBZLwAYUlvw=;
+        b=LH3v+DuI68lT7odBkb27CIXp1PlwvagFD4/kT+udekeX1VBt/qfcSP8YUEwOGWetz5
+         r2JwEPEJmVrrkRE9HOsJ+TzmcATKvihxiQ1c8SK0QAklkj8cq1ba4OrKHD8T/SLGklRB
+         lVJQs0FnpQIarkLUpTMmDg2mnBxjCZmjsyyvo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730189272; x=1730794072;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Lx1hVVZrhruV9WzE8vP+JOdmDoa9T2aOUBZLwAYUlvw=;
+        b=MykgqNsujOA3u0L7JT606hpBAuww4JBF7ZA6EsCrLoafZpPVm3SVzLW4joIQIRHdUx
+         Qe+tmvEzbXgVszw0MdJwhK6NttL1uPVzHs8gGeJt3KxeYNzW9qn8G5vWdgqkZXi8U7bj
+         y8JxAqWcZ6biK0dT9pZ24aA7yTT0VWOd/jXNiazEE+WRe5sdbXnoYuVSi+nXpn65H/nt
+         CTYHJaPB2L8ZAUuvrkTauacIcPtqYaD3/6muq3xt2ZDIUcNiBEidlaodDNG1r/unXF1h
+         yWVV4rcmWmYYHHRqaJg8faTFXyKmzIP4RL8Cnq6WmzQmjzcNBpkGZk1l5fWYwT6IdRtC
+         /8vA==
+X-Gm-Message-State: AOJu0YxPwo3a7sbSAbvIenEFpOMTikUNkXsnUlbVXER3N7jtpJf8+O3C
+	2NIyRK9QepPtz8yYIlopip2+DaKAVP8evwK2whb94I4qfgy68RfhD487mLotnQ==
+X-Google-Smtp-Source: AGHT+IFRET7hf5ANefmpxlqI1P9aMUPXxZkHdGKMUG4q3/U97FW2MrgBgE8zEHX4WDhpOmhEkVhxvA==
+X-Received: by 2002:a05:6871:5825:b0:277:c3e6:7889 with SMTP id 586e51a60fabf-29051d8c2bcmr9423033fac.30.1730189272615;
+        Tue, 29 Oct 2024 01:07:52 -0700 (PDT)
+Received: from google.com ([2401:fa00:8f:203:8438:faca:cde8:9e95])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7edc86965d3sm7050340a12.46.2024.10.29.01.07.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Oct 2024 01:07:51 -0700 (PDT)
+Date: Tue, 29 Oct 2024 17:07:48 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, minchan@kernel.org, kawasin@google.com,
+	senozhatsky@chromium.org
+Subject: Re: + zram-clear-idle-flag-after-recompression.patch added to
+ mm-unstable branch
+Message-ID: <20241029080748.GV1279924@google.com>
+References: <20241028221018.5481AC4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241028221018.5481AC4CEC3@smtp.kernel.org>
 
+On (24/10/28 15:10), Andrew Morton wrote:
+> Patch series "zram: IDLE flag handling fixes".
+> 
+> zram can wrongly preserve ZRAM_IDLE flag on its entries which can result
+> in premature post-processing (writeback and recompression) of such
+> entries.
+> 
+> 
+> This patch (of 2):
+> 
+> Recompression should clear ZRAM_IDLE flag on the entires it has accessed,
+> because otherwise some entries, specifically those for which recompression
+> has failed, become immediate candidate entries for another post-processing
+> (e.g.  writeback).
+> 
+> Consider the following case:
+> - recompression marks entries IDLE every 4 hours and attempts
+>   to recompress them
+> - some entries are incompressible, so we keep them intact and
+>   hence preserve IDLE flag
+> - writeback marks entries IDLE every 8 hours and writebacks
+>   IDLE entries, however we have IDLE entries left from
+>   recompression, so writeback prematurely writebacks those
+>   entries.
+> 
+> Link: https://lkml.kernel.org/r/20241028073529.1383980-1-senozhatsky@chromium.org
+> Link: https://lkml.kernel.org/r/20241028073529.1383980-2-senozhatsky@chromium.org
+> Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Reported-by: Shin Kawamura <kawasin@google.com>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Linus, please merge this batch of hotfixes, thanks.
+Andrew, can I please ask you to replace these patches with v2 series?
+v2 comes with styles and typos fixed.
 
-
-The following changes since commit 81983758430957d9a5cb3333fe324fd70cf63e7e:
-
-  Linux 6.12-rc5 (2024-10-27 12:52:02 -1000)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-10-28-21-50
-
-for you to fetch changes up to 01626a18230246efdcea322aa8f067e60ffe5ccd:
-
-  mm: avoid unconditional one-tick sleep when swapcache_prepare fails (2024-10-28 21:40:41 -0700)
-
-----------------------------------------------------------------
-21 hotfixes.  13 are cc:stable.  13 are MM and 8 are non-MM.
-
-No particular theme here - mainly singletons, a couple of doubletons.
-Please see the changelogs.
-
-----------------------------------------------------------------
-Barry Song (1):
-      mm: avoid unconditional one-tick sleep when swapcache_prepare fails
-
-David Hildenbrand (1):
-      mm/pagewalk: fix usage of pmd_leaf()/pud_leaf() without present check
-
-Edward Adam Davis (1):
-      ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
-
-Edward Liaw (3):
-      Revert "selftests/mm: fix deadlock for fork after pthread_create on ARM"
-      Revert "selftests/mm: replace atomic_bool with pthread_barrier_t"
-      selftests/mm: fix deadlock for fork after pthread_create with atomic_bool
-
-Gregory Price (1):
-      resource,kexec: walk_system_ram_res_rev must retain resource flags
-
-Huang Ying (1):
-      resource: remove dependency on SPARSEMEM from GET_FREE_REGION
-
-Jann Horn (1):
-      mm: mark mas allocation in vms_abort_munmap_vmas as __GFP_NOFAIL
-
-Jeff Xu (1):
-      mseal: update mseal.rst
-
-Jeongjun Park (1):
-      mm: shmem: fix data-race in shmem_getattr()
-
-Kirill A. Shutemov (1):
-      mm: split critical region in remap_file_pages() and invoke LSMs in between
-
-Liam R. Howlett (1):
-      mm/mmap: fix race in mmap_region() with ftruncate()
-
-Lorenzo Stoakes (4):
-      fork: do not invoke uffd on fork if error occurs
-      fork: only invoke khugepaged, ksm hooks if no error
-      mm/vma: add expand-only VMA merge mode and optimise do_brk_flags()
-      tools: testing: add expand-only mode VMA test
-
-Matt Fleming (1):
-      mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
-
-Nobuhiro Iwamatsu (1):
-      mm: numa_clear_kernel_node_hotplug: Add NUMA_NO_NODE check for node id
-
-Ryusuke Konishi (1):
-      nilfs2: fix kernel bug due to missing clearing of checked flag
-
-Sabyrzhan Tasbolatov (1):
-      x86/traps: move kmsan check after instrumentation_begin
-
- Documentation/userspace-api/mseal.rst        | 307 +++++++++++++--------------
- arch/x86/kernel/traps.c                      |  12 +-
- fs/nilfs2/page.c                             |   1 +
- fs/ocfs2/file.c                              |   8 +
- fs/userfaultfd.c                             |  28 +++
- include/linux/ksm.h                          |  10 +-
- include/linux/userfaultfd_k.h                |   5 +
- kernel/fork.c                                |  12 +-
- kernel/resource.c                            |   4 +-
- mm/Kconfig                                   |   1 -
- mm/memory.c                                  |  15 +-
- mm/mmap.c                                    |  84 ++++++--
- mm/numa_memblks.c                            |   2 +-
- mm/page_alloc.c                              |  10 +-
- mm/pagewalk.c                                |  16 +-
- mm/shmem.c                                   |   2 +
- mm/vma.c                                     |  23 +-
- mm/vma.h                                     |  26 ++-
- tools/testing/selftests/mm/uffd-common.c     |   5 +-
- tools/testing/selftests/mm/uffd-common.h     |   3 +-
- tools/testing/selftests/mm/uffd-unit-tests.c |  24 +--
- tools/testing/vma/vma.c                      |  40 ++++
- 22 files changed, 386 insertions(+), 252 deletions(-)
-
+https://lore.kernel.org/linux-kernel/20241028153629.1479791-1-senozhatsky@chromium.org
