@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 803B4192B73
-	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 01:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A961B82866
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 01:06:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730164006; cv=none; b=fJ21ILC4zt9LvpDxAhsMpx9IE+s757K/sIG8w+yag9mRFv25vIPF1e9KeDJA7ccyAxxMUJlZVuEVzgrJz/+JrpNc8h5jpOd6Q2Qy9jhdQaR5bx36HDO/Rq/lxOgqqETuVJuf7I0ePCVAfYMsNJbCVTcZrEFXyjsrrqHJ3Uo+yEM=
+	t=1730164010; cv=none; b=N+z0LZo+ujcbrXBsYtIpXhbokPrH/cPgVAlm+RkzYnZLlrFs573Ko938gxjPdmAWGX7ThzD7VXlDFuybAcjwhiz2irZZjdU6A7e+pl4sEichSldBu2ELta1NBKeH3jMsCobIpG9gyLbd8HnAZOQK8VDK6PauTfwm0ZOeaA4xVOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730164006; c=relaxed/simple;
-	bh=9SGYGM/Pt+HVQOJ1KMiHSYRZYzu/n4r16mTA5CJRa58=;
-	h=Date:To:From:Subject:Message-Id; b=LSAAfVSHINGYykSBAp6zDCwWO1JbKtgaveunnhcDe34PoFvB2xjkX2AwyNZIQZ49f6VjORTmFXrEvRyIZKT6gn7U2OUSuWJalFs5FEwd4BgeGm5UellrRcck3OK9aohQzXvJuI7Vn3l68W1M7XkvMlkgJbD8hWGm+vJInRLvAvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eeqhRyxa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730164010; c=relaxed/simple;
+	bh=sBBMK16vbxz2XX2Y3s511LWiYVjizXkLoC3h9MoL1p8=;
+	h=Date:To:From:Subject:Message-Id; b=YZgonILfu7uV94ofNuMbxOk6PUDFgpYMNq8LhJJlb4d1KtKMdl2qxLVQmkyWUTV8P5MTxghsTCkqJrTDoLiRDUbkGf+oNKoIf2RP3iI7MP0ApXEpMIld5iW4Upkq1E9B23MKeEnZOEJ4GaqLUoTjYsYpIeL8/XSxBol+ipczPlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jtSGZT/i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eeqhRyxa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6430C4CEEA;
-	Tue, 29 Oct 2024 01:06:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jtSGZT/i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E432C4CEC3;
+	Tue, 29 Oct 2024 01:06:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730164005;
-	bh=9SGYGM/Pt+HVQOJ1KMiHSYRZYzu/n4r16mTA5CJRa58=;
+	s=korg; t=1730164010;
+	bh=sBBMK16vbxz2XX2Y3s511LWiYVjizXkLoC3h9MoL1p8=;
 	h=Date:To:From:Subject:From;
-	b=eeqhRyxa6HcYnQmAKta2l883mcCB7PWe7yc1aSM3brIwYYojccN+7iT8HCZ/75gxT
-	 QjK+2/6pE4XcAlaH23eLcx5NEHFxkoIqZHZ0IC+mVAsGIH/pZvn4TdrVZzrTK073yQ
-	 EFjg3vOdDQLbT+Zu9UBvhukSh9+k8MsxRavgRNcs=
-Date: Mon, 28 Oct 2024 18:06:45 -0700
+	b=jtSGZT/iSQFt21R84z8CDldK6JNMP0y4Q5PrOa46yl2/Zv1SWwv8GPO5/IFgldJ72
+	 1k6x6ELAHcVOs2QkNUJPrCZu34Yj745B0nZQaWm6+tPOqzMb2DLPZsCjtkYM2hxodA
+	 93+0R5mlS87OOeVYeGJ7m6R+m7Z4Pd9vyUJvLb5I=
+Date: Mon, 28 Oct 2024 18:06:48 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabkba@suse.cz,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,skhan@linuxfoundation.org,sidhartha.kumar@oracle.com,shuah@kernel.org,richard.henderson@linaro.org,paulmck@kernel.org,muchun.song@linux.dev,mattst88@gmail.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jeffxu@chromium.org,jcmvbkbc@gmail.com,jannh@google.com,James.Bottomley@HansenPartnership.com,hch@infradead.org,deller@gmx.de,david@redhat.com,chris@zankel.net,brauner@kernel.org,arnd@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-add-the-ability-to-install-ptes.patch added to mm-unstable branch
-Message-Id: <20241029010645.B6430C4CEEA@smtp.kernel.org>
+Subject: + mm-add-pte_marker_guard-pte-marker.patch added to mm-unstable branch
+Message-Id: <20241029010650.2E432C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pagewalk: add the ability to install PTEs
+     Subject: mm: add PTE_MARKER_GUARD PTE marker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-add-the-ability-to-install-ptes.patch
+     mm-add-pte_marker_guard-pte-marker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-add-the-ability-to-install-ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pte_marker_guard-pte-marker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,157 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: pagewalk: add the ability to install PTEs
-Date: Mon, 28 Oct 2024 14:13:27 +0000
+Subject: mm: add PTE_MARKER_GUARD PTE marker
+Date: Mon, 28 Oct 2024 14:13:28 +0000
 
-Patch series "implement lightweight guard pages", v4.
+Add a new PTE marker that results in any access causing the accessing
+process to segfault.
 
-Userland library functions such as allocators and threading
-implementations often require regions of memory to act as 'guard pages' -
-mappings which, when accessed, result in a fatal signal being sent to the
-accessing process.
+This is preferable to PTE_MARKER_POISONED, which results in the same
+handling as hardware poisoned memory, and is thus undesirable for cases
+where we simply wish to 'soft' poison a range.
 
-The current means by which these are implemented is via a PROT_NONE mmap()
-mapping, which provides the required semantics however incur an overhead
-of a VMA for each such region.
+This is in preparation for implementing the ability to specify guard pages
+at the page table level, i.e.  ranges that, when accessed, should cause
+process termination.
 
-With a great many processes and threads, this can rapidly add up and incur
-a significant memory penalty.  It also has the added problem of preventing
-merges that might otherwise be permitted.
+Additionally, rename zap_drop_file_uffd_wp() to zap_drop_markers() - the
+function checks the ZAP_FLAG_DROP_MARKER flag so naming it for this single
+purpose was simply incorrect.
 
-This series takes a different approach - an idea suggested by Vlasimil
-Babka (and before him David Hildenbrand and Jann Horn - perhaps more - the
-provenance becomes a little tricky to ascertain after this - please
-forgive any omissions!) - rather than locating the guard pages at the VMA
-layer, instead placing them in page tables mapping the required ranges.
+We then reuse the same logic to determine whether a zap should clear a
+guard entry - this should only be performed on teardown and never on
+MADV_DONTNEED or MADV_FREE.
 
-Early testing of the prototype version of this code suggests a 5 times
-speed up in memory mapping invocations (in conjunction with use of
-process_madvise()) and a 13% reduction in VMAs on an entirely idle android
-system and unoptimised code.
+We additionally add a WARN_ON_ONCE() in hugetlb logic should a guard
+marker be encountered there, as we explicitly do not support this
+operation and this should not occur.
 
-We expect with optimisation and a loaded system with a larger number of
-guard pages this could significantly increase, but in any case these
-numbers are encouraging.
-
-This way, rather than having separate VMAs specifying which parts of a
-range are guard pages, instead we have a VMA spanning the entire range of
-memory a user is permitted to access and including ranges which are to be
-'guarded'.
-
-After mapping this, a user can specify which parts of the range should
-result in a fatal signal when accessed.
-
-By restricting the ability to specify guard pages to memory mapped by
-existing VMAs, we can rely on the mappings being torn down when the
-mappings are ultimately unmapped and everything works simply as if the
-memory were not faulted in, from the point of view of the containing VMAs.
-
-This mechanism in effect poisons memory ranges similar to hardware memory
-poisoning, only it is an entirely software-controlled form of poisoning.
-
-The mechanism is implemented via madvise() behaviour - MADV_GUARD_INSTALL
-which installs page table-level guard page markers - and MADV_GUARD_REMOVE
-- which clears them.
-
-Guard markers can be installed across multiple VMAs and any existing
-mappings will be cleared, that is zapped, before installing the guard page
-markers in the page tables.
-
-There is no concept of 'nested' guard markers, multiple attempts to
-install guard markers in a range will, after the first attempt, have no
-effect.
-
-Importantly, removing guard markers over a range that contains both guard
-markers and ordinary backed memory has no effect on anything but the guard
-markers (including leaving huge pages un-split), so a user can safely
-remove guard markers over a range of memory leaving the rest intact.
-
-The actual mechanism by which the page table entries are specified makes
-use of existing logic - PTE markers, which are used for the userfaultfd
-UFFDIO_POISON mechanism.
-
-Unfortunately PTE_MARKER_POISONED is not suited for the guard page
-mechanism as it results in VM_FAULT_HWPOISON semantics in the fault
-handler, so we add our own specific PTE_MARKER_GUARD and adapt existing
-logic to handle it.
-
-We also extend the generic page walk mechanism to allow for installation
-of PTEs (carefully restricted to memory management logic only to prevent
-unwanted abuse).
-
-We ensure that zapping performed by MADV_DONTNEED and MADV_FREE do not
-remove guard markers, nor does forking (except when VM_WIPEONFORK is
-specified for a VMA which implies a total removal of memory
-characteristics).
-
-It's important to note that the guard page implementation is emphatically
-NOT a security feature, so a user can remove the markers if they wish.  We
-simply implement it in such a way as to provide the least surprising
-behaviour.
-
-An extensive set of self-tests are provided which ensure behaviour is as
-expected and additionally self-documents expected behaviour of guard
-ranges.
-
-
-This patch (of 5):
-
-The existing generic pagewalk logic permits the walking of page tables,
-invoking callbacks at individual page table levels via user-provided
-mm_walk_ops callbacks.
-
-This is useful for traversing existing page table entries, but precludes
-the ability to establish new ones.
-
-Existing mechanism for performing a walk which also installs page table
-entries if necessary are heavily duplicated throughout the kernel, each
-with semantic differences from one another and largely unavailable for use
-elsewhere.
-
-Rather than add yet another implementation, we extend the generic pagewalk
-logic to enable the installation of page table entries by adding a new
-install_pte() callback in mm_walk_ops.  If this is specified, then upon
-encountering a missing page table entry, we allocate and install a new one
-and continue the traversal.
-
-If a THP huge page is encountered at either the PMD or PUD level we split
-it only if there are ops->pte_entry() (or ops->pmd_entry at PUD level),
-otherwise if there is only an ops->install_pte(), we avoid the unnecessary
-split.
-
-We do not support hugetlb at this stage.
-
-If this function returns an error, or an allocation fails during the
-operation, we abort the operation altogether.  It is up to the caller to
-deal appropriately with partially populated page table ranges.
-
-If install_pte() is defined, the semantics of pte_entry() change - this
-callback is then only invoked if the entry already exists.  This is a
-useful property, as it allows a caller to handle existing PTEs while
-installing new ones where necessary in the specified range.
-
-If install_pte() is not defined, then there is no functional difference to
-this patch, so all existing logic will work precisely as it did before.
-
-As we only permit the installation of PTEs where a mapping does not
-already exist there is no need for TLB management, however we do invoke
-update_mmu_cache() for architectures which require manual maintenance of
-mappings for other CPUs.
-
-We explicitly do not allow the existing page walk API to expose this
-feature as it is dangerous and intended for internal mm use only. 
-Therefore we provide a new walk_page_range_mm() function exposed only to
-mm/internal.h.
-
-We take the opportunity to additionally clean up the page walker logic to
-be a little easier to follow.
-
-Link: https://lkml.kernel.org/r/cover.1730123433.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/51b432ebef013e3fdf9f92101533435de1bffadf.1730123433.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/f47f3d5acca2dcf9bbf655b6d33f3dc713e4a4a0.1730123433.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Jann Horn <jannh@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabkba@suse.cz>
 Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Suggested-by: Jann Horn <jannh@google.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
@@ -229,515 +107,150 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Henderson <richard.henderson@linaro.org>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Vlastimil Babka <vbabkba@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |   18 ++
- mm/internal.h            |    6 
- mm/pagewalk.c            |  246 +++++++++++++++++++++++++++----------
- 3 files changed, 201 insertions(+), 69 deletions(-)
+ include/linux/mm_inline.h |    2 +-
+ include/linux/swapops.h   |   24 +++++++++++++++++++++++-
+ mm/hugetlb.c              |    4 ++++
+ mm/memory.c               |   18 +++++++++++++++---
+ mm/mprotect.c             |    6 ++++--
+ 5 files changed, 47 insertions(+), 7 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-pagewalk-add-the-ability-to-install-ptes
-+++ a/include/linux/pagewalk.h
-@@ -25,12 +25,15 @@ enum page_walk_lock {
-  *			this handler is required to be able to handle
-  *			pmd_trans_huge() pmds.  They may simply choose to
-  *			split_huge_page() instead of handling it explicitly.
-- * @pte_entry:		if set, called for each PTE (lowest-level) entry,
-- *			including empty ones
-+ * @pte_entry:		if set, called for each PTE (lowest-level) entry
-+ *			including empty ones, except if @install_pte is set.
-+ *			If @install_pte is set, @pte_entry is called only for
-+ *			existing PTEs.
-  * @pte_hole:		if set, called for each hole at all levels,
-  *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD.
-  *			Any folded depths (where PTRS_PER_P?D is equal to 1)
-- *			are skipped.
-+ *			are skipped. If @install_pte is specified, this will
-+ *			not trigger for any populated ranges.
-  * @hugetlb_entry:	if set, called for each hugetlb entry. This hook
-  *			function is called with the vma lock held, in order to
-  *			protect against a concurrent freeing of the pte_t* or
-@@ -51,6 +54,13 @@ enum page_walk_lock {
-  * @pre_vma:            if set, called before starting walk on a non-null vma.
-  * @post_vma:           if set, called after a walk on a non-null vma, provided
-  *                      that @pre_vma and the vma walk succeeded.
-+ * @install_pte:        if set, missing page table entries are installed and
-+ *                      thus all levels are always walked in the specified
-+ *                      range. This callback is then invoked at the PTE level
-+ *                      (having split any THP pages prior), providing the PTE to
-+ *                      install. If allocations fail, the walk is aborted. This
-+ *                      operation is only available for userland memory. Not
-+ *                      usable for hugetlb ranges.
-  *
-  * p?d_entry callbacks are called even if those levels are folded on a
-  * particular architecture/configuration.
-@@ -76,6 +86,8 @@ struct mm_walk_ops {
- 	int (*pre_vma)(unsigned long start, unsigned long end,
- 		       struct mm_walk *walk);
- 	void (*post_vma)(struct mm_walk *walk);
-+	int (*install_pte)(unsigned long addr, unsigned long next,
-+			   pte_t *ptep, struct mm_walk *walk);
- 	enum page_walk_lock walk_lock;
- };
+--- a/include/linux/mm_inline.h~mm-add-pte_marker_guard-pte-marker
++++ a/include/linux/mm_inline.h
+@@ -544,7 +544,7 @@ static inline pte_marker copy_pte_marker
+ {
+ 	pte_marker srcm = pte_marker_get(entry);
+ 	/* Always copy error entries. */
+-	pte_marker dstm = srcm & PTE_MARKER_POISONED;
++	pte_marker dstm = srcm & (PTE_MARKER_POISONED | PTE_MARKER_GUARD);
  
---- a/mm/internal.h~mm-pagewalk-add-the-ability-to-install-ptes
-+++ a/mm/internal.h
-@@ -12,6 +12,7 @@
- #include <linux/mm.h>
- #include <linux/mm_inline.h>
- #include <linux/pagemap.h>
-+#include <linux/pagewalk.h>
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-@@ -1502,4 +1503,9 @@ static inline void accept_page(struct pa
+ 	/* Only copy PTE markers if UFFD register matches. */
+ 	if ((srcm & PTE_MARKER_UFFD_WP) && userfaultfd_wp(dst_vma))
+--- a/include/linux/swapops.h~mm-add-pte_marker_guard-pte-marker
++++ a/include/linux/swapops.h
+@@ -426,9 +426,19 @@ typedef unsigned long pte_marker;
+  * "Poisoned" here is meant in the very general sense of "future accesses are
+  * invalid", instead of referring very specifically to hardware memory errors.
+  * This marker is meant to represent any of various different causes of this.
++ *
++ * Note that, when encountered by the faulting logic, PTEs with this marker will
++ * result in VM_FAULT_HWPOISON and thus regardless trigger hardware memory error
++ * logic.
+  */
+ #define  PTE_MARKER_POISONED			BIT(1)
+-#define  PTE_MARKER_MASK			(BIT(2) - 1)
++/*
++ * Indicates that, on fault, this PTE will case a SIGSEGV signal to be
++ * sent. This means guard markers behave in effect as if the region were mapped
++ * PROT_NONE, rather than if they were a memory hole or equivalent.
++ */
++#define  PTE_MARKER_GUARD			BIT(2)
++#define  PTE_MARKER_MASK			(BIT(3) - 1)
+ 
+ static inline swp_entry_t make_pte_marker_entry(pte_marker marker)
+ {
+@@ -464,6 +474,18 @@ static inline int is_poisoned_swp_entry(
+ {
+ 	return is_pte_marker_entry(entry) &&
+ 	    (pte_marker_get(entry) & PTE_MARKER_POISONED);
++
++}
++
++static inline swp_entry_t make_guard_swp_entry(void)
++{
++	return make_pte_marker_entry(PTE_MARKER_GUARD);
++}
++
++static inline int is_guard_swp_entry(swp_entry_t entry)
++{
++	return is_pte_marker_entry(entry) &&
++		(pte_marker_get(entry) & PTE_MARKER_GUARD);
  }
- #endif /* CONFIG_UNACCEPTED_MEMORY */
  
-+/* pagewalk.c */
-+int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		void *private);
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/pagewalk.c~mm-pagewalk-add-the-ability-to-install-ptes
-+++ a/mm/pagewalk.c
-@@ -3,9 +3,14 @@
- #include <linux/highmem.h>
- #include <linux/sched.h>
- #include <linux/hugetlb.h>
-+#include <linux/mmu_context.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
- 
-+#include <asm/tlbflush.h>
-+
-+#include "internal.h"
-+
  /*
-  * We want to know the real level where a entry is located ignoring any
-  * folding of levels which may be happening. For example if p4d is folded then
-@@ -29,9 +34,23 @@ static int walk_pte_range_inner(pte_t *p
- 	int err = 0;
+--- a/mm/hugetlb.c~mm-add-pte_marker_guard-pte-marker
++++ a/mm/hugetlb.c
+@@ -6355,6 +6355,10 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 				ret = VM_FAULT_HWPOISON_LARGE |
+ 				      VM_FAULT_SET_HINDEX(hstate_index(h));
+ 				goto out_mutex;
++			} else if (WARN_ON_ONCE(marker & PTE_MARKER_GUARD)) {
++				/* This isn't supported in hugetlb. */
++				ret = VM_FAULT_SIGSEGV;
++				goto out_mutex;
+ 			}
+ 		}
+ 
+--- a/mm/memory.c~mm-add-pte_marker_guard-pte-marker
++++ a/mm/memory.c
+@@ -1455,7 +1455,7 @@ static inline bool should_zap_folio(stru
+ 	return !folio_test_anon(folio);
+ }
+ 
+-static inline bool zap_drop_file_uffd_wp(struct zap_details *details)
++static inline bool zap_drop_markers(struct zap_details *details)
+ {
+ 	if (!details)
+ 		return false;
+@@ -1476,7 +1476,7 @@ zap_install_uffd_wp_if_needed(struct vm_
+ 	if (vma_is_anonymous(vma))
+ 		return;
+ 
+-	if (zap_drop_file_uffd_wp(details))
++	if (zap_drop_markers(details))
+ 		return;
  
  	for (;;) {
--		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
--		if (err)
--		       break;
-+		if (ops->install_pte && pte_none(ptep_get(pte))) {
-+			pte_t new_pte;
-+
-+			err = ops->install_pte(addr, addr + PAGE_SIZE, &new_pte,
-+					       walk);
-+			if (err)
-+				break;
-+
-+			set_pte_at(walk->mm, addr, pte, new_pte);
-+			/* Non-present before, so for arches that need it. */
-+			if (!WARN_ON_ONCE(walk->no_vma))
-+				update_mmu_cache(walk->vma, addr, pte);
-+		} else {
-+			err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
-+			if (err)
-+				break;
-+		}
- 		if (addr >= end - PAGE_SIZE)
- 			break;
- 		addr += PAGE_SIZE;
-@@ -81,6 +100,8 @@ static int walk_pmd_range(pud_t *pud, un
- 	pmd_t *pmd;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
-+	bool has_handler = ops->pte_entry;
-+	bool has_install = ops->install_pte;
- 	int err = 0;
- 	int depth = real_depth(3);
- 
-@@ -89,11 +110,14 @@ static int walk_pmd_range(pud_t *pud, un
- again:
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none(*pmd)) {
--			if (ops->pte_hole)
-+			if (has_install)
-+				err = __pte_alloc(walk->mm, pmd);
-+			else if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, depth, walk);
- 			if (err)
- 				break;
--			continue;
-+			if (!has_install)
+@@ -1671,7 +1671,15 @@ static unsigned long zap_pte_range(struc
+ 			 * drop the marker if explicitly requested.
+ 			 */
+ 			if (!vma_is_anonymous(vma) &&
+-			    !zap_drop_file_uffd_wp(details))
++			    !zap_drop_markers(details))
 +				continue;
- 		}
- 
- 		walk->action = ACTION_SUBTREE;
-@@ -109,18 +133,25 @@ again:
- 
- 		if (walk->action == ACTION_AGAIN)
- 			goto again;
--
--		/*
--		 * Check this here so we only break down trans_huge
--		 * pages when we _need_ to
--		 */
--		if ((!walk->vma && (pmd_leaf(*pmd) || !pmd_present(*pmd))) ||
--		    walk->action == ACTION_CONTINUE ||
--		    !(ops->pte_entry))
-+		if (walk->action == ACTION_CONTINUE)
- 			continue;
- 
-+		if (!has_handler) { /* No handlers for lower page tables. */
-+			if (!has_install)
-+				continue; /* Nothing to do. */
++		} else if (is_guard_swp_entry(entry)) {
 +			/*
-+			 * We are ONLY installing, so avoid unnecessarily
-+			 * splitting a present huge page.
++			 * Ordinary zapping should not remove guard PTE
++			 * markers. Only do so if we should remove PTE markers
++			 * in general.
 +			 */
-+			if (pmd_present(*pmd) &&
-+			    (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
-+				continue;
-+		}
++			if (!zap_drop_markers(details))
+ 				continue;
+ 		} else if (is_hwpoison_entry(entry) ||
+ 			   is_poisoned_swp_entry(entry)) {
+@@ -4003,6 +4011,10 @@ static vm_fault_t handle_pte_marker(stru
+ 	if (marker & PTE_MARKER_POISONED)
+ 		return VM_FAULT_HWPOISON;
+ 
++	/* Hitting a guard page is always a fatal condition. */
++	if (marker & PTE_MARKER_GUARD)
++		return VM_FAULT_SIGSEGV;
 +
- 		if (walk->vma)
- 			split_huge_pmd(walk->vma, pmd, addr);
-+		else if (pmd_leaf(*pmd) || !pmd_present(*pmd))
-+			continue; /* Nothing to do. */
+ 	if (pte_marker_entry_uffd_wp(entry))
+ 		return pte_marker_handle_uffd_wp(vmf);
  
- 		err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
-@@ -140,6 +171,8 @@ static int walk_pud_range(p4d_t *p4d, un
- 	pud_t *pud;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
-+	bool has_handler = ops->pmd_entry || ops->pte_entry;
-+	bool has_install = ops->install_pte;
- 	int err = 0;
- 	int depth = real_depth(2);
- 
-@@ -148,11 +181,14 @@ static int walk_pud_range(p4d_t *p4d, un
-  again:
- 		next = pud_addr_end(addr, end);
- 		if (pud_none(*pud)) {
--			if (ops->pte_hole)
-+			if (has_install)
-+				err = __pmd_alloc(walk->mm, pud, addr);
-+			else if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, depth, walk);
- 			if (err)
- 				break;
--			continue;
-+			if (!has_install)
-+				continue;
- 		}
- 
- 		walk->action = ACTION_SUBTREE;
-@@ -164,14 +200,26 @@ static int walk_pud_range(p4d_t *p4d, un
- 
- 		if (walk->action == ACTION_AGAIN)
- 			goto again;
--
--		if ((!walk->vma && (pud_leaf(*pud) || !pud_present(*pud))) ||
--		    walk->action == ACTION_CONTINUE ||
--		    !(ops->pmd_entry || ops->pte_entry))
-+		if (walk->action == ACTION_CONTINUE)
- 			continue;
- 
-+		if (!has_handler) { /* No handlers for lower page tables. */
-+			if (!has_install)
-+				continue; /* Nothing to do. */
-+			/*
-+			 * We are ONLY installing, so avoid unnecessarily
-+			 * splitting a present huge page.
-+			 */
-+			if (pud_present(*pud) &&
-+			    (pud_trans_huge(*pud) || pud_devmap(*pud)))
-+				continue;
-+		}
-+
- 		if (walk->vma)
- 			split_huge_pud(walk->vma, pud, addr);
-+		else if (pud_leaf(*pud) || !pud_present(*pud))
-+			continue; /* Nothing to do. */
-+
- 		if (pud_none(*pud))
- 			goto again;
- 
-@@ -189,6 +237,8 @@ static int walk_p4d_range(pgd_t *pgd, un
- 	p4d_t *p4d;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
-+	bool has_handler = ops->pud_entry || ops->pmd_entry || ops->pte_entry;
-+	bool has_install = ops->install_pte;
- 	int err = 0;
- 	int depth = real_depth(1);
- 
-@@ -196,18 +246,21 @@ static int walk_p4d_range(pgd_t *pgd, un
- 	do {
- 		next = p4d_addr_end(addr, end);
- 		if (p4d_none_or_clear_bad(p4d)) {
--			if (ops->pte_hole)
-+			if (has_install)
-+				err = __pud_alloc(walk->mm, p4d, addr);
-+			else if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, depth, walk);
- 			if (err)
- 				break;
--			continue;
-+			if (!has_install)
-+				continue;
- 		}
- 		if (ops->p4d_entry) {
- 			err = ops->p4d_entry(p4d, addr, next, walk);
- 			if (err)
- 				break;
- 		}
--		if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (has_handler || has_install)
- 			err = walk_pud_range(p4d, addr, next, walk);
- 		if (err)
- 			break;
-@@ -222,6 +275,9 @@ static int walk_pgd_range(unsigned long
- 	pgd_t *pgd;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
-+	bool has_handler = ops->p4d_entry || ops->pud_entry || ops->pmd_entry ||
-+		ops->pte_entry;
-+	bool has_install = ops->install_pte;
- 	int err = 0;
- 
- 	if (walk->pgd)
-@@ -231,18 +287,21 @@ static int walk_pgd_range(unsigned long
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd)) {
--			if (ops->pte_hole)
-+			if (has_install)
-+				err = __p4d_alloc(walk->mm, pgd, addr);
-+			else if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, 0, walk);
- 			if (err)
- 				break;
--			continue;
-+			if (!has_install)
-+				continue;
- 		}
- 		if (ops->pgd_entry) {
- 			err = ops->pgd_entry(pgd, addr, next, walk);
- 			if (err)
- 				break;
- 		}
--		if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
-+		if (has_handler || has_install)
- 			err = walk_p4d_range(pgd, addr, next, walk);
- 		if (err)
- 			break;
-@@ -334,6 +393,11 @@ static int __walk_page_range(unsigned lo
- 	int err = 0;
- 	struct vm_area_struct *vma = walk->vma;
- 	const struct mm_walk_ops *ops = walk->ops;
-+	bool is_hugetlb = is_vm_hugetlb_page(vma);
-+
-+	/* We do not support hugetlb PTE installation. */
-+	if (ops->install_pte && is_hugetlb)
-+		return -EINVAL;
- 
- 	if (ops->pre_vma) {
- 		err = ops->pre_vma(start, end, walk);
-@@ -341,7 +405,7 @@ static int __walk_page_range(unsigned lo
- 			return err;
- 	}
- 
--	if (is_vm_hugetlb_page(vma)) {
-+	if (is_hugetlb) {
- 		if (ops->hugetlb_entry)
- 			err = walk_hugetlb_range(start, end, walk);
- 	} else
-@@ -380,47 +444,14 @@ static inline void process_vma_walk_lock
- #endif
- }
- 
--/**
-- * walk_page_range - walk page table with caller specific callbacks
-- * @mm:		mm_struct representing the target process of page table walk
-- * @start:	start address of the virtual address range
-- * @end:	end address of the virtual address range
-- * @ops:	operation to call during the walk
-- * @private:	private data for callbacks' usage
-- *
-- * Recursively walk the page table tree of the process represented by @mm
-- * within the virtual address range [@start, @end). During walking, we can do
-- * some caller-specific works for each entry, by setting up pmd_entry(),
-- * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
-- * callbacks, the associated entries/pages are just ignored.
-- * The return values of these callbacks are commonly defined like below:
-- *
-- *  - 0  : succeeded to handle the current entry, and if you don't reach the
-- *         end address yet, continue to walk.
-- *  - >0 : succeeded to handle the current entry, and return to the caller
-- *         with caller specific value.
-- *  - <0 : failed to handle the current entry, and return to the caller
-- *         with error code.
-- *
-- * Before starting to walk page table, some callers want to check whether
-- * they really want to walk over the current vma, typically by checking
-- * its vm_flags. walk_page_test() and @ops->test_walk() are used for this
-- * purpose.
-- *
-- * If operations need to be staged before and committed after a vma is walked,
-- * there are two callbacks, pre_vma() and post_vma(). Note that post_vma(),
-- * since it is intended to handle commit-type operations, can't return any
-- * errors.
-- *
-- * struct mm_walk keeps current values of some common data like vma and pmd,
-- * which are useful for the access from callbacks. If you want to pass some
-- * caller-specific data to callbacks, @private should be helpful.
-+/*
-+ * See the comment for walk_page_range(), this performs the heavy lifting of the
-+ * operation, only sets no restrictions on how the walk proceeds.
-  *
-- * Locking:
-- *   Callers of walk_page_range() and walk_page_vma() should hold @mm->mmap_lock,
-- *   because these function traverse vma list and/or access to vma's data.
-+ * We usually restrict the ability to install PTEs, but this functionality is
-+ * available to internal memory management code and provided in mm/internal.h.
-  */
--int walk_page_range(struct mm_struct *mm, unsigned long start,
-+int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private)
- {
-@@ -479,6 +510,80 @@ int walk_page_range(struct mm_struct *mm
- 	return err;
- }
- 
-+/*
-+ * Determine if the walk operations specified are permitted to be used for a
-+ * page table walk.
-+ *
-+ * This check is performed on all functions which are parameterised by walk
-+ * operations and exposed in include/linux/pagewalk.h.
-+ *
-+ * Internal memory management code can use the walk_page_range_mm() function to
-+ * be able to use all page walking operations.
-+ */
-+static bool check_ops_valid(const struct mm_walk_ops *ops)
-+{
-+	/*
-+	 * The installation of PTEs is solely under the control of memory
-+	 * management logic and subject to many subtle locking, security and
-+	 * cache considerations so we cannot permit other users to do so, and
-+	 * certainly not for exported symbols.
-+	 */
-+	if (ops->install_pte)
-+		return false;
-+
-+	return true;
-+}
-+
-+/**
-+ * walk_page_range - walk page table with caller specific callbacks
-+ * @mm:		mm_struct representing the target process of page table walk
-+ * @start:	start address of the virtual address range
-+ * @end:	end address of the virtual address range
-+ * @ops:	operation to call during the walk
-+ * @private:	private data for callbacks' usage
-+ *
-+ * Recursively walk the page table tree of the process represented by @mm
-+ * within the virtual address range [@start, @end). During walking, we can do
-+ * some caller-specific works for each entry, by setting up pmd_entry(),
-+ * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
-+ * callbacks, the associated entries/pages are just ignored.
-+ * The return values of these callbacks are commonly defined like below:
-+ *
-+ *  - 0  : succeeded to handle the current entry, and if you don't reach the
-+ *         end address yet, continue to walk.
-+ *  - >0 : succeeded to handle the current entry, and return to the caller
-+ *         with caller specific value.
-+ *  - <0 : failed to handle the current entry, and return to the caller
-+ *         with error code.
-+ *
-+ * Before starting to walk page table, some callers want to check whether
-+ * they really want to walk over the current vma, typically by checking
-+ * its vm_flags. walk_page_test() and @ops->test_walk() are used for this
-+ * purpose.
-+ *
-+ * If operations need to be staged before and committed after a vma is walked,
-+ * there are two callbacks, pre_vma() and post_vma(). Note that post_vma(),
-+ * since it is intended to handle commit-type operations, can't return any
-+ * errors.
-+ *
-+ * struct mm_walk keeps current values of some common data like vma and pmd,
-+ * which are useful for the access from callbacks. If you want to pass some
-+ * caller-specific data to callbacks, @private should be helpful.
-+ *
-+ * Locking:
-+ *   Callers of walk_page_range() and walk_page_vma() should hold @mm->mmap_lock,
-+ *   because these function traverse vma list and/or access to vma's data.
-+ */
-+int walk_page_range(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		void *private)
-+{
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
-+
-+	return walk_page_range_mm(mm, start, end, ops, private);
-+}
-+
- /**
-  * walk_page_range_novma - walk a range of pagetables not backed by a vma
-  * @mm:		mm_struct representing the target process of page table walk
-@@ -494,7 +599,7 @@ int walk_page_range(struct mm_struct *mm
-  * walking the kernel pages tables or page tables for firmware.
-  *
-  * Note: Be careful to walk the kernel pages tables, the caller may be need to
-- * take other effective approache (mmap lock may be insufficient) to prevent
-+ * take other effective approaches (mmap lock may be insufficient) to prevent
-  * the intermediate kernel page tables belonging to the specified address range
-  * from being freed (e.g. memory hot-remove).
-  */
-@@ -513,6 +618,8 @@ int walk_page_range_novma(struct mm_stru
- 
- 	if (start >= end || !walk.mm)
- 		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
- 
- 	/*
- 	 * 1) For walking the user virtual address space:
-@@ -556,6 +663,8 @@ int walk_page_range_vma(struct vm_area_s
- 		return -EINVAL;
- 	if (start < vma->vm_start || end > vma->vm_end)
- 		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
- 
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
- 	process_vma_walk_lock(vma, ops->walk_lock);
-@@ -574,6 +683,8 @@ int walk_page_vma(struct vm_area_struct
- 
- 	if (!walk.mm)
- 		return -EINVAL;
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
- 
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
- 	process_vma_walk_lock(vma, ops->walk_lock);
-@@ -623,6 +734,9 @@ int walk_page_mapping(struct address_spa
- 	unsigned long start_addr, end_addr;
- 	int err = 0;
- 
-+	if (!check_ops_valid(ops))
-+		return -EINVAL;
-+
- 	lockdep_assert_held(&mapping->i_mmap_rwsem);
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
- 				  first_index + nr - 1) {
+--- a/mm/mprotect.c~mm-add-pte_marker_guard-pte-marker
++++ a/mm/mprotect.c
+@@ -236,9 +236,11 @@ static long change_pte_range(struct mmu_
+ 			} else if (is_pte_marker_entry(entry)) {
+ 				/*
+ 				 * Ignore error swap entries unconditionally,
+-				 * because any access should sigbus anyway.
++				 * because any access should sigbus/sigsegv
++				 * anyway.
+ 				 */
+-				if (is_poisoned_swp_entry(entry))
++				if (is_poisoned_swp_entry(entry) ||
++				    is_guard_swp_entry(entry))
+ 					continue;
+ 				/*
+ 				 * If this is uffd-wp pte marker and we'd like
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
