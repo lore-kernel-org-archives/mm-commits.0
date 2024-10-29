@@ -1,59 +1,95 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCB9420125D;
-	Tue, 29 Oct 2024 19:30:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 757B8D53F
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 19:32:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730230248; cv=none; b=cpE3U0O9VA90CUYEb6RXh0eUP368hd1rgtfC+bzu4PSLd4Mx+8lBbpQsIDskWnHz/YQY+yGCeTxGwconKd6SZRZHFQYKajHYs/J/yJ0np/eGBH1S51c63wsYWOiCpaE4AvFD9+WFaT728G8eD92YpMBh7zvfU2g1/CrGf9XRqmA=
+	t=1730230364; cv=none; b=VkJU6jtNDMTUsC4EPT7lFIPrdD+lNGJtqYPw0LI4AxuPt+m2iTG9QVXRAIdkUWyExKJHWRb4k/1jihbwf47ywffaMHketqXfpvWGezFItrjuLC32sXYJ6hYTIMKNIFXzXCygqtV1PqIjQ/advP17bWp9L3t1lYDzlgHMvmFr3kA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730230248; c=relaxed/simple;
-	bh=LZuyG69K/meju8pWtFlcZEibdSANaQtcyFehvMeZgg0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=XAQCUeJ/vasRbFMFEgk0W+tcao53hgDM4cv1Z7Ma5vD5+TirraRLzJEt+iFtmUy1YXfG8plwStY7V9a2wyA5Bdtf9zIXlRYzHIYvkcwAVKhfDvZ2ewRdPLO+UC3HU8fHazKEBUqhDREyhdz8GFoXIfjXZdMmUQVu8WPXm/P1xyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2XuusiOv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730230364; c=relaxed/simple;
+	bh=1vCJWtLy7QdqIxrwsTZhqoWtXKygbHcysdSyOrZUzdo=;
+	h=Date:To:From:Subject:Message-Id; b=s++Rt+nBPsJFbvm9czf4FfL5BTMN3pToKulqcmv3uKRT+teG+0xwTCWiYTNatmwBDYZygoDmJbD0s4E9/g7nTFqUrN3Qdr7mCfmEQA0cZA3Lp2JdZ+f6MQHneeFnqIiaIAZGGWYGVElhws9rbiLvlRILLx3GhkPXerY+Jq+bB5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1hfWrqM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2XuusiOv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FFE6C4CECD;
-	Tue, 29 Oct 2024 19:30:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1hfWrqM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E867CC4CECD;
+	Tue, 29 Oct 2024 19:32:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730230247;
-	bh=LZuyG69K/meju8pWtFlcZEibdSANaQtcyFehvMeZgg0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=2XuusiOvoE/g6e8Ib7b0ipluTZw/yEBVP+T2ta9QbmFxZGYVXnrK+k385cJw7XMea
-	 XzMUncguQEthcyyoiSUaMMmt7kJhHaAuajj7DTWRSBbb6PTlaV1VYQHd64jHOvU4XT
-	 GZG6/x9SQ67xBJFNPSNSsmayuTuyzH8+9fJti48Y=
-Date: Tue, 29 Oct 2024 12:30:46 -0700
+	s=korg; t=1730230364;
+	bh=1vCJWtLy7QdqIxrwsTZhqoWtXKygbHcysdSyOrZUzdo=;
+	h=Date:To:From:Subject:From;
+	b=n1hfWrqMEodbE/ufRSfJt0yBU+OrbQWgAWVJGmX1E6Vz7DK0bQnvt4ps4JsJDBPDE
+	 9H9gM0Yi8M4aaB2PzlJnQSkzSdMkPGf5NY7v0RAcGvjOL8exNPdKWkgh8Rx17batZS
+	 wmcVUT+s7j/pmc2CkbHkt3YOWTZtuxbV7tteC7TI=
+Date: Tue, 29 Oct 2024 12:32:42 -0700
+To: mm-commits@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Vlastimil Babka <vbabka@suse.cz>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com,
- linkl@google.com, yuzhao@google.com
-Subject: Re: + mm-page_alloc-keep-track-of-free-highatomic.patch added to
- mm-hotfixes-unstable branch
-Message-Id: <20241029123046.b81890f3c5fa181d667cc4d4@linux-foundation.org>
-In-Reply-To: <cbbad18f-80ad-4283-b437-65f86411f803@suse.cz>
-References: <20241029005805.9BEF2C4CEC3@smtp.kernel.org>
-	<cbbad18f-80ad-4283-b437-65f86411f803@suse.cz>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-memory-failure-replace-sprintf-with-sysfs_emit.patch added to mm-unstable branch
+Message-Id: <20241029193243.E867CC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Tue, 29 Oct 2024 10:05:43 +0100 Vlastimil Babka <vbabka@suse.cz> wrote:
 
-> On 10/29/24 01:58, Andrew Morton wrote:
-> > The patch titled
-> >      Subject: mm/page_alloc: keep track of free highatomic
-> > has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-> >      mm-page_alloc-keep-track-of-free-highatomic.patch
-> 
-> In case of mm-hotfixes, the cc stable for 6.12 is unnecessary as it should
-> make it there directly. Perhaps it's the best way, yeah.
+The patch titled
+     Subject: mm/memory-failure: replace sprintf() with sysfs_emit()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-replace-sprintf-with-sysfs_emit.patch
 
-Oh, yeah, right.  There's no Fixes:.  How do we know it's 6.12+?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-replace-sprintf-with-sysfs_emit.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: zhangguopeng <zhangguopeng@kylinos.cn>
+Subject: mm/memory-failure: replace sprintf() with sysfs_emit()
+Date: Tue, 29 Oct 2024 18:18:53 +0800
+
+As Documentation/filesystems/sysfs.rst suggested, show() should only use
+sysfs_emit() or sysfs_emit_at() when formatting the value to be returned
+to user space.
+
+Link: https://lkml.kernel.org/r/20241029101853.37890-1-zhangguopeng@kylinos.cn
+Signed-off-by: zhangguopeng <zhangguopeng@kylinos.cn>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/memory-failure.c~mm-memory-failure-replace-sprintf-with-sysfs_emit
++++ a/mm/memory-failure.c
+@@ -100,7 +100,7 @@ static ssize_t _name##_show(struct devic
+ {								\
+ 	struct memory_failure_stats *mf_stats =			\
+ 		&NODE_DATA(dev->id)->mf_stats;			\
+-	return sprintf(buf, "%lu\n", mf_stats->_name);		\
++	return sysfs_emit(buf, "%lu\n", mf_stats->_name);	\
+ }								\
+ static DEVICE_ATTR_RO(_name)
+ 
+_
+
+Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
+
+mm-memory-failure-replace-sprintf-with-sysfs_emit.patch
 
