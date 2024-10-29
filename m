@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BB292BAF9;
-	Tue, 29 Oct 2024 00:58:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8712A747F
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 01:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730163486; cv=none; b=HRnGH0kl6sYVeEYWRXYDJkej1UqyX0HgNf+YrfXJ+HGuQPPweVbfWPk977PMniKGrw+rW/NHFxOyNDLuJW8dOnr5E+HK/E1cNlI5FfDuqaGNT4mjnO7E5d9UA28GcKcohy9gyRtUKI/4Webug1B7Y0iARnaNQAZquXtf2YcUEOY=
+	t=1730163656; cv=none; b=ct5TMZ1sgRn68dwtwi0xiG/q2RP7FzQHLWT82k2Uep/OHJb7T71RLsIei3xiRvnD+g6TzUKRNRTg/7yXiIzHZseIFT65G8ax8BabWLdq06E2LxUq2mG6oWWjKCLl7LfvrLdnKXisrguHtvGGA4JTGMqJYBVt6NiKZBKyuH2o8A0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730163486; c=relaxed/simple;
-	bh=la4JUGIrjRPsfL/hd6gTQpOEO0qZV8/H3WHRzJr5VHA=;
-	h=Date:To:From:Subject:Message-Id; b=sQqzbt01Isy5qPKQeyrPmvXBURT1NILpElDBR7915bKqZu8pu06OtjYSzy83K7gwQG0RnC7HdlOFOJ0LvM1QQzOoMAcAFYW9N15OyDCQgKbDqJKX+nnE2IjwUYiJ5CxQJg9kw+c0Wxyjk1XqCnnmBdhlDCLdLJewnPovnf5oCXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MXP99Dmh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730163656; c=relaxed/simple;
+	bh=o3XYijhQJcUzbNB4gYBeCr9S4Q/TIANyY3NCK66MdDQ=;
+	h=Date:To:From:Subject:Message-Id; b=lWuB0OvapMsTPphWFPZjL2Q7O45TbNqpdDbTWNvepSW4B2fxBuz1fb01pBQnnY5kglJIEMUBw5b1M20uP6f9Lu26nSVyQJu3Pfnj4INtsVsl8fX1ovNad4XTb7LXUx74qo7ajiqljny12B+G4G7JRozek7fcd6J/aK6hOXFVvko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RJJoFy1W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MXP99Dmh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BEF2C4CEC3;
-	Tue, 29 Oct 2024 00:58:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RJJoFy1W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE14C4CEC3;
+	Tue, 29 Oct 2024 01:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730163485;
-	bh=la4JUGIrjRPsfL/hd6gTQpOEO0qZV8/H3WHRzJr5VHA=;
+	s=korg; t=1730163656;
+	bh=o3XYijhQJcUzbNB4gYBeCr9S4Q/TIANyY3NCK66MdDQ=;
 	h=Date:To:From:Subject:From;
-	b=MXP99DmhLNqjS9mTxHyvZb+hDv7Vwkr4pWpR8dsKP8kuDqFltbpPSsiFS2SWFPGkj
-	 EQehsA1hUtXTMn4jbQKzTwBxSRjoKPRNU4pLpNtDEYgqJR/XHvibtiMCkeF3rkBFcB
-	 BU+iPUZRP6oKPgFM6r1wk9LDcYZbISrhmI5I7Txk=
-Date: Mon, 28 Oct 2024 17:58:05 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,rientjes@google.com,linkl@google.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=RJJoFy1WBj/ucEWHpTDGWUI2XC5fRRf4k83U+0YCwPCIrG44im2kIzfS3Onwdy9VT
+	 Y/eEVAnlQPpKZoK11C9efmYDV+eLPe/+c0yrDaI8MKh49/FM4ArghM1Q63kmWbxZqE
+	 wRtr6DeOfEIwIR5Qq12juHfHDe6Pt3kTYKh98bLQ=
+Date: Mon, 28 Oct 2024 18:00:55 -0700
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-keep-track-of-free-highatomic.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241029005805.9BEF2C4CEC3@smtp.kernel.org>
+Subject: + mm-use-aligned-address-in-clear_gigantic_page.patch added to mm-unstable branch
+Message-Id: <20241029010056.1EE14C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: keep track of free highatomic
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-keep-track-of-free-highatomic.patch
+     Subject: mm: use aligned address in clear_gigantic_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-use-aligned-address-in-clear_gigantic_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-keep-track-of-free-highatomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-aligned-address-in-clear_gigantic_page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,108 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/page_alloc: keep track of free highatomic
-Date: Mon, 28 Oct 2024 12:26:53 -0600
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: use aligned address in clear_gigantic_page()
+Date: Mon, 28 Oct 2024 22:56:55 +0800
 
-OOM kills due to vastly overestimated free highatomic reserves were
-observed:
+In current kernel, hugetlb_no_page() calls folio_zero_user() with the
+fault address.  Where the fault address may be not aligned with the huge
+page size.  Then, folio_zero_user() may call clear_gigantic_page() with
+the address, while clear_gigantic_page() requires the address to be huge
+page size aligned.  So, this may cause memory corruption or information
+leak, addtional, use more obvious naming 'addr_hint' instead of 'addr' for
+clear_gigantic_page().
 
-  ... invoked oom-killer: gfp_mask=0x100cca(GFP_HIGHUSER_MOVABLE), order=0 ...
-  Node 0 Normal free:1482936kB boost:0kB min:410416kB low:739404kB high:1068392kB reserved_highatomic:1073152KB ...
-  Node 0 Normal: 1292*4kB (ME) 1920*8kB (E) 383*16kB (UE) 220*32kB (ME) 340*64kB (E) 2155*128kB (UE) 3243*256kB (UE) 615*512kB (U) 1*1024kB (M) 0*2048kB 0*4096kB = 1477408kB
-
-The second line above shows that the OOM kill was due to the following
-condition:
-
-  free (1482936kB) - reserved_highatomic (1073152kB) = 409784KB < min (410416kB)
-
-And the third line shows there were no free pages in any
-MIGRATE_HIGHATOMIC pageblocks, which otherwise would show up as type 'H'. 
-Therefore __zone_watermark_unusable_free() underestimated the usable free
-memory by over 1GB, which resulted in the unnecessary OOM kill above.
-
-The comments in __zone_watermark_unusable_free() warns about the potential
-risk, i.e.,
-
-  If the caller does not have rights to reserves below the min
-  watermark then subtract the high-atomic reserves. This will
-  over-estimate the size of the atomic reserve but it avoids a search.
-
-However, it is possible to keep track of free pages in reserved highatomic
-pageblocks with a new per-zone counter nr_free_highatomic protected by the
-zone lock, to avoid a search when calculating the usable free memory.  And
-the cost would be minimal, i.e., simple arithmetics in the highatomic
-alloc/free/move paths.
-
-Note that since nr_free_highatomic can be relatively small, using a
-per-cpu counter might cause too much drift and defeat its purpose, in
-addition to the extra memory overhead.
-
-Link: https://lkml.kernel.org/r/20241028182653.3420139-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Link Lin <linkl@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[6.12+]
+Link: https://lkml.kernel.org/r/20241028145656.932941-1-wangkefeng.wang@huawei.com
+Fixes: 78fefd04c123 ("mm: memory: convert clear_huge_page() to folio_zero_user()")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/page_alloc.c        |   10 +++++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ mm/memory.c          |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-keep-track-of-free-highatomic
-+++ a/include/linux/mmzone.h
-@@ -823,6 +823,7 @@ struct zone {
- 	unsigned long watermark_boost;
- 
- 	unsigned long nr_reserved_highatomic;
-+	unsigned long nr_free_highatomic;
- 
- 	/*
- 	 * We don't know if the memory that we're going to allocate will be
---- a/mm/page_alloc.c~mm-page_alloc-keep-track-of-free-highatomic
-+++ a/mm/page_alloc.c
-@@ -635,6 +635,8 @@ compaction_capture(struct capture_contro
- static inline void account_freepages(struct zone *zone, int nr_pages,
- 				     int migratetype)
- {
-+	lockdep_assert_held(&zone->lock);
-+
- 	if (is_migrate_isolate(migratetype))
- 		return;
- 
-@@ -642,6 +644,9 @@ static inline void account_freepages(str
- 
- 	if (is_migrate_cma(migratetype))
- 		__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, nr_pages);
-+
-+	if (is_migrate_highatomic(migratetype))
-+		WRITE_ONCE(zone->nr_free_highatomic, zone->nr_free_highatomic + nr_pages);
+--- a/fs/hugetlbfs/inode.c~mm-use-aligned-address-in-clear_gigantic_page
++++ a/fs/hugetlbfs/inode.c
+@@ -819,7 +819,7 @@ static long hugetlbfs_fallocate(struct f
+ 			error = PTR_ERR(folio);
+ 			goto out;
+ 		}
+-		folio_zero_user(folio, ALIGN_DOWN(addr, hpage_size));
++		folio_zero_user(folio, addr);
+ 		__folio_mark_uptodate(folio);
+ 		error = hugetlb_add_to_page_cache(folio, mapping, index);
+ 		if (unlikely(error)) {
+--- a/mm/memory.c~mm-use-aligned-address-in-clear_gigantic_page
++++ a/mm/memory.c
+@@ -6804,9 +6804,10 @@ static inline int process_huge_page(
+ 	return 0;
  }
  
- /* Used for pages not on another list */
-@@ -3081,11 +3086,10 @@ static inline long __zone_watermark_unus
+-static void clear_gigantic_page(struct folio *folio, unsigned long addr,
++static void clear_gigantic_page(struct folio *folio, unsigned long addr_hint,
+ 				unsigned int nr_pages)
+ {
++	unsigned long addr = ALIGN_DOWN(addr_hint, folio_size(folio));
+ 	int i;
  
- 	/*
- 	 * If the caller does not have rights to reserves below the min
--	 * watermark then subtract the high-atomic reserves. This will
--	 * over-estimate the size of the atomic reserve but it avoids a search.
-+	 * watermark then subtract the free pages reserved for highatomic.
- 	 */
- 	if (likely(!(alloc_flags & ALLOC_RESERVES)))
--		unusable_free += z->nr_reserved_highatomic;
-+		unusable_free += READ_ONCE(z->nr_free_highatomic);
- 
- #ifdef CONFIG_CMA
- 	/* If allocation can't use CMA areas don't use free CMA pages */
+ 	might_sleep();
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-allow-set-clear-page_type-again.patch
-mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch
-mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
-mm-page_alloc-keep-track-of-free-highatomic.patch
+mm-remove-unused-hugepage-for-vma_alloc_folio.patch
+tmpfs-dont-enable-large-folios-if-not-supported.patch
+mm-huge_memory-move-file_thp_enabled-into-huge_memoryc.patch
+mm-shmem-remove-__shmem_huge_global_enabled.patch
+mm-use-aligned-address-in-clear_gigantic_page.patch
+mm-use-aligned-address-in-copy_user_gigantic_page.patch
 
