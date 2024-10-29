@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E4B1D5171;
-	Mon, 28 Oct 2024 23:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D19517D2
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 00:01:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730159533; cv=none; b=R6VM0qCeSjXU4Gq9QISAwAjBJS8+rQyVKJN+ZqC/P9/8oF1pbxrws1ampKRKvlCYeGb1lQwskEaaTYQoLYplvpRvhiITO7nCgsbskWTS05FDL4Q3ikRaGAR4/2XAgybqsDUC0/b8u45L1uoM2SsIhpOv7WajNRNQqYTuX3bYRE4=
+	t=1730160083; cv=none; b=ZrVAEbBqpWyWtGlB2Ax5jAC4G59NykjDXPnRDKWk/eYeFv6cGcpm67ipzETKhhfQxwd9uT8ZEUk8GsVMwYN9GWwoWeVSfHknOCy1dYdrEYR08ccCJHITIMfVjdU07HZXiY2MqcMW4/hD0YzCzs/b/tS4rvXaMC4MyHraYro1IAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730159533; c=relaxed/simple;
-	bh=JQ/lrItjqcXm/4ktsrc19zrWcrH8BaO6JqbI7d3GTnQ=;
-	h=Date:To:From:Subject:Message-Id; b=Nl5meNuvXebNbrYOPo2yd0J6DQCrbamOd68ToC67uktVY1bZorVHTZWWlIjBZDxGNI9yuuH/0S1FucQP/Sy/H16jQKHRYdyWg/Xt0ESIDOzzmZOckbJCUHTg+57RgBJD6LfedZdIdwRPs2Q2X7S6Pd2ZUy96gH3Qt/XW4hBTcv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cfzYzDj1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730160083; c=relaxed/simple;
+	bh=3sa222Xagco97VEZuj8UhZkBtU/N2opXJjv4Ym3PLRo=;
+	h=Date:To:From:Subject:Message-Id; b=J/v8sDW/gposN41Ksxp22+qawNavV1T9y8WH32VnJ9RxGyTed+FtGmg5ANs7cde5k0Ru4eJP5TrRn0t6HyVD6KgINzJ5kkL5q70/+N5DofO8JJLhl3x/YLDwi831i80al4FGtwEDgfFM1s2rTmIBBNIQckm5GgTJi9wM26xbyU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bp/wjuot; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cfzYzDj1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42146C4CEC3;
-	Mon, 28 Oct 2024 23:52:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bp/wjuot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77CE3C4CECD;
+	Tue, 29 Oct 2024 00:01:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730159532;
-	bh=JQ/lrItjqcXm/4ktsrc19zrWcrH8BaO6JqbI7d3GTnQ=;
+	s=korg; t=1730160082;
+	bh=3sa222Xagco97VEZuj8UhZkBtU/N2opXJjv4Ym3PLRo=;
 	h=Date:To:From:Subject:From;
-	b=cfzYzDj1taYm1kyUe7izTNFgapsvhMD7OuYgFrHmBt+fkk/Ke5bjbFkdkOAeDsvLY
-	 RgqwL2YmQenFXDTZp5DNcoCCJa9mSpNd0j1scP8bZwEb+TruJdmPdeXjaIFH4okXGM
-	 1xWZ1eX+S+MjKd6DqZ8wAHHFXkYLhOY3lJM5bXzY=
-Date: Mon, 28 Oct 2024 16:52:11 -0700
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,weixugc@google.com,stable@vger.kernel.org,shy828301@gmail.com,osalvador@suse.de,dave.hansen@linux.intel.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=bp/wjuot6vAi8+2IObVA1ml7Zh0PVoYgKQ+56uKptGBQp/sdtRvJLfdYYhRgP01Nt
+	 SGyXQCdaZ5nmy2mY3t+3fd0MtCGzY8yZt6QJ3MUO/EQMUkCjQGy/X8X7F9vGSbPUMz
+	 cdu1hXI8W2IzdvolO/GzjsocXAQcV6RSsdqAEDxk=
+Date: Mon, 28 Oct 2024 17:01:21 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,davidgow@google.com,brendan.higgins@linux.dev,apanyaki@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241028235212.42146C4CEC3@smtp.kernel.org>
+Subject: + selftests-damon-huge_count_read_write-provide-sufficiently-large-buffer-for-deprecated-file-read.patch added to mm-unstable branch
+Message-Id: <20241029000122.77CE3C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmscan,migrate: fix page count imbalance on node stats when demoting pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
+     Subject: selftests/damon/huge_count_read_write: provide sufficiently large buffer for DEPRECATED file read
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-damon-huge_count_read_write-provide-sufficiently-large-buffer-for-deprecated-file-read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-huge_count_read_write-provide-sufficiently-large-buffer-for-deprecated-file-read.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: vmscan,migrate: fix page count imbalance on node stats when demoting pages
-Date: Fri, 25 Oct 2024 10:17:24 -0400
+From: Andrew Paniakin <apanyaki@amazon.com>
+Subject: selftests/damon/huge_count_read_write: provide sufficiently large buffer for DEPRECATED file read
+Date: Mon, 28 Oct 2024 16:30:53 -0700
 
-When numa balancing is enabled with demotion, vmscan will call
-migrate_pages when shrinking LRUs.  migrate_pages will decrement the
-the node's isolated page count, leading to an imbalanced count when
-invoked from (MG)LRU code.
+Patch series "damon/{self,kunit}tests: minor fixups for DAMON debugfs
+interface tests".
 
-The result is dmesg output like such:
+Fixup small broken window panes in DAMON selftests and kunit tests.
 
-$ cat /proc/sys/vm/stat_refresh
+First four patches clean up DAMON debugfs interface selftests output, by
+fixing segmentation fault of a test program (patch 1), removing
+unnecessary debugging messages (patch 2), and hiding error messages from
+expected failures (patches 3 and 4).
 
-[77383.088417] vmstat_refresh: nr_isolated_anon -103212
-[77383.088417] vmstat_refresh: nr_isolated_file -899642
+Following two patches fix copy-paste mistakes in DAMON Kconfig help
+message that copied from debugfs kunit test (patch 5) and a comment on the
+debugfs kunit test code (patch 6).
 
-This negative value may impact compaction and reclaim throttling.
 
-The following path produces the decrement:
+This patch (of 6):
 
-shrink_folio_list
-  demote_folio_list
-    migrate_pages
-      migrate_pages_batch
-        migrate_folio_move
-          migrate_folio_done
-            mod_node_page_state(-ve) <- decrement
+'huge_count_read_write' crashes with segmentation fault when reading
+DEPRECATED file of DAMON debugfs interface.  This is not causing any
+problem for users or other tests because the purpose of the test is just
+ensuring the read is not causing kernel warning messages.  Nonetheless, it
+makes the output unnecessarily noisy, and the DEPRECATED file is not
+properly being tested.
 
-This path happens for SUCCESSFUL migrations, not failures.  Typically
-callers to migrate_pages are required to handle putback/accounting for
-failures, but this is already handled in the shrink code.
+It happens because the size of the content of the file is larger than the
+size of the buffer for the read.  The file contains about 170 characters. 
+Increase the buffer size to 256 characters.
 
-When accounting for migrations, instead do not decrement the count when
-the migration reason is MR_DEMOTION.  As of v6.11, this demotion logic
-is the only source of MR_DEMOTION.
-
-Link: https://lkml.kernel.org/r/20241025141724.17927-1-gourry@gourry.net
-Fixes: 26aa2d199d6f ("mm/migrate: demote pages during reclaim")
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Wei Xu <weixugc@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241028233058.283381-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241028233058.283381-2-sj@kernel.org
+Fixes: b4a002889d24 ("selftests/damon: test debugfs file reads/writes with huge count")
+Signed-off-by: Andrew Paniakin <apanyaki@amazon.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Andrew Panyakin <apanyaki@amazon.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
+ tools/testing/selftests/damon/huge_count_read_write.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages
-+++ a/mm/migrate.c
-@@ -1178,7 +1178,7 @@ static void migrate_folio_done(struct fo
- 	 * not accounted to NR_ISOLATED_*. They can be recognized
- 	 * as __folio_test_movable
- 	 */
--	if (likely(!__folio_test_movable(src)))
-+	if (likely(!__folio_test_movable(src)) && reason != MR_DEMOTION)
- 		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
- 				    folio_is_file_lru(src), -folio_nr_pages(src));
+--- a/tools/testing/selftests/damon/huge_count_read_write.c~selftests-damon-huge_count_read_write-provide-sufficiently-large-buffer-for-deprecated-file-read
++++ a/tools/testing/selftests/damon/huge_count_read_write.c
+@@ -18,7 +18,7 @@
+ void write_read_with_huge_count(char *file)
+ {
+ 	int filedesc = open(file, O_RDWR);
+-	char buf[25];
++	char buf[256];
+ 	int ret;
  
+ 	printf("%s %s\n", __func__, file);
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from apanyaki@amazon.com are
 
-vmscanmigrate-fix-double-decrement-on-node-stats-when-demoting-pages.patch
+selftests-damon-huge_count_read_write-provide-sufficiently-large-buffer-for-deprecated-file-read.patch
 
