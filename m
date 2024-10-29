@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B316FC0B
-	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 04:14:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6292514900E
+	for <mm-commits@vger.kernel.org>; Tue, 29 Oct 2024 04:19:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730175251; cv=none; b=baqIQne+XTQnMwwCLIvXn3ztobqxBQYRoeN5bmXYYMdufX85E4AUz6jR6lWQd1gsk9uis2x8JRCC/Kng359ceOfQ3l5/DkfDeH/3YiFMUWtTJO88eLrq77LMJjP7ca7CNlla1jAJWJsx731CqgNLysoYTW1MhsQDHvBMPn5yArI=
+	t=1730175568; cv=none; b=LytRZQm7PQ8agE7tm6qA4AtAa5jN8waV8HQueDEk2TnsiBiLwUfXRefcBdO/eCTs9rREK65HqEUf3exo4q1zs/Nl+f1jqZbfscASt8fCtRZwizL3OhmYjDjOpI8pbEPebNKovE7BJQW5fvpCnAtWUhwNjcq2JwDeqyX1BH6IuIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730175251; c=relaxed/simple;
-	bh=grkdmWjOyrbYXgbRUoBCjDWXE6SGe/4dzIxz+Z+8DbU=;
-	h=Date:To:From:Subject:Message-Id; b=IyWcEmLcTGMkskXiTVlUAa1Y27TU8WvMce/M2ET6cfr92NV/lNF5h74hKjFQG9QtefBwT1X+9oNSDLJK7hCgxv0HemOWoTlvlp22UXqwG3i4Lj3SFEDUvjPASAogcZI8mE3WCNNf2G6lU2qDclL6h78q8oYdxX2LCjzZmXQp+Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdDqSdd0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730175568; c=relaxed/simple;
+	bh=5wZ8wfNwxSfCllPsxnp6eL9fJqeHnNmvNZHDT05drmM=;
+	h=Date:To:From:Subject:Message-Id; b=AUIthBYUNtdrITMyS6rY36MJTe6af/VXl9ScY2YSCWt1VcjRFj1i90vH/RATtWojawVYL5sgZJMcxvJEiSrymxWLQXWoRojIFDo8L21uc7afhEvnEO7AMTH6WbmJisapca/W8SY1wxVG6fNQy9GDPwhCvlWe+vxxQgkvLKJdXgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dfpEaipQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdDqSdd0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBAD6C4CECD;
-	Tue, 29 Oct 2024 04:14:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dfpEaipQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 222F3C4CECD;
+	Tue, 29 Oct 2024 04:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730175250;
-	bh=grkdmWjOyrbYXgbRUoBCjDWXE6SGe/4dzIxz+Z+8DbU=;
+	s=korg; t=1730175568;
+	bh=5wZ8wfNwxSfCllPsxnp6eL9fJqeHnNmvNZHDT05drmM=;
 	h=Date:To:From:Subject:From;
-	b=IdDqSdd0hevBVJCagz7r0lqK320Cz8vznxY5LJOvQGrBBscJrFak0Gf38eOKSXxZK
-	 ldnntKutuEmRaxJOuYaEH1TcE8T54CMO4YjVTOxRW+DFFWOKFKyD0asVhXIjE7FNY+
-	 vzZuoo4bNXMckEBIp0AgqHJQO5YbV/rrkYvEJLYA=
-Date: Mon, 28 Oct 2024 21:14:10 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,linux@weissschuh.net,libang.li@antgroup.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jsiddle@redhat.com,joel.granados@kernel.org,j.granados@samsung.com,david@redhat.com,cunhuang@tencent.com,baolin.wang@linux.alibaba.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=dfpEaipQswbkWuCVVW3Y45ReIohfj7/+HTdQ/K5hovzeRYPqpxkyhS3/LkzD9PCNx
+	 Eq9DjZIcRnUTcg/qBbq0GyR7Pj2dXYSCDPpsVKktWkRtg/1W1jCoCCbhwZy+3zuVmh
+	 uFjH6Cg63dXvGgcUidM01DJabgmFJrE71BbCqSwI=
+Date: Mon, 28 Oct 2024 21:19:27 -0700
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-add-docs-for-hung_task_detect_count.patch added to mm-nonmm-unstable branch
-Message-Id: <20241029041410.BBAD6C4CECD@smtp.kernel.org>
+Subject: + maintainers-add-entry-for-min-heap-library-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20241029041928.222F3C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: add docs for hung_task_detect_count
+     Subject: MAINTAINERS: add entry for min heap library code
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-add-docs-for-hung_task_detect_count.patch
+     maintainers-add-entry-for-min-heap-library-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-docs-for-hung_task_detect_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entry-for-min-heap-library-code.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,56 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: hung_task: add docs for hung_task_detect_count
-Date: Sun, 27 Oct 2024 20:07:47 +0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: MAINTAINERS: add entry for min heap library code
+Date: Sun, 27 Oct 2024 08:40:03 +0800
 
-This commit introduces documentation for hung_task_detect_count in
-kernel.rst.
+Add a new entry in the MAINTAINERS file for the min heap library code,
+with myself as the maintainer.  I am pleased to take on the responsibility
+of maintaining and reviewing patches for this library, as I am
+well-acquainted with its details through recent contributions.
 
-Link: https://lkml.kernel.org/r/20241027120747.42833-3-ioworker0@gmail.com
-Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: Bang Li <libang.li@antgroup.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Cun <cunhuang@tencent.com>
-Cc: Joel Granados <j.granados@samsung.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: John Siddle <jsiddle@redhat.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Yongliang Gao <leonylgao@tencent.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20241027004003.987934-1-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    9 +++++++++
+ MAINTAINERS |    9 +++++++++
  1 file changed, 9 insertions(+)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-add-docs-for-hung_task_detect_count
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -401,6 +401,15 @@ The upper bound on the number of tasks t
- This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+--- a/MAINTAINERS~maintainers-add-entry-for-min-heap-library-code
++++ a/MAINTAINERS
+@@ -15403,6 +15403,15 @@ F:	arch/arm/boot/dts/marvell/armada-xp-c
+ F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s-bit.dts
+ F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s.dts
  
- 
-+hung_task_detect_count
-+======================
++MIN HEAP
++M:	Kuan-Wei Chiu <visitorckw@gmail.com>
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++F:	Documentation/core-api/min_heap.rst
++F:	include/linux/min_heap.h
++F:	lib/min_heap.c
++F:	lib/test_min_heap.c
 +
-+Indicates the total number of tasks that have been detected as hung since
-+the system boot.
-+
-+This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
-+
-+
- hung_task_timeout_secs
- ======================
- 
+ MIPI CCS, SMIA AND SMIA++ IMAGE SENSOR DRIVER
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ L:	linux-media@vger.kernel.org
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-hung_task-add-detect-count-for-hung-tasks.patch
-hung_task-add-docs-for-hung_task_detect_count.patch
+lib-kconfigdebug-move-int_pow-test-option-to-runtime-testing-section.patch
+lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
+lib-list_sort-remove-unnecessary-header-includes.patch
+tools-lib-list_sort-remove-unnecessary-header-includes.patch
+perf-tools-update-expected-diff-for-lib-list_sortc.patch
+lib-min_heap-introduce-non-inline-versions-of-min-heap-api-functions.patch
+lib-min_heap-optimize-min-heap-by-prescaling-counters-for-better-performance.patch
+lib-min_heap-avoid-indirect-function-call-by-providing-default-swap.patch
+lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+dm-vdo-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+bcache-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+bcachefs-clean-up-duplicate-min_heap_callbacks-declarations.patch
+bcachefs-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+documentation-core-api-add-min-heap-api-introduction.patch
+maintainers-add-entry-for-min-heap-library-code.patch
 
