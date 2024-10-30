@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024FB23D7
-	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 00:55:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 811E63C14
+	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 01:04:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730249703; cv=none; b=X2jHTLHKEhueBl1M5HvarvnNE+qRc6eE8JcwhuqzwmNi6LzClnEhBbfRG4nec7iOXvVnK+xa5S1bX/KN2eb47QrZWfX4Hv8MYKE18nj5ZyLVoz5vUSdoq9BJAO0uLzYBAR39zioIhvCdvdmYvVYUN3msOal/nik0Ty0njEuCrNs=
+	t=1730250280; cv=none; b=XpbRgnG+z6N71JQvl8rlbdB+G4KAIwp546gdz/VG4VJ4OkGb9U5saKCqsrlNY4E/aWlOcH3UGFHfpCzd6fIIvKa3qr6I06mQ9Ilvg0a1tUycOEVJGmR/17Romg5nZgBvwcalLlYPI/VWavYzPrvCQ4JR0k7lTiTyW2NEHnKC4Qg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730249703; c=relaxed/simple;
-	bh=6EhVAH47zWctqERMurG2v9Ql2FSDPny+WZ9pYcsJQaA=;
-	h=Date:To:From:Subject:Message-Id; b=E8o4dK/YFtAkAaef3qiHXgQ7pWxOBotmcsF8oh3BM7/6zNJZ0H8y7iu9pvK/5nZi+xiBNosKqBadCmKO4cBOzpwkLD5aDhrhVAN1PCcIVTPs+va0qUUvNKiMxMlgP1/t1myaf6S6CNCMbvQyaFIydndoRoS3sTeAIvWOajVivq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z1hX1RuW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730250280; c=relaxed/simple;
+	bh=f0tlfQdknl619RvjqJc6fKHB/euNOLbjbPTIgxcRWtg=;
+	h=Date:To:From:Subject:Message-Id; b=Lzrv2iGbkjclfoCSYW9EuxHEnGqYtOug83Uer4ndsW11h/2rntaMVi/LRvy/dpy7nureXPOCiUxkF/IXM9xHiNSOeKXzSRsj0nzSswJoXDyKvsgbWtTJsAfay9oGVrinx8r5sbAUAnG+2u11oGKocJqHksvOTFGPPRR28GpM92E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mqc2RTfq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z1hX1RuW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B67EC4CECD;
-	Wed, 30 Oct 2024 00:55:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mqc2RTfq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C26A8C4CECD;
+	Wed, 30 Oct 2024 01:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730249702;
-	bh=6EhVAH47zWctqERMurG2v9Ql2FSDPny+WZ9pYcsJQaA=;
+	s=korg; t=1730250279;
+	bh=f0tlfQdknl619RvjqJc6fKHB/euNOLbjbPTIgxcRWtg=;
 	h=Date:To:From:Subject:From;
-	b=Z1hX1RuWQiEJXBcp4OKQ6VRHnj5rH05htM7AZ6jdTSr7guXbr/kOyzU1MEORCvJ5P
-	 Mlr04RKDKbWbrr6umYiPqloiMRAJkkgSYlMtUItvel3KHnR7XY0DVH9RSzmVpomsBU
-	 6nf8BYAj8MSxjK8oeStpcSHooYWp2iG7W8hlcQ54=
-Date: Tue, 29 Oct 2024 17:55:01 -0700
-To: mm-commits@vger.kernel.org,jonathan.cameron@huawei.com,david@redhat.com,dave@stgolabs.net,dave.jiang@intel.com,dan.j.williams@intel.com,bhe@redhat.com,bhelgaas@google.com,apopple@nvidia.com,andriy.shevchenko@linux.intel.com,alison.schofield@intel.com,ying.huang@intel.com,akpm@linux-foundation.org
+	b=Mqc2RTfqjBPOB1+BxmmzpcWpL2fdS2veWka8Vd7vgseeVGRGjBL0JcWuqVVQRGXwE
+	 ch/4zb9ogFqeg41f4tPIDJ7LJxzlEoPFAJqeYHyX4TmVTq8+1VenpeDdEkTG3FiejU
+	 nMLySK6u32FamA/o+ZbMbzY+WxjJyfktidtTl2eQ=
+Date: Tue, 29 Oct 2024 18:04:39 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,kawasin@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects.patch added to mm-nonmm-unstable branch
-Message-Id: <20241030005502.6B67EC4CECD@smtp.kernel.org>
+Subject: + zram-clear-idle-flag-after-recompression.patch added to mm-unstable branch
+Message-Id: <20241030010439.C26A8C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: avoid unnecessary resource tree walking in __region_intersects()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects.patch
+     Subject: zram: clear IDLE flag after recompression
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-clear-idle-flag-after-recompression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-clear-idle-flag-after-recompression.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,108 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: resource: avoid unnecessary resource tree walking in __region_intersects()
-Date: Tue, 29 Oct 2024 20:27:35 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: clear IDLE flag after recompression
+Date: Tue, 29 Oct 2024 00:36:14 +0900
 
-Currently, if __region_intersects() finds any overlapped but unmatched
-resource, it walks the descendant resource tree to check for overlapped
-and matched descendant resources using for_each_resource().  However, in
-current kernel, for_each_resource() iterates not only the descendant tree,
-but also subsequent sibling trees in certain scenarios.  While this
-doesn't introduce bugs, it makes code hard to be understood and
-potentially inefficient.
+Patch series "zram: IDLE flag handling fixes", v2.
 
-So, the patch revises next_resource() and for_each_resource() and makes
-for_each_resource() traverse the subtree under the specified subtree root
-only.  Test shows that this avoids unnecessary resource tree walking in
-__region_intersects().
+zram can wrongly preserve ZRAM_IDLE flag on its entries which can result
+in premature post-processing (writeback and recompression) of such
+entries.
 
-For the example resource tree as follows,
 
-  X
-  |
-  A----D----E
-  |
-  B--C
+This patch (of 2)
 
-if 'A' is the overlapped but unmatched resource, original kernel
-iterates 'B', 'C', 'D', 'E' when it walks the descendant tree.  While
-the patched kernel iterates only 'B', 'C'.
+Recompression should clear ZRAM_IDLE flag on the entries it has accessed,
+because otherwise some entries, specifically those for which recompression
+has failed, become immediate candidate entries for another post-processing
+(e.g.  writeback).
 
-Thanks David Hildenbrand for providing a good resource tree example.
+Consider the following case:
+- recompression marks entries IDLE every 4 hours and attempts
+  to recompress them
+- some entries are incompressible, so we keep them intact and
+  hence preserve IDLE flag
+- writeback marks entries IDLE every 8 hours and writebacks
+  IDLE entries, however we have IDLE entries left from
+  recompression, so writeback prematurely writebacks those
+  entries.
 
-Link: https://lkml.kernel.org/r/20241029122735.79164-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
+The bug was reported by Shin Kawamura.
+
+Link: https://lkml.kernel.org/r/20241028153629.1479791-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20241028153629.1479791-2-senozhatsky@chromium.org
+Fixes: 84b33bf78889 ("zram: introduce recompress sysfs knob")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Shin Kawamura <kawasin@google.com>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/kernel/resource.c~resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects
-+++ a/kernel/resource.c
-@@ -50,17 +50,35 @@ EXPORT_SYMBOL(iomem_resource);
+--- a/drivers/block/zram/zram_drv.c~zram-clear-idle-flag-after-recompression
++++ a/drivers/block/zram/zram_drv.c
+@@ -1864,6 +1864,13 @@ static int recompress_slot(struct zram *
+ 	if (ret)
+ 		return ret;
  
- static DEFINE_RWLOCK(resource_lock);
- 
--static struct resource *next_resource(struct resource *p, bool skip_children)
-+/*
-+ * Return the next node of @p in pre-order tree traversal.  If
-+ * @skip_children is true, skip the descendant nodes of @p in
-+ * traversal.  If @p is a descendant of @subtree_root, only traverse
-+ * the subtree under @subtree_root.
-+ */
-+static struct resource *next_resource(struct resource *p, bool skip_children,
-+				      struct resource *subtree_root)
- {
- 	if (!skip_children && p->child)
- 		return p->child;
--	while (!p->sibling && p->parent)
-+	while (!p->sibling && p->parent) {
- 		p = p->parent;
-+		if (p == subtree_root)
-+			return NULL;
-+	}
- 	return p->sibling;
- }
- 
-+/*
-+ * Traverse the resource subtree under @_root in pre-order, excluding
-+ * @_root itself.
-+ *
-+ * NOTE: '__p' is introduced to avoid shadowing '_p' outside of loop.
-+ * And it is referenced to avoid unused variable warning.
-+ */
- #define for_each_resource(_root, _p, _skip_children) \
--	for ((_p) = (_root)->child; (_p); (_p) = next_resource(_p, _skip_children))
-+	for (typeof(_root) __root = (_root), __p = _p = __root->child;	\
-+	     __p && _p; _p = next_resource(_p, _skip_children, __root))
- 
- #ifdef CONFIG_PROC_FS
- 
-@@ -88,7 +106,7 @@ static void *r_next(struct seq_file *m,
- 
- 	(*pos)++;
- 
--	return (void *)next_resource(p, false);
-+	return (void *)next_resource(p, false, NULL);
- }
- 
- static void r_stop(struct seq_file *m, void *v)
++	/*
++	 * We touched this entry so mark it as non-IDLE. This makes sure that
++	 * we don't preserve IDLE flag and don't incorrectly pick this entry
++	 * for different post-processing type (e.g. writeback).
++	 */
++	zram_clear_flag(zram, index, ZRAM_IDLE);
++
+ 	class_index_old = zs_lookup_class_index(zram->mem_pool, comp_len_old);
+ 	/*
+ 	 * Iterate the secondary comp algorithms list (in order of priority)
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-resource-avoid-unnecessary-resource-tree-walking-in-__region_intersects.patch
+zram-introduce-zram_pp_slot-flag.patch
+zram-permit-only-one-post-processing-operation-at-a-time.patch
+zram-rework-recompress-target-selection-strategy.patch
+zram-rework-recompress-target-selection-strategy-fix.patch
+zram-rework-writeback-target-selection-strategy.patch
+zram-do-not-mark-idle-slots-that-cannot-be-idle.patch
+zram-reshuffle-zram_free_page-flags-operations.patch
+zram-remove-under_wb-and-simplify-writeback.patch
+zram-do-not-open-code-comp-priority-0.patch
+zram-clear-idle-flag-after-recompression.patch
+zram-clear-idle-flag-in-mark_idle.patch
 
