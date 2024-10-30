@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DA3342A8B
-	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 01:29:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1831BE46
+	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 01:30:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730251768; cv=none; b=p8pTn+QIeB3ZnKAR6wTspfoB7foT5UyErGuQnCBw3LMARk2i1e0XJ9HmE7Rve/bKyRVUDYD9GV8ZvBsmXtL7JDnIqO4N39nYZDhO3EF2dZOLXfl3t5mIRR0rhsj5v0EuixnE1IecwHM3YFWq2Axz1iFddFfreDo3Z4uC4fyPKuk=
+	t=1730251856; cv=none; b=lY7leQP8UmfG+F1xHwfGxeCsDkRTNSHn2Wp+EZ4bsSRAvxRbQU5oMaLtZhAYzsJeycC3Gy8Zoe7wXoN5MKh/J787b7yuCFGFfz9A7sZwElKnektxi0p8nlV+LeVdycCSg3aIwdsCvXxpcyV7WSTZEBHQC7zmOUOxBlJ41b00YdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730251768; c=relaxed/simple;
-	bh=NIeAbjh6CQ77F9azQatRaqj2lY2CH8kLj9pvkxNbWC4=;
-	h=Date:To:From:Subject:Message-Id; b=QQEyCuZL3z0eIWCUyatKqktiEalzqITFwvP5yInzTURPIs0rEH8Ho0YyJ9+ZE35hoh5Wczwnf2DsOyymY9HiqwnWsZcLbjgtY/hCiQdYZ337vdph4p9hC8y9SHeIFg37PsEf3xdXTU4ogzDCiau50eYrc70E70Lr2o5KYdI2j0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2+oraYS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730251856; c=relaxed/simple;
+	bh=vNEtguGHw7Bcs2jEWIwk8HOn3Po5XigSxAerO1r/nyo=;
+	h=Date:To:From:Subject:Message-Id; b=F6JhKW4IvNfPLrXwVCwTsUT9mCIO+S8OGPLplTi1ZxNQOy3ztGRbynkrfUyL5GPJ/jnfK0T8Vn0LDM4XzhRM0vyuPiXWfDqYyb80pvOFcBawa6vh9q1lIuenNhVInfrHx9hbp8M9BkR+kDbBBei1QTE31Irq+UWrP4UaS3cE0Wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ReK3JX7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2+oraYS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 932D2C4CECD;
-	Wed, 30 Oct 2024 01:29:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ReK3JX7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D185C4CECD;
+	Wed, 30 Oct 2024 01:30:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730251765;
-	bh=NIeAbjh6CQ77F9azQatRaqj2lY2CH8kLj9pvkxNbWC4=;
+	s=korg; t=1730251856;
+	bh=vNEtguGHw7Bcs2jEWIwk8HOn3Po5XigSxAerO1r/nyo=;
 	h=Date:To:From:Subject:From;
-	b=G2+oraYSgZ9fZlTiVu0Jv1hW/eYyboFThUK1S4GgP4Z7ZE0iUnwpKWdsIOy6xTNbs
-	 ZZuWmTxOvp0i4cpcO1AIFQNI0ild7sa7fk/3JmVBMXQ0RMRpsZbS9nEZsUaY/G0uLd
-	 O6TYMsyTJz5EybmrqkVbs9FPwJpPdLe2J/UQEdx0=
-Date: Tue, 29 Oct 2024 18:29:25 -0700
-To: mm-commits@vger.kernel.org,yanzhen@vivo.com,yang.lee@linux.alibaba.com,rppt@kernel.org,osalvador@suse.de,mtodorovac69@gmail.com,jakobkoschel@gmail.com,h.j.bos@vu.nl,hbathini@linux.ibm.com,david@redhat.com,c.giuffrida@vu.nl,bjohannesmeyer@gmail.com,bhe@redhat.com,agordeev@linux.ibm.com,adobriyan@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=0ReK3JX70V/JhQJ6xvm6/QDZOrSqJPscM5i0NVAKc2mjeQOijsBJzoo678+jSpwBp
+	 oxRHzpN6kFMjo1FOWR2B1P8/aX8oFvYLMYHJT91Nr4kZYmtemW0dAYZKIZelG7Ck3T
+	 qP7148k3zGhvGHjk+cojIvMt5B2iJLw8Sr/jYwUA=
+Date: Tue, 29 Oct 2024 18:30:55 -0700
+To: mm-commits@vger.kernel.org,wuqiang.matt@bytedance.com,vmalik@redhat.com,torvalds@linux-foundation.org,rostedt@goodmis.org,mikel@mikelr.com,leo.yan@arm.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20241030012925.932D2C4CECD@smtp.kernel.org>
+Subject: + objpool-fix-to-make-percpu-slot-allocation-more-robust.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241030013056.6D185C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
+     Subject: objpool: fix to make percpu slot allocation more robust
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     objpool-fix-to-make-percpu-slot-allocation-more-robust.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/objpool-fix-to-make-percpu-slot-allocation-more-robust.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
-Date: Tue Oct 29 06:25:57 PM PDT 2024
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: objpool: fix to make percpu slot allocation more robust
+Date: Mon, 28 Oct 2024 12:26:27 +0900
 
-s/tmp/pos/
+Since gfp & GFP_ATOMIC == GFP_ATOMIC is true for GFP_KERNEL | GFP_HIGH, it
+will use kmalloc if user specifies that combination.  Here the reason why
+combining the __vmalloc_node() and kmalloc_node() is that the vmalloc does
+not support all GFP flag, especially GFP_ATOMIC.  So we should check if
+gfp & (GFP_ATOMIC | GFP_KERNEL) != GFP_ATOMIC for vmalloc first.  This
+ensures caller can sleep.  And for the robustness, even if vmalloc fails,
+it should retry with kmalloc to allocate it.
 
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Bos, H.J." <h.j.bos@vu.nl>
-Cc: "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>
-Cc: Cristiano Giuffrida <c.giuffrida@vu.nl>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jakob Koschel <jakobkoschel@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mirsad Todorovac <mtodorovac69@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
-Cc: Yan Zhen <yanzhen@vivo.com>
+Link: https://lkml.kernel.org/r/173008598713.1262174.2959179484209897252.stgit@mhiramat.roam.corp.google.com
+Fixes: aff1871bfc81 ("objpool: fix choosing allocation for percpu slots")
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Closes: https://lore.kernel.org/all/CAHk-=whO+vSH+XVRio8byJU8idAWES0SPGVZ7KAVdc4qrV0VUA@mail.gmail.com/
+Cc: Leo Yan <leo.yan@arm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matt Wu <wuqiang.matt@bytedance.com>
+Cc: Mikel Rychliski <mikel@mikelr.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Viktor Malik <vmalik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ lib/objpool.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
-+++ a/fs/proc/kcore.c
-@@ -493,13 +493,13 @@ static ssize_t read_kcore_iter(struct ki
- 		 * the previous entry, search for a matching entry.
+--- a/lib/objpool.c~objpool-fix-to-make-percpu-slot-allocation-more-robust
++++ a/lib/objpool.c
+@@ -74,15 +74,21 @@ objpool_init_percpu_slots(struct objpool
+ 		 * warm caches and TLB hits. in default vmalloc is used to
+ 		 * reduce the pressure of kernel slab system. as we know,
+ 		 * mimimal size of vmalloc is one page since vmalloc would
+-		 * always align the requested size to page size
++		 * always align the requested size to page size.
++		 * but if vmalloc fails or it is not available (e.g. GFP_ATOMIC)
++		 * allocate percpu slot with kmalloc.
  		 */
- 		if (!m || start < m->addr || start >= m->addr + m->size) {
--			struct kcore_list *tmp;
-+			struct kcore_list *pos;
+-		if ((pool->gfp & GFP_ATOMIC) == GFP_ATOMIC)
+-			slot = kmalloc_node(size, pool->gfp, cpu_to_node(i));
+-		else
++		slot = NULL;
++
++		if ((pool->gfp & (GFP_ATOMIC | GFP_KERNEL)) != GFP_ATOMIC)
+ 			slot = __vmalloc_node(size, sizeof(void *), pool->gfp,
+ 				cpu_to_node(i), __builtin_return_address(0));
+-		if (!slot)
+-			return -ENOMEM;
++
++		if (!slot) {
++			slot = kmalloc_node(size, pool->gfp, cpu_to_node(i));
++			if (!slot)
++				return -ENOMEM;
++		}
+ 		memset(slot, 0, size);
+ 		pool->cpu_slots[i] = slot;
  
- 			m = NULL;
--			list_for_each_entry(tmp, &kclist_head, list) {
--				if (start >= tmp->addr &&
--				    start < tmp->addr + tmp->size) {
--					m = tmp;
-+			list_for_each_entry(pos, &kclist_head, list) {
-+				if (start >= pos->addr &&
-+				    start < pos->addr + pos->size) {
-+					m = pos;
- 					break;
- 				}
- 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
-mm-page_alloc-keep-track-of-free-highatomic-fix.patch
-mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix.patch
-mm-memoryc-remove-stray-newline-at-top-of-file.patch
-bootmem-stop-using-page-index-fix.patch
-mm-kasan-kmsan-copy_from-to_kernel_nofault-fix.patch
-tools-mm-free-the-allocated-memory-fix.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
-mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
-memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
-fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
+objpool-fix-to-make-percpu-slot-allocation-more-robust.patch
 
