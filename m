@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31A433C14
-	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 01:06:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA98642A8B
+	for <mm-commits@vger.kernel.org>; Wed, 30 Oct 2024 01:29:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730250413; cv=none; b=j5eMnIr4iMoglJinQteBOEn9Tr7N5++DdFHvOCYljqU/pyxjOTnfBv+lG3Fl5WugdIezN2j/bBumSFwNH/q9jk+tVZPnBRgb5AaK9J+Ug+4+8sudHval+3kFpTXL/O4Jg3KLT6u7v8kxWMyotz5UhMEXlrZq2ugogB1OQqD80qM=
+	t=1730251763; cv=none; b=P/FuiDPPIeJvelq7d8tFtElqQoo+6iLKktomWX5e8GSX1DiyyuZBesYi0wpRgNgEgR9m4PujHCQNqvu3MMLI/tCYGptuj79A3uNE3+Bwe/dTUf/1fK/Stf0TBY3PqWXP2EN/ju2wKoOjwKxeJWAgf+9qmA398fFcymiZQZGl3GA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730250413; c=relaxed/simple;
-	bh=0zAvprir4CPuDt2YmM9fJv05kp5OoSEHLqxEpNg/GRc=;
-	h=Date:To:From:Subject:Message-Id; b=Tn2yeIpfcC8xTG92A4D2opdThoCi3zTouXWhdWdV4Y+9ZE4NTGmhilJ/19ZTPD+mBLCNpbp4p0hDwaHW/VCCDx72Yr8DE+sU2xir0Z6Tg4mfK2H988uXibd7TBgRQGaF6D3UPfXFXrzuGowwvFoguke0eZ7fpDFCpzktxfVeL3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g/VV9EOn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730251763; c=relaxed/simple;
+	bh=534SWjwo00Y4AsXC+ODB/TbJ8GsanCXTaribBqc1WD0=;
+	h=Date:To:From:Subject:Message-Id; b=sIFgTN+y/6DnkXIDH2mfphXco/ZHJekLZfHuvA/ZR8Nf+dA4a1qRwgrkqkyyq7Xe4w5vGFdQXfQBMHIArUhcUaWZXJy8LQcVh4Mnln9bkZySuFiS+M4SK9SI82EZ+GQNdTqqKE5urJNCy9G9ZiDWGl7wndrT7v1dAKXEO37PlW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=inPUmW4U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g/VV9EOn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02BF7C4CECD;
-	Wed, 30 Oct 2024 01:06:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="inPUmW4U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EE37C4CECD;
+	Wed, 30 Oct 2024 01:29:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730250413;
-	bh=0zAvprir4CPuDt2YmM9fJv05kp5OoSEHLqxEpNg/GRc=;
+	s=korg; t=1730251763;
+	bh=534SWjwo00Y4AsXC+ODB/TbJ8GsanCXTaribBqc1WD0=;
 	h=Date:To:From:Subject:From;
-	b=g/VV9EOnNSaRKRgqkNN4EzUw4wf/wur4RBysuCfgfZ51kX1U/xcrgROpX+nQGAxY8
-	 pb3kVqElZby+dAg302+6Y9amdeTyCTCjAqg8YoEs/u66E/tf4/VZ5DvvJQcumy678y
-	 BUfsa03tEmARFIDoim7d6pBtcwbtgjWobCP8XFeg=
-Date: Tue, 29 Oct 2024 18:06:52 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,paul.walmsley@sifive.com,palmer@rivosinc.com,charlie@rivosinc.com,alex@ghiti.fr,zhangchunyan@iscas.ac.cn,akpm@linux-foundation.org
+	b=inPUmW4URtnEmvMBR13VzSMs24xWr0cAzQxBdK2kScklnOuw3ZGkHVE9UuHXJDR7l
+	 khR4U1xHnHA4wbrXl+HgnwUGIOo67AF6pm5+8Tat/nqLehArlqOsMD0Uh6ORaWlfjM
+	 32vvuKgZqKxALCbxf+3bA5J4dRki4t5wM1HHxmyM=
+Date: Tue, 29 Oct 2024 18:29:23 -0700
+To: mm-commits@vger.kernel.org,yanzhen@vivo.com,yang.lee@linux.alibaba.com,rppt@kernel.org,osalvador@suse.de,jakobkoschel@gmail.com,h.j.bos@vu.nl,hbathini@linux.ibm.com,david@redhat.com,c.giuffrida@vu.nl,bjohannesmeyer@gmail.com,bhe@redhat.com,akpm@linux-foundation.org,agordeev@linux.ibm.com,adobriyan@gmail.com,mtodorovac69@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-virtual_address_range-tests-on-riscv.patch added to mm-unstable branch
-Message-Id: <20241030010653.02BF7C4CECD@smtp.kernel.org>
+Subject: + fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch added to mm-nonmm-unstable branch
+Message-Id: <20241030012923.8EE37C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip virtual_address_range tests on riscv
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-skip-virtual_address_range-tests-on-riscv.patch
+     Subject: fs/proc/kcore.c: fix coccinelle reported ERROR instances
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-virtual_address_range-tests-on-riscv.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Subject: selftests/mm: skip virtual_address_range tests on riscv
-Date: Tue, 8 Oct 2024 17:41:41 +0800
+From: Mirsad Todorovac <mtodorovac69@gmail.com>
+Subject: fs/proc/kcore.c: fix coccinelle reported ERROR instances
+Date: Tue, 29 Oct 2024 06:46:52 +0100
 
-RISC-V doesn't currently have the behavior of restricting the virtual
-address space which virtual_address_range tests check, this will
-cause the tests fail. So lets disable the whole test suite for riscv64
-for now, not build it and run_vmtests.sh will skip it if it is not present.
+Coccinelle complains about the nested reuse of the pointer `iter' with
+different pointer type:
 
-Link: https://lkml.kernel.org/r/20241008094141.549248-5-zhangchunyan@iscas.ac.cn
-Signed-off-by: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Reviewed-by: Charlie Jenkins <charlie@rivosinc.com>
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Shuah Khan <shuah@kernel.org>
+./fs/proc/kcore.c:515:26-30: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:534:23-27: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:550:40-44: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:568:27-31: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:581:28-32: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:599:27-31: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:607:38-42: ERROR: invalid reference to the index variable of the iterator on line 499
+./fs/proc/kcore.c:614:26-30: ERROR: invalid reference to the index variable of the iterator on line 499
+
+Replacing `struct kcore_list *iter' with `struct kcore_list *tmp' doesn't change the
+scope and the functionality is the same and coccinelle seems happy.
+
+NOTE: There was an issue with using `struct kcore_list *pos' as the nested iterator.
+      The build did not work!
+
+Link: https://lkml.kernel.org/r/20241029054651.86356-2-mtodorovac69@gmail.com
+Link: https://lore.kernel.org/all/CAHk-=wgRr_D8CB-D9Kg-c=EHreAsk5SqXPwr9Y7k9sA6cWXJ6w@mail.gmail.com/ [1]
+Link: https://lkml.kernel.org/r/20220331223700.902556-1-jakobkoschel@gmail.com
+Fixes: 04d168c6d42d1 ("fs/proc/kcore.c: remove check of list iterator against head past the loop body")
+Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
+Signed-off-by: Mirsad Todorovac <mtodorovac69@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>
+Cc: Cristiano Giuffrida <c.giuffrida@vu.nl>
+Cc: "Bos, H.J." <h.j.bos@vu.nl>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Yang Li <yang.lee@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Yan Zhen <yanzhen@vivo.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile       |    2 ++
- tools/testing/selftests/mm/run_vmtests.sh |   10 ++++++----
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ fs/proc/kcore.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-skip-virtual_address_range-tests-on-riscv
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -116,7 +116,9 @@ endif
+--- a/fs/proc/kcore.c~fs-proc-kcorec-fix-coccinelle-reported-error-instances
++++ a/fs/proc/kcore.c
+@@ -493,13 +493,13 @@ static ssize_t read_kcore_iter(struct ki
+ 		 * the previous entry, search for a matching entry.
+ 		 */
+ 		if (!m || start < m->addr || start >= m->addr + m->size) {
+-			struct kcore_list *iter;
++			struct kcore_list *tmp;
  
- ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
- TEST_GEN_FILES += va_high_addr_switch
-+ifneq ($(ARCH),riscv64)
- TEST_GEN_FILES += virtual_address_range
-+endif
- TEST_GEN_FILES += write_to_hugetlbfs
- endif
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-virtual_address_range-tests-on-riscv
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -347,10 +347,12 @@ if [ $VADDR64 -ne 0 ]; then
- 	# allows high virtual address allocation requests independent
- 	# of platform's physical memory.
- 
--	prev_policy=$(cat /proc/sys/vm/overcommit_memory)
--	echo 1 > /proc/sys/vm/overcommit_memory
--	CATEGORY="hugevm" run_test ./virtual_address_range
--	echo $prev_policy > /proc/sys/vm/overcommit_memory
-+	if [ -x ./virtual_address_range ]; then
-+		prev_policy=$(cat /proc/sys/vm/overcommit_memory)
-+		echo 1 > /proc/sys/vm/overcommit_memory
-+		CATEGORY="hugevm" run_test ./virtual_address_range
-+		echo $prev_policy > /proc/sys/vm/overcommit_memory
-+	fi
- 
- 	# va high address boundary switch test
- 	ARCH_ARM64="arm64"
+ 			m = NULL;
+-			list_for_each_entry(iter, &kclist_head, list) {
+-				if (start >= iter->addr &&
+-				    start < iter->addr + iter->size) {
+-					m = iter;
++			list_for_each_entry(tmp, &kclist_head, list) {
++				if (start >= tmp->addr &&
++				    start < tmp->addr + tmp->size) {
++					m = tmp;
+ 					break;
+ 				}
+ 			}
 _
 
-Patches currently in -mm which might be from zhangchunyan@iscas.ac.cn are
+Patches currently in -mm which might be from mtodorovac69@gmail.com are
 
-selftest-mm-fix-typo-in-virtual_address_range.patch
-selftests-mm-skip-virtual_address_range-tests-on-riscv.patch
+fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch
 
