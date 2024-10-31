@@ -1,114 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F221332A1;
-	Thu, 31 Oct 2024 03:15:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F365119E999
+	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 13:16:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730344524; cv=none; b=KxSwpmsNVf3s4mpHUrArcO6HO7JlaRdnbE5OaYddFy/+RDxPaa7Y9+Bu9mfBqpIgBntz+gKbXWZgc/RK+jP5gz/WPY0OzQsmAOKSINrOl3KXJ6TQmaQ3f+KWNU69pRfTmV5GVT9cbcrwlBBjgekXsCR7VT7Bu+jWr4C7HlDYVBI=
+	t=1730380592; cv=none; b=aitiHk0jX+FArZzYDvyv8/OzbCazcjzoyfU6nax8Zzp99s8P66yjfvg9g6I0O19RNMqLPDcEwLKDO5cJbdJUVzT3NJ1xE6LYRJwYTbJSisSua0plGNVVna+cTfdy4erFAZ0xSyB4k1sYfP8yagyH6+3NUn3UeuxIKqPLS3RTu/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730344524; c=relaxed/simple;
-	bh=sfaaZhViEqPmu1EZO7qR302jyZRd6F7CmCe3iM/nTuw=;
-	h=Date:To:From:Subject:Message-Id; b=C7q73kJ9eN8CSsGtq4f42PRnIJNxvHEQSDpebX5obom7Zt5mmpX2xbdA1Z+UD/Y4TmbMZXNiwOH7Sc3TT1OPjuRMQrRWNJd75UNVCb154xNX1vtCpeQ92CBPXkCfy3fEyLC6b/UmVh/C8Is323CGWOxAG0uDZovi8avnlJtTQT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xoTy5Acm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730380592; c=relaxed/simple;
+	bh=uIASmehFdpVSyO1GLRRV3g/NO6lBbfl/+m54BMAIy3w=;
+	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
+	 Content-Type:Date:Message-ID; b=RhcpwSt42VtKOdL2ASWBIciPiRCFbNoGBrH7hDz7hYveyIUn3spLm0wE9/0v6BRhohYB2PI4ao9usTHEI/8XDi6GJmkd0tx9qjWOO3v4/7EhG6nrx5gqK0WZ55Znkiz376F2u5MGVVjUNnPGruDJzaJtXFfn/maJ+jTUVhpKql0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=BbnLa2My; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xoTy5Acm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA7B2C4CECE;
-	Thu, 31 Oct 2024 03:15:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730344523;
-	bh=sfaaZhViEqPmu1EZO7qR302jyZRd6F7CmCe3iM/nTuw=;
-	h=Date:To:From:Subject:From;
-	b=xoTy5AcmrrXwcfENkuQqnqg1pFxTuZRU02v+VhN/Rub7eAcRqC/XzruuhtPA2LLLe
-	 93BNeaBQV0iItuQ88gtSjikti1M5usT426aZbheE6FlCyDow8w3h3uqp+XrIe8a9Rl
-	 tKE3qKSGEx1QfVwzAOakp7Xcpwd2siesgJzsi0Q8=
-Date: Wed, 30 Oct 2024 20:15:23 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,stable@vger.kernel.org,riel@surriel.com,regressions@leemhuis.info,ptesarik@suse.com,matz@suse.de,matthias@bodenbinder.de,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,gabriel@krisman.be,vbabka@suse.cz,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch removed from -mm tree
-Message-Id: <20241031031523.CA7B2C4CECE@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BbnLa2My"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1730380589;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=dfFNQ56rVFjUlXb+iq+tZczUaenglGnWldpWlTTa4iQ=;
+	b=BbnLa2MycIzwvLim1vWXkftQChZcSTD+LPpSs/lVSrhku2z+Htu4uaseCtka6iO2BP0QM8
+	nbt1txCd0WibBL5S0Vd+2/ZAWlCDl4S5wLF9uZifxVui3l+U46d0VQJb1oWrMrOAj91sUf
+	fHndMHrGrArszvf4wBQwvRS1KaegdIA=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-625-J8_g8ae8M2Olb4TTMmEd1g-1; Thu,
+ 31 Oct 2024 09:16:25 -0400
+X-MC-Unique: J8_g8ae8M2Olb4TTMmEd1g-1
+Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id BCDFC1955F41;
+	Thu, 31 Oct 2024 13:16:23 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.42.28.231])
+	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 1F78F1956054;
+	Thu, 31 Oct 2024 13:16:19 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+	Kingdom.
+	Registered in England and Wales under Company Registration No. 3798903
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <20241026230305.32360C4CEC6@smtp.kernel.org>
+References: <20241026230305.32360C4CEC6@smtp.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: dhowells@redhat.com, mm-commits@vger.kernel.org, willy@infradead.org,
+    wangkefeng.wang@huawei.com, shy828301@gmail.com, hughd@google.com,
+    david@redhat.com, baolin.wang@linux.alibaba.com
+Subject: Re: + mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch added to mm-unstable branch
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <44140.1730380578.1@warthog.procyon.org.uk>
+Date: Thu, 31 Oct 2024 13:16:18 +0000
+Message-ID: <44141.1730380578@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
 
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-The quilt patch titled
-     Subject: mm, mmap: limit THP alignment of anonymous mappings to PMD-aligned sizes
-has been removed from the -mm tree.  Its filename was
-     mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes.patch
+> +		/*
+> +		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
+> +		 * pages.
+> +		 */
+> +		if (likely(!fallback_page_splice)) {
+> +			size = len;
+> +		} else {
+> +			size_t offset = *ppos & ~PAGE_MASK;
+> +
+> +			size = min_t(loff_t, PAGE_SIZE - offset, len);
+> +		}
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+It might look better to write this as:
 
-------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mmap: limit THP alignment of anonymous mappings to PMD-aligned sizes
-Date: Thu, 24 Oct 2024 17:12:29 +0200
+		size = len;
+		if (unlikely(fallback_page_splice)) {
+			size_t offset = *ppos & ~PAGE_MASK;
 
-Since commit efa7df3e3bb5 ("mm: align larger anonymous mappings on THP
-boundaries") a mmap() of anonymous memory without a specific address hint
-and of at least PMD_SIZE will be aligned to PMD so that it can benefit
-from a THP backing page.
+			size = umin(size, PAGE_SIZE - offset);
+		}
 
-However this change has been shown to regress some workloads
-significantly.  [1] reports regressions in various spec benchmarks, with
-up to 600% slowdown of the cactusBSSN benchmark on some platforms.  The
-benchmark seems to create many mappings of 4632kB, which would have merged
-to a large THP-backed area before commit efa7df3e3bb5 and now they are
-fragmented to multiple areas each aligned to PMD boundary with gaps
-between.  The regression then seems to be caused mainly due to the
-benchmark's memory access pattern suffering from TLB or cache aliasing due
-to the aligned boundaries of the individual areas.
-
-Another known regression bisected to commit efa7df3e3bb5 is darktable [2]
-[3] and early testing suggests this patch fixes the regression there as
-well.
-
-To fix the regression but still try to benefit from THP-friendly anonymous
-mapping alignment, add a condition that the size of the mapping must be a
-multiple of PMD size instead of at least PMD size.  In case of many
-odd-sized mapping like the cactusBSSN creates, those will stop being
-aligned and with gaps between, and instead naturally merge again.
-
-Link: https://lkml.kernel.org/r/20241024151228.101841-2-vbabka@suse.cz
-Fixes: efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Michael Matz <matz@suse.de>
-Debugged-by: Gabriel Krisman Bertazi <gabriel@krisman.be>
-Closes: https://bugzilla.suse.com/show_bug.cgi?id=1229012 [1]
-Reported-by: Matthias Bodenbinder <matthias@bodenbinder.de>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=219366 [2]
-Closes: https://lore.kernel.org/all/2050f0d4-57b0-481d-bab8-05e8d48fed0c@leemhuis.info/ [3]
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Petr Tesarik <ptesarik@suse.com>
-Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/mmap.c~mm-mmap-limit-thp-aligment-of-anonymous-mappings-to-pmd-aligned-sizes
-+++ a/mm/mmap.c
-@@ -900,7 +900,8 @@ __get_unmapped_area(struct file *file, u
- 
- 	if (get_area) {
- 		addr = get_area(file, addr, len, pgoff, flags);
--	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)
-+		   && IS_ALIGNED(len, PMD_SIZE)) {
- 		/* Ensures that larger anonymous mappings are THP aligned. */
- 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
- 						     pgoff, flags, vm_flags);
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
+David
 
