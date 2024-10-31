@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A6F45028;
-	Thu, 31 Oct 2024 03:15:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE49131E38;
+	Thu, 31 Oct 2024 03:15:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730344514; cv=none; b=QFPc02pOYXwh/U41+rWZuXhHl3uVx9/KjDNXtFOH+mCyMDcpG9khBLE2uRx3xJQSUZKcxSDXrgu9pyQWWvveRWh7xUB3o9IPTwVYPp6EgbruAm7socut+UlVtThfNVx38mgXjzx0QLOdavEo6O36uz4BbK1HvJ3WbfSoJVGEsY8=
+	t=1730344515; cv=none; b=WQtbdVKFOaCkwMzO5jmN/RLtdX3rSGeLl/uD0Gz1c7hz5hO1uFJvHS5XPSeEwy73632aWQCC9SHMjTWiikl00C+lqPznCeFrx8TM9MaOf/b1qbc7RZJ9s6rTADrXZ//0UYO64ynVTps55pG+gS0nzZc2mXe912MnYNxQNCyzXS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730344514; c=relaxed/simple;
-	bh=6JShtNYxuOM4O/s7OgIml+v8Vh7q+yPzu3mgcaIBDDc=;
-	h=Date:To:From:Subject:Message-Id; b=B3QFH+JsOFdOL8Hwo0PaaQeOF7OY3X63kuRo1pXZ1VuF9ayCP9qyWYYSAu7Ib1It8f1DmyCXqr32D4HbOHXFH/ujE4jirwsZ9YPHcMR9cLT1ZDENzVkkVgPtnXXjTLlZF+MPL1tjgcExzEVLA8spRsqLDKB7IG+0KjmNAe1Q7Pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d03gL9Rs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730344515; c=relaxed/simple;
+	bh=9G7gNuGaj+raeXNNjzIAVcro2qPUBNJS7Ui5DfQc7tw=;
+	h=Date:To:From:Subject:Message-Id; b=Ojwy/jK4OBJsyIHt4leSQ+uV5ycHoUqUpfcrM7rEIapLFgo6brvG1GWt1OfbX120YxRtsOBOez63qV/UybZdZBEo8SoHT3Zzk5N+M46ivHVcaF3jjtnda6etDv6Iw3zoKulPetrx5mYdiy/wZjytQRdHcB8RoMUXdnF8F0xf6oQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RIGbVIBe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d03gL9Rs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88268C4CECF;
-	Thu, 31 Oct 2024 03:15:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RIGbVIBe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60C7AC4CECE;
+	Thu, 31 Oct 2024 03:15:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730344514;
-	bh=6JShtNYxuOM4O/s7OgIml+v8Vh7q+yPzu3mgcaIBDDc=;
+	s=korg; t=1730344513;
+	bh=9G7gNuGaj+raeXNNjzIAVcro2qPUBNJS7Ui5DfQc7tw=;
 	h=Date:To:From:Subject:From;
-	b=d03gL9RsGggT8mcDAFeKEKXUiAdgTvroSPESdDDJg3LkssvP76jh3cZzEMBQLrVHL
-	 loHHoJFkWmuCH6T57aPWjn4gEjV1Z85QiKzefkpibS1pu/XSf16XPbMis3ME9cFZ1W
-	 nGvNykN4VXF1HHJIWsEbAJn/vLN3PYqSMKKvSZ60=
-Date: Wed, 30 Oct 2024 20:15:14 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,muchun.song@linux.dev,yuzhao@google.com,akpm@linux-foundation.org
+	b=RIGbVIBeSWyqdmLK6212Ozzb9WXiAtixlRFaNmaLr+GCP5l5wpp20QVKTCXe7/R4B
+	 BnevrWFzB+4ieY61jwr/jwviFv1M2114+Zpzx+D8Ehgb4n/gev8nuRe5RtPmGsqG7z
+	 FeX0OnCAK2XSNTHImDkianzOXHx8XrIBomhk9yjk=
+Date: Wed, 30 Oct 2024 20:15:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-allow-set-clear-page_type-again.patch removed from -mm tree
-Message-Id: <20241031031514.88268C4CECF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch removed from -mm tree
+Message-Id: <20241031031513.60C7AC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow set/clear page_type again
+     Subject: nilfs2: fix potential deadlock with newly created symlinks
 has been removed from the -mm tree.  Its filename was
-     mm-allow-set-clear-page_type-again.patch
+     nilfs2-fix-potential-deadlock-with-newly-created-symlinks.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: allow set/clear page_type again
-Date: Sat, 19 Oct 2024 22:22:12 -0600
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix potential deadlock with newly created symlinks
+Date: Sun, 20 Oct 2024 13:51:28 +0900
 
-Some page flags (page->flags) were converted to page types
-(page->page_types).  A recent example is PG_hugetlb.
+Syzbot reported that page_symlink(), called by nilfs_symlink(), triggers
+memory reclamation involving the filesystem layer, which can result in
+circular lock dependencies among the reader/writer semaphore
+nilfs->ns_segctor_sem, s_writers percpu_rwsem (intwrite) and the
+fs_reclaim pseudo lock.
 
-From the exclusive writer's perspective, e.g., a thread doing
-__folio_set_hugetlb(), there is a difference between the page flag and
-type APIs: the former allows the same non-atomic operation to be repeated
-whereas the latter does not.  For example, calling __folio_set_hugetlb()
-twice triggers VM_BUG_ON_FOLIO(), since the second call expects the type
-(PG_hugetlb) not to be set previously.
+This is because after commit 21fc61c73c39 ("don't put symlink bodies in
+pagecache into highmem"), the gfp flags of the page cache for symbolic
+links are overwritten to GFP_KERNEL via inode_nohighmem().
 
-Using add_hugetlb_folio() as an example, it calls __folio_set_hugetlb() in
-the following error-handling path.  And when that happens, it triggers the
-aforementioned VM_BUG_ON_FOLIO().
+This is not a problem for symlinks read from the backing device, because
+the __GFP_FS flag is dropped after inode_nohighmem() is called.  However,
+when a new symlink is created with nilfs_symlink(), the gfp flags remain
+overwritten to GFP_KERNEL.  Then, memory allocation called from
+page_symlink() etc.  triggers memory reclamation including the FS layer,
+which may call nilfs_evict_inode() or nilfs_dirty_inode().  And these can
+cause a deadlock if they are called while nilfs->ns_segctor_sem is held:
 
-  if (folio_test_hugetlb(folio)) {
-    rc = hugetlb_vmemmap_restore_folio(h, folio);
-    if (rc) {
-      spin_lock_irq(&hugetlb_lock);
-      add_hugetlb_folio(h, folio, false);
-      ...
+Fix this issue by dropping the __GFP_FS flag from the page cache GFP flags
+of newly created symlinks in the same way that nilfs_new_inode() and
+__nilfs_read_inode() do, as a workaround until we adopt nofs allocation
+scope consistently or improve the locking constraints.
 
-It is possible to make hugeTLB comply with the new requirements from the
-page type API.  However, a straightforward fix would be to just allow the
-same page type to be set or cleared again inside the API, to avoid any
-changes to its callers.
-
-Link: https://lkml.kernel.org/r/20241020042212.296781-1-yuzhao@google.com
-Fixes: d99e3140a4d3 ("mm: turn folio_test_hugetlb into a PageType")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20241020050003.4308-1-konishi.ryusuke@gmail.com
+Fixes: 21fc61c73c39 ("don't put symlink bodies in pagecache into highmem")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+9ef37ac20608f4836256@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=9ef37ac20608f4836256
+Tested-by: syzbot+9ef37ac20608f4836256@syzkaller.appspotmail.com
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/nilfs2/namei.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/page-flags.h~mm-allow-set-clear-page_type-again
-+++ a/include/linux/page-flags.h
-@@ -975,12 +975,16 @@ static __always_inline bool folio_test_#
- }									\
- static __always_inline void __folio_set_##fname(struct folio *folio)	\
- {									\
-+	if (folio_test_##fname(folio))					\
-+		return;							\
- 	VM_BUG_ON_FOLIO(data_race(folio->page.page_type) != UINT_MAX,	\
- 			folio);						\
- 	folio->page.page_type = (unsigned int)PGTY_##lname << 24;	\
- }									\
- static __always_inline void __folio_clear_##fname(struct folio *folio)	\
- {									\
-+	if (folio->page.page_type == UINT_MAX)				\
-+		return;							\
- 	VM_BUG_ON_FOLIO(!folio_test_##fname(folio), folio);		\
- 	folio->page.page_type = UINT_MAX;				\
- }
-@@ -993,11 +997,15 @@ static __always_inline int Page##uname(c
- }									\
- static __always_inline void __SetPage##uname(struct page *page)		\
- {									\
-+	if (Page##uname(page))						\
-+		return;							\
- 	VM_BUG_ON_PAGE(data_race(page->page_type) != UINT_MAX, page);	\
- 	page->page_type = (unsigned int)PGTY_##lname << 24;		\
- }									\
- static __always_inline void __ClearPage##uname(struct page *page)	\
- {									\
-+	if (page->page_type == UINT_MAX)				\
-+		return;							\
- 	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
- 	page->page_type = UINT_MAX;					\
- }
+--- a/fs/nilfs2/namei.c~nilfs2-fix-potential-deadlock-with-newly-created-symlinks
++++ a/fs/nilfs2/namei.c
+@@ -157,6 +157,9 @@ static int nilfs_symlink(struct mnt_idma
+ 	/* slow symlink */
+ 	inode->i_op = &nilfs_symlink_inode_operations;
+ 	inode_nohighmem(inode);
++	mapping_set_gfp_mask(inode->i_mapping,
++			     mapping_gfp_constraint(inode->i_mapping,
++						    ~__GFP_FS));
+ 	inode->i_mapping->a_ops = &nilfs_aops;
+ 	err = page_symlink(inode, symname, l);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-page_alloc-keep-track-of-free-highatomic.patch
+nilfs2-convert-segment-buffer-to-be-folio-based.patch
+nilfs2-convert-common-metadata-file-code-to-be-folio-based.patch
+nilfs2-convert-segment-usage-file-to-be-folio-based.patch
+nilfs2-convert-persistent-object-allocator-to-be-folio-based.patch
+nilfs2-convert-inode-file-to-be-folio-based.patch
+nilfs2-convert-dat-file-to-be-folio-based.patch
+nilfs2-remove-nilfs_palloc_block_get_entry.patch
+nilfs2-convert-checkpoint-file-to-be-folio-based.patch
 
