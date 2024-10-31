@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A441DDF5
-	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 03:15:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 934AE42069
+	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 03:15:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730344505; cv=none; b=tF+WbIJApng2I3iedZCnNSoKF6HWy/eI9un6hdbUjV0Sojb+L72Iac6PPGi5ASrpOxeBQel1vnwYq0HuVUrk/zCalJYJGtcfx4YT8YBD6VqP/gyapadFr2rvmm7ZTIvXv/Z9QAdkqMQz+dT8b1LVAmjG1OSIJdGY8jQUw+PdKa4=
+	t=1730344506; cv=none; b=SBAGYpphuxQrwB42UfLb7E4myVRxetSorhKi4wY7iE3Gikuq9wiPn/njlv/izesr4OD/j4VbP3i3HL/SZgm/m34YBh852G0VMkEEwuuQh2s4mIK9yQp0EUnu05WEOLwVFvLleRuFJFAe5c2FBberJXs03Vg8Iw/fnOmWoFCln0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730344505; c=relaxed/simple;
-	bh=Yu0hS+MI4pvifp3oRtBNWSMSAx7oeHXW/4HVHtMRURo=;
-	h=Date:To:From:Subject:Message-Id; b=bZwuJ0/P/zKJCDv54xptBowk9vCvMJ5KOxJq7vlmZ4P95897H5u8UQ9AIzeEc2lnoVkIRHxFLox7iauCVaBuTMDeMj1Beh5vD0JwtMk3uqGbjYBgKqCdVYQ4QUmn+D4N7Tclv9sfGR/PdR0DKutrCvzre0Z03WKozKybJ6xSu4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PSIjTBYG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730344506; c=relaxed/simple;
+	bh=VwIUCKj4EUH7gCOJhnu5suCj8HoHtnenyuf6eTco+c8=;
+	h=Date:To:From:Subject:Message-Id; b=nugJtrH+KoHZpnZFO6A6hJi0MkJElJZsyCHRIjQ599ZGmRS4H8lvam136zRzFHcc9WAM6biyj1z9l+d7GVFlgbsnXnhfhj6UOi0dAZ+kBFgESX65Q0sXD3MNOwej7pmc+iY3x0ve3JN0shzBgQsa26RUoNbv4jAB1CorlB9gLE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rD+e6wOt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PSIjTBYG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8658FC4CECE;
-	Thu, 31 Oct 2024 03:15:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rD+e6wOt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0197BC4CECE;
+	Thu, 31 Oct 2024 03:15:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730344504;
-	bh=Yu0hS+MI4pvifp3oRtBNWSMSAx7oeHXW/4HVHtMRURo=;
+	s=korg; t=1730344506;
+	bh=VwIUCKj4EUH7gCOJhnu5suCj8HoHtnenyuf6eTco+c8=;
 	h=Date:To:From:Subject:From;
-	b=PSIjTBYGz07qQdLo5r8Snjd9zw8DXRFSNJDWaAYen2vLjX2jnwDn5+RJlJzgkLoV8
-	 iIuXvXsofGktb2gA4TMdDcysdmKjVSd7qE3LF1SThZV28Nb7MOmL8uzBLNOqFjxNSR
-	 B5mHbvm3/f62WSpER0GgBqoLfcYFKShxziFPt4X4=
-Date: Wed, 30 Oct 2024 20:15:03 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,kent.overstreet@linux.dev,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=rD+e6wOtQ2rgUGYQzB6eawjcBjJXsMEZ7h8duPNluVsyrHo2xWidfvy4FXvL60sWS
+	 rXijCmBy5fdd4ygiDs2RYMqn5KQhAU31yFjEhfo03G1pOaAFf56Yab6opjF8JZWUmB
+	 mMhJTARwuVNPTxZxkYGT27cf2YleHl6mJTA2s91g=
+Date: Wed, 30 Oct 2024 20:15:05 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,npache@redhat.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch removed from -mm tree
-Message-Id: <20241031031504.8658FC4CECE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-avoid-vm_bug_on-when-try-to-map-an-anon-large-folio-to-zero-page.patch removed from -mm tree
+Message-Id: <20241031031506.0197BC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/codetag: fix null pointer check logic for ref and tag
+     Subject: mm: avoid VM_BUG_ON when try to map an anon large folio to zero page.
 has been removed from the -mm tree.  Its filename was
-     mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
+     mm-avoid-vm_bug_on-when-try-to-map-an-anon-large-folio-to-zero-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/codetag: fix null pointer check logic for ref and tag
-Date: Sun, 20 Oct 2024 15:08:19 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: avoid VM_BUG_ON when try to map an anon large folio to zero page.
+Date: Wed, 23 Oct 2024 13:12:36 -0400
 
-When we compile and load lib/slub_kunit.c,it will cause a panic.
+An anonymous large folio can be split into non order-0 folios,
+try_to_map_unused_to_zeropage() should not VM_BUG_ON compound pages but
+just return false.  This fixes the crash when splitting anonymous large
+folios to non order-0 folios.
 
-The root cause is that __kmalloc_cache_noprof was directly called instead
-of kmem_cache_alloc,which resulted in no alloc_tag being allocated.This
-caused current->alloc_tag to be null,leading to a null pointer dereference
-in alloc_tag_ref_set.
-
-Despite the fact that my colleague Pei Xiao will later fix the code in
-slub_kunit.c,we still need fix null pointer check logic for ref and tag to
-avoid panic caused by a null pointer dereference.
-
-Here is the log for the panic:
-
-[   74.779373][ T2158] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
-[   74.780130][ T2158] Mem abort info:
-[   74.780406][ T2158]   ESR = 0x0000000096000004
-[   74.780756][ T2158]   EC = 0x25: DABT (current EL), IL = 32 bits
-[   74.781225][ T2158]   SET = 0, FnV = 0
-[   74.781529][ T2158]   EA = 0, S1PTW = 0
-[   74.781836][ T2158]   FSC = 0x04: level 0 translation fault
-[   74.782288][ T2158] Data abort info:
-[   74.782577][ T2158]   ISV = 0, ISS = 0x00000004, ISS2 = 0x00000000
-[   74.783068][ T2158]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[   74.783533][ T2158]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[   74.784010][ T2158] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000105f34000
-[   74.784586][ T2158] [0000000000000020] pgd=0000000000000000, p4d=0000000000000000
-[   74.785293][ T2158] Internal error: Oops: 0000000096000004 [#1] SMP
-[   74.785805][ T2158] Modules linked in: slub_kunit kunit ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute ip6table_nat ip6table_mangle 4
-[   74.790661][ T2158] CPU: 0 UID: 0 PID: 2158 Comm: kunit_try_catch Kdump: loaded Tainted: G        W        N 6.12.0-rc3+ #2
-[   74.791535][ T2158] Tainted: [W]=WARN, [N]=TEST
-[   74.791889][ T2158] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
-[   74.792479][ T2158] pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[   74.793101][ T2158] pc : alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.793607][ T2158] lr : alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.794095][ T2158] sp : ffff800084d33cd0
-[   74.794418][ T2158] x29: ffff800084d33cd0 x28: 0000000000000000 x27: 0000000000000000
-[   74.795095][ T2158] x26: 0000000000000000 x25: 0000000000000012 x24: ffff80007b30e314
-[   74.795822][ T2158] x23: ffff000390ff6f10 x22: 0000000000000000 x21: 0000000000000088
-[   74.796555][ T2158] x20: ffff000390285840 x19: fffffd7fc3ef7830 x18: ffffffffffffffff
-[   74.797283][ T2158] x17: ffff8000800e63b4 x16: ffff80007b33afc4 x15: ffff800081654c00
-[   74.798011][ T2158] x14: 0000000000000000 x13: 205d383531325420 x12: 5b5d383734363537
-[   74.798744][ T2158] x11: ffff800084d337e0 x10: 000000000000005d x9 : 00000000ffffffd0
-[   74.799476][ T2158] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008219d188 x6 : c0000000ffff7fff
-[   74.800206][ T2158] x5 : ffff0003fdbc9208 x4 : ffff800081edd188 x3 : 0000000000000001
-[   74.800932][ T2158] x2 : 0beaa6dee1ac5a00 x1 : 0beaa6dee1ac5a00 x0 : ffff80037c2cb000
-[   74.801656][ T2158] Call trace:
-[   74.801954][ T2158]  alloc_tagging_slab_alloc_hook+0x120/0x270
-[   74.802494][ T2158]  __kmalloc_cache_noprof+0x148/0x33c
-[   74.802976][ T2158]  test_kmalloc_redzone_access+0x4c/0x104 [slub_kunit]
-[   74.803607][ T2158]  kunit_try_run_case+0x70/0x17c [kunit]
-[   74.804124][ T2158]  kunit_generic_run_threadfn_adapter+0x2c/0x4c [kunit]
-[   74.804768][ T2158]  kthread+0x10c/0x118
-[   74.805141][ T2158]  ret_from_fork+0x10/0x20
-[   74.805540][ T2158] Code: b9400a80 11000400 b9000a80 97ffd858 (f94012d3)
-[   74.806176][ T2158] SMP: stopping secondary CPUs
-[   74.808130][ T2158] Starting crashdump kernel...
-
-Link: https://lkml.kernel.org/r/20241020070819.307944-1-hao.ge@linux.dev
-Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20241023171236.1122535-1-ziy@nvidia.com
+Fixes: b1f202060afe ("mm: remap unused subpages to shared zeropage when splitting isolated thp")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Usama Arif <usamaarif642@gmail.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/migrate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/alloc_tag.h~mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag
-+++ a/include/linux/alloc_tag.h
-@@ -135,18 +135,21 @@ static inline void alloc_tag_sub_check(u
- #endif
+--- a/mm/migrate.c~mm-avoid-vm_bug_on-when-try-to-map-an-anon-large-folio-to-zero-page
++++ a/mm/migrate.c
+@@ -206,7 +206,8 @@ static bool try_to_map_unused_to_zeropag
+ 	pte_t newpte;
+ 	void *addr;
  
- /* Caller should verify both ref and tag to be valid */
--static inline void __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
-+static inline bool __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
- {
- 	alloc_tag_add_check(ref, tag);
- 	if (!ref || !tag)
--		return;
+-	VM_BUG_ON_PAGE(PageCompound(page), page);
++	if (PageCompound(page))
 +		return false;
- 
- 	ref->ct = &tag->ct;
-+	return true;
- }
- 
--static inline void alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
-+static inline bool alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
- {
--	__alloc_tag_ref_set(ref, tag);
-+	if (unlikely(!__alloc_tag_ref_set(ref, tag)))
-+		return false;
-+
- 	/*
- 	 * We need in increment the call counter every time we have a new
- 	 * allocation or when we split a large allocation into smaller ones.
-@@ -154,12 +157,13 @@ static inline void alloc_tag_ref_set(uni
- 	 * counter because when we free each part the counter will be decremented.
- 	 */
- 	this_cpu_inc(tag->counters->calls);
-+	return true;
- }
- 
- static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag, size_t bytes)
- {
--	alloc_tag_ref_set(ref, tag);
--	this_cpu_add(tag->counters->bytes, bytes);
-+	if (likely(alloc_tag_ref_set(ref, tag)))
-+		this_cpu_add(tag->counters->bytes, bytes);
- }
- 
- static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes)
+ 	VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(pte_present(*pvmw->pte), page);
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix.patch
 
