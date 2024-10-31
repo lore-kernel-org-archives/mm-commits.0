@@ -1,91 +1,93 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com [209.85.219.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F365119E999
-	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 13:16:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A7021A0B00
+	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 16:48:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730380592; cv=none; b=aitiHk0jX+FArZzYDvyv8/OzbCazcjzoyfU6nax8Zzp99s8P66yjfvg9g6I0O19RNMqLPDcEwLKDO5cJbdJUVzT3NJ1xE6LYRJwYTbJSisSua0plGNVVna+cTfdy4erFAZ0xSyB4k1sYfP8yagyH6+3NUn3UeuxIKqPLS3RTu/Q=
+	t=1730393337; cv=none; b=AM4hmhgZBUVdtScHM75mdXieKg+L511B7vkwilKk4Fiit04t/QffGc7/1EZrPyJ1fzUBupr0gbUIwcFFNSCdkW7GrVQXmx6wymbnhsVJfg02XYb7rGgzkkx7h4CHGxi/BRSCyQqaVQeDys+JOveoD1xLd+QmOBlJc2PuOzEbuF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730380592; c=relaxed/simple;
-	bh=uIASmehFdpVSyO1GLRRV3g/NO6lBbfl/+m54BMAIy3w=;
-	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
-	 Content-Type:Date:Message-ID; b=RhcpwSt42VtKOdL2ASWBIciPiRCFbNoGBrH7hDz7hYveyIUn3spLm0wE9/0v6BRhohYB2PI4ao9usTHEI/8XDi6GJmkd0tx9qjWOO3v4/7EhG6nrx5gqK0WZ55Znkiz376F2u5MGVVjUNnPGruDJzaJtXFfn/maJ+jTUVhpKql0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=BbnLa2My; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1730393337; c=relaxed/simple;
+	bh=DyWph8UUJAkQclrw0BMcHAWESaNV8zNxbZmG/7+Hbk8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UPOpnP5adZr+j3SP+9qR8uwnsXX+uNGzgaSCoeyRwDYXaDpQvsNvdyUdrTOWRQMWium5mia6bWyM5I3h7NrCffB0a0IpK2Yk5ALVc7kkCzJ0D43yj15iT6kX0bowlpywNTIHGDWAaAZxvPtca12o9x7I0vP1uYi/CTVA+jkGxas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=PI/VjL3R; arc=none smtp.client-ip=209.85.219.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BbnLa2My"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1730380589;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=dfFNQ56rVFjUlXb+iq+tZczUaenglGnWldpWlTTa4iQ=;
-	b=BbnLa2MycIzwvLim1vWXkftQChZcSTD+LPpSs/lVSrhku2z+Htu4uaseCtka6iO2BP0QM8
-	nbt1txCd0WibBL5S0Vd+2/ZAWlCDl4S5wLF9uZifxVui3l+U46d0VQJb1oWrMrOAj91sUf
-	fHndMHrGrArszvf4wBQwvRS1KaegdIA=
-Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-625-J8_g8ae8M2Olb4TTMmEd1g-1; Thu,
- 31 Oct 2024 09:16:25 -0400
-X-MC-Unique: J8_g8ae8M2Olb4TTMmEd1g-1
-Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id BCDFC1955F41;
-	Thu, 31 Oct 2024 13:16:23 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.231])
-	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 1F78F1956054;
-	Thu, 31 Oct 2024 13:16:19 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-	Kingdom.
-	Registered in England and Wales under Company Registration No. 3798903
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <20241026230305.32360C4CEC6@smtp.kernel.org>
-References: <20241026230305.32360C4CEC6@smtp.kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: dhowells@redhat.com, mm-commits@vger.kernel.org, willy@infradead.org,
-    wangkefeng.wang@huawei.com, shy828301@gmail.com, hughd@google.com,
-    david@redhat.com, baolin.wang@linux.alibaba.com
-Subject: Re: + mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch added to mm-unstable branch
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="PI/VjL3R"
+Received: by mail-yb1-f182.google.com with SMTP id 3f1490d57ef6-e2974743675so1097878276.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 09:48:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1730393334; x=1730998134; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CCGIRPOYY6VkyMbSOzu8Bu46cDZwcKzHLqJf7pVc9Bc=;
+        b=PI/VjL3RWBuqHKME5Npp0/dRYasW0vQeUlJRWfFa74rH5L5aEyk7t3jAyXIkdjUnSQ
+         I69vCcN4RNhf2PvrYrlR4TDYdxgbQx5AdqxdJExnq1afnuF3DvaeAF5GGec8vJLxJYJq
+         C77cQpuW1j16/EfJM/PLOHA//0IP+27fgBZHfCUU2zNxq5Fl0nDFBPqUpvg3u4FyTxWV
+         WC11MgqZb1jFWD4/p/zySgsHRt+3Xa054hskmhQ1l6Wlxg2Ji30ANle+3q9OmYub9fdH
+         Z3VuEwG5kGkE+FrE84/7ZebHZF30GMqawkaeXKY/+pLpxO1LPCafZCjiVeZkP2090kCe
+         nCMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730393334; x=1730998134;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=CCGIRPOYY6VkyMbSOzu8Bu46cDZwcKzHLqJf7pVc9Bc=;
+        b=xEYNYDpFRnGjJyyDSjdj+zl9lLoUtUS/ATOBluFFzGJR/jfl+1DeoOJ1rnUooCqlaY
+         sOYe2ytt0DIZlPFCnN1R4uR83f7bcGZgDKKKsAjiRD5vgIxCKbnVQoVKh/hu06swXYn0
+         r2ke6n5Sw3cfo5NEYgWwqW7NzYJIcf+NRjVCfE0/sbW42MKO5ieR9+No81ENqHQ2+hhi
+         wFBcvMJh5nYEqAMdkmrFnvitbAApT/CA6VLgp/k0eTmGJgdpeqQGL5bSQYqwPYManwN7
+         kopQs/16VwPD41Ca7AUaCGuH0CR6n9Q5WTLkURqYWdTtdfFfdJYNYmTvl3bt6yuMjpiv
+         EHlQ==
+X-Gm-Message-State: AOJu0YxEX9VAWvWsqwaXqotGPtKlDwVkwwaBXyMMtFs2E1Q/YIf5Lhl5
+	FOSMXnPObA5GAdamy5cnQRDeeIeoQ/0tpcuewR/mYqQwujobLC2i5TQvaQM73tpwJC2mpnbd15X
+	GebD944z3mQJtEjhdawyl0ADdhg+xH5ki4GSi
+X-Google-Smtp-Source: AGHT+IFhxc21ZHz4vbc2RJxBu7ImVfd1dY7qdM5KSOEx184gZpnveCCVXiqO6RQl2JdhFA5FqtGx/OQa9HaAkqcLcjo=
+X-Received: by 2002:a05:6902:b08:b0:e25:d900:a0f8 with SMTP id
+ 3f1490d57ef6-e30e5b57747mr2920629276.43.1730393334042; Thu, 31 Oct 2024
+ 09:48:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <44140.1730380578.1@warthog.procyon.org.uk>
-Date: Thu, 31 Oct 2024 13:16:18 +0000
-Message-ID: <44141.1730380578@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
+References: <20241031031517.3AE43C4CECE@smtp.kernel.org>
+In-Reply-To: <20241031031517.3AE43C4CECE@smtp.kernel.org>
+From: James Houghton <jthoughton@google.com>
+Date: Thu, 31 Oct 2024 09:48:16 -0700
+Message-ID: <CADrL8HXPjHDRAUmzLnSS0fqsw3Rt921EYm2KyEUqW-sPn15o5Q@mail.gmail.com>
+Subject: Re: [merged mm-hotfixes-stable] mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, weixugc@google.com, stevensd@google.com, 
+	stable@vger.kernel.org, seanjc@google.com, rientjes@google.com, 
+	pbonzini@redhat.com, oliver.upton@linux.dev, dmatlack@google.com, 
+	axelrasmussen@google.com, yuzhao@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Andrew Morton <akpm@linux-foundation.org> wrote:
+On Wed, Oct 30, 2024 at 8:15=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+>
+> The quilt patch titled
+>      Subject: mm: multi-gen LRU: use {ptep,pmdp}_clear_young_notify()
+> has been removed from the -mm tree.  Its filename was
+>      mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
+>
+> This patch was dropped because it was merged into the mm-hotfixes-stable =
+branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> +		/*
-> +		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
-> +		 * pages.
-> +		 */
-> +		if (likely(!fallback_page_splice)) {
-> +			size = len;
-> +		} else {
-> +			size_t offset = *ppos & ~PAGE_MASK;
-> +
-> +			size = min_t(loff_t, PAGE_SIZE - offset, len);
-> +		}
+Hi Andrew,
 
-It might look better to write this as:
+I posted a fixup for this patch here[1]. It fixes builds for some
+configs but is otherwise a no-op. Could you apply it? (Do you need
+anything from me before you can apply it?)
 
-		size = len;
-		if (unlikely(fallback_page_splice)) {
-			size_t offset = *ppos & ~PAGE_MASK;
-
-			size = umin(size, PAGE_SIZE - offset);
-		}
-
-David
-
+[1]: https://lore.kernel.org/linux-mm/20241025192106.957236-1-jthoughton@go=
+ogle.com/
