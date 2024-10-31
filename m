@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823A812F5B3
-	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 03:15:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A441DDF5
+	for <mm-commits@vger.kernel.org>; Thu, 31 Oct 2024 03:15:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730344503; cv=none; b=Ee3Ow2F+KbhrTy7Uov/pk8O0QPs8ZcGpJRDEzW/ig1etkYfyLbLXbiRsGWcS8L+TvkaQuhVFCEGizfLkU9eLFrpp5t+2u3P0JOvzJtu/sR+iDeQyTToscJKxs11iCy0Rb2qNwuBJEgEJUSrErhohUHGtzkcMvDB8mJzPDUyEzyg=
+	t=1730344505; cv=none; b=tF+WbIJApng2I3iedZCnNSoKF6HWy/eI9un6hdbUjV0Sojb+L72Iac6PPGi5ASrpOxeBQel1vnwYq0HuVUrk/zCalJYJGtcfx4YT8YBD6VqP/gyapadFr2rvmm7ZTIvXv/Z9QAdkqMQz+dT8b1LVAmjG1OSIJdGY8jQUw+PdKa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730344503; c=relaxed/simple;
-	bh=B/vHZ4mvEO4MMHvlHFOs7bmXTkG2PPTmXmUkO1SflcY=;
-	h=Date:To:From:Subject:Message-Id; b=ZOv/gwp3jUAIUFkMbSXOGEi0rIF6vzBzeImCZM9Nyw74u+akkwXYTV3en9qOcCRtoIg3PXOgOVpFzEViVB3QmGbs26ePAmZLJs5LwLz776ybsWvCTpduiiJcimQ32n1XCgg8Y7oRrNJLe9KqZV64e5jlFxAW3kpJ+1W2Qdcfnh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vmbE6/+y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730344505; c=relaxed/simple;
+	bh=Yu0hS+MI4pvifp3oRtBNWSMSAx7oeHXW/4HVHtMRURo=;
+	h=Date:To:From:Subject:Message-Id; b=bZwuJ0/P/zKJCDv54xptBowk9vCvMJ5KOxJq7vlmZ4P95897H5u8UQ9AIzeEc2lnoVkIRHxFLox7iauCVaBuTMDeMj1Beh5vD0JwtMk3uqGbjYBgKqCdVYQ4QUmn+D4N7Tclv9sfGR/PdR0DKutrCvzre0Z03WKozKybJ6xSu4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PSIjTBYG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vmbE6/+y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE035C4CECE;
-	Thu, 31 Oct 2024 03:15:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PSIjTBYG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8658FC4CECE;
+	Thu, 31 Oct 2024 03:15:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730344503;
-	bh=B/vHZ4mvEO4MMHvlHFOs7bmXTkG2PPTmXmUkO1SflcY=;
+	s=korg; t=1730344504;
+	bh=Yu0hS+MI4pvifp3oRtBNWSMSAx7oeHXW/4HVHtMRURo=;
 	h=Date:To:From:Subject:From;
-	b=vmbE6/+yU32Nk2TBqB/dXcHIGqn9Dw470JNa0o17KZEpabRHtiRTgKTEMs4pgVNGw
-	 Vf0QLudJxQb6NFShihiS5EObJz3z+eGR06RfwCGea7uGwFErEUmUYrtQ7N6v6u0OuE
-	 n2KQ5PcdCwMmkm8PSW/3LXiY/Jri3VNH5X+wOXKY=
-Date: Wed, 30 Oct 2024 20:15:02 -0700
-To: mm-commits@vger.kernel.org,syoshida@redhat.com,pasha.tatashin@soleen.com,minchan@kernel.org,jgg@nvidia.com,david@redhat.com,apopple@nvidia.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=PSIjTBYGz07qQdLo5r8Snjd9zw8DXRFSNJDWaAYen2vLjX2jnwDn5+RJlJzgkLoV8
+	 iIuXvXsofGktb2gA4TMdDcysdmKjVSd7qE3LF1SThZV28Nb7MOmL8uzBLNOqFjxNSR
+	 B5mHbvm3/f62WSpER0GgBqoLfcYFKShxziFPt4X4=
+Date: Wed, 30 Oct 2024 20:15:03 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,kent.overstreet@linux.dev,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch removed from -mm tree
-Message-Id: <20241031031502.EE035C4CECE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch removed from -mm tree
+Message-Id: <20241031031504.8658FC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,152 +35,134 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: stop leaking pinned pages in low memory conditions
+     Subject: mm/codetag: fix null pointer check logic for ref and tag
 has been removed from the -mm tree.  Its filename was
-     mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions.patch
+     mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: stop leaking pinned pages in low memory conditions
-Date: Fri, 18 Oct 2024 15:34:11 -0700
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/codetag: fix null pointer check logic for ref and tag
+Date: Sun, 20 Oct 2024 15:08:19 +0800
 
-If a driver tries to call any of the pin_user_pages*(FOLL_LONGTERM) family
-of functions, and requests "too many" pages, then the call will
-erroneously leave pages pinned.  This is visible in user space as an
-actual memory leak.
+When we compile and load lib/slub_kunit.c,it will cause a panic.
 
-Repro is trivial: just make enough pin_user_pages(FOLL_LONGTERM) calls to
-exhaust memory.
+The root cause is that __kmalloc_cache_noprof was directly called instead
+of kmem_cache_alloc,which resulted in no alloc_tag being allocated.This
+caused current->alloc_tag to be null,leading to a null pointer dereference
+in alloc_tag_ref_set.
 
-The root cause of the problem is this sequence, within
-__gup_longterm_locked():
+Despite the fact that my colleague Pei Xiao will later fix the code in
+slub_kunit.c,we still need fix null pointer check logic for ref and tag to
+avoid panic caused by a null pointer dereference.
 
-    __get_user_pages_locked()
-    rc = check_and_migrate_movable_pages()
+Here is the log for the panic:
 
-...which gets retried in a loop.  The loop error handling is incomplete,
-clearly due to a somewhat unusual and complicated tri-state error API. 
-But anyway, if -ENOMEM, or in fact, any unexpected error is returned from
-check_and_migrate_movable_pages(), then __gup_longterm_locked() happily
-returns the error, while leaving the pages pinned.
+[   74.779373][ T2158] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
+[   74.780130][ T2158] Mem abort info:
+[   74.780406][ T2158]   ESR = 0x0000000096000004
+[   74.780756][ T2158]   EC = 0x25: DABT (current EL), IL = 32 bits
+[   74.781225][ T2158]   SET = 0, FnV = 0
+[   74.781529][ T2158]   EA = 0, S1PTW = 0
+[   74.781836][ T2158]   FSC = 0x04: level 0 translation fault
+[   74.782288][ T2158] Data abort info:
+[   74.782577][ T2158]   ISV = 0, ISS = 0x00000004, ISS2 = 0x00000000
+[   74.783068][ T2158]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[   74.783533][ T2158]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[   74.784010][ T2158] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000105f34000
+[   74.784586][ T2158] [0000000000000020] pgd=0000000000000000, p4d=0000000000000000
+[   74.785293][ T2158] Internal error: Oops: 0000000096000004 [#1] SMP
+[   74.785805][ T2158] Modules linked in: slub_kunit kunit ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute ip6table_nat ip6table_mangle 4
+[   74.790661][ T2158] CPU: 0 UID: 0 PID: 2158 Comm: kunit_try_catch Kdump: loaded Tainted: G        W        N 6.12.0-rc3+ #2
+[   74.791535][ T2158] Tainted: [W]=WARN, [N]=TEST
+[   74.791889][ T2158] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+[   74.792479][ T2158] pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[   74.793101][ T2158] pc : alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.793607][ T2158] lr : alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.794095][ T2158] sp : ffff800084d33cd0
+[   74.794418][ T2158] x29: ffff800084d33cd0 x28: 0000000000000000 x27: 0000000000000000
+[   74.795095][ T2158] x26: 0000000000000000 x25: 0000000000000012 x24: ffff80007b30e314
+[   74.795822][ T2158] x23: ffff000390ff6f10 x22: 0000000000000000 x21: 0000000000000088
+[   74.796555][ T2158] x20: ffff000390285840 x19: fffffd7fc3ef7830 x18: ffffffffffffffff
+[   74.797283][ T2158] x17: ffff8000800e63b4 x16: ffff80007b33afc4 x15: ffff800081654c00
+[   74.798011][ T2158] x14: 0000000000000000 x13: 205d383531325420 x12: 5b5d383734363537
+[   74.798744][ T2158] x11: ffff800084d337e0 x10: 000000000000005d x9 : 00000000ffffffd0
+[   74.799476][ T2158] x8 : 7f7f7f7f7f7f7f7f x7 : ffff80008219d188 x6 : c0000000ffff7fff
+[   74.800206][ T2158] x5 : ffff0003fdbc9208 x4 : ffff800081edd188 x3 : 0000000000000001
+[   74.800932][ T2158] x2 : 0beaa6dee1ac5a00 x1 : 0beaa6dee1ac5a00 x0 : ffff80037c2cb000
+[   74.801656][ T2158] Call trace:
+[   74.801954][ T2158]  alloc_tagging_slab_alloc_hook+0x120/0x270
+[   74.802494][ T2158]  __kmalloc_cache_noprof+0x148/0x33c
+[   74.802976][ T2158]  test_kmalloc_redzone_access+0x4c/0x104 [slub_kunit]
+[   74.803607][ T2158]  kunit_try_run_case+0x70/0x17c [kunit]
+[   74.804124][ T2158]  kunit_generic_run_threadfn_adapter+0x2c/0x4c [kunit]
+[   74.804768][ T2158]  kthread+0x10c/0x118
+[   74.805141][ T2158]  ret_from_fork+0x10/0x20
+[   74.805540][ T2158] Code: b9400a80 11000400 b9000a80 97ffd858 (f94012d3)
+[   74.806176][ T2158] SMP: stopping secondary CPUs
+[   74.808130][ T2158] Starting crashdump kernel...
 
-In the failed case, which is an app that requests (via a device driver)
-30720000000 bytes to be pinned, and then exits, I see this:
-
-    $ grep foll /proc/vmstat
-        nr_foll_pin_acquired 7502048
-        nr_foll_pin_released 2048
-
-And after applying this patch, it returns to balanced pins:
-
-    $ grep foll /proc/vmstat
-        nr_foll_pin_acquired 7502048
-        nr_foll_pin_released 7502048
-
-Note that the child routine, check_and_migrate_movable_folios(), avoids
-this problem, by unpinning any folios in the **folios argument, before
-returning an error.
-
-Fix this by making check_and_migrate_movable_pages() behave in exactly the
-same way as check_and_migrate_movable_folios(): unpin all pages in
-**pages, before returning an error.
-
-Also, documentation was an aggravating factor, so:
-
-1) Consolidate the documentation for these two routines, now that they
-have identical external behavior.
-
-2) Rewrite the consolidated documentation:
-
-    a) Clearly list the three return code cases, and what happens in
-    each case.
-
-    b) Mention that one of the cases unpins the pages or folios, before
-    returning an error code.
-
-Link: https://lkml.kernel.org/r/20241018223411.310331-1-jhubbard@nvidia.com
-Fixes: 24a95998e9ba ("mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Shigeru Yoshida <syoshida@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20241020070819.307944-1-hao.ge@linux.dev
+Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ include/linux/alloc_tag.h |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/gup.c~mm-gup-stop-leaking-pinned-pages-in-low-memory-conditions
-+++ a/mm/gup.c
-@@ -2394,20 +2394,25 @@ err:
+--- a/include/linux/alloc_tag.h~mm-codetag-fix-null-pointer-check-logic-for-ref-and-tag
++++ a/include/linux/alloc_tag.h
+@@ -135,18 +135,21 @@ static inline void alloc_tag_sub_check(u
+ #endif
+ 
+ /* Caller should verify both ref and tag to be valid */
+-static inline void __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
++static inline bool __alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
+ {
+ 	alloc_tag_add_check(ref, tag);
+ 	if (!ref || !tag)
+-		return;
++		return false;
+ 
+ 	ref->ct = &tag->ct;
++	return true;
  }
  
- /*
-- * Check whether all folios are *allowed* to be pinned indefinitely (longterm).
-+ * Check whether all folios are *allowed* to be pinned indefinitely (long term).
-  * Rather confusingly, all folios in the range are required to be pinned via
-  * FOLL_PIN, before calling this routine.
-  *
-- * If any folios in the range are not allowed to be pinned, then this routine
-- * will migrate those folios away, unpin all the folios in the range and return
-- * -EAGAIN. The caller should re-pin the entire range with FOLL_PIN and then
-- * call this routine again.
-+ * Return values:
-  *
-- * If an error other than -EAGAIN occurs, this indicates a migration failure.
-- * The caller should give up, and propagate the error back up the call stack.
-- *
-- * If everything is OK and all folios in the range are allowed to be pinned,
-+ * 0: if everything is OK and all folios in the range are allowed to be pinned,
-  * then this routine leaves all folios pinned and returns zero for success.
-+ *
-+ * -EAGAIN: if any folios in the range are not allowed to be pinned, then this
-+ * routine will migrate those folios away, unpin all the folios in the range. If
-+ * migration of the entire set of folios succeeds, then -EAGAIN is returned. The
-+ * caller should re-pin the entire range with FOLL_PIN and then call this
-+ * routine again.
-+ *
-+ * -ENOMEM, or any other -errno: if an error *other* than -EAGAIN occurs, this
-+ * indicates a migration failure. The caller should give up, and propagate the
-+ * error back up the call stack. The caller does not need to unpin any folios in
-+ * that case, because this routine will do the unpinning.
-  */
- static long check_and_migrate_movable_folios(unsigned long nr_folios,
- 					     struct folio **folios)
-@@ -2425,10 +2430,8 @@ static long check_and_migrate_movable_fo
+-static inline void alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
++static inline bool alloc_tag_ref_set(union codetag_ref *ref, struct alloc_tag *tag)
+ {
+-	__alloc_tag_ref_set(ref, tag);
++	if (unlikely(!__alloc_tag_ref_set(ref, tag)))
++		return false;
++
+ 	/*
+ 	 * We need in increment the call counter every time we have a new
+ 	 * allocation or when we split a large allocation into smaller ones.
+@@ -154,12 +157,13 @@ static inline void alloc_tag_ref_set(uni
+ 	 * counter because when we free each part the counter will be decremented.
+ 	 */
+ 	this_cpu_inc(tag->counters->calls);
++	return true;
  }
  
- /*
-- * This routine just converts all the pages in the @pages array to folios and
-- * calls check_and_migrate_movable_folios() to do the heavy lifting.
-- *
-- * Please see the check_and_migrate_movable_folios() documentation for details.
-+ * Return values and behavior are the same as those for
-+ * check_and_migrate_movable_folios().
-  */
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
- 					    struct page **pages)
-@@ -2437,8 +2440,10 @@ static long check_and_migrate_movable_pa
- 	long i, ret;
+ static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag, size_t bytes)
+ {
+-	alloc_tag_ref_set(ref, tag);
+-	this_cpu_add(tag->counters->bytes, bytes);
++	if (likely(alloc_tag_ref_set(ref, tag)))
++		this_cpu_add(tag->counters->bytes, bytes);
+ }
  
- 	folios = kmalloc_array(nr_pages, sizeof(*folios), GFP_KERNEL);
--	if (!folios)
-+	if (!folios) {
-+		unpin_user_pages(pages, nr_pages);
- 		return -ENOMEM;
-+	}
- 
- 	for (i = 0; i < nr_pages; i++)
- 		folios[i] = page_folio(pages[i]);
+ static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes)
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-kaslr-rename-physmem_end-and-physmem_end-to-direct_map_physmem_end.patch
 
