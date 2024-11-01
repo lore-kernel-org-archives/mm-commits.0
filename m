@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099651DDC10;
-	Fri,  1 Nov 2024 20:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41A7155C9E
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 20:24:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730492615; cv=none; b=JZcXBByzZw9DQTNFlwcz9/Ndtfwdlacuz3NmcjXs/wZLqtWmo/vmDCM1kV64W7xJhqBjFvMnv+QggieH27V1qYuycPjFh2M7uSW8qwh1fk0zDijORrveOKGyL9frDBZnDNfb9+uhaU2BoAlkoTkw6FeKq1SliuLXLaj3PXnVh/0=
+	t=1730492682; cv=none; b=q708VYB7pb2KMhsyisV57hPsrt8eqYXWWVbVA7JVGtA5f4yoU0JoWW7/8l139hyLlLaRXrNvjuja8xDv/Moykdva9fx5tHX02JoeyIebJmlGmhwJ3zsdl2Zr6r2UUE6EVvKSgu8jWaUaD8oU0YUjIdf9cOhiZ9dpX1BnDmDCzD0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730492615; c=relaxed/simple;
-	bh=YCmOQtIMKaMTPQHqiGfpeKVDWD3EDhkkyGBGWHBW2hI=;
-	h=Date:To:From:Subject:Message-Id; b=J833EM/qo0rvqOrAR2rXCDMQ2ArRY3xixZP5Mji5iYctF7EhI5bUGqoJ9HQ515gnnsR9tZS7yCMnjas7NxkmAe8rr++/nPhDfveE2u166/ZxsdbHdYdqJb2t7IJCaejvZIYwUdldrgdN5VW94LfOR/QI/JhE5hAav3qyXykinpo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y2gu7QxX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730492682; c=relaxed/simple;
+	bh=RSCuB5uE04bAy7z/ISo/ZsVvkReguHKJZeWf5SmIMXs=;
+	h=Date:To:From:Subject:Message-Id; b=mvxLz6dttIyk+nfuJd4O3EIzh2QQmhf125dsgUEpyT8+nfHdOsHkc/NEvUfG2Ioa3li5ec5KqYNS+vl9tExV7aSblRMVXUIDQ+LIz0cywl4CwazTLCuWwrW9MvEapSDxsL3AXP2aPvRQSrdacD4fRBAQhCDc6ncwMx/5djZ/BM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fneVsjT8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y2gu7QxX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A172DC4CECD;
-	Fri,  1 Nov 2024 20:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fneVsjT8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D173C4CECD;
+	Fri,  1 Nov 2024 20:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730492614;
-	bh=YCmOQtIMKaMTPQHqiGfpeKVDWD3EDhkkyGBGWHBW2hI=;
+	s=korg; t=1730492681;
+	bh=RSCuB5uE04bAy7z/ISo/ZsVvkReguHKJZeWf5SmIMXs=;
 	h=Date:To:From:Subject:From;
-	b=Y2gu7QxXLIyATD8rQelmruI6kH0UtQo/mnU7jmkKU1b+vM8lBIkYSJn651seeo287
-	 nY1L6bgpZCTzYbLgQONMpkyHPTQub+2UzifmbSIMdmqMHjm/ca1Euqm8H42aUeahgt
-	 A45brrf+q3M3EWE6EVXlon2sHzd1fmVY8n/smkwY=
-Date: Fri, 01 Nov 2024 13:23:33 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,oleg@redhat.com,legion@kernel.org,kees@kernel.org,ebiederm@xmission.com,avagin@google.com,akpm@linux-foundation.org
+	b=fneVsjT8QUSo1cxtfCBLAwvQdDwaJmMrH1OMbnCdz9hfZ3RzPPqy+LBuCisRdG3T+
+	 0ausgHR/jp9o3IxPjtQQJlbASFACzSrqRHvD6+URUTv6F6vxdoDO6Wsl5m/SZUVF6a
+	 6mEu55bBCBrQ5MTE8PakohuJlfwSpg7fuK9+9dtI=
+Date: Fri, 01 Nov 2024 13:24:40 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,lkp@intel.com,holzheu@linux.vnet.ibm.com,dyoung@redhat.com,bobo.shaobowang@huawei.com,bhe@redhat.com,xiqi2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241101202334.A172DC4CECD@smtp.kernel.org>
+Subject: + fs-proc-fix-compile-warning-about-variable-vmcore_mmap_ops.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241101202441.8D173C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
+     Subject: fs/proc: fix compile warning about variable 'vmcore_mmap_ops'
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
+     fs-proc-fix-compile-warning-about-variable-vmcore_mmap_ops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-compile-warning-about-variable-vmcore_mmap_ops.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@google.com>
-Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
-Date: Fri, 1 Nov 2024 19:19:40 +0000
+From: Qi Xi <xiqi2@huawei.com>
+Subject: fs/proc: fix compile warning about variable 'vmcore_mmap_ops'
+Date: Fri, 1 Nov 2024 11:48:03 +0800
 
-The inc_rlimit_get_ucounts() increments the specified rlimit counter and
-then checks its limit.  If the value exceeds the limit, the function
-returns an error without decrementing the counter.
+When build with !CONFIG_MMU, the variable 'vmcore_mmap_ops'
+is defined but not used:
 
-Link: https://lkml.kernel.org/r/20241101191940.3211128-1-roman.gushchin@linux.dev
-Fixes: 15bc01effefe ("ucounts: Fix signal ucount refcounting")
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Co-developed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Tested-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Alexey Gladkov <legion@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+>> fs/proc/vmcore.c:458:42: warning: unused variable 'vmcore_mmap_ops'
+     458 | static const struct vm_operations_struct vmcore_mmap_ops = {
+
+Fix this by only defining it when CONFIG_MMU is enabled.
+
+Link: https://lkml.kernel.org/r/20241101034803.9298-1-xiqi2@huawei.com
+Fixes: 9cb218131de1 ("vmcore: introduce remap_oldmem_pfn_range()")
+Signed-off-by: Qi Xi <xiqi2@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/lkml/202410301936.GcE8yUos-lkp@intel.com/
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Wang ShaoBo <bobo.shaobowang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ucount.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/vmcore.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/kernel/ucount.c~ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts
-+++ a/kernel/ucount.c
-@@ -318,7 +318,7 @@ long inc_rlimit_get_ucounts(struct ucoun
- 	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
- 		long new = atomic_long_add_return(1, &iter->rlimit[type]);
- 		if (new < 0 || (!override_rlimit && (new > max)))
--			goto unwind;
-+			goto dec_unwind;
- 		if (iter == ucounts)
- 			ret = new;
- 		max = get_userns_rlimit_max(iter->ns, type);
-@@ -335,7 +335,6 @@ long inc_rlimit_get_ucounts(struct ucoun
- dec_unwind:
- 	dec = atomic_long_sub_return(1, &iter->rlimit[type]);
- 	WARN_ON_ONCE(dec < 0);
--unwind:
- 	do_dec_rlimit_put_ucounts(ucounts, iter, type);
- 	return 0;
+--- a/fs/proc/vmcore.c~fs-proc-fix-compile-warning-about-variable-vmcore_mmap_ops
++++ a/fs/proc/vmcore.c
+@@ -457,10 +457,6 @@ static vm_fault_t mmap_vmcore_fault(stru
+ #endif
  }
+ 
+-static const struct vm_operations_struct vmcore_mmap_ops = {
+-	.fault = mmap_vmcore_fault,
+-};
+-
+ /**
+  * vmcore_alloc_buf - allocate buffer in vmalloc memory
+  * @size: size of buffer
+@@ -488,6 +484,11 @@ static inline char *vmcore_alloc_buf(siz
+  * virtually contiguous user-space in ELF layout.
+  */
+ #ifdef CONFIG_MMU
++
++static const struct vm_operations_struct vmcore_mmap_ops = {
++	.fault = mmap_vmcore_fault,
++};
++
+ /*
+  * remap_oldmem_pfn_checked - do remap_oldmem_pfn_range replacing all pages
+  * reported as not being ram with the zero page.
 _
 
-Patches currently in -mm which might be from avagin@google.com are
+Patches currently in -mm which might be from xiqi2@huawei.com are
 
-ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
+fs-proc-fix-compile-warning-about-variable-vmcore_mmap_ops.patch
 
