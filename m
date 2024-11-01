@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4900137B;
-	Fri,  1 Nov 2024 01:10:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F98537B
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 01:13:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730423409; cv=none; b=Tc9IHh9IIvGVw8AS1snLno6pAs4h/OiXQySDctf21ElWi8RNLYsWJCXEHJK1JceS7p1uwynAOT413ZSflmDcnrrPHV+O2q/0qYHlJYJOGcv+asTPfdwNf4pkuv4X8yICk5mxWhfblg35HDBefkFq6jFB/NHnQkojlEcpigvImGE=
+	t=1730423620; cv=none; b=geot/ZdY9GGi8LHI0NmGwG96SRFTUwxe9zYtFXX49M//2/A1f9F2Yc0n7ao/ohgKyt8Cs9TcEnNLqZbTE+Fog0w2sO+Q9oAM/2SVsmo0+/fzxLuzn602TCtG09wUKY2AezeHbNlxKzJoAfW8edh/mB00SvvuRcyypbAyoAhhgC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730423409; c=relaxed/simple;
-	bh=UhY4tPhLXWlteRIFP8usPV8YC2zEXU2lTDHmZaCxs30=;
-	h=Date:To:From:Subject:Message-Id; b=DVd33YswvuUjmgK9asQuozJaxP8TZlB9aKJyLlNAsnTH1nsDq0RsyUutPTJAt3VdQAaBTh+Eh9DwaOcotYimrPlxMjUKgAzDcqnNNj0tIt9gMZ+tYNQQG/eA+3c8fKuZJfFSXHDUP+LJEKyg8SHYkC92+wqcKH+bCLQIsrljkoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IggNIDyx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730423620; c=relaxed/simple;
+	bh=cF1FPefCipOdstP16AJVailpPA5CNfNKQPoJR2y8qos=;
+	h=Date:To:From:Subject:Message-Id; b=toHb7AAfBClvdATcBPHylHZOAP8hDuzZzQZHCmWxPOf7rnVmD7ReZkogzNe8PXiwBh3YTrn3nMo0r0tXHbdJZkxO+aVrkVvJGgBwpzWgXmtVSeNNOowCIjH3TtaMW9ZzB21qsETOte2bAMFzD3UyeB1OfQ+kMFZrsSBhxK7yjd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a6qcaLKu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IggNIDyx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA2E7C4CEC3;
-	Fri,  1 Nov 2024 01:10:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a6qcaLKu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E218C4CEC3;
+	Fri,  1 Nov 2024 01:13:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730423409;
-	bh=UhY4tPhLXWlteRIFP8usPV8YC2zEXU2lTDHmZaCxs30=;
+	s=korg; t=1730423620;
+	bh=cF1FPefCipOdstP16AJVailpPA5CNfNKQPoJR2y8qos=;
 	h=Date:To:From:Subject:From;
-	b=IggNIDyx6agAvWh/bHm4G+ntW1YaGErLY7BYgDDwpd0DKZe7aKJrBz8ZPzb61lo3t
-	 OP4SU+Kmxwwtn5M0xlbpPCt+ngRC5kNe+CXNgRgNXOyz3O4+jQDpSir+arFqg2Mz11
-	 metZ3/j/ZJZ6ZnyBeYtVqEyVA/ex5eVcBD1DQY28=
-Date: Thu, 31 Oct 2024 18:10:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,linux@roeck-us.net,sj@kernel.org,akpm@linux-foundation.org
+	b=a6qcaLKuV7+7egWUfumSl086VVoKe/FPJKsYvBwG+PQWqfITWM+O6gxKKqbd4aKDo
+	 hMuVV+ezImzgfGzTV3cfMCcJUultlDvXw3d/j/Gs+q7RrdHaFvTTa/WTAuuwhirgMb
+	 8vgb63nycjMYzl00wXlL3ZIByWuPx7bJwpSCh/rw=
+Date: Thu, 31 Oct 2024 18:13:39 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,marc.dionne@auristor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-avoid-overflow-in-damon_feed_loop_next_input.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241101011008.EA2E7C4CEC3@smtp.kernel.org>
+Subject: + tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch added to mm-unstable branch
+Message-Id: <20241101011340.3E218C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: avoid overflow in damon_feed_loop_next_input()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-avoid-overflow-in-damon_feed_loop_next_input.patch
+     Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
+has been added to the -mm mm-unstable branch.  Its filename is
+     tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-avoid-overflow-in-damon_feed_loop_next_input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: avoid overflow in damon_feed_loop_next_input()
-Date: Thu, 31 Oct 2024 09:12:03 -0700
+From: Marc Dionne <marc.dionne@auristor.com>
+Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
+Date: Thu, 31 Oct 2024 07:55:34 -0300
 
-damon_feed_loop_next_input() is inefficient and fragile to overflows. 
-Specifically, 'score_goal_diff_bp' calculation can overflow when 'score'
-is high.  The calculation is actually unnecessary at all because 'goal' is
-a constant of value 10,000.  Calculation of 'compensation' is again
-fragile to overflow.  Final calculation of return value for under-achiving
-case is again fragile to overflow when the current score is
-under-achieving the target.
+The number of slabs can easily exceed the hard coded MAX_SLABS in the
+slabinfo tool, causing it to overwrite memory and crash.
 
-Add two corner cases handling at the beginning of the function to make the
-body easier to read, and rewrite the body of the function to avoid
-overflows and the unnecessary bp value calcuation.
+Increase the value of MAX_SLABS, and check if that has been exceeded for
+each new slab, instead of at the end when it's already too late.  Also
+move the check for MAX_ALIASES into the loop body.
 
-Link: https://lkml.kernel.org/r/20241031161203.47751-1-sj@kernel.org
-Fixes: 9294a037c015 ("mm/damon/core: implement goal-oriented feedback-driven quota auto-tuning")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Closes: https://lore.kernel.org/944f3d5b-9177-48e7-8ec9-7f1331a3fea3@roeck-us.net
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: <stable@vger.kernel.org>	[6.8.x]
+Link: https://lkml.kernel.org/r/20241031105534.565533-1-marc.c.dionne@gmail.com
+Signed-off-by: Marc Dionne <marc.dionne@auristor.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   28 +++++++++++++++++++++-------
- 1 file changed, 21 insertions(+), 7 deletions(-)
+ tools/mm/slabinfo.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-avoid-overflow-in-damon_feed_loop_next_input
-+++ a/mm/damon/core.c
-@@ -1456,17 +1456,31 @@ static unsigned long damon_feed_loop_nex
- 		unsigned long score)
- {
- 	const unsigned long goal = 10000;
--	unsigned long score_goal_diff = max(goal, score) - min(goal, score);
--	unsigned long score_goal_diff_bp = score_goal_diff * 10000 / goal;
--	unsigned long compensation = last_input * score_goal_diff_bp / 10000;
- 	/* Set minimum input as 10000 to avoid compensation be zero */
- 	const unsigned long min_input = 10000;
-+	unsigned long score_goal_diff, compensation;
-+	bool over_achieving = score > goal;
+--- a/tools/mm/slabinfo.c~tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded
++++ a/tools/mm/slabinfo.c
+@@ -21,7 +21,7 @@
+ #include <regex.h>
+ #include <errno.h>
  
--	if (goal > score)
-+	if (score == goal)
-+		return last_input;
-+	if (score >= goal * 2)
-+		return min_input;
-+
-+	if (over_achieving)
-+		score_goal_diff = score - goal;
-+	else
-+		score_goal_diff = goal - score;
-+
-+	if (last_input < ULONG_MAX / score_goal_diff)
-+		compensation = last_input * score_goal_diff / goal;
-+	else
-+		compensation = last_input / goal * score_goal_diff;
-+
-+	if (over_achieving)
-+		return max(last_input - compensation, min_input);
-+	if (last_input < ULONG_MAX - compensation)
- 		return last_input + compensation;
--	if (last_input > compensation + min_input)
--		return last_input - compensation;
--	return min_input;
-+	return ULONG_MAX;
+-#define MAX_SLABS 500
++#define MAX_SLABS 2000
+ #define MAX_ALIASES 500
+ #define MAX_NODES 1024
+ 
+@@ -1228,6 +1228,8 @@ static void read_slab_dir(void)
+ 				continue;
+ 		switch (de->d_type) {
+ 		   case DT_LNK:
++			if (alias - aliasinfo == MAX_ALIASES)
++				fatal("Too many aliases\n");
+ 			alias->name = strdup(de->d_name);
+ 			count = readlink(de->d_name, buffer, sizeof(buffer)-1);
+ 
+@@ -1242,6 +1244,8 @@ static void read_slab_dir(void)
+ 			alias++;
+ 			break;
+ 		   case DT_DIR:
++			if (slab - slabinfo == MAX_SLABS)
++				fatal("Too many slabs\n");
+ 			if (chdir(de->d_name))
+ 				fatal("Unable to access slab %s\n", slab->name);
+ 			slab->name = strdup(de->d_name);
+@@ -1312,10 +1316,6 @@ static void read_slab_dir(void)
+ 	slabs = slab - slabinfo;
+ 	actual_slabs = slabs;
+ 	aliases = alias - aliasinfo;
+-	if (slabs > MAX_SLABS)
+-		fatal("Too many slabs\n");
+-	if (aliases > MAX_ALIASES)
+-		fatal("Too many aliases\n");
  }
  
- #ifdef CONFIG_PSI
+ static void output_slabs(void)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from marc.dionne@auristor.com are
 
-mm-damon-core-handle-zero-aggregationops_update-intervals.patch
-mm-damon-core-handle-zero-schemes-apply-interval.patch
-mm-damon-core-avoid-overflow-in-damon_feed_loop_next_input.patch
-selftests-damon-huge_count_read_write-remove-unnecessary-debugging-message.patch
-selftests-damon-_debugfs_common-hide-expected-error-message-from-test_write_result.patch
-selftests-damon-debugfs_duplicate_context_creation-hide-errors-from-expected-file-write-failures.patch
-mm-damon-kconfig-update-dbgfs_kunit-prompt-copy-for-sysfs_kunit.patch
-mm-damon-tests-dbgfs-kunit-fix-the-header-double-inclusion-guarding-ifdef-comment.patch
+tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch
 
