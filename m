@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EDF8BE4F
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 00:20:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7487BBE4F
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 00:20:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730420442; cv=none; b=I2rg43baguWdRVXaV27EZ6lwGnnY38L9ygLROBR27L1ot1ZMyI4MJwLBSfmtwC5HLKl0heCEigQG4cDMrvR7V4pNXWWThPfp9V3vKfl1T/uedThSzGa7DnJ25k572Upzvq56GQt+N7WvDtq33/oCP6YeAuqNVFt3AMLJkCH0WCw=
+	t=1730420445; cv=none; b=BEsOFjaFrFHcUu3WDr8or0TKMalsyhaJ3vLDP+K2KMA/1plzhi4tx+z5XDAspggLRuRL5wWaaC7iJPMNcAjo9P9qx4PkOhQy6JS/X1x2oW8C2RGDzNrG2mPg3jyZRxuK7NkOCwU5Thvh4qAZfMcZZYPT3CmeBaXvblNZnyTmrnM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730420442; c=relaxed/simple;
-	bh=FvI2YK0GQF8t0Wk6pYM+Llepkv+EMowpDRvDqL/5kh4=;
-	h=Date:To:From:Subject:Message-Id; b=bqEVNR4K+GZCCwCbbQuyZbQSnuAxMcfydgCXZn+TSkfxXmsiw354pou4bl1Y6F3KNp7DUyvIfme+0UEbUtttxXtlfa4/pfdfiOcWI4dpM5gOPBe8OwhJ51c0A2XZVSKArKhjPwjt8ReWtAZaTrc6pG69yjOohzIiJwfzcvS/yXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d3OI1c4O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730420445; c=relaxed/simple;
+	bh=ZdLD0hdcC/Evde5hFQJMmGMaKXL7yzTdp1Cov7EBbVU=;
+	h=Date:To:From:Subject:Message-Id; b=pgxFci+R+acTHEKFRJ3vvDR5f3TUpN0bRHeIo0O8iOm3rNLvbfNVgTAiEB9wm8+pyT1oNxoOcAI7L7cNXsi5mktW3TrgXIP7hXqREauYLmRv5RwV06OJzyI2nRB0IjTF2glh0XhS2T8nFHLIalKBSlghGxLJ/9Jx9CQGBEVUjg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NIiIX+qK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3OI1c4O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EDEAC4CEC3;
-	Fri,  1 Nov 2024 00:20:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NIiIX+qK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E97D2C4CEC3;
+	Fri,  1 Nov 2024 00:20:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730420442;
-	bh=FvI2YK0GQF8t0Wk6pYM+Llepkv+EMowpDRvDqL/5kh4=;
+	s=korg; t=1730420444;
+	bh=ZdLD0hdcC/Evde5hFQJMmGMaKXL7yzTdp1Cov7EBbVU=;
 	h=Date:To:From:Subject:From;
-	b=d3OI1c4OuFytI6uz2cGCPl3AjyhaUu5d9e8PSNfA5jU6TBcToX1wdgogxqz+GMk2D
-	 dub2f5jtx1r3VYLVw8BHfSii10vnBx2PayXDDRibHd/Ny7fWgE9gDty6DzVxLAbn76
-	 Q+2jLnt7oLY7HdAtvOC77UTDASqQCYY3SBAYOUQY=
-Date: Thu, 31 Oct 2024 17:20:41 -0700
+	b=NIiIX+qKfQ7Yk6Ap08HmHw3XT+LV4qzglr5MpNBrd340RtJlRvUwaRZZAhldYn+02
+	 K9i2PPWWcQl7UsdjcwlDRkx55foc9P0lDgBEdaLX7Dh+TEdss2/dNhBg7moY4TN6CX
+	 VGJbZLVNQp6qOnXEw1SzKR3Nim20p8vQWkVnDbMU=
+Date: Thu, 31 Oct 2024 17:20:43 -0700
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-the-return-value-of-mas_root_expand-is-not-used.patch added to mm-unstable branch
-Message-Id: <20241101002042.0EDEAC4CEC3@smtp.kernel.org>
+Subject: + maple_tree-not-necessary-to-check-index-last-again.patch added to mm-unstable branch
+Message-Id: <20241101002043.E97D2C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: the return value of mas_root_expand() is not used
+     Subject: maple_tree: not necessary to check index/last again
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-the-return-value-of-mas_root_expand-is-not-used.patch
+     maple_tree-not-necessary-to-check-index-last-again.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-the-return-value-of-mas_root_expand-is-not-used.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-not-necessary-to-check-index-last-again.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: the return value of mas_root_expand() is not used
-Date: Thu, 31 Oct 2024 23:16:24 +0000
+Subject: maple_tree: not necessary to check index/last again
+Date: Thu, 31 Oct 2024 23:16:25 +0000
 
-No user of the return value now, just remove it.
+Before calling mas_new_root(), the range has been checked.
 
-Link: https://lkml.kernel.org/r/20241031231627.14316-3-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20241031231627.14316-4-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
@@ -73,29 +73,22 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-the-return-value-of-mas_root_expand-is-not-used
+--- a/lib/maple_tree.c~maple_tree-not-necessary-to-check-index-last-again
 +++ a/lib/maple_tree.c
-@@ -3408,7 +3408,7 @@ static noinline_for_kasan void mas_commi
-  * @mas: The maple state
-  * @entry: The entry to store into the tree
-  */
--static inline int mas_root_expand(struct ma_state *mas, void *entry)
-+static inline void mas_root_expand(struct ma_state *mas, void *entry)
- {
- 	void *contents = mas_root_locked(mas);
- 	enum maple_type type = maple_leaf_64;
-@@ -3444,7 +3444,7 @@ static inline int mas_root_expand(struct
- 	ma_set_meta(node, maple_leaf_64, 0, slot);
- 	/* swap the new root into the tree */
- 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
--	return slot;
-+	return;
- }
+@@ -3670,7 +3670,9 @@ static inline void mas_new_root(struct m
+ 	void __rcu **slots;
+ 	unsigned long *pivots;
  
- static inline void mas_store_root(struct ma_state *mas, void *entry)
+-	if (!entry && !mas->index && mas->last == ULONG_MAX) {
++	WARN_ON_ONCE(mas->index || mas->last != ULONG_MAX);
++
++	if (!entry) {
+ 		mas->depth = 0;
+ 		mas_set_height(mas);
+ 		rcu_assign_pointer(mas->tree->ma_root, entry);
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
