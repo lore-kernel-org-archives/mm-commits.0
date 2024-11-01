@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B863FF1
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 03:38:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB21238FA3
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 04:27:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730432290; cv=none; b=N/LktHXEJFhipYbMXZejG5xK9qTbSE5ofs/8UJTavlmlZQkRck7A9Wv2sYQnNNt889AfpjJ0Eh1uQONpGyBx+ipUUaZqzPDAfwDfILx1nIAIyZPMyrhcFG+tMZhs/hNlwXBPbMxxTRBnLyT4FBsKAbiFX9vTSYevRBXgQqm1Oa0=
+	t=1730435277; cv=none; b=ERGBJISCTQ7ndCxmnn5bsArb+JHSWkIwyqn3+YK/AZzFfof8G0hpG0DbztVm7nV8swvhourfBGr5kGQOh8UbeDlrTsmXA3TrYvGLiksFSe03k4zdN1up0bFKAHRGDe85yJSUI4fcJjBqQmWyX2YyB7U8mwm0aTUXnDqLMf4OYcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730432290; c=relaxed/simple;
-	bh=yvARSMnRKpfjJpn8x2oBTaeMlp66BwkqbaxdAqGP9Xw=;
-	h=Date:To:From:Subject:Message-Id; b=jusL3+opgEoBsJNSqjzCLcxK5dQzsS1KpyIZzo2Qu0DAkytwcHBWDCoz2Jw7Z9ooDVziEGGyA6sDjcaZ3mqIcistVHKCJEntdg7lRwmByDPvpQsLN/zWBuWSKw8xv8n/VdbCNG65x3sWuhRjVDziKqsxn2ANrTqCba5YpI/v6NQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z30HjG0U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730435277; c=relaxed/simple;
+	bh=RoTxAnUeoZwtsrbyoMV/wwWd9NqlUi65bMWY02kPKfs=;
+	h=Date:To:From:Subject:Message-Id; b=T7UoNNjWPXNNrJP87OSlrtY9LGALfQvJwByfRdK/OcBD7QKpDjUPSuQcnaODPP1qSCIl0AQjJH5vC+SziXqnSP8XyVv9C72n+y6AdowsdxgbviVsgSfhd5Mjde4asItWCNHR42kOVIhwCrzwkTQHGmNtXxjV0LT4Uxgt68SzyK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ogpxsry8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z30HjG0U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9102C4CECD;
-	Fri,  1 Nov 2024 03:38:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ogpxsry8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EF2BC4CECE;
+	Fri,  1 Nov 2024 04:27:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730432289;
-	bh=yvARSMnRKpfjJpn8x2oBTaeMlp66BwkqbaxdAqGP9Xw=;
+	s=korg; t=1730435276;
+	bh=RoTxAnUeoZwtsrbyoMV/wwWd9NqlUi65bMWY02kPKfs=;
 	h=Date:To:From:Subject:From;
-	b=z30HjG0UexgI0HJ29hjkXSU73vk+czaYtrGLtR85EJ4gT80+kztlO9pCrEoNq0mYO
-	 l9DXB4+xGsmtESCBl/+w7eKgHKVBW6SOqNBjqWjsmiKi0dVfqh6m4cb0jMUwEFIR3V
-	 ZJp63geBLDPnjIni3ZEJuffN1QY4PuQY2dhIho6U=
-Date: Thu, 31 Oct 2024 20:38:09 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ogpxsry8EYAXqBZFKM1AMRA1mcuKT1v+0RU9eElt89T7PTv7ihNnXQsFuc7AWqh6m
+	 thOtfiAusm4GZbkngq2r3YakF4FOTJ01oPVNUXSQKv/qEqhqUQr2PffdfBllN7tb5l
+	 os0cUuYqD3Af37tzoczcqXfi2zx1LmvyRl+8lp58=
+Date: Thu, 31 Oct 2024 21:27:55 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,ricardo@marliere.net,davidgow@google.com,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,luis.hernandez093@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-a-test-checking-storing-null-fix.patch added to mm-unstable branch
-Message-Id: <20241101033809.C9102C4CECD@smtp.kernel.org>
+Subject: [failures] lib-math-add-int_sqrt-test-suite.patch removed from -mm tree
+Message-Id: <20241101042756.5EF2BC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,81 +34,136 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: maple_tree-add-a-test-checking-storing-null-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-a-test-checking-storing-null-fix.patch
+The quilt patch titled
+     Subject: lib/math: add int_sqrt test suite
+has been removed from the -mm tree.  Its filename was
+     lib-math-add-int_sqrt-test-suite.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-a-test-checking-storing-null-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree-add-a-test-checking-storing-null-fix
-Date: Thu Oct 31 08:37:00 PM PDT 2024
+From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Subject: lib/math: add int_sqrt test suite
+Date: Wed, 30 Oct 2024 09:43:53 -0400
 
-work around build error (mas_root)
+Adds test suite for integer based square root function.
 
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+The test suite is designed to verify the correctness of the int_sqrt()
+math library function.
+
+Link: https://lkml.kernel.org/r/c213dbcb-35de-4afd-9d4b-f42f6a9e3de6@linuxfoundation.org
+Signed-off-by: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Acked-by: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Cc: Ricardo B. Marliere <ricardo@marliere.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug               |   15 ++++++++
+ lib/math/Makefile               |    1 
+ lib/math/tests/Makefile         |    1 
+ lib/math/tests/int_sqrt_kunit.c |   51 ++++++++++++++++++++++++++++++
+ 4 files changed, 68 insertions(+)
 
---- a/lib/test_maple_tree.c~maple_tree-add-a-test-checking-storing-null-fix
-+++ a/lib/test_maple_tree.c
-@@ -1453,7 +1453,7 @@ static noinline void __init check_store_
- 	mas_set_range(&mas, 2, 5);
- 	mas_store_gfp(&mas, NULL, GFP_KERNEL);
- 	MT_BUG_ON(mt, mtree_empty(mt));
--	MT_BUG_ON(mt, xa_is_node(mas_root(&mas)));
-+//	MT_BUG_ON(mt, xa_is_node(mas_root(&mas)));
- 	mas_unlock(&mas);
- 	mtree_destroy(mt);
+--- a/lib/Kconfig.debug~lib-math-add-int_sqrt-test-suite
++++ a/lib/Kconfig.debug
+@@ -3020,6 +3020,21 @@ config INT_POW_TEST
  
-@@ -1465,7 +1465,7 @@ static noinline void __init check_store_
- 	mas_lock(&mas);
- 	mas_set_range(&mas, 1, 3);
- 	mas_store_gfp(&mas, &mas, GFP_KERNEL);
--	MT_BUG_ON(mt, !xa_is_node(mas_root(&mas)));
-+//	MT_BUG_ON(mt, !xa_is_node(mas_root(&mas)));
- 	mas_set_range(&mas, 0, ULONG_MAX);
- 	mas_store_gfp(&mas, NULL, GFP_KERNEL);
- 	MT_BUG_ON(mt, !mtree_empty(mt));
+ 	  If unsure, say N
+ 
++config INT_SQRT_KUNIT_TEST
++	tristate "Integer square root test test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the int_sqrt() function,
++	  which performs square root calculation. The test suite checks
++	  various scenarios, including edge cases, to ensure correctness.
++
++	  Enabling this option will include tests that check various scenarios
++	  and edge cases to ensure the accuracy and reliability of the square root
++	  function.
++
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
+ 
+ config ARCH_USE_MEMTEST
+--- a/lib/math/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
++obj-y  += tests/
+diff --git a/lib/math/tests/int_sqrt_kunit.c a/lib/math/tests/int_sqrt_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/int_sqrt_kunit.c
+@@ -0,0 +1,51 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/limits.h>
++#include <linux/math.h>
++#include <linux/module.h>
++#include <linux/string.h>
++
++struct test_case_params {
++	unsigned long x;
++	unsigned long expected_result;
++	const char *name;
++};
++
++static const struct test_case_params params[] = {
++	{ 0, 0, "edge-case: square root of 0" },
++	{ 4, 2, "perfect square: square root of 4" },
++	{ 81, 9, "perfect square: square root of 9" },
++	{ 2, 1, "non-perfect square: square root of 2" },
++	{ 5, 2, "non-perfect square: square root of 5"},
++	{ ULONG_MAX, 4294967295, "large input"},
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
++{
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(int_sqrt, params, get_desc);
++
++static void int_sqrt_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, int_sqrt(tc->x));
++}
++
++static struct kunit_case math_int_sqrt_test_cases[] = {
++	KUNIT_CASE_PARAM(int_sqrt_test, int_sqrt_gen_params),
++	{}
++};
++
++static struct kunit_suite int_sqrt_test_suite = {
++	.name = "math-int_sqrt",
++	.test_cases = math_int_sqrt_test_cases,
++};
++
++kunit_test_suites(&int_sqrt_test_suite);
++
++MODULE_DESCRIPTION("math.int_sqrt KUnit test suite");
++MODULE_LICENSE("GPL");
+--- a/lib/math/tests/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/tests/Makefile
+@@ -1,3 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ 
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from luis.hernandez093@gmail.com are
 
-mm-page_alloc-keep-track-of-free-highatomic-fix.patch
-mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling-fix.patch
-mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix.patch
-mm-memoryc-remove-stray-newline-at-top-of-file.patch
-bootmem-stop-using-page-index-fix.patch
-mm-kasan-kmsan-copy_from-to_kernel_nofault-fix.patch
-tools-mm-free-the-allocated-memory-fix.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
-mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
-memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
-vma-detect-infinite-loop-in-vma-tree-fix.patch
-maple_tree-add-a-test-checking-storing-null-fix.patch
-fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
 
