@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1061A5D8F0
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 19:43:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F2D1D0F50
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 19:48:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730490193; cv=none; b=Acm2qJIiXPcxRxxkH6z8OmpKSJ0UZiiU/6/BW37Y6C/72k56pcOy7QdkDvnJU4dxjn6Mq+Q+QpW7xLrDIaYsEFCpBzhojp03II5rZr44QqHxeHSB6AU1dk0A2NIEtslpNtbLHG9tML/b41WVGt5GDxZMSgOwEFEf+cou4JKMQgA=
+	t=1730490492; cv=none; b=CNcw8AweNpMkbK/c03Y+tsFlTE5r5xtmuJhObTa5VxOh92uo9bl2G32KHxXbfKiG5K2U+VTH9DEVNC1ikjmrA7U3foRPLmssQN8UiI/59jT7gFPfSlnroq/5ERUg8DTzEPp3dIIl6a/kU7V1Fvx8p5lIi46CrwTCD5+Ne+HGuek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730490193; c=relaxed/simple;
-	bh=szZY95pxmFq8gHJsN0/QwwPzHpjdEQBhjvZlcZp5pxo=;
-	h=Date:To:From:Subject:Message-Id; b=orTn64QYPKYVnHxnU7BDdwLysjwPYsc9DI5+9CcYXGK5Ols6muyhsVUK0xF0WGmLJVcGsM8PnBa8sgHLoEqLAFx/C4+JmWe+FAhfgGK4yfkYcINWvPr9GgYCw5NBYSntH6ILCNZi/Gbrt3Cj5Rt0Z79TSnOSMgql4AwRHfPnpMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NivQIGMY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730490492; c=relaxed/simple;
+	bh=F3fo7Ou+B2Jj/TYJaKGjyEl4SCFzmAH+ZZI3TqNKGbU=;
+	h=Date:To:From:Subject:Message-Id; b=FF5+nH4epGHIBlY0290dG6tlEOhjBRGesmz7gl/4se/sIHGnUx6jmAJGsNrX+cbmGVgeUT1T9732hpK0dDxZT7dtXT9rSfmiG8wtAh2btca6IfUUbTuc89gm/n0ckoinG0e72qXlra+nyx6l58JOV5iqwbwKk9YrSJBUv7IgTEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OSBmbj1U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NivQIGMY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771D8C4CECE;
-	Fri,  1 Nov 2024 19:43:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OSBmbj1U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F39B7C4CECD;
+	Fri,  1 Nov 2024 19:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730490192;
-	bh=szZY95pxmFq8gHJsN0/QwwPzHpjdEQBhjvZlcZp5pxo=;
+	s=korg; t=1730490492;
+	bh=F3fo7Ou+B2Jj/TYJaKGjyEl4SCFzmAH+ZZI3TqNKGbU=;
 	h=Date:To:From:Subject:From;
-	b=NivQIGMYKkKh+4iB681sQqxBmoD1gtkkl/K/mnFcHytpeIvnP0QMXPZtnDavUiPiy
-	 /ttDW42SK+syJ+d4wzFPWfA0Cl1MFYyj8x3Q+AdBoz/U89DzV4LIiiTAB7P1O+wPGB
-	 OrNUFRSXAcuvAI0flp7VEGfx9SIQpYgdxIofTgjQ=
-Date: Fri, 01 Nov 2024 12:43:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=OSBmbj1U9IFifF+/79AEzk+rU/s5mqVxJ5J7A3s+we7dvRb/Ik+qGaOR3bX2hUo/4
+	 gDqLlrOfEM36/JopSj2ElcCAJmiAuGiZ1DNxBK7+tttrEYAGqQyjqeKQNTdCWaYFGy
+	 lsgQCJ4jzrUiaELYEKhjk2DDBvgB/jU/Vod3c8mY=
+Date: Fri, 01 Nov 2024 12:48:11 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch added to mm-unstable branch
-Message-Id: <20241101194312.771D8C4CECE@smtp.kernel.org>
+Subject: + kasan-use-export_symbol_if_kunit-to-export-symbols.patch added to mm-unstable branch
+Message-Id: <20241101194811.F39B7C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove unnecessary page_table_lock on stack expansion
+     Subject: kasan: use EXPORT_SYMBOL_IF_KUNIT to export symbols
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
+     kasan-use-export_symbol_if_kunit-to-export-symbols.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-export_symbol_if_kunit-to-export-symbols.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,179 +58,146 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: remove unnecessary page_table_lock on stack expansion
-Date: Fri, 1 Nov 2024 18:46:27 +0000
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: kasan: use EXPORT_SYMBOL_IF_KUNIT to export symbols
+Date: Fri, 1 Nov 2024 23:40:10 +0500
 
-Ever since commit 8d7071af8907 ("mm: always expand the stack with the mmap
-write lock held") we have been expanding the stack with the mmap write
-lock held.
+Patch series "kasan: few improvements on kunit tests".
 
-This is true in all code paths:
+This patch series addresses the issue [1] with KASAN symbols used in the
+Kunit test, but exported as EXPORT_SYMBOL_GPL.
 
-get_arg_page()
-  -> expand_downwards()
-setup_arg_pages()
-  -> expand_stack_locked()
-    -> expand_downwards() / expand_upwards()
-lock_mm_and_find_vma()
-  -> expand_stack_locked()
-    -> expand_downwards() / expand_upwards()
-create_elf_tables()
-  -> find_extend_vma_locked()
-    -> expand_stack_locked()
-expand_stack()
-  -> vma_expand_down()
-    -> expand_downwards()
-expand_stack()
-  -> vma_expand_up()
-    -> expand_upwards()
+Also a small tweak of marking kasan_atomics() as KUNIT_CASE_SLOW to avoid
+kunit report that the test should be marked as slow.
 
-Each of which acquire the mmap write lock before doing so.  Despite this,
-we maintain code that acquires a page table lock in the expand_upwards()
-and expand_downwards() code, stating that we hold a shared mmap lock and
-thus this is necessary.
 
-It is not, we do not have to worry about concurrent VMA expansions so we
-can simply drop this, and update comments accordingly.
+This patch (of 2):
 
-We do not even need be concerned with racing page faults, as
-vma_start_write() is invoked in both cases.
+Replace EXPORT_SYMBOL_GPL with EXPORT_SYMBOL_IF_KUNIT to mark the symbols
+as visible only if CONFIG_KUNIT is enabled.
 
-Link: https://lkml.kernel.org/r/20241101184627.131391-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+KASAN Kunit test should import the namespace EXPORTED_FOR_KUNIT_TESTING to
+use these marked symbols.
+
+Link: https://lkml.kernel.org/r/20241101184011.3369247-1-snovitoll@gmail.com
+Link: https://lkml.kernel.org/r/20241101184011.3369247-2-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=218315
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   38 ++++++--------------------------------
- 1 file changed, 6 insertions(+), 32 deletions(-)
+ mm/kasan/hw_tags.c      |    7 ++++---
+ mm/kasan/kasan_test_c.c |    2 ++
+ mm/kasan/report.c       |   17 +++++++++--------
+ 3 files changed, 15 insertions(+), 11 deletions(-)
 
---- a/mm/mmap.c~mm-remove-unnecessary-page_table_lock-on-stack-expansion
-+++ a/mm/mmap.c
-@@ -1039,6 +1039,8 @@ static int expand_upwards(struct vm_area
- 	if (!(vma->vm_flags & VM_GROWSUP))
- 		return -EFAULT;
+--- a/mm/kasan/hw_tags.c~kasan-use-export_symbol_if_kunit-to-export-symbols
++++ a/mm/kasan/hw_tags.c
+@@ -8,6 +8,7 @@
  
-+	mmap_assert_write_locked(mm);
+ #define pr_fmt(fmt) "kasan: " fmt
+ 
++#include <kunit/visibility.h>
+ #include <linux/init.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
+@@ -394,12 +395,12 @@ void kasan_enable_hw_tags(void)
+ 
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+-EXPORT_SYMBOL_GPL(kasan_enable_hw_tags);
++EXPORT_SYMBOL_IF_KUNIT(kasan_enable_hw_tags);
+ 
+-void kasan_force_async_fault(void)
++VISIBLE_IF_KUNIT void kasan_force_async_fault(void)
+ {
+ 	hw_force_async_tag_fault();
+ }
+-EXPORT_SYMBOL_GPL(kasan_force_async_fault);
++EXPORT_SYMBOL_IF_KUNIT(kasan_force_async_fault);
+ 
+ #endif
+--- a/mm/kasan/kasan_test_c.c~kasan-use-export_symbol_if_kunit-to-export-symbols
++++ a/mm/kasan/kasan_test_c.c
+@@ -33,6 +33,8 @@
+ 
+ #define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
+ 
++MODULE_IMPORT_NS(EXPORTED_FOR_KUNIT_TESTING);
 +
- 	/* Guard against exceeding limits of the address space. */
- 	address &= PAGE_MASK;
- 	if (address >= (TASK_SIZE & PAGE_MASK))
-@@ -1074,11 +1076,7 @@ static int expand_upwards(struct vm_area
+ static bool multishot;
  
- 	/* Lock the VMA before expanding to prevent concurrent page faults */
- 	vma_start_write(vma);
--	/*
--	 * vma->vm_start/vm_end cannot change under us because the caller
--	 * is required to hold the mmap_lock in read mode.  We need the
--	 * anon_vma lock to serialize against concurrent expand_stacks.
--	 */
-+	/* We update the anon VMA tree. */
- 	anon_vma_lock_write(vma->anon_vma);
+ /* Fields set based on lines observed in the console. */
+--- a/mm/kasan/report.c~kasan-use-export_symbol_if_kunit-to-export-symbols
++++ a/mm/kasan/report.c
+@@ -10,6 +10,7 @@
+  */
  
- 	/* Somebody else might have raced and expanded it already */
-@@ -1092,16 +1090,6 @@ static int expand_upwards(struct vm_area
- 		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
- 			error = acct_stack_growth(vma, size, grow);
- 			if (!error) {
--				/*
--				 * We only hold a shared mmap_lock lock here, so
--				 * we need to protect against concurrent vma
--				 * expansions.  anon_vma_lock_write() doesn't
--				 * help here, as we don't guarantee that all
--				 * growable vmas in a mm share the same root
--				 * anon vma.  So, we reuse mm->page_table_lock
--				 * to guard against concurrent vma expansions.
--				 */
--				spin_lock(&mm->page_table_lock);
- 				if (vma->vm_flags & VM_LOCKED)
- 					mm->locked_vm += grow;
- 				vm_stat_account(mm, vma->vm_flags, grow);
-@@ -1110,7 +1098,6 @@ static int expand_upwards(struct vm_area
- 				/* Overwrite old entry in mtree. */
- 				vma_iter_store(&vmi, vma);
- 				anon_vma_interval_tree_post_update_vma(vma);
--				spin_unlock(&mm->page_table_lock);
+ #include <kunit/test.h>
++#include <kunit/visibility.h>
+ #include <linux/bitops.h>
+ #include <linux/ftrace.h>
+ #include <linux/init.h>
+@@ -134,18 +135,18 @@ static bool report_enabled(void)
  
- 				perf_event_mmap(vma);
- 			}
-@@ -1137,6 +1124,8 @@ int expand_downwards(struct vm_area_stru
- 	if (!(vma->vm_flags & VM_GROWSDOWN))
- 		return -EFAULT;
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
  
-+	mmap_assert_write_locked(mm);
-+
- 	address &= PAGE_MASK;
- 	if (address < mmap_min_addr || address < FIRST_USER_ADDRESS)
- 		return -EPERM;
-@@ -1166,11 +1155,7 @@ int expand_downwards(struct vm_area_stru
+-bool kasan_save_enable_multi_shot(void)
++VISIBLE_IF_KUNIT bool kasan_save_enable_multi_shot(void)
+ {
+ 	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
+ }
+-EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
++EXPORT_SYMBOL_IF_KUNIT(kasan_save_enable_multi_shot);
  
- 	/* Lock the VMA before expanding to prevent concurrent page faults */
- 	vma_start_write(vma);
--	/*
--	 * vma->vm_start/vm_end cannot change under us because the caller
--	 * is required to hold the mmap_lock in read mode.  We need the
--	 * anon_vma lock to serialize against concurrent expand_stacks.
--	 */
-+	/* We update the anon VMA tree. */
- 	anon_vma_lock_write(vma->anon_vma);
+-void kasan_restore_multi_shot(bool enabled)
++VISIBLE_IF_KUNIT void kasan_restore_multi_shot(bool enabled)
+ {
+ 	if (!enabled)
+ 		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
+ }
+-EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
++EXPORT_SYMBOL_IF_KUNIT(kasan_restore_multi_shot);
  
- 	/* Somebody else might have raced and expanded it already */
-@@ -1184,16 +1169,6 @@ int expand_downwards(struct vm_area_stru
- 		if (grow <= vma->vm_pgoff) {
- 			error = acct_stack_growth(vma, size, grow);
- 			if (!error) {
--				/*
--				 * We only hold a shared mmap_lock lock here, so
--				 * we need to protect against concurrent vma
--				 * expansions.  anon_vma_lock_write() doesn't
--				 * help here, as we don't guarantee that all
--				 * growable vmas in a mm share the same root
--				 * anon vma.  So, we reuse mm->page_table_lock
--				 * to guard against concurrent vma expansions.
--				 */
--				spin_lock(&mm->page_table_lock);
- 				if (vma->vm_flags & VM_LOCKED)
- 					mm->locked_vm += grow;
- 				vm_stat_account(mm, vma->vm_flags, grow);
-@@ -1203,7 +1178,6 @@ int expand_downwards(struct vm_area_stru
- 				/* Overwrite old entry in mtree. */
- 				vma_iter_store(&vmi, vma);
- 				anon_vma_interval_tree_post_update_vma(vma);
--				spin_unlock(&mm->page_table_lock);
+ #endif
  
- 				perf_event_mmap(vma);
- 			}
+@@ -157,17 +158,17 @@ EXPORT_SYMBOL_GPL(kasan_restore_multi_sh
+  */
+ static bool kasan_kunit_executing;
+ 
+-void kasan_kunit_test_suite_start(void)
++VISIBLE_IF_KUNIT void kasan_kunit_test_suite_start(void)
+ {
+ 	WRITE_ONCE(kasan_kunit_executing, true);
+ }
+-EXPORT_SYMBOL_GPL(kasan_kunit_test_suite_start);
++EXPORT_SYMBOL_IF_KUNIT(kasan_kunit_test_suite_start);
+ 
+-void kasan_kunit_test_suite_end(void)
++VISIBLE_IF_KUNIT void kasan_kunit_test_suite_end(void)
+ {
+ 	WRITE_ONCE(kasan_kunit_executing, false);
+ }
+-EXPORT_SYMBOL_GPL(kasan_kunit_test_suite_end);
++EXPORT_SYMBOL_IF_KUNIT(kasan_kunit_test_suite_end);
+ 
+ static bool kasan_kunit_test_suite_executing(void)
+ {
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch
-mm-unconditionally-close-vmas-on-error.patch
-mm-refactor-map_deny_write_exec.patch
-mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling.patch
-mm-resolve-faulty-mmap_region-error-path-behaviour.patch
-selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
-mm-refactor-mm_access-to-not-return-null.patch
-mm-refactor-mm_access-to-not-return-null-fix.patch
-mm-madvise-unrestrict-process_madvise-for-current-process.patch
-maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems-fix.patch
-tools-testing-add-additional-vma_internalh-stubs.patch
-mm-isolate-mmap-internal-logic-to-mm-vmac.patch
-mm-refactor-__mmap_region.patch
-mm-remove-unnecessary-reset-state-logic-on-merge-new-vma.patch
-mm-defer-second-attempt-at-merge-on-mmap.patch
-mm-defer-second-attempt-at-merge-on-mmap-fix.patch
-mm-pagewalk-add-the-ability-to-install-ptes.patch
-mm-add-pte_marker_guard-pte-marker.patch
-mm-madvise-implement-lightweight-guard-page-mechanism.patch
-tools-testing-update-tools-uapi-header-for-mman-commonh.patch
-selftests-mm-add-self-tests-for-guard-page-feature.patch
-mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
+kasan-move-checks-to-do_strncpy_from_user.patch
+kasan-migrate-copy_user_test-to-kunit.patch
+kasan-delete-config_kasan_module_test.patch
+kasan-delete-config_kasan_module_test-fix.patch
+kasan-use-export_symbol_if_kunit-to-export-symbols.patch
+kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
 
