@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD5C61CDFCC;
-	Fri,  1 Nov 2024 18:21:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9990A1CDA1E
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 18:29:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730485310; cv=none; b=FiwYD5nq8eeerBbK42PZq5bwBbKVi0IjHyfHtHl0XW/pe/ePf/HIFQWlAKyw5AmDnBHfxF1bf+qnW+zNgNbPrQQpS5r0WE20T5UbUGk4jJsH89v+TXbd2Pii4x48cMcRFomRRw/M/BxembfyzqOpXEMUUJ7T99xKjA0kDzL4oO0=
+	t=1730485741; cv=none; b=JuGkcbG97EQfWUdSHchl8Hl8dKIkkbtOsR4PRfsvVl2Xo8NBOnwcOpHwL81BWuFaeaIAgM9ZM82tRBLAsleLcYln0LM0DWpd3XuF2TPAO75TXWPH+z6scksFw8ARfSLMpSkn2Y/MBZn91QkQPVApDnssmPd4O4DFZBNUxkIV2Bc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730485310; c=relaxed/simple;
-	bh=1KDKzXlJPQ+weeLc7W4Ot4kX06EB1IRfuKm0Wpe40Sg=;
-	h=Date:To:From:Subject:Message-Id; b=bEcQVwfYGh6U5vJ5+VWCdZ8BIFT0BHVHhJLkXwiEcmWpUeQe2zyXEnF8SpvKU/rx4/Fqs21yoOPBXukE3ss+/5/EQ+0x7e5Sw5DyCsdw/AoLx8j23SvPAK+PBXwMmW8NaX44CJ2BqYy7dy+xwEu2eMKmCaDMQ/JX1WTs2lAwHRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CjW+6dOz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730485741; c=relaxed/simple;
+	bh=5nJCXHPwRMK7blXPlI0Zxlkt5TWSvv/XobeKwozgv8g=;
+	h=Date:To:From:Subject:Message-Id; b=sGd5o0FYup2AVaU+iJtq0PtPNUtaY9FZI7FzmlQCAoV7tRnxIkrawomGaVuMLxjX0OWLj5MbRsY/xttT6zWAaOl5XvL9lcZj1y/fQdv8tv55xOX0eAwwlmL2Tg+HSlHRB7iAJlq5/a+Txwj5VD3DE8SWrxxTtkXF+Sh1jtpHHwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hdDNBHum; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CjW+6dOz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED0A9C4CECD;
-	Fri,  1 Nov 2024 18:21:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hdDNBHum"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A22FC4CECD;
+	Fri,  1 Nov 2024 18:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730485310;
-	bh=1KDKzXlJPQ+weeLc7W4Ot4kX06EB1IRfuKm0Wpe40Sg=;
+	s=korg; t=1730485741;
+	bh=5nJCXHPwRMK7blXPlI0Zxlkt5TWSvv/XobeKwozgv8g=;
 	h=Date:To:From:Subject:From;
-	b=CjW+6dOz7qGowtEPpR2apODr/YDQj3tKhA/oEd6YZC81rW3XJWJmf2F3EatBZmc6R
-	 91xwT84yiT4moCXI+4GlWMpWe8W+nEU7AjkwlY4ixXvtXiUp9Rx68XRy5ShrVx578J
-	 PO7q1DTUH3Az0FEYFch/gMUdp9S4pVfzPVgC2Pm0=
-Date: Fri, 01 Nov 2024 11:21:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,oleg@redhat.com,legion@kernel.org,kees@kernel.org,ebiederm@xmission.com,avagin@google.com,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=hdDNBHumgqjwjVxyZTLxPDPfBF4SDYilJ5jlpQIXo77NHHjUnGfoNaCRmrT3zAA28
+	 aWSfBPRWOxEEnzG9CLVgigUDePasSkAQJcO6hjtbDfMKpSm+7Ww2Yi0Dwzj+QFf7op
+	 LM1S0ihU7zKmKPuztq1LK+g4JkCCMXzTCWFfkOzU=
+Date: Fri, 01 Nov 2024 11:29:00 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,mcanal@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + signal-restore-the-override_rlimit-logic.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241101182149.ED0A9C4CECD@smtp.kernel.org>
+Subject: + mm-fix-docs-for-the-kernel-parameter-thp_anon=.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241101182901.1A22FC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: signal: restore the override_rlimit logic
+     Subject: mm: fix docs for the kernel parameter ``thp_anon=``
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     signal-restore-the-override_rlimit-logic.patch
+     mm-fix-docs-for-the-kernel-parameter-thp_anon=.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-restore-the-override_rlimit-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-docs-for-the-kernel-parameter-thp_anon=.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,94 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: signal: restore the override_rlimit logic
-Date: Thu, 31 Oct 2024 20:04:38 +0000
+From: Maíra Canal <mcanal@igalia.com>
+Subject: mm: fix docs for the kernel parameter ``thp_anon=``
+Date: Fri, 1 Nov 2024 13:54:05 -0300
 
-Prior to commit d64696905554 ("Reimplement RLIMIT_SIGPENDING on top of
-ucounts") UCOUNT_RLIMIT_SIGPENDING rlimit was not enforced for a class of
-signals.  However now it's enforced unconditionally, even if
-override_rlimit is set.  This behavior change caused production issues.
+If we add ``thp_anon=32,64K:always`` to the kernel command line, we
+will see the following error:
 
-For example, if the limit is reached and a process receives a SIGSEGV
-signal, sigqueue_alloc fails to allocate the necessary resources for the
-signal delivery, preventing the signal from being delivered with siginfo. 
-This prevents the process from correctly identifying the fault address and
-handling the error.  From the user-space perspective, applications are
-unaware that the limit has been reached and that the siginfo is
-effectively 'corrupted'.  This can lead to unpredictable behavior and
-crashes, as we observed with java applications.
+[    0.000000] huge_memory: thp_anon=32,64K:always: error parsing string, ignoring setting
 
-Fix this by passing override_rlimit into inc_rlimit_get_ucounts() and skip
-the comparison to max there if override_rlimit is set.  This effectively
-restores the old behavior.
+This happens because the correct format isn't ``thp_anon=<size>,<size>[KMG]:<state>```,
+as [KMG] must follow each number to especify its unit. So, the correct
+format is ``thp_anon=<size>[KMG],<size>[KMG]:<state>```.
 
-Link: https://lkml.kernel.org/r/20241031200438.2951287-1-roman.gushchin@linux.dev
-Fixes: d64696905554 ("Reimplement RLIMIT_SIGPENDING on top of ucounts")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Co-developed-by: Andrei Vagin <avagin@google.com>
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Therefore, adjust the documentation to reflect the correct format of the
+parameter ``thp_anon=``.
+
+Link: https://lkml.kernel.org/r/20241101165719.1074234-3-mcanal@igalia.com
+Fixes: dd4d30d1cdbe ("mm: override mTHP "enabled" defaults at kernel cmdline")
+Signed-off-by: Maíra Canal <mcanal@igalia.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    3 ++-
- kernel/signal.c                |    3 ++-
- kernel/ucount.c                |    5 +++--
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ Documentation/admin-guide/mm/transhuge.rst      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/user_namespace.h~signal-restore-the-override_rlimit-logic
-+++ a/include/linux/user_namespace.h
-@@ -141,7 +141,8 @@ static inline long get_rlimit_value(stru
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-fix-docs-for-the-kernel-parameter-thp_anon=
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6688,7 +6688,7 @@
+ 			0: no polling (default)
  
- long inc_rlimit_ucounts(struct ucounts *ucounts, enum rlimit_type type, long v);
- bool dec_rlimit_ucounts(struct ucounts *ucounts, enum rlimit_type type, long v);
--long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type);
-+long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type,
-+			    bool override_rlimit);
- void dec_rlimit_put_ucounts(struct ucounts *ucounts, enum rlimit_type type);
- bool is_rlimit_overlimit(struct ucounts *ucounts, enum rlimit_type type, unsigned long max);
+ 	thp_anon=	[KNL]
+-			Format: <size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>
++			Format: <size>[KMG],<size>[KMG]:<state>;<size>[KMG]-<size>[KMG]:<state>
+ 			state is one of "always", "madvise", "never" or "inherit".
+ 			Control the default behavior of the system with respect
+ 			to anonymous transparent hugepages.
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-fix-docs-for-the-kernel-parameter-thp_anon=
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -303,7 +303,7 @@ control by passing the parameter ``trans
+ kernel command line.
  
---- a/kernel/signal.c~signal-restore-the-override_rlimit-logic
-+++ a/kernel/signal.c
-@@ -419,7 +419,8 @@ __sigqueue_alloc(int sig, struct task_st
- 	 */
- 	rcu_read_lock();
- 	ucounts = task_ucounts(t);
--	sigpending = inc_rlimit_get_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING);
-+	sigpending = inc_rlimit_get_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING,
-+					    override_rlimit);
- 	rcu_read_unlock();
- 	if (!sigpending)
- 		return NULL;
---- a/kernel/ucount.c~signal-restore-the-override_rlimit-logic
-+++ a/kernel/ucount.c
-@@ -307,7 +307,8 @@ void dec_rlimit_put_ucounts(struct ucoun
- 	do_dec_rlimit_put_ucounts(ucounts, NULL, type);
- }
- 
--long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type)
-+long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type,
-+			    bool override_rlimit)
- {
- 	/* Caller must hold a reference to ucounts */
- 	struct ucounts *iter;
-@@ -316,7 +317,7 @@ long inc_rlimit_get_ucounts(struct ucoun
- 
- 	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
- 		long new = atomic_long_add_return(1, &iter->rlimit[type]);
--		if (new < 0 || new > max)
-+		if (new < 0 || (!override_rlimit && (new > max)))
- 			goto unwind;
- 		if (iter == ucounts)
- 			ret = new;
+ Alternatively, each supported anonymous THP size can be controlled by
+-passing ``thp_anon=<size>,<size>[KMG]:<state>;<size>-<size>[KMG]:<state>``,
++passing ``thp_anon=<size>[KMG],<size>[KMG]:<state>;<size>[KMG]-<size>[KMG]:<state>``,
+ where ``<size>`` is the THP size (must be a power of 2 of PAGE_SIZE and
+ supported anonymous THP)  and ``<state>`` is one of ``always``, ``madvise``,
+ ``never`` or ``inherit``.
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from mcanal@igalia.com are
 
-signal-restore-the-override_rlimit-logic.patch
+mm-fix-docs-for-the-kernel-parameter-thp_anon=.patch
+mm-shmem-control-thp-support-through-the-kernel-command-line.patch
+mm-move-get_order_from_str-to-internalh.patch
+mm-shmem-override-mthp-shmem-default-with-a-kernel-parameter.patch
+mm-huge_memory-use-strscpy-instead-of-strcpy.patch
 
