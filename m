@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9247A1CEEAD
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 19:07:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1061A5D8F0
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 19:43:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730488062; cv=none; b=KOerLau1AIld1E9hpo1TK1hsA62dS0K/dSLki00FRTmuY7acY6rwPm+qTkZakJKnTb7QU+q9BMtNwR9ZebCqZ/8MFXNqM0RLWPI1GY4fqo+NBy9dLhDkCegBo1+yTEng+SoSlKIy8hERJmAgpG01o2+epiXWHqsg/ZHITHxYfMw=
+	t=1730490193; cv=none; b=Acm2qJIiXPcxRxxkH6z8OmpKSJ0UZiiU/6/BW37Y6C/72k56pcOy7QdkDvnJU4dxjn6Mq+Q+QpW7xLrDIaYsEFCpBzhojp03II5rZr44QqHxeHSB6AU1dk0A2NIEtslpNtbLHG9tML/b41WVGt5GDxZMSgOwEFEf+cou4JKMQgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730488062; c=relaxed/simple;
-	bh=v2n6ISWu1jhOrvGhyNP8uaYy8qKqG6cLIZLlk72xeIY=;
-	h=Date:To:From:Subject:Message-Id; b=jkupCzMqBk1hvY5cfYwGekRIHR9VP8+07rJVmmVuamGdpxQJz5aOt1XZcfEvLb2wVyQ7ejA/HoHUX1dHPES+YUcLkrF7WZZ4wIqMl58d6Df0BIuR87sX50gEMe0aHtPpoT7w0dFuQWRNBTy6+XtG5tukVtpZRUHo4/dfRuS0Hcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qkUdgzYY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730490193; c=relaxed/simple;
+	bh=szZY95pxmFq8gHJsN0/QwwPzHpjdEQBhjvZlcZp5pxo=;
+	h=Date:To:From:Subject:Message-Id; b=orTn64QYPKYVnHxnU7BDdwLysjwPYsc9DI5+9CcYXGK5Ols6muyhsVUK0xF0WGmLJVcGsM8PnBa8sgHLoEqLAFx/C4+JmWe+FAhfgGK4yfkYcINWvPr9GgYCw5NBYSntH6ILCNZi/Gbrt3Cj5Rt0Z79TSnOSMgql4AwRHfPnpMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NivQIGMY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qkUdgzYY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C87EC4CECD;
-	Fri,  1 Nov 2024 19:07:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NivQIGMY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771D8C4CECE;
+	Fri,  1 Nov 2024 19:43:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730488062;
-	bh=v2n6ISWu1jhOrvGhyNP8uaYy8qKqG6cLIZLlk72xeIY=;
+	s=korg; t=1730490192;
+	bh=szZY95pxmFq8gHJsN0/QwwPzHpjdEQBhjvZlcZp5pxo=;
 	h=Date:To:From:Subject:From;
-	b=qkUdgzYYoLTzu7/pmgGr3d91jGwU2KsicTISsN8JhfwSCt/m7/ENaxD1aVRz+3b1x
-	 bQdvm3QLLqAds3EsW6lzsK1m58msDF6pKoRwdvSfI7xxo+4pdRXWkKF1gr0dKZ0fzU
-	 WPp8MJlDCMfNKs3su5D38LMTPFtO5PAxDshGx6uo=
-Date: Fri, 01 Nov 2024 12:07:41 -0700
-To: mm-commits@vger.kernel.org,Yibo.Cai@arm.com,slp@redhat.com,lina@asahilina.net,kirill.shutemov@linux.intel.com,justin.he@arm.com,catalin.marinas@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=NivQIGMYKkKh+4iB681sQqxBmoD1gtkkl/K/mnFcHytpeIvnP0QMXPZtnDavUiPiy
+	 /ttDW42SK+syJ+d4wzFPWfA0Cl1MFYyj8x3Q+AdBoz/U89DzV4LIiiTAB7P1O+wPGB
+	 OrNUFRSXAcuvAI0flp7VEGfx9SIQpYgdxIofTgjQ=
+Date: Fri, 01 Nov 2024 12:43:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241101190742.1C87EC4CECD@smtp.kernel.org>
+Subject: + mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch added to mm-unstable branch
+Message-Id: <20241101194312.771D8C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
+     Subject: mm: remove unnecessary page_table_lock on stack expansion
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,179 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix
-Date: Fri Nov  1 12:03:22 PM PDT 2024
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: remove unnecessary page_table_lock on stack expansion
+Date: Fri, 1 Nov 2024 18:46:27 +0000
 
-coding style tweaks
+Ever since commit 8d7071af8907 ("mm: always expand the stack with the mmap
+write lock held") we have been expanding the stack with the mmap write
+lock held.
 
-Cc: Asahi Lina <lina@asahilina.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Sergio Lopez Pascual <slp@redhat.com>
-Cc: Yibo Cai <Yibo.Cai@arm.com>
+This is true in all code paths:
+
+get_arg_page()
+  -> expand_downwards()
+setup_arg_pages()
+  -> expand_stack_locked()
+    -> expand_downwards() / expand_upwards()
+lock_mm_and_find_vma()
+  -> expand_stack_locked()
+    -> expand_downwards() / expand_upwards()
+create_elf_tables()
+  -> find_extend_vma_locked()
+    -> expand_stack_locked()
+expand_stack()
+  -> vma_expand_down()
+    -> expand_downwards()
+expand_stack()
+  -> vma_expand_up()
+    -> expand_upwards()
+
+Each of which acquire the mmap write lock before doing so.  Despite this,
+we maintain code that acquires a page table lock in the expand_upwards()
+and expand_downwards() code, stating that we hold a shared mmap lock and
+thus this is necessary.
+
+It is not, we do not have to worry about concurrent VMA expansions so we
+can simply drop this, and update comments accordingly.
+
+We do not even need be concerned with racing page faults, as
+vma_start_write() is invoked in both cases.
+
+Link: https://lkml.kernel.org/r/20241101184627.131391-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ mm/mmap.c |   38 ++++++--------------------------------
+ 1 file changed, 6 insertions(+), 32 deletions(-)
 
---- a/mm/memory.c~mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix
-+++ a/mm/memory.c
-@@ -3081,18 +3081,20 @@ static inline int __wp_page_copy_user(st
- 			update_mmu_cache_range(vmf, vma, addr, vmf->pte, 1);
- 	}
+--- a/mm/mmap.c~mm-remove-unnecessary-page_table_lock-on-stack-expansion
++++ a/mm/mmap.c
+@@ -1039,6 +1039,8 @@ static int expand_upwards(struct vm_area
+ 	if (!(vma->vm_flags & VM_GROWSUP))
+ 		return -EFAULT;
  
--	/* If the mm is a remote mm, copy in the page using access_remote_vm() */
--	if (current->mm != mm) {
--		if (access_remote_vm(mm, (unsigned long)uaddr, kaddr, PAGE_SIZE, 0) != PAGE_SIZE)
--			goto warn;
--	}
- 	/*
--	 * This really shouldn't fail, because the page is there
--	 * in the page tables. But it might just be unreadable,
--	 * in which case we just give up and fill the result with
--	 * zeroes.
-+	 * If the mm is a remote mm, copy in the page using access_remote_vm()
- 	 */
--	else if (__copy_from_user_inatomic(kaddr, uaddr, PAGE_SIZE)) {
-+	if (current->mm != mm) {
-+		if (access_remote_vm(mm, (unsigned long)uaddr, kaddr,
-+				     PAGE_SIZE, 0) != PAGE_SIZE)
-+			goto warn;
-+	} else if (__copy_from_user_inatomic(kaddr, uaddr, PAGE_SIZE)) {
-+		/*
-+		 * This really shouldn't fail, because the page is there
-+		 * in the page tables. But it might just be unreadable,
-+		 * in which case we just give up and fill the result with
-+		 * zeroes.
-+		 */
- 		if (vmf->pte)
- 			goto warn;
++	mmap_assert_write_locked(mm);
++
+ 	/* Guard against exceeding limits of the address space. */
+ 	address &= PAGE_MASK;
+ 	if (address >= (TASK_SIZE & PAGE_MASK))
+@@ -1074,11 +1076,7 @@ static int expand_upwards(struct vm_area
  
+ 	/* Lock the VMA before expanding to prevent concurrent page faults */
+ 	vma_start_write(vma);
+-	/*
+-	 * vma->vm_start/vm_end cannot change under us because the caller
+-	 * is required to hold the mmap_lock in read mode.  We need the
+-	 * anon_vma lock to serialize against concurrent expand_stacks.
+-	 */
++	/* We update the anon VMA tree. */
+ 	anon_vma_lock_write(vma->anon_vma);
+ 
+ 	/* Somebody else might have raced and expanded it already */
+@@ -1092,16 +1090,6 @@ static int expand_upwards(struct vm_area
+ 		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
+-				/*
+-				 * We only hold a shared mmap_lock lock here, so
+-				 * we need to protect against concurrent vma
+-				 * expansions.  anon_vma_lock_write() doesn't
+-				 * help here, as we don't guarantee that all
+-				 * growable vmas in a mm share the same root
+-				 * anon vma.  So, we reuse mm->page_table_lock
+-				 * to guard against concurrent vma expansions.
+-				 */
+-				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+ 					mm->locked_vm += grow;
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+@@ -1110,7 +1098,6 @@ static int expand_upwards(struct vm_area
+ 				/* Overwrite old entry in mtree. */
+ 				vma_iter_store(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+-				spin_unlock(&mm->page_table_lock);
+ 
+ 				perf_event_mmap(vma);
+ 			}
+@@ -1137,6 +1124,8 @@ int expand_downwards(struct vm_area_stru
+ 	if (!(vma->vm_flags & VM_GROWSDOWN))
+ 		return -EFAULT;
+ 
++	mmap_assert_write_locked(mm);
++
+ 	address &= PAGE_MASK;
+ 	if (address < mmap_min_addr || address < FIRST_USER_ADDRESS)
+ 		return -EPERM;
+@@ -1166,11 +1155,7 @@ int expand_downwards(struct vm_area_stru
+ 
+ 	/* Lock the VMA before expanding to prevent concurrent page faults */
+ 	vma_start_write(vma);
+-	/*
+-	 * vma->vm_start/vm_end cannot change under us because the caller
+-	 * is required to hold the mmap_lock in read mode.  We need the
+-	 * anon_vma lock to serialize against concurrent expand_stacks.
+-	 */
++	/* We update the anon VMA tree. */
+ 	anon_vma_lock_write(vma->anon_vma);
+ 
+ 	/* Somebody else might have raced and expanded it already */
+@@ -1184,16 +1169,6 @@ int expand_downwards(struct vm_area_stru
+ 		if (grow <= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
+-				/*
+-				 * We only hold a shared mmap_lock lock here, so
+-				 * we need to protect against concurrent vma
+-				 * expansions.  anon_vma_lock_write() doesn't
+-				 * help here, as we don't guarantee that all
+-				 * growable vmas in a mm share the same root
+-				 * anon vma.  So, we reuse mm->page_table_lock
+-				 * to guard against concurrent vma expansions.
+-				 */
+-				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+ 					mm->locked_vm += grow;
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+@@ -1203,7 +1178,6 @@ int expand_downwards(struct vm_area_stru
+ 				/* Overwrite old entry in mtree. */
+ 				vma_iter_store(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+-				spin_unlock(&mm->page_table_lock);
+ 
+ 				perf_event_mmap(vma);
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-page_alloc-keep-track-of-free-highatomic-fix.patch
-mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling-fix.patch
-mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
-mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix.patch
-mm-memoryc-remove-stray-newline-at-top-of-file.patch
-bootmem-stop-using-page-index-fix.patch
-mm-kasan-kmsan-copy_from-to_kernel_nofault-fix.patch
-tools-mm-free-the-allocated-memory-fix.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
-mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
-memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
-vma-detect-infinite-loop-in-vma-tree-fix.patch
-maple_tree-add-a-test-checking-storing-null-fix.patch
-fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
+mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch
+mm-unconditionally-close-vmas-on-error.patch
+mm-refactor-map_deny_write_exec.patch
+mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling.patch
+mm-resolve-faulty-mmap_region-error-path-behaviour.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-refactor-mm_access-to-not-return-null-fix.patch
+mm-madvise-unrestrict-process_madvise-for-current-process.patch
+maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
+tools-testing-fix-phys_addr_t-size-on-64-bit-systems.patch
+tools-testing-fix-phys_addr_t-size-on-64-bit-systems-fix.patch
+tools-testing-add-additional-vma_internalh-stubs.patch
+mm-isolate-mmap-internal-logic-to-mm-vmac.patch
+mm-refactor-__mmap_region.patch
+mm-remove-unnecessary-reset-state-logic-on-merge-new-vma.patch
+mm-defer-second-attempt-at-merge-on-mmap.patch
+mm-defer-second-attempt-at-merge-on-mmap-fix.patch
+mm-pagewalk-add-the-ability-to-install-ptes.patch
+mm-add-pte_marker_guard-pte-marker.patch
+mm-madvise-implement-lightweight-guard-page-mechanism.patch
+tools-testing-update-tools-uapi-header-for-mman-commonh.patch
+selftests-mm-add-self-tests-for-guard-page-feature.patch
+mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
