@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA5D1459F7
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 20:19:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099651DDC10;
+	Fri,  1 Nov 2024 20:23:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730492368; cv=none; b=s0toZg7OYZYCOAPNyLVpVJ9zJk/fM3qJ2wydGH3Z6/SpBbtpKD+Yo941feYUxhT97IyZ1ar+8tPof2zwsMA1bVmeNWRg8qYGr2uMXrlO64WrXHgzzmd2G8ELpB+Pi7/lXm4IjavRn0CvN2ZgBMJ84kKtugrQUaofk3EN3we1b3E=
+	t=1730492615; cv=none; b=JZcXBByzZw9DQTNFlwcz9/Ndtfwdlacuz3NmcjXs/wZLqtWmo/vmDCM1kV64W7xJhqBjFvMnv+QggieH27V1qYuycPjFh2M7uSW8qwh1fk0zDijORrveOKGyL9frDBZnDNfb9+uhaU2BoAlkoTkw6FeKq1SliuLXLaj3PXnVh/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730492368; c=relaxed/simple;
-	bh=t7vNltN5/RxFViVb0J2t3gppHYb75V/Zga2t/anI3ww=;
-	h=Date:To:From:Subject:Message-Id; b=Pz+dcuSnW1+GyXcdaLmjutMEUOj3EhDVOhWz+/IfGh1mLLNtkwad0h8CRNFVtnFRBSNrtpy/kPunXMyXDAHCd9wpHpNv51B183Y8jrak3zucGgAEt05+shi+jsNycx2/n2mF1dmWeC4Vr7IX8b0AYIMCGwABD0usr0W2nTt07To=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zAFGdkq1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730492615; c=relaxed/simple;
+	bh=YCmOQtIMKaMTPQHqiGfpeKVDWD3EDhkkyGBGWHBW2hI=;
+	h=Date:To:From:Subject:Message-Id; b=J833EM/qo0rvqOrAR2rXCDMQ2ArRY3xixZP5Mji5iYctF7EhI5bUGqoJ9HQ515gnnsR9tZS7yCMnjas7NxkmAe8rr++/nPhDfveE2u166/ZxsdbHdYdqJb2t7IJCaejvZIYwUdldrgdN5VW94LfOR/QI/JhE5hAav3qyXykinpo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y2gu7QxX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zAFGdkq1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A550C4CECE;
-	Fri,  1 Nov 2024 20:19:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y2gu7QxX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A172DC4CECD;
+	Fri,  1 Nov 2024 20:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730492366;
-	bh=t7vNltN5/RxFViVb0J2t3gppHYb75V/Zga2t/anI3ww=;
+	s=korg; t=1730492614;
+	bh=YCmOQtIMKaMTPQHqiGfpeKVDWD3EDhkkyGBGWHBW2hI=;
 	h=Date:To:From:Subject:From;
-	b=zAFGdkq1g0x5WClIJglyTO+XDR3XslxQrvfcslSlIr5QesigurzrcGloLHQ0FCmO/
-	 dAHbkabqPqadOtUSK3MTUJe56NKm3pnvdhk6dm1f5Y+KUquT87OkZ7HxuWRPHCSu/P
-	 FEbsMQo7FiTlSbRrRT5r5Dgjv+ID/zYyqIqjfzR4=
-Date: Fri, 01 Nov 2024 13:19:25 -0700
-To: mm-commits@vger.kernel.org,alexjlzheng@tencent.com,mengensun@tencent.com,akpm@linux-foundation.org
+	b=Y2gu7QxXLIyATD8rQelmruI6kH0UtQo/mnU7jmkKU1b+vM8lBIkYSJn651seeo287
+	 nY1L6bgpZCTzYbLgQONMpkyHPTQub+2UzifmbSIMdmqMHjm/ca1Euqm8H42aUeahgt
+	 A45brrf+q3M3EWE6EVXlon2sHzd1fmVY8n/smkwY=
+Date: Fri, 01 Nov 2024 13:23:33 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,oleg@redhat.com,legion@kernel.org,kees@kernel.org,ebiederm@xmission.com,avagin@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch added to mm-unstable branch
-Message-Id: <20241101201926.1A550C4CECE@smtp.kernel.org>
+Subject: + ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241101202334.A172DC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmstat: call fold_vm_zone_numa_events() before show per zone NUMA event
-has been added to the -mm mm-unstable branch.  Its filename is
-     vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
+     Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,50 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: MengEn Sun <mengensun@tencent.com>
-Subject: vmstat: call fold_vm_zone_numa_events() before show per zone NUMA event
-Date: Fri, 1 Nov 2024 12:06:38 +0800
+From: Andrei Vagin <avagin@google.com>
+Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
+Date: Fri, 1 Nov 2024 19:19:40 +0000
 
-Since 5.14-rc1, NUMA events will only be folded from per-CPU statistics to
-per zone and global statistics when the user actually needs it.
+The inc_rlimit_get_ucounts() increments the specified rlimit counter and
+then checks its limit.  If the value exceeds the limit, the function
+returns an error without decrementing the counter.
 
-Currently, the kernel has performs the fold operation when reading
-/proc/vmstat, but does not perform the fold operation in /proc/zoneinfo. 
-This can lead to inaccuracies in the following statistics in zoneinfo:
-- numa_hit
-- numa_miss
-- numa_foreign
-- numa_interleave
-- numa_local
-- numa_other
-
-Therefore, before printing per-zone vm_numa_event when reading
-/proc/zoneinfo, we should also perform the fold operation.
-
-Link: https://lkml.kernel.org/r/1730433998-10461-1-git-send-email-mengensun@tencent.com
-Fixes: f19298b9516c ("mm/vmstat: convert NUMA statistics to basic NUMA counters")
-Signed-off-by: MengEn Sun <mengensun@tencent.com>
-Reviewed-by: JinLiang Zheng <alexjlzheng@tencent.com>
+Link: https://lkml.kernel.org/r/20241101191940.3211128-1-roman.gushchin@linux.dev
+Fixes: 15bc01effefe ("ucounts: Fix signal ucount refcounting")
+Signed-off-by: Andrei Vagin <avagin@google.com>
+Co-developed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Tested-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Alexey Gladkov <legion@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/ucount.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmstat.c~vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event
-+++ a/mm/vmstat.c
-@@ -1781,6 +1781,7 @@ static void zoneinfo_show_print(struct s
- 			   zone_page_state(zone, i));
- 
- #ifdef CONFIG_NUMA
-+	fold_vm_zone_numa_events(zone);
- 	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++)
- 		seq_printf(m, "\n      %-12s %lu", numa_stat_name(i),
- 			   zone_numa_event_state(zone, i));
+--- a/kernel/ucount.c~ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts
++++ a/kernel/ucount.c
+@@ -318,7 +318,7 @@ long inc_rlimit_get_ucounts(struct ucoun
+ 	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
+ 		long new = atomic_long_add_return(1, &iter->rlimit[type]);
+ 		if (new < 0 || (!override_rlimit && (new > max)))
+-			goto unwind;
++			goto dec_unwind;
+ 		if (iter == ucounts)
+ 			ret = new;
+ 		max = get_userns_rlimit_max(iter->ns, type);
+@@ -335,7 +335,6 @@ long inc_rlimit_get_ucounts(struct ucoun
+ dec_unwind:
+ 	dec = atomic_long_sub_return(1, &iter->rlimit[type]);
+ 	WARN_ON_ONCE(dec < 0);
+-unwind:
+ 	do_dec_rlimit_put_ucounts(ucounts, iter, type);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mengensun@tencent.com are
+Patches currently in -mm which might be from avagin@google.com are
 
-mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch
-vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
+ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
 
