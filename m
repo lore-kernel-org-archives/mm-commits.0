@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90291D0BA4
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 19:48:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA5D1459F7
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 20:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730490494; cv=none; b=Ccu/YghvzH0pm+gBHaY9XYVLb/UPob2u9/zg+68k1Hf3z6tj7bxzwXSP5JZi2dq7dsFnuw3UVsonFxGz4yZapJVsP2fMtxiLUHKKCGDs2ZlcAUHxWvvdfLf2p8FBbyirVnpNza2OySTRkTiPCERxN5MzCo5o3VfyvCz+1/LDSic=
+	t=1730492368; cv=none; b=s0toZg7OYZYCOAPNyLVpVJ9zJk/fM3qJ2wydGH3Z6/SpBbtpKD+Yo941feYUxhT97IyZ1ar+8tPof2zwsMA1bVmeNWRg8qYGr2uMXrlO64WrXHgzzmd2G8ELpB+Pi7/lXm4IjavRn0CvN2ZgBMJ84kKtugrQUaofk3EN3we1b3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730490494; c=relaxed/simple;
-	bh=J/ViuEwU071x6lfw3sUHu155iPWtS5xkn6DSNJ/TKKE=;
-	h=Date:To:From:Subject:Message-Id; b=dH7raxv1aqA8zpNyHzsB+yhp/aK4EctEP0SErNXkyL4MWEHLRxyTC5CPGohw5LjaLI980op7DLsUHel65I4HPtGzcjN4O4H3sRkcFdDUR4bbZTPsnvNRKRr/0L6YlNl0E5BhOeKHYu5BVwqFLF2f+3g5u6Atvqo5aqCka5zgKo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DUv8aWEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730492368; c=relaxed/simple;
+	bh=t7vNltN5/RxFViVb0J2t3gppHYb75V/Zga2t/anI3ww=;
+	h=Date:To:From:Subject:Message-Id; b=Pz+dcuSnW1+GyXcdaLmjutMEUOj3EhDVOhWz+/IfGh1mLLNtkwad0h8CRNFVtnFRBSNrtpy/kPunXMyXDAHCd9wpHpNv51B183Y8jrak3zucGgAEt05+shi+jsNycx2/n2mF1dmWeC4Vr7IX8b0AYIMCGwABD0usr0W2nTt07To=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zAFGdkq1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DUv8aWEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 768ACC4CECD;
-	Fri,  1 Nov 2024 19:48:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zAFGdkq1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A550C4CECE;
+	Fri,  1 Nov 2024 20:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730490493;
-	bh=J/ViuEwU071x6lfw3sUHu155iPWtS5xkn6DSNJ/TKKE=;
+	s=korg; t=1730492366;
+	bh=t7vNltN5/RxFViVb0J2t3gppHYb75V/Zga2t/anI3ww=;
 	h=Date:To:From:Subject:From;
-	b=DUv8aWEekQ1B2L4AkT6IYXW/c3xZzXwCNgFOszCtdJpCQG75GgswuWc0/OJbfHYK9
-	 dm4rf3iUGbpBXX2q1y52vV33hfbRCnUtURcjwuzo+9HVX+yOOeA0hOfkZx9RPcCNgc
-	 AtyyHossPvicO4A8chfoTVA/ZeqavHVXvIYzj2S0=
-Date: Fri, 01 Nov 2024 12:48:12 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=zAFGdkq1g0x5WClIJglyTO+XDR3XslxQrvfcslSlIr5QesigurzrcGloLHQ0FCmO/
+	 dAHbkabqPqadOtUSK3MTUJe56NKm3pnvdhk6dm1f5Y+KUquT87OkZ7HxuWRPHCSu/P
+	 FEbsMQo7FiTlSbRrRT5r5Dgjv+ID/zYyqIqjfzR4=
+Date: Fri, 01 Nov 2024 13:19:25 -0700
+To: mm-commits@vger.kernel.org,alexjlzheng@tencent.com,mengensun@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch added to mm-unstable branch
-Message-Id: <20241101194813.768ACC4CECD@smtp.kernel.org>
+Subject: + vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch added to mm-unstable branch
+Message-Id: <20241101201926.1A550C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: change kasan_atomics kunit test as KUNIT_CASE_SLOW
+     Subject: vmstat: call fold_vm_zone_numa_events() before show per zone NUMA event
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
+     vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,56 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: change kasan_atomics kunit test as KUNIT_CASE_SLOW
-Date: Fri, 1 Nov 2024 23:40:11 +0500
+From: MengEn Sun <mengensun@tencent.com>
+Subject: vmstat: call fold_vm_zone_numa_events() before show per zone NUMA event
+Date: Fri, 1 Nov 2024 12:06:38 +0800
 
-During running KASAN Kunit tests with CONFIG_KASAN enabled, the following
-"warning" is reported by kunit framework:
+Since 5.14-rc1, NUMA events will only be folded from per-CPU statistics to
+per zone and global statistics when the user actually needs it.
 
-	# kasan_atomics: Test should be marked slow (runtime: 2.604703115s)
+Currently, the kernel has performs the fold operation when reading
+/proc/vmstat, but does not perform the fold operation in /proc/zoneinfo. 
+This can lead to inaccuracies in the following statistics in zoneinfo:
+- numa_hit
+- numa_miss
+- numa_foreign
+- numa_interleave
+- numa_local
+- numa_other
 
-It took 2.6 seconds on my PC (Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz),
-apparently, due to multiple atomic checks in kasan_atomics_helper().
+Therefore, before printing per-zone vm_numa_event when reading
+/proc/zoneinfo, we should also perform the fold operation.
 
-Let's mark it with KUNIT_CASE_SLOW which reports now as:
-
-	# kasan_atomics.speed: slow
-
-Link: https://lkml.kernel.org/r/20241101184011.3369247-3-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/1730433998-10461-1-git-send-email-mengensun@tencent.com
+Fixes: f19298b9516c ("mm/vmstat: convert NUMA statistics to basic NUMA counters")
+Signed-off-by: MengEn Sun <mengensun@tencent.com>
+Reviewed-by: JinLiang Zheng <alexjlzheng@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmstat.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/kasan/kasan_test_c.c~kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow
-+++ a/mm/kasan/kasan_test_c.c
-@@ -2075,7 +2075,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kasan_strings),
- 	KUNIT_CASE(kasan_bitops_generic),
- 	KUNIT_CASE(kasan_bitops_tags),
--	KUNIT_CASE(kasan_atomics),
-+	KUNIT_CASE_SLOW(kasan_atomics),
- 	KUNIT_CASE(vmalloc_helpers_tags),
- 	KUNIT_CASE(vmalloc_oob),
- 	KUNIT_CASE(vmap_tags),
+--- a/mm/vmstat.c~vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event
++++ a/mm/vmstat.c
+@@ -1781,6 +1781,7 @@ static void zoneinfo_show_print(struct s
+ 			   zone_page_state(zone, i));
+ 
+ #ifdef CONFIG_NUMA
++	fold_vm_zone_numa_events(zone);
+ 	for (i = 0; i < NR_VM_NUMA_EVENT_ITEMS; i++)
+ 		seq_printf(m, "\n      %-12s %lu", numa_stat_name(i),
+ 			   zone_numa_event_state(zone, i));
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from mengensun@tencent.com are
 
-mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
-kasan-move-checks-to-do_strncpy_from_user.patch
-kasan-migrate-copy_user_test-to-kunit.patch
-kasan-delete-config_kasan_module_test.patch
-kasan-delete-config_kasan_module_test-fix.patch
-kasan-use-export_symbol_if_kunit-to-export-symbols.patch
-kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
+mm-add-pcp-high_min-high_max-to-proc-zoneinfo.patch
+vmstat-call-fold_vm_zone_numa_events-before-show-per-zone-numa-event.patch
 
