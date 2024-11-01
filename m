@@ -1,101 +1,108 @@
-Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF4C134BD
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 01:56:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52F523B7A8
+	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 02:02:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730426207; cv=none; b=MARM5l8FjCv+/PyUqT1k1asnZxKTc3Lu8Xwc8ly0wmvEITOXxa27bWgccSSentN51scfSXCDiFJrSxFoDplqDrdOULa5iBf/tWf5K/98BBAmlr1Vll6YlsEr/w9284DqNhujq/kvgO1hXYpaK2RzjTpxLKPC/+J6c8S3CKtTIp0=
+	t=1730426541; cv=none; b=EZfTCxwzJtkA2on0CIKrMgD4/7niyOOsZJuzF6GQ7XOfX4/nYgCl7hybPWCQ19H10HKfCdPBreiTtwDhZHIspNDzBqtiYAiSu2bg3kEtyc8MS+JjsS145sa+x4ifol09ZT8kkksmP+bj5GeuVYILJLgNX8fM+wUNM3ySkk0GLtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730426207; c=relaxed/simple;
-	bh=KfgN+IlQmxywBFGxohSY3E6RS0EP7HvWFxXG+cY/uuA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DIc5pvyUGSJXRoS9hlp+/YsvQeHHBRlMPvQUjsbBJ4+0RIZ6yYAZaaHCc26ZTrLFfTjH/OkO8r8ocXB62zUibDrFMKczBUnY+QBrCI8iJQ0+paPaGS9xsReetmvUHq3mvgzONJIDHlifiKjyk2zCa/OxgOLLd5Ru7GoZ7aZkbog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=NDLnJtf9; arc=none smtp.client-ip=115.124.30.110
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1730426541; c=relaxed/simple;
+	bh=lgO16A/N3JlDF477bMnqLLCUdMQfc8xmRLLjhfyq4rQ=;
+	h=Date:To:From:Subject:Message-Id; b=PdHAkr5GUzrvKSpQ3sUldORFg6EiuAv1U3sEapbwOwNCHhbzauIuqO3Og+N4z+Mpquz88YJNdnulAXzibY7zaJlwC4PJLh0sg2h1f0styeTeMujMB8bfJoVuklBmCjuggNshv0p1FMnxtbQrEpv5V3CJLcQIKy1B25Ph9EEtUe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QJVtq0Im; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="NDLnJtf9"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1730426190; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=qiQTbhsgyLLivdmV9Am8QPxGagxVLy36xOaUIJP2vHU=;
-	b=NDLnJtf9/MWH2ojKhtWCifV/agwDXETuszdAkJ2xuZGZgPIGa5NSK6iTFAeW/XA7TCxSwZ1+SCLTsYfT71/Ni+KaCSmrDvZs5dksqEf7Q7scxI00gLYPZuVpX+A/wieRuu8DRqGH+rMnTMCTe0tEMEvXNY0fIeMQNQzklvoBD9M=
-Received: from 30.74.144.133(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0WIKHsRr_1730426189 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 01 Nov 2024 09:56:30 +0800
-Message-ID: <32dd938c-3531-49f7-93e4-b7ff21fec569@linux.alibaba.com>
-Date: Fri, 1 Nov 2024 09:56:29 +0800
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QJVtq0Im"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA659C4CEC3;
+	Fri,  1 Nov 2024 02:02:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1730426539;
+	bh=lgO16A/N3JlDF477bMnqLLCUdMQfc8xmRLLjhfyq4rQ=;
+	h=Date:To:From:Subject:From;
+	b=QJVtq0Im4LzJxRTkr8WQ0VOXX9baalHAkrHIZV5q5RDcDdLFTYcwusiSligV+qUQZ
+	 //M8y/JrAb7O8bWUv8uFIz4UgqzUXxwMiV7RQbkR19b3eB8JRlOLH46nCAHYJOeS3O
+	 YbDZEXfTJLwADLD6BQEJLIZ3eJY9A2/sNGLOxL/A=
+Date: Thu, 31 Oct 2024 19:02:19 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch added to mm-unstable branch
+Message-Id: <20241101020219.DA659C4CEC3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: +
- mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
- added to mm-unstable branch
-To: David Howells <dhowells@redhat.com>,
- Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, willy@infradead.org,
- wangkefeng.wang@huawei.com, shy828301@gmail.com, hughd@google.com,
- david@redhat.com
-References: <20241026230305.32360C4CEC6@smtp.kernel.org>
- <44141.1730380578@warthog.procyon.org.uk>
+
+
+The patch titled
+     Subject: mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <44141.1730380578@warthog.procyon.org.uk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
+Date: Fri, 1 Nov 2024 09:56:29 +0800
 
+code layout cleaup, per dhowells
 
+Link: https://lkml.kernel.org/r/32dd938c-3531-49f7-93e4-b7ff21fec569@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: David Howells <dhowells@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-On 2024/10/31 21:16, David Howells wrote:
-> Andrew Morton <akpm@linux-foundation.org> wrote:
-> 
->> +		/*
->> +		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
->> +		 * pages.
->> +		 */
->> +		if (likely(!fallback_page_splice)) {
->> +			size = len;
->> +		} else {
->> +			size_t offset = *ppos & ~PAGE_MASK;
->> +
->> +			size = min_t(loff_t, PAGE_SIZE - offset, len);
->> +		}
-> 
-> It might look better to write this as:
-> 
-> 		size = len;
-> 		if (unlikely(fallback_page_splice)) {
-> 			size_t offset = *ppos & ~PAGE_MASK;
-> 
-> 			size = umin(size, PAGE_SIZE - offset);
-> 		}
+ mm/shmem.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Yes, looks better. Thanks.
+--- a/mm/shmem.c~mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
++++ a/mm/shmem.c
+@@ -3332,12 +3332,11 @@ static ssize_t shmem_file_splice_read(st
+ 		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
+ 		 * pages.
+ 		 */
+-		if (likely(!fallback_page_splice)) {
+-			size = len;
+-		} else {
++		size = len;
++		if (unlikely(fallback_page_splice)) {
+ 			size_t offset = *ppos & ~PAGE_MASK;
+ 
+-			size = min_t(loff_t, PAGE_SIZE - offset, len);
++			size = umin(size, PAGE_SIZE - offset);
+ 		}
+ 		part = min_t(loff_t, isize - *ppos, size);
+ 
+_
 
-Andrew, could you help squash the following changes into this patch? Thanks.
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-diff --git a/mm/shmem.c b/mm/shmem.c
-index 44282a296c33..d910063dac27 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -3335,12 +3335,11 @@ static ssize_t shmem_file_splice_read(struct 
-file *in, loff_t *ppos,
-                  * Fallback to PAGE_SIZE splice if the large folio has 
-hwpoisoned
-                  * pages.
-                  */
--               if (likely(!fallback_page_splice)) {
--                       size = len;
--               } else {
-+               size = len;
-+               if (unlikely(fallback_page_splice)) {
-                         size_t offset = *ppos & ~PAGE_MASK;
+mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
+mm-shmem-update-iocb-ki_pos-directly-to-simplify-tmpfs-read-logic.patch
+mm-shmem-improve-the-tmpfs-large-folio-read-performance.patch
+mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
+mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch
 
--                       size = min_t(loff_t, PAGE_SIZE - offset, len);
-+                       size = umin(size, PAGE_SIZE - offset);
-                 }
-                 part = min_t(loff_t, isize - *ppos, size);
