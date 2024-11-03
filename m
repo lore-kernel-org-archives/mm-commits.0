@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF85F1EF01
-	for <mm-commits@vger.kernel.org>; Sun,  3 Nov 2024 18:45:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E6C1EF01;
+	Sun,  3 Nov 2024 18:47:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730659559; cv=none; b=s5t/6VNr5Zv5Z9SBoNgcPn+iFM22TCPw1d9XzXLzY9GFdiZ/ZOodqBqHpn7StACTFSqd8VB4beFfIqx6fYYXe6/T25asRaYRIrP4/RrdmkTpwNKNCiRAVrFTnJDEACcYOwU7EZRozwSHF6TUbMgRwHbexhXQVmKU8jMn9Tk/Kek=
+	t=1730659658; cv=none; b=XasbTSsovh8c+hYLryllFRd4+FaXRfFOrSfg5oxg3YlUD+3uMciqpYBEu6AedWNJUKeuP6W9THaYKqBXQenQFaTTAjT2ehuL5tudfl5qWwPHlFaxqRFzD1NcKz/SDBudhFK4LZVRNVfxG/jlPo+QG5JBp3ikVv+SKKRBqJTysoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730659559; c=relaxed/simple;
-	bh=rzjUgshswB6s1MbIybX64+evNM7MhKn+Ea1wL8gQJnI=;
-	h=Date:To:From:Subject:Message-Id; b=gUl8+CWGc8osNnsl7TW3uH1Vg3gsosE3GVqEvHkCBbumaeV38AVP2vWAyPnodMbSozMvP9Whw8Nx4rLP5JBUpyZ1UDEZGjV7ZibBA+YTbvwYpCeMfxKjJsABsHStGLVE/k20bgFJS1JKNNRJD/44XgIwOJABZZtNU8wpX7yUSbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YU+fY3DH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730659658; c=relaxed/simple;
+	bh=XUD1u7SqevdYxK3NdewSzgMtyzWhMmAJQRUqgBfo9tI=;
+	h=Date:To:From:Subject:Message-Id; b=bkeL/SMbc+zDLPwe+x7uw2W+p6JrlG8b/lpxeIl2XjQObWYCSFZWbaQGghkxY1g7ZULd7ODfLKcofAAJ+YIL62bgx4ukCfLmPmQDV+cLm6bnMIw+wrf/HRHdTWw5P2gdCMq8NX8H1t5jgUU4d8qr6a0bUi3crC57Kq7pUUY6dCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClwiA65V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YU+fY3DH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6344DC4CECD;
-	Sun,  3 Nov 2024 18:45:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClwiA65V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 268ADC4CECD;
+	Sun,  3 Nov 2024 18:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730659558;
-	bh=rzjUgshswB6s1MbIybX64+evNM7MhKn+Ea1wL8gQJnI=;
+	s=korg; t=1730659656;
+	bh=XUD1u7SqevdYxK3NdewSzgMtyzWhMmAJQRUqgBfo9tI=;
 	h=Date:To:From:Subject:From;
-	b=YU+fY3DHae/UhZPBpRY5i+m00RCKDUYGMBV5YrMGJKjzVupvcqrcbjENdRlc5SeOu
-	 usKXo1/aou/jhlRvQMWYJeByniOquDcocLB9R4ZE7KVobR8Zwkm606cVfgGVCOJ59P
-	 2Pe9swL4t6AyGmRqMxRS+bZiLRv0PxUx3GSgZe6E=
-Date: Sun, 03 Nov 2024 10:45:57 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,stevensd@google.com,seanjc@google.com,rientjes@google.com,pbonzini@redhat.com,oliver.upton@linux.dev,lkp@intel.com,dmatlack@google.com,axelrasmussen@google.com,jthoughton@google.com,akpm@linux-foundation.org
+	b=ClwiA65VrznUr8B0t40/6KsN91FefxXGiRKoTnLvkJMNJIsIvAocJrymR7zZcbQIU
+	 w/1XkdPivGwO0y3W6RygvlEuNQHnQgq+B2xfaUVDJS7IU8ZiEDd6fseZv6Rxup3Ghi
+	 sUJGX11AfGH0RHYqbq8l42AXoUqRnOdV4pYTWkP0=
+Date: Sun, 03 Nov 2024 10:47:35 -0800
+To: mm-commits@vger.kernel.org,weixugc@google.com,stevensd@google.com,stable@vger.kernel.org,seanjc@google.com,rientjes@google.com,pbonzini@redhat.com,oliver.upton@linux.dev,jthoughton@google.com,dmatlack@google.com,axelrasmussen@google.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix.patch removed from -mm tree
-Message-Id: <20241103184558.6344DC4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch removed from -mm tree
+Message-Id: <20241103184736.268ADC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
+     Subject: mm: multi-gen LRU: remove MM_LEAF_OLD and MM_NONLEAF_TOTAL stats
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix.patch
+     mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats.patch
 
-This patch was dropped because it was folded into mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: James Houghton <jthoughton@google.com>
-Subject: mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
-Date: Fri, 25 Oct 2024 19:21:06 +0000
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: remove MM_LEAF_OLD and MM_NONLEAF_TOTAL stats
+Date: Sat, 19 Oct 2024 01:29:38 +0000
 
-fix link-time error
+Patch series "mm: multi-gen LRU: Have secondary MMUs participate in
+MM_WALK".
 
-   ld: mm/vmscan.o: in function `walk_pmd_range_locked':
->> mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
+Today, the MM_WALK capability causes MGLRU to clear the young bit from
+PMDs and PTEs during the page table walk before eviction, but MGLRU does
+not call the clear_young() MMU notifier in this case.  By not calling this
+notifier, the MM walk takes less time/CPU, but it causes pages that are
+accessed mostly through KVM / secondary MMUs to appear younger than they
+should be.
 
-Link: https://lore.kernel.org/linux-mm/20241019012940.3656292-3-jthoughton@google.com/
-Link: https://lkml.kernel.org/r/20241025192106.957236-1-jthoughton@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202410252141.djLwbAYF-lkp@intel.com/
+We do call the clear_young() notifier today, but only when attempting to
+evict the page, so we end up clearing young/accessed information less
+frequently for secondary MMUs than for mm PTEs, and therefore they appear
+younger and are less likely to be evicted.  Therefore, memory that is
+*not* being accessed mostly by KVM will be evicted *more* frequently,
+worsening performance.
+
+ChromeOS observed a tab-open latency regression when enabling MGLRU with a
+setup that involved running a VM:
+
+		Tab-open latency histogram (ms)
+Version		p50	mean	p95	p99	max
+base		1315	1198	2347	3454	10319
+mglru		2559	1311	7399	12060	43758
+fix		1119	926	2470	4211	6947
+
+This series replaces the final non-selftest patchs from this series[1],
+which introduced a similar change (and a new MMU notifier) with KVM
+optimizations.  I'll send a separate series (to Sean and Paolo) for the
+KVM optimizations.
+
+This series also makes proactive reclaim with MGLRU possible for KVM
+memory.  I have verified that this functions correctly with the selftest
+from [1], but given that that test is a KVM selftest, I'll send it with
+the rest of the KVM optimizations later.  Andrew, let me know if you'd
+like to take the test now anyway.
+
+[1]: https://lore.kernel.org/linux-mm/20240926013506.860253-18-jthoughton@google.com/
+
+
+This patch (of 2):
+
+The removed stats, MM_LEAF_OLD and MM_NONLEAF_TOTAL, are not very helpful
+and become more complicated to properly compute when adding
+test/clear_young() notifiers in MGLRU's mm walk.
+
+Link: https://lkml.kernel.org/r/20241019012940.3656292-1-jthoughton@google.com
+Link: https://lkml.kernel.org/r/20241019012940.3656292-2-jthoughton@google.com
+Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: James Houghton <jthoughton@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Matlack <dmatlack@google.com>
@@ -64,31 +106,88 @@ Cc: Oliver Upton <oliver.upton@linux.dev>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Sean Christopherson <seanjc@google.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    2 --
+ mm/vmscan.c            |   14 +++++---------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix
-+++ a/mm/vmscan.c
-@@ -3480,7 +3480,10 @@ static void walk_pmd_range_locked(pud_t
- 		/* don't round down the first address */
- 		addr = i ? (*first & PMD_MASK) + i * PMD_SIZE : *first;
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats
++++ a/include/linux/mmzone.h
+@@ -458,9 +458,7 @@ struct lru_gen_folio {
  
--		if (pmd_present(pmd[i]) && !pmd_trans_huge(pmd[i])) {
-+		if (!pmd_present(pmd[i]))
-+			goto next;
-+
-+		if (!pmd_trans_huge(pmd[i])) {
- 			if (!walk->force_scan && should_clear_pmd_young() &&
- 			    !mm_has_notifiers(args->mm))
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
+ enum {
+ 	MM_LEAF_TOTAL,		/* total leaf entries */
+-	MM_LEAF_OLD,		/* old leaf entries */
+ 	MM_LEAF_YOUNG,		/* young leaf entries */
+-	MM_NONLEAF_TOTAL,	/* total non-leaf entries */
+ 	MM_NONLEAF_FOUND,	/* non-leaf entries found in Bloom filters */
+ 	MM_NONLEAF_ADDED,	/* non-leaf entries added to Bloom filters */
+ 	NR_MM_STATS
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-mm_leaf_old-and-mm_nonleaf_total-stats
++++ a/mm/vmscan.c
+@@ -3399,7 +3399,6 @@ restart:
+ 			continue;
+ 
+ 		if (!pte_young(ptent)) {
+-			walk->mm_stats[MM_LEAF_OLD]++;
+ 			continue;
+ 		}
+ 
+@@ -3552,7 +3551,6 @@ restart:
+ 			walk->mm_stats[MM_LEAF_TOTAL]++;
+ 
+ 			if (!pmd_young(val)) {
+-				walk->mm_stats[MM_LEAF_OLD]++;
+ 				continue;
+ 			}
+ 
+@@ -3564,8 +3562,6 @@ restart:
+ 			continue;
+ 		}
+ 
+-		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+-
+ 		if (!walk->force_scan && should_clear_pmd_young()) {
+ 			if (!pmd_young(val))
+ 				continue;
+@@ -5254,11 +5250,11 @@ static void lru_gen_seq_show_full(struct
+ 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
+ 		seq_printf(m, "            %10d", tier);
+ 		for (type = 0; type < ANON_AND_FILE; type++) {
+-			const char *s = "   ";
++			const char *s = "xxx";
+ 			unsigned long n[3] = {};
+ 
+ 			if (seq == max_seq) {
+-				s = "RT ";
++				s = "RTx";
+ 				n[0] = READ_ONCE(lrugen->avg_refaulted[type][tier]);
+ 				n[1] = READ_ONCE(lrugen->avg_total[type][tier]);
+ 			} else if (seq == min_seq[type] || NR_HIST_GENS > 1) {
+@@ -5280,14 +5276,14 @@ static void lru_gen_seq_show_full(struct
+ 
+ 	seq_puts(m, "                      ");
+ 	for (i = 0; i < NR_MM_STATS; i++) {
+-		const char *s = "      ";
++		const char *s = "xxxx";
+ 		unsigned long n = 0;
+ 
+ 		if (seq == max_seq && NR_HIST_GENS == 1) {
+-			s = "LOYNFA";
++			s = "TYFA";
+ 			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		} else if (seq != max_seq && NR_HIST_GENS > 1) {
+-			s = "loynfa";
++			s = "tyfa";
+ 			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from jthoughton@google.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
-mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch
+mm-page_alloc-keep-track-of-free-highatomic.patch
 
