@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B781D9A50
-	for <mm-commits@vger.kernel.org>; Fri,  1 Nov 2024 20:28:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF85F1EF01
+	for <mm-commits@vger.kernel.org>; Sun,  3 Nov 2024 18:45:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730492897; cv=none; b=sGdrdvt4C1sUnrjiQZLZvRHzJd8keZP+7BZyzze0Styu1sPFBXTpWu1QQXKo/v7DMoPQ9N/0OKL72ZTkKUTzKsEkd1veNdPn+FHdTEbGH+WkE//ypaecGiZDa0HwOui4dsOPNPvI0hQhE0Xo1lw7PD52+2eskeh6MUDs/QZfFL4=
+	t=1730659559; cv=none; b=s5t/6VNr5Zv5Z9SBoNgcPn+iFM22TCPw1d9XzXLzY9GFdiZ/ZOodqBqHpn7StACTFSqd8VB4beFfIqx6fYYXe6/T25asRaYRIrP4/RrdmkTpwNKNCiRAVrFTnJDEACcYOwU7EZRozwSHF6TUbMgRwHbexhXQVmKU8jMn9Tk/Kek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730492897; c=relaxed/simple;
-	bh=q0NuelhbffZsmM4LtMbT3Vd1Y0ccRFv7+wgJESKqbIg=;
-	h=Date:To:From:Subject:Message-Id; b=GciSq6d6HWQQnHemJnk9jExwECZtQa+OjjB7FqqZzMQU/paKxZniAa7G6qWX9eXUpVorcM3QlV3cCmfDkFhk86XTGuYmen8h7ba53MekCKlHSJwoSo0WKD+/K5vx0A4NmQ52pOvWxD7GCjiRP5ZXC+4zukZpTLTaLwwo7E+qSWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0t8BbACV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730659559; c=relaxed/simple;
+	bh=rzjUgshswB6s1MbIybX64+evNM7MhKn+Ea1wL8gQJnI=;
+	h=Date:To:From:Subject:Message-Id; b=gUl8+CWGc8osNnsl7TW3uH1Vg3gsosE3GVqEvHkCBbumaeV38AVP2vWAyPnodMbSozMvP9Whw8Nx4rLP5JBUpyZ1UDEZGjV7ZibBA+YTbvwYpCeMfxKjJsABsHStGLVE/k20bgFJS1JKNNRJD/44XgIwOJABZZtNU8wpX7yUSbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YU+fY3DH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0t8BbACV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA09C4CECD;
-	Fri,  1 Nov 2024 20:28:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YU+fY3DH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6344DC4CECD;
+	Sun,  3 Nov 2024 18:45:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730492897;
-	bh=q0NuelhbffZsmM4LtMbT3Vd1Y0ccRFv7+wgJESKqbIg=;
+	s=korg; t=1730659558;
+	bh=rzjUgshswB6s1MbIybX64+evNM7MhKn+Ea1wL8gQJnI=;
 	h=Date:To:From:Subject:From;
-	b=0t8BbACV8y5vVok9ii8+RFT0nMVlIpdk12HVpkFL6zP82bEKsOLHsIsIQs1kg9vJW
-	 ywgY5VNk+Bu1EdPz942sQX03wCDihZ3zF9e7iqgSEbl0pMgtuQP41CqGGgySF3sqrz
-	 bmii8SNojszCVi5lgVnhfXeVsgF87pK5o89YcNHk=
-Date: Fri, 01 Nov 2024 13:28:16 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,ryabinin.a.a@gmail.com,dvyukov@google.com,andreyknvl@gmail.com,niharchaithanya@gmail.com,akpm@linux-foundation.org
+	b=YU+fY3DHae/UhZPBpRY5i+m00RCKDUYGMBV5YrMGJKjzVupvcqrcbjENdRlc5SeOu
+	 usKXo1/aou/jhlRvQMWYJeByniOquDcocLB9R4ZE7KVobR8Zwkm606cVfgGVCOJ59P
+	 2Pe9swL4t6AyGmRqMxRS+bZiLRv0PxUx3GSgZe6E=
+Date: Sun, 03 Nov 2024 10:45:57 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,stevensd@google.com,seanjc@google.com,rientjes@google.com,pbonzini@redhat.com,oliver.upton@linux.dev,lkp@intel.com,dmatlack@google.com,axelrasmussen@google.com,jthoughton@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-add-kunit-tests-for-kmalloc_track_caller-kmalloc_node_track_caller.patch added to mm-unstable branch
-Message-Id: <20241101202816.EBA09C4CECD@smtp.kernel.org>
+Subject: [folded-merged] mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix.patch removed from -mm tree
+Message-Id: <20241103184558.6344DC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,105 +34,61 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: kasan: add kunit tests for kmalloc_track_caller, kmalloc_node_track_caller
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-add-kunit-tests-for-kmalloc_track_caller-kmalloc_node_track_caller.patch
+The quilt patch titled
+     Subject: mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
+has been removed from the -mm tree.  Its filename was
+     mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-kunit-tests-for-kmalloc_track_caller-kmalloc_node_track_caller.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
 
 ------------------------------------------------------
-From: Nihar Chaithanya <niharchaithanya@gmail.com>
-Subject: kasan: add kunit tests for kmalloc_track_caller, kmalloc_node_track_caller
-Date: Tue, 15 Oct 2024 00:31:30 +0530
+From: James Houghton <jthoughton@google.com>
+Subject: mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
+Date: Fri, 25 Oct 2024 19:21:06 +0000
 
-The Kunit tests for kmalloc_track_caller and kmalloc_node_track_caller
-were missing in kasan_test_c.c, which check that these functions poison
-the memory properly.
+fix link-time error
 
-Add a Kunit test:
--> kmalloc_tracker_caller_oob_right(): This includes out-of-bounds
-   access test for kmalloc_track_caller and kmalloc_node_track_caller.
+   ld: mm/vmscan.o: in function `walk_pmd_range_locked':
+>> mm/vmscan.c:3498: undefined reference to `pmdp_test_and_clear_young'
 
-Link: https://lkml.kernel.org/r/20241014190128.442059-1-niharchaithanya@gmail.com
-Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=216509
-Signed-off-by: Nihar Chaithanya <niharchaithanya@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Link: https://lore.kernel.org/linux-mm/20241019012940.3656292-3-jthoughton@google.com/
+Link: https://lkml.kernel.org/r/20241025192106.957236-1-jthoughton@google.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202410252141.djLwbAYF-lkp@intel.com/
+Signed-off-by: James Houghton <jthoughton@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Matlack <dmatlack@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Stevens <stevensd@google.com>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ mm/vmscan.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/kasan_test_c.c~kasan-add-kunit-tests-for-kmalloc_track_caller-kmalloc_node_track_caller
-+++ a/mm/kasan/kasan_test_c.c
-@@ -215,6 +215,36 @@ static void kmalloc_node_oob_right(struc
- 	kfree(ptr);
- }
+--- a/mm/vmscan.c~mm-multi-gen-lru-use-pteppmdp_clear_young_notify-fix
++++ a/mm/vmscan.c
+@@ -3480,7 +3480,10 @@ static void walk_pmd_range_locked(pud_t
+ 		/* don't round down the first address */
+ 		addr = i ? (*first & PMD_MASK) + i * PMD_SIZE : *first;
  
-+static void kmalloc_track_caller_oob_right(struct kunit *test)
-+{
-+	char *ptr;
-+	size_t size = 128 - KASAN_GRANULE_SIZE;
+-		if (pmd_present(pmd[i]) && !pmd_trans_huge(pmd[i])) {
++		if (!pmd_present(pmd[i]))
++			goto next;
 +
-+	/*
-+	 * Check that KASAN detects out-of-bounds access for object allocated via
-+	 * kmalloc_track_caller().
-+	 */
-+	ptr = kmalloc_track_caller(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size] = 'y');
-+
-+	kfree(ptr);
-+
-+	/*
-+	 * Check that KASAN detects out-of-bounds access for object allocated via
-+	 * kmalloc_node_track_caller().
-+	 */
-+	ptr = kmalloc_node_track_caller(size, GFP_KERNEL, 0);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size] = 'y');
-+
-+	kfree(ptr);
-+}
-+
- /*
-  * Check that KASAN detects an out-of-bounds access for a big object allocated
-  * via kmalloc(). But not as big as to trigger the page_alloc fallback.
-@@ -2015,6 +2045,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmalloc_oob_right),
- 	KUNIT_CASE(kmalloc_oob_left),
- 	KUNIT_CASE(kmalloc_node_oob_right),
-+	KUNIT_CASE(kmalloc_track_caller_oob_right),
- 	KUNIT_CASE(kmalloc_big_oob_right),
- 	KUNIT_CASE(kmalloc_large_oob_right),
- 	KUNIT_CASE(kmalloc_large_uaf),
++		if (!pmd_trans_huge(pmd[i])) {
+ 			if (!walk->force_scan && should_clear_pmd_young() &&
+ 			    !mm_has_notifiers(args->mm))
+ 				pmdp_test_and_clear_young(vma, addr, pmd + i);
 _
 
-Patches currently in -mm which might be from niharchaithanya@gmail.com are
+Patches currently in -mm which might be from jthoughton@google.com are
 
-kasan-add-kunit-tests-for-kmalloc_track_caller-kmalloc_node_track_caller.patch
+mm-multi-gen-lru-use-pteppmdp_clear_young_notify.patch
+mm-add-missing-mmu_notifier_clear_young-for-mmu_notifier.patch
 
