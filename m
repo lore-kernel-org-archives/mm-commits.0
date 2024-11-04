@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62B3C290F
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:56:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0766185B72
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:58:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730696203; cv=none; b=UNbOoCUrBEvqiDnOt12U5KJnVrL1jrX2zN7VOn4LOPSKOZf2duM5YrYRW2XNIGlU5LWFYRXzQhdArxPZAsrnkwvKdRJU45P3K3PmlkqHaC9e/yWxZyXfp7WGDByddu44enxHsbdXMuQD5L/G+mgH8ipD5li0aOxcSAN7fDvaQPs=
+	t=1730696327; cv=none; b=ra8nrmqVpEOrW2mKw3B6dAoSaBwQAJ8VwNWmRAg2tsHI6MLdSonIwWN228FNWKVTw+5vsQZv7KuD8UerxUQ6ddvaj44YD3HywGY1LSstaGXim1Me0am5NXLFt2OYiyl3cOI2RKdavHJriFXIWV09qGqwPYaYQM+YosX3OKEw5B8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730696203; c=relaxed/simple;
-	bh=AEXZ5oQyvVKZyHYksGcU7HzavflNMNO729qoVDhVypM=;
-	h=Date:To:From:Subject:Message-Id; b=r2PpaWSs6+7QMisX88yjtoKgjqqM+KH+tkt3g0t8AuTpj0DA8PyIxxoRtFV7mujptD8YE6yKP3uwBB6m15vExuOgAQnsRlBM9uXmE7jzFo4WM03b0ETp+++9rxLP8Hpll6QHKLcYhIysRyjAaKBs2hs73yRP/CFasAXtOZfuudE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XD1fZQgS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730696327; c=relaxed/simple;
+	bh=G7PA2bCqnjo3Rvta4QGTxnZnAeptrm5A23coMeWpcYI=;
+	h=Date:To:From:Subject:Message-Id; b=amHw3Kl1HU20zwSVs0oWKnXaAp4SLL/re+PC1jsTV8JGKoKX3RieZ27m1ulyADQHF58phUDQ13T2JX5YSTS+46MJfI4JpO6u2M6P27txj8ACd6euF3LJg48aYiqh9BjkPPO+DR5b+w84r51U/KRc46Q5jq/Brjwh9Fq3tNE3XNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0/sFLJhh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XD1fZQgS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7F4EC4CECE;
-	Mon,  4 Nov 2024 04:56:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0/sFLJhh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95145C4CECE;
+	Mon,  4 Nov 2024 04:58:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730696202;
-	bh=AEXZ5oQyvVKZyHYksGcU7HzavflNMNO729qoVDhVypM=;
+	s=korg; t=1730696327;
+	bh=G7PA2bCqnjo3Rvta4QGTxnZnAeptrm5A23coMeWpcYI=;
 	h=Date:To:From:Subject:From;
-	b=XD1fZQgSC66oHVWP8ld07/Sp2E4XG9H9Uk0SHLg06ncnO+6xCqTLZueqhdlu4Aeqd
-	 sX5uf/wSVVy9lMnnIpB2ab8HNw8pZkb9tCEmr1cm/ngBBrb7zwSpLtL4HwfbFX0HrM
-	 xv7XIjVFW5fvzF7BiR3gPNqJj4QwYd3n7UbNmg4Y=
-Date: Sun, 03 Nov 2024 20:56:42 -0800
-To: mm-commits@vger.kernel.org,liujing@cmss.chinamobile.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=0/sFLJhhtPBMRAMUIAGr7yvpcyP7FF/OGUalouR9YnzX/X5HpcjJ0gj7GJwVMF5Oe
+	 pLzVcxJa/isVUTWdQMbWGIOCvBucIu5oi9/BfAgFabkKA7UTCJwliPS3AzwdJkp5sx
+	 0S6RVo0kYh7U4KuNQ2zk8WfCe4h6F5p3MbrYOCSU=
+Date: Sun, 03 Nov 2024 20:58:47 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] tools-mm-free-the-allocated-memory-fix.patch removed from -mm tree
-Message-Id: <20241104045642.C7F4EC4CECE@smtp.kernel.org>
+Subject: [folded-merged] memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch removed from -mm tree
+Message-Id: <20241104045847.95145C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools-mm-free-the-allocated-memory-fix
+     Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix
 has been removed from the -mm tree.  Its filename was
-     tools-mm-free-the-allocated-memory-fix.patch
+     memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
 
-This patch was dropped because it was folded into tools-mm-free-the-allocated-memory.patch
+This patch was dropped because it was folded into memcg-v1-no-need-for-memcg-locking-for-mglru.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tools-mm-free-the-allocated-memory-fix
-Date: Wed Oct 23 07:26:22 PM PDT 2024
+Subject: memcg-v1-no-need-for-memcg-locking-for-mglru-fix
+Date: Fri Oct 25 06:28:06 PM PDT 2024
 
-fix whitespace
+remove now-unused local:
 
-Cc: Liu Jing <liujing@cmss.chinamobile.com>
+mm/vmscan.c: In function 'walk_mm':
+mm/vmscan.c:3652:28: error: unused variable 'memcg' [-Werror=unused-variable]
+ 3652 |         struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+      |                            ^~~~~
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-free-the-allocated-memory-fix
-+++ a/tools/mm/page_owner_sort.c
-@@ -377,7 +377,7 @@ static char *get_comm(char *buf)
- 	if (errno != 0) {
- 		if (debug_on)
- 			fprintf(stderr, "wrong comm in follow buf:\n%s\n", buf);
--		free (comm_str);
-+		free(comm_str);
- 		return NULL;
- 	}
+--- a/mm/vmscan.c~memcg-v1-no-need-for-memcg-locking-for-mglru-fix
++++ a/mm/vmscan.c
+@@ -3649,10 +3649,8 @@ static void walk_mm(struct mm_struct *mm
+ 		.p4d_entry = walk_pud_range,
+ 		.walk_lock = PGWALK_RDLOCK,
+ 	};
+-
+ 	int err;
+ 	struct lruvec *lruvec = walk->lruvec;
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	walk->next_addr = FIRST_USER_ADDRESS;
  
 _
 
@@ -74,8 +86,7 @@ mm-page_alloc-keep-track-of-free-highatomic-fix.patch
 mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling-fix.patch
 mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
 mm-memoryc-remove-stray-newline-at-top-of-file.patch
-tools-mm-free-the-allocated-memory.patch
-memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru.patch
 mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
 memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
 bootmem-stop-using-page-index-fix.patch
