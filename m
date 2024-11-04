@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB5C2C9A
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:50:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8E01290F
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:50:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730695807; cv=none; b=cwXz1WLXhSb1NRkMIGwd6BI5mlgskH8fmK9m7XFYeMQPKHeHmB1LT65/uLc4/lXtCJGyL49dpt+5Pi+8kvlSdHaersukRJ3Nup1tIWzSGC3xhW5nxBCbO3kOqmoNgRtU7eBSaxgHhiZ9LirmVGbmSdobpGL7IX27G8zN93z6JsI=
+	t=1730695837; cv=none; b=Xk0yvNtWl+hUwYm9TYql0JKdcuawNBLu9nWTgrkGO2Vun6R/h8YJhf6ZKp+meIJZq8qh6Lqn+hk72RX6O9mNDMpk7OmgwJvFJ9pKJ21rgu21l6C/jj7gjasy1/FA/LTQpXTJV1ryvE5NZF+2Rb3gA+iTAUvsr9qsguMYZ7SDuq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730695807; c=relaxed/simple;
-	bh=PJVR/8on3AqsnJ9UbONimcHTmGtlu5C17ujL4VnTqPA=;
-	h=Date:To:From:Subject:Message-Id; b=seRMNgi0FfIGdohFYLaChSDvHGED7xdcYjxXqDwOAtGPoZS2hQV7G0HmxNPfS+dGnnDIy50Ef0+tQwtXU/U8aXBjcRtm9axGVYfpd2/i329mFlRFE08RsCaEfaSCQYlTVavX3uF5CA5ie78DLwyNGXBqUBVVfikg9l9KKKSnCX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rA/PMcKZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730695837; c=relaxed/simple;
+	bh=jMnWVOAgGC8gDZVwQGQFYdOwoJhI7jbrNwIYrJXsOi8=;
+	h=Date:To:From:Subject:Message-Id; b=AU9rQvyVE6qINuhb7KsPj+xvuDyScKDiRay9BL+KUCS0GxXgYVbA0qdukM8U0nVV+h5Xl130Wcg6gMKfCpWT9q9qbUcqci5Xd0LHbTgF1V32UIPC8llSndm4hSB2AHXp3DSAkbOG8ucMU33WFP2z0XGzuBxXsEgdWtFecoqnelc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bITjHHsd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rA/PMcKZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F90C4CECE;
-	Mon,  4 Nov 2024 04:50:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bITjHHsd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61FC1C4CECE;
+	Mon,  4 Nov 2024 04:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730695806;
-	bh=PJVR/8on3AqsnJ9UbONimcHTmGtlu5C17ujL4VnTqPA=;
+	s=korg; t=1730695837;
+	bh=jMnWVOAgGC8gDZVwQGQFYdOwoJhI7jbrNwIYrJXsOi8=;
 	h=Date:To:From:Subject:From;
-	b=rA/PMcKZXg/HDML2zQ7wZZAFiQQQy3cbv1UP1BNrAUtuiaidX6aBNfwvyo9mqfjn1
-	 yb3LiEgJqWDSfjjPA+sXXGsO2HpX+pOlsRZTKxGjQsXd/HVN9e0/Un/7xmqkb2w3dR
-	 VbHFGuG6pwK0IfVDQBOUeeTYxZ5qR0dFohg/x17E=
-Date: Sun, 03 Nov 2024 20:50:06 -0800
-To: mm-commits@vger.kernel.org,m.szyprowski@samsung.com,alexs@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=bITjHHsdVIP5ySl9GpmqtdPtOd+c+U1cgp2AYSRyh+yw5GM3fKx4UEwe5AIHJBm8c
+	 TLx4k+OTCKdaNgjjDX6bXT+FOr2Dto2ZTGYPJhhtr0i+12eDoScZChwMIQptWKRfRq
+	 8Z1EVH+Ocz0xoBXOXhb2/qj+YP1TTlQTe154Wc+E=
+Date: Sun, 03 Nov 2024 20:50:36 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,lkp@intel.com,donettom@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-pageanonnotksm-fix.patch removed from -mm tree
-Message-Id: <20241104045006.B7F90C4CECE@smtp.kernel.org>
+Subject: [folded-merged] mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix.patch removed from -mm tree
+Message-Id: <20241104045037.61FC1C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-pageanonnotksm-fix
+     Subject: mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-pageanonnotksm-fix.patch
+     mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix.patch
 
-This patch was dropped because it was folded into mm-add-pageanonnotksm.patch
+This patch was dropped because it was folded into mm-consolidate-common-checks-in-hugetlb_get_unmapped_area.patch
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-add-pageanonnotksm-fix
-Date: Fri, 4 Oct 2024 18:43:52 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix
+Date: Tue Oct  8 11:25:48 AM PDT 2024
 
-fix assertions
+arch/mips/include/asm/hugetlb.h: remove now-unused local
 
-Link: https://lkml.kernel.org/r/ZwApWPER7caIA_N3@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202410081210.uNLbf3Jk-lkp@intel.com/
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/hugetlb.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/page-flags.h~mm-add-pageanonnotksm-fix
-+++ a/include/linux/page-flags.h
-@@ -1144,14 +1144,14 @@ static __always_inline int PageAnonExclu
- 
- static __always_inline void SetPageAnonExclusive(struct page *page)
+--- a/arch/mips/include/asm/hugetlb.h~mm-consolidate-common-checks-in-hugetlb_get_unmapped_area-fix
++++ a/arch/mips/include/asm/hugetlb.h
+@@ -17,7 +17,6 @@ static inline int prepare_hugepage_range
+ 					 unsigned long len)
  {
--	VM_BUG_ON_PGFLAGS(PageAnonNotKsm(page), page);
-+	VM_BUG_ON_PGFLAGS(!PageAnonNotKsm(page), page);
- 	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
- 	set_bit(PG_anon_exclusive, &PF_ANY(page, 1)->flags);
- }
+ 	unsigned long task_size = STACK_TOP;
+-	struct hstate *h = hstate_file(file);
  
- static __always_inline void ClearPageAnonExclusive(struct page *page)
- {
--	VM_BUG_ON_PGFLAGS(PageAnonNotKsm(page), page);
-+	VM_BUG_ON_PGFLAGS(!PageAnonNotKsm(page), page);
- 	VM_BUG_ON_PGFLAGS(PageHuge(page) && !PageHead(page), page);
- 	clear_bit(PG_anon_exclusive, &PF_ANY(page, 1)->flags);
- }
+ 	if (len > task_size)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ksm-use-a-folio-in-try_to_merge_one_page.patch
-ksm-convert-cmp_and_merge_page-to-use-a-folio.patch
-ksm-convert-should_skip_rmap_item-to-take-a-folio.patch
-mm-add-pageanonnotksm.patch
-mm-remove-pageksm.patch
-gup-convert-foll_touch-case-in-follow_page_pte-to-folio.patch
-mm-convert-page_to_pgoff-to-page_pgoff.patch
-mm-use-page_pgoff-in-more-places.patch
-mm-renovate-page_address_in_vma.patch
-mm-mass-constification-of-folio-page-pointers.patch
-bootmem-stop-using-page-index.patch
-mm-remove-references-to-page-index-in-huge_memoryc.patch
-mm-use-page-private-instead-of-page-index-in-percpu.patch
-nilfs2-remove-nilfs_writepage.patch
-nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch
-nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
-nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
+mm-page_alloc-keep-track-of-free-highatomic-fix.patch
+mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling-fix.patch
+mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
+mm-consolidate-common-checks-in-hugetlb_get_unmapped_area.patch
+mm-memoryc-remove-stray-newline-at-top-of-file.patch
+mm-kasan-kmsan-copy_from-to_kernel_nofault-fix.patch
+alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix.patch
+tools-mm-free-the-allocated-memory-fix.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
+mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
+memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
+bootmem-stop-using-page-index-fix.patch
+vma-detect-infinite-loop-in-vma-tree-fix.patch
+maple_tree-add-a-test-checking-storing-null-fix.patch
+fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
 
