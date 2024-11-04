@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5798290F
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:51:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7349290F
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:52:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730695913; cv=none; b=QKbZPi+QRprYKGzHTe7qk+OGE531yRnWTeZbTZNTNqBXDZWa2tpIVkKK94uCPOqOvJS6cR6IRvibpPin71bTak+UQfOmm0roTAMJhpDiU/ZAmMi7FFbB2GOeOqWZZ7Mq2OSAIXksqoacQDXDs3Gmj8SDoRiB0y9Esi2f6HJTQBk=
+	t=1730695945; cv=none; b=D8KKkGRIrfQzBvcs6BEd0UasSySz0EnuYozs3opcBgWwgDmvd1nLqAQoTXuQWowTCXB+Oi/0ErboCSDurLyl4JO9dc0t9BmxRs91gnoV7TZEf0CtNJI8PZTCoMI7uDvR82ggy3qywusuVwmQKVr1xoGXCyMJzDgdKZQbRPmEHAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730695913; c=relaxed/simple;
-	bh=ser7XDHB0I+X6uN+i4+WbgaNjAPw7wdGq2RlAN21XRo=;
-	h=Date:To:From:Subject:Message-Id; b=meiZBkaITLb4MM3RHqJeLyzoZ5l5SfnYBpMpDb/V0LoHDBt1bSV83eYLeBMoH9QTVZmvnXm8pG48fDc9wjuVNic4ELcsbHc6Z+Xk72jfJ9ddSFSXNyHVoFx/0twyiTDYZdm04R75MUilLn5AvfGjiRL4gJAVGhLFxV2miBx76UA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMqR7rjw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730695945; c=relaxed/simple;
+	bh=Sj1MvtxsLjWC5Q1RwnumEWeqetdPABrDdj0GddgrwjM=;
+	h=Date:To:From:Subject:Message-Id; b=cG8zOmqW6spz9TqnMn4P4+2pxohCxXUCaPoF4h3YzviKUzLA2rQFbWWUdLOG8LEnofUUXJPVxuyX3L0oqdrJk+LFdxNMXva7DJOEHVI/QcUKy/1zz9bEiLCZjnxIVjt/Fz7fvpKkLhHn2aHTriGdOnlns9aNEA03RV5loAUOc1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lomVOGHJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMqR7rjw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FCF7C4CECE;
-	Mon,  4 Nov 2024 04:51:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lomVOGHJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BB73C4CECE;
+	Mon,  4 Nov 2024 04:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730695913;
-	bh=ser7XDHB0I+X6uN+i4+WbgaNjAPw7wdGq2RlAN21XRo=;
+	s=korg; t=1730695944;
+	bh=Sj1MvtxsLjWC5Q1RwnumEWeqetdPABrDdj0GddgrwjM=;
 	h=Date:To:From:Subject:From;
-	b=EMqR7rjw7XTiT+gYUWeNxPhv6EbXtxTn3IRrus5kUjxN8oRmUsdvyMwi6Gx5qtXcV
-	 Vw6CjCZJtnubZy+Ayu9QQwB+DQdxOqFOCG1Fb+vVjvyPZNvM8lkw6HlDnnIR1SffN5
-	 bKwp+rYIsQ7my6mVflJxmhHfsCMaKlQRY/sZ/en4=
-Date: Sun, 03 Nov 2024 20:51:52 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,ryan.roberts@arm.com,linmiaohe@huawei.com,keescook@chromium.org,jhubbard@nvidia.com,glider@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=lomVOGHJ8QBlLpb7Rmbhu1UdhNvuO8aR6b96wpKac46GChqLmkbi3FbNCAR+QRZoz
+	 R/YapTdKYQYq5LrN32vWs3Zn++W2hifgCck3tvzjBw3x3r7XfovVg5VvibQLFAjqCB
+	 W2OQ/fZawlGzb6RKKu/mUGtnKJDMr2iB+86ZxTHI=
+Date: Sun, 03 Nov 2024 20:52:23 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,minchan@kernel.org,kaleshsingh@google.com,jaewon31.kim@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix.patch removed from -mm tree
-Message-Id: <20241104045153.9FCF7C4CECE@smtp.kernel.org>
+Subject: [folded-merged] vmscan-add-a-vmscan-event-for-reclaim_pages-v3.patch removed from -mm tree
+Message-Id: <20241104045224.6BB73C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix
+     Subject: vmscan-add-a-vmscan-event-for-reclaim_pages-v3
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix.patch
+     vmscan-add-a-vmscan-event-for-reclaim_pages-v3.patch
 
-This patch was dropped because it was folded into mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+This patch was dropped because it was folded into vmscan-add-a-vmscan-event-for-reclaim_pages.patch
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix
-Date: Tue, 22 Oct 2024 10:33:40 -0400
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: vmscan-add-a-vmscan-event-for-reclaim_pages-v3
+Date: Wed, 16 Oct 2024 23:32:27 +0900
 
-comment fixes, per David
+use sc.nr_scanned rather than new counting
 
-Link: https://lkml.kernel.org/r/97DB52E1-C594-49B5-9736-89AC302FAB01@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20241016143227.961162-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 +++++
- mm/memory.c      |    7 +++++++
- 2 files changed, 12 insertions(+)
+ mm/vmscan.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
---- a/mm/huge_memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix
-+++ a/mm/huge_memory.c
-@@ -1165,6 +1165,11 @@ static struct folio *vma_alloc_anon_foli
- 	}
- 	folio_throttle_swaprate(folio, gfp);
+--- a/mm/vmscan.c~vmscan-add-a-vmscan-event-for-reclaim_pages-v3
++++ a/mm/vmscan.c
+@@ -2127,7 +2127,6 @@ static void shrink_active_list(unsigned
+ }
  
-+       /*
-+	* When a folio is not zeroed during allocation (__GFP_ZERO not used),
-+	* folio_zero_user() is used to make sure that the page corresponding
-+	* to the faulting address will be hot in the cache after zeroing.
-+	*/
- 	if (!alloc_zeroed())
- 		folio_zero_user(folio, addr);
- 	/*
---- a/mm/memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1-fix
-+++ a/mm/memory.c
-@@ -4726,6 +4726,13 @@ static struct folio *alloc_anon_folio(st
- 				goto next;
- 			}
- 			folio_throttle_swaprate(folio, gfp);
-+			/*
-+			 * When a folio is not zeroed during allocation
-+			 * (__GFP_ZERO not used), folio_zero_user() is used
-+			 * to make sure that the page corresponding to the
-+			 * faulting address will be hot in the cache after
-+			 * zeroing.
-+			 */
- 			if (!alloc_zeroed())
- 				folio_zero_user(folio, vmf->address);
- 			return folio;
+ static unsigned int reclaim_folio_list(struct list_head *folio_list,
+-				      unsigned int nr_scanned,
+ 				      struct pglist_data *pgdat)
+ {
+ 	struct reclaim_stat stat;
+@@ -2147,7 +2146,7 @@ static unsigned int reclaim_folio_list(s
+ 		list_del(&folio->lru);
+ 		folio_putback_lru(folio);
+ 	}
+-	trace_mm_vmscan_reclaim_pages(pgdat->node_id, nr_scanned, nr_reclaimed, &stat);
++	trace_mm_vmscan_reclaim_pages(pgdat->node_id, sc.nr_scanned, nr_reclaimed, &stat);
+ 
+ 	return nr_reclaimed;
+ }
+@@ -2155,7 +2154,6 @@ static unsigned int reclaim_folio_list(s
+ unsigned long reclaim_pages(struct list_head *folio_list)
+ {
+ 	int nid;
+-	unsigned int nr_scanned = 0;
+ 	unsigned int nr_reclaimed = 0;
+ 	LIST_HEAD(node_folio_list);
+ 	unsigned int noreclaim_flag;
+@@ -2172,18 +2170,15 @@ unsigned long reclaim_pages(struct list_
+ 		if (nid == folio_nid(folio)) {
+ 			folio_clear_active(folio);
+ 			list_move(&folio->lru, &node_folio_list);
+-			nr_scanned += folio_nr_pages(folio);
+ 			continue;
+ 		}
+ 
+-		nr_reclaimed += reclaim_folio_list(&node_folio_list, nr_scanned,
+-						   NODE_DATA(nid));
+-		nr_scanned = 0;
++		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
+ 		nid = folio_nid(lru_to_folio(folio_list));
+ 	} while (!list_empty(folio_list));
+ 
+-	nr_reclaimed += reclaim_folio_list(&node_folio_list, nr_scanned,
+-					   NODE_DATA(nid));
++	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
++
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 
+ 	return nr_reclaimed;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
+vmscan-add-a-vmscan-event-for-reclaim_pages.patch
 
