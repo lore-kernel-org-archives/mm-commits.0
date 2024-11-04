@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62A481FA279;
-	Mon,  4 Nov 2024 21:08:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8D961FCC57
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 21:19:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730754528; cv=none; b=M0abLYnWyoBieWXl1WZygnJLb1DULLp7WvZffrmy7a5P5WORkopIPOkseIIz7FKnouReFnRi5S5JADJORwVDDRZEFMI47k9kKmmKx+mUnVIzJRkH4GVRQRN2r7n8fvDTNyk8AMgRDYEMSKm8qEOEqdTje1ElHyE3kdhneG75PUY=
+	t=1730755182; cv=none; b=ELl2uEFMtWrtEgHDfFwWHP28JyWFMa+LrP7LHrZkffjsFV/4mTI/4mSh/WqfFEf6/SdBI+00iBqXT3sKq4Tb/3utgjexoi/dqJHqRSCIDCZOh5YCs9ygE03Aj2uErvX/yKe/Wr62XYbxvnO5qrMrhvkbWILgqDwb0QmdG+GuXQM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730754528; c=relaxed/simple;
-	bh=4CP/SPWpIe8+pNFJp0NcSCvOLSXKbdMTShd9YwafYb0=;
-	h=Date:To:From:Subject:Message-Id; b=qFoYA0RdPRlq6zQvORw7bCHFVr8EyRejrTLKr/bwz8l5H2u6culWHbvz6dPlavQkVJ9+pssWnU1bT+MVuJozjiakUrsARRmqaPVw3uHxGOYaKP8sPG0E3/8m4fD0aA7W4E/naJhT26ofElEqjowqjzSXGy1DfwYM58oGgp6WGtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OWxByPZE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730755182; c=relaxed/simple;
+	bh=djz5/mt3NYdEhSsFqAfbBiKWbQNzVlfxh+GzTNQdQCM=;
+	h=Date:To:From:Subject:Message-Id; b=LGSgmiWb7dSsrB4bqPoHuoIB6Z0lscsNs3wOGShLj8YKhE98si88n378qfYXNkah4pkaYvnkWTUknhmhEb1uJvQR5inaULR1cj5j56A+Nm6w1IXuhf44aH6ahUs/uey3PpGlWgYyaROF0WdU2ikws6vg+yVw3NE+rnYNUoxdOms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gm0oFkKO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OWxByPZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEA87C4CECE;
-	Mon,  4 Nov 2024 21:08:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gm0oFkKO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DD9BC4CECE;
+	Mon,  4 Nov 2024 21:19:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730754527;
-	bh=4CP/SPWpIe8+pNFJp0NcSCvOLSXKbdMTShd9YwafYb0=;
+	s=korg; t=1730755182;
+	bh=djz5/mt3NYdEhSsFqAfbBiKWbQNzVlfxh+GzTNQdQCM=;
 	h=Date:To:From:Subject:From;
-	b=OWxByPZEsPJFL1Ba1kOFAZPS8w7T01kMe4MaxgRitNlVQNE1YdCfodua7P2uywdDR
-	 m+zE5NwrM3vtRVjtnvmAXJdTAOm3EIxTfgMgYre4DlDTjjy/y+qevy9ErHyRmt5xVR
-	 TUZBoaMIfssNKgvzV3VH7bX0juPcDjJwbMDI5Q2o=
-Date: Mon, 04 Nov 2024 13:08:47 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,oleg@redhat.com,legion@kernel.org,kees@kernel.org,ebiederm@xmission.com,avagin@google.com,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=gm0oFkKOMHRCllUzDpfASkVCg9weWeBMuUAb6n4eoVgPlUORO7XvmKJR4Sr/94Zii
+	 dyLKRETqtKdu/sFlJ518VunFaR8UR1P1znLsaTHKvlmPvi76foRhjrXJMJpgkewUNn
+	 rLJNlCChib85SLKrV/cUUYPUrijppoXlhA0nKwMg=
+Date: Mon, 04 Nov 2024 13:19:41 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,longman@redhat.com,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + signal-restore-the-override_rlimit-logic.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241104210847.CEA87C4CECE@smtp.kernel.org>
+Subject: + mm-list_lru-dont-pass-unnecessary-key-parameters.patch added to mm-unstable branch
+Message-Id: <20241104211942.2DD9BC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: signal: restore the override_rlimit logic
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     signal-restore-the-override_rlimit-logic.patch
+     Subject: mm/list_lru: don't pass unnecessary key parameters
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-list_lru-dont-pass-unnecessary-key-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-restore-the-override_rlimit-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-dont-pass-unnecessary-key-parameters.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,123 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: signal: restore the override_rlimit logic
-Date: Mon, 4 Nov 2024 19:54:19 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/list_lru: don't pass unnecessary key parameters
+Date: Tue, 5 Nov 2024 01:52:52 +0800
 
-Prior to commit d64696905554 ("Reimplement RLIMIT_SIGPENDING on top of
-ucounts") UCOUNT_RLIMIT_SIGPENDING rlimit was not enforced for a class of
-signals.  However now it's enforced unconditionally, even if
-override_rlimit is set.  This behavior change caused production issues.  
+Patch series "mm/list_lru: Split list_lru lock into per-cgroup scope".
 
-For example, if the limit is reached and a process receives a SIGSEGV
-signal, sigqueue_alloc fails to allocate the necessary resources for the
-signal delivery, preventing the signal from being delivered with siginfo. 
-This prevents the process from correctly identifying the fault address and
-handling the error.  From the user-space perspective, applications are
-unaware that the limit has been reached and that the siginfo is
-effectively 'corrupted'.  This can lead to unpredictable behavior and
-crashes, as we observed with java applications.
+When LOCKDEP is not enabled, lock_class_key is an empty struct that is
+never used.  But the list_lru initialization function still takes a
+placeholder pointer as parameter, and the compiler cannot optimize it
+because the function is not static and exported.
 
-Fix this by passing override_rlimit into inc_rlimit_get_ucounts() and skip
-the comparison to max there if override_rlimit is set.  This effectively
-restores the old behavior.
+Remove this parameter and move it inside the list_lru struct.  Only use it
+when LOCKDEP is enabled.  Kernel builds with LOCKDEP will be slightly
+larger, while !LOCKDEP builds without it will be slightly smaller (the
+common case).
 
-Link: https://lkml.kernel.org/r/20241104195419.3962584-1-roman.gushchin@linux.dev
-Fixes: d64696905554 ("Reimplement RLIMIT_SIGPENDING on top of ucounts")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Co-developed-by: Andrei Vagin <avagin@google.com>
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241104175257.60853-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241104175257.60853-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    3 ++-
- kernel/signal.c                |    3 ++-
- kernel/ucount.c                |    6 ++++--
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/list_lru.h |   18 +++++++++++++++---
+ mm/list_lru.c            |    9 +++++----
+ mm/workingset.c          |    4 ++--
+ 3 files changed, 22 insertions(+), 9 deletions(-)
 
---- a/include/linux/user_namespace.h~signal-restore-the-override_rlimit-logic
-+++ a/include/linux/user_namespace.h
-@@ -141,7 +141,8 @@ static inline long get_rlimit_value(stru
+--- a/include/linux/list_lru.h~mm-list_lru-dont-pass-unnecessary-key-parameters
++++ a/include/linux/list_lru.h
+@@ -56,16 +56,28 @@ struct list_lru {
+ 	bool			memcg_aware;
+ 	struct xarray		xa;
+ #endif
++#ifdef CONFIG_LOCKDEP
++	struct lock_class_key	*key;
++#endif
+ };
  
- long inc_rlimit_ucounts(struct ucounts *ucounts, enum rlimit_type type, long v);
- bool dec_rlimit_ucounts(struct ucounts *ucounts, enum rlimit_type type, long v);
--long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type);
-+long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type,
-+			    bool override_rlimit);
- void dec_rlimit_put_ucounts(struct ucounts *ucounts, enum rlimit_type type);
- bool is_rlimit_overlimit(struct ucounts *ucounts, enum rlimit_type type, unsigned long max);
+ void list_lru_destroy(struct list_lru *lru);
+ int __list_lru_init(struct list_lru *lru, bool memcg_aware,
+-		    struct lock_class_key *key, struct shrinker *shrinker);
++		    struct shrinker *shrinker);
  
---- a/kernel/signal.c~signal-restore-the-override_rlimit-logic
-+++ a/kernel/signal.c
-@@ -419,7 +419,8 @@ __sigqueue_alloc(int sig, struct task_st
- 	 */
- 	rcu_read_lock();
- 	ucounts = task_ucounts(t);
--	sigpending = inc_rlimit_get_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING);
-+	sigpending = inc_rlimit_get_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING,
-+					    override_rlimit);
- 	rcu_read_unlock();
- 	if (!sigpending)
- 		return NULL;
---- a/kernel/ucount.c~signal-restore-the-override_rlimit-logic
-+++ a/kernel/ucount.c
-@@ -307,7 +307,8 @@ void dec_rlimit_put_ucounts(struct ucoun
- 	do_dec_rlimit_put_ucounts(ucounts, NULL, type);
+ #define list_lru_init(lru)				\
+-	__list_lru_init((lru), false, NULL, NULL)
++	__list_lru_init((lru), false, NULL)
+ #define list_lru_init_memcg(lru, shrinker)		\
+-	__list_lru_init((lru), true, NULL, shrinker)
++	__list_lru_init((lru), true, shrinker)
++
++static inline int list_lru_init_memcg_key(struct list_lru *lru, struct shrinker *shrinker,
++					  struct lock_class_key *key)
++{
++#ifdef CONFIG_LOCKDEP
++	lru->key = key;
++#endif
++	return list_lru_init_memcg(lru, shrinker);
++}
+ 
+ int memcg_list_lru_alloc(struct mem_cgroup *memcg, struct list_lru *lru,
+ 			 gfp_t gfp);
+--- a/mm/list_lru.c~mm-list_lru-dont-pass-unnecessary-key-parameters
++++ a/mm/list_lru.c
+@@ -562,8 +562,7 @@ static void memcg_destroy_list_lru(struc
  }
+ #endif /* CONFIG_MEMCG */
  
--long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type)
-+long inc_rlimit_get_ucounts(struct ucounts *ucounts, enum rlimit_type type,
-+			    bool override_rlimit)
+-int __list_lru_init(struct list_lru *lru, bool memcg_aware,
+-		    struct lock_class_key *key, struct shrinker *shrinker)
++int __list_lru_init(struct list_lru *lru, bool memcg_aware, struct shrinker *shrinker)
  {
- 	/* Caller must hold a reference to ucounts */
- 	struct ucounts *iter;
-@@ -320,7 +321,8 @@ long inc_rlimit_get_ucounts(struct ucoun
- 			goto dec_unwind;
- 		if (iter == ucounts)
- 			ret = new;
--		max = get_userns_rlimit_max(iter->ns, type);
-+		if (!override_rlimit)
-+			max = get_userns_rlimit_max(iter->ns, type);
- 		/*
- 		 * Grab an extra ucount reference for the caller when
- 		 * the rlimit count was previously 0.
+ 	int i;
+ 
+@@ -583,8 +582,10 @@ int __list_lru_init(struct list_lru *lru
+ 
+ 	for_each_node(i) {
+ 		spin_lock_init(&lru->node[i].lock);
+-		if (key)
+-			lockdep_set_class(&lru->node[i].lock, key);
++#ifdef CONFIG_LOCKDEP
++		if (lru->key)
++			lockdep_set_class(&lru->node[i].lock, lru->key);
++#endif
+ 		init_one_lru(&lru->node[i].lru);
+ 	}
+ 
+--- a/mm/workingset.c~mm-list_lru-dont-pass-unnecessary-key-parameters
++++ a/mm/workingset.c
+@@ -813,8 +813,8 @@ static int __init workingset_init(void)
+ 	if (!workingset_shadow_shrinker)
+ 		goto err;
+ 
+-	ret = __list_lru_init(&shadow_nodes, true, &shadow_nodes_key,
+-			      workingset_shadow_shrinker);
++	ret = list_lru_init_memcg_key(&shadow_nodes, workingset_shadow_shrinker,
++				      &shadow_nodes_key);
+ 	if (ret)
+ 		goto err_list_lru;
+ 
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-signal-restore-the-override_rlimit-logic.patch
+mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
+mm-list_lru-dont-pass-unnecessary-key-parameters.patch
+mm-list_lru-dont-export-list_lru_add.patch
+mm-list_lru-code-clean-up-for-reparenting.patch
+mm-list_lru-simplify-reparenting-and-initial-allocation.patch
+mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
+mm-list_lru-simplify-the-list_lru-walk-callback-function.patch
 
