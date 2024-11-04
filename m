@@ -1,91 +1,64 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D51310F1
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 05:00:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0572F800
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 05:46:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730696440; cv=none; b=FwwXQnT9teSA6/5QQYNn/Ci8ie+xJouTL12S0bh7dp9u+sjop7LX7V2qrruVulHCYVrzVeWG/gQXLsfgvRzQiaLJ5HVG9iYW/vhDMxgo2xqmnHA1KXcrQJom3OtISKy1BmuMRRbt68honIu7bqM37KnTll7F/+TMXMwo3YYZStE=
+	t=1730699189; cv=none; b=CWNQaezJ3PENjWHGILbiUhrutXaJvlCRFalJ97zsTXBZapqeME2s0zYZZjeDF56sCE+EZApCes7WVg78Gwetpl3JAAubNj8aL1dHjekEQL02Ro89/OonIi6YwU/QGmnwHYra8JgmiNVJdA5FLIhBbFqWe1mGpB6T3cRAqqUo39w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730696440; c=relaxed/simple;
-	bh=9hY6ej0ZtpzAj/xHqyJDeNiLCTEhAHuGQzxdQvWLgFM=;
-	h=Date:To:From:Subject:Message-Id; b=FzbtlHKWWNYpOxb2OW4+tI6l9iqNMnTXyZcka/9oCH7CigLJtzwjQsGk7mDob5zpQEYYurHNBXd4WMDUbG9cwE/DogI6+VRElhXR/g4tNQSukvk6jPivoFwiOCOqtKWVIzgvp5YTfZLFDqfc1VCZOigZ2oraUzh4zqsVwWAaLRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QuIJ/nnK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730699189; c=relaxed/simple;
+	bh=3cmm/PJ3Ezoxs0RrSz4ShCIUIDCigf02qUTsW0ZQpGM=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=WPRGxW7najJ6fnMLIPWtEVU2JPJmdyN/zrcDQjd+UWFHbh+uDoqNfEedHzS+Duvr6dBSobT9WVaSUwgK2FknzqdJKT6en8J2fXCiWExGg3cF0s+Z89D70U7H3i++i5+gKJzdh6hVnJHylKiymc1B6kt3LJ/pKqIXFFXRNtgzRzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p2OKIX/e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QuIJ/nnK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B5B2C4CECE;
-	Mon,  4 Nov 2024 05:00:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p2OKIX/e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 051D7C4CECE;
+	Mon,  4 Nov 2024 05:46:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730696438;
-	bh=9hY6ej0ZtpzAj/xHqyJDeNiLCTEhAHuGQzxdQvWLgFM=;
-	h=Date:To:From:Subject:From;
-	b=QuIJ/nnKwrUDqNhJfPlBdRJ+pp9us+dRU1R+95QqyUXfbokIuT7aY1QInjMJkrBl4
-	 GjgmQ/rzmKcr/YjB5JehNxU1zbBo2skZVQQn+VST/54eYAMj43Zx+ibjW3aNqr6cZy
-	 +iiL6R2FWk/YUgRNxHRmJyXl4Gc0Dbrwqt1LHqu4=
-Date: Sun, 03 Nov 2024 21:00:38 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	s=korg; t=1730699186;
+	bh=3cmm/PJ3Ezoxs0RrSz4ShCIUIDCigf02qUTsW0ZQpGM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=p2OKIX/ex8UmnQcMR27gpL0wGXMYaBc60gzVE3SwwMOHMdS4MpBQa20+LFMuDLaXd
+	 VaE8Ldz09bcprEaAluyGyvgx9NDAKiiFJ5RW+m638eWW3wakBQZiDaPDoQHKyKq+CE
+	 FvPlwAC8ESSzS78DsOENUywRzuoiS/XKr4xwnO9k=
+Date: Sun, 3 Nov 2024 21:46:25 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch removed from -mm tree
-Message-Id: <20241104050038.9B5B2C4CECE@smtp.kernel.org>
+To: Kairui Song <ryncsn@gmail.com>
+Cc: mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
+ zhengqi.arch@bytedance.com, willy@infradead.org, usamaarif642@gmail.com,
+ shakeel.butt@linux.dev, roman.gushchin@linux.dev, muchun.song@linux.dev,
+ mhocko@suse.com, longman@redhat.com, hannes@cmpxchg.org
+Subject: Re: + mm-list_lru-split-the-lock-to-per-cgroup-scope-fix.patch
+ added to mm-unstable branch
+Message-Id: <20241103214625.79ff7512809d91551f2153ca@linux-foundation.org>
+In-Reply-To: <CAMgjq7AMm0vw3QWo50XgRa7QOZn-GA+v6EnM6TcmsHcCQWqxxg@mail.gmail.com>
+References: <20241104040639.A548BC4CECE@smtp.kernel.org>
+	<CAMgjq7AMm0vw3QWo50XgRa7QOZn-GA+v6EnM6TcmsHcCQWqxxg@mail.gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Mon, 4 Nov 2024 12:37:57 +0800 Kairui Song <ryncsn@gmail.com> wrote:
 
-The quilt patch titled
-     Subject: mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix.patch
+> > Patches currently in -mm which might be from ryncsn@gmail.com are
+> >
+> > mm-list_lru-split-the-lock-to-per-cgroup-scope-fix.patch
+> >
+> 
+> Thanks for taking care of this. I was just thinking about posting a V3.
+> 
+> Can you also help pick up this fix?
+> https://lore.kernel.org/linux-mm/62a65418-2393-40ec-b462-151605a5efcf@stanley.mountain/
+> 
+> It also applies to "mm/list_lru: split the lock to per-cgroup scope".
+> These are so far the only two problems founded for that series.
 
-This patch was dropped because it was folded into mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
-
-------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
-Date: Fri, 1 Nov 2024 09:56:29 +0800
-
-code layout cleaup, per dhowells
-
-Link: https://lkml.kernel.org/r/32dd938c-3531-49f7-93e4-b7ff21fec569@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: David Howells <dhowells@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/shmem.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
---- a/mm/shmem.c~mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages-fix
-+++ a/mm/shmem.c
-@@ -3332,12 +3332,11 @@ static ssize_t shmem_file_splice_read(st
- 		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
- 		 * pages.
- 		 */
--		if (likely(!fallback_page_splice)) {
--			size = len;
--		} else {
-+		size = len;
-+		if (unlikely(fallback_page_splice)) {
- 			size_t offset = *ppos & ~PAGE_MASK;
- 
--			size = min_t(loff_t, PAGE_SIZE - offset, len);
-+			size = umin(size, PAGE_SIZE - offset);
- 		}
- 		part = min_t(loff_t, isize - *ppos, size);
- 
-_
-
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
-
-mm-shmem-fix-khugepaged-activation-policy-for-shmem.patch
-mm-shmem-update-iocb-ki_pos-directly-to-simplify-tmpfs-read-logic.patch
-mm-shmem-improve-the-tmpfs-large-folio-read-performance.patch
-mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
-
+I'll drop the series.  Please resend everything.
