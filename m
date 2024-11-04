@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46B4E290F
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:54:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28BD2290F
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:54:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730696072; cv=none; b=AykfJz3niZ51f0x/DllDQ5NYWLeoRMCO9AKOVglUWtGCYnOHu4SyjL8XM+Khy4eri7M+40FPZGpSWZ7SMtXA+KJ0ftSPwJfE2Q8jCwnKZK6i3sqov2YoUJV0IMPR2LcCdcrW3/dgSkt+9FAVUrm2h6bnqnaamB03wRsQBUx0pdE=
+	t=1730696073; cv=none; b=bOttpSPUifFj5culj1pAkd3xko8qg7G7tRGivORJr4/4J/ae4vdVZdCr0s83u8BaDZ0km9hhmsGmVse/zgwiLMx3Tb4XlqXZu/p1vLGkTlCnLEZ3+GE7FkVt1hXjyBY7gzzPVwhaCwsDcORzIDq8aw4khtPuyh2tgWhY4CnIKxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730696072; c=relaxed/simple;
-	bh=2GBuCd11pP0Fn1Pu0orietPBQ04ToNg1ow486mcFgbE=;
-	h=Date:To:From:Subject:Message-Id; b=huRohiuviFTtxTh86BEuE4zlQjzMO1zvI3MrwPQrjdw7xusg2lMyFiNR+gKc4j2062/HDurpNovhQPCD6mQkW7MIzZVDPSqil/Jo0Yu3LMMicNC1wA14QPJWd6ZSbPrEK5SiN2Vb8iUAXAQ7iVP9qNtonpbd44l3K2LcQcRQINI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qsDHET0S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730696073; c=relaxed/simple;
+	bh=cbzz49+KQzEoqAW4hhffoXOtJnP/vr6eYvtudq5dykE=;
+	h=Date:To:From:Subject:Message-Id; b=kixKEO/WXF1cUxaFht5pos09kmzoPZLJEfGNh7I8MHhlYM2Mza8jZMkEYRCGf5tpaMEecq8b6zCE9jPKRW9fTtz34Q/if18Hqq9OBZGTh03DJfJIo2F9hQvKiyeaWjwgUAwv26ZBGufnYwpsDq16hd1bworMkKUJ3vPbS1S745I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CaVcY5NV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qsDHET0S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8067C4CECE;
-	Mon,  4 Nov 2024 04:54:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CaVcY5NV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9987C4CECE;
+	Mon,  4 Nov 2024 04:54:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730696071;
-	bh=2GBuCd11pP0Fn1Pu0orietPBQ04ToNg1ow486mcFgbE=;
+	s=korg; t=1730696073;
+	bh=cbzz49+KQzEoqAW4hhffoXOtJnP/vr6eYvtudq5dykE=;
 	h=Date:To:From:Subject:From;
-	b=qsDHET0SpJvJ5SdotD7aMz/bsSyOrW+YYTLhMzQ8UADR7BU+H8FQKDvMYcje4Md5F
-	 085SPtPanv9h3QfAfy0u53O/SxtXNWEBgxcYkIMIXtiShPPScbkRRtKgcvGGRoP1Vu
-	 Or2nkP+VKmQvblEfJpnkOdlM1eLZBr0bTIetSe00=
-Date: Sun, 03 Nov 2024 20:54:31 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,xiongwei.song@windriver.com,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,thuth@redhat.com,tglx@linutronix.de,souravpanda@google.com,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,petr.pavlu@suse.com,paulmck@kernel.org,pasha.tatashin@soleen.com,minchan@google.com,mhocko@suse.com,mcgrof@kernel.org,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,keescook@chromium.org,kaleshsingh@google.com,jhubbard@nvidia.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,dave@stgolabs.net,dan.carpenter@linaro.org,da.gomez@samsung.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=CaVcY5NVII313Dvk2yrE0vF61y/v8Q0zHAEz1OpXGQ4gjkS66AS9d+YQwF1n1Cxek
+	 MH+KuB7Jv/kkObgibentwxa1f9ua6VHG7JlJK7JdsxzsykBjqxb0XIzj/LXE5leJFw
+	 vBn9PnmEPiQZRCBck5SAKfAOpmVJ5uE3+6O5y4lg=
+Date: Sun, 03 Nov 2024 20:54:32 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,dan.carpenter@linaro.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] alloc_tag-load-module-tags-into-separate-contiguous-memory-fix.patch removed from -mm tree
-Message-Id: <20241104045431.B8067C4CECE@smtp.kernel.org>
+Subject: [folded-merged] alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix.patch removed from -mm tree
+Message-Id: <20241104045432.E9987C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,122 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: alloc_tag: fix empty codetag module section handling
+     Subject: alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-load-module-tags-into-separate-contiguous-memory-fix.patch
+     alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix.patch
 
 This patch was dropped because it was folded into alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: fix empty codetag module section handling
-Date: Thu, 31 Oct 2024 17:00:17 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix
+Date: Sun Nov  3 08:26:32 PM PST 2024
 
-When a module does not have any allocations, it's allocation tag section
-is empty and codetag_alloc_module_section() returns NULL.  However this
-condition should never happen because codetag_needs_module_section() will
-detect an empty section and avoid calling codetag_alloc_module_section(). 
-Change codetag_alloc_module_section() to never return NULL, which should
-prevent static checker warnings.  Add a WARN_ON() and a proper error
-reporting in case codetag_alloc_module_section() returns NULL, to prevent
-future codetag type implementations from returning NULL from their
-cttype->desc.alloc_section_mem() operation.
+update comment, per Dan
 
-Link: https://lkml.kernel.org/r/20241101000017.3856204-1-surenb@google.com
-Fixes: 61c9e58f3a10 ("alloc_tag: load module tags into separate contiguous memory")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/all/50f12fa1-17c1-4940-a6bf-beaf61f6b17a@stanley.mountain/
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xiongwei Song <xiongwei.song@windriver.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module/main.c |    4 ++++
- lib/alloc_tag.c      |    2 +-
- lib/codetag.c        |    2 +-
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ lib/alloc_tag.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/module/main.c~alloc_tag-load-module-tags-into-separate-contiguous-memory-fix
-+++ a/kernel/module/main.c
-@@ -2316,6 +2316,10 @@ static int move_module(struct module *mo
- 		if (codetag_needs_module_section(mod, sname, shdr->sh_size)) {
- 			dest = codetag_alloc_module_section(mod, sname, shdr->sh_size,
- 					arch_mod_section_prepend(mod, i), shdr->sh_addralign);
-+			if (WARN_ON(!dest)) {
-+				ret = -EINVAL;
-+				goto out_err;
-+			}
- 			if (IS_ERR(dest)) {
- 				ret = PTR_ERR(dest);
- 				goto out_err;
---- a/lib/alloc_tag.c~alloc_tag-load-module-tags-into-separate-contiguous-memory-fix
+--- a/lib/alloc_tag.c~alloc_tag-load-module-tags-into-separate-contiguous-memory-fix-fix
 +++ a/lib/alloc_tag.c
-@@ -262,7 +262,7 @@ static void *reserve_module_tags(struct
+@@ -260,7 +260,7 @@ static void *reserve_module_tags(struct
+ 	unsigned long offset;
+ 	void *ret = NULL;
  
- 	/* If no tags return NULL */
+-	/* If no tags return NULL */
++	/* If no tags return error */
  	if (size < sizeof(struct alloc_tag))
--		return NULL;
-+		return ERR_PTR(-EINVAL);
+ 		return ERR_PTR(-EINVAL);
  
- 	/*
- 	 * align is always power of 2, so we can use IS_ALIGNED and ALIGN.
---- a/lib/codetag.c~alloc_tag-load-module-tags-into-separate-contiguous-memory-fix
-+++ a/lib/codetag.c
-@@ -244,7 +244,7 @@ void *codetag_alloc_module_section(struc
- {
- 	const char *type_name = name + strlen(CODETAG_SECTION_PREFIX);
- 	struct codetag_type *cttype;
--	void *ret = NULL;
-+	void *ret = ERR_PTR(-EINVAL);
- 
- 	mutex_lock(&codetag_lock);
- 	list_for_each_entry(cttype, &codetag_types, link) {
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maple_tree-add-mas_for_each_rev-helper.patch
-alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch
+mm-page_alloc-keep-track-of-free-highatomic-fix.patch
+mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling-fix.patch
+mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
+mm-memoryc-remove-stray-newline-at-top-of-file.patch
 alloc_tag-load-module-tags-into-separate-contiguous-memory.patch
-alloc_tag-populate-memory-for-module-tags-as-needed.patch
-alloc_tag-populate-memory-for-module-tags-as-needed-fix.patch
-alloc_tag-introduce-pgtag_ref_handle-to-abstract-page-tag-references.patch
-alloc_tag-support-for-page-allocation-tag-compression.patch
-mm-codetag-uninline-and-move-pgalloc_tag_copy-and-pgalloc_tag_split.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculation_beginend.patch
+tools-mm-free-the-allocated-memory-fix.patch
+memcg-v1-no-need-for-memcg-locking-for-mglru-fix.patch
+mm-vma-the-pgoff-is-correct-if-can_merge_right-fix.patch
+memcg-workingset-remove-folio_memcg_rcu-usage-fix.patch
+bootmem-stop-using-page-index-fix.patch
+vma-detect-infinite-loop-in-vma-tree-fix.patch
+maple_tree-add-a-test-checking-storing-null-fix.patch
+fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
 
