@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C264C6C
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:36:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCCCD4C6C
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:37:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730694997; cv=none; b=IRV7nD2AKIYCtzCFg+8OnlEeAHHL9C/2fHwgUl5n0Ph78Xqpf1PCk8HFh5V8DtwnYTvYVH+WJlTj5FYagmdvJLvo+7QUNhfGrRsX1p/od8Jdpz2eJv8siRbL/X4GJAxvJhZh/7XnYJ9z4A+bpxNlb0E6szTWnUZkTAJoMxL7CNc=
+	t=1730695028; cv=none; b=YTCk4maki8DOv8dfvqdS4irISDuwnp2siZD8CyNlMmea0kLcgWnU4xPdhsxU4j6FwLYwJc8wCNYBA1YeQ3WT2QDA7Q4OkgItG6xLIKxAKTj3fddf7z9VNQgTbOyFq0iz+bMobhXImyAtMB1QCIhsUozponQkPCGe3HF3ACNKJjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730694997; c=relaxed/simple;
-	bh=WyDiSVTENYUX5mgJdMefdQi7bXsRa4rugHvLtn0n9lc=;
-	h=Date:To:From:Subject:Message-Id; b=Lz8fjJJOqGdECHCxxO2Smx7d5WoA6KdCEoVWOYYSJDpBw/EFEZUkX6eX4uaw7fSekuH0VyCNJJJsaUZMxdv+sIj82O/UneqsaPfqMRODi6DHWKELic+OyKXmBBvyUfTKt3ss+2iE724ah17pnb8ZJdac02E/i0bAI0d6bZkfU0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtd5WUvg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730695028; c=relaxed/simple;
+	bh=pcCs1DbIymiCQjaHLIgHxKjOuSAXMPoIRDSu9hbieFw=;
+	h=Date:To:From:Subject:Message-Id; b=b2bA3dv2hleVzOvbZe/prTs58jU6agrRZSONIDoukJjqbxTRM8Qhbb5G03BvHMqxSIYFfkPiz4oDSAC/zHjKKoLlN3/YEfXREneADUneXPRBLteikp660Ldzh75xZbvTxfvIgNcV93Z3yNJLmQYkUnUafMMGb32eqXHix6C9tzk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PlLzaRaD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtd5WUvg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9842C4CECE;
-	Mon,  4 Nov 2024 04:36:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlLzaRaD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5466CC4CECE;
+	Mon,  4 Nov 2024 04:37:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730694996;
-	bh=WyDiSVTENYUX5mgJdMefdQi7bXsRa4rugHvLtn0n9lc=;
+	s=korg; t=1730695028;
+	bh=pcCs1DbIymiCQjaHLIgHxKjOuSAXMPoIRDSu9hbieFw=;
 	h=Date:To:From:Subject:From;
-	b=rtd5WUvgfDadcbc2BLObELufej8rKpw0/fFYfU7rQBlzFlqXiBilVKGBqZFLrWsDv
-	 3B0cUdacJHmFn3QtFursqiC6RLRWpkKn8UnoZ4nxcjCSc15D51vCeZKl/lq48nZYN9
-	 QRvxWDUuYGHMyCNoAyDRpGik3lGWHCFzoh1w9Tmc=
-Date: Sun, 03 Nov 2024 20:36:36 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,arnd@arndb.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=PlLzaRaDAfhFmnstYJsenNiB2veFC3pay6obTQHZRTriQJUI9xhS12HQnuMXpbNd/
+	 Z2DwcTn6+39adHbGaAIUeMyMyCaAtxadV5FYQqZrZR3uw5KQjiqPBxfWx1me2BjIWD
+	 8ofROObVtQ9YrC5ak73c/uY8IQvH4eDwmoRfuTH4=
+Date: Sun, 03 Nov 2024 20:37:07 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,willy@infradead.org,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,longman@redhat.com,kasong@tencent.com,hannes@cmpxchg.org,ryncsn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-refactor-mm_access-to-not-return-null-fix.patch removed from -mm tree
-Message-Id: <20241104043636.D9842C4CECE@smtp.kernel.org>
+Subject: [folded-merged] mm-list_lru-split-the-lock-to-per-cgroup-scope-fix.patch removed from -mm tree
+Message-Id: <20241104043708.5466CC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: procfs: prefer neater pointer error comparison
+     Subject: mm-list_lru-split-the-lock-to-per-cgroup-scope-fix
 has been removed from the -mm tree.  Its filename was
-     mm-refactor-mm_access-to-not-return-null-fix.patch
+     mm-list_lru-split-the-lock-to-per-cgroup-scope-fix.patch
 
-This patch was dropped because it was folded into mm-refactor-mm_access-to-not-return-null.patch
+This patch was dropped because it was folded into mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: procfs: prefer neater pointer error comparison
-Date: Wed, 25 Sep 2024 08:48:27 +0100
+From: Kairui Song <ryncsn@gmail.com>
+Subject: mm-list_lru-split-the-lock-to-per-cgroup-scope-fix
+Date: Mon, 28 Oct 2024 01:26:30 +0800
 
-We can compare a pointer to a known error code via PTR_ERR(ptr) == -EINVAL
-or via ptr == ERR_PTR(-EINVAL) - the latter is neater and collects the
-macro and constant in one, so refactor to use this form in
-proc_mem_open().
+Thanks for the report. I converted list_lru_walk callback to keep the
+list unlocked when LRU_RETRY and LRU_REMOVED_RETRY is returned, but
+didn't notice shrink_memcg_cg in zswap.c could return LRU_STOP after
+it unlocked the list.
 
-Link: https://lkml.kernel.org/r/2fae1834-749a-45e1-8594-5e5979cf7103@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/CAMgjq7D_OA=vYf5SnNnKXjppPFhDqsbYF--6=cOayKiadxuwrQ@mail.gmail.com
+Signed-off-by: Kairui Song <ryncsn@gmail.com>
+Reported-by: Usama Arif <usamaarif642@gmail.com>
+Closes: https://lkml.kernel.org/r/7334b158-8567-4c66-8176-57b879ff8882@gmail.com
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/list_lru.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/fs/proc/base.c~mm-refactor-mm_access-to-not-return-null-fix
-+++ a/fs/proc/base.c
-@@ -841,7 +841,7 @@ struct mm_struct *proc_mem_open(struct i
- 	put_task_struct(task);
+--- a/mm/list_lru.c~mm-list_lru-split-the-lock-to-per-cgroup-scope-fix
++++ a/mm/list_lru.c
+@@ -298,9 +298,9 @@ restart:
+ 		ret = isolate(item, l, &l->lock, cb_arg);
+ 		switch (ret) {
+ 		/*
+-		 * LRU_RETRY and LRU_REMOVED_RETRY will drop the lru lock,
+-		 * the list traversal will be invalid and have to restart from
+-		 * scratch.
++		 * LRU_RETRY, LRU_REMOVED_RETRY and LRU_STOP will drop the lru
++		 * lock, the list traversal will be invalid and have to restart
++		 * from scratch.
+ 		 */
+ 		case LRU_RETRY:
+ 			goto restart;
+@@ -318,14 +318,13 @@ restart:
+ 		case LRU_SKIP:
+ 			break;
+ 		case LRU_STOP:
+-			assert_spin_locked(&l->lock);
+ 			goto out;
+ 		default:
+ 			BUG();
+ 		}
+ 	}
+-out:
+ 	unlock_list_lru(l, irq_off);
++out:
+ 	return isolated;
+ }
  
- 	if (IS_ERR(mm))
--		return PTR_ERR(mm) == -ESRCH ? NULL : mm;
-+		return mm == ERR_PTR(-ESRCH) ? NULL : mm;
- 
- 	/* ensure this mm_struct can't be freed */
- 	mmgrab(mm);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ryncsn@gmail.com are
 
-mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch
-mm-unconditionally-close-vmas-on-error.patch
-mm-refactor-map_deny_write_exec.patch
-mm-refactor-arch_calc_vm_flag_bits-and-arm64-mte-handling.patch
-mm-resolve-faulty-mmap_region-error-path-behaviour.patch
-selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
-mm-refactor-mm_access-to-not-return-null.patch
-mm-madvise-unrestrict-process_madvise-for-current-process.patch
-maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems.patch
-tools-testing-fix-phys_addr_t-size-on-64-bit-systems-fix.patch
-tools-testing-add-additional-vma_internalh-stubs.patch
-mm-isolate-mmap-internal-logic-to-mm-vmac.patch
-mm-refactor-__mmap_region.patch
-mm-remove-unnecessary-reset-state-logic-on-merge-new-vma.patch
-mm-defer-second-attempt-at-merge-on-mmap.patch
-mm-defer-second-attempt-at-merge-on-mmap-fix.patch
-mm-pagewalk-add-the-ability-to-install-ptes.patch
-mm-add-pte_marker_guard-pte-marker.patch
-mm-madvise-implement-lightweight-guard-page-mechanism.patch
-tools-testing-update-tools-uapi-header-for-mman-commonh.patch
-selftests-mm-add-self-tests-for-guard-page-feature.patch
-mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
+mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
 
