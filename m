@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888EA4C6C
-	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:35:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA8A4C6C
+	for <mm-commits@vger.kernel.org>; Mon,  4 Nov 2024 04:35:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730694916; cv=none; b=meYqF2fq0Szf/fZsh1365D7qRFVEb1tjDSjRJZG1A10zjf/BgF40otrLkC2ot435IODopa/ReheSf/iYHkxJwETo3BEXVCyI71rIHn6MZP44hvf3p/7qzgB8ymMwaiy23Qoacmk742fGenxduKQ/w8e4Mzz9rspqU9vBCcb1gYc=
+	t=1730694958; cv=none; b=jUCg7ReYm59MKNn33RgWXFkkQy+nyAsyvYbZnfcNaxXS+g0ixfB9n1mBDITENOK3IrV6wOP8ihqC7A9cJ5Nsb9QcQFTSTJAGgBj0y/xK3MKiHT3X0KoqPSXFkqoLwVFYWY9wGGmreZVq87qdCLDm+E8wmv8agLAkWeeRJidaBjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730694916; c=relaxed/simple;
-	bh=cEmxhrFXM7d28iWJiECCHBYRL3MgH240iHdXKsNRTYU=;
-	h=Date:To:From:Subject:Message-Id; b=dEt9fgt0GKvOU7yGIhxQQA3OaWGC+xYXUy6ChS3aj1XhsNl1T88OQPqmxlhktFGUjTbX6tIIKLW2XVmnE1lam4cQevNXZQCIG+08X59p1OyJ6ivsfCm/GCneZykDaoulCgCQdU4qRk4BkXXO5HcXnx5v/96xjNKNKoO/w4ZbJoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jDC5aYLQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730694958; c=relaxed/simple;
+	bh=fLcbCPJ6uzb7GKFbn8R6gVuKmbBR0MonwHzsuRq7yKY=;
+	h=Date:To:From:Subject:Message-Id; b=DihKV8Qfwb/tGxk4yMAM9I8auez3VQMzAgObIs+ez78joefnc0gJaDW9NM8PXO7cv7JN3Nvs4zdJ4yKUjrAUX6TV9/B5MabnImAQyJrz2v0GkYHG8HyOWS96pn+5ue3zIbxmc45WHNc8z2Mfi1w5fVRpUHS5omlaixg7w5Av+HI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PlNe/5jT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jDC5aYLQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C41C4CECE;
-	Mon,  4 Nov 2024 04:35:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlNe/5jT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2C1AC4CECE;
+	Mon,  4 Nov 2024 04:35:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730694916;
-	bh=cEmxhrFXM7d28iWJiECCHBYRL3MgH240iHdXKsNRTYU=;
+	s=korg; t=1730694958;
+	bh=fLcbCPJ6uzb7GKFbn8R6gVuKmbBR0MonwHzsuRq7yKY=;
 	h=Date:To:From:Subject:From;
-	b=jDC5aYLQocBuCBGL1mInUoEVP5ea16iugIOBRa4shl2khPxfL6ADf/ahf6vOu683r
-	 FYPPnnJBnocjN3NS3VDKZeIHSfWmSodKEtal4MyXQqzYiYTZKTN34jIYjzxW2xKkmh
-	 bfUtS6z1RhZfx1XjG+wHZ9FxJveYKfM0sb0xm4TE=
-Date: Sun, 03 Nov 2024 20:35:15 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,linuszeng@tencent.com,akpm@linux-foundation.org
+	b=PlNe/5jTk/d0GzXqq1fHCxDS5k+v90X6XUIUzYFQ+qXfmOXUAFR9/V7z4UZa46DbJ
+	 1DbDWDF/lOTnsJXPy8MwWCu/bDEO0JuuHIBK7JL1ima+kw/oszZNu4flwvfG4sXYK2
+	 Q2JjX9vPjXMIuJCKHPuS27fU6wi4qlIS/1DGRs9c=
+Date: Sun, 03 Nov 2024 20:35:57 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,dan.carpenter@linaro.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2.patch removed from -mm tree
-Message-Id: <20241104043516.04C41C4CECE@smtp.kernel.org>
+Subject: [folded-merged] zram-rework-recompress-target-selection-strategy-fix.patch removed from -mm tree
+Message-Id: <20241104043557.F2C1AC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2
+     Subject: zram: do not skip the first bucket
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2.patch
+     zram-rework-recompress-target-selection-strategy-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
+This patch was dropped because it was folded into zram-rework-recompress-target-selection-strategy.patch
 
 ------------------------------------------------------
-From: Jingxiang Zeng <linuszeng@tencent.com>
-Subject: mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2
-Date: Fri, 13 Sep 2024 16:44:53 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not skip the first bucket
+Date: Tue, 1 Oct 2024 17:55:56 +0900
 
-Link: https://lkml.kernel.org/r/20240830082244.156923-1-jingxiangzeng.cas@gmail.com
-Link: https://lkml.kernel.org/r/20240913084453.3605621-1-jingxiangzeng.cas@gmail.com
-Signed-off-by: Jingxiang Zeng <linuszeng@tencent.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+A small fixup.
+
+Link: https://lkml.kernel.org/r/20241001085634.1948384-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol-v1.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter-v2
-+++ a/mm/memcontrol-v1.c
-@@ -2754,8 +2754,6 @@ static const char *const memcg1_stat_nam
- static const unsigned int memcg1_events[] = {
- 	PGPGIN,
- 	PGPGOUT,
--	PSWPIN,
--	PSWPOUT,
- 	PGFAULT,
- 	PGMAJFAULT,
- };
+--- a/drivers/block/zram/zram_drv.c~zram-rework-recompress-target-selection-strategy-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -264,7 +264,7 @@ static struct zram_pp_slot *select_pp_sl
+ 	s32 idx = NUM_PP_BUCKETS - 1;
+ 
+ 	/* The higher the bucket id the more optimal slot post-processing is */
+-	while (idx > 0) {
++	while (idx >= 0) {
+ 		pps = list_first_entry_or_null(&ctl->pp_buckets[idx],
+ 					       struct zram_pp_slot,
+ 					       entry);
 _
 
-Patches currently in -mm which might be from linuszeng@tencent.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
-mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+zram-introduce-zram_pp_slot-flag.patch
+zram-permit-only-one-post-processing-operation-at-a-time.patch
+zram-rework-recompress-target-selection-strategy.patch
+zram-rework-writeback-target-selection-strategy.patch
+zram-do-not-mark-idle-slots-that-cannot-be-idle.patch
+zram-reshuffle-zram_free_page-flags-operations.patch
+zram-remove-under_wb-and-simplify-writeback.patch
+zram-do-not-open-code-comp-priority-0.patch
+zram-clear-idle-flag-after-recompression.patch
+zram-clear-idle-flag-in-mark_idle.patch
 
