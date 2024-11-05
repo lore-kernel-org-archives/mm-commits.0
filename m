@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A2201D270A;
-	Tue,  5 Nov 2024 23:12:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A52A1D270A
+	for <mm-commits@vger.kernel.org>; Tue,  5 Nov 2024 23:12:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730848323; cv=none; b=m63+6QoPEwhtmMYrs4M7cIDvGci3k8JwNv5iEAQbSFU34nmeioi6wKM+puLXHESi8+KlleECrMoazQRUX4hFVTbHcntw04krmL+6/YeW+l8bH+oilrvqK9j1kU6o9DSWGIBP2qIEAQWWxAfxsi3VH1L5FvNCMFV0GT1LA1k/C4g=
+	t=1730848325; cv=none; b=e8D47rC3WtoZTfr1Lt8Y9qgxO4xhzlm4p16WwkP3efUv4LvGLfHzomY9ZhBLkwdPImPiTIG48is1mj/knX88NAML+QYnexCEsnnvK7+BlniOVAW4Ld+jODBTEzV/VNchv5toq2V9VCKHCrpLYyKkf+xzOPaKrcx286g083/sVVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730848323; c=relaxed/simple;
-	bh=tYeuqIN6ABGzW67RvPHRA9H0TABKa7wVpxmLpu0jWWk=;
-	h=Date:To:From:Subject:Message-Id; b=hG0VSUWdFhlMIA6U/em/3kiaplM9UwkA1iWUYoaM0n4m4E9BTfWWNowMPZVMyQVgD3g0G6FMw9Okri27kWdDof0SKlI7oHLwII3z/pb7esxHAPvG0oticfchrSST+QXh/6JIIoTEp9PgKJni3BhJd53NVz7ZskwN+6R/pRK9iVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xpWPIoT3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730848325; c=relaxed/simple;
+	bh=D9nkTqVzYF66hRovjmMHu7HbPiJBZFfc9TwefCEo/iE=;
+	h=Date:To:From:Subject:Message-Id; b=JMv9BDv+H4w3RmrsUCQa8cX2gxvDlDpfzE5IinfFTH9VB+r8tZbuFhYx5hpO6baJbCsWD6xqK/mjYnzMMuGleqqJl4tJ6uJLjRP47nohoZ0szGhNEjvsMWOxY9EKOtw9/aVev16TDVBXOcXe5NO/txCMdxuvnKuzv/cLIOVYiKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vh+Cdl63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xpWPIoT3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC436C4CECF;
-	Tue,  5 Nov 2024 23:12:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vh+Cdl63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8C0C4CECF;
+	Tue,  5 Nov 2024 23:12:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730848322;
-	bh=tYeuqIN6ABGzW67RvPHRA9H0TABKa7wVpxmLpu0jWWk=;
+	s=korg; t=1730848324;
+	bh=D9nkTqVzYF66hRovjmMHu7HbPiJBZFfc9TwefCEo/iE=;
 	h=Date:To:From:Subject:From;
-	b=xpWPIoT3w2EAHnCQs/FwMBY/BPE3UwJe9IqSziT9fDEJiWKqjgh6c7m0rVNlCKfTM
-	 y+plMJuMyUX5lQBGCQvQHt7Krj5FM0u/mjRXOu6hS4rc8VlIKGoVacOU7KCyss+0VS
-	 JH4PDwkQaR3shrspa6OiqGgPcouWXkDas2D5P+9o=
-Date: Tue, 05 Nov 2024 15:12:02 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,gregkh@linuxfoundation.org,bartosz.golaszewski@linaro.org,aardelean@baylibre.com,akpm@linux-foundation.org
+	b=vh+Cdl636eTzwC1KAtWoOSlMAodj0NqMiIloIdj6dfjW4Iy26Qjko7PaSEPuMx3oE
+	 xUfROaocjtVBbzBjlKjN9jyNH6tiMyVPARz1xCZAc7x2+eaAz+nltBgzE9dcjRbtTG
+	 iZ/iRU4AU2s309sTpgQPi3Gu+PEXIeK5NCSs3KnU=
+Date: Tue, 05 Nov 2024 15:12:04 -0800
+To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,bartosz.golaszewski@linaro.org,aardelean@baylibre.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + util_macrosh-fix-rework-find_closest-macros.patch added to mm-nonmm-unstable branch
-Message-Id: <20241105231202.CC436C4CECF@smtp.kernel.org>
+Subject: + lib-util_macros_kunit-add-kunit-test-for-util_macrosh.patch added to mm-nonmm-unstable branch
+Message-Id: <20241105231204.CE8C0C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: util_macros.h: fix/rework find_closest() macros
+     Subject: lib: util_macros_kunit: add kunit test for util_macros.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     util_macrosh-fix-rework-find_closest-macros.patch
+     lib-util_macros_kunit-add-kunit-test-for-util_macrosh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/util_macrosh-fix-rework-find_closest-macros.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-util_macros_kunit-add-kunit-test-for-util_macrosh.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,188 +59,333 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexandru Ardelean <aardelean@baylibre.com>
-Subject: util_macros.h: fix/rework find_closest() macros
-Date: Tue, 5 Nov 2024 16:54:05 +0200
+Subject: lib: util_macros_kunit: add kunit test for util_macros.h
+Date: Tue, 5 Nov 2024 16:54:06 +0200
 
 A bug was found in the find_closest() (find_closest_descending() is also
 affected after some testing), where for certain values with small
-progressions, the rounding (done by averaging 2 values) causes an
-incorrect index to be returned.  The rounding issues occur for
-progressions of 1, 2 and 3.  It goes away when the progression/interval
-between two values is 4 or larger.
+progressions of 1, 2 & 3, the rounding (done by averaging 2 values) causes
+an incorrect index to be returned.
 
-It's particularly bad for progressions of 1.  For example if there's an
-array of 'a = { 1, 2, 3 }', using 'find_closest(2, a ...)' would return 0
-(the index of '1'), rather than returning 1 (the index of '2').  This
-means that for exact values (with a progression of 1), find_closest() will
-misbehave and return the index of the value smaller than the one we're
-searching for.
+The bug is described in more detail in the commit which fixes the bug. 
+This commit adds a kunit test to validate that the fix works correctly.
 
-For progressions of 2 and 3, the exact values are obtained correctly; but
-values aren't approximated correctly (as one would expect).  Starting with
-progressions of 4, all seems to be good (one gets what one would expect).
+This kunit test adds some of the arrays (from the driver-sphere) that seem
+to produce issues with the 'find_closest()' macro.  Specifically the one
+from ad7606 driver (with which the bug was found) and from the ina2xx
+drivers, which shows the quirk with 'find_closest()' with elements in a
+array that have an interval of 3.
 
-While one could argue that 'find_closest()' should not be used for arrays
-with progressions of 1 (i.e. '{1, 2, 3, ...}', the macro should still
-behave correctly.
+For the find_closest_descending() tests, the same arrays are used as for
+the find_closest(), but in reverse; the idea is that
+'find_closest_descending()' should return the sames indices as
+'find_closest()' but in reverse.
 
-The bug was found while testing the 'drivers/iio/adc/ad7606.c',
-specifically the oversampling feature.
-For reference, the oversampling values are listed as:
-   static const unsigned int ad7606_oversampling_avail[7] = {
-          1, 2, 4, 8, 16, 32, 64,
-   };
+For testing both macros, there are 4 special arrays created, one for
+testing find_closest{_descending}() for arrays of progressions 1, 2, 3 and
+4.  The idea is to show that (for progressions of 1, 2 & 3) the fix works
+as expected.  When removing the fix, the issues should start to show up.
 
-When doing:
-  1. $ echo 1 > /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     $ cat /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     1  # this is fine
-  2. $ echo 2 > /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     $ cat /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     1  # this is wrong; 2 should be returned here
-  3. $ echo 3 > /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     $ cat /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     2  # this is fine
-  4. $ echo 4 > /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     $ cat /sys/bus/iio/devices/iio\:device0/oversampling_ratio
-     4  # this is fine
-And from here-on, the values are as correct (one gets what one would
-expect.)
+Then an extra array of negative and positive values is added.  There are
+currently no such arrays within drivers, but one could expect that these
+macros behave correctly even for such arrays.
 
-While writing a kunit test for this bug, a peculiar issue was found for the
-array in the 'drivers/hwmon/ina2xx.c' & 'drivers/iio/adc/ina2xx-adc.c'
-drivers. While running the kunit test (for 'ina226_avg_tab' from these
-drivers):
-  * idx = find_closest([-1 to 2], ina226_avg_tab, ARRAY_SIZE(ina226_avg_tab));
-    This returns idx == 0, so value.
-  * idx = find_closest(3, ina226_avg_tab, ARRAY_SIZE(ina226_avg_tab));
-    This returns idx == 0, value 1; and now one could argue whether 3 is
-    closer to 4 or to 1. This quirk only appears for value '3' in this
-    array, but it seems to be a another rounding issue.
-  * And from 4 onwards the 'find_closest'() works fine (one gets what one
-    would expect).
+To run this kunit:
+  ./tools/testing/kunit/kunit.py run "*util_macros*"
 
-This change reworks the find_closest() macros to also check the difference
-between the left and right elements when 'x'. If the distance to the right
-is smaller (than the distance to the left), the index is incremented by 1.
-This also makes redundant the need for using the DIV_ROUND_CLOSEST() macro.
-
-In order to accommodate for any mix of negative + positive values, the
-internal variables '__fc_x', '__fc_mid_x', '__fc_left' & '__fc_right' are
-forced to 'long' type. This also addresses any potential bugs/issues with
-'x' being of an unsigned type. In those situations any comparison between
-signed & unsigned would be promoted to a comparison between 2 unsigned
-numbers; this is especially annoying when '__fc_left' & '__fc_right'
-underflow.
-
-The find_closest_descending() macro was also reworked and duplicated from
-the find_closest(), and it is being iterated in reverse. The main reason
-for this is to get the same indices as 'find_closest()' (but in reverse).
-The comparison for '__fc_right < __fc_left' favors going the array in
-ascending order.
-For example for array '{ 1024, 512, 256, 128, 64, 16, 4, 1 }' and x = 3, we
-get:
-    __fc_mid_x = 2
-    __fc_left = -1
-    __fc_right = -2
-    Then '__fc_right < __fc_left' evaluates to true and '__fc_i++' becomes 7
-    which is not quite incorrect, but 3 is closer to 4 than to 1.
-
-This change has been validated with the kunit from the next patch.
-
-Link: https://lkml.kernel.org/r/20241105145406.554365-1-aardelean@baylibre.com
-Fixes: 95d119528b0b ("util_macros.h: add find_closest() macro")
+Link: https://lkml.kernel.org/r/20241105145406.554365-2-aardelean@baylibre.com
 Signed-off-by: Alexandru Ardelean <aardelean@baylibre.com>
 Cc: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |   56 ++++++++++++++++++++++++----------
- 1 file changed, 40 insertions(+), 16 deletions(-)
+ lib/Kconfig.debug       |   17 ++
+ lib/Makefile            |    1 
+ lib/util_macros_kunit.c |  240 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 258 insertions(+)
 
---- a/include/linux/util_macros.h~util_macrosh-fix-rework-find_closest-macros
-+++ a/include/linux/util_macros.h
-@@ -4,19 +4,6 @@
+--- a/lib/Kconfig.debug~lib-util_macros_kunit-add-kunit-test-for-util_macrosh
++++ a/lib/Kconfig.debug
+@@ -2631,6 +2631,23 @@ config CHECKSUM_KUNIT
  
- #include <linux/math.h>
+ 	  If unsure, say N.
  
--#define __find_closest(x, a, as, op)					\
--({									\
--	typeof(as) __fc_i, __fc_as = (as) - 1;				\
--	typeof(x) __fc_x = (x);						\
--	typeof(*a) const *__fc_a = (a);					\
--	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
--		if (__fc_x op DIV_ROUND_CLOSEST(__fc_a[__fc_i] +	\
--						__fc_a[__fc_i + 1], 2))	\
--			break;						\
--	}								\
--	(__fc_i);							\
--})
--
- /**
-  * find_closest - locate the closest element in a sorted array
-  * @x: The reference value.
-@@ -25,8 +12,27 @@
-  * @as: Size of 'a'.
-  *
-  * Returns the index of the element closest to 'x'.
-+ * Note: If using an array of negative numbers (or mixed positive numbers),
-+ *       then be sure that 'x' is of a signed-type to get good results.
-  */
--#define find_closest(x, a, as) __find_closest(x, a, as, <=)
-+#define find_closest(x, a, as)						\
-+({									\
-+	typeof(as) __fc_i, __fc_as = (as) - 1;				\
-+	long __fc_mid_x, __fc_x = (x);					\
-+	long __fc_left, __fc_right;					\
-+	typeof(*a) const *__fc_a = (a);					\
-+	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
-+		__fc_mid_x = (__fc_a[__fc_i] + __fc_a[__fc_i + 1]) / 2;	\
-+		if (__fc_x <= __fc_mid_x) {				\
-+			__fc_left = __fc_x - __fc_a[__fc_i];		\
-+			__fc_right = __fc_a[__fc_i + 1] - __fc_x;	\
-+			if (__fc_right < __fc_left)			\
-+				__fc_i++;				\
-+			break;						\
-+		}							\
++config UTIL_MACROS_KUNIT
++	tristate "KUnit test util_macros.h functions at runtime" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  Enable this option to test the util_macros.h function at boot.
++
++	  KUnit tests run during boot and output the results to the debug log
++	  in TAP format (http://testanything.org/). Only useful for kernel devs
++	  running the KUnit test harness, and not intended for inclusion into a
++	  production build.
++
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
++
++	  If unsure, say N.
++
+ config HASH_KUNIT_TEST
+ 	tristate "KUnit Test for integer hash functions" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/Makefile~lib-util_macros_kunit-add-kunit-test-for-util_macrosh
++++ a/lib/Makefile
+@@ -372,6 +372,7 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
+ CFLAGS_bitfield_kunit.o := $(DISABLE_STRUCTLEAK_PLUGIN)
+ obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
+ obj-$(CONFIG_CHECKSUM_KUNIT) += checksum_kunit.o
++obj-$(CONFIG_UTIL_MACROS_KUNIT) += util_macros_kunit.o
+ obj-$(CONFIG_LIST_KUNIT_TEST) += list-test.o
+ obj-$(CONFIG_HASHTABLE_KUNIT_TEST) += hashtable_test.o
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
+diff --git a/lib/util_macros_kunit.c a/lib/util_macros_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/util_macros_kunit.c
+@@ -0,0 +1,240 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Test cases for bitfield helpers.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <kunit/test.h>
++#include <linux/util_macros.h>
++
++#define FIND_CLOSEST_RANGE_CHECK(from, to, array, exp_idx)		\
++{									\
++	int i;								\
++	for (i = from; i <= to; i++) {					\
++		int found = find_closest(i, array, ARRAY_SIZE(array));	\
++		KUNIT_ASSERT_EQ(ctx, exp_idx, found);			\
 +	}								\
-+	(__fc_i);							\
-+})
- 
- /**
-  * find_closest_descending - locate the closest element in a sorted array
-@@ -36,9 +42,27 @@
-  * @as: Size of 'a'.
-  *
-  * Similar to find_closest() but 'a' is expected to be sorted in descending
-- * order.
-+ * order. The iteration is done in reverse order, so that the comparison
-+ * of '__fc_right' & '__fc_left' also works for unsigned numbers.
-  */
--#define find_closest_descending(x, a, as) __find_closest(x, a, as, >=)
-+#define find_closest_descending(x, a, as)				\
-+({									\
-+	typeof(as) __fc_i, __fc_as = (as) - 1;				\
-+	long __fc_mid_x, __fc_x = (x);					\
-+	long __fc_left, __fc_right;					\
-+	typeof(*a) const *__fc_a = (a);					\
-+	for (__fc_i = __fc_as; __fc_i >= 1; __fc_i--) {			\
-+		__fc_mid_x = (__fc_a[__fc_i] + __fc_a[__fc_i - 1]) / 2;	\
-+		if (__fc_x <= __fc_mid_x) {				\
-+			__fc_left = __fc_x - __fc_a[__fc_i];		\
-+			__fc_right = __fc_a[__fc_i - 1] - __fc_x;	\
-+			if (__fc_right < __fc_left)			\
-+				__fc_i--;				\
-+			break;						\
-+		}							\
++}
++
++static void test_find_closest(struct kunit *ctx)
++{
++	/* This will test a few arrays that are found in drivers */
++	static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
++	static const unsigned int ad7616_oversampling_avail[] = {
++		1, 2, 4, 8, 16, 32, 64, 128,
++	};
++	static u32 wd_timeout_table[] = { 2, 4, 6, 8, 16, 32, 48, 64 };
++	static int array_prog1a[] = { 1, 2, 3, 4, 5 };
++	static u32 array_prog1b[] = { 2, 3, 4, 5, 6 };
++	static int array_prog1mix[] = { -2, -1, 0, 1, 2 };
++	static int array_prog2a[] = { 1, 3, 5, 7 };
++	static u32 array_prog2b[] = { 2, 4, 6, 8 };
++	static int array_prog3a[] = { 1, 4, 7, 10 };
++	static u32 array_prog3b[] = { 2, 5, 8, 11 };
++	static int array_prog4a[] = { 1, 5, 9, 13 };
++	static u32 array_prog4b[] = { 2, 6, 10, 14 };
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 2, ina226_avg_tab, 0);
++	FIND_CLOSEST_RANGE_CHECK(3, 10, ina226_avg_tab, 1);
++	FIND_CLOSEST_RANGE_CHECK(11, 40, ina226_avg_tab, 2);
++	FIND_CLOSEST_RANGE_CHECK(41, 96, ina226_avg_tab, 3);
++	FIND_CLOSEST_RANGE_CHECK(97, 192, ina226_avg_tab, 4);
++	FIND_CLOSEST_RANGE_CHECK(193, 384, ina226_avg_tab, 5);
++	FIND_CLOSEST_RANGE_CHECK(385, 768, ina226_avg_tab, 6);
++	FIND_CLOSEST_RANGE_CHECK(769, 2048, ina226_avg_tab, 7);
++
++	/* The array that found the bug that caused this kunit to exist */
++	FIND_CLOSEST_RANGE_CHECK(-3, 1, ad7616_oversampling_avail, 0);
++	FIND_CLOSEST_RANGE_CHECK(2, 3, ad7616_oversampling_avail, 1);
++	FIND_CLOSEST_RANGE_CHECK(4, 6, ad7616_oversampling_avail, 2);
++	FIND_CLOSEST_RANGE_CHECK(7, 12, ad7616_oversampling_avail, 3);
++	FIND_CLOSEST_RANGE_CHECK(13, 24, ad7616_oversampling_avail, 4);
++	FIND_CLOSEST_RANGE_CHECK(25, 48, ad7616_oversampling_avail, 5);
++	FIND_CLOSEST_RANGE_CHECK(49, 96, ad7616_oversampling_avail, 6);
++	FIND_CLOSEST_RANGE_CHECK(97, 256, ad7616_oversampling_avail, 7);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 3, wd_timeout_table, 0);
++	FIND_CLOSEST_RANGE_CHECK(4, 5, wd_timeout_table, 1);
++	FIND_CLOSEST_RANGE_CHECK(6, 7, wd_timeout_table, 2);
++	FIND_CLOSEST_RANGE_CHECK(8, 12, wd_timeout_table, 3);
++	FIND_CLOSEST_RANGE_CHECK(13, 24, wd_timeout_table, 4);
++	FIND_CLOSEST_RANGE_CHECK(25, 40, wd_timeout_table, 5);
++	FIND_CLOSEST_RANGE_CHECK(41, 56, wd_timeout_table, 6);
++	FIND_CLOSEST_RANGE_CHECK(57, 128, wd_timeout_table, 7);
++
++	/* One could argue that find_closest() should not be used for monotonic
++	 * arrays (like 1,2,3,4,5), but even so, it should work as long as the
++	 * array is sorted ascending. */
++	FIND_CLOSEST_RANGE_CHECK(-3, 1, array_prog1a, 0);
++	FIND_CLOSEST_RANGE_CHECK(2, 2, array_prog1a, 1);
++	FIND_CLOSEST_RANGE_CHECK(3, 3, array_prog1a, 2);
++	FIND_CLOSEST_RANGE_CHECK(4, 4, array_prog1a, 3);
++	FIND_CLOSEST_RANGE_CHECK(5, 8, array_prog1a, 4);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 2, array_prog1b, 0);
++	FIND_CLOSEST_RANGE_CHECK(3, 3, array_prog1b, 1);
++	FIND_CLOSEST_RANGE_CHECK(4, 4, array_prog1b, 2);
++	FIND_CLOSEST_RANGE_CHECK(5, 5, array_prog1b, 3);
++	FIND_CLOSEST_RANGE_CHECK(6, 8, array_prog1b, 4);
++
++	FIND_CLOSEST_RANGE_CHECK(-4, -2, array_prog1mix, 0);
++	FIND_CLOSEST_RANGE_CHECK(-1, -1, array_prog1mix, 1);
++	FIND_CLOSEST_RANGE_CHECK(0, 0, array_prog1mix, 2);
++	FIND_CLOSEST_RANGE_CHECK(1, 1, array_prog1mix, 3);
++	FIND_CLOSEST_RANGE_CHECK(2, 5, array_prog1mix, 4);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 2, array_prog2a, 0);
++	FIND_CLOSEST_RANGE_CHECK(3, 4, array_prog2a, 1);
++	FIND_CLOSEST_RANGE_CHECK(5, 6, array_prog2a, 2);
++	FIND_CLOSEST_RANGE_CHECK(7, 10, array_prog2a, 3);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 3, array_prog2b, 0);
++	FIND_CLOSEST_RANGE_CHECK(4, 5, array_prog2b, 1);
++	FIND_CLOSEST_RANGE_CHECK(6, 7, array_prog2b, 2);
++	FIND_CLOSEST_RANGE_CHECK(8, 10, array_prog2b, 3);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 2, array_prog3a, 0);
++	FIND_CLOSEST_RANGE_CHECK(3, 5, array_prog3a, 1);
++	FIND_CLOSEST_RANGE_CHECK(6, 8, array_prog3a, 2);
++	FIND_CLOSEST_RANGE_CHECK(9, 20, array_prog3a, 3);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 3, array_prog3b, 0);
++	FIND_CLOSEST_RANGE_CHECK(4, 6, array_prog3b, 1);
++	FIND_CLOSEST_RANGE_CHECK(7, 9, array_prog3b, 2);
++	FIND_CLOSEST_RANGE_CHECK(10, 20, array_prog3b, 3);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 3, array_prog4a, 0);
++	FIND_CLOSEST_RANGE_CHECK(4, 7, array_prog4a, 1);
++	FIND_CLOSEST_RANGE_CHECK(8, 11, array_prog4a, 2);
++	FIND_CLOSEST_RANGE_CHECK(12, 20, array_prog4a, 3);
++
++	FIND_CLOSEST_RANGE_CHECK(-3, 4, array_prog4b, 0);
++	FIND_CLOSEST_RANGE_CHECK(5, 8, array_prog4b, 1);
++	FIND_CLOSEST_RANGE_CHECK(9, 12, array_prog4b, 2);
++	FIND_CLOSEST_RANGE_CHECK(13, 20, array_prog4b, 3);
++}
++
++#define FIND_CLOSEST_DESC_RANGE_CHECK(from, to, array, exp_idx)	\
++{									\
++	int i;								\
++	for (i = from; i <= to; i++) {					\
++		int found = find_closest_descending(i, array,		\
++						ARRAY_SIZE(array));	\
++		KUNIT_ASSERT_EQ(ctx, exp_idx, found);			\
 +	}								\
-+	(__fc_i);							\
-+})
- 
- /**
-  * is_insidevar - check if the @ptr points inside the @var memory range.
++}
++
++static void test_find_closest_descending(struct kunit *ctx)
++{
++	/* Same arrays as 'test_find_closest' but reversed */
++	static const int ina226_avg_tab[] = { 1024, 512, 256, 128, 64, 16, 4, 1 };
++	static const unsigned int ad7616_oversampling_avail[] = {
++		128, 64, 32, 16, 8, 4, 2, 1
++	};
++	static u32 wd_timeout_table[] = { 64, 48, 32, 16, 8, 6, 4, 2 };
++	static int array_prog1a[] = { 5, 4, 3, 2, 1 };
++	static u32 array_prog1b[] = { 6, 5, 4, 3, 2 };
++	static int array_prog1mix[] = { 2, 1, 0, -1, -2 };
++	static int array_prog2a[] = { 7, 5, 3, 1 };
++	static u32 array_prog2b[] = { 8, 6, 4, 2 };
++	static int array_prog3a[] = { 10, 7, 4, 1 };
++	static u32 array_prog3b[] = { 11, 8, 5, 2 };
++	static int array_prog4a[] = { 13, 9, 5, 1 };
++	static u32 array_prog4b[] = { 14, 10, 6, 2 };
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 2, ina226_avg_tab, 7);
++	FIND_CLOSEST_DESC_RANGE_CHECK(3, 10, ina226_avg_tab, 6);
++	FIND_CLOSEST_DESC_RANGE_CHECK(11, 40, ina226_avg_tab, 5);
++	FIND_CLOSEST_DESC_RANGE_CHECK(41, 96, ina226_avg_tab, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(97, 192, ina226_avg_tab, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(193, 384, ina226_avg_tab, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(385, 768, ina226_avg_tab, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(769, 2048, ina226_avg_tab, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 1, ad7616_oversampling_avail, 7);
++	FIND_CLOSEST_DESC_RANGE_CHECK(2, 3, ad7616_oversampling_avail, 6);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 6, ad7616_oversampling_avail, 5);
++	FIND_CLOSEST_DESC_RANGE_CHECK(7, 12, ad7616_oversampling_avail, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(13, 24, ad7616_oversampling_avail, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(25, 48, ad7616_oversampling_avail, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(49, 96, ad7616_oversampling_avail, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(97, 256, ad7616_oversampling_avail, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 3, wd_timeout_table, 7);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 5, wd_timeout_table, 6);
++	FIND_CLOSEST_DESC_RANGE_CHECK(6, 7, wd_timeout_table, 5);
++	FIND_CLOSEST_DESC_RANGE_CHECK(8, 12, wd_timeout_table, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(13, 24, wd_timeout_table, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(25, 40, wd_timeout_table, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(41, 56, wd_timeout_table, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(57, 128, wd_timeout_table, 0);
++
++	/* One could argue that find_closest_descending() should not be used
++	 * for monotonic arrays (like 5,4,3,2,1), but even so, it should still
++	 * it should work as long as the array is sorted descending. */
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 1, array_prog1a, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(2, 2, array_prog1a, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(3, 3, array_prog1a, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 4, array_prog1a, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(5, 8, array_prog1a, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 2, array_prog1b, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(3, 3, array_prog1b, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 4, array_prog1b, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(5, 5, array_prog1b, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(6, 8, array_prog1b, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-4, -2, array_prog1mix, 4);
++	FIND_CLOSEST_DESC_RANGE_CHECK(-1, -1, array_prog1mix, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(0, 0, array_prog1mix, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(1, 1, array_prog1mix, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(2, 5, array_prog1mix, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 2, array_prog2a, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(3, 4, array_prog2a, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(5, 6, array_prog2a, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(7, 10, array_prog2a, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 3, array_prog2b, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 5, array_prog2b, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(6, 7, array_prog2b, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(8, 10, array_prog2b, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 2, array_prog3a, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(3, 5, array_prog3a, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(6, 8, array_prog3a, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(9, 20, array_prog3a, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 3, array_prog3b, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 6, array_prog3b, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(7, 9, array_prog3b, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(10, 20, array_prog3b, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 3, array_prog4a, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(4, 7, array_prog4a, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(8, 11, array_prog4a, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(12, 20, array_prog4a, 0);
++
++	FIND_CLOSEST_DESC_RANGE_CHECK(-3, 4, array_prog4b, 3);
++	FIND_CLOSEST_DESC_RANGE_CHECK(5, 8, array_prog4b, 2);
++	FIND_CLOSEST_DESC_RANGE_CHECK(9, 12, array_prog4b, 1);
++	FIND_CLOSEST_DESC_RANGE_CHECK(13, 20, array_prog4b, 0);
++}
++
++static struct kunit_case __refdata util_macros_test_cases[] = {
++	KUNIT_CASE(test_find_closest),
++	KUNIT_CASE(test_find_closest_descending),
++	{}
++};
++
++static struct kunit_suite util_macros_test_suite = {
++	.name = "util_macros.h",
++	.test_cases = util_macros_test_cases,
++};
++
++kunit_test_suites(&util_macros_test_suite);
++
++MODULE_AUTHOR("Alexandru Ardelean <aardelean@baylibre.com>");
++MODULE_DESCRIPTION("Test cases for util_macros.h helpers");
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from aardelean@baylibre.com are
