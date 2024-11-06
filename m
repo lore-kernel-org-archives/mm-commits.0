@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78DA1187352
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE5D18892F
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855644; cv=none; b=KkuB414oab2DyIFk9GiCzOaaVRk/cvu9dvoIu9WbaXXE00aa9lyed9V9W8Uyt2g7VKZpDUr7mDzkEo7/h1VkuhKrjW9ofmDnVYjTbPANskFcOM79wN3ZEA6sd8k8Rbri38DXQ4Tp7IHzrWfgAz5VHG61vhZsXWxa2RuiyHJzAEM=
+	t=1730855646; cv=none; b=NMo//NcaAlzcD8Ol3+IPgxuEXicxxTBVJW3wZTSd1UUW59S6ZHrP/YPDZYGBsa3eG20//8gwrEFKbi/in8OrUFN8EBqtN56+iVWjo75w21HHt36jYnO2omh61VIwdxPQp3E934nBcgjWk37zAc13P6z/5t4aRL2YrpZmC0Ak8fM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855644; c=relaxed/simple;
-	bh=qjszasWaDUvQRuHENdO9zoueEO6JkzUWOBoR2+FmsPk=;
-	h=Date:To:From:Subject:Message-Id; b=MT8FobqB/7+xYg0Kx3F+wSDXnkjRf4l97AglPfDWAaHC+EQsWOQmsA/IXVfFKYtSJYXf0lS1V9sjkmaJnxJ+ICom4qrkplaUMQpGkk/BSOknGaHcAx8mLvuDTeCzuvHn4glC9rFsTqyo68Hyl07gajaaSC0nHmmsYIVuosL6KIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IBSMdsHD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855646; c=relaxed/simple;
+	bh=mA9JxhdGG11o7oLWjXodxvljWUVf2g6qzC83+6SAaew=;
+	h=Date:To:From:Subject:Message-Id; b=pEOOLRPyB08ayCtL7hRnCrSpS5WqdcWOy6MYqkYRxmhTAdDQcAKeqE+QlQt7bZ97o2uwuxnV5x3SY4mpodGIa/VwCTwhD9UGE2oHQOmqL4BKHFJnaOr1MA6faxih/HoUdVoM3G8qpCaRLOCrtg/MdOkJgx7Dv1TeYGl/lCvrRbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2h7UUke; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IBSMdsHD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED52C4CECF;
-	Wed,  6 Nov 2024 01:14:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2h7UUke"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830EDC4CECF;
+	Wed,  6 Nov 2024 01:14:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855644;
-	bh=qjszasWaDUvQRuHENdO9zoueEO6JkzUWOBoR2+FmsPk=;
+	s=korg; t=1730855645;
+	bh=mA9JxhdGG11o7oLWjXodxvljWUVf2g6qzC83+6SAaew=;
 	h=Date:To:From:Subject:From;
-	b=IBSMdsHDOStaNDVD3gkOje+jxxNgy7Pr+ZllUnqRZpsmhT6I44ObYjMzVpTxlJlDp
-	 bpFRm3VNwp5L8uPxswPMEs6EoJOadYoyNhPfD12SoIgZqG0rhlEYN+9PG5Ms9maY0s
-	 k0rpOuslulsDTUlne0zSOTmO6TS67v7qyIkWEFO8=
-Date: Tue, 05 Nov 2024 17:14:03 -0800
+	b=E2h7UUkeN/m2awLY0y1c1U3SeUJY6HMBpSP2n3zw/RuFSwJ7dueFOu9W7ny/Z41/J
+	 yWfdSK2B6WRwVJa/7bgUdIFmE/4qM4M6ygtGu6tw/C9vJoTZxyLoyCboZPR2dVYGq5
+	 FGTs6SZq25Psw2fRgm5FVkc/vVf+fEZClscrXbi0=
+Date: Tue, 05 Nov 2024 17:14:05 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,corbet@lwn.net,colyli@suse.de,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch removed from -mm tree
-Message-Id: <20241106011404.3ED52C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch removed from -mm tree
+Message-Id: <20241106011405.830EDC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_min_heap: update min_heap_callbacks to use default builtin swap
+     Subject: perf/core: update min_heap_callbacks to use default builtin swap
 has been removed from the -mm tree.  Its filename was
-     lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap.patch
+     perf-core-update-min_heap_callbacks-to-use-default-builtin-swap.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/test_min_heap: update min_heap_callbacks to use default builtin swap
-Date: Sun, 20 Oct 2024 12:01:54 +0800
+Subject: perf/core: update min_heap_callbacks to use default builtin swap
+Date: Sun, 20 Oct 2024 12:01:55 +0800
 
-Replace the swp function pointer in the min_heap_callbacks of
-test_min_heap with NULL, allowing direct usage of the default builtin swap
-implementation.  This modification simplifies the code and improves
-performance by removing unnecessary function indirection.
+After introducing the default builtin swap implementation, update the
+min_heap_callbacks to replace the swp function pointer with NULL.  This
+change allows the min heap to directly utilize the builtin swap,
+simplifying the code.
 
-Link: https://lkml.kernel.org/r/20241020040200.939973-5-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20241020040200.939973-6-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
@@ -72,62 +72,31 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_min_heap.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ kernel/events/core.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/lib/test_min_heap.c~lib-test_min_heap-update-min_heap_callbacks-to-use-default-builtin-swap
-+++ a/lib/test_min_heap.c
-@@ -23,14 +23,6 @@ static __init bool greater_than(const vo
- 	return *(int *)lhs > *(int *)rhs;
+--- a/kernel/events/core.c~perf-core-update-min_heap_callbacks-to-use-default-builtin-swap
++++ a/kernel/events/core.c
+@@ -3778,18 +3778,11 @@ static bool perf_less_group_idx(const vo
+ 	return le->group_index < re->group_index;
  }
  
--static __init void swap_ints(void *lhs, void *rhs, void __always_unused *args)
+-static void swap_ptr(void *l, void *r, void __always_unused *args)
 -{
--	int temp = *(int *)lhs;
+-	void **lp = l, **rp = r;
 -
--	*(int *)lhs = *(int *)rhs;
--	*(int *)rhs = temp;
+-	swap(*lp, *rp);
 -}
 -
- static __init int pop_verify_heap(bool min_heap,
- 				struct min_heap_test *heap,
- 				const struct min_heap_callbacks *funcs)
-@@ -72,7 +64,7 @@ static __init int test_heapify_all(bool
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, err;
+ DEFINE_MIN_HEAP(struct perf_event *, perf_event_min_heap);
  
-@@ -104,7 +96,7 @@ static __init int test_heap_push(bool mi
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, temp, err;
+ static const struct min_heap_callbacks perf_min_heap = {
+ 	.less = perf_less_group_idx,
+-	.swp = swap_ptr,
++	.swp = NULL,
+ };
  
-@@ -136,7 +128,7 @@ static __init int test_heap_pop_push(boo
- 	};
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, temp, err;
- 
-@@ -175,7 +167,7 @@ static __init int test_heap_del(bool min
- 	heap.nr = ARRAY_SIZE(values);
- 	struct min_heap_callbacks funcs = {
- 		.less = min_heap ? less_than : greater_than,
--		.swp = swap_ints,
-+		.swp = NULL,
- 	};
- 	int i, err;
- 
+ static void __heap_add(struct perf_event_min_heap *heap, struct perf_event *event)
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
