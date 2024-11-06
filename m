@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09625184527
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F2E415B153
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854836; cv=none; b=csDq9YwLrGLvZa8umtyln5NMKt6qaYfdU5qjFnHwExrqziCCdYJ3CuVu4X0udo0qbSZqlgEql9DX0AvwdNorRYcgEGsFF0xjVJEp2OsBTzDE6he1s9Bownz66Rv8hTBB4y2YqIf1fEeLxK0k6aa659OecDRRddtcRl/v4mkmf0c=
+	t=1730854837; cv=none; b=EincKbqxfFVQSeGiWm7d2GfWVaECe942rCGnBkG+wRcFk5q96V7kRWYwZE1NxKptcz1BqAX382W6f5J/IyHVYCtdslJ7b/RFxeBMB3cKCLQLcWuSZQYCwOU7A2CoHmGD+FwGa+WUMi2o2blKqyc0zARACdVGKLnhFKKFBiQfBqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854836; c=relaxed/simple;
-	bh=hGglJVTScNHUBOwkagpxzSQG5wVnKd48pAT6I36Ye60=;
-	h=Date:To:From:Subject:Message-Id; b=cSlYvXdNeZpR9nbw/DRFVQ1RTGLxG3+OhM/wVcQ3IsiyI7QqHqGnGzCwx1oKxHM8gSCQx9Y9oD6JH8/6TYWPc0An2zBN85SaiR25vKB9b+AdEssLqXesqAiYEnjf1sdAxShmAiWpXsqRp+q0G6nuXEVzuQ5Qu52e+almHvCrMpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mKCuKVP3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854837; c=relaxed/simple;
+	bh=eJBkCtbOh6nCKLZtHjXdvxqevclJtdSPuewCZh/uAIE=;
+	h=Date:To:From:Subject:Message-Id; b=CMBWkond8NaFRWXM88llM+J0oq4oMnCneLPM0HfSUvs7quIdlkGym1EsB5lu39sGhTc0AFZEzb2o46tJqlFz0+1xtDSu/b9WEVixvwCpID8F6EqGkT+Oiv7Cr3a3OzE4USb9IMpY9ft5K3H9YtHVe0GaIwtKdFal7CMCNR/XZEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNE6uxKm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mKCuKVP3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3363C4CED1;
-	Wed,  6 Nov 2024 01:00:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNE6uxKm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E81F8C4CECF;
+	Wed,  6 Nov 2024 01:00:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854835;
-	bh=hGglJVTScNHUBOwkagpxzSQG5wVnKd48pAT6I36Ye60=;
+	s=korg; t=1730854837;
+	bh=eJBkCtbOh6nCKLZtHjXdvxqevclJtdSPuewCZh/uAIE=;
 	h=Date:To:From:Subject:From;
-	b=mKCuKVP34sH6R/+eqBJKQXgK1wjKnayZH8ca3iLT5a9p7ZtPz424WQImh90VB8VMH
-	 MA/8aP3tz/7sWSbf1iAhVBrj4jZpfNfnKRZLk9sNcFcwDm1OHZweUqROoRoNggcqcz
-	 X85eBqMVw5xqtfFAtK3ohMD8LTeqE45rI8c/gq5k=
-Date: Tue, 05 Nov 2024 17:00:35 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,surenb@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,anshuman.khandual@arm.com,souravpanda@google.com,akpm@linux-foundation.org
+	b=LNE6uxKmxDKMbGLvdnNSLHBSWOpComxOgQa0Djy0hcnHmmPXCaPZ54M3mSeOL+rH5
+	 wu8gjnalTQpx2ezXNrjrua2L6zAkXTk7wd4mKcLHDmmURfUrbEH04j5q5leS5U1gA0
+	 /iUwKwYTMY1wtD6jPb4HK/3rG+LBI0F8aCtWEeLY=
+Date: Tue, 05 Nov 2024 17:00:36 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,skhan@linuxfoundation.org,peterx@redhat.com,anupnewsmail@gmail.com,manas18244@iiitd.ac.in,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-codetag-fix-arg-in-pgalloc_tag_copy-alloc_tag_sub.patch removed from -mm tree
-Message-Id: <20241106010035.D3363C4CED1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memoryc-simplify-pfnmap_lockdep_assert.patch removed from -mm tree
+Message-Id: <20241106010036.E81F8C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/codetag: fix arg in pgalloc_tag_copy alloc_tag_sub
+     Subject: mm/memory.c: simplify pfnmap_lockdep_assert
 has been removed from the -mm tree.  Its filename was
-     mm-codetag-fix-arg-in-pgalloc_tag_copy-alloc_tag_sub.patch
+     mm-memoryc-simplify-pfnmap_lockdep_assert.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sourav Panda <souravpanda@google.com>
-Subject: mm/codetag: fix arg in pgalloc_tag_copy alloc_tag_sub
-Date: Tue, 22 Oct 2024 23:24:40 +0000
+From: Manas <manas18244@iiitd.ac.in>
+Subject: mm/memory.c: simplify pfnmap_lockdep_assert
+Date: Fri, 04 Oct 2024 23:12:16 +0530
 
-alloc_tag_sub() takes bytes as opposed to number of pages as argument.
+Use local `mapping' to reduce the pointer chasing.
 
-Currently pgalloc_tag_copy() passes the number of pages.  This fix passes
-the correct unit, which is the number of bytes allocated.
+akpm: extracted from a bugfix which Linus fixed with b1b46751671be ("mm:
+fix follow_pfnmap API lockdep assert").
 
-Link: https://lkml.kernel.org/r/20241022232440.334820-1-souravpanda@google.com
-Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
-Signed-off-by: Sourav Panda <souravpanda@google.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20241004-fix-null-deref-v4-1-d0a8ec01ac85@iiitd.ac.in
+Signed-off-by: Manas <manas18244@iiitd.ac.in>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Anup Sharma <anupnewsmail@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ mm/memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-codetag-fix-arg-in-pgalloc_tag_copy-alloc_tag_sub
-+++ a/include/linux/mm.h
-@@ -4207,7 +4207,7 @@ static inline void pgalloc_tag_copy(stru
- 	/* Clear the old ref to the original allocation tag. */
- 	clear_page_tag_ref(&old->page);
- 	/* Decrement the counters of the tag on get_new_folio. */
--	alloc_tag_sub(ref, folio_nr_pages(new));
-+	alloc_tag_sub(ref, folio_size(new));
+--- a/mm/memory.c~mm-memoryc-simplify-pfnmap_lockdep_assert
++++ a/mm/memory.c
+@@ -6388,7 +6388,7 @@ static inline void pfnmap_lockdep_assert
+ 	struct address_space *mapping = file ? file->f_mapping : NULL;
  
- 	__alloc_tag_ref_set(ref, tag);
- 
+ 	if (mapping)
+-		lockdep_assert(lockdep_is_held(&vma->vm_file->f_mapping->i_mmap_rwsem) ||
++		lockdep_assert(lockdep_is_held(&mapping->i_mmap_rwsem) ||
+ 			       lockdep_is_held(&vma->vm_mm->mmap_lock));
+ 	else
+ 		lockdep_assert(lockdep_is_held(&vma->vm_mm->mmap_lock));
 _
 
-Patches currently in -mm which might be from souravpanda@google.com are
+Patches currently in -mm which might be from manas18244@iiitd.ac.in are
 
 
