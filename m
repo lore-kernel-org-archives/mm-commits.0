@@ -1,1026 +1,242 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160E6192B9A;
-	Wed,  6 Nov 2024 06:51:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A2120A5CB;
+	Wed,  6 Nov 2024 20:22:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730875863; cv=none; b=fEGLlA+inaAk+BCkSzaHj04zGR2n50DtYJN6u1ApG9901a0IvtIX0hABX4JkofkO1vGbdH3kJKdPiYuZ06zIvNnLo65oohsP8nUbRwJXftepxAa1Lg+KlGSZWxdzmQCSMOElufQa25hQE4lx7zHJM8hCv/YNPh+76UspBLgB9Tg=
+	t=1730924565; cv=none; b=ihoGUE09Sx8UYkffx9+YlR2ujYY23rJHEq/3Qa5LHKSUdYLxGCfp599WqoVaexyrtpnPzjxh+eVFUtmWGDMC4oPIwLXSKQW2x6t65oqvuToTFkh8gSGtEDS5GUHr/2+yPiMpaDv41xo2MkXwYPgGwrK0R8AvssmxHHIvxC8jhTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730875863; c=relaxed/simple;
-	bh=XDqyONP4oKqSRYq/JLqIFa5mEwMkZbRJfs/EbuySNgs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=A6QYGkIuQy864Q9hmqX/Zvu/yHNzIR5aknz4uN942mu44fombHgNUap2PzfucZ4H0xCqyZ5mc7TC4p5kyYJJt/7LF5FGXLyQ9hxfGYM2FGpGwxXUWivp3Z5GlngKwwh6wwhdXWinos3fxinHDAr7JFJpjgZtLTLBk/rqG2hHcRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qsIqzcqF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730924565; c=relaxed/simple;
+	bh=loFtezzgK7wQHacz/t8Le8GXSKyyBX6qr0+hp8N/srY=;
+	h=Date:To:From:Subject:Message-Id; b=RLuC0ucpwABYMT2LbafdY7dWCrX3iIcbqgjr5IbyJ/YnqX0WHtbdRfACObXXL0SGCSLFx2tAuFDbGS4VdXRI/fZrtz29j2815LXN2aZ1SM19R+kJxty+ar1XQPTIdXs1taneLDxWBrB9LO57RRZgulLcfLI7cu5UvwASehiPJ4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eX3DvZ9h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qsIqzcqF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E5D4C4CECD;
-	Wed,  6 Nov 2024 06:50:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730875862;
-	bh=XDqyONP4oKqSRYq/JLqIFa5mEwMkZbRJfs/EbuySNgs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qsIqzcqFkbUusIOfiolQrldfOuhdjaaP30lfEGMvys1BPwQYC7SxDtwILhOnxFZrf
-	 Wn7u6uymGFW+zVAgzoqdxN6E1JrrUP1xl+P6218t1NQFxvhh9otqBtm1jRyIsvWwoq
-	 tb1lvQK6nhVjCL4fJPzRphzVvYBZqbys0nmgK3NEy8RnZtIrxQ66w7CjRCjoZWlIbV
-	 hTXB/Fjr1A21wRFX+em+4VvYiTch+ZTcXEl9qky25tP1QM/oARE93uaj2bBwuvcRhz
-	 hDmYA1rXtGneYLjDi8M5HjXICGj1bm9hJ3I8+62QxfBikrlZkl/HnV5isxcdxMu5Vc
-	 k58UczqRbw6Kw==
-Date: Wed, 6 Nov 2024 08:50:41 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, will@kernel.org, vgupta@kernel.org,
-	urezki@gmail.com, tsbogend@alpha.franken.de, tglx@linutronix.de,
-	surenb@google.com, song@kernel.org, shorne@gmail.com,
-	rostedt@goodmis.org, richard@nod.at, peterz@infradead.org,
-	palmer@dabbelt.com, oleg@redhat.com, mpe@ellerman.id.au,
-	monstr@monstr.eu, mingo@redhat.com, mhiramat@kernel.org,
-	mcgrof@kernel.org, mattst88@gmail.com, mark.rutland@arm.com,
-	luto@kernel.org, linux@armlinux.org.uk, Liam.Howlett@oracle.com,
-	kent.overstreet@linux.dev, kdevops@lists.linux.dev,
-	johannes@sipsolutions.net, jcmvbkbc@gmail.com, hch@lst.de,
-	guoren@kernel.org, glaubitz@physik.fu-berlin.de,
-	geert@linux-m68k.org, dinguyen@kernel.org, deller@gmx.de,
-	dave.hansen@linux.intel.com, christophe.leroy@csgroup.eu,
-	chenhuacai@kernel.org, catalin.marinas@arm.com, bp@alien8.de,
-	bcain@quicinc.com, arnd@arndb.de, ardb@kernel.org,
-	andreas@gaisler.com
-Subject: Re: [merged mm-stable]
- x86-module-prepare-module-loading-for-rox-allocations-of-text.patch removed
- from -mm tree
-Message-ID: <ZysRwR29Ji8CcbXc@kernel.org>
-References: <20241106010048.77E63C4CED1@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eX3DvZ9h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD061C4CEC6;
+	Wed,  6 Nov 2024 20:22:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1730924564;
+	bh=loFtezzgK7wQHacz/t8Le8GXSKyyBX6qr0+hp8N/srY=;
+	h=Date:To:From:Subject:From;
+	b=eX3DvZ9hNxjcMJYCl4BDggPnlOva2AB7SkC2WE8Bn720Bqp8NXVatXeK/5Obsb86O
+	 sqRKOC+l4H877re0Tx8WVsi7XPIBsL+CKnF5KuS2W1XaJGOa34HNmViYVp0CvHWGfA
+	 +JU4w87+oIbtha5WIZDawQ5vNyFC8rO5kTNbTRkQ=
+Date: Wed, 06 Nov 2024 12:22:43 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,stable@vger.kernel.org,seanjc@google.com,hughd@google.com,roman.gushchin@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241106202244.CD061C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241106010048.77E63C4CED1@smtp.kernel.org>
 
-Hi Andrew,
 
-Yesterday Nathan discovered and I fixed another small issue with fineibt.
-I suspect it's too late to add this as a fixup, so here's a formal patch
-with the fix.
+The patch titled
+     Subject: mm: page_alloc: move mlocked flag clearance into free_pages_prepare()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare.patch
 
-From b31fd8493c4e1b6042776642a812690f16575b51 Mon Sep 17 00:00:00 2001
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Tue, 5 Nov 2024 10:49:57 +0200
-Subject: [PATCH] x86/alternatives: fix writable address in cfi_rewrite_endbr()
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare.patch
 
-Commit a159950eb69f ("x86/module: prepare module loading for ROX
-allocations of text") missed the offset that should be added to the
-writable address passed to poison_endbr() from cfi_rewrite_endbr() and
-this causes boot failures on kernels running with cfi=fineibt on
-machines that support IBT.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Add required offset to wr_addr argument to fix the issue.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Fixes: a159950eb69f ("x86/module: prepare module loading for ROX allocations of text")
-Tested-by: Nathan Chancellor <nathan@kernel.org>
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: page_alloc: move mlocked flag clearance into free_pages_prepare()
+Date: Wed, 6 Nov 2024 19:53:54 +0000
+
+Syzbot reported a bad page state problem caused by a page being freed
+using free_page() still having a mlocked flag at free_pages_prepare()
+stage:
+
+  BUG: Bad page state in process syz.5.504  pfn:61f45
+  page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x61f45
+  flags: 0xfff00000080204(referenced|workingset|mlocked|node=0|zone=1|lastcpupid=0x7ff)
+  raw: 00fff00000080204 0000000000000000 dead000000000122 0000000000000000
+  raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+  page_owner tracks the page as allocated
+  page last allocated via order 0, migratetype Unmovable, gfp_mask 0x400dc0(GFP_KERNEL_ACCOUNT|__GFP_ZERO), pid 8443, tgid 8442 (syz.5.504), ts 201884660643, free_ts 201499827394
+   set_page_owner include/linux/page_owner.h:32 [inline]
+   post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1537
+   prep_new_page mm/page_alloc.c:1545 [inline]
+   get_page_from_freelist+0x303f/0x3190 mm/page_alloc.c:3457
+   __alloc_pages_noprof+0x292/0x710 mm/page_alloc.c:4733
+   alloc_pages_mpol_noprof+0x3e8/0x680 mm/mempolicy.c:2265
+   kvm_coalesced_mmio_init+0x1f/0xf0 virt/kvm/coalesced_mmio.c:99
+   kvm_create_vm virt/kvm/kvm_main.c:1235 [inline]
+   kvm_dev_ioctl_create_vm virt/kvm/kvm_main.c:5488 [inline]
+   kvm_dev_ioctl+0x12dc/0x2240 virt/kvm/kvm_main.c:5530
+   __do_compat_sys_ioctl fs/ioctl.c:1007 [inline]
+   __se_compat_sys_ioctl+0x510/0xc90 fs/ioctl.c:950
+   do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+   __do_fast_syscall_32+0xb4/0x110 arch/x86/entry/common.c:386
+   do_fast_syscall_32+0x34/0x80 arch/x86/entry/common.c:411
+   entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+  page last free pid 8399 tgid 8399 stack trace:
+   reset_page_owner include/linux/page_owner.h:25 [inline]
+   free_pages_prepare mm/page_alloc.c:1108 [inline]
+   free_unref_folios+0xf12/0x18d0 mm/page_alloc.c:2686
+   folios_put_refs+0x76c/0x860 mm/swap.c:1007
+   free_pages_and_swap_cache+0x5c8/0x690 mm/swap_state.c:335
+   __tlb_batch_free_encoded_pages mm/mmu_gather.c:136 [inline]
+   tlb_batch_pages_flush mm/mmu_gather.c:149 [inline]
+   tlb_flush_mmu_free mm/mmu_gather.c:366 [inline]
+   tlb_flush_mmu+0x3a3/0x680 mm/mmu_gather.c:373
+   tlb_finish_mmu+0xd4/0x200 mm/mmu_gather.c:465
+   exit_mmap+0x496/0xc40 mm/mmap.c:1926
+   __mmput+0x115/0x390 kernel/fork.c:1348
+   exit_mm+0x220/0x310 kernel/exit.c:571
+   do_exit+0x9b2/0x28e0 kernel/exit.c:926
+   do_group_exit+0x207/0x2c0 kernel/exit.c:1088
+   __do_sys_exit_group kernel/exit.c:1099 [inline]
+   __se_sys_exit_group kernel/exit.c:1097 [inline]
+   __x64_sys_exit_group+0x3f/0x40 kernel/exit.c:1097
+   x64_sys_call+0x2634/0x2640 arch/x86/include/generated/asm/syscalls_64.h:232
+   do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+   do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+  Modules linked in:
+  CPU: 0 UID: 0 PID: 8442 Comm: syz.5.504 Not tainted 6.12.0-rc6-syzkaller #0
+  Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
+  Call Trace:
+   <TASK>
+   __dump_stack lib/dump_stack.c:94 [inline]
+   dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
+   bad_page+0x176/0x1d0 mm/page_alloc.c:501
+   free_page_is_bad mm/page_alloc.c:918 [inline]
+   free_pages_prepare mm/page_alloc.c:1100 [inline]
+   free_unref_page+0xed0/0xf20 mm/page_alloc.c:2638
+   kvm_destroy_vm virt/kvm/kvm_main.c:1327 [inline]
+   kvm_put_kvm+0xc75/0x1350 virt/kvm/kvm_main.c:1386
+   kvm_vcpu_release+0x54/0x60 virt/kvm/kvm_main.c:4143
+   __fput+0x23f/0x880 fs/file_table.c:431
+   task_work_run+0x24f/0x310 kernel/task_work.c:239
+   exit_task_work include/linux/task_work.h:43 [inline]
+   do_exit+0xa2f/0x28e0 kernel/exit.c:939
+   do_group_exit+0x207/0x2c0 kernel/exit.c:1088
+   __do_sys_exit_group kernel/exit.c:1099 [inline]
+   __se_sys_exit_group kernel/exit.c:1097 [inline]
+   __ia32_sys_exit_group+0x3f/0x40 kernel/exit.c:1097
+   ia32_sys_call+0x2624/0x2630 arch/x86/include/generated/asm/syscalls_32.h:253
+   do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+   __do_fast_syscall_32+0xb4/0x110 arch/x86/entry/common.c:386
+   do_fast_syscall_32+0x34/0x80 arch/x86/entry/common.c:411
+   entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+  RIP: 0023:0xf745d579
+  Code: Unable to access opcode bytes at 0xf745d54f.
+  RSP: 002b:00000000f75afd6c EFLAGS: 00000206 ORIG_RAX: 00000000000000fc
+  RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000000000
+  RDX: 0000000000000000 RSI: 00000000ffffff9c RDI: 00000000f744cff4
+  RBP: 00000000f717ae61 R08: 0000000000000000 R09: 0000000000000000
+  R10: 0000000000000000 R11: 0000000000000206 R12: 0000000000000000
+  R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+   </TASK>
+
+The problem was originally introduced by commit b109b87050df ("mm/munlock:
+replace clear_page_mlock() by final clearance"): it was focused on
+handling pagecache and anonymous memory and wasn't suitable for lower
+level get_page()/free_page() API's used for example by KVM, as with this
+reproducer.
+
+Fix it by moving the mlocked flag clearance down to free_page_prepare().
+
+The bug itself if fairly old and harmless (aside from generating these
+warnings), aside from a small memory leak - "bad" pages are stopped from
+being allocated again.
+
+Link: https://lkml.kernel.org/r/20241106195354.270757-1-roman.gushchin@linux.dev
+Fixes: b109b87050df ("mm/munlock: replace clear_page_mlock() by final clearance")
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: syzbot+e985d3026c4fd041578e@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6729f475.050a0220.701a.0019.GAE@google.com
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- arch/x86/kernel/alternative.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
-index 3407efc26528..243843e44e89 100644
---- a/arch/x86/kernel/alternative.c
-+++ b/arch/x86/kernel/alternative.c
-@@ -1241,7 +1241,7 @@ static void cfi_rewrite_endbr(s32 *start, s32 *end, struct module *mod)
- 		void *addr = (void *)s + *s;
- 		void *wr_addr = module_writable_address(mod, addr);
+ mm/page_alloc.c |   15 +++++++++++++++
+ mm/swap.c       |   14 --------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
+
+--- a/mm/page_alloc.c~mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1048,6 +1048,7 @@ __always_inline bool free_pages_prepare(
+ 	bool skip_kasan_poison = should_skip_kasan_poison(page);
+ 	bool init = want_init_on_free();
+ 	bool compound = PageCompound(page);
++	struct folio *folio = page_folio(page);
  
--		poison_endbr(addr+16, wr_addr, false);
-+		poison_endbr(addr + 16, wr_addr + 16, false);
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 
+@@ -1057,6 +1058,20 @@ __always_inline bool free_pages_prepare(
+ 	if (memcg_kmem_online() && PageMemcgKmem(page))
+ 		__memcg_kmem_uncharge_page(page, order);
+ 
++	/*
++	 * In rare cases, when truncation or holepunching raced with
++	 * munlock after VM_LOCKED was cleared, Mlocked may still be
++	 * found set here.  This does not indicate a problem, unless
++	 * "unevictable_pgs_cleared" appears worryingly large.
++	 */
++	if (unlikely(folio_test_mlocked(folio))) {
++		long nr_pages = folio_nr_pages(folio);
++
++		__folio_clear_mlocked(folio);
++		zone_stat_mod_folio(folio, NR_MLOCK, -nr_pages);
++		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
++	}
++
+ 	if (unlikely(PageHWPoison(page)) && !order) {
+ 		/* Do not let hwpoison pages hit pcplists/buddy */
+ 		reset_page_owner(page, order);
+--- a/mm/swap.c~mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare
++++ a/mm/swap.c
+@@ -78,20 +78,6 @@ static void __page_cache_release(struct
+ 		lruvec_del_folio(*lruvecp, folio);
+ 		__folio_clear_lru_flags(folio);
  	}
+-
+-	/*
+-	 * In rare cases, when truncation or holepunching raced with
+-	 * munlock after VM_LOCKED was cleared, Mlocked may still be
+-	 * found set here.  This does not indicate a problem, unless
+-	 * "unevictable_pgs_cleared" appears worryingly large.
+-	 */
+-	if (unlikely(folio_test_mlocked(folio))) {
+-		long nr_pages = folio_nr_pages(folio);
+-
+-		__folio_clear_mlocked(folio);
+-		zone_stat_mod_folio(folio, NR_MLOCK, -nr_pages);
+-		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
+-	}
  }
  
--- 
-2.45.2
+ /*
+_
 
-On Tue, Nov 05, 2024 at 05:00:47PM -0800, Andrew Morton wrote:
-> 
-> The quilt patch titled
->      Subject: x86/module: prepare module loading for ROX allocations of text
-> has been removed from the -mm tree.  Its filename was
->      x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
-> 
-> This patch was dropped because it was merged into the mm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> ------------------------------------------------------
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> Subject: x86/module: prepare module loading for ROX allocations of text
-> Date: Wed, 23 Oct 2024 19:27:09 +0300
-> 
-> When module text memory will be allocated with ROX permissions, the memory
-> at the actual address where the module will live will contain invalid
-> instructions and there will be a writable copy that contains the actual
-> module code.
-> 
-> Update relocations and alternatives patching to deal with it.
-> 
-> Link: https://lkml.kernel.org/r/20241023162711.2579610-7-rppt@kernel.org
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> Tested-by: kdevops <kdevops@lists.linux.dev>
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Ard Biesheuvel <ardb@kernel.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Borislav Petkov (AMD) <bp@alien8.de>
-> Cc: Brian Cain <bcain@quicinc.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Dinh Nguyen <dinguyen@kernel.org>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Guo Ren <guoren@kernel.org>
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: Huacai Chen <chenhuacai@kernel.org>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Johannes Berg <johannes@sipsolutions.net>
-> Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Cc: Kent Overstreet <kent.overstreet@linux.dev>
-> Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-> Cc: Luis Chamberlain <mcgrof@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-> Cc: Matt Turner <mattst88@gmail.com>
-> Cc: Max Filippov <jcmvbkbc@gmail.com>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Michal Simek <monstr@monstr.eu>
-> Cc: Oleg Nesterov <oleg@redhat.com>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Richard Weinberger <richard@nod.at>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Song Liu <song@kernel.org>
-> Cc: Stafford Horne <shorne@gmail.com>
-> Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-> Cc: Vineet Gupta <vgupta@kernel.org>
-> Cc: Will Deacon <will@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/um/kernel/um_arch.c           |   11 -
->  arch/x86/entry/vdso/vma.c          |    3 
->  arch/x86/include/asm/alternative.h |   14 +-
->  arch/x86/kernel/alternative.c      |  181 +++++++++++++++------------
->  arch/x86/kernel/ftrace.c           |   30 ++--
->  arch/x86/kernel/module.c           |   45 ++++--
->  6 files changed, 167 insertions(+), 117 deletions(-)
-> 
-> --- a/arch/um/kernel/um_arch.c~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/um/kernel/um_arch.c
-> @@ -435,24 +435,25 @@ void __init arch_cpu_finalize_init(void)
->  	os_check_bugs();
->  }
->  
-> -void apply_seal_endbr(s32 *start, s32 *end)
-> +void apply_seal_endbr(s32 *start, s32 *end, struct module *mod)
->  {
->  }
->  
-> -void apply_retpolines(s32 *start, s32 *end)
-> +void apply_retpolines(s32 *start, s32 *end, struct module *mod)
->  {
->  }
->  
-> -void apply_returns(s32 *start, s32 *end)
-> +void apply_returns(s32 *start, s32 *end, struct module *mod)
->  {
->  }
->  
->  void apply_fineibt(s32 *start_retpoline, s32 *end_retpoline,
-> -		   s32 *start_cfi, s32 *end_cfi)
-> +		   s32 *start_cfi, s32 *end_cfi, struct module *mod)
->  {
->  }
->  
-> -void apply_alternatives(struct alt_instr *start, struct alt_instr *end)
-> +void apply_alternatives(struct alt_instr *start, struct alt_instr *end,
-> +			struct module *mod)
->  {
->  }
->  
-> --- a/arch/x86/entry/vdso/vma.c~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/x86/entry/vdso/vma.c
-> @@ -54,7 +54,8 @@ int __init init_vdso_image(const struct
->  
->  	apply_alternatives((struct alt_instr *)(image->data + image->alt),
->  			   (struct alt_instr *)(image->data + image->alt +
-> -						image->alt_len));
-> +						image->alt_len),
-> +			   NULL);
->  
->  	return 0;
->  }
-> --- a/arch/x86/include/asm/alternative.h~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/x86/include/asm/alternative.h
-> @@ -96,16 +96,16 @@ extern struct alt_instr __alt_instructio
->   * instructions were patched in already:
->   */
->  extern int alternatives_patched;
-> +struct module;
->  
->  extern void alternative_instructions(void);
-> -extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
-> -extern void apply_retpolines(s32 *start, s32 *end);
-> -extern void apply_returns(s32 *start, s32 *end);
-> -extern void apply_seal_endbr(s32 *start, s32 *end);
-> +extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end,
-> +			       struct module *mod);
-> +extern void apply_retpolines(s32 *start, s32 *end, struct module *mod);
-> +extern void apply_returns(s32 *start, s32 *end, struct module *mod);
-> +extern void apply_seal_endbr(s32 *start, s32 *end, struct module *mod);
->  extern void apply_fineibt(s32 *start_retpoline, s32 *end_retpoine,
-> -			  s32 *start_cfi, s32 *end_cfi);
-> -
-> -struct module;
-> +			  s32 *start_cfi, s32 *end_cfi, struct module *mod);
->  
->  struct callthunk_sites {
->  	s32				*call_start, *call_end;
-> --- a/arch/x86/kernel/alternative.c~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/x86/kernel/alternative.c
-> @@ -392,8 +392,10 @@ EXPORT_SYMBOL(BUG_func);
->   * Rewrite the "call BUG_func" replacement to point to the target of the
->   * indirect pv_ops call "call *disp(%ip)".
->   */
-> -static int alt_replace_call(u8 *instr, u8 *insn_buff, struct alt_instr *a)
-> +static int alt_replace_call(u8 *instr, u8 *insn_buff, struct alt_instr *a,
-> +			    struct module *mod)
->  {
-> +	u8 *wr_instr = module_writable_address(mod, instr);
->  	void *target, *bug = &BUG_func;
->  	s32 disp;
->  
-> @@ -403,14 +405,14 @@ static int alt_replace_call(u8 *instr, u
->  	}
->  
->  	if (a->instrlen != 6 ||
-> -	    instr[0] != CALL_RIP_REL_OPCODE ||
-> -	    instr[1] != CALL_RIP_REL_MODRM) {
-> +	    wr_instr[0] != CALL_RIP_REL_OPCODE ||
-> +	    wr_instr[1] != CALL_RIP_REL_MODRM) {
->  		pr_err("ALT_FLAG_DIRECT_CALL set for unrecognized indirect call\n");
->  		BUG();
->  	}
->  
->  	/* Skip CALL_RIP_REL_OPCODE and CALL_RIP_REL_MODRM */
-> -	disp = *(s32 *)(instr + 2);
-> +	disp = *(s32 *)(wr_instr + 2);
->  #ifdef CONFIG_X86_64
->  	/* ff 15 00 00 00 00   call   *0x0(%rip) */
->  	/* target address is stored at "next instruction + disp". */
-> @@ -448,7 +450,8 @@ static inline u8 * instr_va(struct alt_i
->   * to refetch changed I$ lines.
->   */
->  void __init_or_module noinline apply_alternatives(struct alt_instr *start,
-> -						  struct alt_instr *end)
-> +						  struct alt_instr *end,
-> +						  struct module *mod)
->  {
->  	u8 insn_buff[MAX_PATCH_LEN];
->  	u8 *instr, *replacement;
-> @@ -477,6 +480,7 @@ void __init_or_module noinline apply_alt
->  	 */
->  	for (a = start; a < end; a++) {
->  		int insn_buff_sz = 0;
-> +		u8 *wr_instr, *wr_replacement;
->  
->  		/*
->  		 * In case of nested ALTERNATIVE()s the outer alternative might
-> @@ -490,7 +494,11 @@ void __init_or_module noinline apply_alt
->  		}
->  
->  		instr = instr_va(a);
-> +		wr_instr = module_writable_address(mod, instr);
-> +
->  		replacement = (u8 *)&a->repl_offset + a->repl_offset;
-> +		wr_replacement = module_writable_address(mod, replacement);
-> +
->  		BUG_ON(a->instrlen > sizeof(insn_buff));
->  		BUG_ON(a->cpuid >= (NCAPINTS + NBUGINTS) * 32);
->  
-> @@ -501,9 +509,9 @@ void __init_or_module noinline apply_alt
->  		 *   patch if feature is *NOT* present.
->  		 */
->  		if (!boot_cpu_has(a->cpuid) == !(a->flags & ALT_FLAG_NOT)) {
-> -			memcpy(insn_buff, instr, a->instrlen);
-> +			memcpy(insn_buff, wr_instr, a->instrlen);
->  			optimize_nops(instr, insn_buff, a->instrlen);
-> -			text_poke_early(instr, insn_buff, a->instrlen);
-> +			text_poke_early(wr_instr, insn_buff, a->instrlen);
->  			continue;
->  		}
->  
-> @@ -513,11 +521,12 @@ void __init_or_module noinline apply_alt
->  			instr, instr, a->instrlen,
->  			replacement, a->replacementlen, a->flags);
->  
-> -		memcpy(insn_buff, replacement, a->replacementlen);
-> +		memcpy(insn_buff, wr_replacement, a->replacementlen);
->  		insn_buff_sz = a->replacementlen;
->  
->  		if (a->flags & ALT_FLAG_DIRECT_CALL) {
-> -			insn_buff_sz = alt_replace_call(instr, insn_buff, a);
-> +			insn_buff_sz = alt_replace_call(instr, insn_buff, a,
-> +							mod);
->  			if (insn_buff_sz < 0)
->  				continue;
->  		}
-> @@ -527,11 +536,11 @@ void __init_or_module noinline apply_alt
->  
->  		apply_relocation(insn_buff, instr, a->instrlen, replacement, a->replacementlen);
->  
-> -		DUMP_BYTES(ALT, instr, a->instrlen, "%px:   old_insn: ", instr);
-> +		DUMP_BYTES(ALT, wr_instr, a->instrlen, "%px:   old_insn: ", instr);
->  		DUMP_BYTES(ALT, replacement, a->replacementlen, "%px:   rpl_insn: ", replacement);
->  		DUMP_BYTES(ALT, insn_buff, insn_buff_sz, "%px: final_insn: ", instr);
->  
-> -		text_poke_early(instr, insn_buff, insn_buff_sz);
-> +		text_poke_early(wr_instr, insn_buff, insn_buff_sz);
->  	}
->  
->  	kasan_enable_current();
-> @@ -722,18 +731,20 @@ static int patch_retpoline(void *addr, s
->  /*
->   * Generated by 'objtool --retpoline'.
->   */
-> -void __init_or_module noinline apply_retpolines(s32 *start, s32 *end)
-> +void __init_or_module noinline apply_retpolines(s32 *start, s32 *end,
-> +						struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  		struct insn insn;
->  		int len, ret;
->  		u8 bytes[16];
->  		u8 op1, op2;
->  
-> -		ret = insn_decode_kernel(&insn, addr);
-> +		ret = insn_decode_kernel(&insn, wr_addr);
->  		if (WARN_ON_ONCE(ret < 0))
->  			continue;
->  
-> @@ -761,9 +772,9 @@ void __init_or_module noinline apply_ret
->  		len = patch_retpoline(addr, &insn, bytes);
->  		if (len == insn.length) {
->  			optimize_nops(addr, bytes, len);
-> -			DUMP_BYTES(RETPOLINE, ((u8*)addr),  len, "%px: orig: ", addr);
-> +			DUMP_BYTES(RETPOLINE, ((u8*)wr_addr),  len, "%px: orig: ", addr);
->  			DUMP_BYTES(RETPOLINE, ((u8*)bytes), len, "%px: repl: ", addr);
-> -			text_poke_early(addr, bytes, len);
-> +			text_poke_early(wr_addr, bytes, len);
->  		}
->  	}
->  }
-> @@ -799,7 +810,8 @@ static int patch_return(void *addr, stru
->  	return i;
->  }
->  
-> -void __init_or_module noinline apply_returns(s32 *start, s32 *end)
-> +void __init_or_module noinline apply_returns(s32 *start, s32 *end,
-> +					     struct module *mod)
->  {
->  	s32 *s;
->  
-> @@ -808,12 +820,13 @@ void __init_or_module noinline apply_ret
->  
->  	for (s = start; s < end; s++) {
->  		void *dest = NULL, *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  		struct insn insn;
->  		int len, ret;
->  		u8 bytes[16];
->  		u8 op;
->  
-> -		ret = insn_decode_kernel(&insn, addr);
-> +		ret = insn_decode_kernel(&insn, wr_addr);
->  		if (WARN_ON_ONCE(ret < 0))
->  			continue;
->  
-> @@ -833,32 +846,35 @@ void __init_or_module noinline apply_ret
->  
->  		len = patch_return(addr, &insn, bytes);
->  		if (len == insn.length) {
-> -			DUMP_BYTES(RET, ((u8*)addr),  len, "%px: orig: ", addr);
-> +			DUMP_BYTES(RET, ((u8*)wr_addr),  len, "%px: orig: ", addr);
->  			DUMP_BYTES(RET, ((u8*)bytes), len, "%px: repl: ", addr);
-> -			text_poke_early(addr, bytes, len);
-> +			text_poke_early(wr_addr, bytes, len);
->  		}
->  	}
->  }
->  #else
-> -void __init_or_module noinline apply_returns(s32 *start, s32 *end) { }
-> +void __init_or_module noinline apply_returns(s32 *start, s32 *end,
-> +					     struct module *mod) { }
->  #endif /* CONFIG_MITIGATION_RETHUNK */
->  
->  #else /* !CONFIG_MITIGATION_RETPOLINE || !CONFIG_OBJTOOL */
->  
-> -void __init_or_module noinline apply_retpolines(s32 *start, s32 *end) { }
-> -void __init_or_module noinline apply_returns(s32 *start, s32 *end) { }
-> +void __init_or_module noinline apply_retpolines(s32 *start, s32 *end,
-> +						struct module *mod) { }
-> +void __init_or_module noinline apply_returns(s32 *start, s32 *end,
-> +					     struct module *mod) { }
->  
->  #endif /* CONFIG_MITIGATION_RETPOLINE && CONFIG_OBJTOOL */
->  
->  #ifdef CONFIG_X86_KERNEL_IBT
->  
-> -static void poison_cfi(void *addr);
-> +static void poison_cfi(void *addr, void *wr_addr);
->  
-> -static void __init_or_module poison_endbr(void *addr, bool warn)
-> +static void __init_or_module poison_endbr(void *addr, void *wr_addr, bool warn)
->  {
->  	u32 endbr, poison = gen_endbr_poison();
->  
-> -	if (WARN_ON_ONCE(get_kernel_nofault(endbr, addr)))
-> +	if (WARN_ON_ONCE(get_kernel_nofault(endbr, wr_addr)))
->  		return;
->  
->  	if (!is_endbr(endbr)) {
-> @@ -873,7 +889,7 @@ static void __init_or_module poison_endb
->  	 */
->  	DUMP_BYTES(ENDBR, ((u8*)addr), 4, "%px: orig: ", addr);
->  	DUMP_BYTES(ENDBR, ((u8*)&poison), 4, "%px: repl: ", addr);
-> -	text_poke_early(addr, &poison, 4);
-> +	text_poke_early(wr_addr, &poison, 4);
->  }
->  
->  /*
-> @@ -882,22 +898,23 @@ static void __init_or_module poison_endb
->   * Seal the functions for indirect calls by clobbering the ENDBR instructions
->   * and the kCFI hash value.
->   */
-> -void __init_or_module noinline apply_seal_endbr(s32 *start, s32 *end)
-> +void __init_or_module noinline apply_seal_endbr(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  
-> -		poison_endbr(addr, true);
-> +		poison_endbr(addr, wr_addr, true);
->  		if (IS_ENABLED(CONFIG_FINEIBT))
-> -			poison_cfi(addr - 16);
-> +			poison_cfi(addr - 16, wr_addr - 16);
->  	}
->  }
->  
->  #else
->  
-> -void __init_or_module apply_seal_endbr(s32 *start, s32 *end) { }
-> +void __init_or_module apply_seal_endbr(s32 *start, s32 *end, struct module *mod) { }
->  
->  #endif /* CONFIG_X86_KERNEL_IBT */
->  
-> @@ -1119,7 +1136,7 @@ static u32 decode_caller_hash(void *addr
->  }
->  
->  /* .retpoline_sites */
-> -static int cfi_disable_callers(s32 *start, s32 *end)
-> +static int cfi_disable_callers(s32 *start, s32 *end, struct module *mod)
->  {
->  	/*
->  	 * Disable kCFI by patching in a JMP.d8, this leaves the hash immediate
-> @@ -1131,20 +1148,23 @@ static int cfi_disable_callers(s32 *star
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
-> +
->  		if (!hash) /* nocfi callers */
->  			continue;
->  
-> -		text_poke_early(addr, jmp, 2);
-> +		text_poke_early(wr_addr, jmp, 2);
->  	}
->  
->  	return 0;
->  }
->  
-> -static int cfi_enable_callers(s32 *start, s32 *end)
-> +static int cfi_enable_callers(s32 *start, s32 *end, struct module *mod)
->  {
->  	/*
->  	 * Re-enable kCFI, undo what cfi_disable_callers() did.
-> @@ -1154,106 +1174,115 @@ static int cfi_enable_callers(s32 *start
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (!hash) /* nocfi callers */
->  			continue;
->  
-> -		text_poke_early(addr, mov, 2);
-> +		text_poke_early(wr_addr, mov, 2);
->  	}
->  
->  	return 0;
->  }
->  
->  /* .cfi_sites */
-> -static int cfi_rand_preamble(s32 *start, s32 *end)
-> +static int cfi_rand_preamble(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  		u32 hash;
->  
-> -		hash = decode_preamble_hash(addr);
-> +		hash = decode_preamble_hash(wr_addr);
->  		if (WARN(!hash, "no CFI hash found at: %pS %px %*ph\n",
->  			 addr, addr, 5, addr))
->  			return -EINVAL;
->  
->  		hash = cfi_rehash(hash);
-> -		text_poke_early(addr + 1, &hash, 4);
-> +		text_poke_early(wr_addr + 1, &hash, 4);
->  	}
->  
->  	return 0;
->  }
->  
-> -static int cfi_rewrite_preamble(s32 *start, s32 *end)
-> +static int cfi_rewrite_preamble(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  		u32 hash;
->  
-> -		hash = decode_preamble_hash(addr);
-> +		hash = decode_preamble_hash(wr_addr);
->  		if (WARN(!hash, "no CFI hash found at: %pS %px %*ph\n",
->  			 addr, addr, 5, addr))
->  			return -EINVAL;
->  
-> -		text_poke_early(addr, fineibt_preamble_start, fineibt_preamble_size);
-> -		WARN_ON(*(u32 *)(addr + fineibt_preamble_hash) != 0x12345678);
-> -		text_poke_early(addr + fineibt_preamble_hash, &hash, 4);
-> +		text_poke_early(wr_addr, fineibt_preamble_start, fineibt_preamble_size);
-> +		WARN_ON(*(u32 *)(wr_addr + fineibt_preamble_hash) != 0x12345678);
-> +		text_poke_early(wr_addr + fineibt_preamble_hash, &hash, 4);
->  	}
->  
->  	return 0;
->  }
->  
-> -static void cfi_rewrite_endbr(s32 *start, s32 *end)
-> +static void cfi_rewrite_endbr(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr = module_writable_address(mod, addr);
->  
-> -		poison_endbr(addr+16, false);
-> +		poison_endbr(addr+16, wr_addr, false);
->  	}
->  }
->  
->  /* .retpoline_sites */
-> -static int cfi_rand_callers(s32 *start, s32 *end)
-> +static int cfi_rand_callers(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (hash) {
->  			hash = -cfi_rehash(hash);
-> -			text_poke_early(addr + 2, &hash, 4);
-> +			text_poke_early(wr_addr + 2, &hash, 4);
->  		}
->  	}
->  
->  	return 0;
->  }
->  
-> -static int cfi_rewrite_callers(s32 *start, s32 *end)
-> +static int cfi_rewrite_callers(s32 *start, s32 *end, struct module *mod)
->  {
->  	s32 *s;
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (hash) {
-> -			text_poke_early(addr, fineibt_caller_start, fineibt_caller_size);
-> -			WARN_ON(*(u32 *)(addr + fineibt_caller_hash) != 0x12345678);
-> -			text_poke_early(addr + fineibt_caller_hash, &hash, 4);
-> +			text_poke_early(wr_addr, fineibt_caller_start, fineibt_caller_size);
-> +			WARN_ON(*(u32 *)(wr_addr + fineibt_caller_hash) != 0x12345678);
-> +			text_poke_early(wr_addr + fineibt_caller_hash, &hash, 4);
->  		}
->  		/* rely on apply_retpolines() */
->  	}
-> @@ -1262,8 +1291,9 @@ static int cfi_rewrite_callers(s32 *star
->  }
->  
->  static void __apply_fineibt(s32 *start_retpoline, s32 *end_retpoline,
-> -			    s32 *start_cfi, s32 *end_cfi, bool builtin)
-> +			    s32 *start_cfi, s32 *end_cfi, struct module *mod)
->  {
-> +	bool builtin = mod ? false : true;
->  	int ret;
->  
->  	if (WARN_ONCE(fineibt_preamble_size != 16,
-> @@ -1281,7 +1311,7 @@ static void __apply_fineibt(s32 *start_r
->  	 * rewrite them. This disables all CFI. If this succeeds but any of the
->  	 * later stages fails, we're without CFI.
->  	 */
-> -	ret = cfi_disable_callers(start_retpoline, end_retpoline);
-> +	ret = cfi_disable_callers(start_retpoline, end_retpoline, mod);
->  	if (ret)
->  		goto err;
->  
-> @@ -1292,11 +1322,11 @@ static void __apply_fineibt(s32 *start_r
->  			cfi_bpf_subprog_hash = cfi_rehash(cfi_bpf_subprog_hash);
->  		}
->  
-> -		ret = cfi_rand_preamble(start_cfi, end_cfi);
-> +		ret = cfi_rand_preamble(start_cfi, end_cfi, mod);
->  		if (ret)
->  			goto err;
->  
-> -		ret = cfi_rand_callers(start_retpoline, end_retpoline);
-> +		ret = cfi_rand_callers(start_retpoline, end_retpoline, mod);
->  		if (ret)
->  			goto err;
->  	}
-> @@ -1308,7 +1338,7 @@ static void __apply_fineibt(s32 *start_r
->  		return;
->  
->  	case CFI_KCFI:
-> -		ret = cfi_enable_callers(start_retpoline, end_retpoline);
-> +		ret = cfi_enable_callers(start_retpoline, end_retpoline, mod);
->  		if (ret)
->  			goto err;
->  
-> @@ -1318,17 +1348,17 @@ static void __apply_fineibt(s32 *start_r
->  
->  	case CFI_FINEIBT:
->  		/* place the FineIBT preamble at func()-16 */
-> -		ret = cfi_rewrite_preamble(start_cfi, end_cfi);
-> +		ret = cfi_rewrite_preamble(start_cfi, end_cfi, mod);
->  		if (ret)
->  			goto err;
->  
->  		/* rewrite the callers to target func()-16 */
-> -		ret = cfi_rewrite_callers(start_retpoline, end_retpoline);
-> +		ret = cfi_rewrite_callers(start_retpoline, end_retpoline, mod);
->  		if (ret)
->  			goto err;
->  
->  		/* now that nobody targets func()+0, remove ENDBR there */
-> -		cfi_rewrite_endbr(start_cfi, end_cfi);
-> +		cfi_rewrite_endbr(start_cfi, end_cfi, mod);
->  
->  		if (builtin)
->  			pr_info("Using FineIBT CFI\n");
-> @@ -1347,7 +1377,7 @@ static inline void poison_hash(void *add
->  	*(u32 *)addr = 0;
->  }
->  
-> -static void poison_cfi(void *addr)
-> +static void poison_cfi(void *addr, void *wr_addr)
->  {
->  	switch (cfi_mode) {
->  	case CFI_FINEIBT:
-> @@ -1359,8 +1389,8 @@ static void poison_cfi(void *addr)
->  		 *	ud2
->  		 * 1:	nop
->  		 */
-> -		poison_endbr(addr, false);
-> -		poison_hash(addr + fineibt_preamble_hash);
-> +		poison_endbr(addr, wr_addr, false);
-> +		poison_hash(wr_addr + fineibt_preamble_hash);
->  		break;
->  
->  	case CFI_KCFI:
-> @@ -1369,7 +1399,7 @@ static void poison_cfi(void *addr)
->  		 *	movl	$0, %eax
->  		 *	.skip	11, 0x90
->  		 */
-> -		poison_hash(addr + 1);
-> +		poison_hash(wr_addr + 1);
->  		break;
->  
->  	default:
-> @@ -1380,22 +1410,21 @@ static void poison_cfi(void *addr)
->  #else
->  
->  static void __apply_fineibt(s32 *start_retpoline, s32 *end_retpoline,
-> -			    s32 *start_cfi, s32 *end_cfi, bool builtin)
-> +			    s32 *start_cfi, s32 *end_cfi, struct module *mod)
->  {
->  }
->  
->  #ifdef CONFIG_X86_KERNEL_IBT
-> -static void poison_cfi(void *addr) { }
-> +static void poison_cfi(void *addr, void *wr_addr) { }
->  #endif
->  
->  #endif
->  
->  void apply_fineibt(s32 *start_retpoline, s32 *end_retpoline,
-> -		   s32 *start_cfi, s32 *end_cfi)
-> +		   s32 *start_cfi, s32 *end_cfi, struct module *mod)
->  {
->  	return __apply_fineibt(start_retpoline, end_retpoline,
-> -			       start_cfi, end_cfi,
-> -			       /* .builtin = */ false);
-> +			       start_cfi, end_cfi, mod);
->  }
->  
->  #ifdef CONFIG_SMP
-> @@ -1692,16 +1721,16 @@ void __init alternative_instructions(voi
->  	paravirt_set_cap();
->  
->  	__apply_fineibt(__retpoline_sites, __retpoline_sites_end,
-> -			__cfi_sites, __cfi_sites_end, true);
-> +			__cfi_sites, __cfi_sites_end, NULL);
->  
->  	/*
->  	 * Rewrite the retpolines, must be done before alternatives since
->  	 * those can rewrite the retpoline thunks.
->  	 */
-> -	apply_retpolines(__retpoline_sites, __retpoline_sites_end);
-> -	apply_returns(__return_sites, __return_sites_end);
-> +	apply_retpolines(__retpoline_sites, __retpoline_sites_end, NULL);
-> +	apply_returns(__return_sites, __return_sites_end, NULL);
->  
-> -	apply_alternatives(__alt_instructions, __alt_instructions_end);
-> +	apply_alternatives(__alt_instructions, __alt_instructions_end, NULL);
->  
->  	/*
->  	 * Now all calls are established. Apply the call thunks if
-> @@ -1712,7 +1741,7 @@ void __init alternative_instructions(voi
->  	/*
->  	 * Seal all functions that do not have their address taken.
->  	 */
-> -	apply_seal_endbr(__ibt_endbr_seal, __ibt_endbr_seal_end);
-> +	apply_seal_endbr(__ibt_endbr_seal, __ibt_endbr_seal_end, NULL);
->  
->  #ifdef CONFIG_SMP
->  	/* Patch to UP if other cpus not imminent. */
-> --- a/arch/x86/kernel/ftrace.c~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/x86/kernel/ftrace.c
-> @@ -118,10 +118,13 @@ ftrace_modify_code_direct(unsigned long
->  		return ret;
->  
->  	/* replace the text with the new text */
-> -	if (ftrace_poke_late)
-> +	if (ftrace_poke_late) {
->  		text_poke_queue((void *)ip, new_code, MCOUNT_INSN_SIZE, NULL);
-> -	else
-> -		text_poke_early((void *)ip, new_code, MCOUNT_INSN_SIZE);
-> +	} else {
-> +		mutex_lock(&text_mutex);
-> +		text_poke((void *)ip, new_code, MCOUNT_INSN_SIZE);
-> +		mutex_unlock(&text_mutex);
-> +	}
->  	return 0;
->  }
->  
-> @@ -318,7 +321,7 @@ create_trampoline(struct ftrace_ops *ops
->  	unsigned const char op_ref[] = { 0x48, 0x8b, 0x15 };
->  	unsigned const char retq[] = { RET_INSN_OPCODE, INT3_INSN_OPCODE };
->  	union ftrace_op_code_union op_ptr;
-> -	int ret;
-> +	void *ret;
->  
->  	if (ops->flags & FTRACE_OPS_FL_SAVE_REGS) {
->  		start_offset = (unsigned long)ftrace_regs_caller;
-> @@ -349,15 +352,15 @@ create_trampoline(struct ftrace_ops *ops
->  	npages = DIV_ROUND_UP(*tramp_size, PAGE_SIZE);
->  
->  	/* Copy ftrace_caller onto the trampoline memory */
-> -	ret = copy_from_kernel_nofault(trampoline, (void *)start_offset, size);
-> -	if (WARN_ON(ret < 0))
-> +	ret = text_poke_copy(trampoline, (void *)start_offset, size);
-> +	if (WARN_ON(!ret))
->  		goto fail;
->  
->  	ip = trampoline + size;
->  	if (cpu_feature_enabled(X86_FEATURE_RETHUNK))
->  		__text_gen_insn(ip, JMP32_INSN_OPCODE, ip, x86_return_thunk, JMP32_INSN_SIZE);
->  	else
-> -		memcpy(ip, retq, sizeof(retq));
-> +		text_poke_copy(ip, retq, sizeof(retq));
->  
->  	/* No need to test direct calls on created trampolines */
->  	if (ops->flags & FTRACE_OPS_FL_SAVE_REGS) {
-> @@ -365,8 +368,7 @@ create_trampoline(struct ftrace_ops *ops
->  		ip = trampoline + (jmp_offset - start_offset);
->  		if (WARN_ON(*(char *)ip != 0x75))
->  			goto fail;
-> -		ret = copy_from_kernel_nofault(ip, x86_nops[2], 2);
-> -		if (ret < 0)
-> +		if (!text_poke_copy(ip, x86_nops[2], 2))
->  			goto fail;
->  	}
->  
-> @@ -379,7 +381,7 @@ create_trampoline(struct ftrace_ops *ops
->  	 */
->  
->  	ptr = (unsigned long *)(trampoline + size + RET_SIZE);
-> -	*ptr = (unsigned long)ops;
-> +	text_poke_copy(ptr, &ops, sizeof(unsigned long));
->  
->  	op_offset -= start_offset;
->  	memcpy(&op_ptr, trampoline + op_offset, OP_REF_SIZE);
-> @@ -395,7 +397,7 @@ create_trampoline(struct ftrace_ops *ops
->  	op_ptr.offset = offset;
->  
->  	/* put in the new offset to the ftrace_ops */
-> -	memcpy(trampoline + op_offset, &op_ptr, OP_REF_SIZE);
-> +	text_poke_copy(trampoline + op_offset, &op_ptr, OP_REF_SIZE);
->  
->  	/* put in the call to the function */
->  	mutex_lock(&text_mutex);
-> @@ -405,9 +407,9 @@ create_trampoline(struct ftrace_ops *ops
->  	 * the depth accounting before the call already.
->  	 */
->  	dest = ftrace_ops_get_func(ops);
-> -	memcpy(trampoline + call_offset,
-> -	       text_gen_insn(CALL_INSN_OPCODE, trampoline + call_offset, dest),
-> -	       CALL_INSN_SIZE);
-> +	text_poke_copy_locked(trampoline + call_offset,
-> +	      text_gen_insn(CALL_INSN_OPCODE, trampoline + call_offset, dest),
-> +	      CALL_INSN_SIZE, false);
->  	mutex_unlock(&text_mutex);
->  
->  	/* ALLOC_TRAMP flags lets us know we created it */
-> --- a/arch/x86/kernel/module.c~x86-module-prepare-module-loading-for-rox-allocations-of-text
-> +++ a/arch/x86/kernel/module.c
-> @@ -146,18 +146,21 @@ static int __write_relocate_add(Elf64_Sh
->  		}
->  
->  		if (apply) {
-> -			if (memcmp(loc, &zero, size)) {
-> +			void *wr_loc = module_writable_address(me, loc);
-> +
-> +			if (memcmp(wr_loc, &zero, size)) {
->  				pr_err("x86/modules: Invalid relocation target, existing value is nonzero for type %d, loc %p, val %Lx\n",
->  				       (int)ELF64_R_TYPE(rel[i].r_info), loc, val);
->  				return -ENOEXEC;
->  			}
-> -			write(loc, &val, size);
-> +			write(wr_loc, &val, size);
->  		} else {
->  			if (memcmp(loc, &val, size)) {
->  				pr_warn("x86/modules: Invalid relocation target, existing value does not match expected value for type %d, loc %p, val %Lx\n",
->  					(int)ELF64_R_TYPE(rel[i].r_info), loc, val);
->  				return -ENOEXEC;
->  			}
-> +			/* FIXME: needs care for ROX module allocations */
->  			write(loc, &zero, size);
->  		}
->  	}
-> @@ -224,7 +227,7 @@ int module_finalize(const Elf_Ehdr *hdr,
->  		    const Elf_Shdr *sechdrs,
->  		    struct module *me)
->  {
-> -	const Elf_Shdr *s, *alt = NULL, *locks = NULL,
-> +	const Elf_Shdr *s, *alt = NULL,
->  		*orc = NULL, *orc_ip = NULL,
->  		*retpolines = NULL, *returns = NULL, *ibt_endbr = NULL,
->  		*calls = NULL, *cfi = NULL;
-> @@ -233,8 +236,6 @@ int module_finalize(const Elf_Ehdr *hdr,
->  	for (s = sechdrs; s < sechdrs + hdr->e_shnum; s++) {
->  		if (!strcmp(".altinstructions", secstrings + s->sh_name))
->  			alt = s;
-> -		if (!strcmp(".smp_locks", secstrings + s->sh_name))
-> -			locks = s;
->  		if (!strcmp(".orc_unwind", secstrings + s->sh_name))
->  			orc = s;
->  		if (!strcmp(".orc_unwind_ip", secstrings + s->sh_name))
-> @@ -265,20 +266,20 @@ int module_finalize(const Elf_Ehdr *hdr,
->  			csize = cfi->sh_size;
->  		}
->  
-> -		apply_fineibt(rseg, rseg + rsize, cseg, cseg + csize);
-> +		apply_fineibt(rseg, rseg + rsize, cseg, cseg + csize, me);
->  	}
->  	if (retpolines) {
->  		void *rseg = (void *)retpolines->sh_addr;
-> -		apply_retpolines(rseg, rseg + retpolines->sh_size);
-> +		apply_retpolines(rseg, rseg + retpolines->sh_size, me);
->  	}
->  	if (returns) {
->  		void *rseg = (void *)returns->sh_addr;
-> -		apply_returns(rseg, rseg + returns->sh_size);
-> +		apply_returns(rseg, rseg + returns->sh_size, me);
->  	}
->  	if (alt) {
->  		/* patch .altinstructions */
->  		void *aseg = (void *)alt->sh_addr;
-> -		apply_alternatives(aseg, aseg + alt->sh_size);
-> +		apply_alternatives(aseg, aseg + alt->sh_size, me);
->  	}
->  	if (calls || alt) {
->  		struct callthunk_sites cs = {};
-> @@ -297,8 +298,28 @@ int module_finalize(const Elf_Ehdr *hdr,
->  	}
->  	if (ibt_endbr) {
->  		void *iseg = (void *)ibt_endbr->sh_addr;
-> -		apply_seal_endbr(iseg, iseg + ibt_endbr->sh_size);
-> +		apply_seal_endbr(iseg, iseg + ibt_endbr->sh_size, me);
->  	}
-> +
-> +	if (orc && orc_ip)
-> +		unwind_module_init(me, (void *)orc_ip->sh_addr, orc_ip->sh_size,
-> +				   (void *)orc->sh_addr, orc->sh_size);
-> +
-> +	return 0;
-> +}
-> +
-> +int module_post_finalize(const Elf_Ehdr *hdr,
-> +			 const Elf_Shdr *sechdrs,
-> +			 struct module *me)
-> +{
-> +	const Elf_Shdr *s, *locks = NULL;
-> +	char *secstrings = (void *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
-> +
-> +	for (s = sechdrs; s < sechdrs + hdr->e_shnum; s++) {
-> +		if (!strcmp(".smp_locks", secstrings + s->sh_name))
-> +			locks = s;
-> +	}
-> +
->  	if (locks) {
->  		void *lseg = (void *)locks->sh_addr;
->  		void *text = me->mem[MOD_TEXT].base;
-> @@ -308,10 +329,6 @@ int module_finalize(const Elf_Ehdr *hdr,
->  					    text, text_end);
->  	}
->  
-> -	if (orc && orc_ip)
-> -		unwind_module_init(me, (void *)orc_ip->sh_addr, orc_ip->sh_size,
-> -				   (void *)orc->sh_addr, orc->sh_size);
-> -
->  	return 0;
->  }
->  
-> _
-> 
-> Patches currently in -mm which might be from rppt@kernel.org are
-> 
-> 
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
--- 
-Sincerely yours,
-Mike.
+signal-restore-the-override_rlimit-logic.patch
+mm-page_alloc-move-mlocked-flag-clearance-into-free_pages_prepare.patch
+
