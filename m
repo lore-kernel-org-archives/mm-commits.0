@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3928183CC1
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBC4818B47E
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855665; cv=none; b=FFQ3WqXAPlWrMncOXaLSnm5bi6Yc+SLvZ0OV+XSsuixUCrqZNByHZczjT1l4v8j/CxchlCVafdgf6dLOeF1GBUG6TFemG9CZMBzJm7afJd5eHoCkYzMg38rDUBJQAvVD58nKlFzon2L/zsyW56qHEAWwCRQP9S9vmY+4ODHBzSc=
+	t=1730855666; cv=none; b=CNs2gdo9M61lY0UEjxywQnyOSyJ0qP086LfWQPeUsWEU36OZir9cAoT/ELH+zq/6YsVFLAf6daJz3wfchzQxV75lPmRbKur1LVH1x0VUoS7oWQi7atOh8n2mzwd9XoIGE4o7ql+UM7u8vMBIVUmDjzvhsK7IXfMfkzYkhiLObdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855665; c=relaxed/simple;
-	bh=6w/Ao6ugotK0yq2hJDAyNw3uTZoXJCcJpXTEchaTJ88=;
-	h=Date:To:From:Subject:Message-Id; b=f2EZZJX+V8GqP1c05NjR8p7vh4RGdBAtjWS2AkaM7kJyQDDBRj5YRPQmiJWoKpshOwVslz8m8Lf2+WA0AfwPNTVuWIizuhJMUCF2z5+ctHDaECIa3mj0PMHKcx1/q/F1GSrMfvp4Ffbh3axgLQB9zH13csEp8QeSgT67kRcBkNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L7H28XLm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855666; c=relaxed/simple;
+	bh=v+E4yx0LhWmio3rbim8v7zIby2wu3bEUQ/NI2JQu4bc=;
+	h=Date:To:From:Subject:Message-Id; b=iiWZFPxsiRhBEjuoxDS2sjc/0EVSKfvsSGgHMtf+IwKIUnGrDslr4q4zZvy5XP11FpZY4Pr8rytxWyq8lrdYNxTWN8kealzgLNPyTbQsJllBpq2IkY9ANbD7Frwt7TJGYR/09+JTxz6MZdRrYVy6ehQWca9xhgxD9ouEXs37Tt4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=loBqEVrU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L7H28XLm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8804BC4CECF;
-	Wed,  6 Nov 2024 01:14:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="loBqEVrU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E7F4C4CECF;
+	Wed,  6 Nov 2024 01:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855665;
-	bh=6w/Ao6ugotK0yq2hJDAyNw3uTZoXJCcJpXTEchaTJ88=;
+	s=korg; t=1730855666;
+	bh=v+E4yx0LhWmio3rbim8v7zIby2wu3bEUQ/NI2JQu4bc=;
 	h=Date:To:From:Subject:From;
-	b=L7H28XLmCJJjV3zqJcMVkY5cEC88rO0bMDilcKKbHPoNk91YHesrbLCIPK/RNUiCE
-	 QnvM8eZtXkqzZNOybmXbU+C1SRmiZouPpGg8btECW+VeeWYb4Ddslxnj2/hUumWpVF
-	 0uMfQYlTHfSn8y6rKbfAsrLsLFu6GWDAXCtZj8lQ=
-Date: Tue, 05 Nov 2024 17:14:25 -0800
+	b=loBqEVrUeyw73shbjVHgtN50XIbnCujLJwZjANyYiGifUUl3do7LOO3f12eSE22TL
+	 umDcvbnX6JxnskRzVCha4zQSL2ZpLKzofkNndOSfRI/GQ7+Hw7uY7owQTVR9wP8YQA
+	 TJDtRNybvq3MAdbXOI9K+kw7JN7GDWkJvDerwtYI=
+Date: Tue, 05 Nov 2024 17:14:26 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch removed from -mm tree
-Message-Id: <20241106011425.8804BC4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch removed from -mm tree
+Message-Id: <20241106011426.9E7F4C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert nilfs_recovery_copy_block() to take a folio
+     Subject: nilfs2: convert metadata aops from writepage to writepages
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
+     nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_recovery_copy_block() to take a folio
-Date: Thu, 24 Oct 2024 18:25:45 +0900
+Subject: nilfs2: convert metadata aops from writepage to writepages
+Date: Thu, 24 Oct 2024 18:25:46 +0900
 
-Use memcpy_to_folio() instead of open-coding it, and use offset_in_folio()
-in case anybody wants to use nilfs2 on a device with large blocks.
+By implementing ->writepages instead of ->writepage, we remove a layer of
+indirect function calls from the writeback path and the last use of struct
+page in nilfs2.
 
-[konishi.ryusuke@gmail.com: added label name change]
-Link: https://lkml.kernel.org/r/20241002150036.1339475-4-willy@infradead.org
-Link: https://lkml.kernel.org/r/20241024092602.13395-12-konishi.ryusuke@gmail.com
+[konishi.ryusuke@gmail.com: fixed panic by using buffer_migrate_folio_norefs]
+Link: https://lkml.kernel.org/r/20241002150036.1339475-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241024092602.13395-13-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/recovery.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ fs/nilfs2/mdt.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/recovery.c~nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio
-+++ a/fs/nilfs2/recovery.c
-@@ -481,19 +481,16 @@ static int nilfs_prepare_segment_for_rec
- 
- static int nilfs_recovery_copy_block(struct the_nilfs *nilfs,
- 				     struct nilfs_recovery_block *rb,
--				     loff_t pos, struct page *page)
-+				     loff_t pos, struct folio *folio)
- {
- 	struct buffer_head *bh_org;
--	size_t from = pos & ~PAGE_MASK;
--	void *kaddr;
-+	size_t from = offset_in_folio(folio, pos);
- 
- 	bh_org = __bread(nilfs->ns_bdev, rb->blocknr, nilfs->ns_blocksize);
- 	if (unlikely(!bh_org))
- 		return -EIO;
- 
--	kaddr = kmap_local_page(page);
--	memcpy(kaddr + from, bh_org->b_data, bh_org->b_size);
--	kunmap_local(kaddr);
-+	memcpy_to_folio(folio, from, bh_org->b_data, bh_org->b_size);
- 	brelse(bh_org);
- 	return 0;
+--- a/fs/nilfs2/mdt.c~nilfs2-convert-metadata-aops-from-writepage-to-writepages
++++ a/fs/nilfs2/mdt.c
+@@ -399,10 +399,9 @@ int nilfs_mdt_fetch_dirty(struct inode *
+ 	return test_bit(NILFS_I_DIRTY, &ii->i_state);
  }
-@@ -531,13 +528,13 @@ static int nilfs_recover_dsync_blocks(st
- 			goto failed_inode;
- 		}
  
--		err = nilfs_recovery_copy_block(nilfs, rb, pos, &folio->page);
-+		err = nilfs_recovery_copy_block(nilfs, rb, pos, folio);
- 		if (unlikely(err))
--			goto failed_page;
-+			goto failed_folio;
+-static int
+-nilfs_mdt_write_page(struct page *page, struct writeback_control *wbc)
++static int nilfs_mdt_write_folio(struct folio *folio,
++		struct writeback_control *wbc)
+ {
+-	struct folio *folio = page_folio(page);
+ 	struct inode *inode = folio->mapping->host;
+ 	struct super_block *sb;
+ 	int err = 0;
+@@ -435,11 +434,23 @@ nilfs_mdt_write_page(struct page *page,
+ 	return err;
+ }
  
- 		err = nilfs_set_file_dirty(inode, 1);
- 		if (unlikely(err))
--			goto failed_page;
-+			goto failed_folio;
++static int nilfs_mdt_writeback(struct address_space *mapping,
++		struct writeback_control *wbc)
++{
++	struct folio *folio = NULL;
++	int error;
++
++	while ((folio = writeback_iter(mapping, wbc, folio, &error)))
++		error = nilfs_mdt_write_folio(folio, wbc);
++
++	return error;
++}
  
- 		block_write_end(NULL, inode->i_mapping, pos, blocksize,
- 				blocksize, folio, NULL);
-@@ -548,7 +545,7 @@ static int nilfs_recover_dsync_blocks(st
- 		(*nr_salvaged_blocks)++;
- 		goto next;
+ static const struct address_space_operations def_mdt_aops = {
+ 	.dirty_folio		= block_dirty_folio,
+ 	.invalidate_folio	= block_invalidate_folio,
+-	.writepage		= nilfs_mdt_write_page,
++	.writepages		= nilfs_mdt_writeback,
++	.migrate_folio		= buffer_migrate_folio_norefs,
+ };
  
-- failed_page:
-+ failed_folio:
- 		folio_unlock(folio);
- 		folio_put(folio);
- 
+ static const struct inode_operations def_mdt_iops;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
