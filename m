@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90702185B68
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F59185B68
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854799; cv=none; b=FFtEnn2nl49/Kvv+joT73dnetPR9rRqcBMGjbteq+6Y0c5J+uYX+c+d3FwmbUa/eJ++8J4qD2ga2PHHkO8eMGjftrkrtmC41vWz1e2AbnSFfHuhj4KFkd/l/npNeKvjGPBXLfidB3vguhEtRad5m3VVCigqSt5o5kXjIyvZ95To=
+	t=1730854800; cv=none; b=m80crCmROlv6I0T5FZYIq6GQFmku08jVFnmvRlaMK2WbWG3Ha5xteFnm2fnEBuKazAZQ/YX2r/PkI4Jg5doxUkh8Dp5JkNYle53iOYGZ+hZ4bvF3cjy386H42Q22AoN7f540QBcfstUte2lBiMTomRjTIQ8ChSO3uBivMWKgeJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854799; c=relaxed/simple;
-	bh=0NFWcd3sWde0nXInSa1iXIl4CR/DkMKLpddWtNXha3M=;
-	h=Date:To:From:Subject:Message-Id; b=hBjGXXYf29xOaF4SiG15NrOtwgSVXyFndv9q4/+JUnrV11N1D5ANfwj/zcEzsYVIh8JJwzuvF9GZG643pqcDrronUPRSgCAu3JGXeGqHGhzA17jsx6FFyZZz6uad8vbdoKLhevwvPAryE0Xbif/srxh9VuiVgyG/zUgqcsHOdas=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XB1mkutO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854800; c=relaxed/simple;
+	bh=pwKMxCxoS676IYYUzfZ11p43S68Rp7fPzsC7kAqjgL8=;
+	h=Date:To:From:Subject:Message-Id; b=lu8haQ9VdyopkaOTWjpHPAh2SuI9Yf/N579rvbZUkgHj80K2ui9kLrYkJ8TX6mOiRJLJjJ5zEWlmA4CA36QtIDfrEXLbSvy0SOZi5ZBDBE3v0BQzh583Q5w4vwDeTPKS0xjzJhFLc10SyT9RITncmLc2O3J5iznNICOt8NzqcXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYzYY2Nf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XB1mkutO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FFF3C4CED1;
-	Wed,  6 Nov 2024 00:59:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYzYY2Nf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8CBC4CECF;
+	Wed,  6 Nov 2024 01:00:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854799;
-	bh=0NFWcd3sWde0nXInSa1iXIl4CR/DkMKLpddWtNXha3M=;
+	s=korg; t=1730854800;
+	bh=pwKMxCxoS676IYYUzfZ11p43S68Rp7fPzsC7kAqjgL8=;
 	h=Date:To:From:Subject:From;
-	b=XB1mkutOc+YKeJtcBxAbXipLSjId+Ujgrm3IlsCCusp3hS6VAZPgoFvWOhLVzOPBr
-	 2ak7jzfVVPRbuX6klD7CTGdixqwf73BYM/weMzQfBtFWH+xnhb4M+TQ2GYk6IYvHww
-	 whklhZ3/jnKv5280+SByHvz9Q/O7ZUdx/u7BQ2Qc=
-Date: Tue, 05 Nov 2024 16:59:58 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,v-songbaohua@oppo.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,kasong@tencent.com,akpm@linux-foundation.org
+	b=FYzYY2NfTPNKMxSWC92nyG7Tc5/HM/lxbkKPbSLm9R2oMtgljmNCZRajNG/ZE7yCL
+	 Ag+IpYiwkCiB3zoaHPXd0/6PU7wa2rBeaPwEXNNTenNaeTzKVqArDN4RUJB1UJaQwg
+	 CGYHWST/nhDVeme9k96YI3VVFO2vorHtagtr/oqU=
+Date: Tue, 05 Nov 2024 17:00:00 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,ryan.roberts@arm.com,linmiaohe@huawei.com,keescook@chromium.org,jhubbard@nvidia.com,glider@google.com,david@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch removed from -mm tree
-Message-Id: <20241106005959.5FFF3C4CED1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch removed from -mm tree
+Message-Id: <20241106010000.8B8CBC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
+     Subject: mm: avoid zeroing user movable page twice with init_on_alloc=1
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
+     mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
-Date: Sat, 12 Oct 2024 01:19:50 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: avoid zeroing user movable page twice with init_on_alloc=1
+Date: Fri, 11 Oct 2024 11:03:04 -0400
 
-zswap_invalidation simply calls xa_erase, which acquires the Xarray lock
-first, then does a look up.  This has a higher overhead even if zswap is
-not used or the tree is empty.
+Commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
+init_on_free=1 boot options") forces allocated page to be zeroed in
+post_alloc_hook() when init_on_alloc=1.
 
-So instead, do a very lightweight xa_empty check first, if there is
-nothing to erase, don't touch the lock or the tree.
+For order-0 folios, if arch does not define
+vma_alloc_zeroed_movable_folio(), the default implementation again zeros
+the page return from the buddy allocator.  So the page is zeroed twice. 
+Fix it by passing __GFP_ZERO instead to avoid double page zeroing.  At the
+moment, s390,arm64,x86,alpha,m68k are not impacted since they define their
+own vma_alloc_zeroed_movable_folio().
 
-Using xa_empty rather than zswap_never_enabled is more helpful as it cover
-both case where zswap wes never used or the particular range doesn't have
-any zswap entry.  And it's safe as the swap slot should be currently
-pinned by caller with HAS_CACHE.
+For >0 order folios (mTHP and PMD THP), folio_zero_user() is called to
+zero the folio again.  Fix it by calling folio_zero_user() only if
+init_on_alloc is set.  All arch are impacted.
 
-Sequential SWAP in/out tests with zswap disabled showed a minor
-performance gain, SWAP in of zero page with zswap enabled also showed a
-performance gain.  (swapout is basically unchanged so only test one case):
+Add alloc_zeroed() helper to encapsulate the init_on_alloc check.
 
-Swapout of 2G zero page using brd as SWAP, zswap disabled
-(total time, 4 testrun, +0.1%):
-Before: 1705013 us 1703119 us 1704335 us 1705848 us.
-After:  1703579 us 1710640 us 1703625 us 1708699 us.
-
-Swapin of 2G zero page using brd as SWAP, zswap disabled
-(total time, 4 testrun, -3.5%):
-Before: 1912312 us 1915692 us 1905837 us 1912706 us.
-After:  1845354 us 1849691 us 1845868 us 1841828 us.
-
-Swapin of 2G zero page using brd as SWAP, zswap enabled
-(total time, 4 testrun, -3.3%):
-Before: 1897994 us 1894681 us 1899982 us 1898333 us
-After:  1835894 us 1834113 us 1832047 us 1833125 us
-
-Swapin of 2G random page using brd as SWAP, zswap enabled
-(total time, 4 testrun, -0.1%):
-Before: 4519747 us 4431078 us 4430185 us 4439999 us
-After:  4492176 us 4437796 us 4434612 us 4434289 us
-
-And the performance is very slightly better or unchanged for
-build kernel test with zswap enabled or disabled.
-
-Build Linux Kernel with defconfig and -j32 in 1G memory cgroup,
-using brd SWAP, zswap disabled (sys time in seconds, 6 testrun, -0.1%):
-Before: 1648.83 1653.52 1666.34 1665.95 1663.06 1656.67
-After:  1651.36 1661.89 1645.70 1657.45 1662.07 1652.83
-
-Build Linux Kernel with defconfig and -j32 in 2G memory cgroup,
-using brd SWAP zswap enabled (sys time in seconds, 6 testrun, -0.3%):
-Before: 1240.25 1254.06 1246.77 1265.92 1244.23 1227.74
-After:  1226.41 1218.21 1249.12 1249.13 1244.39 1233.01
-
-Link: https://lkml.kernel.org/r/20241011171950.62684-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+[ziy@nvidia.com: comment fixes, per David]
+  Link: https://lkml.kernel.org/r/97DB52E1-C594-49B5-9736-89AC302FAB01@nvidia.com
+Link: https://lkml.kernel.org/r/20241011150304.709590-1-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/highmem.h |    8 +-------
+ mm/huge_memory.c        |    8 +++++++-
+ mm/internal.h           |    6 ++++++
+ mm/memory.c             |   10 +++++++++-
+ 4 files changed, 23 insertions(+), 9 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation
-+++ a/mm/zswap.c
-@@ -1643,6 +1643,9 @@ void zswap_invalidate(swp_entry_t swp)
- 	struct xarray *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry;
+--- a/include/linux/highmem.h~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
++++ a/include/linux/highmem.h
+@@ -224,13 +224,7 @@ static inline
+ struct folio *vma_alloc_zeroed_movable_folio(struct vm_area_struct *vma,
+ 				   unsigned long vaddr)
+ {
+-	struct folio *folio;
+-
+-	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vaddr);
+-	if (folio)
+-		clear_user_highpage(&folio->page, vaddr);
+-
+-	return folio;
++	return vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr);
+ }
+ #endif
  
-+	if (xa_empty(tree))
-+		return;
+--- a/mm/huge_memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
++++ a/mm/huge_memory.c
+@@ -1165,7 +1165,13 @@ static struct folio *vma_alloc_anon_foli
+ 	}
+ 	folio_throttle_swaprate(folio, gfp);
+ 
+-	folio_zero_user(folio, addr);
++       /*
++	* When a folio is not zeroed during allocation (__GFP_ZERO not used),
++	* folio_zero_user() is used to make sure that the page corresponding
++	* to the faulting address will be hot in the cache after zeroing.
++	*/
++	if (!alloc_zeroed())
++		folio_zero_user(folio, addr);
+ 	/*
+ 	 * The memory barrier inside __folio_mark_uptodate makes sure that
+ 	 * folio_zero_user writes become visible before the set_pmd_at()
+--- a/mm/internal.h~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
++++ a/mm/internal.h
+@@ -1276,6 +1276,12 @@ void touch_pud(struct vm_area_struct *vm
+ void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	       pmd_t *pmd, bool write);
+ 
++static inline bool alloc_zeroed(void)
++{
++	return static_branch_maybe(CONFIG_INIT_ON_ALLOC_DEFAULT_ON,
++			&init_on_alloc);
++}
 +
- 	entry = xa_erase(tree, offset);
- 	if (entry)
- 		zswap_entry_free(entry);
+ enum {
+ 	/* mark page accessed */
+ 	FOLL_TOUCH = 1 << 16,
+--- a/mm/memory.c~mm-avoid-zeroing-user-movable-page-twice-with-init_on_alloc=1
++++ a/mm/memory.c
+@@ -4719,7 +4719,15 @@ static struct folio *alloc_anon_folio(st
+ 				goto next;
+ 			}
+ 			folio_throttle_swaprate(folio, gfp);
+-			folio_zero_user(folio, vmf->address);
++			/*
++			 * When a folio is not zeroed during allocation
++			 * (__GFP_ZERO not used), folio_zero_user() is used
++			 * to make sure that the page corresponding to the
++			 * faulting address will be hot in the cache after
++			 * zeroing.
++			 */
++			if (!alloc_zeroed())
++				folio_zero_user(folio, vmf->address);
+ 			return folio;
+ 		}
+ next:
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-list_lru-dont-pass-unnecessary-key-parameters.patch
-mm-list_lru-dont-export-list_lru_add.patch
-mm-list_lru-code-clean-up-for-reparenting.patch
-mm-list_lru-simplify-reparenting-and-initial-allocation.patch
-mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
-mm-list_lru-simplify-the-list_lru-walk-callback-function.patch
 
