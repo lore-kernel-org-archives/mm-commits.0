@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE6C418785C
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E446318800D
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854872; cv=none; b=kTxT+EIlfMam/kVtgpU9isoYDdFqgcHvo5O3aHsos9Ms9mfZqmaHuVhkFymHiGe3CmLiUMOjhPspDVBEpAG7eVTcXXIkao5dcPD+aKBgU9M49JcWgCHBLI/UnJncMyz0DXCxW7DNUs3Puh0SAkOwNNV5jNLDRpUDbu5tqc5B2R4=
+	t=1730854874; cv=none; b=esP8ut37Ft2tZByMkrQCZ6EyA6a9JcEIDNUOAjUgnNJWbaarj9798ryexR/SnSQTKajICoUtcKGGx5lBN+flomnxyNTxOu22xhoTdwt2oVyWxbpBFcde0idgxQhgTkzd+Fi9UDz7Q4BTSRGY55mv+ryIeFvMuJdHUt+gPtfDDH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854872; c=relaxed/simple;
-	bh=NkHiibrbriTFHbLCujhUTF08J8ybvx1ofjzQTYOiiO8=;
-	h=Date:To:From:Subject:Message-Id; b=DrRbwuWRpArv2fuu3SdFAlivjsqEk4SgRUqNahv0qBHPdu1RqROdgHh5M229NnEoSLOkc5HX5xFE982fM2jp3L35EgoKEdvHx3mXz9iW4H0VZcDDikrUo+vUhyBTBMowKE3cCgsqGj1PdVi4EfBQWL0QksqwV6UH7sRlsTjmT4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=be01/yd4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854874; c=relaxed/simple;
+	bh=+XNPqilQeTJ6kPrgJBQTteuRvNjnVGTNO81MBuB4A1Y=;
+	h=Date:To:From:Subject:Message-Id; b=JpsKkx9PrRXRAXa56uzgp/VnNDSNv5u/9/583IxURS41YdMfg8B94XzckQGiZm4SHBBTz+K6VubajfVGDz1sHTay+u2foKvPckN3Z5hRtxchU/S93Y5z/EA4IPRH3BIEh8eBLLDDTuNJSmB9tkq4v7Bd6s0y2pStmCCVFeaF1YU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cv0+34Vy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="be01/yd4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4211C4CECF;
-	Wed,  6 Nov 2024 01:01:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cv0+34Vy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB54FC4CECF;
+	Wed,  6 Nov 2024 01:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854872;
-	bh=NkHiibrbriTFHbLCujhUTF08J8ybvx1ofjzQTYOiiO8=;
+	s=korg; t=1730854873;
+	bh=+XNPqilQeTJ6kPrgJBQTteuRvNjnVGTNO81MBuB4A1Y=;
 	h=Date:To:From:Subject:From;
-	b=be01/yd4WIEK/qU4NEWe2WgpBUJ8FO8OfScZz2TX4wChxPLs4a0jHUJtOFlN2Q7Wp
-	 CJExOb1Pj+4cidURaCT7hUgbm1zuLYXp/y57COXHk3R29tZWxr6wNsL1P4xHQbNoBV
-	 e/aG/BXM7CFtL8N5yRVFXZ09AHO2NIh2bI1UlAok=
-Date: Tue, 05 Nov 2024 17:01:12 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,shy828301@gmail.com,hughd@google.com,dhowells@redhat.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=cv0+34Vydb/GncQtBcEmr1+T6PEqzZMWqnMHzA1HdiVPz+eSStePcFfH8/7O2jkQh
+	 5QEFbdHA9wRpypbEKRIYMT/mfOPpPlMgkjukOXLfjr+OL0tmYgqHTNCE0IoFbOcx+U
+	 BA+QhKBpi4rzdVgtJex04UkGO2BVVP2fABKDMTok=
+Date: Tue, 05 Nov 2024 17:01:13 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch removed from -mm tree
-Message-Id: <20241106010112.A4211C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-v1-fully-deprecate-move_charge_at_immigrate.patch removed from -mm tree
+Message-Id: <20241106010113.BB54FC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,123 +35,191 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
+     Subject: memcg-v1: fully deprecate move_charge_at_immigrate
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages.patch
+     memcg-v1-fully-deprecate-move_charge_at_immigrate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fallback to page size splice if large folio has poisoned pages
-Date: Sat, 26 Oct 2024 21:51:52 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg-v1: fully deprecate move_charge_at_immigrate
+Date: Thu, 24 Oct 2024 18:22:58 -0700
 
-The tmpfs has already supported the PMD-sized large folios, and splice()
-can not read any pages if the large folio has a poisoned page, which is
-not good as Matthew pointed out in a previous email[1]:
+Patch series "memcg-v1: fully deprecate charge moving".
 
-"so if we have hwpoison set on one page in a folio, we now can't read
-bytes from any page in the folio?  That seems like we've made a bad
-situation worse."
+The memcg v1's charge moving feature has been deprecated for almost 2
+years and the kernel warns if someone try to use it.  This warning has
+been backported to all stable kernel and there have not been any report of
+the warning or the request to support this feature anymore.  Let's proceed
+to fully deprecate this feature.
 
-Thus add a fallback to the PAGE_SIZE splice() still allows reading normal
-pages if the large folio has hwpoisoned pages.
 
-[1] https://lore.kernel.org/all/Zw_d0EVAJkpNJEbA@casper.infradead.org/
+This patch (of 6):
 
-[baolin.wang@linux.alibaba.com: code layout cleaup, per dhowells]
-  Link: https://lkml.kernel.org/r/32dd938c-3531-49f7-93e4-b7ff21fec569@linux.alibaba.com
-Link: https://lkml.kernel.org/r/e3737fbd5366c4de4337bf5f2044817e77a5235b.1729915173.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Proceed with the complete deprecation of memcg v1's charge moving feature.
+The deprecation warning has been in the kernel for almost two years and
+has been ported to all stable kernel since.  Now is the time to fully
+deprecate this feature.
+
+Link: https://lkml.kernel.org/r/20241025012304.2473312-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20241025012304.2473312-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |   82 ---------------
+ mm/memcontrol-v1.c                             |   14 --
+ 2 files changed, 5 insertions(+), 91 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fallback-to-page-size-splice-if-large-folio-has-poisoned-pages
-+++ a/mm/shmem.c
-@@ -3288,11 +3288,16 @@ static ssize_t shmem_file_splice_read(st
- 	len = min_t(size_t, len, npages * PAGE_SIZE);
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-v1-fully-deprecate-move_charge_at_immigrate
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -90,9 +90,7 @@ Brief summary of control files.
+                                      used.
+  memory.swappiness		     set/show swappiness parameter of vmscan
+ 				     (See sysctl's vm.swappiness)
+- memory.move_charge_at_immigrate     set/show controls of moving charges
+-                                     This knob is deprecated and shouldn't be
+-                                     used.
++ memory.move_charge_at_immigrate     This knob is deprecated.
+  memory.oom_control		     set/show oom controls.
+                                      This knob is deprecated and shouldn't be
+                                      used.
+@@ -243,10 +241,6 @@ behind this approach is that a cgroup th
+ page will eventually get charged for it (once it is uncharged from
+ the cgroup that brought it in -- this will happen on memory pressure).
  
- 	do {
-+		bool fallback_page_splice = false;
-+		struct page *page = NULL;
-+		pgoff_t index;
-+		size_t size;
-+
- 		if (*ppos >= i_size_read(inode))
- 			break;
+-But see :ref:`section 8.2 <cgroup-v1-memory-movable-charges>` when moving a
+-task to another cgroup, its pages may be recharged to the new cgroup, if
+-move_charge_at_immigrate has been chosen.
+-
+ 2.4 Swap Extension
+ --------------------------------------
  
--		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, 0, &folio,
--					SGP_READ);
-+		index = *ppos >> PAGE_SHIFT;
-+		error = shmem_get_folio(inode, index, 0, &folio, SGP_READ);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -3301,12 +3306,15 @@ static ssize_t shmem_file_splice_read(st
- 		if (folio) {
- 			folio_unlock(folio);
+@@ -756,78 +750,8 @@ If we want to change this to 1G, we can
  
--			if (folio_test_hwpoison(folio) ||
--			    (folio_test_large(folio) &&
--			     folio_test_has_hwpoisoned(folio))) {
-+			page = folio_file_page(folio, index);
-+			if (PageHWPoison(page)) {
- 				error = -EIO;
- 				break;
- 			}
-+
-+			if (folio_test_large(folio) &&
-+			    folio_test_has_hwpoisoned(folio))
-+				fallback_page_splice = true;
- 		}
+ THIS IS DEPRECATED!
  
- 		/*
-@@ -3320,7 +3328,17 @@ static ssize_t shmem_file_splice_read(st
- 		isize = i_size_read(inode);
- 		if (unlikely(*ppos >= isize))
- 			break;
--		part = min_t(loff_t, isize - *ppos, len);
-+		/*
-+		 * Fallback to PAGE_SIZE splice if the large folio has hwpoisoned
-+		 * pages.
-+		 */
-+		size = len;
-+		if (unlikely(fallback_page_splice)) {
-+			size_t offset = *ppos & ~PAGE_MASK;
-+
-+			size = umin(size, PAGE_SIZE - offset);
-+		}
-+		part = min_t(loff_t, isize - *ppos, size);
+-It's expensive and unreliable! It's better practice to launch workload
+-tasks directly from inside their target cgroup. Use dedicated workload
+-cgroups to allow fine-grained policy adjustments without having to
+-move physical pages between control domains.
+-
+-Users can move charges associated with a task along with task migration, that
+-is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
+-This feature is not supported in !CONFIG_MMU environments because of lack of
+-page tables.
+-
+-8.1 Interface
+--------------
+-
+-This feature is disabled by default. It can be enabled (and disabled again) by
+-writing to memory.move_charge_at_immigrate of the destination cgroup.
+-
+-If you want to enable it::
+-
+-	# echo (some positive value) > memory.move_charge_at_immigrate
+-
+-.. note::
+-      Each bits of move_charge_at_immigrate has its own meaning about what type
+-      of charges should be moved. See :ref:`section 8.2
+-      <cgroup-v1-memory-movable-charges>` for details.
+-
+-.. note::
+-      Charges are moved only when you move mm->owner, in other words,
+-      a leader of a thread group.
+-
+-.. note::
+-      If we cannot find enough space for the task in the destination cgroup, we
+-      try to make space by reclaiming memory. Task migration may fail if we
+-      cannot make enough space.
+-
+-.. note::
+-      It can take several seconds if you move charges much.
+-
+-And if you want disable it again::
+-
+-	# echo 0 > memory.move_charge_at_immigrate
+-
+-.. _cgroup-v1-memory-movable-charges:
+-
+-8.2 Type of charges which can be moved
+---------------------------------------
+-
+-Each bit in move_charge_at_immigrate has its own meaning about what type of
+-charges should be moved. But in any case, it must be noted that an account of
+-a page or a swap can be moved only when it is charged to the task's current
+-(old) memory cgroup.
+-
+-+---+--------------------------------------------------------------------------+
+-|bit| what type of charges would be moved ?                                    |
+-+===+==========================================================================+
+-| 0 | A charge of an anonymous page (or swap of it) used by the target task.   |
+-|   | You must enable Swap Extension (see 2.4) to enable move of swap charges. |
+-+---+--------------------------------------------------------------------------+
+-| 1 | A charge of file pages (normal file, tmpfs file (e.g. ipc shared memory) |
+-|   | and swaps of tmpfs file) mmapped by the target task. Unlike the case of  |
+-|   | anonymous pages, file pages (and swaps) in the range mmapped by the task |
+-|   | will be moved even if the task hasn't done page fault, i.e. they might   |
+-|   | not be the task's "RSS", but other task's "RSS" that maps the same file. |
+-|   | The mapcount of the page is ignored (the page can be moved independent   |
+-|   | of the mapcount). You must enable Swap Extension (see 2.4) to            |
+-|   | enable move of swap charges.                                             |
+-+---+--------------------------------------------------------------------------+
+-
+-8.3 TODO
+---------
+-
+-- All of moving charge operations are done under cgroup_mutex. It's not good
+-  behavior to hold the mutex too long, so we may need some trick.
++Reading memory.move_charge_at_immigrate will always return 0 and writing
++to it will always return -EINVAL.
  
- 		if (folio) {
- 			/*
-@@ -3328,8 +3346,12 @@ static ssize_t shmem_file_splice_read(st
- 			 * virtual addresses, take care about potential aliasing
- 			 * before reading the page on the kernel side.
- 			 */
--			if (mapping_writably_mapped(mapping))
--				flush_dcache_folio(folio);
-+			if (mapping_writably_mapped(mapping)) {
-+				if (likely(!fallback_page_splice))
-+					flush_dcache_folio(folio);
-+				else
-+					flush_dcache_page(page);
-+			}
- 			folio_mark_accessed(folio);
- 			/*
- 			 * Ok, we have the page, and it's up-to-date, so we can
+ 9. Memory thresholds
+ ====================
+--- a/mm/memcontrol-v1.c~memcg-v1-fully-deprecate-move_charge_at_immigrate
++++ a/mm/memcontrol-v1.c
+@@ -593,29 +593,19 @@ static inline int mem_cgroup_move_swap_a
+ static u64 mem_cgroup_move_charge_read(struct cgroup_subsys_state *css,
+ 				struct cftype *cft)
+ {
+-	return mem_cgroup_from_css(css)->move_charge_at_immigrate;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_MMU
+ static int mem_cgroup_move_charge_write(struct cgroup_subsys_state *css,
+ 				 struct cftype *cft, u64 val)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+-
+ 	pr_warn_once("Cgroup memory moving (move_charge_at_immigrate) is deprecated. "
+ 		     "Please report your usecase to linux-mm@kvack.org if you "
+ 		     "depend on this functionality.\n");
+ 
+-	if (val & ~MOVE_MASK)
++	if (val != 0)
+ 		return -EINVAL;
+-
+-	/*
+-	 * No kind of locking is needed in here, because ->can_attach() will
+-	 * check this value once in the beginning of the process, and then carry
+-	 * on with stale data. This means that changes to this value will only
+-	 * affect task migrations starting after the change.
+-	 */
+-	memcg->move_charge_at_immigrate = val;
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
