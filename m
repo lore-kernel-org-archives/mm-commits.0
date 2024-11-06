@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA40E7DA9E
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 742097DA9E
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854865; cv=none; b=aqR8RdUoRbFXP3rijs9tlktp1hgS5m8O7Fh9sHyurwfuGHJz8+w2ldhhmija3AoPu43DHeqePAOwNmfI5crusvQoimpI87PO3qiShgmHdCXmA4cheHfaywZF7ArNSjpWIjSFqDtemTM6I3lbgaAral74pIatWMitFzBR4W1Szyg=
+	t=1730854867; cv=none; b=uIPy46dWJLN/+dKyrC4vsZ5j4U+iXhwgUt5CQtJv/YehFQDlswx5TWswIx62kIHKhGY+225+ZEKNPIdtOrQGKKZZHBshfCZsWHaiGjtKqos9bhtGtNdseOqNPPLlgIfucsCEO7319Tth1LH6SNgKFNVWAiIZDRJyrWPSIfUs2Ys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854865; c=relaxed/simple;
-	bh=wwBx1OFTIKTaFf7MPHs4824AwhEjiSYFuCFVAd3F02w=;
-	h=Date:To:From:Subject:Message-Id; b=s7e/brnYICiDek5bjkoAjWxdfaEnehETqqtGiYJHFOR7MrAFza928Cx8fHwbE/itDhzsVJe5Xn5fMlJpIH/oLYkytErV+RifRhpi+zfd7gkyiMke6K4kWCkfIaKB0OMm+uITJujmsrRPbD718FTdC9itXrobPX0/mo4bp4Wrv5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a96hfhA0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854867; c=relaxed/simple;
+	bh=GbXXzyqOA/qW0COZ4oBSHy3RqaOQ+Dx/qlcEqeOQoNY=;
+	h=Date:To:From:Subject:Message-Id; b=hMdzP+CV6CK92wusTrdsBpNo9M3SHtUETuCLj36/ydYN4NMIE17Wb8n/zktZDigIvMSKVSnY+fW3hVxLLbT00MMoZY/iDORhj2g3eM56OCFWrfSTEGlkaevWiShYx/KZ4ZwqWIxiApHtXyZ4EtWf41B8KziDJoIb/VDsx8xxSDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qGtJwC6k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a96hfhA0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1524C4CECF;
-	Wed,  6 Nov 2024 01:01:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qGtJwC6k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C02CC4CECF;
+	Wed,  6 Nov 2024 01:01:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854865;
-	bh=wwBx1OFTIKTaFf7MPHs4824AwhEjiSYFuCFVAd3F02w=;
+	s=korg; t=1730854867;
+	bh=GbXXzyqOA/qW0COZ4oBSHy3RqaOQ+Dx/qlcEqeOQoNY=;
 	h=Date:To:From:Subject:From;
-	b=a96hfhA0rFGt9/Mw5bcaf2BKlBy8vFvfvD9RlSf2Sreh+S0bC5B7EtlcJKe72pO8E
-	 yLmR0nPCuHLTWKSWbKGRvfBa0PFULspHT0GGKQBzvzIZjfAvoHSIImMQapJz0D5DQw
-	 dZMQF/oYbKDbsRuRRZGhNfDcNBL6Oziu4r6o51Xs=
-Date: Tue, 05 Nov 2024 17:01:05 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=qGtJwC6knCIpA8cPkLXt4p/4qKaaj122e96F3wdcQh/QeGc+xhrDBe4enZ0oTScS5
+	 dx4yrqXgPt43xwOp4sPZEOBWsX2gjQvcAdjTEEQSDyMv12tlrg2mQFqWgFgRaF0kOH
+	 Fw1yyu/Qq+I2IysUQ2IL+FFNeWiur6sujdgXOUj4=
+Date: Tue, 05 Nov 2024 17:01:06 -0800
+To: mm-commits@vger.kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch removed from -mm tree
-Message-Id: <20241106010105.A1524C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch removed from -mm tree
+Message-Id: <20241106010107.4C02CC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: fix seq_buf size to save memory when PAGE_SIZE is large
+     Subject: mm/page_alloc: use str_off_on() helper in build_all_zonelists()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large.patch
+     mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm/memcontrol: fix seq_buf size to save memory when PAGE_SIZE is large
-Date: Mon, 21 Oct 2024 14:00:26 +0100
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: mm/page_alloc: use str_off_on() helper in build_all_zonelists()
+Date: Mon, 21 Oct 2024 11:13:40 +0200
 
-Previously the seq_buf used for accumulating the memory.stat output was
-sized at PAGE_SIZE.  But the amount of output is invariant to PAGE_SIZE;
-If 4K is enough on a 4K page system, then it should also be enough on a
-64K page system, so we can save 60K on the static buffer used in
-mem_cgroup_print_oom_meminfo().  Let's make it so.
+Remove hard-coded strings by using the str_off_on() helper function.
 
-This also has the beneficial side effect of removing a place in the code
-that assumed PAGE_SIZE is a compile-time constant.  So this helps our
-quest towards supporting boot-time page size selection.
-
-Link: https://lkml.kernel.org/r/20241021130027.3615969-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20241021091340.5243-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-seq_buf-size-to-save-memory-when-page_size-is-large
-+++ a/mm/memcontrol.c
-@@ -118,6 +118,7 @@ struct mem_cgroup *vmpressure_to_memcg(s
- 	return container_of(vmpr, struct mem_cgroup, vmpressure);
- }
+--- a/mm/page_alloc.c~mm-page_alloc-use-str_off_on-helper-in-build_all_zonelists
++++ a/mm/page_alloc.c
+@@ -5493,7 +5493,7 @@ void __ref build_all_zonelists(pg_data_t
  
-+#define SEQ_BUF_SIZE SZ_4K
- #define CURRENT_OBJCG_UPDATE_BIT 0
- #define CURRENT_OBJCG_UPDATE_FLAG (1UL << CURRENT_OBJCG_UPDATE_BIT)
- 
-@@ -1527,7 +1528,7 @@ void mem_cgroup_print_oom_context(struct
- void mem_cgroup_print_oom_meminfo(struct mem_cgroup *memcg)
- {
- 	/* Use static buffer, for the caller is holding oom_lock. */
--	static char buf[PAGE_SIZE];
-+	static char buf[SEQ_BUF_SIZE];
- 	struct seq_buf s;
- 
- 	lockdep_assert_held(&oom_lock);
-@@ -1553,7 +1554,7 @@ void mem_cgroup_print_oom_meminfo(struct
- 	pr_info("Memory cgroup stats for ");
- 	pr_cont_cgroup_path(memcg->css.cgroup);
- 	pr_cont(":");
--	seq_buf_init(&s, buf, sizeof(buf));
-+	seq_buf_init(&s, buf, SEQ_BUF_SIZE);
- 	memory_stat_format(memcg, &s);
- 	seq_buf_do_printk(&s, KERN_INFO);
- }
-@@ -4196,12 +4197,12 @@ static int memory_events_local_show(stru
- int memory_stat_show(struct seq_file *m, void *v)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
--	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	char *buf = kmalloc(SEQ_BUF_SIZE, GFP_KERNEL);
- 	struct seq_buf s;
- 
- 	if (!buf)
- 		return -ENOMEM;
--	seq_buf_init(&s, buf, PAGE_SIZE);
-+	seq_buf_init(&s, buf, SEQ_BUF_SIZE);
- 	memory_stat_format(memcg, &s);
- 	seq_puts(m, buf);
- 	kfree(buf);
+ 	pr_info("Built %u zonelists, mobility grouping %s.  Total pages: %ld\n",
+ 		nr_online_nodes,
+-		page_group_by_mobility_disabled ? "off" : "on",
++		str_off_on(page_group_by_mobility_disabled),
+ 		vm_total_pages);
+ #ifdef CONFIG_NUMA
+ 	pr_info("Policy zone: %s\n", zone_names[policy_zone]);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
+mailmap-add-entry-for-thorsten-blum.patch
+mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch
+ipc-msg-replace-one-element-array-with-flexible-array-member.patch
 
