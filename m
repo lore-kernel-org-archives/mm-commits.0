@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22DC1126C10
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90702185B68
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854798; cv=none; b=rBYQ1+KyUQX8ovtySkTpbZ8ADeXy1M/zkt1+19uu2fwo107vuTerBEKIQPSfqhJ4TDzQUe8BILVgtW8CvNRy7CmlA8DiDFlr1bPJEew+je9eZhNOvgPHZs17sZwFejG9Cw394+zsJ/nln1t0+vLkfOYDG73vdQtv85Q8DJPU5p0=
+	t=1730854799; cv=none; b=FFtEnn2nl49/Kvv+joT73dnetPR9rRqcBMGjbteq+6Y0c5J+uYX+c+d3FwmbUa/eJ++8J4qD2ga2PHHkO8eMGjftrkrtmC41vWz1e2AbnSFfHuhj4KFkd/l/npNeKvjGPBXLfidB3vguhEtRad5m3VVCigqSt5o5kXjIyvZ95To=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854798; c=relaxed/simple;
-	bh=hUTqXFkgiiFaUL/H2F+oZJmDWS7Dcp5o1UpZ1x2ClyI=;
-	h=Date:To:From:Subject:Message-Id; b=cM0xRuLdeJNqXiWXHPNyc25yNN0v0yDYmCnMyEUn57Yzi2eJFl2ac884sH3CPE3TgK74OQ9ilKNJtiJbxOPUmETuZOGkP7afqWta03TkrZySYVqQu91insAxv6pOhsSMVTTJIZXMOACenLXpGpPPxTH5IelIDmwERaa7lFm5MQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOfDaaU8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854799; c=relaxed/simple;
+	bh=0NFWcd3sWde0nXInSa1iXIl4CR/DkMKLpddWtNXha3M=;
+	h=Date:To:From:Subject:Message-Id; b=hBjGXXYf29xOaF4SiG15NrOtwgSVXyFndv9q4/+JUnrV11N1D5ANfwj/zcEzsYVIh8JJwzuvF9GZG643pqcDrronUPRSgCAu3JGXeGqHGhzA17jsx6FFyZZz6uad8vbdoKLhevwvPAryE0Xbif/srxh9VuiVgyG/zUgqcsHOdas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XB1mkutO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOfDaaU8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E670EC4CECF;
-	Wed,  6 Nov 2024 00:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XB1mkutO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FFF3C4CED1;
+	Wed,  6 Nov 2024 00:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854798;
-	bh=hUTqXFkgiiFaUL/H2F+oZJmDWS7Dcp5o1UpZ1x2ClyI=;
+	s=korg; t=1730854799;
+	bh=0NFWcd3sWde0nXInSa1iXIl4CR/DkMKLpddWtNXha3M=;
 	h=Date:To:From:Subject:From;
-	b=UOfDaaU87AOb2x4auP5KI021KLBKb86BHsk8o5aS/Kl0kHqrUwkW1FivNEBy8ecFi
-	 SGrZvmoHJuBSEwyjUPdLrriv9kAj0lFZ9gfhSB8qsWL4DKHHLWh0WjxuSpRhJcKDcs
-	 f0T6uUr05qwbRmsi/HSVQH7JtM+8chjcSenQxNhw=
-Date: Tue, 05 Nov 2024 16:59:57 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,richard.weiyang@gmail.com,liam.howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=XB1mkutOc+YKeJtcBxAbXipLSjId+Ujgrm3IlsCCusp3hS6VAZPgoFvWOhLVzOPBr
+	 2ak7jzfVVPRbuX6klD7CTGdixqwf73BYM/weMzQfBtFWH+xnhb4M+TQ2GYk6IYvHww
+	 whklhZ3/jnKv5280+SByHvz9Q/O7ZUdx/u7BQ2Qc=
+Date: Tue, 05 Nov 2024 16:59:58 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,v-songbaohua@oppo.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-refactor-mas_wr_store_type.patch removed from -mm tree
-Message-Id: <20241106005957.E670EC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch removed from -mm tree
+Message-Id: <20241106005959.5FFF3C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,170 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: refactor mas_wr_store_type()
+     Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
 has been removed from the -mm tree.  Its filename was
-     maple_tree-refactor-mas_wr_store_type.patch
+     mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: refactor mas_wr_store_type()
-Date: Fri, 11 Oct 2024 17:44:51 -0400
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/zswap: avoid touching XArray for unnecessary invalidation
+Date: Sat, 12 Oct 2024 01:19:50 +0800
 
-In mas_wr_store_type(), we check if new_end < mt_slots[wr_mas->type].  If
-this check fails, we know that ,after this, new_end is >= mt_min_slots. 
-Checking this again when we detect a wr_node_store later in the function
-is reduntant.  Because this check is part of an OR statement, the
-statement will always evaluate to true, therefore we can just get rid of
-it.
+zswap_invalidation simply calls xa_erase, which acquires the Xarray lock
+first, then does a look up.  This has a higher overhead even if zswap is
+not used or the tree is empty.
 
-We also refactor mas_wr_store_type() to return the store type rather than
-set it directly as it greatly cleans up the function.
+So instead, do a very lightweight xa_empty check first, if there is
+nothing to erase, don't touch the lock or the tree.
 
-Link: https://lkml.kernel.org/r/20241011214451.7286-2-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha <sidhartha.kumar@oracle.com>
-Suggested-by: Liam Howlett <liam.howlett@oracle.com>
-Suggested-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Using xa_empty rather than zswap_never_enabled is more helpful as it cover
+both case where zswap wes never used or the particular range doesn't have
+any zswap entry.  And it's safe as the swap slot should be currently
+pinned by caller with HAS_CACHE.
+
+Sequential SWAP in/out tests with zswap disabled showed a minor
+performance gain, SWAP in of zero page with zswap enabled also showed a
+performance gain.  (swapout is basically unchanged so only test one case):
+
+Swapout of 2G zero page using brd as SWAP, zswap disabled
+(total time, 4 testrun, +0.1%):
+Before: 1705013 us 1703119 us 1704335 us 1705848 us.
+After:  1703579 us 1710640 us 1703625 us 1708699 us.
+
+Swapin of 2G zero page using brd as SWAP, zswap disabled
+(total time, 4 testrun, -3.5%):
+Before: 1912312 us 1915692 us 1905837 us 1912706 us.
+After:  1845354 us 1849691 us 1845868 us 1841828 us.
+
+Swapin of 2G zero page using brd as SWAP, zswap enabled
+(total time, 4 testrun, -3.3%):
+Before: 1897994 us 1894681 us 1899982 us 1898333 us
+After:  1835894 us 1834113 us 1832047 us 1833125 us
+
+Swapin of 2G random page using brd as SWAP, zswap enabled
+(total time, 4 testrun, -0.1%):
+Before: 4519747 us 4431078 us 4430185 us 4439999 us
+After:  4492176 us 4437796 us 4434612 us 4434289 us
+
+And the performance is very slightly better or unchanged for
+build kernel test with zswap enabled or disabled.
+
+Build Linux Kernel with defconfig and -j32 in 1G memory cgroup,
+using brd SWAP, zswap disabled (sys time in seconds, 6 testrun, -0.1%):
+Before: 1648.83 1653.52 1666.34 1665.95 1663.06 1656.67
+After:  1651.36 1661.89 1645.70 1657.45 1662.07 1652.83
+
+Build Linux Kernel with defconfig and -j32 in 2G memory cgroup,
+using brd SWAP zswap enabled (sys time in seconds, 6 testrun, -0.3%):
+Before: 1240.25 1254.06 1246.77 1265.92 1244.23 1227.74
+After:  1226.41 1218.21 1249.12 1249.13 1244.39 1233.01
+
+Link: https://lkml.kernel.org/r/20241011171950.62684-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   72 +++++++++++++++------------------------------
- 1 file changed, 25 insertions(+), 47 deletions(-)
+ mm/zswap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-refactor-mas_wr_store_type
-+++ a/lib/maple_tree.c
-@@ -4191,24 +4191,22 @@ static inline int mas_prealloc_calc(stru
- }
+--- a/mm/zswap.c~mm-zswap-avoid-touching-xarray-for-unnecessary-invalidation
++++ a/mm/zswap.c
+@@ -1643,6 +1643,9 @@ void zswap_invalidate(swp_entry_t swp)
+ 	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
  
- /*
-- * mas_wr_store_type() - Set the store type for a given
-+ * mas_wr_store_type() - Determine the store type for a given
-  * store operation.
-  * @wr_mas: The maple write state
-+ *
-+ * Return: the type of store needed for the operation
-  */
--static inline void mas_wr_store_type(struct ma_wr_state *wr_mas)
-+static inline enum store_type mas_wr_store_type(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
- 	unsigned char new_end;
- 
--	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas))) {
--		mas->store_type = wr_store_root;
--		return;
--	}
-+	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas)))
-+		return wr_store_root;
- 
--	if (unlikely(!mas_wr_walk(wr_mas))) {
--		mas->store_type = wr_spanning_store;
--		return;
--	}
-+	if (unlikely(!mas_wr_walk(wr_mas)))
-+		return wr_spanning_store;
- 
- 	/* At this point, we are at the leaf node that needs to be altered. */
- 	mas_wr_end_piv(wr_mas);
-@@ -4216,50 +4214,30 @@ static inline void mas_wr_store_type(str
- 		mas_wr_extend_null(wr_mas);
- 
- 	new_end = mas_wr_new_end(wr_mas);
--	if ((wr_mas->r_min == mas->index) && (wr_mas->r_max == mas->last)) {
--		mas->store_type = wr_exact_fit;
--		return;
--	}
-+	if ((wr_mas->r_min == mas->index) && (wr_mas->r_max == mas->last))
-+		return wr_exact_fit;
- 
--	if (unlikely(!mas->index && mas->last == ULONG_MAX)) {
--		mas->store_type = wr_new_root;
--		return;
--	}
-+	if (unlikely(!mas->index && mas->last == ULONG_MAX))
-+		return wr_new_root;
- 
- 	/* Potential spanning rebalance collapsing a node */
- 	if (new_end < mt_min_slots[wr_mas->type]) {
--		if (!mte_is_root(mas->node) && !(mas->mas_flags & MA_STATE_BULK)) {
--			mas->store_type = wr_rebalance;
--			return;
--		}
--		mas->store_type = wr_node_store;
--		return;
-+		if (!mte_is_root(mas->node) && !(mas->mas_flags & MA_STATE_BULK))
-+			return  wr_rebalance;
-+		return wr_node_store;
- 	}
- 
--	if (new_end >= mt_slots[wr_mas->type]) {
--		mas->store_type = wr_split_store;
--		return;
--	}
-+	if (new_end >= mt_slots[wr_mas->type])
-+		return wr_split_store;
- 
--	if (!mt_in_rcu(mas->tree) && (mas->offset == mas->end)) {
--		mas->store_type = wr_append;
--		return;
--	}
-+	if (!mt_in_rcu(mas->tree) && (mas->offset == mas->end))
-+		return wr_append;
- 
- 	if ((new_end == mas->end) && (!mt_in_rcu(mas->tree) ||
--		(wr_mas->offset_end - mas->offset == 1))) {
--		mas->store_type = wr_slot_store;
--		return;
--	}
--
--	if (mte_is_root(mas->node) || (new_end >= mt_min_slots[wr_mas->type]) ||
--		(mas->mas_flags & MA_STATE_BULK)) {
--		mas->store_type = wr_node_store;
--		return;
--	}
-+		(wr_mas->offset_end - mas->offset == 1)))
-+		return wr_slot_store;
- 
--	mas->store_type = wr_invalid;
--	MAS_WARN_ON(mas, 1);
-+	return wr_node_store;
- }
- 
- /**
-@@ -4274,7 +4252,7 @@ static inline void mas_wr_preallocate(st
- 	int request;
- 
- 	mas_wr_prealloc_setup(wr_mas);
--	mas_wr_store_type(wr_mas);
-+	mas->store_type = mas_wr_store_type(wr_mas);
- 	request = mas_prealloc_calc(mas, entry);
- 	if (!request)
- 		return;
-@@ -5446,7 +5424,7 @@ void *mas_store(struct ma_state *mas, vo
- 	 * overwrite multiple entries within a self-balancing B-Tree.
- 	 */
- 	mas_wr_prealloc_setup(&wr_mas);
--	mas_wr_store_type(&wr_mas);
-+	mas->store_type = mas_wr_store_type(&wr_mas);
- 	if (mas->mas_flags & MA_STATE_PREALLOC) {
- 		mas_wr_store_entry(&wr_mas);
- 		MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
-@@ -5549,7 +5527,7 @@ int mas_preallocate(struct ma_state *mas
- 	int request;
- 
- 	mas_wr_prealloc_setup(&wr_mas);
--	mas_wr_store_type(&wr_mas);
-+	mas->store_type = mas_wr_store_type(&wr_mas);
- 	request = mas_prealloc_calc(mas, entry);
- 	if (!request)
- 		return ret;
++	if (xa_empty(tree))
++		return;
++
+ 	entry = xa_erase(tree, offset);
+ 	if (entry)
+ 		zswap_entry_free(entry);
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
+mm-list_lru-dont-pass-unnecessary-key-parameters.patch
+mm-list_lru-dont-export-list_lru_add.patch
+mm-list_lru-code-clean-up-for-reparenting.patch
+mm-list_lru-simplify-reparenting-and-initial-allocation.patch
+mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
+mm-list_lru-simplify-the-list_lru-walk-callback-function.patch
 
