@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B97663B9
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C0AC1714C0
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854854; cv=none; b=oLR+0BOx5yPFePF2fBlYsOAS13kZIqBg9Oc+YoficImcocmXZ/BwnajhTJ5YK6OE9a2DuaOT6nmXWl2FGzbNqZ/WJ9ov9J93SDsU5qqiEReap2HLimKOYIOUj2oxp7Ti49/CwN+l2ausxMXkX8k+G1BFzQOVTNbJpnCHNkMWYQw=
+	t=1730854855; cv=none; b=ghi3y0bBCUqtvHgCkytf4GuK3RdUt/UmNDH+LA5PwdzMStK2tPVY9nCI0ega6SJSoKengxDM7nOve6iocyqAgiO45cen/6Yw0royNwv1eFQECRigXV/PnmdfhSe/8/2EVIbNTkUSFRJFQnm2BeCKhKg7wspqz8C73dATKoDrkAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854854; c=relaxed/simple;
-	bh=kPC4CKhH8cWtQRK6LjWw+/zV1Igl5OX2lFPAQVdRR3s=;
-	h=Date:To:From:Subject:Message-Id; b=mMQV3izHmURT+NMtRMkJdKeeCNdEql+Ift2uFMEIejHmBU1hOIL6XEuPQaLU3Mskru4yHjRWFclux6pBgI7bCp4U1Unwtv11/bkS68YXrFuOhl58w2uij1XHB6pku5R8+beYdlv3q4hL2mn0aKOINhPaaqH/M6o+3uQcy32gMyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=az/RrHfY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854855; c=relaxed/simple;
+	bh=EgYRuufh460yogG0MIrqD/QragQvCmFBv1UvB0zpMmw=;
+	h=Date:To:From:Subject:Message-Id; b=juvAhUm2ga8CJfKFko81AbZVBVXZHI4OHjPO7FBdAieeB65dRC424MLi2g/ENrJ6xT65LndzwujOzq2Mx7Mdz/Hfbv6BqoWsFfEkSKw0OlU/mdBIh7/oc3xEflh9G35vdM7GvI7AOiH6cDmjSj08w9nwWktLZYtBCoYExfed+Ag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XPqws1/Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="az/RrHfY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E043CC4CECF;
-	Wed,  6 Nov 2024 01:00:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XPqws1/Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7A2C4CECF;
+	Wed,  6 Nov 2024 01:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854854;
-	bh=kPC4CKhH8cWtQRK6LjWw+/zV1Igl5OX2lFPAQVdRR3s=;
+	s=korg; t=1730854855;
+	bh=EgYRuufh460yogG0MIrqD/QragQvCmFBv1UvB0zpMmw=;
 	h=Date:To:From:Subject:From;
-	b=az/RrHfYAaeigg+7SpHg7Xi2eZDqix+5+7K6HN69CfsMEhS/KRjZqA9PBR1d5NwiO
-	 SCoyqBTVgdxl3vyROZEKeAvTrzKYw3ye+RBcrWl46HMhts7a96YE9hba3qI11JSbvN
-	 8jACLyl3MM/0soV4remUreAP1bHK/bZPvEvCKI1Q=
-Date: Tue, 05 Nov 2024 17:00:53 -0800
+	b=XPqws1/YhwbWOh6EgJZ/MG52DGBK6SKcg2VqsNjd1MjR8d2cPxSaOaV81YpK2o4se
+	 r72T/rgiqZgqW3AWZ5sWgzsv9SNZ3PzNNvq8sTsBwsC8/yF2Mdb/zFcsM9l6We+9/a
+	 oON3+mGQ3h5PLtq9ftUHqQ3mBJ2029Fc6bVKZuJY=
+Date: Tue, 05 Nov 2024 17:00:54 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,xiongwei.song@windriver.com,willy@infradead.org,vbabka@suse.cz,urezki@gmail.com,thuth@redhat.com,tglx@linutronix.de,souravpanda@google.com,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,petr.pavlu@suse.com,paulmck@kernel.org,pasha.tatashin@soleen.com,minchan@google.com,mhocko@suse.com,mcgrof@kernel.org,Liam.Howlett@Oracle.com,kent.overstreet@linux.dev,keescook@chromium.org,kaleshsingh@google.com,jhubbard@nvidia.com,iamjoonsoo.kim@lge.com,hch@infradead.org,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,dave@stgolabs.net,da.gomez@samsung.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-mas_for_each_rev-helper.patch removed from -mm tree
-Message-Id: <20241106010053.E043CC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch removed from -mm tree
+Message-Id: <20241106010055.5D7A2C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add mas_for_each_rev() helper
+     Subject: alloc_tag: introduce shutdown_mem_profiling helper function
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-mas_for_each_rev-helper.patch
+     alloc_tag-introduce-shutdown_mem_profiling-helper-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: maple_tree: add mas_for_each_rev() helper
-Date: Wed, 23 Oct 2024 10:07:54 -0700
+Subject: alloc_tag: introduce shutdown_mem_profiling helper function
+Date: Wed, 23 Oct 2024 10:07:55 -0700
 
-Patch series "page allocation tag compression", v4.
+Implement a helper function to disable memory allocation profiling and use
+it when creation of /proc/allocinfo fails.  Ensure /proc/allocinfo does
+not get created when memory allocation profiling is disabled.
 
-This patchset implements several improvements:
-
-1. Gracefully handles module unloading while there are used
-   allocations allocated from that module;
-
-2. Provides an option to store page allocation tag references in the
-   page flags, removing dependency on page extensions and eliminating the
-   memory overhead from storing page allocation references (~0.2% of total
-   system memory).  This also improves page allocation performance when
-   CONFIG_MEM_ALLOC_PROFILING is enabled by eliminating page extension
-   lookup.  Page allocation performance overhead is reduced from 41% to
-   5.5%.
-
-Patch #1 introduces mas_for_each_rev() helper function.
-
-Patch #2 introduces shutdown_mem_profiling() helper function to be used
-when disabling memory allocation profiling.
-
-Patch #3 copies module tags into virtually contiguous memory which
-serves two purposes:
-
-- Lets us deal with the situation when module is unloaded while there
-  are still live allocations from that module.  Since we are using a copy
-  version of the tags we can safely unload the module.  Space and gaps in
-  this contiguous memory are managed using a maple tree.
-
-- Enables simple indexing of the tags in the later patches.
-
-Patch #4 changes the way we allocate virtually contiguous memory for
-module tags to reserve only vitrual area and populate physical pages only
-as needed at module load time.
-
-Patch #5 abstracts page allocation tag reference to simplify later
-changes.
-
-Patch #6 adds compression option to the sysctl.vm.mem_profiling boot
-parameter for storing page allocation tag references inside page flags if
-they fit.  If the number of available page flag bits is insufficient to
-address all kernel allocations, memory allocation profiling gets disabled
-with an appropriate warning.
-
-
-This patch (of 6):
-
-Add mas_for_each_rev() function to iterate maple tree nodes in reverse
-order.
-
-Link: https://lkml.kernel.org/r/20241023170759.999909-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20241023170759.999909-2-surenb@google.com
+Link: https://lkml.kernel.org/r/20241023170759.999909-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -118,6 +70,7 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -138,32 +91,67 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ lib/alloc_tag.c |   33 ++++++++++++++++++++++++++-------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-mas_for_each_rev-helper
-+++ a/include/linux/maple_tree.h
-@@ -592,6 +592,20 @@ static __always_inline void mas_reset(st
- #define mas_for_each(__mas, __entry, __max) \
- 	while (((__entry) = mas_find((__mas), (__max))) != NULL)
+--- a/lib/alloc_tag.c~alloc_tag-introduce-shutdown_mem_profiling-helper-function
++++ a/lib/alloc_tag.c
+@@ -8,6 +8,14 @@
+ #include <linux/seq_buf.h>
+ #include <linux/seq_file.h>
  
-+/**
-+ * mas_for_each_rev() - Iterate over a range of the maple tree in reverse order.
-+ * @__mas: Maple Tree operation state (maple_state)
-+ * @__entry: Entry retrieved from the tree
-+ * @__min: minimum index to retrieve from the tree
-+ *
-+ * When returned, mas->index and mas->last will hold the entire range for the
-+ * entry.
-+ *
-+ * Note: may return the zero entry.
-+ */
-+#define mas_for_each_rev(__mas, __entry, __min) \
-+	while (((__entry) = mas_find_rev((__mas), (__min))) != NULL)
++#define ALLOCINFO_FILE_NAME		"allocinfo"
 +
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- enum mt_dump_format {
- 	mt_dump_dec,
++#ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
++static bool mem_profiling_support __meminitdata = true;
++#else
++static bool mem_profiling_support __meminitdata;
++#endif
++
+ static struct codetag_type *alloc_tag_cttype;
+ 
+ DEFINE_PER_CPU(struct alloc_tag_counters, _shared_alloc_tag);
+@@ -144,9 +152,26 @@ size_t alloc_tag_top_users(struct codeta
+ 	return nr;
+ }
+ 
++static void __init shutdown_mem_profiling(void)
++{
++	if (mem_alloc_profiling_enabled())
++		static_branch_disable(&mem_alloc_profiling_key);
++
++	if (!mem_profiling_support)
++		return;
++
++	mem_profiling_support = false;
++}
++
+ static void __init procfs_init(void)
+ {
+-	proc_create_seq("allocinfo", 0400, NULL, &allocinfo_seq_op);
++	if (!mem_profiling_support)
++		return;
++
++	if (!proc_create_seq(ALLOCINFO_FILE_NAME, 0400, NULL, &allocinfo_seq_op)) {
++		pr_err("Failed to create %s file\n", ALLOCINFO_FILE_NAME);
++		shutdown_mem_profiling();
++	}
+ }
+ 
+ static bool alloc_tag_module_unload(struct codetag_type *cttype,
+@@ -174,12 +199,6 @@ static bool alloc_tag_module_unload(stru
+ 	return module_unused;
+ }
+ 
+-#ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
+-static bool mem_profiling_support __meminitdata = true;
+-#else
+-static bool mem_profiling_support __meminitdata;
+-#endif
+-
+ static int __init setup_early_mem_profiling(char *str)
+ {
+ 	bool enable;
 _
 
 Patches currently in -mm which might be from surenb@google.com are
