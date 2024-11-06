@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1219F13D52B
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22AA818785C
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854768; cv=none; b=QWGjFgXA+zJTjE9M3aoBJBlWlOOhJMQxmzySPXuSB+sGP76JCRsYpx00O7b33Rebc3NAKehLqTnRa8CA7jVBHkwx1P/HwHLJGGvA1xb3dztaD6KWw5dlnaP99gN4PoXze5ct+5i+D3VJjjUt7I1y9FVJaNdUrgd1uQBW0q+8LFI=
+	t=1730854769; cv=none; b=CvublmTdkj1i6hzYSN0ovC7n16F7B5dHmmK4D6QUTCbjdDb6lZU0C4A5S/IfCTOYd4bEzhzz613f+zXK9ya09IvdgcyVHKsIcoo8+X0WAUSBfrRwFy8FzFpyyJOsYpHCpSKD/EtpgM5YcvucxnIW+L5opyv7IZVbzVCn5Z5AK/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854768; c=relaxed/simple;
-	bh=B0ITKFINI5TYK1+UcRW35RlglFoNgL4K1bss4IOASVI=;
-	h=Date:To:From:Subject:Message-Id; b=K72UmPIFltq7SVOrCjULlKvTwLp6z+dB4d0g6TTBQW2WuAtT1ZUSRzlB4CusNrlNzsYYh07ha1yi/lbJByVTbaDjr98tv2uYpJHXdvxHVqwQGBcLNJ9bKVbTvg+IxGUqaRDLk6QhX+9FZ+Qnk8zAmMErw0C+848M7NZjX6OWe5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RejgxH3F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854769; c=relaxed/simple;
+	bh=B9JYp87X6dDQo8Xh/zcXeTASEcwNo5UlcTGDWkyk5tQ=;
+	h=Date:To:From:Subject:Message-Id; b=iIPosODzWhLTLPiZNX6GdL6ey/KfApVevVS0WZ8OB+HojXJyZtNt3EJQcjJxm2NjDE7Dij4v2jhbUUhqHkF5kFdpaZ+DZQ/R2beryffcq7eBy2uSvlHpZBDf7SHMneNEsangL0iw5xbE8vuDiTLdHdhminNRSU4/hHi2QY75hEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RSk0F4ns; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RejgxH3F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCBC2C4CECF;
-	Wed,  6 Nov 2024 00:59:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RSk0F4ns"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC8EDC4CECF;
+	Wed,  6 Nov 2024 00:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854768;
-	bh=B0ITKFINI5TYK1+UcRW35RlglFoNgL4K1bss4IOASVI=;
+	s=korg; t=1730854769;
+	bh=B9JYp87X6dDQo8Xh/zcXeTASEcwNo5UlcTGDWkyk5tQ=;
 	h=Date:To:From:Subject:From;
-	b=RejgxH3F39UmjGYIyDbI68FI9daEEIVWdmfA2AoKlZxErMn94gifECr7vjiUq98fA
-	 chE2X3zLoKhtnf5DEY50zq4+hABWM4qVwcug3xs7nSAA4wnVg+cKPupgKFRjGmSntZ
-	 N/VyzDFFxl7eZjowQNpvjRuR1EVD9htiFDSMdwOY=
-Date: Tue, 05 Nov 2024 16:59:27 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,Liam.Howlett@Oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=RSk0F4nsasR/EK7CfWR6Fh8OAF0CfUJbxtXijBC2V7cuJgegl6IKnp0IC9QKXmOGy
+	 WMGWISnkYMZf7LnzdexwOolOfQ4irPmwxrgKVjAeAx6PSoaKo63m+J646He9eEVzV+
+	 Z7GWmlRW2IXqO48tOApGjr3JNXtgJE8M0qLjw0HI=
+Date: Tue, 05 Nov 2024 16:59:28 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch removed from -mm tree
-Message-Id: <20241106005927.DCBC2C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-misleading-unlikely-hint-in-vms_gather_munmap_vmas.patch removed from -mm tree
+Message-Id: <20241106005928.EC8EDC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,380 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: do not hash pointers on dump in debug mode
+     Subject: mm: remove misleading 'unlikely' hint in vms_gather_munmap_vmas()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
+     mm-remove-misleading-unlikely-hint-in-vms_gather_munmap_vmas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: maple_tree: do not hash pointers on dump in debug mode
-Date: Mon, 7 Oct 2024 12:53:35 +0100
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: remove misleading 'unlikely' hint in vms_gather_munmap_vmas()
+Date: Fri, 4 Oct 2024 09:48:31 -0700
 
-Many maple tree values output when an mt_validate() or equivalent hits an
-issue utilise tagged pointers, most notably parent nodes. Also some
-pivots/slots contain meaningful values, output as pointers, such as the
-index of the last entry with data for example.
+Performance analysis using branch annotation on a fleet of 200 hosts
+running web servers revealed that the 'unlikely' hint in
+vms_gather_munmap_vmas() was 100% consistently incorrect.  In all observed
+cases, the branch behavior contradicted the hint.
 
-All pointer values such as this are destroyed by kernel pointer hashing
-rendering the debug output obtained from CONFIG_DEBUG_VM_MAPLE_TREE
-considerably less usable.
+Remove the 'unlikely' qualifier from the condition checking 'vms->uf'.  By
+doing so, we allow the compiler to make optimization decisions based on
+its own heuristics and profiling data, rather than relying on a static
+hint that has proven to be inaccurate in real-world scenarios.
 
-Update this code to output the raw pointers using %px rather than %p when
-CONFIG_DEBUG_VM_MAPLE_TREE is defined. This is justified, as the use of
-this configuration flag indicates that this is a test environment.
-
-Userland does not understand %px, so use %p there.
-
-In an abundance of caution, if CONFIG_DEBUG_VM_MAPLE_TREE is not set, also
-use %p to avoid exposing raw kernel pointers except when we are positive a
-testing mode is enabled.
-
-This was inspired by the investigation performed in recent debugging
-efforts around a maple tree regression [0] where kernel pointer tagging had
-to be disabled in order to obtain truly meaningful and useful data.
-
-[0]:https://lore.kernel.org/all/20241001023402.3374-1-spasswolf@web.de/
-
-Link: https://lkml.kernel.org/r/20241007115335.90104-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/20241004164832.218681-1-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  100 ++++++++++++++++++++++++++-------------------
- 1 file changed, 59 insertions(+), 41 deletions(-)
+ mm/vma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-do-not-hash-pointers-on-dump-in-debug-mode
-+++ a/lib/maple_tree.c
-@@ -64,6 +64,21 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/maple_tree.h>
+--- a/mm/vma.c~mm-remove-misleading-unlikely-hint-in-vms_gather_munmap_vmas
++++ a/mm/vma.c
+@@ -1254,7 +1254,7 @@ int vms_gather_munmap_vmas(struct vma_mu
+ 		else if (is_data_mapping(next->vm_flags))
+ 			vms->data_vm += nrpages;
  
-+/*
-+ * Kernel pointer hashing renders much of the maple tree dump useless as tagged
-+ * pointers get hashed to arbitrary values.
-+ *
-+ * If CONFIG_DEBUG_VM_MAPLE_TREE is set we are in a debug mode where it is
-+ * permissible to bypass this. Otherwise remain cautious and retain the hashing.
-+ *
-+ * Userland doesn't know about %px so also use %p there.
-+ */
-+#if defined(__KERNEL__) && defined(CONFIG_DEBUG_VM_MAPLE_TREE)
-+#define PTR_FMT "%px"
-+#else
-+#define PTR_FMT "%p"
-+#endif
-+
- #define MA_ROOT_PARENT 1
- 
- /*
-@@ -5414,7 +5429,8 @@ void *mas_store(struct ma_state *mas, vo
- 	trace_ma_write(__func__, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (MAS_WARN_ON(mas, mas->index > mas->last))
--		pr_err("Error %lX > %lX %p\n", mas->index, mas->last, entry);
-+		pr_err("Error %lX > %lX " PTR_FMT "\n", mas->index, mas->last,
-+		       entry);
- 
- 	if (mas->index > mas->last) {
- 		mas_set_err(mas, -EINVAL);
-@@ -7119,14 +7135,14 @@ static void mt_dump_entry(void *entry, u
- 	mt_dump_range(min, max, depth, format);
- 
- 	if (xa_is_value(entry))
--		pr_cont("value %ld (0x%lx) [%p]\n", xa_to_value(entry),
--				xa_to_value(entry), entry);
-+		pr_cont("value %ld (0x%lx) [" PTR_FMT "]\n", xa_to_value(entry),
-+			xa_to_value(entry), entry);
- 	else if (xa_is_zero(entry))
- 		pr_cont("zero (%ld)\n", xa_to_internal(entry));
- 	else if (mt_is_reserved(entry))
--		pr_cont("UNKNOWN ENTRY (%p)\n", entry);
-+		pr_cont("UNKNOWN ENTRY (" PTR_FMT ")\n", entry);
- 	else
--		pr_cont("%p\n", entry);
-+		pr_cont(PTR_FMT "\n", entry);
- }
- 
- static void mt_dump_range64(const struct maple_tree *mt, void *entry,
-@@ -7142,13 +7158,13 @@ static void mt_dump_range64(const struct
- 	for (i = 0; i < MAPLE_RANGE64_SLOTS - 1; i++) {
- 		switch(format) {
- 		case mt_dump_hex:
--			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
-+			pr_cont(PTR_FMT " %lX ", node->slot[i], node->pivot[i]);
- 			break;
- 		case mt_dump_dec:
--			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+			pr_cont(PTR_FMT " %lu ", node->slot[i], node->pivot[i]);
- 		}
- 	}
--	pr_cont("%p\n", node->slot[i]);
-+	pr_cont(PTR_FMT "\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_RANGE64_SLOTS; i++) {
- 		unsigned long last = max;
- 
-@@ -7170,11 +7186,11 @@ static void mt_dump_range64(const struct
- 		if (last > max) {
- 			switch(format) {
- 			case mt_dump_hex:
--				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
-+				pr_err("node " PTR_FMT " last (%lx) > max (%lx) at pivot %d!\n",
- 					node, last, max, i);
- 				break;
- 			case mt_dump_dec:
--				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+				pr_err("node " PTR_FMT " last (%lu) > max (%lu) at pivot %d!\n",
- 					node, last, max, i);
- 			}
- 		}
-@@ -7204,13 +7220,13 @@ static void mt_dump_arange64(const struc
- 	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++) {
- 		switch (format) {
- 		case mt_dump_hex:
--			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
-+			pr_cont(PTR_FMT " %lX ", node->slot[i], node->pivot[i]);
- 			break;
- 		case mt_dump_dec:
--			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+			pr_cont(PTR_FMT " %lu ", node->slot[i], node->pivot[i]);
- 		}
- 	}
--	pr_cont("%p\n", node->slot[i]);
-+	pr_cont(PTR_FMT "\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
- 		unsigned long last = max;
- 
-@@ -7229,11 +7245,11 @@ static void mt_dump_arange64(const struc
- 		if (last > max) {
- 			switch(format) {
- 			case mt_dump_hex:
--				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
-+				pr_err("node " PTR_FMT " last (%lx) > max (%lx) at pivot %d!\n",
- 					node, last, max, i);
- 				break;
- 			case mt_dump_dec:
--				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+				pr_err("node " PTR_FMT " last (%lu) > max (%lu) at pivot %d!\n",
- 					node, last, max, i);
- 			}
- 		}
-@@ -7251,8 +7267,8 @@ static void mt_dump_node(const struct ma
- 
- 	mt_dump_range(min, max, depth, format);
- 
--	pr_cont("node %p depth %d type %d parent %p", node, depth, type,
--			node ? node->parent : NULL);
-+	pr_cont("node " PTR_FMT " depth %d type %d parent " PTR_FMT, node,
-+		depth, type, node ? node->parent : NULL);
- 	switch (type) {
- 	case maple_dense:
- 		pr_cont("\n");
-@@ -7280,7 +7296,7 @@ void mt_dump(const struct maple_tree *mt
- {
- 	void *entry = rcu_dereference_check(mt->ma_root, mt_locked(mt));
- 
--	pr_info("maple_tree(%p) flags %X, height %u root %p\n",
-+	pr_info("maple_tree(" PTR_FMT ") flags %X, height %u root " PTR_FMT "\n",
- 		 mt, mt->ma_flags, mt_height(mt), entry);
- 	if (!xa_is_node(entry))
- 		mt_dump_entry(entry, 0, 0, 0, format);
-@@ -7332,7 +7348,7 @@ static void mas_validate_gaps(struct ma_
- 			MT_BUG_ON(mas->tree, !entry);
- 
- 			if (gap > p_end - p_start + 1) {
--				pr_err("%p[%u] %lu >= %lu - %lu + 1 (%lu)\n",
-+				pr_err(PTR_FMT "[%u] %lu >= %lu - %lu + 1 (%lu)\n",
- 				       mas_mn(mas), i, gap, p_end, p_start,
- 				       p_end - p_start + 1);
- 				MT_BUG_ON(mas->tree, gap > p_end - p_start + 1);
-@@ -7352,19 +7368,19 @@ counted:
- 		MT_BUG_ON(mas->tree, !gaps);
- 		offset = ma_meta_gap(node);
- 		if (offset > i) {
--			pr_err("gap offset %p[%u] is invalid\n", node, offset);
-+			pr_err("gap offset " PTR_FMT "[%u] is invalid\n", node, offset);
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 
- 		if (gaps[offset] != max_gap) {
--			pr_err("gap %p[%u] is not the largest gap %lu\n",
-+			pr_err("gap " PTR_FMT "[%u] is not the largest gap %lu\n",
- 			       node, offset, max_gap);
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 
- 		for (i++ ; i < mt_slot_count(mte); i++) {
- 			if (gaps[i] != 0) {
--				pr_err("gap %p[%u] beyond node limit != 0\n",
-+				pr_err("gap " PTR_FMT "[%u] beyond node limit != 0\n",
- 				       node, i);
- 				MT_BUG_ON(mas->tree, 1);
- 			}
-@@ -7378,7 +7394,7 @@ counted:
- 	p_mn = mte_parent(mte);
- 	MT_BUG_ON(mas->tree, max_gap > mas->max);
- 	if (ma_gaps(p_mn, mas_parent_type(mas, mte))[p_slot] != max_gap) {
--		pr_err("gap %p[%u] != %lu\n", p_mn, p_slot, max_gap);
-+		pr_err("gap " PTR_FMT "[%u] != %lu\n", p_mn, p_slot, max_gap);
- 		mt_dump(mas->tree, mt_dump_hex);
- 		MT_BUG_ON(mas->tree, 1);
- 	}
-@@ -7408,11 +7424,11 @@ static void mas_validate_parent_slot(str
- 		node = mas_slot(mas, slots, i);
- 		if (i == p_slot) {
- 			if (node != mas->node)
--				pr_err("parent %p[%u] does not have %p\n",
-+				pr_err("parent " PTR_FMT "[%u] does not have " PTR_FMT "\n",
- 					parent, i, mas_mn(mas));
- 			MT_BUG_ON(mas->tree, node != mas->node);
- 		} else if (node == mas->node) {
--			pr_err("Invalid child %p at parent %p[%u] p_slot %u\n",
-+			pr_err("Invalid child " PTR_FMT " at parent " PTR_FMT "[%u] p_slot %u\n",
- 			       mas_mn(mas), parent, i, p_slot);
- 			MT_BUG_ON(mas->tree, node == mas->node);
- 		}
-@@ -7434,20 +7450,20 @@ static void mas_validate_child_slot(stru
- 		child = mas_slot(mas, slots, i);
- 
- 		if (!child) {
--			pr_err("Non-leaf node lacks child at %p[%u]\n",
-+			pr_err("Non-leaf node lacks child at " PTR_FMT "[%u]\n",
- 			       mas_mn(mas), i);
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 
- 		if (mte_parent_slot(child) != i) {
--			pr_err("Slot error at %p[%u]: child %p has pslot %u\n",
-+			pr_err("Slot error at " PTR_FMT "[%u]: child " PTR_FMT " has pslot %u\n",
- 			       mas_mn(mas), i, mte_to_node(child),
- 			       mte_parent_slot(child));
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 
- 		if (mte_parent(child) != mte_to_node(mas->node)) {
--			pr_err("child %p has parent %p not %p\n",
-+			pr_err("child " PTR_FMT " has parent " PTR_FMT " not " PTR_FMT "\n",
- 			       mte_to_node(child), mte_parent(child),
- 			       mte_to_node(mas->node));
- 			MT_BUG_ON(mas->tree, 1);
-@@ -7477,24 +7493,24 @@ static void mas_validate_limits(struct m
- 		piv = mas_safe_pivot(mas, pivots, i, type);
- 
- 		if (!piv && (i != 0)) {
--			pr_err("Missing node limit pivot at %p[%u]",
-+			pr_err("Missing node limit pivot at " PTR_FMT "[%u]",
- 			       mas_mn(mas), i);
- 			MAS_WARN_ON(mas, 1);
- 		}
- 
- 		if (prev_piv > piv) {
--			pr_err("%p[%u] piv %lu < prev_piv %lu\n",
-+			pr_err(PTR_FMT "[%u] piv %lu < prev_piv %lu\n",
- 				mas_mn(mas), i, piv, prev_piv);
- 			MAS_WARN_ON(mas, piv < prev_piv);
- 		}
- 
- 		if (piv < mas->min) {
--			pr_err("%p[%u] %lu < %lu\n", mas_mn(mas), i,
-+			pr_err(PTR_FMT "[%u] %lu < %lu\n", mas_mn(mas), i,
- 				piv, mas->min);
- 			MAS_WARN_ON(mas, piv < mas->min);
- 		}
- 		if (piv > mas->max) {
--			pr_err("%p[%u] %lu > %lu\n", mas_mn(mas), i,
-+			pr_err(PTR_FMT "[%u] %lu > %lu\n", mas_mn(mas), i,
- 				piv, mas->max);
- 			MAS_WARN_ON(mas, piv > mas->max);
- 		}
-@@ -7504,7 +7520,7 @@ static void mas_validate_limits(struct m
- 	}
- 
- 	if (mas_data_end(mas) != i) {
--		pr_err("node%p: data_end %u != the last slot offset %u\n",
-+		pr_err("node" PTR_FMT ": data_end %u != the last slot offset %u\n",
- 		       mas_mn(mas), mas_data_end(mas), i);
- 		MT_BUG_ON(mas->tree, 1);
- 	}
-@@ -7513,8 +7529,8 @@ static void mas_validate_limits(struct m
- 		void *entry = mas_slot(mas, slots, i);
- 
- 		if (entry && (i != mt_slots[type] - 1)) {
--			pr_err("%p[%u] should not have entry %p\n", mas_mn(mas),
--			       i, entry);
-+			pr_err(PTR_FMT "[%u] should not have entry " PTR_FMT "\n",
-+			       mas_mn(mas), i, entry);
- 			MT_BUG_ON(mas->tree, entry != NULL);
- 		}
- 
-@@ -7524,7 +7540,7 @@ static void mas_validate_limits(struct m
- 			if (!piv)
- 				continue;
- 
--			pr_err("%p[%u] should not have piv %lu\n",
-+			pr_err(PTR_FMT "[%u] should not have piv %lu\n",
- 			       mas_mn(mas), i, piv);
- 			MAS_WARN_ON(mas, i < mt_pivots[type] - 1);
- 		}
-@@ -7549,7 +7565,7 @@ static void mt_validate_nulls(struct map
- 	do {
- 		entry = mas_slot(&mas, slots, offset);
- 		if (!last && !entry) {
--			pr_err("Sequential nulls end at %p[%u]\n",
-+			pr_err("Sequential nulls end at " PTR_FMT "[%u]\n",
- 				mas_mn(&mas), offset);
- 		}
- 		MT_BUG_ON(mt, !last && !entry);
-@@ -7591,7 +7607,8 @@ void mt_validate(struct maple_tree *mt)
- 		end = mas_data_end(&mas);
- 		if (MAS_WARN_ON(&mas, (end < mt_min_slot_count(mas.node)) &&
- 				(mas.max != ULONG_MAX))) {
--			pr_err("Invalid size %u of %p\n", end, mas_mn(&mas));
-+			pr_err("Invalid size %u of " PTR_FMT "\n",
-+			       end, mas_mn(&mas));
- 		}
- 
- 		mas_validate_parent_slot(&mas);
-@@ -7607,7 +7624,8 @@ EXPORT_SYMBOL_GPL(mt_validate);
- 
- void mas_dump(const struct ma_state *mas)
- {
--	pr_err("MAS: tree=%p enode=%p ", mas->tree, mas->node);
-+	pr_err("MAS: tree=" PTR_FMT " enode=" PTR_FMT " ",
-+	       mas->tree, mas->node);
- 	switch (mas->status) {
- 	case ma_active:
- 		pr_err("(ma_active)");
-@@ -7671,7 +7689,7 @@ void mas_dump(const struct ma_state *mas
- 
- 	pr_err("[%u/%u] index=%lx last=%lx\n", mas->offset, mas->end,
- 	       mas->index, mas->last);
--	pr_err("     min=%lx max=%lx alloc=%p, depth=%u, flags=%x\n",
-+	pr_err("     min=%lx max=%lx alloc=" PTR_FMT ", depth=%u, flags=%x\n",
- 	       mas->min, mas->max, mas->alloc, mas->depth, mas->mas_flags);
- 	if (mas->index > mas->last)
- 		pr_err("Check index & last\n");
-@@ -7680,7 +7698,7 @@ EXPORT_SYMBOL_GPL(mas_dump);
- 
- void mas_wr_dump(const struct ma_wr_state *wr_mas)
- {
--	pr_err("WR_MAS: node=%p r_min=%lx r_max=%lx\n",
-+	pr_err("WR_MAS: node=" PTR_FMT " r_min=%lx r_max=%lx\n",
- 	       wr_mas->node, wr_mas->r_min, wr_mas->r_max);
- 	pr_err("        type=%u off_end=%u, node_end=%u, end_piv=%lx\n",
- 	       wr_mas->type, wr_mas->offset_end, wr_mas->mas->end,
+-		if (unlikely(vms->uf)) {
++		if (vms->uf) {
+ 			/*
+ 			 * If userfaultfd_unmap_prep returns an error the vmas
+ 			 * will remain split, but userland will get a
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-pagewalk-add-the-ability-to-install-ptes.patch
-mm-add-pte_marker_guard-pte-marker.patch
-mm-madvise-implement-lightweight-guard-page-mechanism.patch
-tools-testing-update-tools-uapi-header-for-mman-commonh.patch
-selftests-mm-add-self-tests-for-guard-page-feature.patch
-mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
+scripts-decode_stacktracesh-remove-trailing-space.patch
 
