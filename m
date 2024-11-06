@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D2113B284
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22DC1126C10
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854797; cv=none; b=SjYJ6/NTRb2fZt6ads9zZiWlIoLq1wwR0UTAgFWDZw4j96D62qNn7Xk4AsNKK7LKV0pPBmw0eCNqHx8HmNRG2woryCzp6jKiDofxMWnI0Ex/YLq+98r1m6dqEIQGuVZ+3oa0vIFvS/GpCeA7V433wWQ8UUbxU/TxmkglT/bePcE=
+	t=1730854798; cv=none; b=rBYQ1+KyUQX8ovtySkTpbZ8ADeXy1M/zkt1+19uu2fwo107vuTerBEKIQPSfqhJ4TDzQUe8BILVgtW8CvNRy7CmlA8DiDFlr1bPJEew+je9eZhNOvgPHZs17sZwFejG9Cw394+zsJ/nln1t0+vLkfOYDG73vdQtv85Q8DJPU5p0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854797; c=relaxed/simple;
-	bh=UOMs7KVUQbeyPk6VlYDj50vttOk2rAaCycyC1MlIJsg=;
-	h=Date:To:From:Subject:Message-Id; b=QJZxgS/XRHmj/Un/WL3IiWPdklIINaaAMvnjVnLcQBbdIZtVC1FPavTKuSD2PJePbNbbmVKTx9oUYJQwzmY/Mvixr+92YeCoQqp15fQAB8ekcdegcowuiKlfEkmKIj0EO2rHhNiZvNE0k5MpaHN41UaP9gTsSUtWJTOowkXcew0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EwkTgZ5N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854798; c=relaxed/simple;
+	bh=hUTqXFkgiiFaUL/H2F+oZJmDWS7Dcp5o1UpZ1x2ClyI=;
+	h=Date:To:From:Subject:Message-Id; b=cM0xRuLdeJNqXiWXHPNyc25yNN0v0yDYmCnMyEUn57Yzi2eJFl2ac884sH3CPE3TgK74OQ9ilKNJtiJbxOPUmETuZOGkP7afqWta03TkrZySYVqQu91insAxv6pOhsSMVTTJIZXMOACenLXpGpPPxTH5IelIDmwERaa7lFm5MQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOfDaaU8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EwkTgZ5N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB2F9C4CED1;
-	Wed,  6 Nov 2024 00:59:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOfDaaU8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E670EC4CECF;
+	Wed,  6 Nov 2024 00:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854796;
-	bh=UOMs7KVUQbeyPk6VlYDj50vttOk2rAaCycyC1MlIJsg=;
+	s=korg; t=1730854798;
+	bh=hUTqXFkgiiFaUL/H2F+oZJmDWS7Dcp5o1UpZ1x2ClyI=;
 	h=Date:To:From:Subject:From;
-	b=EwkTgZ5N2rRUE8bRaQGuiMr7hmPt0Rn9m9s42orexi/36WTmkgGcGrqiip6yHnTtb
-	 CkKqdlTFAX7AigGWs+QY154OEp8K5+ojtf5ycXFQIfQrVRQNtxkyPnmde24xhJYV3w
-	 1SwGbcDpMi/5dcjid4VsxOogi2KjDtjP+/7xz9dg=
-Date: Tue, 05 Nov 2024 16:59:56 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,suhua1@kingsoft.com,akpm@linux-foundation.org
+	b=UOfDaaU87AOb2x4auP5KI021KLBKb86BHsk8o5aS/Kl0kHqrUwkW1FivNEBy8ecFi
+	 SGrZvmoHJuBSEwyjUPdLrriv9kAj0lFZ9gfhSB8qsWL4DKHHLWh0WjxuSpRhJcKDcs
+	 f0T6uUr05qwbRmsi/HSVQH7JtM+8chjcSenQxNhw=
+Date: Tue, 05 Nov 2024 16:59:57 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,richard.weiyang@gmail.com,liam.howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch removed from -mm tree
-Message-Id: <20241106005956.CB2F9C4CED1@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-refactor-mas_wr_store_type.patch removed from -mm tree
+Message-Id: <20241106005957.E670EC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,170 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
+     Subject: maple_tree: refactor mas_wr_store_type()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation.patch
+     maple_tree-refactor-mas_wr_store_type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: suhua <suhua1@kingsoft.com>
-Subject: mm/hugetlb: perform vmemmap optimization batchly for specific node allocation
-Date: Sat, 12 Oct 2024 15:08:02 +0800
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: maple_tree: refactor mas_wr_store_type()
+Date: Fri, 11 Oct 2024 17:44:51 -0400
 
-When HVO is enabled and huge page memory allocs are made, the freed memory
-can be aggregated into higher order memory in the following paths, which
-facilitates further allocs for higher order memory.
+In mas_wr_store_type(), we check if new_end < mt_slots[wr_mas->type].  If
+this check fails, we know that ,after this, new_end is >= mt_min_slots. 
+Checking this again when we detect a wr_node_store later in the function
+is reduntant.  Because this check is part of an OR statement, the
+statement will always evaluate to true, therefore we can just get rid of
+it.
 
-echo 200000 > /proc/sys/vm/nr_hugepages
-echo 200000 > /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages
-grub default_hugepagesz=2M hugepagesz=2M hugepages=200000
+We also refactor mas_wr_store_type() to return the store type rather than
+set it directly as it greatly cleans up the function.
 
-Currently not support for releasing aggregations to higher order in the
-following way, which will releasing to lower order.
-
-grub: default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
-
-This patch supports the release of huge page optimizations aggregates to
-higher order memory.
-
-eg:
-cat /proc/cmdline
-BOOT_IMAGE=/boot/vmlinuz-xxx ... default_hugepagesz=2M hugepagesz=2M hugepages=0:100000,1:100000
-
-Before:
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-...
-Node    0, zone   Normal, type    Unmovable  55282  97039  99307      0      1      1      0      1      1      1      0
-Node    0, zone   Normal, type      Movable     25     11    345     87     48     21      2     20      9      3  75061
-Node    0, zone   Normal, type  Reclaimable      4      2      2      4      3      0      2      1      1      1      0
-Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-...
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-Node    1, zone   Normal, type    Unmovable  98888  99650  99679      2      3      1      2      2      2      0      0
-Node    1, zone   Normal, type      Movable      1      1      0      1      1      0      1      0      1      1  75937
-Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
-Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-
-After:
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-...
-Node    0, zone   Normal, type    Unmovable    152    158     37      2      2      0      3      4      2      6    717
-Node    0, zone   Normal, type      Movable      1     37     53      3     55     49     16      6      2      1  75000
-Node    0, zone   Normal, type  Reclaimable      1      4      3      1      2      1      1      1      1      1      0
-Node    0, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-...
-Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10
-Node    1, zone   Normal, type    Unmovable      5      3      2      1      3      4      2      2      2      0    779
-Node    1, zone   Normal, type      Movable      1      0      1      1      1      0      1      0      1      1  75849
-Node    1, zone   Normal, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0
-Node    1, zone   Normal, type   HighAtomic      0      0      0      0      0      0      0      0      0      0      0
-
-Link: https://lkml.kernel.org/r/20241012070802.1876-1-suhua1@kingsoft.com
-Signed-off-by: suhua <suhua1@kingsoft.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20241011214451.7286-2-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha <sidhartha.kumar@oracle.com>
+Suggested-by: Liam Howlett <liam.howlett@oracle.com>
+Suggested-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ lib/maple_tree.c |   72 +++++++++++++++------------------------------
+ 1 file changed, 25 insertions(+), 47 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-perform-vmemmap-optimization-batchly-for-specific-node-allocation
-+++ a/mm/hugetlb.c
-@@ -3301,6 +3301,7 @@ static void __init hugetlb_hstate_alloc_
+--- a/lib/maple_tree.c~maple_tree-refactor-mas_wr_store_type
++++ a/lib/maple_tree.c
+@@ -4191,24 +4191,22 @@ static inline int mas_prealloc_calc(stru
+ }
+ 
+ /*
+- * mas_wr_store_type() - Set the store type for a given
++ * mas_wr_store_type() - Determine the store type for a given
+  * store operation.
+  * @wr_mas: The maple write state
++ *
++ * Return: the type of store needed for the operation
+  */
+-static inline void mas_wr_store_type(struct ma_wr_state *wr_mas)
++static inline enum store_type mas_wr_store_type(struct ma_wr_state *wr_mas)
  {
- 	unsigned long i;
- 	char buf[32];
-+	LIST_HEAD(folio_list);
+ 	struct ma_state *mas = wr_mas->mas;
+ 	unsigned char new_end;
  
- 	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
- 		if (hstate_is_gigantic(h)) {
-@@ -3310,14 +3311,18 @@ static void __init hugetlb_hstate_alloc_
- 			struct folio *folio;
- 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+-	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas))) {
+-		mas->store_type = wr_store_root;
+-		return;
+-	}
++	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas)))
++		return wr_store_root;
  
--			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
--					&node_states[N_MEMORY]);
-+			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
-+					&node_states[N_MEMORY], NULL);
- 			if (!folio)
- 				break;
--			free_huge_folio(folio); /* free it into the hugepage allocator */
-+			list_add(&folio->lru, &folio_list);
- 		}
- 		cond_resched();
+-	if (unlikely(!mas_wr_walk(wr_mas))) {
+-		mas->store_type = wr_spanning_store;
+-		return;
+-	}
++	if (unlikely(!mas_wr_walk(wr_mas)))
++		return wr_spanning_store;
+ 
+ 	/* At this point, we are at the leaf node that needs to be altered. */
+ 	mas_wr_end_piv(wr_mas);
+@@ -4216,50 +4214,30 @@ static inline void mas_wr_store_type(str
+ 		mas_wr_extend_null(wr_mas);
+ 
+ 	new_end = mas_wr_new_end(wr_mas);
+-	if ((wr_mas->r_min == mas->index) && (wr_mas->r_max == mas->last)) {
+-		mas->store_type = wr_exact_fit;
+-		return;
+-	}
++	if ((wr_mas->r_min == mas->index) && (wr_mas->r_max == mas->last))
++		return wr_exact_fit;
+ 
+-	if (unlikely(!mas->index && mas->last == ULONG_MAX)) {
+-		mas->store_type = wr_new_root;
+-		return;
+-	}
++	if (unlikely(!mas->index && mas->last == ULONG_MAX))
++		return wr_new_root;
+ 
+ 	/* Potential spanning rebalance collapsing a node */
+ 	if (new_end < mt_min_slots[wr_mas->type]) {
+-		if (!mte_is_root(mas->node) && !(mas->mas_flags & MA_STATE_BULK)) {
+-			mas->store_type = wr_rebalance;
+-			return;
+-		}
+-		mas->store_type = wr_node_store;
+-		return;
++		if (!mte_is_root(mas->node) && !(mas->mas_flags & MA_STATE_BULK))
++			return  wr_rebalance;
++		return wr_node_store;
  	}
-+
-+	if (!list_empty(&folio_list))
-+		prep_and_add_allocated_folios(h, &folio_list);
-+
- 	if (i == h->max_huge_pages_node[nid])
- 		return;
  
+-	if (new_end >= mt_slots[wr_mas->type]) {
+-		mas->store_type = wr_split_store;
+-		return;
+-	}
++	if (new_end >= mt_slots[wr_mas->type])
++		return wr_split_store;
+ 
+-	if (!mt_in_rcu(mas->tree) && (mas->offset == mas->end)) {
+-		mas->store_type = wr_append;
+-		return;
+-	}
++	if (!mt_in_rcu(mas->tree) && (mas->offset == mas->end))
++		return wr_append;
+ 
+ 	if ((new_end == mas->end) && (!mt_in_rcu(mas->tree) ||
+-		(wr_mas->offset_end - mas->offset == 1))) {
+-		mas->store_type = wr_slot_store;
+-		return;
+-	}
+-
+-	if (mte_is_root(mas->node) || (new_end >= mt_min_slots[wr_mas->type]) ||
+-		(mas->mas_flags & MA_STATE_BULK)) {
+-		mas->store_type = wr_node_store;
+-		return;
+-	}
++		(wr_mas->offset_end - mas->offset == 1)))
++		return wr_slot_store;
+ 
+-	mas->store_type = wr_invalid;
+-	MAS_WARN_ON(mas, 1);
++	return wr_node_store;
+ }
+ 
+ /**
+@@ -4274,7 +4252,7 @@ static inline void mas_wr_preallocate(st
+ 	int request;
+ 
+ 	mas_wr_prealloc_setup(wr_mas);
+-	mas_wr_store_type(wr_mas);
++	mas->store_type = mas_wr_store_type(wr_mas);
+ 	request = mas_prealloc_calc(mas, entry);
+ 	if (!request)
+ 		return;
+@@ -5446,7 +5424,7 @@ void *mas_store(struct ma_state *mas, vo
+ 	 * overwrite multiple entries within a self-balancing B-Tree.
+ 	 */
+ 	mas_wr_prealloc_setup(&wr_mas);
+-	mas_wr_store_type(&wr_mas);
++	mas->store_type = mas_wr_store_type(&wr_mas);
+ 	if (mas->mas_flags & MA_STATE_PREALLOC) {
+ 		mas_wr_store_entry(&wr_mas);
+ 		MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
+@@ -5549,7 +5527,7 @@ int mas_preallocate(struct ma_state *mas
+ 	int request;
+ 
+ 	mas_wr_prealloc_setup(&wr_mas);
+-	mas_wr_store_type(&wr_mas);
++	mas->store_type = mas_wr_store_type(&wr_mas);
+ 	request = mas_prealloc_calc(mas, entry);
+ 	if (!request)
+ 		return ret;
 _
 
-Patches currently in -mm which might be from suhua1@kingsoft.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
 
