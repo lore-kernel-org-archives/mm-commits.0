@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FBF2130A54
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E55713C918
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854705; cv=none; b=Va0e3qUEDQ0Nyef+SQRS5AIui5TTZ8q+jAUNl6YXKhCM+ps+157hvuCmudQYnyRkHi6uNVwMbVlobE1r9m65Gk39JCYfT4Bwn9kJGLZN8DBPfmMkSiY8+JQ2DPhsgifENl++wmZlsKOGlPT2nOjTEHUO9YwPJIxA16nCRBL+SZw=
+	t=1730854706; cv=none; b=eWI6IfyQUDOFdJk0l0S06fwXJTfGvUYyK2dW+nmhNq4k0Q0Gz2FFIu3uClZjARXkCiLDx7GIUilzMF68Ixy6Uh6mZF0f6Sc4xqDbNxfUE5k8uXHOtC2NEa5/JeS1TK5SFY79C+x18JpI+m3xMn2j+jr0UHEFEL7reTpBuRV7X2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854705; c=relaxed/simple;
-	bh=wzgkRWjaesYNS/DqkSfcs+jl0fiRJW3hCiEzT/UiBWk=;
-	h=Date:To:From:Subject:Message-Id; b=gYi9DpipjLfZkS8ONMpoXjLxvXLCeyyB01ywuu3MscsWUWhpO8oDQ090MIMGYV4oEEPwrdJo9Sky1W5TvTi/BM3mmMRZFFucgLzXTLv6RLbDrjxearZ68qx23hlS5SSxdDzW8kcAPcXVDE4SvFgpjzIXqqyAnEbLgcWEm+v431k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ui3lNnAo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854706; c=relaxed/simple;
+	bh=a9ybwLTflI6FwlKUeOKwB9kzcly3XIyuyzh/O1Rdq8I=;
+	h=Date:To:From:Subject:Message-Id; b=BuImlsCMCGkF7qsR2eVt1SW+FEQNDlxw/ebwnxAvKOsOveSh6y0Mb3E+wXNoKZ4LS2YOR7bLHrvZiUjh/GJMpMog/iAPLTw1bxwLs/Wr4pIPCPTfll4NYR8XmYCFqVTVb0ox9RsNt5FYXrAXfQb8OFE15LkYNplqbiOUKBoQNgA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F2AJd6D4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ui3lNnAo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4E0FC4CECF;
-	Wed,  6 Nov 2024 00:58:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F2AJd6D4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205C0C4CECF;
+	Wed,  6 Nov 2024 00:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854705;
-	bh=wzgkRWjaesYNS/DqkSfcs+jl0fiRJW3hCiEzT/UiBWk=;
+	s=korg; t=1730854706;
+	bh=a9ybwLTflI6FwlKUeOKwB9kzcly3XIyuyzh/O1Rdq8I=;
 	h=Date:To:From:Subject:From;
-	b=ui3lNnAoKBvpfhMyPf21rc4uO2kHnFLaPNsM3T8lMX9UBOgw+EY0vgLeE68J+HDfB
-	 197y2XgSX08QAEz0yd6R42KYzrrb4FkwXPST1GUsxqtmRYUw+YliFDh3gDJ4ZVDipG
-	 JSUl5fJxHd43kRFbb1XSBnfcSEzB11Ojn5sGuF2A=
-Date: Tue, 05 Nov 2024 16:58:24 -0800
-To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=F2AJd6D4sWf9Q3HVGRtGc8SxFcWiKJk03IxYR/IE0dqrkBOBWMssw9wowlP7XXTXx
+	 KZVwSseGU7fBns8sIfm/cwKGGpwUHOVZi4uf9yHHa3UlYEktKOScsgzD68aJ/rrlTh
+	 7ATwH4uE8fkn6H/fLbwz1qnZfF04Hx709kE5BfPY=
+Date: Tue, 05 Nov 2024 16:58:25 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,dan.carpenter@linaro.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-permit-only-one-post-processing-operation-at-a-time.patch removed from -mm tree
-Message-Id: <20241106005824.E4E0FC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] zram-rework-recompress-target-selection-strategy.patch removed from -mm tree
+Message-Id: <20241106005826.205C0C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,144 +35,347 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: permit only one post-processing operation at a time
+     Subject: zram: rework recompress target selection strategy
 has been removed from the -mm tree.  Its filename was
-     zram-permit-only-one-post-processing-operation-at-a-time.patch
+     zram-rework-recompress-target-selection-strategy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: permit only one post-processing operation at a time
-Date: Tue, 17 Sep 2024 11:09:07 +0900
+Subject: zram: rework recompress target selection strategy
+Date: Tue, 17 Sep 2024 11:09:08 +0900
 
-Both recompress and writeback soon will unlock slots during processing,
-which makes things too complex wrt possible race-conditions.  We still
-want to clear PP_SLOT in slot_free, because this is how we figure out that
-slot that was selected for post-processing has been released under us and
-when we start post-processing we check if slot still has PP_SLOT set.  At
-the same time, theoretically, we can have something like this:
+Target slot selection for recompression is just a simple iteration over
+zram->table entries (stored pages) from slot 0 to max slot.  Given that
+zram->table slots are written in random order and are not sorted by size,
+a simple iteration over slots selects suboptimal targets for
+recompression.  This is not a problem if we recompress every single
+zram->table slot, but we never do that in reality.  In reality we limit
+the number of slots we can recompress (via max_pages parameter) and hence
+proper slot selection becomes very important.  The strategy is quite
+simple, suppose we have two candidate slots for recompression, one of size
+48 bytes and one of size 2800 bytes, and we can recompress only one, then
+it certainly makes more sense to pick 2800 entry for recompression. 
+Because even if we manage to compress 48 bytes objects even further the
+savings are going to be very small.  Potential savings after good
+re-compression of 2800 bytes objects are much higher.
 
-CPU0			    CPU1
+This patch reworks slot selection and introduces the strategy described
+above: among candidate slots always select the biggest ones first.
 
-recompress
-scan slots
-set PP_SLOT
-unlock slot
-			slot_free
-			clear PP_SLOT
+For that the patch introduces zram_pp_ctl (post-processing) structure
+which holds NUM_PP_BUCKETS pp buckets of slots.  Slots are assigned to a
+particular group based on their sizes - the larger the size of the slot
+the higher the group index.  This, basically, sorts slots by size in liner
+time (we still perform just one iteration over zram->table slots).  When
+we select slot for recompression we always first lookup in higher pp
+buckets (those that hold the largest slots).  Which achieves the desired
+behavior.
 
-			allocate PP_SLOT
-			writeback
-			scan slots
-			set PP_SLOT
-			unlock slot
-select PP-slot
-test PP_SLOT
+TEST
+====
 
-So recompress will not detect that slot has been re-used and re-selected
-for concurrent writeback post-processing.
+A very simple demonstration: zram is configured with zstd, and zstd with
+dict as a recompression stream.  A limited (max 4096 pages) recompression
+is performed then, with a log of sizes of slots that were recompressed. 
+You can see that patched zram selects slots for recompression in
+significantly different manner, which leads to higher memory savings (see
+column #2 of mm_stat output).
 
-Make sure that we only permit on post-processing operation at a time.  So
-now recompress and writeback post-processing don't race against each
-other, we only need to handle slot re-use (slot_free and write), which is
-handled individually by each pp operation.
+BASE
+----
 
-Having recompress and writeback competing for the same slots is not
-exactly good anyway (can't imagine anyone doing that).
+*** initial state of zram device
+/sys/block/zram0/mm_stat
+1750994944 504491413 514203648        0 514203648        1        0    34204    34204
 
-Link: https://lkml.kernel.org/r/20240917021020.883356-3-senozhatsky@chromium.org
+*** recompress idle max_pages=4096
+/sys/block/zram0/mm_stat
+1750994944 504262229 514953216        0 514203648        1        0    34204    34204
+
+Sizes of selected objects for recompression:
+... 45 58 24 226 91 40 24 24 24 424 2104 93 2078 2078 2078 959 154 ...
+
+PATCHED
+-------
+
+*** initial state of zram device
+/sys/block/zram0/mm_stat
+1750982656 504492801 514170880        0 514170880        1        0    34204    34204
+
+*** recompress idle max_pages=4096
+/sys/block/zram0/mm_stat
+1750982656 503716710 517586944        0 514170880        1        0    34204    34204
+
+Sizes of selected objects for recompression:
+... 3680 3694 3667 3590 3614 3553 3537 3548 3550 3542 3543 3537 ...
+
+Note, pp-slots are not strictly sorted, there is a PP_BUCKET_SIZE_RANGE
+variation of sizes within particular bucket.
+
+[senozhatsky@chromium.org: do not skip the first bucket]
+  Link: https://lkml.kernel.org/r/20241001085634.1948384-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20240917021020.883356-4-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    2 ++
- drivers/block/zram/zram_drv.c               |   16 ++++++++++++++++
- drivers/block/zram/zram_drv.h               |    1 +
- 3 files changed, 19 insertions(+)
+ drivers/block/zram/zram_drv.c |  187 +++++++++++++++++++++++++++-----
+ 1 file changed, 160 insertions(+), 27 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-permit-only-one-post-processing-operation-at-a-time
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -47,6 +47,8 @@ The list of possible return codes:
- -ENOMEM	  zram was not able to allocate enough memory to fulfil your
- 	  needs.
- -EINVAL	  invalid input has been provided.
-+-EAGAIN	  re-try operation later (e.g. when attempting to run recompress
-+	  and writeback simultaneously).
- ========  =============================================================
- 
- If you use 'echo', the returned value is set by the 'echo' utility,
---- a/drivers/block/zram/zram_drv.c~zram-permit-only-one-post-processing-operation-at-a-time
+--- a/drivers/block/zram/zram_drv.c~zram-rework-recompress-target-selection-strategy
 +++ a/drivers/block/zram/zram_drv.c
-@@ -627,6 +627,12 @@ static ssize_t writeback_store(struct de
- 		goto release_init_lock;
- 	}
- 
-+	/* Do not permit concurrent post-processing actions. */
-+	if (atomic_xchg(&zram->pp_in_progress, 1)) {
-+		up_read(&zram->init_lock);
-+		return -EAGAIN;
-+	}
-+
- 	if (!zram->backing_dev) {
- 		ret = -ENODEV;
- 		goto release_init_lock;
-@@ -753,6 +759,7 @@ next:
- 		free_block_bdev(zram, blk_idx);
- 	__free_page(page);
- release_init_lock:
-+	atomic_set(&zram->pp_in_progress, 0);
- 	up_read(&zram->init_lock);
- 
- 	return ret;
-@@ -1883,6 +1890,12 @@ static ssize_t recompress_store(struct d
- 		goto release_init_lock;
- 	}
- 
-+	/* Do not permit concurrent post-processing actions. */
-+	if (atomic_xchg(&zram->pp_in_progress, 1)) {
-+		up_read(&zram->init_lock);
-+		return -EAGAIN;
-+	}
-+
- 	if (algo) {
- 		bool found = false;
- 
-@@ -1950,6 +1963,7 @@ next:
- 	__free_page(page);
- 
- release_init_lock:
-+	atomic_set(&zram->pp_in_progress, 0);
- 	up_read(&zram->init_lock);
- 	return ret;
+@@ -184,6 +184,99 @@ static void zram_accessed(struct zram *z
+ #endif
  }
-@@ -2146,6 +2160,7 @@ static void zram_reset_device(struct zra
- 	zram->disksize = 0;
- 	zram_destroy_comps(zram);
- 	memset(&zram->stats, 0, sizeof(zram->stats));
-+	atomic_set(&zram->pp_in_progress, 0);
- 	reset_bdev(zram);
  
- 	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
-@@ -2383,6 +2398,7 @@ static int zram_add(void)
- 	zram->disk->fops = &zram_devops;
- 	zram->disk->private_data = zram;
- 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
-+	atomic_set(&zram->pp_in_progress, 0);
++#ifdef CONFIG_ZRAM_MULTI_COMP
++struct zram_pp_slot {
++	unsigned long		index;
++	struct list_head	entry;
++};
++
++/*
++ * A post-processing bucket is, essentially, a size class, this defines
++ * the range (in bytes) of pp-slots sizes in particular bucket.
++ */
++#define PP_BUCKET_SIZE_RANGE	64
++#define NUM_PP_BUCKETS		((PAGE_SIZE / PP_BUCKET_SIZE_RANGE) + 1)
++
++struct zram_pp_ctl {
++	struct list_head	pp_buckets[NUM_PP_BUCKETS];
++};
++
++static struct zram_pp_ctl *init_pp_ctl(void)
++{
++	struct zram_pp_ctl *ctl;
++	u32 idx;
++
++	ctl = kmalloc(sizeof(*ctl), GFP_KERNEL);
++	if (!ctl)
++		return NULL;
++
++	for (idx = 0; idx < NUM_PP_BUCKETS; idx++)
++		INIT_LIST_HEAD(&ctl->pp_buckets[idx]);
++	return ctl;
++}
++
++static void release_pp_slot(struct zram *zram, struct zram_pp_slot *pps)
++{
++	list_del_init(&pps->entry);
++
++	zram_slot_lock(zram, pps->index);
++	zram_clear_flag(zram, pps->index, ZRAM_PP_SLOT);
++	zram_slot_unlock(zram, pps->index);
++
++	kfree(pps);
++}
++
++static void release_pp_ctl(struct zram *zram, struct zram_pp_ctl *ctl)
++{
++	u32 idx;
++
++	if (!ctl)
++		return;
++
++	for (idx = 0; idx < NUM_PP_BUCKETS; idx++) {
++		while (!list_empty(&ctl->pp_buckets[idx])) {
++			struct zram_pp_slot *pps;
++
++			pps = list_first_entry(&ctl->pp_buckets[idx],
++					       struct zram_pp_slot,
++					       entry);
++			release_pp_slot(zram, pps);
++		}
++	}
++
++	kfree(ctl);
++}
++
++static void place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
++			  struct zram_pp_slot *pps)
++{
++	u32 idx;
++
++	idx = zram_get_obj_size(zram, pps->index) / PP_BUCKET_SIZE_RANGE;
++	list_add(&pps->entry, &ctl->pp_buckets[idx]);
++
++	zram_set_flag(zram, pps->index, ZRAM_PP_SLOT);
++}
++
++static struct zram_pp_slot *select_pp_slot(struct zram_pp_ctl *ctl)
++{
++	struct zram_pp_slot *pps = NULL;
++	s32 idx = NUM_PP_BUCKETS - 1;
++
++	/* The higher the bucket id the more optimal slot post-processing is */
++	while (idx >= 0) {
++		pps = list_first_entry_or_null(&ctl->pp_buckets[idx],
++					       struct zram_pp_slot,
++					       entry);
++		if (pps)
++			break;
++
++		idx--;
++	}
++	return pps;
++}
++#endif
++
+ static inline void update_used_max(struct zram *zram,
+ 					const unsigned long pages)
+ {
+@@ -1657,6 +1750,52 @@ static int zram_bvec_write(struct zram *
+ }
  
- 	/* Actual capacity set using sysfs (/sys/block/zram<id>/disksize */
- 	set_capacity(zram->disk, 0);
---- a/drivers/block/zram/zram_drv.h~zram-permit-only-one-post-processing-operation-at-a-time
-+++ a/drivers/block/zram/zram_drv.h
-@@ -140,5 +140,6 @@ struct zram {
- #ifdef CONFIG_ZRAM_MEMORY_TRACKING
- 	struct dentry *debugfs_dir;
- #endif
-+	atomic_t pp_in_progress;
- };
- #endif
+ #ifdef CONFIG_ZRAM_MULTI_COMP
++#define RECOMPRESS_IDLE		(1 << 0)
++#define RECOMPRESS_HUGE		(1 << 1)
++
++static int scan_slots_for_recompress(struct zram *zram, u32 mode,
++				     struct zram_pp_ctl *ctl)
++{
++	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
++	struct zram_pp_slot *pps = NULL;
++	unsigned long index;
++
++	for (index = 0; index < nr_pages; index++) {
++		if (!pps)
++			pps = kmalloc(sizeof(*pps), GFP_KERNEL);
++		if (!pps)
++			return -ENOMEM;
++
++		INIT_LIST_HEAD(&pps->entry);
++
++		zram_slot_lock(zram, index);
++		if (!zram_allocated(zram, index))
++			goto next;
++
++		if (mode & RECOMPRESS_IDLE &&
++		    !zram_test_flag(zram, index, ZRAM_IDLE))
++			goto next;
++
++		if (mode & RECOMPRESS_HUGE &&
++		    !zram_test_flag(zram, index, ZRAM_HUGE))
++			goto next;
++
++		if (zram_test_flag(zram, index, ZRAM_WB) ||
++		    zram_test_flag(zram, index, ZRAM_SAME) ||
++		    zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
++			goto next;
++
++		pps->index = index;
++		place_pp_slot(zram, ctl, pps);
++		pps = NULL;
++next:
++		zram_slot_unlock(zram, index);
++	}
++
++	kfree(pps);
++	return 0;
++}
++
+ /*
+  * This function will decompress (unless it's ZRAM_HUGE) the page and then
+  * attempt to compress it using provided compression algorithm priority
+@@ -1664,7 +1803,7 @@ static int zram_bvec_write(struct zram *
+  *
+  * Corresponding ZRAM slot should be locked.
+  */
+-static int zram_recompress(struct zram *zram, u32 index, struct page *page,
++static int recompress_slot(struct zram *zram, u32 index, struct page *page,
+ 			   u64 *num_recomp_pages, u32 threshold, u32 prio,
+ 			   u32 prio_max)
+ {
+@@ -1807,20 +1946,17 @@ static int zram_recompress(struct zram *
+ 	return 0;
+ }
+ 
+-#define RECOMPRESS_IDLE		(1 << 0)
+-#define RECOMPRESS_HUGE		(1 << 1)
+-
+ static ssize_t recompress_store(struct device *dev,
+ 				struct device_attribute *attr,
+ 				const char *buf, size_t len)
+ {
+ 	u32 prio = ZRAM_SECONDARY_COMP, prio_max = ZRAM_MAX_COMPS;
+ 	struct zram *zram = dev_to_zram(dev);
+-	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+ 	char *args, *param, *val, *algo = NULL;
+ 	u64 num_recomp_pages = ULLONG_MAX;
++	struct zram_pp_ctl *ctl = NULL;
++	struct zram_pp_slot *pps;
+ 	u32 mode = 0, threshold = 0;
+-	unsigned long index;
+ 	struct page *page;
+ 	ssize_t ret;
+ 
+@@ -1922,36 +2058,32 @@ static ssize_t recompress_store(struct d
+ 		goto release_init_lock;
+ 	}
+ 
++	ctl = init_pp_ctl();
++	if (!ctl) {
++		ret = -ENOMEM;
++		goto release_init_lock;
++	}
++
++	scan_slots_for_recompress(zram, mode, ctl);
++
+ 	ret = len;
+-	for (index = 0; index < nr_pages; index++) {
++	while ((pps = select_pp_slot(ctl))) {
+ 		int err = 0;
+ 
+ 		if (!num_recomp_pages)
+ 			break;
+ 
+-		zram_slot_lock(zram, index);
+-
+-		if (!zram_allocated(zram, index))
+-			goto next;
+-
+-		if (mode & RECOMPRESS_IDLE &&
+-		    !zram_test_flag(zram, index, ZRAM_IDLE))
++		zram_slot_lock(zram, pps->index);
++		if (!zram_test_flag(zram, pps->index, ZRAM_PP_SLOT))
+ 			goto next;
+ 
+-		if (mode & RECOMPRESS_HUGE &&
+-		    !zram_test_flag(zram, index, ZRAM_HUGE))
+-			goto next;
+-
+-		if (zram_test_flag(zram, index, ZRAM_WB) ||
+-		    zram_test_flag(zram, index, ZRAM_UNDER_WB) ||
+-		    zram_test_flag(zram, index, ZRAM_SAME) ||
+-		    zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
+-			goto next;
+-
+-		err = zram_recompress(zram, index, page, &num_recomp_pages,
+-				      threshold, prio, prio_max);
++		err = recompress_slot(zram, pps->index, page,
++				      &num_recomp_pages, threshold,
++				      prio, prio_max);
+ next:
+-		zram_slot_unlock(zram, index);
++		zram_slot_unlock(zram, pps->index);
++		release_pp_slot(zram, pps);
++
+ 		if (err) {
+ 			ret = err;
+ 			break;
+@@ -1963,6 +2095,7 @@ next:
+ 	__free_page(page);
+ 
+ release_init_lock:
++	release_pp_ctl(zram, ctl);
+ 	atomic_set(&zram->pp_in_progress, 0);
+ 	up_read(&zram->init_lock);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
