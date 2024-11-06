@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F60D16C684
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D055161320
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854711; cv=none; b=Hq7ANR70X0c3eSi1cgrBBr2dSyJU2w8onFE4dUWTMaA43hQslnfkdVrvCXiGjvqcdGCh1v0MaHpEeRNVJkL9yZPvUKn2z0RGn6YHGKcdNJw8DV/iFmzzNQvxLYB8Jws2VUMa9DOnN826qmTD2OCIOggicd1kh+Ajo6OG7bX+UrY=
+	t=1730854712; cv=none; b=UX2cJDgBLMuN2lYgHPsn2FB5wiccevfYsW37I0EkzrcO7ey9BVhNjBSVwWU7MEZ1oBVgxghSKbQcwlgMg15B3PKWrPjUbMWGL/pzrXBCiDvDxb0v0vbsv5xhe/RZnEEadrdvThzB7/VjdONrsoGWjrRWghvX6Hoy5omdmEJz/Eo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854711; c=relaxed/simple;
-	bh=RirwSRIUnuPuTdvlsHl2BFoDCCGi/5Cgzk6azGyGHF4=;
-	h=Date:To:From:Subject:Message-Id; b=O2X+wpTF/25grXwDqygHHFZi/UBuirVV3l5QvtrNjthCkPrQ8bPKSQRFGrvvrFjX+BQS9vaqJGiOZJB14cYRTwrCtSJCYj+Vze2dLkUiSPEcjP5498fcKvBYYNmwJSMA/VYvlETSvBYKJereROuQm0LU5bjso5+yRHoEqsAEnqU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O+w5nVgz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854712; c=relaxed/simple;
+	bh=lE8wnhZ/mrIdqRBNDX4fouda6sm8Z16FRO2AUtBjga0=;
+	h=Date:To:From:Subject:Message-Id; b=V3oZ7Xea/IVc5f+wZLPHm5O6qMFvByYL10VmKXOuKKPpsq2Bdw1hsNe3s0ygAogXikY//BmBFwBZVRfptuvwySysVYhZIMYdtLgmthH8ISmhSRaT9GwUbE5B8NUF3+6LsRlpcCBV7IVxwfRbMIsgFyaHANzIT5RhZYz4P0FdBDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t74tz+I6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O+w5nVgz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85331C4CED1;
-	Wed,  6 Nov 2024 00:58:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t74tz+I6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB158C4CECF;
+	Wed,  6 Nov 2024 00:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854710;
-	bh=RirwSRIUnuPuTdvlsHl2BFoDCCGi/5Cgzk6azGyGHF4=;
+	s=korg; t=1730854711;
+	bh=lE8wnhZ/mrIdqRBNDX4fouda6sm8Z16FRO2AUtBjga0=;
 	h=Date:To:From:Subject:From;
-	b=O+w5nVgzb2OlwMlfB5gaCR3cI4ALio1cFbFxfKzrHknYRYiTBtS04lAs47PUChsvT
-	 rEuGm4bS/BaCfy1noC+B56+pHCnms6C0V8xHIowlkNC+p8oC4J9k56vBIOGUL2wpip
-	 lmSYav3G+7yy7G7w/yZSKVnN6Zuh50dkB425PnFs=
-Date: Tue, 05 Nov 2024 16:58:30 -0800
-To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=t74tz+I6YpAd4r57y59c3e/9U/oxru/+lQj7PvbwbtHNOflHk7iGFMqGzeYuIVVNN
+	 C8CpKapa+dhDHyb7UUS6CNsEXHtiBw4jY8RKh6x1B920VYbnBpToLSD6jmsd8JZDri
+	 Y5oItP6EK0NJJqC0d05TzZMT3MGcKdJqRObYfcP0=
+Date: Tue, 05 Nov 2024 16:58:31 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,arnd@arndb.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-remove-under_wb-and-simplify-writeback.patch removed from -mm tree
-Message-Id: <20241106005830.85331C4CED1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-refactor-mm_access-to-not-return-null.patch removed from -mm tree
+Message-Id: <20241106005831.AB158C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,154 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: remove UNDER_WB and simplify writeback
+     Subject: mm: refactor mm_access() to not return NULL
 has been removed from the -mm tree.  Its filename was
-     zram-remove-under_wb-and-simplify-writeback.patch
+     mm-refactor-mm_access-to-not-return-null.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove UNDER_WB and simplify writeback
-Date: Tue, 17 Sep 2024 11:09:12 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: refactor mm_access() to not return NULL
+Date: Tue, 24 Sep 2024 21:10:23 +0100
 
-We now have only one active post-processing at any time, so we don't have
-same race conditions that we had before.  If slot selected for
-post-processing gets freed or freed and reallocated it loses its PP_SLOT
-flag and there is no way for such a slot to gain PP_SLOT flag again until
-current post-processing terminates.
+mm_access() can return NULL if the mm is not found, but this is handled
+the same as an error in all callers, with some translating this into an
+-ESRCH error.
 
-Link: https://lkml.kernel.org/r/20240917021020.883356-8-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Only proc_mem_open() returns NULL if no mm is found, however in this case
+it is clearer and makes more sense to explicitly handle the error. 
+Additionally we take the opportunity to refactor the function to eliminate
+unnecessary nesting.
+
+Simplify things by simply returning -ESRCH if no mm is found - this both
+eliminates confusing use of the IS_ERR_OR_NULL() macro, and simplifies
+callers which would return -ESRCH by returning this error directly.
+
+[lorenzo.stoakes@oracle.com: prefer neater pointer error comparison]
+  Link: https://lkml.kernel.org/r/2fae1834-749a-45e1-8594-5e5979cf7103@lucifer.local
+Link: https://lkml.kernel.org/r/20240924201023.193135-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   53 +++++++++-----------------------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 16 insertions(+), 38 deletions(-)
+ fs/proc/base.c         |   26 ++++++++++++++------------
+ kernel/fork.c          |    5 +++--
+ mm/madvise.c           |    4 ++--
+ mm/process_vm_access.c |    4 ++--
+ 4 files changed, 21 insertions(+), 18 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-under_wb-and-simplify-writeback
-+++ a/drivers/block/zram/zram_drv.c
-@@ -390,10 +390,7 @@ static void mark_idle(struct zram *zram,
+--- a/fs/proc/base.c~mm-refactor-mm_access-to-not-return-null
++++ a/fs/proc/base.c
+@@ -832,19 +832,21 @@ static const struct file_operations proc
+ struct mm_struct *proc_mem_open(struct inode *inode, unsigned int mode)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+-	struct mm_struct *mm = ERR_PTR(-ESRCH);
++	struct mm_struct *mm;
  
- 	for (index = 0; index < nr_pages; index++) {
- 		/*
--		 * Do not mark ZRAM_UNDER_WB slot as ZRAM_IDLE to close race.
--		 * See the comment in writeback_store.
--		 *
--		 * Also do not mark ZRAM_SAME slots as ZRAM_IDLE, because no
-+		 * Do not mark ZRAM_SAME slots as ZRAM_IDLE, because no
- 		 * post-processing (recompress, writeback) happens to the
- 		 * ZRAM_SAME slot.
- 		 *
-@@ -402,7 +399,6 @@ static void mark_idle(struct zram *zram,
- 		zram_slot_lock(zram, index);
- 		if (!zram_allocated(zram, index) ||
- 		    zram_test_flag(zram, index, ZRAM_WB) ||
--		    zram_test_flag(zram, index, ZRAM_UNDER_WB) ||
- 		    zram_test_flag(zram, index, ZRAM_SAME)) {
- 			zram_slot_unlock(zram, index);
- 			continue;
-@@ -821,22 +817,17 @@ static ssize_t writeback_store(struct de
+-	if (task) {
+-		mm = mm_access(task, mode | PTRACE_MODE_FSCREDS);
+-		put_task_struct(task);
++	if (!task)
++		return ERR_PTR(-ESRCH);
  
- 		index = pps->index;
- 		zram_slot_lock(zram, index);
--		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
--			goto next;
- 		/*
--		 * Clearing ZRAM_UNDER_WB is duty of caller.
--		 * IOW, zram_free_page never clear it.
-+		 * scan_slots() sets ZRAM_PP_SLOT and relases slot lock, so
-+		 * slots can change in the meantime. If slots are accessed or
-+		 * freed they lose ZRAM_PP_SLOT flag and hence we don't
-+		 * post-process them.
- 		 */
--		zram_set_flag(zram, index, ZRAM_UNDER_WB);
--		/* Need for hugepage writeback racing */
--		zram_set_flag(zram, index, ZRAM_IDLE);
-+		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
-+			goto next;
- 		zram_slot_unlock(zram, index);
--		if (zram_read_page(zram, page, index, NULL)) {
--			zram_slot_lock(zram, index);
--			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
--			zram_clear_flag(zram, index, ZRAM_IDLE);
--			zram_slot_unlock(zram, index);
- 
-+		if (zram_read_page(zram, page, index, NULL)) {
- 			release_pp_slot(zram, pps);
- 			continue;
- 		}
-@@ -852,11 +843,6 @@ static ssize_t writeback_store(struct de
- 		 */
- 		err = submit_bio_wait(&bio);
- 		if (err) {
--			zram_slot_lock(zram, index);
--			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
--			zram_clear_flag(zram, index, ZRAM_IDLE);
--			zram_slot_unlock(zram, index);
--
- 			release_pp_slot(zram, pps);
- 			/*
- 			 * BIO errors are not fatal, we continue and simply
-@@ -871,25 +857,19 @@ static ssize_t writeback_store(struct de
- 		}
- 
- 		atomic64_inc(&zram->stats.bd_writes);
-+		zram_slot_lock(zram, index);
- 		/*
--		 * We released zram_slot_lock so need to check if the slot was
--		 * changed. If there is freeing for the slot, we can catch it
--		 * easily by zram_allocated.
--		 * A subtle case is the slot is freed/reallocated/marked as
--		 * ZRAM_IDLE again. To close the race, idle_store doesn't
--		 * mark ZRAM_IDLE once it found the slot was ZRAM_UNDER_WB.
--		 * Thus, we could close the race by checking ZRAM_IDLE bit.
-+		 * Same as above, we release slot lock during writeback so
-+		 * slot can change under us: slot_free() or slot_free() and
-+		 * reallocation (zram_write_page()). In both cases slot loses
-+		 * ZRAM_PP_SLOT flag. No concurrent post-processing can set
-+		 * ZRAM_PP_SLOT on such slots until current post-processing
-+		 * finishes.
- 		 */
--		zram_slot_lock(zram, index);
--		if (!zram_allocated(zram, index) ||
--			  !zram_test_flag(zram, index, ZRAM_IDLE)) {
--			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
--			zram_clear_flag(zram, index, ZRAM_IDLE);
-+		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
- 			goto next;
+-		if (!IS_ERR_OR_NULL(mm)) {
+-			/* ensure this mm_struct can't be freed */
+-			mmgrab(mm);
+-			/* but do not pin its memory */
+-			mmput(mm);
 -		}
+-	}
++	mm = mm_access(task, mode | PTRACE_MODE_FSCREDS);
++	put_task_struct(task);
++
++	if (IS_ERR(mm))
++		return mm == ERR_PTR(-ESRCH) ? NULL : mm;
++
++	/* ensure this mm_struct can't be freed */
++	mmgrab(mm);
++	/* but do not pin its memory */
++	mmput(mm);
  
- 		zram_free_page(zram, index);
--		zram_clear_flag(zram, index, ZRAM_UNDER_WB);
- 		zram_set_flag(zram, index, ZRAM_WB);
- 		zram_set_element(zram, index, blk_idx);
- 		blk_idx = 0;
-@@ -1538,7 +1518,6 @@ out:
- 	atomic64_dec(&zram->stats.pages_stored);
- 	zram_set_handle(zram, index, 0);
- 	zram_set_obj_size(zram, index, 0);
--	WARN_ON_ONCE(zram->table[index].flags & ~(1UL << ZRAM_UNDER_WB));
+ 	return mm;
  }
+@@ -2208,7 +2210,7 @@ static int map_files_d_revalidate(struct
+ 		goto out_notask;
  
- /*
---- a/drivers/block/zram/zram_drv.h~zram-remove-under_wb-and-simplify-writeback
-+++ a/drivers/block/zram/zram_drv.h
-@@ -47,7 +47,6 @@
- enum zram_pageflags {
- 	ZRAM_SAME = ZRAM_FLAG_SHIFT,	/* Page consists the same element */
- 	ZRAM_WB,	/* page is stored on backing_device */
--	ZRAM_UNDER_WB,	/* page is under writeback */
- 	ZRAM_PP_SLOT,	/* Selected for post-processing */
- 	ZRAM_HUGE,	/* Incompressible page */
- 	ZRAM_IDLE,	/* not accessed page since last idle marking */
+ 	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
+-	if (IS_ERR_OR_NULL(mm))
++	if (IS_ERR(mm))
+ 		goto out;
+ 
+ 	if (!dname_to_vma_addr(dentry, &vm_start, &vm_end)) {
+--- a/kernel/fork.c~mm-refactor-mm_access-to-not-return-null
++++ a/kernel/fork.c
+@@ -1546,8 +1546,9 @@ struct mm_struct *mm_access(struct task_
+ 		return ERR_PTR(err);
+ 
+ 	mm = get_task_mm(task);
+-	if (mm && mm != current->mm &&
+-			!ptrace_may_access(task, mode)) {
++	if (!mm) {
++		mm = ERR_PTR(-ESRCH);
++	} else if (mm != current->mm && !ptrace_may_access(task, mode)) {
+ 		mmput(mm);
+ 		mm = ERR_PTR(-EACCES);
+ 	}
+--- a/mm/madvise.c~mm-refactor-mm_access-to-not-return-null
++++ a/mm/madvise.c
+@@ -1511,8 +1511,8 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 
+ 	/* Require PTRACE_MODE_READ to avoid leaking ASLR metadata. */
+ 	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
+-	if (IS_ERR_OR_NULL(mm)) {
+-		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
++	if (IS_ERR(mm)) {
++		ret = PTR_ERR(mm);
+ 		goto release_task;
+ 	}
+ 
+--- a/mm/process_vm_access.c~mm-refactor-mm_access-to-not-return-null
++++ a/mm/process_vm_access.c
+@@ -201,8 +201,8 @@ static ssize_t process_vm_rw_core(pid_t
+ 	}
+ 
+ 	mm = mm_access(task, PTRACE_MODE_ATTACH_REALCREDS);
+-	if (!mm || IS_ERR(mm)) {
+-		rc = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
++	if (IS_ERR(mm)) {
++		rc = PTR_ERR(mm);
+ 		/*
+ 		 * Explicitly map EACCES to EPERM as EPERM is a more
+ 		 * appropriate error code for process_vw_readv/writev
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-zram-clear-idle-flag-after-recompression.patch
-zram-clear-idle-flag-in-mark_idle.patch
+mm-pagewalk-add-the-ability-to-install-ptes.patch
+mm-add-pte_marker_guard-pte-marker.patch
+mm-madvise-implement-lightweight-guard-page-mechanism.patch
+tools-testing-update-tools-uapi-header-for-mman-commonh.patch
+selftests-mm-add-self-tests-for-guard-page-feature.patch
+mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
