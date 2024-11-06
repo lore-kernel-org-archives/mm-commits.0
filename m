@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD9B3149E00
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAA3E16C684
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854747; cv=none; b=UqdRFMSgDnhXGzlSdwq7/Llgq8PvJfxSjzhcUsGwufCLcuyVJy3zsJlW3mPSFI0n0BGGAq0luZiG9n1LZYyIJgmm6rblSJ1LAflziPtLnKeLvR4z3uBpkFGqE+5cooE+MOgw+/XUwikFm+aDm+cxHn/Xb2S/pzB8a8rdcGEvYzQ=
+	t=1730854748; cv=none; b=nxwqZ0VoKr9d0UAqngpztZ65wlAZYDpXFA8f1BEZw3+/otWgCRERiFujCdRVU4c/EBAWLD4n7lfTV9DGKgdjChb/y2Q5wWxQm2Rm4GebDkUrWs/XflQFr+sk9dAu+U2D7YweOk4pYohhwMzRZALiDwsW+I7DzqDivqSgoALf68Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854747; c=relaxed/simple;
-	bh=vmHtl+M4twSkIkaMl1M62TSZvNLxIzTdIzg8u8lXPP8=;
-	h=Date:To:From:Subject:Message-Id; b=u2Nu2KnbtcKFRufnOHkkmrw5ZbPeEdioOCnTP0Dek9nbEwv+ZUDwAYYrFIEn6KbxXmidBboYIoOXR2u64bJ/gi1HUwzMCa9aDdOlfKAD4OOibVB8fuoMNntv3lzqgWvLU0Lc77z7vS9DbFs94QPJa6fjuVk8oe/lZXzk6VOEdSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OdZBBRes; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854748; c=relaxed/simple;
+	bh=R5wS1YJutdxCJz8WDUeRa8m5VyjvpEjE62TUotKhMJo=;
+	h=Date:To:From:Subject:Message-Id; b=lhwwEBAO4Es8j0fRkzecNhM3WKyY+C7U4xNFdqnW41DlgV/bWJTG324yADJQX8EHNqACmKZRLuweefhAcoTqB6oDS6S+6TYXbCqz62qaIPgknbNxKwprOPL3edVo6tnezBCFGbnv7s9FRwKsk+xsdWZCXGKgQ0AB7OiDOYKtn5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X+8BW9KF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OdZBBRes"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82621C4CECF;
-	Wed,  6 Nov 2024 00:59:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X+8BW9KF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1310C4CECF;
+	Wed,  6 Nov 2024 00:59:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854747;
-	bh=vmHtl+M4twSkIkaMl1M62TSZvNLxIzTdIzg8u8lXPP8=;
+	s=korg; t=1730854748;
+	bh=R5wS1YJutdxCJz8WDUeRa8m5VyjvpEjE62TUotKhMJo=;
 	h=Date:To:From:Subject:From;
-	b=OdZBBResrWPIKetksw3auBidCF8LfL3P2sutlQ4CPWJVvxkm7gpQ0Zav1s+RI7QXM
-	 0d1TlNIPQvbRCYda6n1bxBYCQb6cihyOSbDgmDTy/a8ushTnO5eYzxk3MZZ9AtiZAi
-	 uGCIaUVqQbmLRECAWa9vkc6WHjPJoCOKY/dtdbqQ=
-Date: Tue, 05 Nov 2024 16:59:07 -0800
+	b=X+8BW9KFt+TysUJm/kunrLnXMYqgKShiXDg9pIBjYUCBUxKxkBv5BCfOb+B7QfVBC
+	 eJH3ajadsnY2WHm4pZeB/XegldM2Jj3f2oFrp2FMovm/I8x2MH8tNPAwm1tpOOIZOe
+	 zaQRrKgHIVv1T5QnXdTXbF/ukRGlVCspt3IzBcKk=
+Date: Tue, 05 Nov 2024 16:59:08 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,nanhai.zou@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,21cnbao@gmail.com,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch removed from -mm tree
-Message-Id: <20241106005907.82621C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch removed from -mm tree
+Message-Id: <20241106005908.B1310C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: modify zswap_compress() to accept a page instead of a folio
+     Subject: mm: zswap: rename zswap_pool_get() to zswap_pool_tryget()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio.patch
+     mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: zswap: modify zswap_compress() to accept a page instead of a folio
-Date: Mon, 30 Sep 2024 22:32:17 -0700
+Subject: mm: zswap: rename zswap_pool_get() to zswap_pool_tryget()
+Date: Mon, 30 Sep 2024 22:32:18 -0700
 
-For zswap_store() to be able to store a large folio by compressing it one
-page at a time, zswap_compress() needs to accept a page as input.  This
-will allow us to iterate through each page in the folio in zswap_store(),
-compress it and store it in the zpool.
+Modify the name of the existing zswap_pool_get() to zswap_pool_tryget() to
+be representative of the call it makes to percpu_ref_tryget().  A
+subsequent patch will introduce a new zswap_pool_get() that calls
+percpu_ref_get().
 
-Link: https://lkml.kernel.org/r/20241001053222.6944-3-kanchana.p.sridhar@intel.com
+The intent behind this change is for higher level zswap API such as
+zswap_store() to call zswap_pool_tryget() to check upfront if the pool's
+refcount is "0" (which means it could be getting destroyed) and to handle
+this as an error condition.  zswap_store() would proceed only if
+zswap_pool_tryget() returns success, and any additional pool refcounts
+that need to be obtained for compressing sub-pages in a large folio could
+simply call zswap_pool_get().
+
+Link: https://lkml.kernel.org/r/20241001053222.6944-4-kanchana.p.sridhar@intel.com
 Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -72,35 +80,35 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/zswap.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-modify-zswap_compress-to-accept-a-page-instead-of-a-folio
+--- a/mm/zswap.c~mm-zswap-rename-zswap_pool_get-to-zswap_pool_tryget
 +++ a/mm/zswap.c
-@@ -875,7 +875,7 @@ static int zswap_cpu_comp_dead(unsigned
- 	return 0;
+@@ -402,7 +402,7 @@ static void __zswap_pool_empty(struct pe
+ 	spin_unlock_bh(&zswap_pools_lock);
  }
  
--static bool zswap_compress(struct folio *folio, struct zswap_entry *entry)
-+static bool zswap_compress(struct page *page, struct zswap_entry *entry)
+-static int __must_check zswap_pool_get(struct zswap_pool *pool)
++static int __must_check zswap_pool_tryget(struct zswap_pool *pool)
  {
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct scatterlist input, output;
-@@ -893,7 +893,7 @@ static bool zswap_compress(struct folio
+ 	if (!pool)
+ 		return 0;
+@@ -440,7 +440,7 @@ static struct zswap_pool *zswap_pool_cur
+ 	rcu_read_lock();
  
- 	dst = acomp_ctx->buffer;
- 	sg_init_table(&input, 1);
--	sg_set_folio(&input, folio, PAGE_SIZE, 0);
-+	sg_set_page(&input, page, PAGE_SIZE, 0);
+ 	pool = __zswap_pool_current();
+-	if (!zswap_pool_get(pool))
++	if (!zswap_pool_tryget(pool))
+ 		pool = NULL;
  
- 	/*
- 	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
-@@ -1457,7 +1457,7 @@ bool zswap_store(struct folio *folio)
- 		mem_cgroup_put(memcg);
+ 	rcu_read_unlock();
+@@ -461,7 +461,7 @@ static struct zswap_pool *zswap_pool_fin
+ 		if (strcmp(zpool_get_type(pool->zpool), type))
+ 			continue;
+ 		/* if we can't get it, it's about to be destroyed */
+-		if (!zswap_pool_get(pool))
++		if (!zswap_pool_tryget(pool))
+ 			continue;
+ 		return pool;
  	}
- 
--	if (!zswap_compress(folio, entry))
-+	if (!zswap_compress(&folio->page, entry))
- 		goto put_pool;
- 
- 	entry->swpentry = swp;
 _
 
 Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
