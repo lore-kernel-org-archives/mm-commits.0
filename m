@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04218189903
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EB3F189903
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:01:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854882; cv=none; b=Yz4aPJ64dVBzD5ndpwfIFKHpi3Mq76b3hRqq1QzV9dHi/64nTzMZIGvIehjNOsqrMBN1Mrh213Led5V8Ky4KHCgUfQ5buiipza3KLHn+qa8mG452KRv9UT3aaXmjZcebMigP9Drpx5SOJsbO2OizVYOTn47RErDieXomAa8j3WQ=
+	t=1730854883; cv=none; b=PTaxEwgR14wjSRitEiqWG+Ch9cJ6jUxrVnaJiLCoH/7mfnDFcwDOesh9NBXA8oGLWkDNmTzoxIJ1DfkIV/5YElu7GQ3444djuekGkPmsDpXq48IY2T8hTS53No0QcP7DZBhTRNzM+Jx7/VQRCBpPdcZU7tnuHpNoUigJsDIJUzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854882; c=relaxed/simple;
-	bh=vTw0lPVdNEYH/kmS4QUby502eNgtjI1HRBpDLK7hLAs=;
-	h=Date:To:From:Subject:Message-Id; b=rbaicaGybO7wej1VrSrA+1pC8wdnQCCBceJnRyNYCnZDCTotEis4EOIhAmwFt7rrc/Xp/IHFtYXNwlYfl3K5gU+msHEs/Gcm4FEnO9LI2birqSCKtcO5/OpKto2TL2OMxDlz4k9mQ4BBaMK/d0r7EuhlieC48cGRwAQS2DT/lik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FMRLhBOz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854883; c=relaxed/simple;
+	bh=dOoZrQYRVKUtRLWwRvmebgTIyBKYv4sG9HykfoJbygA=;
+	h=Date:To:From:Subject:Message-Id; b=jScHXFLbExe7Wqb9LYAr5fiH4+v08B2FpAF9wxJ0lnQBidY8jHUoSyWMHrYuSMQ8w040WyFQRLVOn0/aqKo4jJrMaQfYH6sTZP9fkBc9aSuEoQ71Fw1yiESAiefEUCTWtv0Gf+pz+/8UIABlUKiwl7J7jEtIaRqr+Q2vQgER73k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IaCiAfFp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMRLhBOz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFFBAC4CECF;
-	Wed,  6 Nov 2024 01:01:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IaCiAfFp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 351CCC4CECF;
+	Wed,  6 Nov 2024 01:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854881;
-	bh=vTw0lPVdNEYH/kmS4QUby502eNgtjI1HRBpDLK7hLAs=;
+	s=korg; t=1730854883;
+	bh=dOoZrQYRVKUtRLWwRvmebgTIyBKYv4sG9HykfoJbygA=;
 	h=Date:To:From:Subject:From;
-	b=FMRLhBOzR7Rxsn+ncFAYMAMwa8gdD8wqPB6Aoeh9X6LOhvhDvrwd9MkQZP2+S4E3f
-	 30ub1Dex3ZcjlEupFQaozA5QWIhUIQLGXvuOIO2PR5FhrniBzv4DSd9SS4kjhrsSVW
-	 Qsno8T2hnmuYcjuj9ciZ+qzY+EaJjmcnTbR/NDIc=
-Date: Tue, 05 Nov 2024 17:01:21 -0800
+	b=IaCiAfFpNLFRsyRKzOweaQo/XRGq8zbZaM/C6BXhgFkZhpgHZ67IRLTKIgaIdRIXj
+	 KwxbUkqoGdNW56de9ooHE1til4QNJpyyswxW+9wQuSbDJxTJBTW4xqbHa4B1l2O973
+	 nd8bnj76mGL+WrG4kn76r0jTesex/6okVa4mwjzM=
+Date: Tue, 05 Nov 2024 17:01:22 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,peterx@redhat.com,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-add-additional-vma_internalh-stubs.patch removed from -mm tree
-Message-Id: <20241106010121.CFFBAC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-isolate-mmap-internal-logic-to-mm-vmac.patch removed from -mm tree
+Message-Id: <20241106010123.351CCC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,211 +35,801 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools: testing: add additional vma_internal.h stubs
+     Subject: mm: isolate mmap internal logic to mm/vma.c
 has been removed from the -mm tree.  Its filename was
-     tools-testing-add-additional-vma_internalh-stubs.patch
+     mm-isolate-mmap-internal-logic-to-mm-vmac.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools: testing: add additional vma_internal.h stubs
-Date: Fri, 25 Oct 2024 13:26:23 +0100
+Subject: mm: isolate mmap internal logic to mm/vma.c
+Date: Fri, 25 Oct 2024 13:26:24 +0100
 
-Patch series "fix error handling in mmap_region() and refactor", v3.
+In previous commits we effected improvements to the mmap() logic in
+mmap_region() and its newly introduced internal implementation function
+__mmap_region().
 
-The mmap_region() function is somewhat terrifying, with spaghetti-like
-control flow and numerous means by which issues can arise and incomplete
-state, memory leaks and other unpleasantness can occur.
+However as these changes are intended to be backported, we kept the delta
+as small as is possible and made as few changes as possible to the newly
+introduced mm/vma.* files.
 
-This series goes to great lengths to simplify how mmap_region() works and
-to avoid unwinding errors late on in the process of setting up the VMA for
-the new mapping, and equally avoids such operations occurring while the
-VMA is in an inconsistent state.
+Take the opportunity to move this logic to mm/vma.c which not only
+isolates it, but also makes it available for later userland testing which
+can help us catch such logic errors far earlier.
 
-This series builds on the previously submitted hotfix patches (see link to
-v2 below) which addresses the most critical issues around mmap_region(),
-and further works to improve mmap_region() complexity, stability, and
-testability.
-
-This series moves the code to mm/vma.c to render it userland testable,
-refactors and simplifies it into smaller functions that are significantly
-more readable.
-
-It additionally avoids performing an attempt at a second merge mid-way
-through allocating a new VMA, a dubious proposition at best and one that
-is highly subject to subtle bugs.
-
-Rather than do this, we simply note that we ought to retry the merge and
-do this as a final step.
-
-
-This patch (of 3):
-
-Add some additional vma_internal.h stubs in preparation for
-__mmap_region() being moved to mm/vma.c.  Without these the move would
-result in the tests no longer compiling.
-
-Link: https://lkml.kernel.org/r/cover.1729858176.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/74b27e159e261d2ac1fe66a130edad1d61fdc176.1729858176.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/93fc2c3aa37dd30590b7e4ee067dfd832007bf7e.1729858176.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/vma_internal.h |  115 ++++++++++++++++++++++++++++-
- 1 file changed, 114 insertions(+), 1 deletion(-)
+ mm/mmap.c         |  234 -------------------------------
+ mm/vma.c          |  323 +++++++++++++++++++++++++++++++++++++++++++-
+ mm/vma.h          |   97 -------------
+ mm/vma_internal.h |    5 
+ 4 files changed, 329 insertions(+), 330 deletions(-)
 
---- a/tools/testing/vma/vma_internal.h~tools-testing-add-additional-vma_internalh-stubs
-+++ a/tools/testing/vma/vma_internal.h
-@@ -44,7 +44,9 @@
- #define VM_LOCKED	0x00002000
- #define VM_IO           0x00004000
- #define VM_DONTEXPAND	0x00040000
-+#define VM_LOCKONFAULT	0x00080000
- #define VM_ACCOUNT	0x00100000
-+#define VM_NORESERVE	0x00200000
- #define VM_MIXEDMAP	0x10000000
- #define VM_STACK	VM_GROWSDOWN
- #define VM_SHADOW_STACK	VM_NONE
-@@ -53,6 +55,14 @@
- #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
- #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
+--- a/mm/mmap.c~mm-isolate-mmap-internal-logic-to-mm-vmac
++++ a/mm/mmap.c
+@@ -577,22 +577,6 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ }
+ #endif /* __ARCH_WANT_SYS_OLD_MMAP */
  
-+/* This mask represents all the VMA flag bits used by mlock */
-+#define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+-/*
+- * We account for memory if it's a private writeable mapping,
+- * not hugepages and VM_NORESERVE wasn't set.
+- */
+-static inline bool accountable_mapping(struct file *file, vm_flags_t vm_flags)
+-{
+-	/*
+-	 * hugetlb has its own accounting separate from the core VM
+-	 * VM_HUGETLB may not be set yet so we cannot check for that flag.
+-	 */
+-	if (file && is_file_hugepages(file))
+-		return false;
+-
+-	return (vm_flags & (VM_NORESERVE | VM_SHARED | VM_WRITE)) == VM_WRITE;
+-}
+-
+ /**
+  * unmapped_area() - Find an area between the low_limit and the high_limit with
+  * the correct alignment and offset, all from @info. Note: current->mm is used
+@@ -1362,224 +1346,6 @@ int do_munmap(struct mm_struct *mm, unsi
+ 	return do_vmi_munmap(&vmi, mm, start, len, uf, false);
+ }
+ 
+-static unsigned long __mmap_region(struct file *file, unsigned long addr,
+-		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+-		struct list_head *uf)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma = NULL;
+-	pgoff_t pglen = PHYS_PFN(len);
+-	unsigned long charged = 0;
+-	struct vma_munmap_struct vms;
+-	struct ma_state mas_detach;
+-	struct maple_tree mt_detach;
+-	unsigned long end = addr + len;
+-	int error;
+-	VMA_ITERATOR(vmi, mm, addr);
+-	VMG_STATE(vmg, mm, &vmi, addr, end, vm_flags, pgoff);
+-
+-	vmg.file = file;
+-	/* Find the first overlapping VMA */
+-	vma = vma_find(&vmi, end);
+-	init_vma_munmap(&vms, &vmi, vma, addr, end, uf, /* unlock = */ false);
+-	if (vma) {
+-		mt_init_flags(&mt_detach, vmi.mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
+-		mt_on_stack(mt_detach);
+-		mas_init(&mas_detach, &mt_detach, /* addr = */ 0);
+-		/* Prepare to unmap any existing mapping in the area */
+-		error = vms_gather_munmap_vmas(&vms, &mas_detach);
+-		if (error)
+-			goto gather_failed;
+-
+-		vmg.next = vms.next;
+-		vmg.prev = vms.prev;
+-		vma = NULL;
+-	} else {
+-		vmg.next = vma_iter_next_rewind(&vmi, &vmg.prev);
+-	}
+-
+-	/* Check against address space limit. */
+-	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages)) {
+-		error = -ENOMEM;
+-		goto abort_munmap;
+-	}
+-
+-	/*
+-	 * Private writable mapping: check memory availability
+-	 */
+-	if (accountable_mapping(file, vm_flags)) {
+-		charged = pglen;
+-		charged -= vms.nr_accounted;
+-		if (charged) {
+-			error = security_vm_enough_memory_mm(mm, charged);
+-			if (error)
+-				goto abort_munmap;
+-		}
+-
+-		vms.nr_accounted = 0;
+-		vm_flags |= VM_ACCOUNT;
+-		vmg.flags = vm_flags;
+-	}
+-
+-	/*
+-	 * clear PTEs while the vma is still in the tree so that rmap
+-	 * cannot race with the freeing later in the truncate scenario.
+-	 * This is also needed for mmap_file(), which is why vm_ops
+-	 * close function is called.
+-	 */
+-	vms_clean_up_area(&vms, &mas_detach);
+-	vma = vma_merge_new_range(&vmg);
+-	if (vma)
+-		goto expanded;
+-	/*
+-	 * Determine the object being mapped and call the appropriate
+-	 * specific mapper. the address has already been validated, but
+-	 * not unmapped, but the maps are removed from the list.
+-	 */
+-	vma = vm_area_alloc(mm);
+-	if (!vma) {
+-		error = -ENOMEM;
+-		goto unacct_error;
+-	}
+-
+-	vma_iter_config(&vmi, addr, end);
+-	vma_set_range(vma, addr, end, pgoff);
+-	vm_flags_init(vma, vm_flags);
+-	vma->vm_page_prot = vm_get_page_prot(vm_flags);
+-
+-	if (vma_iter_prealloc(&vmi, vma)) {
+-		error = -ENOMEM;
+-		goto free_vma;
+-	}
+-
+-	if (file) {
+-		vma->vm_file = get_file(file);
+-		error = mmap_file(file, vma);
+-		if (error)
+-			goto unmap_and_free_file_vma;
+-
+-		/* Drivers cannot alter the address of the VMA. */
+-		WARN_ON_ONCE(addr != vma->vm_start);
+-		/*
+-		 * Drivers should not permit writability when previously it was
+-		 * disallowed.
+-		 */
+-		VM_WARN_ON_ONCE(vm_flags != vma->vm_flags &&
+-				!(vm_flags & VM_MAYWRITE) &&
+-				(vma->vm_flags & VM_MAYWRITE));
+-
+-		vma_iter_config(&vmi, addr, end);
+-		/*
+-		 * If vm_flags changed after mmap_file(), we should try merge
+-		 * vma again as we may succeed this time.
+-		 */
+-		if (unlikely(vm_flags != vma->vm_flags && vmg.prev)) {
+-			struct vm_area_struct *merge;
+-
+-			vmg.flags = vma->vm_flags;
+-			/* If this fails, state is reset ready for a reattempt. */
+-			merge = vma_merge_new_range(&vmg);
+-
+-			if (merge) {
+-				/*
+-				 * ->mmap() can change vma->vm_file and fput
+-				 * the original file. So fput the vma->vm_file
+-				 * here or we would add an extra fput for file
+-				 * and cause general protection fault
+-				 * ultimately.
+-				 */
+-				fput(vma->vm_file);
+-				vm_area_free(vma);
+-				vma = merge;
+-				/* Update vm_flags to pick up the change. */
+-				vm_flags = vma->vm_flags;
+-				goto file_expanded;
+-			}
+-			vma_iter_config(&vmi, addr, end);
+-		}
+-
+-		vm_flags = vma->vm_flags;
+-	} else if (vm_flags & VM_SHARED) {
+-		error = shmem_zero_setup(vma);
+-		if (error)
+-			goto free_iter_vma;
+-	} else {
+-		vma_set_anonymous(vma);
+-	}
+-
+-#ifdef CONFIG_SPARC64
+-	/* TODO: Fix SPARC ADI! */
+-	WARN_ON_ONCE(!arch_validate_flags(vm_flags));
+-#endif
+-
+-	/* Lock the VMA since it is modified after insertion into VMA tree */
+-	vma_start_write(vma);
+-	vma_iter_store(&vmi, vma);
+-	mm->map_count++;
+-	vma_link_file(vma);
+-
+-	/*
+-	 * vma_merge_new_range() calls khugepaged_enter_vma() too, the below
+-	 * call covers the non-merge case.
+-	 */
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+-
+-file_expanded:
+-	file = vma->vm_file;
+-	ksm_add_vma(vma);
+-expanded:
+-	perf_event_mmap(vma);
+-
+-	/* Unmap any existing mapping in the area */
+-	vms_complete_munmap_vmas(&vms, &mas_detach);
+-
+-	vm_stat_account(mm, vm_flags, pglen);
+-	if (vm_flags & VM_LOCKED) {
+-		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
+-					is_vm_hugetlb_page(vma) ||
+-					vma == get_gate_vma(current->mm))
+-			vm_flags_clear(vma, VM_LOCKED_MASK);
+-		else
+-			mm->locked_vm += pglen;
+-	}
+-
+-	if (file)
+-		uprobe_mmap(vma);
+-
+-	/*
+-	 * New (or expanded) vma always get soft dirty status.
+-	 * Otherwise user-space soft-dirty page tracker won't
+-	 * be able to distinguish situation when vma area unmapped,
+-	 * then new mapped in-place (which must be aimed as
+-	 * a completely new data area).
+-	 */
+-	vm_flags_set(vma, VM_SOFTDIRTY);
+-
+-	vma_set_page_prot(vma);
+-
+-	return addr;
+-
+-unmap_and_free_file_vma:
+-	fput(vma->vm_file);
+-	vma->vm_file = NULL;
+-
+-	vma_iter_set(&vmi, vma->vm_end);
+-	/* Undo any partial mapping done by a device driver. */
+-	unmap_region(&vmi.mas, vma, vmg.prev, vmg.next);
+-free_iter_vma:
+-	vma_iter_free(&vmi);
+-free_vma:
+-	vm_area_free(vma);
+-unacct_error:
+-	if (charged)
+-		vm_unacct_memory(charged);
+-
+-abort_munmap:
+-	vms_abort_munmap_vmas(&vms, &mas_detach);
+-gather_failed:
+-	return error;
+-}
+-
+ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 			  unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+ 			  struct list_head *uf)
+--- a/mm/vma.c~mm-isolate-mmap-internal-logic-to-mm-vmac
++++ a/mm/vma.c
+@@ -1103,7 +1103,7 @@ static inline void vms_clear_ptes(struct
+ 	vms->clear_ptes = false;
+ }
+ 
+-void vms_clean_up_area(struct vma_munmap_struct *vms,
++static void vms_clean_up_area(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach)
+ {
+ 	struct vm_area_struct *vma;
+@@ -1126,7 +1126,7 @@ void vms_clean_up_area(struct vma_munmap
+  * used for the munmap() and may downgrade the lock - if requested.  Everything
+  * needed to be done once the vma maple tree is updated.
+  */
+-void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
++static void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach)
+ {
+ 	struct vm_area_struct *vma;
+@@ -1168,6 +1168,23 @@ void vms_complete_munmap_vmas(struct vma
+ }
+ 
+ /*
++ * reattach_vmas() - Undo any munmap work and free resources
++ * @mas_detach: The maple state with the detached maple tree
++ *
++ * Reattach any detached vmas and free up the maple tree used to track the vmas.
++ */
++static void reattach_vmas(struct ma_state *mas_detach)
++{
++	struct vm_area_struct *vma;
 +
-+#ifdef CONFIG_64BIT
-+/* VM is sealed, in vm_flags */
-+#define VM_SEALED	_BITUL(63)
++	mas_set(mas_detach, 0);
++	mas_for_each(mas_detach, vma, ULONG_MAX)
++		vma_mark_detached(vma, false);
++
++	__mt_destroy(mas_detach->tree);
++}
++
++/*
+  * vms_gather_munmap_vmas() - Put all VMAs within a range into a maple tree
+  * for removal at a later date.  Handles splitting first and last if necessary
+  * and marking the vmas as isolated.
+@@ -1177,7 +1194,7 @@ void vms_complete_munmap_vmas(struct vma
+  *
+  * Return: 0 on success, error otherwise
+  */
+-int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
++static int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
+ 		struct ma_state *mas_detach)
+ {
+ 	struct vm_area_struct *next = NULL;
+@@ -1316,6 +1333,39 @@ map_count_exceeded:
+ }
+ 
+ /*
++ * init_vma_munmap() - Initializer wrapper for vma_munmap_struct
++ * @vms: The vma munmap struct
++ * @vmi: The vma iterator
++ * @vma: The first vm_area_struct to munmap
++ * @start: The aligned start address to munmap
++ * @end: The aligned end address to munmap
++ * @uf: The userfaultfd list_head
++ * @unlock: Unlock after the operation.  Only unlocked on success
++ */
++static void init_vma_munmap(struct vma_munmap_struct *vms,
++		struct vma_iterator *vmi, struct vm_area_struct *vma,
++		unsigned long start, unsigned long end, struct list_head *uf,
++		bool unlock)
++{
++	vms->vmi = vmi;
++	vms->vma = vma;
++	if (vma) {
++		vms->start = start;
++		vms->end = end;
++	} else {
++		vms->start = vms->end = 0;
++	}
++	vms->unlock = unlock;
++	vms->uf = uf;
++	vms->vma_count = 0;
++	vms->nr_pages = vms->locked_vm = vms->nr_accounted = 0;
++	vms->exec_vm = vms->stack_vm = vms->data_vm = 0;
++	vms->unmap_start = FIRST_USER_ADDRESS;
++	vms->unmap_end = USER_PGTABLES_CEILING;
++	vms->clear_ptes = false;
++}
++
++/*
+  * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
+  * @vmi: The vma iterator
+  * @vma: The starting vm_area_struct
+@@ -2069,3 +2119,270 @@ void mm_drop_all_locks(struct mm_struct
+ 
+ 	mutex_unlock(&mm_all_locks_mutex);
+ }
++
++/*
++ * We account for memory if it's a private writeable mapping,
++ * not hugepages and VM_NORESERVE wasn't set.
++ */
++static bool accountable_mapping(struct file *file, vm_flags_t vm_flags)
++{
++	/*
++	 * hugetlb has its own accounting separate from the core VM
++	 * VM_HUGETLB may not be set yet so we cannot check for that flag.
++	 */
++	if (file && is_file_hugepages(file))
++		return false;
++
++	return (vm_flags & (VM_NORESERVE | VM_SHARED | VM_WRITE)) == VM_WRITE;
++}
++
++/*
++ * vms_abort_munmap_vmas() - Undo as much as possible from an aborted munmap()
++ * operation.
++ * @vms: The vma unmap structure
++ * @mas_detach: The maple state with the detached maple tree
++ *
++ * Reattach any detached vmas, free up the maple tree used to track the vmas.
++ * If that's not possible because the ptes are cleared (and vm_ops->closed() may
++ * have been called), then a NULL is written over the vmas and the vmas are
++ * removed (munmap() completed).
++ */
++static void vms_abort_munmap_vmas(struct vma_munmap_struct *vms,
++		struct ma_state *mas_detach)
++{
++	struct ma_state *mas = &vms->vmi->mas;
++
++	if (!vms->nr_pages)
++		return;
++
++	if (vms->clear_ptes)
++		return reattach_vmas(mas_detach);
++
++	/*
++	 * Aborting cannot just call the vm_ops open() because they are often
++	 * not symmetrical and state data has been lost.  Resort to the old
++	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
++	 */
++	mas_set_range(mas, vms->start, vms->end - 1);
++	mas_store_gfp(mas, NULL, GFP_KERNEL|__GFP_NOFAIL);
++	/* Clean up the insertion of the unfortunate gap */
++	vms_complete_munmap_vmas(vms, mas_detach);
++}
++
++unsigned long __mmap_region(struct file *file, unsigned long addr,
++		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
++		struct list_head *uf)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma = NULL;
++	pgoff_t pglen = PHYS_PFN(len);
++	unsigned long charged = 0;
++	struct vma_munmap_struct vms;
++	struct ma_state mas_detach;
++	struct maple_tree mt_detach;
++	unsigned long end = addr + len;
++	int error;
++	VMA_ITERATOR(vmi, mm, addr);
++	VMG_STATE(vmg, mm, &vmi, addr, end, vm_flags, pgoff);
++
++	vmg.file = file;
++	/* Find the first overlapping VMA */
++	vma = vma_find(&vmi, end);
++	init_vma_munmap(&vms, &vmi, vma, addr, end, uf, /* unlock = */ false);
++	if (vma) {
++		mt_init_flags(&mt_detach, vmi.mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
++		mt_on_stack(mt_detach);
++		mas_init(&mas_detach, &mt_detach, /* addr = */ 0);
++		/* Prepare to unmap any existing mapping in the area */
++		error = vms_gather_munmap_vmas(&vms, &mas_detach);
++		if (error)
++			goto gather_failed;
++
++		vmg.next = vms.next;
++		vmg.prev = vms.prev;
++		vma = NULL;
++	} else {
++		vmg.next = vma_iter_next_rewind(&vmi, &vmg.prev);
++	}
++
++	/* Check against address space limit. */
++	if (!may_expand_vm(mm, vm_flags, pglen - vms.nr_pages)) {
++		error = -ENOMEM;
++		goto abort_munmap;
++	}
++
++	/*
++	 * Private writable mapping: check memory availability
++	 */
++	if (accountable_mapping(file, vm_flags)) {
++		charged = pglen;
++		charged -= vms.nr_accounted;
++		if (charged) {
++			error = security_vm_enough_memory_mm(mm, charged);
++			if (error)
++				goto abort_munmap;
++		}
++
++		vms.nr_accounted = 0;
++		vm_flags |= VM_ACCOUNT;
++		vmg.flags = vm_flags;
++	}
++
++	/*
++	 * clear PTEs while the vma is still in the tree so that rmap
++	 * cannot race with the freeing later in the truncate scenario.
++	 * This is also needed for mmap_file(), which is why vm_ops
++	 * close function is called.
++	 */
++	vms_clean_up_area(&vms, &mas_detach);
++	vma = vma_merge_new_range(&vmg);
++	if (vma)
++		goto expanded;
++	/*
++	 * Determine the object being mapped and call the appropriate
++	 * specific mapper. the address has already been validated, but
++	 * not unmapped, but the maps are removed from the list.
++	 */
++	vma = vm_area_alloc(mm);
++	if (!vma) {
++		error = -ENOMEM;
++		goto unacct_error;
++	}
++
++	vma_iter_config(&vmi, addr, end);
++	vma_set_range(vma, addr, end, pgoff);
++	vm_flags_init(vma, vm_flags);
++	vma->vm_page_prot = vm_get_page_prot(vm_flags);
++
++	if (vma_iter_prealloc(&vmi, vma)) {
++		error = -ENOMEM;
++		goto free_vma;
++	}
++
++	if (file) {
++		vma->vm_file = get_file(file);
++		error = mmap_file(file, vma);
++		if (error)
++			goto unmap_and_free_file_vma;
++
++		/* Drivers cannot alter the address of the VMA. */
++		WARN_ON_ONCE(addr != vma->vm_start);
++		/*
++		 * Drivers should not permit writability when previously it was
++		 * disallowed.
++		 */
++		VM_WARN_ON_ONCE(vm_flags != vma->vm_flags &&
++				!(vm_flags & VM_MAYWRITE) &&
++				(vma->vm_flags & VM_MAYWRITE));
++
++		vma_iter_config(&vmi, addr, end);
++		/*
++		 * If vm_flags changed after mmap_file(), we should try merge
++		 * vma again as we may succeed this time.
++		 */
++		if (unlikely(vm_flags != vma->vm_flags && vmg.prev)) {
++			struct vm_area_struct *merge;
++
++			vmg.flags = vma->vm_flags;
++			/* If this fails, state is reset ready for a reattempt. */
++			merge = vma_merge_new_range(&vmg);
++
++			if (merge) {
++				/*
++				 * ->mmap() can change vma->vm_file and fput
++				 * the original file. So fput the vma->vm_file
++				 * here or we would add an extra fput for file
++				 * and cause general protection fault
++				 * ultimately.
++				 */
++				fput(vma->vm_file);
++				vm_area_free(vma);
++				vma = merge;
++				/* Update vm_flags to pick up the change. */
++				vm_flags = vma->vm_flags;
++				goto file_expanded;
++			}
++			vma_iter_config(&vmi, addr, end);
++		}
++
++		vm_flags = vma->vm_flags;
++	} else if (vm_flags & VM_SHARED) {
++		error = shmem_zero_setup(vma);
++		if (error)
++			goto free_iter_vma;
++	} else {
++		vma_set_anonymous(vma);
++	}
++
++#ifdef CONFIG_SPARC64
++	/* TODO: Fix SPARC ADI! */
++	WARN_ON_ONCE(!arch_validate_flags(vm_flags));
 +#endif
 +
- #define FIRST_USER_ADDRESS	0UL
- #define USER_PGTABLES_CEILING	0UL
- 
-@@ -698,8 +708,9 @@ static inline void tlb_finish_mmu(struct
- {
- }
- 
--static inline void get_file(struct file *)
-+static inline struct file *get_file(struct file *f)
- {
-+	return f;
- }
- 
- static inline int vma_dup_policy(struct vm_area_struct *, struct vm_area_struct *)
-@@ -920,4 +931,106 @@ static inline bool signal_pending(void *
- 	return false;
- }
- 
-+static inline bool is_file_hugepages(struct file *)
-+{
-+	return false;
-+}
-+
-+static inline int security_vm_enough_memory_mm(struct mm_struct *, long)
-+{
-+	return true;
-+}
-+
-+static inline bool may_expand_vm(struct mm_struct *, vm_flags_t, unsigned long)
-+{
-+	return true;
-+}
-+
-+static inline void vm_flags_init(struct vm_area_struct *vma,
-+				 vm_flags_t flags)
-+{
-+	vma->__vm_flags = flags;
-+}
-+
-+static inline void vm_flags_set(struct vm_area_struct *vma,
-+				vm_flags_t flags)
-+{
++	/* Lock the VMA since it is modified after insertion into VMA tree */
 +	vma_start_write(vma);
-+	vma->__vm_flags |= flags;
-+}
++	vma_iter_store(&vmi, vma);
++	mm->map_count++;
++	vma_link_file(vma);
 +
-+static inline void vm_flags_clear(struct vm_area_struct *vma,
-+				  vm_flags_t flags)
-+{
-+	vma_start_write(vma);
-+	vma->__vm_flags &= ~flags;
-+}
++	/*
++	 * vma_merge_new_range() calls khugepaged_enter_vma() too, the below
++	 * call covers the non-merge case.
++	 */
++	khugepaged_enter_vma(vma, vma->vm_flags);
 +
-+static inline int call_mmap(struct file *, struct vm_area_struct *)
-+{
-+	return 0;
-+}
++file_expanded:
++	file = vma->vm_file;
++	ksm_add_vma(vma);
++expanded:
++	perf_event_mmap(vma);
 +
-+static inline int shmem_zero_setup(struct vm_area_struct *)
-+{
-+	return 0;
-+}
++	/* Unmap any existing mapping in the area */
++	vms_complete_munmap_vmas(&vms, &mas_detach);
 +
-+static inline void vma_set_anonymous(struct vm_area_struct *vma)
-+{
-+	vma->vm_ops = NULL;
-+}
-+
-+static inline void ksm_add_vma(struct vm_area_struct *)
-+{
-+}
-+
-+static inline void perf_event_mmap(struct vm_area_struct *)
-+{
-+}
-+
-+static inline bool vma_is_dax(struct vm_area_struct *)
-+{
-+	return false;
-+}
-+
-+static inline struct vm_area_struct *get_gate_vma(struct mm_struct *)
-+{
-+	return NULL;
-+}
-+
-+bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
-+
-+/* Update vma->vm_page_prot to reflect vma->vm_flags. */
-+static inline void vma_set_page_prot(struct vm_area_struct *vma)
-+{
-+	unsigned long vm_flags = vma->vm_flags;
-+	pgprot_t vm_page_prot;
-+
-+	/* testing: we inline vm_pgprot_modify() to avoid clash with vma.h. */
-+	vm_page_prot = pgprot_modify(vma->vm_page_prot, vm_get_page_prot(vm_flags));
-+
-+	if (vma_wants_writenotify(vma, vm_page_prot)) {
-+		vm_flags &= ~VM_SHARED;
-+		/* testing: we inline vm_pgprot_modify() to avoid clash with vma.h. */
-+		vm_page_prot = pgprot_modify(vm_page_prot, vm_get_page_prot(vm_flags));
++	vm_stat_account(mm, vm_flags, pglen);
++	if (vm_flags & VM_LOCKED) {
++		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
++					is_vm_hugetlb_page(vma) ||
++					vma == get_gate_vma(current->mm))
++			vm_flags_clear(vma, VM_LOCKED_MASK);
++		else
++			mm->locked_vm += pglen;
 +	}
-+	/* remove_protection_ptes reads vma->vm_page_prot without mmap_lock */
-+	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
-+}
 +
-+static inline bool arch_validate_flags(unsigned long)
-+{
-+	return true;
-+}
++	if (file)
++		uprobe_mmap(vma);
 +
-+static inline void vma_close(struct vm_area_struct *)
-+{
-+}
++	/*
++	 * New (or expanded) vma always get soft dirty status.
++	 * Otherwise user-space soft-dirty page tracker won't
++	 * be able to distinguish situation when vma area unmapped,
++	 * then new mapped in-place (which must be aimed as
++	 * a completely new data area).
++	 */
++	vm_flags_set(vma, VM_SOFTDIRTY);
 +
-+static inline int mmap_file(struct file *, struct vm_area_struct *)
-+{
-+	return 0;
-+}
++	vma_set_page_prot(vma);
 +
- #endif	/* __MM_VMA_INTERNAL_H */
++	return addr;
++
++unmap_and_free_file_vma:
++	fput(vma->vm_file);
++	vma->vm_file = NULL;
++
++	vma_iter_set(&vmi, vma->vm_end);
++	/* Undo any partial mapping done by a device driver. */
++	unmap_region(&vmi.mas, vma, vmg.prev, vmg.next);
++free_iter_vma:
++	vma_iter_free(&vmi);
++free_vma:
++	vm_area_free(vma);
++unacct_error:
++	if (charged)
++		vm_unacct_memory(charged);
++
++abort_munmap:
++	vms_abort_munmap_vmas(&vms, &mas_detach);
++gather_failed:
++	return error;
++}
+--- a/mm/vma.h~mm-isolate-mmap-internal-logic-to-mm-vmac
++++ a/mm/vma.h
+@@ -165,99 +165,6 @@ static inline int vma_iter_store_gfp(str
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_MMU
+-/*
+- * init_vma_munmap() - Initializer wrapper for vma_munmap_struct
+- * @vms: The vma munmap struct
+- * @vmi: The vma iterator
+- * @vma: The first vm_area_struct to munmap
+- * @start: The aligned start address to munmap
+- * @end: The aligned end address to munmap
+- * @uf: The userfaultfd list_head
+- * @unlock: Unlock after the operation.  Only unlocked on success
+- */
+-static inline void init_vma_munmap(struct vma_munmap_struct *vms,
+-		struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, struct list_head *uf,
+-		bool unlock)
+-{
+-	vms->vmi = vmi;
+-	vms->vma = vma;
+-	if (vma) {
+-		vms->start = start;
+-		vms->end = end;
+-	} else {
+-		vms->start = vms->end = 0;
+-	}
+-	vms->unlock = unlock;
+-	vms->uf = uf;
+-	vms->vma_count = 0;
+-	vms->nr_pages = vms->locked_vm = vms->nr_accounted = 0;
+-	vms->exec_vm = vms->stack_vm = vms->data_vm = 0;
+-	vms->unmap_start = FIRST_USER_ADDRESS;
+-	vms->unmap_end = USER_PGTABLES_CEILING;
+-	vms->clear_ptes = false;
+-}
+-#endif
+-
+-int vms_gather_munmap_vmas(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach);
+-
+-void vms_complete_munmap_vmas(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach);
+-
+-void vms_clean_up_area(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach);
+-
+-/*
+- * reattach_vmas() - Undo any munmap work and free resources
+- * @mas_detach: The maple state with the detached maple tree
+- *
+- * Reattach any detached vmas and free up the maple tree used to track the vmas.
+- */
+-static inline void reattach_vmas(struct ma_state *mas_detach)
+-{
+-	struct vm_area_struct *vma;
+-
+-	mas_set(mas_detach, 0);
+-	mas_for_each(mas_detach, vma, ULONG_MAX)
+-		vma_mark_detached(vma, false);
+-
+-	__mt_destroy(mas_detach->tree);
+-}
+-
+-/*
+- * vms_abort_munmap_vmas() - Undo as much as possible from an aborted munmap()
+- * operation.
+- * @vms: The vma unmap structure
+- * @mas_detach: The maple state with the detached maple tree
+- *
+- * Reattach any detached vmas, free up the maple tree used to track the vmas.
+- * If that's not possible because the ptes are cleared (and vm_ops->closed() may
+- * have been called), then a NULL is written over the vmas and the vmas are
+- * removed (munmap() completed).
+- */
+-static inline void vms_abort_munmap_vmas(struct vma_munmap_struct *vms,
+-		struct ma_state *mas_detach)
+-{
+-	struct ma_state *mas = &vms->vmi->mas;
+-	if (!vms->nr_pages)
+-		return;
+-
+-	if (vms->clear_ptes)
+-		return reattach_vmas(mas_detach);
+-
+-	/*
+-	 * Aborting cannot just call the vm_ops open() because they are often
+-	 * not symmetrical and state data has been lost.  Resort to the old
+-	 * failure method of leaving a gap where the MAP_FIXED mapping failed.
+-	 */
+-	mas_set_range(mas, vms->start, vms->end - 1);
+-	mas_store_gfp(mas, NULL, GFP_KERNEL|__GFP_NOFAIL);
+-	/* Clean up the insertion of the unfortunate gap */
+-	vms_complete_munmap_vmas(vms, mas_detach);
+-}
+-
+ int
+ do_vmi_align_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		    struct mm_struct *mm, unsigned long start,
+@@ -336,6 +243,10 @@ bool vma_wants_writenotify(struct vm_are
+ int mm_take_all_locks(struct mm_struct *mm);
+ void mm_drop_all_locks(struct mm_struct *mm);
+ 
++unsigned long __mmap_region(struct file *file, unsigned long addr,
++		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
++		struct list_head *uf);
++
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
+ 	/*
+--- a/mm/vma_internal.h~mm-isolate-mmap-internal-logic-to-mm-vmac
++++ a/mm/vma_internal.h
+@@ -17,8 +17,10 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/huge_mm.h>
++#include <linux/hugetlb.h>
+ #include <linux/hugetlb_inline.h>
+ #include <linux/kernel.h>
++#include <linux/ksm.h>
+ #include <linux/khugepaged.h>
+ #include <linux/list.h>
+ #include <linux/maple_tree.h>
+@@ -32,11 +34,14 @@
+ #include <linux/mmu_context.h>
+ #include <linux/mutex.h>
+ #include <linux/pagemap.h>
++#include <linux/perf_event.h>
+ #include <linux/pfn.h>
+ #include <linux/rcupdate.h>
+ #include <linux/rmap.h>
+ #include <linux/rwsem.h>
+ #include <linux/sched/signal.h>
++#include <linux/security.h>
++#include <linux/shmem_fs.h>
+ #include <linux/swap.h>
+ #include <linux/uprobes.h>
+ #include <linux/userfaultfd_k.h>
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
