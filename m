@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98D1E18A6D5
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C8018A6D5
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855623; cv=none; b=EyiNolZPFrg4MuUG5nMognYKd+Z/3uIiWMzU+If5bWPoD7XgHmNVOVQNDzq+zK4dBekdSkT8i+LPV225r25u3l9hkgsNqEe2EqxkCzx1OASkTPkwhyP+EruE9fdXI7G3QkDCgSOD7xsJq0Tnu7YA73cLvexldYhAR9BAMn+PrQg=
+	t=1730855624; cv=none; b=O4tpGmrBqrSxW52e/FnDoSGZ71hCC7yWwLegf3J/86lB1QjD75P834Fy9qKbU5U9blwKQl4oidGdVm8rFVqV+9RaQvLPbtfAuXvyaAL1BeZIEFv+ErTt8JwkrXu9ENQZd3+IsglNSPUFfgNKXmtm6FBZEEltLzzEbJA5aoS1fJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855623; c=relaxed/simple;
-	bh=S3cz/MZUIP1HLC8NrFubnFyPPhrD98L2xl5juABtRCM=;
-	h=Date:To:From:Subject:Message-Id; b=oNqyE9OJa2L9eUCxQAdvojnywL+5x142/heZywq9hzA5wr+hbW7g1cfpybm/e5ip+XRHijHwn7MQxcPBGsoFX7FRX9P85UD2kq37DX+yWU9UWlMSUN7wEvC+50/F7CkfAO83X3dz8zC4SmFArLAqgJ61vMU/MB0cZkInOoFzrzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWIjVx2A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855624; c=relaxed/simple;
+	bh=BzNqazswHEZmMTRSu9q4THlSTQkgI+levpBVp1MBBuw=;
+	h=Date:To:From:Subject:Message-Id; b=HcIiNL4fiOcyLj2zs3eIdsnk76Nm6Eb5f8mdKwtgG0pNDJ1FoL4Uu2HKtCkhT27SMkHA+uzHYPK4kcSTQsj9r+EP45RjvMExrTHaLrkLXhrzJ58hFAbGZUWl+j+fYAMExRYIqNwpVjHvn3mcGHE0tXgJDn6XlNOj1KRtKaT3x4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LMxA6w9m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWIjVx2A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66278C4CECF;
-	Wed,  6 Nov 2024 01:13:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LMxA6w9m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A633C4CECF;
+	Wed,  6 Nov 2024 01:13:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855623;
-	bh=S3cz/MZUIP1HLC8NrFubnFyPPhrD98L2xl5juABtRCM=;
+	s=korg; t=1730855624;
+	bh=BzNqazswHEZmMTRSu9q4THlSTQkgI+levpBVp1MBBuw=;
 	h=Date:To:From:Subject:From;
-	b=FWIjVx2AkKx/gfa2dZIVBt8DS5ehLaAhRNVEzT3rq0CfihItSJ4TeiSI9CxWqyU9T
-	 CQhty6ZbuKwGxO6+iFnp4MrC0jvvYVBE0yIXRm+kvoicnpmHw11kZFkA8iuj5GwSa+
-	 IRc6yuZYy9WeHDt/joLDO3PjyYYW1MrdsY3ddEuU=
-Date: Tue, 05 Nov 2024 17:13:42 -0800
-To: mm-commits@vger.kernel.org,robin.murphy@arm.com,petr@tesarici.cz,mhklinux@outlook.com,catalin.marinas@arm.com,sui.jingfeng@linux.dev,akpm@linux-foundation.org
+	b=LMxA6w9mZXDuZskUMCjGi9jgOnGhAtS2WMPMshNZz3PVk8j+mqMj7nXeSgaGiW/4J
+	 RTPLGlMhkK+tf6hHNoAS3P3tCw0Y32RFRK7x1y1uUhcDd2Edp1DAFWjvVZGyaUYZTz
+	 96JDtpjJ9b1ZGYOP6v+mHe4+7IbduPeiNVxQTRMo=
+Date: Tue, 05 Nov 2024 17:13:44 -0800
+To: mm-commits@vger.kernel.org,rmoar@google.com,fgasperin@lkcamp.dev,ebertoloti@lkcamp.dev,David.Laight@ACULAB.COM,davidgow@google.com,brendan.higgins@linux.dev,vpeixoto@lkcamp.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scatterlist-fix-a-typo.patch removed from -mm tree
-Message-Id: <20241106011343.66278C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-crc16_kunitc-add-kunit-tests-for-crc16.patch removed from -mm tree
+Message-Id: <20241106011344.9A633C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,234 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scatterlist: fix a typo
+     Subject: lib/crc16_kunit.c: add KUnit tests for crc16
 has been removed from the -mm tree.  Its filename was
-     scatterlist-fix-a-typo.patch
+     lib-crc16_kunitc-add-kunit-tests-for-crc16.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sui Jingfeng <sui.jingfeng@linux.dev>
-Subject: scatterlist: fix a typo
-Date: Sat, 12 Oct 2024 18:08:17 +0800
+From: Vinicius Peixoto <vpeixoto@lkcamp.dev>
+Subject: lib/crc16_kunit.c: add KUnit tests for crc16
+Date: Sat, 12 Oct 2024 04:43:49 -0300
 
-Replace the 'One' with 'On'.
+Add Kunit tests for the kernel's implementation of the standard CRC-16
+algorithm (<linux/crc16.h>).  The test data consists of 100
+randomly-generated test cases, validated against a naive CRC-16
+implementation.
 
-Link: https://lkml.kernel.org/r/20241012100817.323007-1-sui.jingfeng@linux.dev
-Fixes: af2880ec4402 ("scatterlist: add dedicated config for DMA flags")
-Signed-off-by: Sui Jingfeng <sui.jingfeng@linux.dev>
-Reviewed-by: Petr Tesarik <petr@tesarici.cz>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Michael Kelley <mhklinux@outlook.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
+This test follows roughly the same logic as lib/crc32test.c, but without
+the performance measurements.
+
+Link: https://lkml.kernel.org/r/20241012-crc16-kunit-v3-1-0ca75cb58ca9@lkcamp.dev
+Signed-off-by: Vinicius Peixoto <vpeixoto@lkcamp.dev>
+Co-developed-by: Enzo Bertoloti <ebertoloti@lkcamp.dev>
+Signed-off-by: Enzo Bertoloti <ebertoloti@lkcamp.dev>
+Co-developed-by: Fabricio Gasperin <fgasperin@lkcamp.dev>
+Signed-off-by: Fabricio Gasperin <fgasperin@lkcamp.dev>
+Suggested-by: David Laight <David.Laight@ACULAB.COM>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Rae Moar <rmoar@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    9 ++
+ lib/Makefile      |    1 
+ lib/crc16_kunit.c |  155 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 165 insertions(+)
 
---- a/include/linux/scatterlist.h~scatterlist-fix-a-typo
-+++ a/include/linux/scatterlist.h
-@@ -273,7 +273,7 @@ static inline void sg_unmark_end(struct
- }
+diff --git a/lib/crc16_kunit.c a/lib/crc16_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/crc16_kunit.c
+@@ -0,0 +1,155 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * KUnits tests for CRC16.
++ *
++ * Copyright (C) 2024, LKCAMP
++ * Author: Vinicius Peixoto <vpeixoto@lkcamp.dev>
++ * Author: Fabricio Gasperin <fgasperin@lkcamp.dev>
++ * Author: Enzo Bertoloti <ebertoloti@lkcamp.dev>
++ */
++#include <kunit/test.h>
++#include <linux/crc16.h>
++#include <linux/prandom.h>
++
++#define CRC16_KUNIT_DATA_SIZE 4096
++#define CRC16_KUNIT_TEST_SIZE 100
++#define CRC16_KUNIT_SEED 0x12345678
++
++/**
++ * struct crc16_test - CRC16 test data
++ * @crc: initial input value to CRC16
++ * @start: Start index within the data buffer
++ * @length: Length of the data
++ */
++static struct crc16_test {
++	u16 crc;
++	u16 start;
++	u16 length;
++} tests[CRC16_KUNIT_TEST_SIZE];
++
++u8 data[CRC16_KUNIT_DATA_SIZE];
++
++
++/* Naive implementation of CRC16 for validation purposes */
++static inline u16 _crc16_naive_byte(u16 crc, u8 data)
++{
++	u8 i = 0;
++
++	crc ^= (u16) data;
++	for (i = 0; i < 8; i++) {
++		if (crc & 0x01)
++			crc = (crc >> 1) ^ 0xa001;
++		else
++			crc = crc >> 1;
++	}
++
++	return crc;
++}
++
++
++static inline u16 _crc16_naive(u16 crc, u8 *buffer, size_t len)
++{
++	while (len--)
++		crc = _crc16_naive_byte(crc, *buffer++);
++	return crc;
++}
++
++
++/* Small helper for generating pseudorandom 16-bit data */
++static inline u16 _rand16(void)
++{
++	static u32 rand = CRC16_KUNIT_SEED;
++
++	rand = next_pseudo_random32(rand);
++	return rand & 0xFFFF;
++}
++
++
++static int crc16_init_test_data(struct kunit_suite *suite)
++{
++	size_t i;
++
++	/* Fill the data buffer with random bytes */
++	for (i = 0; i < CRC16_KUNIT_DATA_SIZE; i++)
++		data[i] = _rand16() & 0xFF;
++
++	/* Generate random test data while ensuring the random
++	 * start + length values won't overflow the 4096-byte
++	 * buffer (0x7FF * 2 = 0xFFE < 0x1000)
++	 */
++	for (size_t i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
++		tests[i].crc = _rand16();
++		tests[i].start = _rand16() & 0x7FF;
++		tests[i].length = _rand16() & 0x7FF;
++	}
++
++	return 0;
++}
++
++static void crc16_test_empty(struct kunit *test)
++{
++	u16 crc;
++
++	/* The result for empty data should be the same as the
++	 * initial crc
++	 */
++	crc = crc16(0x00, data, 0);
++	KUNIT_EXPECT_EQ(test, crc, 0);
++	crc = crc16(0xFF, data, 0);
++	KUNIT_EXPECT_EQ(test, crc, 0xFF);
++}
++
++static void crc16_test_correctness(struct kunit *test)
++{
++	size_t i;
++	u16 crc, crc_naive;
++
++	for (i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
++		/* Compare results with the naive crc16 implementation */
++		crc = crc16(tests[i].crc, data + tests[i].start,
++			    tests[i].length);
++		crc_naive = _crc16_naive(tests[i].crc, data + tests[i].start,
++					 tests[i].length);
++		KUNIT_EXPECT_EQ(test, crc, crc_naive);
++	}
++}
++
++
++static void crc16_test_combine(struct kunit *test)
++{
++	size_t i, j;
++	u16 crc, crc_naive;
++
++	/* Make sure that combining two consecutive crc16 calculations
++	 * yields the same result as calculating the crc16 for the whole thing
++	 */
++	for (i = 0; i < CRC16_KUNIT_TEST_SIZE; i++) {
++		crc_naive = crc16(tests[i].crc, data + tests[i].start, tests[i].length);
++		for (j = 0; j < tests[i].length; j++) {
++			crc = crc16(tests[i].crc, data + tests[i].start, j);
++			crc = crc16(crc, data + tests[i].start + j, tests[i].length - j);
++			KUNIT_EXPECT_EQ(test, crc, crc_naive);
++		}
++	}
++}
++
++
++static struct kunit_case crc16_test_cases[] = {
++	KUNIT_CASE(crc16_test_empty),
++	KUNIT_CASE(crc16_test_combine),
++	KUNIT_CASE(crc16_test_correctness),
++	{},
++};
++
++static struct kunit_suite crc16_test_suite = {
++	.name = "crc16",
++	.test_cases = crc16_test_cases,
++	.suite_init = crc16_init_test_data,
++};
++kunit_test_suite(crc16_test_suite);
++
++MODULE_AUTHOR("Fabricio Gasperin <fgasperin@lkcamp.dev>");
++MODULE_AUTHOR("Vinicius Peixoto <vpeixoto@lkcamp.dev>");
++MODULE_AUTHOR("Enzo Bertoloti <ebertoloti@lkcamp.dev>");
++MODULE_DESCRIPTION("Unit tests for crc16");
++MODULE_LICENSE("GPL");
+--- a/lib/Kconfig.debug~lib-crc16_kunitc-add-kunit-tests-for-crc16
++++ a/lib/Kconfig.debug
+@@ -2850,6 +2850,15 @@ config USERCOPY_KUNIT_TEST
+ 	  on the copy_to/from_user infrastructure, making sure basic
+ 	  user/kernel boundary testing is working.
  
- /*
-- * One 64-bit architectures there is a 4-byte padding in struct scatterlist
-+ * On 64-bit architectures there is a 4-byte padding in struct scatterlist
-  * (assuming also CONFIG_NEED_SG_DMA_LENGTH is set). Use this padding for DMA
-  * flags bits to indicate when a specific dma address is a bus address or the
-  * buffer may have been bounced via SWIOTLB.
++config CRC16_KUNIT_TEST
++	tristate "KUnit tests for CRC16"
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	select CRC16
++	help
++	  Enable this option to run unit tests for the kernel's CRC16
++	  implementation (<linux/crc16.h>).
++
+ config TEST_UDELAY
+ 	tristate "udelay test driver"
+ 	help
+--- a/lib/Makefile~lib-crc16_kunitc-add-kunit-tests-for-crc16
++++ a/lib/Makefile
+@@ -389,6 +389,7 @@ CFLAGS_fortify_kunit.o += $(DISABLE_STRU
+ obj-$(CONFIG_FORTIFY_KUNIT_TEST) += fortify_kunit.o
+ obj-$(CONFIG_SIPHASH_KUNIT_TEST) += siphash_kunit.o
+ obj-$(CONFIG_USERCOPY_KUNIT_TEST) += usercopy_kunit.o
++obj-$(CONFIG_CRC16_KUNIT_TEST) += crc16_kunit.o
+ 
+ obj-$(CONFIG_GENERIC_LIB_DEVMEM_IS_ALLOWED) += devmem_is_allowed.o
+ 
 _
 
-Patches currently in -mm which might be from sui.jingfeng@linux.dev are
+Patches currently in -mm which might be from vpeixoto@lkcamp.dev are
 
 
