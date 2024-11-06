@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0AF1383BF
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B3ED18858C
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855601; cv=none; b=agmRziZid4rEKT2k93wC0gOkRPUkXkj12OUUkzVK0oedrJwhUbdb7BPQpe2n3kYJqM+UArLrWlSlXM5jKpcwNUb1tsg2NmKQsxXOvymF4HVKlKgpxpCeNG2Hlm5KqtrnS9UzHmoSwkpzdQ4jxe1mZXcwDIEZ1VidWJrsWQfXXT4=
+	t=1730855603; cv=none; b=RZkPlkM4T3N1vyKCKUmasA13gYcREReb6v0+pWsHtJjSsZp+KhbVyXu2yoTLnnTOZ2cK6JIA7JmSE40t+xb4Ij1cUE0rZQ0Y9hqPDNBxm2jPuJ/jKOE0GaXSYGUhkypz8l9OtPvGoUu8XRL7uDXoo94wtgmpFAshK+/Uvs3YGMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855601; c=relaxed/simple;
-	bh=jTsA9hNjfKHgR9Kaj7n3ACGSSksl+tIxlVJE6y2emQM=;
-	h=Date:To:From:Subject:Message-Id; b=Mi2ncLCS4Uuzo9kqyKYeR6Lonz/tF5h/7a1oaJ9jGOX00MWXnf8ZXkSV9W48gIexjbQz8bFYh9OaHZUSS0jDsmYK+FeZCnVZPWp2GyiRRATAvm78vzks+nUXMoTAwADHczIKOVYzz//EKOnQOcDEvPxbdnMIZr3crEOiVnvKHwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h4ZinLb8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855603; c=relaxed/simple;
+	bh=abqzUEwD75yd6bjHrBVNpdlKV454QbVKJiuL9i6KXeg=;
+	h=Date:To:From:Subject:Message-Id; b=M1VslegVWhPFzVHvlnVo8NF0nMDahnkJQsc3H6HnR/nMa9hij3+3NXOqZDUYSdYmWB1hCY9MWLlAgBmM0PA9T0zi3j5/3m5C+1ouo7luH0t4GA5bxmZisKLd8gsQ4IwIFFecz3Hny6FExy++maYR1bQlFJeMHSoZq4rTqA4x3PE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kPYl5TfL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h4ZinLb8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67859C4CECF;
-	Wed,  6 Nov 2024 01:13:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kPYl5TfL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8EB1C4CECF;
+	Wed,  6 Nov 2024 01:13:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855601;
-	bh=jTsA9hNjfKHgR9Kaj7n3ACGSSksl+tIxlVJE6y2emQM=;
+	s=korg; t=1730855602;
+	bh=abqzUEwD75yd6bjHrBVNpdlKV454QbVKJiuL9i6KXeg=;
 	h=Date:To:From:Subject:From;
-	b=h4ZinLb8+CjnXaLDMRUIPlS3LKBY29h7QP4YtroMdekVC6uhAECmuPegQQcyzwtOm
-	 MGwEUcjoky6D7vj82j5UY8tK0W2uRG5odrppLGXiG6U1mx8HiRqI6D53kEDV7LbQPE
-	 xKNbH4YIBHwkriSjzto2zmrdmm5+lpFBXQ6sm4Ik=
-Date: Tue, 05 Nov 2024 17:13:20 -0800
-To: mm-commits@vger.kernel.org,sachinpb@linux.vnet.ibm.com,mpe@ellerman.id.au,hbathini@linux.ibm.com,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=kPYl5TfLorEedg2wu0eK4Azcp2vIlsAh6GiKOqhTxxI5owBpDz0RSz8YF0KdZOsvi
+	 R+Rybgya+RHrybXHsHJhytBny+8sO5KhfNsldZoveYv8Ebtmi+J31WUw33Eu/hAn9L
+	 Kyd2mjRONPRO95B0ZQBNCVRVAHbikaPESnYFVybo=
+Date: Tue, 05 Nov 2024 17:13:22 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,tglx@linutronix.de,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,mcgrof@kernel.org,lizhe.67@bytedance.com,linux@weissschuh.net,kjlx@templeofstupid.com,juri.lelli@redhat.com,john.ogness@linutronix.de,dietmar.eggemann@arm.com,dianders@chromium.org,bsegall@google.com,bristot@redhat.com,tiozhang@didiglobal.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-crash-no-crash-update-when-kexec-in-progress.patch removed from -mm tree
-Message-Id: <20241106011321.67859C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch removed from -mm tree
+Message-Id: <20241106011322.D8EB1C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,169 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec/crash: no crash update when kexec in progress
+     Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
 has been removed from the -mm tree.  Its filename was
-     kexec-crash-no-crash-update-when-kexec-in-progress.patch
+     kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: kexec/crash: no crash update when kexec in progress
-Date: Sat, 21 Sep 2024 16:07:45 +0530
+From: Tio Zhang <tiozhang@didiglobal.com>
+Subject: kernel/watchdog: always restore watchdog_softlockup(,hardlockup)_user_enabled after proc show
+Date: Fri, 6 Sep 2024 17:47:00 +0800
 
-The following errors are observed when kexec is done with SMT=off on
-powerpc.
+Otherwise when watchdog_enabled becomes 0,
+watchdog_softlockup(,hardlockup)_user_enabled will changes to 0 after proc
+show.
 
-[  358.458385] Removing IBM Power 842 compression device
-[  374.795734] kexec_core: Starting new kernel
-[  374.795748] kexec: Waking offline cpu 1.
-[  374.875695] crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
-[  374.935833] kexec: Waking offline cpu 2.
-[  375.015664] crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
-snip..
-[  375.515823] kexec: Waking offline cpu 6.
-[  375.635667] crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
-[  375.695836] kexec: Waking offline cpu 7.
+Steps to reproduce:
 
-To avoid kexec kernel boot failure on PowerPC, all the present CPUs that
-are offline are brought online during kexec.  For more information, refer
-to commit e8e5c2155b00 ("powerpc/kexec: Fix orphaned offline CPUs across
-kexec").  Bringing the CPUs online triggers the crash hotplug handler,
-crash_handle_hotplug_event(), to update the kdump image.  Since the system
-is on the kexec kernel boot path and the kexec lock is held, the
-crash_handle_hotplug_event() function fails to acquire the same lock to
-update the kdump image, resulting in the error messages mentioned above.
+  step 1:
+  # cat /proc/sys/kernel/*watchdog
+  1
+  1
+  1
 
-To fix this, return from crash_handle_hotplug_event() without printing the
-error message if kexec is in progress.
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 1
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 1
+  |----------------------------------|--------------------------
 
-The same applies to the crash_check_hotplug_support() function.  Return 0
-if kexec is in progress because kernel is not in a position to update the
-kdump image.
+  step 2:
+  # echo 0 > /proc/sys/kernel/watchdog
 
-Link: https://lkml.kernel.org/r/20240921103745.560430-1-sourabhjain@linux.ibm.com
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Baoquan he <bhe@redhat.com>
-Reported-by: Sachin P Bappalige <sachinpb@linux.vnet.ibm.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 3:
+  # cat /proc/sys/kernel/*watchdog
+  0
+  0
+  0
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 4:
+  # echo 1 > /proc/sys/kernel/watchdog
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 0
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 0
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 0
+  |----------------------------------|--------------------------
+
+  step 5:
+  # cat /proc/sys/kernel/*watchdog
+  0
+  0
+  0
+
+If we dont do "step 3", do "step 4" right after "step 2", it will be
+
+  | name                             | value
+  |----------------------------------|--------------------------
+  | watchdog_enabled                 | 1
+  |----------------------------------|--------------------------
+  | watchdog_hardlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_softlockup_user_enabled | 1
+  |----------------------------------|--------------------------
+  | watchdog_user_enabled            | 1
+  |----------------------------------|--------------------------
+
+then everything works correctly.
+
+So this patch fix "step 3"'s value into
+
+| name                             | value
+|----------------------------------|--------------------------
+| watchdog_enabled                 | 0
+|----------------------------------|--------------------------
+| watchdog_hardlockup_user_enabled | 1
+|----------------------------------|--------------------------
+| watchdog_softlockup_user_enabled | 1
+|----------------------------------|--------------------------
+| watchdog_user_enabled            | 0
+|----------------------------------|--------------------------
+
+And still print 0 as before.
+
+Link: https://lkml.kernel.org/r/20240906094700.GA30052@didi-ThinkCentre-M930t-N000
+Signed-off-by: Tio Zhang <tiozhang@didiglobal.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Krister Johansen <kjlx@templeofstupid.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/watchdog.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/crash_core.c~kexec-crash-no-crash-update-when-kexec-in-progress
-+++ a/kernel/crash_core.c
-@@ -505,7 +505,8 @@ int crash_check_hotplug_support(void)
- 	crash_hotplug_lock();
- 	/* Obtain lock while reading crash information */
- 	if (!kexec_trylock()) {
--		pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
-+		if (!kexec_in_progress)
-+			pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
- 		crash_hotplug_unlock();
- 		return 0;
- 	}
-@@ -547,7 +548,8 @@ static void crash_handle_hotplug_event(u
- 	crash_hotplug_lock();
- 	/* Obtain lock while changing crash information */
- 	if (!kexec_trylock()) {
--		pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
-+		if (!kexec_in_progress)
-+			pr_info("kexec_trylock() failed, kdump image may be inaccurate\n");
- 		crash_hotplug_unlock();
- 		return;
- 	}
+--- a/kernel/watchdog.c~kernel-watchdog-always-restore-watchdog_softlockuphardlockup_user_enabled-after-proc-show
++++ a/kernel/watchdog.c
+@@ -990,6 +990,7 @@ static int proc_watchdog_common(int whic
+ 
+ 	mutex_lock(&watchdog_mutex);
+ 
++	old = *param;
+ 	if (!write) {
+ 		/*
+ 		 * On read synchronize the userspace interface. This is a
+@@ -997,8 +998,8 @@ static int proc_watchdog_common(int whic
+ 		 */
+ 		*param = (watchdog_enabled & which) != 0;
+ 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++		*param = old;
+ 	} else {
+-		old = READ_ONCE(*param);
+ 		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 		if (!err && old != READ_ONCE(*param))
+ 			proc_watchdog_update();
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from tiozhang@didiglobal.com are
 
 
