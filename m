@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21A0517E00B
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B76F18801F
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854829; cv=none; b=QOX76Xr+BpA9yyzl6zMrPvIkwaxROtervWDbi4lS1dB+2kFvQh0zHyFSGmYuwKE59GgLT5jDsszlXOwJWiE4PWjnQNaK70Zbv137aHpU58h4jJ+adahHmCD2yd3d6Q5gCxlrA4k/CJrQisLu3gifXq6sqtffwXECFntFrvOBJEE=
+	t=1730854829; cv=none; b=mf3PEzQqyNKtzYYaGfYZ6429PvvhIULmOBL5IxzH0f3BHA7cFW5o6wwKwrGlvTGMe+0PJWwqtHGVMumd/8fp3mZB5xvZhKP8uGIp3t87POOHgy7Q5ME2x1HKb2HNTIsgEMomYoKjJP63BfwvQYgAnq0Kbp2EI5rDDtYdIcrsPkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730854829; c=relaxed/simple;
-	bh=UzIixfXURB/u3BtCmHYbtxuWQliTwsWfH4JebnX2Fhc=;
-	h=Date:To:From:Subject:Message-Id; b=PnpNM3KbPcFejWf0l+GSnPBrgnAKWYSn65gsKg87G4Ni4jcM564dkczhjgNDcAwqKuQCaz+Ql1Cm3FNvoVZNm6uY/wt+jr9KOjxpbLHwAzg02RIroYSvL3HC0cUdepvQop9Kz+5uRRJefBgpjRqgBhZrwwuis8TNGSX+jUBOSWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eiB3v9MG; arc=none smtp.client-ip=10.30.226.201
+	bh=TdZvvv8RzD6LKs/lJvIiYTF3cTD8Dn48tcxtVscAblY=;
+	h=Date:To:From:Subject:Message-Id; b=kynvIEhA33qK38qmgBGlpVFPNjbwk0KGPvr51qcvUHlXcyrcz6va5xR8repSO9BEYprEDAKACFouOZzyPRWp1WFEyw8z3jgL6qJb7UAAtIzXLo0kWTYOZH75hMauTqQ3QT4QHwRlhSztwVKfafDhdHsSASHnYSdAbbsiLgsdlKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=delaup1J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eiB3v9MG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B542C4CECF;
-	Wed,  6 Nov 2024 01:00:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="delaup1J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5EC0C4CED1;
+	Wed,  6 Nov 2024 01:00:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854827;
-	bh=UzIixfXURB/u3BtCmHYbtxuWQliTwsWfH4JebnX2Fhc=;
+	s=korg; t=1730854829;
+	bh=TdZvvv8RzD6LKs/lJvIiYTF3cTD8Dn48tcxtVscAblY=;
 	h=Date:To:From:Subject:From;
-	b=eiB3v9MGWlDqUU0ErIcvas2r3n2uXWM529jjF6AElHPRQkXoD2uT+jJ+AEMjPGI9Q
-	 pVf9H3mgwljmmZLsf9H3BSQGJZ4AUrrR1cjCQD5auVnT8t+CQHWGHMTzGdxkFJdj2w
-	 8bJrkTdZ1iN9gsGeM9QrgrmBaOH2//xEomsY6JE0=
-Date: Tue, 05 Nov 2024 17:00:27 -0800
+	b=delaup1JDJAKz8KJzsRJkGYQLa98kbvtCspKwi7SgGhjtjxWlc66XjcZwOCa0jFRP
+	 MOA3jC4RtLAAwWnMU3RNTIX3najY2V6Vkj8QirUMkVXOKuiSuhooPKvNLqp2m/G/kQ
+	 4o9pOTQ+7t+brnUlL6g7NtgR0oIyUPOW5Wma25OI=
+Date: Tue, 05 Nov 2024 17:00:28 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,wangkefeng.wang@huawei.com,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@chromium.org,jannh@google.com,david@redhat.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mremap-clean-up-vma_to_resize.patch removed from -mm tree
-Message-Id: <20241106010027.8B542C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mremap-remove-goto-from-mremap_to.patch removed from -mm tree
+Message-Id: <20241106010028.E5EC0C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,170 +35,143 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mremap: cleanup vma_to_resize()
+     Subject: mm/mremap: remove goto from mremap_to()
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-clean-up-vma_to_resize.patch
+     mm-mremap-remove-goto-from-mremap_to.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mremap: cleanup vma_to_resize()
-Date: Fri, 18 Oct 2024 13:41:13 -0400
+Subject: mm/mremap: remove goto from mremap_to()
+Date: Fri, 18 Oct 2024 13:41:14 -0400
 
-Patch series "mm/mremap: Remove extra vma tree walk", v2.
+mremap_to() has a goto label at the end that doesn't unwind anything. 
+Removing the label makes the code cleaner.
 
-An extra vma tree walk was discovered in some mremap call paths during the
-discussion on mseal() changes.  This patch set removes the extra vma tree
-walk and further cleans up mremap_to().
+This commit also adds documentation to the function.
 
-
-This patch (of 2):
-
-vma_to_resize() is used in two locations to find and validate the vma for
-the mremap location.  One of the two locations already has the vma, which
-is then re-found to validate the same vma.
-
-This code can be simplified by moving the vma_lookup() from
-vma_to_resize() to mremap_to() and changing the return type to an int
-error.
-
-Since the function now just validates the vma, the function is renamed to
-resize_is_valid() to better reflect what it is doing.
-
-This commit also adds documentation about the function.
-
-Link: https://lkml.kernel.org/r/20241018174114.2871880-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20241018174114.2871880-2-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20241018174114.2871880-3-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Pedro Falcato <pedro.falcato@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   53 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ mm/mremap.c |   46 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-clean-up-vma_to_resize
+--- a/mm/mremap.c~mm-mremap-remove-goto-from-mremap_to
 +++ a/mm/mremap.c
-@@ -826,17 +826,24 @@ static unsigned long move_vma(struct vm_
- 	return new_addr;
+@@ -887,6 +887,20 @@ static int resize_is_valid(struct vm_are
+ 	return 0;
  }
  
--static struct vm_area_struct *vma_to_resize(unsigned long addr,
 +/*
-+ * resize_is_valid() - Ensure the vma can be resized to the new length at the give
-+ * address.
-+ *
-+ * @vma: The vma to resize
++ * mremap_to() - remap a vma to a new location
 + * @addr: The old address
-+ * @old_len: The current size
-+ * @new_len: The desired size
-+ * @flags: The vma flags
++ * @old_len: The old size
++ * @new_addr: The target address
++ * @new_len: The new size
++ * @locked: If the returned vma is locked (VM_LOCKED)
++ * @flags: the mremap flags
++ * @uf: The mremap userfaultfd context
++ * @uf_unmap_early: The userfaultfd unmap early context
++ * @uf_unmap: The userfaultfd unmap context
 + *
-+ * Return 0 on success, error otherwise.
++ * Returns: The new address of the vma or an error.
 + */
-+static int resize_is_valid(struct vm_area_struct *vma, unsigned long addr,
- 	unsigned long old_len, unsigned long new_len, unsigned long flags)
+ static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
+ 		unsigned long new_addr, unsigned long new_len, bool *locked,
+ 		unsigned long flags, struct vm_userfaultfd_ctx *uf,
+@@ -895,18 +909,18 @@ static unsigned long mremap_to(unsigned
  {
  	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
- 	unsigned long pgoff;
+ 	struct vm_area_struct *vma;
+-	unsigned long ret = -EINVAL;
++	unsigned long ret;
+ 	unsigned long map_flags = 0;
  
--	vma = vma_lookup(mm, addr);
--	if (!vma)
--		return ERR_PTR(-EFAULT);
--
- 	/*
- 	 * !old_len is a special case where an attempt is made to 'duplicate'
- 	 * a mapping.  This makes no sense for private mappings as it will
-@@ -847,37 +854,37 @@ static struct vm_area_struct *vma_to_res
- 	 */
- 	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
- 		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n", current->comm, current->pid);
--		return ERR_PTR(-EINVAL);
+ 	if (offset_in_page(new_addr))
+-		goto out;
 +		return -EINVAL;
+ 
+ 	if (new_len > TASK_SIZE || new_addr > TASK_SIZE - new_len)
+-		goto out;
++		return -EINVAL;
+ 
+ 	/* Ensure the old/new locations do not overlap */
+ 	if (addr + old_len > new_addr && new_addr + new_len > addr)
+-		goto out;
++		return -EINVAL;
+ 
+ 	/*
+ 	 * move_vma() need us to stay 4 maps below the threshold, otherwise
+@@ -933,31 +947,28 @@ static unsigned long mremap_to(unsigned
+ 		 */
+ 		ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
+ 		if (ret)
+-			goto out;
++			return ret;
  	}
  
- 	if ((flags & MREMAP_DONTUNMAP) &&
- 			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
--		return ERR_PTR(-EINVAL);
-+		return -EINVAL;
- 
- 	/* We can't remap across vm area boundaries */
- 	if (old_len > vma->vm_end - addr)
--		return ERR_PTR(-EFAULT);
-+		return -EFAULT;
- 
- 	if (new_len == old_len)
--		return vma;
-+		return 0;
- 
- 	/* Need to be careful about a growing mapping */
- 	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
- 	pgoff += vma->vm_pgoff;
- 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
--		return ERR_PTR(-EINVAL);
-+		return -EINVAL;
- 
- 	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
--		return ERR_PTR(-EFAULT);
-+		return -EFAULT;
- 
- 	if (!mlock_future_ok(mm, vma->vm_flags, new_len - old_len))
--		return ERR_PTR(-EAGAIN);
-+		return -EAGAIN;
- 
- 	if (!may_expand_vm(mm, vma->vm_flags,
- 				(new_len - old_len) >> PAGE_SHIFT))
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 
--	return vma;
-+	return 0;
- }
- 
- static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
-@@ -936,12 +943,16 @@ static unsigned long mremap_to(unsigned
+ 	if (old_len > new_len) {
+ 		ret = do_munmap(mm, addr+new_len, old_len - new_len, uf_unmap);
+ 		if (ret)
+-			goto out;
++			return ret;
  		old_len = new_len;
  	}
  
--	vma = vma_to_resize(addr, old_len, new_len, flags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
-+	vma = vma_lookup(mm, addr);
-+	if (!vma) {
-+		ret = -EFAULT;
- 		goto out;
- 	}
+ 	vma = vma_lookup(mm, addr);
+-	if (!vma) {
+-		ret = -EFAULT;
+-		goto out;
+-	}
++	if (!vma)
++		return -EFAULT;
  
-+	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
-+	if (ret)
-+		goto out;
-+
+ 	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
+ 	if (ret)
+-		goto out;
++		return ret;
+ 
  	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
  	if (flags & MREMAP_DONTUNMAP &&
  		!may_expand_vm(mm, vma->vm_flags, old_len >> PAGE_SHIFT)) {
-@@ -1114,11 +1125,9 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	/*
- 	 * Ok, we need to grow..
- 	 */
--	vma = vma_to_resize(addr, old_len, new_len, flags);
--	if (IS_ERR(vma)) {
--		ret = PTR_ERR(vma);
-+	ret = resize_is_valid(vma, addr, old_len, new_len, flags);
-+	if (ret)
- 		goto out;
--	}
+-		ret = -ENOMEM;
+-		goto out;
++		return -ENOMEM;
+ 	}
  
- 	/* old_len exactly to the end of the area..
- 	 */
+ 	if (flags & MREMAP_FIXED)
+@@ -970,17 +981,14 @@ static unsigned long mremap_to(unsigned
+ 				((addr - vma->vm_start) >> PAGE_SHIFT),
+ 				map_flags);
+ 	if (IS_ERR_VALUE(ret))
+-		goto out;
++		return ret;
+ 
+ 	/* We got a new mapping */
+ 	if (!(flags & MREMAP_FIXED))
+ 		new_addr = ret;
+ 
+-	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked, flags, uf,
+-		       uf_unmap);
+-
+-out:
+-	return ret;
++	return move_vma(vma, addr, old_len, new_len, new_addr, locked, flags,
++			uf, uf_unmap);
+ }
+ 
+ static int vma_expandable(struct vm_area_struct *vma, unsigned long delta)
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
