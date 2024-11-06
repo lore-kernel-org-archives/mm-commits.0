@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683AF17F4F6
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDAA516FF45
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855628; cv=none; b=GRIeOhRXzLypli3qcAf0m63+rtm4kpB2loXCc9UGCaCNoEADNKxjs/dcSLXbivTKWOzhUlPnb5c99fzbGXNnBX7xfMWEO/wtrfoznMEtTspsfQTIVHhz7M+kIENUpsFhpKjgRZDnKWG/kL/wgN7HRovVOjuvirLZadS21MW1NXI=
+	t=1730855629; cv=none; b=FLXNwUBp2fFoJG7JKuWsxX9bvtgvsWJgdazjnEQC8tL6zCxUmO5qcip5IsASJVh2qfa+4aA/Tk++RUISudyaMCH355aiTwOiYVZI2VBr8DzH7DvhCsYRakl2xGfUXchuhk313UywBSMszL6YV9JN1kBlD8gxPMJwt7OujwDE5As=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855628; c=relaxed/simple;
-	bh=Qng9aPrLYct5rmAKpjGXOMf1MTp4XFtSQ/c8pq+K4ls=;
-	h=Date:To:From:Subject:Message-Id; b=ppqR6ncHm0mgc8hmBVvSShzo0illA85R0BV083s2v2H+5Cg9uBiSgC+gOGNDtfEulycKiYh9l6fWIxclyCETdY+MVbqXTaRFWfkcMH/GgcGewjKF4QBrH1hCeOvo4UuzXy+DENKEDbp4GVvAyrLxgwa1r6qKualZ30+qdM8ihcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o9bX0l9t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855629; c=relaxed/simple;
+	bh=0vAHtiDcS331IQnu+cGlNlbuUUUPRMxSIh4LsXCliKo=;
+	h=Date:To:From:Subject:Message-Id; b=ee0h9BQ03pyi+CJPd227k41GXeAmM+UOtTqLcJbsqj9wRRWNUoEwkJgnBxJUDQ0Ksl0sca9xdn4KQ/92+6q/p2GcScwQeyf/N2R47gns1wrwNRVFfTLZXQsFzGtSF4TXo1nMJnJMF4em+aArO49ff03xoOB13OaChPoXsSUUfiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ac/xYEn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o9bX0l9t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40479C4CECF;
-	Wed,  6 Nov 2024 01:13:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ac/xYEn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1333C4CECF;
+	Wed,  6 Nov 2024 01:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855628;
-	bh=Qng9aPrLYct5rmAKpjGXOMf1MTp4XFtSQ/c8pq+K4ls=;
+	s=korg; t=1730855629;
+	bh=0vAHtiDcS331IQnu+cGlNlbuUUUPRMxSIh4LsXCliKo=;
 	h=Date:To:From:Subject:From;
-	b=o9bX0l9to2I0+Pw2URrGXxubH2cZ+jPMh5mJnZHbQ/4vSXJi5KrrfnwoVp6UM1Zu8
-	 EiDCD8U/RU6u7XFJg/VMz93xlldWUAtwuTwtiYgxpdkp3i7ont1usO7fN/4+aAQbip
-	 ZPBmx8Jgb1SyQ3avNytTK6xKZylYacFM7T8Dlpn0=
-Date: Tue, 05 Nov 2024 17:13:47 -0800
-To: mm-commits@vger.kernel.org,xndchn@gmail.com,swboyd@chromium.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,luca.ceresoli@bootlin.com,cmllamas@google.com,leitao@debian.org,akpm@linux-foundation.org
+	b=0ac/xYEnP2lDwrhAAn4dQJxoMF8dU4zKwXRtxdPD4zRPehsogKygYgjbgtqOLFhpZ
+	 H7X1XOZgqIS5fwtgMLMdhQyTghq4WA8Bop4UPi+CD8jLtCID1LIP3i7zYEEMYjiZ+W
+	 r/JphkU1KfvCannqwY5zjzGHg81mCUvgWgxnTVNo=
+Date: Tue, 05 Nov 2024 17:13:49 -0800
+To: mm-commits@vger.kernel.org,mark.rutland@arm.com,kan.liang@linux.intel.com,jolsa@kernel.org,irogers@google.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-decode_stacktracesh-remove-trailing-space.patch removed from -mm tree
-Message-Id: <20241106011348.40479C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch removed from -mm tree
+Message-Id: <20241106011349.A1333C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/decode_stacktrace.sh: remove trailing space
+     Subject: perf/hw_breakpoint: use ERR_PTR_PCPU(), IS_ERR_PCPU() and PTR_ERR_PCPU() macros
 has been removed from the -mm tree.  Its filename was
-     scripts-decode_stacktracesh-remove-trailing-space.patch
+     perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: scripts/decode_stacktrace.sh: remove trailing space
-Date: Mon, 14 Oct 2024 03:02:10 -0700
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: perf/hw_breakpoint: use ERR_PTR_PCPU(), IS_ERR_PCPU() and PTR_ERR_PCPU() macros
+Date: Tue, 24 Sep 2024 11:07:13 +0200
 
-decode_stacktrace.sh adds a trailing space at the end of the decoded stack
-if the module is not set (in most of the lines), which makes the some
-lines of the stack having trailing space and some others not.
+Use ERR_PTR_PCPU() when returning error pointer in the percpu address
+space.  Use IS_ERR_PCPU() and PTR_ERR_PCPU() when returning the error
+pointer from the percpu address space.  These macros add intermediate cast
+to unsigned long when switching named address spaces.
 
-Do not add an extra space at the end of the line if module is not set,
-adding consistency in output formatting.
+The patch will avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
 
-Link: https://lkml.kernel.org/r/20241014100213.1873611-1-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Elliot Berman <quic_eberman@quicinc.com>
-Reviewed-by: Carlos Llamas <cmllamas@google.com>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
-Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
-Cc: Xiong Nandi <xndchn@gmail.com>
+Link: https://lkml.kernel.org/r/20240924090813.1353586-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/events/hw_breakpoint.c           |    4 ++--
+ samples/hw_breakpoint/data_breakpoint.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-remove-trailing-space
-+++ a/scripts/decode_stacktrace.sh
-@@ -311,7 +311,12 @@ handle_line() {
- 	parse_symbol # modifies $symbol
+--- a/kernel/events/hw_breakpoint.c~perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros
++++ a/kernel/events/hw_breakpoint.c
+@@ -849,7 +849,7 @@ register_wide_hw_breakpoint(struct perf_
  
- 	# Add up the line number to the symbol
--	echo "${words[@]}" "$symbol $module"
-+	if [[ -z ${module} ]]
-+	then
-+		echo "${words[@]}" "$symbol"
-+	else
-+		echo "${words[@]}" "$symbol $module"
-+	fi
+ 	cpu_events = alloc_percpu(typeof(*cpu_events));
+ 	if (!cpu_events)
+-		return (void __percpu __force *)ERR_PTR(-ENOMEM);
++		return ERR_PTR_PCPU(-ENOMEM);
+ 
+ 	cpus_read_lock();
+ 	for_each_online_cpu(cpu) {
+@@ -868,7 +868,7 @@ register_wide_hw_breakpoint(struct perf_
+ 		return cpu_events;
+ 
+ 	unregister_wide_hw_breakpoint(cpu_events);
+-	return (void __percpu __force *)ERR_PTR(err);
++	return ERR_PTR_PCPU(err);
  }
+ EXPORT_SYMBOL_GPL(register_wide_hw_breakpoint);
  
- while read line; do
+--- a/samples/hw_breakpoint/data_breakpoint.c~perf-hw_breakpoint-use-err_ptr_pcpu-is_err_pcpu-and-ptr_err_pcpu-macros
++++ a/samples/hw_breakpoint/data_breakpoint.c
+@@ -52,8 +52,8 @@ static int __init hw_break_module_init(v
+ 	attr.bp_type = HW_BREAKPOINT_W;
+ 
+ 	sample_hbp = register_wide_hw_breakpoint(&attr, sample_hbp_handler, NULL);
+-	if (IS_ERR((void __force *)sample_hbp)) {
+-		ret = PTR_ERR((void __force *)sample_hbp);
++	if (IS_ERR_PCPU(sample_hbp)) {
++		ret = PTR_ERR_PCPU(sample_hbp);
+ 		goto fail;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
 
