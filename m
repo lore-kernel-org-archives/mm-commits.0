@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 472B416FF45
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683AF17F4F6
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855627; cv=none; b=LWstYHwf+9VqVPJ6mFE+elE1PgIiKTuUwGvXHaitFzqwKaq+0yX6YY5Zw7eqQ0x9PRRkYdmxpxepCT2bPBOWczM7tzuyM/RXdNQ+/o4lWoybFpHOVjDyUr6DoNPh/mZeFhaeAHFdJTUbNqaxtCF3bdQPvjaBTds33TNphFN3UfE=
+	t=1730855628; cv=none; b=GRIeOhRXzLypli3qcAf0m63+rtm4kpB2loXCc9UGCaCNoEADNKxjs/dcSLXbivTKWOzhUlPnb5c99fzbGXNnBX7xfMWEO/wtrfoznMEtTspsfQTIVHhz7M+kIENUpsFhpKjgRZDnKWG/kL/wgN7HRovVOjuvirLZadS21MW1NXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855627; c=relaxed/simple;
-	bh=s0fHPfTyKK4IOgoPm/K27cx/OMgP3CmYu2vd/USNKM8=;
-	h=Date:To:From:Subject:Message-Id; b=RyEcC5Luk8BidkJ+shm5Bp1plIZgscSnpMcUIoFtvQXnHr1m0+pxKEPb6rqkFnF7jTRtv4KK7U4nofLNLlg+Zbbpy5h69KsMBQrEoudhZSnxVnBQE4FtwYigEH5cRl9HIMoIqdNYLUy8QUEE9NBltNVryeZ+LwJzjdbaOzOXlCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IYG4BptN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855628; c=relaxed/simple;
+	bh=Qng9aPrLYct5rmAKpjGXOMf1MTp4XFtSQ/c8pq+K4ls=;
+	h=Date:To:From:Subject:Message-Id; b=ppqR6ncHm0mgc8hmBVvSShzo0illA85R0BV083s2v2H+5Cg9uBiSgC+gOGNDtfEulycKiYh9l6fWIxclyCETdY+MVbqXTaRFWfkcMH/GgcGewjKF4QBrH1hCeOvo4UuzXy+DENKEDbp4GVvAyrLxgwa1r6qKualZ30+qdM8ihcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o9bX0l9t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IYG4BptN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BDEEC4CECF;
-	Wed,  6 Nov 2024 01:13:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o9bX0l9t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40479C4CECF;
+	Wed,  6 Nov 2024 01:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855627;
-	bh=s0fHPfTyKK4IOgoPm/K27cx/OMgP3CmYu2vd/USNKM8=;
+	s=korg; t=1730855628;
+	bh=Qng9aPrLYct5rmAKpjGXOMf1MTp4XFtSQ/c8pq+K4ls=;
 	h=Date:To:From:Subject:From;
-	b=IYG4BptNAf0cSVjxhJHpsu0jWPrWBX4eteZmxjk/UtZ92Em/1/PH8WNtXj04Kjmd4
-	 iZV2fvZGvp5xUAssc2v9VzS/CNRozptu0XJdE9o1x7lR8L2s85Wx5RcvXRL04B/WQt
-	 RW4+y7J/5q/UCXVXOguTWPQqCXL19WOuO08MmpuM=
-Date: Tue, 05 Nov 2024 17:13:46 -0800
-To: mm-commits@vger.kernel.org,xavier_qy@163.com,tj@kernel.org,mkoutny@suse.com,longman@redhat.com,llong@redhat.com,lizefan.x@bytedance.com,jserv@ccns.ncku.edu.tw,hch@lst.de,hannes@cmpxchg.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=o9bX0l9to2I0+Pw2URrGXxubH2cZ+jPMh5mJnZHbQ/4vSXJi5KrrfnwoVp6UM1Zu8
+	 EiDCD8U/RU6u7XFJg/VMz93xlldWUAtwuTwtiYgxpdkp3i7ont1usO7fN/4+aAQbip
+	 ZPBmx8Jgb1SyQ3avNytTK6xKZylYacFM7T8Dlpn0=
+Date: Tue, 05 Nov 2024 17:13:47 -0800
+To: mm-commits@vger.kernel.org,xndchn@gmail.com,swboyd@chromium.org,quic_eberman@quicinc.com,quic_bjorande@quicinc.com,luca.ceresoli@bootlin.com,cmllamas@google.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch removed from -mm tree
-Message-Id: <20241106011347.1BDEEC4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-decode_stacktracesh-remove-trailing-space.patch removed from -mm tree
+Message-Id: <20241106011348.40479C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/Makefile: make union-find compilation conditional on CONFIG_CPUSETS
+     Subject: scripts/decode_stacktrace.sh: remove trailing space
 has been removed from the -mm tree.  Its filename was
-     lib-makefile-make-union-find-compilation-conditional-on-config_cpusets.patch
+     scripts-decode_stacktracesh-remove-trailing-space.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/Makefile: make union-find compilation conditional on CONFIG_CPUSETS
-Date: Fri, 11 Oct 2024 22:12:14 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: scripts/decode_stacktrace.sh: remove trailing space
+Date: Mon, 14 Oct 2024 03:02:10 -0700
 
-Currently, cpuset is the only user of the union-find implementation. 
-Compiling union-find in all configurations unnecessarily increases the
-code size when building the kernel without cgroup support.  Modify the
-build system to compile union-find only when CONFIG_CPUSETS is enabled.
+decode_stacktrace.sh adds a trailing space at the end of the decoded stack
+if the module is not set (in most of the lines), which makes the some
+lines of the stack having trailing space and some others not.
 
-Link: https://lore.kernel.org/lkml/1ccd6411-5002-4574-bb8e-3e64bba6a757@redhat.com/
-Link: https://lkml.kernel.org/r/20241011141214.87096-1-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Suggested-by: Waiman Long <llong@redhat.com>
-Acked-by: Waiman Long <longman@redhat.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Xavier <xavier_qy@163.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Do not add an extra space at the end of the line if module is not set,
+adding consistency in output formatting.
+
+Link: https://lkml.kernel.org/r/20241014100213.1873611-1-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Elliot Berman <quic_eberman@quicinc.com>
+Reviewed-by: Carlos Llamas <cmllamas@google.com>
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: Xiong Nandi <xndchn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- lib/Kconfig  |    3 +++
- lib/Makefile |    3 ++-
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ scripts/decode_stacktrace.sh |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/init/Kconfig~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
-+++ a/init/Kconfig
-@@ -1157,6 +1157,7 @@ config CGROUP_HUGETLB
- config CPUSETS
- 	bool "Cpuset controller"
- 	depends on SMP
-+	select UNION_FIND
- 	help
- 	  This option will let you create and manage CPUSETs which
- 	  allow dynamically partitioning a system into sets of CPUs and
---- a/lib/Kconfig~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
-+++ a/lib/Kconfig
-@@ -777,3 +777,6 @@ config POLYNOMIAL
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-remove-trailing-space
++++ a/scripts/decode_stacktrace.sh
+@@ -311,7 +311,12 @@ handle_line() {
+ 	parse_symbol # modifies $symbol
  
- config FIRMWARE_TABLE
- 	bool
-+
-+config UNION_FIND
-+	bool
---- a/lib/Makefile~lib-makefile-make-union-find-compilation-conditional-on-config_cpusets
-+++ a/lib/Makefile
-@@ -35,8 +35,9 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
- 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
- 	 nmi_backtrace.o win_minmax.o memcat_p.o \
--	 buildid.o objpool.o union_find.o
-+	 buildid.o objpool.o
+ 	# Add up the line number to the symbol
+-	echo "${words[@]}" "$symbol $module"
++	if [[ -z ${module} ]]
++	then
++		echo "${words[@]}" "$symbol"
++	else
++		echo "${words[@]}" "$symbol $module"
++	fi
+ }
  
-+lib-$(CONFIG_UNION_FIND) += union_find.o
- lib-$(CONFIG_PRINTK) += dump_stack.o
- lib-$(CONFIG_SMP) += cpumask.o
- 
+ while read line; do
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
