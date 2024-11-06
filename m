@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3584B824A3
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DFE817BB03
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855652; cv=none; b=FzJGj9FnXjfSK/RxLSM7qfj8sb7ojaf/LHt4UNkVA6bvG31yCcnPYNnaIYZzCQl2jdjtj0oY4YEb2TnC7gI8FDxNEH5Xt7Ct7NUvNl6E35eL59jrwQDClF+e4ep29waspyREJ0kKXU2Pasnf/T6cdvtD4SQbwfArhA8KU9Wiuak=
+	t=1730855653; cv=none; b=DjFVcxTU1vlTFZ39EY47615fcs9MooZOTw+dUTrSMm8U2apq3tr3Ih37Q2x4wH0csr577+xYm5PPr80FH9ExMURSdFWhQCJWlGQBql/2TfNR3N+SaJYLWcHWUpyxp5eJiA+/NHJinQNgZXf/GP6FBWdA59GfCefyYXCHMg0dw9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855652; c=relaxed/simple;
-	bh=+mALdJLnqtMiGZ5+WzNmoGUKLYa6oAieAMZUPv+p/2Q=;
-	h=Date:To:From:Subject:Message-Id; b=QadpPsQh7DQz1VqU1KBvEg9MTu9jCfDMMpyGSqZQvx27hzejg0o7W+pBam7shd7Gyj/FyNILtImKDCxe/JaTbcpf3U7eE67op9oDf2uyQFUsNnMv514QANmd/hbZcp/P46gfsAPstPJb+QgLNvXJRhpb5Y+BmBgkY7ALm9Ke1Ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SSLT60fz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855653; c=relaxed/simple;
+	bh=cjLJSPrS23RSx8e2tbibIIHnnoGVzIWYiSPmYWmd3W0=;
+	h=Date:To:From:Subject:Message-Id; b=Dq4kJqjzGE5nXKNlojJuL2+vVjYYswqeDr/bUcvPFQ8l/DnLLzz8b6GnZSO7NKKbJhS29BdquPQ9OaB41bh8LYwHNq1AdjTHgGqHQjzuSArUSmOJJdyiwmVeaHG6xl1dKiC8lRah6ksl7Zfl93rduC0rzt1mrDT+uEWSaH6ttiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gJVdYC8i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SSLT60fz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07F24C4CECF;
-	Wed,  6 Nov 2024 01:14:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gJVdYC8i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F844C4CECF;
+	Wed,  6 Nov 2024 01:14:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855652;
-	bh=+mALdJLnqtMiGZ5+WzNmoGUKLYa6oAieAMZUPv+p/2Q=;
+	s=korg; t=1730855653;
+	bh=cjLJSPrS23RSx8e2tbibIIHnnoGVzIWYiSPmYWmd3W0=;
 	h=Date:To:From:Subject:From;
-	b=SSLT60fzq06AxL9+Q8BxjhW/HWpicMS7ZQcM8ws+s0zJD4aSnL78jSeVh9woUpRFP
-	 wW4NsgJZ8N1uDB1+BSPmJhfLmzWDrzuYCEOprrPh7bD4VBym5J6QZHSykFwolmvN8S
-	 mxBV0ZE7fs8Uv+PNPOw0dw/eKtMslAcfzKt1N17Y=
-Date: Tue, 05 Nov 2024 17:14:11 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,peterz@infradead.org,namhyung@kernel.org,msakai@redhat.com,mingo@redhat.com,mark.rutland@arm.com,kent.overstreet@linux.dev,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,corbet@lwn.net,colyli@suse.de,bagasdotme@gmail.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=gJVdYC8ikMPDnBBVZzI8pq2JD4JABiobAwfrAckBIPrhPsTQVqDXyA9vmyde7nJH1
+	 cP1fkvFuIIu6qyMPcxo3Irdgb20KD2zLS2gzEx3yApvkXGgvay8suJnrtdJCS0eR1m
+	 FWbLaIqzChyCKSM7v0P8s5miw8UNY9tqS9Qpwf3Y=
+Date: Tue, 05 Nov 2024 17:14:12 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] documentation-core-api-add-min-heap-api-introduction.patch removed from -mm tree
-Message-Id: <20241106011412.07F24C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] maintainers-add-entry-for-min-heap-library-code.patch removed from -mm tree
+Message-Id: <20241106011413.1F844C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,363 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/core-api: add min heap API introduction
+     Subject: MAINTAINERS: add entry for min heap library code
 has been removed from the -mm tree.  Its filename was
-     documentation-core-api-add-min-heap-api-introduction.patch
+     maintainers-add-entry-for-min-heap-library-code.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: Documentation/core-api: add min heap API introduction
-Date: Sun, 20 Oct 2024 12:02:00 +0800
+Subject: MAINTAINERS: add entry for min heap library code
+Date: Sun, 27 Oct 2024 08:40:03 +0800
 
-Introduce an overview of the min heap API, detailing its usage and
-functionality.  The documentation aims to provide developers with a clear
-understanding of how to implement and utilize min heaps within the Linux
-kernel, enhancing the overall accessibility of this data structure.
+Add a new entry in the MAINTAINERS file for the min heap library code,
+with myself as the maintainer.  I am pleased to take on the responsibility
+of maintaining and reviewing patches for this library, as I am
+well-acquainted with its details through recent contributions.
 
-Link: https://lkml.kernel.org/r/20241020040200.939973-11-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20241027004003.987934-1-visitorckw@gmail.com
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Coly Li <colyli@suse.de>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: "Liang, Kan" <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Sakai <msakai@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/index.rst    |    1 
- Documentation/core-api/min_heap.rst |  300 ++++++++++++++++++++++++++
- 2 files changed, 301 insertions(+)
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/Documentation/core-api/index.rst~documentation-core-api-add-min-heap-api-introduction
-+++ a/Documentation/core-api/index.rst
-@@ -52,6 +52,7 @@ Library functionality that is used throu
-    wrappers/atomic_bitops
-    floating-point
-    union_find
-+   min_heap
+--- a/MAINTAINERS~maintainers-add-entry-for-min-heap-library-code
++++ a/MAINTAINERS
+@@ -15461,6 +15461,15 @@ F:	arch/arm/boot/dts/marvell/armada-xp-c
+ F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s-bit.dts
+ F:	arch/arm/boot/dts/marvell/armada-xp-crs328-4c-20s-4s.dts
  
- Low level entry and exit
- ========================
-diff --git a/Documentation/core-api/min_heap.rst a/Documentation/core-api/min_heap.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/core-api/min_heap.rst
-@@ -0,0 +1,300 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+============
-+Min Heap API
-+============
-+
-+Introduction
-+============
-+
-+The Min Heap API provides a set of functions and macros for managing min-heaps
-+in the Linux kernel. A min-heap is a binary tree structure where the value of
-+each node is less than or equal to the values of its children, ensuring that
-+the smallest element is always at the root.
-+
-+This document provides a guide to the Min Heap API, detailing how to define and
-+use min-heaps. Users should not directly call functions with **__min_heap_*()**
-+prefixes, but should instead use the provided macro wrappers.
-+
-+In addition to the standard version of the functions, the API also includes a
-+set of inline versions for performance-critical scenarios. These inline
-+functions have the same names as their non-inline counterparts but include an
-+**_inline** suffix. For example, **__min_heap_init_inline** and its
-+corresponding macro wrapper **min_heap_init_inline**. The inline versions allow
-+custom comparison and swap functions to be called directly, rather than through
-+indirect function calls. This can significantly reduce overhead, especially
-+when CONFIG_MITIGATION_RETPOLINE is enabled, as indirect function calls become
-+more expensive. As with the non-inline versions, it is important to use the
-+macro wrappers for inline functions instead of directly calling the functions
-+themselves.
-+
-+Data Structures
-+===============
-+
-+Min-Heap Definition
-+-------------------
-+
-+The core data structure for representing a min-heap is defined using the
-+**MIN_HEAP_PREALLOCATED** and **DEFINE_MIN_HEAP** macros. These macros allow
-+you to define a min-heap with a preallocated buffer or dynamically allocated
-+memory.
-+
-+Example:
-+
-+.. code-block:: c
-+
-+    #define MIN_HEAP_PREALLOCATED(_type, _name, _nr)
-+    struct _name {
-+        int nr;         /* Number of elements in the heap */
-+        int size;       /* Maximum number of elements that can be held */
-+        _type *data;    /* Pointer to the heap data */
-+        _type preallocated[_nr];  /* Static preallocated array */
-+    }
-+
-+    #define DEFINE_MIN_HEAP(_type, _name) MIN_HEAP_PREALLOCATED(_type, _name, 0)
-+
-+A typical heap structure will include a counter for the number of elements
-+(`nr`), the maximum capacity of the heap (`size`), and a pointer to an array of
-+elements (`data`). Optionally, you can specify a static array for preallocated
-+heap storage using **MIN_HEAP_PREALLOCATED**.
-+
-+Min Heap Callbacks
-+------------------
-+
-+The **struct min_heap_callbacks** provides customization options for ordering
-+elements in the heap and swapping them. It contains two function pointers:
-+
-+.. code-block:: c
-+
-+    struct min_heap_callbacks {
-+        bool (*less)(const void *lhs, const void *rhs, void *args);
-+        void (*swp)(void *lhs, void *rhs, void *args);
-+    };
-+
-+- **less** is the comparison function used to establish the order of elements.
-+- **swp** is a function for swapping elements in the heap. If swp is set to
-+  NULL, the default swap function will be used, which swaps the elements based on their size
-+
-+Macro Wrappers
-+==============
-+
-+The following macro wrappers are provided for interacting with the heap in a
-+user-friendly manner. Each macro corresponds to a function that operates on the
-+heap, and they abstract away direct calls to internal functions.
-+
-+Each macro accepts various parameters that are detailed below.
-+
-+Heap Initialization
-+--------------------
-+
-+.. code-block:: c
-+
-+    min_heap_init(heap, data, size);
-+
-+- **heap**: A pointer to the min-heap structure to be initialized.
-+- **data**: A pointer to the buffer where the heap elements will be stored. If
-+  `NULL`, the preallocated buffer within the heap structure will be used.
-+- **size**: The maximum number of elements the heap can hold.
-+
-+This macro initializes the heap, setting its initial state. If `data` is
-+`NULL`, the preallocated memory inside the heap structure will be used for
-+storage. Otherwise, the user-provided buffer is used. The operation is **O(1)**.
-+
-+**Inline Version:** min_heap_init_inline(heap, data, size)
-+
-+Accessing the Top Element
-+-------------------------
-+
-+.. code-block:: c
-+
-+    element = min_heap_peek(heap);
-+
-+- **heap**: A pointer to the min-heap from which to retrieve the smallest
-+  element.
-+
-+This macro returns a pointer to the smallest element (the root) of the heap, or
-+`NULL` if the heap is empty. The operation is **O(1)**.
-+
-+**Inline Version:** min_heap_peek_inline(heap)
-+
-+Heap Insertion
-+--------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_push(heap, element, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap into which the element should be inserted.
-+- **element**: A pointer to the element to be inserted into the heap.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro inserts an element into the heap. It returns `true` if the insertion
-+was successful and `false` if the heap is full. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_push_inline(heap, element, callbacks, args)
-+
-+Heap Removal
-+------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_pop(heap, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap from which to remove the smallest element.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro removes the smallest element (the root) from the heap. It returns
-+`true` if the element was successfully removed, or `false` if the heap is
-+empty. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_pop_inline(heap, callbacks, args)
-+
-+Heap Maintenance
-+----------------
-+
-+You can use the following macros to maintain the heap's structure:
-+
-+.. code-block:: c
-+
-+    min_heap_sift_down(heap, pos, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **pos**: The index from which to start sifting down.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro restores the heap property by moving the element at the specified
-+index (`pos`) down the heap until it is in the correct position. The operation
-+is **O(log n)**.
-+
-+**Inline Version:** min_heap_sift_down_inline(heap, pos, callbacks, args)
-+
-+.. code-block:: c
-+
-+    min_heap_sift_up(heap, idx, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **idx**: The index of the element to sift up.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro restores the heap property by moving the element at the specified
-+index (`idx`) up the heap. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_sift_up_inline(heap, idx, callbacks, args)
-+
-+.. code-block:: c
-+
-+    min_heapify_all(heap, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro ensures that the entire heap satisfies the heap property. It is
-+called when the heap is built from scratch or after many modifications. The
-+operation is **O(n)**.
-+
-+**Inline Version:** min_heapify_all_inline(heap, callbacks, args)
-+
-+Removing Specific Elements
-+--------------------------
-+
-+.. code-block:: c
-+
-+    success = min_heap_del(heap, idx, callbacks, args);
-+
-+- **heap**: A pointer to the min-heap.
-+- **idx**: The index of the element to delete.
-+- **callbacks**: A pointer to a `struct min_heap_callbacks` providing the
-+  `less` and `swp` functions.
-+- **args**: Optional arguments passed to the `less` and `swp` functions.
-+
-+This macro removes an element at the specified index (`idx`) from the heap and
-+restores the heap property. The operation is **O(log n)**.
-+
-+**Inline Version:** min_heap_del_inline(heap, idx, callbacks, args)
-+
-+Other Utilities
-+===============
-+
-+- **min_heap_full(heap)**: Checks whether the heap is full.
-+  Complexity: **O(1)**.
-+
-+.. code-block:: c
-+
-+    bool full = min_heap_full(heap);
-+
-+- `heap`: A pointer to the min-heap to check.
-+
-+This macro returns `true` if the heap is full, otherwise `false`.
-+
-+**Inline Version:** min_heap_full_inline(heap)
-+
-+- **min_heap_empty(heap)**: Checks whether the heap is empty.
-+  Complexity: **O(1)**.
-+
-+.. code-block:: c
-+
-+    bool empty = min_heap_empty(heap);
-+
-+- `heap`: A pointer to the min-heap to check.
-+
-+This macro returns `true` if the heap is empty, otherwise `false`.
-+
-+**Inline Version:** min_heap_empty_inline(heap)
-+
-+Example Usage
-+=============
-+
-+An example usage of the min-heap API would involve defining a heap structure,
-+initializing it, and inserting and removing elements as needed.
-+
-+.. code-block:: c
-+
-+    #include <linux/min_heap.h>
-+
-+    int my_less_function(const void *lhs, const void *rhs, void *args) {
-+        return (*(int *)lhs < *(int *)rhs);
-+    }
-+
-+    struct min_heap_callbacks heap_cb = {
-+        .less = my_less_function,    /* Comparison function for heap order */
-+        .swp  = NULL,                /* Use default swap function */
-+    };
-+
-+    void example_usage(void) {
-+        /* Pre-populate the buffer with elements */
-+        int buffer[5] = {5, 2, 8, 1, 3};
-+        /* Declare a min-heap */
-+        DEFINE_MIN_HEAP(int, my_heap);
-+
-+        /* Initialize the heap with preallocated buffer and size */
-+        min_heap_init(&my_heap, buffer, 5);
-+
-+        /* Build the heap using min_heapify_all */
-+        my_heap.nr = 5;  /* Set the number of elements in the heap */
-+        min_heapify_all(&my_heap, &heap_cb, NULL);
-+
-+        /* Peek at the top element (should be 1 in this case) */
-+        int *top = min_heap_peek(&my_heap);
-+        pr_info("Top element: %d\n", *top);
-+
-+        /* Pop the top element (1) and get the new top (2) */
-+        min_heap_pop(&my_heap, &heap_cb, NULL);
-+        top = min_heap_peek(&my_heap);
-+        pr_info("New top element: %d\n", *top);
-+
-+        /* Insert a new element (0) and recheck the top */
-+        int new_element = 0;
-+        min_heap_push(&my_heap, &new_element, &heap_cb, NULL);
-+        top = min_heap_peek(&my_heap);
-+        pr_info("Top element after insertion: %d\n", *top);
-+    }
++MIN HEAP
++M:	Kuan-Wei Chiu <visitorckw@gmail.com>
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++F:	Documentation/core-api/min_heap.rst
++F:	include/linux/min_heap.h
++F:	lib/min_heap.c
++F:	lib/test_min_heap.c
++
+ MIPI CCS, SMIA AND SMIA++ IMAGE SENSOR DRIVER
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ L:	linux-media@vger.kernel.org
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
