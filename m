@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CCA420CCC4
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 21:35:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3452C204958
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 21:38:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730928913; cv=none; b=FrSVFDdGGyEx1UxO3WUgMKBElOOlqJo5PP6DQeoe8bDO10yn6mllj9jr871b9VAv7r9sOKnt0AlB9AwbBWuYocv083cicfQLIDDFM/O45p8b496G6zC9P64wxrwnYcvf++jwx+6pDPWyxGnhLElcxYGM7jzI7F68sTEQUN7g/bY=
+	t=1730929124; cv=none; b=qeh6vZ7JuMEiQfEQOnjKWtzC9mo43NiNoNO8RIcJtVBaIQHisGQW1OODbeh9FY/CQF+GNkxA+sIeyyrXqP5FaYXnfR7OF0exF9TOF18v7Ie/kHirEWRpHI/Mf9pD8dRfGFyuHH9q9pnyRfjpoTpF5+5R18SNYYwi9ES2eibbVSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730928913; c=relaxed/simple;
-	bh=qduNWPwh3C9zPbc6UQispJWMkYOdh9dNJRJUh9ZRpxI=;
-	h=Date:To:From:Subject:Message-Id; b=nIJJOV3AdtDPReMAapAb5bE5zcO1AIFbXLt7WAFL6hgMeKR2P64zNj2Siri7rOpEhLkbLEuxXs5/txWn5xMS2mCYAeLHT75biSYlRKx2459pQaQEZVqoWhviDAzw+F9JzQHPmN5z/L5qPpfmQB02Cq8bbU3OgPkfHaNMomZ+/3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aPrlEial; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730929124; c=relaxed/simple;
+	bh=Sesoa5iPSZfEUXnkyjcF0CsYE3t7naqs3ZNjmZK9wlE=;
+	h=Date:To:From:Subject:Message-Id; b=NmtZWEL2x233coE7mNZEYYY5qC4Tp40ywOroKt8zRm6afe5gihlWExiLzoCuC9mGgEpkc4/ZhZXM/+ynlzUGHiOutkkZinfTXcfBEEogpmeH0w1wXqdbng9Vj/Pb7XPTSfcdX3xmpvlUzeOsCYGI6qu2Z8+Eev+4owxfUS0ORO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDsoL+DC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aPrlEial"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E92E7C4CEC6;
-	Wed,  6 Nov 2024 21:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDsoL+DC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE31C4CEC6;
+	Wed,  6 Nov 2024 21:38:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730928913;
-	bh=qduNWPwh3C9zPbc6UQispJWMkYOdh9dNJRJUh9ZRpxI=;
+	s=korg; t=1730929123;
+	bh=Sesoa5iPSZfEUXnkyjcF0CsYE3t7naqs3ZNjmZK9wlE=;
 	h=Date:To:From:Subject:From;
-	b=aPrlEialeBh8RD+Wmp+XTagdIS12O8m6HrZdggjhA2AZgnC/ooGl3CPn4uBtMqPNV
-	 G5PDsQsiNrYrRknZBJudlVr8nIn2D+FqQZyfmKz9RvH9DeREj1xv2Jk0DNuc1ta4Ht
-	 KfE+yILvCrZ/GoyXb9Si5ZrGGV93BIYFHtKmYtr4=
-Date: Wed, 06 Nov 2024 13:35:12 -0800
+	b=RDsoL+DCtZumu+eFTG2NqaMJw4hsac2VgAyPB0UQEVA+Zv/4gjrWKUjfdnKztGk4s
+	 0Y6SSrqO3n0eZ83lo6cKYgYHYWJLG84lOWV6HXxO8xHqQufit8gHHtQFijDRkMo5eC
+	 NbmQLI8bx/W4UdSC31a+83pEMmefCKL876gkrP3Y=
+Date: Wed, 06 Nov 2024 13:38:43 -0800
 To: mm-commits@vger.kernel.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-add-detect-count-for-hung-tasks-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20241106213512.E92E7C4CEC6@smtp.kernel.org>
+Subject: [folded-merged] hung_task-add-detect-count-for-hung-tasks-fix.patch removed from -mm tree
+Message-Id: <20241106213843.ABE31C4CEC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: hung_task-add-detect-count-for-hung-tasks-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      hung_task-add-detect-count-for-hung-tasks-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-detect-count-for-hung-tasks-fix.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into hung_task-add-detect-count-for-hung-tasks.patch
 
 ------------------------------------------------------
 From: Lance Yang <ioworker0@gmail.com>
@@ -89,5 +73,6 @@ _
 
 Patches currently in -mm which might be from ioworker0@gmail.com are
 
-hung_task-add-detect-count-for-hung-tasks-fix.patch
+hung_task-add-detect-count-for-hung-tasks.patch
+hung_task-add-docs-for-hung_task_detect_count.patch
 
