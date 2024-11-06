@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2472629D
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B3113D52B
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854820; cv=none; b=fj+/zVDRWrXwbrm6T13lRjbkcJ9sOXeG9BLLquO/3CqOJQsfI5jM+QmTQxBIvvhDuS65WdImAgne1Yfb0q3/RXmytiQbM7/TGdQqBfHotIdiqo6AmZdQJQSGxfLaSUm6bvLrLq/XMpewpFrNSGCCyg9eKX88mT38hHomIFqb9ys=
+	t=1730854821; cv=none; b=qYby6zMurSnmKLG9vR8bUp8Kz+nlAizv3KFNxoFVt3/7Mr0O8K84wMtkBo6MvavpzaDHijFB2tQBo8H+w11l4BdVimYhBtOWyshofUT1gAEVcMipH6o/Z1uz+eaOHG33S1SgD0+lbOMNudOjms9FRh9zL1CZFXRlt/lWg3uVvF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854820; c=relaxed/simple;
-	bh=Q9NNefw9IwJdp0YPJZCbJso5ViZ14xW5MbtwukpCkbA=;
-	h=Date:To:From:Subject:Message-Id; b=F9tJwWsaqkbIGO5iJGyl872BWkqlgHprmJLYA23aH+tQ5B3G5cgPlvXb6rAvRaRuX46cCuymQ0SrJNcNt3JtPO3D6e0nzAoVjnNie9w8Fis0lmbduGHCVyGC4DPUIaNTCL9or3HGvstgki022xL43EQVDGjIhgu7w0MrJp1rjlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fe5IrzQZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854821; c=relaxed/simple;
+	bh=QbX+vu818RsewWaZmp7wCMhdoXkkn+T96p/WzV2/EhY=;
+	h=Date:To:From:Subject:Message-Id; b=cw6nPpFrknT4RD171suYfgIhEl1MHpUKqpILRztWyi4ehMqwEwzqXUv+NAnvy4tOf/M1TXxMVIRcVsnSlO+DxOuf78hCIaDmF1b5jb0861ZoL9d+S0NlX+3cv1985+WXV3jZxEQtlq14PIWcuyDPNAECStdZaTHBLy0z6O74YH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eW4CL5KV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fe5IrzQZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB2CC4CECF;
-	Wed,  6 Nov 2024 01:00:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eW4CL5KV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ACF3C4CECF;
+	Wed,  6 Nov 2024 01:00:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854820;
-	bh=Q9NNefw9IwJdp0YPJZCbJso5ViZ14xW5MbtwukpCkbA=;
+	s=korg; t=1730854821;
+	bh=QbX+vu818RsewWaZmp7wCMhdoXkkn+T96p/WzV2/EhY=;
 	h=Date:To:From:Subject:From;
-	b=fe5IrzQZN/0CFwjCVe+mSj8yE3IJVV3Wt8U0PMBuDjOpdCPqD0aSZbKX9G45kZGz0
-	 vpgOeVTYy+Hyr5pnnA+gxssh2UPp3HjBj5His7ED04IQtXhs0ACbM/ZNjhVrWGEWh3
-	 3bIldSlVzUvtFjV4B4+aTg9sX0gHJnp48Pj/2Ca0=
-Date: Tue, 05 Nov 2024 17:00:19 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,jack@suse.cz,hughd@google.com,david@redhat.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=eW4CL5KVVvcqoQ20oJiDsdqYo4fg7TTbG4wVkdBiJNMgl+AppsriWeFtupQS24Pch
+	 yFmSMP22U/NpW+8cNV4LXF5cxrSMwUBjCxv6aAXOi5nt7QHmE+NxLQ7kmEwf2mZFAg
+	 44G0VVcI4Tmmjvl4YKGnmT+VDiGTVlXtyyhg+hbw=
+Date: Tue, 05 Nov 2024 17:00:20 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tmpfs-dont-enable-large-folios-if-not-supported.patch removed from -mm tree
-Message-Id: <20241106010020.4FB2CC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-move-file_thp_enabled-into-huge_memoryc.patch removed from -mm tree
+Message-Id: <20241106010021.6ACF3C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tmpfs: don't enable large folios if not supported
+     Subject: mm: huge_memory: move file_thp_enabled() into huge_memory.c
 has been removed from the -mm tree.  Its filename was
-     tmpfs-dont-enable-large-folios-if-not-supported.patch
+     mm-huge_memory-move-file_thp_enabled-into-huge_memoryc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: tmpfs: don't enable large folios if not supported
-Date: Thu, 17 Oct 2024 22:17:42 +0800
+Subject: mm: huge_memory: move file_thp_enabled() into huge_memory.c
+Date: Thu, 17 Oct 2024 22:14:56 +0800
 
-tmpfs can support large folios, but there are some configurable options
-(mount options and runtime deny/force) to enable/disable large folio
-allocation, so there is a performance issue when performing writes without
-large folios.  The issue is similar to commit 4e527d5841e2 ("iomap: fault
-in smaller chunks for non-large folio mappings").
+file_thp_enabled() is only used in __thp_vma_allowable_orders(), so move
+it into huge_memory.c, also check READ_ONLY_THP_FOR_FS ahead to avoid
+unnecessary code if config disabled.
 
-Since 'deny' is for emergencies and 'force' is for testing, performance
-issues should not be a problem in real production environments, so don't
-call mapping_set_large_folios() in __shmem_get_inode() when large folio is
-disabled with mount huge=never option (default policy).
-
-Link: https://lkml.kernel.org/r/20241017141742.1169404-1-wangkefeng.wang@huawei.com
-Fixes: 9aac777aaf94 ("filemap: Convert generic_perform_write() to support large folios")
+Link: https://lkml.kernel.org/r/20241017141457.1169092-1-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/huge_mm.h |   13 -------------
+ mm/huge_memory.c        |   15 +++++++++++++++
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/mm/shmem.c~tmpfs-dont-enable-large-folios-if-not-supported
-+++ a/mm/shmem.c
-@@ -2842,7 +2842,10 @@ static struct inode *__shmem_get_inode(s
- 	cache_no_acl(inode);
- 	if (sbinfo->noswap)
- 		mapping_set_unevictable(inode->i_mapping);
--	mapping_set_large_folios(inode->i_mapping);
-+
-+	/* Don't consider 'deny' for emergencies and 'force' for testing */
-+	if (sbinfo->huge)
-+		mapping_set_large_folios(inode->i_mapping);
+--- a/include/linux/huge_mm.h~mm-huge_memory-move-file_thp_enabled-into-huge_memoryc
++++ a/include/linux/huge_mm.h
+@@ -253,19 +253,6 @@ static inline unsigned long thp_vma_suit
+ 	return orders;
+ }
  
- 	switch (mode & S_IFMT) {
- 	default:
+-static inline bool file_thp_enabled(struct vm_area_struct *vma)
+-{
+-	struct inode *inode;
+-
+-	if (!vma->vm_file)
+-		return false;
+-
+-	inode = vma->vm_file->f_inode;
+-
+-	return (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS)) &&
+-	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
+-}
+-
+ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
+ 					 unsigned long vm_flags,
+ 					 unsigned long tva_flags,
+--- a/mm/huge_memory.c~mm-huge_memory-move-file_thp_enabled-into-huge_memoryc
++++ a/mm/huge_memory.c
+@@ -83,6 +83,21 @@ unsigned long huge_anon_orders_madvise _
+ unsigned long huge_anon_orders_inherit __read_mostly;
+ static bool anon_orders_configured __initdata;
+ 
++static inline bool file_thp_enabled(struct vm_area_struct *vma)
++{
++	struct inode *inode;
++
++	if (!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS))
++		return false;
++
++	if (!vma->vm_file)
++		return false;
++
++	inode = file_inode(vma->vm_file);
++
++	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
++}
++
+ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
+ 					 unsigned long vm_flags,
+ 					 unsigned long tva_flags,
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
