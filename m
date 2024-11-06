@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5AD1B815
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:09:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A037D7DA6A
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855369; cv=none; b=ZJ4DXYGxW1hSlX2wSp8hA4YmJ0yfcX1FpheH8Ktwy8R9pmRJx3mJr4bYrsoBHqqzC6fUH4O3oHpYLKDCMHbqL+Rg+430mAL8U3hxswePKjAOZPfa3u86a1DkBX0ef9ulgufMfV7B3jL9QXrw9fDYn4N8fOeLuJZrUWGNORwKi3M=
+	t=1730855599; cv=none; b=cd3QJk+efYnAugLyGf2MlVCIGCSBAasPdEeq6+KDR9BkCuG+Flzbh+3WbP8DRMYYOVsnG7SeOoc8CxXo5f1wIwAZN9v6K/wAxfug3RWlVmT7jwEndRrNEArHdfzoe55SaJ0SGdP7ij6wYApnYPKGsXkbIOpC2JzMDe/Jtxm+Rj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855369; c=relaxed/simple;
-	bh=T2y/nVmMqbXqtiX44+7gCn/ch5pQqEQuy/I6FbRxkZk=;
-	h=Date:To:From:Subject:Message-Id; b=jaQTq9pbZq1yHXnhfLSgsrnzHxLF0mOumG22ymKkEnxiQgi7H9ome3KMDnWtjurlxU+12TNs05itmSe4eg93IsS1O3VWKmLxJy2QlWIt68Ea26wg8ArhGPjS22ig0ICuEOA1+gfispwuPq6CpyYBrWqBZLuQ7WTnwjzBwI0Czl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=efCMTjhM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855599; c=relaxed/simple;
+	bh=01evcIe8z5Knm69s+wPm7pJm4PhgmiKUyqyQfQpAseE=;
+	h=Date:To:From:Subject:Message-Id; b=KFUCP5Zy4/TkNumxLkRIDIABoXD8ASUrT1H7Z4bUPn5ajOd6FXAM4rnmWs6gRoa0Vc9AKp6kla6m3YtQ/G2A8AKXgGxcoVME4kg6KJZ99yJY10pOG/ZNcISuUfPMrkKwMGkZj8aAaPCXWm3/HvJ7QUMvRFrkP/an/b660CvrcM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lfNSA0Xs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="efCMTjhM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CA9DC4CECF;
-	Wed,  6 Nov 2024 01:09:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lfNSA0Xs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1156DC4CECF;
+	Wed,  6 Nov 2024 01:13:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855368;
-	bh=T2y/nVmMqbXqtiX44+7gCn/ch5pQqEQuy/I6FbRxkZk=;
+	s=korg; t=1730855599;
+	bh=01evcIe8z5Knm69s+wPm7pJm4PhgmiKUyqyQfQpAseE=;
 	h=Date:To:From:Subject:From;
-	b=efCMTjhM3e+jK3qbVHMLrw0D5RTVyG/bvpmHrtHT8Z67M/sa914BrSLfl98TgKwsT
-	 nl0jmTU7QI500XfHReYcZlsF1WF7PXPtHDuDRH29UAgpKvPiFg4feHRcsuYusW1Wel
-	 B9AKy5D2RU+JYNjzCNthWnVbDmRnJcwhOElFOalU=
-Date: Tue, 05 Nov 2024 17:09:28 -0800
-To: mm-commits@vger.kernel.org,yanzhen@vivo.com,yang.lee@linux.alibaba.com,rppt@kernel.org,osalvador@suse.de,mtodorovac69@gmail.com,jakobkoschel@gmail.com,h.j.bos@vu.nl,hbathini@linux.ibm.com,david@redhat.com,c.giuffrida@vu.nl,bjohannesmeyer@gmail.com,bhe@redhat.com,agordeev@linux.ibm.com,adobriyan@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=lfNSA0XsfiyZXJZHkGS3K3JrZxi6GpxGrax22g/RnSdATwZnua/6GbDHnOz3LMNRl
+	 UN+TFEb5Asvw0/7ZMRHVbhb16Jsmswr+1uWQqehob1zIJnLgGwxJsSfoKpm97VU0zu
+	 NyXiVS0RGf5ns74nrBkuGCdHfGVcuWfbN08y5jos=
+Date: Tue, 05 Nov 2024 17:13:18 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,zhangzekun11@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch removed from -mm tree
-Message-Id: <20241106010928.8CA9DC4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-remove-unused-declartion-in-header-file.patch removed from -mm tree
+Message-Id: <20241106011319.1156DC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
+     Subject: ocfs2: remove unused declaration in header file
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix.patch
+     ocfs2-remove-unused-declartion-in-header-file.patch
 
-This patch was dropped because it was folded into fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
-Date: Tue Oct 29 06:25:57 PM PDT 2024
+From: Zhang Zekun <zhangzekun11@huawei.com>
+Subject: ocfs2: remove unused declaration in header file
+Date: Fri, 6 Sep 2024 13:57:42 +0800
 
-s/tmp/pos/
+The definition of ocfs2_global_read_dquot() has been removed since commit
+fb8dd8d78014 ("ocfs2: Fix quota locking").  Let's remove the empty
+declartion
 
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Bos, H.J." <h.j.bos@vu.nl>
-Cc: "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>
-Cc: Cristiano Giuffrida <c.giuffrida@vu.nl>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jakob Koschel <jakobkoschel@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mirsad Todorovac <mtodorovac69@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
-Cc: Yan Zhen <yanzhen@vivo.com>
+Link: https://lkml.kernel.org/r/20240906055742.105024-1-zhangzekun11@huawei.com
+Signed-off-by: Zhang Zekun <zhangzekun11@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ocfs2/quota.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcorec-fix-coccinelle-reported-error-instances-fix
-+++ a/fs/proc/kcore.c
-@@ -493,13 +493,13 @@ static ssize_t read_kcore_iter(struct ki
- 		 * the previous entry, search for a matching entry.
- 		 */
- 		if (!m || start < m->addr || start >= m->addr + m->size) {
--			struct kcore_list *tmp;
-+			struct kcore_list *pos;
- 
- 			m = NULL;
--			list_for_each_entry(tmp, &kclist_head, list) {
--				if (start >= tmp->addr &&
--				    start < tmp->addr + tmp->size) {
--					m = tmp;
-+			list_for_each_entry(pos, &kclist_head, list) {
-+				if (start >= pos->addr &&
-+				    start < pos->addr + pos->size) {
-+					m = pos;
- 					break;
- 				}
- 			}
+--- a/fs/ocfs2/quota.h~ocfs2-remove-unused-declartion-in-header-file
++++ a/fs/ocfs2/quota.h
+@@ -97,7 +97,6 @@ ssize_t ocfs2_quota_write(struct super_b
+ 			  const char *data, size_t len, loff_t off);
+ int ocfs2_global_read_info(struct super_block *sb, int type);
+ int ocfs2_global_write_info(struct super_block *sb, int type);
+-int ocfs2_global_read_dquot(struct dquot *dquot);
+ int __ocfs2_sync_dquot(struct dquot *dquot, int freeing);
+ static inline int ocfs2_sync_dquot(struct dquot *dquot)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangzekun11@huawei.com are
 
-mm-page_alloc-keep-track-of-free-highatomic-fix.patch
-mm-fix-__wp_page_copy_user-fallback-path-for-remote-mm-fix.patch
-bootmem-stop-using-page-index-fix.patch
-vma-detect-infinite-loop-in-vma-tree-fix.patch
-maple_tree-add-a-test-checking-storing-null-fix.patch
-fs-proc-kcorec-fix-coccinelle-reported-error-instances.patch
 
