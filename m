@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 450113A1DB
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73CB4153BD9
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:00:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854811; cv=none; b=QTJfqqcXmLpLoz+Yg4DJCAoi2Fri0aT3oWfMWLviUj3+t79aHuX6IhfJ0cqusiiqYbIUwwV/SKBu5TA5OwkCnQKKUUm/aWL0O6DeSgeAMnDQ9ZjFUt6OIJ58Lz0DIY6Lbk2BoDmF29Zi1tJE6SZH5XzqOCNooi/FIE8MKIIpEjk=
+	t=1730854812; cv=none; b=rTkWBJ7shA04P8fF4+YUQFTI81DbbueLiZPIEK4MXrOpqs0tQxsmqs1Lb+jjmWt2pCLXDXdpa3qF3OkaXVqeUVqHCKmda0qO9AxvmQRve2iviiazbcEzertj5vgL8/I+cwjTBqMlsLnQwZ+Y6awPHWpFkdW+dvf4siH0Zzlplq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854811; c=relaxed/simple;
-	bh=iNYUmU/quJFcZjSEBZDdm07W6KFE9KvreQfdnldfut4=;
-	h=Date:To:From:Subject:Message-Id; b=s4TKMYMsIueJA7p3tkw0s9vpq9n0STdk9kKrVytVXpT5b1eiMVsMUagk/vTm0dJAi83Dsg72UotxiAYRHAiFaqP3H4xBbe4rOHtLUNPHB8dkagX/Uij3Z3luxUk1k7yxOM/bFYb8zeVi8FHip9+uoRFPqMnzj1jfJjQTFIqLuZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x55mVhCV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854812; c=relaxed/simple;
+	bh=1cimKHE48nYPCKRQ0aofknyXO7dAoRbTf6Nk0R4bkNI=;
+	h=Date:To:From:Subject:Message-Id; b=HxYbuOLkPDQnfqVrQrMquhDDzph6It4WdD6IBFxZJ/tMNTw3XwMTqttXbkStCz0T8y7u4NMzQtLZm/q4O5mcNzfoM8LiE3Knk741AVVgQYPTBTNoe32pCACmniEGnDHbhsrFqN9OHXntZ6lpLWdNpxEulj0l4lE5uijZJLqV9xc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PGdtk62k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x55mVhCV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8020C4CECF;
-	Wed,  6 Nov 2024 01:00:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PGdtk62k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03E4C4CECF;
+	Wed,  6 Nov 2024 01:00:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854810;
-	bh=iNYUmU/quJFcZjSEBZDdm07W6KFE9KvreQfdnldfut4=;
+	s=korg; t=1730854812;
+	bh=1cimKHE48nYPCKRQ0aofknyXO7dAoRbTf6Nk0R4bkNI=;
 	h=Date:To:From:Subject:From;
-	b=x55mVhCVpU/jrgYZM0Gv2dHoN3tRlLOQSXjWssfM4PUCpUKPWmy9BY3nUoBJfmMvx
-	 43gtGOeaWpboSyqnfaLjTEtLghD+sfAavCrcUdz1JQ16wOe1uwtYQRzEOxe4ZDsoYL
-	 3W4Dau/Bl9b0LUMqNYiElrUWSv46kKO55rDVcRO0=
-Date: Tue, 05 Nov 2024 17:00:10 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=PGdtk62ksXSDUPcWtab2BZ4LaBA3h5ZhGI9NzU+ubHFeRWwAv6/JE+zL747mEQrL0
+	 E3+7JPDRRVMGwfFsPbuompBp3olV9iMP6PxEd0kxJ0usVhCiB91FA229wBUCBmuDez
+	 q2c/+hMVrIyssKRCr4t+BZiBKSBWDq9S9BsoIjCc=
+Date: Tue, 05 Nov 2024 17:00:11 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-simplify-mas_push_node.patch removed from -mm tree
-Message-Id: <20241106010010.C8020C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kasan-kmsan-copy_from-to_kernel_nofault.patch removed from -mm tree
+Message-Id: <20241106010011.F03E4C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,179 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: simplify mas_push_node()
+     Subject: mm, kasan, kmsan: instrument copy_from/to_kernel_nofault
 has been removed from the -mm tree.  Its filename was
-     maple_tree-simplify-mas_push_node.patch
+     mm-kasan-kmsan-copy_from-to_kernel_nofault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: simplify mas_push_node()
-Date: Tue, 15 Oct 2024 12:07:46 +0000
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: mm, kasan, kmsan: instrument copy_from/to_kernel_nofault
+Date: Fri, 11 Oct 2024 08:53:10 +0500
 
-When count is not 0, we know head is valid.  So we can put the assignment
-in if (count) instead of checking the head pointer again.
+Instrument copy_from_kernel_nofault() with KMSAN for uninitialized kernel
+memory check and copy_to_kernel_nofault() with KASAN, KCSAN to detect the
+memory corruption.
 
-Also count represents current total, we can assign the new total by
-increasing the count by one.
+syzbot reported that bpf_probe_read_kernel() kernel helper triggered KASAN
+report via kasan_check_range() which is not the expected behaviour as
+copy_from_kernel_nofault() is meant to be a non-faulting helper.
 
-Link: https://lkml.kernel.org/r/20241015120746.15850-4-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Solution is, suggested by Marco Elver, to replace KASAN, KCSAN check in
+copy_from_kernel_nofault() with KMSAN detection of copying uninitilaized
+kernel memory.  In copy_to_kernel_nofault() we can retain
+instrument_write() explicitly for the memory corruption instrumentation.
+
+copy_to_kernel_nofault() is tested on x86_64 and arm64 with
+CONFIG_KASAN_SW_TAGS.  On arm64 with CONFIG_KASAN_HW_TAGS, kunit test
+currently fails.  Need more clarification on it.
+
+[akpm@linux-foundation.org: fix comment layout, per checkpatch
+Link: https://lore.kernel.org/linux-mm/CANpmjNMAVFzqnCZhEity9cjiqQ9CVN1X7qeeeAp_6yKjwKo8iw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241011035310.2982017-1-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reported-by: syzbot+61123a5daeb9f7454599@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=61123a5daeb9f7454599
+Reported-by: Andrey Konovalov <andreyknvl@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=210505
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>	[KASAN]
+Tested-by: Andrey Konovalov <andreyknvl@gmail.com>	[KASAN]
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/kasan/kasan_test_c.c |   36 ++++++++++++++++++++++++++++++++++++
+ mm/kmsan/kmsan_test.c   |   17 +++++++++++++++++
+ mm/maccess.c            |   10 ++++++++--
+ 3 files changed, 61 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-simplify-mas_push_node
-+++ a/lib/maple_tree.c
-@@ -1207,19 +1207,17 @@ static inline void mas_push_node(struct
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/kasan/kasan_test_c.c
+@@ -1928,6 +1928,41 @@ static void rust_uaf(struct kunit *test)
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_test_rust_uaf());
+ }
  
- 	reuse->request_count = 0;
- 	reuse->node_count = 0;
--	if (count && (head->node_count < MAPLE_ALLOC_SLOTS)) {
--		head->slot[head->node_count++] = reuse;
--		head->total++;
--		goto done;
--	}
--
--	reuse->total = 1;
--	if ((head) && !((unsigned long)head & 0x1)) {
-+	if (count) {
-+		if (head->node_count < MAPLE_ALLOC_SLOTS) {
-+			head->slot[head->node_count++] = reuse;
-+			head->total++;
-+			goto done;
-+		}
- 		reuse->slot[0] = head;
- 		reuse->node_count = 1;
--		reuse->total += head->total;
- 	}
++static void copy_to_kernel_nofault_oob(struct kunit *test)
++{
++	char *ptr;
++	char buf[128];
++	size_t size = sizeof(buf);
++
++	/*
++	 * This test currently fails with the HW_TAGS mode. The reason is
++	 * unknown and needs to be investigated.
++	 */
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_HW_TAGS);
++
++	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++	OPTIMIZER_HIDE_VAR(ptr);
++
++	/*
++	 * We test copy_to_kernel_nofault() to detect corrupted memory that is
++	 * being written into the kernel. In contrast,
++	 * copy_from_kernel_nofault() is primarily used in kernel helper
++	 * functions where the source address might be random or uninitialized.
++	 * Applying KASAN instrumentation to copy_from_kernel_nofault() could
++	 * lead to false positives.  By focusing KASAN checks only on
++	 * copy_to_kernel_nofault(), we ensure that only valid memory is
++	 * written to the kernel, minimizing the risk of kernel corruption
++	 * while avoiding false positives in the reverse case.
++	 */
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(&buf[0], ptr, size));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		copy_to_kernel_nofault(ptr, &buf[0], size));
++
++	kfree(ptr);
++}
++
+ static struct kunit_case kasan_kunit_test_cases[] = {
+ 	KUNIT_CASE(kmalloc_oob_right),
+ 	KUNIT_CASE(kmalloc_oob_left),
+@@ -2000,6 +2035,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(match_all_not_assigned),
+ 	KUNIT_CASE(match_all_ptr_tag),
+ 	KUNIT_CASE(match_all_mem_tag),
++	KUNIT_CASE(copy_to_kernel_nofault_oob),
+ 	KUNIT_CASE(rust_uaf),
+ 	{}
+ };
+--- a/mm/kmsan/kmsan_test.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/kmsan/kmsan_test.c
+@@ -640,6 +640,22 @@ static void test_unpoison_memory(struct
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
-+	reuse->total = count + 1;
- 	mas->alloc = reuse;
- done:
- 	if (requested > 1)
++static void test_copy_from_kernel_nofault(struct kunit *test)
++{
++	long ret;
++	char buf[4], src[4];
++	size_t size = sizeof(buf);
++
++	EXPECTATION_UNINIT_VALUE_FN(expect, "copy_from_kernel_nofault");
++	kunit_info(
++		test,
++		"testing copy_from_kernel_nofault with uninitialized memory\n");
++
++	ret = copy_from_kernel_nofault((char *)&buf[0], (char *)&src[0], size);
++	USE(ret);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ static struct kunit_case kmsan_test_cases[] = {
+ 	KUNIT_CASE(test_uninit_kmalloc),
+ 	KUNIT_CASE(test_init_kmalloc),
+@@ -664,6 +680,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_long_origin_chain),
+ 	KUNIT_CASE(test_stackdepot_roundtrip),
+ 	KUNIT_CASE(test_unpoison_memory),
++	KUNIT_CASE(test_copy_from_kernel_nofault),
+ 	{},
+ };
+ 
+--- a/mm/maccess.c~mm-kasan-kmsan-copy_from-to_kernel_nofault
++++ a/mm/maccess.c
+@@ -13,9 +13,14 @@ bool __weak copy_from_kernel_nofault_all
+ 	return true;
+ }
+ 
++/*
++ * The below only uses kmsan_check_memory() to ensure uninitialized kernel
++ * memory isn't leaked.
++ */
+ #define copy_from_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__get_kernel_nofault(dst, src, type, err_label);		\
++		__get_kernel_nofault(dst, src, type, err_label);	\
++		kmsan_check_memory(src, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
+@@ -49,7 +54,8 @@ EXPORT_SYMBOL_GPL(copy_from_kernel_nofau
+ 
+ #define copy_to_kernel_nofault_loop(dst, src, len, type, err_label)	\
+ 	while (len >= sizeof(type)) {					\
+-		__put_kernel_nofault(dst, src, type, err_label);		\
++		__put_kernel_nofault(dst, src, type, err_label);	\
++		instrument_write(dst, sizeof(type));			\
+ 		dst += sizeof(type);					\
+ 		src += sizeof(type);					\
+ 		len -= sizeof(type);					\
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
-mm-mlock-set-the-correct-prev-on-failure.patch
-maple_tree-print-empty-for-an-empty-tree-on-mt_dump.patch
-maple_tree-the-return-value-of-mas_root_expand-is-not-used.patch
-maple_tree-not-necessary-to-check-index-last-again.patch
-maple_tree-refine-mas_store_root-on-storing-null.patch
-maple_tree-add-a-test-checking-storing-null.patch
+kasan-move-checks-to-do_strncpy_from_user.patch
+kasan-migrate-copy_user_test-to-kunit.patch
+kasan-delete-config_kasan_module_test.patch
+kasan-delete-config_kasan_module_test-fix.patch
+kasan-use-export_symbol_if_kunit-to-export-symbols.patch
+kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
 
