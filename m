@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AA677DA6A;
-	Wed,  6 Nov 2024 00:50:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C745C824A3;
+	Wed,  6 Nov 2024 00:50:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854221; cv=none; b=Lse6sHZuPQlp4aS6FKXhWavy1rrktvPJbfXc+UIUWryGcbCgSqXavotY2mk6jdjii7Jx7gQAdnf9lY/ddQHoWVwxAnjwB5QnMZ23IodBcwZX7Vhy+YHngcS/tYFYx353BVZ92hIKt70/LBF5vx+uwdB7jOKT0pszF8E1mNVjuwM=
+	t=1730854221; cv=none; b=C4Ks8D7uIIS2z8FPzSGWKj2pyL3b1/FDVxj0B9nCCkTe1jweupYSfdUaZ6aVgVUjfcKHea0hkIGb4BZKQ3v2LvwOamVgHddfGWfJhVza6TX8anTQsjyJY7mWkigW0axGHjLdoJjOT3NuVEBER3GzMyf6F9qquJraxsVNDypoNxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730854221; c=relaxed/simple;
-	bh=R9uQolieWO2THZ6a7RmGQMkPXG/beGMsxnIyqKZsvWA=;
-	h=Date:To:From:Subject:Message-Id; b=ZVX4AqsBrxNHpXLAjx+asn0ZtWFfKKub3bEA3NIIOlwp7mVA3ksbaXkYNZ15XPyQFN91nTQYMcIApoUeyCmUcg1UeXm2PWMec7niL3BgsGmYoCiJn12PpzZW1jzACwE/dPs1NTCVn/73srVtPm4IiKH9bSD1ZRLh37ZvguuVJHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cskejjDu; arc=none smtp.client-ip=10.30.226.201
+	bh=C41+P23/aMXjhpj3RJKjKHag8lBOiT89Ns4k6tSbw5E=;
+	h=Date:To:From:Subject:Message-Id; b=tDoJ+WHqGvgxJdu5CHLTpMmtu/9Vui0C7YMKR6e5lH+JzCdMw4qD4Os567YHw4Zdl1+OXpOQK+M/wz5t1LqdVWRRGCwdyfNHw4MOTyf8UlxgmKWcCkHclkVYwYHe+qWq+ErdzEmEIe/SmAHJNPozSfBbUbiePWuGNzqwtyj1MT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BoZE7mz0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cskejjDu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0913C4CED1;
-	Wed,  6 Nov 2024 00:50:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BoZE7mz0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A4AC4CECF;
+	Wed,  6 Nov 2024 00:50:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854219;
-	bh=R9uQolieWO2THZ6a7RmGQMkPXG/beGMsxnIyqKZsvWA=;
+	s=korg; t=1730854221;
+	bh=C41+P23/aMXjhpj3RJKjKHag8lBOiT89Ns4k6tSbw5E=;
 	h=Date:To:From:Subject:From;
-	b=cskejjDuakeY+AM1gm3bd35gxl0KFwltdcCuEoQnJ0NG8xZKwik8NeVWz51pqne4X
-	 SZuNMkKOn3XNt6a1FfwAJJrv7qpf7mBtVv4ypK2QEwdtTW2n2/V6o++XZiaOTUsYEO
-	 SxmI0zOd/PES8rcyhEp39iW8suibfkXitAhK0ZJ0=
-Date: Tue, 05 Nov 2024 16:50:19 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,usamaarif642@gmail.com,stable@vger.kernel.org,shy828301@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,richard.weiyang@gmail.com,nphamcs@gmail.com,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,hughd@google.com,akpm@linux-foundation.org
+	b=BoZE7mz0NP17sZ0UmTMpbot9FJ56gTcpQOjr3x5j/bfMfSTKdTlt0jOZLDzC60DwM
+	 8xZJHzWB1HFMlF4X5CK4kB1CM3Pkah+PrzOtdcd+2VEsglqeNNP/xP2nse/0jwvV+9
+	 mTmMRF6YmVlqnbiMNobAcXq5rqSAbykdkS6SjwGg=
+Date: Tue, 05 Nov 2024 16:50:20 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,stable@vger.kernel.org,peterx@redhat.com,Liam.Howlett@oracle.com,jannh@google.com,James.Bottomley@HansenPartnership.com,deller@gmx.de,davem@davemloft.net,catalin.marinas@arm.com,broonie@kernel.org,andreas@gaisler.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-thp-fix-deferred-split-unqueue-naming-and-locking.patch removed from -mm tree
-Message-Id: <20241106005019.D0913C4CED1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch removed from -mm tree
+Message-Id: <20241106005021.41A4AC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,367 +35,202 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/thp: fix deferred split unqueue naming and locking
+     Subject: mm: avoid unsafe VMA hook invocation when error arises on mmap hook
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-deferred-split-unqueue-naming-and-locking.patch
+     mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: fix deferred split unqueue naming and locking
-Date: Sun, 27 Oct 2024 13:02:13 -0700 (PDT)
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: avoid unsafe VMA hook invocation when error arises on mmap hook
+Date: Tue, 29 Oct 2024 18:11:44 +0000
 
-Recent changes are putting more pressure on THP deferred split queues:
-under load revealing long-standing races, causing list_del corruptions,
-"Bad page state"s and worse (I keep BUGs in both of those, so usually
-don't get to see how badly they end up without).  The relevant recent
-changes being 6.8's mTHP, 6.10's mTHP swapout, and 6.12's mTHP swapin,
-improved swap allocation, and underused THP splitting.
+Patch series "fix error handling in mmap_region() and refactor
+(hotfixes)", v4.
 
-Before fixing locking: rename misleading folio_undo_large_rmappable(),
-which does not undo large_rmappable, to folio_unqueue_deferred_split(),
-which is what it does.  But that and its out-of-line __callee are mm
-internals of very limited usability: add comment and WARN_ON_ONCEs to
-check usage; and return a bool to say if a deferred split was unqueued,
-which can then be used in WARN_ON_ONCEs around safety checks (sparing
-callers the arcane conditionals in __folio_unqueue_deferred_split()).
+mmap_region() is somewhat terrifying, with spaghetti-like control flow and
+numerous means by which issues can arise and incomplete state, memory
+leaks and other unpleasantness can occur.
 
-Just omit the folio_unqueue_deferred_split() from free_unref_folios(), all
-of whose callers now call it beforehand (and if any forget then bad_page()
-will tell) - except for its caller put_pages_list(), which itself no
-longer has any callers (and will be deleted separately).
+A large amount of the complexity arises from trying to handle errors late
+in the process of mapping a VMA, which forms the basis of recently
+observed issues with resource leaks and observable inconsistent state.
 
-Swapout: mem_cgroup_swapout() has been resetting folio->memcg_data 0
-without checking and unqueueing a THP folio from deferred split list;
-which is unfortunate, since the split_queue_lock depends on the memcg
-(when memcg is enabled); so swapout has been unqueueing such THPs later,
-when freeing the folio, using the pgdat's lock instead: potentially
-corrupting the memcg's list.  __remove_mapping() has frozen refcount to 0
-here, so no problem with calling folio_unqueue_deferred_split() before
-resetting memcg_data.
+This series goes to great lengths to simplify how mmap_region() works and
+to avoid unwinding errors late on in the process of setting up the VMA for
+the new mapping, and equally avoids such operations occurring while the
+VMA is in an inconsistent state.
 
-That goes back to 5.4 commit 87eaceb3faa5 ("mm: thp: make deferred split
-shrinker memcg aware"): which included a check on swapcache before adding
-to deferred queue, but no check on deferred queue before adding THP to
-swapcache.  That worked fine with the usual sequence of events in reclaim
-(though there were a couple of rare ways in which a THP on deferred queue
-could have been swapped out), but 6.12 commit dafff3f4c850 ("mm: split
-underused THPs") avoids splitting underused THPs in reclaim, which makes
-swapcache THPs on deferred queue commonplace.
+The patches in this series comprise the minimal changes required to
+resolve existing issues in mmap_region() error handling, in order that
+they can be hotfixed and backported.  There is additionally a follow up
+series which goes further, separated out from the v1 series and sent and
+updated separately.
 
-Keep the check on swapcache before adding to deferred queue?  Yes: it is
-no longer essential, but preserves the existing behaviour, and is likely
-to be a worthwhile optimization (vmstat showed much more traffic on the
-queue under swapping load if the check was removed); update its comment.
 
-Memcg-v1 move (deprecated): mem_cgroup_move_account() has been changing
-folio->memcg_data without checking and unqueueing a THP folio from the
-deferred list, sometimes corrupting "from" memcg's list, like swapout. 
-Refcount is non-zero here, so folio_unqueue_deferred_split() can only be
-used in a WARN_ON_ONCE to validate the fix, which must be done earlier:
-mem_cgroup_move_charge_pte_range() first try to split the THP (splitting
-of course unqueues), or skip it if that fails.  Not ideal, but moving
-charge has been requested, and khugepaged should repair the THP later:
-nobody wants new custom unqueueing code just for this deprecated case.
+This patch (of 5):
 
-The 87eaceb3faa5 commit did have the code to move from one deferred list
-to another (but was not conscious of its unsafety while refcount non-0);
-but that was removed by 5.6 commit fac0516b5534 ("mm: thp: don't need care
-deferred split queue in memcg charge move path"), which argued that the
-existence of a PMD mapping guarantees that the THP cannot be on a deferred
-list.  As above, false in rare cases, and now commonly false.
+After an attempted mmap() fails, we are no longer in a situation where we
+can safely interact with VMA hooks.  This is currently not enforced,
+meaning that we need complicated handling to ensure we do not incorrectly
+call these hooks.
 
-Backport to 6.11 should be straightforward.  Earlier backports must take
-care that other _deferred_list fixes and dependencies are included.  There
-is not a strong case for backports, but they can fix cornercases.
+We can avoid the whole issue by treating the VMA as suspect the moment
+that the file->f_ops->mmap() function reports an error by replacing
+whatever VMA operations were installed with a dummy empty set of VMA
+operations.
 
-Link: https://lkml.kernel.org/r/8dc111ae-f6db-2da7-b25c-7a20b1effe3b@google.com
-Fixes: 87eaceb3faa5 ("mm: thp: make deferred split shrinker memcg aware")
-Fixes: dafff3f4c850 ("mm: split underused THPs")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+We do so through a new helper function internal to mm - mmap_file() -
+which is both more logically named than the existing call_mmap() function
+and correctly isolates handling of the vm_op reassignment to mm.
+
+All the existing invocations of call_mmap() outside of mm are ultimately
+nested within the call_mmap() from mm, which we now replace.
+
+It is therefore safe to leave call_mmap() in place as a convenience
+function (and to avoid churn).  The invokers are:
+
+     ovl_file_operations -> mmap -> ovl_mmap() -> backing_file_mmap()
+    coda_file_operations -> mmap -> coda_file_mmap()
+     shm_file_operations -> shm_mmap()
+shm_file_operations_huge -> shm_mmap()
+            dma_buf_fops -> dma_buf_mmap_internal -> i915_dmabuf_ops
+	                    -> i915_gem_dmabuf_mmap()
+
+None of these callers interact with vm_ops or mappings in a problematic
+way on error, quickly exiting out.
+
+Link: https://lkml.kernel.org/r/cover.1730224667.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/d41fd763496fd0048a962f3fd9407dc72dd4fd86.1730224667.git.lorenzo.stoakes@oracle.com
+Fixes: deb0f6562884 ("mm/mmap: undo ->mmap() when arch_validate_flags() fails")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: Jann Horn <jannh@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Jann Horn <jannh@google.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c   |   35 ++++++++++++++++++++++++++---------
- mm/internal.h      |   10 +++++-----
- mm/memcontrol-v1.c |   25 +++++++++++++++++++++++++
- mm/memcontrol.c    |    8 +++++---
- mm/migrate.c       |    4 ++--
- mm/page_alloc.c    |    1 -
- mm/swap.c          |    4 ++--
- mm/vmscan.c        |    4 ++--
- 8 files changed, 67 insertions(+), 24 deletions(-)
+ mm/internal.h |   27 +++++++++++++++++++++++++++
+ mm/mmap.c     |    6 +++---
+ mm/nommu.c    |    4 ++--
+ 3 files changed, 32 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/huge_memory.c
-@@ -3588,10 +3588,27 @@ int split_folio_to_list(struct folio *fo
- 	return split_huge_page_to_list_to_order(&folio->page, list, ret);
- }
- 
--void __folio_undo_large_rmappable(struct folio *folio)
-+/*
-+ * __folio_unqueue_deferred_split() is not to be called directly:
-+ * the folio_unqueue_deferred_split() inline wrapper in mm/internal.h
-+ * limits its calls to those folios which may have a _deferred_list for
-+ * queueing THP splits, and that list is (racily observed to be) non-empty.
-+ *
-+ * It is unsafe to call folio_unqueue_deferred_split() until folio refcount is
-+ * zero: because even when split_queue_lock is held, a non-empty _deferred_list
-+ * might be in use on deferred_split_scan()'s unlocked on-stack list.
-+ *
-+ * If memory cgroups are enabled, split_queue_lock is in the mem_cgroup: it is
-+ * therefore important to unqueue deferred split before changing folio memcg.
-+ */
-+bool __folio_unqueue_deferred_split(struct folio *folio)
- {
- 	struct deferred_split *ds_queue;
- 	unsigned long flags;
-+	bool unqueued = false;
-+
-+	WARN_ON_ONCE(folio_ref_count(folio));
-+	WARN_ON_ONCE(!mem_cgroup_disabled() && !folio_memcg(folio));
- 
- 	ds_queue = get_deferred_split_queue(folio);
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
-@@ -3603,8 +3620,11 @@ void __folio_undo_large_rmappable(struct
- 				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
- 		}
- 		list_del_init(&folio->_deferred_list);
-+		unqueued = true;
- 	}
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-+
-+	return unqueued;	/* useful for debug warnings */
- }
- 
- /* partially_mapped=false won't clear PG_partially_mapped folio flag */
-@@ -3627,14 +3647,11 @@ void deferred_split_folio(struct folio *
- 		return;
- 
- 	/*
--	 * The try_to_unmap() in page reclaim path might reach here too,
--	 * this may cause a race condition to corrupt deferred split queue.
--	 * And, if page reclaim is already handling the same folio, it is
--	 * unnecessary to handle it again in shrinker.
--	 *
--	 * Check the swapcache flag to determine if the folio is being
--	 * handled by page reclaim since THP swap would add the folio into
--	 * swap cache before calling try_to_unmap().
-+	 * Exclude swapcache: originally to avoid a corrupt deferred split
-+	 * queue. Nowadays that is fully prevented by mem_cgroup_swapout();
-+	 * but if page reclaim is already handling the same folio, it is
-+	 * unnecessary to handle it again in the shrinker, so excluding
-+	 * swapcache here may still be a useful optimization.
- 	 */
- 	if (folio_test_swapcache(folio))
- 		return;
---- a/mm/internal.h~mm-thp-fix-deferred-split-unqueue-naming-and-locking
+--- a/mm/internal.h~mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook
 +++ a/mm/internal.h
-@@ -639,11 +639,11 @@ static inline void folio_set_order(struc
- #endif
+@@ -108,6 +108,33 @@ static inline void *folio_raw_mapping(co
+ 	return (void *)(mapping & ~PAGE_MAPPING_FLAGS);
  }
  
--void __folio_undo_large_rmappable(struct folio *folio);
--static inline void folio_undo_large_rmappable(struct folio *folio)
-+bool __folio_unqueue_deferred_split(struct folio *folio);
-+static inline bool folio_unqueue_deferred_split(struct folio *folio)
- {
- 	if (folio_order(folio) <= 1 || !folio_test_large_rmappable(folio))
--		return;
-+		return false;
- 
- 	/*
- 	 * At this point, there is no one trying to add the folio to
-@@ -651,9 +651,9 @@ static inline void folio_undo_large_rmap
- 	 * to check without acquiring the split_queue_lock.
- 	 */
- 	if (data_race(list_empty(&folio->_deferred_list)))
--		return;
-+		return false;
- 
--	__folio_undo_large_rmappable(folio);
-+	return __folio_unqueue_deferred_split(folio);
- }
- 
- static inline struct folio *page_rmappable_folio(struct page *page)
---- a/mm/memcontrol.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/memcontrol.c
-@@ -4629,9 +4629,6 @@ static void uncharge_folio(struct folio
- 	struct obj_cgroup *objcg;
- 
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
--	VM_BUG_ON_FOLIO(folio_order(folio) > 1 &&
--			!folio_test_hugetlb(folio) &&
--			!list_empty(&folio->_deferred_list), folio);
- 
- 	/*
- 	 * Nobody should be changing or seriously looking at
-@@ -4678,6 +4675,7 @@ static void uncharge_folio(struct folio
- 			ug->nr_memory += nr_pages;
- 		ug->pgpgout++;
- 
-+		WARN_ON_ONCE(folio_unqueue_deferred_split(folio));
- 		folio->memcg_data = 0;
- 	}
- 
-@@ -4789,6 +4787,9 @@ void mem_cgroup_migrate(struct folio *ol
- 
- 	/* Transfer the charge and the css ref */
- 	commit_charge(new, memcg);
++/*
++ * This is a file-backed mapping, and is about to be memory mapped - invoke its
++ * mmap hook and safely handle error conditions. On error, VMA hooks will be
++ * mutated.
++ *
++ * @file: File which backs the mapping.
++ * @vma:  VMA which we are mapping.
++ *
++ * Returns: 0 if success, error otherwise.
++ */
++static inline int mmap_file(struct file *file, struct vm_area_struct *vma)
++{
++	int err = call_mmap(file, vma);
 +
-+	/* Warning should never happen, so don't worry about refcount non-0 */
-+	WARN_ON_ONCE(folio_unqueue_deferred_split(old));
- 	old->memcg_data = 0;
- }
++	if (likely(!err))
++		return 0;
++
++	/*
++	 * OK, we tried to call the file hook for mmap(), but an error
++	 * arose. The mapping is in an inconsistent state and we most not invoke
++	 * any further hooks on it.
++	 */
++	vma->vm_ops = &vma_dummy_vm_ops;
++
++	return err;
++}
++
+ #ifdef CONFIG_MMU
  
-@@ -4975,6 +4976,7 @@ void mem_cgroup_swapout(struct folio *fo
- 	VM_BUG_ON_FOLIO(oldid, folio);
- 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
- 
-+	folio_unqueue_deferred_split(folio);
- 	folio->memcg_data = 0;
- 
- 	if (!mem_cgroup_is_root(memcg))
---- a/mm/memcontrol-v1.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/memcontrol-v1.c
-@@ -848,6 +848,8 @@ static int mem_cgroup_move_account(struc
- 	css_get(&to->css);
- 	css_put(&from->css);
- 
-+	/* Warning should never happen, so don't worry about refcount non-0 */
-+	WARN_ON_ONCE(folio_unqueue_deferred_split(folio));
- 	folio->memcg_data = (unsigned long)to;
- 
- 	__folio_memcg_unlock(from);
-@@ -1217,7 +1219,9 @@ static int mem_cgroup_move_charge_pte_ra
- 	enum mc_target_type target_type;
- 	union mc_target target;
- 	struct folio *folio;
-+	bool tried_split_before = false;
- 
-+retry_pmd:
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
- 		if (mc.precharge < HPAGE_PMD_NR) {
-@@ -1227,6 +1231,27 @@ static int mem_cgroup_move_charge_pte_ra
- 		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
- 		if (target_type == MC_TARGET_PAGE) {
- 			folio = target.folio;
-+			/*
-+			 * Deferred split queue locking depends on memcg,
-+			 * and unqueue is unsafe unless folio refcount is 0:
-+			 * split or skip if on the queue? first try to split.
-+			 */
-+			if (!list_empty(&folio->_deferred_list)) {
-+				spin_unlock(ptl);
-+				if (!tried_split_before)
-+					split_folio(folio);
-+				folio_unlock(folio);
-+				folio_put(folio);
-+				if (tried_split_before)
-+					return 0;
-+				tried_split_before = true;
-+				goto retry_pmd;
-+			}
-+			/*
-+			 * So long as that pmd lock is held, the folio cannot
-+			 * be racily added to the _deferred_list, because
-+			 * __folio_remove_rmap() will find !partially_mapped.
-+			 */
- 			if (folio_isolate_lru(folio)) {
- 				if (!mem_cgroup_move_account(folio, true,
- 							     mc.from, mc.to)) {
---- a/mm/migrate.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/migrate.c
-@@ -490,7 +490,7 @@ static int __folio_migrate_mapping(struc
- 		    folio_test_large_rmappable(folio)) {
- 			if (!folio_ref_freeze(folio, expected_count))
- 				return -EAGAIN;
--			folio_undo_large_rmappable(folio);
-+			folio_unqueue_deferred_split(folio);
- 			folio_ref_unfreeze(folio, expected_count);
- 		}
- 
-@@ -515,7 +515,7 @@ static int __folio_migrate_mapping(struc
- 	}
- 
- 	/* Take off deferred split queue while frozen and memcg set */
--	folio_undo_large_rmappable(folio);
-+	folio_unqueue_deferred_split(folio);
- 
+ /* Flags for folio_pte_batch(). */
+--- a/mm/mmap.c~mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook
++++ a/mm/mmap.c
+@@ -1422,7 +1422,7 @@ unsigned long mmap_region(struct file *f
  	/*
- 	 * Now we know that no one else is looking at the folio:
---- a/mm/page_alloc.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/page_alloc.c
-@@ -2681,7 +2681,6 @@ void free_unref_folios(struct folio_batc
- 		unsigned long pfn = folio_pfn(folio);
- 		unsigned int order = folio_order(folio);
+ 	 * clear PTEs while the vma is still in the tree so that rmap
+ 	 * cannot race with the freeing later in the truncate scenario.
+-	 * This is also needed for call_mmap(), which is why vm_ops
++	 * This is also needed for mmap_file(), which is why vm_ops
+ 	 * close function is called.
+ 	 */
+ 	vms_clean_up_area(&vms, &mas_detach);
+@@ -1447,7 +1447,7 @@ unsigned long mmap_region(struct file *f
  
--		folio_undo_large_rmappable(folio);
- 		if (!free_pages_prepare(&folio->page, order))
- 			continue;
+ 	if (file) {
+ 		vma->vm_file = get_file(file);
+-		error = call_mmap(file, vma);
++		error = mmap_file(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
+ 
+@@ -1470,7 +1470,7 @@ unsigned long mmap_region(struct file *f
+ 
+ 		vma_iter_config(&vmi, addr, end);
  		/*
---- a/mm/swap.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/swap.c
-@@ -121,7 +121,7 @@ void __folio_put(struct folio *folio)
- 	}
- 
- 	page_cache_release(folio);
--	folio_undo_large_rmappable(folio);
-+	folio_unqueue_deferred_split(folio);
- 	mem_cgroup_uncharge(folio);
- 	free_unref_page(&folio->page, folio_order(folio));
- }
-@@ -988,7 +988,7 @@ void folios_put_refs(struct folio_batch
- 			free_huge_folio(folio);
- 			continue;
- 		}
--		folio_undo_large_rmappable(folio);
-+		folio_unqueue_deferred_split(folio);
- 		__page_cache_release(folio, &lruvec, &flags);
- 
- 		if (j != i)
---- a/mm/vmscan.c~mm-thp-fix-deferred-split-unqueue-naming-and-locking
-+++ a/mm/vmscan.c
-@@ -1476,7 +1476,7 @@ free_it:
+-		 * If vm_flags changed after call_mmap(), we should try merge
++		 * If vm_flags changed after mmap_file(), we should try merge
+ 		 * vma again as we may succeed this time.
  		 */
- 		nr_reclaimed += nr_pages;
+ 		if (unlikely(vm_flags != vma->vm_flags && vmg.prev)) {
+--- a/mm/nommu.c~mm-avoid-unsafe-vma-hook-invocation-when-error-arises-on-mmap-hook
++++ a/mm/nommu.c
+@@ -885,7 +885,7 @@ static int do_mmap_shared_file(struct vm
+ {
+ 	int ret;
  
--		folio_undo_large_rmappable(folio);
-+		folio_unqueue_deferred_split(folio);
- 		if (folio_batch_add(&free_folios, folio) == 0) {
- 			mem_cgroup_uncharge_folios(&free_folios);
- 			try_to_unmap_flush();
-@@ -1864,7 +1864,7 @@ static unsigned int move_folios_to_lru(s
- 		if (unlikely(folio_put_testzero(folio))) {
- 			__folio_clear_lru_flags(folio);
- 
--			folio_undo_large_rmappable(folio);
-+			folio_unqueue_deferred_split(folio);
- 			if (folio_batch_add(&free_folios, folio) == 0) {
- 				spin_unlock_irq(&lruvec->lru_lock);
- 				mem_cgroup_uncharge_folios(&free_folios);
+-	ret = call_mmap(vma->vm_file, vma);
++	ret = mmap_file(vma->vm_file, vma);
+ 	if (ret == 0) {
+ 		vma->vm_region->vm_top = vma->vm_region->vm_end;
+ 		return 0;
+@@ -918,7 +918,7 @@ static int do_mmap_private(struct vm_are
+ 	 * happy.
+ 	 */
+ 	if (capabilities & NOMMU_MAP_DIRECT) {
+-		ret = call_mmap(vma->vm_file, vma);
++		ret = mmap_file(vma->vm_file, vma);
+ 		/* shouldn't return success if we're not sharing */
+ 		if (WARN_ON_ONCE(!is_nommu_shared_mapping(vma->vm_flags)))
+ 			ret = -ENOSYS;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-delete-the-unused-put_pages_list.patch
+selftests-mm-add-pkey_sighandler_xx-hugetlb_dio-to-gitignore.patch
+mm-refactor-mm_access-to-not-return-null.patch
+mm-madvise-unrestrict-process_madvise-for-current-process.patch
+maple_tree-do-not-hash-pointers-on-dump-in-debug-mode.patch
+tools-testing-fix-phys_addr_t-size-on-64-bit-systems.patch
+tools-testing-add-additional-vma_internalh-stubs.patch
+mm-isolate-mmap-internal-logic-to-mm-vmac.patch
+mm-refactor-__mmap_region.patch
+mm-remove-unnecessary-reset-state-logic-on-merge-new-vma.patch
+mm-defer-second-attempt-at-merge-on-mmap.patch
+mm-pagewalk-add-the-ability-to-install-ptes.patch
+mm-add-pte_marker_guard-pte-marker.patch
+mm-madvise-implement-lightweight-guard-page-mechanism.patch
+tools-testing-update-tools-uapi-header-for-mman-commonh.patch
+selftests-mm-add-self-tests-for-guard-page-feature.patch
+mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
