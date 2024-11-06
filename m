@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B07614A627
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7595114386D
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854745; cv=none; b=V2i5vRA5Tv4+c9p0/swpX8a1hr3FI+y38hCSDa1FcO1/ZDQlB7buGhet7PytPv3zYAIa1EmXGKIITNVWDIrya9JBwU8mvBxRyF6VKkAC0Bh0usvFBuYfI/dQ+jtyNvDW56lxEtmyxSG0NgDg/2XGNZnFfyKtCmJSnwdaIk0SZQY=
+	t=1730854746; cv=none; b=iq7RRH1W41IuQdyH+OdyHmG2LXf2eMnEBaxrdOYIcpsyOo8FAo6bCwom85OUL/nwiSR9fIxlta6sLhLtSZe3ERlI3CSBkNx5VCjvHL1ZEKQ578T5EBDc4zZb2tq1IR2sBEY6Rb4LkHH7g2m3FfBh4dUV88x5O7DWmoPaKTBFENs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854745; c=relaxed/simple;
-	bh=NlZBh2nPFWZt73Nf5nU+pERSENBS1HaIza4/nWX8pTg=;
-	h=Date:To:From:Subject:Message-Id; b=UMQx7RX/Q+bXwex/sTLgKmmr431RjnM4qJ5u3rVLGyi3RWHqCCOsVs563JSvg8JFObZMvrBdLSv5vpIFShUO+EJiL1B7GaqhHf7vsYchWqCSQ2Eyi97aRgT3iX2zU/78bJ0G1B3eO789+gWyqH5gLatx2lpPYu+jCX/9C2cDKWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SrDV+JJq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854746; c=relaxed/simple;
+	bh=zrr7SgOuY5g+CvluRCShG9DrXpQe1w+t4JxogFi17TM=;
+	h=Date:To:From:Subject:Message-Id; b=S3a7ZxvBDY2BiaXWvSf/s3wQvsWbORb9v2kznLi+6CVdD+TopyRI9Fu5EunFydpuomB714G0IXm3ZNOEPDYUYnEpDKmelQ9CQGeaiprrlwpa83ygTWE7YkSIjcK+ukGICg3JmK3jlpTu8x5BmOjU0UFdaV4c1LqK3cLcqkbYPhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fchCUmfg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SrDV+JJq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 157E4C4CECF;
-	Wed,  6 Nov 2024 00:59:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fchCUmfg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C5C5C4CECF;
+	Wed,  6 Nov 2024 00:59:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854745;
-	bh=NlZBh2nPFWZt73Nf5nU+pERSENBS1HaIza4/nWX8pTg=;
+	s=korg; t=1730854746;
+	bh=zrr7SgOuY5g+CvluRCShG9DrXpQe1w+t4JxogFi17TM=;
 	h=Date:To:From:Subject:From;
-	b=SrDV+JJq3a1l85JHLu4y1NrIVH+jsaPH0eMyMDEv+c1e3dqYRyvgPJO6LQttEt/KP
-	 HukTnjHaqJLx/xuXUTHY/8QyrkFTQWpH+RBmgTR+2Zard/k/fqROq1sSqSsaPLOrRx
-	 +gMWt6RO2aUVbF3vvkdLxNP27ABQpC3OK+otV2F0=
-Date: Tue, 05 Nov 2024 16:59:04 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,dev.jain@arm.com,bajing@cmss.chinamobile.com,akpm@linux-foundation.org
+	b=fchCUmfg4Sidm8rd3VJxRodZzYOirmLX14TC8OMM/H35fx8KOyGrpuGOILZRMxDe3
+	 N5Xw8n//n3BMYYGweertdANlG8HftkrKCr9khUmOvUJXZH9J8bOmyIK9QvXWZ4NsHS
+	 5/3r2w9zXrg9gEHkxq5O5OTAGQrwn3mphFoZJ04c=
+Date: Tue, 05 Nov 2024 16:59:05 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,wajdi.k.feghali@intel.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,nanhai.zou@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,21cnbao@gmail.com,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-access_memory_even-remove-unused-variables.patch removed from -mm tree
-Message-Id: <20241106005905.157E4C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch removed from -mm tree
+Message-Id: <20241106005906.4C5C5C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/access_memory_even: remove unused variables
+     Subject: mm: define obj_cgroup_get() if CONFIG_MEMCG is not defined
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-access_memory_even-remove-unused-variables.patch
+     mm-define-obj_cgroup_get-if-config_memcg-is-not-defined.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ba Jing <bajing@cmss.chinamobile.com>
-Subject: selftests/damon/access_memory_even: remove unused variables
-Date: Tue, 24 Sep 2024 10:14:26 +0800
+From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Subject: mm: define obj_cgroup_get() if CONFIG_MEMCG is not defined
+Date: Mon, 30 Sep 2024 22:32:16 -0700
 
-By reading the code, I found these variables are never referenced in the
-code.  Just remove them.
+This resolves an issue with obj_cgroup_get() not being defined if
+CONFIG_MEMCG is not defined.
 
-Link: https://lkml.kernel.org/r/20240924021426.1980-1-bajing@cmss.chinamobile.com
-Signed-off-by: Ba Jing <bajing@cmss.chinamobile.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Before this patch, we would see build errors if obj_cgroup_get() is called
+from code that is agnostic of CONFIG_MEMCG.
+
+The zswap_store() changes for large folios in subsequent commits will
+require the use of obj_cgroup_get() in zswap code that falls into this
+category.
+
+Link: https://lkml.kernel.org/r/20241001053222.6944-2-kanchana.p.sridhar@intel.com
+Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
+Cc: "Zou, Nanhai" <nanhai.zou@intel.com>
+Cc: Barry Song <21cnbao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/access_memory_even.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/memcontrol.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/damon/access_memory_even.c~selftests-damon-access_memory_even-remove-unused-variables
-+++ a/tools/testing/selftests/damon/access_memory_even.c
-@@ -14,10 +14,8 @@
- int main(int argc, char *argv[])
- {
- 	char **regions;
--	clock_t start_clock;
- 	int nr_regions;
- 	int sz_region;
--	int access_time_ms;
- 	int i;
+--- a/include/linux/memcontrol.h~mm-define-obj_cgroup_get-if-config_memcg-is-not-defined
++++ a/include/linux/memcontrol.h
+@@ -1282,6 +1282,10 @@ struct mem_cgroup *mem_cgroup_from_css(s
+ 	return NULL;
+ }
  
- 	if (argc != 3) {
++static inline void obj_cgroup_get(struct obj_cgroup *objcg)
++{
++}
++
+ static inline void obj_cgroup_put(struct obj_cgroup *objcg)
+ {
+ }
 _
 
-Patches currently in -mm which might be from bajing@cmss.chinamobile.com are
+Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
 
 
