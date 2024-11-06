@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3585D140E3C
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64C04142E86
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854736; cv=none; b=kIzW3NlWPejeMKHGRKvDhpqfKmr3WjxM5ebkpBPeNyUtRFVxsgtSTIZFsaP6UV2+/hvJA58dXGK3+6tVw1WFi5XpMs4xNu3YdZFxuNC56o7BCDDazNnMLqiZupELWxtalKbz12F33WkIeBxH1dN/4pINtMxLgnhd4xOwpLSmqXs=
+	t=1730854737; cv=none; b=qPo71PDhI52j35kq6Q8ER1JvZotzj5PK/AgrmpbykdiN7ggvquVeEw4C9qH7E5MdcgnTUCEZ817sn0BzggirXDIg8Y7oe04c3jqCQnIOTrSFLEPWmPH37gmRBztw/dbwJK0U7q0bvy4e9rI5fFLeWWsTdV+7FuQf73KVR8sRzEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854736; c=relaxed/simple;
-	bh=RvCAKA5DHgHFxRLf5pUAKCwv8sjMChtx0HKz2h47lFg=;
-	h=Date:To:From:Subject:Message-Id; b=BDf1mB2xDw8Qdrc/QeQd4fVLMfJXRw+key2KQaArviSFcy28ALukAoVG5yQdRjY02+Km1g/o7DdFDSkrKDxv1ghDkDA+YHDPLL9P+Ywfk5RJrJt/xNYydSVjho01FEWjL/bPIOm9dIx/Sp/03n5ow+XPeL3IltijWcJL44SimlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6bgKgxw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854737; c=relaxed/simple;
+	bh=eF+qWJh9MBOj0Ss9+zbwxEJSRWYTCwogzQzJuxg1oRI=;
+	h=Date:To:From:Subject:Message-Id; b=JpnTPG/f8WOQpndhpa4y+OKBrfI4byt34aiRHqAH3W2ez1E7DRTG/krl+p1soJWUksOMTGp3d7tZfgt2dznY4N6CCFHLscRvziI0c2te20pL5nkOLNAw+L30O7hBGT7Lpu+Qk7+PR/K47t3/pfELYmzPOAKZ4ikSA8rkhVLIooQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1MckXdk3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6bgKgxw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C364C4CECF;
-	Wed,  6 Nov 2024 00:58:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1MckXdk3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30481C4CECF;
+	Wed,  6 Nov 2024 00:58:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854736;
-	bh=RvCAKA5DHgHFxRLf5pUAKCwv8sjMChtx0HKz2h47lFg=;
+	s=korg; t=1730854737;
+	bh=eF+qWJh9MBOj0Ss9+zbwxEJSRWYTCwogzQzJuxg1oRI=;
 	h=Date:To:From:Subject:From;
-	b=s6bgKgxwywQ547w98yUo9OPxepwAynBCl/fXfObmOFeuMNTW4bSSq887P5KCTsHvr
-	 CpQPFljCKSKqLzYSjUpdnSul4VsOr0+xRsWU0cxOXg4ylGtCvLs75W6PebIeW2XwO4
-	 +KyPHVz63e+Lw865WrwUXNczUUB+IFnyghN8D6Gw=
-Date: Tue, 05 Nov 2024 16:58:55 -0800
+	b=1MckXdk3p73XFkn5v9qvHgahHaOl457MGupOHChth5etz63ErdFgquYoDk3DwrBMw
+	 EaBGUvb1T+gOIGvhzp5d4ITVeI3C+5hhM/1cNran5GQHNKmFeVIUZjxMTV/Nj8RMtc
+	 b8sP4SGPdnigPVF1XaKOCfAgQ7MxfPPdk8vwpngY=
+Date: Tue, 05 Nov 2024 16:58:56 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_vma_mapped_walk-map_pte-use-pte_offset_map_rw_nolock.patch removed from -mm tree
-Message-Id: <20241106005856.0C364C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-userfaultfd-move_pages_pte-use-pte_offset_map_rw_nolock.patch removed from -mm tree
+Message-Id: <20241106005857.30481C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_vma_mapped_walk: map_pte() use pte_offset_map_rw_nolock()
+     Subject: mm: userfaultfd: move_pages_pte() use pte_offset_map_rw_nolock()
 has been removed from the -mm tree.  Its filename was
-     mm-page_vma_mapped_walk-map_pte-use-pte_offset_map_rw_nolock.patch
+     mm-userfaultfd-move_pages_pte-use-pte_offset_map_rw_nolock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: page_vma_mapped_walk: map_pte() use pte_offset_map_rw_nolock()
-Date: Thu, 26 Sep 2024 14:46:23 +0800
+Subject: mm: userfaultfd: move_pages_pte() use pte_offset_map_rw_nolock()
+Date: Thu, 26 Sep 2024 14:46:24 +0800
 
-In the caller of map_pte(), we may modify the pvmw->pte after acquiring
-the pvmw->ptl, so convert it to using pte_offset_map_rw_nolock().  At this
-time, the pte_same() check is not performed after the pvmw->ptl held, so
-we should get pmdval and do pmd_same() check to ensure the stability of
-pvmw->pmd.
+In move_pages_pte(), we may modify the dst_pte and src_pte after acquiring
+the ptl, so convert it to using pte_offset_map_rw_nolock().  But since we
+will use pte_same() to detect the change of the pte entry, there is no
+need to get pmdval, so just pass a dummy variable to it.
 
-Link: https://lkml.kernel.org/r/2620a48f34c9f19864ab0169cdbf253d31a8fcaa.1727332572.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/1530e8fdbfc72eacf3b095babe139ce3d715600a.1727332572.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
@@ -66,79 +65,47 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ mm/userfaultfd.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-map_pte-use-pte_offset_map_rw_nolock
-+++ a/mm/page_vma_mapped.c
-@@ -13,7 +13,8 @@ static inline bool not_found(struct page
- 	return false;
- }
+--- a/mm/userfaultfd.c~mm-userfaultfd-move_pages_pte-use-pte_offset_map_rw_nolock
++++ a/mm/userfaultfd.c
+@@ -1135,7 +1135,7 @@ static int move_pages_pte(struct mm_stru
+ 	spinlock_t *src_ptl, *dst_ptl;
+ 	pte_t *src_pte = NULL;
+ 	pte_t *dst_pte = NULL;
+-
++	pmd_t dummy_pmdval;
+ 	struct folio *src_folio = NULL;
+ 	struct anon_vma *src_anon_vma = NULL;
+ 	struct mmu_notifier_range range;
+@@ -1146,7 +1146,14 @@ static int move_pages_pte(struct mm_stru
+ 				src_addr, src_addr + PAGE_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ retry:
+-	dst_pte = pte_offset_map_nolock(mm, dst_pmd, dst_addr, &dst_ptl);
++	/*
++	 * Use the maywrite version to indicate that dst_pte will be modified,
++	 * but since we will use pte_same() to detect the change of the pte
++	 * entry, there is no need to get pmdval, so just pass a dummy variable
++	 * to it.
++	 */
++	dst_pte = pte_offset_map_rw_nolock(mm, dst_pmd, dst_addr, &dummy_pmdval,
++					   &dst_ptl);
  
--static bool map_pte(struct page_vma_mapped_walk *pvmw, spinlock_t **ptlp)
-+static bool map_pte(struct page_vma_mapped_walk *pvmw, pmd_t *pmdvalp,
-+		    spinlock_t **ptlp)
- {
- 	pte_t ptent;
- 
-@@ -25,6 +26,7 @@ static bool map_pte(struct page_vma_mapp
- 		return !!pvmw->pte;
+ 	/* Retry if a huge pmd materialized from under us */
+ 	if (unlikely(!dst_pte)) {
+@@ -1154,7 +1161,9 @@ retry:
+ 		goto out;
  	}
  
-+again:
+-	src_pte = pte_offset_map_nolock(mm, src_pmd, src_addr, &src_ptl);
++	/* same as dst_pte */
++	src_pte = pte_offset_map_rw_nolock(mm, src_pmd, src_addr, &dummy_pmdval,
++					   &src_ptl);
+ 
  	/*
- 	 * It is important to return the ptl corresponding to pte,
- 	 * in case *pvmw->pmd changes underneath us; so we need to
-@@ -32,8 +34,8 @@ static bool map_pte(struct page_vma_mapp
- 	 * proceeds to loop over next ptes, and finds a match later.
- 	 * Though, in most cases, page lock already protects this.
- 	 */
--	pvmw->pte = pte_offset_map_nolock(pvmw->vma->vm_mm, pvmw->pmd,
--					  pvmw->address, ptlp);
-+	pvmw->pte = pte_offset_map_rw_nolock(pvmw->vma->vm_mm, pvmw->pmd,
-+					     pvmw->address, pmdvalp, ptlp);
- 	if (!pvmw->pte)
- 		return false;
- 
-@@ -67,8 +69,13 @@ static bool map_pte(struct page_vma_mapp
- 	} else if (!pte_present(ptent)) {
- 		return false;
- 	}
-+	spin_lock(*ptlp);
-+	if (unlikely(!pmd_same(*pmdvalp, pmdp_get_lockless(pvmw->pmd)))) {
-+		pte_unmap_unlock(pvmw->pte, *ptlp);
-+		goto again;
-+	}
- 	pvmw->ptl = *ptlp;
--	spin_lock(pvmw->ptl);
-+
- 	return true;
- }
- 
-@@ -278,7 +285,7 @@ restart:
- 			step_forward(pvmw, PMD_SIZE);
- 			continue;
- 		}
--		if (!map_pte(pvmw, &ptl)) {
-+		if (!map_pte(pvmw, &pmde, &ptl)) {
- 			if (!pvmw->pte)
- 				goto restart;
- 			goto next_pte;
-@@ -305,8 +312,13 @@ next_pte:
- 		} while (pte_none(ptep_get(pvmw->pte)));
- 
- 		if (!pvmw->ptl) {
-+			spin_lock(ptl);
-+			if (unlikely(!pmd_same(pmde, pmdp_get_lockless(pvmw->pmd)))) {
-+				pte_unmap_unlock(pvmw->pte, ptl);
-+				pvmw->pte = NULL;
-+				goto restart;
-+			}
- 			pvmw->ptl = ptl;
--			spin_lock(pvmw->ptl);
- 		}
- 		goto this_pte;
- 	} while (pvmw->address < end);
+ 	 * We held the mmap_lock for reading so MADV_DONTNEED
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
