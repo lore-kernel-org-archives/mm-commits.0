@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B00E4185B6E
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0509D186E20
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:14:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855671; cv=none; b=NH+oKh4infXedmVY9C5fCpD7LXItmXgINJFSXx36+v5P7U5TXbt2iS4RDNZ6s9c1gnBgwqO1ZPSzDo0N9H7l2zKYzPq1oOW+HXm64lxaKEitMNhcBN/q4RNjSXm7YsInkplNUUYym6HmSSxrqGIdranh8DjDA9RX5rDS5BCAri4=
+	t=1730855673; cv=none; b=FsCX7Wc/JzQH+r5PwNNMuj3xfv0VGPuP8KBrgLSZmqNlBQcSQmvQvhXE4TX4aS4yAV0FoRJjqGrk8FkrWLEfAx6J6cA0cFNkAiwTOMQkIKw6nh8VREvXNoa0PVVoKyW6a0OO9T36KbPGAAK7yCGlCStteixg8npeMLhMvwtvaXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855671; c=relaxed/simple;
-	bh=gkMZ368NanWXxcDyIJ7KUZxC0NKOp0+38USD7LG320M=;
-	h=Date:To:From:Subject:Message-Id; b=BSgyL400g6xdnKdFfRhux7GsUvOF5cS48HcVTwxVISg1XRFsy8WeKhUSdKDNJUtJu944cICDQEl/Za2PDA8LHtAvg8SpLZiMfYloy1d5Ztr1s8zj6+Uun+1zbhgmxXZbzNYRdALOiFIaE8Dj9tcTysHWmel6D+GMd9oDls9eX7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gNOoA1Xz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855673; c=relaxed/simple;
+	bh=4+yOLi6fwpNdq2JQw+ugs/6LQzdrrePVZ3dI/hoOfDQ=;
+	h=Date:To:From:Subject:Message-Id; b=YSFGgGZxBl9x9TCbhhNB/E+dirrgKqjHLO7pcWMb7r8axQ7rZPugaYmSldQTI2Z7tGklzxrT9BWfF7liT4fnjOXV96h3T0w8USjsLF02FL4QtHQYACNN4AUWBp2dR11OGR4e8lIHuqaEo/h2LnQL5QCCowxf7XB+ek1eC9TaQ9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfmCvoaV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gNOoA1Xz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B09C4CECF;
-	Wed,  6 Nov 2024 01:14:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfmCvoaV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE51BC4CECF;
+	Wed,  6 Nov 2024 01:14:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855671;
-	bh=gkMZ368NanWXxcDyIJ7KUZxC0NKOp0+38USD7LG320M=;
+	s=korg; t=1730855672;
+	bh=4+yOLi6fwpNdq2JQw+ugs/6LQzdrrePVZ3dI/hoOfDQ=;
 	h=Date:To:From:Subject:From;
-	b=gNOoA1XzmadULEQvwqzoF6mlrA9NczMupc17X05BkLQKuGtiO+a0chk5abcGiTl8a
-	 Mdyfs+54xUO/orTvva/zEXYsb+7VSi2F9uopTcKJMvqQbvdHngNIGy0JmyGoRhlOlF
-	 7JHUCdAhwxWlOGvd9hj/qNFo8iLt/ukngr1ESx+w=
-Date: Tue, 05 Nov 2024 17:14:30 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,linux@treblig.org,akpm@linux-foundation.org
+	b=BfmCvoaV7N7/gabJEp3vGfEAuQUs8/pRS/fgjmohFa0TskvveHt5gRFGxzp4x3y0U
+	 QdaiE+pG/QTUFoJK4CbkbPX9ioSLZ1cpeeykEEwvhXD4z+wlv0gEB/iDYXxGmjCnNF
+	 3ZgvvGQrH5UretB+7HtzarzXsay1qrPpgYPeq5hg=
+Date: Tue, 05 Nov 2024 17:14:32 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,mingzhe.yang@ly.com,linux@weissschuh.net,libang.li@antgroup.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jsiddle@redhat.com,joel.granados@kernel.org,j.granados@samsung.com,david@redhat.com,cunhuang@tencent.com,baolin.wang@linux.alibaba.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-remove-unused-errmsg-function-and-table.patch removed from -mm tree
-Message-Id: <20241106011431.84B09C4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hung_task-add-detect-count-for-hung-tasks.patch removed from -mm tree
+Message-Id: <20241106011432.CE51BC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,134 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: remove unused errmsg function and table
+     Subject: hung_task: add detect count for hung tasks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-unused-errmsg-function-and-table.patch
+     hung_task-add-detect-count-for-hung-tasks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: ocfs2: remove unused errmsg function and table
-Date: Tue, 22 Oct 2024 01:25:43 +0100
+From: Lance Yang <ioworker0@gmail.com>
+Subject: hung_task: add detect count for hung tasks
+Date: Sun, 27 Oct 2024 20:07:46 +0800
 
-dlm_errmsg() has been unused since 2010's commit 0016eedc4185
-("ocfs2_dlmfs: Use the stackglue.")
+Patch series "add detect count for hung tasks", v2.
 
-Remove dlm_errmsg() and the message table it indexes.
+This patchset adds a counter, hung_task_detect_count, to track the number
+of times hung tasks are detected.  
 
-Link: https://lkml.kernel.org/r/20241022002543.302606-1-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+IHMO, hung tasks are a critical metric.  Currently, we detect them by
+periodically parsing dmesg.  However, this method isn't as user-friendly
+as using a counter.
+
+Sometimes, a short-lived issue with NIC or hard drive can quickly decrease
+the hung_task_warnings to zero.  Without warnings, we must directly access
+the node to ensure that there are no more hung tasks and that the system
+has recovered.  After all, load average alone cannot provide a clear
+picture.
+
+Once this counter is in place, in a high-density deployment pattern, we
+plan to set hung_task_timeout_secs to a lower number to improve stability,
+even though this might result in false positives.  And then we can set a
+time-based threshold: if hung tasks last beyond this duration, we will
+automatically migrate containers to other nodes.  Based on past
+experience, this approach could help avoid many production disruptions.
+
+Moreover, just like other important events such as OOM that already have
+counters, having a dedicated counter for hung tasks makes sense ;)
+
+
+This patch (of 2):
+
+This commit adds a counter, hung_task_detect_count, to track the number of
+times hung tasks are detected.
+
+IHMO, hung tasks are a critical metric. Currently, we detect them by
+periodically parsing dmesg. However, this method isn't as user-friendly as
+using a counter.
+
+Sometimes, a short-lived issue with NIC or hard drive can quickly decrease
+the hung_task_warnings to zero. Without warnings, we must directly access
+the node to ensure that there are no more hung tasks and that the system
+has recovered. After all, load average alone cannot provide a clear
+picture.
+
+Once this counter is in place, in a high-density deployment pattern, we
+plan to set hung_task_timeout_secs to a lower number to improve stability,
+even though this might result in false positives. And then we can set a
+time-based threshold: if hung tasks last beyond this duration, we will
+automatically migrate containers to other nodes. Based on past experience,
+this approach could help avoid many production disruptions.
+
+Moreover, just like other important events such as OOM that already have
+counters, having a dedicated counter for hung tasks makes sense.
+
+Link: https://lkml.kernel.org/r/20241027120747.42833-1-ioworker0@gmail.com
+Link: https://lkml.kernel.org/r/20241027120747.42833-2-ioworker0@gmail.com
+Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: Bang Li <libang.li@antgroup.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Cun <cunhuang@tencent.com>
+Cc: Joel Granados <j.granados@samsung.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: John Siddle <jsiddle@redhat.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Yongliang Gao <leonylgao@tencent.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmapi.h   |    2 -
- fs/ocfs2/dlm/dlmdebug.c |   53 --------------------------------------
- 2 files changed, 55 deletions(-)
+ kernel/hung_task.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/fs/ocfs2/dlm/dlmapi.h~ocfs2-remove-unused-errmsg-function-and-table
-+++ a/fs/ocfs2/dlm/dlmapi.h
-@@ -62,8 +62,6 @@ enum dlm_status {
- 	DLM_MAXSTATS,             /* 41: upper limit for return code validation */
+--- a/kernel/hung_task.c~hung_task-add-detect-count-for-hung-tasks
++++ a/kernel/hung_task.c
+@@ -31,6 +31,11 @@
+ static int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
+ 
+ /*
++ * Total number of tasks detected as hung since boot:
++ */
++static unsigned long __read_mostly sysctl_hung_task_detect_count;
++
++/*
+  * Limit number of tasks checked in a batch.
+  *
+  * This value controls the preemptibility of khungtaskd since preemption
+@@ -115,6 +120,12 @@ static void check_hung_task(struct task_
+ 	if (time_is_after_jiffies(t->last_switch_time + timeout * HZ))
+ 		return;
+ 
++	/*
++	 * This counter tracks the total number of tasks detected as hung
++	 * since boot.
++	 */
++	sysctl_hung_task_detect_count++;
++
+ 	trace_sched_process_hang(t);
+ 
+ 	if (sysctl_hung_task_panic) {
+@@ -314,6 +325,13 @@ static struct ctl_table hung_task_sysctl
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_NEG_ONE,
+ 	},
++	{
++		.procname	= "hung_task_detect_count",
++		.data		= &sysctl_hung_task_detect_count,
++		.maxlen		= sizeof(unsigned long),
++		.mode		= 0444,
++		.proc_handler	= proc_dointvec,
++	},
  };
  
--/* for pretty-printing dlm_status error messages */
--const char *dlm_errmsg(enum dlm_status err);
- /* for pretty-printing dlm_status error names */
- const char *dlm_errname(enum dlm_status err);
- 
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-remove-unused-errmsg-function-and-table
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -164,59 +164,6 @@ static const char *dlm_errnames[] = {
- 	[DLM_MAXSTATS] =		"DLM_MAXSTATS",
- };
- 
--static const char *dlm_errmsgs[] = {
--	[DLM_NORMAL] = 			"request in progress",
--	[DLM_GRANTED] = 		"request granted",
--	[DLM_DENIED] = 			"request denied",
--	[DLM_DENIED_NOLOCKS] = 		"request denied, out of system resources",
--	[DLM_WORKING] = 		"async request in progress",
--	[DLM_BLOCKED] = 		"lock request blocked",
--	[DLM_BLOCKED_ORPHAN] = 		"lock request blocked by a orphan lock",
--	[DLM_DENIED_GRACE_PERIOD] = 	"topological change in progress",
--	[DLM_SYSERR] = 			"system error",
--	[DLM_NOSUPPORT] = 		"unsupported",
--	[DLM_CANCELGRANT] = 		"can't cancel convert: already granted",
--	[DLM_IVLOCKID] = 		"bad lockid",
--	[DLM_SYNC] = 			"synchronous request granted",
--	[DLM_BADTYPE] = 		"bad resource type",
--	[DLM_BADRESOURCE] = 		"bad resource handle",
--	[DLM_MAXHANDLES] = 		"no more resource handles",
--	[DLM_NOCLINFO] = 		"can't contact cluster manager",
--	[DLM_NOLOCKMGR] = 		"can't contact lock manager",
--	[DLM_NOPURGED] = 		"can't contact purge daemon",
--	[DLM_BADARGS] = 		"bad api args",
--	[DLM_VOID] = 			"no status",
--	[DLM_NOTQUEUED] = 		"NOQUEUE was specified and request failed",
--	[DLM_IVBUFLEN] = 		"invalid resource name length",
--	[DLM_CVTUNGRANT] = 		"attempted to convert ungranted lock",
--	[DLM_BADPARAM] = 		"invalid lock mode specified",
--	[DLM_VALNOTVALID] = 		"value block has been invalidated",
--	[DLM_REJECTED] = 		"request rejected, unrecognized client",
--	[DLM_ABORT] = 			"blocked lock request cancelled",
--	[DLM_CANCEL] = 			"conversion request cancelled",
--	[DLM_IVRESHANDLE] = 		"invalid resource handle",
--	[DLM_DEADLOCK] = 		"deadlock recovery refused this request",
--	[DLM_DENIED_NOASTS] = 		"failed to allocate AST",
--	[DLM_FORWARD] = 		"request must wait for primary's response",
--	[DLM_TIMEOUT] = 		"timeout value for lock has expired",
--	[DLM_IVGROUPID] = 		"invalid group specification",
--	[DLM_VERS_CONFLICT] = 		"version conflicts prevent request handling",
--	[DLM_BAD_DEVICE_PATH] = 	"Locks device does not exist or path wrong",
--	[DLM_NO_DEVICE_PERMISSION] = 	"Client has insufficient perms for device",
--	[DLM_NO_CONTROL_DEVICE] = 	"Cannot set options on opened device ",
--	[DLM_RECOVERING] = 		"lock resource being recovered",
--	[DLM_MIGRATING] = 		"lock resource being migrated",
--	[DLM_MAXSTATS] = 		"invalid error number",
--};
--
--const char *dlm_errmsg(enum dlm_status err)
--{
--	if (err >= DLM_MAXSTATS || err < 0)
--		return dlm_errmsgs[DLM_MAXSTATS];
--	return dlm_errmsgs[err];
--}
--EXPORT_SYMBOL_GPL(dlm_errmsg);
--
- const char *dlm_errname(enum dlm_status err)
- {
- 	if (err >= DLM_MAXSTATS || err < 0)
+ static void __init hung_task_sysctl_init(void)
 _
 
-Patches currently in -mm which might be from linux@treblig.org are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
 
