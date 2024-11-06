@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA2F1311AC
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA95E13C918
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:58:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854700; cv=none; b=cPsszCWJ8OiBEVVi1w2R+pu7tpwYx1Gj6cGgTp0Jt+qZKHEss7DNYxHNMSpjJ7r4vEINyX/GAB4QgmFYhtCMfs8hZsBAsOKyjcbfG44r5v3By7XewNDkh/ef7yjE1k7j/8GL8hYAhqbfvFVZKdvwTmPqxFjkL4gD6pS4OFYvp2Q=
+	t=1730854700; cv=none; b=Fg641bWF13ytusZeo2XboNaM+Bg8wvU+2xiO77U7V1QYL5V1t4RW5hvMtuK/kdH5NhYU2dlfOoVJntaGDJvF2NI+hFBemlj6YdxTFKrQZmc5UhEIKP85b0B2PdXxEs5P4RR7WYXu5i/xbEVNVvNI9JqzFOyvzTRXE/9niHItTs8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730854700; c=relaxed/simple;
-	bh=/NWyr1uEGfoLsXXKrZyBTO2T3VQj/twsUpvjgXOTRvA=;
-	h=Date:To:From:Subject:Message-Id; b=b14Sl+51GUXVyhpN5uQsbopAmiDz2ZdBrm25xARXjAqJb7v6FTW4pPr5EVbrsUrLDgsmkbOveVgVQ7ZAa50ro3LQCoBGOwuI+O5U2HkE4U/MKx/onNSqtHew3OYsOS3mPK6kcvoMPHu+qFH/rvUcRt1/ot+g9dWNp06t6ufJINY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AzHh6FLJ; arc=none smtp.client-ip=10.30.226.201
+	bh=sZ7y9CmRvspgCA9kDpHdM2PGAZeWVcqg3r3onhSrLCk=;
+	h=Date:To:From:Subject:Message-Id; b=NADzq2xvY+0QxI2t9mksWgwxxPT1vwx54wCBHQPKBCBgwzbzdfAROYnJGN7YGPDXSXFUH/fHHFnKQCYsN7p2ufcEJ3qcQmmU6NhIm7i0P6UCfuQt7rZPh11KNVJ74OLUNObKaHl6irQ3KGdSOhN+KK5G+GayLCR9of8pkZwqi/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J+6ppIHa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AzHh6FLJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31B09C4CECF;
-	Wed,  6 Nov 2024 00:58:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J+6ppIHa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61076C4CED1;
+	Wed,  6 Nov 2024 00:58:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854699;
-	bh=/NWyr1uEGfoLsXXKrZyBTO2T3VQj/twsUpvjgXOTRvA=;
+	s=korg; t=1730854700;
+	bh=sZ7y9CmRvspgCA9kDpHdM2PGAZeWVcqg3r3onhSrLCk=;
 	h=Date:To:From:Subject:From;
-	b=AzHh6FLJQ2zkAqLWMHacFt7KrDfhHuYsDBFTFpxq1rldJofGgfiJcsNfE0WkWnGF4
-	 J6cuTMT7lU/lGljkzicEWWoNQVZpn2vZo4XO5eDteT+vygrBcdSjWIaQhnCiOAORJi
-	 oZzThl539H78XISwt+Z+E9Q73hkyArBqjtHl6eDQ=
-Date: Tue, 05 Nov 2024 16:58:18 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,ruanjinjie@huawei.com,leocstone@gmail.com,akpm@linux-foundation.org
+	b=J+6ppIHaJ9qZL2Bo72vRhE17/XNfRohiTlgRZoqK69tvskplIX07xE3EFwldZalr+
+	 jecSaFaKUq3uCQFJwIAEzC4FYHfOueSpnG8IdQGFUF6PDBxAbej3fLk4ZBvYItB/1i
+	 x5JeW6EQVhEWcJGkdS9sVLrwPSSSTTKFLvQlJUIg=
+Date: Tue, 05 Nov 2024 16:58:19 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,linuszeng@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-fix-sparse-warning-for-zero-initializer.patch removed from -mm tree
-Message-Id: <20241106005819.31B09C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch removed from -mm tree
+Message-Id: <20241106005820.61076C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: fix sparse warning for zero initializer
+     Subject: mm/memcontrol: add per-memcg pgpgin/pswpin counter
 has been removed from the -mm tree.  Its filename was
-     mm-damon-fix-sparse-warning-for-zero-initializer.patch
+     mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Leo Stone <leocstone@gmail.com>
-Subject: mm/damon: fix sparse warning for zero initializer
-Date: Sun, 22 Sep 2024 19:25:18 -0700
+From: Jingxiang Zeng <linuszeng@tencent.com>
+Subject: mm/memcontrol: add per-memcg pgpgin/pswpin counter
+Date: Fri, 30 Aug 2024 16:22:44 +0800
 
-sparse warns about zero initializing an array with {0,}, change it to
-the equivalent {0}.
+In proactive memory reclamation scenarios, it is necessary to estimate the
+pswpin and pswpout metrics of the cgroup to determine whether to continue
+reclaiming anonymous pages in the current batch.  This patch will collect
+these metrics and expose them.
 
-Fixes the sparse warning:
-mm/damon/tests/vaddr-kunit.h:69:47: warning: missing braces around initializer
-
-Link: https://lkml.kernel.org/r/xriwklcwjpwcz7eiavo6f7envdar4jychhsk6sfkj5klaznb6b@j6vrvr2sxjht
-Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
-Signed-off-by: Leo Stone <leocstone@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+[linuszeng@tencent.com: v2]
+  Link: https://lkml.kernel.org/r/20240830082244.156923-1-jingxiangzeng.cas@gmail.com
+Li  nk: https://lkml.kernel.org/r/20240913084453.3605621-1-jingxiangzeng.cas@gmail.com
+Link: https://lkml.kernel.org/r/20240830082244.156923-1-jingxiangzeng.cas@gmail.com
+Signed-off-by: Jingxiang Zeng <linuszeng@tencent.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/vaddr-kunit.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    2 ++
+ mm/page_io.c    |    4 ++++
+ 2 files changed, 6 insertions(+)
 
---- a/mm/damon/tests/vaddr-kunit.h~mm-damon-fix-sparse-warning-for-zero-initializer
-+++ a/mm/damon/tests/vaddr-kunit.h
-@@ -66,7 +66,7 @@ failed:
- static void damon_test_three_regions_in_vmas(struct kunit *test)
- {
- 	static struct mm_struct mm;
--	struct damon_addr_range regions[3] = {0,};
-+	struct damon_addr_range regions[3] = {0};
- 	/* 10-20-25, 200-210-220, 300-305, 307-330 */
- 	struct vm_area_struct vmas[] = {
- 		(struct vm_area_struct) {.vm_start = 10, .vm_end = 20},
+--- a/mm/memcontrol.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter
++++ a/mm/memcontrol.c
+@@ -418,6 +418,8 @@ static const unsigned int memcg_vm_event
+ 	PGPGIN,
+ 	PGPGOUT,
+ #endif
++	PSWPIN,
++	PSWPOUT,
+ 	PGSCAN_KSWAPD,
+ 	PGSCAN_DIRECT,
+ 	PGSCAN_KHUGEPAGED,
+--- a/mm/page_io.c~mm-memcontrol-add-per-memcg-pgpgin-pswpin-counter
++++ a/mm/page_io.c
+@@ -290,6 +290,7 @@ static inline void count_swpout_vm_event
+ 	}
+ 	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPOUT);
+ #endif
++	count_memcg_folio_events(folio, PSWPOUT, folio_nr_pages(folio));
+ 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
+ }
+ 
+@@ -485,6 +486,7 @@ static void sio_read_complete(struct kio
+ 		for (p = 0; p < sio->pages; p++) {
+ 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
+ 
++			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 		}
+@@ -570,6 +572,7 @@ static void swap_read_folio_bdev_sync(st
+ 	 * attempt to access it in the page fault retry time check.
+ 	 */
+ 	get_task_struct(current);
++	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio_wait(&bio);
+ 	__end_swap_bio_read(&bio);
+@@ -585,6 +588,7 @@ static void swap_read_folio_bdev_async(s
+ 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio->bi_end_io = end_swap_bio_read;
+ 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
++	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio(bio);
+ }
 _
 
-Patches currently in -mm which might be from leocstone@gmail.com are
+Patches currently in -mm which might be from linuszeng@tencent.com are
 
+mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
 
