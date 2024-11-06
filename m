@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D41315442D
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E5A17B427
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 00:59:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730854756; cv=none; b=uMLdDN6PBE64LLx6VzSIc4g8LE/TpGVSQ1dlNgfiNAzBrzVWzDGRtcAo3kKmFtAfa0lohz0uDI4w0EaH7Nr5/4hFR6tUeHMGwQawxy81o6CI727MotmiD5/7uLt1+jN+z24FJR5OO05oMsXCKl8D4z8AplcrH8NDBCEv/uMC63k=
+	t=1730854757; cv=none; b=L8IRiDvSOxtAgCct3aWr8NIjLRncDiJgKyfbJm+kn3TaVZ1fjS1hSgNgLVLfNt9CXBOxorUUkf1mKExwLz/g2wOrQ37nCPGuflg3MP0gLE68Oo+zMeN4vr2T9KwOA6AkAbcBQzSOcM8qkce/Wxci7WecdgMwcIYloDDPRmPhqAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730854756; c=relaxed/simple;
-	bh=1SROUV1D1JYx6oZLsamlqcvhYDgQl044FXTRTj8h/A4=;
-	h=Date:To:From:Subject:Message-Id; b=fVzEBKMqByganUC7OuZ/keRhEPJS+avMHgz+z5VtIpRRVmU343xSjUwuM++BoUeD2YJH0hgzOxRUZ9mH5vat2tkIQN6asOPpVa/IoiR2zSaKWeMgksdMogCPdvsxWfaudIyLiE3vRG0/OLoHdK0Biyfmc4xy5Isy+E9RHd9tqWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mIsDfAdk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730854757; c=relaxed/simple;
+	bh=1fuT7Ce7LILtE1iRN8NFxu6pG66a3QkHZ1J+jkR3Oj4=;
+	h=Date:To:From:Subject:Message-Id; b=PdHuHhRzsiDR1umOcNKU2jM2p9WRhR0MIKMOohYf7UikZ5xgAaHd7NbjvE1wIUL9Boqr2fKhKYqs3LsA2BSgmwiY0yOz/vcCt3Muam6IoxDlxY+2LvG4Ym71kXEgX77xig5M8UjLKYEsENmV7tk3+9wtrz+FGjT5LtncKSuZSJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfqXqBW+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mIsDfAdk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE96C4CECF;
-	Wed,  6 Nov 2024 00:59:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfqXqBW+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 527A8C4CECF;
+	Wed,  6 Nov 2024 00:59:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730854756;
-	bh=1SROUV1D1JYx6oZLsamlqcvhYDgQl044FXTRTj8h/A4=;
+	s=korg; t=1730854757;
+	bh=1fuT7Ce7LILtE1iRN8NFxu6pG66a3QkHZ1J+jkR3Oj4=;
 	h=Date:To:From:Subject:From;
-	b=mIsDfAdkgGr79rFxeEvM3ycrG1uy0x8xWPU7iC5THkgWVdD0p1zukrlay535UU3G5
-	 9rFDN6/IgcoR/PMiDDKyTaverh8TvLrtewJ13001NzvDBRY7jxGyKUyYnNwVU2+aJh
-	 HtAeMgXuTt6Hgp8X1/nPYuBUpOHFubarB2lF+fVA=
-Date: Tue, 05 Nov 2024 16:59:15 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wajdi.k.feghali@intel.com,ryan.roberts@arm.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
+	b=BfqXqBW+k3yTbF/ChlQa3irC5FSRs7281yp209wDSFI4ZUzpEn9+DmJbiTD23fItU
+	 n6SxEdZB2ohYrcUPeKUe3hspnk4ZAop6hKpS64xS4xHMsgELfiKiVfuAljLHkBAO1F
+	 zlaI+SKI/mi72e7JK7FLxbrFyQA0p7n5zgYqiC18=
+Date: Tue, 05 Nov 2024 16:59:16 -0800
+To: mm-commits@vger.kernel.org,alexs@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch removed from -mm tree
-Message-Id: <20241106005916.2DE96C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-use-a-folio-in-try_to_merge_one_page.patch removed from -mm tree
+Message-Id: <20241106005917.527A8C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,171 +35,131 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: zswap_store_page() will initialize entry after adding to xarray.
+     Subject: ksm: use a folio in try_to_merge_one_page()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch
+     ksm-use-a-folio-in-try_to_merge_one_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: zswap: zswap_store_page() will initialize entry after adding to xarray.
-Date: Wed, 2 Oct 2024 10:33:29 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ksm: use a folio in try_to_merge_one_page()
+Date: Wed, 2 Oct 2024 16:25:27 +0100
 
-This incorporates Yosry's suggestions in [1] for further simplifying
-zswap_store_page().  If the page is successfully compressed and added to
-the xarray, we get the pool/objcg refs, and initialize all the entry's
-members.  Only after this, we add it to the zswap LRU.
+Patch series "Remove PageKsm()".
 
-In the time between the entry's addition to the xarray and it's member
-initialization, we are protected against concurrent stores/loads/swapoff
-through the folio lock, and are protected against writeback because the
-entry is not on the LRU yet.
+The KSM flag is almost always tested on the folio rather than on the page.
+This series removes the final users of PageKsm() and makes the flag only
 
-This way, we don't have to drop the pool/objcg refs, now that the entry
-initialization is centralized to the successful page store code path.
 
-zswap_compress() is modified to take a zswap_pool parameter in keeping
-with this simplification (as against obtaining this from entry->pool).
+This patch (of 5):
 
-[1]: https://lore.kernel.org/all/CAJD7tkZh6ufHQef5HjXf_F5b5LC1EATexgseD=4WvrO+a6Ni6w@mail.gmail.com/
+It is safe to use a folio here because all callers took a refcount on this
+page.  The one wrinkle is that we have to recalculate the value of folio
+after splitting the page, since it has probably changed.  Replaces nine
+calls to compound_head() with one.
 
-Link: https://lkml.kernel.org/r/20241002173329.213722-1-kanchana.p.sridhar@intel.com
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20241002152533.1350629-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241002152533.1350629-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Shi <alexs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   56 +++++++++++++++++++++++----------------------------
- 1 file changed, 26 insertions(+), 30 deletions(-)
+ mm/ksm.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray
-+++ a/mm/zswap.c
-@@ -881,7 +881,8 @@ static int zswap_cpu_comp_dead(unsigned
- 	return 0;
- }
- 
--static bool zswap_compress(struct page *page, struct zswap_entry *entry)
-+static bool zswap_compress(struct page *page, struct zswap_entry *entry,
-+			   struct zswap_pool *pool)
+--- a/mm/ksm.c~ksm-use-a-folio-in-try_to_merge_one_page
++++ a/mm/ksm.c
+@@ -1442,28 +1442,29 @@ out:
+ static int try_to_merge_one_page(struct vm_area_struct *vma,
+ 				 struct page *page, struct page *kpage)
  {
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct scatterlist input, output;
-@@ -893,7 +894,7 @@ static bool zswap_compress(struct page *
- 	gfp_t gfp;
- 	u8 *dst;
++	struct folio *folio = page_folio(page);
+ 	pte_t orig_pte = __pte(0);
+ 	int err = -EFAULT;
  
--	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
-+	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+ 	if (page == kpage)			/* ksm page forked */
+ 		return 0;
  
- 	mutex_lock(&acomp_ctx->mutex);
- 
-@@ -926,7 +927,7 @@ static bool zswap_compress(struct page *
- 	if (comp_ret)
- 		goto unlock;
- 
--	zpool = entry->pool->zpool;
-+	zpool = pool->zpool;
- 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	if (zpool_malloc_support_movable(zpool))
- 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -1414,32 +1415,21 @@ static ssize_t zswap_store_page(struct p
- 				struct obj_cgroup *objcg,
- 				struct zswap_pool *pool)
- {
-+	swp_entry_t page_swpentry = page_swap_entry(page);
- 	struct zswap_entry *entry, *old;
- 
- 	/* allocate entry */
- 	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
- 	if (!entry) {
- 		zswap_reject_kmemcache_fail++;
--		goto reject;
-+		return -EINVAL;
- 	}
- 
--	/* zswap_store() already holds a ref on 'objcg' and 'pool' */
--	if (objcg)
--		obj_cgroup_get(objcg);
--	zswap_pool_get(pool);
--
--	/* if entry is successfully added, it keeps the reference */
--	entry->pool = pool;
-+	if (!zswap_compress(page, entry, pool))
-+		goto compress_failed;
- 
--	if (!zswap_compress(page, entry))
--		goto put_pool_objcg;
--
--	entry->swpentry = page_swap_entry(page);
--	entry->objcg = objcg;
--	entry->referenced = true;
--
--	old = xa_store(swap_zswap_tree(entry->swpentry),
--		       swp_offset(entry->swpentry),
-+	old = xa_store(swap_zswap_tree(page_swpentry),
-+		       swp_offset(page_swpentry),
- 		       entry, GFP_KERNEL);
- 	if (xa_is_err(old)) {
- 		int err = xa_err(old);
-@@ -1458,6 +1448,16 @@ static ssize_t zswap_store_page(struct p
- 		zswap_entry_free(old);
+-	if (!PageAnon(page))
++	if (!folio_test_anon(folio))
+ 		goto out;
  
  	/*
-+	 * The entry is successfully compressed and stored in the tree, there is
-+	 * no further possibility of failure. Grab refs to the pool and objcg.
-+	 * These refs will be dropped by zswap_entry_free() when the entry is
-+	 * removed from the tree.
-+	 */
-+	zswap_pool_get(pool);
-+	if (objcg)
-+		obj_cgroup_get(objcg);
-+
-+	/*
- 	 * We finish initializing the entry while it's already in xarray.
- 	 * This is safe because:
- 	 *
-@@ -1467,25 +1467,21 @@ static ssize_t zswap_store_page(struct p
- 	 *    The publishing order matters to prevent writeback from seeing
- 	 *    an incoherent entry.
+ 	 * We need the folio lock to read a stable swapcache flag in
+-	 * write_protect_page().  We use trylock_page() instead of
+-	 * lock_page() because we don't want to wait here - we
+-	 * prefer to continue scanning and merging different pages,
+-	 * then come back to this page when it is unlocked.
++	 * write_protect_page().  We trylock because we don't want to wait
++	 * here - we prefer to continue scanning and merging different
++	 * pages, then come back to this page when it is unlocked.
  	 */
-+	entry->pool = pool;
-+	entry->swpentry = page_swpentry;
-+	entry->objcg = objcg;
-+	entry->referenced = true;
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
- 		zswap_lru_add(&zswap_list_lru, entry);
+-	if (!trylock_page(page))
++	if (!folio_trylock(folio))
+ 		goto out;
+ 
+-	if (PageTransCompound(page)) {
++	if (folio_test_large(folio)) {
+ 		if (split_huge_page(page))
+ 			goto out_unlock;
++		folio = page_folio(page);
  	}
  
--	/*
--	 * We shouldn't have any possibility of failure after the entry is
--	 * added in the xarray. The pool/objcg refs obtained here will only
--	 * be dropped if/when zswap_entry_free() gets called.
--	 */
- 	return entry->length;
+ 	/*
+@@ -1472,28 +1473,28 @@ static int try_to_merge_one_page(struct
+ 	 * ptes are necessarily already write-protected.  But in either
+ 	 * case, we need to lock and check page_count is not raised.
+ 	 */
+-	if (write_protect_page(vma, page_folio(page), &orig_pte) == 0) {
++	if (write_protect_page(vma, folio, &orig_pte) == 0) {
+ 		if (!kpage) {
+ 			/*
+-			 * While we hold page lock, upgrade page from
+-			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
++			 * While we hold folio lock, upgrade folio from
++			 * anon to a NULL stable_node with the KSM flag set:
+ 			 * stable_tree_insert() will update stable_node.
+ 			 */
+-			folio_set_stable_node(page_folio(page), NULL);
+-			mark_page_accessed(page);
++			folio_set_stable_node(folio, NULL);
++			folio_mark_accessed(folio);
+ 			/*
+-			 * Page reclaim just frees a clean page with no dirty
++			 * Page reclaim just frees a clean folio with no dirty
+ 			 * ptes: make sure that the ksm page would be swapped.
+ 			 */
+-			if (!PageDirty(page))
+-				SetPageDirty(page);
++			if (!folio_test_dirty(folio))
++				folio_mark_dirty(folio);
+ 			err = 0;
+ 		} else if (pages_identical(page, kpage))
+ 			err = replace_page(vma, page, kpage, orig_pte);
+ 	}
  
- store_failed:
--	zpool_free(entry->pool->zpool, entry->handle);
--put_pool_objcg:
--	zswap_pool_put(pool);
--	obj_cgroup_put(objcg);
-+	zpool_free(pool->zpool, entry->handle);
-+compress_failed:
- 	zswap_entry_cache_free(entry);
--reject:
- 	return -EINVAL;
+ out_unlock:
+-	unlock_page(page);
++	folio_unlock(folio);
+ out:
+ 	return err;
  }
- 
 _
 
-Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-convert-page_to_pgoff-to-page_pgoff.patch
+mm-use-page_pgoff-in-more-places.patch
+mm-renovate-page_address_in_vma.patch
+mm-mass-constification-of-folio-page-pointers.patch
+bootmem-stop-using-page-index.patch
+mm-remove-references-to-page-index-in-huge_memoryc.patch
+mm-use-page-private-instead-of-page-index-in-percpu.patch
+nilfs2-remove-nilfs_writepage.patch
+nilfs2-convert-nilfs_page_count_clean_buffers-to-take-a-folio.patch
+nilfs2-convert-nilfs_recovery_copy_block-to-take-a-folio.patch
+nilfs2-convert-metadata-aops-from-writepage-to-writepages.patch
 
