@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D793416FF45
-	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E875216FF45
+	for <mm-commits@vger.kernel.org>; Wed,  6 Nov 2024 01:13:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730855635; cv=none; b=Guypp8lmZ0Y2jk/WrlyRrldZnJQ1nsFWr5qaMi1NUM3VmJakmrMmdVqv61OKNhS7YS68HkgB8R8FPGpNwg5T7AkzDY0oG1gn54r+IOualNAHVh1rcN1Qe0a8FSs4G34p6VHQZFvDLkBqjVvO6H2gvgV4G2UcqMWIT1WsFwgMGBE=
+	t=1730855637; cv=none; b=JllEc1npenuI+Tmk7ul8gVLxhvNOc9/q7cH39N8jqFz4r9SBLZlX77eQHsFWEjWT/mtiKn7lcY2FcFiMfsXhCnKjZ7f+Nt/8Tk9XikqImhb6LrbjyPUm9ahbj8R1lVUcHdmEac3QG9DmNJ+tY7YDTma3uxhoWKW6G3y2NYjx8qU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730855635; c=relaxed/simple;
-	bh=9x9R0XmKjXRRcK7jaCztaCllb7yylBB9z3vGxbsELtU=;
-	h=Date:To:From:Subject:Message-Id; b=lgDJC78wKjxoOblc7sELEJ0z1axVPqetRajw+dWTid+4VGOgXHsOmssAJZomeLrKK40uOnsCr3K7Nk4Y6v7yXuvv2CcHr5Fy4Kz+s0PZrxleT4Aa4z8LID2jmLl7UrKpuIG7k3gGeukisLeLAvHSaneyy/SITaJkim0gK8PtMQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qKWdbgUA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730855637; c=relaxed/simple;
+	bh=p/Nnr34bCYVVCii44AlXq2Eq1eYzO8kDMSPwJEestoQ=;
+	h=Date:To:From:Subject:Message-Id; b=Tj+d7Jd0h4BO9SICsc+TjYYrTBmXs/nIS1mhRS0whMCWTqI8xIt0RnJLWvi5sd2D57bQv2RjtiLzqc0JbTQusGwNrfFvXN1xRMDJJ4guwN47nuH2NN7zmp28QrPHkehpwmMBS2q1MOUMdShszktY2t3bh9TZugtc8+ryt7pLZI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q16ZtDI8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qKWdbgUA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1DBFC4CECF;
-	Wed,  6 Nov 2024 01:13:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q16ZtDI8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC468C4CECF;
+	Wed,  6 Nov 2024 01:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1730855635;
-	bh=9x9R0XmKjXRRcK7jaCztaCllb7yylBB9z3vGxbsELtU=;
+	s=korg; t=1730855636;
+	bh=p/Nnr34bCYVVCii44AlXq2Eq1eYzO8kDMSPwJEestoQ=;
 	h=Date:To:From:Subject:From;
-	b=qKWdbgUAxMS2usIjbKgf15Wv6JJC1RaKKxF0qPJoxij+/wH5hEs1I93gq0WXYx+pT
-	 iJ8H9Kq5PnsLMVFxroJHZTsPidQGZRvl8r4OARruykcVGmjHp/lNXBqH0Gjv3QSnaJ
-	 ParUt95JJPiTFqOCdv+nHGG+yrVXAcHdIu1krq/8=
-Date: Tue, 05 Nov 2024 17:13:55 -0800
-To: mm-commits@vger.kernel.org,peterz@infradead.org,namhyung@kernel.org,mingo@redhat.com,mark.rutland@arm.com,kan.liang@linux.intel.com,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,irogers@google.com,adrian.hunter@intel.com,acme@kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=q16ZtDI83F3IeLOlaNNBoe+LQS6ckU6oQro1nLgKI9qGy1XiHyRaPtgspm/QP9vwH
+	 9pwvayGBdDNRyIaOhb3P7DH9bm3KLOj/P7KVVDkjgs5e3zJbH/rpMjBH9WYKo1URnh
+	 VlFzFPtJ6grIQdDE96b2aI9RBph/9aa3t2c4/xaw=
+Date: Tue, 05 Nov 2024 17:13:56 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] perf-tools-update-expected-diff-for-lib-list_sortc.patch removed from -mm tree
-Message-Id: <20241106011355.A1DBFC4CECF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] percpu-merge-verify_percpu_ptr-into-its-only-user.patch removed from -mm tree
+Message-Id: <20241106011356.BC468C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: perf tools: update expected diff for lib/list_sort.c
+     Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
 has been removed from the -mm tree.  Its filename was
-     perf-tools-update-expected-diff-for-lib-list_sortc.patch
+     percpu-merge-verify_percpu_ptr-into-its-only-user.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: perf tools: update expected diff for lib/list_sort.c
-Date: Sat, 12 Oct 2024 12:28:28 +0800
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: percpu: merge VERIFY_PERCPU_PTR() into its only user
+Date: Mon, 21 Oct 2024 10:07:36 +0200
 
-Since there are no longer any header include differences between
-lib/list_sort.c and tools/lib/list_sort.c, update the expected diff in
-check-header_ignore_hunks accordingly.
+Merge VERIFY_PERCPU_PTR() into non-CONFIG_SMP per_cpu_ptr() to make macro
+similar to CONFIG_SMP per_cpu_ptr().  This will allow a follow-up patch to
+refactor common code to a macro.
 
-Link: https://lkml.kernel.org/r/20241012042828.471614-4-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Acked-by: Namhyung Kim <namhyung@kernel.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: "Liang, Kan" <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+No functional changes, non-CONFIG_SMP per_cpu_ptr() was the only user of
+VERIFY_PERCPU_PTR().
+
+Link: https://lkml.kernel.org/r/20241021080856.48746-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/perf/check-header_ignore_hunks/lib/list_sort.c |   11 +---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ include/linux/percpu-defs.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/perf/check-header_ignore_hunks/lib/list_sort.c~perf-tools-update-expected-diff-for-lib-list_sortc
-+++ a/tools/perf/check-header_ignore_hunks/lib/list_sort.c
-@@ -1,11 +1,4 @@
--@@ -1,5 +1,6 @@
-- // SPDX-License-Identifier: GPL-2.0
-- #include <linux/kernel.h>
--+#include <linux/bug.h>
-- #include <linux/compiler.h>
-- #include <linux/export.h>
-- #include <linux/string.h>
--@@ -52,6 +53,7 @@
-+@@ -50,6 +50,7 @@
-  			struct list_head *a, struct list_head *b)
-  {
-  	struct list_head *tail = head;
-@@ -13,7 +6,7 @@
-  
-  	for (;;) {
-  		/* if equal, take 'a' -- important for sort stability */
--@@ -77,6 +79,15 @@
-+@@ -75,6 +76,15 @@
-  	/* Finish linking remainder of list b on to tail */
-  	tail->next = b;
-  	do {
+--- a/include/linux/percpu-defs.h~percpu-merge-verify_percpu_ptr-into-its-only-user
++++ a/include/linux/percpu-defs.h
+@@ -254,13 +254,13 @@ do {									\
+ 
+ #else	/* CONFIG_SMP */
+ 
+-#define VERIFY_PERCPU_PTR(__p)						\
++#define per_cpu_ptr(ptr, cpu)						\
+ ({									\
+-	__verify_pcpu_ptr(__p);						\
+-	(typeof(*(__p)) __kernel __force *)(__p);			\
++	(void)(cpu);							\
++	__verify_pcpu_ptr(ptr);						\
++	(typeof(*(ptr)) __kernel __force *)(ptr);			\
+ })
+ 
+-#define per_cpu_ptr(ptr, cpu)	({ (void)(cpu); VERIFY_PERCPU_PTR(ptr); })
+ #define raw_cpu_ptr(ptr)	per_cpu_ptr(ptr, 0)
+ #define this_cpu_ptr(ptr)	raw_cpu_ptr(ptr)
+ 
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
 
