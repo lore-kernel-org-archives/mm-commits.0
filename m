@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B6C217447;
-	Thu,  7 Nov 2024 22:15:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795B2218D98;
+	Thu,  7 Nov 2024 22:15:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731017728; cv=none; b=KeDYJaHx31M34yJ0ZiKQdvnf00YWHXLRG4GVTKo+NRbVHxq84pEpTYwbV7bpN4S2+1MdmnIUeOOFzLSbGuSp6zBxOohwyej9IHNT8QADMGBg9zDmousJAiuR37cYz8xpbW2H2dYEtBbJIUSyvG7kkyQ8/WDbEjdQh6/27JB8mJo=
+	t=1731017729; cv=none; b=eBUP14zMCj621Xnf3FrsKHzQK5cD8gpbU8bHlt+RyJSkGoy9afsYSwkqLzB+ng6nHfNWEC9rVAEbyXsVLucqz3ZLBXVck5aatR43uVl+X0FlDkGpzPIQ8y8yZ9Io+5qjTe8J7qKskqHNuPO+hofsj6tocIN3FqyYLFunASOY0bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731017728; c=relaxed/simple;
-	bh=nQDRzWOOd7vBgyb0ezDsxqecs84q5IX9JpwGCvtaw0s=;
-	h=Date:To:From:Subject:Message-Id; b=VKkhjUw5KhQF2uq87ga6dA6TwR6V6qynUw7zkK0dTGu//jS/tTK9SoZmBL2RbVQ7xzR+ANIOiajrEXwnwZvlnnWOWU2a3WkAmtY8EKhsibRI7LxDjd7JwL5AuFlAZf80DrXNcLsc0cw1ZaJEcpAJP6JpN5ELUNWbJ0dCk3s0z9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oWxTyEYs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731017729; c=relaxed/simple;
+	bh=lHt7elhCOF0hhOd0rklxnQQVnkjsyssAgNlunnkPMrM=;
+	h=Date:To:From:Subject:Message-Id; b=J4SKDemKd2pnRP/TZap9OV2afV0jb2npgHWB4wFgjcdd7dQopC8+0W7hN+aKvYgtO5wyHfb6jP/zbPVNaRLXTAlZPdFmiwTUxgivKHaZ8slHqT4GaXtm3yUhG44VC83oksakXy4O9ZIwYHYqI4A1XBL91DkxR2RchkROpi3FQJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SbRl9WzO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oWxTyEYs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26627C4CECE;
-	Thu,  7 Nov 2024 22:15:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SbRl9WzO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14F35C4CECC;
+	Thu,  7 Nov 2024 22:15:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731017728;
-	bh=nQDRzWOOd7vBgyb0ezDsxqecs84q5IX9JpwGCvtaw0s=;
+	s=korg; t=1731017729;
+	bh=lHt7elhCOF0hhOd0rklxnQQVnkjsyssAgNlunnkPMrM=;
 	h=Date:To:From:Subject:From;
-	b=oWxTyEYs0MR/6exnZE/FNUimtPWoh1RUzQMne4ndTGllWEGqrdzp6t8Q2RNUu/Glu
-	 jsISAU+Sr2rlyOvJBdg2XXO5Uf2XGOkEh7f8hDF5fTK8o2wf62Ta9CulLjXqEAj7i6
-	 LJQTTEJHBFhI1/y+Zr6gdvI8MZCx/g1UDtjJRevA=
-Date: Thu, 07 Nov 2024 14:15:27 -0800
+	b=SbRl9WzO6jl/l8VzPT/uCCVIOwi7JsQ2LQLVf3Gdnbn7cgi9oegMZiVIluwtt6XQe
+	 8z8bSAL7JIv36DLe1cjaQYr2MuAqN2QGaQPtMRkVvfaEfZN05udczNC7GkNkBgHusz
+	 RtnUE2mnJKvDTZ/Wd17Ej7ieNteSCpDeyQUe4wwo=
+Date: Thu, 07 Nov 2024 14:15:28 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-handle-zero-aggregationops_update-intervals.patch removed from -mm tree
-Message-Id: <20241107221528.26627C4CECE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-handle-zero-schemes-apply-interval.patch removed from -mm tree
+Message-Id: <20241107221529.14F35C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: handle zero {aggregation,ops_update} intervals
+     Subject: mm/damon/core: handle zero schemes apply interval
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-handle-zero-aggregationops_update-intervals.patch
+     mm-damon-core-handle-zero-schemes-apply-interval.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: handle zero {aggregation,ops_update} intervals
-Date: Thu, 31 Oct 2024 11:37:56 -0700
+Subject: mm/damon/core: handle zero schemes apply interval
+Date: Thu, 31 Oct 2024 11:37:57 -0700
 
-Patch series "mm/damon/core: fix handling of zero non-sampling intervals".
+DAMON's logics to determine if this is the time to apply damos schemes
+assumes next_apply_sis is always set larger than current
+passed_sample_intervals.  And therefore assume continuously incrementing
+passed_sample_intervals will make it reaches to the next_apply_sis in
+future.  The logic hence does apply the scheme and update next_apply_sis
+only if passed_sample_intervals is same to next_apply_sis.
 
-DAMON's internal intervals accounting logic is not correctly handling
-non-sampling intervals of zero values for a wrong assumption.  This could
-cause unexpected monitoring behavior, and even result in infinite hang of
-DAMON sysfs interface user threads in case of zero aggregation interval. 
-Fix those by updating the intervals accounting logic.  For details of the
-root case and solutions, please refer to commit messages of fixes.
-
-
-This patch (of 2):
-
-DAMON's logics to determine if this is the time to do aggregation and ops
-update assumes next_{aggregation,ops_update}_sis are always set larger
-than current passed_sample_intervals.  And therefore it further assumes
-continuously incrementing passed_sample_intervals every sampling interval
-will make it reaches to the next_{aggregation,ops_update}_sis in future. 
-The logic therefore make the action and update
-next_{aggregation,ops_updaste}_sis only if passed_sample_intervals is same
-to the counts, respectively.
-
-If Aggregation interval or Ops update interval are zero, however,
-next_aggregation_sis or next_ops_update_sis are set same to current
-passed_sample_intervals, respectively.  And passed_sample_intervals is
-incremented before doing the next_{aggregation,ops_update}_sis check. 
-Hence, passed_sample_intervals becomes larger than
-next_{aggregation,ops_update}_sis, and the logic says it is not the time
-to do the action and update next_{aggregation,ops_update}_sis forever,
-until an overflow happens.  In other words, DAMON stops doing aggregations
-or ops updates effectively forever, and users cannot get monitoring
-results.
+If Schemes apply interval is set as zero, however, next_apply_sis is set
+same to current passed_sample_intervals, respectively.  And
+passed_sample_intervals is incremented before doing the next_apply_sis
+check.  Hence, next_apply_sis becomes larger than next_apply_sis, and the
+logic says it is not the time to apply schemes and update next_apply_sis. 
+In other words, DAMON stops applying schemes until passed_sample_intervals
+overflows.
 
 Based on the documents and the common sense, a reasonable behavior for
-such inputs is doing an aggregation and an ops update for every sampling
-interval.  Handle the case by removing the assumption.
+such inputs would be applying the schemes for every sampling interval. 
+Handle the case by removing the assumption.
 
-Note that this could incur particular real issue for DAMON sysfs interface
-users, in case of zero Aggregation interval.  When user starts DAMON with
-zero Aggregation interval and asks online DAMON parameter tuning via DAMON
-sysfs interface, the request is handled by the aggregation callback. 
-Until the callback finishes the work, the user who requested the online
-tuning just waits.  Hence, the user will be stuck until the
-passed_sample_intervals overflows.
-
-Link: https://lkml.kernel.org/r/20241031183757.49610-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20241031183757.49610-2-sj@kernel.org
-Fixes: 4472edf63d66 ("mm/damon/core: use number of passed access sampling as a timer")
+Link: https://lkml.kernel.org/r/20241031183757.49610-3-sj@kernel.org
+Fixes: 42f994b71404 ("mm/damon/core: implement scheme-specific apply interval")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org>	[6.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-zero-aggregationops_update-intervals
+--- a/mm/damon/core.c~mm-damon-core-handle-zero-schemes-apply-interval
 +++ a/mm/damon/core.c
-@@ -2000,7 +2000,7 @@ static int kdamond_fn(void *data)
- 		if (ctx->ops.check_accesses)
- 			max_nr_accesses = ctx->ops.check_accesses(ctx);
+@@ -1412,7 +1412,7 @@ static void damon_do_apply_schemes(struc
+ 	damon_for_each_scheme(s, c) {
+ 		struct damos_quota *quota = &s->quota;
  
--		if (ctx->passed_sample_intervals == next_aggregation_sis) {
-+		if (ctx->passed_sample_intervals >= next_aggregation_sis) {
- 			kdamond_merge_regions(ctx,
- 					max_nr_accesses / 10,
- 					sz_limit);
-@@ -2018,7 +2018,7 @@ static int kdamond_fn(void *data)
+-		if (c->passed_sample_intervals != s->next_apply_sis)
++		if (c->passed_sample_intervals < s->next_apply_sis)
+ 			continue;
  
- 		sample_interval = ctx->attrs.sample_interval ?
- 			ctx->attrs.sample_interval : 1;
--		if (ctx->passed_sample_intervals == next_aggregation_sis) {
-+		if (ctx->passed_sample_intervals >= next_aggregation_sis) {
- 			ctx->next_aggregation_sis = next_aggregation_sis +
- 				ctx->attrs.aggr_interval / sample_interval;
+ 		if (!s->wmarks.activated)
+@@ -1622,7 +1622,7 @@ static void kdamond_apply_schemes(struct
+ 	bool has_schemes_to_apply = false;
  
-@@ -2028,7 +2028,7 @@ static int kdamond_fn(void *data)
- 				ctx->ops.reset_aggregated(ctx);
- 		}
+ 	damon_for_each_scheme(s, c) {
+-		if (c->passed_sample_intervals != s->next_apply_sis)
++		if (c->passed_sample_intervals < s->next_apply_sis)
+ 			continue;
  
--		if (ctx->passed_sample_intervals == next_ops_update_sis) {
-+		if (ctx->passed_sample_intervals >= next_ops_update_sis) {
- 			ctx->next_ops_update_sis = next_ops_update_sis +
- 				ctx->attrs.ops_update_interval /
- 				sample_interval;
+ 		if (!s->wmarks.activated)
+@@ -1642,9 +1642,9 @@ static void kdamond_apply_schemes(struct
+ 	}
+ 
+ 	damon_for_each_scheme(s, c) {
+-		if (c->passed_sample_intervals != s->next_apply_sis)
++		if (c->passed_sample_intervals < s->next_apply_sis)
+ 			continue;
+-		s->next_apply_sis +=
++		s->next_apply_sis = c->passed_sample_intervals +
+ 			(s->apply_interval_us ? s->apply_interval_us :
+ 			 c->attrs.aggr_interval) / sample_interval;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
