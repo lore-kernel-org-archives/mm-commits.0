@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EE8E217447;
-	Thu,  7 Nov 2024 22:15:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B6C217447;
+	Thu,  7 Nov 2024 22:15:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731017727; cv=none; b=QMZr8JcWhri0+/JwkY3F7xyOuChJnffGKHq6pUTmJ0PYCEV7NofPAMv5TPK4fkm/x142IuH5Kmu1OHX8wbC4DXDyoKiTBNeTB6GnQLkKJQurUOy8sQdISyrjkNk8CIWziUHMDzhoBBDnMREoqM7CRj7wtTOIMUC3M0n9wUvasas=
+	t=1731017728; cv=none; b=KeDYJaHx31M34yJ0ZiKQdvnf00YWHXLRG4GVTKo+NRbVHxq84pEpTYwbV7bpN4S2+1MdmnIUeOOFzLSbGuSp6zBxOohwyej9IHNT8QADMGBg9zDmousJAiuR37cYz8xpbW2H2dYEtBbJIUSyvG7kkyQ8/WDbEjdQh6/27JB8mJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731017727; c=relaxed/simple;
-	bh=uJc4C/47j7E5Xqkgw44LmQywUlBjlezpwo+5+ONbFeM=;
-	h=Date:To:From:Subject:Message-Id; b=YIgUUBlrEJ4ANuAt9PyG31Jycv6XJkjHcZFE8CttsenWenMNqNc5C0L72iEL6UE5U176FaYehgkhBCX51MbcCL55W6NoeK0KBNTJ41+7IjyOgKpzMnrzJR+4oGMnS0BBDrIj0aTVMVgZGXemg3xLe63TqyBnandYu3MLxvDta1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kbNLKp2L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731017728; c=relaxed/simple;
+	bh=nQDRzWOOd7vBgyb0ezDsxqecs84q5IX9JpwGCvtaw0s=;
+	h=Date:To:From:Subject:Message-Id; b=VKkhjUw5KhQF2uq87ga6dA6TwR6V6qynUw7zkK0dTGu//jS/tTK9SoZmBL2RbVQ7xzR+ANIOiajrEXwnwZvlnnWOWU2a3WkAmtY8EKhsibRI7LxDjd7JwL5AuFlAZf80DrXNcLsc0cw1ZaJEcpAJP6JpN5ELUNWbJ0dCk3s0z9M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oWxTyEYs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kbNLKp2L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 316FEC4CECC;
-	Thu,  7 Nov 2024 22:15:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oWxTyEYs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26627C4CECE;
+	Thu,  7 Nov 2024 22:15:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731017727;
-	bh=uJc4C/47j7E5Xqkgw44LmQywUlBjlezpwo+5+ONbFeM=;
+	s=korg; t=1731017728;
+	bh=nQDRzWOOd7vBgyb0ezDsxqecs84q5IX9JpwGCvtaw0s=;
 	h=Date:To:From:Subject:From;
-	b=kbNLKp2L8DfmGSnr9xpO9MOTRo0H1Y69+ocz9iiUZeEe3esGB1ETi9PO31QKFl1D3
-	 27eFJ+aZAY86vAI64QHSO3qd5ElC8YKyWtQXuqGwGQ+VmCT3Ebb/WmAhpLLsA0op7s
-	 9GaKOBt7kfwKLnAv4px8v3pOr6HHZIM/Q25HFrpc=
-Date: Thu, 07 Nov 2024 14:15:26 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=oWxTyEYs0MR/6exnZE/FNUimtPWoh1RUzQMne4ndTGllWEGqrdzp6t8Q2RNUu/Glu
+	 jsISAU+Sr2rlyOvJBdg2XXO5Uf2XGOkEh7f8hDF5fTK8o2wf62Ta9CulLjXqEAj7i6
+	 LJQTTEJHBFhI1/y+Zr6gdvI8MZCx/g1UDtjJRevA=
+Date: Thu, 07 Nov 2024 14:15:27 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mlock-set-the-correct-prev-on-failure.patch removed from -mm tree
-Message-Id: <20241107221527.316FEC4CECC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-handle-zero-aggregationops_update-intervals.patch removed from -mm tree
+Message-Id: <20241107221528.26627C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mlock: set the correct prev on failure
+     Subject: mm/damon/core: handle zero {aggregation,ops_update} intervals
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-set-the-correct-prev-on-failure.patch
+     mm-damon-core-handle-zero-aggregationops_update-intervals.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/mlock: set the correct prev on failure
-Date: Sun, 27 Oct 2024 12:33:21 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: handle zero {aggregation,ops_update} intervals
+Date: Thu, 31 Oct 2024 11:37:56 -0700
 
-After commit 94d7d9233951 ("mm: abstract the vma_merge()/split_vma()
-pattern for mprotect() et al."), if vma_modify_flags() return error, the
-vma is set to an error code.  This will lead to an invalid prev be
-returned.
+Patch series "mm/damon/core: fix handling of zero non-sampling intervals".
 
-Generally this shouldn't matter as the caller should treat an error as
-indicating state is now invalidated, however unfortunately
-apply_mlockall_flags() does not check for errors and assumes that
-mlock_fixup() correctly maintains prev even if an error were to occur.
+DAMON's internal intervals accounting logic is not correctly handling
+non-sampling intervals of zero values for a wrong assumption.  This could
+cause unexpected monitoring behavior, and even result in infinite hang of
+DAMON sysfs interface user threads in case of zero aggregation interval. 
+Fix those by updating the intervals accounting logic.  For details of the
+root case and solutions, please refer to commit messages of fixes.
 
-This patch fixes that assumption.
 
-[lorenzo.stoakes@oracle.com: provide a better fix and rephrase the log]
-Link: https://lkml.kernel.org/r/20241027123321.19511-1-richard.weiyang@gmail.com
-Fixes: 94d7d9233951 ("mm: abstract the vma_merge()/split_vma() pattern for mprotect() et al.")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: <stable@vger.kernel.org>
+This patch (of 2):
+
+DAMON's logics to determine if this is the time to do aggregation and ops
+update assumes next_{aggregation,ops_update}_sis are always set larger
+than current passed_sample_intervals.  And therefore it further assumes
+continuously incrementing passed_sample_intervals every sampling interval
+will make it reaches to the next_{aggregation,ops_update}_sis in future. 
+The logic therefore make the action and update
+next_{aggregation,ops_updaste}_sis only if passed_sample_intervals is same
+to the counts, respectively.
+
+If Aggregation interval or Ops update interval are zero, however,
+next_aggregation_sis or next_ops_update_sis are set same to current
+passed_sample_intervals, respectively.  And passed_sample_intervals is
+incremented before doing the next_{aggregation,ops_update}_sis check. 
+Hence, passed_sample_intervals becomes larger than
+next_{aggregation,ops_update}_sis, and the logic says it is not the time
+to do the action and update next_{aggregation,ops_update}_sis forever,
+until an overflow happens.  In other words, DAMON stops doing aggregations
+or ops updates effectively forever, and users cannot get monitoring
+results.
+
+Based on the documents and the common sense, a reasonable behavior for
+such inputs is doing an aggregation and an ops update for every sampling
+interval.  Handle the case by removing the assumption.
+
+Note that this could incur particular real issue for DAMON sysfs interface
+users, in case of zero Aggregation interval.  When user starts DAMON with
+zero Aggregation interval and asks online DAMON parameter tuning via DAMON
+sysfs interface, the request is handled by the aggregation callback. 
+Until the callback finishes the work, the user who requested the online
+tuning just waits.  Hence, the user will be stuck until the
+passed_sample_intervals overflows.
+
+Link: https://lkml.kernel.org/r/20241031183757.49610-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241031183757.49610-2-sj@kernel.org
+Fixes: 4472edf63d66 ("mm/damon/core: use number of passed access sampling as a timer")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/mlock.c~mm-mlock-set-the-correct-prev-on-failure
-+++ a/mm/mlock.c
-@@ -725,14 +725,17 @@ static int apply_mlockall_flags(int flag
- 	}
+--- a/mm/damon/core.c~mm-damon-core-handle-zero-aggregationops_update-intervals
++++ a/mm/damon/core.c
+@@ -2000,7 +2000,7 @@ static int kdamond_fn(void *data)
+ 		if (ctx->ops.check_accesses)
+ 			max_nr_accesses = ctx->ops.check_accesses(ctx);
  
- 	for_each_vma(vmi, vma) {
-+		int error;
- 		vm_flags_t newflags;
+-		if (ctx->passed_sample_intervals == next_aggregation_sis) {
++		if (ctx->passed_sample_intervals >= next_aggregation_sis) {
+ 			kdamond_merge_regions(ctx,
+ 					max_nr_accesses / 10,
+ 					sz_limit);
+@@ -2018,7 +2018,7 @@ static int kdamond_fn(void *data)
  
- 		newflags = vma->vm_flags & ~VM_LOCKED_MASK;
- 		newflags |= to_add;
+ 		sample_interval = ctx->attrs.sample_interval ?
+ 			ctx->attrs.sample_interval : 1;
+-		if (ctx->passed_sample_intervals == next_aggregation_sis) {
++		if (ctx->passed_sample_intervals >= next_aggregation_sis) {
+ 			ctx->next_aggregation_sis = next_aggregation_sis +
+ 				ctx->attrs.aggr_interval / sample_interval;
  
--		/* Ignore errors */
--		mlock_fixup(&vmi, vma, &prev, vma->vm_start, vma->vm_end,
--			    newflags);
-+		error = mlock_fixup(&vmi, vma, &prev, vma->vm_start, vma->vm_end,
-+				    newflags);
-+		/* Ignore errors, but prev needs fixing up. */
-+		if (error)
-+			prev = vma;
- 		cond_resched();
- 	}
- out:
+@@ -2028,7 +2028,7 @@ static int kdamond_fn(void *data)
+ 				ctx->ops.reset_aggregated(ctx);
+ 		}
+ 
+-		if (ctx->passed_sample_intervals == next_ops_update_sis) {
++		if (ctx->passed_sample_intervals >= next_ops_update_sis) {
+ 			ctx->next_ops_update_sis = next_ops_update_sis +
+ 				ctx->attrs.ops_update_interval /
+ 				sample_interval;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-maple_tree-print-empty-for-an-empty-tree-on-mt_dump.patch
-maple_tree-the-return-value-of-mas_root_expand-is-not-used.patch
-maple_tree-not-necessary-to-check-index-last-again.patch
-maple_tree-refine-mas_store_root-on-storing-null.patch
-maple_tree-add-a-test-checking-storing-null.patch
+selftests-damon-huge_count_read_write-remove-unnecessary-debugging-message.patch
+selftests-damon-_debugfs_common-hide-expected-error-message-from-test_write_result.patch
+selftests-damon-debugfs_duplicate_context_creation-hide-errors-from-expected-file-write-failures.patch
+mm-damon-kconfig-update-dbgfs_kunit-prompt-copy-for-sysfs_kunit.patch
+mm-damon-tests-dbgfs-kunit-fix-the-header-double-inclusion-guarding-ifdef-comment.patch
+docs-mm-damon-recommend-academic-papers-to-read-and-or-cite.patch
+maintainers-memory-management-add-document-files-for-mm.patch
 
