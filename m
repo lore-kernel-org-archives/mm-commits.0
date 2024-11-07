@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AC0217447
-	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:38:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FC1B21766E
+	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:38:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731019124; cv=none; b=g41Kv6FPyU6Ev3Dorm62G1jtv61ulG3uTCA9O/ev0qbQR1lde3BIm9i96SWYS/CcrR838c2jD4ysWDwPsQEYD1cJWPVgUgFTCiYfRKUNKG/1CtWT6RTDGNx7WOAsikZmIjxBK5X1ojvbbT64AH2kkZwIHXuJtRcLVVrzQfeS6M8=
+	t=1731019125; cv=none; b=nitBwb7Yy4xX5Oavlzn7DU7bE5P4Skgjwukt2cu4eD3eVX21Rk7aTdv2n5+sV5Eo/iWvQH6qHS02wcYOug8EhNV4BNcgJ+clRl17iKOSO3Idnun5+OHWimXTugxYsh366V4TRzVJPoSS+VkKnfUcWQeqnocpQESFvy3KLBXQqj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731019124; c=relaxed/simple;
-	bh=rHMrmELnMGip5HfXSKY/l+yf3lnoROv0Ll4mkRJUhyQ=;
-	h=Date:To:From:Subject:Message-Id; b=UbS++OOgJOmPRAFPsvoIrcjrlYxdF6v8eczBRVGN6yPgmdFIXK3Q3RFmnBVy0C/BwigqVsvp86WGt1vgiBAWp4ZwmJgZSedAH2AEb4aHjfONP+1b9AucoYSujWlkUsCMzwndifng0o/UAncxZBP7J8Gv0zRMsiucKHKetJ7LUa8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X5k4JjXp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731019125; c=relaxed/simple;
+	bh=PJ5Cp+ZUG+PmYOPFjfBALgt7VNSdY5HSF8DkdEq+nVM=;
+	h=Date:To:From:Subject:Message-Id; b=U7eRlxlWWnkETiu73rZCI83Ckje0c5JzwxtW2FWpg2wD+GdmtgAe45ODBcua2OmsOZ6nTREjTP/EPl/rg9kl4OQAOITL9mv10HMM+mklQmaSjoaDRnfbbLFJzfuoCU9iyB9S/sfy+HwutPQ7+tJC2i81XNulYlu85tJtDjHdQ8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DZMSotiR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X5k4JjXp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396E3C4CECC;
-	Thu,  7 Nov 2024 22:38:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DZMSotiR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44D43C4CECC;
+	Thu,  7 Nov 2024 22:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731019124;
-	bh=rHMrmELnMGip5HfXSKY/l+yf3lnoROv0Ll4mkRJUhyQ=;
+	s=korg; t=1731019125;
+	bh=PJ5Cp+ZUG+PmYOPFjfBALgt7VNSdY5HSF8DkdEq+nVM=;
 	h=Date:To:From:Subject:From;
-	b=X5k4JjXpMlS3Mh8meCZ0H76U30PaapeRC0zHa1SqMq2R1uAwTUabwH0QelOsfwPwb
-	 LZTuiOuQ6LXKXU3b2Gy6hJAcrgoResMQEoGbc2IjbPwnXmNpgl0xvpZuSLGl/EY5On
-	 l50h6GNxHTbpKylIIBknpMlYSIvvIn6RoxxsVWqE=
-Date: Thu, 07 Nov 2024 14:38:43 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,tjmercier@google.com,kasong@tencent.com,chrisl@kernel.org,linuszeng@tencent.com,akpm@linux-foundation.org
+	b=DZMSotiRS1KpKq4LCPIi06TxbmatqqlVZuAwi2Q6vmPYI4sA0uU1EJy81DVkWrffa
+	 h8oW/M7yhp44LBv6Jz/X5B1ZR19ocPqDZvyOHB+PHEYGWTE5HZXbbrIVWh/8IB1fc9
+	 rB2w79vUEnF0FcLilWa2biTVCSo9FRTU6+vfsUoM=
+Date: Thu, 07 Nov 2024 14:38:44 -0800
+To: mm-commits@vger.kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch removed from -mm tree
-Message-Id: <20241107223844.396E3C4CECC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch removed from -mm tree
+Message-Id: <20241107223845.44D43C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,183 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
+     Subject: mm/show_mem: use str_yes_no() helper in show_free_areas()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom.patch
+     mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zeng Jingxiang <linuszeng@tencent.com>
-Subject: mm/vmscan: wake up flushers conditionally to avoid cgroup OOM
-Date: Sat, 26 Oct 2024 19:57:14 +0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: mm/show_mem: use str_yes_no() helper in show_free_areas()
+Date: Sat, 26 Oct 2024 12:35:53 +0200
 
-Commit 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-removed the opportunity to wake up flushers during the MGLRU page
-reclamation process can lead to an increased likelihood of triggering OOM
-when encountering many dirty pages during reclamation on MGLRU.
+Remove hard-coded strings by using the str_yes_no() helper function.
 
-This leads to premature OOM if there are too many dirty pages in cgroup:
-Killed
-
-dd invoked oom-killer: gfp_mask=0x101cca(GFP_HIGHUSER_MOVABLE|__GFP_WRITE),
-order=0, oom_score_adj=0
-
-Call Trace:
-  <TASK>
-  dump_stack_lvl+0x5f/0x80
-  dump_stack+0x14/0x20
-  dump_header+0x46/0x1b0
-  oom_kill_process+0x104/0x220
-  out_of_memory+0x112/0x5a0
-  mem_cgroup_out_of_memory+0x13b/0x150
-  try_charge_memcg+0x44f/0x5c0
-  charge_memcg+0x34/0x50
-  __mem_cgroup_charge+0x31/0x90
-  filemap_add_folio+0x4b/0xf0
-  __filemap_get_folio+0x1a4/0x5b0
-  ? srso_return_thunk+0x5/0x5f
-  ? __block_commit_write+0x82/0xb0
-  ext4_da_write_begin+0xe5/0x270
-  generic_perform_write+0x134/0x2b0
-  ext4_buffered_write_iter+0x57/0xd0
-  ext4_file_write_iter+0x76/0x7d0
-  ? selinux_file_permission+0x119/0x150
-  ? srso_return_thunk+0x5/0x5f
-  ? srso_return_thunk+0x5/0x5f
-  vfs_write+0x30c/0x440
-  ksys_write+0x65/0xe0
-  __x64_sys_write+0x1e/0x30
-  x64_sys_call+0x11c2/0x1d50
-  do_syscall_64+0x47/0x110
-  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
- memory: usage 308224kB, limit 308224kB, failcnt 2589
- swap: usage 0kB, limit 9007199254740988kB, failcnt 0
-
-  ...
-  file_dirty 303247360
-  file_writeback 0
-  ...
-
-oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=test,
-mems_allowed=0,oom_memcg=/test,task_memcg=/test,task=dd,pid=4404,uid=0
-Memory cgroup out of memory: Killed process 4404 (dd) total-vm:10512kB,
-anon-rss:1152kB, file-rss:1824kB, shmem-rss:0kB, UID:0 pgtables:76kB
-oom_score_adj:0
-
-The flusher wake up was removed to decrease SSD wearing, but if we are
-seeing all dirty folios at the tail of an LRU, not waking up the flusher
-could lead to thrashing easily.  So wake it up when a memcg is about to
-OOM due to dirty caches.
-
-I did run the build kernel test[1] on V6, with -j16 1G memcg on my local
-branch:
-
-Without the patch(10 times):
-user 1449.394
-system 368.78 372.58 363.03 362.31 360.84 372.70 368.72 364.94 373.51
-366.58 (avg 367.399)
-real 164.883
-
-With the V6 patch(10 times):
-user 1447.525
-system 360.87 360.63 372.39 364.09 368.49 365.15 359.93 362.04 359.72
-354.60 (avg 362.79)
-real 164.514
-
-Test results show that this patch has about 1% performance improvement,
-which should be caused by noise.
-
-Link: https://lkml.kernel.org/r/20241026115714.1437435-1-jingxiangzeng.cas@gmail.com
-Link: https://lore.kernel.org/all/CACePvbV4L-gRN9UKKuUnksfVJjOTq_5Sti2-e=pb_w51kucLKQ@mail.gmail.com/ [1]
-Fixes: 14aa8b2d5c2e ("mm/mglru: don't sync disk for each aging cycle")
-Suggested-by: Wei Xu <weixugc@google.com>
-Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Wei Xu <weixugc@google.com>
-Tested-by: Chris Li <chrisl@kernel.org>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20241026103552.6790-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ mm/show_mem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-wake-up-flushers-conditionally-to-avoid-cgroup-oom
-+++ a/mm/vmscan.c
-@@ -4284,6 +4284,7 @@ static bool sort_folio(struct lruvec *lr
- 		       int tier_idx)
- {
- 	bool success;
-+	bool dirty, writeback;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -4329,9 +4330,17 @@ static bool sort_folio(struct lruvec *lr
- 		return true;
+--- a/mm/show_mem.c~mm-show_mem-use-str_yes_no-helper-in-show_free_areas
++++ a/mm/show_mem.c
+@@ -285,8 +285,7 @@ static void show_free_areas(unsigned int
+ #endif
+ 			K(node_page_state(pgdat, NR_PAGETABLE)),
+ 			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
+-			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
+-				"yes" : "no");
++			str_yes_no(pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES));
  	}
  
-+	dirty = folio_test_dirty(folio);
-+	writeback = folio_test_writeback(folio);
-+	if (type == LRU_GEN_FILE && dirty) {
-+		sc->nr.file_taken += delta;
-+		if (!writeback)
-+			sc->nr.unqueued_dirty += delta;
-+	}
-+
- 	/* waiting for writeback */
--	if (folio_test_locked(folio) || folio_test_writeback(folio) ||
--	    (type == LRU_GEN_FILE && folio_test_dirty(folio))) {
-+	if (folio_test_locked(folio) || writeback ||
-+	    (type == LRU_GEN_FILE && dirty)) {
- 		gen = folio_inc_gen(lruvec, folio, true);
- 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
-@@ -4447,7 +4456,8 @@ static int scan_folios(struct lruvec *lr
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
--
-+	if (type == LRU_GEN_FILE)
-+		sc->nr.file_taken += isolated;
- 	/*
- 	 * There might not be eligible folios due to reclaim_idx. Check the
- 	 * remaining to prevent livelock if it's not making progress.
-@@ -4581,6 +4591,7 @@ static int evict_folios(struct lruvec *l
- 		return scanned;
- retry:
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
-+	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
- 	sc->nr_reclaimed += reclaimed;
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			scanned, reclaimed, &stat, sc->priority,
-@@ -4789,6 +4800,13 @@ static bool try_to_shrink_lruvec(struct
- 		cond_resched();
- 	}
- 
-+	/*
-+	 * If too many file cache in the coldest generation can't be evicted
-+	 * due to being dirty, wake up the flusher.
-+	 */
-+	if (sc->nr.unqueued_dirty && sc->nr.unqueued_dirty == sc->nr.file_taken)
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+
- 	/* whether this lruvec should be rotated */
- 	return nr_to_scan < 0;
- }
-@@ -5934,6 +5952,7 @@ static void shrink_node(pg_data_t *pgdat
- 	bool reclaimable = false;
- 
- 	if (lru_gen_enabled() && root_reclaim(sc)) {
-+		memset(&sc->nr, 0, sizeof(sc->nr));
- 		lru_gen_shrink_node(pgdat, sc);
- 		return;
- 	}
+ 	for_each_populated_zone(zone) {
 _
 
-Patches currently in -mm which might be from linuszeng@tencent.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
 
