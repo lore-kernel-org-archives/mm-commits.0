@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C5F7218D6F;
-	Thu,  7 Nov 2024 22:15:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60C26218D6F;
+	Thu,  7 Nov 2024 22:15:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731017732; cv=none; b=K4jTNjO7rm/Q/P3hs5wu0vxuTiKUID0WgctUcGI31J/IadXlHveXIUftRh71Ym/fHaTuP1PM7YuMTs7ixz8l/pq//ZUnJMrEcUAsyomSz0Eyth8Me4R1nzo8/wZFZfcYRGSOyJZ30px4O5dqDpTHe7xAx3WJqVZrUFQJynJbXKM=
+	t=1731017733; cv=none; b=lgCOt3VDle1kCIcHvRu9bLw0wG5DAW6AjetUgNpWzy7C+mXjwSDmLMdBy3q2CDWuiJGy/fze+kOAWZQhHliFPKVXIsBKJSp6Hx3b/yhKLSwsiXsyyCwZJDn3QFFKewN8nxQ0aGgRvwW9KKau773kN0N9IRNfvO/HhF4TztLFIS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731017732; c=relaxed/simple;
-	bh=fhxwnsqenNHL1v16W2Mb1XPqeJ3+IY5yeh82gTYDn0g=;
-	h=Date:To:From:Subject:Message-Id; b=h5+XcyMhyQg+bgNKp6du5K+4qcNhjOrIipYS/JjqtLxNV2C10SKHh5hLRisynxpnu1j0+rJSaYubVeprI4fmrP3Pw2E6/h3fX6fmARwdgLI93r8dBD0D5XgwD/pt4Sk8HL8wjAOQEwB4EJ4qUWbZy2tpB3Oq73g9If9BcdGvQSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XQZ23+k4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731017733; c=relaxed/simple;
+	bh=B6wDQeQ9NUtq/ASwyAwKY/iEJa/RPkJHBzyhrs6t/ZQ=;
+	h=Date:To:From:Subject:Message-Id; b=WPFLvceHbXbDI1a85/3OXYVLFevPF5WHuUzaMDu0Gtbhk/wDA9a7hPvtAb8wLgUShMojrHl8koRvusF4shUocYFjOR2KsbA7Q7bnQ8MiE57gNG5WSc1FzaXlPTb1Zox2WSnJGyr3zmfS4rV8sIzmSzALnkz0TwWGAFSDL7DJjCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cnLqVMdY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XQZ23+k4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1662C4CECC;
-	Thu,  7 Nov 2024 22:15:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cnLqVMdY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3FCBC4CED4;
+	Thu,  7 Nov 2024 22:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731017731;
-	bh=fhxwnsqenNHL1v16W2Mb1XPqeJ3+IY5yeh82gTYDn0g=;
+	s=korg; t=1731017732;
+	bh=B6wDQeQ9NUtq/ASwyAwKY/iEJa/RPkJHBzyhrs6t/ZQ=;
 	h=Date:To:From:Subject:From;
-	b=XQZ23+k4l4mV5dAKxZhwDlnzdH88DBePUh03AYefQPfCbTpY3yZEfVTXgXQY+sDFN
-	 aUW9kNF6+UDlHVm0EXfKdemUgwIKFEXuAIv7TZA0St+ETxdsVvosnCSfUp9vIMJy7J
-	 VaeQ7o15a3BIgAck0liLV1bxfH28gkcdVTzz3Kd8=
-Date: Thu, 07 Nov 2024 14:15:31 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,donettom@linux.ibm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=cnLqVMdYWX5uhZYQHKRwOaMyXLTmc7mfZ4A116l2qo8fmXJDKG6mXrpiVtHKDv3B5
+	 zseqw3YWi1+g1XuFVf3BuDiYLw/6l0CIKcrR7ZS0s+4o9XOcTEMDBt1oaW3Y69/y8i
+	 N00mkrl0oCZRpVyHe/aujobXfVmZ4Sqm6TPr7vJY=
+Date: Thu, 07 Nov 2024 14:15:32 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,oleg@redhat.com,legion@kernel.org,kees@kernel.org,ebiederm@xmission.com,avagin@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-hugetlb_dio-check-for-initial-conditions-to-skip-in-the-start.patch removed from -mm tree
-Message-Id: <20241107221531.D1662C4CECC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch removed from -mm tree
+Message-Id: <20241107221532.D3FCBC4CED4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: hugetlb_dio: check for initial conditions to skip in the start
+     Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
 has been removed from the -mm tree.  Its filename was
-     selftests-hugetlb_dio-check-for-initial-conditions-to-skip-in-the-start.patch
+     ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: hugetlb_dio: check for initial conditions to skip in the start
-Date: Fri, 1 Nov 2024 19:15:57 +0500
+From: Andrei Vagin <avagin@google.com>
+Subject: ucounts: fix counter leak in inc_rlimit_get_ucounts()
+Date: Fri, 1 Nov 2024 19:19:40 +0000
 
-The test should be skipped if initial conditions aren't fulfilled in the
-start instead of failing and outputting non-compliant TAP logs.  This kind
-of failure pollutes the results.  The initial conditions are:
+The inc_rlimit_get_ucounts() increments the specified rlimit counter and
+then checks its limit.  If the value exceeds the limit, the function
+returns an error without decrementing the counter.
 
-- The test should only execute if /tmp file can be allocated.
-- The test should only execute if huge pages are free.
-
-Before:
-TAP version 13
-1..4
-Bail out! Error opening file
-: Read-only file system (30)
- # Planned tests != run tests (4 != 0)
- # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-After:
-TAP version 13
-1..0 # SKIP Unable to allocate file: Read-only file system
-
-Link: https://lkml.kernel.org/r/20241101141557.3159432-1-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Fixes: 3a103b5315b7 ("selftest: mm: Test if hugepage does not get leaked during __bio_release_pages()")
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Donet Tom <donettom@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20241101191940.3211128-1-roman.gushchin@linux.dev
+Fixes: 15bc01effefe ("ucounts: Fix signal ucount refcounting")
+Signed-off-by: Andrei Vagin <avagin@google.com>
+Co-developed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Tested-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Alexey Gladkov <legion@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_dio.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ kernel/ucount.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-hugetlb_dio-check-for-initial-conditions-to-skip-in-the-start
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -44,13 +44,6 @@ void run_dio_using_hugetlb(unsigned int
- 	if (fd < 0)
- 		ksft_exit_fail_perror("Error opening file\n");
- 
--	/* Get the free huge pages before allocation */
--	free_hpage_b = get_free_hugepages();
--	if (free_hpage_b == 0) {
--		close(fd);
--		ksft_exit_skip("No free hugepage, exiting!\n");
--	}
--
- 	/* Allocate a hugetlb page */
- 	orig_buffer = mmap(NULL, h_pagesize, mmap_prot, mmap_flags, -1, 0);
- 	if (orig_buffer == MAP_FAILED) {
-@@ -94,8 +87,20 @@ void run_dio_using_hugetlb(unsigned int
- int main(void)
- {
- 	size_t pagesize = 0;
-+	int fd;
- 
- 	ksft_print_header();
-+
-+	/* Open the file to DIO */
-+	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
-+	if (fd < 0)
-+		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
-+	close(fd);
-+
-+	/* Check if huge pages are free */
-+	if (!get_free_hugepages())
-+		ksft_exit_skip("No free hugepage, exiting\n");
-+
- 	ksft_set_plan(4);
- 
- 	/* Get base page size */
+--- a/kernel/ucount.c~ucounts-fix-counter-leak-in-inc_rlimit_get_ucounts
++++ a/kernel/ucount.c
+@@ -317,7 +317,7 @@ long inc_rlimit_get_ucounts(struct ucoun
+ 	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
+ 		long new = atomic_long_add_return(1, &iter->rlimit[type]);
+ 		if (new < 0 || new > max)
+-			goto unwind;
++			goto dec_unwind;
+ 		if (iter == ucounts)
+ 			ret = new;
+ 		max = get_userns_rlimit_max(iter->ns, type);
+@@ -334,7 +334,6 @@ long inc_rlimit_get_ucounts(struct ucoun
+ dec_unwind:
+ 	dec = atomic_long_sub_return(1, &iter->rlimit[type]);
+ 	WARN_ON_ONCE(dec < 0);
+-unwind:
+ 	do_dec_rlimit_put_ucounts(ucounts, iter, type);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from avagin@google.com are
 
 
