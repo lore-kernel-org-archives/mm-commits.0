@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B8221832A
-	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:15:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5A3E1D4337
+	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:16:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731017737; cv=none; b=HJ1SA2gt8knjw+ijIGeSNnX6YOnKk9+1hY6RY0NyQsr8kKRkvmoryTaxvT2Zwh8xQ5F7SpSC4pRsW/FBARnM/ghobj4vvVz/RtHg5cvLOdKCQsRMUU/kTHcSWNhoS7OAXkrDj0afq9clfPQ+YS4vtmYD4ZE1j/P5asCpIXgSOJY=
+	t=1731017779; cv=none; b=Kdi/0UR+4qoFFAfNwWrlfCYQHYgmu04Vz/4qpF65A3mtaxoNam1y6hJXl5EmsJpCsEd+LcpYFkUfmmnvxhncb6R8eP3Fcgsf8ecjX90YSN/iT3OOHLkIo+8j2DKd58lFNbxBrzt3JmAhh0jd2PHp2QOqoM0hoTk9elEjEh02JTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731017737; c=relaxed/simple;
-	bh=/yvwQ50OCdecTGijgyrx0NHlKw+O0o1vwL/d4Ln/7V0=;
-	h=Date:To:From:Subject:Message-Id; b=ZjTpKHL8ehX9mIyure/N4XQfQw4n2kSlW61sGXFML+sT7ms/02KEtn0Iuc8+j214a5mq6KWokf5FP6G5XQCdnYCW2DLSbrYCdM9nVXJtvVvmOIAWtFQCgGUl1Yd6pu22Ruur5Nr6hFlklCJNZi2UrAaWc3yJ4pfJpcGkQGgOap4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HunxW5z2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731017779; c=relaxed/simple;
+	bh=wxKgMsGmkK+4tOqDazdQJnHmXKtiyT3uSPXxRCjRpkk=;
+	h=Date:To:From:Subject:Message-Id; b=YfnNiU9irwi5v/zUp1Bl9UXjaOmH8xj71w1vcNX875ob7q4W9Gd8AR+wjxHHE7tTIpusc3qG4978uXPA4VcpkYh1SdbF40rwetykNdIn+CgSdWt7cbBIkO+vQAF0GOR/OuJnR0B4VuVbKaxSMkouKKykB/OFff7yxhRQfhBYqb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDtMxMTP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HunxW5z2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE3D7C4AF0B;
-	Thu,  7 Nov 2024 22:15:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDtMxMTP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B5CFC4CECC;
+	Thu,  7 Nov 2024 22:16:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731017736;
-	bh=/yvwQ50OCdecTGijgyrx0NHlKw+O0o1vwL/d4Ln/7V0=;
+	s=korg; t=1731017779;
+	bh=wxKgMsGmkK+4tOqDazdQJnHmXKtiyT3uSPXxRCjRpkk=;
 	h=Date:To:From:Subject:From;
-	b=HunxW5z2S73e05bVdyW+wVBYsXRa3ljQ4qBqy0apb0QLQGeSZuTdyWoyRKfqLHRJL
-	 rZyBRDLKugSqlcM0FCuYKL9nKr8odrDd+Mc+pKe0m07R35oaN7ErA9b8PDOk3knPbH
-	 8QAailDtYO3pauUOfLWov/5NfW6LQ4L36mbi6qsI=
-Date: Thu, 07 Nov 2024 14:15:36 -0800
-To: mm-commits@vger.kernel.org,qmo@kernel.org,neeraj.upadhyay@kernel.org,nao.horiguchi@gmail.com,m.othacehe@gmail.com,matttbe@kernel.org,matt@ranostay.sg,kees@kernel.org,geliang@kernel.org,elder@kernel.org,davem@davemloft.net,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=sDtMxMTPWf6bF+3i8A+/K2rJhkvI3lcRcuOP4iSDazwsCNiUekIGsYSfP5TfW9d18
+	 hpSck7RqeG7DZi5XQBujh9zDozf1GCxsYCiAbcdOVB+PSfDqLfqXq6ulwxkNMuDbDM
+	 JAWE891/LppWKBxNtThlRGcuagiLjzSr6DKExJD8=
+Date: Thu, 07 Nov 2024 14:16:18 -0800
+To: mm-commits@vger.kernel.org,nathan@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-thorsten-blum.patch removed from -mm tree
-Message-Id: <20241107221536.BE3D7C4AF0B@smtp.kernel.org>
+Subject: [folded-merged] x86-module-prepare-module-loading-for-rox-allocations-of-text-fix.patch removed from -mm tree
+Message-Id: <20241107221619.7B5CFC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: add entry for Thorsten Blum
+     Subject: x86/alternatives: fix writable address in cfi_rewrite_endbr()
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-thorsten-blum.patch
+     x86-module-prepare-module-loading-for-rox-allocations-of-text-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mailmap: add entry for Thorsten Blum
-Date: Mon, 4 Nov 2024 00:44:09 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: x86/alternatives: fix writable address in cfi_rewrite_endbr()
+Date: Tue, 5 Nov 2024 10:49:57 +0200
 
-Map my previously used email address to my @linux.dev address.
+Commit ("x86/module: prepare module loading for ROX allocations of text")
+missed the offset that should be added to the writable address passed to
+poison_endbr() from cfi_rewrite_endbr() and this causes boot failures on
+kernels running with cfi=fineibt on machines that support IBT.
 
-Link: https://lkml.kernel.org/r/20241103234411.2522-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Alex Elder <elder@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geliang Tang <geliang@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mathieu Othacehe <m.othacehe@gmail.com>
-Cc: Matthieu Baerts (NGI0) <matttbe@kernel.org>
-Cc: Matt Ranostay <matt@ranostay.sg>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Neeraj Upadhyay <neeraj.upadhyay@kernel.org>
-Cc: Quentin Monnet <qmo@kernel.org>
+Add required offset to wr_addr argument to fix the issue.
+
+Link: https://lkml.kernel.org/r/ZysRwR29Ji8CcbXc@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Tested-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/alternative.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-thorsten-blum
-+++ a/.mailmap
-@@ -665,6 +665,7 @@ Tomeu Vizoso <tomeu@tomeuvizoso.net> <to
- Thomas Graf <tgraf@suug.ch>
- Thomas Körper <socketcan@esd.eu> <thomas.koerper@esd.eu>
- Thomas Pedersen <twp@codeaurora.org>
-+Thorsten Blum <thorsten.blum@linux.dev> <thorsten.blum@toblux.com>
- Tiezhu Yang <yangtiezhu@loongson.cn> <kernelpatch@126.com>
- Tingwei Zhang <quic_tingwei@quicinc.com> <tingwei@codeaurora.org>
- Tirupathi Reddy <quic_tirupath@quicinc.com> <tirupath@codeaurora.org>
+--- a/arch/x86/kernel/alternative.c~x86-module-prepare-module-loading-for-rox-allocations-of-text-fix
++++ a/arch/x86/kernel/alternative.c
+@@ -1241,7 +1241,7 @@ static void cfi_rewrite_endbr(s32 *start
+ 		void *addr = (void *)s + *s;
+ 		void *wr_addr = module_writable_address(mod, addr);
+ 
+-		poison_endbr(addr+16, wr_addr, false);
++		poison_endbr(addr + 16, wr_addr + 16, false);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch
+mm-vmalloc-group-declarations-depending-on-config_mmu-together.patch
+mm-vmalloc-dont-account-for-number-of-nodes-for-huge_vmap-allocations.patch
+asm-generic-introduce-text-patchingh.patch
+module-prepare-to-handle-rox-allocations-for-text.patch
+arch-introduce-set_direct_map_valid_noflush.patch
+x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
+execmem-add-support-for-cache-of-large-rox-pages.patch
+x86-module-enable-rox-caches-for-module-text-on-64-bit.patch
 
