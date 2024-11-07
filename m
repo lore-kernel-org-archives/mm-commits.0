@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FC1B21766E
-	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:38:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D5521832F
+	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:38:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731019125; cv=none; b=nitBwb7Yy4xX5Oavlzn7DU7bE5P4Skgjwukt2cu4eD3eVX21Rk7aTdv2n5+sV5Eo/iWvQH6qHS02wcYOug8EhNV4BNcgJ+clRl17iKOSO3Idnun5+OHWimXTugxYsh366V4TRzVJPoSS+VkKnfUcWQeqnocpQESFvy3KLBXQqj4=
+	t=1731019126; cv=none; b=CvDwFY1ovH57RvkstGUHyvKIGd5DxP931V+OM9i4qMlaY19C5o0bfxsbGS6InTOUe7w5P+WUlOq4PcP8kSPs26qfZRmNzBFIxvSJD4DFRhpat3v0THLeazJbYbsILOGeDV01z4XMantYOB140jSUo91tuLi2MxcuzULhiqWeqZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731019125; c=relaxed/simple;
-	bh=PJ5Cp+ZUG+PmYOPFjfBALgt7VNSdY5HSF8DkdEq+nVM=;
-	h=Date:To:From:Subject:Message-Id; b=U7eRlxlWWnkETiu73rZCI83Ckje0c5JzwxtW2FWpg2wD+GdmtgAe45ODBcua2OmsOZ6nTREjTP/EPl/rg9kl4OQAOITL9mv10HMM+mklQmaSjoaDRnfbbLFJzfuoCU9iyB9S/sfy+HwutPQ7+tJC2i81XNulYlu85tJtDjHdQ8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DZMSotiR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731019126; c=relaxed/simple;
+	bh=zqGlyIUY7Gjc77rjsexAIt3myrbK8/ndDKmAEsDRchQ=;
+	h=Date:To:From:Subject:Message-Id; b=JIq+JMSGshoC+IjiWbNDKJ/tcp3bCOOCXyOAY74vuH9XKZziuX6T8fsvJIt7hhzCAMoB5QRv4dNLEFblf4LYTF+oIhTH4ZmZeVvfiRu9tu0VPj0mC3tKRJdW6t76E+3O+E3928NvmflN0GLZsydT/s3+9pyUy4cHazAkc+oGNXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PZJ0+DTL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DZMSotiR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44D43C4CECC;
-	Thu,  7 Nov 2024 22:38:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PZJ0+DTL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 553FBC4CECC;
+	Thu,  7 Nov 2024 22:38:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731019125;
-	bh=PJ5Cp+ZUG+PmYOPFjfBALgt7VNSdY5HSF8DkdEq+nVM=;
+	s=korg; t=1731019126;
+	bh=zqGlyIUY7Gjc77rjsexAIt3myrbK8/ndDKmAEsDRchQ=;
 	h=Date:To:From:Subject:From;
-	b=DZMSotiRS1KpKq4LCPIi06TxbmatqqlVZuAwi2Q6vmPYI4sA0uU1EJy81DVkWrffa
-	 h8oW/M7yhp44LBv6Jz/X5B1ZR19ocPqDZvyOHB+PHEYGWTE5HZXbbrIVWh/8IB1fc9
-	 rB2w79vUEnF0FcLilWa2biTVCSo9FRTU6+vfsUoM=
-Date: Thu, 07 Nov 2024 14:38:44 -0800
-To: mm-commits@vger.kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=PZJ0+DTLCDv4GsKpBDZD7cV3V3mNTg4mtvKiv/i+FXx3k0m0X0KAffCXsb8kdO0O0
+	 qzzfOhYm8vY+qnnACszoFzCsSTAqUZdlFsdVQfuVeXli6ie1mWiuwajymTB1umYwn8
+	 Nj1VpT3H2Y7yC8p/CGBP+jCLGWyIbV0WCMgMnpaI=
+Date: Thu, 07 Nov 2024 14:38:45 -0800
+To: mm-commits@vger.kernel.org,xiujianfeng@huawei.com,wangweiyang2@huawei.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,xiujianfeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch removed from -mm tree
-Message-Id: <20241107223845.44D43C4CECC@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-factor-out-mem_cgroup_stat_aggregate.patch removed from -mm tree
+Message-Id: <20241107223846.553FBC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,213 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/show_mem: use str_yes_no() helper in show_free_areas()
+     Subject: memcg: factor out mem_cgroup_stat_aggregate()
 has been removed from the -mm tree.  Its filename was
-     mm-show_mem-use-str_yes_no-helper-in-show_free_areas.patch
+     memcg-factor-out-mem_cgroup_stat_aggregate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mm/show_mem: use str_yes_no() helper in show_free_areas()
-Date: Sat, 26 Oct 2024 12:35:53 +0200
+From: Xiu Jianfeng <xiujianfeng@huaweicloud.com>
+Subject: memcg: factor out mem_cgroup_stat_aggregate()
+Date: Sat, 26 Oct 2024 09:34:07 +0000
 
-Remove hard-coded strings by using the str_yes_no() helper function.
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
 
-Link: https://lkml.kernel.org/r/20241026103552.6790-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Currently mem_cgroup_css_rstat_flush() is used to flush the per-CPU
+statistics from a specified CPU into the global statistics of the
+memcg. It processes three kinds of data in three for loops using exactly
+the same method. Therefore, the for loop can be factored out and may
+make the code more clean.
+
+Link: https://lkml.kernel.org/r/20241026093407.310955-1-xiujianfeng@huaweicloud.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wang Weiyang <wangweiyang2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |  131 ++++++++++++++++++++++++----------------------
+ 1 file changed, 71 insertions(+), 60 deletions(-)
 
---- a/mm/show_mem.c~mm-show_mem-use-str_yes_no-helper-in-show_free_areas
-+++ a/mm/show_mem.c
-@@ -285,8 +285,7 @@ static void show_free_areas(unsigned int
- #endif
- 			K(node_page_state(pgdat, NR_PAGETABLE)),
- 			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
--			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
--				"yes" : "no");
-+			str_yes_no(pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES));
- 	}
+--- a/mm/memcontrol.c~memcg-factor-out-mem_cgroup_stat_aggregate
++++ a/mm/memcontrol.c
+@@ -3730,68 +3730,90 @@ static void mem_cgroup_css_reset(struct
+ 	memcg_wb_domain_size_changed(memcg);
+ }
  
- 	for_each_populated_zone(zone) {
+-static void mem_cgroup_css_rstat_flush(struct cgroup_subsys_state *css, int cpu)
++struct aggregate_control {
++	/* pointer to the aggregated (CPU and subtree aggregated) counters */
++	long *aggregate;
++	/* pointer to the non-hierarchichal (CPU aggregated) counters */
++	long *local;
++	/* pointer to the pending child counters during tree propagation */
++	long *pending;
++	/* pointer to the parent's pending counters, could be NULL */
++	long *ppending;
++	/* pointer to the percpu counters to be aggregated */
++	long *cstat;
++	/* pointer to the percpu counters of the last aggregation*/
++	long *cstat_prev;
++	/* size of the above counters */
++	int size;
++};
++
++static void mem_cgroup_stat_aggregate(struct aggregate_control *ac)
+ {
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+-	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+-	struct memcg_vmstats_percpu *statc;
++	int i;
+ 	long delta, delta_cpu, v;
+-	int i, nid;
+-
+-	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
+ 
+-	for (i = 0; i < MEMCG_VMSTAT_SIZE; i++) {
++	for (i = 0; i < ac->size; i++) {
+ 		/*
+ 		 * Collect the aggregated propagation counts of groups
+ 		 * below us. We're in a per-cpu loop here and this is
+ 		 * a global counter, so the first cycle will get them.
+ 		 */
+-		delta = memcg->vmstats->state_pending[i];
++		delta = ac->pending[i];
+ 		if (delta)
+-			memcg->vmstats->state_pending[i] = 0;
++			ac->pending[i] = 0;
+ 
+ 		/* Add CPU changes on this level since the last flush */
+ 		delta_cpu = 0;
+-		v = READ_ONCE(statc->state[i]);
+-		if (v != statc->state_prev[i]) {
+-			delta_cpu = v - statc->state_prev[i];
++		v = READ_ONCE(ac->cstat[i]);
++		if (v != ac->cstat_prev[i]) {
++			delta_cpu = v - ac->cstat_prev[i];
+ 			delta += delta_cpu;
+-			statc->state_prev[i] = v;
++			ac->cstat_prev[i] = v;
+ 		}
+ 
+ 		/* Aggregate counts on this level and propagate upwards */
+ 		if (delta_cpu)
+-			memcg->vmstats->state_local[i] += delta_cpu;
++			ac->local[i] += delta_cpu;
+ 
+ 		if (delta) {
+-			memcg->vmstats->state[i] += delta;
+-			if (parent)
+-				parent->vmstats->state_pending[i] += delta;
++			ac->aggregate[i] += delta;
++			if (ac->ppending)
++				ac->ppending[i] += delta;
+ 		}
+ 	}
++}
+ 
+-	for (i = 0; i < NR_MEMCG_EVENTS; i++) {
+-		delta = memcg->vmstats->events_pending[i];
+-		if (delta)
+-			memcg->vmstats->events_pending[i] = 0;
+-
+-		delta_cpu = 0;
+-		v = READ_ONCE(statc->events[i]);
+-		if (v != statc->events_prev[i]) {
+-			delta_cpu = v - statc->events_prev[i];
+-			delta += delta_cpu;
+-			statc->events_prev[i] = v;
+-		}
++static void mem_cgroup_css_rstat_flush(struct cgroup_subsys_state *css, int cpu)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
++	struct memcg_vmstats_percpu *statc;
++	struct aggregate_control ac;
++	int nid;
+ 
+-		if (delta_cpu)
+-			memcg->vmstats->events_local[i] += delta_cpu;
++	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
+ 
+-		if (delta) {
+-			memcg->vmstats->events[i] += delta;
+-			if (parent)
+-				parent->vmstats->events_pending[i] += delta;
+-		}
+-	}
++	ac = (struct aggregate_control) {
++		.aggregate = memcg->vmstats->state,
++		.local = memcg->vmstats->state_local,
++		.pending = memcg->vmstats->state_pending,
++		.ppending = parent ? parent->vmstats->state_pending : NULL,
++		.cstat = statc->state,
++		.cstat_prev = statc->state_prev,
++		.size = MEMCG_VMSTAT_SIZE,
++	};
++	mem_cgroup_stat_aggregate(&ac);
++
++	ac = (struct aggregate_control) {
++		.aggregate = memcg->vmstats->events,
++		.local = memcg->vmstats->events_local,
++		.pending = memcg->vmstats->events_pending,
++		.ppending = parent ? parent->vmstats->events_pending : NULL,
++		.cstat = statc->events,
++		.cstat_prev = statc->events_prev,
++		.size = NR_MEMCG_EVENTS,
++	};
++	mem_cgroup_stat_aggregate(&ac);
+ 
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
+@@ -3804,28 +3826,17 @@ static void mem_cgroup_css_rstat_flush(s
+ 
+ 		lstatc = per_cpu_ptr(pn->lruvec_stats_percpu, cpu);
+ 
+-		for (i = 0; i < NR_MEMCG_NODE_STAT_ITEMS; i++) {
+-			delta = lstats->state_pending[i];
+-			if (delta)
+-				lstats->state_pending[i] = 0;
+-
+-			delta_cpu = 0;
+-			v = READ_ONCE(lstatc->state[i]);
+-			if (v != lstatc->state_prev[i]) {
+-				delta_cpu = v - lstatc->state_prev[i];
+-				delta += delta_cpu;
+-				lstatc->state_prev[i] = v;
+-			}
+-
+-			if (delta_cpu)
+-				lstats->state_local[i] += delta_cpu;
+-
+-			if (delta) {
+-				lstats->state[i] += delta;
+-				if (plstats)
+-					plstats->state_pending[i] += delta;
+-			}
+-		}
++		ac = (struct aggregate_control) {
++			.aggregate = lstats->state,
++			.local = lstats->state_local,
++			.pending = lstats->state_pending,
++			.ppending = plstats ? plstats->state_pending : NULL,
++			.cstat = lstatc->state,
++			.cstat_prev = lstatc->state_prev,
++			.size = NR_MEMCG_NODE_STAT_ITEMS,
++		};
++		mem_cgroup_stat_aggregate(&ac);
++
+ 	}
+ 	WRITE_ONCE(statc->stats_updates, 0);
+ 	/* We are in a per-cpu loop here, only do the atomic write once */
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from xiujianfeng@huaweicloud.com are
 
 
