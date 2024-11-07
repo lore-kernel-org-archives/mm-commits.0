@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7185218929
-	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:35:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F894192B73
+	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:36:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731018915; cv=none; b=s6gc7No6Mop2hHGxhsX1xXuC14SKxQJdCv9V/vp9H5Fwt7jLnQMqhFp2dGpMOITA7Hl0ociNiKZI8Fubf55nPWl8giSqKnKu5yD3Pm5xofZcAqWoNJPaQNUPJ2OUp45153VouDt6eCGtl2Wi3u589+I/4yTLW1odcc+C3q29+/8=
+	t=1731018992; cv=none; b=eJrFgn0V2RlqtivfkNXg6JKrwU3sREaRDOklQOg2ix47qTsnHgI8g6U6cvZrdJYMNmYZcds57rMcwAsj5mjQQxHTKvsRMO2CIGC7+WfCqU0uXzMayYMOFNUeM3gt/Ftn5t42nNHZPB98r9qY+uhhi5auR3hx9p0IhA5v/L5O7ro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731018915; c=relaxed/simple;
-	bh=bw8rVCEGeTkWnFRC0x0ej2fHjpopep0GLcyVRiFFG20=;
-	h=Date:To:From:Subject:Message-Id; b=i4H2Hx27/ugzvOW70+fM+o2W/UtXy097BsJrpIP/ElviE8acWPmiLF9a0cj1Hq52PHQwtExJr/BFnOIX/pbmF/geyDO0UvAi43lgkN1ZFT4rMFUhfaTt31XDYjZ2m81bWuGedhKWAdta/8djh0n+BtzZw3UkGDpZKb8ypDoK4Mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ny051cx9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731018992; c=relaxed/simple;
+	bh=u7iSfx/StaWNBdcbPXNe1IkuLuexKavF9LSLGN/47J0=;
+	h=Date:To:From:Subject:Message-Id; b=agkiAKDlTFqPjRM+OCe90xZye26WQojwnZ4Y5JGdeleNX48oW9nqTG1EFkqWvKKT+eQ9nAM+r018HTvzo/O+bYCrIDRpzGP3HbgQTSlfjUGFoVku7nMtk1vwArFZiu15vPYKFdYJScBA2H0700sApDEIyhIUs7mU2fhcIB10bq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jLmyRarM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ny051cx9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C2FCC4CECC;
-	Thu,  7 Nov 2024 22:35:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jLmyRarM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D27CC4CECC;
+	Thu,  7 Nov 2024 22:36:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731018915;
-	bh=bw8rVCEGeTkWnFRC0x0ej2fHjpopep0GLcyVRiFFG20=;
+	s=korg; t=1731018991;
+	bh=u7iSfx/StaWNBdcbPXNe1IkuLuexKavF9LSLGN/47J0=;
 	h=Date:To:From:Subject:From;
-	b=Ny051cx9kLBJoU91v8DEN6Cvrvsy7s4tmt1Xj9n+8vm+qX2ZP4s8KTRFypJi9AGTc
-	 w5CgXrdydd6taFjiz7tBgb2XO9ISlbTYuY/5MI5Ydbce1lhrc2VyrGlT+M5VxrukBc
-	 dHUvBngy5v8+0J0bBgo/3w5qyNVtL0f7kRK33a58=
-Date: Thu, 07 Nov 2024 14:35:14 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,lkp@intel.com,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jLmyRarMyO9ifI0Y0pY9NeQXoVLf7nEm1LF+weOTAn5ojkkhqTEP6QH+2ScL6fcSr
+	 WMX6ijEu5MbZYfbJGUrXNSaz0uFa3PRClICojKprjtkcjDI5HjyCFdl0UTPpzTeDcR
+	 stqiwv1/mGzdN/qvpK6oELSxTBbCvZlRFJowQo/k=
+Date: Thu, 07 Nov 2024 14:36:31 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] bootmem-stop-using-page-index-fix.patch removed from -mm tree
-Message-Id: <20241107223515.2C2FCC4CECC@smtp.kernel.org>
+Subject: [folded-merged] bootmem-add-bootmem_type-stub-function-fix-2.patch removed from -mm tree
+Message-Id: <20241107223631.9D27CC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bootmem-stop-using-page-index-fix
+     Subject: bootmem: add bootmem_type stub function
 has been removed from the -mm tree.  Its filename was
-     bootmem-stop-using-page-index-fix.patch
+     bootmem-add-bootmem_type-stub-function-fix-2.patch
 
 This patch was dropped because it was folded into bootmem-stop-using-page-index.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bootmem-stop-using-page-index-fix
-Date: Wed Oct  9 02:16:16 PM PDT 2024
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: bootmem: add bootmem_type stub function
+Date: Tue, 15 Oct 2024 14:36:06 +0000
 
-fix arch/x86/mm/init_64.c build with !CONFIG_HAVE_BOOTMEM_INFO_NODE
+When CONFIG_HAVE_BOOTMEM_INFO_NODE is disabled, the bootmem_type() and
+bootmem_info() functions are not defined:
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202410090311.eaqcL7IZ-lkp@intel.com/
+mm/sparse.c: In function 'free_map_bootmem':
+mm/sparse.c:730:24: error: implicit declaration of function 'bootmem_type' [-Wimplicit-function-declaration]
+  730 |                 type = bootmem_type(page);
+      |                        ^~~~~~~~~~~~
+
+mm/sparse.c: In function 'free_map_bootmem':
+mm/sparse.c:735:39: error: implicit declaration of function 'bootmem_info'; did you mean 'bootmem_type'? [-Wimplicit-function-declaration]
+
+Add trivial stub functions to make it build.
+
+Link: https://lkml.kernel.org/r/20241015143802.577613-1-arnd@kernel.org
+Fixes: 43d552a255a6 ("bootmem: stop using page->index")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ include/linux/bootmem_info.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/arch/x86/mm/init_64.c~bootmem-stop-using-page-index-fix
-+++ a/arch/x86/mm/init_64.c
-@@ -985,21 +985,32 @@ int arch_add_memory(int nid, u64 start,
- 	return add_pages(nid, start_pfn, nr_pages, params);
+--- a/include/linux/bootmem_info.h~bootmem-add-bootmem_type-stub-function-fix-2
++++ a/include/linux/bootmem_info.h
+@@ -62,6 +62,16 @@ static inline void put_page_bootmem(stru
+ {
  }
  
-+static void free_reserved_pages(struct page *page, unsigned long nr_pages)
++static inline enum bootmem_type bootmem_type(const struct page *page)
 +{
-+	while (nr_pages--)
-+		free_reserved_page(page++);
++	return SECTION_INFO;
 +}
 +
- static void __meminit free_pagetable(struct page *page, int order)
++static inline unsigned long bootmem_info(const struct page *page)
++{
++	return 0;
++}
++
+ static inline void get_page_bootmem(unsigned long info, struct page *page,
+ 				    enum bootmem_type type)
  {
- 	/* bootmem page has reserved flag */
- 	if (PageReserved(page)) {
--		enum bootmem_type type = bootmem_type(page);
- 		unsigned long nr_pages = 1 << order;
-+#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
-+		enum bootmem_type type = bootmem_type(page);
- 
- 		if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
- 			while (nr_pages--)
- 				put_page_bootmem(page++);
--		} else
--			while (nr_pages--)
--				free_reserved_page(page++);
--	} else
-+		} else {
-+			free_reserved_pages(page, nr_pages);
-+		}
-+#else
-+		free_reserved_pages(page, nr_pages);
-+#endif
-+	} else {
- 		free_pages((unsigned long)page_address(page), order);
-+	}
- }
- 
- static void __meminit free_hugepage_table(struct page *page,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 bootmem-stop-using-page-index.patch
-vma-detect-infinite-loop-in-vma-tree-fix.patch
-maple_tree-add-a-test-checking-storing-null-fix.patch
+kasan-migrate-copy_user_test-to-kunit-fix.patch
 
