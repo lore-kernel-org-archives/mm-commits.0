@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 543BC2178FC
-	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:15:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D260C218D74
+	for <mm-commits@vger.kernel.org>; Thu,  7 Nov 2024 22:15:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731017725; cv=none; b=OHGTGVR2YkZ+5C5L3ZKMQqkQLUGGIIMLzJt20pGb+Nfs5hjQxK/qsRYDqWB2japqKR4o45lJUNzINt58qLc53hW8PvU2CZFnuSiN+Cvv3JG+yXHhl1nblszphORpyc7RryR4cyDnDH2Y4y33+AhtFalEFITQM1943eTUBAfkRk4=
+	t=1731017726; cv=none; b=f36VfhPOmIlv7bAw8o5F1VQKBqp6GxP41wYMN56Vl/6BasbwwHpMHdjYHaRvORYDp0rj/VdLK44kiqkpTWJNHx7Vri86wueEvIf8m+0Mc+N9mMQjiJTizGd/oBeu9HINbilE+Jd2Jr+ai8Xz79iTnX793P/OLrBKO4VM4lsMdyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731017725; c=relaxed/simple;
-	bh=EV7vYp2jp72kkW0ovEfu3Kl6lsLEfj4og6//A1AsV8E=;
-	h=Date:To:From:Subject:Message-Id; b=fGnlkOjOZuaW9132+5BGirte7/+Wa6FEO3ivjcOSPDGiyEE4sP06Gv6SKtqYf90kTt0kurPXeA1nhgKg+QzhmqUROGIRLOzJZBZ3RfXhRDqOYAofOz1X7tv/zJ1gaf9LaraRx3DobRRk5zI8av039/xhXrYghvvLlxKK1qKPBDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BBLJTAr1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731017726; c=relaxed/simple;
+	bh=dDKO4BMOTAuFvxFT6BqDqcdvbotmfAQVAtxgwB4ef4w=;
+	h=Date:To:From:Subject:Message-Id; b=cQiEwHjjHG7ofxBIKuPkRI762OtUhjJf5mIcuq9SylGnOKuBBCd7MS9U+FAY9socGpusZDvyq5hisz99vbhjD5VG3dmyKSnG5nIrTi5DYXJKsM3cCrsTCc3V5JCW89tkls5dBn9b8HO2MkmO5XtaN1PfZO2ea6/MIsgCgfammkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFzvmN0z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BBLJTAr1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3AAAC4CECC;
-	Thu,  7 Nov 2024 22:15:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFzvmN0z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A48CC4CECC;
+	Thu,  7 Nov 2024 22:15:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731017724;
-	bh=EV7vYp2jp72kkW0ovEfu3Kl6lsLEfj4og6//A1AsV8E=;
+	s=korg; t=1731017726;
+	bh=dDKO4BMOTAuFvxFT6BqDqcdvbotmfAQVAtxgwB4ef4w=;
 	h=Date:To:From:Subject:From;
-	b=BBLJTAr1r2QbzXu87S5qwUk/NpgCpopI+ptWA4WXC1o4Y4b4EmVUiqnbLqKHQfSN5
-	 yx9NWip86vMSumCFoghyZO3XanEkI8w3liCNIeVKLvsRE/Dgghh1Qw+pTljAfdBiZD
-	 2cfX6GDCvhk5ubhJoC2kwsD7tAO/6nTnEDUpRObI=
-Date: Thu, 07 Nov 2024 14:15:24 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rientjes@google.com,linkl@google.com,hannes@cmpxchg.org,yuzhao@google.com,akpm@linux-foundation.org
+	b=FFzvmN0zTG8lBZroNmpRnnmJ0d4nU16Cegm45PQ8yvZxbuk57Yjbc5rAeSV8O274i
+	 vbW6IUA2kIYe5QXSnm/wh0R2PvU/U2lNVrNoYM/xqc7aGWVdWyXj1nh93kYIr9Bxhz
+	 kSICMfkERGkml0DX8+41ST5aroxgKArEuGeZXcSQ=
+Date: Thu, 07 Nov 2024 14:15:25 -0800
+To: mm-commits@vger.kernel.org,wuqiang.matt@bytedance.com,vmalik@redhat.com,torvalds@linux-foundation.org,rostedt@goodmis.org,mikel@mikelr.com,leo.yan@arm.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-keep-track-of-free-highatomic.patch removed from -mm tree
-Message-Id: <20241107221524.D3AAAC4CECC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] objpool-fix-to-make-percpu-slot-allocation-more-robust.patch removed from -mm tree
+Message-Id: <20241107221526.3A48CC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: keep track of free highatomic
+     Subject: objpool: fix to make percpu slot allocation more robust
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-keep-track-of-free-highatomic.patch
+     objpool-fix-to-make-percpu-slot-allocation-more-robust.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/page_alloc: keep track of free highatomic
-Date: Mon, 28 Oct 2024 12:26:53 -0600
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: objpool: fix to make percpu slot allocation more robust
+Date: Mon, 28 Oct 2024 12:26:27 +0900
 
-OOM kills due to vastly overestimated free highatomic reserves were
-observed:
+Since gfp & GFP_ATOMIC == GFP_ATOMIC is true for GFP_KERNEL | GFP_HIGH, it
+will use kmalloc if user specifies that combination.  Here the reason why
+combining the __vmalloc_node() and kmalloc_node() is that the vmalloc does
+not support all GFP flag, especially GFP_ATOMIC.  So we should check if
+gfp & (GFP_ATOMIC | GFP_KERNEL) != GFP_ATOMIC for vmalloc first.  This
+ensures caller can sleep.  And for the robustness, even if vmalloc fails,
+it should retry with kmalloc to allocate it.
 
-  ... invoked oom-killer: gfp_mask=0x100cca(GFP_HIGHUSER_MOVABLE), order=0 ...
-  Node 0 Normal free:1482936kB boost:0kB min:410416kB low:739404kB high:1068392kB reserved_highatomic:1073152KB ...
-  Node 0 Normal: 1292*4kB (ME) 1920*8kB (E) 383*16kB (UE) 220*32kB (ME) 340*64kB (E) 2155*128kB (UE) 3243*256kB (UE) 615*512kB (U) 1*1024kB (M) 0*2048kB 0*4096kB = 1477408kB
-
-The second line above shows that the OOM kill was due to the following
-condition:
-
-  free (1482936kB) - reserved_highatomic (1073152kB) = 409784KB < min (410416kB)
-
-And the third line shows there were no free pages in any
-MIGRATE_HIGHATOMIC pageblocks, which otherwise would show up as type 'H'. 
-Therefore __zone_watermark_unusable_free() underestimated the usable free
-memory by over 1GB, which resulted in the unnecessary OOM kill above.
-
-The comments in __zone_watermark_unusable_free() warns about the potential
-risk, i.e.,
-
-  If the caller does not have rights to reserves below the min
-  watermark then subtract the high-atomic reserves. This will
-  over-estimate the size of the atomic reserve but it avoids a search.
-
-However, it is possible to keep track of free pages in reserved highatomic
-pageblocks with a new per-zone counter nr_free_highatomic protected by the
-zone lock, to avoid a search when calculating the usable free memory.  And
-the cost would be minimal, i.e., simple arithmetics in the highatomic
-alloc/free/move paths.
-
-Note that since nr_free_highatomic can be relatively small, using a
-per-cpu counter might cause too much drift and defeat its purpose, in
-addition to the extra memory overhead.
-
-Dependson e0932b6c1f94 ("mm: page_alloc: consolidate free page accounting") - see [1]
-
-[akpm@linux-foundation.org: s/if/else if/, per Johannes, stealth whitespace tweak]
-Link: https://lkml.kernel.org/r/20241028182653.3420139-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/0d0ddb33-fcdc-43e2-801f-0c1df2031afb@suse.cz [1]
-Fixes: 0aaa29a56e4f ("mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Link Lin <linkl@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/173008598713.1262174.2959179484209897252.stgit@mhiramat.roam.corp.google.com
+Fixes: aff1871bfc81 ("objpool: fix choosing allocation for percpu slots")
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Closes: https://lore.kernel.org/all/CAHk-=whO+vSH+XVRio8byJU8idAWES0SPGVZ7KAVdc4qrV0VUA@mail.gmail.com/
+Cc: Leo Yan <leo.yan@arm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matt Wu <wuqiang.matt@bytedance.com>
+Cc: Mikel Rychliski <mikel@mikelr.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Viktor Malik <vmalik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/page_alloc.c        |   10 +++++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ lib/objpool.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-keep-track-of-free-highatomic
-+++ a/include/linux/mmzone.h
-@@ -823,6 +823,7 @@ struct zone {
- 	unsigned long watermark_boost;
- 
- 	unsigned long nr_reserved_highatomic;
-+	unsigned long nr_free_highatomic;
- 
- 	/*
- 	 * We don't know if the memory that we're going to allocate will be
---- a/mm/page_alloc.c~mm-page_alloc-keep-track-of-free-highatomic
-+++ a/mm/page_alloc.c
-@@ -635,6 +635,8 @@ compaction_capture(struct capture_contro
- static inline void account_freepages(struct zone *zone, int nr_pages,
- 				     int migratetype)
- {
-+	lockdep_assert_held(&zone->lock);
+--- a/lib/objpool.c~objpool-fix-to-make-percpu-slot-allocation-more-robust
++++ a/lib/objpool.c
+@@ -74,15 +74,21 @@ objpool_init_percpu_slots(struct objpool
+ 		 * warm caches and TLB hits. in default vmalloc is used to
+ 		 * reduce the pressure of kernel slab system. as we know,
+ 		 * mimimal size of vmalloc is one page since vmalloc would
+-		 * always align the requested size to page size
++		 * always align the requested size to page size.
++		 * but if vmalloc fails or it is not available (e.g. GFP_ATOMIC)
++		 * allocate percpu slot with kmalloc.
+ 		 */
+-		if ((pool->gfp & GFP_ATOMIC) == GFP_ATOMIC)
+-			slot = kmalloc_node(size, pool->gfp, cpu_to_node(i));
+-		else
++		slot = NULL;
 +
- 	if (is_migrate_isolate(migratetype))
- 		return;
++		if ((pool->gfp & (GFP_ATOMIC | GFP_KERNEL)) != GFP_ATOMIC)
+ 			slot = __vmalloc_node(size, sizeof(void *), pool->gfp,
+ 				cpu_to_node(i), __builtin_return_address(0));
+-		if (!slot)
+-			return -ENOMEM;
++
++		if (!slot) {
++			slot = kmalloc_node(size, pool->gfp, cpu_to_node(i));
++			if (!slot)
++				return -ENOMEM;
++		}
+ 		memset(slot, 0, size);
+ 		pool->cpu_slots[i] = slot;
  
-@@ -642,6 +644,9 @@ static inline void account_freepages(str
- 
- 	if (is_migrate_cma(migratetype))
- 		__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, nr_pages);
-+	else if (is_migrate_highatomic(migratetype))
-+		WRITE_ONCE(zone->nr_free_highatomic,
-+			   zone->nr_free_highatomic + nr_pages);
- }
- 
- /* Used for pages not on another list */
-@@ -3079,11 +3084,10 @@ static inline long __zone_watermark_unus
- 
- 	/*
- 	 * If the caller does not have rights to reserves below the min
--	 * watermark then subtract the high-atomic reserves. This will
--	 * over-estimate the size of the atomic reserve but it avoids a search.
-+	 * watermark then subtract the free pages reserved for highatomic.
- 	 */
- 	if (likely(!(alloc_flags & ALLOC_RESERVES)))
--		unusable_free += z->nr_reserved_highatomic;
-+		unusable_free += READ_ONCE(z->nr_free_highatomic);
- 
- #ifdef CONFIG_CMA
- 	/* If allocation can't use CMA areas don't use free CMA pages */
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
 
