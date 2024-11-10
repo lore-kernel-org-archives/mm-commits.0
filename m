@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCD513B58F
-	for <mm-commits@vger.kernel.org>; Sun, 10 Nov 2024 06:14:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B688322615
+	for <mm-commits@vger.kernel.org>; Sun, 10 Nov 2024 06:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731219279; cv=none; b=Z9YfH3IoMtafteKHgFOMaquDjWmXzVx4gim+KNra1t9N0DW5jih+EJQn7I14TFXfhucgRTWDw5BPK991tWVu+ezvcHSfdBB2pm9PVUOyprih7Geci3wKG8PkT5YrpWV2sXQ+mP3Pe+QHVCi+/KcgwQwy9MtHthMJLuMpZtLkjmM=
+	t=1731219397; cv=none; b=Dmiz3z5tddU1u/Jf2mrEGNZ6m+ktYRH6g425dAZ82F0MsganyVGyu1Pg3VaK5hIR/39ldTkDCQJZkpGm2a3wGuPVjqh4UBuFozfew644mBqOizBrLRILJFjk8h2nAiFgIDr4n9tXNDCoNoJWuk710YFMH5dgE9A3zSJpKugPl0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731219279; c=relaxed/simple;
-	bh=K3FbkFD8ATwL1H2JA4xX3lWaFTH2/DhpFptSYgFExgQ=;
-	h=Date:To:From:Subject:Message-Id; b=OLuJiuCt7xCX3Xs0+6l8U7v4sRVgDeW5ODeXZE+pgqUcwdt4UfphUvKQ9vEZaPm1ANFIfG/zdKASaTBWu8tppiaCMbZRuUwmY/jpjXkOrnvXFuVH5bNJ1qmq9cOfUj+MQjt3QMDEZvpW/D1Mr691GHP4CsoynMSzXn1ElzbnBGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ttMKuIZE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731219397; c=relaxed/simple;
+	bh=XUWYFE/K4NAQ7tKmuYBhun0T24pmoludhO6A/90ZmNI=;
+	h=Date:To:From:Subject:Message-Id; b=M3mH3UNMw912Pid1t2apgBbgFGamhPdzCVc3ge6KRnJzKV1Q2xB7Ls1q863/S8jprEOKJbte9UNvWihKR52sCzot14oapKYvjxFZOgI9Ovt2mluKrLIwiYN2TCVVbwi34wYH5Zgdt1PnKH2qvyuticxUTDjb4jsXE3g5G7njL4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T5JXnBa2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ttMKuIZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60984C4CECD;
-	Sun, 10 Nov 2024 06:14:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T5JXnBa2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A885C4CECD;
+	Sun, 10 Nov 2024 06:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731219279;
-	bh=K3FbkFD8ATwL1H2JA4xX3lWaFTH2/DhpFptSYgFExgQ=;
+	s=korg; t=1731219397;
+	bh=XUWYFE/K4NAQ7tKmuYBhun0T24pmoludhO6A/90ZmNI=;
 	h=Date:To:From:Subject:From;
-	b=ttMKuIZEr8hXuMxPWEXpkOU3qMsG6I2FjhqExKbG+ZYImnSiCzSQ8n5LvVc1zLjqv
-	 U0ZSMFzOECbN3KL8V9qBxM6aLyUUC2YuoAUKPHlr61nLXqvRFvRgJCjRvqg4hl8kPZ
-	 oJCll/21TAT/i4465KMqHCtpwF/L/hPk5AchxFmM=
-Date: Sat, 09 Nov 2024 22:14:38 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,Liam.Howlett@Oracle.com,jannh@google.com,hdanton@sina.com,corbet@lwn.net,boqun.feng@gmail.com,bagasdotme@gmail.com,aliceryhl@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=T5JXnBa2FplS49pasGQGPoyZPu47El0VQpuXrXAT6SqW2AxiJGyspxDRyB9EcDR+C
+	 TfD1Y4MX1DfnKyz7h9V9RpQOJVC4gvMsS4arxNqaa5tx+SuyDh+Bunq0w0ui5PtzQU
+	 /5kyM2BfVeVY7CU/GdHkzaqDNqbt/jBJsG/gvTJE=
+Date: Sat, 09 Nov 2024 22:16:36 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-add-vma-locks-documentation-fix.patch added to mm-unstable branch
-Message-Id: <20241110061439.60984C4CECD@smtp.kernel.org>
+Subject: + zram-fix-null-pointer-in-comp_algorithm_show.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241110061637.2A885C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs/mm: minor corrections
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-add-vma-locks-documentation-fix.patch
+     Subject: zram: fix NULL pointer in comp_algorithm_show()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zram-fix-null-pointer-in-comp_algorithm_show.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-add-vma-locks-documentation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-null-pointer-in-comp_algorithm_show.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: docs/mm: minor corrections
-Date: Sat, 9 Nov 2024 15:52:55 +0000
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: zram: fix NULL pointer in comp_algorithm_show()
+Date: Fri, 8 Nov 2024 18:01:47 +0800
 
-Rename a section to avoid confusion with the address_space type, fix a typo, and
-reword a mangled sentence.
+LTP reported a NULL pointer dereference as followed:
 
-Link: https://lkml.kernel.org/r/d3de735a-25ae-4eb2-866c-a9624fe6f795@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+ CPU: 7 UID: 0 PID: 5995 Comm: cat Kdump: loaded Not tainted 6.12.0-rc6+ #3
+ Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+ pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+ pc : __pi_strcmp+0x24/0x140
+ lr : zcomp_available_show+0x60/0x100 [zram]
+ sp : ffff800088b93b90
+ x29: ffff800088b93b90 x28: 0000000000000001 x27: 0000000000400cc0
+ x26: 0000000000000ffe x25: ffff80007b3e2388 x24: 0000000000000000
+ x23: ffff80007b3e2390 x22: ffff0004041a9000 x21: ffff80007b3e2900
+ x20: 0000000000000000 x19: 0000000000000000 x18: 0000000000000000
+ x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+ x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+ x11: 0000000000000000 x10: ffff80007b3e2900 x9 : ffff80007b3cb280
+ x8 : 0101010101010101 x7 : 0000000000000000 x6 : 0000000000000000
+ x5 : 0000000000000040 x4 : 0000000000000000 x3 : 00656c722d6f7a6c
+ x2 : 0000000000000000 x1 : ffff80007b3e2900 x0 : 0000000000000000
+ Call trace:
+  __pi_strcmp+0x24/0x140
+  comp_algorithm_show+0x40/0x70 [zram]
+  dev_attr_show+0x28/0x80
+  sysfs_kf_seq_show+0x90/0x140
+  kernfs_seq_show+0x34/0x48
+  seq_read_iter+0x1d4/0x4e8
+  kernfs_fop_read_iter+0x40/0x58
+  new_sync_read+0x9c/0x168
+  vfs_read+0x1a8/0x1f8
+  ksys_read+0x74/0x108
+  __arm64_sys_read+0x24/0x38
+  invoke_syscall+0x50/0x120
+  el0_svc_common.constprop.0+0xc8/0xf0
+  do_el0_svc+0x24/0x38
+  el0_svc+0x38/0x138
+  el0t_64_sync_handler+0xc0/0xc8
+  el0t_64_sync+0x188/0x190
+
+The zram->comp_algs[ZRAM_PRIMARY_COMP] can be NULL in zram_add() if
+comp_algorithm_set() has not been called.  User can access the zram device
+by sysfs after device_add_disk(), so there is a time window to trigger the
+NULL pointer dereference.  Move it ahead device_add_disk() to make sure
+when user can access the zram device, it is ready.  comp_algorithm_set()
+is protected by zram->init_lock in other places and no such problem.
+
+Link: https://lkml.kernel.org/r/20241108100147.3776123-1-liushixin2@huawei.com
+Fixes: 7ac07a26dea7 ("zram: preparation for multi-zcomp support")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/process_addrs.rst |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/Documentation/mm/process_addrs.rst~docs-mm-add-vma-locks-documentation-fix
-+++ a/Documentation/mm/process_addrs.rst
-@@ -68,8 +68,8 @@ described below).
+--- a/drivers/block/zram/zram_drv.c~zram-fix-null-pointer-in-comp_algorithm_show
++++ a/drivers/block/zram/zram_drv.c
+@@ -2381,6 +2381,8 @@ static int zram_add(void)
+ 	zram->disk->fops = &zram_devops;
+ 	zram->disk->private_data = zram;
+ 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
++	zram_comp_params_reset(zram);
++	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
  
- Stabilising a VMA also keeps the address space described by it around.
+ 	/* Actual capacity set using sysfs (/sys/block/zram<id>/disksize */
+ 	set_capacity(zram->disk, 0);
+@@ -2388,9 +2390,6 @@ static int zram_add(void)
+ 	if (ret)
+ 		goto out_cleanup_disk;
  
--Using address space locks
---------------------------
-+Lock usage
-+----------
- 
- If you want to **read** VMA metadata fields or just keep the VMA stable, you
- must do one of the following:
-@@ -291,7 +291,7 @@ typically refer to the leaf level as the
- 	  compiler might, in practice, eliminate any code relating to missing
- 	  ones.
- 
--There are free key operations typically performed on page tables:
-+There are four key operations typically performed on page tables:
- 
- 1. **Traversing** page tables - Simply reading page tables in order to traverse
-    them. This only requires that the VMA is kept stable, so a lock which
-@@ -513,11 +513,11 @@ When performing a page table traversal a
- read must be performed once and only once or not depends on the architecture
- (for instance x86-64 does not require any special precautions).
- 
--It is on the write side, or if a read informs whether a write takes place (on an
--installation of a page table entry say, for instance in
--:c:func:`!__pud_install`), where special care must always be taken. In these
--cases we can never assume that page table locks give us entirely exclusive
--access, and must retrieve page table entries once and only once.
-+If a write is being performed, or if a read informs whether a write takes place
-+(on an installation of a page table entry say, for instance in
-+:c:func:`!__pud_install`), special care must always be taken. In these cases we
-+can never assume that page table locks give us entirely exclusive access, and
-+must retrieve page table entries once and only once.
- 
- If we are reading page table entries, then we need only ensure that the compiler
- does not rearrange our loads. This is achieved via :c:func:`!pXXp_get`
+-	zram_comp_params_reset(zram);
+-	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
+-
+ 	zram_debugfs_register(zram);
+ 	pr_info("Added device: %s\n", zram->disk->disk_name);
+ 	return device_id;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-pagewalk-add-the-ability-to-install-ptes.patch
-mm-add-pte_marker_guard-pte-marker.patch
-mm-madvise-implement-lightweight-guard-page-mechanism.patch
-tools-testing-update-tools-uapi-header-for-mman-commonh.patch
-selftests-mm-add-self-tests-for-guard-page-feature.patch
-mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
-docs-mm-add-vma-locks-documentation.patch
-docs-mm-add-vma-locks-documentation-fix.patch
+zram-fix-null-pointer-in-comp_algorithm_show.patch
 
