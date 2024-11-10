@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD41113D29A;
-	Sun, 10 Nov 2024 06:08:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5060413B58F
+	for <mm-commits@vger.kernel.org>; Sun, 10 Nov 2024 06:10:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731218933; cv=none; b=HFsfNQaabYOT+spHPFd/BgTw/b38Eno/2to1OurJt8VZs1GaXmqfKW3O9JZcpRFpRMB02UGWPC9e2vJh5qSJayS3hN0q/z9xvp/p04rHY6wJDT/NHXAZukS/tBeP2UF5CgA28M64py93OEDJIyDEu+KVCWvF8sAOpo8q8ZS0ygk=
+	t=1731219015; cv=none; b=aR8NJV5Y74uIZivvAutxKw8KwHQ0R30zRlS3JQ7+hByBYazTjHabMj5K7hB2X94h/KImAZPMCwFvXCbXd4H8KtPDL+daBTu91RamGklPp/+xZcR7eSwEs3l70YqkfT+1YD4UBaJn2uuUcRdL/DjhL9XszgJANABprxSb+KN1OBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731218933; c=relaxed/simple;
-	bh=wy79TuJ2a/ajLjOa8f7cpFQV6aT8x76jlquZrtIaC+8=;
-	h=Date:To:From:Subject:Message-Id; b=lBCWw6IXwCVJGH3k5LyG2GtxWYnGk65rHkN2DFubTbIYp5WOkMpaYp1+a8OuG4rHSujYiO850iWiLUhC3emmnzmLMohQ0CevpIz8RUE098hXX9u7+yowwfYajNvALVglbM7orWj3HhzRrE2UldZWaDR9HsviY7Z+jsIx6ocxIVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cqh99Dp8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731219015; c=relaxed/simple;
+	bh=yyX5nly/7zLHCbl+YCd3cM9RepR8uKkVVFqbtsektJQ=;
+	h=Date:To:From:Subject:Message-Id; b=UsrekvRDIfz/nwhDLx7eyuRaaoyXQdduQVIS3RijAAK+rEGWzo2wVlimaVZhUvFwC/dWrnOh5hqb4zYOMgNpbQ1WYrVpeKAkToQJUmXYglTOwZbViEklAxvHO5itcopzWZ0PGXtpZJGcrJiNaw1w6McVeOuN1GJKOBlO4rm8Lms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=REndoYlw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cqh99Dp8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAB3C4CECD;
-	Sun, 10 Nov 2024 06:08:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="REndoYlw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86A2C4CECD;
+	Sun, 10 Nov 2024 06:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731218932;
-	bh=wy79TuJ2a/ajLjOa8f7cpFQV6aT8x76jlquZrtIaC+8=;
+	s=korg; t=1731219014;
+	bh=yyX5nly/7zLHCbl+YCd3cM9RepR8uKkVVFqbtsektJQ=;
 	h=Date:To:From:Subject:From;
-	b=cqh99Dp82rJRhtJhXw44coKkK7qUxyzLJNcB3xVCYuShWenveZnpcTlUaRfze+APi
-	 PXOJ1TWbK4fuAVs902UDpnEbachFvac7zF1DXvD/2hMMZvtNLuFFnwUQj09H63SUH5
-	 tSn0y9NjrxUswXi7uwkebVVcJ+C+ZrX+wnd6Tmqo=
-Date: Sat, 09 Nov 2024 22:08:51 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,thehajime@gmail.com,akpm@linux-foundation.org
+	b=REndoYlw2Tq2SNe0CY8LJ0Y1aFyGylTLzQ/Gta/7V0BIPCugxu3P+g/PADNZTR0IR
+	 /0rNu0z32JzM+LJQo3EdGwAd7RYRZ+cMednh+gzMvfeIeSCDI2Bsvrp9xeMcRCkANj
+	 trkfRPCZbPMwfLuwH0MSIPvqyxwKMHC5IhjCcZ7o=
+Date: Sat, 09 Nov 2024 22:10:14 -0800
+To: mm-commits@vger.kernel.org,kbingham@kernel.org,andrewjballance@gmail.com,etienne.buira@free.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nommu-pass-null-argument-to-vma_iter_prealloc.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241110060852.3BAB3C4CECD@smtp.kernel.org>
+Subject: + gdb-lx-symbols-do-not-error-out-on-monolithic-build.patch added to mm-nonmm-unstable branch
+Message-Id: <20241110061014.C86A2C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nommu: pass NULL argument to vma_iter_prealloc()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nommu-pass-null-argument-to-vma_iter_prealloc.patch
+     Subject: gdb: lx-symbols: do not error out on monolithic build
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     gdb-lx-symbols-do-not-error-out-on-monolithic-build.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nommu-pass-null-argument-to-vma_iter_prealloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gdb-lx-symbols-do-not-error-out-on-monolithic-build.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hajime Tazaki <thehajime@gmail.com>
-Subject: nommu: pass NULL argument to vma_iter_prealloc()
-Date: Sat, 9 Nov 2024 07:28:34 +0900
+From: Etienne Buira <etienne.buira@free.fr>
+Subject: gdb: lx-symbols: do not error out on monolithic build
+Date: Fri, 8 Nov 2024 17:45:32 +0100
 
-When deleting a vma entry from a maple tree, it has to pass NULL to
-vma_iter_prealloc() in order to calculate internal state of the tree, but
-it passed a wrong argument.  As a result, nommu kernels crashed upon
-accessing a vma iterator, such as acct_collect() reading the size of vma
-entries after do_munmap().
+This avoids spurious message:
+(gdb) lx-symbols
+loading vmlinux
+No source file named kernel/module/main.c.
 
-This commit fixes this issue by passing a right argument to the
-preallocation call.
-
-Link: https://lkml.kernel.org/r/20241108222834.3625217-1-thehajime@gmail.com
-Fixes: b5df09226450 ("mm: set up vma iterator for vma_iter_prealloc() calls")
-Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/Zy5ALByQtpO-ddh4@Z926fQmE5jqhFMgp6
+Signed-off-by: Etienne Buira <etienne.buira@free.fr>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/modules.py |    3 +++
+ scripts/gdb/linux/symbols.py |    3 +++
+ 2 files changed, 6 insertions(+)
 
---- a/mm/nommu.c~nommu-pass-null-argument-to-vma_iter_prealloc
-+++ a/mm/nommu.c
-@@ -573,7 +573,7 @@ static int delete_vma_from_mm(struct vm_
- 	VMA_ITERATOR(vmi, vma->vm_mm, vma->vm_start);
+--- a/scripts/gdb/linux/modules.py~gdb-lx-symbols-do-not-error-out-on-monolithic-build
++++ a/scripts/gdb/linux/modules.py
+@@ -19,6 +19,9 @@ from linux import cpus, utils, lists, co
+ module_type = utils.CachedType("struct module")
  
- 	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
--	if (vma_iter_prealloc(&vmi, vma)) {
-+	if (vma_iter_prealloc(&vmi, NULL)) {
- 		pr_warn("Allocation of vma tree for process %d failed\n",
- 		       current->pid);
- 		return -ENOMEM;
+ 
++def has_modules():
++    return utils.gdb_eval_or_none("modules") is not None
++
+ def module_list():
+     global module_type
+     modules = utils.gdb_eval_or_none("modules")
+--- a/scripts/gdb/linux/symbols.py~gdb-lx-symbols-do-not-error-out-on-monolithic-build
++++ a/scripts/gdb/linux/symbols.py
+@@ -178,6 +178,9 @@ lx-symbols command."""
+ 
+         self.load_all_symbols()
+ 
++        if not modules.has_modules():
++            return
++
+         if hasattr(gdb, 'Breakpoint'):
+             if self.breakpoint is not None:
+                 self.breakpoint.delete()
 _
 
-Patches currently in -mm which might be from thehajime@gmail.com are
+Patches currently in -mm which might be from etienne.buira@free.fr are
 
-nommu-pass-null-argument-to-vma_iter_prealloc.patch
+gdb-lx-symbols-do-not-error-out-on-monolithic-build.patch
 
