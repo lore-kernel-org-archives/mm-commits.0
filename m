@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 011D71598EE
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCF0A1598EE
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313690; cv=none; b=jLX9W7TzlDro/O6rlsEMhMSGlVccA86zj0Vq9/S1AdWrG6XRHywXkSpLOdwHO+/MXXEiZjoq01DjoaFBCUfBJkQP06nODLoJjBOG2IXiZmasc1bY4UADcRMN1rIu1Qos1XYbezfcWmYs2A76vuBNeE4ZfpXvSJvIpqZ8R1gD1Y8=
+	t=1731313690; cv=none; b=AUcntMx4nN4Dxlx7QwdUlXeV++L7yEnKJU2mrMkOSRcWg/96idmBRUXKLX+LJDtP61gRgfOHG3r362KZcgf9qXwtF+T6CmxgQw2np6saefhN8GEQPxJDF92o4TbUeCV92jfLudRxNYusEOd7+tAHtKicFtCzKWxhYHFs7txU8Wg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1731313690; c=relaxed/simple;
-	bh=1SROUV1D1JYx6oZLsamlqcvhYDgQl044FXTRTj8h/A4=;
-	h=Date:To:From:Subject:Message-Id; b=clyczg8oSLVGdOiZp0Qz2VLsnGHrA+Fw7unkgSmvU6DORbaUVEBKayIdlf8SEQfMDmQ+7GyiTb3PcOoBHE39bdjLrMz+/zSXLN1hg9X19iEZonewAEmOYwNUENHJcDwplNBtL7bpXd0lUtNHZd+tqJRh1uJdKqflarOUfQP5hXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3HCC7kO; arc=none smtp.client-ip=10.30.226.201
+	bh=wR19c3CzKpQ9vKsiIIN2c/gWnIFKlnpRUBNdF2jOCHU=;
+	h=Date:To:From:Subject:Message-Id; b=ZPhSHx95KBFY8uou0wBE+WAf3lpu8LzBfTk8WnrKJDCN+Bqk6jG6dyqMEN8B8Az+pH7Z+r2EQLvThG7pQ8JIuAbkNvYf3mJqLmOZYAYryRuDJ8BEOtKu/gYamZRhxS3zJUARwJj39CKZKcMTSeMuTowsX3baF3uzEWTetpBdhYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzKk/AQ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3HCC7kO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65687C4CED0;
-	Mon, 11 Nov 2024 08:28:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzKk/AQ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92898C4CED4;
+	Mon, 11 Nov 2024 08:28:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313689;
-	bh=1SROUV1D1JYx6oZLsamlqcvhYDgQl044FXTRTj8h/A4=;
+	s=korg; t=1731313690;
+	bh=wR19c3CzKpQ9vKsiIIN2c/gWnIFKlnpRUBNdF2jOCHU=;
 	h=Date:To:From:Subject:From;
-	b=F3HCC7kOs+4oAXMAyrv/txgkSbAT2QHzaLtwWKn8BRbDJbwxhopgdSuPNWdwneg0p
-	 etZElx6VK/UDbvBf2QffD/6B9iMunn7rXGcgo+IK0r4gPghnZDecxZ1aAoThdEDdXs
-	 b4iqxK/Zm1kCRSkYlu/whe3q82luu9jX+siS0H6I=
-Date: Mon, 11 Nov 2024 00:28:08 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wajdi.k.feghali@intel.com,ryan.roberts@arm.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchana.p.sridhar@intel.com,akpm@linux-foundation.org
+	b=MzKk/AQ0z4aYmwxFHrXITJyFCuwp3nT1h/tXAjiRo5og7KVHLvF79tbIV57yzWM1E
+	 +cvjqiZ0l+YMwVh3NkW22AO+2P5ES8U+42OJPP7Xe9eySINmULTjnAYtuoUEdCyABi
+	 Uxczb0z57YAx5dr6m9SgpWDWFGbtDZwFCfUH1E2k=
+Date: Mon, 11 Nov 2024 00:28:10 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch removed from -mm tree
-Message-Id: <20241111082809.65687C4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-per-order-mthp-swpin-counters.patch removed from -mm tree
+Message-Id: <20241111082810.92898C4CED4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,171 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: zswap_store_page() will initialize entry after adding to xarray.
+     Subject: mm: add per-order mTHP swpin counters
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray.patch
+     mm-add-per-order-mthp-swpin-counters.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Subject: mm: zswap: zswap_store_page() will initialize entry after adding to xarray.
-Date: Wed, 2 Oct 2024 10:33:29 -0700
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm: add per-order mTHP swpin counters
+Date: Sat, 26 Oct 2024 21:24:23 +1300
 
-This incorporates Yosry's suggestions in [1] for further simplifying
-zswap_store_page().  If the page is successfully compressed and added to
-the xarray, we get the pool/objcg refs, and initialize all the entry's
-members.  Only after this, we add it to the zswap LRU.
+This helps profile the sizes of folios being swapped in. Currently,
+only mTHP swap-out is being counted.
+The new interface can be found at:
+/sys/kernel/mm/transparent_hugepage/hugepages-<size>/stats
+         swpin
+For example,
+cat /sys/kernel/mm/transparent_hugepage/hugepages-64kB/stats/swpin
+12809
+cat /sys/kernel/mm/transparent_hugepage/hugepages-32kB/stats/swpin
+4763
 
-In the time between the entry's addition to the xarray and it's member
-initialization, we are protected against concurrent stores/loads/swapoff
-through the folio lock, and are protected against writeback because the
-entry is not on the LRU yet.
-
-This way, we don't have to drop the pool/objcg refs, now that the entry
-initialization is centralized to the successful page store code path.
-
-zswap_compress() is modified to take a zswap_pool parameter in keeping
-with this simplification (as against obtaining this from entry->pool).
-
-[1]: https://lore.kernel.org/all/CAJD7tkZh6ufHQef5HjXf_F5b5LC1EATexgseD=4WvrO+a6Ni6w@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20241002173329.213722-1-kanchana.p.sridhar@intel.com
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wajdi Feghali <wajdi.k.feghali@intel.com>
+[v-songbaohua@oppo.com: add a blank line in doc]
+  Link: https://lkml.kernel.org/r/20241030233423.80759-1-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20241026082423.26298-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   56 +++++++++++++++++++++++----------------------------
- 1 file changed, 26 insertions(+), 30 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    4 ++++
+ include/linux/huge_mm.h                    |    1 +
+ mm/huge_memory.c                           |    3 +++
+ mm/page_io.c                               |    3 +++
+ 4 files changed, 11 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-zswap_store_page-will-initialize-entry-after-adding-to-xarray
-+++ a/mm/zswap.c
-@@ -881,7 +881,8 @@ static int zswap_cpu_comp_dead(unsigned
- 	return 0;
- }
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-per-order-mthp-swpin-counters
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -534,6 +534,10 @@ zswpout
+ 	is incremented every time a huge page is swapped out to zswap in one
+ 	piece without splitting.
  
--static bool zswap_compress(struct page *page, struct zswap_entry *entry)
-+static bool zswap_compress(struct page *page, struct zswap_entry *entry,
-+			   struct zswap_pool *pool)
- {
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct scatterlist input, output;
-@@ -893,7 +894,7 @@ static bool zswap_compress(struct page *
- 	gfp_t gfp;
- 	u8 *dst;
- 
--	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
-+	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
- 
- 	mutex_lock(&acomp_ctx->mutex);
- 
-@@ -926,7 +927,7 @@ static bool zswap_compress(struct page *
- 	if (comp_ret)
- 		goto unlock;
- 
--	zpool = entry->pool->zpool;
-+	zpool = pool->zpool;
- 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	if (zpool_malloc_support_movable(zpool))
- 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -1414,32 +1415,21 @@ static ssize_t zswap_store_page(struct p
- 				struct obj_cgroup *objcg,
- 				struct zswap_pool *pool)
- {
-+	swp_entry_t page_swpentry = page_swap_entry(page);
- 	struct zswap_entry *entry, *old;
- 
- 	/* allocate entry */
- 	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
- 	if (!entry) {
- 		zswap_reject_kmemcache_fail++;
--		goto reject;
-+		return -EINVAL;
- 	}
- 
--	/* zswap_store() already holds a ref on 'objcg' and 'pool' */
--	if (objcg)
--		obj_cgroup_get(objcg);
--	zswap_pool_get(pool);
--
--	/* if entry is successfully added, it keeps the reference */
--	entry->pool = pool;
-+	if (!zswap_compress(page, entry, pool))
-+		goto compress_failed;
- 
--	if (!zswap_compress(page, entry))
--		goto put_pool_objcg;
--
--	entry->swpentry = page_swap_entry(page);
--	entry->objcg = objcg;
--	entry->referenced = true;
--
--	old = xa_store(swap_zswap_tree(entry->swpentry),
--		       swp_offset(entry->swpentry),
-+	old = xa_store(swap_zswap_tree(page_swpentry),
-+		       swp_offset(page_swpentry),
- 		       entry, GFP_KERNEL);
- 	if (xa_is_err(old)) {
- 		int err = xa_err(old);
-@@ -1458,6 +1448,16 @@ static ssize_t zswap_store_page(struct p
- 		zswap_entry_free(old);
- 
- 	/*
-+	 * The entry is successfully compressed and stored in the tree, there is
-+	 * no further possibility of failure. Grab refs to the pool and objcg.
-+	 * These refs will be dropped by zswap_entry_free() when the entry is
-+	 * removed from the tree.
-+	 */
-+	zswap_pool_get(pool);
-+	if (objcg)
-+		obj_cgroup_get(objcg);
++swpin
++	is incremented every time a huge page is swapped in from a non-zswap
++	swap device in one piece.
 +
-+	/*
- 	 * We finish initializing the entry while it's already in xarray.
- 	 * This is safe because:
- 	 *
-@@ -1467,25 +1467,21 @@ static ssize_t zswap_store_page(struct p
- 	 *    The publishing order matters to prevent writeback from seeing
- 	 *    an incoherent entry.
+ swpout
+ 	is incremented every time a huge page is swapped out to a non-zswap
+ 	swap device in one piece without splitting.
+--- a/include/linux/huge_mm.h~mm-add-per-order-mthp-swpin-counters
++++ a/include/linux/huge_mm.h
+@@ -120,6 +120,7 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_FALLBACK,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
+ 	MTHP_STAT_ZSWPOUT,
++	MTHP_STAT_SWPIN,
+ 	MTHP_STAT_SWPOUT,
+ 	MTHP_STAT_SWPOUT_FALLBACK,
+ 	MTHP_STAT_SHMEM_ALLOC,
+--- a/mm/huge_memory.c~mm-add-per-order-mthp-swpin-counters
++++ a/mm/huge_memory.c
+@@ -616,6 +616,7 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_alloc,
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
+ DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
++DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
+ DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
+ #ifdef CONFIG_SHMEM
+@@ -635,6 +636,7 @@ static struct attribute *anon_stats_attr
+ 	&anon_fault_fallback_charge_attr.attr,
+ #ifndef CONFIG_SHMEM
+ 	&zswpout_attr.attr,
++	&swpin_attr.attr,
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
+ #endif
+@@ -666,6 +668,7 @@ static struct attribute_group file_stats
+ static struct attribute *any_stats_attrs[] = {
+ #ifdef CONFIG_SHMEM
+ 	&zswpout_attr.attr,
++	&swpin_attr.attr,
+ 	&swpout_attr.attr,
+ 	&swpout_fallback_attr.attr,
+ #endif
+--- a/mm/page_io.c~mm-add-per-order-mthp-swpin-counters
++++ a/mm/page_io.c
+@@ -495,6 +495,7 @@ static void sio_read_complete(struct kio
+ 		for (p = 0; p < sio->pages; p++) {
+ 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
+ 
++			count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
+ 			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+@@ -589,6 +590,7 @@ static void swap_read_folio_bdev_sync(st
+ 	 * attempt to access it in the page fault retry time check.
  	 */
-+	entry->pool = pool;
-+	entry->swpentry = page_swpentry;
-+	entry->objcg = objcg;
-+	entry->referenced = true;
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
- 		zswap_lru_add(&zswap_list_lru, entry);
- 	}
- 
--	/*
--	 * We shouldn't have any possibility of failure after the entry is
--	 * added in the xarray. The pool/objcg refs obtained here will only
--	 * be dropped if/when zswap_entry_free() gets called.
--	 */
- 	return entry->length;
- 
- store_failed:
--	zpool_free(entry->pool->zpool, entry->handle);
--put_pool_objcg:
--	zswap_pool_put(pool);
--	obj_cgroup_put(objcg);
-+	zpool_free(pool->zpool, entry->handle);
-+compress_failed:
- 	zswap_entry_cache_free(entry);
--reject:
- 	return -EINVAL;
- }
- 
+ 	get_task_struct(current);
++	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
+ 	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio_wait(&bio);
+@@ -605,6 +607,7 @@ static void swap_read_folio_bdev_async(s
+ 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio->bi_end_io = end_swap_bio_read;
+ 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
++	count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
+ 	count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+ 	count_vm_events(PSWPIN, folio_nr_pages(folio));
+ 	submit_bio(bio);
 _
 
-Patches currently in -mm which might be from kanchana.p.sridhar@intel.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
 
