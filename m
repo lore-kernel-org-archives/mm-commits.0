@@ -1,166 +1,96 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+Received: from mail-oi1-f181.google.com (mail-oi1-f181.google.com [209.85.167.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3796F14D70E
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 13:43:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5989A142E77
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 15:14:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731332625; cv=none; b=Qtb5jJh8wgQGy7cgKyw8N7knXBysQqb+xlV8U13ZNg2J1CEq2zkVZ7Vt8ygUmVVIPpdULc7GaKeqTfkCILXazERlXJrL6mChRDCohWN+z4H4gV3cntjsNWtRld6U5F1xBUz7p+VOjZHy0dHCcEpi9UVx7MccxoZvW1z2tWYCi8Q=
+	t=1731338060; cv=none; b=VtyUC3tdfsV8RNZWUBJ7jvC01drFCw7+eQ2FkONkBXu5NVCar9D9DevPgpKgCGAZ/KLJ29riyFvC8KfaHjTqfqooO0bZ0WmFL8+9BjdjQJZyUOVADJDjDOSvaTjuTDZXeNC+jpBOhyUeO775ZkXqKemiqFw+pP+iDrzkehF2A5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731332625; c=relaxed/simple;
-	bh=jYvLQr8HkhBTMi8Vwwvm/H234TJAgq+I/opC9vwgbeI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=m3tGPP/DXnCfU6xIB4xg5byDE/JBHiFhUAlq3G/J1aFNS8MuvQ9C/Jy8lNVEbgJbbrhn5IBkuYbCm3vCeNxJppFFAKoZKR4MVwpgM0APQanXA6As2BrREDf5YaxmWno8s/bm9ARKCWytmi9GyJmm5u8Hg4GGub3CoSJstWIXrDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OSQ/dXHc; arc=none smtp.client-ip=209.85.214.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1731338060; c=relaxed/simple;
+	bh=A3odoqc8RtFcWDGmG+7FqUO+KCU9oenTB9SJRPKuob4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hsEaFZhO349YEzcXil2hniCtGMrUMy5d0cLndMrJZlHw9FEafvY/eSaBs4j7/c9Kfg0c26FaA2T+/FAp5iUq6YSCY/jLtbNg1rfBdtt10feSE+okE8KNC0ufD3KCAoO1jTRr6tjG5iEM1WpXyg+WLkw3YfpyowhjpKwxFi28oi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b=saDyjF1o; arc=none smtp.client-ip=209.85.167.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OSQ/dXHc"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-20c8ac50b79so256735ad.0
-        for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 05:43:44 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b="saDyjF1o"
+Received: by mail-oi1-f181.google.com with SMTP id 5614622812f47-3e600add5dcso2119251b6e.2
+        for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 07:14:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1731332623; x=1731937423; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xDP+cDmyXee8Hd/DZmVZMRbGxd+UGKc4TIK2uER3Dco=;
-        b=OSQ/dXHcmTiszrItgfstTXYtywBaD2kgFxd1NgLPM+xdrlmnWtw7fANGHzDffG4C1X
-         BKxPye6HyxBC/hp9sKv5QwPi26YfTkldAgGh/SM+zBvMA6rBGgapbA30YEhBLJ70ZbI7
-         zLFl8eY0EhIkAsygBB8mMbOs/mO3nSAEcmBsFfOUwPmX8JfjCM5bavqvih+saU1wW9Pj
-         yBy0UtEDgenm9oYZNmhNDoJyEzwoQMJ/xB2kKJuOgqj+HLGcUjOnrf7QQocKyb9lJXGJ
-         PAv+Chz3roB0NcAjkKb0b11xN5KRC/KXEvw/MpOoggIqhqh/sYzx1KR9JSDn/0rYXs2P
-         C5Hg==
+        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1731338057; x=1731942857; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=iTacGNA4ubyqkMVNi/cE9nmeMeWyRjCbYUn5PSoszts=;
+        b=saDyjF1oQHQJa9CCJbbKscDIFOy/FURoIM5UK6hr1VMkFW1no2ajCrjzTDn+o+ILa0
+         WfOJINPx/PHd6shbBgssAOX7vVNPCeINIPmroHChC0kNBQk5GNfaDSvcAscS5d66AWNQ
+         jCq6D+Kea+j3ifBAJwZJnoqiXFM0wtAlgdzdyskuuDjtOYzSPYFpoT/b1Mp4qrO69nO2
+         B3mtA50XA4FeVCmr5PX4Y768n7CvSPQYgToNlIfSIo9PM6nR66FT4ilC1QAwqQKD+ZVY
+         SJ/b6yQ9aauzXP6WLzzqiQsEKcw73KXXCa4Jn2AWgcBW+je6Otd0Dd/dy0OH/mCRwXmj
+         oWyg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731332623; x=1731937423;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xDP+cDmyXee8Hd/DZmVZMRbGxd+UGKc4TIK2uER3Dco=;
-        b=NfSytglR22Je03IhxT0qTaf7kRCGEn7Krk+Yk+Dz/OtzXlMPEUjsxq/e4dG7YBoSPv
-         Fwccs/j8F27IYp5tN5p2bZC3dsapvno15nJeccaxMYjv88FJ2wMDwv3u7m1nLgJHckPT
-         FCUUJm0k0Jqh1kYd0DmB5lyig45sYbMPlgVEaHLXsZZ1xrPEcEsnfLOpyhC1KeM1/FnW
-         /c+8CEWYmezQY1qH4GTDDm5/UoYRh8iVfpvmPUKM6he4TTmy1okSpefoFqetDEHlvBby
-         ykEqbdUA94lV6u4SPiUq0ahNNkSGwfkP2urMnniA1tc7dcCoQIYRyvDn81Qb3+Cz5stY
-         Wz+w==
-X-Gm-Message-State: AOJu0Yzx4Wa/yNP5H8muNBdFnhGhHNG0ZWhpZf8bepOHzRBihTzUhUkc
-	Dv7PIf9NafyOEZafTWiPMdSGlHEuucf8KayCLNn1lBftBAFnFWyDHheMO2OAt4zvFUPU7AXJUl7
-	Gq2EzV/eGalPCRRt5P2R7uu1k1gxB8IHhXpcz
-X-Gm-Gg: ASbGncutEKs5JfROjMKSP+YhGGYgpM1Y4/2LLDgZ3UJKIfyFj7KIzJQEl55zdt3JRMl
-	AYcuo5ctBqf0zJ2iTIM1gTI3aI0OD8A==
-X-Google-Smtp-Source: AGHT+IETPc+SVHj47N7mDi3y9b3P39arT7614Q9JWIkwIq84hMAFtIcLJ/cZOvbHbBU+mSpbxKQJa4AQPdsxtagSf6Q=
-X-Received: by 2002:a17:903:2292:b0:20b:5e34:1850 with SMTP id
- d9443c01a7336-2118f1c8c0cmr3154185ad.23.1731332623385; Mon, 11 Nov 2024
- 05:43:43 -0800 (PST)
+        d=1e100.net; s=20230601; t=1731338057; x=1731942857;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=iTacGNA4ubyqkMVNi/cE9nmeMeWyRjCbYUn5PSoszts=;
+        b=Vjro+0vfyluh4EUnEnShLbu6TLnEj/DeRMtZob15WTZ9oTUxIdHIY3puOkuYt/MeRe
+         3RAqVWH5tmoLz/d/ylNHQyDzgfe62ZcyCJD0b4qup19Azpk+w1EQeXiEznbvPeryDOyv
+         O89ULWmytARFj8bWnnqPHTkp7Lf0rX2+uvE5WV3MNJkXqvYlxvXfTENPe82O5cuYDoiM
+         a2fuyXpI2M54DUCs05Dd3ty3A14mjl4sKCKMpLST7eadRCFoZyawrZMExXx0KyAzPqyA
+         ymrj+Duw5ehVyWgJdl5CjvzqrwbqEdacUEu1gW/8hoB/zM7YJ6zPmDwz19gHduzWEVAJ
+         3pKw==
+X-Gm-Message-State: AOJu0Yy6nF331Moy8LDG/rGJaUoKAOqJlAQb9NDCJTdl0bRVyuT6Y7zL
+	QVc8XahcZtoz0o/fP0tbCXMdCdXSEVoDf5K+/4TzmYPfhYe6S0oqslshGajdaoA=
+X-Google-Smtp-Source: AGHT+IFB15RhG7XG9O5WQQmv1h8oWUtwZFoYKsn4s0G8rE4QDmUkKariel9dNYf1AkSBB/+fy7rbOQ==
+X-Received: by 2002:a05:6808:15a7:b0:3e0:4846:594a with SMTP id 5614622812f47-3e79477173bmr9687866b6e.38.1731338057425;
+        Mon, 11 Nov 2024 07:14:17 -0800 (PST)
+Received: from [192.168.1.116] ([96.43.243.2])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-3e78cd294afsm2112870b6e.43.2024.11.11.07.14.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 11 Nov 2024 07:14:16 -0800 (PST)
+Message-ID: <7a00249a-8a5f-4a14-87e6-f084c35884a1@kernel.dk>
+Date: Mon, 11 Nov 2024 08:14:15 -0700
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241111082832.CB6B3C4CED0@smtp.kernel.org> <CADyq12zz+Di3FDANsZo1F79EvSSvUZt6fdRMDqG0tqbWoHq+rg@mail.gmail.com>
-In-Reply-To: <CADyq12zz+Di3FDANsZo1F79EvSSvUZt6fdRMDqG0tqbWoHq+rg@mail.gmail.com>
-From: Brian Geffon <bgeffon@google.com>
-Date: Mon, 11 Nov 2024 08:43:07 -0500
-Message-ID: <CADyq12wbX6Jn0aPgm4EpMtFcE1d=K7qAWan=g9L7RtQ674Escw@mail.gmail.com>
-Subject: Re: [merged mm-stable] zram-clear-idle-flag-after-recompression.patch
- removed from -mm tree
-To: Andrew Morton <akpm@linux-foundation.org>, "# v4 . 10+" <stable@vger.kernel.org>
-Cc: mm-commits@vger.kernel.org, minchan@kernel.org, kawasin@google.com, 
-	senozhatsky@chromium.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: + zram-fix-null-pointer-in-comp_algorithm_show.patch added to
+ mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, senozhatsky@chromium.org, minchan@kernel.org,
+ liushixin2@huawei.com
+References: <20241110061637.2A885C4CECD@smtp.kernel.org>
+ <d720c44c-455e-4d02-b1f2-02544d48a68a@kernel.dk>
+ <20241110181253.0ed6a90d5962edb1a8edb9be@linux-foundation.org>
+Content-Language: en-US
+From: Jens Axboe <axboe@kernel.dk>
+In-Reply-To: <20241110181253.0ed6a90d5962edb1a8edb9be@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 11, 2024 at 8:42=E2=80=AFAM Brian Geffon <bgeffon@google.com> w=
-rote:
->
-> On Mon, Nov 11, 2024 at 3:28=E2=80=AFAM Andrew Morton <akpm@linux-foundat=
-ion.org> wrote:
-> >
-> >
-> > The quilt patch titled
-> >      Subject: zram: clear IDLE flag after recompression
-> > has been removed from the -mm tree.  Its filename was
-> >      zram-clear-idle-flag-after-recompression.patch
-> >
-> > This patch was dropped because it was merged into the mm-stable branch
-> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> >
-> > ------------------------------------------------------
-> > From: Sergey Senozhatsky <senozhatsky@chromium.org>
-> > Subject: zram: clear IDLE flag after recompression
-> > Date: Tue, 29 Oct 2024 00:36:14 +0900
-> >
-> > Patch series "zram: IDLE flag handling fixes", v2.
-> >
-> > zram can wrongly preserve ZRAM_IDLE flag on its entries which can resul=
-t
-> > in premature post-processing (writeback and recompression) of such
-> > entries.
-> >
-> >
-> > This patch (of 2)
-> >
-> > Recompression should clear ZRAM_IDLE flag on the entries it has accesse=
-d,
-> > because otherwise some entries, specifically those for which recompress=
-ion
-> > has failed, become immediate candidate entries for another post-process=
-ing
-> > (e.g.  writeback).
-> >
-> > Consider the following case:
-> > - recompression marks entries IDLE every 4 hours and attempts
-> >   to recompress them
-> > - some entries are incompressible, so we keep them intact and
-> >   hence preserve IDLE flag
-> > - writeback marks entries IDLE every 8 hours and writebacks
-> >   IDLE entries, however we have IDLE entries left from
-> >   recompression, so writeback prematurely writebacks those
-> >   entries.
-> >
-> > The bug was reported by Shin Kawamura.
-> >
-> > Link: https://lkml.kernel.org/r/20241028153629.1479791-1-senozhatsky@ch=
-romium.org
-> > Link: https://lkml.kernel.org/r/20241028153629.1479791-2-senozhatsky@ch=
-romium.org
-> > Fixes: 84b33bf78889 ("zram: introduce recompress sysfs knob")
-> > Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-> > Reported-by: Shin Kawamura <kawasin@google.com>
-> > Acked-by: Brian Geffon <bgeffon@google.com>
-> > Cc: Minchan Kim <minchan@kernel.org>
-Cc: stable@vger.kernel.org
+On 11/10/24 7:12 PM, Andrew Morton wrote:
+> On Sun, 10 Nov 2024 18:26:14 -0700 Jens Axboe <axboe@kernel.dk> wrote:
+> 
+>> On 11/9/24 11:16 PM, Andrew Morton wrote:
+>>> The patch titled
+>>>      Subject: zram: fix NULL pointer in comp_algorithm_show()
+>>> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>>>      zram-fix-null-pointer-in-comp_algorithm_show.patch
+>>
+>> Andrew, can you drop this one?
+> 
+> OK.  It will generate a conflict with one of the 11 zram commits which
+> are in mm.git, but this is very trivial.
 
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> >
-> >  drivers/block/zram/zram_drv.c |    7 +++++++
-> >  1 file changed, 7 insertions(+)
-> >
-> > --- a/drivers/block/zram/zram_drv.c~zram-clear-idle-flag-after-recompre=
-ssion
-> > +++ a/drivers/block/zram/zram_drv.c
-> > @@ -1864,6 +1864,13 @@ static int recompress_slot(struct zram *
-> >         if (ret)
-> >                 return ret;
-> >
-> > +       /*
-> > +        * We touched this entry so mark it as non-IDLE. This makes sur=
-e that
-> > +        * we don't preserve IDLE flag and don't incorrectly pick this =
-entry
-> > +        * for different post-processing type (e.g. writeback).
-> > +        */
-> > +       zram_clear_flag(zram, index, ZRAM_IDLE);
-> > +
-> >         class_index_old =3D zs_lookup_class_index(zram->mem_pool, comp_=
-len_old);
-> >         /*
-> >          * Iterate the secondary comp algorithms list (in order of prio=
-rity)
-> > _
-> >
-> > Patches currently in -mm which might be from senozhatsky@chromium.org a=
-re
-> >
-> >
+Ah indeed... I don't have any merges behind that patch, so how about I
+just drop it and you pick it up again? Seems easier that way.
+
+-- 
+Jens Axboe
+
