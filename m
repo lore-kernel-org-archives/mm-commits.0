@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FD121598EE
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4937015E5C2
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313697; cv=none; b=Cdd9O+ftUB09bl+IK9QSHoFdUFmuUqTfy6Mjg04E+/AYfnPdq0IZaSgVBZnWq+IT63wG4Ozc0VlpaCzFH/o3TLx02//A7jIny0PRKedrjIT+qtxJEbN44mkYPj0dKiC3rmWA9Qm2xu9qQkkm5GDU+EIsoiReNzsdxhDkjWD4/hQ=
+	t=1731313700; cv=none; b=M0RS2txYKBhG2D6SsU+88zdcnDtcBWM3WpMQfbo7vMOXHS9a5k+oXq5EsR45270WI1ATLN4oZfSXfc4LtNq0n9R2ttbD2c52L0LG0XHoz6PGyIUfnDhes7plcWyXOR36YYxw17uGUHxkNIZuu6Vzys81aiOe4df1m5ZqF+WC17g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313697; c=relaxed/simple;
-	bh=if9QJk8GG0SxTQoGXkUay9qEWJDa93ZXKMTj5FAIx4A=;
-	h=Date:To:From:Subject:Message-Id; b=bTbmnBXulw/PT2MFtb5JmIJKJnIj/c/RHw6ZKj+a+7aUrLYG+5a5HddSwvMd+1WOb0rsK6+cOJ72jwvNczP96AIFI4248eR5HfhswBNL5CTt0+wiMheka1ZO/JaLAOz85827upAfSWWd9CG0efeEELPeGvHhEvIF6IEfQiuy8uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZAbmsE7+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313700; c=relaxed/simple;
+	bh=6BLsRBtvcnx1CQjOUs71WibenvpP6KerZ4+M9Ws4XuE=;
+	h=Date:To:From:Subject:Message-Id; b=V1UjXQndNuN0/20te0nazvtiBzroVYzL40r53jkt2aIdYDOoAKOpNBM3VmUTt2nWOju/tqvhCdfCCcBeYJa2jELhsDmL8TcMol/6wRj+a841jR+DeN6fu4DI10do4U1uAIvkDPGOGjP45IRj3HiwxEtCrjhFMQfgCUzhpwdeOSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uFlTS/J3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZAbmsE7+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8AF8C4CED0;
-	Mon, 11 Nov 2024 08:28:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uFlTS/J3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77A9C4CED0;
+	Mon, 11 Nov 2024 08:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313697;
-	bh=if9QJk8GG0SxTQoGXkUay9qEWJDa93ZXKMTj5FAIx4A=;
+	s=korg; t=1731313699;
+	bh=6BLsRBtvcnx1CQjOUs71WibenvpP6KerZ4+M9Ws4XuE=;
 	h=Date:To:From:Subject:From;
-	b=ZAbmsE7+OPFURP+atKPsOXTNsXGRIB9+Rcg6rUzjkJCwcUMUprhFB/ZuzCe+t6BPh
-	 LAtUU2VAj5Z8Fra11XOxRSPNuWYOqZbeuX/EBd+hRRUXPfUgt1SH7lPbeHJoLwNF8w
-	 CQFPYIQt4/U1bJqozyQWpv1jLZpwTcgfWytfXIRo=
-Date: Mon, 11 Nov 2024 00:28:16 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,siyanteng@loongson.cn,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,andreyknvl@gmail.com,alexs@kernel.org,2023002089@link.tyut.edu.cn,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=uFlTS/J3np8IghAPyClPKARAXO2N3iXwMI+M+z3TIlrBO8OFqUsBnOwXlMl57fFZm
+	 myuB0i3GGp7G0HxWQm9YOSXQWMsXCypkcNY/zOumiRlZgYUfEeJKqZyrxLBwQBFkqU
+	 YJSqGhUyG3KKebT51fjAFxO73YcCX6UpV4k+BeTo=
+Date: Mon, 11 Nov 2024 00:28:19 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabkba@suse.cz,vbabka@suse.cz,tsbogend@alpha.franken.de,surenb@google.com,skhan@linuxfoundation.org,sidhartha.kumar@oracle.com,shuah@kernel.org,richard.henderson@linaro.org,paulmck@kernel.org,muchun.song@linux.dev,mattst88@gmail.com,Liam.Howlett@Oracle.com,jhubbard@nvidia.com,jeffxu@chromium.org,jcmvbkbc@gmail.com,jannh@google.com,James.Bottomley@HansenPartnership.com,hch@infradead.org,deller@gmx.de,david@redhat.com,chris@zankel.net,brauner@kernel.org,arnd@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-delete-config_kasan_module_test.patch removed from -mm tree
-Message-Id: <20241111082816.E8AF8C4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pagewalk-add-the-ability-to-install-ptes.patch removed from -mm tree
+Message-Id: <20241111082819.C77A9C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,226 +35,698 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
+     Subject: mm: pagewalk: add the ability to install PTEs
 has been removed from the -mm tree.  Its filename was
-     kasan-delete-config_kasan_module_test.patch
+     mm-pagewalk-add-the-ability-to-install-ptes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: delete CONFIG_KASAN_MODULE_TEST
-Date: Wed, 16 Oct 2024 18:18:02 +0500
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: pagewalk: add the ability to install PTEs
+Date: Mon, 28 Oct 2024 14:13:27 +0000
 
-Since we've migrated all tests to the KUnit framework, we can delete
-CONFIG_KASAN_MODULE_TEST and mentioning of it in the documentation as
-well.
+Patch series "implement lightweight guard pages", v4.
 
-I've used the online translator to modify the non-English documentation.
+Userland library functions such as allocators and threading
+implementations often require regions of memory to act as 'guard pages' -
+mappings which, when accessed, result in a fatal signal being sent to the
+accessing process.
 
-[snovitoll@gmail.com: fix indentation in translation]
-  Link: https://lkml.kernel.org/r/20241020042813.3223449-1-snovitoll@gmail.com
-Link: https://lkml.kernel.org/r/20241016131802.3115788-4-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marco Elver <elver@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Yanteng Si <siyanteng@loongson.cn>
+The current means by which these are implemented is via a PROT_NONE mmap()
+mapping, which provides the required semantics however incur an overhead
+of a VMA for each such region.
+
+With a great many processes and threads, this can rapidly add up and incur
+a significant memory penalty.  It also has the added problem of preventing
+merges that might otherwise be permitted.
+
+This series takes a different approach - an idea suggested by Vlastimil
+Babka (and before him David Hildenbrand and Jann Horn - perhaps more - the
+provenance becomes a little tricky to ascertain after this - please
+forgive any omissions!) - rather than locating the guard pages at the VMA
+layer, instead placing them in page tables mapping the required ranges.
+
+Early testing of the prototype version of this code suggests a 5 times
+speed up in memory mapping invocations (in conjunction with use of
+process_madvise()) and a 13% reduction in VMAs on an entirely idle android
+system and unoptimised code.
+
+We expect with optimisation and a loaded system with a larger number of
+guard pages this could significantly increase, but in any case these
+numbers are encouraging.
+
+This way, rather than having separate VMAs specifying which parts of a
+range are guard pages, instead we have a VMA spanning the entire range of
+memory a user is permitted to access and including ranges which are to be
+'guarded'.
+
+After mapping this, a user can specify which parts of the range should
+result in a fatal signal when accessed.
+
+By restricting the ability to specify guard pages to memory mapped by
+existing VMAs, we can rely on the mappings being torn down when the
+mappings are ultimately unmapped and everything works simply as if the
+memory were not faulted in, from the point of view of the containing VMAs.
+
+This mechanism in effect poisons memory ranges similar to hardware memory
+poisoning, only it is an entirely software-controlled form of poisoning.
+
+The mechanism is implemented via madvise() behaviour - MADV_GUARD_INSTALL
+which installs page table-level guard page markers - and MADV_GUARD_REMOVE
+- which clears them.
+
+Guard markers can be installed across multiple VMAs and any existing
+mappings will be cleared, that is zapped, before installing the guard page
+markers in the page tables.
+
+There is no concept of 'nested' guard markers, multiple attempts to
+install guard markers in a range will, after the first attempt, have no
+effect.
+
+Importantly, removing guard markers over a range that contains both guard
+markers and ordinary backed memory has no effect on anything but the guard
+markers (including leaving huge pages un-split), so a user can safely
+remove guard markers over a range of memory leaving the rest intact.
+
+The actual mechanism by which the page table entries are specified makes
+use of existing logic - PTE markers, which are used for the userfaultfd
+UFFDIO_POISON mechanism.
+
+Unfortunately PTE_MARKER_POISONED is not suited for the guard page
+mechanism as it results in VM_FAULT_HWPOISON semantics in the fault
+handler, so we add our own specific PTE_MARKER_GUARD and adapt existing
+logic to handle it.
+
+We also extend the generic page walk mechanism to allow for installation
+of PTEs (carefully restricted to memory management logic only to prevent
+unwanted abuse).
+
+We ensure that zapping performed by MADV_DONTNEED and MADV_FREE do not
+remove guard markers, nor does forking (except when VM_WIPEONFORK is
+specified for a VMA which implies a total removal of memory
+characteristics).
+
+It's important to note that the guard page implementation is emphatically
+NOT a security feature, so a user can remove the markers if they wish.  We
+simply implement it in such a way as to provide the least surprising
+behaviour.
+
+An extensive set of self-tests are provided which ensure behaviour is as
+expected and additionally self-documents expected behaviour of guard
+ranges.
+
+
+This patch (of 5):
+
+The existing generic pagewalk logic permits the walking of page tables,
+invoking callbacks at individual page table levels via user-provided
+mm_walk_ops callbacks.
+
+This is useful for traversing existing page table entries, but precludes
+the ability to establish new ones.
+
+Existing mechanism for performing a walk which also installs page table
+entries if necessary are heavily duplicated throughout the kernel, each
+with semantic differences from one another and largely unavailable for use
+elsewhere.
+
+Rather than add yet another implementation, we extend the generic pagewalk
+logic to enable the installation of page table entries by adding a new
+install_pte() callback in mm_walk_ops.  If this is specified, then upon
+encountering a missing page table entry, we allocate and install a new one
+and continue the traversal.
+
+If a THP huge page is encountered at either the PMD or PUD level we split
+it only if there are ops->pte_entry() (or ops->pmd_entry at PUD level),
+otherwise if there is only an ops->install_pte(), we avoid the unnecessary
+split.
+
+We do not support hugetlb at this stage.
+
+If this function returns an error, or an allocation fails during the
+operation, we abort the operation altogether.  It is up to the caller to
+deal appropriately with partially populated page table ranges.
+
+If install_pte() is defined, the semantics of pte_entry() change - this
+callback is then only invoked if the entry already exists.  This is a
+useful property, as it allows a caller to handle existing PTEs while
+installing new ones where necessary in the specified range.
+
+If install_pte() is not defined, then there is no functional difference to
+this patch, so all existing logic will work precisely as it did before.
+
+As we only permit the installation of PTEs where a mapping does not
+already exist there is no need for TLB management, however we do invoke
+update_mmu_cache() for architectures which require manual maintenance of
+mappings for other CPUs.
+
+We explicitly do not allow the existing page walk API to expose this
+feature as it is dangerous and intended for internal mm use only. 
+Therefore we provide a new walk_page_range_mm() function exposed only to
+mm/internal.h.
+
+We take the opportunity to additionally clean up the page walker logic to
+be a little easier to follow.
+
+Link: https://lkml.kernel.org/r/cover.1730123433.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/51b432ebef013e3fdf9f92101533435de1bffadf.1730123433.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: Jann Horn <jannh@google.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Vlastimil Babka <vbabkba@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst                    |   23 +++-------
- Documentation/translations/zh_CN/dev-tools/kasan.rst |   20 +++-----
- Documentation/translations/zh_TW/dev-tools/kasan.rst |   21 +++------
- lib/Kconfig.kasan                                    |    7 ---
- mm/kasan/kasan.h                                     |    2 
- mm/kasan/report.c                                    |    2 
- 6 files changed, 28 insertions(+), 47 deletions(-)
+ include/linux/pagewalk.h |   18 ++
+ mm/internal.h            |    6 
+ mm/pagewalk.c            |  246 +++++++++++++++++++++++++++----------
+ 3 files changed, 201 insertions(+), 69 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -511,19 +511,14 @@ Tests
- ~~~~~
+--- a/include/linux/pagewalk.h~mm-pagewalk-add-the-ability-to-install-ptes
++++ a/include/linux/pagewalk.h
+@@ -25,12 +25,15 @@ enum page_walk_lock {
+  *			this handler is required to be able to handle
+  *			pmd_trans_huge() pmds.  They may simply choose to
+  *			split_huge_page() instead of handling it explicitly.
+- * @pte_entry:		if set, called for each PTE (lowest-level) entry,
+- *			including empty ones
++ * @pte_entry:		if set, called for each PTE (lowest-level) entry
++ *			including empty ones, except if @install_pte is set.
++ *			If @install_pte is set, @pte_entry is called only for
++ *			existing PTEs.
+  * @pte_hole:		if set, called for each hole at all levels,
+  *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD.
+  *			Any folded depths (where PTRS_PER_P?D is equal to 1)
+- *			are skipped.
++ *			are skipped. If @install_pte is specified, this will
++ *			not trigger for any populated ranges.
+  * @hugetlb_entry:	if set, called for each hugetlb entry. This hook
+  *			function is called with the vma lock held, in order to
+  *			protect against a concurrent freeing of the pte_t* or
+@@ -51,6 +54,13 @@ enum page_walk_lock {
+  * @pre_vma:            if set, called before starting walk on a non-null vma.
+  * @post_vma:           if set, called after a walk on a non-null vma, provided
+  *                      that @pre_vma and the vma walk succeeded.
++ * @install_pte:        if set, missing page table entries are installed and
++ *                      thus all levels are always walked in the specified
++ *                      range. This callback is then invoked at the PTE level
++ *                      (having split any THP pages prior), providing the PTE to
++ *                      install. If allocations fail, the walk is aborted. This
++ *                      operation is only available for userland memory. Not
++ *                      usable for hugetlb ranges.
+  *
+  * p?d_entry callbacks are called even if those levels are folded on a
+  * particular architecture/configuration.
+@@ -76,6 +86,8 @@ struct mm_walk_ops {
+ 	int (*pre_vma)(unsigned long start, unsigned long end,
+ 		       struct mm_walk *walk);
+ 	void (*post_vma)(struct mm_walk *walk);
++	int (*install_pte)(unsigned long addr, unsigned long next,
++			   pte_t *ptep, struct mm_walk *walk);
+ 	enum page_walk_lock walk_lock;
+ };
  
- There are KASAN tests that allow verifying that KASAN works and can detect
--certain types of memory corruptions. The tests consist of two parts:
-+certain types of memory corruptions.
+--- a/mm/internal.h~mm-pagewalk-add-the-ability-to-install-ptes
++++ a/mm/internal.h
+@@ -12,6 +12,7 @@
+ #include <linux/mm.h>
+ #include <linux/mm_inline.h>
+ #include <linux/pagemap.h>
++#include <linux/pagewalk.h>
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+@@ -1502,4 +1503,9 @@ static inline void accept_page(struct pa
+ }
+ #endif /* CONFIG_UNACCEPTED_MEMORY */
  
--1. Tests that are integrated with the KUnit Test Framework. Enabled with
--``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
-+All KASAN tests are integrated with the KUnit Test Framework and can be enabled
-+via ``CONFIG_KASAN_KUNIT_TEST``. The tests can be run and partially verified
- automatically in a few different ways; see the instructions below.
++/* pagewalk.c */
++int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
++		unsigned long end, const struct mm_walk_ops *ops,
++		void *private);
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/pagewalk.c~mm-pagewalk-add-the-ability-to-install-ptes
++++ a/mm/pagewalk.c
+@@ -3,9 +3,14 @@
+ #include <linux/highmem.h>
+ #include <linux/sched.h>
+ #include <linux/hugetlb.h>
++#include <linux/mmu_context.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
  
--2. Tests that are currently incompatible with KUnit. Enabled with
--``CONFIG_KASAN_MODULE_TEST`` and can only be run as a module. These tests can
--only be verified manually by loading the kernel module and inspecting the
--kernel log for KASAN reports.
++#include <asm/tlbflush.h>
++
++#include "internal.h"
++
+ /*
+  * We want to know the real level where a entry is located ignoring any
+  * folding of levels which may be happening. For example if p4d is folded then
+@@ -29,9 +34,23 @@ static int walk_pte_range_inner(pte_t *p
+ 	int err = 0;
+ 
+ 	for (;;) {
+-		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
+-		if (err)
+-		       break;
++		if (ops->install_pte && pte_none(ptep_get(pte))) {
++			pte_t new_pte;
++
++			err = ops->install_pte(addr, addr + PAGE_SIZE, &new_pte,
++					       walk);
++			if (err)
++				break;
++
++			set_pte_at(walk->mm, addr, pte, new_pte);
++			/* Non-present before, so for arches that need it. */
++			if (!WARN_ON_ONCE(walk->no_vma))
++				update_mmu_cache(walk->vma, addr, pte);
++		} else {
++			err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
++			if (err)
++				break;
++		}
+ 		if (addr >= end - PAGE_SIZE)
+ 			break;
+ 		addr += PAGE_SIZE;
+@@ -81,6 +100,8 @@ static int walk_pmd_range(pud_t *pud, un
+ 	pmd_t *pmd;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
++	bool has_handler = ops->pte_entry;
++	bool has_install = ops->install_pte;
+ 	int err = 0;
+ 	int depth = real_depth(3);
+ 
+@@ -89,11 +110,14 @@ static int walk_pmd_range(pud_t *pud, un
+ again:
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd)) {
+-			if (ops->pte_hole)
++			if (has_install)
++				err = __pte_alloc(walk->mm, pmd);
++			else if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
+ 				break;
+-			continue;
++			if (!has_install)
++				continue;
+ 		}
+ 
+ 		walk->action = ACTION_SUBTREE;
+@@ -109,18 +133,25 @@ again:
+ 
+ 		if (walk->action == ACTION_AGAIN)
+ 			goto again;
 -
--Each KUnit-compatible KASAN test prints one of multiple KASAN reports if an
--error is detected. Then the test prints its number and status.
-+Each KASAN test prints one of multiple KASAN reports if an error is detected.
-+Then the test prints its number and status.
+-		/*
+-		 * Check this here so we only break down trans_huge
+-		 * pages when we _need_ to
+-		 */
+-		if ((!walk->vma && (pmd_leaf(*pmd) || !pmd_present(*pmd))) ||
+-		    walk->action == ACTION_CONTINUE ||
+-		    !(ops->pte_entry))
++		if (walk->action == ACTION_CONTINUE)
+ 			continue;
  
- When a test passes::
++		if (!has_handler) { /* No handlers for lower page tables. */
++			if (!has_install)
++				continue; /* Nothing to do. */
++			/*
++			 * We are ONLY installing, so avoid unnecessarily
++			 * splitting a present huge page.
++			 */
++			if (pmd_present(*pmd) &&
++			    (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
++				continue;
++		}
++
+ 		if (walk->vma)
+ 			split_huge_pmd(walk->vma, pmd, addr);
++		else if (pmd_leaf(*pmd) || !pmd_present(*pmd))
++			continue; /* Nothing to do. */
  
-@@ -550,16 +545,16 @@ Or, if one of the tests failed::
+ 		err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+@@ -140,6 +171,8 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	pud_t *pud;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
++	bool has_handler = ops->pmd_entry || ops->pte_entry;
++	bool has_install = ops->install_pte;
+ 	int err = 0;
+ 	int depth = real_depth(2);
  
-         not ok 1 - kasan
+@@ -148,11 +181,14 @@ static int walk_pud_range(p4d_t *p4d, un
+  again:
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(*pud)) {
+-			if (ops->pte_hole)
++			if (has_install)
++				err = __pmd_alloc(walk->mm, pud, addr);
++			else if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
+ 				break;
+-			continue;
++			if (!has_install)
++				continue;
+ 		}
  
--There are a few ways to run KUnit-compatible KASAN tests.
-+There are a few ways to run the KASAN tests.
+ 		walk->action = ACTION_SUBTREE;
+@@ -164,14 +200,26 @@ static int walk_pud_range(p4d_t *p4d, un
  
- 1. Loadable module
- 
--   With ``CONFIG_KUNIT`` enabled, KASAN-KUnit tests can be built as a loadable
--   module and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
-+   With ``CONFIG_KUNIT`` enabled, the tests can be built as a loadable module
-+   and run by loading ``kasan_test.ko`` with ``insmod`` or ``modprobe``.
- 
- 2. Built-In
- 
--   With ``CONFIG_KUNIT`` built-in, KASAN-KUnit tests can be built-in as well.
-+   With ``CONFIG_KUNIT`` built-in, the tests can be built-in as well.
-    In this case, the tests will run at boot as a late-init call.
- 
- 3. Using kunit_tool
---- a/Documentation/translations/zh_CN/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/translations/zh_CN/dev-tools/kasan.rst
-@@ -422,16 +422,12 @@ 测试
- ~~~~
- 
- 有一些KASAN测试可以验证KASAN是否正常工作并可以检测某些类型的内存损坏。
--测试由两部分组成:
- 
--1. 与KUnit测试框架集成的测试。使用 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
--这些测试可以通过几种不同的方式自动运行和部分验证；请参阅下面的说明。
-+所有 KASAN 测试都与 KUnit 测试框架集成，可通过 ``CONFIG_KASAN_KUNIT_TEST`` 启用。
-+测试可以通过几种不同的方式自动运行和部分验证；请参阅以下说明。
- 
--2. 与KUnit不兼容的测试。使用 ``CONFIG_KASAN_MODULE_TEST`` 启用并且只能作为模块
--运行。这些测试只能通过加载内核模块并检查内核日志以获取KASAN报告来手动验证。
+ 		if (walk->action == ACTION_AGAIN)
+ 			goto again;
 -
--如果检测到错误，每个KUnit兼容的KASAN测试都会打印多个KASAN报告之一，然后测试打印
--其编号和状态。
-+如果检测到错误，每个 KASAN 测试都会打印多份 KASAN 报告中的一份。
-+然后测试会打印其编号和状态。
+-		if ((!walk->vma && (pud_leaf(*pud) || !pud_present(*pud))) ||
+-		    walk->action == ACTION_CONTINUE ||
+-		    !(ops->pmd_entry || ops->pte_entry))
++		if (walk->action == ACTION_CONTINUE)
+ 			continue;
  
- 当测试通过::
++		if (!has_handler) { /* No handlers for lower page tables. */
++			if (!has_install)
++				continue; /* Nothing to do. */
++			/*
++			 * We are ONLY installing, so avoid unnecessarily
++			 * splitting a present huge page.
++			 */
++			if (pud_present(*pud) &&
++			    (pud_trans_huge(*pud) || pud_devmap(*pud)))
++				continue;
++		}
++
+ 		if (walk->vma)
+ 			split_huge_pud(walk->vma, pud, addr);
++		else if (pud_leaf(*pud) || !pud_present(*pud))
++			continue; /* Nothing to do. */
++
+ 		if (pud_none(*pud))
+ 			goto again;
  
-@@ -458,16 +454,16 @@ 或者，如果其中一项测试失败:
+@@ -189,6 +237,8 @@ static int walk_p4d_range(pgd_t *pgd, un
+ 	p4d_t *p4d;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
++	bool has_handler = ops->pud_entry || ops->pmd_entry || ops->pte_entry;
++	bool has_install = ops->install_pte;
+ 	int err = 0;
+ 	int depth = real_depth(1);
  
-         not ok 1 - kasan
+@@ -196,18 +246,21 @@ static int walk_p4d_range(pgd_t *pgd, un
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+ 		if (p4d_none_or_clear_bad(p4d)) {
+-			if (ops->pte_hole)
++			if (has_install)
++				err = __pud_alloc(walk->mm, p4d, addr);
++			else if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
+ 				break;
+-			continue;
++			if (!has_install)
++				continue;
+ 		}
+ 		if (ops->p4d_entry) {
+ 			err = ops->p4d_entry(p4d, addr, next, walk);
+ 			if (err)
+ 				break;
+ 		}
+-		if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
++		if (has_handler || has_install)
+ 			err = walk_pud_range(p4d, addr, next, walk);
+ 		if (err)
+ 			break;
+@@ -222,6 +275,9 @@ static int walk_pgd_range(unsigned long
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
++	bool has_handler = ops->p4d_entry || ops->pud_entry || ops->pmd_entry ||
++		ops->pte_entry;
++	bool has_install = ops->install_pte;
+ 	int err = 0;
  
--有几种方法可以运行与KUnit兼容的KASAN测试。
-+有几种方法可以运行 KASAN 测试。
+ 	if (walk->pgd)
+@@ -231,18 +287,21 @@ static int walk_pgd_range(unsigned long
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
+-			if (ops->pte_hole)
++			if (has_install)
++				err = __p4d_alloc(walk->mm, pgd, addr);
++			else if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, 0, walk);
+ 			if (err)
+ 				break;
+-			continue;
++			if (!has_install)
++				continue;
+ 		}
+ 		if (ops->pgd_entry) {
+ 			err = ops->pgd_entry(pgd, addr, next, walk);
+ 			if (err)
+ 				break;
+ 		}
+-		if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
++		if (has_handler || has_install)
+ 			err = walk_p4d_range(pgd, addr, next, walk);
+ 		if (err)
+ 			break;
+@@ -334,6 +393,11 @@ static int __walk_page_range(unsigned lo
+ 	int err = 0;
+ 	struct vm_area_struct *vma = walk->vma;
+ 	const struct mm_walk_ops *ops = walk->ops;
++	bool is_hugetlb = is_vm_hugetlb_page(vma);
++
++	/* We do not support hugetlb PTE installation. */
++	if (ops->install_pte && is_hugetlb)
++		return -EINVAL;
  
- 1. 可加载模块
+ 	if (ops->pre_vma) {
+ 		err = ops->pre_vma(start, end, walk);
+@@ -341,7 +405,7 @@ static int __walk_page_range(unsigned lo
+ 			return err;
+ 	}
  
--   启用 ``CONFIG_KUNIT`` 后，KASAN-KUnit测试可以构建为可加载模块，并通过使用
--   ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
-+   启用 ``CONFIG_KUNIT`` 后，可以将测试构建为可加载模块
-+   并通过使用 ``insmod`` 或 ``modprobe`` 加载 ``kasan_test.ko`` 来运行。
- 
- 2. 内置
- 
--   通过内置 ``CONFIG_KUNIT`` ，也可以内置KASAN-KUnit测试。在这种情况下，
-+   通过内置 ``CONFIG_KUNIT``，测试也可以内置。
-    测试将在启动时作为后期初始化调用运行。
- 
- 3. 使用kunit_tool
---- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test
-+++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
-@@ -404,16 +404,13 @@ 測試
- ~~~~
- 
- 有一些KASAN測試可以驗證KASAN是否正常工作並可以檢測某些類型的內存損壞。
--測試由兩部分組成:
- 
--1. 與KUnit測試框架集成的測試。使用 ``CONFIG_KASAN_KUNIT_TEST`` 啓用。
--這些測試可以通過幾種不同的方式自動運行和部分驗證；請參閱下面的說明。
-+所有 KASAN 測試均與 KUnit 測試框架集成，並且可以啟用
-+透過 ``CONFIG_KASAN_KUNIT_TEST``。可以運行測試並進行部分驗證
-+以幾種不同的方式自動進行；請參閱下面的說明。
- 
--2. 與KUnit不兼容的測試。使用 ``CONFIG_KASAN_MODULE_TEST`` 啓用並且只能作爲模塊
--運行。這些測試只能通過加載內核模塊並檢查內核日誌以獲取KASAN報告來手動驗證。
--
--如果檢測到錯誤，每個KUnit兼容的KASAN測試都會打印多個KASAN報告之一，然後測試打印
--其編號和狀態。
-+如果偵測到錯誤，每個 KASAN 測試都會列印多個 KASAN 報告之一。
-+然後測試列印其編號和狀態。
- 
- 當測試通過::
- 
-@@ -440,16 +437,16 @@ 或者，如果其中一項測試失敗:
- 
-         not ok 1 - kasan
- 
--有幾種方法可以運行與KUnit兼容的KASAN測試。
-+有幾種方法可以執行 KASAN 測試。
- 
- 1. 可加載模塊
- 
--   啓用 ``CONFIG_KUNIT`` 後，KASAN-KUnit測試可以構建爲可加載模塊，並通過使用
--   ``insmod`` 或 ``modprobe`` 加載 ``kasan_test.ko`` 來運行。
-+   啟用 ``CONFIG_KUNIT`` 後，測試可以建置為可載入模組
-+   並且透過使用 ``insmod`` 或 ``modprobe`` 來載入 ``kasan_test.ko`` 來運作。
- 
- 2. 內置
- 
--   通過內置 ``CONFIG_KUNIT`` ，也可以內置KASAN-KUnit測試。在這種情況下，
-+   透過內建 ``CONFIG_KUNIT``，測試也可以內建。
-    測試將在啓動時作爲後期初始化調用運行。
- 
- 3. 使用kunit_tool
---- a/lib/Kconfig.kasan~kasan-delete-config_kasan_module_test
-+++ a/lib/Kconfig.kasan
-@@ -195,13 +195,6 @@ config KASAN_KUNIT_TEST
- 	  For more information on KUnit and unit tests in general, please refer
- 	  to the KUnit documentation in Documentation/dev-tools/kunit/.
- 
--config KASAN_MODULE_TEST
--	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
--	depends on m && KASAN && !KASAN_HW_TAGS
--	help
--	  A part of the KASAN test suite that is not integrated with KUnit.
--	  Incompatible with Hardware Tag-Based KASAN.
--
- config KASAN_EXTRA_INFO
- 	bool "Record and report more information"
- 	depends on KASAN
---- a/mm/kasan/kasan.h~kasan-delete-config_kasan_module_test
-+++ a/mm/kasan/kasan.h
-@@ -568,7 +568,7 @@ static inline void kasan_kunit_test_suit
- 
- #endif /* CONFIG_KASAN_KUNIT_TEST */
- 
--#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- bool kasan_save_enable_multi_shot(void);
- void kasan_restore_multi_shot(bool enabled);
---- a/mm/kasan/report.c~kasan-delete-config_kasan_module_test
-+++ a/mm/kasan/report.c
-@@ -132,7 +132,7 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
+-	if (is_vm_hugetlb_page(vma)) {
++	if (is_hugetlb) {
+ 		if (ops->hugetlb_entry)
+ 			err = walk_hugetlb_range(start, end, walk);
+ 	} else
+@@ -380,47 +444,14 @@ static inline void process_vma_walk_lock
+ #endif
  }
  
--#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- bool kasan_save_enable_multi_shot(void)
+-/**
+- * walk_page_range - walk page table with caller specific callbacks
+- * @mm:		mm_struct representing the target process of page table walk
+- * @start:	start address of the virtual address range
+- * @end:	end address of the virtual address range
+- * @ops:	operation to call during the walk
+- * @private:	private data for callbacks' usage
+- *
+- * Recursively walk the page table tree of the process represented by @mm
+- * within the virtual address range [@start, @end). During walking, we can do
+- * some caller-specific works for each entry, by setting up pmd_entry(),
+- * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
+- * callbacks, the associated entries/pages are just ignored.
+- * The return values of these callbacks are commonly defined like below:
+- *
+- *  - 0  : succeeded to handle the current entry, and if you don't reach the
+- *         end address yet, continue to walk.
+- *  - >0 : succeeded to handle the current entry, and return to the caller
+- *         with caller specific value.
+- *  - <0 : failed to handle the current entry, and return to the caller
+- *         with error code.
+- *
+- * Before starting to walk page table, some callers want to check whether
+- * they really want to walk over the current vma, typically by checking
+- * its vm_flags. walk_page_test() and @ops->test_walk() are used for this
+- * purpose.
+- *
+- * If operations need to be staged before and committed after a vma is walked,
+- * there are two callbacks, pre_vma() and post_vma(). Note that post_vma(),
+- * since it is intended to handle commit-type operations, can't return any
+- * errors.
+- *
+- * struct mm_walk keeps current values of some common data like vma and pmd,
+- * which are useful for the access from callbacks. If you want to pass some
+- * caller-specific data to callbacks, @private should be helpful.
++/*
++ * See the comment for walk_page_range(), this performs the heavy lifting of the
++ * operation, only sets no restrictions on how the walk proceeds.
+  *
+- * Locking:
+- *   Callers of walk_page_range() and walk_page_vma() should hold @mm->mmap_lock,
+- *   because these function traverse vma list and/or access to vma's data.
++ * We usually restrict the ability to install PTEs, but this functionality is
++ * available to internal memory management code and provided in mm/internal.h.
+  */
+-int walk_page_range(struct mm_struct *mm, unsigned long start,
++int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private)
  {
+@@ -479,6 +510,80 @@ int walk_page_range(struct mm_struct *mm
+ 	return err;
+ }
+ 
++/*
++ * Determine if the walk operations specified are permitted to be used for a
++ * page table walk.
++ *
++ * This check is performed on all functions which are parameterised by walk
++ * operations and exposed in include/linux/pagewalk.h.
++ *
++ * Internal memory management code can use the walk_page_range_mm() function to
++ * be able to use all page walking operations.
++ */
++static bool check_ops_valid(const struct mm_walk_ops *ops)
++{
++	/*
++	 * The installation of PTEs is solely under the control of memory
++	 * management logic and subject to many subtle locking, security and
++	 * cache considerations so we cannot permit other users to do so, and
++	 * certainly not for exported symbols.
++	 */
++	if (ops->install_pte)
++		return false;
++
++	return true;
++}
++
++/**
++ * walk_page_range - walk page table with caller specific callbacks
++ * @mm:		mm_struct representing the target process of page table walk
++ * @start:	start address of the virtual address range
++ * @end:	end address of the virtual address range
++ * @ops:	operation to call during the walk
++ * @private:	private data for callbacks' usage
++ *
++ * Recursively walk the page table tree of the process represented by @mm
++ * within the virtual address range [@start, @end). During walking, we can do
++ * some caller-specific works for each entry, by setting up pmd_entry(),
++ * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
++ * callbacks, the associated entries/pages are just ignored.
++ * The return values of these callbacks are commonly defined like below:
++ *
++ *  - 0  : succeeded to handle the current entry, and if you don't reach the
++ *         end address yet, continue to walk.
++ *  - >0 : succeeded to handle the current entry, and return to the caller
++ *         with caller specific value.
++ *  - <0 : failed to handle the current entry, and return to the caller
++ *         with error code.
++ *
++ * Before starting to walk page table, some callers want to check whether
++ * they really want to walk over the current vma, typically by checking
++ * its vm_flags. walk_page_test() and @ops->test_walk() are used for this
++ * purpose.
++ *
++ * If operations need to be staged before and committed after a vma is walked,
++ * there are two callbacks, pre_vma() and post_vma(). Note that post_vma(),
++ * since it is intended to handle commit-type operations, can't return any
++ * errors.
++ *
++ * struct mm_walk keeps current values of some common data like vma and pmd,
++ * which are useful for the access from callbacks. If you want to pass some
++ * caller-specific data to callbacks, @private should be helpful.
++ *
++ * Locking:
++ *   Callers of walk_page_range() and walk_page_vma() should hold @mm->mmap_lock,
++ *   because these function traverse vma list and/or access to vma's data.
++ */
++int walk_page_range(struct mm_struct *mm, unsigned long start,
++		unsigned long end, const struct mm_walk_ops *ops,
++		void *private)
++{
++	if (!check_ops_valid(ops))
++		return -EINVAL;
++
++	return walk_page_range_mm(mm, start, end, ops, private);
++}
++
+ /**
+  * walk_page_range_novma - walk a range of pagetables not backed by a vma
+  * @mm:		mm_struct representing the target process of page table walk
+@@ -494,7 +599,7 @@ int walk_page_range(struct mm_struct *mm
+  * walking the kernel pages tables or page tables for firmware.
+  *
+  * Note: Be careful to walk the kernel pages tables, the caller may be need to
+- * take other effective approache (mmap lock may be insufficient) to prevent
++ * take other effective approaches (mmap lock may be insufficient) to prevent
+  * the intermediate kernel page tables belonging to the specified address range
+  * from being freed (e.g. memory hot-remove).
+  */
+@@ -513,6 +618,8 @@ int walk_page_range_novma(struct mm_stru
+ 
+ 	if (start >= end || !walk.mm)
+ 		return -EINVAL;
++	if (!check_ops_valid(ops))
++		return -EINVAL;
+ 
+ 	/*
+ 	 * 1) For walking the user virtual address space:
+@@ -556,6 +663,8 @@ int walk_page_range_vma(struct vm_area_s
+ 		return -EINVAL;
+ 	if (start < vma->vm_start || end > vma->vm_end)
+ 		return -EINVAL;
++	if (!check_ops_valid(ops))
++		return -EINVAL;
+ 
+ 	process_mm_walk_lock(walk.mm, ops->walk_lock);
+ 	process_vma_walk_lock(vma, ops->walk_lock);
+@@ -574,6 +683,8 @@ int walk_page_vma(struct vm_area_struct
+ 
+ 	if (!walk.mm)
+ 		return -EINVAL;
++	if (!check_ops_valid(ops))
++		return -EINVAL;
+ 
+ 	process_mm_walk_lock(walk.mm, ops->walk_lock);
+ 	process_vma_walk_lock(vma, ops->walk_lock);
+@@ -623,6 +734,9 @@ int walk_page_mapping(struct address_spa
+ 	unsigned long start_addr, end_addr;
+ 	int err = 0;
+ 
++	if (!check_ops_valid(ops))
++		return -EINVAL;
++
+ 	lockdep_assert_held(&mapping->i_mmap_rwsem);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
+ 				  first_index + nr - 1) {
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+docs-mm-add-vma-locks-documentation.patch
+docs-mm-add-vma-locks-documentation-fix.patch
 
