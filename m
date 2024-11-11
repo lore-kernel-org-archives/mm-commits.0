@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4716115D5B6
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68C31598EE
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313693; cv=none; b=eDNq7hg6wOoS7W6ap3Y60l/x4B7h3JpMhqjTMbsK6wr4nSAJfpG83M2uFDKZsn0Grh5xqEWQiD/MAvbIy9jjlkfp/Wf68IMYqfHuA40bdDvcDoWSXISELMIE01EVTdcfpXhrfJ6pCs/leEPvb1dRGUuFl03bKWEdMNrvdvxDI8c=
+	t=1731313694; cv=none; b=OyJGq1YpGhSR2uT6VyjXJ1ss/8EmVCQVDqs0w4Gwo2ET25o0W1PjSrcpez5JFAlW6tYcjkLWGU/xaCfSGFkpOsthAj0OtS15gGnqMzZr6k3b2UhjCefx6uihBeui52OFzeQseUvcUj+4TWnaqQBuqcU9mPmPCCDTGGofmUsy2Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313693; c=relaxed/simple;
-	bh=Q9YzuRDP7IadUv0wXmCSKAs44UG0Cba0UrVtRZ/hun4=;
-	h=Date:To:From:Subject:Message-Id; b=urGD3Kgylzr3FQ08p57+VoG35hwQjzowBtEva5IBE0/Ld9zh97bWcLyjiuWGre7Ufl05mMeeW2UASqV3kTLE1XCJeIawxF9Px09EE4/D5rZPHnGjVikSCTAnjV04CLKPnBpZqY5K7pQfW5n3COIOUGqO+1zEW+ZAoZg7/KoPC6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=duDeA7Vt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313694; c=relaxed/simple;
+	bh=J2yV4r3EPTkoJ0GkXsz2yv2ru0oBDY4fbNyLM9PiYMU=;
+	h=Date:To:From:Subject:Message-Id; b=s7x1mLs7SvlDnnIF4FoNVj4eS0JVoNA0K2DnET90ms8rAYN5oiTA5a9o/laAPhS3wrB/ws0wkwgenvg3zC4ZJZ+6dvPba6hpBvHzfAdtiMLK4KgsmSZIl2ZMRlfaiU2LoVQ6NVym2AOIl+H8ss0B8YOiZdHQ4MXUAWndDiMwkP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Mi6eXuN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="duDeA7Vt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C75CBC4CED0;
-	Mon, 11 Nov 2024 08:28:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Mi6eXuN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32674C4CED0;
+	Mon, 11 Nov 2024 08:28:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313692;
-	bh=Q9YzuRDP7IadUv0wXmCSKAs44UG0Cba0UrVtRZ/hun4=;
+	s=korg; t=1731313694;
+	bh=J2yV4r3EPTkoJ0GkXsz2yv2ru0oBDY4fbNyLM9PiYMU=;
 	h=Date:To:From:Subject:From;
-	b=duDeA7VtZ/taF1d6Cfp+UL2fyzPWl0bChokNmuk8yQ7K7ypQw2PRr3vQj+JYfhf60
-	 3E37p7GIJpha24jzUanznZRKqquklEjqLXQTExKJytl+diIHRLqUx2z9kz21uOOsLq
-	 dQ9h7y9c2GtPG3KsM0VYaj5XIuy6OUwFmzXjxKdw=
-Date: Mon, 11 Nov 2024 00:28:12 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,siyanteng@loongson.cn,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,andreyknvl@gmail.com,alexs@kernel.org,2023002089@link.tyut.edu.cn,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=1Mi6eXuN7dl6e9cuienmdbgoCHs4ByXbm+mXQZ77q1ZJl/Y21ot8xg4zZ6VFzV8dy
+	 Us/uHRgkN/M6WYJuTAbjK4nesAbftcZSi8LLGvMsRwqB5NEwEKOhkExqzzI3Pj7ycw
+	 fMRcF9gu1iINx9oyHgrQbuKAu5dQ2o1BvCoQucQU=
+Date: Mon, 11 Nov 2024 00:28:13 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,siyanteng@loongson.cn,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,david@redhat.com,corbet@lwn.net,arnd@arndb.de,andreyknvl@gmail.com,alexs@kernel.org,2023002089@link.tyut.edu.cn,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-move-checks-to-do_strncpy_from_user.patch removed from -mm tree
-Message-Id: <20241111082812.C75CBC4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-migrate-copy_user_test-to-kunit.patch removed from -mm tree
+Message-Id: <20241111082814.32674C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: move checks to do_strncpy_from_user
+     Subject: kasan: migrate copy_user_test to kunit
 has been removed from the -mm tree.  Its filename was
-     kasan-move-checks-to-do_strncpy_from_user.patch
+     kasan-migrate-copy_user_test-to-kunit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: move checks to do_strncpy_from_user
-Date: Wed, 16 Oct 2024 18:18:00 +0500
+Subject: kasan: migrate copy_user_test to kunit
+Date: Wed, 16 Oct 2024 18:18:01 +0500
 
-Patch series "kasan: migrate the last module test to kunit", v4.
+Migrate the copy_user_test to the KUnit framework to verify out-of-bound
+detection via KASAN reports in copy_from_user(), copy_to_user() and their
+static functions.
 
-copy_user_test() is the last KUnit-incompatible test with
-CONFIG_KASAN_MODULE_TEST requirement, which we are going to migrate to
-KUnit framework and delete the former test and Kconfig as well.
+This is the last migrated test in kasan_test_module.c, therefore delete
+the file.
 
-In this patch series:
-
-	- [1/3] move kasan_check_write() and check_object_size() to
-		do_strncpy_from_user() to cover with KASAN checks with
-		multiple conditions	in strncpy_from_user().
-
-	- [2/3] migrated copy_user_test() to KUnit, where we can also test
-		strncpy_from_user() due to [1/4].
-
-		KUnits have been tested on:
-		- x86_64 with CONFIG_KASAN_GENERIC. Passed
-		- arm64 with CONFIG_KASAN_SW_TAGS. 1 fail. See [1]
-		- arm64 with CONFIG_KASAN_HW_TAGS. 1 fail. See [1]
-		[1] https://lore.kernel.org/linux-mm/CACzwLxj21h7nCcS2-KA_q7ybe+5pxH0uCDwu64q_9pPsydneWQ@mail.gmail.com/
-
-	- [3/3] delete CONFIG_KASAN_MODULE_TEST and documentation occurrences.
-
-
-This patch (of 3):
-
-Since in the commit 2865baf54077("x86: support user address masking
-instead of non-speculative conditional") do_strncpy_from_user() is called
-from multiple places, we should sanitize the kernel *dst memory and size
-which were done in strncpy_from_user() previously.
-
-Link: https://lkml.kernel.org/r/20241016131802.3115788-1-snovitoll@gmail.com
-Link: https://lkml.kernel.org/r/20241016131802.3115788-2-snovitoll@gmail.com
-Fixes: 2865baf54077 ("x86: support user address masking instead of non-speculative conditional")
+[arnd@arndb.de: export copy_to_kernel_nofault]
+  Link: https://lkml.kernel.org/r/20241018151112.3533820-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20241016131802.3115788-3-snovitoll@gmail.com
 Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -92,33 +70,190 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Marco Elver <elver@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Yanteng Si <siyanteng@loongson.cn>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/strncpy_from_user.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/kasan/Makefile            |    2 
+ mm/kasan/kasan_test_c.c      |   47 +++++++++++++++++++
+ mm/kasan/kasan_test_module.c |   81 ---------------------------------
+ mm/maccess.c                 |    1 
+ 4 files changed, 48 insertions(+), 83 deletions(-)
 
---- a/lib/strncpy_from_user.c~kasan-move-checks-to-do_strncpy_from_user
-+++ a/lib/strncpy_from_user.c
-@@ -120,6 +120,9 @@ long strncpy_from_user(char *dst, const
- 	if (unlikely(count <= 0))
- 		return 0;
+--- a/mm/kasan/kasan_test_c.c~kasan-migrate-copy_user_test-to-kunit
++++ a/mm/kasan/kasan_test_c.c
+@@ -1963,6 +1963,52 @@ static void copy_to_kernel_nofault_oob(s
+ 	kfree(ptr);
+ }
  
-+	kasan_check_write(dst, count);
-+	check_object_size(dst, count, false);
++static void copy_user_test_oob(struct kunit *test)
++{
++	char *kmem;
++	char __user *usermem;
++	unsigned long useraddr;
++	size_t size = 128 - KASAN_GRANULE_SIZE;
++	int __maybe_unused unused;
 +
- 	if (can_do_masked_user_access()) {
- 		long retval;
++	kmem = kunit_kmalloc(test, size, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, kmem);
++
++	useraddr = kunit_vm_mmap(test, NULL, 0, PAGE_SIZE,
++					PROT_READ | PROT_WRITE | PROT_EXEC,
++					MAP_ANONYMOUS | MAP_PRIVATE, 0);
++	KUNIT_ASSERT_NE_MSG(test, useraddr, 0,
++		"Could not create userspace mm");
++	KUNIT_ASSERT_LT_MSG(test, useraddr, (unsigned long)TASK_SIZE,
++		"Failed to allocate user memory");
++
++	OPTIMIZER_HIDE_VAR(size);
++	usermem = (char __user *)useraddr;
++
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = copy_from_user(kmem, usermem, size + 1));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = copy_to_user(usermem, kmem, size + 1));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = __copy_from_user(kmem, usermem, size + 1));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = __copy_to_user(usermem, kmem, size + 1));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = __copy_from_user_inatomic(kmem, usermem, size + 1));
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = __copy_to_user_inatomic(usermem, kmem, size + 1));
++
++	/*
++	* Prepare a long string in usermem to avoid the strncpy_from_user test
++	* bailing out on '\0' before it reaches out-of-bounds.
++	*/
++	memset(kmem, 'a', size);
++	KUNIT_EXPECT_EQ(test, copy_to_user(usermem, kmem, size), 0);
++
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		unused = strncpy_from_user(kmem, usermem, size + 1));
++}
++
+ static struct kunit_case kasan_kunit_test_cases[] = {
+ 	KUNIT_CASE(kmalloc_oob_right),
+ 	KUNIT_CASE(kmalloc_oob_left),
+@@ -2037,6 +2083,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(match_all_mem_tag),
+ 	KUNIT_CASE(copy_to_kernel_nofault_oob),
+ 	KUNIT_CASE(rust_uaf),
++	KUNIT_CASE(copy_user_test_oob),
+ 	{}
+ };
  
-@@ -142,8 +145,6 @@ long strncpy_from_user(char *dst, const
- 		if (max > count)
- 			max = count;
+diff --git a/mm/kasan/kasan_test_module.c a/mm/kasan/kasan_test_module.c
+deleted file mode 100644
+--- a/mm/kasan/kasan_test_module.c
++++ /dev/null
+@@ -1,81 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- *
+- * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+- * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+- */
+-
+-#define pr_fmt(fmt) "kasan: test: " fmt
+-
+-#include <linux/mman.h>
+-#include <linux/module.h>
+-#include <linux/printk.h>
+-#include <linux/slab.h>
+-#include <linux/uaccess.h>
+-
+-#include "kasan.h"
+-
+-static noinline void __init copy_user_test(void)
+-{
+-	char *kmem;
+-	char __user *usermem;
+-	size_t size = 128 - KASAN_GRANULE_SIZE;
+-	int __maybe_unused unused;
+-
+-	kmem = kmalloc(size, GFP_KERNEL);
+-	if (!kmem)
+-		return;
+-
+-	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
+-			    PROT_READ | PROT_WRITE | PROT_EXEC,
+-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
+-	if (IS_ERR(usermem)) {
+-		pr_err("Failed to allocate user memory\n");
+-		kfree(kmem);
+-		return;
+-	}
+-
+-	OPTIMIZER_HIDE_VAR(size);
+-
+-	pr_info("out-of-bounds in copy_from_user()\n");
+-	unused = copy_from_user(kmem, usermem, size + 1);
+-
+-	pr_info("out-of-bounds in copy_to_user()\n");
+-	unused = copy_to_user(usermem, kmem, size + 1);
+-
+-	pr_info("out-of-bounds in __copy_from_user()\n");
+-	unused = __copy_from_user(kmem, usermem, size + 1);
+-
+-	pr_info("out-of-bounds in __copy_to_user()\n");
+-	unused = __copy_to_user(usermem, kmem, size + 1);
+-
+-	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
+-	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
+-
+-	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
+-	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
+-
+-	pr_info("out-of-bounds in strncpy_from_user()\n");
+-	unused = strncpy_from_user(kmem, usermem, size + 1);
+-
+-	vm_munmap((unsigned long)usermem, PAGE_SIZE);
+-	kfree(kmem);
+-}
+-
+-static int __init kasan_test_module_init(void)
+-{
+-	/*
+-	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
+-	 * report the first detected bug and panic the kernel if panic_on_warn
+-	 * is enabled.
+-	 */
+-	bool multishot = kasan_save_enable_multi_shot();
+-
+-	copy_user_test();
+-
+-	kasan_restore_multi_shot(multishot);
+-	return -EAGAIN;
+-}
+-
+-module_init(kasan_test_module_init);
+-MODULE_LICENSE("GPL");
+--- a/mm/kasan/Makefile~kasan-migrate-copy_user_test-to-kunit
++++ a/mm/kasan/Makefile
+@@ -46,7 +46,6 @@ endif
  
--		kasan_check_write(dst, count);
--		check_object_size(dst, count, false);
- 		if (user_read_access_begin(src, max)) {
- 			retval = do_strncpy_from_user(dst, src, count, max);
- 			user_read_access_end();
+ CFLAGS_kasan_test_c.o := $(CFLAGS_KASAN_TEST)
+ RUSTFLAGS_kasan_test_rust.o := $(RUSTFLAGS_KASAN)
+-CFLAGS_kasan_test_module.o := $(CFLAGS_KASAN_TEST)
+ 
+ obj-y := common.o report.o
+ obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
+@@ -59,4 +58,3 @@ ifdef CONFIG_RUST
+ endif
+ 
+ obj-$(CONFIG_KASAN_KUNIT_TEST) += kasan_test.o
+-obj-$(CONFIG_KASAN_MODULE_TEST) += kasan_test_module.o
+--- a/mm/maccess.c~kasan-migrate-copy_user_test-to-kunit
++++ a/mm/maccess.c
+@@ -82,6 +82,7 @@ Efault:
+ 	pagefault_enable();
+ 	return -EFAULT;
+ }
++EXPORT_SYMBOL_GPL(copy_to_kernel_nofault);
+ 
+ long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
+ {
 _
 
 Patches currently in -mm which might be from snovitoll@gmail.com are
