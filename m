@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC449146A6B
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:20:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BA04160783
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:22:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313215; cv=none; b=nEBsYtTDOa9wVp2NwO5Ou7/0ZFghYQJc23HsLr5dQ6UyHzzEGklNQkiHWd6q5ZyJQQL+Jl5pMLjl6B8gyiKN2SgEhzJ8dKNt65gVZlRala8A+esxZ45eQP0ybZXm23WAAcOBSFO02PWB1iQewYsvq2nVuKf6VoEVuFsYgGQLPmU=
+	t=1731313363; cv=none; b=G2NC9Ci52fKNU1MAkwPKZL91xik/oSuG6H5NlcVjfzJEIK+06ZbzKbKQfja84zIFiQsf/A1wYS8wKKzUujsWR2IXc6Jwk9jkfDBBvL+jZ3Iv8X0QDNNr3L4AEEf/xV0WkIetHbLTooYB7g2btboBagPWDNh7ASVlwpT7nuqD6A8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313215; c=relaxed/simple;
-	bh=60CEaQcQvPoxMrFp52+mkH476y94Esq7hh5CmTYARJ8=;
-	h=Date:To:From:Subject:Message-Id; b=eLUE4q361tYXabRtaT/ue1tYzjTNvtlYKUbDlWLmla3E9vHiFUAZV0kYQEbujq4pwgzOP7EEIODRVsnlEjyrvvkcJOOvhZJs+VwODGhjglb4vhnWE6gG47yy8nva1aXcK3BSceB3eMtu8J5MMWwpTxII8mZ4TIx57oFvUPCKFpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cKUSboOY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313363; c=relaxed/simple;
+	bh=vw5hDA/5mEboEyBLsdcz5T5642CzxYWyvWojbkcGRhE=;
+	h=Date:To:From:Subject:Message-Id; b=U83o9HhTuNGH+7+4HYScgFG5/GgMEyvT1YavAZe1P3mzLq5mv60fhY78crdtGya3C8JgEfymDzR+eit9+otnxhq3kS7pQzr3bvUwTYn4Nr8qMXCi9ShWUfeolTkVpG/ZeAH5qHem0cptI95D1DL0ACH5AFokuWd7crPKFyRdrBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dThhJmQ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKUSboOY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47517C4CED0;
-	Mon, 11 Nov 2024 08:20:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dThhJmQ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF580C4CED0;
+	Mon, 11 Nov 2024 08:22:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313215;
-	bh=60CEaQcQvPoxMrFp52+mkH476y94Esq7hh5CmTYARJ8=;
+	s=korg; t=1731313362;
+	bh=vw5hDA/5mEboEyBLsdcz5T5642CzxYWyvWojbkcGRhE=;
 	h=Date:To:From:Subject:From;
-	b=cKUSboOYD70Fuf113SRLSLLMsZzuJjuGSo26+czPn+U49X2gmmffTeyWf5/Y383vE
-	 N4hAu08VZL3CdU1n30yYV1JOeCHBlrU9cHNLOW6gs5MxJVsaDIwuBsXu4zYX1sxcRu
-	 apUTvrQEcFkA8eTG/A66gPmnwjs4qjt5bQetv2E8=
-Date: Mon, 11 Nov 2024 00:20:14 -0800
-To: mm-commits@vger.kernel.org,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=dThhJmQ1QPQDHDm0n7Tt+ibG90Pzat9OjSuQo5eWJRq5O2EGEEGK55mOQll1QETSl
+	 srBuJ6MNjRct+bAYH9fO0UPbKnGwTdzAGHG6PgUCeoam5rdj7ISNjW9WPxWfWTrdcm
+	 mf3ZatTyHcHbc8wsJ+mV0parP/LiQSYBqq2ldMHY=
+Date: Mon, 11 Nov 2024 00:22:38 -0800
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-delete-config_kasan_module_test-fix.patch removed from -mm tree
-Message-Id: <20241111082015.47517C4CED0@smtp.kernel.org>
+Subject: [folded-merged] maple_tree-add-a-test-checking-storing-null-fix.patch removed from -mm tree
+Message-Id: <20241111082242.AF580C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/kasan: fix indentation in translation
+     Subject: maple_tree-add-a-test-checking-storing-null-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-delete-config_kasan_module_test-fix.patch
+     maple_tree-add-a-test-checking-storing-null-fix.patch
 
-This patch was dropped because it was folded into kasan-delete-config_kasan_module_test.patch
+This patch was dropped because it was folded into maple_tree-add-a-test-checking-storing-null.patch
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: Documentation/kasan: fix indentation in translation
-Date: Sun, 20 Oct 2024 09:28:13 +0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maple_tree-add-a-test-checking-storing-null-fix
+Date: Thu Oct 31 08:37:00 PM PDT 2024
 
-Fix the warning in linux-next (htmldocs):
+work around build error (mas_root)
 
-> Documentation/translations/zh_TW/dev-tools/kasan.rst:410:
->	ERROR: Unexpected indentation.
-
-This is based on -mm tree (linux-mm-unstable branch).
-
-Link: https://lkml.kernel.org/r/20241020042813.3223449-1-snovitoll@gmail.com
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/translations/zh_TW/dev-tools/kasan.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_maple_tree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test-fix
-+++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
-@@ -407,7 +407,7 @@ 有一些KASAN測試可以驗證KASAN是
+--- a/lib/test_maple_tree.c~maple_tree-add-a-test-checking-storing-null-fix
++++ a/lib/test_maple_tree.c
+@@ -1453,7 +1453,7 @@ static noinline void __init check_store_
+ 	mas_set_range(&mas, 2, 5);
+ 	mas_store_gfp(&mas, NULL, GFP_KERNEL);
+ 	MT_BUG_ON(mt, mtree_empty(mt));
+-	MT_BUG_ON(mt, xa_is_node(mas_root(&mas)));
++//	MT_BUG_ON(mt, xa_is_node(mas_root(&mas)));
+ 	mas_unlock(&mas);
+ 	mtree_destroy(mt);
  
- 所有 KASAN 測試均與 KUnit 測試框架集成，並且可以啟用
- 透過 ``CONFIG_KASAN_KUNIT_TEST``。可以運行測試並進行部分驗證
-- 以幾種不同的方式自動進行；請參閱下面的說明。
-+以幾種不同的方式自動進行；請參閱下面的說明。
- 
- 如果偵測到錯誤，每個 KASAN 測試都會列印多個 KASAN 報告之一。
- 然後測試列印其編號和狀態。
+@@ -1465,7 +1465,7 @@ static noinline void __init check_store_
+ 	mas_lock(&mas);
+ 	mas_set_range(&mas, 1, 3);
+ 	mas_store_gfp(&mas, &mas, GFP_KERNEL);
+-	MT_BUG_ON(mt, !xa_is_node(mas_root(&mas)));
++//	MT_BUG_ON(mt, !xa_is_node(mas_root(&mas)));
+ 	mas_set_range(&mas, 0, ULONG_MAX);
+ 	mas_store_gfp(&mas, NULL, GFP_KERNEL);
+ 	MT_BUG_ON(mt, !mtree_empty(mt));
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-move-checks-to-do_strncpy_from_user.patch
-kasan-migrate-copy_user_test-to-kunit.patch
-kasan-delete-config_kasan_module_test.patch
-kasan-use-export_symbol_if_kunit-to-export-symbols.patch
-kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
+maple_tree-add-a-test-checking-storing-null.patch
 
