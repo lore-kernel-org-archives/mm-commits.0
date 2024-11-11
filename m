@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07CD165EED
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BAE165EED
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313724; cv=none; b=W+e5r9K+d4JSkj6zktf1hPFAlC9hx53FtAJWHE1pafKbcLYqcuH9EcboO00t2k6iv+uS44c8f0LHipIpbEmuVFs2rL85dw9XQ4V0bsU/4wPurnus6vbO4kmvNzlUQC2Ny3uxTe7eYuiuavdDHoK67lPmJ4Zumiaf2uzggSPau4E=
+	t=1731313726; cv=none; b=uJndPokt/Etr8KwcpLm8dNimzoiHrToGomugzT1sSJPt9B1lYZLcLjq7TUnd7xGvY0BEaiouMgMvPVk6m7NHqxzg3KdfcL1lSuNsLogP0BkB55TpO8Y4S+uTKO4pNydDzyAHuINgZbSqC1Hkg+xzwRQN62wpEc/mKhYWEtPOolA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313724; c=relaxed/simple;
-	bh=XSd7mRGXdkmt5JSghhJGrHRX1lLr9YEt5o4NnndMUAs=;
-	h=Date:To:From:Subject:Message-Id; b=aM5tHusj8p4hEJ5YTa26G1NAlfbsp5rfFqSvVatTT0H1pa/139Z4m/PH9jfBsxAl2ioS5IhEcoRz1T/4abVnrpPlVCPxmSlN+yOElRLZcVD+6a7I6tIBWUn8PlgdGIcePKD7sy5NducpGV7/Sws0f8TYmZuERLYaFRqrMp9Rjz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TLPpaWre; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313726; c=relaxed/simple;
+	bh=4co7rzw6JDrEOnJEkk0iw7CUXhFCLeMkscFNTc1kzHE=;
+	h=Date:To:From:Subject:Message-Id; b=lTvEoZZprTqVugkMxwSu1AFo+KX/AA8bzvdalp3BMZda0Q60T6ws1tXT9k2AhXdpWXtr/xCUo58H85I04w7/fGlI7YXfTXITnvZU3oI60jbnn+LyYnoe8C0qo2uOjOmT1/lHgwvp/+HeivXj042vzsBKJNh1u+QraQ1/ZATSudc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FgxL9+m3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TLPpaWre"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7D7C4CED0;
-	Mon, 11 Nov 2024 08:28:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FgxL9+m3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 473CAC4CED0;
+	Mon, 11 Nov 2024 08:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313724;
-	bh=XSd7mRGXdkmt5JSghhJGrHRX1lLr9YEt5o4NnndMUAs=;
+	s=korg; t=1731313726;
+	bh=4co7rzw6JDrEOnJEkk0iw7CUXhFCLeMkscFNTc1kzHE=;
 	h=Date:To:From:Subject:From;
-	b=TLPpaWreWpBamuzmsrz9xjK6Vbva1zUhzdsQzkoDmpJ1mCb5DYSWGqObKuRkijIfZ
-	 TJZdInBB9/C/SA3XQbHGoiih1EeOwLluaIwRZokFsLsPY8Wp5BINZqDVyXAUuThXCq
-	 LIdC8UNeIp/6QUPnajC49qEr8nya2Q6sKNRhsVgs=
-Date: Mon, 11 Nov 2024 00:28:43 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=FgxL9+m3pBzAoYM0erFuQj+dWBTddf/EsdYRa64CSZP+dTNneSDrYTNw9cQkwrrBV
+	 1az/p/8peHQ8aA/nQscDI72tyK4tebq6tqNgoB6RIMUIXrIkZBNXPMe9Z67li/VuBl
+	 1JfTMytmnZlxuA1gWKvFYWfrWh7YwkgYfILVBdds=
+Date: Mon, 11 Nov 2024 00:28:45 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,marc.dionne@auristor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-a-test-checking-storing-null.patch removed from -mm tree
-Message-Id: <20241111082844.4A7D7C4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch removed from -mm tree
+Message-Id: <20241111082846.473CAC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,145 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add a test checking storing null
+     Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-a-test-checking-storing-null.patch
+     tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: add a test checking storing null
-Date: Thu, 31 Oct 2024 23:16:27 +0000
+From: Marc Dionne <marc.dionne@auristor.com>
+Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
+Date: Thu, 31 Oct 2024 07:55:34 -0300
 
-Add a test to assert that, when storing null to am empty tree or a
-single entry tree it will not result into:
+The number of slabs can easily exceed the hard coded MAX_SLABS in the
+slabinfo tool, causing it to overwrite memory and crash.
 
-  * a root node with range [0, ULONG_MAX] set to NULL
-  * a root node with consecutive slot set to NULL
+Increase the value of MAX_SLABS, and check if that has been exceeded for
+each new slab, instead of at the end when it's already too late.  Also
+move the check for MAX_ALIASES into the loop body.
 
-[akpm@linux-foundation.org: work around build error (mas_root)]
-Link: https://lkml.kernel.org/r/20241031231627.14316-6-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20241031105534.565533-1-marc.c.dionne@gmail.com
+Signed-off-by: Marc Dionne <marc.dionne@auristor.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_maple_tree.c |   90 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 90 insertions(+)
+ tools/mm/slabinfo.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/test_maple_tree.c~maple_tree-add-a-test-checking-storing-null
-+++ a/lib/test_maple_tree.c
-@@ -1387,6 +1387,92 @@ static noinline void __init check_prev_e
- 	mas_unlock(&mas);
+--- a/tools/mm/slabinfo.c~tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded
++++ a/tools/mm/slabinfo.c
+@@ -21,7 +21,7 @@
+ #include <regex.h>
+ #include <errno.h>
+ 
+-#define MAX_SLABS 500
++#define MAX_SLABS 2000
+ #define MAX_ALIASES 500
+ #define MAX_NODES 1024
+ 
+@@ -1228,6 +1228,8 @@ static void read_slab_dir(void)
+ 				continue;
+ 		switch (de->d_type) {
+ 		   case DT_LNK:
++			if (alias - aliasinfo == MAX_ALIASES)
++				fatal("Too many aliases\n");
+ 			alias->name = strdup(de->d_name);
+ 			count = readlink(de->d_name, buffer, sizeof(buffer)-1);
+ 
+@@ -1242,6 +1244,8 @@ static void read_slab_dir(void)
+ 			alias++;
+ 			break;
+ 		   case DT_DIR:
++			if (slab - slabinfo == MAX_SLABS)
++				fatal("Too many slabs\n");
+ 			if (chdir(de->d_name))
+ 				fatal("Unable to access slab %s\n", slab->name);
+ 			slab->name = strdup(de->d_name);
+@@ -1312,10 +1316,6 @@ static void read_slab_dir(void)
+ 	slabs = slab - slabinfo;
+ 	actual_slabs = slabs;
+ 	aliases = alias - aliasinfo;
+-	if (slabs > MAX_SLABS)
+-		fatal("Too many slabs\n");
+-	if (aliases > MAX_ALIASES)
+-		fatal("Too many aliases\n");
  }
  
-+static noinline void __init check_store_null(struct maple_tree *mt)
-+{
-+	MA_STATE(mas, mt, 0, ULONG_MAX);
-+
-+	/*
-+	 * Store NULL at range [0, ULONG_MAX] to an empty tree should result
-+	 * in an empty tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+
-+	/*
-+	 * Store NULL at any range to an empty tree should result in an empty
-+	 * tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_set_range(&mas, 3, 10);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+
-+	/*
-+	 * Store NULL at range [0, ULONG_MAX] to a single entry tree should
-+	 * result in an empty tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_set(&mas, 0);
-+	mas_store_gfp(&mas, &mas, GFP_KERNEL);
-+	mas_set_range(&mas, 0, ULONG_MAX);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+
-+	/*
-+	 * Store NULL at range [0, n] to a single entry tree should
-+	 * result in an empty tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_set(&mas, 0);
-+	mas_store_gfp(&mas, &mas, GFP_KERNEL);
-+	mas_set_range(&mas, 0, 5);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+
-+	/*
-+	 * Store NULL at range [m, n] where m > 0 to a single entry tree
-+	 * should still be a single entry tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_set(&mas, 0);
-+	mas_store_gfp(&mas, &mas, GFP_KERNEL);
-+	mas_set_range(&mas, 2, 5);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, mtree_empty(mt));
-+//	MT_BUG_ON(mt, xa_is_node(mas_root(&mas)));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+
-+	/*
-+	 * Store NULL at range [0, ULONG_MAX] to a tree with node should
-+	 * result in an empty tree
-+	 */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	mas_lock(&mas);
-+	mas_set_range(&mas, 1, 3);
-+	mas_store_gfp(&mas, &mas, GFP_KERNEL);
-+//	MT_BUG_ON(mt, !xa_is_node(mas_root(&mas)));
-+	mas_set_range(&mas, 0, ULONG_MAX);
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mas_unlock(&mas);
-+	mtree_destroy(mt);
-+}
-+
- static noinline void __init check_root_expand(struct maple_tree *mt)
- {
- 	MA_STATE(mas, mt, 0, 0);
-@@ -3711,6 +3797,10 @@ static int __init maple_tree_seed(void)
- #endif
- 
- 	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
-+	check_store_null(&tree);
-+	mtree_destroy(&tree);
-+
-+	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
- 	check_root_expand(&tree);
- 	mtree_destroy(&tree);
- 
+ static void output_slabs(void)
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from marc.dionne@auristor.com are
 
 
