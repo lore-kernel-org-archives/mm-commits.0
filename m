@@ -1,63 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B25811CA0;
-	Sun, 10 Nov 2024 17:43:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04C161F61C
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 01:26:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731260637; cv=none; b=mOJhqC9pl8ET92A/rwDnaKPbsfGPpIF54kdsZvFfu2V8Dnu9ZS7NOWm+bs7fNbRExqSTkFIlg+70DxC+vfUvB5Yf81qSfWdpEhY3oAWYAdf3J405QKVhjdjfzhwGGO1tXK31eF4nCYy6iNcnegtR366RfD2NMHCidCSs94nxtUw=
+	t=1731288380; cv=none; b=dIbLAeAs/rzU5RMJrks1TKZ99gd3jmzNT+Om/oFnc+NllLcjTwSWJAQICBisdxTh487eRF8DdO5IDcgkdTmC/U56OIht8BIUqn2RIB5V1vRH8QjicX1YvCllC+opz0V83QQozDepTKB+kLhkM9675hw8+//mt9QgHacdmWeqMk4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731260637; c=relaxed/simple;
-	bh=Az2ZTzdS70JR7j4EdQ3Ur2WdrBF1N/lZv/88jW+YIg4=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=ZZJMFN7rMxcNUm/G84rvaTs9P7UAuqe60NLVEmhG5Uzzb2qWaMLXBBQ8A1vZmznXNov9rG3DGK2wwBK5hDV+u3qAa68vrCgK9VeACk36K+9Tj7dJgcYMpCU6eY1DvbLB15fAS76AmXfbw/8baHL4rLsVtU5Ul7hE/JnU0v6jInY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ExkiTd4r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731288380; c=relaxed/simple;
+	bh=HLwteaUOsdwW0khk77SX+UGPZ/yaUCGf3EagogIy9Kg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=huKb748zAJGMJe10x9A42amzny0Sx9qt2KvLE8Kt1JQVDB6sHkztLxUyEh/egG67ifnX2Hn8ElOpL8ICLvrkd1WebkS15AsTJ3dlH/ERkyxMa12h2oNplA5uNQ4m9UXO2D9so3HDcwgArDXihXdN/nX1HqIQH2NYv5skr3Mbmco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b=YWhZzYxX; arc=none smtp.client-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ExkiTd4r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AFFDC4CECD;
-	Sun, 10 Nov 2024 17:43:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731260637;
-	bh=Az2ZTzdS70JR7j4EdQ3Ur2WdrBF1N/lZv/88jW+YIg4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=ExkiTd4rGgItt2qhGi1b4bW/QwPJFrPGQLD+hbBh2OtjIba1uqKgkcpzE6WxHdtzW
-	 zpka7UbDqPe9PEc21S0kH8p+IDx7qipP/TxpOjidrJx3JkDoUGdHPRcocLEYQkHH2o
-	 rycbsFhYktmWNBk0W92RjDhjwFaxknz8G21vz3fhKGRtTv8YEZfyRltzTZHgpCJbmT
-	 NTHhgI+84yQuvowud/jt9hUSEC9kMs0IOfodb7+BFTYoJRsuzdQegGSnmmuZ72VU23
-	 J8AOMSkdFKEs0PUJ9thL2AvzkWqyo550hyAKufyr9DAt9lpumiZi0CuSefkJSr1sZc
-	 6uWCsxyKE4hww==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 718A23809A80;
-	Sun, 10 Nov 2024 17:44:08 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.12-rc7
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20241110014508.c2626adfff36ba70af88b0a0@linux-foundation.org>
-References: <20241110014508.c2626adfff36ba70af88b0a0@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20241110014508.c2626adfff36ba70af88b0a0@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-11-09-22-40
-X-PR-Tracked-Commit-Id: c289f4de8e479251b64988839fd0e87f246e03a2
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 28e43197c4460e08b55554c05998d6de9da7d0b6
-Message-Id: <173126064709.3189816.9455249071893662256.pr-tracker-bot@kernel.org>
-Date: Sun, 10 Nov 2024 17:44:07 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b="YWhZzYxX"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-20c77459558so36425835ad.0
+        for <mm-commits@vger.kernel.org>; Sun, 10 Nov 2024 17:26:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1731288376; x=1731893176; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Q8aEGIAuO6oQGirem2ibvbg073YRGTjEGPv98s8D9es=;
+        b=YWhZzYxXYTVEoU3hFBKf/Q6tFvQngGkkMs500wx/WcmhMQeVEWqfMeIrp1q/NN5QMe
+         ba2yNdGSLmoKHyEL8RBZnaNAIUsEFnoyhhdnXdPt3I5NRxcni1xUcWBPikkT0OaU6i3G
+         CIYYB0pmGdRqMWdIoI9lVwuE/SdLphcEdi1bDDCcw9JO7mfLVY++8EtsW2mHqd8QvYh4
+         lHDrbdjzkoVMKij1AxIRcibYgNfw2zyaXERwDmP55g+Fwl5C3CKp2B8tSnda+0P6+F5K
+         QcOofBc9UZXBy1sVMuEGfCoyqW0aLJkx9nZ5/OXuqbTz+hW40Z2TtTJEQXQ/bTdxp5ok
+         dILQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731288376; x=1731893176;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Q8aEGIAuO6oQGirem2ibvbg073YRGTjEGPv98s8D9es=;
+        b=BLIAJBILgtmGVcO0JE9WCnB6ErCTj7r68TL7AML/hR3Bez+1iQUA0vC+N3SyqHKpAR
+         rpHsz0RlZRv5uKeK1PNTBLiaHbP16qlGMBINpT/XhL2Y5P2ad2hQ75PpacxaNxUZrs3j
+         MJmSyi97CTf39XfRtsrJxHifd3B0+w0S3MXnqrgaye9sXu8FzLhjkwPmR8yM38W4hJCf
+         LEdlqeSw/66mJKGH9LbwZLONkNA5AcZls8SA924XhC+t8VnKYSs5B+D5bwaEcMwQCQG/
+         sScJcmsTtNYsICKbHiDyyO3iJ4kix6X0JikrgNa18QHr1JYGFomCXuiEA4+8MxDOaMjc
+         6ZIw==
+X-Forwarded-Encrypted: i=1; AJvYcCXMTIkfMLj6NGbtLaptraHPHAM+JilF5/nB7dXmgR0rN0XFsxi/e97d8dXdkTTv9c1Up/hQU7lX+6Rw@vger.kernel.org
+X-Gm-Message-State: AOJu0YxKGdz0e3xbe02vMxfLVk9/VbgVRuQwFR+tSAnAJIUkO0DrHI+v
+	j9RuHU2KRm7JQfCZPGZqd96BcRgoCHHlpl428SnfpJTg7ylcwM721ROgdn1w5Nc=
+X-Google-Smtp-Source: AGHT+IEaof2EMc0hSKInZwOLf961KSPKvHGk+64vyWqD3XoaBuHigNoQ55K9AyBsDfsULwHE+n3aGA==
+X-Received: by 2002:a17:902:c40a:b0:20c:ecca:432b with SMTP id d9443c01a7336-211835d9f48mr175401605ad.35.1731288376061;
+        Sun, 10 Nov 2024 17:26:16 -0800 (PST)
+Received: from [192.168.1.150] ([198.8.77.157])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2e9a5f5fa84sm8321564a91.18.2024.11.10.17.26.14
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 10 Nov 2024 17:26:15 -0800 (PST)
+Message-ID: <d720c44c-455e-4d02-b1f2-02544d48a68a@kernel.dk>
+Date: Sun, 10 Nov 2024 18:26:14 -0700
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: + zram-fix-null-pointer-in-comp_algorithm_show.patch added to
+ mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ senozhatsky@chromium.org, minchan@kernel.org, liushixin2@huawei.com
+References: <20241110061637.2A885C4CECD@smtp.kernel.org>
+Content-Language: en-US
+From: Jens Axboe <axboe@kernel.dk>
+In-Reply-To: <20241110061637.2A885C4CECD@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The pull request you sent on Sun, 10 Nov 2024 01:45:08 -0800:
+On 11/9/24 11:16 PM, Andrew Morton wrote:
+> The patch titled
+>      Subject: zram: fix NULL pointer in comp_algorithm_show()
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      zram-fix-null-pointer-in-comp_algorithm_show.patch
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-11-09-22-40
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/28e43197c4460e08b55554c05998d6de9da7d0b6
-
-Thank you!
+Andrew, can you drop this one? I already queued it up earlier in the
+block branch.
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Jens Axboe
