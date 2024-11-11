@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480EC13E02E
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:19:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC449146A6B
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:20:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313163; cv=none; b=k12MIVSbWRdVG6BLoW47sJ9tNPD9Cp6/wxWr/+oPJQvvESp/M1huwG8nSbWR2Nmq4KYL9/sibiJvO4Mb9PnIFWjrJVL0CcI4UJcbsVi1zirCEh7VrRKGuoUlNor+WUGam8LLnSgQ8SA8A9Zhp+Ra6Pr8tGDoRwxp0j11oP5GX6M=
+	t=1731313215; cv=none; b=nEBsYtTDOa9wVp2NwO5Ou7/0ZFghYQJc23HsLr5dQ6UyHzzEGklNQkiHWd6q5ZyJQQL+Jl5pMLjl6B8gyiKN2SgEhzJ8dKNt65gVZlRala8A+esxZ45eQP0ybZXm23WAAcOBSFO02PWB1iQewYsvq2nVuKf6VoEVuFsYgGQLPmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313163; c=relaxed/simple;
-	bh=WQVPwiH7HDTSRQZ91DIsoQ51C3Z79O1jZj7N1QE7FWY=;
-	h=Date:To:From:Subject:Message-Id; b=YgEXCwuqp2t2OT8k/X+FuMrvicJhX+aafiCOoo6cpcQUsVJOssn0TKBpXzErp0KQNWzl+FL4VYYrPIJ6C8+6r6unONh5rM2Qa6pEgl6tKp3phLIrbsFCfzV2SJcLwGG1rCbPobzynfNhtR73E1rXWvnOqnmsvw/vnIOEVnoWjL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iOw2q9xj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313215; c=relaxed/simple;
+	bh=60CEaQcQvPoxMrFp52+mkH476y94Esq7hh5CmTYARJ8=;
+	h=Date:To:From:Subject:Message-Id; b=eLUE4q361tYXabRtaT/ue1tYzjTNvtlYKUbDlWLmla3E9vHiFUAZV0kYQEbujq4pwgzOP7EEIODRVsnlEjyrvvkcJOOvhZJs+VwODGhjglb4vhnWE6gG47yy8nva1aXcK3BSceB3eMtu8J5MMWwpTxII8mZ4TIx57oFvUPCKFpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cKUSboOY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iOw2q9xj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC538C4CED0;
-	Mon, 11 Nov 2024 08:19:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKUSboOY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47517C4CED0;
+	Mon, 11 Nov 2024 08:20:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313162;
-	bh=WQVPwiH7HDTSRQZ91DIsoQ51C3Z79O1jZj7N1QE7FWY=;
+	s=korg; t=1731313215;
+	bh=60CEaQcQvPoxMrFp52+mkH476y94Esq7hh5CmTYARJ8=;
 	h=Date:To:From:Subject:From;
-	b=iOw2q9xjoDaRnPROmSeVrzs22vb/wHnDJsoLIV3mVoYG4F8OySUPgmpjFFMn7F9qM
-	 fYvtHHodJzsP1RpzuU17xcIZUNMBt0o5WCw4BPZQ8uiWzfalSllx2F8svzUU2Du5hN
-	 09m6EeHznhaA5rfPWhWQ3sjLwwpq9QvG/M9CRwCY=
-Date: Mon, 11 Nov 2024 00:19:22 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=cKUSboOYD70Fuf113SRLSLLMsZzuJjuGSo26+czPn+U49X2gmmffTeyWf5/Y383vE
+	 N4hAu08VZL3CdU1n30yYV1JOeCHBlrU9cHNLOW6gs5MxJVsaDIwuBsXu4zYX1sxcRu
+	 apUTvrQEcFkA8eTG/A66gPmnwjs4qjt5bQetv2E8=
+Date: Mon, 11 Nov 2024 00:20:14 -0800
+To: mm-commits@vger.kernel.org,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-migrate-copy_user_test-to-kunit-fix.patch removed from -mm tree
-Message-Id: <20241111081922.BC538C4CED0@smtp.kernel.org>
+Subject: [folded-merged] kasan-delete-config_kasan_module_test-fix.patch removed from -mm tree
+Message-Id: <20241111082015.47517C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: export copy_to_kernel_nofault
+     Subject: Documentation/kasan: fix indentation in translation
 has been removed from the -mm tree.  Its filename was
-     kasan-migrate-copy_user_test-to-kunit-fix.patch
+     kasan-delete-config_kasan_module_test-fix.patch
 
-This patch was dropped because it was folded into kasan-migrate-copy_user_test-to-kunit.patch
+This patch was dropped because it was folded into kasan-delete-config_kasan_module_test.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: export copy_to_kernel_nofault
-Date: Fri, 18 Oct 2024 15:11:09 +0000
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: Documentation/kasan: fix indentation in translation
+Date: Sun, 20 Oct 2024 09:28:13 +0500
 
-This symbol is now used on the kasan test module, so it needs to be
-exported.
+Fix the warning in linux-next (htmldocs):
 
-ERROR: modpost: "copy_to_kernel_nofault" [mm/kasan/kasan_test.ko] undefined!
+> Documentation/translations/zh_TW/dev-tools/kasan.rst:410:
+>	ERROR: Unexpected indentation.
 
-Link: https://lkml.kernel.org/r/20241018151112.3533820-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+This is based on -mm tree (linux-mm-unstable branch).
+
+Link: https://lkml.kernel.org/r/20241020042813.3223449-1-snovitoll@gmail.com
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/translations/zh_TW/dev-tools/kasan.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/maccess.c~kasan-migrate-copy_user_test-to-kunit-fix
-+++ a/mm/maccess.c
-@@ -82,6 +82,7 @@ Efault:
- 	pagefault_enable();
- 	return -EFAULT;
- }
-+EXPORT_SYMBOL_GPL(copy_to_kernel_nofault);
+--- a/Documentation/translations/zh_TW/dev-tools/kasan.rst~kasan-delete-config_kasan_module_test-fix
++++ a/Documentation/translations/zh_TW/dev-tools/kasan.rst
+@@ -407,7 +407,7 @@ 有一些KASAN測試可以驗證KASAN是
  
- long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
- {
+ 所有 KASAN 測試均與 KUnit 測試框架集成，並且可以啟用
+ 透過 ``CONFIG_KASAN_KUNIT_TEST``。可以運行測試並進行部分驗證
+- 以幾種不同的方式自動進行；請參閱下面的說明。
++以幾種不同的方式自動進行；請參閱下面的說明。
+ 
+ 如果偵測到錯誤，每個 KASAN 測試都會列印多個 KASAN 報告之一。
+ 然後測試列印其編號和狀態。
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
+kasan-move-checks-to-do_strncpy_from_user.patch
 kasan-migrate-copy_user_test-to-kunit.patch
+kasan-delete-config_kasan_module_test.patch
+kasan-use-export_symbol_if_kunit-to-export-symbols.patch
+kasan-change-kasan_atomics-kunit-test-as-kunit_case_slow.patch
 
