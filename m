@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05ED913E02E
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB9213E02E
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313731; cv=none; b=s01L0M2JvlC+f8TuWpFCdGdKyBHN+2lAkqnY6BfThGuLzIFoNwJT0aj/UTkE8/zTv7Jr3ZpzxFCzwcwn7xU0LXzyvDSJeFACPzcUSAfoaQcSdkx/S8v283x6RS+LwM/2o/JTQPuAJ2t4KuQ0+sOoCfNa8lx0shzAZTKpEYoxMiM=
+	t=1731313732; cv=none; b=d/lbTbpJ9lRTXm6Atb9M6JMVQHrwF2owkbsVHp9tnh6klpI/y2MFpdiFPQLe2ARFiHENEUvZiHn3xFblSDnVeyiQW6LziZm5QNUiMH4kkZZY2aFDdeiFpdvVPWmDx6QXI71PkxCSH3T1yzgasQ+ibxEgaZ+CkuVLDjaB/YFc1dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313731; c=relaxed/simple;
-	bh=QnaYDem/sfZ26hciBrTWQ899lV7ayicuALosxtfmeNc=;
-	h=Date:To:From:Subject:Message-Id; b=TPoIXiR5NaQw7oVQERnnoZRrlm7+4YElcht7W5wInFbAW5ro/vSvi41SaTwN0MOuekw0taEpTROeYWH0AByGgShrwlLOBQDhMxoRf/meiBhlzb8a1O72rpU5fqSVkkUP5gdpIPJAEk018dMbe9EPJFIVjWVVshSpP1BZAOmhDEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e9OHZZAD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313732; c=relaxed/simple;
+	bh=UQkvGxUAXkxdBankba8PgRJUp1JMA0RED8hiRokoFUY=;
+	h=Date:To:From:Subject:Message-Id; b=EukTp6MNShi6dBQDxnMiEBa0Qg0uoQioY6MWLfhmIgnlc3naw5boufFRkTwdNgB7WCklZrEfMdKAU2JMdB6kJFTY3Y2+TCEHiJGln67ZWbbexBA+4fzEte2vdcoSjUGv/jG4Nr9G/jVlsfMf+oQ2IIGfHDZ0haIGTB+7U7edef4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfTWR9js; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e9OHZZAD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF089C4CED0;
-	Mon, 11 Nov 2024 08:28:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfTWR9js"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E83D2C4CED0;
+	Mon, 11 Nov 2024 08:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313730;
-	bh=QnaYDem/sfZ26hciBrTWQ899lV7ayicuALosxtfmeNc=;
+	s=korg; t=1731313732;
+	bh=UQkvGxUAXkxdBankba8PgRJUp1JMA0RED8hiRokoFUY=;
 	h=Date:To:From:Subject:From;
-	b=e9OHZZAD+BfpAM80zS/540WpG3BmZrYBpw6O2ngd/mZt7mAZIoF6s/oZ5LH5KgDTP
-	 yT36r/YByXEzprZUg6/fLOiA4sgMsfor/aDMT+IL+pTanf946h5K+kXrTyNzUKKrce
-	 mZk2KDwU1rUXV+kJ+ixhl4AXr/9hFuhINXBzK8SQ=
-Date: Mon, 11 Nov 2024 00:28:50 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,mcanal@igalia.com,akpm@linux-foundation.org
+	b=rfTWR9jsMvQ1CfoYGHC1zrQRbBC0rXTWK7Wq1yjb1UKq07qhWhUmYjrk0fLO8Mo0y
+	 WthGRNnOKqBaZG8TJ84/M5mmM9tq+oeDa6XOM6cqu4yU6+cheP2WIodSJutIfQKH8X
+	 mazDRrpNoJD0AsKTyQKD/dOCmKkfGr9cnXUJtqhs=
+Date: Mon, 11 Nov 2024 00:28:51 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-use-strscpy-instead-of-strcpy.patch removed from -mm tree
-Message-Id: <20241111082850.CF089C4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch removed from -mm tree
+Message-Id: <20241111082851.E83D2C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,165 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: huge_memory: use strscpy() instead of strcpy()
+     Subject: mm: remove unnecessary page_table_lock on stack expansion
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-strscpy-instead-of-strcpy.patch
+     mm-remove-unnecessary-page_table_lock-on-stack-expansion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Maíra Canal <mcanal@igalia.com>
-Subject: mm: huge_memory: use strscpy() instead of strcpy()
-Date: Fri, 1 Nov 2024 13:54:09 -0300
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: remove unnecessary page_table_lock on stack expansion
+Date: Fri, 1 Nov 2024 18:46:27 +0000
 
-Replace strcpy() with strscpy() in mm/huge_memory.c
+Ever since commit 8d7071af8907 ("mm: always expand the stack with the mmap
+write lock held") we have been expanding the stack with the mmap write
+lock held.
 
-strcpy() has been deprecated because it is generally unsafe, so help to
-eliminate it from the kernel source.
+This is true in all code paths:
 
-Link: https://github.com/KSPP/linux/issues/88
-Link: https://lkml.kernel.org/r/20241101165719.1074234-7-mcanal@igalia.com
-Signed-off-by: Maíra Canal <mcanal@igalia.com>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+get_arg_page()
+  -> expand_downwards()
+setup_arg_pages()
+  -> expand_stack_locked()
+    -> expand_downwards() / expand_upwards()
+lock_mm_and_find_vma()
+  -> expand_stack_locked()
+    -> expand_downwards() / expand_upwards()
+create_elf_tables()
+  -> find_extend_vma_locked()
+    -> expand_stack_locked()
+expand_stack()
+  -> vma_expand_down()
+    -> expand_downwards()
+expand_stack()
+  -> vma_expand_up()
+    -> expand_upwards()
+
+Each of which acquire the mmap write lock before doing so.  Despite this,
+we maintain code that acquires a page table lock in the expand_upwards()
+and expand_downwards() code, stating that we hold a shared mmap lock and
+thus this is necessary.
+
+It is not, we do not have to worry about concurrent VMA expansions so we
+can simply drop this, and update comments accordingly.
+
+We do not even need be concerned with racing page faults, as
+vma_start_write() is invoked in both cases.
+
+Link: https://lkml.kernel.org/r/20241101184627.131391-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Jann Horn <jannh@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c |   38 ++++++--------------------------------
+ 1 file changed, 6 insertions(+), 32 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-strscpy-instead-of-strcpy
-+++ a/mm/huge_memory.c
-@@ -969,7 +969,7 @@ static int __init setup_thp_anon(char *s
+--- a/mm/mmap.c~mm-remove-unnecessary-page_table_lock-on-stack-expansion
++++ a/mm/mmap.c
+@@ -1039,6 +1039,8 @@ static int expand_upwards(struct vm_area
+ 	if (!(vma->vm_flags & VM_GROWSUP))
+ 		return -EFAULT;
  
- 	if (!str || strlen(str) + 1 > PAGE_SIZE)
- 		goto err;
--	strcpy(str_dup, str);
-+	strscpy(str_dup, str);
++	mmap_assert_write_locked(mm);
++
+ 	/* Guard against exceeding limits of the address space. */
+ 	address &= PAGE_MASK;
+ 	if (address >= (TASK_SIZE & PAGE_MASK))
+@@ -1074,11 +1076,7 @@ static int expand_upwards(struct vm_area
  
- 	always = huge_anon_orders_always;
- 	madvise = huge_anon_orders_madvise;
-@@ -4167,7 +4167,7 @@ static ssize_t split_huge_pages_write(st
+ 	/* Lock the VMA before expanding to prevent concurrent page faults */
+ 	vma_start_write(vma);
+-	/*
+-	 * vma->vm_start/vm_end cannot change under us because the caller
+-	 * is required to hold the mmap_lock in read mode.  We need the
+-	 * anon_vma lock to serialize against concurrent expand_stacks.
+-	 */
++	/* We update the anon VMA tree. */
+ 	anon_vma_lock_write(vma->anon_vma);
  
- 		tok = strsep(&buf, ",");
- 		if (tok) {
--			strcpy(file_path, tok);
-+			strscpy(file_path, tok);
- 		} else {
- 			ret = -EINVAL;
- 			goto out;
+ 	/* Somebody else might have raced and expanded it already */
+@@ -1092,16 +1090,6 @@ static int expand_upwards(struct vm_area
+ 		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
+-				/*
+-				 * We only hold a shared mmap_lock lock here, so
+-				 * we need to protect against concurrent vma
+-				 * expansions.  anon_vma_lock_write() doesn't
+-				 * help here, as we don't guarantee that all
+-				 * growable vmas in a mm share the same root
+-				 * anon vma.  So, we reuse mm->page_table_lock
+-				 * to guard against concurrent vma expansions.
+-				 */
+-				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+ 					mm->locked_vm += grow;
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+@@ -1110,7 +1098,6 @@ static int expand_upwards(struct vm_area
+ 				/* Overwrite old entry in mtree. */
+ 				vma_iter_store(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+-				spin_unlock(&mm->page_table_lock);
+ 
+ 				perf_event_mmap(vma);
+ 			}
+@@ -1137,6 +1124,8 @@ int expand_downwards(struct vm_area_stru
+ 	if (!(vma->vm_flags & VM_GROWSDOWN))
+ 		return -EFAULT;
+ 
++	mmap_assert_write_locked(mm);
++
+ 	address &= PAGE_MASK;
+ 	if (address < mmap_min_addr || address < FIRST_USER_ADDRESS)
+ 		return -EPERM;
+@@ -1166,11 +1155,7 @@ int expand_downwards(struct vm_area_stru
+ 
+ 	/* Lock the VMA before expanding to prevent concurrent page faults */
+ 	vma_start_write(vma);
+-	/*
+-	 * vma->vm_start/vm_end cannot change under us because the caller
+-	 * is required to hold the mmap_lock in read mode.  We need the
+-	 * anon_vma lock to serialize against concurrent expand_stacks.
+-	 */
++	/* We update the anon VMA tree. */
+ 	anon_vma_lock_write(vma->anon_vma);
+ 
+ 	/* Somebody else might have raced and expanded it already */
+@@ -1184,16 +1169,6 @@ int expand_downwards(struct vm_area_stru
+ 		if (grow <= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
+-				/*
+-				 * We only hold a shared mmap_lock lock here, so
+-				 * we need to protect against concurrent vma
+-				 * expansions.  anon_vma_lock_write() doesn't
+-				 * help here, as we don't guarantee that all
+-				 * growable vmas in a mm share the same root
+-				 * anon vma.  So, we reuse mm->page_table_lock
+-				 * to guard against concurrent vma expansions.
+-				 */
+-				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+ 					mm->locked_vm += grow;
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+@@ -1203,7 +1178,6 @@ int expand_downwards(struct vm_area_stru
+ 				/* Overwrite old entry in mtree. */
+ 				vma_iter_store(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+-				spin_unlock(&mm->page_table_lock);
+ 
+ 				perf_event_mmap(vma);
+ 			}
 _
 
-Patches currently in -mm which might be from mcanal@igalia.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+docs-mm-add-vma-locks-documentation.patch
+docs-mm-add-vma-locks-documentation-fix.patch
 
