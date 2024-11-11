@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BAE165EED
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A826D165EED
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313726; cv=none; b=uJndPokt/Etr8KwcpLm8dNimzoiHrToGomugzT1sSJPt9B1lYZLcLjq7TUnd7xGvY0BEaiouMgMvPVk6m7NHqxzg3KdfcL1lSuNsLogP0BkB55TpO8Y4S+uTKO4pNydDzyAHuINgZbSqC1Hkg+xzwRQN62wpEc/mKhYWEtPOolA=
+	t=1731313727; cv=none; b=fnIZDpCKwlQlNKmr4K8qA9V8hKIGUgbgMykYJ2qq9M9Tq8L5hXwzODrLUyajJtNvIKSjbDa73gc3LsXP6Ay3ZumHXV+B3xcPv2u3QsjgX3NU2iIxQPq7zrevF3Xi107KNqjEgtDfpkaxkstHiKriJR33oS0GbgdxdrWdylKqGXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313726; c=relaxed/simple;
-	bh=4co7rzw6JDrEOnJEkk0iw7CUXhFCLeMkscFNTc1kzHE=;
-	h=Date:To:From:Subject:Message-Id; b=lTvEoZZprTqVugkMxwSu1AFo+KX/AA8bzvdalp3BMZda0Q60T6ws1tXT9k2AhXdpWXtr/xCUo58H85I04w7/fGlI7YXfTXITnvZU3oI60jbnn+LyYnoe8C0qo2uOjOmT1/lHgwvp/+HeivXj042vzsBKJNh1u+QraQ1/ZATSudc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FgxL9+m3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313727; c=relaxed/simple;
+	bh=BQSMxmwiVNF6jMIlTGyejzCeH+3PMCkm8K+m1QKrrMo=;
+	h=Date:To:From:Subject:Message-Id; b=fALuWm2hw3OjEjaCv1bmimByfx0Naru2KVom6fAoGfjsFK/Pe317YGVAdRjWU0Tmmx8JX0cuT+fm+bbXcjAt5GUBW9oHAPdI5vbxEx3hQDQNSfQR3UbGKwEjpQsneBoRNDpLajtxuNC651CilyFlXZVaWVeNOa1qPFbPWhsfHJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FxVAWgha; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FgxL9+m3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 473CAC4CED0;
-	Mon, 11 Nov 2024 08:28:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FxVAWgha"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D087C4CED0;
+	Mon, 11 Nov 2024 08:28:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313726;
-	bh=4co7rzw6JDrEOnJEkk0iw7CUXhFCLeMkscFNTc1kzHE=;
+	s=korg; t=1731313727;
+	bh=BQSMxmwiVNF6jMIlTGyejzCeH+3PMCkm8K+m1QKrrMo=;
 	h=Date:To:From:Subject:From;
-	b=FgxL9+m3pBzAoYM0erFuQj+dWBTddf/EsdYRa64CSZP+dTNneSDrYTNw9cQkwrrBV
-	 1az/p/8peHQ8aA/nQscDI72tyK4tebq6tqNgoB6RIMUIXrIkZBNXPMe9Z67li/VuBl
-	 1JfTMytmnZlxuA1gWKvFYWfrWh7YwkgYfILVBdds=
-Date: Mon, 11 Nov 2024 00:28:45 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,marc.dionne@auristor.com,akpm@linux-foundation.org
+	b=FxVAWghatYSZAnTOgQx/sCRYDawXMeA8Ba5uOVwa7HP2ENnVIuAh6T0io2J1iAwm3
+	 ZMp0AzFrVG30a1nPfraJ9j2TPg55kqD79bId8ZAZ7m45qz6lC3nzFVLXuy9ctDUdOZ
+	 rFF3osH66nSQnpPsKXZWpmmxnWlZvYr0xxbiRglE=
+Date: Mon, 11 Nov 2024 00:28:46 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,mcanal@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch removed from -mm tree
-Message-Id: <20241111082846.473CAC4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-control-thp-support-through-the-kernel-command-line.patch removed from -mm tree
+Message-Id: <20241111082847.7D087C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,215 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
+     Subject: mm: shmem: control THP support through the kernel command line
 has been removed from the -mm tree.  Its filename was
-     tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded.patch
+     mm-shmem-control-thp-support-through-the-kernel-command-line.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Marc Dionne <marc.dionne@auristor.com>
-Subject: tools/mm: fix slabinfo crash when MAX_SLABS is exceeded
-Date: Thu, 31 Oct 2024 07:55:34 -0300
+From: Maíra Canal <mcanal@igalia.com>
+Subject: mm: shmem: control THP support through the kernel command line
+Date: Fri, 1 Nov 2024 13:54:06 -0300
 
-The number of slabs can easily exceed the hard coded MAX_SLABS in the
-slabinfo tool, causing it to overwrite memory and crash.
+Patch series "mm: add more kernel parameters to control mTHP", v5.
 
-Increase the value of MAX_SLABS, and check if that has been exceeded for
-each new slab, instead of at the end when it's already too late.  Also
-move the check for MAX_ALIASES into the loop body.
+This series introduces four patches related to the kernel parameters
+controlling mTHP and a fifth patch replacing `strcpy()` for `strscpy()` in
+the file `mm/huge_memory.c`.
 
-Link: https://lkml.kernel.org/r/20241031105534.565533-1-marc.c.dionne@gmail.com
-Signed-off-by: Marc Dionne <marc.dionne@auristor.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+The first patch is a straightforward documentation update, correcting the
+format of the kernel parameter ``thp_anon=``.
+
+The second, third, and fourth patches focus on controlling THP support for
+shmem via the kernel command line.  The second patch introduces a
+parameter to control the global default huge page allocation policy for
+the internal shmem mount.  The third patch moves a piece of code to a
+shared header to ease the implementation of the fourth patch.  Finally,
+the fourth patch implements a parameter similar to ``thp_anon=``, but for
+shmem.
+
+The goal of these changes is to simplify the configuration of systems that
+rely on mTHP support for shmem.  For instance, a platform with a GPU that
+benefits from huge pages may want to enable huge pages for shmem.  Having
+these kernel parameters streamlines the configuration process and ensures
+consistency across setups.
+
+
+This patch (of 4):
+
+Add a new kernel command line to control the hugepage allocation policy
+for the internal shmem mount, ``transparent_hugepage_shmem``. The
+parameter is similar to ``transparent_hugepage`` and has the following
+format:
+
+transparent_hugepage_shmem=<policy>
+
+where ``<policy>`` is one of the seven valid policies available for
+shmem.
+
+Configuring the default huge page allocation policy for the internal
+shmem mount can be beneficial for DRM GPU drivers. Just as CPU
+architectures, GPUs can also take advantage of huge pages, but this is
+possible only if DRM GEM objects are backed by huge pages.
+
+Since GEM uses shmem to allocate anonymous pageable memory, having control
+over the default huge page allocation policy allows for the exploration of
+huge pages use on GPUs that rely on GEM objects backed by shmem.
+
+Link: https://lkml.kernel.org/r/20241101165719.1074234-2-mcanal@igalia.com
+Link: https://lkml.kernel.org/r/20241101165719.1074234-4-mcanal@igalia.com
+Signed-off-by: Maíra Canal <mcanal@igalia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: dri-devel@lists.freedesktop.org
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: kernel-dev@igalia.com
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/slabinfo.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 +
+ Documentation/admin-guide/mm/transhuge.rst      |    6 +
+ mm/shmem.c                                      |   72 +++++++++-----
+ 3 files changed, 62 insertions(+), 23 deletions(-)
 
---- a/tools/mm/slabinfo.c~tools-mm-fix-slabinfo-crash-when-max_slabs-is-exceeded
-+++ a/tools/mm/slabinfo.c
-@@ -21,7 +21,7 @@
- #include <regex.h>
- #include <errno.h>
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-shmem-control-thp-support-through-the-kernel-command-line
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6926,6 +6926,13 @@
+ 			See Documentation/admin-guide/mm/transhuge.rst
+ 			for more details.
  
--#define MAX_SLABS 500
-+#define MAX_SLABS 2000
- #define MAX_ALIASES 500
- #define MAX_NODES 1024
++	transparent_hugepage_shmem= [KNL]
++			Format: [always|within_size|advise|never|deny|force]
++			Can be used to control the hugepage allocation policy for
++			the internal shmem mount.
++			See Documentation/admin-guide/mm/transhuge.rst
++			for more details.
++
+ 	trusted.source=	[KEYS]
+ 			Format: <string>
+ 			This parameter identifies the trust source as a backend
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-control-thp-support-through-the-kernel-command-line
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -326,6 +326,12 @@ PMD_ORDER THP policy will be overridden.
+ is not defined within a valid ``thp_anon``, its policy will default to
+ ``never``.
  
-@@ -1228,6 +1228,8 @@ static void read_slab_dir(void)
- 				continue;
- 		switch (de->d_type) {
- 		   case DT_LNK:
-+			if (alias - aliasinfo == MAX_ALIASES)
-+				fatal("Too many aliases\n");
- 			alias->name = strdup(de->d_name);
- 			count = readlink(de->d_name, buffer, sizeof(buffer)-1);
++Similarly to ``transparent_hugepage``, you can control the hugepage
++allocation policy for the internal shmem mount by using the kernel parameter
++``transparent_hugepage_shmem=<policy>``, where ``<policy>`` is one of the
++seven valid policies for shmem (``always``, ``within_size``, ``advise``,
++``never``, ``deny``, and ``force``).
++
+ Hugepages in tmpfs/shmem
+ ========================
  
-@@ -1242,6 +1244,8 @@ static void read_slab_dir(void)
- 			alias++;
- 			break;
- 		   case DT_DIR:
-+			if (slab - slabinfo == MAX_SLABS)
-+				fatal("Too many slabs\n");
- 			if (chdir(de->d_name))
- 				fatal("Unable to access slab %s\n", slab->name);
- 			slab->name = strdup(de->d_name);
-@@ -1312,10 +1316,6 @@ static void read_slab_dir(void)
- 	slabs = slab - slabinfo;
- 	actual_slabs = slabs;
- 	aliases = alias - aliasinfo;
--	if (slabs > MAX_SLABS)
--		fatal("Too many slabs\n");
--	if (aliases > MAX_ALIASES)
--		fatal("Too many aliases\n");
+--- a/mm/shmem.c~mm-shmem-control-thp-support-through-the-kernel-command-line
++++ a/mm/shmem.c
+@@ -582,24 +582,39 @@ static bool shmem_huge_global_enabled(st
+ 	}
  }
  
- static void output_slabs(void)
+-#if defined(CONFIG_SYSFS)
+ static int shmem_parse_huge(const char *str)
+ {
++	int huge;
++
++	if (!str)
++		return -EINVAL;
++
+ 	if (!strcmp(str, "never"))
+-		return SHMEM_HUGE_NEVER;
+-	if (!strcmp(str, "always"))
+-		return SHMEM_HUGE_ALWAYS;
+-	if (!strcmp(str, "within_size"))
+-		return SHMEM_HUGE_WITHIN_SIZE;
+-	if (!strcmp(str, "advise"))
+-		return SHMEM_HUGE_ADVISE;
+-	if (!strcmp(str, "deny"))
+-		return SHMEM_HUGE_DENY;
+-	if (!strcmp(str, "force"))
+-		return SHMEM_HUGE_FORCE;
+-	return -EINVAL;
++		huge = SHMEM_HUGE_NEVER;
++	else if (!strcmp(str, "always"))
++		huge = SHMEM_HUGE_ALWAYS;
++	else if (!strcmp(str, "within_size"))
++		huge = SHMEM_HUGE_WITHIN_SIZE;
++	else if (!strcmp(str, "advise"))
++		huge = SHMEM_HUGE_ADVISE;
++	else if (!strcmp(str, "deny"))
++		huge = SHMEM_HUGE_DENY;
++	else if (!strcmp(str, "force"))
++		huge = SHMEM_HUGE_FORCE;
++	else
++		return -EINVAL;
++
++	if (!has_transparent_hugepage() &&
++	    huge != SHMEM_HUGE_NEVER && huge != SHMEM_HUGE_DENY)
++		return -EINVAL;
++
++	/* Do not override huge allocation policy with non-PMD sized mTHP */
++	if (huge == SHMEM_HUGE_FORCE &&
++	    huge_shmem_orders_inherit != BIT(HPAGE_PMD_ORDER))
++		return -EINVAL;
++
++	return huge;
+ }
+-#endif
+ 
+ #if defined(CONFIG_SYSFS) || defined(CONFIG_TMPFS)
+ static const char *shmem_format_huge(int huge)
+@@ -5065,15 +5080,7 @@ static ssize_t shmem_enabled_store(struc
+ 
+ 	huge = shmem_parse_huge(tmp);
+ 	if (huge == -EINVAL)
+-		return -EINVAL;
+-	if (!has_transparent_hugepage() &&
+-			huge != SHMEM_HUGE_NEVER && huge != SHMEM_HUGE_DENY)
+-		return -EINVAL;
+-
+-	/* Do not override huge allocation policy with non-PMD sized mTHP */
+-	if (huge == SHMEM_HUGE_FORCE &&
+-	    huge_shmem_orders_inherit != BIT(HPAGE_PMD_ORDER))
+-		return -EINVAL;
++		return huge;
+ 
+ 	shmem_huge = huge;
+ 	if (shmem_huge > SHMEM_HUGE_DENY)
+@@ -5170,6 +5177,25 @@ struct kobj_attribute thpsize_shmem_enab
+ 	__ATTR(shmem_enabled, 0644, thpsize_shmem_enabled_show, thpsize_shmem_enabled_store);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
+ 
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE)
++
++static int __init setup_transparent_hugepage_shmem(char *str)
++{
++	int huge;
++
++	huge = shmem_parse_huge(str);
++	if (huge == -EINVAL) {
++		pr_warn("transparent_hugepage_shmem= cannot parse, ignored\n");
++		return huge;
++	}
++
++	shmem_huge = huge;
++	return 1;
++}
++__setup("transparent_hugepage_shmem=", setup_transparent_hugepage_shmem);
++
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ #else /* !CONFIG_SHMEM */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from marc.dionne@auristor.com are
+Patches currently in -mm which might be from mcanal@igalia.com are
 
 
