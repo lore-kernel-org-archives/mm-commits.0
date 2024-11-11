@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83DE334CDD
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:15:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480EC13E02E
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:19:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731312955; cv=none; b=QNTt3qUA1FIEZ6YPCCP3VOnaLoSSDEbAKZWdoni0TlF71Kzu6AIrDQ/+wRRx/BaQB61cx2AEDg1y7+DFMihfGN6VfPsC6ZZu15YC2eIALhMntLeTAnsDOfZXZw+n6Tl9gbfLEEq4SfUWaKTL8uz6KYz9/4NsiB27VmwRy1BBRk0=
+	t=1731313163; cv=none; b=k12MIVSbWRdVG6BLoW47sJ9tNPD9Cp6/wxWr/+oPJQvvESp/M1huwG8nSbWR2Nmq4KYL9/sibiJvO4Mb9PnIFWjrJVL0CcI4UJcbsVi1zirCEh7VrRKGuoUlNor+WUGam8LLnSgQ8SA8A9Zhp+Ra6Pr8tGDoRwxp0j11oP5GX6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731312955; c=relaxed/simple;
-	bh=H9Ft0qLekf4aPLO4atQykCyKauk2cLXOUyuiDogD6bA=;
-	h=Date:To:From:Subject:Message-Id; b=gZcgmpCQEWKi2RK2NGrvkeqc15CWO7nFIQkG7UA1PpFHQG5sc1mhrZUWmucjDaCKeO9rWmu3V1DhSbBDDu15uUnqe5lq258FRQ8rvNcuMwERETHpwVrHAt5XYsPYHdlZnp7KKhVLkYzzOIzySPQE4v4+3w76MzoNoU1/JuiHhNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=deU2VmhR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313163; c=relaxed/simple;
+	bh=WQVPwiH7HDTSRQZ91DIsoQ51C3Z79O1jZj7N1QE7FWY=;
+	h=Date:To:From:Subject:Message-Id; b=YgEXCwuqp2t2OT8k/X+FuMrvicJhX+aafiCOoo6cpcQUsVJOssn0TKBpXzErp0KQNWzl+FL4VYYrPIJ6C8+6r6unONh5rM2Qa6pEgl6tKp3phLIrbsFCfzV2SJcLwGG1rCbPobzynfNhtR73E1rXWvnOqnmsvw/vnIOEVnoWjL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iOw2q9xj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="deU2VmhR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6617C4CED0;
-	Mon, 11 Nov 2024 08:15:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iOw2q9xj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC538C4CED0;
+	Mon, 11 Nov 2024 08:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731312955;
-	bh=H9Ft0qLekf4aPLO4atQykCyKauk2cLXOUyuiDogD6bA=;
+	s=korg; t=1731313162;
+	bh=WQVPwiH7HDTSRQZ91DIsoQ51C3Z79O1jZj7N1QE7FWY=;
 	h=Date:To:From:Subject:From;
-	b=deU2VmhRGyoJpkq8IzW7eNS63DyKVhCN6m44H9jYvsKCe5JGj/v+O3j2lbkAhUm80
-	 mhCaPHcGyTLusStgxE2IMT+uP2l6NSMsmEWFnL3S/D+nXh1FzKF1dpDLzDWwzoGwss
-	 n5GOAJGjCFScj6sNNW3BXbauo9fg2xjyFv1DCB/8=
-Date: Mon, 11 Nov 2024 00:15:53 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,usamaarif642@gmail.com,ryan.roberts@arm.com,kasong@tencent.com,kanchana.p.sridhar@intel.com,david@redhat.com,chrisl@kernel.org,baolin.wang@linux.alibaba.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=iOw2q9xjoDaRnPROmSeVrzs22vb/wHnDJsoLIV3mVoYG4F8OySUPgmpjFFMn7F9qM
+	 fYvtHHodJzsP1RpzuU17xcIZUNMBt0o5WCw4BPZQ8uiWzfalSllx2F8svzUU2Du5hN
+	 09m6EeHznhaA5rfPWhWQ3sjLwwpq9QvG/M9CRwCY=
+Date: Mon, 11 Nov 2024 00:19:22 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-per-order-mthp-swpin-counters-v2.patch removed from -mm tree
-Message-Id: <20241111081554.D6617C4CED0@smtp.kernel.org>
+Subject: [folded-merged] kasan-migrate-copy_user_test-to-kunit-fix.patch removed from -mm tree
+Message-Id: <20241111081922.BC538C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-per-order-mthp-swpin-counters-v2
+     Subject: mm: export copy_to_kernel_nofault
 has been removed from the -mm tree.  Its filename was
-     mm-add-per-order-mthp-swpin-counters-v2.patch
+     kasan-migrate-copy_user_test-to-kunit-fix.patch
 
-This patch was dropped because it was folded into mm-add-per-order-mthp-swpin-counters.patch
+This patch was dropped because it was folded into kasan-migrate-copy_user_test-to-kunit.patch
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm-add-per-order-mthp-swpin-counters-v2
-Date: Thu, 31 Oct 2024 12:34:23 +1300
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: export copy_to_kernel_nofault
+Date: Fri, 18 Oct 2024 15:11:09 +0000
 
-add a blank line in doc
+This symbol is now used on the kasan test module, so it needs to be
+exported.
 
-Link: https://lkml.kernel.org/r/20241030233423.80759-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+ERROR: modpost: "copy_to_kernel_nofault" [mm/kasan/kasan_test.ko] undefined!
+
+Link: https://lkml.kernel.org/r/20241018151112.3533820-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    1 +
+ mm/maccess.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-per-order-mthp-swpin-counters-v2
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -533,6 +533,7 @@ anon_fault_fallback_charge
- zswpout
- 	is incremented every time a huge page is swapped out to zswap in one
- 	piece without splitting.
-+
- swpin
- 	is incremented every time a huge page is swapped in from a non-zswap
- 	swap device in one piece.
+--- a/mm/maccess.c~kasan-migrate-copy_user_test-to-kunit-fix
++++ a/mm/maccess.c
+@@ -82,6 +82,7 @@ Efault:
+ 	pagefault_enable();
+ 	return -EFAULT;
+ }
++EXPORT_SYMBOL_GPL(copy_to_kernel_nofault);
+ 
+ long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
+ {
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-add-per-order-mthp-swpin-counters.patch
+kasan-migrate-copy_user_test-to-kunit.patch
 
