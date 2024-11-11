@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2A813E02E
-	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4CA113E02E
+	for <mm-commits@vger.kernel.org>; Mon, 11 Nov 2024 08:28:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731313715; cv=none; b=nxxHDFo9vDiuQ84GuYSLXvUeVgl4JdhDiZfZd1Gzpo0rYalbWnTV+2fUzRkakw7XNHnOi6vslBxyLLFgQsQARqlP34CdY4FjXfA22FhroodMLx7eRqke7tEMv5IiDGNSUw78HJqEGQdZf1MJMz0RoVHh/C3K5zJ5GGGCXVzKzQE=
+	t=1731313716; cv=none; b=jlAcPKW4wJqdLs4h86SLzJAo10fq4QPluzPWOXJR87AoVpXhmStqBHTcOYbP4e2TJZjZFIls2IfO4PkXgcthlNXB53SjZfM8fHgrfnBS4npMtsbSMkuxNxlt/7XKAXgRiJoHQdUpdQlvfNlFdmTCN8Eo9LVh45O+KeEoO8F9AlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731313715; c=relaxed/simple;
-	bh=ZLduYPOnsNGCtiblHvYT7IpdMhLcuNiy1zoruwjv0aE=;
-	h=Date:To:From:Subject:Message-Id; b=D7YzrBR04rkwuzHttt2wzho2kxw7U2QuNrJC5qbn6WPnem3pnG/KcZSOXqXqYg45CbL7KfDGkiSBAPeOC3femdCFn6iqS75Rl5trZwAnMNxwM9MWoafd2vLTMhROe6RN9sygyNZFggXXlyVSilMEYeAlaukwcATl9pD/Or2w2vM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HwoK0TGf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731313716; c=relaxed/simple;
+	bh=jd6vljtORP2SbroJTxVrNMikb1/rple02NTTa19K9gQ=;
+	h=Date:To:From:Subject:Message-Id; b=Nss58vnD2jn240eyX1qZxYjXWMmtC0iHVYAmM7hoz52nat8MgMtL9+NPAoL+/TAWzYa9uGbwBQHJ5wxEZBMnGpqBPsuLa9VVuhhn/EqyYiOmfVwAFblTIJHeZIVmp5a9um1LH8IQSJCare3CmpvB4Oq0vG3+eSBEcv4XKjh89Vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TQtUlYxM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HwoK0TGf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6935FC4CED0;
-	Mon, 11 Nov 2024 08:28:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TQtUlYxM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E164C4CED0;
+	Mon, 11 Nov 2024 08:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731313715;
-	bh=ZLduYPOnsNGCtiblHvYT7IpdMhLcuNiy1zoruwjv0aE=;
+	s=korg; t=1731313716;
+	bh=jd6vljtORP2SbroJTxVrNMikb1/rple02NTTa19K9gQ=;
 	h=Date:To:From:Subject:From;
-	b=HwoK0TGfVLFw+gms51mXmzzTeEFU/XO7+YtMx3EyhBBozC7dh5cDbj/yYq/l3u857
-	 +HgHFahP07RCtiwtRDyLIDlVwAkVMcLoV3RAce8aAD5gT3xFT1h9Ca97xdfHW6srze
-	 H/O6KzMxjX4OFj0S3/ntLADEqSILGvh8laAE4l8Q=
-Date: Mon, 11 Nov 2024 00:28:34 -0800
+	b=TQtUlYxMiYEXP8vp2tx/Ddda8alrkA8fqVGLPhzoR1PtKhsVfWDLs9Tly44nndkGr
+	 taWeYHc3t+4iMYlQ7JwIcP6yW6kZ8NaRfQx8Jzsu9AjZX3mBlUYck2+dnkZl7l9lKY
+	 1pILAFunjJF7FThQpnchBbTX4F9hS1r+yHuLp7uo=
+Date: Mon, 11 Nov 2024 00:28:35 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,paul.walmsley@sifive.com,palmer@rivosinc.com,charlie@rivosinc.com,alex@ghiti.fr,zhangchunyan@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-fix-typo-in-virtual_address_range.patch removed from -mm tree
-Message-Id: <20241111082835.6935FC4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-skip-virtual_address_range-tests-on-riscv.patch removed from -mm tree
+Message-Id: <20241111082836.7E164C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest/mm: fix typo in virtual_address_range
+     Subject: selftests/mm: skip virtual_address_range tests on riscv
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-fix-typo-in-virtual_address_range.patch
+     selftests-mm-skip-virtual_address_range-tests-on-riscv.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Subject: selftest/mm: fix typo in virtual_address_range
-Date: Tue, 8 Oct 2024 17:41:40 +0800
+Subject: selftests/mm: skip virtual_address_range tests on riscv
+Date: Tue, 8 Oct 2024 17:41:41 +0800
 
-The function name should be *hint* address, so correct it.
+RISC-V doesn't currently have the behavior of restricting the virtual
+address space which virtual_address_range tests check, this will
+cause the tests fail. So lets disable the whole test suite for riscv64
+for now, not build it and run_vmtests.sh will skip it if it is not present.
 
-Link: https://lkml.kernel.org/r/20241008094141.549248-4-zhangchunyan@iscas.ac.cn
+Link: https://lkml.kernel.org/r/20241008094141.549248-5-zhangchunyan@iscas.ac.cn
 Signed-off-by: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
 Reviewed-by: Charlie Jenkins <charlie@rivosinc.com>
 Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
@@ -59,29 +62,41 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile       |    2 ++
+ tools/testing/selftests/mm/run_vmtests.sh |   10 ++++++----
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftest-mm-fix-typo-in-virtual_address_range
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -64,7 +64,7 @@
- #define NR_CHUNKS_HIGH  NR_CHUNKS_384TB
- #endif
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-skip-virtual_address_range-tests-on-riscv
++++ a/tools/testing/selftests/mm/Makefile
+@@ -116,7 +116,9 @@ endif
  
--static char *hind_addr(void)
-+static char *hint_addr(void)
- {
- 	int bits = HIGH_ADDR_SHIFT + rand() % (63 - HIGH_ADDR_SHIFT);
+ ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
+ TEST_GEN_FILES += va_high_addr_switch
++ifneq ($(ARCH),riscv64)
+ TEST_GEN_FILES += virtual_address_range
++endif
+ TEST_GEN_FILES += write_to_hugetlbfs
+ endif
  
-@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
- 	}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-virtual_address_range-tests-on-riscv
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -347,10 +347,12 @@ if [ $VADDR64 -ne 0 ]; then
+ 	# allows high virtual address allocation requests independent
+ 	# of platform's physical memory.
  
- 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
--		hint = hind_addr();
-+		hint = hint_addr();
- 		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
- 			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	prev_policy=$(cat /proc/sys/vm/overcommit_memory)
+-	echo 1 > /proc/sys/vm/overcommit_memory
+-	CATEGORY="hugevm" run_test ./virtual_address_range
+-	echo $prev_policy > /proc/sys/vm/overcommit_memory
++	if [ -x ./virtual_address_range ]; then
++		prev_policy=$(cat /proc/sys/vm/overcommit_memory)
++		echo 1 > /proc/sys/vm/overcommit_memory
++		CATEGORY="hugevm" run_test ./virtual_address_range
++		echo $prev_policy > /proc/sys/vm/overcommit_memory
++	fi
  
+ 	# va high address boundary switch test
+ 	ARCH_ARM64="arm64"
 _
 
 Patches currently in -mm which might be from zhangchunyan@iscas.ac.cn are
