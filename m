@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25D5E2572
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:17:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F00571E884
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:18:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374262; cv=none; b=PlHADJDbgaP7Xadko19xftt3K7D+94dPXW/rkSVo0bDiq444nzNINYvx7xauhv1iXi/ihZRZZkVz8r6Dt5pPJKyQciUA8Z1xCAoPIbgqbYyL1lsXZoO0Y3h081Xz8mriLmIC/iNTYlefvMJt+dpJEVo06+8ROPLFvGYkWowmj0w=
+	t=1731374338; cv=none; b=FSBt4e/+Z7zsIicPS7yLzx8Y5+FgH2kQVY9/I972rQYsQKBYVc801kfMWnFI0CAAfRT2po3PvxcNF8d8q4RtmKTuFBM5Mh/ux9Uw0E0xu4vIgyaDpu/kuZDoZYTBndsDK5dLJIvmuSHFWOchYgKZrMwI9nE5zfPyG/r2DZ4nZWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374262; c=relaxed/simple;
-	bh=uH28wXVZtKR0tFy+dxgEF3g2mTBvl5wvqEZcOxUS9aI=;
-	h=Date:To:From:Subject:Message-Id; b=WRY7U4vD7Fx9UA3nmgeL6N1QcLLWI7/CzSw2Q8widQxTRjCQh5LSqfEMWjsv8yLEkR/VsBpZshFcmJSCpEQd5L+lMkii5FNqJqeFz0iqi0hHDxNkBbfBsvLxcn8O+IlPI5R57hUQ6Yn1kNiHkuV+qJgwC80eUcvhCjfMMcvVEFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GfWF7ABK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374338; c=relaxed/simple;
+	bh=SNWdrbmS5zPxrl0aeJQnidBlnhebeVDA5zYAJT5302c=;
+	h=Date:To:From:Subject:Message-Id; b=XGQJ5YPr3AeKi4xkhsoKo1GeJCpcXiT8q2+E/sz+OhGhx0FB0Luq7rX/AxVxLiw5IsVUFS20PiflT5Dw7WRWZ7vkqJS43hbvffS80NJlNTSX8yRLYUPICYy0lIzAvaxYSfVWEAC6RWpmvh3rWbt9I/XpG5urlkj1nPprvNixCR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fs0smoUt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GfWF7ABK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A65EAC4CED7;
-	Tue, 12 Nov 2024 01:17:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fs0smoUt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C36FAC4CECF;
+	Tue, 12 Nov 2024 01:18:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374261;
-	bh=uH28wXVZtKR0tFy+dxgEF3g2mTBvl5wvqEZcOxUS9aI=;
+	s=korg; t=1731374337;
+	bh=SNWdrbmS5zPxrl0aeJQnidBlnhebeVDA5zYAJT5302c=;
 	h=Date:To:From:Subject:From;
-	b=GfWF7ABKcnBRd/HkWKKMoSVNlahZ7qmBgj0pWgkzLYgyryw/FlDt5m7rOwo9bWBRh
-	 AUD3k0Kzw5I6e5F9uqQirVX1PHAiaC1LPdiKG++m0vbFDXLRmWl2fd6pf+TChoMnr/
-	 gLpZU5rezIG1zpf9+3aiBZFGoiM+djjdq6ff1QcY=
-Date: Mon, 11 Nov 2024 17:17:41 -0800
-To: mm-commits@vger.kernel.org,linux@weissschuh.net,joel.granados@kernel.org,festevam@denx.de,daniel.lezcano@linaro.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=Fs0smoUt662DpblzMdLSfcgYavKQUCPOCOcBxJHFa9JnhZAjM8fHrEEFdcNz2Uw1R
+	 NSJbq2x3a/pnFaLfY3wKMxQAwJJ2PKMcZbeco7rjx5Qi9NnoG5ta8PcLZKDi2lVjZu
+	 OcZiQKHuahBw9IZPPbVzHEvKvz6a+ka5wLo0kdfc=
+Date: Mon, 11 Nov 2024 17:18:57 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,peterx@redhat.com,osalvador@suse.de,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,airlied@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-reboot-replace-sprintf-with-sysfs_emit.patch removed from -mm tree
-Message-Id: <20241112011741.A65EAC4CED7@smtp.kernel.org>
+Subject: [folded-merged] mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix.patch removed from -mm tree
+Message-Id: <20241112011857.C36FAC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/reboot: replace sprintf() with sysfs_emit()
+     Subject: mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-reboot-replace-sprintf-with-sysfs_emit.patch
+     mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases.patch
 
 ------------------------------------------------------
-From: zhangguopeng <zhangguopeng@kylinos.cn>
-Subject: kernel/reboot: replace sprintf() with sysfs_emit()
-Date: Tue, 5 Nov 2024 17:49:41 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix
+Date: Tue, 5 Nov 2024 13:31:01 -0800
 
-As Documentation/filesystems/sysfs.rst suggested, show() should only use
-sysfs_emit() or sysfs_emit_at() when formatting the value to be returned
-to user space.
+whitespace tweak, per David
 
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20241105094941.33739-1-zhangguopeng@kylinos.cn
-Signed-off-by: zhangguopeng <zhangguopeng@kylinos.cn>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Fabio Estevam <festevam@denx.de>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
+Link: https://lkml.kernel.org/r/131cf9c8-ebc0-4cbb-b722-22fa8527bf3c@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Dongwon Kim <dongwon.kim@intel.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Junxiao Chang <junxiao.chang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/gup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/reboot.c~kernel-reboot-replace-sprintf-with-sysfs_emit
-+++ a/kernel/reboot.c
-@@ -1137,7 +1137,7 @@ static ssize_t mode_show(struct kobject
- 		val = REBOOT_UNDEFINED_STR;
- 	}
+--- a/mm/gup.c~mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix
++++ a/mm/gup.c
+@@ -2435,8 +2435,8 @@ check_and_migrate_movable_pages_or_folio
+ 	LIST_HEAD(movable_folio_list);
+ 	unsigned long collected;
  
--	return sprintf(buf, "%s\n", val);
-+	return sysfs_emit(buf, "%s\n", val);
- }
- static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t count)
-@@ -1167,7 +1167,7 @@ static struct kobj_attribute reboot_mode
- #ifdef CONFIG_X86
- static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", reboot_force);
-+	return sysfs_emit(buf, "%d\n", reboot_force);
- }
- static ssize_t force_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t count)
-@@ -1214,7 +1214,7 @@ static ssize_t type_show(struct kobject
- 		val = REBOOT_UNDEFINED_STR;
- 	}
+-	collected =
+-		collect_longterm_unpinnable_folios(&movable_folio_list, pofs);
++	collected = collect_longterm_unpinnable_folios(&movable_folio_list,
++						       pofs);
+ 	if (!collected)
+ 		return 0;
  
--	return sprintf(buf, "%s\n", val);
-+	return sysfs_emit(buf, "%s\n", val);
- }
- static ssize_t type_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t count)
-@@ -1247,7 +1247,7 @@ static struct kobj_attribute reboot_type
- #ifdef CONFIG_SMP
- static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", reboot_cpu);
-+	return sysfs_emit(buf, "%d\n", reboot_cpu);
- }
- static ssize_t cpu_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t count)
 _
 
-Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases.patch
+mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases-fix-2.patch
 
