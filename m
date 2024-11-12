@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C436205121
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935F6204952
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374585; cv=none; b=uerpYVvSXISvVknVSTuqsLJAAXfSCLglwilyxd6uUPQRylkOMaw6cW8V/QD8h1pWIIF8qSUMgG9ltJGrkwgQ7jYd0M+nyiqrfvalQuETeMMrjFBcodVadL6DDHzM5RMqIdDefg+nl/Dznm+cKDPGmSiCSPiSaAKuNi1C5jF18fg=
+	t=1731374586; cv=none; b=OtacctijMEMN2Gn/+SRM2GPXMDEi9+rLD01zshqvrUp4gOsBHVPfQZJGtQjH/mNQLXpyjTzeA1Ag+4IQenWhCrLxz2W0rnqz8J6JYy9W4baFlyBGEyHLEk0cJcDyKatEho3oEPHuRPVYhLkC7nyK+j2RXLuLn/Zk5xvXn1regr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374585; c=relaxed/simple;
-	bh=mPUgOtjU7fsF6Nrjhd0fCZfDu8vu3uMKNyu7LZKE1Po=;
-	h=Date:To:From:Subject:Message-Id; b=WR0llqTJsZWIGGLMp+bHJ3l1uEv4bLo+47CmMVDvZO0J6IgoyuCag+dz7DpWIk/jQNewe61coyJcHSCX/WlCKIBT6OaksV4QqcxoyF+rSt1nSZ7V22FScCWNtYr60JFyaCnaoFfWkO4fmulLellpX1vBvyLiXof83zAH4G1DLsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mCrIiysV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374586; c=relaxed/simple;
+	bh=osQsaTF1QHxIxwCxp3SgIdpbU5aZyhlwLO/0/P7InkQ=;
+	h=Date:To:From:Subject:Message-Id; b=bKyuB/K8pTcLulOmKrk7ANU17Y8VXeLKmfvuP16hKr1w4zYXvL5LtN/cXn9XjtnwksVFmUymHE/9wYSp7XPocqrhF0ymQ9dJmmzp+7QFl8xGKtcRVSETi+O6ycuG7CmTwkww1dmxCMo+LPiczBH52R7buang0wmme9TrgwqZ4SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BGMwquSw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mCrIiysV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E69B0C4CECF;
-	Tue, 12 Nov 2024 01:23:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BGMwquSw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AFEDC4CECF;
+	Tue, 12 Nov 2024 01:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374585;
-	bh=mPUgOtjU7fsF6Nrjhd0fCZfDu8vu3uMKNyu7LZKE1Po=;
+	s=korg; t=1731374586;
+	bh=osQsaTF1QHxIxwCxp3SgIdpbU5aZyhlwLO/0/P7InkQ=;
 	h=Date:To:From:Subject:From;
-	b=mCrIiysVX4hyjq1UnJrGuUl7dIt3WICKU7R9VtiBU9/E4+CbuMlvbuucY6OpEn6GE
-	 ROtNYaMejx45ogQU/c+bJ9LQfBVfF1eW6J6kbQ5dEfqXWpHOBIOlJFkjV8C7d+rYV1
-	 2JlokBeKQo2A9KvfLKPOhFq9FSOLWFNDMg7PyGiU=
-Date: Mon, 11 Nov 2024 17:23:04 -0800
-To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=BGMwquSwwBX1RRG2e7/YJvp9kFK3wjKWFAVrUhnrm8gERCfclTudWwmNPC9jOyvql
+	 03VP72ERAlp2BIA+u0ghnvkc96U+AxnfJaolCNh1HQRr0C43wJ0QJxZN9beaSFGaJW
+	 22GxzzRysFso3YjPHDIQ2EILybhu50RIhdY5R4Lk=
+Date: Mon, 11 Nov 2024 17:23:05 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-recommend-academic-papers-to-read-and-or-cite.patch removed from -mm tree
-Message-Id: <20241112012304.E69B0C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-memory-management-add-document-files-for-mm.patch removed from -mm tree
+Message-Id: <20241112012306.1AFEDC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon: recommend academic papers to read and/or cite
+     Subject: MAINTAINERS/MEMORY MANAGEMENT: add document files for mm
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-recommend-academic-papers-to-read-and-or-cite.patch
+     maintainers-memory-management-add-document-files-for-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon: recommend academic papers to read and/or cite
-Date: Fri, 1 Nov 2024 13:35:57 -0700
+Subject: MAINTAINERS/MEMORY MANAGEMENT: add document files for mm
+Date: Fri, 1 Nov 2024 13:23:10 -0700
 
-Kernel documentation is the most up-to-date and recommended resource for
-DAMON.  It doesn't cover non-kernel part of the entire project[1], though.
-Also it is not optimum for formal long-term citations.  Depending on
-cases, DAMON academic papers[2,3] could be better to be read and cited. 
-However, there is no clear guidance for those.  Add a paragraph for DAMON
-academic papers on the kernel documentation for DAMON.
+Memory managment subsystem documents ('admin-guide/mm/' and 'mm/' under
+'Documentation/') are not marked as managed under memory management
+subsystem.  This makes 'get_maintainer.pl' for changes to the documents
+sub-optimal.  Mark the documents as part of mm subsystem on MAINTAINERS
+file.
 
-[1] https://damonitor.github.io
-[2] https://dl.acm.org/doi/abs/10.1145/3366626.3368125
-[3] https://dl.acm.org/doi/abs/10.1145/3502181.353146
-
-Link: https://lkml.kernel.org/r/20241101203557.55210-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241101202311.53935-1-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/index.rst |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/Documentation/mm/damon/index.rst~docs-mm-damon-recommend-academic-papers-to-read-and-or-cite
-+++ a/Documentation/mm/damon/index.rst
-@@ -37,3 +37,9 @@ with no code but simple configurations.
- 
- To utilize and control DAMON from the user-space, please refer to the
- administration :doc:`guide </admin-guide/mm/damon/index>`.
-+
-+If you prefer academic papers for reading and citations, please use the papers
-+from `HPDC'22 <https://dl.acm.org/doi/abs/10.1145/3502181.3531466>`_ and
-+`Middleware19 Industry <https://dl.acm.org/doi/abs/10.1145/3366626.3368125>`_ .
-+Note that those cover DAMON implementations in Linux v5.16 and v5.15,
-+respectively.
+--- a/MAINTAINERS~maintainers-memory-management-add-document-files-for-mm
++++ a/MAINTAINERS
+@@ -14848,6 +14848,8 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ T:	quilt git://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new
++F:	Documentation/admin-guide/mm/
++F:	Documentation/mm/
+ F:	include/linux/gfp.h
+ F:	include/linux/gfp_types.h
+ F:	include/linux/memfd.h
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
