@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EBAB205132
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF799205132
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374587; cv=none; b=NoagTjTOiWjBPOoRAOL5WJlikoqCuUPMjE7FkWGc4biWCoi425FghK1o9OQ3KdjI7VY174gvuo8gNzezDH5Bx29D2eovssB4ssH7y+J4gIT7LHfumn3sZf3otWDqbD1WopvaSXiAr5WiA6ecX0+/XQxlGbL01zdoLsrrOYNLQVg=
+	t=1731374588; cv=none; b=TdgpAx3VceKiarO0mxtviezZE1VT3Rm6L8IMui3ylAh9Twq5e+H2QPnDC2tgVqJqM4c6Xv0tW9NQlvvvVZReDB4V/yNuGDJ8mNJO8te477cKdMYDMVWlBI+GvJzueT4TA9Iuo8xAOSImSFIj4h/0VGmfxs/1viDksQjao7TRmD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374587; c=relaxed/simple;
-	bh=ppWVdDQy6QX0TO1oltJP7mVPPcKF8/981Gl6U1cVsXY=;
-	h=Date:To:From:Subject:Message-Id; b=LHtya5Cfo1n9SDG80aJWQv795jjpEb0Uzc7v+Q8fSTqNeToHw8CrP/XmaN75MZlUzVd9AX7zpHvWeR2DZn4N/v/zIKSCmlrCJyDO8Z4HIpe66OhfRJNQVMkQe9c7Cr8DzPTBY970jGpEgC+syo1FpV+hmbccJa3aIe/RNY5P7LI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=drAx5kN6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374588; c=relaxed/simple;
+	bh=6KRXC0mRXXbSsTW9RrZgNdPXFcO6hyjdSiEcaltLKns=;
+	h=Date:To:From:Subject:Message-Id; b=pj4IfrvXw6FdoqFzh2yj+CxaVRC9X6IukUDCtBec67I9zO6qnugB9hV8Kf09bp3kKvrjQt2mka0Ig2zK6t0P0QfH2LDDmqoLN4OghVbtugj+NdKy4RF23gPQJ2uTiNos5LzDRSJ4McTSV5UwPPJz9l2rmxLYEbBgM7Gl6QnILMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iemL1vep; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="drAx5kN6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 442CBC4CECF;
-	Tue, 12 Nov 2024 01:23:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iemL1vep"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72042C4CECF;
+	Tue, 12 Nov 2024 01:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374587;
-	bh=ppWVdDQy6QX0TO1oltJP7mVPPcKF8/981Gl6U1cVsXY=;
+	s=korg; t=1731374588;
+	bh=6KRXC0mRXXbSsTW9RrZgNdPXFcO6hyjdSiEcaltLKns=;
 	h=Date:To:From:Subject:From;
-	b=drAx5kN6u6EdxshD1mMIPJXlEOWtik0ZGe8Cr+6gcPKAUaKe2DkbcUAhcQy64dE8i
-	 mD9Hibzxsw5cIEuVM6zrn+x58moeZkxy05XjnpWauya152R1cO1RGSOaiJtSphCifS
-	 s3+KIKA4Fto4Cc4OKyzT6nWr+PbS+Ry0xDVb/3A8=
-Date: Mon, 11 Nov 2024 17:23:06 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,geert@linux-m68k.org,akpm@linux-foundation.org
+	b=iemL1vepNaJqgMSbVMuW0FkpA/39/RLRtUlE8y1s2cFI5Ba8b+CIMNTyZNVmsVKC4
+	 YZM8PAKH1SoZkYX5drH4g2aiugeVNX4FZVFHJQLJhMTiB/0E+SmdO8FGUO6+/0/AhW
+	 M7KSmzcFrj/g8G2S/Cajxl63Hcg7yuEE3ysdTCLo=
+Date: Mon, 11 Nov 2024 17:23:07 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,penguin-kernel@I-love.SAKURA.ne.jp,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,axelrasmussen@google.com,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-zram_def_comp-should-depend-on-zram.patch removed from -mm tree
-Message-Id: <20241112012307.442CBC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap_lock-check-trace_mmap_lock_type_enabled-instead-of-regcount.patch removed from -mm tree
+Message-Id: <20241112012308.72042C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,165 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: ZRAM_DEF_COMP should depend on ZRAM
+     Subject: mm: mmap_lock: check trace_mmap_lock_$type_enabled() instead of regcount
 has been removed from the -mm tree.  Its filename was
-     zram-zram_def_comp-should-depend-on-zram.patch
+     mm-mmap_lock-check-trace_mmap_lock_type_enabled-instead-of-regcount.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: zram: ZRAM_DEF_COMP should depend on ZRAM
-Date: Tue, 5 Nov 2024 12:50:35 +0100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: mmap_lock: check trace_mmap_lock_$type_enabled() instead of regcount
+Date: Tue, 5 Nov 2024 12:34:57 +0100
 
-When Compressed RAM block device support is disabled, the
-CONFIG_ZRAM_DEF_COMP symbol still ends up in the generated config file:
+Since 7d6be67cfdd4 ("mm: mmap_lock: replace get_memcg_path_buf() with
+on-stack buffer") we use trace_mmap_lock_reg()/unreg() only to maintain an
+atomic reg_refcount which is checked to avoid performing
+get_mm_memcg_path() in case none of the tracepoints using it is enabled.
 
-    CONFIG_ZRAM_DEF_COMP="unset-value"
+This can be achieved directly by putting all the work needed for the
+tracepoint behind the trace_mmap_lock_##type##_enabled(), as suggested by
+Documentation/trace/tracepoints.rst and with the following advantages:
 
-While this causes no real harm, avoid polluting the config file by
-adding a dependency on ZRAM.
+- uses the tracepoint's static key instead of evaluating a branch
 
-Link: https://lkml.kernel.org/r/64e05bad68a9bd5cc322efd114a04d25de525940.1730807319.git.geert@linux-m68k.org
-Fixes: 917a59e81c34 ("zram: introduce custom comp backends API")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
+- the check tracepoint specific, not shared by all of them
+
+- we can get rid of trace_mmap_lock_reg()/unreg() completely
+
+Thus use the trace_..._enabled() check and remove unnecessary code.
+
+Link: https://lkml.kernel.org/r/20241105113456.95066-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/trace/events/mmap_lock.h |   14 ++--------
+ mm/mmap_lock.c                   |   39 +++++------------------------
+ 2 files changed, 12 insertions(+), 41 deletions(-)
 
---- a/drivers/block/zram/Kconfig~zram-zram_def_comp-should-depend-on-zram
-+++ a/drivers/block/zram/Kconfig
-@@ -94,6 +94,7 @@ endchoice
+--- a/include/trace/events/mmap_lock.h~mm-mmap_lock-check-trace_mmap_lock_type_enabled-instead-of-regcount
++++ a/include/trace/events/mmap_lock.h
+@@ -10,9 +10,6 @@
  
- config ZRAM_DEF_COMP
- 	string
-+	depends on ZRAM
- 	default "lzo-rle" if ZRAM_DEF_COMP_LZORLE
- 	default "lzo" if ZRAM_DEF_COMP_LZO
- 	default "lz4" if ZRAM_DEF_COMP_LZ4
+ struct mm_struct;
+ 
+-extern int trace_mmap_lock_reg(void);
+-extern void trace_mmap_lock_unreg(void);
+-
+ DECLARE_EVENT_CLASS(mmap_lock,
+ 
+ 	TP_PROTO(struct mm_struct *mm, const char *memcg_path, bool write),
+@@ -40,16 +37,15 @@ DECLARE_EVENT_CLASS(mmap_lock,
+ );
+ 
+ #define DEFINE_MMAP_LOCK_EVENT(name)                                    \
+-	DEFINE_EVENT_FN(mmap_lock, name,                                \
++	DEFINE_EVENT(mmap_lock, name,                                   \
+ 		TP_PROTO(struct mm_struct *mm, const char *memcg_path,  \
+ 			bool write),                                    \
+-		TP_ARGS(mm, memcg_path, write),                         \
+-		trace_mmap_lock_reg, trace_mmap_lock_unreg)
++		TP_ARGS(mm, memcg_path, write))
+ 
+ DEFINE_MMAP_LOCK_EVENT(mmap_lock_start_locking);
+ DEFINE_MMAP_LOCK_EVENT(mmap_lock_released);
+ 
+-TRACE_EVENT_FN(mmap_lock_acquire_returned,
++TRACE_EVENT(mmap_lock_acquire_returned,
+ 
+ 	TP_PROTO(struct mm_struct *mm, const char *memcg_path, bool write,
+ 		bool success),
+@@ -76,9 +72,7 @@ TRACE_EVENT_FN(mmap_lock_acquire_returne
+ 		__get_str(memcg_path),
+ 		__entry->write ? "true" : "false",
+ 		__entry->success ? "true" : "false"
+-	),
+-
+-	trace_mmap_lock_reg, trace_mmap_lock_unreg
++	)
+ );
+ 
+ #endif /* _TRACE_MMAP_LOCK_H */
+--- a/mm/mmap_lock.c~mm-mmap_lock-check-trace_mmap_lock_type_enabled-instead-of-regcount
++++ a/mm/mmap_lock.c
+@@ -19,43 +19,23 @@ EXPORT_TRACEPOINT_SYMBOL(mmap_lock_relea
+ 
+ #ifdef CONFIG_MEMCG
+ 
+-static atomic_t reg_refcount;
+-
+ /*
+  * Size of the buffer for memcg path names. Ignoring stack trace support,
+  * trace_events_hist.c uses MAX_FILTER_STR_VAL for this, so we also use it.
+  */
+ #define MEMCG_PATH_BUF_SIZE MAX_FILTER_STR_VAL
+ 
+-int trace_mmap_lock_reg(void)
+-{
+-	atomic_inc(&reg_refcount);
+-	return 0;
+-}
+-
+-void trace_mmap_lock_unreg(void)
+-{
+-	atomic_dec(&reg_refcount);
+-}
+-
+-#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                    \
+-	do {                                                    \
+-		char buf[MEMCG_PATH_BUF_SIZE];                  \
+-		get_mm_memcg_path(mm, buf, sizeof(buf));        \
+-		trace_mmap_lock_##type(mm, buf, ##__VA_ARGS__); \
++#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)				\
++	do {								\
++		if (trace_mmap_lock_##type##_enabled()) {		\
++			char buf[MEMCG_PATH_BUF_SIZE];                  \
++			get_mm_memcg_path(mm, buf, sizeof(buf));        \
++			trace_mmap_lock_##type(mm, buf, ##__VA_ARGS__); \
++		}							\
+ 	} while (0)
+ 
+ #else /* !CONFIG_MEMCG */
+ 
+-int trace_mmap_lock_reg(void)
+-{
+-	return 0;
+-}
+-
+-void trace_mmap_lock_unreg(void)
+-{
+-}
+-
+ #define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
+ 	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
+ 
+@@ -65,16 +45,13 @@ void trace_mmap_lock_unreg(void)
+ #ifdef CONFIG_MEMCG
+ /*
+  * Write the given mm_struct's memcg path to a buffer. If the path cannot be
+- * determined or the trace event is being unregistered, empty string is written.
++ * determined, empty string is written.
+  */
+ static void get_mm_memcg_path(struct mm_struct *mm, char *buf, size_t buflen)
+ {
+ 	struct mem_cgroup *memcg;
+ 
+ 	buf[0] = '\0';
+-	/* No need to get path if no trace event is registered. */
+-	if (!atomic_read(&reg_refcount))
+-		return;
+ 	memcg = get_mem_cgroup_from_mm(mm);
+ 	if (memcg == NULL)
+ 		return;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
