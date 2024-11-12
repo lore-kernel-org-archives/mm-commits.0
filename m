@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E26FF1BDC3;
-	Tue, 12 Nov 2024 00:13:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFDF11586CB
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 00:23:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731370416; cv=none; b=lC6uz6i1UpXS8FWX+BdRcF3619alvHM4K+TxWkQFT/DjN3ZGwgo+FWyL2brnVrBjxGC8YjXH89/nwq/ki927YK7NbuI9COKFoZfyriDZ24WshxkerpaR1aFrwHVnVByDwW8iQ/2FDfVxyM6jBVE/8KFamLVfPK5V+mzTiVGHnaM=
+	t=1731370988; cv=none; b=EHj+tdLMyGRb9aoJpK0jZ2PvSLTcdPLmmdwilnzom6EHYgNLGB8+rzh17ZVaNOyIn/wQza16aRRYSVemQKpblStXILIBiQsEH59ERwOMSYJwr4VxRSKtuCQimgcaO0jY+RvsVLhBipMTciCsz/k6f6P6+rpsJ2GARL8VSs33EWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731370416; c=relaxed/simple;
-	bh=+fI8cTrL/l1wq4mTewMmTeINOP+i2wxlCK1IyjtbyJo=;
-	h=Date:To:From:Subject:Message-Id; b=SiNCd51Z31FmmKUchYVoy5WU2ETXPX8s4yayyzNgRXheahDmJKWBv6FWW2S3t3nyT1dX+m9uNlX/M7Icg6zAsax61HPEFjPmENc03hDlJw4vl1DdghEUpvbM4BYD5/EUpwTScjcGSPqHyLfJ51yGeSrIzAPqOGypGNl+Sbl62vY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p7tiubsh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731370988; c=relaxed/simple;
+	bh=5247WGtltTKC5ZJkpr9syLqEMXGEUNFxZE34SmtlRDs=;
+	h=Date:To:From:Subject:Message-Id; b=CGooHudB1oBB2l672mYkd8ohISKy+Krl7F0W3obintXht4QwOdaUR+fOL5bqlegR3kwXjuNu1TjrFsXSzvHLelPgk3DwuY00d8FTckQRTszybXp8f7107XLmY4SiOGlmxGXHZKEjuI/CB+UlNfhJoads/czjcngsjzb22QtFQrk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u2lL5YMD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p7tiubsh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79ACAC4CECF;
-	Tue, 12 Nov 2024 00:13:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u2lL5YMD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 629DAC4CECF;
+	Tue, 12 Nov 2024 00:23:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731370414;
-	bh=+fI8cTrL/l1wq4mTewMmTeINOP+i2wxlCK1IyjtbyJo=;
+	s=korg; t=1731370987;
+	bh=5247WGtltTKC5ZJkpr9syLqEMXGEUNFxZE34SmtlRDs=;
 	h=Date:To:From:Subject:From;
-	b=p7tiubshpfSlSzZ8vdeoU17IrfhfaxEExteaI524Jjgw7nfv9KoH3o4EPziLd3WON
-	 XlR0RwCMjJh6E0h8Uy7b9V8AvT6v3GqvoU5rB7qNOYYP0SS9kSo1hsNyO5lhJ/m44w
-	 y2aLnGldDd12oPaLGAp406yeaRupOPS1aRhazEGs=
-Date: Mon, 11 Nov 2024 16:13:33 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,joel@joelfernandes.org,jannh@google.com,akpm@linux-foundation.org
+	b=u2lL5YMD/gXk1fHfGcg42qbdE9anKqWNV86zmPYstRSumPUsYKoMqEooTU6lJUjKE
+	 mPZOb7fpJFWVv5F4IzYnbOVEeVy9klNt/B3c5Bx0Owx8UOR9iK4qvbPBtqPPHKTl2V
+	 o3zPrTUgL1AYHLyJz7x5wtoZZHSyMhjuR4mHByjw=
+Date: Mon, 11 Nov 2024 16:23:06 -0800
+To: mm-commits@vger.kernel.org,mgorman@techsingularity.net,labbott@redhat.com,liuq131@chinatelecom.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-fix-address-wraparound-in-move_page_tables.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241112001334.79ACAC4CECF@smtp.kernel.org>
+Subject: + mm-compaction-fix-the-total_isolated-in-strict-mode.patch added to mm-unstable branch
+Message-Id: <20241112002307.629DAC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: fix address wraparound in move_page_tables()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mremap-fix-address-wraparound-in-move_page_tables.patch
+     Subject: mm/compaction: fix the total_isolated in strict mode
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-compaction-fix-the-total_isolated-in-strict-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-address-wraparound-in-move_page_tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-the-total_isolated-in-strict-mode.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,106 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm/mremap: fix address wraparound in move_page_tables()
-Date: Mon, 11 Nov 2024 20:34:30 +0100
+From: Qiang Liu <liuq131@chinatelecom.cn>
+Subject: mm/compaction: fix the total_isolated in strict mode
+Date: Sat, 2 Nov 2024 20:16:21 +0000
 
-On 32-bit platforms, it is possible for the expression `len + old_addr <
-old_end` to be false-positive if `len + old_addr` wraps around. 
-`old_addr` is the cursor in the old range up to which page table entries
-have been moved; so if the operation succeeded, `old_addr` is the *end* of
-the old region, and adding `len` to it can wrap.
+If the last cycle reads bogus compound_order() and blockpfn > end_pfn
+occurs, it is possible that total_isolated will be less than nr_scanned. 
+In this case, strict mode should return 0, but the “if (strict &&
+blockpfn < end_pfn)” statement cannot recognize this situation
 
-The overflow causes mremap() to mistakenly believe that PTEs have been
-copied; the consequence is that mremap() bails out, but doesn't move the
-PTEs back before the new VMA is unmapped, causing anonymous pages in the
-region to be lost.  So basically if userspace tries to mremap() a
-private-anon region and hits this bug, mremap() will return an error and
-the private-anon region's contents appear to have been zeroed.
-
-The idea of this check is that `old_end - len` is the original start
-address, and writing the check that way also makes it easier to read; so
-fix the check by rearranging the comparison accordingly.
-
-(An alternate fix would be to refactor this function by introducing an
-"orig_old_start" variable or such.)
-
-
-Tested in a VM with a 32-bit X86 kernel; without the patch:
-
-```
-user@horn:~/big_mremap$ cat test.c
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <err.h>
-#include <sys/mman.h>
-
-#define ADDR1 ((void*)0x60000000)
-#define ADDR2 ((void*)0x10000000)
-#define SIZE          0x50000000uL
-
-int main(void) {
-  unsigned char *p1 = mmap(ADDR1, SIZE, PROT_READ|PROT_WRITE,
-      MAP_ANONYMOUS|MAP_PRIVATE|MAP_FIXED_NOREPLACE, -1, 0);
-  if (p1 == MAP_FAILED)
-    err(1, "mmap 1");
-  unsigned char *p2 = mmap(ADDR2, SIZE, PROT_NONE,
-      MAP_ANONYMOUS|MAP_PRIVATE|MAP_FIXED_NOREPLACE, -1, 0);
-  if (p2 == MAP_FAILED)
-    err(1, "mmap 2");
-  *p1 = 0x41;
-  printf("first char is 0x%02hhx\n", *p1);
-  unsigned char *p3 = mremap(p1, SIZE, SIZE,
-      MREMAP_MAYMOVE|MREMAP_FIXED, p2);
-  if (p3 == MAP_FAILED) {
-    printf("mremap() failed; first char is 0x%02hhx\n", *p1);
-  } else {
-    printf("mremap() succeeded; first char is 0x%02hhx\n", *p3);
-  }
-}
-user@horn:~/big_mremap$ gcc -static -o test test.c
-user@horn:~/big_mremap$ setarch -R ./test
-first char is 0x41
-mremap() failed; first char is 0x00
-```
-
-With the patch:
-
-```
-user@horn:~/big_mremap$ setarch -R ./test
-first char is 0x41
-mremap() succeeded; first char is 0x41
-```
-
-Link: https://lkml.kernel.org/r/20241111-fix-mremap-32bit-wrap-v1-1-61d6be73b722@google.com
-Fixes: af8ca1c14906 ("mm/mremap: optimize the start addresses in move_page_tables()")
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241102201621.95291-1-liuq131@chinatelecom.cn
+Signed-off-by: Qiang Liu <liuq131@chinatelecom.cn>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    2 +-
+ mm/compaction.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-fix-address-wraparound-in-move_page_tables
-+++ a/mm/mremap.c
-@@ -648,7 +648,7 @@ again:
- 	 * Prevent negative return values when {old,new}_addr was realigned
- 	 * but we broke out of the above loop for the first PMD itself.
+--- a/mm/compaction.c~mm-compaction-fix-the-total_isolated-in-strict-mode
++++ a/mm/compaction.c
+@@ -699,7 +699,7 @@ isolate_fail:
+ 	 * pages requested were isolated. If there were any failures, 0 is
+ 	 * returned and CMA will fail.
  	 */
--	if (len + old_addr < old_end)
-+	if (old_addr < old_end - len)
- 		return 0;
+-	if (strict && blockpfn < end_pfn)
++	if (strict && (blockpfn < end_pfn || total_isolated != nr_scanned))
+ 		total_isolated = 0;
  
- 	return len + old_addr - old_end;	/* how much done */
+ 	cc->total_free_scanned += nr_scanned;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from liuq131@chinatelecom.cn are
 
-mm-mremap-fix-address-wraparound-in-move_page_tables.patch
+mm-compaction-fix-the-total_isolated-in-strict-mode.patch
 
