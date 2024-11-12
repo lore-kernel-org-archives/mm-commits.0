@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63FFE204953
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:22:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B246204F80
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374578; cv=none; b=kjdEW4Qrgcl7AJBRaLG/YUjBT6oifT6/I8tpQUzmD3sByS65LMA3CfU14RU3nn6ncQWN1o3zpcpaRThhWmQJQxIiLCY9fxBBQ0RZbjxoWfTFXe3XAYT6xHkywrs6geaiYd0JpziayCUCY0VpA9A3dx13FXvS4deamCGiEaAdO9Q=
+	t=1731374581; cv=none; b=Fs6tNnTn4D5x6sRjNFpqONyraPT6FKtiGFnnvp0b0CHACmJGcbpVw9y0ssRvVruBMK14eYg+IUtGQDE9A++3AmiWeSYMLOALsQaH1bi1iW6Ehss/TvwXUvAsVirN5LRQUCXUcq81Ek/RAhs7HsWmMOHjPgH+pOgcdDEfXwFDjaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374578; c=relaxed/simple;
-	bh=nv+Sy5bnLpGW/F3rHXAAb8B026jhc4K5Tx3l+aLIcN0=;
-	h=Date:To:From:Subject:Message-Id; b=QqSiYCpUy3hNgXsktBqVwjgWHohwZVVFkZ6vE9ibnVa3bogRIBGlLUmlCKBQDj70f9twdRmSSbgZg5eHPzq1xyFh7mGOc2EYXoMXE0ogkveBTnnKxF+Vzg/OLPQ9feIL47V3AI+qbZUIdEAg1j/vuKdcmXDryfRFULity9Th6B4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EW7ZhN86; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374581; c=relaxed/simple;
+	bh=LRIRyIqsOFf+1dmjDv0uqxOUkecMgZ/jpyCjIk2+ooM=;
+	h=Date:To:From:Subject:Message-Id; b=YbYIYMw3qXJzoRmi1qlV+f8juYDAgcC3ZE+s4LauM9ZcDW0TXGO9s29tOXzP2+P+nibWtPsS2Vsd598kPnZHna7gldMtvxCNbJJpYiHlzUo2sn2G/qO1imDcFHj2m39hl53ulPRWhZiLbYcJ6khbNz517kLNzgj5TSLrZ2rxcpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WBnNhYCC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EW7ZhN86"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEA91C4CECF;
-	Tue, 12 Nov 2024 01:22:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WBnNhYCC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E7AC4CECF;
+	Tue, 12 Nov 2024 01:23:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374578;
-	bh=nv+Sy5bnLpGW/F3rHXAAb8B026jhc4K5Tx3l+aLIcN0=;
+	s=korg; t=1731374581;
+	bh=LRIRyIqsOFf+1dmjDv0uqxOUkecMgZ/jpyCjIk2+ooM=;
 	h=Date:To:From:Subject:From;
-	b=EW7ZhN86CgDM1SDZs+ZdFO6YqXjQCAGkAGWTv6QvGv9o/6sxrap0VSWCOg9HC4stx
-	 4jVIlr/SyA3/eOIp/YqmSVwtli2HCQhmhJ8bWM+EqlRBWMfyfVNpywgwQ/uKNfAW+d
-	 Cnh/Y7LhAYjM41QjKjP5pzgBXBBZbThNYDiIzZ4A=
-Date: Mon, 11 Nov 2024 17:22:57 -0800
+	b=WBnNhYCCl2jenrKWBitGAHOKxEBBXmN6GcjsmI6Usso4p3itE8hW7TVcyi0P6pQeG
+	 5gWJM+n5Tzey810CfcUV8AL6yab47AryQxh9dqQ8e7iEL6UVQM3zHoWYXEEmibz4Cz
+	 JB3WuFYkNbuQGEVf8tX3Gchp3NsKq75OuH0q9kP8=
+Date: Mon, 11 Nov 2024 17:23:00 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,longman@redhat.com,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-simplify-reparenting-and-initial-allocation.patch removed from -mm tree
-Message-Id: <20241112012257.EEA91C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-list_lru-simplify-the-list_lru-walk-callback-function.patch removed from -mm tree
+Message-Id: <20241112012300.E1E7AC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/list_lru: simplify reparenting and initial allocation
+     Subject: mm/list_lru: simplify the list_lru walk callback function
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-simplify-reparenting-and-initial-allocation.patch
+     mm-list_lru-simplify-the-list_lru-walk-callback-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/list_lru: simplify reparenting and initial allocation
-Date: Tue, 5 Nov 2024 01:52:55 +0800
+Subject: mm/list_lru: simplify the list_lru walk callback function
+Date: Tue, 5 Nov 2024 01:52:57 +0800
 
-Currently, there is a lot of code for detecting reparent racing using
-kmemcg_id as the synchronization flag.  And an intermediate table is
-required to record and compare the kmemcg_id.
+Now isolation no longer takes the list_lru global node lock, only use the
+per-cgroup lock instead.  And this lock is inside the list_lru_one being
+walked, no longer needed to pass the lock explicitly.
 
-We can simplify this by just checking the cgroup css status, skip if
-cgroup is being offlined.  On the reparenting side, ensure no more
-allocation is on going and no further allocation will occur by using the
-XArray lock as barrier.
-
-Combined with a O(n^2) top-down walk for the allocation, we get rid of the
-intermediate table allocation completely.  Despite being O(n^2), it should
-be actually faster because it's not practical to have a very deep cgroup
-level, and in most cases the parent cgroup should have been allocated
-already.
-
-This also avoided changing kmemcg_id before reparenting, making cgroups
-have a stable index for list_lru_memcg.  After this change it's possible
-that a dying cgroup will see a NULL value in XArray corresponding to the
-kmemcg_id, because the kmemcg_id will point to an empty slot.  In such
-case, just fallback to use its parent.
-
-As a result the code is simpler, following test also showed a very slight
-performance gain (12 test runs):
-
-prepare() {
-        mkdir /tmp/test-fs
-        modprobe brd rd_nr=1 rd_size=16777216
-        mkfs.xfs -f /dev/ram0
-        mount -t xfs /dev/ram0 /tmp/test-fs
-        for i in $(seq 10000); do
-                seq 8000 > "/tmp/test-fs/$i"
-        done
-        mkdir -p /sys/fs/cgroup/system.slice/bench/test/1
-        echo +memory > /sys/fs/cgroup/system.slice/bench/cgroup.subtree_control
-        echo +memory > /sys/fs/cgroup/system.slice/bench/test/cgroup.subtree_control
-        echo +memory > /sys/fs/cgroup/system.slice/bench/test/1/cgroup.subtree_control
-        echo 768M > /sys/fs/cgroup/system.slice/bench/memory.max
-}
-
-do_test() {
-        read_worker() {
-                mkdir -p "/sys/fs/cgroup/system.slice/bench/test/1/$1"
-                echo $BASHPID > "/sys/fs/cgroup/system.slice/bench/test/1/$1/cgroup.procs"
-                read -r __TMP < "/tmp/test-fs/$1";
-        }
-        read_in_all() {
-                for i in $(seq 10000); do
-                        read_worker "$i" &
-                done; wait
-        }
-        echo 3 > /proc/sys/vm/drop_caches
-        time read_in_all
-        for i in $(seq 1 10000); do
-                rmdir "/sys/fs/cgroup/system.slice/bench/test/1/$i" &>/dev/null
-        done
-}
-
-Before:
-real    0m3.498s   user    0m11.037s  sys     0m35.872s
-real    1m33.860s  user    0m11.593s  sys     3m1.169s
-real    1m31.883s  user    0m11.265s  sys     2m59.198s
-real    1m32.394s  user    0m11.294s  sys     3m1.616s
-real    1m31.017s  user    0m11.379s  sys     3m1.349s
-real    1m31.931s  user    0m11.295s  sys     2m59.863s
-real    1m32.758s  user    0m11.254s  sys     2m59.538s
-real    1m35.198s  user    0m11.145s  sys     3m1.123s
-real    1m30.531s  user    0m11.393s  sys     2m58.089s
-real    1m31.142s  user    0m11.333s  sys     3m0.549s
-
-After:
-real    0m3.489s   user    0m10.943s  sys     0m36.036s
-real    1m10.893s  user    0m11.495s  sys     2m38.545s
-real    1m29.129s  user    0m11.382s  sys     3m1.601s
-real    1m29.944s  user    0m11.494s  sys     3m1.575s
-real    1m31.208s  user    0m11.451s  sys     2m59.693s
-real    1m25.944s  user    0m11.327s  sys     2m56.394s
-real    1m28.599s  user    0m11.312s  sys     3m0.162s
-real    1m26.746s  user    0m11.538s  sys     2m55.462s
-real    1m30.668s  user    0m11.475s  sys     3m2.075s
-real    1m29.258s  user    0m11.292s  sys     3m0.780s
-
-Which is slightly faster in real time.
-
-Link: https://lkml.kernel.org/r/20241104175257.60853-5-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241104175257.60853-7-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -144,303 +65,292 @@ Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |  178 +++++++++++++++++++-----------------------------
- mm/zswap.c    |    7 -
- 2 files changed, 77 insertions(+), 108 deletions(-)
+ drivers/android/binder_alloc.c |    7 +++----
+ drivers/android/binder_alloc.h |    2 +-
+ fs/dcache.c                    |    4 ++--
+ fs/gfs2/quota.c                |    2 +-
+ fs/inode.c                     |    4 ++--
+ fs/nfs/nfs42xattr.c            |    4 ++--
+ fs/nfsd/filecache.c            |    5 +----
+ fs/xfs/xfs_buf.c               |    2 --
+ fs/xfs/xfs_qm.c                |    5 ++---
+ include/linux/list_lru.h       |    2 +-
+ mm/list_lru.c                  |    2 +-
+ mm/workingset.c                |   15 +++++++--------
+ mm/zswap.c                     |    4 ++--
+ 13 files changed, 25 insertions(+), 33 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-simplify-reparenting-and-initial-allocation
+--- a/drivers/android/binder_alloc.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/drivers/android/binder_alloc.c
+@@ -1047,7 +1047,7 @@ void binder_alloc_vma_close(struct binde
+ /**
+  * binder_alloc_free_page() - shrinker callback to free pages
+  * @item:   item to free
+- * @lock:   lock protecting the item
++ * @lru:    list_lru instance of the item
+  * @cb_arg: callback argument
+  *
+  * Called from list_lru_walk() in binder_shrink_scan() to free
+@@ -1055,9 +1055,8 @@ void binder_alloc_vma_close(struct binde
+  */
+ enum lru_status binder_alloc_free_page(struct list_head *item,
+ 				       struct list_lru_one *lru,
+-				       spinlock_t *lock,
+ 				       void *cb_arg)
+-	__must_hold(lock)
++	__must_hold(&lru->lock)
+ {
+ 	struct binder_lru_page *page = container_of(item, typeof(*page), lru);
+ 	struct binder_alloc *alloc = page->alloc;
+@@ -1092,7 +1091,7 @@ enum lru_status binder_alloc_free_page(s
+ 
+ 	list_lru_isolate(lru, item);
+ 	spin_unlock(&alloc->lock);
+-	spin_unlock(lock);
++	spin_unlock(&lru->lock);
+ 
+ 	if (vma) {
+ 		trace_binder_unmap_user_start(alloc, index);
+--- a/drivers/android/binder_alloc.h~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/drivers/android/binder_alloc.h
+@@ -118,7 +118,7 @@ static inline void binder_selftest_alloc
+ #endif
+ enum lru_status binder_alloc_free_page(struct list_head *item,
+ 				       struct list_lru_one *lru,
+-				       spinlock_t *lock, void *cb_arg);
++				       void *cb_arg);
+ struct binder_buffer *binder_alloc_new_buf(struct binder_alloc *alloc,
+ 					   size_t data_size,
+ 					   size_t offsets_size,
+--- a/fs/dcache.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/dcache.c
+@@ -1089,7 +1089,7 @@ void shrink_dentry_list(struct list_head
+ }
+ 
+ static enum lru_status dentry_lru_isolate(struct list_head *item,
+-		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++		struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *freeable = arg;
+ 	struct dentry	*dentry = container_of(item, struct dentry, d_lru);
+@@ -1170,7 +1170,7 @@ long prune_dcache_sb(struct super_block
+ }
+ 
+ static enum lru_status dentry_lru_isolate_shrink(struct list_head *item,
+-		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++		struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *freeable = arg;
+ 	struct dentry	*dentry = container_of(item, struct dentry, d_lru);
+--- a/fs/gfs2/quota.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/gfs2/quota.c
+@@ -149,7 +149,7 @@ static void gfs2_qd_list_dispose(struct
+ 
+ 
+ static enum lru_status gfs2_qd_isolate(struct list_head *item,
+-		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++		struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *dispose = arg;
+ 	struct gfs2_quota_data *qd =
+--- a/fs/inode.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/inode.c
+@@ -881,7 +881,7 @@ again:
+  * with this flag set because they are the inodes that are out of order.
+  */
+ static enum lru_status inode_lru_isolate(struct list_head *item,
+-		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++		struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *freeable = arg;
+ 	struct inode	*inode = container_of(item, struct inode, i_lru);
+@@ -923,7 +923,7 @@ static enum lru_status inode_lru_isolate
+ 	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
+ 		inode_pin_lru_isolating(inode);
+ 		spin_unlock(&inode->i_lock);
+-		spin_unlock(lru_lock);
++		spin_unlock(&lru->lock);
+ 		if (remove_inode_buffers(inode)) {
+ 			unsigned long reap;
+ 			reap = invalidate_mapping_pages(&inode->i_data, 0, -1);
+--- a/fs/nfsd/filecache.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/nfsd/filecache.c
+@@ -487,7 +487,6 @@ void nfsd_file_net_dispose(struct nfsd_n
+  * nfsd_file_lru_cb - Examine an entry on the LRU list
+  * @item: LRU entry to examine
+  * @lru: controlling LRU
+- * @lock: LRU list lock (unused)
+  * @arg: dispose list
+  *
+  * Return values:
+@@ -497,9 +496,7 @@ void nfsd_file_net_dispose(struct nfsd_n
+  */
+ static enum lru_status
+ nfsd_file_lru_cb(struct list_head *item, struct list_lru_one *lru,
+-		 spinlock_t *lock, void *arg)
+-	__releases(lock)
+-	__acquires(lock)
++		 void *arg)
+ {
+ 	struct list_head *head = arg;
+ 	struct nfsd_file *nf = list_entry(item, struct nfsd_file, nf_lru);
+--- a/fs/nfs/nfs42xattr.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/nfs/nfs42xattr.c
+@@ -802,7 +802,7 @@ static struct shrinker *nfs4_xattr_large
+ 
+ static enum lru_status
+ cache_lru_isolate(struct list_head *item,
+-	struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++	struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *dispose = arg;
+ 	struct inode *inode;
+@@ -867,7 +867,7 @@ nfs4_xattr_cache_count(struct shrinker *
+ 
+ static enum lru_status
+ entry_lru_isolate(struct list_head *item,
+-	struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
++	struct list_lru_one *lru, void *arg)
+ {
+ 	struct list_head *dispose = arg;
+ 	struct nfs4_xattr_bucket *bucket;
+--- a/fs/xfs/xfs_buf.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/xfs/xfs_buf.c
+@@ -1857,7 +1857,6 @@ static enum lru_status
+ xfs_buftarg_drain_rele(
+ 	struct list_head	*item,
+ 	struct list_lru_one	*lru,
+-	spinlock_t		*lru_lock,
+ 	void			*arg)
+ 
+ {
+@@ -1956,7 +1955,6 @@ static enum lru_status
+ xfs_buftarg_isolate(
+ 	struct list_head	*item,
+ 	struct list_lru_one	*lru,
+-	spinlock_t		*lru_lock,
+ 	void			*arg)
+ {
+ 	struct xfs_buf		*bp = container_of(item, struct xfs_buf, b_lru);
+--- a/fs/xfs/xfs_qm.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/fs/xfs/xfs_qm.c
+@@ -412,9 +412,8 @@ static enum lru_status
+ xfs_qm_dquot_isolate(
+ 	struct list_head	*item,
+ 	struct list_lru_one	*lru,
+-	spinlock_t		*lru_lock,
+ 	void			*arg)
+-		__releases(lru_lock) __acquires(lru_lock)
++		__releases(&lru->lock) __acquires(&lru->lock)
+ {
+ 	struct xfs_dquot	*dqp = container_of(item,
+ 						struct xfs_dquot, q_lru);
+@@ -460,7 +459,7 @@ xfs_qm_dquot_isolate(
+ 		trace_xfs_dqreclaim_dirty(dqp);
+ 
+ 		/* we have to drop the LRU lock to flush the dquot */
+-		spin_unlock(lru_lock);
++		spin_unlock(&lru->lock);
+ 
+ 		error = xfs_qm_dqflush(dqp, &bp);
+ 		if (error)
+--- a/include/linux/list_lru.h~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/include/linux/list_lru.h
+@@ -184,7 +184,7 @@ void list_lru_isolate_move(struct list_l
+ 			   struct list_head *head);
+ 
+ typedef enum lru_status (*list_lru_walk_cb)(struct list_head *item,
+-		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
++		struct list_lru_one *list, void *cb_arg);
+ 
+ /**
+  * list_lru_walk_one: walk a @lru, isolating and disposing freeable items.
+--- a/mm/list_lru.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
 +++ a/mm/list_lru.c
-@@ -59,6 +59,20 @@ list_lru_from_memcg_idx(struct list_lru
- 	}
- 	return &lru->node[nid].lru;
- }
-+
-+static inline struct list_lru_one *
-+list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
-+{
-+	struct list_lru_one *l;
-+again:
-+	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
-+	if (likely(l))
-+		return l;
-+
-+	memcg = parent_mem_cgroup(memcg);
-+	VM_WARN_ON(!css_is_dying(&memcg->css));
-+	goto again;
-+}
- #else
- static void list_lru_register(struct list_lru *lru)
- {
-@@ -83,6 +97,12 @@ list_lru_from_memcg_idx(struct list_lru
- {
- 	return &lru->node[nid].lru;
- }
-+
-+static inline struct list_lru_one *
-+list_lru_from_memcg(struct list_lru *lru, int nid, int idx)
-+{
-+	return &lru->node[nid].lru;
-+}
- #endif /* CONFIG_MEMCG */
+@@ -298,7 +298,7 @@ restart:
+ 			break;
+ 		--*nr_to_walk;
  
- /* The caller must ensure the memcg lifetime. */
-@@ -94,7 +114,7 @@ bool list_lru_add(struct list_lru *lru,
- 
- 	spin_lock(&nlru->lock);
- 	if (list_empty(item)) {
--		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
-+		l = list_lru_from_memcg(lru, nid, memcg);
- 		list_add_tail(item, &l->list);
- 		/* Set shrinker bit if the first element was added */
- 		if (!l->nr_items++)
-@@ -133,7 +153,7 @@ bool list_lru_del(struct list_lru *lru,
- 
- 	spin_lock(&nlru->lock);
- 	if (!list_empty(item)) {
--		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
-+		l = list_lru_from_memcg(lru, nid, memcg);
- 		list_del_init(item);
- 		l->nr_items--;
- 		nlru->nr_items--;
-@@ -355,20 +375,6 @@ static struct list_lru_memcg *memcg_init
- 	return mlru;
- }
- 
--static void memcg_list_lru_free(struct list_lru *lru, int src_idx)
--{
--	struct list_lru_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
--
--	/*
--	 * The __list_lru_walk_one() can walk the list of this node.
--	 * We need kvfree_rcu() here. And the walking of the list
--	 * is under lru->node[nid]->lock, which can serve as a RCU
--	 * read-side critical section.
--	 */
--	if (mlru)
--		kvfree_rcu(mlru, rcu);
--}
--
- static inline void memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
- {
- 	if (memcg_aware)
-@@ -393,22 +399,18 @@ static void memcg_destroy_list_lru(struc
- }
- 
- static void memcg_reparent_list_lru_node(struct list_lru *lru, int nid,
--					 int src_idx, struct mem_cgroup *dst_memcg)
-+					 struct list_lru_one *src,
-+					 struct mem_cgroup *dst_memcg)
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
--	int dst_idx = dst_memcg->kmemcg_id;
--	struct list_lru_one *src, *dst;
-+	struct list_lru_one *dst;
- 
- 	/*
- 	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
- 	 * we have to use IRQ-safe primitives here to avoid deadlock.
- 	 */
- 	spin_lock_irq(&nlru->lock);
--
--	src = list_lru_from_memcg_idx(lru, nid, src_idx);
--	if (!src)
--		goto out;
--	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
-+	dst = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(dst_memcg));
- 
- 	list_splice_init(&src->list, &dst->list);
- 
-@@ -417,46 +419,43 @@ static void memcg_reparent_list_lru_node
- 		set_shrinker_bit(dst_memcg, nid, lru_shrinker_id(lru));
- 		src->nr_items = 0;
- 	}
--out:
- 	spin_unlock_irq(&nlru->lock);
- }
- 
- void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {
--	struct cgroup_subsys_state *css;
- 	struct list_lru *lru;
--	int src_idx = memcg->kmemcg_id, i;
--
--	/*
--	 * Change kmemcg_id of this cgroup and all its descendants to the
--	 * parent's id, and then move all entries from this cgroup's list_lrus
--	 * to ones of the parent.
--	 */
--	rcu_read_lock();
--	css_for_each_descendant_pre(css, &memcg->css) {
--		struct mem_cgroup *child;
--
--		child = mem_cgroup_from_css(css);
--		WRITE_ONCE(child->kmemcg_id, parent->kmemcg_id);
--	}
--	rcu_read_unlock();
-+	int i;
- 
--	/*
--	 * With kmemcg_id set to parent, holding the lock of each list_lru_node
--	 * below can prevent list_lru_{add,del,isolate} from touching the lru,
--	 * safe to reparent.
--	 */
- 	mutex_lock(&list_lrus_mutex);
- 	list_for_each_entry(lru, &memcg_list_lrus, list) {
-+		struct list_lru_memcg *mlru;
-+		XA_STATE(xas, &lru->xa, memcg->kmemcg_id);
-+
-+		/*
-+		 * Lock the Xarray to ensure no on going list_lru_memcg
-+		 * allocation and further allocation will see css_is_dying().
-+		 */
-+		xas_lock_irq(&xas);
-+		mlru = xas_store(&xas, NULL);
-+		xas_unlock_irq(&xas);
-+		if (!mlru)
-+			continue;
-+
-+		/*
-+		 * With Xarray value set to NULL, holding the lru lock below
-+		 * prevents list_lru_{add,del,isolate} from touching the lru,
-+		 * safe to reparent.
-+		 */
- 		for_each_node(i)
--			memcg_reparent_list_lru_node(lru, i, src_idx, parent);
-+			memcg_reparent_list_lru_node(lru, i, &mlru->node[i], parent);
- 
+-		ret = isolate(item, l, &l->lock, cb_arg);
++		ret = isolate(item, l, cb_arg);
+ 		switch (ret) {
  		/*
- 		 * Here all list_lrus corresponding to the cgroup are guaranteed
- 		 * to remain empty, we can safely free this lru, any further
- 		 * memcg_list_lru_alloc() call will simply bail out.
- 		 */
--		memcg_list_lru_free(lru, src_idx);
-+		kvfree_rcu(mlru, rcu);
- 	}
- 	mutex_unlock(&list_lrus_mutex);
- }
-@@ -472,77 +471,48 @@ static inline bool memcg_list_lru_alloca
- int memcg_list_lru_alloc(struct mem_cgroup *memcg, struct list_lru *lru,
- 			 gfp_t gfp)
+ 		 * LRU_RETRY, LRU_REMOVED_RETRY and LRU_STOP will drop the lru
+--- a/mm/workingset.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/mm/workingset.c
+@@ -702,8 +702,7 @@ static unsigned long count_shadow_nodes(
+ 
+ static enum lru_status shadow_lru_isolate(struct list_head *item,
+ 					  struct list_lru_one *lru,
+-					  spinlock_t *lru_lock,
+-					  void *arg) __must_hold(lru_lock)
++					  void *arg) __must_hold(lru->lock)
  {
--	int i;
- 	unsigned long flags;
--	struct list_lru_memcg_table {
--		struct list_lru_memcg *mlru;
--		struct mem_cgroup *memcg;
--	} *table;
-+	struct list_lru_memcg *mlru;
-+	struct mem_cgroup *pos, *parent;
- 	XA_STATE(xas, &lru->xa, 0);
- 
- 	if (!list_lru_memcg_aware(lru) || memcg_list_lru_allocated(memcg, lru))
- 		return 0;
- 
- 	gfp &= GFP_RECLAIM_MASK;
--	table = kmalloc_array(memcg->css.cgroup->level, sizeof(*table), gfp);
--	if (!table)
--		return -ENOMEM;
--
+ 	struct xa_node *node = container_of(item, struct xa_node, private_list);
+ 	struct address_space *mapping;
+@@ -712,20 +711,20 @@ static enum lru_status shadow_lru_isolat
  	/*
- 	 * Because the list_lru can be reparented to the parent cgroup's
- 	 * list_lru, we should make sure that this cgroup and all its
- 	 * ancestors have allocated list_lru_memcg.
+ 	 * Page cache insertions and deletions synchronously maintain
+ 	 * the shadow node LRU under the i_pages lock and the
+-	 * lru_lock.  Because the page cache tree is emptied before
+-	 * the inode can be destroyed, holding the lru_lock pins any
++	 * &lru->lock. Because the page cache tree is emptied before
++	 * the inode can be destroyed, holding the &lru->lock pins any
+ 	 * address_space that has nodes on the LRU.
+ 	 *
+ 	 * We can then safely transition to the i_pages lock to
+ 	 * pin only the address_space of the particular node we want
+-	 * to reclaim, take the node off-LRU, and drop the lru_lock.
++	 * to reclaim, take the node off-LRU, and drop the &lru->lock.
  	 */
--	for (i = 0; memcg; memcg = parent_mem_cgroup(memcg), i++) {
--		if (memcg_list_lru_allocated(memcg, lru))
--			break;
--
--		table[i].memcg = memcg;
--		table[i].mlru = memcg_init_list_lru_one(gfp);
--		if (!table[i].mlru) {
--			while (i--)
--				kfree(table[i].mlru);
--			kfree(table);
--			return -ENOMEM;
-+	do {
-+		/*
-+		 * Keep finding the farest parent that wasn't populated
-+		 * until found memcg itself.
-+		 */
-+		pos = memcg;
-+		parent = parent_mem_cgroup(pos);
-+		while (!memcg_list_lru_allocated(parent, lru)) {
-+			pos = parent;
-+			parent = parent_mem_cgroup(pos);
+ 
+ 	mapping = container_of(node->array, struct address_space, i_pages);
+ 
+ 	/* Coming from the list, invert the lock order */
+ 	if (!xa_trylock(&mapping->i_pages)) {
+-		spin_unlock_irq(lru_lock);
++		spin_unlock_irq(&lru->lock);
+ 		ret = LRU_RETRY;
+ 		goto out;
+ 	}
+@@ -734,7 +733,7 @@ static enum lru_status shadow_lru_isolat
+ 	if (mapping->host != NULL) {
+ 		if (!spin_trylock(&mapping->host->i_lock)) {
+ 			xa_unlock(&mapping->i_pages);
+-			spin_unlock_irq(lru_lock);
++			spin_unlock_irq(&lru->lock);
+ 			ret = LRU_RETRY;
+ 			goto out;
  		}
--	}
+@@ -743,7 +742,7 @@ static enum lru_status shadow_lru_isolat
+ 	list_lru_isolate(lru, item);
+ 	__dec_node_page_state(virt_to_page(node), WORKINGSET_NODES);
  
--	xas_lock_irqsave(&xas, flags);
--	while (i--) {
--		int index = READ_ONCE(table[i].memcg->kmemcg_id);
--		struct list_lru_memcg *mlru = table[i].mlru;
--
--		xas_set(&xas, index);
--retry:
--		if (unlikely(index < 0 || xas_error(&xas) || xas_load(&xas))) {
--			kfree(mlru);
--		} else {
--			xas_store(&xas, mlru);
--			if (xas_error(&xas) == -ENOMEM) {
--				xas_unlock_irqrestore(&xas, flags);
--				if (xas_nomem(&xas, gfp))
--					xas_set_err(&xas, 0);
--				xas_lock_irqsave(&xas, flags);
--				/*
--				 * The xas lock has been released, this memcg
--				 * can be reparented before us. So reload
--				 * memcg id. More details see the comments
--				 * in memcg_reparent_list_lrus().
--				 */
--				index = READ_ONCE(table[i].memcg->kmemcg_id);
--				if (index < 0)
--					xas_set_err(&xas, 0);
--				else if (!xas_error(&xas) && index != xas.xa_index)
--					xas_set(&xas, index);
--				goto retry;
-+		mlru = memcg_init_list_lru_one(gfp);
-+		if (!mlru)
-+			return -ENOMEM;
-+		xas_set(&xas, pos->kmemcg_id);
-+		do {
-+			xas_lock_irqsave(&xas, flags);
-+			if (!xas_load(&xas) && !css_is_dying(&pos->css)) {
-+				xas_store(&xas, mlru);
-+				if (!xas_error(&xas))
-+					mlru = NULL;
- 			}
--		}
--	}
--	/* xas_nomem() is used to free memory instead of memory allocation. */
--	if (xas.xa_alloc)
--		xas_nomem(&xas, gfp);
--	xas_unlock_irqrestore(&xas, flags);
--	kfree(table);
-+			xas_unlock_irqrestore(&xas, flags);
-+		} while (xas_nomem(&xas, gfp));
-+		if (mlru)
-+			kfree(mlru);
-+	} while (pos != memcg && !css_is_dying(&pos->css));
- 
- 	return xas_error(&xas);
- }
---- a/mm/zswap.c~mm-list_lru-simplify-reparenting-and-initial-allocation
-+++ a/mm/zswap.c
-@@ -709,12 +709,11 @@ static void zswap_lru_add(struct list_lr
+-	spin_unlock(lru_lock);
++	spin_unlock(&lru->lock);
  
  	/*
- 	 * Note that it is safe to use rcu_read_lock() here, even in the face of
--	 * concurrent memcg offlining. Thanks to the memcg->kmemcg_id indirection
--	 * used in list_lru lookup, only two scenarios are possible:
-+	 * concurrent memcg offlining:
- 	 *
--	 * 1. list_lru_add() is called before memcg->kmemcg_id is updated. The
-+	 * 1. list_lru_add() is called before list_lru_memcg is erased. The
- 	 *    new entry will be reparented to memcg's parent's list_lru.
--	 * 2. list_lru_add() is called after memcg->kmemcg_id is updated. The
-+	 * 2. list_lru_add() is called after list_lru_memcg is erased. The
- 	 *    new entry will be added directly to memcg's parent's list_lru.
- 	 *
- 	 * Similar reasoning holds for list_lru_del().
+ 	 * The nodes should only contain one or more shadow entries,
+--- a/mm/zswap.c~mm-list_lru-simplify-the-list_lru-walk-callback-function
++++ a/mm/zswap.c
+@@ -1102,7 +1102,7 @@ static int zswap_writeback_entry(struct
+  *    for reclaim by this ratio.
+  */
+ static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
+-				       spinlock_t *lock, void *arg)
++				       void *arg)
+ {
+ 	struct zswap_entry *entry = container_of(item, struct zswap_entry, lru);
+ 	bool *encountered_page_in_swapcache = (bool *)arg;
+@@ -1158,7 +1158,7 @@ static enum lru_status shrink_memcg_cb(s
+ 	 * It's safe to drop the lock here because we return either
+ 	 * LRU_REMOVED_RETRY or LRU_RETRY.
+ 	 */
+-	spin_unlock(lock);
++	spin_unlock(&l->lock);
+ 
+ 	writeback_result = zswap_writeback_entry(entry, swpentry);
+ 
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
