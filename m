@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7C47215C66
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 18:01:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA8C4215021;
+	Tue, 12 Nov 2024 18:14:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731434489; cv=none; b=PJ64PkDzFun1Xid88O8rk4NMF4yGLZE6EBvKy3m3m1JKx8rVofmURYAv3WJan/qHb56dMTxDWarP5v5RphTWRDSxiusNc837Nj1dfDlEHCUJM+BIPyx9X/7kKf4t1dQ4fLVUOWv/8CtmgcDJmRkZ4w+Rp3NZOqZUP69w7h5nDkU=
+	t=1731435269; cv=none; b=GW8rWrww+P8dz6qRwhaD/iaA+vfijuqho6IG4l20o7keFnZP1j/kz0WRv4dlJARMOrWjjdEO4QufZvwbS29zaZZ1t8skR5kPDcp46jrKMTLccH9TloqgmqpKxtPcgYtGIMsYWwhIIVD3NWnFempy09DwDbThJog9Whwsj34Scrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731434489; c=relaxed/simple;
-	bh=OkJFNn1eD4xKMCI9KuJWci9fSOphiSKHigM6oFswAYA=;
-	h=Date:To:From:Subject:Message-Id; b=uaDG7bmJYQArO70nCK+4mhxhDlBx/dgmXP/GAZhtzz6MTidBbGSV+3xnrVWt1QNNs9q1U6qWXIwJhPsKCMKIcHTF/LHphmWX4HwPiycqgU0FlRG1lq7cxEoAAQKWOZwC5EyFMaalCbGAvhDp7vnf6XxoiG3ehqytRfjkKI5jLDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u+5iGFqq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731435269; c=relaxed/simple;
+	bh=OHZgJ2C+IBfBzx9laMci/LgEdozkdZDp0IY6an/ogN8=;
+	h=Date:To:From:Subject:Message-Id; b=E1sjSG/1f+k/1eYp6E/yDWCcbiOtOKdgJpmK0gpIdVL7563PMLTyWxGE1LEgtHwqZJL8EZh57pGIcw4EOpSDsKm32dI7mC+Ryy/Lkugw59n8ALZQx/u70bc+1XoLP8eKe+NQTEkhdxPDU7OZh4foE8C0SyA4drHyJjoN+ffu7nI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DalE4FzE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u+5iGFqq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52CACC4CECD;
-	Tue, 12 Nov 2024 18:01:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DalE4FzE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E7DBC4CED5;
+	Tue, 12 Nov 2024 18:14:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731434488;
-	bh=OkJFNn1eD4xKMCI9KuJWci9fSOphiSKHigM6oFswAYA=;
+	s=korg; t=1731435268;
+	bh=OHZgJ2C+IBfBzx9laMci/LgEdozkdZDp0IY6an/ogN8=;
 	h=Date:To:From:Subject:From;
-	b=u+5iGFqqgwoJphTIwTI1+5F81FTXTO7uRFFw3xoqtDhxHGM+d1IYw5vvkWWSlyiS5
-	 RNo+3hTTEj4jC2y2Ccg423gH7EhvuQKYX/U5XeYpbFsFebO3lGHw4oXTq/fZEHA13O
-	 NLerYTqhDXj5gHqokzasoGsERa7IG52H67Gv+q2U=
-Date: Tue, 12 Nov 2024 10:01:27 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,kaleshsingh@google.com,hughd@google.com,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=DalE4FzEpuh5gIOmn9KxXhkEoDEFF9Kt9c0y9n6iCwPY5RtsOTcjX4ITcnyARTi6P
+	 /Dbgv7XcqKNeOMGw5Qjmw/HJrmEjrxGQAFDQGzOlzZQ7X3gIDmTVkLgWBlnhhfMEmX
+	 SEa4jlVc8D5XiOGEpxnmmfe7yER7CK+RwolFveSg=
+Date: Tue, 12 Nov 2024 10:14:27 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,airlied@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-allocation-and-scanning-race-with-swapoff.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241112180128.52CACC4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases.patch removed from -mm tree
+Message-Id: <20241112181428.8E7DBC4CED5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,155 +34,260 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm, swap: fix allocation and scanning race with swapoff
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-fix-allocation-and-scanning-race-with-swapoff.patch
+The quilt patch titled
+     Subject: mm/gup: avoid an unnecessary allocation call for FOLL_LONGTERM cases
+has been removed from the -mm tree.  Its filename was
+     mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-allocation-and-scanning-race-with-swapoff.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: fix allocation and scanning race with swapoff
-Date: Tue, 12 Nov 2024 16:34:14 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: avoid an unnecessary allocation call for FOLL_LONGTERM cases
+Date: Mon, 4 Nov 2024 19:29:44 -0800
 
-There are two flags used to synchronize allocation and scanning with
-swapoff: SWP_WRITEOK and SWP_SCANNING.
+commit 53ba78de064b ("mm/gup: introduce
+check_and_migrate_movable_folios()") created a new constraint on the
+pin_user_pages*() API family: a potentially large internal allocation must
+now occur, for FOLL_LONGTERM cases.
 
-SWP_WRITEOK: Swapoff will first unset this flag, at this point any further
-swap allocation or scanning on this device should just abort so no more
-new entries will be referencing this device.  Swapoff will then unuse all
-existing swap entries.
+A user-visible consequence has now appeared: user space can no longer pin
+more than 2GB of memory anymore on x86_64.  That's because, on a 4KB
+PAGE_SIZE system, when user space tries to (indirectly, via a device
+driver that calls pin_user_pages()) pin 2GB, this requires an allocation
+of a folio pointers array of MAX_PAGE_ORDER size, which is the limit for
+kmalloc().
 
-SWP_SCANNING: This flag is set when device is being scanned.  Swapoff will
-wait for all scanner to stop before the final release of the swap device
-structures to avoid UAF.  Note this flag is the highest used bit of
-si->flags so it could be added up arithmetically, if there are multiple
-scanner.
+In addition to the directly visible effect described above, there is also
+the problem of adding an unnecessary allocation.  The **pages array
+argument has already been allocated, and there is no need for a redundant
+**folios array allocation in this case.
 
-commit 5f843a9a3a1e ("mm: swap: separate SSD allocation from
-scan_swap_map_slots()") ignored SWP_SCANNING and SWP_WRITEOK flags while
-separating cluster allocation path from the old allocation path.  Add the
-flags back to fix swapoff race.  The race is hard to trigger as si->lock
-prevents most parallel operations, but si->lock could be dropped for
-reclaim or discard.  This issue is found during code review.
+Fix this by avoiding the new allocation entirely.  This is done by
+referring to either the original page[i] within **pages, or to the
+associated folio.  Thanks to David Hildenbrand for suggesting this
+approach and for providing the initial implementation (which I've tested
+and adjusted slightly) as well.
 
-This commit fixes this problem.  For SWP_SCANNING, Just like before, set
-the flag before scan and remove it afterwards.
-
-For SWP_WRITEOK, there are several places where si->lock could be dropped,
-it will be error-prone and make the code hard to follow if we try to cover
-these places one by one.  So just do one check before the real allocation,
-which is also very similar like before.  With new cluster allocator it may
-waste a bit of time iterating the clusters but won't take long, and
-swapoff is not performance sensitive.
-
-Link: https://lkml.kernel.org/r/20241112083414.78174-1-ryncsn@gmail.com
-Fixes: 5f843a9a3a1e ("mm: swap: separate SSD allocation from scan_swap_map_slots()")
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Closes: https://lore.kernel.org/linux-mm/87a5es3f1f.fsf@yhuang6-desk2.ccr.corp.intel.com/
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
+[jhubbard@nvidia.com: whitespace tweak, per David]
+  Link: https://lkml.kernel.org/r/131cf9c8-ebc0-4cbb-b722-22fa8527bf3c@nvidia.com
+[jhubbard@nvidia.com: bypass pofs_get_folio(), per Oscar]
+  Link: https://lkml.kernel.org/r/c1587c7f-9155-45be-bd62-1e36c0dd6923@nvidia.com
+Link: https://lkml.kernel.org/r/20241105032944.141488-2-jhubbard@nvidia.com
+Fixes: 53ba78de064b ("mm/gup: introduce check_and_migrate_movable_folios()")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dongwon Kim <dongwon.kim@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Junxiao Chang <junxiao.chang@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ mm/gup.c |  116 +++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 77 insertions(+), 39 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-fix-allocation-and-scanning-race-with-swapoff
-+++ a/mm/swapfile.c
-@@ -664,12 +664,15 @@ static bool cluster_scan_range(struct sw
- 	return true;
- }
+--- a/mm/gup.c~mm-gup-avoid-an-unnecessary-allocation-call-for-foll_longterm-cases
++++ a/mm/gup.c
+@@ -2273,20 +2273,57 @@ struct page *get_dump_page(unsigned long
+ #endif /* CONFIG_ELF_CORE */
  
--static void cluster_alloc_range(struct swap_info_struct *si, struct swap_cluster_info *ci,
-+static bool cluster_alloc_range(struct swap_info_struct *si, struct swap_cluster_info *ci,
- 				unsigned int start, unsigned char usage,
- 				unsigned int order)
+ #ifdef CONFIG_MIGRATION
++
++/*
++ * An array of either pages or folios ("pofs"). Although it may seem tempting to
++ * avoid this complication, by simply interpreting a list of folios as a list of
++ * pages, that approach won't work in the longer term, because eventually the
++ * layouts of struct page and struct folio will become completely different.
++ * Furthermore, this pof approach avoids excessive page_folio() calls.
++ */
++struct pages_or_folios {
++	union {
++		struct page **pages;
++		struct folio **folios;
++		void **entries;
++	};
++	bool has_folios;
++	long nr_entries;
++};
++
++static struct folio *pofs_get_folio(struct pages_or_folios *pofs, long i)
++{
++	if (pofs->has_folios)
++		return pofs->folios[i];
++	return page_folio(pofs->pages[i]);
++}
++
++static void pofs_clear_entry(struct pages_or_folios *pofs, long i)
++{
++	pofs->entries[i] = NULL;
++}
++
++static void pofs_unpin(struct pages_or_folios *pofs)
++{
++	if (pofs->has_folios)
++		unpin_folios(pofs->folios, pofs->nr_entries);
++	else
++		unpin_user_pages(pofs->pages, pofs->nr_entries);
++}
++
+ /*
+  * Returns the number of collected folios. Return value is always >= 0.
+  */
+ static unsigned long collect_longterm_unpinnable_folios(
+-					struct list_head *movable_folio_list,
+-					unsigned long nr_folios,
+-					struct folio **folios)
++		struct list_head *movable_folio_list,
++		struct pages_or_folios *pofs)
  {
- 	unsigned int nr_pages = 1 << order;
+ 	unsigned long i, collected = 0;
+ 	struct folio *prev_folio = NULL;
+ 	bool drain_allow = true;
  
-+	if (!(si->flags & SWP_WRITEOK))
-+		return false;
-+
- 	if (cluster_is_free(ci)) {
- 		if (nr_pages < SWAPFILE_CLUSTER) {
- 			list_move_tail(&ci->list, &si->nonfull_clusters[order]);
-@@ -690,6 +693,8 @@ static void cluster_alloc_range(struct s
- 		list_move_tail(&ci->list, &si->full_clusters);
- 		ci->flags = CLUSTER_FLAG_FULL;
+-	for (i = 0; i < nr_folios; i++) {
+-		struct folio *folio = folios[i];
++	for (i = 0; i < pofs->nr_entries; i++) {
++		struct folio *folio = pofs_get_folio(pofs, i);
+ 
+ 		if (folio == prev_folio)
+ 			continue;
+@@ -2327,16 +2364,15 @@ static unsigned long collect_longterm_un
+  * Returns -EAGAIN if all folios were successfully migrated or -errno for
+  * failure (or partial success).
+  */
+-static int migrate_longterm_unpinnable_folios(
+-					struct list_head *movable_folio_list,
+-					unsigned long nr_folios,
+-					struct folio **folios)
++static int
++migrate_longterm_unpinnable_folios(struct list_head *movable_folio_list,
++				   struct pages_or_folios *pofs)
+ {
+ 	int ret;
+ 	unsigned long i;
+ 
+-	for (i = 0; i < nr_folios; i++) {
+-		struct folio *folio = folios[i];
++	for (i = 0; i < pofs->nr_entries; i++) {
++		struct folio *folio = pofs_get_folio(pofs, i);
+ 
+ 		if (folio_is_device_coherent(folio)) {
+ 			/*
+@@ -2344,7 +2380,7 @@ static int migrate_longterm_unpinnable_f
+ 			 * convert the pin on the source folio to a normal
+ 			 * reference.
+ 			 */
+-			folios[i] = NULL;
++			pofs_clear_entry(pofs, i);
+ 			folio_get(folio);
+ 			gup_put_folio(folio, 1, FOLL_PIN);
+ 
+@@ -2363,8 +2399,8 @@ static int migrate_longterm_unpinnable_f
+ 		 * calling folio_isolate_lru() which takes a reference so the
+ 		 * folio won't be freed if it's migrating.
+ 		 */
+-		unpin_folio(folios[i]);
+-		folios[i] = NULL;
++		unpin_folio(folio);
++		pofs_clear_entry(pofs, i);
  	}
-+
-+	return true;
+ 
+ 	if (!list_empty(movable_folio_list)) {
+@@ -2387,12 +2423,26 @@ static int migrate_longterm_unpinnable_f
+ 	return -EAGAIN;
+ 
+ err:
+-	unpin_folios(folios, nr_folios);
++	pofs_unpin(pofs);
+ 	putback_movable_pages(movable_folio_list);
+ 
+ 	return ret;
  }
  
- static unsigned int alloc_swap_scan_cluster(struct swap_info_struct *si, unsigned long offset,
-@@ -713,7 +718,10 @@ static unsigned int alloc_swap_scan_clus
- 
- 	while (offset <= end) {
- 		if (cluster_scan_range(si, ci, offset, nr_pages)) {
--			cluster_alloc_range(si, ci, offset, usage, order);
-+			if (!cluster_alloc_range(si, ci, offset, usage, order)) {
-+				offset = SWAP_NEXT_INVALID;
-+				goto done;
-+			}
- 			*foundp = offset;
- 			if (ci->count == SWAPFILE_CLUSTER) {
- 				offset = SWAP_NEXT_INVALID;
-@@ -805,7 +813,11 @@ new_cluster:
- 	if (!list_empty(&si->free_clusters)) {
- 		ci = list_first_entry(&si->free_clusters, struct swap_cluster_info, list);
- 		offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci), &found, order, usage);
--		VM_BUG_ON(!found);
-+		/*
-+		 * Either we didn't touch the cluster due to swapoff,
-+		 * or the allocation must success.
-+		 */
-+		VM_BUG_ON((si->flags & SWP_WRITEOK) && !found);
- 		goto done;
- 	}
- 
-@@ -1041,6 +1053,8 @@ static int cluster_alloc_swap(struct swa
- 
- 	VM_BUG_ON(!si->cluster_info);
- 
-+	si->flags += SWP_SCANNING;
++static long
++check_and_migrate_movable_pages_or_folios(struct pages_or_folios *pofs)
++{
++	LIST_HEAD(movable_folio_list);
++	unsigned long collected;
 +
- 	while (n_ret < nr) {
- 		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
- 
-@@ -1049,6 +1063,8 @@ static int cluster_alloc_swap(struct swa
- 		slots[n_ret++] = swp_entry(si->type, offset);
- 	}
- 
-+	si->flags -= SWP_SCANNING;
++	collected = collect_longterm_unpinnable_folios(&movable_folio_list,
++						       pofs);
++	if (!collected)
++		return 0;
 +
- 	return n_ret;
++	return migrate_longterm_unpinnable_folios(&movable_folio_list, pofs);
++}
++
+ /*
+  * Check whether all folios are *allowed* to be pinned indefinitely (long term).
+  * Rather confusingly, all folios in the range are required to be pinned via
+@@ -2417,16 +2467,13 @@ err:
+ static long check_and_migrate_movable_folios(unsigned long nr_folios,
+ 					     struct folio **folios)
+ {
+-	unsigned long collected;
+-	LIST_HEAD(movable_folio_list);
++	struct pages_or_folios pofs = {
++		.folios = folios,
++		.has_folios = true,
++		.nr_entries = nr_folios,
++	};
+ 
+-	collected = collect_longterm_unpinnable_folios(&movable_folio_list,
+-						       nr_folios, folios);
+-	if (!collected)
+-		return 0;
+-
+-	return migrate_longterm_unpinnable_folios(&movable_folio_list,
+-						  nr_folios, folios);
++	return check_and_migrate_movable_pages_or_folios(&pofs);
  }
  
+ /*
+@@ -2436,22 +2483,13 @@ static long check_and_migrate_movable_fo
+ static long check_and_migrate_movable_pages(unsigned long nr_pages,
+ 					    struct page **pages)
+ {
+-	struct folio **folios;
+-	long i, ret;
+-
+-	folios = kmalloc_array(nr_pages, sizeof(*folios), GFP_KERNEL);
+-	if (!folios) {
+-		unpin_user_pages(pages, nr_pages);
+-		return -ENOMEM;
+-	}
+-
+-	for (i = 0; i < nr_pages; i++)
+-		folios[i] = page_folio(pages[i]);
++	struct pages_or_folios pofs = {
++		.pages = pages,
++		.has_folios = false,
++		.nr_entries = nr_pages,
++	};
+ 
+-	ret = check_and_migrate_movable_folios(nr_pages, folios);
+-
+-	kfree(folios);
+-	return ret;
++	return check_and_migrate_movable_pages_or_folios(&pofs);
+ }
+ #else
+ static long check_and_migrate_movable_pages(unsigned long nr_pages,
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-swap-fix-allocation-and-scanning-race-with-swapoff.patch
 
