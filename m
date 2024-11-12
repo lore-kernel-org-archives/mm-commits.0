@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D562204F7A
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5428204F7A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374582; cv=none; b=ZFMz0qRA8h8Pr79bJAXdMnkdBJrSreMLqvbf2o+m5Lw1i8SfJS/F3Yt5rdNz9MgDwsA68DoYA9OHQVEBzcx2xiV8fi6R6NzbtiPSK2ODczKltRpkFhaUAljvsbSQitSqMFEwk2gpUMxAMf88LCytXX7xQIfaQiVcvLSLV9glbEQ=
+	t=1731374583; cv=none; b=u0wwqfvpy3Dq0bMoLusxGvmnqFU/UMt/Sr4ShXfN3MOf0iPIB87rSE6ycA+UM05+Dy/qyoBR9wVUddafs7yFnYN7PVzp8qCXDIs6+gWEssvMqOks1xktX4g4duYrfq4/SNL+8Jm6iDWANsusRXcBHFmLkhKfiyVSvvxyITCffak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374582; c=relaxed/simple;
-	bh=TnTWLMfuvaogfTj+l2QG5ZC7waC8xoVpieG+Rm8jRWQ=;
-	h=Date:To:From:Subject:Message-Id; b=s1037AqHcd2lBMK+5YV/gfULSVCFGg40RaiTorieS8phwEiMxpkkq5CYfMbabNIis5RPjIJxxKcBJGQq3OUHyib0foyJMJpSNT/cCKWNQU3/NvVbg1QBtEIf0F/tk0z8YcscXcw6ffK/KFfwSqSgyJ+WlHzC+PUhIq7trwj2RNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GA9TvhXD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374583; c=relaxed/simple;
+	bh=+KS86CplTwJWphb82VBK2hzz/LzKxhrDeheq4hpA6CM=;
+	h=Date:To:From:Subject:Message-Id; b=RfoNCByEBGAK6BkfN9CSVmDgkWWJu38s7Y+N46YWedEJ87nuAAytZKZQuaB4cOqt3kYZZGmg3uvmf7/hiag/vI4yW37BT1ElWdsQSjiI01msKR64x/7CRhH8A4tyb5LxmFXykS9/kdT7ZLfSHoNunbtBgXOvWEc8D42+JCzkCWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Prmct4Fe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GA9TvhXD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6192BC4CECF;
-	Tue, 12 Nov 2024 01:23:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Prmct4Fe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 991F0C4CECF;
+	Tue, 12 Nov 2024 01:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374582;
-	bh=TnTWLMfuvaogfTj+l2QG5ZC7waC8xoVpieG+Rm8jRWQ=;
+	s=korg; t=1731374583;
+	bh=+KS86CplTwJWphb82VBK2hzz/LzKxhrDeheq4hpA6CM=;
 	h=Date:To:From:Subject:From;
-	b=GA9TvhXDyfaKHn1msMfKLBnqwkMtxw3OqqBcjBurEvC/B1CpTeC58hK1TOEb+/Zxj
-	 r8J9gpv7PntXYfN8QuigYC1JOw8dDZF9bZx8IKG+s9SrbfJm3tRHMvLTA52ex4kGCh
-	 02LoOR5/fT/aLYGT6g1kLOENEHJ6sBlb/p/jlpkA=
-Date: Mon, 11 Nov 2024 17:23:01 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,robin.murphy@arm.com,joro@8bytes.org,idosch@nvidia.com,idosch@idosch.org,catalin.marinas@arm.com,akpm@linux-foundation.org
+	b=Prmct4FeqapwgXRZTTBb2EBydixwgyTdwnHAx8qhI/2BG5iVvAh4Ln2QW4jx6Pd/I
+	 b3a0nrsBpHK7akogMEm8m49pUdv0IBhyFi199sgpDZlWRi1MAuCc15Pj7pjd+4tLPN
+	 YU7T8pQ0khGLhzClwNtMLTQ26ommEJUtRDh+3jjA=
+Date: Mon, 11 Nov 2024 17:23:03 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,tsbogend@alpha.franken.de,ryabinin.a.a@gmail.com,kernel@xen0n.name,glider@google.com,dvyukov@google.com,chenhuacai@loongson.cn,andreyknvl@gmail.com,maobibo@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kmemleak-iommu-iova-fix-transient-kmemleak-false-positive.patch removed from -mm tree
-Message-Id: <20241112012302.6192BC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-define-general-function-pxd_init.patch removed from -mm tree
+Message-Id: <20241112012303.991F0C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,172 +35,183 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmemleak: iommu/iova: fix transient kmemleak false positive
+     Subject: mm: define general function pXd_init()
 has been removed from the -mm tree.  Its filename was
-     kmemleak-iommu-iova-fix-transient-kmemleak-false-positive.patch
+     mm-define-general-function-pxd_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: kmemleak: iommu/iova: fix transient kmemleak false positive
-Date: Mon, 4 Nov 2024 11:19:44 +0000
+From: Bibo Mao <maobibo@loongson.cn>
+Subject: mm: define general function pXd_init()
+Date: Mon, 4 Nov 2024 15:07:12 +0800
 
-The introduction of iova_depot_pop() in 911aa1245da8 ("iommu/iova: Make
-the rcache depot scale better") confused kmemleak by moving a struct
-iova_magazine object from a singly linked list to rcache->depot and
-resetting the 'next' pointer referencing it.  Unlike doubly linked lists,
-the content of the object being referred is never changed on removal from
-a singly linked list and the kmemleak checksum heuristics do not detect
-such scenario.  This leads to false positives like:
+pud_init(), pmd_init() and kernel_pte_init() are duplicated defined in
+file kasan.c and sparse-vmemmap.c as weak functions.  Move them to generic
+header file pgtable.h, architecture can redefine them.
 
-unreferenced object 0xffff8881a5301000 (size 1024):
-  comm "softirq", pid 0, jiffies 4306297099 (age 462.991s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 e7 7d 05 00 00 00 00 00  .........}......
-    0f b4 05 00 00 00 00 00 b4 96 05 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff819f5f08>] __kmem_cache_alloc_node+0x1e8/0x320
-    [<ffffffff818a239a>] kmalloc_trace+0x2a/0x60
-    [<ffffffff8231d31e>] free_iova_fast+0x28e/0x4e0
-    [<ffffffff82310860>] fq_ring_free_locked+0x1b0/0x310
-    [<ffffffff8231225d>] fq_flush_timeout+0x19d/0x2e0
-    [<ffffffff813e95ba>] call_timer_fn+0x19a/0x5c0
-    [<ffffffff813ea16b>] __run_timers+0x78b/0xb80
-    [<ffffffff813ea5bd>] run_timer_softirq+0x5d/0xd0
-    [<ffffffff82f1d915>] __do_softirq+0x205/0x8b5
-
-Introduce kmemleak_transient_leak() which resets the object checksum
-requiring another scan pass before it is reported (if still unreferenced).
-Call this new API in iova_depot_pop().
-
-Link: https://lkml.kernel.org/r/20241104111944.2207155-1-catalin.marinas@arm.com
-Link: https://lore.kernel.org/r/ZY1osaGLyT-sdKE8@shredder/
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reported-by: Ido Schimmel <idosch@idosch.org>
-Tested-by: Ido Schimmel <idosch@nvidia.com>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20241104070712.52902-1-maobibo@loongson.cn
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+Reviewed-by: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst |    1 
- drivers/iommu/iova.c                 |    6 +++
- include/linux/kmemleak.h             |    4 ++
- mm/kmemleak.c                        |   39 +++++++++++++++++++++++++
- 4 files changed, 50 insertions(+)
+ arch/loongarch/include/asm/pgtable.h |    3 +++
+ arch/mips/include/asm/pgtable-64.h   |    2 ++
+ include/linux/mm.h                   |    3 ---
+ include/linux/pgtable.h              |   21 +++++++++++++++++++++
+ mm/kasan/init.c                      |   12 ------------
+ mm/sparse-vmemmap.c                  |   12 ------------
+ 6 files changed, 26 insertions(+), 27 deletions(-)
 
---- a/Documentation/dev-tools/kmemleak.rst~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -161,6 +161,7 @@ See the include/linux/kmemleak.h header
- - ``kmemleak_free_percpu``	 - notify of a percpu memory block freeing
- - ``kmemleak_update_trace``	 - update object allocation stack trace
- - ``kmemleak_not_leak``	 - mark an object as not a leak
-+- ``kmemleak_transient_leak``	 - mark an object as a transient leak
- - ``kmemleak_ignore``		 - do not scan or report an object as leak
- - ``kmemleak_scan_area``	 - add scan areas inside a memory block
- - ``kmemleak_no_scan``	 - do not scan a memory block
---- a/drivers/iommu/iova.c~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
-+++ a/drivers/iommu/iova.c
-@@ -6,6 +6,7 @@
+--- a/arch/loongarch/include/asm/pgtable.h~mm-define-general-function-pxd_init
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -268,8 +268,11 @@ extern void set_pmd_at(struct mm_struct
   */
- 
- #include <linux/iova.h>
-+#include <linux/kmemleak.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/smp.h>
-@@ -673,6 +674,11 @@ static struct iova_magazine *iova_depot_
- {
- 	struct iova_magazine *mag = rcache->depot;
- 
-+	/*
-+	 * As the mag->next pointer is moved to rcache->depot and reset via
-+	 * the mag->size assignment, mark it as a transient false positive.
-+	 */
-+	kmemleak_transient_leak(mag->next);
- 	rcache->depot = mag->next;
- 	mag->size = IOVA_MAG_SIZE;
- 	rcache->depot_size--;
---- a/include/linux/kmemleak.h~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
-+++ a/include/linux/kmemleak.h
-@@ -26,6 +26,7 @@ extern void kmemleak_free_part(const voi
- extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
- extern void kmemleak_update_trace(const void *ptr) __ref;
- extern void kmemleak_not_leak(const void *ptr) __ref;
-+extern void kmemleak_transient_leak(const void *ptr) __ref;
- extern void kmemleak_ignore(const void *ptr) __ref;
- extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
- extern void kmemleak_no_scan(const void *ptr) __ref;
-@@ -93,6 +94,9 @@ static inline void kmemleak_update_trace
- static inline void kmemleak_not_leak(const void *ptr)
- {
- }
-+static inline void kmemleak_transient_leak(const void *ptr)
-+{
-+}
- static inline void kmemleak_ignore(const void *ptr)
- {
- }
---- a/mm/kmemleak.c~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
-+++ a/mm/kmemleak.c
-@@ -935,6 +935,28 @@ static void make_black_object(unsigned l
- }
+ extern void pgd_init(void *addr);
+ extern void pud_init(void *addr);
++#define pud_init pud_init
+ extern void pmd_init(void *addr);
++#define pmd_init pmd_init
+ extern void kernel_pte_init(void *addr);
++#define kernel_pte_init kernel_pte_init
  
  /*
-+ * Reset the checksum of an object. The immediate effect is that it will not
-+ * be reported as a leak during the next scan until its checksum is updated.
-+ */
-+static void reset_checksum(unsigned long ptr)
-+{
-+	unsigned long flags;
-+	struct kmemleak_object *object;
-+
-+	object = find_and_get_object(ptr, 0);
-+	if (!object) {
-+		kmemleak_warn("Not resetting the checksum of an unknown object at 0x%08lx\n",
-+			      ptr);
-+		return;
-+	}
-+
-+	raw_spin_lock_irqsave(&object->lock, flags);
-+	object->checksum = 0;
-+	raw_spin_unlock_irqrestore(&object->lock, flags);
-+	put_object(object);
-+}
-+
-+/*
-  * Add a scanning area to the object. If at least one such area is added,
-  * kmemleak will only scan these ranges rather than the whole memory block.
+  * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
+--- a/arch/mips/include/asm/pgtable-64.h~mm-define-general-function-pxd_init
++++ a/arch/mips/include/asm/pgtable-64.h
+@@ -317,7 +317,9 @@ static inline pmd_t *pud_pgtable(pud_t p
   */
-@@ -1203,6 +1225,23 @@ void __ref kmemleak_not_leak(const void
- EXPORT_SYMBOL(kmemleak_not_leak);
+ extern void pgd_init(void *addr);
+ extern void pud_init(void *addr);
++#define pud_init pud_init
+ extern void pmd_init(void *addr);
++#define pmd_init pmd_init
  
- /**
-+ * kmemleak_transient_leak - mark an allocated object as transient false positive
-+ * @ptr:	pointer to beginning of the object
-+ *
-+ * Calling this function on an object will cause the memory block to not be
-+ * reported as a leak temporarily. This may happen, for example, if the object
-+ * is part of a singly linked list and the ->next reference to it is changed.
-+ */
-+void __ref kmemleak_transient_leak(const void *ptr)
+ /*
+  * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
+--- a/include/linux/mm.h~mm-define-general-function-pxd_init
++++ a/include/linux/mm.h
+@@ -3819,9 +3819,6 @@ void *sparse_buffer_alloc(unsigned long
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+-void pud_init(void *addr);
+-void pmd_init(void *addr);
+-void kernel_pte_init(void *addr);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+--- a/include/linux/pgtable.h~mm-define-general-function-pxd_init
++++ a/include/linux/pgtable.h
+@@ -90,6 +90,27 @@ static inline unsigned long pud_index(un
+ #define pgd_index(a)  (((a) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+ #endif
+ 
++#ifndef kernel_pte_init
++static inline void kernel_pte_init(void *addr)
 +{
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
-+
-+	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
-+		reset_checksum((unsigned long)ptr);
 +}
-+EXPORT_SYMBOL(kmemleak_transient_leak);
++#define kernel_pte_init kernel_pte_init
++#endif
 +
-+/**
-  * kmemleak_ignore - ignore an allocated object
-  * @ptr:	pointer to beginning of the object
-  *
++#ifndef pmd_init
++static inline void pmd_init(void *addr)
++{
++}
++#define pmd_init pmd_init
++#endif
++
++#ifndef pud_init
++static inline void pud_init(void *addr)
++{
++}
++#define pud_init pud_init
++#endif
++
+ #ifndef pte_offset_kernel
+ static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
+ {
+--- a/mm/kasan/init.c~mm-define-general-function-pxd_init
++++ a/mm/kasan/init.c
+@@ -106,10 +106,6 @@ static void __ref zero_pte_populate(pmd_
+ 	}
+ }
+ 
+-void __weak __meminit kernel_pte_init(void *addr)
+-{
+-}
+-
+ static int __ref zero_pmd_populate(pud_t *pud, unsigned long addr,
+ 				unsigned long end)
+ {
+@@ -145,10 +141,6 @@ static int __ref zero_pmd_populate(pud_t
+ 	return 0;
+ }
+ 
+-void __weak __meminit pmd_init(void *addr)
+-{
+-}
+-
+ static int __ref zero_pud_populate(p4d_t *p4d, unsigned long addr,
+ 				unsigned long end)
+ {
+@@ -187,10 +179,6 @@ static int __ref zero_pud_populate(p4d_t
+ 	return 0;
+ }
+ 
+-void __weak __meminit pud_init(void *addr)
+-{
+-}
+-
+ static int __ref zero_p4d_populate(pgd_t *pgd, unsigned long addr,
+ 				unsigned long end)
+ {
+--- a/mm/sparse-vmemmap.c~mm-define-general-function-pxd_init
++++ a/mm/sparse-vmemmap.c
+@@ -184,10 +184,6 @@ static void * __meminit vmemmap_alloc_bl
+ 	return p;
+ }
+ 
+-void __weak __meminit kernel_pte_init(void *addr)
+-{
+-}
+-
+ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+@@ -201,10 +197,6 @@ pmd_t * __meminit vmemmap_pmd_populate(p
+ 	return pmd;
+ }
+ 
+-void __weak __meminit pmd_init(void *addr)
+-{
+-}
+-
+ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+@@ -218,10 +210,6 @@ pud_t * __meminit vmemmap_pud_populate(p
+ 	return pud;
+ }
+ 
+-void __weak __meminit pud_init(void *addr)
+-{
+-}
+-
+ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from maobibo@loongson.cn are
 
 
