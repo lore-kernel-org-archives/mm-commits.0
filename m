@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 028CD204F7A
-	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:22:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D562204F7A
+	for <mm-commits@vger.kernel.org>; Tue, 12 Nov 2024 01:23:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731374581; cv=none; b=gzTKF7LtUJNqS6XT0sHLIjd3mLrcp0OA6lFELpqNzpj8h7P89JhiPpnjPt1XcHoqURCt2Nc3OMtMHrWb29gIey2iQB590J1OR15DHrwHehH5cAlp28RY2gjxfVz6MGRDZQfaRHlj4lKAuxzPTh7FXaiUGG63DxKqB+DLGRZH9+8=
+	t=1731374582; cv=none; b=ZFMz0qRA8h8Pr79bJAXdMnkdBJrSreMLqvbf2o+m5Lw1i8SfJS/F3Yt5rdNz9MgDwsA68DoYA9OHQVEBzcx2xiV8fi6R6NzbtiPSK2ODczKltRpkFhaUAljvsbSQitSqMFEwk2gpUMxAMf88LCytXX7xQIfaQiVcvLSLV9glbEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731374581; c=relaxed/simple;
-	bh=7N9dX1RdmlyBgoVXq9Vo+s/dLK+WUaz0j4yC0ja3MHo=;
-	h=Date:To:From:Subject:Message-Id; b=tIm/6XRmxhDKOrP7bbwLh0KiwYyiRfoFl4lyv//qrNxFkuEWgiqDVKIX9j6v5hkJZ68L81Nndsk/YKe5rDU+pLBdgLMIJEDxKxttLNvykucnqZXnfTSecP2juIoozSJXbRVZNC+acoMiDaR3nBG3UbUhO60XARekyv/V58CIfMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSBQLE/k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731374582; c=relaxed/simple;
+	bh=TnTWLMfuvaogfTj+l2QG5ZC7waC8xoVpieG+Rm8jRWQ=;
+	h=Date:To:From:Subject:Message-Id; b=s1037AqHcd2lBMK+5YV/gfULSVCFGg40RaiTorieS8phwEiMxpkkq5CYfMbabNIis5RPjIJxxKcBJGQq3OUHyib0foyJMJpSNT/cCKWNQU3/NvVbg1QBtEIf0F/tk0z8YcscXcw6ffK/KFfwSqSgyJ+WlHzC+PUhIq7trwj2RNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GA9TvhXD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSBQLE/k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F59EC4CED0;
-	Tue, 12 Nov 2024 01:22:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GA9TvhXD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6192BC4CECF;
+	Tue, 12 Nov 2024 01:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731374579;
-	bh=7N9dX1RdmlyBgoVXq9Vo+s/dLK+WUaz0j4yC0ja3MHo=;
+	s=korg; t=1731374582;
+	bh=TnTWLMfuvaogfTj+l2QG5ZC7waC8xoVpieG+Rm8jRWQ=;
 	h=Date:To:From:Subject:From;
-	b=gSBQLE/kLJ/Jj7KcdN5T8OqCauJxtqwH7ytF9UXiQJHBLOaaQjf0i5DBrmPKgc4pK
-	 KDXCYjJgYHFi0VMccvXp2LUJ6wsW/hW6sx4G1naW2IxJE3i3AszUyyJgs5QTJPe/pk
-	 28ihqXtixJGZHE02DNM2nVDOepXbeHclszeCfVq4=
-Date: Mon, 11 Nov 2024 17:22:58 -0800
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,longman@redhat.com,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=GA9TvhXDyfaKHn1msMfKLBnqwkMtxw3OqqBcjBurEvC/B1CpTeC58hK1TOEb+/Zxj
+	 r8J9gpv7PntXYfN8QuigYC1JOw8dDZF9bZx8IKG+s9SrbfJm3tRHMvLTA52ex4kGCh
+	 02LoOR5/fT/aLYGT6g1kLOENEHJ6sBlb/p/jlpkA=
+Date: Mon, 11 Nov 2024 17:23:01 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,robin.murphy@arm.com,joro@8bytes.org,idosch@nvidia.com,idosch@idosch.org,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-split-the-lock-to-per-cgroup-scope.patch removed from -mm tree
-Message-Id: <20241112012259.7F59EC4CED0@smtp.kernel.org>
+Subject: [merged mm-stable] kmemleak-iommu-iova-fix-transient-kmemleak-false-positive.patch removed from -mm tree
+Message-Id: <20241112012302.6192BC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,629 +35,172 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/list_lru: split the lock to per-cgroup scope
+     Subject: kmemleak: iommu/iova: fix transient kmemleak false positive
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-split-the-lock-to-per-cgroup-scope.patch
+     kmemleak-iommu-iova-fix-transient-kmemleak-false-positive.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/list_lru: split the lock to per-cgroup scope
-Date: Tue, 5 Nov 2024 01:52:56 +0800
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: kmemleak: iommu/iova: fix transient kmemleak false positive
+Date: Mon, 4 Nov 2024 11:19:44 +0000
 
-Currently, every list_lru has a per-node lock that protects adding,
-deletion, isolation, and reparenting of all list_lru_one instances
-belonging to this list_lru on this node.  This lock contention is heavy
-when multiple cgroups modify the same list_lru.
+The introduction of iova_depot_pop() in 911aa1245da8 ("iommu/iova: Make
+the rcache depot scale better") confused kmemleak by moving a struct
+iova_magazine object from a singly linked list to rcache->depot and
+resetting the 'next' pointer referencing it.  Unlike doubly linked lists,
+the content of the object being referred is never changed on removal from
+a singly linked list and the kmemleak checksum heuristics do not detect
+such scenario.  This leads to false positives like:
 
-This lock can be split into per-cgroup scope to reduce contention.
+unreferenced object 0xffff8881a5301000 (size 1024):
+  comm "softirq", pid 0, jiffies 4306297099 (age 462.991s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 e7 7d 05 00 00 00 00 00  .........}......
+    0f b4 05 00 00 00 00 00 b4 96 05 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff819f5f08>] __kmem_cache_alloc_node+0x1e8/0x320
+    [<ffffffff818a239a>] kmalloc_trace+0x2a/0x60
+    [<ffffffff8231d31e>] free_iova_fast+0x28e/0x4e0
+    [<ffffffff82310860>] fq_ring_free_locked+0x1b0/0x310
+    [<ffffffff8231225d>] fq_flush_timeout+0x19d/0x2e0
+    [<ffffffff813e95ba>] call_timer_fn+0x19a/0x5c0
+    [<ffffffff813ea16b>] __run_timers+0x78b/0xb80
+    [<ffffffff813ea5bd>] run_timer_softirq+0x5d/0xd0
+    [<ffffffff82f1d915>] __do_softirq+0x205/0x8b5
 
-To achieve this, we need a stable list_lru_one for every cgroup.  This
-commit adds a lock to each list_lru_one and introduced a helper function
-lock_list_lru_of_memcg, making it possible to pin the list_lru of a memcg.
-Then reworked the reparenting process.
+Introduce kmemleak_transient_leak() which resets the object checksum
+requiring another scan pass before it is reported (if still unreferenced).
+Call this new API in iova_depot_pop().
 
-Reparenting will switch the list_lru_one instances one by one.  By locking
-each instance and marking it dead using the nr_items counter, reparenting
-ensures that all items in the corresponding cgroup (on-list or not,
-because items have a stable cgroup, see below) will see the list_lru_one
-switch synchronously.
-
-Objcg reparent is also moved after list_lru reparent so items will have a
-stable mem cgroup until all list_lru_one instances are drained.
-
-The only caller that doesn't work the *_obj interfaces are direct calls to
-list_lru_{add,del}.  But it's only used by zswap and that's also based on
-objcg, so it's fine.
-
-This also changes the bahaviour of the isolation function when LRU_RETRY
-or LRU_REMOVED_RETRY is returned, because now releasing the lock could
-unblock reparenting and free the list_lru_one, isolation function will
-have to return withoug re-lock the lru.
-
-prepare() {
-    mkdir /tmp/test-fs
-    modprobe brd rd_nr=1 rd_size=33554432
-    mkfs.xfs -f /dev/ram0
-    mount -t xfs /dev/ram0 /tmp/test-fs
-    for i in $(seq 1 512); do
-        mkdir "/tmp/test-fs/$i"
-        for j in $(seq 1 10240); do
-            echo TEST-CONTENT > "/tmp/test-fs/$i/$j"
-        done &
-    done; wait
-}
-
-do_test() {
-    read_worker() {
-        sleep 1
-        tar -cv "$1" &>/dev/null
-    }
-    read_in_all() {
-        cd "/tmp/test-fs" && ls
-        for i in $(seq 1 512); do
-            (exec sh -c 'echo "$PPID"') > "/sys/fs/cgroup/benchmark/$i/cgroup.procs"
-            read_worker "$i" &
-        done; wait
-    }
-    for i in $(seq 1 512); do
-        mkdir -p "/sys/fs/cgroup/benchmark/$i"
-    done
-    echo +memory > /sys/fs/cgroup/benchmark/cgroup.subtree_control
-    echo 512M > /sys/fs/cgroup/benchmark/memory.max
-    echo 3 > /proc/sys/vm/drop_caches
-    time read_in_all
-}
-
-Above script simulates compression of small files in multiple cgroups
-with memory pressure. Run prepare() then do_test for 6 times:
-
-Before:
-real      0m7.762s user      0m11.340s sys       3m11.224s
-real      0m8.123s user      0m11.548s sys       3m2.549s
-real      0m7.736s user      0m11.515s sys       3m11.171s
-real      0m8.539s user      0m11.508s sys       3m7.618s
-real      0m7.928s user      0m11.349s sys       3m13.063s
-real      0m8.105s user      0m11.128s sys       3m14.313s
-
-After this commit (about ~15% faster):
-real      0m6.953s user      0m11.327s sys       2m42.912s
-real      0m7.453s user      0m11.343s sys       2m51.942s
-real      0m6.916s user      0m11.269s sys       2m43.957s
-real      0m6.894s user      0m11.528s sys       2m45.346s
-real      0m6.911s user      0m11.095s sys       2m43.168s
-real      0m6.773s user      0m11.518s sys       2m40.774s
-
-Link: https://lkml.kernel.org/r/20241104175257.60853-6-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Waiman Long <longman@redhat.com>
+Link: https://lkml.kernel.org/r/20241104111944.2207155-1-catalin.marinas@arm.com
+Link: https://lore.kernel.org/r/ZY1osaGLyT-sdKE8@shredder/
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Ido Schimmel <idosch@idosch.org>
+Tested-by: Ido Schimmel <idosch@nvidia.com>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/android/binder_alloc.c |    1 
- fs/inode.c                     |    1 
- fs/xfs/xfs_qm.c                |    1 
- include/linux/list_lru.h       |    6 
- mm/list_lru.c                  |  216 +++++++++++++++++--------------
- mm/memcontrol.c                |    7 -
- mm/workingset.c                |    1 
- mm/zswap.c                     |    5 
- 8 files changed, 135 insertions(+), 103 deletions(-)
+ Documentation/dev-tools/kmemleak.rst |    1 
+ drivers/iommu/iova.c                 |    6 +++
+ include/linux/kmemleak.h             |    4 ++
+ mm/kmemleak.c                        |   39 +++++++++++++++++++++++++
+ 4 files changed, 50 insertions(+)
 
---- a/drivers/android/binder_alloc.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/drivers/android/binder_alloc.c
-@@ -1106,7 +1106,6 @@ enum lru_status binder_alloc_free_page(s
- 	mmput_async(mm);
- 	__free_page(page_to_free);
+--- a/Documentation/dev-tools/kmemleak.rst~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
++++ a/Documentation/dev-tools/kmemleak.rst
+@@ -161,6 +161,7 @@ See the include/linux/kmemleak.h header
+ - ``kmemleak_free_percpu``	 - notify of a percpu memory block freeing
+ - ``kmemleak_update_trace``	 - update object allocation stack trace
+ - ``kmemleak_not_leak``	 - mark an object as not a leak
++- ``kmemleak_transient_leak``	 - mark an object as a transient leak
+ - ``kmemleak_ignore``		 - do not scan or report an object as leak
+ - ``kmemleak_scan_area``	 - add scan areas inside a memory block
+ - ``kmemleak_no_scan``	 - do not scan a memory block
+--- a/drivers/iommu/iova.c~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
++++ a/drivers/iommu/iova.c
+@@ -6,6 +6,7 @@
+  */
  
--	spin_lock(lock);
- 	return LRU_REMOVED_RETRY;
- 
- err_invalid_vma:
---- a/fs/inode.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/fs/inode.c
-@@ -934,7 +934,6 @@ static enum lru_status inode_lru_isolate
- 			mm_account_reclaimed_pages(reap);
- 		}
- 		inode_unpin_lru_isolating(inode);
--		spin_lock(lru_lock);
- 		return LRU_RETRY;
- 	}
- 
---- a/fs/xfs/xfs_qm.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/fs/xfs/xfs_qm.c
-@@ -496,7 +496,6 @@ out_unlock_dirty:
- 	trace_xfs_dqreclaim_busy(dqp);
- 	XFS_STATS_INC(dqp->q_mount, xs_qm_dqreclaim_misses);
- 	xfs_dqunlock(dqp);
--	spin_lock(lru_lock);
- 	return LRU_RETRY;
- }
- 
---- a/include/linux/list_lru.h~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/include/linux/list_lru.h
-@@ -32,6 +32,8 @@ struct list_lru_one {
- 	struct list_head	list;
- 	/* may become negative during memcg reparenting */
- 	long			nr_items;
-+	/* protects all fields above */
-+	spinlock_t		lock;
- };
- 
- struct list_lru_memcg {
-@@ -41,11 +43,9 @@ struct list_lru_memcg {
- };
- 
- struct list_lru_node {
--	/* protects all lists on the node, including per cgroup */
--	spinlock_t		lock;
- 	/* global list, used for the root cgroup in cgroup aware lrus */
- 	struct list_lru_one	lru;
--	long			nr_items;
-+	atomic_long_t		nr_items;
- } ____cacheline_aligned_in_smp;
- 
- struct list_lru {
---- a/mm/list_lru.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/mm/list_lru.c
-@@ -61,18 +61,51 @@ list_lru_from_memcg_idx(struct list_lru
- }
- 
- static inline struct list_lru_one *
--list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
-+lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
-+		       bool irq, bool skip_empty)
+ #include <linux/iova.h>
++#include <linux/kmemleak.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/smp.h>
+@@ -673,6 +674,11 @@ static struct iova_magazine *iova_depot_
  {
- 	struct list_lru_one *l;
-+	long nr_items;
-+
-+	rcu_read_lock();
- again:
- 	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
--	if (likely(l))
--		return l;
--
--	memcg = parent_mem_cgroup(memcg);
-+	if (likely(l)) {
-+		if (irq)
-+			spin_lock_irq(&l->lock);
-+		else
-+			spin_lock(&l->lock);
-+		nr_items = READ_ONCE(l->nr_items);
-+		if (likely(nr_items != LONG_MIN)) {
-+			WARN_ON(nr_items < 0);
-+			rcu_read_unlock();
-+			return l;
-+		}
-+		if (irq)
-+			spin_unlock_irq(&l->lock);
-+		else
-+			spin_unlock(&l->lock);
-+	}
+ 	struct iova_magazine *mag = rcache->depot;
+ 
 +	/*
-+	 * Caller may simply bail out if raced with reparenting or
-+	 * may iterate through the list_lru and expect empty slots.
++	 * As the mag->next pointer is moved to rcache->depot and reset via
++	 * the mag->size assignment, mark it as a transient false positive.
 +	 */
-+	if (skip_empty) {
-+		rcu_read_unlock();
-+		return NULL;
-+	}
- 	VM_WARN_ON(!css_is_dying(&memcg->css));
-+	memcg = parent_mem_cgroup(memcg);
- 	goto again;
- }
-+
-+static inline void unlock_list_lru(struct list_lru_one *l, bool irq_off)
-+{
-+	if (irq_off)
-+		spin_unlock_irq(&l->lock);
-+	else
-+		spin_unlock(&l->lock);
-+}
- #else
- static void list_lru_register(struct list_lru *lru)
++	kmemleak_transient_leak(mag->next);
+ 	rcache->depot = mag->next;
+ 	mag->size = IOVA_MAG_SIZE;
+ 	rcache->depot_size--;
+--- a/include/linux/kmemleak.h~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
++++ a/include/linux/kmemleak.h
+@@ -26,6 +26,7 @@ extern void kmemleak_free_part(const voi
+ extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
+ extern void kmemleak_update_trace(const void *ptr) __ref;
+ extern void kmemleak_not_leak(const void *ptr) __ref;
++extern void kmemleak_transient_leak(const void *ptr) __ref;
+ extern void kmemleak_ignore(const void *ptr) __ref;
+ extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
+ extern void kmemleak_no_scan(const void *ptr) __ref;
+@@ -93,6 +94,9 @@ static inline void kmemleak_update_trace
+ static inline void kmemleak_not_leak(const void *ptr)
  {
-@@ -99,31 +132,48 @@ list_lru_from_memcg_idx(struct list_lru
+ }
++static inline void kmemleak_transient_leak(const void *ptr)
++{
++}
+ static inline void kmemleak_ignore(const void *ptr)
+ {
+ }
+--- a/mm/kmemleak.c~kmemleak-iommu-iova-fix-transient-kmemleak-false-positive
++++ a/mm/kmemleak.c
+@@ -935,6 +935,28 @@ static void make_black_object(unsigned l
  }
  
- static inline struct list_lru_one *
--list_lru_from_memcg(struct list_lru *lru, int nid, int idx)
-+lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
-+		       bool irq, bool skip_empty)
- {
--	return &lru->node[nid].lru;
-+	struct list_lru_one *l = &lru->node[nid].lru;
+ /*
++ * Reset the checksum of an object. The immediate effect is that it will not
++ * be reported as a leak during the next scan until its checksum is updated.
++ */
++static void reset_checksum(unsigned long ptr)
++{
++	unsigned long flags;
++	struct kmemleak_object *object;
 +
-+	if (irq)
-+		spin_lock_irq(&l->lock);
-+	else
-+		spin_lock(&l->lock);
++	object = find_and_get_object(ptr, 0);
++	if (!object) {
++		kmemleak_warn("Not resetting the checksum of an unknown object at 0x%08lx\n",
++			      ptr);
++		return;
++	}
 +
-+	return l;
++	raw_spin_lock_irqsave(&object->lock, flags);
++	object->checksum = 0;
++	raw_spin_unlock_irqrestore(&object->lock, flags);
++	put_object(object);
 +}
 +
-+static inline void unlock_list_lru(struct list_lru_one *l, bool irq_off)
++/*
+  * Add a scanning area to the object. If at least one such area is added,
+  * kmemleak will only scan these ranges rather than the whole memory block.
+  */
+@@ -1203,6 +1225,23 @@ void __ref kmemleak_not_leak(const void
+ EXPORT_SYMBOL(kmemleak_not_leak);
+ 
+ /**
++ * kmemleak_transient_leak - mark an allocated object as transient false positive
++ * @ptr:	pointer to beginning of the object
++ *
++ * Calling this function on an object will cause the memory block to not be
++ * reported as a leak temporarily. This may happen, for example, if the object
++ * is part of a singly linked list and the ->next reference to it is changed.
++ */
++void __ref kmemleak_transient_leak(const void *ptr)
 +{
-+	if (irq_off)
-+		spin_unlock_irq(&l->lock);
-+	else
-+		spin_unlock(&l->lock);
- }
- #endif /* CONFIG_MEMCG */
- 
- /* The caller must ensure the memcg lifetime. */
- bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
--		    struct mem_cgroup *memcg)
-+		  struct mem_cgroup *memcg)
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	struct list_lru_one *l;
- 
--	spin_lock(&nlru->lock);
-+	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
-+	if (!l)
-+		return false;
- 	if (list_empty(item)) {
--		l = list_lru_from_memcg(lru, nid, memcg);
- 		list_add_tail(item, &l->list);
- 		/* Set shrinker bit if the first element was added */
- 		if (!l->nr_items++)
- 			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
--		nlru->nr_items++;
--		spin_unlock(&nlru->lock);
-+		unlock_list_lru(l, false);
-+		atomic_long_inc(&nlru->nr_items);
- 		return true;
- 	}
--	spin_unlock(&nlru->lock);
-+	unlock_list_lru(l, false);
- 	return false;
- }
- 
-@@ -146,24 +196,23 @@ EXPORT_SYMBOL_GPL(list_lru_add_obj);
- 
- /* The caller must ensure the memcg lifetime. */
- bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
--		    struct mem_cgroup *memcg)
-+		  struct mem_cgroup *memcg)
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	struct list_lru_one *l;
--
--	spin_lock(&nlru->lock);
-+	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
-+	if (!l)
-+		return false;
- 	if (!list_empty(item)) {
--		l = list_lru_from_memcg(lru, nid, memcg);
- 		list_del_init(item);
- 		l->nr_items--;
--		nlru->nr_items--;
--		spin_unlock(&nlru->lock);
-+		unlock_list_lru(l, false);
-+		atomic_long_dec(&nlru->nr_items);
- 		return true;
- 	}
--	spin_unlock(&nlru->lock);
-+	unlock_list_lru(l, false);
- 	return false;
- }
--EXPORT_SYMBOL_GPL(list_lru_del);
- 
- bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
- {
-@@ -220,25 +269,24 @@ unsigned long list_lru_count_node(struct
- 	struct list_lru_node *nlru;
- 
- 	nlru = &lru->node[nid];
--	return nlru->nr_items;
-+	return atomic_long_read(&nlru->nr_items);
- }
- EXPORT_SYMBOL_GPL(list_lru_count_node);
- 
- static unsigned long
--__list_lru_walk_one(struct list_lru *lru, int nid, int memcg_idx,
-+__list_lru_walk_one(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
- 		    list_lru_walk_cb isolate, void *cb_arg,
--		    unsigned long *nr_to_walk)
-+		    unsigned long *nr_to_walk, bool irq_off)
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
--	struct list_lru_one *l;
-+	struct list_lru_one *l = NULL;
- 	struct list_head *item, *n;
- 	unsigned long isolated = 0;
- 
- restart:
--	l = list_lru_from_memcg_idx(lru, nid, memcg_idx);
-+	l = lock_list_lru_of_memcg(lru, nid, memcg, irq_off, true);
- 	if (!l)
--		goto out;
--
-+		return isolated;
- 	list_for_each_safe(item, n, &l->list) {
- 		enum lru_status ret;
- 
-@@ -250,19 +298,19 @@ restart:
- 			break;
- 		--*nr_to_walk;
- 
--		ret = isolate(item, l, &nlru->lock, cb_arg);
-+		ret = isolate(item, l, &l->lock, cb_arg);
- 		switch (ret) {
-+		/*
-+		 * LRU_RETRY, LRU_REMOVED_RETRY and LRU_STOP will drop the lru
-+		 * lock. List traversal will have to restart from scratch.
-+		 */
-+		case LRU_RETRY:
-+			goto restart;
- 		case LRU_REMOVED_RETRY:
--			assert_spin_locked(&nlru->lock);
- 			fallthrough;
- 		case LRU_REMOVED:
- 			isolated++;
--			nlru->nr_items--;
--			/*
--			 * If the lru lock has been dropped, our list
--			 * traversal is now invalid and so we have to
--			 * restart from scratch.
--			 */
-+			atomic_long_dec(&nlru->nr_items);
- 			if (ret == LRU_REMOVED_RETRY)
- 				goto restart;
- 			break;
-@@ -271,20 +319,13 @@ restart:
- 			break;
- 		case LRU_SKIP:
- 			break;
--		case LRU_RETRY:
--			/*
--			 * The lru lock has been dropped, our list traversal is
--			 * now invalid and so we have to restart from scratch.
--			 */
--			assert_spin_locked(&nlru->lock);
--			goto restart;
- 		case LRU_STOP:
--			assert_spin_locked(&nlru->lock);
- 			goto out;
- 		default:
- 			BUG();
- 		}
- 	}
-+	unlock_list_lru(l, irq_off);
- out:
- 	return isolated;
- }
-@@ -294,14 +335,8 @@ list_lru_walk_one(struct list_lru *lru,
- 		  list_lru_walk_cb isolate, void *cb_arg,
- 		  unsigned long *nr_to_walk)
- {
--	struct list_lru_node *nlru = &lru->node[nid];
--	unsigned long ret;
--
--	spin_lock(&nlru->lock);
--	ret = __list_lru_walk_one(lru, nid, memcg_kmem_id(memcg), isolate,
--				  cb_arg, nr_to_walk);
--	spin_unlock(&nlru->lock);
--	return ret;
-+	return __list_lru_walk_one(lru, nid, memcg, isolate,
-+				   cb_arg, nr_to_walk, false);
- }
- EXPORT_SYMBOL_GPL(list_lru_walk_one);
- 
-@@ -310,14 +345,8 @@ list_lru_walk_one_irq(struct list_lru *l
- 		      list_lru_walk_cb isolate, void *cb_arg,
- 		      unsigned long *nr_to_walk)
- {
--	struct list_lru_node *nlru = &lru->node[nid];
--	unsigned long ret;
--
--	spin_lock_irq(&nlru->lock);
--	ret = __list_lru_walk_one(lru, nid, memcg_kmem_id(memcg), isolate,
--				  cb_arg, nr_to_walk);
--	spin_unlock_irq(&nlru->lock);
--	return ret;
-+	return __list_lru_walk_one(lru, nid, memcg, isolate,
-+				   cb_arg, nr_to_walk, true);
- }
- 
- unsigned long list_lru_walk_node(struct list_lru *lru, int nid,
-@@ -332,16 +361,21 @@ unsigned long list_lru_walk_node(struct
- #ifdef CONFIG_MEMCG
- 	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru)) {
- 		struct list_lru_memcg *mlru;
-+		struct mem_cgroup *memcg;
- 		unsigned long index;
- 
- 		xa_for_each(&lru->xa, index, mlru) {
--			struct list_lru_node *nlru = &lru->node[nid];
--
--			spin_lock(&nlru->lock);
--			isolated += __list_lru_walk_one(lru, nid, index,
-+			rcu_read_lock();
-+			memcg = mem_cgroup_from_id(index);
-+			if (!mem_cgroup_tryget(memcg)) {
-+				rcu_read_unlock();
-+				continue;
-+			}
-+			rcu_read_unlock();
-+			isolated += __list_lru_walk_one(lru, nid, memcg,
- 							isolate, cb_arg,
--							nr_to_walk);
--			spin_unlock(&nlru->lock);
-+							nr_to_walk, false);
-+			mem_cgroup_put(memcg);
- 
- 			if (*nr_to_walk <= 0)
- 				break;
-@@ -353,14 +387,19 @@ unsigned long list_lru_walk_node(struct
- }
- EXPORT_SYMBOL_GPL(list_lru_walk_node);
- 
--static void init_one_lru(struct list_lru_one *l)
-+static void init_one_lru(struct list_lru *lru, struct list_lru_one *l)
- {
- 	INIT_LIST_HEAD(&l->list);
-+	spin_lock_init(&l->lock);
- 	l->nr_items = 0;
-+#ifdef CONFIG_LOCKDEP
-+	if (lru->key)
-+		lockdep_set_class(&l->lock, lru->key);
-+#endif
- }
- 
- #ifdef CONFIG_MEMCG
--static struct list_lru_memcg *memcg_init_list_lru_one(gfp_t gfp)
-+static struct list_lru_memcg *memcg_init_list_lru_one(struct list_lru *lru, gfp_t gfp)
- {
- 	int nid;
- 	struct list_lru_memcg *mlru;
-@@ -370,7 +409,7 @@ static struct list_lru_memcg *memcg_init
- 		return NULL;
- 
- 	for_each_node(nid)
--		init_one_lru(&mlru->node[nid]);
-+		init_one_lru(lru, &mlru->node[nid]);
- 
- 	return mlru;
- }
-@@ -398,28 +437,27 @@ static void memcg_destroy_list_lru(struc
- 	xas_unlock_irq(&xas);
- }
- 
--static void memcg_reparent_list_lru_node(struct list_lru *lru, int nid,
--					 struct list_lru_one *src,
--					 struct mem_cgroup *dst_memcg)
-+static void memcg_reparent_list_lru_one(struct list_lru *lru, int nid,
-+					struct list_lru_one *src,
-+					struct mem_cgroup *dst_memcg)
- {
--	struct list_lru_node *nlru = &lru->node[nid];
-+	int dst_idx = dst_memcg->kmemcg_id;
- 	struct list_lru_one *dst;
- 
--	/*
--	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
--	 * we have to use IRQ-safe primitives here to avoid deadlock.
--	 */
--	spin_lock_irq(&nlru->lock);
--	dst = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(dst_memcg));
-+	spin_lock_irq(&src->lock);
-+	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
-+	spin_lock_nested(&dst->lock, SINGLE_DEPTH_NESTING);
- 
- 	list_splice_init(&src->list, &dst->list);
--
- 	if (src->nr_items) {
- 		dst->nr_items += src->nr_items;
- 		set_shrinker_bit(dst_memcg, nid, lru_shrinker_id(lru));
--		src->nr_items = 0;
- 	}
--	spin_unlock_irq(&nlru->lock);
-+	/* Mark the list_lru_one dead */
-+	src->nr_items = LONG_MIN;
++	pr_debug("%s(0x%px)\n", __func__, ptr);
 +
-+	spin_unlock(&dst->lock);
-+	spin_unlock_irq(&src->lock);
- }
- 
- void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-@@ -448,7 +486,7 @@ void memcg_reparent_list_lrus(struct mem
- 		 * safe to reparent.
- 		 */
- 		for_each_node(i)
--			memcg_reparent_list_lru_node(lru, i, &mlru->node[i], parent);
-+			memcg_reparent_list_lru_one(lru, i, &mlru->node[i], parent);
- 
- 		/*
- 		 * Here all list_lrus corresponding to the cgroup are guaranteed
-@@ -497,7 +535,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 			parent = parent_mem_cgroup(pos);
- 		}
- 
--		mlru = memcg_init_list_lru_one(gfp);
-+		mlru = memcg_init_list_lru_one(lru, gfp);
- 		if (!mlru)
- 			return -ENOMEM;
- 		xas_set(&xas, pos->kmemcg_id);
-@@ -544,14 +582,8 @@ int __list_lru_init(struct list_lru *lru
- 	if (!lru->node)
- 		return -ENOMEM;
- 
--	for_each_node(i) {
--		spin_lock_init(&lru->node[i].lock);
--#ifdef CONFIG_LOCKDEP
--		if (lru->key)
--			lockdep_set_class(&lru->node[i].lock, lru->key);
--#endif
--		init_one_lru(&lru->node[i].lru);
--	}
-+	for_each_node(i)
-+		init_one_lru(lru, &lru->node[i].lru);
- 
- 	memcg_init_list_lru(lru, memcg_aware);
- 	list_lru_register(lru);
---- a/mm/memcontrol.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/mm/memcontrol.c
-@@ -3110,8 +3110,13 @@ static void memcg_offline_kmem(struct me
- 	if (!parent)
- 		parent = root_mem_cgroup;
- 
--	memcg_reparent_objcgs(memcg, parent);
- 	memcg_reparent_list_lrus(memcg, parent);
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
++		reset_checksum((unsigned long)ptr);
++}
++EXPORT_SYMBOL(kmemleak_transient_leak);
 +
-+	/*
-+	 * Objcg's reparenting must be after list_lru's, make sure list_lru
-+	 * helpers won't use parent's list_lru until child is drained.
-+	 */
-+	memcg_reparent_objcgs(memcg, parent);
- }
- 
- #ifdef CONFIG_CGROUP_WRITEBACK
---- a/mm/workingset.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/mm/workingset.c
-@@ -767,7 +767,6 @@ out_invalid:
- 	ret = LRU_REMOVED_RETRY;
- out:
- 	cond_resched();
--	spin_lock_irq(lru_lock);
- 	return ret;
- }
- 
---- a/mm/zswap.c~mm-list_lru-split-the-lock-to-per-cgroup-scope
-+++ a/mm/zswap.c
-@@ -711,9 +711,9 @@ static void zswap_lru_add(struct list_lr
- 	 * Note that it is safe to use rcu_read_lock() here, even in the face of
- 	 * concurrent memcg offlining:
- 	 *
--	 * 1. list_lru_add() is called before list_lru_memcg is erased. The
-+	 * 1. list_lru_add() is called before list_lru_one is dead. The
- 	 *    new entry will be reparented to memcg's parent's list_lru.
--	 * 2. list_lru_add() is called after list_lru_memcg is erased. The
-+	 * 2. list_lru_add() is called after list_lru_one is dead. The
- 	 *    new entry will be added directly to memcg's parent's list_lru.
- 	 *
- 	 * Similar reasoning holds for list_lru_del().
-@@ -1179,7 +1179,6 @@ static enum lru_status shrink_memcg_cb(s
- 		zswap_written_back_pages++;
- 	}
- 
--	spin_lock(lock);
- 	return ret;
- }
- 
++/**
+  * kmemleak_ignore - ignore an allocated object
+  * @ptr:	pointer to beginning of the object
+  *
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 
