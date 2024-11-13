@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1254215021;
-	Tue, 12 Nov 2024 18:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2044915A8
+	for <mm-commits@vger.kernel.org>; Wed, 13 Nov 2024 00:01:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731435271; cv=none; b=KzY2P7Ddhj+Sf62nCUyjNFa+R0beCGzBmuv43CmqoKfiUMNu2jX2vGqAuwpVxU4S94OAihKDOPIX5qmRtXIdd1qF31SpqqL/ZXO/j6pDBAtGKdWIJV0rugE6W9EoHQmxYiJ284vhOUNjqqrlbMcyRWZqJxe7tA6QjYXXYoqzXb4=
+	t=1731456120; cv=none; b=ZZf9SBg4ffOK8hGHJQDuALDyxceddiihUTM2LXx10/QNddBa11aMnj4jQFCf86SO8nBFzljQVKmd/+IfOBRzvq/TWXCWKJYHabk6GAmT+Goc66eYGlGVkIW1MiNjMFk+NjNBKaAyY/9uNVUdk1H8PqlE+dZfnAPNu8UtfWPWt74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731435271; c=relaxed/simple;
-	bh=E1F1Eo/GeJe0d4SWjnY7HHztQ3rwhHjK/4Oq/UoWHcw=;
-	h=Date:To:From:Subject:Message-Id; b=C55g73F9grOky1HMfHEKQEjPNDm7ayN5K/Riw63xlMg+MxzkHDHzYCcy1fuRLwSEYd9kO7N74XEFxXgS/MOjwrktVSyO7UKrEOMBK5w+FRa5clGFmw/i82yXhi62LjhZEaxAAhRQVjSkd5CxyGQo5YS2UZ2tZ7qE2YP+LyGp86E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bTDZTJKP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731456120; c=relaxed/simple;
+	bh=Sv1hgN0UqGLSkqYvQtbkoLO9gzy0kmo4K1C2Ixn5vO0=;
+	h=Date:To:From:Subject:Message-Id; b=CXz+3qrAUzR3rDK7z4/mi6lD4PBi4vcvaugXmcipI6CbybdZmsgMRgZZlgI/rYbMNRV1fMPRkoOLT52jZKL4NTSgFj+7CGAyfeBNJMvGCUKaY5vaud8bzS6rtN9P+gA+rWpi2tokNSzglaMEg907sYkCeZPg7aBMtIQ+ANN+uhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRhQOBCX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bTDZTJKP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55D21C4CED5;
-	Tue, 12 Nov 2024 18:14:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRhQOBCX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79BB5C4CED0;
+	Wed, 13 Nov 2024 00:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731435271;
-	bh=E1F1Eo/GeJe0d4SWjnY7HHztQ3rwhHjK/4Oq/UoWHcw=;
+	s=korg; t=1731456119;
+	bh=Sv1hgN0UqGLSkqYvQtbkoLO9gzy0kmo4K1C2Ixn5vO0=;
 	h=Date:To:From:Subject:From;
-	b=bTDZTJKPd8+wiTa8A+mxTQh0RGTgYldVBlKeVm4sofHZFo3VfGiWApzcew3rRRQap
-	 /3LDpGWcgj0RX+YEKyDASjsg/IOlqBPGpjq8d9KtcEXgKdMYQcrnvx00rNVZqLjr6B
-	 ReDrxyUX8bYW5X29MKi4yanPZhe/sPH6rrTx3OTQ=
-Date: Tue, 12 Nov 2024 10:14:30 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,shuah@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=NRhQOBCXYp/18B5123Tzx4u5gUJMJRC43HBU6KoK2XnNL57Gy0y/90YwsnqlcfUrl
+	 2zTo8sWzD6wHL1vtfV7Z9qPBA+frULzyXfZnvivE4UHBlKN6A0k7sASYG+FZalVx5m
+	 mx9L9uJQBVrSC5jbdjK85lKKhst7zkVKq6I+1TLo=
+Date: Tue, 12 Nov 2024 16:01:58 -0800
+To: mm-commits@vger.kernel.org,ryncsn@gmail.com,daan.j.demeyer@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-hugetlb_dio-fixup-check-for-initial-conditions-to-skip-in-the-start.patch removed from -mm tree
-Message-Id: <20241112181431.55D21C4CED5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices.patch removed from -mm tree
+Message-Id: <20241113000159.79BB5C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: hugetlb_dio: fixup check for initial conditions to skip in the start
+     Subject: mm: swapfile: fix cluster reclaim work crash on rotational devices
 has been removed from the -mm tree.  Its filename was
-     selftests-hugetlb_dio-fixup-check-for-initial-conditions-to-skip-in-the-start.patch
+     mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftests: hugetlb_dio: fixup check for initial conditions to skip in the start
-Date: Sun, 10 Nov 2024 00:49:03 -0600
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: swapfile: fix cluster reclaim work crash on rotational devices
+Date: Thu, 7 Nov 2024 09:08:36 -0500
 
-This test verifies that a hugepage, used as a user buffer for DIO
-operations, is correctly freed upon unmapping.  To test this, we read the
-count of free hugepages before and after the mmap, DIO, and munmap
-operations, then check if the free hugepage count is the same.
+syzbot and Daan report a NULL pointer crash in the new full swap cluster
+reclaim work:
 
-Reading free hugepages before the test was removed by commit 0268d4579901
-('selftests: hugetlb_dio: check for initial conditions to skip at the
-start'), causing the test to always fail.
+> Oops: general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN PTI
+> KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+> CPU: 1 UID: 0 PID: 51 Comm: kworker/1:1 Not tainted 6.12.0-rc6-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
+> Workqueue: events swap_reclaim_work
+> RIP: 0010:__list_del_entry_valid_or_report+0x20/0x1c0 lib/list_debug.c:49
+> Code: 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 48 89 fe 48 83 c7 08 48 83 ec 18 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 19 01 00 00 48 89 f2 48 8b 4e 08 48 b8 00 00 00
+> RSP: 0018:ffffc90000bb7c30 EFLAGS: 00010202
+> RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffff88807b9ae078
+> RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000008
+> RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+> R10: 0000000000000001 R11: 000000000000004f R12: dffffc0000000000
+> R13: ffffffffffffffb8 R14: ffff88807b9ae000 R15: ffffc90003af1000
+> FS:  0000000000000000(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00007fffaca68fb8 CR3: 00000000791c8000 CR4: 00000000003526f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>  <TASK>
+>  __list_del_entry_valid include/linux/list.h:124 [inline]
+>  __list_del_entry include/linux/list.h:215 [inline]
+>  list_move_tail include/linux/list.h:310 [inline]
+>  swap_reclaim_full_clusters+0x109/0x460 mm/swapfile.c:748
+>  swap_reclaim_work+0x2e/0x40 mm/swapfile.c:779
 
-This patch adds back reading the free hugepages before starting the test. 
-With this patch, the tests are now passing.
+The syzbot console output indicates a virtual environment where swapfile
+is on a rotational device.  In this case, clusters aren't actually used,
+and si->full_clusters is not initialized.  Daan's report is from qemu, so
+likely rotational too.
 
-Test results without this patch:
+Make sure to only schedule the cluster reclaim work when clusters are
+actually in use.
 
-./tools/testing/selftests/mm/hugetlb_dio
-TAP version 13
-1..4
- # No. Free pages before allocation : 0
- # No. Free pages after munmap : 100
-not ok 1 : Huge pages not freed!
- # No. Free pages before allocation : 0
- # No. Free pages after munmap : 100
-not ok 2 : Huge pages not freed!
- # No. Free pages before allocation : 0
- # No. Free pages after munmap : 100
-not ok 3 : Huge pages not freed!
- # No. Free pages before allocation : 0
- # No. Free pages after munmap : 100
-not ok 4 : Huge pages not freed!
- # Totals: pass:0 fail:4 xfail:0 xpass:0 skip:0 error:0
-
-Test results with this patch:
-
-/tools/testing/selftests/mm/hugetlb_dio
-TAP version 13
-1..4
-# No. Free pages before allocation : 100
-# No. Free pages after munmap : 100
-ok 1 : Huge pages freed successfully !
-# No. Free pages before allocation : 100
-# No. Free pages after munmap : 100
-ok 2 : Huge pages freed successfully !
-# No. Free pages before allocation : 100
-# No. Free pages after munmap : 100
-ok 3 : Huge pages freed successfully !
-# No. Free pages before allocation : 100
-# No. Free pages after munmap : 100
-ok 4 : Huge pages freed successfully !
-
-# Totals: pass:4 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-Link: https://lkml.kernel.org/r/20241110064903.23626-1-donettom@linux.ibm.com
-Fixes: 0268d4579901 ("selftests: hugetlb_dio: check for initial conditions to skip in the start")
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241107142335.GB1172372@cmpxchg.org
+Link: https://lore.kernel.org/lkml/672ac50b.050a0220.2edce.1517.GAE@google.com/
+Link: https://github.com/systemd/systemd/issues/35044
+Fixes: 5168a68eb78f ("mm, swap: avoid over reclaim of full clusters")
+Reported-by: syzbot+078be8bfa863cb9e0c6b@syzkaller.appspotmail.com
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Daan De Meyer <daan.j.demeyer@gmail.com>
+Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_dio.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-hugetlb_dio-fixup-check-for-initial-conditions-to-skip-in-the-start
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -44,6 +44,13 @@ void run_dio_using_hugetlb(unsigned int
- 	if (fd < 0)
- 		ksft_exit_fail_perror("Error opening file\n");
+--- a/mm/swapfile.c~mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices
++++ a/mm/swapfile.c
+@@ -929,7 +929,7 @@ static void swap_range_alloc(struct swap
+ 		si->highest_bit = 0;
+ 		del_from_avail_list(si);
  
-+	/* Get the free huge pages before allocation */
-+	free_hpage_b = get_free_hugepages();
-+	if (free_hpage_b == 0) {
-+		close(fd);
-+		ksft_exit_skip("No free hugepage, exiting!\n");
-+	}
-+
- 	/* Allocate a hugetlb page */
- 	orig_buffer = mmap(NULL, h_pagesize, mmap_prot, mmap_flags, -1, 0);
- 	if (orig_buffer == MAP_FAILED) {
+-		if (vm_swap_full())
++		if (si->cluster_info && vm_swap_full())
+ 			schedule_work(&si->reclaim_work);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
