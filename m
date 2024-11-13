@@ -1,116 +1,110 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2044915A8
-	for <mm-commits@vger.kernel.org>; Wed, 13 Nov 2024 00:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C6E779FE;
+	Wed, 13 Nov 2024 00:41:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731456120; cv=none; b=ZZf9SBg4ffOK8hGHJQDuALDyxceddiihUTM2LXx10/QNddBa11aMnj4jQFCf86SO8nBFzljQVKmd/+IfOBRzvq/TWXCWKJYHabk6GAmT+Goc66eYGlGVkIW1MiNjMFk+NjNBKaAyY/9uNVUdk1H8PqlE+dZfnAPNu8UtfWPWt74=
+	t=1731458490; cv=none; b=IbBBUFusfR3UGCzey8kXSU7P5BzuOwgGGOKS0Il/CrLFKo0A48U0ebqvrxcQkr3xdZaTl2RD1aALrPccokztCKlqCpDu6c6E6rhzqCJVkItAWVvhSA1ir3fukU5f/JRH9nrLGCMOXsqOsXocIDiDVoBTdNUz6fHTK5+lIMmuBhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731456120; c=relaxed/simple;
-	bh=Sv1hgN0UqGLSkqYvQtbkoLO9gzy0kmo4K1C2Ixn5vO0=;
-	h=Date:To:From:Subject:Message-Id; b=CXz+3qrAUzR3rDK7z4/mi6lD4PBi4vcvaugXmcipI6CbybdZmsgMRgZZlgI/rYbMNRV1fMPRkoOLT52jZKL4NTSgFj+7CGAyfeBNJMvGCUKaY5vaud8bzS6rtN9P+gA+rWpi2tokNSzglaMEg907sYkCeZPg7aBMtIQ+ANN+uhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRhQOBCX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731458490; c=relaxed/simple;
+	bh=Is3ssievspKEHE3q3tDDHCIV5v6o3lZOjLw3GEhHSiM=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=UDs1NGwji1LNtyJDdNgNxwKW6BsFqXNlCM9bNTr0xCi7QTI+d2S826CG0JzRDg0uEKYwoMeediaugaNrCOVuR4aBlbnBSxVd+X7EmqqotM1yPpyLQBFMgfryDVYlxSxY9JGJbSJmmsB01afV3WTBtcrbUlPoPxYwR8qWAX56Y/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=06MG/l7W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRhQOBCX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79BB5C4CED0;
-	Wed, 13 Nov 2024 00:01:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="06MG/l7W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F27EC4CED4;
+	Wed, 13 Nov 2024 00:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731456119;
-	bh=Sv1hgN0UqGLSkqYvQtbkoLO9gzy0kmo4K1C2Ixn5vO0=;
-	h=Date:To:From:Subject:From;
-	b=NRhQOBCXYp/18B5123Tzx4u5gUJMJRC43HBU6KoK2XnNL57Gy0y/90YwsnqlcfUrl
-	 2zTo8sWzD6wHL1vtfV7Z9qPBA+frULzyXfZnvivE4UHBlKN6A0k7sASYG+FZalVx5m
-	 mx9L9uJQBVrSC5jbdjK85lKKhst7zkVKq6I+1TLo=
-Date: Tue, 12 Nov 2024 16:01:58 -0800
-To: mm-commits@vger.kernel.org,ryncsn@gmail.com,daan.j.demeyer@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	s=korg; t=1731458489;
+	bh=Is3ssievspKEHE3q3tDDHCIV5v6o3lZOjLw3GEhHSiM=;
+	h=Date:From:To:Cc:Subject:From;
+	b=06MG/l7WQ2prnXU5sEZyCxX3NGC+U4dfIm7K/X7Lv+Q3oDbRMlnwtPWr7Z7o5+MUg
+	 bztOuCl9VnzwnLUmPriV4zPvlyZkRB5zi9Ltf0A9yM6e/c5LZ2DBaJKOF6ZXqJb9Qv
+	 Oqhmd7wv3Rn9UFah6iXeXIdcMNizQxmqtRfrmNOg=
+Date: Tue, 12 Nov 2024 16:41:28 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices.patch removed from -mm tree
-Message-Id: <20241113000159.79BB5C4CED0@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.12
+Message-Id: <20241112164128.20f96b224ec3e2be9403fee2@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: mm: swapfile: fix cluster reclaim work crash on rotational devices
-has been removed from the -mm tree.  Its filename was
-     mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices.patch
+Linus, please pull this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit c289f4de8e479251b64988839fd0e87f246e03a2:
 
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: swapfile: fix cluster reclaim work crash on rotational devices
-Date: Thu, 7 Nov 2024 09:08:36 -0500
+  mailmap: add entry for Thorsten Blum (2024-11-07 14:14:59 -0800)
 
-syzbot and Daan report a NULL pointer crash in the new full swap cluster
-reclaim work:
+are available in the Git repository at:
 
-> Oops: general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN PTI
-> KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
-> CPU: 1 UID: 0 PID: 51 Comm: kworker/1:1 Not tainted 6.12.0-rc6-syzkaller #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
-> Workqueue: events swap_reclaim_work
-> RIP: 0010:__list_del_entry_valid_or_report+0x20/0x1c0 lib/list_debug.c:49
-> Code: 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 48 89 fe 48 83 c7 08 48 83 ec 18 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 19 01 00 00 48 89 f2 48 8b 4e 08 48 b8 00 00 00
-> RSP: 0018:ffffc90000bb7c30 EFLAGS: 00010202
-> RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffff88807b9ae078
-> RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000008
-> RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
-> R10: 0000000000000001 R11: 000000000000004f R12: dffffc0000000000
-> R13: ffffffffffffffb8 R14: ffff88807b9ae000 R15: ffffc90003af1000
-> FS:  0000000000000000(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007fffaca68fb8 CR3: 00000000791c8000 CR4: 00000000003526f0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> Call Trace:
->  <TASK>
->  __list_del_entry_valid include/linux/list.h:124 [inline]
->  __list_del_entry include/linux/list.h:215 [inline]
->  list_move_tail include/linux/list.h:310 [inline]
->  swap_reclaim_full_clusters+0x109/0x460 mm/swapfile.c:748
->  swap_reclaim_work+0x2e/0x40 mm/swapfile.c:779
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-11-12-16-39
 
-The syzbot console output indicates a virtual environment where swapfile
-is on a rotational device.  In this case, clusters aren't actually used,
-and si->full_clusters is not initialized.  Daan's report is from qemu, so
-likely rotational too.
+for you to fetch changes up to dcf32ea7ecede94796fb30231b3969d7c838374c:
 
-Make sure to only schedule the cluster reclaim work when clusters are
-actually in use.
+  mm: swapfile: fix cluster reclaim work crash on rotational devices (2024-11-12 16:01:36 -0800)
 
-Link: https://lkml.kernel.org/r/20241107142335.GB1172372@cmpxchg.org
-Link: https://lore.kernel.org/lkml/672ac50b.050a0220.2edce.1517.GAE@google.com/
-Link: https://github.com/systemd/systemd/issues/35044
-Fixes: 5168a68eb78f ("mm, swap: avoid over reclaim of full clusters")
-Reported-by: syzbot+078be8bfa863cb9e0c6b@syzkaller.appspotmail.com
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Daan De Meyer <daan.j.demeyer@gmail.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+10 hotfixes, 7 of which are cc:stable.  7 are MM, 3 are not.  All
+singletons.
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+----------------------------------------------------------------
+Barry Song (1):
+      mm: count zeromap read and set for swapout and swapin
 
---- a/mm/swapfile.c~mm-swapfile-fix-cluster-reclaim-work-crash-on-rotational-devices
-+++ a/mm/swapfile.c
-@@ -929,7 +929,7 @@ static void swap_range_alloc(struct swap
- 		si->highest_bit = 0;
- 		del_from_avail_list(si);
- 
--		if (vm_swap_full())
-+		if (si->cluster_info && vm_swap_full())
- 			schedule_work(&si->reclaim_work);
- 	}
- }
-_
+Dmitry Antipov (1):
+      ocfs2: fix UBSAN warning in ocfs2_verify_volume()
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Donet Tom (1):
+      selftests: hugetlb_dio: fixup check for initial conditions to skip in the start
 
+Hajime Tazaki (1):
+      nommu: pass NULL argument to vma_iter_prealloc()
+
+Hugh Dickins (1):
+      mm/thp: fix deferred split queue not partially_mapped: fix
+
+Johannes Weiner (1):
+      mm: swapfile: fix cluster reclaim work crash on rotational devices
+
+John Hubbard (1):
+      mm/gup: avoid an unnecessary allocation call for FOLL_LONGTERM cases
+
+Roman Gushchin (1):
+      mm: page_alloc: move mlocked flag clearance into free_pages_prepare()
+
+Ryusuke Konishi (2):
+      nilfs2: fix null-ptr-deref in block_touch_buffer tracepoint
+      nilfs2: fix null-ptr-deref in block_dirty_buffer tracepoint
+
+ Documentation/admin-guide/cgroup-v2.rst  |   9 +++
+ fs/nilfs2/btnode.c                       |   2 -
+ fs/nilfs2/gcinode.c                      |   4 +-
+ fs/nilfs2/mdt.c                          |   1 -
+ fs/nilfs2/page.c                         |   2 +-
+ fs/ocfs2/super.c                         |  13 ++--
+ include/linux/memcontrol.h               |  12 ++--
+ include/linux/vm_event_item.h            |   2 +
+ mm/gup.c                                 | 116 ++++++++++++++++++++-----------
+ mm/huge_memory.c                         |   4 +-
+ mm/memcontrol.c                          |   4 ++
+ mm/nommu.c                               |   2 +-
+ mm/page_alloc.c                          |  15 ++++
+ mm/page_io.c                             |  16 +++++
+ mm/swap.c                                |  14 ----
+ mm/swapfile.c                            |   2 +-
+ mm/vmstat.c                              |   2 +
+ mm/zswap.c                               |   6 +-
+ tools/testing/selftests/mm/hugetlb_dio.c |   7 ++
+ 19 files changed, 158 insertions(+), 75 deletions(-)
 
