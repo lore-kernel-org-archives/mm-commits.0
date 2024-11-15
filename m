@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88C77153800
-	for <mm-commits@vger.kernel.org>; Fri, 15 Nov 2024 06:49:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46EF153800
+	for <mm-commits@vger.kernel.org>; Fri, 15 Nov 2024 06:50:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731653399; cv=none; b=jT9b+gN+80n/3wnsL2QTNV0ajVztQ4WJjqfq3cgG61V5a3FqB03PyG467HI64U9eWP0JjLa7X2k8kGl06ytWgYO4LDdH8wA80uZJSN/qrD06Or9TeLqjZj4QfFAX+SedoDynTwWpervpYOYs8jXaRmGZzq2uKgxIyow2D2Zqhws=
+	t=1731653403; cv=none; b=LoXDsG1XJWLnbkD0JbVkJvehvX5yLEzuWnhc40Wu7e3VCxfX778P7unVjJoWP/X+BpBMFonJ8zb7MJ0UfKlHXsUvPkMoyEgR1bTWTdCtB1xC/yYVj+3iIX7yz8ec1TJrIXGGMBmcrBpILBftyVl3Ji53hnY3+rSkXzXUuJN0nrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731653399; c=relaxed/simple;
-	bh=qgfHgKldkm3NLSDNsYy/bjswYCiGx6eDOn6tXVfpKig=;
-	h=Date:To:From:Subject:Message-Id; b=UNF5lkpRgImeaqpJTGyMp7l9ldDCtI38O7ysuuNTysjkQy5FyAyHQwhIVMNt318qp83uXeLs5rCvqvAH2VHilbfyWEa2ayeMnam+G8ORu6ZJrknrhZEW5iccv2Gw0pl0Oh7I/p8t6rIBX8kfnnZqeBIibBImpjPKf1vS39z/wKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wDPxBllt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731653403; c=relaxed/simple;
+	bh=NiR/5hoEnTl9lO+MoODhCofhAUVaCeQR6AugAFJtoTU=;
+	h=Date:To:From:Subject:Message-Id; b=CkNs4VACvgh+TI3DiFrQroiNQXQaMI+rm8qe0Ymwq8Lfdlc2Qh0RvK5/qGM/+YpdqAdE0bjuyxjrPiKIoFu7LyP5uKKobyF8fAmHfbaFGxPPRFye7dWArw5niDbHGUi1o7iPQstYf/OZBiSL6CsOiaj9qyEdsRuk+0UUBU0hTrw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VBMo0yzI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wDPxBllt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63492C4CECF;
-	Fri, 15 Nov 2024 06:49:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VBMo0yzI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C2EFC4CECF;
+	Fri, 15 Nov 2024 06:50:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731653399;
-	bh=qgfHgKldkm3NLSDNsYy/bjswYCiGx6eDOn6tXVfpKig=;
+	s=korg; t=1731653403;
+	bh=NiR/5hoEnTl9lO+MoODhCofhAUVaCeQR6AugAFJtoTU=;
 	h=Date:To:From:Subject:From;
-	b=wDPxBlltP9nqxCDU9p7E2iDbdhCvWgGdiHuYg6txjhpvR4GIL9YJNjaGWwsodHFB/
-	 4TBUViKa2LapZkOUuk+M5iGWAcbZYVZBr42Lz2TExPFznzlBtvPG1m42Y3gvG9b5dM
-	 fumomNI9ao5CWs8czsARRg/9jMwnH/UXhuIZJ7p0=
-Date: Thu, 14 Nov 2024 22:49:55 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=VBMo0yzI/bZt07o0iJwXEDX8SsNFJ+4jELTHttECAXEzX7ph7n6nlTdTpPok0HY7p
+	 qcgWSY0F8NI58zTfVcOLbFigKNuqCsXuTg7yAYWYSHm3Hk1nWssW5st70hVRPKrKmH
+	 cjwH3zbsQXw8BT1jZ3xIYcKbpfB0azGFOAA7b1yw=
+Date: Thu, 14 Nov 2024 22:49:59 -0800
+To: mm-commits@vger.kernel.org,ritesh.list@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,nirjhar@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-fix-null-pointer-in-comp_algorithm_show.patch removed from -mm tree
-Message-Id: <20241115064958.63492C4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault.patch removed from -mm tree
+Message-Id: <20241115065003.1C2EFC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix NULL pointer in comp_algorithm_show()
+     Subject: mm/kfence: add a new kunit test test_use_after_free_read_nofault()
 has been removed from the -mm tree.  Its filename was
-     zram-fix-null-pointer-in-comp_algorithm_show.patch
+     mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: zram: fix NULL pointer in comp_algorithm_show()
-Date: Fri, 8 Nov 2024 18:01:47 +0800
+From: Nirjhar Roy <nirjhar@linux.ibm.com>
+Subject: mm/kfence: add a new kunit test test_use_after_free_read_nofault()
+Date: Fri, 18 Oct 2024 23:16:01 +0530
 
-LTP reported a NULL pointer dereference as followed:
+Faults from copy_from_kernel_nofault() need to be handled by fixup table
+and should not be handled by kfence.  Otherwise while reading /proc/kcore
+which uses copy_from_kernel_nofault(), kfence can generate false
+negatives.  This can happen when /proc/kcore ends up reading an unmapped
+address from kfence pool.
 
- CPU: 7 UID: 0 PID: 5995 Comm: cat Kdump: loaded Not tainted 6.12.0-rc6+ #3
- Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
- pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
- pc : __pi_strcmp+0x24/0x140
- lr : zcomp_available_show+0x60/0x100 [zram]
- sp : ffff800088b93b90
- x29: ffff800088b93b90 x28: 0000000000000001 x27: 0000000000400cc0
- x26: 0000000000000ffe x25: ffff80007b3e2388 x24: 0000000000000000
- x23: ffff80007b3e2390 x22: ffff0004041a9000 x21: ffff80007b3e2900
- x20: 0000000000000000 x19: 0000000000000000 x18: 0000000000000000
- x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
- x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
- x11: 0000000000000000 x10: ffff80007b3e2900 x9 : ffff80007b3cb280
- x8 : 0101010101010101 x7 : 0000000000000000 x6 : 0000000000000000
- x5 : 0000000000000040 x4 : 0000000000000000 x3 : 00656c722d6f7a6c
- x2 : 0000000000000000 x1 : ffff80007b3e2900 x0 : 0000000000000000
- Call trace:
-  __pi_strcmp+0x24/0x140
-  comp_algorithm_show+0x40/0x70 [zram]
-  dev_attr_show+0x28/0x80
-  sysfs_kf_seq_show+0x90/0x140
-  kernfs_seq_show+0x34/0x48
-  seq_read_iter+0x1d4/0x4e8
-  kernfs_fop_read_iter+0x40/0x58
-  new_sync_read+0x9c/0x168
-  vfs_read+0x1a8/0x1f8
-  ksys_read+0x74/0x108
-  __arm64_sys_read+0x24/0x38
-  invoke_syscall+0x50/0x120
-  el0_svc_common.constprop.0+0xc8/0xf0
-  do_el0_svc+0x24/0x38
-  el0_svc+0x38/0x138
-  el0t_64_sync_handler+0xc0/0xc8
-  el0t_64_sync+0x188/0x190
+Let's add a testcase to cover this case.
 
-The zram->comp_algs[ZRAM_PRIMARY_COMP] can be NULL in zram_add() if
-comp_algorithm_set() has not been called.  User can access the zram device
-by sysfs after device_add_disk(), so there is a time window to trigger the
-NULL pointer dereference.  Move it ahead device_add_disk() to make sure
-when user can access the zram device, it is ready.  comp_algorithm_set()
-is protected by zram->init_lock in other places and no such problem.
-
-Link: https://lkml.kernel.org/r/20241108100147.3776123-1-liushixin2@huawei.com
-Fixes: 7ac07a26dea7 ("zram: preparation for multi-zcomp support")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/210e561f7845697a32de44b643393890f180069f.1729272697.git.ritesh.list@gmail.com
+Signed-off-by: Nirjhar Roy <nirjhar@linux.ibm.com>
+Co-developed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Tested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/kfence/kfence_test.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-null-pointer-in-comp_algorithm_show
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2572,6 +2572,8 @@ static int zram_add(void)
- 	zram->disk->private_data = zram;
- 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
- 	atomic_set(&zram->pp_in_progress, 0);
-+	zram_comp_params_reset(zram);
-+	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
+--- a/mm/kfence/kfence_test.c~mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault
++++ a/mm/kfence/kfence_test.c
+@@ -383,6 +383,22 @@ static void test_use_after_free_read(str
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
- 	/* Actual capacity set using sysfs (/sys/block/zram<id>/disksize */
- 	set_capacity(zram->disk, 0);
-@@ -2579,9 +2581,6 @@ static int zram_add(void)
- 	if (ret)
- 		goto out_cleanup_disk;
- 
--	zram_comp_params_reset(zram);
--	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
--
- 	zram_debugfs_register(zram);
- 	pr_info("Added device: %s\n", zram->disk->disk_name);
- 	return device_id;
++static void test_use_after_free_read_nofault(struct kunit *test)
++{
++	const size_t size = 32;
++	char *addr;
++	char dst;
++	int ret;
++
++	setup_test_cache(test, size, 0, NULL);
++	addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
++	test_free(addr);
++	/* Use after free with *_nofault() */
++	ret = copy_from_kernel_nofault(&dst, addr, 1);
++	KUNIT_EXPECT_EQ(test, ret, -EFAULT);
++	KUNIT_EXPECT_FALSE(test, report_available());
++}
++
+ static void test_double_free(struct kunit *test)
+ {
+ 	const size_t size = 32;
+@@ -780,6 +796,7 @@ static struct kunit_case kfence_test_cas
+ 	KFENCE_KUNIT_CASE(test_out_of_bounds_read),
+ 	KFENCE_KUNIT_CASE(test_out_of_bounds_write),
+ 	KFENCE_KUNIT_CASE(test_use_after_free_read),
++	KFENCE_KUNIT_CASE(test_use_after_free_read_nofault),
+ 	KFENCE_KUNIT_CASE(test_double_free),
+ 	KFENCE_KUNIT_CASE(test_invalid_addr_free),
+ 	KFENCE_KUNIT_CASE(test_corruption),
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from nirjhar@linux.ibm.com are
 
 
