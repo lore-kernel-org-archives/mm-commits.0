@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46EF153800
-	for <mm-commits@vger.kernel.org>; Fri, 15 Nov 2024 06:50:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D834188015
+	for <mm-commits@vger.kernel.org>; Fri, 15 Nov 2024 06:50:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731653403; cv=none; b=LoXDsG1XJWLnbkD0JbVkJvehvX5yLEzuWnhc40Wu7e3VCxfX778P7unVjJoWP/X+BpBMFonJ8zb7MJ0UfKlHXsUvPkMoyEgR1bTWTdCtB1xC/yYVj+3iIX7yz8ec1TJrIXGGMBmcrBpILBftyVl3Ji53hnY3+rSkXzXUuJN0nrw=
+	t=1731653408; cv=none; b=oq+ilz4sages8q4LXu8M4dBDx2duhWouu+BdV8SnKMTWBfaSypFAoPyyjhfXWeJCalLnq8Hk3I5F4glRaOWd0eP8+3RIdIZG7hCJ3m54+urFkOh78ag6nG/ZlIi/9OZ6EMZhF8IcvKaReHbJoY1LksS+vf+WpTcLB/4/ThnH2Rc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731653403; c=relaxed/simple;
-	bh=NiR/5hoEnTl9lO+MoODhCofhAUVaCeQR6AugAFJtoTU=;
-	h=Date:To:From:Subject:Message-Id; b=CkNs4VACvgh+TI3DiFrQroiNQXQaMI+rm8qe0Ymwq8Lfdlc2Qh0RvK5/qGM/+YpdqAdE0bjuyxjrPiKIoFu7LyP5uKKobyF8fAmHfbaFGxPPRFye7dWArw5niDbHGUi1o7iPQstYf/OZBiSL6CsOiaj9qyEdsRuk+0UUBU0hTrw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VBMo0yzI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731653408; c=relaxed/simple;
+	bh=6eG3TJkNtGMIgyrjxjmst4WTw4pwQLyBu10/2QSbMBY=;
+	h=Date:To:From:Subject:Message-Id; b=YLDzdo/AoeTAbzb9SuiJ2SdjAGgg7B5NN3bCmMkC/UXN5MJvvg/dnDn1ONF0ZZFVf19fq+CH1GP1rVkorF3OfZo6AEjd53JC/+N9F6IHw2locurIDReZ+rFtbBC4RjUIQ45TytvBbN5snxzQeUWXe9Y/LPujhnu6lRTaY1n2y9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DPmjQWq1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VBMo0yzI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C2EFC4CECF;
-	Fri, 15 Nov 2024 06:50:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DPmjQWq1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CB2AC4CECF;
+	Fri, 15 Nov 2024 06:50:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731653403;
-	bh=NiR/5hoEnTl9lO+MoODhCofhAUVaCeQR6AugAFJtoTU=;
+	s=korg; t=1731653408;
+	bh=6eG3TJkNtGMIgyrjxjmst4WTw4pwQLyBu10/2QSbMBY=;
 	h=Date:To:From:Subject:From;
-	b=VBMo0yzI/bZt07o0iJwXEDX8SsNFJ+4jELTHttECAXEzX7ph7n6nlTdTpPok0HY7p
-	 qcgWSY0F8NI58zTfVcOLbFigKNuqCsXuTg7yAYWYSHm3Hk1nWssW5st70hVRPKrKmH
-	 cjwH3zbsQXw8BT1jZ3xIYcKbpfB0azGFOAA7b1yw=
-Date: Thu, 14 Nov 2024 22:49:59 -0800
-To: mm-commits@vger.kernel.org,ritesh.list@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,nirjhar@linux.ibm.com,akpm@linux-foundation.org
+	b=DPmjQWq1rPHkuqOljTqmZki/SxlOb20qZ9n+UeGddwUJcSI9sTUbHCvM4HeZ5TFI0
+	 V/TcVzI8p1QUBFetSDIVCY3XDd/pgU7hT8jT6KUlr6/EEMupqSOesIFkQnYbKtz/NG
+	 iGeIlK9XRBVZCDOHWl77oxKptCwXjOEXO9IQUTKc=
+Date: Thu, 14 Nov 2024 22:50:04 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,david@redhat.com,anshuman.khandual@arm.com,ritesh.list@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault.patch removed from -mm tree
-Message-Id: <20241115065003.1C2EFC4CECF@smtp.kernel.org>
+Subject: [merged mm-stable] cma-enforce-non-zero-pageblock_order-during-cma_init_reserved_mem.patch removed from -mm tree
+Message-Id: <20241115065007.4CB2AC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kfence: add a new kunit test test_use_after_free_read_nofault()
+     Subject: cma: enforce non-zero pageblock_order during cma_init_reserved_mem()
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault.patch
+     cma-enforce-non-zero-pageblock_order-during-cma_init_reserved_mem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nirjhar Roy <nirjhar@linux.ibm.com>
-Subject: mm/kfence: add a new kunit test test_use_after_free_read_nofault()
-Date: Fri, 18 Oct 2024 23:16:01 +0530
+From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Subject: cma: enforce non-zero pageblock_order during cma_init_reserved_mem()
+Date: Wed, 13 Nov 2024 19:49:54 +0530
 
-Faults from copy_from_kernel_nofault() need to be handled by fixup table
-and should not be handled by kfence.  Otherwise while reading /proc/kcore
-which uses copy_from_kernel_nofault(), kfence can generate false
-negatives.  This can happen when /proc/kcore ends up reading an unmapped
-address from kfence pool.
+cma_init_reserved_mem() checks base and size alignment with
+CMA_MIN_ALIGNMENT_BYTES.  However, some users might call this during early
+boot when pageblock_order is 0.  That means if base and size does not have
+pageblock_order alignment, it can cause functional failures during cma
+activate area.
 
-Let's add a testcase to cover this case.
+So let's enforce pageblock_order to be non-zero during
+cma_init_reserved_mem() to catch such wrong usages.
 
-Link: https://lkml.kernel.org/r/210e561f7845697a32de44b643393890f180069f.1729272697.git.ritesh.list@gmail.com
-Signed-off-by: Nirjhar Roy <nirjhar@linux.ibm.com>
-Co-developed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+1. This was seen with fadump on PowerPC which was calling
+   cma_init_reserved_mem() before the pageblock_order was initialized. 
+   This is now fixed in the fadump on PowerPC itself.  The details of that
+   can be found in the patch including the userspace-visible effect of the
+   issue [1].
+
+2. However it was also decided that we should add a stronger
+   enforcement check within cma_init_reserved_mem() to catch such wrong
+   usages [2].  Hence this patch.  This is ok to be in -next and there is
+   no "Fixes" tag required for this patch.
+
+[1]: https://lore.kernel.org/all/3ae208e48c0d9cefe53d2dc4f593388067405b7d.1729146153.git.ritesh.list@gmail.com/
+[2]: https://lore.kernel.org/all/83eb128e-4f06-4725-a843-a4563f246a44@redhat.com/
+
+Link: https://lkml.kernel.org/r/e274344b44d5f80fa54c52f530387257fe99ec65.1731505681.git.ritesh.list@gmail.com
 Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Tested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence_test.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/cma.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/kfence/kfence_test.c~mm-kfence-add-a-new-kunit-test-test_use_after_free_read_nofault
-+++ a/mm/kfence/kfence_test.c
-@@ -383,6 +383,22 @@ static void test_use_after_free_read(str
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
+--- a/mm/cma.c~cma-enforce-non-zero-pageblock_order-during-cma_init_reserved_mem
++++ a/mm/cma.c
+@@ -181,6 +181,15 @@ int __init cma_init_reserved_mem(phys_ad
+ 	if (!size || !memblock_is_region_reserved(base, size))
+ 		return -EINVAL;
  
-+static void test_use_after_free_read_nofault(struct kunit *test)
-+{
-+	const size_t size = 32;
-+	char *addr;
-+	char dst;
-+	int ret;
++	/*
++	 * CMA uses CMA_MIN_ALIGNMENT_BYTES as alignment requirement which
++	 * needs pageblock_order to be initialized. Let's enforce it.
++	 */
++	if (!pageblock_order) {
++		pr_err("pageblock_order not yet initialized. Called during early boot?\n");
++		return -EINVAL;
++	}
 +
-+	setup_test_cache(test, size, 0, NULL);
-+	addr = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
-+	test_free(addr);
-+	/* Use after free with *_nofault() */
-+	ret = copy_from_kernel_nofault(&dst, addr, 1);
-+	KUNIT_EXPECT_EQ(test, ret, -EFAULT);
-+	KUNIT_EXPECT_FALSE(test, report_available());
-+}
-+
- static void test_double_free(struct kunit *test)
- {
- 	const size_t size = 32;
-@@ -780,6 +796,7 @@ static struct kunit_case kfence_test_cas
- 	KFENCE_KUNIT_CASE(test_out_of_bounds_read),
- 	KFENCE_KUNIT_CASE(test_out_of_bounds_write),
- 	KFENCE_KUNIT_CASE(test_use_after_free_read),
-+	KFENCE_KUNIT_CASE(test_use_after_free_read_nofault),
- 	KFENCE_KUNIT_CASE(test_double_free),
- 	KFENCE_KUNIT_CASE(test_invalid_addr_free),
- 	KFENCE_KUNIT_CASE(test_corruption),
+ 	/* ensure minimal alignment required by mm core */
+ 	if (!IS_ALIGNED(base | size, CMA_MIN_ALIGNMENT_BYTES))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from nirjhar@linux.ibm.com are
+Patches currently in -mm which might be from ritesh.list@gmail.com are
 
 
