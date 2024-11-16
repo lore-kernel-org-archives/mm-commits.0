@@ -1,58 +1,100 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 398A51D47B6
-	for <mm-commits@vger.kernel.org>; Fri, 15 Nov 2024 15:42:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38BC96FB0;
+	Sat, 16 Nov 2024 01:00:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731685351; cv=none; b=jEdAsvgMXVfSIqMnlHHMPR7pFvk2zAW2SIiUFhO7UtMDpEew5y2JGiKfM4A1hwlMwYq/i2eaXPxNBvbyXG/NxuuI8I8SqvBDgaCJhxKdP5MaIb5cieHIoKKEX392c3cgux4u4CBFdbWYda0p0tBvuaudt74dtRzyj++txkgdoxg=
+	t=1731718856; cv=none; b=hMtfDotBeEJq7ynzSykINSWTZUD065nlv0+wwwEdxWtPKve18zlIvQpPDE6Yvbqsw2PbVwYuj2gkatI7FDBvcVjaAas8Aa9qr/4w7yDYScpazLaazB/m8OsFvKawrZeQAIEej9ipf5H8nneOfHGlGkpfTK5sDpsqXKsQmWAp64M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731685351; c=relaxed/simple;
-	bh=tDmmGIKykwPCCuKXNf6rXN5xeKy1cdpJlFiL+VT3tTA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RUhPyfO3hKL7Vfx1tseHZGQPRpHzEhmqWEEEWKW6HUQ3HmsKEf3rgce75naW0TeWgvzt8kB3XpiwxicTrYN3lV4lEIPuKsaH55I6EeHCklVTIG7OLs65CXmMHQJq+AKlWSPP2dQEkt0hBnJvsDdzoP/pHF6i4wrd/cuwt80SZsw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=B9M+ak3+; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1731718856; c=relaxed/simple;
+	bh=QOC0H8qbTZOuS02ORO4XjPKY8ShoQkmQvNIFJLrCWK4=;
+	h=Date:To:From:Subject:Message-Id; b=hz/d13WnZJcz6P0n07MPWkYc66IMWvkFq3iOzahp0JNrCxmlv//O0YLL4KQYK28M7/2VQyriX5CLgwa1+DytqkmVaaOAkzCwPNp+F5JUEiTIxQaClJWn9alcQS41GigBwclqYDLWNXdxVRcfZT1evdHG8PlOcDBpxksB82Bzu3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RJJwZjuQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="B9M+ak3+"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=M7XDkHn9pPQGtWzaV3yS8fl9im6iIDTJ6uLGHvdARC0=; b=B9M+ak3+1sI2hf81uaCQX1wD0F
-	dl1rFhuEzoZhZqnlz2dtCZ3Zlb/PkxG8K8pHrwQ/mWFmMEHiJYmds8wB3yFZ8NamDfqNYhXks6PnV
-	bgdr5ycS7Qgw/YjwkCKDsWs20P5taTYHTG0keg4r93x6Ln/IBM1TnGBoCQq+5wYEQgxzi9Rathu8f
-	avpLF0nBhUOy9Tv+vMGuJZ4f4mFXErgDj53GEMKKbhc3qSLiN/Myd++RIJLsWPcqjEmaIYs65H30d
-	Exe4uULMI//fIrrF8QDG786CqZgj4i97ttIvUuha+i9PUp8NnUNUx5G6DDsticbt8fdfGhWmpG3nN
-	F2pU/tig==;
-Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tBySo-000000003PJ-0DKC;
-	Fri, 15 Nov 2024 15:42:26 +0000
-Date: Fri, 15 Nov 2024 15:42:25 +0000
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, david@redhat.com, alexs@kernel.org,
-	cuigaosheng1@huawei.com
-Subject: Re: + ksm-convert-cmp_and_merge_page-to-use-a-folio-fix.patch added
- to mm-unstable branch
-Message-ID: <Zzdr4ePQx-Dqub6N@casper.infradead.org>
-References: <20241024032946.9061AC4CEC7@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RJJwZjuQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A67C4CECF;
+	Sat, 16 Nov 2024 01:00:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1731718855;
+	bh=QOC0H8qbTZOuS02ORO4XjPKY8ShoQkmQvNIFJLrCWK4=;
+	h=Date:To:From:Subject:From;
+	b=RJJwZjuQfbTzb/u0jnwOLiNxgqku5YtVMxP3FoexDQ0E23e8o2sc+yJFShZ/cGlCH
+	 ppHefXSLpBDTxLx2r91yPvbib+biOBAx+/jxArbaOjtHVz7+dBnKb9m6oosBdOQCat
+	 l/HU9/lJfL1R/sl2kn5rCq/FsSU28laJ7wabYomI=
+Date: Fri, 15 Nov 2024 17:00:51 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,stable@vger.kernel.org,hughd@google.com,chuck.lever@oracle.com,aha310510@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241116010055.48A67C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241024032946.9061AC4CEC7@smtp.kernel.org>
 
-On Wed, Oct 23, 2024 at 08:29:46PM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm/ksm: add missing IS_ERR_OR_NULL check for stable_tree_search()
-> has been added to the -mm mm-unstable branch.  Its filename is
->      ksm-convert-cmp_and_merge_page-to-use-a-folio-fix.patch
 
-NAK.  Patch is garbage.
+The patch titled
+     Subject: mm: revert "mm: shmem: fix data-race in shmem_getattr()"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: revert "mm: shmem: fix data-race in shmem_getattr()"
+Date: Fri Nov 15 04:57:24 PM PST 2024
+
+Revert d949d1d14fa2 ("mm: shmem: fix data-race in shmem_getattr()") as
+suggested by Chuck [1].  It is causing deadlocks when accessing tmpfs over
+NFS.
+
+Link: https://lkml.kernel.org/r/ZzdxKF39VEmXSSyN@tissot.1015granger.net [1]
+Fixes: https://lkml.kernel.org/r/ZzdxKF39VEmXSSyN@tissot.1015granger.net
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jeongjun Park <aha310510@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/shmem.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+--- a/mm/shmem.c~mm-revert-mm-shmem-fix-data-race-in-shmem_getattr
++++ a/mm/shmem.c
+@@ -1166,9 +1166,7 @@ static int shmem_getattr(struct mnt_idma
+ 	stat->attributes_mask |= (STATX_ATTR_APPEND |
+ 			STATX_ATTR_IMMUTABLE |
+ 			STATX_ATTR_NODUMP);
+-	inode_lock_shared(inode);
+ 	generic_fillattr(idmap, request_mask, inode, stat);
+-	inode_unlock_shared(inode);
+ 
+ 	if (shmem_huge_global_enabled(inode, 0, 0, false, NULL, 0))
+ 		stat->blksize = HPAGE_PMD_SIZE;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+fs-proc-vmcorec-fix-warning-when-config_mmu=n.patch
+mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch
+
