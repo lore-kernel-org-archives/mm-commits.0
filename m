@@ -1,87 +1,116 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27495621;
-	Sat, 16 Nov 2024 23:30:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC11138DE1;
+	Sat, 16 Nov 2024 23:36:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731799855; cv=none; b=fxizFwxO1Sdlti2R8PFVL390PGCJNiHz6Fg4WNSyYqdzIfVqv6+HxdFq1oYs36Nix/umBQlJ57Nnpp+rVLLf220XjxUxOTSth3bGWVDkB9rMPBk63qr5Ww4kDEw46y508C2w0ulZd+PSnYoikm6daeQf2Q3OZDPk+kFdYUAVA0M=
+	t=1731800162; cv=none; b=OeM0p8UU+BuLgbY26VRMScVXiewa0Os6GvcFzL3K4NH4c1Nqh0V0NXwXttwtDPPiMRN1wGUYFpVPO6uU9GLgDEvFAUR2bMoPHWHQhL7WZGDnhWfsm+EkMi+IIUQP/ShW+QYgY9FmacAg6YgLRpLYvL45y4jkTK8lbNhEB2Zkdz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731799855; c=relaxed/simple;
-	bh=pFSKbNtJgt4gZgqd5/3angfseALOzBp8X5mUpHiH1FE=;
-	h=Date:To:From:Subject:Message-Id; b=E+7AsXbrFLWQmW8HLorEheXikPO+dU68NVsi7vPx1MIvVDnZgeGRHPwHPGF1F7vo4qPPUpn+K2LpA+pLr6lZ9+IcOtLjwg2wPmxNFXjQagbTzRwSdatXFwUNH0Ulk3KUHL/NTnAgO+EFlCSedetOakaG85gtMvjZHpk0/JTC9hs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q23Gy8wq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731800162; c=relaxed/simple;
+	bh=KgchrBbEjJ6FmtT/OHxHi3NDIfi1tuion/rr6Heara8=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=YVCv40rtnJGzMnLbQQZURCJGEu8Aiu8uEZaWhTNpm0I7EhGmt9t5jn8pdldG3xk3IGXQDd9zE6rjOznNdbuQFpTIwjoKmVqGu4JeAS4IaWVdEtanSVxlUxyH8siYirkNsrgHaksDwTJSFVcZQShh84VbsBoTwpuQCM845oQblkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l2H8JTly; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q23Gy8wq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1FBAC4CEC3;
-	Sat, 16 Nov 2024 23:30:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l2H8JTly"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C866BC4CEC3;
+	Sat, 16 Nov 2024 23:35:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1731799854;
-	bh=pFSKbNtJgt4gZgqd5/3angfseALOzBp8X5mUpHiH1FE=;
-	h=Date:To:From:Subject:From;
-	b=Q23Gy8wqh1ktt2eWfpMILqNQtxzKnN1zw2Y2p7Qahd5A98scqpi+kfGf/LqeKbj+A
-	 zP1qHW3psu3fYTe1OdkT5Z/2+5D//h76xj1p2nZHgmUfGuVzBdoxbTewn6Neus/aKb
-	 kPhIYVb6fJZ/hdo+ja1GwHDKQZ5dzUpa12VslROA=
-Date: Sat, 16 Nov 2024 15:30:50 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,stable@vger.kernel.org,hughd@google.com,chuck.lever@oracle.com,aha310510@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1731800161;
+	bh=KgchrBbEjJ6FmtT/OHxHi3NDIfi1tuion/rr6Heara8=;
+	h=Date:From:To:Cc:Subject:From;
+	b=l2H8JTlyMuxgmdDs/F3QBRaeepMAXlVQYaAPM0nVzQf09ktLewQEppHTKi6bz15Xp
+	 P4TgO4XmqufG3yoUeL21C8mTR9mKZgtq0TiUenFsx3yXKgulnJ/oSfpZU6m55CW7EC
+	 IH9DizWHQ8yw+oQJW+e5G2LeP7sKinbnepcWaKXw=
+Date: Sat, 16 Nov 2024 15:35:56 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch removed from -mm tree
-Message-Id: <20241116233053.F1FBAC4CEC3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.12
+Message-Id: <20241116153556.767f1aeed6ac628a09efe346@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
 
-The quilt patch titled
-     Subject: mm: revert "mm: shmem: fix data-race in shmem_getattr()"
-has been removed from the -mm tree.  Its filename was
-     mm-revert-mm-shmem-fix-data-race-in-shmem_getattr.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: revert "mm: shmem: fix data-race in shmem_getattr()"
-Date: Fri Nov 15 04:57:24 PM PST 2024
+The following changes since commit dcf32ea7ecede94796fb30231b3969d7c838374c:
 
-Revert d949d1d14fa2 ("mm: shmem: fix data-race in shmem_getattr()") as
-suggested by Chuck [1].  It is causing deadlocks when accessing tmpfs over
-NFS.
+  mm: swapfile: fix cluster reclaim work crash on rotational devices (2024-=
+11-12 16:01:36 -0800)
 
-As Hugh commented, "added just to silence a syzbot sanitizer splat: added
-where there has never been any practical problem".
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/ZzdxKF39VEmXSSyN@tissot.1015granger.net [1]
-Fixes: d949d1d14fa2 ("mm: shmem: fix data-race in shmem_getattr()")
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Jeongjun Park <aha310510@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
+able-2024-11-16-15-33
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+for you to fetch changes up to d1aa0c04294e29883d65eac6c2f72fe95cc7c049:
 
---- a/mm/shmem.c~mm-revert-mm-shmem-fix-data-race-in-shmem_getattr
-+++ a/mm/shmem.c
-@@ -1166,9 +1166,7 @@ static int shmem_getattr(struct mnt_idma
- 	stat->attributes_mask |= (STATX_ATTR_APPEND |
- 			STATX_ATTR_IMMUTABLE |
- 			STATX_ATTR_NODUMP);
--	inode_lock_shared(inode);
- 	generic_fillattr(idmap, request_mask, inode, stat);
--	inode_unlock_shared(inode);
- 
- 	if (shmem_huge_global_enabled(inode, 0, 0, false, NULL, 0))
- 		stat->blksize = HPAGE_PMD_SIZE;
-_
+  mm: revert "mm: shmem: fix data-race in shmem_getattr()" (2024-11-16 15:3=
+0:32 -0800)
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+----------------------------------------------------------------
+10 hotfixes, 7 of which are cc:stable.  All singletons, please see the
+changelogs for details.
 
-fs-proc-vmcorec-fix-warning-when-config_mmu=n.patch
+----------------------------------------------------------------
+Andrew Morton (1):
+      mm: revert "mm: shmem: fix data-race in shmem_getattr()"
+
+Dan Carpenter (1):
+      fs/proc/task_mmu: prevent integer overflow in pagemap_scan_get_args()
+
+Dave Vasilevsky (1):
+      crash, powerpc: default to CRASH_DUMP=3Dn on PPC_BOOK3S_32
+
+Dmitry Antipov (1):
+      ocfs2: uncache inode which has failed entering the group
+
+Jann Horn (1):
+      mm/mremap: fix address wraparound in move_page_tables()
+
+Jinjiang Tu (1):
+      mm: fix NULL pointer dereference in alloc_pages_bulk_noprof
+
+Kairui Song (1):
+      mm, swap: fix allocation and scanning race with swapoff
+
+Motiejus Jak=C5`tys (1):
+      tools/mm: fix compile error
+
+Qun-Wei Lin (1):
+      sched/task_stack: fix object_is_on_stack() for KASAN tagged pointers
+
+Yafang Shao (1):
+      mm, doc: update read_ahead_kb for MADV_HUGEPAGE
+
+ Documentation/ABI/stable/sysfs-block |  3 +++
+ arch/arm/Kconfig                     |  3 +++
+ arch/arm64/Kconfig                   |  3 +++
+ arch/loongarch/Kconfig               |  3 +++
+ arch/mips/Kconfig                    |  3 +++
+ arch/powerpc/Kconfig                 |  4 ++++
+ arch/riscv/Kconfig                   |  3 +++
+ arch/s390/Kconfig                    |  3 +++
+ arch/sh/Kconfig                      |  3 +++
+ arch/x86/Kconfig                     |  3 +++
+ fs/ocfs2/resize.c                    |  2 ++
+ fs/proc/task_mmu.c                   |  4 +++-
+ include/linux/sched/task_stack.h     |  2 ++
+ kernel/Kconfig.kexec                 |  2 +-
+ mm/mremap.c                          |  2 +-
+ mm/page_alloc.c                      |  3 ++-
+ mm/shmem.c                           |  2 --
+ mm/swapfile.c                        | 22 +++++++++++++++++++---
+ tools/mm/page-types.c                |  2 +-
+ 19 files changed, 62 insertions(+), 10 deletions(-)
 
