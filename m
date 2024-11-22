@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B53831482E2;
-	Fri, 22 Nov 2024 06:15:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8228215688C;
+	Fri, 22 Nov 2024 06:20:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732256139; cv=none; b=QJW6HJQWDG8TnzLIK3AMHYcnLqU/39phb9MPrNUIqRJJZQI7bzDtIuM4UhKoLBP62vo4BLlQKqR5gf+JR2ntXoyadhI6KwD37eTq6Zvb7N14KhN5AqzHDAYC2H2ijmsyNxU9rES8pAnX/SHenats1jJnl+/lOaAyXMfGEvRLvKU=
+	t=1732256409; cv=none; b=WLof5BePZyUUyuxFgjykvd7DAloRTONZgd7Sf5jxe67u7HLY2+jV1POgoJZwhCwrtuMqqxLlZTWcQAX/C58uawf1E+eO7iUVmW3TFcbUqe5K0CMvM6gVKqwgJn8mUr2vwymtOaDJViKD2XVxtuJ4Ollv8zMdhsONEbszGNyGsFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732256139; c=relaxed/simple;
-	bh=vRVp1NjRk5s07DOH0NSEFo8dZWdlapAnkXdnd4H2coA=;
-	h=Date:To:From:Subject:Message-Id; b=qmZ2lJNmEpkhGo1Vq2ATXLBcssgklVSeklnqnkqMxPMx+y+FRIW4DbkMMlyfwjm6DYjLfrjrL32S9Gxi7rN4XTIp1ICN7fAIpCy4R6LIGv9ZkKp6VrGna3kDqfgbZIOhb/vo8U1/vyQRnBOGnn2Atqh4IF5MOse0q+OefbRCOCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PLDCrx02; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732256409; c=relaxed/simple;
+	bh=faZCg7QNYZVCkfc5FqyfjhfHD5IKD9wmVRaisy99XRY=;
+	h=Date:To:From:Subject:Message-Id; b=jyuqIdl8qgQ54mwxEDvb1razTBvqhw87w5VQ4B7H157m1PP7hoafWJDuDCVdN28Qw0Gbpsm1+gK2nfyCIDoDSANr4jxOOJN064K7o6GOO0ZU2rq3nj7cnXl6xtZaSI9d5Gol0AwU4epwlZkzlY27djOVE+mUJvHtSG/3SzadsQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qvIL+JG9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PLDCrx02"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05AEC4CECE;
-	Fri, 22 Nov 2024 06:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qvIL+JG9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6BDFC4CECF;
+	Fri, 22 Nov 2024 06:20:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732256139;
-	bh=vRVp1NjRk5s07DOH0NSEFo8dZWdlapAnkXdnd4H2coA=;
+	s=korg; t=1732256409;
+	bh=faZCg7QNYZVCkfc5FqyfjhfHD5IKD9wmVRaisy99XRY=;
 	h=Date:To:From:Subject:From;
-	b=PLDCrx02hDrPzy7HJdy55rv6jHTAoTSppDsY5wkKQe/h2BQyf6YsVSZyDYKka9EXy
-	 91ltMcxXcZKv+7jTVsfPnEX4eBR5Fb6/7HD4omV2J4YwBwBP97Ry69z/CX6b7qDgNI
-	 tC/E/kYLGnVSC44cBYoi88Z6CvLEOObdbHV9+WlA=
-Date: Thu, 21 Nov 2024 22:15:34 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,kraxel@redhat.com,junxiao.chang@intel.com,jgg@nvidia.com,hughd@google.com,hch@infradead.org,dongwon.kim@intel.com,david@redhat.com,daniel.vetter@ffwll.ch,arnd@arndb.de,airlied@redhat.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=qvIL+JG9qSOh8N8egxJvepI/ny8RFlf1heE0XKzgIFy0OtU4iiZXGNIEEMZzG4A1q
+	 ZGlrmHaDJti4+9oYgSd/sxUI3slmzD0EXnKXsn3gqQS9OUBlnCQ/iBaNw25jwuQT42
+	 k2Ggk+obdk57a82/uqTfGeETrxJ8Jed5ERU1sivM=
+Date: Thu, 21 Nov 2024 22:20:06 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,cl@linux.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-handle-null-pages-in-unpin_user_pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241122061538.A05AEC4CECE@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241122062008.A6BDFC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: handle NULL pages in unpin_user_pages()
+     Subject: mm/mempolicy: fix migrate_to_node() assuming there is at least one VMA in a MM
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-gup-handle-null-pages-in-unpin_user_pages.patch
+     mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-handle-null-pages-in-unpin_user_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: handle NULL pages in unpin_user_pages()
-Date: Wed, 20 Nov 2024 19:49:33 -0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/mempolicy: fix migrate_to_node() assuming there is at least one VMA in a MM
+Date: Wed, 20 Nov 2024 21:11:51 +0100
 
-The recent addition of "pofs" (pages or folios) handling to gup has a
-flaw: it assumes that unpin_user_pages() handles NULL pages in the pages**
-array.  That's not the case, as I discovered when I ran on a new
-configuration on my test machine.
+We currently assume that there is at least one VMA in a MM, which isn't
+true.
 
-Fix this by skipping NULL pages in unpin_user_pages(), just like
-unpin_folios() already does.
+So we might end up having find_vma() return NULL, to then de-reference
+NULL.  So properly handle find_vma() returning NULL.
 
-Details: when booting on x86 with "numa=fake=2 movablecore=4G" on Linux
-6.12, and running this:
+This fixes the report:
 
-    tools/testing/selftests/mm/gup_longterm
-
-...I get the following crash:
-
-BUG: kernel NULL pointer dereference, address: 0000000000000008
-RIP: 0010:sanity_check_pinned_pages+0x3a/0x2d0
-...
+Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN PTI
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 1 UID: 0 PID: 6021 Comm: syz-executor284 Not tainted 6.12.0-rc7-syzkaller-00187-gf868cd251776 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
+RIP: 0010:migrate_to_node mm/mempolicy.c:1090 [inline]
+RIP: 0010:do_migrate_pages+0x403/0x6f0 mm/mempolicy.c:1194
+Code: ...
+RSP: 0018:ffffc9000375fd08 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffffc9000375fd78 RCX: 0000000000000000
+RDX: ffff88807e171300 RSI: dffffc0000000000 RDI: ffff88803390c044
+RBP: ffff88807e171428 R08: 0000000000000014 R09: fffffbfff2039ef1
+R10: ffffffff901cf78f R11: 0000000000000000 R12: 0000000000000003
+R13: ffffc9000375fe90 R14: ffffc9000375fe98 R15: ffffc9000375fdf8
+FS:  00005555919e1380(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005555919e1ca8 CR3: 000000007f12a000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 Call Trace:
  <TASK>
- ? __die_body+0x66/0xb0
- ? page_fault_oops+0x30c/0x3b0
- ? do_user_addr_fault+0x6c3/0x720
- ? irqentry_enter+0x34/0x60
- ? exc_page_fault+0x68/0x100
- ? asm_exc_page_fault+0x22/0x30
- ? sanity_check_pinned_pages+0x3a/0x2d0
- unpin_user_pages+0x24/0xe0
- check_and_migrate_movable_pages_or_folios+0x455/0x4b0
- __gup_longterm_locked+0x3bf/0x820
- ? mmap_read_lock_killable+0x12/0x50
- ? __pfx_mmap_read_lock_killable+0x10/0x10
- pin_user_pages+0x66/0xa0
- gup_test_ioctl+0x358/0xb20
- __se_sys_ioctl+0x6b/0xc0
- do_syscall_64+0x7b/0x150
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
+ kernel_migrate_pages+0x5b2/0x750 mm/mempolicy.c:1709
+ __do_sys_migrate_pages mm/mempolicy.c:1727 [inline]
+ __se_sys_migrate_pages mm/mempolicy.c:1723 [inline]
+ __x64_sys_migrate_pages+0x96/0x100 mm/mempolicy.c:1723
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-Link: https://lkml.kernel.org/r/20241121034933.77502-1-jhubbard@nvidia.com
-Fixes: 94efde1d1539 ("mm/gup: avoid an unnecessary allocation call for FOLL_LONGTERM cases")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dongwon Kim <dongwon.kim@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Junxiao Chang <junxiao.chang@intel.com>
+Link: https://lkml.kernel.org/r/20241120201151.9518-1-david@redhat.com
+Fixes: 39743889aaf7 ("[PATCH] Swap Migration V5: sys_migrate_pages interface")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: syzbot+3511625422f7aa637f0d@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/lkml/673d2696.050a0220.3c9d61.012f.GAE@google.com/T/
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/gup.c~mm-gup-handle-null-pages-in-unpin_user_pages
-+++ a/mm/gup.c
-@@ -52,7 +52,12 @@ static inline void sanity_check_pinned_p
- 	 */
- 	for (; npages; npages--, pages++) {
- 		struct page *page = *pages;
--		struct folio *folio = page_folio(page);
-+		struct folio *folio;
-+
-+		if (!page)
-+			continue;
-+
-+		folio = page_folio(page);
+--- a/mm/mempolicy.c~mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm
++++ a/mm/mempolicy.c
+@@ -1080,6 +1080,10 @@ static long migrate_to_node(struct mm_st
  
- 		if (is_zero_page(page) ||
- 		    !folio_test_anon(folio))
-@@ -409,6 +414,10 @@ void unpin_user_pages(struct page **page
+ 	mmap_read_lock(mm);
+ 	vma = find_vma(mm, 0);
++	if (!vma) {
++		mmap_read_unlock(mm);
++		return 0;
++	}
  
- 	sanity_check_pinned_pages(pages, npages);
- 	for (i = 0; i < npages; i += nr) {
-+		if (!pages[i]) {
-+			nr = 1;
-+			continue;
-+		}
- 		folio = gup_folio_next(pages, npages, i, &nr);
- 		gup_put_folio(folio, nr, FOLL_PIN);
- 	}
+ 	/*
+ 	 * This does not migrate the range, but isolates all pages that
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-gup-handle-null-pages-in-unpin_user_pages.patch
+mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch
 
