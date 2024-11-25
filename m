@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2B563C
-	for <mm-commits@vger.kernel.org>; Mon, 25 Nov 2024 04:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A4B63C
+	for <mm-commits@vger.kernel.org>; Mon, 25 Nov 2024 04:40:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732509501; cv=none; b=U5TKbbgup178mDLkAsAM9o9IIPVAR3Vn+mGCToTOfEhzd4LA0uWCuBrjDLv55JAxpVqwQdrtLMJrON6c/ny+wvI7mWwleXu4yBXyfHo3eX6EFvF/kPrYxnJBazqGyxQh4J0ZWyNpQ17Spw7JZgC4sgvqIOkJ/GYwUezY2iEoTkM=
+	t=1732509619; cv=none; b=BwHkfUlHOeqhewUs6kmG81pk0ZB1U0QRAnJ8654opduv68WzHW3eyk3veXkmRZbiO3Y/aa9W3T89Cr0KTqs4cPM29qRryFJHa6MsYgcUHyoxoocWcXvoBPWqWS2DG4EHqFZBlWh7eUrZPJrxqDuwbsGglyYhk+2EGg6m3gDTVxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732509501; c=relaxed/simple;
-	bh=3rPRneOXrjO8n4TIDM+qlwsIWZfeQ+Erfun7ng5+MlU=;
-	h=Date:To:From:Subject:Message-Id; b=ZtnuppMFtRvxpaCCUps+vk1AWe8MZdMSHv2/JUGqNeLcCv39AXudX798dKlyUSIPRWy4KEQr8xvnr76fsERkS5J8f9bj98BZh4xZHSdKWHqwqRiSF1wryMvXexWEuX44MV0+mmZey4qW3GDVOXoUTpgdzVvpWw2562uYh+gwy14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iz/o/BbP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732509619; c=relaxed/simple;
+	bh=nravz9rUDUd18PqpfOWSxfKpbgQMMPAtpQ4K/kmWzW8=;
+	h=Date:To:From:Subject:Message-Id; b=h5LoukDYLqaiVwjVUpJV5+RGW+8C/2DeeB+YUjWFDXrXu/uQ1sepKZ3veCORtbDyX2sY94H4OiXWpbG0h3il3p7dIFIQpvIWVVh8t+JS8E5Dzhak1FFewidUaIu5luqHiPzkb02LXqB+BCl0D0fqnuxH0oCWQsXb0oI+8zi26Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sSEZfrE/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iz/o/BbP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C213C4CECE;
-	Mon, 25 Nov 2024 04:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sSEZfrE/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EC1AC4CECE;
+	Mon, 25 Nov 2024 04:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732509499;
-	bh=3rPRneOXrjO8n4TIDM+qlwsIWZfeQ+Erfun7ng5+MlU=;
+	s=korg; t=1732509618;
+	bh=nravz9rUDUd18PqpfOWSxfKpbgQMMPAtpQ4K/kmWzW8=;
 	h=Date:To:From:Subject:From;
-	b=Iz/o/BbPjHwJAMxTfYs5CSaJyQdGKWyleNjLzHPXEnGkwWjSlAknqPRyH+71Ys+4O
-	 VPow8G8DR6nroy/E9QpAskGgenWQUpDtBhcjsUscXU9w3KYosuavg0AiGlVMchtk5D
-	 n9HvaCguOliLfKEDe4fPM4hCiKnCy3I5UBNxKjN4=
-Date: Sun, 24 Nov 2024 20:38:09 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=sSEZfrE/j8fxdqM37gMHmiXxv36TidTvRzJNJSfoWvAcHfGRR0irvbFrPwRXQpGti
+	 4y7MgYeYHUkwVIG9rc1LDq3RvRgaWAA0S/apomsYRrpUxUFHm+g/o+aPjJICgIlbv4
+	 EEwhfe4Xu0HgCo1VADY39qjgcEHYN2mEkWWkYwWc=
+Date: Sun, 24 Nov 2024 20:40:09 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-use-mas_next_slot-directly.patch added to mm-unstable branch
-Message-Id: <20241125043817.9C213C4CECE@smtp.kernel.org>
+Subject: + ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241125044016.4EC1AC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: use mas_next_slot() directly
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-use-mas_next_slot-directly.patch
+     Subject: ocfs2: free inode when ocfs2_get_init_inode() fails
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_next_slot-directly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,70 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: use mas_next_slot() directly
-Date: Mon, 25 Nov 2024 02:41:56 +0000
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: ocfs2: free inode when ocfs2_get_init_inode() fails
+Date: Sat, 23 Nov 2024 22:28:34 +0900
 
-The loop condition makes sure (mas.last < max), so we can directly use
-mas_next_slot() here.
+syzbot is reporting busy inodes after unmount, for commit 9c89fe0af826
+("ocfs2: Handle error from dquot_initialize()") forgot to call iput() when
+new_inode() succeeded and dquot_initialize() failed.
 
-Since no other use of mas_next_entry(), it is removed.
-
-Link: https://lkml.kernel.org/r/20241125024156.26093-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/e68c0224-b7c6-4784-b4fa-a9fc8c675525@I-love.SAKURA.ne.jp
+Fixes: 9c89fe0af826 ("ocfs2: Handle error from dquot_initialize()")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: syzbot+0af00f6a2cba2058b5db@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=0af00f6a2cba2058b5db
+Tested-by: syzbot+0af00f6a2cba2058b5db@syzkaller.appspotmail.com
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ fs/ocfs2/namei.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_next_slot-directly
-+++ a/lib/maple_tree.c
-@@ -4745,29 +4745,6 @@ again:
+--- a/fs/ocfs2/namei.c~ocfs2-free-inode-when-ocfs2_get_init_inode-fails
++++ a/fs/ocfs2/namei.c
+@@ -200,8 +200,10 @@ static struct inode *ocfs2_get_init_inod
+ 	mode = mode_strip_sgid(&nop_mnt_idmap, dir, mode);
+ 	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
+ 	status = dquot_initialize(inode);
+-	if (status)
++	if (status) {
++		iput(inode);
+ 		return ERR_PTR(status);
++	}
+ 
+ 	return inode;
  }
- 
- /*
-- * mas_next_entry() - Internal function to get the next entry.
-- * @mas: The maple state
-- * @limit: The maximum range start.
-- *
-- * Set the @mas->node to the next entry and the range_start to
-- * the beginning value for the entry.  Does not check beyond @limit.
-- * Sets @mas->index and @mas->last to the range, Does not update @mas->index and
-- * @mas->last on overflow.
-- * Restarts on dead nodes.
-- *
-- * Return: the next entry or %NULL.
-- */
--static inline void *mas_next_entry(struct ma_state *mas, unsigned long limit)
--{
--	if (mas->last >= limit) {
--		mas->status = ma_overflow;
--		return NULL;
--	}
--
--	return mas_next_slot(mas, limit, false);
--}
--
--/*
-  * mas_rev_awalk() - Internal function.  Reverse allocation walk.  Find the
-  * highest gap address of a given size in a given node and descend.
-  * @mas: The maple state
-@@ -6937,7 +6914,7 @@ retry:
- 		goto unlock;
- 
- 	while (mas_is_active(&mas) && (mas.last < max)) {
--		entry = mas_next_entry(&mas, max);
-+		entry = mas_next_slot(&mas, max, false);
- 		if (likely(entry && !xa_is_zero(entry)))
- 			break;
- 	}
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-maple_tree-use-mas_next_slot-directly.patch
+ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
 
