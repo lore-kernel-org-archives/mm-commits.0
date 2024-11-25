@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A4B63C
-	for <mm-commits@vger.kernel.org>; Mon, 25 Nov 2024 04:40:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 343132500AE
+	for <mm-commits@vger.kernel.org>; Mon, 25 Nov 2024 04:46:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732509619; cv=none; b=BwHkfUlHOeqhewUs6kmG81pk0ZB1U0QRAnJ8654opduv68WzHW3eyk3veXkmRZbiO3Y/aa9W3T89Cr0KTqs4cPM29qRryFJHa6MsYgcUHyoxoocWcXvoBPWqWS2DG4EHqFZBlWh7eUrZPJrxqDuwbsGglyYhk+2EGg6m3gDTVxw=
+	t=1732509989; cv=none; b=Jr05EXA4kCELnMRVQr6FTZ9UGRE+1p2TyHRsuCjmyLxhU8lDlaoWNorELN3LvPcB1QQkBZJy8uHdfd0k1/guezxw7A1q3f2BZnJ9tTtg95LjZj8IV3PFwgwJhnKyU9VUZHke7vXqLo88ZKXkmSXhLY1M35o+9G+aNfpuIzIv/CM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732509619; c=relaxed/simple;
-	bh=nravz9rUDUd18PqpfOWSxfKpbgQMMPAtpQ4K/kmWzW8=;
-	h=Date:To:From:Subject:Message-Id; b=h5LoukDYLqaiVwjVUpJV5+RGW+8C/2DeeB+YUjWFDXrXu/uQ1sepKZ3veCORtbDyX2sY94H4OiXWpbG0h3il3p7dIFIQpvIWVVh8t+JS8E5Dzhak1FFewidUaIu5luqHiPzkb02LXqB+BCl0D0fqnuxH0oCWQsXb0oI+8zi26Ug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sSEZfrE/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732509989; c=relaxed/simple;
+	bh=JN2GIgh6Mb6oKByUG7qEbIZgfp6skMyMR5t+GOg0DAc=;
+	h=Date:To:From:Subject:Message-Id; b=OCwqB5Z3fr/OUf6l4/vuHyq9jvu4D7ydlHyIJxpnAN6sSi2OPb/tBoWcxF06wTjI+7toj0PEitGCVr1hDHkxWkljlI4RZc7QB4LTwItXVyyS4dgKMFiXc65Ri8YMweFAPBaoCLYyBx1U40wopphuukkXGddJYVVGCsvkoYXFqNs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dirAk86a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sSEZfrE/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EC1AC4CECE;
-	Mon, 25 Nov 2024 04:40:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dirAk86a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79989C4CECE;
+	Mon, 25 Nov 2024 04:46:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732509618;
-	bh=nravz9rUDUd18PqpfOWSxfKpbgQMMPAtpQ4K/kmWzW8=;
+	s=korg; t=1732509987;
+	bh=JN2GIgh6Mb6oKByUG7qEbIZgfp6skMyMR5t+GOg0DAc=;
 	h=Date:To:From:Subject:From;
-	b=sSEZfrE/j8fxdqM37gMHmiXxv36TidTvRzJNJSfoWvAcHfGRR0irvbFrPwRXQpGti
-	 4y7MgYeYHUkwVIG9rc1LDq3RvRgaWAA0S/apomsYRrpUxUFHm+g/o+aPjJICgIlbv4
-	 EEwhfe4Xu0HgCo1VADY39qjgcEHYN2mEkWWkYwWc=
-Date: Sun, 24 Nov 2024 20:40:09 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+	b=dirAk86aq8OuZZue1mnAJ+nD6faSMYxPbM3MkBC1SR2z1SlKvpQItCbi8s2+PVlFy
+	 0RnFD1TLKmTTiHdX7H3tN67PuIqo/NuqaTpkgqfdaodhqQGTRcz2NSNvYilK85pgui
+	 xTyAW0es1JbjrM4/ipEM99P/JNKGXb19RbxP4u2g=
+Date: Sun, 24 Nov 2024 20:46:17 -0800
+To: mm-commits@vger.kernel.org,pratyushmittal@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241125044016.4EC1AC4CECE@smtp.kernel.org>
+Subject: + lib-rhashtable-fix-the-typo-for-preemptible.patch added to mm-nonmm-unstable branch
+Message-Id: <20241125044625.79989C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: free inode when ocfs2_get_init_inode() fails
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
+     Subject: lib/rhashtable: fix the typo for preemptible
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-rhashtable-fix-the-typo-for-preemptible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-rhashtable-fix-the-typo-for-preemptible.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: free inode when ocfs2_get_init_inode() fails
-Date: Sat, 23 Nov 2024 22:28:34 +0900
+From: Pratyush Mittal <pratyushmittal@gmail.com>
+Subject: lib/rhashtable: fix the typo for preemptible
+Date: Sat, 23 Nov 2024 02:29:29 -0800
 
-syzbot is reporting busy inodes after unmount, for commit 9c89fe0af826
-("ocfs2: Handle error from dquot_initialize()") forgot to call iput() when
-new_inode() succeeded and dquot_initialize() failed.
+Fix the spelling of the mis-spelled word
 
-Link: https://lkml.kernel.org/r/e68c0224-b7c6-4784-b4fa-a9fc8c675525@I-love.SAKURA.ne.jp
-Fixes: 9c89fe0af826 ("ocfs2: Handle error from dquot_initialize()")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: syzbot+0af00f6a2cba2058b5db@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=0af00f6a2cba2058b5db
-Tested-by: syzbot+0af00f6a2cba2058b5db@syzkaller.appspotmail.com
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20241123102929.11660-1-pratyushmittal@gmail.com
+Signed-off-by: Pratyush Mittal <pratyushmittal@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/rhashtable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-free-inode-when-ocfs2_get_init_inode-fails
-+++ a/fs/ocfs2/namei.c
-@@ -200,8 +200,10 @@ static struct inode *ocfs2_get_init_inod
- 	mode = mode_strip_sgid(&nop_mnt_idmap, dir, mode);
- 	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
- 	status = dquot_initialize(inode);
--	if (status)
-+	if (status) {
-+		iput(inode);
- 		return ERR_PTR(status);
-+	}
- 
- 	return inode;
- }
+--- a/lib/rhashtable.c~lib-rhashtable-fix-the-typo-for-preemptible
++++ a/lib/rhashtable.c
+@@ -665,7 +665,7 @@ EXPORT_SYMBOL_GPL(rhashtable_insert_slow
+  * structure outside the hash table.
+  *
+  * This function may be called from any process context, including
+- * non-preemptable context, but cannot be called from softirq or
++ * non-preemptible context, but cannot be called from softirq or
+  * hardirq context.
+  *
+  * You must call rhashtable_walk_exit after this function returns.
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from pratyushmittal@gmail.com are
 
-ocfs2-free-inode-when-ocfs2_get_init_inode-fails.patch
+lib-rhashtable-fix-the-typo-for-preemptible.patch
 
