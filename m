@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 040447482
-	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 00:39:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172DF7482;
+	Thu, 28 Nov 2024 00:40:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732754386; cv=none; b=ogSNTKHwBEr7EHY+H6SOY2X9ggb40Oh6osK6IlPF37VNbFoJ3+vRjcWcSUj9GWDAtRbFmNpSzE+40ONCdW0CTBWn8xsgl616PWKDOIJ88GQk7XovDAPHsvAJiJdjaRlNVjehuesBioAZVJIMu3Ymw3UIOC/pxuF4nH1KFAwgKY8=
+	t=1732754457; cv=none; b=CZh4SmElDq7DF2yr/+f/eaqa3/tHnPP+3HENUa7hwsZ8ZEGpVygSwZpaiEccs/bqsiL3/z/xhqH1zNYSTehXbF+NfYrgW8YHsmuc4RRxo57Pa+X/QLwJMCyCBxTeXvKgAl5Dh3qlr3Mq8/6eD+gSEdxIUt8i/tKMPlebSYsLoJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732754386; c=relaxed/simple;
-	bh=2g1dgy082ZyfWjHcHCbGrKc/ZJuHy1HZOvx/h0zsMnM=;
-	h=Date:To:From:Subject:Message-Id; b=QL09CorlnshRNpCWHaaNThGPQ5g2HGW7+SD0aHxsV/VM+f0OdgcxOqyhO5ALq3/JB239EYeEznHPvmYJFpimLzmpNnrXOPU7f7JvBdgsheyDny/f/koRf9xyRb2B7qJ3wQTDOWxHJKrCCi6JgRMWZT3hnDv44AHpL4c8vpsxubs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F/8uelID; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732754457; c=relaxed/simple;
+	bh=a/G0mIukmp13jLDB5EJOYQ4Xu4asbW72zH7Q6ih4/tU=;
+	h=Date:To:From:Subject:Message-Id; b=N0w2TbYSEcsjJy4aI7L1q/8B5KHf1ohlcBVMYVNvq9E9QPHalDL5QP/hc6Oec3AcAcoX+XMe3oUzkqBIMA3jAmUkNqvRFPHrOXQFda3I4w8BRiEMxyAaw1eCBhxQQRgVAAWYvHN2MdycEPxmhhjeZ9UAQos9bZlgweNBARc01JE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bCIQBGKZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F/8uelID"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA22C4CECC;
-	Thu, 28 Nov 2024 00:39:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bCIQBGKZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1DD2C4CECC;
+	Thu, 28 Nov 2024 00:40:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732754385;
-	bh=2g1dgy082ZyfWjHcHCbGrKc/ZJuHy1HZOvx/h0zsMnM=;
+	s=korg; t=1732754456;
+	bh=a/G0mIukmp13jLDB5EJOYQ4Xu4asbW72zH7Q6ih4/tU=;
 	h=Date:To:From:Subject:From;
-	b=F/8uelIDSEgLYKjRYHcn30QDGPNPLtDUn433fjKyLJ0aGxsB42jgqre2aA9fiE2nV
-	 fRcJr75TjcBRixx9F6oq9Ge1jg0FznA2HnO7ZILSX6C+VcQpYSmEjaIz8WQ6fONFKi
-	 HwrpX8brAw/cQAClwKS97QiFH74b/jBFRppNbcZ8=
-Date: Wed, 27 Nov 2024 16:39:44 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,aliceryhl@google.com,akpm@linux-foundation.org
+	b=bCIQBGKZvQZmhO+r9WMhaaRIwSVWb68cabEuCtmEpraUgMG2BrHHNhGcNWfCp3gdI
+	 VzIBRIU24STo6eS1kFGIf95uXBZ7oF1flb3/r2opsnrb+zWrnROmseAHKNZ8Q2P17z
+	 FcKFLHzTl8fPXIxWj5VzwfyOD00QEPaAMMewKaJg=
+Date: Wed, 27 Nov 2024 16:40:56 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,shuah@kernel.org,mheyne@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch added to mm-unstable branch
-Message-Id: <20241128003945.4FA22C4CECC@smtp.kernel.org>
+Subject: + selftests-damon-add-_damon_sysfspy-to-test_files.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241128004056.D1DD2C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: add LRU_STOP to comment about dropping the lru lock
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
+     Subject: selftests/damon: add _damon_sysfs.py to TEST_FILES
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-damon-add-_damon_sysfspy-to-test_files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-_damon_sysfspy-to-test_files.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: mm/zswap: add LRU_STOP to comment about dropping the lru lock
-Date: Wed, 27 Nov 2024 13:53:29 +0000
+From: Maximilian Heyne <mheyne@amazon.de>
+Subject: selftests/damon: add _damon_sysfs.py to TEST_FILES
+Date: Wed, 27 Nov 2024 12:08:53 +0000
 
-This function has been able to return LRU_STOP since commit b49547ade38a
-("mm/zswap: stop lru list shrinking when encounter warm region").  To
-reduce confusion, update the comment to also list LRU_STOP as an option.
+When running selftests I encountered the following error message with
+some damon tests:
 
-Link: https://lkml.kernel.org/r/20241127-lru-stop-comment-v1-1-f54a7cba9429@google.com
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+ # Traceback (most recent call last):
+ #   File "[...]/damon/./damos_quota.py", line 7, in <module>
+ #     import _damon_sysfs
+ # ModuleNotFoundError: No module named '_damon_sysfs'
+
+Fix this by adding the _damon_sysfs.py file to TEST_FILES so that it
+will be available when running the respective damon selftests.
+
+Link: https://lkml.kernel.org/r/20241127-picks-visitor-7416685b-mheyne@amazon.de
+Fixes: 306abb63a8ca ("selftests/damon: implement a python module for test-purpose DAMON sysfs controls")
+Signed-off-by: Maximilian Heyne <mheyne@amazon.de>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
+ tools/testing/selftests/damon/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock
-+++ a/mm/zswap.c
-@@ -1156,7 +1156,7 @@ static enum lru_status shrink_memcg_cb(s
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-_damon_sysfspy-to-test_files
++++ a/tools/testing/selftests/damon/Makefile
+@@ -6,7 +6,7 @@ TEST_GEN_FILES += debugfs_target_ids_rea
+ TEST_GEN_FILES += debugfs_target_ids_pid_leak
+ TEST_GEN_FILES += access_memory access_memory_even
  
- 	/*
- 	 * It's safe to drop the lock here because we return either
--	 * LRU_REMOVED_RETRY or LRU_RETRY.
-+	 * LRU_REMOVED_RETRY, LRU_RETRY or LRU_STOP.
- 	 */
- 	spin_unlock(&l->lock);
+-TEST_FILES = _chk_dependency.sh _debugfs_common.sh
++TEST_FILES = _chk_dependency.sh _debugfs_common.sh _damon_sysfs.py
  
+ # functionality tests
+ TEST_PROGS = debugfs_attrs.sh debugfs_schemes.sh debugfs_target_ids.sh
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from mheyne@amazon.de are
 
-mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
+selftests-damon-add-_damon_sysfspy-to-test_files.patch
 
