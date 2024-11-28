@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BF96C8FF;
-	Thu, 28 Nov 2024 00:53:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288FD1DDEA
+	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 00:54:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732755187; cv=none; b=uTK+U1Dg47tr/V8n0MgPt6SQlAFUk0S78+NJK35Hh2e0NeOo6zgCVwKRKGpLUZzM59q7UTUQ7F2iVveN56afpY4g2I+Y77k2h4FJK4y7C9kD0BAamT7ij8/RQsFZV9ZsYMSv3/c5sqIJDvps+g9YQpJxrbvyUs3KHVjdqewgLfA=
+	t=1732755248; cv=none; b=lKgGdIMhI48gQl7XO3JJdRQ5l/7o0A+sJj9sdgpaKv9s5HN3MmQySrU2+u+x0SOio8J8enOWy4TljFvMys+asRL/lEvJ7KcpXq3YaO/Kxm3p6dWbYzIa7dngSi8r5k/k6eJ3WYWjgvhUpUxQOve90teEeQJ+waERkhUzW5fKa2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732755187; c=relaxed/simple;
-	bh=V2RsBHcEU7CslrL/5c8HtorfiHjIkQvleqgPhTHH9oI=;
-	h=Date:To:From:Subject:Message-Id; b=u395tw/DHgD44iZO6eJmdmg8MbE+Y19JD+yix9St378+DNAKAmNt3AMOle+qcs38Kcx9/bOZ7STbZXmI2gjcNwrYCMs2oGZufKGQlJ8o/gV6wP5KIzep2Ecdp8bLtS3ks3TcKFtyoL7CdlPzG+vkMZjDN8Nv8sGJuLz5teIsD+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b19684MH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732755248; c=relaxed/simple;
+	bh=jlAbvladaNaWusIMtHx/WH89v6ssNps/fXLfWAx/kjw=;
+	h=Date:To:From:Subject:Message-Id; b=jWWkDNGOReNFa2DDI/ISSFvTE+M+MmKMqYQCmt59IcCZ24R/MqvfaN3i3Kr9a5HXBUjkT8FFfPxxNYH7mARFG925beeHzix4h+5y49j4lBupb5hf/5kjA0DjYFzUL13c1/E4LRUJGZ3LE1minrhNTqEhinnaJUt2k7Zi5fAf6K0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIpBHbzp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b19684MH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA38C4CECC;
-	Thu, 28 Nov 2024 00:53:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIpBHbzp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93228C4CECC;
+	Thu, 28 Nov 2024 00:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732755187;
-	bh=V2RsBHcEU7CslrL/5c8HtorfiHjIkQvleqgPhTHH9oI=;
+	s=korg; t=1732755247;
+	bh=jlAbvladaNaWusIMtHx/WH89v6ssNps/fXLfWAx/kjw=;
 	h=Date:To:From:Subject:From;
-	b=b19684MHE554LazrsVeEy3SYPW4AuJXP+AmE0TU7+hKT8PXFdT9uRqN9JgT+V3lds
-	 lhMyNnw2RooyXV34GO+ITiTi0p/9SsaxsHYR6CUTF+B7cQTuGSS6h2lLl8lHhYEpa0
-	 bMowRCZStSv21kBB2igMcuiWZkwqHe5WroVMbLQE=
-Date: Wed, 27 Nov 2024 16:53:06 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,phil@fifi.org,anders.blomdell@gmail.com,jack@suse.cz,akpm@linux-foundation.org
+	b=qIpBHbzpiRKQfZVn+upJiYMVTD/ezVBA3y9RPGBZSkG6NigpgER76O7mNAjwRVs1w
+	 RhrTNjtNRbBIOpPdbLYRicZPfzUvmiuSr00D5KSx12wPKXaHkK0zYKHEmPQEwp1D2M
+	 JbWP+hR77tPCqcsj9z/J9lryZ5r5M0q0cIasoIWE=
+Date: Wed, 27 Nov 2024 16:54:06 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,surenb@google.com,richard.henderson@linaro.org,pasha.tatashin@soleen.com,mattst88@gmail.com,kent.overstreet@linux.dev,arnd@arndb.de,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241128005306.DFA38C4CECC@smtp.kernel.org>
+Subject: + alpha-remove-duplicate-included-header-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20241128005407.93228C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+     Subject: alpha: remove duplicate included header file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     alpha-remove-duplicate-included-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alpha-remove-duplicate-included-header-file.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,61 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
-Date: Tue, 26 Nov 2024 15:52:08 +0100
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: alpha: remove duplicate included header file
+Date: Tue, 26 Nov 2024 12:47:26 +0100
 
-This reverts commit 7c877586da3178974a8a94577b6045a48377ff25.
+Remove duplicate included header file asm/fpu.h
 
-Anders and Philippe have reported that recent kernels occasionally hang
-when used with NFS in readahead code.  The problem has been bisected to
-7c877586da3 ("readahead: properly shorten readahead when falling back to
-do_page_cache_ra()").  The cause of the problem is that ra->size can be
-shrunk by read_pages() call and subsequently we end up calling
-do_page_cache_ra() with negative (read huge positive) number of pages. 
-Let's revert 7c877586da3 for now until we can find a proper way how the
-logic in read_pages() and page_cache_ra_order() can coexist.  This can
-lead to reduced readahead throughput due to readahead window confusion but
-that's better than outright hangs.
-
-Link: https://lkml.kernel.org/r/20241126145208.985-1-jack@suse.cz
-Fixes: 7c877586da31 ("readahead: properly shorten readahead when falling back to do_page_cache_ra()")
-Reported-by: Anders Blomdell <anders.blomdell@gmail.com>
-Reported-by: Philippe Troin <phil@fifi.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Tested-by: Philippe Troin <phil@fifi.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241126114728.139029-1-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/alpha/lib/fpreg.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/readahead.c~revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra
-+++ a/mm/readahead.c
-@@ -460,8 +460,7 @@ void page_cache_ra_order(struct readahea
- 		struct file_ra_state *ra, unsigned int new_order)
- {
- 	struct address_space *mapping = ractl->mapping;
--	pgoff_t start = readahead_index(ractl);
--	pgoff_t index = start;
-+	pgoff_t index = readahead_index(ractl);
- 	unsigned int min_order = mapping_min_folio_order(mapping);
- 	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
- 	pgoff_t mark = index + ra->size - ra->async_size;
-@@ -524,7 +523,7 @@ void page_cache_ra_order(struct readahea
- 	if (!err)
- 		return;
- fallback:
--	do_page_cache_ra(ractl, ra->size - (index - start), ra->async_size);
-+	do_page_cache_ra(ractl, ra->size, ra->async_size);
- }
+--- a/arch/alpha/lib/fpreg.c~alpha-remove-duplicate-included-header-file
++++ a/arch/alpha/lib/fpreg.c
+@@ -10,7 +10,6 @@
+ #include <linux/preempt.h>
+ #include <asm/fpu.h>
+ #include <asm/thread_info.h>
+-#include <asm/fpu.h>
  
- static unsigned long ractl_max_pages(struct readahead_control *ractl,
+ #if defined(CONFIG_ALPHA_EV6) || defined(CONFIG_ALPHA_EV67)
+ #define STT(reg,val)  asm volatile ("ftoit $f"#reg",%0" : "=r"(val));
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+alpha-remove-duplicate-included-header-file.patch
 
