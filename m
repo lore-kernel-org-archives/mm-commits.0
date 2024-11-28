@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1CB9460;
-	Thu, 28 Nov 2024 00:39:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 040447482
+	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 00:39:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732754342; cv=none; b=efotmRdOMNVIz9lwnKRkp27pK3hVtKeJ/Y+U7fCd2RQVMXz38gO3qAIHz8PZpwuQEVl1xR0DenzMF0xhenKSDRIgBKsF1kQz9fWgRsFlKUedrQwNLgFWzd0lHh2GnmuXEzdK4NCm5WTPiEPtK8JauflJb4LbqypMgq8nGUufLr0=
+	t=1732754386; cv=none; b=ogSNTKHwBEr7EHY+H6SOY2X9ggb40Oh6osK6IlPF37VNbFoJ3+vRjcWcSUj9GWDAtRbFmNpSzE+40ONCdW0CTBWn8xsgl616PWKDOIJ88GQk7XovDAPHsvAJiJdjaRlNVjehuesBioAZVJIMu3Ymw3UIOC/pxuF4nH1KFAwgKY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732754342; c=relaxed/simple;
-	bh=oSzaIbkMZYJO2Tufkp+y03o80y7q4EZ0HofmEa7Y0eY=;
-	h=Date:To:From:Subject:Message-Id; b=pBpR+8DH1Izy8TYPvFeuLcghpax3RwJ0+rGqOhysbK33S2M2y7X8PNAJuEDLx0xxmoTF579umnUGLQpxLzqNwFmYlUAiwX4rQZz61B0Qp/PhmQzKVmUZWflIMiIRhInBK4IizHvWoOcZsa0OQO9nbEIK1QFtKWP9emMFFUt6nFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ACH2yuBt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732754386; c=relaxed/simple;
+	bh=2g1dgy082ZyfWjHcHCbGrKc/ZJuHy1HZOvx/h0zsMnM=;
+	h=Date:To:From:Subject:Message-Id; b=QL09CorlnshRNpCWHaaNThGPQ5g2HGW7+SD0aHxsV/VM+f0OdgcxOqyhO5ALq3/JB239EYeEznHPvmYJFpimLzmpNnrXOPU7f7JvBdgsheyDny/f/koRf9xyRb2B7qJ3wQTDOWxHJKrCCi6JgRMWZT3hnDv44AHpL4c8vpsxubs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F/8uelID; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ACH2yuBt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEFBAC4CECC;
-	Thu, 28 Nov 2024 00:39:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F/8uelID"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA22C4CECC;
+	Thu, 28 Nov 2024 00:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732754342;
-	bh=oSzaIbkMZYJO2Tufkp+y03o80y7q4EZ0HofmEa7Y0eY=;
+	s=korg; t=1732754385;
+	bh=2g1dgy082ZyfWjHcHCbGrKc/ZJuHy1HZOvx/h0zsMnM=;
 	h=Date:To:From:Subject:From;
-	b=ACH2yuBt0dZTLHVpbfN2ocpL1/eE51Himx4yqUevRA3uT+sw3HsgDBjzagG/5nke8
-	 WiPu07chsKFGE4jeOC2nSkg2M8B1b2WLWkbc53Crz32sK/EHFPW5aSkniZqLefn6qw
-	 E6nXBF0C/GmnK8sAJFpTqUdQIM9s1Q8J8lZO9h9o=
-Date: Wed, 27 Nov 2024 16:39:01 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,shuah@kernel.org,ritesh.list@gmail.com,donettom@linux.ibm.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=F/8uelIDSEgLYKjRYHcn30QDGPNPLtDUn433fjKyLJ0aGxsB42jgqre2aA9fiE2nV
+	 fRcJr75TjcBRixx9F6oq9Ge1jg0FznA2HnO7ZILSX6C+VcQpYSmEjaIz8WQ6fONFKi
+	 HwrpX8brAw/cQAClwKS97QiFH74b/jBFRppNbcZ8=
+Date: Wed, 27 Nov 2024 16:39:44 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-hugetlb_dio-fix-test-naming.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241128003901.EEFBAC4CECC@smtp.kernel.org>
+Subject: + mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch added to mm-unstable branch
+Message-Id: <20241128003945.4FA22C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest: hugetlb_dio: fix test naming
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftest-hugetlb_dio-fix-test-naming.patch
+     Subject: mm/zswap: add LRU_STOP to comment about dropping the lru lock
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-hugetlb_dio-fix-test-naming.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftest: hugetlb_dio: fix test naming
-Date: Wed, 27 Nov 2024 16:14:22 +0000
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: mm/zswap: add LRU_STOP to comment about dropping the lru lock
+Date: Wed, 27 Nov 2024 13:53:29 +0000
 
-The string logged when a test passes or fails is used by the selftest
-framework to identify which test is being reported.  The hugetlb_dio test
-not only uses the same strings for every test that is run but it also uses
-different strings for test passes and failures which means that test
-automation is unable to follow what the test is doing at all.
+This function has been able to return LRU_STOP since commit b49547ade38a
+("mm/zswap: stop lru list shrinking when encounter warm region").  To
+reduce confusion, update the comment to also list LRU_STOP as an option.
 
-Pull the existing duplicated logging of the number of free huge pages
-before and after the test out of the conditional and replace that and the
-logging of the result with a single ksft_print_result() which incorporates
-the parameters passed into the test into the output.
-
-Link: https://lkml.kernel.org/r/20241127-kselftest-mm-hugetlb-dio-names-v1-1-22aab01bf550@kernel.org
-Fixes: fae1980347bf ("selftests: hugetlb_dio: fixup check for initial conditions to skip in the start")
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241127-lru-stop-comment-v1-1-f54a7cba9429@google.com
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_dio.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ mm/zswap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftest-hugetlb_dio-fix-test-naming
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -76,19 +76,15 @@ void run_dio_using_hugetlb(unsigned int
- 	/* Get the free huge pages after unmap*/
- 	free_hpage_a = get_free_hugepages();
+--- a/mm/zswap.c~mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock
++++ a/mm/zswap.c
+@@ -1156,7 +1156,7 @@ static enum lru_status shrink_memcg_cb(s
  
-+	ksft_print_msg("No. Free pages before allocation : %d\n", free_hpage_b);
-+	ksft_print_msg("No. Free pages after munmap : %d\n", free_hpage_a);
-+
  	/*
- 	 * If the no. of free hugepages before allocation and after unmap does
- 	 * not match - that means there could still be a page which is pinned.
+ 	 * It's safe to drop the lock here because we return either
+-	 * LRU_REMOVED_RETRY or LRU_RETRY.
++	 * LRU_REMOVED_RETRY, LRU_RETRY or LRU_STOP.
  	 */
--	if (free_hpage_a != free_hpage_b) {
--		ksft_print_msg("No. Free pages before allocation : %d\n", free_hpage_b);
--		ksft_print_msg("No. Free pages after munmap : %d\n", free_hpage_a);
--		ksft_test_result_fail(": Huge pages not freed!\n");
--	} else {
--		ksft_print_msg("No. Free pages before allocation : %d\n", free_hpage_b);
--		ksft_print_msg("No. Free pages after munmap : %d\n", free_hpage_a);
--		ksft_test_result_pass(": Huge pages freed successfully !\n");
--	}
-+	ksft_test_result(free_hpage_a == free_hpage_b,
-+			 "free huge pages from %u-%u\n", start_off, end_off);
- }
+ 	spin_unlock(&l->lock);
  
- int main(void)
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
-selftest-hugetlb_dio-fix-test-naming.patch
+mm-zswap-add-lru_stop-to-comment-about-dropping-the-lru-lock.patch
 
