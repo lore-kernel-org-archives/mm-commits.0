@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F06112B73
-	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 01:52:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2605C2C9
+	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 01:53:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732758776; cv=none; b=IVK35J5OAfOMT4LjxluLU7zHp46ndbwkKsY2RYSoEV2MoFt957O2mZuM6GizcMFpVDhLSIAmxWCZ/5UaNOoAn2MSmLnok5K0S/Asv8pn3SgMt5ri/NzwmzTBQUgKFMbeE7iFQDx1AetaCFlwbfMtpUtYUbF/HvPOG3AMcLLvF4w=
+	t=1732758828; cv=none; b=HjLkNyP7Uh6VuN0oFDQ8NFp+IdZbnkSyLM0p24ftA464cb1wPpu2TkA3M5qynIXW2VtRuVywtKrmw/peOY+uNWU3xCF6gaxfKyXE5I4iPyDj/4cGQO0Kqf4tCFBsPGfXusE2nV9zE+992F+JuS5fF5mneLtls+zjOtaM6++CKXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732758776; c=relaxed/simple;
-	bh=HHNiS1GdWoDO73IDOc5aCUNYQQBdFii7BK6hxT0DM5I=;
-	h=Date:To:From:Subject:Message-Id; b=lSJ6E+yEHI2y0hzl49ZBCQ9R67DeM5dYyXVf35vxmp9GOuKvekUmYYhHNmSd5MiKnxUntLcrYKOz8XWWUf3uSDDfQSMU4Htj/g7BEfofZ2QnLSlmRsw0vjBE4Kjl5KyiBFuHOxQFbmqXEVxDfTsW0wWmwFP0TI7iu+lRX7VMiKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ypa20/Nr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732758828; c=relaxed/simple;
+	bh=Jy6mhEUkESzEatS2HIzkzRt5KZ17KrB/4mI9UtcXHc0=;
+	h=Date:To:From:Subject:Message-Id; b=RIA8C5djAVWNprBahn32KxGKRKLasJi6bpM1ScQaxMBPX9QAuEGpUUOFePnUEaG7vYAgDGMLgiFrPMWKdhJFdIS9EZtzqTbKY9bcpBeYSxoFSxsiSrh70J4NxO1EUoxiwQQbBBzAhHRSGEyBMkk0qBd9KHBC9OlJZnrwy8+phTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dcpNqc9a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ypa20/Nr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08ED2C4CECC;
-	Thu, 28 Nov 2024 01:52:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dcpNqc9a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AF53C4CECC;
+	Thu, 28 Nov 2024 01:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732758776;
-	bh=HHNiS1GdWoDO73IDOc5aCUNYQQBdFii7BK6hxT0DM5I=;
+	s=korg; t=1732758828;
+	bh=Jy6mhEUkESzEatS2HIzkzRt5KZ17KrB/4mI9UtcXHc0=;
 	h=Date:To:From:Subject:From;
-	b=ypa20/NrnIUJpM/lPn2FlTx14jMUhM3vNWSQjhU8hoALyeMozZn+3ZoDhsensfg7N
-	 3BcLa0whBUnkY1G/kNbmIK3MeC6UdaFo1n6QGBKmf1nbPYnIqoku3mYAh5oVivBeR5
-	 WOQgmRX7QrVpmoZ7akwU1YHlaH4M+ez/J96BrFLY=
-Date: Wed, 27 Nov 2024 17:52:55 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=dcpNqc9a6fY7EyD2UCLqc6uZK7BBqhCVUoyQ08X7cgdf3SX3XVl5z4Vwd05lLB9Yb
+	 JSPTz8yFCvHovgzGaRdZdCK5XXscrobaCcW/tT4K0adD6M1oqV5wifkvoP60RjsKLO
+	 EHcTXWe5hOsJhgQFZfK8y2W4BLplThhS0AjuMhaU=
+Date: Wed, 27 Nov 2024 17:53:47 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,danielyangkang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-directory-entry-check-in-ocfs2_search_dirblock.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241128015256.08ED2C4CECC@smtp.kernel.org>
+Subject: + ocfs2-heartbeat-replace-simple_strtoul-with-kstrtoul.patch added to mm-nonmm-unstable branch
+Message-Id: <20241128015348.3AF53C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix directory entry check in ocfs2_search_dirblock()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-directory-entry-check-in-ocfs2_search_dirblock.patch
+     Subject: ocfs2: heartbeat: replace simple_strtoul with kstrtoul
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-heartbeat-replace-simple_strtoul-with-kstrtoul.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-directory-entry-check-in-ocfs2_search_dirblock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-heartbeat-replace-simple_strtoul-with-kstrtoul.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,116 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: fix directory entry check in ocfs2_search_dirblock()
-Date: Tue, 19 Nov 2024 20:07:45 +0300
+From: Daniel Yang <danielyangkang@gmail.com>
+Subject: ocfs2: heartbeat: replace simple_strtoul with kstrtoul
+Date: Sun, 17 Nov 2024 13:52:18 -0800
 
-Syzbot has reported the following KASAN splat:
+simple_strtoul() is deprecated due to ignoring overflows and also requires
+clunkier error checking.  Replacing with kstrtoul() leads to safer code
+and cleaner error checking.
 
-BUG: KASAN: slab-use-after-free in ocfs2_search_dirblock+0x26b/0x830
-Read of size 1 at addr ffff888012009982 by task repro/5388
-...
-Call Trace:
- <TASK>
- dump_stack_lvl+0x241/0x360
- ? __pfx_dump_stack_lvl+0x10/0x10
- ? __pfx__printk+0x10/0x10
- ? _printk+0xd5/0x120
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x183/0x530
- print_report+0x169/0x550
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x45f/0x530
- ? __phys_addr+0xba/0x170
- ? ocfs2_search_dirblock+0x26b/0x830
- kasan_report+0x143/0x180
- ? ocfs2_search_dirblock+0x26b/0x830
- ocfs2_search_dirblock+0x26b/0x830
- ? ocfs2_read_inode_block+0x14c/0x1e0
- ? __pfx_ocfs2_search_dirblock+0x10/0x10
- ? validate_chain+0x11e/0x5900
- ocfs2_find_entry+0x1169/0x2780
- ? mark_lock+0x9a/0x350
- ? __lock_acquire+0x137a/0x2040
- ? __pfx_ocfs2_find_entry+0x10/0x10
- ? __pfx_lock_acquire+0x10/0x10
- ? ocfs2_inode_lock_full_nested+0x17b/0x1c10
- ? __pfx_lock_release+0x10/0x10
- ? do_raw_spin_lock+0x14f/0x370
- ? do_raw_spin_unlock+0x58/0x8b0
- ? _raw_spin_unlock+0x28/0x50
- ? ocfs2_inode_lock_full_nested+0xb2f/0x1c10
- ? __pfx_ocfs2_inode_lock_full_nested+0x10/0x10
- ocfs2_find_files_on_disk+0xff/0x360
- ocfs2_lookup_ino_from_name+0xb1/0x1e0
- ? __pfx_ocfs2_lookup_ino_from_name+0x10/0x10
- ocfs2_lookup+0x292/0xa60
- ? __pfx_ocfs2_lookup+0x10/0x10
- ? from_kgid+0x1a7/0x730
- ? make_vfsgid+0x46/0x90
- ? HAS_UNMAPPED_ID+0xf9/0x150
- ? inode_permission+0xff/0x460
- ? __pfx_ocfs2_permission+0x10/0x10
- ? bpf_lsm_inode_create+0x9/0x10
- ? security_inode_create+0xc2/0x110
- ? __pfx_ocfs2_lookup+0x10/0x10
- path_openat+0x11ce/0x3470
- ? __pfx_path_openat+0x10/0x10
- do_filp_open+0x235/0x490
- ? __pfx_do_filp_open+0x10/0x10
- ? _raw_spin_unlock+0x28/0x50
- ? alloc_fd+0x5a1/0x640
- do_sys_openat2+0x13e/0x1d0
- ? mntput_no_expire+0xc2/0x850
- ? __pfx_do_sys_openat2+0x10/0x10
- ? __pfx_mntput_no_expire+0x10/0x10
- __x64_sys_openat+0x247/0x2a0
- ? __pfx___x64_sys_openat+0x10/0x10
- ? do_syscall_64+0x100/0x230
- ? do_syscall_64+0xb6/0x230
- do_syscall_64+0xf3/0x230
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-...
- </TASK>
-
-This happens when 'ocfs2_search_dirblock()' makes an attempt to jump over
-(presumably invalid) on-disk directory entry which size exceeds
-'sizeof(struct ocfs2_dir_entry)', thus touching memory used by others
-(including the previously freed one).  So just bail out if such a
-directory entry is found.
-
-Link: https://lkml.kernel.org/r/20241119170745.464799-1-dmantipov@yandex.ru
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Reported-by: syzbot+b9704899e166798d57c9@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=b9704899e166798d57c9
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Link: https://lkml.kernel.org/r/20241117215219.4012-1-danielyangkang@gmail.com
+Signed-off-by: Daniel Yang <danielyangkang@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/cluster/heartbeat.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-fix-directory-entry-check-in-ocfs2_search_dirblock
-+++ a/fs/ocfs2/dir.c
-@@ -378,7 +378,7 @@ static inline int ocfs2_search_dirblock(
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-heartbeat-replace-simple_strtoul-with-kstrtoul
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1535,10 +1535,11 @@ static int o2hb_read_block_input(struct
+ {
+ 	unsigned long bytes;
+ 	char *p = (char *)page;
++	int ret;
  
- 		/* prevent looping on a bad block */
- 		de_len = le16_to_cpu(de->rec_len);
--		if (de_len <= 0) {
-+		if (de_len <= 0 || de_len > sizeof(*de)) {
- 			ret = -1;
- 			goto bail;
- 		}
+-	bytes = simple_strtoul(p, &p, 0);
+-	if (!p || (*p && (*p != '\n')))
+-		return -EINVAL;
++	ret = kstrtoul(p, 0, &bytes);
++	if (ret)
++		return ret;
+ 
+ 	/* Heartbeat and fs min / max block sizes are the same. */
+ 	if (bytes > 4096 || bytes < 512)
+@@ -1622,13 +1623,14 @@ static ssize_t o2hb_region_blocks_store(
+ 	struct o2hb_region *reg = to_o2hb_region(item);
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
++	int ret;
+ 
+ 	if (reg->hr_bdev_file)
+ 		return -EINVAL;
+ 
+-	tmp = simple_strtoul(p, &p, 0);
+-	if (!p || (*p && (*p != '\n')))
+-		return -EINVAL;
++	ret = kstrtoul(p, 0, &tmp);
++	if (ret)
++		return ret;
+ 
+ 	if (tmp > O2NM_MAX_NODES || tmp == 0)
+ 		return -ERANGE;
+@@ -2136,10 +2138,11 @@ static ssize_t o2hb_heartbeat_group_dead
+ {
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
++	int ret;
+ 
+-	tmp = simple_strtoul(p, &p, 10);
+-	if (!p || (*p && (*p != '\n')))
+-                return -EINVAL;
++	ret = kstrtoul(p, 10, &tmp);
++	if (ret)
++		return ret;
+ 
+ 	/* this will validate ranges for us. */
+ 	o2hb_dead_threshold_set((unsigned int) tmp);
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from danielyangkang@gmail.com are
 
-ocfs2-fix-directory-entry-check-in-ocfs2_search_dirblock.patch
+ocfs2-heartbeat-replace-simple_strtoul-with-kstrtoul.patch
 
