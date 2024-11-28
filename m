@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07FA2581;
-	Thu, 28 Nov 2024 00:50:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BF96C8FF;
+	Thu, 28 Nov 2024 00:53:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732755053; cv=none; b=nqAgLS/QBQ89VwJkCsF8yyn3msa7ONttKa1H6LyO/+Ok1oJBRDjNTp1HX63QflBxKLLA2wMqATnt6R3WQfydwPf8EJayYG/fETR2cMAg0GpZnqnuOMs+m00dW8R22F82glfzBthcMf13jh/QHjoHACugwBiIqelezj6gKt07EtY=
+	t=1732755187; cv=none; b=uTK+U1Dg47tr/V8n0MgPt6SQlAFUk0S78+NJK35Hh2e0NeOo6zgCVwKRKGpLUZzM59q7UTUQ7F2iVveN56afpY4g2I+Y77k2h4FJK4y7C9kD0BAamT7ij8/RQsFZV9ZsYMSv3/c5sqIJDvps+g9YQpJxrbvyUs3KHVjdqewgLfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732755053; c=relaxed/simple;
-	bh=D5svZbTVbynBEl6/YhB5PXpLnr2+ZAb58sbP34BExf4=;
-	h=Date:To:From:Subject:Message-Id; b=aWCK54j1MY32HIVjdqN3s/s9QmZNErlmwpc7NjqarVn+Q+KSFzCC//R7aHBLEyAlnCvXdt5suJgcF7vmzvnVUwWW5tVgWB2M+F4ygmRqTa2He1o/LsBqnZa+Ejlb5LTkh1t4+v54XMPoLtwRViXCedDNywtERD2cj8NO03yFudw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYrp5Cow; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732755187; c=relaxed/simple;
+	bh=V2RsBHcEU7CslrL/5c8HtorfiHjIkQvleqgPhTHH9oI=;
+	h=Date:To:From:Subject:Message-Id; b=u395tw/DHgD44iZO6eJmdmg8MbE+Y19JD+yix9St378+DNAKAmNt3AMOle+qcs38Kcx9/bOZ7STbZXmI2gjcNwrYCMs2oGZufKGQlJ8o/gV6wP5KIzep2Ecdp8bLtS3ks3TcKFtyoL7CdlPzG+vkMZjDN8Nv8sGJuLz5teIsD+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b19684MH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYrp5Cow"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CCB4C4CECC;
-	Thu, 28 Nov 2024 00:50:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b19684MH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA38C4CECC;
+	Thu, 28 Nov 2024 00:53:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732755053;
-	bh=D5svZbTVbynBEl6/YhB5PXpLnr2+ZAb58sbP34BExf4=;
+	s=korg; t=1732755187;
+	bh=V2RsBHcEU7CslrL/5c8HtorfiHjIkQvleqgPhTHH9oI=;
 	h=Date:To:From:Subject:From;
-	b=WYrp5CowNbDFW3q3aDZ31tciq+pNQNwDVwhFe6diPJmr/GHt3P9FXTIlzyJMZb3dW
-	 lbp4qbCpmc31g7KbMEb6K1sVLFJUpyM7kzhB3xgf5PXEZQYXidn9N6YoNLfpEqnYAo
-	 GOYCXWm7fcISy1F0ES7IGiJfORh21919tHYwilRY=
-Date: Wed, 27 Nov 2024 16:50:52 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,snishika@redhat.com,akpm@linux-foundation.org
+	b=b19684MHE554LazrsVeEy3SYPW4AuJXP+AmE0TU7+hKT8PXFdT9uRqN9JgT+V3lds
+	 lhMyNnw2RooyXV34GO+ITiTi0p/9SsaxsHYR6CUTF+B7cQTuGSS6h2lLl8lHhYEpa0
+	 bMowRCZStSv21kBB2igMcuiWZkwqHe5WroVMbLQE=
+Date: Wed, 27 Nov 2024 16:53:06 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,phil@fifi.org,anders.blomdell@gmail.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241128005053.8CCB4C4CECC@smtp.kernel.org>
+Subject: + revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241128005306.DFA38C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: ensure kswapd is woken up if the wait queue is active
+     Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch
+     revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,79 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Seiji Nishikawa <snishika@redhat.com>
-Subject: mm: vmscan: ensure kswapd is woken up if the wait queue is active
-Date: Wed, 27 Nov 2024 00:06:12 +0900
+From: Jan Kara <jack@suse.cz>
+Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
+Date: Tue, 26 Nov 2024 15:52:08 +0100
 
-Even after commit 501b26510ae3 ("vmstat: allow_direct_reclaim should use
-zone_page_state_snapshot"), a task may remain indefinitely stuck in
-throttle_direct_reclaim() while holding mm->rwsem.
+This reverts commit 7c877586da3178974a8a94577b6045a48377ff25.
 
-__alloc_pages_nodemask
- try_to_free_pages
-  throttle_direct_reclaim
+Anders and Philippe have reported that recent kernels occasionally hang
+when used with NFS in readahead code.  The problem has been bisected to
+7c877586da3 ("readahead: properly shorten readahead when falling back to
+do_page_cache_ra()").  The cause of the problem is that ra->size can be
+shrunk by read_pages() call and subsequently we end up calling
+do_page_cache_ra() with negative (read huge positive) number of pages. 
+Let's revert 7c877586da3 for now until we can find a proper way how the
+logic in read_pages() and page_cache_ra_order() can coexist.  This can
+lead to reduced readahead throughput due to readahead window confusion but
+that's better than outright hangs.
 
-This can cause numerous other tasks to wait on the same rwsem, leading
-to severe system hangups:
-
-[1088963.358712] INFO: task python3:1670971 blocked for more than 120 seconds.
-[1088963.365653]       Tainted: G           OE     -------- -  - 4.18.0-553.el8_10.aarch64 #1
-[1088963.373887] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-[1088963.381862] task:python3         state:D stack:0     pid:1670971 ppid:1667117 flags:0x00800080
-[1088963.381869] Call trace:
-[1088963.381872]  __switch_to+0xd0/0x120
-[1088963.381877]  __schedule+0x340/0xac8
-[1088963.381881]  schedule+0x68/0x118
-[1088963.381886]  rwsem_down_read_slowpath+0x2d4/0x4b8
-
-The issue arises when allow_direct_reclaim(pgdat) returns false,
-preventing progress even when the pgdat->pfmemalloc_wait wait queue is
-empty. Despite the wait queue being empty, the condition,
-allow_direct_reclaim(pgdat), may still be returning false, causing it to
-continue looping.
-
-In some cases, reclaimable pages exist (zone_reclaimable_pages() returns
- > 0), but calculations of pfmemalloc_reserve and free_pages result in
-wmark_ok being false.
-
-And then, despite the pgdat->kswapd_wait queue being non-empty, kswapd
-is not woken up, further exacerbating the problem:
-
-crash> px ((struct pglist_data *) 0xffff00817fffe540)->kswapd_highest_zoneidx
-$775 = __MAX_NR_ZONES
-
-This patch modifies allow_direct_reclaim() to wake kswapd if the
-pgdat->kswapd_wait queue is active, regardless of whether wmark_ok is true
-or false.  This change ensures kswapd does not miss wake-ups under high
-memory pressure, reducing the risk of task stalls in the throttled reclaim
-path.
-
-Link: https://lkml.kernel.org/r/20241126150612.114561-1-snishika@redhat.com
-Signed-off-by: Seiji Nishikawa <snishika@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20241126145208.985-1-jack@suse.cz
+Fixes: 7c877586da31 ("readahead: properly shorten readahead when falling back to do_page_cache_ra()")
+Reported-by: Anders Blomdell <anders.blomdell@gmail.com>
+Reported-by: Philippe Troin <phil@fifi.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Tested-by: Philippe Troin <phil@fifi.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/readahead.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active
-+++ a/mm/vmscan.c
-@@ -6389,8 +6389,8 @@ static bool allow_direct_reclaim(pg_data
+--- a/mm/readahead.c~revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra
++++ a/mm/readahead.c
+@@ -460,8 +460,7 @@ void page_cache_ra_order(struct readahea
+ 		struct file_ra_state *ra, unsigned int new_order)
+ {
+ 	struct address_space *mapping = ractl->mapping;
+-	pgoff_t start = readahead_index(ractl);
+-	pgoff_t index = start;
++	pgoff_t index = readahead_index(ractl);
+ 	unsigned int min_order = mapping_min_folio_order(mapping);
+ 	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
+ 	pgoff_t mark = index + ra->size - ra->async_size;
+@@ -524,7 +523,7 @@ void page_cache_ra_order(struct readahea
+ 	if (!err)
+ 		return;
+ fallback:
+-	do_page_cache_ra(ractl, ra->size - (index - start), ra->async_size);
++	do_page_cache_ra(ractl, ra->size, ra->async_size);
+ }
  
- 	wmark_ok = free_pages > pfmemalloc_reserve / 2;
- 
--	/* kswapd must be awake if processes are being throttled */
--	if (!wmark_ok && waitqueue_active(&pgdat->kswapd_wait)) {
-+	/* Always wake up kswapd if the wait queue is not empty */
-+	if (waitqueue_active(&pgdat->kswapd_wait)) {
- 		if (READ_ONCE(pgdat->kswapd_highest_zoneidx) > ZONE_NORMAL)
- 			WRITE_ONCE(pgdat->kswapd_highest_zoneidx, ZONE_NORMAL);
- 
+ static unsigned long ractl_max_pages(struct readahead_control *ractl,
 _
 
-Patches currently in -mm which might be from snishika@redhat.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch
+revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
 
