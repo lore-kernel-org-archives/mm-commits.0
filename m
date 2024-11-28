@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4648F126BF9
-	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 01:49:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE37D12B73;
+	Thu, 28 Nov 2024 01:51:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732758565; cv=none; b=dFLXFwvDk49JdidzsrczoqWdWbP/hM6CxNaBZjDAyl3RARTT/NfN9SfsCNaEe92qTqYg3QX9JIql2ffWozL/8IxWm9qKvrQ/G+VJProGt5AnVF3WZcTelEENbezcyDIBEpBNUnNJW5UI3LQrSnKHDJGrn4ewFk7IjDsS21lriNY=
+	t=1732758709; cv=none; b=t3hhNiSG77La0oMDJYCxh8hb2hLnN5GZK2JSRewG97GbVCdvVouJR1+KASi19Efagp1CrJVXYW7te041gwsT2pP846qTANCrfAj8T1NlV2H0BS3G0UMDbcaS5hDYQmkWtHWDvfqLHXDHlW0h2YNsOp7nZdimPBUkqsq2bX0uWJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732758565; c=relaxed/simple;
-	bh=JIEfs6wBgtKxySebdSxmXTf4k5YZfeUoAcCHytDAtzs=;
-	h=Date:To:From:Subject:Message-Id; b=PRYIQhDqEQKd5XRGhpEU3/Mt+tlAosjK84c/GjEILsZ65UdeooRKzZWVSilbemHeB74onOlPf3uQVl69pViJIr4yDZ7gHR9Jje/ByK6BwJR2nvhAsoXUEJWACHeckHotX3h3BPK23Obm8f5mrR5ExwYs3j3lGzJFfAVEZ6wf5d4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G1SxEoBk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732758709; c=relaxed/simple;
+	bh=TBD6Sh/QPyySgfLrxsV0I1iVz3k1RFf5Iw6Ky0D9kcQ=;
+	h=Date:To:From:Subject:Message-Id; b=NRuqbcFnzjzDFLcNisyRr8OzE5KjUhUkPryotN9Fo8XkR44nlqg3EhDc3CFExYQMmhuAUKAWsdNyunMIovi/4ZiBF288uMpKOmX0vKgnbQdGwBccfZ+NBrEOzz+4JpjCokeQqE44orypqh7YuqRfiFfe5KulNMFAa6sa49Y8APs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rkh0PkrM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G1SxEoBk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3164C4CECC;
-	Thu, 28 Nov 2024 01:49:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rkh0PkrM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529E4C4CECC;
+	Thu, 28 Nov 2024 01:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732758564;
-	bh=JIEfs6wBgtKxySebdSxmXTf4k5YZfeUoAcCHytDAtzs=;
+	s=korg; t=1732758708;
+	bh=TBD6Sh/QPyySgfLrxsV0I1iVz3k1RFf5Iw6Ky0D9kcQ=;
 	h=Date:To:From:Subject:From;
-	b=G1SxEoBkmKuDHo746NfKuhn0lYRAAb+X45Apoic8Blgrte3Yb7QCLoCVXELFBOAkB
-	 J8AKilXbYwEm33KPMmRx+pSFVKxWITHrIEYUex9FGJ7WUek7PpiRN+tWhutQ2fCs8c
-	 ZSrPWCRFoh3CF09KCWlH6lWK/x95soKXuzSUlJmo=
-Date: Wed, 27 Nov 2024 17:49:24 -0800
-To: mm-commits@vger.kernel.org,yikming2222@gmail.com,akpm@linux-foundation.org
+	b=Rkh0PkrMVj0BLKE9D8hbQdHYrIsqs8HyZvgszqYhNJwHMJxcBp6RoFGrGKFZZdglE
+	 drGexNDuyp3n1Fy3CrkalFSgnjNvB7FbCnL1wYSYeOXdmd720SZ7Ymfxzzeemplwd7
+	 XpbO8DBMxsCUNngC35q3Dbk3ZRJsySCvAm1gUly0=
+Date: Wed, 27 Nov 2024 17:51:47 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,wen.gang.wang@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-fix-a-comment-typo-in-lock_mm_and_find_vma.patch added to mm-unstable branch
-Message-Id: <20241128014924.B3164C4CECC@smtp.kernel.org>
+Subject: + ocfs2-update-seq_file-index-in-ocfs2_dlm_seq_next-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241128015148.529E4C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: fix a comment typo in lock_mm_and_find_vma()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-fix-a-comment-typo-in-lock_mm_and_find_vma.patch
+     Subject: ocfs2: update seq_file index in ocfs2_dlm_seq_next
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-update-seq_file-index-in-ocfs2_dlm_seq_next-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-a-comment-typo-in-lock_mm_and_find_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-update-seq_file-index-in-ocfs2_dlm_seq_next-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,34 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chin Yik Ming <yikming2222@gmail.com>
-Subject: mm/memory: fix a comment typo in lock_mm_and_find_vma()
-Date: Wed, 20 Nov 2024 18:50:41 +0800
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: update seq_file index in ocfs2_dlm_seq_next
+Date: Tue, 19 Nov 2024 09:45:00 -0800
 
-s/equivalend/equivalent/
+The following INFO level message was seen:
 
-Link: https://lkml.kernel.org/r/20241120105041.2394283-1-yikming2222@gmail.com
-Signed-off-by: Chin Yik Ming <yikming2222@gmail.com>
+seq_file: buggy .next function ocfs2_dlm_seq_next [ocfs2] did not
+update position index
+
+Fix:
+Update *pos (so m->index) to make seq_read_iter happy though the index its
+self makes no sense to ocfs2_dlm_seq_next.
+
+Link: https://lkml.kernel.org/r/20241119174500.9198-1-wen.gang.wang@oracle.com
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory.c~mm-memory-fix-a-comment-typo-in-lock_mm_and_find_vma
-+++ a/mm/memory.c
-@@ -6185,7 +6185,7 @@ static inline bool upgrade_mmap_lock_car
- /*
-  * Helper for page fault handling.
-  *
-- * This is kind of equivalend to "mmap_read_lock()" followed
-+ * This is kind of equivalent to "mmap_read_lock()" followed
-  * by "find_extend_vma()", except it's a lot more careful about
-  * the locking (and will drop the lock on failure).
-  *
+--- a/fs/ocfs2/dlmglue.c~ocfs2-update-seq_file-index-in-ocfs2_dlm_seq_next-v2
++++ a/fs/ocfs2/dlmglue.c
+@@ -3110,6 +3110,7 @@ static void *ocfs2_dlm_seq_next(struct s
+ 	struct ocfs2_lock_res *iter = v;
+ 	struct ocfs2_lock_res *dummy = &priv->p_iter_res;
+ 
++	(*pos)++;
+ 	spin_lock(&ocfs2_dlm_tracking_lock);
+ 	iter = ocfs2_dlm_next_res(iter, priv);
+ 	list_del_init(&dummy->l_debug_list);
 _
 
-Patches currently in -mm which might be from yikming2222@gmail.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-mm-memory-fix-a-comment-typo-in-lock_mm_and_find_vma.patch
+ocfs2-update-seq_file-index-in-ocfs2_dlm_seq_next-v2.patch
 
