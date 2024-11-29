@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B7D33DF
-	for <mm-commits@vger.kernel.org>; Thu, 28 Nov 2024 02:17:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33218167DAC
+	for <mm-commits@vger.kernel.org>; Fri, 29 Nov 2024 10:12:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732760240; cv=none; b=SPaS9vSbA6WbPs2fMALK7pgDWkblPReYH8HGyTqYtJoaLZCY69MJbTgp6vDoAda0PjJrfhFBzTzZFXp77gJLcaW04BNCoPptVE//uCzOjF/EIs1OIicFD3y3vNIx43ukIVZA0EN88NCC69GRaGyRcVKFFKXg2XMf1uqORj2BdfE=
+	t=1732875148; cv=none; b=hj0ugjrb/6NUhzmyh6QKptLkWWuH3389Ge+x6ZtjbLjTOuRdn5Nfvg0Qr8liS/fmuwxnIGl6RX8cjydZkNULbwiQkA5CuUgnkdfpsRJjEVzv3/8fMjHJd2AcbcZZx5UGTsqIsLWl4MduM/1W32RlX2AeoCVwWjhUrOD5/AvahFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732760240; c=relaxed/simple;
-	bh=OoV6oPDTRsWYFRW8K9I7aQ7+rHs0PftygWLnAYMBb6k=;
-	h=Date:To:From:Subject:Message-Id; b=a4ocVG/p8jiN+wQDvMPck/UIcqHQC62/+qKpaUYUtPbQQeU8IURyj+b7E38hhw232LQUt/holoRKqHfXs1iDOEYMc42oqXtGwx5opLZmrN+1/SvUytXzXTmXEuCr5JFtwo2hWziPRylaSQpL5Qfphce7nCytJP5YFpMIpJ5SlJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cfaKeO4A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732875148; c=relaxed/simple;
+	bh=RECwYGBm4ZjOsH8CFa+Mq8GylbKJMRxZNf38ncnxM8k=;
+	h=Date:To:From:Subject:Message-Id; b=H6Og9eQsqd7lf8CLAbsWXUVesMfQ/aL9k7nifPf/LWtMQDjvEbgpGy5kfxAXiXeEAtTgWJdZe63h72i2E11rPrJnd2Ic6o+sdvv0D17jjn4dyBdFVfVumM4z4VSFVx1rdjTzBxs8+0A9NTb9jUkSMMK0ykxlK4C3Bpx2OFN2Sog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VoFeMXQz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cfaKeO4A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D43DC4CECC;
-	Thu, 28 Nov 2024 02:17:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VoFeMXQz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 788C4C4CECF;
+	Fri, 29 Nov 2024 10:12:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732760239;
-	bh=OoV6oPDTRsWYFRW8K9I7aQ7+rHs0PftygWLnAYMBb6k=;
+	s=korg; t=1732875147;
+	bh=RECwYGBm4ZjOsH8CFa+Mq8GylbKJMRxZNf38ncnxM8k=;
 	h=Date:To:From:Subject:From;
-	b=cfaKeO4APplN7CVv9VjLhX32Rqb8fs32FIKDis5z81nea7WuLuSRzJH4ULSdX4w13
-	 ykc6cJkZ5XusFvu2i+qZaeKmeZNyvmS76j8nXQjSJgKsJMYKcYL4X8onnzOb97UD2/
-	 IkldCa1FW5RhlhvqyqTk6LnxuB6yiEXjE96b1b7Y=
-Date: Wed, 27 Nov 2024 18:17:18 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincenzo.frascino@arm.com,vincent.guittot@linaro.org,vbabka@suse.cz,urezki@gmail.com,tj@kernel.org,tglx@linutronix.de,ryabinin.a.a@gmail.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,qiang.zhang1211@gmail.com,penberg@kernel.org,paulmck@kernel.org,neeraj.upadhyay@kernel.org,mingo@redhat.com,mgorman@suse.de,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,longman@redhat.com,Liam.Howlett@Oracle.com,kasan-dev@googlegroups.com,juri.lelli@redhat.com,josh@joshtriplett.org,joel@joelfernandes.org,jiangshanlai@gmail.com,jannh@google.com,iamjoonsoo.kim@lge.com,glider@google.com,frederic@kernel.org,elver@google.com,dvyukov@google.com,dietmar.eggemann@arm.com,cl@linux.com,bsegall@google.com,boqun.feng@gmail.com,bigeasy@linutronix.de,andreyknvl@gmail.com,42.hyeyoo@gmail.com,peterz@infradead.org,akpm@linux-foundation.org
+	b=VoFeMXQzt0unouAWof24mwkAgSVazmNNXZ264XyCOAnUXQSSZ+DZoFcWW7Pd1R80S
+	 ZC7XLDPaqZ9WKVnm0b58CvmfX+QfZHDd6+kKqi6ElJo9nb7fmLH0pYVl12btUVLkd5
+	 ryxX2r8hcj85U9fwVJMRk+vKSvNUsOWp0GoY+alI=
+Date: Fri, 29 Nov 2024 02:12:26 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,kent.overstreet@linux.dev,00107082@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch added to mm-unstable branch
-Message-Id: <20241128021719.6D43DC4CECC@smtp.kernel.org>
+Subject: + mm-codetag-swap-tags-when-migrate-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241129101227.788C4C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: make kasan_record_aux_stack_noalloc() the default behaviour
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch
+     Subject: mm/codetag: swap tags when migrate pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-codetag-swap-tags-when-migrate-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-swap-tags-when-migrate-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,264 +58,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: kasan: make kasan_record_aux_stack_noalloc() the default behaviour
-Date: Fri, 22 Nov 2024 16:54:51 +0100
+From: David Wang <00107082@163.com>
+Subject: mm/codetag: swap tags when migrate pages
+Date: Fri, 29 Nov 2024 10:52:13 +0800
 
-kasan_record_aux_stack_noalloc() was introduced to record a stack trace
-without allocating memory in the process.  It has been added to callers
-which were invoked while a raw_spinlock_t was held.  More and more callers
-were identified and changed over time.  Is it a good thing to have this
-while functions try their best to do a locklessly setup?  The only
-downside of having kasan_record_aux_stack() not allocate any memory is
-that we end up without a stacktrace if stackdepot runs out of memory and
-at the same stacktrace was not recorded before To quote Marco Elver from
-https://lore.kernel.org/all/CANpmjNPmQYJ7pv1N3cuU8cP18u7PP_uoZD8YxwZd4jtbof9nVQ@mail.gmail.com/
+Current solution to adjust codetag references during page migration is
+done in 3 steps:
 
-| I'd be in favor, it simplifies things. And stack depot should be
-| able to replenish its pool sufficiently in the "non-aux" cases
-| i.e. regular allocations. Worst case we fail to record some
-| aux stacks, but I think that's only really bad if there's a bug
-| around one of these allocations. In general the probabilities
-| of this being a regression are extremely small [...]
+1. sets the codetag reference of the old page as empty (not pointing
+   to any codetag);
 
-Make the kasan_record_aux_stack_noalloc() behaviour default as
-kasan_record_aux_stack().
+2. subtracts counters of the new page to compensate for its own
+   allocation;
 
-[bigeasy@linutronix.de: dressed the diff as patch]
-Link: https://lkml.kernel.org/r/20241122155451.Mb2pmeyJ@linutronix.de
-Fixes: 7cb3007ce2da2 ("kasan: generic: introduce kasan_record_aux_stack_noalloc()")
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: syzbot+39f85d612b7c20d8db48@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67275485.050a0220.3c8d68.0a37.GAE@googl=
-e.com
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Waiman Long <longman@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: <kasan-dev@googlegroups.com>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Neeraj Upadhyay <neeraj.upadhyay@kernel.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: syzkaller-bugs@googlegroups.com
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zqiang <qiang.zhang1211@gmail.com>
+3. sets codetag reference of the new page to point to the codetag of
+   the old page.
+
+This does not work if CONFIG_MEM_ALLOC_PROFILING_DEBUG=n because
+set_codetag_empty() becomes NOOP.  Instead, let's simply swap codetag
+references so that the new page is referencing the old codetag and the old
+page is referencing the new codetag.  This way accounting stays valid and
+the logic makes more sense.
+
+Link: https://lkml.kernel.org/r/20241129025213.34836-1-00107082@163.com
+Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
+Signed-off-by: David Wang <00107082@163.com>
+Closes: https://lore.kernel.org/lkml/20241124074318.399027-1-00107082@163.com/
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h     |    2 --
- include/linux/task_work.h |    3 ---
- kernel/irq_work.c         |    2 +-
- kernel/rcu/tiny.c         |    2 +-
- kernel/rcu/tree.c         |    4 ++--
- kernel/sched/core.c       |    2 +-
- kernel/task_work.c        |   14 +-------------
- kernel/workqueue.c        |    2 +-
- mm/kasan/generic.c        |   18 ++++++------------
- mm/slub.c                 |    2 +-
- 10 files changed, 14 insertions(+), 37 deletions(-)
+ include/linux/pgalloc_tag.h |    4 +--
+ lib/alloc_tag.c             |   36 ++++++++++++++++++++--------------
+ mm/migrate.c                |    2 -
+ 3 files changed, 25 insertions(+), 17 deletions(-)
 
---- a/include/linux/kasan.h~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/include/linux/kasan.h
-@@ -491,7 +491,6 @@ void kasan_cache_create(struct kmem_cach
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
--void kasan_record_aux_stack_noalloc(void *ptr);
- 
- #else /* CONFIG_KASAN_GENERIC */
- 
-@@ -509,7 +508,6 @@ static inline void kasan_cache_create(st
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
- static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- static inline void kasan_record_aux_stack(void *ptr) {}
--static inline void kasan_record_aux_stack_noalloc(void *ptr) {}
- 
- #endif /* CONFIG_KASAN_GENERIC */
- 
---- a/include/linux/task_work.h~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/include/linux/task_work.h
-@@ -19,9 +19,6 @@ enum task_work_notify_mode {
- 	TWA_SIGNAL,
- 	TWA_SIGNAL_NO_IPI,
- 	TWA_NMI_CURRENT,
--
--	TWA_FLAGS = 0xff00,
--	TWAF_NO_ALLOC = 0x0100,
- };
- 
- static inline bool task_work_pending(struct task_struct *task)
---- a/kernel/irq_work.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/irq_work.c
-@@ -147,7 +147,7 @@ bool irq_work_queue_on(struct irq_work *
- 	if (!irq_work_claim(work))
- 		return false;
- 
--	kasan_record_aux_stack_noalloc(work);
-+	kasan_record_aux_stack(work);
- 
- 	preempt_disable();
- 	if (cpu != smp_processor_id()) {
---- a/kernel/rcu/tiny.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/rcu/tiny.c
-@@ -250,7 +250,7 @@ EXPORT_SYMBOL_GPL(poll_state_synchronize
- void kvfree_call_rcu(struct rcu_head *head, void *ptr)
- {
- 	if (head)
--		kasan_record_aux_stack_noalloc(ptr);
-+		kasan_record_aux_stack(ptr);
- 
- 	__kvfree_call_rcu(head, ptr);
+--- a/include/linux/pgalloc_tag.h~mm-codetag-swap-tags-when-migrate-pages
++++ a/include/linux/pgalloc_tag.h
+@@ -231,7 +231,7 @@ static inline void pgalloc_tag_sub_pages
  }
---- a/kernel/rcu/tree.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/rcu/tree.c
-@@ -3083,7 +3083,7 @@ __call_rcu_common(struct rcu_head *head,
- 	}
- 	head->func = func;
- 	head->next = NULL;
--	kasan_record_aux_stack_noalloc(head);
-+	kasan_record_aux_stack(head);
- 	local_irq_save(flags);
- 	rdp = this_cpu_ptr(&rcu_data);
- 	lazy = lazy_in && !rcu_async_should_hurry();
-@@ -3817,7 +3817,7 @@ void kvfree_call_rcu(struct rcu_head *he
- 		return;
- 	}
  
--	kasan_record_aux_stack_noalloc(ptr);
-+	kasan_record_aux_stack(ptr);
- 	success = add_ptr_to_bulk_krc_lock(&krcp, &flags, ptr, !head);
- 	if (!success) {
- 		run_page_cache_worker(krcp);
---- a/kernel/sched/core.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/sched/core.c
-@@ -10590,7 +10590,7 @@ void task_tick_mm_cid(struct rq *rq, str
+ void pgalloc_tag_split(struct folio *folio, int old_order, int new_order);
+-void pgalloc_tag_copy(struct folio *new, struct folio *old);
++void pgalloc_tag_swap(struct folio *new, struct folio *old);
+ 
+ void __init alloc_tag_sec_init(void);
+ 
+@@ -245,7 +245,7 @@ static inline struct alloc_tag *pgalloc_
+ static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
+ static inline void alloc_tag_sec_init(void) {}
+ static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
+-static inline void pgalloc_tag_copy(struct folio *new, struct folio *old) {}
++static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
+ 
+ #endif /* CONFIG_MEM_ALLOC_PROFILING */
+ 
+--- a/lib/alloc_tag.c~mm-codetag-swap-tags-when-migrate-pages
++++ a/lib/alloc_tag.c
+@@ -189,26 +189,34 @@ void pgalloc_tag_split(struct folio *fol
+ 	}
+ }
+ 
+-void pgalloc_tag_copy(struct folio *new, struct folio *old)
++void pgalloc_tag_swap(struct folio *new, struct folio *old)
+ {
+-	union pgtag_ref_handle handle;
+-	union codetag_ref ref;
+-	struct alloc_tag *tag;
++	union pgtag_ref_handle handle_old, handle_new;
++	union codetag_ref ref_old, ref_new;
++	struct alloc_tag *tag_old, *tag_new;
+ 
+-	tag = pgalloc_tag_get(&old->page);
+-	if (!tag)
++	tag_old = pgalloc_tag_get(&old->page);
++	if (!tag_old)
++		return;
++	tag_new = pgalloc_tag_get(&new->page);
++	if (!tag_new)
  		return;
  
- 	/* No page allocation under rq lock */
--	task_work_add(curr, work, TWA_RESUME | TWAF_NO_ALLOC);
-+	task_work_add(curr, work, TWA_RESUME);
- }
- 
- void sched_mm_cid_exit_signals(struct task_struct *t)
---- a/kernel/task_work.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/task_work.c
-@@ -55,26 +55,14 @@ int task_work_add(struct task_struct *ta
- 		  enum task_work_notify_mode notify)
- {
- 	struct callback_head *head;
--	int flags = notify & TWA_FLAGS;
- 
--	notify &= ~TWA_FLAGS;
- 	if (notify == TWA_NMI_CURRENT) {
- 		if (WARN_ON_ONCE(task != current))
- 			return -EINVAL;
- 		if (!IS_ENABLED(CONFIG_IRQ_WORK))
- 			return -EINVAL;
- 	} else {
--		/*
--		 * Record the work call stack in order to print it in KASAN
--		 * reports.
--		 *
--		 * Note that stack allocation can fail if TWAF_NO_ALLOC flag
--		 * is set and new page is needed to expand the stack buffer.
--		 */
--		if (flags & TWAF_NO_ALLOC)
--			kasan_record_aux_stack_noalloc(work);
--		else
--			kasan_record_aux_stack(work);
-+		kasan_record_aux_stack(work);
- 	}
- 
- 	head = READ_ONCE(task->task_works);
---- a/kernel/workqueue.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/workqueue.c
-@@ -2180,7 +2180,7 @@ static void insert_work(struct pool_work
- 	debug_work_activate(work);
- 
- 	/* record the work call stack in order to print it in KASAN reports */
--	kasan_record_aux_stack_noalloc(work);
-+	kasan_record_aux_stack(work);
- 
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
---- a/mm/kasan/generic.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/mm/kasan/generic.c
-@@ -524,7 +524,11 @@ size_t kasan_metadata_size(struct kmem_c
- 			sizeof(struct kasan_free_meta) : 0);
- }
- 
--static void __kasan_record_aux_stack(void *addr, depot_flags_t depot_flags)
-+/*
-+ * This function avoids dynamic memory allocations and thus can be called from
-+ * contexts that do not allow allocating memory.
-+ */
-+void kasan_record_aux_stack(void *addr)
- {
- 	struct slab *slab = kasan_addr_to_slab(addr);
- 	struct kmem_cache *cache;
-@@ -541,17 +545,7 @@ static void __kasan_record_aux_stack(voi
+-	if (!get_page_tag_ref(&new->page, &ref, &handle))
++	if (!get_page_tag_ref(&old->page, &ref_old, &handle_old))
++		return;
++	if (!get_page_tag_ref(&new->page, &ref_new, &handle_new)) {
++		put_page_tag_ref(handle_old);
  		return;
++	}
++
++	/* swap tags */
++	__alloc_tag_ref_set(&ref_old, tag_new);
++	update_page_tag_ref(handle_old, &ref_old);
++	__alloc_tag_ref_set(&ref_new, tag_old);
++	update_page_tag_ref(handle_new, &ref_new);
  
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
--	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
--}
--
--void kasan_record_aux_stack(void *addr)
--{
--	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
--}
--
--void kasan_record_aux_stack_noalloc(void *addr)
--{
--	return __kasan_record_aux_stack(addr, 0);
-+	alloc_meta->aux_stack[0] = kasan_save_stack(0, 0);
+-	/* Clear the old ref to the original allocation tag. */
+-	clear_page_tag_ref(&old->page);
+-	/* Decrement the counters of the tag on get_new_folio. */
+-	alloc_tag_sub(&ref, folio_size(new));
+-	__alloc_tag_ref_set(&ref, tag);
+-	update_page_tag_ref(handle, &ref);
+-	put_page_tag_ref(handle);
++	put_page_tag_ref(handle_old);
++	put_page_tag_ref(handle_new);
  }
  
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
---- a/mm/slub.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/mm/slub.c
-@@ -2296,7 +2296,7 @@ bool slab_free_hook(struct kmem_cache *s
- 			 * We have to do this manually because the rcu_head is
- 			 * not located inside the object.
- 			 */
--			kasan_record_aux_stack_noalloc(x);
-+			kasan_record_aux_stack(x);
+ static void shutdown_mem_profiling(bool remove_file)
+--- a/mm/migrate.c~mm-codetag-swap-tags-when-migrate-pages
++++ a/mm/migrate.c
+@@ -745,7 +745,7 @@ void folio_migrate_flags(struct folio *n
+ 		folio_set_readahead(newfolio);
  
- 			delayed_free->object = x;
- 			call_rcu(&delayed_free->head, slab_free_after_rcu_debug);
+ 	folio_copy_owner(newfolio, folio);
+-	pgalloc_tag_copy(newfolio, folio);
++	pgalloc_tag_swap(newfolio, folio);
+ 
+ 	mem_cgroup_migrate(folio, newfolio);
+ }
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from 00107082@163.com are
 
-kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch
+mm-codetag-swap-tags-when-migrate-pages.patch
 
