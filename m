@@ -1,133 +1,161 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE1043FC2
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 04:42:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 100711FB3
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 05:09:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732941762; cv=none; b=N5cntvnhVAOoh8kMvb2SIQDSFylA0K0prD88Ui7qszS13qTo2hOrJHKyAigZnBLq9H+fvQBkUXoh0TwMHXg1yB/br8z0BIzXoEWvJGTS1a1NzRFC49Ha9fhKkAzHIh3xm2UM1uXG6q0/qlif0KD2NB1tNi3n8O3O+jTTMT88XfY=
+	t=1732943347; cv=none; b=mEkkaNkb1MBRRU3XfkLYHZ4+tz7gcfMqO1aKiOi2o+QRyn/ifx5PylmlJ2/OIwwySg7YNtrahVT1k/0yf8bTrbepYcCTUSUxC4ZPHBkz1hPRWIve9QtHc5rGSgklvYn4vJ+sXmDQFh6W+VS4hGkGQwUN1uOOLms8Mr0Cd4fMUyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732941762; c=relaxed/simple;
-	bh=gP9hnH5X28fpAImsbtBRDKU2m8gBUDO0PgTp572WjQQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qUb8XHXI5AtIOit06jMcBP/KYuROUK+r4P2Bs4kFp4LwvfEjc7ZeHFl4H6ol5yTYLP/QPMIHzlYqTmzwt1Lgs4VEc67EdAiKfW5yiKPjcsavE7wpgvOmzwPl+MDB4dnHYvK/nP5JQ6b9cCshIsxZKVYoj9zbPeBMBeBOdnbEopA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=WmYRVXzx; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1732943347; c=relaxed/simple;
+	bh=JTAiltfKV6u+Ydn8ugjcSW+7adxL2hr96679lcq4wq8=;
+	h=Date:To:From:Subject:Message-Id; b=IeIlgPKcCbJbdviV8m8Vi6R2J8NmKRv/MRWE2jDefYAGZhHbWMSXfAXAV+DLJzGlvFQsg1w0wy9x5asu+gyb/Yrc4lj5SH2kyw4ysb0atKtLv5MZJou2Qgihfs+ZdXkmPe9/mqmcCKsPD0PJKzfn8H8W8Chfg72D9DN/EbtKuOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wwmEq5DN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="WmYRVXzx"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-aa530a94c0eso363890766b.2
-        for <mm-commits@vger.kernel.org>; Fri, 29 Nov 2024 20:42:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google; t=1732941758; x=1733546558; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=AjhXiMV5HEwZJnpNqxQsIy4GaUWDgBhsoCToCucoffM=;
-        b=WmYRVXzxjCwIEl1x3I4aLcEesTgfVuBVQ68zn8GpNB/EkoIDwL50DN3IFHjG/F0Hsg
-         8JChYNwdQRaWi20mh5qhr/LjTO+kwHZeIF6/77lmRGXdv3O4iXS7T9RdQQaDgLCAN+12
-         HEU8iX9TVKPgv9fkH1CpB5wT2vZ/e1dZKVe5I=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732941758; x=1733546558;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=AjhXiMV5HEwZJnpNqxQsIy4GaUWDgBhsoCToCucoffM=;
-        b=ta3/WtBksxlW0Wt67KW1ckVFoKOyAEWJ2DmZnv0MaGg8TAqovMrzi+Izf/9RENvWUp
-         AIn90tQqxlqLmXIQJx6g85bWtNbtxiGGnA5zR6wdzf6xvx0QFyShY/8fiZkrOxN3nKmT
-         k9EK6FAeUIX86w03YSd7Vefg5AWaMYK+JRwFDS3snGYEXj7g6sENGhg0q0hSiflXMNcb
-         lsRxwusez+a2Hyctlaby7MB2kExkZWU63ECu1v7CzXeFG9GCkQ0pTFfn7MdlwSTkaVWm
-         vcnfz9LC65aRI9ExwYGuG3NLbnifQy29M2UI5iTWD1fMisklGwYp8k0hNUcm7yas0H0n
-         vw7g==
-X-Gm-Message-State: AOJu0YzzIj3vKAX8LT99oHaLgiwJMa2NJWdyexvIHit4AZ5h5HmgaTsI
-	aRWqUB1YhwKZekPhVh/J52FYkm0E1vAusWkpM0C1P0HTTsMkVsNaI1OV9iAoU/ZwD9hoCHYQ/SW
-	ss/g46g==
-X-Gm-Gg: ASbGncviJbD6aJ9JDp0pqb3OizgeuYGDlrXjIiDlcQNEbgsiBfF/k5IbrIE5nZyghvA
-	hZX+tvUa21aELcOYDnGlgMb7XAIdN5+EJXFXM+OFLQ5NXYcTjHMMfPg7PppZMMDX0LuWYw6nHiW
-	+htuenvnliCfv5URtO1MkVnECUb1+It/5D4SNN2JjphVcOkD17JlYenPYTWoDJSaltyhxCk9ItW
-	g2GerX6xabagvA79dkw7cX+C3N6OQEmbtSNBHz5Z60eko+cbCi98k1bvRihGHb3B33HqIZAs79/
-	We//8B/98Kh7rOOmKkJrJXY=
-X-Google-Smtp-Source: AGHT+IEnIzADkXUDZWUT8bfhhTaKuhKs+Cpi9AJnWuLNws4zA1z0YdUJR8D0VCINIFGldIIBOXfhXw==
-X-Received: by 2002:a17:906:328f:b0:aa5:4b7f:e705 with SMTP id a640c23a62f3a-aa580eee492mr1200272766b.1.1732941757990;
-        Fri, 29 Nov 2024 20:42:37 -0800 (PST)
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com. [209.85.218.47])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-aa5997d56eesm238977466b.81.2024.11.29.20.42.35
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 29 Nov 2024 20:42:36 -0800 (PST)
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-aa530a94c0eso363887166b.2
-        for <mm-commits@vger.kernel.org>; Fri, 29 Nov 2024 20:42:35 -0800 (PST)
-X-Received: by 2002:a17:907:3f9f:b0:a9e:c267:78c5 with SMTP id
- a640c23a62f3a-aa58108aa97mr1066698866b.55.1732941755362; Fri, 29 Nov 2024
- 20:42:35 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wwmEq5DN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F1D7C4CECC;
+	Sat, 30 Nov 2024 05:09:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1732943346;
+	bh=JTAiltfKV6u+Ydn8ugjcSW+7adxL2hr96679lcq4wq8=;
+	h=Date:To:From:Subject:From;
+	b=wwmEq5DNbQSPnoZrslLlkAL+ZRGud4Ficv9/+IOiF/YNCMEnU6wSl0WFQMrGk0NHg
+	 aZr1sUyxxRVIFYbp3iFLy7vIXdajcZadkuJhKWhLArUqUShkJ0HuuVWi5dBw9osXPk
+	 Ba2yD0ETxdYKk/GTHuDSk4WrvTB5y4eISRPqg0Rw=
+Date: Fri, 29 Nov 2024 21:09:05 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,aliceryhl@google.com,a.hindborg@kernel.org,tamird@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + xarray-extract-xa_zero_to_null.patch added to mm-nonmm-unstable branch
+Message-Id: <20241130050906.6F1D7C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20241130042554.D1083C4CECC@smtp.kernel.org>
-In-Reply-To: <20241130042554.D1083C4CECC@smtp.kernel.org>
-From: Linus Torvalds <torvalds@linuxfoundation.org>
-Date: Fri, 29 Nov 2024 20:42:19 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whA+B4LbrtBi5hVRe8KAKDaaGCZ+3DVOiKEBXdPx59bPQ@mail.gmail.com>
-Message-ID: <CAHk-=whA+B4LbrtBi5hVRe8KAKDaaGCZ+3DVOiKEBXdPx59bPQ@mail.gmail.com>
-Subject: Re: + support-lockref-reference-count-if-enable-lock_stat.patch added
- to mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, yongli-oc@zhaoxin.com
-Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 29 Nov 2024 at 20:25, Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> Swap the positions of lock and count to support CMPXCHG_LOCKREF if
-> SPINLOCK_SIZE > 4 when enable LOCK_STAT.  The reference count can always
-> be used regardless of the spinlock_t size.
 
-NAK.
+The patch titled
+     Subject: xarray: extract xa_zero_to_null
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xarray-extract-xa_zero_to_null.patch
 
-This is not sane:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-extract-xa_zero_to_null.patch
 
-> +               struct {
-> +                       int count;
-> +                       spinlock_t lock;
-> +               } __packed;
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-That spinlock_t might not be usable in a 'packed' format. For all we
-know, some architecture might have alignment restrictions for
-spinlock_t, and who the hell knows where the actual lock is anyway.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-In fact, I pretty much *guarantee* that is the case. That 'spinlock_t'
-will have a 'struct lockdep_map' in it that has pointers etc, and some
-architectures will not deal with unaligned accesses, and this will
-simply NOT WORK.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-So no, this needs to die.
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-I would suggest
+------------------------------------------------------
+From: Tamir Duberstein <tamird@gmail.com>
+Subject: xarray: extract xa_zero_to_null
+Date: Tue, 12 Nov 2024 14:25:36 -0500
 
- (a) either just admit that LOCKREF doesn't work with spinlock
-statistics or debugging (which is the current situation)
+Patch series "xarray: extract __xa_cmpxchg_raw".
 
- (b) lockref cases would be changed to not use 'spinlock_t' at all,
-but simply use 'struct raw_spinlock'.
+This series reduces duplication between __xa_cmpxchg and __xa_insert by
+extracting a new function that does not coerce zero entries to null on the
+return path.
 
-but this kind of "let's play games with unaligned lockdep maps etc" is
-not something that I will ever accept.
+The new function may be used by the upcoming Rust xarray abstraction in
+its reservation API where it is useful to tell the difference between zero
+entries and null slots.
 
-Note that (b) would be a *big* change. Because lockref users often use
-the spinlock part quite independently, and now all of those would need
-to be changed to use raw locks.
 
-Just as an example, see this:
+This patch (of 2):
 
-  $ git grep 'spin_.*->d_lock' | wc -l
-      340
+Reduce code duplication by extracting a static inline function that
+returns its argument if it is non-zero and NULL otherwise.
 
-and while the dentry cache is probably the main user of lockref, it's
-not the only one. So those 340 dentry uses are probably the majority,
-but I bet there's another hundred or so non-dentry lockref spinlock
-users in erofs and gfs2.
+This changes xas_result to check for errors before checking for zero but
+this cannot change the behavior of existing callers:
+- __xa_erase: passes the result of xas_store(_, NULL) which cannot fail.
+- __xa_store: passes the result of xas_store(_, entry) which may fail.
+  xas_store calls xas_create when entry is not NULL which returns NULL
+  on error, which is immediately checked. This should not change
+  observable behavior.
+- __xa_cmpxchg: passes the result of xas_load(_) which might be zero.
+  This would previously return NULL regardless of the outcome of
+  xas_store but xas_store cannot fail if xas_load returns zero
+  because there is no need to allocate memory.
+- xa_store_range: same as __xa_erase.
 
-Andrew - please make sure that patch gets removed from all your queues.
+Link: https://lkml.kernel.org/r/20241112-xarray-insert-cmpxchg-v1-0-dc2bdd8c4136@gmail.com
+Link: https://lkml.kernel.org/r/20241112-xarray-insert-cmpxchg-v1-1-dc2bdd8c4136@gmail.com
+Signed-off-by: Tamir Duberstein <tamird@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-            Linus
+ lib/xarray.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+--- a/lib/xarray.c~xarray-extract-xa_zero_to_null
++++ a/lib/xarray.c
+@@ -435,6 +435,11 @@ static unsigned long max_index(void *ent
+ 	return (XA_CHUNK_SIZE << xa_to_node(entry)->shift) - 1;
+ }
+ 
++static inline void *xa_zero_to_null(void *entry)
++{
++	return xa_is_zero(entry) ? NULL : entry;
++}
++
+ static void xas_shrink(struct xa_state *xas)
+ {
+ 	struct xarray *xa = xas->xa;
+@@ -451,8 +456,8 @@ static void xas_shrink(struct xa_state *
+ 			break;
+ 		if (!xa_is_node(entry) && node->shift)
+ 			break;
+-		if (xa_is_zero(entry) && xa_zero_busy(xa))
+-			entry = NULL;
++		if (xa_zero_busy(xa))
++			entry = xa_zero_to_null(entry);
+ 		xas->xa_node = XAS_BOUNDS;
+ 
+ 		RCU_INIT_POINTER(xa->xa_head, entry);
+@@ -1474,9 +1479,7 @@ void *xa_load(struct xarray *xa, unsigne
+ 
+ 	rcu_read_lock();
+ 	do {
+-		entry = xas_load(&xas);
+-		if (xa_is_zero(entry))
+-			entry = NULL;
++		entry = xa_zero_to_null(xas_load(&xas));
+ 	} while (xas_retry(&xas, entry));
+ 	rcu_read_unlock();
+ 
+@@ -1486,11 +1489,9 @@ EXPORT_SYMBOL(xa_load);
+ 
+ static void *xas_result(struct xa_state *xas, void *curr)
+ {
+-	if (xa_is_zero(curr))
+-		return NULL;
+ 	if (xas_error(xas))
+ 		curr = xas->xa_node;
+-	return curr;
++	return xa_zero_to_null(curr);
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from tamird@gmail.com are
+
+xarray-extract-xa_zero_to_null.patch
+xarray-extract-helper-from-__xa_insertcmpxchg.patch
+
