@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E545229A0
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 05:16:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6990A29A0
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 05:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732943785; cv=none; b=cfAGh0mTmp/GXttrvWO2XBJXY4h2VYCpx+D/Iky5nEyE58jNQiENMPiQlwYB9bs2n5seY+dFNaGtYA/WEwH13GcGUCFD0eiGNcWnukUGkP55yb4WudxSXcz0xR2TN3ls0mZojuqzV9gcJZU4f0Hd3iO1DZHLsNLIH3y28PnKo2I=
+	t=1732944405; cv=none; b=DmQ3CGUNGcseuac48xQCNk2zKooBlARuZ87hx9BETqOToTzWy+eM2hn6mIudoKsjMjxs4CTaZFCp408iMPplV6Jjdt+5MSycs4zkPuN1SeNDo+/QkVfsvV29Y94UDeMDPrhxBVYiMOz0FHy9wRWiLvCel2m0yeXL0bkseWqr3js=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732943785; c=relaxed/simple;
-	bh=+S6GABTJJwc+vbEVp7JW0YgFIwtd5KHl8DujTmQYj+Y=;
-	h=Date:To:From:Subject:Message-Id; b=boXO8bFjhKCOrh3hopMyxkSd3c8uVUpmuRvyP0VIeHJVW2dxB9nkMJPVzob8NX9PSRE8HjxfK5MwoD427Dc326p9cVpYDFfcKmpR5NFL86Immz+Xg8qn0lkhNUG038v42FFXsac+LF5lkI3sPHoFIvfVKe/3ZTmwfLrBBzfzbC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SVvFa2/D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732944405; c=relaxed/simple;
+	bh=LIzuysKqHpxvRH35aiQZW6yELaPUqi756dsVYkLbFUM=;
+	h=Date:To:From:Subject:Message-Id; b=ba/DeyQavcIIoWqEhoINEAQSOF+QYVmo/IOwpRcQXsRrrKIUk8kh4lsa1HKdeNHURdpgHatIyVA8Pg1e31RzQMJBymjYUpNuU6xl1Wrszx2ezJDE3eJMOh7JkgQMRUyMERU5PI6EwJtMepY3VnJmCVyN+F5QDbvynra+TpGWl6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aw6EXDjS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SVvFa2/D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 547EBC4CECC;
-	Sat, 30 Nov 2024 05:16:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aw6EXDjS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D82FC4CECC;
+	Sat, 30 Nov 2024 05:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732943784;
-	bh=+S6GABTJJwc+vbEVp7JW0YgFIwtd5KHl8DujTmQYj+Y=;
+	s=korg; t=1732944405;
+	bh=LIzuysKqHpxvRH35aiQZW6yELaPUqi756dsVYkLbFUM=;
 	h=Date:To:From:Subject:From;
-	b=SVvFa2/DQGjkAS9w93xONlFm9EDtJCGeajRjckL8fSh7J133Qs6kgje2kedHXWo1F
-	 3nmUKnlV+HcRDNB81ASK4SlF/XF1ovP/LTETPXlQvHF9YMT3siEmRmgMU6LYoJ1rFw
-	 tRmKBvJ1lNAb+D0GdmgpaFuYYJ4SpmCqJ+Xlg+oE=
-Date: Fri, 29 Nov 2024 21:16:23 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,ryabinin.a.a@gmail.com,lkp@intel.com,dvyukov@google.com,andreyknvl@gmail.com,niharchaithanya@gmail.com,akpm@linux-foundation.org
+	b=aw6EXDjSnUzovOKTXM1rrbjMOGub28ZHXa1cbPSbY5w8MHAffDXZU8IiZek6EzcVF
+	 fdT/UnKEs9XsUyrzs9kS8STaYELrlRHmz0OTVPJ2RFLWYgpbB2fU4K/f8TNZIxwPD0
+	 LTQ2Fv4ui0DkEWg9tV3O1EKxtKpESHj31PPmSBOs=
+Date: Fri, 29 Nov 2024 21:26:44 -0800
+To: mm-commits@vger.kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kasan-fix-sparse-warnings-should-it-be-static.patch added to mm-unstable branch
-Message-Id: <20241130051624.547EBC4CECC@smtp.kernel.org>
+Subject: + mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch added to mm-unstable branch
+Message-Id: <20241130052645.0D82FC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm:kasan: fix sparse warnings: Should it be static?
+     Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kasan-fix-sparse-warnings-should-it-be-static.patch
+     mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-sparse-warnings-should-it-be-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nihar Chaithanya <niharchaithanya@gmail.com>
-Subject: mm:kasan: fix sparse warnings: Should it be static?
-Date: Fri, 11 Oct 2024 17:15:38 +0530
+From: gaoxiang17 <gaoxiang17@xiaomi.com>
+Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
+Date: Fri, 20 Sep 2024 20:20:30 +0800
 
-Yes, when making the global variables kasan_ptr_result and
-kasan_int_result as static volatile, the warnings are removed and the
-variable and assignments are retained, but when just static is used I
-understand that it might be optimized.
-
-Add a fix making the global varaibles - static volatile, removing the
-warnings:
-mm/kasan/kasan_test.c:36:6: warning: symbol 'kasan_ptr_result' was not declared. Should it be static?
-mm/kasan/kasan_test.c:37:5: warning: symbol 'kasan_int_result' was not declared. Should it be static?
-
-Link: https://lkml.kernel.org/r/20241011114537.35664-1-niharchaithanya@gmail.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202312261010.o0lRiI9b-lkp@intel.com/
-Signed-off-by: Nihar Chaithanya <niharchaithanya@gmail.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20240920122030.159751-1-gxxa03070307@gmail.com
+Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/kasan/kasan_test_c.c~mm-kasan-fix-sparse-warnings-should-it-be-static
-+++ a/mm/kasan/kasan_test_c.c
-@@ -47,8 +47,8 @@ static struct {
-  * Some tests use these global variables to store return values from function
-  * calls that could otherwise be eliminated by the compiler as dead code.
-  */
--void *kasan_ptr_result;
--int kasan_int_result;
-+static volatile void *kasan_ptr_result;
-+static volatile int kasan_int_result;
+--- a/mm/page_alloc.c~mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback
++++ a/mm/page_alloc.c
+@@ -1853,6 +1853,13 @@ static bool can_steal_fallback(unsigned
+ 	if (order >= pageblock_order)
+ 		return true;
  
- /* Probe for console output: obtains test_status lines of interest. */
- static void probe_console(void *ignore, const char *buf, size_t len)
++	/*
++	 * movable pages won't cause permanent fragmentation, so when you alloc small pages,
++	 * you just need to temporarily steal unmovable or reclaimable pages that are closest
++	 * to the request size. After a while, memory compact may occur to form large contiguous
++	 * pages, and the next movable allocation may not need to steal. Unmovable and reclaimable
++	 * allocation need to actually steal pages.
++	 */
+ 	if (order >= pageblock_order / 2 ||
+ 		start_mt == MIGRATE_RECLAIMABLE ||
+ 		start_mt == MIGRATE_UNMOVABLE ||
 _
 
-Patches currently in -mm which might be from niharchaithanya@gmail.com are
+Patches currently in -mm which might be from gaoxiang17@xiaomi.com are
 
-mm-kasan-fix-sparse-warnings-should-it-be-static.patch
+mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
 
