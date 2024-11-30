@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A045F156CA
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 06:45:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88769156CA
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 06:45:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732949122; cv=none; b=e4jil3RGEVpQSBaR1F1XYIc3ibuzydTwSQWCvPY0ToroG9hhuXLuRxS8Gqkeni3K15gynbWG4oK8h83OJvNPkfHG4t4cKn/q2d1yb43dd3n4rfSwztCEUMp4oiVTNADg20c7K2E9J2emvD8tUEPnZdKr6vGTt+42Psy08CSyOzE=
+	t=1732949140; cv=none; b=fsBrNpVsznl56Ne65g1av81TIzFw2q0QtOqoJCMGii22Yv/aO98cqNGE9HTXTn9VngY4d1KALxNo326jWuR390DCasjPEA0cHghHEtt4/9ZXQZZkpbsilKKtVQfDkcXkXSCCpN5YfdjVyeq/5w361spZO6tUpMeJO4bMnlrsSq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732949122; c=relaxed/simple;
-	bh=cPnAcdDoajnBumcWW4x4Y9aiDiAIHUSAIYjyl17bcX4=;
-	h=Date:To:From:Subject:Message-Id; b=GdVIMMGdmDUkhvHqVpdoUP24CD+KcfHSH5pCSX3Iixea07rXaTs6+xsB4CaRbJO1fbWAVTxvPjQ1V8v80H2F8og9QNE7Nxjy9wawY/rD5PVUtNlGPOlCrXUytnWU5JTAUxV9veK++eFEE13aVi9hRxnrj/xwQykEsgqH9XTM7uQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CEXQ0Fdr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732949140; c=relaxed/simple;
+	bh=hrBR00A5XCWBvmnn9J1NaL1YwuLJ34TBjSE3J0Mh06Y=;
+	h=Date:To:From:Subject:Message-Id; b=QfqXss3aSnNFLexC1HnH1gSlqmMPEfLIRDkEk+0wKtxRTSTlznA/luPhX30BWUaepdn24ci+PKLzL3gkXByN9wqxs8AHFoUIPeTOojVUBvHlOpDZEkoFevnraJLEnHox5v3u/bap1JDsOVzSFg9Y2LPzJyi2aHyPrNLYGxcAytw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OyFnoch9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CEXQ0Fdr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04220C4CED3;
-	Sat, 30 Nov 2024 06:45:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OyFnoch9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00617C4CECC;
+	Sat, 30 Nov 2024 06:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732949122;
-	bh=cPnAcdDoajnBumcWW4x4Y9aiDiAIHUSAIYjyl17bcX4=;
+	s=korg; t=1732949140;
+	bh=hrBR00A5XCWBvmnn9J1NaL1YwuLJ34TBjSE3J0Mh06Y=;
 	h=Date:To:From:Subject:From;
-	b=CEXQ0FdraEPDqdzU5dWgTa6kn3kHJT8Y+EP00CTwsyGeQ4YFPrOIdRdQvJl+n22zu
-	 JCKxuwSDnaAqr9u+dyU4lxqkCPzxSIpuMKm7rzY0OYevw/nbrbgHneoy8PXVINgGUb
-	 q3n8QnrhgAnpDrWouKZ9cqzd4ghymW9MKSvLi+H8=
-Date: Fri, 29 Nov 2024 22:45:21 -0800
-To: mm-commits@vger.kernel.org,jahau@rocketmail.com,David.Laight@ACULAB.COM,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=OyFnoch9l8aL0AMesAcj4XJ7wAX81S7/2PuXGcc61bvu6hWYoS+QjwXzBRnA6TMfB
+	 cgFNDTv0bXNG827HhwICXqVQDsPgiZenCWTo6AcN9tDSh9oAWwAYRRe4XQpubrPtRN
+	 DcHmYGXfa+YylzWTFxocA4UZqefw2q/qm5fHlgP0=
+Date: Fri, 29 Nov 2024 22:45:39 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error.patch added to mm-nonmm-unstable branch
-Message-Id: <20241130064522.04220C4CED3@smtp.kernel.org>
+Subject: + mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch added to mm-unstable branch
+Message-Id: <20241130064540.00617C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/iio/magnetometer/yamaha-yas530.c: hack around build error
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error.patch
+     Subject: mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,34 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/iio/magnetometer/yamaha-yas530.c: hack around build error
-Date: Fri Nov 29 10:26:17 PM PST 2024
+Subject: mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
+Date: Fri Nov 29 08:09:32 PM PST 2024
 
-a temporary thing to avoid breaking people's builds
+s/vfree/kvfree/, per Shakeel
 
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Jakob Hauser <jahau@rocketmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/magnetometer/yamaha-yas530.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/swap_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/iio/magnetometer/yamaha-yas530.c~drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error
-+++ a/drivers/iio/magnetometer/yamaha-yas530.c
-@@ -411,8 +411,10 @@ static int yas537_measure(struct yas5xx
- 		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / BIT(13);
- 		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / BIT(13);
- 		for (i = 0; i < 3; i++) {
--			clamp_val(h[i], -BIT(13), BIT(13) - 1);
--			xy1y2[i] = h[i] + BIT(13);
-+			if (h[i] < (s32)-BIT(13))
-+				h[i] = (s32)-BIT(13);
-+			if (h[i] > (s32)BIT(13) - 1)
-+				h[i] = (s32)BIT(13) - 1;
- 		}
- 	}
+--- a/mm/swap_cgroup.c~mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
++++ a/mm/swap_cgroup.c
+@@ -158,5 +158,5 @@ void swap_cgroup_swapoff(int type)
+ 	ctrl->map = NULL;
+ 	mutex_unlock(&swap_cgroup_mutex);
  
+-	kvfree(map);
++	vfree(map);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
