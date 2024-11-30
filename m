@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8872120330
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 04:11:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACC3C20330;
+	Sat, 30 Nov 2024 04:12:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732939869; cv=none; b=U5J8lP9Nt5QpMJD9fq5fR8W0C1H7B1+XmL1T2NBIbom2V3VvfuAQyINsaqFC9yTlCoN+J14Ldys2W+vWNKQ9Pg8a9viM3IjkUKZKXrnEfpTsmCHKffTQ8Zeb0fMvLcXYSshRzpqG6ak/33uPDUPkEKf5abEEuRcI/LamXnhOXh4=
+	t=1732939967; cv=none; b=P09xJBVVjvw+xvp5HlGpdSD/uK99MYMTrXlvfUz0DZ6hVP8/kxYPOrBd0qp0SK+7iCLTOGRNJeeKz4iEQW09eLoScW8s5BZvUTnTbwU6zcUKI7O2ywNObEU0cIVjlixsuh1Y0JMXnDezcr7I0MR1CRuQM5TMTyqapGdtErqHpcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732939869; c=relaxed/simple;
-	bh=2CvUZo8BvxrPSxH/fycvH+BmsoQkcyFBBFOj1aIWS6Q=;
-	h=Date:To:From:Subject:Message-Id; b=gMdpBtlg3krcT3Gaj2IIwxwht8uJ9PXYHDGeZvGe9avcIyqtir8VnXiNjAl5nY4/vUaaWGwb9Gu/PCA71yaCWjxhNBSgVJ11aHieJ5q8WDm61GNsEpa9wi6FmDAB3UMF9KbaT4jA8lIT6DcS+qWoo6LWsHkwLQeG42TDGQ9rvyk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ihKD4Qsl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732939967; c=relaxed/simple;
+	bh=ZdR8He5KkFZynUOunl5hS1ewYxv7g1Gn1/jzgOXQ6OM=;
+	h=Date:To:From:Subject:Message-Id; b=IC3tKyvdBpkkTs4RfX2hTrm7IHzhviubh/juWm6b+BIR1m+u6OwYUEPfHevAMGDJSecWDI7Tby8CWeQYRuDAQik28aStdAwe+bxkMNQqomI5T65z30LFII+Qc05/bTv+X1OpwPUXG/wk1QZQmx+4EIpWelq8xuHWOTgZ/+k74Go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QaGROKIU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ihKD4Qsl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21F1AC4CECC;
-	Sat, 30 Nov 2024 04:11:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QaGROKIU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AA5AC4CECC;
+	Sat, 30 Nov 2024 04:12:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732939869;
-	bh=2CvUZo8BvxrPSxH/fycvH+BmsoQkcyFBBFOj1aIWS6Q=;
+	s=korg; t=1732939967;
+	bh=ZdR8He5KkFZynUOunl5hS1ewYxv7g1Gn1/jzgOXQ6OM=;
 	h=Date:To:From:Subject:From;
-	b=ihKD4Qsl7rP44xDNqJe7uTVGvrXE0GYwrwAVRI6WcqRHUV1GPNxWi+O0jsANhu13J
-	 CcRBlJ/ID/W9sCBtlx78dthB58pYlCLl+g90QNWN4DKQWZZeZnE3h67AYsDPB0OyBI
-	 tQqGUjQSVV563OPkAfTPXEdsG87QMh8RicfMeWs4=
-Date: Fri, 29 Nov 2024 20:11:08 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=QaGROKIU3Xbo2+PtItRJz4t+3ZdFDTFmKzhDqq0QI/h5ljNovU7ktZNxJMq8JGsJo
+	 Ov9Ox1LFU3h29mlmNIdEoFrTpyoigsdmEOdwt0kisfUEVB7QRA46gmYupKE/RWHNKP
+	 0P4dEjSYy+F93kkzaRypZvX2J+F6QzFTHGyI9IuY=
+Date: Fri, 29 Nov 2024 20:12:46 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_cgroup-get-rid-of-__lookup_swap_cgroup.patch added to mm-unstable branch
-Message-Id: <20241130041109.21F1AC4CECC@smtp.kernel.org>
+Subject: + mm-damon-fix-order-of-arguments-in-damos_before_apply-tracepoint.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241130041247.6AA5AC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap_cgroup: get rid of __lookup_swap_cgroup()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_cgroup-get-rid-of-__lookup_swap_cgroup.patch
+     Subject: mm/damon: fix order of arguments in damos_before_apply tracepoint
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-fix-order-of-arguments-in-damos_before_apply-tracepoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-get-rid-of-__lookup_swap_cgroup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-fix-order-of-arguments-in-damos_before_apply-tracepoint.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: swap_cgroup: get rid of __lookup_swap_cgroup()
-Date: Fri, 15 Nov 2024 19:02:29 +0000
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm/damon: fix order of arguments in damos_before_apply tracepoint
+Date: Fri, 15 Nov 2024 10:20:23 -0800
 
-Because swap_cgroup map is now virtually contiguous, swap_cgroup_record()
-can be simplified, which eliminates a need to use __lookup_swap_cgroup().
+Since the order of the scheme_idx and target_idx arguments in TP_ARGS is
+reversed, they are stored in the trace record in reverse.
 
-Now as __lookup_swap_cgroup() is really trivial and is used only once, it
-can be inlined.
-
-Link: https://lkml.kernel.org/r/20241115190229.676440-2-roman.gushchin@linux.dev
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/20241115182023.43118-1-sj@kernel.org
+Link: https://patch.msgid.link/20241112154828.40307-1-akinobu.mita@gmail.com
+Fixes: c603c630b509 ("mm/damon/core: add a tracepoint for damos apply target regions")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_cgroup.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ include/trace/events/damon.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swap_cgroup.c~mm-swap_cgroup-get-rid-of-__lookup_swap_cgroup
-+++ a/mm/swap_cgroup.c
-@@ -33,13 +33,6 @@ static struct swap_cgroup_ctrl swap_cgro
-  *
-  * TODO: we can push these buffers out to HIGHMEM.
-  */
--
--static struct swap_cgroup *__lookup_swap_cgroup(struct swap_cgroup_ctrl *ctrl,
--						pgoff_t offset)
--{
--	return &ctrl->map[offset];
--}
--
- static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
- 					struct swap_cgroup_ctrl **ctrlp)
- {
-@@ -49,7 +42,7 @@ static struct swap_cgroup *lookup_swap_c
- 	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
- 	if (ctrlp)
- 		*ctrlp = ctrl;
--	return __lookup_swap_cgroup(ctrl, offset);
-+	return &ctrl->map[offset];
- }
+--- a/include/trace/events/damon.h~mm-damon-fix-order-of-arguments-in-damos_before_apply-tracepoint
++++ a/include/trace/events/damon.h
+@@ -15,7 +15,7 @@ TRACE_EVENT_CONDITION(damos_before_apply
+ 		unsigned int target_idx, struct damon_region *r,
+ 		unsigned int nr_regions, bool do_trace),
  
- /**
-@@ -104,16 +97,9 @@ unsigned short swap_cgroup_record(swp_en
+-	TP_ARGS(context_idx, target_idx, scheme_idx, r, nr_regions, do_trace),
++	TP_ARGS(context_idx, scheme_idx, target_idx, r, nr_regions, do_trace),
  
- 	spin_lock_irqsave(&ctrl->lock, flags);
- 	old = sc->id;
--	for (;;) {
-+	for (; offset < end; offset++, sc++) {
- 		VM_BUG_ON(sc->id != old);
- 		sc->id = id;
--		offset++;
--		if (offset == end)
--			break;
--		if (offset % SC_PER_PAGE)
--			sc++;
--		else
--			sc = __lookup_swap_cgroup(ctrl, offset);
- 	}
- 	spin_unlock_irqrestore(&ctrl->lock, flags);
+ 	TP_CONDITION(do_trace),
  
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc.patch
-mm-swap_cgroup-get-rid-of-__lookup_swap_cgroup.patch
+mm-damon-fix-order-of-arguments-in-damos_before_apply-tracepoint.patch
 
