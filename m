@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38CBC1FB3
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 05:13:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E545229A0
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 05:16:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732943588; cv=none; b=IGFk6lXLOAqKYmZzYWY2ZEktbV2xO7BD+3/ONxXtYqbKbY76giJAI3d4gHzf6b3Nqnke/uWPabS40+YQ500kqJyPdFsNJmSJokIhGS40mQCEM/ZbAHEXvbHwyQuwgt50Op5Imhc7uHiuCQFW96utloYUIvNXIkkEr0RA9x0kRYY=
+	t=1732943785; cv=none; b=cfAGh0mTmp/GXttrvWO2XBJXY4h2VYCpx+D/Iky5nEyE58jNQiENMPiQlwYB9bs2n5seY+dFNaGtYA/WEwH13GcGUCFD0eiGNcWnukUGkP55yb4WudxSXcz0xR2TN3ls0mZojuqzV9gcJZU4f0Hd3iO1DZHLsNLIH3y28PnKo2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732943588; c=relaxed/simple;
-	bh=eRLUi8slAFgUpI9kDVu+4xoeGOe/p3+mEds2w3SAUHU=;
-	h=Date:To:From:Subject:Message-Id; b=gfzlvIUkfD8LicSq73fT5Lj9O2iAKGfuAVZn0V+bI71wmAgtDdQbSiI5GDHOtTqsfbESZBndSBEWWHcFXlrsThFzFvku+/fg2zlVoCKwpW8J8Vc4wyDYAqW2qMDznbjUZdTYB1btr7GvJU0sX22O3Ct97IXrfZdlKluOUQIW5NQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YTGqzEJh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732943785; c=relaxed/simple;
+	bh=+S6GABTJJwc+vbEVp7JW0YgFIwtd5KHl8DujTmQYj+Y=;
+	h=Date:To:From:Subject:Message-Id; b=boXO8bFjhKCOrh3hopMyxkSd3c8uVUpmuRvyP0VIeHJVW2dxB9nkMJPVzob8NX9PSRE8HjxfK5MwoD427Dc326p9cVpYDFfcKmpR5NFL86Immz+Xg8qn0lkhNUG038v42FFXsac+LF5lkI3sPHoFIvfVKe/3ZTmwfLrBBzfzbC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SVvFa2/D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YTGqzEJh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A91FCC4CECC;
-	Sat, 30 Nov 2024 05:13:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SVvFa2/D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 547EBC4CECC;
+	Sat, 30 Nov 2024 05:16:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732943587;
-	bh=eRLUi8slAFgUpI9kDVu+4xoeGOe/p3+mEds2w3SAUHU=;
+	s=korg; t=1732943784;
+	bh=+S6GABTJJwc+vbEVp7JW0YgFIwtd5KHl8DujTmQYj+Y=;
 	h=Date:To:From:Subject:From;
-	b=YTGqzEJhbxnYt7ZzNwuERvRnHuOaFPp/34h2rW/pOwR1m9qVApb+zs4TD/Uuf940e
-	 mYzt/RvNzICn3BtdK2fnKnKUhOVGjlsCBavVaW9rPJEfMToFDfZqRhltGKGq21vaxe
-	 x3VOgMzy8+CxRISMZcYABNluNvPxSH2uoo8LmGz8=
-Date: Fri, 29 Nov 2024 21:13:07 -0800
-To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,peterz@infradead.org,mpe@ellerman.id.au,herton@redhat.com,npiggin@gmail.com,akpm@linux-foundation.org
+	b=SVvFa2/DQGjkAS9w93xONlFm9EDtJCGeajRjckL8fSh7J133Qs6kgje2kedHXWo1F
+	 3nmUKnlV+HcRDNB81ASK4SlF/XF1ovP/LTETPXlQvHF9YMT3siEmRmgMU6LYoJ1rFw
+	 tRmKBvJ1lNAb+D0GdmgpaFuYYJ4SpmCqJ+Xlg+oE=
+Date: Fri, 29 Nov 2024 21:16:23 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,ryabinin.a.a@gmail.com,lkp@intel.com,dvyukov@google.com,andreyknvl@gmail.com,niharchaithanya@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown.patch added to mm-unstable branch
-Message-Id: <20241130051307.A91FCC4CECC@smtp.kernel.org>
+Subject: + mm-kasan-fix-sparse-warnings-should-it-be-static.patch added to mm-unstable branch
+Message-Id: <20241130051624.547EBC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lazy tlb: fix hotplug exit race with MMU_LAZY_TLB_SHOOTDOWN
+     Subject: mm:kasan: fix sparse warnings: Should it be static?
 has been added to the -mm mm-unstable branch.  Its filename is
-     lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown.patch
+     mm-kasan-fix-sparse-warnings-should-it-be-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-sparse-warnings-should-it-be-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,141 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: lazy tlb: fix hotplug exit race with MMU_LAZY_TLB_SHOOTDOWN
-Date: Mon, 4 Nov 2024 11:23:18 -0300
+From: Nihar Chaithanya <niharchaithanya@gmail.com>
+Subject: mm:kasan: fix sparse warnings: Should it be static?
+Date: Fri, 11 Oct 2024 17:15:38 +0530
 
-CPU unplug first calls __cpu_disable(), and that's where powerpc calls
-cleanup_cpu_mmu_context(), which clears this CPU from mm_cpumask() of all
-mms in the system.
+Yes, when making the global variables kasan_ptr_result and
+kasan_int_result as static volatile, the warnings are removed and the
+variable and assignments are retained, but when just static is used I
+understand that it might be optimized.
 
-However this CPU may still be using a lazy tlb mm, and its mm_cpumask bit
-will be cleared from it.  The CPU does not switch away from the lazy tlb
-mm until arch_cpu_idle_dead() calls idle_task_exit().
+Add a fix making the global varaibles - static volatile, removing the
+warnings:
+mm/kasan/kasan_test.c:36:6: warning: symbol 'kasan_ptr_result' was not declared. Should it be static?
+mm/kasan/kasan_test.c:37:5: warning: symbol 'kasan_int_result' was not declared. Should it be static?
 
-If that user mm exits in this window, it will not be subject to the lazy
-tlb mm shootdown and may be freed while in use as a lazy mm by the CPU
-that is being unplugged.
-
-cleanup_cpu_mmu_context() could be moved later, but it looks better to
-move the lazy tlb mm switching earlier.  The problem with doing the lazy
-mm switching in idle_task_exit() is explained in commit bf2c59fce4074
-("sched/core: Fix illegal RCU from offline CPUs"), which added a wart to
-switch away from the mm but leave it set in active_mm to be cleaned up
-later.
-
-So instead, switch away from the lazy tlb mm at sched_cpu_wait_empty(),
-which is the last hotplug state before teardown
-(CPUHP_AP_SCHED_WAIT_EMPTY).  This CPU will never switch to a user thread
-from this point, so it has no chance to pick up a new lazy tlb mm.  This
-removes the lazy tlb mm handling wart in CPU unplug.
-
-With this, idle_task_exit() is not needed anymore and can be cleaned up. 
-This leaves the prototype alone, to be cleaned after this change.
-
-herton: took the suggestions from https://lore.kernel.org/all/87jzvyprsw.ffs@tglx/
-and made adjustments on the initial patch proposed by Nicholas.
-
-Link: https://lkml.kernel.org/r/20230524060455.147699-1-npiggin@gmail.com
-Link: https://lore.kernel.org/all/20230525205253.E2FAEC433EF@smtp.kernel.org/
-Link: https://lkml.kernel.org/r/20241104142318.3295663-1-herton@redhat.com
-Fixes: 2655421ae69fa ("lazy tlb: shoot lazies, non-refcounting lazy tlb mm reference handling scheme")
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Signed-off-by: Herton R. Krzesinski <herton@redhat.com>
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/20241011114537.35664-1-niharchaithanya@gmail.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312261010.o0lRiI9b-lkp@intel.com/
+Signed-off-by: Nihar Chaithanya <niharchaithanya@gmail.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/hotplug.h |    4 ----
- kernel/cpu.c                  |   11 ++++++-----
- kernel/sched/core.c           |   22 +++++++++++++++-------
- 3 files changed, 21 insertions(+), 16 deletions(-)
+ mm/kasan/kasan_test_c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/sched/hotplug.h~lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown
-+++ a/include/linux/sched/hotplug.h
-@@ -18,10 +18,6 @@ extern int sched_cpu_dying(unsigned int
- # define sched_cpu_dying	NULL
- #endif
- 
--#ifdef CONFIG_HOTPLUG_CPU
--extern void idle_task_exit(void);
--#else
- static inline void idle_task_exit(void) {}
--#endif
- 
- #endif /* _LINUX_SCHED_HOTPLUG_H */
---- a/kernel/cpu.c~lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown
-+++ a/kernel/cpu.c
-@@ -904,13 +904,14 @@ static int finish_cpu(unsigned int cpu)
- 	struct task_struct *idle = idle_thread_get(cpu);
- 	struct mm_struct *mm = idle->active_mm;
- 
--	/*
--	 * idle_task_exit() will have switched to &init_mm, now
--	 * clean up any remaining active_mm state.
-+	/* 
-+	 * sched_force_init_mm() ensured the use of &init_mm,
-+	 * drop that refcount now that the CPU has stopped.
- 	 */
--	if (mm != &init_mm)
--		idle->active_mm = &init_mm;
-+	WARN_ON(mm != &init_mm);
-+	idle->active_mm = NULL;
- 	mmdrop_lazy_tlb(mm);
-+
- 	return 0;
- }
- 
---- a/kernel/sched/core.c~lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown
-+++ a/kernel/sched/core.c
-@@ -7930,19 +7930,26 @@ void sched_setnuma(struct task_struct *p
- 
- #ifdef CONFIG_HOTPLUG_CPU
- /*
-- * Ensure that the idle task is using init_mm right before its CPU goes
-- * offline.
-+ * Invoked on the outgoing CPU in context of the CPU hotplug thread
-+ * after ensuring that there are no user space tasks left on the CPU.
-+ *
-+ * If there is a lazy mm in use on the hotplug thread, drop it and
-+ * switch to init_mm.
-+ *
-+ * The reference count on init_mm is dropped in finish_cpu().
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-fix-sparse-warnings-should-it-be-static
++++ a/mm/kasan/kasan_test_c.c
+@@ -47,8 +47,8 @@ static struct {
+  * Some tests use these global variables to store return values from function
+  * calls that could otherwise be eliminated by the compiler as dead code.
   */
--void idle_task_exit(void)
-+static void sched_force_init_mm(void)
- {
- 	struct mm_struct *mm = current->active_mm;
+-void *kasan_ptr_result;
+-int kasan_int_result;
++static volatile void *kasan_ptr_result;
++static volatile int kasan_int_result;
  
--	BUG_ON(cpu_online(smp_processor_id()));
--	BUG_ON(current != this_rq()->idle);
--
- 	if (mm != &init_mm) {
--		switch_mm(mm, &init_mm, current);
-+		mmgrab_lazy_tlb(&init_mm);
-+		local_irq_disable();
-+		current->active_mm = &init_mm;
-+		switch_mm_irqs_off(mm, &init_mm, current);
-+		local_irq_enable();
- 		finish_arch_post_lock_switch();
-+		mmdrop_lazy_tlb(mm);
- 	}
- 
- 	/* finish_cpu(), as ran on the BP, will clean up the active_mm state */
-@@ -8344,6 +8351,7 @@ int sched_cpu_starting(unsigned int cpu)
- int sched_cpu_wait_empty(unsigned int cpu)
- {
- 	balance_hotplug_wait();
-+	sched_force_init_mm();
- 	return 0;
- }
- 
+ /* Probe for console output: obtains test_status lines of interest. */
+ static void probe_console(void *ignore, const char *buf, size_t len)
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from niharchaithanya@gmail.com are
 
-lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown.patch
+mm-kasan-fix-sparse-warnings-should-it-be-static.patch
 
