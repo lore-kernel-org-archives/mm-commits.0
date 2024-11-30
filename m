@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DBF01EB3D
-	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 04:05:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B50621EB3D
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 04:05:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732939500; cv=none; b=JyrSEeITgbAHdfqnbYxpiyX9JihemHsdAJjnpXQFe8uMjAZo17iSy921V4P6e9fAoJE8wtu6DFwt/NlFgenpxGKPTIQ8Z0r0eEndBpc/4fFlYyrlSPYnJEFatLWBQ7WPkaQciZbMOoTWqJB+ivq4HTiBxhqHkqP4YraPtdOqB3c=
+	t=1732939502; cv=none; b=pR170HFS/252NeDCE4uo89l66GmoglBp8StHcRModBunbMbmwEZD05xpORe2A4p0j/SkJhs1nPQFkSI1vlAPc5uzqyvghTXSOBGobxzkDIvuMdketgtpTbbwdEf9LGDDk/TlZHH0RxVA1E5P1WLCpz70D6kntnDVT1xf9MxmPz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732939500; c=relaxed/simple;
-	bh=Rj7PQ5zv2j/yEfocw83BFZ+reziZzTtXaSfa2snsqDs=;
-	h=Date:To:From:Subject:Message-Id; b=UgWLIEwCXVdySe3ukPhb6oKv53HUqBTOcHhQXvlnGHeBtXYB0APWpLFTKpyC025fuxqbGIBuHzGKbFoWF0PWwvP10M9/q4w8NrBOXJQJil/BH5TH1FzRfAOLIRIDpROYzHjnBf0hjxr+oZ+3CtZio77GuFpWRlA37ZlxDxmZf8Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ROA++KA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732939502; c=relaxed/simple;
+	bh=KVMPqfHCRZadzhaEdTjYm1EcTzFF9LveMFx6rZEbOTM=;
+	h=Date:To:From:Subject:Message-Id; b=hW8ZDPkCDLjWtJXfpTzlTkybVM9YFF82JXEsWUXVoiTX0hxDKg+p/5aZotfc8x8T0ABX8fcVAeiH7MEqX722oKEx9yTeGMct97P1qqfZ0/Tg5WjBVIxsd+/jVkGRXjXsL4LopU4P60vV5dWgI7FsB6y2QzDg7MDFKcrK9agfNW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pavyjr7D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ROA++KA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D679C4CECC;
-	Sat, 30 Nov 2024 04:05:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pavyjr7D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 253CBC4CECC;
+	Sat, 30 Nov 2024 04:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732939500;
-	bh=Rj7PQ5zv2j/yEfocw83BFZ+reziZzTtXaSfa2snsqDs=;
+	s=korg; t=1732939502;
+	bh=KVMPqfHCRZadzhaEdTjYm1EcTzFF9LveMFx6rZEbOTM=;
 	h=Date:To:From:Subject:From;
-	b=1ROA++KAkqvfd23bHlN7bAqT7FBeq3R9DWbEolNMCRBO5nfPZZ0UO1acn7j4KiHeU
-	 YPplgUChooF8zebie2RZeQIPo0ApG/Uq/UyKTQZKHQTAonXnz1g1+EdfqtaYRoHiR8
-	 wx2L4U5mzTiUz/P9M6ub11RafHmHO1rGD23GmeSA=
-Date: Fri, 29 Nov 2024 20:04:59 -0800
+	b=pavyjr7DspOuYU5G8+Wk7i81uUGZQCIHJY1LOo2bmtSVQF5c/t0qNMZWdGWDA5Y0H
+	 IlIoZ9beu2k+qnXydHQQI0CGcrVEwpSVUynI53AW0LEdb+B23KQsccClfr6WQI4Zxk
+	 8iNBr4unGi7JuQV06sxaBjlbz3qoweIiVNcE1d3Q=
+Date: Fri, 29 Nov 2024 20:05:01 -0800
 To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-index-has-been-checked-to-be-smaller-than-pivot.patch added to mm-unstable branch
-Message-Id: <20241130040500.3D679C4CECC@smtp.kernel.org>
+Subject: + maple_tree-not-possible-to-be-a-root-node-after-loop.patch added to mm-unstable branch
+Message-Id: <20241130040502.253CBC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: index has been checked to be smaller than pivot
+     Subject: maple_tree: not possible to be a root node after loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-index-has-been-checked-to-be-smaller-than-pivot.patch
+     maple_tree-not-possible-to-be-a-root-node-after-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-index-has-been-checked-to-be-smaller-than-pivot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-not-possible-to-be-a-root-node-after-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: maple_tree: index has been checked to be smaller than pivot
-Date: Sat, 16 Nov 2024 01:48:03 +0000
+Subject: maple_tree: not possible to be a root node after loop
+Date: Sat, 16 Nov 2024 01:48:04 +0000
 
-Patch series "mas_anode_descend() related cleanup".
+Empty tree and single entry tree is handled else whether, so the maple
+tree here must be a tree with nodes.
 
-Some cleanup related to mas_anode_descend().
+If the height is 1 and we found the gap, it will jump to *done* since it
+is also a leaf.
 
+If the height is more than one, and there may be an available range, we
+will descend the tree, which is not root anymore.
 
-This patch (of 3):
+If there is no available range, we will set error and return.
 
-At the beginning of loop, it has checked the range is in lower bounds.
+This means the check for root node here is not necessary.
 
-Link: https://lkml.kernel.org/r/20241116014805.11547-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20241116014805.11547-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20241116014805.11547-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -80,31 +83,30 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ lib/maple_tree.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-index-has-been-checked-to-be-smaller-than-pivot
+--- a/lib/maple_tree.c~maple_tree-not-possible-to-be-a-root-node-after-loop
 +++ a/lib/maple_tree.c
-@@ -4881,13 +4881,12 @@ static inline bool mas_anode_descend(str
+@@ -4879,7 +4879,7 @@ static inline bool mas_anode_descend(str
+ 		if (gap >= size) {
+ 			if (ma_is_leaf(type)) {
  				found = true;
- 				goto done;
+-				goto done;
++				break;
  			}
--			if (mas->index <= pivot) {
--				mas->node = mas_slot(mas, slots, offset);
--				mas->min = min;
--				mas->max = pivot;
--				offset = 0;
--				break;
--			}
-+
-+			mas->node = mas_slot(mas, slots, offset);
-+			mas->min = min;
-+			mas->max = pivot;
-+			offset = 0;
-+			break;
+ 
+ 			mas->node = mas_slot(mas, slots, offset);
+@@ -4896,9 +4896,6 @@ next_slot:
  		}
- next_slot:
- 		min = pivot + 1;
+ 	}
+ 
+-	if (mte_is_root(mas->node))
+-		found = true;
+-done:
+ 	mas->offset = offset;
+ 	return found;
+ }
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
