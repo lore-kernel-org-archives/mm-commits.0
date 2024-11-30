@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92337535DC;
-	Sat, 30 Nov 2024 02:53:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FCD61C6A3
+	for <mm-commits@vger.kernel.org>; Sat, 30 Nov 2024 02:56:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732935186; cv=none; b=cPBHX0knY4cQ61A55Qp6v4mcW+rSi2rpFQFg7kNxnhNRQLkobow1S8hLdAPWzk4HeTsQTwt0DeR5msQqZ/Z8v1ALKjW43yfZZQanatGblEHcyJS4g4Y+soePQ+cq+SNlF6/N6oNWnpnLP3nqzvit8TAIrAM9GmbhHILrvksi5eo=
+	t=1732935407; cv=none; b=pKiRnV5PHoTU8n4mFlY98Z4N8Mq9sIU99L7nSoRFsAEvDAGZTWCd8EXWz+KnzY2ip4UmXLPzeTrqIXDEkS5QhYRB5taVGrsRLmtiY/M7dGieXIWWR/ViaezgWKQMx9Li8I/LNJnyBThEQfmyeV8WSwOtCAmJWmZdtObDcaeDEzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732935186; c=relaxed/simple;
-	bh=wVwFWRx1weNHXCajM53uUVQ3VpCckJ+++WQkCk7fLDA=;
-	h=Date:To:From:Subject:Message-Id; b=ndR/sFP1nj7oTLMyLcT+IkkO1PxKS4AkjluX+NKSMyuqaek14UCtCtcsMXtH4Sxc+AjEJ24Q5mY/+d2gfJH+lRuUXtBxLQdtZl0OSBFBkQI9JiQIQLLitOkEkCptDng/SPTv8eMq0im5Z6z3qqJ8eXxtU1bORmMefykn4RklCjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DkpJNVxc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1732935407; c=relaxed/simple;
+	bh=1DBTuR3/7rWFyYj3TUDsFmheOUuzKbPuOBm76tKu84M=;
+	h=Date:To:From:Subject:Message-Id; b=YFoFNFw9UzwpBQPqo8Rk0vkp15pjWdDf+nwu5Qewc5r5Pn2XHOhbDMQmf5qrwcbdpmGlL+yh6qmpt28UFNX8w3KcLjGZDH+tJU60rhoRQ+XCP1i5UW6/h/k6xhNc4/e+B4YYk7D1LODylzVuphTvzgSJYL/jVh0mM5HrdCtER0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JnZHUYNV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DkpJNVxc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFD0C4CECF;
-	Sat, 30 Nov 2024 02:53:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JnZHUYNV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAB39C4CECF;
+	Sat, 30 Nov 2024 02:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1732935186;
-	bh=wVwFWRx1weNHXCajM53uUVQ3VpCckJ+++WQkCk7fLDA=;
+	s=korg; t=1732935405;
+	bh=1DBTuR3/7rWFyYj3TUDsFmheOUuzKbPuOBm76tKu84M=;
 	h=Date:To:From:Subject:From;
-	b=DkpJNVxcJTOq0IihHNWmkfusAb7dd/yKIAZwfnmi/FA2U09z3cdPlO5nJ8O5RUOlK
-	 N0h92nS8bqdtZhNmgaxgUzEmb8hsV/6euF6waVab+zM+Sz0Vit9f3MsK3LsTrXUaKZ
-	 5JiNPzr1UbB5oXgPTgTEF0v6n6Wd6JCcKQDJLXiI=
-Date: Fri, 29 Nov 2024 18:53:05 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,stable@vger.kernel.org,souravpanda@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=JnZHUYNVjreRJ4y01n6MO8s8KvB0UU7Nx1EWMtQXQ4t6GTxqmnJIfod+TGlMBh5bR
+	 6hyiutFAFWC11xaIzTmew25ulwPrSusHtx1fS6npB3obQ/HnuXZt0rEk/zhRqJcRlU
+	 x09DaxFNPDZ/QdTfmnyLvBryI1kohKKnaixnZ6hM=
+Date: Fri, 29 Nov 2024 18:56:45 -0800
+To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,geert@linux-m68k.org,corbet@lwn.net,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241130025306.1FFD0C4CECF@smtp.kernel.org>
+Subject: + lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch added to mm-nonmm-unstable branch
+Message-Id: <20241130025645.DAB39C4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: fix set_codetag_empty() when !CONFIG_MEM_ALLOC_PROFILING_DEBUG
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug.patch
+     Subject: lib min_heap: improve type safety in min_heap macros by using container_of
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,199 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: fix set_codetag_empty() when !CONFIG_MEM_ALLOC_PROFILING_DEBUG
-Date: Fri, 29 Nov 2024 16:14:23 -0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib min_heap: improve type safety in min_heap macros by using container_of
+Date: Sat, 30 Nov 2024 02:12:19 +0800
 
-It was recently noticed that set_codetag_empty() might be used not only to
-mark NULL alloctag references as empty to avoid warnings but also to reset
-valid tags (in clear_page_tag_ref()).  Since set_codetag_empty() is
-defined as NOOP for CONFIG_MEM_ALLOC_PROFILING_DEBUG=n, such use of
-set_codetag_empty() leads to subtle bugs.  Fix set_codetag_empty() for
-CONFIG_MEM_ALLOC_PROFILING_DEBUG=n to reset the tag reference.
+Patch series "lib min_heap: Improve min_heap safety, testing, and
+documentation".
 
-Link: https://lkml.kernel.org/r/20241130001423.1114965-2-surenb@google.com
-Fixes: a8fc28dad6d5 ("alloc_tag: introduce clear_page_tag_ref() helper function")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: David Wang <00107082@163.com>
-Closes: https://lore.kernel.org/lkml/20241124074318.399027-1-00107082@163.com/
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
+Improve the min heap implementation by enhancing type safety with
+container_of, reducing the attack vector by replacing test function calls
+with inline variants, and adding a brief API introduction in min_heap.h. 
+It also includes author information in
+Documentation/core-api/min_heap.rst.
+
+
+This patch (of 4):
+
+The current implementation of min_heap macros uses explicit casting to
+min_heap_char *, which prevents the compiler from detecting incorrect
+pointer types.  This can lead to errors if non-min_heap pointers are
+passed inadvertently.
+
+To enhance safety, replace all explicit casts to min_heap_char * with the
+use of container_of(&(_heap)->nr, min_heap_char, nr).  This approach
+ensures that the _heap parameter is indeed a min_heap_char-compatible
+structure, allowing the compiler to catch improper usages.
+
+Link: https://lkml.kernel.org/r/20241129181222.646855-1-visitorckw@gmail.com
+Link: https://lore.kernel.org/lkml/CAMuHMdVO5DPuD9HYWBFqKDHphx7+0BEhreUxtVC40A=8p6VAhQ@mail.gmail.com
+Link: https://lkml.kernel.org/r/20241129181222.646855-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/min_heap.h |   61 +++++++++++++++++++++----------------
+ 1 file changed, 35 insertions(+), 26 deletions(-)
 
---- a/include/linux/alloc_tag.h~alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug
-+++ a/include/linux/alloc_tag.h
-@@ -63,7 +63,12 @@ static inline void set_codetag_empty(uni
- #else /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
+--- a/include/linux/min_heap.h~lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of
++++ a/include/linux/min_heap.h
+@@ -218,7 +218,7 @@ void __min_heap_init_inline(min_heap_cha
+ }
  
- static inline bool is_codetag_empty(union codetag_ref *ref) { return false; }
--static inline void set_codetag_empty(union codetag_ref *ref) {}
-+
-+static inline void set_codetag_empty(union codetag_ref *ref)
-+{
-+	if (ref)
-+		ref->ct = NULL;
-+}
+ #define min_heap_init_inline(_heap, _data, _size)	\
+-	__min_heap_init_inline((min_heap_char *)_heap, _data, _size)
++	__min_heap_init_inline(container_of(&(_heap)->nr, min_heap_char, nr), _data, _size)
  
- #endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
+ /* Get the minimum element from the heap. */
+ static __always_inline
+@@ -228,7 +228,8 @@ void *__min_heap_peek_inline(struct min_
+ }
  
+ #define min_heap_peek_inline(_heap)	\
+-	(__minheap_cast(_heap) __min_heap_peek_inline((min_heap_char *)_heap))
++	(__minheap_cast(_heap)	\
++	 __min_heap_peek_inline(container_of(&(_heap)->nr, min_heap_char, nr)))
+ 
+ /* Check if the heap is full. */
+ static __always_inline
+@@ -238,7 +239,7 @@ bool __min_heap_full_inline(min_heap_cha
+ }
+ 
+ #define min_heap_full_inline(_heap)	\
+-	__min_heap_full_inline((min_heap_char *)_heap)
++	__min_heap_full_inline(container_of(&(_heap)->nr, min_heap_char, nr))
+ 
+ /* Sift the element at pos down the heap. */
+ static __always_inline
+@@ -277,8 +278,8 @@ void __min_heap_sift_down_inline(min_hea
+ }
+ 
+ #define min_heap_sift_down_inline(_heap, _pos, _func, _args)	\
+-	__min_heap_sift_down_inline((min_heap_char *)_heap, _pos, __minheap_obj_size(_heap),	\
+-				    _func, _args)
++	__min_heap_sift_down_inline(container_of(&(_heap)->nr, min_heap_char, nr), _pos,	\
++				    __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Sift up ith element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -304,8 +305,8 @@ void __min_heap_sift_up_inline(min_heap_
+ }
+ 
+ #define min_heap_sift_up_inline(_heap, _idx, _func, _args)	\
+-	__min_heap_sift_up_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx,	\
+-				  _func, _args)
++	__min_heap_sift_up_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++				  __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ /* Floyd's approach to heapification that is O(nr). */
+ static __always_inline
+@@ -319,7 +320,8 @@ void __min_heapify_all_inline(min_heap_c
+ }
+ 
+ #define min_heapify_all_inline(_heap, _func, _args)	\
+-	__min_heapify_all_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heapify_all_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++				 __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Remove minimum element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -340,7 +342,8 @@ bool __min_heap_pop_inline(min_heap_char
+ }
+ 
+ #define min_heap_pop_inline(_heap, _func, _args)	\
+-	__min_heap_pop_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_pop_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			      __minheap_obj_size(_heap), _func, _args)
+ 
+ /*
+  * Remove the minimum element and then push the given element. The
+@@ -356,8 +359,8 @@ void __min_heap_pop_push_inline(min_heap
+ }
+ 
+ #define min_heap_pop_push_inline(_heap, _element, _func, _args)	\
+-	__min_heap_pop_push_inline((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-				   _func, _args)
++	__min_heap_pop_push_inline(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++				   __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Push an element on to the heap, O(log2(nr)). */
+ static __always_inline
+@@ -382,8 +385,8 @@ bool __min_heap_push_inline(min_heap_cha
+ }
+ 
+ #define min_heap_push_inline(_heap, _element, _func, _args)	\
+-	__min_heap_push_inline((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-			       _func, _args)
++	__min_heap_push_inline(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++					    __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Remove ith element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -411,8 +414,8 @@ bool __min_heap_del_inline(min_heap_char
+ }
+ 
+ #define min_heap_del_inline(_heap, _idx, _func, _args)	\
+-	__min_heap_del_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx,	\
+-			      _func, _args)
++	__min_heap_del_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			      __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ void __min_heap_init(min_heap_char *heap, void *data, int size);
+ void *__min_heap_peek(struct min_heap_char *heap);
+@@ -433,25 +436,31 @@ bool __min_heap_del(min_heap_char *heap,
+ 		    const struct min_heap_callbacks *func, void *args);
+ 
+ #define min_heap_init(_heap, _data, _size)	\
+-	__min_heap_init((min_heap_char *)_heap, _data, _size)
++	__min_heap_init(container_of(&(_heap)->nr, min_heap_char, nr), _data, _size)
+ #define min_heap_peek(_heap)	\
+-	(__minheap_cast(_heap) __min_heap_peek((min_heap_char *)_heap))
++	(__minheap_cast(_heap) __min_heap_peek(container_of(&(_heap)->nr, min_heap_char, nr)))
+ #define min_heap_full(_heap)	\
+-	__min_heap_full((min_heap_char *)_heap)
++	__min_heap_full(container_of(&(_heap)->nr, min_heap_char, nr))
+ #define min_heap_sift_down(_heap, _pos, _func, _args)	\
+-	__min_heap_sift_down((min_heap_char *)_heap, _pos, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_sift_down(container_of(&(_heap)->nr, min_heap_char, nr), _pos,	\
++			     __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_sift_up(_heap, _idx, _func, _args)	\
+-	__min_heap_sift_up((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx, _func, _args)
++	__min_heap_sift_up(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			   __minheap_obj_size(_heap), _idx, _func, _args)
+ #define min_heapify_all(_heap, _func, _args)	\
+-	__min_heapify_all((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heapify_all(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			  __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_pop(_heap, _func, _args)	\
+-	__min_heap_pop((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_pop(container_of(&(_heap)->nr, min_heap_char, nr),	\
++		       __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_pop_push(_heap, _element, _func, _args)	\
+-	__min_heap_pop_push((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-			    _func, _args)
++	__min_heap_pop_push(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++			    __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_push(_heap, _element, _func, _args)	\
+-	__min_heap_push((min_heap_char *)_heap, _element, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_push(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++			__minheap_obj_size(_heap), _func, _args)
+ #define min_heap_del(_heap, _idx, _func, _args)	\
+-	__min_heap_del((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx, _func, _args)
++	__min_heap_del(container_of(&(_heap)->nr, min_heap_char, nr),	\
++		       __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ #endif /* _LINUX_MIN_HEAP_H */
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
-alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculation_beginend.patch
+lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
+lib-test_min_heap-use-inline-min-heap-variants-to-reduce-attack-vector.patch
+lib-min_heap-add-brief-introduction-to-min-heap-api.patch
+documentation-core-api-min_heap-add-author-information.patch
 
