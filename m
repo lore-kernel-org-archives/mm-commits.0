@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030FD23AB
-	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 02:45:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0574223AB;
+	Sun,  1 Dec 2024 02:47:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733021135; cv=none; b=WPx5B60MjEO23SizZ4+5jTZPT7CU3rm+gtcT7C+ps0MRiC9CxYiiHTpFuqDYhiCiK84KRocAR+U1SHN6gDxD01hbz8Ur8IDvOpZELN5UfWZooa0VuQY+AUValon97V6Z8zYWv7cPMfUaLAxzuazC/Vzf7u8wECEgMbmR1npTuTg=
+	t=1733021252; cv=none; b=GIPTMtX9huIF/TjUH6aWnYoF5/yfMyLG9n+C6XF0USnhQbZcs1tIRzzrDZXD2oty0RGNs4P10GvizAzHLTVrnYhxkkdhFRNMusNLPskgFjPWUTX3PqeZE+5vQAZUVrAQL4ACLQ99Eqo65SgaAXRkioGX4MTKclkahG+6LGY2zz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733021135; c=relaxed/simple;
-	bh=vsrBcrwLXgnOkyl8LyfrHMvhun4IrIWx8Iln5tFRuPM=;
-	h=Date:To:From:Subject:Message-Id; b=WbqB8jX9TFypt/9T3OhSM7cRB4QPgCjurUo04VB6D31BhdlweV4kjbmg0iHikhTxMqwNqLvNOdgCHcht5iOH1ZLZhXV3Vtc33jR9N0/ip+m1+eE1BuJDxM0MzWI9U3WTi2LfJWeuqiYYqekqDU9qncAAVfqYlfhRecMHNlWpMKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nyOmKSLl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733021252; c=relaxed/simple;
+	bh=VHanmVhirfgRqe4UiMZrtbYqvNGI+jMwbd3Z22LNnFo=;
+	h=Date:To:From:Subject:Message-Id; b=Ezz+uf1IQ3N49mkH7QRIHNuUSGwZKRWwPFaM/2FSlZgIP6RBarN2OWOGBl5PPnQCAg6na5gcKJ4++gf9uMqm31OImUD8+6jM4qd98UxXQ9sKo0Z1HmlEMQZsoQQC+eWlTx2i+e27OcKnJXAx651T5pW3WqV/2xn4s5at2K6WHuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRrdntab; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nyOmKSLl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A384C4CECC;
-	Sun,  1 Dec 2024 02:45:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRrdntab"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98101C4CECC;
+	Sun,  1 Dec 2024 02:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733021134;
-	bh=vsrBcrwLXgnOkyl8LyfrHMvhun4IrIWx8Iln5tFRuPM=;
+	s=korg; t=1733021251;
+	bh=VHanmVhirfgRqe4UiMZrtbYqvNGI+jMwbd3Z22LNnFo=;
 	h=Date:To:From:Subject:From;
-	b=nyOmKSLlyCFYa/F8/QU49TCdkjdv/nBsJh7DBt7rURLW3/zGmc5c75wdgYxuCTsbf
-	 UunPK/IU5978ntdbDxzryAZxMZ+Ceg6dKJmMVlGXHM4qMLHbsB1XYRDRixrWRuoNF2
-	 jqOxm1sINjWKNuSyA38RNpDn91lyXcBISX/J5JGQ=
-Date: Sat, 30 Nov 2024 18:45:33 -0800
-To: mm-commits@vger.kernel.org,snishika@redhat.com,mgorman@techsingularity.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=dRrdntabP0V62bl4Ll0SsTw2X4HtAHM/9ihg1EHDRnTmud+INHYhJNEWujEMcCDEz
+	 SDeGiis7YnK8CJvWrYsUotnpwOES8eKd9lheFiKX+QW6JsgeHzAcXSeAm776/PtkP7
+	 udmWT5dYnHCH59/8M4nR7BaYqWLltMisNm9owGTQ=
+Date: Sat, 30 Nov 2024 18:47:31 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,snishika@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241201024534.9A384C4CECC@smtp.kernel.org>
+Subject: + mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241201024731.98101C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes
+     Subject: mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
+     mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,147 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes
-Date: Sat Nov 30 06:44:24 PM PST 2024
+From: Seiji Nishikawa <snishika@redhat.com>
+Subject: mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
+Date: Sun, 1 Dec 2024 01:12:34 +0900
 
-ERROR: trailing whitespace
-#40: FILE: mm/vmscan.c:378:
-+^I * If there are no reclaimable file-backed or anonymous pages, $
+The task sometimes continues looping in throttle_direct_reclaim() because
+allow_direct_reclaim(pgdat) keeps returning false.  
 
-ERROR: trailing whitespace
-#41: FILE: mm/vmscan.c:379:
-+^I * ensure zones with sufficient free pages are not skipped. $
+ #0 [ffff80002cb6f8d0] __switch_to at ffff8000080095ac
+ #1 [ffff80002cb6f900] __schedule at ffff800008abbd1c
+ #2 [ffff80002cb6f990] schedule at ffff800008abc50c
+ #3 [ffff80002cb6f9b0] throttle_direct_reclaim at ffff800008273550
+ #4 [ffff80002cb6fa20] try_to_free_pages at ffff800008277b68
+ #5 [ffff80002cb6fae0] __alloc_pages_nodemask at ffff8000082c4660
+ #6 [ffff80002cb6fc50] alloc_pages_vma at ffff8000082e4a98
+ #7 [ffff80002cb6fca0] do_anonymous_page at ffff80000829f5a8
+ #8 [ffff80002cb6fce0] __handle_mm_fault at ffff8000082a5974
+ #9 [ffff80002cb6fd90] handle_mm_fault at ffff8000082a5bd4
 
-ERROR: trailing whitespace
-#42: FILE: mm/vmscan.c:380:
-+^I * This prevents zones like DMA32 from being ignored in reclaim $
+At this point, the pgdat contains the following two zones:
 
-WARNING: suspect code indent for conditional statements (8, 12)
-#45: FILE: mm/vmscan.c:383:
-+	if (nr == 0)
-+	    nr = zone_page_state_snapshot(zone, NR_FREE_PAGES);
+        NODE: 4  ZONE: 0  ADDR: ffff00817fffe540  NAME: "DMA32"
+          SIZE: 20480  MIN/LOW/HIGH: 11/28/45
+          VM_STAT:
+                NR_FREE_PAGES: 359
+        NR_ZONE_INACTIVE_ANON: 18813
+          NR_ZONE_ACTIVE_ANON: 0
+        NR_ZONE_INACTIVE_FILE: 50
+          NR_ZONE_ACTIVE_FILE: 0
+          NR_ZONE_UNEVICTABLE: 0
+        NR_ZONE_WRITE_PENDING: 0
+                     NR_MLOCK: 0
+                    NR_BOUNCE: 0
+                   NR_ZSPAGES: 0
+            NR_FREE_CMA_PAGES: 0
 
-total: 3 errors, 1 warnings, 15 lines checked
+        NODE: 4  ZONE: 1  ADDR: ffff00817fffec00  NAME: "Normal"
+          SIZE: 8454144  PRESENT: 98304  MIN/LOW/HIGH: 68/166/264
+          VM_STAT:
+                NR_FREE_PAGES: 146
+        NR_ZONE_INACTIVE_ANON: 94668
+          NR_ZONE_ACTIVE_ANON: 3
+        NR_ZONE_INACTIVE_FILE: 735
+          NR_ZONE_ACTIVE_FILE: 78
+          NR_ZONE_UNEVICTABLE: 0
+        NR_ZONE_WRITE_PENDING: 0
+                     NR_MLOCK: 0
+                    NR_BOUNCE: 0
+                   NR_ZSPAGES: 0
+            NR_FREE_CMA_PAGES: 0
 
+In allow_direct_reclaim(), while processing ZONE_DMA32, the sum of
+inactive/active file-backed pages calculated in zone_reclaimable_pages()
+based on the result of zone_page_state_snapshot() is zero.  
+
+Additionally, since this system lacks swap, the calculation of inactive/
+active anonymous pages is skipped.
+
+        crash> p nr_swap_pages
+        nr_swap_pages = $1937 = {
+          counter = 0
+        }
+
+As a result, ZONE_DMA32 is deemed unreclaimable and skipped, moving on to
+the processing of the next zone, ZONE_NORMAL, despite ZONE_DMA32 having
+free pages significantly exceeding the high watermark.
+
+The problem is that the pgdat->kswapd_failures hasn't been incremented.
+
+        crash> px ((struct pglist_data *) 0xffff00817fffe540)->kswapd_failures
+        $1935 = 0x0
+
+This is because the node deemed balanced.  The node balancing logic in
+balance_pgdat() evaluates all zones collectively.  If one or more zones
+(e.g., ZONE_DMA32) have enough free pages to meet their watermarks, the
+entire node is deemed balanced.  This causes balance_pgdat() to exit early
+before incrementing the kswapd_failures, as it considers the overall
+memory state acceptable, even though some zones (like ZONE_NORMAL) remain
+under significant pressure.
+
+
+The patch ensures that zone_reclaimable_pages() includes free pages
+(NR_FREE_PAGES) in its calculation when no other reclaimable pages are
+available (e.g., file-backed or anonymous pages).  This change prevents
+zones like ZONE_DMA32, which have sufficient free pages, from being
+mistakenly deemed unreclaimable.  By doing so, the patch ensures proper
+node balancing, avoids masking pressure on other zones like ZONE_NORMAL,
+and prevents infinite loops in throttle_direct_reclaim() caused by
+allow_direct_reclaim(pgdat) repeatedly returning false.
+
+
+The kernel hangs due to a task stuck in throttle_direct_reclaim(), caused
+by a node being incorrectly deemed balanced despite pressure in certain
+zones, such as ZONE_NORMAL.  This issue arises from
+zone_reclaimable_pages() returning 0 for zones without reclaimable file-
+backed or anonymous pages, causing zones like ZONE_DMA32 with sufficient
+free pages to be skipped.
+
+The lack of swap or reclaimable pages results in ZONE_DMA32 being ignored
+during reclaim, masking pressure in other zones.  Consequently,
+pgdat->kswapd_failures remains 0 in balance_pgdat(), preventing fallback
+mechanisms in allow_direct_reclaim() from being triggered, leading to an
+infinite loop in throttle_direct_reclaim().
+
+This patch modifies zone_reclaimable_pages() to account for free pages
+(NR_FREE_PAGES) when no other reclaimable pages exist.  This ensures zones
+with sufficient free pages are not skipped, enabling proper balancing and
+reclaim behavior.
+
+Link: https://lkml.kernel.org/r/20241130164346.436469-1-snishika@redhat.com
+Link: https://lkml.kernel.org/r/20241130161236.433747-2-snishika@redhat.com
+Signed-off-by: Seiji Nishikawa <snishika@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Seiji Nishikawa <snishika@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes
+--- a/mm/vmscan.c~mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim
 +++ a/mm/vmscan.c
-@@ -375,13 +375,13 @@ unsigned long zone_reclaimable_pages(str
+@@ -374,7 +374,14 @@ unsigned long zone_reclaimable_pages(str
+ 	if (can_reclaim_anon_pages(NULL, zone_to_nid(zone), NULL))
  		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
  			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
- 	/*
--	 * If there are no reclaimable file-backed or anonymous pages, 
--	 * ensure zones with sufficient free pages are not skipped. 
--	 * This prevents zones like DMA32 from being ignored in reclaim 
-+	 * If there are no reclaimable file-backed or anonymous pages,
-+	 * ensure zones with sufficient free pages are not skipped.
-+	 * This prevents zones like DMA32 from being ignored in reclaim
- 	 * scenarios where they can still help alleviate memory pressure.
- 	 */
- 	if (nr == 0)
--	    nr = zone_page_state_snapshot(zone, NR_FREE_PAGES);
-+		nr = zone_page_state_snapshot(zone, NR_FREE_PAGES);
+-
++	/*
++	 * If there are no reclaimable file-backed or anonymous pages, 
++	 * ensure zones with sufficient free pages are not skipped. 
++	 * This prevents zones like DMA32 from being ignored in reclaim 
++	 * scenarios where they can still help alleviate memory pressure.
++	 */
++	if (nr == 0)
++	    nr = zone_page_state_snapshot(zone, NR_FREE_PAGES);
  	return nr;
  }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from snishika@redhat.com are
 
-fs-proc-vmcorec-fix-warning-when-config_mmu=n.patch
-mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm-fix.patch
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch
+mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
