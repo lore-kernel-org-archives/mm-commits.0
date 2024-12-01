@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5528E552
-	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 06:46:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E711B5474C
+	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 06:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733035575; cv=none; b=ajCk+OU/P2W88hRL0VnVi5XXJXzjMFojQzxuLWu0S/XLn2bm/daZCj+UkHaq7PlLcNprsb5Hqv7vV2SR8IBYTJkAuhB7u2A8j2HqMSfz2jYxL5gsTqk+SjuQO4oqVhGaoneAZNkPfJEdhpuR/KvrgosaidhsW+Zm1msp+DgltME=
+	t=1733035950; cv=none; b=EuOaZUq7iBHplJph4mK539DWiBDBpZetnEm43fGRgCb9q8vxRjj/rZHxKn5y5Q+zRGvWxs9A1+ZP6m0qEsdGaIzfcDoeAW3PLfOdNbnI6vLHCjgW3PLRslCp99yp71E+NrwP06oLcq2Xlf6z4TDQhjBRn3qwwb3rFaVqc5dhDJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733035575; c=relaxed/simple;
-	bh=gcDwi2VSDGWXGSgLt3Z2nnFnBD1yXXVMIGpSD+NXlEI=;
-	h=Date:To:From:Subject:Message-Id; b=nCV4/LyonyiyfuB1UMCx3M2u9kG8u3vOKZgmFDVILamhHaXuwxzBJ18/OF9yFV/tTVi4JLz1VUMGon9tPTZkhUxCFisipuQaelbzsYijO99qXaQDPEQk5y3iXiZX5hliZwZ7I4SIjzrsp/8wJPC1x5nEzTVoca8yT057TcretYc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bvER6K5w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733035950; c=relaxed/simple;
+	bh=RXswzevWjLeTVZw1InRDL0f8y3uEIFmnGrA/Prs2ckg=;
+	h=Date:To:From:Subject:Message-Id; b=TSkeoPGUlrdwtFrwcAlcFmLogKVfpqjGuqr1zeSSZJgRgy4xax0sDB9qdJgvwXzsjINPtLw0x8L/rpzmt1ddZcJOG95hWU/krMeV8MJjZY98U3aURXzAoM/FaygbtbnqPaHpqA3mlNoueNHF/J9ms47lnWTfpXQtlP0oDXDLQOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QW2STu55; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvER6K5w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43401C4CECF;
-	Sun,  1 Dec 2024 06:46:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QW2STu55"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF11CC4CECF;
+	Sun,  1 Dec 2024 06:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733035575;
-	bh=gcDwi2VSDGWXGSgLt3Z2nnFnBD1yXXVMIGpSD+NXlEI=;
+	s=korg; t=1733035949;
+	bh=RXswzevWjLeTVZw1InRDL0f8y3uEIFmnGrA/Prs2ckg=;
 	h=Date:To:From:Subject:From;
-	b=bvER6K5wVa78I+Sbf4UDO6lR2C2TQXCaRgx5JjRzSRV8EWC6SfLmhcGAOMQPrHbKY
-	 HB07v2sfXyn9uRBZoNpn+PZ80PGiuVr4zBxtwE23v9rmCtNUvqU1TBEfC41sSJjaOL
-	 boB1hiirBzCdhJC87ZjVOSRls2507DHziEtFESpA=
-Date: Sat, 30 Nov 2024 22:46:14 -0800
-To: mm-commits@vger.kernel.org,mgorman@techsingularity.net,labbott@redhat.com,liuq131@chinatelecom.cn,akpm@linux-foundation.org
+	b=QW2STu55OGAuiuZZX/vnPkMxvNc3KPgyVc5CXn44m1kYBhHAvrQ8wlUOFVgRvOCJH
+	 eDDGj8h7go2KPoP8vs7TA0Bt+2aQrh8y849UiCRdznXDlvGc01c26l/OKHVFIOG2fT
+	 mfUv2XCVOMelgSXLB7EsoMEltf3Lg3Nq4GVd50SQ=
+Date: Sat, 30 Nov 2024 22:52:29 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,sidhartha.kumar@oracle.com,lizefan.x@bytedance.com,linmiaohe@huawei.com,hannes@cmpxchg.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-compaction-fix-the-total_isolated-in-strict-mode.patch removed from -mm tree
-Message-Id: <20241201064615.43401C4CECF@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch removed from -mm tree
+Message-Id: <20241201065229.AF11CC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: fix the total_isolated in strict mode
+     Subject: mm/hugetlb_cgroup: introduce peak and rsvd.peak to v2
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-the-total_isolated-in-strict-mode.patch
+     mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Qiang Liu <liuq131@chinatelecom.cn>
-Subject: mm/compaction: fix the total_isolated in strict mode
-Date: Sat, 2 Nov 2024 20:16:21 +0000
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm/hugetlb_cgroup: introduce peak and rsvd.peak to v2
+Date: Tue, 2 Jul 2024 12:57:28 +0000
 
-If the last cycle reads bogus compound_order() and blockpfn > end_pfn
-occurs, it is possible that total_isolated will be less than nr_scanned. 
-In this case, strict mode should return 0, but the "if (strict &&
-blockpfn < end_pfn)" statement cannot recognize this situation.
+Introduce peak and rsvd.peak to v2 to show the historical maximum usage of
+resources, as in some scenarios it is necessary to configure the value of
+max/rsvd.max based on the peak usage of resources.
 
-We assume that the block we are currently processing is distributed as
-follows:
-0   1   2                                                            511
---------------------------------------------------
-|   |   |                                                             |
---------------------------------------------------
-Index 0 and 1 are both pages with an order of 0.
-Index 2 has a bogus order (let's assume the order is 9).
-When the for loop reaches index 2, it will enter the following code:
+Since HugeTLB doesn't support page reclaim, enforcing the limit at page
+fault time implies that, the application will get SIGBUS signal if it
+tries to fault in HugeTLB pages beyond its limit.  Therefore the
+application needs to know exactly how many HugeTLB pages it uses before
+hand, and the sysadmin needs to make sure that there are enough available
+on the machine for all the users to avoid processes getting SIGBUS.
 
-/*
- * For compound pages such as THP and hugetlbfs, we can save
- * potentially a lot of iterations if we skip them at once.
- * The check is racy, but we can consider only valid values
- * and the only danger is skipping too much.
- */
-if (PageCompound(page)) {
-    const unsigned int order = compound_order(page);
-    if (blockpfn + (1UL << order) <= end_pfn) {
-        blockpfn += (1UL << order) - 1;
-        page += (1UL << order) - 1;
-        nr_scanned += (1UL << order) - 1;
-    }
-    goto isolate_fail;
+When running some open-source software, it may not be possible to know the
+exact amount of hugetlb it consumes, so cannot correctly configure the max
+value.  If there is a peak metric, we can run the open-source software
+first and then configure the max based on the peak value.  In cgroup v1,
+the hugetlb controller provides the max_usage_in_bytes and
+rsvd.max_usage_in_bytes interface to display the historical maximum usage,
+so introduce peak and rsvd.peak to v2 to address this issue.
 
-}
-
-After exiting the for loop:
-blockpfn =basepfn+ 2+2^9 = basepfn+514;
-endpfn  = basepfn +512;
-total_isolated = 2;
-nr_scanned = 514;
-
-/*
- * Be careful to not go outside of the pageblock.
- */
-if (unlikely(blockpfn > end_pfn))
-        blockpfn = end_pfn;
-So this can happen
-
-/*
- * If strict isolation is requested by CMA then check that all the
- * pages requested were isolated. If there were any failures, 0 is
- * returned and CMA will fail.
- */
-if (strict && blockpfn < end_pfn)
-        total_isolated = 0;
-
-If processed according to the old code, it will not enter the if statement
-to reset total_isolated, but the correct handling is to reset
-total_isolated to 0.
-
-Link: https://lkml.kernel.org/r/20241102201621.95291-1-liuq131@chinatelecom.cn
-Signed-off-by: Qiang Liu <liuq131@chinatelecom.cn>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20240702125728.2743143-1-xiujianfeng@huawei.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/cgroup-v2.rst |    8 ++++++++
+ mm/hugetlb_cgroup.c                     |   19 +++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-fix-the-total_isolated-in-strict-mode
-+++ a/mm/compaction.c
-@@ -700,7 +700,7 @@ isolate_fail:
- 	 * pages requested were isolated. If there were any failures, 0 is
- 	 * returned and CMA will fail.
- 	 */
--	if (strict && blockpfn < end_pfn)
-+	if (strict && (blockpfn < end_pfn || total_isolated != nr_scanned))
- 		total_isolated = 0;
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -2659,6 +2659,14 @@ HugeTLB Interface Files
+         hugetlb pages of <hugepagesize> in this cgroup.  Only active in
+         use hugetlb pages are included.  The per-node values are in bytes.
  
- 	cc->total_free_scanned += nr_scanned;
++  hugetlb.<hugepagesize>.peak
++	Show historical maximum usage for "hugepagesize" hugetlb.  It exists
++        for all the cgroup except root.
++
++  hugetlb.<hugepagesize>.rsvd.peak
++	Show historical maximum usage for "hugepagesize" hugetlb reservations.
++        It exists for all the cgroup except root.
++
+ Misc
+ ----
+ 
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-introduce-peak-and-rsvdpeak-to-v2
++++ a/mm/hugetlb_cgroup.c
+@@ -583,6 +583,13 @@ static int hugetlb_cgroup_read_u64_max(s
+ 		else
+ 			seq_printf(seq, "%llu\n", val * PAGE_SIZE);
+ 		break;
++	case RES_RSVD_MAX_USAGE:
++		counter = &h_cg->rsvd_hugepage[idx];
++		fallthrough;
++	case RES_MAX_USAGE:
++		val = (u64)counter->watermark;
++		seq_printf(seq, "%llu\n", val * PAGE_SIZE);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -739,6 +746,18 @@ static struct cftype hugetlb_dfl_tmpl[]
+ 		.seq_show = hugetlb_cgroup_read_u64_max,
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+ 	},
++	{
++		.name = "peak",
++		.private = RES_MAX_USAGE,
++		.seq_show = hugetlb_cgroup_read_u64_max,
++		.flags = CFTYPE_NOT_ON_ROOT,
++	},
++	{
++		.name = "rsvd.peak",
++		.private = RES_RSVD_MAX_USAGE,
++		.seq_show = hugetlb_cgroup_read_u64_max,
++		.flags = CFTYPE_NOT_ON_ROOT,
++	},
+ 	{
+ 		.name = "events",
+ 		.seq_show = hugetlb_events_show,
 _
 
-Patches currently in -mm which might be from liuq131@chinatelecom.cn are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
 
