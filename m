@@ -1,73 +1,141 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 101BA382
-	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 02:22:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9B5382
+	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 02:25:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733019725; cv=none; b=eKGo8NQJagMUtewFQo0LDXiCLdXJ1X6y/0WLu+REKmLaLqQIGmj/zSveEn+TGUir5oIupyc/Hw8uA+1er8PsUq1nZ8Nwh2TDWbftP9W1UF1KSB7i9bNzVhIvZYv/wBF67DiZm0R9AgCTU6PQQhP+ZsGAm2J0ZOC7v5z/kcIrCX0=
+	t=1733019908; cv=none; b=sjAHtSAJAReVWPBIbpg5f2DfQGAxC1zq79rPXh0aazUF5paIjxX4p8XQlDCi8YHyieU9tq2lRXz8hjaqiDbJ8Xk36OLjdOCezWxAou2WSqu8TkV+4dPI4sseEemW6zHvFdvJLnKzQRpQmqfF3qQIp9NYC/20andsQVvyJVjSorg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733019725; c=relaxed/simple;
-	bh=0onZwjc9FKN9cKpIMctAdjmtHlXTr2tjV1b3gPxn29E=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=lrXFAXHKJ580IebWJ4FxXFeltB3ijeL67AGXZGTv1Zp6+8XiJEiWWQdjmttQMK27c4XMJBMaiFWD0WEjEMe4Iih9D/2WJnk3vJoxSD5m4r8NXPcjCTqiEEjsTGksH3odruRbM112NJg0CtAByZHPUC9Kc7ivUU7h9K9poEkslXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CMNI2xag; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733019908; c=relaxed/simple;
+	bh=dBz3c40ie2IppT5kkpzWluBBSs9VBykJxY2/DXqCsrU=;
+	h=Date:To:From:Subject:Message-Id; b=XHybvfSMqam//bGEQ3EBsMbpmrr1NC1f7YQ/MCsyFF9xAI8BLL+EfdfpTW2eOxgi4nvBfquzcPrOiTJWJqA0dYqk2emXH9Nof6NwVrDKP0YQqGCztrz0g++MMNsHXS/6cGeYMxN/T/qGGjeL8LOufeXuAwhP/hM66C7EA9/e+cg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aBae9U2b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CMNI2xag"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4359EC4CECC;
-	Sun,  1 Dec 2024 02:22:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aBae9U2b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2AFC4CECC;
+	Sun,  1 Dec 2024 02:25:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733019724;
-	bh=0onZwjc9FKN9cKpIMctAdjmtHlXTr2tjV1b3gPxn29E=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=CMNI2xagXV0MXivWNzRGhR3U9S/eJSbnE6uRICHjQeizdPc0lGAx5PU4tZkZzPWLd
-	 jf4kjoZw2mA70FzcISwKVXVNXiYMKuNQ5IEqgeNkgiYl4mOykjELegmf5Euj9UgIbz
-	 5uuBwrLXFLr9qaQHjTOlyScDPqR+iEsKz6BJbzeA=
-Date: Sat, 30 Nov 2024 18:22:03 -0800
+	s=korg; t=1733019907;
+	bh=dBz3c40ie2IppT5kkpzWluBBSs9VBykJxY2/DXqCsrU=;
+	h=Date:To:From:Subject:From;
+	b=aBae9U2bH1hBA+Uwcju8+RbiSR5PEINYLCabNvp8YNCzD35uhbqRtWDfzCys5S7xA
+	 nXHFkwmOMLm83J7EvFMIYk21OSZcx3MjWOEp+QwRUPbQ7jlsb9V0nZAgA4XPCxbLLs
+	 nSp9HbNF7iWl0x/KaElLb3mEt9fatSgo5qkKBCt0=
+Date: Sat, 30 Nov 2024 18:25:07 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,linus.walleij@linaro.org,lars@metafoo.de,jic23@kernel.org,david.laight@aculab.com,jahau@rocketmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Jakob Hauser <jahau@rocketmail.com>
-Cc: David.Laight@ACULAB.COM, mm-commits@vger.kernel.org
-Subject: Re: +
- drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error.patch added
- to mm-nonmm-unstable branch
-Message-Id: <20241130182203.29462d9d364eaf6d0e4a82be@linux-foundation.org>
-In-Reply-To: <4f9c5ded-799c-44f7-8911-f8df85f18208@rocketmail.com>
-References: <20241130064522.04220C4CED3@smtp.kernel.org>
-	<4f9c5ded-799c-44f7-8911-f8df85f18208@rocketmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241201022507.BC2AFC4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Sat, 30 Nov 2024 10:18:09 +0100 Jakob Hauser <jahau@rocketmail.com> wrote:
 
-> > --- a/drivers/iio/magnetometer/yamaha-yas530.c~drivers-iio-magnetometer-yamaha-yas530c-hack-around-build-error
-> > +++ a/drivers/iio/magnetometer/yamaha-yas530.c
-> > @@ -411,8 +411,10 @@ static int yas537_measure(struct yas5xx
-> >   		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / BIT(13);
-> >   		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / BIT(13);
-> >   		for (i = 0; i < 3; i++) {
-> > -			clamp_val(h[i], -BIT(13), BIT(13) - 1);
-> > -			xy1y2[i] = h[i] + BIT(13);
-> > +			if (h[i] < (s32)-BIT(13))
-> > +				h[i] = (s32)-BIT(13);
-> > +			if (h[i] > (s32)BIT(13) - 1)
-> > +				h[i] = (s32)BIT(13) - 1;
-> >   		}
-> >   	}
-> 
-> The line "xy1y2[i] = h[i] + BIT(13);" is missing now.
+The patch titled
+     Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
 
-oops, fixed.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
 
-> 
-> As this is just a temporary patch to avoid build errors, it might not 
-> matter much. It's unlikely that the Yamaha YAS537 magnetometer comes in 
-> use in that context. I assume the patch will disappear at some point.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Yep.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Jakob Hauser <jahau@rocketmail.com>
+Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
+Date: Fri, 29 Nov 2024 22:25:07 +0100
+
+In the function yas537_measure() there is a clamp_val() with limits of
+-BIT(13) and BIT(13) - 1.  The input clamp value h[] is of type s32.  The
+BIT() is of type unsigned long integer due to its define in
+include/vdso/bits.h.  The lower limit -BIT(13) is recognized as -8192 but
+expressed as an unsigned long integer.  The size of an unsigned long
+integer differs between 32-bit and 64-bit architectures.  Converting this
+to type s32 may lead to undesired behavior.
+
+Additionally, in the calculation lines h[0], h[1] and h[2] the unsigned
+long integer divisor BIT(13) causes an unsigned division, shifting the
+left-hand side of the equation back and forth, possibly ending up in large
+positive values instead of negative values on 32-bit architectures.
+
+To solve those two issues, declare a signed integer with a value of
+BIT(13).
+
+There is another omission in the clamp line: clamp_val() returns a value
+and it's going nowhere here.  Self-assign it to h[i] to make use of the
+clamp macro.
+
+Finally, replace clamp_val() macro by clamp() because after changing the
+limits from type unsigned long integer to signed integer it's fine that
+way.
+
+Link: https://lkml.kernel.org/r/11609b2243c295d65ab4d47e78c239d61ad6be75.1732914810.git.jahau@rocketmail.com
+Fixes: 65f79b501030 ("iio: magnetometer: yas530: Add YAS537 variant")
+Signed-off-by: Jakob Hauser <jahau@rocketmail.com>
+
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202411230458.dhZwh3TT-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202411282222.oF0B4110-lkp@intel.com/
+Cc: David Laight <david.laight@aculab.com>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/iio/magnetometer/yamaha-yas530.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+--- a/drivers/iio/magnetometer/yamaha-yas530.c~iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits
++++ a/drivers/iio/magnetometer/yamaha-yas530.c
+@@ -372,6 +372,7 @@ static int yas537_measure(struct yas5xx
+ 	u8 data[8];
+ 	u16 xy1y2[3];
+ 	s32 h[3], s[3];
++	int half_range = BIT(13);
+ 	int i, ret;
+ 
+ 	mutex_lock(&yas5xx->lock);
+@@ -406,13 +407,13 @@ static int yas537_measure(struct yas5xx
+ 	/* The second version of YAS537 needs to include calibration coefficients */
+ 	if (yas5xx->version == YAS537_VERSION_1) {
+ 		for (i = 0; i < 3; i++)
+-			s[i] = xy1y2[i] - BIT(13);
+-		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / BIT(13);
+-		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / BIT(13);
+-		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / BIT(13);
++			s[i] = xy1y2[i] - half_range;
++		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / half_range;
++		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / half_range;
++		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / half_range;
+ 		for (i = 0; i < 3; i++) {
+-			clamp_val(h[i], -BIT(13), BIT(13) - 1);
+-			xy1y2[i] = h[i] + BIT(13);
++			h[i] = clamp(h[i], -half_range, half_range - 1);
++			xy1y2[i] = h[i] + half_range;
+ 		}
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from jahau@rocketmail.com are
+
+iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
+
