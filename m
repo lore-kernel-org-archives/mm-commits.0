@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1409101C8
-	for <mm-commits@vger.kernel.org>; Sun,  1 Dec 2024 02:33:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF7BB79FD;
+	Sun,  1 Dec 2024 02:41:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733020401; cv=none; b=jm8PfK2yShv7KghemmiqDCVYwaK4QNMjKOXYzyIgaS9k04ToaDWS4pdvZmrZE+Z3HsPIvVMSZAUAdXYi4mGfSbMDSc4YXzGUoegi89KCmlZkwLEqXuok1RkznZA8VnNlOKg5Fn8yEwgncO6I05H63U4efweX9UbysFur4igfClc=
+	t=1733020878; cv=none; b=RbERQ4QaOEzhZEZB7PCo76Uy9B0+rPl1bKFxb9w5EMMq5Vwax9UF3dvOSCygzkzSS/imOr0HVQGxzxnhXek8S9yg1lzD5Dsxpr96ZB5XIUuEia7v+n3rxyRfwhXWjurb4k6AZJ6PFLSneXc3A6WexoER3H+wZJjqoc5+oR9ZlMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733020401; c=relaxed/simple;
-	bh=weODSzGJG6frlZHl0dDUzEx5U2qGjXtRfQjHzqS18HM=;
-	h=Date:To:From:Subject:Message-Id; b=MVr/w2fy+bQh47Pvv702/BJ1vnsHRAvNy+gy1Ig+jif4qJkFqfXCMqZhnLzZyW9Cwc3H8k4uUqEUXwKk6bL/zV352xzHyCMl5TSM8I0LrpxA6Y9CH11RGs0cVbKQp5exbe+lu9widu3f+e4X1aPIk/l93cif9a5p0D1bKvbli5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SEWcUZy3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733020878; c=relaxed/simple;
+	bh=9CY0YeXAbxlBIOer1kt14LCTkQ8Jq8XZyOUOp4GoUDU=;
+	h=Date:To:From:Subject:Message-Id; b=ikpwuwtQtm9EiG4KKQzMP379FSsJxW36n8Id00P/Tvcjkkw1gTyyctuxSHu8Ujbp2rxMPkmVNpj+mJUcKq2RH/WaUxQYkzY/w1ZE/EFPt+CL/KSF4RBXUAJ/nYkvUFJaJDMAU2b/dUR54Dmmd+0OYldjM5hYnC5xkABK1O+oAfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c8dA1LhS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SEWcUZy3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08727C4CECC;
-	Sun,  1 Dec 2024 02:33:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c8dA1LhS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A79E8C4CECC;
+	Sun,  1 Dec 2024 02:41:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733020401;
-	bh=weODSzGJG6frlZHl0dDUzEx5U2qGjXtRfQjHzqS18HM=;
+	s=korg; t=1733020877;
+	bh=9CY0YeXAbxlBIOer1kt14LCTkQ8Jq8XZyOUOp4GoUDU=;
 	h=Date:To:From:Subject:From;
-	b=SEWcUZy3eyYtKKNDO28dOVDYyiiBy7pK+ZIChcoerVSrjcXbU3H/FAek476oleecz
-	 LSkxJ88GbUVnykMUVP7ENJ6rhjIBsCgnUyfAaJa+aNOWdKzGS3v6rHgr7xPBvc0Zpv
-	 bZIZgnYqzu5/1KNSUtgd7vXSP/oSXpoHToKSROuI=
-Date: Sat, 30 Nov 2024 18:33:20 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,linus.walleij@linaro.org,lars@metafoo.de,jic23@kernel.org,david.laight@aculab.com,jahau@rocketmail.com,akpm@linux-foundation.org
+	b=c8dA1LhS6FLbo1GQ8vOnSVENFKhgbZpY6w5wyPPfWlKirW6kiKBTH4fwjoB5AQsFW
+	 yT5aIu5lxaKXj+wk7vxXH08kGrWZbhIbRxRErK8NoJAMjM0uLVObZr5Ggir9jN+FqO
+	 CNw81h5a5Qs9dl8x1bh4mWAqnltQW5UNmvM82e+Q=
+Date: Sat, 30 Nov 2024 18:41:17 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mgorman@techsingularity.net,snishika@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241201023321.08727C4CECC@smtp.kernel.org>
+Subject: + mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241201024117.A79E8C4CECC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
+     Subject: mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
+     mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,84 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jakob Hauser <jahau@rocketmail.com>
-Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
-Date: Fri, 29 Nov 2024 22:25:07 +0100
+From: Seiji Nishikawa <snishika@redhat.com>
+Subject: mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
+Date: Sun, 1 Dec 2024 01:12:34 +0900
 
-In the function yas537_measure() there is a clamp_val() with limits of
--BIT(13) and BIT(13) - 1.  The input clamp value h[] is of type s32.  The
-BIT() is of type unsigned long integer due to its define in
-include/vdso/bits.h.  The lower limit -BIT(13) is recognized as -8192 but
-expressed as an unsigned long integer.  The size of an unsigned long
-integer differs between 32-bit and 64-bit architectures.  Converting this
-to type s32 may lead to undesired behavior.
+The kernel hangs due to a task stuck in throttle_direct_reclaim(), caused
+by a node being incorrectly deemed balanced despite pressure in certain
+zones, such as ZONE_NORMAL.  This issue arises from
+zone_reclaimable_pages() returning 0 for zones without reclaimable file-
+backed or anonymous pages, causing zones like ZONE_DMA32 with sufficient
+free pages to be skipped.
 
-Additionally, in the calculation lines h[0], h[1] and h[2] the unsigned
-long integer divisor BIT(13) causes an unsigned division, shifting the
-left-hand side of the equation back and forth, possibly ending up in large
-positive values instead of negative values on 32-bit architectures.
+The lack of swap or reclaimable pages results in ZONE_DMA32 being ignored
+during reclaim, masking pressure in other zones.  Consequently,
+pgdat->kswapd_failures remains 0 in balance_pgdat(), preventing fallback
+mechanisms in allow_direct_reclaim() from being triggered, leading to an
+infinite loop in throttle_direct_reclaim().
 
-To solve those two issues, declare a signed integer with a value of
-BIT(13).
+This patch modifies zone_reclaimable_pages() to account for free pages
+(NR_FREE_PAGES) when no other reclaimable pages exist.  This ensures zones
+with sufficient free pages are not skipped, enabling proper balancing and
+reclaim behavior.
 
-There is another omission in the clamp line: clamp_val() returns a value
-and it's going nowhere here.  Self-assign it to h[i] to make use of the
-clamp macro.
-
-Finally, replace clamp_val() macro by clamp() because after changing the
-limits from type unsigned long integer to signed integer it's fine that
-way.
-
-Link: https://lkml.kernel.org/r/11609b2243c295d65ab4d47e78c239d61ad6be75.1732914810.git.jahau@rocketmail.com
-Fixes: 65f79b501030 ("iio: magnetometer: yas530: Add YAS537 variant")
-Signed-off-by: Jakob Hauser <jahau@rocketmail.com>
-
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202411230458.dhZwh3TT-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-kbuild-all/202411282222.oF0B4110-lkp@intel.com/
-Reviewed-by: David Laight <david.laight@aculab.com>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Link: https://lkml.kernel.org/r/20241130161236.433747-2-snishika@redhat.com
+Signed-off-by: Seiji Nishikawa <snishika@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/magnetometer/yamaha-yas530.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/drivers/iio/magnetometer/yamaha-yas530.c~iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits
-+++ a/drivers/iio/magnetometer/yamaha-yas530.c
-@@ -372,6 +372,7 @@ static int yas537_measure(struct yas5xx
- 	u8 data[8];
- 	u16 xy1y2[3];
- 	s32 h[3], s[3];
-+	int half_range = BIT(13);
- 	int i, ret;
- 
- 	mutex_lock(&yas5xx->lock);
-@@ -406,13 +407,13 @@ static int yas537_measure(struct yas5xx
- 	/* The second version of YAS537 needs to include calibration coefficients */
- 	if (yas5xx->version == YAS537_VERSION_1) {
- 		for (i = 0; i < 3; i++)
--			s[i] = xy1y2[i] - BIT(13);
--		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / BIT(13);
--		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / BIT(13);
--		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / BIT(13);
-+			s[i] = xy1y2[i] - half_range;
-+		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / half_range;
-+		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / half_range;
-+		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / half_range;
- 		for (i = 0; i < 3; i++) {
--			clamp_val(h[i], -BIT(13), BIT(13) - 1);
--			xy1y2[i] = h[i] + BIT(13);
-+			h[i] = clamp(h[i], -half_range, half_range - 1);
-+			xy1y2[i] = h[i] + half_range;
- 		}
- 	}
+--- a/mm/vmscan.c~mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim
++++ a/mm/vmscan.c
+@@ -374,7 +374,14 @@ unsigned long zone_reclaimable_pages(str
+ 	if (can_reclaim_anon_pages(NULL, zone_to_nid(zone), NULL))
+ 		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
+ 			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
+-
++	/*
++	 * If there are no reclaimable file-backed or anonymous pages, 
++	 * ensure zones with sufficient free pages are not skipped. 
++	 * This prevents zones like DMA32 from being ignored in reclaim 
++	 * scenarios where they can still help alleviate memory pressure.
++	 */
++	if (nr == 0)
++	    nr = zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 	return nr;
+ }
  
 _
 
-Patches currently in -mm which might be from jahau@rocketmail.com are
+Patches currently in -mm which might be from snishika@redhat.com are
 
-iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
+mm-vmscan-ensure-kswapd-is-woken-up-if-the-wait-queue-is-active.patch
+mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim.patch
 
