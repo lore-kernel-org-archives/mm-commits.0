@@ -1,67 +1,66 @@
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
+Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6D114C85
-	for <mm-commits@vger.kernel.org>; Mon,  2 Dec 2024 07:04:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FB98489
+	for <mm-commits@vger.kernel.org>; Mon,  2 Dec 2024 07:17:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733123090; cv=none; b=QWKNkjegQu3lhrVg5bCC00CpqAptkPa84iG6W1WNhTdN3DmCHwrL7FvS4ZYmS1/wuZ+LwWy27lZeKSYYWPAuWgLOh52Y1t+TbmxUEKstF0+W0Q/KBmz/PjQk7ecYltL75HvhcrJDfhJKaaRIl9t5EYJWRVzlR1KfCRQUG6g1xIo=
+	t=1733123855; cv=none; b=PhSbeYvHVWm5+NbGyR6jQbudCSbFmcgo7ldth1klTqpZZ+8sNBH4uqECsUuVH5NypD1MHyj9e60U7Uwkni+hxOwasAMe3tlCEXRGaa1KlSuKKF9RupLFmOtg7WcUMpF9yRP1/RugFtoiNoBrDKPOzVaD1OLoTvi9PuTglvINo3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733123090; c=relaxed/simple;
-	bh=SiD06DObmbaiVaqIGJ//yBG35vOfhSodL/Rn6wtirkY=;
+	s=arc-20240116; t=1733123855; c=relaxed/simple;
+	bh=kooD3OZn0sK2RtQu2y4BJ/3qiIua3PwBJJxFw3wxARc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=onetUTCS03WlBCbDb4MHYow3W1ntbpA+Ty1963y3gjd2D6ncYe+WRAUqP/w+usI+Va2UC5P7UWyeyyHxnl5AJxRA0pVm/viladGOWjgzmFrp1cWwLQVLQ4PHn5+oeAwFEzbI6hEH+DyuxUzVguMCpQzcV4azxYh9fKKeYqehU2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=NI1hGi7k; arc=none smtp.client-ip=209.85.210.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=iTwVFgQYpycrk9DDmDqhpZVPWFVDnYYFIqntgRSQ+9XnlivfUmFkzEkJHxlMauw0RYeDs75gTMQyPrURLAgsqZNcKy5aEQwkJikhDgJxNMAoXYyy1+hY3Pj68NLlz8o6UPri2lSLQhcD99b1WyMc218m4HnSK1gkvDjUNak5dFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=k6a8KJen; arc=none smtp.client-ip=209.85.210.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="NI1hGi7k"
-Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-724d8422dbaso3198016b3a.0
-        for <mm-commits@vger.kernel.org>; Sun, 01 Dec 2024 23:04:48 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="k6a8KJen"
+Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-7251abe0e69so3215711b3a.0
+        for <mm-commits@vger.kernel.org>; Sun, 01 Dec 2024 23:17:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1733123088; x=1733727888; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1733123853; x=1733728653; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=bLfqXZJQxFx0ID0d+PIfJYDOtZpIex7MdVuGIY4Sd5M=;
-        b=NI1hGi7kSHxkZVpv2eNq8bJwwai4S9NRjL84x+6YPfE4I0Sg0ZfefAfTx5niYFxthG
-         tM49Mfn5p0M/heyBTy2Pb/XBYjEtkc+CQDH3U9MZFR1zbILvPDb9oDTMa2TXriInJKFh
-         85PrEzTbjA6d7wyxcCYEr+9RW3KGF7dWbbOXM=
+        bh=z2WZIJ8AYovp0nZDoremrJ+zQLezbNuCp9D1+GAtZok=;
+        b=k6a8KJenInOLkTTrneXazJ9tEkFS9rGt09g+o169ZqHBncWbaDtOxGLblypOGJkWEM
+         vpPCEiIokx2bRsozpely574MVORYz4KcyrGUwPrHfqtrlhKFsEUiRg52DYqTGDRxsMi1
+         MkPu6t6u8LZfrULuAuNF9+reCbWbHaeOgqt4s=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733123088; x=1733727888;
+        d=1e100.net; s=20230601; t=1733123853; x=1733728653;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bLfqXZJQxFx0ID0d+PIfJYDOtZpIex7MdVuGIY4Sd5M=;
-        b=X37xTxXxpVBiUsH2U3tSKaWMOGCisHC6RzB3NP1LfKx425gPxXlxrrfL3Y7S5Q7y+c
-         hiApnUeqXFeex7YvgKV74gNIzDirnEe4W4LtFXbRpmebNlTmiUj9SibYz3Pc0WahX3dL
-         Q5NqyI+Tw0+RiIMYBB8L3Aii0UhTcm32cjgxeKJfJKYzkcq4gQxOWLi7vO+B+LSUKK5u
-         xr8j4pQKIKE62ULEfXyjjSnAsY5ykYcIq1as5734EnEry6xUgyu72JxQYCmeKWVM/cJl
-         vXvIvXwCvqSRiBoKKQAA35YjT5OJCB/KqEH+3/MriMXZuUox7xJCM6tBK9B+ytmySkqX
-         310w==
-X-Forwarded-Encrypted: i=1; AJvYcCUxCrpXzAIJ4uk24+YrmA1GkvWKF1K6bKN8WDnHBmgzDeUmPS33gnn3oPdNJi5Qx78eMkH2N0cwbPNS@vger.kernel.org
-X-Gm-Message-State: AOJu0YzAUFVzhLFodwP/tcf/NINzCcmRpi+p9HTEOywEmaB857/H0o8i
-	dVIjNDPcAr2DsUhUlt7nltYPUJ8CPySJ1ZceIg7JOcBlaaRNzpu819bOiKSp8g==
-X-Gm-Gg: ASbGncs0JHQnH1Y7FRSXKRC8T5LrCukaf3fRbDpF0nQbsdHDipypXqff+Gy+pp8NwzK
-	nxzUR7BoTgN9URjgqIwqgsT+M/81BhCW6jpF7Sg0wK/67IqULCKPFf3r/EZmVAt7aw2sbRJNrga
-	dTl3cfvQ725JWRszt65dwrf/O5bYkct+wM7THlB8S1zSCfOxmpN1vDvo5stkB5j1dCL79m/chNF
-	ZTpunzQD1yr5zc0mn3eqHhX3U/4kOZ6bxuCmD1JOrDBHQHNBhlMdA==
-X-Google-Smtp-Source: AGHT+IG7WekOhmsNbMHO0RZ+HaKfaWeRpfQXGyWiDRhgKbaMjv+o0zn4Fj9YOFjE1iV3ncpCeRcmWg==
-X-Received: by 2002:a05:6a00:1396:b0:71d:fe5b:5eb9 with SMTP id d2e1a72fcca58-72530042098mr30436395b3a.10.1733123088204;
-        Sun, 01 Dec 2024 23:04:48 -0800 (PST)
+        bh=z2WZIJ8AYovp0nZDoremrJ+zQLezbNuCp9D1+GAtZok=;
+        b=IFYnVFS++S7MkP4seG4bRc5niOIl/yrS2XjH1Jb1qu8y0hXzhzPHY4C2syVfeSAFlW
+         mKylOmvsWtU8Xexyd1Jkjb3lLjLAC3raDe5Gu6y+yMPmA2/TdN5IsO8ivqzHuW2WF9i5
+         rHif5CMNcMt789EKNncpuXTe6kx3kIsYj5+zZRWRvqG/UBk6r83mbcmfOPslSSorfgCK
+         pA563TMeK+8xu8RzFIwrJyW75JF7c+VNpdKhpcKKlgjZhdjfEZbeMKPr1NKdtuZQfgHm
+         wz11Fo0NXfL+sWoPU6pe75ZzH3Giy556f0Bhab3irnzDCg+cOhUPs7GE0cAePOcNyKCz
+         euXA==
+X-Gm-Message-State: AOJu0YzcFSAk0K5BXHtUaSLBIf+Oa/48/0otS5YbJRxLX3xaQbzSTmMC
+	SAmjEjaLmufg5GUGZ75dZmT5/F5OEaLi0tEc9ta3s7nGrijkeG5wwV3q0k0nuA==
+X-Gm-Gg: ASbGnctw1KW2R85ZO11A/mBIH39aapQJzPk9pD7f06u7ZIEugOTljErl7vEddhs0Wze
+	5rqP/DVaAUbzc4Q4Lzxd4l15qWjx485+Rp9jRNcgrPvXq7jbq7pCxRxLL7Rx5vg8L/nJk2zUw6/
+	3bwlx/sLP23KHqM7LMvK/5KJIqH3802E30dhLjc74vv+oyWrk58rBiTw5tNAQi3HQpvPKwNqH+Y
+	sYcG8CzSebKyCR7yMCKWoMGyCEMvvvm0GVLTfEWQhcPF3OAovv/WA==
+X-Google-Smtp-Source: AGHT+IHLcwXWSTFmgXoLb2yqZL/wkXQlvJBzol/iukRpaSyc+eTg5BRaxziv4ODmGZT/WqFosH1k5Q==
+X-Received: by 2002:a05:6a00:21ca:b0:725:64d:c803 with SMTP id d2e1a72fcca58-7253018e6ecmr32255224b3a.26.1733123852923;
+        Sun, 01 Dec 2024 23:17:32 -0800 (PST)
 Received: from google.com ([2401:fa00:8f:203:13dd:b39d:c5ab:31c2])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7254176f634sm7727920b3a.59.2024.12.01.23.04.46
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7254176147fsm7754486b3a.10.2024.12.01.23.17.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Dec 2024 23:04:47 -0800 (PST)
-Date: Mon, 2 Dec 2024 16:04:43 +0900
+        Sun, 01 Dec 2024 23:17:32 -0800 (PST)
+Date: Mon, 2 Dec 2024 16:17:28 +0900
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: caiqingfu <baicaiaichibaicai@gmail.com>
-Cc: senozhatsky@chromium.org, akpm@linux-foundation.org,
-	caiqingfu@ruijie.com.cn, minchan@kernel.org,
-	mm-commits@vger.kernel.org
-Subject: Re: [PATCH] zram: panic when use ext4 over zram
-Message-ID: <20241202070443.GA886051@google.com>
-References: <20241130053247.GH10431@google.com>
- <20241202060632.139067-1-baicaiaichibaicai@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
+	senozhatsky@chromium.org, minchan@kernel.org,
+	caiqingfu@ruijie.com.cn
+Subject: Re: + zram-panic-when-use-ext4-over-zram.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <20241202071728.GB886051@google.com>
+References: <20241130030456.37C2BC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -70,50 +69,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241202060632.139067-1-baicaiaichibaicai@gmail.com>
+In-Reply-To: <20241130030456.37C2BC4CECF@smtp.kernel.org>
 
-On (24/12/02 14:06), caiqingfu wrote:
-> [   46.560092] page_owner tracks the page as allocated
-> [   46.560101] page last allocated via order 0, migratetype Movable, gfp_mask 0x148c48(GFP_NOFS|__GFP_NOFAIL|__GFP_COMP|__GFP_HARDWALL|__GFP_MOVABLE), pid 1769, tgid 1372 (a.out), ts 45588110160, free_ts 45123127760
-> [   46.560126]  prep_new_page+0xa8/0x10c
-> [   46.560143]  get_page_from_freelist+0xa44/0x16d0
-> [   46.560160]  __alloc_pages_noprof+0x150/0x290
-> [   46.560177]  alloc_pages_mpol_noprof+0x88/0x23c
-> [   46.560195]  alloc_pages_noprof+0x4c/0x7c
-> [   46.560234]  folio_alloc_noprof+0x14/0x64
-> [   46.560254]  filemap_alloc_folio_noprof+0x100/0x14c
-> [   46.560272]  __filemap_get_folio+0x21c/0x38c
-> [   46.560290]  bdev_getblk+0xd0/0x2b4
-> [   46.560304]  __ext4_get_inode_loc+0x11c/0x53c
-> [   46.560320]  ext4_get_inode_loc+0x44/0xb0
-> [   46.560337]  ext4_reserve_inode_write+0x40/0xf0
-> [   46.560354]  __ext4_mark_inode_dirty+0x4c/0x1f0
-> [   46.560370]  ext4_ext_tree_init+0x40/0x4c
-> [   46.560388]  __ext4_new_inode+0x790/0x13b8
-> [   46.560406]  ext4_create+0xdc/0x1d0
+On (24/11/29 19:04), Andrew Morton wrote:
+[..]
+> When using ext4 on zram, the following panic occasionally occurs under
+> high memory usage
 > 
-> and other list this:
+> The reason is that when the handle is obtained using the slow path, it
+> will be re-compressed.  If the data in the page changes, the compressed
+> length may exceed the previous one.  Overflow occurred when writing to
+> zs_object, which then caused the panic.
 > 
-> [   47.683962] page_owner tracks the page as allocated
-> [   47.684012] page last allocated via order 0, migratetype Unmovable, gfp_mask 0x148c40(GFP_NOFS|__GFP_NOFAIL|__GFP_COMP|__GFP_HARDWALL), pid 1309, tgid 970 (a.out), ts 44091572544, free_ts 0
-> [   47.684056]  prep_new_page+0xa8/0x10c
-> [   47.684090]  get_page_from_freelist+0xa44/0x16d0
-> [   47.684109]  __alloc_pages_noprof+0x150/0x290
-> [   47.684127]  alloc_pages_mpol_noprof+0x88/0x23c
-> [   47.684148]  alloc_pages_noprof+0x4c/0x7c
-> [   47.684166]  folio_alloc_noprof+0x14/0x64
-> [   47.684184]  filemap_alloc_folio_noprof+0x100/0x14c
-> [   47.684205]  __filemap_get_folio+0x21c/0x38c
-> [   47.684223]  bdev_getblk+0xd0/0x2b4
-> [   47.684240]  ext4_getblk+0xac/0x300
-> [   47.684258]  ext4_bread+0x14/0xe4
-> [   47.684274]  ext4_append+0x90/0x1cc
-> [   47.684293]  do_split+0x88/0x9c4
-> [   47.684307]  make_indexed_dir+0x580/0x688
-> [   47.684322]  ext4_add_entry+0x37c/0x420
-> [   47.684337]  ext4_add_nondir+0x38/0x11c
+> Comment the fast path and force the slow path.  Adding a large number of
+> read and write file systems can quickly reproduce it.
 > 
-> It look like only the file system metadata has been modified.I'm not sure.
+> The solution is to re-obtain the handle after re-compression if the length
+> is different from the previous one.
+> 
+> Link: https://lkml.kernel.org/r/20241129115735.136033-1-baicaiaichibaicai@gmail.com
+> Signed-off-by: caiqingfu <caiqingfu@ruijie.com.cn>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-What's your use-case, what apps you run and what data is stored
-on zram disk?
+
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+
+A side note:
+Well, we should not crash the kernel or corrupt memory, in this
+regard the patch makes sense, however, if data is being modified
+concurrently with zram write() then zram simply should not be used,
+we can't decompress data that is unstable at the time of compression.
