@@ -1,104 +1,206 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FB98489
-	for <mm-commits@vger.kernel.org>; Mon,  2 Dec 2024 07:17:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557681FC7CC
+	for <mm-commits@vger.kernel.org>; Mon,  2 Dec 2024 10:08:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733123855; cv=none; b=PhSbeYvHVWm5+NbGyR6jQbudCSbFmcgo7ldth1klTqpZZ+8sNBH4uqECsUuVH5NypD1MHyj9e60U7Uwkni+hxOwasAMe3tlCEXRGaa1KlSuKKF9RupLFmOtg7WcUMpF9yRP1/RugFtoiNoBrDKPOzVaD1OLoTvi9PuTglvINo3M=
+	t=1733134093; cv=none; b=T8TR+ut3AA56+pTFQcNmkw9noLISn0gGUCCsKQHTM9X6VxquP4RufuGcNOp2sUo1YzmzjbFAxDjVcUyCB1FbMIhrDl6cxe84JrQg+eV3sTER/Qm7NThuPL8io3uuqhs/uKW7Ml99ioyes+IZFI9KqJMuYcGiscDAHdP2rPjfP1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733123855; c=relaxed/simple;
-	bh=kooD3OZn0sK2RtQu2y4BJ/3qiIua3PwBJJxFw3wxARc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iTwVFgQYpycrk9DDmDqhpZVPWFVDnYYFIqntgRSQ+9XnlivfUmFkzEkJHxlMauw0RYeDs75gTMQyPrURLAgsqZNcKy5aEQwkJikhDgJxNMAoXYyy1+hY3Pj68NLlz8o6UPri2lSLQhcD99b1WyMc218m4HnSK1gkvDjUNak5dFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=k6a8KJen; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1733134093; c=relaxed/simple;
+	bh=OIVmsmNdrXDToCpTmqXyErNo64y8yJSsaI+V3a8WvM4=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=kvESuTqcoM79Kv/xUzGyr7oQ+VHhzDzpJrK7pXznJRU17bEO/OzpcN8vRSFau7d8OIzPACQgNhQ7Kgrnn27g5bKSckrmUODYMp1+6TJKA7Ey9cIqEO23IceKyA7eJO+Yf11fDf1/wdmCCtNULLNHFiVZEzSoLETPJF9uxTwI3j8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YtSihXAe; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="k6a8KJen"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-7251abe0e69so3215711b3a.0
-        for <mm-commits@vger.kernel.org>; Sun, 01 Dec 2024 23:17:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YtSihXAe"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-724ec3ac5d0so469782b3a.2
+        for <mm-commits@vger.kernel.org>; Mon, 02 Dec 2024 02:08:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1733123853; x=1733728653; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=z2WZIJ8AYovp0nZDoremrJ+zQLezbNuCp9D1+GAtZok=;
-        b=k6a8KJenInOLkTTrneXazJ9tEkFS9rGt09g+o169ZqHBncWbaDtOxGLblypOGJkWEM
-         vpPCEiIokx2bRsozpely574MVORYz4KcyrGUwPrHfqtrlhKFsEUiRg52DYqTGDRxsMi1
-         MkPu6t6u8LZfrULuAuNF9+reCbWbHaeOgqt4s=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733123853; x=1733728653;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1733134091; x=1733738891; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=z2WZIJ8AYovp0nZDoremrJ+zQLezbNuCp9D1+GAtZok=;
-        b=IFYnVFS++S7MkP4seG4bRc5niOIl/yrS2XjH1Jb1qu8y0hXzhzPHY4C2syVfeSAFlW
-         mKylOmvsWtU8Xexyd1Jkjb3lLjLAC3raDe5Gu6y+yMPmA2/TdN5IsO8ivqzHuW2WF9i5
-         rHif5CMNcMt789EKNncpuXTe6kx3kIsYj5+zZRWRvqG/UBk6r83mbcmfOPslSSorfgCK
-         pA563TMeK+8xu8RzFIwrJyW75JF7c+VNpdKhpcKKlgjZhdjfEZbeMKPr1NKdtuZQfgHm
-         wz11Fo0NXfL+sWoPU6pe75ZzH3Giy556f0Bhab3irnzDCg+cOhUPs7GE0cAePOcNyKCz
-         euXA==
-X-Gm-Message-State: AOJu0YzcFSAk0K5BXHtUaSLBIf+Oa/48/0otS5YbJRxLX3xaQbzSTmMC
-	SAmjEjaLmufg5GUGZ75dZmT5/F5OEaLi0tEc9ta3s7nGrijkeG5wwV3q0k0nuA==
-X-Gm-Gg: ASbGnctw1KW2R85ZO11A/mBIH39aapQJzPk9pD7f06u7ZIEugOTljErl7vEddhs0Wze
-	5rqP/DVaAUbzc4Q4Lzxd4l15qWjx485+Rp9jRNcgrPvXq7jbq7pCxRxLL7Rx5vg8L/nJk2zUw6/
-	3bwlx/sLP23KHqM7LMvK/5KJIqH3802E30dhLjc74vv+oyWrk58rBiTw5tNAQi3HQpvPKwNqH+Y
-	sYcG8CzSebKyCR7yMCKWoMGyCEMvvvm0GVLTfEWQhcPF3OAovv/WA==
-X-Google-Smtp-Source: AGHT+IHLcwXWSTFmgXoLb2yqZL/wkXQlvJBzol/iukRpaSyc+eTg5BRaxziv4ODmGZT/WqFosH1k5Q==
-X-Received: by 2002:a05:6a00:21ca:b0:725:64d:c803 with SMTP id d2e1a72fcca58-7253018e6ecmr32255224b3a.26.1733123852923;
-        Sun, 01 Dec 2024 23:17:32 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:13dd:b39d:c5ab:31c2])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7254176147fsm7754486b3a.10.2024.12.01.23.17.31
+        bh=881KZZtbfFrnEb9pOVwYlsr1JylZL3RqaadC+W0OuLk=;
+        b=YtSihXAepbaRQgS2vIj/Af/BHiWW/3NPjaRPjLpBuQDIBDerSWySHopq0bt/ptV9Da
+         0/YdCL9tlhSzmwpnkkWiPAMCnMM8f7b5i3hwBJGvNjzmnTevMgQYe898nzYzXuuIUBim
+         IHl99/PGSrsPRRJFWxuErSe7Aua5GeAHUtLhQFlsYKU+gHXft5qPOCFDXbVQ5131EOES
+         BYGNINlO6dL+BG+QeTGLCwwhtyAhQH+maoVY7tfnu6FFGZuI8ABkrMNzuT9OxO+E070I
+         jkumUDfOaWZ6JypeYg34wskuomPRdmu/JtL+/+8hETjvHiGJyKyK44AfP7NWe6jR+CFq
+         y7qg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733134091; x=1733738891;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=881KZZtbfFrnEb9pOVwYlsr1JylZL3RqaadC+W0OuLk=;
+        b=rhxguU2tpvYLxKqeuG+qYaHwLpxTX/Hkf9NpNGatTQBloVfxLRbMyLTk71AVfqjN+5
+         dep4sGO7jkW7x6/chIEkM6jUuPKdlTS0QOFRhLhVmCZq3j6l/LWTOxIimfuY5vq98IOV
+         /48tnxt010JeAViyuOdj1JZCwOksSeIg8qPQRykoFhyUAfVyXkL7rlA4AVbzVq3eZANt
+         T19DPVP8Xl1EXsWqBUUgP1AiDbPWNvSg1J1JUSn5m+RjYloutgb6skKJh4S75onsfyrw
+         L+jsondsinNfxrnAeHdM8bsyVn86sLDKUM2Ljuki7U8oXQjIU70Hz/Pu7kZdfzB+zgdy
+         sgpA==
+X-Forwarded-Encrypted: i=1; AJvYcCWSNv4WjOVELr0Gx9LbakM86LdqaDxmlQXu7lSA8mN3EMBlfiMDcw3UxUw6cf24RcVEmJcglftse2Ae@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqZOXnBlshWl6ruYjJO+ODyFD9WVTJHtWMvRMKkEFYbB0Qx6mc
+	ebE8HzhXsNeN1voPCombn8FUq2Ir0qTiS4BfaXcpqKiaSam4S1Z4
+X-Gm-Gg: ASbGncvYUgvrCfdj5ZAxRdbAPdcROJnqK9mtbBADAn6JXhyhR7zqirAepqCTiG3Kep2
+	g8UtvvgZpFhKgX9Zq0VMg3GPl0fMwD7Hv6FtCtkDy9ld4p33S5y/HYw47Q+JAG2rh9GC7W+zJFW
+	+LLVAuFHPYVyg7kfOEC9r3BZ4DUxDFiq9oYe0VVHcXh7YuCsso2e2r+A3T7nqtUz5rwX8y6l+yH
+	fh+8t2jdEG4I34LG8tKEKx31+Fh1abIs8eA/ERoH840+om+BLFE6w==
+X-Google-Smtp-Source: AGHT+IHg4Vc/NjL9tOUPHkK/jOoRrdyN6dNGIBhSyPiwuj+dwkzqq4SwVo4Z0DxjtDTiQhh1fpELNg==
+X-Received: by 2002:a17:90a:e7d2:b0:2ee:713d:f529 with SMTP id 98e67ed59e1d1-2ee713df76amr5657948a91.6.1733134091480;
+        Mon, 02 Dec 2024 02:08:11 -0800 (PST)
+Received: from x1k.com ([175.42.19.220])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2eeaef494fcsm2338315a91.43.2024.12.02.02.08.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Dec 2024 23:17:32 -0800 (PST)
-Date: Mon, 2 Dec 2024 16:17:28 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
-	senozhatsky@chromium.org, minchan@kernel.org,
-	caiqingfu@ruijie.com.cn
-Subject: Re: + zram-panic-when-use-ext4-over-zram.patch added to
- mm-hotfixes-unstable branch
-Message-ID: <20241202071728.GB886051@google.com>
-References: <20241130030456.37C2BC4CECF@smtp.kernel.org>
+        Mon, 02 Dec 2024 02:08:11 -0800 (PST)
+From: caiqingfu <baicaiaichibaicai@gmail.com>
+To: senozhatsky@chromium.org
+Cc: akpm@linux-foundation.org,
+	baicaiaichibaicai@gmail.com,
+	caiqingfu@ruijie.com.cn,
+	minchan@kernel.org,
+	mm-commits@vger.kernel.org
+Subject: [PATCH] zram: panic when use ext4 over zram
+Date: Mon,  2 Dec 2024 18:07:53 +0800
+Message-Id: <20241202100753.139305-1-baicaiaichibaicai@gmail.com>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20241130053247.GH10431@google.com>
+References: <20241130053247.GH10431@google.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241130030456.37C2BC4CECF@smtp.kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On (24/11/29 19:04), Andrew Morton wrote:
-[..]
-> When using ext4 on zram, the following panic occasionally occurs under
-> high memory usage
-> 
-> The reason is that when the handle is obtained using the slow path, it
-> will be re-compressed.  If the data in the page changes, the compressed
-> length may exceed the previous one.  Overflow occurred when writing to
-> zs_object, which then caused the panic.
-> 
-> Comment the fast path and force the slow path.  Adding a large number of
-> read and write file systems can quickly reproduce it.
-> 
-> The solution is to re-obtain the handle after re-compression if the length
-> is different from the previous one.
-> 
-> Link: https://lkml.kernel.org/r/20241129115735.136033-1-baicaiaichibaicai@gmail.com
-> Signed-off-by: caiqingfu <caiqingfu@ruijie.com.cn>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> What's your use-case, what apps you run and what data is stored
+> on zram disk?
+
+The steps to reproduce are as follows:
+
+1. force slow path,then re-build kernel
+
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index 0ca6d55c9917..29ac52a4f2e7 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1683,12 +1683,14 @@ static int zram_write_page(struct zram *zram, struct page *page, u32 index)
+         * if we have a 'non-null' handle here then we are coming
+         * from the slow path and handle has already been allocated.
+         */
++    /*
+        if (IS_ERR_VALUE(handle))
+                handle = zs_malloc(zram->mem_pool, comp_len,
+                                __GFP_KSWAPD_RECLAIM |
+                                __GFP_NOWARN |
+                                __GFP_HIGHMEM |
+                                __GFP_MOVABLE);
++        */
+        if (IS_ERR_VALUE(handle)) {
+                zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
+                atomic64_inc(&zram->stats.writestall);
+
+2. create an arm64 virtual machine
+
+qemu-system-aarch64 -M virt -cpu cortex-a57 -smp 4 -m 1024 -kernel kernel-build/arch/arm64/boot/Image \ 
+    -nographic -append "console=ttyAMA0,115200 root=/dev/vda rw" \ 
+    -drive file=$(IMGFILE),format=raw -nic user,hostfwd=tcp::60022-:22
+
+3. after the virtual machine is started, create zram
+
+cat /sys/class/zram-control/hot_add
+echo 524288000 > /sys/devices/virtual/block/zram0/disksize
+echo 524288000 > /sys/devices/virtual/block/zram1/disksize
+mkfs.ext4 -O ^has_journal -b 4096 -F -L TEMP -m 0 /dev/zram0
+mkdir /tmp/zram
+mount -t ext4 -o errors=continue,nosuid,nodev,noatime /dev/zram0 /tmp/zram
+mkswap /dev/zram1
+swapon /dev/zram1
+echo 100 > /proc/sys/vm/swappiness
+mkdir -p /tmp/zram/stressTest
 
 
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+4. build demo app and run again and again
 
-A side note:
-Well, we should not crash the kernel or corrupt memory, in this
-regard the patch makes sense, however, if data is being modified
-concurrently with zram write() then zram simply should not be used,
-we can't decompress data that is unstable at the time of compression.
+demo app :
+
+#include <stdio.h>
+#include <sys/mman.h>
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <errno.h>
+#include <string.h>
+#include <syscall.h>
+
+#define THREAD_NUM      400
+#define BUFF_SIZE       128*1024
+
+const static char * basePath = "/tmp/zram/stressTest";
+static unsigned char buf[BUFF_SIZE];
+
+void * cb(void * arg){
+
+    char path[256];
+    unsigned int tid = (unsigned int)(syscall(SYS_gettid));
+    unsigned int start = ((unsigned int)random())%(BUFF_SIZE - 1);
+    unsigned int msleep = (((unsigned int)random())%10) * 1000;
+    void * p;
+    int i;
+
+    snprintf(path,sizeof(path) - 1,"%s/%u",basePath,tid);
+
+    FILE * fp = fopen(path,"a");
+
+    if (NULL == fp) {
+        fprintf(stderr,"%u open file '%s' failure '%s'...\n",tid,path,strerror(errno));
+        return NULL;
+    }
+
+    start = ((unsigned int)random())%(BUFF_SIZE - 1);
+    fwrite(&buf[start],1,BUFF_SIZE - start,fp);
+    fflush(fp);
+    fclose(fp);
+    sync();
+    usleep(msleep);
+
+    return NULL;
+}
+
+int main(int argc, char *argv[]) {
+
+    pthread_t pid[THREAD_NUM];
+    int i;
+
+    fprintf(stderr,"build @ %s\n",__TIME__);
+
+    FILE * fp = fopen("/dev/urandom","ro");
+    fread(buf,BUFF_SIZE,1,fp);
+    fclose(fp);
+
+    fprintf(stderr,"read urandom size '%d'\n",BUFF_SIZE);
+    srandom((unsigned)time(NULL));
+
+    for (i = 0;i < THREAD_NUM;i++) {
+        pthread_create(&pid[i],NULL,cb,NULL);
+    }
+
+    fprintf(stderr,"create over\n");
+
+    for (i = 0;i < THREAD_NUM;i++) {
+        pthread_join(pid[i],NULL);
+    }
+
+    return 0;
+}
+
+
+run it
+
+while true;do rm /tmp/zram_vsd/stressTest/* &> /dev/null;./a.out &> /dev/null ;echo again...;done
