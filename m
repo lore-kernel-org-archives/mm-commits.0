@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8697C2391A0
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 21:54:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF6B918C900
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 21:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733349296; cv=none; b=hJa9yCENnhCRRrHU0atQpt1aFnEwyGBfRvrMs1PALHDk+jgwDh3ohp1cBjl9dKI7FRcm0Y6fxSxYsT6OdKx32iAKrJPtssHHAU9zLq54TEYcoSgVrDGHkQQKhEet8jtT1P2UhqvSkro4R5aWlwaUy5NGu9q70PN4Ins/YXqR0GI=
+	t=1733349577; cv=none; b=NZ7lB9AjVWlSISJmLzyCQBAAszoYU0vXGqga5FH/zhoUMwV8MJsKUbygiZx7s7ZE2NdRhImLAu0ATl6EIRsiDu+aWKL5+mtNbXs3Ugcc8CZUTR46Px29kfUBNNkiF+i4aHGUkwIWBpjjDHKtQjCLRHzx0iqctUXCRiKtxjy4Rug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733349296; c=relaxed/simple;
-	bh=LVGX2QP0BwOtrtHFqCHIw00s0cUV6ktPH1F+547B6C0=;
-	h=Date:To:From:Subject:Message-Id; b=CzTVtsSOH8FxO/ZFd/RCV3tmQbF8YGnCTLq4cKhGjkvJD3JhwdQyc0K/+8hJMbIK0D706ySjg/2rVEEdAkPq0zV9YWpr3ZxB0laxtCzzoDQQZwyfLxEpSH+L3aGz87d5KgpTAK4m03ciiSBJATYy65CcEqf5MSX6soQ3jkqiRls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g6L4bxho; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733349577; c=relaxed/simple;
+	bh=y7/YO8xpNuPl68HiJVnvjNuFE4zdcJh3ZbfI9fDZnOM=;
+	h=Date:To:From:Subject:Message-Id; b=KoWp0M0RhMUueXkJZkdmtCM4aYjyg9iWyByU502YhbWsW56jagfnHjz3CWcB7rytu8rjTyPhcSjS4y0YQjSw/VDBHx18n0SXYvGvInNjELd3pcitin7VvlMr8FUOYpRmU1AkcdYQDkGWDqT3HYJltn+jxfokwkxhWdz1MRKRLEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d8kGrZEc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g6L4bxho"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D228C4CECD;
-	Wed,  4 Dec 2024 21:54:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d8kGrZEc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C393C4CECD;
+	Wed,  4 Dec 2024 21:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733349296;
-	bh=LVGX2QP0BwOtrtHFqCHIw00s0cUV6ktPH1F+547B6C0=;
+	s=korg; t=1733349577;
+	bh=y7/YO8xpNuPl68HiJVnvjNuFE4zdcJh3ZbfI9fDZnOM=;
 	h=Date:To:From:Subject:From;
-	b=g6L4bxhobSMQsDdShFBV3V/k0vZFHt39bksPOHpd6DOl8Cjh84T+J9T3OqSh8OhVq
-	 oR581uLaYmBO6CZ14wI6EVJviyIfPbh82otVxbF3SaemoIw6W9+4gWHf43R4Wy6RCr
-	 +yd0/d9qORHUis2Hwo1GjHVNq4fWoRIccRNL2Re0=
-Date: Wed, 04 Dec 2024 13:54:55 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,guillaume@morinfr.org,david@redhat.com,akpm@linux-foundation.org
+	b=d8kGrZEchghwA4GXwuB1vgJQoWN71/hCsFkIPV9S/M7IbaAm5I3VDx+hRHPGVJOhi
+	 TKEe+NTCe+QruxLaCWySgX3U93vo+uZkYCiaOKEw3bZFWHo8PXQKfTUuGpALNqznAk
+	 6bf5iu8I/GlL+ve2n9LHMFF1hFQKEgl1DRAlpxdY=
+Date: Wed, 04 Dec 2024 13:59:36 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,takakura@valinux.co.jp,sourabhjain@linux.ibm.com,songshuaishuai@tinylab.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,linux@armlinux.org.uk,jonnyc@amazon.com,hbathini@linux.ibm.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,adityag@linux.ibm.com,farbere@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch added to mm-unstable branch
-Message-Id: <20241204215456.0D228C4CECD@smtp.kernel.org>
+Subject: + kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch added to mm-nonmm-unstable branch
+Message-Id: <20241204215937.2C393C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+     Subject: kexec: consolidate machine_kexec_mask_interrupts() implementation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,117 +58,327 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
-Date: Wed, 4 Dec 2024 16:31:00 +0100
+From: Eliav Farber <farbere@amazon.com>
+Subject: kexec: consolidate machine_kexec_mask_interrupts() implementation
+Date: Wed, 4 Dec 2024 14:20:02 +0000
 
-If we have to trigger a hugetlb folio copy during fork() because the anon
-folio might be pinned, we currently unconditionally create a writable PTE.
+Patch series "Improve interrupt handling during machine kexec", v6.
 
-However, the VMA might not have write permissions (VM_WRITE) at that
-point.
+This patch series focuses on improving the machine_kexec_mask_interrupts()
+function by consolidating its implementation and optimizing its behavior to
+avoid redundant interrupt masking.
 
-Fix it by checking the VMA for VM_WRITE.  Make the code less error prone
-by moving checking for VM_WRITE into make_huge_pte(), and letting callers
-only specify whether we should try making it writable.
+Patch Summary:
+[PATCH v6 1/2] Move machine_kexec_mask_interrupts() to kernel/irq/kexec.c,
+               removing duplicate architecture-specific implementations.
+[PATCH v6 2/2] Refine machine_kexec_mask_interrupts() to avoid re-masking
+               already-masked interrupts, resolving specific warnings
+               triggered in GPIO IRQ flows.
 
-A simple reproducer that longterm-pins the folios using liburing to then
-mprotect(PROT_READ) the folios befor fork() [1] results in:
 
-Before:
-[FAIL] access should not have worked
+This patch (of 2):
 
-After:
-[PASS] access did not work as expected
+Consolidate the machine_kexec_mask_interrupts implementation into a common
+function located in a new file: kernel/irq/kexec.c.  This removes
+duplicate implementations from architecture-specific files in arch/arm,
+arch/arm64, arch/powerpc, and arch/riscv, reducing code duplication and
+improving maintainability.
 
-[1] https://gitlab.com/davidhildenbrand/scratchspace/-/raw/main/reproducers/hugetlb-mkwrite-fork.c
+The new implementation retains architecture-specific behavior for
+CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD, which was previously
+implemented for ARM64.  When enabled (currently for ARM64), it clears the
+active state of interrupts forwarded to virtual machines (VMs) before
+handling other interrupt masking operations.
 
-This is rather a corner case, so stable might not be warranted.
-
-Link: https://lkml.kernel.org/r/20241204153100.1967364-1-david@redhat.com
-Fixes: 4eae4efa2c29 ("hugetlb: do early cow when page pinned on src mm")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Guillaume Morin <guillaume@morinfr.org>
+Link: https://lkml.kernel.org/r/20241204142003.32859-1-farbere@amazon.com
+Link: https://lkml.kernel.org/r/20241204142003.32859-2-farbere@amazon.com
+Signed-off-by: Eliav Farber <farbere@amazon.com>
+Cc: Aditya Gupta <adityag@linux.ibm.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Jonathan Chocron <jonnyc@amazon.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Naveen N Rao <naveen@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Ryo Takakura <takakura@valinux.co.jp>
+Cc: Song Shuai <songshuaishuai@tinylab.org>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ arch/arm/kernel/machine_kexec.c   |   23 ----------------
+ arch/arm64/Kconfig                |    1 
+ arch/arm64/kernel/machine_kexec.c |   31 ---------------------
+ arch/powerpc/include/asm/kexec.h  |    1 
+ arch/powerpc/kexec/core.c         |   22 ---------------
+ arch/powerpc/kexec/core_32.c      |    1 
+ arch/riscv/kernel/machine_kexec.c |   23 ----------------
+ include/linux/irq.h               |    3 ++
+ kernel/irq/Kconfig                |    6 ++++
+ kernel/irq/Makefile               |    2 -
+ kernel/irq/kexec.c                |   40 ++++++++++++++++++++++++++++
+ 11 files changed, 52 insertions(+), 101 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork
-+++ a/mm/hugetlb.c
-@@ -5155,12 +5155,12 @@ const struct vm_operations_struct hugetl
- };
+--- a/arch/arm64/Kconfig~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/arm64/Kconfig
+@@ -149,6 +149,7 @@ config ARM64
+ 	select GENERIC_IDLE_POLL_SETUP
+ 	select GENERIC_IOREMAP
+ 	select GENERIC_IRQ_IPI
++	select GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_IRQ_SHOW_LEVEL
+--- a/arch/arm64/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/arm64/kernel/machine_kexec.c
+@@ -207,37 +207,6 @@ void machine_kexec(struct kimage *kimage
+ 	BUG(); /* Should never get here. */
+ }
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
--				int writable)
-+		bool try_mkwrite)
- {
- 	pte_t entry;
- 	unsigned int shift = huge_page_shift(hstate_vma(vma));
- 
--	if (writable) {
-+	if (try_mkwrite && (vma->vm_flags & VM_WRITE)) {
- 		entry = huge_pte_mkwrite(huge_pte_mkdirty(mk_huge_pte(page,
- 					 vma->vm_page_prot)));
- 	} else {
-@@ -5220,7 +5220,7 @@ static void
- hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
- 		      struct folio *new_folio, pte_t old, unsigned long sz)
- {
--	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
-+	pte_t newpte = make_huge_pte(vma, &new_folio->page, true);
- 
- 	__folio_mark_uptodate(new_folio);
- 	hugetlb_add_new_anon_rmap(new_folio, vma, addr);
-@@ -6239,8 +6239,7 @@ static vm_fault_t hugetlb_no_page(struct
- 		hugetlb_add_new_anon_rmap(folio, vma, vmf->address);
- 	else
- 		hugetlb_add_file_rmap(folio);
--	new_pte = make_huge_pte(vma, &folio->page, ((vma->vm_flags & VM_WRITE)
--				&& (vma->vm_flags & VM_SHARED)));
-+	new_pte = make_huge_pte(vma, &folio->page, vma->vm_flags & VM_SHARED);
- 	/*
- 	 * If this pte was previously wr-protected, keep it wr-protected even
- 	 * if populated.
-@@ -6572,7 +6571,6 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	spinlock_t *ptl;
- 	int ret = -ENOMEM;
- 	struct folio *folio;
--	int writable;
- 	bool folio_in_pagecache = false;
- 
- 	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
-@@ -6727,12 +6725,8 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
- 	 * with wp flag set, don't set pte write bit.
- 	 */
--	if (wp_enabled || (is_continue && !vm_shared))
--		writable = 0;
--	else
--		writable = dst_vma->vm_flags & VM_WRITE;
+-static void machine_kexec_mask_interrupts(void)
+-{
+-	unsigned int i;
+-	struct irq_desc *desc;
 -
--	_dst_pte = make_huge_pte(dst_vma, &folio->page, writable);
-+	_dst_pte = make_huge_pte(dst_vma, &folio->page,
-+				 !wp_enabled && !(is_continue && !vm_shared));
- 	/*
- 	 * Always mark UFFDIO_COPY page dirty; note that this may not be
- 	 * extremely important for hugetlbfs for now since swapping is not
+-	for_each_irq_desc(i, desc) {
+-		struct irq_chip *chip;
+-		int ret;
+-
+-		chip = irq_desc_get_chip(desc);
+-		if (!chip)
+-			continue;
+-
+-		/*
+-		 * First try to remove the active state. If this
+-		 * fails, try to EOI the interrupt.
+-		 */
+-		ret = irq_set_irqchip_state(i, IRQCHIP_STATE_ACTIVE, false);
+-
+-		if (ret && irqd_irq_inprogress(&desc->irq_data) &&
+-		    chip->irq_eoi)
+-			chip->irq_eoi(&desc->irq_data);
+-
+-		if (chip->irq_mask)
+-			chip->irq_mask(&desc->irq_data);
+-
+-		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+-			chip->irq_disable(&desc->irq_data);
+-	}
+-}
+-
+ /**
+  * machine_crash_shutdown - shutdown non-crashing cpus and save registers
+  */
+--- a/arch/arm/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/arm/kernel/machine_kexec.c
+@@ -127,29 +127,6 @@ void crash_smp_send_stop(void)
+ 	cpus_stopped = 1;
+ }
+ 
+-static void machine_kexec_mask_interrupts(void)
+-{
+-	unsigned int i;
+-	struct irq_desc *desc;
+-
+-	for_each_irq_desc(i, desc) {
+-		struct irq_chip *chip;
+-
+-		chip = irq_desc_get_chip(desc);
+-		if (!chip)
+-			continue;
+-
+-		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
+-			chip->irq_eoi(&desc->irq_data);
+-
+-		if (chip->irq_mask)
+-			chip->irq_mask(&desc->irq_data);
+-
+-		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+-			chip->irq_disable(&desc->irq_data);
+-	}
+-}
+-
+ void machine_crash_shutdown(struct pt_regs *regs)
+ {
+ 	local_irq_disable();
+--- a/arch/powerpc/include/asm/kexec.h~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -61,7 +61,6 @@ struct pt_regs;
+ extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for
+ 					  master to copy new code to 0 */
+ extern void default_machine_kexec(struct kimage *image);
+-extern void machine_kexec_mask_interrupts(void);
+ 
+ void relocate_new_kernel(unsigned long indirection_page, unsigned long reboot_code_buffer,
+ 			 unsigned long start_address) __noreturn;
+--- a/arch/powerpc/kexec/core_32.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/powerpc/kexec/core_32.c
+@@ -7,6 +7,7 @@
+  * Copyright (C) 2005 IBM Corporation.
+  */
+ 
++#include <linux/irq.h>
+ #include <linux/kexec.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
+--- a/arch/powerpc/kexec/core.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/powerpc/kexec/core.c
+@@ -22,28 +22,6 @@
+ #include <asm/setup.h>
+ #include <asm/firmware.h>
+ 
+-void machine_kexec_mask_interrupts(void) {
+-	unsigned int i;
+-	struct irq_desc *desc;
+-
+-	for_each_irq_desc(i, desc) {
+-		struct irq_chip *chip;
+-
+-		chip = irq_desc_get_chip(desc);
+-		if (!chip)
+-			continue;
+-
+-		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
+-			chip->irq_eoi(&desc->irq_data);
+-
+-		if (chip->irq_mask)
+-			chip->irq_mask(&desc->irq_data);
+-
+-		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+-			chip->irq_disable(&desc->irq_data);
+-	}
+-}
+-
+ #ifdef CONFIG_CRASH_DUMP
+ void machine_crash_shutdown(struct pt_regs *regs)
+ {
+--- a/arch/riscv/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/arch/riscv/kernel/machine_kexec.c
+@@ -114,29 +114,6 @@ void machine_shutdown(void)
+ #endif
+ }
+ 
+-static void machine_kexec_mask_interrupts(void)
+-{
+-	unsigned int i;
+-	struct irq_desc *desc;
+-
+-	for_each_irq_desc(i, desc) {
+-		struct irq_chip *chip;
+-
+-		chip = irq_desc_get_chip(desc);
+-		if (!chip)
+-			continue;
+-
+-		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
+-			chip->irq_eoi(&desc->irq_data);
+-
+-		if (chip->irq_mask)
+-			chip->irq_mask(&desc->irq_data);
+-
+-		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+-			chip->irq_disable(&desc->irq_data);
+-	}
+-}
+-
+ /*
+  * machine_crash_shutdown - Prepare to kexec after a kernel crash
+  *
+--- a/include/linux/irq.h~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/include/linux/irq.h
+@@ -694,6 +694,9 @@ extern int irq_chip_request_resources_pa
+ extern void irq_chip_release_resources_parent(struct irq_data *data);
+ #endif
+ 
++/* Disable or mask interrupts during a kernel kexec */
++extern void machine_kexec_mask_interrupts(void);
++
+ /* Handling of unhandled and spurious interrupts: */
+ extern void note_interrupt(struct irq_desc *desc, irqreturn_t action_ret);
+ 
+--- a/kernel/irq/Kconfig~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/kernel/irq/Kconfig
+@@ -141,6 +141,12 @@ config GENERIC_IRQ_DEBUGFS
+ 
+ 	  If you don't know what to do here, say N.
+ 
++# Clear forwarded VM interrupts during kexec.
++# This option ensures the kernel clears active states for interrupts
++# forwarded to virtual machines (VMs) during a machine kexec.
++config GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD
++	bool
++
+ endmenu
+ 
+ config GENERIC_IRQ_MULTI_HANDLER
+diff --git a/kernel/irq/kexec.c a/kernel/irq/kexec.c
+new file mode 100644
+--- /dev/null
++++ a/kernel/irq/kexec.c
+@@ -0,0 +1,40 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/irqdesc.h>
++#include <linux/irqnr.h>
++
++#include "internals.h"
++
++void machine_kexec_mask_interrupts(void)
++{
++	struct irq_desc *desc;
++	unsigned int i;
++
++	for_each_irq_desc(i, desc) {
++		struct irq_chip *chip;
++		int check_eoi = 1;
++
++		chip = irq_desc_get_chip(desc);
++		if (!chip)
++			continue;
++
++		if (IS_ENABLED(CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD)) {
++			/*
++			 * First try to remove the active state from an interrupt which is forwarded
++			 * to a VM. If the interrupt is not forwarded, try to EOI the interrupt.
++			 */
++			check_eoi = irq_set_irqchip_state(i, IRQCHIP_STATE_ACTIVE, false);
++		}
++
++		if (check_eoi && chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
++			chip->irq_eoi(&desc->irq_data);
++
++		if (chip->irq_mask)
++			chip->irq_mask(&desc->irq_data);
++
++		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
++			chip->irq_disable(&desc->irq_data);
++	}
++}
+--- a/kernel/irq/Makefile~kexec-consolidate-machine_kexec_mask_interrupts-implementation
++++ a/kernel/irq/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+-obj-y := irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o
++obj-y := irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o kexec.o
+ obj-$(CONFIG_IRQ_TIMINGS) += timings.o
+ ifeq ($(CONFIG_TEST_IRQ_TIMINGS),y)
+ 	CFLAGS_timings.o += -DDEBUG
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from farbere@amazon.com are
 
-mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch
-mm-filemap-dont-call-folio_test_locked-without-a-reference-in-next_uptodate_folio.patch
-docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
-mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
-mm-page_isolation-dont-pass-gfp-flags-to-isolate_single_pageblock.patch
-mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
-mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
-mm-page_alloc-sort-out-the-alloc_contig_range-gfp-flags-mess.patch
-mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
-powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
-mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch
+kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch
 
