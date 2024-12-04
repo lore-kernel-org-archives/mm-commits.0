@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BDAC2391A0;
-	Wed,  4 Dec 2024 21:49:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E3F8191F92
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 21:52:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733348941; cv=none; b=mV14QwHC3H60ygcWovZU2w5aSdP324nmU106DrnVVHm0OFg9Xkxgn7A1fPvskbvOeVD5lEipO3ZAnmwqWvvK0w8fPh/e2Km/CV9wUKMcTMuTvhf7DuVYsUMVjXnGJ5FNkXQh9/hGJwa+dZAcHl7A/ZBMilSm7dqGtl4sj86V0VU=
+	t=1733349156; cv=none; b=Jx/14+Su+XgTNz2P7TSJq3Xnt0CcrMsN4LfQsJEKKqHwvQq23S1jFMuyIdDbhhkRCto1gex/ZQd6/glRRVU8Yi02x919YXMGY8p125Lg5DxN7ZkF0ZlcnJh8eFVANYJpouJ2/aTR08QEeyp/acIDZdIZBM5sfIfJzcqZuwY5yO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733348941; c=relaxed/simple;
-	bh=P6NIUjOqM5CWx1CaCD7GJ0lLhmeCzFpUgoBSXTYIwqE=;
-	h=Date:To:From:Subject:Message-Id; b=tVK4278sg7SlXo6SBM+BVw+9juqyGUUCEFKyFbhYor0G2GzNTUGEYXtrK/KsG9uf7yC/HQl43OxY3xxnnHS4MZ/2mRWNdFjH1upHO8e0bF5hNUuNzqote2ir+RbyD66qydYN/lC9xF6P99gXRZCBGo89Q8mJfTGv+iVdHFtUqcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mWi3Z8yD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733349156; c=relaxed/simple;
+	bh=txExFiMwlQDZnu9zbVlWXDpJc8WmJ2TxitebTnwjdFE=;
+	h=Date:To:From:Subject:Message-Id; b=Q4fo0LN9/dFhtHKGXg+Uv8/y0HPsdyPej4R6p6UkVjaaX2zEePABKXtkHuIv6RVyCb7Nxb1qLAJkbelZkfiJsl3gP/fXhsTanj2F+UNmMriU1+FAYTV1UTQUVtgPtGf1DW8vacYr0lU8bX0Z0kYod/2/MwcXnZ+TbpntbjvN3FA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bl0BL4Ef; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mWi3Z8yD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9C66C4CEDF;
-	Wed,  4 Dec 2024 21:49:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bl0BL4Ef"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17B2DC4CECD;
+	Wed,  4 Dec 2024 21:52:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733348940;
-	bh=P6NIUjOqM5CWx1CaCD7GJ0lLhmeCzFpUgoBSXTYIwqE=;
+	s=korg; t=1733349156;
+	bh=txExFiMwlQDZnu9zbVlWXDpJc8WmJ2TxitebTnwjdFE=;
 	h=Date:To:From:Subject:From;
-	b=mWi3Z8yDzRAdMIr/H8ITUAZgNn6jcZ6LELrSKb4BHO2Ew56f+fYpRYFAkJ9kHH571
-	 X9MjLE7IHdxjIS1NupmrB7i7x1tkpHxDo0JOMHUWVvQe8a0coDSE7QnJuuhwRgjj/J
-	 LcxXLMbKRX3kcBbIV6gwxdhOMAPPlbE2XKlSwKbw=
-Date: Wed, 04 Dec 2024 13:49:00 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,deshengwu@tencent.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=Bl0BL4Efjfak4bDB7I7d4E/vfV5IdWjbxBBs/DG8c+bVIY0eA4zV0U2iA0ZmTWgux
+	 cs4QMRydXl3xZOconM/ijabmrXAyeCVA62Y+jGifdbbcW0qKkBOJ3RiAg7yaZhVyyZ
+	 ewGIkjbVSq8cZzs+pTV2R/ESJM+Ye+hlHgqPVZT4=
+Date: Wed, 04 Dec 2024 13:52:35 -0800
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,muchun.song@linux.dev,david@redhat.com,aris@ruivo.org,aris@redhat.com,koichiro.den@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-uninitialized-zram-not-releasing-backing-device.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241204214900.A9C66C4CEDF@smtp.kernel.org>
+Subject: + hugetlb-prioritize-surplus-allocation-from-current-node.patch added to mm-unstable branch
+Message-Id: <20241204215236.17B2DC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: fix uninitialized ZRAM not releasing backing device
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     zram-fix-uninitialized-zram-not-releasing-backing-device.patch
+     Subject: hugetlb: prioritize surplus allocation from current node
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-prioritize-surplus-allocation-from-current-node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-uninitialized-zram-not-releasing-backing-device.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-prioritize-surplus-allocation-from-current-node.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: zram: fix uninitialized ZRAM not releasing backing device
-Date: Thu, 5 Dec 2024 02:02:24 +0800
+From: Koichiro Den <koichiro.den@canonical.com>
+Subject: hugetlb: prioritize surplus allocation from current node
+Date: Thu, 5 Dec 2024 01:55:03 +0900
 
-Setting backing device is done before ZRAM initialization.  If we set the
-backing device, then remove the ZRAM module without initializing the
-device, the backing device reference will be leaked and the device will be
-hold forever.
+Previously, surplus allocations triggered by mmap were typically made from
+the node where the process was running.  On a page fault, the area was
+reliably dequeued from the hugepage_freelists for that node.  However,
+since commit 003af997c8a9 ("hugetlb: force allocating surplus hugepages on
+mempolicy allowed nodes"), dequeue_hugetlb_folio_vma() may fall back to
+other nodes unnecessarily even if there is no MPOL_BIND policy, causing
+folios to be dequeued from nodes other than the current one.
 
-Fix this by always check and release the backing device when resetting or
-removing ZRAM.
+Also, allocating from the node where the current process is running is
+likely to result in a performance win, as mmap-ing processes often touch
+the area not so long after allocation.  This change minimizes surprises
+for users relying on the previous behavior while maintaining the benefit
+introduced by the commit.
 
-Link: https://lkml.kernel.org/r/20241204180224.31069-3-ryncsn@gmail.com
-Fixes: 013bf95a83ec ("zram: add interface to specif backing device")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: Desheng Wu <deshengwu@tencent.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: <stable@vger.kernel.org>
+So, prioritize the node the current process is running on when possible.
+
+Link: https://lkml.kernel.org/r/20241204165503.628784-1-koichiro.den@canonical.com
+Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
+Cc: Aristeu Rozanski <aris@redhat.com>
+Cc: Aristeu Rozanski <aris@ruivo.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-uninitialized-zram-not-releasing-backing-device
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2335,6 +2335,9 @@ static void zram_reset_device(struct zra
- 	zram->limit_pages = 0;
- 
- 	if (!init_done(zram)) {
-+		/* Backing device could be set before ZRAM initialization. */
-+		reset_bdev(zram);
+--- a/mm/hugetlb.c~hugetlb-prioritize-surplus-allocation-from-current-node
++++ a/mm/hugetlb.c
+@@ -2463,7 +2463,13 @@ static int gather_surplus_pages(struct h
+ 	long needed, allocated;
+ 	bool alloc_ok = true;
+ 	int node;
+-	nodemask_t *mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
++	nodemask_t *mbind_nodemask, alloc_nodemask;
 +
- 		up_write(&zram->init_lock);
- 		return;
- 	}
++	mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
++	if (mbind_nodemask)
++		nodes_and(alloc_nodemask, *mbind_nodemask, cpuset_current_mems_allowed);
++	else
++		alloc_nodemask = cpuset_current_mems_allowed;
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
+@@ -2479,8 +2485,16 @@ retry:
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+ 		folio = NULL;
+-		for_each_node_mask(node, cpuset_current_mems_allowed) {
+-			if (!mbind_nodemask || node_isset(node, *mbind_nodemask)) {
++
++		/* Prioritize current node */
++		if (node_isset(numa_mem_id(), alloc_nodemask))
++			folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
++					numa_mem_id(), NULL);
++
++		if (!folio) {
++			for_each_node_mask(node, alloc_nodemask) {
++				if (node == numa_mem_id())
++					continue;
+ 				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
+ 						node, NULL);
+ 				if (folio)
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from koichiro.den@canonical.com are
 
-zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch
-zram-fix-uninitialized-zram-not-releasing-backing-device.patch
+hugetlb-prioritize-surplus-allocation-from-current-node.patch
 
