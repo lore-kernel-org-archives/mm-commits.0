@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2091F540E
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEE11F540E
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733352789; cv=none; b=oVeWYnS0iP+1yKBbl3gHNPGof3wXNNdtmbYoASARZNwXq/+I1THCUogZr4KQrxLIHb0NPhEJtsIjYz+05Kwriy3wn562FcCkt3g7HOIqBYbO8wYWqNLuvmLJ7H96AHA3NIgwIQrQ5PeUPhVf1WGBCk535bMsDlzsuj6aWhH6XUk=
+	t=1733352790; cv=none; b=XOUff03slKvxuSArr0V5Du23nOCF7l0z+uv6zXgizfH8LbKneKStaCkC7qxQsulHSjgimLZIHDqombD+0kcsQ4jCkCcKgvPh68W/WH9bRKvZ0VySpfZNXxijn0cCKi1IzM3Qz9V5CjNFLTjXCaITH/PwTrB4CNQI8WunsubAuHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733352789; c=relaxed/simple;
-	bh=2HPemLvaj6iyKDebd+f3uB92qycqBy3M8QX1xH4TDm0=;
-	h=Date:To:From:Subject:Message-Id; b=byeipwU8tnhuctikOsNvxSsOF5LRHY1V7amFsqfIOVN5fQAMA2nUhExyYHOQrqFxYikwOlCkmEMCGZfb7FZknauRvDIf/qUo2yfHhS1/h6eC6PYmEZrH+KtcIY/SMMqO1SV174GfPLbdDHSX58DA2FrFCvKBlBwKAGUOKgA+cPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qMEmkCDh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733352790; c=relaxed/simple;
+	bh=VzbjK0QuEpgKL++VkxEW9wn9CzE9ZYS0u0dipYddpk4=;
+	h=Date:To:From:Subject:Message-Id; b=JBPqkSE8RGQHt3FdSiKfKaefxun46y58gOhyusQfaopezK1VbJB7nvPS+GFOhcvrJGmfdXZLqusJGw6eetzBTDr5WhH/uPiBrNpmQhQAucdB3nrnxSyUlrQR/gXdQJSl3gC1+ZixW816rPpxax6JRzMr7mM/J03bCC4hWD4nNvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2BcJk/F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qMEmkCDh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 740FDC4CECD;
-	Wed,  4 Dec 2024 22:53:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2BcJk/F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F128FC4CECD;
+	Wed,  4 Dec 2024 22:53:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733352788;
-	bh=2HPemLvaj6iyKDebd+f3uB92qycqBy3M8QX1xH4TDm0=;
+	s=korg; t=1733352790;
+	bh=VzbjK0QuEpgKL++VkxEW9wn9CzE9ZYS0u0dipYddpk4=;
 	h=Date:To:From:Subject:From;
-	b=qMEmkCDhsx7xVHI2I0Uea4Ek865MLE8oAVd4ynq5CP0HjFqbWRM17iBVdvsW+dFPz
-	 Q54m4Z7h0I3uMT8ScdqdLwBaFw4/l+csxk6pwtFxvcFbtTLpBlYmkNm8+Yrrzt2B7e
-	 JEbRGtGGiRexu2PAjhqlGwQmOqk21+eTof049e9M=
-Date: Wed, 04 Dec 2024 14:53:07 -0800
+	b=O2BcJk/FhpSPl6EwkjA9kzxGIQF29H2eIJmf5BNkRQW7qfbmlgl4PFgl5tzqIqAis
+	 MZpby6Fr8Hrf75W+UB4YNvlFbQjxHuXQsYgt0QrnzIsyqFo5cuY3IHCnVy6GT4WRMU
+	 B6UPvVsXGhOLB4X4j/06fpOlR7uiNngZVTLBwAvc=
+Date: Wed, 04 Dec 2024 14:53:09 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch added to mm-unstable branch
-Message-Id: <20241204225308.740FDC4CECD@smtp.kernel.org>
+Subject: + mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch added to mm-unstable branch
+Message-Id: <20241204225309.F128FC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zap_install_uffd_wp_if_needed: return whether uffd-wp pte has been re-installed
+     Subject: mm: do_zap_pte_range: return any_skipped information to the caller
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
+     mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: zap_install_uffd_wp_if_needed: return whether uffd-wp pte has been re-installed
-Date: Wed, 4 Dec 2024 19:09:46 +0800
+Subject: mm: do_zap_pte_range: return any_skipped information to the caller
+Date: Wed, 4 Dec 2024 19:09:47 +0800
 
-In some cases, we'll replace the none pte with an uffd-wp swap special pte
-marker when necessary.  Let's expose this information to the caller
-through the return value, so that subsequent commits can use this
-information to detect whether the PTE page is empty.
+Let the caller of do_zap_pte_range() know whether we skip zap ptes or
+reinstall uffd-wp ptes through any_skipped parameter, so that subsequent
+commits can use this information in zap_pte_range() to detect whether the
+PTE page can be reclaimed.
 
-Link: https://lkml.kernel.org/r/9d4516554724eda87d6576468042a1741c475413.1733305182.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/59f33ec9f74e9f058ed319b0bfadd76b0f7adf9b.1733305182.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -87,90 +87,138 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   11 +++++++----
- mm/memory.c               |   16 ++++++++++++----
- 2 files changed, 19 insertions(+), 8 deletions(-)
+ mm/memory.c |   36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed
-+++ a/include/linux/mm_inline.h
-@@ -564,9 +564,9 @@ static inline pte_marker copy_pte_marker
-  * Must be called with pgtable lock held so that no thread will see the none
-  * pte, and if they see it, they'll fault and serialize at the pgtable lock.
-  *
-- * This function is a no-op if PTE_MARKER_UFFD_WP is not enabled.
-+ * Returns true if an uffd-wp pte was installed, false otherwise.
-  */
--static inline void
-+static inline bool
- pte_install_uffd_wp_if_needed(struct vm_area_struct *vma, unsigned long addr,
- 			      pte_t *pte, pte_t pteval)
- {
-@@ -583,7 +583,7 @@ pte_install_uffd_wp_if_needed(struct vm_
- 	 * with a swap pte.  There's no way of leaking the bit.
- 	 */
- 	if (vma_is_anonymous(vma) || !userfaultfd_wp(vma))
--		return;
-+		return false;
- 
- 	/* A uffd-wp wr-protected normal pte */
- 	if (unlikely(pte_present(pteval) && pte_uffd_wp(pteval)))
-@@ -596,10 +596,13 @@ pte_install_uffd_wp_if_needed(struct vm_
- 	if (unlikely(pte_swp_uffd_wp_any(pteval)))
- 		arm_uffd_pte = true;
- 
--	if (unlikely(arm_uffd_pte))
-+	if (unlikely(arm_uffd_pte)) {
- 		set_pte_at(vma->vm_mm, addr, pte,
- 			   make_pte_marker(PTE_MARKER_UFFD_WP));
-+		return true;
-+	}
- #endif
-+	return false;
- }
- 
- static inline bool vma_has_recency(struct vm_area_struct *vma)
---- a/mm/memory.c~mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed
+--- a/mm/memory.c~mm-do_zap_pte_range-return-any_skipped-information-to-the-caller
 +++ a/mm/memory.c
-@@ -1466,27 +1466,35 @@ static inline bool zap_drop_markers(stru
- /*
-  * This function makes sure that we'll replace the none pte with an uffd-wp
-  * swap special pte marker when necessary. Must be with the pgtable lock held.
-+ *
-+ * Returns true if uffd-wp ptes was installed, false otherwise.
-  */
--static inline void
-+static inline bool
- zap_install_uffd_wp_if_needed(struct vm_area_struct *vma,
- 			      unsigned long addr, pte_t *pte, int nr,
- 			      struct zap_details *details, pte_t pteval)
+@@ -1501,7 +1501,7 @@ static __always_inline void zap_present_
+ 		struct vm_area_struct *vma, struct folio *folio,
+ 		struct page *page, pte_t *pte, pte_t ptent, unsigned int nr,
+ 		unsigned long addr, struct zap_details *details, int *rss,
+-		bool *force_flush, bool *force_break)
++		bool *force_flush, bool *force_break, bool *any_skipped)
  {
-+	bool was_installed = false;
-+
-+#ifdef CONFIG_PTE_MARKER_UFFD_WP
- 	/* Zap on anonymous always means dropping everything */
- 	if (vma_is_anonymous(vma))
--		return;
-+		return false;
+ 	struct mm_struct *mm = tlb->mm;
+ 	bool delay_rmap = false;
+@@ -1527,8 +1527,8 @@ static __always_inline void zap_present_
+ 	arch_check_zapped_pte(vma, ptent);
+ 	tlb_remove_tlb_entries(tlb, pte, nr, addr);
+ 	if (unlikely(userfaultfd_pte_wp(vma, ptent)))
+-		zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details,
+-					      ptent);
++		*any_skipped = zap_install_uffd_wp_if_needed(vma, addr, pte,
++							     nr, details, ptent);
  
- 	if (zap_drop_markers(details))
--		return;
-+		return false;
- 
- 	for (;;) {
- 		/* the PFN in the PTE is irrelevant. */
--		pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
-+		if (pte_install_uffd_wp_if_needed(vma, addr, pte, pteval))
-+			was_installed = true;
- 		if (--nr == 0)
- 			break;
- 		pte++;
- 		addr += PAGE_SIZE;
+ 	if (!delay_rmap) {
+ 		folio_remove_rmap_ptes(folio, page, nr, vma);
+@@ -1552,7 +1552,7 @@ static inline int zap_present_ptes(struc
+ 		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
+ 		unsigned int max_nr, unsigned long addr,
+ 		struct zap_details *details, int *rss, bool *force_flush,
+-		bool *force_break)
++		bool *force_break, bool *any_skipped)
+ {
+ 	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
+ 	struct mm_struct *mm = tlb->mm;
+@@ -1567,15 +1567,17 @@ static inline int zap_present_ptes(struc
+ 		arch_check_zapped_pte(vma, ptent);
+ 		tlb_remove_tlb_entry(tlb, pte, addr);
+ 		if (userfaultfd_pte_wp(vma, ptent))
+-			zap_install_uffd_wp_if_needed(vma, addr, pte, 1,
+-						      details, ptent);
++			*any_skipped = zap_install_uffd_wp_if_needed(vma, addr,
++						pte, 1, details, ptent);
+ 		ksm_might_unmap_zero_page(mm, ptent);
+ 		return 1;
  	}
-+#endif
-+	return was_installed;
+ 
+ 	folio = page_folio(page);
+-	if (unlikely(!should_zap_folio(details, folio)))
++	if (unlikely(!should_zap_folio(details, folio))) {
++		*any_skipped = true;
+ 		return 1;
++	}
+ 
+ 	/*
+ 	 * Make sure that the common "small folio" case is as fast as possible
+@@ -1587,22 +1589,23 @@ static inline int zap_present_ptes(struc
+ 
+ 		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
+ 				       addr, details, rss, force_flush,
+-				       force_break);
++				       force_break, any_skipped);
+ 		return nr;
+ 	}
+ 	zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, 1, addr,
+-			       details, rss, force_flush, force_break);
++			       details, rss, force_flush, force_break, any_skipped);
+ 	return 1;
  }
  
- static __always_inline void zap_present_folio_ptes(struct mmu_gather *tlb,
+ static inline int zap_nonpresent_ptes(struct mmu_gather *tlb,
+ 		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
+ 		unsigned int max_nr, unsigned long addr,
+-		struct zap_details *details, int *rss)
++		struct zap_details *details, int *rss, bool *any_skipped)
+ {
+ 	swp_entry_t entry;
+ 	int nr = 1;
+ 
++	*any_skipped = true;
+ 	entry = pte_to_swp_entry(ptent);
+ 	if (is_device_private_entry(entry) ||
+ 		is_device_exclusive_entry(entry)) {
+@@ -1660,7 +1663,7 @@ static inline int zap_nonpresent_ptes(st
+ 		WARN_ON_ONCE(1);
+ 	}
+ 	clear_not_present_full_ptes(vma->vm_mm, addr, pte, nr, tlb->fullmm);
+-	zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details, ptent);
++	*any_skipped = zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details, ptent);
+ 
+ 	return nr;
+ }
+@@ -1669,7 +1672,8 @@ static inline int do_zap_pte_range(struc
+ 				   struct vm_area_struct *vma, pte_t *pte,
+ 				   unsigned long addr, unsigned long end,
+ 				   struct zap_details *details, int *rss,
+-				   bool *force_flush, bool *force_break)
++				   bool *force_flush, bool *force_break,
++				   bool *any_skipped)
+ {
+ 	pte_t ptent = ptep_get(pte);
+ 	int max_nr = (end - addr) / PAGE_SIZE;
+@@ -1691,10 +1695,11 @@ static inline int do_zap_pte_range(struc
+ 
+ 	if (pte_present(ptent))
+ 		nr += zap_present_ptes(tlb, vma, pte, ptent, max_nr, addr,
+-				       details, rss, force_flush, force_break);
++				       details, rss, force_flush, force_break,
++				       any_skipped);
+ 	else
+ 		nr += zap_nonpresent_ptes(tlb, vma, pte, ptent, max_nr, addr,
+-					  details, rss);
++					  details, rss, any_skipped);
+ 
+ 	return nr;
+ }
+@@ -1705,6 +1710,7 @@ static unsigned long zap_pte_range(struc
+ 				struct zap_details *details)
+ {
+ 	bool force_flush = false, force_break = false;
++	bool any_skipped = false;
+ 	struct mm_struct *mm = tlb->mm;
+ 	int rss[NR_MM_COUNTERS];
+ 	spinlock_t *ptl;
+@@ -1725,7 +1731,7 @@ static unsigned long zap_pte_range(struc
+ 			break;
+ 
+ 		nr = do_zap_pte_range(tlb, vma, pte, addr, end, details, rss,
+-				      &force_flush, &force_break);
++				      &force_flush, &force_break, &any_skipped);
+ 		if (unlikely(force_break)) {
+ 			addr += nr * PAGE_SIZE;
+ 			break;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
