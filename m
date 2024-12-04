@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A30A6623
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 00:40:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 130B917D2
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 00:40:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733272823; cv=none; b=WDxVb76RGGBmvEbUsRtfvLgPzd1+zLDEhIdNPd+NEZEyhAPfFouW0cW/ygSn30t0F6WzI9d1nfuTXTJ7rxtfB54bw/QqoYt26g9n4+rbiCIjN18gk5y6hzaPNgIHct5ssMpG33yL8MUCfhK7rT5uS4Wz1of1XKcYN5vaMEtGS9E=
+	t=1733272828; cv=none; b=pCetViqjYxXreYpPJ8cMwr3Aw14kQZ0VqBCvqMhji9R0NIxx08WJMw2fpqSkIvcrQ4VuwWf1UhF2Lqz61prdBmX16y04eBXWN79pA9Ra0K6eibEbVENYScmBGhSwt3Lg9JVJaOLtgnI80VdNdo6b/nRzv4VBTdG1knqiB9I6Dk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733272823; c=relaxed/simple;
-	bh=fhoDmUYKyuG5Hbqr02vI91lJk2JkwL5gpogfbV6S7fM=;
-	h=Date:To:From:Subject:Message-Id; b=JApFiS2U0lwDff7sUrkGPQjS+WN5Q0lVz4jrAGoOdNogTecRsb2tLco2l9bcahznOOFz10fIY22KcHaFKVOYCPOxY8eu6xaIGx+7VXevDRwb+WbsssvWcOGtfDkUYeJ7vR7fYB/Cdc5mIKyX5h1Fr8HdhtTNiJgul+S4BVq824Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cl0jK56D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733272828; c=relaxed/simple;
+	bh=TxEP2338SgbEjLDy7fq3OtKQ/DWRVEPNV6PcAoD+VS4=;
+	h=Date:To:From:Subject:Message-Id; b=HKbXIxW2BOgzmFu0zMaMbRHIYxp2IkMi5byuq1n03HN1N0UNBpYuLusB6GRZa3JHyhjrVDdPPnYIg1S8rjB1hmt84CMKCI1Osi+A+J1/BqmAxHNUHCTyskVvIkR+B8taeufrRd6RUTxYHa+jlgDPvG5PbVSnAeumjFPUZC+GGfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RCFQy6ia; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cl0jK56D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFA2C4CEDC;
-	Wed,  4 Dec 2024 00:40:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RCFQy6ia"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FEDDC4CEDC;
+	Wed,  4 Dec 2024 00:40:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733272823;
-	bh=fhoDmUYKyuG5Hbqr02vI91lJk2JkwL5gpogfbV6S7fM=;
+	s=korg; t=1733272826;
+	bh=TxEP2338SgbEjLDy7fq3OtKQ/DWRVEPNV6PcAoD+VS4=;
 	h=Date:To:From:Subject:From;
-	b=Cl0jK56DlemlojBsRDyihbrdsUUGT9ekXTwp7yZMcP6MVKZn8xM8C9xIsdjxuaNN+
-	 FRMzNGmRLJ8dV4ZNs6rSvQF5HRr/XOGpDpT6O21fA8BVBYfXh2s/jWVlohhD59qbTo
-	 jPRe+hVjcAfC39rIKWdAxHo+bg+WJ/QkM1xj8nkw=
-Date: Tue, 03 Dec 2024 16:40:22 -0800
+	b=RCFQy6ialcXYE8cDPX7m/LufjvYj1S0xjofLIosyGyiK/Yw6a62fkrrwNcH4zxr5P
+	 9OllC+1Xqhhk443yJ700KHnvpKrYwglGgBYa+oRDOlm1275q5XzUmAqXsvws6SsgN9
+	 e8hNXko1fE3ZpoeeFXHmKA1tsjzBjGWEAR0aLnEs=
+Date: Tue, 03 Dec 2024 16:40:25 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,Liam.Howlett@Oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-move-brk-internals-to-mm-vmac.patch added to mm-unstable branch
-Message-Id: <20241204004023.1FFA2C4CEDC@smtp.kernel.org>
+Subject: + mm-vma-move-unmapped_area-internals-to-mm-vmac.patch added to mm-unstable branch
+Message-Id: <20241204004026.6FEDDC4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: move brk() internals to mm/vma.c
+     Subject: mm/vma: move unmapped_area() internals to mm/vma.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-move-brk-internals-to-mm-vmac.patch
+     mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-move-brk-internals-to-mm-vmac.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: move brk() internals to mm/vma.c
-Date: Tue, 3 Dec 2024 18:05:08 +0000
+Subject: mm/vma: move unmapped_area() internals to mm/vma.c
+Date: Tue, 3 Dec 2024 18:05:09 +0000
 
-Patch series "mm/vma: make more mmap logic userland testable".
+We want to be able to unit test the unmapped area logic, so move it to
+mm/vma.c.  The wrappers which invoke this remain in place in mm/mmap.c.
 
-This series carries on the work the work started in previous series and
-continued in commit 52956b0d7fb9 ("mm: isolate mmap internal logic to
-mm/vma.c"), moving the remainder of memory mapping implementation details
-logic into mm/vma.c allowing the bulk of the mapping logic to be unit
-tested.
+In addition, naturally, update the existing test code to enable this to be
+compiled in userland.
 
-It is highly useful to do so, as this means we can both fundamentally test
-this core logic, and introduce regression tests to ensure any issues
-previously resolved do not recur.
-
-Vitally, this includes the do_brk_flags() function, meaning we have both
-core means of userland mapping memory now testable.
-
-Performance testing was performed after this change given the brk() system
-call's sensitivity to change, and no performance regression was observed.
-
-The stack expansion logic is also moved into mm/vma.c, which necessitates
-a change in the API exposed to the exec code, removing the invocation of
-the expand_downwards() function used in get_arg_page() and instead adding
-mmap_read_lock_maybe_expand() to wrap this.
-
-
-This patch (of 5):
-
-Now we have moved mmap_region() internals to mm/vma.c, making it available
-to userland testing, it makes sense to do the same with brk().
-
-This continues the pattern of VMA heavy lifting being done in mm/vma.c in
-an environment where it can be subject to straightforward unit and
-regression testing, with other VMA-adjacent files becoming wrappers around
-this functionality.
-
-Link: https://lkml.kernel.org/r/cover.1733248985.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/3d24b9e67bb0261539ca921d1188a10a1b4d4357.1733248985.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/53a57a52a64ea54e9d129d2e2abca3a538022379.1733248985.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -110,269 +81,367 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c                        |   85 -----------------------------
- mm/vma.c                         |   82 +++++++++++++++++++++++++++
- mm/vma.h                         |    3 +
- tools/testing/vma/vma_internal.h |   22 +++++++
- 4 files changed, 108 insertions(+), 84 deletions(-)
+ mm/mmap.c                        |  109 -----------------------------
+ mm/vma.c                         |  109 +++++++++++++++++++++++++++++
+ mm/vma.h                         |    3 
+ tools/testing/vma/vma.c          |    6 +
+ tools/testing/vma/vma_internal.h |   59 +++++++++++++++
+ 5 files changed, 177 insertions(+), 109 deletions(-)
 
---- a/mm/mmap.c~mm-vma-move-brk-internals-to-mm-vmac
+--- a/mm/mmap.c~mm-vma-move-unmapped_area-internals-to-mm-vmac
 +++ a/mm/mmap.c
-@@ -111,8 +111,7 @@ static int check_brk_limits(unsigned lon
- 	return mlock_future_ok(current->mm, current->mm->def_flags, len)
- 		? 0 : -EAGAIN;
+@@ -580,115 +580,6 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
  }
--static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
--		unsigned long addr, unsigned long request, unsigned long flags);
-+
- SYSCALL_DEFINE1(brk, unsigned long, brk)
- {
- 	unsigned long newbrk, oldbrk, origbrk;
-@@ -1512,88 +1511,6 @@ out:
- 	return ret;
- }
+ #endif /* __ARCH_WANT_SYS_OLD_MMAP */
  
--/*
-- * do_brk_flags() - Increase the brk vma if the flags match.
-- * @vmi: The vma iterator
-- * @addr: The start address
-- * @len: The length of the increase
-- * @vma: The vma,
-- * @flags: The VMA Flags
+-/**
+- * unmapped_area() - Find an area between the low_limit and the high_limit with
+- * the correct alignment and offset, all from @info. Note: current->mm is used
+- * for the search.
 - *
-- * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
-- * do not match then create a new anonymous VMA.  Eventually we may be able to
-- * do some brk-specific accounting here.
+- * @info: The unmapped area information including the range [low_limit -
+- * high_limit), the alignment offset and mask.
+- *
+- * Return: A memory address or -ENOMEM.
 - */
--static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		unsigned long addr, unsigned long len, unsigned long flags)
+-static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
 -{
--	struct mm_struct *mm = current->mm;
+-	unsigned long length, gap;
+-	unsigned long low_limit, high_limit;
+-	struct vm_area_struct *tmp;
+-	VMA_ITERATOR(vmi, current->mm, 0);
+-
+-	/* Adjust search length to account for worst case alignment overhead */
+-	length = info->length + info->align_mask + info->start_gap;
+-	if (length < info->length)
+-		return -ENOMEM;
+-
+-	low_limit = info->low_limit;
+-	if (low_limit < mmap_min_addr)
+-		low_limit = mmap_min_addr;
+-	high_limit = info->high_limit;
+-retry:
+-	if (vma_iter_area_lowest(&vmi, low_limit, high_limit, length))
+-		return -ENOMEM;
 -
 -	/*
--	 * Check against address space limits by the changed size
--	 * Note: This happens *after* clearing old mappings in some code paths.
+-	 * Adjust for the gap first so it doesn't interfere with the
+-	 * later alignment. The first step is the minimum needed to
+-	 * fulill the start gap, the next steps is the minimum to align
+-	 * that. It is the minimum needed to fulill both.
 -	 */
--	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
--	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
--		return -ENOMEM;
--
--	if (mm->map_count > sysctl_max_map_count)
--		return -ENOMEM;
--
--	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
--		return -ENOMEM;
--
--	/*
--	 * Expand the existing vma if possible; Note that singular lists do not
--	 * occur after forking, so the expand will only happen on new VMAs.
--	 */
--	if (vma && vma->vm_end == addr) {
--		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
--
--		vmg.prev = vma;
--		/* vmi is positioned at prev, which this mode expects. */
--		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
--
--		if (vma_merge_new_range(&vmg))
--			goto out;
--		else if (vmg_nomem(&vmg))
--			goto unacct_fail;
+-	gap = vma_iter_addr(&vmi) + info->start_gap;
+-	gap += (info->align_offset - gap) & info->align_mask;
+-	tmp = vma_next(&vmi);
+-	if (tmp && (tmp->vm_flags & VM_STARTGAP_FLAGS)) { /* Avoid prev check if possible */
+-		if (vm_start_gap(tmp) < gap + length - 1) {
+-			low_limit = tmp->vm_end;
+-			vma_iter_reset(&vmi);
+-			goto retry;
+-		}
+-	} else {
+-		tmp = vma_prev(&vmi);
+-		if (tmp && vm_end_gap(tmp) > gap) {
+-			low_limit = vm_end_gap(tmp);
+-			vma_iter_reset(&vmi);
+-			goto retry;
+-		}
 -	}
 -
--	if (vma)
--		vma_iter_next_range(vmi);
--	/* create a vma struct for an anonymous mapping */
--	vma = vm_area_alloc(mm);
--	if (!vma)
--		goto unacct_fail;
--
--	vma_set_anonymous(vma);
--	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
--	vm_flags_init(vma, flags);
--	vma->vm_page_prot = vm_get_page_prot(flags);
--	vma_start_write(vma);
--	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
--		goto mas_store_fail;
--
--	mm->map_count++;
--	validate_mm(mm);
--	ksm_add_vma(vma);
--out:
--	perf_event_mmap(vma);
--	mm->total_vm += len >> PAGE_SHIFT;
--	mm->data_vm += len >> PAGE_SHIFT;
--	if (flags & VM_LOCKED)
--		mm->locked_vm += (len >> PAGE_SHIFT);
--	vm_flags_set(vma, VM_SOFTDIRTY);
--	return 0;
--
--mas_store_fail:
--	vm_area_free(vma);
--unacct_fail:
--	vm_unacct_memory(len >> PAGE_SHIFT);
--	return -ENOMEM;
+-	return gap;
 -}
 -
- int vm_brk_flags(unsigned long addr, unsigned long request, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
---- a/mm/vma.c~mm-vma-move-brk-internals-to-mm-vmac
+-/**
+- * unmapped_area_topdown() - Find an area between the low_limit and the
+- * high_limit with the correct alignment and offset at the highest available
+- * address, all from @info. Note: current->mm is used for the search.
+- *
+- * @info: The unmapped area information including the range [low_limit -
+- * high_limit), the alignment offset and mask.
+- *
+- * Return: A memory address or -ENOMEM.
+- */
+-static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
+-{
+-	unsigned long length, gap, gap_end;
+-	unsigned long low_limit, high_limit;
+-	struct vm_area_struct *tmp;
+-	VMA_ITERATOR(vmi, current->mm, 0);
+-
+-	/* Adjust search length to account for worst case alignment overhead */
+-	length = info->length + info->align_mask + info->start_gap;
+-	if (length < info->length)
+-		return -ENOMEM;
+-
+-	low_limit = info->low_limit;
+-	if (low_limit < mmap_min_addr)
+-		low_limit = mmap_min_addr;
+-	high_limit = info->high_limit;
+-retry:
+-	if (vma_iter_area_highest(&vmi, low_limit, high_limit, length))
+-		return -ENOMEM;
+-
+-	gap = vma_iter_end(&vmi) - info->length;
+-	gap -= (gap - info->align_offset) & info->align_mask;
+-	gap_end = vma_iter_end(&vmi);
+-	tmp = vma_next(&vmi);
+-	if (tmp && (tmp->vm_flags & VM_STARTGAP_FLAGS)) { /* Avoid prev check if possible */
+-		if (vm_start_gap(tmp) < gap_end) {
+-			high_limit = vm_start_gap(tmp);
+-			vma_iter_reset(&vmi);
+-			goto retry;
+-		}
+-	} else {
+-		tmp = vma_prev(&vmi);
+-		if (tmp && vm_end_gap(tmp) > gap) {
+-			high_limit = tmp->vm_start;
+-			vma_iter_reset(&vmi);
+-			goto retry;
+-		}
+-	}
+-
+-	return gap;
+-}
+-
+ /*
+  * Determine if the allocation needs to ensure that there is no
+  * existing mapping within it's guard gaps, for use as start_gap.
+--- a/mm/vma.c~mm-vma-move-unmapped_area-internals-to-mm-vmac
 +++ a/mm/vma.c
-@@ -2478,3 +2478,85 @@ abort_munmap:
- 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
- 	return error;
+@@ -2560,3 +2560,112 @@ unacct_fail:
+ 	vm_unacct_memory(len >> PAGE_SHIFT);
+ 	return -ENOMEM;
  }
 +
-+/*
-+ * do_brk_flags() - Increase the brk vma if the flags match.
-+ * @vmi: The vma iterator
-+ * @addr: The start address
-+ * @len: The length of the increase
-+ * @vma: The vma,
-+ * @flags: The VMA Flags
++/**
++ * unmapped_area() - Find an area between the low_limit and the high_limit with
++ * the correct alignment and offset, all from @info. Note: current->mm is used
++ * for the search.
 + *
-+ * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
-+ * do not match then create a new anonymous VMA.  Eventually we may be able to
-+ * do some brk-specific accounting here.
++ * @info: The unmapped area information including the range [low_limit -
++ * high_limit), the alignment offset and mask.
++ *
++ * Return: A memory address or -ENOMEM.
 + */
-+int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+		 unsigned long addr, unsigned long len, unsigned long flags)
++unsigned long unmapped_area(struct vm_unmapped_area_info *info)
 +{
-+	struct mm_struct *mm = current->mm;
++	unsigned long length, gap;
++	unsigned long low_limit, high_limit;
++	struct vm_area_struct *tmp;
++	VMA_ITERATOR(vmi, current->mm, 0);
++
++	/* Adjust search length to account for worst case alignment overhead */
++	length = info->length + info->align_mask + info->start_gap;
++	if (length < info->length)
++		return -ENOMEM;
++
++	low_limit = info->low_limit;
++	if (low_limit < mmap_min_addr)
++		low_limit = mmap_min_addr;
++	high_limit = info->high_limit;
++retry:
++	if (vma_iter_area_lowest(&vmi, low_limit, high_limit, length))
++		return -ENOMEM;
 +
 +	/*
-+	 * Check against address space limits by the changed size
-+	 * Note: This happens *after* clearing old mappings in some code paths.
++	 * Adjust for the gap first so it doesn't interfere with the
++	 * later alignment. The first step is the minimum needed to
++	 * fulill the start gap, the next steps is the minimum to align
++	 * that. It is the minimum needed to fulill both.
 +	 */
-+	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
-+	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
-+		return -ENOMEM;
-+
-+	if (mm->map_count > sysctl_max_map_count)
-+		return -ENOMEM;
-+
-+	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
-+		return -ENOMEM;
-+
-+	/*
-+	 * Expand the existing vma if possible; Note that singular lists do not
-+	 * occur after forking, so the expand will only happen on new VMAs.
-+	 */
-+	if (vma && vma->vm_end == addr) {
-+		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
-+
-+		vmg.prev = vma;
-+		/* vmi is positioned at prev, which this mode expects. */
-+		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
-+
-+		if (vma_merge_new_range(&vmg))
-+			goto out;
-+		else if (vmg_nomem(&vmg))
-+			goto unacct_fail;
++	gap = vma_iter_addr(&vmi) + info->start_gap;
++	gap += (info->align_offset - gap) & info->align_mask;
++	tmp = vma_next(&vmi);
++	if (tmp && (tmp->vm_flags & VM_STARTGAP_FLAGS)) { /* Avoid prev check if possible */
++		if (vm_start_gap(tmp) < gap + length - 1) {
++			low_limit = tmp->vm_end;
++			vma_iter_reset(&vmi);
++			goto retry;
++		}
++	} else {
++		tmp = vma_prev(&vmi);
++		if (tmp && vm_end_gap(tmp) > gap) {
++			low_limit = vm_end_gap(tmp);
++			vma_iter_reset(&vmi);
++			goto retry;
++		}
 +	}
 +
-+	if (vma)
-+		vma_iter_next_range(vmi);
-+	/* create a vma struct for an anonymous mapping */
-+	vma = vm_area_alloc(mm);
-+	if (!vma)
-+		goto unacct_fail;
-+
-+	vma_set_anonymous(vma);
-+	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
-+	vm_flags_init(vma, flags);
-+	vma->vm_page_prot = vm_get_page_prot(flags);
-+	vma_start_write(vma);
-+	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
-+		goto mas_store_fail;
-+
-+	mm->map_count++;
-+	validate_mm(mm);
-+	ksm_add_vma(vma);
-+out:
-+	perf_event_mmap(vma);
-+	mm->total_vm += len >> PAGE_SHIFT;
-+	mm->data_vm += len >> PAGE_SHIFT;
-+	if (flags & VM_LOCKED)
-+		mm->locked_vm += (len >> PAGE_SHIFT);
-+	vm_flags_set(vma, VM_SOFTDIRTY);
-+	return 0;
-+
-+mas_store_fail:
-+	vm_area_free(vma);
-+unacct_fail:
-+	vm_unacct_memory(len >> PAGE_SHIFT);
-+	return -ENOMEM;
++	return gap;
 +}
---- a/mm/vma.h~mm-vma-move-brk-internals-to-mm-vmac
++
++/**
++ * unmapped_area_topdown() - Find an area between the low_limit and the
++ * high_limit with the correct alignment and offset at the highest available
++ * address, all from @info. Note: current->mm is used for the search.
++ *
++ * @info: The unmapped area information including the range [low_limit -
++ * high_limit), the alignment offset and mask.
++ *
++ * Return: A memory address or -ENOMEM.
++ */
++unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
++{
++	unsigned long length, gap, gap_end;
++	unsigned long low_limit, high_limit;
++	struct vm_area_struct *tmp;
++	VMA_ITERATOR(vmi, current->mm, 0);
++
++	/* Adjust search length to account for worst case alignment overhead */
++	length = info->length + info->align_mask + info->start_gap;
++	if (length < info->length)
++		return -ENOMEM;
++
++	low_limit = info->low_limit;
++	if (low_limit < mmap_min_addr)
++		low_limit = mmap_min_addr;
++	high_limit = info->high_limit;
++retry:
++	if (vma_iter_area_highest(&vmi, low_limit, high_limit, length))
++		return -ENOMEM;
++
++	gap = vma_iter_end(&vmi) - info->length;
++	gap -= (gap - info->align_offset) & info->align_mask;
++	gap_end = vma_iter_end(&vmi);
++	tmp = vma_next(&vmi);
++	if (tmp && (tmp->vm_flags & VM_STARTGAP_FLAGS)) { /* Avoid prev check if possible */
++		if (vm_start_gap(tmp) < gap_end) {
++			high_limit = vm_start_gap(tmp);
++			vma_iter_reset(&vmi);
++			goto retry;
++		}
++	} else {
++		tmp = vma_prev(&vmi);
++		if (tmp && vm_end_gap(tmp) > gap) {
++			high_limit = tmp->vm_start;
++			vma_iter_reset(&vmi);
++			goto retry;
++		}
++	}
++
++	return gap;
++}
+--- a/mm/vma.h~mm-vma-move-unmapped_area-internals-to-mm-vmac
 +++ a/mm/vma.h
-@@ -247,6 +247,9 @@ unsigned long __mmap_region(struct file
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
- 		struct list_head *uf);
+@@ -250,6 +250,9 @@ unsigned long __mmap_region(struct file
+ int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
+ 		 unsigned long addr, unsigned long request, unsigned long flags);
  
-+int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
-+		 unsigned long addr, unsigned long request, unsigned long flags);
++unsigned long unmapped_area(struct vm_unmapped_area_info *info);
++unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info);
 +
  static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
  {
  	/*
---- a/tools/testing/vma/vma_internal.h~mm-vma-move-brk-internals-to-mm-vmac
-+++ a/tools/testing/vma/vma_internal.h
-@@ -39,6 +39,7 @@
- #define VM_SHARED	0x00000008
- #define VM_MAYREAD	0x00000010
- #define VM_MAYWRITE	0x00000020
-+#define VM_MAYEXEC	0x00000040
- #define VM_GROWSDOWN	0x00000100
- #define VM_PFNMAP	0x00000400
- #define VM_LOCKED	0x00002000
-@@ -58,6 +59,13 @@
- /* This mask represents all the VMA flag bits used by mlock */
- #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+--- a/tools/testing/vma/vma.c~mm-vma-move-unmapped_area-internals-to-mm-vmac
++++ a/tools/testing/vma/vma.c
+@@ -18,6 +18,12 @@ static bool fail_prealloc;
+ #define vma_iter_prealloc(vmi, vma)					\
+ 	(fail_prealloc ? -ENOMEM : mas_preallocate(&(vmi)->mas, (vma), GFP_KERNEL))
  
-+#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
++#define CONFIG_DEFAULT_MMAP_MIN_ADDR 65536
 +
-+#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
-+				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++unsigned long mmap_min_addr = CONFIG_DEFAULT_MMAP_MIN_ADDR;
++unsigned long dac_mmap_min_addr = CONFIG_DEFAULT_MMAP_MIN_ADDR;
++unsigned long stack_guard_gap = 256UL<<PAGE_SHIFT;
 +
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ /*
+  * Directly import the VMA implementation here. Our vma_internal.h wrapper
+  * provides userland-equivalent functionality for everything vma.c uses.
+--- a/tools/testing/vma/vma_internal.h~mm-vma-move-unmapped_area-internals-to-mm-vmac
++++ a/tools/testing/vma/vma_internal.h
+@@ -27,6 +27,15 @@
+ #include <linux/rbtree.h>
+ #include <linux/rwsem.h>
+ 
++extern unsigned long stack_guard_gap;
++#ifdef CONFIG_MMU
++extern unsigned long mmap_min_addr;
++extern unsigned long dac_mmap_min_addr;
++#else
++#define mmap_min_addr		0UL
++#define dac_mmap_min_addr	0UL
++#endif
++
+ #define VM_WARN_ON(_expr) (WARN_ON(_expr))
+ #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
+ #define VM_BUG_ON(_expr) (BUG_ON(_expr))
+@@ -52,6 +61,8 @@
+ #define VM_STACK	VM_GROWSDOWN
+ #define VM_SHADOW_STACK	VM_NONE
+ #define VM_SOFTDIRTY	0
++#define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
++#define VM_GROWSUP	VM_NONE
+ 
+ #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
+ #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
+@@ -66,6 +77,8 @@
+ 
+ #define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
++#define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
 +
  #ifdef CONFIG_64BIT
  /* VM is sealed, in vm_flags */
  #define VM_SEALED	_BITUL(63)
-@@ -122,10 +130,22 @@ enum {
- 	TASK_COMM_LEN = 16,
+@@ -395,6 +408,17 @@ struct vm_operations_struct {
+ 					  unsigned long addr);
  };
  
-+/*
-+ * Flags for bug emulation.
-+ *
-+ * These occupy the top three bytes.
-+ */
-+enum {
-+	READ_IMPLIES_EXEC =	0x0400000,
++struct vm_unmapped_area_info {
++#define VM_UNMAPPED_AREA_TOPDOWN 1
++	unsigned long flags;
++	unsigned long length;
++	unsigned long low_limit;
++	unsigned long high_limit;
++	unsigned long align_mask;
++	unsigned long align_offset;
++	unsigned long start_gap;
 +};
 +
- struct task_struct {
- 	char comm[TASK_COMM_LEN];
- 	pid_t pid;
- 	struct mm_struct *mm;
-+
-+	/* Used for emulating ABI behavior of previous Linux versions: */
-+	unsigned int			personality;
- };
+ static inline void vma_iter_invalidate(struct vma_iterator *vmi)
+ {
+ 	mas_pause(&vmi->mas);
+@@ -1055,4 +1079,39 @@ static inline int mmap_file(struct file
+ 	return 0;
+ }
  
- struct task_struct *get_current(void);
-@@ -186,6 +206,8 @@ struct mm_struct {
- 	unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
- 	unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
- 	unsigned long stack_vm;	   /* VM_STACK */
++static inline unsigned long stack_guard_start_gap(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & VM_GROWSDOWN)
++		return stack_guard_gap;
 +
-+	unsigned long def_flags;
- };
- 
- struct vma_lock {
++	/* See reasoning around the VM_SHADOW_STACK definition */
++	if (vma->vm_flags & VM_SHADOW_STACK)
++		return PAGE_SIZE;
++
++	return 0;
++}
++
++static inline unsigned long vm_start_gap(struct vm_area_struct *vma)
++{
++	unsigned long gap = stack_guard_start_gap(vma);
++	unsigned long vm_start = vma->vm_start;
++
++	vm_start -= gap;
++	if (vm_start > vma->vm_start)
++		vm_start = 0;
++	return vm_start;
++}
++
++static inline unsigned long vm_end_gap(struct vm_area_struct *vma)
++{
++	unsigned long vm_end = vma->vm_end;
++
++	if (vma->vm_flags & VM_GROWSUP) {
++		vm_end += stack_guard_gap;
++		if (vm_end < vma->vm_end)
++			vm_end = -PAGE_SIZE;
++	}
++	return vm_end;
++}
++
+ #endif	/* __MM_VMA_INTERNAL_H */
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
