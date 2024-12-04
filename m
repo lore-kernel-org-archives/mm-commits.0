@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C3BC33D1
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:03:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 552A42500BA
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:03:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733274189; cv=none; b=WMLw1jwUowabpKx2xUhXmfK+IfM4aduK67ehbPWOXO1uqJc7FjVHmqd6sPuqmH8RqWIcIanSMfVRu7C+PN+elsOt78DOYYyX6f55hoB1MHmTBwg9o6KvA/wgZ2YwW63gtRVfQTGtC8brdYgGGQML25yQpc1jQ4ELP26jDrJNdB8=
+	t=1733274191; cv=none; b=g2LAzzbW4+PEddJrmH7/wQwm6ncAI7AksajbKJ7fWbxwsMpTnU4xyrMYwwbmZUQMIPSouYg1vNWcTBoFZn+kf6QeyBDD97Y97sqVqkh2/l6yQfHU5gQUPkJhSOj6jBFvUgTwgQxVX181hcW4VsjP5dWqaT0040M2neaRBvHwFao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733274189; c=relaxed/simple;
-	bh=PezwhrxSqvztWvMiLFnPS5x3mtuADzJDX68snXuR8ww=;
-	h=Date:To:From:Subject:Message-Id; b=KmaTUBo+dnQhsOhKcLB5TCBdbglnJ67zBzuyA35J9ttpG7aOtWv1IltacK0baojrjhF0fdPTyNkfxvXsPWoVf9m4e81/KKOjO7VAR2M4eZ6IE8ExVCPEyDJ0ryild+cp57YKiA5PkaYZQxLWZamcuT5puMvkb/9ax/hPnFP7yXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mAu9DCjx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733274191; c=relaxed/simple;
+	bh=XoLoLGSRkfes3460FMGvnVgwSvbLtI9YiZ+1m7Vv0RY=;
+	h=Date:To:From:Subject:Message-Id; b=JHwdTkaQY/PhMMBL/WHovFJpIAz/820mj0bEvMOeiTNSCT07pSEh5dQS0cEqrsRJV5Z0nhmFixz8WCJst8Rj6Q5muwl+it+r4C/Z5QCVFUXWF43Utm2rl0EzQ9AnNtK85F8FxB4PqNUQT6PiGwPCIEFkAhxftdBPXlBU8AeYXzg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EfLrg+Qt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mAu9DCjx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC6ADC4CEDC;
-	Wed,  4 Dec 2024 01:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EfLrg+Qt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E413DC4CEDC;
+	Wed,  4 Dec 2024 01:03:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733274189;
-	bh=PezwhrxSqvztWvMiLFnPS5x3mtuADzJDX68snXuR8ww=;
+	s=korg; t=1733274191;
+	bh=XoLoLGSRkfes3460FMGvnVgwSvbLtI9YiZ+1m7Vv0RY=;
 	h=Date:To:From:Subject:From;
-	b=mAu9DCjxWNtt3o4VmKzrvapQyvLcCs4eYz7l/c6k5F9O9Cv+GCauiI/xc8C6z7WQr
-	 uy8Gm5BAdV05nfD51D5dcFtChV9sBDFnEGBwP4N2/L1nkxQ3SNhqkDHF3UwKCfusyO
-	 YBUsVq5Gnhsz1eY/5V0/63d0foRN5jPjEey0YNGs=
-Date: Tue, 03 Dec 2024 17:03:08 -0800
+	b=EfLrg+Qtqh0JHl5IOI2vdAcPbyn5G1rcE6PuftzD8Z0R/7ebFfu8eoEmiIFzjKRet
+	 MRV0b8BhkgQ8iHDdVRusc75cyNvTGzfUR/ZexSSuplzqgqOI51QXXPhtVYy9NeKt4r
+	 T+d4SfXN/pi6S7r+vz8dm+2LsM+nl8rG1CVC8PYM=
+Date: Tue, 03 Dec 2024 17:03:10 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,vbabka@suse.cz,osalvador@suse.de,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch added to mm-unstable branch
-Message-Id: <20241204010308.EC6ADC4CEDC@smtp.kernel.org>
+Subject: + powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch added to mm-unstable branch
+Message-Id: <20241204010310.E413DC4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: forward the gfp flags from alloc_contig_range() to post_alloc_hook()
+     Subject: powernv/memtrace: use __GFP_ZERO with alloc_contig_pages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
+     powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: forward the gfp flags from alloc_contig_range() to post_alloc_hook()
-Date: Tue, 3 Dec 2024 10:47:31 +0100
+Subject: powernv/memtrace: use __GFP_ZERO with alloc_contig_pages()
+Date: Tue, 3 Dec 2024 10:47:32 +0100
 
-In the __GFP_COMP case, we already pass the gfp_flags to
-prep_new_page()->post_alloc_hook().  However, in the !__GFP_COMP case, we
-essentially pass only hardcoded __GFP_MOVABLE to post_alloc_hook(),
-preventing some action modifiers from being effective..
+alloc_contig_pages()->alloc_contig_range() now supports __GFP_ZERO, so
+let's use that instead to resolve our TODO.
 
-Let's pass our now properly adjusted gfp flags there as well.
-
-This way, we can now support __GFP_ZERO for alloc_contig_*().
-
-As a side effect, we now also support __GFP_SKIP_ZERO and__GFP_ZEROTAGS;
-but we'll keep the more special stuff (KASAN, NOLOCKDEP) disabled for now.
-
-It's worth noting that with __GFP_ZERO, we might unnecessarily zero pages
-when we have to release part of our range using free_contig_range() again.
-This can be optimized in the future, if ever required; the caller we'll
-be converting (powernv/memtrace) next won't trigger this.
-
-Link: https://lkml.kernel.org/r/20241203094732.200195-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20241203094732.200195-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -93,48 +79,62 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/powerpc/platforms/powernv/memtrace.c |   31 +++-----------------
+ 1 file changed, 6 insertions(+), 25 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook
-+++ a/mm/page_alloc.c
-@@ -6358,7 +6358,7 @@ static int __alloc_contig_migrate_range(
- 	return (ret < 0) ? ret : 0;
+--- a/arch/powerpc/platforms/powernv/memtrace.c~powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages
++++ a/arch/powerpc/platforms/powernv/memtrace.c
+@@ -88,26 +88,6 @@ static void flush_dcache_range_chunked(u
+ 	}
  }
  
--static void split_free_pages(struct list_head *list)
-+static void split_free_pages(struct list_head *list, gfp_t gfp_mask)
+-static void memtrace_clear_range(unsigned long start_pfn,
+-				 unsigned long nr_pages)
+-{
+-	unsigned long pfn;
+-
+-	/* As HIGHMEM does not apply, use clear_page() directly. */
+-	for (pfn = start_pfn; pfn < start_pfn + nr_pages; pfn++) {
+-		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
+-			cond_resched();
+-		clear_page(__va(PFN_PHYS(pfn)));
+-	}
+-	/*
+-	 * Before we go ahead and use this range as cache inhibited range
+-	 * flush the cache.
+-	 */
+-	flush_dcache_range_chunked((unsigned long)pfn_to_kaddr(start_pfn),
+-				   (unsigned long)pfn_to_kaddr(start_pfn + nr_pages),
+-				   FLUSH_CHUNK_SIZE);
+-}
+-
+ static u64 memtrace_alloc_node(u32 nid, u64 size)
  {
- 	int order;
- 
-@@ -6369,7 +6369,7 @@ static void split_free_pages(struct list
- 		list_for_each_entry_safe(page, next, &list[order], lru) {
- 			int i;
- 
--			post_alloc_hook(page, order, __GFP_MOVABLE);
-+			post_alloc_hook(page, order, gfp_mask);
- 			set_page_refcounted(page);
- 			if (!order)
- 				continue;
-@@ -6387,7 +6387,8 @@ static void split_free_pages(struct list
- static int __alloc_contig_verify_gfp_mask(gfp_t gfp_mask, gfp_t *gfp_cc_mask)
- {
- 	const gfp_t reclaim_mask = __GFP_IO | __GFP_FS | __GFP_RECLAIM;
--	const gfp_t action_mask = __GFP_COMP | __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
-+	const gfp_t action_mask = __GFP_COMP | __GFP_RETRY_MAYFAIL | __GFP_NOWARN |
-+				  __GFP_ZERO | __GFP_ZEROTAGS | __GFP_SKIP_ZERO;
- 	const gfp_t cc_action_mask = __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
+ 	const unsigned long nr_pages = PHYS_PFN(size);
+@@ -119,17 +99,18 @@ static u64 memtrace_alloc_node(u32 nid,
+ 	 * by alloc_contig_pages().
+ 	 */
+ 	page = alloc_contig_pages(nr_pages, GFP_KERNEL | __GFP_THISNODE |
+-				  __GFP_NOWARN, nid, NULL);
++				  __GFP_NOWARN | __GFP_ZERO, nid, NULL);
+ 	if (!page)
+ 		return 0;
+ 	start_pfn = page_to_pfn(page);
  
  	/*
-@@ -6535,7 +6536,7 @@ int alloc_contig_range_noprof(unsigned l
- 	}
+-	 * Clear the range while we still have a linear mapping.
+-	 *
+-	 * TODO: use __GFP_ZERO with alloc_contig_pages() once supported.
++	 * Before we go ahead and use this range as cache inhibited range
++	 * flush the cache.
+ 	 */
+-	memtrace_clear_range(start_pfn, nr_pages);
++	flush_dcache_range_chunked((unsigned long)pfn_to_kaddr(start_pfn),
++				   (unsigned long)pfn_to_kaddr(start_pfn + nr_pages),
++				   FLUSH_CHUNK_SIZE);
  
- 	if (!(gfp_mask & __GFP_COMP)) {
--		split_free_pages(cc.freepages);
-+		split_free_pages(cc.freepages, gfp_mask);
- 
- 		/* Free head and tail (if any) */
- 		if (start != outer_start)
+ 	/*
+ 	 * Set pages PageOffline(), to indicate that nobody (e.g., hibernation,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
