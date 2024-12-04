@@ -1,206 +1,389 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557681FC7CC
-	for <mm-commits@vger.kernel.org>; Mon,  2 Dec 2024 10:08:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A30A6623
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 00:40:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733134093; cv=none; b=T8TR+ut3AA56+pTFQcNmkw9noLISn0gGUCCsKQHTM9X6VxquP4RufuGcNOp2sUo1YzmzjbFAxDjVcUyCB1FbMIhrDl6cxe84JrQg+eV3sTER/Qm7NThuPL8io3uuqhs/uKW7Ml99ioyes+IZFI9KqJMuYcGiscDAHdP2rPjfP1o=
+	t=1733272823; cv=none; b=WDxVb76RGGBmvEbUsRtfvLgPzd1+zLDEhIdNPd+NEZEyhAPfFouW0cW/ygSn30t0F6WzI9d1nfuTXTJ7rxtfB54bw/QqoYt26g9n4+rbiCIjN18gk5y6hzaPNgIHct5ssMpG33yL8MUCfhK7rT5uS4Wz1of1XKcYN5vaMEtGS9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733134093; c=relaxed/simple;
-	bh=OIVmsmNdrXDToCpTmqXyErNo64y8yJSsaI+V3a8WvM4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kvESuTqcoM79Kv/xUzGyr7oQ+VHhzDzpJrK7pXznJRU17bEO/OzpcN8vRSFau7d8OIzPACQgNhQ7Kgrnn27g5bKSckrmUODYMp1+6TJKA7Ey9cIqEO23IceKyA7eJO+Yf11fDf1/wdmCCtNULLNHFiVZEzSoLETPJF9uxTwI3j8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YtSihXAe; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1733272823; c=relaxed/simple;
+	bh=fhoDmUYKyuG5Hbqr02vI91lJk2JkwL5gpogfbV6S7fM=;
+	h=Date:To:From:Subject:Message-Id; b=JApFiS2U0lwDff7sUrkGPQjS+WN5Q0lVz4jrAGoOdNogTecRsb2tLco2l9bcahznOOFz10fIY22KcHaFKVOYCPOxY8eu6xaIGx+7VXevDRwb+WbsssvWcOGtfDkUYeJ7vR7fYB/Cdc5mIKyX5h1Fr8HdhtTNiJgul+S4BVq824Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cl0jK56D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YtSihXAe"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-724ec3ac5d0so469782b3a.2
-        for <mm-commits@vger.kernel.org>; Mon, 02 Dec 2024 02:08:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1733134091; x=1733738891; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=881KZZtbfFrnEb9pOVwYlsr1JylZL3RqaadC+W0OuLk=;
-        b=YtSihXAepbaRQgS2vIj/Af/BHiWW/3NPjaRPjLpBuQDIBDerSWySHopq0bt/ptV9Da
-         0/YdCL9tlhSzmwpnkkWiPAMCnMM8f7b5i3hwBJGvNjzmnTevMgQYe898nzYzXuuIUBim
-         IHl99/PGSrsPRRJFWxuErSe7Aua5GeAHUtLhQFlsYKU+gHXft5qPOCFDXbVQ5131EOES
-         BYGNINlO6dL+BG+QeTGLCwwhtyAhQH+maoVY7tfnu6FFGZuI8ABkrMNzuT9OxO+E070I
-         jkumUDfOaWZ6JypeYg34wskuomPRdmu/JtL+/+8hETjvHiGJyKyK44AfP7NWe6jR+CFq
-         y7qg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733134091; x=1733738891;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=881KZZtbfFrnEb9pOVwYlsr1JylZL3RqaadC+W0OuLk=;
-        b=rhxguU2tpvYLxKqeuG+qYaHwLpxTX/Hkf9NpNGatTQBloVfxLRbMyLTk71AVfqjN+5
-         dep4sGO7jkW7x6/chIEkM6jUuPKdlTS0QOFRhLhVmCZq3j6l/LWTOxIimfuY5vq98IOV
-         /48tnxt010JeAViyuOdj1JZCwOksSeIg8qPQRykoFhyUAfVyXkL7rlA4AVbzVq3eZANt
-         T19DPVP8Xl1EXsWqBUUgP1AiDbPWNvSg1J1JUSn5m+RjYloutgb6skKJh4S75onsfyrw
-         L+jsondsinNfxrnAeHdM8bsyVn86sLDKUM2Ljuki7U8oXQjIU70Hz/Pu7kZdfzB+zgdy
-         sgpA==
-X-Forwarded-Encrypted: i=1; AJvYcCWSNv4WjOVELr0Gx9LbakM86LdqaDxmlQXu7lSA8mN3EMBlfiMDcw3UxUw6cf24RcVEmJcglftse2Ae@vger.kernel.org
-X-Gm-Message-State: AOJu0YyqZOXnBlshWl6ruYjJO+ODyFD9WVTJHtWMvRMKkEFYbB0Qx6mc
-	ebE8HzhXsNeN1voPCombn8FUq2Ir0qTiS4BfaXcpqKiaSam4S1Z4
-X-Gm-Gg: ASbGncvYUgvrCfdj5ZAxRdbAPdcROJnqK9mtbBADAn6JXhyhR7zqirAepqCTiG3Kep2
-	g8UtvvgZpFhKgX9Zq0VMg3GPl0fMwD7Hv6FtCtkDy9ld4p33S5y/HYw47Q+JAG2rh9GC7W+zJFW
-	+LLVAuFHPYVyg7kfOEC9r3BZ4DUxDFiq9oYe0VVHcXh7YuCsso2e2r+A3T7nqtUz5rwX8y6l+yH
-	fh+8t2jdEG4I34LG8tKEKx31+Fh1abIs8eA/ERoH840+om+BLFE6w==
-X-Google-Smtp-Source: AGHT+IHg4Vc/NjL9tOUPHkK/jOoRrdyN6dNGIBhSyPiwuj+dwkzqq4SwVo4Z0DxjtDTiQhh1fpELNg==
-X-Received: by 2002:a17:90a:e7d2:b0:2ee:713d:f529 with SMTP id 98e67ed59e1d1-2ee713df76amr5657948a91.6.1733134091480;
-        Mon, 02 Dec 2024 02:08:11 -0800 (PST)
-Received: from x1k.com ([175.42.19.220])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2eeaef494fcsm2338315a91.43.2024.12.02.02.08.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Dec 2024 02:08:11 -0800 (PST)
-From: caiqingfu <baicaiaichibaicai@gmail.com>
-To: senozhatsky@chromium.org
-Cc: akpm@linux-foundation.org,
-	baicaiaichibaicai@gmail.com,
-	caiqingfu@ruijie.com.cn,
-	minchan@kernel.org,
-	mm-commits@vger.kernel.org
-Subject: [PATCH] zram: panic when use ext4 over zram
-Date: Mon,  2 Dec 2024 18:07:53 +0800
-Message-Id: <20241202100753.139305-1-baicaiaichibaicai@gmail.com>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20241130053247.GH10431@google.com>
-References: <20241130053247.GH10431@google.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cl0jK56D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFA2C4CEDC;
+	Wed,  4 Dec 2024 00:40:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1733272823;
+	bh=fhoDmUYKyuG5Hbqr02vI91lJk2JkwL5gpogfbV6S7fM=;
+	h=Date:To:From:Subject:From;
+	b=Cl0jK56DlemlojBsRDyihbrdsUUGT9ekXTwp7yZMcP6MVKZn8xM8C9xIsdjxuaNN+
+	 FRMzNGmRLJ8dV4ZNs6rSvQF5HRr/XOGpDpT6O21fA8BVBYfXh2s/jWVlohhD59qbTo
+	 jPRe+hVjcAfC39rIKWdAxHo+bg+WJ/QkM1xj8nkw=
+Date: Tue, 03 Dec 2024 16:40:22 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,Liam.Howlett@Oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vma-move-brk-internals-to-mm-vmac.patch added to mm-unstable branch
+Message-Id: <20241204004023.1FFA2C4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-
-> What's your use-case, what apps you run and what data is stored
-> on zram disk?
-
-The steps to reproduce are as follows:
-
-1. force slow path,then re-build kernel
-
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index 0ca6d55c9917..29ac52a4f2e7 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -1683,12 +1683,14 @@ static int zram_write_page(struct zram *zram, struct page *page, u32 index)
-         * if we have a 'non-null' handle here then we are coming
-         * from the slow path and handle has already been allocated.
-         */
-+    /*
-        if (IS_ERR_VALUE(handle))
-                handle = zs_malloc(zram->mem_pool, comp_len,
-                                __GFP_KSWAPD_RECLAIM |
-                                __GFP_NOWARN |
-                                __GFP_HIGHMEM |
-                                __GFP_MOVABLE);
-+        */
-        if (IS_ERR_VALUE(handle)) {
-                zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-                atomic64_inc(&zram->stats.writestall);
-
-2. create an arm64 virtual machine
-
-qemu-system-aarch64 -M virt -cpu cortex-a57 -smp 4 -m 1024 -kernel kernel-build/arch/arm64/boot/Image \ 
-    -nographic -append "console=ttyAMA0,115200 root=/dev/vda rw" \ 
-    -drive file=$(IMGFILE),format=raw -nic user,hostfwd=tcp::60022-:22
-
-3. after the virtual machine is started, create zram
-
-cat /sys/class/zram-control/hot_add
-echo 524288000 > /sys/devices/virtual/block/zram0/disksize
-echo 524288000 > /sys/devices/virtual/block/zram1/disksize
-mkfs.ext4 -O ^has_journal -b 4096 -F -L TEMP -m 0 /dev/zram0
-mkdir /tmp/zram
-mount -t ext4 -o errors=continue,nosuid,nodev,noatime /dev/zram0 /tmp/zram
-mkswap /dev/zram1
-swapon /dev/zram1
-echo 100 > /proc/sys/vm/swappiness
-mkdir -p /tmp/zram/stressTest
 
 
-4. build demo app and run again and again
+The patch titled
+     Subject: mm/vma: move brk() internals to mm/vma.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-move-brk-internals-to-mm-vmac.patch
 
-demo app :
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-move-brk-internals-to-mm-vmac.patch
 
-#include <stdio.h>
-#include <sys/mman.h>
-#define _GNU_SOURCE
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <errno.h>
-#include <string.h>
-#include <syscall.h>
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-#define THREAD_NUM      400
-#define BUFF_SIZE       128*1024
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-const static char * basePath = "/tmp/zram/stressTest";
-static unsigned char buf[BUFF_SIZE];
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-void * cb(void * arg){
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-    char path[256];
-    unsigned int tid = (unsigned int)(syscall(SYS_gettid));
-    unsigned int start = ((unsigned int)random())%(BUFF_SIZE - 1);
-    unsigned int msleep = (((unsigned int)random())%10) * 1000;
-    void * p;
-    int i;
+------------------------------------------------------
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: move brk() internals to mm/vma.c
+Date: Tue, 3 Dec 2024 18:05:08 +0000
 
-    snprintf(path,sizeof(path) - 1,"%s/%u",basePath,tid);
+Patch series "mm/vma: make more mmap logic userland testable".
 
-    FILE * fp = fopen(path,"a");
+This series carries on the work the work started in previous series and
+continued in commit 52956b0d7fb9 ("mm: isolate mmap internal logic to
+mm/vma.c"), moving the remainder of memory mapping implementation details
+logic into mm/vma.c allowing the bulk of the mapping logic to be unit
+tested.
 
-    if (NULL == fp) {
-        fprintf(stderr,"%u open file '%s' failure '%s'...\n",tid,path,strerror(errno));
-        return NULL;
-    }
+It is highly useful to do so, as this means we can both fundamentally test
+this core logic, and introduce regression tests to ensure any issues
+previously resolved do not recur.
 
-    start = ((unsigned int)random())%(BUFF_SIZE - 1);
-    fwrite(&buf[start],1,BUFF_SIZE - start,fp);
-    fflush(fp);
-    fclose(fp);
-    sync();
-    usleep(msleep);
+Vitally, this includes the do_brk_flags() function, meaning we have both
+core means of userland mapping memory now testable.
 
-    return NULL;
-}
+Performance testing was performed after this change given the brk() system
+call's sensitivity to change, and no performance regression was observed.
 
-int main(int argc, char *argv[]) {
-
-    pthread_t pid[THREAD_NUM];
-    int i;
-
-    fprintf(stderr,"build @ %s\n",__TIME__);
-
-    FILE * fp = fopen("/dev/urandom","ro");
-    fread(buf,BUFF_SIZE,1,fp);
-    fclose(fp);
-
-    fprintf(stderr,"read urandom size '%d'\n",BUFF_SIZE);
-    srandom((unsigned)time(NULL));
-
-    for (i = 0;i < THREAD_NUM;i++) {
-        pthread_create(&pid[i],NULL,cb,NULL);
-    }
-
-    fprintf(stderr,"create over\n");
-
-    for (i = 0;i < THREAD_NUM;i++) {
-        pthread_join(pid[i],NULL);
-    }
-
-    return 0;
-}
+The stack expansion logic is also moved into mm/vma.c, which necessitates
+a change in the API exposed to the exec code, removing the invocation of
+the expand_downwards() function used in get_arg_page() and instead adding
+mmap_read_lock_maybe_expand() to wrap this.
 
 
-run it
+This patch (of 5):
 
-while true;do rm /tmp/zram_vsd/stressTest/* &> /dev/null;./a.out &> /dev/null ;echo again...;done
+Now we have moved mmap_region() internals to mm/vma.c, making it available
+to userland testing, it makes sense to do the same with brk().
+
+This continues the pattern of VMA heavy lifting being done in mm/vma.c in
+an environment where it can be subject to straightforward unit and
+regression testing, with other VMA-adjacent files becoming wrappers around
+this functionality.
+
+Link: https://lkml.kernel.org/r/cover.1733248985.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/3d24b9e67bb0261539ca921d1188a10a1b4d4357.1733248985.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/mmap.c                        |   85 -----------------------------
+ mm/vma.c                         |   82 +++++++++++++++++++++++++++
+ mm/vma.h                         |    3 +
+ tools/testing/vma/vma_internal.h |   22 +++++++
+ 4 files changed, 108 insertions(+), 84 deletions(-)
+
+--- a/mm/mmap.c~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/mmap.c
+@@ -111,8 +111,7 @@ static int check_brk_limits(unsigned lon
+ 	return mlock_future_ok(current->mm, current->mm->def_flags, len)
+ 		? 0 : -EAGAIN;
+ }
+-static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
+-		unsigned long addr, unsigned long request, unsigned long flags);
++
+ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ {
+ 	unsigned long newbrk, oldbrk, origbrk;
+@@ -1512,88 +1511,6 @@ out:
+ 	return ret;
+ }
+ 
+-/*
+- * do_brk_flags() - Increase the brk vma if the flags match.
+- * @vmi: The vma iterator
+- * @addr: The start address
+- * @len: The length of the increase
+- * @vma: The vma,
+- * @flags: The VMA Flags
+- *
+- * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
+- * do not match then create a new anonymous VMA.  Eventually we may be able to
+- * do some brk-specific accounting here.
+- */
+-static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long len, unsigned long flags)
+-{
+-	struct mm_struct *mm = current->mm;
+-
+-	/*
+-	 * Check against address space limits by the changed size
+-	 * Note: This happens *after* clearing old mappings in some code paths.
+-	 */
+-	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
+-	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
+-		return -ENOMEM;
+-
+-	if (mm->map_count > sysctl_max_map_count)
+-		return -ENOMEM;
+-
+-	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
+-		return -ENOMEM;
+-
+-	/*
+-	 * Expand the existing vma if possible; Note that singular lists do not
+-	 * occur after forking, so the expand will only happen on new VMAs.
+-	 */
+-	if (vma && vma->vm_end == addr) {
+-		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
+-
+-		vmg.prev = vma;
+-		/* vmi is positioned at prev, which this mode expects. */
+-		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
+-
+-		if (vma_merge_new_range(&vmg))
+-			goto out;
+-		else if (vmg_nomem(&vmg))
+-			goto unacct_fail;
+-	}
+-
+-	if (vma)
+-		vma_iter_next_range(vmi);
+-	/* create a vma struct for an anonymous mapping */
+-	vma = vm_area_alloc(mm);
+-	if (!vma)
+-		goto unacct_fail;
+-
+-	vma_set_anonymous(vma);
+-	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
+-	vm_flags_init(vma, flags);
+-	vma->vm_page_prot = vm_get_page_prot(flags);
+-	vma_start_write(vma);
+-	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
+-		goto mas_store_fail;
+-
+-	mm->map_count++;
+-	validate_mm(mm);
+-	ksm_add_vma(vma);
+-out:
+-	perf_event_mmap(vma);
+-	mm->total_vm += len >> PAGE_SHIFT;
+-	mm->data_vm += len >> PAGE_SHIFT;
+-	if (flags & VM_LOCKED)
+-		mm->locked_vm += (len >> PAGE_SHIFT);
+-	vm_flags_set(vma, VM_SOFTDIRTY);
+-	return 0;
+-
+-mas_store_fail:
+-	vm_area_free(vma);
+-unacct_fail:
+-	vm_unacct_memory(len >> PAGE_SHIFT);
+-	return -ENOMEM;
+-}
+-
+ int vm_brk_flags(unsigned long addr, unsigned long request, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+--- a/mm/vma.c~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/vma.c
+@@ -2478,3 +2478,85 @@ abort_munmap:
+ 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
+ 	return error;
+ }
++
++/*
++ * do_brk_flags() - Increase the brk vma if the flags match.
++ * @vmi: The vma iterator
++ * @addr: The start address
++ * @len: The length of the increase
++ * @vma: The vma,
++ * @flags: The VMA Flags
++ *
++ * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
++ * do not match then create a new anonymous VMA.  Eventually we may be able to
++ * do some brk-specific accounting here.
++ */
++int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		 unsigned long addr, unsigned long len, unsigned long flags)
++{
++	struct mm_struct *mm = current->mm;
++
++	/*
++	 * Check against address space limits by the changed size
++	 * Note: This happens *after* clearing old mappings in some code paths.
++	 */
++	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
++	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
++		return -ENOMEM;
++
++	if (mm->map_count > sysctl_max_map_count)
++		return -ENOMEM;
++
++	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
++		return -ENOMEM;
++
++	/*
++	 * Expand the existing vma if possible; Note that singular lists do not
++	 * occur after forking, so the expand will only happen on new VMAs.
++	 */
++	if (vma && vma->vm_end == addr) {
++		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
++
++		vmg.prev = vma;
++		/* vmi is positioned at prev, which this mode expects. */
++		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
++
++		if (vma_merge_new_range(&vmg))
++			goto out;
++		else if (vmg_nomem(&vmg))
++			goto unacct_fail;
++	}
++
++	if (vma)
++		vma_iter_next_range(vmi);
++	/* create a vma struct for an anonymous mapping */
++	vma = vm_area_alloc(mm);
++	if (!vma)
++		goto unacct_fail;
++
++	vma_set_anonymous(vma);
++	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
++	vm_flags_init(vma, flags);
++	vma->vm_page_prot = vm_get_page_prot(flags);
++	vma_start_write(vma);
++	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
++		goto mas_store_fail;
++
++	mm->map_count++;
++	validate_mm(mm);
++	ksm_add_vma(vma);
++out:
++	perf_event_mmap(vma);
++	mm->total_vm += len >> PAGE_SHIFT;
++	mm->data_vm += len >> PAGE_SHIFT;
++	if (flags & VM_LOCKED)
++		mm->locked_vm += (len >> PAGE_SHIFT);
++	vm_flags_set(vma, VM_SOFTDIRTY);
++	return 0;
++
++mas_store_fail:
++	vm_area_free(vma);
++unacct_fail:
++	vm_unacct_memory(len >> PAGE_SHIFT);
++	return -ENOMEM;
++}
+--- a/mm/vma.h~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/vma.h
+@@ -247,6 +247,9 @@ unsigned long __mmap_region(struct file
+ 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+ 		struct list_head *uf);
+ 
++int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
++		 unsigned long addr, unsigned long request, unsigned long flags);
++
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
+ 	/*
+--- a/tools/testing/vma/vma_internal.h~mm-vma-move-brk-internals-to-mm-vmac
++++ a/tools/testing/vma/vma_internal.h
+@@ -39,6 +39,7 @@
+ #define VM_SHARED	0x00000008
+ #define VM_MAYREAD	0x00000010
+ #define VM_MAYWRITE	0x00000020
++#define VM_MAYEXEC	0x00000040
+ #define VM_GROWSDOWN	0x00000100
+ #define VM_PFNMAP	0x00000400
+ #define VM_LOCKED	0x00002000
+@@ -58,6 +59,13 @@
+ /* This mask represents all the VMA flag bits used by mlock */
+ #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+ 
++#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
++
++#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
++
+ #ifdef CONFIG_64BIT
+ /* VM is sealed, in vm_flags */
+ #define VM_SEALED	_BITUL(63)
+@@ -122,10 +130,22 @@ enum {
+ 	TASK_COMM_LEN = 16,
+ };
+ 
++/*
++ * Flags for bug emulation.
++ *
++ * These occupy the top three bytes.
++ */
++enum {
++	READ_IMPLIES_EXEC =	0x0400000,
++};
++
+ struct task_struct {
+ 	char comm[TASK_COMM_LEN];
+ 	pid_t pid;
+ 	struct mm_struct *mm;
++
++	/* Used for emulating ABI behavior of previous Linux versions: */
++	unsigned int			personality;
+ };
+ 
+ struct task_struct *get_current(void);
+@@ -186,6 +206,8 @@ struct mm_struct {
+ 	unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
+ 	unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
+ 	unsigned long stack_vm;	   /* VM_STACK */
++
++	unsigned long def_flags;
+ };
+ 
+ struct vma_lock {
+_
+
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+
+mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
+selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
+mm-correct-typo-in-mmap_state-macro.patch
+docs-mm-add-vma-locks-documentation.patch
+mm-vma-move-brk-internals-to-mm-vmac.patch
+mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
+mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
+mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
+mm-vma-move-__vm_munmap-to-mm-vmac.patch
+
