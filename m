@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E93A42500BA
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:10:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A82191F9B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 21:42:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733274604; cv=none; b=s73yEFtutem5zsM4a099u16Hl03szFDkH8goyB0PJRGJfYPEjzBxR9ydZiocTrPIH//HUhLLH+SwyP8NBOTs10+kcCoxtBk986+AjcCqFa1vWThqDoZTicL14ad7b2mz5pOs+FDoTI3Tw+YGGCc/A0yAKikrYc4rnlp3ArAp9TY=
+	t=1733348576; cv=none; b=nyB9uMv/Xj1rvY/81gGL1dggIRXlFkgNw2uHbnqwb3slz6vw768c6zhbjvjdgf0AlOSgspTfKKj0BYPaTbpkb51aOyqk8zI0168Hshbec4GXM2zvKoI6F5dChUv1STpyfJRxRAs/h3bvgaoewB7aGbPek+31D/cemEYAzv8lbKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733274604; c=relaxed/simple;
-	bh=S9uswz8dmo+o5b0FF0HbvkRgwju69Tlfj9VVlGv7Pb8=;
-	h=Date:To:From:Subject:Message-Id; b=vFXub/i9/QbYZgB/BRzvAQkafGluSWgCQiptRiJtGVRRMVSFcEIxNqGHKdE9zOKy0tYrogrs8AI3Kmd9SL/LL1J+WOjXjqUkasfCluvwZ1i+VqX+OmorC+T1zgvL+GBmDbxgRJ31QrC4NB2Gkrt0rSRQ2xvssfUMBQQAkezalbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lh6zleYI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733348576; c=relaxed/simple;
+	bh=7bTMh63MMQxgVJQ0ewzcYr1/U82uVS4opEZ1XREZhts=;
+	h=Date:To:From:Subject:Message-Id; b=PNsV1slRSEhOZZXyHs5o8y2AbfYxNEv6fc7qsa06LLonfZzDmTWnGKFClqNy20DLTIJIK2fWSdH3S1RLdS9k1z5kQCpbr00dV3naXZnwuo667I37ImWSfWEJgyqOo2TIXxBTk7J/1AHRg4vgCbfcQTHMXPkfywWfaMcG0pCJkRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=reAcY/3N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lh6zleYI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4827DC4CEDC;
-	Wed,  4 Dec 2024 01:10:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="reAcY/3N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33FC8C4CECD;
+	Wed,  4 Dec 2024 21:42:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733274603;
-	bh=S9uswz8dmo+o5b0FF0HbvkRgwju69Tlfj9VVlGv7Pb8=;
+	s=korg; t=1733348575;
+	bh=7bTMh63MMQxgVJQ0ewzcYr1/U82uVS4opEZ1XREZhts=;
 	h=Date:To:From:Subject:From;
-	b=Lh6zleYIQvSmqEYRQ5xBGXEW6Em1hjPMYfqM7haIuwAhJh4TRtkyaaiFPLTrMkIl7
-	 SIfhhzyyg9SoV51aswPRR3NLrm+ral1cvn3g0JWp251n2m3MhdmMCuc2AmPCagZtaF
-	 jRiKdlKKumHoJGLikiuniyUS3W+BQaFU7TVke/QE=
-Date: Tue, 03 Dec 2024 17:10:02 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=reAcY/3NErQ43LWLxTjlekx2gdvVBQcoHSpp3RvYGft3RL7uFidQmICNsYXJv08PB
+	 oXWipjYN5+ty/P8ZdW+mzVUUQjravQkDDDIqagTOZvgoNneU4USSr3R43G5vhUo+fh
+	 f54MAWWFFbpjUSX/wwc9sD9h80fEv2u07hrj1dSI=
+Date: Wed, 04 Dec 2024 13:42:54 -0800
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,jhubbard@nvidia.com,jgg@nvidia.com,ehagberg@janestreet.com,david@redhat.com,guillaume@morinfr.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-add-delay-max-to-record-delay-peak.patch added to mm-nonmm-unstable branch
-Message-Id: <20241204011003.4827DC4CEDC@smtp.kernel.org>
+Subject: + mm-hugetlb-support-foll_forcefoll_write.patch added to mm-unstable branch
+Message-Id: <20241204214255.33FC8C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: add delay max to record delay peak
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-add-delay-max-to-record-delay-peak.patch
+     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-support-foll_forcefoll_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-max-to-record-delay-peak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-support-foll_forcefoll_write.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,437 +58,231 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delayacct: add delay max to record delay peak
-Date: Tue, 3 Dec 2024 16:48:48 +0800 (CST)
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+Date: Wed, 4 Dec 2024 21:18:23 +0100
 
-Introduce the use cases of delay max, which can help quickly detect
-potential abnormal delays in the system and record the types and specific
-details of delay spikes.
+Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
+mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
+support write-faults in shared mappings"), PTRACE_POKETEXT worked by
+accident, but it was buggy and silently ended up mapping pages writable
+into the page tables even though VM_WRITE was not set.
 
-Problem
-========
-Delay accounting can track the average delay of processes to show
-system workload. However, when a process experiences a significant
-delay, maybe a delay spike, which adversely affects performance,
-getdelays can only display the average system delay over a period
-of time. Yet, average delay is unhelpful for diagnosing delay peak.
-It is not even possible to determine which type of delay has spiked,
-as this information might be masked by the average delay.
+In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
+Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
+used to work in the past by accident now properly works, allowing
+applications using hugetlb for text etc.  to get properly debugged.
 
-Solution
-=========
-the 'delay max' can display delay peak since the system's startup,
-which can record potential abnormal delays over time, including
-the type of delay and the maximum delay. This is helpful for
-quickly identifying crash caused by delay.
+This change might also be required to implement uprobes support for
+hugetlb [1].
 
-Use case
-=========
-bash# ./getdelays -d -p 244
-print delayacct stats ON
-PID     244
+[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
 
-CPU             count     real total  virtual total    delay total  delay average      delay max
-                   68      192000000      213676651         705643          0.010ms     0.306381ms
-IO              count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-SWAP            count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-RECLAIM         count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-THRASHING       count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-COMPACT         count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-WPCOPY          count    delay total  delay average      delay max
-                  235       15648284          0.067ms     0.263842ms
-IRQ             count    delay total  delay average      delay max
-                    0              0          0.000ms     0.000000ms
-
-Link: https://lkml.kernel.org/r/20241203164848805CS62CQPQWG9GLdQj2_BxS@zte.com.cn
-Co-developed-by: Wang Yong <wang.yong12@zte.com.cn>
-Signed-off-by: Wang Yong <wang.yong12@zte.com.cn>
-Co-developed-by: xu xin <xu.xin16@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Co-developed-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: https://lkml.kernel.org/r/Z1C5D1D3NJFnADPz@bender.morinfr.org
+Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: tuqiang <tu.qiang35@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+Cc: Eric Hagberg <ehagberg@janestreet.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h      |    7 +++
- include/linux/sched.h          |    3 +
- include/uapi/linux/taskstats.h |    9 ++++
- kernel/delayacct.c             |   35 +++++++++++++-----
- kernel/sched/stats.h           |    5 ++
- tools/accounting/getdelays.c   |   59 +++++++++++++++++--------------
- 6 files changed, 83 insertions(+), 35 deletions(-)
+ mm/gup.c     |   93 ++++++++++++++++++++++++-------------------------
+ mm/hugetlb.c |   20 +++++-----
+ 2 files changed, 58 insertions(+), 55 deletions(-)
 
---- a/include/linux/delayacct.h~delayacct-add-delay-max-to-record-delay-peak
-+++ a/include/linux/delayacct.h
-@@ -29,25 +29,32 @@ struct task_delay_info {
- 	 * XXX_delay contains the accumulated delay time in nanoseconds.
- 	 */
- 	u64 blkio_start;
-+	u64 blkio_delay_max;
- 	u64 blkio_delay;	/* wait for sync block io completion */
- 	u64 swapin_start;
-+	u64 swapin_delay_max;
- 	u64 swapin_delay;	/* wait for swapin */
- 	u32 blkio_count;	/* total count of the number of sync block */
- 				/* io operations performed */
- 	u32 swapin_count;	/* total count of swapin */
+--- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/gup.c
+@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
+ }
+ #endif	/* CONFIG_HAVE_GUP_FAST */
  
- 	u64 freepages_start;
-+	u64 freepages_delay_max;
- 	u64 freepages_delay;	/* wait for memory reclaim */
- 
- 	u64 thrashing_start;
-+	u64 thrashing_delay_max;
- 	u64 thrashing_delay;	/* wait for thrashing page */
- 
- 	u64 compact_start;
-+	u64 compact_delay_max;
- 	u64 compact_delay;	/* wait for memory compact */
- 
- 	u64 wpcopy_start;
-+	u64 wpcopy_delay_max;
- 	u64 wpcopy_delay;	/* wait for write-protect copy */
- 
-+	u64 irq_delay_max;
- 	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
- 
- 	u32 freepages_count;	/* total count of memory reclaim */
---- a/include/linux/sched.h~delayacct-add-delay-max-to-record-delay-peak
-+++ a/include/linux/sched.h
-@@ -398,6 +398,9 @@ struct sched_info {
- 	/* Time spent waiting on a runqueue: */
- 	unsigned long long		run_delay;
- 
-+	/* Max time spent waiting on a runqueue: */
-+	unsigned long long		max_run_delay;
++/* Common code for can_follow_write_* */
++static inline bool can_follow_write_common(struct page *page,
++		struct vm_area_struct *vma, unsigned int flags)
++{
++	/* Maybe FOLL_FORCE is set to override it? */
++	if (!(flags & FOLL_FORCE))
++		return false;
 +
- 	/* Timestamps: */
- 
- 	/* When did we last run on a CPU? */
---- a/include/uapi/linux/taskstats.h~delayacct-add-delay-max-to-record-delay-peak
-+++ a/include/uapi/linux/taskstats.h
-@@ -72,6 +72,7 @@ struct taskstats {
- 	 */
- 	__u64	cpu_count __attribute__((aligned(8)));
- 	__u64	cpu_delay_total;
-+	__u64	cpu_delay_max;
- 
- 	/* Following four fields atomically updated using task->delays->lock */
- 
-@@ -80,10 +81,12 @@ struct taskstats {
- 	 */
- 	__u64	blkio_count;
- 	__u64	blkio_delay_total;
-+	__u64	blkio_delay_max;
- 
- 	/* Delay waiting for page fault I/O (swap in only) */
- 	__u64	swapin_count;
- 	__u64	swapin_delay_total;
-+	__u64	swapin_delay_max;
- 
- 	/* cpu "wall-clock" running time
- 	 * On some architectures, value will adjust for cpu time stolen
-@@ -166,10 +169,12 @@ struct taskstats {
- 	/* Delay waiting for memory reclaim */
- 	__u64	freepages_count;
- 	__u64	freepages_delay_total;
-+	__u64	freepages_delay_max;
- 
- 	/* Delay waiting for thrashing page */
- 	__u64	thrashing_count;
- 	__u64	thrashing_delay_total;
-+	__u64	thrashing_delay_max;
- 
- 	/* v10: 64-bit btime to avoid overflow */
- 	__u64	ac_btime64;		/* 64-bit begin time */
-@@ -177,6 +182,7 @@ struct taskstats {
- 	/* v11: Delay waiting for memory compact */
- 	__u64	compact_count;
- 	__u64	compact_delay_total;
-+	__u64	compact_delay_max;
- 
- 	/* v12 begin */
- 	__u32   ac_tgid;	/* thread group ID */
-@@ -198,10 +204,13 @@ struct taskstats {
- 	/* v13: Delay waiting for write-protect copy */
- 	__u64    wpcopy_count;
- 	__u64    wpcopy_delay_total;
-+	__u64    wpcopy_delay_max;
- 
- 	/* v14: Delay waiting for IRQ/SOFTIRQ */
- 	__u64    irq_count;
- 	__u64    irq_delay_total;
-+	__u64    irq_delay_max;
-+	/* v15: add Delay max */
- };
- 
- 
---- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak
-+++ a/kernel/delayacct.c
-@@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
-  * Finish delay accounting for a statistic using its timestamps (@start),
-  * accumalator (@total) and @count
-  */
--static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count)
-+static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
++	/* But FOLL_FORCE has no effect on shared mappings */
++	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
++		return false;
++
++	/* ... or read-only private ones */
++	if (!(vma->vm_flags & VM_MAYWRITE))
++		return false;
++
++	/* ... or already writable ones that just need to take a write fault */
++	if (vma->vm_flags & VM_WRITE)
++		return false;
++
++	/*
++	 * See can_change_pte_writable(): we broke COW and could map the page
++	 * writable if we have an exclusive anonymous page ...
++	 */
++	return page && PageAnon(page) && PageAnonExclusive(page);
++}
++
+ static struct page *no_page_table(struct vm_area_struct *vma,
+ 				  unsigned int flags, unsigned long address)
  {
- 	s64 ns = local_clock() - *start;
- 	unsigned long flags;
-@@ -104,6 +104,8 @@ static void delayacct_end(raw_spinlock_t
- 		raw_spin_lock_irqsave(lock, flags);
- 		*total += ns;
- 		(*count)++;
-+		if (ns > *max)
-+			*max = ns;
- 		raw_spin_unlock_irqrestore(lock, flags);
- 	}
- }
-@@ -122,7 +124,8 @@ void __delayacct_blkio_end(struct task_s
- 	delayacct_end(&p->delays->lock,
- 		      &p->delays->blkio_start,
- 		      &p->delays->blkio_delay,
--		      &p->delays->blkio_count);
-+		      &p->delays->blkio_count,
-+		      &p->delays->blkio_delay_max);
+@@ -622,6 +649,22 @@ static struct page *no_page_table(struct
  }
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -153,10 +156,11 @@ int delayacct_add_tsk(struct taskstats *
- 
- 	d->cpu_count += t1;
- 
-+	d->cpu_delay_max = tsk->sched_info.max_run_delay;
- 	tmp = (s64)d->cpu_delay_total + t2;
- 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
--
- 	tmp = (s64)d->cpu_run_virtual_total + t3;
+ #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
++/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
++static inline bool can_follow_write_pud(pud_t pud, struct page *page,
++					struct vm_area_struct *vma,
++					unsigned int flags)
++{
++	/* If the pud is writable, we can write to the page. */
++	if (pud_write(pud))
++		return true;
 +
- 	d->cpu_run_virtual_total =
- 		(tmp < (s64)d->cpu_run_virtual_total) ?	0 : tmp;
++	if (!can_follow_write_common(page, vma, flags))
++		return false;
++
++	/* ... and a write-fault isn't required for other reasons. */
++	return !vma_soft_dirty_enabled(vma) || pud_soft_dirty(pud);
++}
++
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+ 				    int flags, struct follow_page_context *ctx)
+@@ -634,7 +677,8 @@ static struct page *follow_huge_pud(stru
  
-@@ -164,20 +168,26 @@ int delayacct_add_tsk(struct taskstats *
+ 	assert_spin_locked(pud_lockptr(mm, pudp));
+ 
+-	if ((flags & FOLL_WRITE) && !pud_write(pud))
++	if ((flags & FOLL_WRITE) &&
++	    !can_follow_write_pud(pud, page, vma, flags))
+ 		return NULL;
+ 
+ 	if (!pud_present(pud))
+@@ -686,27 +730,7 @@ static inline bool can_follow_write_pmd(
+ 	if (pmd_write(pmd))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -807,27 +831,7 @@ static inline bool can_follow_write_pte(
+ 	if (pte_write(pte))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -1294,9 +1298,6 @@ static int check_vma_flags(struct vm_are
+ 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+ 				return -EFAULT;
+-			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
+-			if (is_vm_hugetlb_page(vma))
+-				return -EFAULT;
+ 			/*
+ 			 * We used to let the write,force case do COW in a
+ 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
+--- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/hugetlb.c
+@@ -5169,6 +5169,13 @@ static void set_huge_ptep_writable(struc
+ 		update_mmu_cache(vma, address, ptep);
+ }
+ 
++static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
++					 unsigned long address, pte_t *ptep)
++{
++	if (vma->vm_flags & VM_WRITE)
++		set_huge_ptep_writable(vma, address, ptep);
++}
++
+ bool is_hugetlb_entry_migration(pte_t pte)
+ {
+ 	swp_entry_t swp;
+@@ -5802,13 +5809,6 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	if (!unshare && huge_pte_uffd_wp(pte))
  		return 0;
  
- 	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
+-	/*
+-	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
+-	 * PTE mapped R/O such as maybe_mkwrite() would do.
+-	 */
+-	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
+-		return VM_FAULT_SIGSEGV;
 -
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
-+	d->blkio_delay_max = tsk->delays->blkio_delay_max;
- 	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;
- 	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
-+	d->swapin_delay_max = tsk->delays->swapin_delay_max;
- 	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
- 	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
-+	d->freepages_delay_max = tsk->delays->freepages_delay_max;
- 	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
- 	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
-+	d->thrashing_delay_max = tsk->delays->thrashing_delay_max;
- 	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
- 	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
-+	d->compact_delay_max = tsk->delays->compact_delay_max;
- 	tmp = d->compact_delay_total + tsk->delays->compact_delay;
- 	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
-+	d->wpcopy_delay_max = tsk->delays->wpcopy_delay_max;
- 	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
- 	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
-+	d->irq_delay_max = tsk->delays->irq_delay_max;
- 	tmp = d->irq_delay_total + tsk->delays->irq_delay;
- 	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
- 	d->blkio_count += tsk->delays->blkio_count;
-@@ -213,7 +223,8 @@ void __delayacct_freepages_end(void)
- 	delayacct_end(&current->delays->lock,
- 		      &current->delays->freepages_start,
- 		      &current->delays->freepages_delay,
--		      &current->delays->freepages_count);
-+		      &current->delays->freepages_count,
-+		      &current->delays->freepages_delay_max);
- }
+ 	/* Let's take out MAP_SHARED mappings first. */
+ 	if (vma->vm_flags & VM_MAYSHARE) {
+ 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
+@@ -5837,7 +5837,8 @@ retry_avoidcopy:
+ 			SetPageAnonExclusive(&old_folio->page);
+ 		}
+ 		if (likely(!unshare))
+-			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
++			set_huge_ptep_maybe_writable(vma, vmf->address,
++						     vmf->pte);
  
- void __delayacct_thrashing_start(bool *in_thrashing)
-@@ -235,7 +246,8 @@ void __delayacct_thrashing_end(bool *in_
- 	delayacct_end(&current->delays->lock,
- 		      &current->delays->thrashing_start,
- 		      &current->delays->thrashing_delay,
--		      &current->delays->thrashing_count);
-+		      &current->delays->thrashing_count,
-+		      &current->delays->thrashing_delay_max);
- }
+ 		delayacct_wpcopy_end();
+ 		return 0;
+@@ -5943,7 +5944,8 @@ retry_avoidcopy:
+ 	spin_lock(vmf->ptl);
+ 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
+ 	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
+-		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
++		const bool writable = !unshare && (vma->vm_flags & VM_WRITE);
++		pte_t newpte = make_huge_pte(vma, &new_folio->page, writable);
  
- void __delayacct_swapin_start(void)
-@@ -248,7 +260,8 @@ void __delayacct_swapin_end(void)
- 	delayacct_end(&current->delays->lock,
- 		      &current->delays->swapin_start,
- 		      &current->delays->swapin_delay,
--		      &current->delays->swapin_count);
-+		      &current->delays->swapin_count,
-+		      &current->delays->swapin_delay_max);
- }
- 
- void __delayacct_compact_start(void)
-@@ -261,7 +274,8 @@ void __delayacct_compact_end(void)
- 	delayacct_end(&current->delays->lock,
- 		      &current->delays->compact_start,
- 		      &current->delays->compact_delay,
--		      &current->delays->compact_count);
-+		      &current->delays->compact_count,
-+		      &current->delays->compact_delay_max);
- }
- 
- void __delayacct_wpcopy_start(void)
-@@ -274,7 +288,8 @@ void __delayacct_wpcopy_end(void)
- 	delayacct_end(&current->delays->lock,
- 		      &current->delays->wpcopy_start,
- 		      &current->delays->wpcopy_delay,
--		      &current->delays->wpcopy_count);
-+		      &current->delays->wpcopy_count,
-+		      &current->delays->wpcopy_delay_max);
- }
- 
- void __delayacct_irq(struct task_struct *task, u32 delta)
-@@ -284,6 +299,8 @@ void __delayacct_irq(struct task_struct
- 	raw_spin_lock_irqsave(&task->delays->lock, flags);
- 	task->delays->irq_delay += delta;
- 	task->delays->irq_count++;
-+	if (delta > task->delays->irq_delay_max)
-+		task->delays->irq_delay_max = delta;
- 	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
- }
- 
---- a/kernel/sched/stats.h~delayacct-add-delay-max-to-record-delay-peak
-+++ a/kernel/sched/stats.h
-@@ -244,7 +244,8 @@ static inline void sched_info_dequeue(st
- 	delta = rq_clock(rq) - t->sched_info.last_queued;
- 	t->sched_info.last_queued = 0;
- 	t->sched_info.run_delay += delta;
--
-+	if (delta > t->sched_info.max_run_delay)
-+		t->sched_info.max_run_delay = delta;
- 	rq_sched_info_dequeue(rq, delta);
- }
- 
-@@ -266,6 +267,8 @@ static void sched_info_arrive(struct rq
- 	t->sched_info.run_delay += delta;
- 	t->sched_info.last_arrival = now;
- 	t->sched_info.pcount++;
-+	if (delta > t->sched_info.max_run_delay)
-+		t->sched_info.max_run_delay = delta;
- 
- 	rq_sched_info_arrive(rq, delta);
- }
---- a/tools/accounting/getdelays.c~delayacct-add-delay-max-to-record-delay-peak
-+++ a/tools/accounting/getdelays.c
-@@ -192,60 +192,69 @@ static int get_family_id(int sd)
- }
- 
- #define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
-+#define delay_max_ms(t) (t / 1000000ULL)
- 
- static void print_delayacct(struct taskstats *t)
- {
--	printf("\n\nCPU   %15s%15s%15s%15s%15s\n"
--	       "      %15llu%15llu%15llu%15llu%15.3fms\n"
--	       "IO    %15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "SWAP  %15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "RECLAIM  %12s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "THRASHING%12s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "COMPACT  %12s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "WPCOPY   %12s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n"
--	       "IRQ   %15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms\n",
-+	printf("\n\nCPU   %15s%15s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15llu%15llu%15.3fms%13.6fms\n"
-+	       "IO    %15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "SWAP  %15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "RECLAIM  %12s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "THRASHING%12s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "COMPACT  %12s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "WPCOPY   %12s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n"
-+	       "IRQ   %15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms\n",
- 	       "count", "real total", "virtual total",
--	       "delay total", "delay average",
-+	       "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->cpu_count,
- 	       (unsigned long long)t->cpu_run_real_total,
- 	       (unsigned long long)t->cpu_run_virtual_total,
- 	       (unsigned long long)t->cpu_delay_total,
- 	       average_ms((double)t->cpu_delay_total, t->cpu_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->cpu_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->blkio_count,
- 	       (unsigned long long)t->blkio_delay_total,
- 	       average_ms((double)t->blkio_delay_total, t->blkio_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->blkio_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->swapin_count,
- 	       (unsigned long long)t->swapin_delay_total,
- 	       average_ms((double)t->swapin_delay_total, t->swapin_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->swapin_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->freepages_count,
- 	       (unsigned long long)t->freepages_delay_total,
- 	       average_ms((double)t->freepages_delay_total, t->freepages_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->freepages_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->thrashing_count,
- 	       (unsigned long long)t->thrashing_delay_total,
- 	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->thrashing_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->compact_count,
- 	       (unsigned long long)t->compact_delay_total,
- 	       average_ms((double)t->compact_delay_total, t->compact_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->compact_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->wpcopy_count,
- 	       (unsigned long long)t->wpcopy_delay_total,
- 	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
--	       "count", "delay total", "delay average",
-+		   delay_max_ms((double)t->wpcopy_delay_max),
-+	       "count", "delay total", "delay average", "delay max",
- 	       (unsigned long long)t->irq_count,
- 	       (unsigned long long)t->irq_delay_total,
--	       average_ms((double)t->irq_delay_total, t->irq_count));
-+	       average_ms((double)t->irq_delay_total, t->irq_count),
-+		   delay_max_ms((double)t->irq_delay_max));
- }
- 
- static void task_context_switch_counts(struct taskstats *t)
+ 		/* Break COW or unshare */
+ 		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from guillaume@morinfr.org are
 
-delayacct-add-delay-max-to-record-delay-peak.patch
+mm-hugetlb-support-foll_forcefoll_write.patch
 
