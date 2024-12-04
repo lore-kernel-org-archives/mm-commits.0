@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB79C2F22
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 00:40:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71FB07F9
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 00:57:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733272837; cv=none; b=CCyKFWPYPpm1OdpKRXPE0RS11Cop+XT4MbRq4KmtVVpqLi75nJd2hGaLiEvexmcWcc7Ac44DAdcRdy3WCyOIclIo64Dom3oWIWwIaHcjKzSepY09VCooDjecRHe3gfovMFxxUfQgEiJLRYItnYuR+4Ny3QS2GPYTFESyGx1UD+w=
+	t=1733273860; cv=none; b=BCdnFReBB8ogM0BOWOX77Ts2LAqeYPpcvdxMV/aKB0X23a8ToIxyeZr3mqqI05hURrWbzxy2xTD+Vf6IrBTFzgGOppgS/J/az7tlfznUuBg2TtrktSONwGNCNsK+TpGhNM+diCV4cXLHedYpnRm3Ic/o+m7oaS3UpubEsnDtjgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733272837; c=relaxed/simple;
-	bh=kB6noxKeWymN8ZtQUcIQNzmMzGwB0icHxYG0nJ0qCIE=;
-	h=Date:To:From:Subject:Message-Id; b=moED4/s6BebEhyYxIW4lciOIgXI85sf4/Z9CmBgGWPGLWGQbt5PuvHJnZF7o2O+dbimUH7qXNza8Dqqdez3xjbx2zYU1QPklmJKnE/+QC5KpoE659TrCZJTyAhecS6Ds/Xnw6nSAZwVs7kWi+qL0jKNizz3B9QNqi6bpQl0uU7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SZO8VQ5n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733273860; c=relaxed/simple;
+	bh=B9/zdpW415yONDxlZP+7bu/MQMl33pF5lUHyy+2MToM=;
+	h=Date:To:From:Subject:Message-Id; b=T7dcv8rwHw8tDoXSWFB5ukLD2sh0qFn+GWWQd/rLNVgSTYQm1CAzUESyz0awrZAK+K7OieEUze9ycYWlTXI+fUPYgJleJEmgOZrr/P/Qtm38lekmz4OY3qNm35LkdNUJeFIMCHm4760qzcW7vsd2sn7W7NrQhfHpql5zMLmxybc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sPAJxj5z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SZO8VQ5n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A410C4CEDE;
-	Wed,  4 Dec 2024 00:40:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sPAJxj5z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3AA4C4CEDC;
+	Wed,  4 Dec 2024 00:57:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733272837;
-	bh=kB6noxKeWymN8ZtQUcIQNzmMzGwB0icHxYG0nJ0qCIE=;
+	s=korg; t=1733273859;
+	bh=B9/zdpW415yONDxlZP+7bu/MQMl33pF5lUHyy+2MToM=;
 	h=Date:To:From:Subject:From;
-	b=SZO8VQ5njFZkaPRz3mSgWpndkOCzcb3LTxpR/IGYpSot1cXLw++0kQBe87UcpX2n/
-	 YSo/wTnB6J25etvHmVuNBHhF9RMpuHsxd1ISNj5EaWAceOqE76RtPzgt6RK6/azSx1
-	 xgEq8LZZE7J6Qzjpip1GdiK2QIiHM/kYHHMJFh2A=
-Date: Tue, 03 Dec 2024 16:40:36 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,Liam.Howlett@Oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=sPAJxj5z9nKsLSKbhjy/anhMBb9/26IU/FpMcs/b/AR1Eka6hGqC8r6S6d/OMvmrt
+	 LZ5k+rBdAd1n95HGq9c6UgjxAqfzFhM9UXm5avoBzy2InbSuJ0dlG3vRa5/CBFlhT0
+	 8QjNFHRVrPDXDZE6HjeicalhF0MTNrsdt/LYD8Ok=
+Date: Tue, 03 Dec 2024 16:57:39 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-move-__vm_munmap-to-mm-vmac.patch added to mm-unstable branch
-Message-Id: <20241204004037.3A410C4CEDE@smtp.kernel.org>
+Subject: + mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch added to mm-unstable branch
+Message-Id: <20241204005739.C3AA4C4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: move __vm_munmap() to mm/vma.c
+     Subject: mm/memory_hotplug: move debug_pagealloc_map_pages() into online_pages_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-move-__vm_munmap-to-mm-vmac.patch
+     mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-move-__vm_munmap-to-mm-vmac.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,127 +58,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: move __vm_munmap() to mm/vma.c
-Date: Tue, 3 Dec 2024 18:05:12 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: move debug_pagealloc_map_pages() into online_pages_range()
+Date: Tue, 3 Dec 2024 11:20:50 +0100
 
-This was arbitrarily left in mmap.c it makes no sense being there, move it
-to vma.c to render it testable.
+In the near future, we want to have a single way to handover PageOffline
+pages to the buddy, whereby they could have:
 
-Link: https://lkml.kernel.org/r/5e5e81807c54dfbe363edb2d431eb3d7a37fcdba.1733248985.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+(a) Never been exposed to the buddy before: kept PageOffline when onlining
+    the memory block.
+(b) Been allocated from the buddy, for example using
+    alloc_contig_range() to then be set PageOffline,
+
+Let's start by making generic_online_page() less special compared to
+ordinary page freeing (e.g., free_contig_range()), and perform the
+debug_pagealloc_map_pages() call unconditionally, even when the online
+callback might decide to keep the pages offline.
+
+All pages are already initialized with PageOffline, so nobody touches them
+either way.
+
+Link: https://lkml.kernel.org/r/20241203102050.223318-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c                        |   18 ------------------
- mm/vma.c                         |   18 ++++++++++++++++++
- mm/vma.h                         |    2 ++
- tools/testing/vma/vma_internal.h |    9 +++++++++
- 4 files changed, 29 insertions(+), 18 deletions(-)
+ mm/memory_hotplug.c |   10 +++++++++-
+ mm/page_alloc.c     |    6 ------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/mmap.c~mm-vma-move-__vm_munmap-to-mm-vmac
-+++ a/mm/mmap.c
-@@ -1044,24 +1044,6 @@ unsigned long mmap_region(struct file *f
- 	return ret;
- }
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range
++++ a/mm/memory_hotplug.c
+@@ -650,6 +650,7 @@ static void online_pages_range(unsigned
+ 	 * this and the first chunk to online will be pageblock_nr_pages.
+ 	 */
+ 	for (pfn = start_pfn; pfn < end_pfn;) {
++		struct page *page = pfn_to_page(pfn);
+ 		int order;
  
--static int __vm_munmap(unsigned long start, size_t len, bool unlock)
--{
--	int ret;
--	struct mm_struct *mm = current->mm;
--	LIST_HEAD(uf);
--	VMA_ITERATOR(vmi, mm, start);
--
--	if (mmap_write_lock_killable(mm))
--		return -EINTR;
--
--	ret = do_vmi_munmap(&vmi, mm, start, len, &uf, unlock);
--	if (ret || !unlock)
--		mmap_write_unlock(mm);
--
--	userfaultfd_unmap_complete(mm, &uf);
--	return ret;
--}
--
- int vm_munmap(unsigned long start, size_t len)
- {
- 	return __vm_munmap(start, len, false);
---- a/mm/vma.c~mm-vma-move-__vm_munmap-to-mm-vmac
-+++ a/mm/vma.c
-@@ -2874,3 +2874,21 @@ int expand_downwards(struct vm_area_stru
- 	validate_mm(mm);
- 	return error;
- }
-+
-+int __vm_munmap(unsigned long start, size_t len, bool unlock)
-+{
-+	int ret;
-+	struct mm_struct *mm = current->mm;
-+	LIST_HEAD(uf);
-+	VMA_ITERATOR(vmi, mm, start);
-+
-+	if (mmap_write_lock_killable(mm))
-+		return -EINTR;
-+
-+	ret = do_vmi_munmap(&vmi, mm, start, len, &uf, unlock);
-+	if (ret || !unlock)
-+		mmap_write_unlock(mm);
-+
-+	userfaultfd_unmap_complete(mm, &uf);
-+	return ret;
-+}
---- a/mm/vma.h~mm-vma-move-__vm_munmap-to-mm-vmac
-+++ a/mm/vma.h
-@@ -478,4 +478,6 @@ int expand_upwards(struct vm_area_struct
+ 		/*
+@@ -664,7 +665,14 @@ static void online_pages_range(unsigned
+ 		else
+ 			order = MAX_PAGE_ORDER;
  
- int expand_downwards(struct vm_area_struct *vma, unsigned long address);
+-		(*online_page_callback)(pfn_to_page(pfn), order);
++		/*
++		 * Exposing the page to the buddy by freeing can cause
++		 * issues with debug_pagealloc enabled: some archs don't
++		 * like double-unmappings. So treat them like any pages that
++		 * were allocated from the buddy.
++		 */
++		debug_pagealloc_map_pages(page, 1 << order);
++		(*online_page_callback)(page, order);
+ 		pfn += (1UL << order);
+ 	}
  
-+int __vm_munmap(unsigned long start, size_t len, bool unlock);
-+
- #endif	/* __MM_VMA_H */
---- a/tools/testing/vma/vma_internal.h~mm-vma-move-__vm_munmap-to-mm-vmac
-+++ a/tools/testing/vma/vma_internal.h
-@@ -906,6 +906,11 @@ static inline void mmap_write_unlock(str
- {
- }
+--- a/mm/page_alloc.c~mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range
++++ a/mm/page_alloc.c
+@@ -1293,12 +1293,6 @@ void __meminit __free_pages_core(struct
+ 			set_page_count(p, 0);
+ 		}
  
-+static inline int mmap_write_lock_killable(struct mm_struct *)
-+{
-+	return 0;
-+}
-+
- static inline bool can_modify_mm(struct mm_struct *mm,
- 				 unsigned long start,
- 				 unsigned long end)
-@@ -1175,5 +1180,9 @@ static inline int anon_vma_prepare(struc
- 	return __anon_vma_prepare(vma);
- }
- 
-+static inline void userfaultfd_unmap_complete(struct mm_struct *mm,
-+					      struct list_head *uf)
-+{
-+}
- 
- #endif	/* __MM_VMA_INTERNAL_H */
+-		/*
+-		 * Freeing the page with debug_pagealloc enabled will try to
+-		 * unmap it; some archs don't like double-unmappings, so
+-		 * map it first.
+-		 */
+-		debug_pagealloc_map_pages(page, nr_pages);
+ 		adjust_managed_page_count(page, nr_pages);
+ 	} else {
+ 		for (loop = 0; loop < nr_pages; loop++, p++) {
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
-selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
-mm-correct-typo-in-mmap_state-macro.patch
-docs-mm-add-vma-locks-documentation.patch
-mm-vma-move-brk-internals-to-mm-vmac.patch
-mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
-mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
-mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
-mm-vma-move-__vm_munmap-to-mm-vmac.patch
+mm-mempolicy-fix-migrate_to_node-assuming-there-is-at-least-one-vma-in-a-mm.patch
+mm-filemap-dont-call-folio_test_locked-without-a-reference-in-next_uptodate_folio.patch
+docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
+mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
 
