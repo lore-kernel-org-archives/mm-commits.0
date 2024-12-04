@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90E84A06
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160492500C8
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:03:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733274182; cv=none; b=mIWAB59x/lH9k8vAU/Ph38/fHLjFyHsibctB5bvbxUCCa5YV+uXS/3/VDih0GmfHnwUKM+0U586De+8IUlWNmZSUpSt3r9moJWQjaJx337qehVmdPXN1RzKjBdyUi5piFl0FZhI0p6v+QUw/DqxHcg+kiXm4UtCZrIedtOuyra0=
+	t=1733274186; cv=none; b=jHwMhE0ZV1uHgN77FVcZ6wI4eS70tbIT6kcWIzR2NDmxV1rIw1SlHdw4T9jTpQDij1MhZBWkqsUGsbdsdid3Oz6tE0JHm9DlI7zMxP7DHm1uzIVFEQ9CIXYQNSEVP9okCsUPAc1EFh2SS+nUdngGp8JWjwoiwJ9vWVijcLyL9zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733274182; c=relaxed/simple;
-	bh=RcLfVSDVst2J5M4RWQFyklAGlEtsKFCb8c0QM0H4YTg=;
-	h=Date:To:From:Subject:Message-Id; b=YwSXRCfpxZIrUpI3kGvmxS+1xdSaazBRkJLedxB/Yt67gN71KLfCm9oZuFFl8riIg2nVmusr2Oj+/YQA7gxgZ9fIEw9IjseMqwl6pvq5Ihnvp2xxWiqf3RLcM13r/Trq3Mz6TLlawJ+heFRFvjHiTEK3cVrAlaTCZo6etTjAne4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WD8HchNA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733274186; c=relaxed/simple;
+	bh=9lNzjMMW2WmUph8pAlCNGRZv9jWutn2UhYuOZyPJFkY=;
+	h=Date:To:From:Subject:Message-Id; b=QwhTS8Ilb/GV6tvkv31b8+T3WiGHCt+14fcslshBTdh/P5Ez7yBfbBEAq5NmpF9ZMns8av905nWJQQB1QQ+0Cq/q/d73vq23dahzYOWnilj7DSqTJL4MkPLwabop9kEn3aXc5BRmKdKWOJqIcjOwapD6tIxv7qb+CoKoHk+e0NE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+xlNay6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WD8HchNA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EB15C4CEDC;
-	Wed,  4 Dec 2024 01:03:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+xlNay6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77EBFC4CEDC;
+	Wed,  4 Dec 2024 01:03:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733274181;
-	bh=RcLfVSDVst2J5M4RWQFyklAGlEtsKFCb8c0QM0H4YTg=;
+	s=korg; t=1733274184;
+	bh=9lNzjMMW2WmUph8pAlCNGRZv9jWutn2UhYuOZyPJFkY=;
 	h=Date:To:From:Subject:From;
-	b=WD8HchNAUjzVSjdBrJQjgXmgiCz4D8sBQALprR7FgyBDJXva8sZ+gU5ODiqgultIn
-	 QwfcpSkNFpq2ara/kT55sT9NMsHOGsZH7GW3twqXSreepW2Z1fwD2TFBkXCsA6V8vY
-	 6snr9elRzqJZdFOWMLvTa5R8n2zi8Z/5NlwIZpSI=
-Date: Tue, 03 Dec 2024 17:03:00 -0800
+	b=G+xlNay6vFsdesskcmoCJ6K4npXCWzniY4nI3dgZ9EcJoDgQ1xBpBoQ8+E0r38mZu
+	 kxR/TAniMq1vJlZi44nnTIu2RTA5ne1qWCpXArY05eo56bnKX9syhDcc7LrP24cR9J
+	 Rb1Z+9N0YncnMTnMXWUNeL7jwQrSWRf6N1YtzGQ8=
+Date: Tue, 03 Dec 2024 17:03:03 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,vbabka@suse.cz,osalvador@suse.de,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch added to mm-unstable branch
-Message-Id: <20241204010301.5EB15C4CEDC@smtp.kernel.org>
+Subject: + mm-page_alloc-make-__alloc_contig_migrate_range-static.patch added to mm-unstable branch
+Message-Id: <20241204010304.77EBFC4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_isolation: don't pass gfp flags to start_isolate_page_range()
+     Subject: mm/page_alloc: make __alloc_contig_migrate_range() static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
+     mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_isolation: don't pass gfp flags to start_isolate_page_range()
-Date: Tue, 3 Dec 2024 10:47:28 +0100
+Subject: mm/page_alloc: make __alloc_contig_migrate_range() static
+Date: Tue, 3 Dec 2024 10:47:29 +0100
 
-The parameter is unused, so let's stop passing it.
+The single user is in page_alloc.c.
 
-Link: https://lkml.kernel.org/r/20241203094732.200195-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20241203094732.200195-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -78,66 +78,37 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    2 +-
- mm/memory_hotplug.c            |    3 +--
- mm/page_alloc.c                |    2 +-
- mm/page_isolation.c            |    4 +---
- 4 files changed, 4 insertions(+), 7 deletions(-)
+ mm/internal.h   |    4 ----
+ mm/page_alloc.c |    5 ++---
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/page-isolation.h~mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range
-+++ a/include/linux/page-isolation.h
-@@ -31,7 +31,7 @@ bool move_freepages_block_isolate(struct
- 				  int migratetype);
+--- a/mm/internal.h~mm-page_alloc-make-__alloc_contig_migrate_range-static
++++ a/mm/internal.h
+@@ -839,10 +839,6 @@ int
+ isolate_migratepages_range(struct compact_control *cc,
+ 			   unsigned long low_pfn, unsigned long end_pfn);
  
- int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			     int migratetype, int flags, gfp_t gfp_flags);
-+			     int migratetype, int flags);
+-int __alloc_contig_migrate_range(struct compact_control *cc,
+-					unsigned long start, unsigned long end,
+-					int migratetype);
+-
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+ void init_cma_reserved_pageblock(struct page *page);
  
- void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
- 			     int migratetype);
---- a/mm/memory_hotplug.c~mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range
-+++ a/mm/memory_hotplug.c
-@@ -2000,8 +2000,7 @@ int offline_pages(unsigned long start_pf
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn,
- 				       MIGRATE_MOVABLE,
--				       MEMORY_OFFLINE | REPORT_FAILURE,
--				       GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL);
-+				       MEMORY_OFFLINE | REPORT_FAILURE);
- 	if (ret) {
- 		reason = "failure to isolate range";
- 		goto failed_removal_pcplists_disabled;
---- a/mm/page_alloc.c~mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range
+--- a/mm/page_alloc.c~mm-page_alloc-make-__alloc_contig_migrate_range-static
 +++ a/mm/page_alloc.c
-@@ -6445,7 +6445,7 @@ int alloc_contig_range_noprof(unsigned l
- 	 * put back to page allocator so that buddy can use them.
- 	 */
- 
--	ret = start_isolate_page_range(start, end, migratetype, 0, gfp_mask);
-+	ret = start_isolate_page_range(start, end, migratetype, 0);
- 	if (ret)
- 		goto done;
- 
---- a/mm/page_isolation.c~mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range
-+++ a/mm/page_isolation.c
-@@ -442,8 +442,6 @@ failed:
-  *					 and PageOffline() pages.
-  *			REPORT_FAILURE - report details about the failure to
-  *			isolate the range
-- * @gfp_flags:		GFP flags used for migrating pages that sit across the
-- *			range boundaries.
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -476,7 +474,7 @@ failed:
-  * Return: 0 on success and -EBUSY if any part of range cannot be isolated.
+@@ -6278,9 +6278,8 @@ static void alloc_contig_dump_pages(stru
+  * @migratetype: using migratetype to filter the type of migration in
+  *		trace_mm_alloc_contig_migrate_range_info.
   */
- int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			     int migratetype, int flags, gfp_t gfp_flags)
-+			     int migratetype, int flags)
+-int __alloc_contig_migrate_range(struct compact_control *cc,
+-					unsigned long start, unsigned long end,
+-					int migratetype)
++static int __alloc_contig_migrate_range(struct compact_control *cc,
++		unsigned long start, unsigned long end, int migratetype)
  {
- 	unsigned long pfn;
- 	struct page *page;
+ 	/* This function is based on compact_zone() from compaction.c. */
+ 	unsigned int nr_reclaimed;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
