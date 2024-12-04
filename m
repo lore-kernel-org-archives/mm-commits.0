@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6AF6746E
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:09:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E93A42500BA
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 01:10:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733274585; cv=none; b=Aqu0YqEfQeFGRl4cMX4Ovds+r1mSIwFe6X0G0+JTKP/WhJECDF4TbHY3CoY6Wral6X5uWLAElrmO0iCx/XiGH4IndB22u2k6RbY1MzlD7HXDMch+9Y+/WYnJ/s9smpP1VB8Z86V0dlefi8KWRysIo3HBSA5G0ikL3s5PveGGUZk=
+	t=1733274604; cv=none; b=s73yEFtutem5zsM4a099u16Hl03szFDkH8goyB0PJRGJfYPEjzBxR9ydZiocTrPIH//HUhLLH+SwyP8NBOTs10+kcCoxtBk986+AjcCqFa1vWThqDoZTicL14ad7b2mz5pOs+FDoTI3Tw+YGGCc/A0yAKikrYc4rnlp3ArAp9TY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733274585; c=relaxed/simple;
-	bh=nmq8sI8bP2Am4NFQALm6KrZyLnQMZWIz+HPT+nPtUM0=;
-	h=Date:To:From:Subject:Message-Id; b=K4IqmFQ50zHKYWlqX1VQTdS4HTHvvYcy7tqd8qx0ToNWAQo4SreZvzyn9cQjCjoyuAxkXhtwnU1+r/HnaPAwrC+xibMdJL4bBg2IzH694lg7+ni1Z/Sb9MeNfje/b2D6UcFRarzugtNHEI6NoeXEOTarFkNBaKeHOR3yqDDayFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TEjg8tD0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733274604; c=relaxed/simple;
+	bh=S9uswz8dmo+o5b0FF0HbvkRgwju69Tlfj9VVlGv7Pb8=;
+	h=Date:To:From:Subject:Message-Id; b=vFXub/i9/QbYZgB/BRzvAQkafGluSWgCQiptRiJtGVRRMVSFcEIxNqGHKdE9zOKy0tYrogrs8AI3Kmd9SL/LL1J+WOjXjqUkasfCluvwZ1i+VqX+OmorC+T1zgvL+GBmDbxgRJ31QrC4NB2Gkrt0rSRQ2xvssfUMBQQAkezalbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lh6zleYI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEjg8tD0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 283FEC4CEDC;
-	Wed,  4 Dec 2024 01:09:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lh6zleYI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4827DC4CEDC;
+	Wed,  4 Dec 2024 01:10:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733274585;
-	bh=nmq8sI8bP2Am4NFQALm6KrZyLnQMZWIz+HPT+nPtUM0=;
+	s=korg; t=1733274603;
+	bh=S9uswz8dmo+o5b0FF0HbvkRgwju69Tlfj9VVlGv7Pb8=;
 	h=Date:To:From:Subject:From;
-	b=TEjg8tD0pHSoi7lMBL2NryMVmRzgzh6r4GI4UFuVURlKtbvs+pdQLtJw2RS+LB2U7
-	 aHJW2RnNwyYwek3sPK1VxKr1r06wKAdKjh+PB8lHhFkT/jXlp1MRow4h7KDXy3KBi8
-	 mctSmN5Mr3O7q+RKpYIlEvWHjSkkzj/UpAdKos/s=
-Date: Tue, 03 Dec 2024 17:09:44 -0800
+	b=Lh6zleYIQvSmqEYRQ5xBGXEW6Em1hjPMYfqM7haIuwAhJh4TRtkyaaiFPLTrMkIl7
+	 SIfhhzyyg9SoV51aswPRR3NLrm+ral1cvn3g0JWp251n2m3MhdmMCuc2AmPCagZtaF
+	 jRiKdlKKumHoJGLikiuniyUS3W+BQaFU7TVke/QE=
+Date: Tue, 03 Dec 2024 17:10:02 -0800
 To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch added to mm-nonmm-unstable branch
-Message-Id: <20241204010945.283FEC4CEDC@smtp.kernel.org>
+Subject: + delayacct-add-delay-max-to-record-delay-peak.patch added to mm-nonmm-unstable branch
+Message-Id: <20241204011003.4827DC4CEDC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: delayacct: add delay max to record delay peak
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+     delayacct-add-delay-max-to-record-delay-peak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-max-to-record-delay-peak.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -133,7 +133,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/accounting/getdelays.c   |   59 +++++++++++++++++--------------
  6 files changed, 83 insertions(+), 35 deletions(-)
 
---- a/include/linux/delayacct.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/linux/delayacct.h~delayacct-add-delay-max-to-record-delay-peak
 +++ a/include/linux/delayacct.h
 @@ -29,25 +29,32 @@ struct task_delay_info {
  	 * XXX_delay contains the accumulated delay time in nanoseconds.
@@ -168,7 +168,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
  
  	u32 freepages_count;	/* total count of memory reclaim */
---- a/include/linux/sched.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/linux/sched.h~delayacct-add-delay-max-to-record-delay-peak
 +++ a/include/linux/sched.h
 @@ -398,6 +398,9 @@ struct sched_info {
  	/* Time spent waiting on a runqueue: */
@@ -180,7 +180,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	/* Timestamps: */
  
  	/* When did we last run on a CPU? */
---- a/include/uapi/linux/taskstats.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/uapi/linux/taskstats.h~delayacct-add-delay-max-to-record-delay-peak
 +++ a/include/uapi/linux/taskstats.h
 @@ -72,6 +72,7 @@ struct taskstats {
  	 */
@@ -238,7 +238,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  };
  
  
---- a/kernel/delayacct.c~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak
 +++ a/kernel/delayacct.c
 @@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
   * Finish delay accounting for a statistic using its timestamps (@start),
@@ -368,7 +368,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
  }
  
---- a/kernel/sched/stats.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/kernel/sched/stats.h~delayacct-add-delay-max-to-record-delay-peak
 +++ a/kernel/sched/stats.h
 @@ -244,7 +244,8 @@ static inline void sched_info_dequeue(st
  	delta = rq_clock(rq) - t->sched_info.last_queued;
@@ -389,7 +389,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	rq_sched_info_arrive(rq, delta);
  }
---- a/tools/accounting/getdelays.c~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/tools/accounting/getdelays.c~delayacct-add-delay-max-to-record-delay-peak
 +++ a/tools/accounting/getdelays.c
 @@ -192,60 +192,69 @@ static int get_family_id(int sd)
  }
@@ -490,5 +490,5 @@ _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1hecb0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+delayacct-add-delay-max-to-record-delay-peak.patch
 
