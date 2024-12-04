@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E41E023918D
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C921F03F8
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733352795; cv=none; b=AmBpOTfhtLe043MtU/DJmkR4l3L7isQaPKDygeFTsSzNgyiAvAmboscd97OhqcB04g/ESmjY8ZwK7afLHTPxWiPwGYotp+ff93sacWpFr23pOpkKq7cuF/1efMeFdH+hkeJOeaUevxKJpE91ERO9stF4iw28zZ8oNdpBW6TN9Co=
+	t=1733352797; cv=none; b=XC/wsx4Dd7RXTWcEOoCNZ5qrgpOY5qZB4bbJzUcECTlDuohqeB6h3tE2zkSpAyw5xaqvPTuXhsEIdzeY+Zpc7uAwWUo6YMyYtogqs+yWZJCxBtMlxN7d2CdrwtmzB18Rz6A6w7Jh6wCyzZMUUujX4ESrBE0de9cfVg4JfSZXeEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733352795; c=relaxed/simple;
-	bh=rXyeMyaM2iHtMiYBqsEZmPPmouT8LF1mEctpKXtknqA=;
-	h=Date:To:From:Subject:Message-Id; b=oNKsFTekaMj9MfWVVqB0DxHqNSmPnN2g9AqA/Jn0npUoY3IWemsMyQ3LrvPoiD4xj4KnWr4+Ab1aMpzhfEu5uSP9DgBqmOhWihr6bggzxgLPdsFuo4QguWuBj06r1cLDqm+hRHZGdAs1w6XkNxSZX+KfuUmpntw3OYmOuoMlm5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hyY+QzAo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733352797; c=relaxed/simple;
+	bh=fQ1EoS718AbaJV1GP5YcChZizH8x4HWFN1N4KPchU6U=;
+	h=Date:To:From:Subject:Message-Id; b=VGE4LaKLJyrVh3hk1bCiVwAFELYW14klqiZEs9NOa9Sa1zuV7aWcASQSmDz6ihOS9zoxI6zZoiNYEe3Pb/hZHJ0JrAw8Bmm8tvYDPQZLXPEhQsph0nrnWpLESDKbGaU5iYX+nZxirR2I4YvHnfsCOiDf2IpQw+3xRUPKRnoHXZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2L68nMJl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hyY+QzAo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4399C4CECD;
-	Wed,  4 Dec 2024 22:53:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2L68nMJl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A8F3C4CECD;
+	Wed,  4 Dec 2024 22:53:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733352794;
-	bh=rXyeMyaM2iHtMiYBqsEZmPPmouT8LF1mEctpKXtknqA=;
+	s=korg; t=1733352796;
+	bh=fQ1EoS718AbaJV1GP5YcChZizH8x4HWFN1N4KPchU6U=;
 	h=Date:To:From:Subject:From;
-	b=hyY+QzAoZQKQV2Ue6RjnwSlUmbIro50J5Iy+7HyvfbC53Pm6ds/OS+DtDUJnsMCJ3
-	 4g3XfZzDUOII4O0q0Z5LvtuvZc4YgMFOSPifRjTPlGOaPdzjdPTdmQMJTg/vhayY3J
-	 JYWRgRk9OsapraClLWvGLgOzYCM9M2HYdwxu3v6Q=
-Date: Wed, 04 Dec 2024 14:53:14 -0800
+	b=2L68nMJlkPhCTv3SBQJfnlMaPzqA5havdkpStm55045ZxN5f+8pZ+sdPK71WXRsM8
+	 MckB3WUnLOfAdScmFdQR5eh/meyTcw7TKiMkRkKqEwYhXdXJ4m/agwd3gSz++KsFBP
+	 OMa7hlCHdJzfIZytmtvv4KWgeHbnoLe4+PLy+7PQ=
+Date: Wed, 04 Dec 2024 14:53:16 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch added to mm-unstable branch
-Message-Id: <20241204225314.B4399C4CECD@smtp.kernel.org>
+Subject: + x86-select-arch_supports_pt_reclaim-if-x86_64.patch added to mm-unstable branch
+Message-Id: <20241204225316.8A8F3C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: mm: free page table pages by RCU instead of semi RCU
+     Subject: x86: select ARCH_SUPPORTS_PT_RECLAIM if X86_64
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
+     x86-select-arch_supports_pt_reclaim-if-x86_64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-select-arch_supports_pt_reclaim-if-x86_64.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,55 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: x86: mm: free page table pages by RCU instead of semi RCU
-Date: Wed, 4 Dec 2024 19:09:50 +0800
+Subject: x86: select ARCH_SUPPORTS_PT_RECLAIM if X86_64
+Date: Wed, 4 Dec 2024 19:09:51 +0800
 
-Now, if CONFIG_MMU_GATHER_RCU_TABLE_FREE is selected, the page table pages
-will be freed by semi RCU, that is:
+Now, x86 has fully supported the CONFIG_PT_RECLAIM feature, and reclaiming
+PTE pages is profitable only on 64-bit systems, so select
+ARCH_SUPPORTS_PT_RECLAIM if X86_64.
 
- - batch table freeing: asynchronous free by RCU
- - single table freeing: IPI + synchronous free
-
-In this way, the page table can be lockless traversed by disabling IRQ in
-paths such as fast GUP.  But this is not enough to free the empty PTE page
-table pages in paths other that munmap and exit_mmap path, because IPI
-cannot be synchronized with rcu_read_lock() in pte_offset_map{_lock}().
-
-In preparation for supporting empty PTE page table pages reclaimation, let
-single table also be freed by RCU like batch table freeing.  Then we can
-also use pte_offset_map() etc to prevent PTE page from being freed.
-
-Like pte_free_defer(), we can also safely use ptdesc->pt_rcu_head to free
-the page table pages:
-
- - The pt_rcu_head is unioned with pt_list and pmd_huge_pte.
-
- - For pt_list, it is used to manage the PGD page in x86. Fortunately
-   tlb_remove_table() will not be used for free PGD pages, so it is safe
-   to use pt_rcu_head.
-
- - For pmd_huge_pte, it is used for THPs, so it is safe.
-
-After applying this patch, if CONFIG_PT_RECLAIM is enabled, the function
-call of free_pte() is as follows:
-
-free_pte
-  pte_free_tlb
-    __pte_free_tlb
-      ___pte_free_tlb
-        paravirt_tlb_remove_table
-          tlb_remove_table [!CONFIG_PARAVIRT, Xen PV, Hyper-V, KVM]
-            [no-free-memory slowpath:]
-              tlb_table_invalidate
-              tlb_remove_table_one
-                __tlb_remove_table_one [frees via RCU]
-            [fastpath:]
-              tlb_table_flush
-                tlb_remove_table_free [frees via RCU]
-          native_tlb_remove_table [CONFIG_PARAVIRT on native]
-            tlb_remove_table [see above]
-
-Link: https://lkml.kernel.org/r/0287d442a973150b0e1019cc406e6322d148277a.1733305182.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/841c1f35478d5354872d307888979c9e20de9c09.1733305182.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -127,123 +86,19 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlb.h |   20 ++++++++++++++++++++
- arch/x86/kernel/paravirt.c |    7 +++++++
- arch/x86/mm/pgtable.c      |   10 +++++++++-
- include/linux/mm_types.h   |    4 +++-
- mm/mmu_gather.c            |    9 ++++++++-
- 5 files changed, 47 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/include/asm/tlb.h~x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu
-+++ a/arch/x86/include/asm/tlb.h
-@@ -34,8 +34,28 @@ static inline void __tlb_remove_table(vo
- 	free_page_and_swap_cache(table);
- }
+--- a/arch/x86/Kconfig~x86-select-arch_supports_pt_reclaim-if-x86_64
++++ a/arch/x86/Kconfig
+@@ -322,6 +322,7 @@ config X86
+ 	select FUNCTION_ALIGNMENT_4B
+ 	imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
+ 	select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
++	select ARCH_SUPPORTS_PT_RECLAIM		if X86_64
  
-+#ifdef CONFIG_PT_RECLAIM
-+static inline void __tlb_remove_table_one_rcu(struct rcu_head *head)
-+{
-+	struct page *page;
-+
-+	page = container_of(head, struct page, rcu_head);
-+	put_page(page);
-+}
-+
-+static inline void __tlb_remove_table_one(void *table)
-+{
-+	struct page *page;
-+
-+	page = table;
-+	call_rcu(&page->rcu_head, __tlb_remove_table_one_rcu);
-+}
-+#define __tlb_remove_table_one __tlb_remove_table_one
-+#endif /* CONFIG_PT_RECLAIM */
-+
- static inline void invlpg(unsigned long addr)
- {
- 	asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
- }
-+
- #endif /* _ASM_X86_TLB_H */
---- a/arch/x86/kernel/paravirt.c~x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu
-+++ a/arch/x86/kernel/paravirt.c
-@@ -59,10 +59,17 @@ void __init native_pv_lock_init(void)
- 		static_branch_enable(&virt_spin_lock_key);
- }
- 
-+#ifndef CONFIG_PT_RECLAIM
- static void native_tlb_remove_table(struct mmu_gather *tlb, void *table)
- {
- 	tlb_remove_page(tlb, table);
- }
-+#else
-+static void native_tlb_remove_table(struct mmu_gather *tlb, void *table)
-+{
-+	tlb_remove_table(tlb, table);
-+}
-+#endif
- 
- struct static_key paravirt_steal_enabled;
- struct static_key paravirt_steal_rq_enabled;
---- a/arch/x86/mm/pgtable.c~x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu
-+++ a/arch/x86/mm/pgtable.c
-@@ -19,12 +19,20 @@ EXPORT_SYMBOL(physical_mask);
- #endif
- 
- #ifndef CONFIG_PARAVIRT
-+#ifndef CONFIG_PT_RECLAIM
- static inline
- void paravirt_tlb_remove_table(struct mmu_gather *tlb, void *table)
- {
- 	tlb_remove_page(tlb, table);
- }
--#endif
-+#else
-+static inline
-+void paravirt_tlb_remove_table(struct mmu_gather *tlb, void *table)
-+{
-+	tlb_remove_table(tlb, table);
-+}
-+#endif /* !CONFIG_PT_RECLAIM */
-+#endif /* !CONFIG_PARAVIRT */
- 
- gfp_t __userpte_alloc_gfp = GFP_PGTABLE_USER | PGTABLE_HIGHMEM;
- 
---- a/include/linux/mm_types.h~x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu
-+++ a/include/linux/mm_types.h
-@@ -438,7 +438,9 @@ FOLIO_MATCH(compound_head, _head_2a);
-  * struct ptdesc -    Memory descriptor for page tables.
-  * @__page_flags:     Same as page flags. Powerpc only.
-  * @pt_rcu_head:      For freeing page table pages.
-- * @pt_list:          List of used page tables. Used for s390 and x86.
-+ * @pt_list:          List of used page tables. Used for s390 gmap shadow pages
-+ *                    (which are not linked into the user page tables) and x86
-+ *                    pgds.
-  * @_pt_pad_1:        Padding that aliases with page's compound head.
-  * @pmd_huge_pte:     Protected by ptdesc->ptl, used for THPs.
-  * @__page_mapping:   Aliases with page->mapping. Unused for page tables.
---- a/mm/mmu_gather.c~x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu
-+++ a/mm/mmu_gather.c
-@@ -311,11 +311,18 @@ static inline void tlb_table_invalidate(
- 	}
- }
- 
--static void tlb_remove_table_one(void *table)
-+#ifndef __tlb_remove_table_one
-+static inline void __tlb_remove_table_one(void *table)
- {
- 	tlb_remove_table_sync_one();
- 	__tlb_remove_table(table);
- }
-+#endif
-+
-+static void tlb_remove_table_one(void *table)
-+{
-+	__tlb_remove_table_one(table);
-+}
- 
- static void tlb_table_flush(struct mmu_gather *tlb)
- {
+ config INSTRUCTION_DECODER
+ 	def_bool y
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
