@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BEC7194AD1
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:13:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BA5A194AD1
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:13:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733350393; cv=none; b=CsZXzhsaQ0ynL4P/rmXY672letzYoGUPLtHBh5dlpdAQUO3L6SG5lKNcMZ6ZGtcpYg4+dTx7p26edGn64Ms13sKSheqiLUCZ+86Gx0tqxwRmdXaSLGegek4qJGVzBRZhnFwpRTZYs/pals2fJKclczPe6s0ZCCDpE0yEqz0eVJw=
+	t=1733350394; cv=none; b=mCh48i7qD+u2NWJIiG35Fcu997Ds2HyezI6wB0Qi8rxCBm407FrQkEXwG/MY/cxY7doal3cABwJuIo0h1M0QX50ovUjLxWy92kZ7O4my8I6446+skw2YLwxOyWqAqrumn8KYCZHGinPW4/119xApIqy1+egNj43l4+YY0JNK0Wc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733350393; c=relaxed/simple;
-	bh=PPfqDZ+XphvZeHxuhywrZRHwF2Yq3P4nwMUocXD83Jk=;
-	h=Date:To:From:Subject:Message-Id; b=CDGVaK+veXmUPVeWu3LnQ8dx227BmqG80D+YQoQrmn+WB4Dn4KvVZlDC/2guEryN66hPbEMos79KiqFLakZXwmmYL+1HIjKCl073m5v3ThRLvjwnLIgXRMFT2BK16X3JDnOSoReeJwOxCZpWsM+kU5QL4/KYQzPg9nLj2+14DbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dbDnLOGl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733350394; c=relaxed/simple;
+	bh=DtZ8ff9VKTdBAPT60FRlWyB31F00CeRdroz8sHfnYWQ=;
+	h=Date:To:From:Subject:Message-Id; b=jVb6n5j05p2UlNgz12ZZ0bKpKVP69Q059DDXmOc8aWtnUgzURBFnhKCV7jhxgz2ZEEEG+kEKjqzSK+BGqlUEQdwsyiDIkOlhELz+8021GRNV3ssDOlhtznPg2AwpMMidVBJ2/xLh6U+v24deXKxP/fMFKCHu13Oa8pVVshkz55o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hBpNcV5I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dbDnLOGl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8FA7C4CECD;
-	Wed,  4 Dec 2024 22:13:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hBpNcV5I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C63C4CECD;
+	Wed,  4 Dec 2024 22:13:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733350392;
-	bh=PPfqDZ+XphvZeHxuhywrZRHwF2Yq3P4nwMUocXD83Jk=;
+	s=korg; t=1733350394;
+	bh=DtZ8ff9VKTdBAPT60FRlWyB31F00CeRdroz8sHfnYWQ=;
 	h=Date:To:From:Subject:From;
-	b=dbDnLOGlucXq1DuttoA2Hh3+dIdzbrzvgto1lq94h8tw1YBj131zpw7a5xa3n5fnw
-	 tZWxwZpUQ8glSSRAUQzxbQXfaJS+a7NN+l1orE9kDfyO+W4yAc7iEJhb60i4VoxNLT
-	 hMuHLh/VcD572B4mQtpMBexJbRqTfR4umEwZsYEQ=
-Date: Wed, 04 Dec 2024 14:13:12 -0800
+	b=hBpNcV5IJPSN2ZGh+fqD+lhBZ83l5BuF50EmvLJSbOGGGay/RzWgsv8JKtUAMolWz
+	 d0rJJLC/JxGolcUcr0Neie08qmNm7v9plYmL6xJ50Jx+SEsb930qhi9XSoOFVN/h7S
+	 wyi62Y9iUyVUNFXdin5Z85EFLrv+PXfA2NBVncf4=
+Date: Wed, 04 Dec 2024 14:13:13 -0800
 To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vgoyal@redhat.com,thuth@redhat.com,svens@linux.ibm.com,mst@redhat.com,jasowang@redhat.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,frankja@linux.ibm.com,farman@linux.ibm.com,eperezma@redhat.com,dyoung@redhat.com,cohuck@redhat.com,borntraeger@linux.ibm.com,bhe@redhat.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch added to mm-unstable branch
-Message-Id: <20241204221312.B8FA7C4CECD@smtp.kernel.org>
+Subject: + fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch added to mm-unstable branch
+Message-Id: <20241204221314.45C63C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/vmcore: factor out allocating a vmcore range and adding it to a list
+     Subject: fs/proc/vmcore: factor out freeing a list of vmcore ranges
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch
+     fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/vmcore: factor out allocating a vmcore range and adding it to a list
-Date: Wed, 4 Dec 2024 13:54:37 +0100
+Subject: fs/proc/vmcore: factor out freeing a list of vmcore ranges
+Date: Wed, 4 Dec 2024 13:54:38 +0100
 
 Let's factor it out into include/linux/crash_dump.h, from where we can use
 it also outside of vmcore.c later.
 
-Link: https://lkml.kernel.org/r/20241204125444.1734652-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20241204125444.1734652-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -87,88 +87,43 @@ Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c           |   21 ++-------------------
- include/linux/crash_dump.h |   14 ++++++++++++++
- 2 files changed, 16 insertions(+), 19 deletions(-)
+ fs/proc/vmcore.c           |    9 +--------
+ include/linux/crash_dump.h |   11 +++++++++++
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
---- a/fs/proc/vmcore.c~fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list
+--- a/fs/proc/vmcore.c~fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges
 +++ a/fs/proc/vmcore.c
-@@ -709,11 +709,6 @@ static const struct proc_ops vmcore_proc
- 	.proc_mmap	= mmap_vmcore,
- };
+@@ -1592,14 +1592,7 @@ void vmcore_cleanup(void)
+ 		proc_vmcore = NULL;
+ 	}
  
--static struct vmcore_range * __init get_new_element(void)
--{
--	return kzalloc(sizeof(struct vmcore_range), GFP_KERNEL);
--}
+-	/* clear the vmcore list. */
+-	while (!list_empty(&vmcore_list)) {
+-		struct vmcore_range *m;
 -
- static u64 get_vmcore_size(size_t elfsz, size_t elfnotesegsz,
- 			   struct list_head *vc_list)
- {
-@@ -1116,7 +1111,6 @@ static int __init process_ptload_program
- 						size_t elfnotes_sz,
- 						struct list_head *vc_list)
- {
--	struct vmcore_range *new;
- 	int i;
- 	Elf64_Ehdr *ehdr_ptr;
- 	Elf64_Phdr *phdr_ptr;
-@@ -1139,13 +1133,8 @@ static int __init process_ptload_program
- 		end = roundup(paddr + phdr_ptr->p_memsz, PAGE_SIZE);
- 		size = end - start;
+-		m = list_first_entry(&vmcore_list, struct vmcore_range, list);
+-		list_del(&m->list);
+-		kfree(m);
+-	}
++	vmcore_free_ranges(&vmcore_list);
+ 	free_elfcorebuf();
  
--		/* Add this contiguous chunk of memory to vmcore list.*/
--		new = get_new_element();
--		if (!new)
-+		if (vmcore_alloc_add_range(vc_list, start, size))
- 			return -ENOMEM;
--		new->paddr = start;
--		new->size = size;
--		list_add_tail(&new->list, vc_list);
- 
- 		/* Update the program header offset. */
- 		phdr_ptr->p_offset = vmcore_off + (paddr - start);
-@@ -1159,7 +1148,6 @@ static int __init process_ptload_program
- 						size_t elfnotes_sz,
- 						struct list_head *vc_list)
- {
--	struct vmcore_range *new;
- 	int i;
- 	Elf32_Ehdr *ehdr_ptr;
- 	Elf32_Phdr *phdr_ptr;
-@@ -1182,13 +1170,8 @@ static int __init process_ptload_program
- 		end = roundup(paddr + phdr_ptr->p_memsz, PAGE_SIZE);
- 		size = end - start;
- 
--		/* Add this contiguous chunk of memory to vmcore list.*/
--		new = get_new_element();
--		if (!new)
-+		if (vmcore_alloc_add_range(vc_list, start, size))
- 			return -ENOMEM;
--		new->paddr = start;
--		new->size = size;
--		list_add_tail(&new->list, vc_list);
- 
- 		/* Update the program header offset */
- 		phdr_ptr->p_offset = vmcore_off + (paddr - start);
---- a/include/linux/crash_dump.h~fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list
+ 	/* clear vmcore device dump list */
+--- a/include/linux/crash_dump.h~fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges
 +++ a/include/linux/crash_dump.h
-@@ -121,6 +121,20 @@ struct vmcore_range {
- 	loff_t offset;
- };
+@@ -135,6 +135,17 @@ static inline int vmcore_alloc_add_range
+ 	return 0;
+ }
  
-+/* Allocate a vmcore range and add it to the list. */
-+static inline int vmcore_alloc_add_range(struct list_head *list,
-+		unsigned long long paddr, unsigned long long size)
++/* Free a list of vmcore ranges. */
++static inline void vmcore_free_ranges(struct list_head *list)
 +{
-+	struct vmcore_range *m = kzalloc(sizeof(*m), GFP_KERNEL);
++	struct vmcore_range *m, *tmp;
 +
-+	if (!m)
-+		return -ENOMEM;
-+	m->paddr = paddr;
-+	m->size = size;
-+	list_add_tail(&m->list, list);
-+	return 0;
++	list_for_each_entry_safe(m, tmp, list, list) {
++		list_del(&m->list);
++		kfree(m);
++	}
 +}
 +
  #else /* !CONFIG_CRASH_DUMP */
