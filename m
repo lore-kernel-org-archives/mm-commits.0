@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9471F541C
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AF221F5439
+	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733352785; cv=none; b=O76uHtUNZ0ccCNCNyJ3X+SWpzeD2AzP3zsvvbNCcmLJ8o6GwTF5du8gtYaWaFMfjv5rs/oG6hvku8yaRgePphiFIPNC1jZQ090ahlzrQIkOESsNiRlJY//uTYUuMv1bSxW+Qq9RZSp72ovJQkDezu7J2OCWAZCTGCx244EsoNLU=
+	t=1733352786; cv=none; b=Hg1mAZ6GiDH7qK8awSiuKE42Dhfuh3fbii/UqozztVA2yFuN+b6PlHMEacyo7Br5dwhE/cCRGZ6aTnKI5DLdD9BKkD+6zN44F8ptM5nYXBUSMjscjCqvNKxBHzrIraR39BzouMY3yP4k4E9nfHqF2n2oAjilrewfP7TsL0mspjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733352785; c=relaxed/simple;
-	bh=eMz6H359UptZiLApfLZ8QKglVvgJv77eWSuKw1uvKag=;
-	h=Date:To:From:Subject:Message-Id; b=kK+6WIUMx2qOWPQ5YI5PwZ281rJtm2GXqSD9aIwSLJfINEAFm04R017eHPAikiTiqbdTlZpujibYyAv7EwqFS5wPO7saK1VIz8Jng01DJ7FkoPf2YNG2dGUKClycd8DE3HNnsaV6xt68RlM1ADyrB+NdYD1sqiWqYTXbOqE4iBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gRg4Ebva; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733352786; c=relaxed/simple;
+	bh=DxC9kAdB6nMKBkawQ/PkbZHWT8YnepZW9YzbmA331YM=;
+	h=Date:To:From:Subject:Message-Id; b=uEqLuhCgDolP0ElHLIwjvPnHK0VZ568Hm1k0w9vIa9A/aN1Lc/umi59UauEjA9Ss97m4AM9MenmCRDnSiNKV1F7vmKHqM/KCioQHksSVOp+J6uuLRUjm245LDuTUZULhPsnKN/UI9VAvKBysm/hukzjl1RtGAW35RQYoXbYMtmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KB/GpSSD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gRg4Ebva"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95475C4CECD;
-	Wed,  4 Dec 2024 22:53:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KB/GpSSD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E10C9C4CECD;
+	Wed,  4 Dec 2024 22:53:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733352784;
-	bh=eMz6H359UptZiLApfLZ8QKglVvgJv77eWSuKw1uvKag=;
+	s=korg; t=1733352786;
+	bh=DxC9kAdB6nMKBkawQ/PkbZHWT8YnepZW9YzbmA331YM=;
 	h=Date:To:From:Subject:From;
-	b=gRg4Ebva4inF62hVJoTNEzo52T31Xd5vB7UAQBNg17/0AwIgtMg/rMb9ISllmzFd7
-	 6wJ99AvmlCDwkrMUQ3kXlOSEMWbxNUwqDpkFx1q1kdsJHj2hSOb96cIIRQ48+OIJNJ
-	 tyO5Ybsr8G8UcUdsB4ZFYEJfipEFSWvKqyIPpiVc=
-Date: Wed, 04 Dec 2024 14:53:04 -0800
+	b=KB/GpSSDWzKMXEtR/NCo7sD2tvNGIe2/+qcobQE2RNEzP/UAcx3ymd0pnqORCSm6J
+	 7g6qO5Ac0bYbqbYCSf26d0Gc+Oi+iKXYEYkPBNeOeIXqN4LsP4YLOmYxabJdDZy95Z
+	 w93drQjAq2iUN/fih6EpGSqdXFm4qjl36djRycL4=
+Date: Wed, 04 Dec 2024 14:53:05 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-zap_nonpresent_ptes.patch added to mm-unstable branch
-Message-Id: <20241204225304.95475C4CECD@smtp.kernel.org>
+Subject: + mm-introduce-do_zap_pte_range.patch added to mm-unstable branch
+Message-Id: <20241204225305.E10C9C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce zap_nonpresent_ptes()
+     Subject: mm: introduce do_zap_pte_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-zap_nonpresent_ptes.patch
+     mm-introduce-do_zap_pte_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-zap_nonpresent_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-do_zap_pte_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: introduce zap_nonpresent_ptes()
-Date: Wed, 4 Dec 2024 19:09:43 +0800
+Subject: mm: introduce do_zap_pte_range()
+Date: Wed, 4 Dec 2024 19:09:44 +0800
 
-Similar to zap_present_ptes(), let's introduce zap_nonpresent_ptes() to
-handle non-present ptes, which can improve code readability.
+This commit introduces do_zap_pte_range() to actually zap the PTEs, which
+will help improve code readability and facilitate secondary checking of
+the processed PTEs in the future.
 
 No functional change.
 
-Link: https://lkml.kernel.org/r/009ca882036d9c7a9f815489cfeafe0bdb79d62d.1733305182.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/c3fd16807f83bb7d7a376cc6de023a9f5ead17da.1733305182.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Jann Horn <jannh@google.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -87,185 +88,73 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  136 ++++++++++++++++++++++++++------------------------
- 1 file changed, 73 insertions(+), 63 deletions(-)
+ mm/memory.c |   45 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
---- a/mm/memory.c~mm-introduce-zap_nonpresent_ptes
+--- a/mm/memory.c~mm-introduce-do_zap_pte_range
 +++ a/mm/memory.c
-@@ -1587,6 +1587,76 @@ static inline int zap_present_ptes(struc
- 	return 1;
+@@ -1657,6 +1657,27 @@ static inline int zap_nonpresent_ptes(st
+ 	return nr;
  }
  
-+static inline int zap_nonpresent_ptes(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
-+		unsigned int max_nr, unsigned long addr,
-+		struct zap_details *details, int *rss)
++static inline int do_zap_pte_range(struct mmu_gather *tlb,
++				   struct vm_area_struct *vma, pte_t *pte,
++				   unsigned long addr, unsigned long end,
++				   struct zap_details *details, int *rss,
++				   bool *force_flush, bool *force_break)
 +{
-+	swp_entry_t entry;
-+	int nr = 1;
++	pte_t ptent = ptep_get(pte);
++	int max_nr = (end - addr) / PAGE_SIZE;
 +
-+	entry = pte_to_swp_entry(ptent);
-+	if (is_device_private_entry(entry) ||
-+		is_device_exclusive_entry(entry)) {
-+		struct page *page = pfn_swap_entry_to_page(entry);
-+		struct folio *folio = page_folio(page);
++	if (pte_none(ptent))
++		return 1;
 +
-+		if (unlikely(!should_zap_folio(details, folio)))
-+			return 1;
-+		/*
-+		 * Both device private/exclusive mappings should only
-+		 * work with anonymous page so far, so we don't need to
-+		 * consider uffd-wp bit when zap. For more information,
-+		 * see zap_install_uffd_wp_if_needed().
-+		 */
-+		WARN_ON_ONCE(!vma_is_anonymous(vma));
-+		rss[mm_counter(folio)]--;
-+		if (is_device_private_entry(entry))
-+			folio_remove_rmap_pte(folio, page, vma);
-+		folio_put(folio);
-+	} else if (!non_swap_entry(entry)) {
-+		/* Genuine swap entries, hence a private anon pages */
-+		if (!should_zap_cows(details))
-+			return 1;
++	if (pte_present(ptent))
++		return zap_present_ptes(tlb, vma, pte, ptent, max_nr,
++					addr, details, rss, force_flush,
++					force_break);
 +
-+		nr = swap_pte_batch(pte, max_nr, ptent);
-+		rss[MM_SWAPENTS] -= nr;
-+		free_swap_and_cache_nr(entry, nr);
-+	} else if (is_migration_entry(entry)) {
-+		struct folio *folio = pfn_swap_entry_folio(entry);
-+
-+		if (!should_zap_folio(details, folio))
-+			return 1;
-+		rss[mm_counter(folio)]--;
-+	} else if (pte_marker_entry_uffd_wp(entry)) {
-+		/*
-+		 * For anon: always drop the marker; for file: only
-+		 * drop the marker if explicitly requested.
-+		 */
-+		if (!vma_is_anonymous(vma) && !zap_drop_markers(details))
-+			return 1;
-+	} else if (is_guard_swp_entry(entry)) {
-+		/*
-+		 * Ordinary zapping should not remove guard PTE
-+		 * markers. Only do so if we should remove PTE markers
-+		 * in general.
-+		 */
-+		if (!zap_drop_markers(details))
-+			return 1;
-+	} else if (is_hwpoison_entry(entry) || is_poisoned_swp_entry(entry)) {
-+		if (!should_zap_cows(details))
-+			return 1;
-+	} else {
-+		/* We should have covered all the swap entry types */
-+		pr_alert("unrecognized swap entry 0x%lx\n", entry.val);
-+		WARN_ON_ONCE(1);
-+	}
-+	clear_not_present_full_ptes(vma->vm_mm, addr, pte, nr, tlb->fullmm);
-+	zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details, ptent);
-+
-+	return nr;
++	return zap_nonpresent_ptes(tlb, vma, pte, ptent, max_nr, addr,
++					 details, rss);
 +}
 +
  static unsigned long zap_pte_range(struct mmu_gather *tlb,
  				struct vm_area_struct *vma, pmd_t *pmd,
  				unsigned long addr, unsigned long end,
-@@ -1598,7 +1668,6 @@ static unsigned long zap_pte_range(struc
- 	spinlock_t *ptl;
- 	pte_t *start_pte;
- 	pte_t *pte;
--	swp_entry_t entry;
- 	int nr;
- 
- 	tlb_change_page_size(tlb, PAGE_SIZE);
-@@ -1611,8 +1680,6 @@ static unsigned long zap_pte_range(struc
+@@ -1679,28 +1700,14 @@ static unsigned long zap_pte_range(struc
+ 	flush_tlb_batched_pending(mm);
  	arch_enter_lazy_mmu_mode();
  	do {
- 		pte_t ptent = ptep_get(pte);
--		struct folio *folio;
--		struct page *page;
- 		int max_nr;
- 
- 		nr = 1;
-@@ -1622,8 +1689,8 @@ static unsigned long zap_pte_range(struc
+-		pte_t ptent = ptep_get(pte);
+-		int max_nr;
+-
+-		nr = 1;
+-		if (pte_none(ptent))
+-			continue;
+-
  		if (need_resched())
  			break;
  
-+		max_nr = (end - addr) / PAGE_SIZE;
- 		if (pte_present(ptent)) {
--			max_nr = (end - addr) / PAGE_SIZE;
- 			nr = zap_present_ptes(tlb, vma, pte, ptent, max_nr,
- 					      addr, details, rss, &force_flush,
- 					      &force_break);
-@@ -1631,67 +1698,10 @@ static unsigned long zap_pte_range(struc
- 				addr += nr * PAGE_SIZE;
- 				break;
- 			}
--			continue;
--		}
--
--		entry = pte_to_swp_entry(ptent);
--		if (is_device_private_entry(entry) ||
--		    is_device_exclusive_entry(entry)) {
--			page = pfn_swap_entry_to_page(entry);
--			folio = page_folio(page);
--			if (unlikely(!should_zap_folio(details, folio)))
--				continue;
--			/*
--			 * Both device private/exclusive mappings should only
--			 * work with anonymous page so far, so we don't need to
--			 * consider uffd-wp bit when zap. For more information,
--			 * see zap_install_uffd_wp_if_needed().
--			 */
--			WARN_ON_ONCE(!vma_is_anonymous(vma));
--			rss[mm_counter(folio)]--;
--			if (is_device_private_entry(entry))
--				folio_remove_rmap_pte(folio, page, vma);
--			folio_put(folio);
--		} else if (!non_swap_entry(entry)) {
--			max_nr = (end - addr) / PAGE_SIZE;
--			nr = swap_pte_batch(pte, max_nr, ptent);
--			/* Genuine swap entries, hence a private anon pages */
--			if (!should_zap_cows(details))
--				continue;
--			rss[MM_SWAPENTS] -= nr;
--			free_swap_and_cache_nr(entry, nr);
--		} else if (is_migration_entry(entry)) {
--			folio = pfn_swap_entry_folio(entry);
--			if (!should_zap_folio(details, folio))
--				continue;
--			rss[mm_counter(folio)]--;
--		} else if (pte_marker_entry_uffd_wp(entry)) {
--			/*
--			 * For anon: always drop the marker; for file: only
--			 * drop the marker if explicitly requested.
--			 */
--			if (!vma_is_anonymous(vma) &&
--			    !zap_drop_markers(details))
--				continue;
--		} else if (is_guard_swp_entry(entry)) {
--			/*
--			 * Ordinary zapping should not remove guard PTE
--			 * markers. Only do so if we should remove PTE markers
--			 * in general.
--			 */
--			if (!zap_drop_markers(details))
--				continue;
--		} else if (is_hwpoison_entry(entry) ||
--			   is_poisoned_swp_entry(entry)) {
--			if (!should_zap_cows(details))
--				continue;
- 		} else {
--			/* We should have covered all the swap entry types */
--			pr_alert("unrecognized swap entry 0x%lx\n", entry.val);
--			WARN_ON_ONCE(1);
-+			nr = zap_nonpresent_ptes(tlb, vma, pte, ptent, max_nr,
-+						 addr, details, rss);
+-		max_nr = (end - addr) / PAGE_SIZE;
+-		if (pte_present(ptent)) {
+-			nr = zap_present_ptes(tlb, vma, pte, ptent, max_nr,
+-					      addr, details, rss, &force_flush,
+-					      &force_break);
+-			if (unlikely(force_break)) {
+-				addr += nr * PAGE_SIZE;
+-				break;
+-			}
+-		} else {
+-			nr = zap_nonpresent_ptes(tlb, vma, pte, ptent, max_nr,
+-						 addr, details, rss);
++		nr = do_zap_pte_range(tlb, vma, pte, addr, end, details, rss,
++				      &force_flush, &force_break);
++		if (unlikely(force_break)) {
++			addr += nr * PAGE_SIZE;
++			break;
  		}
--		clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
--		zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details, ptent);
  	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
  
- 	add_mm_rss_vec(mm, rss);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
