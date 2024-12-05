@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C921F03F8
-	for <mm-commits@vger.kernel.org>; Wed,  4 Dec 2024 22:53:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33BD823919C
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 01:32:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733352797; cv=none; b=XC/wsx4Dd7RXTWcEOoCNZ5qrgpOY5qZB4bbJzUcECTlDuohqeB6h3tE2zkSpAyw5xaqvPTuXhsEIdzeY+Zpc7uAwWUo6YMyYtogqs+yWZJCxBtMlxN7d2CdrwtmzB18Rz6A6w7Jh6wCyzZMUUujX4ESrBE0de9cfVg4JfSZXeEg=
+	t=1733362366; cv=none; b=KjZYbY8nVQEsEbfz2KoCpISQtoVM6SvDMQouz73PqeH4a4I8G5Ajw6iINFVLhABCyTUw0UpTBvB02kc8AhO2Js44gyWM44l3jX79e6ahnkPWQrndWTSmZEsAVCQOgeCcCgbwFdL8z94x7OKWr3kHhvFV1qGvjQ2lOcLz3kkDC74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733352797; c=relaxed/simple;
-	bh=fQ1EoS718AbaJV1GP5YcChZizH8x4HWFN1N4KPchU6U=;
-	h=Date:To:From:Subject:Message-Id; b=VGE4LaKLJyrVh3hk1bCiVwAFELYW14klqiZEs9NOa9Sa1zuV7aWcASQSmDz6ihOS9zoxI6zZoiNYEe3Pb/hZHJ0JrAw8Bmm8tvYDPQZLXPEhQsph0nrnWpLESDKbGaU5iYX+nZxirR2I4YvHnfsCOiDf2IpQw+3xRUPKRnoHXZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2L68nMJl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733362366; c=relaxed/simple;
+	bh=2RihUU24JofVGF3ohBtugJY61oJUJi9Rqs1Ta8GIaoo=;
+	h=Date:To:From:Subject:Message-Id; b=OX/8vY93xxgNv7VKNglReC/LjelF4j0NaRONenoLw8GK4fMFtdt8Cbh2knvfM9MTZsCMW0QCDlLM7Yf1FqfvEfPd+ivGtjVjFDK3tM64YBqnViV0jb0C4HwNhGTT3ds6CiYVJ9PW6t663l9cAlEsPCQUiWzf7Vu3z9msErMNcso=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PfBhGOUG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2L68nMJl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A8F3C4CECD;
-	Wed,  4 Dec 2024 22:53:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PfBhGOUG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AECF5C4CECD;
+	Thu,  5 Dec 2024 01:32:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733352796;
-	bh=fQ1EoS718AbaJV1GP5YcChZizH8x4HWFN1N4KPchU6U=;
+	s=korg; t=1733362365;
+	bh=2RihUU24JofVGF3ohBtugJY61oJUJi9Rqs1Ta8GIaoo=;
 	h=Date:To:From:Subject:From;
-	b=2L68nMJlkPhCTv3SBQJfnlMaPzqA5havdkpStm55045ZxN5f+8pZ+sdPK71WXRsM8
-	 MckB3WUnLOfAdScmFdQR5eh/meyTcw7TKiMkRkKqEwYhXdXJ4m/agwd3gSz++KsFBP
-	 OMa7hlCHdJzfIZytmtvv4KWgeHbnoLe4+PLy+7PQ=
-Date: Wed, 04 Dec 2024 14:53:16 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=PfBhGOUGtB5PBL8CQk9lfZ0p+N9q8yzhsh0Zy9iNXtlITWmCBYM+y2mv6ZxLUp5N0
+	 3DUUt85mxQHNT/pJijh6bNFp7yGl/YVz6CbJNHC+cW0/tQd+H5GoPPHvb2GjJl1LG1
+	 mLVJUPYU4KLRCuN5afo8YxHM4jBe1FZTu5YS3QQc=
+Date: Wed, 04 Dec 2024 17:32:45 -0800
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,jhubbard@nvidia.com,jgg@nvidia.com,ehagberg@janestreet.com,david@redhat.com,guillaume@morinfr.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-select-arch_supports_pt_reclaim-if-x86_64.patch added to mm-unstable branch
-Message-Id: <20241204225316.8A8F3C4CECD@smtp.kernel.org>
+Subject: [failures] mm-hugetlb-support-foll_forcefoll_write.patch removed from -mm tree
+Message-Id: <20241205013245.AECF5C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,85 +34,238 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: x86: select ARCH_SUPPORTS_PT_RECLAIM if X86_64
-has been added to the -mm mm-unstable branch.  Its filename is
-     x86-select-arch_supports_pt_reclaim-if-x86_64.patch
+The quilt patch titled
+     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-support-foll_forcefoll_write.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-select-arch_supports_pt_reclaim-if-x86_64.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: x86: select ARCH_SUPPORTS_PT_RECLAIM if X86_64
-Date: Wed, 4 Dec 2024 19:09:51 +0800
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+Date: Wed, 4 Dec 2024 21:18:23 +0100
 
-Now, x86 has fully supported the CONFIG_PT_RECLAIM feature, and reclaiming
-PTE pages is profitable only on 64-bit systems, so select
-ARCH_SUPPORTS_PT_RECLAIM if X86_64.
+Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
+mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
+support write-faults in shared mappings"), PTRACE_POKETEXT worked by
+accident, but it was buggy and silently ended up mapping pages writable
+into the page tables even though VM_WRITE was not set.
 
-Link: https://lkml.kernel.org/r/841c1f35478d5354872d307888979c9e20de9c09.1733305182.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
+In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
+Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
+used to work in the past by accident now properly works, allowing
+applications using hugetlb for text etc.  to get properly debugged.
+
+This change might also be required to implement uprobes support for
+hugetlb [1].
+
+[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
+
+Link: https://lkml.kernel.org/r/Z1C5D1D3NJFnADPz@bender.morinfr.org
+Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Eric Hagberg <ehagberg@janestreet.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/gup.c     |   93 ++++++++++++++++++++++++-------------------------
+ mm/hugetlb.c |   20 +++++-----
+ 2 files changed, 58 insertions(+), 55 deletions(-)
 
---- a/arch/x86/Kconfig~x86-select-arch_supports_pt_reclaim-if-x86_64
-+++ a/arch/x86/Kconfig
-@@ -322,6 +322,7 @@ config X86
- 	select FUNCTION_ALIGNMENT_4B
- 	imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
- 	select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
-+	select ARCH_SUPPORTS_PT_RECLAIM		if X86_64
+--- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/gup.c
+@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
+ }
+ #endif	/* CONFIG_HAVE_GUP_FAST */
  
- config INSTRUCTION_DECODER
- 	def_bool y
++/* Common code for can_follow_write_* */
++static inline bool can_follow_write_common(struct page *page,
++		struct vm_area_struct *vma, unsigned int flags)
++{
++	/* Maybe FOLL_FORCE is set to override it? */
++	if (!(flags & FOLL_FORCE))
++		return false;
++
++	/* But FOLL_FORCE has no effect on shared mappings */
++	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
++		return false;
++
++	/* ... or read-only private ones */
++	if (!(vma->vm_flags & VM_MAYWRITE))
++		return false;
++
++	/* ... or already writable ones that just need to take a write fault */
++	if (vma->vm_flags & VM_WRITE)
++		return false;
++
++	/*
++	 * See can_change_pte_writable(): we broke COW and could map the page
++	 * writable if we have an exclusive anonymous page ...
++	 */
++	return page && PageAnon(page) && PageAnonExclusive(page);
++}
++
+ static struct page *no_page_table(struct vm_area_struct *vma,
+ 				  unsigned int flags, unsigned long address)
+ {
+@@ -622,6 +649,22 @@ static struct page *no_page_table(struct
+ }
+ 
+ #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
++/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
++static inline bool can_follow_write_pud(pud_t pud, struct page *page,
++					struct vm_area_struct *vma,
++					unsigned int flags)
++{
++	/* If the pud is writable, we can write to the page. */
++	if (pud_write(pud))
++		return true;
++
++	if (!can_follow_write_common(page, vma, flags))
++		return false;
++
++	/* ... and a write-fault isn't required for other reasons. */
++	return !vma_soft_dirty_enabled(vma) || pud_soft_dirty(pud);
++}
++
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+ 				    int flags, struct follow_page_context *ctx)
+@@ -634,7 +677,8 @@ static struct page *follow_huge_pud(stru
+ 
+ 	assert_spin_locked(pud_lockptr(mm, pudp));
+ 
+-	if ((flags & FOLL_WRITE) && !pud_write(pud))
++	if ((flags & FOLL_WRITE) &&
++	    !can_follow_write_pud(pud, page, vma, flags))
+ 		return NULL;
+ 
+ 	if (!pud_present(pud))
+@@ -686,27 +730,7 @@ static inline bool can_follow_write_pmd(
+ 	if (pmd_write(pmd))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -807,27 +831,7 @@ static inline bool can_follow_write_pte(
+ 	if (pte_write(pte))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -1294,9 +1298,6 @@ static int check_vma_flags(struct vm_are
+ 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+ 				return -EFAULT;
+-			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
+-			if (is_vm_hugetlb_page(vma))
+-				return -EFAULT;
+ 			/*
+ 			 * We used to let the write,force case do COW in a
+ 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
+--- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/hugetlb.c
+@@ -5169,6 +5169,13 @@ static void set_huge_ptep_writable(struc
+ 		update_mmu_cache(vma, address, ptep);
+ }
+ 
++static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
++					 unsigned long address, pte_t *ptep)
++{
++	if (vma->vm_flags & VM_WRITE)
++		set_huge_ptep_writable(vma, address, ptep);
++}
++
+ bool is_hugetlb_entry_migration(pte_t pte)
+ {
+ 	swp_entry_t swp;
+@@ -5802,13 +5809,6 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	if (!unshare && huge_pte_uffd_wp(pte))
+ 		return 0;
+ 
+-	/*
+-	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
+-	 * PTE mapped R/O such as maybe_mkwrite() would do.
+-	 */
+-	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
+-		return VM_FAULT_SIGSEGV;
+-
+ 	/* Let's take out MAP_SHARED mappings first. */
+ 	if (vma->vm_flags & VM_MAYSHARE) {
+ 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
+@@ -5837,7 +5837,8 @@ retry_avoidcopy:
+ 			SetPageAnonExclusive(&old_folio->page);
+ 		}
+ 		if (likely(!unshare))
+-			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
++			set_huge_ptep_maybe_writable(vma, vmf->address,
++						     vmf->pte);
+ 
+ 		delayacct_wpcopy_end();
+ 		return 0;
+@@ -5943,7 +5944,8 @@ retry_avoidcopy:
+ 	spin_lock(vmf->ptl);
+ 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
+ 	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
+-		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
++		const bool writable = !unshare && (vma->vm_flags & VM_WRITE);
++		pte_t newpte = make_huge_pte(vma, &new_folio->page, writable);
+ 
+ 		/* Break COW or unshare */
+ 		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from guillaume@morinfr.org are
 
-mm-pgtable-make-ptep_clear-non-atomic.patch
-mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch
-mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte.patch
-mm-introduce-zap_nonpresent_ptes.patch
-mm-introduce-do_zap_pte_range.patch
-mm-skip-over-all-consecutive-none-ptes-in-do_zap_pte_range.patch
-mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
-mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
-mm-make-zap_pte_range-handle-full-within-pmd-range.patch
-mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
-x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
-x86-select-arch_supports_pt_reclaim-if-x86_64.patch
 
