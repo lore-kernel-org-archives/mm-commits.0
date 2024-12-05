@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D62CD26D
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:44:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0525CD26D
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:44:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733373864; cv=none; b=N+qYSyto5KVpaZPmNzmuvNLYTfghko1K3dOWrHwa9NxWoPbaBgz9Q3odfndbaZdviSA99vCqjAuDOy79P0xJQH4AIDPZR64OANsecQs4ABgFRyFprlBJw19mxOmKIkFb0PzUVgOvETpmtA+Crc8nIp2i/VHPKb0pKxhljZxM860=
+	t=1733373866; cv=none; b=Sk+vJSONlet39ljNJsyIj2GWZrfK/nuQeXwOUZwktPBJ0hjVqYlukMAh+IFNOoAasSAzXJqkSuk+38k9CQ8Sxo9ZmxHva0AIAwIQNNnJnzYmw1wHn2jdHUDzOQQs0uPduvfudVyQYxxEudtTbNIGlfgEoHHKp6B0Z1zgHya5Ypg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733373864; c=relaxed/simple;
-	bh=D1AxQ5iSoSO5ietvcknjWCkvxt3lDsy5tUunXue9HE8=;
-	h=Date:To:From:Subject:Message-Id; b=mw96ueoLNNTh2ccgspnhTDn8S+DFF+eNQVhwV2R7yBjQeQvUhVIbAcNr0unIyoGm9FHqvWcfpe3GOnDBEN+OdQpDrMyrZ2F0JHy1lUGfcW6YQUjShJpAzcnhoIqS1OnLZTyzi/xr1pl7I1XK8ZK34nqjN6EQbeF12R7Stw0oN2Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGduRyDC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733373866; c=relaxed/simple;
+	bh=FMq6BZfcOOhBIKwtCnz83/FChTVDc2pss1UWe20G5So=;
+	h=Date:To:From:Subject:Message-Id; b=umNI1KfPDaQL6n09q+A4y2990VlRR9LdPD249iCoqciuOELCM+R5tHF9V36SYeRO5qqDtGUV9bhTIHkTtf7bDJeAAHg1TA60weC4qIfAxmcTvLOGGOnz6OXMByiPxZSmnbhbkl5/JMmrN7yC9PxW/SlwhWpyN0P1zF5SGkN/p9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pUt7JtuW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGduRyDC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C628AC4CED6;
-	Thu,  5 Dec 2024 04:44:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pUt7JtuW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C09C4CED6;
+	Thu,  5 Dec 2024 04:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733373863;
-	bh=D1AxQ5iSoSO5ietvcknjWCkvxt3lDsy5tUunXue9HE8=;
+	s=korg; t=1733373865;
+	bh=FMq6BZfcOOhBIKwtCnz83/FChTVDc2pss1UWe20G5So=;
 	h=Date:To:From:Subject:From;
-	b=XGduRyDCNo2wYL5xp49hhGHexH9bRbtKOOEm8f6OMgiR2FywclsKUA2IadhD8zUYg
-	 TyS5n8W+GQfTC+qBSW1+iWHJ1GZNNdiaSmB7KKusZTFmr0bYaP77LARIlB93+atIy1
-	 oegKTcTN1PXJWhZOUivYYnSepGz0DdRTkzcPmR+o=
-Date: Wed, 04 Dec 2024 20:44:23 -0800
+	b=pUt7JtuWv5wqqRGPA/AjcAdd8fp3Q9Ol8325sR1ds+Il86HFmZdKW+6kh+rsuTzy1
+	 Tlga9zEc4vnCKyfb8v83CsHxAFeDHNVlTIDdMMRqryC1vvalz30IlPjcms9HiOTMNW
+	 TgMFa+FKD8V/MxDqioRMilYPiTEjYdSCCwtCWDF0=
+Date: Wed, 04 Dec 2024 20:44:25 -0800
 To: mm-commits@vger.kernel.org,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-clean-up-workingset.patch added to mm-unstable branch
-Message-Id: <20241205044423.C628AC4CED6@smtp.kernel.org>
+Subject: + mm-mglru-optimize-deactivation.patch added to mm-unstable branch
+Message-Id: <20241205044425.C4C09C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: clean up workingset
+     Subject: mm/mglru: optimize deactivation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-clean-up-workingset.patch
+     mm-mglru-optimize-deactivation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-clean-up-workingset.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-optimize-deactivation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,103 +59,150 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: clean up workingset
-Date: Sun, 1 Dec 2024 20:28:18 -0700
+Subject: mm/mglru: optimize deactivation
+Date: Sun, 1 Dec 2024 20:28:19 -0700
 
-Patch series "mm/mglru: performance optimizations".
+Do not shuffle a folio in the deactivation paths if it is already in the
+oldest generation.  This reduces the LRU lock contention.
 
-This series improves performance for some previously discussed test cases.
-Most of the code changes gathered here has been floating on the mailing
-list [1][2].  They are now properly organized and have gone through
-various benchmarks on both client and server devices, including Android,
-FIO, memcached, multiple VMs and MongoDB.
+Before this patch, the contention is reproducible by FIO, e.g.,
 
-[1] https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
-[2] https://lore.kernel.org/CAOUHufawNerxqLm7L9Yywp3HJFiYVrYO26ePUb1jH-qxNGWzyA@mail.gmail.com/
+  fio -filename=/dev/nvme1n1p2 -direct=0 -thread -size=1024G \
+      -rwmixwrite=30  --norandommap --randrepeat=0 -ioengine=sync \
+      -bs=4k -numjobs=400 -runtime=25000 --time_based \
+      -group_reporting -name=mglru
 
+  98.96%--_raw_spin_lock_irqsave
+          folio_lruvec_lock_irqsave
+          |
+           --98.78%--folio_batch_move_lru
+               |
+                --98.63%--deactivate_file_folio
+                          mapping_try_invalidate
+                          invalidate_mapping_pages
+                          invalidate_bdev
+                          blkdev_common_ioctl
+                          blkdev_ioctl
 
-This patch (of 6):
+After this patch, deactivate_file_folio() bails out early without taking
+the LRU lock.
 
-Move VM_BUG_ON_FOLIO() to cover both the default and MGLRU paths.  Also
-use a pair of rcu_read_lock() and rcu_read_unlock() within each path, to
-improve readability.
+A side effect is that a folio can be left at the head of the oldest
+generation, rather than the tail.  If reclaim happens at the same time, it
+cannot reclaim this folio immediately.  Since there is no known
+correlation between truncation and reclaim, this side effect is considered
+insignificant.
 
-This change should not have any side effects.
-
-Link: https://lkml.kernel.org/r/20241202032823.2741019-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/20241202032823.2741019-2-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20241202032823.2741019-3-yuzhao@google.com
+Reported-by: Bharata B Rao <bharata@amd.com>
+Closes: https://lore.kernel.org/CAOUHufawNerxqLm7L9Yywp3HJFiYVrYO26ePUb1jH-qxNGWzyA@mail.gmail.com/
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Tested-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Bharata B Rao <bharata@amd.com>
 Cc: David Stevens <stevensd@chromium.org>
 Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ mm/swap.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
---- a/mm/workingset.c~mm-mglru-clean-up-workingset
-+++ a/mm/workingset.c
-@@ -428,17 +428,17 @@ bool workingset_test_recent(void *shadow
- 	struct pglist_data *pgdat;
- 	unsigned long eviction;
+--- a/mm/swap.c~mm-mglru-optimize-deactivation
++++ a/mm/swap.c
+@@ -379,7 +379,8 @@ static void __lru_cache_activate_folio(s
+ }
  
--	rcu_read_lock();
--
+ #ifdef CONFIG_LRU_GEN
+-static void folio_inc_refs(struct folio *folio)
++
++static void lru_gen_inc_refs(struct folio *folio)
+ {
+ 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
+ 
+@@ -406,10 +407,30 @@ static void folio_inc_refs(struct folio
+ 		new_flags |= old_flags & ~LRU_REFS_MASK;
+ 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
+ }
+-#else
+-static void folio_inc_refs(struct folio *folio)
++
++static bool lru_gen_clear_refs(struct folio *folio)
++{
++	int gen = folio_lru_gen(folio);
++	int type = folio_is_file_lru(folio);
++	struct lru_gen_folio *lrugen = &folio_lruvec(folio)->lrugen;
++
++	set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
++
++	/* whether can do without shuffling under the LRU lock */
++	return gen == lru_gen_from_seq(READ_ONCE(lrugen->min_seq[type]));
++}
++
++#else /* !CONFIG_LRU_GEN */
++
++static void lru_gen_inc_refs(struct folio *folio)
++{
++}
++
++static bool lru_gen_clear_refs(struct folio *folio)
+ {
++	return false;
+ }
++
+ #endif /* CONFIG_LRU_GEN */
+ 
+ /**
+@@ -428,7 +449,7 @@ static void folio_inc_refs(struct folio
+ void folio_mark_accessed(struct folio *folio)
+ {
  	if (lru_gen_enabled()) {
--		bool recent = lru_gen_test_recent(shadow, file,
--				&eviction_lruvec, &eviction, workingset);
-+		bool recent;
- 
-+		rcu_read_lock();
-+		recent = lru_gen_test_recent(shadow, file, &eviction_lruvec,
-+					     &eviction, workingset);
- 		rcu_read_unlock();
- 		return recent;
+-		folio_inc_refs(folio);
++		lru_gen_inc_refs(folio);
+ 		return;
  	}
  
--
-+	rcu_read_lock();
- 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
- 	eviction <<= bucket_order;
+@@ -524,7 +545,7 @@ void folio_add_lru_vma(struct folio *fol
+  */
+ static void lru_deactivate_file(struct lruvec *lruvec, struct folio *folio)
+ {
+-	bool active = folio_test_active(folio);
++	bool active = folio_test_active(folio) || lru_gen_enabled();
+ 	long nr_pages = folio_nr_pages(folio);
  
-@@ -459,14 +459,12 @@ bool workingset_test_recent(void *shadow
- 	 * configurations instead.
- 	 */
- 	eviction_memcg = mem_cgroup_from_id(memcgid);
--	if (!mem_cgroup_disabled() &&
--	    (!eviction_memcg || !mem_cgroup_tryget(eviction_memcg))) {
--		rcu_read_unlock();
--		return false;
--	}
--
-+	if (!mem_cgroup_tryget(eviction_memcg))
-+		eviction_memcg = NULL;
- 	rcu_read_unlock();
+ 	if (folio_test_unevictable(folio))
+@@ -589,7 +610,10 @@ static void lru_lazyfree(struct lruvec *
  
-+	if (!mem_cgroup_disabled() && !eviction_memcg)
-+		return false;
+ 	lruvec_del_folio(lruvec, folio);
+ 	folio_clear_active(folio);
+-	folio_clear_referenced(folio);
++	if (lru_gen_enabled())
++		lru_gen_clear_refs(folio);
++	else
++		folio_clear_referenced(folio);
  	/*
- 	 * Flush stats (and potentially sleep) outside the RCU read section.
- 	 *
-@@ -544,6 +542,8 @@ void workingset_refault(struct folio *fo
- 	bool workingset;
- 	long nr;
- 
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+
- 	if (lru_gen_enabled()) {
- 		lru_gen_refault(folio, shadow);
+ 	 * Lazyfree folios are clean anonymous folios.  They have
+ 	 * the swapbacked flag cleared, to distinguish them from normal
+@@ -657,6 +681,9 @@ void deactivate_file_folio(struct folio
+ 	if (folio_test_unevictable(folio))
  		return;
-@@ -558,7 +558,6 @@ void workingset_refault(struct folio *fo
- 	 * is actually experiencing the refault event. Make sure the folio is
- 	 * locked to guarantee folio_memcg() stability throughout.
- 	 */
--	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	nr = folio_nr_pages(folio);
- 	memcg = folio_memcg(folio);
- 	pgdat = folio_pgdat(folio);
+ 
++	if (lru_gen_enabled() && lru_gen_clear_refs(folio))
++		return;
++
+ 	folio_batch_add_and_move(folio, lru_deactivate_file, true);
+ }
+ 
+@@ -670,7 +697,10 @@ void deactivate_file_folio(struct folio
+  */
+ void folio_deactivate(struct folio *folio)
+ {
+-	if (folio_test_unevictable(folio) || !(folio_test_active(folio) || lru_gen_enabled()))
++	if (folio_test_unevictable(folio))
++		return;
++
++	if (lru_gen_enabled() ? lru_gen_clear_refs(folio) : !folio_test_active(folio))
+ 		return;
+ 
+ 	folio_batch_add_and_move(folio, lru_deactivate, true);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
