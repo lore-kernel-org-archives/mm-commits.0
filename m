@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C3C82119
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D62CD26D
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733373448; cv=none; b=EI+UWGdkwwrHZbaEkKEWsEaJ3Q8EhLYVX3tEt4NRj6cm97BMSduD7wrWBC5NJUQ484ycebyVPrksxr7EO8Ei6jH3zjZcZgw0qnpK6cV9rMHDbKnNoRj9k9D9ggExzVUZZ2CgEDv6PKw4CzbphLYcZpFzh27PvlcpOcuEDV/G5UA=
+	t=1733373864; cv=none; b=N+qYSyto5KVpaZPmNzmuvNLYTfghko1K3dOWrHwa9NxWoPbaBgz9Q3odfndbaZdviSA99vCqjAuDOy79P0xJQH4AIDPZR64OANsecQs4ABgFRyFprlBJw19mxOmKIkFb0PzUVgOvETpmtA+Crc8nIp2i/VHPKb0pKxhljZxM860=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733373448; c=relaxed/simple;
-	bh=uRZlYAcsy7NbJ+Tb6tuej9RbYrNcRWUZeTOFvMO9vOw=;
-	h=Date:To:From:Subject:Message-Id; b=mHZd+ZOIVddFB8tGpILyPKbV+YPzsaF/vht9LaoLq7KGHkZKobqhB6Kpiz7nB9qO7ZP7N6u9kM9VVr3N4vA0T9lpphZZuHz9p/WIfG5OqBPsU2/K3Q5n335W46/Uy+QYwNMtf4V4D7e5gj8VdrR3UsiMN7jIN4Nvd2kTFirM4Xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AUHpXjEY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733373864; c=relaxed/simple;
+	bh=D1AxQ5iSoSO5ietvcknjWCkvxt3lDsy5tUunXue9HE8=;
+	h=Date:To:From:Subject:Message-Id; b=mw96ueoLNNTh2ccgspnhTDn8S+DFF+eNQVhwV2R7yBjQeQvUhVIbAcNr0unIyoGm9FHqvWcfpe3GOnDBEN+OdQpDrMyrZ2F0JHy1lUGfcW6YQUjShJpAzcnhoIqS1OnLZTyzi/xr1pl7I1XK8ZK34nqjN6EQbeF12R7Stw0oN2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGduRyDC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AUHpXjEY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17310C4CED6;
-	Thu,  5 Dec 2024 04:37:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGduRyDC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C628AC4CED6;
+	Thu,  5 Dec 2024 04:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733373448;
-	bh=uRZlYAcsy7NbJ+Tb6tuej9RbYrNcRWUZeTOFvMO9vOw=;
+	s=korg; t=1733373863;
+	bh=D1AxQ5iSoSO5ietvcknjWCkvxt3lDsy5tUunXue9HE8=;
 	h=Date:To:From:Subject:From;
-	b=AUHpXjEYEyrYdrbmyuSjxLW7mrsVPl9BPCtKcRLVoAXdlcdPu85huKW95pdNuQE9o
-	 lXtgZThEj8uLqFaX0vEgFHWjNqRH8GkV7Pkw4UIoMNC+FY4wAam4NBBNHeVjSRi7Am
-	 ZK0R/UMAhqaxtArX0f2vfjtobREjYlcgbuigNkT0=
-Date: Wed, 04 Dec 2024 20:37:27 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,usamaarif642@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,haowenchao22@gmail.com,akpm@linux-foundation.org
+	b=XGduRyDCNo2wYL5xp49hhGHexH9bRbtKOOEm8f6OMgiR2FywclsKUA2IadhD8zUYg
+	 TyS5n8W+GQfTC+qBSW1+iWHJ1GZNNdiaSmB7KKusZTFmr0bYaP77LARIlB93+atIy1
+	 oegKTcTN1PXJWhZOUivYYnSepGz0DdRTkzcPmR+o=
+Date: Wed, 04 Dec 2024 20:44:23 -0800
+To: mm-commits@vger.kernel.org,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch added to mm-unstable branch
-Message-Id: <20241205043728.17310C4CED6@smtp.kernel.org>
+Subject: + mm-mglru-clean-up-workingset.patch added to mm-unstable branch
+Message-Id: <20241205044423.C628AC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add per-order mTHP swap-in fallback/fallback_charge counters
+     Subject: mm/mglru: clean up workingset
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch
+     mm-mglru-clean-up-workingset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-clean-up-workingset.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,114 +58,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wenchao Hao <haowenchao22@gmail.com>
-Subject: mm: add per-order mTHP swap-in fallback/fallback_charge counters
-Date: Mon, 2 Dec 2024 20:47:30 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/mglru: clean up workingset
+Date: Sun, 1 Dec 2024 20:28:18 -0700
 
-Currently, large folio swap-in is supported, but we lack a method to
-analyze their success ratio.  Similar to anon_fault_fallback, we introduce
-per-order mTHP swpin_fallback and swpin_fallback_charge counters for
-calculating their success ratio.  The new counters are located at:
+Patch series "mm/mglru: performance optimizations".
 
-/sys/kernel/mm/transparent_hugepage/hugepages-<size>/stats/
-	swpin_fallback
-	swpin_fallback_charge
+This series improves performance for some previously discussed test cases.
+Most of the code changes gathered here has been floating on the mailing
+list [1][2].  They are now properly organized and have gone through
+various benchmarks on both client and server devices, including Android,
+FIO, memcached, multiple VMs and MongoDB.
 
-Link: https://lkml.kernel.org/r/20241202124730.2407037-1-haowenchao22@gmail.com
-Signed-off-by: Wenchao Hao <haowenchao22@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+[1] https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
+[2] https://lore.kernel.org/CAOUHufawNerxqLm7L9Yywp3HJFiYVrYO26ePUb1jH-qxNGWzyA@mail.gmail.com/
+
+
+This patch (of 6):
+
+Move VM_BUG_ON_FOLIO() to cover both the default and MGLRU paths.  Also
+use a pair of rcu_read_lock() and rcu_read_unlock() within each path, to
+improve readability.
+
+This change should not have any side effects.
+
+Link: https://lkml.kernel.org/r/20241202032823.2741019-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20241202032823.2741019-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Tested-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   10 ++++++++++
- include/linux/huge_mm.h                    |    2 ++
- mm/huge_memory.c                           |    6 ++++++
- mm/memory.c                                |    2 ++
- 4 files changed, 20 insertions(+)
+ mm/workingset.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -591,6 +591,16 @@ swpin
- 	is incremented every time a huge page is swapped in from a non-zswap
- 	swap device in one piece.
+--- a/mm/workingset.c~mm-mglru-clean-up-workingset
++++ a/mm/workingset.c
+@@ -428,17 +428,17 @@ bool workingset_test_recent(void *shadow
+ 	struct pglist_data *pgdat;
+ 	unsigned long eviction;
  
-+swpin_fallback
-+	is incremented if swapin fails to allocate or charge a huge page
-+	and instead falls back to using huge pages with lower orders or
-+	small pages.
-+
-+swpin_fallback_charge
-+	is incremented if swapin fails to charge a huge page and instead
-+	falls back to using  huge pages with lower orders or small pages
-+	even though the allocation was successful.
-+
- swpout
- 	is incremented every time a huge page is swapped out to a non-zswap
- 	swap device in one piece without splitting.
---- a/include/linux/huge_mm.h~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/include/linux/huge_mm.h
-@@ -121,6 +121,8 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
- 	MTHP_STAT_ZSWPOUT,
- 	MTHP_STAT_SWPIN,
-+	MTHP_STAT_SWPIN_FALLBACK,
-+	MTHP_STAT_SWPIN_FALLBACK_CHARGE,
- 	MTHP_STAT_SWPOUT,
- 	MTHP_STAT_SWPOUT_FALLBACK,
- 	MTHP_STAT_SHMEM_ALLOC,
---- a/mm/huge_memory.c~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/mm/huge_memory.c
-@@ -617,6 +617,8 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
-+DEFINE_MTHP_STAT_ATTR(swpin_fallback, MTHP_STAT_SWPIN_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(swpin_fallback_charge, MTHP_STAT_SWPIN_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
- #ifdef CONFIG_SHMEM
-@@ -637,6 +639,8 @@ static struct attribute *anon_stats_attr
- #ifndef CONFIG_SHMEM
- 	&zswpout_attr.attr,
- 	&swpin_attr.attr,
-+	&swpin_fallback_attr.attr,
-+	&swpin_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
-@@ -669,6 +673,8 @@ static struct attribute *any_stats_attrs
- #ifdef CONFIG_SHMEM
- 	&zswpout_attr.attr,
- 	&swpin_attr.attr,
-+	&swpin_fallback_attr.attr,
-+	&swpin_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
---- a/mm/memory.c~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/mm/memory.c
-@@ -4258,8 +4258,10 @@ static struct folio *alloc_swap_folio(st
- 			if (!mem_cgroup_swapin_charge_folio(folio, vma->vm_mm,
- 							    gfp, entry))
- 				return folio;
-+			count_mthp_stat(order, MTHP_STAT_SWPIN_FALLBACK_CHARGE);
- 			folio_put(folio);
- 		}
-+		count_mthp_stat(order, MTHP_STAT_SWPIN_FALLBACK);
- 		order = next_order(&orders, order);
+-	rcu_read_lock();
+-
+ 	if (lru_gen_enabled()) {
+-		bool recent = lru_gen_test_recent(shadow, file,
+-				&eviction_lruvec, &eviction, workingset);
++		bool recent;
+ 
++		rcu_read_lock();
++		recent = lru_gen_test_recent(shadow, file, &eviction_lruvec,
++					     &eviction, workingset);
+ 		rcu_read_unlock();
+ 		return recent;
  	}
  
+-
++	rcu_read_lock();
+ 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
+ 	eviction <<= bucket_order;
+ 
+@@ -459,14 +459,12 @@ bool workingset_test_recent(void *shadow
+ 	 * configurations instead.
+ 	 */
+ 	eviction_memcg = mem_cgroup_from_id(memcgid);
+-	if (!mem_cgroup_disabled() &&
+-	    (!eviction_memcg || !mem_cgroup_tryget(eviction_memcg))) {
+-		rcu_read_unlock();
+-		return false;
+-	}
+-
++	if (!mem_cgroup_tryget(eviction_memcg))
++		eviction_memcg = NULL;
+ 	rcu_read_unlock();
+ 
++	if (!mem_cgroup_disabled() && !eviction_memcg)
++		return false;
+ 	/*
+ 	 * Flush stats (and potentially sleep) outside the RCU read section.
+ 	 *
+@@ -544,6 +542,8 @@ void workingset_refault(struct folio *fo
+ 	bool workingset;
+ 	long nr;
+ 
++	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	if (lru_gen_enabled()) {
+ 		lru_gen_refault(folio, shadow);
+ 		return;
+@@ -558,7 +558,6 @@ void workingset_refault(struct folio *fo
+ 	 * is actually experiencing the refault event. Make sure the folio is
+ 	 * locked to guarantee folio_memcg() stability throughout.
+ 	 */
+-	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	nr = folio_nr_pages(folio);
+ 	memcg = folio_memcg(folio);
+ 	pgdat = folio_pgdat(folio);
 _
 
-Patches currently in -mm which might be from haowenchao22@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch
+mm-mglru-clean-up-workingset.patch
+mm-mglru-optimize-deactivation.patch
+mm-mglru-rework-aging-feedback.patch
+mm-mglru-rework-type-selection.patch
+mm-mglru-rework-refault-detection.patch
+mm-mglru-rework-workingset-protection.patch
 
