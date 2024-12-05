@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 860D32119
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:31:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C5942119
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:35:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733373118; cv=none; b=HHwarCgrpZygpXoLeD4JoQOd8tSo2k/8iMUrJ7QH24ikEd1/IHXX7MN1zFXYNn2XKUfQDYVKkQvobF5Kt/Vuls2dd8n1oAmIjqBBr+8EhexHIWrynBZ0LlQ7rJb8b2GMRKkaGOuD4+VJzBQ3qoMRdSWFt0BZ/ewI/ChEZJEdq8w=
+	t=1733373341; cv=none; b=ZVA/wp+r/vLYkbdPrWaYko0aADl2tTe6W8vvexJ3xbcl/TlQnZLI/2RLJ/WhaPCa6eOt9iDwE1kSeRWUs6WkyPxLmirdoKQnXrfoJsvpSI4yvIPJyeRbEQgxTCk8i+RRkVbt+XJX2PW7NPO/KHfoJ1IZs/930vh+ndfD/LUNF/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733373118; c=relaxed/simple;
-	bh=nm1Q9GONQCta3WHOrzeD8Z/TDC3h6nxbIEECcqRiNKw=;
-	h=Date:To:From:Subject:Message-Id; b=MMgfJ2ZF1iKqS/bOGuWEY/ce96/j/s2IWF+j+Jlq1aSyTTTBigrq/GgeNLeS9ah4IDi56Eum8tofNFCh+rN4cGMbxDYsijP9qigK5MNjlPN6m3roerKI/QLfVXaNT/7xX7iVccakvoV88O14nQHkiclKfcuiVLwPLPOX1VcDv/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A+cg7V+M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733373341; c=relaxed/simple;
+	bh=qoYyx5IBY+MUY2Az+bcAjNQD4dthpH/h/AA+WgyeS9c=;
+	h=Date:To:From:Subject:Message-Id; b=pJyZ9vcqRBVaTwjKiLOi/K/HmyCk+cB00frSXz7OBGwjaQnf+sJSCwAZIafb3Pi/FZypIXAiUFmPsJ2HHR9FhsjYMwk3J7QP0dWUJyUnmNW4XYpRy7xswtMKzSx3O3bGqI68gtMU9CH7x9JEDwnLL5VxX4dAiXDI/E9pHj6YPKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h65mEcWq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A+cg7V+M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09CF6C4CED6;
-	Thu,  5 Dec 2024 04:31:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h65mEcWq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1078BC4CED6;
+	Thu,  5 Dec 2024 04:35:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733373118;
-	bh=nm1Q9GONQCta3WHOrzeD8Z/TDC3h6nxbIEECcqRiNKw=;
+	s=korg; t=1733373341;
+	bh=qoYyx5IBY+MUY2Az+bcAjNQD4dthpH/h/AA+WgyeS9c=;
 	h=Date:To:From:Subject:From;
-	b=A+cg7V+Mvd/6sFG0tcpmWdnGYP3lEAZyyEyl3NGIElmoKFDBhfoyiFjrEt3wUvjsR
-	 cOqHKKiwVuIv0JTd3e1zfZag7CYNuolhi7g34Ptx9ihT0W1nf2zvseKSDFLzRGZtYY
-	 cf948eGXRvI5qkkqqlKQS7ybcKc4ETMEsoOCQrg4=
-Date: Wed, 04 Dec 2024 20:31:57 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,ehagberg@janestreet.com,david@redhat.com,akpm@linux-foundation.org,guillaume@morinfr.org,akpm@linux-foundation.org
+	b=h65mEcWqCFt2HskUKEAGMvPFEp0vu2JA+ap/LVelVUu69JW//Ngu8XzPIQxLB0PrP
+	 2bPs7D94xd92G6Jx88nkTVylzpxSXWgnOs2Z19iCRNaGutGeZmhSI6f4I1kzC7FjwR
+	 MjBDfkFltz2Ncv6GVpGAeeJt9QXMDduPfYslo1w0=
+Date: Wed, 04 Dec 2024 20:35:40 -0800
+To: mm-commits@vger.kernel.org,yuehongwu@tencent.com,linux@weissschuh.net,joel.granados@kernel.org,avagin@google.com,mengensun@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-support-foll_forcefoll_write.patch added to mm-unstable branch
-Message-Id: <20241205043158.09CF6C4CED6@smtp.kernel.org>
+Subject: + ucounts-move-kfree-out-of-critical-zone-protected-by-ucounts_lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20241205043541.1078BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-support-foll_forcefoll_write.patch
+     Subject: ucounts: move kfree() out of critical zone protected by ucounts_lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ucounts-move-kfree-out-of-critical-zone-protected-by-ucounts_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-support-foll_forcefoll_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucounts-move-kfree-out-of-critical-zone-protected-by-ucounts_lock.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,263 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
-Date: Thu, 5 Dec 2024 03:02:26 +0100
+From: MengEn Sun <mengensun@tencent.com>
+Subject: ucounts: move kfree() out of critical zone protected by ucounts_lock
+Date: Mon, 2 Dec 2024 22:32:45 +0800
 
-Eric reported that PTRACE_POKETEXT fails when applications use hugetlb
-for mapping text using huge pages. Before commit 1d8d14641fd9
-("mm/hugetlb: support write-faults in shared mappings"), PTRACE_POKETEXT
-worked by accident, but it was buggy and silently ended up mapping pages
-writable into the page tables even though VM_WRITE was not set.
+Although kfree is a non-sleep function, it is possible to enter a long
+chain of calls probabilistically, so it looks better to move kfree from
+alloc_ucounts() out of the critical zone of ucounts_lock.
 
-In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb.
-Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that
-what used to work in the past by accident now properly works, allowing
-applications using hugetlb for text etc. to get properly debugged.
-
-This change might also be required to implement uprobes support for
-hugetlb [1].
-
-[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
-
-Link: https://lkml.kernel.org/r/Z1EJssqd93w2erMZ@bender.morinfr.org
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Hagberg <ehagberg@janestreet.com>
-Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
+Link: https://lkml.kernel.org/r/1733149965-749-1-git-send-email-mengensun@tencent.com
+Signed-off-by: MengEn Sun <mengensun@tencent.com>
+Reviewed-by: YueHong Wu <yuehongwu@tencent.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    5 +
- mm/gup.c                |   99 +++++++++++++++++++-------------------
- mm/hugetlb.c            |   20 ++++---
- 3 files changed, 66 insertions(+), 58 deletions(-)
+ kernel/ucount.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/pgtable.h~mm-hugetlb-support-foll_forcefoll_write
-+++ a/include/linux/pgtable.h
-@@ -1429,6 +1429,11 @@ static inline int pmd_soft_dirty(pmd_t p
- 	return 0;
- }
- 
-+static inline int pud_soft_dirty(pud_t pud)
-+{
-+	return 0;
-+}
-+
- static inline pte_t pte_mksoft_dirty(pte_t pte)
+--- a/kernel/ucount.c~ucounts-move-kfree-out-of-critical-zone-protected-by-ucounts_lock
++++ a/kernel/ucount.c
+@@ -164,8 +164,8 @@ struct ucounts *get_ucounts(struct ucoun
+ struct ucounts *alloc_ucounts(struct user_namespace *ns, kuid_t uid)
  {
- 	return pte;
---- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/gup.c
-@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
- }
- #endif	/* CONFIG_HAVE_GUP_FAST */
+ 	struct hlist_head *hashent = ucounts_hashentry(ns, uid);
+-	struct ucounts *ucounts, *new;
+ 	bool wrapped;
++	struct ucounts *ucounts, *new = NULL;
  
-+/* Common code for can_follow_write_* */
-+static inline bool can_follow_write_common(struct page *page,
-+		struct vm_area_struct *vma, unsigned int flags)
-+{
-+	/* Maybe FOLL_FORCE is set to override it? */
-+	if (!(flags & FOLL_FORCE))
-+		return false;
-+
-+	/* But FOLL_FORCE has no effect on shared mappings */
-+	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
-+		return false;
-+
-+	/* ... or read-only private ones */
-+	if (!(vma->vm_flags & VM_MAYWRITE))
-+		return false;
-+
-+	/* ... or already writable ones that just need to take a write fault */
-+	if (vma->vm_flags & VM_WRITE)
-+		return false;
-+
-+	/*
-+	 * See can_change_pte_writable(): we broke COW and could map the page
-+	 * writable if we have an exclusive anonymous page ...
-+	 */
-+	return page && PageAnon(page) && PageAnonExclusive(page);
-+}
-+
- static struct page *no_page_table(struct vm_area_struct *vma,
- 				  unsigned int flags, unsigned long address)
- {
-@@ -622,6 +649,22 @@ static struct page *no_page_table(struct
- }
+ 	spin_lock_irq(&ucounts_lock);
+ 	ucounts = find_ucounts(ns, uid, hashent);
+@@ -182,17 +182,17 @@ struct ucounts *alloc_ucounts(struct use
  
- #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
-+/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
-+static inline bool can_follow_write_pud(pud_t pud, struct page *page,
-+					struct vm_area_struct *vma,
-+					unsigned int flags)
-+{
-+	/* If the pud is writable, we can write to the page. */
-+	if (pud_write(pud))
-+		return true;
-+
-+	if (!can_follow_write_common(page, vma, flags))
-+		return false;
-+
-+	/* ... and a write-fault isn't required for other reasons. */
-+	return !vma_soft_dirty_enabled(vma) || pud_soft_dirty(pud);
-+}
-+
- static struct page *follow_huge_pud(struct vm_area_struct *vma,
- 				    unsigned long addr, pud_t *pudp,
- 				    int flags, struct follow_page_context *ctx)
-@@ -634,13 +677,16 @@ static struct page *follow_huge_pud(stru
- 
- 	assert_spin_locked(pud_lockptr(mm, pudp));
- 
--	if ((flags & FOLL_WRITE) && !pud_write(pud))
-+	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
-+	page = pfn_to_page(pfn);
-+
-+	if ((flags & FOLL_WRITE) &&
-+	    !can_follow_write_pud(pud, page, vma, flags))
- 		return NULL;
- 
- 	if (!pud_present(pud))
- 		return NULL;
- 
--	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
- 
- 	if (IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
- 	    pud_devmap(pud)) {
-@@ -662,8 +708,6 @@ static struct page *follow_huge_pud(stru
- 			return ERR_PTR(-EFAULT);
- 	}
- 
--	page = pfn_to_page(pfn);
--
- 	if (!pud_devmap(pud) && !pud_write(pud) &&
- 	    gup_must_unshare(vma, flags, page))
- 		return ERR_PTR(-EMLINK);
-@@ -686,27 +730,7 @@ static inline bool can_follow_write_pmd(
- 	if (pmd_write(pmd))
- 		return true;
- 
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
--
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
--
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
--
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -807,27 +831,7 @@ static inline bool can_follow_write_pte(
- 	if (pte_write(pte))
- 		return true;
- 
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
--
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
--
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
--
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -1294,9 +1298,6 @@ static int check_vma_flags(struct vm_are
- 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
- 			if (!(gup_flags & FOLL_FORCE))
- 				return -EFAULT;
--			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
--			if (is_vm_hugetlb_page(vma))
--				return -EFAULT;
- 			/*
- 			 * We used to let the write,force case do COW in a
- 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
---- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/hugetlb.c
-@@ -5183,6 +5183,13 @@ static void set_huge_ptep_writable(struc
- 		update_mmu_cache(vma, address, ptep);
- }
- 
-+static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
-+					 unsigned long address, pte_t *ptep)
-+{
-+	if (vma->vm_flags & VM_WRITE)
-+		set_huge_ptep_writable(vma, address, ptep);
-+}
-+
- bool is_hugetlb_entry_migration(pte_t pte)
- {
- 	swp_entry_t swp;
-@@ -5816,13 +5823,6 @@ static vm_fault_t hugetlb_wp(struct foli
- 	if (!unshare && huge_pte_uffd_wp(pte))
- 		return 0;
- 
--	/*
--	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
--	 * PTE mapped R/O such as maybe_mkwrite() would do.
--	 */
--	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
--		return VM_FAULT_SIGSEGV;
--
- 	/* Let's take out MAP_SHARED mappings first. */
- 	if (vma->vm_flags & VM_MAYSHARE) {
- 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-@@ -5851,7 +5851,8 @@ retry_avoidcopy:
- 			SetPageAnonExclusive(&old_folio->page);
+ 		spin_lock_irq(&ucounts_lock);
+ 		ucounts = find_ucounts(ns, uid, hashent);
+-		if (ucounts) {
+-			kfree(new);
+-		} else {
++		if (!ucounts) {
+ 			hlist_add_head(&new->node, hashent);
+ 			get_user_ns(new->ns);
+ 			spin_unlock_irq(&ucounts_lock);
+ 			return new;
  		}
- 		if (likely(!unshare))
--			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-+			set_huge_ptep_maybe_writable(vma, vmf->address,
-+						     vmf->pte);
- 
- 		delayacct_wpcopy_end();
- 		return 0;
-@@ -5957,7 +5958,8 @@ retry_avoidcopy:
- 	spin_lock(vmf->ptl);
- 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
- 	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
--		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
-+		const bool writable = !unshare && (vma->vm_flags & VM_WRITE);
-+		pte_t newpte = make_huge_pte(vma, &new_folio->page, writable);
- 
- 		/* Break COW or unshare */
- 		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
+ 	}
++
+ 	wrapped = !get_ucounts_or_wrap(ucounts);
+ 	spin_unlock_irq(&ucounts_lock);
++	kfree(new);
+ 	if (wrapped) {
+ 		put_ucounts(ucounts);
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from guillaume@morinfr.org are
+Patches currently in -mm which might be from mengensun@tencent.com are
 
-mm-hugetlb-support-foll_forcefoll_write.patch
+ucounts-move-kfree-out-of-critical-zone-protected-by-ucounts_lock.patch
 
