@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A931B6CF0
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 20:30:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A49AC1B87D0
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 20:30:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733430605; cv=none; b=TbFTBmsmTytvmTBynC+6WYlLXjH6C7EnSg3WyOTOi9RbM+9aD0xxdFfhmkIaxWqEnnQxPwhdAUoyV5VRo1jDkOYP3OaE+INUjGgctQCnKJUWu3lwEXdOdUDclSwGYFbyrj3qHtP08maga8ssG2xTbKcFW+KbQJVhXdxKvvFfXEk=
+	t=1733430606; cv=none; b=XoKfvKJsEYqNxzfZ5PUbjhymuww7AXFjdHuSmffYglBrMcUnCJwruXeLSNn3XDOv5v2fbqi824VO5ioAflSz3yFm8I+RgTFgHrdWw4r66JnpadP00j1Kqp9d7oi/ej87BYmLvX3XLBIEUGU4G3eU6IZNCGeBzVwzkQ4CukwKZWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733430605; c=relaxed/simple;
-	bh=LrYJDg/awT2HEnjyRpPnuDurga2jFxbGe4acyIgps/Q=;
-	h=Date:To:From:Subject:Message-Id; b=FKIqEcMizDd0rkJkNTi9r7YInhccl+vJq3XUVu4t+vN/qEHPF6xh0qboRQYMV/oagCo2UEjcG+VJbh54PDpTNIPq9FrVgvXbXp9ouDQZdKX1KWn+7cOHuQIL10KR/e1fZ9IlM7C+1Q1KcEOq6B2JzMRnqIjDcnzcqUTPpaVj3T4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lpUvPe+5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733430606; c=relaxed/simple;
+	bh=swdd879deUJNI35ag2P/1kKo71dB5rhWiVtAbi2tWGc=;
+	h=Date:To:From:Subject:Message-Id; b=M43CxDtw+tEb/pQCSAX7mStxGXwL3QeZ9yhGO31gipwifdF8Q+7pcreCSbK8xwy89ooYix26A39E17QsNzOtRF+EEK9ifmMvMXIqOrsDqs2bdvAq+m0jsH7z6iJYV4WOWahZfElUjz2od45tpxtW4RyqcEAuDaRyf6k8O9MO1x0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lha4PsKf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lpUvPe+5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88875C4CED1;
-	Thu,  5 Dec 2024 20:30:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lha4PsKf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D86AC4AF09;
+	Thu,  5 Dec 2024 20:30:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733430604;
-	bh=LrYJDg/awT2HEnjyRpPnuDurga2jFxbGe4acyIgps/Q=;
+	s=korg; t=1733430606;
+	bh=swdd879deUJNI35ag2P/1kKo71dB5rhWiVtAbi2tWGc=;
 	h=Date:To:From:Subject:From;
-	b=lpUvPe+58j6+Qj2k1Y7AqjBhkCABLPKfFH3nZlJmXN2mlMiob93F2Lpt2/F/q9Oae
-	 y5CXW2Vj0tk1g/VA6iBeVQnru9oMWUkrHfBwNqkA79LNieQWniADodowq3FlDqpYCo
-	 Dl1Bap29zCXoAsxa1ZHJCtc62oEF9QN0GcMPI+W0=
-Date: Thu, 05 Dec 2024 12:30:03 -0800
+	b=Lha4PsKfqtFkws2k6B/X1B/3JzoymFv699K+M4bJhi1DfRzPi4LpQ0F8hz3ZldHwm
+	 /BdVUllcla5MFax8Oeose3LbkCRv6ABmApQOSWE3m4RXg0gElF+L8ErUqA3IZeVbp1
+	 9jMuPgCMgMQCEJAY23BAuPUJcjbygBpU9yFhqstU=
+Date: Thu, 05 Dec 2024 12:30:05 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,takakura@valinux.co.jp,sourabhjain@linux.ibm.com,songshuaishuai@tinylab.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,linux@armlinux.org.uk,jonnyc@amazon.com,hbathini@linux.ibm.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,adityag@linux.ibm.com,farbere@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch removed from -mm tree
-Message-Id: <20241205203004.88875C4CED1@smtp.kernel.org>
+Subject: [obsolete] kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch removed from -mm tree
+Message-Id: <20241205203006.0D86AC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: consolidate machine_kexec_mask_interrupts() implementation
+     Subject: kexec: prevent redundant IRQ masking by checking state before shutdown
 has been removed from the -mm tree.  Its filename was
-     kexec-consolidate-machine_kexec_mask_interrupts-implementation.patch
+     kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Eliav Farber <farbere@amazon.com>
-Subject: kexec: consolidate machine_kexec_mask_interrupts() implementation
-Date: Wed, 4 Dec 2024 14:20:02 +0000
+Subject: kexec: prevent redundant IRQ masking by checking state before shutdown
+Date: Wed, 4 Dec 2024 14:20:03 +0000
 
-Patch series "Improve interrupt handling during machine kexec", v6.
+During machine kexec, the function machine_kexec_mask_interrupts() is
+responsible for disabling or masking all interrupts.  While the
+irq_disable hook ensures that an already-disabled IRQ is not disabled
+again, the current implementation unconditionally invokes the irq_mask()
+function for every interrupt descriptor, even when the interrupt is
+already masked.
 
-This patch series focuses on improving the machine_kexec_mask_interrupts()
-function by consolidating its implementation and optimizing its behavior to
-avoid redundant interrupt masking.
+A specific issue was observed in the crash kernel flow after unbinding a
+device (prior to kexec) that used a GPIO as an IRQ source.  The warning
+was triggered by the gpiochip_disable_irq() function, which attempted to
+clear the FLAG_IRQ_IS_ENABLED flag when FLAG_USED_AS_IRQ was not set:
 
-Patch Summary:
-[PATCH v6 1/2] Move machine_kexec_mask_interrupts() to kernel/irq/kexec.c,
-               removing duplicate architecture-specific implementations.
-[PATCH v6 2/2] Refine machine_kexec_mask_interrupts() to avoid re-masking
-               already-masked interrupts, resolving specific warnings
-               triggered in GPIO IRQ flows.
+```
+void gpiochip_disable_irq(struct gpio_chip *gc, unsigned int offset)
+{
+	struct gpio_desc *desc = gpiochip_get_desc(gc, offset);
 
+	if (!IS_ERR(desc) &&
+	    !WARN_ON(!test_bit(FLAG_USED_AS_IRQ, &desc->flags)))
+		clear_bit(FLAG_IRQ_IS_ENABLED, &desc->flags);
+}
+```
 
-This patch (of 2):
+This issue surfaced after commit a8173820f441 ("gpio: gpiolib: Allow GPIO
+IRQs to lazy disable") introduced lazy disablement for GPIO IRQs.  It
+replaced disable/enable hooks with mask/unmask hooks.  Unlike the disable
+hook, the mask hook doesn't handle already-masked IRQs.
 
-Consolidate the machine_kexec_mask_interrupts implementation into a common
-function located in a new file: kernel/irq/kexec.c.  This removes
-duplicate implementations from architecture-specific files in arch/arm,
-arch/arm64, arch/powerpc, and arch/riscv, reducing code duplication and
-improving maintainability.
+When a GPIO-IRQ driver is unbound, the IRQ is released, triggering
+__irq_disable() and irq_state_set_masked().  A subsequent call to
+machine_kexec_mask_interrupts() re-invokes chip->irq_mask().  This results
+in a call chain, including gpiochip_irq_mask() and gpiochip_disable_irq().
+Since FLAG_USED_AS_IRQ was cleared earlier, a warning occurs.
 
-The new implementation retains architecture-specific behavior for
-CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD, which was previously
-implemented for ARM64.  When enabled (currently for ARM64), it clears the
-active state of interrupts forwarded to virtual machines (VMs) before
-handling other interrupt masking operations.
+Replace calls to irq_mask() and irq_disable() hooks with a simplified call
+to irq_shutdown(), and check if the interrupt is started (irqd_is_started)
+before calling the shutdown.
 
-Link: https://lkml.kernel.org/r/20241204142003.32859-1-farbere@amazon.com
-Link: https://lkml.kernel.org/r/20241204142003.32859-2-farbere@amazon.com
+Link: https://lkml.kernel.org/r/20241204142003.32859-3-farbere@amazon.com
 Signed-off-by: Eliav Farber <farbere@amazon.com>
 Cc: Aditya Gupta <adityag@linux.ibm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -99,269 +108,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/machine_kexec.c   |   23 ----------------
- arch/arm64/Kconfig                |    1 
- arch/arm64/kernel/machine_kexec.c |   31 ---------------------
- arch/powerpc/include/asm/kexec.h  |    1 
- arch/powerpc/kexec/core.c         |   22 ---------------
- arch/powerpc/kexec/core_32.c      |    1 
- arch/riscv/kernel/machine_kexec.c |   23 ----------------
- include/linux/irq.h               |    3 ++
- kernel/irq/Kconfig                |    6 ++++
- kernel/irq/Makefile               |    2 -
- kernel/irq/kexec.c                |   40 ++++++++++++++++++++++++++++
- 11 files changed, 52 insertions(+), 101 deletions(-)
+ kernel/irq/kexec.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/Kconfig~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/arm64/Kconfig
-@@ -149,6 +149,7 @@ config ARM64
- 	select GENERIC_IDLE_POLL_SETUP
- 	select GENERIC_IOREMAP
- 	select GENERIC_IRQ_IPI
-+	select GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IRQ_SHOW_LEVEL
---- a/arch/arm64/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/arm64/kernel/machine_kexec.c
-@@ -207,37 +207,6 @@ void machine_kexec(struct kimage *kimage
- 	BUG(); /* Should never get here. */
- }
- 
--static void machine_kexec_mask_interrupts(void)
--{
--	unsigned int i;
--	struct irq_desc *desc;
--
--	for_each_irq_desc(i, desc) {
--		struct irq_chip *chip;
--		int ret;
--
--		chip = irq_desc_get_chip(desc);
--		if (!chip)
--			continue;
--
--		/*
--		 * First try to remove the active state. If this
--		 * fails, try to EOI the interrupt.
--		 */
--		ret = irq_set_irqchip_state(i, IRQCHIP_STATE_ACTIVE, false);
--
--		if (ret && irqd_irq_inprogress(&desc->irq_data) &&
--		    chip->irq_eoi)
--			chip->irq_eoi(&desc->irq_data);
--
--		if (chip->irq_mask)
--			chip->irq_mask(&desc->irq_data);
--
--		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
--			chip->irq_disable(&desc->irq_data);
--	}
--}
--
- /**
-  * machine_crash_shutdown - shutdown non-crashing cpus and save registers
-  */
---- a/arch/arm/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/arm/kernel/machine_kexec.c
-@@ -127,29 +127,6 @@ void crash_smp_send_stop(void)
- 	cpus_stopped = 1;
- }
- 
--static void machine_kexec_mask_interrupts(void)
--{
--	unsigned int i;
--	struct irq_desc *desc;
--
--	for_each_irq_desc(i, desc) {
--		struct irq_chip *chip;
--
--		chip = irq_desc_get_chip(desc);
--		if (!chip)
--			continue;
--
--		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
--			chip->irq_eoi(&desc->irq_data);
--
--		if (chip->irq_mask)
--			chip->irq_mask(&desc->irq_data);
--
--		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
--			chip->irq_disable(&desc->irq_data);
--	}
--}
--
- void machine_crash_shutdown(struct pt_regs *regs)
- {
- 	local_irq_disable();
---- a/arch/powerpc/include/asm/kexec.h~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -61,7 +61,6 @@ struct pt_regs;
- extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for
- 					  master to copy new code to 0 */
- extern void default_machine_kexec(struct kimage *image);
--extern void machine_kexec_mask_interrupts(void);
- 
- void relocate_new_kernel(unsigned long indirection_page, unsigned long reboot_code_buffer,
- 			 unsigned long start_address) __noreturn;
---- a/arch/powerpc/kexec/core_32.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/powerpc/kexec/core_32.c
-@@ -7,6 +7,7 @@
-  * Copyright (C) 2005 IBM Corporation.
-  */
- 
-+#include <linux/irq.h>
- #include <linux/kexec.h>
- #include <linux/mm.h>
- #include <linux/string.h>
---- a/arch/powerpc/kexec/core.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/powerpc/kexec/core.c
-@@ -22,28 +22,6 @@
- #include <asm/setup.h>
- #include <asm/firmware.h>
- 
--void machine_kexec_mask_interrupts(void) {
--	unsigned int i;
--	struct irq_desc *desc;
--
--	for_each_irq_desc(i, desc) {
--		struct irq_chip *chip;
--
--		chip = irq_desc_get_chip(desc);
--		if (!chip)
--			continue;
--
--		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
--			chip->irq_eoi(&desc->irq_data);
--
--		if (chip->irq_mask)
--			chip->irq_mask(&desc->irq_data);
--
--		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
--			chip->irq_disable(&desc->irq_data);
--	}
--}
--
- #ifdef CONFIG_CRASH_DUMP
- void machine_crash_shutdown(struct pt_regs *regs)
- {
---- a/arch/riscv/kernel/machine_kexec.c~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/arch/riscv/kernel/machine_kexec.c
-@@ -114,29 +114,6 @@ void machine_shutdown(void)
- #endif
- }
- 
--static void machine_kexec_mask_interrupts(void)
--{
--	unsigned int i;
--	struct irq_desc *desc;
--
--	for_each_irq_desc(i, desc) {
--		struct irq_chip *chip;
--
--		chip = irq_desc_get_chip(desc);
--		if (!chip)
--			continue;
--
--		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
--			chip->irq_eoi(&desc->irq_data);
--
--		if (chip->irq_mask)
--			chip->irq_mask(&desc->irq_data);
--
--		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
--			chip->irq_disable(&desc->irq_data);
--	}
--}
--
- /*
-  * machine_crash_shutdown - Prepare to kexec after a kernel crash
-  *
---- a/include/linux/irq.h~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/include/linux/irq.h
-@@ -694,6 +694,9 @@ extern int irq_chip_request_resources_pa
- extern void irq_chip_release_resources_parent(struct irq_data *data);
- #endif
- 
-+/* Disable or mask interrupts during a kernel kexec */
-+extern void machine_kexec_mask_interrupts(void);
-+
- /* Handling of unhandled and spurious interrupts: */
- extern void note_interrupt(struct irq_desc *desc, irqreturn_t action_ret);
- 
---- a/kernel/irq/Kconfig~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/kernel/irq/Kconfig
-@@ -141,6 +141,12 @@ config GENERIC_IRQ_DEBUGFS
- 
- 	  If you don't know what to do here, say N.
- 
-+# Clear forwarded VM interrupts during kexec.
-+# This option ensures the kernel clears active states for interrupts
-+# forwarded to virtual machines (VMs) during a machine kexec.
-+config GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD
-+	bool
-+
- endmenu
- 
- config GENERIC_IRQ_MULTI_HANDLER
-diff --git a/kernel/irq/kexec.c a/kernel/irq/kexec.c
-new file mode 100644
---- /dev/null
+--- a/kernel/irq/kexec.c~kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown
 +++ a/kernel/irq/kexec.c
-@@ -0,0 +1,40 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/irqdesc.h>
-+#include <linux/irqnr.h>
-+
-+#include "internals.h"
-+
-+void machine_kexec_mask_interrupts(void)
-+{
-+	struct irq_desc *desc;
-+	unsigned int i;
-+
-+	for_each_irq_desc(i, desc) {
-+		struct irq_chip *chip;
-+		int check_eoi = 1;
-+
-+		chip = irq_desc_get_chip(desc);
-+		if (!chip)
-+			continue;
-+
-+		if (IS_ENABLED(CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD)) {
-+			/*
-+			 * First try to remove the active state from an interrupt which is forwarded
-+			 * to a VM. If the interrupt is not forwarded, try to EOI the interrupt.
-+			 */
-+			check_eoi = irq_set_irqchip_state(i, IRQCHIP_STATE_ACTIVE, false);
-+		}
-+
-+		if (check_eoi && chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
-+			chip->irq_eoi(&desc->irq_data);
-+
-+		if (chip->irq_mask)
-+			chip->irq_mask(&desc->irq_data);
-+
-+		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
-+			chip->irq_disable(&desc->irq_data);
-+	}
-+}
---- a/kernel/irq/Makefile~kexec-consolidate-machine_kexec_mask_interrupts-implementation
-+++ a/kernel/irq/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
+@@ -17,7 +17,7 @@ void machine_kexec_mask_interrupts(void)
+ 		int check_eoi = 1;
  
--obj-y := irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o
-+obj-y := irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o kexec.o
- obj-$(CONFIG_IRQ_TIMINGS) += timings.o
- ifeq ($(CONFIG_TEST_IRQ_TIMINGS),y)
- 	CFLAGS_timings.o += -DDEBUG
+ 		chip = irq_desc_get_chip(desc);
+-		if (!chip)
++		if (!chip || !irqd_is_started(&desc->irq_data))
+ 			continue;
+ 
+ 		if (IS_ENABLED(CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD)) {
+@@ -31,10 +31,6 @@ void machine_kexec_mask_interrupts(void)
+ 		if (check_eoi && chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
+ 			chip->irq_eoi(&desc->irq_data);
+ 
+-		if (chip->irq_mask)
+-			chip->irq_mask(&desc->irq_data);
+-
+-		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+-			chip->irq_disable(&desc->irq_data);
++		irq_shutdown(desc);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from farbere@amazon.com are
 
-kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch
 
