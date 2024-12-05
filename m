@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33BD823919C
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 01:32:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED1C12C470
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733362366; cv=none; b=KjZYbY8nVQEsEbfz2KoCpISQtoVM6SvDMQouz73PqeH4a4I8G5Ajw6iINFVLhABCyTUw0UpTBvB02kc8AhO2Js44gyWM44l3jX79e6ahnkPWQrndWTSmZEsAVCQOgeCcCgbwFdL8z94x7OKWr3kHhvFV1qGvjQ2lOcLz3kkDC74=
+	t=1733372367; cv=none; b=O8KlguR0pW9TExFCQZfubVVx0GTTsT3YzgJvoIR2HWDkkg6ZBRbHtoNPQ5tiG8N00UOHDcAuygIGqSaD4MYgWAn5/8ejgUlV0yb7H5VAvKf8ZZg/LNBZj3fl6nXcvSkNymq/zLqSXZaySukDujCvbnrCasU0yAfO8A9n/jno5MY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733362366; c=relaxed/simple;
-	bh=2RihUU24JofVGF3ohBtugJY61oJUJi9Rqs1Ta8GIaoo=;
-	h=Date:To:From:Subject:Message-Id; b=OX/8vY93xxgNv7VKNglReC/LjelF4j0NaRONenoLw8GK4fMFtdt8Cbh2knvfM9MTZsCMW0QCDlLM7Yf1FqfvEfPd+ivGtjVjFDK3tM64YBqnViV0jb0C4HwNhGTT3ds6CiYVJ9PW6t663l9cAlEsPCQUiWzf7Vu3z9msErMNcso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PfBhGOUG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733372367; c=relaxed/simple;
+	bh=3EQLJ1vs5ZGcnt468CF0QG4hFdCZeue5Ch9mt3TcTK8=;
+	h=Date:To:From:Subject:Message-Id; b=lW3cq5/XjQsuto8gzi39+AmTiqI0MIgupNX03xWfQ1uAWjxc5v+3KC/kKjcSQaAjMNMu9vCiai6/cny8juG5oyj6/VXiGUZw2ci/JdEjyVO+/xsbMVEnXGMfwhJmTov7hi+KyZe2yWYG/WvkuL2st4IiolNXC+HtIjOji/4BVbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OtzPQMw3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PfBhGOUG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AECF5C4CECD;
-	Thu,  5 Dec 2024 01:32:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OtzPQMw3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6495BC4CED6;
+	Thu,  5 Dec 2024 04:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733362365;
-	bh=2RihUU24JofVGF3ohBtugJY61oJUJi9Rqs1Ta8GIaoo=;
+	s=korg; t=1733372366;
+	bh=3EQLJ1vs5ZGcnt468CF0QG4hFdCZeue5Ch9mt3TcTK8=;
 	h=Date:To:From:Subject:From;
-	b=PfBhGOUGtB5PBL8CQk9lfZ0p+N9q8yzhsh0Zy9iNXtlITWmCBYM+y2mv6ZxLUp5N0
-	 3DUUt85mxQHNT/pJijh6bNFp7yGl/YVz6CbJNHC+cW0/tQd+H5GoPPHvb2GjJl1LG1
-	 mLVJUPYU4KLRCuN5afo8YxHM4jBe1FZTu5YS3QQc=
-Date: Wed, 04 Dec 2024 17:32:45 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,jhubbard@nvidia.com,jgg@nvidia.com,ehagberg@janestreet.com,david@redhat.com,guillaume@morinfr.org,akpm@linux-foundation.org
+	b=OtzPQMw3BeczIyBwhMIFgif/nVrUjpdwEdI2J0NXmt7xMaTcOCpediTGXuJyqXeMc
+	 NV35fYZnUQgJZWXcK/f9VjaULVBwuwo3jFL+8br0Y3Jr9oRPlmxCgXRyA7CwyGDk+d
+	 /cccze7KGohStQdo3d+NtsQ+3SSJwnQ6jBmNXyyU=
+Date: Wed, 04 Dec 2024 20:19:25 -0800
+To: mm-commits@vger.kernel.org,thomas.orgis@uni-hamburg.de,zhangjiao2@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-hugetlb-support-foll_forcefoll_write.patch removed from -mm tree
-Message-Id: <20241205013245.AECF5C4CECD@smtp.kernel.org>
+Subject: + tools-accounting-procacct-fix-minor-errors.patch added to mm-nonmm-unstable branch
+Message-Id: <20241205041926.6495BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,238 +34,66 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-support-foll_forcefoll_write.patch
+The patch titled
+     Subject: tools/accounting/procacct: Fix minor errors
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     tools-accounting-procacct-fix-minor-errors.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-accounting-procacct-fix-minor-errors.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
-Date: Wed, 4 Dec 2024 21:18:23 +0100
+From: zhang jiao <zhangjiao2@cmss.chinamobile.com>
+Subject: tools/accounting/procacct: Fix minor errors
+Date: Tue, 3 Dec 2024 10:05:50 +0800
 
-Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
-mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
-support write-faults in shared mappings"), PTRACE_POKETEXT worked by
-accident, but it was buggy and silently ended up mapping pages writable
-into the page tables even though VM_WRITE was not set.
+The logfile option was documented but not working.  Add it and optimized
+the while loop.
 
-In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
-Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
-used to work in the past by accident now properly works, allowing
-applications using hugetlb for text etc.  to get properly debugged.
-
-This change might also be required to implement uprobes support for
-hugetlb [1].
-
-[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
-
-Link: https://lkml.kernel.org/r/Z1C5D1D3NJFnADPz@bender.morinfr.org
-Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Hagberg <ehagberg@janestreet.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Link: https://lkml.kernel.org/r/20241203020550.3145-1-zhangjiao2@cmss.chinamobile.com
+Signed-off-by: zhang jiao <zhangjiao2@cmss.chinamobile.com>
+Reviewed-by: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c     |   93 ++++++++++++++++++++++++-------------------------
- mm/hugetlb.c |   20 +++++-----
- 2 files changed, 58 insertions(+), 55 deletions(-)
+ tools/accounting/procacct.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/gup.c
-@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
- }
- #endif	/* CONFIG_HAVE_GUP_FAST */
+--- a/tools/accounting/procacct.c~tools-accounting-procacct-fix-minor-errors
++++ a/tools/accounting/procacct.c
+@@ -274,12 +274,11 @@ int main(int argc, char *argv[])
+ 	int maskset = 0;
+ 	char *logfile = NULL;
+ 	int cfd = 0;
+-	int forking = 0;
  
-+/* Common code for can_follow_write_* */
-+static inline bool can_follow_write_common(struct page *page,
-+		struct vm_area_struct *vma, unsigned int flags)
-+{
-+	/* Maybe FOLL_FORCE is set to override it? */
-+	if (!(flags & FOLL_FORCE))
-+		return false;
-+
-+	/* But FOLL_FORCE has no effect on shared mappings */
-+	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
-+		return false;
-+
-+	/* ... or read-only private ones */
-+	if (!(vma->vm_flags & VM_MAYWRITE))
-+		return false;
-+
-+	/* ... or already writable ones that just need to take a write fault */
-+	if (vma->vm_flags & VM_WRITE)
-+		return false;
-+
-+	/*
-+	 * See can_change_pte_writable(): we broke COW and could map the page
-+	 * writable if we have an exclusive anonymous page ...
-+	 */
-+	return page && PageAnon(page) && PageAnonExclusive(page);
-+}
-+
- static struct page *no_page_table(struct vm_area_struct *vma,
- 				  unsigned int flags, unsigned long address)
- {
-@@ -622,6 +649,22 @@ static struct page *no_page_table(struct
- }
+ 	struct msgtemplate msg;
  
- #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
-+/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
-+static inline bool can_follow_write_pud(pud_t pud, struct page *page,
-+					struct vm_area_struct *vma,
-+					unsigned int flags)
-+{
-+	/* If the pud is writable, we can write to the page. */
-+	if (pud_write(pud))
-+		return true;
-+
-+	if (!can_follow_write_common(page, vma, flags))
-+		return false;
-+
-+	/* ... and a write-fault isn't required for other reasons. */
-+	return !vma_soft_dirty_enabled(vma) || pud_soft_dirty(pud);
-+}
-+
- static struct page *follow_huge_pud(struct vm_area_struct *vma,
- 				    unsigned long addr, pud_t *pudp,
- 				    int flags, struct follow_page_context *ctx)
-@@ -634,7 +677,8 @@ static struct page *follow_huge_pud(stru
+-	while (!forking) {
+-		c = getopt(argc, argv, "m:vr:");
++	while (1) {
++		c = getopt(argc, argv, "m:vr:w:");
+ 		if (c < 0)
+ 			break;
  
- 	assert_spin_locked(pud_lockptr(mm, pudp));
- 
--	if ((flags & FOLL_WRITE) && !pud_write(pud))
-+	if ((flags & FOLL_WRITE) &&
-+	    !can_follow_write_pud(pud, page, vma, flags))
- 		return NULL;
- 
- 	if (!pud_present(pud))
-@@ -686,27 +730,7 @@ static inline bool can_follow_write_pmd(
- 	if (pmd_write(pmd))
- 		return true;
- 
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
--
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
--
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
--
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -807,27 +831,7 @@ static inline bool can_follow_write_pte(
- 	if (pte_write(pte))
- 		return true;
- 
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
--
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
--
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
--
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -1294,9 +1298,6 @@ static int check_vma_flags(struct vm_are
- 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
- 			if (!(gup_flags & FOLL_FORCE))
- 				return -EFAULT;
--			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
--			if (is_vm_hugetlb_page(vma))
--				return -EFAULT;
- 			/*
- 			 * We used to let the write,force case do COW in a
- 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
---- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/hugetlb.c
-@@ -5169,6 +5169,13 @@ static void set_huge_ptep_writable(struc
- 		update_mmu_cache(vma, address, ptep);
- }
- 
-+static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
-+					 unsigned long address, pte_t *ptep)
-+{
-+	if (vma->vm_flags & VM_WRITE)
-+		set_huge_ptep_writable(vma, address, ptep);
-+}
-+
- bool is_hugetlb_entry_migration(pte_t pte)
- {
- 	swp_entry_t swp;
-@@ -5802,13 +5809,6 @@ static vm_fault_t hugetlb_wp(struct foli
- 	if (!unshare && huge_pte_uffd_wp(pte))
- 		return 0;
- 
--	/*
--	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
--	 * PTE mapped R/O such as maybe_mkwrite() would do.
--	 */
--	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
--		return VM_FAULT_SIGSEGV;
--
- 	/* Let's take out MAP_SHARED mappings first. */
- 	if (vma->vm_flags & VM_MAYSHARE) {
- 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-@@ -5837,7 +5837,8 @@ retry_avoidcopy:
- 			SetPageAnonExclusive(&old_folio->page);
- 		}
- 		if (likely(!unshare))
--			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-+			set_huge_ptep_maybe_writable(vma, vmf->address,
-+						     vmf->pte);
- 
- 		delayacct_wpcopy_end();
- 		return 0;
-@@ -5943,7 +5944,8 @@ retry_avoidcopy:
- 	spin_lock(vmf->ptl);
- 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
- 	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
--		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
-+		const bool writable = !unshare && (vma->vm_flags & VM_WRITE);
-+		pte_t newpte = make_huge_pte(vma, &new_folio->page, writable);
- 
- 		/* Break COW or unshare */
- 		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
 _
 
-Patches currently in -mm which might be from guillaume@morinfr.org are
+Patches currently in -mm which might be from zhangjiao2@cmss.chinamobile.com are
 
+tools-accounting-procacct-fix-minor-errors.patch
 
