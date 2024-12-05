@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED1C12C470
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:19:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE664C83
+	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 04:26:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733372367; cv=none; b=O8KlguR0pW9TExFCQZfubVVx0GTTsT3YzgJvoIR2HWDkkg6ZBRbHtoNPQ5tiG8N00UOHDcAuygIGqSaD4MYgWAn5/8ejgUlV0yb7H5VAvKf8ZZg/LNBZj3fl6nXcvSkNymq/zLqSXZaySukDujCvbnrCasU0yAfO8A9n/jno5MY=
+	t=1733372786; cv=none; b=Z+r2kg2JT61ChaLjMIOTKwskUtAsblUXfgewdyG6wylzbeWQ1ES+kHqwsa67fZGkRrzuxbGcw4FxDWMuTfmISt+Ztew7xGLR4MX+8eIpKWljpvEpSqrLUfa68sl/8y+RVxD4ywPFPq9Qzt+2hYPHsOM4u7O/nZEztN5nK8FKuzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733372367; c=relaxed/simple;
-	bh=3EQLJ1vs5ZGcnt468CF0QG4hFdCZeue5Ch9mt3TcTK8=;
-	h=Date:To:From:Subject:Message-Id; b=lW3cq5/XjQsuto8gzi39+AmTiqI0MIgupNX03xWfQ1uAWjxc5v+3KC/kKjcSQaAjMNMu9vCiai6/cny8juG5oyj6/VXiGUZw2ci/JdEjyVO+/xsbMVEnXGMfwhJmTov7hi+KyZe2yWYG/WvkuL2st4IiolNXC+HtIjOji/4BVbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OtzPQMw3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733372786; c=relaxed/simple;
+	bh=8l2WTGkq1KINjQeeLKtK4vuaSR+5we2cL5WOvSKHYz0=;
+	h=Date:To:From:Subject:Message-Id; b=UXdHG5cYXQgmOtosT2fCxyUJcXq5bLiCHTIsAIBi8UJAZdlNE1ieoPU0/LjACOGj1kFgF4P0pgh3kcRam/EDgDF9tYrrvB85FbyRrnujV8X3Zn3oFEnRekDZG6P73+LjnY7fsEHysMqre7EvdYe52ZiYYVe+dtdhxti3LdBdpn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lb//pr6n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OtzPQMw3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6495BC4CED6;
-	Thu,  5 Dec 2024 04:19:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lb//pr6n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF8D7C4CED6;
+	Thu,  5 Dec 2024 04:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733372366;
-	bh=3EQLJ1vs5ZGcnt468CF0QG4hFdCZeue5Ch9mt3TcTK8=;
+	s=korg; t=1733372785;
+	bh=8l2WTGkq1KINjQeeLKtK4vuaSR+5we2cL5WOvSKHYz0=;
 	h=Date:To:From:Subject:From;
-	b=OtzPQMw3BeczIyBwhMIFgif/nVrUjpdwEdI2J0NXmt7xMaTcOCpediTGXuJyqXeMc
-	 NV35fYZnUQgJZWXcK/f9VjaULVBwuwo3jFL+8br0Y3Jr9oRPlmxCgXRyA7CwyGDk+d
-	 /cccze7KGohStQdo3d+NtsQ+3SSJwnQ6jBmNXyyU=
-Date: Wed, 04 Dec 2024 20:19:25 -0800
-To: mm-commits@vger.kernel.org,thomas.orgis@uni-hamburg.de,zhangjiao2@cmss.chinamobile.com,akpm@linux-foundation.org
+	b=lb//pr6nZWP946BdembH0VtIRi+R762jU0xjFEB69m2csnwC9gIso/fvJNbc5fxyd
+	 j1ZEYmGgjMEHb2rGhIoBsz2rDrp0fvxSQi2gKm3EEk48NvhPwbRYUkhLQYHu4mRZLQ
+	 GpXwnAJMf8kC/ikJPj2QD7XMVcRWAnvKjNgp4PhQ=
+Date: Wed, 04 Dec 2024 20:26:25 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-accounting-procacct-fix-minor-errors.patch added to mm-nonmm-unstable branch
-Message-Id: <20241205041926.6495BC4CED6@smtp.kernel.org>
+Subject: + mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch added to mm-unstable branch
+Message-Id: <20241205042625.AF8D7C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/accounting/procacct: Fix minor errors
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-accounting-procacct-fix-minor-errors.patch
+     Subject: mm: migrate: drop redundant anonymous statistics for file folios migration
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-accounting-procacct-fix-minor-errors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,42 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhang jiao <zhangjiao2@cmss.chinamobile.com>
-Subject: tools/accounting/procacct: Fix minor errors
-Date: Tue, 3 Dec 2024 10:05:50 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: migrate: drop redundant anonymous statistics for file folios migration
+Date: Thu, 5 Dec 2024 11:53:48 +0800
 
-The logfile option was documented but not working.  Add it and optimized
-the while loop.
+Commit 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
+adds a new anonymous counter per THP size, however, when folio_mapping()
+is not NULL during folio migration, it means this is not an anonymous
+folio, so remove the redundant anonymous statistics in this case.
 
-Link: https://lkml.kernel.org/r/20241203020550.3145-1-zhangjiao2@cmss.chinamobile.com
-Signed-off-by: zhang jiao <zhangjiao2@cmss.chinamobile.com>
-Reviewed-by: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
+Link: https://lkml.kernel.org/r/d5e191ae02c2ab63c70cdf44877fe14fc69f5ae8.1733368611.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/procacct.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/tools/accounting/procacct.c~tools-accounting-procacct-fix-minor-errors
-+++ a/tools/accounting/procacct.c
-@@ -274,12 +274,11 @@ int main(int argc, char *argv[])
- 	int maskset = 0;
- 	char *logfile = NULL;
- 	int cfd = 0;
--	int forking = 0;
- 
- 	struct msgtemplate msg;
- 
--	while (!forking) {
--		c = getopt(argc, argv, "m:vr:");
-+	while (1) {
-+		c = getopt(argc, argv, "m:vr:w:");
- 		if (c < 0)
- 			break;
- 
+--- a/mm/migrate.c~mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration
++++ a/mm/migrate.c
+@@ -523,8 +523,6 @@ static int __folio_migrate_mapping(struc
+ 	 */
+ 	newfolio->index = folio->index;
+ 	newfolio->mapping = folio->mapping;
+-	if (folio_test_anon(folio) && folio_test_large(folio))
+-		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ 	folio_ref_add(newfolio, nr); /* add cache reference */
+ 	if (folio_test_swapbacked(folio)) {
+ 		__folio_set_swapbacked(newfolio);
 _
 
-Patches currently in -mm which might be from zhangjiao2@cmss.chinamobile.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-tools-accounting-procacct-fix-minor-errors.patch
+mm-factor-out-the-order-calculation-into-a-new-helper.patch
+mm-shmem-change-shmem_huge_global_enabled-to-return-huge-order-bitmap.patch
+mm-shmem-add-large-folio-support-for-tmpfs.patch
+mm-shmem-add-a-kernel-command-line-to-change-the-default-huge-policy-for-tmpfs.patch
+docs-tmpfs-drop-fadvise-from-the-documentation.patch
+mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch
 
