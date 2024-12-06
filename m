@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A49AC1B87D0
-	for <mm-commits@vger.kernel.org>; Thu,  5 Dec 2024 20:30:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89899193
+	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 00:58:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733430606; cv=none; b=XoKfvKJsEYqNxzfZ5PUbjhymuww7AXFjdHuSmffYglBrMcUnCJwruXeLSNn3XDOv5v2fbqi824VO5ioAflSz3yFm8I+RgTFgHrdWw4r66JnpadP00j1Kqp9d7oi/ej87BYmLvX3XLBIEUGU4G3eU6IZNCGeBzVwzkQ4CukwKZWU=
+	t=1733446720; cv=none; b=AgE4A4N/VMzZDLFc5360BZXXT1CXmhOU9SxdvJcDdZ2CYtw0XruaSdH2CJLknUhlEZdDgCkQr+WIQj3hAXDo7HzItFcR6K93XuqbFclqStfbKfwAv6ggGUv2J6J6TaBhzIjO3QQBRI1eA8KMWyow3beFvVOppf70ShFvhzGf4rs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733430606; c=relaxed/simple;
-	bh=swdd879deUJNI35ag2P/1kKo71dB5rhWiVtAbi2tWGc=;
-	h=Date:To:From:Subject:Message-Id; b=M43CxDtw+tEb/pQCSAX7mStxGXwL3QeZ9yhGO31gipwifdF8Q+7pcreCSbK8xwy89ooYix26A39E17QsNzOtRF+EEK9ifmMvMXIqOrsDqs2bdvAq+m0jsH7z6iJYV4WOWahZfElUjz2od45tpxtW4RyqcEAuDaRyf6k8O9MO1x0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lha4PsKf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733446720; c=relaxed/simple;
+	bh=Jv2w3HGBUhQvEOmQQlpB7hTWKPjojTdHz6uNdOPQpBw=;
+	h=Date:To:From:Subject:Message-Id; b=HzFbXrbSKk6qSyVDXlZJ9Q1dDwAhrjiSDnByvWsto3ZPdlN0r78Xki1v6dOnP0T1wG4FZzo5SOnk/1lWPazaueal/xLIG/GidbgIGOyP01WSMoJ/nGwxmCWy8U7uIHK3HT93i8A0PILB6FOQlahZ63kI8Qooa/JoZW7yrpp3m9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eatMZT2T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lha4PsKf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D86AC4AF09;
-	Thu,  5 Dec 2024 20:30:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eatMZT2T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B30C4CED1;
+	Fri,  6 Dec 2024 00:58:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733430606;
-	bh=swdd879deUJNI35ag2P/1kKo71dB5rhWiVtAbi2tWGc=;
+	s=korg; t=1733446720;
+	bh=Jv2w3HGBUhQvEOmQQlpB7hTWKPjojTdHz6uNdOPQpBw=;
 	h=Date:To:From:Subject:From;
-	b=Lha4PsKfqtFkws2k6B/X1B/3JzoymFv699K+M4bJhi1DfRzPi4LpQ0F8hz3ZldHwm
-	 /BdVUllcla5MFax8Oeose3LbkCRv6ABmApQOSWE3m4RXg0gElF+L8ErUqA3IZeVbp1
-	 9jMuPgCMgMQCEJAY23BAuPUJcjbygBpU9yFhqstU=
-Date: Thu, 05 Dec 2024 12:30:05 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,takakura@valinux.co.jp,sourabhjain@linux.ibm.com,songshuaishuai@tinylab.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,linux@armlinux.org.uk,jonnyc@amazon.com,hbathini@linux.ibm.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bhe@redhat.com,aou@eecs.berkeley.edu,adityag@linux.ibm.com,farbere@amazon.com,akpm@linux-foundation.org
+	b=eatMZT2Tf0vwnkJy21Cr9gvhgkXljPyizV20fQF5HlM/mN8gPwOuPuei9QjElKZLe
+	 qMf03022HZvzznwgnWWOL1/a2nUL8GYdQ6RbeB95GFgaE++8BTbvOwqXwXWmiPXtf3
+	 AuEseRGWNxpu+FZ8b5GPKl/DIwg8oyeHgxjrRszk=
+Date: Thu, 05 Dec 2024 16:58:39 -0800
+To: mm-commits@vger.kernel.org,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch removed from -mm tree
-Message-Id: <20241205203006.0D86AC4AF09@smtp.kernel.org>
+Subject: + mm-mglru-clean-up-workingset.patch added to mm-unstable branch
+Message-Id: <20241206005839.E7B30C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,108 +34,139 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: kexec: prevent redundant IRQ masking by checking state before shutdown
-has been removed from the -mm tree.  Its filename was
-     kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown.patch
+The patch titled
+     Subject: mm/mglru: clean up workingset
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mglru-clean-up-workingset.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-clean-up-workingset.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Eliav Farber <farbere@amazon.com>
-Subject: kexec: prevent redundant IRQ masking by checking state before shutdown
-Date: Wed, 4 Dec 2024 14:20:03 +0000
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/mglru: clean up workingset
+Date: Thu, 5 Dec 2024 17:31:21 -0700
 
-During machine kexec, the function machine_kexec_mask_interrupts() is
-responsible for disabling or masking all interrupts.  While the
-irq_disable hook ensures that an already-disabled IRQ is not disabled
-again, the current implementation unconditionally invokes the irq_mask()
-function for every interrupt descriptor, even when the interrupt is
-already masked.
+Patch series "mm/mglru: performance optimizations", v2.
 
-A specific issue was observed in the crash kernel flow after unbinding a
-device (prior to kexec) that used a GPIO as an IRQ source.  The warning
-was triggered by the gpiochip_disable_irq() function, which attempted to
-clear the FLAG_IRQ_IS_ENABLED flag when FLAG_USED_AS_IRQ was not set:
+This series improves performance for some previously reported test cases. 
+Most of the code changes gathered here has been floating on the mailing
+list [1][2].  They are now properly organized and have gone through
+various benchmarks on client and server devices, including Android, FIO,
+memcached, multiple VMs and MongoDB.
 
-```
-void gpiochip_disable_irq(struct gpio_chip *gc, unsigned int offset)
-{
-	struct gpio_desc *desc = gpiochip_get_desc(gc, offset);
+This v2 mainly fixes a warning reported by syzbot [3].
 
-	if (!IS_ERR(desc) &&
-	    !WARN_ON(!test_bit(FLAG_USED_AS_IRQ, &desc->flags)))
-		clear_bit(FLAG_IRQ_IS_ENABLED, &desc->flags);
-}
-```
+[1] https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
+[2] https://lore.kernel.org/CAOUHufawNerxqLm7L9Yywp3HJFiYVrYO26ePUb1jH-qxNGWzyA@mail.gmail.com/
+[3] https://lore.kernel.org/linux-mm/67294349.050a0220.701a.0010.GAE@google.com/
 
-This issue surfaced after commit a8173820f441 ("gpio: gpiolib: Allow GPIO
-IRQs to lazy disable") introduced lazy disablement for GPIO IRQs.  It
-replaced disable/enable hooks with mask/unmask hooks.  Unlike the disable
-hook, the mask hook doesn't handle already-masked IRQs.
 
-When a GPIO-IRQ driver is unbound, the IRQ is released, triggering
-__irq_disable() and irq_state_set_masked().  A subsequent call to
-machine_kexec_mask_interrupts() re-invokes chip->irq_mask().  This results
-in a call chain, including gpiochip_irq_mask() and gpiochip_disable_irq().
-Since FLAG_USED_AS_IRQ was cleared earlier, a warning occurs.
+This patch (of 6):
 
-Replace calls to irq_mask() and irq_disable() hooks with a simplified call
-to irq_shutdown(), and check if the interrupt is started (irqd_is_started)
-before calling the shutdown.
+Move VM_BUG_ON_FOLIO() to cover both the default and MGLRU paths.  Also
+use a pair of rcu_read_lock() and rcu_read_unlock() within each path, to
+improve readability.
 
-Link: https://lkml.kernel.org/r/20241204142003.32859-3-farbere@amazon.com
-Signed-off-by: Eliav Farber <farbere@amazon.com>
-Cc: Aditya Gupta <adityag@linux.ibm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jonathan Chocron <jonnyc@amazon.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Naveen N Rao <naveen@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Ryo Takakura <takakura@valinux.co.jp>
-Cc: Song Shuai <songshuaishuai@tinylab.org>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+This change should not have any side effects.
+
+Link: https://lkml.kernel.org/r/20241206003126.1338283-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20241206003126.1338283-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Tested-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/kexec.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/workingset.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/kernel/irq/kexec.c~kexec-prevent-redundant-irq-masking-by-checking-state-before-shutdown
-+++ a/kernel/irq/kexec.c
-@@ -17,7 +17,7 @@ void machine_kexec_mask_interrupts(void)
- 		int check_eoi = 1;
+--- a/mm/workingset.c~mm-mglru-clean-up-workingset
++++ a/mm/workingset.c
+@@ -428,17 +428,17 @@ bool workingset_test_recent(void *shadow
+ 	struct pglist_data *pgdat;
+ 	unsigned long eviction;
  
- 		chip = irq_desc_get_chip(desc);
--		if (!chip)
-+		if (!chip || !irqd_is_started(&desc->irq_data))
- 			continue;
- 
- 		if (IS_ENABLED(CONFIG_GENERIC_IRQ_KEXEC_CLEAR_VM_FORWARD)) {
-@@ -31,10 +31,6 @@ void machine_kexec_mask_interrupts(void)
- 		if (check_eoi && chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
- 			chip->irq_eoi(&desc->irq_data);
- 
--		if (chip->irq_mask)
--			chip->irq_mask(&desc->irq_data);
+-	rcu_read_lock();
 -
--		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
--			chip->irq_disable(&desc->irq_data);
-+		irq_shutdown(desc);
+ 	if (lru_gen_enabled()) {
+-		bool recent = lru_gen_test_recent(shadow, file,
+-				&eviction_lruvec, &eviction, workingset);
++		bool recent;
+ 
++		rcu_read_lock();
++		recent = lru_gen_test_recent(shadow, file, &eviction_lruvec,
++					     &eviction, workingset);
+ 		rcu_read_unlock();
+ 		return recent;
  	}
- }
+ 
+-
++	rcu_read_lock();
+ 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
+ 	eviction <<= bucket_order;
+ 
+@@ -459,14 +459,12 @@ bool workingset_test_recent(void *shadow
+ 	 * configurations instead.
+ 	 */
+ 	eviction_memcg = mem_cgroup_from_id(memcgid);
+-	if (!mem_cgroup_disabled() &&
+-	    (!eviction_memcg || !mem_cgroup_tryget(eviction_memcg))) {
+-		rcu_read_unlock();
+-		return false;
+-	}
+-
++	if (!mem_cgroup_tryget(eviction_memcg))
++		eviction_memcg = NULL;
+ 	rcu_read_unlock();
+ 
++	if (!mem_cgroup_disabled() && !eviction_memcg)
++		return false;
+ 	/*
+ 	 * Flush stats (and potentially sleep) outside the RCU read section.
+ 	 *
+@@ -544,6 +542,8 @@ void workingset_refault(struct folio *fo
+ 	bool workingset;
+ 	long nr;
+ 
++	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	if (lru_gen_enabled()) {
+ 		lru_gen_refault(folio, shadow);
+ 		return;
+@@ -558,7 +558,6 @@ void workingset_refault(struct folio *fo
+ 	 * is actually experiencing the refault event. Make sure the folio is
+ 	 * locked to guarantee folio_memcg() stability throughout.
+ 	 */
+-	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	nr = folio_nr_pages(folio);
+ 	memcg = folio_memcg(folio);
+ 	pgdat = folio_pgdat(folio);
 _
 
-Patches currently in -mm which might be from farbere@amazon.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
+mm-mglru-clean-up-workingset.patch
+mm-mglru-optimize-deactivation.patch
+mm-mglru-rework-aging-feedback.patch
+mm-mglru-rework-type-selection.patch
+mm-mglru-rework-refault-detection.patch
+mm-mglru-rework-workingset-protection.patch
 
