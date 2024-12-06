@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 963D32F855;
-	Fri,  6 Dec 2024 01:28:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A61512F855;
+	Fri,  6 Dec 2024 01:28:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733448506; cv=none; b=Do7b4RhnfmQ23J/BlbBhl8eCKm8zBY5+4meYjldwcZhQI+haiMjo9Hztx3E82LVwRIqpovokYyr3B2HN0TwdDCR/P3cyflZMlbB57Pfuf3LwWooAUGT50uUZB5OxjVXi7VM7rS5y/vB+yOJj3VtryUJ8mdhZ/y8QnGjvS9zeKeI=
+	t=1733448508; cv=none; b=I/gMreIpJ44AEkbajxbaSHzkMkreiFf3ERVNtHChdQmEMPEddh8ymYgXscwmGmb+VvmquUbIgsYvITfJPPc3WklZM4aGB7yCaReRX318bz9dzwluLnWfEV/1PvUcpEB9hMXcQRh+kzABJR5OgBhzzB1llzWR43xryTJzm9yDRvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733448506; c=relaxed/simple;
-	bh=xENKWS2oymTpwxQjt6dXyUEsg96pQkIkKY4sgO4dE6M=;
-	h=Date:To:From:Subject:Message-Id; b=oltjZCw3qEPwXoM+RM0ylfwABWAmen7MiqZbB3ECMReWReOpbEef2P6nhaWpCZo+Z/31UQ5+y+qSvsUeV0cXd85RgFtWOxdwUu8PIRbhi11B/Ekyqo5nHAxuHd3lEH9DFZJn6GsttgOAQugn3JIeONIZPHq2A7XJRexBkuXEsz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j233DFMW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733448508; c=relaxed/simple;
+	bh=4GebgE312igrfJdU+68WgZze1ama2eem5kzWWBLxpgo=;
+	h=Date:To:From:Subject:Message-Id; b=BI++XpSEtTMiiA15vw5O/6grAk+A/P5k3G+SnfeEghMmymDwgI/w1YJ+BAhAVrdmnrIVgjQWUNQLttfJ0+3huA4cYBIT4o/6pb9YfInF1Nx7sMDWLvTe+45fz9UK8hxl7ZFYVzlkuqKGeWykNeRs93yk17xbieWq7BDF09qoa8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hMe/4hkX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j233DFMW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F44C4CED6;
-	Fri,  6 Dec 2024 01:28:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hMe/4hkX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A9EC4CED1;
+	Fri,  6 Dec 2024 01:28:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733448506;
-	bh=xENKWS2oymTpwxQjt6dXyUEsg96pQkIkKY4sgO4dE6M=;
+	s=korg; t=1733448508;
+	bh=4GebgE312igrfJdU+68WgZze1ama2eem5kzWWBLxpgo=;
 	h=Date:To:From:Subject:From;
-	b=j233DFMWEtTC2ZaAz7FuynD1oxhsqR5aaxlGRif5v0snCS9Qv6865rRo2RKQXwi1+
-	 q9wyXP50IlbIpk9CaWMSMzam6TXR/ZytwDqMih5W0lZIObnJeme1mdQ0yEaryYxKC+
-	 kJx9OiHkpkXvmBuuRfjHvyaBZ9s3st05bVvgL76I=
-Date: Thu, 05 Dec 2024 17:28:25 -0800
+	b=hMe/4hkXXCRdDU+of8mnKebsn4AabYOx0hQfcuXhipt39WIzXcV6LXS59b+KrLAzX
+	 xE2f/cxyQKrDnAD01UjZzCMgRLmThc9DWbT2VPaapIrX7Myc7SBOR/BA+ZA578YW4d
+	 wBlOR0YTNtT1KC+jGHnxIQxeR2ypB5jEQWBTvWvU=
+Date: Thu, 05 Dec 2024 17:28:27 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-revert-ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241206012826.17F44C4CED6@smtp.kernel.org>
+Subject: + ocfs2-fix-the-space-leak-in-la-when-releasing-la.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241206012828.20A9EC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: revert "ocfs2: fix the la space leak when unmounting an ocfs2 volume"
+     Subject: ocfs2: fix the space leak in LA when releasing LA
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-revert-ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch
+     ocfs2-fix-the-space-leak-in-la-when-releasing-la.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-revert-ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-the-space-leak-in-la-when-releasing-la.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: revert "ocfs2: fix the la space leak when unmounting an ocfs2 volume"
-Date: Thu, 5 Dec 2024 18:48:32 +0800
+Subject: ocfs2: fix the space leak in LA when releasing LA
+Date: Thu, 5 Dec 2024 18:48:33 +0800
 
-Patch series "Revert ocfs2 commit dfe6c5692fb5 and provide a new fix".
+Commit 30dd3478c3cd ("ocfs2: correctly use ocfs2_find_next_zero_bit()")
+introduced an issue, the ocfs2_sync_local_to_main() ignores the last
+contiguous free bits, which causes an OCFS2 volume to lose the last free
+clusters of LA window during the release routine.
 
-SUSE QA team detected a mistake in my commit dfe6c5692fb5 ("ocfs2: fix the
-la space leak when unmounting an ocfs2 volume").  I am very sorry for my
-error.  (If my eyes are correct) From the mailling list mails, this patch
-shouldn't be applied to 4.19 5.4 5.10 5.15 6.1 6.6, and these branches
-should perform a revert operation.
+Please note, because commit dfe6c5692fb5 ("ocfs2: fix the la space leak
+when unmounting an ocfs2 volume") was reverted, this commit is a
+replacement fix for commit dfe6c5692fb5.
 
-Reason for revert:
-In commit dfe6c5692fb5, I mistakenly wrote: "This bug has existed since
-the initial OCFS2 code.".  The statement is wrong.  The correct
-introduction commit is 30dd3478c3cd.  IOW, if the branch doesn't include
-30dd3478c3cd, dfe6c5692fb5 should also not be included.
-
-
-This reverts commit dfe6c5692fb5 ("ocfs2: fix the la space leak when
-unmounting an ocfs2 volume").
-
-In commit dfe6c5692fb5, the commit log "This bug has existed since the
-initial OCFS2 code." is wrong.  The correct introduction commit is
-30dd3478c3cd ("ocfs2: correctly use ocfs2_find_next_zero_bit()").
-
-The influence of commit dfe6c5692fb5 is that it provides a correct fix for
-the latest kernel.  however, it shouldn't be pushed to stable branches. 
-Let's use this commit to revert all branches that include dfe6c5692fb5 and
-use a new fix method to fix commit 30dd3478c3cd.
-
-Link: https://lkml.kernel.org/r/20241205104835.18223-1-heming.zhao@suse.com
-Link: https://lkml.kernel.org/r/20241205104835.18223-2-heming.zhao@suse.com
-Fixes: dfe6c5692fb5 ("ocfs2: fix the la space leak when unmounting an ocfs2 volume")
+Link: https://lkml.kernel.org/r/20241205104835.18223-3-heming.zhao@suse.com
+Fixes: 30dd3478c3cd ("ocfs2: correctly use ocfs2_find_next_zero_bit()")
 Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -103,37 +85,33 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/localalloc.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ fs/ocfs2/localalloc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/localalloc.c~ocfs2-revert-ocfs2-fix-the-la-space-leak-when-unmounting-an-ocfs2-volume
+--- a/fs/ocfs2/localalloc.c~ocfs2-fix-the-space-leak-in-la-when-releasing-la
 +++ a/fs/ocfs2/localalloc.c
-@@ -1002,25 +1002,6 @@ static int ocfs2_sync_local_to_main(stru
+@@ -971,9 +971,9 @@ static int ocfs2_sync_local_to_main(stru
+ 	start = count = 0;
+ 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
+ 
+-	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start)) <
+-	       left) {
+-		if (bit_off == start) {
++	while (1) {
++		bit_off = ocfs2_find_next_zero_bit(bitmap, left, start);
++		if ((bit_off < left) && (bit_off == start)) {
+ 			count++;
+ 			start++;
+ 			continue;
+@@ -998,6 +998,8 @@ static int ocfs2_sync_local_to_main(stru
+ 			}
+ 		}
+ 
++		if (bit_off >= left)
++			break;
+ 		count = 1;
  		start = bit_off + 1;
  	}
- 
--	/* clear the contiguous bits until the end boundary */
--	if (count) {
--		blkno = la_start_blk +
--			ocfs2_clusters_to_blocks(osb->sb,
--					start - count);
--
--		trace_ocfs2_sync_local_to_main_free(
--				count, start - count,
--				(unsigned long long)la_start_blk,
--				(unsigned long long)blkno);
--
--		status = ocfs2_release_clusters(handle,
--				main_bm_inode,
--				main_bm_bh, blkno,
--				count);
--		if (status < 0)
--			mlog_errno(status);
--	}
--
- bail:
- 	if (status)
- 		mlog_errno(status);
 _
 
 Patches currently in -mm which might be from heming.zhao@suse.com are
