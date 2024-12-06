@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35F1C13D516
-	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 01:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598151482E3
+	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 02:04:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733449432; cv=none; b=AIviJdCGNu6wSWRF1vJW5AX2jYj9fsansEWOUgp6UTX2Z2KARGnyUxAELZTGMejWUnQFXmehUvtQW5HP2pvvvdZBJJdrD8d8Nvwwb8+8F2b6qdp8SlkmCoTsu2HXmEIH4VEI6PMMsMHW5X9IiPW9GMuVQEF68fmwO1izyyKyugQ=
+	t=1733450673; cv=none; b=MGiboWIJF3gnx+zu7Ubr1dtGOkhj+rNkQs3+tE1hXrjsvTocl/DKrERwSSgbmbGV1H/nqBcYz9Xb63aj/InIvCHnD9n6+zivYtsBk4XO4c94b25vM83NfjCVG8n8X2Yazev7kutqLMzCfHzHNPdhdO0fC6mM/K58YGPlAfz9n3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733449432; c=relaxed/simple;
-	bh=TcvYYTjQEW15CA7YGOWFjekWGkT1yERWGATZZ8E6RA8=;
-	h=Date:To:From:Subject:Message-Id; b=IpvWze3Dw9jgs73sSb4xN8IZQfkyMtX3zj5I6ZGTIP2Tun50PNherTJf6KRgQxyva2MlLIG5jxWJmFrxE1NG1Es93mriLbI7WplNjCnfUAeUa/UsN6PVqDkpFFsF+8oJcNWHXenTy3Oi8qORAHboPx8FYRXJHYuXAt42FTAePW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qcjm1AOg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733450673; c=relaxed/simple;
+	bh=z2mhBDhyQgkeA40HpTp7Q52FGzpIeMafEym20F6eqMM=;
+	h=Date:To:From:Subject:Message-Id; b=koJTVZXYtRAyCXP+nJfEDrr3+S0/xV37j2UlghQF3kEYRT+Nn6IBdL6bfnHQz/M0PNXnj+HYJgM1DTsjy13hvAiYaxyglW0mVPFtTH5sFYWHGmsB1+ri3pOVbGw/1XKxTEyAaXcJ/NPvNXwNveo53Ph8wLelihZbeUlDlOJZYXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwv8thlt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qcjm1AOg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A09F3C4CED1;
-	Fri,  6 Dec 2024 01:43:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwv8thlt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0CEDC4CED1;
+	Fri,  6 Dec 2024 02:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733449431;
-	bh=TcvYYTjQEW15CA7YGOWFjekWGkT1yERWGATZZ8E6RA8=;
+	s=korg; t=1733450672;
+	bh=z2mhBDhyQgkeA40HpTp7Q52FGzpIeMafEym20F6eqMM=;
 	h=Date:To:From:Subject:From;
-	b=qcjm1AOgp2Ue914YzIU2peZ5wp8t4jcSqTzs9vQ/JJplxRxjw0EZ9EWcV2jTFUB/0
-	 o/X3woMQx9vXrR1zJUT1QP0hA3HGvI8LONNaziQAo87j7kGS3FydrpE4AnidIg91qQ
-	 cxhaTu+xvDxzE0mf0fGnKmbmcntreh4SsUcobReQ=
-Date: Thu, 05 Dec 2024 17:43:51 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=qwv8thltj71iTKqj4waoiuNdQxQx0oHBBIgVzM5mKlXgg1svFJUH0n5JmyPwRLBlI
+	 1lX+rxLiRXAtPbXP8GdgT5nxVmKzfUcaKwXbIejcX+xv7ech5sKCjFe8eSUB8bAmpl
+	 iiyAeLEFxPKJ0sGHXLUwMLPTjezevvHfsrRyHKxg=
+Date: Thu, 05 Dec 2024 18:04:32 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rdunlap@infradead.org,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch removed from -mm tree
-Message-Id: <20241206014351.A09F3C4CED1@smtp.kernel.org>
+Subject: + mseal-move-can_do_mseal-to-msealc.patch added to mm-unstable branch
+Message-Id: <20241206020432.C0CEDC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,51 +34,102 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: migrate: drop redundant anonymous statistics for file folios migration
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration.patch
+The patch titled
+     Subject: mseal: move can_do_mseal() to mseal.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mseal-move-can_do_mseal-to-msealc.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-move-can_do_mseal-to-msealc.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: drop redundant anonymous statistics for file folios migration
-Date: Thu, 5 Dec 2024 11:53:48 +0800
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: move can_do_mseal() to mseal.c
+Date: Fri, 6 Dec 2024 01:39:34 +0000
 
-Commit 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
-adds a new anonymous counter per THP size, however, when folio_mapping()
-is not NULL during folio migration, it means this is not an anonymous
-folio, so remove the redundant anonymous statistics in this case.
+No code logic change.
 
-Link: https://lkml.kernel.org/r/d5e191ae02c2ab63c70cdf44877fe14fc69f5ae8.1733368611.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
+can_do_mseal() is called exclusively by mseal.c, and mseal.c is compiled
+only when CONFIG_64BIT flag is set in makefile.  Therefore, it is
+unnecessary to have 32 bit stub function in the header file.
+
+Link: https://lkml.kernel.org/r/20241206013934.2782793-1-jeffxu@google.com
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/internal.h |   16 ----------------
+ mm/mseal.c    |    8 ++++++++
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-drop-redundant-anonymous-statistics-for-file-folios-migration
-+++ a/mm/migrate.c
-@@ -523,8 +523,6 @@ static int __folio_migrate_mapping(struc
- 	 */
- 	newfolio->index = folio->index;
- 	newfolio->mapping = folio->mapping;
--	if (folio_test_anon(folio) && folio_test_large(folio))
--		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
- 	folio_ref_add(newfolio, nr); /* add cache reference */
- 	if (folio_test_swapbacked(folio)) {
- 		__folio_set_swapbacked(newfolio);
+--- a/mm/internal.h~mseal-move-can_do_mseal-to-msealc
++++ a/mm/internal.h
+@@ -1457,22 +1457,6 @@ void __meminit __init_single_page(struct
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+ 			  int priority);
+ 
+-#ifdef CONFIG_64BIT
+-static inline int can_do_mseal(unsigned long flags)
+-{
+-	if (flags)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-#else
+-static inline int can_do_mseal(unsigned long flags)
+-{
+-	return -EPERM;
+-}
+-#endif
+-
+ #ifdef CONFIG_SHRINKER_DEBUG
+ static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
+ 			struct shrinker *shrinker, const char *fmt, va_list ap)
+--- a/mm/mseal.c~mseal-move-can_do_mseal-to-msealc
++++ a/mm/mseal.c
+@@ -158,6 +158,14 @@ static int apply_mm_seal(unsigned long s
+ 	return 0;
+ }
+ 
++static inline int can_do_mseal(unsigned long flags)
++{
++	if (flags)
++		return -EINVAL;
++
++	return 0;
++}
++
+ /*
+  * mseal(2) seals the VM's meta data from
+  * selected syscalls.
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mm-factor-out-the-order-calculation-into-a-new-helper.patch
-mm-shmem-change-shmem_huge_global_enabled-to-return-huge-order-bitmap.patch
-mm-shmem-add-large-folio-support-for-tmpfs.patch
-mm-shmem-add-a-kernel-command-line-to-change-the-default-huge-policy-for-tmpfs.patch
-docs-tmpfs-drop-fadvise-from-the-documentation.patch
+selftest-mm-remove-seal_elf.patch
+mseal-move-can_do_mseal-to-msealc.patch
 
