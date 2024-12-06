@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDE3192B8F;
-	Fri,  6 Dec 2024 03:55:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F77192B8F
+	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 03:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733457340; cv=none; b=HeLP9t6zmDdV2JK37C/wouSauUmumd/bMMFHWLPiEA9GzFE0j9h6sfw4X0+BOS353Zbl1iKLRB6Xty0mn4qUuuh/hKXWxALMU/Gp8a91jhjWq9MqAgJLnRFfyT8I/DYjM0mo06s1aJiCeutq6e+gHoxMSnRyylFBR7fU7DYPzQQ=
+	t=1733457342; cv=none; b=QKhx4N1CX7iySoNyITTiwN8BaOG5D2YC9eBVVH2P6x8vHzC4yJlJ4A6CxRgYX7aAb1ec3WnfUPV/DNJXfDqWd0RlIjZ+WTFocc/b2pMmcdluk/vYXvCOtIfV1/iv5r1r3f0LoTITbPSYlcnXBUHmIy3ZR+N+WYVyZ/Up5XrBEVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733457340; c=relaxed/simple;
-	bh=Dh/eGzXc5wluzYLzlFtJSaV9/en8u1GHFxV/ZbKbwTY=;
-	h=Date:To:From:Subject:Message-Id; b=TBpY9L9szfvtvn4VlftD2Z/gsOPzYoJODJ5zOEnI0aaXPppLTYpFEkQjz9BaRwbvwat8kC/TcD/YQXVMdFx/rf6Ebg6srBnDOTt/hjxBVBZZyuZMwt5evMf7bRBv4hDD0wsI4uXqQ3LPqFDDwbafdSA5rz8nIYQdPnWBTxtglqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oraNsZ0a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733457342; c=relaxed/simple;
+	bh=uXuoyF2wQkopxD5wTVMbcVthJDwCPHdb0qvj16XTmsw=;
+	h=Date:To:From:Subject:Message-Id; b=K1b+v7Y+fyyiq9Ko7a/sSpfufo54SNXa9sF+l6qsHy6AkCiSLN8h2kJJXJeZ0l9TnH6fhF9rQTNJ5ddB+c6G0DEtJbtwKzrZEkGWkL2eqB26BWHXoFL9xd5+URk9B7EZ95l6cw+8LMlS9npBIQe6syxQQBY79yf2sR0WTPltuhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n7NdVENg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oraNsZ0a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A242FC4CED1;
-	Fri,  6 Dec 2024 03:55:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n7NdVENg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D12DFC4CED1;
+	Fri,  6 Dec 2024 03:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733457340;
-	bh=Dh/eGzXc5wluzYLzlFtJSaV9/en8u1GHFxV/ZbKbwTY=;
+	s=korg; t=1733457341;
+	bh=uXuoyF2wQkopxD5wTVMbcVthJDwCPHdb0qvj16XTmsw=;
 	h=Date:To:From:Subject:From;
-	b=oraNsZ0ao/pS3OZYH2JnHBaevOphe4sqTWLkcTzrlQtEPrO6YqjDZGpWgZEna9tdF
-	 Xc7a41WUmTuYUHeaGNgVvht69cg60mHI+tWMMwqBjR5G0hfJiu8oYXXQh7EW3Vofjs
-	 8M1j52riuSl+cECUKIJzAaYEa3elQaSw04G7MECU=
-Date: Thu, 05 Dec 2024 19:55:40 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,sunjw10@lenovo.com,stable@vger.kernel.org,rostedt@goodmis.org,raghavendra.kt@amd.com,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,dietmar.eggemann@arm.com,bsegall@google.com,ahuang12@lenovo.com,akpm@linux-foundation.org
+	b=n7NdVENgMnxPz3UgXzj3hrm4Mv8d4J32umvmt/E1ceof6bjOnKKBsLgCnPmN5RX+5
+	 CGtzmN6bZPOeKnyK9Fm7e0C902qqBcIpC3xeMZbHSHPDjgF4NkHYesbWSFHVQRDDXu
+	 z2peQx8fdgwxeNx7A6FvPJ58PTfoe3Fzcjv3RZH0=
+Date: Thu, 05 Dec 2024 19:55:41 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,linus.walleij@linaro.org,lars@metafoo.de,Jonathan.Cameron@huawei.com,david.laight@aculab.com,jahau@rocketmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] sched-numa-fix-memory-leak-due-to-the-overwritten-vma-numab_state.patch removed from -mm tree
-Message-Id: <20241206035540.A242FC4CED1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch removed from -mm tree
+Message-Id: <20241206035541.D12DFC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sched/numa: fix memory leak due to the overwritten vma->numab_state
+     Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
 has been removed from the -mm tree.  Its filename was
-     sched-numa-fix-memory-leak-due-to-the-overwritten-vma-numab_state.patch
+     iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Adrian Huang <ahuang12@lenovo.com>
-Subject: sched/numa: fix memory leak due to the overwritten vma->numab_state
-Date: Wed, 13 Nov 2024 18:21:46 +0800
+From: Jakob Hauser <jahau@rocketmail.com>
+Subject: iio: magnetometer: yas530: use signed integer type for clamp limits
+Date: Fri, 29 Nov 2024 22:25:07 +0100
 
-[Problem Description]
-When running the hackbench program of LTP, the following memory leak is
-reported by kmemleak.
+In the function yas537_measure() there is a clamp_val() with limits of
+-BIT(13) and BIT(13) - 1.  The input clamp value h[] is of type s32.  The
+BIT() is of type unsigned long integer due to its define in
+include/vdso/bits.h.  The lower limit -BIT(13) is recognized as -8192 but
+expressed as an unsigned long integer.  The size of an unsigned long
+integer differs between 32-bit and 64-bit architectures.  Converting this
+to type s32 may lead to undesired behavior.
 
-  # /opt/ltp/testcases/bin/hackbench 20 thread 1000
-  Running with 20*40 (== 800) tasks.
+Additionally, in the calculation lines h[0], h[1] and h[2] the unsigned
+long integer divisor BIT(13) causes an unsigned division, shifting the
+left-hand side of the equation back and forth, possibly ending up in large
+positive values instead of negative values on 32-bit architectures.
 
-  # dmesg | grep kmemleak
-  ...
-  kmemleak: 480 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
-  kmemleak: 665 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
+To solve those two issues, declare a signed integer with a value of
+BIT(13).
 
-  # cat /sys/kernel/debug/kmemleak
-  unreferenced object 0xffff888cd8ca2c40 (size 64):
-    comm "hackbench", pid 17142, jiffies 4299780315
-    hex dump (first 32 bytes):
-      ac 74 49 00 01 00 00 00 4c 84 49 00 01 00 00 00  .tI.....L.I.....
-      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    backtrace (crc bff18fd4):
-      [<ffffffff81419a89>] __kmalloc_cache_noprof+0x2f9/0x3f0
-      [<ffffffff8113f715>] task_numa_work+0x725/0xa00
-      [<ffffffff8110f878>] task_work_run+0x58/0x90
-      [<ffffffff81ddd9f8>] syscall_exit_to_user_mode+0x1c8/0x1e0
-      [<ffffffff81dd78d5>] do_syscall_64+0x85/0x150
-      [<ffffffff81e0012b>] entry_SYSCALL_64_after_hwframe+0x76/0x7e
-  ...
+There is another omission in the clamp line: clamp_val() returns a value
+and it's going nowhere here.  Self-assign it to h[i] to make use of the
+clamp macro.
 
-This issue can be consistently reproduced on three different servers:
-  * a 448-core server
-  * a 256-core server
-  * a 192-core server
+Finally, replace clamp_val() macro by clamp() because after changing the
+limits from type unsigned long integer to signed integer it's fine that
+way.
 
-[Root Cause]
-Since multiple threads are created by the hackbench program (along with
-the command argument 'thread'), a shared vma might be accessed by two or
-more cores simultaneously. When two or more cores observe that
-vma->numab_state is NULL at the same time, vma->numab_state will be
-overwritten.
+Link: https://lkml.kernel.org/r/11609b2243c295d65ab4d47e78c239d61ad6be75.1732914810.git.jahau@rocketmail.com
+Fixes: 65f79b501030 ("iio: magnetometer: yas530: Add YAS537 variant")
+Signed-off-by: Jakob Hauser <jahau@rocketmail.com>
 
-Although current code ensures that only one thread scans the VMAs in a
-single 'numa_scan_period', there might be a chance for another thread
-to enter in the next 'numa_scan_period' while we have not gotten till
-numab_state allocation [1].
-
-Note that the command `/opt/ltp/testcases/bin/hackbench 50 process 1000`
-cannot the reproduce the issue. It is verified with 200+ test runs.
-
-[Solution]
-Use the cmpxchg atomic operation to ensure that only one thread executes
-the vma->numab_state assignment.
-
-[1] https://lore.kernel.org/lkml/1794be3c-358c-4cdc-a43d-a1f841d91ef7@amd.com/
-
-Link: https://lkml.kernel.org/r/20241113102146.2384-1-ahuang12@lenovo.com
-Fixes: ef6a22b70f6d ("sched/numa: apply the scan delay to every new vma")
-Signed-off-by: Adrian Huang <ahuang12@lenovo.com>
-Reported-by: Jiwei Sun <sunjw10@lenovo.com>
-Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202411230458.dhZwh3TT-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202411282222.oF0B4110-lkp@intel.com/
+Reviewed-by: David Laight <david.laight@aculab.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/iio/magnetometer/yamaha-yas530.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/kernel/sched/fair.c~sched-numa-fix-memory-leak-due-to-the-overwritten-vma-numab_state
-+++ a/kernel/sched/fair.c
-@@ -3399,10 +3399,16 @@ retry_pids:
+--- a/drivers/iio/magnetometer/yamaha-yas530.c~iio-magnetometer-yas530-use-signed-integer-type-for-clamp-limits
++++ a/drivers/iio/magnetometer/yamaha-yas530.c
+@@ -372,6 +372,7 @@ static int yas537_measure(struct yas5xx
+ 	u8 data[8];
+ 	u16 xy1y2[3];
+ 	s32 h[3], s[3];
++	int half_range = BIT(13);
+ 	int i, ret;
  
- 		/* Initialise new per-VMA NUMAB state. */
- 		if (!vma->numab_state) {
--			vma->numab_state = kzalloc(sizeof(struct vma_numab_state),
--				GFP_KERNEL);
--			if (!vma->numab_state)
-+			struct vma_numab_state *ptr;
-+
-+			ptr = kzalloc(sizeof(*ptr), GFP_KERNEL);
-+			if (!ptr)
-+				continue;
-+
-+			if (cmpxchg(&vma->numab_state, NULL, ptr)) {
-+				kfree(ptr);
- 				continue;
-+			}
- 
- 			vma->numab_state->start_scan_seq = mm->numa_scan_seq;
+ 	mutex_lock(&yas5xx->lock);
+@@ -406,13 +407,13 @@ static int yas537_measure(struct yas5xx
+ 	/* The second version of YAS537 needs to include calibration coefficients */
+ 	if (yas5xx->version == YAS537_VERSION_1) {
+ 		for (i = 0; i < 3; i++)
+-			s[i] = xy1y2[i] - BIT(13);
+-		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / BIT(13);
+-		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / BIT(13);
+-		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / BIT(13);
++			s[i] = xy1y2[i] - half_range;
++		h[0] = (c->k *   (128 * s[0] + c->a2 * s[1] + c->a3 * s[2])) / half_range;
++		h[1] = (c->k * (c->a4 * s[0] + c->a5 * s[1] + c->a6 * s[2])) / half_range;
++		h[2] = (c->k * (c->a7 * s[0] + c->a8 * s[1] + c->a9 * s[2])) / half_range;
+ 		for (i = 0; i < 3; i++) {
+-			clamp_val(h[i], -BIT(13), BIT(13) - 1);
+-			xy1y2[i] = h[i] + BIT(13);
++			h[i] = clamp(h[i], -half_range, half_range - 1);
++			xy1y2[i] = h[i] + half_range;
+ 		}
+ 	}
  
 _
 
-Patches currently in -mm which might be from ahuang12@lenovo.com are
+Patches currently in -mm which might be from jahau@rocketmail.com are
 
 
