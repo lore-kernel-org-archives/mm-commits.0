@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05DEB18CBFE
-	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 03:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1614E18CBFE
+	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 03:55:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733457335; cv=none; b=CVv8J6Pu4GHduXtqqMWrO02GTuX/LsSgNQePp5pXoqHc/tG8sRrKIQqMbsvyXT9swOc0F49mOCbn0MHQqduNo+mLUkG+tkWQ+JZ9wVKDgDBNjM1qFK0HUMnDDIy3OESC+ztuxoeRoZiSzaJodZIN4tDq4otmjx65v6cVExL3Kjw=
+	t=1733457336; cv=none; b=FDcIPnLxMXWbaweJkbjRx/N+Gi+gvwpm8e0YuXHDTNUa07L+nc776ArWNUwho18lex6mQNHW4hJG3u6H7Urb3kMsjVzb5s3/nUOmg0S9MVQHMcYn2k9E0C06FpgY4H869F4iTHd37fRQvmT5n2b4iOs+ZlFzwv0C3mwtDXCuOsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733457335; c=relaxed/simple;
-	bh=D/Vj/PckySJzVPvKTCX1bf444mgYAnJEFX2xB4logPA=;
-	h=Date:To:From:Subject:Message-Id; b=Mu8I1nd2vc706LppnNlgZyYVCsnlDjp3OFTThLRFnkfbMKV6M7q/Xep9fCVRDOdBO782MW7hth1TuvMIBDNbCwP80p4U3LI9/na6y/ZCZ9+wSIlfZbYvprK7ONJzBLStMEaxxm7VMnEqTwWY0hUckeku1Ex0USRxpaqOnP9iNcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U50dbI/5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733457336; c=relaxed/simple;
+	bh=gogurB67BPrJYixTo17uzur0r3QrY8ew+Ga83lhWsUU=;
+	h=Date:To:From:Subject:Message-Id; b=evUJjZmPINKDpP8FxMLIaR1Kb5yzT9Z1N3jWdvxByJPlNXMtiOLvEpuExi8R8j85+WY9Bw69j3rV6sN4pNpApA08bZW0E1O1t5ri7PCUXYi30aPczoJQOzKB15B2QjTd08xBB6y/54vYpeVQzemlQK1KixvoXoeLhP3GqpMp7uQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EEHzzSAq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U50dbI/5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFDBEC4CED1;
-	Fri,  6 Dec 2024 03:55:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EEHzzSAq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A36C4CED1;
+	Fri,  6 Dec 2024 03:55:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733457334;
-	bh=D/Vj/PckySJzVPvKTCX1bf444mgYAnJEFX2xB4logPA=;
+	s=korg; t=1733457336;
+	bh=gogurB67BPrJYixTo17uzur0r3QrY8ew+Ga83lhWsUU=;
 	h=Date:To:From:Subject:From;
-	b=U50dbI/5ysh2AaBRHYCL2A7/1K5XPz/DtRHi1CwobQhoPYOBM70cjlyYH3rc/SlsV
-	 PkQgHcSDo+q4kgmT5cV9lrFd+tSwxSaeQfdyRbahHfmGQAe8Bb1Ok3dpwp8mDoGrep
-	 YnapcVjesDYX7nrc75b4JFJNGZsR6U2KI00iwo7k=
-Date: Thu, 05 Dec 2024 19:55:34 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,richard.weiyang@gmail.com,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=EEHzzSAq+ERY4gS67dIMfHzeW13BfEPPASTcaU5OKYYeQh2QNFeonD1cyFY/IBWeV
+	 9tU/LZ/iimCQFXAJazlgBN4epNjA98x7mnUZ/YBh4B+YE+LmCehq7f2pADrH/lhJhm
+	 /+QD+/mEewJEv+yFxJvNVLEC5XHUZ3W/1CpK2Qek=
+Date: Thu, 05 Dec 2024 19:55:35 -0800
+To: mm-commits@vger.kernel.org,logang@deltatee.com,hch@lst.de,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-correct-typo-in-mmap_state-macro.patch removed from -mm tree
-Message-Id: <20241206035534.CFDBEC4CED1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] scatterlist-fix-incorrect-func-name-in-kernel-doc.patch removed from -mm tree
+Message-Id: <20241206035535.E0A36C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: correct typo in MMAP_STATE() macro
+     Subject: scatterlist: fix incorrect func name in kernel-doc
 has been removed from the -mm tree.  Its filename was
-     mm-correct-typo-in-mmap_state-macro.patch
+     scatterlist-fix-incorrect-func-name-in-kernel-doc.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: correct typo in MMAP_STATE() macro
-Date: Mon, 18 Nov 2024 17:54:14 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: scatterlist: fix incorrect func name in kernel-doc
+Date: Fri, 29 Nov 2024 18:24:06 -0800
 
-We mistakenly refer to len rather than len_ here.  The only existing
-caller passes len to the len_ parameter so this has no impact on the code,
-but it is obviously incorrect to do this, so fix it.
+Fix a kernel-doc warning by making the kernel-doc function description
+match the function name:
 
-Link: https://lkml.kernel.org/r/20241118175414.390827-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+include/linux/scatterlist.h:323: warning: expecting prototype for sg_unmark_bus_address(). Prototype was for sg_dma_unmark_bus_address() instead
+
+Link: https://lkml.kernel.org/r/20241130022406.537973-1-rdunlap@infradead.org
+Fixes: 42399301203e ("lib/scatterlist: add flag for indicating P2PDMA segments in an SGL")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    2 +-
+ include/linux/scatterlist.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vma.c~mm-correct-typo-in-mmap_state-macro
-+++ a/mm/vma.c
-@@ -35,7 +35,7 @@ struct mmap_state {
- 		.mm = mm_,						\
- 		.vmi = vmi_,						\
- 		.addr = addr_,						\
--		.end = (addr_) + len,					\
-+		.end = (addr_) + (len_),				\
- 		.pgoff = pgoff_,					\
- 		.pglen = PHYS_PFN(len_),				\
- 		.flags = flags_,					\
+--- a/include/linux/scatterlist.h~scatterlist-fix-incorrect-func-name-in-kernel-doc
++++ a/include/linux/scatterlist.h
+@@ -313,7 +313,7 @@ static inline void sg_dma_mark_bus_addre
+ }
+ 
+ /**
+- * sg_unmark_bus_address - Unmark the scatterlist entry as a bus address
++ * sg_dma_unmark_bus_address - Unmark the scatterlist entry as a bus address
+  * @sg:		 SG entry
+  *
+  * Description:
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
-selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
-docs-mm-add-vma-locks-documentation.patch
-mm-vma-move-brk-internals-to-mm-vmac.patch
-mm-vma-move-brk-internals-to-mm-vmac-fix.patch
-mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
-mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
-mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
-mm-vma-move-__vm_munmap-to-mm-vmac.patch
-selftests-mm-add-fork-cow-guard-page-test.patch
+documentation-move-dev-tools-debugging-files-to-process-debugging.patch
 
