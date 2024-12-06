@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A2A16FBF;
-	Fri,  6 Dec 2024 03:55:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 417D66FBF;
+	Fri,  6 Dec 2024 03:55:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733457316; cv=none; b=QXk5rLPfu3pwNzLH7qE/4vsxXsnJ5Itzh00LDEQMTCwzK6rmw2+y8p/m6QHsiMEZ3CJi1jnMd7PyKVAyLrN9U3fFqcPYOmRIPLzxSwhWg+lJkCKmvQEYbjotQwWxql4RHTCzFlIy0c5wtwWYpy1JqVa0lqhBJczQkSYDKMwMe6k=
+	t=1733457317; cv=none; b=p9IEJA4nvZ9kljId4EIziFwhkgldiLpwA5wCZvJfuKdO6Tn1X+3ontv1CoGXtTyvebT/I2REqtxZhV3FIP9fCj5PWOFqhNOLlimBL1Tp6SNaQ3OrDfc4j3XfCWvrzP7+qwaQUHw9udMH3PR0e6UzdFwAOqXNV/1npOImPxjAOtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733457316; c=relaxed/simple;
-	bh=IX8KFEHGwygT3gVCV6Ml5zKf3qO6MAAUFEMmltLh+Tc=;
-	h=Date:To:From:Subject:Message-Id; b=DvvprEr18VxDH/9bzk29hkkdb6PzUU7NnT+dQcp3JIRzyGVLE0xSjsXtqo6vU8Kgv7AsIvlJJrsNK1hScjKvIBRtYeKd9vsBKQDnMrazNN6FXWr9+N+cQlfBUw8H0WMuFF5Zqy6g5pnAhvKamUZa5F0t7U7c8gtrORQ4BxRy2gY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O0Nome3W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733457317; c=relaxed/simple;
+	bh=xlcYBMfXE2Mo5caQX1NFxeokIbMhRaGUMHq1Y0PeHqs=;
+	h=Date:To:From:Subject:Message-Id; b=iuZjVEhHBL4gHkWe3oT9w2e7brBOJirLSntBsj5sW+ysr9rZBe8xOe3pmhSMGoJ3z2TkPKroquqJ2Rb4Ro0rTBuV/mCRmYloOOeWoqUWjzkUPhWHzb3J5Lb8m+YAmBzCc/6/qXHV3RBaUt2NbWzOHQm2uwT/8BrTJGfhWBnteew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TbNY8agT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O0Nome3W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCBEBC4CED1;
-	Fri,  6 Dec 2024 03:55:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TbNY8agT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089F6C4CED1;
+	Fri,  6 Dec 2024 03:55:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733457315;
-	bh=IX8KFEHGwygT3gVCV6Ml5zKf3qO6MAAUFEMmltLh+Tc=;
+	s=korg; t=1733457317;
+	bh=xlcYBMfXE2Mo5caQX1NFxeokIbMhRaGUMHq1Y0PeHqs=;
 	h=Date:To:From:Subject:From;
-	b=O0Nome3W/qepUFMt+7OFuYooeijdcgxvHwzkGQj8rK08EsWMw5XyUwfH1Witt15co
-	 QsfgLsIVwcy3KnvqeHcn5E8PMXS/ViOZPSiCpgcEpgxOrl7SGhLpz8qO317P4X1tmW
-	 VozoAFON1Ef6d6aNJVMKMTnOXnqlhwzZjDf2Elrg=
-Date: Thu, 05 Dec 2024 19:55:15 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,jkangas@redhat.com,akpm@linux-foundation.org
+	b=TbNY8agTUo0/5sUx+bxr9I/smQdrib2Lz8L6S6cgHcLwzDY9poyp0jDEn91AHR52D
+	 kwcZ/ozArjxuuy5vqH1bjEweL23RDiZwEvPP8zG7tLYRW3GjSStAt33nFwKH3PCktZ
+	 dG9HUEWh/fIRbWvn6OwJ1ioIOQTM0OMJNDa2Q6xY=
+Date: Thu, 05 Dec 2024 19:55:16 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-make-report_lock-a-raw-spinlock.patch removed from -mm tree
-Message-Id: <20241206035515.DCBEBC4CED1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-potential-out-of-bounds-memory-access-in-nilfs_find_entry.patch removed from -mm tree
+Message-Id: <20241206035517.089F6C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: make report_lock a raw spinlock
+     Subject: nilfs2: fix potential out-of-bounds memory access in nilfs_find_entry()
 has been removed from the -mm tree.  Its filename was
-     kasan-make-report_lock-a-raw-spinlock.patch
+     nilfs2-fix-potential-out-of-bounds-memory-access-in-nilfs_find_entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jared Kangas <jkangas@redhat.com>
-Subject: kasan: make report_lock a raw spinlock
-Date: Tue, 19 Nov 2024 13:02:34 -0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix potential out-of-bounds memory access in nilfs_find_entry()
+Date: Wed, 20 Nov 2024 02:23:37 +0900
 
-If PREEMPT_RT is enabled, report_lock is a sleeping spinlock and must not
-be locked when IRQs are disabled.  However, KASAN reports may be triggered
-in such contexts.  For example:
+Syzbot reported that when searching for records in a directory where the
+inode's i_size is corrupted and has a large value, memory access outside
+the folio/page range may occur, or a use-after-free bug may be detected if
+KASAN is enabled.
 
-        char *s = kzalloc(1, GFP_KERNEL);
-        kfree(s);
-        local_irq_disable();
-        char c = *s;  /* KASAN report here leads to spin_lock() */
-        local_irq_enable();
+This is because nilfs_last_byte(), which is called by nilfs_find_entry()
+and others to calculate the number of valid bytes of directory data in a
+page from i_size and the page index, loses the upper 32 bits of the 64-bit
+size information due to an inappropriate type of local variable to which
+the i_size value is assigned.
 
-Make report_spinlock a raw spinlock to prevent rescheduling when
-PREEMPT_RT is enabled.
+This caused a large byte offset value due to underflow in the end address
+calculation in the calling nilfs_find_entry(), resulting in memory access
+that exceeds the folio/page size.
 
-Link: https://lkml.kernel.org/r/20241119210234.1602529-1-jkangas@redhat.com
-Fixes: 342a93247e08 ("locking/spinlock: Provide RT variant header: <linux/spinlock_rt.h>")
-Signed-off-by: Jared Kangas <jkangas@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Fix this issue by changing the type of the local variable causing the bit
+loss from "unsigned int" to "u64".  The return value of nilfs_last_byte()
+is also of type "unsigned int", but it is truncated so as not to exceed
+PAGE_SIZE and no bit loss occurs, so no change is required.
+
+Link: https://lkml.kernel.org/r/20241119172403.9292-1-konishi.ryusuke@gmail.com
+Fixes: 2ba466d74ed7 ("nilfs2: directory entry operations")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+96d5d14c47d97015c624@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=96d5d14c47d97015c624
+Tested-by: syzbot+96d5d14c47d97015c624@syzkaller.appspotmail.com
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/nilfs2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/report.c~kasan-make-report_lock-a-raw-spinlock
-+++ a/mm/kasan/report.c
-@@ -201,7 +201,7 @@ static inline void fail_non_kasan_kunit_
- 
- #endif /* CONFIG_KUNIT */
- 
--static DEFINE_SPINLOCK(report_lock);
-+static DEFINE_RAW_SPINLOCK(report_lock);
- 
- static void start_report(unsigned long *flags, bool sync)
+--- a/fs/nilfs2/dir.c~nilfs2-fix-potential-out-of-bounds-memory-access-in-nilfs_find_entry
++++ a/fs/nilfs2/dir.c
+@@ -70,7 +70,7 @@ static inline unsigned int nilfs_chunk_s
+  */
+ static unsigned int nilfs_last_byte(struct inode *inode, unsigned long page_nr)
  {
-@@ -212,7 +212,7 @@ static void start_report(unsigned long *
- 	lockdep_off();
- 	/* Make sure we don't end up in loop. */
- 	report_suppress_start();
--	spin_lock_irqsave(&report_lock, *flags);
-+	raw_spin_lock_irqsave(&report_lock, *flags);
- 	pr_err("==================================================================\n");
- }
+-	unsigned int last_byte = inode->i_size;
++	u64 last_byte = inode->i_size;
  
-@@ -222,7 +222,7 @@ static void end_report(unsigned long *fl
- 		trace_error_report_end(ERROR_DETECTOR_KASAN,
- 				       (unsigned long)addr);
- 	pr_err("==================================================================\n");
--	spin_unlock_irqrestore(&report_lock, *flags);
-+	raw_spin_unlock_irqrestore(&report_lock, *flags);
- 	if (!test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
- 		check_panic_on_warn("KASAN");
- 	switch (kasan_arg_fault) {
+ 	last_byte -= page_nr << PAGE_SHIFT;
+ 	if (last_byte > PAGE_SIZE)
 _
 
-Patches currently in -mm which might be from jkangas@redhat.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
