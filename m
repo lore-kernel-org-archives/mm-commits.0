@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231BA1925AD;
-	Fri,  6 Dec 2024 03:55:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5A747F4A;
+	Fri,  6 Dec 2024 03:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733457322; cv=none; b=JoSTwn9FgM3tIulF9+vVBb8Kgqfy2OQL+7kK2/Y4snG8gHc2Qz03YtD+k2UJqzvOQs8W9mjet0/+SfKsynX1EB++m8peb07COUBJexSm8zhhmLnt1d3C9li2NZo2OqytNk6Q3kVaIuKcfU4WFPjPFUBkGRlZjUPdx3aesdhpnas=
+	t=1733457323; cv=none; b=g4VNR3X57hV5OcRoeM2llinfuTodq0YV180Lyl26uu0Z58K9lBCO3L7tkmVZaXPpqaaZb8ZINJljv0D9K6K482MFusrm+TFZ26pali6raXVWZUdKegVHfv65WDqJ/K7G9B3fQyOqnwdRLcd1oO8hfddZt6Bmn6G2t4txm/h6mp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733457322; c=relaxed/simple;
-	bh=BxIr7me1q/vyzx4dWFMAWtp949Lsul9tKUWA4rKiMbI=;
-	h=Date:To:From:Subject:Message-Id; b=qX95p79/h90rtoj0N8VeZDuiGPJhhhGElCEiQNUQ/xgdXFtBvdmRvQjlL50msCFWzrcW0Fydc6OtfWxLFdTaT+nR13+DSaomNybb9S3vbycRHmIBfH++dunNTHTMFKbYiG/OEovyXKyrCxC+Fm3jr0i8LEBMKygTCRq+KwSiCjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yc9B3qIg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733457323; c=relaxed/simple;
+	bh=9i9HrqhZz6c+acN5GGUzr6pym+5FwUVhfaxQ2WvpBhE=;
+	h=Date:To:From:Subject:Message-Id; b=VbZAb8KMgfqzO9nQwS61mONBgEXQXVjBZgJMUqCoJTx4CvxlMLJFHqNUvjVc/OLafSKhW0Oatr7GdeYaIqmodxYA0IRqQkPANBcV3U4QwLFJYJV3AQKpP4Gn6alVXQZJvguvv/dbamkAUvur8tlT9v2rrOcaD2DmXbtDPpuUqdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MybESibK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yc9B3qIg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DE1DC4CED1;
-	Fri,  6 Dec 2024 03:55:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MybESibK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5BCC4CED1;
+	Fri,  6 Dec 2024 03:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733457321;
-	bh=BxIr7me1q/vyzx4dWFMAWtp949Lsul9tKUWA4rKiMbI=;
+	s=korg; t=1733457323;
+	bh=9i9HrqhZz6c+acN5GGUzr6pym+5FwUVhfaxQ2WvpBhE=;
 	h=Date:To:From:Subject:From;
-	b=yc9B3qIgvp+A+Mb0laeExkF+c2c7a3ric/1oe0RYGcuvMKqI+GY+lDgxIpPE50fg0
-	 HAFTPi0yrRAkCQaUnMKY9uO+CivuXIHZ5YL2n86+41BhR0abN16+4iy6ChG8rVNmv4
-	 OK3qjQk4vJvHedMCeclPUFtm+AT3e03NPFtzeC7E=
-Date: Thu, 05 Dec 2024 19:55:21 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,phil@fifi.org,anders.blomdell@gmail.com,jack@suse.cz,akpm@linux-foundation.org
+	b=MybESibKnvfuT+IPqcjQznceJoKs7yAz8D6I9uDQ+bQ4hbeMP09Nu8yMrVCexnBvf
+	 1PGQj3F3+HqjodxEUTz5GZJOR5FKn9iOdq/gEJaIQNRfBFZ9lD7H/5voEw08oFKfMQ
+	 432+9R3yQc+jUDZK09sLpuk6sZBd43E7EGN6W7gM=
+Date: Thu, 05 Dec 2024 19:55:22 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,stable@vger.kernel.org,mhocko@suse.com,hch@infradead.org,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch removed from -mm tree
-Message-Id: <20241206035521.9DE1DC4CED1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-vreallocs-kasan-poisoning-logic.patch removed from -mm tree
+Message-Id: <20241206035523.4E5BCC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
+     Subject: mm: fix vrealloc()'s KASAN poisoning logic
 has been removed from the -mm tree.  Its filename was
-     revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
+     mm-fix-vreallocs-kasan-poisoning-logic.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
-Date: Tue, 26 Nov 2024 15:52:08 +0100
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: mm: fix vrealloc()'s KASAN poisoning logic
+Date: Mon, 25 Nov 2024 16:52:06 -0800
 
-This reverts commit 7c877586da3178974a8a94577b6045a48377ff25.
+When vrealloc() reuses already allocated vmap_area, we need to re-annotate
+poisoned and unpoisoned portions of underlying memory according to the new
+size.
 
-Anders and Philippe have reported that recent kernels occasionally hang
-when used with NFS in readahead code.  The problem has been bisected to
-7c877586da3 ("readahead: properly shorten readahead when falling back to
-do_page_cache_ra()").  The cause of the problem is that ra->size can be
-shrunk by read_pages() call and subsequently we end up calling
-do_page_cache_ra() with negative (read huge positive) number of pages. 
-Let's revert 7c877586da3 for now until we can find a proper way how the
-logic in read_pages() and page_cache_ra_order() can coexist.  This can
-lead to reduced readahead throughput due to readahead window confusion but
-that's better than outright hangs.
+This results in a KASAN splat recorded at [1].  A KASAN mis-reporting
+issue where there is none.
 
-Link: https://lkml.kernel.org/r/20241126145208.985-1-jack@suse.cz
-Fixes: 7c877586da31 ("readahead: properly shorten readahead when falling back to do_page_cache_ra()")
-Reported-by: Anders Blomdell <anders.blomdell@gmail.com>
-Reported-by: Philippe Troin <phil@fifi.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Tested-by: Philippe Troin <phil@fifi.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Note, hard-coding KASAN_VMALLOC_PROT_NORMAL might not be exactly correct,
+but KASAN flag logic is pretty involved and spread out throughout
+__vmalloc_node_range_noprof(), so I'm using the bare minimum flag here and
+leaving the rest to mm people to refactor this logic and reuse it here.
+
+Link: https://lkml.kernel.org/r/20241126005206.3457974-1-andrii@kernel.org
+Link: https://lore.kernel.org/bpf/67450f9b.050a0220.21d33d.0004.GAE@google.com/ [1]
+Fixes: 3ddc2fefe6f3 ("mm: vmalloc: implement vrealloc()")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/readahead.c~revert-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra
-+++ a/mm/readahead.c
-@@ -458,8 +458,7 @@ void page_cache_ra_order(struct readahea
- 		struct file_ra_state *ra, unsigned int new_order)
- {
- 	struct address_space *mapping = ractl->mapping;
--	pgoff_t start = readahead_index(ractl);
--	pgoff_t index = start;
-+	pgoff_t index = readahead_index(ractl);
- 	unsigned int min_order = mapping_min_folio_order(mapping);
- 	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
- 	pgoff_t mark = index + ra->size - ra->async_size;
-@@ -522,7 +521,7 @@ void page_cache_ra_order(struct readahea
- 	if (!err)
- 		return;
- fallback:
--	do_page_cache_ra(ractl, ra->size - (index - start), ra->async_size);
-+	do_page_cache_ra(ractl, ra->size, ra->async_size);
- }
+--- a/mm/vmalloc.c~mm-fix-vreallocs-kasan-poisoning-logic
++++ a/mm/vmalloc.c
+@@ -4093,7 +4093,8 @@ void *vrealloc_noprof(const void *p, siz
+ 		/* Zero out spare memory. */
+ 		if (want_init_on_alloc(flags))
+ 			memset((void *)p + size, 0, old_size - size);
+-
++		kasan_poison_vmalloc(p + size, old_size - size);
++		kasan_unpoison_vmalloc(p, size, KASAN_VMALLOC_PROT_NORMAL);
+ 		return (void *)p;
+ 	}
  
- static unsigned long ractl_max_pages(struct readahead_control *ractl,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-readahead-dont-shorted-readahead-window-in-read_pages.patch
-readahead-properly-shorten-readahead-when-falling-back-to-do_page_cache_ra.patch
 
