@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CE8C47F53
-	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 00:58:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2AFC8BE8
+	for <mm-commits@vger.kernel.org>; Fri,  6 Dec 2024 00:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733446731; cv=none; b=AMp72KaZLxAdtKN/zwodRSw71CZmpNJwni808WMxSmC5p9e3VzW/6bHNw7JSOv33i4UG88qGb1Rvl/wkF2BvehfEwlFQ4KmulTnVqyZXlUFkfrP0UKNLdKQcr7NUTMtfkeoSqAUO+wGIo8kwqpagJplDEi7UEigJzRLSCcrpEN8=
+	t=1733446795; cv=none; b=V+8+ygqHJDxOypSDlm0RAvh4myWbEly+Ua5ZhoxwBR3FBltOauvwAekoGE5W/smQWwiecFoB2nltxTWLlsenbL1J+R5PGBY0Eg1e8W7dljeJf951yhyNw6zHX34Y4qGxgGmlptWyVowrk4UEXcaz7AvHfteDFjvacoBRLXp4/DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733446731; c=relaxed/simple;
-	bh=sJ6TTnPqFJcqYyx0w+aAccZcJcDoCFxWo/vuy6SwFdw=;
-	h=Date:To:From:Subject:Message-Id; b=QM7wpYAePX9xwsyoWHdqhv+Dlelq7hqRLSkjKexNSkwGmX9TJGz5m8BCCMaixzZLdupJVqxugKRFxjLAE9TYDm7qIwXO5Z0pkKkR7VwqGmothcToTiORoVGT4xkIUVeon3rNles+vKJAhpumVlXf9oA416FHY6Fr0zydWuQcBQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v7XBLRmU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733446795; c=relaxed/simple;
+	bh=4Iile8jpLw5/urqlH2Qi20Izs5LUY0TbExuS0XL/i6g=;
+	h=Date:To:From:Subject:Message-Id; b=Ynbon+HMtteTn8L9hDqX+Gvy7A12eiCevKrlaW/8FQVopuoDoJf8wtE6ZUXauhQgZDLSKpebiu6ny39B3A18CkQhzh4svC4KsflQvoWmU5r9u/nZXz64DQw4aQ/dBaEUTXFNr4uZIyowPbXkPepNRAb+UAxIJVyhckYFlWbGBOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qPPOkF62; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v7XBLRmU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0336DC4CED1;
-	Fri,  6 Dec 2024 00:58:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qPPOkF62"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 539E8C4CED1;
+	Fri,  6 Dec 2024 00:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733446731;
-	bh=sJ6TTnPqFJcqYyx0w+aAccZcJcDoCFxWo/vuy6SwFdw=;
+	s=korg; t=1733446794;
+	bh=4Iile8jpLw5/urqlH2Qi20Izs5LUY0TbExuS0XL/i6g=;
 	h=Date:To:From:Subject:From;
-	b=v7XBLRmUQOxjKCge0z0+uU1olL6tq+dekPAvWo2/8xoxwTaek1wnC7CwJBDfBsHyE
-	 gMUCJ/F3r6u/dRD2b5Eh+29NEyj5uYoID2WYyn+gkEgYmvHcOWdTgD0CJggwmvs0/r
-	 Berhh6oPVxwg9MlOQy/pGumiEJV8mooAZdsVjVyY=
-Date: Thu, 05 Dec 2024 16:58:50 -0800
-To: mm-commits@vger.kernel.org,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=qPPOkF62CUauVHggRw+fcsD7I4JvBYILVYEbfixhsA06HQ/z6QDn5VX9NhwdJQG1k
+	 OZg7m77+7+SSrH+cIBiWmVt6mQ0ENM2GT2hk57wfa3jl7TgyfpNm9WGQK4JhSSXm05
+	 eO8nu8LdNubfF4rrsKbrar0HkwzKJANXW5nlgH4w=
+Date: Thu, 05 Dec 2024 16:59:53 -0800
+To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,sebastian.fricke@collabora.com,jason.wessel@windriver.com,gregkh@linuxfoundation.org,dianders@chromium.org,danielt@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-rework-workingset-protection.patch added to mm-unstable branch
-Message-Id: <20241206005851.0336DC4CED1@smtp.kernel.org>
+Subject: + documentation-move-dev-tools-debugging-files-to-process-debugging.patch added to mm-nonmm-unstable branch
+Message-Id: <20241206005954.539E8C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: rework workingset protection
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-rework-workingset-protection.patch
+     Subject: Documentation: move dev-tools debugging files to process/debugging/
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     documentation-move-dev-tools-debugging-files-to-process-debugging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-rework-workingset-protection.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-move-dev-tools-debugging-files-to-process-debugging.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,722 +58,2378 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: rework workingset protection
-Date: Thu, 5 Dec 2024 17:31:26 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Documentation: move dev-tools debugging files to process/debugging/
+Date: Thu, 5 Dec 2024 16:31:00 -0800
 
-With the aging feedback no longer considering the distribution of folios
-in each generation, rework workingset protection to better distribute
-folios across MAX_NR_GENS.  This is achieved by reusing PG_workingset and
-PG_referenced/LRU_REFS_FLAGS in a slightly different way.
+Move gdb and kgdb debugging documentation to the dedicated debugging
+directory (Documentation/process/debugging/).  Adjust the index.rst files
+to follow the file movement.  Adjust files that refer to these moved files
+to follow the file movement.  Update location of kgdb.rst in MAINTAINERS
+file.
 
-For folios accessed multiple times through file descriptors, make
-lru_gen_inc_refs() set additional bits of LRU_REFS_WIDTH in folio->flags
-after PG_referenced, then PG_workingset after LRU_REFS_WIDTH.  After all
-its bits are set, i.e., LRU_REFS_FLAGS|BIT(PG_workingset), a folio is
-lazily promoted into the second oldest generation in the eviction path. 
-And when folio_inc_gen() does that, it clears LRU_REFS_FLAGS so that
-lru_gen_inc_refs() can start over.  For this case, LRU_REFS_MASK is only
-valid when PG_referenced is set.
+Note: translations are not updated.
 
-For folios accessed multiple times through page tables, folio_update_gen()
-from a page table walk or lru_gen_set_refs() from a rmap walk sets
-PG_referenced after the accessed bit is cleared for the first time. 
-Thereafter, those two paths set PG_workingset and promote folios to the
-youngest generation.  Like folio_inc_gen(), when folio_update_gen() does
-that, it also clears PG_referenced.  For this case, LRU_REFS_MASK is not
-used.
-
-For both of the cases, after PG_workingset is set on a folio, it remains
-until this folio is either reclaimed, or "deactivated" by
-lru_gen_clear_refs().  It can be set again if lru_gen_test_recent()
-returns true upon a refault.
-
-When adding folios to the LRU lists, lru_gen_distance() distributes
-them as follows:
-+---------------------------------+---------------------------------+
-|    Accessed thru page tables    | Accessed thru file descriptors  |
-+---------------------------------+---------------------------------+
-| PG_active (set while isolated)  |                                 |
-+----------------+----------------+----------------+----------------+
-| PG_workingset  | PG_referenced  | PG_workingset  | LRU_REFS_FLAGS |
-+---------------------------------+---------------------------------+
-|<--------- MIN_NR_GENS --------->|                                 |
-|<-------------------------- MAX_NR_GENS -------------------------->|
-
-After this patch, some typical client and server workloads showed
-improvements under heavy memory pressure.  For example, Python TPC-C,
-which was used to benchmark a different approach [1] to better detect
-refault distances, showed a significant decrease in total refaults:
-
-                            Before      After      Change
-  Time (seconds)            10801       10801      0%
-  Executed (transactions)   41472       43663      +5%
-  workingset_nodes          109070      120244     +10%
-  workingset_refault_anon   5019627     7281831    +45%
-  workingset_refault_file   1294678786  554855564  -57%
-  workingset_refault_total  1299698413  562137395  -57%
-
-[1] https://lore.kernel.org/20230920190244.16839-1-ryncsn@gmail.com/
-
-Link: https://lkml.kernel.org/r/20241206003126.1338283-7-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Kairui Song <kasong@tencent.com>
-Closes: https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
-Tested-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: David Stevens <stevensd@chromium.org>
+Link: https://lkml.kernel.org/r/20241206003100.38142-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sebastian Fricke <sebastian.fricke@collabora.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Daniel Thompson <danielt@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Yanteng Si <siyanteng@loongson.cn>
+Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   94 +++++++++++++-----------
- include/linux/mmzone.h    |   84 +++++++++++++--------
- mm/swap.c                 |   23 ++----
- mm/vmscan.c               |  138 +++++++++++++++++++++---------------
- mm/workingset.c           |   29 +++----
- 5 files changed, 208 insertions(+), 160 deletions(-)
+ Documentation/admin-guide/README.rst                     |    4 
+ Documentation/dev-tools/gdb-kernel-debugging.rst         |  179 -
+ Documentation/dev-tools/index.rst                        |    2 
+ Documentation/dev-tools/kgdb.rst                         |  937 ----------
+ Documentation/process/debugging/gdb-kernel-debugging.rst |  179 +
+ Documentation/process/debugging/index.rst                |    2 
+ Documentation/process/debugging/kgdb.rst                 |  937 ++++++++++
+ MAINTAINERS                                              |    2 
+ include/linux/tty_driver.h                               |    2 
+ lib/Kconfig.debug                                        |    2 
+ lib/Kconfig.kgdb                                         |    2 
+ 11 files changed, 1124 insertions(+), 1124 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-rework-workingset-protection
-+++ a/include/linux/mm_inline.h
-@@ -133,31 +133,25 @@ static inline int lru_hist_from_seq(unsi
- 	return seq % NR_HIST_GENS;
- }
+--- a/Documentation/admin-guide/README.rst~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/Documentation/admin-guide/README.rst
+@@ -356,5 +356,5 @@ instructions at 'Documentation/admin-gui
  
--static inline int lru_tier_from_refs(int refs)
-+static inline int lru_tier_from_refs(int refs, bool workingset)
- {
- 	VM_WARN_ON_ONCE(refs > BIT(LRU_REFS_WIDTH));
- 
--	/* see the comment in folio_lru_refs() */
--	return order_base_2(refs + 1);
-+	/* see the comment on MAX_NR_TIERS */
-+	return workingset ? MAX_NR_TIERS - 1 : order_base_2(refs);
- }
- 
- static inline int folio_lru_refs(struct folio *folio)
- {
- 	unsigned long flags = READ_ONCE(folio->flags);
--	bool workingset = flags & BIT(PG_workingset);
- 
-+	if (!(flags & BIT(PG_referenced)))
-+		return 0;
- 	/*
--	 * Return the number of accesses beyond PG_referenced, i.e., N-1 if the
--	 * total number of accesses is N>1, since N=0,1 both map to the first
--	 * tier. lru_tier_from_refs() will account for this off-by-one. Also see
--	 * the comment on MAX_NR_TIERS.
-+	 * Return the total number of accesses including PG_referenced. Also see
-+	 * the comment on LRU_REFS_FLAGS.
- 	 */
--	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + workingset;
--}
+ Hints on understanding kernel bug reports are in
+ 'Documentation/admin-guide/bug-hunting.rst'. More on debugging the kernel
+-with gdb is in 'Documentation/dev-tools/gdb-kernel-debugging.rst' and
+-'Documentation/dev-tools/kgdb.rst'.
++with gdb is in 'Documentation/process/debugging/gdb-kernel-debugging.rst' and
++'Documentation/process/debugging/kgdb.rst'.
+diff --git a/Documentation/dev-tools/gdb-kernel-debugging.rst a/Documentation/dev-tools/gdb-kernel-debugging.rst
+deleted file mode 100644
+--- a/Documentation/dev-tools/gdb-kernel-debugging.rst
++++ /dev/null
+@@ -1,179 +0,0 @@
+-.. highlight:: none
 -
--static inline void folio_clear_lru_refs(struct folio *folio)
--{
--	set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
-+	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + 1;
- }
+-Debugging kernel and modules via gdb
+-====================================
+-
+-The kernel debugger kgdb, hypervisors like QEMU or JTAG-based hardware
+-interfaces allow to debug the Linux kernel and its modules during runtime
+-using gdb. Gdb comes with a powerful scripting interface for python. The
+-kernel provides a collection of helper scripts that can simplify typical
+-kernel debugging steps. This is a short tutorial about how to enable and use
+-them. It focuses on QEMU/KVM virtual machines as target, but the examples can
+-be transferred to the other gdb stubs as well.
+-
+-
+-Requirements
+-------------
+-
+-- gdb 7.2+ (recommended: 7.4+) with python support enabled (typically true
+-  for distributions)
+-
+-
+-Setup
+------
+-
+-- Create a virtual Linux machine for QEMU/KVM (see www.linux-kvm.org and
+-  www.qemu.org for more details). For cross-development,
+-  https://landley.net/aboriginal/bin keeps a pool of machine images and
+-  toolchains that can be helpful to start from.
+-
+-- Build the kernel with CONFIG_GDB_SCRIPTS enabled, but leave
+-  CONFIG_DEBUG_INFO_REDUCED off. If your architecture supports
+-  CONFIG_FRAME_POINTER, keep it enabled.
+-
+-- Install that kernel on the guest, turn off KASLR if necessary by adding
+-  "nokaslr" to the kernel command line.
+-  Alternatively, QEMU allows to boot the kernel directly using -kernel,
+-  -append, -initrd command line switches. This is generally only useful if
+-  you do not depend on modules. See QEMU documentation for more details on
+-  this mode. In this case, you should build the kernel with
+-  CONFIG_RANDOMIZE_BASE disabled if the architecture supports KASLR.
+-
+-- Build the gdb scripts (required on kernels v5.1 and above)::
+-
+-    make scripts_gdb
+-
+-- Enable the gdb stub of QEMU/KVM, either
+-
+-    - at VM startup time by appending "-s" to the QEMU command line
+-
+-  or
+-
+-    - during runtime by issuing "gdbserver" from the QEMU monitor
+-      console
+-
+-- cd /path/to/linux-build
+-
+-- Start gdb: gdb vmlinux
+-
+-  Note: Some distros may restrict auto-loading of gdb scripts to known safe
+-  directories. In case gdb reports to refuse loading vmlinux-gdb.py, add::
+-
+-    add-auto-load-safe-path /path/to/linux-build
+-
+-  to ~/.gdbinit. See gdb help for more details.
+-
+-- Attach to the booted guest::
+-
+-    (gdb) target remote :1234
+-
+-
+-Examples of using the Linux-provided gdb helpers
+-------------------------------------------------
+-
+-- Load module (and main kernel) symbols::
+-
+-    (gdb) lx-symbols
+-    loading vmlinux
+-    scanning for modules in /home/user/linux/build
+-    loading @0xffffffffa0020000: /home/user/linux/build/net/netfilter/xt_tcpudp.ko
+-    loading @0xffffffffa0016000: /home/user/linux/build/net/netfilter/xt_pkttype.ko
+-    loading @0xffffffffa0002000: /home/user/linux/build/net/netfilter/xt_limit.ko
+-    loading @0xffffffffa00ca000: /home/user/linux/build/net/packet/af_packet.ko
+-    loading @0xffffffffa003c000: /home/user/linux/build/fs/fuse/fuse.ko
+-    ...
+-    loading @0xffffffffa0000000: /home/user/linux/build/drivers/ata/ata_generic.ko
+-
+-- Set a breakpoint on some not yet loaded module function, e.g.::
+-
+-    (gdb) b btrfs_init_sysfs
+-    Function "btrfs_init_sysfs" not defined.
+-    Make breakpoint pending on future shared library load? (y or [n]) y
+-    Breakpoint 1 (btrfs_init_sysfs) pending.
+-
+-- Continue the target::
+-
+-    (gdb) c
+-
+-- Load the module on the target and watch the symbols being loaded as well as
+-  the breakpoint hit::
+-
+-    loading @0xffffffffa0034000: /home/user/linux/build/lib/libcrc32c.ko
+-    loading @0xffffffffa0050000: /home/user/linux/build/lib/lzo/lzo_compress.ko
+-    loading @0xffffffffa006e000: /home/user/linux/build/lib/zlib_deflate/zlib_deflate.ko
+-    loading @0xffffffffa01b1000: /home/user/linux/build/fs/btrfs/btrfs.ko
+-
+-    Breakpoint 1, btrfs_init_sysfs () at /home/user/linux/fs/btrfs/sysfs.c:36
+-    36              btrfs_kset = kset_create_and_add("btrfs", NULL, fs_kobj);
+-
+-- Dump the log buffer of the target kernel::
+-
+-    (gdb) lx-dmesg
+-    [     0.000000] Initializing cgroup subsys cpuset
+-    [     0.000000] Initializing cgroup subsys cpu
+-    [     0.000000] Linux version 3.8.0-rc4-dbg+ (...
+-    [     0.000000] Command line: root=/dev/sda2 resume=/dev/sda1 vga=0x314
+-    [     0.000000] e820: BIOS-provided physical RAM map:
+-    [     0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+-    [     0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+-    ....
+-
+-- Examine fields of the current task struct(supported by x86 and arm64 only)::
+-
+-    (gdb) p $lx_current().pid
+-    $1 = 4998
+-    (gdb) p $lx_current().comm
+-    $2 = "modprobe\000\000\000\000\000\000\000"
+-
+-- Make use of the per-cpu function for the current or a specified CPU::
+-
+-    (gdb) p $lx_per_cpu("runqueues").nr_running
+-    $3 = 1
+-    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
+-    $4 = 0
+-
+-- Dig into hrtimers using the container_of helper::
+-
+-    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
+-    (gdb) p *$container_of($next, "struct hrtimer", "node")
+-    $5 = {
+-      node = {
+-        node = {
+-          __rb_parent_color = 18446612133355256072,
+-          rb_right = 0x0 <irq_stack_union>,
+-          rb_left = 0x0 <irq_stack_union>
+-        },
+-        expires = {
+-          tv64 = 1835268000000
+-        }
+-      },
+-      _softexpires = {
+-        tv64 = 1835268000000
+-      },
+-      function = 0xffffffff81078232 <tick_sched_timer>,
+-      base = 0xffff88003fd0d6f0,
+-      state = 1,
+-      start_pid = 0,
+-      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
+-      start_comm = "swapper/2\000\000\000\000\000\000"
+-    }
+-
+-
+-List of commands and functions
+-------------------------------
+-
+-The number of commands and convenience functions may evolve over the time,
+-this is just a snapshot of the initial version::
+-
+- (gdb) apropos lx
+- function lx_current -- Return current task
+- function lx_module -- Find module by name and return the module variable
+- function lx_per_cpu -- Return per-cpu variable
+- function lx_task_by_pid -- Find Linux task by PID and return the task_struct variable
+- function lx_thread_info -- Calculate Linux thread_info from task variable
+- lx-dmesg -- Print Linux kernel log buffer
+- lx-lsmod -- List currently loaded modules
+- lx-symbols -- (Re-)load symbols of Linux kernel and currently loaded modules
+-
+-Detailed help can be obtained via "help <command-name>" for commands and "help
+-function <function-name>" for convenience functions.
+--- a/Documentation/dev-tools/index.rst~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/Documentation/dev-tools/index.rst
+@@ -27,8 +27,6 @@ Documentation/dev-tools/testing-overview
+    kmemleak
+    kcsan
+    kfence
+-   gdb-kernel-debugging
+-   kgdb
+    kselftest
+    kunit/index
+    ktap
+diff --git a/Documentation/dev-tools/kgdb.rst a/Documentation/dev-tools/kgdb.rst
+deleted file mode 100644
+--- a/Documentation/dev-tools/kgdb.rst
++++ /dev/null
+@@ -1,937 +0,0 @@
+-=================================================
+-Using kgdb, kdb and the kernel debugger internals
+-=================================================
+-
+-:Author: Jason Wessel
+-
+-Introduction
+-============
+-
+-The kernel has two different debugger front ends (kdb and kgdb) which
+-interface to the debug core. It is possible to use either of the
+-debugger front ends and dynamically transition between them if you
+-configure the kernel properly at compile and runtime.
+-
+-Kdb is simplistic shell-style interface which you can use on a system
+-console with a keyboard or serial console. You can use it to inspect
+-memory, registers, process lists, dmesg, and even set breakpoints to
+-stop in a certain location. Kdb is not a source level debugger, although
+-you can set breakpoints and execute some basic kernel run control. Kdb
+-is mainly aimed at doing some analysis to aid in development or
+-diagnosing kernel problems. You can access some symbols by name in
+-kernel built-ins or in kernel modules if the code was built with
+-``CONFIG_KALLSYMS``.
+-
+-Kgdb is intended to be used as a source level debugger for the Linux
+-kernel. It is used along with gdb to debug a Linux kernel. The
+-expectation is that gdb can be used to "break in" to the kernel to
+-inspect memory, variables and look through call stack information
+-similar to the way an application developer would use gdb to debug an
+-application. It is possible to place breakpoints in kernel code and
+-perform some limited execution stepping.
+-
+-Two machines are required for using kgdb. One of these machines is a
+-development machine and the other is the target machine. The kernel to
+-be debugged runs on the target machine. The development machine runs an
+-instance of gdb against the vmlinux file which contains the symbols (not
+-a boot image such as bzImage, zImage, uImage...). In gdb the developer
+-specifies the connection parameters and connects to kgdb. The type of
+-connection a developer makes with gdb depends on the availability of
+-kgdb I/O modules compiled as built-ins or loadable kernel modules in the
+-test machine's kernel.
+-
+-Compiling a kernel
+-==================
+-
+--  In order to enable compilation of kdb, you must first enable kgdb.
+-
+--  The kgdb test compile options are described in the kgdb test suite
+-   chapter.
+-
+-Kernel config options for kgdb
+-------------------------------
+-
+-To enable ``CONFIG_KGDB`` you should look under
+-:menuselection:`Kernel hacking --> Kernel debugging` and select
+-:menuselection:`KGDB: kernel debugger`.
+-
+-While it is not a hard requirement that you have symbols in your vmlinux
+-file, gdb tends not to be very useful without the symbolic data, so you
+-will want to turn on ``CONFIG_DEBUG_INFO`` which is called
+-:menuselection:`Compile the kernel with debug info` in the config menu.
+-
+-It is advised, but not required, that you turn on the
+-``CONFIG_FRAME_POINTER`` kernel option which is called :menuselection:`Compile
+-the kernel with frame pointers` in the config menu. This option inserts code
+-into the compiled executable which saves the frame information in registers
+-or on the stack at different points which allows a debugger such as gdb to
+-more accurately construct stack back traces while debugging the kernel.
+-
+-If the architecture that you are using supports the kernel option
+-``CONFIG_STRICT_KERNEL_RWX``, you should consider turning it off. This
+-option will prevent the use of software breakpoints because it marks
+-certain regions of the kernel's memory space as read-only. If kgdb
+-supports it for the architecture you are using, you can use hardware
+-breakpoints if you desire to run with the ``CONFIG_STRICT_KERNEL_RWX``
+-option turned on, else you need to turn off this option.
+-
+-Next you should choose one or more I/O drivers to interconnect the debugging
+-host and debugged target. Early boot debugging requires a KGDB I/O
+-driver that supports early debugging and the driver must be built into
+-the kernel directly. Kgdb I/O driver configuration takes place via
+-kernel or module parameters which you can learn more about in the
+-section that describes the parameter kgdboc.
+-
+-Here is an example set of ``.config`` symbols to enable or disable for kgdb::
+-
+-  # CONFIG_STRICT_KERNEL_RWX is not set
+-  CONFIG_FRAME_POINTER=y
+-  CONFIG_KGDB=y
+-  CONFIG_KGDB_SERIAL_CONSOLE=y
+-
+-Kernel config options for kdb
+------------------------------
+-
+-Kdb is quite a bit more complex than the simple gdbstub sitting on top
+-of the kernel's debug core. Kdb must implement a shell, and also adds
+-some helper functions in other parts of the kernel, responsible for
+-printing out interesting data such as what you would see if you ran
+-``lsmod``, or ``ps``. In order to build kdb into the kernel you follow the
+-same steps as you would for kgdb.
+-
+-The main config option for kdb is ``CONFIG_KGDB_KDB`` which is called
+-:menuselection:`KGDB_KDB: include kdb frontend for kgdb` in the config menu.
+-In theory you would have already also selected an I/O driver such as the
+-``CONFIG_KGDB_SERIAL_CONSOLE`` interface if you plan on using kdb on a
+-serial port, when you were configuring kgdb.
+-
+-If you want to use a PS/2-style keyboard with kdb, you would select
+-``CONFIG_KDB_KEYBOARD`` which is called :menuselection:`KGDB_KDB: keyboard as
+-input device` in the config menu. The ``CONFIG_KDB_KEYBOARD`` option is not
+-used for anything in the gdb interface to kgdb. The ``CONFIG_KDB_KEYBOARD``
+-option only works with kdb.
+-
+-Here is an example set of ``.config`` symbols to enable/disable kdb::
+-
+-  # CONFIG_STRICT_KERNEL_RWX is not set
+-  CONFIG_FRAME_POINTER=y
+-  CONFIG_KGDB=y
+-  CONFIG_KGDB_SERIAL_CONSOLE=y
+-  CONFIG_KGDB_KDB=y
+-  CONFIG_KDB_KEYBOARD=y
+-
+-Kernel Debugger Boot Arguments
+-==============================
+-
+-This section describes the various runtime kernel parameters that affect
+-the configuration of the kernel debugger. The following chapter covers
+-using kdb and kgdb as well as providing some examples of the
+-configuration parameters.
+-
+-Kernel parameter: kgdboc
+-------------------------
+-
+-The kgdboc driver was originally an abbreviation meant to stand for
+-"kgdb over console". Today it is the primary mechanism to configure how
+-to communicate from gdb to kgdb as well as the devices you want to use
+-to interact with the kdb shell.
+-
+-For kgdb/gdb, kgdboc is designed to work with a single serial port. It
+-is intended to cover the circumstance where you want to use a serial
+-console as your primary console as well as using it to perform kernel
+-debugging. It is also possible to use kgdb on a serial port which is not
+-designated as a system console. Kgdboc may be configured as a kernel
+-built-in or a kernel loadable module. You can only make use of
+-``kgdbwait`` and early debugging if you build kgdboc into the kernel as
+-a built-in.
+-
+-Optionally you can elect to activate kms (Kernel Mode Setting)
+-integration. When you use kms with kgdboc and you have a video driver
+-that has atomic mode setting hooks, it is possible to enter the debugger
+-on the graphics console. When the kernel execution is resumed, the
+-previous graphics mode will be restored. This integration can serve as a
+-useful tool to aid in diagnosing crashes or doing analysis of memory
+-with kdb while allowing the full graphics console applications to run.
+-
+-kgdboc arguments
+-~~~~~~~~~~~~~~~~
+-
+-Usage::
+-
+-	kgdboc=[kms][[,]kbd][[,]serial_device][,baud]
+-
+-The order listed above must be observed if you use any of the optional
+-configurations together.
+-
+-Abbreviations:
+-
+--  kms = Kernel Mode Setting
+-
+--  kbd = Keyboard
+-
+-You can configure kgdboc to use the keyboard, and/or a serial device
+-depending on if you are using kdb and/or kgdb, in one of the following
+-scenarios. The order listed above must be observed if you use any of the
+-optional configurations together. Using kms + only gdb is generally not
+-a useful combination.
+-
+-Using loadable module or built-in
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-
+-1. As a kernel built-in:
+-
+-   Use the kernel boot argument::
+-
+-	kgdboc=<tty-device>,[baud]
+-
+-2. As a kernel loadable module:
+-
+-   Use the command::
+-
+-	modprobe kgdboc kgdboc=<tty-device>,[baud]
+-
+-   Here are two examples of how you might format the kgdboc string. The
+-   first is for an x86 target using the first serial port. The second
+-   example is for the ARM Versatile AB using the second serial port.
+-
+-   1. ``kgdboc=ttyS0,115200``
+-
+-   2. ``kgdboc=ttyAMA1,115200``
+-
+-Configure kgdboc at runtime with sysfs
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-
+-At run time you can enable or disable kgdboc by writing parameters
+-into sysfs. Here are two examples:
+-
+-1. Enable kgdboc on ttyS0::
+-
+-	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
+-
+-2. Disable kgdboc::
+-
+-	echo "" > /sys/module/kgdboc/parameters/kgdboc
+-
+-.. note::
+-
+-   You do not need to specify the baud if you are configuring the
+-   console on tty which is already configured or open.
+-
+-More examples
+-^^^^^^^^^^^^^
+-
+-You can configure kgdboc to use the keyboard, and/or a serial device
+-depending on if you are using kdb and/or kgdb, in one of the following
+-scenarios.
+-
+-1. kdb and kgdb over only a serial port::
+-
+-	kgdboc=<serial_device>[,baud]
+-
+-   Example::
+-
+-	kgdboc=ttyS0,115200
+-
+-2. kdb and kgdb with keyboard and a serial port::
+-
+-	kgdboc=kbd,<serial_device>[,baud]
+-
+-   Example::
+-
+-	kgdboc=kbd,ttyS0,115200
+-
+-3. kdb with a keyboard::
+-
+-	kgdboc=kbd
+-
+-4. kdb with kernel mode setting::
+-
+-	kgdboc=kms,kbd
+-
+-5. kdb with kernel mode setting and kgdb over a serial port::
+-
+-	kgdboc=kms,kbd,ttyS0,115200
+-
+-.. note::
+-
+-   Kgdboc does not support interrupting the target via the gdb remote
+-   protocol. You must manually send a :kbd:`SysRq-G` unless you have a proxy
+-   that splits console output to a terminal program. A console proxy has a
+-   separate TCP port for the debugger and a separate TCP port for the
+-   "human" console. The proxy can take care of sending the :kbd:`SysRq-G`
+-   for you.
+-
+-When using kgdboc with no debugger proxy, you can end up connecting the
+-debugger at one of two entry points. If an exception occurs after you
+-have loaded kgdboc, a message should print on the console stating it is
+-waiting for the debugger. In this case you disconnect your terminal
+-program and then connect the debugger in its place. If you want to
+-interrupt the target system and forcibly enter a debug session you have
+-to issue a :kbd:`Sysrq` sequence and then type the letter :kbd:`g`. Then you
+-disconnect the terminal session and connect gdb. Your options if you
+-don't like this are to hack gdb to send the :kbd:`SysRq-G` for you as well as
+-on the initial connect, or to use a debugger proxy that allows an
+-unmodified gdb to do the debugging.
+-
+-Kernel parameter: ``kgdboc_earlycon``
+--------------------------------------
+-
+-If you specify the kernel parameter ``kgdboc_earlycon`` and your serial
+-driver registers a boot console that supports polling (doesn't need
+-interrupts and implements a nonblocking read() function) kgdb will attempt
+-to work using the boot console until it can transition to the regular
+-tty driver specified by the ``kgdboc`` parameter.
+-
+-Normally there is only one boot console (especially that implements the
+-read() function) so just adding ``kgdboc_earlycon`` on its own is
+-sufficient to make this work. If you have more than one boot console you
+-can add the boot console's name to differentiate. Note that names that
+-are registered through the boot console layer and the tty layer are not
+-the same for the same port.
+-
+-For instance, on one board to be explicit you might do::
+-
+-   kgdboc_earlycon=qcom_geni kgdboc=ttyMSM0
+-
+-If the only boot console on the device was "qcom_geni", you could simplify::
+-
+-   kgdboc_earlycon kgdboc=ttyMSM0
+-
+-Kernel parameter: ``kgdbwait``
+-------------------------------
+-
+-The Kernel command line option ``kgdbwait`` makes kgdb wait for a
+-debugger connection during booting of a kernel. You can only use this
+-option if you compiled a kgdb I/O driver into the kernel and you
+-specified the I/O driver configuration as a kernel command line option.
+-The kgdbwait parameter should always follow the configuration parameter
+-for the kgdb I/O driver in the kernel command line else the I/O driver
+-will not be configured prior to asking the kernel to use it to wait.
+-
+-The kernel will stop and wait as early as the I/O driver and
+-architecture allows when you use this option. If you build the kgdb I/O
+-driver as a loadable kernel module kgdbwait will not do anything.
+-
+-Kernel parameter: ``kgdbcon``
+------------------------------
+-
+-The ``kgdbcon`` feature allows you to see printk() messages inside gdb
+-while gdb is connected to the kernel. Kdb does not make use of the kgdbcon
+-feature.
+-
+-Kgdb supports using the gdb serial protocol to send console messages to
+-the debugger when the debugger is connected and running. There are two
+-ways to activate this feature.
+-
+-1. Activate with the kernel command line option::
+-
+-	kgdbcon
+-
+-2. Use sysfs before configuring an I/O driver::
+-
+-	echo 1 > /sys/module/debug_core/parameters/kgdb_use_con
+-
+-.. note::
+-
+-   If you do this after you configure the kgdb I/O driver, the
+-   setting will not take effect until the next point the I/O is
+-   reconfigured.
+-
+-.. important::
+-
+-   You cannot use kgdboc + kgdbcon on a tty that is an
+-   active system console. An example of incorrect usage is::
+-
+-	console=ttyS0,115200 kgdboc=ttyS0 kgdbcon
+-
+-It is possible to use this option with kgdboc on a tty that is not a
+-system console.
+-
+-Run time parameter: ``kgdbreboot``
+-----------------------------------
+-
+-The kgdbreboot feature allows you to change how the debugger deals with
+-the reboot notification. You have 3 choices for the behavior. The
+-default behavior is always set to 0.
+-
+-.. tabularcolumns:: |p{0.4cm}|p{11.5cm}|p{5.6cm}|
+-
+-.. flat-table::
+-  :widths: 1 10 8
+-
+-  * - 1
+-    - ``echo -1 > /sys/module/debug_core/parameters/kgdbreboot``
+-    - Ignore the reboot notification entirely.
+-
+-  * - 2
+-    - ``echo 0 > /sys/module/debug_core/parameters/kgdbreboot``
+-    - Send the detach message to any attached debugger client.
+-
+-  * - 3
+-    - ``echo 1 > /sys/module/debug_core/parameters/kgdbreboot``
+-    - Enter the debugger on reboot notify.
+-
+-Kernel parameter: ``nokaslr``
+------------------------------
+-
+-If the architecture that you are using enables KASLR by default,
+-you should consider turning it off.  KASLR randomizes the
+-virtual address where the kernel image is mapped and confuses
+-gdb which resolves addresses of kernel symbols from the symbol table
+-of vmlinux.
+-
+-Using kdb
+-=========
+-
+-Quick start for kdb on a serial port
+-------------------------------------
+-
+-This is a quick example of how to use kdb.
+-
+-1. Configure kgdboc at boot using kernel parameters::
+-
+-	console=ttyS0,115200 kgdboc=ttyS0,115200 nokaslr
+-
+-   OR
+-
+-   Configure kgdboc after the kernel has booted; assuming you are using
+-   a serial port console::
+-
+-	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
+-
+-2. Enter the kernel debugger manually or by waiting for an oops or
+-   fault. There are several ways you can enter the kernel debugger
+-   manually; all involve using the :kbd:`SysRq-G`, which means you must have
+-   enabled ``CONFIG_MAGIC_SYSRQ=y`` in your kernel config.
+-
+-   -  When logged in as root or with a super user session you can run::
+-
+-	echo g > /proc/sysrq-trigger
+-
+-   -  Example using minicom 2.2
+-
+-      Press: :kbd:`CTRL-A` :kbd:`f` :kbd:`g`
+-
+-   -  When you have telneted to a terminal server that supports sending
+-      a remote break
+-
+-      Press: :kbd:`CTRL-]`
+-
+-      Type in: ``send break``
+-
+-      Press: :kbd:`Enter` :kbd:`g`
+-
+-3. From the kdb prompt you can run the ``help`` command to see a complete
+-   list of the commands that are available.
+-
+-   Some useful commands in kdb include:
+-
+-   =========== =================================================================
+-   ``lsmod``   Shows where kernel modules are loaded
+-   ``ps``      Displays only the active processes
+-   ``ps A``    Shows all the processes
+-   ``summary`` Shows kernel version info and memory usage
+-   ``bt``      Get a backtrace of the current process using dump_stack()
+-   ``dmesg``   View the kernel syslog buffer
+-   ``go``      Continue the system
+-   =========== =================================================================
+-
+-4. When you are done using kdb you need to consider rebooting the system
+-   or using the ``go`` command to resuming normal kernel execution. If you
+-   have paused the kernel for a lengthy period of time, applications
+-   that rely on timely networking or anything to do with real wall clock
+-   time could be adversely affected, so you should take this into
+-   consideration when using the kernel debugger.
+-
+-Quick start for kdb using a keyboard connected console
+-------------------------------------------------------
+-
+-This is a quick example of how to use kdb with a keyboard.
+-
+-1. Configure kgdboc at boot using kernel parameters::
+-
+-	kgdboc=kbd
+-
+-   OR
+-
+-   Configure kgdboc after the kernel has booted::
+-
+-	echo kbd > /sys/module/kgdboc/parameters/kgdboc
+-
+-2. Enter the kernel debugger manually or by waiting for an oops or
+-   fault. There are several ways you can enter the kernel debugger
+-   manually; all involve using the :kbd:`SysRq-G`, which means you must have
+-   enabled ``CONFIG_MAGIC_SYSRQ=y`` in your kernel config.
+-
+-   -  When logged in as root or with a super user session you can run::
+-
+-	echo g > /proc/sysrq-trigger
+-
+-   -  Example using a laptop keyboard:
+-
+-      Press and hold down: :kbd:`Alt`
+-
+-      Press and hold down: :kbd:`Fn`
+-
+-      Press and release the key with the label: :kbd:`SysRq`
+-
+-      Release: :kbd:`Fn`
+-
+-      Press and release: :kbd:`g`
+-
+-      Release: :kbd:`Alt`
+-
+-   -  Example using a PS/2 101-key keyboard
+-
+-      Press and hold down: :kbd:`Alt`
+-
+-      Press and release the key with the label: :kbd:`SysRq`
+-
+-      Press and release: :kbd:`g`
+-
+-      Release: :kbd:`Alt`
+-
+-3. Now type in a kdb command such as ``help``, ``dmesg``, ``bt`` or ``go`` to
+-   continue kernel execution.
+-
+-Using kgdb / gdb
+-================
+-
+-In order to use kgdb you must activate it by passing configuration
+-information to one of the kgdb I/O drivers. If you do not pass any
+-configuration information kgdb will not do anything at all. Kgdb will
+-only actively hook up to the kernel trap hooks if a kgdb I/O driver is
+-loaded and configured. If you unconfigure a kgdb I/O driver, kgdb will
+-unregister all the kernel hook points.
+-
+-All kgdb I/O drivers can be reconfigured at run time, if
+-``CONFIG_SYSFS`` and ``CONFIG_MODULES`` are enabled, by echo'ing a new
+-config string to ``/sys/module/<driver>/parameter/<option>``. The driver
+-can be unconfigured by passing an empty string. You cannot change the
+-configuration while the debugger is attached. Make sure to detach the
+-debugger with the ``detach`` command prior to trying to unconfigure a
+-kgdb I/O driver.
+-
+-Connecting with gdb to a serial port
+-------------------------------------
+-
+-1. Configure kgdboc
+-
+-   Configure kgdboc at boot using kernel parameters::
+-
+-	kgdboc=ttyS0,115200
+-
+-   OR
+-
+-   Configure kgdboc after the kernel has booted::
+-
+-	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
+-
+-2. Stop kernel execution (break into the debugger)
+-
+-   In order to connect to gdb via kgdboc, the kernel must first be
+-   stopped. There are several ways to stop the kernel which include
+-   using kgdbwait as a boot argument, via a :kbd:`SysRq-G`, or running the
+-   kernel until it takes an exception where it waits for the debugger to
+-   attach.
+-
+-   -  When logged in as root or with a super user session you can run::
+-
+-	echo g > /proc/sysrq-trigger
+-
+-   -  Example using minicom 2.2
+-
+-      Press: :kbd:`CTRL-A` :kbd:`f` :kbd:`g`
+-
+-   -  When you have telneted to a terminal server that supports sending
+-      a remote break
+-
+-      Press: :kbd:`CTRL-]`
+-
+-      Type in: ``send break``
+-
+-      Press: :kbd:`Enter` :kbd:`g`
+-
+-3. Connect from gdb
+-
+-   Example (using a directly connected port)::
+-
+-           % gdb ./vmlinux
+-           (gdb) set serial baud 115200
+-           (gdb) target remote /dev/ttyS0
+-
+-
+-   Example (kgdb to a terminal server on TCP port 2012)::
+-
+-           % gdb ./vmlinux
+-           (gdb) target remote 192.168.2.2:2012
+-
+-
+-   Once connected, you can debug a kernel the way you would debug an
+-   application program.
+-
+-   If you are having problems connecting or something is going seriously
+-   wrong while debugging, it will most often be the case that you want
+-   to enable gdb to be verbose about its target communications. You do
+-   this prior to issuing the ``target remote`` command by typing in::
+-
+-	set debug remote 1
+-
+-Remember if you continue in gdb, and need to "break in" again, you need
+-to issue an other :kbd:`SysRq-G`. It is easy to create a simple entry point by
+-putting a breakpoint at ``sys_sync`` and then you can run ``sync`` from a
+-shell or script to break into the debugger.
+-
+-kgdb and kdb interoperability
+-=============================
+-
+-It is possible to transition between kdb and kgdb dynamically. The debug
+-core will remember which you used the last time and automatically start
+-in the same mode.
+-
+-Switching between kdb and kgdb
+-------------------------------
+-
+-Switching from kgdb to kdb
+-~~~~~~~~~~~~~~~~~~~~~~~~~~
+-
+-There are two ways to switch from kgdb to kdb: you can use gdb to issue
+-a maintenance packet, or you can blindly type the command ``$3#33``.
+-Whenever the kernel debugger stops in kgdb mode it will print the
+-message ``KGDB or $3#33 for KDB``. It is important to note that you have
+-to type the sequence correctly in one pass. You cannot type a backspace
+-or delete because kgdb will interpret that as part of the debug stream.
+-
+-1. Change from kgdb to kdb by blindly typing::
+-
+-	$3#33
+-
+-2. Change from kgdb to kdb with gdb::
+-
+-	maintenance packet 3
+-
+-   .. note::
+-
+-     Now you must kill gdb. Typically you press :kbd:`CTRL-Z` and issue
+-     the command::
+-
+-	kill -9 %
+-
+-Change from kdb to kgdb
+-~~~~~~~~~~~~~~~~~~~~~~~
+-
+-There are two ways you can change from kdb to kgdb. You can manually
+-enter kgdb mode by issuing the kgdb command from the kdb shell prompt,
+-or you can connect gdb while the kdb shell prompt is active. The kdb
+-shell looks for the typical first commands that gdb would issue with the
+-gdb remote protocol and if it sees one of those commands it
+-automatically changes into kgdb mode.
+-
+-1. From kdb issue the command::
+-
+-	kgdb
+-
+-2. At the kdb prompt, disconnect the terminal program and connect gdb in
+-   its place.
+-
+-Running kdb commands from gdb
+------------------------------
+-
+-It is possible to run a limited set of kdb commands from gdb, using the
+-gdb monitor command. You don't want to execute any of the run control or
+-breakpoint operations, because it can disrupt the state of the kernel
+-debugger. You should be using gdb for breakpoints and run control
+-operations if you have gdb connected. The more useful commands to run
+-are things like lsmod, dmesg, ps or possibly some of the memory
+-information commands. To see all the kdb commands you can run
+-``monitor help``.
+-
+-Example::
+-
+-    (gdb) monitor ps
+-    1 idle process (state I) and
+-    27 sleeping system daemon (state M) processes suppressed,
+-    use 'ps A' to see all.
+-    Task Addr       Pid   Parent [*] cpu State Thread     Command
+-
+-    0xc78291d0        1        0  0    0   S  0xc7829404  init
+-    0xc7954150      942        1  0    0   S  0xc7954384  dropbear
+-    0xc78789c0      944        1  0    0   S  0xc7878bf4  sh
+-    (gdb)
+-
+-kgdb Test Suite
+-===============
+-
+-When kgdb is enabled in the kernel config you can also elect to enable
+-the config parameter ``KGDB_TESTS``. Turning this on will enable a special
+-kgdb I/O module which is designed to test the kgdb internal functions.
+-
+-The kgdb tests are mainly intended for developers to test the kgdb
+-internals as well as a tool for developing a new kgdb architecture
+-specific implementation. These tests are not really for end users of the
+-Linux kernel. The primary source of documentation would be to look in
+-the ``drivers/misc/kgdbts.c`` file.
+-
+-The kgdb test suite can also be configured at compile time to run the
+-core set of tests by setting the kernel config parameter
+-``KGDB_TESTS_ON_BOOT``. This particular option is aimed at automated
+-regression testing and does not require modifying the kernel boot config
+-arguments. If this is turned on, the kgdb test suite can be disabled by
+-specifying ``kgdbts=`` as a kernel boot argument.
+-
+-Kernel Debugger Internals
+-=========================
+-
+-Architecture Specifics
+-----------------------
+-
+-The kernel debugger is organized into a number of components:
+-
+-1. The debug core
+-
+-   The debug core is found in ``kernel/debugger/debug_core.c``. It
+-   contains:
+-
+-   -  A generic OS exception handler which includes sync'ing the
+-      processors into a stopped state on an multi-CPU system.
+-
+-   -  The API to talk to the kgdb I/O drivers
+-
+-   -  The API to make calls to the arch-specific kgdb implementation
+-
+-   -  The logic to perform safe memory reads and writes to memory while
+-      using the debugger
+-
+-   -  A full implementation for software breakpoints unless overridden
+-      by the arch
+-
+-   -  The API to invoke either the kdb or kgdb frontend to the debug
+-      core.
+-
+-   -  The structures and callback API for atomic kernel mode setting.
+-
+-      .. note:: kgdboc is where the kms callbacks are invoked.
+-
+-2. kgdb arch-specific implementation
+-
+-   This implementation is generally found in ``arch/*/kernel/kgdb.c``. As
+-   an example, ``arch/x86/kernel/kgdb.c`` contains the specifics to
+-   implement HW breakpoint as well as the initialization to dynamically
+-   register and unregister for the trap handlers on this architecture.
+-   The arch-specific portion implements:
+-
+-   -  contains an arch-specific trap catcher which invokes
+-      kgdb_handle_exception() to start kgdb about doing its work
+-
+-   -  translation to and from gdb specific packet format to struct pt_regs
+-
+-   -  Registration and unregistration of architecture specific trap
+-      hooks
+-
+-   -  Any special exception handling and cleanup
+-
+-   -  NMI exception handling and cleanup
+-
+-   -  (optional) HW breakpoints
+-
+-3. gdbstub frontend (aka kgdb)
+-
+-   The gdbstub is located in ``kernel/debug/gdbstub.c``. It contains:
+-
+-   -  All the logic to implement the gdb serial protocol
+-
+-4. kdb frontend
+-
+-   The kdb debugger shell is broken down into a number of components.
+-   The kdb core is located in kernel/debug/kdb. There are a number of
+-   helper functions in some of the other kernel components to make it
+-   possible for kdb to examine and report information about the kernel
+-   without taking locks that could cause a kernel deadlock. The kdb core
+-   implements the following functionality.
+-
+-   -  A simple shell
+-
+-   -  The kdb core command set
+-
+-   -  A registration API to register additional kdb shell commands.
+-
+-      -  A good example of a self-contained kdb module is the ``ftdump``
+-         command for dumping the ftrace buffer. See:
+-         ``kernel/trace/trace_kdb.c``
+-
+-      -  For an example of how to dynamically register a new kdb command
+-         you can build the kdb_hello.ko kernel module from
+-         ``samples/kdb/kdb_hello.c``. To build this example you can set
+-         ``CONFIG_SAMPLES=y`` and ``CONFIG_SAMPLE_KDB=m`` in your kernel
+-         config. Later run ``modprobe kdb_hello`` and the next time you
+-         enter the kdb shell, you can run the ``hello`` command.
+-
+-   -  The implementation for kdb_printf() which emits messages directly
+-      to I/O drivers, bypassing the kernel log.
+-
+-   -  SW / HW breakpoint management for the kdb shell
+-
+-5. kgdb I/O driver
+-
+-   Each kgdb I/O driver has to provide an implementation for the
+-   following:
+-
+-   -  configuration via built-in or module
+-
+-   -  dynamic configuration and kgdb hook registration calls
+-
+-   -  read and write character interface
+-
+-   -  A cleanup handler for unconfiguring from the kgdb core
+-
+-   -  (optional) Early debug methodology
+-
+-   Any given kgdb I/O driver has to operate very closely with the
+-   hardware and must do it in such a way that does not enable interrupts
+-   or change other parts of the system context without completely
+-   restoring them. The kgdb core will repeatedly "poll" a kgdb I/O
+-   driver for characters when it needs input. The I/O driver is expected
+-   to return immediately if there is no data available. Doing so allows
+-   for the future possibility to touch watchdog hardware in such a way
+-   as to have a target system not reset when these are enabled.
+-
+-If you are intent on adding kgdb architecture specific support for a new
+-architecture, the architecture should define ``HAVE_ARCH_KGDB`` in the
+-architecture specific Kconfig file. This will enable kgdb for the
+-architecture, and at that point you must create an architecture specific
+-kgdb implementation.
+-
+-There are a few flags which must be set on every architecture in their
+-``asm/kgdb.h`` file. These are:
+-
+--  ``NUMREGBYTES``:
+-     The size in bytes of all of the registers, so that we
+-     can ensure they will all fit into a packet.
+-
+--  ``BUFMAX``:
+-     The size in bytes of the buffer GDB will read into. This must
+-     be larger than NUMREGBYTES.
+-
+--  ``CACHE_FLUSH_IS_SAFE``:
+-     Set to 1 if it is always safe to call
+-     flush_cache_range or flush_icache_range. On some architectures,
+-     these functions may not be safe to call on SMP since we keep other
+-     CPUs in a holding pattern.
+-
+-There are also the following functions for the common backend, found in
+-``kernel/kgdb.c``, that must be supplied by the architecture-specific
+-backend unless marked as (optional), in which case a default function
+-maybe used if the architecture does not need to provide a specific
+-implementation.
+-
+-.. kernel-doc:: include/linux/kgdb.h
+-   :internal:
+-
+-kgdboc internals
+-----------------
+-
+-kgdboc and uarts
+-~~~~~~~~~~~~~~~~
+-
+-The kgdboc driver is actually a very thin driver that relies on the
+-underlying low level to the hardware driver having "polling hooks" to
+-which the tty driver is attached. In the initial implementation of
+-kgdboc the serial_core was changed to expose a low level UART hook for
+-doing polled mode reading and writing of a single character while in an
+-atomic context. When kgdb makes an I/O request to the debugger, kgdboc
+-invokes a callback in the serial core which in turn uses the callback in
+-the UART driver.
+-
+-When using kgdboc with a UART, the UART driver must implement two
+-callbacks in the struct uart_ops.
+-Example from ``drivers/8250.c``::
+-
+-
+-    #ifdef CONFIG_CONSOLE_POLL
+-        .poll_get_char = serial8250_get_poll_char,
+-        .poll_put_char = serial8250_put_poll_char,
+-    #endif
+-
+-
+-Any implementation specifics around creating a polling driver use the
+-``#ifdef CONFIG_CONSOLE_POLL``, as shown above. Keep in mind that
+-polling hooks have to be implemented in such a way that they can be
+-called from an atomic context and have to restore the state of the UART
+-chip on return such that the system can return to normal when the
+-debugger detaches. You need to be very careful with any kind of lock you
+-consider, because failing here is most likely going to mean pressing the
+-reset button.
+-
+-kgdboc and keyboards
+-~~~~~~~~~~~~~~~~~~~~~~~~
+-
+-The kgdboc driver contains logic to configure communications with an
+-attached keyboard. The keyboard infrastructure is only compiled into the
+-kernel when ``CONFIG_KDB_KEYBOARD=y`` is set in the kernel configuration.
+-
+-The core polled keyboard driver for PS/2 type keyboards is in
+-``drivers/char/kdb_keyboard.c``. This driver is hooked into the debug core
+-when kgdboc populates the callback in the array called
+-:c:expr:`kdb_poll_funcs[]`. The kdb_get_kbd_char() is the top-level
+-function which polls hardware for single character input.
+-
+-kgdboc and kms
+-~~~~~~~~~~~~~~~~~~
+-
+-The kgdboc driver contains logic to request the graphics display to
+-switch to a text context when you are using ``kgdboc=kms,kbd``, provided
+-that you have a video driver which has a frame buffer console and atomic
+-kernel mode setting support.
+-
+-Every time the kernel debugger is entered it calls
+-kgdboc_pre_exp_handler() which in turn calls con_debug_enter()
+-in the virtual console layer. On resuming kernel execution, the kernel
+-debugger calls kgdboc_post_exp_handler() which in turn calls
+-con_debug_leave().
+-
+-Any video driver that wants to be compatible with the kernel debugger
+-and the atomic kms callbacks must implement the ``mode_set_base_atomic``,
+-``fb_debug_enter`` and ``fb_debug_leave operations``. For the
+-``fb_debug_enter`` and ``fb_debug_leave`` the option exists to use the
+-generic drm fb helper functions or implement something custom for the
+-hardware. The following example shows the initialization of the
+-.mode_set_base_atomic operation in
+-drivers/gpu/drm/i915/intel_display.c::
+-
+-
+-    static const struct drm_crtc_helper_funcs intel_helper_funcs = {
+-    [...]
+-            .mode_set_base_atomic = intel_pipe_set_base_atomic,
+-    [...]
+-    };
+-
+-
+-Here is an example of how the i915 driver initializes the
+-fb_debug_enter and fb_debug_leave functions to use the generic drm
+-helpers in ``drivers/gpu/drm/i915/intel_fb.c``::
+-
+-
+-    static struct fb_ops intelfb_ops = {
+-    [...]
+-           .fb_debug_enter = drm_fb_helper_debug_enter,
+-           .fb_debug_leave = drm_fb_helper_debug_leave,
+-    [...]
+-    };
+-
+-
+-Credits
+-=======
+-
+-The following people have contributed to this document:
+-
+-1. Amit Kale <amitkale@linsyssoft.com>
+-
+-2. Tom Rini <trini@kernel.crashing.org>
+-
+-In March 2008 this document was completely rewritten by:
+-
+--  Jason Wessel <jason.wessel@windriver.com>
+-
+-In Jan 2010 this document was updated to include kdb.
+-
+--  Jason Wessel <jason.wessel@windriver.com>
+diff --git a/Documentation/process/debugging/gdb-kernel-debugging.rst a/Documentation/process/debugging/gdb-kernel-debugging.rst
+new file mode 100664
+--- /dev/null
++++ a/Documentation/process/debugging/gdb-kernel-debugging.rst
+@@ -0,0 +1,179 @@
++.. highlight:: none
++
++Debugging kernel and modules via gdb
++====================================
++
++The kernel debugger kgdb, hypervisors like QEMU or JTAG-based hardware
++interfaces allow to debug the Linux kernel and its modules during runtime
++using gdb. Gdb comes with a powerful scripting interface for python. The
++kernel provides a collection of helper scripts that can simplify typical
++kernel debugging steps. This is a short tutorial about how to enable and use
++them. It focuses on QEMU/KVM virtual machines as target, but the examples can
++be transferred to the other gdb stubs as well.
++
++
++Requirements
++------------
++
++- gdb 7.2+ (recommended: 7.4+) with python support enabled (typically true
++  for distributions)
++
++
++Setup
++-----
++
++- Create a virtual Linux machine for QEMU/KVM (see www.linux-kvm.org and
++  www.qemu.org for more details). For cross-development,
++  https://landley.net/aboriginal/bin keeps a pool of machine images and
++  toolchains that can be helpful to start from.
++
++- Build the kernel with CONFIG_GDB_SCRIPTS enabled, but leave
++  CONFIG_DEBUG_INFO_REDUCED off. If your architecture supports
++  CONFIG_FRAME_POINTER, keep it enabled.
++
++- Install that kernel on the guest, turn off KASLR if necessary by adding
++  "nokaslr" to the kernel command line.
++  Alternatively, QEMU allows to boot the kernel directly using -kernel,
++  -append, -initrd command line switches. This is generally only useful if
++  you do not depend on modules. See QEMU documentation for more details on
++  this mode. In this case, you should build the kernel with
++  CONFIG_RANDOMIZE_BASE disabled if the architecture supports KASLR.
++
++- Build the gdb scripts (required on kernels v5.1 and above)::
++
++    make scripts_gdb
++
++- Enable the gdb stub of QEMU/KVM, either
++
++    - at VM startup time by appending "-s" to the QEMU command line
++
++  or
++
++    - during runtime by issuing "gdbserver" from the QEMU monitor
++      console
++
++- cd /path/to/linux-build
++
++- Start gdb: gdb vmlinux
++
++  Note: Some distros may restrict auto-loading of gdb scripts to known safe
++  directories. In case gdb reports to refuse loading vmlinux-gdb.py, add::
++
++    add-auto-load-safe-path /path/to/linux-build
++
++  to ~/.gdbinit. See gdb help for more details.
++
++- Attach to the booted guest::
++
++    (gdb) target remote :1234
++
++
++Examples of using the Linux-provided gdb helpers
++------------------------------------------------
++
++- Load module (and main kernel) symbols::
++
++    (gdb) lx-symbols
++    loading vmlinux
++    scanning for modules in /home/user/linux/build
++    loading @0xffffffffa0020000: /home/user/linux/build/net/netfilter/xt_tcpudp.ko
++    loading @0xffffffffa0016000: /home/user/linux/build/net/netfilter/xt_pkttype.ko
++    loading @0xffffffffa0002000: /home/user/linux/build/net/netfilter/xt_limit.ko
++    loading @0xffffffffa00ca000: /home/user/linux/build/net/packet/af_packet.ko
++    loading @0xffffffffa003c000: /home/user/linux/build/fs/fuse/fuse.ko
++    ...
++    loading @0xffffffffa0000000: /home/user/linux/build/drivers/ata/ata_generic.ko
++
++- Set a breakpoint on some not yet loaded module function, e.g.::
++
++    (gdb) b btrfs_init_sysfs
++    Function "btrfs_init_sysfs" not defined.
++    Make breakpoint pending on future shared library load? (y or [n]) y
++    Breakpoint 1 (btrfs_init_sysfs) pending.
++
++- Continue the target::
++
++    (gdb) c
++
++- Load the module on the target and watch the symbols being loaded as well as
++  the breakpoint hit::
++
++    loading @0xffffffffa0034000: /home/user/linux/build/lib/libcrc32c.ko
++    loading @0xffffffffa0050000: /home/user/linux/build/lib/lzo/lzo_compress.ko
++    loading @0xffffffffa006e000: /home/user/linux/build/lib/zlib_deflate/zlib_deflate.ko
++    loading @0xffffffffa01b1000: /home/user/linux/build/fs/btrfs/btrfs.ko
++
++    Breakpoint 1, btrfs_init_sysfs () at /home/user/linux/fs/btrfs/sysfs.c:36
++    36              btrfs_kset = kset_create_and_add("btrfs", NULL, fs_kobj);
++
++- Dump the log buffer of the target kernel::
++
++    (gdb) lx-dmesg
++    [     0.000000] Initializing cgroup subsys cpuset
++    [     0.000000] Initializing cgroup subsys cpu
++    [     0.000000] Linux version 3.8.0-rc4-dbg+ (...
++    [     0.000000] Command line: root=/dev/sda2 resume=/dev/sda1 vga=0x314
++    [     0.000000] e820: BIOS-provided physical RAM map:
++    [     0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
++    [     0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
++    ....
++
++- Examine fields of the current task struct(supported by x86 and arm64 only)::
++
++    (gdb) p $lx_current().pid
++    $1 = 4998
++    (gdb) p $lx_current().comm
++    $2 = "modprobe\000\000\000\000\000\000\000"
++
++- Make use of the per-cpu function for the current or a specified CPU::
++
++    (gdb) p $lx_per_cpu("runqueues").nr_running
++    $3 = 1
++    (gdb) p $lx_per_cpu("runqueues", 2).nr_running
++    $4 = 0
++
++- Dig into hrtimers using the container_of helper::
++
++    (gdb) set $next = $lx_per_cpu("hrtimer_bases").clock_base[0].active.next
++    (gdb) p *$container_of($next, "struct hrtimer", "node")
++    $5 = {
++      node = {
++        node = {
++          __rb_parent_color = 18446612133355256072,
++          rb_right = 0x0 <irq_stack_union>,
++          rb_left = 0x0 <irq_stack_union>
++        },
++        expires = {
++          tv64 = 1835268000000
++        }
++      },
++      _softexpires = {
++        tv64 = 1835268000000
++      },
++      function = 0xffffffff81078232 <tick_sched_timer>,
++      base = 0xffff88003fd0d6f0,
++      state = 1,
++      start_pid = 0,
++      start_site = 0xffffffff81055c1f <hrtimer_start_range_ns+20>,
++      start_comm = "swapper/2\000\000\000\000\000\000"
++    }
++
++
++List of commands and functions
++------------------------------
++
++The number of commands and convenience functions may evolve over the time,
++this is just a snapshot of the initial version::
++
++ (gdb) apropos lx
++ function lx_current -- Return current task
++ function lx_module -- Find module by name and return the module variable
++ function lx_per_cpu -- Return per-cpu variable
++ function lx_task_by_pid -- Find Linux task by PID and return the task_struct variable
++ function lx_thread_info -- Calculate Linux thread_info from task variable
++ lx-dmesg -- Print Linux kernel log buffer
++ lx-lsmod -- List currently loaded modules
++ lx-symbols -- (Re-)load symbols of Linux kernel and currently loaded modules
++
++Detailed help can be obtained via "help <command-name>" for commands and "help
++function <function-name>" for convenience functions.
+--- a/Documentation/process/debugging/index.rst~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/Documentation/process/debugging/index.rst
+@@ -11,6 +11,8 @@ general guides
+    :maxdepth: 1
  
- static inline int folio_lru_gen(struct folio *folio)
-@@ -223,11 +217,46 @@ static inline void lru_gen_update_size(s
- 	VM_WARN_ON_ONCE(lru_gen_is_active(lruvec, old_gen) && !lru_gen_is_active(lruvec, new_gen));
- }
+    driver_development_debugging_guide
++   gdb-kernel-debugging
++   kgdb
+    userspace_debugging_guide
  
-+static inline int lru_gen_distance(struct folio *folio, bool reclaiming)
-+{
-+	/*
-+	 * Distance until eviction (larger values provide stronger protection):
-+	 * +-------------------------------------+-------------------------------------+
-+	 * | Accessed through page tables and    | Accessed through file descriptors   |
-+	 * | promoted by folio_update_gen()      | and protected by folio_inc_gen()    |
-+	 * +-------------------------------------+-------------------------------------+
-+	 * | PG_active (only set while isolated) |                                     |
-+	 * +------------------+------------------+------------------+------------------+
-+	 * |  PG_workingset   |  PG_referenced   |  PG_workingset   |  LRU_REFS_FLAGS  |
-+	 * +-------------------------------------+-------------------------------------+
-+	 * |        3         |        2         |        1         |        0         |
-+	 * +-------------------------------------+-------------------------------------+
-+	 * |<----------- MIN_NR_GENS ----------->|                                     |
-+	 * |<------------------------------ MAX_NR_GENS ------------------------------>|
-+	 */
-+	if (reclaiming)
-+		return 0;
+ .. only::  subproject and html
+diff --git a/Documentation/process/debugging/kgdb.rst a/Documentation/process/debugging/kgdb.rst
+new file mode 100664
+--- /dev/null
++++ a/Documentation/process/debugging/kgdb.rst
+@@ -0,0 +1,937 @@
++=================================================
++Using kgdb, kdb and the kernel debugger internals
++=================================================
 +
-+	if (folio_test_active(folio))
-+		return MIN_NR_GENS + folio_test_workingset(folio);
++:Author: Jason Wessel
 +
-+	if (folio_test_workingset(folio))
-+		return MIN_NR_GENS - 1;
++Introduction
++============
 +
-+	if (!folio_is_file_lru(folio) && !folio_test_swapcache(folio))
-+		return MIN_NR_GENS - 1;
++The kernel has two different debugger front ends (kdb and kgdb) which
++interface to the debug core. It is possible to use either of the
++debugger front ends and dynamically transition between them if you
++configure the kernel properly at compile and runtime.
 +
-+	if (folio_test_reclaim(folio) && (folio_test_dirty(folio) || folio_test_writeback(folio)))
-+		return MIN_NR_GENS - 1;
++Kdb is simplistic shell-style interface which you can use on a system
++console with a keyboard or serial console. You can use it to inspect
++memory, registers, process lists, dmesg, and even set breakpoints to
++stop in a certain location. Kdb is not a source level debugger, although
++you can set breakpoints and execute some basic kernel run control. Kdb
++is mainly aimed at doing some analysis to aid in development or
++diagnosing kernel problems. You can access some symbols by name in
++kernel built-ins or in kernel modules if the code was built with
++``CONFIG_KALLSYMS``.
 +
-+	return 0;
-+}
++Kgdb is intended to be used as a source level debugger for the Linux
++kernel. It is used along with gdb to debug a Linux kernel. The
++expectation is that gdb can be used to "break in" to the kernel to
++inspect memory, variables and look through call stack information
++similar to the way an application developer would use gdb to debug an
++application. It is possible to place breakpoints in kernel code and
++perform some limited execution stepping.
 +
- static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
- {
-+	int dist;
- 	unsigned long seq;
- 	unsigned long flags;
--	unsigned long mask;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -237,40 +266,17 @@ static inline bool lru_gen_add_folio(str
- 
- 	if (folio_test_unevictable(folio) || !lrugen->enabled)
- 		return false;
--	/*
--	 * There are four common cases for this page:
--	 * 1. If it's hot, i.e., freshly faulted in, add it to the youngest
--	 *    generation, and it's protected over the rest below.
--	 * 2. If it can't be evicted immediately, i.e., a dirty page pending
--	 *    writeback, add it to the second youngest generation.
--	 * 3. If it should be evicted first, e.g., cold and clean from
--	 *    folio_rotate_reclaimable(), add it to the oldest generation.
--	 * 4. Everything else falls between 2 & 3 above and is added to the
--	 *    second oldest generation if it's considered inactive, or the
--	 *    oldest generation otherwise. See lru_gen_is_active().
--	 */
--	if (folio_test_active(folio))
--		seq = lrugen->max_seq;
--	else if ((type == LRU_GEN_ANON && !folio_test_swapcache(folio)) ||
--		 (folio_test_reclaim(folio) &&
--		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
--		seq = lrugen->max_seq - 1;
--	else if (reclaiming || lrugen->min_seq[type] + MIN_NR_GENS >= lrugen->max_seq)
--		seq = lrugen->min_seq[type];
++Two machines are required for using kgdb. One of these machines is a
++development machine and the other is the target machine. The kernel to
++be debugged runs on the target machine. The development machine runs an
++instance of gdb against the vmlinux file which contains the symbols (not
++a boot image such as bzImage, zImage, uImage...). In gdb the developer
++specifies the connection parameters and connects to kgdb. The type of
++connection a developer makes with gdb depends on the availability of
++kgdb I/O modules compiled as built-ins or loadable kernel modules in the
++test machine's kernel.
 +
-+	dist = lru_gen_distance(folio, reclaiming);
-+	if (dist < MIN_NR_GENS)
-+		seq = lrugen->min_seq[type] + dist;
- 	else
--		seq = lrugen->min_seq[type] + 1;
-+		seq = lrugen->max_seq + dist - MIN_NR_GENS - 1;
- 
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
- 	/* see the comment on MIN_NR_GENS about PG_active */
--	mask = LRU_GEN_MASK;
--	/*
--	 * Don't clear PG_workingset here because it can affect PSI accounting
--	 * if the activation is due to workingset refault.
--	 */
--	if (folio_test_active(folio))
--		mask |= LRU_REFS_MASK | BIT(PG_referenced) | BIT(PG_active);
--	set_mask_bits(&folio->flags, mask, flags);
-+	set_mask_bits(&folio->flags, LRU_GEN_MASK | BIT(PG_active), flags);
- 
- 	lru_gen_update_size(lruvec, folio, -1, gen);
- 	/* for folio_rotate_reclaimable() */
---- a/include/linux/mmzone.h~mm-mglru-rework-workingset-protection
-+++ a/include/linux/mmzone.h
-@@ -332,66 +332,88 @@ enum lruvec_flags {
- #endif /* !__GENERATING_BOUNDS_H */
- 
- /*
-- * Evictable pages are divided into multiple generations. The youngest and the
-+ * Evictable folios are divided into multiple generations. The youngest and the
-  * oldest generation numbers, max_seq and min_seq, are monotonically increasing.
-  * They form a sliding window of a variable size [MIN_NR_GENS, MAX_NR_GENS]. An
-  * offset within MAX_NR_GENS, i.e., gen, indexes the LRU list of the
-  * corresponding generation. The gen counter in folio->flags stores gen+1 while
-- * a page is on one of lrugen->folios[]. Otherwise it stores 0.
-+ * a folio is on one of lrugen->folios[]. Otherwise it stores 0.
++Compiling a kernel
++==================
++
++-  In order to enable compilation of kdb, you must first enable kgdb.
++
++-  The kgdb test compile options are described in the kgdb test suite
++   chapter.
++
++Kernel config options for kgdb
++------------------------------
++
++To enable ``CONFIG_KGDB`` you should look under
++:menuselection:`Kernel hacking --> Kernel debugging` and select
++:menuselection:`KGDB: kernel debugger`.
++
++While it is not a hard requirement that you have symbols in your vmlinux
++file, gdb tends not to be very useful without the symbolic data, so you
++will want to turn on ``CONFIG_DEBUG_INFO`` which is called
++:menuselection:`Compile the kernel with debug info` in the config menu.
++
++It is advised, but not required, that you turn on the
++``CONFIG_FRAME_POINTER`` kernel option which is called :menuselection:`Compile
++the kernel with frame pointers` in the config menu. This option inserts code
++into the compiled executable which saves the frame information in registers
++or on the stack at different points which allows a debugger such as gdb to
++more accurately construct stack back traces while debugging the kernel.
++
++If the architecture that you are using supports the kernel option
++``CONFIG_STRICT_KERNEL_RWX``, you should consider turning it off. This
++option will prevent the use of software breakpoints because it marks
++certain regions of the kernel's memory space as read-only. If kgdb
++supports it for the architecture you are using, you can use hardware
++breakpoints if you desire to run with the ``CONFIG_STRICT_KERNEL_RWX``
++option turned on, else you need to turn off this option.
++
++Next you should choose one or more I/O drivers to interconnect the debugging
++host and debugged target. Early boot debugging requires a KGDB I/O
++driver that supports early debugging and the driver must be built into
++the kernel directly. Kgdb I/O driver configuration takes place via
++kernel or module parameters which you can learn more about in the
++section that describes the parameter kgdboc.
++
++Here is an example set of ``.config`` symbols to enable or disable for kgdb::
++
++  # CONFIG_STRICT_KERNEL_RWX is not set
++  CONFIG_FRAME_POINTER=y
++  CONFIG_KGDB=y
++  CONFIG_KGDB_SERIAL_CONSOLE=y
++
++Kernel config options for kdb
++-----------------------------
++
++Kdb is quite a bit more complex than the simple gdbstub sitting on top
++of the kernel's debug core. Kdb must implement a shell, and also adds
++some helper functions in other parts of the kernel, responsible for
++printing out interesting data such as what you would see if you ran
++``lsmod``, or ``ps``. In order to build kdb into the kernel you follow the
++same steps as you would for kgdb.
++
++The main config option for kdb is ``CONFIG_KGDB_KDB`` which is called
++:menuselection:`KGDB_KDB: include kdb frontend for kgdb` in the config menu.
++In theory you would have already also selected an I/O driver such as the
++``CONFIG_KGDB_SERIAL_CONSOLE`` interface if you plan on using kdb on a
++serial port, when you were configuring kgdb.
++
++If you want to use a PS/2-style keyboard with kdb, you would select
++``CONFIG_KDB_KEYBOARD`` which is called :menuselection:`KGDB_KDB: keyboard as
++input device` in the config menu. The ``CONFIG_KDB_KEYBOARD`` option is not
++used for anything in the gdb interface to kgdb. The ``CONFIG_KDB_KEYBOARD``
++option only works with kdb.
++
++Here is an example set of ``.config`` symbols to enable/disable kdb::
++
++  # CONFIG_STRICT_KERNEL_RWX is not set
++  CONFIG_FRAME_POINTER=y
++  CONFIG_KGDB=y
++  CONFIG_KGDB_SERIAL_CONSOLE=y
++  CONFIG_KGDB_KDB=y
++  CONFIG_KDB_KEYBOARD=y
++
++Kernel Debugger Boot Arguments
++==============================
++
++This section describes the various runtime kernel parameters that affect
++the configuration of the kernel debugger. The following chapter covers
++using kdb and kgdb as well as providing some examples of the
++configuration parameters.
++
++Kernel parameter: kgdboc
++------------------------
++
++The kgdboc driver was originally an abbreviation meant to stand for
++"kgdb over console". Today it is the primary mechanism to configure how
++to communicate from gdb to kgdb as well as the devices you want to use
++to interact with the kdb shell.
++
++For kgdb/gdb, kgdboc is designed to work with a single serial port. It
++is intended to cover the circumstance where you want to use a serial
++console as your primary console as well as using it to perform kernel
++debugging. It is also possible to use kgdb on a serial port which is not
++designated as a system console. Kgdboc may be configured as a kernel
++built-in or a kernel loadable module. You can only make use of
++``kgdbwait`` and early debugging if you build kgdboc into the kernel as
++a built-in.
++
++Optionally you can elect to activate kms (Kernel Mode Setting)
++integration. When you use kms with kgdboc and you have a video driver
++that has atomic mode setting hooks, it is possible to enter the debugger
++on the graphics console. When the kernel execution is resumed, the
++previous graphics mode will be restored. This integration can serve as a
++useful tool to aid in diagnosing crashes or doing analysis of memory
++with kdb while allowing the full graphics console applications to run.
++
++kgdboc arguments
++~~~~~~~~~~~~~~~~
++
++Usage::
++
++	kgdboc=[kms][[,]kbd][[,]serial_device][,baud]
++
++The order listed above must be observed if you use any of the optional
++configurations together.
++
++Abbreviations:
++
++-  kms = Kernel Mode Setting
++
++-  kbd = Keyboard
++
++You can configure kgdboc to use the keyboard, and/or a serial device
++depending on if you are using kdb and/or kgdb, in one of the following
++scenarios. The order listed above must be observed if you use any of the
++optional configurations together. Using kms + only gdb is generally not
++a useful combination.
++
++Using loadable module or built-in
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++1. As a kernel built-in:
++
++   Use the kernel boot argument::
++
++	kgdboc=<tty-device>,[baud]
++
++2. As a kernel loadable module:
++
++   Use the command::
++
++	modprobe kgdboc kgdboc=<tty-device>,[baud]
++
++   Here are two examples of how you might format the kgdboc string. The
++   first is for an x86 target using the first serial port. The second
++   example is for the ARM Versatile AB using the second serial port.
++
++   1. ``kgdboc=ttyS0,115200``
++
++   2. ``kgdboc=ttyAMA1,115200``
++
++Configure kgdboc at runtime with sysfs
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++At run time you can enable or disable kgdboc by writing parameters
++into sysfs. Here are two examples:
++
++1. Enable kgdboc on ttyS0::
++
++	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
++
++2. Disable kgdboc::
++
++	echo "" > /sys/module/kgdboc/parameters/kgdboc
++
++.. note::
++
++   You do not need to specify the baud if you are configuring the
++   console on tty which is already configured or open.
++
++More examples
++^^^^^^^^^^^^^
++
++You can configure kgdboc to use the keyboard, and/or a serial device
++depending on if you are using kdb and/or kgdb, in one of the following
++scenarios.
++
++1. kdb and kgdb over only a serial port::
++
++	kgdboc=<serial_device>[,baud]
++
++   Example::
++
++	kgdboc=ttyS0,115200
++
++2. kdb and kgdb with keyboard and a serial port::
++
++	kgdboc=kbd,<serial_device>[,baud]
++
++   Example::
++
++	kgdboc=kbd,ttyS0,115200
++
++3. kdb with a keyboard::
++
++	kgdboc=kbd
++
++4. kdb with kernel mode setting::
++
++	kgdboc=kms,kbd
++
++5. kdb with kernel mode setting and kgdb over a serial port::
++
++	kgdboc=kms,kbd,ttyS0,115200
++
++.. note::
++
++   Kgdboc does not support interrupting the target via the gdb remote
++   protocol. You must manually send a :kbd:`SysRq-G` unless you have a proxy
++   that splits console output to a terminal program. A console proxy has a
++   separate TCP port for the debugger and a separate TCP port for the
++   "human" console. The proxy can take care of sending the :kbd:`SysRq-G`
++   for you.
++
++When using kgdboc with no debugger proxy, you can end up connecting the
++debugger at one of two entry points. If an exception occurs after you
++have loaded kgdboc, a message should print on the console stating it is
++waiting for the debugger. In this case you disconnect your terminal
++program and then connect the debugger in its place. If you want to
++interrupt the target system and forcibly enter a debug session you have
++to issue a :kbd:`Sysrq` sequence and then type the letter :kbd:`g`. Then you
++disconnect the terminal session and connect gdb. Your options if you
++don't like this are to hack gdb to send the :kbd:`SysRq-G` for you as well as
++on the initial connect, or to use a debugger proxy that allows an
++unmodified gdb to do the debugging.
++
++Kernel parameter: ``kgdboc_earlycon``
++-------------------------------------
++
++If you specify the kernel parameter ``kgdboc_earlycon`` and your serial
++driver registers a boot console that supports polling (doesn't need
++interrupts and implements a nonblocking read() function) kgdb will attempt
++to work using the boot console until it can transition to the regular
++tty driver specified by the ``kgdboc`` parameter.
++
++Normally there is only one boot console (especially that implements the
++read() function) so just adding ``kgdboc_earlycon`` on its own is
++sufficient to make this work. If you have more than one boot console you
++can add the boot console's name to differentiate. Note that names that
++are registered through the boot console layer and the tty layer are not
++the same for the same port.
++
++For instance, on one board to be explicit you might do::
++
++   kgdboc_earlycon=qcom_geni kgdboc=ttyMSM0
++
++If the only boot console on the device was "qcom_geni", you could simplify::
++
++   kgdboc_earlycon kgdboc=ttyMSM0
++
++Kernel parameter: ``kgdbwait``
++------------------------------
++
++The Kernel command line option ``kgdbwait`` makes kgdb wait for a
++debugger connection during booting of a kernel. You can only use this
++option if you compiled a kgdb I/O driver into the kernel and you
++specified the I/O driver configuration as a kernel command line option.
++The kgdbwait parameter should always follow the configuration parameter
++for the kgdb I/O driver in the kernel command line else the I/O driver
++will not be configured prior to asking the kernel to use it to wait.
++
++The kernel will stop and wait as early as the I/O driver and
++architecture allows when you use this option. If you build the kgdb I/O
++driver as a loadable kernel module kgdbwait will not do anything.
++
++Kernel parameter: ``kgdbcon``
++-----------------------------
++
++The ``kgdbcon`` feature allows you to see printk() messages inside gdb
++while gdb is connected to the kernel. Kdb does not make use of the kgdbcon
++feature.
++
++Kgdb supports using the gdb serial protocol to send console messages to
++the debugger when the debugger is connected and running. There are two
++ways to activate this feature.
++
++1. Activate with the kernel command line option::
++
++	kgdbcon
++
++2. Use sysfs before configuring an I/O driver::
++
++	echo 1 > /sys/module/debug_core/parameters/kgdb_use_con
++
++.. note::
++
++   If you do this after you configure the kgdb I/O driver, the
++   setting will not take effect until the next point the I/O is
++   reconfigured.
++
++.. important::
++
++   You cannot use kgdboc + kgdbcon on a tty that is an
++   active system console. An example of incorrect usage is::
++
++	console=ttyS0,115200 kgdboc=ttyS0 kgdbcon
++
++It is possible to use this option with kgdboc on a tty that is not a
++system console.
++
++Run time parameter: ``kgdbreboot``
++----------------------------------
++
++The kgdbreboot feature allows you to change how the debugger deals with
++the reboot notification. You have 3 choices for the behavior. The
++default behavior is always set to 0.
++
++.. tabularcolumns:: |p{0.4cm}|p{11.5cm}|p{5.6cm}|
++
++.. flat-table::
++  :widths: 1 10 8
++
++  * - 1
++    - ``echo -1 > /sys/module/debug_core/parameters/kgdbreboot``
++    - Ignore the reboot notification entirely.
++
++  * - 2
++    - ``echo 0 > /sys/module/debug_core/parameters/kgdbreboot``
++    - Send the detach message to any attached debugger client.
++
++  * - 3
++    - ``echo 1 > /sys/module/debug_core/parameters/kgdbreboot``
++    - Enter the debugger on reboot notify.
++
++Kernel parameter: ``nokaslr``
++-----------------------------
++
++If the architecture that you are using enables KASLR by default,
++you should consider turning it off.  KASLR randomizes the
++virtual address where the kernel image is mapped and confuses
++gdb which resolves addresses of kernel symbols from the symbol table
++of vmlinux.
++
++Using kdb
++=========
++
++Quick start for kdb on a serial port
++------------------------------------
++
++This is a quick example of how to use kdb.
++
++1. Configure kgdboc at boot using kernel parameters::
++
++	console=ttyS0,115200 kgdboc=ttyS0,115200 nokaslr
++
++   OR
++
++   Configure kgdboc after the kernel has booted; assuming you are using
++   a serial port console::
++
++	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
++
++2. Enter the kernel debugger manually or by waiting for an oops or
++   fault. There are several ways you can enter the kernel debugger
++   manually; all involve using the :kbd:`SysRq-G`, which means you must have
++   enabled ``CONFIG_MAGIC_SYSRQ=y`` in your kernel config.
++
++   -  When logged in as root or with a super user session you can run::
++
++	echo g > /proc/sysrq-trigger
++
++   -  Example using minicom 2.2
++
++      Press: :kbd:`CTRL-A` :kbd:`f` :kbd:`g`
++
++   -  When you have telneted to a terminal server that supports sending
++      a remote break
++
++      Press: :kbd:`CTRL-]`
++
++      Type in: ``send break``
++
++      Press: :kbd:`Enter` :kbd:`g`
++
++3. From the kdb prompt you can run the ``help`` command to see a complete
++   list of the commands that are available.
++
++   Some useful commands in kdb include:
++
++   =========== =================================================================
++   ``lsmod``   Shows where kernel modules are loaded
++   ``ps``      Displays only the active processes
++   ``ps A``    Shows all the processes
++   ``summary`` Shows kernel version info and memory usage
++   ``bt``      Get a backtrace of the current process using dump_stack()
++   ``dmesg``   View the kernel syslog buffer
++   ``go``      Continue the system
++   =========== =================================================================
++
++4. When you are done using kdb you need to consider rebooting the system
++   or using the ``go`` command to resuming normal kernel execution. If you
++   have paused the kernel for a lengthy period of time, applications
++   that rely on timely networking or anything to do with real wall clock
++   time could be adversely affected, so you should take this into
++   consideration when using the kernel debugger.
++
++Quick start for kdb using a keyboard connected console
++------------------------------------------------------
++
++This is a quick example of how to use kdb with a keyboard.
++
++1. Configure kgdboc at boot using kernel parameters::
++
++	kgdboc=kbd
++
++   OR
++
++   Configure kgdboc after the kernel has booted::
++
++	echo kbd > /sys/module/kgdboc/parameters/kgdboc
++
++2. Enter the kernel debugger manually or by waiting for an oops or
++   fault. There are several ways you can enter the kernel debugger
++   manually; all involve using the :kbd:`SysRq-G`, which means you must have
++   enabled ``CONFIG_MAGIC_SYSRQ=y`` in your kernel config.
++
++   -  When logged in as root or with a super user session you can run::
++
++	echo g > /proc/sysrq-trigger
++
++   -  Example using a laptop keyboard:
++
++      Press and hold down: :kbd:`Alt`
++
++      Press and hold down: :kbd:`Fn`
++
++      Press and release the key with the label: :kbd:`SysRq`
++
++      Release: :kbd:`Fn`
++
++      Press and release: :kbd:`g`
++
++      Release: :kbd:`Alt`
++
++   -  Example using a PS/2 101-key keyboard
++
++      Press and hold down: :kbd:`Alt`
++
++      Press and release the key with the label: :kbd:`SysRq`
++
++      Press and release: :kbd:`g`
++
++      Release: :kbd:`Alt`
++
++3. Now type in a kdb command such as ``help``, ``dmesg``, ``bt`` or ``go`` to
++   continue kernel execution.
++
++Using kgdb / gdb
++================
++
++In order to use kgdb you must activate it by passing configuration
++information to one of the kgdb I/O drivers. If you do not pass any
++configuration information kgdb will not do anything at all. Kgdb will
++only actively hook up to the kernel trap hooks if a kgdb I/O driver is
++loaded and configured. If you unconfigure a kgdb I/O driver, kgdb will
++unregister all the kernel hook points.
++
++All kgdb I/O drivers can be reconfigured at run time, if
++``CONFIG_SYSFS`` and ``CONFIG_MODULES`` are enabled, by echo'ing a new
++config string to ``/sys/module/<driver>/parameter/<option>``. The driver
++can be unconfigured by passing an empty string. You cannot change the
++configuration while the debugger is attached. Make sure to detach the
++debugger with the ``detach`` command prior to trying to unconfigure a
++kgdb I/O driver.
++
++Connecting with gdb to a serial port
++------------------------------------
++
++1. Configure kgdboc
++
++   Configure kgdboc at boot using kernel parameters::
++
++	kgdboc=ttyS0,115200
++
++   OR
++
++   Configure kgdboc after the kernel has booted::
++
++	echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
++
++2. Stop kernel execution (break into the debugger)
++
++   In order to connect to gdb via kgdboc, the kernel must first be
++   stopped. There are several ways to stop the kernel which include
++   using kgdbwait as a boot argument, via a :kbd:`SysRq-G`, or running the
++   kernel until it takes an exception where it waits for the debugger to
++   attach.
++
++   -  When logged in as root or with a super user session you can run::
++
++	echo g > /proc/sysrq-trigger
++
++   -  Example using minicom 2.2
++
++      Press: :kbd:`CTRL-A` :kbd:`f` :kbd:`g`
++
++   -  When you have telneted to a terminal server that supports sending
++      a remote break
++
++      Press: :kbd:`CTRL-]`
++
++      Type in: ``send break``
++
++      Press: :kbd:`Enter` :kbd:`g`
++
++3. Connect from gdb
++
++   Example (using a directly connected port)::
++
++           % gdb ./vmlinux
++           (gdb) set serial baud 115200
++           (gdb) target remote /dev/ttyS0
++
++
++   Example (kgdb to a terminal server on TCP port 2012)::
++
++           % gdb ./vmlinux
++           (gdb) target remote 192.168.2.2:2012
++
++
++   Once connected, you can debug a kernel the way you would debug an
++   application program.
++
++   If you are having problems connecting or something is going seriously
++   wrong while debugging, it will most often be the case that you want
++   to enable gdb to be verbose about its target communications. You do
++   this prior to issuing the ``target remote`` command by typing in::
++
++	set debug remote 1
++
++Remember if you continue in gdb, and need to "break in" again, you need
++to issue an other :kbd:`SysRq-G`. It is easy to create a simple entry point by
++putting a breakpoint at ``sys_sync`` and then you can run ``sync`` from a
++shell or script to break into the debugger.
++
++kgdb and kdb interoperability
++=============================
++
++It is possible to transition between kdb and kgdb dynamically. The debug
++core will remember which you used the last time and automatically start
++in the same mode.
++
++Switching between kdb and kgdb
++------------------------------
++
++Switching from kgdb to kdb
++~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++There are two ways to switch from kgdb to kdb: you can use gdb to issue
++a maintenance packet, or you can blindly type the command ``$3#33``.
++Whenever the kernel debugger stops in kgdb mode it will print the
++message ``KGDB or $3#33 for KDB``. It is important to note that you have
++to type the sequence correctly in one pass. You cannot type a backspace
++or delete because kgdb will interpret that as part of the debug stream.
++
++1. Change from kgdb to kdb by blindly typing::
++
++	$3#33
++
++2. Change from kgdb to kdb with gdb::
++
++	maintenance packet 3
++
++   .. note::
++
++     Now you must kill gdb. Typically you press :kbd:`CTRL-Z` and issue
++     the command::
++
++	kill -9 %
++
++Change from kdb to kgdb
++~~~~~~~~~~~~~~~~~~~~~~~
++
++There are two ways you can change from kdb to kgdb. You can manually
++enter kgdb mode by issuing the kgdb command from the kdb shell prompt,
++or you can connect gdb while the kdb shell prompt is active. The kdb
++shell looks for the typical first commands that gdb would issue with the
++gdb remote protocol and if it sees one of those commands it
++automatically changes into kgdb mode.
++
++1. From kdb issue the command::
++
++	kgdb
++
++2. At the kdb prompt, disconnect the terminal program and connect gdb in
++   its place.
++
++Running kdb commands from gdb
++-----------------------------
++
++It is possible to run a limited set of kdb commands from gdb, using the
++gdb monitor command. You don't want to execute any of the run control or
++breakpoint operations, because it can disrupt the state of the kernel
++debugger. You should be using gdb for breakpoints and run control
++operations if you have gdb connected. The more useful commands to run
++are things like lsmod, dmesg, ps or possibly some of the memory
++information commands. To see all the kdb commands you can run
++``monitor help``.
++
++Example::
++
++    (gdb) monitor ps
++    1 idle process (state I) and
++    27 sleeping system daemon (state M) processes suppressed,
++    use 'ps A' to see all.
++    Task Addr       Pid   Parent [*] cpu State Thread     Command
++
++    0xc78291d0        1        0  0    0   S  0xc7829404  init
++    0xc7954150      942        1  0    0   S  0xc7954384  dropbear
++    0xc78789c0      944        1  0    0   S  0xc7878bf4  sh
++    (gdb)
++
++kgdb Test Suite
++===============
++
++When kgdb is enabled in the kernel config you can also elect to enable
++the config parameter ``KGDB_TESTS``. Turning this on will enable a special
++kgdb I/O module which is designed to test the kgdb internal functions.
++
++The kgdb tests are mainly intended for developers to test the kgdb
++internals as well as a tool for developing a new kgdb architecture
++specific implementation. These tests are not really for end users of the
++Linux kernel. The primary source of documentation would be to look in
++the ``drivers/misc/kgdbts.c`` file.
++
++The kgdb test suite can also be configured at compile time to run the
++core set of tests by setting the kernel config parameter
++``KGDB_TESTS_ON_BOOT``. This particular option is aimed at automated
++regression testing and does not require modifying the kernel boot config
++arguments. If this is turned on, the kgdb test suite can be disabled by
++specifying ``kgdbts=`` as a kernel boot argument.
++
++Kernel Debugger Internals
++=========================
++
++Architecture Specifics
++----------------------
++
++The kernel debugger is organized into a number of components:
++
++1. The debug core
++
++   The debug core is found in ``kernel/debugger/debug_core.c``. It
++   contains:
++
++   -  A generic OS exception handler which includes sync'ing the
++      processors into a stopped state on an multi-CPU system.
++
++   -  The API to talk to the kgdb I/O drivers
++
++   -  The API to make calls to the arch-specific kgdb implementation
++
++   -  The logic to perform safe memory reads and writes to memory while
++      using the debugger
++
++   -  A full implementation for software breakpoints unless overridden
++      by the arch
++
++   -  The API to invoke either the kdb or kgdb frontend to the debug
++      core.
++
++   -  The structures and callback API for atomic kernel mode setting.
++
++      .. note:: kgdboc is where the kms callbacks are invoked.
++
++2. kgdb arch-specific implementation
++
++   This implementation is generally found in ``arch/*/kernel/kgdb.c``. As
++   an example, ``arch/x86/kernel/kgdb.c`` contains the specifics to
++   implement HW breakpoint as well as the initialization to dynamically
++   register and unregister for the trap handlers on this architecture.
++   The arch-specific portion implements:
++
++   -  contains an arch-specific trap catcher which invokes
++      kgdb_handle_exception() to start kgdb about doing its work
++
++   -  translation to and from gdb specific packet format to struct pt_regs
++
++   -  Registration and unregistration of architecture specific trap
++      hooks
++
++   -  Any special exception handling and cleanup
++
++   -  NMI exception handling and cleanup
++
++   -  (optional) HW breakpoints
++
++3. gdbstub frontend (aka kgdb)
++
++   The gdbstub is located in ``kernel/debug/gdbstub.c``. It contains:
++
++   -  All the logic to implement the gdb serial protocol
++
++4. kdb frontend
++
++   The kdb debugger shell is broken down into a number of components.
++   The kdb core is located in kernel/debug/kdb. There are a number of
++   helper functions in some of the other kernel components to make it
++   possible for kdb to examine and report information about the kernel
++   without taking locks that could cause a kernel deadlock. The kdb core
++   implements the following functionality.
++
++   -  A simple shell
++
++   -  The kdb core command set
++
++   -  A registration API to register additional kdb shell commands.
++
++      -  A good example of a self-contained kdb module is the ``ftdump``
++         command for dumping the ftrace buffer. See:
++         ``kernel/trace/trace_kdb.c``
++
++      -  For an example of how to dynamically register a new kdb command
++         you can build the kdb_hello.ko kernel module from
++         ``samples/kdb/kdb_hello.c``. To build this example you can set
++         ``CONFIG_SAMPLES=y`` and ``CONFIG_SAMPLE_KDB=m`` in your kernel
++         config. Later run ``modprobe kdb_hello`` and the next time you
++         enter the kdb shell, you can run the ``hello`` command.
++
++   -  The implementation for kdb_printf() which emits messages directly
++      to I/O drivers, bypassing the kernel log.
++
++   -  SW / HW breakpoint management for the kdb shell
++
++5. kgdb I/O driver
++
++   Each kgdb I/O driver has to provide an implementation for the
++   following:
++
++   -  configuration via built-in or module
++
++   -  dynamic configuration and kgdb hook registration calls
++
++   -  read and write character interface
++
++   -  A cleanup handler for unconfiguring from the kgdb core
++
++   -  (optional) Early debug methodology
++
++   Any given kgdb I/O driver has to operate very closely with the
++   hardware and must do it in such a way that does not enable interrupts
++   or change other parts of the system context without completely
++   restoring them. The kgdb core will repeatedly "poll" a kgdb I/O
++   driver for characters when it needs input. The I/O driver is expected
++   to return immediately if there is no data available. Doing so allows
++   for the future possibility to touch watchdog hardware in such a way
++   as to have a target system not reset when these are enabled.
++
++If you are intent on adding kgdb architecture specific support for a new
++architecture, the architecture should define ``HAVE_ARCH_KGDB`` in the
++architecture specific Kconfig file. This will enable kgdb for the
++architecture, and at that point you must create an architecture specific
++kgdb implementation.
++
++There are a few flags which must be set on every architecture in their
++``asm/kgdb.h`` file. These are:
++
++-  ``NUMREGBYTES``:
++     The size in bytes of all of the registers, so that we
++     can ensure they will all fit into a packet.
++
++-  ``BUFMAX``:
++     The size in bytes of the buffer GDB will read into. This must
++     be larger than NUMREGBYTES.
++
++-  ``CACHE_FLUSH_IS_SAFE``:
++     Set to 1 if it is always safe to call
++     flush_cache_range or flush_icache_range. On some architectures,
++     these functions may not be safe to call on SMP since we keep other
++     CPUs in a holding pattern.
++
++There are also the following functions for the common backend, found in
++``kernel/kgdb.c``, that must be supplied by the architecture-specific
++backend unless marked as (optional), in which case a default function
++maybe used if the architecture does not need to provide a specific
++implementation.
++
++.. kernel-doc:: include/linux/kgdb.h
++   :internal:
++
++kgdboc internals
++----------------
++
++kgdboc and uarts
++~~~~~~~~~~~~~~~~
++
++The kgdboc driver is actually a very thin driver that relies on the
++underlying low level to the hardware driver having "polling hooks" to
++which the tty driver is attached. In the initial implementation of
++kgdboc the serial_core was changed to expose a low level UART hook for
++doing polled mode reading and writing of a single character while in an
++atomic context. When kgdb makes an I/O request to the debugger, kgdboc
++invokes a callback in the serial core which in turn uses the callback in
++the UART driver.
++
++When using kgdboc with a UART, the UART driver must implement two
++callbacks in the struct uart_ops.
++Example from ``drivers/8250.c``::
++
++
++    #ifdef CONFIG_CONSOLE_POLL
++        .poll_get_char = serial8250_get_poll_char,
++        .poll_put_char = serial8250_put_poll_char,
++    #endif
++
++
++Any implementation specifics around creating a polling driver use the
++``#ifdef CONFIG_CONSOLE_POLL``, as shown above. Keep in mind that
++polling hooks have to be implemented in such a way that they can be
++called from an atomic context and have to restore the state of the UART
++chip on return such that the system can return to normal when the
++debugger detaches. You need to be very careful with any kind of lock you
++consider, because failing here is most likely going to mean pressing the
++reset button.
++
++kgdboc and keyboards
++~~~~~~~~~~~~~~~~~~~~~~~~
++
++The kgdboc driver contains logic to configure communications with an
++attached keyboard. The keyboard infrastructure is only compiled into the
++kernel when ``CONFIG_KDB_KEYBOARD=y`` is set in the kernel configuration.
++
++The core polled keyboard driver for PS/2 type keyboards is in
++``drivers/char/kdb_keyboard.c``. This driver is hooked into the debug core
++when kgdboc populates the callback in the array called
++:c:expr:`kdb_poll_funcs[]`. The kdb_get_kbd_char() is the top-level
++function which polls hardware for single character input.
++
++kgdboc and kms
++~~~~~~~~~~~~~~~~~~
++
++The kgdboc driver contains logic to request the graphics display to
++switch to a text context when you are using ``kgdboc=kms,kbd``, provided
++that you have a video driver which has a frame buffer console and atomic
++kernel mode setting support.
++
++Every time the kernel debugger is entered it calls
++kgdboc_pre_exp_handler() which in turn calls con_debug_enter()
++in the virtual console layer. On resuming kernel execution, the kernel
++debugger calls kgdboc_post_exp_handler() which in turn calls
++con_debug_leave().
++
++Any video driver that wants to be compatible with the kernel debugger
++and the atomic kms callbacks must implement the ``mode_set_base_atomic``,
++``fb_debug_enter`` and ``fb_debug_leave operations``. For the
++``fb_debug_enter`` and ``fb_debug_leave`` the option exists to use the
++generic drm fb helper functions or implement something custom for the
++hardware. The following example shows the initialization of the
++.mode_set_base_atomic operation in
++drivers/gpu/drm/i915/intel_display.c::
++
++
++    static const struct drm_crtc_helper_funcs intel_helper_funcs = {
++    [...]
++            .mode_set_base_atomic = intel_pipe_set_base_atomic,
++    [...]
++    };
++
++
++Here is an example of how the i915 driver initializes the
++fb_debug_enter and fb_debug_leave functions to use the generic drm
++helpers in ``drivers/gpu/drm/i915/intel_fb.c``::
++
++
++    static struct fb_ops intelfb_ops = {
++    [...]
++           .fb_debug_enter = drm_fb_helper_debug_enter,
++           .fb_debug_leave = drm_fb_helper_debug_leave,
++    [...]
++    };
++
++
++Credits
++=======
++
++The following people have contributed to this document:
++
++1. Amit Kale <amitkale@linsyssoft.com>
++
++2. Tom Rini <trini@kernel.crashing.org>
++
++In March 2008 this document was completely rewritten by:
++
++-  Jason Wessel <jason.wessel@windriver.com>
++
++In Jan 2010 this document was updated to include kdb.
++
++-  Jason Wessel <jason.wessel@windriver.com>
+--- a/include/linux/tty_driver.h~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/include/linux/tty_driver.h
+@@ -320,7 +320,7 @@ struct serial_struct;
   *
-- * A page is added to the youngest generation on faulting. The aging needs to
-- * check the accessed bit at least twice before handing this page over to the
-- * eviction. The first check takes care of the accessed bit set on the initial
-- * fault; the second check makes sure this page hasn't been used since then.
-- * This process, AKA second chance, requires a minimum of two generations,
-- * hence MIN_NR_GENS. And to maintain ABI compatibility with the active/inactive
-- * LRU, e.g., /proc/vmstat, these two generations are considered active; the
-- * rest of generations, if they exist, are considered inactive. See
-- * lru_gen_is_active().
-- *
-- * PG_active is always cleared while a page is on one of lrugen->folios[] so
-- * that the aging needs not to worry about it. And it's set again when a page
-- * considered active is isolated for non-reclaiming purposes, e.g., migration.
-- * See lru_gen_add_folio() and lru_gen_del_folio().
-+ * After a folio is faulted in, the aging needs to check the accessed bit at
-+ * least twice before handing this folio over to the eviction. The first check
-+ * clears the accessed bit from the initial fault; the second check makes sure
-+ * this folio hasn't been used since then. This process, AKA second chance,
-+ * requires a minimum of two generations, hence MIN_NR_GENS. And to maintain ABI
-+ * compatibility with the active/inactive LRU, e.g., /proc/vmstat, these two
-+ * generations are considered active; the rest of generations, if they exist,
-+ * are considered inactive. See lru_gen_is_active().
-+ *
-+ * PG_active is always cleared while a folio is on one of lrugen->folios[] so
-+ * that the sliding window needs not to worry about it. And it's set again when
-+ * a folio considered active is isolated for non-reclaiming purposes, e.g.,
-+ * migration. See lru_gen_add_folio() and lru_gen_del_folio().
+  * @poll_init: ``int ()(struct tty_driver *driver, int line, char *options)``
   *
-  * MAX_NR_GENS is set to 4 so that the multi-gen LRU can support twice the
-  * number of categories of the active/inactive LRU when keeping track of
-  * accesses through page tables. This requires order_base_2(MAX_NR_GENS+1) bits
-- * in folio->flags.
-+ * in folio->flags, masked by LRU_GEN_MASK.
-  */
- #define MIN_NR_GENS		2U
- #define MAX_NR_GENS		4U
- 
- /*
-- * Each generation is divided into multiple tiers. A page accessed N times
-- * through file descriptors is in tier order_base_2(N). A page in the first tier
-- * (N=0,1) is marked by PG_referenced unless it was faulted in through page
-- * tables or read ahead. A page in any other tier (N>1) is marked by
-- * PG_referenced and PG_workingset. This implies a minimum of two tiers is
-- * supported without using additional bits in folio->flags.
-+ * Each generation is divided into multiple tiers. A folio accessed N times
-+ * through file descriptors is in tier order_base_2(N). A folio in the first
-+ * tier (N=0,1) is marked by PG_referenced unless it was faulted in through page
-+ * tables or read ahead. A folio in the last tier (MAX_NR_TIERS-1) is marked by
-+ * PG_workingset. A folio in any other tier (1<N<5) between the first and last
-+ * is marked by additional bits of LRU_REFS_WIDTH in folio->flags.
+- *	kgdboc support (Documentation/dev-tools/kgdb.rst). This routine is
++ *	kgdboc support (Documentation/process/debugging/kgdb.rst). This routine is
+  *	called to initialize the HW for later use by calling @poll_get_char or
+  *	@poll_put_char.
   *
-  * In contrast to moving across generations which requires the LRU lock, moving
-  * across tiers only involves atomic operations on folio->flags and therefore
-  * has a negligible cost in the buffered access path. In the eviction path,
-- * comparisons of refaulted/(evicted+protected) from the first tier and the
-- * rest infer whether pages accessed multiple times through file descriptors
-- * are statistically hot and thus worth protecting.
-+ * comparisons of refaulted/(evicted+protected) from the first tier and the rest
-+ * infer whether folios accessed multiple times through file descriptors are
-+ * statistically hot and thus worth protecting.
-  *
-  * MAX_NR_TIERS is set to 4 so that the multi-gen LRU can support twice the
-  * number of categories of the active/inactive LRU when keeping track of
-  * accesses through file descriptors. This uses MAX_NR_TIERS-2 spare bits in
-- * folio->flags.
-+ * folio->flags, masked by LRU_REFS_MASK.
-  */
- #define MAX_NR_TIERS		4U
+--- a/lib/Kconfig.debug~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/lib/Kconfig.debug
+@@ -433,7 +433,7 @@ config GDB_SCRIPTS
+ 	  build directory. If you load vmlinux into gdb, the helper
+ 	  scripts will be automatically imported by gdb as well, and
+ 	  additional functions are available to analyze a Linux kernel
+-	  instance. See Documentation/dev-tools/gdb-kernel-debugging.rst
++	  instance. See Documentation/process/debugging/gdb-kernel-debugging.rst
+ 	  for further details.
  
- #ifndef __GENERATING_BOUNDS_H
+ endif # DEBUG_INFO
+--- a/lib/Kconfig.kgdb~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/lib/Kconfig.kgdb
+@@ -19,7 +19,7 @@ menuconfig KGDB
+ 	  CONFIG_FRAME_POINTER to aid in producing more reliable stack
+ 	  backtraces in the external debugger.  Documentation of
+ 	  kernel debugger is available at http://kgdb.sourceforge.net
+-	  as well as in Documentation/dev-tools/kgdb.rst.  If
++	  as well as in Documentation/process/debugging/kgdb.rst.  If
+ 	  unsure, say N.
  
--struct lruvec;
--struct page_vma_mapped_walk;
--
- #define LRU_GEN_MASK		((BIT(LRU_GEN_WIDTH) - 1) << LRU_GEN_PGOFF)
- #define LRU_REFS_MASK		((BIT(LRU_REFS_WIDTH) - 1) << LRU_REFS_PGOFF)
- 
-+/*
-+ * For folios accessed multiple times through file descriptors,
-+ * lru_gen_inc_refs() sets additional bits of LRU_REFS_WIDTH in folio->flags
-+ * after PG_referenced, then PG_workingset after LRU_REFS_WIDTH. After all its
-+ * bits are set, i.e., LRU_REFS_FLAGS|BIT(PG_workingset), a folio is lazily
-+ * promoted into the second oldest generation in the eviction path. And when
-+ * folio_inc_gen() does that, it clears LRU_REFS_FLAGS so that
-+ * lru_gen_inc_refs() can start over. Note that for this case, LRU_REFS_MASK is
-+ * only valid when PG_referenced is set.
-+ *
-+ * For folios accessed multiple times through page tables, folio_update_gen()
-+ * from a page table walk or lru_gen_set_refs() from a rmap walk sets
-+ * PG_referenced after the accessed bit is cleared for the first time.
-+ * Thereafter, those two paths set PG_workingset and promote folios to the
-+ * youngest generation. Like folio_inc_gen(), folio_update_gen() also clears
-+ * PG_referenced. Note that for this case, LRU_REFS_MASK is not used.
-+ *
-+ * For both cases above, after PG_workingset is set on a folio, it remains until
-+ * this folio is either reclaimed, or "deactivated" by lru_gen_clear_refs(). It
-+ * can be set again if lru_gen_test_recent() returns true upon a refault.
-+ */
-+#define LRU_REFS_FLAGS		(LRU_REFS_MASK | BIT(PG_referenced))
-+
-+struct lruvec;
-+struct page_vma_mapped_walk;
-+
- #ifdef CONFIG_LRU_GEN
- 
- enum {
-@@ -406,8 +428,6 @@ enum {
- 	NR_LRU_GEN_CAPS
- };
- 
--#define LRU_REFS_FLAGS		(BIT(PG_referenced) | BIT(PG_workingset))
--
- #define MIN_LRU_BATCH		BITS_PER_LONG
- #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 64)
- 
---- a/mm/swap.c~mm-mglru-rework-workingset-protection
-+++ a/mm/swap.c
-@@ -387,24 +387,19 @@ static void lru_gen_inc_refs(struct foli
- 	if (folio_test_unevictable(folio))
- 		return;
- 
-+	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio)) {
--		folio_set_referenced(folio);
--		return;
--	}
--
--	if (!folio_test_workingset(folio)) {
--		folio_set_workingset(folio);
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
- 		return;
- 	}
- 
--	/* see the comment on MAX_NR_TIERS */
- 	do {
--		new_flags = old_flags & LRU_REFS_MASK;
--		if (new_flags == LRU_REFS_MASK)
--			break;
-+		if ((old_flags & LRU_REFS_MASK) == LRU_REFS_MASK) {
-+			folio_set_workingset(folio);
-+			return;
-+		}
- 
--		new_flags += BIT(LRU_REFS_PGOFF);
--		new_flags |= old_flags & ~LRU_REFS_MASK;
-+		new_flags = old_flags + BIT(LRU_REFS_PGOFF);
- 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
- }
- 
-@@ -414,7 +409,7 @@ static bool lru_gen_clear_refs(struct fo
- 	int type = folio_is_file_lru(folio);
- 	struct lru_gen_folio *lrugen = &folio_lruvec(folio)->lrugen;
- 
--	set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
-+	set_mask_bits(&folio->flags, LRU_REFS_FLAGS | BIT(PG_workingset), 0);
- 
- 	/* whether can do without shuffling under the LRU lock */
- 	return gen == lru_gen_from_seq(READ_ONCE(lrugen->min_seq[type]));
-@@ -495,7 +490,7 @@ void folio_add_lru(struct folio *folio)
- 			folio_test_unevictable(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 
--	/* see the comment in lru_gen_add_folio() */
-+	/* see the comment in lru_gen_distance() */
- 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
- 	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
- 		folio_set_active(folio);
---- a/mm/vmscan.c~mm-mglru-rework-workingset-protection
-+++ a/mm/vmscan.c
-@@ -862,6 +862,31 @@ enum folio_references {
- 	FOLIOREF_ACTIVATE,
- };
- 
-+#ifdef CONFIG_LRU_GEN
-+/*
-+ * Only used on a mapped folio in the eviction (rmap walk) path, where promotion
-+ * needs to be done by taking the folio off the LRU list and then adding it back
-+ * with PG_active set. In contrast, the aging (page table walk) path uses
-+ * folio_update_gen().
-+ */
-+static bool lru_gen_set_refs(struct folio *folio)
-+{
-+	/* see the comment on LRU_REFS_FLAGS */
-+	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
-+		return false;
-+	}
-+
-+	set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_workingset));
-+	return true;
-+}
-+#else
-+static bool lru_gen_set_refs(struct folio *folio)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_LRU_GEN */
-+
- static enum folio_references folio_check_references(struct folio *folio,
- 						  struct scan_control *sc)
- {
-@@ -870,7 +895,6 @@ static enum folio_references folio_check
- 
- 	referenced_ptes = folio_referenced(folio, 1, sc->target_mem_cgroup,
- 					   &vm_flags);
--	referenced_folio = folio_test_clear_referenced(folio);
- 
- 	/*
- 	 * The supposedly reclaimable folio was found to be in a VM_LOCKED vma.
-@@ -888,6 +912,16 @@ static enum folio_references folio_check
- 	if (referenced_ptes == -1)
- 		return FOLIOREF_KEEP;
- 
-+	if (lru_gen_enabled()) {
-+		if (!referenced_ptes)
-+			return FOLIOREF_RECLAIM;
-+
-+		lru_gen_set_refs(folio);
-+		return FOLIOREF_ACTIVATE;
-+	}
-+
-+	referenced_folio = folio_test_clear_referenced(folio);
-+
- 	if (referenced_ptes) {
- 		/*
- 		 * All mapped folios start out with page table
-@@ -1092,11 +1126,6 @@ retry:
- 		if (!sc->may_unmap && folio_mapped(folio))
- 			goto keep_locked;
- 
--		/* folio_update_gen() tried to promote this page? */
--		if (lru_gen_enabled() && !ignore_references &&
--		    folio_mapped(folio) && folio_test_referenced(folio))
--			goto keep_locked;
--
- 		/*
- 		 * The number of dirty pages determines if a node is marked
- 		 * reclaim_congested. kswapd will stall and start writing
-@@ -3163,16 +3192,19 @@ static int folio_update_gen(struct folio
- 
- 	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS);
- 
-+	/* see the comment on LRU_REFS_FLAGS */
-+	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
-+		return -1;
-+	}
-+
- 	do {
- 		/* lru_gen_del_folio() has isolated this page? */
--		if (!(old_flags & LRU_GEN_MASK)) {
--			/* for shrink_folio_list() */
--			new_flags = old_flags | BIT(PG_referenced);
--			continue;
--		}
-+		if (!(old_flags & LRU_GEN_MASK))
-+			return -1;
- 
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
--		new_flags |= (gen + 1UL) << LRU_GEN_PGOFF;
-+		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
-+		new_flags |= ((gen + 1UL) << LRU_GEN_PGOFF) | BIT(PG_workingset);
- 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
- 
- 	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
-@@ -3196,7 +3228,7 @@ static int folio_inc_gen(struct lruvec *
- 
- 		new_gen = (old_gen + 1) % MAX_NR_GENS;
- 
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
-+		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
- 		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
- 		/* for folio_end_writeback() */
- 		if (reclaiming)
-@@ -3374,9 +3406,11 @@ static unsigned long get_pmd_pfn(pmd_t p
- static struct folio *get_pfn_folio(unsigned long pfn, struct mem_cgroup *memcg,
- 				   struct pglist_data *pgdat)
- {
--	struct folio *folio;
-+	struct folio *folio = pfn_folio(pfn);
-+
-+	if (folio_lru_gen(folio) < 0)
-+		return NULL;
- 
--	folio = pfn_folio(pfn);
- 	if (folio_nid(folio) != pgdat->node_id)
- 		return NULL;
- 
-@@ -3753,8 +3787,7 @@ static bool inc_min_seq(struct lruvec *l
- 		while (!list_empty(head)) {
- 			struct folio *folio = lru_to_folio(head);
- 			int refs = folio_lru_refs(folio);
--			int tier = lru_tier_from_refs(refs);
--			int delta = folio_nr_pages(folio);
-+			bool workingset = folio_test_workingset(folio);
- 
- 			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
-@@ -3764,8 +3797,14 @@ static bool inc_min_seq(struct lruvec *l
- 			new_gen = folio_inc_gen(lruvec, folio, false);
- 			list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
- 
--			WRITE_ONCE(lrugen->protected[hist][type][tier],
--				   lrugen->protected[hist][type][tier] + delta);
-+			/* don't count the workingset being lazily promoted */
-+			if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
-+				int tier = lru_tier_from_refs(refs, workingset);
-+				int delta = folio_nr_pages(folio);
-+
-+				WRITE_ONCE(lrugen->protected[hist][type][tier],
-+					   lrugen->protected[hist][type][tier] + delta);
-+			}
- 
- 			if (!--remaining)
- 				return false;
-@@ -4138,12 +4177,10 @@ bool lru_gen_look_around(struct page_vma
- 			continue;
- 		}
- 
--		old_gen = folio_lru_gen(folio);
--		if (old_gen < 0)
--			folio_set_referenced(folio);
--		else if (old_gen != new_gen) {
--			folio_clear_lru_refs(folio);
--			folio_activate(folio);
-+		if (lru_gen_set_refs(folio)) {
-+			old_gen = folio_lru_gen(folio);
-+			if (old_gen >= 0 && old_gen != new_gen)
-+				folio_activate(folio);
- 		}
- 	}
- 
-@@ -4304,7 +4341,8 @@ static bool sort_folio(struct lruvec *lr
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
--	int tier = lru_tier_from_refs(refs);
-+	bool workingset = folio_test_workingset(folio);
-+	int tier = lru_tier_from_refs(refs, workingset);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
-@@ -4326,14 +4364,17 @@ static bool sort_folio(struct lruvec *lr
- 	}
- 
- 	/* protected */
--	if (tier > tier_idx || refs == BIT(LRU_REFS_WIDTH)) {
--		int hist = lru_hist_from_seq(lrugen->min_seq[type]);
--
-+	if (tier > tier_idx || refs + workingset == BIT(LRU_REFS_WIDTH) + 1) {
- 		gen = folio_inc_gen(lruvec, folio, false);
--		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
-+		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 
--		WRITE_ONCE(lrugen->protected[hist][type][tier],
--			   lrugen->protected[hist][type][tier] + delta);
-+		/* don't count the workingset being lazily promoted */
-+		if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
-+			int hist = lru_hist_from_seq(lrugen->min_seq[type]);
-+
-+			WRITE_ONCE(lrugen->protected[hist][type][tier],
-+				   lrugen->protected[hist][type][tier] + delta);
-+		}
- 		return true;
- 	}
- 
-@@ -4353,8 +4394,7 @@ static bool sort_folio(struct lruvec *lr
- 	}
- 
- 	/* waiting for writeback */
--	if (folio_test_locked(folio) || writeback ||
--	    (type == LRU_GEN_FILE && dirty)) {
-+	if (writeback || (type == LRU_GEN_FILE && dirty)) {
- 		gen = folio_inc_gen(lruvec, folio, true);
- 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
-@@ -4383,13 +4423,12 @@ static bool isolate_folio(struct lruvec
- 		return false;
- 	}
- 
--	/* see the comment on MAX_NR_TIERS */
-+	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio))
--		folio_clear_lru_refs(folio);
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, 0);
- 
- 	/* for shrink_folio_list() */
- 	folio_clear_reclaim(folio);
--	folio_clear_referenced(folio);
- 
- 	success = lru_gen_del_folio(lruvec, folio, true);
- 	VM_WARN_ON_ONCE_FOLIO(!success, folio);
-@@ -4585,25 +4624,16 @@ retry:
- 			continue;
- 		}
- 
--		if (folio_test_reclaim(folio) &&
--		    (folio_test_dirty(folio) || folio_test_writeback(folio))) {
--			/* restore LRU_REFS_FLAGS cleared by isolate_folio() */
--			if (folio_test_workingset(folio))
--				folio_set_referenced(folio);
--			continue;
--		}
--
--		if (skip_retry || folio_test_active(folio) || folio_test_referenced(folio) ||
--		    folio_mapped(folio) || folio_test_locked(folio) ||
--		    folio_test_dirty(folio) || folio_test_writeback(folio)) {
--			/* don't add rejected folios to the oldest generation */
--			set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS,
--				      BIT(PG_active));
-+		/* retry folios that may have missed folio_rotate_reclaimable() */
-+		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
-+		    !folio_test_dirty(folio) && !folio_test_writeback(folio)) {
-+			list_move(&folio->lru, &clean);
- 			continue;
- 		}
- 
--		/* retry folios that may have missed folio_rotate_reclaimable() */
--		list_move(&folio->lru, &clean);
-+		/* don't add rejected folios to the oldest generation */
-+		if (!lru_gen_distance(folio, false))
-+			set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_active));
- 	}
- 
- 	spin_lock_irq(&lruvec->lru_lock);
---- a/mm/workingset.c~mm-mglru-rework-workingset-protection
-+++ a/mm/workingset.c
-@@ -239,7 +239,8 @@ static void *lru_gen_eviction(struct fol
- 	int type = folio_is_file_lru(folio);
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
--	int tier = lru_tier_from_refs(refs);
-+	bool workingset = folio_test_workingset(folio);
-+	int tier = lru_tier_from_refs(refs, workingset);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
- 	struct pglist_data *pgdat = folio_pgdat(folio);
- 
-@@ -253,7 +254,7 @@ static void *lru_gen_eviction(struct fol
- 	hist = lru_hist_from_seq(min_seq);
- 	atomic_long_add(delta, &lrugen->evicted[hist][type][tier]);
- 
--	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, refs);
-+	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, workingset);
- }
- 
- /*
-@@ -304,24 +305,20 @@ static void lru_gen_refault(struct folio
- 	lrugen = &lruvec->lrugen;
- 
- 	hist = lru_hist_from_seq(READ_ONCE(lrugen->min_seq[type]));
--	/* see the comment in folio_lru_refs() */
--	refs = (token & (BIT(LRU_REFS_WIDTH) - 1)) + workingset;
--	tier = lru_tier_from_refs(refs);
-+	refs = (token & (BIT(LRU_REFS_WIDTH) - 1)) + 1;
-+	tier = lru_tier_from_refs(refs, workingset);
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
--	mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 
--	/*
--	 * Count the following two cases as stalls:
--	 * 1. For pages accessed through page tables, hotter pages pushed out
--	 *    hot pages which refaulted immediately.
--	 * 2. For pages accessed multiple times through file descriptors,
--	 *    they would have been protected by sort_folio().
--	 */
--	if (lru_gen_in_fault() || refs >= BIT(LRU_REFS_WIDTH) - 1) {
--		set_mask_bits(&folio->flags, 0, LRU_REFS_MASK | BIT(PG_workingset));
-+	/* see folio_add_lru() where folio_set_active() happens */
-+	if (lru_gen_in_fault())
-+		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
-+
-+	if (workingset) {
-+		folio_set_workingset(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
--	}
-+	} else
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, (refs - 1UL) << LRU_REFS_PGOFF);
- unlock:
- 	rcu_read_unlock();
- }
+ if KGDB
+--- a/MAINTAINERS~documentation-move-dev-tools-debugging-files-to-process-debugging
++++ a/MAINTAINERS
+@@ -12809,7 +12809,7 @@ L:	kgdb-bugreport@lists.sourceforge.net
+ S:	Maintained
+ W:	http://kgdb.wiki.kernel.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jwessel/kgdb.git
+-F:	Documentation/dev-tools/kgdb.rst
++F:	Documentation/process/debugging/kgdb.rst
+ F:	drivers/misc/kgdbts.c
+ F:	drivers/tty/serial/kgdboc.c
+ F:	include/linux/kdb.h
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-mglru-clean-up-workingset.patch
-mm-mglru-optimize-deactivation.patch
-mm-mglru-rework-aging-feedback.patch
-mm-mglru-rework-type-selection.patch
-mm-mglru-rework-refault-detection.patch
-mm-mglru-rework-workingset-protection.patch
+scatterlist-fix-incorrect-func-name-in-kernel-doc.patch
+documentation-move-dev-tools-debugging-files-to-process-debugging.patch
 
