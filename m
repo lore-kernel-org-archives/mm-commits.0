@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB263B2BB
-	for <mm-commits@vger.kernel.org>; Sat,  7 Dec 2024 05:39:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7A4C28F5
+	for <mm-commits@vger.kernel.org>; Sat,  7 Dec 2024 05:44:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733549982; cv=none; b=bbEneBeKsPVSsOGxyR0epYLm/AaZd+9zIrtJQOXrnvlPVuPNM4/4XUNydCegYGhx+DV0Ka4ktiLSbvEgYfg1MVH9uWBEnJU+dAQWC73Jt7qxD4kBGlDOOO8NwPyo+4MzfgU5cco2QvehEmm5haNdh0nQ0YLE1U2YBb92pIoi7gE=
+	t=1733550278; cv=none; b=qquPeDfCzzn2lHk4kPONjd7Zsh/7Qxo5v5LwypR3rX5DD3IXpLJ9aM2HhymtzuBVhmB2+r7v1I6nNU8WRkjjr+KKqbtzzH4zT95i9akX919/MHfqbqbl1gxttt5W/Vy7AC0q0KNXTg+JNuC8nSU3dUZhOUjBJodwYCMps6Rlcr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733549982; c=relaxed/simple;
-	bh=7reVTg1JIx5kut2HWDiXgEC+DnXe0oxOEHViq2uQSlg=;
-	h=Date:To:From:Subject:Message-Id; b=YAEEQ8wtjqFmaoFblfjCdu+uoiG9tfgLiX7ag+K+NsjM/ZgfZ7SxR5+9GtH98pkBD/lyJW88Srk9sijTvUUY0z4gRZM19y6SD/LGBeSjZ/vaGhxec0rbDUzQ/27HEAuUgG8Zh8qeawt9nvOg22s8QOs0sgf7cLsF+hDChKX1VEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vI8GASIF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733550278; c=relaxed/simple;
+	bh=cTBA9xs+SrPLRHOp/JuBKfRi/CsJZjPMS8V+nZ7PH8I=;
+	h=Date:To:From:Subject:Message-Id; b=mY+gGc+i1aYyrjL0Z0dhMcAcGS0B+pPZc7gOwgeJQugO3rgrHZsowgUcPIfy+9fzeJ39uXMuyJOFnrJiIwfSNakbqlYZuNbDXyTZY0EafRx5E8oVWhhOOVVUbu++gNPYXONNwqqtG6Zafio4ycAwGdkm/SklAbvcZZStdBw+GS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gjqejcra; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vI8GASIF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7752DC4CECD;
-	Sat,  7 Dec 2024 05:39:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gjqejcra"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11887C4CECD;
+	Sat,  7 Dec 2024 05:44:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733549981;
-	bh=7reVTg1JIx5kut2HWDiXgEC+DnXe0oxOEHViq2uQSlg=;
+	s=korg; t=1733550278;
+	bh=cTBA9xs+SrPLRHOp/JuBKfRi/CsJZjPMS8V+nZ7PH8I=;
 	h=Date:To:From:Subject:From;
-	b=vI8GASIFzhgqnLmf700YJXtdbFP5N91zn9JHrmbUzM8eOpG3USBC8u1N+fOq7E7vi
-	 D13uD81QBAxOF0TqlN/0Nb2f43V9uN7qCeXmvKdV9DMLdu8Xqy/muPqHFSNAF0i/hH
-	 PWDMVcepLo4lUAOyJ5n49a+/a6Sf3wAH9gqj68Bw=
-Date: Fri, 06 Dec 2024 21:39:40 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,ehagberg@janestreet.com,david@redhat.com,akpm@linux-foundation.org,guillaume@morinfr.org,akpm@linux-foundation.org
+	b=GjqejcraIPbIUWZHAz3GWHUTXJgXD1QvZW6CxYtivaSDhkPAKtrZoDqjkjl15ZXmZ
+	 IQV6isih+zjkZSb8u3cPqXOM0CyDFaPED2Vqp9FNTbRS9WBtSu1EeKCpT+X+Ay9fO6
+	 LIaZBKNxqjFVfeevY4K2iqyO6Fces8RtuPM2oLZQ=
+Date: Fri, 06 Dec 2024 21:44:37 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rdunlap@infradead.org,pedro.falcato@gmail.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,keescook@chromium.org,jorgelo@chromium.org,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-support-foll_forcefoll_write.patch added to mm-unstable branch
-Message-Id: <20241207053941.7752DC4CECD@smtp.kernel.org>
+Subject: + mseal-remove-can_do_mseal.patch added to mm-unstable branch
+Message-Id: <20241207054438.11887C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+     Subject: mseal: remove can_do_mseal()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-support-foll_forcefoll_write.patch
+     mseal-remove-can_do_mseal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-support-foll_forcefoll_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-remove-can_do_mseal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,220 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
-Date: Fri, 6 Dec 2024 22:28:36 +0100
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal: remove can_do_mseal()
+Date: Fri, 6 Dec 2024 19:48:39 +0000
 
-Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
-mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
-support write-faults in shared mappings"), PTRACE_POKETEXT worked by
-accident, but it was buggy and silently ended up mapping pages writable
-into the page tables even though VM_WRITE was not set.
+No code logic change.
 
-In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
-Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
-used to work in the past by accident now properly works, allowing
-applications using hugetlb for text etc.  to get properly debugged.
+can_do_mseal() is called exclusively by mseal.c, and mseal.c is compiled
+only when CONFIG_64BIT flag is set in makefile.  Therefore, it is
+unnecessary to have 32 bit stub function in the header file, remove this
+function and merge the logic into do_mseal().
 
-This change might also be required to implement uprobes support for
-hugetlb [1].
-
-[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
-
-Link: https://lkml.kernel.org/r/Z1NshNfWuzUCPebA@bender.morinfr.org
-Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Hagberg <ehagberg@janestreet.com>
+Link: https://lkml.kernel.org/r/20241206013934.2782793-1-jeffxu@google.com
+Link: https://lkml.kernel.org/r/20241206194839.3030596-2-jeffxu@google.com
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c     |   91 +++++++++++++++++++++++--------------------------
- mm/hugetlb.c |   17 ++++-----
- 2 files changed, 53 insertions(+), 55 deletions(-)
+ mm/internal.h |   16 ----------------
+ mm/mseal.c    |    6 +++---
+ 2 files changed, 3 insertions(+), 19 deletions(-)
 
---- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/gup.c
-@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
- }
- #endif	/* CONFIG_HAVE_GUP_FAST */
+--- a/mm/internal.h~mseal-remove-can_do_mseal
++++ a/mm/internal.h
+@@ -1457,22 +1457,6 @@ void __meminit __init_single_page(struct
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+ 			  int priority);
  
-+/* Common code for can_follow_write_* */
-+static inline bool can_follow_write_common(struct page *page,
-+		struct vm_area_struct *vma, unsigned int flags)
-+{
-+	/* Maybe FOLL_FORCE is set to override it? */
-+	if (!(flags & FOLL_FORCE))
-+		return false;
-+
-+	/* But FOLL_FORCE has no effect on shared mappings */
-+	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
-+		return false;
-+
-+	/* ... or read-only private ones */
-+	if (!(vma->vm_flags & VM_MAYWRITE))
-+		return false;
-+
-+	/* ... or already writable ones that just need to take a write fault */
-+	if (vma->vm_flags & VM_WRITE)
-+		return false;
-+
-+	/*
-+	 * See can_change_pte_writable(): we broke COW and could map the page
-+	 * writable if we have an exclusive anonymous page ...
-+	 */
-+	return page && PageAnon(page) && PageAnonExclusive(page);
-+}
-+
- static struct page *no_page_table(struct vm_area_struct *vma,
- 				  unsigned int flags, unsigned long address)
- {
-@@ -622,6 +649,18 @@ static struct page *no_page_table(struct
- }
- 
- #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
-+/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
-+static inline bool can_follow_write_pud(pud_t pud, struct page *page,
-+					struct vm_area_struct *vma,
-+					unsigned int flags)
-+{
-+	/* If the pud is writable, we can write to the page. */
-+	if (pud_write(pud))
-+		return true;
-+
-+	return can_follow_write_common(page, vma, flags);
-+}
-+
- static struct page *follow_huge_pud(struct vm_area_struct *vma,
- 				    unsigned long addr, pud_t *pudp,
- 				    int flags, struct follow_page_context *ctx)
-@@ -634,10 +673,11 @@ static struct page *follow_huge_pud(stru
- 
- 	assert_spin_locked(pud_lockptr(mm, pudp));
- 
--	if ((flags & FOLL_WRITE) && !pud_write(pud))
-+	if (!pud_present(pud))
- 		return NULL;
- 
--	if (!pud_present(pud))
-+	if ((flags & FOLL_WRITE) &&
-+	    !can_follow_write_pud(pud, pfn_to_page(pfn), vma, flags))
- 		return NULL;
- 
- 	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
-@@ -686,27 +726,7 @@ static inline bool can_follow_write_pmd(
- 	if (pmd_write(pmd))
- 		return true;
- 
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
+-#ifdef CONFIG_64BIT
+-static inline int can_do_mseal(unsigned long flags)
+-{
+-	if (flags)
+-		return -EINVAL;
 -
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
+-	return 0;
+-}
 -
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
+-#else
+-static inline int can_do_mseal(unsigned long flags)
+-{
+-	return -EPERM;
+-}
+-#endif
 -
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
+ #ifdef CONFIG_SHRINKER_DEBUG
+ static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
+ 			struct shrinker *shrinker, const char *fmt, va_list ap)
+--- a/mm/mseal.c~mseal-remove-can_do_mseal
++++ a/mm/mseal.c
+@@ -217,9 +217,9 @@ int do_mseal(unsigned long start, size_t
+ 	unsigned long end;
+ 	struct mm_struct *mm = current->mm;
  
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -807,27 +827,7 @@ static inline bool can_follow_write_pte(
- 	if (pte_write(pte))
- 		return true;
+-	ret = can_do_mseal(flags);
+-	if (ret)
+-		return ret;
++	/* Verify flags not set. */
++	if (flags)
++		return -EINVAL;
  
--	/* Maybe FOLL_FORCE is set to override it? */
--	if (!(flags & FOLL_FORCE))
--		return false;
--
--	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
--		return false;
--
--	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
--		return false;
--
--	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
--		return false;
--
--	/*
--	 * See can_change_pte_writable(): we broke COW and could map the page
--	 * writable if we have an exclusive anonymous page ...
--	 */
--	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
-+	if (!can_follow_write_common(page, vma, flags))
- 		return false;
- 
- 	/* ... and a write-fault isn't required for other reasons. */
-@@ -1294,9 +1294,6 @@ static int check_vma_flags(struct vm_are
- 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
- 			if (!(gup_flags & FOLL_FORCE))
- 				return -EFAULT;
--			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
--			if (is_vm_hugetlb_page(vma))
--				return -EFAULT;
- 			/*
- 			 * We used to let the write,force case do COW in a
- 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
---- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
-+++ a/mm/hugetlb.c
-@@ -5183,6 +5183,13 @@ static void set_huge_ptep_writable(struc
- 		update_mmu_cache(vma, address, ptep);
- }
- 
-+static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
-+					 unsigned long address, pte_t *ptep)
-+{
-+	if (vma->vm_flags & VM_WRITE)
-+		set_huge_ptep_writable(vma, address, ptep);
-+}
-+
- bool is_hugetlb_entry_migration(pte_t pte)
- {
- 	swp_entry_t swp;
-@@ -5816,13 +5823,6 @@ static vm_fault_t hugetlb_wp(struct foli
- 	if (!unshare && huge_pte_uffd_wp(pte))
- 		return 0;
- 
--	/*
--	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
--	 * PTE mapped R/O such as maybe_mkwrite() would do.
--	 */
--	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
--		return VM_FAULT_SIGSEGV;
--
- 	/* Let's take out MAP_SHARED mappings first. */
- 	if (vma->vm_flags & VM_MAYSHARE) {
- 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-@@ -5851,7 +5851,8 @@ retry_avoidcopy:
- 			SetPageAnonExclusive(&old_folio->page);
- 		}
- 		if (likely(!unshare))
--			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
-+			set_huge_ptep_maybe_writable(vma, vmf->address,
-+						     vmf->pte);
- 
- 		delayacct_wpcopy_end();
- 		return 0;
+ 	start = untagged_addr(start);
+ 	if (!PAGE_ALIGNED(start))
 _
 
-Patches currently in -mm which might be from guillaume@morinfr.org are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
-mm-hugetlb-support-foll_forcefoll_write.patch
+selftest-mm-remove-seal_elf.patch
+mseal-remove-can_do_mseal.patch
 
