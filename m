@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D58D417591
-	for <mm-commits@vger.kernel.org>; Sat,  7 Dec 2024 05:34:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB263B2BB
+	for <mm-commits@vger.kernel.org>; Sat,  7 Dec 2024 05:39:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733549693; cv=none; b=J7viKCGrxIpMxskTALvK2PvBWJQDXBA5PeybQXqS91moNke9nHtY+z8JJAGMGhUPP3ofLbOzJ/UtvyyoeRTOrW7iJ7J77MPOab3fMLVUOEGWQ7qb+iPQbmCLx4ldAhPvg4dNxjiLb4JNtFO9NhCiuJay/bu+mB5R551CGZg8Ut8=
+	t=1733549982; cv=none; b=bbEneBeKsPVSsOGxyR0epYLm/AaZd+9zIrtJQOXrnvlPVuPNM4/4XUNydCegYGhx+DV0Ka4ktiLSbvEgYfg1MVH9uWBEnJU+dAQWC73Jt7qxD4kBGlDOOO8NwPyo+4MzfgU5cco2QvehEmm5haNdh0nQ0YLE1U2YBb92pIoi7gE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733549693; c=relaxed/simple;
-	bh=28Vb34rIkSbABCX2diX3uFWDvEZs+ssFupFc5Qfza8c=;
-	h=Date:To:From:Subject:Message-Id; b=FonJNdVatm7uSPT5PNTnuoVl43td7XnW0Wm6hZvsIXCgedSIY9LVT/8iDQUogR3csE7X/xh5/LILGxlYgm4OerUtYrEW5YOVBmffjD78HZ9ql0rNDrxvRYSSP3tQ+FhVtHGEbP3UOswwwwbl7XYXDYFM3VCPCrIeofVlA3moLME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTM9y1ny; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733549982; c=relaxed/simple;
+	bh=7reVTg1JIx5kut2HWDiXgEC+DnXe0oxOEHViq2uQSlg=;
+	h=Date:To:From:Subject:Message-Id; b=YAEEQ8wtjqFmaoFblfjCdu+uoiG9tfgLiX7ag+K+NsjM/ZgfZ7SxR5+9GtH98pkBD/lyJW88Srk9sijTvUUY0z4gRZM19y6SD/LGBeSjZ/vaGhxec0rbDUzQ/27HEAuUgG8Zh8qeawt9nvOg22s8QOs0sgf7cLsF+hDChKX1VEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vI8GASIF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTM9y1ny"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49E67C4CECD;
-	Sat,  7 Dec 2024 05:34:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vI8GASIF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7752DC4CECD;
+	Sat,  7 Dec 2024 05:39:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733549692;
-	bh=28Vb34rIkSbABCX2diX3uFWDvEZs+ssFupFc5Qfza8c=;
+	s=korg; t=1733549981;
+	bh=7reVTg1JIx5kut2HWDiXgEC+DnXe0oxOEHViq2uQSlg=;
 	h=Date:To:From:Subject:From;
-	b=JTM9y1nyeVqzFZOVhagHrNEA3B4btCGzrdIURMCuQPnOQaT/h2FUZm9Ac+zIIFNIS
-	 ZhrCFSZTdl87NsYUr1XsfYbOqKMzFzKsblmBq1d5xf4QqIhsl+NZpQyT1P9dMrEtLJ
-	 dx5vw8Ovp1sB9yHxB7IsZEVOMlNYJKPH/+RpY/8c=
-Date: Fri, 06 Dec 2024 21:34:51 -0800
-To: mm-commits@vger.kernel.org,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=vI8GASIFzhgqnLmf700YJXtdbFP5N91zn9JHrmbUzM8eOpG3USBC8u1N+fOq7E7vi
+	 D13uD81QBAxOF0TqlN/0Nb2f43V9uN7qCeXmvKdV9DMLdu8Xqy/muPqHFSNAF0i/hH
+	 PWDMVcepLo4lUAOyJ5n49a+/a6Sf3wAH9gqj68Bw=
+Date: Fri, 06 Dec 2024 21:39:40 -0800
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,ehagberg@janestreet.com,david@redhat.com,akpm@linux-foundation.org,guillaume@morinfr.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-rework-workingset-protection-fix.patch added to mm-unstable branch
-Message-Id: <20241207053452.49E67C4CECD@smtp.kernel.org>
+Subject: + mm-hugetlb-support-foll_forcefoll_write.patch added to mm-unstable branch
+Message-Id: <20241207053941.7752DC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-mglru-rework-workingset-protection-fix
+     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-rework-workingset-protection-fix.patch
+     mm-hugetlb-support-foll_forcefoll_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-rework-workingset-protection-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-support-foll_forcefoll_write.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,65 +58,220 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm-mglru-rework-workingset-protection-fix
-Date: Fri, 6 Dec 2024 21:44:15 -0700
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+Date: Fri, 6 Dec 2024 22:28:36 +0100
 
-Some outlier results from LULESH (Livermore Unstructured Lagrangian
-Explicit Shock Hydrodynamics) [1] caught my eye. The following fix
-made the benchmark a lot happier (128GB DRAM + Optane swap):
-                            Before    After    Change
-  Average (z/s)             6894      7574     +10%
-  Deviation (10 samples)    12.96%    1.76%    -86%
+Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
+mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
+support write-faults in shared mappings"), PTRACE_POKETEXT worked by
+accident, but it was buggy and silently ended up mapping pages writable
+into the page tables even though VM_WRITE was not set.
 
-[1] https://asc.llnl.gov/codes/proxy-apps/lulesh
+In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
+Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
+used to work in the past by accident now properly works, allowing
+applications using hugetlb for text etc.  to get properly debugged.
 
-Link: https://lkml.kernel.org/r/Z1PSn79GPcCxeI_g@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
+This change might also be required to implement uprobes support for
+hugetlb [1].
+
+[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
+
+Link: https://lkml.kernel.org/r/Z1NshNfWuzUCPebA@bender.morinfr.org
+Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Eric Hagberg <ehagberg@janestreet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/gup.c     |   91 +++++++++++++++++++++++--------------------------
+ mm/hugetlb.c |   17 ++++-----
+ 2 files changed, 53 insertions(+), 55 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-rework-workingset-protection-fix
-+++ a/mm/vmscan.c
-@@ -916,8 +916,7 @@ static enum folio_references folio_check
- 		if (!referenced_ptes)
- 			return FOLIOREF_RECLAIM;
+--- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/gup.c
+@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
+ }
+ #endif	/* CONFIG_HAVE_GUP_FAST */
  
--		lru_gen_set_refs(folio);
--		return FOLIOREF_ACTIVATE;
-+		return lru_gen_set_refs(folio) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
- 	}
++/* Common code for can_follow_write_* */
++static inline bool can_follow_write_common(struct page *page,
++		struct vm_area_struct *vma, unsigned int flags)
++{
++	/* Maybe FOLL_FORCE is set to override it? */
++	if (!(flags & FOLL_FORCE))
++		return false;
++
++	/* But FOLL_FORCE has no effect on shared mappings */
++	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
++		return false;
++
++	/* ... or read-only private ones */
++	if (!(vma->vm_flags & VM_MAYWRITE))
++		return false;
++
++	/* ... or already writable ones that just need to take a write fault */
++	if (vma->vm_flags & VM_WRITE)
++		return false;
++
++	/*
++	 * See can_change_pte_writable(): we broke COW and could map the page
++	 * writable if we have an exclusive anonymous page ...
++	 */
++	return page && PageAnon(page) && PageAnonExclusive(page);
++}
++
+ static struct page *no_page_table(struct vm_area_struct *vma,
+ 				  unsigned int flags, unsigned long address)
+ {
+@@ -622,6 +649,18 @@ static struct page *no_page_table(struct
+ }
  
- 	referenced_folio = folio_test_clear_referenced(folio);
-@@ -4173,11 +4172,7 @@ bool lru_gen_look_around(struct page_vma
- 			old_gen = folio_update_gen(folio, new_gen);
- 			if (old_gen >= 0 && old_gen != new_gen)
- 				update_batch_size(walk, folio, old_gen, new_gen);
+ #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
++/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
++static inline bool can_follow_write_pud(pud_t pud, struct page *page,
++					struct vm_area_struct *vma,
++					unsigned int flags)
++{
++	/* If the pud is writable, we can write to the page. */
++	if (pud_write(pud))
++		return true;
++
++	return can_follow_write_common(page, vma, flags);
++}
++
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+ 				    int flags, struct follow_page_context *ctx)
+@@ -634,10 +673,11 @@ static struct page *follow_huge_pud(stru
+ 
+ 	assert_spin_locked(pud_lockptr(mm, pudp));
+ 
+-	if ((flags & FOLL_WRITE) && !pud_write(pud))
++	if (!pud_present(pud))
+ 		return NULL;
+ 
+-	if (!pud_present(pud))
++	if ((flags & FOLL_WRITE) &&
++	    !can_follow_write_pud(pud, pfn_to_page(pfn), vma, flags))
+ 		return NULL;
+ 
+ 	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
+@@ -686,27 +726,7 @@ static inline bool can_follow_write_pmd(
+ 	if (pmd_write(pmd))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
 -
--			continue;
--		}
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
 -
--		if (lru_gen_set_refs(folio)) {
-+		} else if (lru_gen_set_refs(folio)) {
- 			old_gen = folio_lru_gen(folio);
- 			if (old_gen >= 0 && old_gen != new_gen)
- 				folio_activate(folio);
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -807,27 +827,7 @@ static inline bool can_follow_write_pte(
+ 	if (pte_write(pte))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -1294,9 +1294,6 @@ static int check_vma_flags(struct vm_are
+ 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+ 				return -EFAULT;
+-			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
+-			if (is_vm_hugetlb_page(vma))
+-				return -EFAULT;
+ 			/*
+ 			 * We used to let the write,force case do COW in a
+ 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
+--- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/hugetlb.c
+@@ -5183,6 +5183,13 @@ static void set_huge_ptep_writable(struc
+ 		update_mmu_cache(vma, address, ptep);
+ }
+ 
++static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
++					 unsigned long address, pte_t *ptep)
++{
++	if (vma->vm_flags & VM_WRITE)
++		set_huge_ptep_writable(vma, address, ptep);
++}
++
+ bool is_hugetlb_entry_migration(pte_t pte)
+ {
+ 	swp_entry_t swp;
+@@ -5816,13 +5823,6 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	if (!unshare && huge_pte_uffd_wp(pte))
+ 		return 0;
+ 
+-	/*
+-	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
+-	 * PTE mapped R/O such as maybe_mkwrite() would do.
+-	 */
+-	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
+-		return VM_FAULT_SIGSEGV;
+-
+ 	/* Let's take out MAP_SHARED mappings first. */
+ 	if (vma->vm_flags & VM_MAYSHARE) {
+ 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
+@@ -5851,7 +5851,8 @@ retry_avoidcopy:
+ 			SetPageAnonExclusive(&old_folio->page);
+ 		}
+ 		if (likely(!unshare))
+-			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
++			set_huge_ptep_maybe_writable(vma, vmf->address,
++						     vmf->pte);
+ 
+ 		delayacct_wpcopy_end();
+ 		return 0;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from guillaume@morinfr.org are
 
-mm-mglru-clean-up-workingset.patch
-mm-mglru-optimize-deactivation.patch
-mm-mglru-rework-aging-feedback.patch
-mm-mglru-rework-type-selection.patch
-mm-mglru-rework-refault-detection.patch
-mm-mglru-rework-workingset-protection.patch
-mm-mglru-rework-workingset-protection-fix.patch
+mm-hugetlb-support-foll_forcefoll_write.patch
 
