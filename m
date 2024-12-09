@@ -1,83 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D6671F5F6
-	for <mm-commits@vger.kernel.org>; Mon,  9 Dec 2024 01:12:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44FF421519F;
+	Mon,  9 Dec 2024 08:39:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733706766; cv=none; b=SzioQns8gJUOTrqrHzCldlz3PquiK6Kh6vawqTENSeyN7HMrby6P3zGm6f4YwqGviJkAGxx6hw2ApcDVSDCyps43yfr5wtJl+972Msj0i0o89sH/ME96dfD93XbG37QGUXg+MSDNeqtfycBzAxVcM9fjWPVZt+nK8+8wyod9NFI=
+	t=1733733546; cv=none; b=Bu4jcPMqWvR5aDwaBEF9bPTE8cadTn3pu3AXf90T9Wy58Mp99aHWxhBQhgj+in4L+F7ZEnWZnZJlIFE/DCYxBpJPSWsiZ2oXiQLPBDcLn6MCheU9C9fgInekD3saPxn/bDqKC9YBKnz737oHgn7YFV8iEK+4PIoymV5qgz5IYPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733706766; c=relaxed/simple;
-	bh=ylEONhRE+QBQiXOOqT5WWJkbHVxu/OvTFtBQtIgzKkM=;
-	h=Date:To:From:Subject:Message-Id; b=SNngJhBvuPucKRhWGDyppmEOpjQ3XC2gxupUtpujjEns/OUuL2gUNhZ6tNu3BrxSXtAmH9S/dUIbFOr4RKQdpSjvBesdcl+Ld60TaJUEAIOstygtI/yIgEP+F/X8vKIVtk/qEV692hjRD+7RMa8XMMQB/gjnGGKEMjpYhLyw+tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yMjIqTgi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733733546; c=relaxed/simple;
+	bh=SPncf33Av9UZ6RJFqTB9SPNNJ01DbjDnvIfiqk9IO7A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YU1MTrxPE5ScN024revz4ieC9UU+BNzIosG8//tRIQqLj3iztD1kqtkSAVSNcTjKHsBStn2Ut6B8JLgppdJ4YuKk5hHoGmximsk/wxPSkto6GfnFaPFttjZb6xegUysJ26IHq0sI2xkPVGFC1S23Posx0RV1BlI7mHRus6VzcP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Z4D6/uW6; arc=none smtp.client-ip=90.155.92.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yMjIqTgi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FFA9C4CED2;
-	Mon,  9 Dec 2024 01:12:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733706766;
-	bh=ylEONhRE+QBQiXOOqT5WWJkbHVxu/OvTFtBQtIgzKkM=;
-	h=Date:To:From:Subject:From;
-	b=yMjIqTgiC/BmyYBUzl8U6FrplLIZf18woTtmxSfujJEvM1fx4vlEqiaeMFNYkECBy
-	 qKJ6mN3A25HsN+nWOV229eMboiVltiUOw0cySn1OF1wmXmu7O1at/kR6vZxhNBjEzw
-	 aQaZ2i9TFLtHdQc4Wynml0kI1ohz3ezOFm+YzdIQ=
-Date: Sun, 08 Dec 2024 17:12:45 -0800
-To: mm-commits@vger.kernel.org,fujunjie1@qq.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mempolicyh-remove-unnecessary-header-file-inclusions.patch removed from -mm tree
-Message-Id: <20241209011246.0FFA9C4CED2@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Z4D6/uW6"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=7kZGkmmKTj6T8igwuKlINqiucEaDDw3QiewWTsPTCvU=; b=Z4D6/uW6tjFlfHIFIx5rL6cCap
+	6/mmsa48Nic7Kv1a7ZhRggcepXOSbqNDZmLJ0bJRuhXUlONFgrhN3wfhCELcTOKvTNfzzcoFh/FMw
+	R7w/VJeq2w/Pg8mNF0vJGfq4761hE9ynUrxU1xXhWQHxZhjL8BgVHfhy3tjQTZlHHTe3oTA+4kPfW
+	2TytraR3vPw+KsgoLX7CUofiEjyjqmxTASrydcjbJjhPnRC+Dd43iQP6GpUCaFdiMws1ong0Zx9t0
+	EONPhLj94LZ08PAOhRjym9nTBnE8kN2DBJx98/gVjheYv/Is8lVmbzDuab8CcFEju6L23Wxv/yBfX
+	Vz6ko+Ag==;
+Received: from 77-249-17-89.cable.dynamic.v4.ziggo.nl ([77.249.17.89] helo=noisy.programming.kicks-ass.net)
+	by desiato.infradead.org with esmtpsa (Exim 4.98 #2 (Red Hat Linux))
+	id 1tKZHX-00000003Vd7-3CQy;
+	Mon, 09 Dec 2024 08:38:20 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id 5DDD83003FF; Mon,  9 Dec 2024 09:38:18 +0100 (CET)
+Date: Mon, 9 Dec 2024 09:38:18 +0100
+From: Peter Zijlstra <peterz@infradead.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	will@kernel.org, vgupta@kernel.org, urezki@gmail.com,
+	tsbogend@alpha.franken.de, tglx@linutronix.de, surenb@google.com,
+	song@kernel.org, shorne@gmail.com, rostedt@goodmis.org,
+	richard@nod.at, palmer@dabbelt.com, oleg@redhat.com,
+	mpe@ellerman.id.au, monstr@monstr.eu, mingo@redhat.com,
+	mhiramat@kernel.org, mcgrof@kernel.org, mattst88@gmail.com,
+	mark.rutland@arm.com, luto@kernel.org, linux@armlinux.org.uk,
+	Liam.Howlett@oracle.com, kent.overstreet@linux.dev,
+	kdevops@lists.linux.dev, johannes@sipsolutions.net,
+	jcmvbkbc@gmail.com, hch@lst.de, guoren@kernel.org,
+	glaubitz@physik.fu-berlin.de, geert@linux-m68k.org,
+	dinguyen@kernel.org, deller@gmx.de, dave.hansen@linux.intel.com,
+	christophe.leroy@csgroup.eu, chenhuacai@kernel.org,
+	catalin.marinas@arm.com, bp@alien8.de, bcain@quicinc.com,
+	arnd@arndb.de, ardb@kernel.org, andreas@gaisler.com
+Subject: Re: [merged mm-stable]
+ x86-module-prepare-module-loading-for-rox-allocations-of-text.patch removed
+ from -mm tree
+Message-ID: <20241209083818.GK8562@noisy.programming.kicks-ass.net>
+References: <20241106010048.77E63C4CED1@smtp.kernel.org>
+ <ZysRwR29Ji8CcbXc@kernel.org>
+ <20241205084128.GH8562@noisy.programming.kicks-ass.net>
+ <Z1LUZJdsDHrSV6oE@kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Z1LUZJdsDHrSV6oE@kernel.org>
 
+On Fri, Dec 06, 2024 at 12:39:32PM +0200, Mike Rapoport wrote:
+> Hi Peter,
+> 
+> On Thu, Dec 05, 2024 at 09:41:28AM +0100, Peter Zijlstra wrote:
+> > On Wed, Nov 06, 2024 at 08:50:41AM +0200, Mike Rapoport wrote:
+> > 
+> > Anyway, while noodling with all that, I think there's a fairly
+> > fundamental error in all of this. The mem->rw_copy should not be a whole
+> > second allocation, it should be a (page granular) RW alias of the
+> > (large) ROX map.
+> 
+> I've made mem->rw_copy an allocation because Andy raised a concern [1] that
+> we'll have an executable mapping of semi-formed code. 
+> With an actual copy rather than an alias the ROX pages contain invalid
+> instructions up to the point we're through with relocations and
+> alternatives patching and the actual code appears in ROX mappings in one
+> go.
+>  
+> [1] https://lore.kernel.org/all/a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com
 
-The quilt patch titled
-     Subject: mempolicy.h: remove unnecessary header file inclusions
-has been removed from the -mm tree.  Its filename was
-     mempolicyh-remove-unnecessary-header-file-inclusions.patch
+Right, but at the same time he also calls out the problem with this;
+you're now forced to carry two pointers, one to indicate where the code
+is going to live and one to actually read/write to.
 
-This patch was dropped because it had testing failures
+(Not to mention the disparity of module_writable_address() only implying
+writes, but in actual reality it is required for reads too.)
 
-------------------------------------------------------
-From: Junjie Fu <fujunjie1@qq.com>
-Subject: mempolicy.h: remove unnecessary header file inclusions
-Date: Fri, 6 Dec 2024 23:53:49 +0800
+Pushing this dual pointer through all the pre-existing code that
+rewrites our code is done haphazardly and incomplete (and is quite
+ugly and error prone -- as evidenced by my ADL's current inability to
+load modules).
 
-Originally, linux/mempolicy.h included linux/pagemap.h because
-vma_migratable() was implemented inline within the header, requiring
-mapping_gfp_mask() function to implement vma_migratable().  Now that
-vma_migratable() is only declared in linux/mempolicy.h and its
-implementation has been moved to mempolicy.c, the inclusion of
-linux/pagemap.h in the header is no longer necessary.
+He also then goes on to suggest a better approach would be to remap
+inplace to RW and back to RX.  Now the problem with this is ofcourse
+that the remap to RW will shatter the large pages we're so very keen on
+preserving, but this can be rectified at the point where er remap back
+to RX -- it's just that the current code does not.
 
-Additionally, since mempolicy.c includes internal.h, and internal.h
-already includes linux/pagemap.h, so there is no need to modify
-mempolicy.c after removing the direct inclusion of linux/pagemap.h from
-linux/mempolicy.h
-
-Link: https://lkml.kernel.org/r/tencent_08B979048FE091821B290B18AE97E70DC507@qq.com
-Signed-off-by: Junjie Fu <fujunjie1@qq.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mempolicy.h |    1 -
- 1 file changed, 1 deletion(-)
-
---- a/include/linux/mempolicy.h~mempolicyh-remove-unnecessary-header-file-inclusions
-+++ a/include/linux/mempolicy.h
-@@ -12,7 +12,6 @@
- #include <linux/rbtree.h>
- #include <linux/spinlock.h>
- #include <linux/nodemask.h>
--#include <linux/pagemap.h>
- #include <uapi/linux/mempolicy.h>
- 
- struct mm_struct;
-_
-
-Patches currently in -mm which might be from fujunjie1@qq.com are
-
+All in all, I really don't like the place where we've end up, it is
+quite horrible :/
 
