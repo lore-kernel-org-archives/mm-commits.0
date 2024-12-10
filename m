@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FA80233129
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807AB233129
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733796468; cv=none; b=kUGMDDw3XUlgm8ec1ICQvXocA4E0Bj0rzF/QRvvPpuMKf7JGEO2N+48y9RfPybaV1ryh6QKrMhsq2Z66GKQG3WRs236e6zsRjZhd2tUfGiLxbdEXUdFGQGa6vx49rJkcnDFLArLQg4Am7O27cJRjd6x7tVjZcRhpxoPteqiNzhI=
+	t=1733796472; cv=none; b=mxYomX1aymw88ZS3YeZOjeIu3KmmaVG9d2nyL4HQWm9dr+P0Kg7MwLr4b3CoGspQPDFC1mT2No8Mo1ELeGLfrIwbBRx0tObVJkb2rXB2zYlfcea8jk44NlxZfPPVL4wPKdeQ0CVIzfWkiqFdjMpAIU4yctqIkQ297+sTu4A4b/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733796468; c=relaxed/simple;
-	bh=9+HgbKYAwFPjgaBEJNONVuRdchuwm+5fHC+9fkvC+TE=;
-	h=Date:To:From:Subject:Message-Id; b=qycMGoUUMjY8eIrQVTSHCtvy26G3fwBnd65/sK5zGSic+98XHFIJ20L2aSG5jhUXRhu7TA/SGw4cQDbNYVQWvayW+IBQQ/Sgy4E0O47Npjv4Xnvk5ytC9GmhkSUqs8Q1DObm/xY2tNYpiwlzTTNu7JC+z08c6p7GD4WgipxXrZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fiQjlVL6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733796472; c=relaxed/simple;
+	bh=SWN6DyvNMyuJGOcwmpPBpv4Ec51E/q3HD8gvxzGM+7g=;
+	h=Date:To:From:Subject:Message-Id; b=JVoF6ZDsihqyNExcnPif/y78sGdSrUbJ7CtdX5eqeMBnYxSHD9OJLmOYwQ/2omS+PJHM3N7vmuDEsPCo6JlX08fqHqFgHhgaSfNbSXN7e9883nqrxP8PBR/vnpLQTMgDYZXY/nxHTnRCyjEA+88aQuE27PSXbQPQnNxP9cPEnDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=be8XpB2E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fiQjlVL6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9BBEC4CED1;
-	Tue, 10 Dec 2024 02:07:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="be8XpB2E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F801C4CED1;
+	Tue, 10 Dec 2024 02:07:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733796468;
-	bh=9+HgbKYAwFPjgaBEJNONVuRdchuwm+5fHC+9fkvC+TE=;
+	s=korg; t=1733796471;
+	bh=SWN6DyvNMyuJGOcwmpPBpv4Ec51E/q3HD8gvxzGM+7g=;
 	h=Date:To:From:Subject:From;
-	b=fiQjlVL65Hz+OoIw1afyZ6aem0690/e5bDjBYcEmy6ozhkdkh6MTAsG4swq947Lt1
-	 riJVTfH5WDVx2w9w4j1jpgxk3SOLVvrtSRKv+VuiVI7kH9K3xWUjBq+O4lgkJZ+uni
-	 QeJ43RzAjhbzEXA8URcCKub00xlwm7VoRII+nUak=
-Date: Mon, 09 Dec 2024 18:07:47 -0800
+	b=be8XpB2ElCyYSKs0dAzxO9VbmJMOiCAy1wl5/t5wKV/BYA5IosDyJORSGlC1C9Uy9
+	 PtbsEHyGfi0JDd65clDBvxII0Ae0vT5ks0f8NAebP8p/aMPEaFFl68cilfXXUX11f/
+	 8lNEFEAQs7zke48dfTT0x9W8QlW3zRFj5S7AB2c8=
+Date: Mon, 09 Dec 2024 18:07:50 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-wmaybe-uninitialized-warnings.patch added to mm-unstable branch
-Message-Id: <20241210020747.E9BBEC4CED1@smtp.kernel.org>
+Subject: + selftests-mm-fix-strncpy-length.patch added to mm-unstable branch
+Message-Id: <20241210020751.0F801C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix -Wmaybe-uninitialized warnings
+     Subject: selftests/mm: fix strncpy() length
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-wmaybe-uninitialized-warnings.patch
+     selftests-mm-fix-strncpy-length.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-wmaybe-uninitialized-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-strncpy-length.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix -Wmaybe-uninitialized warnings
-Date: Mon, 9 Dec 2024 09:50:07 +0000
+Subject: selftests/mm: fix strncpy() length
+Date: Mon, 9 Dec 2024 09:50:08 +0000
 
-A few -Wmaybe-uninitialized warnings show up when building the mm tests
-with -O2.  None of them looks worrying; silence them by initialising the
-problematic variables.
+GCC complains (with -O2) that the length is equal to the destination size,
+which is indeed invalid.  Subtract 1 from the size of the array to leave
+room for '\0'.
 
-Link: https://lkml.kernel.org/r/20241209095019.1732120-3-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20241209095019.1732120-4-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -78,56 +78,20 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c       |    2 +-
- tools/testing/selftests/mm/mremap_test.c     |    2 +-
- tools/testing/selftests/mm/soft-dirty.c      |    2 +-
- tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/write_to_hugetlbfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-wmaybe-uninitialized-warnings
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -776,7 +776,7 @@ err_out:
- 
- int main(int argc, char *argv[])
- {
--	int ret, opt;
-+	int ret = 0, opt;
- 	int prot = 0;
- 	int ksm_scan_limit_sec = KSM_SCAN_LIMIT_SEC_DEFAULT;
- 	int merge_type = KSM_MERGE_TYPE_DEFAULT;
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-fix-wmaybe-uninitialized-warnings
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -384,7 +384,7 @@ out:
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
- {
--	void *addr, *src_addr, *dest_addr, *dest_preamble_addr;
-+	void *addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
- 	unsigned long long t, d;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-wmaybe-uninitialized-warnings
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -128,7 +128,7 @@ static void test_mprotect(int pagemap_fd
- {
- 	const char *type[] = {"file", "anon"};
- 	const char *fname = "./soft-dirty-test-file";
--	int test_fd;
-+	int test_fd = 0;
- 	char *map;
- 
- 	if (anon) {
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-wmaybe-uninitialized-warnings
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1122,7 +1122,7 @@ uffd_move_test_common(uffd_test_args_t *
- 	char c;
- 	unsigned long long count;
- 	struct uffd_args args = { 0 };
--	char *orig_area_src, *orig_area_dst;
-+	char *orig_area_src = NULL, *orig_area_dst = NULL;
- 	unsigned long step_size, step_count;
- 	unsigned long src_offs = 0;
- 	unsigned long dst_offs = 0;
+--- a/tools/testing/selftests/mm/write_to_hugetlbfs.c~selftests-mm-fix-strncpy-length
++++ a/tools/testing/selftests/mm/write_to_hugetlbfs.c
+@@ -89,7 +89,7 @@ int main(int argc, char **argv)
+ 			size = atoi(optarg);
+ 			break;
+ 		case 'p':
+-			strncpy(path, optarg, sizeof(path));
++			strncpy(path, optarg, sizeof(path) - 1);
+ 			break;
+ 		case 'm':
+ 			if (atoi(optarg) >= MAX_METHOD) {
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
