@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED67136326
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:08:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92E3136326
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733796498; cv=none; b=WxwvV0HIRTW1A2a+NsR1J+cSVR6fI2GL87Awu7ZfuZgBTYPBF2uRwmEnTzBiKI5ws2lP9GgdfM5NeD+F8elXyr4qP0EbtPBf53TN952OYFdJvXhtYY9AfV48SwBMtiXUPGvv4w2DJBsceW2byi8gG6QRXnkh0tLDuaDkGEBzr9Y=
+	t=1733796498; cv=none; b=U8Nh3uzhKFqhwTVTJTRmc82DmRj1sAKXpQVf4xIeEbkDnNJn46LSNMShP4TFkXureTmKZgO7xU61Yp8F948Gg4/KhaObk02NCoXKGC6WxqWJCgrQuT/XPj6S1ssacfpPQra4h4tVwVgP0cy148W6xdQX8zK+uXc94nNnV9wmvqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1733796498; c=relaxed/simple;
-	bh=DN9MaxMBJ2Kl2G4AkZngzhJbTkjMCTZAs1EdJs0uOeg=;
-	h=Date:To:From:Subject:Message-Id; b=NKJ5dbQYo8Cnf2ejkeu8xAdoZyMeMIarwC90uR7W4aOH6OcixMZsD2aGMV78JMqWGjhVsRm5uVqyPTw4t9nunNDLENZyqcO10cwWnUxQbLn8JGr73x5XteAHJq3H9ggp5xEkW41oRtDe8h975+jOJEyj/iqFcVgxPAPzKvAiTKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ehguaK3U; arc=none smtp.client-ip=10.30.226.201
+	bh=jeWOYF1S23GFC4tmOXYkFZSRW04EP2JWqG1VNX9dPlQ=;
+	h=Date:To:From:Subject:Message-Id; b=VPIBaQWBJSL8ExoW92RfZ4muHrSghuZAgaaNDB7HLwkTa8fLxlZnt4nEI28OVfCLloGtbYhTN8wgpnY6sagoFZFyJ5M80zTf4s1RjxNDgtS3rBHaYcpx/p4NcO4YZHdUOyGmN+2sziWlB31K24Y4ZWvpjZ98ezw68nduyx8MUPA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kh1nehj3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ehguaK3U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C3FFC4CED1;
-	Tue, 10 Dec 2024 02:08:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kh1nehj3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D5D0C4CED1;
+	Tue, 10 Dec 2024 02:08:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733796496;
-	bh=DN9MaxMBJ2Kl2G4AkZngzhJbTkjMCTZAs1EdJs0uOeg=;
+	s=korg; t=1733796498;
+	bh=jeWOYF1S23GFC4tmOXYkFZSRW04EP2JWqG1VNX9dPlQ=;
 	h=Date:To:From:Subject:From;
-	b=ehguaK3UruJJ6OaRegJoLbVykG9QLA/CJs4WYGBLc7PBnGdJfyoP9oBS1C2vbFHeI
-	 qtJf9oJoelsID/SzssRsaD3jTvS+2kh1+yqG8UPIAWFAvGv59vdchZzR8vT8dvlN7W
-	 phXomHeS2+kMSscpPiSSmDe3lzoggjkHvcd+NvAY=
-Date: Mon, 09 Dec 2024 18:08:16 -0800
+	b=kh1nehj3QkpOaDsDKEyMVp0WI5qm1EtYMIUMGqL/eFeEWaCVTuUlJyXG7/a9wNhXK
+	 3T+XhFesSaoQ0YzLU9STFWAmF16IGSi+U5jVadjE+mm/W94DuZrIRqRSL30ZJGPCql
+	 Dg/KGWXKN/AE2NJG05c1TxVufBiCKndfVArTTT5w=
+Date: Mon, 09 Dec 2024 18:08:18 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch added to mm-unstable branch
-Message-Id: <20241210020816.9C3FFC4CED1@smtp.kernel.org>
+Subject: + selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch added to mm-unstable branch
+Message-Id: <20241210020818.8D5D0C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip pkey_sighandler_tests if support is missing
+     Subject: selftests/mm: remove X permission from sigaltstack mapping
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
+     selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: skip pkey_sighandler_tests if support is missing
-Date: Mon, 9 Dec 2024 09:50:18 +0000
+Subject: selftests/mm: remove X permission from sigaltstack mapping
+Date: Mon, 9 Dec 2024 09:50:19 +0000
 
-The pkey_sighandler_tests are bound to fail if either the kernel or CPU
-doesn't support pkeys.  Skip the tests if pkeys support is missing.
+There is no reason why the alternate signal stack should be mapped as RWX.
+Map it as RW instead.
 
-Link: https://lkml.kernel.org/r/20241209095019.1732120-14-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20241209095019.1732120-15-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -77,21 +77,29 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey_sighandler_tests.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-remove-x-permission-from-sigaltstack-mapping
 +++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
-@@ -535,6 +535,9 @@ int main(int argc, char *argv[])
- 	ksft_print_header();
- 	ksft_set_plan(ARRAY_SIZE(pkey_tests));
+@@ -315,7 +315,7 @@ static void test_sigsegv_handler_with_di
+ 	sys_mprotect_pkey(stack, STACK_SIZE, PROT_READ | PROT_WRITE, pkey);
  
-+	if (!is_pkeys_supported())
-+		ksft_exit_skip("pkeys not supported\n");
-+
- 	for (i = 0; i < ARRAY_SIZE(pkey_tests); i++)
- 		(*pkey_tests[i])();
+ 	/* Set up alternate signal stack that will use the default MPK */
+-	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
++	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
+ 			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	sigstack.ss_flags = 0;
+ 	sigstack.ss_size = STACK_SIZE;
+@@ -488,7 +488,7 @@ static void test_pkru_sigreturn(void)
+ 	sys_mprotect_pkey(stack, STACK_SIZE, PROT_READ | PROT_WRITE, pkey);
  
+ 	/* Set up alternate signal stack that will use the default MPK */
+-	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
++	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
+ 			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	sigstack.ss_flags = 0;
+ 	sigstack.ss_size = STACK_SIZE;
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
