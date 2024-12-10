@@ -1,67 +1,66 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C812080DD
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 09:34:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8866C78F39
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 09:38:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733823254; cv=none; b=Ri28f5a+vkKYHskqT7tDoUFlSgTfIe8l/7NQjyP/jtFZq8N2qV3dpvUG/SSSc6mXIXOyx5Vlu/ywVb3XviCWjTgmuZuPPDLLdgSAF4gXTIPeCE6X8Nr9zD4ZjDIbGBPCqCIwMjhn2duYzPDBBt3T75JptJOnZah+SWmAd4EVTr8=
+	t=1733823522; cv=none; b=ncF3C2dTyFp6g9Pq5+FrabEFfC+n0qlWyO9gi4jnH9kEoQOU0eOHZHDPCogMSvpAE3/M6rYKPeG+VRwT8GENUv7AhUOEbJ3x/hL3gXS17KKwqGqZFmnwMuI9RMgmOx1tRNhtdf69qtPgZGQ6ZJnTDhXsVtj3eHkgoBLtQvTD3gA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733823254; c=relaxed/simple;
-	bh=w2vKqcbyTFREuFgZd+DnaLXbKMMVS0fCjyOiVKe45UA=;
+	s=arc-20240116; t=1733823522; c=relaxed/simple;
+	bh=WjpOIojkgkWpnxEyPeZp1Q6fKJICHzTILcB2Enu3sis=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MUts4WssIm9S06EFvFdSFhmgTcHA/6IdI1PvFL9e1c+J/v+VelDgSPYirmRIcXaze/7urHXxT7wFkcd6/fpAG25r1n+jc8LzTj+cpPhzvgvw+oqlWjBRNcXvkQRv2RaV6NVLqIA/wC3FnDRdvlCqa21S2E8wOCsNJw2OoWVlgPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=NICBgbU4; arc=none smtp.client-ip=209.85.210.176
+	 Content-Type:Content-Disposition:In-Reply-To; b=DTK3/1zQTzoV+bi13pAsIWfxB4qWzHCS25NjpBBsuKVcPiLWK2RJ/G5LN2IuRIZR+lV3gI1mwv2//9hMb6WotpMRnTs8qhwNOlu3kRpNMOs8XRRjukttyobrNTBzbjJlaGb5bVJnXOE40QUYoVFCPbzKWcDKcUvKdYB1fMrBtso=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=aZ9Feg5c; arc=none smtp.client-ip=209.85.210.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="NICBgbU4"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-725ee27e905so2121768b3a.2
-        for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:34:12 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="aZ9Feg5c"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-725ec1fa493so1511911b3a.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:38:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1733823252; x=1734428052; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1733823520; x=1734428320; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=e1iYjHvkqXBBN1H7XHTKg2SeWmDRebOWfO3y1FaTwOA=;
-        b=NICBgbU4jmJInnxinuYuj2sWy/jGp21sVEI4kIvAJsVtQjqT0vKiWRHq3zJr45KciU
-         MgwQYicmHmu71mmpAVJ8Ru78fi4Rdfi4Ky+xB09n2z6KSN84J28IUFlwCyUXKMsoDo3r
-         CMaLT9mzshGlaEmO2VREGOqlbwtI6aHbBaXBQ=
+        bh=BjRmYQvTA7kxtBMUl5Qo/AdAWgQX/9nORXlDtE64dqs=;
+        b=aZ9Feg5cA5krq2QVYQ4vaC3v+wWyBzJjfq/7fojXi2oHjZm0nPOepWuA85yP+Z+xsj
+         74Mc/QB27hWUHZK9lRGPNA9WxnbrbR4HsBA9e1xooxs3NFOcjrH+YSN4NbQTzloGfJOp
+         rhK3xjbfmOzOWXnbBRJwh6qiRug4ED7na6/LA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733823252; x=1734428052;
+        d=1e100.net; s=20230601; t=1733823520; x=1734428320;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=e1iYjHvkqXBBN1H7XHTKg2SeWmDRebOWfO3y1FaTwOA=;
-        b=fqCa6bPtTQkR/FM0NWhLlyMsYTXja6D2VxDf7x65HqX3rYioWrZ69WKQEU7AzZzc3B
-         5XX2uM3zH3J8S6rfNPsLUrw5DkHrMa3tJEp0GUryabaaVWEONhXt4HSCbFjrib4vCMHj
-         TSDxCL3w5WziLukwchMTZhk7LuCcDnD69eES/iuyRkPe4wobqOJt6Qtz69QH25bx8IWg
-         HnC7Aev6SmpzGGE+Jpd4BlyZXLPv3ZPyhfrlF5aauOgwbr8ypqGokusdAJR9IpaUEobr
-         D2XHBbHxhejUPaCaubk2ks4EgpLb8o9/YGzUa8ee3gzgi5QzGZKdNvztOBu44RTvlrKw
-         BbXg==
-X-Forwarded-Encrypted: i=1; AJvYcCX+phDsBmWWuwVh2fJUZBBJ2FbN8CF9vhgpqpW5W3L5+WpXJe1gbEOCwR2+NNKkgTWvijtYNUhgOtGi@vger.kernel.org
-X-Gm-Message-State: AOJu0YxevC+Ypu5NK/OoKPtQ+LRwHBXqbqyOksQ0hr+FJdaX41eSaUSY
-	B7Id0q54GkvNiTfblXzgbkyNtAly3uDLySIjQ/P3vWytMwrGCL19ExhV3FsHbQ==
-X-Gm-Gg: ASbGncudbRULkPcayrMDi/HGjQIPHyjRvGZe58/eD6pWVvHDB2gTxVuBap8bo3yQ4WY
-	AvAV4Yp1D2/15mYOzP4nos5UIuhA9yDmFb7AsoZPxyHUk/vOOlRlx41junwoV4JgAVGUikiB9W0
-	KmyI4baC2kh+yHypFabF/U/IyeWBJAcnkuGJm/tO6TbEPKetr38p0qANicQ84OEivh6yEhWUnZ4
-	t0S7zBxJEJJjo/m7H7CEyLyjc6wzKf0mMHLLOVZyPCYjH3MvOhyLZdNYQ==
-X-Google-Smtp-Source: AGHT+IHCs1lBxBq1Jqm/4c/slEmT7kUyt/ezbA5kwqicefHmont5lAEK6Zqaa2yGsbQT+a+XyeXcmw==
-X-Received: by 2002:a05:6a00:a17:b0:725:e015:909d with SMTP id d2e1a72fcca58-725e01593b7mr13868449b3a.21.1733823252279;
-        Tue, 10 Dec 2024 01:34:12 -0800 (PST)
+        bh=BjRmYQvTA7kxtBMUl5Qo/AdAWgQX/9nORXlDtE64dqs=;
+        b=oNB3yRbB6UIvKf16oCZGgDNfYSmh0YxdFsB9JWZYM71iX+hbGUXrPNv0CbMsE2tTjL
+         EbgA46Fa88jxsg9Zy0CrIDaclM2iCZ7hq9R70hhjdr65uPYDVNhOxRJL7Db5gMYhlDmj
+         r+rw0X3VyKQgrCMi4Z/Uz0TBENZ2WfK4xkWkP8054tuBAv8PgwwQ53d+J7QtR8AMAA2U
+         RudrdW5KUy8by0OS0OxALiX6ZAJGJICOnGkrnPXQYl90vAEDfA5djBdbkYQ5uupIB5Ty
+         MkQhMiy2C8rae/FMMeMRc9ILKF0Uo2oKq8h5JY4U+/qG6FA0nM3X77wiOl1KAwru1cYY
+         zpSw==
+X-Gm-Message-State: AOJu0YwnxdQjKzHAMWB9J+MkfVC+9uWepxTk9jQducIuBL/mElYA3H+b
+	UFNHFrQcDa0ecXYE8mTXJNG73M5WaKbVL1LBLJMUfFR70Du1zciFY8l0WltUYA==
+X-Gm-Gg: ASbGncsJtfCofZYQxXJxx7VXkoQJaWZ2ydc0N7tDLsCswVqtjt0CLcqB+1pnG8/o40H
+	CWxy+BUrNiIK4RxLpkYtVKjliGyHFnIHhJfbTYYgALJH79jD34AYAtaBpZXUYwsKlxz97PShjey
+	k0uphmskGaOfgMQfd4NRLJ6IKPSnUJo160KVboigBkanTUzHN2BrUIZw2TKo8vFQOdZTaHx9s2u
+	vM8Zqwd9NIlD7sS3gWInnek0MEdpOs0hFAD1hRgYGRMK9L/XBbdSVAtGg==
+X-Google-Smtp-Source: AGHT+IEb8ACl2x/OdhBgRMdOW1Hd76kamKMN7FQrKTcCyTM28/YAs9JuHDB/QXd6FPDBowYh+y9YTQ==
+X-Received: by 2002:a05:6a20:d487:b0:1e1:a693:d5fd with SMTP id adf61e73a8af0-1e1b1b1bdb5mr6797786637.25.1733823519939;
+        Tue, 10 Dec 2024 01:38:39 -0800 (PST)
 Received: from google.com ([2401:fa00:8f:203:4d97:9dbf:1a3d:bc59])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-725ec054318sm3622230b3a.27.2024.12.10.01.34.10
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7fd3a268449sm5256997a12.45.2024.12.10.01.38.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Dec 2024 01:34:11 -0800 (PST)
-Date: Tue, 10 Dec 2024 18:34:07 +0900
+        Tue, 10 Dec 2024 01:38:39 -0800 (PST)
+Date: Tue, 10 Dec 2024 18:38:35 +0900
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: caiqingfu <baicaiaichibaicai@gmail.com>
-Cc: senozhatsky@chromium.org, akpm@linux-foundation.org,
-	caiqingfu@ruijie.com.cn, minchan@kernel.org,
-	mm-commits@vger.kernel.org
-Subject: Re: [PATCH] zram: panic when use ext4 over zram
-Message-ID: <20241210093407.GM16709@google.com>
-References: <20241130053247.GH10431@google.com>
- <20241202100753.139305-1-baicaiaichibaicai@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
+	senozhatsky@chromium.org, minchan@kernel.org,
+	caiqingfu@ruijie.com.cn
+Subject: Re: + zram-panic-when-use-ext4-over-zram.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <20241210093835.GN16709@google.com>
+References: <20241130030456.37C2BC4CECF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -70,58 +69,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241202100753.139305-1-baicaiaichibaicai@gmail.com>
+In-Reply-To: <20241130030456.37C2BC4CECF@smtp.kernel.org>
 
-On (24/12/02 18:07), caiqingfu wrote:
-> > What's your use-case, what apps you run and what data is stored
-> > on zram disk?
-> 
-> The steps to reproduce are as follows:
-> 
-> 1. force slow path,then re-build kernel
-> 
-> diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-> index 0ca6d55c9917..29ac52a4f2e7 100644
-> --- a/drivers/block/zram/zram_drv.c
-> +++ b/drivers/block/zram/zram_drv.c
-> @@ -1683,12 +1683,14 @@ static int zram_write_page(struct zram *zram, struct page *page, u32 index)
->          * if we have a 'non-null' handle here then we are coming
->          * from the slow path and handle has already been allocated.
->          */
-> +    /*
->         if (IS_ERR_VALUE(handle))
->                 handle = zs_malloc(zram->mem_pool, comp_len,
->                                 __GFP_KSWAPD_RECLAIM |
->                                 __GFP_NOWARN |
->                                 __GFP_HIGHMEM |
->                                 __GFP_MOVABLE);
-> +        */
->         if (IS_ERR_VALUE(handle)) {
->                 zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
->                 atomic64_inc(&zram->stats.writestall);
-> 
-> 2. create an arm64 virtual machine
-> 
-> qemu-system-aarch64 -M virt -cpu cortex-a57 -smp 4 -m 1024 -kernel kernel-build/arch/arm64/boot/Image \ 
->     -nographic -append "console=ttyAMA0,115200 root=/dev/vda rw" \ 
->     -drive file=$(IMGFILE),format=raw -nic user,hostfwd=tcp::60022-:22
-> 
-> 3. after the virtual machine is started, create zram
-> 
-> cat /sys/class/zram-control/hot_add
-> echo 524288000 > /sys/devices/virtual/block/zram0/disksize
-> echo 524288000 > /sys/devices/virtual/block/zram1/disksize
-> mkfs.ext4 -O ^has_journal -b 4096 -F -L TEMP -m 0 /dev/zram0
-> mkdir /tmp/zram
-> mount -t ext4 -o errors=continue,nosuid,nodev,noatime /dev/zram0 /tmp/zram
-> mkswap /dev/zram1
-> swapon /dev/zram1
-> echo 100 > /proc/sys/vm/swappiness
-> mkdir -p /tmp/zram/stressTest
-> 
-> 
-> 4. build demo app and run again and again
-> 
+On (24/11/29 19:04), Andrew Morton wrote:
+> --- a/drivers/block/zram/zram_drv.c~zram-panic-when-use-ext4-over-zram
+> +++ a/drivers/block/zram/zram_drv.c
+> @@ -1633,6 +1633,7 @@ static int zram_write_page(struct zram *
+>  	unsigned long alloced_pages;
+>  	unsigned long handle = -ENOMEM;
+>  	unsigned int comp_len = 0;
+> +	unsigned int last_comp_len = 0;
+>  	void *src, *dst, *mem;
+>  	struct zcomp_strm *zstrm;
+>  	unsigned long element = 0;
+> @@ -1664,6 +1665,11 @@ compress_again:
+>  
+>  	if (comp_len >= huge_class_size)
+>  		comp_len = PAGE_SIZE;
+> +
+> +	if (last_comp_len && (last_comp_len != comp_len)) {
+> +		zs_free(zram->mem_pool, handle);
+> +		handle = (unsigned long)ERR_PTR(-ENOMEM);
+> +	}
 
-I was more curious whether you have a real-world example/app
-that does it.
+I don't think this needs to be this complex.  A simple -ENOMEM should
+work, that's the default handle value in this function.
+
+Andrew, can you please fold this in?  (Or we can just ask for v2)
+
+---
+
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index 52a005face62..5de7f30d0aa6 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1674,7 +1674,7 @@ static int zram_write_page(struct zram *zram, struct page *page, u32 index)
+ 
+ 	if (last_comp_len && (last_comp_len != comp_len)) {
+ 		zs_free(zram->mem_pool, handle);
+-		handle = (unsigned long)ERR_PTR(-ENOMEM);
++		handle = -ENOMEM;
+ 	}
+ 	/*
+ 	 * handle allocation has 2 paths:
