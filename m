@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88F6728E37
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:58:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78340233129
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733795914; cv=none; b=TbkMJ5fdLl4Q6NqpgrUl0gqe5QqP3CbJKuEYk+Hb2ahwWovdriVi5WZboXaafe8rCNtt4zJa1o3rcOrYRZueHgd72Wd10VQhaR13zv87OKe3dvx8O0Gi1bzkmvoZutKr/HH4EMhcTWioh25QdPFBABERbKJb7zEtD6Isufz07Gk=
+	t=1733796466; cv=none; b=H75j18V0Xm5laFc0T4c1tWG+2F0oCMdUeFK+VfhsTZF2u/1ft1/cKH1R41zeJtxQplYvlQZuMyYpX6OtAezC08MvmFq8OvfTOBxifBRt59MNis8jJwFIMmo1/5mlss+BwfxyR2pvAyfj00j1obBZzUCWFiOr7uMuzbAx5yA3JBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733795914; c=relaxed/simple;
-	bh=1ruSZ4SUWy+hjVvIAUrGycN1CByE5G+AtrBRJx5ToFM=;
-	h=Date:To:From:Subject:Message-Id; b=CMVvQGm3XqYip3nD7A4ABx1ArERngU1uqbrlBSEoUosHhBKOxCaL3peAhNR42y7+lJh5A7BRAwZMrCWufYpfGY2nGvAWcvtGnzs0ezQZS5bFBfuERBAFumjxsJJ9QgCUKKkg8WHEM2yvov5Z/aRrqtZ+IYouRiXzVjRAs98jUXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UKGDGLtO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733796466; c=relaxed/simple;
+	bh=aQv56eFR4YU1PeObP10ofxnlpT79z7etEem/lACP3ro=;
+	h=Date:To:From:Subject:Message-Id; b=ivOkxFIhS2/pLhB4T69eQ729Vum4T20/r0hvVT8QnqfV6hzyGcX1ltpTQqNzn3gvVSyK/CRT4GEmstjUHZeYQZY+StUTd2qQrmZrPWU60eiOj3uG3GvM2DOlDqkgCrR8sTPJIY9pOtST9Z4GviKd9vfYYS2V3tPtdqXlBH6ZAps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kJpIocsK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UKGDGLtO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA7FFC4CED1;
-	Tue, 10 Dec 2024 01:58:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kJpIocsK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EB4C4CED1;
+	Tue, 10 Dec 2024 02:07:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733795913;
-	bh=1ruSZ4SUWy+hjVvIAUrGycN1CByE5G+AtrBRJx5ToFM=;
+	s=korg; t=1733796465;
+	bh=aQv56eFR4YU1PeObP10ofxnlpT79z7etEem/lACP3ro=;
 	h=Date:To:From:Subject:From;
-	b=UKGDGLtO6O6WB0EWyusTKv7IE88u9xTpFhRLwD1HkcXd2VN3SWxAEFsQj8IWTiVuz
-	 0qvuoVIvrKHk2c9QGO2XY/xfMxuoh82r1LG6voRpcN6V3cHZ7ApsmAHwkRNQCwf19W
-	 4yyjFjT9byCgyN4bqtG4hOH8jNL0oFjEHyuEiWOQ=
-Date: Mon, 09 Dec 2024 17:58:33 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=kJpIocsK1A+iBwnYxMcSNUcPLk0QOe17fCj44TUhiWhgdrkCKK58rNANlJ0xyC1Hz
+	 K3vga/cLAp13WEOUgUhrukByqq8l7mAHpxGz9tttviklmoU+8dW85PKzgU0PH2UxoR
+	 wkomE6HTWRCp1oGd1JPTzizQkKzFzyyRvtYRA1Xs=
+Date: Mon, 09 Dec 2024 18:07:45 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] maintainers-group-all-vma-related-files-into-the-vma-section.patch removed from -mm tree
-Message-Id: <20241210015833.CA7FFC4CED1@smtp.kernel.org>
+Subject: + selftests-mm-fix-condition-in-uffd_move_test_common.patch added to mm-unstable branch
+Message-Id: <20241210020745.D6EB4C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,90 +34,136 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: MAINTAINERS: group all VMA-related files into the VMA section
-has been removed from the -mm tree.  Its filename was
-     maintainers-group-all-vma-related-files-into-the-vma-section.patch
+The patch titled
+     Subject: selftests/mm: fix condition in uffd_move_test_common()
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-fix-condition-in-uffd_move_test_common.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-condition-in-uffd_move_test_common.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: group all VMA-related files into the VMA section
-Date: Fri, 6 Dec 2024 19:16:00 +0000
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: selftests/mm: fix condition in uffd_move_test_common()
+Date: Mon, 9 Dec 2024 09:50:06 +0000
 
-There are a number of means of interacting with VMA operations within mm,
-and we have on occasion not been made aware of impactful changes due to
-these sitting in different files, most recently in [0].
+Patch series "pkeys kselftests improvements".
 
-Correct this by bringing all VMA operations under the same section in
-MAINTAINERS.  Additionally take the opportunity to combine MEMORY MAPPING
-with VMA as there needn't be two entries as they amount to the same thing.
+This series brings various cleanups and fixes for the mm (mostly pkeys)
+kselftests.  The original goal was to make the pkeys tests work out of the
+box and without build warning - it turned out to be more involved than
+expected.
 
-[0]:https://lore.kernel.org/linux-mm/CAG48ez0siYGB8GP5+Szgj2ovBZAkL6Zi4n6GUAjzzjFV9LTkRQ@mail.gmail.com/
+The most important change is enabling -O2 when building all mm kselftests
+(patch 5).  This is actually needed for the pkeys tests to run
+successfully (see gcc command line at the top of protection_keys.c and
+pkey_sighandler_tests.c), and seems to have no negative impact on the
+other tests.  It certainly can't hurt performance!
 
-Link: https://lkml.kernel.org/r/20241206191600.45119-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The following patches address a few obvious issues in the pkeys tests
+(unused code, bad scope for functions/variables, etc.) and finally make a
+couple of small improvements.
+
+There is one ugliness that this series does not fix: some functions in
+pkey-<arch>.h call functions that are actually defined in
+protection_keys.c.  For instance, expect_fault_on_read_execonly_key() in
+pkey-x86.h calls expected_pkey_fault().  This means that other test
+programs that use pkey-helpers.h (namely pkey_sighandler_tests) would fail
+to link if they called such functions defined in pkey-<arch>.h.  Fixing
+this would require a more comprehensive reorganisation of the pkey-*
+headers, which doesn't seem worth it (patch 9 adds a comment to
+pkey-helpers.h to clarify the situation).
+
+Some more details on the patches:
+
+- Patch 1 is an unrelated fix that was revealed by inspecting a warning.
+  It seems fairly harmless though, so I thought I'd just post it as part
+  of this series.
+
+- Patch 2-5 fix various warnings that come up by building the mm tests
+  at -O2 and finally enable -O2.
+
+- Patch 6-12 are various cleanups for the pkeys tests. Patch 11 in
+  particular enables is_pkeys_supported() to be called from outside
+  protection_keys.c (patch 13 relies on this).
+
+- Patch 13-14 are small improvements to pkey_sighandler_tests.c.
+
+Many thanks to Ryan Roberts for checking that the mm tests still run fine
+on arm64 with those patches applied.  I've also checked that the pkeys
+tests run fine on arm64 and x86.
+
+
+This patch (of 14):
+
+area_src and area_dst are saved at the beginning of the function if
+chunk_size > page_size.  The intention is quite clearly to restore them at
+the end based on the same condition, but step_size is considered instead
+of chunk_size.  Considering that step_size is a number of pages, the
+condition is likely to be false.
+
+Use the same condition as when saving so that the globals are restored as
+intended.
+
+Link: https://lkml.kernel.org/r/20241209095019.1732120-1-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20241209095019.1732120-2-kevin.brodsky@arm.com
+Fixes: a2bf6a9ca805 ("selftests/mm: add UFFDIO_MOVE ioctl test")
+Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Joey Gouly <joey.gouly@arm.com>
+Cc: Keith Lucas <keith.lucas@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-group-all-vma-related-files-into-the-vma-section
-+++ a/MAINTAINERS
-@@ -15060,18 +15060,6 @@ F:	tools/mm/
- F:	tools/testing/selftests/mm/
- N:	include/linux/page[-_]*
- 
--MEMORY MAPPING
--M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Liam R. Howlett <Liam.Howlett@oracle.com>
--M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
--R:	Vlastimil Babka <vbabka@suse.cz>
--R:	Jann Horn <jannh@google.com>
--L:	linux-mm@kvack.org
--S:	Maintained
--W:	http://www.linux-mm.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
--F:	mm/mmap.c
--
- MEMORY TECHNOLOGY DEVICES (MTD)
- M:	Miquel Raynal <miquel.raynal@bootlin.com>
- M:	Richard Weinberger <richard@nod.at>
-@@ -25028,6 +25016,13 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	https://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	mm/madvise.c
-+F:	mm/mlock.c
-+F:	mm/mmap.c
-+F:	mm/mprotect.c
-+F:	mm/mremap.c
-+F:	mm/mseal.c
-+F:	mm/msync.c
- F:	mm/vma.c
- F:	mm/vma.h
- F:	mm/vma_internal.h
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-condition-in-uffd_move_test_common
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -1190,7 +1190,7 @@ uffd_move_test_common(uffd_test_args_t *
+ 				    nr, count, count_verify[src_offs + nr + i]);
+ 		}
+ 	}
+-	if (step_size > page_size) {
++	if (chunk_size > page_size) {
+ 		area_src = orig_area_src;
+ 		area_dst = orig_area_dst;
+ 	}
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
-docs-mm-add-vma-locks-documentation.patch
-mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
-selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
-mm-correctly-reference-merged-vma.patch
-mm-vma-move-brk-internals-to-mm-vmac.patch
-mm-vma-move-brk-internals-to-mm-vmac-fix.patch
-mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
-mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
-mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
-mm-vma-move-__vm_munmap-to-mm-vmac.patch
-selftests-mm-add-fork-cow-guard-page-test.patch
-mm-enforce-__must_check-on-vma-merge-and-split.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
+selftests-mm-fix-condition-in-uffd_move_test_common.patch
+selftests-mm-fix-wmaybe-uninitialized-warnings.patch
+selftests-mm-fix-strncpy-length.patch
+selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
+selftests-mm-build-with-o2.patch
+selftests-mm-remove-unused-pkey-helpers.patch
+selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
+selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
+selftests-mm-remove-empty-pkey-helper-definition.patch
+selftests-mm-ensure-non-global-pkey-symbols-are-marked-static.patch
+selftests-mm-use-sys_pkey-helpers-consistently.patch
+selftests-mm-rename-pkey-register-macro.patch
+selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
+selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
 
