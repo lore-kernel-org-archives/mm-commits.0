@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78340233129
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FA80233129
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733796466; cv=none; b=H75j18V0Xm5laFc0T4c1tWG+2F0oCMdUeFK+VfhsTZF2u/1ft1/cKH1R41zeJtxQplYvlQZuMyYpX6OtAezC08MvmFq8OvfTOBxifBRt59MNis8jJwFIMmo1/5mlss+BwfxyR2pvAyfj00j1obBZzUCWFiOr7uMuzbAx5yA3JBc=
+	t=1733796468; cv=none; b=kUGMDDw3XUlgm8ec1ICQvXocA4E0Bj0rzF/QRvvPpuMKf7JGEO2N+48y9RfPybaV1ryh6QKrMhsq2Z66GKQG3WRs236e6zsRjZhd2tUfGiLxbdEXUdFGQGa6vx49rJkcnDFLArLQg4Am7O27cJRjd6x7tVjZcRhpxoPteqiNzhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733796466; c=relaxed/simple;
-	bh=aQv56eFR4YU1PeObP10ofxnlpT79z7etEem/lACP3ro=;
-	h=Date:To:From:Subject:Message-Id; b=ivOkxFIhS2/pLhB4T69eQ729Vum4T20/r0hvVT8QnqfV6hzyGcX1ltpTQqNzn3gvVSyK/CRT4GEmstjUHZeYQZY+StUTd2qQrmZrPWU60eiOj3uG3GvM2DOlDqkgCrR8sTPJIY9pOtST9Z4GviKd9vfYYS2V3tPtdqXlBH6ZAps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kJpIocsK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733796468; c=relaxed/simple;
+	bh=9+HgbKYAwFPjgaBEJNONVuRdchuwm+5fHC+9fkvC+TE=;
+	h=Date:To:From:Subject:Message-Id; b=qycMGoUUMjY8eIrQVTSHCtvy26G3fwBnd65/sK5zGSic+98XHFIJ20L2aSG5jhUXRhu7TA/SGw4cQDbNYVQWvayW+IBQQ/Sgy4E0O47Npjv4Xnvk5ytC9GmhkSUqs8Q1DObm/xY2tNYpiwlzTTNu7JC+z08c6p7GD4WgipxXrZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fiQjlVL6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kJpIocsK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EB4C4CED1;
-	Tue, 10 Dec 2024 02:07:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fiQjlVL6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9BBEC4CED1;
+	Tue, 10 Dec 2024 02:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733796465;
-	bh=aQv56eFR4YU1PeObP10ofxnlpT79z7etEem/lACP3ro=;
+	s=korg; t=1733796468;
+	bh=9+HgbKYAwFPjgaBEJNONVuRdchuwm+5fHC+9fkvC+TE=;
 	h=Date:To:From:Subject:From;
-	b=kJpIocsK1A+iBwnYxMcSNUcPLk0QOe17fCj44TUhiWhgdrkCKK58rNANlJ0xyC1Hz
-	 K3vga/cLAp13WEOUgUhrukByqq8l7mAHpxGz9tttviklmoU+8dW85PKzgU0PH2UxoR
-	 wkomE6HTWRCp1oGd1JPTzizQkKzFzyyRvtYRA1Xs=
-Date: Mon, 09 Dec 2024 18:07:45 -0800
+	b=fiQjlVL65Hz+OoIw1afyZ6aem0690/e5bDjBYcEmy6ozhkdkh6MTAsG4swq947Lt1
+	 riJVTfH5WDVx2w9w4j1jpgxk3SOLVvrtSRKv+VuiVI7kH9K3xWUjBq+O4lgkJZ+uni
+	 QeJ43RzAjhbzEXA8URcCKub00xlwm7VoRII+nUak=
+Date: Mon, 09 Dec 2024 18:07:47 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-condition-in-uffd_move_test_common.patch added to mm-unstable branch
-Message-Id: <20241210020745.D6EB4C4CED1@smtp.kernel.org>
+Subject: + selftests-mm-fix-wmaybe-uninitialized-warnings.patch added to mm-unstable branch
+Message-Id: <20241210020747.E9BBEC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix condition in uffd_move_test_common()
+     Subject: selftests/mm: fix -Wmaybe-uninitialized warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-condition-in-uffd_move_test_common.patch
+     selftests-mm-fix-wmaybe-uninitialized-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-condition-in-uffd_move_test_common.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-wmaybe-uninitialized-warnings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix condition in uffd_move_test_common()
-Date: Mon, 9 Dec 2024 09:50:06 +0000
+Subject: selftests/mm: fix -Wmaybe-uninitialized warnings
+Date: Mon, 9 Dec 2024 09:50:07 +0000
 
-Patch series "pkeys kselftests improvements".
+A few -Wmaybe-uninitialized warnings show up when building the mm tests
+with -O2.  None of them looks worrying; silence them by initialising the
+problematic variables.
 
-This series brings various cleanups and fixes for the mm (mostly pkeys)
-kselftests.  The original goal was to make the pkeys tests work out of the
-box and without build warning - it turned out to be more involved than
-expected.
-
-The most important change is enabling -O2 when building all mm kselftests
-(patch 5).  This is actually needed for the pkeys tests to run
-successfully (see gcc command line at the top of protection_keys.c and
-pkey_sighandler_tests.c), and seems to have no negative impact on the
-other tests.  It certainly can't hurt performance!
-
-The following patches address a few obvious issues in the pkeys tests
-(unused code, bad scope for functions/variables, etc.) and finally make a
-couple of small improvements.
-
-There is one ugliness that this series does not fix: some functions in
-pkey-<arch>.h call functions that are actually defined in
-protection_keys.c.  For instance, expect_fault_on_read_execonly_key() in
-pkey-x86.h calls expected_pkey_fault().  This means that other test
-programs that use pkey-helpers.h (namely pkey_sighandler_tests) would fail
-to link if they called such functions defined in pkey-<arch>.h.  Fixing
-this would require a more comprehensive reorganisation of the pkey-*
-headers, which doesn't seem worth it (patch 9 adds a comment to
-pkey-helpers.h to clarify the situation).
-
-Some more details on the patches:
-
-- Patch 1 is an unrelated fix that was revealed by inspecting a warning.
-  It seems fairly harmless though, so I thought I'd just post it as part
-  of this series.
-
-- Patch 2-5 fix various warnings that come up by building the mm tests
-  at -O2 and finally enable -O2.
-
-- Patch 6-12 are various cleanups for the pkeys tests. Patch 11 in
-  particular enables is_pkeys_supported() to be called from outside
-  protection_keys.c (patch 13 relies on this).
-
-- Patch 13-14 are small improvements to pkey_sighandler_tests.c.
-
-Many thanks to Ryan Roberts for checking that the mm tests still run fine
-on arm64 with those patches applied.  I've also checked that the pkeys
-tests run fine on arm64 and x86.
-
-
-This patch (of 14):
-
-area_src and area_dst are saved at the beginning of the function if
-chunk_size > page_size.  The intention is quite clearly to restore them at
-the end based on the same condition, but step_size is considered instead
-of chunk_size.  Considering that step_size is a number of pages, the
-condition is likely to be false.
-
-Use the same condition as when saving so that the globals are restored as
-intended.
-
-Link: https://lkml.kernel.org/r/20241209095019.1732120-1-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20241209095019.1732120-2-kevin.brodsky@arm.com
-Fixes: a2bf6a9ca805 ("selftests/mm: add UFFDIO_MOVE ioctl test")
+Link: https://lkml.kernel.org/r/20241209095019.1732120-3-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -134,20 +78,56 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ tools/testing/selftests/mm/ksm_tests.c       |    2 +-
+ tools/testing/selftests/mm/mremap_test.c     |    2 +-
+ tools/testing/selftests/mm/soft-dirty.c      |    2 +-
  tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-condition-in-uffd_move_test_common
+--- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-wmaybe-uninitialized-warnings
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -776,7 +776,7 @@ err_out:
+ 
+ int main(int argc, char *argv[])
+ {
+-	int ret, opt;
++	int ret = 0, opt;
+ 	int prot = 0;
+ 	int ksm_scan_limit_sec = KSM_SCAN_LIMIT_SEC_DEFAULT;
+ 	int merge_type = KSM_MERGE_TYPE_DEFAULT;
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-fix-wmaybe-uninitialized-warnings
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -384,7 +384,7 @@ out:
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char *rand_addr)
+ {
+-	void *addr, *src_addr, *dest_addr, *dest_preamble_addr;
++	void *addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
+ 	unsigned long long t, d;
+ 	struct timespec t_start = {0, 0}, t_end = {0, 0};
+ 	long long  start_ns, end_ns, align_mask, ret, offset;
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-wmaybe-uninitialized-warnings
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -128,7 +128,7 @@ static void test_mprotect(int pagemap_fd
+ {
+ 	const char *type[] = {"file", "anon"};
+ 	const char *fname = "./soft-dirty-test-file";
+-	int test_fd;
++	int test_fd = 0;
+ 	char *map;
+ 
+ 	if (anon) {
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-wmaybe-uninitialized-warnings
 +++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1190,7 +1190,7 @@ uffd_move_test_common(uffd_test_args_t *
- 				    nr, count, count_verify[src_offs + nr + i]);
- 		}
- 	}
--	if (step_size > page_size) {
-+	if (chunk_size > page_size) {
- 		area_src = orig_area_src;
- 		area_dst = orig_area_dst;
- 	}
+@@ -1122,7 +1122,7 @@ uffd_move_test_common(uffd_test_args_t *
+ 	char c;
+ 	unsigned long long count;
+ 	struct uffd_args args = { 0 };
+-	char *orig_area_src, *orig_area_dst;
++	char *orig_area_src = NULL, *orig_area_dst = NULL;
+ 	unsigned long step_size, step_count;
+ 	unsigned long src_offs = 0;
+ 	unsigned long dst_offs = 0;
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
