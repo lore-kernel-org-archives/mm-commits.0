@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B15678289
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E105233129
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733796477; cv=none; b=Uoc8mIZmC1MYJe41/dfpKO9ctT2VyHMmkE5ZaZl8i8qTegPrzIGyqBKQAo3llJoLtcUSphDSpY8P0eJj96l9CkRft+ArfrxHdOYjN4Xjes78GxEvPDEXazeZiJ4Mg/lQ5aPlvoLJbQy+V3a9GaWPcYpnToZLzFoUYbHp8O4YPpI=
+	t=1733796479; cv=none; b=Sbhb6KpT/1Nc055R5l6zgRc3mz1MES5ZBAi6f8+VG5LZhMHAD76bkNI9ljc1Q/I1znQe83V0x+20pp4Xci04OCXL6bMoGFItPzg1Tp+FGjn+KDX1LGGB5W3QxuRe3c/xy1QR/sPVL9oZfs5cwW5HC/AySzoFwHrjXCJjAJRjCZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733796477; c=relaxed/simple;
-	bh=y9fF581mzp6FlnJOYiqhOX6Ztuc2Bv3zcffANwf9c78=;
-	h=Date:To:From:Subject:Message-Id; b=mLVvryNQimGInCjCLUQ1VNiWSLtM/170LMSajpwGOHFctRbVRdjSGDEIliz9wkLfJJBTzyA3An0gYvrxu5iCZFgwwSrFTN3nnvTAjWN1LvqVfOoUednBxhR5DhUtWsEKLX3zGtYSZBl6tltOsaCFd6iGIvQDsnLN4P1pWE6Fnmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K6tAXuRG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733796479; c=relaxed/simple;
+	bh=hpiI6vB5jKlEX1GUC17gCT7T1NY50m7SPv0PJ6O9q8o=;
+	h=Date:To:From:Subject:Message-Id; b=TSE8L2UDTUojan77+NUX/q7AlJqO5ZeyuEjKmcQSsIbBCs5x3vOrp4K/k0VUSIWLUcXMD5adGYs7pRHIgpn8rmZZzNqT8T84kS9b0bgJ89ouo/KliXzNvEn+7J1QjtiwIduoFmP5fgcLnW4IoUVUcCP3YN8Ecm/+kMx99EM9mpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iyOuOQSo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K6tAXuRG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D0AC4CEDE;
-	Tue, 10 Dec 2024 02:07:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iyOuOQSo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DA45C4CED1;
+	Tue, 10 Dec 2024 02:07:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733796476;
-	bh=y9fF581mzp6FlnJOYiqhOX6Ztuc2Bv3zcffANwf9c78=;
+	s=korg; t=1733796479;
+	bh=hpiI6vB5jKlEX1GUC17gCT7T1NY50m7SPv0PJ6O9q8o=;
 	h=Date:To:From:Subject:From;
-	b=K6tAXuRG40UAyTpTTU4O8Cc70m0s+juhFq3M0dWdVZQp2dveKEtDeMu/uaDuf6OaY
-	 WMC3yXVwsk1WyY1OExsM7Dk4jXfq3FJpDhNYErxJqEscs0620EeNBQ/65UInxQ2vjG
-	 AiW98qQ59M+0LiInD8++K9ZaCnntzcRYrpVOsmaQ=
-Date: Mon, 09 Dec 2024 18:07:56 -0800
+	b=iyOuOQSogbWsHQa9MuVbOjaV4vOKb3eRjFybhnJ4pbecUptOYbU2r1pbfXHttPYLH
+	 PMTdUinkmhtgdNVaX1dKr3eTYgxuSD6T0b5VPeA7g57w/6FKN1MC7FRirPnGn9nAip
+	 D564kTVFs8R7fliOP+boSb/m6MaRs/v8vP2CTUbU=
+Date: Mon, 09 Dec 2024 18:07:58 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-unused-pkey-helpers.patch added to mm-unstable branch
-Message-Id: <20241210020756.D8D0AC4CEDE@smtp.kernel.org>
+Subject: + selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch added to mm-unstable branch
+Message-Id: <20241210020759.2DA45C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove unused pkey helpers
+     Subject: selftests/mm: define types using typedef in pkey-helpers.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-remove-unused-pkey-helpers.patch
+     selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-unused-pkey-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: remove unused pkey helpers
-Date: Mon, 9 Dec 2024 09:50:11 +0000
+Subject: selftests/mm: define types using typedef in pkey-helpers.h
+Date: Mon, 9 Dec 2024 09:50:12 +0000
 
-Commit 5f23f6d082a9 ("x86/pkeys: Add self-tests") introduced a
-number of helpers and functions that don't seem to have ever been
-used. Let's remove them.
+Using #define to define types should be avoided.  Use typedef instead. 
+Also ensure that __u* types are actually defined by including
+<linux/types.h>.
 
-Link: https://lkml.kernel.org/r/20241209095019.1732120-7-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20241209095019.1732120-8-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -78,124 +78,31 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-helpers.h    |   34 -----------------
- tools/testing/selftests/mm/protection_keys.c |   34 -----------------
- 2 files changed, 68 deletions(-)
+ tools/testing/selftests/mm/pkey-helpers.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-remove-unused-pkey-helpers
+--- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-define-types-using-typedef-in-pkey-helpersh
 +++ a/tools/testing/selftests/mm/pkey-helpers.h
-@@ -26,9 +26,7 @@
- #ifndef DEBUG_LEVEL
- #define DEBUG_LEVEL 0
- #endif
--#define DPRINT_IN_SIGNAL_BUF_SIZE 4096
- extern int dprint_in_signal;
--extern char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
+@@ -13,13 +13,15 @@
+ #include <ucontext.h>
+ #include <sys/mman.h>
  
- extern int test_nr;
- extern int iteration_nr;
-@@ -171,38 +169,6 @@ static inline void write_pkey_reg(u64 pk
- 			pkey_reg, __read_pkey_reg());
- }
++#include <linux/types.h>
++
+ #include "../kselftest.h"
  
--/*
-- * These are technically racy. since something could
-- * change PKEY register between the read and the write.
-- */
--static inline void __pkey_access_allow(int pkey, int do_allow)
--{
--	u64 pkey_reg = read_pkey_reg();
--	int bit = pkey * 2;
--
--	if (do_allow)
--		pkey_reg &= (1<<bit);
--	else
--		pkey_reg |= (1<<bit);
--
--	dprintf4("pkey_reg now: %016llx\n", read_pkey_reg());
--	write_pkey_reg(pkey_reg);
--}
--
--static inline void __pkey_write_allow(int pkey, int do_allow_write)
--{
--	u64 pkey_reg = read_pkey_reg();
--	int bit = pkey * 2 + 1;
--
--	if (do_allow_write)
--		pkey_reg &= (1<<bit);
--	else
--		pkey_reg |= (1<<bit);
--
--	write_pkey_reg(pkey_reg);
--	dprintf4("pkey_reg now: %016llx\n", read_pkey_reg());
--}
--
- #define ALIGN_UP(x, align_to)	(((x) + ((align_to)-1)) & ~((align_to)-1))
- #define ALIGN_DOWN(x, align_to) ((x) & ~((align_to)-1))
- #define ALIGN_PTR_UP(p, ptr_align_to)	\
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-remove-unused-pkey-helpers
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -53,7 +53,6 @@ int test_nr;
+ /* Define some kernel-like types */
+-#define  u8 __u8
+-#define u16 __u16
+-#define u32 __u32
+-#define u64 __u64
++typedef __u8	u8;
++typedef __u16	u16;
++typedef __u32	u32;
++typedef __u64	u64;
  
- u64 shadow_pkey_reg;
- int dprint_in_signal;
--char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
+ #define PTR_ERR_ENOTSUP ((void *)-ENOTSUP)
  
- void cat_into_file(char *str, char *file)
- {
-@@ -397,12 +396,6 @@ void signal_handler(int signum, siginfo_
- 	dprint_in_signal = 0;
- }
- 
--int wait_all_children(void)
--{
--	int status;
--	return waitpid(-1, &status, 0);
--}
--
- void sig_chld(int x)
- {
- 	dprint_in_signal = 1;
-@@ -817,39 +810,12 @@ void *malloc_pkey_hugetlb(long size, int
- 	return ptr;
- }
- 
--void *malloc_pkey_mmap_dax(long size, int prot, u16 pkey)
--{
--	void *ptr;
--	int fd;
--
--	dprintf1("doing %s(size=%ld, prot=0x%x, pkey=%d)\n", __func__,
--			size, prot, pkey);
--	pkey_assert(pkey < NR_PKEYS);
--	fd = open("/dax/foo", O_RDWR);
--	pkey_assert(fd >= 0);
--
--	ptr = mmap(0, size, prot, MAP_SHARED, fd, 0);
--	pkey_assert(ptr != (void *)-1);
--
--	mprotect_pkey(ptr, size, prot, pkey);
--
--	record_pkey_malloc(ptr, size, prot);
--
--	dprintf1("mmap()'d for pkey %d @ %p\n", pkey, ptr);
--	close(fd);
--	return ptr;
--}
--
- void *(*pkey_malloc[])(long size, int prot, u16 pkey) = {
- 
- 	malloc_pkey_with_mprotect,
- 	malloc_pkey_with_mprotect_subpage,
- 	malloc_pkey_anon_huge,
- 	malloc_pkey_hugetlb
--/* can not do direct with the pkey_mprotect() API:
--	malloc_pkey_mmap_direct,
--	malloc_pkey_mmap_dax,
--*/
- };
- 
- void *malloc_pkey(long size, int prot, u16 pkey)
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
