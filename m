@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5082E433CE
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 03:07:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE0EB2AEFE
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 03:10:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733800075; cv=none; b=YtYC/BfXxMZlR5NfCqqfl3YJbKHuPJRp5QcHOXPVU3gzeSLglhC+pCo2gK+dC6W2BzrD6xkMbaOWk5QQPced7VjFT1XqmQoMgAv6yYOM1NsFfx9RvgDtm0Pb75acI3bp36rQ/uyhgVZtgPpFXgsjmbz1FZ++n94JOssVtCZle0U=
+	t=1733800244; cv=none; b=X7c04q93kwpFx2O0M06bbYjnP415Bti2IiZsrJj8B0WC7g5GcNAJnP3UXEaLjM4Zc0GO5OVtCk0ArOBpM4b3llPVeP7c718kDEcE4FBU2O5pdFWya/H91RE/wXOH5Ss8c/QnqrBrYuAy7eS9z/9CMDcdn0NbkiuM6g0jvIueePQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733800075; c=relaxed/simple;
-	bh=az/H3mWUtqZuetEKV1lOceF/+hlgZpQjhX07QKsW8t0=;
-	h=Date:To:From:Subject:Message-Id; b=aspViguOvewL/16KxfnGngfCQtjz1JPv4n+X549kIUixMu5Jl1wOfDr+m5pI4otQft5DSzah72m8d2GHwWpQ4BwzltX4mONeJ0bxJ0dbKoS87rywCa09SH5iN5VW314sPkPE+XxuBlolXyLKG3l4Yii85MfUtBaHxTG9s6qskkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WrCCsDJ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733800244; c=relaxed/simple;
+	bh=hotXKuhBoL9UpRkbcVnl945sO4Poh12mTvi0qy5Z4VY=;
+	h=Date:To:From:Subject:Message-Id; b=kNWwtibwjMhV2R2eBpPYUO1v0gwYVzCYoKBSIR4Kr3oqZpfvpQgc8R2Q/0i2RX33WnurT40iKBqKehBQxenyrwI+tqdZJVkSCmBfJJAeTxMAOiSkb7HO3ud1bPlzBeENerpcZKJpWaTXiX4K6+Voik8vQ3E4kT12UuhAHNpHxvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AN40ma/q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WrCCsDJ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0445C4CEDE;
-	Tue, 10 Dec 2024 03:07:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AN40ma/q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23B8FC4CED1;
+	Tue, 10 Dec 2024 03:10:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733800074;
-	bh=az/H3mWUtqZuetEKV1lOceF/+hlgZpQjhX07QKsW8t0=;
+	s=korg; t=1733800244;
+	bh=hotXKuhBoL9UpRkbcVnl945sO4Poh12mTvi0qy5Z4VY=;
 	h=Date:To:From:Subject:From;
-	b=WrCCsDJ1tUrI0kgnALSxURlQiPIEAlTs/4KaJS6nFGFU8j7ducwVOqxfo7P37Jdsg
-	 5pDgtSYYh1rvz03Xzwqzrq9jEBpkm23WVSUswzi1jq+T+UZk4kFy/3xe/ijp6l5apv
-	 oE4CYy3a3IAJzaZbGtIA/6rRc+k171eWD6QqrXfc=
-Date: Mon, 09 Dec 2024 19:07:54 -0800
-To: mm-commits@vger.kernel.org,tamird@gmail.com,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AN40ma/qzyP22Ux0TtLkP4Bmkl8edZkCsmSjo1/4gvlPd3TdX1tOQN0xjfcv1KNX2
+	 o8ZNZw8cgQ0GeVvZl/hB8kv6gkw6n/nyjdRDfuoJlYjsZWUDMOmng4ogSt1dwJgpSH
+	 rEzrnWOqESHSNz0XxfOluz8dTrCKYeVJrgVahNFE=
+Date: Mon, 09 Dec 2024 19:10:43 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,kees@kernel.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-port-tests-to-kunit-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20241210030754.D0445C4CEDE@smtp.kernel.org>
+Subject: + mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch added to mm-unstable branch
+Message-Id: <20241210031044.23B8FC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xarray-port-tests-to-kunit-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xarray-port-tests-to-kunit-fix.patch
+     Subject: mm/execmem: make ARCH_WANTS_EXECMEM_LATE depend on EXECMEM
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-port-tests-to-kunit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,42 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: xarray-port-tests-to-kunit-fix
-Date: Mon Dec  9 07:06:54 PM PST 2024
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/execmem: make ARCH_WANTS_EXECMEM_LATE depend on EXECMEM
+Date: Mon, 9 Dec 2024 08:42:51 +0530
 
-Fix cocci warning:
+Late initialisation of EXECMEM inherently requires EXECMEM itself, and
+hence this dependency should not be left with the subscribing platforms.
 
-lib/test_xarray.c:1019:52-53: WARNING comparing pointer to 0
-
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202412081700.YXB3vBbg-lkp@intel.com/
-Cc: Tamir Duberstein <tamird@gmail.com>
+Link: https://lkml.kernel.org/r/20241209031251.515903-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/Kconfig       |    1 +
+ arch/arm64/Kconfig |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/test_xarray.c~xarray-port-tests-to-kunit-fix
-+++ a/lib/test_xarray.c
-@@ -1016,7 +1016,7 @@ static noinline void check_xa_alloc_1(st
+--- a/arch/arm64/Kconfig~mm-execmem-make-arch_wants_execmem_late-depend-on-execmem
++++ a/arch/arm64/Kconfig
+@@ -113,7 +113,7 @@ config ARM64
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select ARCH_WANT_HUGE_PMD_SHARE if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+-	select ARCH_WANTS_EXECMEM_LATE if EXECMEM
++	select ARCH_WANTS_EXECMEM_LATE
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANTS_THP_SWAP if ARM64_4K_PAGES
+ 	select ARCH_HAS_UBSAN
+--- a/arch/Kconfig~mm-execmem-make-arch_wants_execmem_late-depend-on-execmem
++++ a/arch/Kconfig
+@@ -1058,6 +1058,7 @@ config ARCH_WANTS_MODULES_DATA_IN_VMALLO
  
- 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
- 				GFP_KERNEL) != -EBUSY);
--	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != 0);
-+	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != NULL);
- 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
- 				GFP_KERNEL) != -EBUSY);
- 	xa_erase_index(test, xa, 3);
+ config ARCH_WANTS_EXECMEM_LATE
+ 	bool
++	depends on EXECMEM
+ 	help
+ 	  For architectures that do not allocate executable memory early on
+ 	  boot, but rather require its initialization late when there is
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-xarray-port-tests-to-kunit-fix.patch
+mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
 
