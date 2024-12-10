@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A4FD28E37
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:47:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4020641C64;
+	Tue, 10 Dec 2024 01:57:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733795271; cv=none; b=OARmr4kihcIuHuWzAP0w+JZ+2MtE40+YnWY1MAlNZ8a+QqoYcBgbmdcPCjJLfhvY8ILyiP8nkzm+Q+Fyr3F6+hnQ3rUpSAtCQeaAWIFqyJJ79e2N0FUtAwEE8hv9k24UYNCPbM6qCRVu7zhGy0STO2zdHc6NBi7PBNbnE23+MXI=
+	t=1733795869; cv=none; b=YQKW5woMDIcxOfS7Lm93EMz4Ct0ilzq46Dz9lx8McBLkjA+iDVNxGYYlO6PScJ7+o/8xO6cgfGJrasXT7I+MDQa38/dsl+CmJzpK4jBjaNWqLCC2T7DEM1ysn5vny+Xcfq58p4tfe+PaseB3bAJUmLjVXmbAGFlPjGs24jdVS3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733795271; c=relaxed/simple;
-	bh=3QwNZMqUF7Q2U0JZLSynuu+5sA+LW8yXoNh0GtSpXq8=;
-	h=Date:To:From:Subject:Message-Id; b=H7RID3s4EKe6ef35EmiDQsYsUO+Ym+k8alU67BYunETRu1JwLJsJcnhWAEwLUFwcORyybd394Am+Xn+V1GWMKsqZCSC8kXwFvnoVB4+tegF0VXrG0vwEBQQDX1G5bf6NX6fRHclzWc61aUkVcqFqPpu/z70G/l9khbW7lwUZDFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fRD1UQfo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733795869; c=relaxed/simple;
+	bh=U5ssiB5H02E9VimE9BIqWx26rlVNNDNOjqi4UqsNVd0=;
+	h=Date:To:From:Subject:Message-Id; b=rYip7hw5EQca3IrSVqyHwHJ09+CmU3hFlq++DtnkqPIza+6h2Ns+NaDGUupovFIckF/r9Xy5CZ14gdCNF4x8oFrysYMHe9ZobVlt9FQhve1sqpRJ3lRPYSW2pwfnYWw5RPZXBUXmze/lH6PhlU0tsRHVt1tm7x/d2mhvulH7jj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xe/kozEK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fRD1UQfo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 875ECC4CED1;
-	Tue, 10 Dec 2024 01:47:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xe/kozEK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9181CC4CED1;
+	Tue, 10 Dec 2024 01:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733795270;
-	bh=3QwNZMqUF7Q2U0JZLSynuu+5sA+LW8yXoNh0GtSpXq8=;
+	s=korg; t=1733795868;
+	bh=U5ssiB5H02E9VimE9BIqWx26rlVNNDNOjqi4UqsNVd0=;
 	h=Date:To:From:Subject:From;
-	b=fRD1UQfooGFcQnZfAZI02jU3UZ8NI9p2yEPd60qgL0k/g1qFERsu1eZ9Bo9BxZxUq
-	 Uzta8ifd/rXQfowIT2CgMb6n286Cd5vv5IUMUWfXDaeZ3cDpFWoO8dKjzVCo184x3g
-	 91mszfRlg3sZXdaIoc9BsXzyhTI/bne4intEBfAk=
-Date: Mon, 09 Dec 2024 17:47:49 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,osalvador@suse.de,david@redhat.com,akpm@linux-foundation.org
+	b=Xe/kozEKvZmZE6W8WCxSsWjAuSp+ujzFZJCdfU9MRJNG2Sh74OT2QQtJUEgZRGlOc
+	 +zkctyfTN3tabiV7Kd1ilGz+VvLONBXcc1P3ueYMgqYV8EeRwE1uQZvKMq6ack4Fbo
+	 PKW1FPoQpIHH2GktcTEyungDcx8Bv5dzUCYt+hL0=
+Date: Mon, 09 Dec 2024 17:57:47 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,deshengwu@tencent.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch added to mm-unstable branch
-Message-Id: <20241210014750.875ECC4CED1@smtp.kernel.org>
+Subject: + zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241210015748.9181CC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: don't use __GFP_HARDWALL when migrating pages via memory offlining
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
+     Subject: zram: refuse to use zero sized block device as backing device
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,69 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: don't use __GFP_HARDWALL when migrating pages via memory offlining
-Date: Thu, 5 Dec 2024 10:05:08 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: zram: refuse to use zero sized block device as backing device
+Date: Tue, 10 Dec 2024 00:57:15 +0800
 
-We'll migrate pages allocated by other context; respecting the cpuset of
-the memory offlining context when allocating a migration target does not
-make sense.
+Patch series "zram: fix backing device setup issue", v2.
 
-Drop the __GFP_HARDWALL by using GFP_KERNEL.
+This series fixes two bugs of backing device setting:
 
-Note that in an ideal world, migration code could figure out the cpuset
-of the original context and take that into consideration.
+- ZRAM should reject using a zero sized (or the uninitialized ZRAM
+  device itself) as the backing device.
+- Fix backing device leaking when removing a uninitialized ZRAM
+  device.
 
-Link: https://lkml.kernel.org/r/20241205090508.2095225-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Zi Yan <ziy@nvidia.com>
+
+This patch (of 2):
+
+Setting a zero sized block device as backing device is pointless, and one
+can easily create a recursive loop by setting the uninitialized ZRAM
+device itself as its own backing device by (zram0 is uninitialized):
+
+    echo /dev/zram0 > /sys/block/zram0/backing_dev
+
+It's definitely a wrong config, and the module will pin itself, kernel
+should refuse doing so in the first place.
+
+By refusing to use zero sized device we avoided misuse cases including
+this one above.
+
+Link: https://lkml.kernel.org/r/20241209165717.94215-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241209165717.94215-2-ryncsn@gmail.com
+Fixes: 013bf95a83ec ("zram: add interface to specif backing device")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reported-by: Desheng Wu <deshengwu@tencent.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining
-+++ a/mm/memory_hotplug.c
-@@ -1838,7 +1838,7 @@ put_folio:
- 		nodemask_t nmask = node_states[N_MEMORY];
- 		struct migration_target_control mtc = {
- 			.nmask = &nmask,
--			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+			.gfp_mask = GFP_KERNEL | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
- 			.reason = MR_MEMORY_HOTPLUG,
- 		};
- 		int ret;
+--- a/drivers/block/zram/zram_drv.c~zram-refuse-to-use-zero-sized-block-device-as-backing-device
++++ a/drivers/block/zram/zram_drv.c
+@@ -614,6 +614,12 @@ static ssize_t backing_dev_store(struct
+ 	}
+ 
+ 	nr_pages = i_size_read(inode) >> PAGE_SHIFT;
++	/* Refuse to use zero sized device (also prevents self reference) */
++	if (!nr_pages) {
++		err = -EINVAL;
++		goto out;
++	}
++
+ 	bitmap_sz = BITS_TO_LONGS(nr_pages) * sizeof(long);
+ 	bitmap = kvzalloc(bitmap_sz, GFP_KERNEL);
+ 	if (!bitmap) {
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
-mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
-mm-page_isolation-dont-pass-gfp-flags-to-isolate_single_pageblock.patch
-mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
-mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
-mm-page_alloc-sort-out-the-alloc_contig_range-gfp-flags-mess.patch
-mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
-powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
-mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
-fs-proc-vmcore-convert-vmcore_cb_lock-into-vmcore_mutex.patch
-fs-proc-vmcore-replace-vmcoredd_mutex-by-vmcore_mutex.patch
-fs-proc-vmcore-disallow-vmcore-modifications-while-the-vmcore-is-open.patch
-fs-proc-vmcore-prefix-all-pr_-with-vmcore.patch
-fs-proc-vmcore-move-vmcore-definitions-out-of-kcoreh.patch
-fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch
-fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch
-fs-proc-vmcore-introduce-proc_vmcore_device_ram-to-detect-device-ram-ranges-in-2nd-kernel.patch
-virtio-mem-mark-device-ready-before-registering-callbacks-in-kdump-mode.patch
-virtio-mem-remember-usable-region-size.patch
-virtio-mem-support-config_proc_vmcore_device_ram.patch
-s390-kdump-virtio-mem-kdump-support-config_proc_vmcore_device_ram.patch
-mm-page_alloc-conditionally-split-pageblock_order-pages-in-free_one_page-and-move_freepages_block_isolate.patch
-mm-page_isolation-fixup-isolate_single_pageblock-comment-regarding-splitting-free-pages.patch
-mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch
-mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
+zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch
+zram-fix-uninitialized-zram-not-releasing-backing-device.patch
 
