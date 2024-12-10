@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B1C34A04
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:33:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B7D4A04
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 01:37:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733794438; cv=none; b=IFIPZfH/VA9yNPCcsZe2uvUuApqqZh+IKNLTu7eJedT0sNUl1AKIQokp+Bdz8OwPQgbLU1VC1Cw5Qz0gI6Wtuw/BPUIjgeLL5gNpstjrUMB8K7+7lWEre2Hjn0XiIn52oaRQp6tWBrv/6doRsl8Evg8YejesKVp1bkkQ/pc9EpQ=
+	t=1733794677; cv=none; b=eInpPTOI73VkSTwhXijSO5H1IlFnE/RFhzSvipLKY9GuZnwO631VIcPnqlHAT+F+EtZIes5wR6pZTajhRDq/XsVH8oT13OAA4x5KYKZvktCWwhD7S55fmYh83cFoLQ22Qtt5gsxOGxeLyslU+9ncuU/E2zQgVwnWwTjWYqSPfng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733794438; c=relaxed/simple;
-	bh=mVWXOUL/Fe0q4gKMb/bio9ThFYlg6tiNq7vY7gLYAJ0=;
-	h=Date:To:From:Subject:Message-Id; b=SsFxedrAEF98e/mXYby2hpcFJHTVQWjIcKyAJuhShOqHWFesdEg9wR6J86L5Fu5Ml876rU1M6BQCvtv8FaLIfmM21urIwVJ2BcSELsINwuxv6A0Wolendon2L+fmx4vQRCM6sYSfTo5mYH1heuGfH6ENOKyyf+lpmYc/im4saD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y+sPy76k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733794677; c=relaxed/simple;
+	bh=963tfyExNw7rkhnlHwvCsoK16+TzQ8aRPzqrNNo14jo=;
+	h=Date:To:From:Subject:Message-Id; b=lQdJMCv+vofJe6N3zS7fyXZvFXaXz77OktOyPhVDtzYQuc/OibqDCUWZjF+lmMhf/e+PoBWLXaaoJzhYJVal0QMhuI2Cnwe85tEcGwJXYSfZfpc7w4PKfshhVnYy4W9fMwYe+FCeXfKNuoviUyMPVWRlif6I9I4OyJ9knywB9YE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cu5DWHzX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y+sPy76k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50396C4CED1;
-	Tue, 10 Dec 2024 01:33:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cu5DWHzX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F722C4CED1;
+	Tue, 10 Dec 2024 01:37:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733794437;
-	bh=mVWXOUL/Fe0q4gKMb/bio9ThFYlg6tiNq7vY7gLYAJ0=;
+	s=korg; t=1733794675;
+	bh=963tfyExNw7rkhnlHwvCsoK16+TzQ8aRPzqrNNo14jo=;
 	h=Date:To:From:Subject:From;
-	b=Y+sPy76k6l2MlsbN7Vb8ONyD9x7F27H9ZIUniyFSJF4ymuCdIds8lp++9TsJstQ6a
-	 QLbQPEOaHt5cv0OEMJHOudR90Wtal00ckhPYzq2AhEFRW+5Ttwhz3RFxicoFn8sx18
-	 AGiFGgZGeiPsf9S3lV8cad64PDbyx3yg/EToAB/A=
-Date: Mon, 09 Dec 2024 17:33:56 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=Cu5DWHzXvVsjLTUcna0hoY3uCtNWpF5mjURT+x4tZeWMXSbszG60j3gofNCjCoMVm
+	 ZaWuWjA4jm4/wiKYEEGx2CJt/h+W8ce8gy5i40lvttQqSOkXNHnZqaJHKTiCBDOdrX
+	 BCqL9j7IxJ1ZR2FDSp4q1ezvqQcABRXRoaRoilDk=
+Date: Mon, 09 Dec 2024 17:37:54 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,david@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch added to mm-unstable branch
-Message-Id: <20241210013357.50396C4CED1@smtp.kernel.org>
+Subject: + selftests-mm-thp_settings-remove-const-from-return-type.patch added to mm-unstable branch
+Message-Id: <20241210013755.6F722C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix vma_copy for !CONFIG_PER_VMA_LOCK
+     Subject: selftests/mm: thp_settings: remove const from return type
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
+     selftests-mm-thp_settings-remove-const-from-return-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-thp_settings-remove-const-from-return-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix vma_copy for !CONFIG_PER_VMA_LOCK
-Date: Mon, 9 Dec 2024 14:10:28 -0800
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests/mm: thp_settings: remove const from return type
+Date: Mon, 9 Dec 2024 23:56:21 +0500
 
-vma_copy() function for !CONFIG_PER_VMA_LOCK configuration copies all
-fields using memcpy() as opposed to CONFIG_PER_VMA_LOCK version which
-copies only required fields.  anon_vma_chain field should not be copied
-and new vma should instead initialize it to an empty list.  Fix this by
-initializing anon_vma_chain inside vma_copy() function.  The version of
-vma_copy() for CONFIG_PER_VMA_LOCK is fine since it does not change that
-field and anon_vma_chain of any new vma is already initialized and empty.
+Patch series "selftest/mm: Remove warnings found by adding compiler flags".
 
-Link: https://lkml.kernel.org/r/20241209221028.1644210-1-surenb@google.com
-Fixes: 85ad413389ae ("mm: make vma cache SLAB_TYPESAFE_BY_RCU")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202412082208.db1fb2c9-lkp@intel.com
-Reported-by: Klara Modin <klarasmodin@gmail.com>
-Closes: https://lore.kernel.org/all/d0ae7609-aca4-4497-9188-bb09e96e7768@gmail.com/
-Tested-by: Klara Modin <klarasmodin@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Recently, I reviewed a patch on the mm/kselftest mailing list about a test
+which had obvious type mismatch fix in it.  It was strange why that wasn't
+caught during development and when patch was accepted.  This led me to
+discover that those extra compiler options to catch these warnings aren't
+being used.  When I added them, I found tens of warnings in just mm suite.
+
+In this series, I'm fixing those warnings in a few files.  More fixes will
+be sent later.
+
+
+This patch (of 4):
+
+Remove cost from the return type as it is ignored anyways and generates
+the warning:
+
+  warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+
+Link: https://lkml.kernel.org/r/20241209185624.2245158-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20241209185624.2245158-2-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/thp_settings.c |    4 ++--
+ tools/testing/selftests/mm/thp_settings.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/fork.c~mm-make-vma-cache-slab_typesafe_by_rcu-fix
-+++ a/kernel/fork.c
-@@ -524,6 +524,7 @@ static void vma_copy(const struct vm_are
- 	 * will be reinitialized.
- 	 */
- 	data_race(memcpy(dest, src, sizeof(*dest)));
-+	INIT_LIST_HEAD(&dest->anon_vma_chain);
+--- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-thp_settings-remove-const-from-return-type
++++ a/tools/testing/selftests/mm/thp_settings.c
+@@ -87,7 +87,7 @@ int write_file(const char *path, const c
+ 	return (unsigned int) numwritten;
  }
  
- #endif /* CONFIG_PER_VMA_LOCK */
+-const unsigned long read_num(const char *path)
++unsigned long read_num(const char *path)
+ {
+ 	char buf[21];
+ 
+@@ -172,7 +172,7 @@ void thp_write_string(const char *name,
+ 	}
+ }
+ 
+-const unsigned long thp_read_num(const char *name)
++unsigned long thp_read_num(const char *name)
+ {
+ 	char path[PATH_MAX];
+ 	int ret;
+--- a/tools/testing/selftests/mm/thp_settings.h~selftests-mm-thp_settings-remove-const-from-return-type
++++ a/tools/testing/selftests/mm/thp_settings.h
+@@ -64,12 +64,12 @@ struct thp_settings {
+ 
+ int read_file(const char *path, char *buf, size_t buflen);
+ int write_file(const char *path, const char *buf, size_t buflen);
+-const unsigned long read_num(const char *path);
++unsigned long read_num(const char *path);
+ void write_num(const char *path, unsigned long num);
+ 
+ int thp_read_string(const char *name, const char * const strings[]);
+ void thp_write_string(const char *name, const char *val);
+-const unsigned long thp_read_num(const char *name);
++unsigned long thp_read_num(const char *name);
+ void thp_write_num(const char *name, unsigned long num);
+ 
+ void thp_write_settings(struct thp_settings *settings);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
-alloc_tag-fix-set_codetag_empty-when-config_mem_alloc_profiling_debug.patch
-seqlock-add-raw_seqcount_try_begin.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculate_try_beginretry.patch
-mm-introduce-vma_start_read_locked_nested-helpers.patch
-mm-move-per-vma-lock-into-vm_area_struct.patch
-mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
-mm-make-vma-cache-slab_typesafe_by_rcu.patch
-mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
-mm-slab-allow-freeptr_offset-to-be-used-with-ctor.patch
-docs-mm-document-latest-changes-to-vm_lock.patch
+selftests-mm-thp_settings-remove-const-from-return-type.patch
+selftests-mm-pagemap_ioctl-fix-types-mismatches-shown-by-compiler-options.patch
+selftests-mm-mseal_test-remove-unused-variables.patch
+selftests-mm-mremap_test-remove-unused-variable-and-type-mismatches.patch
 
