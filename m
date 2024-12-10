@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807AB233129
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C42828E37
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:07:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733796472; cv=none; b=mxYomX1aymw88ZS3YeZOjeIu3KmmaVG9d2nyL4HQWm9dr+P0Kg7MwLr4b3CoGspQPDFC1mT2No8Mo1ELeGLfrIwbBRx0tObVJkb2rXB2zYlfcea8jk44NlxZfPPVL4wPKdeQ0CVIzfWkiqFdjMpAIU4yctqIkQ297+sTu4A4b/4=
+	t=1733796473; cv=none; b=DCTUypS+j+0+dfYC6kTu2lVWJb+GH+8sArn/dqsSnE97CMHgoNzTheFdGS8SjGDh+PPQOWB+DCHvcmKcinMW3PysZoKiAupiZDBN2u6uSLRG1Qf+zeTM86WP/UjWl7WCJnh/92MnDfHG8BTXvgC60gzNSwaD92AOUEXhBfLH2Qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733796472; c=relaxed/simple;
-	bh=SWN6DyvNMyuJGOcwmpPBpv4Ec51E/q3HD8gvxzGM+7g=;
-	h=Date:To:From:Subject:Message-Id; b=JVoF6ZDsihqyNExcnPif/y78sGdSrUbJ7CtdX5eqeMBnYxSHD9OJLmOYwQ/2omS+PJHM3N7vmuDEsPCo6JlX08fqHqFgHhgaSfNbSXN7e9883nqrxP8PBR/vnpLQTMgDYZXY/nxHTnRCyjEA+88aQuE27PSXbQPQnNxP9cPEnDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=be8XpB2E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733796473; c=relaxed/simple;
+	bh=KBcsShtcRcxP2bTsCM0TYWr9ss1F5w6ssSa89TaOU/Q=;
+	h=Date:To:From:Subject:Message-Id; b=ORG+3ZyJ4NlCmBPVurl6mFxb1I9dVNBMWuEXtjLgNIDhLcTWIodVf/fPL1xURWg1jukMN8KtB1XLxbJlpi4xy8qJTsGVMucarafG4B6uWq9JhyDDjn6Dl4mr9bFhs/ANoQyEefq3HIA/4aP4few0YV4okLOAr7Xphg3/YBi6R1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IFxFlYNW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="be8XpB2E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F801C4CED1;
-	Tue, 10 Dec 2024 02:07:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IFxFlYNW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE8F8C4CED1;
+	Tue, 10 Dec 2024 02:07:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733796471;
-	bh=SWN6DyvNMyuJGOcwmpPBpv4Ec51E/q3HD8gvxzGM+7g=;
+	s=korg; t=1733796473;
+	bh=KBcsShtcRcxP2bTsCM0TYWr9ss1F5w6ssSa89TaOU/Q=;
 	h=Date:To:From:Subject:From;
-	b=be8XpB2ElCyYSKs0dAzxO9VbmJMOiCAy1wl5/t5wKV/BYA5IosDyJORSGlC1C9Uy9
-	 PtbsEHyGfi0JDd65clDBvxII0Ae0vT5ks0f8NAebP8p/aMPEaFFl68cilfXXUX11f/
-	 8lNEFEAQs7zke48dfTT0x9W8QlW3zRFj5S7AB2c8=
-Date: Mon, 09 Dec 2024 18:07:50 -0800
+	b=IFxFlYNW9my0bMk6pPlkWlY63UD7p8RJbig1KYTCGsX4+pPl7C9/c4QsHzKJi8KIi
+	 jvaArjWUvcDDhjczpTp98Bi6NzpfX67HC5gWvk/emvGaby2KB541kDWIc7kzIaE7ti
+	 EJ/f3OFQUY1ftBrXyQW9IgRU7JIPrh0KKxF4vIE4=
+Date: Mon, 09 Dec 2024 18:07:52 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-strncpy-length.patch added to mm-unstable branch
-Message-Id: <20241210020751.0F801C4CED1@smtp.kernel.org>
+Subject: + selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch added to mm-unstable branch
+Message-Id: <20241210020752.EE8F8C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix strncpy() length
+     Subject: selftests/mm: fix -Warray-bounds warnings in pkey_sighandler_tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-strncpy-length.patch
+     selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-strncpy-length.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix strncpy() length
-Date: Mon, 9 Dec 2024 09:50:08 +0000
+Subject: selftests/mm: fix -Warray-bounds warnings in pkey_sighandler_tests
+Date: Mon, 9 Dec 2024 09:50:09 +0000
 
-GCC complains (with -O2) that the length is equal to the destination size,
-which is indeed invalid.  Subtract 1 from the size of the array to leave
-room for '\0'.
+GCC doesn't like dereferencing a pointer set to 0x1 (when building
+at -O2):
 
-Link: https://lkml.kernel.org/r/20241209095019.1732120-4-kevin.brodsky@arm.com
+pkey_sighandler_tests.c:166:9: warning: array subscript 0 is outside array bounds of 'int[0]' [-Warray-bounds=]
+  166 |         *(int *) (0x1) = 1;
+      |         ^~~~~~~~~~~~~~
+cc1: note: source object is likely at address zero
+
+Using NULL instead seems to make it happy.  This should make no difference
+in practice (SIGSEGV with SEGV_MAPERR will be the outcome regardless), we
+just need to update the expected si_addr.
+
+Link: https://lkml.kernel.org/r/20241209095019.1732120-5-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -78,20 +86,55 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/write_to_hugetlbfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/write_to_hugetlbfs.c~selftests-mm-fix-strncpy-length
-+++ a/tools/testing/selftests/mm/write_to_hugetlbfs.c
-@@ -89,7 +89,7 @@ int main(int argc, char **argv)
- 			size = atoi(optarg);
- 			break;
- 		case 'p':
--			strncpy(path, optarg, sizeof(path));
-+			strncpy(path, optarg, sizeof(path) - 1);
- 			break;
- 		case 'm':
- 			if (atoi(optarg) >= MAX_METHOD) {
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -163,7 +163,7 @@ static void *thread_segv_with_pkey0_disa
+ 	__write_pkey_reg(pkey_reg_restrictive_default());
+ 
+ 	/* Segfault (with SEGV_MAPERR) */
+-	*(int *) (0x1) = 1;
++	*(int *)NULL = 1;
+ 	return NULL;
+ }
+ 
+@@ -179,7 +179,6 @@ static void *thread_segv_pkuerr_stack(vo
+ static void *thread_segv_maperr_ptr(void *ptr)
+ {
+ 	stack_t *stack = ptr;
+-	int *bad = (int *)1;
+ 	u64 pkey_reg;
+ 
+ 	/*
+@@ -195,7 +194,7 @@ static void *thread_segv_maperr_ptr(void
+ 	__write_pkey_reg(pkey_reg);
+ 
+ 	/* Segfault */
+-	*bad = 1;
++	*(int *)NULL = 1;
+ 	syscall_raw(SYS_exit, 0, 0, 0, 0, 0, 0);
+ 	return NULL;
+ }
+@@ -234,7 +233,7 @@ static void test_sigsegv_handler_with_pk
+ 
+ 	ksft_test_result(siginfo.si_signo == SIGSEGV &&
+ 			 siginfo.si_code == SEGV_MAPERR &&
+-			 siginfo.si_addr == (void *)1,
++			 siginfo.si_addr == NULL,
+ 			 "%s\n", __func__);
+ }
+ 
+@@ -349,7 +348,7 @@ static void test_sigsegv_handler_with_di
+ 
+ 	ksft_test_result(siginfo.si_signo == SIGSEGV &&
+ 			 siginfo.si_code == SEGV_MAPERR &&
+-			 siginfo.si_addr == (void *)1,
++			 siginfo.si_addr == NULL,
+ 			 "%s\n", __func__);
+ }
+ 
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
