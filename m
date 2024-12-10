@@ -1,134 +1,110 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 53E3CAD5A
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 03:42:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A9B1D7E4E
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 03:55:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733802166; cv=none; b=TpmKdbhSGcHc+kerXlMNvHRwbOqFKJ/72EmXQ3vPjcHw5hznldDdzkvntc1G23AlIy9tgd3PFl5Ao5ewZ51IXPlVwwhbH+Efpa7JmDHqFlD6dLxcK8kqkIlLwpYmC2+XEmaLLbYoD8iKvWu3pfCDBLharodC4DI1bOCscl+QYag=
+	t=1733802940; cv=none; b=lxL2oqB1WiCxXmUeSCo37FsJ3i8NyG5Rj4qenxemw8yNOHK/LtSAQNWLzL6RiyEE27KqcK6CtCwhmDZ90+XAjvOZ+l6obpuzkKsU0Wjv5CNKx/zlJoVsv+QtFGU3JMhH+DDdbbawUBa/7Rsnpj4jzdFdEopF3AXDwl/IZjDlepM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733802166; c=relaxed/simple;
-	bh=rel63ctHyXqQ6/fHhl9v+ac5NnAXP8u3rHPqhhO4eK8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=GYo0Nj/r5G3yDzXNu6wV9eSw1fkOlREDUj4UvXbWgTSu1J2dYMYTcGkITLR1ltsulWxA9euFMScv/DX+kzd38iFNp6IWqFPrA72/dqeN+noOHGOAxVUyjiSfHwnsu/4FnDUWufzbdYmdRYktSP6u2Gecaf12JOZz8crKbRlepDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8DFE8113E;
-	Mon,  9 Dec 2024 19:43:11 -0800 (PST)
-Received: from [10.163.48.173] (unknown [10.163.48.173])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F0D653F720;
-	Mon,  9 Dec 2024 19:42:41 -0800 (PST)
-Message-ID: <7627f30c-d68f-486c-b236-3bb78c4c46c5@arm.com>
-Date: Tue, 10 Dec 2024 09:12:39 +0530
+	s=arc-20240116; t=1733802940; c=relaxed/simple;
+	bh=wCkSNDRf1dhcK0HVWUCJT41ital/CVTXp2HmjKFpYU0=;
+	h=Date:To:From:Subject:Message-Id; b=WtPBLhVPIXeOughwtKfOglz6LUT5EdruhhaJ4w5v8Ba0bcTZkLI0tVjMWKeJscCJresYGEFKH5nTzHuYPrqM2apclGu4+MgBlHzvApUQVKMh5ql+9u7xZput5lczjKOb5koKx+A8CiqVndqYdpAdQCiYT+WJExpKsNiNPPFyFRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tAmTpw3O; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tAmTpw3O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56794C4CED6;
+	Tue, 10 Dec 2024 03:55:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1733802940;
+	bh=wCkSNDRf1dhcK0HVWUCJT41ital/CVTXp2HmjKFpYU0=;
+	h=Date:To:From:Subject:From;
+	b=tAmTpw3ON7RYWKgYX52nSZkRToMMluaiINMRklD7Y/f3NvK+I4cPz35oPtErlmsFE
+	 4dSQwbEHfAx0zDqFFZB0XpXwRDaBZG5eNzlGLzvxiG4jsZaUJ/tH6zXbJRfUcEgAF+
+	 M0Mwg4e7C2EfPezzMQ2JriZ2C2hUd2O48vtjulaU=
+Date: Mon, 09 Dec 2024 19:55:39 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,david@redhat.com,mjguzik@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless.patch added to mm-unstable branch
+Message-Id: <20241210035540.56794C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
- added to mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- will@kernel.org, kees@kernel.org, catalin.marinas@arm.com
-References: <20241210031044.23B8FC4CED1@smtp.kernel.org>
-Content-Language: en-US
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-In-Reply-To: <20241210031044.23B8FC4CED1@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 12/10/24 08:40, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm/execmem: make ARCH_WANTS_EXECMEM_LATE depend on EXECMEM
-> has been added to the -mm mm-unstable branch.  Its filename is
->      mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Anshuman Khandual <anshuman.khandual@arm.com>
-> Subject: mm/execmem: make ARCH_WANTS_EXECMEM_LATE depend on EXECMEM
-> Date: Mon, 9 Dec 2024 08:42:51 +0530
-> 
-> Late initialisation of EXECMEM inherently requires EXECMEM itself, and
-> hence this dependency should not be left with the subscribing platforms.
-> 
-> Link: https://lkml.kernel.org/r/20241209031251.515903-1-anshuman.khandual@arm.com
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Kees Cook <kees@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/Kconfig       |    1 +
->  arch/arm64/Kconfig |    2 +-
->  2 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> --- a/arch/arm64/Kconfig~mm-execmem-make-arch_wants_execmem_late-depend-on-execmem
-> +++ a/arch/arm64/Kconfig
-> @@ -113,7 +113,7 @@ config ARM64
->  	select ARCH_WANT_FRAME_POINTERS
->  	select ARCH_WANT_HUGE_PMD_SHARE if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
->  	select ARCH_WANT_LD_ORPHAN_WARN
-> -	select ARCH_WANTS_EXECMEM_LATE if EXECMEM
-> +	select ARCH_WANTS_EXECMEM_LATE
->  	select ARCH_WANTS_NO_INSTR
->  	select ARCH_WANTS_THP_SWAP if ARM64_4K_PAGES
->  	select ARCH_HAS_UBSAN
-> --- a/arch/Kconfig~mm-execmem-make-arch_wants_execmem_late-depend-on-execmem
-> +++ a/arch/Kconfig
-> @@ -1058,6 +1058,7 @@ config ARCH_WANTS_MODULES_DATA_IN_VMALLO
->  
->  config ARCH_WANTS_EXECMEM_LATE
->  	bool
-> +	depends on EXECMEM
->  	help
->  	  For architectures that do not allocate executable memory early on
->  	  boot, but rather require its initialization late when there is
-> _
-> 
-> Patches currently in -mm which might be from anshuman.khandual@arm.com are
-> 
-> mm-execmem-make-arch_wants_execmem_late-depend-on-execmem.patch
-> 
 
-Hello Andrew,
+The patch titled
+     Subject: mm: remove an avoidable load of page refcount in page_ref_add_unless
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless.patch
 
-As Catalin has explained earlier on the thread, we might just need
-to drop the EXECMEM dependency in the platform, and not change the
-generic config definition. Hence this patch needs some change.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless.patch
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index b5479c8b454c..b146372bc365 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -113,7 +113,7 @@ config ARM64
-        select ARCH_WANT_FRAME_POINTERS
-        select ARCH_WANT_HUGE_PMD_SHARE if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
-        select ARCH_WANT_LD_ORPHAN_WARN
--       select ARCH_WANTS_EXECMEM_LATE if EXECMEM
-+       select ARCH_WANTS_EXECMEM_LATE
-        select ARCH_WANTS_NO_INSTR
-        select ARCH_WANTS_THP_SWAP if ARM64_4K_PAGES
-        select ARCH_HAS_UBSAN
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-- Anshuman
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: mm: remove an avoidable load of page refcount in page_ref_add_unless
+Date: Sat, 7 Dec 2024 09:29:31 +0100
+
+Explicitly pre-checking the count adds nothing as atomic_add_unless starts
+with doing the same thing.  iow no functional changes.
+
+disasm of stock filemap_get_read_batch from perf top while running
+readseek2_processes -t 24:
+
+  0.04 │ cb:   mov    0x34(%rbx),%eax           # first load
+ 73.11 │       test   %eax,%eax
+       │     ↓ je     1bd
+  0.09 │       mov    0x34(%rbx),%eax           # second load
+  1.01 │ d9:   test   %eax,%eax
+       │     ↓ je     1bd
+  0.06 │       lea    0x1(%rax),%edx
+  0.00 │       lea    0x34(%rbx),%r14
+  0.00 │       lock   cmpxchg %edx,0x34(%rbx)
+ 14.06 │     ↑ jne    d9
+
+Link: https://lkml.kernel.org/r/20241207082931.1707465-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/page_ref.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/include/linux/page_ref.h~mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless
++++ a/include/linux/page_ref.h
+@@ -234,7 +234,7 @@ static inline bool page_ref_add_unless(s
+ 
+ 	rcu_read_lock();
+ 	/* avoid writing to the vmemmap area being remapped */
+-	if (!page_is_fake_head(page) && page_ref_count(page) != u)
++	if (!page_is_fake_head(page))
+ 		ret = atomic_add_unless(&page->_refcount, nr, u);
+ 	rcu_read_unlock();
+ 
+_
+
+Patches currently in -mm which might be from mjguzik@gmail.com are
+
+mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless.patch
+get_task_exe_file-check-pf_kthread-locklessly.patch
+
