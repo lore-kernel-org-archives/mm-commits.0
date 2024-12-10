@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA797E111
-	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 02:26:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5082E433CE
+	for <mm-commits@vger.kernel.org>; Tue, 10 Dec 2024 03:07:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733797562; cv=none; b=SRUWp0m32fZkr8BPqN0TH13klQZqCJkWJxO8kDIztFe2UBUehAh99ze4DBiCjdjZtQmDlAJQMTEND5spvoj5XqpAVnRiz/AlQHUQpLrsHSvtntTOtR/w9CoYQ4A96fqsOqkSHaa9DuVNQO1s02mchd69vtXc/STNGb9KMYIVoZc=
+	t=1733800075; cv=none; b=YtYC/BfXxMZlR5NfCqqfl3YJbKHuPJRp5QcHOXPVU3gzeSLglhC+pCo2gK+dC6W2BzrD6xkMbaOWk5QQPced7VjFT1XqmQoMgAv6yYOM1NsFfx9RvgDtm0Pb75acI3bp36rQ/uyhgVZtgPpFXgsjmbz1FZ++n94JOssVtCZle0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733797562; c=relaxed/simple;
-	bh=T/DpLTyhYRpT2hQxxxyxbuWHfYMVcs2RoS1lYpsH3bA=;
-	h=Date:To:From:Subject:Message-Id; b=tapMEru7OLLmmZoy0FiEHX/KRH50u9z+YoaaaexkJ0cI6+nODSc3DHZ1TGTCBzR22uuw09Z/UqBOAOodj0KZVsZk2rR5Jbd+m956M0q/jBrHYJc3GI8bc8AVJh2bDbj+Ir1V6V+X7kG17yX5iNdZg4t8WGko3Cm2xlGYKKCir0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NptkFN2D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733800075; c=relaxed/simple;
+	bh=az/H3mWUtqZuetEKV1lOceF/+hlgZpQjhX07QKsW8t0=;
+	h=Date:To:From:Subject:Message-Id; b=aspViguOvewL/16KxfnGngfCQtjz1JPv4n+X549kIUixMu5Jl1wOfDr+m5pI4otQft5DSzah72m8d2GHwWpQ4BwzltX4mONeJ0bxJ0dbKoS87rywCa09SH5iN5VW314sPkPE+XxuBlolXyLKG3l4Yii85MfUtBaHxTG9s6qskkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WrCCsDJ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NptkFN2D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA806C4CED1;
-	Tue, 10 Dec 2024 02:26:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WrCCsDJ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0445C4CEDE;
+	Tue, 10 Dec 2024 03:07:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733797561;
-	bh=T/DpLTyhYRpT2hQxxxyxbuWHfYMVcs2RoS1lYpsH3bA=;
+	s=korg; t=1733800074;
+	bh=az/H3mWUtqZuetEKV1lOceF/+hlgZpQjhX07QKsW8t0=;
 	h=Date:To:From:Subject:From;
-	b=NptkFN2DuK1kTxvjybxiI9z6Oxxw1n3iKTcMZmzToeUHlg4Z+yKi7SXZiZIEuDGtL
-	 vriIv4RNSy4BYvR3ET6QK78CoK6peQFzyrbpdmW67K1bBSqa1DCdLa4GgixPIY0+x/
-	 c+wBPQSVCHgHWPdLDLw4BCcHKUR7SEmadH2UxnPo=
-Date: Mon, 09 Dec 2024 18:26:01 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,sfr@canb.auug.org.au,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=WrCCsDJ1tUrI0kgnALSxURlQiPIEAlTs/4KaJS6nFGFU8j7ducwVOqxfo7P37Jdsg
+	 5pDgtSYYh1rvz03Xzwqzrq9jEBpkm23WVSUswzi1jq+T+UZk4kFy/3xe/ijp6l5apv
+	 oE4CYy3a3IAJzaZbGtIA/6rRc+k171eWD6QqrXfc=
+Date: Mon, 09 Dec 2024 19:07:54 -0800
+To: mm-commits@vger.kernel.org,tamird@gmail.com,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch added to mm-unstable branch
-Message-Id: <20241210022601.AA806C4CED1@smtp.kernel.org>
+Subject: + xarray-port-tests-to-kunit-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20241210030754.D0445C4CEDE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/vaddr-kunit.h: reduce stack consumption
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+     Subject: xarray-port-tests-to-kunit-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xarray-port-tests-to-kunit-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-port-tests-to-kunit-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,38 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/damon/tests/vaddr-kunit.h: reduce stack consumption
-Date: Mon Dec  9 06:20:01 PM PST 2024
+Subject: xarray-port-tests-to-kunit-fix
+Date: Mon Dec  9 07:06:54 PM PST 2024
 
-After "mm: move per-vma lock into vm_area_struct" we're hitting
+Fix cocci warning:
 
-mm/damon/tests/vaddr-kunit.h: In function 'damon_test_three_regions_in_vmas':
-mm/damon/tests/vaddr-kunit.h:92:1: error: the frame size of 3280 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+lib/test_xarray.c:1019:52-53: WARNING comparing pointer to 0
 
-Fix by moving all those vmas off the stack.
-
-
-Closes: https://lkml.kernel.org/r/20241209170829.11311e70@canb.auug.org.au
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202412081700.YXB3vBbg-lkp@intel.com/
+Cc: Tamir Duberstein <tamird@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/vaddr-kunit.h |    2 +-
+ lib/test_xarray.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/tests/vaddr-kunit.h~mm-damon-tests-vaddr-kunith-reduce-stack-consumption
-+++ a/mm/damon/tests/vaddr-kunit.h
-@@ -68,7 +68,7 @@ static void damon_test_three_regions_in_
- 	static struct mm_struct mm;
- 	struct damon_addr_range regions[3] = {0};
- 	/* 10-20-25, 200-210-220, 300-305, 307-330 */
--	struct vm_area_struct vmas[] = {
-+	static const struct vm_area_struct vmas[] = {
- 		(struct vm_area_struct) {.vm_start = 10, .vm_end = 20},
- 		(struct vm_area_struct) {.vm_start = 20, .vm_end = 25},
- 		(struct vm_area_struct) {.vm_start = 200, .vm_end = 210},
+--- a/lib/test_xarray.c~xarray-port-tests-to-kunit-fix
++++ a/lib/test_xarray.c
+@@ -1016,7 +1016,7 @@ static noinline void check_xa_alloc_1(st
+ 
+ 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
+ 				GFP_KERNEL) != -EBUSY);
+-	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != 0);
++	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != NULL);
+ 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
+ 				GFP_KERNEL) != -EBUSY);
+ 	xa_erase_index(test, xa, 3);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,4 +95,5 @@ mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
 mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
 mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
 mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+xarray-port-tests-to-kunit-fix.patch
 
