@@ -1,170 +1,146 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3706F236FB0
-	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 10:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6C7239BCB
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 11:04:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733913103; cv=none; b=K36YxbSL+rVakPqdga9tvnlhNe84OhOv/vzMUd58EDigt8d8E1vnsQalYLpEe3XIsooJYtNXp+X9XD2KULYr3zS/N1VfOLaTymYgtU0Op/6+eJqCIh82ntYfnWJYhIyh4oGCs/cJb9hPXaRFxi94Ftc1BbHTKa0LZHduJ9NsOFE=
+	t=1733915060; cv=none; b=HBH+EJXxZq3So5TjeL5kBICnWxxiypBhpRIqC3Lhb9PW5mJaI5LwtnrXVDAtQAh5tx05wxiU+afNhe4aCEmlmlZ2njALrT0VWFtdv4wtmpmMhQLKr3i4d8bCkH8cowuR4bW+FL2H2b9Dpjg5QMMECvgqVUGf3j+ch4GvcftA2ao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733913103; c=relaxed/simple;
-	bh=Hnh8+3zLEvdwE5XJLO/tWSy3ORHc5DQjGA6X55PceGA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Dltmpy0sleLFkzORUNnr+UP1PmxxgFJDj1Vnx8pWeWDp107PgYREca5mHlPIjFkTrzEpCKeun25zZFZCBBFXHJiLoUiG+Y0pLAbJHNf5fMrdWTRiVSoaXdZoDcdEpcSfm6/JEV4chkK7WANIV8MQEkFVBDlipKRhtOpoeQCzJOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=AZ4/OzPw; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	s=arc-20240116; t=1733915060; c=relaxed/simple;
+	bh=2BTPeEOU9uz8a4XnT7s4LYGYxs+ttGaFIxriJlodl1Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mpj4IJ8C81S3JJwIDwc/HIBg61iAPmgaH4ZLk9cvN8rH4QESD0Uzmo3pq/dh1S7pOau5Dhmf3tausNWhrYOkzvGgHSXU0TsYeXc5LYRbSJejSnKPgD3cnKlGy95obcFWAVk/HKUCtGpKN1ShUyfjcM20PQSFIFVd4MNW4nlkRzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=Jh1JD/LR; arc=none smtp.client-ip=209.85.210.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="AZ4/OzPw"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-728f28744c5so255597b3a.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 02:31:40 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Jh1JD/LR"
+Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-728e729562fso1253124b3a.0
+        for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 03:04:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1733913100; x=1734517900; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=k7i6n647BE9dHuYOqwOtsKEScU+JUkrRpc5bg8z66Mw=;
-        b=AZ4/OzPwR/agUbPickW5OVsDrYfv1hsl1xglcvAcjMDD1QhN6Jxp1luj09Fqzw5bJE
-         Wo3Sc8MKfoXEXb+IECYNKEoJgsflV5ivlx6+7CXXLSI9Gtx0yD0EYg0tj1Gcf4JX+mDD
-         nQw75zw7jOgW/Ag01Df9ZJ7e02O2AMiXkRoNX9M00r3BdwGnjVC9gBKWvKJAbn+p4ph9
-         BOGw785TrGbrNY33rheLY7c5j4PeYr7VOUype9Grtj8nMbbgNG54mWTA28RrowTgdsvM
-         2a7kV1FVFN5dM8doAkg1CVTp5yn61LW7GjdJ8yIJFE2x8rLiNA/0tj1Y3bh0+6oY1O8Q
-         i4sw==
+        d=chromium.org; s=google; t=1733915058; x=1734519858; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=eywltzUnOzPwfstw05/MyaN9BrmL3L3nP8+yycM/qbM=;
+        b=Jh1JD/LRPMMC9tSOOxPFXgpYzNJRX4nFch4D7o83U7M3RiZz+Z6b7OCarhz5fgUF1F
+         pMqUp+AWyHWkcwi9XNB13IqFuvbIZtDResUoqbPBuecJvKTqLerbbaDclROqp2houtCU
+         np7cvSmCSCFTQ/p4fO1HhFY6MOf+RpMhyjbkc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733913100; x=1734517900;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=k7i6n647BE9dHuYOqwOtsKEScU+JUkrRpc5bg8z66Mw=;
-        b=M0WDT8WHmsZQzbeJNWv09/ufw3C6pHNaEA7MVMbxbF9IrF6h/A/fVY7H8yt1DupSJP
-         jnvh0oeC1z0bN7oWDgz/m14bUNr4qEqzLnlgZApYII+LgT1V//Z+yvOD8/HNpzCMkY4b
-         DnFK/H8ztNlCx4tiow4Avqky831F7xEVT+eo3D7i9hmwWkWRWGLfNaas2FDJhKufU+jv
-         oj77oUxn6FRO6R4wkq6HYAuZ0UDxuT4PbtNnueNkdKIvEg47j0UzioBvp3qC4cI+p8C/
-         PFBybS2fESiD/7RUlt7mWEfUPBo3IUZrpatKMe0whJvStMOGLxsPXxgd7ZHVgjKVBy2T
-         NLbA==
-X-Forwarded-Encrypted: i=1; AJvYcCV+clpIyCzFEx0DQWHskLZUYiIYHGRRQWNVQxiDyng9HQBlSqYgPSgaNFUh4bGPGs948plpyJIoUXSH@vger.kernel.org
-X-Gm-Message-State: AOJu0YzdSq+lBEB0+NdlftsZVyk/mYTenDLYv8AlV0EtB0jt5t1sGZmG
-	Tbiw9PKtiOT+vQ4v1S8B/MUcv0zM1AzLWwJiYpRmebuiohuEhzjE7xsfMU5KhuT1uA5KhCYwG07
-	N
-X-Gm-Gg: ASbGncs3wbBSM0HACmWgawvjZX/pdWotBzEUNPzAATKIOib5TjB7S2HXmnLEOmSRZE/
-	c+A+mLkx9hlSSMv8RLpg0oFde1zDm0lus/Vb1vbxdwAl0GIdjGBtIuFeSx7oqn6zhynD1RLkbD5
-	cG6Mh9sIZE68V1ONQAsX/9zVXrwl1To+nL4u5LfKZGPVB0oFGI3PM6IXf7r45l3m4KBdhcHv7ip
-	efRrXDzdaXaY9igksFD8e9EcAB3ZwRf4Jtmutsex+9uu/EjRBINFKjouwdFfB1m9n1ecWFlv0Zg
-	BEM=
-X-Google-Smtp-Source: AGHT+IH3fJdnmka2R5cZZPfUjML3wuj4J87bQ6+hEe5+6kzYgs8iJIPHRt8xFjtNAtTBns17z4gvnA==
-X-Received: by 2002:a17:902:ce86:b0:215:577b:ab77 with SMTP id d9443c01a7336-2177858a890mr31397625ad.39.1733913100385;
-        Wed, 11 Dec 2024 02:31:40 -0800 (PST)
-Received: from [10.84.148.23] ([203.208.167.148])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21650ccda7esm48062405ad.143.2024.12.11.02.31.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Dec 2024 02:31:39 -0800 (PST)
-Message-ID: <e8ec5fa7-8742-4e30-afbf-279d09c49d6c@bytedance.com>
-Date: Wed, 11 Dec 2024 18:31:31 +0800
+        d=1e100.net; s=20230601; t=1733915058; x=1734519858;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=eywltzUnOzPwfstw05/MyaN9BrmL3L3nP8+yycM/qbM=;
+        b=M+w5O9hHplZAFo2Dhk+QXAbWOEM/Sa9B0bFSeIhPtqDw9/2owkqsWgNu6nrCKUZxba
+         MLFunbQhA6Q/kyEcAgJlHnCXg3jqnVMBxHL6IuZiQlYKuOvC4EQA9y5Rupvfo68eVvCC
+         c88dAWUEnSsaTZO5/MzuI/s7lKsm2RqCRhiRStwTZ4zxhSs1d3klgGPtypPhTE/crrkq
+         01uxurjC1uRvYqa9/u1KQp0Hmm6xh8C6tHOK3mO1juDdOaynKh5/U0BWn3Oh3abdPfyU
+         a8Eg4nsSw/RolGMkPKC6ARfflVGFX41mn6AcFvDUvg+39ZROoQkAa1rdHmIc2vhNA/Ye
+         NG/A==
+X-Forwarded-Encrypted: i=1; AJvYcCX8p0miXvDP6rocDI8Tx+wiRk66fWZhF1ZNa0w5Pi/8+oR4byj3NBYlcunez4MUDLrf0AEhbe4sUHvd@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy7eQPPedFzSThIR583l+OdHGFUAfqmaD4UYeNFgkbnJlwR77wr
+	nSSuQJLkjntaVWS6puJWqbW9i3jlh3Ylo0TTpPtbGnS+uXlduJvvRag0166Huw==
+X-Gm-Gg: ASbGncs++QG9OqzAVCfy2Tj1y9FH2aESZKectGi07NKp0I9EgvuMYo6fJoE14xlOZrF
+	dfaKMeAXG5AQSl8ESnrD8fWrgc4jR6wY60nh1VGqyJDC3FZK85iJyMuR3h2xGu2aJCFQRkmQlcf
+	Ckb43ALdptoyCHw5Yf0hM/TO0KInyDopwuJ3GkwWRFFXn85whOBMK89hE0/4VLvKiKsd5XzDhul
+	AdIbEaPKLWnQ3AhpZsyuN/8Z/IuMP6iWlniRzUTI61To082GK98959BGw==
+X-Google-Smtp-Source: AGHT+IEFTbWxKbUBljHzQVU300Tpa0Tc/WJ1J0H0f09QoJCPUEPJJ6xq2+6IrwuuQJyI0DCtI5jkMw==
+X-Received: by 2002:a05:6a21:9990:b0:1d9:1a77:3875 with SMTP id adf61e73a8af0-1e1c1408120mr3429969637.42.1733915058534;
+        Wed, 11 Dec 2024 03:04:18 -0800 (PST)
+Received: from google.com ([2401:fa00:8f:203:d087:4c7f:6de6:41eb])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-725c6f6d81dsm8578061b3a.24.2024.12.11.03.04.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Dec 2024 03:04:18 -0800 (PST)
+Date: Wed, 11 Dec 2024 20:04:14 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: caiqingfu <baicaiaichibaicai@gmail.com>
+Cc: akpm@linux-foundation.org, senozhatsky@chromium.org, minchan@kernel.org,
+	mm-commits@vger.kernel.org, caiqingfu <caiqingfu@ruijie.com.cn>
+Subject: Re: [PATCH] zram: panic when use ext4 over zram
+Message-ID: <20241211110414.GF2091455@google.com>
+References: <20241129115735.136033-1-baicaiaichibaicai@gmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-pgtable-make-ptlock-be-freed-by-rcu.patch added to
- mm-unstable branch
-Content-Language: en-US
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- zokeefe@google.com, willy@infradead.org, will@kernel.org,
- rientjes@google.com, peterx@redhat.com, muchun.song@linux.dev,
- mgorman@suse.de, luto@kernel.org, lorenzo.stoakes@oracle.com,
- jannh@google.com, hughd@google.com, david@redhat.com,
- dave.hansen@linux.intel.com, dan.carpenter@linaro.org,
- catalin.marinas@arm.com
-References: <20241211030932.4DA94C4CED6@smtp.kernel.org>
- <20241211091202.GS21636@noisy.programming.kicks-ass.net>
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-In-Reply-To: <20241211091202.GS21636@noisy.programming.kicks-ass.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241129115735.136033-1-baicaiaichibaicai@gmail.com>
 
-Hi Peter,
-
-On 2024/12/11 17:12, Peter Zijlstra wrote:
-> On Tue, Dec 10, 2024 at 07:09:31PM -0800, Andrew Morton wrote:
->>
->> The patch titled
->>       Subject: mm: pgtable: make ptlock be freed by RCU
->> has been added to the -mm mm-unstable branch.  Its filename is
->>       mm-pgtable-make-ptlock-be-freed-by-rcu.patch
->>
->> This patch will shortly appear at
->>       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-make-ptlock-be-freed-by-rcu.patch
->>
->> This patch will later appear in the mm-unstable branch at
->>      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->>
->> Before you just go and hit "reply", please:
->>     a) Consider who else should be cc'ed
->>     b) Prefer to cc a suitable mailing list as well
->>     c) Ideally: find the original patch on the mailing list and do a
->>        reply-to-all to that, adding suitable additional cc's
->>
->> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->>
->> The -mm tree is included into linux-next via the mm-everything
->> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->> and is updated there every 2-3 working days
->>
->> ------------------------------------------------------
->> From: Qi Zheng <zhengqi.arch@bytedance.com>
->> Subject: mm: pgtable: make ptlock be freed by RCU
->> Date: Tue, 10 Dec 2024 16:44:31 +0800
->>
->> If ALLOC_SPLIT_PTLOCKS is enabled, the ptdesc->ptl will be a pointer and a
->> ptlock will be allocated for it, and it will be freed immediately before
->> the PTE page is freed.  Once we support empty PTE page reclaimation, it
->> may result in the following use-after-free problem:
->>
->> 	CPU 0				CPU 1
->>
->> 					pte_offset_map_rw_nolock(&ptlock)
->> 					--> rcu_read_lock()
->> 	madvise(MADV_DONTNEED)
->> 	--> ptlock_free (free ptlock immediately!)
->> 	    free PTE page via RCU
->> 					/* UAF!! */
->> 					spin_lock(ptlock)
->>
->> To avoid this problem, make ptlock also be freed by RCU.
->>
->> Link: https://lkml.kernel.org/r/20241210084431.91414-1-zhengqi.arch@bytedance.com
->> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+On (24/11/29 19:57), caiqingfu wrote:
+> [   52.073080 ] Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+> [   52.073511 ] Modules linked in:
+> [   52.074094 ] CPU: 0 UID: 0 PID: 3825 Comm: a.out Not tainted 6.12.0-07749-g28eb75e178d3-dirty #3
+> [   52.074672 ] Hardware name: linux,dummy-virt (DT)
+> [   52.075128 ] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+> [   52.075619 ] pc : obj_malloc+0x5c/0x160
+> [   52.076402 ] lr : zs_malloc+0x200/0x570
+> [   52.076630 ] sp : ffff80008dd335f0
+> [   52.076797 ] x29: ffff80008dd335f0 x28: ffff000004104a00 x27: ffff000004dfc400
+> [   52.077319 ] x26: 000000000000ca18 x25: ffff00003fcaf0e0 x24: ffff000006925cf0
+> [   52.077785 ] x23: 0000000000000c0a x22: ffff0000032ee780 x21: ffff000006925cf0
+> [   52.078257 ] x20: 0000000000088000 x19: 0000000000000000 x18: 0000000000fffc18
+> [   52.078701 ] x17: 00000000fffffffd x16: 0000000000000803 x15: 00000000fffffffe
+> [   52.079203 ] x14: 000000001824429d x13: ffff000006e84000 x12: ffff000006e83fec
+> [   52.079711 ] x11: ffff000006e83000 x10: 00000000000002a5 x9 : ffff000006e83ff3
+> [   52.080269 ] x8 : 0000000000000001 x7 : 0000000017e80000 x6 : 0000000000017e80
+> [   52.080724 ] x5 : 0000000000000003 x4 : ffff00000402a5e8 x3 : 0000000000000066
+> [   52.081081 ] x2 : ffff000006925cf0 x1 : ffff00000402a5e8 x0 : ffff000004104a00
+> [   52.081595 ] Call trace:
+> [   52.081925 ]  obj_malloc+0x5c/0x160 (P)
+> [   52.082220 ]  zs_malloc+0x200/0x570 (L)
+> [   52.082504 ]  zs_malloc+0x200/0x570
+> [   52.082716 ]  zram_submit_bio+0x788/0x9e8
+> [   52.083017 ]  __submit_bio+0x1c4/0x338
+> [   52.083343 ]  submit_bio_noacct_nocheck+0x128/0x2c0
+> [   52.083518 ]  submit_bio_noacct+0x1c8/0x308
+> [   52.083722 ]  submit_bio+0xa8/0x14c
+> [   52.083942 ]  submit_bh_wbc+0x140/0x1bc
+> [   52.084088 ]  __block_write_full_folio+0x23c/0x5f0
+> [   52.084232 ]  block_write_full_folio+0x134/0x21c
+> [   52.084524 ]  write_cache_pages+0x64/0xd4
+> [   52.084778 ]  blkdev_writepages+0x50/0x8c
+> [   52.085040 ]  do_writepages+0x80/0x2b0
+> [   52.085292 ]  filemap_fdatawrite_wbc+0x6c/0x90
+> [   52.085597 ]  __filemap_fdatawrite_range+0x64/0x94
+> [   52.085900 ]  filemap_fdatawrite+0x1c/0x28
+> [   52.086158 ]  sync_bdevs+0x170/0x17c
+> [   52.086374 ]  ksys_sync+0x6c/0xb8
+> [   52.086597 ]  __arm64_sys_sync+0x10/0x20
+> [   52.086847 ]  invoke_syscall+0x44/0x100
+> [   52.087230 ]  el0_svc_common.constprop.0+0x40/0xe0
+> [   52.087550 ]  do_el0_svc+0x1c/0x28
+> [   52.087690 ]  el0_svc+0x30/0xd0
+> [   52.087818 ]  el0t_64_sync_handler+0xc8/0xcc
+> [   52.088046 ]  el0t_64_sync+0x198/0x19c
+> [   52.088500 ] Code: 110004a5 6b0500df f9401273 54000160 (f9401664)
+> [   52.089097 ] ---[ end trace 0000000000000000  ]---
 > 
-> UURGGH... why can't we move the freeing of the lock into
-> __tlb_remove_table() ?
+> When using ext4 on zram, the following panic occasionally occurs under
+> high memory usage
+> 
+> The reason is that when the handle is obtained using the slow path, it
+> will be re-compressed. If the data in the page changes, the compressed
+> length may exceed the previous one. Overflow occurred when writing to
+> zs_object, which then caused the panic.
+> 
+> Comment the fast path and force the slow path. Adding a large number of
+> read and write file systems can quickly reproduce it.
+> 
+> The solution is to re-obtain the handle after re-compression if the
+> length is different from the previous one.
 
-Thanks for taking a look!
+I see that somebody posted something similar on the bugzilla [1].  Is
+that person you, by any chance?  If so, can you please post your
+findings to linux kernel mailing list? E.g. linux-ext4@, Cc-ing
+linux-fsdevevl@ and linux-mm@ would be a good start.  Bugzilla is
+not used.
 
-Now, it is also possible not to use the mmu gather mechanism to
-free PTE pages:
+If this problem is in ext4 then I'd really prefer to address it there and
+drop this patch from zram, simply because it covers an issue in the upper
+layer.  And it's better to fix issues that to cover them.
 
-pte_free_tlb
---> ___pte_free_tlb
-     --> pagetable_pte_dtor
-	--> ptlock_free
-         paravirt_tlb_remove_table
-	--> free PTE page
-
-pte_free
---> pagetable_pte_dtor
-     --> ptlock_free
-     pagetable_free
-
-If we want to move the freeing of the ptlock into __tlb_remove_table(),
-we may need to define a pagetable_pte_dtor_no_ptlock() and let
-___pte_free_tlb() to call it.
-
-And ALLOC_SPLIT_PTLOCKS only be enabled when the spinlock debug function
-is turned on, so I finally choose to only change ptlock itself without
-changing the general path.
-
-Thanks,
-Qi
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=219548
