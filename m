@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EE2B1FC0E9
-	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 03:09:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32E8CA4E
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 03:09:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733886570; cv=none; b=IVAUKuDwzv+9WC/9Cdllo7SZjevoQMR/9XOFfdkqR51BQvv75JiY5VBEuse7OZS/1tIkn/urcN+XleEEtDR6K+cUPe8oATXqMKKNRnKOhMoT2FmrG6VEEgMO90B1uzypJL+IQMHvk3XMnNElLQCq9k48jOkpat/LbRbPLP0yRa4=
+	t=1733886572; cv=none; b=KRA2XI/iGmET0GyffYlcS0VY/nMqHTgJEz2FuiVOmtBF690/XciNurwi63cw/mIlb54rKHTJNyrCGK2c6dRceGBan39pG/KDf69i5miMdm780jmNqlk4mEeAQgWrxqeOI0YXsl+AVbRu/1jlOpup/jjLAJn++Cv+gFYtRr2RKvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733886570; c=relaxed/simple;
-	bh=uPjvHdki1Cxn1h0+H+2/U6qxD5KrzRON94bzNpoelWs=;
-	h=Date:To:From:Subject:Message-Id; b=eqTWDVLC4lY+bmFChU+YwrNGS5nbpZ4T51ojA2CHAi/URkaxdhmlP32MLdHaO3y8tI27jky4S0WVirthvnNtIqnFLQ80o+4iUFkJkHlvhsLrAkTsrFu2wndp7G5WHfBvlmV0luv+Jpsh90/YGrZib4W37BClkJKtZ+ghDyty+Mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wTgVA8rC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733886572; c=relaxed/simple;
+	bh=WFcbTsQsWTSk+GAXdR5q8gFeyXE/i5YnFYAfLB3DM2w=;
+	h=Date:To:From:Subject:Message-Id; b=SgkqlLJShjqDMk/JGWCtiRdH0oUI14Q1cRsMwjb1YBcjhq4gzTq61+I+RLKSrOtjtkltMG5pNgnEc9ZWfvHbmmtAAo5ZXPqgKC+wiQS7boqaZkWuaIlEr9K6HqP/I2kDzrEBWTMYEsIBVS8vbAJy94sumDOUBHlVCq8kCC3SZ6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SjNbZsXH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wTgVA8rC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEEC8C4CED6;
-	Wed, 11 Dec 2024 03:09:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SjNbZsXH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DA94C4CED6;
+	Wed, 11 Dec 2024 03:09:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733886569;
-	bh=uPjvHdki1Cxn1h0+H+2/U6qxD5KrzRON94bzNpoelWs=;
+	s=korg; t=1733886572;
+	bh=WFcbTsQsWTSk+GAXdR5q8gFeyXE/i5YnFYAfLB3DM2w=;
 	h=Date:To:From:Subject:From;
-	b=wTgVA8rCOKBASiJit7Dxt9BtF159drc5jte3hBb7H4n/24CKOkhaTENY5X0IVwS0O
-	 S9f6KrCKiRaQO5AJcLlg3FrJ6z0VSKPNsZiD+h7WQPflxr5kJsRL5gvrQ4kWFX55aJ
-	 IIG50zC9MIMhbQjMYQ4ob+s30IRcKx8SmwXDRSdI=
-Date: Tue, 10 Dec 2024 19:09:29 -0800
+	b=SjNbZsXHxIL3hBQKKtu/aqLYcasfTQC3G7aeEu/gdhJnXSbjVbbybHUd3Dfw4tBJO
+	 x1zSBEpKO/+/ib0HcDIZppZ/jUcxU63jzot2WzMazdEeO4lFMIERZ/mDlEbBKD06gm
+	 N0JHQb9b9BaOn0qyIP1NK4TBD5zB5U6H2tkQrqF8=
+Date: Tue, 10 Dec 2024 19:09:31 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch added to mm-unstable branch
-Message-Id: <20241211030929.CEEC8C4CED6@smtp.kernel.org>
+Subject: + mm-pgtable-make-ptlock-be-freed-by-rcu.patch added to mm-unstable branch
+Message-Id: <20241211030932.4DA94C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
+     Subject: mm: pgtable: make ptlock be freed by RCU
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
+     mm-pgtable-make-ptlock-be-freed-by-rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-make-ptlock-be-freed-by-rcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
-Date: Fri, 6 Dec 2024 19:23:48 +0800
+Subject: mm: pgtable: make ptlock be freed by RCU
+Date: Tue, 10 Dec 2024 16:44:31 +0800
 
-Dan Carpenter reported the following warning:
+If ALLOC_SPLIT_PTLOCKS is enabled, the ptdesc->ptl will be a pointer and a
+ptlock will be allocated for it, and it will be freed immediately before
+the PTE page is freed.  Once we support empty PTE page reclaimation, it
+may result in the following use-after-free problem:
 
-Commit e3aafd2d3551 ("mm: pgtable: reclaim empty PTE page in
-madvise(MADV_DONTNEED)") from Dec 4, 2024 (linux-next), leads to the
-following Smatch static checker warning:
+	CPU 0				CPU 1
 
-	mm/pt_reclaim.c:69 try_to_free_pte()
-	error: uninitialized symbol 'ptl'.
+					pte_offset_map_rw_nolock(&ptlock)
+					--> rcu_read_lock()
+	madvise(MADV_DONTNEED)
+	--> ptlock_free (free ptlock immediately!)
+	    free PTE page via RCU
+					/* UAF!! */
+					spin_lock(ptlock)
 
-To fix it, assign an initial value of NULL to the ptl.
+To avoid this problem, make ptlock also be freed by RCU.
 
-Link: https://lkml.kernel.org/r/20241206112348.51570-1-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20241210084431.91414-1-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/linux-mm/224e6a4e-43b5-4080-bdd8-b0a6fb2f0853@stanley.mountain/
+Reported-by: syzbot+1c58afed1cfd2f57efee@syzkaller.appspotmail.com
+Tested-by: syzbot+1c58afed1cfd2f57efee@syzkaller.appspotmail.com
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -95,19 +102,89 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pt_reclaim.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/mm_types.h |    9 ++++++++-
+ mm/memory.c              |   22 ++++++++++++++++------
+ 3 files changed, 25 insertions(+), 8 deletions(-)
 
---- a/mm/pt_reclaim.c~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
-+++ a/mm/pt_reclaim.c
-@@ -36,7 +36,7 @@ void try_to_free_pte(struct mm_struct *m
- 		     struct mmu_gather *tlb)
+--- a/include/linux/mm.h~mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm.h
+@@ -2925,7 +2925,7 @@ void ptlock_free(struct ptdesc *ptdesc);
+ 
+ static inline spinlock_t *ptlock_ptr(struct ptdesc *ptdesc)
  {
- 	pmd_t pmdval;
--	spinlock_t *pml, *ptl;
-+	spinlock_t *pml, *ptl = NULL;
- 	pte_t *start_pte, *pte;
- 	int i;
+-	return ptdesc->ptl;
++	return &(ptdesc->ptl->ptl);
+ }
+ #else /* ALLOC_SPLIT_PTLOCKS */
+ static inline void ptlock_cache_init(void)
+--- a/include/linux/mm_types.h~mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm_types.h
+@@ -434,6 +434,13 @@ FOLIO_MATCH(flags, _flags_2a);
+ FOLIO_MATCH(compound_head, _head_2a);
+ #undef FOLIO_MATCH
+ 
++#if ALLOC_SPLIT_PTLOCKS
++struct pt_lock {
++	spinlock_t ptl;
++	struct rcu_head rcu;
++};
++#endif
++
+ /**
+  * struct ptdesc -    Memory descriptor for page tables.
+  * @__page_flags:     Same as page flags. Powerpc only.
+@@ -478,7 +485,7 @@ struct ptdesc {
+ 	union {
+ 		unsigned long _pt_pad_2;
+ #if ALLOC_SPLIT_PTLOCKS
+-		spinlock_t *ptl;
++		struct pt_lock *ptl;
+ #else
+ 		spinlock_t ptl;
+ #endif
+--- a/mm/memory.c~mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/mm/memory.c
+@@ -7013,24 +7013,34 @@ static struct kmem_cache *page_ptl_cache
+ 
+ void __init ptlock_cache_init(void)
+ {
+-	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
++	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(struct pt_lock), 0,
+ 			SLAB_PANIC, NULL);
+ }
+ 
+ bool ptlock_alloc(struct ptdesc *ptdesc)
+ {
+-	spinlock_t *ptl;
++	struct pt_lock *pt_lock;
+ 
+-	ptl = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
+-	if (!ptl)
++	pt_lock = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
++	if (!pt_lock)
+ 		return false;
+-	ptdesc->ptl = ptl;
++	ptdesc->ptl = pt_lock;
+ 	return true;
+ }
+ 
++static void ptlock_free_rcu(struct rcu_head *head)
++{
++	struct pt_lock *pt_lock;
++
++	pt_lock = container_of(head, struct pt_lock, rcu);
++	kmem_cache_free(page_ptl_cachep, pt_lock);
++}
++
+ void ptlock_free(struct ptdesc *ptdesc)
+ {
+-	kmem_cache_free(page_ptl_cachep, ptdesc->ptl);
++	struct pt_lock *pt_lock = ptdesc->ptl;
++
++	call_rcu(&pt_lock->rcu, ptlock_free_rcu);
+ }
+ #endif
  
 _
 
