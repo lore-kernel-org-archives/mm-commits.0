@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D4C41A2872;
-	Wed, 11 Dec 2024 21:53:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F8181F2360
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 22:00:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733953993; cv=none; b=eDFJTgH2L1VrPk3VKymuru01KfqFGHY/ukVqiIKnJF2NhJfzyF5VAyWV4HlA49SlTg4GEgD8hT6/3CiuGpYaZcPUUzonYRsqjkQMpaHU8xsYvzKfo0swR+qYnmYKT0jHI5SZivbktrXo7NM0iqiSPyqnST5K5ui6k/b7JP/GfO0=
+	t=1733954404; cv=none; b=DTmq+ByWox71CvOGOZr8Ql8C8Bz5ZdQQhCBikrYJRH/YypHXsAyfQq5N78EiSNi3MGjqbf0U+TpbeJcltDgrGzmWf3Q4w7Nbgf4YRKy3clbaxy/2MgdEsDxupgqfTVuQ7GpSPcFYlXeqB/tkHr5962rTee83vrqBdLW9iULG4AU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733953993; c=relaxed/simple;
-	bh=jyzsBrvMBAr+1bXXKGzPRjnmY8DOIkN9h2Wn+J5W/c4=;
-	h=Date:To:From:Subject:Message-Id; b=nbVhQmoN10sC+6IuGytXatU7pXpblnq/3U+6Xhrkpp1GMGrV3lZMh9whBg1w0O8bC/2v9QzbCk98N9NYIoVmSBgPt43TAbi2GFQ2koizGHANyLivFFdtnM7junBUdqj16WHiJ/U9qaXYL4PJOt8l0WXAyPqF7DhdTL4+XvUf0ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mxyBF2Hd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733954404; c=relaxed/simple;
+	bh=o+5GSyYwWG0jySsqFzqP1s7HDGgWKmDGYiiQXMb6zPA=;
+	h=Date:To:From:Subject:Message-Id; b=KrLwb7JaexaVPeOXiLml2uvA+uA5i84+r4s8cyzVaqjqwWkyznRE5/dzWgWK4TaMc7bep1W4LYJI6fyEDT4UpJ6cu+YKmasdzh3rhPn5iwcWcfQjVhurNMYBk33ZjA2WZ6PSdZ0hAGRyRUc3tjx/YnV9xqFOhs4XVKJOFOqj2uA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWsaQcrH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mxyBF2Hd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BF75C4CED3;
-	Wed, 11 Dec 2024 21:53:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWsaQcrH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26720C4CEDD;
+	Wed, 11 Dec 2024 22:00:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733953993;
-	bh=jyzsBrvMBAr+1bXXKGzPRjnmY8DOIkN9h2Wn+J5W/c4=;
+	s=korg; t=1733954404;
+	bh=o+5GSyYwWG0jySsqFzqP1s7HDGgWKmDGYiiQXMb6zPA=;
 	h=Date:To:From:Subject:From;
-	b=mxyBF2HdeV0WRfaSPw5slIATdB35+EnZmDl5Tdhgo/Vnw/HMCBN2weUpde/DQZNA6
-	 5ft26mz+gPapnskLP9DhWh9x+K/y6S4ud8y4mSnCjEx6B6yR8oFgxFiNeec5ZrMfPp
-	 DZbosNCeaAUkbs1mRwu/sTMglgTPcPRhUE79QcZ8=
-Date: Wed, 11 Dec 2024 13:53:12 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hch@lst.de,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
+	b=uWsaQcrH5OZrntF3NLkajnvOlOXr3MRsuXfkDUKaOMBvfQBoWeM+toqAlmVaQGp0N
+	 H27N/MC0adMYriOcRcgTKh84HepEmzjENRayWBPlYx70aPWeBI6OKmxXwLea19r9v1
+	 IiFRL0I4ht7q7EmBF3x3yuvQMmAjXoojZIYUhYeM=
+Date: Wed, 11 Dec 2024 14:00:03 -0800
+To: mm-commits@vger.kernel.org,rgoldwyn@suse.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,sandeen@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-fix-accounting-with-i915.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241211215313.1BF75C4CED3@smtp.kernel.org>
+Subject: + dlmfs-convert-to-the-new-mount-api.patch added to mm-nonmm-unstable branch
+Message-Id: <20241211220004.26720C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: fix accounting with i915
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     vmalloc-fix-accounting-with-i915.patch
+     Subject: dlmfs: convert to the new mount API
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     dlmfs-convert-to-the-new-mount-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-fix-accounting-with-i915.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dlmfs-convert-to-the-new-mount-api.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmalloc: fix accounting with i915
-Date: Wed, 11 Dec 2024 20:25:37 +0000
+From: Eric Sandeen <sandeen@redhat.com>
+Subject: dlmfs: convert to the new mount API
+Date: Mon, 28 Oct 2024 09:41:14 -0500
 
-If the caller of vmap() specifies VM_MAP_PUT_PAGES (currently only the
-i915 driver), we will decrement nr_vmalloc_pages and MEMCG_VMALLOC in
-vfree().  These counters are incremented by vmalloc() but not by vmap() so
-this will cause an underflow.  Check the VM_MAP_PUT_PAGES flag before
-decrementing either counter.
+Patch series "ocfs2, dlmfs: convert to the new mount API".
 
-Link: https://lkml.kernel.org/r/20241211202538.168311-1-willy@infradead.org
-Fixes: b944afc9d64d (mm: add a VM_MAP_PUT_PAGES flag for vmap)
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 2):
+
+Convert dlmfs to the new mount API.
+
+Link: https://lkml.kernel.org/r/20241028144443.609151-1-sandeen@redhat.com
+Link: https://lkml.kernel.org/r/20241028144443.609151-2-sandeen@redhat.com
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Tested-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Tested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlmfs/dlmfs.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-fix-accounting-with-i915
-+++ a/mm/vmalloc.c
-@@ -3374,7 +3374,8 @@ void vfree(const void *addr)
- 		struct page *page = vm->pages[i];
+--- a/fs/ocfs2/dlmfs/dlmfs.c~dlmfs-convert-to-the-new-mount-api
++++ a/fs/ocfs2/dlmfs/dlmfs.c
+@@ -20,6 +20,7 @@
  
- 		BUG_ON(!page);
--		mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
-+		if (!(vm->flags & VM_MAP_PUT_PAGES))
-+			mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
- 		/*
- 		 * High-order allocs for huge vmallocs are split, so
- 		 * can be freed as an array of order-0 allocations
-@@ -3382,7 +3383,8 @@ void vfree(const void *addr)
- 		__free_page(page);
- 		cond_resched();
- 	}
--	atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
-+	if (!(vm->flags & VM_MAP_PUT_PAGES))
-+		atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
- 	kvfree(vm->pages);
- 	kfree(vm);
+ #include <linux/module.h>
+ #include <linux/fs.h>
++#include <linux/fs_context.h>
+ #include <linux/pagemap.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
+@@ -506,9 +507,7 @@ bail:
+ 	return status;
  }
+ 
+-static int dlmfs_fill_super(struct super_block * sb,
+-			    void * data,
+-			    int silent)
++static int dlmfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_blocksize = PAGE_SIZE;
+@@ -556,17 +555,27 @@ static const struct inode_operations dlm
+ 	.setattr	= dlmfs_file_setattr,
+ };
+ 
+-static struct dentry *dlmfs_mount(struct file_system_type *fs_type,
+-	int flags, const char *dev_name, void *data)
++static int dlmfs_get_tree(struct fs_context *fc)
+ {
+-	return mount_nodev(fs_type, flags, data, dlmfs_fill_super);
++	return get_tree_nodev(fc, dlmfs_fill_super);
++}
++
++static const struct fs_context_operations dlmfs_context_ops = {
++	.get_tree       = dlmfs_get_tree,
++};
++
++static int dlmfs_init_fs_context(struct fs_context *fc)
++{
++	fc->ops = &dlmfs_context_ops;
++
++	return 0;
+ }
+ 
+ static struct file_system_type dlmfs_fs_type = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "ocfs2_dlmfs",
+-	.mount		= dlmfs_mount,
+ 	.kill_sb	= kill_litter_super,
++	.init_fs_context = dlmfs_init_fs_context,
+ };
+ MODULE_ALIAS_FS("ocfs2_dlmfs");
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-vmalloc-fix-accounting-with-i915.patch
-mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
-mm-make-alloc_pages_mpol-static.patch
-mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
-mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
-mm-page_alloc-add-__alloc_frozen_pages.patch
-mm-mempolicy-add-alloc_frozen_pages.patch
-slab-allocate-frozen-pages.patch
+dlmfs-convert-to-the-new-mount-api.patch
+ocfs2-convert-to-the-new-mount-api.patch
 
