@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC4D2943F
-	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 00:38:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5DA8182B4
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 00:38:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733877501; cv=none; b=juXUHtzIhFDPdiWp5JwrjIBSiP7YCEB3MRGRc+XdaCJDtDYNNvdiXpvQlR/zBCKsi6PtK4IqmoqxSPruQhSMk8tBPtJ2O8c4wxoUFFz/BeyUteDB3AGAI2R63JmlRnV4gGPt4tYAWrtR9s0o3J9M6s3g5rUFz/OF7QYYAhw7ob8=
+	t=1733877506; cv=none; b=fYnuXeg4lypx51JjUCKfeFQ5fhSGDzWyBryrbWNhcCfw2GrpHR5ip+SgIYF3ULTJ01w+15a+Ef5gQc/Jo1T34LxQxHjsant+b+WKoSc40gb5ZmofatdABcArMTg9+zXRHzFv81hU1qwccIBLWvQDFx6GvOjxNOVy2YaSdiMoZrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733877501; c=relaxed/simple;
-	bh=iwNhHnbDdrRMHjIo8VWcJnV+wDVo+5s9uSPX6UqdZLQ=;
-	h=Date:To:From:Subject:Message-Id; b=d30KpmqfnnLOZr6Nj30TLFiMhfgJq4vKau3ODK53Om3wS1HxHdVdqYvpshkL3M/wmPbHkYY9gtt8un5R99CahMYWKWpJ2UFrH+BKSwaPS55rRzCsHoW7NDIJ5xm3Pjom5lj/gH1XtzcOJP2vHHmV0b7e3++e5CvzeGC3x3unsew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ak+3lD6t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733877506; c=relaxed/simple;
+	bh=dIYtzmb2Lro/HTrqPmAh7CmZ+E9JtGQUZD258oZ3OXw=;
+	h=Date:To:From:Subject:Message-Id; b=uQlL7JngubVWgzRGudYhCkvZka/TQjsUQ6mSseDFRRvqeiaZHquzR8ZblkXw6JIrQ9mdg592QpHFlfbWGlg8tYKSQYU4cPiLj8ZJKN72h6fSCiNm6P06JAaD1iH592SHknh2H8e7HKbUpXRaNOWVEbU4SY8asZMXsRnKzuBBgNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fo4cZFTc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ak+3lD6t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BD50C4CED6;
-	Wed, 11 Dec 2024 00:38:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fo4cZFTc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 918EDC4CED6;
+	Wed, 11 Dec 2024 00:38:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733877501;
-	bh=iwNhHnbDdrRMHjIo8VWcJnV+wDVo+5s9uSPX6UqdZLQ=;
+	s=korg; t=1733877506;
+	bh=dIYtzmb2Lro/HTrqPmAh7CmZ+E9JtGQUZD258oZ3OXw=;
 	h=Date:To:From:Subject:From;
-	b=Ak+3lD6tCbVQkpUUtLGr2pFKwdql/WEEgAu4MkZF/Zjq9yVpjdwD0uw4ibN+5ojuH
-	 YFAUAagP3aOvCbuWXK/NHhGhyFuVNXfD20mZXw0Wdeh7qrItfSxKkR5hEVerQv+7hN
-	 MDZzUrPS1KfA8UzmRqzq8JmKdznI6IKSiQgI4iu4=
-Date: Tue, 10 Dec 2024 16:38:20 -0800
+	b=fo4cZFTchDVghhuPrCRoroUjxCNW/GHvEP3kXG4Ax/86Flwh9KZPO88ehpdD9dwmS
+	 U91eq7v5Qncuir4P8ArYnOJso+8qBqIHoqDzpZKkQqfL+/Zol/8exco7S/JRYoisKp
+	 rI8RhXibTqKShgf4K/4+meP+UdNBEXd20SwHDwmo=
+Date: Tue, 10 Dec 2024 16:38:25 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch added to mm-unstable branch
-Message-Id: <20241211003821.3BD50C4CED6@smtp.kernel.org>
+Subject: + samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch added to mm-unstable branch
+Message-Id: <20241211003826.918EDC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples: add a skeleton of a sample DAMON module for working set size estimation
+     Subject: samples/damon/wsse: start and stop DAMON as the user requests
 has been added to the -mm mm-unstable branch.  Its filename is
-     samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
+     samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,169 +59,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples: add a skeleton of a sample DAMON module for working set size estimation
-Date: Tue, 10 Dec 2024 13:50:26 -0800
+Subject: samples/damon/wsse: start and stop DAMON as the user requests
+Date: Tue, 10 Dec 2024 13:50:27 -0800
 
-Patch series "mm/damon: add sample modules".
+Start running DAMON to monitor accesses of a process that the user
+specified via 'target_pid' parameter, when 'y' is passed to 'enable'
+parameter.  Stop running DAMON when 'n' is passed to 'enable' parameter. 
+Estimating the working set size from DAMON's monitoring results and
+reporting it to the user will be implemented by the following commit.
 
-Implement a proactive cold memory regions reclaiming logic of prcl sample
-module using DAMOS.  The logic treats memory regions that not accessed at
-all for five or more seconds as cold, and reclaim those as soon as found.
-
-
-This patch (of 5):
-
-Add a skeleton for a sample DAMON static module that can be used for
-estimating working set size of a given process.  Note that it is a static
-module since DAMON is not exporting symbols to loadable modules for now. 
-It exposes two module parameters, namely 'pid' and 'enable'.  'pid' will
-specify the process that the module will estimate the working set size of.
-'enable' will receive whether to start or stop the estimation.  Because
-this is just a skeleton, the parameters do nothing, though.  The
-functionalities will be implemented by following commits.
-
-Link: https://lkml.kernel.org/r/20241210215030.85675-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20241210215030.85675-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241210215030.85675-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS            |    1 
- samples/Kconfig        |    2 +
- samples/Makefile       |    1 
- samples/damon/Kconfig  |   17 ++++++++++
- samples/damon/Makefile |    3 +
- samples/damon/wsse.c   |   65 +++++++++++++++++++++++++++++++++++++++
- 6 files changed, 89 insertions(+)
+ samples/damon/wsse.c |   35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation
-+++ a/MAINTAINERS
-@@ -6328,6 +6328,7 @@ F:	Documentation/mm/damon/
- F:	include/linux/damon.h
- F:	include/trace/events/damon.h
- F:	mm/damon/
-+F:	samples/damon/
- F:	tools/testing/selftests/damon/
- 
- DAVICOM FAST ETHERNET (DMFE) NETWORK DRIVER
-diff --git a/samples/damon/Kconfig a/samples/damon/Kconfig
-new file mode 100644
---- /dev/null
-+++ a/samples/damon/Kconfig
-@@ -0,0 +1,17 @@
-+# SPDX-License-Identifier: GPL-2.0
-+
-+menu "DAMON Samples"
-+
-+config SAMPLE_DAMON_WSSE
-+	bool "DAMON sameple module for working set size estimation"
-+	depends on DAMON && DAMON_VADDR
-+	help
-+	  This builds DAMON sample module for working set size estimation.
-+
-+	  The module receives a pid, monitor access to the virtual address
-+	  space of the process, estimate working set size of the process, and
-+	  repeatedly prints the size on the kernel log.
-+
-+	  If unsure, say N.
-+
-+endmenu
-diff --git a/samples/damon/Makefile a/samples/damon/Makefile
-new file mode 100644
---- /dev/null
-+++ a/samples/damon/Makefile
-@@ -0,0 +1,3 @@
-+# SPDX-License-Identifier: GPL-2.0
-+
-+obj-$(CONFIG_SAMPLE_DAMON_WSSE) += wsse.o
-diff --git a/samples/damon/wsse.c a/samples/damon/wsse.c
-new file mode 100644
---- /dev/null
+--- a/samples/damon/wsse.c~samples-damon-wsse-start-and-stop-damon-as-the-user-requests
 +++ a/samples/damon/wsse.c
-@@ -0,0 +1,65 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * working set size estimation: monitor access pattern of given process and
-+ * print estimated working set size (total size of regions that showing some
-+ * access).
-+ */
-+
-+#define pr_fmt(fmt) "damon_sample_wsse: " fmt
-+
-+#include <linux/damon.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+static int target_pid __read_mostly;
-+module_param(target_pid, int, 0600);
-+
-+static int damon_sample_wsse_enable_store(
-+		const char *val, const struct kernel_param *kp);
-+
-+static const struct kernel_param_ops enable_param_ops = {
-+	.set = damon_sample_wsse_enable_store,
-+	.get = param_get_bool,
-+};
-+
-+static bool enable __read_mostly;
-+module_param_cb(enable, &enable_param_ops, &enable, 0600);
-+MODULE_PARM_DESC(enable, "Enable or disable DAMON_SAMPLE_WSSE");
-+
-+static int damon_sample_wsse_start(void)
-+{
-+	pr_info("start\n");
-+	return 0;
-+}
-+
-+static void damon_sample_wsse_stop(void)
-+{
-+	pr_info("stop\n");
-+}
-+
-+static int damon_sample_wsse_enable_store(
-+		const char *val, const struct kernel_param *kp)
-+{
-+	bool enabled = enable;
-+	int err;
-+
-+	err = kstrtobool(val, &enable);
-+	if (err)
-+		return err;
-+
-+	if (enable == enabled)
-+		return 0;
-+
-+	if (enable)
-+		return damon_sample_wsse_start();
-+	damon_sample_wsse_stop();
-+	return 0;
-+}
-+
-+static int __init damon_sample_wsse_init(void)
-+{
-+	return 0;
-+}
-+
-+module_init(damon_sample_wsse_init);
---- a/samples/Kconfig~samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation
-+++ a/samples/Kconfig
-@@ -293,6 +293,8 @@ config SAMPLE_CGROUP
+@@ -27,15 +27,48 @@ static bool enable __read_mostly;
+ module_param_cb(enable, &enable_param_ops, &enable, 0600);
+ MODULE_PARM_DESC(enable, "Enable or disable DAMON_SAMPLE_WSSE");
  
- source "samples/rust/Kconfig"
- 
-+source "samples/damon/Kconfig"
++static struct damon_ctx *ctx;
++static struct pid *target_pidp;
 +
- endif # SAMPLES
+ static int damon_sample_wsse_start(void)
+ {
++	struct damon_target *target;
++
+ 	pr_info("start\n");
+-	return 0;
++
++	ctx = damon_new_ctx();
++	if (!ctx)
++		return -ENOMEM;
++	if (damon_select_ops(ctx, DAMON_OPS_VADDR)) {
++		damon_destroy_ctx(ctx);
++		return -EINVAL;
++	}
++
++	target = damon_new_target();
++	if (!target) {
++		damon_destroy_ctx(ctx);
++		return -ENOMEM;
++	}
++	damon_add_target(ctx, target);
++	target_pidp = find_get_pid(target_pid);
++	if (!target_pidp) {
++		damon_destroy_ctx(ctx);
++		return -EINVAL;
++	}
++	target->pid = target_pidp;
++
++	return damon_start(&ctx, 1, true);
+ }
  
- config HAVE_SAMPLE_FTRACE_DIRECT
---- a/samples/Makefile~samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation
-+++ a/samples/Makefile
-@@ -39,3 +39,4 @@ obj-$(CONFIG_SAMPLE_KMEMLEAK)		+= kmemle
- obj-$(CONFIG_SAMPLE_CORESIGHT_SYSCFG)	+= coresight/
- obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
-+obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
+ static void damon_sample_wsse_stop(void)
+ {
+ 	pr_info("stop\n");
++	if (ctx) {
++		damon_stop(&ctx, 1);
++		damon_destroy_ctx(ctx);
++	}
++	if (target_pidp)
++		put_pid(target_pidp);
+ }
+ 
+ static int damon_sample_wsse_enable_store(
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
