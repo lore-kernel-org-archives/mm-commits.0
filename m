@@ -1,163 +1,164 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17C4E19CCF4
-	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 14:53:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5F981EC4EB
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 21:45:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733928837; cv=none; b=isqQ+VribwtLkeke5r63ySjBrHdv/XeMVb05aFTQfRgqMW/dBsBobIukEBsys/I2BMpMrSwVHfffvK2uQveHpeelb1KzwNIDrutHoRIwGlL0PKU9Tn6UamDAlHH9Xv1ljApTiJRqRpmuvgYkE3r1E3fKYXKNnzZyTTJqgoh39WY=
+	t=1733953506; cv=none; b=q99cHXr7p4Uh6+MsXOlrt894O+oqtVt534GluIfupAXqTG3OaZwchmM95Q1hUb4lFth267xXXgg9D4UtyIurru0uiRR+0JLOFMRFlzRxkQSAsP1xox6VlaqmbP6JPzgtYlT5MDkOcuGav56iJvgPSjNoHkPh0yoGXCks00/fSFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733928837; c=relaxed/simple;
-	bh=CCrxpTvEG1fhSckaniqxY4Ws/Wv9InByBoFOQdbTlHQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=OqePZMI4SrIhqxEXhM2RqCcgZzmAUZPrbbdwoU5kiS+zzxxbYO/fw2hW6uwwJWjBMa6MqpCfjK8oX8voCWKf4Rd+qTojol+oM9C+/pX55EvvIZBZO/RkNSDPxp/KNp7O3AiEkSjPxQOsD4RBT/OqheyVVxky7xqUJdITxjWEcyk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=Mh2pY0ti; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	s=arc-20240116; t=1733953506; c=relaxed/simple;
+	bh=ws5pksqlezuxP2dSA/CDxBk0XBpm34DA6pi7aZiDPKg=;
+	h=Date:To:From:Subject:Message-Id; b=oZe9I9lJWdQUd6n8hwpd6V/Bo8nboavCpajhDLcHlfkqVN/fLb29oF7hInxN3eOwL/UZqjflPPyrAq8+SZNlkDkvEic/dw60eFkJy+sFI2JcMIiXSOHTMUPkv4NLGhsex9PRTwq9zm7zGfpNKXriEqbyzLgbea2SogXDX8/3/UU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOke1kuU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="Mh2pY0ti"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-725f4623df7so3141037b3a.2
-        for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 06:53:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1733928834; x=1734533634; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=4LOfo84l1MwONL67IInbcg65IOfZxQJkCGPTEONrmfw=;
-        b=Mh2pY0tiP62m9G9VDUPE2gahUXu3hoepeK+K86VeODFC5ROnlJ9dGTW8m9NHn1Rlp4
-         t+NNXAnpZ7qVBrh344NpAQkTA4lQaT77JgSZR2KqcOifAWikm4QghH8psaeQhownmdw0
-         NIS8l0c4bNeG5NtwmkgNTJp8iUiLlmxaZvdWIxxd3fL8THNF5/w2n1szPFIo3PaIsvJV
-         AP1v05bVeflUXRyGvC1HCxEFBCeAusO6Txj9bFP+a7BVQabvVfAOj8H52FYVIKOGhLbm
-         1yl2o6B02/9ckI7jLwZu0aPQcdBeFdbMJGoFW1POZqCiTGpZe1DJ5BJ0nY3L+W6grpkk
-         iR4w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733928834; x=1734533634;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=4LOfo84l1MwONL67IInbcg65IOfZxQJkCGPTEONrmfw=;
-        b=HGeD1RgOsIXlpczofKmgNvMBeHs8jou7zgwxwQCk1+w83hJKOUKr8ac1nPCn48I0P/
-         Lx3xlJ1m4xJlEptyofH+IbH9Ar6zo2lwLfksCZckWT7UCF+iZmoxI/J4eIOI9oFOdDOh
-         xBSYfPlufukj4MI6zd1yzZQ40g8cAh4H9aQpdDYXvBbaVGnLrSYw6R5aaZTqtbYJ3oVb
-         iek7qAhHwLbq1lbCjbrnUD95K7uj+J6ryZ4JkhRHNiPM5215AAEgDSMliku9ioNmt9f6
-         jKiwi/TWYRFLFujCdExgIJFV/hTUM4OspUpeJwIgIPnKy0tNSmHZU+WhRLWTH6iVBIsF
-         0LOg==
-X-Forwarded-Encrypted: i=1; AJvYcCUovQ3TIdPvzvcE1jtr/nu2h42vaPMHRZLflzPfz5+SlPL4332AR2orK7BgJNkEaYWw6uJwxH8Hxv77@vger.kernel.org
-X-Gm-Message-State: AOJu0YzxWFgKqjUP9BgI4Po6CY5mRUI71fZLk9vZAlWmih79gDV1FoKv
-	nilrlZ8bIfG9PSPDCRHublH5lKonfjMsM8MSAgLp/WUesufsL3ApF0Ceh5z5H/I=
-X-Gm-Gg: ASbGncsNxX8PZ/eA9SH6+uwjFtM8ViixnLWr58ujEQWR2wNnTeAmIyybokMKvtn7kmg
-	lL24gD5tmf/5H9jaCOWuAcKX6BE8LqOZeTGX2pOajwiNlW7PWbOwHHCb+vsORY+HtMud55tByEK
-	ErwaqMFqAtQZFrNu8H5rFrJgU67JEoUnfT9RwskjnTW4IPolJTiVzFCe4sFxUOgmPjUwN4lg1AA
-	sAmWf8zCEOl8vfkKM8jGsFKbPQZC6VwA4r+rQ/+lq10Ey/H27Hpf9Zee5CLnJR1KYdImU1S5kU5
-	oNuWgcLoeBA6WSHWoc7AE2+tEXWa/Gc/Ge8Ef3G5D3NuPU3I+A==
-X-Google-Smtp-Source: AGHT+IFP/9kjpQmjn06cyD+by/lnWpWOMgvy2lrYnBDj2VQ2i3l6WdMoFpDwm0IamyrH65HcbiEyyA==
-X-Received: by 2002:a05:6a20:d50c:b0:1e0:d7ec:5aae with SMTP id adf61e73a8af0-1e1c126ef4dmr5684813637.4.1733928834302;
-        Wed, 11 Dec 2024 06:53:54 -0800 (PST)
-Received: from ?IPV6:2409:8a28:f4f:a9a4:78ea:e338:289:89ae? ([2409:8a28:f4f:a9a4:78ea:e338:289:89ae])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-725c7cba42fsm8811099b3a.123.2024.12.11.06.53.48
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Dec 2024 06:53:53 -0800 (PST)
-Message-ID: <9961dda2-a857-4c82-8d2e-e8ab035f8ecc@bytedance.com>
-Date: Wed, 11 Dec 2024 22:53:45 +0800
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOke1kuU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37C73C4CED2;
+	Wed, 11 Dec 2024 21:45:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1733953506;
+	bh=ws5pksqlezuxP2dSA/CDxBk0XBpm34DA6pi7aZiDPKg=;
+	h=Date:To:From:Subject:From;
+	b=KOke1kuUYrpwdN1/cD1sslXIhxSXSg/1wtyUzBZtC/Plytg+OzzMC3JjVeHr5od/8
+	 Wj9SSyY8pRbe/RC9V6rKkzxO1H4CVTrERuAQA3NwN6c0QHOGb3DXfDPmgQxV2K1Ne1
+	 TnnbiLKljBP/i/bcSiwvE0C1YEW+7T7DrxciH2eo=
+Date: Wed, 11 Dec 2024 13:45:04 -0800
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + memcg-hugetlb-introduce-memcg_accounts_hugetlb.patch added to mm-unstable branch
+Message-Id: <20241211214506.37C73C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-pgtable-make-ptlock-be-freed-by-rcu.patch added to
- mm-unstable branch
-Content-Language: en-US
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- zokeefe@google.com, willy@infradead.org, will@kernel.org,
- rientjes@google.com, peterx@redhat.com, muchun.song@linux.dev,
- mgorman@suse.de, luto@kernel.org, lorenzo.stoakes@oracle.com,
- jannh@google.com, hughd@google.com, david@redhat.com,
- dave.hansen@linux.intel.com, dan.carpenter@linaro.org,
- catalin.marinas@arm.com, Thomas Gleixner <tglx@linutronix.de>,
- Mark Rutland <mark.rutland@arm.com>
-References: <20241211030932.4DA94C4CED6@smtp.kernel.org>
- <20241211091202.GS21636@noisy.programming.kicks-ass.net>
- <e8ec5fa7-8742-4e30-afbf-279d09c49d6c@bytedance.com>
- <20241211125630.GT21636@noisy.programming.kicks-ass.net>
- <20241211133433.GC12500@noisy.programming.kicks-ass.net>
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-In-Reply-To: <20241211133433.GC12500@noisy.programming.kicks-ass.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi Peter,
 
-On 2024/12/11 21:34, Peter Zijlstra wrote:
-> On Wed, Dec 11, 2024 at 01:56:30PM +0100, Peter Zijlstra wrote:
->> On Wed, Dec 11, 2024 at 06:31:31PM +0800, Qi Zheng wrote:
->>
->>> Now, it is also possible not to use the mmu gather mechanism to
->>> free PTE pages:
->>>
->>> pte_free_tlb
->>> --> ___pte_free_tlb
->>>      --> pagetable_pte_dtor
->>> 	--> ptlock_free
->>>          paravirt_tlb_remove_table
->>> 	--> free PTE page
->>>
->>> pte_free
->>> --> pagetable_pte_dtor
->>>      --> ptlock_free
->>>      pagetable_free
->>>
->>> If we want to move the freeing of the ptlock into __tlb_remove_table(),
->>> we may need to define a pagetable_pte_dtor_no_ptlock() and let
->>> ___pte_free_tlb() to call it.
->>>
->>> And ALLOC_SPLIT_PTLOCKS only be enabled when the spinlock debug function
->>> is turned on, so I finally choose to only change ptlock itself without
->>> changing the general path.
->>
->> PREEMPT_RT will also have it on, and it feels a bit odd to have two
->> disparate RCU frees for something so very closely related.
+The patch titled
+     Subject: memcg/hugetlb: introduce memcg_accounts_hugetlb
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-hugetlb-introduce-memcg_accounts_hugetlb.patch
 
-Got it.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-hugetlb-introduce-memcg_accounts_hugetlb.patch
 
->>
->> We could push the whole of pagetable_*_dtor into tlb_remove_table(),
->> except that seems to cause trouble for p4d, which is not conforming.
->>
->> Argh, all this is a giant trainwreck and needs some serious cleanup, and
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Indeed.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
->> I feel your patch is just making it worse.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-:(
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
->>
->> Notably:
->>
->>   - s390 pud isn't calling the existing pagetable_pud_[cd]tor()
->>   - none of the p4d things have pagetable_p4d_[cd]tor() (x86,arm64,s390,riscv)
->>     and they have inconsistent accounting
->>   - while much of the _ctor calls are in generic code, many of the _dtor
->>     calls are in arch code for hysterial raisins, this could easily be
->>     fixed
->>   - if we fix ptlock_free() to handle NULL, then all the _dtor()
->>     functions can use it, and we can observe they're all identical
->>     and can be folded
->>
->> after all that cleanup, you can move the _dtor from *_free_tlb() into
->> tlb_remove_table() -- which for the above case, would then have it
->> called from __tlb_remove_table_free().
->>
->> Thomas, you were looking for technical debt -- there's a ton of that
->> around here :/
-> 
-> Some of the above are in the below... I gave up after a while.
+------------------------------------------------------
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: memcg/hugetlb: introduce memcg_accounts_hugetlb
+Date: Wed, 11 Dec 2024 12:39:49 -0800
 
-Thank you for such a detail suggestion! I will try to digest it and
-implement it.
+Patch series "memcg/hugetlb: Rework memcg hugetlb charging", v3.
 
-Thanks!
+This series cleans up memcg's hugetlb charging logic by deprecating the
+current memcg hugetlb try-charge + {commit, cancel} logic present in
+alloc_hugetlb_folio.  A single function mem_cgroup_charge_hugetlb takes
+its place instead.  This makes the code more maintainable by simplifying
+the error path and reduces memcg's footprint in hugetlb logic.
+
+This patch introduces a few changes in the hugetlb folio allocation
+error path:
+(a) Instead of having multiple return points, we consolidate them to
+    two: one for reaching the memcg limit or running out of memory
+    (-ENOMEM) and one for hugetlb allocation fails / limit being
+    reached (-ENOSPC).
+(b) Previously, the memcg limit was checked before the folio is acquired,
+    meaning the hugeTLB folio isn't acquired if the limit is reached.
+    This patch performs the charging after the folio is reached, meaning
+    if memcg's limit is reached, the acquired folio is freed right away.
+
+This patch builds on two earlier patch series: [2] which adds memcg
+hugeTLB counters, and [3] which deprecates charge moving and removes the
+last references to mem_cgroup_cancel_charge.  The request for this cleanup
+can be found in [2].
+
+[1] https://lore.kernel.org/all/20231006184629.155543-1-nphamcs@gmail.com/
+[2] https://lore.kernel.org/all/20241101204402.1885383-1-joshua.hahnjy@gmail.com/
+[3] https://lore.kernel.org/linux-mm/20241025012304.2473312-1-shakeel.butt@linux.dev/
+
+
+This patch (of 3):
+
+This patch isolates the check for whether memcg accounts hugetlb.  This
+condition can only be true if the memcg mount option
+memory_hugetlb_accounting is on, which includes hugetlb usage in
+memory.current.
+
+Link: https://lkml.kernel.org/r/20241211203951.764733-1-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20241211203951.764733-2-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memcontrol.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+--- a/mm/memcontrol.c~memcg-hugetlb-introduce-memcg_accounts_hugetlb
++++ a/mm/memcontrol.c
+@@ -1448,6 +1448,18 @@ unsigned long memcg_page_state_local_out
+ 		memcg_page_state_output_unit(item);
+ }
+ 
++#ifdef CONFIG_HUGETLB_PAGE
++static bool memcg_accounts_hugetlb(void)
++{
++	return cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_HUGETLB_ACCOUNTING;
++}
++#else /* CONFIG_HUGETLB_PAGE */
++static bool memcg_accounts_hugetlb(void)
++{
++	return false;
++}
++#endif /* CONFIG_HUGETLB_PAGE */
++
+ static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ {
+ 	int i;
+@@ -1469,7 +1481,7 @@ static void memcg_stat_format(struct mem
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		if (unlikely(memory_stats[i].idx == NR_HUGETLB) &&
+-		    !(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_HUGETLB_ACCOUNTING))
++			!memcg_accounts_hugetlb())
+ 			continue;
+ #endif
+ 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
+@@ -4540,8 +4552,7 @@ int mem_cgroup_hugetlb_try_charge(struct
+ 	 * but do not attempt to commit charge later (or cancel on error) either.
+ 	 */
+ 	if (mem_cgroup_disabled() || !memcg ||
+-		!cgroup_subsys_on_dfl(memory_cgrp_subsys) ||
+-		!(cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_HUGETLB_ACCOUNTING))
++		!cgroup_subsys_on_dfl(memory_cgrp_subsys) || !memcg_accounts_hugetlb())
+ 		return -EOPNOTSUPP;
+ 
+ 	if (try_charge(memcg, gfp, nr_pages))
+_
+
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+
+memcg-hugetlb-introduce-memcg_accounts_hugetlb.patch
+memcg-hugetlb-introduce-mem_cgroup_charge_hugetlb.patch
+memcg-hugetlb-remove-memcg-hugetlb-try-commit-cancel-protocol.patch
 
