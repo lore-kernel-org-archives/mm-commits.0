@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E25F1FECAA
-	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 03:09:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EE2B1FC0E9
+	for <mm-commits@vger.kernel.org>; Wed, 11 Dec 2024 03:09:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733886566; cv=none; b=XD4ksyRtUXjPxsaqMhHv8SoiVgLh/jgBNzUntUFigHZbSkfoqOwfbwnd9DxUWZKhDBEw9qiAudw/qFPxkTqj2DjCwvz8vahMnH1tglH6obMTzAx/giazJo2fJ1O9I9sDm7WZGmE2uVp0kBL1MojKkk6Vy/igVAwSw+Shr0O4zBw=
+	t=1733886570; cv=none; b=IVAUKuDwzv+9WC/9Cdllo7SZjevoQMR/9XOFfdkqR51BQvv75JiY5VBEuse7OZS/1tIkn/urcN+XleEEtDR6K+cUPe8oATXqMKKNRnKOhMoT2FmrG6VEEgMO90B1uzypJL+IQMHvk3XMnNElLQCq9k48jOkpat/LbRbPLP0yRa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733886566; c=relaxed/simple;
-	bh=/BpZpO6QnfDn7jTLt23KIFt7rOfBkWx5wOr5ozaCJAQ=;
-	h=Date:To:From:Subject:Message-Id; b=R297EvGW6w5LMGMqy58B77nZJDOAhXXJp+NKckFoMvtFmZTcerWVTl5FaxKLDd6JjAPdjUE5SaDunuhHmKXzgikETEYSf+/9zPIem8UUStF0gI286nMldTwcG8tXACYx69mppOt577n6sRBKmP4teSk+GIh99BYDyjLkJIoM7kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=El05wezf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733886570; c=relaxed/simple;
+	bh=uPjvHdki1Cxn1h0+H+2/U6qxD5KrzRON94bzNpoelWs=;
+	h=Date:To:From:Subject:Message-Id; b=eqTWDVLC4lY+bmFChU+YwrNGS5nbpZ4T51ojA2CHAi/URkaxdhmlP32MLdHaO3y8tI27jky4S0WVirthvnNtIqnFLQ80o+4iUFkJkHlvhsLrAkTsrFu2wndp7G5WHfBvlmV0luv+Jpsh90/YGrZib4W37BClkJKtZ+ghDyty+Mk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wTgVA8rC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="El05wezf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99449C4CED6;
-	Wed, 11 Dec 2024 03:09:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wTgVA8rC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEEC8C4CED6;
+	Wed, 11 Dec 2024 03:09:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733886565;
-	bh=/BpZpO6QnfDn7jTLt23KIFt7rOfBkWx5wOr5ozaCJAQ=;
+	s=korg; t=1733886569;
+	bh=uPjvHdki1Cxn1h0+H+2/U6qxD5KrzRON94bzNpoelWs=;
 	h=Date:To:From:Subject:From;
-	b=El05wezfN/nE6ddeLkEZ1zBe093SoYv+JR0QKTOCkQMmqdD/Dvx5BERcH7NgzTEaX
-	 B4X4zBLFEO+REXh3BGawucWsXzmfzmqxO3X3bKYOg34NdEPHr8JKYMBcSSZ+LQABBm
-	 Ub9nS8AtUu+j2buuBuhIkmayTQ2OHy3KgfbwPU3U=
-Date: Tue, 10 Dec 2024 19:09:24 -0800
+	b=wTgVA8rCOKBASiJit7Dxt9BtF159drc5jte3hBb7H4n/24CKOkhaTENY5X0IVwS0O
+	 S9f6KrCKiRaQO5AJcLlg3FrJ6z0VSKPNsZiD+h7WQPflxr5kJsRL5gvrQ4kWFX55aJ
+	 IIG50zC9MIMhbQjMYQ4ob+s30IRcKx8SmwXDRSdI=
+Date: Tue, 10 Dec 2024 19:09:29 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix.patch added to mm-unstable branch
-Message-Id: <20241211030925.99449C4CED6@smtp.kernel.org>
+Subject: + mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch added to mm-unstable branch
+Message-Id: <20241211030929.CEEC8C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix
+     Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix.patch
+     mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix
-Date: Tue, 10 Dec 2024 16:41:56 +0800
+Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
+Date: Fri, 6 Dec 2024 19:23:48 +0800
 
-The following WARN_ON_ONCE()s can also be expected to be triggered, so
-remove them as well.
+Dan Carpenter reported the following warning:
 
-if (WARN_ON_ONCE(pmd_none(*dst_pmd)) ||  WARN_ON_ONCE(pmd_none(*src_pmd)) ||
-    WARN_ON_ONCE(pmd_trans_huge(*dst_pmd)) || WARN_ON_ONCE(pmd_trans_huge(*src_pmd))
+Commit e3aafd2d3551 ("mm: pgtable: reclaim empty PTE page in
+madvise(MADV_DONTNEED)") from Dec 4, 2024 (linux-next), leads to the
+following Smatch static checker warning:
 
-Link: https://lkml.kernel.org/r/20241210084156.89877-1-zhengqi.arch@bytedance.com
+	mm/pt_reclaim.c:69 try_to_free_pte()
+	error: uninitialized symbol 'ptl'.
+
+To fix it, assign an initial value of NULL to the ptl.
+
+Link: https://lkml.kernel.org/r/20241206112348.51570-1-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/linux-mm/224e6a4e-43b5-4080-bdd8-b0a6fb2f0853@stanley.mountain/
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -89,22 +95,20 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/pt_reclaim.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix
-+++ a/mm/userfaultfd.c
-@@ -1193,8 +1193,8 @@ retry:
- 	}
+--- a/mm/pt_reclaim.c~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
++++ a/mm/pt_reclaim.c
+@@ -36,7 +36,7 @@ void try_to_free_pte(struct mm_struct *m
+ 		     struct mmu_gather *tlb)
+ {
+ 	pmd_t pmdval;
+-	spinlock_t *pml, *ptl;
++	spinlock_t *pml, *ptl = NULL;
+ 	pte_t *start_pte, *pte;
+ 	int i;
  
- 	/* Sanity checks before the operation */
--	if (WARN_ON_ONCE(pmd_none(*dst_pmd)) ||	WARN_ON_ONCE(pmd_none(*src_pmd)) ||
--	    WARN_ON_ONCE(pmd_trans_huge(*dst_pmd)) || WARN_ON_ONCE(pmd_trans_huge(*src_pmd))) {
-+	if (pmd_none(*dst_pmd) || pmd_none(*src_pmd) ||
-+	    pmd_trans_huge(*dst_pmd) || pmd_trans_huge(*src_pmd)) {
- 		err = -EINVAL;
- 		goto out;
- 	}
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
