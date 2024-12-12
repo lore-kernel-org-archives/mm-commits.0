@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 151CE646
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40690645
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733962388; cv=none; b=q0pQi03z93FNJz3uA02s9SNnvfp3rHWcwvWRA8Ith16VzdN7ZxDJsQSIGGp0H1AprYFW45/8sf/dhngAKW5yVotwCNguyyOEWc/P5qrn2/afVp7fbxfO9rkp7l+A2tzsXk7XuHKV8gYsLP2TyE0hYTFyDQjffKwO8JOXYMrgQ4k=
+	t=1733962390; cv=none; b=rT26klEIaWOVekYgF2qi9JcvfY3kmsiNgionbIFhJrjhJ2SOJs54x7HxCZ4WUOM8bRv43QoOgt3IFJX5i4ZtqKQ3F05hVOAhRGHm/c6aV/1sw5t5O2/N07miVel40Nt7f3vTglkfXbzGHZlZPtNil4sVszpNiqFcvRvSUGJQvtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733962388; c=relaxed/simple;
-	bh=G3s7xIn1jllE7EQw9uKmDfNLRZaEt2osKoq+6CKdD5w=;
-	h=Date:To:From:Subject:Message-Id; b=LJWWDn6EkTJeWrbVUNa5WuRD3igCDsySe82kUAoDNszzj3HkR+v3x1YehDe5YeAPmDDV6P0u0w/E6sLt243WrTbdri+OiZDc6SvfSEQ0jxi+NTbNNAsVrCNCCo1rM90kMpFf9b27x0wTfj3HMckbI+gN5yOMsPijSVYrshrs+Nk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RazQmbEj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733962390; c=relaxed/simple;
+	bh=Jast3LkFaGY8sC7Z+NJmX51yD7IKfjteEN5m9cMsDQw=;
+	h=Date:To:From:Subject:Message-Id; b=lwQk5kAGUXeKC7twUdKSddS60VAJPPG7cUPD8Qjde2mKh0iGBuXNWbMVPB2O3xZupmaRxfFCcS4xYhMR/xwR2L5mON/28NYXCVqtLndAAuSywHD9TMWE+VwaDAuwCploN7S+h3Lgx9kKONyK4xB1bPuEtpKyHYHmS1DWdxAObF0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gPHSE5R4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RazQmbEj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F261C4CED2;
-	Thu, 12 Dec 2024 00:13:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gPHSE5R4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12A32C4CED2;
+	Thu, 12 Dec 2024 00:13:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733962387;
-	bh=G3s7xIn1jllE7EQw9uKmDfNLRZaEt2osKoq+6CKdD5w=;
+	s=korg; t=1733962390;
+	bh=Jast3LkFaGY8sC7Z+NJmX51yD7IKfjteEN5m9cMsDQw=;
 	h=Date:To:From:Subject:From;
-	b=RazQmbEjB4w3e9L8skj4NqrksgHN1TzdvBCcoOmKUr55OCIWGtxqf+UDsM/mSQLLv
-	 eCiTESpBGc2LpPUa7eWRtRnNAyz/+kib8bcY//GMn/DC+Lx0D8NnnXXkEtusectDHY
-	 +KQfBhGWxqluQthd2S/uy3VLiFThWk9a0PpaEacM=
-Date: Wed, 11 Dec 2024 16:13:06 -0800
+	b=gPHSE5R4SJDRUB6Y4InAPlORkff7Cyo6cjwuReNwwNSKusZpfnG87/RTe9KhCU1oW
+	 7tF/aGshGlPHRguRjKWIPnaljHCM3YSZBdEUVz8qETXa8PyqVjOyZ592Vj1Bpv0OaK
+	 G/bM9AxH+JgBxF2Ru/KZyBBacpcDynsk5a23u+9I=
+Date: Wed, 11 Dec 2024 16:13:09 -0800
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yang@os.amperecomputing.com,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,riel@surriel.com,minchan@kernel.org,linux@armlinux.org.uk,leitao@debian.org,jcmvbkbc@gmail.com,jason.andryuk@amd.com,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,bp@alien8.de,bhelgaas@google.com,andreas@gaisler.com,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-csky-introduce-arch_mmap_hint.patch added to mm-unstable branch
-Message-Id: <20241212001307.7F261C4CED2@smtp.kernel.org>
+Subject: + mm-loongarch-introduce-arch_mmap_hint.patch added to mm-unstable branch
+Message-Id: <20241212001310.12A32C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: csky: introduce arch_mmap_hint()
+     Subject: mm: loongarch: introduce arch_mmap_hint()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-csky-introduce-arch_mmap_hint.patch
+     mm-loongarch-introduce-arch_mmap_hint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-csky-introduce-arch_mmap_hint.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-loongarch-introduce-arch_mmap_hint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: csky: introduce arch_mmap_hint()
-Date: Wed, 11 Dec 2024 15:27:44 -0800
+Subject: mm: loongarch: introduce arch_mmap_hint()
+Date: Wed, 11 Dec 2024 15:27:45 -0800
 
-Introduce csky arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.  This is a
-preparatory patch, no functional change is introduced.
+Introduce loongarch arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.  This
+is a preparatory patch, no functional change is introduced.
 
-Link: https://lkml.kernel.org/r/20241211232754.1583023-7-kaleshsingh@google.com
+Link: https://lkml.kernel.org/r/20241211232754.1583023-8-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -91,51 +91,52 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/abiv1/inc/abi/pgtable-bits.h |    1 
- arch/csky/abiv1/mmap.c                 |   68 ++++++++++++-----------
- 2 files changed, 38 insertions(+), 31 deletions(-)
+ arch/loongarch/include/asm/pgtable.h |    1 
+ arch/loongarch/mm/mmap.c             |   49 +++++++++++++------------
+ 2 files changed, 28 insertions(+), 22 deletions(-)
 
---- a/arch/csky/abiv1/inc/abi/pgtable-bits.h~mm-csky-introduce-arch_mmap_hint
-+++ a/arch/csky/abiv1/inc/abi/pgtable-bits.h
-@@ -51,5 +51,6 @@
- 					((offset) << 10)})
- 
+--- a/arch/loongarch/include/asm/pgtable.h~mm-loongarch-introduce-arch_mmap_hint
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -624,6 +624,7 @@ static inline long pmd_protnone(pmd_t pm
+  */
  #define HAVE_ARCH_UNMAPPED_AREA
+ #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
 +#define HAVE_ARCH_MMAP_HINT
  
- #endif /* __ASM_CSKY_PGTABLE_BITS_H */
---- a/arch/csky/abiv1/mmap.c~mm-csky-introduce-arch_mmap_hint
-+++ a/arch/csky/abiv1/mmap.c
-@@ -13,6 +13,39 @@
- 	((((addr)+SHMLBA-1)&~(SHMLBA-1)) +	\
- 	 (((pgoff)<<PAGE_SHIFT) & (SHMLBA-1)))
+ #endif /* !__ASSEMBLY__ */
  
+--- a/arch/loongarch/mm/mmap.c~mm-loongarch-introduce-arch_mmap_hint
++++ a/arch/loongarch/mm/mmap.c
+@@ -17,15 +17,11 @@
+ 
+ enum mmap_allocation_direction {UP, DOWN};
+ 
+-static unsigned long arch_get_unmapped_area_common(struct file *filp,
+-	unsigned long addr0, unsigned long len, unsigned long pgoff,
+-	unsigned long flags, enum mmap_allocation_direction dir)
 +unsigned long arch_mmap_hint(struct file *filp, unsigned long addr,
 +			     unsigned long len, unsigned long pgoff,
 +			     unsigned long flags)
-+{
-+	bool do_align;
+ {
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long addr = addr0;
+-	int do_color_align;
+-	struct vm_unmapped_area_info info = {};
++	bool do_color_align;
+ 
+ 	if (unlikely(len > TASK_SIZE))
+ 		return -ENOMEM;
+@@ -45,22 +41,31 @@ static unsigned long arch_get_unmapped_a
+ 		return addr;
+ 	}
+ 
+-	do_color_align = 0;
+-	if (filp || (flags & MAP_SHARED))
+-		do_color_align = 1;
++	do_color_align = filp || (flags & MAP_SHARED);
 +
-+	if (len > TASK_SIZE)
-+		return -ENOMEM;
-+
-+	/*
-+	 * We only need to do colour alignment if either the I or D
-+	 * caches alias.
-+	 */
-+	do_align = filp || (flags & MAP_SHARED);
-+
-+	/*
-+	 * We enforce the MAP_FIXED case.
-+	 */
-+	if (flags & MAP_FIXED) {
-+		if (flags & MAP_SHARED &&
-+		    (addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1))
-+			return -EINVAL;
-+		return addr;
-+	}
-+
-+	if (do_align)
++	if (do_color_align)
 +		addr = COLOUR_ALIGN(addr, pgoff);
 +	else
 +		addr = PAGE_ALIGN(addr);
@@ -143,46 +144,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	return generic_mmap_hint(filp, addr, len, pgoff, flags);
 +}
 +
- /*
-  * We need to ensure that shared mappings are correctly aligned to
-  * avoid aliasing issues with VIPT caches.  We need to ensure that
-@@ -27,8 +60,7 @@ arch_get_unmapped_area(struct file *filp
- 		unsigned long flags, vm_flags_t vm_flags)
- {
- 	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	int do_align = 0;
-+	bool do_align;
- 	struct vm_unmapped_area_info info = {
- 		.length = len,
- 		.low_limit = mm->mmap_base,
-@@ -36,37 +68,11 @@ arch_get_unmapped_area(struct file *filp
- 		.align_offset = pgoff << PAGE_SHIFT
- 	};
++static unsigned long arch_get_unmapped_area_common(struct file *filp,
++	unsigned long addr0, unsigned long len, unsigned long pgoff,
++	unsigned long flags, enum mmap_allocation_direction dir)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long addr = addr0;
++	bool do_color_align;
++	struct vm_unmapped_area_info info = {};
  
--	/*
--	 * We only need to do colour alignment if either the I or D
--	 * caches alias.
--	 */
--	do_align = filp || (flags & MAP_SHARED);
--
--	/*
--	 * We enforce the MAP_FIXED case.
--	 */
--	if (flags & MAP_FIXED) {
--		if (flags & MAP_SHARED &&
--		    (addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1))
--			return -EINVAL;
-+	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
-+	if (addr)
- 		return addr;
--	}
--
--	if (len > TASK_SIZE)
--		return -ENOMEM;
--
+ 	/* requesting a specific address */
 -	if (addr) {
--		if (do_align)
+-		if (do_color_align)
 -			addr = COLOUR_ALIGN(addr, pgoff);
 -		else
 -			addr = PAGE_ALIGN(addr);
@@ -192,11 +165,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		    (!vma || addr + len <= vm_start_gap(vma)))
 -			return addr;
 -	}
++	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
++	if (addr)
++		return addr;
++
++	do_color_align = filp || (flags & MAP_SHARED);
  
-+	do_align = filp || (flags & MAP_SHARED);
- 	info.align_mask = do_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
- 	return vm_unmapped_area(&info);
- }
+ 	info.length = len;
+ 	info.align_mask = do_color_align ? (PAGE_MASK & SHM_ALIGN_MASK) : 0;
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
